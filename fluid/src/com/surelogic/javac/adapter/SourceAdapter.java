@@ -756,7 +756,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     return adaptClass(node, context, false);
   }
 
-  private IRNode adaptClass(ClassTree node, CodeContext context, boolean isNested) {
+  private IRNode adaptClass(ClassTree node, final CodeContext context, boolean isNested) {
     String mod = node.getModifiers().toString();
     String id = node.getSimpleName().toString();
     String src = node.toString().substring(mod.length() + 1);
@@ -770,18 +770,19 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     final boolean isInterface = !isAnno && mod.contains("interface ");
     final boolean isEnum = !isClass && !isInterface && enm >= 0 && enm < idLoc;
     final TypeKind kind;
+    final CodeContext newContext;
     if (isAnno) {
       kind = TypeKind.ANNO;
-      context = CodeContext.makeFromAnnotation(context, true);
+      newContext = CodeContext.makeFromAnnotation(context, true);
     } else if (isInterface) {
       kind = TypeKind.IFACE;
-      context = CodeContext.makeFromInterface(context, true);
+      newContext = CodeContext.makeFromInterface(context, true);
     } else if (isEnum) {
       kind = TypeKind.ENUM;
-      context = new CodeContext(false, false, false);
+      newContext = new CodeContext(false, false, false);
     } else {
       kind = TypeKind.OTHER;
-      context = new CodeContext(false, false, false);
+      newContext = new CodeContext(false, false, false);
     }
     int mods = adaptModifiers(node.getModifiers());
     IRNode annos = adaptAnnotations(node.getModifiers(), context);
@@ -798,7 +799,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
      * System.out.println("Found HASessionStateImpl"); }
      */
     IRNode[] impl = map(adaptTypes, node.getImplementsClause(), context);
-    IRNode[] mbrs = map(new AdaptMembers(id, kind), node.getMembers(), context);
+    IRNode[] mbrs = map(new AdaptMembers(id, kind), node.getMembers(), newContext);
     IRNode formals = TypeFormals.createNode(types);
     IRNode body;
     try {
@@ -806,7 +807,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       addJavaRefAndCheckForJavadocAnnotations(node, body);
     } catch (IllegalChildException e) {
       body = null;
-      map(new AdaptMembers(id, kind), node.getMembers(), context);
+      map(new AdaptMembers(id, kind), node.getMembers(), newContext);
     }
     IRNode rv;
     if (context.fromInterface()) {
