@@ -63,6 +63,9 @@ public final class FilterJavaType extends Filter {
           if (jr != null) {
             final String imageName;
             switch (DeclUtil.getTypeKind(jr.getDeclaration())) {
+            case ANNOTATION:
+              imageName = CommonImages.IMG_ANNOTATION;
+              break;
             case ENUM:
               imageName = CommonImages.IMG_ENUM;
               break;
