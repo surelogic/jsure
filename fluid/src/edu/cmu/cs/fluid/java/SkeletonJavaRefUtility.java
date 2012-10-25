@@ -75,10 +75,12 @@ public final class SkeletonJavaRefUtility {
       nodeToSkeleton.put(to, s);
       return true;
     } else {
+      /*
       String unparse = DebugUnparser.toString(from);
       if (unparse.length() != 0 && !unparse.contains("public class []")) {
     	  System.out.println("No ref info for "+unparse);
       }
+      */
     }
     if (JavaNode.copyFluidJavaRef(from, to) == null)
       return false;
