@@ -9,6 +9,7 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDiffInfo;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
+import static com.surelogic.dropsea.IDiffInfo.*;
 
 public final class DiffCategory<K extends Comparable<K>> implements IViewable, Comparable<DiffCategory<K>> {
   final K key;
@@ -126,7 +127,8 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
               out.println(title);
               title = null;
             }
-            out.println("\t" + label + ": " + toString(n));
+            out.println("\t" + label + ":+" + toString(n));
+            out.println("\t" + label + ":-" + toString(o));
           }
           newMatchingOld.put(n.drop, o.drop);
           old.remove(o);
@@ -188,11 +190,13 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
     }
     // FIX to use accessors
     if (ref == null) {
-      return "null - null - null - " + proved + " - " + d.getMessageCanonical() + " - " + d.getMessage();
+      return proved + " - " + d.getMessageCanonical() + " - " + d.getMessage();
     } else {
-      return ref.getOffset() + " - " + d.getDiffInfoAsLong(IDiffInfo.FAST_TREE_HASH, -1) + " - "
-          + d.getDiffInfoAsLong(IDiffInfo.FAST_CONTEXT_HASH, -1) + " - " + proved + " - " + d.getMessageCanonical() + " - "
-          + d.getMessage();
+      return proved + " - " + d.getMessageCanonical() + " - " + d.getMessage() + " - " +
+      		 d.getDiffInfoAsInt(DECL_RELATIVE_OFFSET, -1) + " - " +
+      		 d.getDiffInfoAsInt(DECL_END_RELATIVE_OFFSET, -1) + " - " +
+      		 d.getDiffInfoAsLong(FAST_TREE_HASH, -1) + " - " +
+       		 d.getDiffInfoAsLong(FAST_CONTEXT_HASH, -1) + " - " + ref;
     }
   }
 }
