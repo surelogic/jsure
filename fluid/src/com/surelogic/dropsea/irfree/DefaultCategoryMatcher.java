@@ -13,7 +13,7 @@ import com.surelogic.dropsea.IResultDrop;
 public class DefaultCategoryMatcher extends CategoryMatcher {	
   protected static final IDropMatcher matchDeclAndOffset = new AbstractDropMatcher("Decl   ", false) {
 	  public boolean match(IDrop n, IDrop o) {
-		  return matchBasics(n, o) && matchIDecls(n.getJavaRef(), n.getJavaRef()) &&
+		  return matchBasics(n, o) && matchIDecls(n.getJavaRef(), o.getJavaRef()) &&
 		         (matchIntDiffInfo(IDiffInfo.DECL_RELATIVE_OFFSET, n, o) || 
 		    	  matchIntDiffInfo(IDiffInfo.DECL_END_RELATIVE_OFFSET, n, o));
 	  }
