@@ -15,6 +15,7 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IScopedPromiseDrop;
+import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.dropsea.UiShowAtTopLevel;
 import com.surelogic.jsure.core.scans.JSureScanInfo;
 
@@ -56,9 +57,11 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
 
   private Element[] f_root = null;
 
-  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, final boolean showHints) {
+  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, final boolean showHints, final ScanDifferences diff) {
     final List<Element> root = new ArrayList<Element>();
     Element.f_showHints = showHints;
+    System.out.println("diff" + diff);
+    Element.f_diff = diff;
     final ElementCategory.Categorizer pc = new ElementCategory.Categorizer(null);
     for (IPromiseDrop promise : scan.getPromiseDrops()) {
       if (promise.isFromSrc() || promise.derivedFromSrc()) {
