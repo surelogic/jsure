@@ -778,8 +778,10 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       context = CodeContext.makeFromInterface(context, true);
     } else if (isEnum) {
       kind = TypeKind.ENUM;
+      context = new CodeContext(false, false, false);
     } else {
       kind = TypeKind.OTHER;
+      context = new CodeContext(false, false, false);
     }
     int mods = adaptModifiers(node.getModifiers());
     IRNode annos = adaptAnnotations(node.getModifiers(), context);

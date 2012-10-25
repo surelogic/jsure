@@ -273,8 +273,9 @@ private IteratableHashSet<IBinding> findOverridenParentsFromType(IRNode mth,
 		  ISubTypeSearchStrategy s, IRNode method, IJavaType startType) {
 	  final Operator op = JJNode.tree.getOperator(method);
 	  if (op instanceof ConstructorDeclaration) {
-		  // TODO ignore "overridden methods" of constructors?
 		  return new EmptyIterator<IRNode>();
+	  } else if (op instanceof AnnotationElement) {		  
+		  // TODO just continue?
 	  } else if (!(op instanceof MethodDeclaration)) {
 		  //if (!warnedSet.contains(method)) {
 			  LOG.warning("findOverriddenMethod: trying to match against "
