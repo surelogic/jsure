@@ -18,10 +18,12 @@ import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.dropsea.ScanDifferences;
+import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureDataDirScanner;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 
 /**
  * Singleton that provides a notification hub about the scans within the JSure
@@ -298,7 +300,17 @@ public final class JSureDataDirHub {
    *         scan could be located.
    */
   public Pair<ScanDifferences, JSureScanInfo> getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull() {
-    return null;
+    final JSureScanInfo currentScanInfo, lastScanInfo;
+	synchronized (f_lock) {
+		currentScanInfo = f_currentScanInfo;
+		JSureScan last = f_dataDir.findLastMatchingScan(currentScanInfo.getJSureRun());
+		if (last == null) {
+			return null;
+		}
+		lastScanInfo = new JSureScanInfo(last);
+	}
+	ISeaDiff diff = currentScanInfo.diff(lastScanInfo, UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER);
+    return new Pair<ScanDifferences, JSureScanInfo>(diff.build(), lastScanInfo);
   }
 
   /**
