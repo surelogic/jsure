@@ -7,6 +7,7 @@ import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.TypeUtils.*;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -524,8 +525,12 @@ class MethodBinder {
 	          	System.out.println();
 	          }
 			 */
-		} else {
+		} else if (op instanceof ConstructorDeclaration) {
 			formals = ConstructorDeclaration.getParams(mdecl);
+		} else if (op instanceof AnnotationElement) {
+			formals = AnnotationElement.getParams(mdecl);
+		} else {
+			throw new IllegalStateException("Unexpected: "+JavaNames.getFullName(mdecl));
 		}
 		final int numFormals = JJNode.tree.numChildren(formals);
 		IJavaType[] types = new IJavaType[numFormals];

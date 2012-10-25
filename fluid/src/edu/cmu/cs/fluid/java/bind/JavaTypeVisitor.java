@@ -1,12 +1,5 @@
-/*
- * Created on Aug 11, 2004
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Generation - Code and Comments
- */
 package edu.cmu.cs.fluid.java.bind;
 
-import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -104,6 +97,11 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitAnnotationDeclaration(IRNode node) {
     return JavaTypeFactory.getDeclaredType(node, Collections.<IJavaType>emptyList(), null);
+  }
+  
+  @Override
+  public IJavaType visitAnnotationElement(IRNode node) {
+	return doAccept(AnnotationElement.getType(node));
   }
   
   @Override
