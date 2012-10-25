@@ -146,6 +146,8 @@ public final class ColumnLabelProviderUtility {
         VerificationStatusView.ICONSIZE);
     private final ResultsImageDescriptor f_enumRid = new ResultsImageDescriptor(CommonImages.IMG_ENUM, 0,
         VerificationStatusView.ICONSIZE);
+    private final ResultsImageDescriptor f_annotationRid = new ResultsImageDescriptor(CommonImages.IMG_ANNOTATION, 0,
+        VerificationStatusView.ICONSIZE);
 
     @Override
     public void update(ViewerCell cell) {
@@ -159,6 +161,9 @@ public final class ColumnLabelProviderUtility {
             cell.setImage(f_classRid.getCachedImage());
           else {
             switch (DeclUtil.getTypeKind(ref.getDeclaration())) {
+            case ANNOTATION:
+              cell.setImage(f_annotationRid.getCachedImage());
+              break;
             case ENUM:
               cell.setImage(f_enumRid.getCachedImage());
               break;
