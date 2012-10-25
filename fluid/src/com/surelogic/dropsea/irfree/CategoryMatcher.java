@@ -2,6 +2,7 @@ package com.surelogic.dropsea.irfree;
 
 import java.util.*;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDiffInfo;
@@ -106,6 +107,11 @@ public abstract class CategoryMatcher {
     return rv;
   }
 
+  protected static boolean isWithinX(final int maxDiff, int n, int o) {
+	final int diff = Math.abs(n - o);
+	return diff <= maxDiff;
+  }
+  
   protected static int getOffset(IDrop d) {
     IJavaRef ref = d.getJavaRef();
     if (ref != null) {
@@ -140,10 +146,49 @@ public abstract class CategoryMatcher {
     }
     IDecl n = nr.getDeclaration();
     IDecl o = or.getDeclaration();
-    if (n == null || o == null) {
-    	return false;
+    boolean rv = n.isSameDeclarationAsSloppy(o);
+    /*
+    if (rv) {
+    	n.isSameDeclarationAsSloppy(o);
     }
-    return n.isSameDeclarationAsSloppy(o);
+    */
+    return rv;
+  }
+  
+  protected static boolean matchIDeclsClosely(IJavaRef nr, IJavaRef or) {
+	  if (nr == null || or == null) {
+		  return false;
+	  }
+	  if (nr.getPositionRelativeToDeclaration() != or.getPositionRelativeToDeclaration()) {
+		  return false;
+	  }
+	  final IDecl n = nr.getDeclaration();
+	  final IDecl o = or.getDeclaration();
+	  // Check if the parents are the same
+	  if (n.getParent() != o.getParent()) {
+		  if (n.getParent() == null || o.getParent() == null) {
+			  return false;
+		  }
+		  if (!n.getParent().isSameDeclarationAsSloppy(o.getParent())) {
+			  return false;
+		  }
+	  } // else both null or exactly the same
+
+	  // Nearly the same location
+	  if (!isWithinX(3, nr.getLineNumber(), or.getLineNumber())) {
+		  return false;
+	  }
+	  
+	  if (n.hasSameAttributesAsSloppy(o)) { // same name/kind
+		  // Close parameters -- TODO how to check the parameter types?
+		  return isWithinX(1, n.getParameters().size(), o.getParameters().size());
+	  } 
+	  else if (n.getKind() == IDecl.Kind.METHOD && SLUtility.nullSafeEquals(n.getKind(), o.getKind()) && 
+			   n.isSameSimpleDeclarationAsSloppy(o, false)) { 
+		  // same kind/parameters		  
+		  return n.getTypeOf().getFullyQualified().equals(o.getTypeOf().getFullyQualified());
+	  }
+ 	  return false;
   }
   
   protected static boolean matchIntDiffInfo(String key, IDrop n, IDrop o) {
