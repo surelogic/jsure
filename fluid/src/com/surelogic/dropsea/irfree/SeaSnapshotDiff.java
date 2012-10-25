@@ -56,7 +56,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     if (c == null) {
       throw new IllegalArgumentException();
     }
-    if (matcher != null) {
+    if (matcher != defaultMatcher) {
       throw new IllegalStateException();
     }
     matcher = c;
