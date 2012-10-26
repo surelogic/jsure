@@ -9,8 +9,8 @@ import org.eclipse.core.resources.*;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.regression.RegressionUtility;
+import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 /**
  * Export the Drop-Sea results as XML to the specified file name

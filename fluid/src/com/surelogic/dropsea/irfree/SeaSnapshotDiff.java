@@ -18,6 +18,8 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.ScanDifferences;
+import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.javac.persistence.JSureScanInfo;
 
 import edu.cmu.cs.fluid.util.CPair;
 
@@ -201,17 +203,27 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
   }
 
   public static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, File old, File newer) throws Exception {
-    Collection<IDrop> newerResults = SeaSnapshot.loadSnapshot(newer);
-    return diff(f, old, newerResults);
+	Collection<IDrop> newerResults = newer.isDirectory() ? new JSureScanInfo(new JSureScan(newer)).getDropInfo() :
+		SeaSnapshot.loadSnapshot(newer);
+	Collection<IDrop> oldResults = old.isDirectory() ? new JSureScanInfo(new JSureScan(old)).getDropInfo() :
+		SeaSnapshot.loadSnapshot(old);
+    return diff(f, oldResults, newerResults);
   }
 
-  public static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, File old, Collection<? extends IDrop> newer)
+  public static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, File old, JSureScanInfo newer)
       throws Exception {
-    Collection<IDrop> oldResults = SeaSnapshot.loadSnapshot(old);
-    return diff(f, oldResults, newer);
+    Collection<IDrop> oldResults = old.isDirectory() ? new JSureScanInfo(new JSureScan(old)).getDropInfo() :
+    		SeaSnapshot.loadSnapshot(old);
+    return diff(f, oldResults, newer.getDropInfo());
   }
 	  
-  public static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, Collection<IDrop> old,
+  /*
+  private static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, JSureScanInfo old, JSureScanInfo newer) {
+	  
+  }
+  */
+  
+  private static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, Collection<IDrop> old,
       Collection<? extends IDrop> newer) {
     SeaSnapshotDiff<CPair<String, String>> rv = new SeaSnapshotDiff<CPair<String, String>>();
     rv.setFilter(augmentDefaultFilter(f));

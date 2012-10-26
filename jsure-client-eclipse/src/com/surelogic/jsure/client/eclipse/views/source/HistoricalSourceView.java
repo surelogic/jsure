@@ -3,7 +3,6 @@ package com.surelogic.jsure.client.eclipse.views.source;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Collections;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -22,8 +21,8 @@ import com.surelogic.javac.Config;
 import com.surelogic.javac.JavaSourceFile;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 public class HistoricalSourceView extends AbstractHistoricalSourceView
 		implements JSureDataDirHub.CurrentScanChangeListener {

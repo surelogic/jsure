@@ -21,10 +21,10 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.irfree.*;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 	private static final Object[] noElements = SLUtility.EMPTY_OBJECT_ARRAY;
@@ -55,7 +55,7 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 				File file = findBaseline(scan);
 				if (file != null) {
 					diff = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER, 
-							file, info);
+							file, scan);
 
 					if (diff != null) {
 						return scan.getLabel();

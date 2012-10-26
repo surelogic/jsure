@@ -7,9 +7,9 @@ import java.io.*;
 
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
+import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 
 /**
@@ -52,7 +52,7 @@ public class CompareResults extends AbstractCommand {
 		
 		System.out.println("Using oracle: "+oracle);		
 		ISeaDiff diff = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER, 
-				oracle, info.getDropInfo());
+				oracle, info);
 		
 		final File diffs = resolveFile(context, contents[3], true);	
 		if (!diff.isEmpty()) {
