@@ -61,13 +61,13 @@ import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 public final class VerificationStatusView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener {
 

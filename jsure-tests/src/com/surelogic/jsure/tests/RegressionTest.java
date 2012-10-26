@@ -612,10 +612,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		final File xmlLocation = RegressionUtility.findOracle(projectPath);
 		if (!xmlLocation.exists()) {
 			return resultsOk;
-		}
-		Collection<IDrop> newResults = SeaSnapshot.loadSnapshot(resultsSnapshot);		
+		}	
 		ISeaDiff diff = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER, 
-				xmlLocation, newResults);
+				xmlLocation, resultsSnapshot);
 
 		String diffPath = new File(workspaceFile, projectName
 				+ RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX)

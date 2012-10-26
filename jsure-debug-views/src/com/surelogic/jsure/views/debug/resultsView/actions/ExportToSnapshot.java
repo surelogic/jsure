@@ -17,8 +17,8 @@ import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
+import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 public class ExportToSnapshot implements IViewActionDelegate {
   //private IViewPart currentView = null;

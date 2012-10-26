@@ -17,7 +17,7 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IScopedPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.dropsea.UiShowAtTopLevel;
-import com.surelogic.jsure.core.scans.JSureScanInfo;
+import com.surelogic.javac.persistence.JSureScanInfo;
 
 public final class VerificationStatusViewContentProvider implements ITreeContentProvider {
 

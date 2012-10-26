@@ -17,8 +17,8 @@ import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 /**
  * Defines a selection of JSure analysis and verification results using a series
