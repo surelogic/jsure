@@ -81,6 +81,7 @@ public class DiffHeuristics {
 			final IRNode closestDecl, final IJavaRef closestRef) {
 		final IJavaRef here = loc.first();
 		final boolean useDecl = closestDecl == loc.second() || c.drop instanceof IPromiseDrop ||
+							   AnonClassExpression.prototype.includes(closestDecl) ||
 		                       here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RECEIVER ||
 		                       here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RETURN_VALUE;		
 		final IRNode start = useDecl ? closestDecl : 
