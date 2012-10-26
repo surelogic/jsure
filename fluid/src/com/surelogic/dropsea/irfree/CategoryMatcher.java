@@ -5,6 +5,7 @@ import java.util.*;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDiffInfo;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
@@ -79,8 +80,17 @@ public abstract class CategoryMatcher {
     result = matchStrings(n.getMessage(), o.getMessage(), true);
     return result != null ? result : false;
   }
-
+  
+  protected static boolean matchAnalysisHint(IDrop n, IDrop o) {
+	return matchStrings(n.getDiffInfoOrNull(IDiffInfo.ANALYSIS_DIFF_HINT), 
+			            o.getDiffInfoOrNull(IDiffInfo.ANALYSIS_DIFF_HINT), false);  
+  }
+  
   protected static boolean matchSupportingInfo(IDrop n, IDrop o) {
+	if (!(n instanceof IAnalysisResultDrop) || 
+		!(n instanceof IAnalysisResultDrop)) {
+		return false;
+	}
     final long oh = computeSIHash(o);
     if (DropDiff.allowMissingSupportingInfos && oh == 0) {
       return true;

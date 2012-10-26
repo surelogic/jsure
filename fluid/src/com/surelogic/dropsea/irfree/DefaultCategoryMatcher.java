@@ -51,7 +51,8 @@ public class DefaultCategoryMatcher extends CategoryMatcher {
 	  }
 
 	  public final boolean match(IDrop n, IDrop o) {
-		  return base.match(n, o) && matchSupportingInfo(n, o);
+		  return base.match(n, o) &&
+		         (matchAnalysisHint(n, o) || matchSupportingInfo(n, o));
 	  }
   }
   
