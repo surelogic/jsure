@@ -6,7 +6,6 @@ import java.util.*;
 
 import com.surelogic.common.IViewable;
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.dropsea.IDiffInfo;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
 import static com.surelogic.dropsea.IDiffInfo.*;
@@ -130,12 +129,14 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
             out.println("\t" + label + ":+" + toString(n));
             out.println("\t" + label + ":-" + toString(o));
           }
-          newMatchingOld.put(n.drop, o.drop);
+
           old.remove(o);
           it.remove();
           DropDiff d = DropDiff.compute(out, n, o);
           if (d != null) {
             diffs.add(d);
+          } else {
+        	newMatchingOld.put(n.drop, o.drop);
           }
           break;
         }
