@@ -83,7 +83,7 @@ public abstract class CategoryMatcher {
   
   protected static boolean matchAnalysisHint(IDrop n, IDrop o) {
 	return matchStrings(n.getDiffInfoOrNull(IDiffInfo.ANALYSIS_DIFF_HINT), 
-			            o.getDiffInfoOrNull(IDiffInfo.ANALYSIS_DIFF_HINT), false);  
+			            o.getDiffInfoOrNull(IDiffInfo.ANALYSIS_DIFF_HINT), false) == Boolean.TRUE;  
   }
   
   protected static boolean matchSupportingInfo(IDrop n, IDrop o) {
