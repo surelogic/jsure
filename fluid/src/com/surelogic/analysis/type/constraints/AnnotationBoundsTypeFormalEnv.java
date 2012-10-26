@@ -1,10 +1,8 @@
 package com.surelogic.analysis.type.constraints;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.promise.AnnotationBoundsNode;
 import com.surelogic.annotation.rules.LockRules;
@@ -158,25 +156,7 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
     return oneOfFlag && !noneOfFlag;
   }
 
-  /*
-   * Here we get a bit ugly.  We have three possible cases:
-   * (1) The formal matches because of an @AnnotationBounds promise.
-   * (2) The formal matches because of an implied annotation bound from a 
-   *     @Containable promise
-   * (3) The formal doesn't match.
-   * 
-   * The problem is, that in the case of (2) we don't want to return the
-   * Containable promise drop because it makes the chain of evidence strange,
-   * particularly in cases where the Containable promise isn't satisfied.  But
-   * in the case of (1) we do want to return the AnnotationBounds promise.
-   * 
-   * So we use three return values:
-   * (1) A singleton set of the AnnotationBounds promise.
-   * (2) An empty set
-   * (3) null
-   */
-
-  private Set<PromiseDrop<? extends IAASTRootNode>> isX(
+  private PromiseDrop<?> isX(
       final IJavaTypeFormal formal, final boolean exclusive, Set<Bounds> oneOf, Set<Bounds> noneOf) {
     final IRNode decl = formal.getDeclaration();
     final String name = TypeFormal.getId(decl);
@@ -185,43 +165,43 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
     /* Favor explicit annotation bounds over those implied by 
      * @Containable
      */
-    Set<PromiseDrop<? extends IAASTRootNode>> result = null;
+    PromiseDrop<?> result = null;
     final AnnotationBoundsPromiseDrop abDrop = LockRules.getAnnotationBounds(typeDecl);
     if (abDrop != null) {
-      result = testFormalAgainstAnnotationBounds(abDrop.getAAST(), name, oneOf, exclusive ? noneOf : emptySet) ? Collections.<PromiseDrop<? extends IAASTRootNode>>singleton(abDrop) : null;
+      result = testFormalAgainstAnnotationBounds(abDrop.getAAST(), name, oneOf, exclusive ? noneOf : emptySet) ? abDrop : null;
     }
     
     if (result == null) {
       final ContainablePromiseDrop cDrop = LockRules.getContainableImplementation(typeDecl);
       if (cDrop != null) {
-        result = testFormalAgainstContainable(cDrop, oneOf, exclusive ? noneOf : emptySet) ? Collections.<PromiseDrop<? extends IAASTRootNode>>singleton(cDrop) : null;
+        result = testFormalAgainstContainable(cDrop, oneOf, exclusive ? noneOf : emptySet) ? cDrop : null;
       }
     }
     
     return result;
   }
   
-  public Set<PromiseDrop<? extends IAASTRootNode>> isContainable(
+  public PromiseDrop<?> isContainable(
       final IJavaTypeFormal formal, final boolean exclusive) {
     return isX(formal, exclusive, containableSet, notContainableSet);
   }
 
-  public Set<PromiseDrop<? extends IAASTRootNode>> isImmutable(
+  public PromiseDrop<?> isImmutable(
       final IJavaTypeFormal formal, final boolean exclusive) {
     return isX(formal, exclusive, immutableSet, notImmutableSet);
   }
 
-  public Set<PromiseDrop<? extends IAASTRootNode>> isReferenceObject(
+  public PromiseDrop<?> isReferenceObject(
       final IJavaTypeFormal formal, final boolean exclusive) {
     return isX(formal, exclusive, referenceSet, notReferenceSet);
   }
 
-  public Set<PromiseDrop<? extends IAASTRootNode>> isThreadSafe(
+  public PromiseDrop<?> isThreadSafe(
       final IJavaTypeFormal formal, final boolean exclusive) {
     return isX(formal, exclusive, threadSafeSet, notThreadSafeSet);
   }
 
-  public Set<PromiseDrop<? extends IAASTRootNode>> isValueObject(
+  public PromiseDrop<?> isValueObject(
       final IJavaTypeFormal formal, final boolean exclusive) {
     return isX(formal, exclusive, valueSet, notValueSet);
   }

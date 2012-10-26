@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProofDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
@@ -96,10 +95,10 @@ public abstract class TypeDeclAnnotationTester {
       return first || second;
     } else if (type instanceof IJavaTypeFormal) {
       // First check the formal against annotation bounds
-      final Set<PromiseDrop<? extends IAASTRootNode>> bound =
+      final PromiseDrop<?> bound = 
           testFormalAgainstAnnotationBounds((IJavaTypeFormal) type);
       if (bound != null) {
-        trusts.addAll(bound);
+        trusts.add(bound);
         return true;
       } else {
         // Test the upperbound
@@ -144,6 +143,6 @@ public abstract class TypeDeclAnnotationTester {
   protected abstract ProofDrop testTypeDeclaration(
       IRNode type);
   
-  protected abstract Set<PromiseDrop<? extends IAASTRootNode>> testFormalAgainstAnnotationBounds(
+  protected abstract PromiseDrop<?> testFormalAgainstAnnotationBounds(
       IJavaTypeFormal formal);
 }

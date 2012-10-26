@@ -46,7 +46,6 @@ import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
 import edu.cmu.cs.fluid.java.operator.TypeActuals;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
-import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -477,8 +476,8 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
          */
         final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos =
             new HashMap<AnnotationBounds, Set<ProofDrop>>();
-        for (final AnnotationBounds tb : AnnotationBounds.values()) {
-          tb.testType(jTypeOfActual, actualAnnos, binder, formalEnv);
+        for (final AnnotationBounds ab : AnnotationBounds.values()) {
+          ab.testType(jTypeOfActual, actualAnnos, binder, formalEnv);
         }
         
         final IRNode link = jTypeOfActual instanceof IJavaSourceRefType ?
