@@ -5,9 +5,9 @@ import java.util.*;
 import java.util.zip.*;
 
 import com.surelogic.common.FileUtility;
-import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
+import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
@@ -117,22 +117,7 @@ public class JSureScan implements Comparable<JSureScan> {
 	 *         otherwise.
 	 */
 	public static boolean doesDirNameFollowScanNamingConventions(String dirName) {
-		if (dirName == null)
-			return false;
-
-		// There should be at least 3 segments: label date time
-		final String[] name = dirName.split(" ");
-		if (name.length < 3)
-			return false;
-		try {
-			// try to parse the date and time (the last two segments)
-			SLUtility.fromStringHMS(name[name.length - 2] + ' '
-					+ (name[name.length - 1].replace('-', ':')));
-		} catch (Exception e) {
-			return false;
-		}
-		// looks okay
-		return true;
+		return RegressionUtility.extractDateFromName(dirName) != null;
 	}
 
 	private final Date f_timeOfScan; // non-null
@@ -148,12 +133,11 @@ public class JSureScan implements Comparable<JSureScan> {
 		f_scanDir = scanDir;
 
 		// There should be at least 3 segments: label date time
-		final String[] name = scanDir.getName().split(" ");
-		if (name.length < 3) {
+		final Date time = RegressionUtility.extractDateFromName(scanDir.getName());
+		if (time == null) {
 			throw new IllegalArgumentException(I18N.err(229, scanDir.getName()));
 		}
-		f_timeOfScan = SLUtility.fromStringHMS(name[name.length - 2] + ' '
-				+ (name[name.length - 1].replace('-', ':')));
+		f_timeOfScan = time;
 		
 		final Properties props = getScanProperties(scanDir);
 		f_sizeInMB = Double.parseDouble(props.getProperty(SIZE_IN_MB.key));
