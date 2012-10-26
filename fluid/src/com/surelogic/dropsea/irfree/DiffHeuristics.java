@@ -103,7 +103,7 @@ public class DiffHeuristics {
 			final Operator op =  JJNode.tree.getOperator(loc.second());
 			if (Annotation.prototype.includes(op) || 
 				ParameterDeclaration.prototype.includes(op) || 
-				ClassType.prototype.includes(op) ||
+				Type.prototype.includes(op) ||
 				ClassBody.prototype.includes(op) ||
 				TypeFormal.prototype.includes(op)) {
 				if (c.isNeg("enclosing offset", closestRef.getOffset(), closestRef)) {
