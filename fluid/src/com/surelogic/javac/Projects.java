@@ -15,10 +15,10 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.Pair;
-import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.SLProgressMonitor;
+import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
@@ -106,8 +106,7 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
       setPreviousPartialScan(oldProjects.f_scan);
     }
 
-    final String time = SLUtility.toStringHMS(getDate());
-    final String name = getShortLabel() + ' ' + time.replace(':', '-');
+    final String name = RegressionUtility.computeScanName(getShortLabel(), getDate());
     f_scan = name;
     f_scanDir = new File(dataDir, name);
     f_scanDir.mkdirs();
