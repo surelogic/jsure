@@ -21,34 +21,6 @@ import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 @Utility
 public final class ColumnLabelProviderUtility {
 
-  private static Color f_changedColor;
-
-  private static Color getChangedColor() {
-    if (f_changedColor == null) {
-      f_changedColor = new Color(Display.getCurrent(), 181, 213, 255);
-      Display.getCurrent().disposeExec(new Runnable() {
-        public void run() {
-          f_changedColor.dispose();
-        }
-      });
-    }
-    return f_changedColor;
-  }
-
-  private static Color f_newColor;
-
-  private static Color getNewColor() {
-    if (f_newColor == null) {
-      f_newColor = new Color(Display.getCurrent(), 213, 255, 181);
-      Display.getCurrent().disposeExec(new Runnable() {
-        public void run() {
-          f_newColor.dispose();
-        }
-      });
-    }
-    return f_newColor;
-  }
-
   private static Color f_onClauseColor;
 
   private static Color getSpecialColor() {
@@ -61,17 +33,6 @@ public final class ColumnLabelProviderUtility {
       });
     }
     return f_onClauseColor;
-  }
-
-  private static void setDiffBackground(Element element, ViewerCell cell) {
-    final ScanDifferences diff = Element.f_diff;
-    if (diff != null && element instanceof ElementDrop) {
-      final IDrop drop = ((ElementDrop) element).getDrop();
-      if (diff.isNotInOldScan(drop))
-        cell.setBackground(getNewColor());
-      if (diff.isChangedButInBothScans(drop))
-        cell.setBackground(getChangedColor());
-    }
   }
 
   static final StyledCellLabelProvider TREE = new StyledCellLabelProvider() {
@@ -123,8 +84,6 @@ public final class ColumnLabelProviderUtility {
             cell.setStyleRanges(ranges);
           }
         }
-
-        setDiffBackground(element, cell);
       } else
         super.update(cell);
     }
@@ -164,7 +123,6 @@ public final class ColumnLabelProviderUtility {
             cell.setText(project);
           cell.setImage(f_projectRid.getCachedImage());
         }
-        setDiffBackground(element, cell);
       }
     }
   };
@@ -183,7 +141,6 @@ public final class ColumnLabelProviderUtility {
           cell.setText(pkg);
           cell.setImage(f_packageRid.getCachedImage());
         }
-        setDiffBackground(element, cell);
       }
     }
   };
@@ -227,7 +184,6 @@ public final class ColumnLabelProviderUtility {
               cell.setImage(f_classRid.getCachedImage());
             }
           }
-          setDiffBackground(element, cell);
         }
       }
     }
@@ -242,7 +198,6 @@ public final class ColumnLabelProviderUtility {
         final String line = element.getLineNumberAsStringOrNull();
         if (line != null)
           cell.setText(line);
-        setDiffBackground(element, cell);
       }
     }
   };
@@ -279,7 +234,6 @@ public final class ColumnLabelProviderUtility {
           cell.setText(cellText);
           cell.setForeground(getSpecialColor());
         }
-        setDiffBackground(element, cell);
       }
     }
   };

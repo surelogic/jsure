@@ -46,6 +46,7 @@ import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.UIJob;
 
+import com.surelogic.NonNull;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
@@ -102,6 +103,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   private PageBook f_viewerbook = null;
   private Label f_noResultsToShowLabel = null;
   private TreeViewer f_treeViewer;
+  @NonNull
   private final VerificationStatusViewContentProvider f_contentProvider = new VerificationStatusViewContentProvider();
   private boolean f_showHints;
   private boolean f_highlightDifferences;
@@ -145,7 +147,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_viewerbook = new PageBook(parent, SWT.NONE);
     f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
     f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
-    f_treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL);
+    f_treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
     f_treeViewer.setContentProvider(f_contentProvider);
     f_treeViewer.setSorter(new ViewerSorter() {
 
@@ -201,7 +203,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     // start empty until the initial build is done
     setViewerVisibility(false);
 
-    showScanOrEmptyLabel(f_showHints, f_highlightDifferences);
+    showScanOrEmptyLabel(f_showHints);
 
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
   }
@@ -222,7 +224,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       public IStatus runInUIThread(IProgressMonitor monitor) {
         if (f_treeViewer != null) {
           final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
-          showScanOrEmptyLabel(f_showHints, f_highlightDifferences);
+          showScanOrEmptyLabel(f_showHints);
           state.restoreViewState(f_treeViewer);
         }
         return Status.OK_STATUS;
@@ -266,7 +268,18 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       if (f_highlightDifferences != buttonChecked) {
         f_highlightDifferences = buttonChecked;
         EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_HIGHLIGHT_DIFFERENCES, f_highlightDifferences);
-        currentScanChanged(null);
+        f_contentProvider.setHighlightDifferences(f_highlightDifferences);
+        SLUIJob job = new SLUIJob() {
+          @Override
+          public IStatus runInUIThread(IProgressMonitor monitor) {
+            if (f_treeViewer != null) {
+              System.out.println("f_treeViewer.refresh()");
+              f_treeViewer.refresh();
+            }
+            return Status.OK_STATUS;
+          }
+        };
+        job.schedule();
       }
     }
   };
@@ -429,6 +442,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_actionHighlightDifferences.setToolTipText(f_actionHighlightDifferences.getText());
     f_highlightDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_HIGHLIGHT_DIFFERENCES);
     f_actionHighlightDifferences.setChecked(f_highlightDifferences);
+    f_contentProvider.setHighlightDifferences(f_highlightDifferences);
 
     f_actionExpand.setText("Expand");
     f_actionExpand.setToolTipText("Expand the current selection or all if none");
@@ -588,7 +602,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_treeViewer.setSelection(new StructuredSelection(c), true);
   }
 
-  private void showScanOrEmptyLabel(boolean showHints, boolean highlightDifferences) {
+  private void showScanOrEmptyLabel(boolean showHints) {
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
     final JSureScanInfo oldScan = JSureDataDirHub.getInstance().getLastMatchingScanInfo();
     if (scan != null) {
@@ -598,7 +612,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
         f_showDiffTableColumn.getColumn().setText(label);
       }
       final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
-      f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, showHints, highlightDifferences);
+      f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, showHints);
       final int modelProblemCount = getModelProblemCount(scan);
       setModelProblemIndicatorState(modelProblemCount);
       setViewerVisibility(true);

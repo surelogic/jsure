@@ -47,6 +47,11 @@ final class ElementResultDrop extends ElementAnalysisResultDrop {
   }
 
   @Override
+  boolean isSame() {
+    return f_diffDrop == null;
+  }
+
+  @Override
   boolean isNew() {
     return f_diffDrop == f_resultDrop;
   }

@@ -58,8 +58,12 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
 
   private Element[] f_root = null;
 
+  void setHighlightDifferences(boolean value) {
+    Element.f_highlightDifferences = value;
+  }
+
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final JSureScanInfo oldScan,
-      final ScanDifferences diff, final boolean showHints, final boolean highlightDifferences) {
+      @Nullable final ScanDifferences diff, final boolean showHints) {
     final List<Element> root = new ArrayList<Element>();
     Element.f_showHints = showHints;
     Element.f_diff = diff;

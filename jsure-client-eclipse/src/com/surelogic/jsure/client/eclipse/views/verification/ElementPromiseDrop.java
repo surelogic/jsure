@@ -48,6 +48,11 @@ final class ElementPromiseDrop extends ElementProofDrop {
   }
 
   @Override
+  boolean isSame() {
+    return f_diffDrop == null;
+  }
+
+  @Override
   boolean isNew() {
     return f_diffDrop == f_promiseDrop;
   }

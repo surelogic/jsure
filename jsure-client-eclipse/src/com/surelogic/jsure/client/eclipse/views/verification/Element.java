@@ -91,14 +91,26 @@ abstract class Element {
   static boolean f_showHints;
 
   /**
-   * Provides scan differences are to be highlighted by all elements,
-   * {@code null} if none.
+   * Provides scan differences to all elements, {@code null} if none no scan
+   * difference information is available.
    * <p>
    * <i>Implementation Note:</i> This field should <b>only</b> be set by
    * {@link VerificationStatusViewContentProvider} when it constructs a model of
    * elements for a scan.
    */
   static ScanDifferences f_diff;
+
+  /**
+   * {@code true} if scan differences should be highlighted in the tree,
+   * {@code false} if not.
+   * <p>
+   * This may be toggled on an existing model to change the display.
+   * <p>
+   * <i>Implementation Note:</i> This field should <b>only</b> be set by
+   * {@link VerificationStatusViewContentProvider} when it constructs a model of
+   * elements for a scan.
+   */
+  static volatile boolean f_highlightDifferences;
 
   @Nullable
   private final Element f_parent;
@@ -194,6 +206,8 @@ abstract class Element {
    */
   abstract int getImageFlags();
 
+  private Boolean f_descendantHasWarningHintCache = null;
+
   /**
    * Checks if this element has a descendant with a warning hint about it. This
    * is used by the UI to show a label decorator, if the user desires it, path
@@ -203,7 +217,9 @@ abstract class Element {
    *         about it, {@code false} otherwise.
    */
   final boolean descendantHasWarningHint() {
-    return searchForWarningHelper(this);
+    if (f_descendantHasWarningHintCache == null)
+      f_descendantHasWarningHintCache = searchForWarningHelper(this);
+    return f_descendantHasWarningHintCache;
   }
 
   /**
@@ -237,6 +253,44 @@ abstract class Element {
     return result;
   }
 
+  private Boolean f_descendantHasDifferenceCache = null;
+
+  /**
+   * Checks if this element has a descendant with a difference from the old
+   * scan. This is used by the UI to highlight a path to the difference, if the
+   * user desires it.
+   * 
+   * @return {@code true} if this element has a descendant with a difference
+   *         from the old scan, {@code false} otherwise.
+   */
+  final boolean descendantHasDifference() {
+    if (f_descendantHasDifferenceCache == null)
+      f_descendantHasDifferenceCache = searchForDifferenceHelper(this);
+    return f_descendantHasDifferenceCache;
+  }
+
+  /**
+   * Helper method to determine the answer for
+   * {@link #descendantHasDifference()} for any element.
+   * 
+   * @param e
+   *          any element.
+   * @return {@code true} if this element has a descendant with a difference
+   *         from the old scan, {@code false} otherwise.
+   */
+  private final boolean searchForDifferenceHelper(Element e) {
+    if (e instanceof ElementDrop) {
+      final boolean isSame = ((ElementDrop) e).isSame();
+      if (!isSame)
+        return true;
+    }
+    boolean result = false;
+    for (Element c : e.getChildren()) {
+      result |= searchForDifferenceHelper(c);
+    }
+    return result;
+  }
+
   /**
    * The desired image name from {@link CommonImages}.
    * 
@@ -256,12 +310,23 @@ abstract class Element {
    * @param withWarningDecoratorIfApplicable
    *          if {@code true} then a warning decorator is added to the returned
    *          image if {@link #descendantHasWarningHint()}.
+   * @param withDeltaDecoratorIfApplicable
+   *          if {@code true} then a delta decorator is added to the returned
+   *          image based upon the user's preference. if {@code false} a delta
+   *          decorator is never added.
    * @return an image, or {@code null} for no image.
    */
   @Nullable
-  final Image getImageHelper(String name, int flags, boolean withWarningDecoratorIfApplicable) {
+  final Image getImageHelper(String name, int flags, boolean withWarningDecoratorIfApplicable,
+      boolean withDeltaDecoratorIfApplicable) {
     if (name == null)
       return null;
+    if (withDeltaDecoratorIfApplicable) {
+      if (Element.f_highlightDifferences) {
+        if (descendantHasDifference())
+          flags |= CoE_Constants.DELTA;
+      }
+    }
     if (withWarningDecoratorIfApplicable) {
       if (descendantHasWarningHint())
         flags |= CoE_Constants.HINT_WARNING;
@@ -276,7 +341,7 @@ abstract class Element {
    */
   @Nullable
   final Image getImage() {
-    return getImageHelper(getImageName(), getImageFlags(), f_showHints);
+    return getImageHelper(getImageName(), getImageFlags(), f_showHints, true);
   }
 
   @Override

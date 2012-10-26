@@ -40,6 +40,8 @@ abstract class ElementDrop extends Element {
   @NonNull
   abstract IDrop getDrop();
 
+  abstract boolean isSame();
+
   abstract boolean isNew();
 
   @Nullable
@@ -49,7 +51,7 @@ abstract class ElementDrop extends Element {
 
   @Nullable
   final Image getImageForChangedFromDrop() {
-    return getImageHelper(getImageName(), getImageFlagsForChangedFromDrop(), false);
+    return getImageHelper(getImageName(), getImageFlagsForChangedFromDrop(), false, false);
   }
 
   @Nullable

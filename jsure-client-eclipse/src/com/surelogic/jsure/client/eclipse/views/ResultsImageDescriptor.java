@@ -10,7 +10,7 @@
  *******************************************************************************/
 package com.surelogic.jsure.client.eclipse.views;
 
-import static com.surelogic.common.jsure.xml.CoE_Constants.ASSUME;
+import static com.surelogic.common.jsure.xml.CoE_Constants.*;
 import static com.surelogic.common.jsure.xml.CoE_Constants.CONSISTENT;
 import static com.surelogic.common.jsure.xml.CoE_Constants.HINT_INFO;
 import static com.surelogic.common.jsure.xml.CoE_Constants.HINT_WARNING;
@@ -62,6 +62,8 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
   public static final ImageDescriptor DESC_WARNING_DECR = SLImages.getImageDescriptor(CommonImages.IMG_WARNING_DECR);
 
   public static final ImageDescriptor DESC_INFO_DECR = SLImages.getImageDescriptor(CommonImages.IMG_INFO_DECR);
+
+  public static final ImageDescriptor DESC_DELTA_DECR = SLImages.getImageDescriptor(CommonImages.IMG_DELTA_DECR);
 
   private final ImageDescriptor fBaseImage;
 
@@ -245,7 +247,10 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
 
   private void drawBottomRight() {
     Point size = getSize();
-    if ((fFlags & HINT_WARNING) != 0) {
+    if ((fFlags & DELTA) != 0) {
+      ImageData data = getImageData(DESC_DELTA_DECR);
+      drawImage(data, size.x - data.width, size.y - data.height);
+    } else if ((fFlags & HINT_WARNING) != 0) {
       ImageData data = getImageData(DESC_WARNING_DECR);
       drawImage(data, size.x - data.width, size.y - data.height);
     } else if ((fFlags & HINT_INFO) != 0) {
