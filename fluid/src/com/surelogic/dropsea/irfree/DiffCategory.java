@@ -6,11 +6,12 @@ import java.util.*;
 
 import com.surelogic.common.IViewable;
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.*;
 import static com.surelogic.dropsea.IDiffInfo.*;
 
 public final class DiffCategory<K extends Comparable<K>> implements IViewable, Comparable<DiffCategory<K>> {
+  public static final boolean suppressFilteredDrops = false;
+	
   final K key;
   final Set<DiffNode> old = new HashSet<DiffNode>();
   final Set<DiffNode> newer = new HashSet<DiffNode>();
@@ -107,6 +108,9 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
      */
     for (DiffNode o : sortByOffset(old)) {
       final String msg = toString(o);
+      if (suppressFilteredDrops && suppress(o.drop)) {       // TODO temporary
+    	  old.remove(o);
+      } else 
       out.println("\tOld    : " + msg);
     }
     for (DiffNode o : sortByOffset(newer)) {
@@ -114,6 +118,26 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
     }
   }
 
+  private String[] resultFilterPrefixes = {
+		  "Borrowed parameters of",
+		  "Effects of",
+		  "Unique return value of"
+  };
+  
+  private boolean suppress(IDrop o) {
+	  if (o instanceof IResultDrop) {
+		  for(String prefix : resultFilterPrefixes) {
+			  if (o.getMessage().startsWith(prefix)) {
+				  return true;
+			  }
+		  }
+	  }
+	  if (o instanceof IResultFolderDrop) {
+		  return o.getMessage().startsWith("Parameterized type");
+	  }
+	  return false;
+  }  
+  
   private String match(String title, PrintStream out, IDropMatcher m) {
     Iterator<DiffNode> it = newer.iterator();
     while (it.hasNext()) {
