@@ -81,6 +81,7 @@ public class DiffHeuristics {
 			final IRNode closestDecl, final IJavaRef closestRef) {
 		final IJavaRef here = loc.first();
 		final boolean useDecl = closestDecl == loc.second() || c.drop instanceof IPromiseDrop ||
+		                       c.drop instanceof IModelingProblemDrop ||
 							   AnonClassExpression.prototype.includes(closestDecl) ||
 		                       here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RECEIVER ||
 		                       here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RETURN_VALUE;		
@@ -103,6 +104,7 @@ public class DiffHeuristics {
 			if (Annotation.prototype.includes(op) || 
 				ParameterDeclaration.prototype.includes(op) || 
 				ClassType.prototype.includes(op) ||
+				ClassBody.prototype.includes(op) ||
 				TypeFormal.prototype.includes(op)) {
 				if (c.isNeg("enclosing offset", closestRef.getOffset(), closestRef)) {
 					return;
