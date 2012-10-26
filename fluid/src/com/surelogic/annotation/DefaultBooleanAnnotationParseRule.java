@@ -35,11 +35,12 @@ extends AbstractAnnotationParseRule<A,P> {
   
   /**
    * Uses reflection to create an AAST root node of the appropriate type;
-   * @param offset unmapped
+   * @param offset mapped
    */
   protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int modifiers) throws Exception {
 	//Constructor<A> c = getAASTType().getConstructor(defaultParamTypes);
 	//return c.newInstance(context.mapToSource(offset), modifiers);
+	// context.mapToSource()
 	Constructor<A> c = getAASTType().getConstructor(noParamTypes);
     return c.newInstance();
   }
@@ -88,7 +89,7 @@ extends AbstractAnnotationParseRule<A,P> {
    */
   private void reportAAST(IAnnotationParsingContext context, Tree tn) {
     AnnotationLocation loc = translateTokenType(tn.getType(), context.getOp());
-    final int offset       = context.mapToSource(tn.getTokenStartIndex());        
+    final int offset       = tn.getTokenStartIndex();        
     try {
       AASTAdaptor.Node node = (AASTAdaptor.Node) tn;
       int mods;
@@ -97,7 +98,7 @@ extends AbstractAnnotationParseRule<A,P> {
       } else {
     	  mods = context.getModifiers();
       }
-      IAASTRootNode d = makeAAST(context, offset, mods);
+      IAASTRootNode d = makeAAST(context, context.mapToSource(offset), mods);
       if (d != null) {
     	  final Object o;
     	  if (loc == AnnotationLocation.QUALIFIED_RECEIVER) {
