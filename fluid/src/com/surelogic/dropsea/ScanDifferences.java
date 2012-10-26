@@ -69,10 +69,13 @@ public final class ScanDifferences {
    * @return a drop from the new scan that matched <tt>inOldScan</tt>, or
    *         {@code null} if <tt>inOldScan</tt> was not matched.
    */
-  public IDrop getChangedInNewScan(IDrop inOldScan) {
+  public <T extends IDrop> T getChangedInNewScan(T inOldScan) {
     for (Map.Entry<IDrop, IDrop> entry : f_newChangedFromOld.entrySet()) {
-      if (entry.getValue().equals(inOldScan))
-        return entry.getKey();
+      if (entry.getValue().equals(inOldScan)) {
+        @SuppressWarnings("unchecked")
+        final T result = (T) entry.getKey();
+        return result;
+      }
     }
     return null;
   }
@@ -88,8 +91,10 @@ public final class ScanDifferences {
    *         {@code null} if <tt>inNewScan</tt> was not matched.
    */
   @Nullable
-  public IDrop getChangedInOldScan(IDrop inNewScan) {
-    return f_newChangedFromOld.get(inNewScan);
+  public <T extends IDrop> T getChangedInOldScan(T inNewScan) {
+    @SuppressWarnings("unchecked")
+    final T result = (T) f_newChangedFromOld.get(inNewScan);
+    return result;
   }
 
   /**
@@ -129,10 +134,13 @@ public final class ScanDifferences {
    *         {@code null} if <tt>inOldScan</tt> was not the same as any drop in
    *         the new scan.
    */
-  public IDrop getSameInNewScan(IDrop inOldScan) {
+  public <T extends IDrop> T getSameInNewScan(T inOldScan) {
     for (Map.Entry<IDrop, IDrop> entry : f_newSameAsOld.entrySet()) {
-      if (entry.getValue().equals(inOldScan))
-        return entry.getKey();
+      if (entry.getValue().equals(inOldScan)) {
+        @SuppressWarnings("unchecked")
+        final T result = (T) entry.getKey();
+        return result;
+      }
     }
     return null;
   }
@@ -148,8 +156,10 @@ public final class ScanDifferences {
    *         the old scan.
    */
   @Nullable
-  public IDrop getSameInOldScan(IDrop inNewScan) {
-    return f_newSameAsOld.get(inNewScan);
+  public <T extends IDrop> T getSameInOldScan(T inNewScan) {
+    @SuppressWarnings("unchecked")
+    final T result = (T) f_newSameAsOld.get(inNewScan);
+    return result;
   }
 
   /**
