@@ -1,10 +1,12 @@
 package com.surelogic.jsure.client.eclipse.views.verification;
 
 import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IPromiseDrop;
+import com.surelogic.dropsea.ScanDifferences;
 
 final class ElementPromiseDrop extends ElementProofDrop {
 
@@ -13,14 +15,50 @@ final class ElementPromiseDrop extends ElementProofDrop {
     if (promiseDrop == null)
       throw new IllegalArgumentException(I18N.err(44, "promiseDrop"));
     f_promiseDrop = promiseDrop;
+    final ScanDifferences diff = f_diff;
+    if (diff == null) {
+      f_diffDrop = null;
+    } else {
+      if (diff.isNotInOldScan(promiseDrop)) {
+        f_diffDrop = promiseDrop;
+      } else {
+        f_diffDrop = diff.getChangedInOldScan(promiseDrop);
+      }
+    }
   }
 
+  @NonNull
   private final IPromiseDrop f_promiseDrop;
+  /**
+   * There are three cases:
+   * <ul>
+   * <li>if <tt>f_diffDrop == null</tt> the drop is unchanged.</li>
+   * <li>if <tt>f_diffDrop == f_promiseDrop</tt> the drop is new in this scan.</li>
+   * <li>if <tt>f_diffDrop != null && f_diffDrop != f_promiseDrop</tt> the drop
+   * changed&mdash;and the value of <tt>f_diffDrop</tt> is the old drop.</li>
+   * </ul>
+   */
+  @Nullable
+  private IPromiseDrop f_diffDrop;
 
   @Override
   @NonNull
   IPromiseDrop getDrop() {
     return f_promiseDrop;
+  }
+
+  @Override
+  boolean isNew() {
+    return f_diffDrop == f_promiseDrop;
+  }
+
+  @Override
+  @Nullable
+  IPromiseDrop getChangedFromDropOrNull() {
+    if (isNew())
+      return null;
+    else
+      return f_diffDrop;
   }
 
   @Override

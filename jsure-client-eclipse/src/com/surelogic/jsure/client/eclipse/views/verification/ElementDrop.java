@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.eclipse.swt.graphics.Image;
+
 import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
@@ -36,6 +39,21 @@ abstract class ElementDrop extends Element {
 
   @NonNull
   abstract IDrop getDrop();
+
+  abstract boolean isNew();
+
+  @Nullable
+  abstract IDrop getChangedFromDropOrNull();
+
+  abstract int getImageFlagsForChangedFromDrop();
+
+  @Nullable
+  final Image getImageForChangedFromDrop() {
+    return getImageHelper(getImageName(), getImageFlagsForChangedFromDrop(), false);
+  }
+
+  @Nullable
+  abstract String getMessageAboutWhatChangedOrNull();
 
   @Override
   String getLabel() {

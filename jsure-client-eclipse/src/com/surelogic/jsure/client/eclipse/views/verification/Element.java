@@ -248,32 +248,35 @@ abstract class Element {
   /**
    * Gets the the decorated image associated with this element.
    * 
+   * @param name
+   *          the image name from {@link CommonImages} or {@code null} for no
+   *          image.
+   * @param flags
+   *          image decorator flags per a {@link ResultsImageDescriptor}.
    * @param withWarningDecoratorIfApplicable
    *          if {@code true} then a warning decorator is added to the returned
    *          image if {@link #descendantHasWarningHint()}.
-   * @return an image.
+   * @return an image, or {@code null} for no image.
    */
-  private final Image getImageHelper(boolean withWarningDecoratorIfApplicable) {
-    String name = getImageName();
+  @Nullable
+  final Image getImageHelper(String name, int flags, boolean withWarningDecoratorIfApplicable) {
     if (name == null)
       return null;
-    int flags = getImageFlags();
     if (withWarningDecoratorIfApplicable) {
       if (descendantHasWarningHint())
         flags |= CoE_Constants.HINT_WARNING;
     }
-    if (this instanceof ElementProposedPromiseDrop)
-      System.out.println("ElementProposedPromiseDrop: image=" + name + " flags=" + flags);
     return (new ResultsImageDescriptor(name, flags, VerificationStatusView.ICONSIZE)).getCachedImage();
   }
 
   /**
    * Gets the decorated the image associated with this element.
    * 
-   * @return an image.
+   * @return an image, or {@code null} for no image.
    */
+  @Nullable
   final Image getImage() {
-    return getImageHelper(f_showHints);
+    return getImageHelper(getImageName(), getImageFlags(), f_showHints);
   }
 
   @Override

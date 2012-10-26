@@ -10,6 +10,7 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
@@ -17,7 +18,7 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IScopedPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.dropsea.UiShowAtTopLevel;
-import com.surelogic.jsure.core.scans.JSureScanInfo;
+import com.surelogic.javac.persistence.JSureScanInfo;
 
 public final class VerificationStatusViewContentProvider implements ITreeContentProvider {
 
@@ -57,7 +58,8 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
 
   private Element[] f_root = null;
 
-  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, final boolean showHints, final ScanDifferences diff) {
+  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final JSureScanInfo oldScan,
+      final ScanDifferences diff, final boolean showHints, final boolean highlightDifferences) {
     final List<Element> root = new ArrayList<Element>();
     Element.f_showHints = showHints;
     Element.f_diff = diff;

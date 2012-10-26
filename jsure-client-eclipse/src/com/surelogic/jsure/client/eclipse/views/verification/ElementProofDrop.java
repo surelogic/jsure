@@ -1,5 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.verification;
 
+import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IProofDrop;
 
@@ -13,8 +15,43 @@ abstract class ElementProofDrop extends ElementDrop {
   abstract IProofDrop getDrop();
 
   @Override
+  @Nullable
+  abstract IProofDrop getChangedFromDropOrNull();
+
+  @Override
+  int getImageFlagsForChangedFromDrop() {
+    final IProofDrop proofDrop = getChangedFromDropOrNull();
+    if (proofDrop == null)
+      return 0;
+    else
+      return getImageFlagsHelper(proofDrop);
+  }
+
+  @Override
+  @Nullable
+  String getMessageAboutWhatChangedOrNull() {
+    final IProofDrop newDrop = getDrop();
+    final IProofDrop oldDrop = getChangedFromDropOrNull();
+    if (newDrop == null || oldDrop == null || newDrop == oldDrop)
+      return null;
+    final StringBuilder b = new StringBuilder();
+    if (newDrop.provedConsistent() && !oldDrop.provedConsistent())
+      b.append("Verification judgement changed from not consistent to consistent");
+    else if (!newDrop.provedConsistent() && oldDrop.provedConsistent())
+      b.append("Verification judgement changed from consistent to not consistent");
+    if (b.length() == 0)
+      return null;
+    else
+      return b.toString();
+  }
+
+  @Override
   int getImageFlags() {
-    IProofDrop proofDrop = getDrop();
+    final IProofDrop proofDrop = getDrop();
+    return getImageFlagsHelper(proofDrop);
+  }
+
+  private int getImageFlagsHelper(@NonNull final IProofDrop proofDrop) {
     int flags = 0;
     flags |= proofDrop.provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT;
     if (proofDrop.proofUsesRedDot())

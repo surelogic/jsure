@@ -47,6 +47,7 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -61,13 +62,13 @@ import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.jsure.core.scans.JSureScanInfo;
 
 public final class VerificationStatusView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener {
 
@@ -92,19 +93,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   }
 
-  private class DiffColumnResizeListener extends ColumnResizeListener {
-
-    public DiffColumnResizeListener(String prefKey) {
-      super(prefKey);
-    }
-
-    @Override
-    public void controlResized(ControlEvent e) {
-      if (f_showDiff)
-        super.controlResized(e);
-    }
-  }
-
   private static final String VIEW_STATE = "VerificationStatusView_TreeViewerUIState";
 
   private final File f_viewStatePersistenceFile;
@@ -116,7 +104,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   private TreeViewer f_treeViewer;
   private final VerificationStatusViewContentProvider f_contentProvider = new VerificationStatusViewContentProvider();
   private boolean f_showHints;
-  private boolean f_showDiff;
+  private boolean f_highlightDifferences;
   private TreeViewerColumn f_showDiffTableColumn = null;
   private final ViewerSorter f_alphaSorter = new ViewerSorter() {
     @Override
@@ -200,9 +188,8 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     column5.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
     final TreeViewerColumn columnDiff = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnDiff.setLabelProvider(ColumnLabelProviderUtility.DIFF);
-    columnDiff.getColumn().setText("Difference");
     columnDiff.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL_DIFF_WIDTH));
-    columnDiff.getColumn().addControlListener(new DiffColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL_DIFF_WIDTH));
+    columnDiff.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL_DIFF_WIDTH));
     f_showDiffTableColumn = columnDiff;
 
     f_treeViewer.setInput(getViewSite());
@@ -214,7 +201,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     // start empty until the initial build is done
     setViewerVisibility(false);
 
-    showScanOrEmptyLabel(f_showHints, f_showDiff);
+    showScanOrEmptyLabel(f_showHints, f_highlightDifferences);
 
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
   }
@@ -235,7 +222,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       public IStatus runInUIThread(IProgressMonitor monitor) {
         if (f_treeViewer != null) {
           final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
-          showScanOrEmptyLabel(f_showHints, f_showDiff);
+          showScanOrEmptyLabel(f_showHints, f_highlightDifferences);
           state.restoreViewState(f_treeViewer);
         }
         return Status.OK_STATUS;
@@ -272,13 +259,13 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_actionShowDiff = new Action("", IAction.AS_CHECK_BOX) {
+  private final Action f_actionHighlightDifferences = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
-      final boolean buttonChecked = f_actionShowDiff.isChecked();
-      if (f_showDiff != buttonChecked) {
-        f_showDiff = buttonChecked;
-        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_DIFF, f_showDiff);
+      final boolean buttonChecked = f_actionHighlightDifferences.isChecked();
+      if (f_highlightDifferences != buttonChecked) {
+        f_highlightDifferences = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_HIGHLIGHT_DIFFERENCES, f_highlightDifferences);
         currentScanChanged(null);
       }
     }
@@ -437,11 +424,11 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_showHints = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_HINTS);
     f_actionShowHints.setChecked(f_showHints);
 
-    f_actionShowDiff.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG));
-    f_actionShowDiff.setText(SHOW_DIFF_TEXT);
-    f_actionShowDiff.setToolTipText(SHOW_DIFF_TEXT);
-    f_showDiff = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_DIFF);
-    f_actionShowDiff.setChecked(f_showDiff);
+    f_actionHighlightDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG));
+    f_actionHighlightDifferences.setText("Highlight differences from the last scan");
+    f_actionHighlightDifferences.setToolTipText(f_actionHighlightDifferences.getText());
+    f_highlightDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_HIGHLIGHT_DIFFERENCES);
+    f_actionHighlightDifferences.setChecked(f_highlightDifferences);
 
     f_actionExpand.setText("Expand");
     f_actionExpand.setToolTipText("Expand the current selection or all if none");
@@ -526,7 +513,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     pulldown.add(f_actionJavaSort);
     pulldown.add(f_actionAlphaSort);
     pulldown.add(new Separator());
-    pulldown.add(f_actionShowDiff);
+    pulldown.add(f_actionHighlightDifferences);
     pulldown.add(f_actionShowHints);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
@@ -539,7 +526,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     toolbar.add(f_actionJavaSort);
     toolbar.add(f_actionAlphaSort);
     toolbar.add(new Separator());
-    toolbar.add(f_actionShowDiff);
+    toolbar.add(f_actionHighlightDifferences);
     toolbar.add(f_actionShowHints);
   }
 
@@ -601,18 +588,17 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_treeViewer.setSelection(new StructuredSelection(c), true);
   }
 
-  private void showScanOrEmptyLabel(boolean showHints, boolean showDiff) {
+  private void showScanOrEmptyLabel(boolean showHints, boolean highlightDifferences) {
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
+    final JSureScanInfo oldScan = JSureDataDirHub.getInstance().getLastMatchingScanInfo();
     if (scan != null) {
       if (f_showDiffTableColumn != null) {
-        f_showDiffTableColumn.getColumn().setWidth(
-            showDiff ? EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL_DIFF_WIDTH) : 0);
+        final String label = oldScan == null ? "No Prior Scan" : "Differences from scan of " + oldScan.getProjects().getLabel()
+            + " at " + SLUtility.toStringHMS(oldScan.getProjects().getDate());
+        f_showDiffTableColumn.getColumn().setText(label);
       }
-      // show the scan results
-      final ScanDifferences diff = showDiff ? JSureDataDirHub.getInstance()
-          .getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull() : null;
-      setDiffButtonTooltipToShowScanWeAreDiffing(showDiff);
-      f_contentProvider.changeContentsToCurrentScan(scan, showHints, diff);
+      final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
+      f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, showHints, highlightDifferences);
       final int modelProblemCount = getModelProblemCount(scan);
       setModelProblemIndicatorState(modelProblemCount);
       setViewerVisibility(true);
@@ -634,19 +620,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
         }
       });
     }
-  }
-
-  private static final String SHOW_DIFF_TEXT = "Highlight differences from the last scan";
-
-  private void setDiffButtonTooltipToShowScanWeAreDiffing(boolean showDiff) {
-    String tipText = SHOW_DIFF_TEXT;
-    if (showDiff) {
-      JSureScanInfo si = JSureDataDirHub.getInstance().getLastMatchingScanInfo();
-      if (si != null) {
-        tipText = "Showing differences between: " + si.getLabel();
-      }
-    }
-    f_actionShowDiff.setToolTipText(tipText);
   }
 
   /**

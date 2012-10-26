@@ -9,9 +9,11 @@ import org.eclipse.swt.widgets.Display;
 
 import com.surelogic.Utility;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
@@ -19,49 +21,60 @@ import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
 @Utility
 public final class ColumnLabelProviderUtility {
 
+  private static Color f_changedColor;
+
+  private static Color getChangedColor() {
+    if (f_changedColor == null) {
+      f_changedColor = new Color(Display.getCurrent(), 181, 213, 255);
+      Display.getCurrent().disposeExec(new Runnable() {
+        public void run() {
+          f_changedColor.dispose();
+        }
+      });
+    }
+    return f_changedColor;
+  }
+
+  private static Color f_newColor;
+
+  private static Color getNewColor() {
+    if (f_newColor == null) {
+      f_newColor = new Color(Display.getCurrent(), 213, 255, 181);
+      Display.getCurrent().disposeExec(new Runnable() {
+        public void run() {
+          f_newColor.dispose();
+        }
+      });
+    }
+    return f_newColor;
+  }
+
+  private static Color f_onClauseColor;
+
+  private static Color getSpecialColor() {
+    if (f_onClauseColor == null) {
+      f_onClauseColor = new Color(Display.getCurrent(), 149, 125, 71);
+      Display.getCurrent().disposeExec(new Runnable() {
+        public void run() {
+          f_onClauseColor.dispose();
+        }
+      });
+    }
+    return f_onClauseColor;
+  }
+
+  private static void setDiffBackground(Element element, ViewerCell cell) {
+    final ScanDifferences diff = Element.f_diff;
+    if (diff != null && element instanceof ElementDrop) {
+      final IDrop drop = ((ElementDrop) element).getDrop();
+      if (diff.isNotInOldScan(drop))
+        cell.setBackground(getNewColor());
+      if (diff.isChangedButInBothScans(drop))
+        cell.setBackground(getChangedColor());
+    }
+  }
+
   static final StyledCellLabelProvider TREE = new StyledCellLabelProvider() {
-
-    private Color f_changedColor;
-
-    private Color getChangedColor() {
-      if (f_changedColor == null) {
-        f_changedColor = new Color(Display.getCurrent(), 181, 213, 255);
-        Display.getCurrent().disposeExec(new Runnable() {
-          public void run() {
-            f_changedColor.dispose();
-          }
-        });
-      }
-      return f_changedColor;
-    }
-
-    private Color f_newColor;
-
-    private Color getNewColor() {
-      if (f_newColor == null) {
-        f_newColor = new Color(Display.getCurrent(), 213, 255, 181);
-        Display.getCurrent().disposeExec(new Runnable() {
-          public void run() {
-            f_newColor.dispose();
-          }
-        });
-      }
-      return f_newColor;
-    }
-
-    private Color f_onClauseColor;
-
-    private Color getSpecialColor() {
-      if (f_onClauseColor == null) {
-        f_onClauseColor = new Color(Display.getCurrent(), 149, 125, 71);
-        Display.getCurrent().disposeExec(new Runnable() {
-          public void run() {
-            f_onClauseColor.dispose();
-          }
-        });
-      }
-      return f_onClauseColor;
-    }
 
     @Override
     public void update(ViewerCell cell) {
@@ -111,14 +124,7 @@ public final class ColumnLabelProviderUtility {
           }
         }
 
-        final ScanDifferences diff = Element.f_diff;
-        if (diff != null && element instanceof ElementDrop) {
-          final IDrop drop = ((ElementDrop) element).getDrop();
-          if (diff.isNotInOldScan(drop))
-            cell.setBackground(getNewColor());
-          if (diff.isChangedButInBothScans(drop))
-            cell.setBackground(getChangedColor());
-        }
+        setDiffBackground(element, cell);
       } else
         super.update(cell);
     }
@@ -152,9 +158,13 @@ public final class ColumnLabelProviderUtility {
         final Element element = (Element) cell.getElement();
         final String project = element.getProjectNameOrNull();
         if (isNotEmptyOrNull(project)) {
-          cell.setText(project);
+          if (project.startsWith(SLUtility.LIBRARY_PROJECT))
+            cell.setText(SLUtility.LIBRARY_PROJECT);
+          else
+            cell.setText(project);
           cell.setImage(f_projectRid.getCachedImage());
         }
+        setDiffBackground(element, cell);
       }
     }
   };
@@ -173,6 +183,7 @@ public final class ColumnLabelProviderUtility {
           cell.setText(pkg);
           cell.setImage(f_packageRid.getCachedImage());
         }
+        setDiffBackground(element, cell);
       }
     }
   };
@@ -216,6 +227,7 @@ public final class ColumnLabelProviderUtility {
               cell.setImage(f_classRid.getCachedImage());
             }
           }
+          setDiffBackground(element, cell);
         }
       }
     }
@@ -230,6 +242,7 @@ public final class ColumnLabelProviderUtility {
         final String line = element.getLineNumberAsStringOrNull();
         if (line != null)
           cell.setText(line);
+        setDiffBackground(element, cell);
       }
     }
   };
@@ -238,18 +251,35 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      if (cell.getElement() instanceof Element) {
-        final Element element = (Element) cell.getElement();
-        final ScanDifferences diff = Element.f_diff;
-        if (diff != null && element instanceof ElementDrop) {
-          final IDrop drop = ((ElementDrop) element).getDrop();
-          if (diff.isNotInOldScan(drop))
-            cell.setText("New");
-          final IDrop oldDrop = diff.getChangedInOldScan(drop);
+      final ScanDifferences diff = Element.f_diff;
+      if (diff != null && cell.getElement() instanceof ElementDrop) {
+        final ElementDrop element = (ElementDrop) cell.getElement();
+        String cellText = null;
+        if (element.isNew()) {
+          cellText = "New";
+        } else {
+          final IDrop oldDrop = element.getChangedFromDropOrNull();
           if (oldDrop != null) {
-            cell.setText(oldDrop.getMessage());
+            cell.setImage(element.getImageForChangedFromDrop());
+            cellText = oldDrop.getMessage();
+            if (oldDrop instanceof IPromiseDrop) {
+              // remove the on clause
+              final int index = cellText.indexOf(" on ");
+              if (index != -1) {
+                cellText = cellText.substring(0, index);
+              }
+            }
+            String changeMsg = element.getMessageAboutWhatChangedOrNull();
+            if (changeMsg != null) {
+              cellText += "  \u2014  " + changeMsg;
+            }
           }
         }
+        if (cellText != null) {
+          cell.setText(cellText);
+          cell.setForeground(getSpecialColor());
+        }
+        setDiffBackground(element, cell);
       }
     }
   };
