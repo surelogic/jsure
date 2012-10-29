@@ -10,8 +10,9 @@
  *******************************************************************************/
 package com.surelogic.jsure.client.eclipse.views;
 
-import static com.surelogic.common.jsure.xml.CoE_Constants.*;
+import static com.surelogic.common.jsure.xml.CoE_Constants.ASSUME;
 import static com.surelogic.common.jsure.xml.CoE_Constants.CONSISTENT;
+import static com.surelogic.common.jsure.xml.CoE_Constants.DELTA;
 import static com.surelogic.common.jsure.xml.CoE_Constants.HINT_INFO;
 import static com.surelogic.common.jsure.xml.CoE_Constants.HINT_WARNING;
 import static com.surelogic.common.jsure.xml.CoE_Constants.INCONSISTENT;
@@ -28,6 +29,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Display;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
@@ -81,6 +83,39 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
    * ImageDescriptor:fBaseImage -> (MAP fFlags -> Image)
    */
   private static final Map<ImageDescriptor, Map<String, Image>> imageGrayCache = new HashMap<ImageDescriptor, Map<String, Image>>();
+
+  private static boolean f_needToRegDisposeExec = true;
+
+  private static void disposeExec() {
+    if (f_needToRegDisposeExec) {
+      f_needToRegDisposeExec = false;
+      Display.getCurrent().disposeExec(new Runnable() {
+        public void run() {
+          disposeCacheHelper(imageCache);
+          disposeCacheHelper(imageGrayCache);
+          imageCache.clear();
+          imageGrayCache.clear();
+        }
+      });
+    }
+  }
+
+  private static void disposeCacheHelper(Map<ImageDescriptor, Map<String, Image>> cache) {
+    if (cache == null)
+      return;
+
+    for (Map<String, Image> m : cache.values())
+      disposeCacheMapHelper(m);
+  }
+
+  private static void disposeCacheMapHelper(Map<String, Image> m) {
+    if (m == null)
+      return;
+
+    for (Image image : m.values()) {
+      image.dispose();
+    }
+  }
 
   /**
    * Creates a new JavaElementImageDescriptor.
@@ -156,6 +191,7 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
       Map<String, Image> flagMap = new HashMap<String, Image>();
       flagMap.put(flagsKey, result);
       imageCache.put(fBaseImage, flagMap);
+      disposeExec();
     }
     return result;
   }
@@ -184,6 +220,7 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
       Map<String, Image> flagMap = new HashMap<String, Image>();
       flagMap.put(flagsKey, result);
       imageGrayCache.put(fBaseImage, flagMap);
+      disposeExec();
     }
     return result;
   }
