@@ -269,17 +269,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
         f_highlightDifferences = buttonChecked;
         EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_HIGHLIGHT_DIFFERENCES, f_highlightDifferences);
         f_contentProvider.setHighlightDifferences(f_highlightDifferences);
-        SLUIJob job = new SLUIJob() {
-          @Override
-          public IStatus runInUIThread(IProgressMonitor monitor) {
-            if (f_treeViewer != null) {
-              System.out.println("f_treeViewer.refresh()");
-              f_treeViewer.refresh();
-            }
-            return Status.OK_STATUS;
-          }
-        };
-        job.schedule();
+        f_treeViewer.refresh();
       }
     }
   };
