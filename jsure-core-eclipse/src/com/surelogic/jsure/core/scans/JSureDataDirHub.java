@@ -6,11 +6,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.surelogic.Nullable;
 import com.surelogic.RegionLock;
-import com.surelogic.RequiresLock;
 import com.surelogic.ThreadSafe;
 import com.surelogic.Unique;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLJob;
@@ -186,7 +186,7 @@ public final class JSureDataDirHub {
 
   private void scanDirectoryChangedHelper(final File optionalNewScanDir) {
     JSureDataDir dataDir = null;
-    boolean currentScanChanged = false;
+    SLJob job = null;
     JSureScan newScan = null;
     synchronized (f_lock) {
       if (f_dataDir == null) {
@@ -206,8 +206,7 @@ public final class JSureDataDirHub {
            * here, to have a legal value, and notify listeners of the change
            * below.
            */
-          setCurrentScanHelper(null);
-          currentScanChanged = true; // notify below
+          job = getSetCurrentScanJob(null, true, true, false);
         }
       }
       if (optionalNewScanDir != null) {
@@ -217,20 +216,30 @@ public final class JSureDataDirHub {
            * If we found the passed new scan so we set it as the current scan of
            * interest and notify the listeners of the change below.
            */
-          setCurrentScanHelper(newScan);
-          currentScanChanged = true; // notify below
+          job = getSetCurrentScanJob(newScan, true, true, true);
         }
       }
     }
+    EclipseJob.getInstance().schedule(job);
+  }
+
+  private void notifyListeners(boolean notifyContentsChanged, boolean notifyCurrentScanChanged, boolean isNewScan) {
+    final JSureDataDir dataDir;
+    final JSureScan currentScan;
+    synchronized (f_lock) {
+      dataDir = f_dataDir;
+      currentScan = f_currentScan;
+    }
     // notify registered listeners
-    for (ContentsChangeListener l : f_contentsListeners)
-      l.scanContentsChanged(dataDir);
-    if (currentScanChanged) {
+    if (notifyContentsChanged)
+      for (ContentsChangeListener l : f_contentsListeners)
+        l.scanContentsChanged(dataDir);
+    if (notifyCurrentScanChanged) {
       for (CurrentScanChangeListener l : f_currentScanListeners)
-        l.currentScanChanged(newScan);
-      if (newScan != null) {
+        l.currentScanChanged(currentScan);
+      if (isNewScan) {
         for (NewScanListener l : f_newScanListeners)
-          l.newScan(newScan);
+          l.newScan(currentScan);
       }
     }
   }
@@ -329,6 +338,7 @@ public final class JSureDataDirHub {
    *          the new scan to focus on, or {@code null} to focus on no scan.
    */
   public void setCurrentScan(final JSureScan value) {
+    final SLJob job;
     synchronized (f_lock) {
       /*
        * Bail if the scan is already set to this. Avoiding a whole lot of double
@@ -337,45 +347,69 @@ public final class JSureDataDirHub {
       if (value == f_currentScan)
         return;
 
-      setCurrentScanHelper(value);
+      job = getSetCurrentScanJob(value, false, true, false);
     }
-    for (CurrentScanChangeListener l : f_currentScanListeners) {
-      l.currentScanChanged(value);
-    }
+    EclipseJob.getInstance().schedule(job);
   }
 
   /**
-   * Internal helper method to set the current scan value. It sets the current
-   * scan and generates info for it.
+   * Internal helper method to get a job to set the current scan value. It sets
+   * the current scan and generates info for it.
    * 
-   * @param value
+   * @param jsureScan
    *          the scan to set or {@code null} to clear the current scan value.
    */
-  @RequiresLock("StateLock")
-  private void setCurrentScanHelper(@Nullable final JSureScan value) {
-    if (value != null) {
-      if (!f_dataDir.contains(value))
-        throw new IllegalArgumentException(I18N.err(232, value, f_dataDir.getDir().getAbsoluteFile()));
-    }
-    f_currentScan = value;
-    if (value == null) {
-      f_currentScanInfo = null;
-      f_lastMatchingScanInfo = null;
-      f_scanDiff = null;
-    } else {
-      f_currentScanInfo = new JSureScanInfo(value);
-      final JSureScan last = f_dataDir.findLastMatchingScan(f_currentScanInfo.getJSureRun());
-      if (last == null) {
-        f_lastMatchingScanInfo = null;
-        f_scanDiff = null;
-      } else {
-        f_lastMatchingScanInfo = new JSureScanInfo(last);
-        final ISeaDiff diff = f_currentScanInfo.diff(f_lastMatchingScanInfo,
-            UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER);
-        f_scanDiff = diff.build();
+  private SLJob getSetCurrentScanJob(@Nullable final JSureScan jsureScan, final boolean notifyContentsChanged,
+      final boolean notifyCurrentScanChanged, final boolean isNewScan) {
+    return new AbstractSLJob("Loading a JSure Scan...") {
+      public SLStatus run(final SLProgressMonitor monitor) {
+        monitor.begin(4);
+        try {
+          synchronized (f_lock) {
+            if (jsureScan != null) {
+              if (!f_dataDir.contains(jsureScan)) {
+                final int code = 232;
+                return SLStatus.createErrorStatus(code, I18N.err(code, jsureScan, f_dataDir.getDir().getAbsoluteFile()));
+              }
+            }
+            JSureScanInfo currentScanInfo = null;
+            JSureScanInfo lastMatchingScanInfo = null;
+            ScanDifferences scanDiff = null;
+            monitor.worked(1);
+            if (jsureScan != null) {
+              currentScanInfo = new JSureScanInfo(jsureScan);
+              final JSureScan last = f_dataDir.findLastMatchingScan(currentScanInfo.getJSureRun());
+              monitor.worked(1);
+              if (monitor.isCanceled())
+                return SLStatus.CANCEL_STATUS;
+              if (last != null) {
+                lastMatchingScanInfo = new JSureScanInfo(last);
+                monitor.worked(1);
+                if (monitor.isCanceled())
+                  return SLStatus.CANCEL_STATUS;
+                final ISeaDiff diff = currentScanInfo.diff(lastMatchingScanInfo,
+                    UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER);
+                monitor.worked(1);
+                if (monitor.isCanceled())
+                  return SLStatus.CANCEL_STATUS;
+                scanDiff = diff.build();
+                monitor.worked(1);
+              }
+            }
+            f_currentScan = jsureScan;
+            f_currentScanInfo = currentScanInfo;
+            f_lastMatchingScanInfo = lastMatchingScanInfo;
+            f_scanDiff = scanDiff;
+            saveCurrentScanPreference();
+          }
+          // without lock here for notification
+          notifyListeners(notifyContentsChanged, notifyCurrentScanChanged, isNewScan);
+        } finally {
+          monitor.done();
+        }
+        return SLStatus.OK_STATUS;
       }
-    }
-    saveCurrentScanPreference();
+    };
   }
 
   /*
@@ -387,13 +421,15 @@ public final class JSureDataDirHub {
   private void loadCurrentScanPreference() {
     JSureScan currentScan = null;
     String value = EclipseUtility.getStringPreference(JSurePreferencesUtility.CURRENT_SCAN);
+    final SLJob job;
     synchronized (f_lock) {
       if (value != null && !NONE.equals(value)) {
         final File scanDir = new File(value);
         currentScan = f_dataDir.findScan(scanDir);
       }
-      setCurrentScanHelper(currentScan);
+      job = getSetCurrentScanJob(currentScan, false, false, false);
     }
+    EclipseJob.getInstance().schedule(job);
   }
 
   private void saveCurrentScanPreference() {
