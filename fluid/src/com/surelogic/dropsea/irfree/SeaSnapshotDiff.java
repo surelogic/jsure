@@ -114,9 +114,13 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
       throw new IllegalStateException("Already built");
     }
     if (filter != null) {
+      //final int oldSize = old.size();
+      //final int newerSize = newer.size();
       // do I need to keep it around?
       old = filter(filter, old);
       newer = filter(filter, newer);
+      //System.out.println("Old  : "+oldSize+" -> "+old.size());
+      //System.out.println("Newer: "+newerSize+" -> "+newer.size());
     }
     if (separator != null) {
       separateIntoCategories(old, newer);
@@ -178,10 +182,14 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
    * @return true if the drop is derived from source
    */
   private static boolean select(IDrop d) {
+    /* No longer desirable, since it makes these drops 
+     * show up as 'new'
+     *
     if (d instanceof IProofDrop) {
       IProofDrop pd = (IProofDrop) d;
       return pd.derivedFromSrc();
     }
+    */
     // Need a location to report
     IJavaRef ref = d.getJavaRef();
     if (ref == null) {
