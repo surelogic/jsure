@@ -88,6 +88,12 @@ final class ElementResultFolderDrop extends ElementAnalysisResultDrop {
   }
 
   @Override
+  @NonNull
+  String getImageNameForChangedFromDrop() {
+    return CommonImages.IMG_FOLDER;
+  }
+
+  @Override
   String getLabel() {
     return I18N.toStringForUIFolderLabel(super.getLabel(), getChildren().length);
   }
@@ -101,6 +107,7 @@ final class ElementResultFolderDrop extends ElementAnalysisResultDrop {
   }
 
   @Override
+  @NonNull
   String getImageName() {
     return CommonImages.IMG_FOLDER;
   }

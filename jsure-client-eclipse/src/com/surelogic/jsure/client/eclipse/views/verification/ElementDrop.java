@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.eclipse.swt.graphics.Image;
-
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.ref.IJavaRef;
@@ -50,9 +48,7 @@ abstract class ElementDrop extends Element {
   abstract int getImageFlagsForChangedFromDrop();
 
   @Nullable
-  final Image getImageForChangedFromDrop() {
-    return getImageHelper(getImageName(), getImageFlagsForChangedFromDrop(), false, false);
-  }
+  abstract String getImageNameForChangedFromDrop();
 
   @Nullable
   abstract String getMessageAboutWhatChangedOrNull();

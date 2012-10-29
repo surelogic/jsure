@@ -66,6 +66,12 @@ final class ElementHintDrop extends ElementDrop {
   }
 
   @Override
+  @Nullable
+  String getImageNameForChangedFromDrop() {
+    return getImageNameHelper(getChangedFromDropOrNull());
+  }
+
+  @Override
   int getImageFlagsForChangedFromDrop() {
     return 0;
   }
@@ -84,7 +90,15 @@ final class ElementHintDrop extends ElementDrop {
   @Override
   @Nullable
   String getImageName() {
-    if (getDrop().getHintType() == IHintDrop.HintType.WARNING)
+    return getImageNameHelper(getDrop());
+  }
+
+  @Nullable
+  private String getImageNameHelper(IHintDrop drop) {
+    if (drop == null)
+      return null;
+
+    if (drop.getHintType() == IHintDrop.HintType.WARNING)
       return CommonImages.IMG_WARNING;
     else
       return CommonImages.IMG_INFO;

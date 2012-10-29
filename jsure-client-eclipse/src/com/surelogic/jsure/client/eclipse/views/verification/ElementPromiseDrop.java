@@ -67,6 +67,12 @@ final class ElementPromiseDrop extends ElementProofDrop {
   }
 
   @Override
+  @NonNull
+  String getImageNameForChangedFromDrop() {
+    return CommonImages.IMG_ANNOTATION;
+  }
+
+  @Override
   int getImageFlags() {
     int flags = super.getImageFlags();
     if (f_promiseDrop.isVirtual())
@@ -79,6 +85,7 @@ final class ElementPromiseDrop extends ElementProofDrop {
   }
 
   @Override
+  @NonNull
   String getImageName() {
     return CommonImages.IMG_ANNOTATION;
   }

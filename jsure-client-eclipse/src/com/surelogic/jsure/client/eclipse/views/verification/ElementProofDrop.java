@@ -36,13 +36,19 @@ abstract class ElementProofDrop extends ElementDrop {
       return null;
     final StringBuilder b = new StringBuilder();
     if (newDrop.provedConsistent() && !oldDrop.provedConsistent())
-      b.append("Verification judgement changed from not consistent to consistent");
+      b.append("consistent with code, ");
     else if (!newDrop.provedConsistent() && oldDrop.provedConsistent())
-      b.append("Verification judgement changed from consistent to not consistent");
+      b.append("not consistent with code, ");
+    if (newDrop.proofUsesRedDot() && !oldDrop.proofUsesRedDot())
+      b.append("contingent (red-dot), ");
+    else if (!newDrop.proofUsesRedDot() && oldDrop.proofUsesRedDot())
+      b.append("not contingent (no red-dot), ");
     if (b.length() == 0)
       return null;
-    else
-      return b.toString();
+    else {
+      // remove last ", "
+      return b.delete(b.length() - 2, b.length()).toString();
+    }
   }
 
   @Override

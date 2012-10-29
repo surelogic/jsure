@@ -68,6 +68,12 @@ final class ElementProposedPromiseDrop extends ElementDrop {
   }
 
   @Override
+  @NonNull
+  String getImageNameForChangedFromDrop() {
+    return CommonImages.IMG_ANNOTATION_PROPOSED;
+  }
+
+  @Override
   int getImageFlagsForChangedFromDrop() {
     return 0;
   }
@@ -84,7 +90,7 @@ final class ElementProposedPromiseDrop extends ElementDrop {
   }
 
   @Override
-  @Nullable
+  @NonNull
   String getImageName() {
     return CommonImages.IMG_ANNOTATION_PROPOSED;
   }

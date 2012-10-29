@@ -5,6 +5,7 @@ import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
 import com.surelogic.Utility;
@@ -13,7 +14,6 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
@@ -248,25 +248,24 @@ public final class ColumnLabelProviderUtility {
       if (diff != null && cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();
         String cellText = null;
+        Image cellImage = null;
         if (element.isNew()) {
+          cellImage = element.getImageHelper(element.getImageName(), element.getImageFlags(), true, false, false);
           cellText = "New";
         } else {
           final IDrop oldDrop = element.getChangedFromDropOrNull();
           if (oldDrop != null) {
-            cell.setImage(element.getImageForChangedFromDrop());
-            cellText = oldDrop.getMessage();
-            if (oldDrop instanceof IPromiseDrop) {
-              // remove the on clause
-              final int index = cellText.indexOf(" on ");
-              if (index != -1) {
-                cellText = cellText.substring(0, index);
-              }
-            }
-            String changeMsg = element.getMessageAboutWhatChangedOrNull();
-            if (changeMsg != null) {
-              cellText += "  \u2014  " + changeMsg;
+            cellImage = element.getImageHelper(element.getImageNameForChangedFromDrop(), element.getImageFlagsForChangedFromDrop(),
+                true, false, false);
+            cellText = "Changed";
+            final String whatChanged = element.getMessageAboutWhatChangedOrNull();
+            if (whatChanged != null) {
+              cellText += " to " + whatChanged;
             }
           }
+        }
+        if (cellImage != null) {
+          cell.setImage(cellImage);
         }
         if (cellText != null) {
           cell.setText(cellText);

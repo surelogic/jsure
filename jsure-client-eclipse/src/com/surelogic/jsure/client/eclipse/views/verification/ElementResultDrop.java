@@ -66,6 +66,12 @@ final class ElementResultDrop extends ElementAnalysisResultDrop {
   }
 
   @Override
+  @Nullable
+  String getImageNameForChangedFromDrop() {
+    return getImageNameHelper(getChangedFromDropOrNull());
+  }
+
+  @Override
   int getImageFlags() {
     if (hasChildren())
       return super.getImageFlags();
@@ -74,10 +80,53 @@ final class ElementResultDrop extends ElementAnalysisResultDrop {
   }
 
   @Override
+  @Nullable
   String getImageName() {
-    if (getDrop().isConsistent())
+    return getImageNameHelper(getDrop());
+  }
+
+  @Nullable
+  private String getImageNameHelper(IResultDrop drop) {
+    if (drop == null)
+      return null;
+
+    if (drop.isConsistent())
       return CommonImages.IMG_PLUS;
-    else
-      return CommonImages.IMG_RED_X;
+    else {
+      if (drop.isVouched())
+        return CommonImages.IMG_PLUS_VOUCH;
+      else
+        return CommonImages.IMG_RED_X;
+    }
+  }
+
+  @Override
+  @Nullable
+  String getMessageAboutWhatChangedOrNull() {
+    final IResultDrop newDrop = getDrop();
+    final IResultDrop oldDrop = getChangedFromDropOrNull();
+    if (newDrop == null || oldDrop == null || newDrop == oldDrop)
+      return null;
+    final String superMsg = super.getMessageAboutWhatChangedOrNull();
+    StringBuilder b = new StringBuilder(superMsg == null ? "" : superMsg);
+    b.append(", ");
+    if (newDrop.isConsistent() && !oldDrop.isConsistent())
+      b.append("consistent analysis result, ");
+    else if (!newDrop.isConsistent() && oldDrop.isConsistent())
+      b.append("inconsistent analysis result, ");
+    if (newDrop.isTimeout() && !oldDrop.isTimeout())
+      b.append("analysis execution timed out, ");
+    else if (!newDrop.isTimeout() && oldDrop.isTimeout())
+      b.append("analysis execution did not time out, ");
+    if (newDrop.isVouched() && !oldDrop.isVouched())
+      b.append("programmer vouch, ");
+    else if (!newDrop.isVouched() && oldDrop.isVouched())
+      b.append("no programmer vouch, ");
+    if (b.length() == 0)
+      return null;
+    else {
+      // remove last ", "
+      return b.delete(b.length() - 2, b.length()).toString();
+    }
   }
 }

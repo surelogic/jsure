@@ -302,7 +302,7 @@ abstract class Element {
   /**
    * Gets the the decorated image associated with this element.
    * 
-   * @param name
+   * @param imageName
    *          the image name from {@link CommonImages} or {@code null} for no
    *          image.
    * @param flags
@@ -317,9 +317,9 @@ abstract class Element {
    * @return an image, or {@code null} for no image.
    */
   @Nullable
-  final Image getImageHelper(String name, int flags, boolean withWarningDecoratorIfApplicable,
+  final Image getImageHelper(String imageName, int flags, boolean gray, boolean withWarningDecoratorIfApplicable,
       boolean withDeltaDecoratorIfApplicable) {
-    if (name == null)
+    if (imageName == null)
       return null;
     if (withDeltaDecoratorIfApplicable) {
       if (Element.f_highlightDifferences) {
@@ -331,7 +331,11 @@ abstract class Element {
       if (descendantHasWarningHint())
         flags |= CoE_Constants.HINT_WARNING;
     }
-    return (new ResultsImageDescriptor(name, flags, VerificationStatusView.ICONSIZE)).getCachedImage();
+    final ResultsImageDescriptor id = new ResultsImageDescriptor(imageName, flags, VerificationStatusView.ICONSIZE);
+    if (gray)
+      return id.getCachedGrayImage();
+    else
+      return id.getCachedImage();
   }
 
   /**
@@ -341,7 +345,7 @@ abstract class Element {
    */
   @Nullable
   final Image getImage() {
-    return getImageHelper(getImageName(), getImageFlags(), f_showHints, true);
+    return getImageHelper(getImageName(), getImageFlags(), false, f_showHints, true);
   }
 
   @Override

@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.eclipse.jface.resource.CompositeImageDescriptor;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
@@ -75,6 +76,11 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
    * ImageDescriptor:fBaseImage -> (MAP fFlags -> Image)
    */
   private static final Map<ImageDescriptor, Map<String, Image>> imageCache = new HashMap<ImageDescriptor, Map<String, Image>>();
+
+  /**
+   * ImageDescriptor:fBaseImage -> (MAP fFlags -> Image)
+   */
+  private static final Map<ImageDescriptor, Map<String, Image>> imageGrayCache = new HashMap<ImageDescriptor, Map<String, Image>>();
 
   /**
    * Creates a new JavaElementImageDescriptor.
@@ -152,6 +158,38 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
       imageCache.put(fBaseImage, flagMap);
     }
     return result;
+  }
+
+  /**
+   * Returns the image, should always be used to avoid running out of SWT Image
+   * objects.
+   * 
+   * @return an image
+   */
+  public Image getCachedGrayImage() {
+    Image result;
+    String flagsKey = Integer.toHexString(fFlags);
+    if (imageGrayCache.containsKey(fBaseImage)) {
+      Map<String, Image> flagMap = imageGrayCache.get(fBaseImage);
+      if (flagMap.containsKey(flagsKey)) {
+        result = flagMap.get(flagsKey);
+      } else {
+        // add the flag cachemap
+        result = toGray(getCachedImage());
+        flagMap.put(flagsKey, result);
+      }
+    } else {
+      // create image and add to both cachemaps
+      result = toGray(getCachedImage());
+      Map<String, Image> flagMap = new HashMap<String, Image>();
+      flagMap.put(flagsKey, result);
+      imageGrayCache.put(fBaseImage, flagMap);
+    }
+    return result;
+  }
+
+  private Image toGray(Image i) {
+    return new Image(i.getDevice(), i, SWT.IMAGE_GRAY);
   }
 
   /**
