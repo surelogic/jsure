@@ -35,10 +35,38 @@ public final class ColumnLabelProviderUtility {
     return f_onClauseColor;
   }
 
+  private static Color f_onDiffColor;
+
+  private static Color getDiffColor() {
+    if (f_onDiffColor == null) {
+      f_onDiffColor = new Color(Display.getCurrent(), 255, 255, 190);
+      Display.getCurrent().disposeExec(new Runnable() {
+        public void run() {
+          f_onDiffColor.dispose();
+        }
+      });
+    }
+    return f_onDiffColor;
+  }
+
+  private static void highlightRowIfNewOrDiff(ViewerCell cell) {
+    if (Element.f_highlightDifferences) {
+      if (cell.getElement() instanceof ElementDrop) {
+        final ElementDrop element = (ElementDrop) cell.getElement();
+        if (!element.isSame())
+          cell.setBackground(getDiffColor());
+        return;
+      }
+    }
+    cell.setBackground(null);
+  }
+
   static final StyledCellLabelProvider TREE = new StyledCellLabelProvider() {
 
     @Override
     public void update(ViewerCell cell) {
+      highlightRowIfNewOrDiff(cell);
+
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         final boolean duplicate = hasAncestorWithSameDrop(element);
@@ -113,6 +141,8 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
+      highlightRowIfNewOrDiff(cell);
+
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         final String project = element.getProjectNameOrNull();
@@ -134,6 +164,8 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
+      highlightRowIfNewOrDiff(cell);
+
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         final String pkg = element.getPackageNameOrNull();
@@ -158,6 +190,8 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
+      highlightRowIfNewOrDiff(cell);
+
       if (cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();
         final String typeName = element.getSimpleTypeNameOrNull();
@@ -193,6 +227,8 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
+      highlightRowIfNewOrDiff(cell);
+
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         final String line = element.getLineNumberAsStringOrNull();
@@ -206,6 +242,8 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
+      highlightRowIfNewOrDiff(cell);
+
       final ScanDifferences diff = Element.f_diff;
       if (diff != null && cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();
