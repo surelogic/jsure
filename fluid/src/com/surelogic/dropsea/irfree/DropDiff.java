@@ -142,6 +142,19 @@ public class DropDiff extends DiffNode implements IViewable {
 		
 		abstract boolean getAttr(IProofDrop d);
 	}
+	private static abstract class ResultPredicate extends ProofPredicate {
+		ResultPredicate(String l) {
+			super(l);
+		}
+		final boolean getAttr(IProofDrop d) {
+			if (d instanceof IResultDrop) {
+				final IResultDrop rd = (IResultDrop) d;
+				return getAttr(rd);
+			}
+			return false;
+		}
+		abstract boolean getAttr(IResultDrop d);
+	}
 	
 	private static final ProofPredicate[] predicates = {
 		new ProofPredicate("provedConsistent") {
@@ -156,14 +169,22 @@ public class DropDiff extends DiffNode implements IViewable {
 				return d.proofUsesRedDot();
 			}
 		},
-		new ProofPredicate("isConsistent") {
+		new ResultPredicate("isConsistent") {
 			@Override
-			public boolean getAttr(IProofDrop d) {
-				if (d instanceof IResultDrop) {
-					final IResultDrop rd = (IResultDrop) d;
-					return rd.isConsistent();
-				}
-				return false;
+			public boolean getAttr(IResultDrop rd) {
+				return rd.isConsistent();
+			}
+		}, 
+		new ResultPredicate("isTimeout") {
+			@Override
+			public boolean getAttr(IResultDrop rd) {
+				return rd.isTimeout();
+			}
+		},
+		new ResultPredicate("isVouched") {
+			@Override
+			public boolean getAttr(IResultDrop rd) {
+				return rd.isVouched();
 			}
 		},
 	};
