@@ -19,11 +19,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 import org.xml.sax.Attributes;
 
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jsure.xml.AbstractXMLReader;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.AbstractXMLResultListener;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.MoreInfo;
@@ -40,7 +42,13 @@ import com.surelogic.dropsea.ir.drops.ScopedPromiseDrop;
 import com.surelogic.dropsea.irfree.DropTypeUtility;
 
 public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListener {
-
+  private final ConcurrentMap<String,IJavaRef> refCache;
+  //private int refsReused = 0;
+  
+  public SeaSnapshotXMLReaderListener(ConcurrentMap<String,IJavaRef> cache) {
+	  refCache = cache;
+  }
+	
   private class SeaEntity extends Entity {
 
     public SeaEntity(String name, Attributes a) {
@@ -84,6 +92,21 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
       } else
         super.addRef(e);
     }
+
+    @Override
+    public IJavaRef parsePersistedRef(String encode) {
+    	if (refCache == null) {
+    		return super.parsePersistedRef(encode);
+    	}
+    	IJavaRef ref = refCache.get(encode);
+    	if (ref == null) {
+    		ref = super.parsePersistedRef(encode);
+    		refCache.put(encode, ref);
+    	} else {
+    		//refsReused++;
+    	}
+    	return ref;
+    }
   }
 
   /**
@@ -92,6 +115,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
   private final ArrayList<Entity> entities = new ArrayList<Entity>();
 
   public List<IDrop> getDrops() {
+	//System.out.println("Reused "+refsReused+" out of "+refCache.size());
     final ArrayList<IDrop> result = new ArrayList<IDrop>();
     for (Entity se : entities) {
       if (se instanceof SeaEntity) {

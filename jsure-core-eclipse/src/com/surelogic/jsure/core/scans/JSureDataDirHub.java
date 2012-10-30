@@ -18,6 +18,7 @@ import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.dropsea.irfree.ISeaDiff;
+import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureDataDirScanner;
 import com.surelogic.javac.persistence.JSureScan;
@@ -372,26 +373,37 @@ public final class JSureDataDirHub {
                 return SLStatus.createErrorStatus(code, I18N.err(code, jsureScan, f_dataDir.getDir().getAbsoluteFile()));
               }
             }
+            final SeaSnapshot loader = SeaSnapshot.create();
             JSureScanInfo currentScanInfo = null;
             JSureScanInfo lastMatchingScanInfo = null;
             ScanDifferences scanDiff = null;
             monitor.worked(1);
             if (jsureScan != null) {
-              currentScanInfo = new JSureScanInfo(jsureScan);
+              currentScanInfo = new JSureScanInfo(jsureScan, loader);
+              currentScanInfo.getDropInfo(); // force loading
+              
               final JSureScan last = f_dataDir.findLastMatchingScan(currentScanInfo.getJSureRun());
               monitor.worked(1);
-              if (monitor.isCanceled())
+              if (monitor.isCanceled()) {
+            	loader.clear();
                 return SLStatus.CANCEL_STATUS;
+              }
               if (last != null) {
-                lastMatchingScanInfo = new JSureScanInfo(last);
+                lastMatchingScanInfo = new JSureScanInfo(last, loader);
+                lastMatchingScanInfo.getDropInfo(); // force loading
+                loader.clear(); // here because of forced loading
                 monitor.worked(1);
-                if (monitor.isCanceled())
+                if (monitor.isCanceled()) {
+                  //loader.clear();
                   return SLStatus.CANCEL_STATUS;
+                }
                 final ISeaDiff diff = currentScanInfo.diff(lastMatchingScanInfo,
                     UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER);
+            	//loader.clear(); // here because of lazy load
                 monitor.worked(1);
-                if (monitor.isCanceled())
+                if (monitor.isCanceled()) {
                   return SLStatus.CANCEL_STATUS;
+                }
                 scanDiff = diff.build();
                 monitor.worked(1);
               }
