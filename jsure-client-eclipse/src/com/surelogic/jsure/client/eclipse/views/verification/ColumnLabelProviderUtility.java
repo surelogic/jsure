@@ -137,7 +137,7 @@ public final class ColumnLabelProviderUtility {
   static final CellLabelProvider PROJECT = new VerificationStatusCellLabelProvider() {
 
     private final ResultsImageDescriptor f_projectRid = new ResultsImageDescriptor(CommonImages.IMG_PROJECT, 0,
-        VerificationStatusView.ICONSIZE);
+        ResultsImageDescriptor.JSURE_ICONSIZE);
 
     @Override
     public void update(ViewerCell cell) {
@@ -160,7 +160,7 @@ public final class ColumnLabelProviderUtility {
   static final CellLabelProvider PACKAGE = new VerificationStatusCellLabelProvider() {
 
     private final ResultsImageDescriptor f_packageRid = new ResultsImageDescriptor(CommonImages.IMG_PACKAGE, 0,
-        VerificationStatusView.ICONSIZE);
+        ResultsImageDescriptor.JSURE_ICONSIZE);
 
     @Override
     public void update(ViewerCell cell) {
@@ -180,13 +180,13 @@ public final class ColumnLabelProviderUtility {
   static final CellLabelProvider TYPE = new VerificationStatusCellLabelProvider() {
 
     private final ResultsImageDescriptor f_classRid = new ResultsImageDescriptor(CommonImages.IMG_CLASS, 0,
-        VerificationStatusView.ICONSIZE);
+        ResultsImageDescriptor.JSURE_ICONSIZE);
     private final ResultsImageDescriptor f_interfaceRid = new ResultsImageDescriptor(CommonImages.IMG_INTERFACE, 0,
-        VerificationStatusView.ICONSIZE);
+        ResultsImageDescriptor.JSURE_ICONSIZE);
     private final ResultsImageDescriptor f_enumRid = new ResultsImageDescriptor(CommonImages.IMG_ENUM, 0,
-        VerificationStatusView.ICONSIZE);
+        ResultsImageDescriptor.JSURE_ICONSIZE);
     private final ResultsImageDescriptor f_annotationRid = new ResultsImageDescriptor(CommonImages.IMG_ANNOTATION, 0,
-        VerificationStatusView.ICONSIZE);
+        ResultsImageDescriptor.JSURE_ICONSIZE);
 
     @Override
     public void update(ViewerCell cell) {

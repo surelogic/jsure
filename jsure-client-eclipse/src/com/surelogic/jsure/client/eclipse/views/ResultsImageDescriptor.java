@@ -49,6 +49,8 @@ import com.surelogic.common.ui.SLImages;
  * @see org.eclipse.jdt.ui.JavaElementImageDescriptor
  */
 public class ResultsImageDescriptor extends CompositeImageDescriptor {
+  
+  public static final Point JSURE_ICONSIZE = new Point(22, 16);
 
   public static final ImageDescriptor DESC_ASSUME_DECR = SLImages.getImageDescriptor(CommonImages.IMG_ASSUME_DECR);
 

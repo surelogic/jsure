@@ -331,7 +331,7 @@ abstract class Element {
       if (descendantHasWarningHint())
         flags |= CoE_Constants.HINT_WARNING;
     }
-    final ResultsImageDescriptor id = new ResultsImageDescriptor(imageName, flags, VerificationStatusView.ICONSIZE);
+    final ResultsImageDescriptor id = new ResultsImageDescriptor(imageName, flags, ResultsImageDescriptor.JSURE_ICONSIZE);
     if (gray)
       return id.getCachedGrayImage();
     else
