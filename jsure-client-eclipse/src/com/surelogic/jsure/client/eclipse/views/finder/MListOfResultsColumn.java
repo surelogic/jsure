@@ -37,7 +37,7 @@ import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.model.selection.ISelectionObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
 import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
-import com.surelogic.jsure.client.eclipse.views.verification.VerificationStatusView;
+import com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView;
 
 public final class MListOfResultsColumn extends MColumn implements ISelectionObserver {
 

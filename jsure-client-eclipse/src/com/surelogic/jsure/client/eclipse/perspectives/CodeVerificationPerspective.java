@@ -10,7 +10,7 @@ import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.client.eclipse.views.proposals.ProposedPromiseView;
 import com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView;
 import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
-import com.surelogic.jsure.client.eclipse.views.verification.VerificationStatusView;
+import com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView;
 import com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView;
 
 /**

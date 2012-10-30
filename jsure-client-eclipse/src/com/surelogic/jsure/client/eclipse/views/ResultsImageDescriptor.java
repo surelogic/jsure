@@ -31,6 +31,7 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 
+import com.surelogic.NonNull;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.SLImages;
@@ -49,7 +50,7 @@ import com.surelogic.common.ui.SLImages;
  * @see org.eclipse.jdt.ui.JavaElementImageDescriptor
  */
 public class ResultsImageDescriptor extends CompositeImageDescriptor {
-  
+
   public static final Point JSURE_ICONSIZE = new Point(22, 16);
 
   public static final ImageDescriptor DESC_ASSUME_DECR = SLImages.getImageDescriptor(CommonImages.IMG_ASSUME_DECR);
@@ -77,12 +78,12 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
   private final Point fSize;
 
   /**
-   * ImageDescriptor:fBaseImage -> (MAP fFlags -> Image)
+   * ImageDescriptor:fBaseImage -> (MAP fFlags+size -> Image)
    */
   private static final Map<ImageDescriptor, Map<String, Image>> imageCache = new HashMap<ImageDescriptor, Map<String, Image>>();
 
   /**
-   * ImageDescriptor:fBaseImage -> (MAP fFlags -> Image)
+   * ImageDescriptor:fBaseImage -> (MAP fFlags+size -> Image)
    */
   private static final Map<ImageDescriptor, Map<String, Image>> imageGrayCache = new HashMap<ImageDescriptor, Map<String, Image>>();
 
@@ -177,20 +178,19 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
    */
   public Image getCachedImage() {
     Image result;
-    String flagsKey = Integer.toHexString(fFlags);
-    if (imageCache.containsKey(fBaseImage)) {
-      Map<String, Image> flagMap = imageCache.get(fBaseImage);
-      if (flagMap.containsKey(flagsKey)) {
-        result = flagMap.get(flagsKey);
-      } else {
-        // add the flag cachemap
+    final String flagsKey = getCacheKey();
+    Map<String, Image> flagMap = imageCache.get(fBaseImage);
+    if (flagMap != null) {
+      result = flagMap.get(flagsKey);
+      if (result == null) {
+        // add image to the existing base image cache
         result = this.createImage();
         flagMap.put(flagsKey, result);
       }
     } else {
-      // create image and add to both cachemaps
+      // add image to both cache maps
       result = this.createImage();
-      Map<String, Image> flagMap = new HashMap<String, Image>();
+      flagMap = new HashMap<String, Image>();
       flagMap.put(flagsKey, result);
       imageCache.put(fBaseImage, flagMap);
       disposeExec();
@@ -199,27 +199,26 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
   }
 
   /**
-   * Returns the image, should always be used to avoid running out of SWT Image
-   * objects.
+   * Returns the image in grayscale, should always be used to avoid running out
+   * of SWT Image objects.
    * 
-   * @return an image
+   * @return a grayscale image
    */
   public Image getCachedGrayImage() {
     Image result;
-    String flagsKey = Integer.toHexString(fFlags);
-    if (imageGrayCache.containsKey(fBaseImage)) {
-      Map<String, Image> flagMap = imageGrayCache.get(fBaseImage);
-      if (flagMap.containsKey(flagsKey)) {
-        result = flagMap.get(flagsKey);
-      } else {
-        // add the flag cachemap
+    final String flagsKey = getCacheKey();
+    Map<String, Image> flagMap = imageGrayCache.get(fBaseImage);
+    if (flagMap != null) {
+      result = flagMap.get(flagsKey);
+      if (result == null) {
+        // add image to the existing base image cache
         result = toGray(getCachedImage());
         flagMap.put(flagsKey, result);
       }
     } else {
-      // create image and add to both cachemaps
+      // add image to both cache maps
       result = toGray(getCachedImage());
-      Map<String, Image> flagMap = new HashMap<String, Image>();
+      flagMap = new HashMap<String, Image>();
       flagMap.put(flagsKey, result);
       imageGrayCache.put(fBaseImage, flagMap);
       disposeExec();
@@ -229,6 +228,20 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
 
   private Image toGray(Image i) {
     return new Image(i.getDevice(), i, SWT.IMAGE_GRAY);
+  }
+
+  /**
+   * Constructs a cache key for this descriptor. This includes the decorator
+   * flags in hex followed by the size of the requested image.
+   * <p>
+   * Examples: <tt>84(22,16)</tt>, <tt>0(22,16)</tt>, <tt>2(16,16)</tt>
+   * 
+   * @return a cache key;
+   */
+  @NonNull
+  private String getCacheKey() {
+    final String result = Integer.toHexString(fFlags) + "(" + fSize.x + "," + fSize.y + ")";
+    return result;
   }
 
   /**
@@ -259,9 +272,6 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
     return fSize;
   }
 
-  /**
-   * Method declared on Object.
-   */
   @Override
   public boolean equals(Object object) {
     if (object == null || !ResultsImageDescriptor.class.equals(object.getClass()))
@@ -271,9 +281,6 @@ public class ResultsImageDescriptor extends CompositeImageDescriptor {
     return (fBaseImage.equals(other.fBaseImage) && fFlags == other.fFlags && fSize.equals(other.fSize));
   }
 
-  /**
-   * Method declared on Object.
-   */
   @Override
   public int hashCode() {
     return fBaseImage.hashCode() | fFlags | fSize.hashCode();
