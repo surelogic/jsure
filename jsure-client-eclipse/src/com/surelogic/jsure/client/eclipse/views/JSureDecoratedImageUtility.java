@@ -11,14 +11,10 @@
 package com.surelogic.jsure.client.eclipse.views;
 
 import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.DecorationOverlayIcon;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Display;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
@@ -59,49 +55,6 @@ public final class JSureDecoratedImageUtility {
   public static final Point SIZE = new Point(22, 16);
 
   /**
-   * base_image -> (flags+size -> decorated_image)
-   */
-  private static final Map<Image, Map<String, Image>> imageCache = new HashMap<Image, Map<String, Image>>();
-
-  /**
-   * base_image -> (flags+size -> decorated_grayscale_image)
-   */
-  private static final Map<Image, Map<String, Image>> imageGrayCache = new HashMap<Image, Map<String, Image>>();
-
-  private static boolean f_needToRegDisposeExec = true;
-
-  private static void disposeExec() {
-    if (f_needToRegDisposeExec) {
-      f_needToRegDisposeExec = false;
-      Display.getCurrent().disposeExec(new Runnable() {
-        public void run() {
-          disposeCacheHelper(imageCache);
-          disposeCacheHelper(imageGrayCache);
-          imageCache.clear();
-          imageGrayCache.clear();
-        }
-      });
-    }
-  }
-
-  private static void disposeCacheHelper(Map<Image, Map<String, Image>> cache) {
-    if (cache == null)
-      return;
-
-    for (Map<String, Image> m : cache.values())
-      disposeCacheMapHelper(m);
-  }
-
-  private static void disposeCacheMapHelper(Map<String, Image> m) {
-    if (m == null)
-      return;
-
-    for (Image image : m.values()) {
-      image.dispose();
-    }
-  }
-
-  /**
    * Returns a decorated image. The image is cached to avoid running out of SWT
    * Image objects.
    * <p>
@@ -122,26 +75,7 @@ public final class JSureDecoratedImageUtility {
   public static Image getImage(@NonNull final Image baseImage, @NonNull final EnumSet<Flag> flags, @Nullable Point size) {
     if (size == null)
       size = SIZE;
-
-    Image result;
-    final String flagsKey = getCacheKey(flags, size);
-    Map<String, Image> flagMap = imageCache.get(baseImage);
-    if (flagMap != null) {
-      result = flagMap.get(flagsKey);
-      if (result == null) {
-        // add image to the existing base image cache
-        result = createImage(baseImage, flags, size);
-        flagMap.put(flagsKey, result);
-      }
-    } else {
-      // add image to both cache maps
-      result = createImage(baseImage, flags, size);
-      flagMap = new HashMap<String, Image>();
-      flagMap.put(flagsKey, result);
-      imageCache.put(baseImage, flagMap);
-      disposeExec();
-    }
-    return result;
+    return SLImages.getDecoratedImage(baseImage, getOverlaysArray(flags), size);
   }
 
   /**
@@ -271,26 +205,7 @@ public final class JSureDecoratedImageUtility {
   public static Image getGrayscaleImage(@NonNull final Image baseImage, @NonNull final EnumSet<Flag> flags, @Nullable Point size) {
     if (size == null)
       size = SIZE;
-
-    Image result;
-    final String flagsKey = getCacheKey(flags, size);
-    Map<String, Image> flagMap = imageGrayCache.get(baseImage);
-    if (flagMap != null) {
-      result = flagMap.get(flagsKey);
-      if (result == null) {
-        // add image to the existing base image cache
-        result = SLImages.toGray(getImage(baseImage, flags, size));
-        flagMap.put(flagsKey, result);
-      }
-    } else {
-      // add image to both cache maps
-      result = SLImages.toGray(getImage(baseImage, flags, size));
-      flagMap = new HashMap<String, Image>();
-      flagMap.put(flagsKey, result);
-      imageGrayCache.put(baseImage, flagMap);
-      disposeExec();
-    }
-    return result;
+    return SLImages.getDecoratedGrayscaleImage(baseImage, getOverlaysArray(flags), size);
   }
 
   /**
@@ -401,39 +316,14 @@ public final class JSureDecoratedImageUtility {
     return getGrayscaleImage(baseImageName, flags, SIZE);
   }
 
-  /**
-   * Constructs a cache key for this descriptor. This includes the decorator
-   * flags in hex followed by the size of the requested image.
-   * <p>
-   * Examples: <tt>[ASSUME](22,16)</tt>, <tt>[REDDOT](22,16)</tt>,
-   * <tt>[](16,16)</tt>
-   * 
-   * @return a string cache key.
-   */
   @NonNull
-  private static String getCacheKey(@NonNull final EnumSet<Flag> flags, @NonNull final Point size) {
-    final String result = flags.toString() + "(" + size.x + "," + size.y + ")";
-    return result;
-  }
-
-  @NonNull
-  private static Image createImage(@NonNull final Image baseImage, @NonNull final EnumSet<Flag> flags, @NonNull final Point size) {
-    final int baseImageWidth = baseImage.getBounds().width;
-    int indent = 0;
-    if (baseImageWidth != size.x)
-      indent = (int) (((double) (size.x - baseImageWidth)) / 2.0);
-    final boolean indentImage = indent > 0;
-    final Image base = indentImage ? SLImages.indentImage(baseImage, indent) : baseImage;
-
+  private static ImageDescriptor[] getOverlaysArray(@NonNull final EnumSet<Flag> flags) {
     final ImageDescriptor[] overlaysArray = { getTopLeft(flags), getTopRight(flags), getBottomLeft(flags), getBottomRight(flags),
         null };
-    final DecorationOverlayIcon doi = new DecorationOverlayIcon(base, overlaysArray, size);
-    final Image result = doi.createImage();
-    if (indentImage)
-      base.dispose();
-    return result;
+    return overlaysArray;
   }
 
+  @Nullable
   private static ImageDescriptor getTopRight(@NonNull final EnumSet<Flag> flags) {
     if (flags.contains(Flag.ASSUME)) {
       return Flag.ASSUME.getImageDescriptor();
@@ -445,6 +335,7 @@ public final class JSureDecoratedImageUtility {
     return null;
   }
 
+  @Nullable
   private static ImageDescriptor getBottomRight(@NonNull final EnumSet<Flag> flags) {
     if (flags.contains(Flag.DELTA)) {
       return Flag.DELTA.getImageDescriptor();
@@ -456,6 +347,7 @@ public final class JSureDecoratedImageUtility {
     return null;
   }
 
+  @Nullable
   private static ImageDescriptor getTopLeft(@NonNull final EnumSet<Flag> flags) {
     if (flags.contains(Flag.REDDOT)) {
       return Flag.REDDOT.getImageDescriptor();
@@ -463,6 +355,7 @@ public final class JSureDecoratedImageUtility {
     return null;
   }
 
+  @Nullable
   private static ImageDescriptor getBottomLeft(@NonNull final EnumSet<Flag> flags) {
     if (flags.contains(Flag.CONSISTENT)) {
       return Flag.CONSISTENT.getImageDescriptor();
