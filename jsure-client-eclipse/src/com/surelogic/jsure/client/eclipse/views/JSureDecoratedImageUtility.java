@@ -16,7 +16,6 @@ import java.util.Map;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
@@ -280,12 +279,12 @@ public final class JSureDecoratedImageUtility {
       result = flagMap.get(flagsKey);
       if (result == null) {
         // add image to the existing base image cache
-        result = toGray(getImage(baseImage, flags, size));
+        result = SLImages.toGray(getImage(baseImage, flags, size));
         flagMap.put(flagsKey, result);
       }
     } else {
       // add image to both cache maps
-      result = toGray(getImage(baseImage, flags, size));
+      result = SLImages.toGray(getImage(baseImage, flags, size));
       flagMap = new HashMap<String, Image>();
       flagMap.put(flagsKey, result);
       imageGrayCache.put(baseImage, flagMap);
@@ -403,18 +402,6 @@ public final class JSureDecoratedImageUtility {
   }
 
   /**
-   * Constructs a new grayscale image (that must be disposed) from the passed
-   * image.
-   * 
-   * @param image
-   *          an image.
-   * @return a grayscale version of <tt>image</tt>.
-   */
-  private static Image toGray(@NonNull final Image image) {
-    return new Image(image.getDevice(), image, SWT.IMAGE_GRAY);
-  }
-
-  /**
    * Constructs a cache key for this descriptor. This includes the decorator
    * flags in hex followed by the size of the requested image.
    * <p>
@@ -431,10 +418,20 @@ public final class JSureDecoratedImageUtility {
 
   @NonNull
   private static Image createImage(@NonNull final Image baseImage, @NonNull final EnumSet<Flag> flags, @NonNull final Point size) {
+    final int baseImageWidth = baseImage.getBounds().width;
+    int indent = 0;
+    if (baseImageWidth != size.x)
+      indent = (int) (((double) (size.x - baseImageWidth)) / 2.0);
+    final boolean indentImage = indent > 0;
+    final Image base = indentImage ? SLImages.indentImage(baseImage, indent) : baseImage;
+
     final ImageDescriptor[] overlaysArray = { getTopLeft(flags), getTopRight(flags), getBottomLeft(flags), getBottomRight(flags),
         null };
-    final DecorationOverlayIcon doi = new DecorationOverlayIcon(baseImage, overlaysArray, size);
-    return doi.createImage();
+    final DecorationOverlayIcon doi = new DecorationOverlayIcon(base, overlaysArray, size);
+    final Image result = doi.createImage();
+    if (indentImage)
+      base.dispose();
+    return result;
   }
 
   private static ImageDescriptor getTopRight(@NonNull final EnumSet<Flag> flags) {
