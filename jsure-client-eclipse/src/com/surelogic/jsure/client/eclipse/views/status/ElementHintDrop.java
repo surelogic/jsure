@@ -1,11 +1,14 @@
 package com.surelogic.jsure.client.eclipse.views.status;
 
+import java.util.EnumSet;
+
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.ScanDifferences;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 final class ElementHintDrop extends ElementDrop {
 
@@ -72,8 +75,8 @@ final class ElementHintDrop extends ElementDrop {
   }
 
   @Override
-  int getImageFlagsForChangedFromDrop() {
-    return 0;
+  EnumSet<Flag> getImageFlagsForChangedFromDrop() {
+    return EnumSet.noneOf(Flag.class);
   }
 
   @Override
@@ -83,8 +86,8 @@ final class ElementHintDrop extends ElementDrop {
   }
 
   @Override
-  int getImageFlags() {
-    return 0;
+  EnumSet<Flag> getImageFlags() {
+    return EnumSet.noneOf(Flag.class);
   }
 
   @Override

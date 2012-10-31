@@ -1,17 +1,17 @@
 package com.surelogic.jsure.client.eclipse.model.selection;
 
+import java.util.EnumSet;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
-import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 public final class FilterVerificationJudgment extends Filter {
 
@@ -55,26 +55,25 @@ public final class FilterVerificationJudgment extends Filter {
     }
   }
 
-  private static final ResultsImageDescriptor ID_CONSISTENT = new ResultsImageDescriptor(
-      SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION), CoE_Constants.CONSISTENT, new Point(22, 16));
-  private static final ResultsImageDescriptor ID_CONSISTENT_REDDOT = new ResultsImageDescriptor(
-      SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION), CoE_Constants.CONSISTENT | CoE_Constants.REDDOT, new Point(22, 16));
-  private static final ResultsImageDescriptor ID_INCONSISTENT_REDDOT = new ResultsImageDescriptor(
-      SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION), CoE_Constants.INCONSISTENT | CoE_Constants.REDDOT,
-      new Point(22, 16));
-  private static final ResultsImageDescriptor ID_INCONSISTENT = new ResultsImageDescriptor(
-      SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION), CoE_Constants.INCONSISTENT, new Point(22, 16));
+  private final Image imageConsistent = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION,
+      EnumSet.of(Flag.CONSISTENT));
+  private final Image imageConsistentReddot = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION,
+      EnumSet.of(Flag.CONSISTENT, Flag.REDDOT));
+  private final Image imageInconsistentReddot = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION,
+      EnumSet.of(Flag.INCONSISTENT, Flag.REDDOT));
+  private final Image imageInconsistent = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION,
+      EnumSet.of(Flag.INCONSISTENT));
 
   @Override
   public Image getImageFor(String value) {
     if (CONSISTENT.equals(value))
-      return ID_CONSISTENT.getCachedImage();
+      return imageConsistent;
     if (CONSISTENT_REDDOT.equals(value))
-      return ID_CONSISTENT_REDDOT.getCachedImage();
+      return imageConsistentReddot;
     if (INCONSISTENT_REDDOT.equals(value))
-      return ID_INCONSISTENT_REDDOT.getCachedImage();
+      return imageInconsistentReddot;
     if (INCONSISTENT.equals(value))
-      return ID_INCONSISTENT.getCachedImage();
+      return imageInconsistent;
 
     return SLImages.getImage(CommonImages.IMG_EMPTY);
   }

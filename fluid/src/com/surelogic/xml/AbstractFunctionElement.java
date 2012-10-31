@@ -40,24 +40,25 @@ implements IClassMember, TestXMLParserConstants
 	
 	public final String getImageKey() {
 		if (isStatic()) {
+		  // TODO FIX TO SHOW STATIC
 			switch (getAccessibility()) {
 			case PROTECTED:
-				return CommonImages.IMG_PROTECTED_S;
+				return CommonImages.IMG_METHOD_PROTECTED;
 			case DEFAULT:
-				return CommonImages.IMG_DEFAULT_S;
+				return CommonImages.IMG_METHOD_DEFAULT;
 			case PUBLIC:
 			default:
-				return CommonImages.IMG_PUBLIC_S;
+				return CommonImages.IMG_METHOD;
 			}
 		}
 		switch (getAccessibility()) {
 		case PROTECTED:
-			return CommonImages.IMG_PROTECTED_I;
+			return CommonImages.IMG_METHOD_PROTECTED;
 		case DEFAULT:
-			return CommonImages.IMG_DEFAULT_I;
+			return CommonImages.IMG_METHOD_DEFAULT;
 		case PUBLIC:
 		default:
-			return CommonImages.IMG_PUBLIC_I;
+			return CommonImages.IMG_METHOD;
 		}
 	}
 	

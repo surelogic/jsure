@@ -1,5 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.status;
 
+import java.util.EnumSet;
+
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
@@ -16,7 +18,8 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
-import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 @Utility
 public final class ColumnLabelProviderUtility {
@@ -136,8 +139,7 @@ public final class ColumnLabelProviderUtility {
 
   static final CellLabelProvider PROJECT = new VerificationStatusCellLabelProvider() {
 
-    private final ResultsImageDescriptor f_projectRid = new ResultsImageDescriptor(CommonImages.IMG_PROJECT, 0,
-        ResultsImageDescriptor.JSURE_ICONSIZE);
+    private final Image f_projectImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_PROJECT, EnumSet.noneOf(Flag.class));
 
     @Override
     public void update(ViewerCell cell) {
@@ -151,7 +153,7 @@ public final class ColumnLabelProviderUtility {
             cell.setText(SLUtility.LIBRARY_PROJECT);
           else
             cell.setText(project);
-          cell.setImage(f_projectRid.getCachedImage());
+          cell.setImage(f_projectImage);
         }
       }
     }
@@ -159,8 +161,7 @@ public final class ColumnLabelProviderUtility {
 
   static final CellLabelProvider PACKAGE = new VerificationStatusCellLabelProvider() {
 
-    private final ResultsImageDescriptor f_packageRid = new ResultsImageDescriptor(CommonImages.IMG_PACKAGE, 0,
-        ResultsImageDescriptor.JSURE_ICONSIZE);
+    private final Image f_packageImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_PACKAGE, EnumSet.noneOf(Flag.class));
 
     @Override
     public void update(ViewerCell cell) {
@@ -171,7 +172,7 @@ public final class ColumnLabelProviderUtility {
         final String pkg = element.getPackageNameOrNull();
         if (isNotEmptyOrNull(pkg)) {
           cell.setText(pkg);
-          cell.setImage(f_packageRid.getCachedImage());
+          cell.setImage(f_packageImage);
         }
       }
     }
@@ -179,14 +180,12 @@ public final class ColumnLabelProviderUtility {
 
   static final CellLabelProvider TYPE = new VerificationStatusCellLabelProvider() {
 
-    private final ResultsImageDescriptor f_classRid = new ResultsImageDescriptor(CommonImages.IMG_CLASS, 0,
-        ResultsImageDescriptor.JSURE_ICONSIZE);
-    private final ResultsImageDescriptor f_interfaceRid = new ResultsImageDescriptor(CommonImages.IMG_INTERFACE, 0,
-        ResultsImageDescriptor.JSURE_ICONSIZE);
-    private final ResultsImageDescriptor f_enumRid = new ResultsImageDescriptor(CommonImages.IMG_ENUM, 0,
-        ResultsImageDescriptor.JSURE_ICONSIZE);
-    private final ResultsImageDescriptor f_annotationRid = new ResultsImageDescriptor(CommonImages.IMG_ANNOTATION, 0,
-        ResultsImageDescriptor.JSURE_ICONSIZE);
+    private final Image f_classImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_CLASS, EnumSet.noneOf(Flag.class));
+    private final Image f_interfaceImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_INTERFACE,
+        EnumSet.noneOf(Flag.class));
+    private final Image f_enumImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ENUM, EnumSet.noneOf(Flag.class));
+    private final Image f_annotationImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION,
+        EnumSet.noneOf(Flag.class));
 
     @Override
     public void update(ViewerCell cell) {
@@ -199,23 +198,23 @@ public final class ColumnLabelProviderUtility {
           cell.setText(typeName);
           IJavaRef ref = element.getDrop().getJavaRef();
           if (ref == null)
-            cell.setImage(f_classRid.getCachedImage());
+            cell.setImage(f_classImage);
           else {
             switch (DeclUtil.getTypeKind(ref.getDeclaration())) {
             case ANNOTATION:
-              cell.setImage(f_annotationRid.getCachedImage());
+              cell.setImage(f_annotationImage);
               break;
             case ENUM:
-              cell.setImage(f_enumRid.getCachedImage());
+              cell.setImage(f_enumImage);
               break;
             case CLASS:
-              cell.setImage(f_classRid.getCachedImage());
+              cell.setImage(f_classImage);
               break;
             case INTERFACE:
-              cell.setImage(f_interfaceRid.getCachedImage());
+              cell.setImage(f_interfaceImage);
               break;
             default:
-              cell.setImage(f_classRid.getCachedImage());
+              cell.setImage(f_classImage);
             }
           }
         }

@@ -2,6 +2,7 @@ package com.surelogic.jsure.client.eclipse.views.status;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,11 +11,11 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.UiPlaceInASubFolder;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 final class ElementCategory extends Element {
 
@@ -192,11 +193,11 @@ final class ElementCategory extends Element {
       /*
        * Determine necessary image flags
        */
-      int flags = 0;
+      EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
       if (!f_proofDrops.isEmpty()) {
-        flags |= f_provedConsistent ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT;
+        flags.add(f_provedConsistent ? Flag.CONSISTENT : Flag.INCONSISTENT);
         if (f_proofUsesRedDot)
-          flags |= CoE_Constants.REDDOT;
+          flags.add(Flag.REDDOT);
       }
       ElementCategory result = new ElementCategory(f_parent, f_label, flags, f_imageName);
       List<Element> children = new ArrayList<Element>();
@@ -217,10 +218,10 @@ final class ElementCategory extends Element {
 
   private Element[] f_children;
   private final String f_label;
-  private final int f_imageFlags;
+  private final EnumSet<Flag> f_imageFlags;
   private final String f_imageName;
 
-  private ElementCategory(Element parent, String label, int imageFlags, String imageName) {
+  private ElementCategory(Element parent, String label, EnumSet<Flag> imageFlags, String imageName) {
     super(parent);
     f_label = label;
     f_imageFlags = imageFlags;
@@ -244,7 +245,7 @@ final class ElementCategory extends Element {
   }
 
   @Override
-  int getImageFlags() {
+  EnumSet<Flag> getImageFlags() {
     return f_imageFlags;
   }
 

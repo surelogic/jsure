@@ -1,16 +1,16 @@
 package com.surelogic.jsure.client.eclipse.views.finder;
 
+import java.util.EnumSet;
 import java.util.List;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -22,12 +22,10 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.CascadingList;
 import com.surelogic.common.ui.CascadingList.IColumn;
 import com.surelogic.common.ui.EclipseUIUtility;
-import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TableUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IPromiseDrop;
@@ -36,7 +34,8 @@ import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.model.selection.ISelectionObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
-import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 import com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView;
 
 public final class MListOfResultsColumn extends MColumn implements ISelectionObserver {
@@ -286,41 +285,39 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
   }
 
   private void setTableItemInfo(TableItem item, IProofDrop data) {
-    int flags = 0;
-    final ImageDescriptor img;
+    String baseImageName = CommonImages.IMG_FOLDER;
+    final EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
     if (data instanceof IResultDrop) {
       final IResultDrop rd = (IResultDrop) data;
       if (rd.isVouched()) {
-        img = SLImages.getImageDescriptor(CommonImages.IMG_PLUS_VOUCH);
+        baseImageName = CommonImages.IMG_PLUS_VOUCH;
       } else if (rd.isConsistent()) {
-        img = SLImages.getImageDescriptor(CommonImages.IMG_PLUS);
+        baseImageName = CommonImages.IMG_PLUS;
       } else if (rd.isTimeout()) {
-        img = SLImages.getImageDescriptor(CommonImages.IMG_TIMEOUT_X);
+        baseImageName = CommonImages.IMG_TIMEOUT_X;
       } else {
-        img = SLImages.getImageDescriptor(CommonImages.IMG_RED_X);
+        baseImageName = CommonImages.IMG_RED_X;
       }
     } else if (data instanceof IPromiseDrop) {
       final IPromiseDrop pd = (IPromiseDrop) data;
-      img = SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION);
+      baseImageName = CommonImages.IMG_ANNOTATION;
       if (data.provedConsistent())
-        flags |= CoE_Constants.CONSISTENT;
+        flags.add(Flag.CONSISTENT);
       else
-        flags |= CoE_Constants.INCONSISTENT;
+        flags.add(Flag.INCONSISTENT);
       if (data.proofUsesRedDot())
-        flags |= CoE_Constants.REDDOT;
+        flags.add(Flag.REDDOT);
       if (pd.isAssumed())
-        flags |= CoE_Constants.ASSUME;
+        flags.add(Flag.ASSUME);
       if (pd.isVirtual())
-        flags |= CoE_Constants.VIRTUAL;
+        flags.add(Flag.VIRTUAL);
       if (!pd.isCheckedByAnalysis())
-        flags |= CoE_Constants.TRUSTED;
-    } else {
-      img = SLImages.getImageDescriptor(CommonImages.IMG_FOLDER);
+        flags.add(Flag.TRUSTED);
     }
-    ResultsImageDescriptor rid = new ResultsImageDescriptor(img, flags, new Point(22, 16));
+    final Image image = JSureDecoratedImageUtility.getImage(baseImageName, flags);
 
     item.setText(data.getMessage());
-    item.setImage(rid.getCachedImage());
+    item.setImage(image);
     item.setData(data);
   }
 

@@ -2,6 +2,7 @@ package com.surelogic.jsure.client.eclipse.views.annotations;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Map;
 
 import org.apache.commons.collections15.MultiMap;
@@ -29,7 +30,6 @@ import org.eclipse.ui.dialogs.SelectionDialog;
 
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IDeclFunction;
@@ -45,7 +45,8 @@ import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTreeView;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
-import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotationExplorerView.ITypeElement> implements
@@ -434,19 +435,19 @@ public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotat
     }
 
     public static Point ICONSIZE = new Point(16, 16);
-    public static ResultsImageDescriptor consistentPromise = new ResultsImageDescriptor(
-        SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION), CoE_Constants.CONSISTENT, ICONSIZE);
-    public static ResultsImageDescriptor inconsistentPromise = new ResultsImageDescriptor(
-        SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION), CoE_Constants.INCONSISTENT, ICONSIZE);
+    public static Image consistentPromise = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION,
+        EnumSet.of(Flag.CONSISTENT), ICONSIZE);
+    public static Image inconsistentPromise = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION,
+        EnumSet.of(Flag.INCONSISTENT), ICONSIZE);
 
     @Override
     public Image getImage() {
       if (drop instanceof IPromiseDrop) {
         IPromiseDrop p = (IPromiseDrop) drop;
         if (p.provedConsistent())
-          return consistentPromise.getCachedImage();
+          return consistentPromise;
         else
-          return inconsistentPromise.getCachedImage();
+          return inconsistentPromise;
       } else if (drop instanceof IResultDrop) {
         IResultDrop r = (IResultDrop) drop;
         if (r.provedConsistent()) {

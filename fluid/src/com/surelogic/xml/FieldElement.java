@@ -17,12 +17,12 @@ public class FieldElement extends AnnotatedJavaElement implements IClassMember {
 	public final String getImageKey() {
 		switch (getAccessibility()) {
 		case PROTECTED:
-			return CommonImages.IMG_PROTECTED_I;
+			return CommonImages.IMG_FIELD_PROTECTED;
 		case DEFAULT:
-			return CommonImages.IMG_DEFAULT_I;
+			return CommonImages.IMG_FIELD_DEFAULT;
 		case PUBLIC:
 		default:
-			return CommonImages.IMG_PUBLIC_I;
+			return CommonImages.IMG_FIELD_PUBLIC;
 		}
 	}
 	
