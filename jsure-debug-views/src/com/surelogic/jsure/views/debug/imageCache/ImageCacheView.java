@@ -49,7 +49,6 @@ public final class ImageCacheView extends ViewPart {
 
     f_table = new Table(parent, SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.H_SCROLL);
     f_table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-    f_table.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW));
     f_table.setHeaderVisible(true);
     f_table.setLinesVisible(true);
     TableColumn imageColumn = new TableColumn(f_table, SWT.NONE);
@@ -90,7 +89,6 @@ public final class ImageCacheView extends ViewPart {
   private final ArrayList<Image> f_showing = new ArrayList<Image>();
 
   private void updateContents() {
-    SLImages.getImage(CommonImages.IMG_EMPTY);
     f_table.setRedraw(false);
     for (TableItem ti : f_table.getItems())
       ti.dispose();
