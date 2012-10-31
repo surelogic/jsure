@@ -9,7 +9,6 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
-import com.surelogic.common.CommonImages;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
@@ -80,11 +79,7 @@ abstract class ElementDrop extends Element {
 
   @Override
   Image getProjectImageOrNull() {
-    final IJavaRef jr = getDrop().getJavaRef();
-    if (jr != null)
-      return SLImages.getImageForProject(jr.getRealEclipseProjectNameOrNull());
-    else
-      return null;
+    return SLImages.getImageForProject(getDrop().getJavaRef());
   }
 
   @Override
