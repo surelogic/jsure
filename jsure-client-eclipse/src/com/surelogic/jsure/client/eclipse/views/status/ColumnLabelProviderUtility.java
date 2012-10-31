@@ -15,6 +15,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
@@ -139,8 +140,6 @@ public final class ColumnLabelProviderUtility {
 
   static final CellLabelProvider PROJECT = new VerificationStatusCellLabelProvider() {
 
-    private final Image f_projectImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_PROJECT, EnumSet.noneOf(Flag.class));
-
     @Override
     public void update(ViewerCell cell) {
       highlightRowIfNewOrDiff(cell);
@@ -153,7 +152,8 @@ public final class ColumnLabelProviderUtility {
             cell.setText(SLUtility.LIBRARY_PROJECT);
           else
             cell.setText(project);
-          cell.setImage(f_projectImage);
+          final Image projectImage = SLImages.getImageForProject(project);
+          cell.setImage(SLImages.resizeImage(projectImage, JSureDecoratedImageUtility.SIZE));
         }
       }
     }

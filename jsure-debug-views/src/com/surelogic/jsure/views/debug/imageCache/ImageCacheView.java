@@ -115,7 +115,7 @@ public final class ImageCacheView extends ViewPart {
       if (i.getBounds().width == size.x && i.getBounds().height == size.y) {
         ti.setImage(0, i);
       } else {
-        final Image forTable = SLImages.resizeImage(i, size);
+        final Image forTable = SLImages.resizeImageUnmanaged(i, size);
         f_showing.add(forTable);
         ti.setImage(0, forTable);
       }
