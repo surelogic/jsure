@@ -1,70 +1,75 @@
-package com.surelogic.jsure.client.eclipse.views.verification;
+package com.surelogic.jsure.client.eclipse.views.status;
+
+import java.util.EnumSet;
 
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
 import com.surelogic.Utility;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
-import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 @Utility
 public final class ColumnLabelProviderUtility {
 
+  private static Color f_onClauseColor;
+
+  private static Color getSpecialColor() {
+    if (f_onClauseColor == null) {
+      f_onClauseColor = new Color(Display.getCurrent(), 149, 125, 71);
+      Display.getCurrent().disposeExec(new Runnable() {
+        public void run() {
+          f_onClauseColor.dispose();
+        }
+      });
+    }
+    return f_onClauseColor;
+  }
+
+  private static Color f_onDiffColor;
+
+  private static Color getDiffColor() {
+    if (f_onDiffColor == null) {
+      f_onDiffColor = new Color(Display.getCurrent(), 255, 255, 190);
+      Display.getCurrent().disposeExec(new Runnable() {
+        public void run() {
+          f_onDiffColor.dispose();
+        }
+      });
+    }
+    return f_onDiffColor;
+  }
+
+  private static void highlightRowIfNewOrDiff(ViewerCell cell) {
+    if (Element.f_highlightDifferences) {
+      if (cell.getElement() instanceof ElementDrop) {
+        final ElementDrop element = (ElementDrop) cell.getElement();
+        if (!element.isSame())
+          cell.setBackground(getDiffColor());
+        return;
+      }
+    }
+    cell.setBackground(null);
+  }
+
   static final StyledCellLabelProvider TREE = new StyledCellLabelProvider() {
-
-    private Color f_changedColor;
-
-    private Color getChangedColor() {
-      if (f_changedColor == null) {
-        f_changedColor = new Color(Display.getCurrent(), 181, 213, 255);
-        Display.getCurrent().disposeExec(new Runnable() {
-          public void run() {
-            f_changedColor.dispose();
-          }
-        });
-      }
-      return f_changedColor;
-    }
-
-    private Color f_newColor;
-
-    private Color getNewColor() {
-      if (f_newColor == null) {
-        f_newColor = new Color(Display.getCurrent(), 213, 255, 181);
-        Display.getCurrent().disposeExec(new Runnable() {
-          public void run() {
-            f_newColor.dispose();
-          }
-        });
-      }
-      return f_newColor;
-    }
-
-    private Color f_onClauseColor;
-
-    private Color getSpecialColor() {
-      if (f_onClauseColor == null) {
-        f_onClauseColor = new Color(Display.getCurrent(), 149, 125, 71);
-        Display.getCurrent().disposeExec(new Runnable() {
-          public void run() {
-            f_onClauseColor.dispose();
-          }
-        });
-      }
-      return f_onClauseColor;
-    }
 
     @Override
     public void update(ViewerCell cell) {
+      highlightRowIfNewOrDiff(cell);
+
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         final boolean duplicate = hasAncestorWithSameDrop(element);
@@ -110,15 +115,6 @@ public final class ColumnLabelProviderUtility {
             cell.setStyleRanges(ranges);
           }
         }
-
-        final ScanDifferences diff = Element.f_diff;
-        if (diff != null && element instanceof ElementDrop) {
-          final IDrop drop = ((ElementDrop) element).getDrop();
-          if (diff.isNotInOldScan(drop))
-            cell.setBackground(getNewColor());
-          if (diff.isChangedButInBothScans(drop))
-            cell.setBackground(getChangedColor());
-        }
       } else
         super.update(cell);
     }
@@ -143,17 +139,21 @@ public final class ColumnLabelProviderUtility {
 
   static final CellLabelProvider PROJECT = new VerificationStatusCellLabelProvider() {
 
-    private final ResultsImageDescriptor f_projectRid = new ResultsImageDescriptor(CommonImages.IMG_PROJECT, 0,
-        VerificationStatusView.ICONSIZE);
+    private final Image f_projectImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_PROJECT, EnumSet.noneOf(Flag.class));
 
     @Override
     public void update(ViewerCell cell) {
+      highlightRowIfNewOrDiff(cell);
+
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         final String project = element.getProjectNameOrNull();
         if (isNotEmptyOrNull(project)) {
-          cell.setText(project);
-          cell.setImage(f_projectRid.getCachedImage());
+          if (project.startsWith(SLUtility.LIBRARY_PROJECT))
+            cell.setText(SLUtility.LIBRARY_PROJECT);
+          else
+            cell.setText(project);
+          cell.setImage(f_projectImage);
         }
       }
     }
@@ -161,17 +161,18 @@ public final class ColumnLabelProviderUtility {
 
   static final CellLabelProvider PACKAGE = new VerificationStatusCellLabelProvider() {
 
-    private final ResultsImageDescriptor f_packageRid = new ResultsImageDescriptor(CommonImages.IMG_PACKAGE, 0,
-        VerificationStatusView.ICONSIZE);
+    private final Image f_packageImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_PACKAGE, EnumSet.noneOf(Flag.class));
 
     @Override
     public void update(ViewerCell cell) {
+      highlightRowIfNewOrDiff(cell);
+
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         final String pkg = element.getPackageNameOrNull();
         if (isNotEmptyOrNull(pkg)) {
           cell.setText(pkg);
-          cell.setImage(f_packageRid.getCachedImage());
+          cell.setImage(f_packageImage);
         }
       }
     }
@@ -179,17 +180,17 @@ public final class ColumnLabelProviderUtility {
 
   static final CellLabelProvider TYPE = new VerificationStatusCellLabelProvider() {
 
-    private final ResultsImageDescriptor f_classRid = new ResultsImageDescriptor(CommonImages.IMG_CLASS, 0,
-        VerificationStatusView.ICONSIZE);
-    private final ResultsImageDescriptor f_interfaceRid = new ResultsImageDescriptor(CommonImages.IMG_INTERFACE, 0,
-        VerificationStatusView.ICONSIZE);
-    private final ResultsImageDescriptor f_enumRid = new ResultsImageDescriptor(CommonImages.IMG_ENUM, 0,
-        VerificationStatusView.ICONSIZE);
-    private final ResultsImageDescriptor f_annotationRid = new ResultsImageDescriptor(CommonImages.IMG_ANNOTATION, 0,
-        VerificationStatusView.ICONSIZE);
+    private final Image f_classImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_CLASS, EnumSet.noneOf(Flag.class));
+    private final Image f_interfaceImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_INTERFACE,
+        EnumSet.noneOf(Flag.class));
+    private final Image f_enumImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ENUM, EnumSet.noneOf(Flag.class));
+    private final Image f_annotationImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION,
+        EnumSet.noneOf(Flag.class));
 
     @Override
     public void update(ViewerCell cell) {
+      highlightRowIfNewOrDiff(cell);
+
       if (cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();
         final String typeName = element.getSimpleTypeNameOrNull();
@@ -197,23 +198,23 @@ public final class ColumnLabelProviderUtility {
           cell.setText(typeName);
           IJavaRef ref = element.getDrop().getJavaRef();
           if (ref == null)
-            cell.setImage(f_classRid.getCachedImage());
+            cell.setImage(f_classImage);
           else {
             switch (DeclUtil.getTypeKind(ref.getDeclaration())) {
             case ANNOTATION:
-              cell.setImage(f_annotationRid.getCachedImage());
+              cell.setImage(f_annotationImage);
               break;
             case ENUM:
-              cell.setImage(f_enumRid.getCachedImage());
+              cell.setImage(f_enumImage);
               break;
             case CLASS:
-              cell.setImage(f_classRid.getCachedImage());
+              cell.setImage(f_classImage);
               break;
             case INTERFACE:
-              cell.setImage(f_interfaceRid.getCachedImage());
+              cell.setImage(f_interfaceImage);
               break;
             default:
-              cell.setImage(f_classRid.getCachedImage());
+              cell.setImage(f_classImage);
             }
           }
         }
@@ -225,6 +226,8 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
+      highlightRowIfNewOrDiff(cell);
+
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         final String line = element.getLineNumberAsStringOrNull();
@@ -238,17 +241,34 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      if (cell.getElement() instanceof Element) {
-        final Element element = (Element) cell.getElement();
-        final ScanDifferences diff = Element.f_diff;
-        if (diff != null && element instanceof ElementDrop) {
-          final IDrop drop = ((ElementDrop) element).getDrop();
-          if (diff.isNotInOldScan(drop))
-            cell.setText("New");
-          final IDrop oldDrop = diff.getChangedInOldScan(drop);
+      highlightRowIfNewOrDiff(cell);
+
+      final ScanDifferences diff = Element.f_diff;
+      if (diff != null && cell.getElement() instanceof ElementDrop) {
+        final ElementDrop element = (ElementDrop) cell.getElement();
+        String cellText = null;
+        Image cellImage = null;
+        if (element.isNew()) {
+          cellImage = element.getImageHelper(element.getImageName(), element.getImageFlags(), true, false, false);
+          cellText = "New";
+        } else {
+          final IDrop oldDrop = element.getChangedFromDropOrNull();
           if (oldDrop != null) {
-            cell.setText(oldDrop.getMessage());
+            cellImage = element.getImageHelper(element.getImageNameForChangedFromDrop(), element.getImageFlagsForChangedFromDrop(),
+                true, false, false);
+            cellText = "Changed";
+            final String whatChanged = element.getMessageAboutWhatChangedOrNull();
+            if (whatChanged != null) {
+              cellText += " to " + whatChanged;
+            }
           }
+        }
+        if (cellImage != null) {
+          cell.setImage(cellImage);
+        }
+        if (cellText != null) {
+          cell.setText(cellText);
+          cell.setForeground(getSpecialColor());
         }
       }
     }

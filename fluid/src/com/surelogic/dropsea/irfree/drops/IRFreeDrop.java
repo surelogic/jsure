@@ -136,7 +136,7 @@ public class IRFreeDrop implements IDrop {
     final String encodedJavaRef = e.getAttribute(JAVA_REF);
     if (encodedJavaRef != null) {
       try {
-        final IJavaRef ref = JavaRef.parseEncodedForPersistence(encodedJavaRef);
+        final IJavaRef ref = e.parsePersistedRef(encodedJavaRef);
         f_javaRef = ref;
       } catch (Exception parseFailure) {
         SLLogger.getLogger().log(Level.WARNING, I18N.err(288, encodedJavaRef), parseFailure);

@@ -1,6 +1,7 @@
-package com.surelogic.jsure.client.eclipse.views.verification;
+package com.surelogic.jsure.client.eclipse.views.status;
 
 import java.util.Comparator;
+import java.util.EnumSet;
 
 import org.eclipse.swt.graphics.Image;
 
@@ -8,10 +9,10 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
-import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.ScanDifferences;
-import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 abstract class Element {
 
@@ -91,14 +92,26 @@ abstract class Element {
   static boolean f_showHints;
 
   /**
-   * Provides scan differences are to be highlighted by all elements,
-   * {@code null} if none.
+   * Provides scan differences to all elements, {@code null} if none no scan
+   * difference information is available.
    * <p>
    * <i>Implementation Note:</i> This field should <b>only</b> be set by
    * {@link VerificationStatusViewContentProvider} when it constructs a model of
    * elements for a scan.
    */
   static ScanDifferences f_diff;
+
+  /**
+   * {@code true} if scan differences should be highlighted in the tree,
+   * {@code false} if not.
+   * <p>
+   * This may be toggled on an existing model to change the display.
+   * <p>
+   * <i>Implementation Note:</i> This field should <b>only</b> be set by
+   * {@link VerificationStatusViewContentProvider} when it constructs a model of
+   * elements for a scan.
+   */
+  static volatile boolean f_highlightDifferences;
 
   @Nullable
   private final Element f_parent;
@@ -187,12 +200,16 @@ abstract class Element {
   }
 
   /**
-   * The desired image decoration flags from {@link CoE_Constants} or 0 for
-   * none.
+   * The desired image decoration flags from from
+   * {@link JSureDecoratedImageUtility.Flag} or use
+   * {@link EnumSet#noneOf(Class)} for none.
    * 
-   * @return desired image decoration flags from {@link CoE_Constants}.
+   * @return desired image decoration flags from
+   *         {@link JSureDecoratedImageUtility.Flag}.
    */
-  abstract int getImageFlags();
+  abstract EnumSet<Flag> getImageFlags();
+
+  private Boolean f_descendantHasWarningHintCache = null;
 
   /**
    * Checks if this element has a descendant with a warning hint about it. This
@@ -203,7 +220,9 @@ abstract class Element {
    *         about it, {@code false} otherwise.
    */
   final boolean descendantHasWarningHint() {
-    return searchForWarningHelper(this);
+    if (f_descendantHasWarningHintCache == null)
+      f_descendantHasWarningHintCache = searchForWarningHelper(this);
+    return f_descendantHasWarningHintCache;
   }
 
   /**
@@ -237,6 +256,44 @@ abstract class Element {
     return result;
   }
 
+  private Boolean f_descendantHasDifferenceCache = null;
+
+  /**
+   * Checks if this element has a descendant with a difference from the old
+   * scan. This is used by the UI to highlight a path to the difference, if the
+   * user desires it.
+   * 
+   * @return {@code true} if this element has a descendant with a difference
+   *         from the old scan, {@code false} otherwise.
+   */
+  final boolean descendantHasDifference() {
+    if (f_descendantHasDifferenceCache == null)
+      f_descendantHasDifferenceCache = searchForDifferenceHelper(this);
+    return f_descendantHasDifferenceCache;
+  }
+
+  /**
+   * Helper method to determine the answer for
+   * {@link #descendantHasDifference()} for any element.
+   * 
+   * @param e
+   *          any element.
+   * @return {@code true} if this element has a descendant with a difference
+   *         from the old scan, {@code false} otherwise.
+   */
+  private final boolean searchForDifferenceHelper(Element e) {
+    if (e instanceof ElementDrop) {
+      final boolean isSame = ((ElementDrop) e).isSame();
+      if (!isSame)
+        return true;
+    }
+    boolean result = false;
+    for (Element c : e.getChildren()) {
+      result |= searchForDifferenceHelper(c);
+    }
+    return result;
+  }
+
   /**
    * The desired image name from {@link CommonImages}.
    * 
@@ -248,32 +305,51 @@ abstract class Element {
   /**
    * Gets the the decorated image associated with this element.
    * 
+   * @param imageName
+   *          the image name from {@link CommonImages} or {@code null} for no
+   *          image.
+   * @param flags
+   *          image decorator flags per a
+   *          {@link JSureDecoratedImageUtility.Flag}.
    * @param withWarningDecoratorIfApplicable
    *          if {@code true} then a warning decorator is added to the returned
    *          image if {@link #descendantHasWarningHint()}.
-   * @return an image.
+   * @param withDeltaDecoratorIfApplicable
+   *          if {@code true} then a delta decorator is added to the returned
+   *          image based upon the user's preference. if {@code false} a delta
+   *          decorator is never added.
+   * @return an image, or {@code null} for no image.
    */
-  private final Image getImageHelper(boolean withWarningDecoratorIfApplicable) {
-    String name = getImageName();
-    if (name == null)
+  @Nullable
+  final Image getImageHelper(String imageName, @NonNull EnumSet<Flag> flags, boolean gray,
+      boolean withWarningDecoratorIfApplicable, boolean withDeltaDecoratorIfApplicable) {
+    EnumSet<Flag> workingFlags = flags.clone();
+    if (imageName == null)
       return null;
-    int flags = getImageFlags();
+    if (withDeltaDecoratorIfApplicable) {
+      if (Element.f_highlightDifferences) {
+        if (descendantHasDifference())
+          workingFlags.add(Flag.DELTA);
+      }
+    }
     if (withWarningDecoratorIfApplicable) {
       if (descendantHasWarningHint())
-        flags |= CoE_Constants.HINT_WARNING;
+        workingFlags.add(Flag.HINT_WARNING);
     }
-    if (this instanceof ElementProposedPromiseDrop)
-      System.out.println("ElementProposedPromiseDrop: image=" + name + " flags=" + flags);
-    return (new ResultsImageDescriptor(name, flags, VerificationStatusView.ICONSIZE)).getCachedImage();
+    if (gray)
+      return JSureDecoratedImageUtility.getGrayscaleImage(imageName, workingFlags);
+    else
+      return JSureDecoratedImageUtility.getImage(imageName, workingFlags);
   }
 
   /**
    * Gets the decorated the image associated with this element.
    * 
-   * @return an image.
+   * @return an image, or {@code null} for no image.
    */
+  @Nullable
   final Image getImage() {
-    return getImageHelper(f_showHints);
+    return getImageHelper(getImageName(), getImageFlags(), false, f_showHints, true);
   }
 
   @Override

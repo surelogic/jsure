@@ -44,11 +44,17 @@ public class JSureScanInfo {
   private List<IDrop> f_dropInfo = null;
 
   private final JSureScan f_run; // non-null
+  private final SeaSnapshot f_loader;
 
   public JSureScanInfo(JSureScan run) {
+	  this(run, null);
+  } 
+  
+  public JSureScanInfo(JSureScan run, SeaSnapshot s) {
     if (run == null)
       throw new IllegalArgumentException(I18N.err(44, "run"));
     f_run = run;
+    f_loader = s;
   }
 
   public synchronized JSureScan getJSureRun() {
@@ -79,7 +85,7 @@ public class JSureScanInfo {
       if (skipLoading) {
         throw new Exception("Skipping loading");
       }
-      f_dropInfo = SeaSnapshot.loadSnapshot(new File(f_run.getDir(), RemoteJSureRun.RESULTS_XML));
+      f_dropInfo = SeaSnapshot.loadSnapshot(f_loader, new File(f_run.getDir(), RemoteJSureRun.RESULTS_XML));
       final long end = System.currentTimeMillis();
       System.out.println("Finished loading info = " + (end - start) + " ms");
     } catch (Exception e) {

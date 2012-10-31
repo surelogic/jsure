@@ -3,6 +3,7 @@ package com.surelogic.jsure.views.debug.resultsView.actions;
 import java.util.logging.Level;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -69,8 +70,8 @@ public class ExportToSnapshot implements IViewActionDelegate {
       return;
     }
    
-    final String oracleName = RegressionUtility.computeOracleName();
-    final IFile oracleFile = resultsBelongTo.getFile(oracleName);
+    final String oracleName = RegressionUtility.computeOracleName(scan.getJSureRun().getTimeOfScan());
+    final IFolder oracleFile = resultsBelongTo.getFolder(oracleName);
     
     if (oracleFile.exists()) {
       final boolean overwrite =
@@ -81,7 +82,7 @@ public class ExportToSnapshot implements IViewActionDelegate {
       }
     }
        
-    FileUtility.copy(scan.getJSureRun().getResultsFile(), oracleFile.getLocation().toFile());
+    FileUtility.recursiveCopy(scan.getJSureRun().getDir(), oracleFile.getLocation().toFile());
     
     /* Refresh the worksapce to pick up the new file.  There has to be
      * better way to create the IFile directly, but I cannot find one.

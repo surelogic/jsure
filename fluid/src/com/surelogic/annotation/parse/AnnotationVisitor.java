@@ -312,6 +312,10 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return 0;
   }
 
+  private static boolean isPlural(String promise) {
+	  return promise.endsWith("s");
+  }
+  
   @Override
   public Integer visitSingleElementAnnotation(final IRNode node) {
     String promise = mapToPromiseName(node);
@@ -319,7 +323,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
       // FIX ignoring other annos
       return sum(doAcceptForChildrenWithResults(node));
     }
-    boolean plural = promise.endsWith("s");
+    final boolean plural = isPlural(promise);
     IRNode value = SingleElementAnnotation.getElt(node);
     Operator op = JJNode.tree.getOperator(value);
 
@@ -359,6 +363,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
   public Integer visitNormalAnnotation(IRNode node) {
     String promise = mapToPromiseName(node);
     if (promise != null) {
+      final boolean plural = isPlural(promise);
       IRNode pairsNode = NormalAnnotation.getPairs(node);
       Iteratable<IRNode> pairs = ElementValuePairs.getPairIterator(pairsNode);
       if (pairs.hasNext()) {
@@ -394,6 +399,9 @@ public class AnnotationVisitor extends Visitor<Integer> {
         }
         ContextBuilder builder; 
         if (contents != null) {
+        	if (plural || ElementValueArrayInitializer.prototype.includes(contents)) {
+        		return doAccept(contents);
+        	}
         	builder = new ContextBuilder(node, promise, contents);
         } else {
         	builder = new ContextBuilder(node, promise, "");

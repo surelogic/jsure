@@ -146,8 +146,15 @@
 		<view name="Verification Status" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
 			category="com.surelogic.jsure"
-			class="com.surelogic.jsure.client.eclipse.views.verification.VerificationStatusView"
-			id="com.surelogic.jsure.client.eclipse.views.verification.VerificationStatusView">
+			class="com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView"
+			id="com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView">
+		</view>
+		
+		<view name="Verification Explorer" allowMultiple="false"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_explorer.gif"
+			category="com.surelogic.jsure"
+			class="com.surelogic.jsure.client.eclipse.views.explorer.VerificationExplorerView"
+			id="com.surelogic.jsure.client.eclipse.views.explorer.VerificationExplorerView">
 		</view>
 
 		<view name="JSure Quick Search" allowMultiple="false"
@@ -178,7 +185,7 @@
 		</view>
 
 		<view name="Annotation Explorer" allowMultiple="false"
-			icon="platform:/plugin/com.surelogic.common/lib/images/annotation_scan_explorer.gif"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_explorer.gif"
 			category="com.surelogic.jsure"
 			class="com.surelogic.jsure.client.eclipse.views.annotations.ScanAnnotationExplorerView"
 			id="com.surelogic.jsure.client.eclipse.views.annotations.ScanAnnotationExplorerView">
@@ -415,7 +422,7 @@
 	</extension>
 
 
-	<!-- Annotation Explorer view -->
+	<!-- Library Annotation Explorer view -->
 
 	<extension point="org.eclipse.ui.views">
 		<view name="Library Annotation Explorer" allowMultiple="false"

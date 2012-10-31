@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.*;
 
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
@@ -31,12 +32,33 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 
 public class SeaSnapshot extends AbstractSeaXmlCreator {
+  /**
+   * For creation
+   */
   private final Map<Drop, String> idMap = new HashMap<Drop, String>();
-
+  
+  /**
+   * For loading
+   */
+  private final ConcurrentMap<String,IJavaRef> refCache = new ConcurrentHashMap<String, IJavaRef>();
+  
   public SeaSnapshot(File location) throws IOException {
     super(location);
   }
+  
+  public static SeaSnapshot create() {
+	  try {
+		  return new SeaSnapshot(null);
+	  } catch(IOException e) {
+		  return null;
+	  }
+  }
 
+  public void clear() {
+	  refCache.clear();
+	  idMap.clear();
+  }
+  
   private String computeId(Drop d) {
     String id = idMap.get(d);
     if (id == null) {
@@ -120,9 +142,13 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     }
     pb.end();
   }
-
+  
   public static List<IDrop> loadSnapshot(File location) throws Exception {
-    SeaSnapshotXMLReaderListener l = new SeaSnapshotXMLReaderListener();
+	return loadSnapshot(null, location);
+  }
+  
+  public static List<IDrop> loadSnapshot(SeaSnapshot s, File location) throws Exception {  
+    SeaSnapshotXMLReaderListener l = new SeaSnapshotXMLReaderListener(s == null ? null : s.refCache);
     new SeaSnapshotXMLReader(l).read(location);
     return l.getDrops();
   }

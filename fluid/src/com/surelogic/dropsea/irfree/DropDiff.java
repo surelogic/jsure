@@ -13,6 +13,7 @@ import com.surelogic.common.IViewable;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.IResultDrop;
 
 public class DropDiff extends DiffNode implements IViewable {
 	static boolean allowMissingSupportingInfos = false;
@@ -47,7 +48,12 @@ public class DropDiff extends DiffNode implements IViewable {
 	static DropDiff compute(PrintStream out, DiffNode n, DiffNode o) {
 		if (o.drop.getHints().isEmpty()) {
 			if (n.drop.getHints().isEmpty()) {
-				return diffProperties(out, n, o);
+				DiffMessage m = diffProperties(out, n, o);
+				if (m != null) {
+					return new DropDiff(n.drop, o.drop, wrap(m));
+				} else {
+					return null;
+				}
 			}
 		}
 		final Map<String, DiffNode> oldDetails = extractDetails(o.drop);
@@ -65,7 +71,12 @@ public class DropDiff extends DiffNode implements IViewable {
 		}
 
 		if (oldDetails.isEmpty() && newDetails.isEmpty()) {
-			return diffProperties(out, n, o);
+			DiffMessage m = diffProperties(out, n, o);
+			if (m != null) {
+				return new DropDiff(n.drop, o.drop, wrap(m));
+			} else {
+				return null;
+			}
 		}
 		out.println("\tDiffs in details for " + n.drop.getMessage());
 		for (String old : sort(oldDetails.keySet(), temp)) {
@@ -79,8 +90,8 @@ public class DropDiff extends DiffNode implements IViewable {
 			e.setAsNewer();
 		}
 		List<AbstractDiffNode> remaining = new ArrayList<AbstractDiffNode>(1 + oldDetails.size() + newDetails.size());
-		if (!matchProvedConsistent(n.drop, o.drop)) {
-			DiffMessage m = makeProvedConsistentMsg(out, n.drop, o.drop);	
+		DiffMessage m = diffProperties(out, n, o);	
+		if (m != null) {
 			remaining.add(m);
 		}
 		remaining.addAll(oldDetails.values());
@@ -89,41 +100,94 @@ public class DropDiff extends DiffNode implements IViewable {
 		return new DropDiff(n.drop, o.drop, remaining.toArray());
 	}
 
-	private static DropDiff diffProperties(PrintStream out, DiffNode n, DiffNode o) {
-		if (matchProvedConsistent(n.drop, o.drop)) {
-			return null;
+	private static DiffMessage diffProperties(PrintStream out, DiffNode n, DiffNode o) {
+		if (n.drop instanceof IProofDrop) {
+			final IProofDrop pn = (IProofDrop) n.drop;
+			final IProofDrop po = (IProofDrop) o.drop;
+			for(ProofPredicate p : predicates) {
+				final String msg = p.match(pn, po);
+				if (msg != null) {
+					out.println("\tDiffs in details for " + n.drop.getMessage());
+					return new DiffMessage(msg, Status.CHANGED) {
+						@Override
+						public IDrop getDrop() {
+							return pn;
+						}
+					};
+				}
+			}
 		}
-		out.println("\tDiffs in details for " + n.drop.getMessage());
-		DiffMessage m = makeProvedConsistentMsg(out, n.drop, o.drop);		
-		return new DropDiff(n.drop, o.drop, wrap(m));
+		return null;
 	}
 	
 	private static DiffMessage[] wrap(DiffMessage s) {
 		return new DiffMessage[] { s };
 	}
 	
-	private static DiffMessage makeProvedConsistentMsg(PrintStream out, final IDrop n, IDrop o) {
-		String msg = "provedConsistent: "+provedConsistent(o)+" => "+provedConsistent(n);
-		out.println("\t\tChanged: "+msg);
-		return new DiffMessage(msg, Status.CHANGED) {
-			@Override
-			public IDrop getDrop() {
-				return n;
-			}
-		};
-	}
-	
-	private static boolean provedConsistent(IDrop d) {
-		if (d instanceof IProofDrop) {
-			IProofDrop pd = (IProofDrop) d;
-			return pd.provedConsistent();
+	private static abstract class ProofPredicate {
+		private final String label;
+
+		ProofPredicate(String l) {
+			label = l;
 		}
-		return false;
+		/**
+		 * @return non-null if different
+		 */
+		String match(final IProofDrop n, final IProofDrop o) {
+			if (getAttr(n) != getAttr(o)) {
+				return "\t\tChanged: "+label+": "+getAttr(o)+" => "+getAttr(n);
+			}
+			return null;
+		}
+		
+		abstract boolean getAttr(IProofDrop d);
+	}
+	private static abstract class ResultPredicate extends ProofPredicate {
+		ResultPredicate(String l) {
+			super(l);
+		}
+		final boolean getAttr(IProofDrop d) {
+			if (d instanceof IResultDrop) {
+				final IResultDrop rd = (IResultDrop) d;
+				return getAttr(rd);
+			}
+			return false;
+		}
+		abstract boolean getAttr(IResultDrop d);
 	}
 	
-	protected static boolean matchProvedConsistent(IDrop n, IDrop o) {
-		return provedConsistent(n) == provedConsistent(o);
-	}
+	private static final ProofPredicate[] predicates = {
+		new ProofPredicate("provedConsistent") {
+			@Override
+			public boolean getAttr(IProofDrop d) {
+				return d.provedConsistent();
+			}
+		},
+		new ProofPredicate("proofUsesRedDot") {
+			@Override
+			public boolean getAttr(IProofDrop d) {
+				return d.proofUsesRedDot();
+			}
+		},
+		new ResultPredicate("isConsistent") {
+			@Override
+			public boolean getAttr(IResultDrop rd) {
+				return rd.isConsistent();
+			}
+		}, 
+		new ResultPredicate("isTimeout") {
+			@Override
+			public boolean getAttr(IResultDrop rd) {
+				return rd.isTimeout();
+			}
+		},
+		new ResultPredicate("isVouched") {
+			@Override
+			public boolean getAttr(IResultDrop rd) {
+				return rd.isVouched();
+			}
+		},
+	};
 	
 	// Assume that we only have supporting info
 	public static Map<String, DiffNode> extractDetails(IDrop e) {

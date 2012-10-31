@@ -76,10 +76,19 @@ public abstract class CategoryMatcher {
       // Otherwise, check the message
       return result;
     }
-    // }
+    // }    
     result = matchStrings(n.getMessage(), o.getMessage(), true);
+    if (DiffCategory.suppressFilteredDrops && result == Boolean.FALSE) {
+    	if (o.getMessage().startsWith(oldPrefix)) {
+    		final String reconstructed = newPrefix + o.getMessage().substring(oldPrefix.length());
+    		result = matchStrings(n.getMessage(), reconstructed, true);
+    	}
+    }
     return result != null ? result : false;
   }
+
+  private static final String oldPrefix = "Borrowed(\"arg0\") on ";
+  private static final String newPrefix = "Borrowed on parameter 'arg0' of ";
   
   protected static boolean matchAnalysisHint(IDrop n, IDrop o) {
 	return matchStrings(n.getDiffInfoOrNull(IDiffInfo.ANALYSIS_DIFF_HINT), 

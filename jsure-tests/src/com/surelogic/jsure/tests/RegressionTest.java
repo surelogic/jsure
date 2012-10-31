@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -34,9 +33,7 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.regression.RegressionUtility;
-import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.irfree.ISeaDiff;
-import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureScan;
@@ -523,16 +520,14 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		}
 		final Projects projs = (Projects) pd.getIIRProjects();
 		*/
-		JSureScan run = JSureDataDirHub.getInstance().getCurrentScan();
-		final File results = new File(run.getDir(),
-				RemoteJSureRun.RESULTS_XML);
+		final JSureScan run = JSureDataDirHub.getInstance().getCurrentScan();
 
 		// Export the results from this run
 		start("Exporting results");
 		try {
-			// TODO Is this the right location?
-			FileUtility.copy(results, new File(workspaceFile, projectName
-					+ RegressionUtility.JSURE_SNAPSHOT_SUFFIX));
+			final File results = new File(workspaceFile, 
+					RegressionUtility.computeScanName(projectName, run.getTimeOfScan()));
+			FileUtility.recursiveCopy(run.getDir(), results);				
 			end("Done exporting");
 
 			start("comparing results");
@@ -567,10 +562,10 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		if (projectPath != null) {
 			final ITestOutput XML_LOG = IDE.getInstance().makeLog(
 					"EclipseLogHandler");
-			final String oracleName = RegressionUtility.getOracleName(
-					projectPath, RegressionUtility.logOracleFilter);
+			final File project = new File(projectPath);
+			final File oracle = RegressionUtility.getOracleName(
+					project, RegressionUtility.logOracleFilter);
 			final String logDiffsName = projectName + ".log.diffs.xml";
-			final File oracle = new File(oracleName);
 			final File log = new File(logName);
 			// final File diffs = new File(logDiffsName);
 			if (!log.exists() && !oracle.exists()) {
@@ -583,10 +578,10 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 				// TODO create diffs
 				return true;
 			}
-			assert (new File(oracleName).exists());
+			assert (oracle.exists());
 			try {
 				System.out.println("Starting log diffs");
-				int numDiffs = XMLLogDiff.diff(XML_LOG, oracleName, logName,
+				int numDiffs = XMLLogDiff.diff(XML_LOG, oracle.getAbsolutePath(), logName,
 						logDiffsName);
 				System.out.println("#diffs = " + numDiffs);
 				logOk = (numDiffs == 0);
@@ -594,7 +589,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 				end("Done comparing logs");
 			} catch (Throwable e) {
 				System.out.println("Problem while diffing the log: "
-						+ oracleName + ", " + logName + ", " + logDiffsName);
+						+ oracle + ", " + logName + ", " + logDiffsName);
 				endError(e);
 				throw e;
 			} finally {

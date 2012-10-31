@@ -8,7 +8,7 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.irfree.IDiffNode;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTreeView;
-import com.surelogic.jsure.client.eclipse.views.verification.VerificationStatusView;
+import com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView;
 
 public class SnapshotDiffView extends AbstractScanTreeView<Object> {
   public SnapshotDiffView() {

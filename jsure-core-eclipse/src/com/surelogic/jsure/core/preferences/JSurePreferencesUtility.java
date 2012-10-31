@@ -91,7 +91,7 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultBooleanPreference(PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY, true);
 
       EclipseUtility.setDefaultBooleanPreference(VSTATUS_SHOW_HINTS, true);
-      EclipseUtility.setDefaultBooleanPreference(VSTATUS_SHOW_DIFF, true);
+      EclipseUtility.setDefaultBooleanPreference(VSTATUS_HIGHLIGHT_DIFFERENCES, true);
       EclipseUtility.setDefaultIntPreference(VSTATUS_COL1_WIDTH, 300);
       EclipseUtility.setDefaultIntPreference(VSTATUS_COL2_WIDTH, 100);
       EclipseUtility.setDefaultIntPreference(VSTATUS_COL3_WIDTH, 100);
@@ -126,7 +126,7 @@ public final class JSurePreferencesUtility {
 
   public static final String VSTATUS_ALPHA_SORT = PREFIX + "verification.status.alpha.sort";
   public static final String VSTATUS_SHOW_HINTS = PREFIX + "verification.status.show.hints";
-  public static final String VSTATUS_SHOW_DIFF = PREFIX + "verification.status.show.diff";
+  public static final String VSTATUS_HIGHLIGHT_DIFFERENCES = PREFIX + "verification.status.highlight.differences";
   public static final String VSTATUS_COL1_WIDTH = PREFIX + "verification.status.col1.width";
   public static final String VSTATUS_COL2_WIDTH = PREFIX + "verification.status.col2.width";
   public static final String VSTATUS_COL3_WIDTH = PREFIX + "verification.status.col3.width";
