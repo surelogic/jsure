@@ -79,6 +79,7 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.util.Triple;
 
 public class ClassAdapter extends AbstractAdapter {
@@ -157,6 +158,12 @@ public class ClassAdapter extends AbstractAdapter {
        */
       if (root != null) {
     	  SkeletonJavaRefUtility.registerBinaryCode(declFactory, root, resource, 0);
+    	  for(IRNode a : annos) {
+    		  SkeletonJavaRefUtility.copyIfPossible(root, a);
+    	  }
+    	  for(IRNode v : VisitUtil.getClassFieldDeclarators(root)) {
+    		  SkeletonJavaRefUtility.copyIfPossible(root, v);
+    	  }
       }
       if (!isInner) {
         // Need to create comp unit
@@ -541,7 +548,7 @@ public class ClassAdapter extends AbstractAdapter {
     			parameters = info.second();
     			isStatic = info.third();
     		}
- 			addRefs(result, parameters);
+ 			addRefs(result, parameters, annos);
     		createRequiredMethodNodes(isStatic, result);
     		members.add(result);
     	}
@@ -625,7 +632,7 @@ public class ClassAdapter extends AbstractAdapter {
 			return new Triple<IRNode,IRNode,Boolean>(result, parameters, JavaNode.isSet(mods, JavaNode.STATIC));
 		}
 
-    	void addRefs(IRNode result, IRNode parameters) {
+    	void addRefs(IRNode result, IRNode parameters, IRNode annos) {
     		// System.out.println("Got line#"+line);
     		if (line == Integer.MAX_VALUE) {
     			line = 0;
@@ -633,6 +640,11 @@ public class ClassAdapter extends AbstractAdapter {
     		SkeletonJavaRefUtility.registerBinaryCode(declFactory, result, resource, line);
     		if (parameters != null) {
     			for (IRNode p : Parameters.getFormalIterator(parameters)) {
+    				SkeletonJavaRefUtility.copyIfPossible(result, p);
+    			}
+    		}
+    		if (annos != null) {
+    			for (IRNode p : Annotations.getAnnotIterator(annos)) {
     				SkeletonJavaRefUtility.copyIfPossible(result, p);
     			}
     		}
