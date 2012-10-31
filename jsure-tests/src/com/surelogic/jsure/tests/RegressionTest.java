@@ -562,10 +562,10 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		if (projectPath != null) {
 			final ITestOutput XML_LOG = IDE.getInstance().makeLog(
 					"EclipseLogHandler");
-			final String oracleName = RegressionUtility.getOracleName(
-					projectPath, RegressionUtility.logOracleFilter);
+			final File project = new File(projectPath);
+			final File oracle = RegressionUtility.getOracleName(
+					project, RegressionUtility.logOracleFilter);
 			final String logDiffsName = projectName + ".log.diffs.xml";
-			final File oracle = new File(oracleName);
 			final File log = new File(logName);
 			// final File diffs = new File(logDiffsName);
 			if (!log.exists() && !oracle.exists()) {
@@ -578,10 +578,10 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 				// TODO create diffs
 				return true;
 			}
-			assert (new File(oracleName).exists());
+			assert (oracle.exists());
 			try {
 				System.out.println("Starting log diffs");
-				int numDiffs = XMLLogDiff.diff(XML_LOG, oracleName, logName,
+				int numDiffs = XMLLogDiff.diff(XML_LOG, oracle.getAbsolutePath(), logName,
 						logDiffsName);
 				System.out.println("#diffs = " + numDiffs);
 				logOk = (numDiffs == 0);
@@ -589,7 +589,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 				end("Done comparing logs");
 			} catch (Throwable e) {
 				System.out.println("Problem while diffing the log: "
-						+ oracleName + ", " + logName + ", " + logDiffsName);
+						+ oracle + ", " + logName + ", " + logDiffsName);
 				endError(e);
 				throw e;
 			} finally {
