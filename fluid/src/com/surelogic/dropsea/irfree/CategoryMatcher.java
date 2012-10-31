@@ -79,9 +79,9 @@ public abstract class CategoryMatcher {
     // }    
     result = matchStrings(n.getMessage(), o.getMessage(), true);
     if (DiffCategory.suppressFilteredDrops && result == Boolean.FALSE) {
-    	if (n.getMessage().startsWith(newPrefix)) {
-    		String reconstructed = oldPrefix + n.getMessage().substring(newPrefix.length());
-    		result = matchStrings(reconstructed, o.getMessage(), true);
+    	if (o.getMessage().startsWith(oldPrefix)) {
+    		final String reconstructed = newPrefix + o.getMessage().substring(oldPrefix.length());
+    		result = matchStrings(n.getMessage(), reconstructed, true);
     	}
     }
     return result != null ? result : false;
