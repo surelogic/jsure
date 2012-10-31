@@ -9,6 +9,7 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
@@ -176,6 +177,10 @@ abstract class Element {
   }
 
   String getProjectNameOrNull() {
+    return null;
+  }
+
+  Image getProjectImageOrNull() {
     return null;
   }
 

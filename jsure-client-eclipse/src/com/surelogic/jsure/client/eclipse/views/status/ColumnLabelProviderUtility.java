@@ -128,17 +128,7 @@ public final class ColumnLabelProviderUtility {
     }
   };
 
-  static abstract class VerificationStatusCellLabelProvider extends CellLabelProvider {
-    boolean isNotEmptyOrNull(String value) {
-      if (value == null)
-        return false;
-      if ("".equals(value))
-        return false;
-      return true;
-    }
-  }
-
-  static final CellLabelProvider PROJECT = new VerificationStatusCellLabelProvider() {
+  static final CellLabelProvider PROJECT = new CellLabelProvider() {
 
     @Override
     public void update(ViewerCell cell) {
@@ -147,19 +137,16 @@ public final class ColumnLabelProviderUtility {
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         final String project = element.getProjectNameOrNull();
-        if (isNotEmptyOrNull(project)) {
-          if (project.startsWith(SLUtility.LIBRARY_PROJECT))
-            cell.setText(SLUtility.LIBRARY_PROJECT);
-          else
-            cell.setText(project);
-          final Image projectImage = SLImages.getImageForProject(project);
-          cell.setImage(SLImages.resizeImage(projectImage, JSureDecoratedImageUtility.SIZE));
-        }
+        cell.setText(project);
+        Image image = element.getProjectImageOrNull();
+        if (image != null)
+          image = SLImages.resizeImage(image, JSureDecoratedImageUtility.SIZE);
+        cell.setImage(image);
       }
     }
   };
 
-  static final CellLabelProvider PACKAGE = new VerificationStatusCellLabelProvider() {
+  static final CellLabelProvider PACKAGE = new CellLabelProvider() {
 
     private final Image f_packageImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_PACKAGE, EnumSet.noneOf(Flag.class));
 
@@ -170,7 +157,7 @@ public final class ColumnLabelProviderUtility {
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         final String pkg = element.getPackageNameOrNull();
-        if (isNotEmptyOrNull(pkg)) {
+        if (SLUtility.isNotEmptyOrNull(pkg)) {
           cell.setText(pkg);
           cell.setImage(f_packageImage);
         }
@@ -178,7 +165,7 @@ public final class ColumnLabelProviderUtility {
     }
   };
 
-  static final CellLabelProvider TYPE = new VerificationStatusCellLabelProvider() {
+  static final CellLabelProvider TYPE = new CellLabelProvider() {
 
     private final Image f_classImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_CLASS, EnumSet.noneOf(Flag.class));
     private final Image f_interfaceImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_INTERFACE,
@@ -194,7 +181,7 @@ public final class ColumnLabelProviderUtility {
       if (cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();
         final String typeName = element.getSimpleTypeNameOrNull();
-        if (isNotEmptyOrNull(typeName)) {
+        if (SLUtility.isNotEmptyOrNull(typeName)) {
           cell.setText(typeName);
           IJavaRef ref = element.getDrop().getJavaRef();
           if (ref == null)

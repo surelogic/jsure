@@ -5,9 +5,13 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 
+import org.eclipse.swt.graphics.Image;
+
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IPromiseDrop;
@@ -70,6 +74,15 @@ abstract class ElementDrop extends Element {
     final IJavaRef jr = getDrop().getJavaRef();
     if (jr != null)
       return jr.getEclipseProjectName();
+    else
+      return null;
+  }
+
+  @Override
+  Image getProjectImageOrNull() {
+    final IJavaRef jr = getDrop().getJavaRef();
+    if (jr != null)
+      return SLImages.getImageForProject(jr.getRealEclipseProjectNameOrNull());
     else
       return null;
   }
