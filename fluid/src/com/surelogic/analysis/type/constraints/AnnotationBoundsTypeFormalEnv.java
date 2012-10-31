@@ -157,7 +157,7 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
   }
 
   private PromiseDrop<?> isX(
-      final IJavaTypeFormal formal, final boolean exclusive, Set<Bounds> oneOf, Set<Bounds> noneOf) {
+      final IJavaTypeFormal formal, final boolean exclusively, Set<Bounds> oneOf, Set<Bounds> noneOf) {
     final IRNode decl = formal.getDeclaration();
     final String name = TypeFormal.getId(decl);
     final IRNode typeDecl = JJNode.tree.getParent(JJNode.tree.getParent(decl));
@@ -168,13 +168,13 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
     PromiseDrop<?> result = null;
     final AnnotationBoundsPromiseDrop abDrop = LockRules.getAnnotationBounds(typeDecl);
     if (abDrop != null) {
-      result = testFormalAgainstAnnotationBounds(abDrop.getAAST(), name, oneOf, exclusive ? noneOf : emptySet) ? abDrop : null;
+      result = testFormalAgainstAnnotationBounds(abDrop.getAAST(), name, oneOf, exclusively ? noneOf : emptySet) ? abDrop : null;
     }
     
     if (result == null) {
       final ContainablePromiseDrop cDrop = LockRules.getContainableImplementation(typeDecl);
       if (cDrop != null) {
-        result = testFormalAgainstContainable(cDrop, oneOf, exclusive ? noneOf : emptySet) ? cDrop : null;
+        result = testFormalAgainstContainable(cDrop, oneOf, exclusively ? noneOf : emptySet) ? cDrop : null;
       }
     }
     
@@ -182,27 +182,27 @@ public enum AnnotationBoundsTypeFormalEnv implements ITypeFormalEnv {
   }
   
   public PromiseDrop<?> isContainable(
-      final IJavaTypeFormal formal, final boolean exclusive) {
-    return isX(formal, exclusive, containableSet, notContainableSet);
+      final IJavaTypeFormal formal, final boolean exclusively) {
+    return isX(formal, exclusively, containableSet, notContainableSet);
   }
 
   public PromiseDrop<?> isImmutable(
-      final IJavaTypeFormal formal, final boolean exclusive) {
-    return isX(formal, exclusive, immutableSet, notImmutableSet);
+      final IJavaTypeFormal formal, final boolean exclusively) {
+    return isX(formal, exclusively, immutableSet, notImmutableSet);
   }
 
   public PromiseDrop<?> isReferenceObject(
-      final IJavaTypeFormal formal, final boolean exclusive) {
-    return isX(formal, exclusive, referenceSet, notReferenceSet);
+      final IJavaTypeFormal formal, final boolean exclusively) {
+    return isX(formal, exclusively, referenceSet, notReferenceSet);
   }
 
   public PromiseDrop<?> isThreadSafe(
-      final IJavaTypeFormal formal, final boolean exclusive) {
-    return isX(formal, exclusive, threadSafeSet, notThreadSafeSet);
+      final IJavaTypeFormal formal, final boolean exclusively) {
+    return isX(formal, exclusively, threadSafeSet, notThreadSafeSet);
   }
 
   public PromiseDrop<?> isValueObject(
-      final IJavaTypeFormal formal, final boolean exclusive) {
-    return isX(formal, exclusive, valueSet, notValueSet);
+      final IJavaTypeFormal formal, final boolean exclusively) {
+    return isX(formal, exclusively, valueSet, notValueSet);
   }
 }

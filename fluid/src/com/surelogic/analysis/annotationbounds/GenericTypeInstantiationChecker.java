@@ -95,12 +95,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
             new ContainableAnnotationTester(binder, formalEnv, foldersExternal, false, false),
             CONTAINABLE);
       }
-
-      @Override
-      public TypeDeclAnnotationTester getTester(
-          final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ContainableAnnotationTester(binder, formalEnv, foldersExternal, false, false);
-      }
       
       @Override
       public String toString() { return "Containable"; }
@@ -119,12 +113,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
         testType(type, actualAnnos,
             new ImmutableAnnotationTester(binder, formalEnv, foldersExternal, false, false),
             IMMUTABLE);
-      }
-
-      @Override
-      public TypeDeclAnnotationTester getTester(
-          final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ImmutableAnnotationTester(binder, formalEnv, foldersExternal, false, false);
       }
       
       @Override
@@ -145,12 +133,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
             new ReferenceObjectAnnotationTester(binder, formalEnv, foldersExternal, false),
             REFERENCE);
       }
-
-      @Override
-      public TypeDeclAnnotationTester getTester(
-          final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ReferenceObjectAnnotationTester(binder, formalEnv, foldersExternal, false);
-      }
       
       @Override
       public String toString() { return "ReferenceObject"; }
@@ -169,12 +151,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
         testType(type, actualAnnos,
             new ThreadSafeAnnotationTester(binder, formalEnv, foldersExternal, false, false),
             THREADSAFE);
-      }
-
-      @Override
-      public TypeDeclAnnotationTester getTester(
-          final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ThreadSafeAnnotationTester(binder, formalEnv, foldersExternal, false, false);
       }
       
       @Override
@@ -195,12 +171,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
             new ValueObjectAnnotationTester(binder, formalEnv, foldersExternal, false),
             VALUE);
       }
-
-      @Override
-      public TypeDeclAnnotationTester getTester(
-          final IBinder binder, final ITypeFormalEnv formalEnv) {
-        return new ValueObjectAnnotationTester(binder, formalEnv, foldersExternal, false);
-      }
       
       @Override
       public String toString() { return "ValueObject"; }
@@ -208,9 +178,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
     
     public abstract NamedTypeNode[] getNamedTypes(
         AnnotationBoundsNode ast);
-    
-    public abstract TypeDeclAnnotationTester getTester(
-        IBinder binder, ITypeFormalEnv formalEnv);
     
     public abstract void testType(final IJavaType type,
         final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,

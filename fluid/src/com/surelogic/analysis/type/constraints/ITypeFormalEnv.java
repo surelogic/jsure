@@ -10,7 +10,7 @@ public interface ITypeFormalEnv {
    * 
    * @param formal
    *          The type formal to test
-   * @param exclusive
+   * @param exclusively
    *          <code>true</code> if the type formal must not be allowed to be
    *          annotated with anything else.
    * 
@@ -19,14 +19,14 @@ public interface ITypeFormalEnv {
    *         formal is not containable.
    */
   public PromiseDrop<?> isContainable(
-      IJavaTypeFormal formal, boolean exclusive);
+      IJavaTypeFormal formal, boolean exclusively);
 
   /**
    * Test if the given type formal is annotated to be immutable.
    * 
    * @param formal
    *          The type formal to test
-   * @param exclusive
+   * @param exclusively
    *          <code>true</code> if the type formal must not be allowed to be
    *          annotated with anything else.
    * 
@@ -35,14 +35,14 @@ public interface ITypeFormalEnv {
    *         formal is not immutable.
    */
   public PromiseDrop<?> isImmutable(
-      IJavaTypeFormal formal, boolean exclusive);
+      IJavaTypeFormal formal, boolean exclusively);
 
   /**
    * Test if the given type formal is annotated to be reference object.
    * 
    * @param formal
    *          The type formal to test
-   * @param exclusive
+   * @param exclusively
    *          <code>true</code> if the type formal must not be allowed to be
    *          annotated with anything else.
    * 
@@ -51,7 +51,7 @@ public interface ITypeFormalEnv {
    *         formal is not reference object.
    */
   public PromiseDrop<?> isReferenceObject(
-      IJavaTypeFormal formal, boolean exclusive);
+      IJavaTypeFormal formal, boolean exclusively);
 
   /**
    * Test if the given type formal is annotated to be thread safe.  If the 
@@ -60,7 +60,7 @@ public interface ITypeFormalEnv {
    * 
    * @param formal
    *          The type formal to test
-   * @param exclusive
+   * @param exclusively
    *          <code>true</code> if the type formal must not be allowed to be
    *          annotated with anything else.
    * 
@@ -69,14 +69,14 @@ public interface ITypeFormalEnv {
    *         formal is not thread safe.
    */
   public PromiseDrop<?> isThreadSafe(
-      IJavaTypeFormal formal, boolean exclusive);
+      IJavaTypeFormal formal, boolean exclusively);
 
   /**
    * Test if the given type formal is annotated to be value object.
    * 
    * @param formal
    *          The type formal to test
-   * @param exclusive
+   * @param exclusively
    *          <code>true</code> if the type formal must not be allowed to be
    *          annotated with anything else.
    * 
@@ -85,5 +85,5 @@ public interface ITypeFormalEnv {
    *         formal is not value object.
    */
   public PromiseDrop<?> isValueObject(
-      IJavaTypeFormal formal, boolean exclusive);
+      IJavaTypeFormal formal, boolean exclusively);
 }

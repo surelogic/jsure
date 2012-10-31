@@ -27,7 +27,6 @@ public abstract class TypeDeclAnnotationTester {
   private final Map<IJavaType, ResultFolderDrop> annoBoundsFolders;
   protected final ITypeFormalEnv formalEnv;
   private final ITypeEnvironment typeEnv;
-  protected final boolean exclusive;
   
   private final IJavaDeclaredType javaLangObject;
   private final Set<IRNode> tested = new HashSet<IRNode>();
@@ -38,13 +37,12 @@ public abstract class TypeDeclAnnotationTester {
   
   protected TypeDeclAnnotationTester(
       final IBinder binder, final ITypeFormalEnv fe, 
-      final Map<IJavaType, ResultFolderDrop> folders, final boolean ex) {
+      final Map<IJavaType, ResultFolderDrop> folders) {
     formalEnv = fe;
     final ITypeEnvironment te = binder.getTypeEnvironment();
     typeEnv = te;
     annoBoundsFolders = folders;
     javaLangObject = te.getObjectType();
-    exclusive = ex;
   }
   
   

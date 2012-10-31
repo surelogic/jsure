@@ -15,13 +15,15 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 
 public final class ContainableAnnotationTester extends TypeDeclAnnotationTester {
+  private final boolean exclusively;
   private final boolean implOnly;
-  
+
   public ContainableAnnotationTester(
       final IBinder binder, final ITypeFormalEnv fe, 
-      final Map<IJavaType, ResultFolderDrop> folders,
-      final boolean ex, final boolean impl) {
-    super(binder, fe, folders, ex);
+      final Map<IJavaType, ResultFolderDrop> folders, final boolean ex,
+      final boolean impl) {
+    super(binder, fe, folders);
+    exclusively = ex;
     implOnly = impl;
   }
   
@@ -30,23 +32,103 @@ public final class ContainableAnnotationTester extends TypeDeclAnnotationTester 
     if (implOnly) {
       return LockRules.getContainableImplementation(type);
     } else {
-      return LockRules.getContainableType(type);
+      return LockRules.getContainableType(type); 
     }
-  }
+  }           
   
   @Override
-  protected PromiseDrop<?> testFormalAgainstAnnotationBounds(
+  protected final PromiseDrop<?> testFormalAgainstAnnotationBounds(
       final IJavaTypeFormal formal) {
-    return formalEnv.isContainable(formal, exclusive);
+    return formalEnv.isContainable(formal, exclusively);
   }
   
   @Override
-  protected boolean testArrayType(final IJavaArrayType type) {
+  protected final boolean testArrayType(final IJavaArrayType type) {
     if (type.getDimensions() == 1) {
       final IJavaType baseType = type.getBaseType();
       return baseType instanceof IJavaPrimitiveType;
     } else {
       return false;
     }
+  }
+}
+
+abstract class ContainableAnnotationTester2 extends TypeDeclAnnotationTester {
+  private final boolean exclusively;
+  
+  public ContainableAnnotationTester2(
+      final IBinder binder, final ITypeFormalEnv fe, 
+      final Map<IJavaType, ResultFolderDrop> folders, final boolean ex) {
+    super(binder, fe, folders);
+    exclusively = ex;
+  }
+  
+  @Override
+  protected final PromiseDrop<?> testFormalAgainstAnnotationBounds(
+      final IJavaTypeFormal formal) {
+    return formalEnv.isContainable(formal, exclusively);
+  }
+  
+  @Override
+  protected final boolean testArrayType(final IJavaArrayType type) {
+    if (type.getDimensions() == 1) {
+      final IJavaType baseType = type.getBaseType();
+      return baseType instanceof IJavaPrimitiveType;
+    } else {
+      return false;
+    }
+  }
+}
+
+/**
+ * Used to test that a field declaration MUST be annotated containable.
+ */
+final class FieldDeclarationMustBeContainableTester extends ContainableAnnotationTester2 {
+  public FieldDeclarationMustBeContainableTester(
+      final IBinder binder, final ITypeFormalEnv fe, 
+      final Map<IJavaType, ResultFolderDrop> folders,
+      final boolean ex) {
+    super(binder, fe, folders, true);
+  }
+  
+  @Override
+  protected ContainablePromiseDrop testTypeDeclaration(final IRNode type) {
+    return LockRules.getContainableType(type);
+  }
+}
+
+/**
+ * Used to test that the initialization expression of a field declaration
+ * generates a type whose implementation MUST be containable.
+ */
+final class FinalObjectContainableTester extends ContainableAnnotationTester2 {
+  public FinalObjectContainableTester(
+      final IBinder binder, final ITypeFormalEnv fe, 
+      final Map<IJavaType, ResultFolderDrop> folders,
+      final boolean ex) {
+    super(binder, fe, folders, true);
+  }
+  
+  @Override
+  protected ContainablePromiseDrop testTypeDeclaration(final IRNode type) {
+    return LockRules.getContainableImplementation(type);
+  }
+}
+
+/**
+ * Used to test that a type actual in a parameter type MAY be annotated
+ * as containable.
+ */
+final class MightHaveContainableAnnotationTester extends ContainableAnnotationTester2 {
+  public MightHaveContainableAnnotationTester(
+      final IBinder binder, final ITypeFormalEnv fe, 
+      final Map<IJavaType, ResultFolderDrop> folders,
+      final boolean ex) {
+    super(binder, fe, folders, false);
+  }
+  
+  @Override
+  protected ContainablePromiseDrop testTypeDeclaration(final IRNode type) {
+    return LockRules.getContainableType(type);
   }
 }

@@ -14,13 +14,15 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 
 public final class ImmutableAnnotationTester extends TypeDeclAnnotationTester {
+  private final boolean exclusive;
   private final boolean implOnly;
   
   public ImmutableAnnotationTester(
       final IBinder binder, final ITypeFormalEnv fe, 
       final Map<IJavaType, ResultFolderDrop> folders,
       final boolean ex, final boolean impl) {
-    super(binder, fe, folders, ex);
+    super(binder, fe, folders);
+    exclusive = ex;
     implOnly = impl;
   }
   
@@ -43,4 +45,66 @@ public final class ImmutableAnnotationTester extends TypeDeclAnnotationTester {
   protected boolean testArrayType(final IJavaArrayType type) {
     return false;
   }
+}
+
+abstract class ImmutableAnnotationTester2 extends TypeDeclAnnotationTester {
+  private final boolean exclusively;
+  
+  public ImmutableAnnotationTester2(
+      final IBinder binder, final ITypeFormalEnv fe, 
+      final Map<IJavaType, ResultFolderDrop> folders,
+      final boolean ex) {
+    super(binder, fe, folders);
+    exclusively = ex;
+  }
+  
+  @Override
+  protected PromiseDrop<?> testFormalAgainstAnnotationBounds(
+      final IJavaTypeFormal formal) {
+    return formalEnv.isImmutable(formal, exclusively);
+  }
+  
+  @Override
+  protected boolean testArrayType(final IJavaArrayType type) {
+    return false;
+  }
+}
+
+final class FieldDeclarationMustBeImmutableTester extends ImmutableAnnotationTester2 {
+  public FieldDeclarationMustBeImmutableTester(
+      final IBinder binder, final ITypeFormalEnv fe, 
+      final Map<IJavaType, ResultFolderDrop> folders) {
+    super(binder, fe, folders, true);
+  }
+  
+  @Override
+  protected ImmutablePromiseDrop testTypeDeclaration(final IRNode type) {
+    return LockRules.getImmutableType(type); 
+  }           
+}
+
+final class FinalObjectImmutableTester extends ImmutableAnnotationTester2 {
+  public FinalObjectImmutableTester(
+      final IBinder binder, final ITypeFormalEnv fe, 
+      final Map<IJavaType, ResultFolderDrop> folders) {
+    super(binder, fe, folders, true);
+  }
+  
+  @Override
+  protected ImmutablePromiseDrop testTypeDeclaration(final IRNode type) {
+    return LockRules.getImmutableImplementation(type); 
+  }           
+}
+
+final class MightHaveImmutableAnnotationTester extends ImmutableAnnotationTester2 {
+  public MightHaveImmutableAnnotationTester(
+      final IBinder binder, final ITypeFormalEnv fe, 
+      final Map<IJavaType, ResultFolderDrop> folders) {
+    super(binder, fe, folders, false);
+  }
+  
+  @Override
+  protected ImmutablePromiseDrop testTypeDeclaration(final IRNode type) {
+    return LockRules.getImmutableType(type); 
+  }           
 }

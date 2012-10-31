@@ -14,10 +14,13 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 
 public final class ValueObjectAnnotationTester extends TypeDeclAnnotationTester {
+  private final boolean exclusive;
+
   public ValueObjectAnnotationTester(
       final IBinder binder, final ITypeFormalEnv fe, 
       final Map<IJavaType, ResultFolderDrop> folders, final boolean ex) {
-    super(binder, fe, folders, ex);
+    super(binder, fe, folders);
+    exclusive = ex;
   }
   
   @Override

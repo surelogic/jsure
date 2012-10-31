@@ -18,15 +18,19 @@ import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 
 public final class ReferenceObjectAnnotationTester extends TypeDeclAnnotationTester {
   private static final int ENUM_IMPLICITLY_REF_OBJECT = 764;
-  
   private static final String JAVA_LANG_ENUM = "java.lang.Enum";
+
   
+  
+  private final boolean exclusive;
+
   
   
   public ReferenceObjectAnnotationTester(
       final IBinder binder, final ITypeFormalEnv fe, 
       final Map<IJavaType, ResultFolderDrop> folders, final boolean ex) {
-    super(binder, fe, folders, ex);
+    super(binder, fe, folders);
+    exclusive = ex;
   }
   
   @Override
