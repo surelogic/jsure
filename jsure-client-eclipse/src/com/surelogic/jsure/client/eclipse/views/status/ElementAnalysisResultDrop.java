@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.verification;
+package com.surelogic.jsure.client.eclipse.views.status;
 
 import com.surelogic.NonNull;
 import com.surelogic.dropsea.IAnalysisResultDrop;

@@ -1,12 +1,14 @@
-package com.surelogic.jsure.client.eclipse.views.verification;
+package com.surelogic.jsure.client.eclipse.views.status;
+
+import java.util.EnumSet;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 final class ElementPromiseDrop extends ElementProofDrop {
 
@@ -67,21 +69,33 @@ final class ElementPromiseDrop extends ElementProofDrop {
   }
 
   @Override
+  EnumSet<Flag> getImageFlagsForChangedFromDrop() {
+    final IPromiseDrop drop = getChangedFromDropOrNull();
+    EnumSet<Flag> flags = super.getImageFlagsForChangedFromDrop();
+    getImageFlagsHelper(drop, flags);
+    return flags;
+  }
+
+  @Override
   @NonNull
   String getImageNameForChangedFromDrop() {
     return CommonImages.IMG_ANNOTATION;
   }
 
   @Override
-  int getImageFlags() {
-    int flags = super.getImageFlags();
-    if (f_promiseDrop.isVirtual())
-      flags |= CoE_Constants.VIRTUAL;
-    if (f_promiseDrop.isAssumed())
-      flags |= CoE_Constants.ASSUME;
-    if (!f_promiseDrop.isCheckedByAnalysis())
-      flags |= CoE_Constants.TRUSTED;
+  EnumSet<Flag> getImageFlags() {
+    EnumSet<Flag> flags = super.getImageFlags();
+    getImageFlagsHelper(f_promiseDrop, flags);
     return flags;
+  }
+
+  private void getImageFlagsHelper(IPromiseDrop drop, EnumSet<Flag> flags) {
+    if (drop.isVirtual())
+      flags.add(Flag.VIRTUAL);
+    if (drop.isAssumed())
+      flags.add(Flag.ASSUME);
+    if (!drop.isCheckedByAnalysis())
+      flags.add(Flag.TRUSTED);
   }
 
   @Override

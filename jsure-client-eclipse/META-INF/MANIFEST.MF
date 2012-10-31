@@ -41,4 +41,4 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: com.surelogic.jsure.client.eclipse,
  com.surelogic.jsure.client.eclipse.editors,
  com.surelogic.jsure.client.eclipse.views,
- com.surelogic.jsure.client.eclipse.views.verification
+ com.surelogic.jsure.client.eclipse.views.status

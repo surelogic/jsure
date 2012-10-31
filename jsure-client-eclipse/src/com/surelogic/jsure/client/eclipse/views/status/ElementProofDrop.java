@@ -1,9 +1,11 @@
-package com.surelogic.jsure.client.eclipse.views.verification;
+package com.surelogic.jsure.client.eclipse.views.status;
+
+import java.util.EnumSet;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
-import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 abstract class ElementProofDrop extends ElementDrop {
 
@@ -19,10 +21,10 @@ abstract class ElementProofDrop extends ElementDrop {
   abstract IProofDrop getChangedFromDropOrNull();
 
   @Override
-  int getImageFlagsForChangedFromDrop() {
+  EnumSet<Flag> getImageFlagsForChangedFromDrop() {
     final IProofDrop proofDrop = getChangedFromDropOrNull();
     if (proofDrop == null)
-      return 0;
+      return EnumSet.noneOf(Flag.class);
     else
       return getImageFlagsHelper(proofDrop);
   }
@@ -52,16 +54,16 @@ abstract class ElementProofDrop extends ElementDrop {
   }
 
   @Override
-  int getImageFlags() {
+  EnumSet<Flag> getImageFlags() {
     final IProofDrop proofDrop = getDrop();
     return getImageFlagsHelper(proofDrop);
   }
 
-  private int getImageFlagsHelper(@NonNull final IProofDrop proofDrop) {
-    int flags = 0;
-    flags |= proofDrop.provedConsistent() ? CoE_Constants.CONSISTENT : CoE_Constants.INCONSISTENT;
+  private EnumSet<Flag> getImageFlagsHelper(@NonNull final IProofDrop proofDrop) {
+    EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
+    flags.add(proofDrop.provedConsistent() ? Flag.CONSISTENT : Flag.INCONSISTENT);
     if (proofDrop.proofUsesRedDot())
-      flags |= CoE_Constants.REDDOT;
+      flags.add(Flag.REDDOT);
     return flags;
   }
 }

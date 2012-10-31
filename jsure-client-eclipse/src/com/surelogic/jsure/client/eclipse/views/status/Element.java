@@ -1,6 +1,7 @@
-package com.surelogic.jsure.client.eclipse.views.verification;
+package com.surelogic.jsure.client.eclipse.views.status;
 
 import java.util.Comparator;
+import java.util.EnumSet;
 
 import org.eclipse.swt.graphics.Image;
 
@@ -8,10 +9,10 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
-import com.surelogic.common.jsure.xml.CoE_Constants;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.ScanDifferences;
-import com.surelogic.jsure.client.eclipse.views.ResultsImageDescriptor;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 abstract class Element {
 
@@ -199,12 +200,14 @@ abstract class Element {
   }
 
   /**
-   * The desired image decoration flags from {@link CoE_Constants} or 0 for
-   * none.
+   * The desired image decoration flags from from
+   * {@link JSureDecoratedImageUtility.Flag} or use
+   * {@link EnumSet#noneOf(Class)} for none.
    * 
-   * @return desired image decoration flags from {@link CoE_Constants}.
+   * @return desired image decoration flags from
+   *         {@link JSureDecoratedImageUtility.Flag}.
    */
-  abstract int getImageFlags();
+  abstract EnumSet<Flag> getImageFlags();
 
   private Boolean f_descendantHasWarningHintCache = null;
 
@@ -306,7 +309,8 @@ abstract class Element {
    *          the image name from {@link CommonImages} or {@code null} for no
    *          image.
    * @param flags
-   *          image decorator flags per a {@link ResultsImageDescriptor}.
+   *          image decorator flags per a
+   *          {@link JSureDecoratedImageUtility.Flag}.
    * @param withWarningDecoratorIfApplicable
    *          if {@code true} then a warning decorator is added to the returned
    *          image if {@link #descendantHasWarningHint()}.
@@ -317,25 +321,25 @@ abstract class Element {
    * @return an image, or {@code null} for no image.
    */
   @Nullable
-  final Image getImageHelper(String imageName, int flags, boolean gray, boolean withWarningDecoratorIfApplicable,
-      boolean withDeltaDecoratorIfApplicable) {
+  final Image getImageHelper(String imageName, @NonNull EnumSet<Flag> flags, boolean gray,
+      boolean withWarningDecoratorIfApplicable, boolean withDeltaDecoratorIfApplicable) {
+    EnumSet<Flag> workingFlags = flags.clone();
     if (imageName == null)
       return null;
     if (withDeltaDecoratorIfApplicable) {
       if (Element.f_highlightDifferences) {
         if (descendantHasDifference())
-          flags |= CoE_Constants.DELTA;
+          workingFlags.add(Flag.DELTA);
       }
     }
     if (withWarningDecoratorIfApplicable) {
       if (descendantHasWarningHint())
-        flags |= CoE_Constants.HINT_WARNING;
+        workingFlags.add(Flag.HINT_WARNING);
     }
-    final ResultsImageDescriptor id = new ResultsImageDescriptor(imageName, flags, VerificationStatusView.ICONSIZE);
     if (gray)
-      return id.getCachedGrayImage();
+      return JSureDecoratedImageUtility.getGrayscaleImage(imageName, workingFlags);
     else
-      return id.getCachedImage();
+      return JSureDecoratedImageUtility.getImage(imageName, workingFlags);
   }
 
   /**

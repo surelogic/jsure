@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.verification;
+package com.surelogic.jsure.client.eclipse.views.status;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +17,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -33,7 +32,6 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
@@ -98,8 +96,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
 
   private final File f_viewStatePersistenceFile;
 
-  public static final Point ICONSIZE = new Point(22, 16);
-
   private PageBook f_viewerbook = null;
   private Label f_noResultsToShowLabel = null;
   private TreeViewer f_treeViewer;
@@ -159,7 +155,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
         return super.compare(viewer, e1, e2);
       }
     });
-    ColumnViewerToolTipSupport.enableFor(f_treeViewer);
 
     f_treeViewer.getTree().setHeaderVisible(true);
     f_treeViewer.getTree().setLinesVisible(true);

@@ -1,4 +1,6 @@
-package com.surelogic.jsure.client.eclipse.views.verification;
+package com.surelogic.jsure.client.eclipse.views.status;
+
+import java.util.EnumSet;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
@@ -6,6 +8,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.ScanDifferences;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 final class ElementResultDrop extends ElementAnalysisResultDrop {
 
@@ -72,11 +75,11 @@ final class ElementResultDrop extends ElementAnalysisResultDrop {
   }
 
   @Override
-  int getImageFlags() {
+  EnumSet<Flag> getImageFlags() {
     if (hasChildren())
       return super.getImageFlags();
     else
-      return 0;
+      return EnumSet.noneOf(Flag.class);
   }
 
   @Override

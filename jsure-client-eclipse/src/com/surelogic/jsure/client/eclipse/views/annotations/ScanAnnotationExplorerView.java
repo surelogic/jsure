@@ -2,6 +2,7 @@ package com.surelogic.jsure.client.eclipse.views.annotations;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Map;
 
 import org.apache.commons.collections15.MultiMap;
@@ -24,6 +25,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.dialogs.SelectionDialog;
 
 import com.surelogic.Nullable;
@@ -43,6 +45,8 @@ import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTreeView;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotationExplorerView.ITypeElement> implements
@@ -320,25 +324,25 @@ public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotat
   }
 
   static String computeLabel(IDecl d) {
-	  switch (d.getKind()) {
-	  case CLASS:
-	  case ENUM:
-	  case INTERFACE:
-		  return DeclUtil.getTypeNameOrEmpty(d);
-	  case CONSTRUCTOR:
-	  case METHOD:
-		  return DeclUtil.getSignature((IDeclFunction) d);
-	  case FIELD:
-	  case PACKAGE:
-		  return d.getName();
-	  case PARAMETER:
-		  return "arg "+d.getPosition()+" of "+computeLabel(d.getParent());
-	  case TYPE_PARAMETER:	
-	  default:
-		  throw new UnsupportedOperationException(d.toString());
-	  }
+    switch (d.getKind()) {
+    case CLASS:
+    case ENUM:
+    case INTERFACE:
+      return DeclUtil.getTypeNameOrEmpty(d);
+    case CONSTRUCTOR:
+    case METHOD:
+      return DeclUtil.getSignature((IDeclFunction) d);
+    case FIELD:
+    case PACKAGE:
+      return d.getName();
+    case PARAMETER:
+      return "arg " + d.getPosition() + " of " + computeLabel(d.getParent());
+    case TYPE_PARAMETER:
+    default:
+      throw new UnsupportedOperationException(d.toString());
+    }
   }
-  
+
   static class Package extends AbstractElement {
     Package(String qname, MultiMap<String, IDrop> cuToDrop) {
       super(null, qname, cuToDrop.size());
@@ -430,14 +434,20 @@ public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotat
       drop = d;
     }
 
+    public static Point ICONSIZE = new Point(16, 16);
+    public static Image consistentPromise = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION,
+        EnumSet.of(Flag.CONSISTENT), ICONSIZE);
+    public static Image inconsistentPromise = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION,
+        EnumSet.of(Flag.INCONSISTENT), ICONSIZE);
+
     @Override
     public Image getImage() {
       if (drop instanceof IPromiseDrop) {
         IPromiseDrop p = (IPromiseDrop) drop;
-        if (p.provedConsistent()) {
-          return SLImages.getImage(CommonImages.IMG_PROMISE_CONSISTENT);
-        }
-        return SLImages.getImage(CommonImages.IMG_PROMISE_INCONSISTENT);
+        if (p.provedConsistent())
+          return consistentPromise;
+        else
+          return inconsistentPromise;
       } else if (drop instanceof IResultDrop) {
         IResultDrop r = (IResultDrop) drop;
         if (r.provedConsistent()) {
@@ -469,10 +479,10 @@ public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotat
       final IJavaRef r = drop.getJavaRef();
       return r;
       // TODO WHAT IS THIS DOING?
-//      if (r != null && t != null)
-//        return new JavaRef.Builder(r).setTypeName(t.getLabel()).build();
-//      else
-//        return null;
+      // if (r != null && t != null)
+      // return new JavaRef.Builder(r).setTypeName(t.getLabel()).build();
+      // else
+      // return null;
     }
   }
 
