@@ -32,6 +32,7 @@ class AnnoBuilder extends AnnotationVisitor {
 			final int semi = desc.indexOf(';');
 			type = desc.substring(1, semi).replace('/', '.').replace('$', '.');
 			// TODO this isn't quite right for nested annotation decls
+			//System.out.println("Starting anno: "+type);
 		}
 	}
 	
@@ -85,6 +86,12 @@ class AnnoBuilder extends AnnotationVisitor {
 	}
 	
 	public void visit(String name, Object value) {
+		/*
+		System.out.println("\t"+name+" = "+value);
+		if (type.contains("Unique") && "allowRead".contains(name)) {
+			System.out.println("Found @Unique");
+		}
+        */
 		add(name, adaptValue(value));
 	}
 
