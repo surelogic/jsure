@@ -357,7 +357,7 @@ public final class ScanManagerMediator implements ILifecycle {
           final JSureScan run = (JSureScan) element;
           try {
             String oneProjectName = run.getProjects().getLabel().trim();
-            if (oneProjectName.indexOf(',') != -1) {
+            if (oneProjectName.indexOf(',') == -1) {
               return SLImages.getImageForProject(oneProjectName);
             }
           } catch (Exception ignore) {
