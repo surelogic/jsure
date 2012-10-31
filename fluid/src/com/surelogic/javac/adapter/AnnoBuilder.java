@@ -143,7 +143,7 @@ class AnnoBuilder extends AnnotationVisitor {
 				result = ArrayInitializer.createNode(pairs.toArray(JavaGlobals.noNodes));
 			}
 			else {
-				result = ElementValueArrayInitializer.createNode(JavaGlobals.noNodes);
+				result = ElementValueArrayInitializer.createNode(pairs.toArray(JavaGlobals.noNodes));
 			}
 			outer.add(name, result);
 		}	
