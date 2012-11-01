@@ -17,7 +17,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.ui.ISharedImages;
 import org.eclipse.jdt.ui.JavaUI;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -307,7 +306,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
 
   @Override
   public Image getImage(final Object element) {
-    ImageDescriptor desc = getImageDescriptor(element);
+    final Image baseImage = getBaseImageHelper(element);
     final EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
     if (element instanceof AnnotationElement) {
       IJavaElement e = (IJavaElement) element;
@@ -326,14 +325,14 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
         }
       }
     }
-    return JSureDecoratedImageUtility.getImage(desc, flags);
+    return JSureDecoratedImageUtility.getImage(baseImage, flags);
   }
 
-  protected ImageDescriptor getImageDescriptor(final Object element) {
+  protected Image getBaseImageHelper(final Object element) {
     IJavaElement e = (IJavaElement) element;
     String key = e.getImageKey();
     if (key != null) {
-      ImageDescriptor i = SLImages.getImageDescriptor(key);
+      Image i = SLImages.getImage(key);
       if (i != null) {
         return i;
       }
@@ -341,10 +340,10 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
     if (e instanceof AnnotatedJavaElement) {
       AnnotatedJavaElement a = (AnnotatedJavaElement) e;
       if (!a.isPublic()) {
-        return JavaUI.getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_PROTECTED);
+        return JavaUI.getSharedImages().getImage(ISharedImages.IMG_OBJS_PROTECTED);
       }
     }
-    return JavaUI.getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJS_PUBLIC);
+    return JavaUI.getSharedImages().getImage(ISharedImages.IMG_OBJS_PUBLIC);
   }
 
   @Override

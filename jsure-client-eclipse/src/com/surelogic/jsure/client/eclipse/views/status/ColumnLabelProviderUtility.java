@@ -1,7 +1,5 @@
 package com.surelogic.jsure.client.eclipse.views.status;
 
-import java.util.EnumSet;
-
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
@@ -17,7 +15,6 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
-import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 @Utility
 public final class ColumnLabelProviderUtility {
@@ -141,7 +138,7 @@ public final class ColumnLabelProviderUtility {
 
   static final CellLabelProvider PACKAGE = new CellLabelProvider() {
 
-    private final Image f_packageImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_PACKAGE, EnumSet.noneOf(Flag.class));
+    private final Image f_packageImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_PACKAGE);
 
     @Override
     public void update(ViewerCell cell) {
