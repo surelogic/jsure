@@ -1,6 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views.status;
 
-import java.util.EnumSet;
+import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
@@ -8,7 +8,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
-import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 
 final class ElementProposedPromiseDrop extends ElementDrop {
 
@@ -71,14 +71,13 @@ final class ElementProposedPromiseDrop extends ElementDrop {
   }
 
   @Override
-  @NonNull
-  String getImageNameForChangedFromDrop() {
-    return CommonImages.IMG_ANNOTATION_PROPOSED;
-  }
-
-  @Override
-  EnumSet<Flag> getImageFlagsForChangedFromDrop() {
-    return EnumSet.noneOf(Flag.class);
+  @Nullable
+  Image getElementImageChangedFromDropOrNull() {
+    final IProposedPromiseDrop drop = getChangedFromDropOrNull();
+    if (drop == null)
+      return null;
+    else
+      return JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION_PROPOSED);
   }
 
   @Override
@@ -88,14 +87,9 @@ final class ElementProposedPromiseDrop extends ElementDrop {
   }
 
   @Override
-  EnumSet<Flag> getImageFlags() {
-    return EnumSet.noneOf(Flag.class);
-  }
-
-  @Override
-  @NonNull
-  String getImageName() {
-    return CommonImages.IMG_ANNOTATION_PROPOSED;
+  @Nullable
+  Image getElementImage() {
+    return JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION_PROPOSED);
   }
 
   @Override

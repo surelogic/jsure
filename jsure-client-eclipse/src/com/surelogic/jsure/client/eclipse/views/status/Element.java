@@ -1,18 +1,18 @@
 package com.surelogic.jsure.client.eclipse.views.status;
 
 import java.util.Comparator;
-import java.util.EnumSet;
 
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
-import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 abstract class Element {
 
@@ -207,16 +207,6 @@ abstract class Element {
       return Integer.toString(line);
   }
 
-  /**
-   * The desired image decoration flags from from
-   * {@link JSureDecoratedImageUtility.Flag} or use
-   * {@link EnumSet#noneOf(Class)} for none.
-   * 
-   * @return desired image decoration flags from
-   *         {@link JSureDecoratedImageUtility.Flag}.
-   */
-  abstract EnumSet<Flag> getImageFlags();
-
   private Boolean f_descendantHasWarningHintCache = null;
 
   /**
@@ -303,22 +293,17 @@ abstract class Element {
   }
 
   /**
-   * The desired image name from {@link CommonImages}.
+   * The decorated image for this element.
    * 
-   * @return the desired image name or {@code null} for no image.
+   * @return the decorated image for this element.
    */
   @Nullable
-  abstract String getImageName();
+  abstract Image getElementImage();
 
   /**
-   * Gets the the decorated image associated with this element.
+   * Helps get a complete decorated image associated with this element. This
+   * includes warning and delta decorations.
    * 
-   * @param imageName
-   *          the image name from {@link CommonImages} or {@code null} for no
-   *          image.
-   * @param flags
-   *          image decorator flags per a
-   *          {@link JSureDecoratedImageUtility.Flag}.
    * @param withWarningDecoratorIfApplicable
    *          if {@code true} then a warning decorator is added to the returned
    *          image if {@link #descendantHasWarningHint()}.
@@ -326,28 +311,26 @@ abstract class Element {
    *          if {@code true} then a delta decorator is added to the returned
    *          image based upon the user's preference. if {@code false} a delta
    *          decorator is never added.
-   * @return an image, or {@code null} for no image.
+   * @return an image, or {@code null} for none.
    */
   @Nullable
-  final Image getImageHelper(String imageName, @NonNull EnumSet<Flag> flags, boolean gray,
-      boolean withWarningDecoratorIfApplicable, boolean withDeltaDecoratorIfApplicable) {
-    EnumSet<Flag> workingFlags = flags.clone();
-    if (imageName == null)
+  final Image getImageHelper(boolean gray, boolean withWarningDecoratorIfApplicable, boolean withDeltaDecoratorIfApplicable) {
+    final Image baseImage = getElementImage();
+    if (baseImage == null)
       return null;
+    ImageDescriptor decorator = null;
+    if (withWarningDecoratorIfApplicable) {
+      if (descendantHasWarningHint())
+        decorator = SLImages.getImageDescriptor(CommonImages.DECR_WARNING);
+    }
     if (withDeltaDecoratorIfApplicable) {
       if (Element.f_highlightDifferences) {
         if (descendantHasDifference())
-          workingFlags.add(Flag.DELTA);
+          decorator = SLImages.getImageDescriptor(CommonImages.DECR_DELTA);
       }
     }
-    if (withWarningDecoratorIfApplicable) {
-      if (descendantHasWarningHint())
-        workingFlags.add(Flag.HINT_WARNING);
-    }
-    if (gray)
-      return JSureDecoratedImageUtility.getGrayscaleImage(imageName, workingFlags);
-    else
-      return JSureDecoratedImageUtility.getImage(imageName, workingFlags);
+    return SLImages.getDecoratedImage(baseImage, new ImageDescriptor[] { null, null, null, decorator, null },
+        JSureDecoratedImageUtility.SIZE, gray);
   }
 
   /**
@@ -357,7 +340,7 @@ abstract class Element {
    */
   @Nullable
   final Image getImage() {
-    return getImageHelper(getImageName(), getImageFlags(), false, f_showHints, true);
+    return getImageHelper(false, f_showHints, true);
   }
 
   @Override

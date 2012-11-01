@@ -21,15 +21,6 @@ abstract class ElementProofDrop extends ElementDrop {
   abstract IProofDrop getChangedFromDropOrNull();
 
   @Override
-  EnumSet<Flag> getImageFlagsForChangedFromDrop() {
-    final IProofDrop proofDrop = getChangedFromDropOrNull();
-    if (proofDrop == null)
-      return EnumSet.noneOf(Flag.class);
-    else
-      return getImageFlagsHelper(proofDrop);
-  }
-
-  @Override
   @Nullable
   String getMessageAboutWhatChangedOrNull() {
     final IProofDrop newDrop = getDrop();
@@ -53,13 +44,7 @@ abstract class ElementProofDrop extends ElementDrop {
     }
   }
 
-  @Override
-  EnumSet<Flag> getImageFlags() {
-    final IProofDrop proofDrop = getDrop();
-    return getImageFlagsHelper(proofDrop);
-  }
-
-  private EnumSet<Flag> getImageFlagsHelper(@NonNull final IProofDrop proofDrop) {
+  protected EnumSet<Flag> getImageFlagsHelper(@NonNull final IProofDrop proofDrop) {
     EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
     flags.add(proofDrop.provedConsistent() ? Flag.CONSISTENT : Flag.INCONSISTENT);
     if (proofDrop.proofUsesRedDot())

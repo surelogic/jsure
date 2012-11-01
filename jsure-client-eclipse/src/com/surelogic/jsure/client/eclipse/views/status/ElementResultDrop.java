@@ -1,6 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views.status;
 
-import java.util.EnumSet;
+import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
@@ -8,7 +8,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.ScanDifferences;
-import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 
 final class ElementResultDrop extends ElementAnalysisResultDrop {
 
@@ -70,22 +70,21 @@ final class ElementResultDrop extends ElementAnalysisResultDrop {
 
   @Override
   @Nullable
-  String getImageNameForChangedFromDrop() {
-    return getImageNameHelper(getChangedFromDropOrNull());
-  }
-
-  @Override
-  EnumSet<Flag> getImageFlags() {
-    if (hasChildren())
-      return super.getImageFlags();
+  Image getElementImageChangedFromDropOrNull() {
+    final IResultDrop drop = getChangedFromDropOrNull();
+    if (drop == null)
+      return null;
     else
-      return EnumSet.noneOf(Flag.class);
+      return JSureDecoratedImageUtility.getImage(getImageNameHelper(drop), getImageFlagsHelper(drop));
   }
 
   @Override
   @Nullable
-  String getImageName() {
-    return getImageNameHelper(getDrop());
+  Image getElementImage() {
+    if (hasChildren())
+      return JSureDecoratedImageUtility.getImage(getImageNameHelper(getDrop()), getImageFlagsHelper(getDrop()));
+    else
+      return JSureDecoratedImageUtility.getImage(getImageNameHelper(getDrop()));
   }
 
   @Nullable
