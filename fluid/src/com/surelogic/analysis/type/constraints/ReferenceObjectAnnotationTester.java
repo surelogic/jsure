@@ -27,9 +27,9 @@ public final class ReferenceObjectAnnotationTester extends TypeDeclAnnotationTes
   
   
   public ReferenceObjectAnnotationTester(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder,
       final Map<IJavaType, ResultFolderDrop> folders, final boolean ex) {
-    super(binder, fe, folders);
+    super(binder, folders);
     exclusive = ex;
   }
   
@@ -48,7 +48,7 @@ public final class ReferenceObjectAnnotationTester extends TypeDeclAnnotationTes
   @Override
   protected PromiseDrop<?> testFormalAgainstAnnotationBounds(
       final IJavaTypeFormal formal) {
-    return formalEnv.isReferenceObject(formal, exclusive);
+    return isReferenceObject(formal, exclusive);
   }
   
   @Override

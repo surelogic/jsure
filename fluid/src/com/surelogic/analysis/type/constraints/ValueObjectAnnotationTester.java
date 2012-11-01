@@ -17,9 +17,9 @@ public final class ValueObjectAnnotationTester extends TypeDeclAnnotationTester 
   private final boolean exclusive;
 
   public ValueObjectAnnotationTester(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder, 
       final Map<IJavaType, ResultFolderDrop> folders, final boolean ex) {
-    super(binder, fe, folders);
+    super(binder, folders);
     exclusive = ex;
   }
   
@@ -31,7 +31,7 @@ public final class ValueObjectAnnotationTester extends TypeDeclAnnotationTester 
   @Override
   protected PromiseDrop<?> testFormalAgainstAnnotationBounds(
       final IJavaTypeFormal formal) {
-    return formalEnv.isValueObject(formal, exclusive);
+    return isValueObject(formal, exclusive);
   }
   
   @Override

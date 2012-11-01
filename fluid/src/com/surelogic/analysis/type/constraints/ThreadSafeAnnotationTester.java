@@ -20,10 +20,10 @@ public final class ThreadSafeAnnotationTester extends TypeDeclAnnotationTester {
   private final boolean implOnly;
   
   public ThreadSafeAnnotationTester(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder,
       final Map<IJavaType, ResultFolderDrop> folders,
       final boolean ex, final boolean impl) {
-    super(binder, fe, folders);
+    super(binder, folders);
     exclusive = ex;
     implOnly = impl;
   }
@@ -41,7 +41,7 @@ public final class ThreadSafeAnnotationTester extends TypeDeclAnnotationTester {
   @Override
   protected PromiseDrop<?> testFormalAgainstAnnotationBounds(
       final IJavaTypeFormal formal) {
-    return formalEnv.isThreadSafe(formal, exclusive);
+    return isThreadSafe(formal, exclusive);
   }
   
   @Override
@@ -54,10 +54,10 @@ abstract class ThreadSafeAnnotationTester2 extends TypeDeclAnnotationTester {
   private final boolean exclusive;
   
   public ThreadSafeAnnotationTester2(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder, 
       final Map<IJavaType, ResultFolderDrop> folders,
       final boolean ex) {
-    super(binder, fe, folders);
+    super(binder, folders);
     exclusive = ex;
   }
   
@@ -69,7 +69,7 @@ abstract class ThreadSafeAnnotationTester2 extends TypeDeclAnnotationTester {
   @Override
   protected PromiseDrop<?> testFormalAgainstAnnotationBounds(
       final IJavaTypeFormal formal) {
-    return formalEnv.isThreadSafe(formal, exclusive);
+    return isThreadSafe(formal, exclusive);
   }
   
   @Override
@@ -85,10 +85,10 @@ abstract class ThreadSafeAnnotationTester2 extends TypeDeclAnnotationTester {
  */
 final class FieldDeclarationMustBeThreadSafeTester extends ThreadSafeAnnotationTester2 {
   public FieldDeclarationMustBeThreadSafeTester(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder, 
       final Map<IJavaType, ResultFolderDrop> folders,
       final boolean ex) {
-    super(binder, fe, folders, true);
+    super(binder, folders, true);
   }
   
   @Override
@@ -105,10 +105,10 @@ final class FieldDeclarationMustBeThreadSafeTester extends ThreadSafeAnnotationT
  */
 final class FinalObjectThreadSafeTester extends ThreadSafeAnnotationTester2 {
   public FinalObjectThreadSafeTester(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder,
       final Map<IJavaType, ResultFolderDrop> folders,
       final boolean ex) {
-    super(binder, fe, folders, true);
+    super(binder, folders, true);
   }
   
   @Override
@@ -125,10 +125,10 @@ final class FinalObjectThreadSafeTester extends ThreadSafeAnnotationTester2 {
  */
 final class MightHaveThreadSafeAnnotationTester extends ThreadSafeAnnotationTester2 {
   public MightHaveThreadSafeAnnotationTester(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder,
       final Map<IJavaType, ResultFolderDrop> folders,
       final boolean ex) {
-    super(binder, fe, folders, false);
+    super(binder, folders, false);
   }
   
   @Override

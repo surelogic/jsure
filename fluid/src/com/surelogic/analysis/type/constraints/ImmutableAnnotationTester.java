@@ -18,10 +18,10 @@ public final class ImmutableAnnotationTester extends TypeDeclAnnotationTester {
   private final boolean implOnly;
   
   public ImmutableAnnotationTester(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder, 
       final Map<IJavaType, ResultFolderDrop> folders,
       final boolean ex, final boolean impl) {
-    super(binder, fe, folders);
+    super(binder, folders);
     exclusive = ex;
     implOnly = impl;
   }
@@ -38,7 +38,7 @@ public final class ImmutableAnnotationTester extends TypeDeclAnnotationTester {
   @Override
   protected PromiseDrop<?> testFormalAgainstAnnotationBounds(
       final IJavaTypeFormal formal) {
-    return formalEnv.isImmutable(formal, exclusive);
+    return isImmutable(formal, exclusive);
   }
   
   @Override
@@ -51,17 +51,17 @@ abstract class ImmutableAnnotationTester2 extends TypeDeclAnnotationTester {
   private final boolean exclusively;
   
   public ImmutableAnnotationTester2(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder,
       final Map<IJavaType, ResultFolderDrop> folders,
       final boolean ex) {
-    super(binder, fe, folders);
+    super(binder, folders);
     exclusively = ex;
   }
   
   @Override
   protected PromiseDrop<?> testFormalAgainstAnnotationBounds(
       final IJavaTypeFormal formal) {
-    return formalEnv.isImmutable(formal, exclusively);
+    return isImmutable(formal, exclusively);
   }
   
   @Override
@@ -72,9 +72,9 @@ abstract class ImmutableAnnotationTester2 extends TypeDeclAnnotationTester {
 
 final class FieldDeclarationMustBeImmutableTester extends ImmutableAnnotationTester2 {
   public FieldDeclarationMustBeImmutableTester(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder,
       final Map<IJavaType, ResultFolderDrop> folders) {
-    super(binder, fe, folders, true);
+    super(binder, folders, true);
   }
   
   @Override
@@ -85,9 +85,9 @@ final class FieldDeclarationMustBeImmutableTester extends ImmutableAnnotationTes
 
 final class FinalObjectImmutableTester extends ImmutableAnnotationTester2 {
   public FinalObjectImmutableTester(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder,
       final Map<IJavaType, ResultFolderDrop> folders) {
-    super(binder, fe, folders, true);
+    super(binder, folders, true);
   }
   
   @Override
@@ -98,9 +98,9 @@ final class FinalObjectImmutableTester extends ImmutableAnnotationTester2 {
 
 final class MightHaveImmutableAnnotationTester extends ImmutableAnnotationTester2 {
   public MightHaveImmutableAnnotationTester(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder,
       final Map<IJavaType, ResultFolderDrop> folders) {
-    super(binder, fe, folders, false);
+    super(binder, folders, false);
   }
   
   @Override

@@ -19,10 +19,10 @@ public final class ContainableAnnotationTester extends TypeDeclAnnotationTester 
   private final boolean implOnly;
 
   public ContainableAnnotationTester(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder,
       final Map<IJavaType, ResultFolderDrop> folders, final boolean ex,
       final boolean impl) {
-    super(binder, fe, folders);
+    super(binder, folders);
     exclusively = ex;
     implOnly = impl;
   }
@@ -39,7 +39,7 @@ public final class ContainableAnnotationTester extends TypeDeclAnnotationTester 
   @Override
   protected final PromiseDrop<?> testFormalAgainstAnnotationBounds(
       final IJavaTypeFormal formal) {
-    return formalEnv.isContainable(formal, exclusively);
+    return isContainable(formal, exclusively);
   }
   
   @Override
@@ -57,16 +57,16 @@ abstract class ContainableAnnotationTester2 extends TypeDeclAnnotationTester {
   private final boolean exclusively;
   
   public ContainableAnnotationTester2(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder,
       final Map<IJavaType, ResultFolderDrop> folders, final boolean ex) {
-    super(binder, fe, folders);
+    super(binder, folders);
     exclusively = ex;
   }
   
   @Override
   protected final PromiseDrop<?> testFormalAgainstAnnotationBounds(
       final IJavaTypeFormal formal) {
-    return formalEnv.isContainable(formal, exclusively);
+    return isContainable(formal, exclusively);
   }
   
   @Override
@@ -85,10 +85,10 @@ abstract class ContainableAnnotationTester2 extends TypeDeclAnnotationTester {
  */
 final class FieldDeclarationMustBeContainableTester extends ContainableAnnotationTester2 {
   public FieldDeclarationMustBeContainableTester(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder,
       final Map<IJavaType, ResultFolderDrop> folders,
       final boolean ex) {
-    super(binder, fe, folders, true);
+    super(binder, folders, true);
   }
   
   @Override
@@ -103,10 +103,10 @@ final class FieldDeclarationMustBeContainableTester extends ContainableAnnotatio
  */
 final class FinalObjectContainableTester extends ContainableAnnotationTester2 {
   public FinalObjectContainableTester(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder,
       final Map<IJavaType, ResultFolderDrop> folders,
       final boolean ex) {
-    super(binder, fe, folders, true);
+    super(binder, folders, true);
   }
   
   @Override
@@ -121,10 +121,10 @@ final class FinalObjectContainableTester extends ContainableAnnotationTester2 {
  */
 final class MightHaveContainableAnnotationTester extends ContainableAnnotationTester2 {
   public MightHaveContainableAnnotationTester(
-      final IBinder binder, final ITypeFormalEnv fe, 
+      final IBinder binder,
       final Map<IJavaType, ResultFolderDrop> folders,
       final boolean ex) {
-    super(binder, fe, folders, false);
+    super(binder, folders, false);
   }
   
   @Override
