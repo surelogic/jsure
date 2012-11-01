@@ -9,6 +9,7 @@ import org.eclipse.swt.graphics.Image;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ref.DeclUtil;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IProofDrop;
@@ -41,11 +42,11 @@ public final class FilterJavaType extends Filter {
 
   @Override
   public Image getImageFor(String value) {
-    String imageName = f_valueToImageName.get(value);
-    if (imageName == null)
-      imageName = CommonImages.IMG_CLASS;
-
-    return SLImages.getImage(imageName);
+    Image image = f_valueToImageName.get(value);
+    if (image == null)
+      return SLImages.getImage(CommonImages.IMG_CLASS);
+    else
+      return image;
   }
 
   @Override
@@ -61,24 +62,11 @@ public final class FilterJavaType extends Filter {
           f_counts.put(value, 1);
           final IJavaRef jr = d.getJavaRef();
           if (jr != null) {
-            final String imageName;
-            switch (DeclUtil.getTypeKind(jr.getDeclaration())) {
-            case ANNOTATION:
-              imageName = CommonImages.IMG_ANNOTATION;
-              break;
-            case ENUM:
-              imageName = CommonImages.IMG_ENUM;
-              break;
-            case CLASS:
-              imageName = CommonImages.IMG_CLASS;
-              break;
-            case INTERFACE:
-              imageName = CommonImages.IMG_INTERFACE;
-              break;
-            default:
-              imageName = CommonImages.IMG_CLASS;
+            final IDecl enclosingType = DeclUtil.getTypeNotInControlFlow(jr.getDeclaration());
+            if (enclosingType != null) {
+              final Image valueImage = SLImages.getImageFor(enclosingType);
+              f_valueToImageName.put(value, valueImage);
             }
-            f_valueToImageName.put(value, imageName);
           }
         } else {
           f_counts.put(value, count + 1);
@@ -102,7 +90,7 @@ public final class FilterJavaType extends Filter {
     }
   }
 
-  private final Map<String, String> f_valueToImageName = new HashMap<String, String>();
+  private final Map<String, Image> f_valueToImageName = new HashMap<String, Image>();
 
   @Override
   @Nullable
