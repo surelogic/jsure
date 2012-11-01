@@ -108,6 +108,7 @@ public class DropDiff extends DiffNode implements IViewable {
 				final String msg = p.match(pn, po);
 				if (msg != null) {
 					out.println("\tDiffs in details for " + n.drop.getMessage());
+					out.println(msg);
 					return new DiffMessage(msg, Status.CHANGED) {
 						@Override
 						public IDrop getDrop() {

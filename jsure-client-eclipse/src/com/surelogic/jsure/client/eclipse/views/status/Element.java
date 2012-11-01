@@ -179,11 +179,19 @@ abstract class Element {
     return null;
   }
 
+  Image getProjectImageOrNull() {
+    return null;
+  }
+
   String getPackageNameOrNull() {
     return null;
   }
 
   String getSimpleTypeNameOrNull() {
+    return null;
+  }
+
+  Image getSimpleTypeImageOrNull() {
     return null;
   }
 

@@ -546,7 +546,7 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
       if (element instanceof String) {
         return null;
       }
-      return JSureDecoratedImageUtility.getImage(super.getImageDescriptor(element), EnumSet.noneOf(Flag.class));
+      return JSureDecoratedImageUtility.getImage(super.getBaseImageHelper(element));
     }
 
     @Override

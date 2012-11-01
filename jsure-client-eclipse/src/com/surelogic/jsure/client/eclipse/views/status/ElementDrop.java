@@ -5,15 +5,21 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 
+import org.eclipse.swt.graphics.Image;
+
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.ref.DeclUtil;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 abstract class ElementDrop extends Element {
@@ -75,6 +81,11 @@ abstract class ElementDrop extends Element {
   }
 
   @Override
+  Image getProjectImageOrNull() {
+    return SLImages.resizeImage(SLImages.getImageForProject(getDrop().getJavaRef()), JSureDecoratedImageUtility.SIZE);
+  }
+
+  @Override
   String getPackageNameOrNull() {
     final IJavaRef jr = getDrop().getJavaRef();
     if (jr != null)
@@ -89,6 +100,18 @@ abstract class ElementDrop extends Element {
     if (jr != null)
       return jr.getTypeNameOrNull();
     else
+      return null;
+  }
+
+  @Override
+  Image getSimpleTypeImageOrNull() {
+    final IJavaRef jr = getDrop().getJavaRef();
+    if (jr != null) {
+      IDecl typeDecl = DeclUtil.getTypeNotInControlFlow(jr.getDeclaration());
+      if (typeDecl == null)
+        return null;
+      return SLImages.resizeImage(SLImages.getImageFor(typeDecl), JSureDecoratedImageUtility.SIZE);
+    } else
       return null;
   }
 

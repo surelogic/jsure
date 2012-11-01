@@ -78,17 +78,27 @@ public abstract class CategoryMatcher {
     }
     // }    
     result = matchStrings(n.getMessage(), o.getMessage(), true);
-    if (DiffCategory.suppressFilteredDrops && result == Boolean.FALSE) {
-    	if (o.getMessage().startsWith(oldPrefix)) {
-    		final String reconstructed = newPrefix + o.getMessage().substring(oldPrefix.length());
-    		result = matchStrings(n.getMessage(), reconstructed, true);
-    	}
+    if (DiffCategory.suppressFilteredDrops && o.getMessage().startsWith("Borrowed")) {
+    	for(int i=0; i<oldPrefix.length && result == Boolean.FALSE; i++) {
+    		if (o.getMessage().startsWith(oldPrefix[i])) {
+    			final String reconstructed = newPrefix[i] + o.getMessage().substring(oldPrefix[i].length());
+    			result = matchStrings(n.getMessage(), reconstructed, true);
+    		}
+    	}    	
     }
     return result != null ? result : false;
   }
-
-  private static final String oldPrefix = "Borrowed(\"arg0\") on ";
-  private static final String newPrefix = "Borrowed on parameter 'arg0' of ";
+  
+  private static final String[] oldPrefix = {
+	  "Borrowed(\"arg0\") on ",
+	  "Borrowed(\"arg1\") on ",
+	  "Borrowed(\"arg2\") on ",
+  };
+  private static final String[] newPrefix = {
+	  "Borrowed on parameter 'arg0' of ",
+	  "Borrowed on parameter 'arg1' of ",
+	  "Borrowed on parameter 'arg2' of ",
+  };
   
   protected static boolean matchAnalysisHint(IDrop n, IDrop o) {
 	return matchStrings(n.getDiffInfoOrNull(IDiffInfo.ANALYSIS_DIFF_HINT), 

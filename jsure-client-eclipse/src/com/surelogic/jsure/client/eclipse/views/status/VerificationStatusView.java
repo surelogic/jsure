@@ -132,7 +132,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       } else {
         viewState = File.createTempFile(VIEW_STATE, ".xml");
       }
-    } catch (IOException e) {
+    } catch (IOException ignore) {
       // Nothing to do
     }
     f_viewStatePersistenceFile = viewState;

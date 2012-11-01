@@ -58,7 +58,7 @@ public class ClassResource {
     final String prjName = project.getName();
     final String prefix = "org.eclipse.jdt.launching.JRE_CONTAINER";
     if (prjName.startsWith(prefix)) {
-      return SLUtility.LIBRARY_PROJECT + prjName.substring(prefix.length());
+      return SLUtility.LIBRARY_PROJECT;
     } else
       return prjName;
 

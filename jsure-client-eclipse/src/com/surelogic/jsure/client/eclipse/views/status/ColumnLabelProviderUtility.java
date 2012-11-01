@@ -1,7 +1,5 @@
 package com.surelogic.jsure.client.eclipse.views.status;
 
-import java.util.EnumSet;
-
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
@@ -13,13 +11,10 @@ import org.eclipse.swt.widgets.Display;
 import com.surelogic.Utility;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
-import com.surelogic.common.ref.DeclUtil;
-import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
-import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 @Utility
 public final class ColumnLabelProviderUtility {
@@ -127,19 +122,7 @@ public final class ColumnLabelProviderUtility {
     }
   };
 
-  static abstract class VerificationStatusCellLabelProvider extends CellLabelProvider {
-    boolean isNotEmptyOrNull(String value) {
-      if (value == null)
-        return false;
-      if ("".equals(value))
-        return false;
-      return true;
-    }
-  }
-
-  static final CellLabelProvider PROJECT = new VerificationStatusCellLabelProvider() {
-
-    private final Image f_projectImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_PROJECT, EnumSet.noneOf(Flag.class));
+  static final CellLabelProvider PROJECT = new CellLabelProvider() {
 
     @Override
     public void update(ViewerCell cell) {
@@ -147,21 +130,15 @@ public final class ColumnLabelProviderUtility {
 
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
-        final String project = element.getProjectNameOrNull();
-        if (isNotEmptyOrNull(project)) {
-          if (project.startsWith(SLUtility.LIBRARY_PROJECT))
-            cell.setText(SLUtility.LIBRARY_PROJECT);
-          else
-            cell.setText(project);
-          cell.setImage(f_projectImage);
-        }
+        cell.setText(element.getProjectNameOrNull());
+        cell.setImage(element.getProjectImageOrNull());
       }
     }
   };
 
-  static final CellLabelProvider PACKAGE = new VerificationStatusCellLabelProvider() {
+  static final CellLabelProvider PACKAGE = new CellLabelProvider() {
 
-    private final Image f_packageImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_PACKAGE, EnumSet.noneOf(Flag.class));
+    private final Image f_packageImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_PACKAGE);
 
     @Override
     public void update(ViewerCell cell) {
@@ -170,7 +147,7 @@ public final class ColumnLabelProviderUtility {
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         final String pkg = element.getPackageNameOrNull();
-        if (isNotEmptyOrNull(pkg)) {
+        if (SLUtility.isNotEmptyOrNull(pkg)) {
           cell.setText(pkg);
           cell.setImage(f_packageImage);
         }
@@ -178,14 +155,7 @@ public final class ColumnLabelProviderUtility {
     }
   };
 
-  static final CellLabelProvider TYPE = new VerificationStatusCellLabelProvider() {
-
-    private final Image f_classImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_CLASS, EnumSet.noneOf(Flag.class));
-    private final Image f_interfaceImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_INTERFACE,
-        EnumSet.noneOf(Flag.class));
-    private final Image f_enumImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ENUM, EnumSet.noneOf(Flag.class));
-    private final Image f_annotationImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION,
-        EnumSet.noneOf(Flag.class));
+  static final CellLabelProvider TYPE = new CellLabelProvider() {
 
     @Override
     public void update(ViewerCell cell) {
@@ -194,29 +164,9 @@ public final class ColumnLabelProviderUtility {
       if (cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();
         final String typeName = element.getSimpleTypeNameOrNull();
-        if (isNotEmptyOrNull(typeName)) {
+        if (SLUtility.isNotEmptyOrNull(typeName)) {
           cell.setText(typeName);
-          IJavaRef ref = element.getDrop().getJavaRef();
-          if (ref == null)
-            cell.setImage(f_classImage);
-          else {
-            switch (DeclUtil.getTypeKind(ref.getDeclaration())) {
-            case ANNOTATION:
-              cell.setImage(f_annotationImage);
-              break;
-            case ENUM:
-              cell.setImage(f_enumImage);
-              break;
-            case CLASS:
-              cell.setImage(f_classImage);
-              break;
-            case INTERFACE:
-              cell.setImage(f_interfaceImage);
-              break;
-            default:
-              cell.setImage(f_classImage);
-            }
-          }
+          cell.setImage(element.getSimpleTypeImageOrNull());
         }
       }
     }
