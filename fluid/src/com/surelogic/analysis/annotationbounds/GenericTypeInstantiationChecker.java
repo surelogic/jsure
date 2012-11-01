@@ -442,7 +442,11 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
         } else {
           for (final Map.Entry<AnnotationBounds, Set<ProofDrop>> aa : actualAnnos.entrySet()) {
             final AnnotationBounds key = aa.getKey();
-            final boolean isConsistent = bounds.contains(key);
+            boolean isConsistent = bounds.contains(key);
+            // handle the fact that @Immutable can be given to @ThreadSafe
+            if (!isConsistent && key == AnnotationBounds.IMMUTABLE) {
+              isConsistent = bounds.contains(AnnotationBounds.THREADSAFE);
+            }
             final ResultDrop result = ResultsBuilder.createResult(
                 isConsistent, actualFolder, link,
                 ACTUAL_ANNOTATED, key.toString());
