@@ -191,6 +191,10 @@ abstract class Element {
     return null;
   }
 
+  Image getSimpleTypeImageOrNull() {
+    return null;
+  }
+
   int getLineNumber() {
     return -1;
   }

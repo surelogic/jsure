@@ -13,9 +13,6 @@ import org.eclipse.swt.widgets.Display;
 import com.surelogic.Utility;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
-import com.surelogic.common.ref.DeclUtil;
-import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
@@ -136,12 +133,8 @@ public final class ColumnLabelProviderUtility {
 
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
-        final String project = element.getProjectNameOrNull();
-        cell.setText(project);
-        Image image = element.getProjectImageOrNull();
-        if (image != null)
-          image = SLImages.resizeImage(image, JSureDecoratedImageUtility.SIZE);
-        cell.setImage(image);
+        cell.setText(element.getProjectNameOrNull());
+        cell.setImage(element.getProjectImageOrNull());
       }
     }
   };
@@ -167,13 +160,6 @@ public final class ColumnLabelProviderUtility {
 
   static final CellLabelProvider TYPE = new CellLabelProvider() {
 
-    private final Image f_classImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_CLASS, EnumSet.noneOf(Flag.class));
-    private final Image f_interfaceImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_INTERFACE,
-        EnumSet.noneOf(Flag.class));
-    private final Image f_enumImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ENUM, EnumSet.noneOf(Flag.class));
-    private final Image f_annotationImage = JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION,
-        EnumSet.noneOf(Flag.class));
-
     @Override
     public void update(ViewerCell cell) {
       highlightRowIfNewOrDiff(cell);
@@ -183,27 +169,7 @@ public final class ColumnLabelProviderUtility {
         final String typeName = element.getSimpleTypeNameOrNull();
         if (SLUtility.isNotEmptyOrNull(typeName)) {
           cell.setText(typeName);
-          IJavaRef ref = element.getDrop().getJavaRef();
-          if (ref == null)
-            cell.setImage(f_classImage);
-          else {
-            switch (DeclUtil.getTypeKind(ref.getDeclaration())) {
-            case ANNOTATION:
-              cell.setImage(f_annotationImage);
-              break;
-            case ENUM:
-              cell.setImage(f_enumImage);
-              break;
-            case CLASS:
-              cell.setImage(f_classImage);
-              break;
-            case INTERFACE:
-              cell.setImage(f_interfaceImage);
-              break;
-            default:
-              cell.setImage(f_classImage);
-            }
-          }
+          cell.setImage(element.getSimpleTypeImageOrNull());
         }
       }
     }
