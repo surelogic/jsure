@@ -15,12 +15,8 @@ import com.surelogic.aast.promise.AnnotationBoundsNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.ResultsBuilder;
-import com.surelogic.analysis.type.constraints.ContainableAnnotationTester;
-import com.surelogic.analysis.type.constraints.ImmutableAnnotationTester;
-import com.surelogic.analysis.type.constraints.ReferenceObjectAnnotationTester;
-import com.surelogic.analysis.type.constraints.ThreadSafeAnnotationTester;
-import com.surelogic.analysis.type.constraints.TypeDeclAnnotationTester;
-import com.surelogic.analysis.type.constraints.ValueObjectAnnotationTester;
+import com.surelogic.analysis.type.constraints.TypeAnnotationTester;
+import com.surelogic.analysis.type.constraints.TypeAnnotations;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.common.Pair;
 import com.surelogic.dropsea.ir.ProofDrop;
@@ -89,9 +85,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       public void testType(final IJavaType type,
           final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
           final IBinder binder) {
-        testType(type, actualAnnos,
-            new ContainableAnnotationTester(binder, foldersExternal, false, false),
-            CONTAINABLE);
+        testType(type, actualAnnos, binder, TypeAnnotations.CONTAINABLE, CONTAINABLE);
       }
       
       @Override
@@ -108,9 +102,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       public void testType(final IJavaType type,
           final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
           final IBinder binder) {
-        testType(type, actualAnnos,
-            new ImmutableAnnotationTester(binder, foldersExternal, false, false),
-            IMMUTABLE);
+        testType(type, actualAnnos, binder, TypeAnnotations.IMMUTABLE, IMMUTABLE);
       }
       
       @Override
@@ -127,9 +119,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       public void testType(final IJavaType type,
           final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
           final IBinder binder) {
-        testType(type, actualAnnos,
-            new ReferenceObjectAnnotationTester(binder, foldersExternal, false),
-            REFERENCE);
+        testType(type, actualAnnos, binder, TypeAnnotations.REFERENCE_OBJECT, REFERENCE);
       }
       
       @Override
@@ -146,9 +136,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       public void testType(final IJavaType type,
           final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
           final IBinder binder) {
-        testType(type, actualAnnos,
-            new ThreadSafeAnnotationTester(binder, foldersExternal, false, false),
-            THREADSAFE);
+        testType(type, actualAnnos, binder, TypeAnnotations.THREAD_SAFE, THREADSAFE);
       }
       
       @Override
@@ -165,9 +153,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       public void testType(final IJavaType type,
           final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
           final IBinder binder) {
-        testType(type, actualAnnos,
-            new ValueObjectAnnotationTester(binder, foldersExternal, false),
-            VALUE);
+        testType(type, actualAnnos, binder, TypeAnnotations.VALUE_OBJECT, VALUE);
       }
       
       @Override
@@ -181,10 +167,13 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
         final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
         final IBinder binder);
     
-    protected static void testType(final IJavaType type,
-        final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
-        final TypeDeclAnnotationTester tester, final AnnotationBounds bound) {
-      if (tester.testType(type)) {
+    protected static void testType(
+        final IJavaType type, final Map<AnnotationBounds,
+        Set<ProofDrop>> actualAnnos, final IBinder binder,
+        final TypeAnnotations typeAnnoToTestFor, final AnnotationBounds bound) {
+      final TypeAnnotationTester tester =
+          new TypeAnnotationTester(typeAnnoToTestFor, binder, foldersExternal);
+      if (tester.testParameterizedTypeActual(type)) {
         actualAnnos.put(bound, tester.getTrusts());
       }
     }

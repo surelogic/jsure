@@ -12,9 +12,8 @@ import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks.GlobalLockModel;
 import com.surelogic.analysis.concurrency.heldlocks.RegionLockRecord;
 import com.surelogic.analysis.regions.IRegion;
-import com.surelogic.analysis.type.constraints.AnnotationBoundsTypeFormalEnv;
-import com.surelogic.analysis.type.constraints.ContainableAnnotationTester;
-import com.surelogic.analysis.type.constraints.ThreadSafeAnnotationTester;
+import com.surelogic.analysis.type.constraints.TypeAnnotationTester;
+import com.surelogic.analysis.type.constraints.TypeAnnotations;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
@@ -209,11 +208,15 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
           TYPE_IS_PRIMITIVE, TYPE_IS_NOT_PRIMITIVE, type.toSourceText());
   
       // Test if the type of the field is thread safe (or immutable)
-      final ThreadSafeAnnotationTester tsTester =
-          new ThreadSafeAnnotationTester(
-              binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
-              ParameterizedTypeAnalysis.getFolders(), true, false);
-      final boolean isTS = tsTester.testType(type);
+      final TypeAnnotationTester tsTester =
+          new TypeAnnotationTester(TypeAnnotations.THREAD_SAFE, binder,
+              ParameterizedTypeAnalysis.getFolders());
+//      final ThreadSafeAnnotationTester tsTester =
+//          new ThreadSafeAnnotationTester(
+//              binder,
+//              ParameterizedTypeAnalysis.getFolders(), true, false);
+//      final boolean isTS = tsTester.testType(type);
+      final boolean isTS = tsTester.testFieldDeclarationType(type);
       final ResultDrop tsResult = ResultsBuilder.createResult(part2folder, fieldTypeNode, isTS,
           TYPE_IS_THREADSAFE, TYPE_IS_NOT_THREADSAFE, type.toSourceText());
       tsResult.addTrusted(tsTester.getTrusts());
@@ -229,11 +232,15 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
         if (Initialization.prototype.includes(init)) {
           final IRNode initExpr = Initialization.getValue(init);
           if (NewExpression.prototype.includes(initExpr)) {
-            final ThreadSafeAnnotationTester tsTester2 =
-                new ThreadSafeAnnotationTester(
-                    binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
-                    ParameterizedTypeAnalysis.getFolders(), true, true);
-            if (tsTester2.testType(binder.getJavaType(initExpr))) {
+            final TypeAnnotationTester tsTester2 =
+                new TypeAnnotationTester(TypeAnnotations.THREAD_SAFE, binder,
+                    ParameterizedTypeAnalysis.getFolders());
+//            final ThreadSafeAnnotationTester tsTester2 =
+//                new ThreadSafeAnnotationTester(
+//                    binder,
+//                    ParameterizedTypeAnalysis.getFolders(), true, true);
+//            if (tsTester2.testType(binder.getJavaType(initExpr))) {
+            if (tsTester2.testFinalObjectType(binder.getJavaType(initExpr))) {
               proposeThreadSafe = false;
               final ResultDrop result =
                   ResultsBuilder.createResult(true, part2folder, initExpr, THREADSAFE_IMPL);
@@ -251,11 +258,15 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
         
       final ResultFolderDrop containableFolder = ResultsBuilder.createAndFolder(
           part2folder, fieldDecl, OBJECT_IS_CONTAINED, OBJECT_IS_NOT_CONTAINED);
-      final ContainableAnnotationTester cTester =
-          new ContainableAnnotationTester(
-              binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
-              ParameterizedTypeAnalysis.getFolders(), true, false);
-      final boolean isContainable = cTester.testType(type);
+      final TypeAnnotationTester cTester =
+          new TypeAnnotationTester(TypeAnnotations.CONTAINABLE, binder,
+              ParameterizedTypeAnalysis.getFolders());
+//      final ContainableAnnotationTester cTester =
+//          new ContainableAnnotationTester(
+//              binder,
+//              ParameterizedTypeAnalysis.getFolders(), true, false);
+//      final boolean isContainable = cTester.testType(type);
+      final boolean isContainable = cTester.testFieldDeclarationType(type);
       final ResultDrop cResult = ResultsBuilder.createResult(
           containableFolder, fieldTypeNode, isContainable,
           TYPE_IS_CONTAINABLE, TYPE_IS_NOT_CONTAINABLE, type.toSourceText());
