@@ -61,7 +61,7 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
 
     final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer();
     for (IPromiseDrop pd : scan.getPromiseDrops()) {
-      ElementJavaDecl ejd = tree.getParentOf(pd);
+      final ElementJavaDecl ejd = tree.getParentOf(pd, false);
       // TODO
     }
     f_root = tree.getRootElements();

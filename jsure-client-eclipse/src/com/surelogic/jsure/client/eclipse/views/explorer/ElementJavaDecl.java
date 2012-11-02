@@ -25,15 +25,34 @@ public final class ElementJavaDecl extends ElementWithChildren {
 
   static final class Folderizer {
 
+    @NonNull
     private final List<ElementProject> f_projects = new ArrayList<ElementProject>();
 
+    /**
+     * Gets the set of root elements constructed by this, so far.
+     * 
+     * @return a set of root elements.
+     */
     @NonNull
     ElementProject[] getRootElements() {
       return f_projects.toArray(new ElementProject[f_projects.size()]);
     }
 
+    /**
+     * Gets a parent element for a drop.
+     * 
+     * @param drop
+     *          the drop to get a parent element representing its enclosing Java
+     *          declaration.
+     * @param grayscale
+     *          {@code true} if non-existing Java elements should be grayscale
+     *          rather than color. Use this if the passed drop is only in the
+     *          old scan.
+     * @return a parent element representing the enclosing Java declaration for
+     *         the passed drop.
+     */
     @Nullable
-    ElementJavaDecl getParentOf(final IDrop drop) {
+    ElementJavaDecl getParentOf(final IDrop drop, final boolean grayscale) {
       if (drop == null)
         return null;
       final IJavaRef javaRef = drop.getJavaRef();
@@ -49,120 +68,121 @@ public final class ElementJavaDecl extends ElementWithChildren {
         }
       }
       if (project == null) { // need to create
-        project = new ElementProject(projectName);
+        project = new ElementProject(projectName, grayscale);
         f_projects.add(project);
       }
-      final MatchFolder matcher = new MatchFolder(project, javaRef);
+
+      final class MatchFolder extends DeclVisitor {
+
+        MatchFolder(ElementProject project) {
+          f_at = project;
+        }
+
+        private ElementWithChildren f_at;
+
+        @NonNull
+        ElementJavaDecl getResult() {
+          if (f_at instanceof ElementJavaDecl)
+            return (ElementJavaDecl) f_at;
+          else
+            throw new IllegalStateException(I18N.err(267, javaRef, f_at));
+        }
+
+        private void visitNodeHelper(IDecl node) {
+          for (Element element : f_at.getChildrenAsListReference()) {
+            if (element instanceof ElementJavaDecl) {
+              final ElementJavaDecl ejd = (ElementJavaDecl) element;
+              if (ejd.getDeclaration().equals(node)) {
+                f_at = ejd;
+                return; // found
+              }
+            }
+          }
+          // need to create
+          final ElementJavaDecl element = new ElementJavaDecl(f_at, node, grayscale);
+          f_at = element;
+          return;
+        }
+
+        @Override
+        public void visitPackage(IDeclPackage node) {
+          visitNodeHelper(node);
+        }
+
+        @Override
+        public boolean visitClass(IDeclType node) {
+          visitNodeHelper(node);
+          return false;
+        }
+
+        @Override
+        public boolean visitInterface(IDeclType node) {
+          visitNodeHelper(node);
+          return false;
+        }
+
+        @Override
+        public void visitAnnotation(IDeclType node) {
+          visitNodeHelper(node);
+        }
+
+        @Override
+        public void visitEnum(IDeclType node) {
+          visitNodeHelper(node);
+        }
+
+        @Override
+        public void visitField(IDeclField node) {
+          visitNodeHelper(node);
+        }
+
+        @Override
+        public void visitInitializer(IDecl node) {
+          visitNodeHelper(node);
+        }
+
+        @Override
+        public boolean visitMethod(IDeclFunction node) {
+          visitNodeHelper(node);
+          return false;
+        }
+
+        @Override
+        public boolean visitConstructor(IDeclFunction node) {
+          visitNodeHelper(node);
+          return false;
+        }
+
+        @Override
+        public void visitParameter(IDeclParameter node, boolean partOfDecl) {
+          if (partOfDecl)
+            visitNodeHelper(node);
+        }
+
+        @Override
+        public void visitTypeParameter(IDeclTypeParameter node, boolean partOfDecl) {
+          if (partOfDecl)
+            visitNodeHelper(node);
+        }
+      }
+
+      final MatchFolder matcher = new MatchFolder(project);
       decl.acceptRootToThis(matcher);
       return matcher.getResult();
     }
-
-    final class MatchFolder extends DeclVisitor {
-
-      MatchFolder(ElementProject project, IJavaRef javaRef) {
-        f_at = project;
-        f_javaRefForReportingOnly = javaRef;
-      }
-
-      private final IJavaRef f_javaRefForReportingOnly;
-      private ElementWithChildren f_at;
-
-      @NonNull
-      ElementJavaDecl getResult() {
-        if (f_at instanceof ElementJavaDecl)
-          return (ElementJavaDecl) f_at;
-        else
-          throw new IllegalStateException(I18N.err(267, f_javaRefForReportingOnly, f_at));
-      }
-
-      private void visitNodeHelper(IDecl node) {
-        for (Element element : f_at.getChildrenAsListReference()) {
-          if (element instanceof ElementJavaDecl) {
-            final ElementJavaDecl ejd = (ElementJavaDecl) element;
-            if (ejd.getDeclaration().equals(node)) {
-              f_at = ejd;
-              return; // found
-            }
-          }
-        }
-        // need to create
-        final ElementJavaDecl element = new ElementJavaDecl(f_at, node);
-        f_at = element;
-        return;
-      }
-
-      @Override
-      public void visitPackage(IDeclPackage node) {
-        visitNodeHelper(node);
-      }
-
-      @Override
-      public boolean visitClass(IDeclType node) {
-        visitNodeHelper(node);
-        return false;
-      }
-
-      @Override
-      public boolean visitInterface(IDeclType node) {
-        visitNodeHelper(node);
-        return false;
-      }
-
-      @Override
-      public void visitAnnotation(IDeclType node) {
-        visitNodeHelper(node);
-      }
-
-      @Override
-      public void visitEnum(IDeclType node) {
-        visitNodeHelper(node);
-      }
-
-      @Override
-      public void visitField(IDeclField node) {
-        visitNodeHelper(node);
-      }
-
-      @Override
-      public void visitInitializer(IDecl node) {
-        visitNodeHelper(node);
-      }
-
-      @Override
-      public boolean visitMethod(IDeclFunction node) {
-        visitNodeHelper(node);
-        return false;
-      }
-
-      @Override
-      public boolean visitConstructor(IDeclFunction node) {
-        visitNodeHelper(node);
-        return false;
-      }
-
-      @Override
-      public void visitParameter(IDeclParameter node, boolean partOfDecl) {
-        if (partOfDecl)
-          visitNodeHelper(node);
-      }
-
-      @Override
-      public void visitTypeParameter(IDeclTypeParameter node, boolean partOfDecl) {
-        if (partOfDecl)
-          visitNodeHelper(node);
-      }
-    }
   }
 
-  protected ElementJavaDecl(Element parent, IDecl javaDecl) {
+  protected ElementJavaDecl(Element parent, IDecl javaDecl, boolean grayscale) {
     super(parent);
     f_javaDecl = javaDecl;
     if (parent != null)
       parent.addChild(this);
+    f_grayscale = grayscale;
   }
 
   @NonNull
   private final IDecl f_javaDecl;
+  private final boolean f_grayscale;
 
   @NonNull
   public IDecl getDeclaration() {
@@ -177,6 +197,10 @@ public final class ElementJavaDecl extends ElementWithChildren {
   @Override
   @Nullable
   Image getElementImage() {
-    return SLImages.getImageFor(f_javaDecl);
+    final Image baseImage = SLImages.getImageFor(f_javaDecl);
+    if (f_grayscale)
+      return SLImages.getGrayscaleImage(baseImage);
+    else
+      return baseImage;
   }
 }
