@@ -227,6 +227,7 @@ public class DeclFactory {
       } else {
         c.setVisibility(IDecl.Visibility.ANONYMOUS);
         c.setAnonymousDeclPosition(computePositionWithinEnclosingDecl(decl));
+        c.setTypeOfAnonymousDecl(computeTypeRef(AnonClassExpression.getType(decl)));
       }
       return c;
     case ENUM:
