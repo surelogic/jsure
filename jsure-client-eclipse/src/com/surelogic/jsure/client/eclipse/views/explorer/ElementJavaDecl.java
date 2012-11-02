@@ -21,7 +21,7 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
 
-public final class ElementJavaDecl extends ElementWithChildren {
+final class ElementJavaDecl extends ElementWithChildren {
 
   static final class Folderizer {
 

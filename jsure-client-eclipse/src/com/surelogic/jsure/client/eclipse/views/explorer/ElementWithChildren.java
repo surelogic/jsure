@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.surelogic.NonNull;
 
-public abstract class ElementWithChildren extends Element {
+abstract class ElementWithChildren extends Element {
 
   protected ElementWithChildren(Element parent) {
     super(parent);
