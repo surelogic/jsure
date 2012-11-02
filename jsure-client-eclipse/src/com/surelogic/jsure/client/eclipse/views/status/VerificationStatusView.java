@@ -81,6 +81,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   private TreeViewerColumn f_showDiffTableColumn = null;
   private boolean f_showHints;
   private boolean f_highlightDifferences;
+
   private final ViewerSorter f_alphaSorter = new ViewerSorter() {
 
     @Override
@@ -91,6 +92,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       return super.compare(viewer, e1, e2);
     }
   };
+
   private final ViewerSorter f_javaSorter = new ViewerSorter() {
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
@@ -123,16 +125,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
     f_treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
     f_treeViewer.setContentProvider(f_contentProvider);
-    f_treeViewer.setSorter(new ViewerSorter() {
-
-      @Override
-      public int compare(Viewer viewer, Object e1, Object e2) {
-        if (e1 instanceof Element && e2 instanceof Element) {
-          return Element.JAVA.compare((Element) e1, (Element) e2);
-        }
-        return super.compare(viewer, e1, e2);
-      }
-    });
 
     f_treeViewer.getTree().setHeaderVisible(true);
     f_treeViewer.getTree().setLinesVisible(true);
@@ -395,18 +387,18 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_actionJavaSort.setToolTipText("Sort contents by Java location");
     setHowViewIsSorted(EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_ALPHA_SORT));
 
+    f_actionHighlightDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG));
+    f_actionHighlightDifferences.setText("Highlight Differences");
+    f_actionHighlightDifferences.setToolTipText("Highlight differences from the last scan");
+    f_highlightDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_HIGHLIGHT_DIFFERENCES);
+    f_actionHighlightDifferences.setChecked(f_highlightDifferences);
+    f_contentProvider.setHighlightDifferences(f_highlightDifferences);
+
     f_actionShowHints.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
     f_actionShowHints.setText("Show Information/Warning Hints");
     f_actionShowHints.setToolTipText("Show information and warning hints about the code");
     f_showHints = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_HINTS);
     f_actionShowHints.setChecked(f_showHints);
-
-    f_actionHighlightDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG));
-    f_actionHighlightDifferences.setText("Highlight differences from the last scan");
-    f_actionHighlightDifferences.setToolTipText(f_actionHighlightDifferences.getText());
-    f_highlightDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_HIGHLIGHT_DIFFERENCES);
-    f_actionHighlightDifferences.setChecked(f_highlightDifferences);
-    f_contentProvider.setHighlightDifferences(f_highlightDifferences);
 
     f_actionExpand.setText("Expand");
     f_actionExpand.setToolTipText("Expand the current selection or all if none");

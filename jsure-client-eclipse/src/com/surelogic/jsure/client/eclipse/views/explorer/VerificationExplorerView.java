@@ -9,26 +9,37 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
+import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.NonNull;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -49,6 +60,32 @@ import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public final class VerificationExplorerView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener {
 
+  private static final String VIEW_STATE = "VerificationExplorerView_TreeViewerUIState";
+
+  private final File f_viewStatePersistenceFile;
+
+  private PageBook f_viewerbook = null;
+  private Label f_noResultsToShowLabel = null;
+  private TreeViewer f_treeViewer;
+  @NonNull
+  private final VerificationExplorerViewContentProvider f_contentProvider = new VerificationExplorerViewContentProvider();
+  private TreeViewerColumn f_showDiffTableColumn = null;
+  private boolean f_showHints;
+  private boolean f_highlightDifferences;
+  private boolean f_showOnlyDifferences;
+  private boolean f_showOnlyInOldDifferences;
+
+  private final ViewerSorter f_alphaSorter = new ViewerSorter() {
+
+    @Override
+    public int compare(Viewer viewer, Object e1, Object e2) {
+      if (e1 instanceof Element && e2 instanceof Element) {
+        return Element.ALPHA.compare((Element) e1, (Element) e2);
+      }
+      return super.compare(viewer, e1, e2);
+    }
+  };
+
   public VerificationExplorerView() {
     File viewState = null;
     try {
@@ -64,19 +101,6 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_viewStatePersistenceFile = viewState;
   }
 
-  private static final String VIEW_STATE = "VerificationExplorerView_TreeViewerUIState";
-
-  private final File f_viewStatePersistenceFile;
-
-  private PageBook f_viewerbook = null;
-  private Label f_noResultsToShowLabel = null;
-  private TreeViewer f_treeViewer;
-  @NonNull
-  private final VerificationExplorerViewContentProvider f_contentProvider = new VerificationExplorerViewContentProvider();
-  private TreeViewerColumn f_showDiffTableColumn = null;
-  private boolean f_showHints;
-  private boolean f_highlightDifferences;
-
   @Override
   public void createPartControl(Composite parent) {
     f_viewerbook = new PageBook(parent, SWT.NONE);
@@ -84,8 +108,9 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
     f_treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
     f_treeViewer.setContentProvider(f_contentProvider);
+    f_treeViewer.setSorter(f_alphaSorter);
     f_treeViewer.getTree().setHeaderVisible(true);
-    f_treeViewer.getTree().setLinesVisible(true);
+    // f_treeViewer.getTree().setLinesVisible(true);
 
     final TreeViewerColumn column1 = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     column1.setLabelProvider(ColumnLabelProviderUtility.TREE);
@@ -120,6 +145,42 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   }
 
+  private final Action f_actionExpand = new Action() {
+    @Override
+    public void run() {
+      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+      if (!s.isEmpty()) {
+        for (Object element : s.toList()) {
+          if (element != null) {
+            f_treeViewer.expandToLevel(element, 5);
+          } else {
+            f_treeViewer.expandToLevel(5);
+          }
+        }
+      } else {
+        f_treeViewer.expandToLevel(5);
+      }
+    }
+  };
+
+  private final Action f_actionCollapse = new Action() {
+    @Override
+    public void run() {
+      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+      if (!s.isEmpty()) {
+        for (Object element : s.toList()) {
+          if (element != null) {
+            f_treeViewer.collapseToLevel(element, 1);
+          } else {
+            f_treeViewer.collapseAll();
+          }
+        }
+      } else {
+        f_treeViewer.collapseAll();
+      }
+    }
+  };
+
   private final Action f_actionCollapseAll = new Action() {
     @Override
     public void run() {
@@ -153,8 +214,37 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       final boolean buttonChecked = f_actionHighlightDifferences.isChecked();
       if (f_highlightDifferences != buttonChecked) {
         f_highlightDifferences = buttonChecked;
-        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_HIGHLIGHT_DIFFERENCES, f_highlightDifferences);
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_HIGHLIGHT_DIFFERENCES, f_highlightDifferences);
         f_contentProvider.setHighlightDifferences(f_highlightDifferences);
+        f_treeViewer.refresh();
+      }
+    }
+  };
+
+  private final Action f_actionShowOnlyDifferences = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      final boolean buttonChecked = f_actionShowOnlyDifferences.isChecked();
+      if (f_showOnlyDifferences != buttonChecked) {
+        f_showOnlyDifferences = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_DIFFERENCES, f_showOnlyDifferences);
+        // TODO
+        // f_contentProvider.setHighlightDifferences(f_showOnlyDifferences);
+        f_treeViewer.refresh();
+      }
+    }
+  };
+
+  private final Action f_actionShowOnlyInOldDifferences = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      final boolean buttonChecked = f_actionShowOnlyInOldDifferences.isChecked();
+      if (f_showOnlyInOldDifferences != buttonChecked) {
+        f_showOnlyInOldDifferences = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_IN_OLD_DIFFERENCES,
+            f_showOnlyInOldDifferences);
+        // TODO
+        // f_contentProvider.setHighlightDifferences(f_showOnlyDifferences);
         f_treeViewer.refresh();
       }
     }
@@ -166,8 +256,20 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       final boolean buttonChecked = f_actionShowHints.isChecked();
       if (f_showHints != buttonChecked) {
         f_showHints = buttonChecked;
-        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_HINTS, f_showHints);
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_HINTS, f_showHints);
         currentScanChanged(null);
+      }
+    }
+  };
+
+  private final Action f_actionCopy = new Action() {
+    @Override
+    public void run() {
+      final Clipboard clipboard = new Clipboard(getSite().getShell().getDisplay());
+      try {
+        clipboard.setContents(new Object[] { getSelectedText() }, new Transfer[] { TextTransfer.getInstance() });
+      } finally {
+        clipboard.dispose();
       }
     }
   };
@@ -178,6 +280,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
         final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
         if (!s.isEmpty()) {
           final Object first = s.getFirstElement();
+          // TODO
           // if (first instanceof ElementDrop) {
           // /*
           // * Try to open an editor at the point this item references in the
@@ -207,19 +310,70 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_actionProblemsIndicator.setEnabled(false);
 
     f_actionHighlightDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG));
-    f_actionHighlightDifferences.setText("Highlight differences from the last scan");
-    f_actionHighlightDifferences.setToolTipText(f_actionHighlightDifferences.getText());
+    f_actionHighlightDifferences.setText("Highlight Differences");
+    f_actionHighlightDifferences.setToolTipText("Highlight differences from the last scan");
     f_highlightDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_HIGHLIGHT_DIFFERENCES);
     f_actionHighlightDifferences.setChecked(f_highlightDifferences);
     f_contentProvider.setHighlightDifferences(f_highlightDifferences);
+
+    f_actionShowOnlyDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_UNKNOWN));
+    f_actionShowOnlyDifferences.setText("Show Only Differences");
+    f_actionShowOnlyDifferences.setToolTipText("Show only differences from the last scan");
+    f_showOnlyDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_DIFFERENCES);
+    f_actionShowOnlyDifferences.setChecked(f_showOnlyDifferences);
+
+    f_actionShowOnlyInOldDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_UNKNOWN));
+    f_actionShowOnlyInOldDifferences.setText("Show Obsolete Results");
+    f_actionShowOnlyInOldDifferences.setToolTipText("Show obsolete results from the last scan");
+    f_showOnlyInOldDifferences = EclipseUtility
+        .getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_IN_OLD_DIFFERENCES);
+    f_actionShowOnlyInOldDifferences.setChecked(f_showOnlyInOldDifferences);
+
+    f_actionShowHints.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
+    f_actionShowHints.setText("Show Information/Warning Hints");
+    f_actionShowHints.setToolTipText("Show information and warning hints about the code");
+    f_showHints = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_HINTS);
+    f_actionShowHints.setChecked(f_showHints);
+
+    f_actionExpand.setText("Expand");
+    f_actionExpand.setToolTipText("Expand the current selection or all if none");
+    f_actionExpand.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
+
+    f_actionCollapse.setText("Collapse");
+    f_actionCollapse.setToolTipText("Collapse the current selection or all if none");
+    f_actionCollapse.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
+
+    f_actionCopy.setText("Copy");
+    f_actionCopy.setToolTipText("Copy the selected verification result to the clipboard");
+
   }
 
   private void hookContextMenu() {
-    // TODO Auto-generated method stub
+    MenuManager menuMgr = new MenuManager("#PopupMenu");
+    menuMgr.setRemoveAllWhenShown(true);
+    menuMgr.addMenuListener(new IMenuListener() {
+      public void menuAboutToShow(final IMenuManager manager) {
+        final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+        if (!s.isEmpty()) {
+          manager.add(f_actionExpand);
+          manager.add(f_actionCollapse);
+          manager.add(new Separator());
+          manager.add(f_actionCopy);
+        }
+        manager.add(new Separator());
+        // Other plug-ins can contribute there actions here
+        manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+      }
+    });
+    Menu menu = menuMgr.createContextMenu(f_treeViewer.getControl());
+    f_treeViewer.getControl().setMenu(menu);
+    getSite().registerContextMenu(menuMgr, f_treeViewer);
   }
 
   private void contributeToActionBars() {
     final IActionBars bars = getViewSite().getActionBars();
+
+    bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_actionCopy);
 
     final IMenuManager pulldown = bars.getMenuManager();
     pulldown.add(f_actionCollapseAll);
@@ -227,6 +381,8 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     pulldown.add(f_actionShowQuickRef);
     pulldown.add(new Separator());
     pulldown.add(f_actionHighlightDifferences);
+    pulldown.add(f_actionShowOnlyDifferences);
+    pulldown.add(f_actionShowOnlyInOldDifferences);
     pulldown.add(f_actionShowHints);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
@@ -237,6 +393,8 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     toolbar.add(f_actionProblemsIndicator);
     toolbar.add(new Separator());
     toolbar.add(f_actionHighlightDifferences);
+    toolbar.add(f_actionShowOnlyDifferences);
+    toolbar.add(f_actionShowOnlyInOldDifferences);
     toolbar.add(f_actionShowHints);
   }
 
@@ -244,6 +402,11 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
     final JSureScanInfo oldScan = JSureDataDirHub.getInstance().getLastMatchingScanInfo();
     if (scan != null) {
+      if (f_showDiffTableColumn != null) {
+        final String label = oldScan == null ? "No Prior Scan" : "Differences from scan of " + oldScan.getProjects().getLabel()
+            + " at " + SLUtility.toStringHMS(oldScan.getProjects().getDate());
+        f_showDiffTableColumn.getColumn().setText(label);
+      }
       final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
       f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, showHints);
       final int modelProblemCount = getModelProblemCount(scan);
@@ -281,6 +444,23 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     } else {
       f_viewerbook.showPage(f_noResultsToShowLabel);
     }
+  }
+
+  /**
+   * Gets the text selected&mdash;used by the {@link #f_actionCopy} action.
+   */
+  private String getSelectedText() {
+    final IStructuredSelection selection = (IStructuredSelection) f_treeViewer.getSelection();
+    final StringBuilder sb = new StringBuilder();
+    for (final Object elt : selection.toList()) {
+      if (elt instanceof Element) {
+        if (sb.length() > 0) {
+          sb.append('\n');
+        }
+        sb.append(((Element) elt).getLabel());
+      }
+    }
+    return sb.toString();
   }
 
   @Override
