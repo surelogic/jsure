@@ -68,6 +68,8 @@ abstract class Element {
     f_parent = parent;
   }
 
+  abstract void addChild(Element child);
+
   @NonNull
   abstract Element[] getChildren();
 

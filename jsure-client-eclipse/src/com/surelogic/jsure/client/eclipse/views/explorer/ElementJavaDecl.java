@@ -7,6 +7,7 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.DeclVisitor;
 import com.surelogic.common.ref.IDecl;
@@ -20,15 +21,15 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
 
-public final class ElementJavaDecl extends Element {
+public final class ElementJavaDecl extends ElementWithChildren {
 
   static final class Folderizer {
 
-    private final List<ElementJavaDecl> f_packages = new ArrayList<ElementJavaDecl>();
+    private final List<ElementProject> f_projects = new ArrayList<ElementProject>();
 
     @NonNull
-    ElementJavaDecl[] getRootElements() {
-      return f_packages.toArray(new ElementJavaDecl[f_packages.size()]);
+    ElementProject[] getRootElements() {
+      return f_projects.toArray(new ElementProject[f_projects.size()]);
     }
 
     @Nullable
@@ -39,38 +40,43 @@ public final class ElementJavaDecl extends Element {
       if (javaRef == null)
         return null;
       final IDecl decl = javaRef.getDeclaration();
-      final MatchFolder matcher = new MatchFolder();
+      final String projectName = javaRef.getEclipseProjectName();
+      ElementProject project = null;
+      for (ElementProject ep : f_projects) {
+        if (projectName.equals(ep.getLabel())) {
+          project = ep;
+          break; // found
+        }
+      }
+      if (project == null) { // need to create
+        project = new ElementProject(projectName);
+        f_projects.add(project);
+      }
+      final MatchFolder matcher = new MatchFolder(project, javaRef);
       decl.acceptRootToThis(matcher);
       return matcher.getResult();
     }
 
     final class MatchFolder extends DeclVisitor {
 
-      private ElementJavaDecl f_at;
+      MatchFolder(ElementProject project, IJavaRef javaRef) {
+        f_at = project;
+        f_javaRefForReportingOnly = javaRef;
+      }
+
+      private final IJavaRef f_javaRefForReportingOnly;
+      private ElementWithChildren f_at;
 
       @NonNull
       ElementJavaDecl getResult() {
-        if (f_at == null)
-          throw new IllegalStateException("MatchFolder has null result...was it accepted on an IDecl?");
-        return f_at;
-      }
-
-      @Override
-      public void visitPackage(IDeclPackage node) {
-        for (ElementJavaDecl element : f_packages) {
-          if (element.getDeclaration().equals(node)) {
-            f_at = element;
-            return; // found
-          }
-        }
-        // need to create
-        final ElementJavaDecl element = new ElementJavaDecl(null, node);
-        f_packages.add(element);
-        f_at = element;
+        if (f_at instanceof ElementJavaDecl)
+          return (ElementJavaDecl) f_at;
+        else
+          throw new IllegalStateException(I18N.err(267, f_javaRefForReportingOnly, f_at));
       }
 
       private void visitNodeHelper(IDecl node) {
-        for (Element element : f_at.f_children) {
+        for (Element element : f_at.getChildrenAsListReference()) {
           if (element instanceof ElementJavaDecl) {
             final ElementJavaDecl ejd = (ElementJavaDecl) element;
             if (ejd.getDeclaration().equals(node)) {
@@ -83,6 +89,11 @@ public final class ElementJavaDecl extends Element {
         final ElementJavaDecl element = new ElementJavaDecl(f_at, node);
         f_at = element;
         return;
+      }
+
+      @Override
+      public void visitPackage(IDeclPackage node) {
+        visitNodeHelper(node);
       }
 
       @Override
@@ -143,25 +154,11 @@ public final class ElementJavaDecl extends Element {
     }
   }
 
-  protected ElementJavaDecl(ElementJavaDecl parent, IDecl javaDecl) {
+  protected ElementJavaDecl(Element parent, IDecl javaDecl) {
     super(parent);
     f_javaDecl = javaDecl;
     if (parent != null)
       parent.addChild(this);
-  }
-
-  private final ArrayList<Element> f_children = new ArrayList<Element>();
-
-  void addChild(Element child) {
-    if (child == null)
-      return;
-    f_children.add(child);
-  }
-
-  @Override
-  @NonNull
-  Element[] getChildren() {
-    return f_children.toArray(new Element[f_children.size()]);
   }
 
   @NonNull
