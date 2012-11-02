@@ -70,10 +70,11 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
   @NonNull
   private final VerificationExplorerViewContentProvider f_contentProvider = new VerificationExplorerViewContentProvider();
   private TreeViewerColumn f_showDiffTableColumn = null;
-  private boolean f_showHints;
   private boolean f_highlightDifferences;
   private boolean f_showOnlyDifferences;
   private boolean f_showOnlyInOldDifferences;
+  private boolean f_showOnlyIsFromSource;
+  private boolean f_showHints;
 
   private final ViewerSorter f_alphaSorter = new ViewerSorter() {
 
@@ -228,9 +229,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       if (f_showOnlyDifferences != buttonChecked) {
         f_showOnlyDifferences = buttonChecked;
         EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_DIFFERENCES, f_showOnlyDifferences);
-        // TODO
-        // f_contentProvider.setHighlightDifferences(f_showOnlyDifferences);
-        f_treeViewer.refresh();
+        currentScanChanged(null);
       }
     }
   };
@@ -243,9 +242,19 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
         f_showOnlyInOldDifferences = buttonChecked;
         EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_IN_OLD_DIFFERENCES,
             f_showOnlyInOldDifferences);
-        // TODO
-        // f_contentProvider.setHighlightDifferences(f_showOnlyDifferences);
-        f_treeViewer.refresh();
+        currentScanChanged(null);
+      }
+    }
+  };
+
+  private final Action f_actionShowOnlyIsFromSource = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      final boolean buttonChecked = f_actionShowOnlyIsFromSource.isChecked();
+      if (f_showOnlyIsFromSource != buttonChecked) {
+        f_showOnlyIsFromSource = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_IS_FROM_SOURCE, f_showOnlyIsFromSource);
+        currentScanChanged(null);
       }
     }
   };
@@ -329,6 +338,12 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
         .getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_IN_OLD_DIFFERENCES);
     f_actionShowOnlyInOldDifferences.setChecked(f_showOnlyInOldDifferences);
 
+    f_actionShowOnlyIsFromSource.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_COMP_UNIT));
+    f_actionShowOnlyIsFromSource.setText("Show Only Results Derived From Source");
+    f_actionShowOnlyIsFromSource.setToolTipText("Show only results derived from Java source code");
+    f_showOnlyIsFromSource = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_IS_FROM_SOURCE);
+    f_actionShowOnlyIsFromSource.setChecked(f_showOnlyIsFromSource);
+
     f_actionShowHints.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
     f_actionShowHints.setText("Show Information/Warning Hints");
     f_actionShowHints.setToolTipText("Show information and warning hints about the code");
@@ -383,6 +398,8 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     pulldown.add(f_actionHighlightDifferences);
     pulldown.add(f_actionShowOnlyDifferences);
     pulldown.add(f_actionShowOnlyInOldDifferences);
+    pulldown.add(new Separator());
+    pulldown.add(f_actionShowOnlyIsFromSource);
     pulldown.add(f_actionShowHints);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
@@ -395,6 +412,8 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     toolbar.add(f_actionHighlightDifferences);
     toolbar.add(f_actionShowOnlyDifferences);
     toolbar.add(f_actionShowOnlyInOldDifferences);
+    toolbar.add(new Separator());
+    toolbar.add(f_actionShowOnlyIsFromSource);
     toolbar.add(f_actionShowHints);
   }
 
@@ -408,7 +427,8 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
         f_showDiffTableColumn.getColumn().setText(label);
       }
       final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
-      f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, f_showHints);
+      f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, f_showOnlyDifferences, f_showOnlyInOldDifferences,
+          f_showOnlyIsFromSource, f_showHints);
       final int modelProblemCount = getModelProblemCount(scan);
       setModelProblemIndicatorState(modelProblemCount);
       setViewerVisibility(true);

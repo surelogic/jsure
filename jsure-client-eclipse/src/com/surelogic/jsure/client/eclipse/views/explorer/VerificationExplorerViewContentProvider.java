@@ -57,8 +57,10 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
   }
 
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final JSureScanInfo oldScan,
-      @Nullable final ScanDifferences diff, final boolean showHints) {
-
+      @Nullable final ScanDifferences diff, final boolean showOnlyDifferences, final boolean showOnlyInOldDifferences,
+      final boolean showOnlyIsFromSource, final boolean showHints) {
+    Element.f_showHints = showHints;
+    Element.f_diff = diff;
     final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer();
     for (IPromiseDrop pd : scan.getPromiseDrops()) {
       final ElementJavaDecl ejd = tree.getParentOf(pd, false);
