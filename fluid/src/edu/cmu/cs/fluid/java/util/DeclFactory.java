@@ -295,8 +295,8 @@ public class DeclFactory {
     case FIELD:
       FieldBuilder f = new FieldBuilder(name);
       if (d instanceof EnumConstantDeclaration) {
-        f.setIsFinal(true);
-        f.setIsStatic(true);
+    	//f.setIsFinal(true);
+        //f.setIsStatic(true);
         f.setVisibility(IDecl.Visibility.PUBLIC);
         type = VisitUtil.getEnclosingType(decl);
       } else {
