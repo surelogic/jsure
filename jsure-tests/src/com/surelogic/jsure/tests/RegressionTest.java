@@ -35,7 +35,6 @@ import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
-import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.driver.ConsistencyListener;
@@ -533,8 +532,8 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 			start("comparing results");
 			System.out
 					.println("Try to compare these results to the results oracle");
-			if (projectPath != null) {
-				resultsOk = compareResults(results, workspaceFile, projectPath,
+			if (project.exists()) {
+				resultsOk = compareResults(results, workspaceFile, project,
 						projectName, resultsOk);
 				end("Done comparing");
 			}
@@ -602,9 +601,9 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 	}
 
 	private boolean compareResults(final File resultsSnapshot,
-			final File workspaceFile, final String projectPath,
+			final File workspaceFile, final File project,
 			final String projectName, boolean resultsOk) throws Exception {
-		final File xmlLocation = RegressionUtility.findOracle(projectPath);
+		final File xmlLocation = RegressionUtility.findOracle(project);
 		if (!xmlLocation.exists()) {
 			return resultsOk;
 		}	
