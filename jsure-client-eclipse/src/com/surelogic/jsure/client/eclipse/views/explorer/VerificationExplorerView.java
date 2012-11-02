@@ -131,7 +131,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     // start empty until the initial build is done
     setViewerVisibility(false);
 
-    showScanOrEmptyLabel(f_showHints);
+    showScanOrEmptyLabel();
 
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
   }
@@ -316,13 +316,13 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_actionHighlightDifferences.setChecked(f_highlightDifferences);
     f_contentProvider.setHighlightDifferences(f_highlightDifferences);
 
-    f_actionShowOnlyDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_UNKNOWN));
+    f_actionShowOnlyDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG_ONLY));
     f_actionShowOnlyDifferences.setText("Show Only Differences");
     f_actionShowOnlyDifferences.setToolTipText("Show only differences from the last scan");
     f_showOnlyDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_DIFFERENCES);
     f_actionShowOnlyDifferences.setChecked(f_showOnlyDifferences);
 
-    f_actionShowOnlyInOldDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_UNKNOWN));
+    f_actionShowOnlyInOldDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG_OLD_SCAN_ONLY));
     f_actionShowOnlyInOldDifferences.setText("Show Obsolete Results");
     f_actionShowOnlyInOldDifferences.setToolTipText("Show obsolete results from the last scan");
     f_showOnlyInOldDifferences = EclipseUtility
@@ -398,7 +398,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     toolbar.add(f_actionShowHints);
   }
 
-  private void showScanOrEmptyLabel(boolean showHints) {
+  private void showScanOrEmptyLabel() {
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
     final JSureScanInfo oldScan = JSureDataDirHub.getInstance().getLastMatchingScanInfo();
     if (scan != null) {
@@ -408,7 +408,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
         f_showDiffTableColumn.getColumn().setText(label);
       }
       final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
-      f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, showHints);
+      f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, f_showHints);
       final int modelProblemCount = getModelProblemCount(scan);
       setModelProblemIndicatorState(modelProblemCount);
       setViewerVisibility(true);
@@ -469,13 +469,13 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
   }
 
   @Override
-  public void currentScanChanged(JSureScan scan) {
+  public void currentScanChanged(JSureScan doNotUseInThisMethod) {
     final UIJob job = new SLUIJob() {
       @Override
       public IStatus runInUIThread(IProgressMonitor monitor) {
         if (f_treeViewer != null) {
           final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
-          showScanOrEmptyLabel(f_showHints);
+          showScanOrEmptyLabel();
           state.restoreViewState(f_treeViewer);
         }
         return Status.OK_STATUS;
