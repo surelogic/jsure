@@ -218,7 +218,7 @@ public class JSureScan implements Comparable<JSureScan> {
 		return f_sizeInMB;
 	}
 
-	public final Projects getProjects() throws Exception {
+	public synchronized final Projects getProjects() throws Exception {
 		if (f_projectsScanned != null) {
 			return f_projectsScanned;
 		}
