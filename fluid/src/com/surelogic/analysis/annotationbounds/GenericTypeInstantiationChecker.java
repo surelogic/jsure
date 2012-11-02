@@ -258,7 +258,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       ResultFolderDrop folder = folders.get(jTypeOfParameterizedType);
       if (folder == null) {
         final List<Pair<IRNode, Set<AnnotationBounds>>> bounds =
-            getBounds(baseTypeDecl, boundsDrop, containableDrop);
+            getBounds(baseTypeDecl, boundsDrop, containableDrop, true);
         if (bounds != null) {
           folder = checkActualsAgainstBounds(pType, jTypeOfParameterizedType, bounds);
           /* Don't add the folder to the top-level if the only bounds come
@@ -284,8 +284,11 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
   
   private List<Pair<IRNode, Set<AnnotationBounds>>> getBounds(
       final IRNode baseTypeDecl, final AnnotationBoundsPromiseDrop boundsDrop,
-      final ContainablePromiseDrop containableDrop) {
-    if (boundsDrop != null) instantiatedBoundClasses.add(baseTypeDecl);
+      final ContainablePromiseDrop containableDrop,
+      final boolean isForParameterizedUse) {
+    if (boundsDrop != null && isForParameterizedUse) {
+      instantiatedBoundClasses.add(baseTypeDecl);
+    }
     
     final Operator op = JJNode.tree.getOperator(baseTypeDecl);
     if (ClassDeclaration.prototype.includes(op)) {
@@ -478,7 +481,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
           LockRules.getContainableImplementation(cdecl);
       if (boundsDrop != null || cDrop != null) {
         final List<Pair<IRNode, Set<AnnotationBounds>>> boundsPairs =
-            getBounds(cdecl, boundsDrop, cDrop);
+            getBounds(cdecl, boundsDrop, cDrop, false);
         if (boundsPairs != null) {
           // if we have both drops, put on both (shouldn't happen often)
           for (final Pair<IRNode, Set<AnnotationBounds>> pair : boundsPairs) {
