@@ -83,14 +83,14 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 					continue;
 				}
 				final File pFile = p.getLocation().toFile();
-				file = RegressionUtility.findOracle(pFile.getAbsolutePath());					
+				file = RegressionUtility.findOracle(pFile);					
 				if (file != null && file.exists()) {
 					break;
 				}					
 			}
 			if (file != null && !file.exists()) {
 				// Try the directory above the projects
-				file = RegressionUtility.findOracle(file.getParentFile().getParent());		
+				file = RegressionUtility.findOracle(file.getParentFile().getParentFile());		
 			}
 		} else {
 			JSureScanInfo last = JSureDataDirHub.getInstance().getLastMatchingScanInfo();

@@ -9,6 +9,7 @@ import com.surelogic.RegionLock;
 import com.surelogic.ThreadSafe;
 import com.surelogic.Unique;
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.i18n.I18N;
@@ -382,7 +383,13 @@ public final class JSureDataDirHub {
               currentScanInfo = new JSureScanInfo(jsureScan, loader);
               currentScanInfo.getDropInfo(); // force loading
               
-              final JSureScan last = f_dataDir.findLastMatchingScan(currentScanInfo.getJSureRun());
+              JSureScan last = null;
+              if (XUtil.useExperimental()) {
+            	  last = OracleUtility.findOracle(currentScanInfo.getJSureRun());            	  
+              }
+              if (last == null) {
+            	  last = f_dataDir.findLastMatchingScan(currentScanInfo.getJSureRun());
+              }
               monitor.worked(1);
               if (monitor.isCanceled()) {
             	loader.clear();
