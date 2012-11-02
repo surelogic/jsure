@@ -19,8 +19,6 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.irfree.*;
-import com.surelogic.javac.persistence.JSureDataDir;
-import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
@@ -95,10 +93,9 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
 				file = RegressionUtility.findOracle(file.getParentFile().getParent());		
 			}
 		} else {
-			JSureDataDir data = JSureDataDirHub.getInstance().getJSureDataDir();
-			JSureScan last = data.findLastMatchingScan(scan.getJSureRun());
+			JSureScanInfo last = JSureDataDirHub.getInstance().getLastMatchingScanInfo();
 			if (last != null) {
-				return last.getResultsFile();
+				return last.getJSureRun().getResultsFile();
 			}
 		}
 		return file;
