@@ -21,108 +21,104 @@ import com.surelogic.jsure.core.scans.JSureDataDirHub;
  * 
  * @author Edwin
  */
-public abstract class AbstractJSureScanView extends AbstractSLView implements
-		JSureDataDirHub.CurrentScanChangeListener {
-	protected static final String NO_RESULTS = I18N
-			.msg("jsure.eclipse.view.no.scan.msg");
+public abstract class AbstractJSureScanView extends AbstractSLView implements JSureDataDirHub.CurrentScanChangeListener {
 
-	protected PageBook f_viewerbook = null;
+  protected static final String NO_RESULTS = I18N.msg("jsure.eclipse.view.no.scan.msg");
 
-	protected Label f_noResultsToShowLabel = null;
+  protected PageBook f_viewerbook = null;
 
-	protected AbstractJSureScanView() {
-		JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
-	}
+  protected Label f_noResultsToShowLabel = null;
 
-	@Override
-	public void dispose() {
-		JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
-		super.dispose();
-	}
+  protected AbstractJSureScanView() {
+    JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
+  }
 
-	@Override
-	public final void createPartControl(Composite parent) {
-		f_viewerbook = new PageBook(parent, SWT.NONE);
-		f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
-		f_noResultsToShowLabel.setText(NO_RESULTS);
+  @Override
+  public void dispose() {
+    JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
+    super.dispose();
+  }
 
-		super.createPartControl(f_viewerbook);
-		updateViewState();
-	}
+  @Override
+  public final void createPartControl(Composite parent) {
+    f_viewerbook = new PageBook(parent, SWT.NONE);
+    f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
+    f_noResultsToShowLabel.setText(NO_RESULTS);
 
-	/**
-	 * Enables various functionality if non-null
-	 */
-	protected StructuredViewer getViewer() {
-		return null;
-	}
+    super.createPartControl(f_viewerbook);
+    updateViewState();
+  }
 
-	@Override
-	public void setFocus() {
-		f_viewerbook.setFocus();
-	}
+  /**
+   * Enables various functionality if non-null
+   */
+  protected StructuredViewer getViewer() {
+    return null;
+  }
 
-	@Override
-	public void currentScanChanged(JSureScan scan) {
-		updateViewState();
-	}
+  @Override
+  public void setFocus() {
+    f_viewerbook.setFocus();
+  }
 
-	/**
-	 * Can be used to lookup a view implementation and notify it that changes
-	 * occurred. Does nothing if the view is not open. Logs a problem if the
-	 * types come out wrong from the Eclipse lookup of the view.
-	 * 
-	 * @param clazz
-	 *            the type of the view implementation.
-	 */
-	public static void notifyScanViewOfChangeIfOpened(
-			Class<? extends AbstractJSureScanView> clazz) {
-		final IViewPart view = EclipseUIUtility.getView(clazz.getName());
-		if (view != null) { // view opened?
-			if (view instanceof AbstractJSureScanView) {
-				final AbstractJSureScanView scanView = (AbstractJSureScanView) view;
-				scanView.currentScanChanged(JSureDataDirHub.getInstance()
-						.getCurrentScan());
-			} else {
-				SLLogger.getLogger().log(Level.SEVERE,
-						I18N.err(236, clazz.getName(), view));
-			}
-		}
-	}
+  @Override
+  public void currentScanChanged(JSureScan scan) {
+    updateViewState();
+  }
 
-	/**
-	 * @return The label to be shown in the title
-	 */
-	protected abstract String updateViewer();
+  /**
+   * Can be used to lookup a view implementation and notify it that changes
+   * occurred. Does nothing if the view is not open. Logs a problem if the types
+   * come out wrong from the Eclipse lookup of the view.
+   * 
+   * @param clazz
+   *          the type of the view implementation.
+   */
+  public static void notifyScanViewOfChangeIfOpened(Class<? extends AbstractJSureScanView> clazz) {
+    final IViewPart view = EclipseUIUtility.getView(clazz.getName());
+    if (view != null) { // view opened?
+      if (view instanceof AbstractJSureScanView) {
+        final AbstractJSureScanView scanView = (AbstractJSureScanView) view;
+        scanView.currentScanChanged(JSureDataDirHub.getInstance().getCurrentScan());
+      } else {
+        SLLogger.getLogger().log(Level.SEVERE, I18N.err(236, clazz.getName(), view));
+      }
+    }
+  }
 
-	/**
-	 * Update the internal state, presumably after a new scan
-	 */
-	private void updateViewState() {
-		final String label = updateViewer();
-		getCurrentControl().getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				if (label != null) {
-					if (getViewer() != null) {
-						getViewer().setInput(getViewSite());
-					}
-					setViewerVisibility(true);
-				} else {
-					setViewerVisibility(false);
-				}
-				// TODO is this right?
-				getCurrentControl().redraw();
-			}
-		});
-	}
+  /**
+   * @return The label to be shown in the title
+   */
+  protected abstract String updateViewer();
 
-	private final void setViewerVisibility(boolean showResults) {
-		if (f_viewerbook.isDisposed())
-			return;
-		if (showResults) {
-			f_viewerbook.showPage(getCurrentControl());
-		} else {
-			f_viewerbook.showPage(f_noResultsToShowLabel);
-		}
-	}
+  /**
+   * Update the internal state, presumably after a new scan
+   */
+  private void updateViewState() {
+    final String label = updateViewer();
+    getCurrentControl().getDisplay().asyncExec(new Runnable() {
+      public void run() {
+        if (label != null) {
+          if (getViewer() != null) {
+            getViewer().setInput(getViewSite());
+          }
+          setViewerVisibility(true);
+        } else {
+          setViewerVisibility(false);
+        }
+        // TODO is this right?
+        getCurrentControl().redraw();
+      }
+    });
+  }
+
+  private final void setViewerVisibility(boolean showResults) {
+    if (f_viewerbook.isDisposed())
+      return;
+    if (showResults) {
+      f_viewerbook.showPage(getCurrentControl());
+    } else {
+      f_viewerbook.showPage(f_noResultsToShowLabel);
+    }
+  }
 }

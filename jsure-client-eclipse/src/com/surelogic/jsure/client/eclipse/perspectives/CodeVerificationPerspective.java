@@ -37,16 +37,16 @@ public final class CodeVerificationPerspective implements IPerspectiveFactory {
 
     final IFolderLayout resultsArea = layout.createFolder("resultsArea", IPageLayout.TOP, 0.4f, editorArea);
     resultsArea.addView(verificationStatusView);
-    resultsArea.addView(xmlExplorerView);
+    resultsArea.addView(verificationExplorerView);
 
     final IFolderLayout rightOfResultsArea = layout.createFolder("rightOfResultsArea", IPageLayout.RIGHT, 0.6f, "resultsArea");
     rightOfResultsArea.addView(proposedPromiseView);
-    rightOfResultsArea.addView(verificationExplorerView);
+    rightOfResultsArea.addView(xmlExplorerView);
 
-    final IFolderLayout finderArea = layout.createFolder("finderArea", IPageLayout.TOP, 0.6f, editorArea);
+    final IFolderLayout finderArea = layout.createFolder("finderArea", IPageLayout.TOP, 0.5f, editorArea);
     finderArea.addView(finderView);
 
-    final IFolderLayout rightOfEditorArea = layout.createFolder("rightOfEditorArea", IPageLayout.RIGHT, 0.5f, editorArea);
-    rightOfEditorArea.addView(histSrcView);
+    final IFolderLayout histSrcArea = layout.createFolder("histSrcArea", IPageLayout.RIGHT, 0.5f, editorArea);
+    histSrcArea.addView(histSrcView);
   }
 }
