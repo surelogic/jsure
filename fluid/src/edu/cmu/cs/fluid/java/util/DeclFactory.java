@@ -316,7 +316,12 @@ public class DeclFactory {
       MethodBuilder m = new MethodBuilder(name);
       if (d instanceof MethodDeclaration) {
         final int mods = JavaNode.getModifiers(decl);
-        m.setIsAbstract(JavaNode.isSet(mods, JavaNode.ABSTRACT));
+        if (parent instanceof InterfaceBuilder) {
+        	// Don't show this flag in this case
+        	m.setIsAbstract(false);
+        } else {
+        	m.setIsAbstract(JavaNode.isSet(mods, JavaNode.ABSTRACT));
+        }
         m.setIsFinal(JavaNode.isSet(mods, JavaNode.FINAL));
         m.setIsStatic(JavaNode.isSet(mods, JavaNode.STATIC));
         m.setVisibility(getVisibility(mods));
