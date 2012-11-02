@@ -276,8 +276,11 @@ public class DeclFactory {
     switch (d.getKind()) {
     case CONSTRUCTOR:
       ConstructorBuilder c = new ConstructorBuilder();
-      c.setVisibility(getVisibility(decl));
-
+      {
+    	  final int mods = ConstructorDeclaration.getModifiers(decl);
+    	  c.setVisibility(getVisibility(mods));
+    	  c.setIsImplicit(JavaNode.isSet(mods, JavaNode.IMPLICIT));
+      }
       params = ConstructorDeclaration.getParams(decl);
       for (IRNode param : Parameters.getFormalIterator(params)) {
         ParameterBuilder pb = buildParameter(param, i);
@@ -325,6 +328,7 @@ public class DeclFactory {
         m.setIsFinal(JavaNode.isSet(mods, JavaNode.FINAL));
         m.setIsStatic(JavaNode.isSet(mods, JavaNode.STATIC));
         m.setVisibility(getVisibility(mods));
+        m.setIsImplicit(JavaNode.isSet(mods, JavaNode.IMPLICIT));
 
         params = MethodDeclaration.getParams(decl);
         for (IRNode param : Parameters.getFormalIterator(params)) {
