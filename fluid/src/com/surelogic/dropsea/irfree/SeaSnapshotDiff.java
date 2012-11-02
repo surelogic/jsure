@@ -16,7 +16,7 @@ import java.util.Map;
 
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
@@ -193,7 +193,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     // Need a location to report
     IJavaRef ref = d.getJavaRef();
     if (ref == null) {
-      if (!d.getMessage().contains("java.lang.Object")) {
+      if (!(d instanceof IResultFolderDrop) && !d.getMessage().contains("java.lang.Object")) {
         System.out.println("No src ref for " + d.getMessage());
       }
       return false;
