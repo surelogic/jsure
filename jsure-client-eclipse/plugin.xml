@@ -183,13 +183,6 @@
 			class="com.surelogic.jsure.client.eclipse.views.proposals.ProposedPromiseView"
 			id="com.surelogic.jsure.client.eclipse.views.proposals.ProposedPromiseView">
 		</view>
-
-		<view name="Annotation Explorer" allowMultiple="false"
-			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_explorer.gif"
-			category="com.surelogic.jsure"
-			class="com.surelogic.jsure.client.eclipse.views.annotations.ScanAnnotationExplorerView"
-			id="com.surelogic.jsure.client.eclipse.views.annotations.ScanAnnotationExplorerView">
-		</view>
 	</extension>
 
 	<!-- JSure perspective links and Java perspective links -->
