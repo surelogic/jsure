@@ -101,22 +101,18 @@ final class ElementPromiseDrop extends ElementProofDrop {
   @Override
   @NonNull
   Element[] constructChildren() {
-    /*
-     * Only show children if we are not encapsulating the same drop as one of
-     * our ancestors.
-     */
-    if (getAncestorWithSameDropOrNull() == null) {
-      final ElementCategory.Categorizer c = new ElementCategory.Categorizer(this);
-      c.addAll(getDrop().getProposals());
-      if (f_showHints)
-        c.addAll(getDrop().getHints());
-      c.addAll(getDrop().getCheckedBy());
-      c.addAll(getDrop().getDependentPromises());
-      if (c.isEmpty())
-        return EMPTY;
-      else
-        return c.getAllElementsAsArray();
-    } else
+    if (getAncestorWithSameDropOrNull() != null)
       return EMPTY;
+
+    final ElementCategory.Categorizer c = new ElementCategory.Categorizer(this);
+    c.addAll(getDrop().getProposals());
+    if (f_showHints)
+      c.addAll(getDrop().getHints());
+    c.addAll(getDrop().getCheckedBy());
+    c.addAll(getDrop().getDependentPromises());
+    if (c.isEmpty())
+      return EMPTY;
+    else
+      return c.getAllElementsAsArray();
   }
 }

@@ -1,5 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.explorer;
 
+import java.util.Comparator;
+
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 
@@ -11,6 +13,22 @@ import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 
 abstract class Element {
+
+  /**
+   * Compares elements by their label.
+   */
+  static final Comparator<Element> ALPHA = new Comparator<Element>() {
+    public int compare(Element o1, Element o2) {
+      if (o1 == null && o2 == null)
+        return 0;
+      if (o1 == null)
+        return -1;
+      if (o2 == null)
+        return 1;
+
+      return o1.getLabel().compareTo(o2.getLabel());
+    }
+  };
 
   /**
    * An empty array of {@link Element} objects. Should be returned by

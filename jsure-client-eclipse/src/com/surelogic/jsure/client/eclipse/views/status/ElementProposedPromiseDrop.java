@@ -95,6 +95,9 @@ final class ElementProposedPromiseDrop extends ElementDrop {
   @Override
   @NonNull
   Element[] constructChildren() {
+    if (getAncestorWithSameDropOrNull() != null)
+      return EMPTY;
+
     final ElementCategory.Categorizer c = new ElementCategory.Categorizer(this);
     c.addAll(getDrop().getProposals());
     if (f_showHints)
