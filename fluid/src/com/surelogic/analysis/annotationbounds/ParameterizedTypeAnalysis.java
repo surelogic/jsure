@@ -7,7 +7,6 @@ import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.Unused;
-import com.surelogic.analysis.type.constraints.AnnotationBoundsTypeFormalEnv;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
@@ -36,8 +35,7 @@ public final class ParameterizedTypeAnalysis extends AbstractWholeIRAnalysis<Gen
 	
 	@Override
 	protected GenericTypeInstantiationChecker constructIRAnalysis(IBinder binder) {
-		return new GenericTypeInstantiationChecker(
-		    this, binder, AnnotationBoundsTypeFormalEnv.INSTANCE);
+		return new GenericTypeInstantiationChecker(this, binder);
 	}
 	
 	@Override

@@ -15,8 +15,8 @@ import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.layers.Messages;
-import com.surelogic.analysis.type.constraints.AnnotationBoundsTypeFormalEnv;
-import com.surelogic.analysis.type.constraints.ValueObjectAnnotationTester;
+import com.surelogic.analysis.type.constraints.TypeAnnotationTester;
+import com.surelogic.analysis.type.constraints.TypeAnnotations;
 import com.surelogic.annotation.rules.EqualityRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProofDrop;
@@ -96,12 +96,12 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 			b = binder;
 		}
 
-//		@Override
+		@Override
 		public IBinder getBinder() {
 			return b;
 		}
 
-//		@Override
+		@Override
 		public void clearCaches() {
 			// Nothing to do yet
 		}
@@ -181,11 +181,15 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 		@SuppressWarnings("unchecked")
     void checkIfValueObject(IRNode e) {
 			IJavaType t = b.getJavaType(e);
-			final ValueObjectAnnotationTester tester = 
-			    new ValueObjectAnnotationTester(b, AnnotationBoundsTypeFormalEnv.INSTANCE,
-              ParameterizedTypeAnalysis.getFolders(), false);
+			final TypeAnnotationTester tester =
+			    new TypeAnnotationTester(TypeAnnotations.VALUE_OBJECT, b,
+			        ParameterizedTypeAnalysis.getFolders());
+//			final ValueObjectAnnotationTester tester = 
+//			    new ValueObjectAnnotationTester(b,
+//              ParameterizedTypeAnalysis.getFolders(), false);
 			
-			if (tester.testType(t)) {
+//			if (tester.testType(t)) {
+			if (tester.testParameterizedTypeActual(t)) {
 				ResultDrop d = createFailureDrop(e);
 				for (final ProofDrop p : tester.getTrusts()) {
 				  if (p instanceof PromiseDrop) {

@@ -9,8 +9,8 @@ import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks.GlobalLockModel;
 import com.surelogic.analysis.concurrency.heldlocks.RegionLockRecord;
-import com.surelogic.analysis.type.constraints.AnnotationBoundsTypeFormalEnv;
-import com.surelogic.analysis.type.constraints.ImmutableAnnotationTester;
+import com.surelogic.analysis.type.constraints.TypeAnnotationTester;
+import com.surelogic.analysis.type.constraints.TypeAnnotations;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -169,10 +169,14 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
           TYPE_IS_PRIMITIVE, TYPE_IS_NOT_PRIMITIVE, type.toSourceText());
       
       // immutable
-      final ImmutableAnnotationTester tester = new ImmutableAnnotationTester(
-              binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
-              ParameterizedTypeAnalysis.getFolders(), true, false); 
-      final boolean isImmutable = tester.testType(type);
+      final TypeAnnotationTester tester =
+          new TypeAnnotationTester(TypeAnnotations.IMMUTABLE, binder,
+              ParameterizedTypeAnalysis.getFolders());
+//      final ImmutableAnnotationTester tester = new ImmutableAnnotationTester(
+//              binder,
+//              ParameterizedTypeAnalysis.getFolders(), true, false); 
+//      final boolean isImmutable = tester.testType(type);
+      final boolean isImmutable = tester.testFieldDeclarationType(type);
       final ResultDrop iResult = ResultsBuilder.createResult(
           typeFolder, typeDeclNode, isImmutable,
           TYPE_IS_IMMUTABLE, TYPE_IS_NOT_IMMUTABLE, type.toSourceText());  
@@ -189,11 +193,15 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
         if (Initialization.prototype.includes(init)) {
           final IRNode initExpr = Initialization.getValue(init);
           if (NewExpression.prototype.includes(initExpr)) {
-            final ImmutableAnnotationTester tester2 =
-                new ImmutableAnnotationTester(
-                    binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
-                    ParameterizedTypeAnalysis.getFolders(), true, true); 
-            if (tester2.testType(binder.getJavaType(initExpr))) {
+            final TypeAnnotationTester tester2 =
+                new TypeAnnotationTester(TypeAnnotations.IMMUTABLE, binder,
+                    ParameterizedTypeAnalysis.getFolders());
+//            final ImmutableAnnotationTester tester2 =
+//                new ImmutableAnnotationTester(
+//                    binder, 
+//                    ParameterizedTypeAnalysis.getFolders(), true, true);
+//            if (tester2.testType(binder.getJavaType(initExpr))) {
+            if (tester2.testFinalObjectType(binder.getJavaType(initExpr))) {
               // we have an instance of an immutable implementation
               proposeImmutable = false;
               final ResultDrop result = ResultsBuilder.createResult(

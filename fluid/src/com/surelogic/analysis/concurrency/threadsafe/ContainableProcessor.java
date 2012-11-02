@@ -4,8 +4,8 @@ import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
-import com.surelogic.analysis.type.constraints.AnnotationBoundsTypeFormalEnv;
-import com.surelogic.analysis.type.constraints.ContainableAnnotationTester;
+import com.surelogic.analysis.type.constraints.TypeAnnotationTester;
+import com.surelogic.analysis.type.constraints.TypeAnnotations;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.UniquenessRules;
@@ -187,11 +187,15 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
         final ResultFolderDrop typeFolder = ResultsBuilder.createOrFolder(
             folder, varDecl, OBJECT_IS_CONTAINABLE, OBJECT_IS_NOT_CONTAINABLE);
 
-        final ContainableAnnotationTester tester =
-            new ContainableAnnotationTester(
-                binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
-                ParameterizedTypeAnalysis.getFolders(), true, false);
-        final boolean isContainable = tester.testType(type);
+        final TypeAnnotationTester tester = 
+            new TypeAnnotationTester(TypeAnnotations.CONTAINABLE, binder,
+                ParameterizedTypeAnalysis.getFolders());
+//        final ContainableAnnotationTester tester =
+//            new ContainableAnnotationTester(
+//                binder,
+//                ParameterizedTypeAnalysis.getFolders(), true, false);
+//        final boolean isContainable = tester.testType(type);
+        final boolean isContainable = tester.testFieldDeclarationType(type);
         final IRNode typeDeclNode = FieldDeclaration.getType(fieldDecl);
         final ResultDrop cResult = ResultsBuilder.createResult(typeFolder, typeDeclNode,
             isContainable, TYPE_IS_CONTAINABLE, TYPE_IS_NOT_CONTAINABLE,
@@ -209,11 +213,15 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
           if (Initialization.prototype.includes(init)) {
             final IRNode initExpr = Initialization.getValue(init);
             if (NewExpression.prototype.includes(initExpr)) {
-              final ContainableAnnotationTester tester2 =
-                  new ContainableAnnotationTester(
-                      binder, AnnotationBoundsTypeFormalEnv.INSTANCE,
-                      ParameterizedTypeAnalysis.getFolders(), true, true); 
-              if (tester2.testType(binder.getJavaType(initExpr))) {
+              final TypeAnnotationTester tester2 =
+                  new TypeAnnotationTester(TypeAnnotations.CONTAINABLE, binder,
+                      ParameterizedTypeAnalysis.getFolders());
+//              final ContainableAnnotationTester tester2 =
+//                  new ContainableAnnotationTester(
+//                      binder,
+//                      ParameterizedTypeAnalysis.getFolders(), true, true); 
+//              if (tester2.testType(binder.getJavaType(initExpr))) {
+              if (tester2.testFinalObjectType(binder.getJavaType(initExpr))) {
                 // we have an instance of an immutable implementation
                 proposeContainable = false;
                 final ResultDrop result = ResultsBuilder.createResult(
