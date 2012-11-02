@@ -577,8 +577,8 @@ public final class JavaIdentifier {
 		case CONSTRUCTOR:
 		case METHOD:
 			sb.append(SEPARATOR).append(decl.getName());
-			sb.append(SEPARATOR).append('(');
-			sb.append(DeclUtil.getParametersFullyQualified((IDeclFunction) decl)).append(')');
+			sb.append(SEPARATOR);
+			sb.append(DeclUtil.getParametersFullyQualified((IDeclFunction) decl));
 			break;
 		case FIELD:
 			sb.append(SEPARATOR).append(decl.getName());
@@ -586,8 +586,8 @@ public final class JavaIdentifier {
 		case PARAMETER:
 			IDeclFunction func = (IDeclFunction) decl.getParent();
 			sb.append(SEPARATOR).append(func.getName());
-			sb.append(SEPARATOR).append('(');
-			sb.append(DeclUtil.getParametersFullyQualified(func)).append(')');
+			sb.append(SEPARATOR);
+			sb.append(DeclUtil.getParametersFullyQualified(func));
 			sb.append(SEPARATOR).append(decl.getName());
 			break;
 		default:

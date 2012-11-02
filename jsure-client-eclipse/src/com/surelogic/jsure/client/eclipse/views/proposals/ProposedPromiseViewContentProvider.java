@@ -394,7 +394,7 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
     } else if (decl instanceof IDeclFunction) {
       IDeclFunction m = (IDeclFunction) decl;
       Decl type = findDecl(here, m.getParent());
-      return type.getDecl(type.methods, DeclUtil.getSignature(m));
+      return type.getDecl(type.methods, DeclUtil.getSimpleSignature(m));
     } else if (decl instanceof IDeclField) {
       IDeclField m = (IDeclField) decl;
       Decl type = findDecl(here, m.getParent());

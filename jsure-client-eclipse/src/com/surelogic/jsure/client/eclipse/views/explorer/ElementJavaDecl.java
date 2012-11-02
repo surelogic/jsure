@@ -7,6 +7,7 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.DeclVisitor;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IDeclField;
@@ -173,7 +174,7 @@ public final class ElementJavaDecl extends Element {
 
   @Override
   String getLabel() {
-    return f_javaDecl.toString();
+    return DeclUtil.getEclipseJavaOutlineLikeLabel(f_javaDecl);
   }
 
   @Override
