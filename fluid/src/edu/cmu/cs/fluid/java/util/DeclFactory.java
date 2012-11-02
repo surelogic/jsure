@@ -227,6 +227,7 @@ public class DeclFactory {
       } else {
         c.setVisibility(IDecl.Visibility.ANONYMOUS);
         c.setAnonymousDeclPosition(computePositionWithinEnclosingDecl(decl));
+        c.setTypeOfAnonymousDecl(computeTypeRef(AnonClassExpression.getType(decl)));
       }
       return c;
     case ENUM:
@@ -294,8 +295,8 @@ public class DeclFactory {
     case FIELD:
       FieldBuilder f = new FieldBuilder(name);
       if (d instanceof EnumConstantDeclaration) {
-        f.setIsFinal(true);
-        f.setIsStatic(true);
+    	//f.setIsFinal(true);
+        //f.setIsStatic(true);
         f.setVisibility(IDecl.Visibility.PUBLIC);
         type = VisitUtil.getEnclosingType(decl);
       } else {
@@ -315,7 +316,12 @@ public class DeclFactory {
       MethodBuilder m = new MethodBuilder(name);
       if (d instanceof MethodDeclaration) {
         final int mods = JavaNode.getModifiers(decl);
-        m.setIsAbstract(JavaNode.isSet(mods, JavaNode.ABSTRACT));
+        if (parent instanceof InterfaceBuilder) {
+        	// Don't show this flag in this case
+        	m.setIsAbstract(false);
+        } else {
+        	m.setIsAbstract(JavaNode.isSet(mods, JavaNode.ABSTRACT));
+        }
         m.setIsFinal(JavaNode.isSet(mods, JavaNode.FINAL));
         m.setIsStatic(JavaNode.isSet(mods, JavaNode.STATIC));
         m.setVisibility(getVisibility(mods));

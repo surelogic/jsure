@@ -2,8 +2,9 @@ package com.surelogic.jsure.client.eclipse.views.status;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.List;
+
+import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
@@ -11,7 +12,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
-import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 
 final class ElementResultFolderDrop extends ElementAnalysisResultDrop {
 
@@ -90,9 +91,13 @@ final class ElementResultFolderDrop extends ElementAnalysisResultDrop {
   }
 
   @Override
-  @NonNull
-  String getImageNameForChangedFromDrop() {
-    return CommonImages.IMG_FOLDER;
+  @Nullable
+  Image getElementImageChangedFromDropOrNull() {
+    final IResultFolderDrop drop = getChangedFromDropOrNull();
+    if (drop == null)
+      return null;
+    else
+      return JSureDecoratedImageUtility.getImage(CommonImages.IMG_FOLDER, getImageFlagsHelper(drop));
   }
 
   @Override
@@ -101,16 +106,8 @@ final class ElementResultFolderDrop extends ElementAnalysisResultDrop {
   }
 
   @Override
-  EnumSet<Flag> getImageFlags() {
-    if (hasChildren())
-      return super.getImageFlags();
-    else
-      return EnumSet.noneOf(Flag.class);
-  }
-
-  @Override
-  @NonNull
-  String getImageName() {
-    return CommonImages.IMG_FOLDER;
+  @Nullable
+  Image getElementImage() {
+    return JSureDecoratedImageUtility.getImage(CommonImages.IMG_FOLDER, getImageFlagsHelper(getDrop()));
   }
 }

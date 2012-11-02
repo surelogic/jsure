@@ -48,7 +48,7 @@ implements IClassMember, TestXMLParserConstants
 				return CommonImages.IMG_METHOD_DEFAULT;
 			case PUBLIC:
 			default:
-				return CommonImages.IMG_METHOD;
+				return CommonImages.IMG_METHOD_PUBLIC;
 			}
 		}
 		switch (getAccessibility()) {
@@ -58,7 +58,7 @@ implements IClassMember, TestXMLParserConstants
 			return CommonImages.IMG_METHOD_DEFAULT;
 		case PUBLIC:
 		default:
-			return CommonImages.IMG_METHOD;
+			return CommonImages.IMG_METHOD_PUBLIC;
 		}
 	}
 	

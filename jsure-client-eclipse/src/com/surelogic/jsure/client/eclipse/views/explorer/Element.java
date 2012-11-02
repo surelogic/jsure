@@ -1,6 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.status;
-
-import java.util.Comparator;
+package com.surelogic.jsure.client.eclipse.views.explorer;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
@@ -8,72 +6,11 @@ import org.eclipse.swt.graphics.Image;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.SLUtility;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 
 abstract class Element {
-
-  /**
-   * Compares elements by their label.
-   */
-  static final Comparator<Element> ALPHA = new Comparator<Element>() {
-    public int compare(Element o1, Element o2) {
-      if (o1 == null && o2 == null)
-        return 0;
-      if (o1 == null)
-        return -1;
-      if (o2 == null)
-        return 1;
-
-      return o1.getLabelToPersistViewerState().compareTo(o2.getLabelToPersistViewerState());
-    }
-  };
-
-  /**
-   * Compares elements by Java project, package, type, line number, label.
-   */
-  static final Comparator<Element> JAVA = new Comparator<Element>() {
-    public int compare(Element o1, Element o2) {
-      if (o1 == null && o2 == null)
-        return 0;
-      if (o1 == null)
-        return -1;
-      if (o2 == null)
-        return 1;
-
-      // special logic to put hints folder at the bottom (only at viewer root)
-      if (o1.getParent() == null) {
-        if (o1 instanceof ElementCategory) {
-          if (ElementCategory.SPECIAL_HINT_FOLDER_NAME.equals(o1.getLabelToPersistViewerState()))
-            return 1;
-        }
-      }
-      if (o2.getParent() == null) {
-        if (o2 instanceof ElementCategory) {
-          if (ElementCategory.SPECIAL_HINT_FOLDER_NAME.equals(o2.getLabelToPersistViewerState()))
-            return -1;
-        }
-      }
-
-      int c = SLUtility.nullToEmpty(o1.getProjectNameOrNull()).compareTo(SLUtility.nullToEmpty(o2.getProjectNameOrNull()));
-      if (c != 0)
-        return c;
-      c = SLUtility.nullToEmpty(o1.getPackageNameOrNull()).compareTo(SLUtility.nullToEmpty(o2.getPackageNameOrNull()));
-      if (c != 0)
-        return c;
-      c = SLUtility.nullToEmpty(o1.getSimpleTypeNameOrNull()).compareTo(SLUtility.nullToEmpty(o2.getSimpleTypeNameOrNull()));
-      if (c != 0)
-        return c;
-      if (o1.getLineNumber() != o2.getLineNumber())
-        return o1.getLineNumber() - o2.getLineNumber();
-      if (c != 0)
-        return c;
-      return o1.getLabelToPersistViewerState().compareTo(o2.getLabelToPersistViewerState());
-    }
-  };
 
   /**
    * An empty array of {@link Element} objects. Should be returned by
@@ -86,8 +23,8 @@ abstract class Element {
    * otherwise.
    * <p>
    * <i>Implementation Note:</i> This field should <b>only</b> be set by
-   * {@link VerificationStatusViewContentProvider} when it constructs a model of
-   * elements for a scan.
+   * {@link VerificationExplorerViewContentProvider} when it constructs a model
+   * of elements for a scan.
    */
   static boolean f_showHints;
 
@@ -96,8 +33,8 @@ abstract class Element {
    * difference information is available.
    * <p>
    * <i>Implementation Note:</i> This field should <b>only</b> be set by
-   * {@link VerificationStatusViewContentProvider} when it constructs a model of
-   * elements for a scan.
+   * {@link VerificationExplorerViewContentProvider} when it constructs a model
+   * of elements for a scan.
    */
   static ScanDifferences f_diff;
 
@@ -108,8 +45,8 @@ abstract class Element {
    * This may be toggled on an existing model to change the display.
    * <p>
    * <i>Implementation Note:</i> This field should <b>only</b> be set by
-   * {@link VerificationStatusViewContentProvider} when it constructs a model of
-   * elements for a scan.
+   * {@link VerificationExplorerViewContentProvider} when it constructs a model
+   * of elements for a scan.
    */
   static volatile boolean f_highlightDifferences;
 
@@ -131,27 +68,14 @@ abstract class Element {
     f_parent = parent;
   }
 
-  private Element[] f_children = null;
+  abstract void addChild(Element child);
 
-  final Element[] getChildren() {
-    if (f_children == null) {
-      f_children = constructChildren();
-    }
-    return f_children;
-  }
+  @NonNull
+  abstract Element[] getChildren();
 
   final boolean hasChildren() {
     return getChildren().length > 0;
   }
-
-  /**
-   * Called once to construct the children of this element. If no children
-   * return {@link #EMPTY}&mdash;do not return {@code null}.
-   * 
-   * @return the non-{@code null} children of this element.
-   */
-  @NonNull
-  abstract Element[] constructChildren();
 
   /**
    * Gets the text label which should appear in the tree portion of the viewer.
@@ -159,53 +83,6 @@ abstract class Element {
    * @return a text label.
    */
   abstract String getLabel();
-
-  /**
-   * Gets a text label which, while similar to what is returned from
-   * {@link #getLabel()}, should avoid specific numbers in categories and other
-   * details. This label is used to persist the viewer state.
-   * <p>
-   * This method returns the same result as {@link #getLabel()} except for
-   * folders and categories.
-   * 
-   * @return a text label
-   * @see #toString()
-   */
-  String getLabelToPersistViewerState() {
-    return getLabel();
-  }
-
-  String getProjectNameOrNull() {
-    return null;
-  }
-
-  Image getProjectImageOrNull() {
-    return null;
-  }
-
-  String getPackageNameOrNull() {
-    return null;
-  }
-
-  String getSimpleTypeNameOrNull() {
-    return null;
-  }
-
-  Image getSimpleTypeImageOrNull() {
-    return null;
-  }
-
-  int getLineNumber() {
-    return -1;
-  }
-
-  final String getLineNumberAsStringOrNull() {
-    final int line = getLineNumber();
-    if (line < 1)
-      return null;
-    else
-      return Integer.toString(line);
-  }
 
   private Boolean f_descendantHasWarningHintCache = null;
 
@@ -233,25 +110,27 @@ abstract class Element {
    *         about it, {@code false} otherwise.
    */
   private final boolean searchForWarningHelper(Element e) {
-    if (e instanceof ElementHintDrop) {
-      if (((ElementHintDrop) e).getDrop().getHintType() == IHintDrop.HintType.WARNING)
-        return true;
-    } else if (e instanceof ElementProofDrop) {
-      /*
-       * Stop looking here because the proof drops provide a "deep" answer. We
-       * do not want to examine children in this case because this could cause
-       * more of the viewer model to be built out than we need.
-       */
-      if (((ElementProofDrop) e).getDrop().derivedFromWarningHint())
-        return true;
-      else
-        return false;
-    }
-    boolean result = false;
-    for (Element c : e.getChildren()) {
-      result |= searchForWarningHelper(c);
-    }
-    return result;
+    return false; // TODO
+    // if (e instanceof ElementHintDrop) {
+    // if (((ElementHintDrop) e).getDrop().getHintType() ==
+    // IHintDrop.HintType.WARNING)
+    // return true;
+    // } else if (e instanceof ElementProofDrop) {
+    // /*
+    // * Stop looking here because the proof drops provide a "deep" answer. We
+    // * do not want to examine children in this case because this could cause
+    // * more of the viewer model to be built out than we need.
+    // */
+    // if (((ElementProofDrop) e).getDrop().derivedFromWarningHint())
+    // return true;
+    // else
+    // return false;
+    // }
+    // boolean result = false;
+    // for (Element c : e.getChildren()) {
+    // result |= searchForWarningHelper(c);
+    // }
+    // return result;
   }
 
   private Boolean f_descendantHasDifferenceCache = null;
@@ -280,16 +159,17 @@ abstract class Element {
    *         from the old scan, {@code false} otherwise.
    */
   private final boolean searchForDifferenceHelper(Element e) {
-    if (e instanceof ElementDrop) {
-      final boolean isSame = ((ElementDrop) e).isSame();
-      if (!isSame)
-        return true;
-    }
-    boolean result = false;
-    for (Element c : e.getChildren()) {
-      result |= searchForDifferenceHelper(c);
-    }
-    return result;
+    return false; // TODO
+    // if (e instanceof ElementDrop) {
+    // final boolean isSame = ((ElementDrop) e).isSame();
+    // if (!isSame)
+    // return true;
+    // }
+    // boolean result = false;
+    // for (Element c : e.getChildren()) {
+    // result |= searchForDifferenceHelper(c);
+    // }
+    // return result;
   }
 
   /**
@@ -345,6 +225,6 @@ abstract class Element {
 
   @Override
   public String toString() {
-    return getLabelToPersistViewerState();
+    return getLabel();
   }
 }

@@ -2,12 +2,15 @@ package com.surelogic.jsure.client.eclipse.views.status;
 
 import java.util.EnumSet;
 
+import org.eclipse.swt.graphics.Image;
+
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 final class ElementPromiseDrop extends ElementProofDrop {
@@ -69,39 +72,30 @@ final class ElementPromiseDrop extends ElementProofDrop {
   }
 
   @Override
-  EnumSet<Flag> getImageFlagsForChangedFromDrop() {
+  @Nullable
+  Image getElementImageChangedFromDropOrNull() {
     final IPromiseDrop drop = getChangedFromDropOrNull();
-    EnumSet<Flag> flags = super.getImageFlagsForChangedFromDrop();
-    getImageFlagsHelper(drop, flags);
-    return flags;
+    if (drop == null)
+      return null;
+    else
+      return JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION, getImageFlagsPromiseHelper(drop));
   }
 
   @Override
-  @NonNull
-  String getImageNameForChangedFromDrop() {
-    return CommonImages.IMG_ANNOTATION;
+  @Nullable
+  Image getElementImage() {
+    return JSureDecoratedImageUtility.getImage(CommonImages.IMG_ANNOTATION, getImageFlagsPromiseHelper(f_promiseDrop));
   }
 
-  @Override
-  EnumSet<Flag> getImageFlags() {
-    EnumSet<Flag> flags = super.getImageFlags();
-    getImageFlagsHelper(f_promiseDrop, flags);
-    return flags;
-  }
-
-  private void getImageFlagsHelper(IPromiseDrop drop, EnumSet<Flag> flags) {
+  private EnumSet<Flag> getImageFlagsPromiseHelper(IPromiseDrop drop) {
+    final EnumSet<Flag> flags = getImageFlagsHelper(drop);
     if (drop.isVirtual())
       flags.add(Flag.VIRTUAL);
     if (drop.isAssumed())
       flags.add(Flag.ASSUME);
     if (!drop.isCheckedByAnalysis())
       flags.add(Flag.TRUSTED);
-  }
-
-  @Override
-  @NonNull
-  String getImageName() {
-    return CommonImages.IMG_ANNOTATION;
+    return flags;
   }
 
   @Override

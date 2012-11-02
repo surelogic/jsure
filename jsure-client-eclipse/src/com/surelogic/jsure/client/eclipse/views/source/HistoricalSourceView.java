@@ -63,10 +63,12 @@ public class HistoricalSourceView extends AbstractHistoricalSourceView
 		job.schedule();
 	}
 
+	// Run in UI?
 	@Override
 	protected ISourceZipFileHandles findSources(String run) {
-		final JSureScanInfo info = JSureDataDirHub.getInstance()
-				.getCurrentScanInfo();
+		final JSureScanInfo info = OLD.equals(run) ? 
+				JSureDataDirHub.getInstance().getLastMatchingScanInfo() : 
+				JSureDataDirHub.getInstance().getCurrentScanInfo();
 		final ISourceZipFileHandles zips;
 		if (info == null) {
 			zips = new ISourceZipFileHandles() {
@@ -75,6 +77,7 @@ public class HistoricalSourceView extends AbstractHistoricalSourceView
 				}
 			};
 		} else {
+			setSourceSnapshotTime(info.getJSureRun().getTimeOfScan());
 			zips = new ISourceZipFileHandles() {
 				public Iterable<File> getSourceZips() {
 					return info.getJSureRun().getSourceZips();
@@ -84,15 +87,16 @@ public class HistoricalSourceView extends AbstractHistoricalSourceView
 		return zips;
 	}
 	
-	public static void tryToOpenInEditor(final IJavaRef javaRef) {
+	public static void tryToOpenInEditor(final IJavaRef javaRef, final boolean tryToUseOld) {
 	  if (javaRef == null) return;
 	  tryToOpenInEditor(javaRef.getPackageName(),
-        DeclUtil.getTypeNameDollarSignOrNull(javaRef.getDeclaration()), javaRef.getLineNumber());
+        DeclUtil.getTypeNameDollarSignOrNull(javaRef.getDeclaration()), 
+        javaRef.getLineNumber(), tryToUseOld);
 	}
 
 	public static void tryToOpenInEditor(final String pkg, final String type,
-			int lineNumber) {
-		tryToOpenInEditor(HistoricalSourceView.class, null, pkg, 
+			int lineNumber, final boolean tryToUseOld) {
+		tryToOpenInEditor(HistoricalSourceView.class, tryToUseOld ? OLD : null, pkg, 
 				type == null ? SLUtility.PACKAGE_INFO : type,
 				lineNumber);
 	}

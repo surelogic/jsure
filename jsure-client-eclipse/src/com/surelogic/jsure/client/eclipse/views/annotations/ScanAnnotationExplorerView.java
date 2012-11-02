@@ -32,7 +32,6 @@ import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IDecl;
-import com.surelogic.common.ref.IDeclFunction;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
@@ -323,26 +322,6 @@ public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotat
     }
   }
 
-  static String computeLabel(IDecl d) {
-    switch (d.getKind()) {
-    case CLASS:
-    case ENUM:
-    case INTERFACE:
-      return DeclUtil.getTypeNameOrEmpty(d);
-    case CONSTRUCTOR:
-    case METHOD:
-      return DeclUtil.getSignature((IDeclFunction) d);
-    case FIELD:
-    case PACKAGE:
-      return d.getName();
-    case PARAMETER:
-      return "arg " + d.getPosition() + " of " + computeLabel(d.getParent());
-    case TYPE_PARAMETER:
-    default:
-      throw new UnsupportedOperationException(d.toString());
-    }
-  }
-
   static class Package extends AbstractElement {
     Package(String qname, MultiMap<String, IDrop> cuToDrop) {
       super(null, qname, cuToDrop.size());
@@ -359,7 +338,7 @@ public class ScanAnnotationExplorerView extends AbstractScanTreeView<ScanAnnotat
           IDecl id = ref.getDeclaration();
           if (id == null)
             continue;
-          idToDrop.put(computeLabel(id), d);
+          idToDrop.put(DeclUtil.getEclipseJavaOutlineLikeLabel(id), d);
         }
         getChildren()[i] = new Type(this, name, idToDrop);
         i++;

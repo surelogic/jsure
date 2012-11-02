@@ -29,13 +29,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -63,6 +60,7 @@ import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.Activator;
+import com.surelogic.jsure.client.eclipse.JSureClientUtility;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -70,27 +68,6 @@ import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public final class VerificationStatusView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener {
-
-  /**
-   * Utility class used to persist column widths based upon the use's
-   * preference.
-   */
-  private static class ColumnResizeListener extends ControlAdapter {
-
-    final String f_prefKey;
-
-    public ColumnResizeListener(String prefKey) {
-      f_prefKey = prefKey;
-    }
-
-    @Override
-    public void controlResized(ControlEvent e) {
-      if (e.widget instanceof TreeColumn) {
-        int width = ((TreeColumn) e.widget).getWidth();
-        EclipseUtility.setIntPreference(f_prefKey, width);
-      }
-    }
-  }
 
   private static final String VIEW_STATE = "VerificationStatusView_TreeViewerUIState";
 
@@ -101,10 +78,11 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   private TreeViewer f_treeViewer;
   @NonNull
   private final VerificationStatusViewContentProvider f_contentProvider = new VerificationStatusViewContentProvider();
+  private TreeViewerColumn f_showDiffTableColumn = null;
   private boolean f_showHints;
   private boolean f_highlightDifferences;
-  private TreeViewerColumn f_showDiffTableColumn = null;
   private final ViewerSorter f_alphaSorter = new ViewerSorter() {
+
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
       if (e1 instanceof Element && e2 instanceof Element) {
@@ -162,31 +140,32 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     final TreeViewerColumn column1 = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     column1.setLabelProvider(ColumnLabelProviderUtility.TREE);
     column1.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
-    column1.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
+    column1.getColumn().addControlListener(new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL1_WIDTH));
     final TreeViewerColumn column2 = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     column2.setLabelProvider(ColumnLabelProviderUtility.PROJECT);
     column2.getColumn().setText("Project");
     column2.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
-    column2.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
+    column2.getColumn().addControlListener(new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL2_WIDTH));
     final TreeViewerColumn column3 = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     column3.setLabelProvider(ColumnLabelProviderUtility.PACKAGE);
     column3.getColumn().setText("Package");
     column3.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
-    column3.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
+    column3.getColumn().addControlListener(new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL3_WIDTH));
     final TreeViewerColumn column4 = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     column4.setLabelProvider(ColumnLabelProviderUtility.TYPE);
     column4.getColumn().setText("Type");
     column4.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
-    column4.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
+    column4.getColumn().addControlListener(new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL4_WIDTH));
     final TreeViewerColumn column5 = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     column5.setLabelProvider(ColumnLabelProviderUtility.LINE);
     column5.getColumn().setText("Line");
     column5.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
-    column5.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
+    column5.getColumn().addControlListener(new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL5_WIDTH));
     final TreeViewerColumn columnDiff = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnDiff.setLabelProvider(ColumnLabelProviderUtility.DIFF);
     columnDiff.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL_DIFF_WIDTH));
-    columnDiff.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL_DIFF_WIDTH));
+    columnDiff.getColumn().addControlListener(
+        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL_DIFF_WIDTH));
     f_showDiffTableColumn = columnDiff;
 
     f_treeViewer.setInput(getViewSite());

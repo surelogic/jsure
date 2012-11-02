@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.swt.graphics.Image;
+
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
@@ -15,6 +17,7 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.UiPlaceInASubFolder;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 final class ElementCategory extends Element {
@@ -245,13 +248,8 @@ final class ElementCategory extends Element {
   }
 
   @Override
-  EnumSet<Flag> getImageFlags() {
-    return f_imageFlags;
-  }
-
-  @Override
   @Nullable
-  String getImageName() {
-    return f_imageName;
+  Image getElementImage() {
+    return JSureDecoratedImageUtility.getImage(f_imageName, f_imageFlags);
   }
 }

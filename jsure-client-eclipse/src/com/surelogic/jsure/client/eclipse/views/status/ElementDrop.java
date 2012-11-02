@@ -2,7 +2,6 @@ package com.surelogic.jsure.client.eclipse.views.status;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
@@ -20,7 +19,6 @@ import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
-import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 abstract class ElementDrop extends Element {
 
@@ -53,13 +51,11 @@ abstract class ElementDrop extends Element {
   @Nullable
   abstract IDrop getChangedFromDropOrNull();
 
-  abstract EnumSet<Flag> getImageFlagsForChangedFromDrop();
-
-  @Nullable
-  abstract String getImageNameForChangedFromDrop();
-
   @Nullable
   abstract String getMessageAboutWhatChangedOrNull();
+
+  @Nullable
+  abstract Image getElementImageChangedFromDropOrNull();
 
   @Override
   String getLabel() {

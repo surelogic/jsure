@@ -127,11 +127,15 @@ public class Activator extends AbstractUIPlugin implements IRunnableWithProgress
    *          a location in Java code.
    */
   public static void highlightLineInJavaEditor(final IJavaRef javaRef) {
+	  highlightLineInJavaEditor(javaRef, false);
+  }
+  
+  public static void highlightLineInJavaEditor(final IJavaRef javaRef, final boolean tryToUseOld) {
     if (javaRef == null)
       return;
 
     JDTUIUtility.tryToOpenInEditor(javaRef);
-    HistoricalSourceView.tryToOpenInEditor(javaRef);
+    HistoricalSourceView.tryToOpenInEditor(javaRef, tryToUseOld);
   }
 
 }

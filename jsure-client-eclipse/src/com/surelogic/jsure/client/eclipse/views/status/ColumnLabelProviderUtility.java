@@ -4,55 +4,27 @@ import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.custom.StyleRange;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Display;
 
 import com.surelogic.Utility;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
+import com.surelogic.jsure.client.eclipse.JSureClientUtility;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 
 @Utility
 public final class ColumnLabelProviderUtility {
-
-  private static Color f_onClauseColor;
-
-  private static Color getSpecialColor() {
-    if (f_onClauseColor == null) {
-      f_onClauseColor = new Color(Display.getCurrent(), 149, 125, 71);
-      Display.getCurrent().disposeExec(new Runnable() {
-        public void run() {
-          f_onClauseColor.dispose();
-        }
-      });
-    }
-    return f_onClauseColor;
-  }
-
-  private static Color f_onDiffColor;
-
-  private static Color getDiffColor() {
-    if (f_onDiffColor == null) {
-      f_onDiffColor = new Color(Display.getCurrent(), 255, 255, 190);
-      Display.getCurrent().disposeExec(new Runnable() {
-        public void run() {
-          f_onDiffColor.dispose();
-        }
-      });
-    }
-    return f_onDiffColor;
-  }
 
   private static void highlightRowIfNewOrDiff(ViewerCell cell) {
     if (Element.f_highlightDifferences) {
       if (cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();
         if (!element.isSame())
-          cell.setBackground(getDiffColor());
+          cell.setBackground(JSureClientUtility.getDiffHighlightColorNewChanged());
         return;
       }
     }
@@ -79,7 +51,7 @@ public final class ColumnLabelProviderUtility {
           if (parentIsAnOrFolder) {
             final String OR = "(or)  ";
             label = OR + label;
-            StyleRange[] ranges = { new StyleRange(0, OR.length(), getSpecialColor(), null) };
+            StyleRange[] ranges = { new StyleRange(0, OR.length(), JSureClientUtility.getSubtileTextColor(), null) };
             cell.setStyleRanges(ranges);
           }
         }
@@ -89,7 +61,7 @@ public final class ColumnLabelProviderUtility {
         if (element instanceof ElementPromiseDrop) {
           int index = label.indexOf(" on ");
           if (index != -1) {
-            StyleRange[] ranges = { new StyleRange(index, label.length() - index, getSpecialColor(), null) };
+            StyleRange[] ranges = { new StyleRange(index, label.length() - index, JSureClientUtility.getSubtileTextColor(), null) };
             cell.setStyleRanges(ranges);
           }
         }
@@ -97,7 +69,7 @@ public final class ColumnLabelProviderUtility {
           if (label.endsWith(")")) {
             int start = label.lastIndexOf('(');
             if (start != -1) {
-              StyleRange[] ranges = { new StyleRange(start, label.length() - start, getSpecialColor(), null) };
+              StyleRange[] ranges = { new StyleRange(start, label.length() - start, JSureClientUtility.getSubtileTextColor(), null) };
               cell.setStyleRanges(ranges);
             }
           }
@@ -106,7 +78,7 @@ public final class ColumnLabelProviderUtility {
           final String prefixEnd = "promise)";
           int index = label.indexOf(prefixEnd);
           if (index != -1) {
-            StyleRange[] ranges = { new StyleRange(0, index + prefixEnd.length(), getSpecialColor(), null) };
+            StyleRange[] ranges = { new StyleRange(0, index + prefixEnd.length(), JSureClientUtility.getSubtileTextColor(), null) };
             cell.setStyleRanges(ranges);
           }
         }
@@ -199,13 +171,12 @@ public final class ColumnLabelProviderUtility {
         String cellText = null;
         Image cellImage = null;
         if (element.isNew()) {
-          cellImage = element.getImageHelper(element.getImageName(), element.getImageFlags(), true, false, false);
+          cellImage = SLImages.getGrayscaleImage(element.getElementImage());
           cellText = "New";
         } else {
           final IDrop oldDrop = element.getChangedFromDropOrNull();
           if (oldDrop != null) {
-            cellImage = element.getImageHelper(element.getImageNameForChangedFromDrop(), element.getImageFlagsForChangedFromDrop(),
-                true, false, false);
+            cellImage = SLImages.getGrayscaleImage(element.getElementImageChangedFromDropOrNull());
             cellText = "Changed";
             final String whatChanged = element.getMessageAboutWhatChangedOrNull();
             if (whatChanged != null) {
@@ -218,7 +189,7 @@ public final class ColumnLabelProviderUtility {
         }
         if (cellText != null) {
           cell.setText(cellText);
-          cell.setForeground(getSpecialColor());
+          cell.setForeground(JSureClientUtility.getSubtileTextColor());
         }
       }
     }
