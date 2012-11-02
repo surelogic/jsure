@@ -114,6 +114,7 @@ public class JavaRewrite implements JavaGlobals {
       call = CogenUtil.makeDefaultSuperCall();
       // System.out.println("Creating super(): "+call);
     }
+    JavaNode.setModifiers(call, JavaNode.IMPLICIT);
     insertDefaultCall(body, call);
     return true;
   }
@@ -374,7 +375,7 @@ public class JavaRewrite implements JavaGlobals {
   }
 
   private IRNode makeValuesMethod(final IRNode ed) {
-    int mods = JavaNode.PUBLIC | JavaNode.STATIC;
+    int mods = JavaNode.PUBLIC | JavaNode.STATIC | JavaNode.IMPLICIT;
     IRNode type = ArrayType.createNode(makeTypeName(ed), 1);
     IRNode body = OmittedMethodBody.prototype.jjtCreate();
     IRNode rv = CogenUtil.makeMethodDecl(noNodes, mods, noNodes, type, VALUES, noNodes, noNodes, body);
@@ -383,7 +384,7 @@ public class JavaRewrite implements JavaGlobals {
   }
 
   private IRNode makeValueOfMethod(final IRNode ed) {
-    int mods = JavaNode.PUBLIC | JavaNode.STATIC;
+    int mods = JavaNode.PUBLIC | JavaNode.STATIC | JavaNode.IMPLICIT;
     IRNode type = makeTypeName(ed);
     IRNode[] params = new IRNode[] { CogenUtil.makeParamDecl("name", NamedType.createNode("java.lang.String")) };
     IRNode body = OmittedMethodBody.prototype.jjtCreate();
@@ -567,7 +568,7 @@ public class JavaRewrite implements JavaGlobals {
    * For java.lang.Object
    */
   private IRNode makeEmptyConstructor() {
-    int mods = JavaNode.PUBLIC;
+    int mods = JavaNode.PUBLIC | JavaNode.IMPLICIT;
     String cName = "Object";
     IRNode[] params = noNodes;
     IRNode[] stmt = noNodes;
@@ -609,7 +610,7 @@ public class JavaRewrite implements JavaGlobals {
   }
 
   IRNode makeDefaultEnumConstructor(IRNode decl) {
-    int mods = JavaNode.PRIVATE;
+    int mods = JavaNode.PRIVATE | JavaNode.IMPLICIT;
     String cName = JJNode.getInfo(decl);
     IRNode[] stmt = new IRNode[] { makeEnumSuperConstructorCall() };
     IRNode block = BlockStatement.createNode(stmt);
