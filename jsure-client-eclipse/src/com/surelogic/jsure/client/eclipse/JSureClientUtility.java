@@ -12,18 +12,18 @@ import com.surelogic.common.core.EclipseUtility;
 @Utility
 public final class JSureClientUtility {
 
-  private static Color f_subtileTextColor;
+  private static Color f_subtleTextColor;
 
-  public static Color getSubtileTextColor() {
-    if (f_subtileTextColor == null) {
-      f_subtileTextColor = new Color(Display.getCurrent(), 149, 125, 71);
+  public static Color getSubtleTextColor() {
+    if (f_subtleTextColor == null) {
+      f_subtleTextColor = new Color(Display.getCurrent(), 149, 125, 71);
       Display.getCurrent().disposeExec(new Runnable() {
         public void run() {
-          f_subtileTextColor.dispose();
+          f_subtleTextColor.dispose();
         }
       });
     }
-    return f_subtileTextColor;
+    return f_subtleTextColor;
   }
 
   private static Color f_diffHighlightColorNewChanged;
