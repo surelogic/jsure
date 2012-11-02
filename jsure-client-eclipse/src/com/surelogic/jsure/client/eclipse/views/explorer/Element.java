@@ -1,20 +1,14 @@
 package com.surelogic.jsure.client.eclipse.views.explorer;
 
-import java.util.Comparator;
-import java.util.EnumSet;
-
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.SLUtility;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
-import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 abstract class Element {
 
@@ -74,27 +68,12 @@ abstract class Element {
     f_parent = parent;
   }
 
-  private Element[] f_children = null;
-
-  final Element[] getChildren() {
-    if (f_children == null) {
-      f_children = constructChildren();
-    }
-    return f_children;
-  }
+  @NonNull
+  abstract Element[] getChildren();
 
   final boolean hasChildren() {
     return getChildren().length > 0;
   }
-
-  /**
-   * Called once to construct the children of this element. If no children
-   * return {@link #EMPTY}&mdash;do not return {@code null}.
-   * 
-   * @return the non-{@code null} children of this element.
-   */
-  @NonNull
-  abstract Element[] constructChildren();
 
   /**
    * Gets the text label which should appear in the tree portion of the viewer.
@@ -130,25 +109,26 @@ abstract class Element {
    */
   private final boolean searchForWarningHelper(Element e) {
     return false; // TODO
-//    if (e instanceof ElementHintDrop) {
-//      if (((ElementHintDrop) e).getDrop().getHintType() == IHintDrop.HintType.WARNING)
-//        return true;
-//    } else if (e instanceof ElementProofDrop) {
-//      /*
-//       * Stop looking here because the proof drops provide a "deep" answer. We
-//       * do not want to examine children in this case because this could cause
-//       * more of the viewer model to be built out than we need.
-//       */
-//      if (((ElementProofDrop) e).getDrop().derivedFromWarningHint())
-//        return true;
-//      else
-//        return false;
-//    }
-//    boolean result = false;
-//    for (Element c : e.getChildren()) {
-//      result |= searchForWarningHelper(c);
-//    }
-//    return result;
+    // if (e instanceof ElementHintDrop) {
+    // if (((ElementHintDrop) e).getDrop().getHintType() ==
+    // IHintDrop.HintType.WARNING)
+    // return true;
+    // } else if (e instanceof ElementProofDrop) {
+    // /*
+    // * Stop looking here because the proof drops provide a "deep" answer. We
+    // * do not want to examine children in this case because this could cause
+    // * more of the viewer model to be built out than we need.
+    // */
+    // if (((ElementProofDrop) e).getDrop().derivedFromWarningHint())
+    // return true;
+    // else
+    // return false;
+    // }
+    // boolean result = false;
+    // for (Element c : e.getChildren()) {
+    // result |= searchForWarningHelper(c);
+    // }
+    // return result;
   }
 
   private Boolean f_descendantHasDifferenceCache = null;
@@ -178,16 +158,16 @@ abstract class Element {
    */
   private final boolean searchForDifferenceHelper(Element e) {
     return false; // TODO
-//    if (e instanceof ElementDrop) {
-//      final boolean isSame = ((ElementDrop) e).isSame();
-//      if (!isSame)
-//        return true;
-//    }
-//    boolean result = false;
-//    for (Element c : e.getChildren()) {
-//      result |= searchForDifferenceHelper(c);
-//    }
-//    return result;
+    // if (e instanceof ElementDrop) {
+    // final boolean isSame = ((ElementDrop) e).isSame();
+    // if (!isSame)
+    // return true;
+    // }
+    // boolean result = false;
+    // for (Element c : e.getChildren()) {
+    // result |= searchForDifferenceHelper(c);
+    // }
+    // return result;
   }
 
   /**

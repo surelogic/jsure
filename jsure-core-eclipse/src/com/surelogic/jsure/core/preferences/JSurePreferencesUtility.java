@@ -100,6 +100,7 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultIntPreference(VSTATUS_COL_DIFF_WIDTH, 200);
 
       EclipseUtility.setDefaultBooleanPreference(VEXPLORER_HIGHLIGHT_DIFFERENCES, true);
+      EclipseUtility.setDefaultIntPreference(VEXPLORER_COL_TREE_WIDTH, 300);
       EclipseUtility.setDefaultIntPreference(VEXPLORER_COL_DIFF_WIDTH, 200);
 
       /*
@@ -138,6 +139,7 @@ public final class JSurePreferencesUtility {
   public static final String VSTATUS_COL_DIFF_WIDTH = PREFIX + "verification.status.col.diff.width";
 
   public static final String VEXPLORER_HIGHLIGHT_DIFFERENCES = PREFIX + "verification.explorer.highlight.differences";
+  public static final String VEXPLORER_COL_TREE_WIDTH = PREFIX + "verification.explorer.col.tree.width";
   public static final String VEXPLORER_COL_DIFF_WIDTH = PREFIX + "verification.explorer.col.diff.width";
 
   /**

@@ -1,9 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.explorer;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -11,13 +9,9 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
-import com.surelogic.common.CommonImages;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IPromiseDrop;
-import com.surelogic.dropsea.IScopedPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
-import com.surelogic.dropsea.UiShowAtTopLevel;
 import com.surelogic.javac.persistence.JSureScanInfo;
 
 public final class VerificationExplorerViewContentProvider implements ITreeContentProvider {
@@ -64,71 +58,13 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
 
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final JSureScanInfo oldScan,
       @Nullable final ScanDifferences diff, final boolean showHints) {
-//    final List<Element> root = new ArrayList<Element>();
-//    Element.f_showHints = showHints;
-//    Element.f_diff = diff;
-//    final ElementCategory.Categorizer pc = new ElementCategory.Categorizer(null);
-//    for (IPromiseDrop promise : scan.getPromiseDrops()) {
-//      if (promise.isFromSrc() || promise.derivedFromSrc()) {
-//        if (showAtTopLevel(promise)) {
-//          pc.add(promise);
-//        }
-//      }
-//    }
-//    root.addAll(pc.getAllElements());
-//
-//    if (showHints) {
-//      /*
-//       * If the hint is uncategorized we don't show it in this section (it shows
-//       * up under the drop it is attached to).
-//       */
-//      final ElementCategory.Categorizer hc = new ElementCategory.Categorizer(null);
-//      for (IHintDrop hint : scan.getAnalysisHintDrops()) {
-//        if (hint.getCategorizingMessage() != null)
-//          hc.add(hint);
-//      }
-//      if (!hc.isEmpty()) {
-//        final ElementCategory.Builder sw = new ElementCategory.Builder(null);
-//        sw.setLabel(ElementCategory.SPECIAL_HINT_FOLDER_NAME);
-//        sw.setImageName(CommonImages.IMG_INFO);
-//        sw.addCategories(hc.getBuilders());
-//        root.add(sw.build());
-//      }
-//    }
-//    f_root = root.toArray(new Element[root.size()]);
-  }
 
-  /**
-   * Determines if a particular promise should be shown at the root level of the
-   * viewer. A promise is shown at the root level if any of the following
-   * predicates is true:
-   * <ul>
-   * <li>The class that the promise drop is an instance of (in the IR drop-sea)
-   * implements {@link UiShowAtTopLevel}.</li>
-   * <li>The promise drop has no "higher" (deponent) promise drops.</li>
-   * <li>The promise drop has only "higher" (deponent) promise drops that are
-   * scoped promises (they implement {@link IScopedPromiseDrop}).</li>
-   * </ul>
-   * 
-   * @param promise
-   *          a promise.
-   * @return {@code true} if the promise should appear at the root level,
-   *         {@code false} otherwise.
-   */
-  private static boolean showAtTopLevel(IPromiseDrop promise) {
-    if (promise == null)
-      return false;
-    if (promise.instanceOfIRDropSea(UiShowAtTopLevel.class))
-      return true;
-    /*
-     * If we have a deponent promise that is not a scoped promise we do not want
-     * to show at the top level.
-     */
-    for (IPromiseDrop pd : promise.getDeponentPromises()) {
-      if (!(pd instanceof IScopedPromiseDrop))
-        return false;
+    final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer();
+    for (IPromiseDrop pd : scan.getPromiseDrops()) {
+      ElementJavaDecl ejd = tree.getParentOf(pd);
+      // TODO
     }
-    return true;
+    f_root = tree.getRootElements();
   }
 
   /**
@@ -159,10 +95,10 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
       final Element e = queue.poll();
       if (e != null) {
         // is e what we are looking for? TODO
-//        if (e instanceof ElementDrop) {
-//          if (((ElementDrop) e).getDrop().equals(drop))
-//            return e;
-//        }
+        // if (e instanceof ElementDrop) {
+        // if (((ElementDrop) e).getDrop().equals(drop))
+        // return e;
+        // }
         queue.addAll(Arrays.asList(e.getChildren()));
       }
     }
