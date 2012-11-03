@@ -50,6 +50,7 @@ import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.dialogs.ImageDialog;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IModelingProblemDrop;
+import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
@@ -91,7 +92,18 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
         if (e1LineNumber > -1 && e2LineNumber > -1) {
           if (e1LineNumber != e2LineNumber)
             return e1LineNumber - e2LineNumber;
-        }
+          else {
+            boolean e1IsPromise = e1 instanceof ElementDrop ? ((ElementDrop) e1).getDrop() instanceof IPromiseDrop : false;
+            boolean e2IsPromise = e2 instanceof ElementDrop ? ((ElementDrop) e2).getDrop() instanceof IPromiseDrop : false;
+            if (e1IsPromise && !e2IsPromise)
+              return -1;
+            else if (!e1IsPromise && e2IsPromise)
+              return 1;
+          }
+        } else if (e1LineNumber > -1 && e2LineNumber == -1)
+          return -1;
+        else if (e1LineNumber == -1 && e2LineNumber > -1)
+          return 1;
         return Element.ALPHA.compare((Element) e1, (Element) e2);
       }
       return super.compare(viewer, e1, e2);
