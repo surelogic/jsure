@@ -346,7 +346,7 @@ public final class JSureDecoratedImageUtility {
           else
             baseImageName = CommonImages.IMG_RED_X;
         }
-        if (!neverShowProofFlagsOnResultDrop && resultDrop.getTrusted().isEmpty())
+        if (neverShowProofFlagsOnResultDrop || resultDrop.getTrusted().isEmpty())
           flags.clear(); // no flags if not trusting anything
 
       } else if (proofDrop instanceof IResultFolderDrop) {

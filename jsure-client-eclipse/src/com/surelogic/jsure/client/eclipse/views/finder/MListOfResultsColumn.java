@@ -285,37 +285,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
   }
 
   private void setTableItemInfo(TableItem item, IProofDrop data) {
-    String baseImageName = CommonImages.IMG_FOLDER;
-    final EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
-    if (data instanceof IResultDrop) {
-      final IResultDrop rd = (IResultDrop) data;
-      if (rd.isVouched()) {
-        baseImageName = CommonImages.IMG_PLUS_VOUCH;
-      } else if (rd.isConsistent()) {
-        baseImageName = CommonImages.IMG_PLUS;
-      } else if (rd.isTimeout()) {
-        baseImageName = CommonImages.IMG_TIMEOUT_X;
-      } else {
-        baseImageName = CommonImages.IMG_RED_X;
-      }
-    } else if (data instanceof IPromiseDrop) {
-      final IPromiseDrop pd = (IPromiseDrop) data;
-      baseImageName = CommonImages.IMG_ANNOTATION;
-      if (data.provedConsistent())
-        flags.add(Flag.CONSISTENT);
-      else
-        flags.add(Flag.INCONSISTENT);
-      if (data.proofUsesRedDot())
-        flags.add(Flag.REDDOT);
-      if (pd.isAssumed())
-        flags.add(Flag.ASSUME);
-      if (pd.isVirtual())
-        flags.add(Flag.VIRTUAL);
-      if (!pd.isCheckedByAnalysis())
-        flags.add(Flag.TRUSTED);
-    }
-    final Image image = JSureDecoratedImageUtility.getImage(baseImageName, flags);
-
+    final Image image = JSureDecoratedImageUtility.getImageForDrop(data, true);
     item.setText(data.getMessage());
     item.setImage(image);
     item.setData(data);
