@@ -8,6 +8,7 @@ import org.eclipse.swt.graphics.Image;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
@@ -101,6 +102,38 @@ abstract class Element {
    * @return a text label.
    */
   abstract String getLabel();
+
+  int getLineNumber() {
+    return -1;
+  }
+
+  final String getLineNumberAsStringOrNull() {
+    final int line = getLineNumber();
+    if (line < 1)
+      return null;
+    else
+      return Integer.toString(line);
+  }
+
+  IJavaRef.Position getPositionRelativeToDeclarationOrNull() {
+    return null;
+  }
+
+  final String getPositionRelativeToDeclarationAsStringOrNull() {
+    final IJavaRef.Position pos = getPositionRelativeToDeclarationOrNull();
+    if (pos != null)
+      switch (pos) {
+      case ON:
+        return "on the declaration";
+      case ON_RECEIVER:
+        return "on the receiver (this)";
+      case ON_RETURN_VALUE:
+        return "on the return value";
+      case WITHIN:
+        return "within the declaration";
+      }
+    return null;
+  }
 
   private Boolean f_descendantHasWarningHintCache = null;
 

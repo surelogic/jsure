@@ -92,11 +92,11 @@ public final class JSurePreferencesUtility {
 
       EclipseUtility.setDefaultBooleanPreference(VSTATUS_SHOW_HINTS, true);
       EclipseUtility.setDefaultBooleanPreference(VSTATUS_HIGHLIGHT_DIFFERENCES, true);
-      EclipseUtility.setDefaultIntPreference(VSTATUS_COL1_WIDTH, 300);
-      EclipseUtility.setDefaultIntPreference(VSTATUS_COL2_WIDTH, 100);
-      EclipseUtility.setDefaultIntPreference(VSTATUS_COL3_WIDTH, 100);
-      EclipseUtility.setDefaultIntPreference(VSTATUS_COL4_WIDTH, 100);
-      EclipseUtility.setDefaultIntPreference(VSTATUS_COL5_WIDTH, 40);
+      EclipseUtility.setDefaultIntPreference(VSTATUS_TREE_WIDTH, 300);
+      EclipseUtility.setDefaultIntPreference(VSTATUS_PROJECT_WIDTH, 100);
+      EclipseUtility.setDefaultIntPreference(VSTATUS_PACKAGE_WIDTH, 100);
+      EclipseUtility.setDefaultIntPreference(VSTATUS_TYPE_WIDTH, 100);
+      EclipseUtility.setDefaultIntPreference(VSTATUS_LINE_WIDTH, 40);
       EclipseUtility.setDefaultIntPreference(VSTATUS_COL_DIFF_WIDTH, 200);
 
       EclipseUtility.setDefaultBooleanPreference(VEXPLORER_HIGHLIGHT_DIFFERENCES, true);
@@ -105,6 +105,8 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultBooleanPreference(VEXPLORER_SHOW_ONLY_DERIVED_FROM_SRC, true);
       EclipseUtility.setDefaultBooleanPreference(VEXPLORER_SHOW_HINTS, false);
       EclipseUtility.setDefaultIntPreference(VEXPLORER_COL_TREE_WIDTH, 300);
+      EclipseUtility.setDefaultIntPreference(VEXPLORER_COL_POSITION_WIDTH, 100);
+      EclipseUtility.setDefaultIntPreference(VEXPLORER_COL_LINE_WIDTH, 40);
       EclipseUtility.setDefaultIntPreference(VEXPLORER_COL_DIFF_WIDTH, 200);
 
       /*
@@ -135,11 +137,11 @@ public final class JSurePreferencesUtility {
   public static final String VSTATUS_ALPHA_SORT = PREFIX + "verification.status.alpha.sort";
   public static final String VSTATUS_SHOW_HINTS = PREFIX + "verification.status.show.hints";
   public static final String VSTATUS_HIGHLIGHT_DIFFERENCES = PREFIX + "verification.status.highlight.differences";
-  public static final String VSTATUS_COL1_WIDTH = PREFIX + "verification.status.col1.width";
-  public static final String VSTATUS_COL2_WIDTH = PREFIX + "verification.status.col2.width";
-  public static final String VSTATUS_COL3_WIDTH = PREFIX + "verification.status.col3.width";
-  public static final String VSTATUS_COL4_WIDTH = PREFIX + "verification.status.col4.width";
-  public static final String VSTATUS_COL5_WIDTH = PREFIX + "verification.status.col4.width";
+  public static final String VSTATUS_TREE_WIDTH = PREFIX + "verification.status.tree.width";
+  public static final String VSTATUS_PROJECT_WIDTH = PREFIX + "verification.status.project.width";
+  public static final String VSTATUS_PACKAGE_WIDTH = PREFIX + "verification.status.package.width";
+  public static final String VSTATUS_TYPE_WIDTH = PREFIX + "verification.status.type.width";
+  public static final String VSTATUS_LINE_WIDTH = PREFIX + "verification.status.line.width";
   public static final String VSTATUS_COL_DIFF_WIDTH = PREFIX + "verification.status.col.diff.width";
 
   public static final String VEXPLORER_HIGHLIGHT_DIFFERENCES = PREFIX + "verification.explorer.highlight.differences";
@@ -148,6 +150,8 @@ public final class JSurePreferencesUtility {
   public static final String VEXPLORER_SHOW_ONLY_DERIVED_FROM_SRC = PREFIX + "verification.explorer.show.only.derived.from.src";
   public static final String VEXPLORER_SHOW_HINTS = PREFIX + "verification.explorer.show.hints";
   public static final String VEXPLORER_COL_TREE_WIDTH = PREFIX + "verification.explorer.col.tree.width";
+  public static final String VEXPLORER_COL_POSITION_WIDTH = PREFIX + "verification.explorer.col.position.width";
+  public static final String VEXPLORER_COL_LINE_WIDTH = PREFIX + "verification.explorer.col.line.width";
   public static final String VEXPLORER_COL_DIFF_WIDTH = PREFIX + "verification.explorer.col.diff.width";
 
   /**

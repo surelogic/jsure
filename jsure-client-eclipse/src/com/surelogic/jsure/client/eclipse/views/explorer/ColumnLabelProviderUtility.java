@@ -53,6 +53,36 @@ public final class ColumnLabelProviderUtility {
     }
   };
 
+  static final CellLabelProvider POSITION = new CellLabelProvider() {
+
+    @Override
+    public void update(ViewerCell cell) {
+      highlightRowIfNewOrDiff(cell);
+
+      if (cell.getElement() instanceof Element) {
+        final Element element = (Element) cell.getElement();
+        final String line = element.getPositionRelativeToDeclarationAsStringOrNull();
+        if (line != null)
+          cell.setText(line);
+      }
+    }
+  };
+
+  static final CellLabelProvider LINE = new CellLabelProvider() {
+
+    @Override
+    public void update(ViewerCell cell) {
+      highlightRowIfNewOrDiff(cell);
+
+      if (cell.getElement() instanceof Element) {
+        final Element element = (Element) cell.getElement();
+        final String line = element.getLineNumberAsStringOrNull();
+        if (line != null)
+          cell.setText(line);
+      }
+    }
+  };
+
   static final CellLabelProvider DIFF = new CellLabelProvider() {
 
     @Override

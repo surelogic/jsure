@@ -76,11 +76,19 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
   private boolean f_showOnlyDerivedFromSrc;
   private boolean f_showHints;
 
-  private final ViewerSorter f_alphaSorter = new ViewerSorter() {
+  private final ViewerSorter f_alphaLineSorter = new ViewerSorter() {
 
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
       if (e1 instanceof Element && e2 instanceof Element) {
+
+        final int e1LineNumber = ((Element) e1).getLineNumber();
+        final int e2LineNumber = ((Element) e2).getLineNumber();
+
+        if (e1LineNumber > -1 && e2LineNumber > -1) {
+          if (e1LineNumber != e2LineNumber)
+            return e1LineNumber - e2LineNumber;
+        }
         return Element.ALPHA.compare((Element) e1, (Element) e2);
       }
       return super.compare(viewer, e1, e2);
@@ -109,15 +117,27 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
     f_treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
     f_treeViewer.setContentProvider(f_contentProvider);
-    f_treeViewer.setSorter(f_alphaSorter);
+    f_treeViewer.setSorter(f_alphaLineSorter);
     f_treeViewer.getTree().setHeaderVisible(true);
     // f_treeViewer.getTree().setLinesVisible(true);
 
-    final TreeViewerColumn column1 = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
-    column1.setLabelProvider(ColumnLabelProviderUtility.TREE);
-    column1.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_TREE_WIDTH));
-    column1.getColumn().addControlListener(
+    final TreeViewerColumn columnTree = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
+    columnTree.setLabelProvider(ColumnLabelProviderUtility.TREE);
+    columnTree.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_TREE_WIDTH));
+    columnTree.getColumn().addControlListener(
         new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_TREE_WIDTH));
+    final TreeViewerColumn columnPosition = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
+    columnPosition.setLabelProvider(ColumnLabelProviderUtility.POSITION);
+    columnPosition.getColumn().setText("Position");
+    columnPosition.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
+    columnPosition.getColumn().addControlListener(
+        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
+    final TreeViewerColumn columnLine = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    columnLine.setLabelProvider(ColumnLabelProviderUtility.LINE);
+    columnLine.getColumn().setText("Line");
+    columnLine.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
+    columnLine.getColumn().addControlListener(
+        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
     final TreeViewerColumn columnDiff = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnDiff.setLabelProvider(ColumnLabelProviderUtility.DIFF);
     columnDiff.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_DIFF_WIDTH));

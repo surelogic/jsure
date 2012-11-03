@@ -5,11 +5,13 @@ import org.eclipse.swt.graphics.Image;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ref.IJavaRef.Position;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 
-public class ElementDrop extends Element {
+final class ElementDrop extends Element {
 
   /**
    * Adds the passed drop to the tree.
@@ -46,6 +48,11 @@ public class ElementDrop extends Element {
   @NonNull
   private final IDrop f_drop;
 
+  @NonNull
+  IDrop getDrop() {
+    return f_drop;
+  }
+
   @Override
   void addChild(Element child) {
     throw new UnsupportedOperationException();
@@ -73,5 +80,17 @@ public class ElementDrop extends Element {
   @Nullable
   Image getElementImage() {
     return JSureDecoratedImageUtility.getImageForDrop(f_drop, true);
+  }
+
+  @Override
+  int getLineNumber() {
+    final IJavaRef jr = getDrop().getJavaRef();
+    return jr.getLineNumber();
+  }
+
+  @Override
+  Position getPositionRelativeToDeclarationOrNull() {
+    final IJavaRef jr = getDrop().getJavaRef();
+    return jr.getPositionRelativeToDeclaration();
   }
 }
