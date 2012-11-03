@@ -9,6 +9,7 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProofDrop;
@@ -59,12 +60,14 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
 
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final JSureScanInfo oldScan,
       @Nullable final ScanDifferences diff, final boolean showOnlyDifferences, final boolean showOnlyInOldDifferences,
-      final boolean showOnlyDerivedFromSrc, final boolean showHints) {
+      final boolean showOnlyDerivedFromSrc, final boolean showAnalysisResults, final boolean showHints) {
     Element.f_showHints = showHints;
     Element.f_diff = diff;
     final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer();
     for (IProofDrop pd : scan.getProofDrops()) {
       if (showOnlyDerivedFromSrc && !pd.derivedFromSrc())
+        continue;
+      if (!showAnalysisResults && pd instanceof IAnalysisResultDrop)
         continue;
       ElementDrop.addToTree(tree, pd);
     }

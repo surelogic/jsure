@@ -43,6 +43,7 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
@@ -52,6 +53,7 @@ import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.JSureClientUtility;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -74,6 +76,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
   private boolean f_showOnlyDifferences;
   private boolean f_showOnlyInOldDifferences;
   private boolean f_showOnlyDerivedFromSrc;
+  private boolean f_showAnalysisResults;
   private boolean f_showHints;
 
   private final ViewerSorter f_alphaLineSorter = new ViewerSorter() {
@@ -279,6 +282,18 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
+  private final Action f_actionShowAnalysisResults = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      final boolean buttonChecked = f_actionShowAnalysisResults.isChecked();
+      if (f_showAnalysisResults != buttonChecked) {
+        f_showAnalysisResults = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ANALYSIS_RESULTS, f_showAnalysisResults);
+        currentScanChanged(null);
+      }
+    }
+  };
+
   private final Action f_actionShowHints = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
@@ -309,16 +324,15 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
         final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
         if (!s.isEmpty()) {
           final Object first = s.getFirstElement();
-          // TODO
-          // if (first instanceof ElementDrop) {
-          // /*
-          // * Try to open an editor at the point this item references in the
-          // * code
-          // */
-          // final IJavaRef ref = ((ElementDrop) first).getDrop().getJavaRef();
-          // if (ref != null)
-          // Activator.highlightLineInJavaEditor(ref);
-          // }
+          if (first instanceof ElementDrop) {
+            /*
+             * Try to open an editor at the point this item references in the
+             * code
+             */
+            final IJavaRef ref = ((ElementDrop) first).getDrop().getJavaRef();
+            if (ref != null)
+              Activator.highlightLineInJavaEditor(ref);
+          }
           // open up the tree one more level
           if (!f_treeViewer.getExpandedState(first)) {
             f_treeViewer.expandToLevel(first, 1);
@@ -363,6 +377,12 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_actionShowOnlyDerivedFromSrc.setToolTipText("Show only results derived from Java source code (directly or indirectly)");
     f_showOnlyDerivedFromSrc = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_DERIVED_FROM_SRC);
     f_actionShowOnlyDerivedFromSrc.setChecked(f_showOnlyDerivedFromSrc);
+
+    f_actionShowAnalysisResults.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ANALYSIS_RESULT));
+    f_actionShowAnalysisResults.setText("Show Analysis Results");
+    f_actionShowAnalysisResults.setToolTipText("Show analysis results about the code");
+    f_showAnalysisResults = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ANALYSIS_RESULTS);
+    f_actionShowAnalysisResults.setChecked(f_showAnalysisResults);
 
     f_actionShowHints.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
     f_actionShowHints.setText("Show Information/Warning Hints");
@@ -420,6 +440,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     pulldown.add(f_actionShowOnlyInOldDifferences);
     pulldown.add(new Separator());
     pulldown.add(f_actionShowOnlyDerivedFromSrc);
+    pulldown.add(f_actionShowAnalysisResults);
     pulldown.add(f_actionShowHints);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
@@ -434,6 +455,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     toolbar.add(f_actionShowOnlyInOldDifferences);
     toolbar.add(new Separator());
     toolbar.add(f_actionShowOnlyDerivedFromSrc);
+    toolbar.add(f_actionShowAnalysisResults);
     toolbar.add(f_actionShowHints);
   }
 
@@ -448,7 +470,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       }
       final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
       f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, f_showOnlyDifferences, f_showOnlyInOldDifferences,
-          f_showOnlyDerivedFromSrc, f_showHints);
+          f_showOnlyDerivedFromSrc, f_showAnalysisResults, f_showHints);
       final int modelProblemCount = getModelProblemCount(scan);
       setModelProblemIndicatorState(modelProblemCount);
       setViewerVisibility(true);

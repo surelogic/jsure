@@ -103,6 +103,7 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultBooleanPreference(VEXPLORER_SHOW_ONLY_IN_OLD_DIFFERENCES, false);
       EclipseUtility.setDefaultBooleanPreference(VEXPLORER_SHOW_ONLY_DIFFERENCES, false);
       EclipseUtility.setDefaultBooleanPreference(VEXPLORER_SHOW_ONLY_DERIVED_FROM_SRC, true);
+      EclipseUtility.setDefaultBooleanPreference(VEXPLORER_SHOW_ANALYSIS_RESULTS, false);
       EclipseUtility.setDefaultBooleanPreference(VEXPLORER_SHOW_HINTS, false);
       EclipseUtility.setDefaultIntPreference(VEXPLORER_COL_TREE_WIDTH, 300);
       EclipseUtility.setDefaultIntPreference(VEXPLORER_COL_POSITION_WIDTH, 100);
@@ -148,6 +149,7 @@ public final class JSurePreferencesUtility {
   public static final String VEXPLORER_SHOW_ONLY_IN_OLD_DIFFERENCES = PREFIX + "verification.explorer.only.in.old.differences";
   public static final String VEXPLORER_SHOW_ONLY_DIFFERENCES = PREFIX + "verification.explorer.only.differences";
   public static final String VEXPLORER_SHOW_ONLY_DERIVED_FROM_SRC = PREFIX + "verification.explorer.show.only.derived.from.src";
+  public static final String VEXPLORER_SHOW_ANALYSIS_RESULTS = PREFIX + "verification.explorer.show.analysis.results";
   public static final String VEXPLORER_SHOW_HINTS = PREFIX + "verification.explorer.show.hints";
   public static final String VEXPLORER_COL_TREE_WIDTH = PREFIX + "verification.explorer.col.tree.width";
   public static final String VEXPLORER_COL_POSITION_WIDTH = PREFIX + "verification.explorer.col.position.width";
