@@ -21,6 +21,13 @@ import com.surelogic.Nullable;
 import com.surelogic.Utility;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IHintDrop;
+import com.surelogic.dropsea.IPromiseDrop;
+import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.IProposedPromiseDrop;
+import com.surelogic.dropsea.IResultDrop;
+import com.surelogic.dropsea.IResultFolderDrop;
 
 /**
  * An image descriptor for JSure verification results. It decorates an image
@@ -67,7 +74,7 @@ public final class JSureDecoratedImageUtility {
    *          flags indicating which adornments are to be rendered from
    *          {@link Flag}, or use {@link EnumSet#noneOf(Class)} for none.
    * @param size
-   *          the size of the resulting image. Set to {@link #JSURE_ICONSIZE} if
+   *          the size of the resulting image. Set to {@link #SIZE} if
    *          {@code null}.
    * @return an image that is managed by this utility, please do not call
    *         {@link Image#dispose()} on it.
@@ -127,7 +134,7 @@ public final class JSureDecoratedImageUtility {
    *          flags indicating which adornments are to be rendered from
    *          {@link Flag}, or use {@link EnumSet#noneOf(Class)} for none.
    * @param size
-   *          the size of the resulting image. Set to {@link #JSURE_ICONSIZE} if
+   *          the size of the resulting image. Set to {@link #SIZE} if
    *          {@code null}.
    * @return an image that is managed by this utility, please do not call
    *         {@link Image#dispose()} on it.
@@ -186,7 +193,7 @@ public final class JSureDecoratedImageUtility {
    *          flags indicating which adornments are to be rendered from
    *          {@link Flag}, or use {@link EnumSet#noneOf(Class)} for none.
    * @param size
-   *          the size of the resulting image. Set to {@link #JSURE_ICONSIZE} if
+   *          the size of the resulting image. Set to {@link #SIZE} if
    *          {@code null}.
    * @return an image that is managed by this utility, please do not call
    *         {@link Image#dispose()} on it.
@@ -246,7 +253,7 @@ public final class JSureDecoratedImageUtility {
    *          flags indicating which adornments are to be rendered from
    *          {@link Flag}, or use {@link EnumSet#noneOf(Class)} for none.
    * @param size
-   *          the size of the resulting image. Set to {@link #JSURE_ICONSIZE} if
+   *          the size of the resulting image. Set to {@link #SIZE} if
    *          {@code null}.
    * @return an image that is managed by this utility, please do not call
    *         {@link Image#dispose()} on it.
@@ -274,6 +281,101 @@ public final class JSureDecoratedImageUtility {
    */
   public static Image getGrayscaleImage(@NonNull final String baseImageName, @NonNull final EnumSet<Flag> flags) {
     return getGrayscaleImage(baseImageName, flags, SIZE);
+  }
+
+  /**
+   * Gets a appropriate decorated image for the passed drop. The image is cached
+   * to avoid running out of SWT Image objects.
+   * <p>
+   * Note that clients <b>must not</b> dispose the image returned by this
+   * method.
+   * 
+   * @param drop
+   *          any drop.
+   * @param neverShowProofFlagsOnResultDrop
+   *          {@code true} if proof drop decorations (proved consistent and red
+   *          dot) should never be added to an image for an {@link IResultDrop},
+   *          {@code false} if decorations should be added if the result drop
+   *          has trusted drops.
+   * @param size
+   *          the size of the resulting image. Set to {@link #SIZE} if
+   *          {@code null}.
+   * @return an image that is managed by this utility, please do not call
+   *         {@link Image#dispose()} on it.
+   */
+  @NonNull
+  public static Image getImageForDrop(@NonNull final IDrop drop, final boolean neverShowProofFlagsOnResultDrop, @Nullable Point size) {
+    if (drop == null)
+      return getImage(CommonImages.IMG_UNKNOWN);
+    final EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
+    String baseImageName = CommonImages.IMG_UNKNOWN;
+
+    if (drop instanceof IHintDrop) {
+      final IHintDrop hintDrop = (IHintDrop) drop;
+      if (hintDrop.getHintType() == IHintDrop.HintType.WARNING)
+        baseImageName = CommonImages.IMG_WARNING;
+      else
+        baseImageName = CommonImages.IMG_INFO;
+
+    } else if (drop instanceof IProofDrop) {
+      final IProofDrop proofDrop = (IProofDrop) drop;
+      flags.add(proofDrop.provedConsistent() ? Flag.CONSISTENT : Flag.INCONSISTENT);
+      if (proofDrop.proofUsesRedDot())
+        flags.add(Flag.REDDOT);
+
+      if (proofDrop instanceof IPromiseDrop) {
+        baseImageName = CommonImages.IMG_ANNOTATION;
+        final IPromiseDrop promiseDrop = (IPromiseDrop) proofDrop;
+        if (promiseDrop.isVirtual())
+          flags.add(Flag.VIRTUAL);
+        if (promiseDrop.isAssumed())
+          flags.add(Flag.ASSUME);
+        if (!promiseDrop.isCheckedByAnalysis())
+          flags.add(Flag.TRUSTED);
+
+      } else if (proofDrop instanceof IProposedPromiseDrop) {
+        baseImageName = CommonImages.IMG_ANNOTATION_PROPOSED;
+
+      } else if (proofDrop instanceof IResultDrop) {
+        final IResultDrop resultDrop = (IResultDrop) proofDrop;
+        if (resultDrop.isConsistent())
+          baseImageName = CommonImages.IMG_PLUS;
+        else {
+          if (resultDrop.isVouched())
+            baseImageName = CommonImages.IMG_PLUS_VOUCH;
+          else
+            baseImageName = CommonImages.IMG_RED_X;
+        }
+        if (!neverShowProofFlagsOnResultDrop && resultDrop.getTrusted().isEmpty())
+          flags.clear(); // no flags if not trusting anything
+
+      } else if (proofDrop instanceof IResultFolderDrop) {
+        baseImageName = CommonImages.IMG_FOLDER;
+      }
+    }
+    return getImage(baseImageName, flags, size);
+  }
+
+  /**
+   * Gets a appropriate decorated image of {@link #SIZE} for the passed drop.
+   * The image is cached to avoid running out of SWT Image objects.
+   * <p>
+   * Note that clients <b>must not</b> dispose the image returned by this
+   * method.
+   * 
+   * @param drop
+   *          any drop.
+   * @param neverShowProofFlagsOnResultDrop
+   *          {@code true} if proof drop decorations (proved consistent and red
+   *          dot) should never be added to an image for an {@link IResultDrop},
+   *          {@code false} if decorations should be added if the result drop
+   *          has trusted drops.
+   * @return an image that is managed by this utility, please do not call
+   *         {@link Image#dispose()} on it.
+   */
+  @NonNull
+  public static Image getImageForDrop(@NonNull final IDrop drop, final boolean neverShowProofFlagsOnResultDrop) {
+    return getImageForDrop(drop, neverShowProofFlagsOnResultDrop, null);
   }
 
   /**

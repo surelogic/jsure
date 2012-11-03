@@ -58,7 +58,7 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
 
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final JSureScanInfo oldScan,
       @Nullable final ScanDifferences diff, final boolean showOnlyDifferences, final boolean showOnlyInOldDifferences,
-      final boolean showOnlyIsFromSource, final boolean showHints) {
+      final boolean showOnlyDerivedFromSrc, final boolean showHints) {
     Element.f_showHints = showHints;
     Element.f_diff = diff;
     final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer();

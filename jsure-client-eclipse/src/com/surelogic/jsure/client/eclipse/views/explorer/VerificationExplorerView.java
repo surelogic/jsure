@@ -73,7 +73,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
   private boolean f_highlightDifferences;
   private boolean f_showOnlyDifferences;
   private boolean f_showOnlyInOldDifferences;
-  private boolean f_showOnlyIsFromSource;
+  private boolean f_showOnlyDerivedFromSrc;
   private boolean f_showHints;
 
   private final ViewerSorter f_alphaSorter = new ViewerSorter() {
@@ -247,13 +247,13 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
-  private final Action f_actionShowOnlyIsFromSource = new Action("", IAction.AS_CHECK_BOX) {
+  private final Action f_actionShowOnlyDerivedFromSrc = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
-      final boolean buttonChecked = f_actionShowOnlyIsFromSource.isChecked();
-      if (f_showOnlyIsFromSource != buttonChecked) {
-        f_showOnlyIsFromSource = buttonChecked;
-        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_IS_FROM_SOURCE, f_showOnlyIsFromSource);
+      final boolean buttonChecked = f_actionShowOnlyDerivedFromSrc.isChecked();
+      if (f_showOnlyDerivedFromSrc != buttonChecked) {
+        f_showOnlyDerivedFromSrc = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_DERIVED_FROM_SRC, f_showOnlyDerivedFromSrc);
         currentScanChanged(null);
       }
     }
@@ -338,11 +338,11 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
         .getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_IN_OLD_DIFFERENCES);
     f_actionShowOnlyInOldDifferences.setChecked(f_showOnlyInOldDifferences);
 
-    f_actionShowOnlyIsFromSource.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_COMP_UNIT));
-    f_actionShowOnlyIsFromSource.setText("Show Only Results Derived From Source");
-    f_actionShowOnlyIsFromSource.setToolTipText("Show only results derived from Java source code");
-    f_showOnlyIsFromSource = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_IS_FROM_SOURCE);
-    f_actionShowOnlyIsFromSource.setChecked(f_showOnlyIsFromSource);
+    f_actionShowOnlyDerivedFromSrc.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_COMP_UNIT));
+    f_actionShowOnlyDerivedFromSrc.setText("Show Only Results Derived From Source");
+    f_actionShowOnlyDerivedFromSrc.setToolTipText("Show only results derived from Java source code (directly or indirectly)");
+    f_showOnlyDerivedFromSrc = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_DERIVED_FROM_SRC);
+    f_actionShowOnlyDerivedFromSrc.setChecked(f_showOnlyDerivedFromSrc);
 
     f_actionShowHints.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
     f_actionShowHints.setText("Show Information/Warning Hints");
@@ -399,7 +399,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     pulldown.add(f_actionShowOnlyDifferences);
     pulldown.add(f_actionShowOnlyInOldDifferences);
     pulldown.add(new Separator());
-    pulldown.add(f_actionShowOnlyIsFromSource);
+    pulldown.add(f_actionShowOnlyDerivedFromSrc);
     pulldown.add(f_actionShowHints);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
@@ -413,7 +413,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     toolbar.add(f_actionShowOnlyDifferences);
     toolbar.add(f_actionShowOnlyInOldDifferences);
     toolbar.add(new Separator());
-    toolbar.add(f_actionShowOnlyIsFromSource);
+    toolbar.add(f_actionShowOnlyDerivedFromSrc);
     toolbar.add(f_actionShowHints);
   }
 
@@ -428,7 +428,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       }
       final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
       f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, f_showOnlyDifferences, f_showOnlyInOldDifferences,
-          f_showOnlyIsFromSource, f_showHints);
+          f_showOnlyDerivedFromSrc, f_showHints);
       final int modelProblemCount = getModelProblemCount(scan);
       setModelProblemIndicatorState(modelProblemCount);
       setViewerVisibility(true);

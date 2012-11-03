@@ -1,6 +1,9 @@
 package com.surelogic.dropsea;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
@@ -229,5 +232,45 @@ public final class ScanDifferences {
         return true;
     }
     return false;
+  }
+
+  @Nullable
+  public static String getMessageAboutWhatChanged(IDrop oldDrop, IDrop newDrop) {
+    if (newDrop == null || oldDrop == null || newDrop == oldDrop)
+      return null;
+    final StringBuilder b = new StringBuilder();
+    if (oldDrop instanceof IProofDrop && newDrop instanceof IProofDrop) {
+      final IProofDrop oldProofDrop = (IProofDrop) oldDrop;
+      final IProofDrop newProofDrop = (IProofDrop) newDrop;
+      if (newProofDrop.provedConsistent() && !oldProofDrop.provedConsistent())
+        b.append("consistent with code, ");
+      else if (!newProofDrop.provedConsistent() && oldProofDrop.provedConsistent())
+        b.append("not consistent with code, ");
+      if (newProofDrop.proofUsesRedDot() && !oldProofDrop.proofUsesRedDot())
+        b.append("contingent (red-dot), ");
+      else if (!newProofDrop.proofUsesRedDot() && oldProofDrop.proofUsesRedDot())
+        b.append("not contingent (no red-dot), ");
+
+      if (oldProofDrop instanceof IResultDrop && newProofDrop instanceof IResultDrop) {
+        final IResultDrop oldResultDrop = (IResultDrop) oldProofDrop;
+        final IResultDrop newResultDrop = (IResultDrop) newProofDrop;
+        if (newResultDrop.isConsistent() && !oldResultDrop.isConsistent())
+          b.append("consistent analysis result, ");
+        else if (!newResultDrop.isConsistent() && oldResultDrop.isConsistent())
+          b.append("inconsistent analysis result, ");
+        if (newResultDrop.isTimeout() && !oldResultDrop.isTimeout())
+          b.append("analysis execution timed out, ");
+        else if (!newResultDrop.isTimeout() && oldResultDrop.isTimeout())
+          b.append("analysis execution did not time out, ");
+        if (newResultDrop.isVouched() && !oldResultDrop.isVouched())
+          b.append("programmer vouch, ");
+        else if (!newResultDrop.isVouched() && oldResultDrop.isVouched())
+          b.append("no programmer vouch, ");
+      }
+      if (b.length() > 0)
+        // remove last ", "
+        return b.delete(b.length() - 2, b.length()).toString();
+    }
+    return null;
   }
 }

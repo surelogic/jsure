@@ -5,12 +5,15 @@ import com.surelogic.dropsea.IAnalysisResultDrop;
 
 abstract class ElementAnalysisResultDrop extends ElementProofDrop {
 
-  protected ElementAnalysisResultDrop(Element parent) {
-    super(parent);
+  protected ElementAnalysisResultDrop(Element parent, @NonNull IAnalysisResultDrop analysisResultDrop) {
+    super(parent, analysisResultDrop);
   }
 
   @Override
-  abstract IAnalysisResultDrop getDrop();
+  @NonNull
+  IAnalysisResultDrop getDrop() {
+    return (IAnalysisResultDrop) super.getDrop();
+  }
 
   @Override
   @NonNull
