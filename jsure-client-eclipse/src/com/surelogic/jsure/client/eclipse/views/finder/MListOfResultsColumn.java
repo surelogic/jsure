@@ -1,6 +1,5 @@
 package com.surelogic.jsure.client.eclipse.views.finder;
 
-import java.util.EnumSet;
 import java.util.List;
 
 import org.apache.commons.lang3.SystemUtils;
@@ -21,21 +20,17 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.progress.UIJob;
 
-import com.surelogic.common.CommonImages;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.CascadingList;
 import com.surelogic.common.ui.CascadingList.IColumn;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.TableUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
-import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
-import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.model.selection.ISelectionObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
-import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 import com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView;
 
 public final class MListOfResultsColumn extends MColumn implements ISelectionObserver {
