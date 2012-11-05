@@ -9,19 +9,19 @@ public final class TestDiffInfo extends TestCase {
 
   public void testNoCommaInKey() {
     try {
-      DiffInfoUtility.getStringInstance("K,EY", "test");
+      KeyValueUtility.getStringInstance("K,EY", "test");
       fail("Key name allowed to contain a comma");
     } catch (Exception ignore) {
       // test passed
     }
     try {
-      DiffInfoUtility.getIntInstance("K,EY", 56);
+      KeyValueUtility.getIntInstance("K,EY", 56);
       fail("Key name allowed to contain a comma");
     } catch (Exception ignore) {
       // test passed
     }
     try {
-      DiffInfoUtility.getLongInstance("K,EY", 56l);
+      KeyValueUtility.getLongInstance("K,EY", 56l);
       fail("Key name allowed to contain a comma");
     } catch (Exception ignore) {
       // test passed
@@ -29,7 +29,7 @@ public final class TestDiffInfo extends TestCase {
   }
 
   public void testStringValue() {
-    IKeyValue di = DiffInfoUtility.getStringInstance("KEY", "test");
+    IKeyValue di = KeyValueUtility.getStringInstance("KEY", "test");
 
     assertEquals("KEY", di.getKey());
     assertEquals("test", di.getValueAsString());
@@ -38,7 +38,7 @@ public final class TestDiffInfo extends TestCase {
   }
 
   public void testIntValue() {
-    IKeyValue di = DiffInfoUtility.getIntInstance("KEY-INT", 56);
+    IKeyValue di = KeyValueUtility.getIntInstance("KEY-INT", 56);
 
     assertEquals("KEY-INT", di.getKey());
     assertEquals("56", di.getValueAsString());
@@ -47,7 +47,7 @@ public final class TestDiffInfo extends TestCase {
   }
 
   public void testLongValue() {
-    IKeyValue di = DiffInfoUtility.getLongInstance("KEY-LONG", 56l);
+    IKeyValue di = KeyValueUtility.getLongInstance("KEY-LONG", 56l);
 
     assertEquals("KEY-LONG", di.getKey());
     assertEquals("56", di.getValueAsString());
@@ -56,7 +56,7 @@ public final class TestDiffInfo extends TestCase {
   }
 
   public void testBigLongValue() {
-    IKeyValue di = DiffInfoUtility.getLongInstance("KEY-LONG", Long.MAX_VALUE);
+    IKeyValue di = KeyValueUtility.getLongInstance("KEY-LONG", Long.MAX_VALUE);
 
     assertEquals("KEY-LONG", di.getKey());
     assertEquals(Long.toString(Long.MAX_VALUE), di.getValueAsString());
@@ -65,13 +65,13 @@ public final class TestDiffInfo extends TestCase {
   }
 
   public void testIDiffInfoPersistenceAndValueObject() {
-    IKeyValue t1 = DiffInfoUtility.getStringInstance("KEY", "this is a \n long test\t\t\tof the value");
-    IKeyValue t2 = DiffInfoUtility.getIntInstance("KEYINT", 56);
-    IKeyValue t3 = DiffInfoUtility.getLongInstance("LONGKEY", 56l);
+    IKeyValue t1 = KeyValueUtility.getStringInstance("KEY", "this is a \n long test\t\t\tof the value");
+    IKeyValue t2 = KeyValueUtility.getIntInstance("KEYINT", 56);
+    IKeyValue t3 = KeyValueUtility.getLongInstance("LONGKEY", 56l);
 
-    IKeyValue c1 = DiffInfoUtility.parseEncodedForPersistence(t1.encodeForPersistence());
-    IKeyValue c2 = DiffInfoUtility.parseEncodedForPersistence(t2.encodeForPersistence());
-    IKeyValue c3 = DiffInfoUtility.parseEncodedForPersistence(t3.encodeForPersistence());
+    IKeyValue c1 = KeyValueUtility.parseEncodedForPersistence(t1.encodeForPersistence());
+    IKeyValue c2 = KeyValueUtility.parseEncodedForPersistence(t2.encodeForPersistence());
+    IKeyValue c3 = KeyValueUtility.parseEncodedForPersistence(t3.encodeForPersistence());
 
     assertEquals(t1, c1);
     assertNotSame(t1, c1);
@@ -87,10 +87,10 @@ public final class TestDiffInfo extends TestCase {
 
   public void testIDiffInfoListPersistence() {
     final String s = "this is a \n long test\t\t\tof the value    ";
-    IKeyValue t1 = DiffInfoUtility.getStringInstance("KEY", s);
-    IKeyValue t2 = DiffInfoUtility.getIntInstance("KEYINT", 56);
-    IKeyValue t3 = DiffInfoUtility.getLongInstance("LONGKEY", 56l);
-    IKeyValue t4 = DiffInfoUtility.getLongInstance("KEY-LONG", Long.MAX_VALUE);
+    IKeyValue t1 = KeyValueUtility.getStringInstance("KEY", s);
+    IKeyValue t2 = KeyValueUtility.getIntInstance("KEYINT", 56);
+    IKeyValue t3 = KeyValueUtility.getLongInstance("LONGKEY", 56l);
+    IKeyValue t4 = KeyValueUtility.getLongInstance("KEY-LONG", Long.MAX_VALUE);
 
     List<IKeyValue> l1 = new ArrayList<IKeyValue>();
     l1.add(t1);
@@ -98,10 +98,10 @@ public final class TestDiffInfo extends TestCase {
     l1.add(t3);
     l1.add(t4);
 
-    String el1 = DiffInfoUtility.encodeListForPersistence(l1);
+    String el1 = KeyValueUtility.encodeListForPersistence(l1);
 
-    List<IKeyValue> l2 = DiffInfoUtility.parseListEncodedForPersistence(el1);
-    String el2 = DiffInfoUtility.encodeListForPersistence(l2);
+    List<IKeyValue> l2 = KeyValueUtility.parseListEncodedForPersistence(el1);
+    String el2 = KeyValueUtility.encodeListForPersistence(l2);
 
     assertEquals(l1, l2);
     assertEquals(el1, el2);
@@ -112,10 +112,10 @@ public final class TestDiffInfo extends TestCase {
   public void testIDiffInfoEmptyListPersistence() {
     List<IKeyValue> l1 = new ArrayList<IKeyValue>();
 
-    String el1 = DiffInfoUtility.encodeListForPersistence(l1);
+    String el1 = KeyValueUtility.encodeListForPersistence(l1);
 
-    List<IKeyValue> l2 = DiffInfoUtility.parseListEncodedForPersistence(el1);
-    String el2 = DiffInfoUtility.encodeListForPersistence(l2);
+    List<IKeyValue> l2 = KeyValueUtility.parseListEncodedForPersistence(el1);
+    String el2 = KeyValueUtility.encodeListForPersistence(l2);
 
     assertEquals(l1, l2);
     assertEquals(el1, el2);

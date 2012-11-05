@@ -14,7 +14,7 @@ import com.surelogic.common.i18n.I18N;
  * A utility to construct, encode, and decode {@link IKeyValue} instances.
  */
 @Utility
-public final class DiffInfoUtility {
+public final class KeyValueUtility {
 
   /**
    * Constructs a string-valued {@link IKeyValue} instance.
@@ -376,7 +376,7 @@ public final class DiffInfoUtility {
     }
   }
 
-  private DiffInfoUtility() {
+  private KeyValueUtility() {
     // no instances
   }
 }

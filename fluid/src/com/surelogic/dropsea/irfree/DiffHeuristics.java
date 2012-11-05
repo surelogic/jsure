@@ -45,7 +45,7 @@ public class DiffHeuristics {
 			if (value < 0) {
 				SLLogger.getLogger().warning("Negative "+attr+" ("+value+") for "+drop.getMessage());
 			} 
-			drop.addOrReplaceDiffInfo(DiffInfoUtility.getIntInstance(attr, value));
+			drop.addOrReplaceDiffInfo(KeyValueUtility.getIntInstance(attr, value));
 		}
 	}
 

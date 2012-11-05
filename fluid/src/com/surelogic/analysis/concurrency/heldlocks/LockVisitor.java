@@ -47,7 +47,7 @@ import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.dropsea.DiffInfoUtility;
+import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.IDiffInfo;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
@@ -1709,7 +1709,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
         if (ctxtOnBehalfOfConstructor) {
           addSupportingInformation(resultDrop, ctxtInsideConstructor, Messages.LockAnalysis_ds_OnBehalfOfConstructor,
               ctxtConstructorName);
-          final IKeyValue diffInfo = DiffInfoUtility.getStringInstance(IDiffInfo.ANALYSIS_DIFF_HINT, ctxtConstructorName);
+          final IKeyValue diffInfo = KeyValueUtility.getStringInstance(IDiffInfo.ANALYSIS_DIFF_HINT, ctxtConstructorName);
           resultDrop.addOrReplaceDiffInfo(diffInfo);
         }
 				if (lhr == LockHeldResult.THREAD_CONFINED) {

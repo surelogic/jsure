@@ -32,7 +32,7 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
-import com.surelogic.dropsea.DiffInfoUtility;
+import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.IDiffInfo;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
@@ -894,9 +894,9 @@ public abstract class Drop implements IDrop {
    * To construct the {@link IKeyValue} instance to pass to this method, please
    * use one of:
    * <ul>
-   * <li>{@link DiffInfoUtility#getStringInstance(String, String)}</li>
-   * <li>{@link DiffInfoUtility#getIntInstance(String, int)}</li>
-   * <li>{@link DiffInfoUtility#getLongInstance(String, long)}</li>
+   * <li>{@link KeyValueUtility#getStringInstance(String, String)}</li>
+   * <li>{@link KeyValueUtility#getIntInstance(String, int)}</li>
+   * <li>{@link KeyValueUtility#getLongInstance(String, long)}</li>
    * </ul>
    * 
    * @param value
@@ -1025,8 +1025,8 @@ public abstract class Drop implements IDrop {
      * Compute diff information we want to pass along into the results
      */
     DiffHeuristics.computeDiffInfo(this, getJavaRefAndCorrespondingNode());
-    addOrReplaceDiffInfo(DiffInfoUtility.getLongInstance(IDiffInfo.FAST_TREE_HASH, SeaSnapshot.computeHash(getNode())));
-    addOrReplaceDiffInfo(DiffInfoUtility.getLongInstance(IDiffInfo.FAST_CONTEXT_HASH, SeaSnapshot.computeContextHash(getNode())));
+    addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(IDiffInfo.FAST_TREE_HASH, SeaSnapshot.computeHash(getNode())));
+    addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(IDiffInfo.FAST_CONTEXT_HASH, SeaSnapshot.computeContextHash(getNode())));
     /*
      * Output diff information
      * 
@@ -1034,7 +1034,7 @@ public abstract class Drop implements IDrop {
      * Entities instance for that purpose. Should be all on one line.
      */
     if (!f_diffInfos.isEmpty())
-      s.addAttribute(DIFF_INFO, DiffInfoUtility.encodeListForPersistence(f_diffInfos), Entities.Holder.DEFAULT_PLUS_WHITESPACE);
+      s.addAttribute(DIFF_INFO, KeyValueUtility.encodeListForPersistence(f_diffInfos), Entities.Holder.DEFAULT_PLUS_WHITESPACE);
   }
 
   @MustInvokeOnOverride
