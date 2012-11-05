@@ -5,7 +5,7 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-public final class TestDiffInfo extends TestCase {
+public final class TestKeyValue extends TestCase {
 
   public void testNoCommaInKey() {
     try {
@@ -64,7 +64,7 @@ public final class TestDiffInfo extends TestCase {
     assertEquals(Long.MAX_VALUE, di.getValueAsLong(-1));
   }
 
-  public void testIDiffInfoPersistenceAndValueObject() {
+  public void testIKeyValuePersistenceAndValueObject() {
     IKeyValue t1 = KeyValueUtility.getStringInstance("KEY", "this is a \n long test\t\t\tof the value");
     IKeyValue t2 = KeyValueUtility.getIntInstance("KEYINT", 56);
     IKeyValue t3 = KeyValueUtility.getLongInstance("LONGKEY", 56l);
@@ -85,7 +85,7 @@ public final class TestDiffInfo extends TestCase {
     assertEquals(t3.encodeForPersistence(), c3.encodeForPersistence());
   }
 
-  public void testIDiffInfoListPersistence() {
+  public void testIKeyValueListPersistence() {
     final String s = "this is a \n long test\t\t\tof the value    ";
     IKeyValue t1 = KeyValueUtility.getStringInstance("KEY", s);
     IKeyValue t2 = KeyValueUtility.getIntInstance("KEYINT", 56);
@@ -109,7 +109,7 @@ public final class TestDiffInfo extends TestCase {
     assertEquals(s, l2.get(0).getValueAsString());
   }
 
-  public void testIDiffInfoEmptyListPersistence() {
+  public void testIKeyValueEmptyListPersistence() {
     List<IKeyValue> l1 = new ArrayList<IKeyValue>();
 
     String el1 = KeyValueUtility.encodeListForPersistence(l1);
