@@ -94,7 +94,7 @@ public class DeclFactory {
     }
     final Operator op = JJNode.tree.getOperator(here);
     if (Declaration.prototype.includes(op) || op instanceof TypeDeclInterface) {
-      return new Pair<IDecl, IJavaRef.Position>(decl, IJavaRef.Position.ON);
+      return new Pair<IDecl, IJavaRef.Position>(decl, IJavaRef.Position.IS_DECL);
     }
     else if (ReceiverDeclaration.prototype.includes(op)) {
         return new Pair<IDecl, IJavaRef.Position>(decl, IJavaRef.Position.ON_RECEIVER);
@@ -102,7 +102,7 @@ public class DeclFactory {
     else if (ReturnValueDeclaration.prototype.includes(op)) {
         return new Pair<IDecl, IJavaRef.Position>(decl, IJavaRef.Position.ON_RETURN_VALUE);
     }
-    return new Pair<IDecl, IJavaRef.Position>(decl, IJavaRef.Position.WITHIN);
+    return new Pair<IDecl, IJavaRef.Position>(decl, IJavaRef.Position.WITHIN_DECL);
   }
 
   private DeclBuilder buildDecl(IRNode here) {

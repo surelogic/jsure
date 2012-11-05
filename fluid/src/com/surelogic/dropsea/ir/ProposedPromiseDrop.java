@@ -16,10 +16,13 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_PROJECT;
 import java.util.Collections;
 import java.util.Map;
 
+import com.surelogic.NonNull;
 import com.surelogic.analysis.JavaProjects;
+import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ref.IJavaRef.Position;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
@@ -272,12 +275,22 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   }
 
   public IJavaRef getAssumptionRef() {
-    final IJavaRef ref = JavaNode.getJavaRef(f_requestedFrom);
-    if (ref == null) {
+    IJavaRef result = JavaNode.getJavaRef(f_requestedFrom);
+    if (result == null) {
       final IRNode parent = JavaPromise.getParentOrPromisedFor(f_requestedFrom);
-      return JavaNode.getJavaRef(parent);
+      result = JavaNode.getJavaRef(parent);
     }
-    return ref;
+    if (result != null) {
+      // check position
+      Position position = result.getPositionRelativeToDeclaration();
+      if (position == Position.IS_DECL) {
+        position = Position.ON_DECL;
+        final JavaRef.Builder builder = new JavaRef.Builder(result);
+        builder.setPositionRelativeToDeclaration(position);
+        result = builder.build();
+      }
+    }
+    return result;
   }
 
   /**
@@ -404,5 +417,21 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
 
   public String getFromProjectName() {
     return JavaProjects.getEnclosingProject(f_requestedFrom).getName();
+  }
+
+  @Override
+  @NonNull
+  protected Pair<IJavaRef, IRNode> getJavaRefAndCorrespondingNode() {
+    final Pair<IJavaRef, IRNode> superRefAndNode = super.getJavaRefAndCorrespondingNode();
+    if (superRefAndNode == null)
+      throw new IllegalStateException(I18N.err(293, getMessage()));
+    Position position = superRefAndNode.first().getPositionRelativeToDeclaration();
+    if (position == Position.IS_DECL) {
+      position = Position.ON_DECL;
+      final JavaRef.Builder builder = new JavaRef.Builder(superRefAndNode.first());
+      builder.setPositionRelativeToDeclaration(position);
+      return new Pair<IJavaRef, IRNode>(builder.build(), superRefAndNode.second());
+    } else
+      return superRefAndNode;
   }
 }

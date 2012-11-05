@@ -60,7 +60,7 @@ public final class TestJavaRef extends TestCase {
     IJavaRef o1 = builder.build();
     IJavaRef o2 = builder.build();
 
-    builder.setPositionRelativeToDeclaration(Position.ON); // different
+    builder.setPositionRelativeToDeclaration(Position.ON_DECL); // different
 
     IJavaRef d1 = builder.build();
     IJavaRef d2 = builder.build();
