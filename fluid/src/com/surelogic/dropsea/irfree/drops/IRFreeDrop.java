@@ -30,9 +30,10 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.SourceRef;
-import com.surelogic.dropsea.DiffInfoUtility;
-import com.surelogic.dropsea.IDiffInfo;
+import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IKeyValue;
+import com.surelogic.dropsea.irfree.DiffHeuristics;
 
 public class IRFreeDrop implements IDrop {
 
@@ -59,7 +60,7 @@ public class IRFreeDrop implements IDrop {
   @Nullable
   private List<IRFreeHintDrop> f_analysisHints = null;
   @NonNull
-  private final List<IDiffInfo> f_diffInfos;
+  private final List<IKeyValue> f_diffInfos;
 
   void addProposal(IRFreeProposedPromiseDrop info) {
     if (f_proposedPromises == null) {
@@ -102,9 +103,9 @@ public class IRFreeDrop implements IDrop {
 
     String diffInfoString = e.getAttribute(DIFF_INFO);
     if (diffInfoString != null) {
-      f_diffInfos = DiffInfoUtility.parseListEncodedForPersistence(diffInfoString);
+      f_diffInfos = KeyValueUtility.parseListEncodedForPersistence(diffInfoString);
     } else {
-      f_diffInfos = new ArrayList<IDiffInfo>();
+      f_diffInfos = new ArrayList<IKeyValue>();
 
       /*
        * Attempt to read old tree/context hash if they exist in the file
@@ -115,7 +116,7 @@ public class IRFreeDrop implements IDrop {
       if (treeHashString != null) {
         try {
           final long treeHashValue = Long.parseLong(treeHashString);
-          f_diffInfos.add(DiffInfoUtility.getLongInstance(IDiffInfo.FAST_TREE_HASH, treeHashValue));
+          f_diffInfos.add(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_TREE_HASH, treeHashValue));
         } catch (NumberFormatException nfe) {
           SLLogger.getLogger().log(Level.WARNING, I18N.err(259, treeHashString, "fAST-tree-hash"), nfe);
         }
@@ -126,7 +127,7 @@ public class IRFreeDrop implements IDrop {
       if (contextHashString != null) {
         try {
           final long contextHashValue = Long.parseLong(contextHashString);
-          f_diffInfos.add(DiffInfoUtility.getLongInstance(IDiffInfo.FAST_CONTEXT_HASH, contextHashValue));
+          f_diffInfos.add(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_CONTEXT_HASH, contextHashValue));
         } catch (NumberFormatException nfe) {
           SLLogger.getLogger().log(Level.WARNING, I18N.err(259, contextHashString, "fAST-context-hash"), nfe);
         }
@@ -193,30 +194,37 @@ public class IRFreeDrop implements IDrop {
   }
 
   public boolean containsDiffInfoKey(String key) {
-    for (IDiffInfo di : f_diffInfos)
+    for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
         return true;
     return false;
   }
 
   public String getDiffInfoOrNull(String key) {
-    for (IDiffInfo di : f_diffInfos)
+    for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
         return di.getValueAsString();
     return null;
   }
 
   public long getDiffInfoAsLong(String key, long valueIfNotRepresentable) {
-    for (IDiffInfo di : f_diffInfos)
+    for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
         return di.getValueAsLong(valueIfNotRepresentable);
     return valueIfNotRepresentable;
   }
 
   public int getDiffInfoAsInt(String key, int valueIfNotRepresentable) {
-    for (IDiffInfo di : f_diffInfos)
+    for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
         return di.getValueAsInt(valueIfNotRepresentable);
+    return valueIfNotRepresentable;
+  }
+
+  public <T extends Enum<T>> T getDiffInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType) {
+    for (IKeyValue di : f_diffInfos)
+      if (di.getKey().equals(key))
+        return di.getValueAsEnum(valueIfNotRepresentable, elementType);
     return valueIfNotRepresentable;
   }
 

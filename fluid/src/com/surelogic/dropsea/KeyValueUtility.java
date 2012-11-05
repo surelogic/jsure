@@ -1,6 +1,7 @@
 package com.surelogic.dropsea;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import com.surelogic.Immutable;
@@ -10,62 +11,78 @@ import com.surelogic.ValueObject;
 import com.surelogic.common.i18n.I18N;
 
 /**
- * A utility to construct, encode, and decode {@link IDiffInfo} instances.
+ * A utility to construct, encode, and decode {@link IKeyValue} instances.
  */
 @Utility
-public final class DiffInfoUtility {
+public final class KeyValueUtility {
 
   /**
-   * Constructs a string-valued {@link IDiffInfo} instance.
+   * Constructs a string-valued {@link IKeyValue} instance.
    * 
    * @param key
    *          the key for this instance.
    * @param value
    *          a value.
-   * @return a string-valued {@link IDiffInfo} instance.
+   * @return a string-valued {@link IKeyValue} instance.
    * 
    * @throws IllegalArgumentException
    *           if something goes wrong.
    */
-  public static IDiffInfo getStringInstance(String key, String value) {
+  public static IKeyValue getStringInstance(String key, String value) {
     return new StringDiffInfo(key, value);
   }
 
   /**
-   * Constructs a int-valued {@link IDiffInfo} instance.
+   * Constructs a int-valued {@link IKeyValue} instance.
    * 
    * @param key
    *          the key for this instance.
    * @param value
    *          a value.
-   * @return a int-valued {@link IDiffInfo} instance.
+   * @return a int-valued {@link IKeyValue} instance.
    * 
    * @throws IllegalArgumentException
    *           if something goes wrong.
    */
-  public static IDiffInfo getIntInstance(String key, int value) {
+  public static IKeyValue getIntInstance(String key, int value) {
     return new IntDiffInfo(key, value);
   }
 
   /**
-   * Constructs a long-valued {@link IDiffInfo} instance.
+   * Constructs a long-valued {@link IKeyValue} instance.
    * 
    * @param key
    *          the key for this instance.
    * @param value
    *          a value.
-   * @return a long-valued {@link IDiffInfo} instance.
+   * @return a long-valued {@link IKeyValue} instance.
    * 
    * @throws IllegalArgumentException
    *           if something goes wrong.
    */
-  public static IDiffInfo getLongInstance(String key, long value) {
+  public static IKeyValue getLongInstance(String key, long value) {
     return new LongDiffInfo(key, value);
   }
 
   /**
-   * Parses the result of {@link IDiffInfo#encodeForPersistence()} back to a
-   * {@link IDiffInfo}.
+   * Constructs an enum-valued {@link IKeyValue} instance.
+   * 
+   * @param key
+   *          the key for this instance.
+   * @param value
+   *          an value.
+   * @return a enum-valued {@link IKeyValue} instance.
+   * 
+   * @throws IllegalArgumentException
+   *           if something goes wrong.
+   */
+  public static <T extends Enum<T>> IKeyValue getEnumInstance(String key, T value) {
+    return new StringDiffInfo(key, value.name());
+  }
+
+  /**
+   * Parses the result of {@link IKeyValue#encodeForPersistence()} back to a
+   * {@link IKeyValue}.
    * 
    * @param value
    *          a string.
@@ -75,7 +92,7 @@ public final class DiffInfoUtility {
    *           if something goes wrong.
    */
   @NonNull
-  public static IDiffInfo parseEncodedForPersistence(final String value) {
+  public static IKeyValue parseEncodedForPersistence(final String value) {
     if (value == null)
       throw new IllegalArgumentException(I18N.err(44, "value"));
     String v = value;
@@ -108,14 +125,14 @@ public final class DiffInfoUtility {
    *           if something goes wrong.
    */
   @NonNull
-  public static String encodeListForPersistence(List<IDiffInfo> diffInfos) {
+  public static String encodeListForPersistence(List<IKeyValue> diffInfos) {
     if (diffInfos == null)
       throw new IllegalArgumentException(I18N.err(44, "diffInfos"));
     final StringBuilder b = new StringBuilder();
     if (diffInfos.isEmpty())
       b.append("n/a");
     else
-      for (IDiffInfo di : diffInfos) {
+      for (IKeyValue di : diffInfos) {
         String edi = di.encodeForPersistence();
         b.append(Integer.toString(edi.length()));
         b.append(':');
@@ -136,10 +153,10 @@ public final class DiffInfoUtility {
    *           if something goes wrong.
    */
   @NonNull
-  public static List<IDiffInfo> parseListEncodedForPersistence(final String value) {
+  public static List<IKeyValue> parseListEncodedForPersistence(final String value) {
     if (value == null)
       throw new IllegalArgumentException(I18N.err(44, "value"));
-    final List<IDiffInfo> result = new ArrayList<IDiffInfo>();
+    final List<IKeyValue> result = new ArrayList<IKeyValue>();
     if ("n/a".equals(value))
       return result;
     final StringBuilder b = new StringBuilder(value);
@@ -160,11 +177,11 @@ public final class DiffInfoUtility {
 
   @Immutable
   @ValueObject
-  static abstract class AbstractDiffInfo implements IDiffInfo {
+  static abstract class AbstractKeyValue implements IKeyValue {
     @NonNull
     final String f_key;
 
-    AbstractDiffInfo(String key) {
+    AbstractKeyValue(String key) {
       if (key == null)
         throw new IllegalArgumentException(I18N.err(44, "key"));
       if (key.indexOf(',') != -1)
@@ -194,7 +211,7 @@ public final class DiffInfoUtility {
 
   @Immutable
   @ValueObject
-  static final class StringDiffInfo extends AbstractDiffInfo {
+  static final class StringDiffInfo extends AbstractKeyValue {
     @NonNull
     final String f_value;
 
@@ -215,6 +232,14 @@ public final class DiffInfoUtility {
     }
 
     public int getValueAsInt(int valueIfNotRepresentable) {
+      return valueIfNotRepresentable;
+    }
+
+    public <T extends Enum<T>> T getValueAsEnum(T valueIfNotRepresentable, Class<T> elementType) {
+      for (T element : EnumSet.allOf(elementType)) {
+        if (element.toString().equals(f_value))
+          return element;
+      }
       return valueIfNotRepresentable;
     }
 
@@ -252,7 +277,7 @@ public final class DiffInfoUtility {
 
   @Immutable
   @ValueObject
-  static final class IntDiffInfo extends AbstractDiffInfo {
+  static final class IntDiffInfo extends AbstractKeyValue {
     @NonNull
     final int f_value;
 
@@ -272,6 +297,10 @@ public final class DiffInfoUtility {
 
     public int getValueAsInt(int valueIfNotRepresentable) {
       return f_value;
+    }
+
+    public <T extends Enum<T>> T getValueAsEnum(T valueIfNotRepresentable, Class<T> elementType) {
+      return valueIfNotRepresentable;
     }
 
     @Override
@@ -305,7 +334,7 @@ public final class DiffInfoUtility {
 
   @Immutable
   @ValueObject
-  static final class LongDiffInfo extends AbstractDiffInfo {
+  static final class LongDiffInfo extends AbstractKeyValue {
     @NonNull
     final long f_value;
 
@@ -328,6 +357,10 @@ public final class DiffInfoUtility {
         return valueIfNotRepresentable;
       else
         return (int) f_value;
+    }
+
+    public <T extends Enum<T>> T getValueAsEnum(T valueIfNotRepresentable, Class<T> elementType) {
+      return valueIfNotRepresentable;
     }
 
     @Override
@@ -359,7 +392,7 @@ public final class DiffInfoUtility {
     }
   }
 
-  private DiffInfoUtility() {
+  private KeyValueUtility() {
     // no instances
   }
 }

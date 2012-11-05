@@ -32,11 +32,11 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
-import com.surelogic.dropsea.DiffInfoUtility;
-import com.surelogic.dropsea.IDiffInfo;
+import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IHintDrop.HintType;
+import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.irfree.DiffHeuristics;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
@@ -716,16 +716,16 @@ public abstract class Drop implements IDrop {
   // @Override
   @Nullable
   public final IJavaRef getJavaRef() {
-	  Pair<IJavaRef,IRNode> p = getJavaRefAndCorrespondingNode();
-	  if (p == null) {
-		  return null;
-	  }
-	  return p.first();
+    Pair<IJavaRef, IRNode> p = getJavaRefAndCorrespondingNode();
+    if (p == null) {
+      return null;
+    }
+    return p.first();
   }
-  
+
   @Nullable
   @MustInvokeOnOverride
-  protected Pair<IJavaRef,IRNode> getJavaRefAndCorrespondingNode() {  
+  protected Pair<IJavaRef, IRNode> getJavaRefAndCorrespondingNode() {
     synchronized (f_seaLock) {
       if (f_ignoreJavaRef)
         return null;
@@ -733,9 +733,9 @@ public abstract class Drop implements IDrop {
 
     final IJavaRef javaRef = JavaNode.getJavaRef(f_node);
     if (javaRef != null)
-      return new Pair<IJavaRef,IRNode>(javaRef, f_node);
+      return new Pair<IJavaRef, IRNode>(javaRef, f_node);
     final IRNode parent = JavaPromise.getParentOrPromisedFor(f_node);
-    return new Pair<IJavaRef,IRNode>(JavaNode.getJavaRef(parent), parent);
+    return new Pair<IJavaRef, IRNode>(JavaNode.getJavaRef(parent), parent);
   }
 
   /**
@@ -850,52 +850,62 @@ public abstract class Drop implements IDrop {
     }
   }
 
-  public boolean containsDiffInfoKey(String key) {
+  public final boolean containsDiffInfoKey(String key) {
     synchronized (f_seaLock) {
-      for (IDiffInfo di : f_diffInfos)
+      for (IKeyValue di : f_diffInfos)
         if (di.getKey().equals(key))
           return true;
     }
     return false;
   }
 
-  public String getDiffInfoOrNull(String key) {
+  public final String getDiffInfoOrNull(String key) {
     synchronized (f_seaLock) {
-      for (IDiffInfo di : f_diffInfos)
+      for (IKeyValue di : f_diffInfos)
         if (di.getKey().equals(key))
           return di.getValueAsString();
     }
     return null;
   }
 
-  public long getDiffInfoAsLong(String key, long valueIfNotRepresentable) {
+  public final long getDiffInfoAsLong(String key, long valueIfNotRepresentable) {
     synchronized (f_seaLock) {
-      for (IDiffInfo di : f_diffInfos)
+      for (IKeyValue di : f_diffInfos)
         if (di.getKey().equals(key))
           return di.getValueAsLong(valueIfNotRepresentable);
     }
     return valueIfNotRepresentable;
   }
 
-  public int getDiffInfoAsInt(String key, int valueIfNotRepresentable) {
+  public final int getDiffInfoAsInt(String key, int valueIfNotRepresentable) {
     synchronized (f_seaLock) {
-      for (IDiffInfo di : f_diffInfos)
+      for (IKeyValue di : f_diffInfos)
         if (di.getKey().equals(key))
           return di.getValueAsInt(valueIfNotRepresentable);
     }
     return valueIfNotRepresentable;
   }
 
+  public final <T extends Enum<T>> T getDiffInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType) {
+    synchronized (f_seaLock) {
+      for (IKeyValue di : f_diffInfos)
+        if (di.getKey().equals(key))
+          return di.getValueAsEnum(valueIfNotRepresentable, elementType);
+    }
+    return valueIfNotRepresentable;
+  }
+
   /**
    * Adds a new diff-info value, or replaces an existing one with the same
-   * {@link IDiffInfo#getKey()} value.
+   * {@link IKeyValue#getKey()} value.
    * <p>
-   * To construct the {@link IDiffInfo} instance to pass to this method, please
+   * To construct the {@link IKeyValue} instance to pass to this method, please
    * use one of:
    * <ul>
-   * <li>{@link DiffInfoUtility#getStringInstance(String, String)}</li>
-   * <li>{@link DiffInfoUtility#getIntInstance(String, int)}</li>
-   * <li>{@link DiffInfoUtility#getLongInstance(String, long)}</li>
+   * <li>{@link KeyValueUtility#getStringInstance(String, String)}</li>
+   * <li>{@link KeyValueUtility#getIntInstance(String, int)}</li>
+   * <li>{@link KeyValueUtility#getLongInstance(String, long)}</li>
+   * <li>{@link KeyValueUtility#getEnumInstance(String, Enum)}</li>
    * </ul>
    * 
    * @param value
@@ -904,12 +914,12 @@ public abstract class Drop implements IDrop {
    * @throws IllegalArgumentException
    *           if value is null.
    */
-  public void addOrReplaceDiffInfo(@NonNull final IDiffInfo value) {
+  public void addOrReplaceDiffInfo(@NonNull final IKeyValue value) {
     if (value == null)
       throw new IllegalArgumentException(I18N.err(44, "value"));
     synchronized (f_seaLock) {
-      for (Iterator<IDiffInfo> iterator = f_diffInfos.iterator(); iterator.hasNext();) {
-        final IDiffInfo existing = iterator.next();
+      for (Iterator<IKeyValue> iterator = f_diffInfos.iterator(); iterator.hasNext();) {
+        final IKeyValue existing = iterator.next();
         if (existing.getKey().equals(value.getKey()))
           iterator.remove();
       }
@@ -994,7 +1004,7 @@ public abstract class Drop implements IDrop {
    * Holds the set of diff-info values for this drop.
    */
   @UniqueInRegion("DropState")
-  private final List<IDiffInfo> f_diffInfos = new ArrayList<IDiffInfo>();
+  private final List<IKeyValue> f_diffInfos = new ArrayList<IKeyValue>();
 
   /**
    * An alias to the object returned by {@link Sea#getSeaLock()}.
@@ -1024,8 +1034,9 @@ public abstract class Drop implements IDrop {
      * Compute diff information we want to pass along into the results
      */
     DiffHeuristics.computeDiffInfo(this, getJavaRefAndCorrespondingNode());
-    addOrReplaceDiffInfo(DiffInfoUtility.getLongInstance(IDiffInfo.FAST_TREE_HASH, SeaSnapshot.computeHash(getNode())));
-    addOrReplaceDiffInfo(DiffInfoUtility.getLongInstance(IDiffInfo.FAST_CONTEXT_HASH, SeaSnapshot.computeContextHash(getNode())));
+    addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_TREE_HASH, SeaSnapshot.computeHash(getNode())));
+    addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_CONTEXT_HASH,
+        SeaSnapshot.computeContextHash(getNode())));
     /*
      * Output diff information
      * 
@@ -1033,7 +1044,7 @@ public abstract class Drop implements IDrop {
      * Entities instance for that purpose. Should be all on one line.
      */
     if (!f_diffInfos.isEmpty())
-      s.addAttribute(DIFF_INFO, DiffInfoUtility.encodeListForPersistence(f_diffInfos), Entities.Holder.DEFAULT_PLUS_WHITESPACE);
+      s.addAttribute(DIFF_INFO, KeyValueUtility.encodeListForPersistence(f_diffInfos), Entities.Holder.DEFAULT_PLUS_WHITESPACE);
   }
 
   @MustInvokeOnOverride

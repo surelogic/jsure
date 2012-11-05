@@ -47,8 +47,8 @@ import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.dropsea.DiffInfoUtility;
-import com.surelogic.dropsea.IDiffInfo;
+import com.surelogic.dropsea.KeyValueUtility;
+import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -59,6 +59,7 @@ import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.ReturnsLockPromiseDrop;
+import com.surelogic.dropsea.irfree.DiffHeuristics;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
@@ -1708,7 +1709,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
         if (ctxtOnBehalfOfConstructor) {
           addSupportingInformation(resultDrop, ctxtInsideConstructor, Messages.LockAnalysis_ds_OnBehalfOfConstructor,
               ctxtConstructorName);
-          final IDiffInfo diffInfo = DiffInfoUtility.getStringInstance(IDiffInfo.ANALYSIS_DIFF_HINT, ctxtConstructorName);
+          final IKeyValue diffInfo = KeyValueUtility.getStringInstance(DiffHeuristics.ANALYSIS_DIFF_HINT, ctxtConstructorName);
           resultDrop.addOrReplaceDiffInfo(diffInfo);
         }
 				if (lhr == LockHeldResult.THREAD_CONFINED) {
