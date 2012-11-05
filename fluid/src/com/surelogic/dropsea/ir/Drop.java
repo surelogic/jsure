@@ -850,7 +850,7 @@ public abstract class Drop implements IDrop {
     }
   }
 
-  public boolean containsDiffInfoKey(String key) {
+  public final boolean containsDiffInfoKey(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_diffInfos)
         if (di.getKey().equals(key))
@@ -859,7 +859,7 @@ public abstract class Drop implements IDrop {
     return false;
   }
 
-  public String getDiffInfoOrNull(String key) {
+  public final String getDiffInfoOrNull(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_diffInfos)
         if (di.getKey().equals(key))
@@ -868,7 +868,7 @@ public abstract class Drop implements IDrop {
     return null;
   }
 
-  public long getDiffInfoAsLong(String key, long valueIfNotRepresentable) {
+  public final long getDiffInfoAsLong(String key, long valueIfNotRepresentable) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_diffInfos)
         if (di.getKey().equals(key))
@@ -877,7 +877,7 @@ public abstract class Drop implements IDrop {
     return valueIfNotRepresentable;
   }
 
-  public int getDiffInfoAsInt(String key, int valueIfNotRepresentable) {
+  public final int getDiffInfoAsInt(String key, int valueIfNotRepresentable) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_diffInfos)
         if (di.getKey().equals(key))
@@ -886,7 +886,7 @@ public abstract class Drop implements IDrop {
     return valueIfNotRepresentable;
   }
 
-  public <T extends Enum<T>> T getDiffInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType) {
+  public final <T extends Enum<T>> T getDiffInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_diffInfos)
         if (di.getKey().equals(key))
@@ -905,6 +905,7 @@ public abstract class Drop implements IDrop {
    * <li>{@link KeyValueUtility#getStringInstance(String, String)}</li>
    * <li>{@link KeyValueUtility#getIntInstance(String, int)}</li>
    * <li>{@link KeyValueUtility#getLongInstance(String, long)}</li>
+   * <li>{@link KeyValueUtility#getEnumInstance(String, Enum)}</li>
    * </ul>
    * 
    * @param value
