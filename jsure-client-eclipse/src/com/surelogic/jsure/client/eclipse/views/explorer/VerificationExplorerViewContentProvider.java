@@ -9,8 +9,10 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IPromiseDrop;
+import com.surelogic.dropsea.IHintDrop;
+import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScanInfo;
 
@@ -58,13 +60,21 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
 
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final JSureScanInfo oldScan,
       @Nullable final ScanDifferences diff, final boolean showOnlyDifferences, final boolean showOnlyInOldDifferences,
-      final boolean showOnlyIsFromSource, final boolean showHints) {
+      final boolean showOnlyDerivedFromSrc, final boolean showAnalysisResults, final boolean showHints) {
     Element.f_showHints = showHints;
     Element.f_diff = diff;
     final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer();
-    for (IPromiseDrop pd : scan.getPromiseDrops()) {
-      final ElementJavaDecl ejd = tree.getParentOf(pd, false);
-      // TODO
+    for (IProofDrop pd : scan.getProofDrops()) {
+      if (showOnlyDerivedFromSrc && !pd.derivedFromSrc())
+        continue;
+      if (!showAnalysisResults && pd instanceof IAnalysisResultDrop)
+        continue;
+      ElementDrop.addToTree(tree, pd);
+    }
+    if (showHints) {
+      for (IHintDrop hd : scan.getHintDrops()) {
+        ElementDrop.addToTree(tree, hd);
+      }
     }
     f_root = tree.getRootElements();
   }

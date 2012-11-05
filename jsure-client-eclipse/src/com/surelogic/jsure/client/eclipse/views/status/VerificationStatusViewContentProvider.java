@@ -83,7 +83,7 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
        * up under the drop it is attached to).
        */
       final ElementCategory.Categorizer hc = new ElementCategory.Categorizer(null);
-      for (IHintDrop hint : scan.getAnalysisHintDrops()) {
+      for (IHintDrop hint : scan.getHintDrops()) {
         if (hint.getCategorizingMessage() != null)
           hc.add(hint);
       }

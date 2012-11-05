@@ -1,6 +1,5 @@
 package com.surelogic.jsure.client.eclipse.views.finder;
 
-import java.util.EnumSet;
 import java.util.List;
 
 import org.apache.commons.lang3.SystemUtils;
@@ -21,21 +20,17 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.progress.UIJob;
 
-import com.surelogic.common.CommonImages;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.CascadingList;
 import com.surelogic.common.ui.CascadingList.IColumn;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.TableUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
-import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
-import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.model.selection.ISelectionObserver;
 import com.surelogic.jsure.client.eclipse.model.selection.Selection;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
-import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 import com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView;
 
 public final class MListOfResultsColumn extends MColumn implements ISelectionObserver {
@@ -285,37 +280,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
   }
 
   private void setTableItemInfo(TableItem item, IProofDrop data) {
-    String baseImageName = CommonImages.IMG_FOLDER;
-    final EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
-    if (data instanceof IResultDrop) {
-      final IResultDrop rd = (IResultDrop) data;
-      if (rd.isVouched()) {
-        baseImageName = CommonImages.IMG_PLUS_VOUCH;
-      } else if (rd.isConsistent()) {
-        baseImageName = CommonImages.IMG_PLUS;
-      } else if (rd.isTimeout()) {
-        baseImageName = CommonImages.IMG_TIMEOUT_X;
-      } else {
-        baseImageName = CommonImages.IMG_RED_X;
-      }
-    } else if (data instanceof IPromiseDrop) {
-      final IPromiseDrop pd = (IPromiseDrop) data;
-      baseImageName = CommonImages.IMG_ANNOTATION;
-      if (data.provedConsistent())
-        flags.add(Flag.CONSISTENT);
-      else
-        flags.add(Flag.INCONSISTENT);
-      if (data.proofUsesRedDot())
-        flags.add(Flag.REDDOT);
-      if (pd.isAssumed())
-        flags.add(Flag.ASSUME);
-      if (pd.isVirtual())
-        flags.add(Flag.VIRTUAL);
-      if (!pd.isCheckedByAnalysis())
-        flags.add(Flag.TRUSTED);
-    }
-    final Image image = JSureDecoratedImageUtility.getImage(baseImageName, flags);
-
+    final Image image = JSureDecoratedImageUtility.getImageForDrop(data, true);
     item.setText(data.getMessage());
     item.setImage(image);
     item.setData(data);

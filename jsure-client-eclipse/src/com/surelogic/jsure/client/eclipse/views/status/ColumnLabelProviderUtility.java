@@ -178,7 +178,8 @@ public final class ColumnLabelProviderUtility {
           if (oldDrop != null) {
             cellImage = SLImages.getGrayscaleImage(element.getElementImageChangedFromDropOrNull());
             cellText = "Changed";
-            final String whatChanged = element.getMessageAboutWhatChangedOrNull();
+            final String whatChanged = ScanDifferences.getMessageAboutWhatChanged(element.getChangedFromDropOrNull(),
+                element.getDrop());
             if (whatChanged != null) {
               cellText += " to " + whatChanged;
             }

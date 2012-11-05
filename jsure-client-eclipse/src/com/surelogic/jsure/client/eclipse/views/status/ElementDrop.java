@@ -8,6 +8,7 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
@@ -18,6 +19,7 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
+import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 
 abstract class ElementDrop extends Element {
@@ -37,25 +39,68 @@ abstract class ElementDrop extends Element {
     return result;
   }
 
-  protected ElementDrop(Element parent) {
+  protected ElementDrop(Element parent, @NonNull final IDrop drop) {
     super(parent);
+    if (drop == null)
+      throw new IllegalArgumentException(I18N.err(44, "drop"));
+    f_drop = drop;
+    final ScanDifferences diff = f_diff;
+    if (diff == null) {
+      f_diffDrop = null;
+    } else {
+      if (diff.isNotInOldScan(drop)) {
+        f_diffDrop = drop;
+      } else {
+        f_diffDrop = diff.getChangedInOldScan(drop);
+      }
+    }
   }
 
   @NonNull
-  abstract IDrop getDrop();
+  private final IDrop f_drop;
 
-  abstract boolean isSame();
+  @NonNull
+  IDrop getDrop() {
+    return f_drop;
+  }
 
-  abstract boolean isNew();
+  /**
+   * There are three cases:
+   * <ul>
+   * <li>if <tt>f_diffDrop == null</tt> the drop is unchanged.</li>
+   * <li>if <tt>f_diffDrop == f_drop</tt> the drop is new in this scan.</li>
+   * <li>if <tt>f_diffDrop != null && f_diffDrop != f_drop</tt> the drop
+   * changed&mdash;and the value of <tt>f_diffDrop</tt> is the drop in the old
+   * scan.</li>
+   * </ul>
+   */
+  @Nullable
+  private IDrop f_diffDrop;
+
+  final boolean isSame() {
+    return f_diffDrop == null;
+  }
+
+  final boolean isNew() {
+    return f_diffDrop == getDrop();
+  }
 
   @Nullable
-  abstract IDrop getChangedFromDropOrNull();
+  final IDrop getChangedFromDropOrNull() {
+    if (isNew())
+      return null;
+    else
+      return f_diffDrop;
+  }
 
   @Nullable
-  abstract String getMessageAboutWhatChangedOrNull();
-
-  @Nullable
-  abstract Image getElementImageChangedFromDropOrNull();
+  final Image getElementImageChangedFromDropOrNull() {
+    final IDrop changedDrop = getChangedFromDropOrNull();
+    if (changedDrop == null)
+      return null;
+    else
+      return JSureDecoratedImageUtility.getImageForDrop(changedDrop, false);
+  }
 
   @Override
   String getLabel() {
@@ -65,6 +110,12 @@ abstract class ElementDrop extends Element {
   @Override
   String getLabelToPersistViewerState() {
     return getDrop().getMessage();
+  }
+
+  @Override
+  @Nullable
+  final Image getElementImage() {
+    return JSureDecoratedImageUtility.getImageForDrop(getDrop(), false);
   }
 
   @Override

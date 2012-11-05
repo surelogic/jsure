@@ -43,15 +43,18 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.dialogs.ImageDialog;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IModelingProblemDrop;
+import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.JSureClientUtility;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -73,14 +76,34 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
   private boolean f_highlightDifferences;
   private boolean f_showOnlyDifferences;
   private boolean f_showOnlyInOldDifferences;
-  private boolean f_showOnlyIsFromSource;
+  private boolean f_showOnlyDerivedFromSrc;
+  private boolean f_showAnalysisResults;
   private boolean f_showHints;
 
-  private final ViewerSorter f_alphaSorter = new ViewerSorter() {
+  private final ViewerSorter f_alphaLineSorter = new ViewerSorter() {
 
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
       if (e1 instanceof Element && e2 instanceof Element) {
+
+        final int e1LineNumber = ((Element) e1).getLineNumber();
+        final int e2LineNumber = ((Element) e2).getLineNumber();
+
+        if (e1LineNumber > -1 && e2LineNumber > -1) {
+          if (e1LineNumber != e2LineNumber)
+            return e1LineNumber - e2LineNumber;
+          else {
+            boolean e1IsPromise = e1 instanceof ElementDrop ? ((ElementDrop) e1).getDrop() instanceof IPromiseDrop : false;
+            boolean e2IsPromise = e2 instanceof ElementDrop ? ((ElementDrop) e2).getDrop() instanceof IPromiseDrop : false;
+            if (e1IsPromise && !e2IsPromise)
+              return -1;
+            else if (!e1IsPromise && e2IsPromise)
+              return 1;
+          }
+        } else if (e1LineNumber > -1 && e2LineNumber == -1)
+          return -1;
+        else if (e1LineNumber == -1 && e2LineNumber > -1)
+          return 1;
         return Element.ALPHA.compare((Element) e1, (Element) e2);
       }
       return super.compare(viewer, e1, e2);
@@ -109,15 +132,27 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
     f_treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
     f_treeViewer.setContentProvider(f_contentProvider);
-    f_treeViewer.setSorter(f_alphaSorter);
+    f_treeViewer.setSorter(f_alphaLineSorter);
     f_treeViewer.getTree().setHeaderVisible(true);
     // f_treeViewer.getTree().setLinesVisible(true);
 
-    final TreeViewerColumn column1 = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
-    column1.setLabelProvider(ColumnLabelProviderUtility.TREE);
-    column1.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_TREE_WIDTH));
-    column1.getColumn().addControlListener(
+    final TreeViewerColumn columnTree = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
+    columnTree.setLabelProvider(ColumnLabelProviderUtility.TREE);
+    columnTree.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_TREE_WIDTH));
+    columnTree.getColumn().addControlListener(
         new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_TREE_WIDTH));
+    final TreeViewerColumn columnPosition = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
+    columnPosition.setLabelProvider(ColumnLabelProviderUtility.POSITION);
+    columnPosition.getColumn().setText("Position");
+    columnPosition.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
+    columnPosition.getColumn().addControlListener(
+        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
+    final TreeViewerColumn columnLine = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    columnLine.setLabelProvider(ColumnLabelProviderUtility.LINE);
+    columnLine.getColumn().setText("Line");
+    columnLine.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
+    columnLine.getColumn().addControlListener(
+        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
     final TreeViewerColumn columnDiff = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnDiff.setLabelProvider(ColumnLabelProviderUtility.DIFF);
     columnDiff.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_DIFF_WIDTH));
@@ -247,13 +282,25 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
-  private final Action f_actionShowOnlyIsFromSource = new Action("", IAction.AS_CHECK_BOX) {
+  private final Action f_actionShowOnlyDerivedFromSrc = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
-      final boolean buttonChecked = f_actionShowOnlyIsFromSource.isChecked();
-      if (f_showOnlyIsFromSource != buttonChecked) {
-        f_showOnlyIsFromSource = buttonChecked;
-        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_IS_FROM_SOURCE, f_showOnlyIsFromSource);
+      final boolean buttonChecked = f_actionShowOnlyDerivedFromSrc.isChecked();
+      if (f_showOnlyDerivedFromSrc != buttonChecked) {
+        f_showOnlyDerivedFromSrc = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_DERIVED_FROM_SRC, f_showOnlyDerivedFromSrc);
+        currentScanChanged(null);
+      }
+    }
+  };
+
+  private final Action f_actionShowAnalysisResults = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      final boolean buttonChecked = f_actionShowAnalysisResults.isChecked();
+      if (f_showAnalysisResults != buttonChecked) {
+        f_showAnalysisResults = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ANALYSIS_RESULTS, f_showAnalysisResults);
         currentScanChanged(null);
       }
     }
@@ -289,16 +336,15 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
         final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
         if (!s.isEmpty()) {
           final Object first = s.getFirstElement();
-          // TODO
-          // if (first instanceof ElementDrop) {
-          // /*
-          // * Try to open an editor at the point this item references in the
-          // * code
-          // */
-          // final IJavaRef ref = ((ElementDrop) first).getDrop().getJavaRef();
-          // if (ref != null)
-          // Activator.highlightLineInJavaEditor(ref);
-          // }
+          if (first instanceof ElementDrop) {
+            /*
+             * Try to open an editor at the point this item references in the
+             * code
+             */
+            final IJavaRef ref = ((ElementDrop) first).getDrop().getJavaRef();
+            if (ref != null)
+              Activator.highlightLineInJavaEditor(ref);
+          }
           // open up the tree one more level
           if (!f_treeViewer.getExpandedState(first)) {
             f_treeViewer.expandToLevel(first, 1);
@@ -338,11 +384,17 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
         .getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_IN_OLD_DIFFERENCES);
     f_actionShowOnlyInOldDifferences.setChecked(f_showOnlyInOldDifferences);
 
-    f_actionShowOnlyIsFromSource.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_COMP_UNIT));
-    f_actionShowOnlyIsFromSource.setText("Show Only Results Derived From Source");
-    f_actionShowOnlyIsFromSource.setToolTipText("Show only results derived from Java source code");
-    f_showOnlyIsFromSource = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_IS_FROM_SOURCE);
-    f_actionShowOnlyIsFromSource.setChecked(f_showOnlyIsFromSource);
+    f_actionShowOnlyDerivedFromSrc.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_COMP_UNIT));
+    f_actionShowOnlyDerivedFromSrc.setText("Show Only Results Derived From Source");
+    f_actionShowOnlyDerivedFromSrc.setToolTipText("Show only results derived from Java source code (directly or indirectly)");
+    f_showOnlyDerivedFromSrc = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_DERIVED_FROM_SRC);
+    f_actionShowOnlyDerivedFromSrc.setChecked(f_showOnlyDerivedFromSrc);
+
+    f_actionShowAnalysisResults.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ANALYSIS_RESULT));
+    f_actionShowAnalysisResults.setText("Show Analysis Results");
+    f_actionShowAnalysisResults.setToolTipText("Show analysis results about the code");
+    f_showAnalysisResults = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ANALYSIS_RESULTS);
+    f_actionShowAnalysisResults.setChecked(f_showAnalysisResults);
 
     f_actionShowHints.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
     f_actionShowHints.setText("Show Information/Warning Hints");
@@ -399,7 +451,8 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     pulldown.add(f_actionShowOnlyDifferences);
     pulldown.add(f_actionShowOnlyInOldDifferences);
     pulldown.add(new Separator());
-    pulldown.add(f_actionShowOnlyIsFromSource);
+    pulldown.add(f_actionShowOnlyDerivedFromSrc);
+    pulldown.add(f_actionShowAnalysisResults);
     pulldown.add(f_actionShowHints);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
@@ -413,7 +466,8 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     toolbar.add(f_actionShowOnlyDifferences);
     toolbar.add(f_actionShowOnlyInOldDifferences);
     toolbar.add(new Separator());
-    toolbar.add(f_actionShowOnlyIsFromSource);
+    toolbar.add(f_actionShowOnlyDerivedFromSrc);
+    toolbar.add(f_actionShowAnalysisResults);
     toolbar.add(f_actionShowHints);
   }
 
@@ -428,7 +482,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       }
       final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
       f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, f_showOnlyDifferences, f_showOnlyInOldDifferences,
-          f_showOnlyIsFromSource, f_showHints);
+          f_showOnlyDerivedFromSrc, f_showAnalysisResults, f_showHints);
       final int modelProblemCount = getModelProblemCount(scan);
       setModelProblemIndicatorState(modelProblemCount);
       setViewerVisibility(true);

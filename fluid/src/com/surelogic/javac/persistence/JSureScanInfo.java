@@ -20,14 +20,13 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
-import com.surelogic.dropsea.irfree.DefaultCategoryMatcher;
 import com.surelogic.dropsea.irfree.CategoryMatcher;
+import com.surelogic.dropsea.irfree.DefaultCategoryMatcher;
 import com.surelogic.dropsea.irfree.IDropFilter;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
-import com.surelogic.javac.persistence.JSureScan;
 
 import edu.cmu.cs.fluid.util.CPair;
 
@@ -178,7 +177,7 @@ public class JSureScanInfo {
   }
 
   @NonNull
-  public ArrayList<IHintDrop> getAnalysisHintDrops() {
+  public ArrayList<IHintDrop> getHintDrops() {
     final ArrayList<IHintDrop> result = new ArrayList<IHintDrop>();
     for (IDrop i : loadOrGetDropInfo()) {
       if (i instanceof IHintDrop) {
