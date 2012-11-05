@@ -29,7 +29,7 @@ public final class TestDiffInfo extends TestCase {
   }
 
   public void testStringValue() {
-    IDiffInfo di = DiffInfoUtility.getStringInstance("KEY", "test");
+    IKeyValue di = DiffInfoUtility.getStringInstance("KEY", "test");
 
     assertEquals("KEY", di.getKey());
     assertEquals("test", di.getValueAsString());
@@ -38,7 +38,7 @@ public final class TestDiffInfo extends TestCase {
   }
 
   public void testIntValue() {
-    IDiffInfo di = DiffInfoUtility.getIntInstance("KEY-INT", 56);
+    IKeyValue di = DiffInfoUtility.getIntInstance("KEY-INT", 56);
 
     assertEquals("KEY-INT", di.getKey());
     assertEquals("56", di.getValueAsString());
@@ -47,7 +47,7 @@ public final class TestDiffInfo extends TestCase {
   }
 
   public void testLongValue() {
-    IDiffInfo di = DiffInfoUtility.getLongInstance("KEY-LONG", 56l);
+    IKeyValue di = DiffInfoUtility.getLongInstance("KEY-LONG", 56l);
 
     assertEquals("KEY-LONG", di.getKey());
     assertEquals("56", di.getValueAsString());
@@ -56,7 +56,7 @@ public final class TestDiffInfo extends TestCase {
   }
 
   public void testBigLongValue() {
-    IDiffInfo di = DiffInfoUtility.getLongInstance("KEY-LONG", Long.MAX_VALUE);
+    IKeyValue di = DiffInfoUtility.getLongInstance("KEY-LONG", Long.MAX_VALUE);
 
     assertEquals("KEY-LONG", di.getKey());
     assertEquals(Long.toString(Long.MAX_VALUE), di.getValueAsString());
@@ -65,13 +65,13 @@ public final class TestDiffInfo extends TestCase {
   }
 
   public void testIDiffInfoPersistenceAndValueObject() {
-    IDiffInfo t1 = DiffInfoUtility.getStringInstance("KEY", "this is a \n long test\t\t\tof the value");
-    IDiffInfo t2 = DiffInfoUtility.getIntInstance("KEYINT", 56);
-    IDiffInfo t3 = DiffInfoUtility.getLongInstance("LONGKEY", 56l);
+    IKeyValue t1 = DiffInfoUtility.getStringInstance("KEY", "this is a \n long test\t\t\tof the value");
+    IKeyValue t2 = DiffInfoUtility.getIntInstance("KEYINT", 56);
+    IKeyValue t3 = DiffInfoUtility.getLongInstance("LONGKEY", 56l);
 
-    IDiffInfo c1 = DiffInfoUtility.parseEncodedForPersistence(t1.encodeForPersistence());
-    IDiffInfo c2 = DiffInfoUtility.parseEncodedForPersistence(t2.encodeForPersistence());
-    IDiffInfo c3 = DiffInfoUtility.parseEncodedForPersistence(t3.encodeForPersistence());
+    IKeyValue c1 = DiffInfoUtility.parseEncodedForPersistence(t1.encodeForPersistence());
+    IKeyValue c2 = DiffInfoUtility.parseEncodedForPersistence(t2.encodeForPersistence());
+    IKeyValue c3 = DiffInfoUtility.parseEncodedForPersistence(t3.encodeForPersistence());
 
     assertEquals(t1, c1);
     assertNotSame(t1, c1);
@@ -87,12 +87,12 @@ public final class TestDiffInfo extends TestCase {
 
   public void testIDiffInfoListPersistence() {
     final String s = "this is a \n long test\t\t\tof the value    ";
-    IDiffInfo t1 = DiffInfoUtility.getStringInstance("KEY", s);
-    IDiffInfo t2 = DiffInfoUtility.getIntInstance("KEYINT", 56);
-    IDiffInfo t3 = DiffInfoUtility.getLongInstance("LONGKEY", 56l);
-    IDiffInfo t4 = DiffInfoUtility.getLongInstance("KEY-LONG", Long.MAX_VALUE);
+    IKeyValue t1 = DiffInfoUtility.getStringInstance("KEY", s);
+    IKeyValue t2 = DiffInfoUtility.getIntInstance("KEYINT", 56);
+    IKeyValue t3 = DiffInfoUtility.getLongInstance("LONGKEY", 56l);
+    IKeyValue t4 = DiffInfoUtility.getLongInstance("KEY-LONG", Long.MAX_VALUE);
 
-    List<IDiffInfo> l1 = new ArrayList<IDiffInfo>();
+    List<IKeyValue> l1 = new ArrayList<IKeyValue>();
     l1.add(t1);
     l1.add(t2);
     l1.add(t3);
@@ -100,7 +100,7 @@ public final class TestDiffInfo extends TestCase {
 
     String el1 = DiffInfoUtility.encodeListForPersistence(l1);
 
-    List<IDiffInfo> l2 = DiffInfoUtility.parseListEncodedForPersistence(el1);
+    List<IKeyValue> l2 = DiffInfoUtility.parseListEncodedForPersistence(el1);
     String el2 = DiffInfoUtility.encodeListForPersistence(l2);
 
     assertEquals(l1, l2);
@@ -110,11 +110,11 @@ public final class TestDiffInfo extends TestCase {
   }
 
   public void testIDiffInfoEmptyListPersistence() {
-    List<IDiffInfo> l1 = new ArrayList<IDiffInfo>();
+    List<IKeyValue> l1 = new ArrayList<IKeyValue>();
 
     String el1 = DiffInfoUtility.encodeListForPersistence(l1);
 
-    List<IDiffInfo> l2 = DiffInfoUtility.parseListEncodedForPersistence(el1);
+    List<IKeyValue> l2 = DiffInfoUtility.parseListEncodedForPersistence(el1);
     String el2 = DiffInfoUtility.encodeListForPersistence(l2);
 
     assertEquals(l1, l2);

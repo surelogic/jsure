@@ -1,12 +1,11 @@
 package com.surelogic.dropsea;
 
 import com.surelogic.Immutable;
-import com.surelogic.NonNull;
 import com.surelogic.ValueObject;
 
 @Immutable
 @ValueObject
-public interface IDiffInfo {
+public interface IDiffInfo extends IKeyValue {
 
   /*
    * Key constants for diff-info values used by JSure
@@ -36,21 +35,4 @@ public interface IDiffInfo {
   public static final String ANALYSIS_DIFF_HINT = "analysis-diff-hint";
 
   public static final int UNKNOWN = -1;
-
-  /*
-   * Interface to key/value pairs.
-   */
-
-  @NonNull
-  String getKey();
-
-  @NonNull
-  String getValueAsString();
-
-  long getValueAsLong(long valueIfNotRepresentable);
-
-  int getValueAsInt(int valueIfNotRepresentable);
-
-  @NonNull
-  String encodeForPersistence();
 }

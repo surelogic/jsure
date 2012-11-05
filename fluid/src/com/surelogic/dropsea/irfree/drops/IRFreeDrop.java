@@ -33,6 +33,7 @@ import com.surelogic.common.xml.SourceRef;
 import com.surelogic.dropsea.DiffInfoUtility;
 import com.surelogic.dropsea.IDiffInfo;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IKeyValue;
 
 public class IRFreeDrop implements IDrop {
 
@@ -59,7 +60,7 @@ public class IRFreeDrop implements IDrop {
   @Nullable
   private List<IRFreeHintDrop> f_analysisHints = null;
   @NonNull
-  private final List<IDiffInfo> f_diffInfos;
+  private final List<IKeyValue> f_diffInfos;
 
   void addProposal(IRFreeProposedPromiseDrop info) {
     if (f_proposedPromises == null) {
@@ -104,7 +105,7 @@ public class IRFreeDrop implements IDrop {
     if (diffInfoString != null) {
       f_diffInfos = DiffInfoUtility.parseListEncodedForPersistence(diffInfoString);
     } else {
-      f_diffInfos = new ArrayList<IDiffInfo>();
+      f_diffInfos = new ArrayList<IKeyValue>();
 
       /*
        * Attempt to read old tree/context hash if they exist in the file
@@ -193,28 +194,28 @@ public class IRFreeDrop implements IDrop {
   }
 
   public boolean containsDiffInfoKey(String key) {
-    for (IDiffInfo di : f_diffInfos)
+    for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
         return true;
     return false;
   }
 
   public String getDiffInfoOrNull(String key) {
-    for (IDiffInfo di : f_diffInfos)
+    for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
         return di.getValueAsString();
     return null;
   }
 
   public long getDiffInfoAsLong(String key, long valueIfNotRepresentable) {
-    for (IDiffInfo di : f_diffInfos)
+    for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
         return di.getValueAsLong(valueIfNotRepresentable);
     return valueIfNotRepresentable;
   }
 
   public int getDiffInfoAsInt(String key, int valueIfNotRepresentable) {
-    for (IDiffInfo di : f_diffInfos)
+    for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
         return di.getValueAsInt(valueIfNotRepresentable);
     return valueIfNotRepresentable;
