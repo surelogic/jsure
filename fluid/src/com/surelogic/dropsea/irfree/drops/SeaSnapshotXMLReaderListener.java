@@ -33,6 +33,7 @@ import com.surelogic.common.xml.SourceRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.ir.HintDrop;
+import com.surelogic.dropsea.ir.MetricDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -42,13 +43,14 @@ import com.surelogic.dropsea.ir.drops.ScopedPromiseDrop;
 import com.surelogic.dropsea.irfree.DropTypeUtility;
 
 public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListener {
-  private final ConcurrentMap<String,IJavaRef> refCache;
-  //private int refsReused = 0;
-  
-  public SeaSnapshotXMLReaderListener(ConcurrentMap<String,IJavaRef> cache) {
-	  refCache = cache;
+  private final ConcurrentMap<String, IJavaRef> refCache;
+
+  // private int refsReused = 0;
+
+  public SeaSnapshotXMLReaderListener(ConcurrentMap<String, IJavaRef> cache) {
+    refCache = cache;
   }
-	
+
   private class SeaEntity extends Entity {
 
     public SeaEntity(String name, Attributes a) {
@@ -95,17 +97,17 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
 
     @Override
     public IJavaRef parsePersistedRef(String encode) {
-    	if (refCache == null) {
-    		return super.parsePersistedRef(encode);
-    	}
-    	IJavaRef ref = refCache.get(encode);
-    	if (ref == null) {
-    		ref = super.parsePersistedRef(encode);
-    		refCache.put(encode, ref);
-    	} else {
-    		//refsReused++;
-    	}
-    	return ref;
+      if (refCache == null) {
+        return super.parsePersistedRef(encode);
+      }
+      IJavaRef ref = refCache.get(encode);
+      if (ref == null) {
+        ref = super.parsePersistedRef(encode);
+        refCache.put(encode, ref);
+      } else {
+        // refsReused++;
+      }
+      return ref;
     }
   }
 
@@ -115,7 +117,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
   private final ArrayList<Entity> entities = new ArrayList<Entity>();
 
   public List<IDrop> getDrops() {
-	//System.out.println("Reused "+refsReused+" out of "+refCache.size());
+    // System.out.println("Reused "+refsReused+" out of "+refCache.size());
     final ArrayList<IDrop> result = new ArrayList<IDrop>();
     for (Entity se : entities) {
       if (se instanceof SeaEntity) {
@@ -174,6 +176,8 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
           entity.setDrop(new IRFreeResultDrop(entity, thisType));
         } else if (ResultFolderDrop.class.isAssignableFrom(thisType)) {
           entity.setDrop(new IRFreeResultFolderDrop(entity, thisType));
+        } else if (MetricDrop.class.isAssignableFrom(thisType)) {
+          entity.setDrop(new IRFreeMetricDrop(entity, thisType));
         } else if (ModelingProblemDrop.class.isAssignableFrom(thisType)) {
           entity.setDrop(new IRFreeModelingProblemDrop(entity, thisType));
         }
