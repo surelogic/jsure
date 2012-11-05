@@ -67,11 +67,12 @@ abstract class ElementDrop extends Element {
   /**
    * There are three cases:
    * <ul>
-   * <li>if <tt>f_diffDrop == null</tt> the drop is unchanged.</li>
-   * <li>if <tt>f_diffDrop == f_drop</tt> the drop is new in this scan.</li>
-   * <li>if <tt>f_diffDrop != null && f_diffDrop != f_drop</tt> the drop
-   * changed&mdash;and the value of <tt>f_diffDrop</tt> is the drop in the old
-   * scan.</li>
+   * <li>if {@link #f_diffDrop} <tt>== null</tt> the drop is unchanged.</li>
+   * <li>if {@link #f_diffDrop} <tt>==</tt> {@link #f_drop} the drop is new in
+   * this scan.</li>
+   * <li>if {@link #f_diffDrop} <tt>!= null &&</tt> {@link #f_diffDrop}
+   * <tt>!=</tt> {@link #f_drop} the drop changed&mdash;and {@link #f_diffDrop}
+   * references the drop in the old scan.</li>
    * </ul>
    */
   @Nullable
@@ -83,6 +84,10 @@ abstract class ElementDrop extends Element {
 
   final boolean isNew() {
     return f_diffDrop == getDrop();
+  }
+
+  final boolean isChanged() {
+    return f_diffDrop != null && f_diffDrop != f_drop;
   }
 
   @Nullable

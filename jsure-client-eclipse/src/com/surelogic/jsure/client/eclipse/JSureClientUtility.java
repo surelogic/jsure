@@ -40,18 +40,18 @@ public final class JSureClientUtility {
     return f_diffHighlightColorNewChanged;
   }
 
-  private static Color f_diffHighlightColorGone;
+  private static Color f_diffHighlightColorObsolete;
 
-  public static Color getDiffHighlightColorGone() {
-    if (f_diffHighlightColorGone == null) {
-      f_diffHighlightColorGone = new Color(Display.getCurrent(), 190, 255, 255);
+  public static Color getDiffHighlightColorObsolete() {
+    if (f_diffHighlightColorObsolete == null) {
+      f_diffHighlightColorObsolete = new Color(Display.getCurrent(), 190, 255, 255);
       Display.getCurrent().disposeExec(new Runnable() {
         public void run() {
-          f_diffHighlightColorGone.dispose();
+          f_diffHighlightColorObsolete.dispose();
         }
       });
     }
-    return f_diffHighlightColorGone;
+    return f_diffHighlightColorObsolete;
   }
 
   /**

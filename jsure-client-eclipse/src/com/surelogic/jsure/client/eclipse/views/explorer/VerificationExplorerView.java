@@ -134,7 +134,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_treeViewer.setContentProvider(f_contentProvider);
     f_treeViewer.setSorter(f_alphaLineSorter);
     f_treeViewer.getTree().setHeaderVisible(true);
-    // f_treeViewer.getTree().setLinesVisible(true);
+    f_treeViewer.getTree().setLinesVisible(true);
 
     final TreeViewerColumn columnTree = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnTree.setLabelProvider(ColumnLabelProviderUtility.TREE);

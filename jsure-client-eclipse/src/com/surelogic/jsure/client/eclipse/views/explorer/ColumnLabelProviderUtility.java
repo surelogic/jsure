@@ -4,31 +4,39 @@ import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.Utility;
+import com.surelogic.common.ui.SLImages;
+import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.JSureClientUtility;
 
 @Utility
 public final class ColumnLabelProviderUtility {
 
-  private static void highlightRowIfNewOrDiff(ViewerCell cell) {
-    // if (Element.f_highlightDifferences) {
-    // if (cell.getElement() instanceof ElementDrop) {
-    // final ElementDrop element = (ElementDrop) cell.getElement();
-    // if (!element.isSame())
-    // cell.setBackground(getDiffColor());
-    // return;
-    // }
-    // }
-    // cell.setBackground(null);
+  private static void highlightRowHelper(ViewerCell cell) {
+    if (Element.f_highlightDifferences) {
+      if (cell.getElement() instanceof ElementDrop) {
+        final ElementDrop element = (ElementDrop) cell.getElement();
+        if (element.isNew() || element.isChanged()) {
+          cell.setBackground(JSureClientUtility.getDiffHighlightColorNewChanged());
+          return;
+        }
+        if (element.isOld()) {
+          cell.setBackground(JSureClientUtility.getDiffHighlightColorObsolete());
+          return;
+        }
+      }
+    }
+    cell.setBackground(null);
   }
 
   static final StyledCellLabelProvider TREE = new StyledCellLabelProvider() {
 
     @Override
     public void update(ViewerCell cell) {
-      highlightRowIfNewOrDiff(cell);
+      highlightRowHelper(cell);
 
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
@@ -57,7 +65,7 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      highlightRowIfNewOrDiff(cell);
+      highlightRowHelper(cell);
 
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
@@ -72,7 +80,7 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      highlightRowIfNewOrDiff(cell);
+      highlightRowHelper(cell);
 
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
@@ -87,39 +95,39 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      highlightRowIfNewOrDiff(cell);
+      highlightRowHelper(cell);
 
       final ScanDifferences diff = Element.f_diff;
-      // if (diff != null && cell.getElement() instanceof ElementDrop) {
-      // final ElementDrop element = (ElementDrop) cell.getElement();
-      // String cellText = null;
-      // Image cellImage = null;
-      // if (element.isNew()) {
-      // cellImage = element.getImageHelper(element.getImageName(),
-      // element.getImageFlags(), true, false, false);
-      // cellText = "New";
-      // } else {
-      // final IDrop oldDrop = element.getChangedFromDropOrNull();
-      // if (oldDrop != null) {
-      // cellImage =
-      // element.getImageHelper(element.getImageNameForChangedFromDrop(),
-      // element.getImageFlagsForChangedFromDrop(),
-      // true, false, false);
-      // cellText = "Changed";
-      // final String whatChanged = element.getMessageAboutWhatChangedOrNull();
-      // if (whatChanged != null) {
-      // cellText += " to " + whatChanged;
-      // }
-      // }
-      // }
-      // if (cellImage != null) {
-      // cell.setImage(cellImage);
-      // }
-      // if (cellText != null) {
-      // cell.setText(cellText);
-      // cell.setForeground(JSureClientUtility.getSubtileTextColor());
-      // }
-      // }
+      if (diff != null && cell.getElement() instanceof ElementDrop) {
+        final ElementDrop element = (ElementDrop) cell.getElement();
+        String cellText = null;
+        Image cellImage = null;
+        if (element.isNew()) {
+          cellImage = SLImages.getGrayscaleImage(element.getElementImage());
+          cellText = "New";
+        } else if (element.isOld()) {
+          cellImage = SLImages.getGrayscaleImage(element.getElementImage());
+          cellText = "Obsolete (only in the old scan)";
+        } else {
+          final IDrop oldDrop = element.getChangedFromDropOrNull();
+          if (oldDrop != null) {
+            cellImage = SLImages.getGrayscaleImage(element.getElementImageChangedFromDropOrNull());
+            cellText = "Changed";
+            final String whatChanged = ScanDifferences.getMessageAboutWhatChanged(element.getChangedFromDropOrNull(),
+                element.getDrop());
+            if (whatChanged != null) {
+              cellText += " to " + whatChanged;
+            }
+          }
+        }
+        if (cellImage != null) {
+          cell.setImage(cellImage);
+        }
+        if (cellText != null) {
+          cell.setText(cellText);
+          cell.setForeground(JSureClientUtility.getSubtleTextColor());
+        }
+      }
     }
   };
 }

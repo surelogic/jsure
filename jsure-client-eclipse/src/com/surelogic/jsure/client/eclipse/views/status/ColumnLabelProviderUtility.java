@@ -19,13 +19,14 @@ import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 @Utility
 public final class ColumnLabelProviderUtility {
 
-  private static void highlightRowIfNewOrDiff(ViewerCell cell) {
+  private static void highlightRowHelper(ViewerCell cell) {
     if (Element.f_highlightDifferences) {
       if (cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();
-        if (!element.isSame())
+        if (element.isNew() || element.isChanged()) {
           cell.setBackground(JSureClientUtility.getDiffHighlightColorNewChanged());
-        return;
+          return;
+        }
       }
     }
     cell.setBackground(null);
@@ -35,7 +36,7 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      highlightRowIfNewOrDiff(cell);
+      highlightRowHelper(cell);
 
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
@@ -98,7 +99,7 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      highlightRowIfNewOrDiff(cell);
+      highlightRowHelper(cell);
 
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
@@ -114,7 +115,7 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      highlightRowIfNewOrDiff(cell);
+      highlightRowHelper(cell);
 
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
@@ -131,7 +132,7 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      highlightRowIfNewOrDiff(cell);
+      highlightRowHelper(cell);
 
       if (cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();
@@ -148,7 +149,7 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      highlightRowIfNewOrDiff(cell);
+      highlightRowHelper(cell);
 
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
@@ -163,7 +164,7 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      highlightRowIfNewOrDiff(cell);
+      highlightRowHelper(cell);
 
       final ScanDifferences diff = Element.f_diff;
       if (diff != null && cell.getElement() instanceof ElementDrop) {

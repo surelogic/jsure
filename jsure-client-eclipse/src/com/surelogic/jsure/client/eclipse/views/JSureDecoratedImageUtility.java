@@ -317,6 +317,9 @@ public final class JSureDecoratedImageUtility {
       else
         baseImageName = CommonImages.IMG_INFO;
 
+    } else if (drop instanceof IProposedPromiseDrop) {
+      baseImageName = CommonImages.IMG_ANNOTATION_PROPOSED;
+
     } else if (drop instanceof IProofDrop) {
       final IProofDrop proofDrop = (IProofDrop) drop;
       flags.add(proofDrop.provedConsistent() ? Flag.CONSISTENT : Flag.INCONSISTENT);
@@ -332,9 +335,6 @@ public final class JSureDecoratedImageUtility {
           flags.add(Flag.ASSUME);
         if (!promiseDrop.isCheckedByAnalysis())
           flags.add(Flag.TRUSTED);
-
-      } else if (proofDrop instanceof IProposedPromiseDrop) {
-        baseImageName = CommonImages.IMG_ANNOTATION_PROPOSED;
 
       } else if (proofDrop instanceof IResultDrop) {
         final IResultDrop resultDrop = (IResultDrop) proofDrop;

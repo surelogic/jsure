@@ -69,11 +69,16 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
         continue;
       if (!showAnalysisResults && pd instanceof IAnalysisResultDrop)
         continue;
-      ElementDrop.addToTree(tree, pd);
+      ElementDrop.addToTree(tree, pd, false);
     }
     if (showHints) {
       for (IHintDrop hd : scan.getHintDrops()) {
-        ElementDrop.addToTree(tree, hd);
+        ElementDrop.addToTree(tree, hd, false);
+      }
+    }
+    if (showOnlyInOldDifferences && diff != null) {
+      for (IDrop oldDrop : diff.getDropsOnlyInOldScan()) {
+        ElementDrop.addToTree(tree, oldDrop, true);
       }
     }
     f_root = tree.getRootElements();
