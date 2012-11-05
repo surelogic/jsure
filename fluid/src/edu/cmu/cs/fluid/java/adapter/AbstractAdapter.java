@@ -126,6 +126,10 @@ public class AbstractAdapter {
 		return newtext;
 	}
 	
+	protected void createRequiredConstructorNodes(IRNode result) {
+		createRequiredMethodNodes(false, result);
+	}
+	
 	protected void createRequiredMethodNodes(boolean isStatic, IRNode result) {
 		IRNode rv = ReturnValueDeclaration.makeReturnNode(result);
 		SkeletonJavaRefUtility.copyIfPossible(result, rv);
