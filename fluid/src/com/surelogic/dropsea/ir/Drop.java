@@ -33,7 +33,6 @@ import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.KeyValueUtility;
-import com.surelogic.dropsea.IDiffInfo;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IHintDrop.HintType;
@@ -1025,8 +1024,8 @@ public abstract class Drop implements IDrop {
      * Compute diff information we want to pass along into the results
      */
     DiffHeuristics.computeDiffInfo(this, getJavaRefAndCorrespondingNode());
-    addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(IDiffInfo.FAST_TREE_HASH, SeaSnapshot.computeHash(getNode())));
-    addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(IDiffInfo.FAST_CONTEXT_HASH, SeaSnapshot.computeContextHash(getNode())));
+    addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_TREE_HASH, SeaSnapshot.computeHash(getNode())));
+    addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_CONTEXT_HASH, SeaSnapshot.computeContextHash(getNode())));
     /*
      * Output diff information
      * 

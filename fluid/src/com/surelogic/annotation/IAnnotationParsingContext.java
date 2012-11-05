@@ -2,7 +2,7 @@
 package com.surelogic.annotation;
 
 import com.surelogic.aast.*;
-import com.surelogic.dropsea.IDiffInfo;
+import com.surelogic.dropsea.irfree.DiffHeuristics;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -17,7 +17,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @author Edwin.Chan
  */
 public interface IAnnotationParsingContext {
-  static final int UNKNOWN = IDiffInfo.UNKNOWN;
+  static final int UNKNOWN = DiffHeuristics.UNKNOWN;
 
   /**
    * @param offset The index to be mapped

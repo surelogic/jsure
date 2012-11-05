@@ -2,8 +2,8 @@
 package com.surelogic.annotation.scrub;
 
 import com.surelogic.aast.*;
-import com.surelogic.dropsea.IDiffInfo;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.irfree.DiffHeuristics;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -14,7 +14,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
  * @author Edwin.Chan
  */
 public interface IAnnotationScrubberContext {
-  int UNKNOWN = IDiffInfo.UNKNOWN;
+  int UNKNOWN = DiffHeuristics.UNKNOWN;
 
   IBinder getBinder(IRNode context);
   

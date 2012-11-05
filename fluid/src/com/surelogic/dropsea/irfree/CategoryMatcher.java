@@ -6,7 +6,6 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IAnalysisResultDrop;
-import com.surelogic.dropsea.IDiffInfo;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
@@ -101,8 +100,8 @@ public abstract class CategoryMatcher {
   };
   
   protected static boolean matchAnalysisHint(IDrop n, IDrop o) {
-	return matchStrings(n.getDiffInfoOrNull(IDiffInfo.ANALYSIS_DIFF_HINT), 
-			            o.getDiffInfoOrNull(IDiffInfo.ANALYSIS_DIFF_HINT), false) == Boolean.TRUE;  
+	return matchStrings(n.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT), 
+			            o.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT), false) == Boolean.TRUE;  
   }
   
   protected static boolean matchSupportingInfo(IDrop n, IDrop o) {
@@ -221,18 +220,18 @@ public abstract class CategoryMatcher {
   }
   
   protected static boolean matchIntDiffInfo(String key, IDrop n, IDrop o) {
-	  final int nval = n.getDiffInfoAsInt(key, IDiffInfo.UNKNOWN);
-	  final int oval = o.getDiffInfoAsInt(key, IDiffInfo.UNKNOWN);
-	  if (nval == IDiffInfo.UNKNOWN || oval == IDiffInfo.UNKNOWN) {
+	  final int nval = n.getDiffInfoAsInt(key, DiffHeuristics.UNKNOWN);
+	  final int oval = o.getDiffInfoAsInt(key, DiffHeuristics.UNKNOWN);
+	  if (nval == DiffHeuristics.UNKNOWN || oval == DiffHeuristics.UNKNOWN) {
 		  return false;
 	  }
 	  return nval == oval;
   }
   
   protected static boolean matchLongDiffInfo(String key, IDrop n, IDrop o) {
-	  final long nval = n.getDiffInfoAsLong(key, IDiffInfo.UNKNOWN);
-	  final long oval = o.getDiffInfoAsLong(key, IDiffInfo.UNKNOWN);
-	  if (nval == IDiffInfo.UNKNOWN || oval == IDiffInfo.UNKNOWN) {
+	  final long nval = n.getDiffInfoAsLong(key, DiffHeuristics.UNKNOWN);
+	  final long oval = o.getDiffInfoAsLong(key, DiffHeuristics.UNKNOWN);
+	  if (nval == DiffHeuristics.UNKNOWN || oval == DiffHeuristics.UNKNOWN) {
 		  return false;
 	  }
 	  return nval == oval;

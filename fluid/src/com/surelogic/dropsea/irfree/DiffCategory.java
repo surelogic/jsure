@@ -7,7 +7,6 @@ import java.util.*;
 import com.surelogic.common.IViewable;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.*;
-import static com.surelogic.dropsea.IDiffInfo.*;
 
 public final class DiffCategory<K extends Comparable<K>> implements IViewable, Comparable<DiffCategory<K>> {
   public static final boolean suppressFilteredDrops = false;
@@ -218,10 +217,10 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
       return proved + " - " + d.getMessageCanonical() + " - " + d.getMessage();
     } else {
       return proved + " - " + d.getMessageCanonical() + " - " + d.getMessage() + " - " +
-      		 d.getDiffInfoAsInt(DECL_RELATIVE_OFFSET, -1) + " - " +
-      		 d.getDiffInfoAsInt(DECL_END_RELATIVE_OFFSET, -1) + " - " +
-      		 d.getDiffInfoAsLong(FAST_TREE_HASH, -1) + " - " +
-       		 d.getDiffInfoAsLong(FAST_CONTEXT_HASH, -1) + " - " + ref;
+      		 d.getDiffInfoAsInt(DiffHeuristics.DECL_RELATIVE_OFFSET, -1) + " - " +
+      		 d.getDiffInfoAsInt(DiffHeuristics.DECL_END_RELATIVE_OFFSET, -1) + " - " +
+      		 d.getDiffInfoAsLong(DiffHeuristics.FAST_TREE_HASH, -1) + " - " +
+       		 d.getDiffInfoAsLong(DiffHeuristics.FAST_CONTEXT_HASH, -1) + " - " + ref;
     }
   }
 }
