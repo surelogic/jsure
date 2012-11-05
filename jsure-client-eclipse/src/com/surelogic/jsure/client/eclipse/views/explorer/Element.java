@@ -124,13 +124,15 @@ abstract class Element {
     final IJavaRef.Position pos = getPositionRelativeToDeclarationOrNull();
     if (pos != null)
       switch (pos) {
-      case ON:
+      case ON_DECL:
         return "on the declaration";
       case ON_RECEIVER:
         return "on the receiver (this)";
       case ON_RETURN_VALUE:
         return "on the return value";
-      case WITHIN:
+      case IS_DECL:
+        return "the declaration";
+      case WITHIN_DECL:
         return "within the declaration";
       }
     return null;

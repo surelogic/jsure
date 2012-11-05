@@ -554,11 +554,11 @@ public final class JavaIdentifier {
 
 	public static String encodeDecl(String project, IJavaRef ref) {
 		IDecl decl = ref.getDeclaration();
-		if (project == null || decl == null || ref.getPositionRelativeToDeclaration() != IJavaRef.Position.ON) {
+		if (project == null || decl == null || ref.getPositionRelativeToDeclaration() != IJavaRef.Position.ON_DECL) {
 			return null;
 		}
 		final StringBuilder sb = new StringBuilder();
-		if (ref.getPositionRelativeToDeclaration() != IJavaRef.Position.ON) {
+		if (ref.getPositionRelativeToDeclaration() != IJavaRef.Position.ON_DECL) {
 			sb.append(ref.getPositionRelativeToDeclaration()).append(SEPARATOR);
 		}
 		sb.append(project).append(SEPARATOR);

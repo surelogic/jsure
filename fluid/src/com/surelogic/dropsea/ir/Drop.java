@@ -32,12 +32,12 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
-import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IHintDrop.HintType;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.IResultFolderDrop;
+import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.irfree.DiffHeuristics;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
@@ -713,7 +713,6 @@ public abstract class Drop implements IDrop {
     }
   }
 
-  // @Override
   @Nullable
   public final IJavaRef getJavaRef() {
     Pair<IJavaRef, IRNode> p = getJavaRefAndCorrespondingNode();
@@ -723,6 +722,15 @@ public abstract class Drop implements IDrop {
     return p.first();
   }
 
+  /**
+   * Gets a pair consisting of (a) the Java code reference this information is
+   * about and (b) the IR node this information was derived from , or
+   * {@code null} if none.
+   * 
+   * @return a pair consisting of (a) the Java code reference this information
+   *         is about and (b) the IR node this information was derived from , or
+   *         {@code null} if none.
+   */
   @Nullable
   @MustInvokeOnOverride
   protected Pair<IJavaRef, IRNode> getJavaRefAndCorrespondingNode() {
