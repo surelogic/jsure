@@ -65,6 +65,22 @@ public final class KeyValueUtility {
   }
 
   /**
+   * Constructs an enum-valued {@link IKeyValue} instance.
+   * 
+   * @param key
+   *          the key for this instance.
+   * @param value
+   *          an value.
+   * @return a enum-valued {@link IKeyValue} instance.
+   * 
+   * @throws IllegalArgumentException
+   *           if something goes wrong.
+   */
+  public static <T extends Enum<T>> IKeyValue getEnumInstance(String key, T value) {
+    return new StringDiffInfo(key, value.name());
+  }
+
+  /**
    * Parses the result of {@link IKeyValue#encodeForPersistence()} back to a
    * {@link IKeyValue}.
    * 
