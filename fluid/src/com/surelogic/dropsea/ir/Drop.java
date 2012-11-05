@@ -886,6 +886,15 @@ public abstract class Drop implements IDrop {
     return valueIfNotRepresentable;
   }
 
+  public <T extends Enum<T>> T getDiffInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType) {
+    synchronized (f_seaLock) {
+      for (IKeyValue di : f_diffInfos)
+        if (di.getKey().equals(key))
+          return di.getValueAsEnum(valueIfNotRepresentable, elementType);
+    }
+    return valueIfNotRepresentable;
+  }
+
   /**
    * Adds a new diff-info value, or replaces an existing one with the same
    * {@link IKeyValue#getKey()} value.
@@ -1025,7 +1034,8 @@ public abstract class Drop implements IDrop {
      */
     DiffHeuristics.computeDiffInfo(this, getJavaRefAndCorrespondingNode());
     addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_TREE_HASH, SeaSnapshot.computeHash(getNode())));
-    addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_CONTEXT_HASH, SeaSnapshot.computeContextHash(getNode())));
+    addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_CONTEXT_HASH,
+        SeaSnapshot.computeContextHash(getNode())));
     /*
      * Output diff information
      * 

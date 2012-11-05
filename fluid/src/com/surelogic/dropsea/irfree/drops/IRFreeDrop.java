@@ -221,6 +221,13 @@ public class IRFreeDrop implements IDrop {
     return valueIfNotRepresentable;
   }
 
+  public <T extends Enum<T>> T getDiffInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType) {
+    for (IKeyValue di : f_diffInfos)
+      if (di.getKey().equals(key))
+        return di.getValueAsEnum(valueIfNotRepresentable, elementType);
+    return valueIfNotRepresentable;
+  }
+
   static int convert(String val) {
     if (val == null) {
       return 0;

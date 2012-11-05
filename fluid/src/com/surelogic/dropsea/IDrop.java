@@ -198,4 +198,28 @@ public interface IDrop {
    *         the key or the diff-info value cannot be represented as an int.
    */
   int getDiffInfoAsInt(String key, int valueIfNotRepresentable);
+
+  /**
+   * Returns the diff-info value to which the specified key is mapped as an
+   * enum, or <tt>valueIfNotRepresentable</tt> if this drop contains no mapping
+   * for the key or the diff-info value cannot be represented as an enum.
+   * <p>
+   * Diff-info values are used to heuristically match drop instances, with the
+   * overall purpose of creating a "diff" between two scans. They are used to
+   * highlight changes from one scan to another in the JSure user interface as
+   * well as by the JSure regression test suite to match scan results with a set
+   * of "oracle" results.
+   * 
+   * @param key
+   *          a key.
+   * @param valueIfNotRepresentable
+   *          a value.
+   * @param elementType
+   *          the class object of the element type for the resulting enum.
+   * @return the diff-info value to which the specified key is mapped as an
+   *         enum, or <tt>valueIfNotFound</tt> if this drop contains no mapping
+   *         for the key or the diff-info value cannot be represented as an
+   *         enum.
+   */
+  <T extends Enum<T>> T getDiffInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType);
 }
