@@ -52,7 +52,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
   @UniqueInRegion("DropState")
   private final List<IKeyValue> f_metricInfos = new ArrayList<IKeyValue>();
 
-  public final boolean containsMetricInfoKey(String key) {
+  public boolean containsMetricInfoKey(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_metricInfos)
         if (di.getKey().equals(key))
@@ -61,7 +61,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
     return false;
   }
 
-  public final String getMetricInfoOrNull(String key) {
+  public String getMetricInfoOrNull(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_metricInfos)
         if (di.getKey().equals(key))
@@ -70,7 +70,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
     return null;
   }
 
-  public final long getMetricInfoAsLong(String key, long valueIfNotRepresentable) {
+  public long getMetricInfoAsLong(String key, long valueIfNotRepresentable) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_metricInfos)
         if (di.getKey().equals(key))
@@ -79,7 +79,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
     return valueIfNotRepresentable;
   }
 
-  public final int getMetricInfoAsInt(String key, int valueIfNotRepresentable) {
+  public int getMetricInfoAsInt(String key, int valueIfNotRepresentable) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_metricInfos)
         if (di.getKey().equals(key))
@@ -88,7 +88,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
     return valueIfNotRepresentable;
   }
 
-  public final <T extends Enum<T>> T getMetricInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType) {
+  public <T extends Enum<T>> T getMetricInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_metricInfos)
         if (di.getKey().equals(key))
