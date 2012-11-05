@@ -553,13 +553,18 @@ public final class JavaIdentifier {
 	}
 
 	public static String encodeDecl(String project, IJavaRef ref) {
-		IDecl decl = ref.getDeclaration();
-		if (project == null || decl == null || ref.getPositionRelativeToDeclaration() != IJavaRef.Position.ON_DECL) {
+		final IDecl decl = ref.getDeclaration();
+		final IJavaRef.Position pos = ref.getPositionRelativeToDeclaration();
+		if (project == null || decl == null || pos == IJavaRef.Position.WITHIN_DECL) {
 			return null;
 		}
 		final StringBuilder sb = new StringBuilder();
-		if (ref.getPositionRelativeToDeclaration() != IJavaRef.Position.ON_DECL) {
+		switch (pos) {
+		case ON_RECEIVER:
+		case ON_RETURN_VALUE:
 			sb.append(ref.getPositionRelativeToDeclaration()).append(SEPARATOR);
+		default:
+			break;
 		}
 		sb.append(project).append(SEPARATOR);
 		sb.append(DeclUtil.getPackageNameOrEmpty(decl));
