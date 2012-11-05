@@ -146,7 +146,8 @@ public final class JSureDataDirHub {
   private JSureDataDirHub() {
     final File dataDir = JSurePreferencesUtility.getJSureDataDirectory();
     f_dataDir = JSureDataDirScanner.scan(dataDir);
-    loadCurrentScanPreference();
+    if (!f_dataDir.isEmpty())
+      loadCurrentScanPreference();
   }
 
   /**
@@ -382,17 +383,17 @@ public final class JSureDataDirHub {
             if (jsureScan != null) {
               currentScanInfo = new JSureScanInfo(jsureScan, loader);
               currentScanInfo.getDropInfo(); // force loading
-              
+
               JSureScan last = null;
               if (XUtil.useExperimental()) {
-            	  last = OracleUtility.findOracle(currentScanInfo.getJSureRun());            	  
+                last = OracleUtility.findOracle(currentScanInfo.getJSureRun());
               }
               if (last == null) {
-            	  last = f_dataDir.findLastMatchingScan(currentScanInfo.getJSureRun());
+                last = f_dataDir.findLastMatchingScan(currentScanInfo.getJSureRun());
               }
               monitor.worked(1);
               if (monitor.isCanceled()) {
-            	loader.clear();
+                loader.clear();
                 return SLStatus.CANCEL_STATUS;
               }
               if (last != null) {
@@ -401,12 +402,12 @@ public final class JSureDataDirHub {
                 loader.clear(); // here because of forced loading
                 monitor.worked(1);
                 if (monitor.isCanceled()) {
-                  //loader.clear();
+                  // loader.clear();
                   return SLStatus.CANCEL_STATUS;
                 }
                 final ISeaDiff diff = currentScanInfo.diff(lastMatchingScanInfo,
                     UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER);
-            	//loader.clear(); // here because of lazy load
+                // loader.clear(); // here because of lazy load
                 monitor.worked(1);
                 if (monitor.isCanceled()) {
                   return SLStatus.CANCEL_STATUS;
@@ -440,15 +441,18 @@ public final class JSureDataDirHub {
   private void loadCurrentScanPreference() {
     JSureScan currentScan = null;
     String value = EclipseUtility.getStringPreference(JSurePreferencesUtility.CURRENT_SCAN);
-    final SLJob job;
+    final JSureDataDir dataDir;
     synchronized (f_lock) {
-      if (value != null && !NONE.equals(value)) {
-        final File scanDir = new File(value);
-        currentScan = f_dataDir.findScan(scanDir);
-      }
-      job = getSetCurrentScanJob(currentScan, false, false, false);
+      dataDir = f_dataDir;
     }
-    EclipseJob.getInstance().schedule(job);
+    if (value != null && !NONE.equals(value)) {
+      final File scanDir = new File(value);
+      currentScan = dataDir.findScan(scanDir);
+    }
+    if (currentScan != null) {
+      final SLJob job = getSetCurrentScanJob(currentScan, false, false, false);
+      EclipseJob.getInstance().schedule(job);
+    }
   }
 
   private void saveCurrentScanPreference() {
