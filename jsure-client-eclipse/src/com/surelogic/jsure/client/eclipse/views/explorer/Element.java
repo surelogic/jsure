@@ -1,17 +1,18 @@
 package com.surelogic.jsure.client.eclipse.views.explorer;
 
 import java.util.Comparator;
+import java.util.EnumSet;
 
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
-import com.surelogic.common.CommonImages;
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.common.ui.SLImages;
+import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 abstract class Element {
 
@@ -135,92 +136,41 @@ abstract class Element {
     return null;
   }
 
-  private Boolean f_descendantHasWarningHintCache = null;
+  private EnumSet<Flag> f_descendantDecoratorFlagsCache = null;
 
-  /**
-   * Checks if this element has a descendant with a warning hint about it. This
-   * is used by the UI to show a label decorator, if the user desires it, path
-   * along the tree to the warning.
-   * 
-   * @return {@code true} if this element has a descendant with a warning hint
-   *         about it, {@code false} otherwise.
-   */
-  final boolean descendantHasWarningHint() {
-    if (f_descendantHasWarningHintCache == null)
-      f_descendantHasWarningHintCache = searchForWarningHelper(this);
-    return f_descendantHasWarningHintCache;
+  final EnumSet<Flag> getDescendantDecoratorFlags() {
+    if (f_descendantDecoratorFlagsCache == null) {
+      f_descendantDecoratorFlagsCache = descendantDecoratorFlagsHelper(this);
+      /*
+       * Fix up verification proof result (+ and X are in an X proof most of the
+       * time)
+       */
+      if (f_descendantDecoratorFlagsCache.contains(Flag.INCONSISTENT))
+        f_descendantDecoratorFlagsCache.remove(Flag.CONSISTENT);
+    }
+    return f_descendantDecoratorFlagsCache;
   }
 
-  /**
-   * Helper method to determine the answer for
-   * {@link #descendantHasWarningHint()} for any element.
-   * 
-   * @param e
-   *          any element.
-   * @return {@code true} if this element has a descendant with a warning hint
-   *         about it, {@code false} otherwise.
-   */
-  private final boolean searchForWarningHelper(Element e) {
-    return false; // TODO
-    // if (e instanceof ElementHintDrop) {
-    // if (((ElementHintDrop) e).getDrop().getHintType() ==
-    // IHintDrop.HintType.WARNING)
-    // return true;
-    // } else if (e instanceof ElementProofDrop) {
-    // /*
-    // * Stop looking here because the proof drops provide a "deep" answer. We
-    // * do not want to examine children in this case because this could cause
-    // * more of the viewer model to be built out than we need.
-    // */
-    // if (((ElementProofDrop) e).getDrop().derivedFromWarningHint())
-    // return true;
-    // else
-    // return false;
-    // }
-    // boolean result = false;
-    // for (Element c : e.getChildren()) {
-    // result |= searchForWarningHelper(c);
-    // }
-    // return result;
-  }
+  private EnumSet<Flag> descendantDecoratorFlagsHelper(Element e) {
+    EnumSet<Flag> result = EnumSet.noneOf(Flag.class);
+    if (e instanceof ElementDrop) {
+      IDrop drop = ((ElementDrop) e).getDrop();
+      if (drop instanceof IProofDrop) {
+        IProofDrop pd = (IProofDrop) drop;
+        if (pd.provedConsistent())
+          result.add(Flag.CONSISTENT);
+        else
+          result.add(Flag.INCONSISTENT);
+        if (pd.proofUsesRedDot())
+          result.add(Flag.REDDOT);
+      }
 
-  private Boolean f_descendantHasDifferenceCache = null;
-
-  /**
-   * Checks if this element has a descendant with a difference from the old
-   * scan. This is used by the UI to highlight a path to the difference, if the
-   * user desires it.
-   * 
-   * @return {@code true} if this element has a descendant with a difference
-   *         from the old scan, {@code false} otherwise.
-   */
-  final boolean descendantHasDifference() {
-    if (f_descendantHasDifferenceCache == null)
-      f_descendantHasDifferenceCache = searchForDifferenceHelper(this);
-    return f_descendantHasDifferenceCache;
-  }
-
-  /**
-   * Helper method to determine the answer for
-   * {@link #descendantHasDifference()} for any element.
-   * 
-   * @param e
-   *          any element.
-   * @return {@code true} if this element has a descendant with a difference
-   *         from the old scan, {@code false} otherwise.
-   */
-  private final boolean searchForDifferenceHelper(Element e) {
-    return false; // TODO
-    // if (e instanceof ElementDrop) {
-    // final boolean isSame = ((ElementDrop) e).isSame();
-    // if (!isSame)
-    // return true;
-    // }
-    // boolean result = false;
-    // for (Element c : e.getChildren()) {
-    // result |= searchForDifferenceHelper(c);
-    // }
-    // return result;
+    } else {
+      for (Element c : e.getChildren()) {
+        result.addAll(descendantDecoratorFlagsHelper(c));
+      }
+    }
+    return result;
   }
 
   /**
@@ -249,19 +199,15 @@ abstract class Element {
     final Image baseImage = getElementImage();
     if (baseImage == null)
       return null;
-    ImageDescriptor decorator = null;
-    if (withWarningDecoratorIfApplicable) {
-      if (descendantHasWarningHint())
-        decorator = SLImages.getImageDescriptor(CommonImages.DECR_WARNING);
-    }
-    if (withDeltaDecoratorIfApplicable) {
-      if (Element.f_highlightDifferences) {
-        if (descendantHasDifference())
-          decorator = SLImages.getImageDescriptor(CommonImages.DECR_DELTA);
-      }
-    }
-    return SLImages.getDecoratedImage(baseImage, new ImageDescriptor[] { null, null, null, decorator, null },
-        JSureDecoratedImageUtility.SIZE, gray);
+    final EnumSet<Flag> flags = getDescendantDecoratorFlags();
+    if (!withWarningDecoratorIfApplicable)
+      flags.remove(Flag.HINT_WARNING);
+    if (!withDeltaDecoratorIfApplicable)
+      flags.remove(Flag.DELTA);
+    if (gray)
+      return JSureDecoratedImageUtility.getGrayscaleImage(baseImage, flags);
+    else
+      return JSureDecoratedImageUtility.getImage(baseImage, flags);
   }
 
   /**
