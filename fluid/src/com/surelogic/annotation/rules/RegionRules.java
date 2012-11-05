@@ -55,7 +55,9 @@ import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
@@ -203,17 +205,16 @@ public class RegionRules extends AnnotationRules {
     
     // Region must be uniquely named
     final String simpleName = a.getId();
-    final String qualifiedName = computeQualifiedName(a);  
-    /*
-    if ("Static".equals(a.getId())) {
-    	System.out.println("Processing region "+qualifiedName);
-    	if ("ttt.Test.Static".equals(qualifiedName)) {
-    		System.out.println("Debugging ...");
-    	}
-    } else {
-    	System.err.println("Processing region "+qualifiedName);
+    final String qualifiedName = computeQualifiedName(a);
+    
+    if (!a.isStatic()) {
+      if (AnnotationDeclaration.prototype.includes(promisedFor)) {
+        context.reportError(a, "Non-static regions may not be declared in annotation types");
+      } else if (InterfaceDeclaration.prototype.includes(promisedFor)) {
+        context.reportError(a, "Non-static regions may not be declared in interfaces");
+      }
     }
-	*/
+    
     if (regionState.isNameAlreadyUsed(promisedFor, simpleName, qualifiedName)) {
       context.reportError(a, "Region \"{0}\" is already declared in class", simpleName);
       annotationIsGood = false;
@@ -1130,11 +1131,13 @@ public class RegionRules extends AnnotationRules {
 		  super();
 	  }
 
-	  public void clearState() {
+	  @Override
+    public void clearState() {
 		  projects.clear();
 	  }
 
-	  public boolean isNameAlreadyUsed(IRNode type, String simpleName, String qualifiedName) {
+	  @Override
+    public boolean isNameAlreadyUsed(IRNode type, String simpleName, String qualifiedName) {
 		  final IIRProject p = JavaProjects.getEnclosingProject(type);
 		  if (p == null) {
 			  System.out.println("No project for "+qualifiedName);
@@ -1173,6 +1176,7 @@ public class RegionRules extends AnnotationRules {
       return fieldNames;
     }
     
+    @Override
     public synchronized boolean isNameAlreadyUsed(
         final IRNode type, final String simpleName, final String qualifiedName) {
       boolean isDuplicate = getFieldNames(type).contains(simpleName) || qualifiedRegionNames.contains(qualifiedName);
@@ -1180,6 +1184,7 @@ public class RegionRules extends AnnotationRules {
       return isDuplicate;
     }
        
+    @Override
     public synchronized void clearState() {
       classToFields.clear();
       qualifiedRegionNames.clear();
