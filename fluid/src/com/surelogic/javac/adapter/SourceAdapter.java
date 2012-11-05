@@ -1259,7 +1259,8 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       }
       IRNode rv = ConstructorDeclaration.createNode(annos, mods, TypeFormals.createNode(typs), className,
           Parameters.createNode(fmls), Throws.createNode(exs), body);
-      ReceiverDeclaration.makeReceiverNode(rv);
+      addJavaRefAndCheckForJavadocAnnotations(node, rv);
+      createRequiredConstructorNodes(rv);
       return rv;
     }
     String id = node.getName().toString();
