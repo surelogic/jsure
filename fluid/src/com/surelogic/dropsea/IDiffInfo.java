@@ -5,7 +5,7 @@ import com.surelogic.ValueObject;
 
 @Immutable
 @ValueObject
-public interface IDiffInfo extends IKeyValue {
+public interface IDiffInfo {
 
   /*
    * Key constants for diff-info values used by JSure
