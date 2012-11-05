@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import com.surelogic.NonNull;
+import com.surelogic.common.NullOutputStream;
 import com.surelogic.common.SourceZipLookup.Lines;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -206,7 +207,8 @@ public class JSureScanInfo {
   }
   
   public SeaSnapshotDiff<CPair<String,String>> diff(JSureScanInfo older, IDropFilter f) {
-	  SeaSnapshotDiff<CPair<String, String>> rv = new SeaSnapshotDiff<CPair<String, String>>();
+	  SeaSnapshotDiff<CPair<String, String>> rv = 
+		  new SeaSnapshotDiff<CPair<String, String>>(false ? System.out : NullOutputStream.out);
 	  rv.setFilter(SeaSnapshotDiff.augmentDefaultFilter(f));
 	  rv.setSeparator(SeaSnapshotDiff.defaultSeparator);
 	  rv.setMatcher(makeMatcher(older));

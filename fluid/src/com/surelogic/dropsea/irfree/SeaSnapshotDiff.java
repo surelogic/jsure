@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.Map;
 
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
@@ -33,7 +35,19 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
   private IDropFilter filter;
   private IDropSeparator<K> separator;
   private CategoryMatcher matcher = defaultMatcher;
-
+  private final PrintStream out; 
+  
+  public SeaSnapshotDiff() {
+	  this(System.out);
+  }
+  
+  public SeaSnapshotDiff(PrintStream o) {
+	  if (o == null) {
+	      throw new IllegalArgumentException();
+	  }
+	  out = o;
+  }
+  
   public void setFilter(IDropFilter f) {
     if (f == null) {
       throw new IllegalArgumentException();
@@ -119,8 +133,8 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
       // do I need to keep it around?
       old = filter(filter, old);
       newer = filter(filter, newer);
-      //System.out.println("Old  : "+oldSize+" -> "+old.size());
-      //System.out.println("Newer: "+newerSize+" -> "+newer.size());
+      //out.println("Old  : "+oldSize+" -> "+old.size());
+      //out.println("Newer: "+newerSize+" -> "+newer.size());
     }
     if (separator != null) {
       separateIntoCategories(old, newer);
@@ -133,7 +147,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     if (matcher != null) {
       // TODO do in parallel?
       for (DiffCategory<K> c : categories.values()) {
-        c.diff(System.out, matcher);
+        c.diff(out, matcher);
       }
     }
     return true;
@@ -190,6 +204,10 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
       return pd.derivedFromSrc();
     }
     */
+	if (d instanceof IMetricDrop) {
+	  // Ignore these
+      return false;
+	}
     // Need a location to report
     IJavaRef ref = d.getJavaRef();
     if (ref == null) {
