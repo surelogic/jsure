@@ -84,7 +84,7 @@ public class DropDiff extends DiffNode implements IViewable {
 		if (title != null) {
 			out.println(title);
 		}
-		out.println("\tDiffs in details for " + n.drop.getMessage());
+		out.println("\tDiffs in details for: " + DiffCategory.toString(n));
 		for (String old : sort(oldDetails.keySet(), temp)) {
 			out.println("\t\tOld    : " + old);
 			DiffNode e = oldDetails.get(old);
@@ -119,7 +119,7 @@ public class DropDiff extends DiffNode implements IViewable {
 					if (title != null) {
 						out.println(title);
 					}
-					out.println("\tDiffs in details for " + n.drop.getMessage());
+					out.println("\tDiffs in details for: " + DiffCategory.toString(n));
 					out.println(msg);
 					return new DiffMessage(msg, Status.CHANGED) {
 						@Override
