@@ -103,6 +103,13 @@ final class ElementDrop extends Element {
   }
 
   @Override
+  @Nullable
+  Image getImage() {
+    final Image baseImage = getElementImage();
+    return baseImage;
+  }
+
+  @Override
   int getLineNumber() {
     final IJavaRef jr = getDrop().getJavaRef();
     return jr.getLineNumber();

@@ -203,11 +203,12 @@ public final class JSureDecoratedImageUtility {
    * 
    * @param drop
    *          any drop.
-   * @param neverShowProofFlagsOnResultDrop
+   * @param alwaysShowProofFlagsOnResultDrop
    *          {@code true} if proof drop decorations (proved consistent and red
-   *          dot) should never be added to an image for an {@link IResultDrop},
-   *          {@code false} if decorations should be added if the result drop
-   *          has trusted drops.
+   *          dot) should be added to an image for an {@link IResultDrop},
+   *          {@code false} if decorations should only be added if the result
+   *          drop has trusted drops. Unused by proof indicators are always
+   *          shown.
    * @param size
    *          the size of the resulting image. Set to {@link #SIZE} if
    *          {@code null}.
@@ -218,7 +219,7 @@ public final class JSureDecoratedImageUtility {
    *         {@link Image#dispose()} on it.
    */
   @NonNull
-  public static Image getImageForDrop(@NonNull final IDrop drop, final boolean neverShowProofFlagsOnResultDrop,
+  public static Image getImageForDrop(@NonNull final IDrop drop, final boolean alwaysShowProofFlagsOnResultDrop,
       @Nullable Point size, final boolean grayscale) {
     if (drop == null)
       return getImage(CommonImages.IMG_UNKNOWN);
@@ -267,10 +268,14 @@ public final class JSureDecoratedImageUtility {
           else
             baseImageName = CommonImages.IMG_RED_X;
         }
-        // if (neverShowProofFlagsOnResultDrop ||
-        // resultDrop.getTrusted().isEmpty())
-        // flags.clear(); // no flags if not trusting anything
-
+        if (!alwaysShowProofFlagsOnResultDrop) {
+          if (resultDrop.getTrusted().isEmpty()) {
+            final boolean unused = flags.contains(Flag.UNUSED);
+            flags.clear(); // no flags if not trusting anything
+            if (unused)
+              flags.add(Flag.UNUSED);
+          }
+        }
       } else if (proofDrop instanceof IResultFolderDrop) {
         baseImageName = CommonImages.IMG_FOLDER;
       }

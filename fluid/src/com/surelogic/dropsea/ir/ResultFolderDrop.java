@@ -3,6 +3,7 @@ package com.surelogic.dropsea.ir;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FOLDER_LOGIC_OPERATOR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT_FOLDER_DROP;
 
+import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
@@ -69,21 +70,24 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
 
   @Override
   @RequiresLock("SeaLock")
-  protected void proofInitialize() {
+  void proofInitialize() {
     super.proofInitialize();
 
-    setProvedConsistent(true);
+    f_provedConsistent = true;
   }
+
+  @InRegion("DropState")
+  ProofDrop f_choiceOfOrFolder = null;
 
   @Override
   @RequiresLock("SeaLock")
-  protected boolean proofTransfer() {
+  boolean proofTransfer() {
 
     if (getLogicOperator() == LogicOperator.AND) {
       /*
        * CONJUNCTION (AND)
        */
-      return proofTransferAndHelper();
+      return proofTransferHelper(getTrusted());
 
     } else {
       /*
@@ -112,10 +116,34 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
       }
 
       if (chosenDrop != null) {
+        f_choiceOfOrFolder = chosenDrop;
         return proofTransferDropHelper(chosenDrop);
       } else
         return false;
     }
+  }
+
+  @Override
+  @RequiresLock("SeaLock")
+  boolean proofTransferUsedByProofToTrustedResult(@NonNull AnalysisResultDrop trusted) {
+    // if we are used by a proof and the trusted drop is a result drop or result
+    // folder drop, then it is used by a proof
+    if (f_usedByProof) {
+      if (getLogicOperator() == LogicOperator.AND) {
+        if (!trusted.f_usedByProof) {
+          trusted.f_usedByProof = true;
+          return true;
+        }
+      } else {
+        // for OR check that the drop is our choice, proof only must use the
+        // choice
+        if (trusted == f_choiceOfOrFolder && !trusted.f_usedByProof) {
+          trusted.f_usedByProof = true;
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /*

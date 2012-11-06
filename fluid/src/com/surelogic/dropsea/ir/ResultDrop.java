@@ -6,6 +6,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.TIMEOUT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.VOUCHED;
 
 import com.surelogic.InRegion;
+import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IResultDrop;
@@ -122,16 +123,30 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
 
   @Override
   @RequiresLock("SeaLock")
-  protected void proofInitialize() {
+  void proofInitialize() {
     super.proofInitialize();
 
-    setProvedConsistent(isConsistent() || isVouched());
+    f_provedConsistent = isConsistent() || isVouched();
   }
 
   @Override
   @RequiresLock("SeaLock")
-  protected boolean proofTransfer() {
-    return proofTransferAndHelper();
+  boolean proofTransfer() {
+    return proofTransferHelper(getTrusted());
+  }
+
+  @Override
+  @RequiresLock("SeaLock")
+  boolean proofTransferUsedByProofToTrustedResult(@NonNull AnalysisResultDrop trusted) {
+    // if we are used by a proof and the trusted drop is a result
+    // drop or result folder drop, then it is used by a proof
+    if (f_usedByProof) {
+      if (!trusted.f_usedByProof) {
+        trusted.f_usedByProof = true;
+        return true;
+      }
+    }
+    return false;
   }
 
   /*

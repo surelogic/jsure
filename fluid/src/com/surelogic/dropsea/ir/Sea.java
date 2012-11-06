@@ -486,13 +486,25 @@ public final class Sea {
        * ITERATE until we reach a FIXED-POINT (i.e., no changes)
        */
 
+      // consistency, red-dot, derived-from-src, derived-from-warning
       boolean changed = true;
       while (changed) {
+        changed = false;
         for (ProofDrop d : allProofDrops) {
-          changed = false;
-
           // transfer from "lower" drops
           changed |= d.proofTransfer();
+        }
+      }
+
+      // used by proof
+      changed = true;
+      while (changed) {
+        changed = false;
+        for (ProofDrop d : allProofDrops) {
+          if (d instanceof AnalysisResultDrop) {
+            // transfer from "higher" drops
+            changed |= ((AnalysisResultDrop) d).proofTransferUsedBy();
+          }
         }
       }
 

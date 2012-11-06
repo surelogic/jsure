@@ -62,8 +62,6 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   public PromiseDrop(A a) {
     super(a.getPromisedFor());
 
-    setDerivedFromSrc(true);
-
     if (a.getPromisedFor().identity() == IRNode.destroyedNode) {
       throw new IllegalStateException("Destroyed node for: " + a);
     }
@@ -386,8 +384,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    */
   public final void setFromSrc(boolean fromSrc) {
     synchronized (f_seaLock) {
-      this.f_fromSrc = fromSrc;
-      setDerivedFromSrc(fromSrc);
+      f_fromSrc = fromSrc;
     }
   }
 
@@ -513,16 +510,16 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @Override
   @RequiresLock("SeaLock")
-  protected final void proofInitialize() {
+  final void proofInitialize() {
     // for a promise drop we flag a red dot if it is not checked by analysis
-    setProofUsesRedDot(!isCheckedByAnalysis());
+    f_proofUsesRedDot = !isCheckedByAnalysis();
     if (isAssumed())
-      setProofUsesRedDot(true);
+      f_proofUsesRedDot = true;
 
     // if no immediate result drops are an "X" then we are consistent
-    setProvedConsistent(true); // assume true
-    setDerivedFromSrc(isFromSrc());
-    setDerivedFromWarningHint(hasWarningHints());
+    f_provedConsistent = true; // assume the best
+    f_derivedFromSrc = isFromSrc();
+    f_derivedFromWarningHint = hasWarningHints();
 
     Collection<AnalysisResultDrop> analysisResults = getCheckedBy();
     for (AnalysisResultDrop result : analysisResults) {
@@ -531,31 +528,20 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
        */
       if (result instanceof ResultDrop) {
         ResultDrop r = (ResultDrop) result;
-        setProvedConsistent(provedConsistent() && (r.isConsistent() || r.isVouched()));
+        f_provedConsistent &= (r.isConsistent() || r.isVouched());
       }
-      setDerivedFromSrc(derivedFromSrc() || result.isFromSrc());
+      f_derivedFromSrc |= result.isFromSrc();
     }
 
   }
 
   @Override
   @RequiresLock("SeaLock")
-  protected final boolean proofTransfer() {
-    boolean changed = false; // assume the best
-
+  final boolean proofTransfer() {
     // examine dependent analysis results and dependent promises
     final Set<ProofDrop> proofDrops = new HashSet<ProofDrop>(getCheckedBy());
     proofDrops.addAll(Sea.filterDropsOfType(PromiseDrop.class, getDependents()));
-    for (ProofDrop proofDrop : proofDrops) {
-      changed |= proofTransferDropHelper(proofDrop);
-    }
-    return changed;
-  }
-
-  @Override
-  @RequiresLock("SeaLock")
-  protected final boolean proofTransferUsedByProofHelper(@NonNull AnalysisResultDrop resultDrop) {
-    return false;
+    return proofTransferHelper(proofDrops);
   }
 
   /*

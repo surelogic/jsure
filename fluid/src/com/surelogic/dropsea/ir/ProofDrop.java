@@ -8,6 +8,7 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.USES_RED_DOT_ATTR;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -45,7 +46,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
    * whole-program.
    */
   @InRegion("DropState")
-  private boolean f_provedConsistent = false;
+  boolean f_provedConsistent = false;
 
   /**
    * Returns if this element has been judged to be consistent by
@@ -60,27 +61,15 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
     }
   }
 
-  void setProvedConsistent(boolean value) {
-    synchronized (f_seaLock) {
-      f_provedConsistent = value;
-    }
-  }
-
   /**
    * Records whether this result depends on something from source code.
    */
   @InRegion("DropState")
-  private boolean f_derivedFromSrc = false;
+  boolean f_derivedFromSrc = false;
 
   public boolean derivedFromSrc() {
     synchronized (f_seaLock) {
       return f_derivedFromSrc;
-    }
-  }
-
-  void setDerivedFromSrc(boolean value) {
-    synchronized (f_seaLock) {
-      f_derivedFromSrc = value;
     }
   }
 
@@ -89,17 +78,11 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
    * about it.
    */
   @InRegion("DropState")
-  private boolean f_derivedFromWarningHint = false;
+  boolean f_derivedFromWarningHint = false;
 
   public boolean derivedFromWarningHint() {
     synchronized (f_seaLock) {
       return f_derivedFromWarningHint;
-    }
-  }
-
-  void setDerivedFromWarningHint(boolean value) {
-    synchronized (f_seaLock) {
-      f_derivedFromWarningHint = value;
     }
   }
 
@@ -109,17 +92,11 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
    * the whole-program.
    */
   @InRegion("DropState")
-  private boolean f_proofUsesRedDot = true;
+  boolean f_proofUsesRedDot = true;
 
   public boolean proofUsesRedDot() {
     synchronized (f_seaLock) {
       return f_proofUsesRedDot;
-    }
-  }
-
-  void setProofUsesRedDot(boolean value) {
-    synchronized (f_seaLock) {
-      f_proofUsesRedDot = value;
     }
   }
 
@@ -244,7 +221,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
    * method to calculate promise consistency.
    */
   @RequiresLock("SeaLock")
-  abstract protected void proofInitialize();
+  abstract void proofInitialize();
 
   /**
    * Called by {@link Sea#updateConsistencyProof()} on iteration to a
@@ -255,46 +232,58 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
    * @return {@code true} if something changes, {@code false} otherwise.
    */
   @RequiresLock("SeaLock")
-  abstract protected boolean proofTransfer();
+  abstract boolean proofTransfer();
 
+  /**
+   * Transfers data from all the passed proof drops.
+   * 
+   * @param proofDrops
+   *          a list of proof drops to transfer.
+   * @return {@code true} if something changes, {@code false} otherwise.
+   */
   @RequiresLock("SeaLock")
-  protected final boolean proofTransferDropHelper(final @NonNull ProofDrop proofDrop) {
+  final boolean proofTransferHelper(@NonNull final Collection<ProofDrop> proofDrops) {
     boolean changed = false; // assume the best
-
-    // all must be consistent for this drop to be consistent
-    if (provedConsistent() && !proofDrop.provedConsistent()) {
-      setProvedConsistent(false);
-      changed = true;
+    for (final ProofDrop proofDrop : proofDrops) {
+      changed |= proofTransferDropHelper(proofDrop);
     }
-    // any red dot means this drop depends upon a red dot
-    if (!proofUsesRedDot() && proofDrop.proofUsesRedDot()) {
-      setProofUsesRedDot(true);
-      changed = true;
-    }
-    // push along if derived from source code
-    if (!derivedFromSrc() && proofDrop.derivedFromSrc()) {
-      setDerivedFromSrc(true);
-      changed = true;
-    }
-    // push along if derived from a warning hint
-    if (!derivedFromWarningHint() && proofDrop.derivedFromWarningHint()) {
-      setDerivedFromWarningHint(true);
-      changed = true;
-    }
-    if (proofDrop instanceof AnalysisResultDrop) {
-      changed |= proofTransferUsedByProofHelper((AnalysisResultDrop) proofDrop);
-    }
-
     return changed;
   }
 
   /**
+   * Transfers data from a single proof drop to this drop.
    * 
-   * @param resultDrop
+   * @param proofDrop
+   *          to transfer from.
    * @return {@code true} if something changes, {@code false} otherwise.
    */
   @RequiresLock("SeaLock")
-  abstract boolean proofTransferUsedByProofHelper(final @NonNull AnalysisResultDrop resultDrop);
+  final boolean proofTransferDropHelper(final @NonNull ProofDrop proofDrop) {
+    boolean changed = false; // assume the best
+
+    // all must be consistent for this drop to be consistent
+    if (f_provedConsistent && !proofDrop.f_provedConsistent) {
+      f_provedConsistent = false;
+      changed = true;
+    }
+    // any red dot means this drop depends upon a red dot
+    if (!f_proofUsesRedDot && proofDrop.f_proofUsesRedDot) {
+      f_proofUsesRedDot = true;
+      changed = true;
+    }
+    // push along if derived from source code
+    if (!f_derivedFromSrc && proofDrop.f_derivedFromSrc) {
+      f_derivedFromSrc = true;
+      changed = true;
+    }
+    // push along if derived from a warning hint
+    if (!f_derivedFromWarningHint && proofDrop.f_derivedFromWarningHint) {
+      f_derivedFromWarningHint = true;
+      changed = true;
+    }
+
+    return changed;
+  }
 
   /**
    * Called by {@link Sea#updateConsistencyProof()} on each proof drop after the
@@ -306,7 +295,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
    */
   @RequiresLock("SeaLock")
   @MustInvokeOnOverride
-  protected void proofFinalize() {
+  final void proofFinalize() {
     if (provedConsistent()) {
       if (f_messageConsistent != null)
         setMessageHelper(f_messageConsistent, f_messageConsistentCanonical);

@@ -191,17 +191,11 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   }
 
   @InRegion("DropState")
-  private boolean f_usedByProof = true;
+  boolean f_usedByProof = true;
 
   public boolean usedByProof() {
     synchronized (f_seaLock) {
       return f_usedByProof;
-    }
-  }
-
-  void setUsedByProof(boolean value) {
-    synchronized (f_seaLock) {
-      f_usedByProof = value;
     }
   }
 
@@ -212,38 +206,41 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   @Override
   @MustInvokeOnOverride
   @RequiresLock("SeaLock")
-  protected void proofInitialize() {
+  void proofInitialize() {
     // analysis result drops, by definition, can not start off with a red dot
-    setProofUsesRedDot(false);
-    setDerivedFromSrc(isFromSrc());
-    setDerivedFromWarningHint(hasWarningHints());
-    setUsedByProof(hasChecked());
+    f_proofUsesRedDot = false;
+    f_derivedFromSrc = isFromSrc();
+    f_derivedFromWarningHint = hasWarningHints();
+    f_usedByProof = hasChecked();
   }
 
-  @RequiresLock("SeaLock")
-  protected final boolean proofTransferAndHelper() {
+  /**
+   * Considers each trusted analysis result to determine if it is used by the
+   * verification proof.
+   * 
+   * @return {@code true} if something changes, {@code false} otherwise.
+   */
+  final boolean proofTransferUsedBy() {
     boolean changed = false; // assume the best
 
-    // "and" trusted proof drops
-    for (final ProofDrop proofDrop : getTrusted()) {
-      changed |= proofTransferDropHelper(proofDrop);
+    for (ProofDrop proofDrop : getTrusted()) {
+      if (proofDrop instanceof AnalysisResultDrop) {
+        changed |= proofTransferUsedByProofToTrustedResult((AnalysisResultDrop) proofDrop);
+      }
     }
+
     return changed;
   }
 
-  @Override
+  /**
+   * Handles the used by proof flag for result drops and result folder drops.
+   * 
+   * @param trusted
+   *          a trusted result drop or result folder drop.
+   * @return {@code true} if something changes, {@code false} otherwise.
+   */
   @RequiresLock("SeaLock")
-  protected final boolean proofTransferUsedByProofHelper(@NonNull AnalysisResultDrop resultDrop) {
-    // if we are used by a proof and the trusted drop is a result
-    // drop or result folder drop, then it is used by a proof
-    if (f_usedByProof) {
-      if (!resultDrop.f_usedByProof) {
-        resultDrop.f_usedByProof = true;
-        return true;
-      }
-    }
-    return false;
-  }
+  abstract boolean proofTransferUsedByProofToTrustedResult(@NonNull AnalysisResultDrop trusted);
 
   /*
    * XML output methods are invoked single-threaded
