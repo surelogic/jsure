@@ -59,6 +59,10 @@ public final class JSureDecoratedImageUtility {
     }
   };
 
+  /**
+   * Image size used for many JSure displays. The default size for most of the
+   * calls below.
+   */
   public static final Point SIZE = new Point(22, 16);
 
   /**
@@ -76,13 +80,17 @@ public final class JSureDecoratedImageUtility {
    * @param size
    *          the size of the resulting image. Set to {@link #SIZE} if
    *          {@code null}.
+   * @param grayscale
+   *          {@code true} if the returned image should be made grayscale,
+   *          {@code false} for color.
    * @return an image that is managed by this utility, please do not call
    *         {@link Image#dispose()} on it.
    */
-  public static Image getImage(@NonNull final Image baseImage, @NonNull final EnumSet<Flag> flags, @Nullable Point size) {
+  public static Image getImage(@NonNull final Image baseImage, @NonNull final EnumSet<Flag> flags, @Nullable Point size,
+      final boolean grayscale) {
     if (size == null)
       size = SIZE;
-    return SLImages.getDecoratedImage(baseImage, getOverlaysArray(flags), size);
+    return SLImages.getDecoratedImage(baseImage, getOverlaysArray(flags), size, grayscale);
   }
 
   /**
@@ -101,7 +109,7 @@ public final class JSureDecoratedImageUtility {
    *         {@link Image#dispose()} on it.
    */
   public static Image getImage(@NonNull final Image baseImage, @NonNull final EnumSet<Flag> flags) {
-    return getImage(baseImage, flags, SIZE);
+    return getImage(baseImage, flags, SIZE, false);
   }
 
   /**
@@ -117,7 +125,7 @@ public final class JSureDecoratedImageUtility {
    *         {@link Image#dispose()} on it.
    */
   public static Image getImage(@NonNull final Image baseImage) {
-    return getImage(baseImage, EnumSet.noneOf(Flag.class), SIZE);
+    return getImage(baseImage, EnumSet.noneOf(Flag.class), SIZE, false);
   }
 
   /**
@@ -136,11 +144,15 @@ public final class JSureDecoratedImageUtility {
    * @param size
    *          the size of the resulting image. Set to {@link #SIZE} if
    *          {@code null}.
+   * @param grayscale
+   *          {@code true} if the returned image should be made grayscale,
+   *          {@code false} for color.
    * @return an image that is managed by this utility, please do not call
    *         {@link Image#dispose()} on it.
    */
-  public static Image getImage(@NonNull final String baseImageName, @NonNull final EnumSet<Flag> flags, @Nullable Point size) {
-    return getImage(SLImages.getImage(baseImageName), flags, size);
+  public static Image getImage(@NonNull final String baseImageName, @NonNull final EnumSet<Flag> flags, @Nullable Point size,
+      final boolean grayscale) {
+    return getImage(SLImages.getImage(baseImageName), flags, size, grayscale);
   }
 
   /**
@@ -160,7 +172,7 @@ public final class JSureDecoratedImageUtility {
    *         {@link Image#dispose()} on it.
    */
   public static Image getImage(@NonNull final String baseImageName, @NonNull final EnumSet<Flag> flags) {
-    return getImage(baseImageName, flags, SIZE);
+    return getImage(baseImageName, flags, SIZE, false);
   }
 
   /**
@@ -177,110 +189,7 @@ public final class JSureDecoratedImageUtility {
    *         {@link Image#dispose()} on it.
    */
   public static Image getImage(@NonNull final String baseImageName) {
-    return getImage(baseImageName, EnumSet.noneOf(Flag.class), SIZE);
-  }
-
-  /**
-   * Returns a grayscale decorated image. The image is cached to avoid running
-   * out of SWT Image objects.
-   * <p>
-   * Note that clients <b>must not</b> dispose the image returned by this
-   * method.
-   * 
-   * @param baseImage
-   *          an image used as the base image.
-   * @param flags
-   *          flags indicating which adornments are to be rendered from
-   *          {@link Flag}, or use {@link EnumSet#noneOf(Class)} for none.
-   * @param size
-   *          the size of the resulting image. Set to {@link #SIZE} if
-   *          {@code null}.
-   * @return an image that is managed by this utility, please do not call
-   *         {@link Image#dispose()} on it.
-   */
-  public static Image getGrayscaleImage(@NonNull final Image baseImage, @NonNull final EnumSet<Flag> flags, @Nullable Point size) {
-    if (size == null)
-      size = SIZE;
-    return SLImages.getDecoratedGrayscaleImage(baseImage, getOverlaysArray(flags), size);
-  }
-
-  /**
-   * Returns a grayscale decorated image of {@link #SIZE}. The image is cached
-   * to avoid running out of SWT Image objects.
-   * <p>
-   * Note that clients <b>must not</b> dispose the image returned by this
-   * method.
-   * 
-   * @param baseImage
-   *          an image used as the base image.
-   * @param flags
-   *          flags indicating which adornments are to be rendered from
-   *          {@link Flag}, or use {@link EnumSet#noneOf(Class)} for none.
-   * @return an image that is managed by this utility, please do not call
-   *         {@link Image#dispose()} on it.
-   */
-  public static Image getGrayscaleImage(@NonNull final Image baseImage, @NonNull final EnumSet<Flag> flags) {
-    return getGrayscaleImage(baseImage, flags, SIZE);
-  }
-
-  /**
-   * Returns a grayscale image of {@link #SIZE}. The image is cached to avoid
-   * running out of SWT Image objects.
-   * <p>
-   * Note that clients <b>must not</b> dispose the image returned by this
-   * method.
-   * 
-   * @param baseImage
-   *          an image used as the base image.
-   * @return an image that is managed by this utility, please do not call
-   *         {@link Image#dispose()} on it.
-   */
-  public static Image getGrayscaleImage(@NonNull final Image baseImage) {
-    return getGrayscaleImage(baseImage, EnumSet.noneOf(Flag.class), SIZE);
-  }
-
-  /**
-   * Returns a grayscale decorated image. The image is cached to avoid running
-   * out of SWT Image objects.
-   * <p>
-   * Note that clients <b>must not</b> dispose the image returned by this
-   * method.
-   * 
-   * @param baseImageName
-   *          an image name from {@link CommonImages} to be used as the base
-   *          image.
-   * @param flags
-   *          flags indicating which adornments are to be rendered from
-   *          {@link Flag}, or use {@link EnumSet#noneOf(Class)} for none.
-   * @param size
-   *          the size of the resulting image. Set to {@link #SIZE} if
-   *          {@code null}.
-   * @return an image that is managed by this utility, please do not call
-   *         {@link Image#dispose()} on it.
-   */
-  public static Image getGrayscaleImage(@NonNull final String baseImageName, @NonNull final EnumSet<Flag> flags,
-      @Nullable Point size) {
-    return getGrayscaleImage(SLImages.getImage(baseImageName), flags, size);
-  }
-
-  /**
-   * Returns a grayscale decorated image of {@link #SIZE}. The image is cached
-   * to avoid running out of SWT Image objects.
-   * <p>
-   * Note that clients <b>must not</b> dispose the image returned by this
-   * method.
-   * 
-   * @param baseImageName
-   *          an image name from {@link CommonImages} to be used as the base
-   *          image.
-   * @param flags
-   *          flags indicating which adornments are to be rendered from
-   *          {@link Flag}, or use {@link EnumSet#noneOf(Class)} for none.
-   * @return an image that is managed by this utility, please do not call
-   *         {@link Image#dispose()} on it.
-   */
-  public static Image getGrayscaleImage(@NonNull final String baseImageName, @NonNull final EnumSet<Flag> flags) {
-    return getGrayscaleImage(baseImageName, flags, SIZE);
+    return getImage(baseImageName, EnumSet.noneOf(Flag.class), SIZE, false);
   }
 
   /**
@@ -300,11 +209,15 @@ public final class JSureDecoratedImageUtility {
    * @param size
    *          the size of the resulting image. Set to {@link #SIZE} if
    *          {@code null}.
+   * @param grayscale
+   *          {@code true} if the returned image should be made grayscale,
+   *          {@code false} for color.
    * @return an image that is managed by this utility, please do not call
    *         {@link Image#dispose()} on it.
    */
   @NonNull
-  public static Image getImageForDrop(@NonNull final IDrop drop, final boolean neverShowProofFlagsOnResultDrop, @Nullable Point size) {
+  public static Image getImageForDrop(@NonNull final IDrop drop, final boolean neverShowProofFlagsOnResultDrop,
+      @Nullable Point size, final boolean grayscale) {
     if (drop == null)
       return getImage(CommonImages.IMG_UNKNOWN);
     final EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
@@ -353,7 +266,7 @@ public final class JSureDecoratedImageUtility {
         baseImageName = CommonImages.IMG_FOLDER;
       }
     }
-    return getImage(baseImageName, flags, size);
+    return getImage(baseImageName, flags, size, grayscale);
   }
 
   /**
@@ -375,24 +288,7 @@ public final class JSureDecoratedImageUtility {
    */
   @NonNull
   public static Image getImageForDrop(@NonNull final IDrop drop, final boolean neverShowProofFlagsOnResultDrop) {
-    return getImageForDrop(drop, neverShowProofFlagsOnResultDrop, null);
-  }
-
-  /**
-   * Returns a grayscale image of {@link #SIZE}. The image is cached to avoid
-   * running out of SWT Image objects.
-   * <p>
-   * Note that clients <b>must not</b> dispose the image returned by this
-   * method.
-   * 
-   * @param baseImageName
-   *          an image name from {@link CommonImages} to be used as the base
-   *          image.
-   * @return an image that is managed by this utility, please do not call
-   *         {@link Image#dispose()} on it.
-   */
-  public static Image getGrayscaleImage(@NonNull final String baseImageName) {
-    return getGrayscaleImage(baseImageName, EnumSet.noneOf(Flag.class), SIZE);
+    return getImageForDrop(drop, neverShowProofFlagsOnResultDrop, null, false);
   }
 
   @NonNull
