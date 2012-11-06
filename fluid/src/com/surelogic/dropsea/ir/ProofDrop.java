@@ -8,7 +8,6 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.USES_RED_DOT_ATTR;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -252,26 +251,50 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
    * fixed-point to allow this proof drop to examine all proof drops with a
    * directed edge (in the drop-sea graph&mdash;see Halloran's thesis) to this
    * proof drop.
+   * 
+   * @return {@code true} if something changes, {@code false} otherwise.
    */
   @RequiresLock("SeaLock")
-  abstract protected void proofTransfer();
+  abstract protected boolean proofTransfer();
+
+  @RequiresLock("SeaLock")
+  protected final boolean proofTransferDropHelper(final @NonNull ProofDrop proofDrop) {
+    boolean changed = false; // assume the best
+
+    // all must be consistent for this drop to be consistent
+    if (provedConsistent() && !proofDrop.provedConsistent()) {
+      setProvedConsistent(false);
+      changed = true;
+    }
+    // any red dot means this drop depends upon a red dot
+    if (!proofUsesRedDot() && proofDrop.proofUsesRedDot()) {
+      setProofUsesRedDot(true);
+      changed = true;
+    }
+    // push along if derived from source code
+    if (!derivedFromSrc() && proofDrop.derivedFromSrc()) {
+      setDerivedFromSrc(true);
+      changed = true;
+    }
+    // push along if derived from a warning hint
+    if (!derivedFromWarningHint() && proofDrop.derivedFromWarningHint()) {
+      setDerivedFromWarningHint(true);
+      changed = true;
+    }
+    if (proofDrop instanceof AnalysisResultDrop) {
+      changed |= proofTransferUsedByProofHelper((AnalysisResultDrop) proofDrop);
+    }
+
+    return changed;
+  }
 
   /**
-   * Called by {@link Sea#updateConsistencyProof()} when this proof drop's
-   * consistency state has been changed by a call to {@link #proofTransfer()} on
-   * iteration to a fixed-point to allow a conservative set of proof drops that
-   * need to be examined on the next iteration to be added to the alorithm's
-   * worklist.
-   * <p>
-   * Each proof drop that has changed should add all proof drops with a directed
-   * edge (in the drop-sea graph&mdash;see Halloran's thesis) from the proof
-   * drop that changed to them on the worklist.
    * 
-   * @param mutableWorklist
-   *          the worklist to add to.
+   * @param resultDrop
+   * @return {@code true} if something changes, {@code false} otherwise.
    */
   @RequiresLock("SeaLock")
-  abstract protected void proofAddToWorklistOnChange(Collection<ProofDrop> mutableWorklist);
+  abstract boolean proofTransferUsedByProofHelper(final @NonNull AnalysisResultDrop resultDrop);
 
   /**
    * Called by {@link Sea#updateConsistencyProof()} on each proof drop after the

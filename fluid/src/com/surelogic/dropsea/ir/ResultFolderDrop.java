@@ -77,54 +77,44 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
 
   @Override
   @RequiresLock("SeaLock")
-  protected void proofTransfer() {
+  protected boolean proofTransfer() {
+
     if (getLogicOperator() == LogicOperator.AND) {
       /*
        * CONJUNCTION (AND)
        */
-      for (ProofDrop result : getTrusted()) {
-        // all must be consistent for this folder to be consistent
-        setProvedConsistent(provedConsistent() & result.provedConsistent());
-        // any red dot means this folder depends upon a red dot
-        if (result.proofUsesRedDot())
-          setProofUsesRedDot(true);
-        // push along if derived from source code
-        setDerivedFromSrc(derivedFromSrc() | result.derivedFromSrc());
-        // push along if derived from a warning hint
-        setDerivedFromWarningHint(derivedFromWarningHint() | result.derivedFromWarningHint());
-      }
+      return proofTransferAndHelper();
+
     } else {
       /*
        * DISJUNCTION (OR)
        */
 
       // Our lattice -- lower index is better
-      // {consistency judgment, uses red dot, has warning hint}
+      // {consistency-judgment, uses-red-dot, has-warning-hint}
       boolean[][] judgmentReddotWarningLattice = { { true, false, false }, { true, false, true }, { true, true, false },
           { true, true, true }, { false, true, false }, { false, true, true }, { false, false, false }, { false, false, true }, };
 
-      int indexOfBestChoice = judgmentReddotWarningLattice.length - 1;
+      int indexOfBestChoice = Integer.MAX_VALUE;
 
-      boolean overall_or_derivedFromSource = false;
-
+      ProofDrop chosenDrop = null;
       for (ProofDrop choice : getTrusted()) {
         for (int i = 0; i < judgmentReddotWarningLattice.length; i++) {
           final boolean[] lattice = judgmentReddotWarningLattice[i];
           if (lattice[0] == choice.provedConsistent() && lattice[1] == choice.proofUsesRedDot()
               && lattice[2] == choice.derivedFromWarningHint()) {
-            if (i < indexOfBestChoice)
+            if (i < indexOfBestChoice) {
               indexOfBestChoice = i;
+              chosenDrop = choice;
+            }
           }
         }
-
-        // if anything is derived from source we will be as well
-        overall_or_derivedFromSource |= choice.derivedFromSrc();
       }
 
-      setProvedConsistent(judgmentReddotWarningLattice[indexOfBestChoice][0]);
-      setProofUsesRedDot(judgmentReddotWarningLattice[indexOfBestChoice][1]);
-      setDerivedFromWarningHint(judgmentReddotWarningLattice[indexOfBestChoice][2]);
-      setDerivedFromSrc(derivedFromSrc() | overall_or_derivedFromSource);
+      if (chosenDrop != null) {
+        return proofTransferDropHelper(chosenDrop);
+      } else
+        return false;
     }
   }
 

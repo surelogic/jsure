@@ -540,30 +540,22 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @Override
   @RequiresLock("SeaLock")
-  protected final void proofTransfer() {
+  protected final boolean proofTransfer() {
+    boolean changed = false; // assume the best
+
     // examine dependent analysis results and dependent promises
     final Set<ProofDrop> proofDrops = new HashSet<ProofDrop>(getCheckedBy());
     proofDrops.addAll(Sea.filterDropsOfType(PromiseDrop.class, getDependents()));
-    for (ProofDrop result : proofDrops) {
-      // all must be consistent for this promise to be consistent
-      setProvedConsistent(provedConsistent() & result.provedConsistent());
-      // any red dot means this promise depends upon a red dot
-      if (result.proofUsesRedDot())
-        setProofUsesRedDot(true);
-      // push along if derived from source code
-      setDerivedFromSrc(derivedFromSrc() | result.derivedFromSrc());
-      // push along if derived from a warning hint
-      setDerivedFromWarningHint(derivedFromWarningHint() | result.derivedFromWarningHint());
+    for (ProofDrop proofDrop : proofDrops) {
+      changed |= proofTransferDropHelper(proofDrop);
     }
+    return changed;
   }
 
   @Override
   @RequiresLock("SeaLock")
-  protected final void proofAddToWorklistOnChange(Collection<ProofDrop> mutableWorklist) {
-    // add all result drops trusted by this promise
-    mutableWorklist.addAll(getTrustedBy());
-    // add all deponent promise drops of this promise
-    mutableWorklist.addAll(Sea.filterDropsOfType(PromiseDrop.class, getDeponentsReference()));
+  protected final boolean proofTransferUsedByProofHelper(@NonNull AnalysisResultDrop resultDrop) {
+    return false;
   }
 
   /*

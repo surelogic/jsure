@@ -2,16 +2,19 @@ package com.surelogic.dropsea.ir;
 
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_PROMISE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_PROOF_DROP;
+import static com.surelogic.common.jsure.xml.AbstractXMLReader.USED_BY_PROOF;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
@@ -187,6 +190,21 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     return false;
   }
 
+  @InRegion("DropState")
+  private boolean f_usedByProof = true;
+
+  public boolean usedByProof() {
+    synchronized (f_seaLock) {
+      return f_usedByProof;
+    }
+  }
+
+  void setUsedByProof(boolean value) {
+    synchronized (f_seaLock) {
+      f_usedByProof = value;
+    }
+  }
+
   /*
    * Consistency proof methods
    */
@@ -199,17 +217,32 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     setProofUsesRedDot(false);
     setDerivedFromSrc(isFromSrc());
     setDerivedFromWarningHint(hasWarningHints());
+    setUsedByProof(hasChecked());
+  }
+
+  @RequiresLock("SeaLock")
+  protected final boolean proofTransferAndHelper() {
+    boolean changed = false; // assume the best
+
+    // "and" trusted proof drops
+    for (final ProofDrop proofDrop : getTrusted()) {
+      changed |= proofTransferDropHelper(proofDrop);
+    }
+    return changed;
   }
 
   @Override
   @RequiresLock("SeaLock")
-  protected final void proofAddToWorklistOnChange(Collection<ProofDrop> mutableWorklist) {
-    // add all result drops trusted by this result
-    mutableWorklist.addAll(getTrustedBy());
-    // add all promise drops that this result checks
-    mutableWorklist.addAll(getCheckedReference());
-    // add all result folder drops that this result is within
-    mutableWorklist.addAll(Sea.filterDropsOfType(ResultFolderDrop.class, getDeponentsReference()));
+  protected final boolean proofTransferUsedByProofHelper(@NonNull AnalysisResultDrop resultDrop) {
+    // if we are used by a proof and the trusted drop is a result
+    // drop or result folder drop, then it is used by a proof
+    if (f_usedByProof) {
+      if (!resultDrop.f_usedByProof) {
+        resultDrop.f_usedByProof = true;
+        return true;
+      }
+    }
+    return false;
   }
 
   /*
@@ -224,6 +257,12 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     for (Drop t : getTrustedReference()) {
       s.snapshotDrop(t);
     }
+  }
+
+  @Override
+  public void snapshotAttrs(XMLCreator.Builder s) {
+    super.snapshotAttrs(s);
+    s.addAttribute(USED_BY_PROOF, usedByProof());
   }
 
   @Override

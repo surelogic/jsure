@@ -49,4 +49,20 @@ public interface IAnalysisResultDrop extends IProofDrop, IAnalysisOutputDrop {
    */
   @NonNull
   Collection<? extends IProofDrop> getTrusted();
+
+  /**
+   * Checks if this drop is used by the verification proof of any promise in the
+   * sea. This indicates, if {@code false}, most of the time, that this drop was
+   * not chosen by a folder with OR logic. It could also indicate that the drop
+   * doesn't support, directly or indirectly, any promise at all.
+   * <p>
+   * This method is intended to help results viewers that show the analysis
+   * results outside of the context of the proof structure, for example, by Java
+   * declaration. Avoid chaining up inconsistent results that were unused, or
+   * put another way don't matter, and confusing the tool user.
+   * 
+   * @return {@code true} if the drop is used by the verification proof of any
+   *         promise in the sea, {@code false} otherwise.
+   */
+  boolean usedByProof();
 }

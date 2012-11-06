@@ -2,10 +2,8 @@ package com.surelogic.dropsea.ir;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -458,14 +456,10 @@ public final class Sea {
    *       inconsistent
    * </pre>
    * 
-   * The methods {@link ProofDrop#proofInitialize()},
-   * {@link ProofDrop#proofTransfer()}, and
-   * {@link ProofDrop#proofAddToWorklistOnChange(Collection)} are invoked by
-   * this algorithm.
+   * The methods {@link ProofDrop#proofInitialize()} and
+   * {@link ProofDrop#proofTransfer()} are invoked by this algorithm.
    * 
    * @return a timestamp for when it's done
-   * @see ProofDrop#provedConsistent()
-   * @see ProofDrop#proofUsesRedDot()
    */
   public long updateConsistencyProof() {
     synchronized (f_seaLock) {
@@ -477,43 +471,29 @@ public final class Sea {
       for (SeaConsistencyProofHook hook : f_proofHooks)
         hook.preConsistencyProof(this);
 
+      // get all the proof drops
+      final List<ProofDrop> allProofDrops = getDropsOfType(ProofDrop.class);
+
       /*
        * INITIALIZE drop-sea flow analysis "proof"
        */
 
-      final List<ProofDrop> worklist = new ArrayList<ProofDrop>();
-      final List<ProofDrop> allProofDrops = getDropsOfType(ProofDrop.class);
       for (ProofDrop d : allProofDrops) {
         d.proofInitialize();
-        worklist.add(d);
       }
 
       /*
-       * ITERATE until we reach a FIXED-POINT (i.e., the worklist is empty)
+       * ITERATE until we reach a FIXED-POINT (i.e., no changes)
        */
 
-      while (!worklist.isEmpty()) {
-        final Set<ProofDrop> nextWorklist = new HashSet<ProofDrop>();
-        for (ProofDrop d : worklist) {
-          // save old state
-          boolean oldProofIsConsistent = d.provedConsistent();
-          boolean oldProofUsesRedDot = d.proofUsesRedDot();
-          boolean oldDerivedFromSrc = d.derivedFromSrc();
-          boolean oldDerivedFromWarningHint = d.derivedFromWarningHint();
+      boolean changed = true;
+      while (changed) {
+        for (ProofDrop d : allProofDrops) {
+          changed = false;
 
           // transfer from "lower" drops
-          d.proofTransfer();
-
-          boolean changed = !(oldProofIsConsistent == d.provedConsistent() && oldProofUsesRedDot == d.proofUsesRedDot()
-              && oldDerivedFromSrc == d.derivedFromSrc() && oldDerivedFromWarningHint == d.derivedFromWarningHint());
-
-          if (changed) {
-            // add "higher" drops to the worklist
-            d.proofAddToWorklistOnChange(nextWorklist);
-          }
+          changed |= d.proofTransfer();
         }
-        worklist.clear();
-        worklist.addAll(nextWorklist);
       }
 
       /*

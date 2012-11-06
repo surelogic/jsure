@@ -130,19 +130,8 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
 
   @Override
   @RequiresLock("SeaLock")
-  protected void proofTransfer() {
-    // "and" trusted proof drops
-    for (final ProofDrop proofDrop : getTrusted()) {
-      // all must be consistent for this drop to be consistent
-      setProvedConsistent(provedConsistent() & proofDrop.provedConsistent());
-      // any red dot means this drop depends upon a red dot
-      if (proofDrop.proofUsesRedDot())
-        setProofUsesRedDot(true);
-      // push along if derived from source code
-      setDerivedFromSrc(derivedFromSrc() | proofDrop.derivedFromSrc());
-      // push along if derived from a warning hint
-      setDerivedFromWarningHint(derivedFromWarningHint() | proofDrop.derivedFromWarningHint());
-    }
+  protected boolean proofTransfer() {
+    return proofTransferAndHelper();
   }
 
   /*
