@@ -450,7 +450,7 @@ public final class JSureDataDirHub {
       currentScan = dataDir.findScan(scanDir);
     }
     if (currentScan != null) {
-      final SLJob job = getSetCurrentScanJob(currentScan, false, false, false);
+      final SLJob job = getSetCurrentScanJob(currentScan, false, true, false);
       EclipseJob.getInstance().schedule(job);
     }
   }
