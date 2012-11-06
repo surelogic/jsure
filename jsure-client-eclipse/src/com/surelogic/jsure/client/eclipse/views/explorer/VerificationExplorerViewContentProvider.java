@@ -1,5 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views.explorer;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -13,6 +14,7 @@ import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScanInfo;
 
@@ -59,26 +61,33 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
   }
 
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final JSureScanInfo oldScan,
-      @Nullable final ScanDifferences diff, final boolean showOnlyDifferences, final boolean showOnlyInOldDifferences,
+      @Nullable final ScanDifferences diff, final boolean showOnlyDifferences, final boolean showObsoleteDrops,
       final boolean showOnlyDerivedFromSrc, final boolean showAnalysisResults, final boolean showHints) {
     Element.f_showHints = showHints;
     Element.f_diff = diff;
     final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer();
-    for (IProofDrop pd : scan.getProofDrops()) {
-      if (showOnlyDerivedFromSrc && !pd.derivedFromSrc())
-        continue;
-      if (!showAnalysisResults && pd instanceof IAnalysisResultDrop)
-        continue;
-      ElementDrop.addToTree(tree, pd, false);
-    }
-    if (showHints) {
-      for (IHintDrop hd : scan.getHintDrops()) {
-        ElementDrop.addToTree(tree, hd, false);
-      }
-    }
-    if (showOnlyInOldDifferences && diff != null) {
-      for (IDrop oldDrop : diff.getDropsOnlyInOldScan()) {
-        ElementDrop.addToTree(tree, oldDrop, true);
+
+    boolean noDiffAndOnlyShowingDiff = diff == null && showOnlyDifferences;
+    if (!noDiffAndOnlyShowingDiff) {
+      final ArrayList<IDrop> drops = new ArrayList<IDrop>();
+      drops.addAll(scan.getProofDrops());
+      if (showHints)
+        drops.addAll(scan.getHintDrops());
+      if (showObsoleteDrops && diff != null)
+        drops.addAll(diff.getDropsOnlyInOldScan());
+
+      for (IDrop pd : drops) {
+        if (showOnlyDifferences && diff != null && diff.isSameInBothScans(pd))
+          continue;
+        if (!(pd instanceof IProofDrop || pd instanceof IHintDrop))
+          continue;
+        if (showOnlyDerivedFromSrc && pd instanceof IProofDrop && !((IProofDrop) pd).derivedFromSrc())
+          continue;
+        if (!showAnalysisResults && pd instanceof IAnalysisResultDrop)
+          continue;
+        if (pd instanceof IResultFolderDrop)
+          continue;
+        ElementDrop.addToTree(tree, pd, diff == null ? false : diff.isNotInNewScan(pd));
       }
     }
     f_root = tree.getRootElements();

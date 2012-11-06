@@ -9,6 +9,7 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
@@ -125,20 +126,21 @@ abstract class Element {
     if (pos != null)
       switch (pos) {
       case ON_DECL:
-        return "on the declaration";
+        return "On the declaration";
       case ON_RECEIVER:
-        return "on the receiver (this)";
+        return "On the receiver (this)";
       case ON_RETURN_VALUE:
-        return "on the return value";
+        return "On the return value";
       case IS_DECL:
-        return "the declaration";
+        return "About the declaration";
       case WITHIN_DECL:
-        return "within the declaration";
+        return "About code within the declaration";
       }
     return null;
   }
 
   private EnumSet<Flag> f_descendantDecoratorFlagsCache = null;
+  private boolean f_descendantDeltaCache;
 
   final EnumSet<Flag> getDescendantDecoratorFlags() {
     if (f_descendantDecoratorFlagsCache == null) {
@@ -149,6 +151,11 @@ abstract class Element {
        */
       if (f_descendantDecoratorFlagsCache.contains(Flag.INCONSISTENT))
         f_descendantDecoratorFlagsCache.remove(Flag.CONSISTENT);
+      /*
+       * Remember delta flag because it can be toggled on and off without a
+       * rebuild of the model.
+       */
+      f_descendantDeltaCache = f_descendantDecoratorFlagsCache.contains(Flag.DELTA);
     }
     return f_descendantDecoratorFlagsCache;
   }
@@ -156,15 +163,23 @@ abstract class Element {
   private EnumSet<Flag> descendantDecoratorFlagsHelper(Element e) {
     EnumSet<Flag> result = EnumSet.noneOf(Flag.class);
     if (e instanceof ElementDrop) {
-      IDrop drop = ((ElementDrop) e).getDrop();
+      final ElementDrop ed = (ElementDrop) e;
+      if (!ed.isSame())
+        result.add(Flag.DELTA);
+
+      final IDrop drop = ed.getDrop();
       if (drop instanceof IProofDrop) {
-        IProofDrop pd = (IProofDrop) drop;
+        final IProofDrop pd = (IProofDrop) drop;
         if (pd.provedConsistent())
           result.add(Flag.CONSISTENT);
         else
           result.add(Flag.INCONSISTENT);
         if (pd.proofUsesRedDot())
           result.add(Flag.REDDOT);
+      } else if (drop instanceof IHintDrop) {
+        final IHintDrop hd = (IHintDrop) drop;
+        if (hd.getHintType() == IHintDrop.HintType.WARNING)
+          result.add(Flag.HINT_WARNING);
       }
 
     } else {
@@ -184,42 +199,23 @@ abstract class Element {
   abstract Image getElementImage();
 
   /**
-   * Helps get a complete decorated image associated with this element. This
-   * includes warning and delta decorations.
-   * 
-   * @param withWarningDecoratorIfApplicable
-   *          if {@code true} then a warning decorator is added to the returned
-   *          image if {@link #descendantHasWarningHint()}.
-   * @param withDeltaDecoratorIfApplicable
-   *          if {@code true} then a delta decorator is added to the returned
-   *          image based upon the user's preference. if {@code false} a delta
-   *          decorator is never added.
-   * @return an image, or {@code null} for none.
-   */
-  @Nullable
-  final Image getImageHelper(boolean gray, boolean withWarningDecoratorIfApplicable, boolean withDeltaDecoratorIfApplicable) {
-    final Image baseImage = getElementImage();
-    if (baseImage == null)
-      return null;
-    final EnumSet<Flag> flags = getDescendantDecoratorFlags();
-    if (!withWarningDecoratorIfApplicable)
-      flags.remove(Flag.HINT_WARNING);
-    if (!withDeltaDecoratorIfApplicable)
-      flags.remove(Flag.DELTA);
-    if (gray)
-      return JSureDecoratedImageUtility.getGrayscaleImage(baseImage, flags);
-    else
-      return JSureDecoratedImageUtility.getImage(baseImage, flags);
-  }
-
-  /**
    * Gets the decorated the image associated with this element.
    * 
    * @return an image, or {@code null} for no image.
    */
   @Nullable
   final Image getImage() {
-    return getImageHelper(false, f_showHints, true);
+    final Image baseImage = getElementImage();
+    if (baseImage == null)
+      return null;
+    final EnumSet<Flag> flags = getDescendantDecoratorFlags();
+    if (f_highlightDifferences) {
+      if (f_descendantDeltaCache)
+        flags.add(Flag.DELTA);
+    } else {
+      flags.remove(Flag.DELTA);
+    }
+    return JSureDecoratedImageUtility.getImage(baseImage, flags);
   }
 
   @Override

@@ -44,7 +44,7 @@ public final class JSureClientUtility {
 
   public static Color getDiffHighlightColorObsolete() {
     if (f_diffHighlightColorObsolete == null) {
-      f_diffHighlightColorObsolete = new Color(Display.getCurrent(), 190, 255, 255);
+      f_diffHighlightColorObsolete = new Color(Display.getCurrent(), 255, 190, 190);
       Display.getCurrent().disposeExec(new Runnable() {
         public void run() {
           f_diffHighlightColorObsolete.dispose();

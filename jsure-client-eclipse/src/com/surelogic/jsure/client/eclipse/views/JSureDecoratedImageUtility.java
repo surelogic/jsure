@@ -220,7 +220,7 @@ public final class JSureDecoratedImageUtility {
    *         {@link Image#dispose()} on it.
    */
   public static Image getGrayscaleImage(@NonNull final Image baseImage, @NonNull final EnumSet<Flag> flags) {
-    return getImage(baseImage, flags, SIZE);
+    return getGrayscaleImage(baseImage, flags, SIZE);
   }
 
   /**
@@ -236,7 +236,7 @@ public final class JSureDecoratedImageUtility {
    *         {@link Image#dispose()} on it.
    */
   public static Image getGrayscaleImage(@NonNull final Image baseImage) {
-    return getImage(baseImage, EnumSet.noneOf(Flag.class), SIZE);
+    return getGrayscaleImage(baseImage, EnumSet.noneOf(Flag.class), SIZE);
   }
 
   /**

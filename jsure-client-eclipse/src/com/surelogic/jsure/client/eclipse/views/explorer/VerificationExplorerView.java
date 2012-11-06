@@ -75,7 +75,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
   private TreeViewerColumn f_showDiffTableColumn = null;
   private boolean f_highlightDifferences;
   private boolean f_showOnlyDifferences;
-  private boolean f_showOnlyInOldDifferences;
+  private boolean f_showObsoleteDrops;
   private boolean f_showOnlyDerivedFromSrc;
   private boolean f_showAnalysisResults;
   private boolean f_showHints;
@@ -269,14 +269,14 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
-  private final Action f_actionShowOnlyInOldDifferences = new Action("", IAction.AS_CHECK_BOX) {
+  private final Action f_actionShowObsoleteDrops = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
-      final boolean buttonChecked = f_actionShowOnlyInOldDifferences.isChecked();
-      if (f_showOnlyInOldDifferences != buttonChecked) {
-        f_showOnlyInOldDifferences = buttonChecked;
-        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_IN_OLD_DIFFERENCES,
-            f_showOnlyInOldDifferences);
+      final boolean buttonChecked = f_actionShowObsoleteDrops.isChecked();
+      if (f_showObsoleteDrops != buttonChecked) {
+        f_showObsoleteDrops = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_OBSOLETE_DROP_DIFFERENCES,
+            f_showObsoleteDrops);
         currentScanChanged(null);
       }
     }
@@ -377,12 +377,12 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_showOnlyDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_DIFFERENCES);
     f_actionShowOnlyDifferences.setChecked(f_showOnlyDifferences);
 
-    f_actionShowOnlyInOldDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG_OLD_SCAN_ONLY));
-    f_actionShowOnlyInOldDifferences.setText("Show Obsolete Results");
-    f_actionShowOnlyInOldDifferences.setToolTipText("Show obsolete results from the last scan");
-    f_showOnlyInOldDifferences = EclipseUtility
-        .getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_IN_OLD_DIFFERENCES);
-    f_actionShowOnlyInOldDifferences.setChecked(f_showOnlyInOldDifferences);
+    f_actionShowObsoleteDrops.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG_OLD_SCAN_ONLY));
+    f_actionShowObsoleteDrops.setText("Show Obsolete Results");
+    f_actionShowObsoleteDrops.setToolTipText("Show obsolete results from the last scan");
+    f_showObsoleteDrops = EclipseUtility
+        .getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_OBSOLETE_DROP_DIFFERENCES);
+    f_actionShowObsoleteDrops.setChecked(f_showObsoleteDrops);
 
     f_actionShowOnlyDerivedFromSrc.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_COMP_UNIT));
     f_actionShowOnlyDerivedFromSrc.setText("Show Only Results Derived From Source");
@@ -449,7 +449,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     pulldown.add(new Separator());
     pulldown.add(f_actionHighlightDifferences);
     pulldown.add(f_actionShowOnlyDifferences);
-    pulldown.add(f_actionShowOnlyInOldDifferences);
+    pulldown.add(f_actionShowObsoleteDrops);
     pulldown.add(new Separator());
     pulldown.add(f_actionShowOnlyDerivedFromSrc);
     pulldown.add(f_actionShowAnalysisResults);
@@ -464,7 +464,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     toolbar.add(new Separator());
     toolbar.add(f_actionHighlightDifferences);
     toolbar.add(f_actionShowOnlyDifferences);
-    toolbar.add(f_actionShowOnlyInOldDifferences);
+    toolbar.add(f_actionShowObsoleteDrops);
     toolbar.add(new Separator());
     toolbar.add(f_actionShowOnlyDerivedFromSrc);
     toolbar.add(f_actionShowAnalysisResults);
@@ -481,7 +481,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
         f_showDiffTableColumn.getColumn().setText(label);
       }
       final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
-      f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, f_showOnlyDifferences, f_showOnlyInOldDifferences,
+      f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, f_showOnlyDifferences, f_showObsoleteDrops,
           f_showOnlyDerivedFromSrc, f_showAnalysisResults, f_showHints);
       final int modelProblemCount = getModelProblemCount(scan);
       setModelProblemIndicatorState(modelProblemCount);

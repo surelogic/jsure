@@ -100,7 +100,7 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultIntPreference(VSTATUS_COL_DIFF_WIDTH, 200);
 
       EclipseUtility.setDefaultBooleanPreference(VEXPLORER_HIGHLIGHT_DIFFERENCES, true);
-      EclipseUtility.setDefaultBooleanPreference(VEXPLORER_SHOW_ONLY_IN_OLD_DIFFERENCES, false);
+      EclipseUtility.setDefaultBooleanPreference(VEXPLORER_SHOW_OBSOLETE_DROP_DIFFERENCES, false);
       EclipseUtility.setDefaultBooleanPreference(VEXPLORER_SHOW_ONLY_DIFFERENCES, false);
       EclipseUtility.setDefaultBooleanPreference(VEXPLORER_SHOW_ONLY_DERIVED_FROM_SRC, true);
       EclipseUtility.setDefaultBooleanPreference(VEXPLORER_SHOW_ANALYSIS_RESULTS, false);
@@ -146,7 +146,7 @@ public final class JSurePreferencesUtility {
   public static final String VSTATUS_COL_DIFF_WIDTH = PREFIX + "verification.status.col.diff.width";
 
   public static final String VEXPLORER_HIGHLIGHT_DIFFERENCES = PREFIX + "verification.explorer.highlight.differences";
-  public static final String VEXPLORER_SHOW_ONLY_IN_OLD_DIFFERENCES = PREFIX + "verification.explorer.only.in.old.differences";
+  public static final String VEXPLORER_SHOW_OBSOLETE_DROP_DIFFERENCES = PREFIX + "verification.explorer.obsolete.drops.differences";
   public static final String VEXPLORER_SHOW_ONLY_DIFFERENCES = PREFIX + "verification.explorer.only.differences";
   public static final String VEXPLORER_SHOW_ONLY_DERIVED_FROM_SRC = PREFIX + "verification.explorer.show.only.derived.from.src";
   public static final String VEXPLORER_SHOW_ANALYSIS_RESULTS = PREFIX + "verification.explorer.show.analysis.results";

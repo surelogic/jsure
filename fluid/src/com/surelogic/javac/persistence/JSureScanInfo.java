@@ -16,6 +16,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
+import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
@@ -183,6 +184,18 @@ public class JSureScanInfo {
     for (IDrop i : loadOrGetDropInfo()) {
       if (i instanceof IHintDrop) {
         final IHintDrop ipd = (IHintDrop) i;
+        result.add(ipd);
+      }
+    }
+    return result;
+  }
+  
+  @NonNull
+  public ArrayList<IMetricDrop> getMetricDrops() {
+    final ArrayList<IMetricDrop> result = new ArrayList<IMetricDrop>();
+    for (IDrop i : loadOrGetDropInfo()) {
+      if (i instanceof IMetricDrop) {
+        final IMetricDrop ipd = (IMetricDrop) i;
         result.add(ipd);
       }
     }

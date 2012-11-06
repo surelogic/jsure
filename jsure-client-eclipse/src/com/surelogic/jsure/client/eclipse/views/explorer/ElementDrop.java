@@ -7,6 +7,7 @@ import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.IJavaRef.Position;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
@@ -99,7 +100,10 @@ final class ElementDrop extends Element {
   @Override
   @Nullable
   Image getElementImage() {
-    return JSureDecoratedImageUtility.getImageForDrop(f_drop, true);
+    Image result = JSureDecoratedImageUtility.getImageForDrop(f_drop, true);
+    if (isOld())
+      result = SLImages.getGrayscaleImage(result);
+    return result;
   }
 
   @Override
