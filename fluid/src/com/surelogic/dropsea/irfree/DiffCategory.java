@@ -97,6 +97,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
       return;
     }
 
+    // Null if the title's already printed
     if (title != null && hasChildren()) {
       out.println(title);
     }
@@ -137,6 +138,9 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
 	  return false;
   }  
   
+  /**
+   * Print out the title (if non-null) and the diffs
+   */
   private String match(String title, PrintStream out, IDropMatcher m) {
     Iterator<DiffNode> it = newer.iterator();
     while (it.hasNext()) {
@@ -155,8 +159,9 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
 
           old.remove(o);
           it.remove();
-          DropDiff d = DropDiff.compute(out, n, o);
+          DropDiff d = DropDiff.compute(title, out, n, o);
           if (d != null) {
+        	title = null;
             diffs.add(d);
           } else {
         	newMatchingOld.put(n.drop, o.drop);

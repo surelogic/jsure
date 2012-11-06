@@ -140,6 +140,7 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
    * @return an element that represents the drop or {@code null} if none can be
    *         found.
    */
+  @Nullable
   Element findElementForDropOrNull(final IDrop drop) {
     if (drop == null)
       return null;

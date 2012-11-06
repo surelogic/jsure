@@ -45,10 +45,13 @@ public class DropDiff extends DiffNode implements IViewable {
 		return children;
 	}
 
-	static DropDiff compute(PrintStream out, DiffNode n, DiffNode o) {
+	/**
+	 * Print out the title (if non-null) and the diffs
+	 */
+	static DropDiff compute(String title, PrintStream out, DiffNode n, DiffNode o) {
 		if (o.drop.getHints().isEmpty()) {
 			if (n.drop.getHints().isEmpty()) {
-				DiffMessage m = diffProperties(out, n, o);
+				DiffMessage m = diffProperties(title, out, n, o);
 				if (m != null) {
 					return new DropDiff(n.drop, o.drop, wrap(m));
 				} else {
@@ -71,12 +74,15 @@ public class DropDiff extends DiffNode implements IViewable {
 		}
 
 		if (oldDetails.isEmpty() && newDetails.isEmpty()) {
-			DiffMessage m = diffProperties(out, n, o);
+			DiffMessage m = diffProperties(title, out, n, o);
 			if (m != null) {
 				return new DropDiff(n.drop, o.drop, wrap(m));
 			} else {
 				return null;
 			}
+		}
+		if (title != null) {
+			out.println(title);
 		}
 		out.println("\tDiffs in details for " + n.drop.getMessage());
 		for (String old : sort(oldDetails.keySet(), temp)) {
@@ -90,7 +96,7 @@ public class DropDiff extends DiffNode implements IViewable {
 			e.setAsNewer();
 		}
 		List<AbstractDiffNode> remaining = new ArrayList<AbstractDiffNode>(1 + oldDetails.size() + newDetails.size());
-		DiffMessage m = diffProperties(out, n, o);	
+		DiffMessage m = diffProperties(null, out, n, o);	
 		if (m != null) {
 			remaining.add(m);
 		}
@@ -100,13 +106,19 @@ public class DropDiff extends DiffNode implements IViewable {
 		return new DropDiff(n.drop, o.drop, remaining.toArray());
 	}
 
-	private static DiffMessage diffProperties(PrintStream out, DiffNode n, DiffNode o) {
+	/**
+	 * Print out the title (if non-null) and the diffs
+	 */
+	private static DiffMessage diffProperties(String title, PrintStream out, DiffNode n, DiffNode o) {
 		if (n.drop instanceof IProofDrop) {
 			final IProofDrop pn = (IProofDrop) n.drop;
 			final IProofDrop po = (IProofDrop) o.drop;
 			for(ProofPredicate p : predicates) {
 				final String msg = p.match(pn, po);
 				if (msg != null) {
+					if (title != null) {
+						out.println(title);
+					}
 					out.println("\tDiffs in details for " + n.drop.getMessage());
 					out.println(msg);
 					return new DiffMessage(msg, Status.CHANGED) {
