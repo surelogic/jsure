@@ -19,6 +19,8 @@ import com.surelogic.analysis.type.constraints.TypeAnnotationTester;
 import com.surelogic.analysis.type.constraints.TypeAnnotations;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.common.Pair;
+import com.surelogic.dropsea.IKeyValue;
+import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.ir.ProofDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
@@ -440,8 +442,12 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
         
         final IRNode link = jTypeOfActual instanceof IJavaSourceRefType ?
             ((IJavaSourceRefType) jTypeOfActual).getDeclaration() : typeActual;
+        final IKeyValue diffInfo = KeyValueUtility.getIntInstance(
+            "actual type parameter", typeActual.hashCode());
         if (actualAnnos.isEmpty()) {
-          ResultsBuilder.createResult(false, actualFolder, link, ACTUAL_UNBOUNDED);
+          final ResultDrop r = ResultsBuilder.createResult(
+              false, actualFolder, link, ACTUAL_UNBOUNDED);
+          r.addOrReplaceDiffInfo(diffInfo);
         } else {
           for (final Map.Entry<AnnotationBounds, Set<ProofDrop>> aa : actualAnnos.entrySet()) {
             final AnnotationBounds key = aa.getKey();
@@ -454,6 +460,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
                 isConsistent, actualFolder, link,
                 ACTUAL_ANNOTATED, key.toString());
             result.addTrusted(aa.getValue());
+            result.addOrReplaceDiffInfo(diffInfo);
           }
         }
       }
