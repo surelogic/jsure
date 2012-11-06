@@ -175,7 +175,7 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
         
         final IUniquePromise uniqueDrop = UniquenessUtils.getUnique(varDecl);
         final ResultDrop uResult = ResultsBuilder.createResult(
-            folder, fieldDecl, uniqueDrop != null,
+            folder, varDecl, uniqueDrop != null,
             FIELD_IS_UNIQUE, FIELD_IS_NOT_UNIQUE);
         if (uniqueDrop != null) {
           uResult.addTrusted(uniqueDrop.getDrop());
@@ -190,11 +190,6 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
         final TypeAnnotationTester tester = 
             new TypeAnnotationTester(TypeAnnotations.CONTAINABLE, binder,
                 ParameterizedTypeAnalysis.getFolders());
-//        final ContainableAnnotationTester tester =
-//            new ContainableAnnotationTester(
-//                binder,
-//                ParameterizedTypeAnalysis.getFolders(), true, false);
-//        final boolean isContainable = tester.testType(type);
         final boolean isContainable = tester.testFieldDeclarationType(type);
         final IRNode typeDeclNode = FieldDeclaration.getType(fieldDecl);
         final ResultDrop cResult = ResultsBuilder.createResult(typeFolder, typeDeclNode,
@@ -216,11 +211,6 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
               final TypeAnnotationTester tester2 =
                   new TypeAnnotationTester(TypeAnnotations.CONTAINABLE, binder,
                       ParameterizedTypeAnalysis.getFolders());
-//              final ContainableAnnotationTester tester2 =
-//                  new ContainableAnnotationTester(
-//                      binder,
-//                      ParameterizedTypeAnalysis.getFolders(), true, true); 
-//              if (tester2.testType(binder.getJavaType(initExpr))) {
               if (tester2.testFinalObjectType(binder.getJavaType(initExpr))) {
                 // we have an instance of an immutable implementation
                 proposeContainable = false;
