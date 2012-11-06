@@ -209,7 +209,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
    * static int getOffset(ISrcRef ref) { if (ref == null) { return -1; } return
    * ref.getOffset(); }
    */
-  private static String toString(DiffNode n) {
+  static String toString(DiffNode n) {
     IDrop d = n.drop;
     IJavaRef ref = d.getJavaRef();
     boolean proved = false;
