@@ -138,7 +138,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
       
       // (1) Check finality of the field
       final boolean isFinal = TypeUtil.isFinal(varDecl);
-      final ResultDrop fDrop = ResultsBuilder.createResult(folder, fieldDecl,
+      final ResultDrop fDrop = ResultsBuilder.createResult(folder, varDecl,
           isFinal, FIELD_IS_FINAL, FIELD_IS_NOT_FINAL);
       if (isFinal) {
         // Get the @Vouch("final") annotation if there is one
@@ -172,10 +172,6 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
       final TypeAnnotationTester tester =
           new TypeAnnotationTester(TypeAnnotations.IMMUTABLE, binder,
               ParameterizedTypeAnalysis.getFolders());
-//      final ImmutableAnnotationTester tester = new ImmutableAnnotationTester(
-//              binder,
-//              ParameterizedTypeAnalysis.getFolders(), true, false); 
-//      final boolean isImmutable = tester.testType(type);
       final boolean isImmutable = tester.testFieldDeclarationType(type);
       final ResultDrop iResult = ResultsBuilder.createResult(
           typeFolder, typeDeclNode, isImmutable,
@@ -196,11 +192,6 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
             final TypeAnnotationTester tester2 =
                 new TypeAnnotationTester(TypeAnnotations.IMMUTABLE, binder,
                     ParameterizedTypeAnalysis.getFolders());
-//            final ImmutableAnnotationTester tester2 =
-//                new ImmutableAnnotationTester(
-//                    binder, 
-//                    ParameterizedTypeAnalysis.getFolders(), true, true);
-//            if (tester2.testType(binder.getJavaType(initExpr))) {
             if (tester2.testFinalObjectType(binder.getJavaType(initExpr))) {
               // we have an instance of an immutable implementation
               proposeImmutable = false;

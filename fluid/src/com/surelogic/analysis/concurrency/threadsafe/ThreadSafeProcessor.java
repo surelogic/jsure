@@ -177,11 +177,11 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
           folder, varDecl, FIELD_DECL_IS_SAFE, FIELD_DECL_IS_NOT_SAFE);
       
       final boolean isFinal = TypeUtil.isFinal(varDecl);
-      ResultsBuilder.createResult(part1Folder, fieldDecl, isFinal,
+      ResultsBuilder.createResult(part1Folder, varDecl, isFinal,
           FIELD_IS_FINAL, FIELD_IS_NOT_FINAL);
   
       final boolean isVolatile = TypeUtil.isVolatile(varDecl);
-      ResultsBuilder.createResult(part1Folder, fieldDecl, isVolatile,
+      ResultsBuilder.createResult(part1Folder, varDecl, isVolatile,
           FIELD_IS_VOLATILE, FIELD_IS_NOT_VOLATILE);
   
       final RegionLockRecord fieldLock =
@@ -211,11 +211,6 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
       final TypeAnnotationTester tsTester =
           new TypeAnnotationTester(TypeAnnotations.THREAD_SAFE, binder,
               ParameterizedTypeAnalysis.getFolders());
-//      final ThreadSafeAnnotationTester tsTester =
-//          new ThreadSafeAnnotationTester(
-//              binder,
-//              ParameterizedTypeAnalysis.getFolders(), true, false);
-//      final boolean isTS = tsTester.testType(type);
       final boolean isTS = tsTester.testFieldDeclarationType(type);
       final ResultDrop tsResult = ResultsBuilder.createResult(part2folder, fieldTypeNode, isTS,
           TYPE_IS_THREADSAFE, TYPE_IS_NOT_THREADSAFE, type.toSourceText());
@@ -235,11 +230,6 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
             final TypeAnnotationTester tsTester2 =
                 new TypeAnnotationTester(TypeAnnotations.THREAD_SAFE, binder,
                     ParameterizedTypeAnalysis.getFolders());
-//            final ThreadSafeAnnotationTester tsTester2 =
-//                new ThreadSafeAnnotationTester(
-//                    binder,
-//                    ParameterizedTypeAnalysis.getFolders(), true, true);
-//            if (tsTester2.testType(binder.getJavaType(initExpr))) {
             if (tsTester2.testFinalObjectType(binder.getJavaType(initExpr))) {
               proposeThreadSafe = false;
               final ResultDrop result =
@@ -257,15 +247,10 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
       }
         
       final ResultFolderDrop containableFolder = ResultsBuilder.createAndFolder(
-          part2folder, fieldDecl, OBJECT_IS_CONTAINED, OBJECT_IS_NOT_CONTAINED);
+          part2folder, varDecl, OBJECT_IS_CONTAINED, OBJECT_IS_NOT_CONTAINED);
       final TypeAnnotationTester cTester =
           new TypeAnnotationTester(TypeAnnotations.CONTAINABLE, binder,
               ParameterizedTypeAnalysis.getFolders());
-//      final ContainableAnnotationTester cTester =
-//          new ContainableAnnotationTester(
-//              binder,
-//              ParameterizedTypeAnalysis.getFolders(), true, false);
-//      final boolean isContainable = cTester.testType(type);
       final boolean isContainable = cTester.testFieldDeclarationType(type);
       final ResultDrop cResult = ResultsBuilder.createResult(
           containableFolder, fieldTypeNode, isContainable,
@@ -282,12 +267,12 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
       final IUniquePromise uDrop = UniquenessUtils.getUnique(varDecl);
       if (uDrop == null) {
         final ResultDrop uResult =
-            ResultsBuilder.createResult(false, containableFolder, fieldDecl, FIELD_IS_NOT_UNIQUE);
+            ResultsBuilder.createResult(false, containableFolder, varDecl, FIELD_IS_NOT_UNIQUE);
         uResult.addProposal(new ProposedPromiseDrop(
             "Unique", null, varDecl, varDecl,  Origin.MODEL));
       } else {
         final ResultDrop uResult =
-            ResultsBuilder.createResult(true, containableFolder, fieldDecl, FIELD_IS_UNIQUE);
+            ResultsBuilder.createResult(true, containableFolder, varDecl, FIELD_IS_UNIQUE);
         uResult.addTrusted(uDrop.getDrop());
   
         // Check that the destination regions are lock protected
