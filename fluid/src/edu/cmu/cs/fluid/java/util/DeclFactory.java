@@ -47,6 +47,7 @@ import edu.cmu.cs.fluid.java.operator.TypeDeclarationStatement;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VariableResource;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
@@ -59,8 +60,9 @@ import edu.cmu.cs.fluid.tree.Operator;
  * @author Edwin
  */
 public class DeclFactory {
+  private static final boolean handleFieldsSpecially = true;
   private final IBinder binder;
-
+  
   public DeclFactory(IBinder b) {
     if (b == null) {
       throw new IllegalArgumentException("null binder");
@@ -104,7 +106,7 @@ public class DeclFactory {
     }
     return new Pair<IDecl, IJavaRef.Position>(decl, IJavaRef.Position.WITHIN_DECL);
   }
-
+  
   private DeclBuilder buildDecl(IRNode here) {
     if (here == null) {
       return null;
@@ -128,6 +130,14 @@ public class DeclFactory {
         return parentB;
       }
       b = buildNonTypeDecl(here, d, parentB);
+    } else if (handleFieldsSpecially && op instanceof FieldDeclaration) {
+      // Special case to handle refs to other details of the field
+      final IRNode vdecls = FieldDeclaration.getVars(here);
+      if (JJNode.tree.numChildren(vdecls) != 1) {
+    	  throw new IllegalStateException("More than one field");
+      }
+      final IRNode field = VariableDeclarators.getVar(vdecls, 0);
+      b =  buildNonTypeDecl(field, VariableDeclarator.prototype, parentB);
     } else {
       return parentB;
     }
@@ -177,6 +187,9 @@ public class DeclFactory {
       pop = JJNode.tree.getOperator(parent);
       return ForEachStatement.prototype.includes(pop) || CatchClause.prototype.includes(pop);
     case FIELD:
+      if (handleFieldsSpecially) {
+    	  return true;
+      }
       pop = JJNode.tree.getOperator(parent);
       if (VariableResource.prototype.includes(pop)) {
         return true;
