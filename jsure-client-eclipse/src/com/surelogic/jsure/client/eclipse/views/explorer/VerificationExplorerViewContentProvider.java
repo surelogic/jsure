@@ -102,6 +102,7 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
    * @return an element that represents the drop or {@code null} if none can be
    *         found.
    */
+  @Nullable
   Element findElementForDropOrNull(final IDrop drop) {
     if (drop == null)
       return null;
@@ -120,11 +121,11 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
     while (!queue.isEmpty()) {
       final Element e = queue.poll();
       if (e != null) {
-        // is e what we are looking for? TODO
-        // if (e instanceof ElementDrop) {
-        // if (((ElementDrop) e).getDrop().equals(drop))
-        // return e;
-        // }
+        // is e what we are looking for?
+        if (e instanceof ElementDrop) {
+          if (((ElementDrop) e).getDrop().equals(drop))
+            return e;
+        }
         queue.addAll(Arrays.asList(e.getChildren()));
       }
     }
