@@ -301,46 +301,26 @@ abstract class Element {
   abstract Image getElementImage();
 
   /**
-   * Helps get a complete decorated image associated with this element. This
-   * includes warning and delta decorations.
-   * 
-   * @param withWarningDecoratorIfApplicable
-   *          if {@code true} then a warning decorator is added to the returned
-   *          image if {@link #descendantHasWarningHint()}.
-   * @param withDeltaDecoratorIfApplicable
-   *          if {@code true} then a delta decorator is added to the returned
-   *          image based upon the user's preference. if {@code false} a delta
-   *          decorator is never added.
-   * @return an image, or {@code null} for none.
-   */
-  @Nullable
-  final Image getImageHelper(boolean gray, boolean withWarningDecoratorIfApplicable, boolean withDeltaDecoratorIfApplicable) {
-    final Image baseImage = getElementImage();
-    if (baseImage == null)
-      return null;
-    ImageDescriptor decorator = null;
-    if (withWarningDecoratorIfApplicable) {
-      if (descendantHasWarningHint())
-        decorator = SLImages.getImageDescriptor(CommonImages.DECR_WARNING);
-    }
-    if (withDeltaDecoratorIfApplicable) {
-      if (Element.f_highlightDifferences) {
-        if (descendantHasDifference())
-          decorator = SLImages.getImageDescriptor(CommonImages.DECR_DELTA);
-      }
-    }
-    return SLImages.getDecoratedImage(baseImage, new ImageDescriptor[] { null, null, null, decorator, null },
-        JSureDecoratedImageUtility.SIZE, gray);
-  }
-
-  /**
    * Gets the decorated the image associated with this element.
    * 
    * @return an image, or {@code null} for no image.
    */
   @Nullable
   final Image getImage() {
-    return getImageHelper(false, f_showHints, true);
+    final Image baseImage = getElementImage();
+    if (baseImage == null)
+      return null;
+    ImageDescriptor decorator = null;
+    if (f_showHints) {
+      if (descendantHasWarningHint())
+        decorator = SLImages.getImageDescriptor(CommonImages.DECR_WARNING);
+    }
+    if (Element.f_highlightDifferences) {
+      if (descendantHasDifference())
+        decorator = SLImages.getImageDescriptor(CommonImages.DECR_DELTA);
+    }
+    return SLImages.getDecoratedImage(baseImage, new ImageDescriptor[] { null, null, null, decorator, null },
+        JSureDecoratedImageUtility.SIZE);
   }
 
   @Override
