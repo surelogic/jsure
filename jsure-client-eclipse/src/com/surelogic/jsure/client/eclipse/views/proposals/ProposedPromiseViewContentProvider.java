@@ -248,14 +248,16 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
     final T[] children;
 
     AbstractTreeable(String id, T[] c) {
-      this(id, c, true);
-    }
-
-    AbstractTreeable(String id, T[] c, boolean sort) {
       this.id = id;
       children = c;
-      if (sort) {
-        Arrays.sort(children);
+      Arrays.sort(children);
+    }
+
+    AbstractTreeable(String id, T[] c, Comparator<? super T> comp) {
+      this.id = id;
+      children = c;
+      if (comp != null) {
+        Arrays.sort(children, comp);
       }
     }
 
@@ -421,7 +423,12 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
     final T[] members;
 
     Member(String id, IProposedPromiseDrop[] c, T[] members, boolean sort) {
-      super(id, c, sort);
+      super(id, c, sort ? new Comparator<IProposedPromiseDrop>() {
+		@Override
+		public int compare(IProposedPromiseDrop o1, IProposedPromiseDrop o2) {
+			return o1.getJavaAnnotation().compareTo(o2.getJavaAnnotation());
+		}    	  
+      } : null);
       this.members = members;
     }
 
