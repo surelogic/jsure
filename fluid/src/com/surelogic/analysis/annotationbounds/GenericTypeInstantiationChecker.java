@@ -258,20 +258,25 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
        */
       final IJavaDeclaredType jTypeOfParameterizedType =
           (IJavaDeclaredType) binder.getJavaType(pType);
-      ResultFolderDrop folder = folders.get(jTypeOfParameterizedType);
-      if (folder == null) {
-        final List<Pair<IRNode, Set<AnnotationBounds>>> bounds =
-            getBounds(baseTypeDecl, boundsDrop, containableDrop, true);
-        if (bounds != null) {
-          folder = checkActualsAgainstBounds(pType, jTypeOfParameterizedType, bounds);
-          /* Don't add the folder to the top-level if the only bounds come
-           * implicitly from @Containable
-           */
-          if (boundsDrop != null) folder.addChecked(boundsDrop);
-          
-          folders.put(jTypeOfParameterizedType, folder);
+
+      ResultFolderDrop folder;
+      synchronized (folders) {
+        folder = folders.get(jTypeOfParameterizedType);
+        if (folder == null) {
+          final List<Pair<IRNode, Set<AnnotationBounds>>> bounds =
+              getBounds(baseTypeDecl, boundsDrop, containableDrop, true);
+          if (bounds != null) {
+            folder = checkActualsAgainstBounds(pType, jTypeOfParameterizedType, bounds);
+            /* Don't add the folder to the top-level if the only bounds come
+             * implicitly from @Containable
+             */
+            if (boundsDrop != null) folder.addChecked(boundsDrop);
+            
+            folders.put(jTypeOfParameterizedType, folder);
+          }
         }
       }
+      
       /* Don't add the "USE" link if the bounds are only implicit bounds
        * from @Containable. 
        */
