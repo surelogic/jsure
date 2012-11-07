@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" release="4">
+<package name="java.util" release="5">
     <class name="EnumMap">
+        <Containable allowReferenceObject="true"/>
         <NotThreadSafe/>
         <constructor params="java.lang.Class">
             <RegionEffects>none</RegionEffects>

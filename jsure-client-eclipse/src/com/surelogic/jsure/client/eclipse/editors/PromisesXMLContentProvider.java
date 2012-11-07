@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -17,6 +16,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.ui.ISharedImages;
 import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -30,6 +30,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 
 import com.surelogic.common.AnnotationConstants;
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
@@ -39,8 +40,6 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor.FileStatus;
-import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
-import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesXMLBuilder;
 import com.surelogic.xml.AbstractFunctionElement;
@@ -307,25 +306,28 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
   @Override
   public Image getImage(final Object element) {
     final Image baseImage = getBaseImageHelper(element);
-    final EnumSet<Flag> flags = EnumSet.noneOf(Flag.class);
+    boolean addWarning = false;
+    boolean addUnannotated = false;
     if (element instanceof AnnotationElement) {
       IJavaElement e = (IJavaElement) element;
       if (e.isBad()) {
-        flags.add(Flag.HINT_WARNING);
+        addWarning = true;
       }
     }
     if (element instanceof AnnotatedJavaElement) {
       AnnotatedJavaElement a = (AnnotatedJavaElement) element;
       if (!a.isConfirmed()) {
-        flags.add(Flag.HINT_WARNING);
+        addWarning = true;
       }
       if (a instanceof AbstractFunctionElement) {
         if (markUnannotated && a.getPromises().isEmpty()) {
-          flags.add(Flag.REDDOT);
+          addUnannotated = true;
         }
       }
     }
-    return JSureDecoratedImageUtility.getImage(baseImage, flags);
+    ImageDescriptor warning = addWarning ? SLImages.getImageDescriptor(CommonImages.DECR_WARNING) : null;
+    ImageDescriptor unannotated = addUnannotated ? SLImages.getImageDescriptor(CommonImages.DECR_UNUSED) : null;
+    return SLImages.getDecoratedImage(baseImage, new ImageDescriptor[] { unannotated, null, warning, null, null });
   }
 
   protected Image getBaseImageHelper(final Object element) {
@@ -334,7 +336,11 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
     if (key != null) {
       Image i = SLImages.getImage(key);
       if (i != null) {
-        return i;
+        if (e.isStatic()) {
+          return SLImages.getDecoratedImage(i, new ImageDescriptor[] { null, SLImages.getImageDescriptor(CommonImages.DECR_STATIC),
+              null, null, null });
+        } else
+          return i;
       }
     }
     if (e instanceof AnnotatedJavaElement) {

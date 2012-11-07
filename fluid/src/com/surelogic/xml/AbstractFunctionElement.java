@@ -34,23 +34,12 @@ implements IClassMember, TestXMLParserConstants
 		genericParams = e.getAttribute(GENERIC_PARAMS_ATTRB);
 	}
 	
+	@Override
 	public final boolean isStatic() {
 		return isStatic;
 	}
 	
 	public final String getImageKey() {
-		if (isStatic()) {
-		  // TODO FIX TO SHOW STATIC
-			switch (getAccessibility()) {
-			case PROTECTED:
-				return CommonImages.IMG_METHOD_PROTECTED;
-			case DEFAULT:
-				return CommonImages.IMG_METHOD_DEFAULT;
-			case PUBLIC:
-			default:
-				return CommonImages.IMG_METHOD_PUBLIC;
-			}
-		}
 		switch (getAccessibility()) {
 		case PROTECTED:
 			return CommonImages.IMG_METHOD_PROTECTED;

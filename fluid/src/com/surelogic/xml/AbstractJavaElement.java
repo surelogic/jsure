@@ -331,6 +331,10 @@ abstract class AbstractJavaElement implements IJavaElement {
 			result.add(e);
 		}
 	}
+	
+	public boolean isStatic() {
+	  return false;
+	}
 
 	@Override
 	public String toString() {
