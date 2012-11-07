@@ -65,14 +65,19 @@ public class VouchRules extends AnnotationRules {
     protected Vouch_ParseRule() {
       // Normally would use methodOrClassDeclOps, except for hack to handle
       // @Vouch("ThreadSafe")
-      super(VOUCH, fieldFuncTypeOps, VouchSpecificationNode.class);
+      super(VOUCH, typeFuncVarDeclOps, VouchSpecificationNode.class);
     }
 
     @Override
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
       if (context.getOp() instanceof FieldDeclaration) {
         // Redirect to the appropriate rule
-        return PromiseFramework.getInstance().getParseDropRule(LockRules.VOUCH_FIELD_IS).parse(context, context.getAllText());
+   	    Object rv = PromiseFramework.getInstance().getParseDropRule(LockRules.VOUCH_FIELD_IS)
+   	                      .parse(context, context.getAllText());
+   	    if (rv != null) {
+   	    	return rv;
+   	    }
+   	    // Fall through to a normal vouch if it's not one of the special kinds that I know about
       }
       return new VouchSpecificationNode(context.mapToSource(0), context.getAllText());
     }
