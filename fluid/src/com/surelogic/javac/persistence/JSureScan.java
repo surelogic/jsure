@@ -150,9 +150,10 @@ public class JSureScan implements Comparable<JSureScan> {
 	 * Returns all the expected properties
 	 */
 	private Properties getScanProperties(File scanDir) {
-		final Properties props = new Properties();
-		final File precomputed = new File(scanDir, PRECOMPUTED_PROPS);
-		if (precomputed.exists()) {
+		final Properties props = new Properties();		
+		final File precomputed = new File(scanDir, PRECOMPUTED_PROPS);		
+		final boolean alreadyPrecomputed = precomputed.exists();
+		if (alreadyPrecomputed) {
 			InputStream in = null;
 			try {			
 				in = new FileInputStream(precomputed);
@@ -173,9 +174,24 @@ public class JSureScan implements Comparable<JSureScan> {
 		boolean changed = false;
 		for(ScanProperty p : REQUIRED_PROPS) {
 			if (!p.isValid(props.getProperty(p.key))) {
-				props.setProperty(SIZE_IN_MB.key, p.computeValue(this));
+				props.setProperty(p.key, p.computeValue(this));
 				changed = true;
 			}
+		}
+
+		final File completed = new File(scanDir, COMPLETE_SCAN);
+		if (completed.exists()) {			
+			if (alreadyPrecomputed) {
+				final long pMod = precomputed.lastModified();
+				final long cMod = completed.lastModified();
+				changed = pMod <= cMod;
+				if (changed) {
+					System.out.println("Changed");
+				}
+			}
+		} else {
+			// Don't write it out if it's not done yet
+			changed = false;
 		}
 		if (changed) {
 			// Rewrite the properties file
