@@ -2644,7 +2644,7 @@ public class LockRules extends AnnotationRules {
 			super(VOUCH_FIELD_IS, fieldDeclOp, VouchFieldIsNode.class);
 		}
 
-		// Should only get called by the Assume parse rule
+		// Should only get called by the Vouch parse rule
 		@Override
 		protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) 
 		throws Exception {
@@ -2655,8 +2655,9 @@ public class LockRules extends AnnotationRules {
 			} else {				
 				try {
 					kind = FieldKind.valueOf(id);				
-				} catch(IllegalArgumentException e) {
-					throw new ParseException("Invalid type of vouch: "+id);
+				} catch(IllegalArgumentException e) {					
+					// throw new ParseException("Invalid type of vouch: "+id);
+					return null;
 				}
 			}
 			return new VouchFieldIsNode(context.mapToSource(0), kind, context.getProperty(VouchFieldIsNode.REASON));
