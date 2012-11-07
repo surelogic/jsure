@@ -50,15 +50,26 @@ public class DefaultCategoryMatcher extends CategoryMatcher {
 	  }
 
 	  public final boolean match(IDrop n, IDrop o) {
-		  return base.match(n, o) &&
-		         (matchAnalysisHint(n, o) || matchSupportingInfo(n, o));
+		  return base.match(n, o) && matchAnalysisHint(getLabel(), n, o);// || matchSupportingInfo(n, o));
 	  }
   }
   
   protected DefaultCategoryMatcher() {
-	  for(IDropMatcher m : passes) {
+	  for(final IDropMatcher m : passes) {
 		  addPass(new AlsoMatchHints(m.getLabel().replace(' ', '+'), m));
 		  addPass(m);
+		  /*
+		  addPass(new AbstractDropMatcher(m.getLabel(), m.warnIfMatched()) {
+			@Override
+			public boolean match(IDrop n, IDrop o) {
+				boolean rv = m.match(n, o);
+				if (matchAnalysisHintOrNull(m.getLabel(), n, o) == Boolean.FALSE) {
+					System.out.println("Not matching");
+				}
+				return rv;
+			}			  
+		  });
+          */
 	  }
   }
   

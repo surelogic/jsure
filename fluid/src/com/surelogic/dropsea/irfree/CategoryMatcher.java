@@ -99,9 +99,29 @@ public abstract class CategoryMatcher {
 	  "Borrowed on parameter 'arg2' of ",
   };
   
-  protected static boolean matchAnalysisHint(IDrop n, IDrop o) {
-	return matchStrings(n.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT), 
-			            o.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT), false) == Boolean.TRUE;  
+  protected static boolean matchAnalysisHint(String label, IDrop n, IDrop o) {
+	  return matchAnalysisHintOrNull(label, n, o) == Boolean.TRUE;
+  }
+  
+  protected static Boolean matchAnalysisHintOrNull(String label, IDrop n, IDrop o) {
+	final String nh = n.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT);
+	final String oh = o.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT);
+	/*
+	if (nh != null && oh != null) {
+		System.out.println("Got hints for "+n.getMessage()+": "+nh+", "+oh);
+	}
+	*/
+	final Boolean rv = matchStrings(nh, oh, false);  
+	/*
+	if (rv == Boolean.TRUE) {
+		System.out.println(label+" Matched hints: "+nh);
+	}
+	else if (rv != null) {
+		System.out.println(label+" Not matched 1: "+nh);
+		System.out.println(label+" Not matched 2: "+oh);
+	}
+    */
+	return rv;
   }
   
   protected static boolean matchSupportingInfo(IDrop n, IDrop o) {
