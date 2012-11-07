@@ -65,7 +65,7 @@ public class VouchRules extends AnnotationRules {
     protected Vouch_ParseRule() {
       // Normally would use methodOrClassDeclOps, except for hack to handle
       // @Vouch("ThreadSafe")
-      super(VOUCH, fieldFuncTypeOps, VouchSpecificationNode.class);
+      super(VOUCH, typeFuncVarDeclOps, VouchSpecificationNode.class);
     }
 
     @Override
