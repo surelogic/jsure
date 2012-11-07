@@ -2,12 +2,7 @@ package com.surelogic.dropsea.irfree;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 import com.surelogic.common.IViewable;
 import com.surelogic.dropsea.IHintDrop;
@@ -50,16 +45,17 @@ public class DropDiff extends DiffNode implements IViewable {
 	 * @param label 
 	 */
 	static DropDiff compute(String title, PrintStream out, String label, DiffNode n, DiffNode o) {
-		if (o.drop.getHints().isEmpty()) {
-			if (n.drop.getHints().isEmpty()) {
+		//if (o.drop.getHints().isEmpty()) {
+		//	if (n.drop.getHints().isEmpty()) {
 				DiffMessage m = diffProperties(title, out, label, n, o);
 				if (m != null) {
 					return new DropDiff(n.drop, o.drop, wrap(m));
 				} else {
 					return null;
 				}
-			}
-		}
+		//	}
+		//}
+		/*
 		final Map<String, DiffNode> oldDetails = extractDetails(o.drop);
 		final Map<String, DiffNode> newDetails = extractDetails(n.drop);
 		final List<String> temp = new ArrayList<String>();
@@ -105,6 +101,7 @@ public class DropDiff extends DiffNode implements IViewable {
 		remaining.addAll(newDetails.values());
 		Collections.sort(remaining);
 		return new DropDiff(n.drop, o.drop, remaining.toArray());
+		*/
 	}
 
 	/**
@@ -123,8 +120,14 @@ public class DropDiff extends DiffNode implements IViewable {
 					}
 					out.println("\t"+label+" Diffs in details for: " + DiffCategory.toString(n));
 					out.println(msg);
-					out.println("\t\tNew hint: "+n.drop.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT));
-					out.println("\t\tOld hint: "+o.drop.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT));
+					final String nh = n.drop.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT);
+					if (nh != null) {
+						out.println("\t\tNew hint: "+nh);
+					}
+					final String oh = o.drop.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT);
+					if (oh != null) {
+						out.println("\t\tOld hint: "+oh);
+					}
 					return new DiffMessage(msg, Status.CHANGED) {
 						@Override
 						public IDrop getDrop() {
@@ -222,13 +225,14 @@ public class DropDiff extends DiffNode implements IViewable {
 		}
 		return rv;
 	}
-	
+	/*
 	private static Collection<String> sort(Collection<String> s, List<String> temp) {
 	    temp.clear();
 	    temp.addAll(s);
 	    Collections.sort(temp);
 	    return temp;
 	}
+	*/
 
 	public void write(PrintWriter w) {
 		w.println("\tDiffs in details for " + drop.getMessage());
