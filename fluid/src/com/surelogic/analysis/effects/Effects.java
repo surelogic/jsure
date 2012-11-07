@@ -103,10 +103,12 @@ public final class Effects implements IBinderClient {
   // IBinderClient methods
   // ----------------------------------------------------------------------
   
+  @Override
   public void clearCaches() {
     // Do nothing
   }
 
+  @Override
   public IBinder getBinder() {
     return binder;
   }
@@ -134,6 +136,7 @@ public final class Effects implements IBinderClient {
       // Added to unparse in a consistent order
       final List<Effect> sorted = new ArrayList<Effect>(fx);
       Collections.sort(sorted, new Comparator<Effect>() {
+        @Override
         public int compare(Effect o1, Effect o2) {
           // Not efficient due to unparse
           return o1.unparseForPromise().compareTo(o2.unparseForPromise());
@@ -721,10 +724,12 @@ public final class Effects implements IBinderClient {
       return context.theEffects;
     }
     
+    @Override
     public void clearCaches() {
       // Do nothing
     }
     
+    @Override
     public IBinder getBinder() {
       return binder;
     }
@@ -861,17 +866,18 @@ public final class Effects implements IBinderClient {
       final IBinding ib = binder.getIBinding(mcall);
       if (ib == null) {
     	  System.out.println("Couldn't get binding for "+DebugUnparser.toString(mcall));
-      }
-      if (MethodDeclaration.prototype.includes(ib.getNode())
-          && MethodCall.getMethod(mcall).equals(mName)) {
-        // First check the declaration of the method being called...
-        if (isDeclarationInType(ib, cName)) {
-          return true;
-        } else {
-          //...then check the declarations of any overridden declarations
-          for (final IBinding ancestor : binder.findOverriddenMethods(ib.getNode())) {
-            if (isDeclarationInType(ancestor, cName)) {
-              return true;
+      } else {
+        if (MethodDeclaration.prototype.includes(ib.getNode())
+            && MethodCall.getMethod(mcall).equals(mName)) {
+          // First check the declaration of the method being called...
+          if (isDeclarationInType(ib, cName)) {
+            return true;
+          } else {
+            //...then check the declarations of any overridden declarations
+            for (final IBinding ancestor : binder.findOverriddenMethods(ib.getNode())) {
+              if (isDeclarationInType(ancestor, cName)) {
+                return true;
+              }
             }
           }
         }
@@ -915,6 +921,7 @@ public final class Effects implements IBinderClient {
         private final Context oldContext = context;
         private Context newContext = null;
         
+        @Override
         public void tryBefore() {
           this.newContext = Context.forACE(oldContext, expr,
               getEnclosingDecl(),
@@ -922,10 +929,12 @@ public final class Effects implements IBinderClient {
           EffectsVisitor.this.context = this.newContext;
         }
         
+        @Override
         public void finallyAfter() {
           EffectsVisitor.this.context = oldContext;
         }
         
+        @Override
         public void afterVisit() {
           // (1) getEnclosingDecl() refers to the original enclosing method again
           // (2) context and oldContext are identical at this point
@@ -1008,14 +1017,17 @@ public final class Effects implements IBinderClient {
     protected InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
       final Context oldContext = context;
       return new InstanceInitAction() {
+        @Override
         public void tryBefore() {
           context = Context.forConstructorCall(oldContext, ccall);
         }
         
+        @Override
         public void finallyAfter() {
           context = oldContext;
         }
         
+        @Override
         public void afterVisit() {
           // do nothing
         }
@@ -1186,6 +1198,7 @@ public final class Effects implements IBinderClient {
     public static enum NullCallback implements ElaborationErrorCallback {
       INSTANCE;
       
+      @Override
       public void writeToBorrowedReadOnly(
           final ReadOnlyPromiseDrop pd, final IRNode expr, final Target t) {
         // does nothing
@@ -1469,6 +1482,7 @@ public final class Effects implements IBinderClient {
       this.bcaQuery = query;
     }
     
+    @Override
     public Set<Effect> getResultFor(final IRNode expr) {
       final EffectsVisitor visitor =
           new EffectsVisitor(binder, flowUnit, bcaQuery,

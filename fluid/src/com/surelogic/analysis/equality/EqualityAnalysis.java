@@ -7,6 +7,7 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
 import com.surelogic.analysis.effects.Effect;
@@ -18,6 +19,7 @@ import com.surelogic.analysis.layers.Messages;
 import com.surelogic.analysis.type.constraints.TypeAnnotationTester;
 import com.surelogic.analysis.type.constraints.TypeAnnotations;
 import com.surelogic.annotation.rules.EqualityRules;
+import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProofDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -41,6 +43,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
   private static final int TO_STRING_BAD = 760;
   private static final int WRITE_EFFECT_INFO = 761;
   private static final int READ_EFFECT_WARN = 762;
+  private static final int UNANNOTATED = 766;
   
   
   
@@ -135,13 +138,17 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 		        Effects.getDeclaredMethodEffects(mdecl, null);
 
         final ResultDrop result = new ResultDrop(mdecl);
-        result.setMessagesByJudgement(TO_STRING_GOOD, TO_STRING_BAD);
+//        result.setMessagesByJudgement(TO_STRING_GOOD, TO_STRING_BAD);
         result.addChecked(refObj);
         
 		    boolean good = true;
 		    if (declared == null) {
+		      ResultsBuilder.createResult(true, result, mdecl, UNANNOTATED);
 		      good = false;
 		    } else {
+		      // add effects promise to the results
+		      result.addTrusted(MethodEffectsRules.getRegionEffectsDrop(mdecl));
+		      
 		      for (final Effect de : declared) {
 		        if (!de.isCheckedBy(getBinder(), readsAnything)) {
 		          good = false;
@@ -164,6 +171,10 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 	        }
 		    }
         result.setConsistent(good);
+        /* Don't use setMessagesByJudgment because I don't want the message
+         * to change if the result is indirectly bad.
+         */
+        result.setMessage(good ? TO_STRING_GOOD : TO_STRING_BAD);
 		  }
 		  return null;
 		}
@@ -184,11 +195,6 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 			final TypeAnnotationTester tester =
 			    new TypeAnnotationTester(TypeAnnotations.VALUE_OBJECT, b,
 			        ParameterizedTypeAnalysis.getFolders());
-//			final ValueObjectAnnotationTester tester = 
-//			    new ValueObjectAnnotationTester(b,
-//              ParameterizedTypeAnalysis.getFolders(), false);
-			
-//			if (tester.testType(t)) {
 			if (tester.testParameterizedTypeActual(t)) {
 				ResultDrop d = createFailureDrop(e);
 				for (final ProofDrop p : tester.getTrusts()) {
