@@ -147,7 +147,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
       DiffNode n = it.next();
       for (DiffNode o : old) {
         if (m.match(n.drop, o.drop)) {
-          String label = m.getLabel();
+          final String label = m.getLabel();
           if (m.warnIfMatched()) {
             if (title != null) {
               out.println(title);
@@ -159,7 +159,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
 
           old.remove(o);
           it.remove();
-          DropDiff d = DropDiff.compute(title, out, n, o);
+          DropDiff d = DropDiff.compute(title, out, label, n, o);
           if (d != null) {
         	title = null;
             diffs.add(d);

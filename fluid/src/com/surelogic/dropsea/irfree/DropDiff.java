@@ -47,11 +47,12 @@ public class DropDiff extends DiffNode implements IViewable {
 
 	/**
 	 * Print out the title (if non-null) and the diffs
+	 * @param label 
 	 */
-	static DropDiff compute(String title, PrintStream out, DiffNode n, DiffNode o) {
+	static DropDiff compute(String title, PrintStream out, String label, DiffNode n, DiffNode o) {
 		if (o.drop.getHints().isEmpty()) {
 			if (n.drop.getHints().isEmpty()) {
-				DiffMessage m = diffProperties(title, out, n, o);
+				DiffMessage m = diffProperties(title, out, label, n, o);
 				if (m != null) {
 					return new DropDiff(n.drop, o.drop, wrap(m));
 				} else {
@@ -74,7 +75,7 @@ public class DropDiff extends DiffNode implements IViewable {
 		}
 
 		if (oldDetails.isEmpty() && newDetails.isEmpty()) {
-			DiffMessage m = diffProperties(title, out, n, o);
+			DiffMessage m = diffProperties(title, out, label, n, o);
 			if (m != null) {
 				return new DropDiff(n.drop, o.drop, wrap(m));
 			} else {
@@ -96,7 +97,7 @@ public class DropDiff extends DiffNode implements IViewable {
 			e.setAsNewer();
 		}
 		List<AbstractDiffNode> remaining = new ArrayList<AbstractDiffNode>(1 + oldDetails.size() + newDetails.size());
-		DiffMessage m = diffProperties(null, out, n, o);	
+		DiffMessage m = diffProperties(null, out, label, n, o);	
 		if (m != null) {
 			remaining.add(m);
 		}
@@ -108,8 +109,9 @@ public class DropDiff extends DiffNode implements IViewable {
 
 	/**
 	 * Print out the title (if non-null) and the diffs
+	 * @param label 
 	 */
-	private static DiffMessage diffProperties(String title, PrintStream out, DiffNode n, DiffNode o) {
+	private static DiffMessage diffProperties(String title, PrintStream out, String label, DiffNode n, DiffNode o) {
 		if (n.drop instanceof IProofDrop) {
 			final IProofDrop pn = (IProofDrop) n.drop;
 			final IProofDrop po = (IProofDrop) o.drop;
@@ -119,8 +121,10 @@ public class DropDiff extends DiffNode implements IViewable {
 					if (title != null) {
 						out.println(title);
 					}
-					out.println("\tDiffs in details for: " + DiffCategory.toString(n));
+					out.println("\t"+label+" Diffs in details for: " + DiffCategory.toString(n));
 					out.println(msg);
+					out.println("\t\tNew hint: "+n.drop.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT));
+					out.println("\t\tOld hint: "+o.drop.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT));
 					return new DiffMessage(msg, Status.CHANGED) {
 						@Override
 						public IDrop getDrop() {
