@@ -6,7 +6,9 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.*;
 import com.surelogic.dropsea.ir.*;
 
+import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -186,5 +188,45 @@ public class DiffHeuristics {
     }
     final int offset = enclosing.getOffset() + enclosing.getLength() - here.getOffset();
     c.add(offset);
+  }
+
+  /**
+   * Since types can appear repeatedly in a given declaration that uses one, 
+   * we need a lot to distinguish which one, as well as the relative location inside the type
+   */
+  public static String computeTypeLocator(final IRNode t) {
+	  if (t == null) {
+		  return null;
+	  }
+	  IJavaRef ref = JavaNode.getJavaRef(t);
+	  if (ref != null) {
+		  System.out.println(DebugUnparser.toString(t)+" encoded as "+ref.encodeForPersistence());
+		  return ref.encodeForPersistence();
+	  }
+	  StringBuilder sb = new StringBuilder();
+	  computeRelativePositionInType(sb, t);
+	  return sb.toString();
+  }
+  
+  /**
+   * @param here assumed to be a Type
+   */
+  private static void computeRelativePositionInType(StringBuilder sb, IRNode here) {
+	  if (here == null) {
+		  return;
+	  }
+	  final IRNode parent = JJNode.tree.getParentOrNull(here);
+	  if (parent == null) {
+		  return;
+	  }
+	  final Operator op = JJNode.tree.getOperator(parent);
+	  if (op instanceof Type) {
+		  // Figure out the relative location
+		  IRLocation loc = JJNode.tree.getLocation(here);
+		  sb.append(JJNode.tree.childLocationIndex(parent, loc)).append(':');
+		  computeRelativePositionInType(sb, parent);
+	  } else {
+		  sb.append(DebugUnparser.toString(here));
+	  }
   }
 }
