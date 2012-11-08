@@ -25,7 +25,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 
-public final class AddModelingProblemFilterDialog extends TitleAreaDialog {
+public final class AddUninterestingPackageFilterDialog extends TitleAreaDialog {
 
 	private static final int CONTENTS_WIDTH_HINT = 400;
 
@@ -36,11 +36,11 @@ public final class AddModelingProblemFilterDialog extends TitleAreaDialog {
 	private final List<String> f_existingFilters;
 	private Text f_filterText;
 
-	public AddModelingProblemFilterDialog(List<String> existingFilters) {
+	public AddUninterestingPackageFilterDialog(List<String> existingFilters) {
 		this(EclipseUIUtility.getShell(), existingFilters);
 	}
 
-	public AddModelingProblemFilterDialog(Shell parentShell,
+	public AddUninterestingPackageFilterDialog(Shell parentShell,
 			List<String> existingFilters) {
 		super(parentShell);
 		if (existingFilters == null)
@@ -66,13 +66,13 @@ public final class AddModelingProblemFilterDialog extends TitleAreaDialog {
 	protected final void configureShell(Shell newShell) {
 		super.configureShell(newShell);
 		newShell.setImage(SLImages.getImage(CommonImages.IMG_FILTER));
-		newShell.setText(I18N.msg("jsure.dialog.problemfilter.title"));
+		newShell.setText(I18N.msg("jsure.dialog.uninteresting.filter.title"));
 	}
 
 	@Override
 	protected Control createContents(Composite parent) {
 		Control contents = super.createContents(parent);
-		setTitle(I18N.msg("jsure.dialog.problemfilter.subtitle"));
+		setTitle(I18N.msg("jsure.dialog.uninteresting.filter.subtitle"));
 		return contents;
 	}
 
@@ -90,7 +90,7 @@ public final class AddModelingProblemFilterDialog extends TitleAreaDialog {
 		GridData data = new GridData(SWT.FILL, SWT.NONE, true, false, 2, 1);
 		data.widthHint = CONTENTS_WIDTH_HINT;
 		directions.setLayoutData(data);
-		directions.setText(I18N.msg("jsure.dialog.problemfilter.directions"));
+		directions.setText(I18N.msg("jsure.dialog.uninteresting.filter.directions"));
 
 		final Label variableLabel = new Label(panel, SWT.NONE);
 		variableLabel.setText("Filter:");
@@ -137,19 +137,19 @@ public final class AddModelingProblemFilterDialog extends TitleAreaDialog {
 
 		switch (state) {
 		case EMPTY:
-			setMessage(I18N.msg("jsure.dialog.problemfilter.empty"),
+			setMessage(I18N.msg("jsure.dialog.uninteresting.filter.empty"),
 					IMessageProvider.INFORMATION);
 			break;
 		case OK:
-			setMessage(I18N.msg("jsure.dialog.problemfilter.ok"),
+			setMessage(I18N.msg("jsure.dialog.uninteresting.filter.ok"),
 					IMessageProvider.INFORMATION);
 			break;
 		case DUPLICATE:
-			setMessage(I18N.msg("jsure.dialog.problemfilter.dup"),
+			setMessage(I18N.msg("jsure.dialog.uninteresting.filter.dup"),
 					IMessageProvider.WARNING);
 			break;
 		case BAD:
-			setMessage(I18N.msg("jsure.dialog.problemfilter.bad"),
+			setMessage(I18N.msg("jsure.dialog.uninteresting.filter.bad"),
 					IMessageProvider.ERROR);
 			break;
 		}

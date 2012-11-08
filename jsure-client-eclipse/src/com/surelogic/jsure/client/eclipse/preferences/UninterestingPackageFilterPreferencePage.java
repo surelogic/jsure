@@ -30,13 +30,13 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
-import com.surelogic.jsure.client.eclipse.dialogs.AddModelingProblemFilterDialog;
+import com.surelogic.jsure.client.eclipse.dialogs.AddUninterestingPackageFilterDialog;
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureScanView;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.client.eclipse.views.proposals.ProposedPromiseView;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 
-public class ProblemsFilterPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
+public class UninterestingPackageFilterPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
   private Table f_filterTable;
   private Button f_buttonRemove;
@@ -53,14 +53,14 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements IWor
     gridLayout.numColumns = 2;
     composite.setLayout(gridLayout);
     Label label1 = new Label(composite, SWT.NONE);
-    label1.setText(I18N.msg("jsure.eclipse.preference.page.problemfilter.msg"));
+    label1.setText(I18N.msg("jsure.eclipse.preference.page.uninteresting.filter.msg"));
     GridData data = new GridData();
     data.horizontalAlignment = GridData.FILL;
     data.horizontalSpan = 2;
     data.grabExcessHorizontalSpace = true;
     label1.setLayoutData(data);
     Label label2 = new Label(composite, SWT.NONE);
-    label2.setText(I18N.msg("jsure.eclipse.preference.page.problemfilter.table.msg"));
+    label2.setText(I18N.msg("jsure.eclipse.preference.page.uninteresting.filter.table.msg"));
     data = new GridData();
     data.horizontalAlignment = GridData.FILL;
     data.horizontalSpan = 2;
@@ -122,7 +122,7 @@ public class ProblemsFilterPreferencePage extends PreferencePage implements IWor
   }
 
   private void addFilter() {
-    final AddModelingProblemFilterDialog dialog = new AddModelingProblemFilterDialog(getTableContents());
+    final AddUninterestingPackageFilterDialog dialog = new AddUninterestingPackageFilterDialog(getTableContents());
     if (Window.OK == dialog.open()) {
       final String regex = dialog.getFilter();
       if (regex != null && !"".equals(regex)) {
