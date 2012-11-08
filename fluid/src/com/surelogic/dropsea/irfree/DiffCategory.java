@@ -8,9 +8,7 @@ import com.surelogic.common.IViewable;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.*;
 
-public final class DiffCategory<K extends Comparable<K>> implements IViewable, Comparable<DiffCategory<K>> {
-  public static final boolean suppressFilteredDrops = false;
-	
+public final class DiffCategory<K extends Comparable<K>> implements IViewable, Comparable<DiffCategory<K>> {	
   final K key;
   final Set<DiffNode> old = new HashSet<DiffNode>();
   final Set<DiffNode> newer = new HashSet<DiffNode>();
@@ -108,23 +106,32 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
      */
     for (DiffNode o : sortByOffset(old)) {
       final String msg = toString(o);
-      if (suppressFilteredDrops && suppress(o.drop)) {       // TODO temporary
+      if (suppress(o.drop)) {  
     	  old.remove(o);
-      } else 
-      out.println("\tOld    : " + msg);
+      } else {
+    	  out.println("\tOld    : " + msg);
+      }
     }
     for (DiffNode o : sortByOffset(newer)) {
-      out.println("\tNewer  : " + toString(o));
+   	  if (suppress(o.drop)) {  
+   		newer.remove(o);
+   	  } else {
+   		  out.println("\tNewer  : " + toString(o));
+   	  }
     }
   }
 
+  /*
   private String[] resultFilterPrefixes = {
 		  "Borrowed parameters of",
 		  "Effects of",
 		  "Unique return value of"
   };
+  */
   
   private boolean suppress(IDrop o) {
+	  return isNotDerivedFromSrc(o);
+	  /*
 	  if (o instanceof IResultDrop) {
 		  for(String prefix : resultFilterPrefixes) {
 			  if (o.getMessage().startsWith(prefix)) {
@@ -136,6 +143,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
 		  return o.getMessage().startsWith("Parameterized type");
 	  }
 	  return false;
+	  */
   }  
   
   /**
@@ -159,6 +167,10 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
 
           old.remove(o);
           it.remove();
+          if (isNotDerivedFromSrc(n.drop) && isNotDerivedFromSrc(o.drop)) {
+        	  // No need to diff the match, since we can ignore these
+        	  break;
+          }
           DropDiff d = DropDiff.compute(title, out, label, n, o);
           if (d != null) {
         	title = null;
@@ -227,5 +239,13 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
       		 d.getDiffInfoAsLong(DiffHeuristics.FAST_TREE_HASH, -1) + " - " +
        		 d.getDiffInfoAsLong(DiffHeuristics.FAST_CONTEXT_HASH, -1) + " - " + ref;
     }
+  }
+  
+  static boolean isNotDerivedFromSrc(IDrop d) {
+	  if (d instanceof IProofDrop) {
+	      IProofDrop pd = (IProofDrop) d;
+	      return !pd.derivedFromSrc();
+	  }
+	  return false;
   }
 }

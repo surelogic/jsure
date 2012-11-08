@@ -77,6 +77,7 @@ public abstract class CategoryMatcher {
     }
     // }    
     result = matchStrings(n.getMessage(), o.getMessage(), true);
+    /*
     if (DiffCategory.suppressFilteredDrops && o.getMessage().startsWith("Borrowed")) {
     	for(int i=0; i<oldPrefix.length && result == Boolean.FALSE; i++) {
     		if (o.getMessage().startsWith(oldPrefix[i])) {
@@ -85,6 +86,7 @@ public abstract class CategoryMatcher {
     		}
     	}    	
     }
+    */
     return result != null ? result : false;
   }
   
