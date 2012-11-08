@@ -134,10 +134,10 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
 
   @InRegion("DropState")
   @Nullable
-  private String f_messageConsistent;
+  protected String f_messageConsistent;
   @InRegion("DropState")
   @Nullable
-  private String f_messageConsistentCanonical;
+  protected String f_messageConsistentCanonical;
 
   public final void setMessageWhenProvedConsistent(int number, Object... args) {
     if (number < 1) {
@@ -152,10 +152,10 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
 
   @InRegion("DropState")
   @Nullable
-  private String f_messageInconsistent;
+  protected String f_messageInconsistent;
   @InRegion("DropState")
   @Nullable
-  private String f_messageInconsistentCanonical;
+  protected String f_messageInconsistentCanonical;
 
   public final void setMessageWhenNotProvedConsistent(int number, Object... args) {
     if (number < 1) {
@@ -295,7 +295,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
    */
   @RequiresLock("SeaLock")
   @MustInvokeOnOverride
-  final void proofFinalize() {
+  void proofFinalize() {
     if (provedConsistent()) {
       if (f_messageConsistent != null)
         setMessageHelper(f_messageConsistent, f_messageConsistentCanonical);

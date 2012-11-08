@@ -33,11 +33,11 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    * Flags if this result indicates consistency with code.
    */
   @InRegion("DropState")
-  private boolean consistent = false;
+  private boolean f_consistent = false;
 
   public boolean isConsistent() {
     synchronized (f_seaLock) {
-      return consistent;
+      return f_consistent;
     }
   }
 
@@ -46,7 +46,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    */
   public void setConsistent() {
     synchronized (f_seaLock) {
-      consistent = true;
+      f_consistent = true;
     }
   }
 
@@ -55,7 +55,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    */
   public void setInconsistent() {
     synchronized (f_seaLock) {
-      consistent = false;
+      f_consistent = false;
     }
   }
 
@@ -67,8 +67,13 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
    */
   public void setConsistent(final boolean value) {
     synchronized (f_seaLock) {
-      consistent = value;
+      f_consistent = value;
     }
+  }
+
+  @Override
+  boolean immediatelyConsistent() {
+    return isConsistent();
   }
 
   /**
