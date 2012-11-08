@@ -3,6 +3,7 @@ package com.surelogic.annotation.rules;
 
 import org.antlr.runtime.RecognitionException;
 
+import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.aast.promise.VouchSpecificationNode;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
@@ -17,8 +18,9 @@ import com.surelogic.promise.SinglePromiseDropStorage;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.ClassBodyDeclaration;
-import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.operator.VariableDeclList;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -70,7 +72,7 @@ public class VouchRules extends AnnotationRules {
 
     @Override
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
-      if (context.getOp() instanceof FieldDeclaration) {
+      if (context.getOp() instanceof VariableDeclList || context.getOp() instanceof ParameterDeclaration) {
         // Redirect to the appropriate rule
    	    Object rv = PromiseFramework.getInstance().getParseDropRule(LockRules.VOUCH_FIELD_IS)
    	                      .parse(context, context.getAllText());
@@ -78,6 +80,12 @@ public class VouchRules extends AnnotationRules {
    	    	return rv;
    	    }
    	    // Fall through to a normal vouch if it's not one of the special kinds that I know about
+      }
+      // Make sure there's no reason specified 
+      final String reason = context.getProperty(VouchFieldIsNode.REASON);
+      if (reason != null && reason.length() > 0) {
+    	  context.reportError(0, "Normal vouches should not use the 'reason' element: "+context.getAllText());
+    	  return null;
       }
       return new VouchSpecificationNode(context.mapToSource(0), context.getAllText());
     }
