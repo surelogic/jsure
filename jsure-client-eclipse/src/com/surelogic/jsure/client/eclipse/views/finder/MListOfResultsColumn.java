@@ -21,7 +21,6 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
@@ -139,8 +138,8 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     public void run() {
       final IProofDrop info = getSelectedItem();
       if (info != null) {
-        final VerificationStatusView view = (VerificationStatusView) EclipseUIUtility.showView(
-            VerificationStatusView.class.getName(), null, IWorkbenchPage.VIEW_VISIBLE);
+        final VerificationStatusView view = (VerificationStatusView) EclipseUIUtility.showView(VerificationStatusView.class
+            .getName());
         if (view != null)
           view.attemptToShowAndSelectDropInViewer(info);
       }

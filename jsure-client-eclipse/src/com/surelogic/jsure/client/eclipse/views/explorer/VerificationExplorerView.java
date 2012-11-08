@@ -32,7 +32,6 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IWorkbenchActionConstants;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
@@ -192,8 +191,8 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
         final Object o = s.getFirstElement();
         if (o instanceof ElementDrop) {
           final IDrop drop = ((ElementDrop) o).getDrop();
-          final VerificationStatusView view = (VerificationStatusView) EclipseUIUtility.showView(
-              VerificationStatusView.class.getName(), null, IWorkbenchPage.VIEW_VISIBLE);
+          final VerificationStatusView view = (VerificationStatusView) EclipseUIUtility.showView(VerificationStatusView.class
+              .getName());
           if (view != null)
             view.attemptToShowAndSelectDropInViewer(drop);
         }
