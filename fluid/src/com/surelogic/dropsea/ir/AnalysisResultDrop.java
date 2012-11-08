@@ -199,6 +199,52 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     }
   }
 
+  @InRegion("DropState")
+  boolean f_useImmediateConsistencyResultForMessage = true;
+
+  /**
+   * Gets if this drop uses the immediate consistency result to decide if the
+   * <i>consistent</i> message or the <i>not proved consistent</i> should be
+   * used.
+   * 
+   * @return {@code true} if this drop uses the immediate consistency result to
+   *         decide if the <i>consistent</i> message or the <i>not proved
+   *         consistent</i> should be used, {@code false} if the verification
+   *         proof result is used.
+   */
+  public boolean useImmediateConsistencyResultForMessage() {
+    synchronized (f_seaLock) {
+      return f_useImmediateConsistencyResultForMessage;
+    }
+  }
+
+  /**
+   * Sets if this drop uses the immediate consistency result to decide if the
+   * <i>consistent</i> message or the <i>not proved consistent</i> should be
+   * used. immediately consistent
+   * 
+   * @param value
+   *          {@code true} if this drop uses the immediate consistency result to
+   *          decide if the <i>consistent</i> message or the <i>not proved
+   *          consistent</i> should be used, {@code false} if the verification
+   *          proof result is used.
+   */
+  public void setUseImmediateConsistencyResultForMessage(boolean value) {
+    synchronized (f_seaLock) {
+      f_useImmediateConsistencyResultForMessage = value;
+    }
+  }
+
+  /**
+   * Gets if this drop is immediately consistent. Immediately consistent means
+   * the local analysis judgment rather than the overall consistency proof
+   * judgment.
+   * 
+   * @return {@code true} if this drop is immediately consistent, {@code false}
+   *         if it is not.
+   */
+  abstract boolean immediatelyConsistent();
+
   /*
    * Consistency proof methods
    */
@@ -241,6 +287,26 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    */
   @RequiresLock("SeaLock")
   abstract boolean proofTransferUsedByProofToTrustedResult(@NonNull AnalysisResultDrop trusted);
+
+  /**
+   * Depending upon the value of
+   * {@link #f_useImmediateConsistencyResultForMessage} either
+   * {@link #immediatelyConsistent()} or {@link #provedConsistent()} is used to
+   * decide if the <i>consistent</i> message or the <i>not proved consistent</i>
+   * should be set for this drop.
+   */
+  @RequiresLock("SeaLock")
+  @Override
+  final void proofFinalize() {
+    boolean useConsistentMessage = f_useImmediateConsistencyResultForMessage ? immediatelyConsistent() : provedConsistent();
+    if (useConsistentMessage) {
+      if (f_messageConsistent != null)
+        setMessageHelper(f_messageConsistent, f_messageConsistentCanonical);
+    } else {
+      if (f_messageInconsistent != null)
+        setMessageHelper(f_messageInconsistent, f_messageInconsistentCanonical);
+    }
+  }
 
   /*
    * XML output methods are invoked single-threaded

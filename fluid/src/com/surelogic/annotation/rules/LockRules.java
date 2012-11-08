@@ -115,6 +115,7 @@ import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.Extensions;
@@ -130,7 +131,6 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.parse.ParseException;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.SingletonIterator;
 
@@ -2650,7 +2650,12 @@ public class LockRules extends AnnotationRules {
 		throws Exception {
 			final String id = context.getAllText().trim();
 			final FieldKind kind;
-			if ("final".equals(id)) {
+			if (context.getOp() instanceof ParameterDeclaration || context.getOp() instanceof DeclStatement) {
+				if (!ANNO_BOUNDS.equals(id)) {
+					return null;
+				}
+				kind = FieldKind.AnnotationBounds;
+			} else if ("final".equals(id)) {
 				kind = FieldKind.Final;
 			} else {				
 				try {

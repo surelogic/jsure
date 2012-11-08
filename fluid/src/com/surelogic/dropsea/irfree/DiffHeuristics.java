@@ -3,6 +3,7 @@ package com.surelogic.dropsea.irfree;
 import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ref.JavaRef;
 import com.surelogic.dropsea.*;
 import com.surelogic.dropsea.ir.*;
 
@@ -200,8 +201,8 @@ public class DiffHeuristics {
 	  }
 	  IJavaRef ref = JavaNode.getJavaRef(t);
 	  if (ref != null) {
-		  System.out.println(DebugUnparser.toString(t)+" encoded as "+ref.encodeForPersistence());
-		  return ref.encodeForPersistence();
+		  //System.out.println(DebugUnparser.toString(t)+" encoded as "+ref.encodeForPersistence());
+		  return new JavaRef.Builder(ref).setAbsolutePath(null).build().encodeForPersistence();
 	  }
 	  StringBuilder sb = new StringBuilder();
 	  computeRelativePositionInType(sb, t);

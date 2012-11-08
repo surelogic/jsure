@@ -29,6 +29,10 @@ public final class VouchFieldIsPromiseDrop extends PromiseDrop<VouchFieldIsNode>
     return getAAST().getKind() == FieldKind.ThreadSafe;
   }
 
+  public boolean isAnnotationBounds() {
+	return getAAST().getKind() == FieldKind.AnnotationBounds;
+  }
+  
   public String getReason() {
     return getAAST().getReason();
   }
