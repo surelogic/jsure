@@ -90,10 +90,7 @@ public final class UninterestingPackageFilterUtility {
   public static IDropFilter UNINTERESTING_PACKAGE_FILTER = new IDropFilter() {
     @Override
     public boolean keep(IDrop d) {
-      if (d instanceof IModelingProblemDrop)
-        return UninterestingPackageFilterUtility.keep(d);
-      else
-        return true;
+      return UninterestingPackageFilterUtility.keep(d);
     }
   };
 }
