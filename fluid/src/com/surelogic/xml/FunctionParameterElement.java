@@ -17,12 +17,19 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 	}
 
 	public String getLabel() {
-		AbstractFunctionElement parent = (AbstractFunctionElement) getParent();
+		final AbstractFunctionElement parent = (AbstractFunctionElement) getParent();
 		try {
-			final String type = parent.getSplitParams()[index];
-			return PREFIX+(index)+" : "+type;
+			if (parent == null) {
+				return PREFIX+index;	
+			}
+			String[] params = parent.getSplitParams();
+			if (params == null) {
+				return PREFIX+index;
+			}
+			final String type = params[index];
+			return PREFIX+index+" : "+type;
 		} catch(IndexOutOfBoundsException e) {
-			return PREFIX+(index);
+			return PREFIX+index;			
 		}
 	}
 	
