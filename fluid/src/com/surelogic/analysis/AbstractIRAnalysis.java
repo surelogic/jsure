@@ -109,6 +109,9 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 		// Nothing to do yet
 	}
 	
+	/**
+	 * Called once per thread
+	 */
 	protected abstract T constructIRAnalysis(IBinder binder);
 	
 	/*
