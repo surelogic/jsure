@@ -280,7 +280,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
   }
 
   private void setTableItemInfo(TableItem item, IProofDrop data) {
-    final Image image = JSureDecoratedImageUtility.getImageForDrop(data, true);
+    final Image image = JSureDecoratedImageUtility.getImageForDrop(data, false);
     item.setText(data.getMessage());
     item.setImage(image);
     item.setData(data);

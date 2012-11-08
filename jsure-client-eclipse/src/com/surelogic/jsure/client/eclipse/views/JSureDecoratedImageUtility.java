@@ -42,8 +42,8 @@ public final class JSureDecoratedImageUtility {
   public enum Flag {
     ASSUME(CommonImages.DECR_ASSUME), CONSISTENT(CommonImages.DECR_CONSISTENT), DELTA(CommonImages.DECR_DELTA), HINT_INFO(
         CommonImages.DECR_INFO), HINT_WARNING(CommonImages.DECR_WARNING), INCONSISTENT(CommonImages.DECR_INCONSISTENT), REDDOT(
-        CommonImages.DECR_REDDOT), TRUSTED(CommonImages.DECR_TRUSTED), UNUSED(CommonImages.DECR_UNUSED), VIRTUAL(
-        CommonImages.DECR_VIRTUAL);
+        CommonImages.DECR_REDDOT), TRUSTED(CommonImages.DECR_TRUSTED), UNUSED_CONSISTENT(CommonImages.DECR_UNUSED_CONSISTENT), UNUSED_INCONSISTENT(
+        CommonImages.DECR_UNUSED_INCONSISTENT), VIRTUAL(CommonImages.DECR_VIRTUAL);
 
     Flag(String imageName) {
       ImageDescriptor id = SLImages.getImageDescriptor(imageName);
@@ -204,8 +204,8 @@ public final class JSureDecoratedImageUtility {
    * @param drop
    *          any drop.
    * @param alwaysShowProofFlagsOnResultDrop
-   *          {@code true} if proof drop decorations (proved consistent and red
-   *          dot) should be added to an image for an {@link IResultDrop},
+   *          {@code true} if consistency decorations (proved consistent and red
+   *          dot) should always be added for an {@link IResultDrop},
    *          {@code false} if decorations should only be added if the result
    *          drop has trusted drops. Unused by proof indicators are always
    *          shown.
@@ -245,7 +245,7 @@ public final class JSureDecoratedImageUtility {
       if (proofDrop instanceof IAnalysisResultDrop) {
         final IAnalysisResultDrop analysisResultDrop = (IAnalysisResultDrop) proofDrop;
         if (!analysisResultDrop.usedByProof())
-          flags.add(Flag.UNUSED);
+          flags.add(analysisResultDrop.provedConsistent() ? Flag.UNUSED_CONSISTENT : Flag.UNUSED_INCONSISTENT);
       }
 
       if (proofDrop instanceof IPromiseDrop) {
@@ -270,10 +270,15 @@ public final class JSureDecoratedImageUtility {
         }
         if (!alwaysShowProofFlagsOnResultDrop) {
           if (resultDrop.getTrusted().isEmpty()) {
-            final boolean unused = flags.contains(Flag.UNUSED);
-            flags.clear(); // no flags if not trusting anything
-            if (unused)
-              flags.add(Flag.UNUSED);
+            if (flags.contains(Flag.UNUSED_CONSISTENT)) {
+              flags.clear();
+              flags.add(Flag.UNUSED_CONSISTENT);
+            } else if (flags.contains(Flag.UNUSED_INCONSISTENT)) {
+              flags.clear();
+              flags.add(Flag.UNUSED_INCONSISTENT);
+            } else {
+              flags.clear();
+            }
           }
         }
       } else if (proofDrop instanceof IResultFolderDrop) {
@@ -292,17 +297,18 @@ public final class JSureDecoratedImageUtility {
    * 
    * @param drop
    *          any drop.
-   * @param neverShowProofFlagsOnResultDrop
-   *          {@code true} if proof drop decorations (proved consistent and red
-   *          dot) should never be added to an image for an {@link IResultDrop},
-   *          {@code false} if decorations should be added if the result drop
-   *          has trusted drops.
+   * @param alwaysShowProofFlagsOnResultDrop
+   *          {@code true} if consistency decorations (proved consistent and red
+   *          dot) should always be added for an {@link IResultDrop},
+   *          {@code false} if decorations should only be added if the result
+   *          drop has trusted drops. Unused by proof indicators are always
+   *          shown.
    * @return an image that is managed by this utility, please do not call
    *         {@link Image#dispose()} on it.
    */
   @NonNull
-  public static Image getImageForDrop(@NonNull final IDrop drop, final boolean neverShowProofFlagsOnResultDrop) {
-    return getImageForDrop(drop, neverShowProofFlagsOnResultDrop, null, false);
+  public static Image getImageForDrop(@NonNull final IDrop drop, final boolean alwaysShowProofFlagsOnResultDrop) {
+    return getImageForDrop(drop, alwaysShowProofFlagsOnResultDrop, null, false);
   }
 
   @NonNull
@@ -346,8 +352,10 @@ public final class JSureDecoratedImageUtility {
 
   @Nullable
   private static ImageDescriptor getBottomLeft(@NonNull final EnumSet<Flag> flags) {
-    if (flags.contains(Flag.UNUSED)) {
-      return Flag.UNUSED.getImageDescriptor();
+    if (flags.contains(Flag.UNUSED_CONSISTENT)) {
+      return Flag.UNUSED_CONSISTENT.getImageDescriptor();
+    } else if (flags.contains(Flag.UNUSED_INCONSISTENT)) {
+      return Flag.UNUSED_INCONSISTENT.getImageDescriptor();
     } else if (flags.contains(Flag.CONSISTENT)) {
       return Flag.CONSISTENT.getImageDescriptor();
     } else if (flags.contains(Flag.INCONSISTENT)) {

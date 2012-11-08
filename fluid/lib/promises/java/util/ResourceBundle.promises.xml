@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util" release="1">
+    <class name="ResourceBundle">
+        <constructor>
+            <RegionEffects>none</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </constructor>
+
+        <method name="clearCache">
+            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="clearCache" params="java.lang.ClassLoader">
+            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="containsKey" params="java.lang.String">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="getBundle" params="java.lang.String">
+            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getBundle" params="java.lang.String, java.util.Locale">
+            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getBundle" params="java.lang.String, java.util.Locale, java.lang.ClassLoader">
+            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getBundle" params="java.lang.String, java.util.Locale, java.lang.ClassLoader, java.util.ResourceBundle.Control">
+            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getBundle" params="java.lang.String, java.util.Locale, java.util.ResourceBundle.Control">
+            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getBundle" params="java.lang.String, java.util.ResourceBundle.Control">
+            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getKeys">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getLocale">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getObject" params="java.lang.String">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="getString" params="java.lang.String">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="getStringArray" params="java.lang.String">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="keySet">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>

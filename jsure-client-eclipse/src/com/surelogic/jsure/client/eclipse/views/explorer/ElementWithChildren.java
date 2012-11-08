@@ -54,10 +54,12 @@ abstract class ElementWithChildren extends Element {
        */
       if (f_descendantDecoratorFlagsCache.contains(Flag.INCONSISTENT)) {
         f_descendantDecoratorFlagsCache.remove(Flag.CONSISTENT);
-        f_descendantDecoratorFlagsCache.remove(Flag.UNUSED);
+        f_descendantDecoratorFlagsCache.remove(Flag.UNUSED_CONSISTENT);
+        f_descendantDecoratorFlagsCache.remove(Flag.UNUSED_INCONSISTENT);
       }
       if (f_descendantDecoratorFlagsCache.contains(Flag.CONSISTENT)) {
-        f_descendantDecoratorFlagsCache.remove(Flag.UNUSED);
+        f_descendantDecoratorFlagsCache.remove(Flag.UNUSED_CONSISTENT);
+        f_descendantDecoratorFlagsCache.remove(Flag.UNUSED_INCONSISTENT);
       }
       /*
        * Remember delta flag because it can be toggled on and off without a
@@ -87,7 +89,7 @@ abstract class ElementWithChildren extends Element {
         if (pd instanceof IAnalysisResultDrop) {
           final IAnalysisResultDrop ard = (IAnalysisResultDrop) pd;
           if (!ard.usedByProof()) {
-            result.add(Flag.UNUSED);
+            result.add(ard.provedConsistent() ? Flag.UNUSED_CONSISTENT : Flag.UNUSED_INCONSISTENT);
             result.remove(Flag.CONSISTENT);
             result.remove(Flag.INCONSISTENT);
           }
