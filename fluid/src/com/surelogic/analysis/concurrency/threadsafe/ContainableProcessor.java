@@ -51,13 +51,15 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
   private static final int TYPE_IS_CONTAINABLE = 465;
   private static final int TYPE_IS_NOT_CONTAINABLE = 466;
   private static final int CONTAINABLE_IMPL = 467;
-  private static final int TRIVIALLY_CONTAINABLE = 468;
+  private static final int TRIVIALLY_CONTAINABLE_EMPTY = 468;
+  private static final int TRIVIALLY_CONTAINABLE_STATIC_FIELDS = 469;
   
   
   
   private final boolean isInterface;
   private final ResultsBuilder builder;
-  private boolean isEmpty = true;
+  private boolean hasMethods = false; // only read when isInterface is true
+  private boolean hasStaticFields = false; // only read when isInterface is true
   
   
   
@@ -74,8 +76,15 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
   @Override
   protected void postProcess() {
     // We are only called on classes annotated with @Immutable
-    if (isInterface && isEmpty) {
-      builder.createRootResult(true, typeDecl, TRIVIALLY_CONTAINABLE);
+    if (isInterface) {
+      if (!hasMethods) {
+        if (!hasStaticFields) {
+          builder.createRootResult(true, typeDecl, TRIVIALLY_CONTAINABLE_EMPTY);
+        } else {
+          builder.createRootResult(
+              true, typeDecl, TRIVIALLY_CONTAINABLE_STATIC_FIELDS);
+        }
+      }
     }
   }
 
@@ -93,8 +102,6 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
 	
 	@Override
 	protected void processConstructorDeclaration(final IRNode cdecl) {
-	  isEmpty = false;
-	  
 		final IRNode rcvrDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
 		final BorrowedPromiseDrop bpd = UniquenessRules
 				.getBorrowed(rcvrDecl);
@@ -122,7 +129,7 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
 
 	@Override
 	protected void processMethodDeclaration(final IRNode mdecl) {
-	  isEmpty = false;
+	  hasMethods = true;
 	  
 		// Must borrow the receiver if the method is not static
 		if (!TypeUtil.isStatic(mdecl)) {
@@ -145,8 +152,11 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
 	@Override
 	protected void processVariableDeclarator(final IRNode fieldDecl,
 			final IRNode varDecl, final boolean isStatic) {
-	  isEmpty = false;
-	  assureFieldIsContainable(fieldDecl, varDecl);
+	  if (!isStatic) {
+  	  assureFieldIsContainable(fieldDecl, varDecl);
+	  } else {
+	    hasStaticFields = true;
+	  }
 	}
 
 	private void assureFieldIsContainable(
