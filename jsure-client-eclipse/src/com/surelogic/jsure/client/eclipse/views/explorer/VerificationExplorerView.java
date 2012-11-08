@@ -49,6 +49,7 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.dialogs.ImageDialog;
 import com.surelogic.common.ui.jobs.SLUIJob;
+import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
@@ -57,6 +58,7 @@ import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.JSureClientUtility;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
+import com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
@@ -181,6 +183,23 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   }
 
+  private final Action f_openProofContext = new Action() {
+    @Override
+    public void run() {
+      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+      if (!s.isEmpty()) {
+        final Object o = s.getFirstElement();
+        if (o instanceof ElementDrop) {
+          final IDrop drop = ((ElementDrop) o).getDrop();
+          final VerificationStatusView view = (VerificationStatusView) EclipseUIUtility.showView(VerificationStatusView.class
+              .getName());
+          if (view != null)
+            view.attemptToShowAndSelectDropInViewer(drop);
+        }
+      }
+    }
+  };
+
   private final Action f_actionExpand = new Action() {
     @Override
     public void run() {
@@ -275,8 +294,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       final boolean buttonChecked = f_actionShowObsoleteDrops.isChecked();
       if (f_showObsoleteDrops != buttonChecked) {
         f_showObsoleteDrops = buttonChecked;
-        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_OBSOLETE_DROP_DIFFERENCES,
-            f_showObsoleteDrops);
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_OBSOLETE_DROP_DIFFERENCES, f_showObsoleteDrops);
         currentScanChanged(null);
       }
     }
@@ -380,8 +398,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_actionShowObsoleteDrops.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG_OLD_SCAN_ONLY));
     f_actionShowObsoleteDrops.setText("Show Obsolete Results");
     f_actionShowObsoleteDrops.setToolTipText("Show obsolete results from the last scan");
-    f_showObsoleteDrops = EclipseUtility
-        .getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_OBSOLETE_DROP_DIFFERENCES);
+    f_showObsoleteDrops = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_OBSOLETE_DROP_DIFFERENCES);
     f_actionShowObsoleteDrops.setChecked(f_showObsoleteDrops);
 
     f_actionShowOnlyDerivedFromSrc.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_COMP_UNIT));
@@ -401,6 +418,10 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_actionShowHints.setToolTipText("Show information and warning hints about the code");
     f_showHints = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_HINTS);
     f_actionShowHints.setChecked(f_showHints);
+
+    f_openProofContext.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_LOGO));
+    f_openProofContext.setText("Open In Proof Context");
+    f_openProofContext.setToolTipText("Open this result in the Verification Status view to show it within its proof context");
 
     f_actionExpand.setText("Expand");
     f_actionExpand.setToolTipText("Expand the current selection or all if none");
@@ -422,6 +443,10 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       public void menuAboutToShow(final IMenuManager manager) {
         final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
         if (!s.isEmpty()) {
+          if (s.getFirstElement() instanceof ElementDrop) {
+            manager.add(f_openProofContext);
+            manager.add(new Separator());
+          }
           manager.add(f_actionExpand);
           manager.add(f_actionCollapse);
           manager.add(new Separator());

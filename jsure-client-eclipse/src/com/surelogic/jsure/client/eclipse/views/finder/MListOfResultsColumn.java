@@ -6,6 +6,10 @@ import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -20,10 +24,12 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.progress.UIJob;
 
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.CascadingList;
 import com.surelogic.common.ui.CascadingList.IColumn;
 import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TableUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IProofDrop;
@@ -128,8 +134,9 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     }
   };
 
-  private final Listener f_rowSelection = new Listener() {
-    public void handleEvent(final Event event) {
+  private final Action f_openProofContext = new Action() {
+    @Override
+    public void run() {
       final IProofDrop info = getSelectedItem();
       if (info != null) {
         final VerificationStatusView view = (VerificationStatusView) EclipseUIUtility.showView(
@@ -162,7 +169,6 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
       new TableColumn(f_table, SWT.NONE);
       f_table.setLinesVisible(true);
       f_table.addListener(SWT.MouseDoubleClick, f_doubleClick);
-      f_table.addListener(SWT.Selection, f_rowSelection);
       f_table.addKeyListener(f_keyListener);
       f_table.setItemCount(0);
 
@@ -187,13 +193,24 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
             break;
           case SWT.TRAVERSE_RETURN:
             setCustomTabTraversal(e);
-            f_rowSelection.handleEvent(null);
             break;
           }
         }
       });
 
-      final Menu menu = new Menu(f_table.getShell(), SWT.POP_UP);
+      f_openProofContext.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_LOGO));
+      f_openProofContext.setText("Open In Proof Context");
+      f_openProofContext.setToolTipText("Open this result in the Verification Status view to show it within its proof context");
+
+      final MenuManager menuMgr = new MenuManager("#PopupMenu");
+      menuMgr.setRemoveAllWhenShown(true);
+      menuMgr.addMenuListener(new IMenuListener() {
+        @Override
+        public void menuAboutToShow(final IMenuManager manager) {
+          manager.add(f_openProofContext);
+        }
+      });
+      final Menu menu = menuMgr.createContextMenu(f_table);
       f_table.setMenu(menu);
 
       updateTableContents();
