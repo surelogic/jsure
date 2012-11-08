@@ -168,6 +168,6 @@ final class ElementDrop extends Element {
     if (changedDrop == null)
       return null;
     else
-      return JSureDecoratedImageUtility.getImageForDrop(changedDrop, false);
+      return JSureDecoratedImageUtility.getImageForDrop(changedDrop, true);
   }
 }
