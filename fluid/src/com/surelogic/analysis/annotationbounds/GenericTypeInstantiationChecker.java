@@ -432,7 +432,8 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
             folder, typeActual,
             ANNOTATION_BOUND_SATISFIED, ANNOTATION_BOUND_NOT_SATISFIED,
             jTypeOfActual.toSourceText(), boundsString, nameOfTypeFormal);
-        
+        actualFolder.setIgnoreJavaRef(true);
+
         /* The actual must be annotated with at least one of the type 
          * annotations required by the type formal, and cannot be annotated
          * with any type annotation not required by the type formal.  That is,
