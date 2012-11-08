@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" release="8">
+<package name="java.util" release="9">
     <class name="ArrayList">
+        <Containable allowReferenceObject="true"/>
         <NotThreadSafe/>
         <constructor>
             <RegionEffects>none</RegionEffects>

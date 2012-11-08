@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util" release="1">
+    <class name="EnumSet">
+        <Containable allowReferenceObject="true"/>
+        <NotThreadSafe/>
+        <method name="allOf" params="java.lang.Class">
+            <RegionEffects>reads arg0</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="clone">
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="complementOf" params="java.util.EnumSet">
+            <RegionEffects>reads arg0</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="copyOf" params="java.util.Collection">
+            <RegionEffects>reads arg0</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="copyOf" params="java.util.EnumSet">
+            <RegionEffects>reads arg0</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="noneOf" params="java.lang.Class">
+            <RegionEffects>reads arg0</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="of" params="java.lang.Enum">
+            <RegionEffects>reads arg0</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="of" params="java.lang.Enum, java.lang.Enum">
+            <RegionEffects>reads arg0, arg1</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="of" params="java.lang.Enum, java.lang.Enum, java.lang.Enum">
+            <RegionEffects>reads arg0, arg1, arg2</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+
+            <parameter index="1">
+                <Borrowed/>
+            </parameter>
+
+            <parameter index="2">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="of" params="java.lang.Enum, java.lang.Enum, java.lang.Enum, java.lang.Enum">
+            <RegionEffects>reads arg0, arg1, arg2, arg3</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+
+            <parameter index="1">
+                <Borrowed/>
+            </parameter>
+
+            <parameter index="2">
+                <Borrowed/>
+            </parameter>
+
+            <parameter index="3">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="of" params="java.lang.Enum, java.lang.Enum, java.lang.Enum, java.lang.Enum, java.lang.Enum">
+            <RegionEffects>reads arg0, arg1, arg2, arg3, arg4</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+
+            <parameter index="1">
+                <Borrowed/>
+            </parameter>
+
+            <parameter index="2">
+                <Borrowed/>
+            </parameter>
+
+            <parameter index="3">
+                <Borrowed/>
+            </parameter>
+
+            <parameter index="4">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="of" params="java.lang.Enum, java.lang.Enum[]">
+            <RegionEffects>reads arg0, arg1</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+
+            <parameter index="1">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="range" params="java.lang.Enum, java.lang.Enum">
+            <RegionEffects>reads arg0</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+
+            <parameter index="1">
+                <Borrowed/>
+            </parameter>
+        </method>
+    </class>
+</package>
