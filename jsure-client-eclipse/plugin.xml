@@ -31,7 +31,6 @@
 			targetID="#CompilationUnitEditorContext">
 			<menu id="com.surelogic.jsure.client.eclipse.JSureJavaEditorPopup.menu"
 				label="JSure"
-				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
 				path="additions">
 				<groupMarker name="content">
 				</groupMarker>
@@ -50,7 +49,6 @@
 		<objectContribution adaptable="false"
 			id="com.surelogic.jsure.client.eclipse.IMemberPopup" objectClass="org.eclipse.jdt.core.IMember">
 			<menu id="com.surelogic.jsure.client.eclipse.IMemberPopup.menu"
-				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
 				label="JSure" path="additions">
 				<groupMarker name="content">
 				</groupMarker>
@@ -70,7 +68,6 @@
 			id="com.surelogic.jsure.client.eclipse.ITypeRootPopup" objectClass="org.eclipse.jdt.core.ITypeRoot">
 			<menu id="com.surelogic.jsure.client.eclipse.ITypeRootPopup.menu"
 				label="JSure"
-				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
 				path="additions">
 				<groupMarker name="content">
 				</groupMarker>
@@ -336,8 +333,7 @@
 		<!-- IProject context menu -->
 
 		<menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
-			<menu label="JSure"
-				icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif">
+			<menu label="JSure">
 				<command commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject"
 					icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
 					mnemonic="V" style="push">
