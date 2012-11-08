@@ -9,7 +9,6 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.irfree.IDropFilter;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;

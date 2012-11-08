@@ -29,7 +29,7 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.jsure.client.eclipse.preferences.ProblemsFilterPreferencePage;
+import com.surelogic.jsure.client.eclipse.preferences.UninterestingPackageFilterPreferencePage;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
 
 
@@ -44,7 +44,7 @@ public final class ProblemsView extends AbstractScanTableView<IDrop>
 
 		@Override
 		public void run() {
-			final String[] FILTER = new String[] { ProblemsFilterPreferencePage.class
+			final String[] FILTER = new String[] { UninterestingPackageFilterPreferencePage.class
 					.getName() };
 			PreferencesUtil.createPreferenceDialogOn(null, FILTER[0], FILTER,
 					null).open();

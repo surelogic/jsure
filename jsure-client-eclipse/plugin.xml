@@ -105,9 +105,9 @@
 			<keywordReference id="com.surelogic.jsure.client.key3" />
 
 		</page>
-		<page name="Modeling Problem Filtering"
-			class="com.surelogic.jsure.client.eclipse.preferences.ProblemsFilterPreferencePage"
-			id="com.surelogic.jsure.client.eclipse.preferences.ProblemsFilterPreferencePage"
+		<page name="Uninteresting Package Filtering"
+			class="com.surelogic.jsure.client.eclipse.preferences.UninterestingPackageFilterPreferencePage"
+			id="com.surelogic.jsure.client.eclipse.preferences.UninterestingPackageFilterPreferencePage"
 			category="com.surelogic.jsure.client.eclipse.preferences.JSurePreferencePage">
 			<keywordReference id="com.surelogic.jsure.client.key1" />
 			<keywordReference id="com.surelogic.jsure.client.key2" />
