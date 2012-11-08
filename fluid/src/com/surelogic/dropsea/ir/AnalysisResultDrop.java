@@ -229,7 +229,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    *          consistent</i> should be used, {@code false} if the verification
    *          proof result is used.
    */
-  public void setImmediateConsistencyResultForMessage(boolean value) {
+  public void setUseImmediateConsistencyResultForMessage(boolean value) {
     synchronized (f_seaLock) {
       f_useImmediateConsistencyResultForMessage = value;
     }
