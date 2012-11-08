@@ -73,7 +73,8 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
   
   private final ResultsBuilder builder;
   private final Set<RegionLockRecord> lockDeclarations;
-  private boolean hasFields = false;
+  private boolean hasStaticFields = false;
+  private boolean hasInstanceFields = false;
   private final State staticPart;
 
   
@@ -112,7 +113,8 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
 
   @Override
   protected void postProcess() {
-    if (!hasFields) {
+    if (!hasInstanceFields &&
+        (!hasStaticFields || staticPart == State.NotThreadSafe)) {
       builder.createRootResult(true, typeDecl, TRIVIALLY_THREADSAFE);    
     }
   }
@@ -121,8 +123,11 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
   protected void processVariableDeclarator(final IRNode fieldDecl,
       final IRNode varDecl, final boolean isStatic) {
     // we have a field
-    hasFields = true;
-    
+    if (isStatic) {
+      hasStaticFields = true;
+    } else {
+      hasInstanceFields = true;
+    }    
     
     if (isStatic) {
       if (staticPart == State.Immutable) {
