@@ -2324,7 +2324,7 @@ public class LockRules extends AnnotationRules {
   extends SimpleBooleanAnnotationParseRule<ImmutableNode,ImmutablePromiseDrop> {
     public ImmutableParseRule() {
       // Was typeDeclOps
-      super(IMMUTABLE, typeFuncVarDeclOps, ImmutableNode.class);
+      super(IMMUTABLE, typeFuncFieldParamDeclOps, ImmutableNode.class);
     }
     @Override
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {

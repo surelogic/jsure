@@ -89,6 +89,14 @@ public interface PromiseConstants {
 	  SomeFunctionDeclaration.prototype,
 	  FieldDeclaration.prototype,
 	  ParameterDeclaration.prototype,
+	  DeclStatement.prototype,
+  };
+  
+  public static final Operator[] typeFuncFieldParamDeclOps = {
+	  TypeDeclaration.prototype, 
+	  SomeFunctionDeclaration.prototype,
+	  FieldDeclaration.prototype,
+	  ParameterDeclaration.prototype,	  
   };
   
 	public static final Operator[] packageTypeDeclOps = {
