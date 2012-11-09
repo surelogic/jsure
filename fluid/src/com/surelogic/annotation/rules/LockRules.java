@@ -124,7 +124,9 @@ import edu.cmu.cs.fluid.java.operator.Implements;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.Type;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.operator.VariableDeclList;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -418,8 +420,28 @@ public class LockRules extends AnnotationRules {
     return (immutable == null) ? getThreadSafeImplementation(tdecl) : immutable;
   }
   
+  /**
+   * Finds the enclosing declaration from a Type node
+   * (either VarDecl or ParamDecl
+   */
+  public static VouchFieldIsPromiseDrop findVouchFieldIsDrop(final IRNode type) {
+	  // Find the first non-Type node
+	  IRNode here = type;
+	  Operator op = JJNode.tree.getOperator(here);
+	  while (Type.prototype.includes(op)) {
+		  here = JJNode.tree.getParentOrNull(here);
+		  op = JJNode.tree.getOperator(here);
+	  }
+	  if (VariableDeclList.prototype.includes(op)) {
+		  // Actually on the variable declarator
+		  IRNode decls = VariableDeclList.getVars(here);
+		  IRNode decl  = VariableDeclarators.getVar(decls, 0);
+		  return getVouchFieldIs(decl);
+	  }
+	  return getVouchFieldIs(here);
+  }
   
-  
+  // The drop is actually on the variable declarator
   public static VouchFieldIsPromiseDrop getVouchFieldIs(final IRNode fieldDecl) {
     return getDrop(vouchFieldIsRule.getStorage(), fieldDecl);
   }
@@ -2641,7 +2663,7 @@ public class LockRules extends AnnotationRules {
   
 	static class VouchFieldIs_ParseRule extends DefaultSLAnnotationParseRule<VouchFieldIsNode,VouchFieldIsPromiseDrop> {
 	  VouchFieldIs_ParseRule() {
-			super(VOUCH_FIELD_IS, fieldDeclOp, VouchFieldIsNode.class);
+			super(VOUCH_FIELD_IS, varDeclOps, VouchFieldIsNode.class);
 		}
 
 		// Should only get called by the Vouch parse rule

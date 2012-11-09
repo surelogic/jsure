@@ -201,6 +201,7 @@ public interface PromiseConstants {
       };
 
   public static final Operator[] varDeclOps = {
+	VariableDeclList.prototype,
   	VariableDeclaration.prototype, 
     ReceiverDeclaration.prototype,
   	ReturnValueDeclaration.prototype,
