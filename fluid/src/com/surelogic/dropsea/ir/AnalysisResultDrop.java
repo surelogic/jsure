@@ -229,7 +229,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    *          consistent</i> should be used, {@code false} if the verification
    *          proof result is used.
    */
-  public void setImmediateConsistencyResultForMessage(boolean value) {
+  public void setUseImmediateConsistencyResultForMessage(boolean value) {
     synchronized (f_seaLock) {
       f_useImmediateConsistencyResultForMessage = value;
     }
@@ -289,12 +289,11 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   abstract boolean proofTransferUsedByProofToTrustedResult(@NonNull AnalysisResultDrop trusted);
 
   /**
-   * Called by {@link Sea#updateConsistencyProof()} on each proof drop after the
-   * consistency proof has been completed. This allows the drop to examine the
-   * results and make any state changes necessary.
-   * <p>
-   * The default implementation changes the message based upon the analysis
-   * judgment (if necessary) so overriding methods must invoke this one.
+   * Depending upon the value of
+   * {@link #f_useImmediateConsistencyResultForMessage} either
+   * {@link #immediatelyConsistent()} or {@link #provedConsistent()} is used to
+   * decide if the <i>consistent</i> message or the <i>not proved consistent</i>
+   * should be set for this drop.
    */
   @RequiresLock("SeaLock")
   @Override

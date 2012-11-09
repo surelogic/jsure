@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.management.relation" release="1">
+    <class name="RoleUnresolvedList">
+        <Containable allowReferenceObject="true"/>
+    </class>
+</package>
