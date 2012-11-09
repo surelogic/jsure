@@ -530,6 +530,9 @@ private long parseIntLiteral(String token) {
 		  // for the nesting (if any).  Actually maybe the canonicalizer should.
 		  if (t != null) {
 			  t = t.subst(JavaTypeSubstitution.create(this, dt));
+		  } else {
+			  // Default to j.l.O
+			  return getObjectType();
 		  }
 		  /*if (!(t instanceof IJavaDeclaredType)) {
 	        LOG.severe("Classes can only extend other classes");
