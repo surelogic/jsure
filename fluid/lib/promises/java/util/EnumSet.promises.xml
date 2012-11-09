@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" release="1">
+<package name="java.util" release="2">
     <class name="EnumSet">
         <Containable allowReferenceObject="true"/>
         <NotThreadSafe/>
         <method name="allOf" params="java.lang.Class">
-            <RegionEffects>reads arg0</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -18,7 +18,7 @@
         </method>
 
         <method name="complementOf" params="java.util.EnumSet">
-            <RegionEffects>reads arg0</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -26,7 +26,7 @@
         </method>
 
         <method name="copyOf" params="java.util.Collection">
-            <RegionEffects>reads arg0</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -34,7 +34,7 @@
         </method>
 
         <method name="copyOf" params="java.util.EnumSet">
-            <RegionEffects>reads arg0</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -42,7 +42,7 @@
         </method>
 
         <method name="noneOf" params="java.lang.Class">
-            <RegionEffects>reads arg0</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -50,7 +50,7 @@
         </method>
 
         <method name="of" params="java.lang.Enum">
-            <RegionEffects>reads arg0</RegionEffects>
+            <RegionEffects>reads arg0:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -58,7 +58,7 @@
         </method>
 
         <method name="of" params="java.lang.Enum, java.lang.Enum">
-            <RegionEffects>reads arg0, arg1</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -66,7 +66,7 @@
         </method>
 
         <method name="of" params="java.lang.Enum, java.lang.Enum, java.lang.Enum">
-            <RegionEffects>reads arg0, arg1, arg2</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance, arg2:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -82,7 +82,7 @@
         </method>
 
         <method name="of" params="java.lang.Enum, java.lang.Enum, java.lang.Enum, java.lang.Enum">
-            <RegionEffects>reads arg0, arg1, arg2, arg3</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance, arg2:Instance, arg3:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -102,7 +102,7 @@
         </method>
 
         <method name="of" params="java.lang.Enum, java.lang.Enum, java.lang.Enum, java.lang.Enum, java.lang.Enum">
-            <RegionEffects>reads arg0, arg1, arg2, arg3, arg4</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance, arg2:Instance, arg3:Instance, arg4:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -126,7 +126,7 @@
         </method>
 
         <method name="of" params="java.lang.Enum, java.lang.Enum[]">
-            <RegionEffects>reads arg0, arg1</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -138,7 +138,7 @@
         </method>
 
         <method name="range" params="java.lang.Enum, java.lang.Enum">
-            <RegionEffects>reads arg0</RegionEffects>
+            <RegionEffects>reads arg0:Instance, arg1:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>

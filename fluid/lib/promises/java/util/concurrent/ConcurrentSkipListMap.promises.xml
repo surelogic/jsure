@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="2">
+<package name="java.util.concurrent" release="3">
     <class name="ConcurrentSkipListMap">
+        <AnnotationBounds referenceObject="K,V" threadSafe="K,V"/>
         <ThreadSafe/>
-        <AnnotationBounds threadSafe="E" referenceObject="E"/>
         <constructor>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>

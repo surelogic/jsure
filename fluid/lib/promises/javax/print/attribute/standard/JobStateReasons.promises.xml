@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="javax.print.attribute.standard" release="1">
+    <class name="JobStateReasons">
+        <Containable allowReferenceObject="true"/>
+    </class>
+</package>
