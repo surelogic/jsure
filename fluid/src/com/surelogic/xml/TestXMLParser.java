@@ -22,6 +22,7 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
@@ -456,7 +457,8 @@ class TestXMLParser extends DefaultHandler implements
 				/** Add this promise to the AAST */
 				final boolean ignore = "true".equals(e.getAttribute(TestXMLParserConstants.DELETE_ATTRB));
 				if (!ignore) {
-					boolean added = annoVis.handleXMLPromise(annotatedNode, eName, contents, e.getAttributes());
+					boolean added = annoVis.handleXMLPromise(annotatedNode, eName, contents, 
+							                                 e.getAttributes(), JavaNode.ALL_FALSE);
 					if (added) {
 						numAnnotationsAdded++;
 					}

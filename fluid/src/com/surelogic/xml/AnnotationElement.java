@@ -24,6 +24,7 @@ import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.StorageType;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
@@ -469,7 +470,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		if (isBad || isToBeDeleted()) {
 			return 0;
 		}
-		boolean added = v.handleXMLPromise(annotatedNode, promise, contents, attributes);
+		boolean added = v.handleXMLPromise(annotatedNode, promise, contents, attributes, JavaNode.ALL_FALSE);
 		return added ? 1 : 0;
 	}
 

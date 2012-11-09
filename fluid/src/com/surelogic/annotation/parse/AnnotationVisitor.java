@@ -535,7 +535,11 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return createPromise(builder);
   }
 
-  public boolean handleXMLPromise(IRNode node, String promise, String c, Map<String, String> props) {
+  public boolean handleImplicitPromise(IRNode node, String promise, String c, Map<String, String> props) {
+	  return handleXMLPromise(node, promise, c, props, JavaNode.IMPLICIT);
+  }
+	  
+  public boolean handleXMLPromise(IRNode node, String promise, String c, Map<String, String> props, int mods) {
     /*
      * if (c.contains("CopyOn")) {
      * System.out.println("Visiting @"+promise+" "+c); }
@@ -546,9 +550,10 @@ public class AnnotationVisitor extends Visitor<Integer> {
 	final boolean allowReturn = "true".equals(props.get(AnnotationVisitor.ALLOW_RETURN));
 	final boolean allowRead   = "true".equals(props.get(AnnotationVisitor.ALLOW_READ));	
 	final boolean allowReferenceObject   = "true".equals(props.get(AnnotationVisitor.ALLOW_REF_OBJECT));		
-	final int mods            = convertToModifiers(implOnly, verify, allowReturn, allowRead, allowReferenceObject);
+	final int finalMods       = mods | 
+	                            convertToModifiers(implOnly, verify, allowReturn, allowRead, allowReferenceObject);
     return createPromise(new ContextBuilder(node, capitalize(promise), c) 
-                              .setSrc(AnnotationSource.XML).setProps(mods, props));
+                              .setSrc(AnnotationSource.XML).setProps(finalMods, props));
   }
 
   private boolean handleJavadocPromise(IRNode decl, JavadocAnnotation javadocAnnotation) {

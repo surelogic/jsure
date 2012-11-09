@@ -190,7 +190,7 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
     static void createArrayRegion(String name, IRNode type, String project) {
     	//RegionModel.getInstance(decl).getModel();    	
         NewRegionDeclarationNode region = 
-            new NewRegionDeclarationNode(-1, JavaNode.PUBLIC, name, 
+            new NewRegionDeclarationNode(-1, JavaNode.PUBLIC | JavaNode.IMPLICIT, name, 
                                          new RegionNameNode(-1, PromiseConstants.REGION_INSTANCE_NAME));
         region.setPromisedFor(type, null);
 
