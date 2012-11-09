@@ -467,7 +467,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       IRNode vdecls = VariableDeclarators.createNode(vars);
       return DeclStatement.createNode(annos, mods, type, vdecls);
     } else if (t instanceof ClassTree) {
-      IRNode decl = adaptClass((ClassTree) t, context, false);
+      IRNode decl = adaptClass((ClassTree) t, context, ClassType.LOCAL);
       return TypeDeclarationStatement.createNode(decl);
     }
     return acceptNode(t, context);
@@ -499,7 +499,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       case INTERFACE:
       case ENUM:
       case ANNOTATION_TYPE:
-        return adaptClass((ClassTree) t, context, true);
+        return adaptClass((ClassTree) t, context, ClassType.INNER);
       case BLOCK:
         boolean isStatic = t.toString().startsWith("static");
         if (isStatic) {
@@ -752,10 +752,14 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   }
 
   public IRNode visitClass(ClassTree node, CodeContext context) {
-    return adaptClass(node, context, false);
+    return adaptClass(node, context, ClassType.OUTER);
   }
 
-  private IRNode adaptClass(ClassTree node, final CodeContext context, boolean isNested) {
+  enum ClassType {
+	  OUTER, INNER, LOCAL
+  }
+  
+  private IRNode adaptClass(ClassTree node, final CodeContext context, ClassType ctype) {
     String mod = node.getModifiers().toString();
     String id = node.getSimpleName().toString();
     String src = node.toString().substring(mod.length() + 1);
@@ -815,7 +819,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       mods |= JavaNode.STATIC;
     }
     if (isInterface) {
-      if (isNested) {
+      if (ctype == ClassType.INNER) {
         rv = NestedInterfaceDeclaration.createNode(annos, mods, id, formals, Extensions.createNode(impl), body);
       } else {
         rv = InterfaceDeclaration.createNode(annos, mods, id, formals, Extensions.createNode(impl), body);
@@ -826,7 +830,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     }
     IRNode impls = Implements.createNode(impl);
     if (isEnum) {
-      if (isNested) {
+      if (ctype == ClassType.INNER) {
         mods |= JavaNode.STATIC;
         rv = NestedEnumDeclaration.createNode(annos, mods, id, impls, body);
       } else {
@@ -837,7 +841,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       return rv;
     }
     if (!isClass) { // Java 5 Annotation!
-      if (isNested) {
+      if (ctype == ClassType.INNER) {
         rv = NestedAnnotationDeclaration.createNode(annos, mods, id, body);
       } else {
         rv = AnnotationDeclaration.createNode(annos, mods, id, body);
@@ -847,10 +851,17 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     if (context.fromInterface() || context.isStatic()) {
       mods |= JavaNode.STATIC;
     }
-    if (isNested) {
+    switch (ctype) {
+    case INNER:
       rv = NestedClassDeclaration.createNode(annos, mods, id, formals, ext, impls, body);
-    } else {
+      break;
+    case OUTER:
+    default:
       rv = ClassDeclaration.createNode(annos, mods, id, formals, ext, impls, body);
+      break;
+    case LOCAL:
+      rv = LocalClassDeclaration.createNode(annos, mods, id, formals, ext, impls, body);
+      break;
     }
     addJavaRefAndCheckForJavadocAnnotations(node, rv);
     createRequiredClassNodes(rv);
