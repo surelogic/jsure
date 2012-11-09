@@ -118,9 +118,42 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
        */
 
       // Our lattice -- lower index is better
-      // {consistency-judgment, uses-red-dot, has-warning-hint}
-      boolean[][] judgmentReddotWarningLattice = { { true, false, false }, { true, false, true }, { true, true, false },
-          { true, true, true }, { false, true, false }, { false, true, true }, { false, false, false }, { false, false, true }, };
+      // {consistency, red-dot, immediate, warning-hint}
+      boolean[][] judgmentReddotWarningLattice = {
+
+      { true, false, true, false },
+
+      { true, false, false, false },
+
+      { true, false, true, true },
+
+      { true, false, false, true },
+
+      { true, true, true, false },
+
+      { true, true, false, false },
+
+      { true, true, true, true },
+
+      { true, true, false, true },
+
+      { false, true, true, false },
+
+      { false, true, true, true },
+
+      { false, false, true, false },
+
+      { false, false, true, true },
+
+      { false, true, false, false },
+
+      { false, true, false, true },
+
+      { false, false, false, false },
+
+      { false, false, false, true },
+
+      };
 
       int indexOfBestChoice = Integer.MAX_VALUE;
 
@@ -129,7 +162,7 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
         for (int i = 0; i < judgmentReddotWarningLattice.length; i++) {
           final boolean[] lattice = judgmentReddotWarningLattice[i];
           if (lattice[0] == choice.provedConsistent() && lattice[1] == choice.proofUsesRedDot()
-              && lattice[2] == choice.derivedFromWarningHint()) {
+              && lattice[2] == choice.immediatelyConsistent() && lattice[3] == choice.derivedFromWarningHint()) {
             if (i < indexOfBestChoice) {
               indexOfBestChoice = i;
               chosenDrop = choice;

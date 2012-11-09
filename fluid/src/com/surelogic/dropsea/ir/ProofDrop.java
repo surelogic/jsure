@@ -211,6 +211,21 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
     }
   }
 
+  /**
+   * Gets if this drop is immediately consistent. Immediately consistent means
+   * the local analysis judgment rather than the overall consistency proof
+   * judgment.
+   * <p>
+   * This method returns {@link #provedConsistent()} by default, but is intended
+   * to be overridden by subtypes that can provide a more precise result.
+   * 
+   * @return {@code true} if this drop is immediately consistent, {@code false}
+   *         if it is not.
+   */
+  boolean immediatelyConsistent() {
+    return provedConsistent();
+  }
+
   /*
    * Consistency proof methods
    */
