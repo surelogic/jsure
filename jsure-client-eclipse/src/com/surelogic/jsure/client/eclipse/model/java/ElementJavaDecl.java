@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.explorer;
+package com.surelogic.jsure.client.eclipse.model.java;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +21,9 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
 
-final class ElementJavaDecl extends ElementWithChildren {
+public final class ElementJavaDecl extends ElementWithChildren {
 
-  static final class Folderizer {
+  public static final class Folderizer {
 
     @NonNull
     private final List<ElementProject> f_projects = new ArrayList<ElementProject>();
@@ -34,7 +34,7 @@ final class ElementJavaDecl extends ElementWithChildren {
      * @return a set of root elements.
      */
     @NonNull
-    ElementProject[] getRootElements() {
+    public ElementProject[] getRootElements() {
       return f_projects.toArray(new ElementProject[f_projects.size()]);
     }
 
@@ -52,7 +52,7 @@ final class ElementJavaDecl extends ElementWithChildren {
      *         the passed drop.
      */
     @Nullable
-    ElementJavaDecl getParentOf(final IDrop drop, final boolean grayscale) {
+    public ElementJavaDecl getParentOf(final IDrop drop, final boolean grayscale) {
       if (drop == null)
         return null;
       final IJavaRef javaRef = drop.getJavaRef();
@@ -190,13 +190,13 @@ final class ElementJavaDecl extends ElementWithChildren {
   }
 
   @Override
-  String getLabel() {
+  public String getLabel() {
     return DeclUtil.getEclipseJavaOutlineLikeLabel(f_javaDecl);
   }
 
   @Override
   @Nullable
-  Image getElementImage() {
+  public Image getElementImage() {
     final Image baseImage = SLImages.getImageFor(f_javaDecl);
     if (f_grayscale)
       return SLImages.getGrayscaleImage(baseImage);

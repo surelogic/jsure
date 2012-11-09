@@ -17,6 +17,9 @@ import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.jsure.client.eclipse.model.java.Element;
+import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
+import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
 
 public final class VerificationExplorerViewContentProvider implements ITreeContentProvider {
 
@@ -57,14 +60,13 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
   private Element[] f_root = null;
 
   void setHighlightDifferences(boolean value) {
-    Element.f_highlightDifferences = value;
+    Element.setHighlightDifferences(value);
   }
 
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final JSureScanInfo oldScan,
       @Nullable final ScanDifferences diff, final boolean showOnlyDifferences, final boolean showObsoleteDrops,
       final boolean showOnlyDerivedFromSrc, final boolean showAnalysisResults, final boolean showHints) {
-    Element.f_showHints = showHints;
-    Element.f_diff = diff;
+    Element.setScanDifferences(diff);
     final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer();
 
     boolean noDiffAndOnlyShowingDiff = diff == null && showOnlyDifferences;

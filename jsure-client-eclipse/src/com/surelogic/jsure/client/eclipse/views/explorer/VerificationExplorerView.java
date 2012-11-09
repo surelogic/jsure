@@ -57,6 +57,8 @@ import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.JSureClientUtility;
+import com.surelogic.jsure.client.eclipse.model.java.Element;
+import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
