@@ -5,6 +5,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 
 public interface IAASTNode {
   public IAASTNode getParent();
+  public IAASTRootNode getRoot();
 
   /**
    * @return The offset into the source text

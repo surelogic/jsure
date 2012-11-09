@@ -12,6 +12,7 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.test.TestResult;
 import com.surelogic.annotation.test.TestResultType;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
@@ -247,17 +248,30 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
 	   return makeProblemDrop(node, offset);
   }
   
+  private boolean ignoreIssue() {
+	  if (XUtil.useExperimental()) {
+		  return false;
+	  }
+	  return JavaNode.isSet(getModifiers(), JavaNode.IMPLICIT);
+  }
+  
   public void reportError(int offset, String msg) {
+	  if (ignoreIssue()) {
+		  return;
+	  }
 	  final int position = mapToSource(offset);
 	  reportError(contextRef, position).setMessage(msg);
   }
 
   public void reportError(int offset, int number, Object... args) {
+	  if (ignoreIssue()) {
+		  return;
+	  }
 	  final int position = mapToSource(offset);
 	  reportError(contextRef, position).setMessage(number, args);
   }
   
-  public void reportException(int offset, Exception e) {
+  public void reportException(int offset, Exception e) {  
 	final int position = mapToSource(offset);
 	final String txt;
 	if (e instanceof RecognitionException ||
@@ -268,6 +282,9 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
 		LOG.log(Level.SEVERE, "Unexpected problem while parsing promise", e);
 		txt = "Unexpected problem while parsing promise: "+e.getMessage();
 	}
+	if (ignoreIssue()) {
+		return;
+	}	
 	reportError(contextRef, position).setMessage(txt);
   }
 
