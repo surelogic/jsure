@@ -32,6 +32,7 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 
 public final class ImmutableProcessor extends TypeImplementationProcessor {
+  private static final int TRIVIALLY_IMMUTABLE_STATIC_ONLY = 479;
   private static final int IMMUTABLE_SUPERTYPE = 480;
   private static final int TRIVIALLY_IMMUTABLE = 481;
   private static final int VOUCHED_IMMUTABLE = 482;
@@ -47,12 +48,13 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
   private static final int TYPE_IS_IMMUTABLE = 492;
   private static final int TYPE_IS_NOT_IMMUTABLE = 493;
   private static final int IMMUTABLE_IMPL = 494;
-
   
   
+  
+  private final boolean isInterface;
   private final ResultsBuilder builder;
   private final State staticPart;
-  private boolean hasFields = false;
+  private boolean hasStaticFields = false;
   private final Set<RegionLockRecord> lockDeclarations;
 
   
@@ -62,6 +64,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
       final IRNode typeDecl, final IRNode typeBody,
       final GlobalLockModel globalLockModel) {
     super(b, typeDecl, typeBody);
+    isInterface = TypeUtil.isInterface(typeDecl);
     builder = new ResultsBuilder(iDrop);
     staticPart = iDrop.staticPart();
     lockDeclarations = globalLockModel.getRegionLocksInClass(
@@ -83,18 +86,21 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
   @Override
   protected void postProcess() {
     // We are only called on classes annotated with @Immutable
-    if (!hasFields) {
-      builder.createRootResult(true, typeDecl, TRIVIALLY_IMMUTABLE);
+    if (isInterface) {
+      if (!hasStaticFields) {
+        builder.createRootResult(true, typeDecl, TRIVIALLY_IMMUTABLE);
+      } else if (staticPart == State.NotThreadSafe) {
+        builder.createRootResult(true, typeDecl, TRIVIALLY_IMMUTABLE_STATIC_ONLY);
+      }
     }
   }
 
   @Override
   protected void processVariableDeclarator(final IRNode fieldDecl,
       final IRNode varDecl, final boolean isStatic) {
-    // We have a field
-    hasFields = true;
-    
     if (isStatic) {
+      hasStaticFields = true;
+      
       if (staticPart == State.Immutable) {
         assureFieldIsImmutable(builder, binder, fieldDecl, varDecl);
       } else if (staticPart == State.ThreadSafe) {

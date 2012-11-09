@@ -1819,6 +1819,19 @@ public class LockRules extends AnnotationRules {
 	          checkAnnotatedInterfaceSuperInterface(node, promisedFor, bound);
 	        }
 	      }
+	    } else if (AnnotationDeclaration.prototype.includes(op)) { 
+	      // Annotation declaration is like an interface, but cannot extend anything
+	      
+        // the verify attribute is non-sense on interfaces
+        if (!node.verify()) {
+          bad = true;
+          context.reportError(node, "An interface may not be @{0}(verify=false)", name);
+        }
+        // The implemenationOnly attribute must be false on interfaces
+        if (implementationOnly) {
+          bad = true;
+          context.reportError(node, "An Interface may not be @{0}(implementationOnly=true)", name);
+        }
 	    } else { // class
 	      final IRNode superDecl;
 	      final Iterable<IRNode> interfaces;

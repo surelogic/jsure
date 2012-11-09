@@ -3,6 +3,7 @@ package com.surelogic.analysis;
 import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
@@ -27,6 +28,17 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
      *          The class body node of <code>classDecl</code>
      */
     public void visitAnonymousClass(IRNode classDecl, IRNode classBody);
+
+    /**
+     * Visit an annotation interface declaration.
+     * 
+     * @param classDecl
+     *          A node that satisfies
+     *          <code>AnnotationDeclaration.prototype.includes(classDecl)</code>
+     * @param classBody
+     *          The class body node of <code>classDecl</code>
+     */
+    public void visitAnnotationDeclaration(IRNode classDecl, IRNode classBody);
 
     /**
      * Visit a class declaration.
@@ -80,22 +92,32 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
     
     
 
+    @Override
     public final void visitAnonymousClass(final IRNode classDecl, final IRNode classBody) {
       visitTypeDecl(classDecl, classBody);
     }
+    
+    @Override
+    public final void visitAnnotationDeclaration(final IRNode annoDecl, final IRNode classBody) {
+      visitTypeDecl(annoDecl, classBody);
+    }
 
+    @Override
     public final void visitClass(final IRNode classDecl, final IRNode classBody) {
       visitTypeDecl(classDecl, classBody);
     }
 
+    @Override
     public final void visitEnum(final IRNode classDecl, final IRNode classBody) {
       visitTypeDecl(classDecl, classBody);
     }
 
+    @Override
     public final void visitEnumConstantClass(final IRNode classDecl, final IRNode classBody) {
       visitTypeDecl(classDecl, classBody);
     }
 
+    @Override
     public final void visitInterface(final IRNode classDecl, final IRNode classBody) {
       visitTypeDecl(classDecl, classBody);
     }
@@ -111,7 +133,8 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
     public IRNode typeDecl() { return first(); }
     public IRNode classBody() { return second(); }
 
-	public IRNode getCompUnit() {
+	@Override
+  public IRNode getCompUnit() {
 		return VisitUtil.getEnclosingCompilationUnit(first());
 	}
   }
@@ -158,6 +181,14 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
     return null;
   }
 
+  
+  @Override
+  public Void visitAnnotationDeclaration(final IRNode node) {
+    classProcessor.visitAnnotationDeclaration(node, AnnotationDeclaration.getBody(node));
+    doAcceptForChildren(node);
+    return null;
+  }
+  
   @Override
   public Void visitClassDeclaration(final IRNode node) {
     classProcessor.visitClass(node, ClassDeclaration.getBody(node));

@@ -69,13 +69,14 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
   private static final int DEST_REGION_PROTECTED = 427;
   private static final int DEST_REGION_UNPROTECTED = 428;
   private static final int CONTAINABLE_IMPL = 429;
-  
+  private static final int TRIVIALLY_THREADSAFE_STATIC_ONLY = 430;
+
   
   
   private final ResultsBuilder builder;
   private final Set<RegionLockRecord> lockDeclarations;
+  private final boolean isInterface;
   private boolean hasStaticFields = false;
-  private boolean hasInstanceFields = false;
   private final State staticPart;
 
   
@@ -85,6 +86,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
       final IRNode typeDecl, final IRNode typeBody,
       final GlobalLockModel globalLockModel) {
     super(b, typeDecl, typeBody);
+    isInterface = TypeUtil.isInterface(typeDecl);
     builder = new ResultsBuilder(tsDrop);
     staticPart = tsDrop.staticPart();
     lockDeclarations = globalLockModel.getRegionLocksInClass(
@@ -114,23 +116,22 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
 
   @Override
   protected void postProcess() {
-    if (!hasInstanceFields &&
-        (!hasStaticFields || staticPart == State.NotThreadSafe)) {
-      builder.createRootResult(true, typeDecl, TRIVIALLY_THREADSAFE);    
+    // We are only called on classes annotated with @Immutable
+    if (isInterface) {
+      if (!hasStaticFields) {
+        builder.createRootResult(true, typeDecl, TRIVIALLY_THREADSAFE);
+      } else if (staticPart == State.NotThreadSafe) {
+        builder.createRootResult(true, typeDecl, TRIVIALLY_THREADSAFE_STATIC_ONLY);
+      }
     }
   }
 
   @Override
   protected void processVariableDeclarator(final IRNode fieldDecl,
       final IRNode varDecl, final boolean isStatic) {
-    // we have a field
     if (isStatic) {
       hasStaticFields = true;
-    } else {
-      hasInstanceFields = true;
-    }    
-    
-    if (isStatic) {
+
       if (staticPart == State.Immutable) {
         ImmutableProcessor.assureFieldIsImmutable(builder, binder, fieldDecl, varDecl);
       } else if (staticPart == State.ThreadSafe) {
