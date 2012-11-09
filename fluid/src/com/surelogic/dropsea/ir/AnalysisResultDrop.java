@@ -235,16 +235,6 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     }
   }
 
-  /**
-   * Gets if this drop is immediately consistent. Immediately consistent means
-   * the local analysis judgment rather than the overall consistency proof
-   * judgment.
-   * 
-   * @return {@code true} if this drop is immediately consistent, {@code false}
-   *         if it is not.
-   */
-  abstract boolean immediatelyConsistent();
-
   /*
    * Consistency proof methods
    */

@@ -44,7 +44,7 @@ public class ProposedPromisesChange {
     // Get the projects involved (no dups)
     Collection<String> projects = new HashSet<String>();
     for (IProposedPromiseDrop p : drops) {
-      projects.add(p.getTargetProjectName());
+      projects.add(p.getJavaRef().getRealEclipseProjectNameOrNull());
     }
     // Sort them
     projects = new ArrayList<String>(projects);
@@ -78,8 +78,8 @@ public class ProposedPromisesChange {
     final Set<String> projects = new HashSet<String>();
     final Map<CU, Set<AnnotationDescription>> map = new HashMap<CU, Set<AnnotationDescription>>();
     for (final IProposedPromiseDrop drop : drops) {
-      projects.add(drop.getTargetProjectName());
-      projects.add(drop.getFromProjectName());
+      projects.add(drop.getJavaRef().getRealEclipseProjectNameOrNull());
+      projects.add(drop.getAssumptionRef().getRealEclipseProjectNameOrNull());
 
       final AnnotationDescription ann = desc(drop);
       final CU cu = ann.getCU();
@@ -173,10 +173,10 @@ public class ProposedPromisesChange {
     final String contents = drop.getContents();
     IJavaRef srcRef = drop.getJavaRef();
     String fileName = DeclUtil.guessSimpleFileName(srcRef.getDeclaration(), srcRef.getWithin());
-    final CU cu = new CU(drop.getTargetProjectName(), srcRef.getPackageName(), fileName);
+    final CU cu = new CU(srcRef.getRealEclipseProjectNameOrNull(), srcRef.getPackageName(), fileName);
     srcRef = drop.getAssumptionRef();
     fileName = DeclUtil.guessSimpleFileName(srcRef.getDeclaration(), srcRef.getWithin());
-    final CU assumptionCU = new CU(drop.getFromProjectName(), srcRef.getPackageName(), fileName);
+    final CU assumptionCU = new CU(srcRef.getRealEclipseProjectNameOrNull(), srcRef.getPackageName(), fileName);
     return new AnnotationDescription(annotation, contents, drop.getReplacedContents(), target, assumptionTarget, cu, assumptionCU);
   }
 

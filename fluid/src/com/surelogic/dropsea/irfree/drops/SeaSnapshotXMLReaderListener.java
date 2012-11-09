@@ -79,7 +79,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
         if ("source-ref".equals(name)) {
           SourceRef sr = new SourceRef(e);
           if (FROM_REF.equals(e.getAttribute(FLAVOR_ATTR)) && !ppd.hasAssumptionRef()) {
-            ppd.setAssumptionRef(IRFreeDrop.makeJavaRefFromSrcRef(sr));
+            // TODO ppd.setAssumptionRef(IRFreeDrop.makeJavaRefFromSrcRef(sr));
           } else {
             setSource(sr);
           }

@@ -1,0 +1,18 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/NestedClassDeclaration.op,v 1.13 2007/09/06 03:07:20 boyland Exp $
+public operator LocalClassDeclaration extends ClassDeclaration implements ClassBodyDeclInterface
+{
+  syntax {
+    annos:Annotations  
+    $mods:Modifiers(static,abstract,public,protected,private,final,strictfp) 
+    "class" $id:Info types:TypeFormals <?> "extends" extension:ClassType </?>
+    impls:Implements
+    body:ClassBody
+  }
+  properties {
+    typeBinding=Declared
+  }  
+
+  @Override public Component createComponent(IRNode node) {
+    return ClassDeclaration.createTypeDeclComponent(node,bodyLoc,true);
+  } 
+}

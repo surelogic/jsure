@@ -3,20 +3,18 @@ package com.surelogic.dropsea.irfree.drops;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNOTATION_TYPE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTENTS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_INFO;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_PROJECT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_REF;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ANNOTATION;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ORIGIN;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_ANNO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_CONTENTS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_INFO;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_PROJECT;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 import com.surelogic.NonNull;
-import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
@@ -42,8 +40,8 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     Entity.internString("@RegionEffects(none)");
   }
 
-  @Nullable
-  private IJavaRef f_assumptionRef = null;
+  @NonNull
+  private final IJavaRef f_assumptionRef;
   @NonNull
   private final Map<String, String> f_annoAttributes = new HashMap<String, String>(0);
   @NonNull
@@ -53,14 +51,8 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   private final String f_contents;
   private final String f_replacedAnnotation;
   private final String f_replacedContents;
-  private final String f_targetProjectName;
-  private final String f_fromProjectName;
   @NonNull
   private final Origin f_origin;
-
-  void setAssumptionRef(IJavaRef value) {
-    f_assumptionRef = value;
-  }
 
   void setAnnoAttributes(Map<String, String> value) {
     f_annoAttributes.clear();
@@ -80,8 +72,6 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     f_contents = e.getAttribute(CONTENTS);
     f_replacedAnnotation = e.getAttribute(REPLACED_ANNO);
     f_replacedContents = e.getAttribute(REPLACED_CONTENTS);
-    f_targetProjectName = e.getAttribute(TARGET_PROJECT);
-    f_fromProjectName = e.getAttribute(FROM_PROJECT);
 
     final String origin = e.getAttribute(ORIGIN);
     Origin result = Origin.MODEL; // default
@@ -102,16 +92,21 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     f_origin = result;
 
     final String encodedJavaRef = e.getAttribute(FROM_REF);
-    if (encodedJavaRef != null) {
-      try {
-        final IJavaRef ref = e.parsePersistedRef(encodedJavaRef);
-        f_assumptionRef = ref;
-      } catch (Exception parseFailure) {
-        SLLogger.getLogger().log(Level.WARNING, I18N.err(288, encodedJavaRef), parseFailure);
-      }
+    if (encodedJavaRef == null)
+      throw new IllegalStateException(I18N.err(288, encodedJavaRef));
+    try {
+      final IJavaRef ref = e.parsePersistedRef(encodedJavaRef);
+      f_assumptionRef = ref;
+    } catch (Exception parseFailure) {
+      throw new IllegalStateException(I18N.err(288, encodedJavaRef), parseFailure);
     }
+
+    // Java ref must be non-null for a proposed promise
+    if (getJavaRef() == null)
+      throw new IllegalStateException(I18N.err(44, "getJavaRef()"));
   }
 
+  @NonNull
   public Map<String, String> getAnnoAttributes() {
     return f_annoAttributes;
   }
@@ -149,14 +144,6 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     return origin != Origin.CODE;
   }
 
-  public String getTargetProjectName() {
-    return f_targetProjectName;
-  }
-
-  public String getFromProjectName() {
-    return f_fromProjectName;
-  }
-
   public IJavaRef getAssumptionRef() {
     return f_assumptionRef;
   }
@@ -174,7 +161,7 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
       return false;
 
     return isSame(o1.getAnnotation(), o2.getAnnotation()) && isSame(o1.getContents(), o2.getContents())
-        && isSame(o1.getReplacedContents(), o2.getReplacedContents()) && isSame(o1.getJavaRef(), o2.getJavaRef()) 
+        && isSame(o1.getReplacedContents(), o2.getReplacedContents()) && isSame(o1.getJavaRef(), o2.getJavaRef())
         && isAllSame(o1.getAnnoAttributes(), o2.getAnnoAttributes())
         && isAllSame(o1.getReplacedAttributes(), o2.getReplacedAttributes());
   }
@@ -189,29 +176,17 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     }
     return true;
   }
-  
-  private static boolean isAllSame(Map<String,String> m1, Map<String,String> m2) {
-	  return isSame(m1, m2);
-	  /*
-	  final Set<String> checked = new HashSet<String>(m1.size());
-	  for(Map.Entry<String,String> e : m1.entrySet()) {
-		  String v2 = m2.get(e.getKey());
-		  if (!isSame(e.getValue(), v2)) {
-			  return false;
-		  } else {
-			  checked.add(e.getKey());
-		  }
-	  }
-	  for(Map.Entry<String,String> e : m2.entrySet()) {
-		  if (checked.contains(e.getKey())) {
-			  continue;
-		  }
-		  String v1 = m1.get(e.getKey());
-		  if (!isSame(e.getValue(), v1)) {
-			  return false;
-		  }
-	  }
-	  return true;
-	  */
+
+  private static boolean isAllSame(Map<String, String> m1, Map<String, String> m2) {
+    return isSame(m1, m2);
+    /*
+     * final Set<String> checked = new HashSet<String>(m1.size());
+     * for(Map.Entry<String,String> e : m1.entrySet()) { String v2 =
+     * m2.get(e.getKey()); if (!isSame(e.getValue(), v2)) { return false; } else
+     * { checked.add(e.getKey()); } } for(Map.Entry<String,String> e :
+     * m2.entrySet()) { if (checked.contains(e.getKey())) { continue; } String
+     * v1 = m1.get(e.getKey()); if (!isSame(e.getValue(), v1)) { return false; }
+     * } return true;
+     */
   }
 }

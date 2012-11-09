@@ -2,6 +2,7 @@ package com.surelogic.dropsea;
 
 import java.util.Map;
 
+import com.surelogic.NonNull;
 import com.surelogic.common.ref.IJavaRef;
 
 /**
@@ -32,16 +33,24 @@ public interface IProposedPromiseDrop extends IAnalysisOutputDrop, ISnapshotDrop
     PROBLEM
   }
 
+  @NonNull
+  IJavaRef getJavaRef();
+
+  @NonNull
+  IJavaRef getAssumptionRef();
+
   String getAnnotation();
 
   String getContents();
 
+  @NonNull
   Map<String, String> getAnnoAttributes();
 
   String getReplacedAnnotation();
 
   String getReplacedContents();
 
+  @NonNull
   Map<String, String> getReplacedAttributes();
 
   String getJavaAnnotation();
@@ -50,9 +59,4 @@ public interface IProposedPromiseDrop extends IAnalysisOutputDrop, ISnapshotDrop
 
   boolean isAbductivelyInferred();
 
-  String getTargetProjectName();
-
-  String getFromProjectName();
-
-  IJavaRef getAssumptionRef();
 }
