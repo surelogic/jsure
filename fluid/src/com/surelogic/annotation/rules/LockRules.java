@@ -195,7 +195,8 @@ public class LockRules extends AnnotationRules {
 	private final Map<String,IProtectedRegions> projects = 
 		new HashMap<String,IProtectedRegions>();
 	  
-	public boolean addIfNotAlreadyProtected(ITypeEnvironment tenv, 
+	@Override
+  public boolean addIfNotAlreadyProtected(ITypeEnvironment tenv, 
 			String qualifiedRegionName, IJavaDeclaredType clazz) {
 		final IIRProject p = JavaProjects.getEnclosingProject(clazz.getDeclaration());
 		IProtectedRegions state = projects.get(p.getName());
@@ -206,7 +207,8 @@ public class LockRules extends AnnotationRules {
 		return state.addIfNotAlreadyProtected(tenv, qualifiedRegionName, clazz);
 	}
 
-	public void clear() {
+	@Override
+  public void clear() {
 		projects.clear();
 	}
   }
@@ -214,6 +216,7 @@ public class LockRules extends AnnotationRules {
   private static class Project_ProtectedRegions implements IProtectedRegions {
     private final Map<String, Set<IJavaType>> protectedRegions = new HashMap<String, Set<IJavaType>>();
     
+    @Override
     public synchronized void clear() {
       protectedRegions.clear();
     }
@@ -231,6 +234,7 @@ public class LockRules extends AnnotationRules {
      * @return <code>true</code> if the region was not already protected for 
      * this class.
      */
+    @Override
     public synchronized boolean addIfNotAlreadyProtected(
         final ITypeEnvironment tenv, final String qualifiedRegionName,
         final IJavaDeclaredType clazz) {
@@ -1735,11 +1739,14 @@ public class LockRules extends AnnotationRules {
 	extends AbstractAASTScrubber<A, P> {
     private final String name;
     private final String notName;
+	  private final boolean allowAnnotationDeclarations;
 	  
 	  public TypeAnnotationScrubber(
 	      final SimpleBooleanAnnotationParseRule<A, P> rule,
+	      final boolean allowAD,
 	      final String n, final String notN, final String... deps) {
 	    super(rule, ScrubberType.INCLUDE_SUBTYPES_BY_HIERARCHY, deps);
+	    allowAnnotationDeclarations = allowAD;
 	    name = n;
 	    notName = notN;
 	  }
@@ -1789,7 +1796,7 @@ public class LockRules extends AnnotationRules {
 	    final boolean implementationOnly = node.isImplementationOnly();
 	    boolean bad = false;
 	    
-	    if (AnnotationDeclaration.prototype.includes(op)) {
+	    if (!allowAnnotationDeclarations && AnnotationDeclaration.prototype.includes(op)) {
 	      bad = true;
 	      context.reportError(node, "Annotation declarations may not be annotated @{0}", name);
 	    } else if (InterfaceDeclaration.prototype.includes(op)) {
@@ -2073,6 +2080,7 @@ public class LockRules extends AnnotationRules {
             private boolean good = true;
             private final Set<String> names = new HashSet<String>();
             
+            @Override
             public void visitWhenType(final NamedTypeNode namedType) {
               // Check for duplicates
               final String name = namedType.getType();
@@ -2142,7 +2150,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber makeScrubber() {
-      return new TypeAnnotationScrubber<ContainableNode, ContainablePromiseDrop, NotContainablePromiseDrop>(this, "Containable", "NotContainable", NOT_CONTAINABLE) {
+      return new TypeAnnotationScrubber<ContainableNode, ContainablePromiseDrop, NotContainablePromiseDrop>(this, false, "Containable", "NotContainable", NOT_CONTAINABLE) {
         @Override
         protected ContainablePromiseDrop getAnnotation(final IRNode superDecl) {
           return getContainableImplementation(superDecl);
@@ -2209,7 +2217,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber makeScrubber() {
-      return new TypeAnnotationScrubber<ThreadSafeNode, ThreadSafePromiseDrop, NotThreadSafePromiseDrop>(this, "ThreadSafe", "NotThreadSafe", IMMUTABLE, NOT_THREAD_SAFE) {
+      return new TypeAnnotationScrubber<ThreadSafeNode, ThreadSafePromiseDrop, NotThreadSafePromiseDrop>(this, true, "ThreadSafe", "NotThreadSafe", IMMUTABLE, NOT_THREAD_SAFE) {
         @Override
         protected ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> getAnnotation(final IRNode superDecl) {
           return getThreadSafeImplementation(superDecl);
@@ -2394,7 +2402,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber makeScrubber() {
-      return new TypeAnnotationScrubber<ImmutableNode,ImmutablePromiseDrop, MutablePromiseDrop>(this, "Immutable", "Mutable", MUTABLE, NOT_THREAD_SAFE) {
+      return new TypeAnnotationScrubber<ImmutableNode,ImmutablePromiseDrop, MutablePromiseDrop>(this, true, "Immutable", "Mutable", MUTABLE, NOT_THREAD_SAFE) {
         @Override
         protected ImmutablePromiseDrop getAnnotation(final IRNode superDecl) {
           return getImmutableImplementation(superDecl);
