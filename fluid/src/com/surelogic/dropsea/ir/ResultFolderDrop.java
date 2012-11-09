@@ -68,11 +68,20 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
   @Override
   boolean immediatelyConsistent() {
     boolean result = true; // assume the best
-    for (IProofDrop drop : getTrusted()) {
-      if (drop instanceof ResultDrop) {
-        result &= ((ResultDrop) drop).isConsistent();
-      } else {
-        result &= drop.provedConsistent();
+    synchronized (f_seaLock) {
+      if (f_operator == LogicOperator.AND) {
+        for (IProofDrop drop : getTrusted()) {
+          if (drop instanceof ResultDrop) {
+            result &= ((ResultDrop) drop).isConsistent();
+          } else {
+            result &= drop.provedConsistent();
+          }
+        }
+      } else if (f_operator == LogicOperator.OR) {
+        result = provedConsistent();
+        if (f_choiceOfOrFolder instanceof ResultDrop) {
+          result = ((ResultDrop) f_choiceOfOrFolder).isConsistent();
+        }
       }
     }
     return result;

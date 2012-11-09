@@ -3,7 +3,6 @@ package com.surelogic.dropsea.ir;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNOTATION_TYPE;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNO_ATTRS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTENTS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_PROJECT;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_REF;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ANNOTATION;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.ORIGIN;
@@ -11,13 +10,11 @@ import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE_
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_ANNO;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_ATTRS;
 import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_CONTENTS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_PROJECT;
 
 import java.util.Collections;
 import java.util.Map;
 
 import com.surelogic.NonNull;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
@@ -170,22 +167,18 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
     this(annotation, contents, null, at, from, origin);
   }
 
-  // TODO?
-
+  @NonNull
   private final Map<String, String> f_attrs;
 
+  @NonNull
   private final Map<String, String> f_replacedAttrs;
 
-  /**
-   * @return a non-null (possibly empty) map.
-   */
+  @NonNull
   public Map<String, String> getAnnoAttributes() {
     return f_attrs;
   }
 
-  /**
-   * @return a non-null (possibly empty) map.
-   */
+  @NonNull
   public Map<String, String> getReplacedAttributes() {
     return f_replacedAttrs;
   }
@@ -389,8 +382,6 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
     s.addAttribute(REPLACED_ANNO, getReplacedAnnotation());
     s.addAttribute(REPLACED_CONTENTS, getReplacedContents());
     s.addAttribute(ORIGIN, getOrigin().toString());
-    s.addAttribute(TARGET_PROJECT, getTargetProjectName());
-    s.addAttribute(FROM_PROJECT, getFromProjectName());
 
     final IJavaRef declRef = JavaNode.getJavaRef(getAssumptionNode());
     final IJavaRef assumeRef = getAssumptionRef();
@@ -409,14 +400,6 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
     super.snapshotRefs(s, db);
     s.addProperties(db, ANNO_ATTRS, f_attrs);
     s.addProperties(db, REPLACED_ATTRS, f_replacedAttrs);
-  }
-
-  public String getTargetProjectName() {
-    return JavaProjects.getEnclosingProject(getNode()).getName();
-  }
-
-  public String getFromProjectName() {
-    return JavaProjects.getEnclosingProject(f_requestedFrom).getName();
   }
 
   @Override
