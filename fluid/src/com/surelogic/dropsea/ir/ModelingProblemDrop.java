@@ -1,6 +1,6 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.MODELING_PROBLEM_DROP;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.MODELING_PROBLEM_DROP;
 
 import com.surelogic.Nullable;
 import com.surelogic.common.Pair;

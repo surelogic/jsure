@@ -1,12 +1,13 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.*;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_SRC;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.USES_RED_DOT_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DERIVED_FROM_SRC_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DERIVED_FROM_WARNING_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_SRC;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROVED_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.USES_RED_DOT_ATTR;
 
-import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.irfree.Entity;
 
 public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
 

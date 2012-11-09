@@ -3,8 +3,10 @@ package com.surelogic.javac;
 import org.xml.sax.Attributes;
 
 import com.surelogic.common.xml.*;
+import com.surelogic.dropsea.irfree.AbstractXmlResultListener;
+import com.surelogic.dropsea.irfree.Entity;
 
-public class TestListener extends AbstractXMLResultListener {
+public class TestListener extends AbstractXmlResultListener {
 	@Override
 	protected boolean define(int id, Entity e) {
 		// TODO Auto-generated method stub

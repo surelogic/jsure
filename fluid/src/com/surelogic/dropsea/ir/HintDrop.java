@@ -1,12 +1,12 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_DROP;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_TYPE_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.HINT_DROP;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.HINT_TYPE_ATTR;
 
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
-import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IHintDrop;
+import com.surelogic.dropsea.irfree.XmlCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -60,7 +60,7 @@ public final class HintDrop extends Drop implements IHintDrop {
   }
 
   @MustInvokeOnOverride
-  public void snapshotAttrs(XMLCreator.Builder s) {
+  public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(HINT_TYPE_ATTR, f_type.toString());
   }

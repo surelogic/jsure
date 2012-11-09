@@ -1,11 +1,11 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.DERIVED_FROM_SRC_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.DERIVED_FROM_WARNING_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_SRC;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROOF_DROP;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROVED_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.USES_RED_DOT_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DERIVED_FROM_SRC_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DERIVED_FROM_WARNING_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_SRC;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROOF_DROP;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROVED_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.USES_RED_DOT_ATTR;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,10 +22,10 @@ import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.irfree.XmlCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -341,7 +341,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
 
   @Override
   @MustInvokeOnOverride
-  public void snapshotAttrs(XMLCreator.Builder s) {
+  public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(USES_RED_DOT_ATTR, proofUsesRedDot());
     s.addAttribute(PROVED_ATTR, provedConsistent());

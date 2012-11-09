@@ -9,16 +9,22 @@ import java.util.zip.ZipFile;
 import org.xml.sax.Attributes;
 
 import com.surelogic.analysis.IIRProjects;
-import com.surelogic.common.xml.Entity;
-import com.surelogic.common.xml.IXMLResultListener;
-import com.surelogic.common.xml.NestedXMLReader;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.dropsea.irfree.IXmlResultListener;
+import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
 
-public abstract class AbstractJSureResultsXMLReader<T> extends NestedXMLReader implements IXMLResultListener, PersistenceConstants {
-  protected final IIRProjects projects;
+public abstract class AbstractJSureResultsXMLReader<T> extends NestedJSureXmlReader implements IXmlResultListener,
+    PersistenceConstants {
 
   public AbstractJSureResultsXMLReader(IIRProjects p) {
     projects = p;
+  }
+
+  private final IIRProjects projects;
+
+  public IIRProjects getProjects() {
+    return projects;
   }
 
   @Override

@@ -1,17 +1,17 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.METRIC;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.METRIC_INFO;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.METRIC;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.METRIC_INFO;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.surelogic.NonNull;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.KeyValueUtility;
+import com.surelogic.dropsea.irfree.Entity;
 
 public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
 

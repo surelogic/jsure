@@ -1,8 +1,8 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.METRIC;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.METRIC_DROP;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.METRIC_INFO;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.METRIC;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.METRIC_DROP;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.METRIC_INFO;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -12,10 +12,10 @@ import com.surelogic.NonNull;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.xml.Entities;
-import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.KeyValueUtility;
+import com.surelogic.dropsea.irfree.XmlCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -139,7 +139,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
   }
 
   @Override
-  public void snapshotAttrs(XMLCreator.Builder s) {
+  public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(METRIC, getMetric().name());
 

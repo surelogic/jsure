@@ -7,14 +7,13 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.surelogic.common.xml.XMLCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
 /**
  * Really a JSure-specific XML creator
  */
-public class AbstractSeaXmlCreator extends XMLCreator {
+public class AbstractSeaXmlCreator extends XmlCreator {
   final Map<IRNode, Long> hashes = new HashMap<IRNode, Long>();
 
   Long getHash(IRNode n) {

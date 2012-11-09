@@ -1,16 +1,10 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CUNIT_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.DIFF_INFO;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ID_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_REF;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.LENGTH_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ID;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.OFFSET_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.PKG_ATTR;
-import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CATEGORY_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DIFF_INFO;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.JAVA_REF;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.MESSAGE_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.MESSAGE_ID;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,20 +14,14 @@ import java.util.logging.Level;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
-import com.surelogic.common.Pair;
-import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.ref.Decl;
-import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.common.ref.JavaRef;
-import com.surelogic.common.xml.Entity;
-import com.surelogic.common.xml.SourceRef;
-import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IKeyValue;
+import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.irfree.DiffHeuristics;
+import com.surelogic.dropsea.irfree.Entity;
 
 public class IRFreeDrop implements IDrop {
 
@@ -67,14 +55,6 @@ public class IRFreeDrop implements IDrop {
       f_proposedPromises = new ArrayList<IRFreeProposedPromiseDrop>(1);
     }
     f_proposedPromises.add(info);
-  }
-
-  boolean hasJavaRef() {
-    return f_javaRef != null;
-  }
-
-  void setJavaRef(IJavaRef value) {
-    f_javaRef = value;
   }
 
   void addHint(IRFreeHintDrop hint) {
@@ -233,73 +213,6 @@ public class IRFreeDrop implements IDrop {
       return 0;
     } else {
       return Integer.valueOf(val);
-    }
-  }
-
-  // TODO REMOVE WHEN NO LONGER NEEDED -- THIS IS FOR REGRESSION TESTS
-  public String javaId;
-
-  static void makeJavaRefFromSrcRefAndAddTo(IRFreeDrop drop, SourceRef ref) {
-    if (ref == null || drop == null)
-      return;
-    if (drop.hasJavaRef())
-      return;
-
-    Pair<IJavaRef, String> pair = makeJavaRefAndJavaIdFromSrcRef(ref);
-    if (pair != null) {
-      drop.setJavaRef(pair.first());
-      drop.javaId = pair.second();
-    }
-  }
-
-  static IJavaRef makeJavaRefFromSrcRef(SourceRef ref) {
-    Pair<IJavaRef, String> pair = makeJavaRefAndJavaIdFromSrcRef(ref);
-    if (pair != null)
-      return pair.first();
-    else
-      return null;
-  }
-
-  static Pair<IJavaRef, String> makeJavaRefAndJavaIdFromSrcRef(SourceRef ref) {
-    if (ref == null) {
-      return null;
-    }
-    final int line = Integer.valueOf(ref.getLine());
-    final String pkg = ref.getAttribute(PKG_ATTR);
-    final String cuName = ref.getAttribute(CUNIT_ATTR);
-    final String javaId = ref.getAttribute(JAVA_ID_ATTR);
-    // final String enclosingId = ref.getAttribute(WITHIN_DECL_ATTR);
-    final String project = ref.getAttribute(PROJECT_ATTR);
-
-    final int offset = convert(ref.getAttribute(OFFSET_ATTR));
-    final int length = convert(ref.getAttribute(LENGTH_ATTR));
-
-    if (cuName.contains("[]")) {
-      // this is a SrcRef to [].length which is bogas -- quietly ignore this one
-      return null;
-    } else {
-      boolean classExt = cuName.endsWith(".class");
-      String classNm = classExt ? cuName.substring(0, cuName.length() - 6) : cuName;
-      classNm = classNm.replaceAll("\\$", ".");
-      // Note that the default package is "" in the SourceRef instances
-      // Note that "package-info" needs to be delt with
-      final String jarStyleName;
-      if (SLUtility.PACKAGE_INFO.equals(classNm))
-        jarStyleName = pkg + "/";
-      else
-        jarStyleName = pkg + "/" + classNm;
-      final IDecl decl = Decl.getDeclForTypeNameFullyQualifiedSureLogic(jarStyleName);
-      final JavaRef.Builder builder = new JavaRef.Builder(decl);
-      builder.setEclipseProjectName(project);
-      if (classExt)
-        builder.setWithin(IJavaRef.Within.JAR_FILE);
-      if (line < Integer.MAX_VALUE)
-        builder.setLineNumber(line);
-      if (offset < Integer.MAX_VALUE)
-        builder.setOffset(offset);
-      if (length < Integer.MAX_VALUE)
-        builder.setLength(length);
-      return new Pair<IJavaRef, String>(builder.build(), javaId);
     }
   }
 }

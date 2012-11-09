@@ -1,6 +1,6 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import com.surelogic.common.xml.Entity;
+import com.surelogic.dropsea.irfree.Entity;
 
 public final class IRFreeScopedPromiseDrop extends IRFreePromiseDrop {
 

@@ -33,9 +33,23 @@ public interface IProposedPromiseDrop extends IAnalysisOutputDrop, ISnapshotDrop
     PROBLEM
   }
 
+  /**
+   * Gets a reference to the Java code this information is about..
+   * 
+   * @return a reference to the Java code this information is about, cannot be
+   *         {@code null} for a proposed promise drop.
+   */
   @NonNull
   IJavaRef getJavaRef();
 
+  /**
+   * Gets a reference to the Java code this proposed promise was proposed from.
+   * This location could be used to generate an assumption, instead the actual
+   * proposal, if, for example, the proposal is about a binary.
+   * 
+   * @return a reference to the Java code this proposed promise was proposed
+   *         from, cannot be {@code null} for a proposed promise drop.
+   */
   @NonNull
   IJavaRef getAssumptionRef();
 

@@ -7,8 +7,8 @@
 package com.surelogic.dropsea.ir.drops.threadroles;
 
 import com.surelogic.analysis.threadroles.TRoleMessages;
-import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.irfree.XmlCreator;
 
 
 
@@ -34,7 +34,7 @@ implements IThreadRoleDrop {
    }
    
    @Override
-   public void snapshotAttrs(XMLCreator.Builder s) {
+   public void snapshotAttrs(XmlCreator.Builder s) {
  	  super.snapshotAttrs(s);
  	  s.addAttribute("num-count", (long) count());
    } 	  

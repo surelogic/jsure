@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.zip.*;
 
 import com.surelogic.common.FileUtility;
-import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.irfree.XmlCreator;
 import com.surelogic.javac.persistence.*;
 
 /**
@@ -33,8 +33,8 @@ public class JarEntry extends AbstractClassPathEntry {
 		return path;
 	}
 	
-	public void outputToXML(XMLCreator.Builder proj) {
-		XMLCreator.Builder b = proj.nest(PersistenceConstants.JAR);
+	public void outputToXML(XmlCreator.Builder proj) {
+		XmlCreator.Builder b = proj.nest(PersistenceConstants.JAR);
 		b.addAttribute(PersistenceConstants.PATH, path.getAbsolutePath());
 		b.addAttribute(PersistenceConstants.ORIG_PATH, origPath.getAbsolutePath());
 		b.addAttribute(PersistenceConstants.IS_EXPORTED, isExported());

@@ -1,14 +1,14 @@
 package com.surelogic.dropsea.irfree;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IAnalysisResultDrop;
-import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
+import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.persistence.JavaIdentifier;
 
 public abstract class CategoryMatcher {
@@ -174,14 +174,7 @@ public abstract class CategoryMatcher {
   protected static String getJavaId(IDrop d) {
     IJavaRef ref = d.getJavaRef();
     if (ref != null) {
-      String id;
-      if (ref instanceof IRFreeDrop) {
-        id = ((IRFreeDrop) ref).javaId;
-        if (id != null) {
-          return id;
-        }
-      }
-      id = JavaIdentifier.encodeDecl(ref.getEclipseProjectNameOrEmpty(), ref);
+      String id = JavaIdentifier.encodeDecl(ref.getEclipseProjectNameOrEmpty(), ref);
       return id;
     }
     return null;

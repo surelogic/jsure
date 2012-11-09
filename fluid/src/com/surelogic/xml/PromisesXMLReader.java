@@ -6,9 +6,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.xml.sax.Attributes;
 
-import com.surelogic.common.xml.Entity;
-import com.surelogic.common.xml.IXMLResultListener;
-import com.surelogic.common.xml.NestedXMLReader;
+import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.dropsea.irfree.IXmlResultListener;
+import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
 import com.surelogic.xml.AnnotatedJavaElement.Access;
 
 /**
@@ -16,8 +16,8 @@ import com.surelogic.xml.AnnotatedJavaElement.Access;
  * 
  * @author Edwin
  */
-public class PromisesXMLReader extends NestedXMLReader implements
-		IXMLResultListener, TestXMLParserConstants {
+public class PromisesXMLReader extends NestedJSureXmlReader implements
+		IXmlResultListener, TestXMLParserConstants {
 	private PackageElement pkg;
 	private String pkgName;
 	private int releaseVersion = 0;

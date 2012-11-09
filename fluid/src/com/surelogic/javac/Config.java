@@ -14,7 +14,7 @@ import java.util.Set;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
-import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.irfree.XmlCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
 import edu.cmu.cs.fluid.util.FilterIterator;
@@ -54,9 +54,9 @@ public class Config extends AbstractClassPathEntry {
 		containsJavaLangObject = hasJLO;
 	}
 
-	public void outputToXML(XMLCreator.Builder proj) {
+	public void outputToXML(XmlCreator.Builder proj) {
 		// Just the reference to this
-		XMLCreator.Builder b = proj.nest(PersistenceConstants.PROJECT);
+		XmlCreator.Builder b = proj.nest(PersistenceConstants.PROJECT);
 		b.addAttribute("name", name);
 		b.end();
 	}
@@ -103,7 +103,7 @@ public class Config extends AbstractClassPathEntry {
 		setOption(Config.AS_SOURCE, true);
 	}
 	
-	public void outputOptionsToXML(XMLCreator.Builder b) {
+	public void outputOptionsToXML(XmlCreator.Builder b) {
 		for(Map.Entry<String,Object> e : options.entrySet()) {
 			b.addAttribute(e.getKey(), e.getValue().toString());
 		}

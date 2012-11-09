@@ -4,9 +4,9 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.surelogic.MustInvokeOnOverride;
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
-import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
+import com.surelogic.dropsea.irfree.XmlCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SimpleSlotFactory;
@@ -186,12 +186,12 @@ public abstract class CUDrop extends Drop {
 
   @Override
   public String getXMLElementName() {
-    return AbstractXMLReader.CU_DROP;
+    return NestedJSureXmlReader.CU_DROP;
   }
 
   @Override
   @MustInvokeOnOverride
-  public void snapshotAttrs(XMLCreator.Builder s) {
+  public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute("filename", f_javaOSFileName);
   }

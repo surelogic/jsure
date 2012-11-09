@@ -1,12 +1,12 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CATEGORY_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.DIFF_INFO;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.DROP;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.MESSAGE_ID;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CATEGORY_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DIFF_INFO;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DROP;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.HINT_ABOUT;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.MESSAGE;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.MESSAGE_ID;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROPOSED_PROMISE;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,8 +30,6 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.Entities;
-import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IHintDrop.HintType;
@@ -40,6 +38,8 @@ import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.irfree.DiffHeuristics;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.irfree.XmlCreator;
+import com.surelogic.dropsea.irfree.XmlCreator.Builder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -1029,7 +1029,7 @@ public abstract class Drop implements IDrop {
   }
 
   @MustInvokeOnOverride
-  public void snapshotAttrs(XMLCreator.Builder s) {
+  public void snapshotAttrs(XmlCreator.Builder s) {
     s.addAttribute(MESSAGE, getMessage());
     if (getMessageCanonical() != null)
       s.addAttribute(MESSAGE_ID, getMessageCanonical());

@@ -1,14 +1,14 @@
 package com.surelogic.dropsea.irfree;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FLAVOR_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FULL_TYPE_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_REF;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TYPE_ATTR;
-import static com.surelogic.common.xml.XMLReader.PROJECT_ATTR;
-import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.ID_ATTR;
-import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.PROPERTIES;
-import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.ROOT;
-import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.UID_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FLAVOR_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FULL_TYPE_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ID_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.JAVA_REF;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROJECT_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROPERTIES;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ROOT;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TYPE_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.UID_ATTR;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
@@ -36,29 +37,29 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
    * For creation
    */
   private final Map<Drop, String> idMap = new HashMap<Drop, String>();
-  
+
   /**
    * For loading
    */
-  private final ConcurrentMap<String,IJavaRef> refCache = new ConcurrentHashMap<String, IJavaRef>();
-  
+  private final ConcurrentMap<String, IJavaRef> refCache = new ConcurrentHashMap<String, IJavaRef>();
+
   public SeaSnapshot(File location) throws IOException {
     super(location);
   }
-  
+
   public static SeaSnapshot create() {
-	  try {
-		  return new SeaSnapshot(null);
-	  } catch(IOException e) {
-		  return null;
-	  }
+    try {
+      return new SeaSnapshot(null);
+    } catch (IOException e) {
+      return null;
+    }
   }
 
   public void clear() {
-	  refCache.clear();
-	  idMap.clear();
+    refCache.clear();
+    idMap.clear();
   }
-  
+
   private String computeId(Drop d) {
     String id = idMap.get(d);
     if (id == null) {
@@ -142,12 +143,12 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
     }
     pb.end();
   }
-  
+
   public static List<IDrop> loadSnapshot(File location) throws Exception {
-	return loadSnapshot(null, location);
+    return loadSnapshot(null, location);
   }
-  
-  public static List<IDrop> loadSnapshot(SeaSnapshot s, File location) throws Exception {  
+
+  public static List<IDrop> loadSnapshot(SeaSnapshot s, File location) throws Exception {
     SeaSnapshotXMLReaderListener l = new SeaSnapshotXMLReaderListener(s == null ? null : s.refCache);
     new SeaSnapshotXMLReader(l).read(location);
     return l.getDrops();

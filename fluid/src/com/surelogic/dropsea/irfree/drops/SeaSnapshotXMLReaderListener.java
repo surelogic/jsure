@@ -1,35 +1,27 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNO_ATTRS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_RESULTS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_PROMISE;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPENDENT_PROMISES;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT_PROMISES;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FLAVOR_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_REF;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FULL_TYPE_ATTR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.HINT_ABOUT;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_PROOF_DROP;
-import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.JAVA_DECL_INFO;
-import static com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader.PROPERTIES;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ANNO_ATTRS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CHECKED_BY_RESULTS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CHECKED_PROMISE;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DEPENDENT_PROMISES;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DEPONENT;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DEPONENT_PROMISES;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FLAVOR_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FULL_TYPE_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.HINT_ABOUT;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.JAVA_DECL_INFO;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROPERTIES;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROPOSED_PROMISE;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TRUSTED_PROOF_DROP;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import org.xml.sax.Attributes;
 
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.common.xml.AbstractXMLResultListener;
-import com.surelogic.common.xml.Entity;
-import com.surelogic.common.xml.MoreInfo;
-import com.surelogic.common.xml.SourceRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -40,9 +32,11 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.ScopedPromiseDrop;
+import com.surelogic.dropsea.irfree.AbstractXmlResultListener;
 import com.surelogic.dropsea.irfree.DropTypeUtility;
+import com.surelogic.dropsea.irfree.Entity;
 
-public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListener {
+public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListener {
   private final ConcurrentMap<String, IJavaRef> refCache;
 
   // private int refsReused = 0;
@@ -76,14 +70,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
         IRFreeProposedPromiseDrop ppd = (IRFreeProposedPromiseDrop) f_drop;
         // System.out.println("-- addRef ON A PROPOSED PROMISE DROP CALLED");
         final String name = e.getName();
-        if ("source-ref".equals(name)) {
-          SourceRef sr = new SourceRef(e);
-          if (FROM_REF.equals(e.getAttribute(FLAVOR_ATTR)) && !ppd.hasAssumptionRef()) {
-            // TODO ppd.setAssumptionRef(IRFreeDrop.makeJavaRefFromSrcRef(sr));
-          } else {
-            setSource(sr);
-          }
-        } else if (PROPERTIES.equals(name)) {
+        if (PROPERTIES.equals(name)) {
           if (ANNO_ATTRS.equals(e.getAttribute(FLAVOR_ATTR))) {
             ppd.setAnnoAttributes(e.getAttributes());
           } else {
@@ -189,37 +176,6 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXMLResultListene
   @Override
   protected boolean define(final int id, Entity e) {
     add(id, e);
-    if (e instanceof SeaEntity) {
-      /*
-       * Add the source ref and supporting information (if any) to the drop
-       * under construction.
-       */
-      IRFreeDrop drop = ((SeaEntity) e).getDrop();
-      if (drop != null) {
-        if (!drop.hasJavaRef()) {
-          final SourceRef sr = e.getSource();
-          if (sr != null) {
-            IRFreeDrop.makeJavaRefFromSrcRefAndAddTo(drop, sr);
-          }
-        }
-
-        for (MoreInfo i : e.getInfos()) {
-          /*
-           * Add a hint node to replace the old-style supporting information.
-           */
-          IRFreeProofDrop pd = (IRFreeProofDrop) drop;
-          Map<String, String> a = new HashMap<String, String>();
-          a.put(AbstractXMLReader.MESSAGE_ATTR, i.message);
-          a.put(AbstractXMLReader.HINT_TYPE_ATTR, IHintDrop.HintType.INFORMATION.toString());
-          Entity hintE = new Entity(AbstractXMLReader.HINT_DROP, a);
-          IRFreeHintDrop hint = new IRFreeHintDrop(hintE, HintDrop.class);
-          if (i.source != null) {
-            IRFreeDrop.makeJavaRefFromSrcRefAndAddTo(hint, i.source);
-          }
-          pd.addHint(hint);
-        }
-      }
-    }
     return true;
   }
 

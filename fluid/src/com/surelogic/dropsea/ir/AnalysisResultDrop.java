@@ -1,8 +1,8 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_PROMISE;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TRUSTED_PROOF_DROP;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.USED_BY_PROOF;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CHECKED_PROMISE;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TRUSTED_PROOF_DROP;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.USED_BY_PROOF;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -14,10 +14,10 @@ import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.irfree.XmlCreator;
+import com.surelogic.dropsea.irfree.XmlCreator.Builder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -313,7 +313,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   }
 
   @Override
-  public void snapshotAttrs(XMLCreator.Builder s) {
+  public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(USED_BY_PROOF, usedByProof());
   }

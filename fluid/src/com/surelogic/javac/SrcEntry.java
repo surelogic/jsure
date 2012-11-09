@@ -3,7 +3,7 @@ package com.surelogic.javac;
 import java.io.File;
 import java.io.IOException;
 
-import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.irfree.XmlCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
 /**
@@ -31,8 +31,8 @@ public class SrcEntry extends AbstractClassPathEntry {
 		// TODO Auto-generated method stub
 	}
 
-	public void outputToXML(XMLCreator.Builder proj) {
-		XMLCreator.Builder b = proj.nest(PersistenceConstants.SRC);
+	public void outputToXML(XmlCreator.Builder proj) {
+		XmlCreator.Builder b = proj.nest(PersistenceConstants.SRC);
 		b.addAttribute(PersistenceConstants.PATH, projectRelativePath);
 		b.addAttribute(PersistenceConstants.IS_EXPORTED, isExported());
 		b.end();

@@ -1,14 +1,14 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNOTATION_TYPE;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTENTS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_INFO;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_REF;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ANNOTATION;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.ORIGIN;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_ANNO;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_CONTENTS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TARGET_INFO;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ANNOTATION_TYPE;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CONTENTS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_INFO;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_REF;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.JAVA_ANNOTATION;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ORIGIN;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_ANNO;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_CONTENTS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TARGET_INFO;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,9 +18,9 @@ import com.surelogic.NonNull;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.irfree.Entity;
 
 public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProposedPromiseDrop {
 
@@ -101,7 +101,7 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
       throw new IllegalStateException(I18N.err(288, encodedJavaRef), parseFailure);
     }
 
-    // Java ref must be non-null for a proposed promise
+    // Java reference must be non-null for a proposed promise
     if (getJavaRef() == null)
       throw new IllegalStateException(I18N.err(44, "getJavaRef()"));
   }

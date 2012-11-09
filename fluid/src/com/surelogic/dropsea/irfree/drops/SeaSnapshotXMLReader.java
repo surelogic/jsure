@@ -2,23 +2,10 @@ package com.surelogic.dropsea.irfree.drops;
 
 import org.xml.sax.Attributes;
 
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
-import com.surelogic.common.xml.Entity;
-import com.surelogic.common.xml.MoreInfo;
-import com.surelogic.common.xml.SourceRef;
+import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
 
-public class SeaSnapshotXMLReader extends AbstractXMLReader {
-
-  public static final String ROOT = "sea-snapshot";
-
-  public static final String SUPPORTING_INFO = "supporting-info";
-  public static final String JAVA_DECL_INFO = "java-decl-info";
-  public static final String PROPERTIES = "properties";
-  public static final String DEPONENT = "deponent";
-  public static final String DEPENDENT = "dependent";
-
-  public static final String UID_ATTR = "uid";
-  public static final String ID_ATTR = "id";
+public class SeaSnapshotXMLReader extends NestedJSureXmlReader {
 
   final SeaSnapshotXMLReaderListener f_seaSnapListener;
 
@@ -40,33 +27,9 @@ public class SeaSnapshotXMLReader extends AbstractXMLReader {
 
   @Override
   protected void handleNestedEntity(Entity next, Entity last, String lastName) {
-    if ("source-ref".equals(lastName)) {
-      String flavor = last.getAttribute(FLAVOR_ATTR);
-      if (flavor != null) {
-        // throw new UnsupportedOperationException();
-        next.addRef(last);
-      } else {
-        next.setSource(new SourceRef(last));
-      }
-    } else if (SUPPORTING_INFO.equals(lastName)) {
-      next.addInfo(new MoreInfo(last));
-    } else if (JAVA_DECL_INFO.equals(lastName)) {
-    	// IGNORE these since they're no longer used
-//      JavaDeclInfo info = (JavaDeclInfo) last;
-//      if (next instanceof IJavaDeclInfoClient) {
-//        /*
-//         * Adds parents
-//         */
-//        ((IJavaDeclInfoClient) next).addInfo(info);
-//      } else {
-//        /*
-//         * We need to inform the associated drop (not the entity) so we ask the
-//         * listener for it. Likely this is a proposed promise we are trying to
-//         * stash java declaration information for refactoring onto.
-//         */
-//        f_seaSnapListener.handleJavaDecl(next, info);
-//      }
-    } else {
+    boolean obsoleteStuff = "source-ref".equals(lastName) || "java-decl-info".equals(lastName)
+        || "supporting-info".equals(lastName);
+    if (!obsoleteStuff) {
       // System.out.println("Finished '"+name+"' inside of "+next);
       next.addRef(last);
     }

@@ -2,8 +2,8 @@
 package com.surelogic.persistence;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.irfree.XmlCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -16,8 +16,8 @@ public abstract class AbstractAnalysisResult implements IAnalysisResult, Persist
     location = loc;
   }
 
-  public void outputToXML(JSureResultsXMLCreator creator, XMLCreator.Builder outer) {
-    XMLCreator.Builder b = outer.nest(RESULT);
+  public void outputToXML(JSureResultsXMLCreator creator, XmlCreator.Builder outer) {
+    XmlCreator.Builder b = outer.nest(RESULT);
     attributesToXML(b);
     about.toXML(b.nest(ABOUT_REF));
 
@@ -26,11 +26,11 @@ public abstract class AbstractAnalysisResult implements IAnalysisResult, Persist
     // return sb.toString();
   }
 
-  protected void attributesToXML(XMLCreator.Builder sb) {
+  protected void attributesToXML(XmlCreator.Builder sb) {
     // Nothing right now
   }
 
-  protected void subEntitiesToXML(XMLCreator.Builder sb) {
+  protected void subEntitiesToXML(XmlCreator.Builder sb) {
     // Nothing right now
   }
 }

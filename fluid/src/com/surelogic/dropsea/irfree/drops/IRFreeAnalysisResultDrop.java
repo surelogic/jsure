@@ -1,6 +1,6 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.USED_BY_PROOF;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.USED_BY_PROOF;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,10 +8,10 @@ import java.util.HashSet;
 import java.util.List;
 
 import com.surelogic.NonNull;
-import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
+import com.surelogic.dropsea.irfree.Entity;
 
 public abstract class IRFreeAnalysisResultDrop extends IRFreeProofDrop implements IAnalysisResultDrop {
 

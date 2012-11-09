@@ -1,9 +1,10 @@
 package com.surelogic.dropsea.irfree.drops;
 
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FOLDER_LOGIC_OPERATOR;
+
 import com.surelogic.NonNull;
-import com.surelogic.common.jsure.xml.AbstractXMLReader;
-import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IResultFolderDrop;
+import com.surelogic.dropsea.irfree.Entity;
 
 public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop implements IResultFolderDrop {
 
@@ -12,7 +13,7 @@ public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop imple
   IRFreeResultFolderDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
 
-    final String operatorString = e.getAttribute(AbstractXMLReader.FOLDER_LOGIC_OPERATOR);
+    final String operatorString = e.getAttribute(FOLDER_LOGIC_OPERATOR);
     LogicOperator operator = LogicOperator.AND;
     if (operatorString != null) {
       try {

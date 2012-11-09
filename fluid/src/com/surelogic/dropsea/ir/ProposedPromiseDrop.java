@@ -1,15 +1,15 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNOTATION_TYPE;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.ANNO_ATTRS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONTENTS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FROM_REF;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.JAVA_ANNOTATION;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.ORIGIN;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROPOSED_PROMISE_DROP;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_ANNO;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_ATTRS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.REPLACED_CONTENTS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ANNOTATION_TYPE;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ANNO_ATTRS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CONTENTS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_REF;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.JAVA_ANNOTATION;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ORIGIN;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROPOSED_PROMISE_DROP;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_ANNO;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_ATTRS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_CONTENTS;
 
 import java.util.Collections;
 import java.util.Map;
@@ -21,10 +21,10 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.IJavaRef.Position;
 import com.surelogic.common.ref.JavaRef;
-import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.irfree.XmlCreator;
+import com.surelogic.dropsea.irfree.XmlCreator.Builder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -374,7 +374,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   }
 
   @Override
-  public void snapshotAttrs(XMLCreator.Builder s) {
+  public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(JAVA_ANNOTATION, getJavaAnnotation());
     s.addAttribute(ANNOTATION_TYPE, getAnnotation());

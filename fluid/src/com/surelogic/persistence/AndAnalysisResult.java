@@ -2,8 +2,8 @@
 package com.surelogic.persistence;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.irfree.XmlCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -22,7 +22,7 @@ public class AndAnalysisResult extends AbstractAnalysisResult {
 	}
 
 	@Override
-	protected void subEntitiesToXML(XMLCreator.Builder b) {
+	protected void subEntitiesToXML(XmlCreator.Builder b) {
 		for(PromiseRef ref : dependencies) {
 			ref.toXML(b.nest(PersistenceConstants.AND_REF));
 		}

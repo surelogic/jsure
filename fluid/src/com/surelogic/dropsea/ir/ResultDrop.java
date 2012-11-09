@@ -1,15 +1,15 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONSISTENT;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT_DROP;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TIMEOUT;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.VOUCHED;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CONSISTENT;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.RESULT_DROP;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TIMEOUT;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.VOUCHED;
 
 import com.surelogic.InRegion;
 import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
-import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.IResultDrop;
+import com.surelogic.dropsea.irfree.XmlCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -164,7 +164,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   }
 
   @Override
-  public void snapshotAttrs(XMLCreator.Builder s) {
+  public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(VOUCHED, isVouched());
     s.addAttribute(CONSISTENT, isConsistent());

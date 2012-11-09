@@ -3,8 +3,8 @@ package com.surelogic.persistence;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.xml.XMLCreator;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.irfree.XmlCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -22,7 +22,7 @@ public class SimpleAnalysisResult extends AbstractAnalysisResult {
 	}
 
 	@Override
-	protected void attributesToXML(XMLCreator.Builder b) {
+	protected void attributesToXML(XmlCreator.Builder b) {
 		//Entities.newLine(b, indent);
 		b.addAttribute(PersistenceConstants.MESSAGE, I18N.res(messageCode, (Object[]) args));
 		b.addAttribute(PersistenceConstants.MESSAGE_CODE, messageCode);

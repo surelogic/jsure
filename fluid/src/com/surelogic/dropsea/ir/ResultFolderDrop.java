@@ -1,15 +1,15 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.FOLDER_LOGIC_OPERATOR;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.RESULT_FOLDER_DROP;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FOLDER_LOGIC_OPERATOR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.RESULT_FOLDER_DROP;
 
 import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
-import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
+import com.surelogic.dropsea.irfree.XmlCreator.Builder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 

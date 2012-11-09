@@ -1,18 +1,18 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.ASSUMED;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_ANALYSIS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TO_BE_CHECKED_BY_ANALYSIS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.VIRTUAL;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ASSUMED;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CHECKED_BY_ANALYSIS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TO_BE_CHECKED_BY_ANALYSIS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.VIRTUAL;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import com.surelogic.NonNull;
-import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IPromiseDrop;
+import com.surelogic.dropsea.irfree.Entity;
 
 public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
 

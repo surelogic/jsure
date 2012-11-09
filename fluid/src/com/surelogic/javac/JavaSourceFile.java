@@ -5,7 +5,7 @@ import java.net.URI;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.Pair;
-import com.surelogic.common.xml.XMLCreator;
+import com.surelogic.dropsea.irfree.XmlCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
 
@@ -53,8 +53,8 @@ public class JavaSourceFile {
 		return new Pair<URI, String>(file.toURI(), relativePath);
 	}
 
-	public void outputToXML(XMLCreator.Builder proj) {
-		XMLCreator.Builder b = proj.nest(PersistenceConstants.FILE);		
+	public void outputToXML(XmlCreator.Builder proj) {
+		XmlCreator.Builder b = proj.nest(PersistenceConstants.FILE);		
 		b.addAttribute(PersistenceConstants.PATH, relativePath);
 		b.addAttribute(PersistenceConstants.QNAME, qname);
 		b.addAttribute(PersistenceConstants.LOCATION, file.getAbsolutePath());

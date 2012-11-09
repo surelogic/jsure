@@ -3,7 +3,7 @@ package edu.cmu.cs.fluid.java;
 import java.io.*;
 
 import com.surelogic.common.xml.Entities;
-import com.surelogic.common.xml.Entity;
+import com.surelogic.dropsea.irfree.Entity;
 import com.surelogic.tree.SyntaxTreeRegion;
 
 import edu.cmu.cs.fluid.ir.*;

@@ -1,13 +1,13 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.ASSUMED;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_ANALYSIS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CHECKED_BY_RESULTS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPENDENT_PROMISES;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.DEPONENT_PROMISES;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.PROMISE_DROP;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TO_BE_CHECKED_BY_ANALYSIS;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.VIRTUAL;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ASSUMED;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CHECKED_BY_ANALYSIS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CHECKED_BY_RESULTS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DEPENDENT_PROMISES;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DEPONENT_PROMISES;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROMISE_DROP;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TO_BE_CHECKED_BY_ANALYSIS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.VIRTUAL;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -27,11 +27,11 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.IJavaRef.Position;
 import com.surelogic.common.ref.JavaRef;
-import com.surelogic.common.xml.XMLCreator;
-import com.surelogic.common.xml.XMLCreator.Builder;
 import com.surelogic.dropsea.ICustomizedPromiseDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.irfree.XmlCreator;
+import com.surelogic.dropsea.irfree.XmlCreator.Builder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
@@ -570,7 +570,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @Override
   @MustInvokeOnOverride
-  public void snapshotAttrs(XMLCreator.Builder s) {
+  public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(ASSUMED, isAssumed());
     s.addAttribute(CHECKED_BY_ANALYSIS, isCheckedByAnalysis());

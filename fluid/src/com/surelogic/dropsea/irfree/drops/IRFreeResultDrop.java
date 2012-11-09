@@ -1,11 +1,11 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.CONSISTENT;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.TIMEOUT;
-import static com.surelogic.common.jsure.xml.AbstractXMLReader.VOUCHED;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CONSISTENT;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TIMEOUT;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.VOUCHED;
 
-import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IResultDrop;
+import com.surelogic.dropsea.irfree.Entity;
 
 public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements IResultDrop {
 
