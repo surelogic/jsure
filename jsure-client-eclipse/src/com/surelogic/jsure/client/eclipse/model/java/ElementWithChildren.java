@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.explorer;
+package com.surelogic.jsure.client.eclipse.model.java;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -15,7 +15,7 @@ import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
-abstract class ElementWithChildren extends Element {
+public abstract class ElementWithChildren extends Element {
 
   protected ElementWithChildren(Element parent) {
     super(parent);
@@ -33,7 +33,7 @@ abstract class ElementWithChildren extends Element {
 
   @Override
   @NonNull
-  final Element[] getChildren() {
+  public final Element[] getChildren() {
     return f_children.toArray(new Element[f_children.size()]);
   }
 
@@ -110,12 +110,12 @@ abstract class ElementWithChildren extends Element {
 
   @Override
   @Nullable
-  final Image getImage() {
+  public final Image getImage() {
     final Image baseImage = getElementImage();
     if (baseImage == null)
       return null;
     final EnumSet<Flag> flags = getDescendantDecoratorFlags();
-    if (f_highlightDifferences) {
+    if (Element.highlightDifferences()) {
       if (f_descendantDeltaCache)
         flags.add(Flag.DELTA);
     } else {

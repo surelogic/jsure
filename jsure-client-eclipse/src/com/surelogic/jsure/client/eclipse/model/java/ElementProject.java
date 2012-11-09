@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.explorer;
+package com.surelogic.jsure.client.eclipse.model.java;
 
 import org.eclipse.swt.graphics.Image;
 
@@ -7,7 +7,7 @@ import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.SLImages;
 
-final class ElementProject extends ElementWithChildren {
+public final class ElementProject extends ElementWithChildren {
 
   protected ElementProject(@NonNull final String projectLabel, boolean grayscale) {
     super(null);
@@ -22,13 +22,13 @@ final class ElementProject extends ElementWithChildren {
   private final boolean f_grayscale;
 
   @Override
-  String getLabel() {
+  public String getLabel() {
     return f_projectLabel;
   }
 
   @Override
   @Nullable
-  Image getElementImage() {
+  public Image getElementImage() {
     final Image baseImage = SLImages.getImageForProject(f_projectLabel);
     if (f_grayscale)
       return SLImages.getGrayscaleImage(baseImage);

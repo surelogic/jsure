@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.explorer;
+package com.surelogic.jsure.client.eclipse.model.java;
 
 import org.eclipse.swt.graphics.Image;
 
@@ -12,7 +12,7 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 
-final class ElementDrop extends Element {
+public final class ElementDrop extends Element {
 
   /**
    * Adds the passed drop to the tree.
@@ -28,7 +28,7 @@ final class ElementDrop extends Element {
    *         if unsuccessful.
    */
   @Nullable
-  static ElementDrop addToTree(@NonNull final ElementJavaDecl.Folderizer tree, @NonNull IDrop drop, boolean fromOldScan) {
+  public static ElementDrop addToTree(@NonNull final ElementJavaDecl.Folderizer tree, @NonNull IDrop drop, boolean fromOldScan) {
     if (tree == null)
       throw new IllegalArgumentException(I18N.err(44, "tree"));
     if (drop == null)
@@ -51,7 +51,7 @@ final class ElementDrop extends Element {
     if (fromOldScan) {
       f_diffDrop = f_drop;
     } else {
-      final ScanDifferences diff = f_diff;
+      final ScanDifferences diff = Element.getScanDifferences();
       if (diff == null) {
         f_diffDrop = null;
       } else {
@@ -69,7 +69,7 @@ final class ElementDrop extends Element {
   private final IDrop f_drop;
 
   @NonNull
-  IDrop getDrop() {
+  public IDrop getDrop() {
     return f_drop;
   }
 
@@ -80,12 +80,12 @@ final class ElementDrop extends Element {
 
   @Override
   @NonNull
-  Element[] getChildren() {
+  public Element[] getChildren() {
     return EMPTY;
   }
 
   @Override
-  String getLabel() {
+  public String getLabel() {
     String result = f_drop.getMessage();
     if (f_drop instanceof IPromiseDrop) {
       // strip off "on" clause, if any
@@ -98,25 +98,25 @@ final class ElementDrop extends Element {
 
   @Override
   @Nullable
-  Image getElementImage() {
+  public Image getElementImage() {
     return JSureDecoratedImageUtility.getImageForDrop(f_drop, true, null, isOld());
   }
 
   @Override
   @Nullable
-  Image getImage() {
+  public Image getImage() {
     final Image baseImage = getElementImage();
     return baseImage;
   }
 
   @Override
-  int getLineNumber() {
+  public int getLineNumber() {
     final IJavaRef jr = getDrop().getJavaRef();
     return jr.getLineNumber();
   }
 
   @Override
-  Position getPositionRelativeToDeclarationOrNull() {
+  public Position getPositionRelativeToDeclarationOrNull() {
     final IJavaRef jr = getDrop().getJavaRef();
     return jr.getPositionRelativeToDeclaration();
   }
@@ -136,26 +136,26 @@ final class ElementDrop extends Element {
   @Nullable
   private IDrop f_diffDrop;
 
-  final boolean isSame() {
+  public final boolean isSame() {
     return f_diffDrop == null;
   }
 
-  final boolean isNew() {
+  public final boolean isNew() {
     return !f_fromOldScan && f_diffDrop == getDrop();
   }
 
-  final boolean isChanged() {
+  public final boolean isChanged() {
     if (f_fromOldScan)
       return false;
     return f_diffDrop != null && f_diffDrop != f_drop;
   }
 
-  final boolean isOld() {
+  public final boolean isOld() {
     return f_fromOldScan;
   }
 
   @Nullable
-  final IDrop getChangedFromDropOrNull() {
+  public final IDrop getChangedFromDropOrNull() {
     if (isNew())
       return null;
     else
@@ -163,7 +163,7 @@ final class ElementDrop extends Element {
   }
 
   @Nullable
-  final Image getElementImageChangedFromDropOrNull() {
+  public final Image getElementImageChangedFromDropOrNull() {
     final IDrop changedDrop = getChangedFromDropOrNull();
     if (changedDrop == null)
       return null;

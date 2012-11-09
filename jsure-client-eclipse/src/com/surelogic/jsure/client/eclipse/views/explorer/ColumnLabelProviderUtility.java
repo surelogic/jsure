@@ -11,12 +11,15 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.JSureClientUtility;
+import com.surelogic.jsure.client.eclipse.model.java.Element;
+import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
+import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
 
 @Utility
 public final class ColumnLabelProviderUtility {
 
   private static void highlightRowHelper(ViewerCell cell) {
-    if (Element.f_highlightDifferences) {
+    if (Element.highlightDifferences()) {
       if (cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();
         if (element.isNew() || element.isChanged()) {
@@ -97,7 +100,7 @@ public final class ColumnLabelProviderUtility {
     public void update(ViewerCell cell) {
       highlightRowHelper(cell);
 
-      final ScanDifferences diff = Element.f_diff;
+      final ScanDifferences diff = Element.getScanDifferences();
       if (diff != null && cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();
         String cellText = null;
