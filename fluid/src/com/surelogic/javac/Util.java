@@ -1107,9 +1107,9 @@ public class Util {
             continue;
           }
           if ("java.lang.Object".equals(name)) {
-            v.handleXMLPromise(type, RegionRules.REGION, "public static All", Collections.<String, String> emptyMap());
+            v.handleImplicitPromise(type, RegionRules.REGION, "public static All", Collections.<String, String> emptyMap());
           }
-          v.handleXMLPromise(type, RegionRules.REGION, "public static Static extends All", Collections.<String, String> emptyMap());
+          v.handleImplicitPromise(type, RegionRules.REGION, "public static Static extends All", Collections.<String, String> emptyMap());
         }
 
         // Process any pre-existing package-level scoped promises?
