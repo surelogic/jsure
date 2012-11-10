@@ -16,7 +16,7 @@ public class JSureScan implements Comparable<JSureScan> {
   public static final String INCOMPLETE_SCAN = "running_or_crashed";
   public static final String COMPLETE_SCAN = "complete";
   public static final String OLD_COMPLETE_SCAN = "Complete.Scan";
-  private static final String PRECOMPUTED_PROPS = "precomputed.properties";
+  private static final String SCAN_PROPERTIES = "scan.properties";
 
   private abstract static class ScanProperty {
     final String key;
@@ -152,7 +152,7 @@ public class JSureScan implements Comparable<JSureScan> {
    */
   private Properties getScanProperties(File scanDir) {
     final Properties props = new Properties();
-    final File precomputed = new File(scanDir, PRECOMPUTED_PROPS);
+    final File precomputed = new File(scanDir, SCAN_PROPERTIES);
     final boolean alreadyPrecomputed = precomputed.exists();
     if (alreadyPrecomputed) {
       InputStream in = null;
