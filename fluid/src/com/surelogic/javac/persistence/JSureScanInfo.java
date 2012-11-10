@@ -48,9 +48,9 @@ public class JSureScanInfo {
   private final SeaSnapshot f_loader;
 
   public JSureScanInfo(JSureScan run) {
-	  this(run, null);
-  } 
-  
+    this(run, null);
+  }
+
   public JSureScanInfo(JSureScan run, SeaSnapshot s) {
     if (run == null)
       throw new IllegalArgumentException(I18N.err(44, "run"));
@@ -81,15 +81,16 @@ public class JSureScanInfo {
       return f_dropInfo;
     }
     final long start = System.currentTimeMillis();
-    System.out.println("Loading info at " + start);
+    System.out.print("loading IR-free dropsea for " + f_run);
     try {
       if (skipLoading) {
         throw new Exception("Skipping loading");
       }
       f_dropInfo = SeaSnapshot.loadSnapshot(f_loader, new File(f_run.getDir(), RemoteJSureRun.RESULTS_XML));
       final long end = System.currentTimeMillis();
-      System.out.println("Finished loading info = " + (end - start) + " ms");
+      System.out.println(" (in " + (end - start) + " ms)");
     } catch (Exception e) {
+      System.out.println(" (FAILED)");
       SLLogger.getLogger().log(Level.WARNING, "general failure loading all drops from a snapshot of drop-sea", e);
     }
     if (f_dropInfo == null)
@@ -189,7 +190,7 @@ public class JSureScanInfo {
     }
     return result;
   }
-  
+
   @NonNull
   public ArrayList<IMetricDrop> getMetricDrops() {
     final ArrayList<IMetricDrop> result = new ArrayList<IMetricDrop>();
@@ -218,27 +219,27 @@ public class JSureScanInfo {
     final Projects p = getProjects();
     return p != null ? getProjects().getLabel() : null;
   }
-  
-  public SeaSnapshotDiff<CPair<String,String>> diff(JSureScanInfo older, IDropFilter f) {
-	  SeaSnapshotDiff<CPair<String, String>> rv = 
-		  new SeaSnapshotDiff<CPair<String, String>>(false ? System.out : NullOutputStream.out);
-	  rv.setFilter(SeaSnapshotDiff.augmentDefaultFilter(f));
-	  rv.setSeparator(SeaSnapshotDiff.defaultSeparator);
-	  rv.setMatcher(makeMatcher(older));
-	  rv.build(older.getDropInfo(), getDropInfo());
-	  return rv;
+
+  public SeaSnapshotDiff<CPair<String, String>> diff(JSureScanInfo older, IDropFilter f) {
+    SeaSnapshotDiff<CPair<String, String>> rv = new SeaSnapshotDiff<CPair<String, String>>(false ? System.out
+        : NullOutputStream.out);
+    rv.setFilter(SeaSnapshotDiff.augmentDefaultFilter(f));
+    rv.setSeparator(SeaSnapshotDiff.defaultSeparator);
+    rv.setMatcher(makeMatcher(older));
+    rv.build(older.getDropInfo(), getDropInfo());
+    return rv;
   }
 
   private CategoryMatcher makeMatcher(JSureScanInfo older) {
-	  try {
-		  // collect source info
-		  final Lines newerSrc = new Lines(getJSureRun().getSourceZips());
-		  final Lines olderSrc = new Lines(older.getJSureRun().getSourceZips());
-		  return new DefaultCategoryMatcher() {
-			  
-		  };
-	  } catch(IOException e) {
-		  return SeaSnapshotDiff.defaultMatcher;
-	  }
+    try {
+      // collect source info
+      final Lines newerSrc = new Lines(getJSureRun().getSourceZips());
+      final Lines olderSrc = new Lines(older.getJSureRun().getSourceZips());
+      return new DefaultCategoryMatcher() {
+
+      };
+    } catch (IOException e) {
+      return SeaSnapshotDiff.defaultMatcher;
+    }
   }
 }
