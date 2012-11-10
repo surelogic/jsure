@@ -11,6 +11,7 @@ import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TYPE_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.UID_ATTR;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +33,7 @@ import edu.cmu.cs.fluid.ir.MarkedIRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 
-public class SeaSnapshot extends AbstractSeaXmlCreator {
+public class SeaSnapshot extends XmlCreator {
   /**
    * For creation
    */
@@ -44,7 +45,7 @@ public class SeaSnapshot extends AbstractSeaXmlCreator {
   private final ConcurrentMap<String, IJavaRef> refCache = new ConcurrentHashMap<String, IJavaRef>();
 
   public SeaSnapshot(File location) throws IOException {
-    super(location);
+    super(location != null ? new FileOutputStream(location) : null);
   }
 
   public static SeaSnapshot create() {

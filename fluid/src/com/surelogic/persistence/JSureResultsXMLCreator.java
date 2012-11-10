@@ -1,28 +1,27 @@
-/*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.persistence;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 import com.surelogic.dropsea.ir.drops.CUDrop;
-import com.surelogic.dropsea.irfree.AbstractSeaXmlCreator;
+import com.surelogic.dropsea.irfree.XmlCreator;
 
+public class JSureResultsXMLCreator extends XmlCreator {
+  public JSureResultsXMLCreator(OutputStream out) throws IOException {
+    super(out);
+  }
 
-public class JSureResultsXMLCreator extends AbstractSeaXmlCreator {
-	public JSureResultsXMLCreator(OutputStream out) throws IOException {
-		super(out);
-	}
-
-	public void reportResults(CUDrop cud, List<IAnalysisResult> results) {
-		try {
-			b.start(PersistenceConstants.COMP_UNIT);
-			b.addAttribute("path", cud.getJavaOSFileName());
-			for(IAnalysisResult r : results) {
-				r.outputToXML(this, b);
-			}
-			b.end();
-		} finally {
-			flushBuffer();
-		}
-	}
+  public void reportResults(CUDrop cud, List<IAnalysisResult> results) {
+    try {
+      b.start(PersistenceConstants.COMP_UNIT);
+      b.addAttribute("path", cud.getJavaOSFileName());
+      for (IAnalysisResult r : results) {
+        r.outputToXML(this, b);
+      }
+      b.end();
+    } finally {
+      flushBuffer();
+    }
+  }
 }
