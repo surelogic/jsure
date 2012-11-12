@@ -28,7 +28,6 @@ import com.surelogic.dropsea.irfree.IDropFilter;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
 import com.surelogic.javac.Projects;
-import com.surelogic.javac.jobs.RemoteJSureRun;
 
 import edu.cmu.cs.fluid.util.CPair;
 
@@ -86,7 +85,7 @@ public class JSureScanInfo {
       if (skipLoading) {
         throw new Exception("Skipping loading");
       }
-      f_dropInfo = SeaSnapshot.loadSnapshot(f_loader, new File(f_run.getDir(), RemoteJSureRun.RESULTS_XML));
+      f_dropInfo = SeaSnapshot.loadSnapshot(f_loader, f_run.getResultsFile());
       final long end = System.currentTimeMillis();
       System.out.println(" (in " + (end - start) + " ms)");
     } catch (Exception e) {

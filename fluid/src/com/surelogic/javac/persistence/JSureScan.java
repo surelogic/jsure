@@ -15,7 +15,8 @@ import com.surelogic.javac.jobs.RemoteJSureRun;
 public class JSureScan implements Comparable<JSureScan> {
   public static final String INCOMPLETE_SCAN = "running_or_crashed";
   public static final String COMPLETE_SCAN = "complete";
-  public static final String OLD_COMPLETE_SCAN = "Complete.Scan";
+  private static final String OLD_COMPLETE_SCAN = "Complete.Scan";
+  private static final String OLD_RESULTS_FILE = "results.sea.xml";
   private static final String SCAN_PROPERTIES = "scan.properties";
 
   private abstract static class ScanProperty {
@@ -75,8 +76,12 @@ public class JSureScan implements Comparable<JSureScan> {
     return null;
   }
 
-  private static String[] requiredFiles = { JSureScan.COMPLETE_SCAN, RemoteJSureRun.SUMMARIES_ZIP, RemoteJSureRun.RESULTS_XML,
-      RemoteJSureRun.LOG_TXT, PersistenceConstants.PROJECTS_XML };
+  private static String[] requiredFiles = { 
+	  JSureScan.COMPLETE_SCAN, 
+	  RemoteJSureRun.SUMMARIES_ZIP, 
+      RemoteJSureRun.LOG_TXT, 
+      PersistenceConstants.PROJECTS_XML 
+  };
 
   public static boolean isValidScan(final File dir) {
     if (!doesDirNameFollowScanNamingConventions(dir.getName())) {
@@ -90,12 +95,24 @@ public class JSureScan implements Comparable<JSureScan> {
           if (new File(dir, OLD_COMPLETE_SCAN).isFile())
             continue;
         }
-        return false;
       }
     }
-    return true;
+    // Check for results
+    final File results = findResultsXML(dir);
+    return results.isFile();
   }
 
+  /**
+   * Used to find the already created results in a scan dir
+   */
+  public static File findResultsXML(File scanDir) {
+	  File results = RemoteJSureRun.getResultsXML(scanDir);
+	  if (results.isFile()) {
+		  return results;
+	  }
+	  return new File(scanDir, OLD_RESULTS_FILE);
+  }
+  
   public static boolean isIncompleteScan(final File dir) {
     if (!doesDirNameFollowScanNamingConventions(dir.getName())) {
       return false;
@@ -224,7 +241,7 @@ public class JSureScan implements Comparable<JSureScan> {
   }
 
   public File getResultsFile() {
-    return new File(f_scanDir, RemoteJSureRun.RESULTS_XML);
+    return findResultsXML(f_scanDir);
   }
 
   public String getDirName() {
