@@ -12,7 +12,7 @@ public interface IMetricDrop extends IDrop, ISnapshotDrop {
    * compatibility.
    */
   public enum Metric {
-    STATE_WRT_CONCURRENCY
+    SLOC, STATE_WRT_CONCURRENCY
   }
 
   /**
