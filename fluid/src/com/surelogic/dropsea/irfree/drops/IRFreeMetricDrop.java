@@ -8,6 +8,8 @@ import java.util.List;
 
 import com.surelogic.NonNull;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ref.IDecl;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.KeyValueUtility;
@@ -79,4 +81,31 @@ public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
     return valueIfNotRepresentable;
   }
 
+  public IJavaRef getMetricAsJavaRefOrThrow(String key) {
+    for (IKeyValue di : f_metricInfos)
+      if (di.getKey().equals(key))
+        return di.getValueAsJavaRefOrThrow();
+    throw new IllegalArgumentException("no value for " + key);
+  }
+
+  public IJavaRef getMetricAsJavaRefOrNull(String key) {
+    for (IKeyValue di : f_metricInfos)
+      if (di.getKey().equals(key))
+        return di.getValueAsJavaRefOrNull();
+    return null;
+  }
+
+  public IDecl getMetricAsDeclOrThrow(String key) {
+    for (IKeyValue di : f_metricInfos)
+      if (di.getKey().equals(key))
+        return di.getValueAsDeclOrThrow();
+    throw new IllegalArgumentException("no value for " + key);
+  }
+
+  public IDecl getMetricAsDeclOrNull(String key) {
+    for (IKeyValue di : f_metricInfos)
+      if (di.getKey().equals(key))
+        return di.getValueAsDeclOrNull();
+    return null;
+  }
 }

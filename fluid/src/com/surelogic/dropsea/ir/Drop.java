@@ -28,6 +28,7 @@ import com.surelogic.Vouch;
 import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.dropsea.IDrop;
@@ -901,6 +902,42 @@ public abstract class Drop implements IDrop {
           return di.getValueAsEnum(valueIfNotRepresentable, elementType);
     }
     return valueIfNotRepresentable;
+  }
+
+  public IJavaRef getDiffInfoAsJavaRefOrThrow(String key) {
+    synchronized (f_seaLock) {
+      for (IKeyValue di : f_diffInfos)
+        if (di.getKey().equals(key))
+          return di.getValueAsJavaRefOrThrow();
+    }
+    throw new IllegalArgumentException("no value for " + key);
+  }
+
+  public IJavaRef getDiffInfoAsJavaRefOrNull(String key) {
+    synchronized (f_seaLock) {
+      for (IKeyValue di : f_diffInfos)
+        if (di.getKey().equals(key))
+          return di.getValueAsJavaRefOrNull();
+    }
+    return null;
+  }
+
+  public IDecl getDiffInfoAsDeclOrThrow(String key) {
+    synchronized (f_seaLock) {
+      for (IKeyValue di : f_diffInfos)
+        if (di.getKey().equals(key))
+          return di.getValueAsDeclOrThrow();
+    }
+    throw new IllegalArgumentException("no value for " + key);
+  }
+
+  public IDecl getDiffInfoAsDeclOrNull(String key) {
+    synchronized (f_seaLock) {
+      for (IKeyValue di : f_diffInfos)
+        if (di.getKey().equals(key))
+          return di.getValueAsDeclOrNull();
+    }
+    return null;
   }
 
   /**

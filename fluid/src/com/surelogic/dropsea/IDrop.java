@@ -5,6 +5,7 @@ import java.util.Collection;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.irfree.drops.IRFreeDrop;
@@ -222,4 +223,88 @@ public interface IDrop {
    *         enum.
    */
   <T extends Enum<T>> T getDiffInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType);
+
+  /**
+   * Returns the diff-info value to which the specified key is mapped as a
+   * {@link IJavaRef}, or throws IllegalArgumentException if this drop contains
+   * no mapping for the key or the diff-info value cannot be represented as a
+   * {@link IJavaRef}.
+   * <p>
+   * Diff-info values are used to heuristically match drop instances, with the
+   * overall purpose of creating a "diff" between two scans. They are used to
+   * highlight changes from one scan to another in the JSure user interface as
+   * well as by the JSure regression test suite to match scan results with a set
+   * of "oracle" results.
+   * 
+   * @param key
+   *          a key.
+   * @return the diff-info value to which the specified key is mapped as a
+   *         {@link IJavaRef}.
+   * @throws IllegalArgumentException
+   *           if this drop contains no mapping for the key or the diff-info
+   *           value cannot be represented as a {@link IJavaRef}.
+   */
+  IJavaRef getDiffInfoAsJavaRefOrThrow(String key);
+
+  /**
+   * Returns the diff-info value to which the specified key is mapped as a
+   * {@link IJavaRef}, or {code null} if this drop contains no mapping for the
+   * key or the diff-info value cannot be represented as a {@link IJavaRef}.
+   * <p>
+   * Diff-info values are used to heuristically match drop instances, with the
+   * overall purpose of creating a "diff" between two scans. They are used to
+   * highlight changes from one scan to another in the JSure user interface as
+   * well as by the JSure regression test suite to match scan results with a set
+   * of "oracle" results.
+   * 
+   * @param key
+   *          a key.
+   * @return the diff-info value to which the specified key is mapped as a
+   *         {@link IJavaRef}, or {code null} if this drop contains no mapping
+   *         for the key or the diff-info value cannot be represented as a
+   *         {@link IJavaRef}.
+   */
+  IJavaRef getDiffInfoAsJavaRefOrNull(String key);
+
+  /**
+   * Returns the diff-info value to which the specified key is mapped as a
+   * {@link IDecl}, or throws IllegalArgumentException if this drop contains no
+   * mapping for the key or the diff-info value cannot be represented as a
+   * {@link IDecl}.
+   * <p>
+   * Diff-info values are used to heuristically match drop instances, with the
+   * overall purpose of creating a "diff" between two scans. They are used to
+   * highlight changes from one scan to another in the JSure user interface as
+   * well as by the JSure regression test suite to match scan results with a set
+   * of "oracle" results.
+   * 
+   * @param key
+   *          a key.
+   * @return the diff-info value to which the specified key is mapped as a
+   *         {@link IDecl}.
+   * @throws IllegalArgumentException
+   *           if this drop contains no mapping for the key or the diff-info
+   *           value cannot be represented as a {@link IDecl}.
+   */
+  IDecl getDiffInfoAsDeclOrThrow(String key);
+
+  /**
+   * Returns the diff-info value to which the specified key is mapped as a
+   * {@link IDecl}, or {code null} if this drop contains no mapping for the key
+   * or the diff-info value cannot be represented as a {@link IDecl}.
+   * <p>
+   * Diff-info values are used to heuristically match drop instances, with the
+   * overall purpose of creating a "diff" between two scans. They are used to
+   * highlight changes from one scan to another in the JSure user interface as
+   * well as by the JSure regression test suite to match scan results with a set
+   * of "oracle" results.
+   * 
+   * @param key
+   *          a key.
+   * @return the diff-info value to which the specified key is mapped as a
+   *         {@link IDecl}, or {code null} if this drop contains no mapping for
+   *         the key or the diff-info value cannot be represented as a
+   *         {@link IDecl}.
+   */
+  IDecl getDiffInfoAsDeclOrNull(String key);
 }

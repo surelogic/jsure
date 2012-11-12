@@ -11,6 +11,8 @@ import java.util.List;
 import com.surelogic.NonNull;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ref.IDecl;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.IMetricDrop;
@@ -95,6 +97,42 @@ public final class MetricDrop extends Drop implements IMetricDrop {
           return di.getValueAsEnum(valueIfNotRepresentable, elementType);
     }
     return valueIfNotRepresentable;
+  }
+
+  public IJavaRef getMetricAsJavaRefOrThrow(String key) {
+    synchronized (f_seaLock) {
+      for (IKeyValue di : f_metricInfos)
+        if (di.getKey().equals(key))
+          return di.getValueAsJavaRefOrThrow();
+    }
+    throw new IllegalArgumentException("no value for " + key);
+  }
+
+  public IJavaRef getMetricAsJavaRefOrNull(String key) {
+    synchronized (f_seaLock) {
+      for (IKeyValue di : f_metricInfos)
+        if (di.getKey().equals(key))
+          return di.getValueAsJavaRefOrNull();
+    }
+    return null;
+  }
+
+  public IDecl getMetricAsDeclOrThrow(String key) {
+    synchronized (f_seaLock) {
+      for (IKeyValue di : f_metricInfos)
+        if (di.getKey().equals(key))
+          return di.getValueAsDeclOrThrow();
+    }
+    throw new IllegalArgumentException("no value for " + key);
+  }
+
+  public IDecl getMetricAsDeclOrNull(String key) {
+    synchronized (f_seaLock) {
+      for (IKeyValue di : f_metricInfos)
+        if (di.getKey().equals(key))
+          return di.getValueAsDeclOrNull();
+    }
+    return null;
   }
 
   /**

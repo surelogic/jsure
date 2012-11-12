@@ -16,6 +16,7 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IKeyValue;
@@ -206,6 +207,34 @@ public class IRFreeDrop implements IDrop {
       if (di.getKey().equals(key))
         return di.getValueAsEnum(valueIfNotRepresentable, elementType);
     return valueIfNotRepresentable;
+  }
+
+  public IJavaRef getDiffInfoAsJavaRefOrThrow(String key) {
+    for (IKeyValue di : f_diffInfos)
+      if (di.getKey().equals(key))
+        return di.getValueAsJavaRefOrThrow();
+    throw new IllegalArgumentException("no value for " + key);
+  }
+
+  public IJavaRef getDiffInfoAsJavaRefOrNull(String key) {
+    for (IKeyValue di : f_diffInfos)
+      if (di.getKey().equals(key))
+        return di.getValueAsJavaRefOrNull();
+    return null;
+  }
+
+  public IDecl getDiffInfoAsDeclOrThrow(String key) {
+    for (IKeyValue di : f_diffInfos)
+      if (di.getKey().equals(key))
+        return di.getValueAsDeclOrThrow();
+    throw new IllegalArgumentException("no value for " + key);
+  }
+
+  public IDecl getDiffInfoAsDeclOrNull(String key) {
+    for (IKeyValue di : f_diffInfos)
+      if (di.getKey().equals(key))
+        return di.getValueAsDeclOrNull();
+    return null;
   }
 
   static int convert(String val) {

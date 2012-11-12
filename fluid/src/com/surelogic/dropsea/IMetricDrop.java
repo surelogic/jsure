@@ -1,6 +1,8 @@
 package com.surelogic.dropsea;
 
 import com.surelogic.NonNull;
+import com.surelogic.common.ref.IDecl;
+import com.surelogic.common.ref.IJavaRef;
 
 public interface IMetricDrop extends IDrop, ISnapshotDrop {
 
@@ -118,4 +120,75 @@ public interface IMetricDrop extends IDrop, ISnapshotDrop {
    */
   <T extends Enum<T>> T getMetricInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType);
 
+  /**
+   * Returns the metric-info value to which the specified key is mapped as a
+   * {@link IJavaRef}, or throws IllegalArgumentException if this drop contains
+   * no mapping for the key or the metric-info value cannot be represented as a
+   * {@link IJavaRef}.
+   * <p>
+   * Metric-info values are used to store values, with the overall purpose of
+   * creating a metric about a scan.
+   * 
+   * @param key
+   *          a key.
+   * @return the metric-info value to which the specified key is mapped as a
+   *         {@link IJavaRef}.
+   * @throws IllegalArgumentException
+   *           if this drop contains no mapping for the key or the metric-info
+   *           value cannot be represented as a {@link IJavaRef}.
+   */
+  IJavaRef getMetricAsJavaRefOrThrow(String key);
+
+  /**
+   * Returns the metric-info value to which the specified key is mapped as a
+   * {@link IJavaRef}, or {code null} if this drop contains no mapping for the
+   * key or the metric-info value cannot be represented as a {@link IJavaRef}.
+   * <p>
+   * Metric-info values are used to store values, with the overall purpose of
+   * creating a metric about a scan.
+   * 
+   * @param key
+   *          a key.
+   * @return the metric-info value to which the specified key is mapped as a
+   *         {@link IJavaRef}, or {code null} if this drop contains no mapping
+   *         for the key or the metric-info value cannot be represented as a
+   *         {@link IJavaRef}.
+   */
+  IJavaRef getMetricAsJavaRefOrNull(String key);
+
+  /**
+   * Returns the metric-info value to which the specified key is mapped as a
+   * {@link IDecl}, or throws IllegalArgumentException if this drop contains no
+   * mapping for the key or the metric-info value cannot be represented as a
+   * {@link IDecl}.
+   * <p>
+   * Metric-info values are used to store values, with the overall purpose of
+   * creating a metric about a scan.
+   * 
+   * @param key
+   *          a key.
+   * @return the metric-info value to which the specified key is mapped as a
+   *         {@link IDecl}.
+   * @throws IllegalArgumentException
+   *           if this drop contains no mapping for the key or the metric-info
+   *           value cannot be represented as a {@link IDecl}.
+   */
+  IDecl getMetricAsDeclOrThrow(String key);
+
+  /**
+   * Returns the metric-info value to which the specified key is mapped as a
+   * {@link IDecl}, or {code null} if this drop contains no mapping for the key
+   * or the metric-info value cannot be represented as a {@link IDecl}.
+   * <p>
+   * Metric-info values are used to store values, with the overall purpose of
+   * creating a metric about a scan.
+   * 
+   * @param key
+   *          a key.
+   * @return the metric-info value to which the specified key is mapped as a
+   *         {@link IDecl}, or {code null} if this drop contains no mapping for
+   *         the key or the metric-info value cannot be represented as a
+   *         {@link IDecl}.
+   */
+  IDecl getMetricAsDeclOrNull(String key);
 }
