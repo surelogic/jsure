@@ -584,9 +584,9 @@ public final class KeyValueUtility {
         return true;
       if (obj == null)
         return false;
-      if (!(obj instanceof StringDiffInfo))
+      if (getClass() != obj.getClass())
         return false;
-      StringDiffInfo other = (StringDiffInfo) obj;
+      JavaRefDiffInfo other = (JavaRefDiffInfo) obj;
       if (f_key == null) {
         if (other.f_key != null)
           return false;
@@ -675,9 +675,9 @@ public final class KeyValueUtility {
         return true;
       if (obj == null)
         return false;
-      if (!(obj instanceof StringDiffInfo))
+      if (getClass() != obj.getClass())
         return false;
-      StringDiffInfo other = (StringDiffInfo) obj;
+      DeclDiffInfo other = (DeclDiffInfo) obj;
       if (f_key == null) {
         if (other.f_key != null)
           return false;
