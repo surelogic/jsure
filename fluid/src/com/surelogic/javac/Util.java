@@ -48,6 +48,7 @@ import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.annotation.rules.VouchProcessorConsistencyProofHook;
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.NullOutputStream;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
@@ -372,7 +373,8 @@ public class Util {
 
     // loader.ensureClassIsLoaded("java.util.concurrent.locks.ReadWriteLock");
     loader.ensureClassIsLoaded("java.lang.Object");
-    final OutputStream results = projects.getResultsFile() == null ? null : new FileOutputStream(projects.getResultsFile());
+    final OutputStream results = NullOutputStream.prototype;
+        //projects.getResultsFile() == null ? null : new FileOutputStream(projects.getResultsFile());
     final JavacAnalysisEnvironment env = new JavacAnalysisEnvironment(loader, results, projects.getMonitor());
 
     final List<IIRAnalysis> analyses = Javac.makeAnalyses();
