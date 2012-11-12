@@ -143,7 +143,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 			}
 
 			public String getLogPath() {
-				return new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT)
+				return new File(projects.getRunDir(), RemoteJSureRun.LOG_NAME)
 						.getAbsolutePath();
 			}
 		};

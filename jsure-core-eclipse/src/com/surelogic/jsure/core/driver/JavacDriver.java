@@ -1940,9 +1940,10 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
           System.out.println("Finished " + RemoteJSureRun.SUMMARIES_ZIP);
 
           // Create empty files
-          final File log = new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT);
+          /*
+          final File log = new File(projects.getRunDir(), RemoteJSureRun.LOG_NAME);
           log.createNewFile();
-
+          */
           ClearStateUtility.clearAllState();
         }
         if (ok) {
@@ -2053,7 +2054,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 
         @Override
         public String getLogPath() {
-          return new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT).getAbsolutePath();
+          return new File(projects.getRunDir(), RemoteJSureRun.LOG_NAME).getAbsolutePath();
         }
       };
       return LocalJSureJob.factory.newJob(msg, 100, cfg);
@@ -2098,7 +2099,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
         }
         out.archive(Javac.JAVAC_PROPS, new File(projects.getRunDir(), Javac.JAVAC_PROPS));
         out.archive(PersistenceConstants.PROJECTS_XML, new File(projects.getRunDir(), PersistenceConstants.PROJECTS_XML));
-        out.archive(RemoteJSureRun.LOG_TXT, new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT));
+        out.archive(RemoteJSureRun.LOG_NAME, new File(projects.getRunDir(), RemoteJSureRun.LOG_NAME));
 
         final File libDir = JSurePreferencesUtility.getJSureXMLDirectory();
         FileUtility.recursiveIterate(out, libDir);
@@ -2107,7 +2108,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
       }
     } catch (IOException e) {
       // Couldn't create the new file for some reason
-      return new File(projects.getRunDir(), RemoteJSureRun.LOG_TXT);
+      return new File(projects.getRunDir(), RemoteJSureRun.LOG_NAME);
     }
     return crash;
   }

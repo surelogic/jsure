@@ -27,7 +27,6 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 	public static final String RUN_DIR_PROP = "jsure.run.dir";
 	public static final String FLUID_DIRECTORY_URL = "fluid.directory.url";
 	private static final String RESULTS_XML  = "sea_snapshot.xml";
-	public static final String LOG_TXT = "remote"+LOG_SUFFIX;
 	public static final String SUMMARIES_ZIP = "summaries.zip";
 	
 	public static void main(String[] args) {

@@ -79,7 +79,7 @@ public class JSureScan implements Comparable<JSureScan> {
   private static String[] requiredFiles = { 
 	  JSureScan.COMPLETE_SCAN, 
 	  RemoteJSureRun.SUMMARIES_ZIP, 
-      RemoteJSureRun.LOG_TXT, 
+	  //RemoteJSureRun.LOG_TXT, 
       PersistenceConstants.PROJECTS_XML 
   };
 
