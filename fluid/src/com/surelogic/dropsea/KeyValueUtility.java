@@ -6,9 +6,14 @@ import java.util.List;
 
 import com.surelogic.Immutable;
 import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.Utility;
 import com.surelogic.ValueObject;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ref.Decl;
+import com.surelogic.common.ref.IDecl;
+import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ref.JavaRef;
 
 /**
  * A utility to construct, encode, and decode {@link IKeyValue} instances.
@@ -28,7 +33,7 @@ public final class KeyValueUtility {
    * @throws IllegalArgumentException
    *           if something goes wrong.
    */
-  public static IKeyValue getStringInstance(String key, String value) {
+  public static IKeyValue getStringInstance(@NonNull String key, @NonNull String value) {
     return new StringDiffInfo(key, value);
   }
 
@@ -44,7 +49,7 @@ public final class KeyValueUtility {
    * @throws IllegalArgumentException
    *           if something goes wrong.
    */
-  public static IKeyValue getIntInstance(String key, int value) {
+  public static IKeyValue getIntInstance(@NonNull String key, int value) {
     return new IntDiffInfo(key, value);
   }
 
@@ -60,7 +65,7 @@ public final class KeyValueUtility {
    * @throws IllegalArgumentException
    *           if something goes wrong.
    */
-  public static IKeyValue getLongInstance(String key, long value) {
+  public static IKeyValue getLongInstance(@NonNull String key, long value) {
     return new LongDiffInfo(key, value);
   }
 
@@ -76,8 +81,40 @@ public final class KeyValueUtility {
    * @throws IllegalArgumentException
    *           if something goes wrong.
    */
-  public static <T extends Enum<T>> IKeyValue getEnumInstance(String key, T value) {
+  public static <T extends Enum<T>> IKeyValue getEnumInstance(@NonNull String key, @NonNull T value) {
     return new StringDiffInfo(key, value.name());
+  }
+
+  /**
+   * Constructs a {@link IJavaRef}-valued {@link IKeyValue} instance.
+   * 
+   * @param key
+   *          the key for this instance.
+   * @param value
+   *          a value.
+   * @return a {@link IJavaRef}-valued {@link IKeyValue} instance.
+   * 
+   * @throws IllegalArgumentException
+   *           if something goes wrong.
+   */
+  public static IKeyValue getJavaRefInstance(@NonNull String key, @NonNull IJavaRef value) {
+    return new JavaRefDiffInfo(key, value);
+  }
+
+  /**
+   * Constructs a {@link IDecl}-valued {@link IKeyValue} instance.
+   * 
+   * @param key
+   *          the key for this instance.
+   * @param value
+   *          a value.
+   * @return a {@link IDecl}-valued {@link IKeyValue} instance.
+   * 
+   * @throws IllegalArgumentException
+   *           if something goes wrong.
+   */
+  public static IKeyValue getDeclInstance(@NonNull String key, @NonNull IDecl value) {
+    return new DeclDiffInfo(key, value);
   }
 
   /**
@@ -86,7 +123,7 @@ public final class KeyValueUtility {
    * 
    * @param value
    *          a string.
-   * @return a diff-info value.
+   * @return a key-value.
    * 
    * @throws IllegalArgumentException
    *           if something goes wrong.
@@ -98,27 +135,36 @@ public final class KeyValueUtility {
     String v = value;
     boolean isInt = v.startsWith("I");
     boolean isLong = v.startsWith("L");
+    boolean isJavaRef = v.startsWith("J");
+    boolean isDecl = v.startsWith("D");
+    boolean isString = v.startsWith("S");
     v = v.substring(1); // remove type code
     final int sepIndex = v.indexOf(",");
     if (sepIndex == -1)
-      throw new IllegalArgumentException("Not an encoded IDiffInfo: " + value);
+      throw new IllegalArgumentException("Not an encoded KeyValue: " + value);
     final String key = v.substring(0, sepIndex);
     final String diffInfoValue = v.substring(sepIndex + 1);
     if (isInt)
       return getIntInstance(key, Integer.parseInt(diffInfoValue));
     else if (isLong)
       return getLongInstance(key, Long.parseLong(diffInfoValue));
-    else
+    else if (isJavaRef)
+      return getJavaRefInstance(key, JavaRef.parseEncodedForPersistence(diffInfoValue));
+    else if (isDecl)
+      return getDeclInstance(key, Decl.parseEncodedForPersistence(diffInfoValue));
+    else if (isString)
       return getStringInstance(key, diffInfoValue);
+    else
+      throw new IllegalArgumentException("Encoded KeyValue is not of a known type: " + value);
   }
 
   /**
-   * Encodes a list of diff-info values for persistence as a string. Use
+   * Encodes a list of key-values for persistence as a string. Use
    * {@link #parseListEncodedForPersistence(String)} to return the string to a
-   * list of {@link IDiffInfo}.
+   * list of {@link IKeyValue}.
    * 
    * @param diffInfos
-   *          a list of diff-info values.
+   *          a list of key-values.
    * @return a string.
    * 
    * @throws IllegalArgumentException
@@ -143,7 +189,7 @@ public final class KeyValueUtility {
 
   /**
    * Parses the result of {@link #encodeListForPersistence(List)} back to a list
-   * of {@link IDiffInfo}.
+   * of {@link IKeyValue}.
    * 
    * @param value
    *          a string.
@@ -244,6 +290,30 @@ public final class KeyValueUtility {
     }
 
     @Override
+    @NonNull
+    public IJavaRef getValueAsJavaRefOrThrow() {
+      throw new IllegalArgumentException("Value is not an IJavaRef: " + getValueAsString());
+    }
+
+    @Override
+    @Nullable
+    public IJavaRef getValueAsJavaRefOrNull() {
+      return null;
+    }
+
+    @Override
+    @NonNull
+    public IDecl getValueAsDeclOrThrow() {
+      throw new IllegalArgumentException("Value is not an IDecl: " + getValueAsString());
+    }
+
+    @Override
+    @Nullable
+    public IDecl getValueAsDeclOrNull() {
+      return null;
+    }
+
+    @Override
     public int hashCode() {
       final int prime = 31;
       int result = 1;
@@ -301,6 +371,30 @@ public final class KeyValueUtility {
 
     public <T extends Enum<T>> T getValueAsEnum(T valueIfNotRepresentable, Class<T> elementType) {
       return valueIfNotRepresentable;
+    }
+
+    @Override
+    @NonNull
+    public IJavaRef getValueAsJavaRefOrThrow() {
+      throw new IllegalArgumentException("Value is not an IJavaRef: " + getValueAsString());
+    }
+
+    @Override
+    @Nullable
+    public IJavaRef getValueAsJavaRefOrNull() {
+      return null;
+    }
+
+    @Override
+    @NonNull
+    public IDecl getValueAsDeclOrThrow() {
+      throw new IllegalArgumentException("Value is not an IDecl: " + getValueAsString());
+    }
+
+    @Override
+    @Nullable
+    public IDecl getValueAsDeclOrNull() {
+      return null;
     }
 
     @Override
@@ -364,6 +458,30 @@ public final class KeyValueUtility {
     }
 
     @Override
+    @NonNull
+    public IJavaRef getValueAsJavaRefOrThrow() {
+      throw new IllegalArgumentException("Value is not an IJavaRef: " + getValueAsString());
+    }
+
+    @Override
+    @Nullable
+    public IJavaRef getValueAsJavaRefOrNull() {
+      return null;
+    }
+
+    @Override
+    @NonNull
+    public IDecl getValueAsDeclOrThrow() {
+      throw new IllegalArgumentException("Value is not an IDecl: " + getValueAsString());
+    }
+
+    @Override
+    @Nullable
+    public IDecl getValueAsDeclOrNull() {
+      return null;
+    }
+
+    @Override
     public int hashCode() {
       final int prime = 31;
       int result = 1;
@@ -387,6 +505,188 @@ public final class KeyValueUtility {
       } else if (!f_key.equals(other.f_key))
         return false;
       if (f_value != other.f_value)
+        return false;
+      return true;
+    }
+  }
+
+  @Immutable
+  @ValueObject
+  static final class JavaRefDiffInfo extends AbstractKeyValue {
+
+    @NonNull
+    final IJavaRef f_value;
+
+    protected JavaRefDiffInfo(String key, IJavaRef value) {
+      super(key);
+      if (value == null)
+        throw new IllegalArgumentException(I18N.err(44, "value"));
+      f_value = value;
+    }
+
+    @Override
+    @NonNull
+    public String getValueAsString() {
+      return f_value.encodeForPersistence();
+    }
+
+    @Override
+    public long getValueAsLong(long valueIfNotRepresentable) {
+      return valueIfNotRepresentable;
+    }
+
+    @Override
+    public int getValueAsInt(int valueIfNotRepresentable) {
+      return valueIfNotRepresentable;
+    }
+
+    @Override
+    public <T extends Enum<T>> T getValueAsEnum(T valueIfNotRepresentable, Class<T> elementType) {
+      return valueIfNotRepresentable;
+    }
+
+    @Override
+    @NonNull
+    public IJavaRef getValueAsJavaRefOrThrow() {
+      return f_value;
+    }
+
+    @Override
+    @Nullable
+    public IJavaRef getValueAsJavaRefOrNull() {
+      return f_value;
+    }
+
+    @Override
+    @NonNull
+    public IDecl getValueAsDeclOrThrow() {
+      throw new IllegalArgumentException("Value is not an IDecl: " + getValueAsString());
+    }
+
+    @Override
+    @Nullable
+    public IDecl getValueAsDeclOrNull() {
+      return null;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((f_key == null) ? 0 : f_key.hashCode());
+      result = prime * result + ((f_value == null) ? 0 : f_value.hashCode());
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (!(obj instanceof StringDiffInfo))
+        return false;
+      StringDiffInfo other = (StringDiffInfo) obj;
+      if (f_key == null) {
+        if (other.f_key != null)
+          return false;
+      } else if (!f_key.equals(other.f_key))
+        return false;
+      if (f_value == null) {
+        if (other.f_value != null)
+          return false;
+      } else if (!f_value.equals(other.f_value))
+        return false;
+      return true;
+    }
+  }
+
+  @Immutable
+  @ValueObject
+  static final class DeclDiffInfo extends AbstractKeyValue {
+
+    @NonNull
+    final IDecl f_value;
+
+    protected DeclDiffInfo(String key, IDecl value) {
+      super(key);
+      if (value == null)
+        throw new IllegalArgumentException(I18N.err(44, "value"));
+      f_value = value;
+    }
+
+    @Override
+    @NonNull
+    public String getValueAsString() {
+      return Decl.encodeForPersistence(f_value);
+    }
+
+    @Override
+    public long getValueAsLong(long valueIfNotRepresentable) {
+      return valueIfNotRepresentable;
+    }
+
+    @Override
+    public int getValueAsInt(int valueIfNotRepresentable) {
+      return valueIfNotRepresentable;
+    }
+
+    @Override
+    public <T extends Enum<T>> T getValueAsEnum(T valueIfNotRepresentable, Class<T> elementType) {
+      return valueIfNotRepresentable;
+    }
+
+    @Override
+    @NonNull
+    public IJavaRef getValueAsJavaRefOrThrow() {
+      throw new IllegalArgumentException("Value is not an IJavaRef: " + getValueAsString());
+    }
+
+    @Override
+    @Nullable
+    public IJavaRef getValueAsJavaRefOrNull() {
+      return null;
+    }
+
+    @Override
+    @NonNull
+    public IDecl getValueAsDeclOrThrow() {
+      return f_value;
+    }
+
+    @Override
+    @Nullable
+    public IDecl getValueAsDeclOrNull() {
+      return f_value;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((f_key == null) ? 0 : f_key.hashCode());
+      result = prime * result + ((f_value == null) ? 0 : f_value.hashCode());
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (!(obj instanceof StringDiffInfo))
+        return false;
+      StringDiffInfo other = (StringDiffInfo) obj;
+      if (f_key == null) {
+        if (other.f_key != null)
+          return false;
+      } else if (!f_key.equals(other.f_key))
+        return false;
+      if (f_value == null) {
+        if (other.f_value != null)
+          return false;
+      } else if (!f_value.equals(other.f_value))
         return false;
       return true;
     }
