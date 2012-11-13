@@ -62,6 +62,7 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultBooleanPreference(getSwitchPreferences().getAutoPerspectiveSwitchConstant(), true);
       EclipseUtility.setDefaultBooleanPreference(ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN, true);
       EclipseUtility.setDefaultBooleanPreference(ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_UPDATE_JAR, true);
+      EclipseUtility.setDefaultBooleanPreference(SCAN_MAY_USE_COMPRESSION, true);
 
       EclipseUtility.setDefaultStringPreference(REGION_MODEL_NAME_SUFFIX, "State");
       EclipseUtility.setDefaultBooleanPreference(REGION_MODEL_NAME_CAP, true);
@@ -122,6 +123,7 @@ public final class JSurePreferencesUtility {
       + "always.allow.user.to.select.projects.to.update.jar";
   public static final String LAST_TIME_PROJECTS_TO_SCAN = PREFIX + "last.time.projects.to.scan";
   public static final String LAST_TIME_PROJECTS_TO_UPDATE_JAR = PREFIX + "last.time.projects.to.update.jar";
+  public static final String SCAN_MAY_USE_COMPRESSION = PREFIX + "scan.may.use.compression";
 
   public static final String REGION_MODEL_NAME_SUFFIX = PREFIX + "regionModelNameSuffix";
   public static final String REGION_MODEL_NAME_CAP = PREFIX + "regionModelNameCap";
