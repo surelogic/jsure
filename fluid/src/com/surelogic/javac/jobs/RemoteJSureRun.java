@@ -5,6 +5,7 @@ import java.io.File;
 
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.test.TestResult;
+import com.surelogic.common.FileUtility;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
@@ -26,6 +27,7 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 	public static final String RUN_DIR_PROP = "jsure.run.dir";
 	public static final String FLUID_DIRECTORY_URL = "fluid.directory.url";
 	private static final String RESULTS_XML  = "sea_snapshot.xml";
+	private static final String COMPRESSED_RESULTS_XML = "sea_snapshot.xml"+FileUtility.GZIP_SUFFIX;
 	
 	public static void main(String[] args) {
 		RemoteJSureRun job = new RemoteJSureRun();
@@ -35,9 +37,21 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 	/**
 	 * Used to create new results
 	 */
-	public static File getResultsXML(File scanDir) {		
-		return new File(scanDir, RESULTS_XML);
+	public static File getResultsXML(File scanDir, boolean compress) {		
+		return new File(scanDir, compress ? COMPRESSED_RESULTS_XML : RESULTS_XML);
 	}
+	
+	/**
+	 * Used to find existing results
+	 */
+	public static File findResultsXML(File scanDir) {		
+		File rv = new File(scanDir, RESULTS_XML);
+		if (rv.isFile()) {
+			return rv;
+		}
+		return new File(scanDir, COMPRESSED_RESULTS_XML);
+	}
+	
 	
 	@Override
 	protected SLJob init(BufferedReader br, Monitor mon) throws Throwable {
@@ -122,7 +136,9 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 						// Previously done by ConsistencyListener 
 						TestResult.checkConsistency();
 						
-						new SeaSnapshot(getResultsXML(runDir)).snapshot(projects.getLabel(), Sea.getDefault());
+						final boolean compress =
+							IDE.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_USE_COMPRESSION);
+						new SeaSnapshot(getResultsXML(runDir, compress)).snapshot(projects.getLabel(), Sea.getDefault());
 						/*
 						SeaStats.createSummaryZip(new File(runDir, SUMMARIES_ZIP), Sea.getDefault().getDrops(), 
 								                  SeaStats.splitByProject, SeaStats.STANDARD_COUNTERS);

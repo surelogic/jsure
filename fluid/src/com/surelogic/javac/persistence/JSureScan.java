@@ -71,8 +71,22 @@ public class JSureScan implements Comparable<JSureScan> {
       return Double.toString(size);
     }
   };
+  
+  /**
+   * As a comma-separated list
+   */
+  private static final ScanProperty SCANNED_PROJECTS = new ScanProperty("scanned.projects") {
+    @Override
+    public String computeValue(JSureScan s) {
+      try {
+		return s.getProjects().getLabel();
+      } catch (Exception e) {
+    	return null;
+      }
+    }
+  };
 
-  private static final ScanProperty[] REQUIRED_PROPS = { SIZE_IN_MB, };
+  private static final ScanProperty[] REQUIRED_PROPS = { SIZE_IN_MB, SCANNED_PROJECTS };
 
   /**
    * Looks up a scan by its directory name in a list of scans.
@@ -119,7 +133,7 @@ public class JSureScan implements Comparable<JSureScan> {
    * Used to find the already created results in a scan dir
    */
   public static File findResultsXML(File scanDir) {
-    File results = RemoteJSureRun.getResultsXML(scanDir);
+    File results = RemoteJSureRun.findResultsXML(scanDir);
     if (results.isFile()) {
       return results;
     }
@@ -211,8 +225,11 @@ public class JSureScan implements Comparable<JSureScan> {
     boolean changed = false;
     for (ScanProperty p : REQUIRED_PROPS) {
       if (!p.isValid(props.getProperty(p.key))) {
-        props.setProperty(p.key, p.computeValue(this));
-        changed = true;
+    	String value = p.computeValue(this);
+    	if (value != null) {
+    		props.setProperty(p.key, value);
+    		changed = true;
+    	}
       }
     }
 
