@@ -85,7 +85,6 @@ import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
 import com.surelogic.common.tool.SureLogicToolsFilter;
 import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.dropsea.ir.Sea;
-import com.surelogic.dropsea.ir.SeaStats;
 import com.surelogic.dropsea.ir.utility.ClearStateUtility;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
@@ -1934,7 +1933,9 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
             ok = Util.openFiles(oldProjects, projects, true);
           }
           // Persist the Sea
-          final File location = RemoteJSureRun.getResultsXML(projects.getRunDir());
+          final boolean compress =
+				IDE.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_USE_COMPRESSION);
+          final File location = RemoteJSureRun.getResultsXML(projects.getRunDir(), compress);
           new SeaSnapshot(location).snapshot(projects.getLabel(), Sea.getDefault());
           /*
           SeaStats.createSummaryZip(new File(projects.getRunDir(), RemoteJSureRun.SUMMARIES_ZIP), Sea.getDefault().getDrops(),
