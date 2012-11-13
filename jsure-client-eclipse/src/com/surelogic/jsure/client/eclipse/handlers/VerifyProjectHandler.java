@@ -33,6 +33,10 @@ public final class VerifyProjectHandler extends
 
 	@Override
 	protected void runActionOn(final List<IJavaProject> selectedProjects) {
+		verify(selectedProjects);
+	}
+	
+	public static void verify(final List<IJavaProject> selectedProjects) {
 		/*
 		 * License check: A hack because JSure is not using SLJobs yet.
 		 */
@@ -98,7 +102,7 @@ public final class VerifyProjectHandler extends
 				JSurePreferencesUtility.LAST_TIME_PROJECTS_TO_SCAN);
 	}
 
-	private void showStartBalloon() {
+	private static void showStartBalloon() {
 		if (EclipseUtility
 				.getBooleanPreference(JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS)) {
 			BalloonUtility.showMessage(

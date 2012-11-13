@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
@@ -30,6 +31,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ILifecycle;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.AbstractSLJob;
@@ -40,9 +42,11 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.ColumnViewerSorter;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TableUtility;
+import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.dialogs.DeleteScanDialog;
+import com.surelogic.jsure.client.eclipse.handlers.VerifyProjectHandler;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public final class ScanManagerMediator implements ILifecycle {
@@ -96,6 +100,40 @@ public final class ScanManagerMediator implements ILifecycle {
 
   Action getDeleteScanAction() {
     return f_deleteScanAction;
+  }
+  
+  private final Action f_rescanAction = new Action() {
+	  @Override
+	  public void run() {
+		  final List<JSureScan> selected = getSelectedScans();
+	      if (selected.size() == 1) {
+	        final JSureScan current = selected.get(0);
+	        if (current != null) {
+	        	try {
+		        	// Collect the projects together
+		        	List<IJavaProject> selectedProjects = new ArrayList<IJavaProject>();
+					for(JavacProject p : current.getProjects()) {
+						if (!p.isAsBinary()) {
+							IJavaProject jp = JDTUtility.getJavaProject(p.getName());
+							if (jp == null) {
+								// Can't find one of the projects
+								return;
+							}
+							selectedProjects.add(jp);
+						}
+					}
+		        	VerifyProjectHandler.verify(selectedProjects);
+				} catch (Exception e) {
+					SLLogger.getLogger().log(Level.WARNING, "Problem reading projects file", e);
+				}
+
+	        }
+	      }
+	  }
+  };
+  
+  Action getRescanAction() {
+	  return f_rescanAction;
   }
 
   private final Action f_refreshAction = new Action() {
@@ -215,13 +253,30 @@ public final class ScanManagerMediator implements ILifecycle {
     f_deleteScanAction.setEnabled(oneOrMoreScansSelected);
 
     boolean oneNonCheckedScanSelected = false;
-    List<JSureScan> selected = getSelectedScans();
+    boolean oneScanSelectedWithProjectsInWorkspace = false;
+    final List<JSureScan> selected = getSelectedScans();
     if (selected.size() == 1) {
       final JSureScan selectedScan = selected.get(0);
-      if (!selectedScan.equals(JSureDataDirHub.getInstance().getCurrentScan()))
+      if (!selectedScan.equals(JSureDataDirHub.getInstance().getCurrentScan())) {
         oneNonCheckedScanSelected = true;
+      }
+      oneScanSelectedWithProjectsInWorkspace = true;
+      try {
+		for(JavacProject p : selectedScan.getProjects()) {    	  
+			  if (p.shouldExistAsIProject()) {
+				  if (JDTUtility.getJavaProject(p.getName()) == null) {
+					  oneScanSelectedWithProjectsInWorkspace = false;
+					  break;
+				  }
+			  }
+		  }
+      } catch (Exception e) {
+    	  SLLogger.getLogger().log(Level.WARNING, "Problem reading projects file", e);
+    	  oneScanSelectedWithProjectsInWorkspace = false;
+      }
     }
-    f_setAsCurrentAction.setEnabled(oneNonCheckedScanSelected);
+    f_setAsCurrentAction.setEnabled(oneNonCheckedScanSelected);    
+    f_rescanAction.setEnabled(oneScanSelectedWithProjectsInWorkspace);    
   }
 
   ScanManagerMediator(CheckboxTableViewer table) {
