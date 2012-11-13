@@ -69,6 +69,7 @@ public final class ProblemsView extends AbstractScanTableView<IDrop>
 				if (!info.getProposals().isEmpty()) {
 					manager.add(f_annotate);
 					manager.add(new Separator());
+					break;
 				}
 			}
 			manager.add(f_copy);
