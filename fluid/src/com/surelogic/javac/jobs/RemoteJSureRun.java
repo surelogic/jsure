@@ -11,7 +11,6 @@ import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.jobs.remote.AbstractRemoteSLJob;
 import com.surelogic.dropsea.ir.Sea;
-import com.surelogic.dropsea.ir.SeaStats;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.javac.Config;
 import com.surelogic.javac.Javac;
@@ -27,7 +26,6 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 	public static final String RUN_DIR_PROP = "jsure.run.dir";
 	public static final String FLUID_DIRECTORY_URL = "fluid.directory.url";
 	private static final String RESULTS_XML  = "sea_snapshot.xml";
-	public static final String SUMMARIES_ZIP = "summaries.zip";
 	
 	public static void main(String[] args) {
 		RemoteJSureRun job = new RemoteJSureRun();
@@ -125,9 +123,11 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 						TestResult.checkConsistency();
 						
 						new SeaSnapshot(getResultsXML(runDir)).snapshot(projects.getLabel(), Sea.getDefault());
+						/*
 						SeaStats.createSummaryZip(new File(runDir, SUMMARIES_ZIP), Sea.getDefault().getDrops(), 
 								                  SeaStats.splitByProject, SeaStats.STANDARD_COUNTERS);
 						out.println("Finished "+SUMMARIES_ZIP);
+						*/
 						monitor.done();
 					} catch (Exception e) {
 						return SLStatus.createErrorStatus(e);

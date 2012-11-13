@@ -223,7 +223,8 @@ public final class JSureDataDirHub {
         }
       }
     }
-    EclipseJob.getInstance().schedule(job);
+    if (job != null)
+      EclipseJob.getInstance().schedule(job);
   }
 
   private void notifyListeners(boolean notifyContentsChanged, boolean notifyCurrentScanChanged, boolean isNewScan) {

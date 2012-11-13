@@ -4,7 +4,7 @@ import java.util.logging.Level;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -13,11 +13,13 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
-import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
+import com.surelogic.javac.JavacProject;
+import com.surelogic.javac.Projects;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
@@ -36,25 +38,22 @@ public class ExportToSnapshot implements IViewActionDelegate {
 
   public void run(final IAction action) {
     /*
-     * Find the project that the results belong to. This is sleazy and probably
-     * won't work in the future.
+     * Find the project that the results belong to. 
      */
     IProject resultsBelongTo = null;
-    final IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
     if (scan != null) {
       try {
-        IIRProjects projs = scan.getProjects();
-        outer: for (final IProject current : projects) {
-          if (current.isOpen()) {
-            for (String p : projs.getProjectNames()) {
-              if (p.equals(current.getName())) {
-                resultsBelongTo = current;
-                break outer;
-              }
-            }
-          }
+        Projects projs = scan.getProjects();
+        outer: for (final JavacProject current : projs) {
+        	if (!current.isAsBinary()) {
+        		IProject p = EclipseUtility.getProject(current.getName());
+        		if (p != null && p.isOpen()) {
+        			resultsBelongTo = p;
+        			break outer;
+        		}
+        	}          
         }
       } catch (Exception e) {
         e.printStackTrace();
@@ -85,7 +84,8 @@ public class ExportToSnapshot implements IViewActionDelegate {
      * to create the IFile directly, but I cannot find one.
      */
     try {
-      oracleFile.refreshLocal(1, null);
+      oracleFile.refreshLocal(IResource.DEPTH_INFINITE, null);
+      MessageDialog.openInformation(shell, "Oracle exported", "The oracle should now appear in "+oracleFile.getFullPath());
     } catch (final CoreException e) {
       SLLogger.getLogger().log(Level.WARNING, "Error refreshing " + oracleFile.getLocation(), e);
       MessageDialog.openError(shell, "Error exporting results", "Unable to refresh oracle file");

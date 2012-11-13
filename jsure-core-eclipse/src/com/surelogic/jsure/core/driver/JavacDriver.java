@@ -1935,10 +1935,12 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
           }
           // Persist the Sea
           final File location = RemoteJSureRun.getResultsXML(projects.getRunDir());
-          new SeaSnapshot(location).snapshot(projects.getShortLabel(), Sea.getDefault());
+          new SeaSnapshot(location).snapshot(projects.getLabel(), Sea.getDefault());
+          /*
           SeaStats.createSummaryZip(new File(projects.getRunDir(), RemoteJSureRun.SUMMARIES_ZIP), Sea.getDefault().getDrops(),
               SeaStats.splitByProject, SeaStats.STANDARD_COUNTERS);
           System.out.println("Finished " + RemoteJSureRun.SUMMARIES_ZIP);
+          */
 
           // Create empty files
           /*
