@@ -104,6 +104,10 @@ public class JavacProject implements IIRProject, IClassPathContext {
 		return tEnv;
 	}
 
+	public boolean shouldExistAsIProject() {
+		return !name.startsWith(JavacTypeEnvironment.JRE_NAME);
+	}
+	
 	public boolean isAsBinary() {
 		return !config.getBoolOption(Config.AS_SOURCE);
 	}
