@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
@@ -111,12 +112,14 @@ public final class ScanManagerMediator implements ILifecycle {
 	        if (current != null) {
 	        	try {
 		        	// Collect the projects together
-		        	List<IJavaProject> selectedProjects = new ArrayList<IJavaProject>();
-					for(JavacProject p : current.getProjects()) {
+		        	final List<IJavaProject> selectedProjects = new ArrayList<IJavaProject>();
+					for(final JavacProject p : current.getProjects()) {
 						if (!p.isAsBinary()) {
-							IJavaProject jp = JDTUtility.getJavaProject(p.getName());
+							final IJavaProject jp = JDTUtility.getJavaProject(p.getName());
 							if (jp == null) {
 								// Can't find one of the projects
+								MessageDialog.openInformation(f_swtTable.getShell(), "Unable to Re-Verify", 
+										"Missing project '"+p.getName()+"'");
 								return;
 							}
 							selectedProjects.add(jp);
