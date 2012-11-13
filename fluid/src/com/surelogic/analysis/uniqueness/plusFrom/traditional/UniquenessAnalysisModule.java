@@ -142,6 +142,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 
       if (runInParallel() == ConcurrencyType.INTERNALLY) {
         runInParallel(TypeAndMethod.class, methods, new Procedure<TypeAndMethod>() {
+          @Override
           public void op(TypeAndMethod node) {
             final String methodName = JavaNames.genRelativeFunctionName(node.methodDecl);
             if (monitor != null) {
@@ -1125,7 +1126,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	    methodDecl = md;
 	  }
 	  
-	  public IRNode getCompUnit() {
+	  @Override
+    public IRNode getCompUnit() {
 		  return VisitUtil.getEnclosingCompilationUnit(typeDecl);
 	  }
 	  

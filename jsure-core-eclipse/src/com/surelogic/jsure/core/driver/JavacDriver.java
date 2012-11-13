@@ -77,6 +77,7 @@ import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLSeverity;
 import com.surelogic.common.jobs.SLStatus;
+import com.surelogic.common.jobs.remote.AbstractRemoteSLJob;
 import com.surelogic.common.jobs.remote.TestCode;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
@@ -2054,7 +2055,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 
         @Override
         public String getLogPath() {
-          return new File(projects.getRunDir(), RemoteJSureRun.LOG_NAME).getAbsolutePath();
+          return new File(projects.getRunDir(), AbstractRemoteSLJob.LOG_NAME).getAbsolutePath();
         }
       };
       return LocalJSureJob.factory.newJob(msg, 100, cfg);
@@ -2099,7 +2100,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
         }
         out.archive(Javac.JAVAC_PROPS, new File(projects.getRunDir(), Javac.JAVAC_PROPS));
         out.archive(PersistenceConstants.PROJECTS_XML, new File(projects.getRunDir(), PersistenceConstants.PROJECTS_XML));
-        out.archive(RemoteJSureRun.LOG_NAME, new File(projects.getRunDir(), RemoteJSureRun.LOG_NAME));
+        out.archive(AbstractRemoteSLJob.LOG_NAME, new File(projects.getRunDir(), AbstractRemoteSLJob.LOG_NAME));
 
         final File libDir = JSurePreferencesUtility.getJSureXMLDirectory();
         FileUtility.recursiveIterate(out, libDir);
@@ -2108,7 +2109,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
       }
     } catch (IOException e) {
       // Couldn't create the new file for some reason
-      return new File(projects.getRunDir(), RemoteJSureRun.LOG_NAME);
+      return new File(projects.getRunDir(), AbstractRemoteSLJob.LOG_NAME);
     }
     return crash;
   }
