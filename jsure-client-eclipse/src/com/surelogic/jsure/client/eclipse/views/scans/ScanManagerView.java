@@ -54,7 +54,7 @@ public final class ScanManagerView extends ViewPart implements
 
 		final Action rescanAction = f_mediator.getRescanAction();
 		rescanAction.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_JSURE_VERIFY));
+				.getImageDescriptor(CommonImages.IMG_JSURE_RE_VERIFY));
 		rescanAction.setText(I18N.msg("jsure.scan.view.text.rescan"));
 		rescanAction.setToolTipText(I18N
 				.msg("jsure.scan.view.tooltip.rescan"));
