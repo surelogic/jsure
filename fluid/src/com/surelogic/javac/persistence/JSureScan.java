@@ -30,8 +30,8 @@ public class JSureScan implements Comparable<JSureScan> {
   public static final String INCOMPLETE_SCAN = "running_or_crashed";
   public static final String COMPLETE_SCAN = "complete";
   private static final String OLD_COMPLETE_SCAN = "Complete.Scan";
-
-  private static final String RESULTS_FILE = "results.sea.xml";
+  private static final String OLD_RESULTS_FILE = "results.sea.xml";
+  private static final String OLD_ZIPS_DIR = "zips";  
   private static final String SCAN_PROPERTIES = "scan.properties";
 
   private abstract static class ScanProperty {
@@ -123,7 +123,7 @@ public class JSureScan implements Comparable<JSureScan> {
     if (results.isFile()) {
       return results;
     }
-    return new File(scanDir, RESULTS_FILE);
+    return new File(scanDir, OLD_RESULTS_FILE);
   }
 
   public static boolean isIncompleteScan(final File dir) {
@@ -309,7 +309,7 @@ public class JSureScan implements Comparable<JSureScan> {
     if (proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
       return Collections.emptyMap();
     }
-    final File srcZip = new File(f_scanDir, PersistenceConstants.ZIPS_DIR + '/' + proj + ".zip");
+    final File srcZip = new File(getSourceZipsDir(), proj + ".zip");
     if (!srcZip.exists()) {
       // throw new IllegalStateException("No sources: "+srcZip);
       System.err.println("No sources: " + srcZip);
@@ -372,7 +372,19 @@ public class JSureScan implements Comparable<JSureScan> {
     return true;
   }
 
+  private File getSourceZipsDir() {
+	  File dir = new File(f_scanDir, PersistenceConstants.ZIPS_DIR);
+	  if (dir.isDirectory()) {
+		  return dir;
+	  }
+	  return new File(f_scanDir, OLD_ZIPS_DIR); 
+  }
+  
   public Iterable<File> getSourceZips() {
-    return Arrays.asList(new File(f_scanDir, PersistenceConstants.ZIPS_DIR).listFiles());
+	final File dir = getSourceZipsDir();
+	if (!dir.isDirectory()) {
+		return Collections.emptyList();
+	}
+    return Arrays.asList(dir.listFiles());
   }
 }

@@ -143,7 +143,7 @@ public class JSureDataDirScanner {
 				}
 				// Collect up all the sources
 				final Set<String> sources = new HashSet<String>();
-				for (File src : new File(scan.getDir(), PersistenceConstants.ZIPS_DIR).listFiles()) {
+				for (File src : scan.getSourceZips()) {
 					if (src.isFile() && src.getName().endsWith(".zip")) {
 						ZipFile zf = new ZipFile(src);
 						Enumeration<? extends ZipEntry> e = zf.entries();
