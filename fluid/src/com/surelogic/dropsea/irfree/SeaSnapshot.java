@@ -49,8 +49,8 @@ public class SeaSnapshot extends XmlCreator {
   public SeaSnapshot(File location) throws IOException {
     super(location != null ? 
     		location.getName().endsWith(FileUtility.GZIP_SUFFIX) ?
-    				new FileOutputStream(location) : 
-    				new GZIPOutputStream(new FileOutputStream(location)):
+    				new GZIPOutputStream(new FileOutputStream(location)) :
+        			new FileOutputStream(location) : 
     		null);
   }
 
