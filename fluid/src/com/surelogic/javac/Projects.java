@@ -57,6 +57,7 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
   private SLProgressMonitor monitor;
   // private final Map<String,Object> options = new HashMap<String, Object>();
   private final Map<String, JavacProject> projects = new HashMap<String, JavacProject>();
+  // In dependency order
   private final List<JavacProject> ordering = new ArrayList<JavacProject>();
   // To project names
   private final Map<File, String> fileMap = new HashMap<File, String>();
@@ -153,6 +154,9 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
     for (JavacProject p : projects.values()) {
       if (p.getConfig().getBoolOption(Config.AS_SOURCE)) {
         count++;
+        if (count > 1) {
+        	return true;
+        }
       }
     }
     return count > 1;
@@ -179,23 +183,13 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
 
   public String getLabel() {
     final StringBuilder sb = new StringBuilder();
-    for (JavacProject p : projects.values()) {
-      if (p.getConfig().getBoolOption(Config.AS_SOURCE)) {
-        if (sb.length() != 0) {
+    for (String p : getSourceProjectNamesAlpha()) {
+    	if (sb.length() != 0) {
           sb.append(", ");
         }
-        sb.append(p.getName());
-      }
+        sb.append(p);
     }
     return sb.toString();
-  }
-
-  public String getShortLabel() {
-    String l = getLabel();
-    if (l.length() > 100) {
-      l = l.substring(0, 100);
-    }
-    return l;
   }
 
   public void setMonitor(SLProgressMonitor m) {
