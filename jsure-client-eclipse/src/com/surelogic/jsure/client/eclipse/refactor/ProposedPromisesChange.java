@@ -96,7 +96,7 @@ public class ProposedPromisesChange {
         .getAllowsMultipleAnnosSet());
     try {
       for (final String proj : projects) {
-        if (proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
+        if (proj == null || proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
           // All binaries, so use assumption
           continue;
         }
@@ -121,7 +121,7 @@ public class ProposedPromisesChange {
         }
       }
       for (final String proj : projects) {
-        if (proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
+        if (proj == null || proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
           continue;
         }
         final IJavaProject selectedProject = JDTUtility.getJavaProject(proj);

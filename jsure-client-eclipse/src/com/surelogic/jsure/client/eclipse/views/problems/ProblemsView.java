@@ -52,7 +52,7 @@ public final class ProblemsView extends AbstractScanTableView<IDrop>
 	};
 
 	public ProblemsView() {
-		super(SWT.NONE, IDrop.class, new ProblemsViewContentProvider());
+		super(SWT.MULTI, IDrop.class, new ProblemsViewContentProvider());
 	}
 
 	@Override
