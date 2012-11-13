@@ -13,6 +13,7 @@ import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.util.StringUtils;
 
 import com.surelogic.common.jobs.NullSLProgressMonitor;
+import com.surelogic.common.jobs.remote.AbstractRemoteSLJob;
 import com.surelogic.common.jobs.remote.TestCode;
 import com.surelogic.javac.Config;
 import com.surelogic.javac.ConfigZip;
@@ -23,7 +24,6 @@ import com.surelogic.javac.Util;
 import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.JSureConstants;
 import com.surelogic.javac.jobs.LocalJSureJob;
-import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.PersistenceConstants;
 import com.surelogic.xml.TestXMLParserConstants;
 
@@ -39,7 +39,8 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 		scan = s;
 	}
 
-	public boolean execute() throws BuildException {
+	@Override
+  public boolean execute() throws BuildException {
 		// TODO Check if home, document, projectname are defined and valid
 		/*
 		 * for(Object key : System.getProperties().keySet()) {
@@ -115,19 +116,23 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 
 	private ILocalJSureConfig makeJSureConfig(final Projects projects) {
 		return new ILocalJSureConfig() {
-			public boolean isVerbose() {
+			@Override
+      public boolean isVerbose() {
 				return verbose;
 			}
 
-			public String getTestCode() {
+			@Override
+      public String getTestCode() {
 				return TestCode.NONE.name();
 			}
 
-			public int getMemorySize() {
+			@Override
+      public int getMemorySize() {
 				return parseMemorySize(memoryMaximumSize);
 			}
 
-			public String getPluginDir(String id, boolean required) {
+			@Override
+      public String getPluginDir(String id, boolean required) {
 				File home = new File(scan.getHome());
 				if (JSureConstants.COMMON_PLUGIN_ID.equals(id)) {
 					return new File(home, "lib/common").getAbsolutePath();
@@ -138,12 +143,14 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 						+ id);
 			}
 
-			public String getRunDirectory() {
+			@Override
+      public String getRunDirectory() {
 				return projects.getRunDir().getAbsolutePath();
 			}
 
-			public String getLogPath() {
-				return new File(projects.getRunDir(), RemoteJSureRun.LOG_NAME)
+			@Override
+      public String getLogPath() {
+				return new File(projects.getRunDir(), AbstractRemoteSLJob.LOG_NAME)
 						.getAbsolutePath();
 			}
 		};
