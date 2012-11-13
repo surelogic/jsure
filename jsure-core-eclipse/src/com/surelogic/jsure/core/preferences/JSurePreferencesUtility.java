@@ -62,6 +62,7 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultBooleanPreference(getSwitchPreferences().getAutoPerspectiveSwitchConstant(), true);
       EclipseUtility.setDefaultBooleanPreference(ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_SCAN, true);
       EclipseUtility.setDefaultBooleanPreference(ALWAYS_ALLOW_USER_TO_SELECT_PROJECTS_TO_UPDATE_JAR, true);
+      EclipseUtility.setDefaultBooleanPreference(IDEPreferences.SCAN_MAY_USE_COMPRESSION, true);
 
       EclipseUtility.setDefaultStringPreference(REGION_MODEL_NAME_SUFFIX, "State");
       EclipseUtility.setDefaultBooleanPreference(REGION_MODEL_NAME_CAP, true);

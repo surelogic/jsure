@@ -51,6 +51,16 @@ public final class ScanManagerView extends ViewPart implements
 		setAsCurrentAction.setEnabled(false);
 		actionBars.getMenuManager().add(setAsCurrentAction);
 
+		final Action rescanAction = f_mediator.getRescanAction();
+		rescanAction.setImageDescriptor(SLImages
+				.getImageDescriptor(CommonImages.IMG_JSURE_VERIFY));
+		rescanAction.setText(I18N.msg("jsure.scan.view.text.rescan"));
+		rescanAction.setToolTipText(I18N
+				.msg("jsure.scan.view.tooltip.rescan"));
+		rescanAction.setEnabled(false);
+		actionBars.getToolBarManager().add(rescanAction);
+		actionBars.getMenuManager().add(rescanAction);
+		
 		final Action deleteScanAction = f_mediator.getDeleteScanAction();
 		deleteScanAction.setImageDescriptor(SLImages
 				.getImageDescriptor(CommonImages.IMG_RED_X));
@@ -70,6 +80,7 @@ public final class ScanManagerView extends ViewPart implements
 			@Override
 			public void menuAboutToShow(final IMenuManager manager) {
 				manager.add(setAsCurrentAction);
+				manager.add(rescanAction);				
 				manager.add(new Separator());
 				manager.add(deleteScanAction);
 			}

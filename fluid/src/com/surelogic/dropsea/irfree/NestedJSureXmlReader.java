@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Stack;
 import java.util.logging.Level;
+import java.util.zip.GZIPInputStream;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -14,6 +15,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.surelogic.common.FileUtility;
 import com.surelogic.common.logging.SLLogger;
 
 public abstract class NestedJSureXmlReader extends DefaultHandler {
@@ -133,6 +135,10 @@ public abstract class NestedJSureXmlReader extends DefaultHandler {
     InputStream stream;
     try {
       stream = new FileInputStream(location);
+      
+      if (location.getName().endsWith(FileUtility.GZIP_SUFFIX)) {
+    	  stream = new GZIPInputStream(stream);
+      }       
     } catch (FileNotFoundException e) {
       return;
     }
