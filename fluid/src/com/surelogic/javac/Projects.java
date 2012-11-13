@@ -15,10 +15,10 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.Pair;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.SLProgressMonitor;
-import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
@@ -67,7 +67,7 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
   private File f_resultsFile;
 
   private static final String UNINIT = "<uninitialized>";
-  private String f_scan;
+  private String f_scanDirName;
   private String f_previousPartialScan;
   private boolean delta = false;
   private final boolean isAuto;
@@ -81,7 +81,7 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
     location = loc;
     this.isAuto = isAuto;
     this.args = args;
-    f_scan = UNINIT;
+    f_scanDirName = UNINIT;
     date = d;
   }
 
@@ -89,7 +89,7 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
    * Only used by Util and jsure-ant
    */
   public Projects(Config cfg, SLProgressMonitor monitor) {
-    f_scan = UNINIT;
+    f_scanDirName = UNINIT;
     this.monitor = monitor;
     add(cfg);
     location = cfg.getLocation();
@@ -99,16 +99,16 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
   }
 
   public void computeScan(File dataDir, Projects oldProjects) throws Exception {
-    if (f_scan != UNINIT) {
-      throw new IllegalStateException("Run already set: " + f_scan);
+    if (f_scanDirName != UNINIT) {
+      throw new IllegalStateException("Run already set: " + f_scanDirName);
     }
     if (oldProjects != null) {
-      setPreviousPartialScan(oldProjects.f_scan);
+      setPreviousPartialScan(oldProjects.f_scanDirName);
     }
 
-    final String name = RegressionUtility.computeScanName(getShortLabel(), getDate());
-    f_scan = name;
-    f_scanDir = new File(dataDir, name);
+    final String scanDirName = SLUtility.getScanDirectoryName(getFirstProjectNameAlphaOrNull(), multiProject(), getDate());
+    f_scanDirName = scanDirName;
+    f_scanDir = new File(dataDir, scanDirName);
     f_scanDir.mkdirs();
 
     final String resultsName = oldProjects != null ? PersistenceConstants.PARTIAL_RESULTS_ZIP : PersistenceConstants.RESULTS_ZIP;
@@ -137,7 +137,7 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
   }
 
   public String getRun() {
-    return f_scan;
+    return f_scanDirName;
   }
 
   public Date getDate() {
@@ -146,6 +146,35 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
 
   public int size() {
     return projects.size();
+  }
+
+  public boolean multiProject() {
+    int count = 0;
+    for (JavacProject p : projects.values()) {
+      if (p.getConfig().getBoolOption(Config.AS_SOURCE)) {
+        count++;
+      }
+    }
+    return count > 1;
+  }
+
+  public ArrayList<String> getSourceProjectNamesAlpha() {
+    final ArrayList<String> srcProjects = new ArrayList<String>();
+    for (JavacProject p : projects.values()) {
+      if (p.getConfig().getBoolOption(Config.AS_SOURCE)) {
+        srcProjects.add(p.getName());
+      }
+    }
+    Collections.sort(srcProjects);
+    return srcProjects;
+  }
+
+  public String getFirstProjectNameAlphaOrNull() {
+    final ArrayList<String> srcProjects = getSourceProjectNamesAlpha();
+    if (srcProjects.isEmpty())
+      return null;
+    else
+      return srcProjects.get(0);
   }
 
   public String getLabel() {
@@ -174,7 +203,7 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
       p.getTypeEnv().setProgressMonitor(m);
     }
     monitor = m;
-    IDE.getInstance().setDefaultClassPath(getProject());
+    IDE.getInstance().setDefaultClassPath(getFirstProjectOrNull());
   }
 
   public SLProgressMonitor getMonitor() {
@@ -190,8 +219,8 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
   }
 
   public JavacProject add(Config cfg) {
-    if (f_scan != UNINIT) {
-      throw new IllegalStateException("Adding config after run already set: " + f_scan);
+    if (f_scanDirName != UNINIT) {
+      throw new IllegalStateException("Adding config after run already set: " + f_scanDirName);
     }
     resetOrdering();
     JavacProject p = new JavacProject(this, cfg, cfg.getProject(), monitor);
@@ -252,15 +281,6 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
     }
   }
 
-  /*
-   * void setTypeEnv(JavacTypeEnvironment te) { if (te != null) { tEnv = te;
-   * tEnv.setProgressMonitor(monitor);
-   * 
-   * // HACK for now boolean first = true; for(JavacProject p :
-   * projects.values()) { p.setTypeEnv(te); if (first) {
-   * IDE.getInstance().setDefaultClassPath(p); first = false; } } } }
-   */
-
   /**
    * Create a new Projects, removing the specified projects
    */
@@ -294,16 +314,6 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
     return p;
   }
 
-  /*
-   * Projects copy() { final Projects copy = new Projects(isAuto);
-   * copy.fileMap.putAll(this.fileMap);
-   * copy.loadedClasses.putAll(this.loadedClasses); for(JavacProject jp :
-   * this.projects.values()) { copy.projects.put(jp.getName(), jp.copy(copy)); }
-   * for(JavacProject jp : this.ordering) {
-   * copy.ordering.add(copy.projects.get(jp.getName())); } copy.run = this.run;
-   * return copy; }
-   */
-
   public boolean conflictsWith(Projects oldProjects) {
     for (JavacProject old : oldProjects.projects.values()) {
       JavacProject newP = projects.get(old.getName());
@@ -321,9 +331,9 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
       return this;
     }
     if (f_previousPartialScan == null) {
-      throw new MergeException("lastRun not already set to " + oldProjects.f_scan);
-    } else if (!f_previousPartialScan.equals(oldProjects.f_scan)) {
-      throw new MergeException("lastRun doesn't match: " + f_previousPartialScan + " -- " + oldProjects.f_scan);
+      throw new MergeException("lastRun not already set to " + oldProjects.f_scanDirName);
+    } else if (!f_previousPartialScan.equals(oldProjects.f_scanDirName)) {
+      throw new MergeException("lastRun doesn't match: " + f_previousPartialScan + " -- " + oldProjects.f_scanDirName);
     }
     /*
      * // TODO Merge options? for(Map.Entry<String,Object> e :
@@ -345,19 +355,10 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
     return this;
   }
 
-  /*
-   * public void setOption(String key, Object value) { options.put(key, value);
-   * }
-   * 
-   * public int getIntOption(String key) { Integer i = (Integer)
-   * options.get(key); return i != null ? i : 0; }
-   */
-
-  public JavacProject getProject() {
+  public JavacProject getFirstProjectOrNull() {
     for (JavacProject p : projects.values()) {
       return p;
     }
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -400,9 +401,9 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
    */
   public void init(Projects oldProjects) throws MergeException {
     if (f_previousPartialScan == null) {
-      throw new MergeException("lastRun not already set to " + oldProjects.f_scan);
-    } else if (!f_previousPartialScan.equals(oldProjects.f_scan)) {
-      throw new MergeException("lastRun doesn't match: " + f_previousPartialScan + " -- " + oldProjects.f_scan);
+      throw new MergeException("lastRun not already set to " + oldProjects.f_scanDirName);
+    } else if (!f_previousPartialScan.equals(oldProjects.f_scanDirName)) {
+      throw new MergeException("lastRun doesn't match: " + f_previousPartialScan + " -- " + oldProjects.f_scanDirName);
     }
     for (JavacProject jp : projects.values()) {
       JavacProject old = oldProjects.projects.get(jp.getName());

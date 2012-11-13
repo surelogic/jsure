@@ -1,10 +1,24 @@
 package com.surelogic.javac.persistence;
 
-import java.io.*;
-import java.util.*;
-import java.util.zip.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.regression.RegressionUtility;
@@ -16,7 +30,8 @@ public class JSureScan implements Comparable<JSureScan> {
   public static final String INCOMPLETE_SCAN = "running_or_crashed";
   public static final String COMPLETE_SCAN = "complete";
   private static final String OLD_COMPLETE_SCAN = "Complete.Scan";
-  private static final String OLD_RESULTS_FILE = "results.sea.xml";
+
+  private static final String RESULTS_FILE = "results.sea.xml";
   private static final String SCAN_PROPERTIES = "scan.properties";
 
   private abstract static class ScanProperty {
@@ -76,12 +91,9 @@ public class JSureScan implements Comparable<JSureScan> {
     return null;
   }
 
-  private static String[] requiredFiles = { 
-	  JSureScan.COMPLETE_SCAN, 
-	  RemoteJSureRun.SUMMARIES_ZIP, 
-	  //RemoteJSureRun.LOG_TXT, 
-      PersistenceConstants.PROJECTS_XML 
-  };
+  private static String[] requiredFiles = { JSureScan.COMPLETE_SCAN, RemoteJSureRun.SUMMARIES_ZIP,
+      // RemoteJSureRun.LOG_TXT,
+      PersistenceConstants.PROJECTS_XML };
 
   public static boolean isValidScan(final File dir) {
     if (!doesDirNameFollowScanNamingConventions(dir.getName())) {
@@ -106,13 +118,13 @@ public class JSureScan implements Comparable<JSureScan> {
    * Used to find the already created results in a scan dir
    */
   public static File findResultsXML(File scanDir) {
-	  File results = RemoteJSureRun.getResultsXML(scanDir);
-	  if (results.isFile()) {
-		  return results;
-	  }
-	  return new File(scanDir, OLD_RESULTS_FILE);
+    File results = RemoteJSureRun.getResultsXML(scanDir);
+    if (results.isFile()) {
+      return results;
+    }
+    return new File(scanDir, RESULTS_FILE);
   }
-  
+
   public static boolean isIncompleteScan(final File dir) {
     if (!doesDirNameFollowScanNamingConventions(dir.getName())) {
       return false;
@@ -122,20 +134,20 @@ public class JSureScan implements Comparable<JSureScan> {
 
   /**
    * Checks if the passed directory name appears to follow the conventions for
-   * scan directories. If so, the name should have at least three segments:
-   * label, date, and time.
-   * <p>
-   * This check sees if there are at least three segments, then tries to parse
-   * the date and time. If this all works {@code true} is returned.
+   * scan directories. If so, the name ends with a date.
    * 
-   * @param dirName
+   * @param scanDirName
    *          the directory name to check.
-   * @return {@code true} if there are at least three segments in
-   *         <tt>dirName</tt> and the date and time parse, {@code false}
-   *         otherwise.
+   * @return {@code true} if the date at the end of <tt>scanDirName</tt> can be
+   *         parsed, {@code false} otherwise.
    */
-  public static boolean doesDirNameFollowScanNamingConventions(String dirName) {
-    return RegressionUtility.extractDateFromName(dirName) != null;
+  public static boolean doesDirNameFollowScanNamingConventions(String scanDirName) {
+    Date result = SLUtility.getDateFromScanDirectoryNameOrNull(scanDirName);
+    if (result != null)
+      return true;
+    else
+      // TODO REMOVE OLD OLD OLD WHEN REGRESSIONS UPDATED
+      return RegressionUtility.extractDateFromName(scanDirName) != null;
   }
 
   private final Date f_timeOfScan; // non-null
@@ -150,8 +162,14 @@ public class JSureScan implements Comparable<JSureScan> {
     }
     f_scanDir = scanDir;
 
-    // There should be at least 3 segments: label date time
-    final Date time = RegressionUtility.extractDateFromName(scanDir.getName());
+    // Extract the time of the scan
+    Date time = SLUtility.getDateFromScanDirectoryNameOrNull(scanDir.getName());
+    if (time == null) {
+      // try old scheme
+      // GET RID OF WHEN ALL REGRESSIONS UPDATED
+      // OLD OLD OLD
+      time = RegressionUtility.extractDateFromName(scanDir.getName());
+    }
     if (time == null) {
       throw new IllegalArgumentException(I18N.err(229, scanDir.getName()));
     }

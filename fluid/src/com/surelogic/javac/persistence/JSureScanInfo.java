@@ -68,8 +68,7 @@ public class JSureScanInfo {
       }
       return f_run.getProjects();
     } catch (Exception e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      SLLogger.getLogger().log(Level.SEVERE, "Exception trying to getProjects from " + f_run.getDirName(), e);
     }
     return null;
   }
