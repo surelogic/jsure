@@ -46,7 +46,13 @@ public class ExportResults extends AbstractCommand {
 			location = new File(workspaceFile, name);
 		}
 		final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
-		boolean success = FileUtility.copy(info.getJSureRun().getResultsFile(), location);
+		final File results = info.getJSureRun().getResultsFile();
+		boolean success;
+		if (results.getName().endsWith(FileUtility.GZIP_SUFFIX)) {
+			success = FileUtility.uncompressToCopy(results, location);
+		} else {
+			success = FileUtility.copy(results, location);
+		}
 		if (success) {
 			System.out.println("Exported: "+location);
 			assert (location.exists());
