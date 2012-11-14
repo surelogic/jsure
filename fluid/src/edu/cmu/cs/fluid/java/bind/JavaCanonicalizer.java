@@ -1002,6 +1002,8 @@ public class JavaCanonicalizer {
     private IRNode makeDecl(int mods, String name, IRNode initE, IJavaType t) {
       IRNode type = createType(t);
       IRNode rv = makeDecl(mods, name, initE, type);
+      SkeletonJavaRefUtility.copyIfPossible(initE, type);
+      SkeletonJavaRefUtility.copyIfPossible(initE, rv);
       return rv;
     }
 
@@ -1037,16 +1039,19 @@ public class JavaCanonicalizer {
 
       // Create decl for counter
       final String i = "i" + unparse.hashCode();
-      IRNode iDecl = makeDecl(JavaNode.ALL_FALSE, i, IntLiteral.createNode("0"), IntType.prototype.jjtCreate());
-
+      IRNode iDecl = makeDecl(JavaNode.ALL_FALSE, i, IntLiteral.createNode("0"), IntType.prototype.jjtCreate());      
+      
       // Create condition for while loop
       IRNode arrayLen = ArrayLength.createNode(VariableUseExpression.createNode(array));
+      SkeletonJavaRefUtility.copyIfPossible(stmt, arrayLen);
       IRNode cond = LessThanExpression.createNode(VariableUseExpression.createNode(i), arrayLen);
+      SkeletonJavaRefUtility.copyIfPossible(stmt, cond);
 
       // Create initializer for parameter
       IRNode paramInit = ArrayRefExpression
           .createNode(VariableUseExpression.createNode(array), VariableUseExpression.createNode(i));
-
+      SkeletonJavaRefUtility.copyIfPossible(stmt, paramInit);
+      
       IRNode whileLoop = makeEquivWhileLoop(stmt, cond, paramInit);
       IRNode result = BlockStatement.createNode(new IRNode[] { arrayDecl, iDecl, whileLoop });
       return result;
