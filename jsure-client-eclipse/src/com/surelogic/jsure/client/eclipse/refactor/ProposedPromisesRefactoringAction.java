@@ -29,13 +29,13 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
    * @return the list of proposed promise drops for the source code
    *         modification. Should not contain duplicate.
    */
-  protected abstract List<? extends IProposedPromiseDrop> getProposedDrops();
+  protected abstract List<IProposedPromiseDrop> getProposedDrops();
 
   protected abstract String getDialogTitle();
 
   @Override
   public void run() {
-    final List<? extends IProposedPromiseDrop> selected = getProposedDrops();
+    final List<IProposedPromiseDrop> selected = getProposedDrops();
     if (selected.isEmpty()) {
       return;
     }
@@ -69,7 +69,7 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
   /**
    * Find projects that don't have the promises jar
    */
-  private List<IJavaProject> findProjectsWithoutPromises(List<? extends IProposedPromiseDrop> proposals) {
+  private List<IJavaProject> findProjectsWithoutPromises(List<IProposedPromiseDrop> proposals) {
     final Set<String> projects = new HashSet<String>();
     for (IProposedPromiseDrop p : proposals) {
       // Check the target project for promises

@@ -129,7 +129,7 @@ public final class ProblemsView extends AbstractScanTableView<IDrop> implements 
   }
 
   @Override
-  protected List<? extends IProposedPromiseDrop> getSelectedProposals() {
+  protected List<IProposedPromiseDrop> getSelectedProposals() {
     List<IProposedPromiseDrop> proposals = new ArrayList<IProposedPromiseDrop>();
     for (IDrop info : getSelectedRows()) {
       proposals.addAll(info.getProposals());

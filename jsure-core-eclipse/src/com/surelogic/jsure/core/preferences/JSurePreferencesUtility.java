@@ -133,8 +133,12 @@ public final class JSurePreferencesUtility {
 
   public static final String CURRENT_SCAN = PREFIX + "current.scan";
 
+  // OLD
   public static final String PROPOSED_PROMISES_AS_TREE = PREFIX + "proposed.promises.as.tree";
   public static final String PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY = PREFIX + "proposed.promises.show.abductive.only";
+  
+  public static final String PROPOSED_ANNOTATIONS_SHOW_AS_TREE = PREFIX + "proposed.annotations.show.as.tree";
+  public static final String PROPOSED_ANNOTATIONS_SHOW_ABDUCTIVE_ONLY = PREFIX + "proposed.annotations.show.abductive.only";
 
   public static final String VSTATUS_ALPHA_SORT = PREFIX + "verification.status.alpha.sort";
   public static final String VSTATUS_SHOW_HINTS = PREFIX + "verification.status.show.hints";

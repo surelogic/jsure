@@ -241,7 +241,7 @@ public class ProposedPromiseViewOld extends AbstractScanStructuredView<IProposed
   }
 
   @Override
-  protected List<? extends IProposedPromiseDrop> getSelectedProposals() {
+  protected List<IProposedPromiseDrop> getSelectedProposals() {
     return getSelectedRows();
   }
 
