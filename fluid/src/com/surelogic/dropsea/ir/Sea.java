@@ -598,7 +598,7 @@ public final class Sea {
    * 
    * @return the non-null lock for this sea.
    */
-  @ReturnsLock("f_seaLock")
+  @ReturnsLock("SeaLock")
   public final Object getSeaLock() {
     return f_seaLock;
   }
