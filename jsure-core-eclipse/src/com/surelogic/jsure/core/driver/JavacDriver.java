@@ -84,10 +84,8 @@ import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
 import com.surelogic.common.tool.SureLogicToolsFilter;
 import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
-import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.utility.ClearStateUtility;
 import com.surelogic.dropsea.irfree.ISeaDiff;
-import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
 import com.surelogic.javac.Config;
 import com.surelogic.javac.IClassPathEntry;
@@ -1383,7 +1381,6 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
       final File zips = new File(runDir, PersistenceConstants.ZIPS_DIR);
       final File target = new File(runDir, PersistenceConstants.SRCS_DIR);
       target.mkdirs();
-      new File(runDir, JSureScan.INCOMPLETE_SCAN).createNewFile();
       /*
        * TODO JSureHistoricalSourceView.setLastRun(newProjects, new
        * ISourceZipFileHandles() { public Iterable<File> getSourceZips() {
@@ -1933,10 +1930,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
             ok = Util.openFiles(oldProjects, projects, true);
           }
           // Persist the Sea
-          final boolean compress =
-				IDE.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_USE_COMPRESSION);
-          final File location = RemoteJSureRun.getResultsXML(projects.getRunDir(), compress);
-          new SeaSnapshot(location).snapshot(projects.getLabel(), Sea.getDefault());
+          final File tmpLocation = RemoteJSureRun.snapshot(System.out, projects.getLabel(), projects.getRunDir());
           /*
           SeaStats.createSummaryZip(new File(projects.getRunDir(), RemoteJSureRun.SUMMARIES_ZIP), Sea.getDefault().getDrops(),
               SeaStats.splitByProject, SeaStats.STANDARD_COUNTERS);
@@ -1949,13 +1943,12 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
           log.createNewFile();
           */
           ClearStateUtility.clearAllState();
+          RemoteJSureRun.renameToFinalName(System.out, projects.getRunDir(), tmpLocation);
         }
         if (ok) {
           final File runDir = projects.getRunDir();
           // Unneeded after running the scan
           FileUtility.recursiveDelete(new File(runDir, PersistenceConstants.SRCS_DIR), false);
-          new File(runDir, JSureScan.INCOMPLETE_SCAN).delete();
-          new File(runDir, JSureScan.COMPLETE_SCAN).createNewFile();
 
           JSureDataDirHub.getInstance().scanDirectoryAdded(projects.getRunDir());
         } else {

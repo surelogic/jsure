@@ -2,6 +2,8 @@ package com.surelogic.javac.jobs;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.test.TestResult;
@@ -27,18 +29,30 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 	public static final String RUN_DIR_PROP = "jsure.run.dir";
 	public static final String FLUID_DIRECTORY_URL = "fluid.directory.url";
 	private static final String RESULTS_XML  = "sea_snapshot.xml";
-	private static final String COMPRESSED_RESULTS_XML = "sea_snapshot.xml"+FileUtility.GZIP_SUFFIX;
+	private static final String COMPRESSED_RESULTS_XML = RESULTS_XML+FileUtility.GZIP_SUFFIX;
+	private static final String TEMP_PREFIX = "tmp_";
+	private static final String TEMP_RESULTS_XML  = TEMP_PREFIX+RESULTS_XML;
+	private static final String COMPRESSED_TEMP_RESULTS_XML = TEMP_PREFIX+RESULTS_XML+FileUtility.GZIP_SUFFIX;
 	
 	public static void main(String[] args) {
 		RemoteJSureRun job = new RemoteJSureRun();
 		job.run();
 	}
 	
-	/**
-	 * Used to create new results
-	 */
-	public static File getResultsXML(File scanDir, boolean compress) {		
-		return new File(scanDir, compress ? COMPRESSED_RESULTS_XML : RESULTS_XML);
+	public static File snapshot(PrintStream out, String label, File scanDir) throws IOException {
+		final boolean compress =
+			IDE.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_USE_COMPRESSION);
+		final File location =  new File(scanDir, compress ? COMPRESSED_TEMP_RESULTS_XML : TEMP_RESULTS_XML);
+		System.out.println("Creating snapshot: "+location);
+		new SeaSnapshot(location).snapshot(label, Sea.getDefault());
+		return location;
+	}
+	
+	public static void renameToFinalName(PrintStream out, final File scanDir, final File tmpLocation) {
+		final boolean compress = tmpLocation.getName().endsWith(FileUtility.GZIP_SUFFIX);
+		final File location = new File(scanDir, compress ? COMPRESSED_RESULTS_XML : RESULTS_XML);
+		System.out.println("Renaming snapshot: "+location);
+		tmpLocation.renameTo(location);
 	}
 	
 	/**
@@ -126,6 +140,7 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 			}
 			return new AbstractSLJob("Running JSure on "+projects.getLabel()) {			
 				public SLStatus run(SLProgressMonitor monitor) {
+					final File tmpLocation; 
 					try {
 						projects.setMonitor(monitor);				
 						Util.openFiles(projects, true);
@@ -136,9 +151,7 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 						// Previously done by ConsistencyListener 
 						TestResult.checkConsistency();
 						
-						final boolean compress =
-							IDE.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_USE_COMPRESSION);
-						new SeaSnapshot(getResultsXML(runDir, compress)).snapshot(projects.getLabel(), Sea.getDefault());
+						tmpLocation = snapshot(out, projects.getLabel(), runDir);
 						/*
 						SeaStats.createSummaryZip(new File(runDir, SUMMARIES_ZIP), Sea.getDefault().getDrops(), 
 								                  SeaStats.splitByProject, SeaStats.STANDARD_COUNTERS);
@@ -148,6 +161,8 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 					} catch (Exception e) {
 						return SLStatus.createErrorStatus(e);
 					}
+					renameToFinalName(out, runDir, tmpLocation);
+					out.println("Done with JSure!");
 					return SLStatus.OK_STATUS;
 				}
 			};

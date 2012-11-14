@@ -27,9 +27,6 @@ import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 
 public class JSureScan implements Comparable<JSureScan> {
-  public static final String INCOMPLETE_SCAN = "running_or_crashed";
-  public static final String COMPLETE_SCAN = "complete";
-  private static final String OLD_COMPLETE_SCAN = "Complete.Scan";
   private static final String OLD_RESULTS_FILE = "results.sea.xml";
   private static final String OLD_ZIPS_DIR = "zips";  
   private static final String SCAN_PROPERTIES = "scan.properties";
@@ -106,7 +103,6 @@ public class JSureScan implements Comparable<JSureScan> {
   }
 
   private static String[] requiredFiles = {
-	  JSureScan.COMPLETE_SCAN,
       // RemoteJSureRun.LOG_TXT,
       PersistenceConstants.PROJECTS_XML };
 
@@ -117,11 +113,7 @@ public class JSureScan implements Comparable<JSureScan> {
     for (String required : requiredFiles) {
       final File r = new File(dir, required);
       if (!r.isFile()) {
-        if (required.equals(COMPLETE_SCAN)) {
-          // check for old file name
-          if (new File(dir, OLD_COMPLETE_SCAN).isFile())
-            continue;
-        }
+        return false;
       }
     }
     // Check for results
@@ -144,7 +136,7 @@ public class JSureScan implements Comparable<JSureScan> {
     if (!doesDirNameFollowScanNamingConventions(dir.getName())) {
       return false;
     }
-    return new File(dir, INCOMPLETE_SCAN).isFile();
+    return findResultsXML(dir).isFile();
   }
 
   /**
@@ -233,7 +225,7 @@ public class JSureScan implements Comparable<JSureScan> {
       }
     }
 
-    final File completed = new File(scanDir, COMPLETE_SCAN);
+    final File completed = findResultsXML(scanDir);
     if (completed.exists()) {
       if (alreadyPrecomputed) {
         final long pMod = precomputed.lastModified();
