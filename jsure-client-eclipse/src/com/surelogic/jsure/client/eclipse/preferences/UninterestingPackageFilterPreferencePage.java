@@ -3,9 +3,6 @@ package com.surelogic.jsure.client.eclipse.preferences;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -22,18 +19,13 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.dialogs.AddUninterestingPackageFilterDialog;
-import com.surelogic.jsure.client.eclipse.views.AbstractJSureScanView;
-import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
-import com.surelogic.jsure.client.eclipse.views.proposals.ProposedPromiseView;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 
 public class UninterestingPackageFilterPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
@@ -176,22 +168,7 @@ public class UninterestingPackageFilterPreferencePage extends PreferencePage imp
      * Save the filters.
      */
     final List<String> filters = getTableContents();
-    UninterestingPackageFilterUtility.setPreference(filters);
-
-    /*
-     * Notify the problems view if it is opened that the filter changed.
-     */
-    final UIJob job = new SLUIJob() {
-
-      @Override
-      public IStatus runInUIThread(IProgressMonitor monitor) {
-        AbstractJSureScanView.notifyScanViewOfChangeIfOpened(ProblemsView.class);
-        AbstractJSureScanView.notifyScanViewOfChangeIfOpened(ProposedPromiseView.class);
-
-        return Status.OK_STATUS;
-      }
-    };
-    job.schedule();
+    UninterestingPackageFilterUtility.setPreference(filters, true);
 
     if (XUtil.useExperimental()) {
       /*
@@ -201,7 +178,7 @@ public class UninterestingPackageFilterPreferencePage extends PreferencePage imp
        * com.surelogic.jsure.core.preferences package.
        */
       StringBuilder b = new StringBuilder();
-      b.append("-- Cut/Paste below to DEFAULT at line 20 of ModelingProblemFilterUtility");
+      b.append("-- Cut/Paste below to DEFAULT at line 23 of UninterestingPackageFilterUtility");
       b.append(" in the com.surelogic.jsure.core.preferences package");
       b.append('\n');
       b.append("   Arrays.asList(");

@@ -39,7 +39,7 @@ import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
-final class ProposedPromiseViewContentProvider extends AbstractResultsTableContentProvider<IProposedPromiseDrop> implements
+final class ProposedPromiseViewContentProviderOld extends AbstractResultsTableContentProvider<IProposedPromiseDrop> implements
     IResultsTableContentProvider, IJSureTreeContentProvider {
   private static final Package[] noPackages = new Package[0];
   private static final String[] nothingToShow = new String[] { "No proposals to show" };
@@ -47,7 +47,7 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
   private boolean asTree;
   private Package[] packages = noPackages;
 
-  ProposedPromiseViewContentProvider(boolean asTree) {
+  ProposedPromiseViewContentProviderOld(boolean asTree) {
     super("Proposed Promise");
     setAsTree(asTree);
   }
@@ -483,7 +483,7 @@ final class ProposedPromiseViewContentProvider extends AbstractResultsTableConte
     }
 
     static Type[] organize(Collection<IProposedPromiseDrop> proposals) {
-      Decl root = ProposedPromiseViewContentProvider.organize(proposals);
+      Decl root = ProposedPromiseViewContentProviderOld.organize(proposals);
       return root.getTypes();
     }
   }

@@ -7,7 +7,7 @@ import org.eclipse.ui.IPerspectiveFactory;
 import com.surelogic.jsure.client.eclipse.views.explorer.VerificationExplorerView;
 import com.surelogic.jsure.client.eclipse.views.finder.FinderView;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
-import com.surelogic.jsure.client.eclipse.views.proposals.ProposedPromiseView;
+import com.surelogic.jsure.client.eclipse.views.proposals.ProposedPromiseViewOld;
 import com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView;
 import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
 import com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView;
@@ -23,7 +23,7 @@ public final class CodeVerificationPerspective implements IPerspectiveFactory {
     final String verificationStatusView = VerificationStatusView.class.getName();
     final String verificationExplorerView = VerificationExplorerView.class.getName();
     final String finderView = FinderView.class.getName();
-    final String proposedPromiseView = ProposedPromiseView.class.getName();
+    final String proposedPromiseView = ProposedPromiseViewOld.class.getName();
     final String problemsView = ProblemsView.class.getName();
     final String histSrcView = HistoricalSourceView.class.getName();
     final String xmlExplorerView = XMLExplorerView.class.getName();
