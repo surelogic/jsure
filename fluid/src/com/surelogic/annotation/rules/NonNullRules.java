@@ -99,7 +99,7 @@ public class NonNullRules extends AnnotationRules {
 		if (context.getSourceType() == AnnotationSource.JAVADOC) {
 			return parser.nonNullList().getTree();
 		}
-		if (MethodDeclaration.prototype.includes(context.getOp())) {
+		if (MethodDeclaration.prototype.includes(context.getOp())) {			
 			// Only allows "return"
 			return parser.nonNullMethod().getTree();
 		} else {

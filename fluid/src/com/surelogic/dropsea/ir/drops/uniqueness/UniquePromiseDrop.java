@@ -11,9 +11,7 @@ import com.surelogic.dropsea.ir.drops.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 /**
  * Promise drop for "unique" promises established by the uniqueness analysis.
@@ -33,15 +31,7 @@ public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> impl
 
   @Override
   protected IRNode useAlternateDeclForUnparse() {
-	  final IRNode node = getNode();
-	  if (VariableDeclarator.prototype.includes(node)) {
-		  return null;
-	  }
-	  IRNode rv = VisitUtil.getEnclosingClassBodyDecl(getNode());
-	  if (rv == null) {
-		  return node;
-	  }
-	  return rv;
+	  return computeAlternateDeclForUnparse(getNode());
   }
   
   @Override

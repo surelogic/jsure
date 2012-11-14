@@ -38,6 +38,10 @@ import edu.cmu.cs.fluid.java.IHasPromisedFor;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
+import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * Abstract base class for tracking all promises in the "sea" of knowledge.
@@ -81,7 +85,14 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     final IRNode decl = getPromisedFor();
     final IRNode altDecl = useAlternateDeclForUnparse();
     if (altDecl != null) {
-      if (ParameterDeclaration.prototype.includes(getPromisedFor())) {
+      final Operator op = JJNode.tree.getOperator(getPromisedFor());
+      if (ReceiverDeclaration.prototype.includes(op)) {
+      	setMessage(23, a.unparseForPromise(), JavaNames.genRelativeFunctionName(altDecl));
+      }    
+      else if (ReturnValueDeclaration.prototype.includes(op)) {
+    	setMessage(24, a.unparseForPromise(), JavaNames.genRelativeFunctionName(altDecl));
+      }
+      else if (ParameterDeclaration.prototype.includes(op)) {
         setMessage(22, a.unparseForPromise(), ParameterDeclaration.getId(decl), JavaNames.genRelativeFunctionName(altDecl));
       } else {
         setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(altDecl));
