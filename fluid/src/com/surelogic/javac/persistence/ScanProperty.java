@@ -94,9 +94,11 @@ abstract class ScanProperty<T> {
           final long pMod = precomputed.lastModified();
           final long cMod = completed.lastModified();
           changed |= pMod <= cMod;
+          /*
           if (changed) {
             System.out.println("Changed");
           }
+          */
         }
       } else {
         // Don't write it out if it's not done yet
