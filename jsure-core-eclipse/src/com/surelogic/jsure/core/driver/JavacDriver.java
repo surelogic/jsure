@@ -1381,6 +1381,8 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
       final File zips = new File(runDir, PersistenceConstants.ZIPS_DIR);
       final File target = new File(runDir, PersistenceConstants.SRCS_DIR);
       target.mkdirs();
+      RemoteJSureRun.markAsRunning(runDir);
+      
       /*
        * TODO JSureHistoricalSourceView.setLastRun(newProjects, new
        * ISourceZipFileHandles() { public Iterable<File> getSourceZips() {

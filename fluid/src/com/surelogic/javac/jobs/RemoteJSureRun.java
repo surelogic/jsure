@@ -39,10 +39,24 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 		job.run();
 	}
 	
-	public static File snapshot(PrintStream out, String label, File scanDir) throws IOException {
+	private static File getResultsFile(File scanDir) {
 		final boolean compress =
 			IDE.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_USE_COMPRESSION);
 		final File location =  new File(scanDir, compress ? COMPRESSED_TEMP_RESULTS_XML : TEMP_RESULTS_XML);
+		return location;
+	}
+	
+	public static void markAsRunning(File scanDir) {
+		final File location = getResultsFile(scanDir);
+		try {
+			location.createNewFile();
+		} catch (IOException e) {
+			// Ignore
+		}
+	}
+	
+	public static File snapshot(PrintStream out, String label, File scanDir) throws IOException {
+		final File location = getResultsFile(scanDir);
 		System.out.println("Creating snapshot: "+location);
 		new SeaSnapshot(location).snapshot(label, Sea.getDefault());
 		return location;
