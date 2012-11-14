@@ -2,6 +2,7 @@ package com.surelogic.jsure.core.preferences;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.surelogic.Utility;
@@ -25,11 +26,13 @@ public final class UninterestingPackageFilterUtility {
 
   public static final AtomicReference<List<String>> CACHE = new AtomicReference<List<String>>();
 
-  public static void setPreference(final List<String> value) {
+  public static void setPreference(final List<String> value, boolean notifyObservers) {
     if (value == null)
       throw new IllegalArgumentException(I18N.err(44, "value"));
     EclipseUtility.setStringListPreference(IDEPreferences.UNINTERESTING_PACKAGE_FILTERS, value);
     updateCache();
+    if (notifyObservers)
+      notifyObservers();
   }
 
   public static List<String> getPreference() {
@@ -92,4 +95,42 @@ public final class UninterestingPackageFilterUtility {
       return UninterestingPackageFilterUtility.keep(d);
     }
   };
+
+  /**
+   * Observers of changes to the filter.
+   */
+  private static final CopyOnWriteArrayList<IUninterestingPackageFilterObserver> f_observers = new CopyOnWriteArrayList<IUninterestingPackageFilterObserver>();
+
+  /**
+   * Appends the specified element to the end of the list of observers.
+   * 
+   * @param observer
+   *          element to be appended to the list of observers.
+   */
+  public static void registerObserver(IUninterestingPackageFilterObserver observer) {
+    f_observers.add(observer);
+  }
+
+  /**
+   * Removes the first occurrence of the specified observer from the list of
+   * observers, if it is present. If this list does not contain the element, it
+   * is unchanged.
+   * 
+   * @param observer
+   *          element to be removed from the list of observers, if present.
+   * 
+   * @return {@code true} if this list contained the specified element.
+   */
+  public static boolean unregisterObserver(IUninterestingPackageFilterObserver observer) {
+    return f_observers.remove(observer);
+  }
+
+  /**
+   * Notifies all registered observers of a change to the filters managed by
+   * this utility.
+   */
+  public static void notifyObservers() {
+    for (IUninterestingPackageFilterObserver o : f_observers)
+      o.uninterestingPackageFilterChanged();
+  }
 }

@@ -30,136 +30,140 @@ import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.jsure.client.eclipse.preferences.UninterestingPackageFilterPreferencePage;
+import com.surelogic.jsure.client.eclipse.views.AbstractJSureScanView;
 import com.surelogic.jsure.client.eclipse.views.AbstractScanTableView;
+import com.surelogic.jsure.core.preferences.IUninterestingPackageFilterObserver;
+import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 
+public final class ProblemsView extends AbstractScanTableView<IDrop> implements EclipseUIUtility.IContextMenuFiller,
+    IUninterestingPackageFilterObserver {
 
-public final class ProblemsView extends AbstractScanTableView<IDrop>
-		implements EclipseUIUtility.IContextMenuFiller {
+  private final Action f_copy = makeCopyAction(I18N.msg("jsure.problems.view.copy"), I18N.msg("jsure.problems.view.copy.tooltip"));
 
-	private final Action f_copy = makeCopyAction(
-			I18N.msg("jsure.problems.view.copy"),
-			I18N.msg("jsure.problems.view.copy.tooltip"));
+  private final Action f_preferences = new Action() {
+    @Override
+    public void run() {
+      final String[] FILTER = new String[] { UninterestingPackageFilterPreferencePage.class.getName() };
+      PreferencesUtil.createPreferenceDialogOn(null, FILTER[0], FILTER, null).open();
+    }
+  };
 
-	private final Action f_preferences = new Action() {
+  public ProblemsView() {
+    super(SWT.MULTI, IDrop.class, new ProblemsViewContentProvider());
+  }
 
-		@Override
-		public void run() {
-			final String[] FILTER = new String[] { UninterestingPackageFilterPreferencePage.class
-					.getName() };
-			PreferencesUtil.createPreferenceDialogOn(null, FILTER[0], FILTER,
-					null).open();
-		}
-	};
+  @Override
+  protected void setupViewer(StructuredViewer viewer) {
+    super.setupViewer(viewer);
 
-	public ProblemsView() {
-		super(SWT.MULTI, IDrop.class, new ProblemsViewContentProvider());
-	}
+    UninterestingPackageFilterUtility.registerObserver(this);
 
-	@Override
-	protected void setupViewer(StructuredViewer viewer) {
-		super.setupViewer(viewer);
+    EclipseUIUtility.hookContextMenu(this, viewer, this);
+  }
 
-		EclipseUIUtility.hookContextMenu(this, viewer, this);
-	}
+  @Override
+  public void dispose() {
+    UninterestingPackageFilterUtility.unregisterObserver(this);
+    super.dispose();
+  }
 
-	public void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
-		if (!s.isEmpty()) {
-			for (Object o : s.toArray()) {
-				final IDrop info = (IDrop) o;
-				if (!info.getProposals().isEmpty()) {
-					manager.add(f_annotate);
-					manager.add(new Separator());
-					break;
-				}
-			}
-			manager.add(f_copy);
-		}
-	}
+  public void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
+    if (!s.isEmpty()) {
+      for (Object o : s.toArray()) {
+        final IDrop info = (IDrop) o;
+        if (!info.getProposals().isEmpty()) {
+          manager.add(f_annotate);
+          manager.add(new Separator());
+          break;
+        }
+      }
+      manager.add(f_copy);
+    }
+  }
 
-	@Override
-	protected void makeActions() {
-		f_copy.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_EDIT_COPY));
-		f_annotate.setText(I18N.msg("jsure.problems.view.fix"));
-		f_annotate.setToolTipText(I18N.msg("jsure.problems.view.fix.tooltip"));
-		f_annotate.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_ANNOTATION_PROPOSED));
+  @Override
+  protected void makeActions() {
+    f_copy.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EDIT_COPY));
+    f_annotate.setText(I18N.msg("jsure.problems.view.fix"));
+    f_annotate.setToolTipText(I18N.msg("jsure.problems.view.fix.tooltip"));
+    f_annotate.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION_PROPOSED));
 
-		final StructuredViewer viewer = getViewer();
-		final ISelectionChangedListener listener = new ISelectionChangedListener() {
-			@Override
-			public void selectionChanged(SelectionChangedEvent event) {
-				final boolean proposalsSelected = !getSelectedProposals()
-						.isEmpty();
-				f_annotate.setEnabled(proposalsSelected);
-			}
-		};
-		viewer.addSelectionChangedListener(listener);
-		f_annotate.setEnabled(false); // wait until something is selected
+    final StructuredViewer viewer = getViewer();
+    final ISelectionChangedListener listener = new ISelectionChangedListener() {
+      @Override
+      public void selectionChanged(SelectionChangedEvent event) {
+        final boolean proposalsSelected = !getSelectedProposals().isEmpty();
+        f_annotate.setEnabled(proposalsSelected);
+      }
+    };
+    viewer.addSelectionChangedListener(listener);
+    f_annotate.setEnabled(false); // wait until something is selected
 
-		f_preferences.setImageDescriptor(SLImages
-				.getImageDescriptor(CommonImages.IMG_FILTER));
-		f_preferences.setText(I18N.msg("jsure.problems.view.filter"));
-		f_preferences.setToolTipText(I18N
-				.msg("jsure.problems.view.filter.tooltip"));
-	}
+    f_preferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_FILTER));
+    f_preferences.setText(I18N.msg("jsure.problems.view.filter"));
+    f_preferences.setToolTipText(I18N.msg("jsure.problems.view.filter.tooltip"));
+  }
 
-	@SuppressWarnings("deprecation")
-	@Override
-	protected void fillLocalPullDown(IMenuManager manager) {
-		super.fillLocalPullDown(manager);
-		manager.add(f_annotate);
-		manager.add(new Separator());
-		manager.add(f_preferences);
+  @SuppressWarnings("deprecation")
+  @Override
+  protected void fillLocalPullDown(IMenuManager manager) {
+    super.fillLocalPullDown(manager);
+    manager.add(f_annotate);
+    manager.add(new Separator());
+    manager.add(f_preferences);
 
-		/*
-		 * Add a global action handler for copy
-		 */
-		final IActionBars bars = getViewSite().getActionBars();
-		bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
-	}
+    /*
+     * Add a global action handler for copy
+     */
+    final IActionBars bars = getViewSite().getActionBars();
+    bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_copy);
+  }
 
-	@SuppressWarnings("deprecation")
-	@Override
-	protected void fillLocalToolBar(IToolBarManager manager) {
-		super.fillLocalToolBar(manager);
-		manager.add(f_annotate);
-		manager.add(new Separator());
-		manager.add(f_preferences);
-	}
+  @SuppressWarnings("deprecation")
+  @Override
+  protected void fillLocalToolBar(IToolBarManager manager) {
+    super.fillLocalToolBar(manager);
+    manager.add(f_annotate);
+    manager.add(new Separator());
+    manager.add(f_preferences);
+  }
 
-	@Override
-	protected List<? extends IProposedPromiseDrop> getSelectedProposals() {
-		List<IProposedPromiseDrop> proposals = new ArrayList<IProposedPromiseDrop>();
-		for (IDrop info : getSelectedRows()) {
-			proposals.addAll(info.getProposals());
-		}
-		return proposals;
-	}
+  @Override
+  protected List<? extends IProposedPromiseDrop> getSelectedProposals() {
+    List<IProposedPromiseDrop> proposals = new ArrayList<IProposedPromiseDrop>();
+    for (IDrop info : getSelectedRows()) {
+      proposals.addAll(info.getProposals());
+    }
+    return proposals;
+  }
 
-	private final UIJob f_backgroundColorJob = new SLUIJob() {
-		@Override
-		public IStatus runInUIThread(IProgressMonitor monitor) {
-			final TableViewer tableViewer = (TableViewer) getViewer();
-			if (tableViewer != null) {
-				final Table table = tableViewer.getTable();
-				if (!table.isDisposed()) {
-					if (table.getItemCount() == 0) {
-						table.setBackground(null);
-					} else {
-						table.setBackground(table.getDisplay().getSystemColor(
-								SWT.COLOR_YELLOW));
-					}
-				}
-			}
-			return Status.OK_STATUS;
-		}
-	};
+  private final UIJob f_backgroundColorJob = new SLUIJob() {
+    @Override
+    public IStatus runInUIThread(IProgressMonitor monitor) {
+      final TableViewer tableViewer = (TableViewer) getViewer();
+      if (tableViewer != null) {
+        final Table table = tableViewer.getTable();
+        if (!table.isDisposed()) {
+          if (table.getItemCount() == 0) {
+            table.setBackground(null);
+          } else {
+            table.setBackground(table.getDisplay().getSystemColor(SWT.COLOR_YELLOW));
+          }
+        }
+      }
+      return Status.OK_STATUS;
+    }
+  };
 
-	@Override
-	protected String updateViewer() {
-		final String result = super.updateViewer();
-		f_backgroundColorJob.schedule(300);
-		return result;
-	}
+  @Override
+  protected String updateViewer() {
+    final String result = super.updateViewer();
+    f_backgroundColorJob.schedule(300);
+    return result;
+  }
+
+  @Override
+  public void uninterestingPackageFilterChanged() {
+    AbstractJSureScanView.notifyScanViewOfChangeIfOpened(ProblemsView.class);
+  }
 }
