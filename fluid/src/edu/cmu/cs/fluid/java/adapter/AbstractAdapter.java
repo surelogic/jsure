@@ -140,7 +140,7 @@ public class AbstractAdapter {
 	}
 
 	protected void createRequiredClassNodes(IRNode result) {
-		createRequiredInterfaceNodes(result);
+		createRequiredTypeNodes(result);
 		createRequiredAnonClassNodes(result);
 	}
 
@@ -150,8 +150,9 @@ public class AbstractAdapter {
 		ReceiverDeclaration.makeReceiverNode(result);
 	}
 
-	protected void createRequiredInterfaceNodes(IRNode result) {
-		ClassInitDeclaration.getClassInitMethod(result);
+	protected void createRequiredTypeNodes(IRNode result) {
+		IRNode clinit = ClassInitDeclaration.getClassInitMethod(result);
+		SkeletonJavaRefUtility.copyIfPossible(result, clinit);
 	}
 
 	protected void createLastMinuteNodes(IRNode root) {
@@ -180,9 +181,9 @@ public class AbstractAdapter {
 				ReturnValueDeclaration.getReturnNode(n);
 				PromiseUtil.addReceiverDeclsToConstructor(n);
 			} else if (InterfaceDeclaration.prototype.includes(op)) {
-				ClassInitDeclaration.getClassInitMethod(n);    
+				createRequiredTypeNodes(n);    
 			} else if (AnnotationDeclaration.prototype.includes(op)) {
-				ClassInitDeclaration.getClassInitMethod(n);
+				createRequiredTypeNodes(n);
 				/*
 				// Are these necessary?
 				IRNode init = InitDeclaration.getInitMethod(n);		
@@ -193,7 +194,7 @@ public class AbstractAdapter {
 					|| EnumDeclaration.prototype.includes(op)
 					|| EnumConstantClassDeclaration.prototype.includes(op)) {
 				IRNode init = InitDeclaration.getInitMethod(n);
-				ClassInitDeclaration.getClassInitMethod(n);
+				createRequiredTypeNodes(n);
 				PromiseUtil.addReceiverDeclsToType(n);
 				PromiseUtil.addReceiverDeclsToMethod(init);
 
