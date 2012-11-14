@@ -29,26 +29,12 @@ import com.surelogic.javac.jobs.RemoteJSureRun;
 public class JSureScan implements Comparable<JSureScan> {
   private static final String OLD_RESULTS_FILE = "results.sea.xml";
   private static final String OLD_ZIPS_DIR = "zips";  
-  private static final String SCAN_PROPERTIES = "scan.properties";
-
-  private abstract static class ScanProperty {
-    final String key;
-
-    ScanProperty(String k) {
-      key = k;
-    }
-
-    boolean isValid(String value) {
-      return value != null;
-    }
-
-    abstract String computeValue(JSureScan s);
-  }
 
   /**
    * As a double
    */
-  private static final ScanProperty SIZE_IN_MB = new ScanProperty("scan.size.in.mb") {
+  private static final ScanProperty<JSureScan> SIZE_IN_MB = 
+	new ScanProperty<JSureScan>("scan.size.in.mb") {
     @Override
     boolean isValid(String value) {
       if (super.isValid(value)) {
@@ -63,7 +49,7 @@ public class JSureScan implements Comparable<JSureScan> {
     }
 
     @Override
-    public String computeValue(JSureScan s) {
+    String computeValue(JSureScan s) {
       final double size = FileUtility.recursiveSizeInBytes(s.getDir()) / (1024 * 1024.0);
       return Double.toString(size);
     }
@@ -72,9 +58,10 @@ public class JSureScan implements Comparable<JSureScan> {
   /**
    * As a comma-separated list
    */
-  private static final ScanProperty SCANNED_PROJECTS = new ScanProperty("scanned.projects") {
+  private static final ScanProperty<JSureScan> SCANNED_PROJECTS = 
+	new ScanProperty<JSureScan>("scanned.projects") {
     @Override
-    public String computeValue(JSureScan s) {
+    String computeValue(JSureScan s) {
       try {
 		return s.getProjects().getLabel();
       } catch (Exception e) {
@@ -82,8 +69,10 @@ public class JSureScan implements Comparable<JSureScan> {
       }
     }
   };
-
-  private static final ScanProperty[] REQUIRED_PROPS = { SIZE_IN_MB, SCANNED_PROJECTS };
+  
+  @SuppressWarnings("unchecked")
+  private static final List<ScanProperty<JSureScan>> REQUIRED_PROPS = 
+	  SLUtility.list(SIZE_IN_MB, SCANNED_PROJECTS);
 
   /**
    * Looks up a scan by its directory name in a list of scans.
@@ -182,82 +171,11 @@ public class JSureScan implements Comparable<JSureScan> {
     }
     f_timeOfScan = time;
 
-    final Properties props = getScanProperties(scanDir);
+    final Properties props = ScanProperty.getScanProperties(scanDir, this, REQUIRED_PROPS);
     f_sizeInMB = Double.parseDouble(props.getProperty(SIZE_IN_MB.key));
 
     // check the various files
     getProjects();
-  }
-
-  /**
-   * Returns all the expected properties
-   */
-  private Properties getScanProperties(File scanDir) {
-    final Properties props = new Properties();
-    final File precomputed = new File(scanDir, SCAN_PROPERTIES);
-    final boolean alreadyPrecomputed = precomputed.exists();
-    if (alreadyPrecomputed) {
-      InputStream in = null;
-      try {
-        in = new FileInputStream(precomputed);
-        props.load(in);
-      } catch (IOException e) {
-        e.printStackTrace();
-      } finally {
-        if (in != null) {
-          try {
-            in.close();
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-        }
-      }
-    }
-    // Check if I have all the info that I need
-    boolean changed = false;
-    for (ScanProperty p : REQUIRED_PROPS) {
-      if (!p.isValid(props.getProperty(p.key))) {
-    	String value = p.computeValue(this);
-    	if (value != null) {
-    		props.setProperty(p.key, value);
-    		changed = true;
-    	}
-      }
-    }
-
-    final File completed = findResultsXML(scanDir);
-    if (completed.exists()) {
-      if (alreadyPrecomputed) {
-        final long pMod = precomputed.lastModified();
-        final long cMod = completed.lastModified();
-        changed = pMod <= cMod;
-        if (changed) {
-          System.out.println("Changed");
-        }
-      }
-    } else {
-      // Don't write it out if it's not done yet
-      changed = false;
-    }
-    if (changed) {
-      // Rewrite the properties file
-      OutputStream out = null;
-      try {
-        out = new FileOutputStream(precomputed);
-        props.store(out, "Precomputed info for JSureScan");
-      } catch (IOException e) {
-        e.printStackTrace();
-      } finally {
-        if (out != null) {
-          try {
-            out.close();
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-        }
-      }
-    }
-    return props;
   }
 
   public Date getTimeOfScan() {

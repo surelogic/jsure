@@ -4,13 +4,16 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
 import com.surelogic.NonNull;
 import com.surelogic.common.NullOutputStream;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.SourceZipLookup.Lines;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -30,6 +33,7 @@ import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
 import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.util.CPair;
+import edu.cmu.cs.fluid.util.IntegerTable;
 
 /**
  * Manages the project information, the loading of drop information and other
@@ -87,6 +91,9 @@ public class JSureScanInfo {
       f_dropInfo = SeaSnapshot.loadSnapshot(f_loader, f_run.getResultsFile());
       final long end = System.currentTimeMillis();
       System.out.println(" (in " + (end - start) + " ms)");
+      
+      // Used to precompute properties
+      ScanProperty.getScanProperties(f_run.getDir(), this, REQUIRED_PROPS);
     } catch (Exception e) {
       System.out.println(" (FAILED)");
       SLLogger.getLogger().log(Level.WARNING, "general failure loading all drops from a snapshot of drop-sea", e);
@@ -240,4 +247,30 @@ public class JSureScanInfo {
       return SeaSnapshotDiff.defaultMatcher;
     }
   }
+  
+  /**
+   * Produces a number of properties
+   */
+  private static final ScanProperty<JSureScanInfo> DROP_DEMOGRAPHICS = 
+	new ScanProperty<JSureScanInfo>("drop.demographics") {
+	@Override
+	Iterable<Map.Entry<String,Object>> computeValues(JSureScanInfo s) {
+		Map<String,Object> type2number = new HashMap<String, Object>();
+		for(IDrop d : s.getDropInfo()) {
+			final String type = d.getIRDropSeaClass().getSimpleName();
+			Object value = type2number.get(type);
+			if (value == null) {
+				type2number.put(type, IntegerTable.newInteger(1));
+			} else {
+				Integer i = (Integer) value;
+				type2number.put(type, i+1);
+			}
+		}
+		return type2number.entrySet();
+	}	  
+  };
+  
+  @SuppressWarnings("unchecked")
+  private static final List<ScanProperty<JSureScanInfo>> REQUIRED_PROPS = 
+	  SLUtility.list(DROP_DEMOGRAPHICS);
 }
