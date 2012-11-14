@@ -825,7 +825,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
         rv = InterfaceDeclaration.createNode(annos, mods, id, formals, Extensions.createNode(impl), body);
       }
       addJavaRefAndCheckForJavadocAnnotations(node, rv);
-      createRequiredInterfaceNodes(rv);
+      createRequiredTypeNodes(rv);
       return rv;
     }
     IRNode impls = Implements.createNode(impl);
@@ -846,6 +846,8 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       } else {
         rv = AnnotationDeclaration.createNode(annos, mods, id, body);
       }
+      addJavaRefAndCheckForJavadocAnnotations(node, rv);
+      createRequiredTypeNodes(rv);
       return rv;
     }
     if (context.fromInterface() || context.isStatic()) {
