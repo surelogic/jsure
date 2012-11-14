@@ -30,7 +30,7 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 	public static final String FLUID_DIRECTORY_URL = "fluid.directory.url";
 	private static final String RESULTS_XML  = "sea_snapshot.xml";
 	private static final String COMPRESSED_RESULTS_XML = RESULTS_XML+FileUtility.GZIP_SUFFIX;
-	private static final String TEMP_PREFIX = "tmp_";
+	private static final String TEMP_PREFIX = "running_or_crashed_";
 	private static final String TEMP_RESULTS_XML  = TEMP_PREFIX+RESULTS_XML;
 	private static final String COMPRESSED_TEMP_RESULTS_XML = TEMP_PREFIX+RESULTS_XML+FileUtility.GZIP_SUFFIX;
 	
