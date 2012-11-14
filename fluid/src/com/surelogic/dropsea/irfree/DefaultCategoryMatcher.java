@@ -1,7 +1,6 @@
 package com.surelogic.dropsea.irfree;
 
-import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IResultDrop;
+import com.surelogic.dropsea.*;
 
 /**
  * Originally designed for use with regression tests, where the code doesn't
@@ -18,6 +17,7 @@ public class DefaultCategoryMatcher extends CategoryMatcher {
 	  }
   };
   
+  /*
   protected static final IDropMatcher matchIdAndOffset = new AbstractDropMatcher("Id     ", false) {
 	  public boolean match(IDrop n, IDrop o) {
 		  return matchBasics(n, o) && 
@@ -25,6 +25,7 @@ public class DefaultCategoryMatcher extends CategoryMatcher {
 		  	     matchStrings(getJavaId(n), getJavaId(o), false) == Boolean.TRUE;	         
 	  }
   };
+  */
   
   protected static final IDropMatcher matchOffset = new AbstractDropMatcher("Offset ", false) {
 	  public boolean match(IDrop n, IDrop o) {
@@ -74,11 +75,13 @@ public class DefaultCategoryMatcher extends CategoryMatcher {
   }
   
   private static final IDropMatcher[] passes = {
-	  matchDeclAndOffset, matchIdAndOffset, matchOffset, matchHashes
+	  matchDeclAndOffset, /*matchIdAndOffset,*/ matchOffset, matchHashes
   };
 
+  /*
   private static boolean matchResults(IDrop n, IDrop o) {
 	return n instanceof IResultDrop &&
 	       matchLongDiffInfo(DiffHeuristics.FAST_TREE_HASH, n, o);
   }
+  */
 }

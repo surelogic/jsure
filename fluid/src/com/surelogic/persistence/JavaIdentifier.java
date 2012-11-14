@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.aast.promise.PromiseTargetNode;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.analysis.JavaProjects;
@@ -17,10 +16,6 @@ import com.surelogic.annotation.ParseResult;
 import com.surelogic.annotation.parse.ScopedPromiseAdaptor;
 import com.surelogic.annotation.parse.ScopedPromiseParse;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
-import com.surelogic.common.ref.DeclUtil;
-import com.surelogic.common.ref.IDecl;
-import com.surelogic.common.ref.IDeclFunction;
-import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
 
@@ -480,7 +475,8 @@ public final class JavaIdentifier {
 			}
 			//node.useText(c);
 			
-			final PromiseTargetNode target = (PromiseTargetNode) node.finalizeAST(c);
+			//final PromiseTargetNode target = (PromiseTargetNode) 
+				node.finalizeAST(c);
 			//return target.matches(c.getNode());
 			throw new UnsupportedOperationException();
 		} catch (Exception e) {
@@ -551,8 +547,8 @@ public final class JavaIdentifier {
 			throw new IllegalStateException("While matching: "+unparsedTarget, e);
 		}
 	}
-
-	public static String encodeDecl(String project, IJavaRef ref) {
+	/*
+	private static String encodeDecl(String project, IJavaRef ref) {
 		final IDecl decl = ref.getDeclaration();
 		final IJavaRef.Position pos = ref.getPositionRelativeToDeclaration();
 		if (project == null || decl == null || pos == IJavaRef.Position.WITHIN_DECL) {
@@ -600,4 +596,5 @@ public final class JavaIdentifier {
 		}
 		return sb.toString();
 	}
+	*/
 }

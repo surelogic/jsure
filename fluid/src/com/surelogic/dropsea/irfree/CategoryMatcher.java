@@ -9,7 +9,6 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
-import com.surelogic.persistence.JavaIdentifier;
 
 public abstract class CategoryMatcher {
   private final List<IDropMatcher> passes = new ArrayList<IDropMatcher>();
@@ -90,6 +89,7 @@ public abstract class CategoryMatcher {
     return result != null ? result : false;
   }
   
+  /*
   private static final String[] oldPrefix = {
 	  "Borrowed(\"arg0\") on ",
 	  "Borrowed(\"arg1\") on ",
@@ -100,6 +100,7 @@ public abstract class CategoryMatcher {
 	  "Borrowed on parameter 'arg1' of ",
 	  "Borrowed on parameter 'arg2' of ",
   };
+  */
   
   protected static boolean matchAnalysisHint(String label, IDrop n, IDrop o) {
 	  return matchAnalysisHintOrNull(label, n, o) == Boolean.TRUE;
@@ -170,6 +171,7 @@ public abstract class CategoryMatcher {
     return -1; // for unknown
   }
 
+  /*
   // Need until we update all the oracles that use JavaIds
   protected static String getJavaId(IDrop d) {
     IJavaRef ref = d.getJavaRef();
@@ -179,6 +181,7 @@ public abstract class CategoryMatcher {
     }
     return null;
   }
+  */
 
   protected static boolean matchIDecls(IJavaRef nr, IJavaRef or) {
 	if (nr == null || or == null) {
