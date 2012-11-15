@@ -154,7 +154,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 	info.setProperty(CodeInfo.SEMICOLONS, count(info.getSource(), ';'));
 	countLines(info);
 	countAST(info);
-	System.out.println("Metrics for "+info.getFileName());
+	//System.out.println("Metrics for "+info.getFileName());
   }
 
   private void countAST(CodeInfo info) {
