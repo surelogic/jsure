@@ -2,14 +2,21 @@ package com.surelogic.jsure.client.eclipse.views.proposals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
+import org.apache.commons.collections15.MultiMap;
+import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.dropsea.DropSeaUtility;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
@@ -18,6 +25,7 @@ import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
 import com.surelogic.jsure.client.eclipse.model.java.IViewDiffState;
+import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 
 public class ProposedAnnotationViewContentProvider implements ITreeContentProvider, IViewDiffState {
 
@@ -60,9 +68,15 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, final boolean showOnlyAbductive) {
     final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer(null);
 
-    final ArrayList<IProposedPromiseDrop> drops = scan.getProposedPromiseDrops();
+    final ArrayList<IProposedPromiseDrop> drops = filterOutDuplicates(scan.getProposedPromiseDrops());
     for (IProposedPromiseDrop ppd : drops) {
-      ElementDrop.addToTree(tree, ppd, false);
+      if (!showOnlyAbductive || ppd.isAbductivelyInferred()) {
+        /*
+         * We filter results based upon the code location.
+         */
+        if (UninterestingPackageFilterUtility.keep(ppd))
+          ElementDrop.addToTree(tree, ppd, false);
+      }
     }
     f_root = tree.getRootElements();
   }
@@ -105,6 +119,73 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
     }
     return null;
   }
+
+  /**
+   * Filters out duplicate proposals so that they are not listed.
+   * <p>
+   * This doesn't handle proposed promises in binary files too well.
+   * 
+   * @param proposals
+   *          the list of proposed promises.
+   * @return the filtered list of proposals.
+   */
+  private static ArrayList<IProposedPromiseDrop> filterOutDuplicates(Collection<IProposedPromiseDrop> proposals) {
+    ArrayList<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
+    // Hash results
+    MultiMap<Long, IProposedPromiseDrop> hashed = new MultiHashMap<Long, IProposedPromiseDrop>();
+    for (IProposedPromiseDrop info : proposals) {
+      long hash = computeHashFor(info);
+      hashed.put(hash, info);
+    }
+    // Filter each list the old way
+    for (Map.Entry<Long, Collection<IProposedPromiseDrop>> e : hashed.entrySet()) {
+      result.addAll(filterOutDuplicates_slow(e.getValue()));
+    }
+    return result;
+  }
+
+  private static long computeHashFor(@NonNull IProposedPromiseDrop ppd) {
+    long hash = 0;
+    final String anno = ppd.getAnnotation();
+    if (anno != null) {
+      hash += anno.hashCode();
+    }
+    final String contents = ppd.getContents();
+    if (contents != null) {
+      hash += contents.hashCode();
+    }
+    final String replaced = ppd.getReplacedContents();
+    if (replaced != null) {
+      hash += replaced.hashCode();
+    }
+    final IJavaRef ref = ppd.getJavaRef();
+    if (ref != null) {
+      hash += ref.hashCode();
+    }
+    return hash;
+  }
+
+  // n^2 comparisons
+  private static List<IProposedPromiseDrop> filterOutDuplicates_slow(Collection<IProposedPromiseDrop> proposals) {
+    List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
+    for (IProposedPromiseDrop h : proposals) {
+      boolean addToResult = true;
+      for (IProposedPromiseDrop i : result) {
+        if (DropSeaUtility.isSameProposalAs(h, i)) {
+          addToResult = false;
+          break;
+        }
+      }
+      if (addToResult)
+        result.add(h);
+    }
+    return result;
+  }
+
+  /*
+   * We don't shown differences in this view, so these methods tell the model
+   * this fact.
+   */
 
   @Nullable
   public ScanDifferences getScanDifferences() {

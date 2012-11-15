@@ -12,26 +12,6 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
 
 public class Entity {
-  protected static final Map<String, String> interned = Collections.synchronizedMap(new HashMap<String, String>());
-
-  public static String internString(String v) {
-    interned.put(v, v);
-    return v;
-  }
-
-  static {
-    internString("true");
-    internString("false");
-  }
-
-  protected void maybeReplace(String attr) {
-    String value = attributes.get(attr);
-    String intern = Entity.maybeIntern(value);
-    if (intern != value) {
-      attributes.put(attr, intern);
-    }
-  }
-
   final String name;
   protected final Map<String, String> attributes;
   final String id;
@@ -75,7 +55,7 @@ public class Entity {
       for (int i = 0; i < a.getLength(); i++) {
         final String aName = a.getQName(i);
         final String aValue = a.getValue(i);
-        attributes.put(aName, getInternValue(aValue));
+        attributes.put(aName, aValue);
       }
     } else {
       attributes = new HashMap<String, String>(4, 1.0f);
@@ -92,23 +72,6 @@ public class Entity {
       attributes = new HashMap<String, String>(4, 1.0f);
     }
     id = attributes.get(NestedJSureXmlReader.ID_ATTR);
-  }
-
-  protected String getInternValue(String v) {
-    String intern = interned.get(v);
-    if (intern != null) {
-      return intern;
-    }
-    return v;
-  }
-
-  public static String maybeIntern(String v) {
-    String intern = interned.get(v);
-    if (intern != null) {
-      return intern;
-    }
-    internString(v);
-    return v;
   }
 
   @Override

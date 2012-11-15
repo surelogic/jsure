@@ -2,13 +2,11 @@ package com.surelogic.dropsea.irfree.drops;
 
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ANNOTATION_TYPE;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CONTENTS;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_INFO;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_REF;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.JAVA_ANNOTATION;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ORIGIN;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_ANNO;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_CONTENTS;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TARGET_INFO;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,26 +17,9 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.irfree.Entity;
 
 public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProposedPromiseDrop {
-
-  static {
-    Entity.internString(FROM_INFO);
-    Entity.internString(TARGET_INFO);
-    Entity.internString(FROM_REF);
-    Entity.internString(ProposedPromiseDrop.class.getName());
-    Entity.internString("ProposedPromiseDrop @RegionEffects(writes java.lang.Object:All)");
-    Entity.internString("@RegionEffects(writes java.lang.Object:All)");
-    Entity.internString("ProposedPromiseDrop");
-    Entity.internString("RegionEffects");
-    Entity.internString("writes java.lang.Object:All");
-    Entity.internString("ProposedPromiseDrop @RegionEffects(reads this:Instance)");
-    Entity.internString("ProposedPromiseDrop @RegionEffects(none)");
-    Entity.internString("@RegionEffects(reads this:Instance)");
-    Entity.internString("@RegionEffects(none)");
-  }
 
   @NonNull
   private final IJavaRef f_assumptionRef;
@@ -150,43 +131,5 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
 
   boolean hasAssumptionRef() {
     return f_assumptionRef != null;
-  }
-
-  public static boolean isSameProposalAs(IProposedPromiseDrop o1, IProposedPromiseDrop o2) {
-    if (o1 == null && o2 == null)
-      return true;
-    if (o1 == null && o2 != null)
-      return false;
-    if (o1 != null && o2 == null)
-      return false;
-
-    return isSame(o1.getAnnotation(), o2.getAnnotation()) && isSame(o1.getContents(), o2.getContents())
-        && isSame(o1.getReplacedContents(), o2.getReplacedContents()) && isSame(o1.getJavaRef(), o2.getJavaRef())
-        && isAllSame(o1.getAnnoAttributes(), o2.getAnnoAttributes())
-        && isAllSame(o1.getReplacedAttributes(), o2.getReplacedAttributes());
-  }
-
-  private static <T> boolean isSame(T o1, T o2) {
-    if (o1 == null) {
-      if (o2 != null) {
-        return false;
-      }
-    } else if (!o1.equals(o2)) {
-      return false;
-    }
-    return true;
-  }
-
-  private static boolean isAllSame(Map<String, String> m1, Map<String, String> m2) {
-    return isSame(m1, m2);
-    /*
-     * final Set<String> checked = new HashSet<String>(m1.size());
-     * for(Map.Entry<String,String> e : m1.entrySet()) { String v2 =
-     * m2.get(e.getKey()); if (!isSame(e.getValue(), v2)) { return false; } else
-     * { checked.add(e.getKey()); } } for(Map.Entry<String,String> e :
-     * m2.entrySet()) { if (checked.contains(e.getKey())) { continue; } String
-     * v1 = m1.get(e.getKey()); if (!isSame(e.getValue(), v1)) { return false; }
-     * } return true;
-     */
   }
 }

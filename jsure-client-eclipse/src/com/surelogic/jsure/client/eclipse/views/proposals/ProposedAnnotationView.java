@@ -2,6 +2,7 @@ package com.surelogic.jsure.client.eclipse.views.proposals;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -17,8 +18,11 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
@@ -42,21 +46,27 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.jobs.SLUIJob;
+import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.Activator;
+import com.surelogic.jsure.client.eclipse.JSureClientUtility;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
+import com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView;
+import com.surelogic.jsure.core.preferences.IUninterestingPackageFilterObserver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
-public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener {
+public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener,
+    IUninterestingPackageFilterObserver {
 
   private static final String VIEW_STATE = "ProposedAnnotationView_TreeViewerUIState";
 
@@ -67,7 +77,6 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
   private TreeViewer f_treeViewer;
   @NonNull
   private final ProposedAnnotationViewContentProvider f_contentProvider = new ProposedAnnotationViewContentProvider();
-  private boolean f_showAsTree;
   private boolean f_showOnlyAbductive;
 
   private final ViewerSorter f_alphaLineSorter = new ViewerSorter() {
@@ -120,11 +129,31 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     f_viewerbook = new PageBook(parent, SWT.NONE);
     f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
     f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
-    f_treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+    f_treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.MULTI);
     f_treeViewer.setContentProvider(f_contentProvider);
     f_treeViewer.setSorter(f_alphaLineSorter);
     f_treeViewer.getTree().setHeaderVisible(true);
     f_treeViewer.getTree().setLinesVisible(true);
+
+    final ISelectionChangedListener listener = new ISelectionChangedListener() {
+      @Override
+      public void selectionChanged(SelectionChangedEvent event) {
+        selectionChangedHelper();
+      }
+    };
+    f_treeViewer.addSelectionChangedListener(listener);
+
+    final TreeViewerColumn columnTree = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
+    columnTree.setLabelProvider(ColumnLabelProviderUtility.TREE);
+    columnTree.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.PROPOSED_ANNO_COL_TREE_WIDTH));
+    columnTree.getColumn().addControlListener(
+        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.PROPOSED_ANNO_COL_TREE_WIDTH));
+    final TreeViewerColumn columnLine = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    columnLine.setLabelProvider(ColumnLabelProviderUtility.LINE);
+    columnLine.getColumn().setText("Line");
+    columnLine.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.PROPOSED_ANNO_COL_LINE_WIDTH));
+    columnLine.getColumn().addControlListener(
+        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.PROPOSED_ANNO_COL_LINE_WIDTH));
 
     makeActions();
     hookContextMenu();
@@ -146,6 +175,23 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
       super.dispose();
     }
   }
+
+  private final Action f_openProofContext = new Action() {
+    @Override
+    public void run() {
+      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+      if (!s.isEmpty()) {
+        final Object o = s.getFirstElement();
+        if (o instanceof ElementDrop) {
+          final IDrop drop = ((ElementDrop) o).getDrop();
+          final VerificationStatusView view = (VerificationStatusView) EclipseUIUtility.showView(VerificationStatusView.class
+              .getName());
+          if (view != null)
+            view.attemptToShowAndSelectDropInViewer(drop);
+        }
+      }
+    }
+  };
 
   private final Action f_actionExpand = new Action() {
     @Override
@@ -202,18 +248,6 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     }
   };
 
-  private final Action f_actionShowAsTree = new Action("", IAction.AS_CHECK_BOX) {
-    @Override
-    public void run() {
-      final boolean buttonChecked = f_actionShowAsTree.isChecked();
-      if (f_showAsTree != buttonChecked) {
-        f_showAsTree = buttonChecked;
-        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROPOSED_ANNOTATIONS_SHOW_AS_TREE, f_showAsTree);
-        currentScanChanged(null);
-      }
-    }
-  };
-
   private final Action f_actionShowOnlyAbductive = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
@@ -221,9 +255,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
       if (f_showOnlyAbductive != buttonChecked) {
         f_showOnlyAbductive = buttonChecked;
         EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROPOSED_ANNOTATIONS_SHOW_ABDUCTIVE_ONLY, f_showOnlyAbductive);
-        // TODO CHANGE VIEW
-        // f_contentProvider.setHighlightDifferences(f_highlightDifferences);
-        f_treeViewer.refresh();
+        currentScanChanged(null);
       }
     }
   };
@@ -263,6 +295,11 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
       }
     });
 
+    f_openProofContext.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_LOGO));
+    f_openProofContext.setText("Open In Proof Context");
+    f_openProofContext
+        .setToolTipText("Open this proposed promise in the Verification Status view to show it within its proof context");
+
     f_actionCollapseAll.setText("Collapse All");
     f_actionCollapseAll.setToolTipText("Collapse All");
     f_actionCollapseAll.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
@@ -271,10 +308,6 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     f_actionAnnotateCode.setToolTipText(I18N.msg("jsure.eclipse.proposed.promise.tip"));
     f_actionAnnotateCode.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION_PROPOSED));
     f_actionAnnotateCode.setEnabled(false); // wait until something is selected
-
-    f_actionShowAsTree.setText(I18N.msg("jsure.eclipse.proposed.promises.showAsTree"));
-    f_actionShowAsTree.setToolTipText(I18N.msg("jsure.eclipse.proposed.promises.showAsTree.tip"));
-    f_actionShowAsTree.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_DECLS_TREE));
 
     f_actionShowOnlyAbductive.setText(I18N.msg("jsure.eclipse.proposed.promises.showAbductiveOnly"));
     f_actionShowOnlyAbductive.setToolTipText(I18N.msg("jsure.eclipse.proposed.promises.showAbductiveOnly.tip"));
@@ -300,8 +333,10 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
       public void menuAboutToShow(final IMenuManager manager) {
         final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
         if (!s.isEmpty()) {
+          manager.add(f_actionAnnotateCode);
+          manager.add(new Separator());
           if (s.getFirstElement() instanceof ElementDrop) {
-            manager.add(f_actionAnnotateCode);
+            manager.add(f_openProofContext);
             manager.add(new Separator());
           }
           manager.add(f_actionExpand);
@@ -329,7 +364,6 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     pulldown.add(new Separator());
     pulldown.add(f_actionAnnotateCode);
     pulldown.add(new Separator());
-    pulldown.add(f_actionShowAsTree);
     pulldown.add(f_actionShowOnlyAbductive);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
@@ -337,7 +371,6 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     toolbar.add(new Separator());
     toolbar.add(f_actionAnnotateCode);
     toolbar.add(new Separator());
-    toolbar.add(f_actionShowAsTree);
     toolbar.add(f_actionShowOnlyAbductive);
   }
 
@@ -380,9 +413,31 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     }
   }
 
+  private void selectionChangedHelper() {
+    final boolean proposalsSelected = !getSelectedProposals().isEmpty();
+    f_actionAnnotateCode.setEnabled(proposalsSelected);
+  }
+
   private List<IProposedPromiseDrop> getSelectedProposals() {
-    // TODO Auto-generated method stub
-    return null;
+    final List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
+    final IStructuredSelection selection = (IStructuredSelection) f_treeViewer.getSelection();
+    for (final Object elt : selection.toList()) {
+      if (elt instanceof Element)
+        getSelectedProposalsHelper((Element) elt, result);
+    }
+    return result;
+  }
+
+  private void getSelectedProposalsHelper(Element e, List<IProposedPromiseDrop> mutableResult) {
+    if (e instanceof ElementDrop) {
+      final IDrop drop = ((ElementDrop) e).getDrop();
+      if (drop instanceof IProposedPromiseDrop) {
+        mutableResult.add((IProposedPromiseDrop) drop);
+      }
+    } else {
+      for (Element child : e.getChildren())
+        getSelectedProposalsHelper(child, mutableResult);
+    }
   }
 
   /**
@@ -432,5 +487,10 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
       SLLogger.getLogger().log(Level.WARNING,
           "Trouble when saving ResultsView UI state to " + f_viewStatePersistenceFile.getAbsolutePath(), e);
     }
+  }
+
+  @Override
+  public void uninterestingPackageFilterChanged() {
+    currentScanChanged(null);
   }
 }
