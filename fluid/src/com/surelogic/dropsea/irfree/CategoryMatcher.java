@@ -65,14 +65,29 @@ public abstract class CategoryMatcher {
 
   protected static boolean matchMessage(IDrop n, IDrop o) {
     Boolean result;
-    // if (o.getMessageCanonical() != null &&
-    // !o.getMessageCanonical().endsWith(" (EMPTY)")) { // TODO only needed for
-    // summaries
-    result = matchStrings(n.getMessageCanonical(), o.getMessageCanonical(), false);
+    final String oCanon = o.getMessageCanonical();
+    final String nCanon = n.getMessageCanonical();
+    result = matchStrings(nCanon, oCanon, false);
     if (result != null && result.booleanValue()) {
       // Return if true
       // Otherwise, check the message
       return result;
+    } 
+    else if (oCanon != null && oCanon.startsWith(oldPrefix)) {
+    	if (oCanon.contains("this")) {
+    		String mod = "(23,"+oCanon.substring(oldPrefix.length());
+    		result = matchStrings(nCanon, mod, false);
+    		if (result != null && result.booleanValue()) {
+    			return result;
+    		}
+    	} 
+    	if (oCanon.contains("eturn")) {
+    		String mod = "(24,"+oCanon.substring(oldPrefix.length());
+    		result = matchStrings(nCanon, mod, false);
+    		if (result != null && result.booleanValue()) {
+    			return result;
+    		}
+    	}     	
     }
     // }    
     result = matchStrings(n.getMessage(), o.getMessage(), true);
@@ -89,6 +104,7 @@ public abstract class CategoryMatcher {
     return result != null ? result : false;
   }
   
+  private static final String oldPrefix = "(20,";  
   /*
   private static final String[] oldPrefix = {
 	  "Borrowed(\"arg0\") on ",
