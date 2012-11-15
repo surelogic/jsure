@@ -40,6 +40,9 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.util.*;
 
 public class JavacClassParser {
+	/** Should we try to run things in parallel */
+	private static boolean wantToRunInParallel = false;
+	
 	private static final String[] sourceLevels = {
 		"1.5" /*default*/, "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"
 	}; 
@@ -155,19 +158,23 @@ public class JavacClassParser {
 		final JavacTypeEnvironment tEnv;
 		final int max;
 		final boolean asBinary;
-		final SourceAdapter adapter;
+		final ThreadLocal<SourceAdapter> adapter;
 		final IParallelArray<CompilationUnitTree> cuts;		
 		final Queue<CodeInfo> cus;
 		final References refs;
 		final Map<JavaFileObject, JavaSourceFile> sources = new HashMap<JavaFileObject, JavaSourceFile>();
 		
-		public BatchParser(JavacProject jp, int max, boolean asBinary) {
+		public BatchParser(final JavacProject jp, int max, boolean asBinary) {
 			this.jp = jp;
 			this.tEnv = jp.getTypeEnv();
 			this.max = max;
 			this.asBinary = asBinary;
-			adapter = new SourceAdapter(projects, jp);
-			
+			adapter = new ThreadLocal<SourceAdapter>() {
+				@Override
+				protected SourceAdapter initialValue() {
+					return new SourceAdapter(projects, jp);
+				}
+			};
 			if (pool == null || SystemUtils.IS_JAVA_1_5) {
 				cuts = new NonParallelArray<CompilationUnitTree>();
 			} else {
@@ -290,16 +297,18 @@ public class JavacClassParser {
 
 						JCCompilationUnit jcu = (JCCompilationUnit) cut;					
 						JavaSourceFile file = sources.get(jcu.sourcefile);
-						CodeInfo info = adapter.adapt(t, jcu, file, asBinary || file.asBinary);				        
+						CodeInfo info = adapter.get().adapt(t, jcu, file, asBinary || file.asBinary);				        
 						cus.add(info);
 						Projects.setProject(info.getNode(), jp);
 						//System.out.println("Done adapting "+info.getFileName());
 					}
 				};
-				//cuts.apply(proc);
-				
-				for(CompilationUnitTree cut : cuts) {
-					proc.op(cut);
+				if (wantToRunInParallel) {
+					cuts.apply(proc);
+				} else {
+					for(CompilationUnitTree cut : cuts) {
+						proc.op(cut);
+					}
 				}
 				cuts.asList().clear();	        
 				tEnv.addCompUnits(cus, true);
@@ -605,14 +614,12 @@ public class JavacClassParser {
 				}	
 			}
 		};
-		//jarRefs.apply(proc);
-		for(Triple<String,String,ZipFile> triple : jarRefs) {
-			/*
-			if (triple.second().endsWith("ModuleType") && triple.first().contains("ddgen")) {
-				System.out.println("Getting "+triple.second()+" for ddgen");
+		if (wantToRunInParallel) {
+			jarRefs.apply(proc);
+		} else {
+			for(Triple<String,String,ZipFile> triple : jarRefs) {
+				proc.op(triple);
 			}
-			*/
-			proc.op(triple);
 		}
 		jarRefs.asList().clear();
 	}
