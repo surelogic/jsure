@@ -25,6 +25,20 @@ public final class ElementJavaDecl extends ElementWithChildren {
 
   public static final class Folderizer {
 
+    /**
+     * Constructs a new instance with a provider for difference information and
+     * preferences.
+     * 
+     * @param viewDiffState
+     *          difference information and preferences.
+     */
+    public Folderizer(@Nullable IViewDiffState viewDiffState) {
+      f_viewDiffState = viewDiffState;
+    }
+
+    @Nullable
+    private final IViewDiffState f_viewDiffState;
+
     @NonNull
     private final List<ElementProject> f_projects = new ArrayList<ElementProject>();
 
@@ -41,6 +55,8 @@ public final class ElementJavaDecl extends ElementWithChildren {
     /**
      * Gets a parent element for a drop.
      * 
+     * @param viewDiffState
+     *          difference information and preferences.
      * @param drop
      *          the drop to get a parent element representing its enclosing Java
      *          declaration.
@@ -68,7 +84,7 @@ public final class ElementJavaDecl extends ElementWithChildren {
         }
       }
       if (project == null) { // need to create
-        project = new ElementProject(projectName, grayscale);
+        project = new ElementProject(f_viewDiffState, projectName, grayscale);
         f_projects.add(project);
       }
 
@@ -78,6 +94,7 @@ public final class ElementJavaDecl extends ElementWithChildren {
           f_at = project;
         }
 
+        @NonNull
         private ElementWithChildren f_at;
 
         @NonNull
@@ -172,8 +189,8 @@ public final class ElementJavaDecl extends ElementWithChildren {
     }
   }
 
-  protected ElementJavaDecl(Element parent, IDecl javaDecl, boolean grayscale) {
-    super(parent);
+  protected ElementJavaDecl(@NonNull Element parent, IDecl javaDecl, boolean grayscale) {
+    super(parent, parent);
     f_javaDecl = javaDecl;
     if (parent != null)
       parent.addChild(this);

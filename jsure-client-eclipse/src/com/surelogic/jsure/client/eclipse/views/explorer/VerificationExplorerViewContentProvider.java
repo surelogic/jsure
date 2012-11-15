@@ -20,8 +20,9 @@ import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
+import com.surelogic.jsure.client.eclipse.model.java.IViewDiffState;
 
-public final class VerificationExplorerViewContentProvider implements ITreeContentProvider {
+public final class VerificationExplorerViewContentProvider implements ITreeContentProvider, IViewDiffState {
 
   public void dispose() {
     // nothing to do
@@ -59,15 +60,11 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
 
   private Element[] f_root = null;
 
-  void setHighlightDifferences(boolean value) {
-    Element.setHighlightDifferences(value);
-  }
-
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final JSureScanInfo oldScan,
       @Nullable final ScanDifferences diff, final boolean showOnlyDifferences, final boolean showObsoleteDrops,
       final boolean showOnlyDerivedFromSrc, final boolean showAnalysisResults, final boolean showHints) {
-    Element.setScanDifferences(diff);
-    final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer();
+    f_scanDifferences = diff;
+    final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer(this);
 
     boolean noDiffAndOnlyShowingDiff = diff == null && showOnlyDifferences;
     if (!noDiffAndOnlyShowingDiff) {
@@ -132,5 +129,23 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
       }
     }
     return null;
+  }
+
+  @Nullable
+  private ScanDifferences f_scanDifferences;
+
+  @Nullable
+  public ScanDifferences getScanDifferences() {
+    return f_scanDifferences;
+  }
+
+  private boolean f_highlightDifferences;
+
+  public boolean highlightDifferences() {
+    return f_highlightDifferences;
+  }
+
+  void setHighlightDifferences(boolean value) {
+    f_highlightDifferences = value;
   }
 }

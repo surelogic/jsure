@@ -42,8 +42,8 @@ public final class ElementDrop extends Element {
     return null;
   }
 
-  private ElementDrop(Element parent, @NonNull IDrop drop, boolean fromOldScan) {
-    super(parent);
+  private ElementDrop(@NonNull Element parent, @NonNull IDrop drop, boolean fromOldScan) {
+    super(parent, parent);
     if (drop == null)
       throw new IllegalArgumentException(I18N.err(44, "drop"));
     f_drop = drop;
@@ -51,7 +51,7 @@ public final class ElementDrop extends Element {
     if (fromOldScan) {
       f_diffDrop = f_drop;
     } else {
-      final ScanDifferences diff = Element.getScanDifferences();
+      final ScanDifferences diff = getScanDifferences();
       if (diff == null) {
         f_diffDrop = null;
       } else {

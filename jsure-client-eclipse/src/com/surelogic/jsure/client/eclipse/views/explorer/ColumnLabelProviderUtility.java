@@ -19,9 +19,9 @@ import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
 public final class ColumnLabelProviderUtility {
 
   private static void highlightRowHelper(ViewerCell cell) {
-    if (Element.highlightDifferences()) {
-      if (cell.getElement() instanceof ElementDrop) {
-        final ElementDrop element = (ElementDrop) cell.getElement();
+    if (cell.getElement() instanceof ElementDrop) {
+      final ElementDrop element = (ElementDrop) cell.getElement();
+      if (element.highlightDifferences()) {
         if (element.isNew() || element.isChanged()) {
           cell.setBackground(JSureClientUtility.getDiffHighlightColorNewChanged());
           return;
@@ -100,35 +100,36 @@ public final class ColumnLabelProviderUtility {
     public void update(ViewerCell cell) {
       highlightRowHelper(cell);
 
-      final ScanDifferences diff = Element.getScanDifferences();
-      if (diff != null && cell.getElement() instanceof ElementDrop) {
+      if (cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();
-        String cellText = null;
-        Image cellImage = null;
-        if (element.isNew()) {
-          cellImage = SLImages.getGrayscaleImage(element.getElementImage());
-          cellText = "New";
-        } else if (element.isOld()) {
-          cellImage = SLImages.getGrayscaleImage(element.getElementImage());
-          cellText = "Obsolete (only in the old scan)";
-        } else {
-          final IDrop oldDrop = element.getChangedFromDropOrNull();
-          if (oldDrop != null) {
-            cellImage = SLImages.getGrayscaleImage(element.getElementImageChangedFromDropOrNull());
-            cellText = "Changed";
-            final String whatChanged = ScanDifferences.getMessageAboutWhatChanged(element.getChangedFromDropOrNull(),
-                element.getDrop());
-            if (whatChanged != null) {
-              cellText += " to " + whatChanged;
+        if (element.getScanDifferences() != null) {
+          String cellText = null;
+          Image cellImage = null;
+          if (element.isNew()) {
+            cellImage = SLImages.getGrayscaleImage(element.getElementImage());
+            cellText = "New";
+          } else if (element.isOld()) {
+            cellImage = SLImages.getGrayscaleImage(element.getElementImage());
+            cellText = "Obsolete (only in the old scan)";
+          } else {
+            final IDrop oldDrop = element.getChangedFromDropOrNull();
+            if (oldDrop != null) {
+              cellImage = SLImages.getGrayscaleImage(element.getElementImageChangedFromDropOrNull());
+              cellText = "Changed";
+              final String whatChanged = ScanDifferences.getMessageAboutWhatChanged(element.getChangedFromDropOrNull(),
+                  element.getDrop());
+              if (whatChanged != null) {
+                cellText += " to " + whatChanged;
+              }
             }
           }
-        }
-        if (cellImage != null) {
-          cell.setImage(cellImage);
-        }
-        if (cellText != null) {
-          cell.setText(cellText);
-          cell.setForeground(JSureClientUtility.getSubtleTextColor());
+          if (cellImage != null) {
+            cell.setImage(cellImage);
+          }
+          if (cellText != null) {
+            cell.setText(cellText);
+            cell.setForeground(JSureClientUtility.getSubtleTextColor());
+          }
         }
       }
     }

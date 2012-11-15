@@ -9,7 +9,7 @@ import com.surelogic.Nullable;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ScanDifferences;
 
-public abstract class Element {
+public abstract class Element implements IViewDiffState {
 
   /**
    * Compares elements by their label.
@@ -33,74 +33,6 @@ public abstract class Element {
    */
   public static final Element[] EMPTY = new Element[0];
 
-  /**
-   * Provides scan differences to all elements, {@code null} if none no scan
-   * difference information is available.
-   * <p>
-   * <i>Implementation Note:</i> This field probably doesn't need to be
-   * volatile, however scan differences are not always passed in the same thread
-   * context as the user interface.
-   */
-  @Nullable
-  private static volatile ScanDifferences f_diff;
-
-  /**
-   * Sets the scan differences for all elements, {@code null} if none no scan
-   * difference information is available.
-   * 
-   * @param value
-   *          scan differences for all elements, {@code null} if none no scan
-   *          difference information is available.
-   */
-  public static void setScanDifferences(@Nullable ScanDifferences value) {
-    f_diff = value;
-  }
-
-  /**
-   * Gets the scan differences for all elements, {@code null} if none no scan
-   * difference information is available.
-   * 
-   * @return the scan differences for all elements, {@code null} if none no scan
-   *         difference information is available.
-   */
-  @Nullable
-  public static ScanDifferences getScanDifferences() {
-    return f_diff;
-  }
-
-  /**
-   * {@code true} if scan differences should be highlighted in the tree,
-   * {@code false} if not.
-   * <p>
-   * This may be toggled on an existing model to change the display.
-   * <p>
-   * <i>Implementation Note:</i> This field probably doesn't need to be
-   * volatile, however scan differences are not always passed in the same thread
-   * context as the user interface.
-   */
-  private static volatile boolean f_highlightDifferences;
-
-  /**
-   * Sets if scan differences should be highlighted.
-   * 
-   * @param value
-   *          {@code true} if scan differences should be highlighted in the
-   *          tree, {@code false} if not.
-   */
-  public static void setHighlightDifferences(boolean value) {
-    f_highlightDifferences = value;
-  }
-
-  /**
-   * Gets if scan differences should be highlighted.
-   * 
-   * @return {@code true} if scan differences should be highlighted in the tree,
-   *         {@code false} if not.
-   */
-  public static boolean highlightDifferences() {
-    return f_highlightDifferences;
-  }
-
   @Nullable
   private final Element f_parent;
 
@@ -115,8 +47,21 @@ public abstract class Element {
     return f_parent;
   }
 
-  protected Element(Element parent) {
+  @Nullable
+  private final IViewDiffState f_viewDiffState;
+
+  @Nullable
+  public final ScanDifferences getScanDifferences() {
+    return f_viewDiffState == null ? null : f_viewDiffState.getScanDifferences();
+  }
+
+  public boolean highlightDifferences() {
+    return f_viewDiffState == null ? false : f_viewDiffState.highlightDifferences();
+  }
+
+  protected Element(@Nullable Element parent, @Nullable IViewDiffState viewDiffState) {
     f_parent = parent;
+    f_viewDiffState = viewDiffState;
   }
 
   abstract void addChild(Element child);
