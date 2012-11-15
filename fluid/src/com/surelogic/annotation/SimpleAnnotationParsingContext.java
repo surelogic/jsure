@@ -249,7 +249,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
   }
   
   private boolean ignoreIssue() {
-	  if (XUtil.useExperimental()) {
+	  if (XUtil.useExperimental) {
 		  return false;
 	  }
 	  return JavaNode.isSet(getModifiers(), JavaNode.IMPLICIT);

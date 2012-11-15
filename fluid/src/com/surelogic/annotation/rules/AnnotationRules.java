@@ -310,7 +310,7 @@ public abstract class AnnotationRules {
 	}
 
 	public static boolean ignoreNode(IAASTNode n) {
-		if (XUtil.useExperimental()) {
+		if (XUtil.useExperimental) {
 			return false;
 		}
 		final IAASTRootNode root = n.getRoot();

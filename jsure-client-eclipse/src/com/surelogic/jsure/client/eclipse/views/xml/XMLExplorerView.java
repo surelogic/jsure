@@ -278,7 +278,7 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
     manager.add(f_actionExpand);
     manager.add(f_actionCollapse);
 
-    if (XUtil.useExperimental()) {
+    if (XUtil.useExperimental) {
       final Object o = s.getFirstElement();
       if (o instanceof Filterable) {
         final Filterable t = (Filterable) o;

@@ -386,7 +386,7 @@ public final class JSureDataDirHub {
               currentScanInfo.getDropInfo(); // force loading
 
               JSureScan last = null;
-              if (XUtil.useExperimental()) {
+              if (XUtil.useExperimental) {
                 last = OracleUtility.findOracle(currentScanInfo.getJSureRun());
               }
               if (last == null) {

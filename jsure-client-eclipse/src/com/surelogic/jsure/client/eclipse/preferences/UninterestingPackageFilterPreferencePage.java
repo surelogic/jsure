@@ -170,7 +170,7 @@ public class UninterestingPackageFilterPreferencePage extends PreferencePage imp
     final List<String> filters = getTableContents();
     UninterestingPackageFilterUtility.setPreference(filters, true);
 
-    if (XUtil.useExperimental()) {
+    if (XUtil.useExperimental) {
       /*
        * We dump the list to the console so the default value can be cut an
        * pasted into the jsure-core-eclipse project. The value is defined as

@@ -232,7 +232,7 @@ public final class AnalysisSelectionPreferencePage extends
 		 * @return false if not production, or if category=required
 		 */
 		private boolean computeVisibility(IAnalysisInfo am) {
-			if (XUtil.useExperimental()) {
+			if (XUtil.useExperimental) {
 				return true;
 			}
 			return am.isProduction() && !isRequired(am);
@@ -244,7 +244,7 @@ public final class AnalysisSelectionPreferencePage extends
 
 		private PreferenceTreeNode[] filterNodes(Set<PreferenceTreeNode> nodes) {
 			int numVisible = 0;
-			if (XUtil.useExperimental()) {
+			if (XUtil.useExperimental) {
 				numVisible = nodes.size();
 			} else {
 				for (PreferenceTreeNode n : nodes) {
