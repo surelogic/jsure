@@ -34,6 +34,7 @@ import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.apache.commons.lang3.SystemUtils;
 
+import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.analysis.GroupedAnalysis;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.IIRAnalysis;
@@ -362,10 +363,8 @@ public class Util {
     }
 
     // IDE.getInstance().setDefaultClassPath(project); // TODO
-
-    final int numThreads = IDE.getInstance().getIntPreference(IDEPreferences.ANALYSIS_THREAD_COUNT);
-    final boolean singleThreaded = !wantToRunInParallel || SystemUtils.IS_JAVA_1_5 || numThreads < 2;
-    final ForkJoinExecutor pool = singleThreaded ? null : new ForkJoinPool(numThreads);
+    final boolean singleThreaded = !wantToRunInParallel || ConcurrentAnalysis.singleThreaded;
+    final ForkJoinExecutor pool = singleThreaded ? null : ConcurrentAnalysis.pool;
     System.out.println("singleThread = " + singleThreaded);
     ScopedPromisesLexer.init();
     SLAnnotationsLexer.init();
