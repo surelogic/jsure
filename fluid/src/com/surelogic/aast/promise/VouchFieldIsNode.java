@@ -61,17 +61,25 @@ public final class VouchFieldIsNode extends AASTRootNode {
 		  final String reason = getReason();
 			sb.append("Vouch(\"");
 			if (reason.length() == 0) {
-  			sb.append(getKind());
+  			sb.append(getKindAsString());
   			sb.append("\")");
 			} else {
 			  sb.append("Vouch(value=\"");
-			  sb.append(getKind().toString());
+			  sb.append(getKindAsString());
 			  sb.append("\", reason=\"");
 			  sb.append(reason);
 			  sb.append("\")");
 			}
 		}
 		return sb.toString();
+  }
+  
+  private String getKindAsString() {
+	  FieldKind k = getKind();
+	  if (k == FieldKind.Final) {
+		  return "final";
+	  }
+	  return k.toString();
   }
   
   public String unparseForPromise() {
