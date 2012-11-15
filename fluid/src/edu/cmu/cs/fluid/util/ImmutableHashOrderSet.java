@@ -20,7 +20,7 @@ import com.surelogic.common.logging.SLLogger;
 //@SuppressWarnings("all")
 public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
 {
-  public static final boolean debug = false; //XUtil.useExperimental();
+  public static final boolean debug = false; //XUtil.useExperimental;
 
   /** This array holds exactly the elements in the set (or not in
    * the set if inverse is true.  They are sorted by hashCode.

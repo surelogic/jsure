@@ -54,16 +54,14 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   /*
   static int cached, total;
   */
-  private final HashMap<Pair<IJavaType, IJavaType>, Boolean> subTypeCache = 
-	  new HashMap<Pair<IJavaType,IJavaType>, Boolean>();
+  private final Map<Pair<IJavaType, IJavaType>, Boolean> subTypeCache = 
+	  new ConcurrentHashMap<Pair<IJavaType,IJavaType>, Boolean>();
   
   public void clearCaches(boolean clearAll) {
 	  objectType.set(null);
 	  stringType = null;
 	  convertedTypeCache.clear();
-	  synchronized (subTypeCache) {
-		  subTypeCache.clear();
-	  }
+	  subTypeCache.clear();
   }
   
   public static void printStats() {
@@ -586,14 +584,12 @@ private long parseIntLiteral(String token) {
   protected boolean isSubType(IJavaType s, IJavaType t, final boolean ignoreGenerics) {
 	if (!ignoreGenerics) {
 		//total++;
-		synchronized (subTypeCache) {
-			Boolean result = subTypeCache.get(Pair.getInstance(s, t));
+		Boolean result = subTypeCache.get(Pair.getInstance(s, t));
 
-			if (result != null) {
-				//cached++;
-				return result.booleanValue();
-			}
-		}
+		if (result != null) {
+			//cached++;
+			return result.booleanValue();
+		}		
 	}
 	if (s == null || t == null) {
 		// LOG.severe("isSubType() s = "+s+", t = "+t);
@@ -683,9 +679,7 @@ private long parseIntLiteral(String token) {
 		return result = false;
 	} finally {
 		if (!ignoreGenerics) {
-			synchronized (subTypeCache) {
-				subTypeCache.put(Pair.getInstance(s, t), result);
-			}
+			subTypeCache.put(Pair.getInstance(s, t), result);			
 		}
 	}
   }

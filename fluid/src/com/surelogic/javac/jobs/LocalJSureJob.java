@@ -98,7 +98,7 @@ public class LocalJSureJob extends AbstractLocalSLJob {
 	protected void finishSetupJVM(boolean debug, CommandlineJava cmdj, Project proj) {			
 		cmdj.createVmArgument().setValue("-Dfluid.ir.versioning=Versioning."+(JJNode.versioningIsOn ? "On" : "Off"));
 		
-		if (XUtil.useExperimental()) {
+		if (XUtil.useExperimental) {
 			cmdj.createVmArgument().setValue("-DSureLogicX=true");
 		}
 		if (XUtil.testing) {

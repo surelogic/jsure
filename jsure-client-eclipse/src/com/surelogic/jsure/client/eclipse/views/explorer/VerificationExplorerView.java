@@ -40,6 +40,7 @@ import org.eclipse.ui.progress.UIJob;
 import com.surelogic.NonNull;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -145,12 +146,14 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     columnTree.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_TREE_WIDTH));
     columnTree.getColumn().addControlListener(
         new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_TREE_WIDTH));
-    final TreeViewerColumn columnPosition = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
-    columnPosition.setLabelProvider(ColumnLabelProviderUtility.POSITION);
-    columnPosition.getColumn().setText("Position");
-    columnPosition.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
-    columnPosition.getColumn().addControlListener(
-        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
+    if (XUtil.useExperimental) {
+      final TreeViewerColumn columnPosition = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
+      columnPosition.setLabelProvider(ColumnLabelProviderUtility.POSITION);
+      columnPosition.getColumn().setText("Position");
+      columnPosition.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
+      columnPosition.getColumn().addControlListener(
+          new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
+    }
     final TreeViewerColumn columnLine = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnLine.setLabelProvider(ColumnLabelProviderUtility.LINE);
     columnLine.getColumn().setText("Line");

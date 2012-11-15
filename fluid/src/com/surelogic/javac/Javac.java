@@ -51,7 +51,7 @@ public class Javac extends IDE {
 				"com.surelogic.jsure.client.eclipse.ThreadEffectAssurance2", true, "Thread effects");
 		init(LayersAnalysis.class,
 				"com.surelogic.jsure.client.eclipse.LayersAssurance", true, "Static structure");
-		if (XUtil.useExperimental()) {
+		if (XUtil.useExperimental) {
 			init(StructureAnalysis.class,
 				"com.surelogic.jsure.client.eclipse.StructureAssurance", false, "Structure analysis");
 		}

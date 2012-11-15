@@ -83,8 +83,7 @@ public final class DropTypeUtility {
   }
 
   private static Class<?> cacheMapping(String orig, Class<?> cls) {
-    String name = Entity.internString(orig);
-    NAME_TO_CLASS.put(name, cls);
+    NAME_TO_CLASS.put(orig, cls);
     return cls;
   }
 

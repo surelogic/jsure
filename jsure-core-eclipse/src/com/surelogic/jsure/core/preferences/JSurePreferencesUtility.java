@@ -88,9 +88,6 @@ public final class JSurePreferencesUtility {
 
       EclipseUtility.setDefaultBooleanPreference(SAVE_DIRTY_EDITORS_BEFORE_VERIFY, false);
 
-      EclipseUtility.setDefaultBooleanPreference(PROPOSED_PROMISES_AS_TREE, true);
-      EclipseUtility.setDefaultBooleanPreference(PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY, true);
-
       EclipseUtility.setDefaultBooleanPreference(VSTATUS_SHOW_HINTS, true);
       EclipseUtility.setDefaultBooleanPreference(VSTATUS_HIGHLIGHT_DIFFERENCES, true);
       EclipseUtility.setDefaultIntPreference(VSTATUS_TREE_WIDTH, 300);
@@ -110,6 +107,10 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultIntPreference(VEXPLORER_COL_POSITION_WIDTH, 100);
       EclipseUtility.setDefaultIntPreference(VEXPLORER_COL_LINE_WIDTH, 40);
       EclipseUtility.setDefaultIntPreference(VEXPLORER_COL_DIFF_WIDTH, 200);
+
+      EclipseUtility.setDefaultBooleanPreference(PROPOSED_ANNOTATIONS_SHOW_ABDUCTIVE_ONLY, true);
+      EclipseUtility.setDefaultIntPreference(PROPOSED_ANNO_COL_TREE_WIDTH, 300);
+      EclipseUtility.setDefaultIntPreference(PROPOSED_ANNO_COL_LINE_WIDTH, 40);
 
       /*
        * We'll take the default-default for the other preferences.
@@ -133,12 +134,9 @@ public final class JSurePreferencesUtility {
 
   public static final String CURRENT_SCAN = PREFIX + "current.scan";
 
-  // OLD
-  public static final String PROPOSED_PROMISES_AS_TREE = PREFIX + "proposed.promises.as.tree";
-  public static final String PROPOSED_PROMISES_SHOW_ABDUCTIVE_ONLY = PREFIX + "proposed.promises.show.abductive.only";
-  
-  public static final String PROPOSED_ANNOTATIONS_SHOW_AS_TREE = PREFIX + "proposed.annotations.show.as.tree";
   public static final String PROPOSED_ANNOTATIONS_SHOW_ABDUCTIVE_ONLY = PREFIX + "proposed.annotations.show.abductive.only";
+  public static final String PROPOSED_ANNO_COL_TREE_WIDTH = PREFIX + "proposed.anno.col.tree.width";
+  public static final String PROPOSED_ANNO_COL_LINE_WIDTH = PREFIX + "proposed.anno.col.line.width";
 
   public static final String VSTATUS_ALPHA_SORT = PREFIX + "verification.status.alpha.sort";
   public static final String VSTATUS_SHOW_HINTS = PREFIX + "verification.status.show.hints";

@@ -173,12 +173,12 @@
 			class="com.surelogic.jsure.client.eclipse.views.problems.ProblemsView"
 			id="com.surelogic.jsure.client.eclipse.views.problems.ProblemsView">
 		</view>
-
-		<view name="Proposed Annotations (Old)" allowMultiple="false"
+		
+		<view name="Proposed Annotations" allowMultiple="false"
 			icon="platform:/plugin/com.surelogic.common/lib/images/annotation_proposed.gif"
 			category="com.surelogic.jsure"
-			class="com.surelogic.jsure.client.eclipse.views.proposals.ProposedPromiseViewOld"
-			id="com.surelogic.jsure.client.eclipse.views.proposals.ProposedPromiseViewOld">
+			class="com.surelogic.jsure.client.eclipse.views.proposals.ProposedAnnotationView"
+			id="com.surelogic.jsure.client.eclipse.views.proposals.ProposedAnnotationView">
 		</view>
 	</extension>
 

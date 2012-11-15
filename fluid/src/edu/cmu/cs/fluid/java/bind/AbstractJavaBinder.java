@@ -1,24 +1,98 @@
 /*$Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/bind/AbstractJavaBinder.java,v 1.145 2008/11/21 16:40:43 chance Exp $*/
 package edu.cmu.cs.fluid.java.bind;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 
-import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.SlotUndefinedException;
+import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaGlobals;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.Selector;
-import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.util.*;
+import edu.cmu.cs.fluid.java.operator.Annotation;
+import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
+import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.Arguments;
+import edu.cmu.cs.fluid.java.operator.ArrayType;
+import edu.cmu.cs.fluid.java.operator.Call;
+import edu.cmu.cs.fluid.java.operator.CatchClause;
+import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.ClassExpression;
+import edu.cmu.cs.fluid.java.operator.ClassType;
+import edu.cmu.cs.fluid.java.operator.CompilationUnit;
+import edu.cmu.cs.fluid.java.operator.ConstructorCall;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.DeclStatement;
+import edu.cmu.cs.fluid.java.operator.DemandName;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
+import edu.cmu.cs.fluid.java.operator.Expression;
+import edu.cmu.cs.fluid.java.operator.Extensions;
+import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.ForEachStatement;
+import edu.cmu.cs.fluid.java.operator.IAcceptor;
+import edu.cmu.cs.fluid.java.operator.IllegalCode;
+import edu.cmu.cs.fluid.java.operator.Implements;
+import edu.cmu.cs.fluid.java.operator.ImplicitReceiver;
+import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.Name;
+import edu.cmu.cs.fluid.java.operator.NameExpression;
+import edu.cmu.cs.fluid.java.operator.NameType;
+import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
+import edu.cmu.cs.fluid.java.operator.NamedType;
+import edu.cmu.cs.fluid.java.operator.NewExpression;
+import edu.cmu.cs.fluid.java.operator.NormalEnumConstantDeclaration;
+import edu.cmu.cs.fluid.java.operator.OuterObjectSpecifier;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.PrimitiveType;
+import edu.cmu.cs.fluid.java.operator.QualifiedName;
+import edu.cmu.cs.fluid.java.operator.QualifiedSuperExpression;
+import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
+import edu.cmu.cs.fluid.java.operator.Resources;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
+import edu.cmu.cs.fluid.java.operator.Statement;
+import edu.cmu.cs.fluid.java.operator.StaticDemandName;
+import edu.cmu.cs.fluid.java.operator.StaticImport;
+import edu.cmu.cs.fluid.java.operator.SwitchStatement;
+import edu.cmu.cs.fluid.java.operator.ThisExpression;
+import edu.cmu.cs.fluid.java.operator.TryResource;
+import edu.cmu.cs.fluid.java.operator.Type;
+import edu.cmu.cs.fluid.java.operator.TypeActuals;
+import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeDeclarationStatement;
+import edu.cmu.cs.fluid.java.operator.TypeFormals;
+import edu.cmu.cs.fluid.java.operator.TypeRef;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.operator.VariableResource;
+import edu.cmu.cs.fluid.java.operator.Visitor;
+import edu.cmu.cs.fluid.java.operator.VoidType;
+import edu.cmu.cs.fluid.java.util.BindUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.*;
+import edu.cmu.cs.fluid.util.ImmutableList;
+import edu.cmu.cs.fluid.util.Iteratable;
+import edu.cmu.cs.fluid.util.IteratorUtil;
 import edu.cmu.cs.fluid.util.Stack;
 import edu.cmu.cs.fluid.version.Version;
 
@@ -82,10 +156,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   public static long partialTime, fullTime;
   
   public static void printStats() {
-	  if (XUtil.useDeveloperMode()) {
-		  SLLogger.getLogger().log(Level.INFO,"partial = "+numPartial);
-		  SLLogger.getLogger().log(Level.INFO,"full = "+numFull);
-	  }
+    if (XUtil.useExperimental) {
+      SLLogger.getLogger().log(Level.INFO, "partial bindings = " + numPartial);
+      SLLogger.getLogger().log(Level.INFO, "full bindings = " + numFull);
+    }
   }
   
   protected final IJavaClassTable classTable;

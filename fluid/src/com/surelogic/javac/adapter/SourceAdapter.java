@@ -97,7 +97,6 @@ import edu.cmu.cs.fluid.java.util.DeclFactory;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.IllegalChildException;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.IntegerTable;
 
 public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode, CodeContext> {
   public static final boolean includeQuotesInStringLiteral = true;
@@ -143,18 +142,18 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     try {
       CodeInfo info = new CodeInfo(jp.getTypeEnv(), cuRef, result, null, cuRef.getURI().toString(), srcCode,
           asBinary ? IJavaFileLocator.Type.INTERFACE : IJavaFileLocator.Type.SOURCE);
-	  computeMetrics(info);
+	  computeMetrics(info, srcCode);
       return info;
     } finally {
       resetACEInfo(cut);
     }
   }
 
-  private void computeMetrics(CodeInfo info) {
-	info.setProperty(CodeInfo.SEMICOLONS, count(info.getSource(), ';'));
-	countLines(info);
+  private void computeMetrics(CodeInfo info, String src) {
+	info.setProperty(CodeInfo.SEMICOLONS, count(src, ';'));
+	countLines(info, src);
 	countAST(info);
-	System.out.println("Metrics for "+info.getFileName());
+	//System.out.println("Metrics for "+info.getFileName());
   }
 
   private void countAST(CodeInfo info) {
@@ -173,8 +172,8 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 	info.setProperty(CodeInfo.STMTS, stmts);
   }
 
-  private void countLines(CodeInfo info) {
-	Reader r = new StringReader(info.getSource());
+  private void countLines(CodeInfo info, String src) {
+	Reader r = new StringReader(src);
 	BufferedReader br = new BufferedReader(r);
 	int count = 0, blank = 0;
 	String line;

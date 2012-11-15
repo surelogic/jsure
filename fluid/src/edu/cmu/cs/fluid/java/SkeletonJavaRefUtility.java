@@ -105,23 +105,45 @@ public final class SkeletonJavaRefUtility {
     IJavaRef buildOrNullOnFailure(@NonNull IRNode node);
   }
 
-  static final class JavaRefBinaryBuilder implements JavaRefSkeletonBuilder {
-    private final DeclFactory f_factory;
-    private final int f_lineNumber;
+  static abstract class AbstractBuilder implements JavaRefSkeletonBuilder {
+	private final DeclFactory f_factory; 
+    final int f_lineNumber;
+    /**
+     * Caching allows copies to return the same IJavaRef
+     */
+    // breaks handling of receiver/return nodes
+    //private IJavaRef cache = null;
+    
+    AbstractBuilder(DeclFactory f, int lineNumber) {
+      f_factory = f;
+      f_lineNumber = lineNumber;
+    }
+    
+    public final IJavaRef buildOrNullOnFailure(@NonNull IRNode node) {
+      /*
+      if (cache != null) {
+    	return cache;
+      }
+      */   	
+      final Pair<IDecl, IJavaRef.Position> pair = f_factory.getDeclAndPosition(node);
+      if (pair == null) {
+    	SLLogger.getLogger().warning(I18N.err(289, DebugUnparser.unparseCode(node), new Exception()));
+    	return null;
+      }   
+      return /*cache =*/ build(pair);
+    }
+    abstract IJavaRef build(@NonNull Pair<IDecl, IJavaRef.Position> pair);
+  }
+  
+  static final class JavaRefBinaryBuilder extends AbstractBuilder {
     private final ClassResource f_resource;
 
     private JavaRefBinaryBuilder(DeclFactory f, ClassResource resource, int lineNumber) {
-      f_factory = f;
+      super(f, lineNumber);
       f_resource = resource;
-      f_lineNumber = lineNumber;
     }
 
-    public IJavaRef buildOrNullOnFailure(@NonNull IRNode node) {
-      final Pair<IDecl, IJavaRef.Position> pair = f_factory.getDeclAndPosition(node);
-      if (pair == null) {
-        SLLogger.getLogger().warning(I18N.err(289, DebugUnparser.unparseCode(node), new Exception()));
-        return null;
-      }
+    IJavaRef build(@NonNull Pair<IDecl, IJavaRef.Position> pair) {
       final JavaRef.Builder b = new JavaRef.Builder(pair.first());
       b.setPositionRelativeToDeclaration(pair.second());
       b.setLineNumber(f_lineNumber);
@@ -134,28 +156,19 @@ public final class SkeletonJavaRefUtility {
     }
   }
 
-  static final class JavaRefSourceBuilder implements JavaRefSkeletonBuilder {
-
-    private final DeclFactory f_factory;
-    private final int f_lineNumber;
+  static final class JavaRefSourceBuilder extends AbstractBuilder {
     private final int f_offset;
     private final int f_length;
     private final FileResource f_fileResource;
 
     private JavaRefSourceBuilder(DeclFactory f, FileResource fileResource, int lineNumber, int offset, int length) {
-      f_factory = f;
+      super(f, lineNumber);
       f_fileResource = fileResource;
-      f_lineNumber = lineNumber;
       f_offset = offset;
       f_length = length;
     }
 
-    public IJavaRef buildOrNullOnFailure(@NonNull IRNode node) {
-      final Pair<IDecl, IJavaRef.Position> pair = f_factory.getDeclAndPosition(node);
-      if (pair == null) {
-        SLLogger.getLogger().warning(I18N.err(289, DebugUnparser.unparseCode(node), new Exception()));
-        return null;
-      }
+    IJavaRef build(@NonNull Pair<IDecl, IJavaRef.Position> pair) {
       final JavaRef.Builder b = new JavaRef.Builder(pair.first());
       b.setPositionRelativeToDeclaration(pair.second());
       b.setLineNumber(f_lineNumber);
