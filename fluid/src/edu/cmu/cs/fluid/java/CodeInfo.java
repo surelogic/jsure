@@ -22,7 +22,7 @@ public final class CodeInfo {
   private final ICompilationUnitNode cun;
   private final String filename;
   private final ICodeFile file;
-  private final String source;
+  //private final String source;
   private final Type type;
   private final Object hostEnvResource;
   private final ITypeEnvironment tEnv;
@@ -39,7 +39,7 @@ public final class CodeInfo {
     n = node;
     cun = icu;
     filename = javaOSFileName;
-    source = src;
+    //source = src;
     type = t;
     hostEnvResource = (file == null) ? null : file.getHostEnvResource();
   }
@@ -70,9 +70,11 @@ public final class CodeInfo {
   public ICodeFile getFile() {  
     return file;
   } 
+  /*
   public String getSource() {
     return source;
   }
+  */
   public Object setProperty(Object key, Object value) {
     return properties.put(key, value);
   }

@@ -91,6 +91,7 @@ import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
 import edu.cmu.cs.fluid.java.adapter.AdapterUtil;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 import edu.cmu.cs.fluid.java.bind.AbstractTypeEnvironment;
@@ -1248,7 +1249,7 @@ public class Util {
     for (CodeInfo info : new ArrayList<CodeInfo>(cus.asList())) {
       // TODO Check for package-info files
       // Check for sources
-      if (info.getSource() != null) {
+      if (info.getType() == Type.SOURCE) { // TODO what about interfaces?
         CUDrop d;
         if (info.getFileName().endsWith(PACKAGE_INFO_JAVA)) {
           d = PackageDrop.findPackage(info.getFile().getPackage());
