@@ -13,6 +13,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -111,9 +112,10 @@ public class DiffHeuristics {
       final IJavaRef closestRef) {
     final IJavaRef here = loc.first();
     final boolean useDecl = closestDecl == loc.second() || c.drop instanceof IPromiseDrop || c.drop instanceof IModelingProblemDrop
-        || AnonClassExpression.prototype.includes(closestDecl)
         || here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RECEIVER
-        || here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RETURN_VALUE;
+        || here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RETURN_VALUE
+        || ClassInitDeclaration.prototype.includes(loc.second())
+        || AnonClassExpression.prototype.includes(closestDecl);
     final IRNode start = useDecl ? closestDecl : computeFirstInterestingNodeInDecl(closestDecl);
     final IJavaRef startRef = useDecl ? closestRef : JavaNode.getJavaRef(start);
     if (c.isNull("start", start, closestRef) || c.isNull("start ref", startRef, closestRef)
