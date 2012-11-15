@@ -559,8 +559,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       */
     } else if (ty instanceof IJavaWildcardType) {
       IJavaWildcardType wt = (IJavaWildcardType) ty;
-      if (wt.getLowerBound() != null) {
-        return typeScope(wt.getLowerBound());  
+      if (wt.getUpperBound() != null) {
+        return typeScope(wt.getUpperBound());  
       }
       /* // Could be any supertype of T, including Object
       else if (wt.getUpperBound() != null) {
@@ -580,7 +580,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  sc = new IJavaScope.ShadowingScope(sc, typeScope(ct.getLowerBound()));
       }
       */
-      return typeScope(ct.getUpperBound());
+      return typeScope(ct.getLowerBound());
     } else if (ty instanceof IJavaPrimitiveType) {
       // Handling non-canonicalized code
       IJavaPrimitiveType pty = (IJavaPrimitiveType) ty;
@@ -1868,7 +1868,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
               IJavaType superT  = f.getSuperclass(getTypeEnvironment());
               if (asWildcard && superT instanceof IJavaReferenceType) {
                 IJavaReferenceType superRefT = (IJavaReferenceType) superT;
-                newParams.add(JavaTypeFactory.getWildcardType(superRefT, null));
+                newParams.add(JavaTypeFactory.getWildcardType(null, superRefT));
               } else {
                 newParams.add(superT);
               }

@@ -72,7 +72,7 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
 
       Capture conversion is not applied recursively.
       */
-      if (wt.getLowerBound() != null) {
+      if (wt.getUpperBound() != null) {
     	  // If Ti is a wildcard type argument of the form ? extends Bi, 
     	  // then Si is a fresh type variable whose upper bound is glb(Bi, Ui[A1 := S1, ..., An := Sn]) 
     	  // and whose lower bound is the null type, where glb(V1,... ,Vm) is V1 & ... & Vm. 
@@ -80,14 +80,14 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
     	  
     	  // Note that the code below considers the type formals' bounds separately when computing the greatest lower bound
     	  IRNode irBounds        = TypeFormal.getBounds(decl);   
-    	  IJavaReferenceType glb = JavaTypeFactory.computeGreatestLowerBound(binder, wt.getLowerBound(), irBounds);
+    	  IJavaReferenceType glb = JavaTypeFactory.computeGreatestLowerBound(binder, wt.getUpperBound(), irBounds);
     	  return JavaTypeFactory.getCaptureType(wt, JavaTypeFactory.nullType, glb); // 
       } else {
     	  IJavaReferenceType formalBound = (IJavaReferenceType) jtf.getSuperclass(binder.getTypeEnvironment());
-    	  if (wt.getUpperBound() != null) {      
+    	  if (wt.getLowerBound() != null) {      
     		  // If Ti is a wildcard type argument of the form ? super Bi, 
     		  // then Si is a fresh type variable whose upper bound is Ui[A1 := S1, ..., An := Sn] and whose lower bound is Bi.
-    		  return JavaTypeFactory.getCaptureType(wt, wt.getUpperBound(), formalBound);
+    		  return JavaTypeFactory.getCaptureType(wt, wt.getLowerBound(), formalBound);
     	  } else {
     		  // If Ti is a wildcard type argument (§4.5.1) of the form ? 
     		  // then Si is a fresh type variable whose upper bound is Ui[A1 := S1, ..., An := Sn] and whose lower bound is the null type.

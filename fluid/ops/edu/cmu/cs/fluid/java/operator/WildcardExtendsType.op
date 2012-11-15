@@ -1,10 +1,10 @@
 # $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/WildcardExtendsType.op,v 1.3 2005/05/26 18:10:40 chance Exp $
 public operator WildcardExtendsType extends WildcardType {
   syntax {
-    "?" "extends" lower:Type
+    "?" "extends" upper:Type
   }
   
-  public IRNode getLowerBound(IRNode n) {
-    return getLower(n);
+  public IRNode getUpperBound(IRNode n) {
+    return getUpper(n);
   }
 }

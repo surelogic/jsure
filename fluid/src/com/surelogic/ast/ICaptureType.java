@@ -3,6 +3,6 @@ package com.surelogic.ast;
 
 public interface ICaptureType extends IDerivedRefType {
   public IWildcardType getWildcard();
-  public IReferenceType getLowerBound();
   public IReferenceType getUpperBound();
+  public IReferenceType getLowerBound();
 }

@@ -700,11 +700,11 @@ public class JavaCanonicalizer {
       }
       if (t instanceof IJavaWildcardType) {
         IJavaWildcardType w = (IJavaWildcardType) t;
-        IRNode lower = createType(w.getLowerBound());
+        IRNode lower = createType(w.getUpperBound());
         if (lower != null) {
           return WildcardExtendsType.createNode(lower);
         }
-        IRNode upper = createType(w.getUpperBound());
+        IRNode upper = createType(w.getLowerBound());
         if (upper != null) {
           return WildcardSuperType.createNode(upper);
         }

@@ -97,13 +97,13 @@ public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.Types
         final IJavaWildcardType wildcard = captureType.getWildcard();
         System.out.printf("%sFor wildcard '%s'%n", prefix, wildcard);
         
-        IJavaReferenceType t2 = captureType.getUpperBound();
+        IJavaReferenceType t2 = captureType.getLowerBound();
         if (t2 != null) {
-        	System.out.printf("%sUpperbound '%s', a %s%n",
+        	System.out.printf("%sLowerbound '%s', a %s%n",
         			prefix, t2, getClassName(t2));
         	showType(nextPrefix, t2);
         }
-        IJavaReferenceType t3 = captureType.getLowerBound();
+        IJavaReferenceType t3 = captureType.getUpperBound();
         if (t3 != null) {
         	System.out.printf("%sUpperbound '%s', a %s%n",
         			prefix, t3, getClassName(t3));

@@ -473,11 +473,11 @@ public class JavaTypeFactory implements IRType, Cleanable {
       }
       return rv;
     } else if (op instanceof WildcardSuperType) {
-      IJavaReferenceType st = (IJavaReferenceType) convertNodeTypeToIJavaType(WildcardSuperType.getUpper(nodeType),binder);
-      return getWildcardType(st,null);
-    } else if (op instanceof WildcardExtendsType) {
-      IJavaReferenceType st = (IJavaReferenceType) convertNodeTypeToIJavaType(WildcardExtendsType.getLower(nodeType),binder);
+      IJavaReferenceType st = (IJavaReferenceType) convertNodeTypeToIJavaType(WildcardSuperType.getLower(nodeType),binder);
       return getWildcardType(null,st);
+    } else if (op instanceof WildcardExtendsType) {
+      IJavaReferenceType st = (IJavaReferenceType) convertNodeTypeToIJavaType(WildcardExtendsType.getUpper(nodeType),binder);
+      return getWildcardType(st,null);
     } else if (op instanceof WildcardType) {   
       return getWildcardType(null,null);
     } else if (op instanceof CaptureType) {
@@ -660,8 +660,8 @@ public class JavaTypeFactory implements IRType, Cleanable {
     case 'T': return getTypeFormal(in.readNode());
     case '&': return getIntersectionType((IJavaReferenceType)readValue(in),(IJavaReferenceType)readValue(in));
     case '?': return getWildcardType(null,null);
-    case '-': return getWildcardType((IJavaReferenceType)readValue(in),null);
-    case '+': return getWildcardType(null,(IJavaReferenceType)readValue(in));
+    case '-': return getWildcardType(null,(IJavaReferenceType)readValue(in));
+    case '+': return getWildcardType((IJavaReferenceType)readValue(in),null);
    }
   }
   
@@ -1262,15 +1262,15 @@ class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.IJavaWildcardType#getUpperBound()
    */
-  public IJavaReferenceType getUpperBound() {
-    return upperBound;
+  public IJavaReferenceType getLowerBound() {
+    return lowerBound;
   }
 
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.IJavaWildcardType#getLowerBound()
    */
-  public IJavaReferenceType getLowerBound() {
-    return lowerBound;
+  public IJavaReferenceType getUpperBound() {
+    return upperBound;
   }
   
   @Override
@@ -1308,10 +1308,10 @@ class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
   
   @Override
   public String toString() {
-	  if (lowerBound != null) {
-	      return "? extends "+lowerBound;
-	  } else if (upperBound != null) {
-		  return "? super "+upperBound;
+	  if (upperBound != null) {
+	      return "? extends "+upperBound;
+	  } else if (lowerBound != null) {
+		  return "? super "+lowerBound;
 	  } else {
 		  return "?";
 	  }
@@ -1319,10 +1319,10 @@ class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
   
   @Override
   public String toSourceText() {
-	  if (lowerBound != null) {
-	      return "? extends "+lowerBound.toSourceText();
-	  } else if (upperBound != null) {
-		  return "? super "+upperBound.toSourceText();
+	  if (upperBound != null) {
+	      return "? extends "+upperBound.toSourceText();
+	  } else if (lowerBound != null) {
+		  return "? super "+lowerBound.toSourceText();
 	  } else {
 		  return "?";
 	  }
@@ -1330,10 +1330,10 @@ class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
  
   @Override
   public String toFullyQualifiedText() {
-	  if (lowerBound != null) {
-	      return "? extends "+lowerBound.toFullyQualifiedText();
-	  } else if (upperBound != null) {
-		  return "? super "+upperBound.toFullyQualifiedText();
+	  if (upperBound != null) {
+	      return "? extends "+upperBound.toFullyQualifiedText();
+	  } else if (lowerBound != null) {
+		  return "? super "+lowerBound.toFullyQualifiedText();
 	  } else {
 		  return "?";
 	  }
@@ -1398,12 +1398,12 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
     return wildcard;
   }
 
-  public IJavaReferenceType getUpperBound() {
-	  return upperBound;
+  public IJavaReferenceType getLowerBound() {
+    return lowerBound;
   }
   
-  public IJavaReferenceType getLowerBound() {
-	  return lowerBound;
+  public IJavaReferenceType getUpperBound() {
+    return upperBound;
   }
   
   @Override public IJavaType subst(IJavaTypeSubstitution s) {
@@ -1427,9 +1427,9 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   
   @Override
   public IJavaType getSuperclass(ITypeEnvironment env) {
-    if (lowerBound != null) {
+    if (upperBound != null) {
     	// TODO is this right?
-    	return lowerBound;
+    	return upperBound;
     }
     return wildcard.getSuperclass(env);
   }

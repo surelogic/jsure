@@ -89,7 +89,8 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 		callback = new ElaborationErrorReporter();
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			setWorkProcedure(new Procedure<CompUnitPair>() {
-				public void op(CompUnitPair compUnit) {
+				@Override
+        public void op(CompUnitPair compUnit) {
 					checkEffectsForFile(compUnit.getNode());
 				}				
 			});
@@ -495,6 +496,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	    super();
 	  }
 	  
+    @Override
     public void writeToBorrowedReadOnly(
         final ReadOnlyPromiseDrop pd, final IRNode expr, final Target t) {
       final ResultDrop rd = new ResultDrop(expr);

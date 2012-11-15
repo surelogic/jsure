@@ -413,18 +413,18 @@ private long parseIntLiteral(String token) {
     } 
     if (ty instanceof IJavaCaptureType) {
       IJavaCaptureType ct = (IJavaCaptureType) ty;
-      if (ct.getLowerBound() instanceof IJavaNullType) {
+      if (ct.getUpperBound() instanceof IJavaNullType) {
     	  // JLS 4.10.2: 
     	  // The direct supertypes of the null type are all reference 
     	  // types other than the null type itself.
     	  LOG.info("WARNING: Using upper bound as supertype for capture type "+ct);
-          return new SingletonIterator<IJavaType>(ct.getUpperBound());
+          return new SingletonIterator<IJavaType>(ct.getLowerBound());
       }
-      return new SingletonIterator<IJavaType>(ct.getLowerBound());
+      return new SingletonIterator<IJavaType>(ct.getUpperBound());
     }
     if (ty instanceof IJavaWildcardType) {
       IJavaWildcardType wct = (IJavaWildcardType)ty;
-      IJavaType bt = wct.getLowerBound();
+      IJavaType bt = wct.getUpperBound();
       if (bt != null) {
         return new SingletonIterator<IJavaType>(bt);
       }      
@@ -733,12 +733,12 @@ private long parseIntLiteral(String token) {
       IJavaWildcardType sw = (IJavaWildcardType) ss;
       if (tt instanceof IJavaWildcardType) {
         IJavaWildcardType tw = (IJavaWildcardType) tt;
-        if (sw.getLowerBound() != null) {
-          if (tw.getLowerBound() == null) return true; // was false; (1a)
-          return isSubType(sw.getLowerBound(), tw.getLowerBound()); // (1)
+        if (sw.getUpperBound() != null) {
+          if (tw.getUpperBound() == null) return true; // was false; (1a)
+          return isSubType(sw.getUpperBound(), tw.getUpperBound()); // (1)
         } else {
-          if (tw.getUpperBound() == null) return false; //(2a)
-          return isSubType(tw.getUpperBound(), sw.getUpperBound()); // (2)
+          if (tw.getLowerBound() == null) return false; //(2a)
+          return isSubType(tw.getLowerBound(), sw.getLowerBound()); // (2)
         }
       } else {
         return false;
@@ -746,10 +746,10 @@ private long parseIntLiteral(String token) {
     } else {
       if (!(tt instanceof IJavaWildcardType)) return false;
       IJavaWildcardType tw = (IJavaWildcardType)tt;
-      if (tw.getLowerBound() != null) {
-        return isSubType(ss,tw.getLowerBound()); // (4)
-      } else if (tw.getUpperBound() != null) {        
-        return isSubType(tw.getUpperBound(),ss); // (5)
+      if (tw.getUpperBound() != null) {
+        return isSubType(ss,tw.getUpperBound()); // (4)
+      } else if (tw.getLowerBound() != null) {        
+        return isSubType(tw.getLowerBound(),ss); // (5)
       } else {
         return (ss instanceof IJavaReferenceType); // Anything matches ?
       }
@@ -914,8 +914,8 @@ private long parseIntLiteral(String token) {
     }
     if (ty instanceof IJavaWildcardType) {
       IJavaWildcardType wt = (IJavaWildcardType) ty;
-      if (wt.getLowerBound() != null) {
-        return computeErasure(wt.getLowerBound());
+      if (wt.getUpperBound() != null) {
+        return computeErasure(wt.getUpperBound());
       } 
       return getObjectType();
     }

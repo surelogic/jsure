@@ -46,7 +46,13 @@ public class TypeUtils {
 		return p;		
 	}
 	
-	private IJavaWildcardType getWildcardType(IJavaReferenceType upper, IJavaReferenceType lower) {
+	/* XXX: 2012-11-14 Swapped upper and lower in the formal argument list because
+	 * these were incorrectly reversed in the implementation, and now all calls to
+	 * JavaTypeFactory.getWildcardType() need to reverse the upper and lower
+	 * bounds.  Easier to swap the formals in this method than to fix the
+	 * callsite of this method.
+	 */
+	private IJavaWildcardType getWildcardType(IJavaReferenceType lower, IJavaReferenceType upper) {
 		if (upper == null && tEnv.getObjectType().equals(lower)) {
 			// Simplify
 			return JavaTypeFactory.wildcardType;
@@ -246,11 +252,11 @@ public class TypeUtils {
 	//  lcta(U, ? extends V) = ? extends lub(U, V)
 	//  lcta(U, ? super V) = ? super glb(U, V)
 	private IJavaType getLCTA(IJavaReferenceType u, IJavaWildcardType v) {
-		if (v.getUpperBound() != null) {
-			return getWildcardType(getGreatestLowerBound(u, v.getUpperBound()), null); 
-		}
 		if (v.getLowerBound() != null) {
-			return getWildcardType(null, getLowestUpperBound(u, v.getLowerBound()));
+			return getWildcardType(getGreatestLowerBound(u, v.getLowerBound()), null); 
+		}
+		if (v.getUpperBound() != null) {
+			return getWildcardType(null, getLowestUpperBound(u, v.getUpperBound()));
 		}
 		// TODO does this just simplify to a null/Object bound?
 		return getWildcardType(null, getLowestUpperBound(u, tEnv.getObjectType()));
@@ -261,11 +267,11 @@ public class TypeUtils {
 	//  3. lcta(? super U, ? super V) = ? super glb(U, V)
 	//  where glb() is as defined in (�5.1.10).
 	private IJavaType getLCTA(IJavaWildcardType u, IJavaWildcardType v) {
-		if (u.getUpperBound() != null) {
-			return getLCTA_super(u.getUpperBound(), v);
+		if (u.getLowerBound() != null) {
+			return getLCTA_super(u.getLowerBound(), v);
 		}
-		if (v.getUpperBound() != null) {
-			return getLCTA_super(v.getUpperBound(), u);
+		if (v.getLowerBound() != null) {
+			return getLCTA_super(v.getLowerBound(), u);
 		}
 		// Case 1
 		IJavaReferenceType ub = getLowerBound(u);		
@@ -285,13 +291,13 @@ public class TypeUtils {
 	 * At least one bound is the upper bound
 	 */
 	private IJavaType getLCTA_super(IJavaReferenceType upper, IJavaWildcardType t) {
-		if (t.getUpperBound() != null) {
-			// Case 3
-			return getWildcardType(getGreatestLowerBound(t.getUpperBound(), upper), null); 
-		} 
 		if (t.getLowerBound() != null) {
+			// Case 3
+			return getWildcardType(getGreatestLowerBound(t.getLowerBound(), upper), null); 
+		} 
+		if (t.getUpperBound() != null) {
 			// Case 2
-			return t.getLowerBound().equals(upper) ? t.getLowerBound() : JavaTypeFactory.wildcardType;
+			return t.getUpperBound().equals(upper) ? t.getUpperBound() : JavaTypeFactory.wildcardType;
 		}
 		// FIX case 2?
 		return tEnv.getObjectType().equals(upper) ? tEnv.getObjectType() : JavaTypeFactory.wildcardType;
@@ -594,13 +600,13 @@ public class TypeUtils {
 				// If F has the form G<..., Yk-1, ? extends U, Yk+1, ...>, where U involves Tj,
 				// then if A has a supertype that is one of:
 				IJavaWildcardType f = (IJavaWildcardType) fParam;				
-				IJavaType u = f.getLowerBound();
+				IJavaType u = f.getUpperBound();
 				if (u != null) {
 					if (aParam instanceof IJavaWildcardType) {
 						// G<..., Xk-1, ? extends V, Xk+1, ...>. Then this algorithm is applied recursively
 						// to the constraint V << U.
 						IJavaWildcardType a = (IJavaWildcardType) aParam;
-						IJavaType v = a.getLowerBound();						
+						IJavaType v = a.getUpperBound();						
 						if (v != null) {
 							// U >> V
 							return derive(u, Constraint.CONVERTIBLE_FROM, v);
@@ -615,21 +621,21 @@ public class TypeUtils {
 				// p.455:
 				// If F has the form G<..., Yk-1, ? super U, Yk+1, ...>, where U involves Tj,
 				// then if A has a supertype that is one of:
-				else if (f.getUpperBound() != null) {
+				else if (f.getLowerBound() != null) {
 					if (aParam instanceof IJavaWildcardType) {
 						// G<..., Xk-1, ? super V, Xk+1, ...>. Then this algorithm is applied recursively
 						// to the constraint V >> U.
 						IJavaWildcardType a = (IJavaWildcardType) aParam;
-						IJavaType v = a.getUpperBound();						
+						IJavaType v = a.getLowerBound();						
 						if (v != null) {
 							// U << V
-							return derive(f.getUpperBound(), Constraint.CONVERTIBLE_TO, v);
+							return derive(f.getLowerBound(), Constraint.CONVERTIBLE_TO, v);
 						}
 						// Otherwise, no constraint is implied on Tj.
 					} else {
 						// G<..., Xk-1, V, Xk+1, ...>. Then this algorithm is applied recursively to
 						// the constraint V >> U.
-						return derive(f.getUpperBound(), Constraint.CONVERTIBLE_TO, aParam);
+						return derive(f.getLowerBound(), Constraint.CONVERTIBLE_TO, aParam);
 					}				
 				}
 			} else {
@@ -649,13 +655,13 @@ public class TypeUtils {
 				// If F has the form G<..., Yk-1, ? extends U, Yk+1, ...>, where U involves Tj,
 				// then if A is one of:
 				IJavaWildcardType f = (IJavaWildcardType) fParam;				
-				IJavaType u = f.getLowerBound();
+				IJavaType u = f.getUpperBound();
 				if (u != null) {
 					if (aParam instanceof IJavaWildcardType) {
 						// G<..., Xk-1, ? extends V, Xk+1, ...>. Then this algorithm is applied recursively
 						// to the constraint V = U.
 						IJavaWildcardType a = (IJavaWildcardType) aParam;
-						IJavaType v = a.getLowerBound();						
+						IJavaType v = a.getUpperBound();						
 						if (v != null) {
 							return derive(u, Constraint.EQUAL, v);
 						}						
@@ -664,12 +670,12 @@ public class TypeUtils {
 				}
 				// If F has the form G<..., Yk-1, ? super U, Yk+1 ,...>, where U involves Tj,
 				// then if A is one of:
-				else if (f.getUpperBound() != null) {
+				else if (f.getLowerBound() != null) {
 					if (aParam instanceof IJavaWildcardType) {
 						// G<..., Xk-1, ? super V, Xk+1, ...>. Then this algorithm is applied recursively
 						// to the constraint V = U.
 						IJavaWildcardType a = (IJavaWildcardType) aParam;
-						IJavaType v = a.getUpperBound();						
+						IJavaType v = a.getLowerBound();						
 						if (v != null) {
 							return derive(u, Constraint.EQUAL, v);
 						}
@@ -727,13 +733,13 @@ public class TypeUtils {
 				final IJavaDeclaredType v;
 				if (fParam instanceof IJavaWildcardType) {
 					IJavaWildcardType fw = (IJavaWildcardType) fParam;
-					if (fw.getLowerBound() != null) {
+					if (fw.getUpperBound() != null) {
 						// let V = H<? extends U1, ..., ? extends Ul>[Sk=U]. 
 						v = (IJavaDeclaredType) substitute(subst, transformParametersToWildcards(h, false));
 						// Then this algorithm is applied recursively to the constraint A >> V.
 						return derive(v, Constraint.CONVERTIBLE_TO, a);
 					} 
-					else if (fw.getUpperBound() != null) {
+					else if (fw.getLowerBound() != null) {
 						// let V = H<? super U1, ..., ? super Ul>[Sk=U]. 
 						v = (IJavaDeclaredType) substitute(subst, transformParametersToWildcards(h, true));
 						// Then this algorithm is applied recursively to the constraint A >> V.
@@ -761,22 +767,22 @@ public class TypeUtils {
 				IJavaWildcardType fw = (IJavaWildcardType) fParam;
 				// If F has the form G<..., Yk-1, ? extends U, Yk+1, ...>, 
 				// where U is a type expression that involves Tj, then:
-				if (fw.getLowerBound() != null) {
+				if (fw.getUpperBound() != null) {
 					// Otherwise, if A is of the form G<..., Xk-1, ? extends W, Xk+1, ...>, 
 					// this algorithm is applied recursively to the constraint W >> U.
-					if (aw != null && aw.getLowerBound() != null) {
+					if (aw != null && aw.getUpperBound() != null) {
 						// U << W
-						return derive(fw.getLowerBound(), Constraint.CONVERTIBLE_TO, aw.getLowerBound());
+						return derive(fw.getUpperBound(), Constraint.CONVERTIBLE_TO, aw.getUpperBound());
 					}
 				}
 				// If F has the form G<..., Yk-1, ? super U, Yk+1, ...>, 
 				// where U is a type expression that involves Tj, then A is either:
-				else if (fw.getUpperBound() != null) {					
+				else if (fw.getLowerBound() != null) {					
 					// Otherwise, if A is of the form G<..., Xk-1, ? super W, ..., Xk+1, ...>, 
 					// this algorithm is applied recursively to the constraint W << U.
-					if (aw != null && aw.getUpperBound() != null) {
+					if (aw != null && aw.getLowerBound() != null) {
 						// U >> W
-						return derive(fw.getUpperBound(), Constraint.CONVERTIBLE_FROM, aw.getUpperBound());
+						return derive(fw.getLowerBound(), Constraint.CONVERTIBLE_FROM, aw.getLowerBound());
 					}
 				}				
 			} else { 
@@ -785,15 +791,15 @@ public class TypeUtils {
 				if (aw != null) {
 					// Otherwise, if A is of the form G<..., Xk-1, ? extends W, Xk+1, ...>, 
 					// this algorithm is applied recursively to the constraint W >> U.
-					if (aw.getLowerBound() != null) {
+					if (aw.getUpperBound() != null) {
 						// U << W
-						return derive(fParam, Constraint.CONVERTIBLE_TO, aw.getLowerBound());
+						return derive(fParam, Constraint.CONVERTIBLE_TO, aw.getUpperBound());
 					}
 					// Otherwise, if A is of the form G<..., Xk-1, ? super W, Xk+1, ...>, 
 					// this algorithm is applied recursively to the constraint W << U.
-					else if (aw.getUpperBound() != null) {
+					else if (aw.getLowerBound() != null) {
 						// U >> W
-						return derive(fParam, Constraint.CONVERTIBLE_FROM, aw.getUpperBound());
+						return derive(fParam, Constraint.CONVERTIBLE_FROM, aw.getLowerBound());
 					}
 				} else {
 					// Otherwise, if A is of the form G<..., Xk-1, W, Xk+1, ...>, 
@@ -825,8 +831,8 @@ public class TypeUtils {
 			List<IJavaType> newParameters = new ArrayList<IJavaType>(size);
 			for(int i=0; i<size; i++) {
 				IJavaReferenceType old = (IJavaReferenceType) h.getTypeParameters().get(i);
-				newParameters.add(useAsUpperBounds ? JavaTypeFactory.getWildcardType(old, null) : 
-					                                 JavaTypeFactory.getWildcardType(null, old));
+				newParameters.add(useAsUpperBounds ? JavaTypeFactory.getWildcardType(null, old) : 
+					                                 JavaTypeFactory.getWildcardType(old, null));
 			}
 			return JavaTypeFactory.getDeclaredType(h.getDeclaration(), newParameters, h.getOuterType());
 		}
@@ -1069,16 +1075,16 @@ public class TypeUtils {
     private IJavaReferenceType substituteWildcardType(
     		Map<IJavaType, IJavaType> map, IJavaType fty) {
     	IJavaWildcardType wt     = (IJavaWildcardType) fty;
-    	if (wt.getUpperBound() != null) {
-    		IJavaReferenceType upper = (IJavaReferenceType) substitute(map, wt.getUpperBound());
-    		if (!upper.equals(wt.getUpperBound())) {
-    			return JavaTypeFactory.getWildcardType(upper, null);
-    		}
-    	}
-    	else if (wt.getLowerBound() != null) {
+    	if (wt.getLowerBound() != null) {
     		IJavaReferenceType lower = (IJavaReferenceType) substitute(map, wt.getLowerBound());
     		if (!lower.equals(wt.getLowerBound())) {
     			return JavaTypeFactory.getWildcardType(null, lower);
+    		}
+    	}
+    	else if (wt.getUpperBound() != null) {
+    		IJavaReferenceType upper = (IJavaReferenceType) substitute(map, wt.getUpperBound());
+    		if (!upper.equals(wt.getUpperBound())) {
+    			return JavaTypeFactory.getWildcardType(upper, null);
     		}
     	}
     	return wt;
