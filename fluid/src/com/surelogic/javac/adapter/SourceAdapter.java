@@ -163,6 +163,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 		Operator op = JJNode.tree.getOperator(n);
 		if (op instanceof Declaration) {
 			decls++;
+			continue; // Don't double-count
 		}
 		else if (op instanceof Statement) {
 			stmts++;
