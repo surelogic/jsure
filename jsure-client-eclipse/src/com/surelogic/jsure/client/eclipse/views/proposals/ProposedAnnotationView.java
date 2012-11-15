@@ -19,7 +19,6 @@ import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
@@ -39,7 +38,6 @@ import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.NonNull;
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -49,7 +47,6 @@ import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.Activator;
@@ -70,7 +67,6 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
   private TreeViewer f_treeViewer;
   @NonNull
   private final ProposedAnnotationViewContentProvider f_contentProvider = new ProposedAnnotationViewContentProvider();
-  private TreeViewerColumn f_showDiffTableColumn = null;
   private boolean f_showAsTree;
   private boolean f_showOnlyAbductive;
 
@@ -347,17 +343,8 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
 
   private void showScanOrEmptyLabel() {
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
-    final JSureScanInfo oldScan = JSureDataDirHub.getInstance().getLastMatchingScanInfo();
     if (scan != null) {
-      if (f_showDiffTableColumn != null) {
-        final String label = oldScan == null ? "No Prior Scan" : "Differences from scan of " + oldScan.getProjects().getLabel()
-            + " at " + SLUtility.toStringHMS(oldScan.getProjects().getDate());
-        f_showDiffTableColumn.getColumn().setText(label);
-      }
-      final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
-      // f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff,
-      // f_showOnlyDifferences, f_showObsoleteDrops,
-      // f_showOnlyDerivedFromSrc, f_showAnalysisResults, f_showHints);
+      f_contentProvider.changeContentsToCurrentScan(scan, f_showOnlyAbductive);
       setViewerVisibility(true);
 
       // Running too early?
