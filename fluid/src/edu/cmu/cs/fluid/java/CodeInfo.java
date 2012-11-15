@@ -80,7 +80,12 @@ public final class CodeInfo {
     return properties.get(key);
   }
   
-  public static final String LOC = "CodeInfo.loc";
+  public static final String TOTAL_LINES = "CodeInfo.allLines";
+  public static final String BLANK_LINES = "CodeInfo.blanks"; 
+  public static final String SEMICOLONS = "CodeInfo.semicolons";
+  public static final String DECLS = "CodeInfo.decls";
+  public static final String STMTS = "CodeInfo.stmts";
+  public static final String LOC = "CodeInfo.loc";  
   public static final String DONE = "CodeInfo.done";
   public static final String CU = "CodeInfo.cu";
   public static final String ELIDED = "CodeInfo.elided";

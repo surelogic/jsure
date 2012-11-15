@@ -1,15 +1,11 @@
 package com.surelogic.javac.adapter;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -101,6 +97,7 @@ import edu.cmu.cs.fluid.java.util.DeclFactory;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.IllegalChildException;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.IntegerTable;
 
 public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode, CodeContext> {
   public static final boolean includeQuotesInStringLiteral = true;
@@ -144,13 +141,68 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       JavaNode.setModifiers(result, JavaNode.AS_BINARY);
     }
     try {
-      return new CodeInfo(jp.getTypeEnv(), cuRef, result, null, cuRef.getURI().toString(), srcCode,
+      CodeInfo info = new CodeInfo(jp.getTypeEnv(), cuRef, result, null, cuRef.getURI().toString(), srcCode,
           asBinary ? IJavaFileLocator.Type.INTERFACE : IJavaFileLocator.Type.SOURCE);
+	  computeMetrics(info);
+      return info;
     } finally {
       resetACEInfo(cut);
     }
   }
 
+  private void computeMetrics(CodeInfo info) {
+	info.setProperty(CodeInfo.SEMICOLONS, count(info.getSource(), ';'));
+	countLines(info);
+	countAST(info);
+	System.out.println("Metrics for "+info.getFileName());
+  }
+
+  private void countAST(CodeInfo info) {
+    int decls = 0, stmts = 0;
+	for(IRNode n : JJNode.tree.topDown(info.getNode())) {
+		Operator op = JJNode.tree.getOperator(n);
+		if (op instanceof Declaration) {
+			decls++;
+		}
+		else if (op instanceof Statement) {
+			stmts++;
+		}
+	}	
+	info.setProperty(CodeInfo.DECLS, decls);
+	info.setProperty(CodeInfo.STMTS, stmts);
+  }
+
+  private void countLines(CodeInfo info) {
+	Reader r = new StringReader(info.getSource());
+	BufferedReader br = new BufferedReader(r);
+	int count = 0, blank = 0;
+	String line;
+	try {
+		while ((line = br.readLine()) != null) {
+			count++;
+			String trimmed = line.trim();
+			if (trimmed.length() == 0) {
+				blank++;
+			}
+		}
+	} catch (IOException e) {
+		SLLogger.getLogger().log(Level.SEVERE, "IOException while reading from StringReader", e);
+		return;		
+	}
+	info.setProperty(CodeInfo.TOTAL_LINES, count);
+	info.setProperty(CodeInfo.BLANK_LINES, blank);
+  }
+
+  private static int count(final String s, final char ch) {
+	  int count = 0;
+	  int here = s.indexOf(ch);
+	  while (here >= 0) {
+		  count++;
+		  here = s.indexOf(ch, here+1);
+	  }
+	  return count;
+  }
+  
   private static String getSourceCode(String path) {
     try {
       final InputStream is;
