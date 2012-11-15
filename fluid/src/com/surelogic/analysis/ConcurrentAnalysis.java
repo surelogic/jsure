@@ -17,7 +17,22 @@ public class ConcurrentAnalysis<Q extends ICompUnitContext> {
 	public static final boolean singleThreaded = false || SystemUtils.IS_JAVA_1_5 || threadCount < 2;
 	public static final ForkJoinExecutor pool = singleThreaded ? null
 			: new ForkJoinPool(threadCount);
-
+	
+	private static final IParallelArray<Integer> dummyArray = singleThreaded ? null :
+		ParallelArray.create(threadCount*10, Integer.class, pool);
+	
+	public static void clearThreadLocal(final ThreadLocal<?> l) {
+		if (pool == null) {
+			return;
+		}
+		Procedure<Integer> proc = new Procedure<Integer>() {
+			public void op(Integer ignored) {
+				l.remove();
+			}
+		};
+		dummyArray.apply(proc);
+	}
+	
 	private final boolean runInParallel;
 
 	/**
