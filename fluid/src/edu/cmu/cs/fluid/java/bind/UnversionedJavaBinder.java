@@ -163,7 +163,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     	  }
     	  changed = true;
       }
-      changed |= (memberTableCache.remove(n) != null);
+      changed |= removeStaleTables(n);
       /*
       if (changed && TypeDeclaration.prototype.includes(op)) {
     	  String qname = JavaNames.getFullTypeName(n);
@@ -174,6 +174,13 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       */
     }
     JavaTypeFactory.clearCaches();
+  }
+
+  /**
+   * @return true if removed
+   */
+  private boolean removeStaleTables(IRNode tdecl) {
+	  return memberTableCache.remove(tdecl) != null;
   }
   
   private boolean hasNoTypeParameters(IJavaDeclaredType t) {
@@ -189,6 +196,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       if (type == typeEnvironment.getObjectType()) {
     	  return objectTable.get();
       }
+      // Limited caching due to cost of finding/removing stale info
       IJavaDeclaredType jt = (IJavaDeclaredType) type;
       if (hasNoTypeParameters(jt)) {
     	IRNode decl = jt.getDeclaration();
