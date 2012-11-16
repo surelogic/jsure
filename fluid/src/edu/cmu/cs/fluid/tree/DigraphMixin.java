@@ -1,7 +1,8 @@
 /* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/tree/DigraphMixin.java,v 1.8 2005/05/25 16:29:21 chance Exp $ */
 package edu.cmu.cs.fluid.tree;
 
-import java.util.Vector;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -16,13 +17,13 @@ import edu.cmu.cs.fluid.ir.InsertionPoint;
 abstract public class DigraphMixin extends IRObservable
      implements DigraphInterface 
 {
-  private final Vector<DigraphListener> listeners = new Vector<DigraphListener>();
+  private final List<DigraphListener> listeners = new CopyOnWriteArrayList<DigraphListener>();
 
   public void addDigraphListener(DigraphListener dl) {
-    listeners.addElement(dl);
+    listeners.add(dl);
   }
   public void removeDigraphListener(DigraphListener dl) {
-    listeners.removeElement(dl);
+    listeners.remove(dl);
   }
 
   protected boolean hasListeners() {
@@ -31,7 +32,7 @@ abstract public class DigraphMixin extends IRObservable
   
   protected void informDigraphListeners(DigraphEvent de) {
     for (int i=listeners.size(); i > 0; --i) {
-      DigraphListener dl = listeners.elementAt(i-1);
+      DigraphListener dl = listeners.get(i-1);
       if (dl != null) dl.handleDigraphEvent(de);
     }
   }
