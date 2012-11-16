@@ -5,13 +5,15 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/** A subclass of the standard observerable class where changes
+/** A variant of the standard observerable class where changes
  * are relative to an IRNode.  Normal observers are only notified
  * in the event that a value is changed.  But a special class of
  * observers are also notified when a value is defined that was
  * previously undefined.
  */
 public class IRObservable extends Observable {
+  // Using this, instead of Observable's implementation
+  private final CopyOnWriteArrayList<Observer> changeObservers = new CopyOnWriteArrayList<Observer>();	
   private final CopyOnWriteArrayList<Observer> defineObservers = new CopyOnWriteArrayList<Observer>();
   private final AtomicBoolean changed = new AtomicBoolean(false);
 
@@ -52,45 +54,48 @@ public class IRObservable extends Observable {
     }
   }
   
-  @Override
+  //@Override
   public void deleteObserver(Observer o) {
-	  super.deleteObserver(o);
+	  //super.deleteObserver(o);
+	  changeObservers.remove(o);
 	  defineObservers.remove(o);
   }
   
-  @Override
+  //@Override
   public void deleteObservers() {
-	  super.deleteObservers();
+	  //super.deleteObservers();
+	  changeObservers.clear();
 	  defineObservers.clear();
   }
   
-  @Override
+  //@Override
   public int countObservers() {
-	  return super.countObservers() + defineObservers.size();
+	  return /*super.countObservers()*/changeObservers.size() + defineObservers.size();
   }
   
-  @Override
+  //@Override
   public void notifyObservers(Object arg) {
 	  boolean changed = hasChanged();
 	  if (changed) {
-		  if (super.countObservers() > 0) {
-			  super.notifyObservers(arg);
+		  if (changeObservers.size() > 0) {
+			  //super.notifyObservers(arg);
+			  for(Observer o : changeObservers) {
+				  o.update(this, arg);    	
+			  }
 		  }
 	      notifyDefineObservers_private(arg);
 	  }
   }
   
-  @Override
+  //@Override
   public void setChanged() {
 	  changed.set(true);
   }
-  
-  @Override
+  //@Override
   public void clearChanged() {
 	  changed.set(false);
   }
-  
-  @Override
+  //@Override
   public boolean hasChanged() {
 	  return changed.get();  
   } 
