@@ -146,7 +146,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     try {
       CodeInfo info = new CodeInfo(jp.getTypeEnv(), cuRef, result, null, cuRef.getURI().toString(), srcCode,
           asBinary ? IJavaFileLocator.Type.INTERFACE : IJavaFileLocator.Type.SOURCE);
-	  computeMetrics(info, srcCode);
+      computeMetrics(info, srcCode);
       return info;
     } finally {
       resetACEInfo(cut);
@@ -155,78 +155,85 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       lines = null;
       javadoc = null;
       cuRef = null;
-      srcCode = null;      
+      srcCode = null;
     }
   }
 
   private void computeMetrics(CodeInfo info, String src) {
-	final MetricDrop d = new MetricDrop(CompilationUnit.getPkg(info.getNode()), IMetricDrop.Metric.SLOC);
-	d.setMessage(25, info.getFile().getRelativePath());
-	
-	final int semicolons = count(src, ';');
-	addMetric(d, IMetricDrop.SLOC_SEMICOLONS, semicolons);
-	info.setProperty(CodeInfo.SEMICOLONS, semicolons);
-	countLines(info, src, d);
-	countAST(info, d);
-	//System.out.println("Metrics for "+info.getFileName());
+    final MetricDrop d = new MetricDrop(CompilationUnit.getPkg(info.getNode()), IMetricDrop.Metric.SLOC);
+    d.setMessage(25, info.getFile().getRelativePath());
+
+    final int semicolons = count(src, ';');
+    addMetric(d, IMetricDrop.SLOC_SEMICOLON_COUNT, semicolons);
+    info.setProperty(CodeInfo.SEMICOLONS, semicolons);
+    countLines(info, src, d);
+    countAST(info, d);
+    // System.out.println("Metrics for "+info.getFileName());
   }
-  
+
   private void addMetric(MetricDrop d, String key, int value) {
-      final IKeyValue info = KeyValueUtility.getIntInstance(key, value);
-	  d.addOrReplaceMetricInfo(info);
+    final IKeyValue info = KeyValueUtility.getIntInstance(key, value);
+    d.addOrReplaceMetricInfo(info);
   }
 
   private void countAST(CodeInfo info, MetricDrop d) {
     int decls = 0, stmts = 0;
-	for(IRNode n : JJNode.tree.topDown(info.getNode())) {
-		Operator op = JJNode.tree.getOperator(n);
-		if (op instanceof Declaration) {
-			decls++;
-			continue; // Don't double-count
-		}
-		else if (op instanceof Statement) {
-			stmts++;
-		}
-	}	
-	info.setProperty(CodeInfo.DECLS, decls);
-	info.setProperty(CodeInfo.STMTS, stmts);
-	addMetric(d, IMetricDrop.SLOC_DECLARATIONS, decls);
-	addMetric(d, IMetricDrop.SLOC_STATEMENTS, stmts);
+    for (IRNode n : JJNode.tree.topDown(info.getNode())) {
+      Operator op = JJNode.tree.getOperator(n);
+      if (op instanceof Declaration) {
+        decls++;
+        continue; // Don't double-count
+      } else if (op instanceof Statement) {
+        stmts++;
+      }
+    }
+    info.setProperty(CodeInfo.DECLS, decls);
+    info.setProperty(CodeInfo.STMTS, stmts);
+    addMetric(d, IMetricDrop.SLOC_JAVA_DECLARATION_COUNT, decls);
+    addMetric(d, IMetricDrop.SLOC_JAVA_STATEMENT_COUNT, stmts);
   }
 
   private void countLines(CodeInfo info, String src, MetricDrop d) {
-	Reader r = new StringReader(src);
-	BufferedReader br = new BufferedReader(r);
-	int count = 0, blank = 0;
-	String line;
-	try {
-		while ((line = br.readLine()) != null) {
-			count++;
-			String trimmed = line.trim();
-			if (trimmed.length() == 0) {
-				blank++;
-			}
-		}
-	} catch (IOException e) {
-		SLLogger.getLogger().log(Level.SEVERE, "IOException while reading from StringReader", e);
-		return;		
-	}
-	info.setProperty(CodeInfo.TOTAL_LINES, count);
-	info.setProperty(CodeInfo.BLANK_LINES, blank);
-	addMetric(d, IMetricDrop.SLOC_TOTAL_LINES, count);
-	addMetric(d, IMetricDrop.SLOC_BLANK_LINES, blank);
+    Reader r = new StringReader(src);
+    BufferedReader br = new BufferedReader(r);
+    int count = 0, blank = 0, comment = 0;
+    boolean inSlashStarComment = false;
+    String line = null;
+    try {
+      while ((line = br.readLine()) != null) {
+        count++;
+        final String trimmed = line.trim();
+        if (trimmed.length() == 0) {
+          blank++;
+        }
+        final boolean wasInASlashStarComment = inSlashStarComment;
+        inSlashStarComment = SLUtility.getSlashStarCommentState(wasInASlashStarComment, trimmed);
+        if (wasInASlashStarComment || inSlashStarComment || trimmed.contains("//")) {
+          comment++;
+        }
+      }
+    } catch (IOException e) {
+      SLLogger.getLogger().log(Level.SEVERE, "Problem reading line " + line + " from:\n" + src, e);
+      return;
+    }
+    info.setProperty(CodeInfo.TOTAL_LINES, count);
+    info.setProperty(CodeInfo.BLANK_LINES, blank);
+    info.setProperty(CodeInfo.COMMENTED_LINES, comment);
+    addMetric(d, IMetricDrop.SLOC_LINE_COUNT, count);
+    addMetric(d, IMetricDrop.SLOC_CONTAINS_COMMENT_LINE_COUNT, comment);
+    addMetric(d, IMetricDrop.SLOC_BLANK_LINE_COUNT, blank);
   }
 
   private static int count(final String s, final char ch) {
-	  int count = 0;
-	  int here = s.indexOf(ch);
-	  while (here >= 0) {
-		  count++;
-		  here = s.indexOf(ch, here+1);
-	  }
-	  return count;
+    int count = 0;
+    int here = s.indexOf(ch);
+    while (here >= 0) {
+      count++;
+      here = s.indexOf(ch, here + 1);
+    }
+    return count;
   }
-  
+
   private static String getSourceCode(String path) {
     try {
       final InputStream is;
@@ -832,9 +839,9 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   }
 
   enum ClassType {
-	  OUTER, INNER, LOCAL
+    OUTER, INNER, LOCAL
   }
-  
+
   private IRNode adaptClass(ClassTree node, final CodeContext context, ClassType ctype) {
     String mod = node.getModifiers().toString();
     String id = node.getSimpleName().toString();
@@ -1363,12 +1370,12 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       } else {
         value = NoDefaultValue.prototype.jjtCreate();
       }
-      IRNode rv = AnnotationElement.createNode(annos, mods, rType, id, Parameters.createNode(fmls), 
-    		                                   Throws.createNode(exs), body, value);
+      IRNode rv = AnnotationElement.createNode(annos, mods, rType, id, Parameters.createNode(fmls), Throws.createNode(exs), body,
+          value);
       return rv;
     }
-    IRNode rv = MethodDeclaration.createNode(annos, mods, TypeFormals.createNode(typs), rType, id, 
-    		                                 Parameters.createNode(fmls), 0, Throws.createNode(exs), body);
+    IRNode rv = MethodDeclaration.createNode(annos, mods, TypeFormals.createNode(typs), rType, id, Parameters.createNode(fmls), 0,
+        Throws.createNode(exs), body);
     addJavaRefAndCheckForJavadocAnnotations(node, rv);
     createRequiredMethodNodes(JavaNode.isSet(mods, JavaNode.STATIC), rv);
     return rv;
@@ -1380,7 +1387,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     IRNode args = Arguments.createNode(rawArgs);
     // TODO what about first arg?
     addJavaRefAndCheckForJavadocAnnotations(node, args);
-    
+
     String method = null;
     IRNode object = null;
     if (node.getMethodSelect() instanceof MemberSelectTree) {
@@ -1408,7 +1415,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
         return NonPolymorphicConstructorCall.createNode(object, args);
       }
       // object = ThisExpression.prototype.jjtCreate();
-      object = ImplicitReceiver.prototype.jjtCreate();      
+      object = ImplicitReceiver.prototype.jjtCreate();
       method = id;
       addJavaRefAndCheckForJavadocAnnotations(node, object);
     } else {
