@@ -34,9 +34,12 @@ public class SimpleSlotFactory extends AbstractImplicitSlotFactory {
   }
     
   public void noteChange(IRState state) {
-    noteChanged(state);
+	if (collectChangedState) {
+		noteChanged(state);
+	}
   }
-  
+
+  private static final boolean collectChangedState = false;
   private static Set<IRState> stateChanged = null;
   /**
    * Add this state to the simple state changed since the last request.
