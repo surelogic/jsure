@@ -77,6 +77,10 @@ import com.surelogic.annotation.JavadocAnnotation;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.IKeyValue;
+import com.surelogic.dropsea.IMetricDrop;
+import com.surelogic.dropsea.KeyValueUtility;
+import com.surelogic.dropsea.ir.MetricDrop;
 import com.surelogic.javac.FileResource;
 import com.surelogic.javac.JavaSourceFile;
 import com.surelogic.javac.JavacProject;
@@ -134,7 +138,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     this.asBinary = asBinary;
     initACEInfo(cut);
 
-    IRNode result = acceptNode(cut, new CodeContext(false, false, false));
+    final IRNode result = acceptNode(cut, new CodeContext(false, false, false));
     createLastMinuteNodes(result);
     if (asBinary) {
       JavaNode.setModifiers(result, JavaNode.AS_BINARY);
@@ -156,13 +160,23 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   }
 
   private void computeMetrics(CodeInfo info, String src) {
-	info.setProperty(CodeInfo.SEMICOLONS, count(src, ';'));
-	countLines(info, src);
-	countAST(info);
+	final MetricDrop d = new MetricDrop(CompilationUnit.getPkg(info.getNode()), IMetricDrop.Metric.SLOC);
+	d.setMessage(25, info.getFile().getRelativePath());
+	
+	final int semicolons = count(src, ';');
+	addMetric(d, IMetricDrop.SLOC_SEMICOLONS, semicolons);
+	info.setProperty(CodeInfo.SEMICOLONS, semicolons);
+	countLines(info, src, d);
+	countAST(info, d);
 	//System.out.println("Metrics for "+info.getFileName());
   }
+  
+  private void addMetric(MetricDrop d, String key, int value) {
+      final IKeyValue info = KeyValueUtility.getIntInstance(key, value);
+	  d.addOrReplaceMetricInfo(info);
+  }
 
-  private void countAST(CodeInfo info) {
+  private void countAST(CodeInfo info, MetricDrop d) {
     int decls = 0, stmts = 0;
 	for(IRNode n : JJNode.tree.topDown(info.getNode())) {
 		Operator op = JJNode.tree.getOperator(n);
@@ -176,9 +190,11 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 	}	
 	info.setProperty(CodeInfo.DECLS, decls);
 	info.setProperty(CodeInfo.STMTS, stmts);
+	addMetric(d, IMetricDrop.SLOC_DECLARATIONS, decls);
+	addMetric(d, IMetricDrop.SLOC_STATEMENTS, stmts);
   }
 
-  private void countLines(CodeInfo info, String src) {
+  private void countLines(CodeInfo info, String src, MetricDrop d) {
 	Reader r = new StringReader(src);
 	BufferedReader br = new BufferedReader(r);
 	int count = 0, blank = 0;
@@ -197,6 +213,8 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 	}
 	info.setProperty(CodeInfo.TOTAL_LINES, count);
 	info.setProperty(CodeInfo.BLANK_LINES, blank);
+	addMetric(d, IMetricDrop.SLOC_TOTAL_LINES, count);
+	addMetric(d, IMetricDrop.SLOC_BLANK_LINES, blank);
   }
 
   private static int count(final String s, final char ch) {

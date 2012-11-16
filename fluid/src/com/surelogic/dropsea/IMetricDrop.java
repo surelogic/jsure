@@ -16,6 +16,12 @@ public interface IMetricDrop extends IDrop, ISnapshotDrop {
   public enum Metric {
     SLOC, STATE_WRT_CONCURRENCY
   }
+  
+  String SLOC_TOTAL_LINES = "sloc-total-lines";
+  String SLOC_BLANK_LINES = "sloc-blank-lines";
+  String SLOC_STATEMENTS = "sloc-statements";
+  String SLOC_DECLARATIONS = "sloc-declarations";
+  String SLOC_SEMICOLONS = "sloc-semicolons";
 
   /**
    * Gets the metric this drop of information contributes too.
