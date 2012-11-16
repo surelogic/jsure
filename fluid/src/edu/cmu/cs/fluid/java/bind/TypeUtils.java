@@ -31,6 +31,11 @@ public class TypeUtils {
 	 * Gets the existing one otherwise
 	 */
 	private JavaRefTypeProxy getProxy(IJavaReferenceType u, IJavaReferenceType v) {
+		/*
+        if (u == null || v == null) {
+			return null;
+		}
+		*/
 		// Make the order consistent, since it doesn't matter which order they're in
 		if (u.hashCode() > v.hashCode()) {
 			IJavaReferenceType tmp = v;
