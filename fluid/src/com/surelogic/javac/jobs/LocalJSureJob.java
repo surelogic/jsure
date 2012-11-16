@@ -97,10 +97,6 @@ public class LocalJSureJob extends AbstractLocalSLJob {
 	@Override
 	protected void finishSetupJVM(boolean debug, CommandlineJava cmdj, Project proj) {			
 		cmdj.createVmArgument().setValue("-Dfluid.ir.versioning=Versioning."+(JJNode.versioningIsOn ? "On" : "Off"));
-		
-		if (XUtil.useExperimental) {
-			cmdj.createVmArgument().setValue("-DSureLogicX=true");
-		}
 		if (XUtil.testing) {
 			cmdj.createVmArgument().setValue("-D"+AnnotationRules.XML_LOG_PROP+"=RemoteJSureRun.AnnotationRules");
 			cmdj.createVmArgument().setValue("-D"+XUtil.testingProp+"="+XUtil.testing);
@@ -122,12 +118,6 @@ public class LocalJSureJob extends AbstractLocalSLJob {
 		} catch(ConcurrentModificationException e) {
 			// Ignore
 		}
-		
-		if (SystemUtils.OS_ARCH.contains("64") && SystemUtils.JAVA_VENDOR.contains("Sun")) {
-		    // TODO do I need to check if I'm running in 64-bit mode?
-		    cmdj.createVmArgument().setValue("-XX:+UseCompressedOops");
-		}		
-		cmdj.createVmArgument().setValue("-verbosegc");
 		
 		// Only for debugging the remote JVM
 		if (XUtil.debug) {
