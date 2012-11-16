@@ -210,8 +210,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	}
 
 	private class ClassTable extends AbstractJavaClassTable {
-		private Map<String, IRNode> packages = new HashMap<String, IRNode>();
-		private Map<String, IRNode> outerClasses = new HashMap<String, IRNode>();
+		private ConcurrentMap<String, IRNode> packages = new ConcurrentHashMap<String, IRNode>();
+		private ConcurrentMap<String, IRNode> outerClasses = new ConcurrentHashMap<String, IRNode>();
 
 		public void copy(ClassTable orig) {
 			this.packages.putAll(orig.packages);
@@ -332,12 +332,12 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 				// System.out.println("Adding package: "+name);
 				PackageDrop pd = PackageDrop.createPackage(proj, name, null,
 						null);
-				packages.put(name, pd.getPackageDeclarationNode());
+				addPackage_private(name, pd);
 				// Something's here
 			} else if (root != null) {
 				PackageDrop pd = PackageDrop.createPackage(proj, name, root,
 						null);
-				packages.put(name, pd.getPackageDeclarationNode());
+				addPackage_private(name, pd);
 			} else {
 				return false;
 			}
@@ -345,6 +345,11 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 				System.out.println("Replaced "+name);
 			}
 			return true;
+		}
+
+		private void addPackage_private(String name, PackageDrop pd) {
+			// TODO Use putIfAbsent?
+			packages.put(name, pd.getPackageDeclarationNode());
 		}
 	}
 
