@@ -146,6 +146,12 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       return info;
     } finally {
       resetACEInfo(cut);
+      source = null;
+      root = null;
+      lines = null;
+      javadoc = null;
+      cuRef = null;
+      srcCode = null;      
     }
   }
 
