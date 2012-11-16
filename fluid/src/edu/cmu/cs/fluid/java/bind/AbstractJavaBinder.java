@@ -654,7 +654,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  sc = new IJavaScope.ShadowingScope(sc, typeScope(ct.getLowerBound()));
       }
       */
-      return typeScope(ct.getLowerBound());
+      return typeScope(ct.getUpperBound());
     } else if (ty instanceof IJavaPrimitiveType) {
       // Handling non-canonicalized code
       IJavaPrimitiveType pty = (IJavaPrimitiveType) ty;
