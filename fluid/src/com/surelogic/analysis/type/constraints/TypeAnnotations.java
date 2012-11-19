@@ -12,10 +12,9 @@ import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
-import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
-import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.operator.ArrayType;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
+import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.parse.JJNode;
 
@@ -232,8 +231,8 @@ public enum TypeAnnotations {
   private enum ContainableTesters implements TypeTester {
     FOR_FIELD_DECLARATIONS {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
-        return testArrayTypeImpl(type);
+      public boolean testArrayType(final IRNode arrayType) {
+        return testArrayTypeImpl(arrayType);
       }
       
       @Override
@@ -249,8 +248,8 @@ public enum TypeAnnotations {
     
     FOR_FINAL_OBJECT {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
-        return testArrayTypeImpl(type);
+      public boolean testArrayType(final IRNode arrayType) {
+        return testArrayTypeImpl(arrayType);
       }
       
       @Override
@@ -266,8 +265,8 @@ public enum TypeAnnotations {
     
     FOR_PARAMETERIZED_TYPE_ACTUAL {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
-        return testArrayTypeImpl(type);
+      public boolean testArrayType(final IRNode arrayType) {
+        return testArrayTypeImpl(arrayType);
       }
       
       @Override
@@ -281,13 +280,19 @@ public enum TypeAnnotations {
       }
     };
 
-    private static boolean testArrayTypeImpl(final IJavaArrayType type) {
-      if (type.getDimensions() == 1) {
-        final IJavaType baseType = type.getBaseType();
-        return baseType instanceof IJavaPrimitiveType;
+    private static boolean testArrayTypeImpl(final IRNode arrayType) {
+      if (ArrayType.getDims(arrayType) == 1) {
+        return PrimitiveType.prototype.includes(ArrayType.getBase(arrayType));
       } else {
         return false;
       }
+      
+//      if (type.getDimensions() == 1) {
+//        final IJavaType baseType = type.getBaseType();
+//        return baseType instanceof IJavaPrimitiveType;
+//      } else {
+//        return false;
+//      }
     }
   } 
 
@@ -300,7 +305,7 @@ public enum TypeAnnotations {
   private enum ImmutableTesters implements TypeTester {
     FOR_FIELD_DECLARATIONS {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
+      public boolean testArrayType(final IRNode arrayType) {
         return false;
       }
       
@@ -317,7 +322,7 @@ public enum TypeAnnotations {
     
     FOR_FINAL_OBJECT {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
+      public boolean testArrayType(final IRNode arrayType) {
         return false;
       }
       
@@ -334,7 +339,7 @@ public enum TypeAnnotations {
     
     FOR_PARAMETERIZED_TYPE_ACTUAL {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
+      public boolean testArrayType(final IRNode arrayType) {
         return false;
       }
       
@@ -359,7 +364,7 @@ public enum TypeAnnotations {
   private enum ReferenceObjectTesters implements TypeTester {
     FOR_FIELD_DECLARATIONS {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
+      public boolean testArrayType(final IRNode arrayType) {
         return false;
       }
       
@@ -376,7 +381,7 @@ public enum TypeAnnotations {
     
     FOR_FINAL_OBJECT {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
+      public boolean testArrayType(final IRNode arrayType) {
         return false;
       }
       
@@ -394,7 +399,7 @@ public enum TypeAnnotations {
     
     FOR_PARAMETERIZED_TYPE_ACTUAL {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
+      public boolean testArrayType(final IRNode arrayType) {
         return false;
       }
       
@@ -433,7 +438,7 @@ public enum TypeAnnotations {
   private enum ThreadSafeTesters implements TypeTester {
     FOR_FIELD_DECLARATIONS {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
+      public boolean testArrayType(final IRNode arrayType) {
         return false;
       }
       
@@ -450,7 +455,7 @@ public enum TypeAnnotations {
     
     FOR_FINAL_OBJECT {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
+      public boolean testArrayType(final IRNode arrayType) {
         return false;
       }
       
@@ -467,7 +472,7 @@ public enum TypeAnnotations {
     
     FOR_PARAMETERIZED_TYPE_ACTUAL {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
+      public boolean testArrayType(final IRNode arrayType) {
         return false;
       }
       
@@ -501,7 +506,7 @@ public enum TypeAnnotations {
   private enum ValueObjectTesters implements TypeTester {
     FOR_FIELD_DECLARATIONS {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
+      public boolean testArrayType(final IRNode arrayType) {
         return false;
       }
       
@@ -518,7 +523,7 @@ public enum TypeAnnotations {
     
     FOR_FINAL_OBJECT {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
+      public boolean testArrayType(final IRNode arrayType) {
         return false;
       }
       
@@ -536,7 +541,7 @@ public enum TypeAnnotations {
     
     FOR_PARAMETERIZED_TYPE_ACTUAL {
       @Override
-      public boolean testArrayType(final IJavaArrayType type) {
+      public boolean testArrayType(final IRNode arrayType) {
         return false;
       }
       

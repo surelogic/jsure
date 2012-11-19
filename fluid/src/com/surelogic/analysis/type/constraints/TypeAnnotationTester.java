@@ -89,9 +89,7 @@ public final class TypeAnnotationTester {
     } else if (NamedType.prototype.includes(typeOp)) {
       return testBoundName(typeTester, binder.getBinding(typeNode));
     } else if (ArrayType.prototype.includes(typeOp)) {
-      // TODO: fix this
-      return false;
-//      return typeTester.testArrayType((IJavaArrayType) type);      
+      return typeTester.testArrayType(typeNode);      
     } else if (TypeRef.prototype.includes(typeOp)) {
       return testBoundName(typeTester, binder.getBinding(typeNode));
     } else if (ParameterizedType.prototype.includes(typeOp)) {
