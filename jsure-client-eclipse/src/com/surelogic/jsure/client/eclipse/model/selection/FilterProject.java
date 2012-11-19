@@ -5,7 +5,6 @@ import java.util.List;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.Nullable;
-import com.surelogic.common.CommonImages;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IProofDrop;
@@ -23,7 +22,7 @@ public final class FilterProject extends Filter {
 
     @Override
     public Image getFilterImage() {
-      return SLImages.getImage(CommonImages.IMG_PROJECT);
+      return SLImages.getImageForJavaProject();
     }
   };
 
