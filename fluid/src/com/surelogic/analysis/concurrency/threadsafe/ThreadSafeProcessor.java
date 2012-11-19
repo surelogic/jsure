@@ -218,7 +218,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
       final TypeAnnotationTester tsTester =
           new TypeAnnotationTester(TypeAnnotations.THREAD_SAFE, binder,
               ParameterizedTypeAnalysis.getFolders());
-      final boolean isTS = tsTester.testFieldDeclarationType(type);
+      final boolean isTS = tsTester.testFieldDeclarationType(fieldTypeNode);
       final ResultDrop tsResult = ResultsBuilder.createResult(part2folder, fieldTypeNode, isTS,
           TYPE_IS_THREADSAFE, TYPE_IS_NOT_THREADSAFE, type.toSourceText());
       tsResult.addTrusted(tsTester.getTrusts());
@@ -237,7 +237,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
             final TypeAnnotationTester tsTester2 =
                 new TypeAnnotationTester(TypeAnnotations.THREAD_SAFE, binder,
                     ParameterizedTypeAnalysis.getFolders());
-            if (tsTester2.testFinalObjectType(binder.getJavaType(initExpr))) {
+            if (tsTester2.testFinalObjectType(NewExpression.getType(initExpr))) {
               proposeThreadSafe = false;
               final ResultDrop result =
                   ResultsBuilder.createResult(true, part2folder, initExpr, THREADSAFE_IMPL);
@@ -258,7 +258,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
       final TypeAnnotationTester cTester =
           new TypeAnnotationTester(TypeAnnotations.CONTAINABLE, binder,
               ParameterizedTypeAnalysis.getFolders());
-      final boolean isContainable = cTester.testFieldDeclarationType(type);
+      final boolean isContainable = cTester.testFieldDeclarationType(fieldTypeNode);
       
       boolean haveInitializerResult = false;
       boolean proposeContainable = !isContainable;
@@ -275,7 +275,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
             final TypeAnnotationTester cTester2 =
                 new TypeAnnotationTester(TypeAnnotations.CONTAINABLE, binder,
                     ParameterizedTypeAnalysis.getFolders());
-            if (cTester2.testFinalObjectType(binder.getJavaType(initExpr))) {
+            if (cTester2.testFinalObjectType(NewExpression.getType(initExpr))) {
               // we have an instance of an immutable implementation
               haveInitializerResult = true;
               proposeContainable = false;

@@ -200,8 +200,8 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
         final TypeAnnotationTester tester = 
             new TypeAnnotationTester(TypeAnnotations.CONTAINABLE, binder,
                 ParameterizedTypeAnalysis.getFolders());
-        final boolean isContainable = tester.testFieldDeclarationType(type);
         final IRNode typeDeclNode = FieldDeclaration.getType(fieldDecl);
+        final boolean isContainable = tester.testFieldDeclarationType(typeDeclNode);
         final ResultDrop cResult = ResultsBuilder.createResult(typeFolder, typeDeclNode,
             isContainable, TYPE_IS_CONTAINABLE, TYPE_IS_NOT_CONTAINABLE,
             type.toSourceText());
@@ -221,7 +221,7 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
               final TypeAnnotationTester tester2 =
                   new TypeAnnotationTester(TypeAnnotations.CONTAINABLE, binder,
                       ParameterizedTypeAnalysis.getFolders());
-              if (tester2.testFinalObjectType(binder.getJavaType(initExpr))) {
+              if (tester2.testFinalObjectType(NewExpression.getType(initExpr))) {
                 // we have an instance of an immutable implementation
                 proposeContainable = false;
                 final ResultDrop result = ResultsBuilder.createResult(

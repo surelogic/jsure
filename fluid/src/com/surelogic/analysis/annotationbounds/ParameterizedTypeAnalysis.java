@@ -63,7 +63,7 @@ public final class ParameterizedTypeAnalysis extends AbstractWholeIRAnalysis<Gen
 	
 	
 	
-	public static Map<IJavaType, ResultFolderDrop> getFolders() {
+	public static Map<IRNode, ResultFolderDrop> getFolders() {
 	  return GenericTypeInstantiationChecker.getFolders();
 	}
 }

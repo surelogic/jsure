@@ -178,7 +178,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
       final TypeAnnotationTester tester =
           new TypeAnnotationTester(TypeAnnotations.IMMUTABLE, binder,
               ParameterizedTypeAnalysis.getFolders());
-      final boolean isImmutable = tester.testFieldDeclarationType(type);
+      final boolean isImmutable = tester.testFieldDeclarationType(typeDeclNode);
       final ResultDrop iResult = ResultsBuilder.createResult(
           typeFolder, typeDeclNode, isImmutable,
           TYPE_IS_IMMUTABLE, TYPE_IS_NOT_IMMUTABLE, type.toSourceText());  
@@ -198,7 +198,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
             final TypeAnnotationTester tester2 =
                 new TypeAnnotationTester(TypeAnnotations.IMMUTABLE, binder,
                     ParameterizedTypeAnalysis.getFolders());
-            if (tester2.testFinalObjectType(binder.getJavaType(initExpr))) {
+            if (tester2.testFinalObjectType(NewExpression.getType(initExpr))) {
               // we have an instance of an immutable implementation
               proposeImmutable = false;
               final ResultDrop result = ResultsBuilder.createResult(

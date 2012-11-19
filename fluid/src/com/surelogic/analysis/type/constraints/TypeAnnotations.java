@@ -15,7 +15,6 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
-import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -149,10 +148,9 @@ public enum TypeAnnotations {
   }
 
   static PromiseDrop<?> testTypeFormalForX(final TypeAnnoImpl testFor,
-      final IJavaTypeFormal formal, final boolean exclusively) {
-    final IRNode decl = formal.getDeclaration();
-    final String name = TypeFormal.getId(decl);
-    final IRNode typeDecl = JJNode.tree.getParent(JJNode.tree.getParent(decl));
+      final IRNode formalDecl, final boolean exclusively) {
+    final String name = TypeFormal.getId(formalDecl);
+    final IRNode typeDecl = JJNode.tree.getParent(JJNode.tree.getParent(formalDecl));
     
     /* Favor explicit annotation bounds over those implied by 
      * @Containable
@@ -244,8 +242,8 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testTypeFormalForX(TypeAnnoImpl.CONTAINABLE, formal, true);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.CONTAINABLE, formalDecl, true);
       }
     },
     
@@ -261,8 +259,8 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testTypeFormalForX(TypeAnnoImpl.CONTAINABLE, formal, true);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.CONTAINABLE, formalDecl, true);
       }
     },
     
@@ -278,8 +276,8 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testTypeFormalForX(TypeAnnoImpl.CONTAINABLE, formal, false);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.CONTAINABLE, formalDecl, false);
       }
     };
 
@@ -312,8 +310,8 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testTypeFormalForX(TypeAnnoImpl.IMMUTABLE, formal, true);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.IMMUTABLE, formalDecl, true);
       }
     },
     
@@ -329,8 +327,8 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testTypeFormalForX(TypeAnnoImpl.IMMUTABLE, formal, true);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.IMMUTABLE, formalDecl, true);
       }
     },
     
@@ -346,8 +344,8 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testTypeFormalForX(TypeAnnoImpl.IMMUTABLE, formal, false);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.IMMUTABLE, formalDecl, false);
       }
     };
   } 
@@ -371,8 +369,8 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testTypeFormalForX(TypeAnnoImpl.REFERENCE, formal, true);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.REFERENCE, formalDecl, true);
       }
     },
     
@@ -389,8 +387,8 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testTypeFormalForX(TypeAnnoImpl.REFERENCE, formal, true);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.REFERENCE, formalDecl, true);
       }
     },
     
@@ -406,8 +404,8 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testTypeFormalForX(TypeAnnoImpl.REFERENCE, formal, false);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.REFERENCE, formalDecl, false);
       }
     };
     
@@ -445,8 +443,8 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testForThreadSafeOrImmutable(formal);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testForThreadSafeOrImmutable(formalDecl);
       }
     },
     
@@ -462,8 +460,8 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testForThreadSafeOrImmutable(formal);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testForThreadSafeOrImmutable(formalDecl);
       }
     },
     
@@ -479,16 +477,16 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testTypeFormalForX(TypeAnnoImpl.THREADSAFE, formal, false);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.THREADSAFE, formalDecl, false);
       }
     };
 
     private static PromiseDrop<?> testForThreadSafeOrImmutable(
-        final IJavaTypeFormal formal) {
-      final PromiseDrop<?> result = testTypeFormalForX(TypeAnnoImpl.THREADSAFE, formal, true);
+        final IRNode formalDecl) {
+      final PromiseDrop<?> result = testTypeFormalForX(TypeAnnoImpl.THREADSAFE, formalDecl, true);
       if (result == null) {
-        return testTypeFormalForX(TypeAnnoImpl.IMMUTABLE, formal, true);
+        return testTypeFormalForX(TypeAnnoImpl.IMMUTABLE, formalDecl, true);
       }
       return result;
     }
@@ -513,8 +511,8 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testTypeFormalForX(TypeAnnoImpl.VALUE, formal, true);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.VALUE, formalDecl, true);
       }
     },
     
@@ -531,8 +529,8 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testTypeFormalForX(TypeAnnoImpl.VALUE, formal, true);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.VALUE, formalDecl, true);
       }
     },
     
@@ -548,8 +546,8 @@ public enum TypeAnnotations {
       }
       
       @Override
-      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IJavaTypeFormal formal) {
-        return testTypeFormalForX(TypeAnnoImpl.VALUE, formal, false);
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.VALUE, formalDecl, false);
       }
     };
   } 
