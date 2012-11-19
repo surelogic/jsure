@@ -258,7 +258,7 @@ public class JSureScanInfo {
 		Map<String,Object> type2number = new HashMap<String, Object>();
 		type2number.put(key, "computed");
 		for(IDrop d : s.getDropInfo()) {
-			final String type = d.getIRDropSeaClass().getSimpleName();
+			final String type = "drop."+d.getIRDropSeaClass().getSimpleName();
 			Object value = type2number.get(type);
 			if (value == null) {
 				type2number.put(type, IntegerTable.newInteger(1));
