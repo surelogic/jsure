@@ -225,6 +225,8 @@ public final class JSureDataDirHub {
     }
     if (job != null)
       EclipseJob.getInstance().schedule(job);
+    else
+      notifyListeners(true, false, false);
   }
 
   private void notifyListeners(boolean notifyContentsChanged, boolean notifyCurrentScanChanged, boolean isNewScan) {
