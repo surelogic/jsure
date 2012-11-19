@@ -26,6 +26,7 @@ import com.surelogic.analysis.*;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.adapter.*;
 import com.surelogic.xml.PackageAccessor;
@@ -76,7 +77,7 @@ public class JavacClassParser {
 	private final HashMap<Pair<String,String>,Pair<String,Object>> classToFile = 
 		new HashMap<Pair<String,String>, Pair<String,Object>>();
 
-	private final Map<File,File> mappedSources = new HashMap<File, File>();
+	private final Map<File,File> mappedSources = new ConcurrentHashMap<File, File>();
 	
 	private final Set<String> requiredRefs = new HashSet<String>();
 	
@@ -323,6 +324,7 @@ public class JavacClassParser {
 	public void parse(final List<CodeInfo> results) throws IOException {
 		System.out.println("Assuming that the projects are run in dependency order");
 		// TODO otherwise we could load something twice
+		final long start = System.currentTimeMillis();
 		final MultiMap<String,CodeInfo> infos = new MultiHashMap<String,CodeInfo>();
 		for(JavacProject jp : projects) {			
 			final List<CodeInfo> temp = new ArrayList<CodeInfo>();
@@ -334,6 +336,7 @@ public class JavacClassParser {
 				infos.put(info.getTypeEnv().getProject().getName(), info);
 			}
 		}
+		final long parse = System.currentTimeMillis();
 		for(JavacProject jp : projects) {			
 			final Collection<CodeInfo> info = infos.get(jp.getName());
 		    final BatchParser parser = parsers.get(jp.getName());
@@ -341,8 +344,11 @@ public class JavacClassParser {
 		    
 			handleReferences(parser, temp);
 			results.addAll(temp);
-		}
+		}		
 		updateTypeEnvs(results);		
+		final long end = System.currentTimeMillis();
+		System.out.println("Parsing ASTs  = "+(parse-start)+" ms");
+		System.out.println("Handling refs = "+(end-parse)+" ms");
 	}
 
 	/**
@@ -503,7 +509,7 @@ public class JavacClassParser {
 		
 		// TODO thread safe?
 		// Project -> binary CUs
-		final MultiMap<String,CodeInfo> cus   = new MultiHashMap<String, CodeInfo>();
+		final MultiMap<String,CodeInfo> cus = new ConcurrentMultiHashMap<String, CodeInfo>();
 		handleDanglingJarRefs(jp, cus);		
 		handleDanglingClassFileRefs(jp, classFiles, cus);
 		final List<CodeInfo> newCUs = handleDanglingSourceRefs(jp, asBinary);
