@@ -288,7 +288,8 @@ public class Javac extends IDE {
 			boolean active = isIncluded();
 			if (active) {
 				// TODO use more principled way of identifying analyses
-				if (!IDE.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_RUN_UNIQUENESS) &&
+				if (!XUtil.testing && // Only if we're not running the reg tests
+					!IDE.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_RUN_UNIQUENESS) &&
 					id.contains(".UniquenessAssurance")) {
 					return false;
 				}
