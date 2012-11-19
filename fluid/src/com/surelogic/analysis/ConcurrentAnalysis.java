@@ -19,7 +19,14 @@ public class ConcurrentAnalysis<Q extends ICompUnitContext> {
 			: new ForkJoinPool(threadCount);
 	
 	private static final IParallelArray<Integer> dummyArray = singleThreaded ? null :
-		ParallelArray.create(threadCount*10, Integer.class, pool);
+		ParallelArray.create(threadCount*2, Integer.class, pool);
+	
+	public static void executeOnAllThreads(Procedure<Integer> proc) {
+		if (pool == null) {
+			return;
+		}
+		dummyArray.apply(proc);
+	}
 	
 	public static void clearThreadLocal(final ThreadLocal<?> l) {
 		if (pool == null) {
@@ -31,7 +38,7 @@ public class ConcurrentAnalysis<Q extends ICompUnitContext> {
 			}
 		};
 		dummyArray.apply(proc);
-	}
+	}	
 	
 	private final boolean runInParallel;
 
