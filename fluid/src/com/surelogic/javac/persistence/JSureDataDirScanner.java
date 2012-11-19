@@ -146,23 +146,30 @@ public class JSureDataDirScanner {
 				for (File src : scan.getSourceZips()) {
 					if (src.isFile() && src.getName().endsWith(".zip")) {
 						ZipFile zf = new ZipFile(src);
-						Enumeration<? extends ZipEntry> e = zf.entries();
-						while (e.hasMoreElements()) {
-							ZipEntry ze = e.nextElement();
-							String path = ze.getName();
-							if (path.endsWith(".java")) {
-								sources.add(path);
+						try {
+							Enumeration<? extends ZipEntry> e = zf.entries();
+							while (e.hasMoreElements()) {
+								ZipEntry ze = e.nextElement();
+								String path = ze.getName();
+								if (path.endsWith(".java")) {
+									sources.add(path);
+								}
 							}
+						} finally {
+							zf.close();
 						}
-						zf.close();
 					}
 				}
 				// Check if we have results for each of them
 				ZipFile resultsZip = new ZipFile(results);
-				for (String path : sources) {
-					if (resultsZip.getEntry(path) == null) {
-						//System.out.println("No results for " + path);
+				try {
+					for (String path : sources) {
+						if (resultsZip.getEntry(path) == null) {
+							//System.out.println("No results for " + path);
+						}
 					}
+				} finally {
+					resultsZip.close();
 				}
 			} catch (Exception e) {
 				// This should never happen
