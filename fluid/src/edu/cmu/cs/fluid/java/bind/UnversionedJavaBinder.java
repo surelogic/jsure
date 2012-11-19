@@ -5,6 +5,10 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
+import org.apache.commons.collections15.MultiMap;
+
+import com.surelogic.common.concurrent.ConcurrentHashSet;
+import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 
 import edu.cmu.cs.fluid.derived.*;
@@ -19,10 +23,29 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUnitListener {
-  private final Map<IRNode,IJavaMemberTable> memberTableCache = 
-    new ConcurrentHashMap<IRNode, IJavaMemberTable>();
+  private static final boolean cacheAllSourceTypes = false;
   
-  private final ThreadLocal<IJavaMemberTable> objectTable = 
+  /**
+   * Helps to figure out what to invalidate after an AST is modified
+   * 
+   * TODO keep a "base" impl to clone for parameterizations?
+   * TODO what about types that have no parameterizations? (waste of space)
+   */
+  private final MultiMap<IRNode, IJavaSourceRefType> sourceTypeParameterizations = cacheAllSourceTypes ?	  
+	  new ConcurrentMultiHashMap<IRNode, IJavaSourceRefType>() {
+      @Override
+      protected Collection<IJavaSourceRefType> newCollection() {
+    	  return new ConcurrentHashSet<IJavaSourceRefType>();
+      }
+  } : null;
+	
+  private final Map<IJavaSourceRefType,IJavaMemberTable> memberTableCache = cacheAllSourceTypes ? 
+      new ConcurrentHashMap<IJavaSourceRefType, IJavaMemberTable>() : null;
+  
+  private final Map<IRNode,IJavaMemberTable> oldMemberTableCache = cacheAllSourceTypes ? null :
+	  new ConcurrentHashMap<IRNode, IJavaMemberTable>();
+  
+  private final ThreadLocal<IJavaMemberTable> objectTable = cacheAllSourceTypes ? null :
 	  new ThreadLocal<IJavaMemberTable>() {
 	  protected IJavaMemberTable initialValue() {
 		  return JavaMemberTable.makeBatchTable(typeEnvironment.getObjectType());
@@ -129,7 +152,12 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 		partialGranuleBindings.clear();
 		allGranuleBindings.clear();
 		UnversionedJavaImportTable.clearAll();
-		memberTableCache.clear();		
+		if (cacheAllSourceTypes) {
+			sourceTypeParameterizations.clear();
+			memberTableCache.clear();
+		} else {
+			oldMemberTableCache.clear();
+		}
 		JavaMemberTable.clearAll();
 	}
   }
@@ -163,7 +191,9 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     	  }
     	  changed = true;
       }
-      changed |= (memberTableCache.remove(n) != null);
+      if (TypeDeclaration.prototype.includes(n)) {
+    	  changed |= removeStaleTables(n);
+      }
       /*
       if (changed && TypeDeclaration.prototype.includes(op)) {
     	  String qname = JavaNames.getFullTypeName(n);
@@ -175,6 +205,25 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     }
     JavaTypeFactory.clearCaches();
   }
+
+  /**
+   * @return true if removed
+   */
+  private boolean removeStaleTables(final IRNode tdecl) {
+	  if (cacheAllSourceTypes) {
+		  boolean removed = false;
+		  final Collection<IJavaSourceRefType> types = sourceTypeParameterizations.remove(tdecl);
+		  if (types != null) {
+			  removed = true;
+			  
+			  for(final IJavaSourceRefType t : types) {
+				  memberTableCache.remove(t);
+			  }
+		  }
+		  return removed;
+	  }
+	  return oldMemberTableCache.remove(tdecl) != null;
+  }
   
   private boolean hasNoTypeParameters(IJavaDeclaredType t) {
 	  if (t.getOuterType() != null) {
@@ -185,23 +234,37 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   
   @Override
   public IJavaMemberTable typeMemberTable(IJavaSourceRefType type) {
+	if (cacheAllSourceTypes) {
+		IJavaMemberTable rv = memberTableCache.get(type);
+		if (rv == null) {
+			// unversioned, uncached
+			rv = JavaMemberTable.makeBatchTable(type);
+			
+			// Record that it might need to be removed		
+			memberTableCache.put(type, rv);
+			sourceTypeParameterizations.put(type.getDeclaration(), type);
+		}
+		return rv;
+	}
+	// Original behavior
     if (type instanceof IJavaDeclaredType) {
       if (type == typeEnvironment.getObjectType()) {
     	  return objectTable.get();
       }
+      // Limited caching due to cost of finding/removing stale info
       IJavaDeclaredType jt = (IJavaDeclaredType) type;
       if (hasNoTypeParameters(jt)) {
     	IRNode decl = jt.getDeclaration();
-    	IJavaMemberTable mt = memberTableCache.get(decl);
+    	IJavaMemberTable mt = oldMemberTableCache.get(decl);
     	if (mt == null) {
     		mt = JavaMemberTable.makeBatchTable(type);
     		//System.err.println("Caching member table for "+type);
-    		memberTableCache.put(decl, mt);    		
+    		oldMemberTableCache.put(decl, mt);    		
     	}
     	return mt;    	
       }
     }
-    /*
+    /* Old
     else if (type instanceof IJavaTypeFormal) {
       IJavaMemberTable mt = memberTableCache.get(type.getDeclaration());
       if (mt == null) {

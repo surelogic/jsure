@@ -287,6 +287,11 @@ public class Javac extends IDE {
 		boolean isActive(List<AnalysisInfo> activeAnalyses) {
 			boolean active = isIncluded();
 			if (active) {
+				// TODO use more principled way of identifying analyses
+				if (!IDE.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_RUN_UNIQUENESS) &&
+					id.contains(".UniquenessAssurance")) {
+					return false;
+				}
 				if (dependencies.size() == 0) {
 					return true;
 				}

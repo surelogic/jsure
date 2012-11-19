@@ -243,6 +243,13 @@
 			name="Open Code Verification Perspective">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.UniquenessPreference" name="Use Uniqueness Verifying Analysis">
+			<state
+			   class="org.eclipse.ui.handlers.RegistryToggleState:false"
+			   id="org.eclipse.ui.commands.toggleState">
+			</state>
+		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.SendTip" name="Send Tip for Improvement">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
@@ -291,6 +298,12 @@
 					icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"
 					mnemonic="O" style="push">
 				</command>
+				<separator name="com.surelogic.jsure.separator.main0"
+					visible="true">
+				</separator>
+				<command commandId="com.surelogic.jsure.client.eclipse.command.UniquenessPreference"
+				      style="toggle">
+				</command> 
 				<separator name="com.surelogic.jsure.separator.main1"
 					visible="true">
 				</separator>
@@ -381,6 +394,10 @@
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.OpenCodeVerificationPerspectiveHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.OpenCodeVerificationPerspective">
+		</handler>
+		<handler
+			class="com.surelogic.jsure.client.eclipse.handlers.UniquenessPreferenceHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.UniquenessPreference">
 		</handler>
 		<handler class="com.surelogic.jsure.client.eclipse.handlers.SendTipHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.SendTip">

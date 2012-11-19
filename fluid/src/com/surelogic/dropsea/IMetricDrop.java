@@ -17,6 +17,44 @@ public interface IMetricDrop extends IDrop, ISnapshotDrop {
     SLOC, STATE_WRT_CONCURRENCY
   }
 
+  /*
+   * SLOC
+   */
+
+  /**
+   * A count of blank lines in the compilation unit.
+   */
+  String SLOC_BLANK_LINE_COUNT = "sloc-blank-line-count";
+  /**
+   * A count of the lines in the compilation unit that are entirely or partially
+   * a comment.
+   */
+  String SLOC_CONTAINS_COMMENT_LINE_COUNT = "sloc-contains-comment-line-count";
+  /**
+   * A count of the number of Java declarations, at any scope level, in the
+   * compilation unit.
+   */
+  String SLOC_JAVA_DECLARATION_COUNT = "sloc-java-declaration-count";
+  /**
+   * A count of the number of Java statements, at any scope level, in the
+   * compilation unit.
+   */
+  String SLOC_JAVA_STATEMENT_COUNT = "sloc-java-statement-count";
+  /**
+   * A count of the number of lines in the compilation unit.
+   */
+  String SLOC_LINE_COUNT = "sloc-line-count";
+  /**
+   * A count of the number of ";" which appear within the compilation unit.
+   */
+  String SLOC_SEMICOLON_COUNT = "sloc-semicolon-count";
+
+  /*
+   * STATE_WRT_CONCURRENCY
+   */
+
+  // TODO
+
   /**
    * Gets the metric this drop of information contributes too.
    * <p>

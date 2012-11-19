@@ -51,6 +51,9 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   private static Set<Version> allValid = new HashSet<Version>();
   private ExplicitSlotFactory factory;
 
+  /**
+   * Mainly used to find supertypes and remake bindings
+   */
   public final IJavaSourceRefType type;
   public final IRNode typeDeclaration;
   public final boolean isVersioned;
@@ -278,6 +281,9 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    * non-incrementally.
    * When non-incremental, if we encounter a named declaration,
    *  we add/remove it.
+   *  
+   * Note: since this operates purely on the IR, its work could 
+   * actually be shared between different parameterizations
    */
   private class UpdateTableVisitor extends Visitor<Void> {
     private Version changeVersion; // notification version
@@ -963,6 +969,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     				  if (debug) {
     					  LOG.finer("Selected node from " + Scope.this);
     				  }
+    				  // No context type? (filled in later?)
     				  return IBinding.Util.makeBinding(n);
     			  }
     			  return noElement;
