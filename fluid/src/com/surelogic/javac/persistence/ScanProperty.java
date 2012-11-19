@@ -6,10 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 abstract class ScanProperty<T> {
 	private static final String SCAN_PROPERTIES = "scan.properties";
@@ -54,7 +51,18 @@ abstract class ScanProperty<T> {
      * Returns all the expected properties
      */
     static <T> Properties getScanProperties(File scanDir, T info, List<ScanProperty<T>> requiredProps) {
-      final Properties props = new Properties();
+      final Properties props = new Properties() {
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public Set<Object> keySet(){
+			return Collections.unmodifiableSet(new TreeSet<Object>(super.keySet()));
+		}
+		@Override
+		public synchronized Enumeration<Object> keys() {
+			return Collections.enumeration(new TreeSet<Object>(super.keySet()));
+		}
+      };
       final File precomputed = new File(scanDir, SCAN_PROPERTIES);
       final boolean alreadyPrecomputed = precomputed.exists();
       if (alreadyPrecomputed) {
