@@ -393,7 +393,8 @@ public class Util {
     final long start = System.currentTimeMillis();
     List<CodeInfo> temp = new ArrayList<CodeInfo>();
     loader.parse(temp);
-
+    IDE.getInstance().setDefaultClassPath(projects.getFirstProjectOrNull());
+    
     eliminateDups(temp, cus.asList());
     temp = null; // To free up memory
 
