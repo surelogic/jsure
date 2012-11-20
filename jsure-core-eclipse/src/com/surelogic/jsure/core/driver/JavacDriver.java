@@ -1639,9 +1639,11 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
         if (useSourceZipsDirectly) {
           final int len = path.length();
           // Assumes that it ends with '.java'
-          //if (path.lastIndexOf('.', len - 5) >= 0) {
+          if (path.lastIndexOf('.', len - 5) >= 0) {
+          /*
           final int firstDot = path.indexOf('.');
           if (firstDot < len - 5) {
+          */
             pathsContainDot = true;
           }
         }
