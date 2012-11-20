@@ -12,6 +12,9 @@ import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
+import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
@@ -26,6 +29,8 @@ public enum TypeAnnotations {
     public TypeTester forFinalObject() { return ContainableTesters.FOR_FINAL_OBJECT; }
     @Override
     public TypeTester forParameterizedTypeActual() { return ContainableTesters.FOR_PARAMETERIZED_TYPE_ACTUAL; }
+    @Override
+    public JavaTypeTester forExpressionType() { return ExpressionTypeTesters.CONTAINABLE; }
   },
   
   IMMUTABLE {
@@ -35,6 +40,8 @@ public enum TypeAnnotations {
     public TypeTester forFinalObject() { return ImmutableTesters.FOR_FINAL_OBJECT; }
     @Override
     public TypeTester forParameterizedTypeActual() { return ImmutableTesters.FOR_PARAMETERIZED_TYPE_ACTUAL; }
+    @Override
+    public JavaTypeTester forExpressionType() { return ExpressionTypeTesters.IMMUTABLE; }
   },
   
   REFERENCE_OBJECT {
@@ -44,6 +51,8 @@ public enum TypeAnnotations {
     public TypeTester forFinalObject() { return ReferenceObjectTesters.FOR_FINAL_OBJECT; }
     @Override
     public TypeTester forParameterizedTypeActual() { return ReferenceObjectTesters.FOR_PARAMETERIZED_TYPE_ACTUAL; }
+    @Override
+    public JavaTypeTester forExpressionType() { return ExpressionTypeTesters.REFERENCE_OBJECT; }
   },
   
   THREAD_SAFE {
@@ -53,6 +62,8 @@ public enum TypeAnnotations {
     public TypeTester forFinalObject() { return ThreadSafeTesters.FOR_FINAL_OBJECT; }
     @Override
     public TypeTester forParameterizedTypeActual() { return ThreadSafeTesters.FOR_PARAMETERIZED_TYPE_ACTUAL; }
+    @Override
+    public JavaTypeTester forExpressionType() { return ExpressionTypeTesters.THREAD_SAFE; }
   },
   
   VALUE_OBJECT {
@@ -62,6 +73,8 @@ public enum TypeAnnotations {
     public TypeTester forFinalObject() { return ValueObjectTesters.FOR_FINAL_OBJECT; }
     @Override
     public TypeTester forParameterizedTypeActual() { return ValueObjectTesters.FOR_PARAMETERIZED_TYPE_ACTUAL; }
+    @Override
+    public JavaTypeTester forExpressionType() { return ExpressionTypeTesters.VALUE_OBJECT; }
   };
   
   
@@ -73,7 +86,8 @@ public enum TypeAnnotations {
   public abstract TypeTester forFieldDeclaration();
   public abstract TypeTester forFinalObject();
   public abstract TypeTester forParameterizedTypeActual();
-
+  public abstract JavaTypeTester forExpressionType();
+  
   
   
   // ----------------------------------------------------------------------
@@ -286,13 +300,6 @@ public enum TypeAnnotations {
       } else {
         return false;
       }
-      
-//      if (type.getDimensions() == 1) {
-//        final IJavaType baseType = type.getBaseType();
-//        return baseType instanceof IJavaPrimitiveType;
-//      } else {
-//        return false;
-//      }
     }
   } 
 
@@ -370,7 +377,7 @@ public enum TypeAnnotations {
       
       @Override
       public ProofDrop testTypeDeclaration(final IRNode type) {
-        return testTypeDeclarationImpl(type);
+        return testReferenceObjectTypeDeclarationImpl(type);
       }
       
       @Override
@@ -388,7 +395,7 @@ public enum TypeAnnotations {
       @Override
       public ProofDrop testTypeDeclaration(final IRNode type) {
         // XXX: wrong, but not currently used
-        return testTypeDeclarationImpl(type);
+        return testReferenceObjectTypeDeclarationImpl(type);
       }
       
       @Override
@@ -405,7 +412,7 @@ public enum TypeAnnotations {
       
       @Override
       public ProofDrop testTypeDeclaration(final IRNode type) {
-        return testTypeDeclarationImpl(type);
+        return testReferenceObjectTypeDeclarationImpl(type);
       }
       
       @Override
@@ -413,21 +420,21 @@ public enum TypeAnnotations {
         return testTypeFormalForX(TypeAnnoImpl.REFERENCE, formalDecl, false);
       }
     };
-    
-    private static final int ENUM_IMPLICITLY_REF_OBJECT = 764;
-    private static final String JAVA_LANG_ENUM = "java.lang.Enum";
-
-    private static ProofDrop testTypeDeclarationImpl(final IRNode type) {
-      if (EnumDeclaration.prototype.includes(type) || JavaNames.getFullTypeName(type).equals(JAVA_LANG_ENUM)) {
-        final ResultDrop result = new ResultDrop(type);
-        result.setConsistent();
-        result.setMessage(ENUM_IMPLICITLY_REF_OBJECT, JavaNames.getRelativeTypeNameDotSep(type));
-        return result;
-      } else {
-        return EqualityRules.getRefObjectDrop(type);
-      }
-    }
   } 
+  
+  private static final int ENUM_IMPLICITLY_REF_OBJECT = 764;
+  private static final String JAVA_LANG_ENUM = "java.lang.Enum";
+
+  private static ProofDrop testReferenceObjectTypeDeclarationImpl(final IRNode type) {
+    if (EnumDeclaration.prototype.includes(type) || JavaNames.getFullTypeName(type).equals(JAVA_LANG_ENUM)) {
+      final ResultDrop result = new ResultDrop(type);
+      result.setConsistent();
+      result.setMessage(ENUM_IMPLICITLY_REF_OBJECT, JavaNames.getRelativeTypeNameDotSep(type));
+      return result;
+    } else {
+      return EqualityRules.getRefObjectDrop(type);
+    }
+  }
   
   
 
@@ -556,4 +563,103 @@ public enum TypeAnnotations {
       }
     };
   } 
+  
+  
+  
+  // ----------------------------------------------------------------------
+  // JavaTypeTesters for expression type testing
+  // ----------------------------------------------------------------------
+  
+  private enum ExpressionTypeTesters implements JavaTypeTester {
+    CONTAINABLE {
+      @Override
+      public boolean testArrayType(final IJavaArrayType type) {
+        if (type.getDimensions() == 1) {
+          final IJavaType baseType = type.getBaseType();
+          return baseType instanceof IJavaPrimitiveType;
+        } else {
+          return false;
+        }
+      }
+        
+      @Override
+      public ProofDrop testTypeDeclaration(final IRNode type) {
+        return LockRules.getContainableType(type);
+      }
+      
+      @Override
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.CONTAINABLE, formalDecl, false);
+      }
+    },
+    
+    IMMUTABLE {
+      @Override
+      public boolean testArrayType(final IJavaArrayType arrayType) {
+        return false;
+      }
+      
+      @Override
+      public ProofDrop testTypeDeclaration(final IRNode type) {
+        return LockRules.getImmutableType(type);
+      }
+      
+      @Override
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.IMMUTABLE, formalDecl, false);
+      }
+    },
+    
+    REFERENCE_OBJECT {
+      @Override
+      public boolean testArrayType(final IJavaArrayType arrayType) {
+        return false;
+      }
+      
+      @Override
+      public ProofDrop testTypeDeclaration(final IRNode type) {
+        return testReferenceObjectTypeDeclarationImpl(type);
+      }
+      
+      @Override
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.REFERENCE, formalDecl, false);
+      }
+    },
+    
+    THREAD_SAFE {
+      @Override
+      public boolean testArrayType(final IJavaArrayType arrayType) {
+        return false;
+      }
+      
+      @Override
+      public ProofDrop testTypeDeclaration(final IRNode type) {
+        return LockRules.getThreadSafeType(type);
+      }
+      
+      @Override
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.THREADSAFE, formalDecl, false);
+      }
+    },
+    
+    VALUE_OBJECT {
+      @Override
+      public boolean testArrayType(final IJavaArrayType arrayType) {
+        return false;
+      }
+      
+      @Override
+      public ProofDrop testTypeDeclaration(final IRNode type) {
+        return EqualityRules.getValueObjectDrop(type);
+      }
+      
+      @Override
+      public PromiseDrop<?> testFormalAgainstAnnotationBounds(final IRNode formalDecl) {
+        return testTypeFormalForX(TypeAnnoImpl.VALUE, formalDecl, false);
+      }
+    };
+  }
 }
+

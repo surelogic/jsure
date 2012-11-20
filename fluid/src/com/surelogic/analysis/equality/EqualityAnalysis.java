@@ -191,21 +191,19 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 		
 		@SuppressWarnings("unchecked")
     void checkIfValueObject(IRNode e) {
-		  // TODO: Fix this
-		  
-//			IJavaType t = b.getJavaType(e);
-//			final TypeAnnotationTester tester =
-//			    new TypeAnnotationTester(TypeAnnotations.VALUE_OBJECT, b,
-//			        ParameterizedTypeAnalysis.getFolders());
-//			if (tester.testParameterizedTypeActual(t)) {
-//				ResultDrop d = createFailureDrop(e);
-//				for (final ProofDrop p : tester.getTrusts()) {
-//				  if (p instanceof PromiseDrop) {
-//				    d.addChecked((PromiseDrop<? extends IAASTRootNode>) p);
-//				  }
-//				}
-//				d.setMessage(BAD_COMPARISON, DebugUnparser.toString(e));
-//			}
+			IJavaType t = b.getJavaType(e);
+			final TypeAnnotationTester tester =
+			    new TypeAnnotationTester(TypeAnnotations.VALUE_OBJECT, b,
+			        ParameterizedTypeAnalysis.getFolders());
+			if (tester.testExpressionType(t)) {
+				ResultDrop d = createFailureDrop(e);
+				for (final ProofDrop p : tester.getTrusts()) {
+				  if (p instanceof PromiseDrop) {
+				    d.addChecked((PromiseDrop<? extends IAASTRootNode>) p);
+				  }
+				}
+				d.setMessage(BAD_COMPARISON, DebugUnparser.toString(e));
+			}
 		}
 	}
 }
