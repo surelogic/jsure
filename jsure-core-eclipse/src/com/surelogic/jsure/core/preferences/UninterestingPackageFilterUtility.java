@@ -22,7 +22,7 @@ public final class UninterestingPackageFilterUtility {
    * ('\n').
    */
   public static final List<String> DEFAULT = Arrays.asList("com\\.apple.*", "com\\.oracle.*", "com\\.sun.*", ".*\\.internal.*",
-      ".*BakedArrayList\\.class", "apple.*", "oracle.*", "quicktime.*", "sun.*");
+      "apple.*", "oracle.*", "quicktime.*", "sun.*");
 
   public static final AtomicReference<List<String>> CACHE = new AtomicReference<List<String>>();
 
