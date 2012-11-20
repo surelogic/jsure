@@ -14,7 +14,6 @@ import com.surelogic.dropsea.ir.drops.method.constraints.AnnotationBoundsPromise
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.bind.IJavaType;
 
 public final class ParameterizedTypeAnalysis extends AbstractWholeIRAnalysis<GenericTypeInstantiationChecker, Unused> {
   private static final int NEVER_USED = 550;

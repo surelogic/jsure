@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.promise.AnnotationBoundsNode;
+import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.ResultsBuilder;
@@ -26,6 +27,7 @@ import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.ir.ProofDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
+import com.surelogic.dropsea.ir.drops.VouchFieldIsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.AnnotationBoundsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 import com.surelogic.dropsea.irfree.DiffHeuristics;
@@ -39,6 +41,7 @@ import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
@@ -58,6 +61,8 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
   private static final int TYPE_FORMAL_INFO = 499;
   private static final int ACTUAL_UNBOUNDED = 551;
   private static final int ACTUAL_ANNOTATED = 552;
+  private static final int VOUCHED = 553;
+  private static final int VOUCHED_WITH_REASON = 554;
   
   
   
@@ -287,14 +292,6 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
             
         folders.put(pType, folder);
       }
-      
-//      /* Don't add the "USE" link if the bounds are only implicit bounds
-//       * from @Containable. 
-//       */
-//      if (folder != null && boundsDrop != null) {
-//        folder.addInformationHintWithCategory(
-//            pType, USE_CATEGORY, USE, getUseContext(pType));
-//      }
     }
     return null;
   }
@@ -436,55 +433,78 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
     final ResultFolderDrop folder = ResultFolderDrop.newAndFolder(parameterizedType);
     folder.setMessage(ANNOTATION_BOUNDS_FOLDER,
         jTypeOfParameterizedType.toSourceText(), getUseContext(parameterizedType));
-    for (int i = 0; i < boundsList.size(); i++) {
-      final IRNode typeActual = TypeActuals.getType(typeActuals, i);
-      final IRNode formalDecl = boundsList.get(i).first();
-      final String nameOfTypeFormal = TypeFormal.getId(formalDecl);
-      final Set<AnnotationBounds> bounds = boundsList.get(i).second();
-      // perhaps the bounds are empty for this type formal
-      if (!bounds.isEmpty()) {
-        final String boundsString = boundsSetToString(bounds, " || ");
-        final IJavaType jTypeOfActual = actualList.get(i);
-        
-        final ResultFolderDrop actualFolder = ResultsBuilder.createAndFolder(
-            folder, typeActual,
-            ANNOTATION_BOUND_SATISFIED, ANNOTATION_BOUND_NOT_SATISFIED,
-            jTypeOfActual.toSourceText(), boundsString, nameOfTypeFormal);
-
-        /* The actual must be annotated with at least one of the type 
-         * annotations required by the type formal, and cannot be annotated
-         * with any type annotation not required by the type formal.  That is,
-         * the type annotations on the actual must be a non-empty subset of
-         * those required by the type formal.  So we actually have to test 
-         * the type formal against all possible type annotations.
-         */
-        final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos =
-            new HashMap<AnnotationBounds, Set<ProofDrop>>();
-        for (final AnnotationBounds ab : AnnotationBounds.values()) {
-          ab.testType(typeActual, actualAnnos, binder);
-        }
-        
-        final IRNode link = jTypeOfActual instanceof IJavaSourceRefType ?
-            ((IJavaSourceRefType) jTypeOfActual).getDeclaration() : typeActual;
-        final IKeyValue diffInfo = KeyValueUtility.getStringInstance(
-        		DiffHeuristics.ANALYSIS_DIFF_HINT, DiffHeuristics.computeTypeLocator(typeActual));
-        if (actualAnnos.isEmpty()) {
-          final ResultDrop r = ResultsBuilder.createResult(
-              false, actualFolder, link, ACTUAL_UNBOUNDED);
-          r.addOrReplaceDiffInfo(diffInfo);
-        } else {
-          for (final Map.Entry<AnnotationBounds, Set<ProofDrop>> aa : actualAnnos.entrySet()) {
-            final AnnotationBounds key = aa.getKey();
-            boolean isConsistent = bounds.contains(key);
-            // handle the fact that @Immutable can be given to @ThreadSafe
-            if (!isConsistent && key == AnnotationBounds.IMMUTABLE) {
-              isConsistent = bounds.contains(AnnotationBounds.THREADSAFE);
+    
+    IRNode nodeToTestForVouch = parameterizedType;
+    final IRNode parent = JJNode.tree.getParent(parameterizedType);
+    final IRNode grand = JJNode.tree.getParent(parent);
+    if (NewExpression.prototype.includes(parent) && NewExpression.getType(parent).equals(parameterizedType)
+        && Initialization.prototype.includes(grand) && Initialization.getValue(grand).equals(parent)) {
+      nodeToTestForVouch = JJNode.tree.getParent(grand);
+    }
+    
+    final VouchFieldIsPromiseDrop vouchDrop = 
+        LockRules.findVouchFieldIsDrop(nodeToTestForVouch);
+    if (vouchDrop != null) {
+      final String reason = vouchDrop.getReason();
+      final ResultDrop result; 
+      if (reason == VouchFieldIsNode.NO_REASON) {
+        result = ResultsBuilder.createResult(true, folder, parameterizedType, VOUCHED);
+      } else {
+        result = ResultsBuilder.createResult(true, folder, parameterizedType,
+            VOUCHED_WITH_REASON, reason);
+      }
+      result.addTrusted(vouchDrop);
+    } else {
+      for (int i = 0; i < boundsList.size(); i++) {
+        final IRNode typeActual = TypeActuals.getType(typeActuals, i);
+        final IRNode formalDecl = boundsList.get(i).first();
+        final String nameOfTypeFormal = TypeFormal.getId(formalDecl);
+        final Set<AnnotationBounds> bounds = boundsList.get(i).second();
+        // perhaps the bounds are empty for this type formal
+        if (!bounds.isEmpty()) {
+          final String boundsString = boundsSetToString(bounds, " || ");
+          final IJavaType jTypeOfActual = actualList.get(i);
+          
+          final ResultFolderDrop actualFolder = ResultsBuilder.createAndFolder(
+              folder, typeActual,
+              ANNOTATION_BOUND_SATISFIED, ANNOTATION_BOUND_NOT_SATISFIED,
+              jTypeOfActual.toSourceText(), boundsString, nameOfTypeFormal);
+  
+          /* The actual must be annotated with at least one of the type 
+           * annotations required by the type formal, and cannot be annotated
+           * with any type annotation not required by the type formal.  That is,
+           * the type annotations on the actual must be a non-empty subset of
+           * those required by the type formal.  So we actually have to test 
+           * the type formal against all possible type annotations.
+           */
+          final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos =
+              new HashMap<AnnotationBounds, Set<ProofDrop>>();
+          for (final AnnotationBounds ab : AnnotationBounds.values()) {
+            ab.testType(typeActual, actualAnnos, binder);
+          }
+          
+          final IRNode link = jTypeOfActual instanceof IJavaSourceRefType ?
+              ((IJavaSourceRefType) jTypeOfActual).getDeclaration() : typeActual;
+          final IKeyValue diffInfo = KeyValueUtility.getStringInstance(
+          		DiffHeuristics.ANALYSIS_DIFF_HINT, DiffHeuristics.computeTypeLocator(typeActual));
+          if (actualAnnos.isEmpty()) {
+            final ResultDrop r = ResultsBuilder.createResult(
+                false, actualFolder, link, parameterizedType, ACTUAL_UNBOUNDED);
+            r.addOrReplaceDiffInfo(diffInfo);
+          } else {
+            for (final Map.Entry<AnnotationBounds, Set<ProofDrop>> aa : actualAnnos.entrySet()) {
+              final AnnotationBounds key = aa.getKey();
+              boolean isConsistent = bounds.contains(key);
+              // handle the fact that @Immutable can be given to @ThreadSafe
+              if (!isConsistent && key == AnnotationBounds.IMMUTABLE) {
+                isConsistent = bounds.contains(AnnotationBounds.THREADSAFE);
+              }
+              final ResultDrop result = ResultsBuilder.createResult(
+                  isConsistent, actualFolder, link, parameterizedType,
+                  ACTUAL_ANNOTATED, key.toString());
+              result.addTrusted(aa.getValue());
+              result.addOrReplaceDiffInfo(diffInfo);
             }
-            final ResultDrop result = ResultsBuilder.createResult(
-                isConsistent, actualFolder, link,
-                ACTUAL_ANNOTATED, key.toString());
-            result.addTrusted(aa.getValue());
-            result.addOrReplaceDiffInfo(diffInfo);
           }
         }
       }

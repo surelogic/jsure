@@ -14,6 +14,12 @@ public final class ResultsBuilder {
     promiseDrop = pd;
   }
 
+  
+  
+  // ----------------------------------------------------------------------
+  // -- Create result folders that check the root promise drop
+  // ----------------------------------------------------------------------
+  
   public final ResultFolderDrop createRootAndFolder(
       final IRNode node, final int trueMsg, final int falseMsg, 
       final Object... args) {
@@ -34,6 +40,12 @@ public final class ResultsBuilder {
     
   }
 
+  
+  
+  // ----------------------------------------------------------------------
+  // -- Create result folders that are trusted by other results
+  // ----------------------------------------------------------------------
+  
   public static ResultFolderDrop createAndFolder(
       final AnalysisResultDrop parent, final IRNode node,
       final int trueMsg, final int falseMsg, final Object... args) {
@@ -54,6 +66,12 @@ public final class ResultsBuilder {
     
   }
 
+  
+  
+  // ----------------------------------------------------------------------
+  // -- Create results that check the root promise drop
+  // ----------------------------------------------------------------------
+  
   public final ResultDrop createRootResult(
       final boolean isConsistent, final IRNode node, 
       final int msg, final Object... args) {
@@ -65,11 +83,42 @@ public final class ResultsBuilder {
       final int trueMsg, final int falseMsg, final Object... args) {
     return createResult(node, promiseDrop, isConsistent, trueMsg, falseMsg, args);
   }
+  
+  public final ResultDrop createRootResult(
+      final boolean isConsistent, final IRNode node, final IRNode proofContext,
+      final int msg, final Object... args) {
+    return createResult(isConsistent, promiseDrop, node, proofContext, msg, args);
+  }
 
+  public final ResultDrop createRootResult(
+      final IRNode node, final IRNode proofContext, final boolean isConsistent,  
+      final int trueMsg, final int falseMsg, final Object... args) {
+    return createResult(node, proofContext, promiseDrop, isConsistent, trueMsg, falseMsg, args);
+  }
+
+  
+  
+  // ----------------------------------------------------------------------
+  // -- Create results that are trusted by other results
+  // ----------------------------------------------------------------------
+  
   public static ResultDrop createResult(
       final AnalysisResultDrop parent, final IRNode node, final boolean isConsistent,
       final int trueMsg, final int falseMsg, final Object... args) {
-    final ResultDrop result = new ResultDrop(node);
+    return createResult(parent, node, null, isConsistent, trueMsg, falseMsg, args);
+  }
+
+  public static ResultDrop createResult(
+      final boolean isConsistent, final AnalysisResultDrop parent,
+      final IRNode node, final int msg, final Object... args) {
+    return createResult(isConsistent, parent, node, null, msg, args);
+  }
+  
+  public static ResultDrop createResult(final AnalysisResultDrop parent,
+      final IRNode node, final IRNode proofContext, 
+      final boolean isConsistent,
+      final int trueMsg, final int falseMsg, final Object... args) {
+    final ResultDrop result = new ResultDrop(node, proofContext);
     parent.addTrusted(result);
     result.setConsistent(isConsistent);
     result.setMessagesByJudgement(trueMsg, falseMsg, args);
@@ -78,18 +127,38 @@ public final class ResultsBuilder {
 
   public static ResultDrop createResult(
       final boolean isConsistent, final AnalysisResultDrop parent,
-      final IRNode node, final int msg, final Object... args) {
-    final ResultDrop result = new ResultDrop(node);
+      final IRNode node, final IRNode proofContext,
+      final int msg, final Object... args) {
+    final ResultDrop result = new ResultDrop(node, proofContext);
     parent.addTrusted(result);
     result.setConsistent(isConsistent);
     result.setMessage(msg, args);
     return result;
   }
 
+  
+  
+  // ----------------------------------------------------------------------
+  // -- Create results that check a given promise drop
+  // ----------------------------------------------------------------------
+
   public static ResultDrop createResult(
       final boolean isConsistent, final PromiseDrop<?> checks, final IRNode node, 
       final int msg, final Object... args) {
-    final ResultDrop result = new ResultDrop(node);
+    return createResult(isConsistent, checks, node, null, msg, args);
+  }
+
+  public static ResultDrop createResult(
+      final IRNode node, final PromiseDrop<?> checks, final boolean isConsistent,  
+      final int trueMsg, final int falseMsg, final Object... args) {
+    return createResult(node, null, checks, isConsistent, trueMsg, falseMsg, args);
+  }
+
+  public static ResultDrop createResult(
+      final boolean isConsistent, final PromiseDrop<?> checks,
+      final IRNode node, final IRNode proofContext, 
+      final int msg, final Object... args) {
+    final ResultDrop result = new ResultDrop(node, proofContext);
     result.addChecked(checks);
     result.setConsistent(isConsistent);
     result.setMessage(msg, args);
@@ -97,9 +166,10 @@ public final class ResultsBuilder {
   }
 
   public static ResultDrop createResult(
-      final IRNode node, final PromiseDrop<?> checks, final boolean isConsistent,  
+      final IRNode node, final IRNode proofContext,
+      final PromiseDrop<?> checks, final boolean isConsistent,  
       final int trueMsg, final int falseMsg, final Object... args) {
-    final ResultDrop result = new ResultDrop(node);
+    final ResultDrop result = new ResultDrop(node, proofContext);
     result.addChecked(checks);
     result.setConsistent(isConsistent);
     result.setMessagesByJudgement(trueMsg, falseMsg, args);
