@@ -27,7 +27,7 @@ public class JSureProjectsXMLCreator extends XmlCreator implements PersistenceCo
       }
       b.addAttribute(IS_AUTO, projs.isAutoBuild());
       b.addAttribute(LAST_RUN, projs.getPreviousPartialScan());
-      b.addAttribute(DATE, SLUtility.toStringHMS(projs.getDate()));
+      b.addAttribute(DATE, SLUtility.toStringForDir(projs.getDate()));
       for (JavacProject p : projs) {
         final Builder pb = b.nest(PROJECT);
         pb.addAttribute("id", i);
