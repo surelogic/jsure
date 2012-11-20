@@ -26,31 +26,36 @@ import com.surelogic.jsure.core.persistence.JavaIdentifierUtil;
 import com.surelogic.xml.TestXMLParserConstants;
 
 public class ShowAnnotationsAction implements IEditorActionDelegate {
-	private final ASTParser parser;
+  private final ASTParser f_parser;
 	
-	IStorageEditorInput input;
-	ITextSelection selection;
+	IStorageEditorInput f_input;
+	ITextSelection f_selection;
 	
-	public ShowAnnotationsAction() {
-		parser = ASTParser.newParser(AST.JLS3);
-		parser.setResolveBindings(true);
-		parser.setBindingsRecovery(true);
-		parser.setStatementsRecovery(true);
+  public ShowAnnotationsAction() {
+    /*
+     * We need this until we can go to 3.7 and up and change to JLS4.
+     */
+    @SuppressWarnings("deprecation")
+	  final ASTParser parser = ASTParser.newParser(AST.JLS3);
+		f_parser = parser;
+		f_parser.setResolveBindings(true);
+		f_parser.setBindingsRecovery(true);
+		f_parser.setStatementsRecovery(true);
 	}
 	
 	@Override
 	public void setActiveEditor(IAction action, IEditorPart targetEditor) {		
 		if (targetEditor != null && targetEditor.getEditorInput() instanceof IStorageEditorInput) {
-			input = (IStorageEditorInput) targetEditor.getEditorInput();
+			f_input = (IStorageEditorInput) targetEditor.getEditorInput();
 		} else {
-			input = null;
+			f_input = null;
 		}		
 	}
 
 	@Override
 	public void selectionChanged(IAction action, ISelection selection) {
 		if (selection instanceof ITextSelection) {
-			this.selection = (ITextSelection) selection;
+			this.f_selection = (ITextSelection) selection;
 		} else {
 			selection = null;
 		}
@@ -58,9 +63,9 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 
 	@Override
 	public void run(IAction action) {
-		if (input != null && selection != null) {
+		if (f_input != null && f_selection != null) {
 			try {
-				ICompilationUnit cu = makeCompUnit(input);
+				ICompilationUnit cu = makeCompUnit(f_input);
 				ASTNode root = parseInput(cu);
 				
 				final Visitor v = new Visitor();
@@ -137,8 +142,8 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 		}
 		
 		private boolean containsSelection(int offset, int length) {
-			return offset <= selection.getOffset() &&
-				(offset+length) >= (selection.getOffset()+selection.getLength());
+			return offset <= f_selection.getOffset() &&
+				(offset+length) >= (f_selection.getOffset()+f_selection.getLength());
 		}
 		
 		String getIdentifier() {
@@ -220,11 +225,11 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 	}
 	
 	private ASTNode parseInput(ICompilationUnit cu) {
-		parser.setSource(cu);
-		parser.setResolveBindings(true);
-		parser.setBindingsRecovery(true);
-		parser.setStatementsRecovery(true);
-		parser.setFocalPosition(selection.getOffset());
-		return parser.createAST(null);
+		f_parser.setSource(cu);
+		f_parser.setResolveBindings(true);
+		f_parser.setBindingsRecovery(true);
+		f_parser.setStatementsRecovery(true);
+		f_parser.setFocalPosition(f_selection.getOffset());
+		return f_parser.createAST(null);
 	}
 }
