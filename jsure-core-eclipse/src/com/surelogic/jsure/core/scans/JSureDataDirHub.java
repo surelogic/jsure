@@ -225,6 +225,8 @@ public final class JSureDataDirHub {
     }
     if (job != null)
       EclipseJob.getInstance().schedule(job);
+    else
+      notifyListeners(true, false, false);
   }
 
   private void notifyListeners(boolean notifyContentsChanged, boolean notifyCurrentScanChanged, boolean isNewScan) {
@@ -266,7 +268,7 @@ public final class JSureDataDirHub {
         try {
           for (JSureScan scan : scansToDelete) {
             final File dir = scan.getDir();
-            if (!FileUtility.recursiveDelete(dir)) {
+            if (!FileUtility.recursiveDelete(dir, true)) {
               return SLStatus.createErrorStatus(233, I18N.err(233, dir.getAbsolutePath()));
             }
             monitor.worked(1);

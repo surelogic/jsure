@@ -5,8 +5,11 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
+import jsr166y.forkjoin.Ops.Procedure;
+
 import org.apache.commons.collections15.MultiMap;
 
+import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
@@ -39,8 +42,14 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       }
   } : null;
 	
-  private final Map<IJavaSourceRefType,IJavaMemberTable> memberTableCache = cacheAllSourceTypes ? 
-      new ConcurrentHashMap<IJavaSourceRefType, IJavaMemberTable>() : null;
+  private final ThreadLocal<Map<IJavaSourceRefType,IJavaMemberTable>> memberTableCache = cacheAllSourceTypes ? 
+      new ThreadLocal<Map<IJavaSourceRefType,IJavaMemberTable>>() {
+	  @Override
+	  protected Map<IJavaSourceRefType,IJavaMemberTable> initialValue() {
+		  return new HashMap<IJavaSourceRefType, IJavaMemberTable>();
+	  }
+  } : null;
+  
   
   private final Map<IRNode,IJavaMemberTable> oldMemberTableCache = cacheAllSourceTypes ? null :
 	  new ConcurrentHashMap<IRNode, IJavaMemberTable>();
@@ -154,7 +163,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 		UnversionedJavaImportTable.clearAll();
 		if (cacheAllSourceTypes) {
 			sourceTypeParameterizations.clear();
-			memberTableCache.clear();
+			ConcurrentAnalysis.clearThreadLocal(memberTableCache);
 		} else {
 			oldMemberTableCache.clear();
 		}
@@ -216,9 +225,15 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 		  if (types != null) {
 			  removed = true;
 			  
-			  for(final IJavaSourceRefType t : types) {
-				  memberTableCache.remove(t);
-			  }
+			  final Map<IJavaSourceRefType,IJavaMemberTable> tables = memberTableCache.get();
+			  final Procedure<Integer> proc = new Procedure<Integer>() {
+				  public void op(Integer ignore) {
+					  for(final IJavaSourceRefType t : types) {
+						  tables.remove(t);
+					  }
+				  }
+			  };
+			  ConcurrentAnalysis.executeOnAllThreads(proc);
 		  }
 		  return removed;
 	  }
@@ -235,13 +250,14 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   @Override
   public IJavaMemberTable typeMemberTable(IJavaSourceRefType type) {
 	if (cacheAllSourceTypes) {
-		IJavaMemberTable rv = memberTableCache.get(type);
+		final Map<IJavaSourceRefType,IJavaMemberTable> tables = memberTableCache.get();
+		IJavaMemberTable rv = tables.get(type);
 		if (rv == null) {
 			// unversioned, uncached
 			rv = JavaMemberTable.makeBatchTable(type);
 			
 			// Record that it might need to be removed		
-			memberTableCache.put(type, rv);
+			tables.put(type, rv);
 			sourceTypeParameterizations.put(type.getDeclaration(), type);
 		}
 		return rv;

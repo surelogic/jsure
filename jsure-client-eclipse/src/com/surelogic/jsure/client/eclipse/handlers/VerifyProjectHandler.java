@@ -21,8 +21,8 @@ import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.dialogs.JavaProjectSelectionDialog;
-import com.surelogic.common.ui.dialogs.ScopedResourcesSelectionDialog;
-import com.surelogic.common.ui.dialogs.ScopedResourcesSelectionDialog.Config;
+import com.surelogic.common.ui.dialogs.SaveDirtyFilesUtility;
+import com.surelogic.common.ui.dialogs.SaveDirtyFilesUtility.Config;
 import com.surelogic.common.ui.handlers.AbstractProjectSelectedMenuHandler;
 import com.surelogic.jsure.core.driver.JavacBuild;
 import com.surelogic.jsure.core.driver.JavacDriver;
@@ -74,8 +74,7 @@ public final class VerifyProjectHandler extends
 						"Save and Verify",
 						I18N.msg("jsure.eclipse.preference.page.autoSaveBeforeVerify"),
 						before);
-				boolean scan = ScopedResourcesSelectionDialog
-						.saveDirtyResources(projects, c);
+				boolean scan = SaveDirtyFilesUtility.saveDirtyResources(projects, c);
 				if (c.getAlwaysSavePref() != before) {
 					EclipseUtility
 							.setBooleanPreference(

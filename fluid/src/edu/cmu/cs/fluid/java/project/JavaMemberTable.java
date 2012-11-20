@@ -8,7 +8,6 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
-import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidRuntimeException;
@@ -57,6 +56,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   public final IJavaSourceRefType type;
   public final IRNode typeDeclaration;
   public final boolean isVersioned;
+  private boolean repopulated = false;
 
   private JavaMemberTable(IJavaSourceRefType type) {
     this(type.getDeclaration(), type, false);
@@ -883,7 +883,6 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       DebugUtil.println(out, indent, "[End SuperScope for "+JavaNames.getFullTypeName(typeDeclaration)+"]");
     }
   }
-  static Set<IRNode> repopulated = new ConcurrentHashSet<IRNode>();
   
   public class Scope implements IJavaScope {
 	final ITypeEnvironment tEnv;
@@ -941,8 +940,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     	  }
     	  Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
     	  if (!JJNode.versioningIsOn && !members.hasNext() && 
-    			  !repopulated.contains(typeDeclaration)) {   
-    		  repopulated.add(typeDeclaration);
+    			  !repopulated) {   
+    		  repopulated = true;
     		  if (debug) {
     			  String context = JJNode.getInfoOrNull(typeDeclaration);
     			  if (context == null) {
