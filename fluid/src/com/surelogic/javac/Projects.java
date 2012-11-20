@@ -197,7 +197,6 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
       p.getTypeEnv().setProgressMonitor(m);
     }
     monitor = m;
-    IDE.getInstance().setDefaultClassPath(getFirstProjectOrNull());
   }
 
   public SLProgressMonitor getMonitor() {

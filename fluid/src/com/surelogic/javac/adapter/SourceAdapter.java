@@ -139,6 +139,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     initACEInfo(cut);
 
     final IRNode result = acceptNode(cut, new CodeContext(false, false, false));
+    addJavaRefAndCheckForJavadocAnnotations(cut, result);
     createLastMinuteNodes(result);
     if (asBinary) {
       JavaNode.setModifiers(result, JavaNode.AS_BINARY);
@@ -963,6 +964,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       pkg = NamedPackageDeclaration.createNode(Annotations.createNode(annos), pkgName);
       addJavaRefAndCheckForJavadocAnnotations(node, pkg);
     }
+    addJavaRefAndCheckForJavadocAnnotations(node, pkg);
     IRNode[] imports = augmentImports(map(acceptNodes, node.getImports(), context));
     IRNode[] types = map(acceptNodes, filterStmts(node.getTypeDecls()), context);
     return CompilationUnit.createNode(pkg, ImportDeclarations.createNode(imports), TypeDeclarations.createNode(types));
