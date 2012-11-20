@@ -21,14 +21,24 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * Not intended to be subclassed.
  */
 public final class ResultDrop extends AnalysisResultDrop implements IResultDrop {
-
+  private final IRNode f_proofContext;
+	
   /**
    * Constructs a new analysis result.
    */
-  public ResultDrop(IRNode node) {
+  public ResultDrop(IRNode node, IRNode proofContext) {
     super(node);
+    f_proofContext = proofContext == null ? node : proofContext;
   }
 
+  public ResultDrop(IRNode node) {
+	this(node, null);
+  }
+  
+  public IRNode getProofContext() {
+	return f_proofContext;
+  }
+  
   /**
    * Flags if this result indicates consistency with code.
    */

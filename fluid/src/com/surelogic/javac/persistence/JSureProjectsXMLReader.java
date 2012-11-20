@@ -3,6 +3,7 @@ package com.surelogic.javac.persistence;
 import java.io.File;
 import java.text.ParseException;
 import java.util.Collections;
+import java.util.Date;
 
 import org.xml.sax.Attributes;
 
@@ -40,6 +41,7 @@ public class JSureProjectsXMLReader extends NestedJSureXmlReader implements IXml
       String isAuto = attributes.getValue(IS_AUTO);
       String date = attributes.getValue(DATE);
       if (date == null) {
+    	// TODO update to new format
         // Get the latter half of the label
         String path = attributes.getValue(PATH);
         date = path.substring(path.indexOf(" 201")).trim();
@@ -52,7 +54,13 @@ public class JSureProjectsXMLReader extends NestedJSureXmlReader implements IXml
         date = split[0] + ' ' + (split[1].replace('-', ':'));
       }
       try {
-        projects = new Projects(loc, "true".equals(isAuto), SLUtility.fromStringHMS(date), Collections.<String, Object> emptyMap());
+        Date time = null;
+        try {
+        	time = SLUtility.fromStringForDir(date);
+        } catch (ParseException e) {
+        	time = SLUtility.fromStringHMS(date);
+        }
+        projects = new Projects(loc, "true".equals(isAuto), time, Collections.<String, Object> emptyMap());
       } catch (ParseException e) {
         throw new RuntimeException(e);
       }

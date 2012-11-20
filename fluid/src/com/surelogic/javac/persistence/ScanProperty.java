@@ -8,8 +8,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
 
-abstract class ScanProperty<T> {
-	private static final String SCAN_PROPERTIES = "scan.properties";
+import com.surelogic.common.SortedProperties;
+
+public abstract class ScanProperty<T> {
+	public static final String SCAN_PROPERTIES = "scan.properties";
 	
 	final String key;
 
@@ -51,18 +53,7 @@ abstract class ScanProperty<T> {
      * Returns all the expected properties
      */
     static <T> Properties getScanProperties(File scanDir, T info, List<ScanProperty<T>> requiredProps) {
-      final Properties props = new Properties() {
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public Set<Object> keySet(){
-			return Collections.unmodifiableSet(new TreeSet<Object>(super.keySet()));
-		}
-		@Override
-		public synchronized Enumeration<Object> keys() {
-			return Collections.enumeration(new TreeSet<Object>(super.keySet()));
-		}
-      };
+      final Properties props = new SortedProperties();
       final File precomputed = new File(scanDir, SCAN_PROPERTIES);
       final boolean alreadyPrecomputed = precomputed.exists();
       if (alreadyPrecomputed) {

@@ -133,12 +133,17 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     lines = cut.getLineMap();
     javadoc = cut.docComments;
     cuRef = new FileResource(projects, srcFile, getPackage(cut), jp.getName());
-    srcCode = getSourceCode(cut.getSourceFile().getName());
-
+    try {  
+    	srcCode = cut.getSourceFile().getCharContent(true).toString();
+    } catch(IOException e) {
+    	final String name = cut.getSourceFile().getName();
+    	srcCode = getSourceCode(name);
+    }
     this.asBinary = asBinary;
     initACEInfo(cut);
 
     final IRNode result = acceptNode(cut, new CodeContext(false, false, false));
+    addJavaRefAndCheckForJavadocAnnotations(cut, result);
     createLastMinuteNodes(result);
     if (asBinary) {
       JavaNode.setModifiers(result, JavaNode.AS_BINARY);
@@ -265,7 +270,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
         total += numRead;
       }
       if (total != length) {
-        System.out.println("Source sizes not matching: got " + total + " out of " + length);
+        SLLogger.getLogger().warning("Source sizes not matching: got " + total + " out of " + length);
       }
       return sb.toString();
     } catch (IOException e) {
@@ -963,6 +968,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       pkg = NamedPackageDeclaration.createNode(Annotations.createNode(annos), pkgName);
       addJavaRefAndCheckForJavadocAnnotations(node, pkg);
     }
+    addJavaRefAndCheckForJavadocAnnotations(node, pkg);
     IRNode[] imports = augmentImports(map(acceptNodes, node.getImports(), context));
     IRNode[] types = map(acceptNodes, filterStmts(node.getTypeDecls()), context);
     return CompilationUnit.createNode(pkg, ImportDeclarations.createNode(imports), TypeDeclarations.createNode(types));
