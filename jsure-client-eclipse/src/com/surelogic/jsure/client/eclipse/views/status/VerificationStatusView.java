@@ -385,10 +385,10 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     });
 
     f_actionAlphaSort.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ALPHA_SORT));
-    f_actionAlphaSort.setText("Sort contents alphabetically");
+    f_actionAlphaSort.setText("Sort Contents Alphabetically");
     f_actionAlphaSort.setToolTipText("Sort contents alphabetically");
     f_actionJavaSort.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_SORT));
-    f_actionJavaSort.setText("Sort contents by Java location");
+    f_actionJavaSort.setText("Sort Contents By Java Location");
     f_actionJavaSort.setToolTipText("Sort contents by Java location");
     setHowViewIsSorted(EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_ALPHA_SORT));
 
