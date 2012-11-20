@@ -14,20 +14,23 @@ public abstract class AbstractIRNode implements IRNode {
 	private static final AtomicLong destroyedNodes = new AtomicLong();
 	private static final AtomicLong nodesCreated = new AtomicLong();
 
+	
 	public static long getTotalNodesCreated() {
 		return nodesCreated.get();
 	}
-
-	public static boolean checkIfNumDestroyed(long num) {
+	
+	static long resetNumDestroyedIfMoreThan(long num) {
 		long current = destroyedNodes.get();
 		if (current > num) {
-			return destroyedNodes.compareAndSet(current, 0);
-		}
-		return false;
+			destroyedNodes.compareAndSet(current, 0);
+			return current;
+		} else {
+			return 0;
+		}		
 	}
 
 	public AbstractIRNode() {
-		nodesCreated.intValue();
+		nodesCreated.getAndIncrement();
 	}
 
 	public Object identity() {

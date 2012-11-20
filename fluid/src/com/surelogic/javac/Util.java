@@ -448,6 +448,8 @@ public class Util {
 
     perf.markTimeFor("Promise.scrubbing");
     perf.setLongProperty("Total.nodes", AbstractIRNode.getTotalNodesCreated());
+    perf.setLongProperty("Total.destroyed", SlotInfo.numNodesDestroyed());
+    perf.setLongProperty("Total.gced", SlotInfo.numGarbageCollected());
     long[] times;
     if (analyze) {
       // These are all the SourceCUDrops for this project
@@ -495,7 +497,7 @@ public class Util {
      * } } } } else { writeOutput(projects); }
      */
     perf.markTimeFor("Sea.export");
-    final long total = perf.stopTiming("JSure.time");
+    final long total = perf.stopTiming("Total.JSure.time");
     testExperimentalFeatures(projects, cus);
 
     System.out.println("Done in " + total + " ms.");
@@ -507,7 +509,7 @@ public class Util {
         i++;
       }
     }
-    perf.setIntProperty("Total.destroyed", destroyedNodes);
+    perf.setIntProperty("Total.try.destroyed", destroyedNodes);
     perf.setIntProperty("Total.canonical", canonicalNodes);
     perf.setIntProperty("Total.decls", decls);
     perf.setIntProperty("Total.stmts", stmts);
