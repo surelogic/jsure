@@ -1,6 +1,7 @@
 package com.surelogic.javac;
 
 import java.io.*;
+import java.net.URI;
 import java.util.*;
 import java.util.Queue;
 import java.util.concurrent.*;
@@ -163,7 +164,9 @@ public class JavacClassParser {
 		final IParallelArray<CompilationUnitTree> cuts;		
 		final Queue<CodeInfo> cus;
 		final References refs;
-		final Map<JavaFileObject, JavaSourceFile> sources = new HashMap<JavaFileObject, JavaSourceFile>();
+        final Map<JavaFileObject, JavaSourceFile> sources = new HashMap<JavaFileObject, JavaSourceFile>();		
+		// TODO Base64
+		// final Map<URI, JavaSourceFile> sources = new HashMap<URI, JavaSourceFile>();
 		
 		public BatchParser(final JavacProject jp, int max, boolean asBinary) {
 			this.jp = jp;
@@ -204,12 +207,12 @@ public class JavacClassParser {
 						
 						JavaFileObject jfo = fileman.getJavaFileForInput(location, src, Kind.SOURCE);
 						temp.add(jfo);
-						sources.put(jfo, p);
+						mapSource(jfo, p);
 					}
 					else if ( p.file.exists() && p.file.length() > 0) {						
 						for(JavaFileObject jfo : fileman.getJavaFileObjects(p.file)) {
 							temp.add(jfo);						
-							sources.put(jfo, p);
+							mapSource(jfo, p);
 						}
 					}									
 				}
@@ -232,6 +235,20 @@ public class JavacClassParser {
 			if (!batch.isEmpty()) {
 				parseBatch(batch, results, asBinary);
 			}
+		}
+
+		void mapSource(JavaFileObject jfo, JavaSourceFile p) {
+			/* TODO Base64
+			URI uri = jfo.toUri();
+			if (jfo.getName().equals("Base64.java")) {
+				System.out.println("URI = "+uri);
+			}			
+			JavaSourceFile old = sources.put(uri, p);
+			if (old != null && !old.equals(p)) {
+				SLLogger.getLogger().warning("Already mapped "+uri);
+			}
+			*/
+			sources.put(jfo, p);
 		}
 		
 		@SuppressWarnings("unused")
@@ -297,7 +314,7 @@ public class JavacClassParser {
 						//PlainIRNode.setCurrentRegion(new IRRegion());
 
 						JCCompilationUnit jcu = (JCCompilationUnit) cut;					
-						JavaSourceFile file = sources.get(jcu.sourcefile);
+						JavaSourceFile file = sources.get(jcu.sourcefile/* TODO Base64 .toUri()*/);
 						CodeInfo info = adapter.get().adapt(t, jcu, file, asBinary || file.asBinary);				        
 						cus.add(info);
 						Projects.setProject(info.getNode(), jp);
@@ -669,6 +686,12 @@ public class JavacClassParser {
                     */
 					final CodeInfo info = jcp.getTypeEnv().findCompUnit(jsf.qname);
 					if (info == null) {
+						/* TODO Base64
+						System.out.println("Couldn't find "+jsf.qname+" in "+jcp.getTypeEnv());
+						if (jcp.getTypeEnv().findNamedType(jsf.qname) != null) {
+							System.out.println("Found the type, not the CodeInfo for "+jsf.qname);
+						}
+                        */
 						newFiles.add(jsf);
 					} else {
 						newCUs.add(info);

@@ -165,6 +165,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		while (it.hasNext()) {
 			Map.Entry<String, CodeInfo> e = it.next();
 			if (e.getValue().getNode().identity() == IRNode.destroyedNode) {
+//				System.out.println("Removed CodeInfo for "+e.getKey()+" from "+this);
 				it.remove();
 			}
 		}
@@ -424,6 +425,11 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 					continue;
 				}
 			}
+			/* TODO Base64
+            if (qname.endsWith("Base64")) {
+				System.out.println("Adding CodeInfo for "+qname+" from "+this);
+			}
+			*/
 			classes.addOuterClass(qname, td);
 			infos.put(qname, info);
 			changed = true;
