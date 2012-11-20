@@ -91,6 +91,7 @@ import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
@@ -98,6 +99,7 @@ import edu.cmu.cs.fluid.java.adapter.AbstractAdapter;
 import edu.cmu.cs.fluid.java.adapter.CodeContext;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.IllegalChildException;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -151,6 +153,12 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     try {
       CodeInfo info = new CodeInfo(jp.getTypeEnv(), cuRef, result, null, cuRef.getURI().toString(), srcCode,
           asBinary ? IJavaFileLocator.Type.INTERFACE : IJavaFileLocator.Type.SOURCE);
+	  /* TODO Base64
+      if (srcFile.qname.endsWith("Base64")) {
+    	  System.out.println("Parsing "+srcFile.qname+" from "+jp.getTypeEnv());
+    	  System.out.println("Adapted "+JavaNames.getFullName(VisitUtil.getPrimaryType(result)));
+      }
+      */
       computeMetrics(info, srcCode);
       return info;
     } finally {
