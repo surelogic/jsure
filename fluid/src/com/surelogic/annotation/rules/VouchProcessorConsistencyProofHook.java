@@ -11,10 +11,10 @@ public final class VouchProcessorConsistencyProofHook extends AbstractSeaConsist
   public void preConsistencyProof(Sea sea) {
     for (final ResultDrop rd : sea.getDropsOfType(ResultDrop.class)) {
       if (!rd.isConsistent()) {
-        if (rd.getNode() == null) {
+        if (rd.getProofContext() == null) {
           continue; // No possible vouch
         }
-        VouchPromiseDrop vouch = VouchRules.getEnclosingVouch(rd.getNode());
+        VouchPromiseDrop vouch = VouchRules.getEnclosingVouch(rd.getProofContext());
         if (vouch != null) {
           rd.setVouched();
           rd.addTrusted(vouch);
