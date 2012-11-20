@@ -3,7 +3,6 @@ package com.surelogic.javac;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -24,7 +23,6 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
 
 import jsr166y.forkjoin.ForkJoinExecutor;
-import jsr166y.forkjoin.ForkJoinPool;
 import jsr166y.forkjoin.IParallelArray;
 import jsr166y.forkjoin.NonParallelArray;
 import jsr166y.forkjoin.Ops.Procedure;
@@ -76,7 +74,9 @@ import com.surelogic.dropsea.ir.drops.RegionModelClearOutUnusedStaticProofHook;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 import com.surelogic.dropsea.ir.utility.Dependencies;
 import com.surelogic.javac.persistence.JSureDataDirScanner;
+import com.surelogic.javac.persistence.JSurePerformance;
 import com.surelogic.javac.persistence.JSureSubtypeInfo;
+import com.surelogic.javac.persistence.ScanProperty;
 import com.surelogic.persistence.JSureResultsXMLReader;
 import com.surelogic.persistence.JSureResultsXMLRefScanner;
 import com.surelogic.persistence.JavaIdentifier;
@@ -84,7 +84,6 @@ import com.surelogic.xml.PromisesXMLParser;
 import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.AbstractIRNode;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
@@ -362,10 +361,12 @@ public class Util {
       selectFilesToLoad(projects);
     }
 
-    // IDE.getInstance().setDefaultClassPath(project); // TODO
     final boolean singleThreaded = !wantToRunInParallel || ConcurrentAnalysis.singleThreaded;
     final ForkJoinExecutor pool = singleThreaded ? null : ConcurrentAnalysis.pool;
     System.out.println("singleThread = " + singleThreaded);
+    final JSurePerformance perf = new JSurePerformance(projects);
+    perf.setIntProperty("num.threads", singleThreaded ? 1 : ConcurrentAnalysis.threadCount);
+    
     ScopedPromisesLexer.init();
     SLAnnotationsLexer.init();
     SLThreadRoleAnnotationsLexer.init();
@@ -390,7 +391,7 @@ public class Util {
       destroyOldCUs(config.getProject(), config.getRemovedFiles());
     }
 
-    final long start = System.currentTimeMillis();
+    perf.startTiming();
     List<CodeInfo> temp = new ArrayList<CodeInfo>();
     loader.parse(temp);
     IDE.getInstance().setDefaultClassPath(projects.getFirstProjectOrNull());
@@ -398,7 +399,7 @@ public class Util {
     eliminateDups(temp, cus.asList());
     temp = null; // To free up memory
 
-    final long parse = System.currentTimeMillis();
+    perf.markTimeFor("Parsing");
     // checkForDups(cus.asList());
     rewriteCUs(projects, cus.asList(), projects.getMonitor());
     // checkForDups(cus.asList());
@@ -406,23 +407,23 @@ public class Util {
     loader.checkReferences(cus.asList());
     eliminateDups(cus.asList(), cus.asList());
     // checkForDups(cus.asList());
-
-    final long canon = System.currentTimeMillis();
+    
+    perf.markTimeFor("Rewriting");
     canonicalizeCUs(cus, projects);
     // Checking if we added type refs by canonicalizing implicit refs
     loader.checkReferences(cus.asList());
     loader = null; // To free up memory
 
-    final long cleanup = System.currentTimeMillis();
+    perf.markTimeFor("Canonicalization");
     eliminateDups(cus.asList(), cus.asList());
     clearCaches(projects);
 
-    final long required = System.currentTimeMillis();
+    perf.markTimeFor("Cleanup");
     final boolean addRequired = false;
     if (addRequired) {
       addRequired(cus, projects.getMonitor());
     }
-    final long drops = System.currentTimeMillis();
+    perf.markTimeFor("Add.required");
     final Dependencies deps = checkDependencies(cus);
 
     // cus now include reprocessed dependencies
@@ -430,13 +431,13 @@ public class Util {
     if (addRequired) {
       clearCaches(projects);
     }
-    final long promise = System.currentTimeMillis();
+    perf.markTimeFor("Drop.creation");
     parsePromises(cus, projects.getMonitor());
     /*
      * for(CodeInfo i : cus.asList()) { if (i.getFileName().endsWith(".java")) {
      * System.out.println("Found: "+i.getFileName()); } }
      */
-    final long scrub = System.currentTimeMillis();
+    perf.markTimeFor("Promise.parsing");
     if (projects.getMonitor().isCanceled()) {
       return false;
     }
@@ -445,8 +446,8 @@ public class Util {
     scrubPromises(cus.asList(), projects.getMonitor());
     // RegionModel.printModels();
 
-    final long analyzeTime = System.currentTimeMillis();
-    System.out.println("Total nodes     : " + AbstractIRNode.getTotalNodesCreated());
+    perf.markTimeFor("Promise.scrubbing");
+    perf.setLongProperty("Total.nodes", AbstractIRNode.getTotalNodesCreated());
     long[] times;
     if (analyze) {
       // These are all the SourceCUDrops for this project
@@ -458,10 +459,10 @@ public class Util {
       times = analyzeCUs(env, projects, analyses, cuds, allCuds, singleThreaded);
       env.done();
       matchResults(projects);
+      perf.markTimeFor("All.analyses");
     } else {
       times = new long[analyses.size()];
     }
-    final long sea = System.currentTimeMillis();
     System.out.println("Updating consistency proof");
     final SeaConsistencyProofHook vouchHook = new VouchProcessorConsistencyProofHook();
     final SeaConsistencyProofHook staticHook = new RegionModelClearOutUnusedStaticProofHook();
@@ -479,7 +480,7 @@ public class Util {
 
     filterResultsBySureLogicToolsPropertiesFile(projects);
 
-    final long export = System.currentTimeMillis();
+    perf.markTimeFor("Sea.update");
 
     // This would clear things before I persist the info
     //
@@ -493,37 +494,29 @@ public class Util {
      * .out.print(ref.getCUName()+":"+ref.getLineNumber()+" - "+d.getMessage());
      * } } } } else { writeOutput(projects); }
      */
-    final long end = System.currentTimeMillis();
+    perf.markTimeFor("Sea.export");
+    final long total = perf.stopTiming("JSure.time");
     testExperimentalFeatures(projects, cus);
 
-    System.out.println("Done in " + (end - start) + " ms.");
-    System.out.println("Parsing         : " + (parse - start) + " ms");
-    System.out.println("Rewriting       : " + (canon - parse) + " ms");
-    System.out.println("Canonicalization: " + (cleanup - canon) + " ms");
-    System.out.println("Cleanup         : " + (required - cleanup) + " ms");
-    System.out.println("Add required    : " + (drops - required) + " ms");
-    System.out.println("Drop creation   : " + (promise - drops) + " ms");
-    System.out.println("Promise parsing : " + (scrub - promise) + " ms");
-    System.out.println("Promise scrub   : " + (analyzeTime - scrub) + " ms");
+    System.out.println("Done in " + total + " ms.");
     if (analyze) {
       int i = 0;
       for (IIRAnalysis a : analyses) {
         System.out.println(a.name() + "\t: " + times[i] + " ms");
+        perf.setLongProperty("analysis."+a.name(), times[i]);
         i++;
       }
-      System.out.println("All analyses    : " + (sea - analyzeTime) + " ms");
     }
-    System.out.println("Sea update      : " + (export - sea) + " ms");
-    System.out.println("Sea export      : " + (end - export) + " ms");
-    System.out.println("Destroyed nodes : " + destroyedNodes);
-    System.out.println("Canonical nodes : " + canonicalNodes);
-    System.out.println("Total nodes     : " + AbstractIRNode.getTotalNodesCreated());
-    System.out.println("Declarations    : " + decls);
-    System.out.println("Statements      : " + stmts);
-    System.out.println("Blocks          : " + blocks);
+    perf.setIntProperty("Total.destroyed", destroyedNodes);
+    perf.setIntProperty("Total.canonical", canonicalNodes);
+    perf.setIntProperty("Total.decls", decls);
+    perf.setIntProperty("Total.stmts", stmts);
+    perf.setIntProperty("Total.blocks", blocks);
     // System.out.println("Binary rewrites : "+binaryRewrites);
-    UnversionedJavaBinder.printStats();
+    UnversionedJavaBinder.printStats(perf);
     AbstractTypeEnvironment.printStats();
+    perf.store();
+    perf.print(System.out);
     return true;
   }
 

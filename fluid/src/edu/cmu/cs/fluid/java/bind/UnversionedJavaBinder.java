@@ -13,6 +13,7 @@ import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
+import com.surelogic.javac.persistence.JSurePerformance;
 
 import edu.cmu.cs.fluid.derived.*;
 import edu.cmu.cs.fluid.ide.IDE;
@@ -421,9 +422,11 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     }
   }
   
-  public static void printStats() {
-	  System.out.println("Partial binding:  "+partialTime+" ms");
-	  System.out.println("Full binding:     "+fullTime+" ms");
+  public static void printStats(JSurePerformance perf) {
+	  perf.setLongProperty("Binding.partial.time", partialTime);
+	  perf.setLongProperty("Binding.full.time", fullTime);
+	  perf.setLongProperty("Bindings.partial", numPartial);
+	  perf.setLongProperty("Bindings.full", numFull);
 	  partialTime = fullTime = 0;
 	  AbstractJavaBinder.printStats();
 	  BatchJavaTypeVisitor.printStats();

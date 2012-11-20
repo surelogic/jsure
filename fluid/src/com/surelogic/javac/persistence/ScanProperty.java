@@ -10,8 +10,8 @@ import java.util.*;
 
 import com.surelogic.common.SortedProperties;
 
-abstract class ScanProperty<T> {
-	private static final String SCAN_PROPERTIES = "scan.properties";
+public abstract class ScanProperty<T> {
+	public static final String SCAN_PROPERTIES = "scan.properties";
 	
 	final String key;
 
