@@ -23,7 +23,6 @@ import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
-import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -99,6 +98,18 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
     date = new Date();
   }
 
+  public void setScanDir(File scanDir) {
+	if (f_scanDirName != UNINIT) {
+	  throw new IllegalStateException("Run already set: " + f_scanDirName);
+	}
+	if (scanDir == null) {
+	  throw new IllegalArgumentException("Null scanDir");
+	}
+	// TODO check if it's for the right thing?
+	f_scanDir = scanDir;
+	f_scanDirName = scanDir.getName();
+  }
+  
   public void computeScan(File dataDir, Projects oldProjects) throws Exception {
     if (f_scanDirName != UNINIT) {
       throw new IllegalStateException("Run already set: " + f_scanDirName);

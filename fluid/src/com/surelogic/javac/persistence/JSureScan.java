@@ -1,11 +1,7 @@
 package com.surelogic.javac.persistence;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -207,6 +203,10 @@ public class JSureScan implements Comparable<JSureScan> {
     reader.read(new File(f_scanDir, PersistenceConstants.PROJECTS_XML));
     f_projectsScanned = reader.getProjects();
     f_projectsScanned.setMonitor(NullSLProgressMonitor.getFactory().createSLProgressMonitor(""));
+    f_projectsScanned.setScanDir(f_scanDir);
+    if (!f_projectsScanned.getRunDir().equals(f_scanDir)) {
+    	throw new IllegalStateException();
+    }
     return f_projectsScanned;
   }
 
