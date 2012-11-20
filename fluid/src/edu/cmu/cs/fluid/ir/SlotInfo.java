@@ -209,14 +209,27 @@ public abstract class SlotInfo<T> extends IRObservable {
 		// Nothing to do
 	}
 
+	private static long gced = 0;
+	private static long destroyedNodes = 0;
+	
+	public static synchronized long numGarbageCollected() {
+		return gced;
+	}
+	
+	public static synchronized long numNodesDestroyed() {
+		return destroyedNodes;
+	}
+	
 	/**
 	 * Remove invalid nodes
 	 */
 	public static synchronized void gc() {
-		if (!AbstractIRNode.checkIfNumDestroyed(1000)) {
+		long num = AbstractIRNode.resetNumDestroyedIfMoreThan(1000);
+		if (num <= 0) {
 			return;
 		}
-		int cleaned = 0;
+		destroyedNodes += num;
+		long cleaned = 0;
 		for (SlotInfo si : anonSIs) {
 			cleaned += si.cleanup();
 		}
@@ -224,6 +237,7 @@ public abstract class SlotInfo<T> extends IRObservable {
 			cleaned += si.cleanup();
 		}
 		System.out.println("Cleaned: "+cleaned);
+		gced += cleaned; 
 	}
 
 	public static synchronized void compactAll() {
