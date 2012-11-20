@@ -133,8 +133,12 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     lines = cut.getLineMap();
     javadoc = cut.docComments;
     cuRef = new FileResource(projects, srcFile, getPackage(cut), jp.getName());
-    srcCode = getSourceCode(cut.getSourceFile().getName());
-
+    try {  
+    	srcCode = cut.getSourceFile().getCharContent(true).toString();
+    } catch(IOException e) {
+    	final String name = cut.getSourceFile().getName();
+    	srcCode = getSourceCode(name);
+    }
     this.asBinary = asBinary;
     initACEInfo(cut);
 
@@ -266,7 +270,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
         total += numRead;
       }
       if (total != length) {
-        System.out.println("Source sizes not matching: got " + total + " out of " + length);
+        SLLogger.getLogger().warning("Source sizes not matching: got " + total + " out of " + length);
       }
       return sb.toString();
     } catch (IOException e) {
