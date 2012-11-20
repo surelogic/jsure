@@ -104,6 +104,7 @@ import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.javac.persistence.PersistenceConstants;
+import com.surelogic.javac.persistence.ScanProperty;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
@@ -1638,11 +1639,9 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
         if (useSourceZipsDirectly) {
           final int len = path.length();
           // Assumes that it ends with '.java'
-          if (path.lastIndexOf('.', len - 5) >= 0) {
-          /* TODO
+          //if (path.lastIndexOf('.', len - 5) >= 0) {
           final int firstDot = path.indexOf('.');
           if (firstDot < len - 5) {
-          */
             pathsContainDot = true;
           }
         }
@@ -2077,6 +2076,10 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
     try {
       PromisesXMLArchiver out = new PromisesXMLArchiver(crash);
       try {
+        out.archive(ScanProperty.SCAN_PROPERTIES, 
+        		    new File(projects.getRunDir(), ScanProperty.SCAN_PROPERTIES));
+    	out.archive(Javac.JAVAC_PROPS, new File(projects.getRunDir(), Javac.JAVAC_PROPS));
+    	  
         // Get project-specific config
         for (String name : projects.getProjectNames()) {
           IProject proj = EclipseUtility.getProject(name);
@@ -2100,7 +2103,6 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
             continue;
           }
         }
-        out.archive(Javac.JAVAC_PROPS, new File(projects.getRunDir(), Javac.JAVAC_PROPS));
         out.archive(PersistenceConstants.PROJECTS_XML, new File(projects.getRunDir(), PersistenceConstants.PROJECTS_XML));
         out.archive(AbstractRemoteSLJob.LOG_NAME, new File(projects.getRunDir(), AbstractRemoteSLJob.LOG_NAME));
 
