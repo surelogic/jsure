@@ -30,6 +30,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
@@ -38,7 +39,9 @@ import edu.cmu.cs.fluid.java.operator.ArrayInitializer;
 import edu.cmu.cs.fluid.java.operator.ElementValueArrayInitializer;
 import edu.cmu.cs.fluid.java.operator.ElementValuePair;
 import edu.cmu.cs.fluid.java.operator.ElementValuePairs;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FalseExpression;
+import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.Initializer;
 import edu.cmu.cs.fluid.java.operator.NormalAnnotation;
 import edu.cmu.cs.fluid.java.operator.SingleElementAnnotation;
@@ -417,7 +420,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return sum(doAcceptForChildrenWithResults(node));
   }
 
-  private static String reformatStringArray(IRNode strings) {
+  private String reformatStringArray(IRNode strings) {
     StringBuilder b = new StringBuilder();
     for (IRNode ev : ArrayInitializer.getInitIterator(strings)) {
       if (b.length() != 0) {
@@ -428,8 +431,9 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return b.toString();
   }
 
-  static String extractString(IRNode value) {
-    if (StringLiteral.prototype.includes(value)) {
+  String extractString(IRNode value) {
+	final Operator op = JJNode.tree.getOperator(value);
+    if (StringLiteral.prototype.includes(op)) {
       String c = StringLiteral.getToken(value);
       if (SourceAdapter.includeQuotesInStringLiteral) {
     	  final boolean quoteStart = c.startsWith("\"");    	  
@@ -442,10 +446,23 @@ public class AnnotationVisitor extends Visitor<Integer> {
     		  System.out.println("String literal without quotes");          
     	  }
           */
-      }
+      }      
       return c;
     }
-    return "";
+    else if (FieldRef.prototype.includes(op)) {
+      IBinding b = tEnv.getBinder().getIBinding(value);
+      Operator bop = JJNode.tree.getOperator(b.getNode());
+      if (EnumConstantDeclaration.prototype.includes(bop)) {
+    	  // The name is the value
+    	  return FieldRef.getId(value);
+      }
+      /*
+      else if (VariableDeclarator.prototype.includes(bop)) {
+    	  return extractString(VariableDeclarator.getInit(b.getNode()));
+      }
+      */
+    }
+    throw new IllegalStateException("Unexpected expression: "+DebugUnparser.toString(value));
   }
 
   private static int convertToModifiers(boolean implOnly, boolean verify, boolean allowReturn, boolean allowRead, 
