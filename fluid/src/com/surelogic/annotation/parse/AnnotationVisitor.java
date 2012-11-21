@@ -30,9 +30,12 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.java.operator.ArrayInitializer;
@@ -345,10 +348,11 @@ public class AnnotationVisitor extends Visitor<Integer> {
           // Treat as marker annotation
           num += translate(handleJava5Promise(value, promise));
         }
-      } else if (StringLiteral.prototype.includes(op) || StringConcat.prototype.includes(op)) {
+      } else { //if (StringLiteral.prototype.includes(op) || StringConcat.prototype.includes(op)) {
         num += translate(handleJava5Promise(node, promise, value));
-      } else
-        throw new IllegalArgumentException("Unexpected value: " + op.name());
+      //} else {
+      //  throw new IllegalArgumentException("Unexpected value: " + op.name());      
+      }
     } else {
       if (!plural) {
         throw new Error(promise + " contains Annotations: " + DebugUnparser.toString(value));
@@ -433,6 +437,14 @@ public class AnnotationVisitor extends Visitor<Integer> {
   }
 
   String extractString(IRNode value) {
+	final IBinder b = tEnv.getBinder();
+	final IJavaType t = b.getJavaType(value);
+	if (tEnv.getStringType().equals(t)) {
+		return new ConstantStringExprVisitor(b).doAccept(value);
+	}
+	else if (t == JavaTypeFactory.booleanType) {
+		return new ConstantBooleanExprVisitor(b).doAccept(value).toString();
+	}
 	final Operator op = JJNode.tree.getOperator(value);
     if (StringLiteral.prototype.includes(op)) {
       String c = StringLiteral.getToken(value);
@@ -455,8 +467,8 @@ public class AnnotationVisitor extends Visitor<Integer> {
              extractString(StringConcat.getOp2(value));
     }
     else if (FieldRef.prototype.includes(op)) {
-      IBinding b = tEnv.getBinder().getIBinding(value);
-      Operator bop = JJNode.tree.getOperator(b.getNode());
+      IBinding binding = b.getIBinding(value);
+      Operator bop = JJNode.tree.getOperator(binding.getNode());
       if (EnumConstantDeclaration.prototype.includes(bop)) {
     	  // The name is the value
     	  return FieldRef.getId(value);
