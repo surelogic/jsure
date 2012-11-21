@@ -312,6 +312,8 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     f_actionShowOnlyAbductive.setText(I18N.msg("jsure.eclipse.proposed.promises.showAbductiveOnly"));
     f_actionShowOnlyAbductive.setToolTipText(I18N.msg("jsure.eclipse.proposed.promises.showAbductiveOnly.tip"));
     f_actionShowOnlyAbductive.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION_ABDUCTIVE));
+    f_showOnlyAbductive = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROPOSED_ANNOTATIONS_SHOW_ABDUCTIVE_ONLY);
+    f_actionShowOnlyAbductive.setChecked(f_showOnlyAbductive);
 
     f_actionExpand.setText("Expand");
     f_actionExpand.setToolTipText("Expand the current selection or all if none");
