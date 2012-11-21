@@ -1,22 +1,23 @@
 package com.surelogic.aast.promise;
 
+import com.surelogic.Part;
 import com.surelogic.aast.java.NamedTypeNode;
 
 import edu.cmu.cs.fluid.java.JavaNode;
 
 public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {	
-	public static final String STATIC_PART = "staticPart";	
+	public static final String APPLIES_TO = "appliesTo";	
 	public static enum State {
 		Immutable, ThreadSafe, NotThreadSafe
 	}
 	
 	protected final int mods;
-	protected final State staticPart;
+	protected final Part appliesTo;
 	
-	protected AbstractModifiedBooleanNode(int modifiers, State state) {
+	protected AbstractModifiedBooleanNode(int modifiers, Part state) {
 		super();
 		mods = modifiers;
-		staticPart = state;
+		appliesTo = state != null ? state : Part.InstanceAndStatic;
 	}
 
 	public final boolean getModifier(int modifier) {
@@ -77,11 +78,11 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 	}	
 	
 	protected void unparseExtra(boolean debug, int indent, StringBuilder sb) {
-		if (staticPart != null) {
+		if (appliesTo != Part.InstanceAndStatic) {
 			if (debug) {
 				sb.append(' ');
 			} 
-			sb.append(STATIC_PART).append('=').append(staticPart);			
+			sb.append(APPLIES_TO).append('=').append(appliesTo);			
 		}
 	}
 
@@ -111,7 +112,7 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 	}
 	
 	protected boolean hasChildren() {
-		return false;
+		return appliesTo != Part.InstanceAndStatic;
 	}
 	
 	public final boolean isImplementationOnly() {
@@ -126,7 +127,12 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 		return getModifier(JavaNode.ALLOW_REF_OBJECT);
 	}
 	
+	@Deprecated	
 	public final State getStaticPart() {
-		return staticPart;
+		return null;
+	}
+	
+	public final Part getAppliesTo() {
+		return appliesTo;
 	}
 }

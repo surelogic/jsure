@@ -1,18 +1,14 @@
 
 package com.surelogic.aast.promise;
 
+import com.surelogic.Part;
 import com.surelogic.aast.*;
 
 public final class ThreadSafeNode extends AbstractModifiedBooleanNode 
 {   
   // Constructors
-  public ThreadSafeNode(int mods, State state) {
+  public ThreadSafeNode(int mods, Part state) {
     super(mods, state);
-  }
-
-  @Override
-  protected boolean hasChildren() {
-	  return getStaticPart() != State.ThreadSafe;
   }
   
   @Override
@@ -27,7 +23,7 @@ public final class ThreadSafeNode extends AbstractModifiedBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new ThreadSafeNode(mods, staticPart);
+  	return new ThreadSafeNode(mods, appliesTo);
   }
 }
 
