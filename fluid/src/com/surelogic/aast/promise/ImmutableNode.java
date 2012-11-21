@@ -1,18 +1,14 @@
 
 package com.surelogic.aast.promise;
 
+import com.surelogic.Part;
 import com.surelogic.aast.*;
 
 public final class ImmutableNode extends AbstractModifiedBooleanNode 
 { 	
   // Constructors
-  public ImmutableNode(int mods, State state) {
+  public ImmutableNode(int mods, Part state) {
     super(mods, state);
-  }
-
-  @Override
-  protected boolean hasChildren() {
-	  return getStaticPart() != State.Immutable;
   }
   
   @Override
@@ -27,7 +23,7 @@ public final class ImmutableNode extends AbstractModifiedBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new ImmutableNode(mods, staticPart);
+  	return new ImmutableNode(mods, appliesTo);
   }
 }
 

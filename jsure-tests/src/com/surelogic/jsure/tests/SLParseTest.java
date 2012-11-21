@@ -7,6 +7,7 @@ import junit.framework.TestCase;
 
 import org.antlr.runtime.RecognitionException;
 
+import com.surelogic.Part;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.*;
 import com.surelogic.annotation.*;
@@ -1923,7 +1924,7 @@ public class SLParseTest extends TestCase {
 		 * ****************** Test @ThreadSafe
 		 * *******************************
 		 */
-		context.setProperty(AbstractModifiedBooleanNode.STATIC_PART, LockRules.THREAD_SAFE);
+		context.setProperty(AbstractModifiedBooleanNode.APPLIES_TO, Part.InstanceAndStatic.toString());
 		context.setOp(ClassDeclaration.prototype);
 		threadSafeRulesHelper.parse(context, "");
 		assertTrue(context.getError() == null);

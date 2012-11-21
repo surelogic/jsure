@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.antlr.runtime.RecognitionException;
 
+import com.surelogic.Part;
 import com.surelogic.aast.AASTStatus;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.bind.ILockBinding;
@@ -2206,6 +2207,19 @@ public class LockRules extends AnnotationRules {
     }    
   }  
   
+  static Part computeAppliesTo(IAnnotationParsingContext context, int offset) {
+  	final String raw = context.getProperty(AbstractModifiedBooleanNode.APPLIES_TO);
+	if (raw == null) {
+		return Part.InstanceAndStatic;
+	} 
+	try {
+		return Part.valueOf(raw);
+	} catch(IllegalArgumentException e) {
+		context.reportError(offset, "Unknown Part specified: "+raw);
+		return null;
+	}
+  }
+  
   public static class ThreadSafe_ParseRule 
   extends SimpleBooleanAnnotationParseRule<ThreadSafeNode,ThreadSafePromiseDrop> {
     public ThreadSafe_ParseRule() {
@@ -2213,16 +2227,11 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      String raw = context.getProperty(AbstractModifiedBooleanNode.STATIC_PART);
-  	  if (raw == null) {
-  		  raw = THREAD_SAFE;
-	  }
-  	  try {
-  		  return new ThreadSafeNode(mods, AbstractModifiedBooleanNode.State.valueOf(raw));
-  	  } catch(IllegalArgumentException e) {
-  		  context.reportError(offset, "Unknown staticPart specified: "+raw);
-  		  return null;
-  	  }
+    	Part part = computeAppliesTo(context, offset);
+    	if (part == null) {
+    		return null;
+    	}
+    	return new ThreadSafeNode(mods, part);
     }
     @Override
     protected IPromiseDropStorage<ThreadSafePromiseDrop> makeStorage() {
@@ -2269,7 +2278,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ThreadSafeNode makeDerivedAnnotation(
             final int mods, ThreadSafeNode orig) {
-          return new ThreadSafeNode(mods, orig.getStaticPart());
+          return new ThreadSafeNode(mods, orig.getAppliesTo());
         }
 
         @Override
@@ -2396,16 +2405,11 @@ public class LockRules extends AnnotationRules {
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       if (TypeDeclaration.prototype.includes(context.getOp())) {
-          String raw = context.getProperty(AbstractModifiedBooleanNode.STATIC_PART);
-      	  if (raw == null) {
-      		  raw = IMMUTABLE;
-    	  }
-      	  try {
-      		  return new ImmutableNode(mods, AbstractModifiedBooleanNode.State.valueOf(raw));
-      	  } catch(IllegalArgumentException e) {
-      		  context.reportError(offset, "Unknown staticPart specified: "+raw);
-      		  return null;
-      	  }
+      	Part part = computeAppliesTo(context, offset);
+    	if (part == null) {
+    		return null;
+    	}
+    	return new ImmutableNode(mods, part);
       }
       return new ImmutableRefNode(offset);
     }
@@ -2434,7 +2438,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected ImmutableNode makeDerivedAnnotation(
             final int mods, ImmutableNode orig) {
-          return new ImmutableNode(mods, orig.getStaticPart());
+          return new ImmutableNode(mods, orig.getAppliesTo());
         }
 
         @Override
