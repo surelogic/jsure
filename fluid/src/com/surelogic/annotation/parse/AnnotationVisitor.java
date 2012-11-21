@@ -45,6 +45,7 @@ import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.Initializer;
 import edu.cmu.cs.fluid.java.operator.NormalAnnotation;
 import edu.cmu.cs.fluid.java.operator.SingleElementAnnotation;
+import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.StringLiteral;
 import edu.cmu.cs.fluid.java.operator.TrueExpression;
 import edu.cmu.cs.fluid.java.operator.Visitor;
@@ -344,7 +345,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
           // Treat as marker annotation
           num += translate(handleJava5Promise(value, promise));
         }
-      } else if (StringLiteral.prototype.includes(op)) {
+      } else if (StringLiteral.prototype.includes(op) || StringConcat.prototype.includes(op)) {
         num += translate(handleJava5Promise(node, promise, value));
       } else
         throw new IllegalArgumentException("Unexpected value: " + op.name());
@@ -448,6 +449,10 @@ public class AnnotationVisitor extends Visitor<Integer> {
           */
       }      
       return c;
+    }
+    else if (StringConcat.prototype.includes(op)) {
+      return extractString(StringConcat.getOp1(value)) +
+             extractString(StringConcat.getOp2(value));
     }
     else if (FieldRef.prototype.includes(op)) {
       IBinding b = tEnv.getBinder().getIBinding(value);
