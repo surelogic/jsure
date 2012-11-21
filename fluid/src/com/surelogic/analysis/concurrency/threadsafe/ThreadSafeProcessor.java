@@ -3,9 +3,9 @@ package com.surelogic.analysis.concurrency.threadsafe;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.Part;
 import com.surelogic.aast.promise.AbstractModifiedBooleanNode;
 import com.surelogic.aast.promise.VouchFieldIsNode;
-import com.surelogic.aast.promise.AbstractModifiedBooleanNode.State;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
@@ -70,15 +70,17 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
   private static final int DEST_REGION_UNPROTECTED = 428;
   private static final int CONTAINABLE_IMPL = 429;
   private static final int TRIVIALLY_THREADSAFE_STATIC_ONLY = 430;
-
+  private static final int TRIVIALLY_THREADSAFE_NO_STATIC = 431;
+  
   
   
   private final ResultsBuilder builder;
   private final Set<RegionLockRecord> lockDeclarations;
   private final boolean isInterface;
   private boolean hasStaticFields = false;
-  private final State staticPart;
-
+  private final boolean verifyStaticState;
+  private final boolean verifyInstanceState;
+  
   
   
   public ThreadSafeProcessor(final IBinder b,
@@ -88,7 +90,9 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
     super(b, typeDecl, typeBody);
     isInterface = TypeUtil.isInterface(typeDecl);
     builder = new ResultsBuilder(tsDrop);
-    staticPart = tsDrop.staticPart();
+    final Part appliesTo = tsDrop.getAppliesTo();
+    verifyInstanceState = appliesTo != Part.Static;
+    verifyStaticState = appliesTo != Part.Instance;
     lockDeclarations = globalLockModel.getRegionLocksInClass(
         JavaTypeFactory.getMyThisType(typeDecl));
   }
@@ -105,25 +109,42 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
 
   @Override
   protected void processSuperType(final IRNode name, final IRNode tdecl) {
-    final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> pDrop =
-        LockRules.getThreadSafeImplPromise(tdecl);
-    if (pDrop != null) {
-      final ResultDrop result = builder.createRootResult(
-          true, name, THREAD_SAFE_SUPERTYPE, JavaNames.getQualifiedTypeName(tdecl));
-      result.addTrusted(pDrop);
+    // Super type is only interesting if we care about instance state
+    if (verifyInstanceState) {
+      final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> pDrop =
+          LockRules.getThreadSafeImplPromise(tdecl);
+      if (pDrop != null) {
+        final ResultDrop result = builder.createRootResult(
+            true, name, THREAD_SAFE_SUPERTYPE, JavaNames.getQualifiedTypeName(tdecl));
+        result.addTrusted(pDrop);
+      }
     }
   }
 
   @Override
   protected void postProcess() {
-    // We are only called on classes annotated with @Immutable
     if (isInterface) {
-      if (!hasStaticFields) {
+      /* Interfaces cannot have instance state.  Two cases for trivial
+       * verification: (1) The interface is empty, or (2) there are static fields
+       * but they are not subject to verification.
+       */
+      if (!hasStaticFields) { // interfaces never have instance fields
         builder.createRootResult(true, typeDecl, TRIVIALLY_THREADSAFE);
-      } else if (staticPart == State.NotThreadSafe) {
+      } else if (!verifyStaticState) {
         builder.createRootResult(true, typeDecl, TRIVIALLY_THREADSAFE_STATIC_ONLY);
       }
-    }
+    } else {
+      /* If we are verifying instance state, there will always be a drop 
+       * about the super type. 
+       */
+      if (!verifyInstanceState) { // implies we are verifying static state
+        /* trivially verified if we don't have static fields.
+         */
+        if (!hasStaticFields) {
+          builder.createRootResult(true, typeDecl, TRIVIALLY_THREADSAFE_NO_STATIC);
+        }
+      }
+    }    
   }
 
   @Override
@@ -131,13 +152,10 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
       final IRNode varDecl, final boolean isStatic) {
     if (isStatic) {
       hasStaticFields = true;
-
-      if (staticPart == State.Immutable) {
-        ImmutableProcessor.assureFieldIsImmutable(builder, binder, fieldDecl, varDecl);
-      } else if (staticPart == State.ThreadSafe) {
+      if (verifyStaticState) {
         assureFieldIsThreadSafe(builder, binder, lockDeclarations, fieldDecl, varDecl);
       }
-    } else {
+    } else if (verifyInstanceState) {
       assureFieldIsThreadSafe(builder, binder, lockDeclarations, fieldDecl, varDecl);
     }
   }

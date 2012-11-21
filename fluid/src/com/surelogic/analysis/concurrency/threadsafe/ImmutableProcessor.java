@@ -1,14 +1,11 @@
 package com.surelogic.analysis.concurrency.threadsafe;
 
-import java.util.Set;
-
-import com.surelogic.aast.promise.AbstractModifiedBooleanNode.State;
+import com.surelogic.Part;
 import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks.GlobalLockModel;
-import com.surelogic.analysis.concurrency.heldlocks.RegionLockRecord;
 import com.surelogic.analysis.type.constraints.TypeAnnotationTester;
 import com.surelogic.analysis.type.constraints.TypeAnnotations;
 import com.surelogic.annotation.rules.LockRules;
@@ -24,7 +21,6 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
-import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
@@ -32,6 +28,7 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 
 public final class ImmutableProcessor extends TypeImplementationProcessor {
+  private static final int TRIVIALLY_IMMUTABLE_NO_STATIC = 478;
   private static final int TRIVIALLY_IMMUTABLE_STATIC_ONLY = 479;
   private static final int IMMUTABLE_SUPERTYPE = 480;
   private static final int TRIVIALLY_IMMUTABLE = 481;
@@ -53,9 +50,9 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
   
   private final boolean isInterface;
   private final ResultsBuilder builder;
-  private final State staticPart;
+  private final boolean verifyInstanceState;
+  private final boolean verifyStaticState;
   private boolean hasStaticFields = false;
-  private final Set<RegionLockRecord> lockDeclarations;
 
   
   
@@ -66,33 +63,50 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
     super(b, typeDecl, typeBody);
     isInterface = TypeUtil.isInterface(typeDecl);
     builder = new ResultsBuilder(iDrop);
-    staticPart = iDrop.staticPart();
-    lockDeclarations = globalLockModel.getRegionLocksInClass(
-        JavaTypeFactory.getMyThisType(typeDecl));
+    final Part appliesTo = iDrop.getAppliesTo();
+    verifyInstanceState = appliesTo != Part.Static;
+    verifyStaticState = appliesTo != Part.Instance;
   }
 
   @Override
   protected void processSuperType(final IRNode name, final IRNode tdecl) {
-    final ImmutablePromiseDrop pDrop =
-        LockRules.getImmutableImplementation(tdecl);
-    if (pDrop != null) {
-      final ResultDrop result = builder.createRootResult(
-          true, name, IMMUTABLE_SUPERTYPE,
-          JavaNames.getQualifiedTypeName(tdecl));
-      result.addTrusted(pDrop);
+    // Super type is only interesting if we care about instance state
+    if (verifyInstanceState) {
+      final ImmutablePromiseDrop pDrop =
+          LockRules.getImmutableImplementation(tdecl);
+      if (pDrop != null) {
+        final ResultDrop result = builder.createRootResult(
+            true, name, IMMUTABLE_SUPERTYPE,
+            JavaNames.getQualifiedTypeName(tdecl));
+        result.addTrusted(pDrop);
+      }
     }
   }
 
   @Override
   protected void postProcess() {
-    // We are only called on classes annotated with @Immutable
     if (isInterface) {
-      if (!hasStaticFields) {
+      /* Interfaces cannot have instance state.  Two cases for trivial
+       * verification: (1) The interface is empty, or (2) there are static fields
+       * but they are not subject to verification.
+       */
+      if (!hasStaticFields) { // interfaces never have instance fields
         builder.createRootResult(true, typeDecl, TRIVIALLY_IMMUTABLE);
-      } else if (staticPart == State.NotThreadSafe) {
+      } else if (!verifyStaticState) {
         builder.createRootResult(true, typeDecl, TRIVIALLY_IMMUTABLE_STATIC_ONLY);
       }
-    }
+    } else {
+      /* If we are verifying instance state, there will always be a drop 
+       * about the super type. 
+       */
+      if (!verifyInstanceState) { // implies we are verifying static state
+        /* trivially verified if we don't have static fields.
+         */
+        if (!hasStaticFields) {
+          builder.createRootResult(true, typeDecl, TRIVIALLY_IMMUTABLE_NO_STATIC);
+        }
+      }
+    }    
   }
 
   @Override
@@ -100,13 +114,10 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
       final IRNode varDecl, final boolean isStatic) {
     if (isStatic) {
       hasStaticFields = true;
-      
-      if (staticPart == State.Immutable) {
+      if (verifyStaticState) {
         assureFieldIsImmutable(builder, binder, fieldDecl, varDecl);
-      } else if (staticPart == State.ThreadSafe) {
-        ThreadSafeProcessor.assureFieldIsThreadSafe(builder, binder, lockDeclarations, fieldDecl, varDecl);
       }
-    } else {
+    } else if (verifyInstanceState) {
       assureFieldIsImmutable(builder, binder, fieldDecl, varDecl);
     }
   }
