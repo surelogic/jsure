@@ -77,7 +77,8 @@ public class LockAnalysis
 				"LockAssurance", BindingContextAnalysis.factory);
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			setWorkProcedure(new Procedure<TypeBodyPair>() {
-				public void op(TypeBodyPair n) {
+				@Override
+        public void op(final TypeBodyPair n) {
 					if (byCompUnit) {
 						// System.out.println("Parallel Lock: "+JavaNames.genPrimaryTypeName(n));
 						TopLevelAnalysisVisitor.processCompilationUnit(
