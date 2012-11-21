@@ -80,6 +80,8 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Triple;
 
 public class ClassAdapter extends AbstractAdapter {
@@ -100,6 +102,9 @@ public class ClassAdapter extends AbstractAdapter {
   // String signature;
   IRNode superType;
   IRNode[] ifaces = noNodes;
+  /**
+   * The type represented by the .class file
+   */
   IRNode root;
   final List<IRNode> annos = new ArrayList<IRNode>();
   final List<IRNode> members = new ArrayList<IRNode>();
@@ -163,6 +168,19 @@ public class ClassAdapter extends AbstractAdapter {
     	  }
     	  for(IRNode v : VisitUtil.getClassFieldDeclarators(root)) {
     		  SkeletonJavaRefUtility.copyIfPossible(root, v);
+    	  }
+    	  final Operator op = JJNode.tree.getOperator(root);
+    	  IRNode formals = null;
+    	  if (ClassDeclaration.prototype.includes(op)) {
+    		  formals = ClassDeclaration.getTypes(root);
+    	  }
+    	  else if (InterfaceDeclaration.prototype.includes(op)) {
+    		  formals = InterfaceDeclaration.getTypes(root);
+    	  }
+    	  if (formals != null) {
+    		  for(IRNode f : TypeFormals.getTypeIterator(formals)) {
+    			  SkeletonJavaRefUtility.copyIfPossible(root, f);
+    		  }
     	  }
       }
       if (!isInner) {
