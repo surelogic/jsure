@@ -34,14 +34,14 @@ public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> impl
 	  return computeAlternateDeclForUnparse(getNode());
   }
   
-  @Override
-  public boolean isCheckedByAnalysis() {
-    if (isUniqueReturn) {
-      return super.isCheckedByAnalysis();
-    } else {
-      return true;
-    }
-  }
+//  @Override
+//  public boolean isCheckedByAnalysis() {
+//    if (isUniqueReturn) {
+//      return super.isCheckedByAnalysis();
+//    } else {
+//      return true;
+//    }
+//  }
 
   /**
    * @return Returns the isUniqueReturn.
