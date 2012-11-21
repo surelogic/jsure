@@ -191,6 +191,7 @@ public class JavacClassParser {
 		void parse(Iterable<JavaSourceFile> files, List<CodeInfo> results, boolean onDemand) 
 		throws IOException {
 			// Eliminate duplicates
+			// TODO Base64 Can't hash on JaveFileObject
 			final Set<JavaFileObject> temp  = new HashSet<JavaFileObject>(max);
 			for(JavaSourceFile p : files) {
 				final CodeInfo info = jp.getTypeEnv().findCompUnit(p.qname);
