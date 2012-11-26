@@ -30,7 +30,6 @@ import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.UnknownReferenceConversionEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.MethodEffectsRules;
-import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -205,7 +204,10 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	        }
 			  }
 			} else if (TypeUtil.isTypeDecl(member)) {
-			  reportClassInitializationEffects(member);
+			  /* 2012-11-26: Why are we doing this?
+			   * Take this out for now.  
+			   */
+//			  reportClassInitializationEffects(member);
 			}			  
 		}
 	}
@@ -346,21 +348,21 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	}
 	
 	
-	private void reportClassInitializationEffects(final IRNode typeDecl) {
-	  final IRNode flowUnit = JavaPromise.getClassInitOrNull(typeDecl);
-	  final Set<Effect> effects = 
-	    getAnalysis().getEffectsQuery(
-	        flowUnit, getSharedAnalysis().getExpressionObjectsQuery(flowUnit)).getResultFor(flowUnit);
-	  final Set<Effect> masked = getAnalysis().maskEffects(effects);
-	  final String id = JJNode.getInfo(typeDecl);
-	  for (final Effect e : masked) {
-	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
-	    final HintDrop drop = HintDrop.newInformation(src);
-      drop.setCategorizingMessage(Messages.DSC_EFFECTS_IN_CLASS_INIT);
-      drop.setMessage(Messages.CLASS_INIT_EFFECT,
-          id, e.toString(), DebugUnparser.toString(src));
-	  }
-	}
+//	private void reportClassInitializationEffects(final IRNode typeDecl) {
+//	  final IRNode flowUnit = JavaPromise.getClassInitOrNull(typeDecl);
+//	  final Set<Effect> effects = 
+//	    getAnalysis().getEffectsQuery(
+//	        flowUnit, getSharedAnalysis().getExpressionObjectsQuery(flowUnit)).getResultFor(flowUnit);
+//	  final Set<Effect> masked = getAnalysis().maskEffects(effects);
+//	  final String id = JJNode.getInfo(typeDecl);
+//	  for (final Effect e : masked) {
+//	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
+//	    final HintDrop drop = HintDrop.newInformation(src);
+//      drop.setCategorizingMessage(Messages.DSC_EFFECTS_IN_CLASS_INIT);
+//      drop.setMessage(Messages.CLASS_INIT_EFFECT,
+//          id, e.toString(), DebugUnparser.toString(src));
+//	  }
+//	}
 
 	/**
 	 * Assure the effect annotations of a constructor.

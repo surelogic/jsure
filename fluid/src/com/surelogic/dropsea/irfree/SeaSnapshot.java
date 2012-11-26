@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.zip.GZIPOutputStream;
 
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.StringCache;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISnapshotDrop;
@@ -45,7 +46,8 @@ public class SeaSnapshot extends XmlCreator {
    * For loading
    */
   private final ConcurrentMap<String, IJavaRef> refCache = new ConcurrentHashMap<String, IJavaRef>();
-
+  private final StringCache stringCache = new StringCache();
+  
   public SeaSnapshot(File location) throws IOException {
     super(location != null ? 
     		location.getName().endsWith(FileUtility.GZIP_SUFFIX) ?
@@ -62,6 +64,14 @@ public class SeaSnapshot extends XmlCreator {
     }
   }
 
+  public ConcurrentMap<String, IJavaRef> getRefCache() {
+	  return refCache;
+  }
+
+  public StringCache getStringCache() {
+	  return stringCache;
+  }
+  
   public void clear() {
     refCache.clear();
     idMap.clear();
@@ -156,7 +166,7 @@ public class SeaSnapshot extends XmlCreator {
   }
 
   public static List<IDrop> loadSnapshot(SeaSnapshot s, File location) throws Exception {
-    SeaSnapshotXMLReaderListener l = new SeaSnapshotXMLReaderListener(s == null ? null : s.refCache);
+    SeaSnapshotXMLReaderListener l = new SeaSnapshotXMLReaderListener(s);
     new SeaSnapshotXMLReader(l).read(location);
     return l.getDrops();
   }

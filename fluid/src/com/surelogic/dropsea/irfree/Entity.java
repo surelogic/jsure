@@ -114,6 +114,14 @@ public class Entity {
     return attributes.get(a);
   }
 
+  /**
+   * Tries to cache the value before returning it
+   * (to remove duplicates)
+   */
+  public String getAttribute_cached(String a) {
+	return attributes.get(a);
+  }
+  
   private final String DIFF_STATUS = "DiffStatus";
   private final String OLD = "Old";
   private final String NEWER = "New";

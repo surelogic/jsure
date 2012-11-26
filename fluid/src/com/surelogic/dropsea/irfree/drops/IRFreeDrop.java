@@ -72,7 +72,7 @@ public class IRFreeDrop implements IDrop {
       throw new IllegalArgumentException(I18N.err(44, "irClass"));
     f_irDropSeaClass = irClass;
 
-    f_categorizingMessage = e.getAttribute(CATEGORY_ATTR);
+    f_categorizingMessage = e.getAttribute_cached(CATEGORY_ATTR);
 
     final String message = e.getAttribute(MESSAGE_ATTR);
     if (message != null)

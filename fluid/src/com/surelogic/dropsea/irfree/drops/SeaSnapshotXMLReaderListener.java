@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.xml.sax.Attributes;
 
+import com.surelogic.common.StringCache;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
@@ -35,14 +36,22 @@ import com.surelogic.dropsea.ir.drops.ScopedPromiseDrop;
 import com.surelogic.dropsea.irfree.AbstractXmlResultListener;
 import com.surelogic.dropsea.irfree.DropTypeUtility;
 import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListener {
   private final ConcurrentMap<String, IJavaRef> refCache;
-
+  private final StringCache strings;
+  
   // private int refsReused = 0;
 
-  public SeaSnapshotXMLReaderListener(ConcurrentMap<String, IJavaRef> cache) {
-    refCache = cache;
+  public SeaSnapshotXMLReaderListener(SeaSnapshot s) {
+	if (s != null) {
+		refCache = s.getRefCache();
+		strings = s.getStringCache();
+	} else {
+		refCache = null;
+		strings = new StringCache();
+	}
   }
 
   private class SeaEntity extends Entity {
@@ -95,6 +104,12 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListene
         // refsReused++;
       }
       return ref;
+    }
+    
+    @Override
+    public String getAttribute_cached(String a) {
+      String rv = getAttribute(a);
+      return strings.aliasIfPossible(rv);
     }
   }
 
