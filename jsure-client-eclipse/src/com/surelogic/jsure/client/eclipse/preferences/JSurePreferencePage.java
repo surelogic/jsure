@@ -48,6 +48,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
   private BooleanFieldEditor f_timeoutFlag;
   private ScaleFieldEditor f_timeoutSec;
   private BooleanFieldEditor f_scanMayUseCompression;
+  private BooleanFieldEditor f_makeNonabductiveProposals;
   private BooleanFieldEditor f_loadAllClassesFlag;
 
   public JSurePreferencePage() {
@@ -140,6 +141,9 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_scanMayUseCompression = new BooleanFieldEditor(IDEPreferences.SCAN_MAY_USE_COMPRESSION,
         I18N.msg("jsure.eclipse.preference.page.scanMayUseCompression"), analysisSettingsGroup);
     setupEditor(analysisSettingsGroup, f_scanMayUseCompression);
+    f_makeNonabductiveProposals = new BooleanFieldEditor(IDEPreferences.MAKE_NONABDUCTIVE_PROPOSALS,
+        I18N.msg("jsure.eclipse.preference.page.makeNonabductiveProposals"), analysisSettingsGroup);
+    setupEditor(analysisSettingsGroup, f_makeNonabductiveProposals);
     f_loadAllClassesFlag = new BooleanFieldEditor(IDEPreferences.LOAD_ALL_CLASSES,
         I18N.msg("jsure.eclipse.preference.page.loadAllClasses"), analysisSettingsGroup);
     setupEditor(analysisSettingsGroup, f_loadAllClassesFlag);
@@ -231,6 +235,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_timeoutFlag.loadDefault();
     f_timeoutSec.loadDefault();
     f_scanMayUseCompression.loadDefault();
+    f_makeNonabductiveProposals.loadDefault();
     f_loadAllClassesFlag.loadDefault();
     super.performDefaults();
   }
@@ -249,6 +254,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_timeoutFlag.store();
     f_timeoutSec.store();
     f_scanMayUseCompression.store();
+    f_makeNonabductiveProposals.store();
     f_loadAllClassesFlag.store();
     return super.performOk();
   }

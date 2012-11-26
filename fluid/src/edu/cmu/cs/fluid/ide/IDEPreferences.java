@@ -11,6 +11,7 @@ public interface IDEPreferences {
   String SCAN_MAY_USE_COMPRESSION = PREFIX + "scan.may.use.compression";
   String LOAD_ALL_CLASSES = PREFIX + "load.all.classes";
   String UNINTERESTING_PACKAGE_FILTERS = PREFIX + "modeling.problem.filters";
+  String MAKE_NONABDUCTIVE_PROPOSALS = PREFIX + "make.nonabductive.proposals";
 
   String SCAN_MAY_RUN_UNIQUENESS = PREFIX + "scan.may.run.uniqueness";
 
@@ -19,7 +20,7 @@ public interface IDEPreferences {
   String TIMEOUT_SEC = PREFIX + "timeoutSec";
 
   String[] BOOL_PREFS_TO_SYNC = { ALLOW_JAVADOC_ANNOS, LOAD_ALL_CLASSES, SCAN_MAY_USE_COMPRESSION, SCAN_MAY_RUN_UNIQUENESS,
-      TIMEOUT_FLAG };
+      TIMEOUT_FLAG, MAKE_NONABDUCTIVE_PROPOSALS };
 
   String[] INT_PREFS_TO_SYNC = { TOOL_MEMORY_MB, ANALYSIS_THREAD_COUNT, TIMEOUT_WARNING_SEC, TIMEOUT_SEC, };
 
