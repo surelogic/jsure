@@ -11,6 +11,7 @@ import com.surelogic.Utility;
 import com.surelogic.ValueObject;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.Decl;
+import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
@@ -232,7 +233,7 @@ public final class KeyValueUtility {
         throw new IllegalArgumentException(I18N.err(44, "key"));
       if (key.indexOf(',') != -1)
         throw new IllegalArgumentException("key cannot contain a comma: " + key);
-      f_key = key;
+      f_key = DeclUtil.aliasIfPossible(key);
     }
 
     @NonNull
@@ -265,7 +266,7 @@ public final class KeyValueUtility {
       super(key);
       if (value == null)
         throw new IllegalArgumentException(I18N.err(44, "value"));
-      f_value = value;
+      f_value = DeclUtil.aliasIfPossible(value);
     }
 
     @NonNull
