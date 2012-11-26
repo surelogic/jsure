@@ -5,6 +5,7 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.StringCache;
 import com.surelogic.common.ref.IDecl.Visibility;
 
 public class TestDecl extends TestCase {
@@ -1106,5 +1107,32 @@ public class TestDecl extends TestCase {
     annoDecl.acceptRootToThis(v);
     oracle = "START visitPackage(com.surelogic.t) -> visitTypes(count=1) -> visitAnnotation(ThreadSafe) -> endVisitTypes(count=1) -> END";
     assertEquals(oracle, v.getResult());
+  }
+
+  public void testStringCache() {
+    final StringCache cache = new StringCache();
+    DeclUtil.setStringCache(cache);
+    IDecl p = new Decl.ClassBuilder("Foo").setParent(new Decl.PackageBuilder()).build();
+    assertSame(IDecl.Kind.CLASS, p.getKind());
+    assertEquals("Foo", p.getName());
+    assertEquals("Foo", DeclUtil.getTypeNameOrNull(p));
+    assertEquals("Foo", DeclUtil.getTypeNameDollarSignOrNull(p));
+    assertSame(Visibility.PUBLIC, p.getVisibility());
+    assertFalse(p.isAbstract());
+    assertFalse(p.isStatic());
+    assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
+    assertEquals(0, p.getTypeParameters().size());
+    assertEquals(0, p.getParameters().size());
+    assertNull(p.getTypeOf());
+    assertEquals(SLUtility.JAVA_DEFAULT_PACKAGE, p.getParent().getName());
+    assertNull(p.getParent().getParent());
+    IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertSame(p.getKind(), pEncode.getKind());
+    assertSame(p.getName(), pEncode.getName()); // only if cache
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
+    DeclUtil.setStringCache(null);
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertNotSame(p.getName(), pEncode.getName()); // no cache
   }
 }
