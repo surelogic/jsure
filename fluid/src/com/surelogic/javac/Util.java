@@ -73,10 +73,10 @@ import com.surelogic.dropsea.ir.drops.PromisePromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModelClearOutUnusedStaticProofHook;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 import com.surelogic.dropsea.ir.utility.Dependencies;
+import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureDataDirScanner;
 import com.surelogic.javac.persistence.JSurePerformance;
 import com.surelogic.javac.persistence.JSureSubtypeInfo;
-import com.surelogic.javac.persistence.ScanProperty;
 import com.surelogic.persistence.JSureResultsXMLReader;
 import com.surelogic.persistence.JSureResultsXMLRefScanner;
 import com.surelogic.persistence.JavaIdentifier;
@@ -308,22 +308,22 @@ public class Util {
    * @param analyze
    *          Whether to analyze the loaded sources or not
    */
-  public static boolean openFiles(Projects projects, boolean analyze) throws Exception {
+  public static File openFiles(Projects projects, boolean analyze) throws Exception {
     projects.getMonitor().begin(estimateWork(projects));
     startSubTask(projects.getMonitor(), "Initializing ...");
     Javac.initialize();
 
-    boolean success = process(projects, analyze);
+    File results = process(projects, analyze);
     if (analyze && useResultsXML && projects.getResultsFile() != null && projects.getResultsFile().exists()) {
       PromiseMatcher.load(projects.getResultsFile().getParentFile());
     }
     if (false) {
       JSureDataDirScanner.scan(new File("C:/work/jsure-test-workspace/test-data-dir"));
     }
-    return success;
+    return results;
   }
 
-  public static boolean openFiles(Projects oldProjects, final Projects projects, boolean analyze) throws Exception {
+  public static File openFiles(Projects oldProjects, final Projects projects, boolean analyze) throws Exception {
     projects.getMonitor().begin(estimateWork(projects));
     startSubTask(projects.getMonitor(), "Initializing ...");
     Javac.initialize();
@@ -334,7 +334,7 @@ public class Util {
     } else {
       System.out.println("Detected a conflict between projects");
     }
-    boolean result = process(projects, analyze);
+    File result = process(projects, analyze);
     if (noConflict) {
       final Projects merged = projects.merge(oldProjects);
       // pd.setProjects(merged);
@@ -354,7 +354,10 @@ public class Util {
     unique.addAll(temp);
   }
 
-  static boolean process(Projects projects, boolean analyze) throws Exception {
+  /**
+   * @return the location of the results
+   */
+  static File process(Projects projects, boolean analyze) throws Exception {
     System.out.println("monitor = " + projects.getMonitor());
     clearCaches(projects);
     if (loadPartial) {
@@ -439,7 +442,7 @@ public class Util {
      */
     perf.markTimeFor("Promise.parsing");
     if (projects.getMonitor().isCanceled()) {
-      return false;
+      return null;
     }
     // Needed by the scrubber
     computeSubtypeInfo(projects);
@@ -496,6 +499,7 @@ public class Util {
      * .out.print(ref.getCUName()+":"+ref.getLineNumber()+" - "+d.getMessage());
      * } } } } else { writeOutput(projects); }
      */
+    File tmpLocation = RemoteJSureRun.snapshot(System.out, projects.getLabel(), projects.getRunDir());
     perf.markTimeFor("Sea.export");
     final long total = perf.stopTiming("Total.JSure.time");
     testExperimentalFeatures(projects, cus);
@@ -519,7 +523,7 @@ public class Util {
     AbstractTypeEnvironment.printStats();
     perf.store();
     perf.print(System.out);
-    return true;
+    return tmpLocation;
   }
 
   private static void filterResultsBySureLogicToolsPropertiesFile(Projects projects) {

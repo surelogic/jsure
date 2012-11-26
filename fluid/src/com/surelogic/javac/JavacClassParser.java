@@ -1,7 +1,6 @@
 package com.surelogic.javac;
 
 import java.io.*;
-import java.net.URI;
 import java.util.*;
 import java.util.Queue;
 import java.util.concurrent.*;
@@ -164,9 +163,7 @@ public class JavacClassParser {
 		final IParallelArray<CompilationUnitTree> cuts;		
 		final Queue<CodeInfo> cus;
 		final References refs;
-        final Map<JavaFileObject, JavaSourceFile> sources = new HashMap<JavaFileObject, JavaSourceFile>();		
-		// TODO Base64
-		// final Map<URI, JavaSourceFile> sources = new HashMap<URI, JavaSourceFile>();
+        final Map<JavaFileObjectWrapper, JavaSourceFile> sources = new HashMap<JavaFileObjectWrapper, JavaSourceFile>();		
 		
 		public BatchParser(final JavacProject jp, int max, boolean asBinary) {
 			this.jp = jp;
@@ -191,8 +188,8 @@ public class JavacClassParser {
 		void parse(Iterable<JavaSourceFile> files, List<CodeInfo> results, boolean onDemand) 
 		throws IOException {
 			// Eliminate duplicates
-			// TODO Base64 Can't hash on JaveFileObject
-			final Set<JavaFileObject> temp  = new HashSet<JavaFileObject>(max);
+			// Issue w/ hashing on JaveFileObject
+			final Set<JavaFileObjectWrapper> temp  = new HashSet<JavaFileObjectWrapper>(max);
 			for(JavaSourceFile p : files) {
 				final CodeInfo info = jp.getTypeEnv().findCompUnit(p.qname);
 				boolean load = !onDemand || info == null;
@@ -207,26 +204,28 @@ public class JavacClassParser {
 						fileman.setLocation(location, Collections.singletonList(new File(zip)));
 						
 						JavaFileObject jfo = fileman.getJavaFileForInput(location, src, Kind.SOURCE);
-						temp.add(jfo);
-						mapSource(jfo, p);
+						JavaFileObjectWrapper w = new JavaFileObjectWrapper(jfo);
+						temp.add(w);
+						mapSource(w, p);
 					}
 					else if ( p.file.exists() && p.file.length() > 0) {						
 						for(JavaFileObject jfo : fileman.getJavaFileObjects(p.file)) {
-							temp.add(jfo);						
-							mapSource(jfo, p);
+							JavaFileObjectWrapper w = new JavaFileObjectWrapper(jfo);
+							temp.add(w);
+							mapSource(w, p);
 						}
 					}									
 				}
 			}
 			// Handle in batches
-			final Iterator<JavaFileObject> fileI = temp.iterator();
+			final Iterator<JavaFileObjectWrapper> fileI = temp.iterator();
 			final List<JavaFileObject> batch     = new ArrayList<JavaFileObject>(max);
 
 			while (fileI.hasNext()) {
 				if (tEnv.getProgressMonitor().isCanceled()) {
 					throw new CancellationException();
 				}
-				batch.add(fileI.next());
+				batch.add(fileI.next().get());
 				
 				if (batch.size() >= max) {
 					parseBatch(batch, results, asBinary);
@@ -238,8 +237,8 @@ public class JavacClassParser {
 			}
 		}
 
-		void mapSource(JavaFileObject jfo, JavaSourceFile p) {
-			/* TODO Base64
+		void mapSource(JavaFileObjectWrapper w, JavaSourceFile p) {
+			/*
 			URI uri = jfo.toUri();
 			if (jfo.getName().equals("Base64.java")) {
 				System.out.println("URI = "+uri);
@@ -249,7 +248,7 @@ public class JavacClassParser {
 				SLLogger.getLogger().warning("Already mapped "+uri);
 			}
 			*/
-			sources.put(jfo, p);
+			sources.put(w, p);
 		}
 		
 		@SuppressWarnings("unused")
@@ -315,7 +314,7 @@ public class JavacClassParser {
 						//PlainIRNode.setCurrentRegion(new IRRegion());
 
 						JCCompilationUnit jcu = (JCCompilationUnit) cut;					
-						JavaSourceFile file = sources.get(jcu.sourcefile/* TODO Base64 .toUri()*/);
+						JavaSourceFile file = sources.get(new JavaFileObjectWrapper(jcu.sourcefile));
 						CodeInfo info = adapter.get().adapt(t, jcu, file, asBinary || file.asBinary);				        
 						cus.add(info);
 						Projects.setProject(info.getNode(), jp);

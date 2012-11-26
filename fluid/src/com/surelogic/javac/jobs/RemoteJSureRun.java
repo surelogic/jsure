@@ -157,7 +157,7 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 					final File tmpLocation; 
 					try {
 						projects.setMonitor(monitor);				
-						Util.openFiles(projects, true);
+						tmpLocation = Util.openFiles(projects, true);
 
 						// Already done
 						// Sea.getDefault().updateConsistencyProof();
@@ -165,7 +165,7 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 						// Previously done by ConsistencyListener 
 						TestResult.checkConsistency();
 						
-						tmpLocation = snapshot(out, projects.getLabel(), runDir);
+						//tmpLocation = snapshot(out, projects.getLabel(), runDir);
 						/*
 						SeaStats.createSummaryZip(new File(runDir, SUMMARIES_ZIP), Sea.getDefault().getDrops(), 
 								                  SeaStats.splitByProject, SeaStats.STANDARD_COUNTERS);
