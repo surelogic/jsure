@@ -39,6 +39,8 @@ import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.ReadOnlyPromiseDrop;
 
+import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -190,13 +192,16 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	            }
 	          }
 	        } else {
-	          // Infer effects
-	          final Set<Effect> inferredEffects = inferEffects(
-	              isConstructor, member, implFx);
-	          new ProposedPromiseDrop(
-	              "RegionEffects",
-	              Effects.unparseForPromise(inferredEffects), member,
-	              member, Origin.CODE);
+	          // Infer effects, if the user wants us to
+	          if (IDE.getInstance().getBooleanPreference(
+	              IDEPreferences.MAKE_NONABDUCTIVE_PROPOSALS)) {
+  	          final Set<Effect> inferredEffects = inferEffects(
+  	              isConstructor, member, implFx);
+  	          new ProposedPromiseDrop(
+  	              "RegionEffects",
+  	              Effects.unparseForPromise(inferredEffects), member,
+  	              member, Origin.CODE);
+	          }
 	        }
 			  }
 			} else if (TypeUtil.isTypeDecl(member)) {
