@@ -48,11 +48,11 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   IRFreeProposedPromiseDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
 
-    f_JavaAnnotation = e.getAttribute(JAVA_ANNOTATION);
-    f_annotation = e.getAttribute(ANNOTATION_TYPE);
-    f_contents = e.getAttribute(CONTENTS);
-    f_replacedAnnotation = e.getAttribute(REPLACED_ANNO);
-    f_replacedContents = e.getAttribute(REPLACED_CONTENTS);
+    f_JavaAnnotation = e.getAttributeByAliasIfPossible(JAVA_ANNOTATION);
+    f_annotation = e.getAttributeByAliasIfPossible(ANNOTATION_TYPE);
+    f_contents = e.getAttributeByAliasIfPossible(CONTENTS);
+    f_replacedAnnotation = e.getAttributeByAliasIfPossible(REPLACED_ANNO);
+    f_replacedContents = e.getAttributeByAliasIfPossible(REPLACED_CONTENTS);
 
     final String origin = e.getAttribute(ORIGIN);
     Origin result = Origin.MODEL; // default
