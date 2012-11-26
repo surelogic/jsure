@@ -23,6 +23,7 @@ import java.util.zip.GZIPOutputStream;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.StringCache;
+import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISnapshotDrop;
@@ -166,8 +167,12 @@ public class SeaSnapshot extends XmlCreator {
   }
 
   public static List<IDrop> loadSnapshot(SeaSnapshot s, File location) throws Exception {
+	if (s != null) {
+		DeclUtil.setStringCache(s.getStringCache());
+	}
     SeaSnapshotXMLReaderListener l = new SeaSnapshotXMLReaderListener(s);
     new SeaSnapshotXMLReader(l).read(location);
+    DeclUtil.setStringCache(null);
     return l.getDrops();
   }
 
