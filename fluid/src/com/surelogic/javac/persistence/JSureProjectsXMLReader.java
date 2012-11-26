@@ -103,14 +103,14 @@ public class JSureProjectsXMLReader extends NestedJSureXmlReader implements IXml
     for (Entity nested : e.getReferences()) {
       final String name = nested.getName();
       if (FILE.equals(name)) {
-        String path = nested.getAttribute(PATH);
-        String file = nested.getAttribute(LOCATION);
-        String qname = nested.getAttribute(QNAME);
+        String path = nested.getAttributeByAliasIfPossible(PATH);
+        String file = nested.getAttributeByAliasIfPossible(LOCATION);
+        String qname = nested.getAttributeByAliasIfPossible(QNAME);
         String asBinary = nested.getAttribute(AS_BINARY);
         // System.out.println(proj + " has source: " + path);
         p.getConfig().addFile(new JavaSourceFile(qname, new File(file), path, "true".equals(asBinary)));
       } else if (JAR.equals(name)) {
-        String path = nested.getAttribute(PATH);
+        String path = nested.getAttributeByAliasIfPossible(PATH);
         String orig = nested.getAttribute(ORIG_PATH);
         final boolean jarIsExported = "true".equals(nested.getAttribute(IS_EXPORTED));
         // System.out.println(proj + " has jar: " + path);

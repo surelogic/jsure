@@ -13,8 +13,10 @@ import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import com.surelogic.common.StringCache;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.Projects;
 
@@ -41,15 +43,20 @@ public class JSureDataDirScanner {
 
 	public static JSureDataDir scan(File dataDir) {
 		final List<JSureScan> runs = new ArrayList<JSureScan>();
+		try {		
+			DeclUtil.setStringCache(new StringCache());
 
-		// Look for run directories
-		for (File f : dataDir.listFiles()) {
-			final JSureScan run = findRunDirectory(f);
-			if (run != null) {
-				runs.add(run);
+			// Look for run directories
+			for (File f : dataDir.listFiles()) {
+				final JSureScan run = findRunDirectory(f);
+				if (run != null) {
+					runs.add(run);
+				}
 			}
+			return getDataDirWithRunsOrganized(dataDir, runs);
+		} finally {
+			DeclUtil.setStringCache(null);
 		}
-		return getDataDirWithRunsOrganized(dataDir, runs);
 	}
 
 	private static JSureDataDir getDataDirWithRunsOrganized(File dataDir,
