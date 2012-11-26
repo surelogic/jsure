@@ -4,7 +4,7 @@ import java.net.URI;
 
 import javax.tools.JavaFileObject;
 
-public class JavaFileObjectWrapper {
+public final class JavaFileObjectWrapper {
 	private final JavaFileObject file;
 	private final URI uri;
 	
@@ -18,12 +18,12 @@ public class JavaFileObjectWrapper {
 	}
 	
 	@Override
-	public int hashCode() {
+	public final int hashCode() {
 		return uri.hashCode();
 	}
 	
 	@Override
-	public boolean equals(Object o) {
+	public final boolean equals(Object o) {
 		if (o instanceof JavaFileObjectWrapper) {
 			JavaFileObjectWrapper w = (JavaFileObjectWrapper) o;
 			return uri.equals(w.uri);
