@@ -1639,11 +1639,11 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
         if (useSourceZipsDirectly) {
           final int len = path.length();
           // Assumes that it ends with '.java'
-          if (path.lastIndexOf('.', len - 5) >= 0) {
-          /*
+          // 
+          // Not a bug, but it STARTS looking at the index specified 
+          // if (path.lastIndexOf('.', len - 5) >= 0) {          
           final int firstDot = path.indexOf('.');
-          if (firstDot < len - 5) {
-          */
+          if (firstDot >= 0 && firstDot < len - 5) {
             pathsContainDot = true;
           }
         }
@@ -1669,9 +1669,11 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
             final List<String> names = path2qnames.get(ze.getName());
             if (names != null) {
               for (String name : names) {
+            	/*
                 if (name.contains("$")) {
                   System.out.println("Mapping " + name + " to " + f.getAbsolutePath());
                 }
+                */
                 // The last two parameters don't matter because
                 // they'll just be thrown away when we call
                 // setFiles() below
@@ -1690,6 +1692,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
         }
       };
       if (useSourceZipsDirectly && !pathsContainDot) {
+    	System.out.println("Using source zips directly");
         // OK
         // jar:///C:/Documents%20and%20Settings/UncleBob/lib/vendorA.jar!com/vendora/LibraryClass.class
         final Enumeration<? extends ZipEntry> e = zf.entries();
@@ -1929,15 +1932,17 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
             handleCrash(status);
           }
         } else {
+          File tmpLocation;
           if (clearBeforeAnalysis || oldProjects == null) {
             // ClearProjectListener.clearJSureState();
 
-            ok = Util.openFiles(projects, true);
+        	tmpLocation = Util.openFiles(projects, true);
           } else {
-            ok = Util.openFiles(oldProjects, projects, true);
+        	tmpLocation = Util.openFiles(oldProjects, projects, true);
           }
+          ok = tmpLocation != null;
           // Persist the Sea
-          final File tmpLocation = RemoteJSureRun.snapshot(System.out, projects.getLabel(), projects.getRunDir());
+          //final File tmpLocation = RemoteJSureRun.snapshot(System.out, projects.getLabel(), projects.getRunDir());
           /*
           SeaStats.createSummaryZip(new File(projects.getRunDir(), RemoteJSureRun.SUMMARIES_ZIP), Sea.getDefault().getDrops(),
               SeaStats.splitByProject, SeaStats.STANDARD_COUNTERS);
