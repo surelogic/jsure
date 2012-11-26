@@ -47,7 +47,6 @@ public class SeaSnapshot extends XmlCreator {
    * For loading
    */
   private final ConcurrentMap<String, IJavaRef> refCache = new ConcurrentHashMap<String, IJavaRef>();
-  private final StringCache stringCache = new StringCache();
   
   public SeaSnapshot(File location) throws IOException {
     super(location != null ? 
@@ -69,10 +68,6 @@ public class SeaSnapshot extends XmlCreator {
 	  return refCache;
   }
 
-  public StringCache getStringCache() {
-	  return stringCache;
-  }
-  
   public void clear() {
     refCache.clear();
     idMap.clear();
@@ -167,12 +162,14 @@ public class SeaSnapshot extends XmlCreator {
   }
 
   public static List<IDrop> loadSnapshot(SeaSnapshot s, File location) throws Exception {
-	if (s != null) {
-		DeclUtil.setStringCache(s.getStringCache());
-	}
-    SeaSnapshotXMLReaderListener l = new SeaSnapshotXMLReaderListener(s);
-    new SeaSnapshotXMLReader(l).read(location);
-    DeclUtil.setStringCache(null);
+    DeclUtil.setStringCache(new StringCache());
+    final SeaSnapshotXMLReaderListener l;
+    try {
+      l = new SeaSnapshotXMLReaderListener(s);
+      new SeaSnapshotXMLReader(l).read(location);
+    } finally {
+      DeclUtil.setStringCache(null);
+    }
     return l.getDrops();
   }
 

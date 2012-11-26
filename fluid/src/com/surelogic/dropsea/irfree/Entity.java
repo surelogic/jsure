@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.xml.sax.Attributes;
 
+import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
 
@@ -115,13 +116,19 @@ public class Entity {
   }
 
   /**
-   * Tries to cache the value before returning it
-   * (to remove duplicates)
+   * Tries to cache the value before returning it&mdash;to alias duplicate
+   * strings.
+   * 
+   * @param value
+   *          a string
+   * @return a string, aliased to avoid duplicate strings.
+   * 
+   * @see DeclUtil#aliasIfPossible(String)
    */
-  public String getAttribute_cached(String a) {
-	return attributes.get(a);
+  public final String getAttributeByAliasIfPossible(String value) {
+    return DeclUtil.aliasIfPossible(attributes.get(value));
   }
-  
+
   private final String DIFF_STATUS = "DiffStatus";
   private final String OLD = "Old";
   private final String NEWER = "New";
