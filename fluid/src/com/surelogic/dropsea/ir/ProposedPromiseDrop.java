@@ -1,15 +1,6 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ANNOTATION_TYPE;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ANNO_ATTRS;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CONTENTS;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_REF;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.JAVA_ANNOTATION;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ORIGIN;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROPOSED_PROMISE_DROP;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_ANNO;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_ATTRS;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_CONTENTS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.*;
 
 import java.util.Collections;
 import java.util.Map;
@@ -382,7 +373,9 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
     s.addAttribute(REPLACED_ANNO, getReplacedAnnotation());
     s.addAttribute(REPLACED_CONTENTS, getReplacedContents());
     s.addAttribute(ORIGIN, getOrigin().toString());
-
+    s.addAttribute(NO_ANNO_ATTRS, f_attrs.isEmpty());
+    s.addAttribute(NO_REPLACED_ATTRS, f_replacedAttrs.isEmpty());
+    
     final IJavaRef declRef = JavaNode.getJavaRef(getAssumptionNode());
     final IJavaRef assumeRef = getAssumptionRef();
     final IJavaRef javaRef = declRef != null && declRef.getDeclaration() != null ?
