@@ -1,5 +1,6 @@
 package com.surelogic.analysis.type.constraints;
 
+import com.surelogic.Part;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.promise.AnnotationBoundsNode;
 import com.surelogic.annotation.rules.EqualityRules;
@@ -7,6 +8,7 @@ import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProofDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.drops.ModifiedBooleanPromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.AnnotationBoundsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 
@@ -88,6 +90,19 @@ public enum TypeAnnotations {
   public abstract TypeTester forParameterizedTypeActual();
   public abstract JavaTypeTester forExpressionType();
   
+  
+  
+  private static ProofDrop filterOutStaticOnly(final ModifiedBooleanPromiseDrop<?> m) {
+    if (m == null) {
+      return null;
+    } else {
+      if (m.getAppliesTo() == Part.Static) {
+        return null;
+      } else {
+        return m;
+      }
+    }
+  }
   
   
   // ----------------------------------------------------------------------
@@ -318,7 +333,7 @@ public enum TypeAnnotations {
       
       @Override
       public ProofDrop testTypeDeclaration(final IRNode type) {
-        return LockRules.getImmutableType(type);
+        return filterOutStaticOnly(LockRules.getImmutableType(type));
       }
       
       @Override
@@ -335,7 +350,7 @@ public enum TypeAnnotations {
       
       @Override
       public ProofDrop testTypeDeclaration(final IRNode type) {
-        return LockRules.getImmutableImplementation(type);
+        return filterOutStaticOnly(LockRules.getImmutableImplementation(type));
       }
       
       @Override
@@ -352,7 +367,7 @@ public enum TypeAnnotations {
       
       @Override
       public ProofDrop testTypeDeclaration(final IRNode type) {
-        return LockRules.getImmutableType(type);
+        return filterOutStaticOnly(LockRules.getImmutableType(type));
       }
       
       @Override
@@ -451,7 +466,7 @@ public enum TypeAnnotations {
       
       @Override
       public ProofDrop testTypeDeclaration(final IRNode type) {
-        return LockRules.getThreadSafeTypePromise(type);
+        return filterOutStaticOnly(LockRules.getThreadSafeTypePromise(type));
       }
       
       @Override
@@ -468,7 +483,7 @@ public enum TypeAnnotations {
       
       @Override
       public ProofDrop testTypeDeclaration(final IRNode type) {
-        return LockRules.getThreadSafeImplPromise(type);
+        return filterOutStaticOnly(LockRules.getThreadSafeImplPromise(type));
       }
       
       @Override
@@ -485,7 +500,7 @@ public enum TypeAnnotations {
       
       @Override
       public ProofDrop testTypeDeclaration(final IRNode type) {
-        return LockRules.getThreadSafeType(type);
+        return filterOutStaticOnly(LockRules.getThreadSafeType(type));
       }
       
       @Override
@@ -601,7 +616,7 @@ public enum TypeAnnotations {
       
       @Override
       public ProofDrop testTypeDeclaration(final IRNode type) {
-        return LockRules.getImmutableType(type);
+        return filterOutStaticOnly(LockRules.getImmutableType(type));
       }
       
       @Override
@@ -635,7 +650,7 @@ public enum TypeAnnotations {
       
       @Override
       public ProofDrop testTypeDeclaration(final IRNode type) {
-        return LockRules.getThreadSafeType(type);
+        return filterOutStaticOnly(LockRules.getThreadSafeType(type));
       }
       
       @Override
