@@ -135,6 +135,9 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     lines = cut.getLineMap();
     javadoc = cut.docComments;
     cuRef = new FileResource(projects, srcFile, getPackage(cut), jp.getName());
+    if (!srcFile.qname.startsWith(cuRef.getPackage())) {
+    	throw new IllegalStateException(srcFile.qname+" doesn't match "+cuRef.getPackage());
+    }
     try {  
     	srcCode = cut.getSourceFile().getCharContent(true).toString();
     } catch(IOException e) {
