@@ -124,6 +124,7 @@ public class Util {
   /** Should we try to run things in parallel */
   private static boolean wantToRunInParallel = true;// false;
 
+  private static final boolean profileMemoryAfterLoading = false;
   private static final boolean testPersistence = false;
   private static final boolean loadPartial = false;
   public static final boolean useResultsXML = false;
@@ -358,6 +359,8 @@ public class Util {
    * @return the location of the results
    */
   static File process(Projects projects, boolean analyze) throws Exception {
+	analyze = analyze && !profileMemoryAfterLoading;
+	
     System.out.println("monitor = " + projects.getMonitor());
     clearCaches(projects);
     if (loadPartial) {
@@ -468,42 +471,46 @@ public class Util {
     } else {
       times = new long[analyses.size()];
     }
-    System.out.println("Updating consistency proof");
-    final SeaConsistencyProofHook vouchHook = new VouchProcessorConsistencyProofHook();
-    final SeaConsistencyProofHook staticHook = new RegionModelClearOutUnusedStaticProofHook();
-    final SeaConsistencyProofHook cuDropHook = new CUDropClearOutAfterAnalysisProofHook();
-    final SeaConsistencyProofHook clearResultsHook = new ClearOutUnconnectedResultsProofHook();
-    Sea.getDefault().addConsistencyProofHook(vouchHook);
-    Sea.getDefault().addConsistencyProofHook(staticHook);
-    Sea.getDefault().addConsistencyProofHook(cuDropHook);
-    Sea.getDefault().addConsistencyProofHook(clearResultsHook);
-    Sea.getDefault().updateConsistencyProof();
-    Sea.getDefault().removeConsistencyProofHook(clearResultsHook);
-    Sea.getDefault().removeConsistencyProofHook(cuDropHook);
-    Sea.getDefault().removeConsistencyProofHook(staticHook);
-    Sea.getDefault().removeConsistencyProofHook(vouchHook);
+    File tmpLocation;
+    if (!profileMemoryAfterLoading) {
+    	System.out.println("Updating consistency proof");
+    	final SeaConsistencyProofHook vouchHook = new VouchProcessorConsistencyProofHook();
+    	final SeaConsistencyProofHook staticHook = new RegionModelClearOutUnusedStaticProofHook();
+    	final SeaConsistencyProofHook cuDropHook = new CUDropClearOutAfterAnalysisProofHook();
+    	final SeaConsistencyProofHook clearResultsHook = new ClearOutUnconnectedResultsProofHook();
+    	Sea.getDefault().addConsistencyProofHook(vouchHook);
+    	Sea.getDefault().addConsistencyProofHook(staticHook);
+    	Sea.getDefault().addConsistencyProofHook(cuDropHook);
+    	Sea.getDefault().addConsistencyProofHook(clearResultsHook);
+    	Sea.getDefault().updateConsistencyProof();
+    	Sea.getDefault().removeConsistencyProofHook(clearResultsHook);
+    	Sea.getDefault().removeConsistencyProofHook(cuDropHook);
+    	Sea.getDefault().removeConsistencyProofHook(staticHook);
+    	Sea.getDefault().removeConsistencyProofHook(vouchHook);
 
-    filterResultsBySureLogicToolsPropertiesFile(projects);
+    	filterResultsBySureLogicToolsPropertiesFile(projects);
 
-    perf.markTimeFor("Sea.update");
+    	perf.markTimeFor("Sea.update");
 
-    // This would clear things before I persist the info
-    //
-    // IDE.getInstance().clearCaches();
+    	// This would clear things before I persist the info
+    	//
+    	// IDE.getInstance().clearCaches();
 
-    /*
-     * if (false) { for(ProofDrop d :
-     * Sea.getDefault().getDropsOfType(ProofDrop.class)) { if
-     * (!d.provedConsistent()) { ISrcRef ref = d.getSrcRef(); if (ref != null) {
-     * System
-     * .out.print(ref.getCUName()+":"+ref.getLineNumber()+" - "+d.getMessage());
-     * } } } } else { writeOutput(projects); }
-     */
-    File tmpLocation = RemoteJSureRun.snapshot(System.out, projects.getLabel(), projects.getRunDir());
-    perf.markTimeFor("Sea.export");
-    final long total = perf.stopTiming("Total.JSure.time");
-    testExperimentalFeatures(projects, cus);
-
+    	/*
+    	 * if (false) { for(ProofDrop d :
+    	 * Sea.getDefault().getDropsOfType(ProofDrop.class)) { if
+    	 * (!d.provedConsistent()) { ISrcRef ref = d.getSrcRef(); if (ref != null) {
+    	 * System
+    	 * .out.print(ref.getCUName()+":"+ref.getLineNumber()+" - "+d.getMessage());
+    	 * } } } } else { writeOutput(projects); }
+    	 */
+    	tmpLocation = RemoteJSureRun.snapshot(System.out, projects.getLabel(), projects.getRunDir());
+    	perf.markTimeFor("Sea.export");
+    	testExperimentalFeatures(projects, cus);
+    } else {
+    	tmpLocation = null;
+    }
+	final long total = perf.stopTiming("Total.JSure.time");
     System.out.println("Done in " + total + " ms.");
     if (analyze) {
       int i = 0;
