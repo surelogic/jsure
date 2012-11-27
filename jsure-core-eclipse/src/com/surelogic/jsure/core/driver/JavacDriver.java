@@ -135,7 +135,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
    */
   private static final boolean clearBeforeAnalysis = false;
 
-  private static final boolean useSourceZipsDirectly = false;
+  private static final boolean useSourceZipsDirectly = true;
 
   /**
    * If true, create common projects for shared jars Otherwise, jars in
