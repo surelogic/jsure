@@ -97,6 +97,8 @@ public abstract class NestedJSureXmlReader extends DefaultHandler {
   public static final String FROM_REF = "from-ref";
   public static final String ANNO_ATTRS = "annotation-attrs";
   public static final String REPLACED_ATTRS = "replaced-attrs";
+  public static final String NO_ANNO_ATTRS = "no-annotation-attrs";
+  public static final String NO_REPLACED_ATTRS = "no-replaced-attrs";
 
   public static final String CHECKED_PROMISE = "checked-promise";
   public static final String TRUSTED_PROOF_DROP = "trusted-proof-drop";

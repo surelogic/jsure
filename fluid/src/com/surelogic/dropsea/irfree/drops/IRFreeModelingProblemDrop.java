@@ -8,4 +8,9 @@ public class IRFreeModelingProblemDrop extends IRFreeDrop implements IModelingPr
   IRFreeModelingProblemDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
   }
+  
+  @Override
+  boolean aliasTheMessage() {
+	  return true;
+  }
 }

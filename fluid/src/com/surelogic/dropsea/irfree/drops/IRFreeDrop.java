@@ -16,6 +16,7 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
@@ -51,6 +52,10 @@ public class IRFreeDrop implements IDrop {
   @NonNull
   private final List<IKeyValue> f_diffInfos;
 
+  boolean aliasTheMessage() {
+	  return false;
+  }
+  
   void addProposal(IRFreeProposedPromiseDrop info) {
     if (f_proposedPromises == null) {
       f_proposedPromises = new ArrayList<IRFreeProposedPromiseDrop>(1);
@@ -74,13 +79,14 @@ public class IRFreeDrop implements IDrop {
 
     f_categorizingMessage = e.getAttributeByAliasIfPossible(CATEGORY_ATTR);
 
-    final String message = e.getAttribute(MESSAGE_ATTR);
+    final boolean aliasMsg = aliasTheMessage();
+    final String message = aliasMsg ? e.getAttributeByAliasIfPossible(MESSAGE_ATTR) : e.getAttribute(MESSAGE_ATTR);
     if (message != null)
       f_message = message;
     else
-      f_message = getClass().getSimpleName() + " (EMPTY)";
+      f_message = DeclUtil.aliasIfPossible(getClass().getSimpleName() + " (EMPTY)");
 
-    f_messageCanonical = e.getAttribute(MESSAGE_ID);
+    f_messageCanonical = aliasMsg ? e.getAttributeByAliasIfPossible(MESSAGE_ATTR) : e.getAttribute(MESSAGE_ID);
 
     String diffInfoString = e.getAttribute(DIFF_INFO);
     if (diffInfoString != null) {

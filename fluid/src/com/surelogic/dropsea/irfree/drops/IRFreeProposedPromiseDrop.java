@@ -1,13 +1,8 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ANNOTATION_TYPE;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CONTENTS;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_REF;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.JAVA_ANNOTATION;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ORIGIN;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_ANNO;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_CONTENTS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -15,6 +10,7 @@ import java.util.logging.Level;
 import com.surelogic.NonNull;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.irfree.Entity;
@@ -24,9 +20,9 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   @NonNull
   private final IJavaRef f_assumptionRef;
   @NonNull
-  private final Map<String, String> f_annoAttributes = new HashMap<String, String>(0);
+  private final Map<String, String> f_annoAttributes;
   @NonNull
-  private final Map<String, String> f_replacedAttributes = new HashMap<String, String>(0);
+  private final Map<String, String> f_replacedAttributes;
   private final String f_JavaAnnotation;
   private final String f_annotation;
   private final String f_contents;
@@ -35,14 +31,29 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   @NonNull
   private final Origin f_origin;
 
+  @Override
+  boolean aliasTheMessage() {
+	  return true;
+  }
+  
   void setAnnoAttributes(Map<String, String> value) {
     f_annoAttributes.clear();
-    f_annoAttributes.putAll(value);
+    for(Map.Entry<String, String> e : value.entrySet()) {
+    	if (FLAVOR_ATTR.equals(e.getKey())) {
+    		continue;
+    	}
+    	f_annoAttributes.put(DeclUtil.aliasIfPossible(e.getKey()), e.getValue());
+    }
   }
 
   void setReplacedAttributes(Map<String, String> value) {
     f_replacedAttributes.clear();
-    f_replacedAttributes.putAll(value);
+    for(Map.Entry<String, String> e : value.entrySet()) {
+    	if (FLAVOR_ATTR.equals(e.getKey())) {
+    		continue;
+    	}
+    	f_replacedAttributes.put(DeclUtil.aliasIfPossible(e.getKey()), e.getValue());
+    }
   }
 
   IRFreeProposedPromiseDrop(Entity e, Class<?> irClass) {
@@ -85,8 +96,18 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     // Java reference must be non-null for a proposed promise
     if (getJavaRef() == null)
       throw new IllegalStateException(I18N.err(44, "getJavaRef()"));
+    
+    f_annoAttributes = makeAttrs(e.getAttribute(NO_ANNO_ATTRS));
+    f_replacedAttributes = makeAttrs(e.getAttribute(NO_REPLACED_ATTRS));
   }
 
+  private static Map<String,String> makeAttrs(String noFlag) {
+	  if ("true".equals(noFlag)) {
+		  return Collections.emptyMap();
+	  } 
+	  return new HashMap<String, String>(0);
+  }
+  
   @NonNull
   public Map<String, String> getAnnoAttributes() {
     return f_annoAttributes;

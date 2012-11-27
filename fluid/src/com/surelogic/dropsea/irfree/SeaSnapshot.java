@@ -148,6 +148,9 @@ public class SeaSnapshot extends XmlCreator {
   }
 
   public void addProperties(Builder db, String flavor, Map<String, String> map) {
+	if (map.isEmpty()) {
+		return;
+	}
     Builder pb = db.nest(PROPERTIES);
     pb.addAttribute(FLAVOR_ATTR, flavor);
 

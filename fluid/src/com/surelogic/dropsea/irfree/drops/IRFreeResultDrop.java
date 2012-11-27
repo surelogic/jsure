@@ -21,6 +21,11 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
     f_isTimeout = "true".equals(e.getAttribute(TIMEOUT));
   }
 
+  @Override
+  boolean aliasTheMessage() {
+	  return true;
+  }
+  
   public boolean isConsistent() {
     return f_isConsistent;
   }
