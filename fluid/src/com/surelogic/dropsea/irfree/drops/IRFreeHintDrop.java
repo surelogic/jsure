@@ -33,6 +33,11 @@ public final class IRFreeHintDrop extends IRFreeDrop implements IHintDrop {
     }
   }
 
+  @Override
+  boolean aliasTheMessage() {
+	  return true;
+  }
+  
   @NonNull
   public HintType getHintType() {
     return f_type;
