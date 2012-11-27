@@ -1641,9 +1641,9 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
           // Assumes that it ends with '.java'
           // 
           // Not a bug, but it STARTS looking at the index specified 
-          // if (path.lastIndexOf('.', len - 5) >= 0) {          
-          final int firstDot = path.indexOf('.');
-          if (firstDot >= 0 && firstDot < len - 5) {
+          if (path.lastIndexOf('.', len - 5) >= 0) {          
+          //final int firstDot = path.indexOf('.');
+          //if (firstDot >= 0 && firstDot < len - 5) {
             pathsContainDot = true;
           }
         }
