@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
+import com.surelogic.*;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidRuntimeException;
@@ -39,6 +40,8 @@ import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
  * TODO: Get rid of static things -- parameterize by JavaProject.
  * @author boyland
  */
+@Region("State")
+@RegionLock("StateLock is entries protects State")
 public class JavaMemberTable extends VersionedDerivedInformation implements IJavaMemberTable {
 
   private static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
@@ -56,6 +59,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   public final IJavaSourceRefType type;
   public final IRNode typeDeclaration;
   public final boolean isVersioned;
+  @InRegion("State")
   private boolean repopulated = false;
 
   private JavaMemberTable(IJavaSourceRefType type) {
@@ -81,6 +85,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     populateDeNovo();
   }
 
+  @Unique("return")
   private JavaMemberTable(IRNode tdecl, IJavaSourceRefType t, Version v, boolean versioned) {
     super(v);
     typeDeclaration = tdecl;
@@ -267,9 +272,11 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   
 
   @Override
-  public synchronized void clear() {
+  public void clear() {
     super.clear();
-    entries.clear();
+    synchronized (entries) {
+      entries.clear();
+	}
   }
   
   /**
@@ -404,6 +411,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   /**
    * A table from names to Entries. This table is is externally immutable
    */
+  @UniqueInRegion("State")
   private final HashMap<String,Entry> entries = new HashMap<String,Entry>();
 
   /**
@@ -489,7 +497,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     if (useNode != null) {
       entry.addUse(useNode);
     }
-    synchronized (this) {
+    synchronized (entries) {
     	// Added to prevent comod exceptions
     	Iterator<IRNode> it = entry.getDeclarations();
     	if (!it.hasNext()) {
@@ -721,9 +729,13 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    * a bottleneck, we will have to investigate caching the versioned scopes.
    * @author boyland
    */
+  @Region("TypeInfo")
+  @RegionLock("TypesLock is this protects TypeInfo")
   private class SuperScope implements IJavaScope {
     final boolean isTypeFormal;
     final AbstractJavaBinder binder;
+
+    @UniqueInRegion("TypeInfo")
     final List<IJavaType> superTypes = new ArrayList<IJavaType>();
     
     public SuperScope(AbstractJavaBinder b) {
@@ -898,7 +910,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     public IBinding lookup(String name, final IRNode useSite, final Selector selector) {
       final boolean debug = LOG.isLoggable(Level.FINER);
       if (debug) LOG.fine("Looking for " + name + " in " + this);
-      synchronized (JavaMemberTable.this) {
+      synchronized (entries) {
     	  if (isVersioned) {
     		  JavaMemberTable.this.ensureDerived();
     	  }      
@@ -934,7 +946,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
         //new FluidError("no error").printStackTrace();
       }
       List<IRNode> tempMembers;
-      synchronized (JavaMemberTable.this) {
+      synchronized (entries) {
     	  if (isVersioned) {
     		  JavaMemberTable.this.ensureDerived();      
     	  }
@@ -983,6 +995,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       return JavaMemberTable.this + "$Scope";
     }
 
+    @Vouch("debug code")
     public void printTrace(PrintStream out, int indent) {
       DebugUtil.println(out, indent, "["+this+"]");
       for(Map.Entry<String, Entry> e : entries.entrySet()) {
@@ -1005,6 +1018,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   }
   
   @Override
+  @Vouch("debug code")
   public String debugString() {
     StringBuilder sb = new StringBuilder();
     sb.append(this);
