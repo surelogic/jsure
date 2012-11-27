@@ -71,6 +71,8 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
   private static final int CONTAINABLE_IMPL = 429;
   private static final int TRIVIALLY_THREADSAFE_STATIC_ONLY = 430;
   private static final int TRIVIALLY_THREADSAFE_NO_STATIC = 431;
+  private static final int TYPE_IS_VOUCHED_CONTAINABLE = 432;
+  private static final int TYPE_IS_VOUCHED_CONTAINABLE_WITH_REASON = 433;
   
   
   
@@ -276,44 +278,53 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
       final TypeAnnotationTester cTester =
           new TypeAnnotationTester(TypeAnnotations.CONTAINABLE, binder,
               ParameterizedTypeAnalysis.getFolders());
-      final boolean isContainable = cTester.testFieldDeclarationType(fieldTypeNode);
       
-      boolean haveInitializerResult = false;
-      boolean proposeContainable = !isContainable;
-      if (TypeUtil.isFinal(varDecl) && !isContainable) {
-        /*
-         * If the type is not containable, we can check to see
-         * if the implementation assigned to the field is containable,
-         * but only if the field is final.
-         */
-        final IRNode init = VariableDeclarator.getInit(varDecl);
-        if (Initialization.prototype.includes(init)) {
-          final IRNode initExpr = Initialization.getValue(init);
-          if (NewExpression.prototype.includes(initExpr)) {
-            final TypeAnnotationTester cTester2 =
-                new TypeAnnotationTester(TypeAnnotations.CONTAINABLE, binder,
-                    ParameterizedTypeAnalysis.getFolders());
-            if (cTester2.testFinalObjectType(NewExpression.getType(initExpr))) {
-              // we have an instance of an immutable implementation
-              haveInitializerResult = true;
-              proposeContainable = false;
-              final ResultDrop result = ResultsBuilder.createResult(
-                  true, containableFolder, initExpr, CONTAINABLE_IMPL);
-              result.addTrusted(cTester2.getTrusts());
+      if (vouchDrop != null && vouchDrop.isContainable()) {
+        final String reason = vouchDrop.getReason();
+        final ResultDrop result = 
+            reason == VouchFieldIsNode.NO_REASON
+              ? ResultsBuilder.createResult(true, containableFolder, varDecl, TYPE_IS_VOUCHED_CONTAINABLE)
+              : ResultsBuilder.createResult(true, containableFolder, varDecl, TYPE_IS_VOUCHED_CONTAINABLE_WITH_REASON, reason);
+        result.addTrusted(vouchDrop);
+      } else {
+        final boolean isContainable = cTester.testFieldDeclarationType(fieldTypeNode);
+        boolean haveInitializerResult = false;
+        boolean proposeContainable = !isContainable;
+        if (TypeUtil.isFinal(varDecl) && !isContainable) {
+          /*
+           * If the type is not containable, we can check to see
+           * if the implementation assigned to the field is containable,
+           * but only if the field is final.
+           */
+          final IRNode init = VariableDeclarator.getInit(varDecl);
+          if (Initialization.prototype.includes(init)) {
+            final IRNode initExpr = Initialization.getValue(init);
+            if (NewExpression.prototype.includes(initExpr)) {
+              final TypeAnnotationTester cTester2 =
+                  new TypeAnnotationTester(TypeAnnotations.CONTAINABLE, binder,
+                      ParameterizedTypeAnalysis.getFolders());
+              if (cTester2.testFinalObjectType(NewExpression.getType(initExpr))) {
+                // we have an instance of an immutable implementation
+                haveInitializerResult = true;
+                proposeContainable = false;
+                final ResultDrop result = ResultsBuilder.createResult(
+                    true, containableFolder, initExpr, CONTAINABLE_IMPL);
+                result.addTrusted(cTester2.getTrusts());
+              }
             }
           }
         }
-      }
-      if (isContainable || !haveInitializerResult) {
-        final ResultDrop cResult = ResultsBuilder.createResult(
-            containableFolder, fieldTypeNode, isContainable,
-            TYPE_IS_CONTAINABLE, TYPE_IS_NOT_CONTAINABLE, type.toSourceText());
-        cResult.addTrusted(cTester.getTrusts());
+        if (isContainable || !haveInitializerResult) {
+          final ResultDrop cResult = ResultsBuilder.createResult(
+              containableFolder, fieldTypeNode, isContainable,
+              TYPE_IS_CONTAINABLE, TYPE_IS_NOT_CONTAINABLE, type.toSourceText());
+          cResult.addTrusted(cTester.getTrusts());
 
-        if (proposeContainable) {
-          for (final IRNode n : tsTester.getFailed()) {
-            cResult.addProposal(new ProposedPromiseDrop(
-                "Containable", null, n, varDecl, Origin.MODEL));
+          if (proposeContainable) {
+            for (final IRNode n : tsTester.getFailed()) {
+              cResult.addProposal(new ProposedPromiseDrop(
+                  "Containable", null, n, varDecl, Origin.MODEL));
+            }
           }
         }
       }
