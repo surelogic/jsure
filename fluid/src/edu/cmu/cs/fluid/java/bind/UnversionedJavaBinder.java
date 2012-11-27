@@ -2,7 +2,7 @@
 package edu.cmu.cs.fluid.java.bind;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 
 import jsr166y.forkjoin.Ops.Procedure;
@@ -43,13 +43,8 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       }
   } : null;
 	
-  private final ThreadLocal<Map<IJavaSourceRefType,IJavaMemberTable>> memberTableCache = cacheAllSourceTypes ? 
-      new ThreadLocal<Map<IJavaSourceRefType,IJavaMemberTable>>() {
-	  @Override
-	  protected Map<IJavaSourceRefType,IJavaMemberTable> initialValue() {
-		  return new HashMap<IJavaSourceRefType, IJavaMemberTable>();
-	  }
-  } : null;
+  private final ConcurrentMap<IJavaSourceRefType,IJavaMemberTable> memberTableCache = cacheAllSourceTypes ? 
+      new ConcurrentHashMap<IJavaSourceRefType,IJavaMemberTable>() : null;
   
   
   private final Map<IRNode,IJavaMemberTable> oldMemberTableCache = cacheAllSourceTypes ? null :
@@ -164,7 +159,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 		UnversionedJavaImportTable.clearAll();
 		if (cacheAllSourceTypes) {
 			sourceTypeParameterizations.clear();
-			ConcurrentAnalysis.clearThreadLocal(memberTableCache);
+			memberTableCache.clear();
 		} else {
 			oldMemberTableCache.clear();
 		}
@@ -226,7 +221,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 		  if (types != null) {
 			  removed = true;
 			  
-			  final Map<IJavaSourceRefType,IJavaMemberTable> tables = memberTableCache.get();
+			  final Map<IJavaSourceRefType,IJavaMemberTable> tables = memberTableCache;
 			  final Procedure<Integer> proc = new Procedure<Integer>() {
 				  public void op(Integer ignore) {
 					  for(final IJavaSourceRefType t : types) {
@@ -251,7 +246,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   @Override
   public IJavaMemberTable typeMemberTable(IJavaSourceRefType type) {
 	if (cacheAllSourceTypes) {
-		final Map<IJavaSourceRefType,IJavaMemberTable> tables = memberTableCache.get();
+		final Map<IJavaSourceRefType,IJavaMemberTable> tables = memberTableCache;
 		IJavaMemberTable rv = tables.get(type);
 		if (rv == null) {
 			// unversioned, uncached
