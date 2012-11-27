@@ -413,6 +413,7 @@ public class Util {
     loader.checkReferences(cus.asList());
     eliminateDups(cus.asList(), cus.asList());
     // checkForDups(cus.asList());
+    clearCaches(projects); // To clear out old state invalidated by rewriting
     
     perf.markTimeFor("Rewriting");
     canonicalizeCUs(cus, projects);
