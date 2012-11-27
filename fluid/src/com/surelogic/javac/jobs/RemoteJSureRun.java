@@ -63,7 +63,10 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 	}
 	
 	public static void renameToFinalName(PrintStream out, final File scanDir, final File tmpLocation) {
-		final boolean compress = tmpLocation.getName().endsWith(FileUtility.GZIP_SUFFIX);
+		if (tmpLocation == null) {
+			return;
+		}
+ 		final boolean compress = tmpLocation.getName().endsWith(FileUtility.GZIP_SUFFIX);
 		final File location = new File(scanDir, compress ? COMPRESSED_RESULTS_XML : RESULTS_XML);
 		System.out.println("Renaming snapshot: "+location);
 		tmpLocation.renameTo(location);
