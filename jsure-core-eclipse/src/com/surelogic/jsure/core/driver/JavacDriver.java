@@ -135,7 +135,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
    */
   private static final boolean clearBeforeAnalysis = false;
 
-  private static final boolean useSourceZipsDirectly = true;
+  private static final boolean useSourceZipsDirectly = false;
 
   /**
    * If true, create common projects for shared jars Otherwise, jars in
@@ -1641,9 +1641,9 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
           // Assumes that it ends with '.java'
           // 
           // Not a bug, but it STARTS looking at the index specified 
-          if (path.lastIndexOf('.', len - 5) >= 0) {          
-          //final int firstDot = path.indexOf('.');
-          //if (firstDot >= 0 && firstDot < len - 5) {
+          //if (path.lastIndexOf('.', len - 5) >= 0) {          
+          final int firstDot = path.indexOf('.');
+          if (firstDot >= 0 && firstDot < len - 5) {
             pathsContainDot = true;
           }
         }
