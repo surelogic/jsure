@@ -56,7 +56,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		
 		@Override
 		protected IJavaType getJavaType_internal(IRNode node) {
-			return getTypeEnv(node).binder.getJavaType_javac(node);
+			return getTypeEnv_cached(node).binder.getJavaType_javac(node);
 		}
 
 		private <T> T findClassBodyMembers_javac(IRNode type,
@@ -255,7 +255,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 			 * }
 			 */
 			if (useSite != null) {
-				JavacTypeEnvironment tEnv = getTypeEnv(useSite);
+				JavacTypeEnvironment tEnv = getTypeEnv_cached(useSite);
 				return tEnv.classes.getOuterClass(qname);
 			}
 			return getOuterClass(qname);
@@ -271,7 +271,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 
 		IRNode getPackage(String name, IRNode useSite) {
 			if (useSite != null) {
-				JavacTypeEnvironment tEnv = getTypeEnv(useSite);
+				JavacTypeEnvironment tEnv = getTypeEnv_cached(useSite);
 				return tEnv.classes.getPackage(name);
 			}
 			return getPackage(name);
@@ -578,12 +578,14 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	private final ConcurrentMap<IRNode,JavacTypeEnvironment> typeEnvCache =
 		new ConcurrentHashMap<IRNode, JavacTypeEnvironment>();
 	
+	/*
 	private JavacTypeEnvironment getTypeEnv(IRNode here) {
 		if (here.identity() == IRNode.destroyedNode) {
 			return null;
 		}
 		return computeTypeEnv(here);
 	}
+	*/
 	
 	private JavacTypeEnvironment getTypeEnv_cached(IRNode here) {
 		if (here.identity() == IRNode.destroyedNode) {

@@ -27,7 +27,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUnitListener {
-  private static final boolean cacheAllSourceTypes = false;
+  private static final boolean cacheAllSourceTypes = true;
   
   /**
    * Helps to figure out what to invalidate after an AST is modified
@@ -50,7 +50,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   private final Map<IRNode,IJavaMemberTable> oldMemberTableCache = cacheAllSourceTypes ? null :
 	  new ConcurrentHashMap<IRNode, IJavaMemberTable>();
   
-  private final ThreadLocal<IJavaMemberTable> objectTable = cacheAllSourceTypes ? null :
+  private final ThreadLocal<IJavaMemberTable> objectTable =
 	  new ThreadLocal<IJavaMemberTable>() {
 	  protected IJavaMemberTable initialValue() {
 		  return JavaMemberTable.makeBatchTable(typeEnvironment.getObjectType());
@@ -246,6 +246,9 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   @Override
   public IJavaMemberTable typeMemberTable(IJavaSourceRefType type) {
 	if (cacheAllSourceTypes) {
+		if (type == typeEnvironment.getObjectType()) {
+			return objectTable.get();
+		}
 		final Map<IJavaSourceRefType,IJavaMemberTable> tables = memberTableCache;
 		IJavaMemberTable rv = tables.get(type);
 		if (rv == null) {
