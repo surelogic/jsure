@@ -958,8 +958,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
         LOG.finer("Looking for all " + name + " in " + this);
         //new FluidError("no error").printStackTrace();
       }
-      // Copy already done by getDeclarationsFromUse()
-      //List<IRNode> tempMembers;
+      // TODO Copy already done by getDeclarationsFromUse()?
+      List<IRNode> tempMembers;
       if (isVersioned) {
     	  JavaMemberTable.this.ensureDerived();      
       }
@@ -981,14 +981,14 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
 			}
     	  }
       }
-      //tempMembers = copyIterator(members);
-      if (!members.hasNext()) {
+      tempMembers = copyIterator(members);
+      if (!tempMembers.isEmpty()) {
           /*
           if ("getCurrentKey".equals(name)) {
         	  System.out.println("Found getCurrentKey");
           }
           */
-    	  return new FilterIterator<IRNode, IBinding>(members) {
+    	  return new FilterIterator<IRNode, IBinding>(tempMembers.iterator()) {
     		  @Override
     		  public Object select(IRNode n) {
     			  if (selector.select(n)) {
