@@ -744,7 +744,11 @@ public abstract class Drop implements IDrop {
     if (javaRef != null)
       return new Pair<IJavaRef, IRNode>(javaRef, f_node);
     final IRNode parent = JavaPromise.getParentOrPromisedFor(f_node);
-    return new Pair<IJavaRef, IRNode>(JavaNode.getJavaRef(parent), parent);
+    final IJavaRef parentRef = JavaNode.getJavaRef(parent);
+    if (parentRef == null) {
+    	return null;
+    }
+    return new Pair<IJavaRef, IRNode>(parentRef, parent);
   }
 
   /**
