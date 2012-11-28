@@ -5,6 +5,7 @@ package edu.cmu.cs.fluid.java.util;
 import java.util.logging.Logger;
 
 import com.surelogic.annotation.rules.*;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.drops.VouchFieldIsPromiseDrop;
 
@@ -429,15 +430,13 @@ public class TypeUtil implements JavaGlobals {
   
   
   public static final class UpperBoundGetter {
-    private static final String JAVA_LANG_OBJECT = "java.lang.Object";
-
     private final ITypeEnvironment typeEnv;
     private final IJavaType javaLangObject;
     
     
     public UpperBoundGetter(final ITypeEnvironment te) {
       typeEnv = te;
-      javaLangObject = typeEnv.findJavaTypeByName(JAVA_LANG_OBJECT);
+      javaLangObject = typeEnv.findJavaTypeByName(SLUtility.JAVA_LANG_OBJECT);
     }
     
     
@@ -476,7 +475,7 @@ public class TypeUtil implements JavaGlobals {
   public static IJavaDeclaredType typeFormalToDeclaredClass(
       final ITypeEnvironment typeEnv, final IJavaTypeFormal tf) {
     final IJavaDeclaredType javaLangObject =
-        (IJavaDeclaredType) typeEnv.findJavaTypeByName("java.lang.Object");
+        (IJavaDeclaredType) typeEnv.findJavaTypeByName(SLUtility.JAVA_LANG_OBJECT);
 
     IJavaType current = tf;
     while (!(current instanceof IJavaDeclaredType)) {

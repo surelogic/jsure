@@ -44,6 +44,7 @@ import com.surelogic.annotation.bind.FindLockModelStrategy;
 import com.surelogic.annotation.bind.FindRegionModelStrategy;
 import com.surelogic.annotation.rules.LayerRules;
 import com.surelogic.common.Pair;
+import com.surelogic.common.SLUtility;
 import com.surelogic.dropsea.ir.drops.layers.IReferenceCheckDrop;
 import com.surelogic.dropsea.ir.drops.layers.LayerPromiseDrop;
 import com.surelogic.dropsea.ir.drops.layers.TypeSetPromiseDrop;
@@ -122,7 +123,7 @@ public class CommonAASTBinder extends AASTBinder {
       return findRegionModel(dt.getDeclaration(), name);
     }
     if (jt instanceof IJavaArrayType) {
-      IRNode jlo = findNamedType("java.lang.Object", context);
+      IRNode jlo = findNamedType(SLUtility.JAVA_LANG_OBJECT, context);
       return findRegionModel(jlo, name);
     }
     if (jt instanceof IJavaTypeFormal) {
@@ -254,7 +255,7 @@ public class CommonAASTBinder extends AASTBinder {
       NamedTypeNode t = (NamedTypeNode) node;
       String name = t.getType();
       if (name == null || name.length() == 0) {
-    	  name = "java.lang.Object";
+    	  name = SLUtility.JAVA_LANG_OBJECT;
       }
       return resolveTypeName(t, name) != null;
     }
@@ -522,7 +523,7 @@ public class CommonAASTBinder extends AASTBinder {
       NamedTypeNode t = (NamedTypeNode) node;
       String name = t.getType();
       if (name == null || name.length() == 0) {
-    	  name = "java.lang.Object";
+    	  name = SLUtility.JAVA_LANG_OBJECT;
       }
       if ("T".equals(name)) {
     	  System.out.println("Trying to resolve T");

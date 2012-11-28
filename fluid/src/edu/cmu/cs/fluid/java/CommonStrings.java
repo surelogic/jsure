@@ -4,17 +4,18 @@ package edu.cmu.cs.fluid.java;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.surelogic.common.SLUtility;
+
 public final class CommonStrings {
 	public static final String MINUS_ONE = "-1";
 	public static final String ZERO = "0";
 	public static final String ONE  = "1";
 	public static final String TWO  = "2";
 	public static final String THREE = "3";
-	public static final String JAVA_LANG_OBJECT = "java.lang.Object";
 	private static Map<String,String> pool = new ConcurrentHashMap<String,String>(8);
 	static {
 		String[] strings = {
-			ZERO, ONE, JAVA_LANG_OBJECT, "java.lang.String", "String", "i",
+			ZERO, ONE, SLUtility.JAVA_LANG_OBJECT, "java.lang.String", "String", "i",
 			"T", "add", "size", "equals", "toString", "java.io.IOException",
 			"Object", "isEmpty", "get", "IllegalArgumentException", "System",
 			"StringBuilder", "next", "hasNext", "Boolean", "Integer", "put",

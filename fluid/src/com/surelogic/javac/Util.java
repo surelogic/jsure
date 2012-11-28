@@ -379,7 +379,7 @@ public class Util {
     JavacClassParser loader = new JavacClassParser(pool, projects);
 
     // loader.ensureClassIsLoaded("java.util.concurrent.locks.ReadWriteLock");
-    loader.ensureClassIsLoaded("java.lang.Object");
+    loader.ensureClassIsLoaded(SLUtility.JAVA_LANG_OBJECT);
     final OutputStream results = NullOutputStream.prototype;
         //projects.getResultsFile() == null ? null : new FileOutputStream(projects.getResultsFile());
     final JavacAnalysisEnvironment env = new JavacAnalysisEnvironment(loader, results, projects.getMonitor());
@@ -1116,7 +1116,7 @@ public class Util {
           if (insideOfMethod(type)) {
             continue;
           }
-          if ("java.lang.Object".equals(name)) {
+          if (SLUtility.JAVA_LANG_OBJECT.equals(name)) {
             v.handleImplicitPromise(type, RegionRules.REGION, "public static All", Collections.<String, String> emptyMap());
           }
           v.handleImplicitPromise(type, RegionRules.REGION, "public static Static extends All", Collections.<String, String> emptyMap());
@@ -1165,7 +1165,7 @@ public class Util {
         }
         /*
          * The model won't show up yet, since it hasn't been scrubbed yet if
-         * ("java.lang.Object".equals(name)) { RegionModel m =
+         * (SLUtility.JAVA_LANG_OBJECT.equals(name)) { RegionModel m =
          * RegionModel.getInstance(name, p.getName()); if (m.getNode() == null)
          * { SLLogger.getLogger().severe(
          * "RegionModel for java.lang.Object has null node"); } }

@@ -11,6 +11,7 @@ import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationTraversalCallback;
 import com.surelogic.annotation.scrub.ScrubberType;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -20,7 +21,6 @@ import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.AbstractSuperTypeSearchStrategy;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -352,7 +352,7 @@ public class EqualityRules extends AnnotationRules {
 		@Override
 		protected void visitClass_internal(IRNode tdecl) {
 			final String tName = JavaNames.getFullTypeName(tdecl);
-			if (JavaGlobals.JLObject.equals(tName)) {
+			if (SLUtility.JAVA_LANG_OBJECT.equals(tName)) {
 				result = null;
 				searchAfterLastType = false;
 			}

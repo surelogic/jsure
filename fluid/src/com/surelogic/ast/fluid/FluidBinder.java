@@ -6,6 +6,7 @@ import java.util.*;
 import com.surelogic.ast.*;
 import com.surelogic.ast.IBinding;
 import com.surelogic.ast.java.operator.*;
+import com.surelogic.common.SLUtility;
 //import com.surelogic.ast.java.promise.*;
 //import com.surelogic.proxy.java.operator.NodeFactories;
 
@@ -371,7 +372,7 @@ public class FluidBinder implements IJavaBinder {
   }
 
   private IDeclaredType getJavaLangObject() {
-    IRNode jlo              = binder.getTypeEnvironment().findNamedType("java.lang.Object");
+    IRNode jlo              = binder.getTypeEnvironment().findNamedType(SLUtility.JAVA_LANG_OBJECT);
     IDeclaredType dt = (IDeclaredType) mapToBinding(jlo);
     if (dt == null) {
       throw new Error("java.lang.Object == null");

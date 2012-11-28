@@ -1,6 +1,13 @@
 package com.surelogic.javac.adapter;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +98,6 @@ import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
@@ -99,7 +105,6 @@ import edu.cmu.cs.fluid.java.adapter.AbstractAdapter;
 import edu.cmu.cs.fluid.java.adapter.CodeContext;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.IllegalChildException;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -891,7 +896,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     IRNode[] types = map(acceptNodes, node.getTypeParameters(), context);
     IRNode ext = adaptType(node.getExtendsClause(), context);
     if (ext == null) {
-      ext = NamedType.createNode(CommonStrings.JAVA_LANG_OBJECT);
+      ext = NamedType.createNode(SLUtility.JAVA_LANG_OBJECT);
       addJavaRefAndCheckForJavadocAnnotations(node, ext);
     }
 
@@ -1610,7 +1615,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     IRNode[] bounds = map(adaptTypes, node.getBounds(), context);
     if (bounds.length == 0) {
       bounds = new IRNode[1];
-      bounds[0] = NamedType.createNode("java.lang.Object");
+      bounds[0] = NamedType.createNode(SLUtility.JAVA_LANG_OBJECT);
     }
     String id = node.getName().toString();
     id = CommonStrings.intern(id);

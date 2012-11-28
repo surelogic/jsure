@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.zip.*;
 
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.SLUtility;
 import com.surelogic.dropsea.irfree.XmlCreator;
 import com.surelogic.javac.persistence.*;
 
@@ -129,7 +130,7 @@ public class JarEntry extends AbstractClassPathEntry {
     			String pkg   = lastDot < 0 ? "" : qname.substring(0, lastDot);
     			jp.getTypeEnv().addPackage(pkg);
     			/*
-    			if ("java.lang.Object".equals(qname) || "java.lang.Enum".equals(qname)) {
+    			if (SLUtility.JAVA_LANG_OBJECT.equals(qname) || "java.lang.Enum".equals(qname)) {
     				System.out.println(jp.getName()+": mapping "+qname+" to "+jar.getAbsolutePath());    			
     			}
     			*/

@@ -6,6 +6,7 @@ import java.util.zip.*;
 
 import com.surelogic.annotation.parse.*;
 import com.surelogic.common.AbstractJavaZip;
+import com.surelogic.common.SLUtility;
 import com.surelogic.javac.persistence.*;
 import com.surelogic.javac.persistence.PersistenceConstants;
 import com.surelogic.persistence.*;
@@ -81,7 +82,7 @@ public class PromiseMatcher {
 		JSureSubtypeInfo subTypeInfo = JSureSubtypeInfo.load(runDir);
 		if (subTypeInfo != null) {
 			// Just a test
-			subTypeInfo.findCUsContainingSubTypes(Collections.singleton("java.lang.Object"));
+			subTypeInfo.findCUsContainingSubTypes(Collections.singleton(SLUtility.JAVA_LANG_OBJECT));
 			// TODO load up additional dependencies necessary based on the subtype info
 		}		
 		// Create drops from results! 

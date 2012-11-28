@@ -64,6 +64,7 @@ import com.surelogic.common.FileUtility.TempFileFilter;
 import com.surelogic.common.FileUtility.UnzipCallback;
 import com.surelogic.common.Pair;
 import com.surelogic.common.PeriodicUtility;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.TextArchiver;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.ZipInfo;
@@ -1266,7 +1267,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
    * @throws JavaModelException
    */
   boolean containsJavaLangObject(IJavaProject jp) throws JavaModelException {
-    IType t = jp.findType("java.lang.Object");
+    IType t = jp.findType(SLUtility.JAVA_LANG_OBJECT);
     return t.getCompilationUnit() != null;
   }
 
