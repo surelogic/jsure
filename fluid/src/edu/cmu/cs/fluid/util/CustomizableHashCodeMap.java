@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
+import com.surelogic.Starts;
 
 /**
  * Originally AbstractHashedMap from Commons Collections (generic), but modified
@@ -154,6 +155,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 	 *            the key
 	 * @return the mapped value, null if no match
 	 */
+	@Starts("nothing")
 	public V get(Object key) {
 		int hashCode = key == null ? NULL_HASH : hash(key.hashCode());
 		HashEntry<K, V> entry = data[hashIndex(hashCode, data.length)];
@@ -188,6 +190,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 	 *            the key to search for
 	 * @return true if the map contains the key
 	 */
+	@Starts("nothing")
 	public boolean containsKey(Object key) {
 		int hashCode = key == null ? NULL_HASH : hash(key.hashCode());
 		HashEntry<K, V> entry = data[hashIndex(hashCode, data.length)];
@@ -208,6 +211,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 	 *            the value to search for
 	 * @return true if the map contains the value
 	 */
+	@Starts("nothing")
 	public boolean containsValue(Object value) {
 		if (value == null) {
 			for (int i = 0, isize = data.length; i < isize; i++) {
@@ -289,6 +293,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 	 *            the mapping to remove
 	 * @return the value mapped to the removed key, null if key not in map
 	 */
+	@Starts("nothing")
 	public V remove(Object key) {
 		int hashCode = key == null ? NULL_HASH : hash(key.hashCode());
 		int index = hashIndex(hashCode, data.length);
@@ -311,6 +316,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 	 * Clears the map, resetting the size to zero and nullifying references to
 	 * avoid garbage collection issues.
 	 */
+	@Starts("nothing")
 	public void clear() {
 		modCount++;
 		HashEntry<K, V>[] data = this.data;
@@ -722,6 +728,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 	 * 
 	 * @return the entrySet view
 	 */
+	@Starts("nothing")
 	public Set<Map.Entry<K, V>> entrySet() {
 		if (entrySet == null) {
 			entrySet = new EntrySet<K, V>(this);
@@ -756,11 +763,13 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 			this.parent = parent;
 		}
 
+		@Starts("nothing")
 		@Override
 		public int size() {
 			return parent.size();
 		}
 
+		@Starts("nothing")
 		@Override
 		public void clear() {
 			parent.clear();
@@ -772,6 +781,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 			return (match != null && match.equals(e));
 		}
 
+		@Starts("nothing")
 		@Override
 		@SuppressWarnings("unchecked")
 		public boolean remove(Object obj) {
@@ -787,6 +797,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 			return true;
 		}
 
+		@Starts("nothing")
 		@Override
 		public Iterator<Map.Entry<K, V>> iterator() {
 			return parent.createEntrySetIterator();
@@ -814,6 +825,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 	 * 
 	 * @return the keySet view
 	 */
+	@Starts("nothing")
 	public Set<K> keySet() {
 		if (keySet == null) {
 			keySet = new KeySet<K, V>(this);
@@ -848,21 +860,25 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 			this.parent = parent;
 		}
 
+		@Starts("nothing")
 		@Override
 		public int size() {
 			return parent.size();
 		}
 
+		@Starts("nothing")
 		@Override
 		public void clear() {
 			parent.clear();
 		}
 
+		@Starts("nothing")
 		@Override
 		public boolean contains(Object key) {
 			return parent.containsKey(key);
 		}
 
+		@Starts("nothing")
 		@Override
 		public boolean remove(Object key) {
 			boolean result = parent.containsKey(key);
@@ -870,6 +886,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 			return result;
 		}
 
+		@Starts("nothing")
 		@Override
 		public Iterator<K> iterator() {
 			return parent.createKeySetIterator();
@@ -897,6 +914,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 	 * 
 	 * @return the values view
 	 */
+	@Starts("nothing")
 	public Collection<V> values() {
 		if (values == null) {
 			values = new Values<K, V>(this);
@@ -931,21 +949,25 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 			this.parent = parent;
 		}
 
+		@Starts("nothing")
 		@Override
 		public int size() {
 			return parent.size();
 		}
 
+		@Starts("nothing")
 		@Override
 		public void clear() {
 			parent.clear();
 		}
 
+		@Starts("nothing")
 		@Override
 		public boolean contains(Object value) {
 			return parent.containsValue(value);
 		}
 
+		@Starts("nothing")
 		@Override
 		public Iterator<V> iterator() {
 			return parent.createValuesIterator();
@@ -998,6 +1020,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 			this.value = value;
 		}
 
+		@Starts("nothing")
 		public K getKey() {
 			return key;
 		}
@@ -1006,6 +1029,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 			this.key = key;
 		}
 
+		@Starts("nothing")
 		public V getValue() {
 			return value;
 		}
@@ -1016,6 +1040,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 			return old;
 		}
 
+		@Starts("nothing")
 		@Override
 		public boolean equals(Object obj) {
 			if (obj == this) {
@@ -1032,6 +1057,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 							: getValue().equals(other.getValue()));
 		}
 
+		@Starts("nothing")
 		@Override
 		public int hashCode() {
 			return (getKey() == null ? 0 : getKey().hashCode())
@@ -1238,6 +1264,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 	 *            the object to compare to
 	 * @return true if equal
 	 */
+	@Starts("nothing")
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) {
@@ -1279,6 +1306,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 	 * 
 	 * @return the hash code defined in the Map interface
 	 */
+	@Starts("nothing")
 	@Override
 	public int hashCode() {
 		int total = 0;

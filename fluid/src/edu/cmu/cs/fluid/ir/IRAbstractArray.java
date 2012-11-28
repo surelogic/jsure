@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import java.util.*;
 
 import edu.cmu.cs.fluid.util.*;
+import com.surelogic.Starts;
 
 /**
  * A class that functions as an array.
@@ -338,11 +339,13 @@ public abstract class IRAbstractArray<S,T> extends IRAbstractSequence<S,T> {
   // Implementation of List
   //===========================================================
 
-  public boolean contains(Object o) {
+  @Starts("nothing")
+public boolean contains(Object o) {
     return indexOf(o) >= 0;
   }
   
-  public Object[] toArray() {
+  @Starts("nothing")
+public Object[] toArray() {
     int size   = size();
     Object[] a = new Object[size];
     for(int i=0; i<size; i++) {
@@ -370,7 +373,8 @@ public abstract class IRAbstractArray<S,T> extends IRAbstractSequence<S,T> {
     throw new UnsupportedOperationException("arrays are fixed size");
   }
 
-  public boolean remove(Object arg0) {
+  @Starts("nothing")
+public boolean remove(Object arg0) {
     throw new UnsupportedOperationException("arrays are fixed size");
   }
 
@@ -409,7 +413,8 @@ public abstract class IRAbstractArray<S,T> extends IRAbstractSequence<S,T> {
     throw new UnsupportedOperationException("empty sequence cannot be modified");
   }
 
-  public int indexOf(Object o) {
+  @Starts("nothing")
+public int indexOf(Object o) {
     int size = size();
     if (o == null) {
       for(int i=0; i<size; i++) {
@@ -427,7 +432,8 @@ public abstract class IRAbstractArray<S,T> extends IRAbstractSequence<S,T> {
     return -1;
   }
 
-  public int lastIndexOf(Object o) {
+  @Starts("nothing")
+public int lastIndexOf(Object o) {
     int size = size();
     if (o == null) {
       for(int i=size-1; i>=0; i--) {

@@ -6,6 +6,8 @@
 
 package edu.cmu.cs.fluid.mvc;
 
+import com.surelogic.Starts;
+
 /**
  * Exception thrown when an a "fresh" attribute name is expected but the
  * provided attribute name names an already existing attribute.
@@ -34,7 +36,8 @@ extends java.lang.RuntimeException
   }
   
   // inherit Javadoc
-  @Override
+  @Starts("nothing")
+@Override
   public String getMessage()
   {
     return (  "Attribute \"" + attrName + "\" already exists in model \""

@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.Set;
+import com.surelogic.Starts;
 
 public class IdentityHashSet<E> extends AbstractSet<E> {
 
@@ -42,7 +43,8 @@ public class IdentityHashSet<E> extends AbstractSet<E> {
     values = makeArray((int)(2 * size2 / maxFill)+initialCapacity);
   }
   
-  @Override
+  @Starts("nothing")
+@Override
   public Iterator<E> iterator() {
     return new Iterator<E>() {
       int v = version;
@@ -83,7 +85,8 @@ public class IdentityHashSet<E> extends AbstractSet<E> {
     };
   }
 
-  @Override
+  @Starts("nothing")
+@Override
   public int size() {
     return size;
   }
@@ -120,13 +123,15 @@ public class IdentityHashSet<E> extends AbstractSet<E> {
     return true;
   }
 
-  @Override
+  @Starts("nothing")
+@Override
   public boolean contains(Object o) {
     o = mapNull(o);
     return values[hash(o,true)] == o;
   }
 
-  @SuppressWarnings("unchecked")
+  @Starts("nothing")
+@SuppressWarnings("unchecked")
   @Override
   public boolean remove(Object o) {
     o = mapNull(o);
@@ -140,7 +145,8 @@ public class IdentityHashSet<E> extends AbstractSet<E> {
     return false;
   }
 
-  @Override
+  @Starts("nothing")
+@Override
   public void clear() {
     size = 0;
     values = makeArray(initialCapacity);

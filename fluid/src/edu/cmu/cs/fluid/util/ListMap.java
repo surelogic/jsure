@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.util;
 import java.util.*;
 
 import org.apache.commons.collections15.keyvalue.AbstractMapEntry;
+import com.surelogic.Starts;
 
 /**
  * A basic implementation of Map that preserves the order of mappings
@@ -35,6 +36,7 @@ public final class ListMap<K,V> extends AbstractMap<K, V> {
 		return oldValue;
 	}
 	
+	@Starts("nothing")
 	@Override
 	public Set<Entry<K, V>> entrySet() {
 		// TODO copy the entries?

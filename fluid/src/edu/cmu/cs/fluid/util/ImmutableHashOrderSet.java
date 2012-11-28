@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.Starts;
 
 /** An implementation of sets with some provision for infinite sets
  * whose inverse is finite.  The sets are very general: they may
@@ -211,12 +212,14 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
     return invert();
   }
 
-  @Override
+  @Starts("nothing")
+@Override
   public final int hashCode() {
   	return hashCode;
   }
 
-  @Override
+  @Starts("nothing")
+@Override
   public boolean equals(Object other) {
     if (other instanceof ImmutableHashOrderSet) {
       return equals((ImmutableHashOrderSet<?>)other);
@@ -239,7 +242,8 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
     return SortedArray.equals(s1.elements,s2.elements);
   }
 
-  public boolean isEmpty() {
+  @Starts("nothing")
+public boolean isEmpty() {
     return !inverse && elements.length == 0;
   }
 
@@ -266,7 +270,8 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
    * @return The number of elements in the set, or
    * <code>Integer.MAX_VALUE</code> if the set is infinite.
    */
-  public int size()
+  @Starts("nothing")
+public int size()
   {
     if( inverse )
       return Integer.MAX_VALUE;
@@ -290,7 +295,8 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
    * objects not in the set.  The iterator never completes.
    * @return An iterator over the elements.
    */
-  public Iterator<T> iterator()
+  @Starts("nothing")
+public Iterator<T> iterator()
   {
     if (inverse) return new AbstractRemovelessIterator<T>() {
       public boolean hasNext() { return true; }
@@ -308,7 +314,8 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
    *
    * @exception OutOfMemoryError Thrown if the set is infinite.
    */
-  public Object[] toArray()
+  @Starts("nothing")
+public Object[] toArray()
   {
     if (inverse) return toArray(new Object[size()]);
     return elements.clone();
@@ -357,7 +364,8 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
    * @return <code>true</code> iff the set contains an element
    * <code>e</code> s.t. <code>e.equals( elem )</code>
    */
-  public boolean contains( final Object elem )
+  @Starts("nothing")
+public boolean contains( final Object elem )
   {
     return inverse != SortedArray.contains(elements,elem);
   }
@@ -368,7 +376,8 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
    * @return <code>true</code> iff all the elements of <code>c</code>
    * are contained in this set.
    */
-  public boolean containsAll( final Collection<?> c )
+  @Starts("nothing")
+public boolean containsAll( final Collection<?> c )
   {
     // Quick and dirty checks for some of the easy infinite cases
     
@@ -410,7 +419,8 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
    * Unsupported operation.
    * @throws UnsupportedOperationException Always thrown
    */
-  public boolean retainAll( final Collection<?> c )
+  @Starts("nothing")
+public boolean retainAll( final Collection<?> c )
   {
     throw new UnsupportedOperationException( getClass().getName()
                                            + " does not support retainAll()" );
@@ -421,7 +431,8 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
    * Unsupported operation.
    * @throws UnsupportedOperationException Always thrown
    */
-  public boolean removeAll( final Collection<?> c )
+  @Starts("nothing")
+public boolean removeAll( final Collection<?> c )
   {
     throw new UnsupportedOperationException( getClass().getName()
                                            + " does not support removeAll()" );
@@ -432,7 +443,8 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
    * Unsupported operation.
    * @throws UnsupportedOperationException Always thrown
    */
-  public void clear()
+  @Starts("nothing")
+public void clear()
   {
     throw new UnsupportedOperationException( getClass().getName()
                                            + " does not support clear()" );
@@ -537,7 +549,8 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
    * @throws UnsupportedOperationException Always thrown
    * @see #removeElement(Object)
    */
-  public boolean remove( final Object elem )
+  @Starts("nothing")
+public boolean remove( final Object elem )
   {
     throw new UnsupportedOperationException( getClass().getName()
                                            + " does not support remove()" );

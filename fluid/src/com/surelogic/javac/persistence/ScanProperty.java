@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.util.*;
 
 import com.surelogic.common.SortedProperties;
+import com.surelogic.Starts;
 
 public abstract class ScanProperty<T> {
 	public static final String SCAN_PROPERTIES = "scan.properties";
@@ -36,9 +37,11 @@ public abstract class ScanProperty<T> {
     		return Collections.emptySet();
     	}
     	final Map.Entry<String,Object> e = new Map.Entry<String,Object>() {
+			@Starts("nothing")
 			public String getKey() {
 				return key;
 			}
+			@Starts("nothing")
 			public Object getValue() {
 				return value;
 			}

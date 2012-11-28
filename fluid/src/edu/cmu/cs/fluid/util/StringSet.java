@@ -2,6 +2,7 @@
 package edu.cmu.cs.fluid.util;
 
 import java.util.*;
+import com.surelogic.Starts;
 
 /**
  * A Set that is optimized for, and therefore can only contain,
@@ -86,7 +87,8 @@ public class StringSet implements Set<String> {
   //== Methods from Object
   //=============================================================
 
-  @Override
+  @Starts("nothing")
+@Override
   public boolean equals(final Object o) {
     if (o instanceof Set) {
       final Set s = (Set) o;
@@ -101,7 +103,8 @@ public class StringSet implements Set<String> {
     return false;
   }
 
-  @Override
+  @Starts("nothing")
+@Override
   public int hashCode() {
     int hc = 0;
     for (int i = 0; i < size; i++) {
@@ -126,11 +129,13 @@ public class StringSet implements Set<String> {
   //== Size
   //=============================================================
 
-  public int size() {
+  @Starts("nothing")
+public int size() {
     return size;
   }
 
-  public boolean isEmpty() {
+  @Starts("nothing")
+public boolean isEmpty() {
     return (size == 0);
   }
 
@@ -138,7 +143,8 @@ public class StringSet implements Set<String> {
   //== Membership
   //=============================================================
 
-  public boolean contains(final Object o) {
+  @Starts("nothing")
+public boolean contains(final Object o) {
     if ((o == null) || !(o instanceof String)) {
       return false;
     }
@@ -177,7 +183,8 @@ public class StringSet implements Set<String> {
   //== Array conversion
   //=============================================================
 
-  public Object[] toArray() {
+  @Starts("nothing")
+public Object[] toArray() {
     final String[] copy = new String[size];
     System.arraycopy(set, 0, copy, 0, size);
     return copy;
@@ -206,7 +213,8 @@ public class StringSet implements Set<String> {
   //== Iterator conversion
   //=============================================================
 
-  public Iterator<String> iterator() {
+  @Starts("nothing")
+public Iterator<String> iterator() {
     return new StringSetIterator(set, size);
   }
 
@@ -291,11 +299,13 @@ public class StringSet implements Set<String> {
   //== Element Removal
   //=============================================================
 
-  public void clear() {
+  @Starts("nothing")
+public void clear() {
     size = 0;
   }
 
-  public boolean remove(final Object o) {
+  @Starts("nothing")
+public boolean remove(final Object o) {
     if ((o == null) || !(o instanceof String)) {
       return false;
     }

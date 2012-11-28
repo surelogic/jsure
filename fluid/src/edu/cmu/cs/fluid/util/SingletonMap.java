@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Map.Entry;
+import com.surelogic.Starts;
 
 /**
  * A map with only one entry.
@@ -29,10 +30,12 @@ public class SingletonMap<K, V> implements Map<K, V>, Entry<K,V> {
     value = v;
   }
 
-  public Set<Map.Entry<K, V>> entrySet() {
+  @Starts("nothing")
+public Set<Map.Entry<K, V>> entrySet() {
     return new AbstractSet<Map.Entry<K,V>>() {
 
-      @Override
+      @Starts("nothing")
+	@Override
       public Iterator<Map.Entry<K, V>> iterator() {
         return new Iterator<Map.Entry<K,V>>() {
           boolean started = false;
@@ -55,7 +58,8 @@ public class SingletonMap<K, V> implements Map<K, V>, Entry<K,V> {
         };
       }
 
-      @Override
+      @Starts("nothing")
+	@Override
       public int size() {
         return SingletonMap.this.size();
       }
@@ -63,11 +67,13 @@ public class SingletonMap<K, V> implements Map<K, V>, Entry<K,V> {
     };
   }
 
-  public K getKey() {
+  @Starts("nothing")
+public K getKey() {
     return key;
   }
 
-  public V getValue() {
+  @Starts("nothing")
+public V getValue() {
     return value;
   }
 
@@ -77,35 +83,42 @@ public class SingletonMap<K, V> implements Map<K, V>, Entry<K,V> {
     return old;
   }
 
-  public void clear() {
+  @Starts("nothing")
+public void clear() {
     key = null;
     value = null;
   }
 
-  public boolean containsKey(Object key) {
+  @Starts("nothing")
+public boolean containsKey(Object key) {
     return key.equals(this.key);
   }
 
-  public boolean containsValue(Object value) {
+  @Starts("nothing")
+public boolean containsValue(Object value) {
     if (key == null) return false;
     if (value == this.value) return true;
     if (value == null) return false;
     return (value.equals(this.value));
   }
 
-  public V get(Object key) {
+  @Starts("nothing")
+public V get(Object key) {
     if (this.key.equals(key)) return value;
     return null;
   }
 
-  public boolean isEmpty() {
+  @Starts("nothing")
+public boolean isEmpty() {
     return key == null;
   }
 
-  public Set<K> keySet() {
+  @Starts("nothing")
+public Set<K> keySet() {
     return new AbstractSet<K>() {
 
-      @Override
+      @Starts("nothing")
+	@Override
       public Iterator<K> iterator() {
         return new Iterator<K>() {
           boolean started = false;
@@ -127,7 +140,8 @@ public class SingletonMap<K, V> implements Map<K, V>, Entry<K,V> {
         };
       }
 
-      @Override
+      @Starts("nothing")
+	@Override
       public int size() {
         return SingletonMap.this.size();
       }
@@ -150,7 +164,8 @@ public class SingletonMap<K, V> implements Map<K, V>, Entry<K,V> {
     }
   }
 
-  public V remove(Object key) {
+  @Starts("nothing")
+public V remove(Object key) {
     if (key.equals(this.key)) {
       V old = value;
       clear();
@@ -159,14 +174,17 @@ public class SingletonMap<K, V> implements Map<K, V>, Entry<K,V> {
     return null;
   }
 
-  public int size() {
+  @Starts("nothing")
+public int size() {
     return key == null ? 0 : 1;
   }
 
-  public Collection<V> values() {
+  @Starts("nothing")
+public Collection<V> values() {
     return new AbstractCollection<V>() {
 
-      @Override
+      @Starts("nothing")
+	@Override
       public Iterator<V> iterator() {
         return new Iterator<V>() {
           boolean started = false;
@@ -188,7 +206,8 @@ public class SingletonMap<K, V> implements Map<K, V>, Entry<K,V> {
         };
       }
 
-      @Override
+      @Starts("nothing")
+	@Override
       public int size() {
         // TODO Auto-generated method stub
         return 0;

@@ -111,6 +111,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
 		checkSize();
 		return super.add(e);
 	}
+	@Starts("nothing")
 	@Override
 	public boolean remove(Object o) {
 		checkSize();
@@ -566,11 +567,13 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     return null;
   }
   
-  public boolean contains(Object o) {
+  @Starts("nothing")
+public boolean contains(Object o) {
     return locationOf(fromFront, o) != null;
   }
   
-  public Object[] toArray() {
+  @Starts("nothing")
+public Object[] toArray() {
     int size   = size();
     Object[] a = new Object[size];
     int i = 0;
@@ -603,7 +606,8 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     return true;
   }
 
-  public boolean remove(Object o) {
+  @Starts("nothing")
+public boolean remove(Object o) {
     IRLocation loc = locationOf(fromFront, o);
     if (loc != null) {
       removeElementAt(loc);
@@ -612,7 +616,8 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     return false;
   }
 
-  public int indexOf(Object o) {
+  @Starts("nothing")
+public int indexOf(Object o) {
     IRLocation loc = locationOf(fromFront, o);
     if (loc != null) {
       return locationIndex(loc);
@@ -620,7 +625,8 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     return -1;
   }
 
-  public int lastIndexOf(Object o) {
+  @Starts("nothing")
+public int lastIndexOf(Object o) {
     IRLocation loc = locationOf(fromBack, o);
     if (loc != null) {
       return locationIndex(loc);

@@ -2,6 +2,7 @@
 package edu.cmu.cs.fluid.util;
 
 import org.apache.commons.collections15.IterableMap;
+import com.surelogic.Starts;
 
 /**
  * The result of refactoring out the commonality in Customizable{Hashed,HashCode}Map
@@ -70,7 +71,8 @@ public abstract class AbstractHashMap<K,V> implements IterableMap<K,V> {
    *
    * @return the size
    */
-  public int size() {
+  @Starts("nothing")
+public int size() {
       return size;
   }
   
@@ -79,7 +81,8 @@ public abstract class AbstractHashMap<K,V> implements IterableMap<K,V> {
    *
    * @return true if the map is currently size zero
    */
-  public boolean isEmpty() {
+  @Starts("nothing")
+public boolean isEmpty() {
       return (size == 0);
   }
   

@@ -27,6 +27,7 @@ import edu.cmu.cs.fluid.promise.*;
 import edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
+import com.surelogic.ThreadSafe;
 
 /**
  * @author chance
@@ -234,7 +235,8 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
   /**
    * HashMap, but modified to note whether we should create IRNodes if none
    */
-  private static class MyMap extends ConcurrentHashMap<IRNode,IRNode> {
+  @ThreadSafe
+private static class MyMap extends ConcurrentHashMap<IRNode,IRNode> {
 	private static final long serialVersionUID = 1L;
 	
 	boolean f_createIfNone = false;

@@ -10,6 +10,8 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.ThreadSafe;
+import com.surelogic.Starts;
 
 /**
  * This is a class designed to manage and run a set of Runnable tasks that may
@@ -38,6 +40,7 @@ import com.surelogic.common.logging.SLLogger;
  * @Lock is taskLock protects taskLockNames
  * @Lock is stateLock protects isProcessing
  */
+@ThreadSafe
 public class TaskManager extends ThreadPoolExecutor {
 	/**
 	 * The collection of ITask objects that must be run in order of their
@@ -769,6 +772,7 @@ public class TaskManager extends ThreadPoolExecutor {
 		assert false : "This should never be called directly.";
 	}
 
+	@Starts("nothing")
 	@Override
 	public boolean remove(Runnable runnable) {
 		assert false : "This should never be called directly.";
@@ -785,12 +789,14 @@ public class TaskManager extends ThreadPoolExecutor {
 		super.execute(task);
 	}
 
+	@Starts("nothing")
 	@Override
 	public void shutdown() {
 		eventManager.halt();
 		super.shutdown();
 	}
 
+	@Starts("nothing")
 	@Override
 	public List<Runnable> shutdownNow() {
 		eventManager.halt();
