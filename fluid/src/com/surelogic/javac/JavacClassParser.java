@@ -42,7 +42,7 @@ import edu.cmu.cs.fluid.util.*;
 
 public class JavacClassParser {
 	/** Should we try to run things in parallel */
-	private static boolean wantToRunInParallel = false;
+	private static boolean wantToRunInParallel = true;
 	
 	private static final String[] sourceLevels = {
 		"1.5" /*default*/, "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"
