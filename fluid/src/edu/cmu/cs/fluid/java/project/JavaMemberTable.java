@@ -40,7 +40,7 @@ import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
  * TODO: Get rid of static things -- parameterize by JavaProject.
  * @author boyland
  */
-@Region("State")
+@Region("private State")
 @RegionLock("StateLock is entries protects State")
 public class JavaMemberTable extends VersionedDerivedInformation implements IJavaMemberTable {
 
@@ -487,7 +487,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    * @param useNode
    *          use site on whose behalf lookup is done; null if no dynamic
    *          dependency needed
-   * @return
+   * @return A copy of the declarations
    */
   public Iterator<IRNode> getDeclarationsFromUse(String name, IRNode useNode) {
 	if (isVersioned) {
@@ -497,7 +497,11 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     if (useNode != null) {
       entry.addUse(useNode);
     }
-    synchronized (entries) {
+    if (!isVersioned) {
+      // Entry already handles synch
+      return entry.getDeclarations();
+    }
+    synchronized (entry) {
     	// Added to prevent comod exceptions
     	Iterator<IRNode> it = entry.getDeclarations();
     	if (!it.hasNext()) {
@@ -532,6 +536,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     }
   }
   
+  // TODO fix
+  // @RegionLock("Lock is this protects Instance")
   protected static interface Entry extends JavaIncrementalBinder.IVersionedDependency, Iterable<IRNode> {
     Iterator<IRNode> getDeclarations();
     void addDeclaration(IRNode decl, Version v);
@@ -637,32 +643,40 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    * Designed to eliminate the Vector in most cases,
    * at the cost of keeping a firstDecl field
    */
+  @RegionLock("Lock is this protects Instance")
   protected static class UnversionedEntry extends AbstractJavaBinder.UnversionedDependency
   implements Entry 
   {
-    private IRNode firstDecl     = null;
-    private Vector<IRNode> decls = null; //new Vector<IRNode>();
-    public void addDeclaration(IRNode decl, Version v) {
+    @Unique("return") 
+    UnversionedEntry(){}
+
+	private IRNode firstDecl     = null;
+    // Includes the first decl
+	@UniqueInRegion("Instance")
+    private List<IRNode> decls = null; //new ArrayList<IRNode>();
+    
+    public synchronized void addDeclaration(IRNode decl, Version v) {
       if (firstDecl == null) {
         firstDecl = decl;
         return;
       }
       if (decls == null) {
-        decls = new Vector<IRNode>();
+        decls = new ArrayList<IRNode>();
         decls.add(firstDecl);
       }
       decls.add(decl);     
     }
-    public Iterator<IRNode> getDeclarations() {
+    public synchronized Iterator<IRNode> getDeclarations() {
       if (decls == null) {
         if (firstDecl == null) {
           return new EmptyIterator<IRNode>();
         }
         return new SingletonIterator<IRNode>(firstDecl);
       }
-      return decls.iterator();
+      // Added to prevent comod exceptions
+      return new ArrayList<IRNode>(decls).iterator();
     }
-    public void removeDeclaration(IRNode decl, Version v) {
+    public synchronized void removeDeclaration(IRNode decl, Version v) {
       if (decls == null) {
         firstDecl = decl.equals(firstDecl) ? null : firstDecl;
       } else {
@@ -677,7 +691,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     }
     
     // no use links
-    public synchronized void notifyUses(Version v) { }
+    @Override
+    public void notifyUses(Version v) { }
 
     public Iterator<IRNode> iterator() {
       return getDeclarations();
@@ -910,18 +925,16 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     public IBinding lookup(String name, final IRNode useSite, final Selector selector) {
       final boolean debug = LOG.isLoggable(Level.FINER);
       if (debug) LOG.fine("Looking for " + name + " in " + this);
-      synchronized (entries) {
-    	  if (isVersioned) {
-    		  JavaMemberTable.this.ensureDerived();
-    	  }      
-    	  Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
-    	  while (members.hasNext()) {
-    		  IRNode n = members.next();
-    		  if (debug) LOG.finer("  considering " + DebugUnparser.toString(n));
-    		  if (selector.select(n) && 
-    				  (TypeDeclaration.prototype.includes(n) || BindUtil.isAccessible(tEnv, n, useSite))) {
-    			  return IBinding.Util.makeBinding(n, (IJavaDeclaredType) JavaMemberTable.this.type, tEnv);
-    		  }
+      if (isVersioned) {
+    	  JavaMemberTable.this.ensureDerived();
+      }      
+      Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
+      while (members.hasNext()) {
+    	  IRNode n = members.next();
+    	  if (debug) LOG.finer("  considering " + DebugUnparser.toString(n));
+    	  if (selector.select(n) && 
+    			  (TypeDeclaration.prototype.includes(n) || BindUtil.isAccessible(tEnv, n, useSite))) {
+    		  return IBinding.Util.makeBinding(n, (IJavaDeclaredType) JavaMemberTable.this.type, tEnv);
     	  }
       }
       return null;
@@ -945,35 +958,37 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
         LOG.finer("Looking for all " + name + " in " + this);
         //new FluidError("no error").printStackTrace();
       }
-      List<IRNode> tempMembers;
-      synchronized (entries) {
-    	  if (isVersioned) {
-    		  JavaMemberTable.this.ensureDerived();      
-    	  }
-    	  Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
-    	  if (!JJNode.versioningIsOn && !members.hasNext() && 
-    			  !repopulated) {   
-    		  repopulated = true;
-    		  if (debug) {
-    			  String context = JJNode.getInfoOrNull(typeDeclaration);
-    			  if (context == null) {
-    				  context = DebugUnparser.toString(typeDeclaration);
-    			  }
-    			  LOG.finer("Re-populating member table: "+context);
-    		  }
-    		  populateDeNovo();
-    		  
-    		  members = getDeclarationsFromUse(name,useSite);
-    	  }
-    	  tempMembers = copyIterator(members);
+      // Copy already done by getDeclarationsFromUse()
+      //List<IRNode> tempMembers;
+      if (isVersioned) {
+    	  JavaMemberTable.this.ensureDerived();      
       }
-      if (!tempMembers.isEmpty()) {
+      Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
+      if (!JJNode.versioningIsOn && !members.hasNext()) {
+    	  synchronized (entries) {
+			if (!repopulated) {
+				repopulated = true;
+		    	  if (debug) {
+		    		  String context = JJNode.getInfoOrNull(typeDeclaration);
+		    		  if (context == null) {
+		    			  context = DebugUnparser.toString(typeDeclaration);
+		    		  }
+		    		  LOG.finer("Re-populating member table: "+context);
+		    	  }
+		    	  populateDeNovo();
+
+		    	  members = getDeclarationsFromUse(name,useSite);
+			}
+    	  }
+      }
+      //tempMembers = copyIterator(members);
+      if (!members.hasNext()) {
           /*
           if ("getCurrentKey".equals(name)) {
         	  System.out.println("Found getCurrentKey");
           }
           */
-    	  return new FilterIterator<IRNode, IBinding>(tempMembers.iterator()) {
+    	  return new FilterIterator<IRNode, IBinding>(members) {
     		  @Override
     		  public Object select(IRNode n) {
     			  if (selector.select(n)) {
