@@ -399,8 +399,10 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   @NonNull
   protected Pair<IJavaRef, IRNode> getJavaRefAndCorrespondingNode() {
     final Pair<IJavaRef, IRNode> superRefAndNode = super.getJavaRefAndCorrespondingNode();
-    if (superRefAndNode == null)
-      throw new IllegalStateException(I18N.err(293, getMessage()));
+    if (superRefAndNode == null) {
+    	//throw new IllegalStateException(I18N.err(293, getMessage()));
+    	return null;
+    }
     Position position = superRefAndNode.first().getPositionRelativeToDeclaration();
     if (position == Position.IS_DECL) {
       position = Position.ON_DECL;
