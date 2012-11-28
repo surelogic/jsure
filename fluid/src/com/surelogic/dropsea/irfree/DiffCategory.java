@@ -7,6 +7,7 @@ import java.util.*;
 import com.surelogic.common.IViewable;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.*;
+import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 
 public final class DiffCategory<K extends Comparable<K>> implements IViewable, Comparable<DiffCategory<K>> {	
   final K key;
@@ -106,7 +107,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
      */
     for (DiffNode o : sortByOffset(old)) {
       final String msg = toString(o);
-      if (suppress(o.drop)) {  
+      if (suppressOld(o.drop)) {  
     	  old.remove(o);
       } else {
     	  out.println("\tOld    : " + msg);
@@ -129,8 +130,18 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
   };
   */
   
-  private boolean suppress(IDrop o) {
-	  return isNotDerivedFromSrc(o);
+  private boolean suppressOld(IDrop o) {
+	  if (o instanceof IProposedPromiseDrop &&
+	      o.getMessage().startsWith("(proposed promise)  @RegionEffects")) {
+	      IProposedPromiseDrop p = (IProposedPromiseDrop) o;
+	      if (p.getOrigin() == Origin.CODE) {
+	    	  return true;
+	      }
+	  }
+	  else if (o instanceof IHintDrop && 
+		  o.getMessage().contains("<clinit> has effect")) {
+		  return true;
+	  }
 	  /*
 	  if (o instanceof IResultDrop) {
 		  for(String prefix : resultFilterPrefixes) {
@@ -144,6 +155,11 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
 	  }
 	  return false;
 	  */
+	  return suppress(o);
+  }
+  
+  private boolean suppress(IDrop o) {
+	  return isNotDerivedFromSrc(o);
   }  
   
   /**
