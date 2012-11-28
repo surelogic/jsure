@@ -139,8 +139,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
   private static final IJavaType[] noTypes = JavaGlobals.noTypes;
   
-  public static volatile boolean foundIssue = false;  
-  public static final AtomicInteger issueCount = new AtomicInteger(0);
   protected static final boolean storeNullBindings = true;
   protected boolean warnAboutPkgBindings = false;
 
@@ -398,33 +396,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 	  return (Type.prototype.includes(op) && !TypeDeclaration.prototype.includes(op)) ||
 	         TypeActuals.prototype.includes(op);
   }
-  
-  // Check for case of OOS around an AllocationCallExpression (or pair)
-  static boolean isSpecialTypeCase(IRNode here) {
-	  /*
-	  if (foundIssue) {
-		  System.out.println("Checking isSpecialTypeCase for "+DebugUnparser.toString(here));
-	  }
-	  Operator op = JJNode.tree.getOperator(here);
-	  // Skip Type nodes
-	  while (isType(op)) {
-		  here = JJNode.tree.getParent(here);
-		  op   = JJNode.tree.getOperator(here); 
-	  }
-	  if (AllocationCallExpression.prototype.includes(here)) {    	 
-		  IRNode parent = JJNode.tree.getParent(here);
-		  Operator pop = JJNode.tree.getOperator(parent);
-		  if (OuterObjectSpecifier.prototype.includes(pop)) {
-			  return true;
-		  }
-		  if (AnonClassExpression.prototype.includes(pop)) {
-			  IRNode gparent = JJNode.tree.getParent(parent);
-			  return OuterObjectSpecifier.prototype.includes(gparent);
-		  }
-	  }
-	  */
-	  return false;
-  }   
   
   protected IGranuleBindings ensureBindingsOK(final IRNode node) {    
     final IRNode gr            = getGranule(node);
@@ -2071,15 +2042,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       return null;
     } 
     
-    private boolean bindForType(IRNode node) {
-        final boolean isSpecialCase = isSpecialTypeCase(node);
-        if (isFullPass) {
-        	return isSpecialCase;
-        } else {
-        	return !isSpecialCase;
-        }
-    }
-    
     @Override
     public Void visitNameType(IRNode node) {
       /*
@@ -2087,7 +2049,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  System.out.println("NameType Context");
       }
       */
-      if (bindForType(node)) {
+      if (!isFullPass) {
     	  visit(node);
     	  bind(node,getIBinding(NameType.getName(node)));
       } else if (!isFullPass) {
@@ -2098,7 +2060,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitNamedType(IRNode node) {
-      if (!bindForType(node)) {
+      if (isFullPass) {
       	  return null;
       }
       String name = JJNode.getInfo(node);
@@ -2597,7 +2559,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 
     @Override
     public Void visitParameterizedType(IRNode node) {
-      if (!bindForType(node)) {
+      if (isFullPass) {
     	return null;
       }  	
       visit(node); // bind types      
@@ -2848,7 +2810,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitTypeRef(IRNode node) {
-      if (!bindForType(node)) {
+      if (isFullPass) {
     	  return null;
       }
       visit(node); // bind base type
