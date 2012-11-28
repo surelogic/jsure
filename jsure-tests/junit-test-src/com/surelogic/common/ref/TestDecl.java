@@ -918,6 +918,7 @@ public class TestDecl extends TestCase {
     Decl.ClassBuilder parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
 
     parent.addTypeParameter(new Decl.TypeParameterBuilder(0, "E"));
+    // Object bounds should be ignored
     parent.addTypeParameter(new Decl.TypeParameterBuilder(1, "T").addBounds(TypeRef.JAVA_LANG_OBJECT).addBounds(string));
 
     IDecl p = parent.build();
@@ -936,9 +937,8 @@ public class TestDecl extends TestCase {
     IDecl tp2 = p.getTypeParameters().get(1);
     assertEquals("T", tp2.getName());
     List<TypeRef> bounds = tp2.getBounds();
-    assertEquals(2, bounds.size());
-    assertEquals(TypeRef.JAVA_LANG_OBJECT.getFullyQualified(), bounds.get(0).getFullyQualified());
-    assertEquals(string.getFullyQualified(), bounds.get(1).getFullyQualified());
+    assertEquals(1, bounds.size()); // Object ignored
+    assertEquals(string.getFullyQualified(), bounds.get(0).getFullyQualified());
 
     try {
       parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
