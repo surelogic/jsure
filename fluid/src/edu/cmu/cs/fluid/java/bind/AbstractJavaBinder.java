@@ -578,7 +578,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   
   protected final IJavaDeclaredType asDeclaredType(IJavaArrayType ty) {
     IRNode fakeArrayDeclaration = getTypeEnvironment().getArrayClassDeclaration();
-    LOG.finer("Found fake array decl " + fakeArrayDeclaration);
+    //LOG.finer("Found fake array decl " + fakeArrayDeclaration);
     return JavaTypeFactory.getDeclaredType(fakeArrayDeclaration,new ImmutableList<IJavaType>(ty.getElementType()),null);
   }
   
@@ -1183,6 +1183,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		  return noTypes;
 	  }
       final int n = JJNode.tree.numChildren(args);
+      if (n == 0) {
+    	  return noTypes;
+      }
       IJavaType[] argTypes = new IJavaType[n];     
       Iterator<IRNode> argse = JJNode.tree.children(args); 
       for (int i= 0; i < n; ++i) {
