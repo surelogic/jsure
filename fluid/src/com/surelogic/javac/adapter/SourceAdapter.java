@@ -1611,6 +1611,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     if (bounds.length == 0) {
       bounds = new IRNode[1];
       bounds[0] = NamedType.createNode("java.lang.Object");
+      JavaNode.setModifiers(bounds[0], JavaNode.IMPLICIT);
     }
     String id = node.getName().toString();
     id = CommonStrings.intern(id);
