@@ -417,7 +417,7 @@ public class JavacClassParser {
 				}
 			}
 		}        
-        refs.add("java.lang.Object");
+        refs.add(SLUtility.JAVA_LANG_OBJECT);
         refs.add("java.lang.Class");
         refs.add("java.lang.String"); // For comparison purposes
         refs.add(PromiseConstants.ARRAY_CLASS_QNAME);
@@ -617,7 +617,7 @@ public class JavacClassParser {
 					//	System.out.println("\tGot "+ref+" from "+project+": "+jar.getName());
 					//}
 					/*
-					if ("java.lang.Object".equals(ref)) {
+					if (SLUtility.JAVA_LANG_OBJECT.equals(ref)) {
 						System.out.println("Got Object from "+project+": "+jar.getName());
 					}
 					if ("java.lang.Enum".equals(ref)) {
@@ -742,7 +742,7 @@ public class JavacClassParser {
 			srcEnv.addCompUnit(info, true);
 			cus.put(srcProject.getName(), info);
 			Projects.setProject(cu, srcProject);
-			if ("java.lang.Object".equals(ref)) {
+			if (SLUtility.JAVA_LANG_OBJECT.equals(ref)) {
 				System.out.println("Setting project for Object from "+srcProject.getName());
 			}
 			

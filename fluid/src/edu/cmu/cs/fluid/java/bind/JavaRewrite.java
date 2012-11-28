@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -108,7 +109,7 @@ public class JavaRewrite implements JavaGlobals {
       call = makeEnumSuperConstructorCall();
     } else {
       String name = JavaNames.getQualifiedTypeName(type);
-      if ("java.lang.Object".equals(name)) {
+      if (SLUtility.JAVA_LANG_OBJECT.equals(name)) {
         return false;
       }
       call = CogenUtil.makeDefaultSuperCall();
@@ -159,7 +160,7 @@ public class JavaRewrite implements JavaGlobals {
         if (debug) {
           LOG.finer("Ensuring constructor for " + qname);
         }
-        if (qname.equals("java.lang.Object")) {
+        if (qname.equals(SLUtility.JAVA_LANG_OBJECT)) {
           changed |= ensureConstructorStuffForObject(x);
         } else {
           changed |= ensureConstructorStuff(x);
@@ -550,7 +551,7 @@ public class JavaRewrite implements JavaGlobals {
         } else {
           name = NamedType.getType(nt);
         }
-        if ("java.lang.Object".equals(name)) {
+        if (SLUtility.JAVA_LANG_OBJECT.equals(name)) {
           return true;
         }
         if (!name.endsWith("Object")) {
@@ -596,7 +597,7 @@ public class JavaRewrite implements JavaGlobals {
     final boolean isJavaLangObject;
     if ("Object".equals(cName)) {
       final String qname = JavaNames.getQualifiedTypeName(decl);
-      isJavaLangObject = "java.lang.Object".equals(qname);
+      isJavaLangObject = SLUtility.JAVA_LANG_OBJECT.equals(qname);
     } else {
       isJavaLangObject = false;
     }

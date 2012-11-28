@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.AnnotationConstants;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -908,7 +909,7 @@ public class JavaCanonicalizer {
         final boolean isJavaLangObject;
         if ("Object".equals(name)) {
           final String qname = JavaNames.getQualifiedTypeName(node);
-          isJavaLangObject = "java.lang.Object".equals(qname);
+          isJavaLangObject = SLUtility.JAVA_LANG_OBJECT.equals(qname);
         } else {
           isJavaLangObject = false;
         }
@@ -968,7 +969,7 @@ public class JavaCanonicalizer {
         if (!found) {
           IRNode type = VisitUtil.getEnclosingType(node);
           String name = JavaNames.getQualifiedTypeName(type);
-          if ("java.lang.Object".equals(name)) {
+          if (SLUtility.JAVA_LANG_OBJECT.equals(name)) {
             return changed;
           }
           // actually this will be rare because the parser stick in implicit

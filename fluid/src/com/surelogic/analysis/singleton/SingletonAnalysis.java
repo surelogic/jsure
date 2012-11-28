@@ -14,6 +14,7 @@ import com.surelogic.analysis.TopLevelAnalysisVisitor;
 import com.surelogic.analysis.TopLevelAnalysisVisitor.TypeBodyPair;
 import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.annotation.rules.UtilityRules;
+import com.surelogic.common.SLUtility;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.SingletonPromiseDrop;
 
@@ -342,7 +343,7 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
         // Are we the readResolve() method?
         if (!JavaNode.getModifier(mdecl, JavaNode.STATIC) &&
             MethodDeclaration.getId(mdecl).equals("readResolve") &&
-            rtBound != null && JavaNames.getQualifiedTypeName(rtBound).equals("java.lang.Object") &&
+            rtBound != null && JavaNames.getQualifiedTypeName(rtBound).equals(SLUtility.JAVA_LANG_OBJECT) &&
             !Parameters.getFormalIterator(MethodDeclaration.getParams(mdecl)).hasNext()) {
           hasReadResolve = true;
           final Iteratable<IRNode> stmts =

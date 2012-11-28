@@ -23,6 +23,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.Util;
@@ -717,7 +718,7 @@ public class ClassAdapter extends AbstractAdapter {
         root = EnumDeclaration.createNode(annos, mods, id, impls, body);
       }
     } else {
-      IRNode ext = superType == null ? NamedType.createNode("java.lang.Object") : superType;
+      IRNode ext = superType == null ? NamedType.createNode(SLUtility.JAVA_LANG_OBJECT) : superType;
       IRNode impls = Implements.createNode(ifaces);
       /*
        * if ("1".equals(id)) { System.out.println("Unusual class name: "+id); }

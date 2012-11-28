@@ -14,6 +14,7 @@ import com.surelogic.ast.java.operator.IDeclarationNode;
 import com.surelogic.ast.java.operator.ITypeDeclarationNode;
 import com.surelogic.ast.java.operator.ITypeFormalNode;
 import com.surelogic.common.Pair;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -194,7 +195,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
   /*
   private static boolean onlyObjectBounds(List<IJavaReferenceType> bounds) {
     for(IJavaReferenceType bound : bounds) {
-      if (!"java.lang.Object".equals(bound.getName())) {
+      if (!SLUtility.JAVA_LANG_OBJECT.equals(bound.getName())) {
         return false;
       }
     }
@@ -215,7 +216,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
         lowerBounded.put(lower,res);
       }
     } else if (lower == null) {
-      if ("java.lang.Object".equals(upper.getName())) {
+      if (SLUtility.JAVA_LANG_OBJECT.equals(upper.getName())) {
         return wildcardType; // HACK?
       }
       res = upperBounded.get(upper);
@@ -1567,7 +1568,7 @@ class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
   
   @Override
   public IJavaType getSuperclass(ITypeEnvironment env) {
-    IRNode decl = env.findNamedType("java.lang.Object");
+    IRNode decl = env.findNamedType(SLUtility.JAVA_LANG_OBJECT);
     return JavaTypeFactory.convertIRTypeDeclToIJavaType(decl);
   }
   
@@ -1626,7 +1627,7 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
 //    if (this == tEnv.getObjectType())
 //      return null;
 //    if (ClassDeclaration.prototype.includes(op)) {
-//      if (this.getName().equals("java.lang.Object")) {
+//      if (this.getName().equals(SLUtility.JAVA_LANG_OBJECT)) {
 //    	  return null;
 //      }
 //      IRNode extension = ClassDeclaration.getExtension(declaration);

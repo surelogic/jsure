@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.common.Pair;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -123,11 +124,11 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
     while (oType == null) {
       // this method has to be synchronized because otherwise, another thread
       // may see an uninitialized IJavaDeclaredType:
-      IRNode jlo = findNamedType("java.lang.Object");
+      IRNode jlo = findNamedType(SLUtility.JAVA_LANG_OBJECT);
       assert(jlo != null);
       /*
       if (jlo == null) {
-    	  findNamedType("java.lang.Object");
+    	  findNamedType(SLUtility.JAVA_LANG_OBJECT);
       }
       */
       oType = JavaTypeFactory.getDeclaredType(jlo, null, null);
@@ -139,7 +140,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
       }
     }
     if (debug) {
-    	IRNode jlo = findNamedType("java.lang.Object");
+    	IRNode jlo = findNamedType(SLUtility.JAVA_LANG_OBJECT);
     	IJavaDeclaredType jloType = JavaTypeFactory.getDeclaredType(jlo, null, null);
     	if (objectType != jloType) {
     		JavaTypeFactory.getDeclaredType(jlo, null, null);
@@ -518,7 +519,7 @@ private long parseIntLiteral(String token) {
 	  if (this == getObjectType())
 		  return null;
 	  if (ClassDeclaration.prototype.includes(op)) {
-		  if ("Object".equals(JJNode.getInfo(declaration)) && dt.getName().equals("java.lang.Object")) {
+		  if ("Object".equals(JJNode.getInfo(declaration)) && dt.getName().equals(SLUtility.JAVA_LANG_OBJECT)) {
 			  return null;
 		  }
 		  IRNode extension = ClassDeclaration.getExtension(declaration);

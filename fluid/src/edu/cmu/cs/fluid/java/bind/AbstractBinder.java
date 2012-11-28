@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -106,7 +107,7 @@ public abstract class AbstractBinder implements IBinder {
     //
     // FIX how else to identify it?
     String name = type.getName();
-    if (name.equals("java.lang.Object")) {
+    if (name.equals(SLUtility.JAVA_LANG_OBJECT)) {
       return null;
     }
     if (ClassDeclaration.prototype.includes(op)) {

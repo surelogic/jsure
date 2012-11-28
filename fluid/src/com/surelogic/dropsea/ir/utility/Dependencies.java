@@ -11,6 +11,7 @@ import java.util.Set;
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
@@ -175,7 +176,7 @@ public class Dependencies {
     IRNode cu = VisitUtil.getEnclosingCompilationUnit(d.getNode());
     CUDrop cud = CUDrop.queryCU(cu);
     if (cud != null) {
-      if ("java.lang.Object".equals(cud.getJavaOSFileName())) {
+      if (SLUtility.JAVA_LANG_OBJECT.equals(cud.getJavaOSFileName())) {
         // This stuff should never get invalidated
         throw ignored;
       }
