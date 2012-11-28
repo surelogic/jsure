@@ -1472,6 +1472,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitArrayType(IRNode node) {
+      if (isFullPass) {
+    	  return null;
+      }
       // No IRNode binding that makes sense
       bind(node, nullBinding); 
       return super.visitArrayType(node);      
@@ -2572,6 +2575,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitPrimitiveType(IRNode node) {
+        if (isFullPass) {
+      	  return null;
+        }    	
         // No IRNode binding that makes sense
         bind(node, nullBinding); 
         return super.visitPrimitiveType(node);
