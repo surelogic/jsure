@@ -379,7 +379,7 @@ public class Util {
     JavacClassParser loader = new JavacClassParser(pool, projects);
 
     // loader.ensureClassIsLoaded("java.util.concurrent.locks.ReadWriteLock");
-    loader.ensureClassIsLoaded("java.lang.Object");
+    loader.ensureClassIsLoaded(SLUtility.JAVA_LANG_OBJECT);
     final OutputStream results = NullOutputStream.prototype;
         //projects.getResultsFile() == null ? null : new FileOutputStream(projects.getResultsFile());
     final JavacAnalysisEnvironment env = new JavacAnalysisEnvironment(loader, results, projects.getMonitor());
@@ -416,7 +416,7 @@ public class Util {
     clearCaches(projects); // To clear out old state invalidated by rewriting
     
     perf.markTimeFor("Rewriting");
-    canonicalizeCUs(cus, projects);
+    canonicalizeCUs(perf, cus, projects);
     // Checking if we added type refs by canonicalizing implicit refs
     loader.checkReferences(cus.asList());
     loader = null; // To free up memory
@@ -909,11 +909,12 @@ public class Util {
     endSubTask(monitor);
   }
 
-  private static void canonicalizeCUs(final IParallelArray<CodeInfo> cus, final Projects projects) {
+  private static void canonicalizeCUs(JSurePerformance perf, final IParallelArray<CodeInfo> cus, final Projects projects) {
     final SLProgressMonitor monitor = projects.getMonitor();
     if (monitor.isCanceled()) {
       throw new CancellationException();
     }
+    AbstractJavaBinder.printStats();
     startSubTask(monitor, "Canonicalizing ASTs");
 
     // Precompute all the bindings
@@ -951,8 +952,11 @@ public class Util {
 
     cus.apply(bind);
     final long end = System.currentTimeMillis();
-    System.out.println("Binding = " + (end - start) + " ms");
-
+    long bindingTime = end - start;
+    System.out.println("Binding = " + bindingTime + " ms");    
+    AbstractJavaBinder.printStats();
+    perf.setLongProperty("Binding.before.canon", bindingTime);
+    
     final Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
       public void op(CodeInfo info) {
         if (monitor.isCanceled()) {
@@ -1116,7 +1120,7 @@ public class Util {
           if (insideOfMethod(type)) {
             continue;
           }
-          if ("java.lang.Object".equals(name)) {
+          if (SLUtility.JAVA_LANG_OBJECT.equals(name)) {
             v.handleImplicitPromise(type, RegionRules.REGION, "public static All", Collections.<String, String> emptyMap());
           }
           v.handleImplicitPromise(type, RegionRules.REGION, "public static Static extends All", Collections.<String, String> emptyMap());
@@ -1165,7 +1169,7 @@ public class Util {
         }
         /*
          * The model won't show up yet, since it hasn't been scrubbed yet if
-         * ("java.lang.Object".equals(name)) { RegionModel m =
+         * (SLUtility.JAVA_LANG_OBJECT.equals(name)) { RegionModel m =
          * RegionModel.getInstance(name, p.getName()); if (m.getNode() == null)
          * { SLLogger.getLogger().severe(
          * "RegionModel for java.lang.Object has null node"); } }
