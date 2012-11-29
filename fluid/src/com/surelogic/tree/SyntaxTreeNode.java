@@ -17,11 +17,11 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
    */
   IRSequence<IRNode> children; 
   IRNode parent; 
-  IRLocation loc; 
   Operator op;
+  Integer modifiers; // Added on x64, more to avoid lock contention
   IJavaRef srcRef; // Added for free on x86, due to rounding for cache line alignment
-  String info;
-  Integer modifiers;  // Added on x64, more to avoid lock contention
+  String info;               
+  IRLocation loc; 
   
   public SyntaxTreeNode(Operator op, IRNode[] children) {
     super(tree, op, children);
