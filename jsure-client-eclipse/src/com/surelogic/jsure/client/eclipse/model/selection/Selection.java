@@ -41,6 +41,7 @@ public final class Selection implements JSureDataDirHub.CurrentScanChangeListene
     allFilters.add(FilterJavaPackage.FACTORY);
     allFilters.add(FilterProject.FACTORY);
     allFilters.add(FilterVerificationJudgment.FACTORY);
+    allFilters.add(FilterUsedByProof.FACTORY);
 
     f_allFilters = Collections.unmodifiableSet(allFilters);
   }

@@ -575,7 +575,23 @@ public abstract class Filter {
    * @param incomingResults
    *          the list of scan results coming through the previous filter.
    */
-  protected abstract void refreshCounts(List<IProofDrop> incomingResults);
+  protected void refreshCounts(List<IProofDrop> incomingResults) {
+    f_counts.clear();
+    int runningTotal = 0;
+    for (IProofDrop d : incomingResults) {
+      final String value = getFilterValueFromDropOrNull(d);
+      if (value != null) {
+        Integer count = f_counts.get(value);
+        if (count == null) {
+          f_counts.put(value, 1);
+        } else {
+          f_counts.put(value, count + 1);
+        }
+        runningTotal++;
+      }
+    }
+    f_countTotal = runningTotal;
+  }
 
   /**
    * May need to be overridden if the set of values includes values not able to
@@ -647,5 +663,14 @@ public abstract class Filter {
    * @param incomingResults
    *          the list of scan results coming through the previous filter.
    */
-  protected abstract void refreshPorousDrops(List<IProofDrop> incomingResults);
+  final void refreshPorousDrops(List<IProofDrop> incomingResults) {
+    f_porousDrops.clear();
+    for (IProofDrop d : incomingResults) {
+      final String value = getFilterValueFromDropOrNull(d);
+      if (value != null) {
+        if (f_porousValues.contains(value))
+          f_porousDrops.add(d);
+      }
+    }
+  }
 }
