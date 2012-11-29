@@ -24,6 +24,7 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.Selector;
 import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
@@ -748,6 +749,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     protected boolean isFullPass = false; // by default we start in the preliminary pass
     protected final boolean debug = LOG.isLoggable(Level.FINER);        
     private final MethodBinder methodBinder = new MethodBinder(AbstractJavaBinder.this, debug);    
+    private final IJavaScope.LookupContext lookupContext = new IJavaScope.LookupContext();
     
     /**
      * No change in functionality, but changed to avoid
@@ -1172,9 +1174,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         LOG.finer("Looking up " + name + " in " + sc);
       }
       if (sc != null) {
-        IBinding binding = sc.lookup(name,node,selector);
+        IBinding binding = sc.lookup(lookupContext.use(name,node),selector);
         if (binding == null) {
-          sc.lookup(name,node,selector);
+          sc.lookup(lookupContext.use(name,node),selector);
         }
         bind(node, binding, quietWarnings);
         return binding != null;
@@ -1269,10 +1271,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       
       final IJavaScope.Selector isAccessible = makeAccessSelector(from);
+      lookupContext.use(name,call);
       final Iterable<IBinding> methods = new Iterable<IBinding>() {
 //			@Override
 			public Iterator<IBinding> iterator() {
-				return IJavaScope.Util.lookupCallable(sc,name,call,isAccessible,needMethod);
+				return IJavaScope.Util.lookupCallable(sc,lookupContext,isAccessible,needMethod);
 			}
       };
       BindingInfo bestMethod = methodBinder.findBestMethod(methods, targs, args, argTypes);
@@ -1397,13 +1400,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         	final int lastDot = name.lastIndexOf('.');
         	IBinding b;
         	if (lastDot < 0) {
-        		b = scope.lookup(name, node, IJavaScope.Util.isTypeDecl);            	
+        		b = scope.lookup(lookupContext.use(name, node), IJavaScope.Util.isTypeDecl);            	
         	} else {
         		b = checkForNestedAnnotation(node, name, lastDot);
         	}
         	boolean success = bind(node, b);
         	if (!success) {
-        		scope.lookup(name, node, IJavaScope.Util.isTypeDecl);    
+        		scope.lookup(lookupContext.use(name, node), IJavaScope.Util.isTypeDecl);    
         	}
         } else {
         	bind(node, decl);
@@ -1421,7 +1424,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		}
 		IBinding b = null;
 		if (decl == null) {
-			b = scope.lookup(qname, node, IJavaScope.Util.isTypeDecl);    
+			b = scope.lookup(lookupContext.use(qname, node), IJavaScope.Util.isTypeDecl);    
 			if (b == null) {
 				// Check for more nesting
 				lastDot = qname.lastIndexOf('.');
@@ -1435,7 +1438,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		}
 		if (decl != null) {
 			IJavaScope scope = typeScope(JavaTypeFactory.convertIRTypeDeclToIJavaType(decl));
-			return scope.lookup(id, node, IJavaScope.Util.isTypeDecl);    
+			return scope.lookup(lookupContext.use(id, node), IJavaScope.Util.isTypeDecl);    
 		}
 		return null;
     }
@@ -1471,7 +1474,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (isFullPass && pathToTarget == null) {
         // FIX? never called if used with OuterObjectSpecifier
         doAccept(AnonClassExpression.getAlloc(node), sc);
-        IJavaScope old = scope; 
+        final IJavaScope old = scope;         
+        final IRNode enclosingType = lookupContext.foundNewType(node);
         try {
           scope = sc;
           //System.out.println("Trying to bind ACE: "+DebugUnparser.toString(node));
@@ -1482,6 +1486,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           }
         } finally {
           scope = old;
+          lookupContext.leavingType(node, enclosingType);
         }        
         /*
         if (!node.valueExists(bindings.getUseToDeclAttr())) {
@@ -2126,7 +2131,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           }
         }
         */
-        IBinding b = scope.lookup(name, node, IJavaScope.Util.isTypeDecl);
+        IBinding b = scope.lookup(lookupContext.use(name, node), IJavaScope.Util.isTypeDecl);
         /*
         if (name.equals("E")) {
           	IRNode method = VisitUtil.getEnclosingClassBodyDecl(node);
@@ -2143,7 +2148,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         if (b == null && !isBinary(node)) {
           scope.printTrace(System.out, 0);
           classTable.getOuterClass(name,node);
-          scope.lookup(name, node, IJavaScope.Util.isTypeDecl);
+          scope.lookup(lookupContext.use(name, node), IJavaScope.Util.isTypeDecl);
         }
         success = bind(node, b);
         /*
@@ -2812,6 +2817,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
      * @return null always
      */
     public Void visitTypeDeclaration(IRNode node, IRNode tformals) {
+      final IRNode enclosingType = lookupContext.foundNewType(node);
       /*
       if ("TestBindingInnerClass".equals(JJNode.getInfo(node))) {    	
     	  System.out.println("Binding type: "+JavaNames.getFullTypeName(node));
@@ -2820,8 +2826,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
       sc.add(node);
       addDeclsToScope(tformals, sc);
-      doAcceptForChildren(node,sc);
-      return null;
+      try {
+    	  doAcceptForChildren(node,sc);
+    	  return null;
+      } finally {
+    	  lookupContext.leavingType(node, enclosingType);
+      }
     }
 
     @Override
@@ -2971,6 +2981,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   
 	  final MethodBinder mb      = new MethodBinder(this, false);
 	  final List<IBinding> methods = new ArrayList<IBinding>();
+	  final LookupContext context = new LookupContext();
+	  context.foundNewType(td);
+	  context.use(name, mth);
+	  
 	  for(IJavaType st : t.getSupertypes(typeEnvironment)) {
 		  // Looking at the inherited members	
 		  final IJavaScope superScope = 
@@ -2978,7 +2992,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		  Iterable<IBinding> temp = new Iterable<IBinding>() {
 //			@Override
 			public Iterator<IBinding> iterator() {
-				return superScope.lookupAll(name, mth, IJavaScope.Util.isMethodDecl);
+				return superScope.lookupAll(context, IJavaScope.Util.isMethodDecl);
 			}			  
 		  };
 		  BindingInfo best = mb.findBestMethod(temp, null, null, mb.getFormalTypes(t, mth));
