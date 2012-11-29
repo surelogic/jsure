@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.ir;
 import java.util.concurrent.atomic.AtomicLong;
 
 import edu.cmu.cs.fluid.FluidError;
+import edu.cmu.cs.fluid.util.IntegerTable;
 
 /**
  * A default implementation of the intermediate representation node interface.
@@ -165,7 +166,7 @@ public abstract class AbstractIRNode implements IRNode {
 
 	// for convenience
 	public void setSlotValue(SlotInfo<Integer> si, int newValue) {
-		setSlotValue(si, (Integer) (newValue));
+		setSlotValue(si, IntegerTable.newInteger(newValue));
 	}
 
 	/**
