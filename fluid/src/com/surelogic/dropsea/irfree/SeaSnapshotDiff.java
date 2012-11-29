@@ -92,7 +92,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
   }
 
   @SuppressWarnings({ "rawtypes" })
-  private static final DiffCategory[] noCategories = new DiffCategory[0];
+  public static final DiffCategory[] noCategories = new DiffCategory[0];
 
   @SuppressWarnings("unchecked")
   public DiffCategory<K>[] getCategories() {

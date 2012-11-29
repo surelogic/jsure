@@ -149,7 +149,7 @@ public class IREnumeratedType extends CachedType<IREnumeratedType.Element> imple
   private IREnumeratedType() {
     name = "special null enumeration";
     names = SLUtility.EMPTY_STRING_ARRAY;
-    reps = new Element[0];
+    reps = Element.NO_ELEMENTS;
   }
 
   //============================================================
@@ -394,6 +394,7 @@ public class IREnumeratedType extends CachedType<IREnumeratedType.Element> imple
    * This type is immutable and is thus thread safe.
    */
   public static class Element implements Comparable {
+	public static final Element[] NO_ELEMENTS = new Element[0];
     /**
      * The name of the type this element belongs to.
      * This field is not assumed to be unique.

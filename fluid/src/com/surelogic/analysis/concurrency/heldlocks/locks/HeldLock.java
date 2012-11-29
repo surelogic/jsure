@@ -25,6 +25,8 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
  * </ul>
  */
 public interface HeldLock extends ILock {
+  public static final HeldLock[] NO_HELD_LOCKS = new HeldLock[0];
+	
   public HeldLock changeSource(IRNode src);
 
   /**

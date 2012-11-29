@@ -15,6 +15,9 @@ import com.surelogic.Starts;
  */
 public class ImmutableList<T extends Object> extends AbstractSequentialList<T>
 {
+  @SuppressWarnings("unchecked")
+  public static final ImmutableList[] NO_LISTS = new ImmutableList[0];
+
   /*
    * An empty list (that can be safely cast to any type).
    */

@@ -159,7 +159,7 @@ public final class BindingContext extends
       final IRNode md, final IRNode[] locals, final IRNode[] ignore, 
       final boolean[] isExternal, final IBinder binder) {
     // We add one to the # of locals to make room for our bogus element
-    super(new UnionLattice<IRNode>(), new ImmutableSet[0], locals);
+    super(new UnionLattice<IRNode>(), ImmutableSet.NO_SETS, locals);
     this.methodDecl = md;
     this.ignore = ignore;
     this.isExternal = isExternal;

@@ -11,6 +11,9 @@ import java.util.Set;
  * give useful results.
  */
 public interface ImmutableSet<T> extends Set<T>, PossiblyImmutableSet<T> {
+  @SuppressWarnings("unchecked")
+  ImmutableSet[] NO_SETS = new ImmutableSet[0];
+               
   /** Returns true if the set is infinite.
    * In this case, it is usually unwise to ask for an iteration
    * of all the elements or to ask for an array

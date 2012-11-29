@@ -11,6 +11,7 @@ import com.surelogic.common.SLUtility;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.ParseException;
@@ -262,8 +263,6 @@ public abstract class AstGen extends JavaParser {
     return (parseableAs(op) != null);
   }
 
-  private static final IRNode[] emptyNodes = new IRNode[0];
-
   /** 
    * However, since it exploits the fact that the name of operator is
    * same as the name of corresponding non-terminal in the grammer, it
@@ -273,7 +272,7 @@ public abstract class AstGen extends JavaParser {
     throws ParseException, IOException {
     final Method m = parseableAs(op);
     if (m == null) {
-      return emptyNodes;
+      return JavaGlobals.noNodes;
     }
     try {
       final List<IRNode> nodes = new Vector<IRNode>();

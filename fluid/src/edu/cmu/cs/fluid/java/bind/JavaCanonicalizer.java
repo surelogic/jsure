@@ -24,6 +24,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRRegion;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
@@ -121,7 +122,7 @@ import edu.cmu.cs.fluid.version.VersionedRegionDelta;
 public class JavaCanonicalizer {
   private static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
 
-  private static final IRNode[] none = new IRNode[0];
+  private static final IRNode[] none = JavaGlobals.noNodes;
 
   private final IBinder binder;
 
