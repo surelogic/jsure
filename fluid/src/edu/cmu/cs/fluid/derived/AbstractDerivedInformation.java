@@ -7,10 +7,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * A default implementation of IDerivedInformation
  * 
  * @author Edwin.Chan
- * @region Status
- * @region Info
- * @lock StatusLock is this protects Status
- * @lock InfoLock is infoLock protects Info
  */
 public abstract class AbstractDerivedInformation implements IDerivedInformation {  
   /**

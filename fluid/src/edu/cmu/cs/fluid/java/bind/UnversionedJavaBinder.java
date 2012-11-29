@@ -313,9 +313,6 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
    * it dos not do the binding action itself (this is done in
    * {@link #BinderVisitor}.
    * @author Edwin
-   * @lock StatusLock is this protects isDeriving
-   * @region Info
-   * @lock InfoLock is this.unit protects Info
    */
   class CompUnitBindings extends AbstractDerivedInformation implements IGranuleBindings {
     final IRNode unit;

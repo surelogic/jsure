@@ -49,21 +49,7 @@ public final class UnversionedJavaImportTable extends AbstractJavaImportTable {
   public static void clearAll() {
     importTables.clear();
   }
-  
-  /**
-   * The classes etc thare are imported by name.
-   * A map of strings to Entry objects that hold the scope that
-   * the name should be looked up in (again)
-   */
-  //final Map<String,Entry> direct = new HashMap<String,Entry>();
-  
-  /**
-   * The scopes that are imported.  These implement the
-   * imports that end in ".*".
-   * A map from the import to an Entry object.
-   */
-  //final Map<IRNode,Entry> indirect = new HashMap<IRNode,Entry>();
-  
+
   private class UnversionedInfo extends AbstractDerivedInformation {
     @Override
     public synchronized void clear() {
