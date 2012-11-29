@@ -25,6 +25,7 @@ import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.DeclarationNode;
 import com.surelogic.aast.java.NamedTypeNode;
+import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.annotation.IAnnotationParseRule;
@@ -293,7 +294,8 @@ public abstract class AnnotationRules {
 	private static final TaskManager lastMgr = makeManager();
 
 	private static TaskManager makeManager() {
-		return new TaskManager(1, 1, 60, TimeUnit.SECONDS,
+		return new TaskManager(ConcurrentAnalysis.threadCount, ConcurrentAnalysis.threadCount, 
+				60, TimeUnit.SECONDS,
 				new LinkedBlockingQueue<Runnable>());
 	}
 
