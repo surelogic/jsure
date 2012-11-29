@@ -8,12 +8,7 @@ public final class ImmutableNode extends AbstractModifiedBooleanNode
 { 	
   // Constructors
   public ImmutableNode(int mods, Part state) {
-    super(mods, state);
-  }
-  
-  @Override
-  public String unparse(boolean debug, int indent) {
-    return unparse(debug, indent, "Immutable");
+    super("Immutable", mods, state);
   }
 
   @Override

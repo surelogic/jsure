@@ -11,21 +11,32 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 		Immutable, ThreadSafe, NotThreadSafe
 	}
 	
+	protected final String token;
 	protected final int mods;
 	protected final Part appliesTo;
 	
-	protected AbstractModifiedBooleanNode(int modifiers, Part state) {
+	protected AbstractModifiedBooleanNode(String tkn, int modifiers, Part state) {
 		super();
+		token = tkn;
 		mods = modifiers;
 		appliesTo = state != null ? state : Part.InstanceAndStatic;
 	}
 
+	public final String getToken() {
+	  return token;
+	}
+	
 	public final boolean getModifier(int modifier) {
 		return JavaNode.isSet(mods, modifier);
 	}
+  
+  @Override
+  public final String unparse(boolean debug, int indent) {
+    return unparse(debug, indent, token);
+  }
 	
 	@Override
-	protected String unparse(boolean debug, int indent, String token) {
+	protected final String unparse(boolean debug, int indent, String token) {
 		if (debug) {
 			StringBuilder sb = new StringBuilder();
 			if (debug) { indent(sb, indent); }
@@ -89,7 +100,7 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 	/**
 	 * @return true if unparsed something
 	 */
-	protected boolean unparseTypes(boolean debug, int indent, StringBuilder sb, String kind, NamedTypeNode[] types) {
+	protected final boolean unparseTypes(boolean debug, int indent, StringBuilder sb, String kind, NamedTypeNode[] types) {
 		if (types.length == 0) {
 			return false;
 		}
@@ -125,11 +136,6 @@ public abstract class AbstractModifiedBooleanNode extends AbstractBooleanNode {
 	
 	public final boolean allowReferenceObject() {
 		return getModifier(JavaNode.ALLOW_REF_OBJECT);
-	}
-	
-	@Deprecated	
-	public final State getStaticPart() {
-		return null;
 	}
 	
 	public final Part getAppliesTo() {

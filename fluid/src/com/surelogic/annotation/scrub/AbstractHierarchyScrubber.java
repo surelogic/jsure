@@ -64,7 +64,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 	}
 	
 	/**
-	 * Called if a supertype has something that subtypes need to be consistent with
+	 * Called if a supertype has something that subtypes need to be consistent with.
 	 * Intended to be overridden
 	 * 
 	 * @return true if okay

@@ -18,7 +18,7 @@ public final class AnnotationBoundsNode extends AbstractModifiedBooleanNode {
   public AnnotationBoundsNode(NamedTypeNode[] containable, 
 		  NamedTypeNode[] immutable, NamedTypeNode[] reference,
 		  NamedTypeNode[] threadSafe, NamedTypeNode value[]) {
-    super(JavaNode.ALL_FALSE, null);
+    super("AnnotationBounds", JavaNode.ALL_FALSE, null);
     this.containable = containable;
     this.immutable = immutable;
     this.reference = reference;
@@ -29,11 +29,6 @@ public final class AnnotationBoundsNode extends AbstractModifiedBooleanNode {
     setParents(reference);
     setParents(threadSafe);
     setParents(value);
-  }
-
-  @Override
-  public String unparse(boolean debug, int indent) {  
-    return unparse(debug, indent, "AnnotationBounds");
   }
 
   @Override
