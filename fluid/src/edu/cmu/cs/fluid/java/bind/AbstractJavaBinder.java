@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -208,7 +207,30 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
    * @param op
    * @return if this operator marked a granule.
    */
-  public static boolean isGranule(Operator op, IRNode node) {
+  public static boolean isGranule(IRNode node, Operator op) {
+	/*
+	// Check if already calculated
+  	final int mods = JavaNode.getModifiers(node);
+  	if (JavaNode.isSet(mods, JavaNode.NOT_GRANULE)) {
+  		return false;
+  	}
+  	if (JavaNode.isSet(mods, JavaNode.IS_GRANULE)) {
+  		return true;
+  	}
+    if (op == null) {
+    	op = JJNode.tree.getOperator(node);
+    }
+  	final boolean rv = isGranule_private(node, op);
+  	JavaNode.setModifiers(node, JavaNode.setModifier(mods, rv ? JavaNode.IS_GRANULE : JavaNode.NOT_GRANULE, true));
+  	return rv;
+  }
+  
+  public static boolean isGranule(IRNode node) {
+	  return isGranule(node, null);
+  }
+  *
+  private static boolean isGranule_private(IRNode node, Operator op) {
+  */
     if (op instanceof TypeDeclInterface) {
       /*
       if (op instanceof AnonClassExpression) {
@@ -256,7 +278,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         	if (JavaNode.isSet(mods, JavaNode.NOT_GRANULE)) {
         		return false;
         	}
-        	
     		for(IRNode n : JJNode.tree.topDown(node)) {
     			if (OuterObjectSpecifier.prototype.includes(n)) {    				
     				//System.out.println("Granule: "+DebugUnparser.toString(node));
@@ -291,7 +312,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
    */
   public IRNode getGranule(IRNode node) {
     Operator op;
-    while (!(isGranule(op = JJNode.tree.getOperator(node), node))) {
+    while (!(isGranule(node, op = JJNode.tree.getOperator(node)))) {
       IRNode p;
       try {
     	p = JJNode.tree.getParent(node);        
@@ -897,7 +918,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         return null;
       }
       final Operator op = JJNode.tree.getOperator(node);
-      if (isGranule(op, node)) {
+      if (isGranule(node, op)) {
     	//System.out.println("Skipping granule "+DebugUnparser.toString(node));
         return null; // skip granule nested in this one
       }
@@ -1196,7 +1217,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     }
     
 	private IJavaScope.Selector makeAccessSelector(final IRNode from) {
-		return new IJavaScope.AbstractSelector("Is accessible from "+DebugUnparser.toString(from)) {
+		return new IJavaScope.AbstractSelector("Ignore") {
+			@Override
+			public String label() {
+				return "Is accessible from "+DebugUnparser.toString(from);
+			}
 			public boolean select(IRNode decl) {
 				boolean ok = BindUtil.isAccessible(typeEnvironment, decl, from);
 				return ok;
