@@ -792,7 +792,9 @@ public class TaskManager extends ThreadPoolExecutor {
 	@Starts("nothing")
 	@Override
 	public void shutdown() {
-		eventManager.halt();
+		if (eventManager != null) {
+			eventManager.halt();
+		}
 		super.shutdown();
 	}
 
