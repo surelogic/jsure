@@ -24,7 +24,11 @@ public interface IDEPreferences {
 
   String[] INT_PREFS_TO_SYNC = { TOOL_MEMORY_MB, ANALYSIS_THREAD_COUNT, TIMEOUT_WARNING_SEC, TIMEOUT_SEC, };
 
-  String[] STR_PREFS_TO_SYNC = { JSURE_DATA_DIRECTORY, JSURE_XML_DIFF_DIRECTORY, UNINTERESTING_PACKAGE_FILTERS };
+  /*
+   * Note that JSURE_DATA_DIRECTORY is handled as a special case, it should not
+   * be in the list below.
+   */
+  String[] STR_PREFS_TO_SYNC = { JSURE_XML_DIFF_DIRECTORY, UNINTERESTING_PACKAGE_FILTERS };
 
   /**
    * The preference prefix for whether an analysis is on
