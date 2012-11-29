@@ -215,6 +215,15 @@ public class JavaNode extends JJNode {
 
   public static final String MODIFIERS_ID = "Java.modifiers";
 
+  private static final int LASTMODIFIER = ALLOW_READ;
+  public static final int ILLEGAL_MOD = LASTMODIFIER << 1;
+
+  static final String[] modifiers = { "abstract", "final", "native", "private", "protected", "public", "static", "synchronized",
+      "transient", "volatile", "strictfp", "", // implicit
+      "instance", "varargs", "write", "binary", "isGranule", "notGranule", 
+      "implementationOnly", "noVerify", "allowReturn", "allowRead", "allowReferenceObject", 
+  };
+  
   private static final SlotInfo<Integer> modifiersSlotInfo = getVersionedSlotInfo(MODIFIERS_ID, IRIntegerType.prototype,
       new Integer(ALL_FALSE));
 
@@ -240,13 +249,6 @@ public class JavaNode extends JJNode {
     }
     return node.getIntSlotValue(modifiersSlotInfo);
   }
-
-  private static final int LASTMODIFIER = ALLOW_READ;
-  public static final int ILLEGAL_MOD = LASTMODIFIER << 1;
-
-  static final String[] modifiers = { "abstract", "final", "native", "private", "protected", "public", "static", "synchronized",
-      "transient", "volatile", "strictfp", "", // implicit
-      "instance", "varargs", "write", "binary", "mutable", };
 
   // verify that the mask is good
   private static void checkMod(int mod) {
