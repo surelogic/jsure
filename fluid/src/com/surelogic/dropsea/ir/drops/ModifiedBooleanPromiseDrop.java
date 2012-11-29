@@ -3,11 +3,14 @@ package com.surelogic.dropsea.ir.drops;
 
 import com.surelogic.Part;
 import com.surelogic.aast.promise.AbstractModifiedBooleanNode;
-import com.surelogic.aast.promise.AbstractModifiedBooleanNode.State;
 
 public class ModifiedBooleanPromiseDrop<A extends AbstractModifiedBooleanNode> extends BooleanPromiseDrop<A> {
   public ModifiedBooleanPromiseDrop(A a) {
     super(a);
+  }
+  
+  public final String getToken() {
+    return getAAST().getToken();
   }
 
   public final boolean isImplementationOnly() {
@@ -20,10 +23,5 @@ public class ModifiedBooleanPromiseDrop<A extends AbstractModifiedBooleanNode> e
   
   public final Part getAppliesTo() {
     return getAAST().getAppliesTo();
-  }
-  
-  @Deprecated
-  public final State staticPart() {
-    return getAAST().getStaticPart();
   }
 }

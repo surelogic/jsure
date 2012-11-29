@@ -1817,7 +1817,7 @@ public class LockRules extends AnnotationRules {
 	      if (extensions != null) {
 	        for (final IRNode superDecl : Extensions.getSuperInterfaceIterator(extensions)) {
 	          final IRNode bound = context.getBinder(superDecl).getBinding(superDecl);
-	          checkAnnotatedInterfaceSuperInterface(node, promisedFor, bound);
+	          bad |= !checkAnnotatedInterfaceSuperInterface(node, promisedFor, bound);
 	        }
 	      }
 	    } else if (AnnotationDeclaration.prototype.includes(op)) { 
@@ -1853,6 +1853,7 @@ public class LockRules extends AnnotationRules {
 	        if (TypeUtil.isInterface(superType)) {
 	          superDecl = context.getBinder(promisedFor).getTypeEnvironment().getObjectType().getDeclaration();
 	          interfaces = new Iterable<IRNode>() {
+              @Override
               public Iterator<IRNode> iterator() {
                 return new SingletonIterator<IRNode>(superTypeName);
               }	            
@@ -1870,60 +1871,58 @@ public class LockRules extends AnnotationRules {
         // Scan each implemented interface for incompatibility
         if (interfaces != null) {
           for (final IRNode intfName : interfaces) {
-            final IRNode bound = context.getBinder(intfName).getBinding(intfName);
-            checkAnnotatedClassSuperInterface(node, promisedFor, bound);
+            final IRNode intfDecl = context.getBinder(intfName).getBinding(intfName);
+            final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> iDrop =
+                getAnnotation(intfDecl);
+            if (implementationOnly) {
+              if (iDrop != null && !isStaticOnly(iDrop)) {
+                bad = true;
+                context.reportError(node,
+                    "Class may not be @{0}(implementationOnly=true) because it implements the @{0} interface {1}",
+                    name, JavaNames.getQualifiedTypeName(intfDecl));
+              }
+            }
+            
+            bad |= !checkAnnotatedClassSuperInterface(node, promisedFor, intfDecl, iDrop);
           }
         }
 
-        // Scan superclass for incompatibility
-        checkAnnotatedClassSuperClass(node, promisedFor, superDecl);
-        
-	      if (implementationOnly) {
-	        final IRNode impls = EnumDeclaration.prototype.includes(op) ?
-	            EnumDeclaration.getImpls(promisedFor) :
-	              ClassDeclaration.getImpls(promisedFor);
-	        for (final IRNode intfName : Implements.getIntfIterator(impls)) {
-	          final IRNode intfDecl = context.getBinder(intfName).getBinding(intfName);
-	          if (getAnnotation(intfDecl) != null) {
-	            bad = true;
-	            context.reportError(node,
-	                "Class may not be @{0}(implementationOnly=true) because it implements the @{0} interface {1}",
-	                name, JavaNames.getQualifiedTypeName(intfDecl));
-	          }
-	        }
-	        
-	        // java.lang.Object doesn't have a superclass
-	        if (superDecl != promisedFor) {
+        // java.lang.Object doesn't have a superclass
+        if (superDecl != promisedFor) {
+          if (implementationOnly) {
 	          final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> superAnno = getAnnotation(superDecl);
 	          if (!isLessSpecific(superDecl)) {
   	          if (superAnno == null) {
-  	        	if (!isAssumption) {
-  	        		bad = true;
-  	        		context.reportError(node,
-  	        				"Class may not be @{0}(implementationOnly=true) because it extends the non-@{0} class {1}",
-  	        				name, JavaNames.getQualifiedTypeName(superDecl));
-  	        	}
-  	          } else if(!superAnno.isImplementationOnly() ) {
+    	        	if (!isAssumption) {
+    	        		bad = true;
+    	        		context.reportError(node,
+    	        				"Class may not be @{0}(implementationOnly=true) because it extends the non-@{0} class {1}",
+    	        				name, JavaNames.getQualifiedTypeName(superDecl));
+    	        	}
+  	          } else if (!superAnno.isImplementationOnly()) {
   	            bad = true;
   	            context.reportError(node,
   	                "Class may not be @{0}(implementationOnly=true) because it extends the @{0} class {1}",
   	                name, JavaNames.getQualifiedTypeName(superDecl));
   	          }
 	          }
-	        }
-	      } else { // implementationOnly == false
-	        // java.lang.Object doesn't have a superclass
-	        if (superDecl != promisedFor && !isAssumption) {
-	          if (!isLessSpecific(superDecl) && getAnnotation(superDecl) == null) {
-	            bad = true;
-	            context.reportError(node,
-	                "Class may not be @{0} because it extends the non-@{0} class {1}",
-	                name, JavaNames.getQualifiedTypeName(superDecl));
-	          }
-	        }
-	      }
-	    }
+          } else { // implementationOnly == false
+            if (!isAssumption) {
+              final ModifiedBooleanPromiseDrop<?> d = getAnnotation(superDecl);
+  	          if (!isStaticOnly(node) && !isLessSpecific(superDecl) && (d == null || isStaticOnly(d))) {
+  	            bad = true;
+  	            context.reportError(node,
+  	                "Class may not be @{0} because it extends the non-@{0} class {1}",
+  	                name, JavaNames.getQualifiedTypeName(superDecl));
+  	          }
+            }
+          }
 
+  	      // Scan superclass for incompatibility
+  	      bad |= !checkAnnotatedClassSuperClass(node, promisedFor, superDecl);
+        }
+	    }
+	    
 	    // Cannot be both T and not T
 	    final NP notDrop = getNotAnnotation(promisedFor);
       if (notDrop != null && !node.isImplementationOnly()) {
@@ -1959,13 +1958,13 @@ public class LockRules extends AnnotationRules {
       
       boolean result = true;      
       if (isInterface) { // unannotated interface
-        // If any superinterface is T we have an error
+        // If any superinterface is T on the instance state we have an error
         for (final IJavaType zuper : supers) {
           final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
           // ignore CLASS java.lang.Object (which is a super if the interface doesn't extend anything)
           if (TypeUtil.isInterface(zuperDecl)) {
-        	final ModifiedBooleanPromiseDrop<?> zAnno = getAnnotation(zuperDecl);
-            if (zAnno != null) {
+            final ModifiedBooleanPromiseDrop<?> zAnno = getAnnotation(zuperDecl);
+            if (zAnno != null && !isStaticOnly(zAnno)) {
               if (isNOT) {
                 context.reportError(typeDecl,
                     "Interface may not be @{0} because it extends the @{1} interface {2}",
@@ -1985,7 +1984,7 @@ public class LockRules extends AnnotationRules {
         for (final IJavaType zuper : supers) {
           final IRNode zuperDecl = ((IJavaDeclaredType) zuper).getDeclaration();
           final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> anno = getAnnotation(zuperDecl);
-          if (anno != null) {
+          if (anno != null && !isStaticOnly(anno)) {
             if (TypeUtil.isInterface(zuperDecl)) {
               if (isNOT) {
                 context.reportError(typeDecl,
@@ -2018,7 +2017,7 @@ public class LockRules extends AnnotationRules {
       }
       return result;
     }
-	  
+
     protected abstract ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> getAnnotation(IRNode typeDecl);
     
     protected abstract NP getNotAnnotation(IRNode typeDecl);
@@ -2026,7 +2025,7 @@ public class LockRules extends AnnotationRules {
     /* typeDecl is an unannotated class.  We want to know if it is actually
      * annotated with an annotation more specific than the one we are checking.
      */
-    protected boolean isMoreSpecific(IRNode typeDecl) {
+    protected boolean isMoreSpecific(final IRNode typeDecl) {
       return false;
     }
     
@@ -2034,18 +2033,35 @@ public class LockRules extends AnnotationRules {
      * is actually annotated with an annotation less specific than the one we are
      * checking.
      */
-    protected boolean isLessSpecific(IRNode classDecl) {
+    protected boolean isLessSpecific(final IRNode classDecl) {
       return false;
+    }
+    
+    protected final boolean isStaticOnly(final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> drop) {
+      return isStaticOnly(drop.getAAST());
+    }
+    
+    protected final boolean isStaticOnly(final AbstractModifiedBooleanNode n) {
+      return n.getAppliesTo() == Part.Static;
     }
     
     /**
      * TODO Note that these currently don't look for supertypes that are missing annotations
      */
-    protected abstract void checkAnnotatedInterfaceSuperInterface(A node, IRNode iDecl, IRNode sDecl);
 
-    protected abstract void checkAnnotatedClassSuperInterface(A node, IRNode cDecl, IRNode iDecl);
+    /* If I apply to static only, and the super interfaces is annotated with
+     * a compatible annotation it must apply to the static state only.
+     * 
+     * If I apply to instance, then the super interfaces can apply to anything
+     * because if they apply to static only, it's like they are unannotated.
+     * But the super interface must have a compatible annotation.
+     */
+    // Return true if no errors detected
+    protected abstract boolean checkAnnotatedInterfaceSuperInterface(A node, IRNode iDecl, IRNode sDecl);
+
+    protected abstract boolean checkAnnotatedClassSuperInterface(A node, IRNode cDecl, IRNode iDecl, ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> iDrop);
     
-    protected abstract void checkAnnotatedClassSuperClass(A node, IRNode cDecl, IRNode sDecl);
+    protected abstract boolean checkAnnotatedClassSuperClass(A node, IRNode cDecl, IRNode sDecl);
 
 	  protected abstract P createDrop(A node);
 	  
@@ -2186,22 +2202,33 @@ public class LockRules extends AnnotationRules {
           return new ContainableNode(mods);
         }
 
+        /* If I apply to static only, and the super interfaces is annotated with
+         * a compatible annotation it must apply to the static state only.
+         * 
+         * If I apply to instance, then the super interfaces can apply to anything
+         * because if they apply to static only, it's like they are unannotated.
+         * But the super interface must have a compatible annotation.
+         */
         @Override
-        protected void checkAnnotatedInterfaceSuperInterface(
+        protected boolean checkAnnotatedInterfaceSuperInterface(
             final ContainableNode node, final IRNode iDecl, final IRNode sDecl) {
-          // Nothing to check
+          // Nothing to check: never applies to the static part only
+          return true;
         }
 
         @Override
-        protected void checkAnnotatedClassSuperInterface(
-            final ContainableNode node, final IRNode cDecl, final IRNode iDecl) {
+        protected boolean checkAnnotatedClassSuperInterface(
+            final ContainableNode node, final IRNode cDecl, final IRNode iDecl,
+            final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> iDrop) {
           // Nothing to check
+          return true;
         }
 
         @Override
-        protected void checkAnnotatedClassSuperClass(
+        protected boolean checkAnnotatedClassSuperClass(
             final ContainableNode node, final IRNode iDecl, final IRNode sDecl) {
           // Nothing to check
+          return true;
         }
       };
     }    
@@ -2261,7 +2288,8 @@ public class LockRules extends AnnotationRules {
          */
         @Override
         protected boolean isMoreSpecific(final IRNode typeDecl) {
-          return getImmutableImplementation(typeDecl) != null;
+          final ImmutablePromiseDrop iDrop = getImmutableImplementation(typeDecl);
+          return iDrop != null && !isStaticOnly(iDrop);
         }
         
         /* classDecl is the superclass of a class annotated with ThreasSafe.
@@ -2272,7 +2300,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected boolean isLessSpecific(IRNode classDecl) {
           final ImmutablePromiseDrop iDrop = getImmutableImplementation(classDecl);
-          return (iDrop != null) && (iDrop.isImplementationOnly());
+          return (iDrop != null) && iDrop.isImplementationOnly() && !isStaticOnly(iDrop);
         }
         
         @Override
@@ -2281,34 +2309,120 @@ public class LockRules extends AnnotationRules {
           return new ThreadSafeNode(mods, orig.getAppliesTo());
         }
 
+        /* If I apply to static only, and the super interfaces is annotated with
+         * a compatible annotation it must apply to the static state only.
+         * 
+         * If I apply to instance, then the super interfaces can apply to anything
+         * because if they apply to static only, it's like they are unannotated.
+         * But the super interface must have a compatible annotation.
+         */
         @Override
-        protected void checkAnnotatedInterfaceSuperInterface(
+        protected boolean checkAnnotatedInterfaceSuperInterface(
             final ThreadSafeNode node, final IRNode iDecl, final IRNode sDecl) {
-          if (getImmutableImplementation(sDecl) != null) {
-            getContext().reportError(node, 
-                "Interface may not be @ThreadSafe because it extends the @Immutable interface {0}",
-                JavaNames.getQualifiedTypeName(sDecl));
+          if (isStaticOnly(node)) {
+            final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> sDrop = getThreadSafeImplPromise(sDecl);
+            if (sDrop != null && !isStaticOnly(sDrop)) {
+              getContext().reportError(node,
+                  "Interface may not apply @ThreadSafe to the static part only because super interface {0} applies @{1} to the instance state",
+                  JavaNames.getQualifiedTypeName(sDecl), sDrop.getToken());
+              return false;
+            } else {
+              return true;
+            }
+          } else {
+            /* Check that the super interface is not @Immutable, unless it 
+             * applies to the static state only 
+             */
+            final ImmutablePromiseDrop iDrop = getImmutableImplementation(sDecl);
+            if (iDrop != null && !isStaticOnly(iDrop)) {
+              getContext().reportError(node, 
+                  "Interface may not be @ThreadSafe because it extends the @Immutable interface {0}",
+                  JavaNames.getQualifiedTypeName(sDecl));
+              return false;
+            } else {
+              return true;
+            }
           }
         }
 
+        /* We have a class annotated with @ThreadSafe.  If the class applies
+         * the annotation to the static part only, and the super interface
+         * is annotated with a compatible annotation, then it must apply to the
+         * static state only.
+         * 
+         * If the class applies the annotation to the instance state, then 
+         * the super interface may be unannotated, or annotated with a compatible
+         * annotation and apply to anything.  (Nothing to check in this case
+         * for Immutable) 
+         */
         @Override
-        protected void checkAnnotatedClassSuperInterface(
-            final ThreadSafeNode node, final IRNode cDecl, final IRNode iDecl) {
-          if (getImmutableImplementation(iDecl) != null) {
-            getContext().reportError(node, 
-                "Class may not be @ThreadSafe because it implements the @Immutable interface {0}",
-                JavaNames.getQualifiedTypeName(iDecl));
+        protected boolean checkAnnotatedClassSuperInterface(
+            final ThreadSafeNode node, final IRNode cDecl, final IRNode iDecl,
+            final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> iDrop) {
+          if (isStaticOnly(node)) {
+            if (iDrop != null && !isStaticOnly(iDrop)) {
+              getContext().reportError(node,
+                  "Class may not apply @ThreadSafe to the static part only because super interface {0} applies @{1} to the instance state",
+                  JavaNames.getQualifiedTypeName(iDecl), iDrop.getToken());
+              return false;
+            } else {
+              return true;
+            }
+          } else {
+            /* super interface may not be immutable, unless it applies
+             * to the state state only.
+             */
+            final ImmutablePromiseDrop immutableDrop = getImmutableImplementation(iDecl);
+            if (immutableDrop != null && !isStaticOnly(immutableDrop)) {
+              getContext().reportError(node, 
+                  "Class may not be @ThreadSafe because it implements the @Immutable interface {0}",
+                  JavaNames.getQualifiedTypeName(iDecl));
+              return false;
+            } else {
+              return true;
+            }
           }
         }
 
+        /* We have a class annotated with @ThreadSafe.  If the class applies
+         * the annotation to the static part only, the super class must be
+         * unannotated or @ThreadSafe/@Immutable and implementationOnly, or @ThreadSafe
+         * and only apply to the static part.
+         * 
+         * If the class applies to the instance state, then the super class
+         * must be @ThreadSafe and apply to the instance state.
+         */
         @Override
-        protected void checkAnnotatedClassSuperClass(
+        protected boolean checkAnnotatedClassSuperClass(
             final ThreadSafeNode node, final IRNode iDecl, final IRNode sDecl) {
-          final ImmutablePromiseDrop iDrop = getImmutableImplementation(sDecl);
-          if (iDrop != null && !iDrop.isImplementationOnly()) {
-            getContext().reportError(node, 
-                "Class may not be @ThreadSafe because it extends the @Immutable(implementationOnly=false) class {0}",
-                JavaNames.getQualifiedTypeName(sDecl));
+          if (isStaticOnly(node)) {
+            final ModifiedBooleanPromiseDrop<?> iDrop = getThreadSafeImplPromise(sDecl);
+            if (iDrop != null) {
+              if (!iDrop.isImplementationOnly()) {
+                if (!isStaticOnly(iDrop)) {
+                  getContext().reportError(node,
+                      "Class may not apply @ThreadSafe to the static part only because the super class {0} applies @{1} to the instance state",
+                          JavaNames.getQualifiedTypeName(sDecl), iDrop.getToken());
+                  return false;
+                } else {
+                  return true;
+                }
+              } else {
+                return true;
+              }
+            } else {
+              return true;
+            }
+          } else {
+            final ImmutablePromiseDrop iDrop = getImmutableImplementation(sDecl);
+            if (iDrop != null && !iDrop.isImplementationOnly()) {
+              getContext().reportError(node, 
+                  "Class may not be @ThreadSafe because it extends the @Immutable(implementationOnly=false) class {0}",
+                  JavaNames.getQualifiedTypeName(sDecl));
+              return false;
+            } else {
+              return true;
+            }
           }
         }
       };
@@ -2441,25 +2555,91 @@ public class LockRules extends AnnotationRules {
           return new ImmutableNode(mods, orig.getAppliesTo());
         }
 
+        /* If I apply to static only, and the super interfaces is annotated with
+         * a compatible annotation it must apply to the static state only.
+         * 
+         * If I apply to instance, then the super interfaces can apply to anything
+         * because if they apply to static only, it's like they are unannotated.
+         * But the super interface must have a compatible annotation.
+         */
         @Override
-        protected void checkAnnotatedInterfaceSuperInterface(
+        protected boolean checkAnnotatedInterfaceSuperInterface(
             final ImmutableNode node, final IRNode iDecl, final IRNode sDecl) {
-          // Nothing to check: Super interface may be ThreadSafe
+          if (isStaticOnly(node)) {
+            final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> sDrop = getThreadSafeImplPromise(sDecl);
+            if (sDrop != null && !isStaticOnly(sDrop)) {
+              getContext().reportError(node,
+                  "Interface may not apply @Immutable to the static part only because super interface {0} applies @{1} to the instance state",
+                  JavaNames.getQualifiedTypeName(sDecl), sDrop.getToken());
+              return false;
+            } else {
+              return true;
+            }
+          } else {
+            // Nothing to check: Super interface may be ThreadSafe
+            return true;
+          }
         }
 
+        /* We have a class annotated with @Immutable.  If the class applies
+         * the annotation to the static part only, and the super interface
+         * is annotated with a compatible annotation, then it must apply to the
+         * static state only.
+         * 
+         * If the class applies the annotation to the instance state, then 
+         * the superface may be unannotated, or annotated with a compatible
+         * annotation and apply to anything.  (Nothing to check in this case
+         * for Immutable) 
+         */
         @Override
-        protected void checkAnnotatedClassSuperInterface(
-            final ImmutableNode node, final IRNode cDecl, final IRNode iDecl) {
-          // Nothing to check: Implemented interfaces may be ThreadSafe
+        protected boolean checkAnnotatedClassSuperInterface(
+            final ImmutableNode node, final IRNode cDecl, final IRNode iDecl,
+            final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> iDrop) {
+          if (isStaticOnly(node)) {
+            if (iDrop != null && !isStaticOnly(iDrop)) {
+              getContext().reportError(node,
+                  "Class may not apply @Immutable to the static part only because super interface {0} applies @{1} to the instance state",
+                  JavaNames.getQualifiedTypeName(iDecl), iDrop.getToken());
+              return false;
+            } else {
+              return true;
+            }
+          } else {
+            // Nothing to check: Implemented interfaces may be ThreadSafe
+            return true;
+          }
         }
 
+        /* We have a class annotated with @Immutable.  If the class applies
+         * the annotation to the static part only, the super class must be
+         * unannotated, implementationOnly, or also only apply to the static part.
+         * 
+         * If the class applies to the instance state, then the super class
+         * must be immutable and apply to the instance state.
+         */
         @Override
-        protected void checkAnnotatedClassSuperClass(
+        protected boolean checkAnnotatedClassSuperClass(
             final ImmutableNode node, final IRNode iDecl, final IRNode sDecl) {
-          if (getThreadSafeImplementation(sDecl) != null) {
-            getContext().reportError(node, 
-                "Class may not be @Immutable because it extends the @ThreadSafe class {0}",
-                JavaNames.getQualifiedTypeName(sDecl));
+          final ImmutablePromiseDrop iDrop = getImmutableImplementation(sDecl);
+          if (isStaticOnly(node)) {
+            if (iDrop != null && !iDrop.isImplementationOnly() && !isStaticOnly(iDrop)) {
+              getContext().reportError(node,
+                  "Class may not apply @Immutable to the static part only because the super class {0} applies @Immutable to the instance state",
+                  JavaNames.getQualifiedTypeName(sDecl));
+              return false;
+            } else {
+              return true;
+            }
+          } else {
+            return true;
+//            if (iDrop != null && isStaticOnly(iDrop)) {
+//              getContext().reportError(node,
+//                  "Class may not be @Immutable because the super class {0} applies @Immutable to the static state only",
+//                  JavaNames.getQualifiedTypeName(sDecl));
+//              return false;
+//            } else {
+//              return true;
+//            }
           }
         }
         

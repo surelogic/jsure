@@ -8,12 +8,7 @@ public final class ThreadSafeNode extends AbstractModifiedBooleanNode
 {   
   // Constructors
   public ThreadSafeNode(int mods, Part state) {
-    super(mods, state);
-  }
-  
-  @Override
-  public String unparse(boolean debug, int indent) {
-    return unparse(debug, indent, "ThreadSafe");
+    super("ThreadSafe", mods, state);
   }
   
   @Override

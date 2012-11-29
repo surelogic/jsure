@@ -6,12 +6,7 @@ public final class ContainableNode extends AbstractModifiedBooleanNode
 { 	
   // Constructors
   public ContainableNode(int mods) {
-    super(mods, null);
-  }
-
-  @Override
-  public String unparse(boolean debug, int indent) {
-    return unparse(debug, indent, "Containable");
+    super("Containable", mods, null);
   }
 
   @Override
