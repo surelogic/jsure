@@ -5,8 +5,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 
-import jsr166y.forkjoin.Ops.Procedure;
-
 import org.apache.commons.collections15.MultiMap;
 
 import com.surelogic.analysis.ConcurrentAnalysis;
@@ -25,6 +23,7 @@ import edu.cmu.cs.fluid.java.project.JavaMemberTable;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import extra166y.Ops.Procedure;
 
 public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUnitListener {
   private static final boolean cacheAllSourceTypes = true;

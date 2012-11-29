@@ -11,12 +11,10 @@ import javax.tools.*;
 import javax.tools.JavaFileManager.Location;
 import javax.tools.JavaFileObject.Kind;
 
+import jsr166y.ForkJoinPool;
+
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
-import org.apache.commons.lang3.SystemUtils;
-
-import jsr166y.forkjoin.*;
-import jsr166y.forkjoin.Ops.Procedure;
 
 import com.sun.source.tree.*;
 import com.sun.source.util.*;
@@ -39,6 +37,8 @@ import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.util.*;
+import extra166y.ParallelArray;
+import extra166y.Ops.Procedure;
 
 public class JavacClassParser {
 	/** Should we try to run things in parallel */
@@ -86,20 +86,16 @@ public class JavacClassParser {
     	JavacTool.create().getStandardFileManager(nullListener, null, null);          	    	
 	
     private final Projects projects;
-	private final ForkJoinExecutor pool;
+	private final ForkJoinPool pool;
 	
 	// proj, qname, zip
-	final IParallelArray<Triple<String,String,ZipFile>> jarRefs;
+	final ParallelArray<Triple<String,String,ZipFile>> jarRefs;
 	
-	public JavacClassParser(ForkJoinExecutor executor, Projects p) throws IOException {
+	public JavacClassParser(ForkJoinPool executor, Projects p) throws IOException {
 		pool    = executor;
 		projects = p;
 
-		if (executor == null || SystemUtils.IS_JAVA_1_5) {
-			jarRefs = new NonParallelArray<Triple<String,String,ZipFile>>();
-		} else {
-			jarRefs = ParallelArray.create(0, Triple.class, pool);
-		}
+		jarRefs = ParallelArray.create(0, Triple.class, pool);		
 		fileman.setLocation(StandardLocation.CLASS_OUTPUT, tmpDir);		
 		
 		for(JavacProject jp : p) {
@@ -160,7 +156,7 @@ public class JavacClassParser {
 		final int max;
 		final boolean asBinary;
 		final ThreadLocal<SourceAdapter> adapter;
-		final IParallelArray<CompilationUnitTree> cuts;		
+		final ParallelArray<CompilationUnitTree> cuts;		
 		final Queue<CodeInfo> cus;
 		final References refs;
         final Map<JavaFileObjectWrapper, JavaSourceFile> sources = new HashMap<JavaFileObjectWrapper, JavaSourceFile>();		
@@ -176,11 +172,7 @@ public class JavacClassParser {
 					return new SourceAdapter(projects, jp);
 				}
 			};
-			if (pool == null || SystemUtils.IS_JAVA_1_5) {
-				cuts = new NonParallelArray<CompilationUnitTree>();
-			} else {
-				cuts = ParallelArray.create(0, CompilationUnitTree.class, pool);
-			}
+			cuts = ParallelArray.create(0, CompilationUnitTree.class, pool);			
 			cus = new ConcurrentLinkedQueue<CodeInfo>(); // Added to concurrently
 			refs = new References(jp);
 		}
