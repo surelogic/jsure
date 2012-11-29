@@ -47,8 +47,8 @@ public final class FilterUsedByProof extends Filter implements IOnlyResultsPorus
     }
   }
 
-  private final Image f_unused = SLImages.getDecoratedImage(CommonImages.IMG_CHOICE,
-      new ImageDescriptor[] { null, null, SLImages.getImageDescriptor(CommonImages.DECR_UNUSED), null, null });
+  private final Image f_unused = SLImages.getDecoratedGrayscaleImage(CommonImages.IMG_CHOICE, new ImageDescriptor[] { null, null,
+      SLImages.getImageDescriptor(CommonImages.DECR_UNUSED), null, null });
 
   @Override
   public Image getImageFor(String value) {
