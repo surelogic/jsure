@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
-import jsr166y.forkjoin.Ops.Procedure;
-
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.AbstractAnalysisSharingAnalysis;
 import com.surelogic.analysis.ConcurrencyType;
@@ -47,6 +45,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
+import extra166y.Ops.Procedure;
 
 public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, UniquenessAnalysis, Unused> {
   private static final long NANO_SECONDS_PER_SECOND = 1000000000L;

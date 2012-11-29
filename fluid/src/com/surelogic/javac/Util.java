@@ -16,17 +16,14 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
 
-import jsr166y.forkjoin.ForkJoinExecutor;
-import jsr166y.forkjoin.IParallelArray;
-import jsr166y.forkjoin.NonParallelArray;
-import jsr166y.forkjoin.Ops.Procedure;
-import jsr166y.forkjoin.ParallelArray;
+import jsr166y.*;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -116,6 +113,8 @@ import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import extra166y.ParallelArray;
+import extra166y.Ops.Procedure;
 
 public class Util {
   public static final String EXPECT_ANALYSIS = "expectAnalysis";
@@ -344,8 +343,8 @@ public class Util {
     return result;
   }
 
-  private static <T> IParallelArray<T> createArray(boolean singleThreaded, Class<T> cls, ForkJoinExecutor pool) {
-    return singleThreaded ? new NonParallelArray<T>() : ParallelArray.create(0, cls, pool);
+  private static <T> ParallelArray<T> createArray(Class<T> cls, ForkJoinPool pool) {
+    return ParallelArray.create(0, cls, pool);
   }
 
   private static <T> void eliminateDups(List<T> all, List<T> unique) {
@@ -368,7 +367,7 @@ public class Util {
     }
 
     final boolean singleThreaded = !wantToRunInParallel || ConcurrentAnalysis.singleThreaded;
-    final ForkJoinExecutor pool = singleThreaded ? null : ConcurrentAnalysis.pool;
+    final ForkJoinPool pool = singleThreaded ? new ForkJoinPool(1) : ConcurrentAnalysis.pool;
     System.out.println("singleThread = " + singleThreaded);
     final JSurePerformance perf = new JSurePerformance(projects);
     perf.setIntProperty("num.threads", singleThreaded ? 1 : ConcurrentAnalysis.threadCount);
@@ -390,7 +389,7 @@ public class Util {
     }
     env.finishedInit(); // To free up memory
 
-    final IParallelArray<CodeInfo> cus = createArray(singleThreaded, CodeInfo.class, pool);
+    final ParallelArray<CodeInfo> cus = createArray(CodeInfo.class, pool);
     endSubTask(projects.getMonitor());
 
     for (Config config : projects.getConfigs()) {
@@ -460,8 +459,8 @@ public class Util {
     long[] times;
     if (analyze) {
       // These are all the SourceCUDrops for this project
-      final IParallelArray<SourceCUDrop> cuds = findSourceCUDrops(singleThreaded, pool);
-      final IParallelArray<SourceCUDrop> allCuds = cuds;// findSourceCUDrops(null,
+      final ParallelArray<SourceCUDrop> cuds = findSourceCUDrops(singleThreaded, pool);
+      final ParallelArray<SourceCUDrop> allCuds = cuds;// findSourceCUDrops(null,
                                                         // singleThreaded,
                                                         // pool);
 
@@ -653,7 +652,7 @@ public class Util {
     }
   }
 
-  private static void testExperimentalFeatures(final Projects projects, IParallelArray<CodeInfo> cus) {
+  private static void testExperimentalFeatures(final Projects projects, ParallelArray<CodeInfo> cus) {
     if (testPersistence) {
       ParseUtil.init();
       try {
@@ -669,8 +668,8 @@ public class Util {
   /**
    * Gets every drop if pd is null
    */
-  private static IParallelArray<SourceCUDrop> findSourceCUDrops(final boolean singleThreaded, final ForkJoinExecutor pool) {
-    final IParallelArray<SourceCUDrop> cuds = createArray(singleThreaded, SourceCUDrop.class, pool);
+  private static ParallelArray<SourceCUDrop> findSourceCUDrops(final boolean singleThreaded, final ForkJoinPool pool) {
+    final ParallelArray<SourceCUDrop> cuds = createArray(SourceCUDrop.class, pool);
     for (SourceCUDrop scud : Sea.getDefault().getDropsOfExactType(SourceCUDrop.class)) {
       cuds.asList().add(scud);
     }
@@ -710,7 +709,7 @@ public class Util {
   }
 
   private static long[] analyzeCUs(final IIRAnalysisEnvironment env, final Projects projects, List<IIRAnalysis> analyses,
-      IParallelArray<SourceCUDrop> cus, IParallelArray<SourceCUDrop> allCus, boolean singleThreaded) {
+      ParallelArray<SourceCUDrop> cus, ParallelArray<SourceCUDrop> allCus, boolean singleThreaded) {
     if (XUtil.recordScript() != null) {
       final File log = (File) projects.getArg(RECORD_ANALYSIS);
       if (log != null) {
@@ -726,7 +725,7 @@ public class Util {
     int i = 0;
     for (final IIRAnalysis a : analyses) {
       final long start = System.currentTimeMillis();
-      final IParallelArray<SourceCUDrop> toAnalyze = a.analyzeAll() ? allCus : cus;
+      final ParallelArray<SourceCUDrop> toAnalyze = a.analyzeAll() ? allCus : cus;
 
       for (final JavacProject project : projects) {
         if (projects.getMonitor().isCanceled()) {
@@ -807,7 +806,7 @@ public class Util {
     return times;
   }
 
-  private static void recordFilesAnalyzed(IParallelArray<SourceCUDrop> allCus, File log) {
+  private static void recordFilesAnalyzed(ParallelArray<SourceCUDrop> allCus, File log) {
     System.out.println("Recording which files actually got (re-)analyzed");
     try {
       final PrintWriter pw = new PrintWriter(log);
@@ -826,7 +825,7 @@ public class Util {
    * 
    * @throws IOException
    */
-  private static void checkForExpectedSourceFiles(IParallelArray<SourceCUDrop> allCus, File expected) {
+  private static void checkForExpectedSourceFiles(ParallelArray<SourceCUDrop> allCus, File expected) {
     System.out.println("Checking source files expected for analysis");
     try {
       final Set<String> cus = RegressionUtility.readLinesAsSet(expected);
@@ -909,7 +908,7 @@ public class Util {
     endSubTask(monitor);
   }
 
-  private static void canonicalizeCUs(JSurePerformance perf, final IParallelArray<CodeInfo> cus, final Projects projects) {
+  private static void canonicalizeCUs(JSurePerformance perf, final ParallelArray<CodeInfo> cus, final Projects projects) {
     final SLProgressMonitor monitor = projects.getMonitor();
     if (monitor.isCanceled()) {
       throw new CancellationException();
@@ -1044,7 +1043,7 @@ public class Util {
   }
 
   @SuppressWarnings("deprecation")
-  private static void addRequired(IParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
+  private static void addRequired(ParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
     startSubTask(monitor, "Adding required nodes");
     Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
       public void op(CodeInfo info) {
@@ -1063,7 +1062,7 @@ public class Util {
     endSubTask(monitor);
   }
 
-  private static void parsePromises(IParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
+  private static void parsePromises(ParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
     ParseUtil.init();
 
     startSubTask(monitor, "Parsing promises");
@@ -1237,7 +1236,7 @@ public class Util {
     monitor.worked(1);
   }
 
-  private static Dependencies checkDependencies(final IParallelArray<CodeInfo> cus) {
+  private static Dependencies checkDependencies(final ParallelArray<CodeInfo> cus) {
     final Dependencies deps = new Dependencies() {
       protected void handlePackage(final PackageDrop pkg) {
         /*
@@ -1277,7 +1276,7 @@ public class Util {
     return deps;
   }
 
-  private static void createCUDrops(IParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
+  private static void createCUDrops(ParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
     if (monitor.isCanceled()) {
       throw new CancellationException();
     }
@@ -1363,7 +1362,7 @@ public class Util {
     endSubTask(monitor);
   }
 
-  private static void sortCodeInfos(IParallelArray<CodeInfo> cus) {
+  private static void sortCodeInfos(ParallelArray<CodeInfo> cus) {
     // Required to make sure that we process package-info files first
     Collections.sort(cus.asList(), new Comparator<CodeInfo>() {
       public int compare(CodeInfo o1, CodeInfo o2) {

@@ -195,7 +195,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
       return new Pair<IJavaScope,String>(resolveAsScope(scopeName,useSite),name);
 }
   
-  protected final IJavaScope resolveTypeAsScope(IRNode node, IRNode useSite, boolean asLocal) {
+  private final IJavaScope resolveTypeAsScope(IRNode node, IRNode useSite, boolean asLocal) {
     Operator op = JJNode.tree.getOperator(node);
     if (op instanceof NameType) {
       return resolveNameAsScope(NameType.getName(node),useSite,asLocal);
@@ -203,7 +203,8 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
       return resolveAsScope(JJNode.getInfo(node),useSite);
     } else if (op instanceof TypeRef) {
       IJavaScope scope = resolveTypeAsScope(TypeRef.getBase(node),useSite,asLocal);
-      IBinding tbind = IJavaScope.Util.lookupType(scope,JJNode.getInfo(node),useSite);
+      LookupContext context = new LookupContext().use(JJNode.getInfo(node),useSite);
+      IBinding tbind = IJavaScope.Util.lookupType(scope,context);
       if (tbind == null) return null;
       assert tbind.getContextType() == null;
       IJavaMemberTable table = getMemberTable(tbind);
@@ -214,7 +215,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     }
   }
   
-  protected final IJavaScope resolveNameAsScope(IRNode node, IRNode useSite, boolean asLocal) {
+  private final IJavaScope resolveNameAsScope(IRNode node, IRNode useSite, boolean asLocal) {
     Operator op = JJNode.tree.getOperator(node);
     if (op instanceof QualifiedName) {
       IJavaScope scope = resolveNameAsScope(QualifiedName.getBase(node),useSite,asLocal);
@@ -232,12 +233,13 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
    * @param useSite place on whose behalf we are looking up
    * @return scope for name (or null)
    */
-  protected final IJavaScope resolveAsScope(IJavaScope scope, String name, IRNode useSite, boolean asLocal) {
-    IBinding pbind = IJavaScope.Util.lookupPackage(scope,name,useSite);
+  private final IJavaScope resolveAsScope(IJavaScope scope, String name, IRNode useSite, boolean asLocal) {
+    LookupContext context = new LookupContext().use(name,useSite);
+    IBinding pbind = IJavaScope.Util.lookupPackage(scope,context);
     if (pbind != null) {
       return tEnv.getClassTable().packageScope(pbind.getNode());
     }
-    IBinding tbind = IJavaScope.Util.lookupType(scope,name,useSite);
+    IBinding tbind = IJavaScope.Util.lookupType(scope,context);
     if (tbind == null) return null;
     IJavaMemberTable table = getMemberTable(tbind);
     return asLocal ? table.asLocalScope(binder.getTypeEnvironment()) : table.asScope(binder);
@@ -255,7 +257,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
    * @param useSite place ion whose behalf we are looking up
    * @return scope for qualified name.
    */
-  protected final IJavaScope resolveAsScope(final String qName, IRNode useSite) {
+  private final IJavaScope resolveAsScope(final String qName, IRNode useSite) {
     // first try to resolve using the class table:
     IJavaClassTable classTable = tEnv.getClassTable();
     IRNode outerNode = classTable.getOuterClass(qName,useSite);
@@ -285,7 +287,8 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
 	  return false;
   } 
   
-  public final synchronized IBinding lookup(String name, IRNode useSite, Selector selector) {
+  public final synchronized IBinding lookup(LookupContext context, Selector selector) {
+	final String name = context.name;
     if (LOG.isLoggable(Level.FINER)) {
       LOG.finer("Looking for " + name + " in import table.");
     }
@@ -297,14 +300,14 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     	  if (entry != null) {
     		  IJavaScope scope = entry.getScope();
     		  if (scope != null) {
-    			  IBinding b = scope.lookup(name, useSite, selector);
+    			  IBinding b = scope.lookup(context, selector);
     			  if (b != null) {
     				  /*
         	  if (!selector.select(b.getNode())) {
         		  System.out.println("Didn't use selector on "+name);
         	  }
     				   */
-    				  entry.addUse(useSite);
+    				  entry.addUse(context.useSite);
     				  return b;
     			  } else {
     				  //System.out.println("Didn't find "+name+" yet");
@@ -321,7 +324,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     	  pName = JJNode.getInfo(pdecl);
       }
       IJavaScope sc = tEnv.getClassTable().packageScope(pName);
-      IBinding result = sc.lookup(name,useSite,selector);
+      IBinding result = sc.lookup(context,selector);
       if (result != null) return result;
       
       // try all indirect (demand) imports    
@@ -331,8 +334,9 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
         IJavaScope scope = entry.getScope();
         if (scope == null) continue;
         // LOG.finer("Looking for " + name + " indirectly through " + scope);
-        IBinding x = scope.lookup(name, useSite, selector);
+        IBinding x = scope.lookup(context, selector);
         if (x != null) {
+          final IRNode useSite = context.useSite;
           entry.addUse(useSite);
           if (BindUtil.isAccessible(binder.getTypeEnvironment(), x.getNode(),useSite)) {
         	  return x;
@@ -344,7 +348,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     }
     
     // try top-level package, but not class (class in anonymous package)
-    IRNode outer = tEnv.getClassTable().getOuterClass(name, useSite);
+    IRNode outer = tEnv.getClassTable().getOuterClass(name, context.useSite);
     if (outer != null && 
         JJNode.tree.getOperator(outer) instanceof NamedPackageDeclaration &&
         selector.select(outer)) {
@@ -354,8 +358,10 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     // found nothing:
     return null;
   }
-  public final synchronized Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
-    if (LOG.isLoggable(Level.FINER)) {
+  public final synchronized Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
+	final String name = context.name;	  
+    final IRNode useSite = context.useSite;
+	if (LOG.isLoggable(Level.FINER)) {
       LOG.finer("Looking for " + name + " in import table.");
     }
     Iteratable<IBinding> rv = null;
@@ -366,7 +372,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
       if (entry != null) {
         IJavaScope scope = entry.getScope();
         if (scope != null) {
-          rv = scope.lookupAll(name, useSite, selector);
+          rv = scope.lookupAll(context, selector);
           if (rv != null && rv.hasNext()) {
               entry.addUse(useSite);
           } 
@@ -384,7 +390,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
         IJavaScope scope = entry.getScope();
         if (scope == null) continue;
         // LOG.finer("Looking for " + name + " indirectly through " + scope);
-        Iteratable<IBinding> x = scope.lookupAll(name, useSite, selector);
+        Iteratable<IBinding> x = scope.lookupAll(context, selector);
         if (x != null && x.hasNext()) {
           entry.addUse(useSite);
           if (rv != null) {

@@ -2,8 +2,6 @@ package com.surelogic.analysis.utility;
 
 import java.util.*;
 
-import jsr166y.forkjoin.Ops.Procedure;
-
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.IBinderClient;
@@ -36,6 +34,7 @@ import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.util.Iteratable;
+import extra166y.Ops.Procedure;
 
 public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalysis.UtilityVisitorFactory, TypeBodyPair> {	
   /** Should we try to run things in parallel */

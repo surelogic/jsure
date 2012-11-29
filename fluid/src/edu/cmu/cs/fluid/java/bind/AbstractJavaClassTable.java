@@ -52,11 +52,11 @@ public abstract class AbstractJavaClassTable implements IJavaClassTable {
 		return true;
 	} 
     
-    public IBinding lookup(String name, IRNode useSite, Selector selector) {
-      final String qname = prefix + name;
-      IRNode node = getOuterClass(qname,useSite);
+    public IBinding lookup(LookupContext context, Selector selector) {
+      final String qname = prefix + context.name;
+      IRNode node = getOuterClass(qname,context.useSite);
       if (LOG.isLoggable(Level.FINER)) {
-        LOG.finer("getOuterClass(" + prefix + "+" + name + ") returns " + DebugUnparser.toString(node));
+        LOG.finer("getOuterClass(" + prefix + "+" + context.name + ") returns " + DebugUnparser.toString(node));
       }
       if (node != null && selector.select(node)) {
         return IBinding.Util.makeBinding(node); 
@@ -66,11 +66,11 @@ public abstract class AbstractJavaClassTable implements IJavaClassTable {
       return null;
     }
 
-    public Iteratable<IBinding> lookupAll(String name, IRNode useSite,
+    public Iteratable<IBinding> lookupAll(LookupContext context,
         Selector selector) {
-      IRNode node = getOuterClass(prefix + name,useSite);
+      IRNode node = getOuterClass(prefix + context.name,context.useSite);
       if (LOG.isLoggable(Level.FINER)) {
-        LOG.finer("getOuterClass(" + prefix + "+" + name + ") returns " + DebugUnparser.toString(node));
+        LOG.finer("getOuterClass(" + prefix + "+" + context.name + ") returns " + DebugUnparser.toString(node));
       }
       if (node != null && selector.select(node)) {
         return new SingletonIterator<IBinding>(IBinding.Util.makeBinding(node)); 

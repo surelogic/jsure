@@ -1,7 +1,6 @@
 package com.surelogic.jsure.client.eclipse.model.selection;
 
 import java.util.EnumSet;
-import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
 
@@ -13,7 +12,7 @@ import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
-public final class FilterVerificationJudgment extends Filter {
+public final class FilterVerificationJudgment extends Filter implements IOnlyPromisesPorus {
 
   public static final ISelectionFilterFactory FACTORY = new AbstractFilterFactory() {
     public Filter construct(Selection selection, Filter previous) {
@@ -76,37 +75,6 @@ public final class FilterVerificationJudgment extends Filter {
       return imageInconsistent;
 
     return SLImages.getImage(CommonImages.IMG_EMPTY);
-  }
-
-  @Override
-  protected void refreshCounts(List<IProofDrop> incomingResults) {
-    f_counts.clear();
-    int runningTotal = 0;
-    for (IProofDrop d : incomingResults) {
-      final String value = getFilterValueFromDropOrNull(d);
-      if (value != null) {
-        Integer count = f_counts.get(value);
-        if (count == null) {
-          f_counts.put(value, 1);
-        } else {
-          f_counts.put(value, count + 1);
-        }
-        runningTotal++;
-      }
-    }
-    f_countTotal = runningTotal;
-  }
-
-  @Override
-  protected void refreshPorousDrops(List<IProofDrop> incomingResults) {
-    f_porousDrops.clear();
-    for (IProofDrop d : incomingResults) {
-      final String value = getFilterValueFromDropOrNull(d);
-      if (value != null) {
-        if (f_porousValues.contains(value))
-          f_porousDrops.add(d);
-      }
-    }
   }
 
   @Override

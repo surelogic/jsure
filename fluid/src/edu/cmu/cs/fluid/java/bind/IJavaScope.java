@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.NotThreadSafe;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.debug.DebugUtil;
@@ -45,7 +46,7 @@ public interface IJavaScope {
    * @param selector control over what nodes to return
     * @return an IR node or null
    */
-  public IBinding lookup(String name, IRNode useSite, IJavaScope.Selector selector);
+  public IBinding lookup(LookupContext context, IJavaScope.Selector selector);
   
   /**
    * Look in the scope to find all declarations that match the given selector.
@@ -60,15 +61,15 @@ public interface IJavaScope {
    * @param selector control over what nodes to return
    * @return a non-null iterator of IR nodes
    */
-  public Iteratable<IBinding> lookupAll(String name, IRNode useSite, IJavaScope.Selector selector);
+  public Iteratable<IBinding> lookupAll(LookupContext context, IJavaScope.Selector selector);
   
   public void printTrace(PrintStream out, int indent);
   
   public static final IJavaScope nullScope = new IJavaScope() {
-    public IBinding lookup(String name, IRNode useSite, Selector selector) {
+    public IBinding lookup(LookupContext context, Selector selector) {
       return null;
     }
-    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
+    public Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
       return EMPTY_BINDINGS_ITERATOR;
     }
     public void printTrace(PrintStream out, int indent) {
@@ -78,6 +79,37 @@ public interface IJavaScope {
 		return false;
 	}
   };
+  
+  @NotThreadSafe
+  public static class LookupContext {
+	  public IRNode useSite;
+	  public String name;
+	  //Selector selector;
+	  private IRNode enclosingType;
+	  
+	  public IRNode foundNewType(IRNode t) {
+		IRNode last = enclosingType;
+		enclosingType = t;
+		return last;
+	  }
+	  public void leavingType(IRNode t, IRNode last) {
+		if (t != enclosingType) {
+			throw new IllegalStateException();
+		}
+		enclosingType = last;
+	  }
+	  public LookupContext use(String name, IRNode node) {
+		  this.name = name;
+		  useSite = node;
+		  return this;
+	  }
+	  public IRNode getEnclosingType() {
+		  if (enclosingType == null) {
+			  enclosingType = VisitUtil.getEnclosingType(useSite);
+		  }
+		  return enclosingType;
+	  }
+  }
   
   /**
    * Selection criteria for nodes to be found with lookup.  A selector is
@@ -143,11 +175,11 @@ public interface IJavaScope {
         }
     };
     
-    public static IBinding lookupType(IJavaScope scope, String name, IRNode useSite) {
+    public static IBinding lookupType(IJavaScope scope, LookupContext context) {
       if (scope == null) {
       	  return null;
       }
-      return scope.lookup(name,useSite,isTypeDecl);
+      return scope.lookup(context,isTypeDecl);
     }
     
     public static final Selector isPackageDecl = new AbstractSelector("Only package decls") {
@@ -155,14 +187,14 @@ public interface IJavaScope {
         return JJNode.tree.getOperator(node) instanceof NamedPackageDeclaration;
       }
     };
-    public static IBinding lookupPackage(IJavaScope scope, String name, IRNode useSite) {
+    public static IBinding lookupPackage(IJavaScope scope, LookupContext context) {
       if (scope == null) {
     	  return null;
       }
       if (!scope.canContainPackages()) {
     	  return null;
       }
-      return scope.lookup(name,useSite,isPackageDecl);
+      return scope.lookup(context,isPackageDecl);
     }
     
     public static final Selector isConstructorDecl = new AbstractSelector("Only constructors") {
@@ -177,9 +209,9 @@ public interface IJavaScope {
       }      
     };
     
-    public static Iterator<IBinding> lookupCallable(IJavaScope scope, String name, IRNode useSite, 
+    public static Iterator<IBinding> lookupCallable(IJavaScope scope, LookupContext context, 
     		                                        Selector isAccessible, boolean needMethod) {
-      return scope.lookupAll(name,useSite, combineSelectors(needMethod ? isMethodDecl : isConstructorDecl, isAccessible));
+      return scope.lookupAll(context, combineSelectors(needMethod ? isMethodDecl : isConstructorDecl, isAccessible));
     }
     
     public static final Selector isValueDecl = new AbstractSelector("Only value decls") {
@@ -189,8 +221,8 @@ public interface IJavaScope {
          || op instanceof EnumConstantDeclaration;
       }      
     };
-    public static IBinding lookupValue(IJavaScope scope, String name, IRNode useSite) {
-      return scope.lookup(name,useSite,isValueDecl);
+    public static IBinding lookupValue(IJavaScope scope, LookupContext context) {
+      return scope.lookup(context,isValueDecl);
     }
     
     public static final Selector isAnnotationElt = new AbstractSelector("Only annotation elements") {
@@ -200,8 +232,8 @@ public interface IJavaScope {
       }      
     };
     
-    public static IBinding lookupAnnotationElt(IJavaScope scope, String name, IRNode useSite) {
-      return scope.lookup(name,useSite,isAnnotationElt);
+    public static IBinding lookupAnnotationElt(IJavaScope scope, LookupContext context) {
+      return scope.lookup(context,isAnnotationElt);
     }
     
     public static final Selector isAnnoEltOrNoArgMethod = eitherSelector(isAnnotationElt, new AbstractSelector("") {
@@ -221,8 +253,8 @@ public interface IJavaScope {
         return op instanceof ReceiverDeclaration;
       }
     };
-    public static IBinding lookupReceiver(IJavaScope scope, String name, IRNode useSite) {
-      return scope.lookup(name,useSite,isReceiverDecl);
+    public static IBinding lookupReceiver(IJavaScope scope, LookupContext context) {
+      return scope.lookup(context,isReceiverDecl);
     }
     
     public static final Selector isLabeledStatement = new AbstractSelector("Only labeled stmts") {
@@ -231,8 +263,8 @@ public interface IJavaScope {
         return op instanceof LabeledStatement;
       }
     };
-    public static IBinding lookupLabel(IJavaScope scope, String name, IRNode useSite) {
-      return scope.lookup(name,useSite,isLabeledStatement);
+    public static IBinding lookupLabel(IJavaScope scope, LookupContext context) {
+      return scope.lookup(context,isLabeledStatement);
     }
         
     public static final Selector isReturnValue = new AbstractSelector("Only return values") {
@@ -241,8 +273,8 @@ public interface IJavaScope {
         return op instanceof ReturnValueDeclaration;
       }
     };
-    public static IBinding lookupReturnValue(IJavaScope scope, String name, IRNode useSite) {
-      return scope.lookup(name,useSite,isReturnValue);
+    public static IBinding lookupReturnValue(IJavaScope scope, LookupContext context) {
+      return scope.lookup(context,isReturnValue);
     }
     
     public static final Selector couldBeNonTypeName = new AbstractSelector("Could bind to a name (not a type)") {
@@ -261,8 +293,8 @@ public interface IJavaScope {
                !(op instanceof LabeledStatement);
       }      
     };
-    public static IBinding lookupName(IJavaScope scope, String name, IRNode useSite) {
-      return scope.lookup(name,useSite,couldBeName);
+    public static IBinding lookupName(IJavaScope scope, LookupContext context) {
+      return scope.lookup(context,couldBeName);
     }
     
     public static final Selector isntType = new AbstractSelector("Not type decl") {
@@ -270,8 +302,8 @@ public interface IJavaScope {
         return !isTypeDecl(node);
       }      
     };
-    public static IBinding lookupNonType(IJavaScope scope, String name, IRNode useSite) {
-      return scope.lookup(name,useSite,isntType);
+    public static IBinding lookupNonType(IJavaScope scope, LookupContext context) {
+      return scope.lookup(context,isntType);
     }
     
     public static final Selector isStatic = new AbstractSelector("Only static") {
@@ -346,15 +378,15 @@ public interface IJavaScope {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookup(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
-    public IBinding lookup(String name, IRNode useSite, Selector sel) {
-      return scope.lookup(name,useSite,Util.combineSelectors(selector,sel));
+    public IBinding lookup(LookupContext context, Selector sel) {
+      return scope.lookup(context,Util.combineSelectors(selector,sel));
     }
     
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookupAll(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
-    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector sel) {
-      return scope.lookupAll(name,useSite,Util.combineSelectors(selector,sel));
+    public Iteratable<IBinding> lookupAll(LookupContext context, Selector sel) {
+      return scope.lookupAll(context,Util.combineSelectors(selector,sel));
     }
 
     public void printTrace(PrintStream out, int indent) {
@@ -385,23 +417,23 @@ public interface IJavaScope {
 		return outer.canContainPackages();
 	} 
     
-    public IBinding lookup(String name, IRNode useSite, Selector selector) {
+    public IBinding lookup(LookupContext context, Selector selector) {
       boolean debug = LOG.isLoggable(Level.FINER);
       if (debug) {
-        LOG.finer("Looking for " + name + " in " + this);
+        LOG.finer("Looking for " + context.name + " in " + this);
       }
       if (locals != null) {
-        IBinding found = locals.get(name);
+        IBinding found = locals.get(context.name);
         if (found != null && found.getNode() != null && selector.select(found.getNode())) {
           if (debug) LOG.finer("Found candidate " + found);
           return found;
         }
       }
-      return outer.lookup(name,useSite,selector);
+      return outer.lookup(context,selector);
     }
     
-    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
-      return outer.lookupAll(name,useSite,selector);
+    public Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
+      return outer.lookupAll(context,selector);
     }
     
     /**
@@ -474,21 +506,21 @@ public interface IJavaScope {
 		return outer.canContainPackages();
 	} 
     
-    public IBinding lookup(String name, IRNode useSite, Selector selector) {
-      List<IBinding> l = locals.get(name);
-      if (l == null) return outer.lookup(name,useSite,selector);
+    public IBinding lookup(LookupContext context, Selector selector) {
+      List<IBinding> l = locals.get(context.name);
+      if (l == null) return outer.lookup(context,selector);
       for (IBinding bind : l) {
         if (selector.select(bind.getNode())) {
           return bind;
         }
       }
-      return outer.lookup(name,useSite,selector);
+      return outer.lookup(context,selector);
     }
     
     @SuppressWarnings("unchecked")
-	public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
-      List<IBinding> l = locals.get(name);
-      if (l == null) return outer.lookupAll(name,useSite,selector);
+	public Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
+      List<IBinding> l = locals.get(context.name);
+      if (l == null) return outer.lookupAll(context,selector);
       Vector<IBinding> selected = null;
       for (IBinding binding : l) {
         if (selector.select(binding.getNode())) {
@@ -496,7 +528,7 @@ public interface IJavaScope {
           selected.addElement(binding);
         }
       }
-      Iteratable<IBinding> outerResult = outer.lookupAll(name,useSite,selector);
+      Iteratable<IBinding> outerResult = outer.lookupAll(context,selector);
       if (selected == null || selected.isEmpty()) return outerResult;
       return (Iteratable<IBinding>) AppendIterator.append(selected.iterator(),outerResult);
     }
@@ -554,13 +586,13 @@ public interface IJavaScope {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookup(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
-    public IBinding lookup(String name, IRNode useSite, Selector selector) {
-      IBinding result = scope1.lookup(name,useSite,selector);
+    public IBinding lookup(LookupContext context, Selector selector) {
+      IBinding result = scope1.lookup(context,selector);
       if (result == null) {
     	  try {
-    		  result = scope2.lookup(name,useSite,selector);
+    		  result = scope2.lookup(context,selector);
     	  } catch (StackOverflowError e) {
-    		  System.out.println("Overflow on "+DebugUnparser.toString(useSite));
+    		  System.out.println("Overflow on "+DebugUnparser.toString(context.useSite));
     		  throw e;
     	  }
       }
@@ -571,9 +603,9 @@ public interface IJavaScope {
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookupAll(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
     @SuppressWarnings("unchecked")
-	public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
-      Iteratable<IBinding> result1 = scope1.lookupAll(name,useSite,selector);
-      Iteratable<IBinding> result2 = scope2.lookupAll(name,useSite,selector);
+	public Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
+      Iteratable<IBinding> result1 = scope1.lookupAll(context,selector);
+      Iteratable<IBinding> result2 = scope2.lookupAll(context,selector);
       if (result1.hasNext()) {
         if (result2.hasNext()) {
           return (Iteratable<IBinding>) AppendIterator.append(result1, result2);
@@ -615,16 +647,16 @@ public interface IJavaScope {
 		return scope1.canContainPackages() || scope2.canContainPackages();
 	} 
     
-    public IBinding lookup(String name, IRNode useSite, Selector selector) {
-      IBinding result = scope1.lookup(name,useSite,selector);
+    public IBinding lookup(LookupContext context, Selector selector) {
+      IBinding result = scope1.lookup(context,selector);
       if (result == null)
-        return scope2.lookup(name,useSite,selector);
+        return scope2.lookup(context,selector);
       return result;
     }
-    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
-      Iteratable<IBinding> result = scope1.lookupAll(name,useSite,selector);
+    public Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
+      Iteratable<IBinding> result = scope1.lookupAll(context,selector);
       if (!result.hasNext())
-        return scope2.lookupAll(name,useSite,selector);
+        return scope2.lookupAll(context,selector);
       return result;
     }
     public void printTrace(PrintStream out, int indent) {
@@ -643,24 +675,24 @@ public interface IJavaScope {
 		selectorForS1 = s1;
 	}
 	@Override
-	public IBinding lookup(String name, IRNode useSite, Selector selector) {
+	public IBinding lookup(LookupContext context, Selector selector) {
 		final Selector combined = Util.combineSelectors(selectorForS1, selector);
-		IBinding result = scope1.lookup(name,useSite,combined);
+		IBinding result = scope1.lookup(context,combined);
 		if (result == null)
-			return scope2.lookup(name,useSite,selector);
+			return scope2.lookup(context,selector);
 		return result;
 	}
 	@Override
-	public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
+	public Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
 		final Selector combined = Util.combineSelectors(selectorForS1, selector);
-		Iteratable<IBinding> result = scope1.lookupAll(name,useSite,combined);
+		Iteratable<IBinding> result = scope1.lookupAll(context,combined);
 		/*
 		if (result == null) {
-			scope1.lookupAll(name,useSite,combined);
+			scope1.lookupAll(context,combined);
 		}
 		*/
 		if (!result.hasNext())
-			return scope2.lookupAll(name,useSite,selector);
+			return scope2.lookupAll(context,selector);
 		return result;
 	}
 	@Override
@@ -803,8 +835,8 @@ public interface IJavaScope {
     	return null;
     }
     
-    public IBinding lookup(String name, IRNode useSite, Selector selector) {
-      IBinding result = scope.lookup(name,useSite,selector);
+    public IBinding lookup(LookupContext context, Selector selector) {
+      IBinding result = scope.lookup(context,selector);
       if (result == null) return null;
       /*
       if (name.equals("foundUnlock") &&
@@ -815,8 +847,8 @@ public interface IJavaScope {
       return substBinding(result);
     }
 
-    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
-      Iteratable<IBinding> result = scope.lookupAll(name,useSite,selector);
+    public Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
+      Iteratable<IBinding> result = scope.lookupAll(context,selector);
       if (!result.hasNext()) return result;
       return new FilterIterator<IBinding,IBinding>(result) {
         @Override
