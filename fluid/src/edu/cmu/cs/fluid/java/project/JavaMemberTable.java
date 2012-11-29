@@ -796,6 +796,10 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     	if (useSite == null) {
     		return false;
     	}
+    	final Operator op = JJNode.tree.getOperator(useSite); 
+    	if (!Type.prototype.includes(op) && !(op instanceof Name)) {
+    		return false;
+    	}
     	final IRNode type = VisitUtil.getEnclosingType(useSite);
     	if (!typeDeclaration.equals(type)) {
     		// The use isn't in this type itself
