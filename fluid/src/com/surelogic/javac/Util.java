@@ -937,7 +937,7 @@ public class Util {
         final UnversionedJavaBinder b = tEnv.getBinder();
         for (IRNode n : JJNode.tree.topDown(info.getNode())) {
           final Operator op = JJNode.tree.getOperator(n);
-          if (AbstractJavaBinder.isGranule(op, n)) {
+          if (AbstractJavaBinder.isGranule(n, op)) {
             try {
               b.ensureBindingsOK(n);
             } catch (RuntimeException e) {

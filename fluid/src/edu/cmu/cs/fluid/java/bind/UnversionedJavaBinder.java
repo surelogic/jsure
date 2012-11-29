@@ -179,7 +179,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     // If so, we need to clear all the cached data
     for(final IRNode n : JJNode.tree.topDown(cu)) {
       final Operator op = JJNode.tree.getOperator(n);
-      if (!isGranule(op, n)) {
+      if (!isGranule(n, op)) {
         continue;
       }
       IGranuleBindings b1 = allGranuleBindings.remove(n);
