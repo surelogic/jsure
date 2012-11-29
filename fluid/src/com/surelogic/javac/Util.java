@@ -1055,10 +1055,12 @@ public class Util {
         PromiseUtil.activateRequiredCuPromises(tEnv.getBinder(), tEnv.getBindHelper(), cu);
       }
     };
-    // cus.apply(proc);
+    cus.apply(proc);
+    /*
     for (final CodeInfo info : cus) {
       proc.op(info);
     }
+    */
     endSubTask(monitor);
   }
 
@@ -1354,11 +1356,12 @@ public class Util {
         }
       }
     };
-    // cus.apply(proc);
-
+    cus.apply(proc);
+    /*
     for (final CodeInfo info : cus) {
       proc.op(info);
     }
+    */
     endSubTask(monitor);
   }
 
