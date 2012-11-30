@@ -320,6 +320,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
    * {@link #BinderVisitor}.
    * @author Edwin
    */
+  @ThreadSafe
   class CompUnitBindings extends AbstractDerivedInformation implements IGranuleBindings {
     final IRNode unit;
     private final boolean hasFullInfo;

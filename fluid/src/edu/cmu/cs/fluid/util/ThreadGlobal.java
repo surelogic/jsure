@@ -7,7 +7,7 @@ package edu.cmu.cs.fluid.util;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.surelogic.ThreadSafe;
+import com.surelogic.*;
 import com.surelogic.common.logging.SLLogger;
 
 /**
@@ -20,6 +20,8 @@ import com.surelogic.common.logging.SLLogger;
  * stack, filled w/ default value
  */
 @ThreadSafe
+@Region("private ReclaimState")
+@RegionLock("ReclaimLock is this protects ReclaimState")
 public class ThreadGlobal<T> extends ThreadLocal<ThreadGlobal.Element<T>> {
   /**
 	 * Logger for this class
@@ -29,9 +31,15 @@ public class ThreadGlobal<T> extends ThreadLocal<ThreadGlobal.Element<T>> {
   private final T defaultValue;
 
   static class Element<V> {
+	@Unique("return")
+	Element() {
+		// Nothing to do
+	}
+	  
     V val;
     Element<V> next;
   }
+  @InRegion("ReclaimState")
   private Element<T> reclaimed;
 
   /**
@@ -40,6 +48,7 @@ public class ThreadGlobal<T> extends ThreadLocal<ThreadGlobal.Element<T>> {
 	 * @param def
 	 *          default value in case not set for thread.
 	 */
+  @Unique("return")
   public ThreadGlobal(T def) {
     defaultValue = def;
   }

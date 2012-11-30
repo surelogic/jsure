@@ -22,11 +22,13 @@ import edu.cmu.cs.fluid.util.*;
 import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
 import com.surelogic.RegionEffects;
 import com.surelogic.Borrowed;
+import com.surelogic.ThreadSafe;
 
 /**
  * A class that implements some of the basic type operations.
  * (in terms of getClassTable())
  */
+@ThreadSafe
 public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java");
   private static final boolean debug = LOG.isLoggable(Level.FINE);

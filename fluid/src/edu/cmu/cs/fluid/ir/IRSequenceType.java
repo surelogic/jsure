@@ -5,16 +5,19 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.logging.Logger;
 
+import com.surelogic.ThreadSafe;
+
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.NotImplemented;
 
 /** The type of storable homogenous sequences.
  * Each element is typed too.
  */
+@ThreadSafe
 public class IRSequenceType<T> implements IRCompoundType<IRSequence<T>> {
   private static final Logger LOG = Logger.getLogger("FLUID.ir.type");
   
-  private IRType<T> elementType;
+  private final IRType<T> elementType;
   public IRSequenceType(IRType<T> elemType) {
     elementType = elemType;
   }

@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.collections15.MultiMap;
 
+import com.surelogic.*;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.Pair;
@@ -24,8 +25,12 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.util.Iteratable;
 
+@ThreadSafe
+@Region("JTEState")
+@RegionLock("JTELock is this protects JTEState")
 public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		IOldTypeEnvironment {
+	@ThreadSafe
 	class Binder extends UnversionedJavaBinder {
 		Binder(JavacTypeEnvironment te) {
 			super(te);
@@ -79,7 +84,9 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	private static final boolean debug = Util.debug;
 	private final ClassTable classes = new ClassTable();
 	private final Binder binder = new Binder(this);
+	@InRegion("JTEState")
 	private SLProgressMonitor monitor;
+	@InRegion("JTEState")
 	private JavacProject project;
 	private final ConcurrentMap<IRNode, List<IRNode>> subtypeMap = new ConcurrentHashMap<IRNode, List<IRNode>>();
 	private final ConcurrentMap<String, CodeInfo> infos = new ConcurrentHashMap<String, CodeInfo>();
@@ -121,6 +128,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		//System.out.println("Making copy()");
 	}
 
+	@InRegion("JTEState")
 	private IRNode arrayClassDeclaration = null;
 	
 	private IRNode initArrayClassDecl() {
@@ -143,7 +151,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	    return arrayClassDeclaration;
 	}
 	
-	public JavacTypeEnvironment copy(JavacProject p) {
+	public synchronized JavacTypeEnvironment copy(JavacProject p) {
 		JavacTypeEnvironment copy = new JavacTypeEnvironment();
 		copy.project = p;
 		copy.infos.putAll(this.infos);
@@ -185,11 +193,11 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		return monitor;
 	}
 
-	public JavacProject getProject() {
+	public synchronized JavacProject getProject() {
 		return project;
 	}
 
-	void setProject(JavacProject newProject) {
+	synchronized void setProject(JavacProject newProject) {
 		project = newProject;
 	}
 
@@ -198,7 +206,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	}
 
 	@Override
-	public int getMajorJavaVersion() {
+	public synchronized int getMajorJavaVersion() {
 		if (project != null) {
 			return project.getConfig().getIntOption(Config.SOURCE_LEVEL);
 		}
@@ -209,7 +217,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	public IJavaClassTable getClassTable() {
 		return classes;
 	}
-
+	@ThreadSafe
 	private class ClassTable extends AbstractJavaClassTable {
 		private ConcurrentMap<String, IRNode> packages = new ConcurrentHashMap<String, IRNode>();
 		private ConcurrentMap<String, IRNode> outerClasses = new ConcurrentHashMap<String, IRNode>();

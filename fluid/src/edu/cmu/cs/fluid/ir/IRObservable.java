@@ -5,12 +5,15 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.surelogic.ThreadSafe;
+
 /** A variant of the standard observerable class where changes
  * are relative to an IRNode.  Normal observers are only notified
  * in the event that a value is changed.  But a special class of
  * observers are also notified when a value is defined that was
  * previously undefined.
  */
+@ThreadSafe
 public class IRObservable extends Observable {
   // Using this, instead of Observable's implementation
   private final CopyOnWriteArrayList<Observer> changeObservers = new CopyOnWriteArrayList<Observer>();	

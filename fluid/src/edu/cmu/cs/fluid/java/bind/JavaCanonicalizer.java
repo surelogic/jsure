@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.RegionLock;
+import com.surelogic.ThreadSafe;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.SLUtility;
@@ -119,6 +121,8 @@ import edu.cmu.cs.fluid.version.VersionedRegionDelta;
  * @see edu.cmu.cs.fluid.java.parse.JavaParser
  * @author boyland
  */
+@ThreadSafe
+@RegionLock("StatusLock is class protects isCanonicalizing")
 public class JavaCanonicalizer {
   private static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
 
@@ -130,7 +134,7 @@ public class JavaCanonicalizer {
 
   private final ITypeEnvironment tEnv;
 
-  private final Visitor<Boolean> doWork = new DoCanon();
+  private final DoCanon doWork = new DoCanon();
 
   private final SyntaxTree tree = (SyntaxTree) JJNode.tree; // NB: must be
                                                             // mutable!
@@ -258,6 +262,7 @@ public class JavaCanonicalizer {
   // but perform the changes themselves post-order.
   //
   // Returns true if anything changed
+  @ThreadSafe
   class DoCanon extends Visitor<Boolean> {
     @Override
     public Boolean doAccept(IRNode node) {
@@ -1396,14 +1401,18 @@ public class JavaCanonicalizer {
     return binder.getJavaType(n) instanceof IJavaReferenceType;
   }
 
-  protected synchronized boolean contextIsPrimitive(IRNode n) {
-    contextVisitor.loc = tree.getLocation(n);
-    return contextVisitor.doAccept(tree.getParent(n)) == PRIMITIVE_CONTEXT;
+  protected boolean contextIsPrimitive(IRNode n) {
+	synchronized (contextVisitor) {
+		contextVisitor.loc = tree.getLocation(n);
+		return contextVisitor.doAccept(tree.getParent(n)) == PRIMITIVE_CONTEXT;
+	}
   }
 
-  protected synchronized boolean contextIsReference(IRNode n) {
-    contextVisitor.loc = tree.getLocation(n);
-    return contextVisitor.doAccept(tree.getParent(n)) == REFERENCE_CONTEXT;
+  protected boolean contextIsReference(IRNode n) {
+	synchronized (contextVisitor) {
+		contextVisitor.loc = tree.getLocation(n);
+		return contextVisitor.doAccept(tree.getParent(n)) == REFERENCE_CONTEXT;
+	}
   }
 
   static final int REFERENCE_CONTEXT = 1;
@@ -1412,6 +1421,7 @@ public class JavaCanonicalizer {
 
   static final int ANY_CONTEXT = 0;
 
+  @RegionLock("L is this protects Instance")
   class ContextVisitor extends Visitor<Integer> {
     IRLocation loc;
 

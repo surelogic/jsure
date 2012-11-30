@@ -3,6 +3,8 @@ package edu.cmu.cs.fluid.java.bind;
 
 import java.util.List;
 
+import com.surelogic.ThreadSafe;
+
 import edu.cmu.cs.fluid.derived.IDerivedInformation;
 import edu.cmu.cs.fluid.ir.*;
 
@@ -11,6 +13,7 @@ import edu.cmu.cs.fluid.ir.*;
  * The granularity is determined by what can be done to avoid circular derivation.
  * @author boyland
  */
+@ThreadSafe
 public interface IGranuleBindings extends IDerivedInformation {
   /**
    * Return the slot info for method override information.

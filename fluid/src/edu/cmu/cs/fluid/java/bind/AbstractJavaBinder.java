@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.ThreadSafe;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
@@ -135,6 +136,7 @@ import edu.cmu.cs.fluid.version.Version;
  * @author Edwin.Chan
  * @author John Boyland
  */
+@ThreadSafe
 public abstract class AbstractJavaBinder extends AbstractBinder {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
   private static final IJavaType[] noTypes = JavaGlobals.noTypes;
@@ -424,20 +426,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     final Operator op          = JJNode.tree.getOperator(node); 
     final boolean needFullInfo = needFullInfo(node, op, gr);
     final Map<IRNode,IGranuleBindings> granuleBindings =
-  	  needFullInfo ? allGranuleBindings : partialGranuleBindings;
-    IGranuleBindings bindings;
-    // FIX deadlock 
-    // Issue: we alternate between locking on the IGranuleBinding and the Binder 
-    bindings = granuleBindings.get(gr);
-    
+  	  needFullInfo ? allGranuleBindings : partialGranuleBindings; 
+    // Note: don't alternate between locking on the IGranuleBinding and the Binder 
+    IGranuleBindings bindings = granuleBindings.get(gr);
     if (bindings == null || bindings.isDestroyed()) {
     	bindings = makeGranuleBindings(gr, needFullInfo);	
     	granuleBindings.put(gr,bindings);    	
     }
-    
-    // FIX hack to be able to use just derived info (e.g. a binding for a NamedType)
-    // to compute other info (e.g. a binding for a ParameterizedType containing the
-    // NamedType)
+  
     final Stack<IGranuleBindings> stack = bindingStack.get();
     stack.push(bindings);    
 
@@ -2920,6 +2916,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   /**
    * A type environment implementation linked to this binder.
    */
+  @ThreadSafe
   private class TypeEnv extends AbstractTypeEnvironment {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.bind.ITypeEnvironment#getBinder()

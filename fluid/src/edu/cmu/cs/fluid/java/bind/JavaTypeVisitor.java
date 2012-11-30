@@ -12,12 +12,14 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
+import com.surelogic.ThreadSafe;
 import com.surelogic.common.logging.SLLogger;
 
 /**
  * Class for computing the type of an AST node.
  * @author yangzhao
  */
+@ThreadSafe
 public class JavaTypeVisitor extends Visitor<IJavaType> {
   
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");

@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.java.bind;
 
+import com.surelogic.ThreadSafe;
+
 import edu.cmu.cs.fluid.util.*;
 import edu.cmu.cs.fluid.ir.*;
 
@@ -8,6 +10,7 @@ import edu.cmu.cs.fluid.ir.*;
  * @see ITypeEnvironment
  * @author boyland
  */
+@ThreadSafe
 public interface IBinder {  
   void disableWarnings();
   

@@ -1,6 +1,8 @@
 // $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/tree/SyntaxTreeInterface.java,v 1.3 2003/07/02 20:19:08 thallora Exp $ 
 package edu.cmu.cs.fluid.tree;
 
+import com.surelogic.ThreadSafe;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 
 /** Abstract interface for syntax trees (see @{link SyntaxTree} for more
@@ -8,6 +10,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  *
  * @author Edwin Chan
  */
+@ThreadSafe
 public interface SyntaxTreeInterface extends MutableTreeInterface, GraphLabel {
   public boolean opExists(IRNode node);
 

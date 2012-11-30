@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.ThreadSafe;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 
@@ -26,6 +27,7 @@ import edu.cmu.cs.fluid.util.*;
  * @author Edwin
  *
  */
+@ThreadSafe
 public abstract class AbstractBinder implements IBinder {
   private static final Logger LOG = SLLogger.getLogger("FLUID.bind");
   
