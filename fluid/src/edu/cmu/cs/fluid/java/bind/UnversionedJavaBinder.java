@@ -65,6 +65,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     IDE.getInstance().addCompUnitListener(this);
   }
   
+  // TODO not threadsafe
   private JavaCanonicalizer.IBinderCache cache = null;
   
   void setBinderCache(JavaCanonicalizer.IBinderCache c) {
