@@ -10,8 +10,7 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.ThreadSafe;
-import com.surelogic.Starts;
+import com.surelogic.*;
 
 /**
  * This is a class designed to manage and run a set of Runnable tasks that may
@@ -40,7 +39,6 @@ import com.surelogic.Starts;
  * @Lock is taskLock protects taskLockNames
  * @Lock is stateLock protects isProcessing
  */
-@ThreadSafe
 public class TaskManager extends ThreadPoolExecutor {
 	/**
 	 * The collection of ITask objects that must be run in order of their
