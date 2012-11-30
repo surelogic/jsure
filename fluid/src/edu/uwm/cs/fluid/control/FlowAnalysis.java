@@ -42,6 +42,7 @@ import edu.uwm.cs.fluid.control.LabeledLattice.Combiner;
 import edu.uwm.cs.fluid.control.LabeledLattice.LabelOp;
 import edu.uwm.cs.fluid.control.LabeledLattice.LabeledValue;
 import edu.uwm.cs.fluid.control.LabeledLattice.UnaryOp;
+import com.surelogic.Unique;
 
 /** A class for performing flow analysis over a control-flow graph
  * <p>
@@ -112,10 +113,12 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
    * @param l the lattice of values for the analysis.
    * @see #getInfo
    */
+  @Unique("return")
   protected FlowAnalysis(final String n, final L l, final IRNodeViewer nv) {
     this(n,l, nv, false);
   }
   
+  @Unique("return")
   protected FlowAnalysis(final String n, final L l, final IRNodeViewer nv, final boolean timeOut) {
     name = n;
     lattice = l;
@@ -145,13 +148,15 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   
   @Override
   @SuppressWarnings("unchecked")
-  public IFlowAnalysis<T, L> clone() {
+  public synchronized IFlowAnalysis<T, L> clone() {
     try {
       FlowAnalysis<T, L> copy = (FlowAnalysis<T, L>) super.clone();
-      copy.worklist = copy.worklist.clone();
-      copy.infoMap = new HashMap<ControlEdge,LabeledLattice.LabeledValue<T>>();
-      copy.iterations = 0;
-      return copy;
+      synchronized (copy) { // TODO should be unique
+    	  copy.worklist = copy.worklist.clone();
+    	  copy.infoMap = new HashMap<ControlEdge,LabeledLattice.LabeledValue<T>>();
+    	  copy.iterations = 0;
+    	  return copy;
+      }
     } catch (CloneNotSupportedException ex) {
       // won't happen
       return null;
@@ -258,6 +263,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     return infoLattice.getValue(getRawInfo(edge),ll,lattice.bottom());
   }
   @SuppressWarnings("unused")
+  @RequiresLock("ComputeLock")
   protected void setInfo(ControlEdge edge, LabeledLattice.LabeledValue<T> lv) {
     if (lv == null) return; // assume transfers are strict
     LabeledLattice.LabeledValue<T> old = infoMap.get(edge);
@@ -296,6 +302,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   protected abstract ControlNode getNodeFromEdgeForWorklist(ControlEdge edge);
   
   @SuppressWarnings("unused")
+  @RequiresLock("ComputeLock")
   protected void setInfo(ControlEdge edge, LabelList ll, T value) {
     if (edge == null) {
       throw new FluidError("setInfo got null edge");
@@ -314,6 +321,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.IFlowAnalysis#performAnalysis()
    */
+  @RequiresLock("ComputeLock")
   protected final void realPerformAnalysis() {
     final IDE ide = IDE.getInstance();    
     final long deadline = System.nanoTime() + timeOutDuration;
@@ -345,7 +353,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.IFlowAnalysis#reworkAll()
    */
-  public void reworkAll() {
+  public synchronized void reworkAll() {
     if (worklist.hasNext()) {
       // or log something
       throw new FluidError("reworkAll called too soon");
@@ -361,6 +369,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     nodes.clear();
   }
 
+  @RequiresLock("ComputeLock")
   protected void work(ControlNode node) {
     if (LOG.isLoggable(Level.FINE)) {
       LOG.fine(iterations + ": working with " + node);
@@ -402,10 +411,12 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   protected abstract void transferSource(Source n);
   protected abstract void transferSink(Sink n);
   
+  @RequiresLock("ComputeLock")
   protected void doNOPtransfer(ControlEdge e1, ControlEdge e2) {
     setInfo(e2,infoMap.get(e1));
   }
   @SuppressWarnings("unused")
+  @RequiresLock("ComputeLock")
   protected <U> void doTransfer(ControlEdge e1, ControlEdge e2,
                                   UnaryOp<T,U> op, U arg) {
     LabeledValue<T> lv1 = infoMap.get(e1);
@@ -433,6 +444,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     setInfo(e2,result);
   }
   @SuppressWarnings("unused")
+  @RequiresLock("ComputeLock")  
   protected <U> void doTransfer(ControlEdge e1, ControlEdge e2, ControlEdge e3,
                                  Combiner<T,U> combiner, U arg) {
     LabeledValue<T> lv1 = infoMap.get(e1);
@@ -466,6 +478,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     setInfo(e3,result);
   }
   @SuppressWarnings("unused")
+  @RequiresLock("ComputeLock")
   protected <U> void doTransfer(ControlEdge e1, ControlEdge e2,
                                  LabelOp<U> op, U arg) {
     LabeledValue<T> lv1 = infoMap.get(e1);
@@ -495,6 +508,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     setInfo(e2,result);
   }
   @SuppressWarnings("unused")
+  @RequiresLock("ComputeLock")
   protected <U> void doTransfer(ControlEdge e1, ControlEdge e2, ControlEdge e3,
                                   LabelOp<U> op1,  U arg1, LabelOp<U> op2, U arg2) {
     LabeledValue<T> lv1 = infoMap.get(e1);
@@ -528,7 +542,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.IFlowAnalysis#getIterations()
    */
-  public long getIterations() {
+  public synchronized long getIterations() {
     return iterations;
   }
   
