@@ -9,6 +9,7 @@ import org.apache.commons.collections15.MultiMap;
 
 import com.surelogic.InRegion;
 import com.surelogic.RequiresLock;
+import com.surelogic.ThreadSafe;
 import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
@@ -28,6 +29,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import extra166y.Ops.Procedure;
 import com.surelogic.Unique;
 
+@ThreadSafe
 public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUnitListener {
   private static final boolean cacheAllSourceTypes = true;
   
@@ -65,6 +67,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     IDE.getInstance().addCompUnitListener(this);
   }
   
+  // TODO not threadsafe
   private JavaCanonicalizer.IBinderCache cache = null;
   
   void setBinderCache(JavaCanonicalizer.IBinderCache c) {
