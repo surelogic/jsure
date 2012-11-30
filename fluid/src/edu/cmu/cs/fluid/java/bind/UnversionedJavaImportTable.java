@@ -63,10 +63,11 @@ public final class UnversionedJavaImportTable extends AbstractJavaImportTable {
     	}
     }
 
-    @RequiresLock("StateLock")
 	@Override
     protected boolean derive() {
-      initialize();
+	  synchronized (UnversionedJavaImportTable.this) {
+		  initialize();
+	  }
       return true;
     }    
   }

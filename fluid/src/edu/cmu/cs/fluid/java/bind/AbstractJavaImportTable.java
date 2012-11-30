@@ -26,7 +26,7 @@ import edu.cmu.cs.fluid.util.*;
  * @author boyland
  * @author Edwin.Chan
  */
-@Region("ImportState")
+@Region("protected ImportState")
 @RegionLock("StateLock is this protects ImportState")
 public abstract class AbstractJavaImportTable implements IJavaScope {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");

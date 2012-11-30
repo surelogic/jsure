@@ -20,6 +20,8 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
+import com.surelogic.RegionEffects;
+import com.surelogic.Borrowed;
 
 /**
  * A class that implements some of the basic type operations.
@@ -360,7 +362,9 @@ private long parseIntLiteral(String token) {
       return type.subst(subst);
     }
     
-    public void remove() {
+    @Borrowed("this")
+	@RegionEffects("writes Instance")
+	public void remove() {
       throw new UnsupportedOperationException("Cannot remove");
     }
   }

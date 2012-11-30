@@ -82,12 +82,13 @@ public final class JavaImportTable extends AbstractJavaImportTable {
       super(v);
     }
     @Override
-    public synchronized void clear() {
-      // TODO Is this synchronization right
-      super.clear();
-      direct.clear();
-      indirect.clear();
-      // factory = null;
+    public void clear() {
+    	synchronized (JavaImportTable.this) {
+    		super.clear();      
+    		direct.clear();
+    		indirect.clear();
+    		// factory = null;
+    	}
     }
 
     @Override
@@ -103,14 +104,15 @@ public final class JavaImportTable extends AbstractJavaImportTable {
       return TreeChangedIterator.iterator(JavaIncrementalBinder.treeChanged,JJNode.tree,node,v1,v2);
     }
     
-    @RequiresLock("StateLock")
 	protected void deriveRelated(Version oldV, Version newV) {
       Version.saveVersion(newV);
       try {
         IRNode imports = CompilationUnit.getImps(compilationUnit);
         // if a whole new node, start from scratch:
         if (JavaIncrementalBinder.parentIsChanged(imports,oldV)) {
-          initialize();
+          synchronized (JavaImportTable.this) {
+        	  initialize();
+          }
           return;
         }
         // otherwise, find all removed nodes, and clear them:
