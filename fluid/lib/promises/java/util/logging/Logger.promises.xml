@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.logging" release="1">
+<package name="java.util.logging" release="2">
     <class name="Logger">
+        <ThreadSafe/>
         <method name="fine" params="java.lang.String">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads arg0:Instance; writes this:Instance</RegionEffects>
