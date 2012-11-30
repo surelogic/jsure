@@ -11,6 +11,7 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.*;
 import com.surelogic.annotation.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.PromiseDrop;
@@ -19,15 +20,11 @@ import com.surelogic.promise.*;
 
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.analysis.IWarningReport;
 import edu.cmu.cs.fluid.java.analysis.SilentWarningReport;
-import edu.cmu.cs.fluid.java.promise.*;
 import edu.cmu.cs.fluid.promise.*;
 import edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo;
-import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
-import com.surelogic.ThreadSafe;
 
 /**
  * @author chance
@@ -236,13 +233,17 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
    * HashMap, but modified to note whether we should create IRNodes if none
    */
   @ThreadSafe
-private static class MyMap extends ConcurrentHashMap<IRNode,IRNode> {
+  @Region("MyState")
+  @RegionLock("L is this protects MyState")
+  private static class MyMap extends ConcurrentHashMap<IRNode,IRNode> {
 	private static final long serialVersionUID = 1L;
-	
+	@InRegion("MyState")
 	boolean f_createIfNone = false;
+	@InRegion("MyState")
 	boolean f_onlyAssume = false;
 	final IRNode compUnit;
 
+	@Unique("return")
 	MyMap(IRNode cu) {
 		compUnit = cu;
 	}
