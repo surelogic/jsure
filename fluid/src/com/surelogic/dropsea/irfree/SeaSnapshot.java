@@ -129,7 +129,9 @@ public class SeaSnapshot extends XmlCreator {
       final String encodedJavaRef = javaRef.encodeForPersistence();
       db.addAttribute(JAVA_REF, encodedJavaRef);
     }
-    d.snapshotAttrs(db);
+    synchronized (d.getSeaLock()) {
+    	d.snapshotAttrs(db);
+    }
     d.snapshotRefs(this, db);
     db.end();
   }

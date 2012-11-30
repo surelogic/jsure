@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.surelogic.MustInvokeOnOverride;
+import com.surelogic.RequiresLock;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
 import com.surelogic.dropsea.irfree.XmlCreator;
@@ -191,6 +192,7 @@ public abstract class CUDrop extends Drop {
 
   @Override
   @MustInvokeOnOverride
+  @RequiresLock("SeaLock")
   public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute("filename", f_javaOSFileName);

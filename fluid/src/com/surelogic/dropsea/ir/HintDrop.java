@@ -5,6 +5,7 @@ import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.HINT_TYPE_ATTR;
 
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
+import com.surelogic.RequiresLock;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.irfree.XmlCreator;
 
@@ -60,6 +61,7 @@ public final class HintDrop extends Drop implements IHintDrop {
   }
 
   @MustInvokeOnOverride
+  @RequiresLock("SeaLock")
   public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(HINT_TYPE_ATTR, f_type.toString());

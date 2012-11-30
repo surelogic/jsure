@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import com.surelogic.NonNull;
+import com.surelogic.RequiresLock;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
@@ -365,6 +366,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   }
 
   @Override
+  @RequiresLock("SeaLock")
   public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(JAVA_ANNOTATION, getJavaAnnotation());

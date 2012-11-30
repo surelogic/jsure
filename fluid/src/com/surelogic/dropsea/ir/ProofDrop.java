@@ -178,7 +178,6 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
   /**
    * Holds the set of promises proposed by this drop if not proved consistent.
    */
-  @InRegion("DropState")
   @UniqueInRegion("DropState")
   private List<ProposedPromiseDrop> f_proposalsNotProvedConsistent = null;
 
@@ -341,6 +340,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
 
   @Override
   @MustInvokeOnOverride
+  @RequiresLock("SeaLock")
   public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(USES_RED_DOT_ATTR, proofUsesRedDot());

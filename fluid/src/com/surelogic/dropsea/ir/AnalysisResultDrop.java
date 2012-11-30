@@ -46,7 +46,9 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   private final Set<PromiseDrop<? extends IAASTRootNode>> f_checks = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 
   public boolean hasChecked() {
-    return !f_checks.isEmpty();
+	synchronized (f_seaLock) {
+		return !f_checks.isEmpty();
+	}
   }
 
   /**
@@ -256,6 +258,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    * 
    * @return {@code true} if something changes, {@code false} otherwise.
    */
+  @RequiresLock("SeaLock")
   final boolean proofTransferUsedBy() {
     boolean changed = false; // assume the best
 
@@ -312,7 +315,9 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     }
   }
 
+  @MustInvokeOnOverride
   @Override
+  @RequiresLock("SeaLock")
   public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(USED_BY_PROOF, usedByProof());

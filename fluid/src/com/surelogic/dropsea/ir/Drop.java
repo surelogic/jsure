@@ -59,7 +59,7 @@ import edu.cmu.cs.fluid.java.JavaPromise;
  * 
  * @see Sea
  */
-@Region("DropState")
+@Region("protected DropState")
 @RegionLock("SeaLock is f_seaLock protects DropState")
 public abstract class Drop implements IDrop {
 
@@ -1045,7 +1045,6 @@ public abstract class Drop implements IDrop {
   /**
    * Holds the set of promises proposed by this drop.
    */
-  @InRegion("DropState")
   @UniqueInRegion("DropState")
   private List<ProposedPromiseDrop> f_proposals = null;
 
@@ -1069,6 +1068,7 @@ public abstract class Drop implements IDrop {
     return DROP;
   }
 
+  @RequiresLock("SeaLock")
   @MustInvokeOnOverride
   public void snapshotAttrs(XmlCreator.Builder s) {
     s.addAttribute(MESSAGE, getMessage());
