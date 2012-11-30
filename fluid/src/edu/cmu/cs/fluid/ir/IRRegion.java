@@ -10,6 +10,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Iterator;
 
+import com.surelogic.ThreadSafe;
+
 import edu.cmu.cs.fluid.FluidRuntimeException;
 import edu.cmu.cs.fluid.util.IntegerTable;
 import edu.cmu.cs.fluid.util.UniqueID;
@@ -20,6 +22,7 @@ import edu.cmu.cs.fluid.util.UniqueID;
  * Information about all the owned nodes is stored together. </p>
  * @see IndependentIRNode
  */
+@ThreadSafe
 public class IRRegion extends IRPersistent {
   /* Node ownership: these tables are used *except* for PlainIRNodes */
   private static final Hashtable<IRNode,Object> nodeOwnerTable = new Hashtable<IRNode,Object>();

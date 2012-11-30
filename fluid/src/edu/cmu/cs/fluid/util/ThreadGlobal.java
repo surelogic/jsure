@@ -7,6 +7,7 @@ package edu.cmu.cs.fluid.util;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.ThreadSafe;
 import com.surelogic.common.logging.SLLogger;
 
 /**
@@ -18,6 +19,7 @@ import com.surelogic.common.logging.SLLogger;
  * "head" (if created), to avoid get/set() Abstraction of having an infinite
  * stack, filled w/ default value
  */
+@ThreadSafe
 public class ThreadGlobal<T> extends ThreadLocal<ThreadGlobal.Element<T>> {
   /**
 	 * Logger for this class

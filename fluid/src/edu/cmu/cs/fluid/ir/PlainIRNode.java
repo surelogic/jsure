@@ -6,6 +6,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+import com.surelogic.*;
+
 import edu.cmu.cs.fluid.util.CountInstances;
 import edu.cmu.cs.fluid.util.ThreadGlobal;
 
@@ -17,10 +19,10 @@ import edu.cmu.cs.fluid.util.ThreadGlobal;
  * will probably have an owning region.
  * @see SlotInfo
  * @see IRRegion
- * 
- * @region private State
- * @lock StateLock is this protects State
  */
+@ThreadSafe
+@Region("private State")
+@RegionLock("StateLock is this protects State")
 public class PlainIRNode extends AbstractIRNode implements Serializable {
   private static final ThreadGlobal<IRRegion> regionVar = new ThreadGlobal<IRRegion>(null);
   
@@ -43,6 +45,7 @@ public class PlainIRNode extends AbstractIRNode implements Serializable {
 
   /** Create a new IRNode.  Add it to current region, if any.
    */
+  @Unique("return")
   public PlainIRNode() {
     this(getCurrentRegion());
   }
@@ -50,6 +53,7 @@ public class PlainIRNode extends AbstractIRNode implements Serializable {
   /** Create a new IRNode.
    * @param region region to add node to.
    */
+  @Unique("return")
   public PlainIRNode(IRRegion region) {
     if (region != null) {
       region.saveNode(this);
@@ -58,13 +62,9 @@ public class PlainIRNode extends AbstractIRNode implements Serializable {
     }
   }
 
-  /**
-   * @mapInto State
-   */
+  @InRegion("State")
   private Object ownerInfo = null;
-  /**
-   * @mapInto State
-   */
+
   private volatile int index = 0;
 
   // used only by IRRegion:

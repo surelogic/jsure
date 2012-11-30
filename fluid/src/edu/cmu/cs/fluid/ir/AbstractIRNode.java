@@ -2,6 +2,9 @@ package edu.cmu.cs.fluid.ir;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.surelogic.ThreadSafe;
+import com.surelogic.Unique;
+
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.util.IntegerTable;
 
@@ -11,6 +14,7 @@ import edu.cmu.cs.fluid.util.IntegerTable;
  * 
  * @author Edwin
  */
+@ThreadSafe
 public abstract class AbstractIRNode implements IRNode {
 	private static final AtomicLong destroyedNodes = new AtomicLong();
 	private static final AtomicLong nodesCreated = new AtomicLong();
@@ -29,7 +33,7 @@ public abstract class AbstractIRNode implements IRNode {
 			return 0;
 		}		
 	}
-
+	@Unique("return")
 	public AbstractIRNode() {
 		nodesCreated.getAndIncrement();
 	}
