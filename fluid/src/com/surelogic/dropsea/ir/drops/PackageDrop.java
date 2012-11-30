@@ -131,11 +131,15 @@ public final class PackageDrop extends CUDrop {
   }
 
   public void setHasPromises(boolean hasPromises) {
-    this.hasPromises = hasPromises;
+    synchronized (getSeaLock()) {
+    	this.hasPromises = hasPromises;
+    }
   }
 
   public boolean hasPromises() {
-    return hasPromises;
+	synchronized (getSeaLock()) {
+		return hasPromises;
+	}
   }
 
   /****************************************************
