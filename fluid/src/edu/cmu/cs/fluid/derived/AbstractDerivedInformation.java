@@ -3,11 +3,15 @@ package edu.cmu.cs.fluid.derived;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.surelogic.*;
+
 /**
  * A default implementation of IDerivedInformation
  * 
  * @author Edwin.Chan
  */
+@Region("protected Status")
+@RegionLock("StatusLock is this protects Status")
 public abstract class AbstractDerivedInformation implements IDerivedInformation {  
   /**
    * @mapInto Info

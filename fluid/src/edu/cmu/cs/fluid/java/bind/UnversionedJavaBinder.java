@@ -7,6 +7,7 @@ import java.util.logging.Level;
 
 import org.apache.commons.collections15.MultiMap;
 
+import com.surelogic.InRegion;
 import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
@@ -316,7 +317,9 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
    */
   class CompUnitBindings extends AbstractDerivedInformation implements IGranuleBindings {
     final IRNode unit;
+    @InRegion("Status")
     private boolean hasFullInfo = false;
+    @InRegion("Status")
     private boolean isDestroyed = false;
     
     /**

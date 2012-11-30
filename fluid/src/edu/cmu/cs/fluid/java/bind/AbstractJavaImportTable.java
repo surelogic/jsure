@@ -5,6 +5,7 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.logging.*;
 
+import com.surelogic.*;
 import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 
@@ -25,6 +26,8 @@ import edu.cmu.cs.fluid.util.*;
  * @author boyland
  * @author Edwin.Chan
  */
+@Region("ImportState")
+@RegionLock("StateLock is this protects ImportState")
 public abstract class AbstractJavaImportTable implements IJavaScope {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
 
@@ -38,6 +41,7 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
    * 
    * Subclass constructors need to call initialize()
    */
+  @Unique("return")
   protected AbstractJavaImportTable(IRNode cu, AbstractJavaBinder b) {
     compilationUnit = cu;
     binder = b;
@@ -50,6 +54,7 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
    * A map of strings to Entry objects that hold the scope that
    * the name should be looked up in (again)
    */
+  @UniqueInRegion("ImportState")
   final Map<String,Entry> direct = new HashMap<String,Entry>();
   
   /**
@@ -57,11 +62,14 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
    * imports that end in ".*".
    * A map from the import to an Entry object.
    */
+  @UniqueInRegion("ImportState")
   final Map<IRNode,Entry> indirect = new HashMap<IRNode,Entry>();
   //final Map<IRNode,Entry> indirect = new ListMap<IRNode,Entry>(); // for debugging
-  
+
+  @UniqueInRegion("ImportState")
   final Map<IRNode,Entry> indirectPackages = new HashMap<IRNode,Entry>();
   
+  @RequiresLock("StateLock")
   private Iterable<Map.Entry<IRNode, Entry>> getIndirectEntries() {
 	  return new AppendIterator<Map.Entry<IRNode,Entry>>(indirectPackages.entrySet().iterator(), 
 			  indirect.entrySet().iterator());
@@ -70,6 +78,7 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
   
   protected abstract IDerivedInformation makeInformation();
   
+  @RequiresLock("StateLock")
   protected final void initialize() {
     // clear the current tables
     // very cheap, if tables are empty already!
@@ -84,6 +93,7 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
     }
   }
   
+  @RequiresLock("StateLock")
   protected abstract void clearScopes(Map<?,Entry> map);
   
   /**
@@ -107,31 +117,37 @@ public abstract class AbstractJavaImportTable implements IJavaScope {
     } else {
       scope = new SelectedScope(scope,IJavaScope.Util.isTypeDecl);
     }
-    if (name == null) {
-      /*
+    synchronized (this) {
+    	if (name == null) {
+    		/*
       if (op instanceof ClassType) {
     	  LOG.warning("Unable to find "+itemNode);
     	  resolveImport(itemNode,importNode);
       }
-      */
-      if (isPackageScope) {
-    	  addScope(indirectPackages, importNode, scope);
-      } else {
-    	  addScope(indirect,importNode,scope);
-      }
-    } else {
-      if (name.indexOf('.') >= 0) {
-    	  LOG.warning("Got qualified name: "+name);
-    	  resolveImport(itemNode,importNode);
-      }
-      addScope(direct,name,scope);
+    		 */
+    		if (isPackageScope) {
+    			addScope(indirectPackages, importNode, scope);
+    		} else {
+    			addScope(indirect,importNode,scope);
+    		}
+    	} else {
+    		if (name.indexOf('.') >= 0) {
+    			LOG.warning("Got qualified name: "+name);
+    			resolveImport(itemNode,importNode);
+    		}
+    		addScope(direct,name,scope);
+    	}
     }
   }
 
   protected final void addIndirect(String qName,IRNode useSite) {
-    addScope(indirect,useSite,resolveAsScope(qName,useSite));
+	IJavaScope scope = resolveAsScope(qName,useSite);
+	synchronized (this) {
+		addScope(indirect,useSite,scope);
+	}
   }
       
+  @RequiresLock("StateLock")
   protected abstract <T> void addScope(Map<T,Entry> map, T key, IJavaScope scope);
   
   /**
@@ -410,6 +426,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     return rv;
   }
   
+  @Vouch("debug code")
   public void printTrace(PrintStream out, int indent) {
     DebugUtil.println(out, indent,"[Import table: "+this.compilationUnit+"]");
     for(String s : direct.keySet()) {
