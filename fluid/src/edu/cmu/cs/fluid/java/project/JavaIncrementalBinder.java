@@ -360,10 +360,6 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
     public boolean containsFullInfo() {
       return true;
     }
-
-    public void setContainsFullInfo(boolean full) {
-      throw new UnsupportedOperationException();
-    }
   }
   
   @Override
@@ -375,8 +371,8 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
   }
   
   @Override
-  protected final GranuleBindings makeGranuleBindings(IRNode cu) {
-    return new GranuleBindings(cu);
+  protected final GranuleBindings makeGranuleBindings(IRNode cu, boolean needFullInfo) {
+    return new GranuleBindings(cu); // TODO
   }
 
   @Override

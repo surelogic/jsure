@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import org.apache.commons.collections15.MultiMap;
 
 import com.surelogic.InRegion;
+import com.surelogic.RequiresLock;
 import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
@@ -25,6 +26,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import extra166y.Ops.Procedure;
+import com.surelogic.Unique;
 
 public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUnitListener {
   private static final boolean cacheAllSourceTypes = true;
@@ -304,8 +306,8 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   }
   
   @Override
-  protected IGranuleBindings makeGranuleBindings(IRNode cu) {
-    return new CompUnitBindings(cu);
+  protected IGranuleBindings makeGranuleBindings(IRNode cu, boolean needFullInfo) {
+    return new CompUnitBindings(cu, needFullInfo);
   }
   
   /**
@@ -317,10 +319,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
    */
   class CompUnitBindings extends AbstractDerivedInformation implements IGranuleBindings {
     final IRNode unit;
-    @InRegion("Status")
-    private boolean hasFullInfo = false;
-    @InRegion("Status")
-    private boolean isDestroyed = false;
+    private final boolean hasFullInfo;
     
     /**
      * binding each use of a name to the declaration that it refers to.
@@ -331,8 +330,10 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
      */
     final SlotInfo<List<IBinding>> methodOverridesAttr;
     
-    CompUnitBindings(IRNode cu) {
+    @Unique("return")
+	CompUnitBindings(IRNode cu, boolean needFullInfo) {
       unit = cu;
+      hasFullInfo = needFullInfo;
       SlotFactory f = SimpleSlotFactory.prototype;
       useToDeclAttr = f.newLabeledAttribute("CompUnitBindings.useToDecl");
       methodOverridesAttr = f.newLabeledAttribute("CompUnitBindings.methodOverrides", null);
@@ -342,14 +343,15 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     	return unit;
     }
     
-    public synchronized boolean isDestroyed() {
-    	return isDestroyed;
+    public boolean isDestroyed() {
+    	return getStatus() == Status.DESTROYED;
     }
     
+    @Override
     public synchronized void destroy() {    	
     	useToDeclAttr.destroy();
     	methodOverridesAttr.destroy();
-    	isDestroyed = true;
+    	super.destroy();
     }
     
     @Override
@@ -369,6 +371,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       return useToDeclAttr;
     }
 
+    @RequiresLock("StatusLock")
     @Override
     protected boolean derive() {
       deriveInfo(this, unit);
@@ -412,10 +415,6 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     
     public boolean containsFullInfo() {
       return hasFullInfo;
-    }
-
-    public void setContainsFullInfo(boolean full) {
-      hasFullInfo = full;      
     }
   }
   

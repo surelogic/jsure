@@ -431,8 +431,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     bindings = granuleBindings.get(gr);
     
     if (bindings == null || bindings.isDestroyed()) {
-    	bindings = makeGranuleBindings(gr);
-    	bindings.setContainsFullInfo(needFullInfo);    	
+    	bindings = makeGranuleBindings(gr, needFullInfo);	
     	granuleBindings.put(gr,bindings);    	
     }
     
@@ -525,7 +524,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 	  return bindings;
   }
   
-  protected abstract IGranuleBindings makeGranuleBindings(IRNode cu);
+  protected abstract IGranuleBindings makeGranuleBindings(IRNode cu, boolean needFullInfo);
  
   protected final void deriveInfo(IGranuleBindings bindings, IRNode unit) {
     //System.out.println("Deriving info for "+DebugUnparser.toString(unit));

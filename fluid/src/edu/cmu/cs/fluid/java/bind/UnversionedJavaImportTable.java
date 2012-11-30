@@ -62,7 +62,7 @@ public final class UnversionedJavaImportTable extends AbstractJavaImportTable {
     		indirect.clear();
     	}
     }
-
+    
 	@Override
     protected boolean derive() {
 	  synchronized (UnversionedJavaImportTable.this) {
