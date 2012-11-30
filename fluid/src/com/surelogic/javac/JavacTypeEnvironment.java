@@ -95,6 +95,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	// Same as JavaRuntime.JRE_CONTAINER
 	public static final String JRE_NAME = "org.eclipse.jdt.launching.JRE_CONTAINER";
 
+	@Unique("return")
 	public JavacTypeEnvironment(Projects projs, JavacProject p,
 			SLProgressMonitor monitor) {
 		project = p;
@@ -131,6 +132,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	@InRegion("JTEState")
 	private IRNode arrayClassDeclaration = null;
 	
+	@RequiresLock("JTELock")
 	private IRNode initArrayClassDecl() {
 		final IRNode arrayType = DirtyTricksHelper.createArrayType(project.getName(), project);
 		classes.addOuterClass(PromiseConstants.ARRAY_CLASS_QNAME, arrayType);
@@ -185,11 +187,11 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		return "JavacTypeEnvironment "+hashCode()+": " + project.getName();
 	}
 
-	void setProgressMonitor(SLProgressMonitor m) {
+	synchronized void setProgressMonitor(SLProgressMonitor m) {
 		monitor = m;
 	}
 
-	public SLProgressMonitor getProgressMonitor() {
+	public synchronized SLProgressMonitor getProgressMonitor() {
 		return monitor;
 	}
 
@@ -289,6 +291,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 			return packages.get(name);
 		}
 
+		@RequiresLock("JavacTypeEnvironment.this:JTELock")
 		void addOuterClass(String name, IRNode decl) {			
 			/*
 			if (name.endsWith(SLUtility.JAVA_LANG_OBJECT)) {
@@ -488,6 +491,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		}
 	}
 
+	@RequiresLock("JTELock")
 	private void processCompUnit(final boolean debug, final IRNode top) {
 		List<IRNode> newL = new ArrayList<IRNode>();
 		for (IRNode n : VisitUtil.getAllTypeDecls(top)) {

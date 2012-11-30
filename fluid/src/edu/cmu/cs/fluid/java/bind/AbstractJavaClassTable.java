@@ -3,6 +3,9 @@ package edu.cmu.cs.fluid.java.bind;
 
 import java.io.PrintStream;
 import java.util.logging.Level;
+
+import com.surelogic.ThreadSafe;
+
 import edu.cmu.cs.fluid.debug.DebugUtil;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CommonStrings;
@@ -16,6 +19,7 @@ import edu.cmu.cs.fluid.util.SingletonIterator;
  * An partial implementation of {@link IJavaClassTable}.
  * @author boyland
  */
+@ThreadSafe
 public abstract class AbstractJavaClassTable implements IJavaClassTable {
   // private static Logger LOG = Logger.getLogger("FLUID.java.bind");
   
