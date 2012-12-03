@@ -490,6 +490,7 @@ public class JavacClassParser {
         	refs.addAll(PackageAccessor.findPromiseXMLs());
         }
         
+        // TODO this should be parallelizable
         for(CodeInfo info : results) {
 			//System.out.println("Scanning: "+info.getFileName());
         	final boolean debug = false;
@@ -961,7 +962,9 @@ public class JavacClassParser {
 				System.out.println("FAST Scanning "+qname);
 			}
 			s.doAccept(cu);
-			refs.put(cu, r);
+			synchronized (refs) {
+				refs.put(cu, r);
+			}
 			/*
         	if (r.contains("javax.swing.WindowConstants") && "jEdit-4.1".equals(jp.getName())) {
         		IRNode type = VisitUtil.getPrimaryType(cu);
