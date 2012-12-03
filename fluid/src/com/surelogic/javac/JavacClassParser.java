@@ -3,6 +3,7 @@ package com.surelogic.javac;
 import java.io.*;
 import java.util.*;
 import java.util.Queue;
+import java.util.Stack;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.zip.*;
@@ -12,7 +13,7 @@ import javax.tools.JavaFileManager.Location;
 import javax.tools.JavaFileObject.Kind;
 
 import jsr166y.ForkJoinPool;
-import jsr166y.RecursiveTask;
+import jsr166y.*;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -21,6 +22,7 @@ import com.sun.source.tree.*;
 import com.sun.source.util.*;
 import com.sun.tools.javac.api.JavacTool;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.surelogic.*;
 import com.surelogic.analysis.*;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
@@ -211,7 +213,13 @@ public class JavacClassParser {
 				}
 			}
 			if (useForkJoinTasks) {
-				parseViaForkJoin(new ArrayList<JavaFileObject>(temp), results, asBinary);
+				try {
+					parseViaForkJoin(new ArrayList<JavaFileObject>(temp), results, asBinary);
+				} catch(InterruptedException e) {
+					throw new IOException(e);
+				} catch(ExecutionException e) {
+					throw new IOException(e.getCause());
+				}
 			} else {
 				// Handle in batches
 				final Iterator<JavaFileObject> fileI = temp.iterator();
@@ -249,24 +257,46 @@ public class JavacClassParser {
 		}
 		
 		void parseViaForkJoin(Iterable<JavaFileObject> files, List<CodeInfo> results, final boolean asBinary) 
-		throws IOException {
-			final JavacTask task = initJavac(files);
-			final Trees t = Trees.instance(task);  
+		throws IOException, InterruptedException, ExecutionException {
+			final JavacTask javac = initJavac(files);
+			final Trees t = Trees.instance(javac);  
 			//System.out.println("Parsing sources");
-			for(final CompilationUnitTree cut : task.parse()) {	        
+			Stack<AdaptTask> tasks = new Stack<AdaptTask>();
+			for(final CompilationUnitTree cut : javac.parse()) {	        
 				if (debug) {
 					System.out.println("Parsing "+cut.getSourceFile().getName());
 				}
 				tEnv.addPackage(SourceAdapter.getPackage(cut));        	   	
-				final CodeInfo info = pool.invoke(new RecursiveTask<CodeInfo>() {
-					private static final long serialVersionUID = 1L;
-					@Override
-					protected CodeInfo compute() {
-						return adaptCompUnit(t, cut);
-					}
-				});
+				final AdaptTask task = new AdaptTask(t, cut);
+				pool.submit(task);
+				tasks.push(task);
+			}
+			while (!tasks.isEmpty()) {
+				final AdaptTask at = tasks.pop();
+				final CodeInfo info = at.get();
 				tEnv.addCompUnit(info, true);
 				results.add(info);
+			}
+		}
+		
+		class AdaptTask extends RecursiveTask<CodeInfo> {
+			private static final long serialVersionUID = 1L;
+			final Trees trees;
+			@Nullable
+			CompilationUnitTree cut;
+			
+			AdaptTask(Trees t, CompilationUnitTree c) {
+				trees = t;
+				cut = c;
+			}
+			
+			@Override
+			protected CodeInfo compute() {
+				try {
+					return adaptCompUnit(trees, cut);
+				} finally {
+					cut = null;
+				}
 			}
 		}
 		
