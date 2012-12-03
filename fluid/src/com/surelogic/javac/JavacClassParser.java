@@ -491,7 +491,7 @@ public class JavacClassParser {
         }
         
         if (false) {//wantToRunInParallel) {
-        	final ParallelArray<CodeInfo> temp = ParallelArray.create(results.size(), CodeInfo.class, pool);
+        	final ParallelArray<CodeInfo> temp = ParallelArray.create(0, CodeInfo.class, pool);
         	//temp.asList().addAll(results);
         	for(CodeInfo info : results) {
         		if (info == null) {
