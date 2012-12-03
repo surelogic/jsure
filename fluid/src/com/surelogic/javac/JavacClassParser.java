@@ -11,7 +11,7 @@ import javax.tools.*;
 import javax.tools.JavaFileManager.Location;
 import javax.tools.JavaFileObject.Kind;
 
-import jsr166y.ForkJoinPool;
+import jsr166y.*;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -25,6 +25,7 @@ import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
+import com.surelogic.common.concurrent.RecursiveIOAction;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.adapter.*;
 import com.surelogic.xml.PackageAccessor;
@@ -43,6 +44,7 @@ import extra166y.Ops.Procedure;
 public class JavacClassParser {
 	/** Should we try to run things in parallel */
 	private static boolean wantToRunInParallel = true;
+	private static boolean useForkJoinTasks = wantToRunInParallel && false;
 	
 	private static final String[] sourceLevels = {
 		"1.5" /*default*/, "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"
@@ -1206,5 +1208,19 @@ public class JavacClassParser {
 			cus.addAll(results);
 		}
 		updateTypeEnvs(cus);
+	}
+	
+	public void parseInParallel(final List<CodeInfo> results) throws IOException {				
+		if (!useForkJoinTasks) {
+			parse(results);
+		}
+		pool.invoke(new RecursiveIOAction() {
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			protected void compute_private() throws IOException {
+				parse(results);
+			}
+		});
 	}
 }
