@@ -111,7 +111,7 @@ public class NonNullRules extends AnnotationRules {
 	public static class NonNull_ParseRule
 	extends DefaultBooleanAnnotationParseRule<NonNullNode,NonNullPromiseDrop> {
 		public NonNull_ParseRule() {
-			super(NONNULL, fieldMethodParamDeclOps, NonNullNode.class);
+			super(NONNULL, fieldMethodVarDeclOps, NonNullNode.class);
 		}
 
 		@Override
@@ -142,7 +142,7 @@ public class NonNullRules extends AnnotationRules {
 	public static class Nullable_ParseRule
 	extends DefaultBooleanAnnotationParseRule<NullableNode,NullablePromiseDrop> {
 		public Nullable_ParseRule() {
-			super(NULLABLE, fieldMethodParamDeclOps, NullableNode.class);
+			super(NULLABLE, fieldMethodVarDeclOps, NullableNode.class);
 		}
 
 		@Override
