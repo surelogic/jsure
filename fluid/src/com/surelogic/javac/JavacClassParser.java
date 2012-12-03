@@ -12,6 +12,7 @@ import javax.tools.JavaFileManager.Location;
 import javax.tools.JavaFileObject.Kind;
 
 import jsr166y.ForkJoinPool;
+import jsr166y.RecursiveTask;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -210,7 +211,7 @@ public class JavacClassParser {
 				}
 			}
 			if (useForkJoinTasks) {
-				parseBatch(new ArrayList<JavaFileObject>(temp), results, asBinary);
+				parseViaForkJoin(new ArrayList<JavaFileObject>(temp), results, asBinary);
 			} else {
 				// Handle in batches
 				final Iterator<JavaFileObject> fileI = temp.iterator();
@@ -247,8 +248,29 @@ public class JavacClassParser {
 			r.close();
 		}
 		
-		void parseBatch(Iterable<JavaFileObject> files, List<CodeInfo> results, final boolean asBinary) 
+		void parseViaForkJoin(Iterable<JavaFileObject> files, List<CodeInfo> results, final boolean asBinary) 
 		throws IOException {
+			final JavacTask task = initJavac(files);
+			final Trees t = Trees.instance(task);  
+			//System.out.println("Parsing sources");
+			for(final CompilationUnitTree cut : task.parse()) {	        
+				if (debug) {
+					System.out.println("Parsing "+cut.getSourceFile().getName());
+				}
+				tEnv.addPackage(SourceAdapter.getPackage(cut));        	   	
+				final CodeInfo info = pool.invoke(new RecursiveTask<CodeInfo>() {
+					private static final long serialVersionUID = 1L;
+					@Override
+					protected CodeInfo compute() {
+						return adaptCompUnit(t, cut);
+					}
+				});
+				tEnv.addCompUnit(info, true);
+				results.add(info);
+			}
+		}
+		
+		private JavacTask initJavac(Iterable<JavaFileObject> files) {
 		    /*
 			for(File f : files) {
 				printStream(f.getName(), new FileInputStream(f));
@@ -271,7 +293,13 @@ public class JavacClassParser {
 	        final JavacTask task = (JavacTask) JavacTool.create().getTask(null, // Output to System.err
 	                fileman, nullListener, options,
 	                null, // Classes for anno processing
-	                files);	        
+	                files);	 
+	        return task;
+		}
+		
+		void parseBatch(Iterable<JavaFileObject> files, List<CodeInfo> results, final boolean asBinary) 
+		throws IOException {
+			final JavacTask task = initJavac(files);
 			try {
 				//Requires mapping Tree to Element
 				//task.getElements().getDocComment(e);
@@ -293,18 +321,9 @@ public class JavacClassParser {
 				cus.clear();
 				System.out.println("Adapting "+cuts.asList().size()+" CUTs");
 				Procedure<CompilationUnitTree> proc = new Procedure<CompilationUnitTree>() {
-					public void op(CompilationUnitTree cut) {
-						if (debug) {
-							System.out.println("Adapting "+cut.getSourceFile().getName());
-						}
-						//PlainIRNode.setCurrentRegion(new IRRegion());
-
-						JCCompilationUnit jcu = (JCCompilationUnit) cut;					
-						JavaSourceFile file = sources.get(jcu.sourcefile);
-						CodeInfo info = adapter.get().adapt(t, jcu, file, asBinary || file.asBinary);				        
+					public void op(CompilationUnitTree cut) {	
+						CodeInfo info = adaptCompUnit(t, cut);
 						cus.add(info);
-						Projects.setProject(info.getNode(), jp);
-						//System.out.println("Done adapting "+info.getFileName());
 					}
 				};
 				if (wantToRunInParallel) {
@@ -322,6 +341,21 @@ public class JavacClassParser {
 				//task.finish();
 			}
 		}		
+		
+		CodeInfo adaptCompUnit(final Trees t, final CompilationUnitTree cut) {
+			if (debug) {
+				System.out.println("Adapting "+cut.getSourceFile().getName());
+			}
+			//PlainIRNode.setCurrentRegion(new IRRegion());
+
+			JCCompilationUnit jcu = (JCCompilationUnit) cut;					
+			JavaSourceFile file = sources.get(jcu.sourcefile);
+			CodeInfo info = adapter.get().adapt(t, jcu, file, asBinary || file.asBinary);				        
+			//cus.add(info);
+			Projects.setProject(info.getNode(), jp);
+			//System.out.println("Done adapting "+info.getFileName());
+			return info;
+		}
 	}
 	
 	public void parse(final List<CodeInfo> results) throws IOException {
