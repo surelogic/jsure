@@ -182,7 +182,7 @@ public class JavacClassParser {
 		void parse(Iterable<JavaSourceFile> files, List<CodeInfo> results, boolean onDemand) 
 		throws IOException {
 			// Eliminate duplicates
-			// Issue w/ hashing on JaveFileObject
+			// Issue w/ hashing on JaveFileObject - FIXED
 			final Set<JavaFileObject> temp  = new HashSet<JavaFileObject>(max);
 			for(JavaSourceFile p : files) {
 				final CodeInfo info = jp.getTypeEnv().findCompUnit(p.qname);
@@ -209,23 +209,27 @@ public class JavacClassParser {
 					}									
 				}
 			}
-			// Handle in batches
-			final Iterator<JavaFileObject> fileI = temp.iterator();
-			final List<JavaFileObject> batch     = new ArrayList<JavaFileObject>(max);
+			if (useForkJoinTasks) {
+				parseBatch(new ArrayList<JavaFileObject>(temp), results, asBinary);
+			} else {
+				// Handle in batches
+				final Iterator<JavaFileObject> fileI = temp.iterator();
+				final List<JavaFileObject> batch     = new ArrayList<JavaFileObject>(max);
 
-			while (fileI.hasNext()) {
-				if (tEnv.getProgressMonitor().isCanceled()) {
-					throw new CancellationException();
+				while (fileI.hasNext()) {
+					if (tEnv.getProgressMonitor().isCanceled()) {
+						throw new CancellationException();
+					}
+					batch.add(fileI.next());
+
+					if (batch.size() >= max) {
+						parseBatch(batch, results, asBinary);
+						batch.clear();
+					}
 				}
-				batch.add(fileI.next());
-				
-				if (batch.size() >= max) {
+				if (!batch.isEmpty()) {
 					parseBatch(batch, results, asBinary);
-					batch.clear();
 				}
-			}
-			if (!batch.isEmpty()) {
-				parseBatch(batch, results, asBinary);
 			}
 		}
 
@@ -296,7 +300,7 @@ public class JavacClassParser {
 						//PlainIRNode.setCurrentRegion(new IRRegion());
 
 						JCCompilationUnit jcu = (JCCompilationUnit) cut;					
-						JavaSourceFile file = sources.get(new JavaFileObjectWrapper(jcu.sourcefile));
+						JavaSourceFile file = sources.get(jcu.sourcefile);
 						CodeInfo info = adapter.get().adapt(t, jcu, file, asBinary || file.asBinary);				        
 						cus.add(info);
 						Projects.setProject(info.getNode(), jp);
