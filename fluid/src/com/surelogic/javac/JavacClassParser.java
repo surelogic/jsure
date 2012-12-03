@@ -490,16 +490,37 @@ public class JavacClassParser {
         	refs.addAll(PackageAccessor.findPromiseXMLs());
         }
         
-        // TODO this should be parallelizable
-        for(CodeInfo info : results) {
-			//System.out.println("Scanning: "+info.getFileName());
-        	final boolean debug = false;
-        	//info.getFileName().contains("EJBContext");
-        	
-        	if (refs.jp.getTypeEnv() == info.getTypeEnv()) {
-        		refs.scanForReferencedTypes(info.getNode(), debug);
+        if (false) {//wantToRunInParallel) {
+        	final ParallelArray<CodeInfo> temp = ParallelArray.create(results.size(), CodeInfo.class, pool);
+        	//temp.asList().addAll(results);
+        	for(CodeInfo info : results) {
+        		if (info == null) {
+        			System.out.println("Null CodeInfo");
+        		}
+        		temp.asList().add(info);
         	}
-		}		
+        	final Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
+				@Override
+				public void op(CodeInfo info) {
+	        		//System.out.println("Scanning: "+info.getFileName());
+	        		final boolean debug = false;
+	        		if (refs.jp.getTypeEnv() == info.getTypeEnv()) {
+	        			refs.scanForReferencedTypes(info.getNode(), debug);
+	        		}
+				}
+			};
+        	temp.apply(proc);
+        } else {
+        	for(CodeInfo info : results) {
+        		//System.out.println("Scanning: "+info.getFileName());
+        		final boolean debug = false;
+        		//info.getFileName().contains("EJBContext");
+
+        		if (refs.jp.getTypeEnv() == info.getTypeEnv()) {
+        			refs.scanForReferencedTypes(info.getNode(), debug);
+        		}
+        	}		
+        }
         // Check for AWT references
         //boolean usesAWT = false;
         for(String ref : refs.getAllRefs()) {
