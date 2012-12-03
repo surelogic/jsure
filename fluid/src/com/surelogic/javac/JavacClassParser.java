@@ -11,7 +11,7 @@ import javax.tools.*;
 import javax.tools.JavaFileManager.Location;
 import javax.tools.JavaFileObject.Kind;
 
-import jsr166y.*;
+import jsr166y.ForkJoinPool;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -161,7 +161,7 @@ public class JavacClassParser {
 		final ParallelArray<CompilationUnitTree> cuts;		
 		final Queue<CodeInfo> cus;
 		final References refs;
-        final Map<JavaFileObjectWrapper, JavaSourceFile> sources = new HashMap<JavaFileObjectWrapper, JavaSourceFile>();		
+        final Map<JavaFileObject, JavaSourceFile> sources = new HashMap<JavaFileObject, JavaSourceFile>();		
 		
 		public BatchParser(final JavacProject jp, int max, boolean asBinary) {
 			this.jp = jp;
@@ -183,7 +183,7 @@ public class JavacClassParser {
 		throws IOException {
 			// Eliminate duplicates
 			// Issue w/ hashing on JaveFileObject
-			final Set<JavaFileObjectWrapper> temp  = new HashSet<JavaFileObjectWrapper>(max);
+			final Set<JavaFileObject> temp  = new HashSet<JavaFileObject>(max);
 			for(JavaSourceFile p : files) {
 				final CodeInfo info = jp.getTypeEnv().findCompUnit(p.qname);
 				boolean load = !onDemand || info == null;
@@ -198,28 +198,26 @@ public class JavacClassParser {
 						fileman.setLocation(location, Collections.singletonList(new File(zip)));
 						
 						JavaFileObject jfo = fileman.getJavaFileForInput(location, src, Kind.SOURCE);
-						JavaFileObjectWrapper w = new JavaFileObjectWrapper(jfo);
-						temp.add(w);
-						mapSource(w, p);
+						temp.add(jfo);
+						mapSource(jfo, p);
 					}
 					else if ( p.file.exists() && p.file.length() > 0) {						
 						for(JavaFileObject jfo : fileman.getJavaFileObjects(p.file)) {
-							JavaFileObjectWrapper w = new JavaFileObjectWrapper(jfo);
-							temp.add(w);
-							mapSource(w, p);
+							temp.add(jfo);
+							mapSource(jfo, p);
 						}
 					}									
 				}
 			}
 			// Handle in batches
-			final Iterator<JavaFileObjectWrapper> fileI = temp.iterator();
+			final Iterator<JavaFileObject> fileI = temp.iterator();
 			final List<JavaFileObject> batch     = new ArrayList<JavaFileObject>(max);
 
 			while (fileI.hasNext()) {
 				if (tEnv.getProgressMonitor().isCanceled()) {
 					throw new CancellationException();
 				}
-				batch.add(fileI.next().get());
+				batch.add(fileI.next());
 				
 				if (batch.size() >= max) {
 					parseBatch(batch, results, asBinary);
@@ -231,17 +229,7 @@ public class JavacClassParser {
 			}
 		}
 
-		void mapSource(JavaFileObjectWrapper w, JavaSourceFile p) {
-			/*
-			URI uri = jfo.toUri();
-			if (jfo.getName().equals("Base64.java")) {
-				System.out.println("URI = "+uri);
-			}			
-			JavaSourceFile old = sources.put(uri, p);
-			if (old != null && !old.equals(p)) {
-				SLLogger.getLogger().warning("Already mapped "+uri);
-			}
-			*/
+		void mapSource(JavaFileObject w, JavaSourceFile p) {
 			sources.put(w, p);
 		}
 		
