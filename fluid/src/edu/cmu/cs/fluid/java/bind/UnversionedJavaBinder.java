@@ -7,12 +7,11 @@ import java.util.logging.Level;
 
 import org.apache.commons.collections15.MultiMap;
 
-import com.surelogic.InRegion;
-import com.surelogic.RequiresLock;
-import com.surelogic.ThreadSafe;
+import com.surelogic.*;
 import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.javac.persistence.JSurePerformance;
 
@@ -60,6 +59,11 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 		  return JavaMemberTable.makeBatchTable(typeEnvironment.getObjectType());
 	  }
   };
+  
+  /**
+   * Shared across binders
+   */
+  private static final ConcurrentMap<IRNode, List<IRNode>> granules = new ConcurrentHashMap<IRNode, List<IRNode>>();
   
   public UnversionedJavaBinder(final ITypeEnvironment tEnv) {
     super(tEnv);
@@ -176,17 +180,44 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   protected void reset() {
 	  clearAll(true);
   }
+
+  private static Iterable<IRNode> getGranules(final IRNode cu) {
+	  List<IRNode> rv = granules.get(cu);
+	  if (rv == null) {
+		  rv = new ArrayList<IRNode>();
+		  for (IRNode n : JJNode.tree.topDown(cu)) {
+			  final Operator op = JJNode.tree.getOperator(n);
+			  if (AbstractJavaBinder.isGranule(n, op)) {
+				  rv.add(n);
+			  }
+		  }
+		  if (rv.isEmpty()) {
+			  rv = Collections.emptyList();
+		  }
+		  // TODO sync?
+		  granules.put(cu, rv);
+	  }
+	  return rv;
+  }
+  
+  public void bindCompUnit(final IRNode cu, final String name) {
+	  for (IRNode n : getGranules(cu)) {
+		  try {
+			  ensureBindingsOK(n);
+		  } catch (RuntimeException e) {
+              SLLogger.getLogger().log(Level.SEVERE,
+                  "Error while binding " + DebugUnparser.toString(n) + " in " + name, e);
+              throw e;
+		  }
+	  }
+  }
   
   /**
    * Only to be called after canonicalizing an AST
    */
   public synchronized void astChanged(IRNode cu) {
     // If so, we need to clear all the cached data
-    for(final IRNode n : JJNode.tree.topDown(cu)) {
-      final Operator op = JJNode.tree.getOperator(n);
-      if (!isGranule(n, op)) {
-        continue;
-      }
+	for (IRNode n : getGranules(cu)) {
       IGranuleBindings b1 = allGranuleBindings.remove(n);
       IGranuleBindings b2 = partialGranuleBindings.remove(n);
       boolean changed = false;
@@ -213,6 +244,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       }
       */
     }
+	granules.remove(cu);
     JavaTypeFactory.clearCaches();
   }
 
