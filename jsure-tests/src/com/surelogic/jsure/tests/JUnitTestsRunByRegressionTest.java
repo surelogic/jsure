@@ -3,6 +3,7 @@ package com.surelogic.jsure.tests;
 import junit.framework.TestSuite;
 
 import com.surelogic.common.TestFileUtility;
+import com.surelogic.common.adhoc.TestAdHocDecl;
 import com.surelogic.common.adhoc.model.TestColumnAnnotationParser;
 import com.surelogic.common.ref.TestDecl;
 import com.surelogic.common.ref.TestJavaRef;
@@ -38,6 +39,9 @@ public class JUnitTestsRunByRegressionTest extends TestSuite {
     addTest(new TestSuite(TestSea.class));
     addTest(new TestSuite(TestDrop.class));
 
+    // com.surelogic.common.adhoc
+    addTest(new TestSuite(TestAdHocDecl.class));
+    
     // com.surelogic.common.adhoc.model
     addTest(new TestSuite(TestColumnAnnotationParser.class));
 
