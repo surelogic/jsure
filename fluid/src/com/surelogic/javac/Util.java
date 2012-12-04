@@ -525,6 +525,8 @@ public class Util {
     perf.setIntProperty("Total.decls", decls);
     perf.setIntProperty("Total.stmts", stmts);
     perf.setIntProperty("Total.blocks", blocks);
+    perf.setLongProperty("Find.canon.time", findTime);
+    perf.setLongProperty("Destroy.time", destroyTime);
     // System.out.println("Binary rewrites : "+binaryRewrites);
     UnversionedJavaBinder.printStats(perf);
     AbstractTypeEnvironment.printStats();
@@ -968,7 +970,9 @@ public class Util {
         final IRNode type = VisitUtil.getPrimaryType(cu);
         final String typeName = info.getFileName();
         try {
+          final long start = System.currentTimeMillis();
           List<IRNode> noncanonical = findNoncanonical(cu);
+          final long find = System.currentTimeMillis();
           /*
            * Not quite right, since it will miss (un)boxing and the like if
            * (noncanonical.isEmpty()) { return; // Nothing to do }
@@ -977,6 +981,7 @@ public class Util {
           final UnversionedJavaBinder b = tEnv.getBinder();
           final JavaCanonicalizer jcanon = new JavaCanonicalizer(b);
           boolean changed = jcanon.canonicalize(cu);
+          final long restart = System.currentTimeMillis();
           if (changed) {
             if (debug) {
               System.out.println("Canonicalized     " + typeName);
@@ -991,6 +996,9 @@ public class Util {
           for (JavacProject jp : projects) {
             jp.getTypeEnv().getBinder().astChanged(cu);
           }
+          final long destroy = System.currentTimeMillis();
+          findTime += (find-start);
+          destroyTime += (destroy-restart);
         } catch (Throwable t) {
           LOG.log(Level.SEVERE, "Exception while processing " + type, t);
         }
@@ -1003,11 +1011,12 @@ public class Util {
         System.out.println("Canonicalizing " + info.getFile().getRelativePath());
       }
       proc.op(info);
-    }
+    }    
     SlotInfo.gc();
     endSubTask(monitor);
   }
 
+  static long destroyTime = 0, findTime = 0;
   static int destroyedNodes = 0, canonicalNodes = 0;
   static int decls = 0, stmts = 0, blocks = 0;
 
