@@ -23,7 +23,7 @@ public class ConcurrentAnalysis<Q extends ICompUnitContext> {
 		ParallelArray.create(threadCount*2, Integer.class, pool);
 	
 	public static void executeOnAllThreads(Procedure<Integer> proc) {
-		if (pool == null) {
+		if (dummyArray == null) {
 			return;
 		}
 		dummyArray.apply(proc);
