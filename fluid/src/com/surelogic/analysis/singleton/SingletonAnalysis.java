@@ -427,7 +427,7 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
           numFields == 1 && numPublicStaticFinalFields == 1;
       final boolean privateFieldPattern =
           numFields == 1 && numPrivateStaticFinalFields == 1;
-      final String typeString = javaType.toString();
+      final String typeString = javaType.toSourceText();
       
       final IRNode singletonField;
       if (publicFieldPattern) {
