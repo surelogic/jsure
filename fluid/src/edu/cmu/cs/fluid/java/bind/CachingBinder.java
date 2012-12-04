@@ -58,6 +58,10 @@ public class CachingBinder extends AbstractBinder implements JavaCanonicalizer.I
 	public void init(final IRNode tree) {		
 		final boolean isUJB = orig instanceof UnversionedJavaBinder;
 		synchronized (activeCUs) {
+			if (activeCUs.contains(tree)) {
+				// Already initialized?
+				return;
+			}
 			activeCUs.add(tree);
 		}
 		for(IRNode n : JJNode.tree.bottomUp(tree)) {
