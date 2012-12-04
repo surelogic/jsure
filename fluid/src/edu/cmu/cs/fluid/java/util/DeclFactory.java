@@ -319,6 +319,7 @@ public class DeclFactory {
         final int mods = VariableDeclarator.getMods(decl);
         f.setIsFinal(JavaNode.isSet(mods, JavaNode.FINAL));
         f.setIsStatic(JavaNode.isSet(mods, JavaNode.STATIC));
+        f.setIsVolatile(JavaNode.isSet(mods, JavaNode.VOLATILE));
         f.setVisibility(getVisibility(mods));
         type = VariableDeclarator.getType(decl);
       }
