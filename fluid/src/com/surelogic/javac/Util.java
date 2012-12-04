@@ -121,6 +121,7 @@ public class Util {
   /** Should we try to run things in parallel */
   private static boolean wantToRunInParallel = true;// false;
 
+  private static final boolean batchAndCacheBindingsForCanon = false;
   private static final boolean profileMemoryAfterLoading = false;
   private static final boolean testPersistence = false;
   private static final boolean loadPartial = false;
@@ -1000,29 +1001,54 @@ public class Util {
     AbstractJavaBinder.printStats();
     startSubTask(monitor, "Canonicalizing ASTs");
     
-    // Precompute all the bindings
-    final long start = System.currentTimeMillis();
+    // Init procedures
     bindProc.setMonitor(monitor);
-    cus.apply(bindProc);
-    final long end = System.currentTimeMillis();
-    long bindingTime = end - start;
-    System.out.println("Binding = " + bindingTime + " ms");    
-    AbstractJavaBinder.printStats();
-    perf.setLongProperty("Binding.before.canon", bindingTime);
-    
     canonProc.setMonitor(monitor);
     canonProc.setProjects(projects);
-    // cus.apply(proc);
-    for (final CodeInfo info : cus) {
-      if (info.getFile().getRelativePath() != null) {
-        System.out.println("Canonicalizing " + info.getFile().getRelativePath());
-      }
-      canonProc.op(info);
-    }    
+    long bindingTime = 0;
+    if (batchAndCacheBindingsForCanon) {
+    	final ParallelArray<CodeInfo> temp = createArray(CodeInfo.class, ConcurrentAnalysis.pool);    	
+    	for(CodeInfo i : cus) {
+    		temp.asList().add(i);
+    		if (temp.size() > 100) {
+    			bindingTime += doCanonicalize(temp, false);
+    			temp.asList().clear();
+    		}
+    	}
+    	if (!temp.isEmpty()) {
+    		bindingTime += doCanonicalize(temp, false);
+    	}
+    } else {
+    	bindingTime = doCanonicalize(cus, true);
+    }
+	perf.setLongProperty("Binding.before.canon", bindingTime);
+	System.out.println("Binding = " + bindingTime + " ms");  	
     SlotInfo.gc();
     endSubTask(monitor);
   }
 
+  /**
+   * Assumes that init is all done
+   * @return the time taken for binding
+   */  
+  private static long doCanonicalize(ParallelArray<CodeInfo> cus, boolean printBinderStats) {
+	  // Precompute all the bindings first
+	  final long start = System.currentTimeMillis();
+	  cus.apply(bindProc);
+	  final long end = System.currentTimeMillis();
+	  if (printBinderStats) {
+		  AbstractJavaBinder.printStats();
+	  }
+	  // cus.apply(proc);
+	  for (final CodeInfo info : cus) {
+	      if (info.getFile().getRelativePath() != null) {
+	        System.out.println("Canonicalizing " + info.getFile().getRelativePath());
+	      }
+	      canonProc.op(info);
+	  }   
+	  return end-start;
+  }
+  
   static long destroyTime = 0, findTime = 0;
   static int destroyedNodes = 0, canonicalNodes = 0;
   static int decls = 0, stmts = 0, blocks = 0;
