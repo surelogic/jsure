@@ -256,7 +256,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
     protected void processMethodDeclaration(final IRNode mdecl) {
       builder.createRootResult(mdecl, TypeUtil.isStatic(mdecl),
           Messages.METHOD_IS_STATIC, Messages.METHOD_IS_NOT_STATIC,
-          JavaNames.genMethodConstructorName(mdecl));
+          JavaNames.genRelativeFunctionName(mdecl));
     }
     
     @Override
