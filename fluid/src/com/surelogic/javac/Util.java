@@ -84,7 +84,6 @@ import edu.cmu.cs.fluid.ir.AbstractIRNode;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.CodeInfo;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
@@ -909,21 +908,30 @@ public class Util {
     endSubTask(monitor);
   }
 
-  private static void canonicalizeCUs(JSurePerformance perf, final ParallelArray<CodeInfo> cus, final Projects projects) {
-    final SLProgressMonitor monitor = projects.getMonitor();
-    if (monitor.isCanceled()) {
-      throw new CancellationException();
-    }
-    AbstractJavaBinder.printStats();
-    startSubTask(monitor, "Canonicalizing ASTs");
-
-    // Precompute all the bindings
-    final long start = System.currentTimeMillis();
-    final Procedure<CodeInfo> bind = new Procedure<CodeInfo>() {
-      public void op(CodeInfo info) {
-        if (monitor.isCanceled()) {
-          throw new CancellationException();
-        }
+  static abstract class MonitoredProcedure<T> implements Procedure<T> {
+	  private SLProgressMonitor monitor;
+	  private Projects projects;
+	  void setMonitor(SLProgressMonitor mon) {
+		  monitor = mon;
+	  }	  
+	  void setProjects(Projects p) {
+		  projects = p;
+	  }
+	  Projects getProjects() {
+		  return projects;
+	  }
+	  public void op(CodeInfo info) {
+		  if (monitor != null && monitor.isCanceled()) {
+			     throw new CancellationException();
+		  }
+		  process(info);
+	  }
+	  protected abstract void process(CodeInfo info);
+  }
+  
+  static final MonitoredProcedure<CodeInfo> bindProc = new MonitoredProcedure<CodeInfo>() {
+	  @Override
+	  protected void process(CodeInfo info) {
         if (!info.isAsSource()) {
           /*
            * IRNode type = VisitUtil.getPrimaryType(info.getNode()); String
@@ -937,68 +945,79 @@ public class Util {
         final UnversionedJavaBinder b = tEnv.getBinder();
         b.bindCompUnit(info.getNode(), info.getFileName());
       }
-    };
+  };
 
-    cus.apply(bind);
+  static final MonitoredProcedure<CodeInfo> canonProc = new MonitoredProcedure<CodeInfo>() {
+	  @Override
+	  protected void process(CodeInfo info) {
+		  if (!info.isAsSource()) {
+			  return; // Nothing to do on class files
+		  }
+		  final IRNode cu = info.getNode();
+		  final IRNode type = VisitUtil.getPrimaryType(cu);
+		  final String typeName = info.getFileName();
+		  try {
+			  final long start = System.currentTimeMillis();
+			  List<IRNode> noncanonical = findNoncanonical(cu);
+			  final long find = System.currentTimeMillis();
+			  /*
+			   * Not quite right, since it will miss (un)boxing and the like if
+			   * (noncanonical.isEmpty()) { return; // Nothing to do }
+			   */
+			  final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
+			  final UnversionedJavaBinder b = tEnv.getBinder();
+			  final JavaCanonicalizer jcanon = new JavaCanonicalizer(b);
+			  boolean changed = jcanon.canonicalize(cu);
+			  final long restart = System.currentTimeMillis();
+			  if (changed) {
+				  if (debug) {
+					  System.out.println("Canonicalized     " + typeName);
+				  }
+				  //b.astChanged(cu);
+				  // TODO will this work if run in parallel?
+				  for (JavacProject jp : getProjects()) {
+					  jp.getTypeEnv().getBinder().astChanged(cu);
+				  }
+			  } else if (debug) {
+				  System.out.println("NOT canonicalized " + typeName);
+			  }
+			  destroyNoncanonical(noncanonical);
+
+			  final long destroy = System.currentTimeMillis();
+			  findTime += (find-start);
+			  destroyTime += (destroy-restart);
+		  } catch (Throwable t) {
+			  LOG.log(Level.SEVERE, "Exception while processing " + type, t);
+		  }
+	  }
+  };
+  
+  private static void canonicalizeCUs(JSurePerformance perf, final ParallelArray<CodeInfo> cus, final Projects projects) {
+    final SLProgressMonitor monitor = projects.getMonitor();
+    if (monitor.isCanceled()) {
+      throw new CancellationException();
+    }
+    AbstractJavaBinder.printStats();
+    startSubTask(monitor, "Canonicalizing ASTs");
+    
+    // Precompute all the bindings
+    final long start = System.currentTimeMillis();
+    bindProc.setMonitor(monitor);
+    cus.apply(bindProc);
     final long end = System.currentTimeMillis();
     long bindingTime = end - start;
     System.out.println("Binding = " + bindingTime + " ms");    
     AbstractJavaBinder.printStats();
     perf.setLongProperty("Binding.before.canon", bindingTime);
     
-    final Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
-      public void op(CodeInfo info) {
-        if (monitor.isCanceled()) {
-          throw new CancellationException();
-        }
-        if (!info.isAsSource()) {
-          return; // Nothing to do on class files
-        }
-        final IRNode cu = info.getNode();
-        final IRNode type = VisitUtil.getPrimaryType(cu);
-        final String typeName = info.getFileName();
-        try {
-          final long start = System.currentTimeMillis();
-          List<IRNode> noncanonical = findNoncanonical(cu);
-          final long find = System.currentTimeMillis();
-          /*
-           * Not quite right, since it will miss (un)boxing and the like if
-           * (noncanonical.isEmpty()) { return; // Nothing to do }
-           */
-          final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
-          final UnversionedJavaBinder b = tEnv.getBinder();
-          final JavaCanonicalizer jcanon = new JavaCanonicalizer(b);
-          boolean changed = jcanon.canonicalize(cu);
-          final long restart = System.currentTimeMillis();
-          if (changed) {
-            if (debug) {
-              System.out.println("Canonicalized     " + typeName);
-            }
-            //b.astChanged(cu);
-            // TODO will this work if run in parallel?
-            for (JavacProject jp : projects) {
-              jp.getTypeEnv().getBinder().astChanged(cu);
-            }
-          } else if (debug) {
-            System.out.println("NOT canonicalized " + typeName);
-          }
-          destroyNoncanonical(noncanonical);
-
-          final long destroy = System.currentTimeMillis();
-          findTime += (find-start);
-          destroyTime += (destroy-restart);
-        } catch (Throwable t) {
-          LOG.log(Level.SEVERE, "Exception while processing " + type, t);
-        }
-      }
-    };
+    canonProc.setMonitor(monitor);
+    canonProc.setProjects(projects);
     // cus.apply(proc);
-
     for (final CodeInfo info : cus) {
       if (info.getFile().getRelativePath() != null) {
         System.out.println("Canonicalizing " + info.getFile().getRelativePath());
       }
-      proc.op(info);
+      canonProc.op(info);
     }    
     SlotInfo.gc();
     endSubTask(monitor);
