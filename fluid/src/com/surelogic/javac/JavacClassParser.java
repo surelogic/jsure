@@ -490,7 +490,7 @@ public class JavacClassParser {
         	refs.addAll(PackageAccessor.findPromiseXMLs());
         }
         
-        if (wantToRunInParallel) {
+        if (false) {//wantToRunInParallel) {
         	final ParallelArray<CodeInfo> temp = ParallelArray.create(0, CodeInfo.class, pool);
         	temp.asList().addAll(results);
         	final Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
