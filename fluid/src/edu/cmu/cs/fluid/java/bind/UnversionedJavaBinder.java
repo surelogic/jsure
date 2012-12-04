@@ -13,6 +13,7 @@ import com.surelogic.ThreadSafe;
 import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.javac.persistence.JSurePerformance;
 
@@ -175,6 +176,21 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   @Override
   protected void reset() {
 	  clearAll(true);
+  }
+  
+  public void bindCompUnit(final IRNode cu, final String name) {
+      for (IRNode n : JJNode.tree.topDown(cu)) {
+          final Operator op = JJNode.tree.getOperator(n);
+          if (AbstractJavaBinder.isGranule(n, op)) {
+            try {
+              ensureBindingsOK(n);
+            } catch (RuntimeException e) {
+              SLLogger.getLogger().log(Level.SEVERE,
+                  "Error while binding " + DebugUnparser.toString(n) + " in " + name, e);
+              throw e;
+            }
+          }
+        }
   }
   
   /**

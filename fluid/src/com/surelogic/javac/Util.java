@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -936,18 +935,7 @@ public class Util {
         }
         final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
         final UnversionedJavaBinder b = tEnv.getBinder();
-        for (IRNode n : JJNode.tree.topDown(info.getNode())) {
-          final Operator op = JJNode.tree.getOperator(n);
-          if (AbstractJavaBinder.isGranule(n, op)) {
-            try {
-              b.ensureBindingsOK(n);
-            } catch (RuntimeException e) {
-              SLLogger.getLogger().log(Level.SEVERE,
-                  "Error while binding " + DebugUnparser.toString(n) + "In " + info.getFileName(), e);
-              throw e;
-            }
-          }
-        }
+        b.bindCompUnit(info.getNode(), info.getFileName());
       }
     };
 
@@ -986,16 +974,16 @@ public class Util {
             if (debug) {
               System.out.println("Canonicalized     " + typeName);
             }
-            b.astChanged(cu);
+            //b.astChanged(cu);
+            // TODO will this work if run in parallel?
+            for (JavacProject jp : projects) {
+              jp.getTypeEnv().getBinder().astChanged(cu);
+            }
           } else if (debug) {
             System.out.println("NOT canonicalized " + typeName);
           }
           destroyNoncanonical(noncanonical);
 
-          // TODO will this work if run in parallel?
-          for (JavacProject jp : projects) {
-            jp.getTypeEnv().getBinder().astChanged(cu);
-          }
           final long destroy = System.currentTimeMillis();
           findTime += (find-start);
           destroyTime += (destroy-restart);
