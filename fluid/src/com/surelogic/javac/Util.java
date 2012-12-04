@@ -967,6 +967,7 @@ public class Util {
 			   */
 			  final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
 			  final UnversionedJavaBinder b = tEnv.getBinder();
+			  // TODO needs to be shared, so I can preload the caches
 			  final JavaCanonicalizer jcanon = new JavaCanonicalizer(b);
 			  boolean changed = jcanon.canonicalize(cu);
 			  final long restart = System.currentTimeMillis();
