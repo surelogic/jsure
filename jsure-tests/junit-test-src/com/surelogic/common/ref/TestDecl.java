@@ -21,6 +21,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     assertEquals(0, p.getTypeParameters().size());
     assertEquals(0, p.getParameters().size());
     assertNull(p.getTypeOf());
@@ -59,6 +60,7 @@ public class TestDecl extends TestCase {
     assertTrue(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     p = p.getParent();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
@@ -79,6 +81,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertTrue(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     p = p.getParent();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
@@ -173,6 +176,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     assertEquals(0, p.getTypeParameters().size());
     List<IDeclParameter> parameters = p.getParameters();
     assertEquals(3, parameters.size());
@@ -224,6 +228,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     assertEquals(0, p.getTypeParameters().size());
     assertEquals(0, p.getParameters().size());
     assertNull(p.getTypeOf());
@@ -286,6 +291,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     assertEquals(TypeRef.JAVA_LANG_OBJECT, p.getTypeOf());
     assertEquals(0, p.getTypeParameters().size());
     assertEquals(0, p.getParameters().size());
@@ -293,10 +299,14 @@ public class TestDecl extends TestCase {
     assertEquals("com.surelogic.t", p.getParent().getParent().getName());
     assertNull(p.getParent().getParent().getParent());
 
-    p = new Decl.FieldBuilder("f_field2").setIsFinal(true).setIsStatic(true).setParent(parent).setTypeOf(TypeRef.JAVA_LANG_OBJECT)
+    p = new Decl.FieldBuilder("f_field2").setIsFinal(true).setIsStatic(true).setIsVolatile(true).setParent(parent).setTypeOf(TypeRef.JAVA_LANG_OBJECT)
         .build();
     assertTrue(p.isFinal());
     assertTrue(p.isStatic());
+    assertTrue(p.isVolatile());
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
 
     try {
       p = new Decl.FieldBuilder("111").setParent(parent).setTypeOf(TypeRef.JAVA_LANG_OBJECT).build();
@@ -341,6 +351,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     assertNull(p.getTypeOf());
     assertEquals(0, p.getTypeParameters().size());
     assertEquals(0, p.getParameters().size());
@@ -381,6 +392,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     assertTrue(p.getTypeParameters().isEmpty());
     assertEquals(0, p.getParameters().size());
     assertNull(p.getTypeOf());
@@ -411,6 +423,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     p = p.getParent();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
@@ -429,6 +442,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     p = p.getParent();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
@@ -491,6 +505,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     assertTrue(p.getTypeParameters().isEmpty());
     assertEquals(0, p.getParameters().size());
     assertNull(p.getTypeOf());
@@ -521,6 +536,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     p = p.getParent();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
@@ -539,6 +555,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     p = p.getParent();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
@@ -598,6 +615,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     assertEquals(0, p.getTypeParameters().size());
     List<IDeclParameter> parameters = p.getParameters();
     assertEquals(3, parameters.size());
@@ -831,6 +849,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     assertEquals(0, p.getTypeParameters().size());
     assertEquals(0, p.getParameters().size());
     assertEquals(TypeRef.JAVA_LANG_OBJECT, p.getTypeOf());
@@ -1113,6 +1132,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isStatic());
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
     assertEquals(0, p.getTypeParameters().size());
     assertEquals(0, p.getParameters().size());
     assertNull(p.getTypeOf());

@@ -14,6 +14,7 @@ public final class TestAdHocDecl extends TestCase {
     assertFalse(d.isFinal());
     assertFalse(d.isImplicit());
     assertFalse(d.isStatic());
+    assertFalse(d.isVolatile());
   }
 
   public void testDeclarationType() {
@@ -76,6 +77,7 @@ public final class TestAdHocDecl extends TestCase {
     assertFalse(d.isFinal());
     assertFalse(d.isImplicit());
     assertFalse(d.isStatic());
+    assertFalse(d.isVolatile());
 
     d = new AdHocDecl("@CL:PU:");
     assertSame(IDecl.Kind.CLASS, d.getKind());
@@ -84,22 +86,25 @@ public final class TestAdHocDecl extends TestCase {
     assertFalse(d.isFinal());
     assertFalse(d.isImplicit());
     assertFalse(d.isStatic());
+    assertFalse(d.isVolatile());
 
-    d = new AdHocDecl("@CL:PU:AFIS");
+    d = new AdHocDecl("@CL:PU:AFISV");
     assertSame(IDecl.Kind.CLASS, d.getKind());
     assertSame(IDecl.Visibility.PUBLIC, d.getVisibility());
     assertTrue(d.isAbstract());
     assertTrue(d.isFinal());
     assertTrue(d.isImplicit());
     assertTrue(d.isStatic());
+    assertTrue(d.isVolatile());
 
-    d = new AdHocDecl("@CL:PU:ISAF");
+    d = new AdHocDecl("@CL:PU:ISvAF");
     assertSame(IDecl.Kind.CLASS, d.getKind());
     assertSame(IDecl.Visibility.PUBLIC, d.getVisibility());
     assertTrue(d.isAbstract());
     assertTrue(d.isFinal());
     assertTrue(d.isImplicit());
     assertTrue(d.isStatic());
+    assertTrue(d.isVolatile());
 
     d = new AdHocDecl("@CL:PU:a");
     assertSame(IDecl.Kind.CLASS, d.getKind());
@@ -108,6 +113,7 @@ public final class TestAdHocDecl extends TestCase {
     assertFalse(d.isFinal());
     assertFalse(d.isImplicit());
     assertFalse(d.isStatic());
+    assertFalse(d.isVolatile());
 
     d = new AdHocDecl("@CL:PU:f");
     assertSame(IDecl.Kind.CLASS, d.getKind());
@@ -116,6 +122,7 @@ public final class TestAdHocDecl extends TestCase {
     assertTrue(d.isFinal());
     assertFalse(d.isImplicit());
     assertFalse(d.isStatic());
+    assertFalse(d.isVolatile());
 
     d = new AdHocDecl("@CL:PU:i");
     assertSame(IDecl.Kind.CLASS, d.getKind());
@@ -124,6 +131,7 @@ public final class TestAdHocDecl extends TestCase {
     assertFalse(d.isFinal());
     assertTrue(d.isImplicit());
     assertFalse(d.isStatic());
+    assertFalse(d.isVolatile());
 
     d = new AdHocDecl("@CL:PU:s");
     assertSame(IDecl.Kind.CLASS, d.getKind());
@@ -132,6 +140,15 @@ public final class TestAdHocDecl extends TestCase {
     assertFalse(d.isFinal());
     assertFalse(d.isImplicit());
     assertTrue(d.isStatic());
+    assertFalse(d.isVolatile());
 
+    d = new AdHocDecl("@CL:PU:v");
+    assertSame(IDecl.Kind.CLASS, d.getKind());
+    assertSame(IDecl.Visibility.PUBLIC, d.getVisibility());
+    assertFalse(d.isAbstract());
+    assertFalse(d.isFinal());
+    assertFalse(d.isImplicit());
+    assertFalse(d.isStatic());
+    assertTrue(d.isVolatile());
   }
 }
