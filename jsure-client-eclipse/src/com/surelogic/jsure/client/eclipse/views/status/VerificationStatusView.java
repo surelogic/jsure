@@ -48,6 +48,7 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ui.ColumnResizeListener;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
@@ -60,7 +61,6 @@ import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.Activator;
-import com.surelogic.jsure.client.eclipse.JSureClientUtility;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -132,37 +132,31 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     final TreeViewerColumn columnTree = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnTree.setLabelProvider(ColumnLabelProviderUtility.TREE);
     columnTree.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_TREE_WIDTH));
-    columnTree.getColumn().addControlListener(
-        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VSTATUS_TREE_WIDTH));
+    columnTree.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_TREE_WIDTH));
     final TreeViewerColumn columnProject = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnProject.setLabelProvider(ColumnLabelProviderUtility.PROJECT);
     columnProject.getColumn().setText("Project");
     columnProject.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_PROJECT_WIDTH));
-    columnProject.getColumn().addControlListener(
-        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VSTATUS_PROJECT_WIDTH));
+    columnProject.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_PROJECT_WIDTH));
     final TreeViewerColumn columnPackage = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnPackage.setLabelProvider(ColumnLabelProviderUtility.PACKAGE);
     columnPackage.getColumn().setText("Package");
     columnPackage.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_PACKAGE_WIDTH));
-    columnPackage.getColumn().addControlListener(
-        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VSTATUS_PACKAGE_WIDTH));
+    columnPackage.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_PACKAGE_WIDTH));
     final TreeViewerColumn columnType = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnType.setLabelProvider(ColumnLabelProviderUtility.TYPE);
     columnType.getColumn().setText("Type");
     columnType.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_TYPE_WIDTH));
-    columnType.getColumn().addControlListener(
-        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VSTATUS_TYPE_WIDTH));
+    columnType.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_TYPE_WIDTH));
     final TreeViewerColumn columnLine = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnLine.setLabelProvider(ColumnLabelProviderUtility.LINE);
     columnLine.getColumn().setText("Line");
     columnLine.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_LINE_WIDTH));
-    columnLine.getColumn().addControlListener(
-        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VSTATUS_LINE_WIDTH));
+    columnLine.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_LINE_WIDTH));
     final TreeViewerColumn columnDiff = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnDiff.setLabelProvider(ColumnLabelProviderUtility.DIFF);
     columnDiff.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VSTATUS_COL_DIFF_WIDTH));
-    columnDiff.getColumn().addControlListener(
-        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL_DIFF_WIDTH));
+    columnDiff.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL_DIFF_WIDTH));
     f_showDiffTableColumn = columnDiff;
 
     f_treeViewer.setInput(getViewSite());

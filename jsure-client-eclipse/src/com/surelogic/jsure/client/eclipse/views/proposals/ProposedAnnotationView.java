@@ -46,6 +46,7 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ui.ColumnResizeListener;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
@@ -56,7 +57,6 @@ import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.Activator;
-import com.surelogic.jsure.client.eclipse.JSureClientUtility;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
@@ -146,14 +146,12 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     final TreeViewerColumn columnTree = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnTree.setLabelProvider(ColumnLabelProviderUtility.TREE);
     columnTree.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.PROPOSED_ANNO_COL_TREE_WIDTH));
-    columnTree.getColumn().addControlListener(
-        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.PROPOSED_ANNO_COL_TREE_WIDTH));
+    columnTree.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.PROPOSED_ANNO_COL_TREE_WIDTH));
     final TreeViewerColumn columnLine = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnLine.setLabelProvider(ColumnLabelProviderUtility.LINE);
     columnLine.getColumn().setText("Line");
     columnLine.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.PROPOSED_ANNO_COL_LINE_WIDTH));
-    columnLine.getColumn().addControlListener(
-        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.PROPOSED_ANNO_COL_LINE_WIDTH));
+    columnLine.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.PROPOSED_ANNO_COL_LINE_WIDTH));
 
     makeActions();
     hookContextMenu();

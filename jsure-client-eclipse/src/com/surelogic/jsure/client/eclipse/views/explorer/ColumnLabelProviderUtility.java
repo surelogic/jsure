@@ -7,10 +7,10 @@ import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.Utility;
+import com.surelogic.common.ui.EclipseColorUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ScanDifferences;
-import com.surelogic.jsure.client.eclipse.JSureClientUtility;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
@@ -23,11 +23,11 @@ public final class ColumnLabelProviderUtility {
       final ElementDrop element = (ElementDrop) cell.getElement();
       if (element.highlightDifferences()) {
         if (element.isNew() || element.isChanged()) {
-          cell.setBackground(JSureClientUtility.getDiffHighlightColorNewChanged());
+          cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
           return;
         }
         if (element.isOld()) {
-          cell.setBackground(JSureClientUtility.getDiffHighlightColorObsolete());
+          cell.setBackground(EclipseColorUtility.getDiffHighlightColorObsolete());
           return;
         }
       }
@@ -51,7 +51,7 @@ public final class ColumnLabelProviderUtility {
            */
           final int colonIndex = label.indexOf(':');
           if (colonIndex != -1) {
-            StyleRange[] ranges = { new StyleRange(colonIndex, label.length(), JSureClientUtility.getSubtleTextColor(), null) };
+            StyleRange[] ranges = { new StyleRange(colonIndex, label.length(), EclipseColorUtility.getSubtleTextColor(), null) };
             cell.setStyleRanges(ranges);
           }
         }
@@ -128,7 +128,7 @@ public final class ColumnLabelProviderUtility {
           }
           if (cellText != null) {
             cell.setText(cellText);
-            cell.setForeground(JSureClientUtility.getSubtleTextColor());
+            cell.setForeground(EclipseColorUtility.getSubtleTextColor());
           }
         }
       }
