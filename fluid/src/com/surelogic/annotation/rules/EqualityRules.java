@@ -154,16 +154,16 @@ public class EqualityRules extends AnnotationRules {
 						final IIRProject p = JavaProjects.getEnclosingProject(tdecl);					
 						Iterator<IRNode> it = p.getTypeEnv().getRawSubclasses(tdecl).iterator();
 						if (it.hasNext()) {
-							getContext().reportError(a, I18N.res(SHOULD_BE_ABSTRACT, JavaNames.getFullTypeName(it.next())));
+							getContext().reportError(a, I18N.res(SHOULD_BE_ABSTRACT, JavaNames.getRelativeTypeNameDotSep(it.next())));
 							return null;
 						}
 					}
 					
 					final ValueObjectPromiseDrop d = new ValueObjectPromiseDrop(a);
 					if (isInterface) {
-						makeResultDrop(tdecl, d, true, TRIVIALLY_VALUE_INTERFACE, JavaNames.getTypeName(tdecl));
+						makeResultDrop(tdecl, d, true, TRIVIALLY_VALUE_INTERFACE, JavaNames.getRelativeTypeNameDotSep(tdecl));
 					} else if (isAbstract) {
-						makeResultDrop(tdecl, d, true, TRIVIALLY_VALUE_ABSTRACT, JavaNames.getTypeName(tdecl));
+						makeResultDrop(tdecl, d, true, TRIVIALLY_VALUE_ABSTRACT, JavaNames.getRelativeTypeNameDotSep(tdecl));
 					} else {
 						computeResults(a.getPromisedFor(), d, true);
 					}
