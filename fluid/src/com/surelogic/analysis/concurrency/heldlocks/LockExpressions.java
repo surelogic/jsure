@@ -15,12 +15,15 @@ import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.concurrency.heldlocks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLockFactory;
+import com.surelogic.dropsea.IKeyValue;
+import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
+import com.surelogic.dropsea.irfree.DiffHeuristics;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -128,6 +131,13 @@ final class LockExpressions {
     public void addSingleThreadedEvidence(final ResultDrop result) {
      final ResultFolderDrop f = ResultFolderDrop.newOrFolder(result.getNode());
      result.addTrusted(f);
+     
+     // Copy diff hint if any
+     String diffHint = result.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT);
+     if (diffHint != null) {
+    	 final IKeyValue diffInfo = KeyValueUtility.getStringInstance(DiffHeuristics.ANALYSIS_DIFF_HINT, diffHint);         
+    	 f.addOrReplaceDiffInfo(diffInfo);
+     }
      f.setMessagesByJudgement(Messages.CONSTRUCTOR_IS_THREADCONFINED,
          Messages.CONSTRUCTOR_IS_NOT_THREADCONFINED);
       if (isUniqueReturn) {
