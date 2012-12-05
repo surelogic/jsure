@@ -436,14 +436,14 @@ public class UniquenessRules extends AnnotationRules {
         final IRNode mdecl = JavaPromise.getPromisedFor(promisedFor);
         context.reportError(a,
             "Return of method {0} cannot be annotated with @{1}: Primitive return type",
-            JavaNames.genMethodConstructorName(mdecl), label);        
+            JavaNames.genRelativeFunctionName(mdecl), label);        
       } else if (ParameterDeclaration.prototype.includes(promisedForOp)) {
         final IRNode mdecl = 
             JJNode.tree.getParent(JJNode.tree.getParent(promisedFor));
         context.reportError(a,
             "Parameter {0} of method {1} cannot be annotated with @{2}: Primitive type",
             ParameterDeclaration.getId(promisedFor), 
-            JavaNames.genMethodConstructorName(mdecl), label);        
+            JavaNames.genRelativeFunctionName(mdecl), label);        
       } else { // VariableDeclarator: QualifiedRecievers and Receivers are not primitive
         context.reportError(a,
             "Field {0} cannot be annotated with @{1}: Primitive type",
@@ -455,7 +455,7 @@ public class UniquenessRules extends AnnotationRules {
       final IRNode mdecl = JavaPromise.getPromisedFor(promisedFor);
       context.reportError(a,
           "Return of method {0} cannot be annotated with @{1}: Void return type",
-          JavaNames.genMethodConstructorName(mdecl), label);
+          JavaNames.genRelativeFunctionName(mdecl), label);
       return false;
     } else {
       return true;
@@ -589,13 +589,13 @@ public class UniquenessRules extends AnnotationRules {
                       new ProposedPromiseDrop(parentState.first().getProposedPromiseName(), null, promisedFor, parentP, Origin.PROBLEM),
                       "The annotation on parameter {0} of {1} cannot be changed from {2} to {3}",
                       ParameterDeclaration.getId(p),
-                      JavaNames.genQualifiedMethodConstructorName(parentMethod),
+                      JavaNames.genRelativeFunctionName(parentMethod),
                       parentState.first().getAnnotation(), s.getAnnotation());
                 } else {
                   getContext().reportError(promisedFor,
                       "The annotation on parameter {0} of {1} cannot be changed from {2} to {3}",
                       ParameterDeclaration.getId(p),
-                      JavaNames.genQualifiedMethodConstructorName(parentMethod),
+                      JavaNames.genRelativeFunctionName(parentMethod),
                       parentState.first().getAnnotation(), s.getAnnotation());
                 }
               }
@@ -616,12 +616,12 @@ public class UniquenessRules extends AnnotationRules {
               getContext().reportErrorAndProposal(
                   new ProposedPromiseDrop(parentState.first().getProposedPromiseName(), "this", promisedFor, parentMethod, Origin.PROBLEM),
                   "The annotation on the receiver of {0} cannot be changed from {1} to {2}",
-                  JavaNames.genQualifiedMethodConstructorName(parentMethod),
+                  JavaNames.genRelativeFunctionName(parentMethod),
                   parentState.first().getAnnotation(), s.getAnnotation());
             } else {
               getContext().reportError(promisedFor,
                   "The annotation on the receiver of {0} cannot be changed from {1} to {2}",
-                  JavaNames.genQualifiedMethodConstructorName(parentMethod),
+                  JavaNames.genRelativeFunctionName(parentMethod),
                   parentState.first().getAnnotation(), s.getAnnotation());
             }
           }
@@ -640,12 +640,12 @@ public class UniquenessRules extends AnnotationRules {
               getContext().reportErrorAndProposal(
                   new ProposedPromiseDrop(parentState.first().getProposedPromiseName(), "return", promisedFor, parentMethod, Origin.PROBLEM),
                   "The annotation on the return value of {0} cannot be changed from {1} to {2}",
-                  JavaNames.genQualifiedMethodConstructorName(parentMethod),
+                  JavaNames.genRelativeFunctionName(parentMethod),
                   parentState.first().getAnnotation(), s.getAnnotation());
             } else {
               getContext().reportError(promisedFor,
                   "The annotation on the return value of {0} cannot be changed from {1} to {2}",
-                  JavaNames.genQualifiedMethodConstructorName(parentMethod),
+                  JavaNames.genRelativeFunctionName(parentMethod),
                   parentState.first().getAnnotation(), s.getAnnotation());
             }
           }
