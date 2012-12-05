@@ -537,7 +537,7 @@ public class LockRules extends AnnotationRules {
               good = false;
               getContext().reportError(mdecl,
                   "Method does not return same lock as the method it overrides: {0}",
-                  JavaNames.genQualifiedMethodConstructorName(parent));
+                  JavaNames.genRelativeFunctionName(parent));
             }
           }
           return good;
@@ -591,7 +591,7 @@ public class LockRules extends AnnotationRules {
             okay = false;
             context.reportError(annotatedMethod,
                 "Method does not return same lock as the method it overrides: {0}",
-                JavaNames.genQualifiedMethodConstructorName(parent));
+                JavaNames.genRelativeFunctionName(parent));
           }
         }
       }
@@ -879,7 +879,7 @@ public class LockRules extends AnnotationRules {
           if (!locks.isEmpty() && !isAssumption) {
             allGood = false;
             context.reportError(node, "Overridden method {0} is not annotated with @RequiresLock",
-                JavaNames.genQualifiedMethodConstructorName(parent));
+                JavaNames.genRelativeFunctionName(parent));
           }
         } else {
           /* Every lock in the current annotation must be present in the 
@@ -897,7 +897,7 @@ public class LockRules extends AnnotationRules {
             allGood = false;
             context.reportError(node, "Cannot add lock {0} to @RequiresLock annotation of {1}",
                 lock.unparse(false),
-                JavaNames.genQualifiedMethodConstructorName(parent));
+                JavaNames.genRelativeFunctionName(parent));
           }
         }
       }      
@@ -1293,8 +1293,8 @@ public class LockRules extends AnnotationRules {
         context.reportError("Lock \""
             + currentName
             + "\" already declared in class "
-            + JavaNames.getQualifiedTypeName(lockDecl
-                .getPromisedFor()), lockDecl); //$NON-NLS-1$ //$NON-NLS-2$
+            + JavaNames.getRelativeTypeNameDotSep(lockDecl.getPromisedFor()),
+            lockDecl);
         declIsGood = false;
         break;
       }
@@ -1391,7 +1391,7 @@ public class LockRules extends AnnotationRules {
 		IJavaDeclaredType current = type.getSuperclass(typeEnv);
 		while (current != null) {
 			final IRNode classDecl = current.getDeclaration();
-			final String typeName = JavaNames.getQualifiedTypeName(current);
+			final String typeName = JavaNames.getRelativeTypeNameDotSep(classDecl);
 			for (LockModel lockModel : getModels(classDecl)) {
 				final String name = lockModel.getSimpleName();
 				if (name != null) {
@@ -1879,7 +1879,7 @@ public class LockRules extends AnnotationRules {
                 bad = true;
                 context.reportError(node,
                     "Class may not be @{0}(implementationOnly=true) because it implements the @{0} interface {1}",
-                    name, JavaNames.getQualifiedTypeName(intfDecl));
+                    name, JavaNames.getRelativeTypeNameDotSep(intfDecl));
               }
             }
             
@@ -1897,13 +1897,13 @@ public class LockRules extends AnnotationRules {
     	        		bad = true;
     	        		context.reportError(node,
     	        				"Class may not be @{0}(implementationOnly=true) because it extends the non-@{0} class {1}",
-    	        				name, JavaNames.getQualifiedTypeName(superDecl));
+    	        				name, JavaNames.getRelativeTypeNameDotSep(superDecl));
     	        	}
   	          } else if (!superAnno.isImplementationOnly()) {
   	            bad = true;
   	            context.reportError(node,
   	                "Class may not be @{0}(implementationOnly=true) because it extends the @{0} class {1}",
-  	                name, JavaNames.getQualifiedTypeName(superDecl));
+  	                name, JavaNames.getRelativeTypeNameDotSep(superDecl));
   	          }
 	          }
           } else { // implementationOnly == false
@@ -1913,7 +1913,7 @@ public class LockRules extends AnnotationRules {
   	            bad = true;
   	            context.reportError(node,
   	                "Class may not be @{0} because it extends the non-@{0} class {1}",
-  	                name, JavaNames.getQualifiedTypeName(superDecl));
+  	                name, JavaNames.getRelativeTypeNameDotSep(superDecl));
   	          }
             }
           }
@@ -1968,13 +1968,13 @@ public class LockRules extends AnnotationRules {
               if (isNOT) {
                 context.reportError(typeDecl,
                     "Interface may not be @{0} because it extends the @{1} interface {2}",
-                    notName, name, JavaNames.getQualifiedTypeName(zuper));
+                    notName, name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               } else if (!isMoreSpecific && !zAnno.isAssumed()) {
                 context.reportErrorAndProposal(
                     new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
                     "Interface must be annotated @{0} because it extends the @{0} interface {1}",
-                    name, JavaNames.getQualifiedTypeName(zuper));
+                    name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               }              
             }
@@ -1989,26 +1989,26 @@ public class LockRules extends AnnotationRules {
               if (isNOT) {
                 context.reportError(typeDecl,
                     "Class may not be @{0} because it implements a @{1} interface {2}",
-                    notName, name, JavaNames.getQualifiedTypeName(zuper));
+                    notName, name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               } else if (!isMoreSpecific && !anno.isAssumed()) {
                 context.reportErrorAndProposal(
                     new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
                     "Class must be annotated @{0} because it implements a @{0} interface {1}",
-                    name, JavaNames.getQualifiedTypeName(zuper));
+                    name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               }            
             } else if (!anno.isImplementationOnly()) {
               if (isNOT) {
                 context.reportError(typeDecl,
                     "Class may not be @{0} because it extends a @{1} class {2}",
-                    notName, name, JavaNames.getQualifiedTypeName(zuper));
+                    notName, name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               } else if (!anno.isAssumed()) {
                 context.reportErrorAndProposal(
                     new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
                     "Class must be annotated @{0} because it extends a @{0} class {1}",
-                    name, JavaNames.getQualifiedTypeName(zuper));
+                    name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               }
             }
@@ -2324,7 +2324,7 @@ public class LockRules extends AnnotationRules {
             if (sDrop != null && !isStaticOnly(sDrop)) {
               getContext().reportError(node,
                   "Interface may not apply @ThreadSafe to the static part only because super interface {0} applies @{1} to the instance state",
-                  JavaNames.getQualifiedTypeName(sDecl), sDrop.getToken());
+                  JavaNames.getRelativeTypeNameDotSep(sDecl), sDrop.getToken());
               return false;
             } else {
               return true;
@@ -2337,7 +2337,7 @@ public class LockRules extends AnnotationRules {
             if (iDrop != null && !isStaticOnly(iDrop)) {
               getContext().reportError(node, 
                   "Interface may not be @ThreadSafe because it extends the @Immutable interface {0}",
-                  JavaNames.getQualifiedTypeName(sDecl));
+                  JavaNames.getRelativeTypeNameDotSep(sDecl));
               return false;
             } else {
               return true;
@@ -2363,7 +2363,7 @@ public class LockRules extends AnnotationRules {
             if (iDrop != null && !isStaticOnly(iDrop)) {
               getContext().reportError(node,
                   "Class may not apply @ThreadSafe to the static part only because super interface {0} applies @{1} to the instance state",
-                  JavaNames.getQualifiedTypeName(iDecl), iDrop.getToken());
+                  JavaNames.getRelativeTypeNameDotSep(iDecl), iDrop.getToken());
               return false;
             } else {
               return true;
@@ -2376,7 +2376,7 @@ public class LockRules extends AnnotationRules {
             if (immutableDrop != null && !isStaticOnly(immutableDrop)) {
               getContext().reportError(node, 
                   "Class may not be @ThreadSafe because it implements the @Immutable interface {0}",
-                  JavaNames.getQualifiedTypeName(iDecl));
+                  JavaNames.getRelativeTypeNameDotSep(iDecl));
               return false;
             } else {
               return true;
@@ -2402,7 +2402,7 @@ public class LockRules extends AnnotationRules {
                 if (!isStaticOnly(iDrop)) {
                   getContext().reportError(node,
                       "Class may not apply @ThreadSafe to the static part only because the super class {0} applies @{1} to the instance state",
-                          JavaNames.getQualifiedTypeName(sDecl), iDrop.getToken());
+                          JavaNames.getRelativeTypeNameDotSep(sDecl), iDrop.getToken());
                   return false;
                 } else {
                   return true;
@@ -2418,7 +2418,7 @@ public class LockRules extends AnnotationRules {
             if (iDrop != null && !iDrop.isImplementationOnly()) {
               getContext().reportError(node, 
                   "Class may not be @ThreadSafe because it extends the @Immutable(implementationOnly=false) class {0}",
-                  JavaNames.getQualifiedTypeName(sDecl));
+                  JavaNames.getRelativeTypeNameDotSep(sDecl));
               return false;
             } else {
               return true;
@@ -2570,7 +2570,7 @@ public class LockRules extends AnnotationRules {
             if (sDrop != null && !isStaticOnly(sDrop)) {
               getContext().reportError(node,
                   "Interface may not apply @Immutable to the static part only because super interface {0} applies @{1} to the instance state",
-                  JavaNames.getQualifiedTypeName(sDecl), sDrop.getToken());
+                  JavaNames.getRelativeTypeNameDotSep(sDecl), sDrop.getToken());
               return false;
             } else {
               return true;
@@ -2599,7 +2599,7 @@ public class LockRules extends AnnotationRules {
             if (iDrop != null && !isStaticOnly(iDrop)) {
               getContext().reportError(node,
                   "Class may not apply @Immutable to the static part only because super interface {0} applies @{1} to the instance state",
-                  JavaNames.getQualifiedTypeName(iDecl), iDrop.getToken());
+                  JavaNames.getRelativeTypeNameDotSep(iDecl), iDrop.getToken());
               return false;
             } else {
               return true;
@@ -2625,21 +2625,13 @@ public class LockRules extends AnnotationRules {
             if (iDrop != null && !iDrop.isImplementationOnly() && !isStaticOnly(iDrop)) {
               getContext().reportError(node,
                   "Class may not apply @Immutable to the static part only because the super class {0} applies @Immutable to the instance state",
-                  JavaNames.getQualifiedTypeName(sDecl));
+                  JavaNames.getRelativeTypeNameDotSep(sDecl));
               return false;
             } else {
               return true;
             }
           } else {
             return true;
-//            if (iDrop != null && isStaticOnly(iDrop)) {
-//              getContext().reportError(node,
-//                  "Class may not be @Immutable because the super class {0} applies @Immutable to the static state only",
-//                  JavaNames.getQualifiedTypeName(sDecl));
-//              return false;
-//            } else {
-//              return true;
-//            }
           }
         }
         

@@ -6,9 +6,9 @@ import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.custom.StyleRange;
 
 import com.surelogic.Utility;
+import com.surelogic.common.ui.EclipseColorUtility;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.jsure.client.eclipse.JSureClientUtility;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
@@ -30,7 +30,7 @@ public final class ColumnLabelProviderUtility {
            */
           final int colonIndex = label.indexOf(':');
           if (colonIndex != -1) {
-            StyleRange[] ranges = { new StyleRange(colonIndex, label.length(), JSureClientUtility.getSubtleTextColor(), null) };
+            StyleRange[] ranges = { new StyleRange(colonIndex, label.length(), EclipseColorUtility.getSubtleTextColor(), null) };
             cell.setStyleRanges(ranges);
           }
         } else if (element instanceof ElementDrop) {

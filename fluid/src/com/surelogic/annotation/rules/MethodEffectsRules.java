@@ -163,7 +163,7 @@ public class MethodEffectsRules extends AnnotationRules {
                         decl, overriddenMethod, Origin.PROBLEM);
                 getContext().reportErrorAndProposal(p,
                     "Cannot add effect writes java.lang.Object:All to the declared effects of {0}",
-                    JavaNames.genQualifiedMethodConstructorName(overriddenMethod));
+                    JavaNames.genRelativeFunctionName(overriddenMethod));
               }          
             } else {
               /* No annotation is same as @RegionEffects("writes java.lang.Object:All").  
@@ -342,12 +342,12 @@ public class MethodEffectsRules extends AnnotationRules {
              */
             if (!region.isAccessibleFromType(typeEnv, enclosingTypeNode)) {
               scrubberContext.reportError(regionSpec, "Region \"{0}\" may not be accessed by {1,choice,0#constructor|1#method} \"{2}\": Visiblity is {3}",
-                  regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genMethodConstructorName(promisedFor), region.getVisibility());
+                  regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genRelativeFunctionName(promisedFor), region.getVisibility());
               good = false;
             }          
             if (!isAccessibleToAllCallers(enclosingPackageName, methodInType, promisedFor, region, typeEnv)) {
               scrubberContext.reportError(regionSpec, "Region \"{0}\" is not accessible by all potential callers of {1,choice,0#constructor|1#method} \"{2}\": Region''s visibility is {3}",
-                  regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genMethodConstructorName(promisedFor), region.getVisibility().toString());
+                  regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genRelativeFunctionName(promisedFor), region.getVisibility().toString());
               good = false;
             }
           }
@@ -397,7 +397,7 @@ public class MethodEffectsRules extends AnnotationRules {
                 scrubberContext.reportErrorAndProposal(p, 
                     "Cannot add effect {0} to the declared effects of {1}",
                     overridingSpec.standAloneUnparse(),
-                    JavaNames.genQualifiedMethodConstructorName(overriddenMethod));
+                    JavaNames.genRelativeFunctionName(overriddenMethod));
               }
             }          
           } else {
