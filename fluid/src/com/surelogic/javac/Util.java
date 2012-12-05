@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -930,6 +932,21 @@ public class Util {
 	  protected abstract void process(CodeInfo info);
   }
   
+  static final ConcurrentMap<JavacTypeEnvironment, JavaCanonicalizer> canonicalizers = new ConcurrentHashMap<JavacTypeEnvironment, JavaCanonicalizer>();
+  static JavaCanonicalizer getCanonicalizer(CodeInfo info) {
+	  final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
+	  JavaCanonicalizer rv = canonicalizers.get(tEnv);
+	  if (rv == null) {	  
+		  final UnversionedJavaBinder b = tEnv.getBinder();
+		  final JavaCanonicalizer jcanon = new JavaCanonicalizer(b);
+		  rv = canonicalizers.putIfAbsent(tEnv, jcanon);
+		  if (rv == null) {
+			  rv = jcanon;
+		  }
+	  }
+	  return rv;
+  }
+  
   static final MonitoredProcedure<CodeInfo> bindProc = new MonitoredProcedure<CodeInfo>() {
 	  @Override
 	  protected void process(CodeInfo info) {
@@ -941,6 +958,9 @@ public class Util {
            * System.out.println("Deprecated in "+JavaNames.getFullName(type)); }
            */
           return; // Nothing to do on class files
+        }
+        if (batchAndCacheBindingsForCanon) {
+        	
         }
         final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
         final UnversionedJavaBinder b = tEnv.getBinder();
