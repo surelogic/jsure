@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 import com.surelogic.NonNull;
@@ -90,7 +91,7 @@ public class JSureScanInfo {
       }
       f_dropInfo = SeaSnapshot.loadSnapshot(f_loader, f_run.getResultsFile());
       final long end = System.currentTimeMillis();
-      System.out.println(" (in " + (end - start) + " ms)");
+      System.out.println(" (in " + SLUtility.toStringDurationMS(end - start, TimeUnit.MILLISECONDS) + ")");
       
       // Used to precompute properties
       ScanProperty.getScanProperties(f_run.getDir(), this, REQUIRED_PROPS);
