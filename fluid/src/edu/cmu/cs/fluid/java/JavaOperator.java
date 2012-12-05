@@ -59,24 +59,25 @@ public class JavaOperator extends JJOperator {
     operatorTable.put(n, this);
     
     Operator sop = superOperator();
-    if (sop != null) {
-      //Works for Operators that have a superOperator() and
-      //also for Operators who have children
-      Collection<Operator> c = childrenMap.get(sop);
-      if (c == null) {
-        c = new ArrayList<Operator>();
-        childrenMap.put(sop, c);
-      }
-      c.add(this);
+    synchronized (childrenMap) {
+    	if (sop != null) {
+    		//Works for Operators that have a superOperator() and
+    		//also for Operators who have children
+    		Collection<Operator> c = childrenMap.get(sop);
+    		if (c == null) {
+    			c = new Vector<Operator>();
+    			childrenMap.put(sop, c);
+    		}
+    		c.add(this);
+    	}
+
+    	//Works for Operators without a superOperator() and
+    	//without children (top-level ops with no children)
+    	Collection<Operator> m = childrenMap.get(this);
+    	if (m == null){
+    		childrenMap.put(this, null);
+    	}
     }
-    
-    //Works for Operators without a superOperator() and
-    //without children (top-level ops with no children)
-    Collection<Operator> m = childrenMap.get(this);
-    if (m == null){
-			childrenMap.put(this, null);
-    }
-    
   }
 
   /**
