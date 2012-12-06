@@ -9,10 +9,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.ThreadSafe;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
@@ -25,6 +25,7 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.Selector;
 import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
@@ -135,12 +136,11 @@ import edu.cmu.cs.fluid.version.Version;
  * @author Edwin.Chan
  * @author John Boyland
  */
+@ThreadSafe
 public abstract class AbstractJavaBinder extends AbstractBinder {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
   private static final IJavaType[] noTypes = JavaGlobals.noTypes;
   
-  public static volatile boolean foundIssue = false;  
-  public static final AtomicInteger issueCount = new AtomicInteger(0);
   protected static final boolean storeNullBindings = true;
   protected boolean warnAboutPkgBindings = false;
 
@@ -210,7 +210,30 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
    * @param op
    * @return if this operator marked a granule.
    */
-  public static boolean isGranule(Operator op, IRNode node) {
+  public static boolean isGranule(IRNode node, Operator op) {
+	/*
+	// Check if already calculated
+  	final int mods = JavaNode.getModifiers(node);
+  	if (JavaNode.isSet(mods, JavaNode.NOT_GRANULE)) {
+  		return false;
+  	}
+  	if (JavaNode.isSet(mods, JavaNode.IS_GRANULE)) {
+  		return true;
+  	}
+    if (op == null) {
+    	op = JJNode.tree.getOperator(node);
+    }
+  	final boolean rv = isGranule_private(node, op);
+  	JavaNode.setModifiers(node, JavaNode.setModifier(mods, rv ? JavaNode.IS_GRANULE : JavaNode.NOT_GRANULE, true));
+  	return rv;
+  }
+  
+  public static boolean isGranule(IRNode node) {
+	  return isGranule(node, null);
+  }
+  *
+  private static boolean isGranule_private(IRNode node, Operator op) {
+  */
     if (op instanceof TypeDeclInterface) {
       /*
       if (op instanceof AnonClassExpression) {
@@ -258,7 +281,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         	if (JavaNode.isSet(mods, JavaNode.NOT_GRANULE)) {
         		return false;
         	}
-        	
     		for(IRNode n : JJNode.tree.topDown(node)) {
     			if (OuterObjectSpecifier.prototype.includes(n)) {    				
     				//System.out.println("Granule: "+DebugUnparser.toString(node));
@@ -293,7 +315,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
    */
   public IRNode getGranule(IRNode node) {
     Operator op;
-    while (!(isGranule(op = JJNode.tree.getOperator(node), node))) {
+    while (!(isGranule(node, op = JJNode.tree.getOperator(node)))) {
       IRNode p;
       try {
     	p = JJNode.tree.getParent(node);        
@@ -399,53 +421,19 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 	         TypeActuals.prototype.includes(op);
   }
   
-  // Check for case of OOS around an AllocationCallExpression (or pair)
-  static boolean isSpecialTypeCase(IRNode here) {
-	  /*
-	  if (foundIssue) {
-		  System.out.println("Checking isSpecialTypeCase for "+DebugUnparser.toString(here));
-	  }
-	  Operator op = JJNode.tree.getOperator(here);
-	  // Skip Type nodes
-	  while (isType(op)) {
-		  here = JJNode.tree.getParent(here);
-		  op   = JJNode.tree.getOperator(here); 
-	  }
-	  if (AllocationCallExpression.prototype.includes(here)) {    	 
-		  IRNode parent = JJNode.tree.getParent(here);
-		  Operator pop = JJNode.tree.getOperator(parent);
-		  if (OuterObjectSpecifier.prototype.includes(pop)) {
-			  return true;
-		  }
-		  if (AnonClassExpression.prototype.includes(pop)) {
-			  IRNode gparent = JJNode.tree.getParent(parent);
-			  return OuterObjectSpecifier.prototype.includes(gparent);
-		  }
-	  }
-	  */
-	  return false;
-  }   
-  
   protected IGranuleBindings ensureBindingsOK(final IRNode node) {    
     final IRNode gr            = getGranule(node);
     final Operator op          = JJNode.tree.getOperator(node); 
     final boolean needFullInfo = needFullInfo(node, op, gr);
     final Map<IRNode,IGranuleBindings> granuleBindings =
-  	  needFullInfo ? allGranuleBindings : partialGranuleBindings;
-    IGranuleBindings bindings;
-    // FIX deadlock 
-    // Issue: we alternate between locking on the IGranuleBinding and the Binder 
-    bindings = granuleBindings.get(gr);
-    
+  	  needFullInfo ? allGranuleBindings : partialGranuleBindings; 
+    // Note: don't alternate between locking on the IGranuleBinding and the Binder 
+    IGranuleBindings bindings = granuleBindings.get(gr);
     if (bindings == null || bindings.isDestroyed()) {
-    	bindings = makeGranuleBindings(gr);
-    	bindings.setContainsFullInfo(needFullInfo);    	
+    	bindings = makeGranuleBindings(gr, needFullInfo);	
     	granuleBindings.put(gr,bindings);    	
     }
-    
-    // FIX hack to be able to use just derived info (e.g. a binding for a NamedType)
-    // to compute other info (e.g. a binding for a ParameterizedType containing the
-    // NamedType)
+  
     final Stack<IGranuleBindings> stack = bindingStack.get();
     stack.push(bindings);    
 
@@ -532,7 +520,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 	  return bindings;
   }
   
-  protected abstract IGranuleBindings makeGranuleBindings(IRNode cu);
+  protected abstract IGranuleBindings makeGranuleBindings(IRNode cu, boolean needFullInfo);
  
   protected final void deriveInfo(IGranuleBindings bindings, IRNode unit) {
     //System.out.println("Deriving info for "+DebugUnparser.toString(unit));
@@ -607,7 +595,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   
   protected final IJavaDeclaredType asDeclaredType(IJavaArrayType ty) {
     IRNode fakeArrayDeclaration = getTypeEnvironment().getArrayClassDeclaration();
-    LOG.finer("Found fake array decl " + fakeArrayDeclaration);
+    //LOG.finer("Found fake array decl " + fakeArrayDeclaration);
     return JavaTypeFactory.getDeclaredType(fakeArrayDeclaration,new ImmutableList<IJavaType>(ty.getElementType()),null);
   }
   
@@ -756,6 +744,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     protected boolean isFullPass = false; // by default we start in the preliminary pass
     protected final boolean debug = LOG.isLoggable(Level.FINER);        
     private final MethodBinder methodBinder = new MethodBinder(AbstractJavaBinder.this, debug);    
+    private final IJavaScope.LookupContext lookupContext = new IJavaScope.LookupContext();
     
     /**
      * No change in functionality, but changed to avoid
@@ -926,7 +915,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         return null;
       }
       final Operator op = JJNode.tree.getOperator(node);
-      if (isGranule(op, node)) {
+      if (isGranule(node, op)) {
     	//System.out.println("Skipping granule "+DebugUnparser.toString(node));
         return null; // skip granule nested in this one
       }
@@ -1180,9 +1169,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         LOG.finer("Looking up " + name + " in " + sc);
       }
       if (sc != null) {
-        IBinding binding = sc.lookup(name,node,selector);
+        IBinding binding = sc.lookup(lookupContext.use(name,node),selector);
         if (binding == null) {
-          sc.lookup(name,node,selector);
+          sc.lookup(lookupContext.use(name,node),selector);
         }
         bind(node, binding, quietWarnings);
         return binding != null;
@@ -1212,6 +1201,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		  return noTypes;
 	  }
       final int n = JJNode.tree.numChildren(args);
+      if (n == 0) {
+    	  return noTypes;
+      }
       IJavaType[] argTypes = new IJavaType[n];     
       Iterator<IRNode> argse = JJNode.tree.children(args); 
       for (int i= 0; i < n; ++i) {
@@ -1222,7 +1214,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     }
     
 	private IJavaScope.Selector makeAccessSelector(final IRNode from) {
-		return new IJavaScope.AbstractSelector("Is accessible from "+DebugUnparser.toString(from)) {
+		return new IJavaScope.AbstractSelector("Ignore") {
+			@Override
+			public String label() {
+				return "Is accessible from "+DebugUnparser.toString(from);
+			}
 			public boolean select(IRNode decl) {
 				boolean ok = BindUtil.isAccessible(typeEnvironment, decl, from);
 				return ok;
@@ -1270,10 +1266,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       
       final IJavaScope.Selector isAccessible = makeAccessSelector(from);
+      lookupContext.use(name,call);
       final Iterable<IBinding> methods = new Iterable<IBinding>() {
 //			@Override
 			public Iterator<IBinding> iterator() {
-				return IJavaScope.Util.lookupCallable(sc,name,call,isAccessible,needMethod);
+				return IJavaScope.Util.lookupCallable(sc,lookupContext,isAccessible,needMethod);
 			}
       };
       BindingInfo bestMethod = methodBinder.findBestMethod(methods, targs, args, argTypes);
@@ -1398,13 +1395,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         	final int lastDot = name.lastIndexOf('.');
         	IBinding b;
         	if (lastDot < 0) {
-        		b = scope.lookup(name, node, IJavaScope.Util.isTypeDecl);            	
+        		b = scope.lookup(lookupContext.use(name, node), IJavaScope.Util.isTypeDecl);            	
         	} else {
         		b = checkForNestedAnnotation(node, name, lastDot);
         	}
         	boolean success = bind(node, b);
         	if (!success) {
-        		scope.lookup(name, node, IJavaScope.Util.isTypeDecl);    
+        		scope.lookup(lookupContext.use(name, node), IJavaScope.Util.isTypeDecl);    
         	}
         } else {
         	bind(node, decl);
@@ -1422,7 +1419,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		}
 		IBinding b = null;
 		if (decl == null) {
-			b = scope.lookup(qname, node, IJavaScope.Util.isTypeDecl);    
+			b = scope.lookup(lookupContext.use(qname, node), IJavaScope.Util.isTypeDecl);    
 			if (b == null) {
 				// Check for more nesting
 				lastDot = qname.lastIndexOf('.');
@@ -1436,7 +1433,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		}
 		if (decl != null) {
 			IJavaScope scope = typeScope(JavaTypeFactory.convertIRTypeDeclToIJavaType(decl));
-			return scope.lookup(id, node, IJavaScope.Util.isTypeDecl);    
+			return scope.lookup(lookupContext.use(id, node), IJavaScope.Util.isTypeDecl);    
 		}
 		return null;
     }
@@ -1472,7 +1469,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (isFullPass && pathToTarget == null) {
         // FIX? never called if used with OuterObjectSpecifier
         doAccept(AnonClassExpression.getAlloc(node), sc);
-        IJavaScope old = scope; 
+        final IJavaScope old = scope;         
+        final IRNode enclosingType = lookupContext.foundNewType(node);
         try {
           scope = sc;
           //System.out.println("Trying to bind ACE: "+DebugUnparser.toString(node));
@@ -1483,6 +1481,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           }
         } finally {
           scope = old;
+          lookupContext.leavingType(node, enclosingType);
         }        
         /*
         if (!node.valueExists(bindings.getUseToDeclAttr())) {
@@ -1501,6 +1500,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitArrayType(IRNode node) {
+      if (isFullPass) {
+    	  return null;
+      }
       // No IRNode binding that makes sense
       bind(node, nullBinding); 
       return super.visitArrayType(node);      
@@ -1834,11 +1836,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IJavaScope toUse  = null;
       IJavaType recType = null;
       final String name = MethodCall.getMethod(node);  
-      /*       
-      if ("getCurrentKey".equals(name)) {
+  
+      if ("foobarbaz".equals(name)) {
       	System.out.println("getCurrentKey: "+DebugUnparser.toString(node));
       }      
-      */
+     
       if (JJNode.tree.getOperator(receiver) instanceof ImplicitReceiver) {
         toUse = scope;
       } else {
@@ -2071,15 +2073,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       return null;
     } 
     
-    private boolean bindForType(IRNode node) {
-        final boolean isSpecialCase = isSpecialTypeCase(node);
-        if (isFullPass) {
-        	return isSpecialCase;
-        } else {
-        	return !isSpecialCase;
-        }
-    }
-    
     @Override
     public Void visitNameType(IRNode node) {
       /*
@@ -2087,7 +2080,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  System.out.println("NameType Context");
       }
       */
-      if (bindForType(node)) {
+      if (!isFullPass) {
     	  visit(node);
     	  bind(node,getIBinding(NameType.getName(node)));
       } else if (!isFullPass) {
@@ -2098,7 +2091,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitNamedType(IRNode node) {
-      if (!bindForType(node)) {
+      if (isFullPass) {
       	  return null;
       }
       String name = JJNode.getInfo(node);
@@ -2133,7 +2126,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           }
         }
         */
-        IBinding b = scope.lookup(name, node, IJavaScope.Util.isTypeDecl);
+        IBinding b = scope.lookup(lookupContext.use(name, node), IJavaScope.Util.isTypeDecl);
         /*
         if (name.equals("E")) {
           	IRNode method = VisitUtil.getEnclosingClassBodyDecl(node);
@@ -2150,7 +2143,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         if (b == null && !isBinary(node)) {
           scope.printTrace(System.out, 0);
           classTable.getOuterClass(name,node);
-          scope.lookup(name, node, IJavaScope.Util.isTypeDecl);
+          scope.lookup(lookupContext.use(name, node), IJavaScope.Util.isTypeDecl);
         }
         success = bind(node, b);
         /*
@@ -2597,7 +2590,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 
     @Override
     public Void visitParameterizedType(IRNode node) {
-      if (!bindForType(node)) {
+      if (isFullPass) {
     	return null;
       }  	
       visit(node); // bind types      
@@ -2610,6 +2603,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitPrimitiveType(IRNode node) {
+        if (isFullPass) {
+      	  return null;
+        }    	
         // No IRNode binding that makes sense
         bind(node, nullBinding); 
         return super.visitPrimitiveType(node);
@@ -2816,6 +2812,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
      * @return null always
      */
     public Void visitTypeDeclaration(IRNode node, IRNode tformals) {
+      final IRNode enclosingType = lookupContext.foundNewType(node);
       /*
       if ("TestBindingInnerClass".equals(JJNode.getInfo(node))) {    	
     	  System.out.println("Binding type: "+JavaNames.getFullTypeName(node));
@@ -2824,8 +2821,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
       sc.add(node);
       addDeclsToScope(tformals, sc);
-      doAcceptForChildren(node,sc);
-      return null;
+      try {
+    	  doAcceptForChildren(node,sc);
+    	  return null;
+      } finally {
+    	  lookupContext.leavingType(node, enclosingType);
+      }
     }
 
     @Override
@@ -2848,7 +2849,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitTypeRef(IRNode node) {
-      if (!bindForType(node)) {
+      if (isFullPass) {
     	  return null;
       }
       visit(node); // bind base type
@@ -2915,6 +2916,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   /**
    * A type environment implementation linked to this binder.
    */
+  @ThreadSafe
   private class TypeEnv extends AbstractTypeEnvironment {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.bind.ITypeEnvironment#getBinder()
@@ -2975,6 +2977,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   
 	  final MethodBinder mb      = new MethodBinder(this, false);
 	  final List<IBinding> methods = new ArrayList<IBinding>();
+	  final LookupContext context = new LookupContext();
+	  context.foundNewType(td);
+	  context.use(name, mth);
+	  
 	  for(IJavaType st : t.getSupertypes(typeEnvironment)) {
 		  // Looking at the inherited members	
 		  final IJavaScope superScope = 
@@ -2982,7 +2988,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		  Iterable<IBinding> temp = new Iterable<IBinding>() {
 //			@Override
 			public Iterator<IBinding> iterator() {
-				return superScope.lookupAll(name, mth, IJavaScope.Util.isMethodDecl);
+				return superScope.lookupAll(context, IJavaScope.Util.isMethodDecl);
 			}			  
 		  };
 		  BindingInfo best = mb.findBestMethod(temp, null, null, mb.getFormalTypes(t, mth));
