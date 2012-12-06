@@ -382,7 +382,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
 
       // Running too early?
       if (f_viewStatePersistenceFile != null && f_viewStatePersistenceFile.exists()) {
-        f_viewerbook.getDisplay().asyncExec(new Runnable() {
+        EclipseUIUtility.asyncExec(new Runnable() {
           public void run() {
             final TreeViewerUIState state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
             state.restoreViewState(f_treeViewer);
@@ -391,7 +391,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
       }
     } else {
       // Show no results
-      f_viewerbook.getDisplay().asyncExec(new Runnable() {
+      EclipseUIUtility.asyncExec(new Runnable() {
         public void run() {
           setViewerVisibility(false);
         }

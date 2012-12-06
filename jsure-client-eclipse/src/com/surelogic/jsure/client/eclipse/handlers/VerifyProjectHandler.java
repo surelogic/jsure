@@ -86,7 +86,7 @@ public final class VerifyProjectHandler extends
 				}
 			}
 		};
-		EclipseUIUtility.getShell().getDisplay().asyncExec(r);
+		EclipseUIUtility.asyncExec(r);
 	}
 
 	@Override

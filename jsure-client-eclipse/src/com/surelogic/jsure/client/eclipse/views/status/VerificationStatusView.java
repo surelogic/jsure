@@ -576,7 +576,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
 
       // Running too early?
       if (f_viewStatePersistenceFile != null && f_viewStatePersistenceFile.exists()) {
-        f_viewerbook.getDisplay().asyncExec(new Runnable() {
+        EclipseUIUtility.asyncExec(new Runnable() {
           public void run() {
             final TreeViewerUIState state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
             state.restoreViewState(f_treeViewer);
@@ -585,7 +585,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       }
     } else {
       // Show no results
-      f_viewerbook.getDisplay().asyncExec(new Runnable() {
+      EclipseUIUtility.asyncExec(new Runnable() {
         public void run() {
           setViewerVisibility(false);
         }

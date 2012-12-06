@@ -12,12 +12,12 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.part.ViewPart;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.views.debug.testResults.model.Root;
@@ -35,7 +35,6 @@ public final class TestResultsView extends ViewPart {
   private TreeViewer treeViewer;
   private TestResultsTreeContentProvider contentProvider;
   private Root root;
-  private Display theDisplay;
   private Action saveAction;
   
   private final StringWriter stringWriter;
@@ -64,7 +63,6 @@ public final class TestResultsView extends ViewPart {
   
   @Override
   public void createPartControl(final Composite parent) {
-    theDisplay = getViewSite().getShell().getDisplay();
     root = new Root();
     contentProvider = new TestResultsTreeContentProvider(root);
     treeViewer = new TreeViewer(parent);
@@ -128,7 +126,7 @@ public final class TestResultsView extends ViewPart {
   }
 
   private void refresh() {
-    theDisplay.asyncExec(REFRESH);
+    EclipseUIUtility.asyncExec(REFRESH);
   }
 
   
