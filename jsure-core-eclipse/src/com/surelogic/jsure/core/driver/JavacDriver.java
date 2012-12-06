@@ -1693,7 +1693,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
         }
       };
       if (useSourceZipsDirectly && !pathsContainDot) {
-    	System.out.println("Using source zips directly");
+    	System.out.println("Using source zips directly for "+getProject());
         // OK
         // jar:///C:/Documents%20and%20Settings/UncleBob/lib/vendorA.jar!com/vendora/LibraryClass.class
         final Enumeration<? extends ZipEntry> e = zf.entries();
