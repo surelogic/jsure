@@ -8,7 +8,7 @@ public enum Assigned {
   UNASSIGNED,
   TOP;
   
-  
+  public static final Assigned[] NO_ASSIGNED = new Assigned[0];
   
   public static class Lattice extends AbstractLattice<Assigned> {
     private Lattice() {

@@ -3,6 +3,7 @@ package com.surelogic.jsure.core.preferences;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.surelogic.NonNull;
 import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.core.EclipseUtility;
@@ -70,10 +71,8 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultStringPreference(LOCK_MODEL_NAME_SUFFIX, "Lock");
       EclipseUtility.setDefaultBooleanPreference(LOCK_MODEL_NAME_CAP, true);
 
-      String dataDir = EclipseUtility.getADataDirectoryPath(FileUtility.JSURE_DATA_PATH_FRAGMENT);
-      EclipseUtility.setDefaultStringPreference(IDEPreferences.JSURE_DATA_DIRECTORY, dataDir);
-
-      File xmlDiffDir = new File(dataDir, FileUtility.JSURE_XML_DIFF_PATH_FRAGMENT);
+      final File jsureDataDir = EclipseUtility.getJSureDataDirectory();
+      File xmlDiffDir = new File(jsureDataDir, FileUtility.JSURE_XML_DIFF_PATH_FRAGMENT);
       EclipseUtility.setDefaultStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY, xmlDiffDir.getAbsolutePath());
 
       for (IAnalysisInfo a : Javac.getDefault().getAnalysisInfo()) {
@@ -166,14 +165,14 @@ public final class JSurePreferencesUtility {
    * 
    * @return the JSure data directory.
    * 
-   * @throws IllegalStateException
+   * @throws Exception
    *           if the JSure data directory doesn't exist on the disk and can't
    *           be created.
    */
+  @NonNull
   public static File getJSureDataDirectory() {
-    final String path = EclipseUtility.getStringPreference(IDEPreferences.JSURE_DATA_DIRECTORY);
-    final File result = new File(path);
-    FileUtility.ensureDirectoryExists(path);
+    final File result = EclipseUtility.getJSureDataDirectory();
+    FileUtility.ensureDirectoryExists(result);
     return result;
   }
 

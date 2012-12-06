@@ -85,7 +85,7 @@ abstract class AbstractLockStackLattice extends
   @SuppressWarnings("unchecked")
   protected AbstractLockStackLattice(final ThisExpressionBinder teb, final IBinder b, final HeldLock[] lks,
       final Map<IRNode, Set<HeldLock>> map) {
-    super(new ListLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>>(new UnionLattice<IRNode>()), new ImmutableList[0], lks);
+    super(new ListLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>>(new UnionLattice<IRNode>()), ImmutableList.NO_LISTS, lks);
     binder = b;
     thisExprBinder = teb;
     lockExprsToLockSets = map;
@@ -136,7 +136,7 @@ abstract class AbstractLockStackLattice extends
         lockList.add(wantToAdd);
       }
     }
-    HeldLock[] lockArray = new HeldLock[0];
+    HeldLock[] lockArray = HeldLock.NO_HELD_LOCKS;
     lockArray = lockList.toArray(lockArray);
     return lockArray;
   }
@@ -163,7 +163,7 @@ abstract class AbstractLockStackLattice extends
         }
       }
     }
-    HeldLock[] lockArray = new HeldLock[0];
+    HeldLock[] lockArray = HeldLock.NO_HELD_LOCKS;
     lockArray = lockList.toArray(lockArray);
     return lockArray;
   }

@@ -45,6 +45,7 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ui.ColumnResizeListener;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
@@ -57,7 +58,6 @@ import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.Activator;
-import com.surelogic.jsure.client.eclipse.JSureClientUtility;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
@@ -144,27 +144,23 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     final TreeViewerColumn columnTree = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnTree.setLabelProvider(ColumnLabelProviderUtility.TREE);
     columnTree.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_TREE_WIDTH));
-    columnTree.getColumn().addControlListener(
-        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_TREE_WIDTH));
+    columnTree.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_TREE_WIDTH));
     if (XUtil.useExperimental) {
       final TreeViewerColumn columnPosition = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
       columnPosition.setLabelProvider(ColumnLabelProviderUtility.POSITION);
       columnPosition.getColumn().setText("Position");
       columnPosition.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
-      columnPosition.getColumn().addControlListener(
-          new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
+      columnPosition.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
     }
     final TreeViewerColumn columnLine = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnLine.setLabelProvider(ColumnLabelProviderUtility.LINE);
     columnLine.getColumn().setText("Line");
     columnLine.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
-    columnLine.getColumn().addControlListener(
-        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
+    columnLine.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_LINE_WIDTH));
     final TreeViewerColumn columnDiff = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnDiff.setLabelProvider(ColumnLabelProviderUtility.DIFF);
     columnDiff.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.VEXPLORER_COL_DIFF_WIDTH));
-    columnDiff.getColumn().addControlListener(
-        new JSureClientUtility.ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_DIFF_WIDTH));
+    columnDiff.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VEXPLORER_COL_DIFF_WIDTH));
     f_showDiffTableColumn = columnDiff;
 
     makeActions();
@@ -519,7 +515,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
 
       // Running too early?
       if (f_viewStatePersistenceFile != null && f_viewStatePersistenceFile.exists()) {
-        f_viewerbook.getDisplay().asyncExec(new Runnable() {
+        EclipseUIUtility.asyncExec(new Runnable() {
           public void run() {
             final TreeViewerUIState state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
             state.restoreViewState(f_treeViewer);
@@ -528,7 +524,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       }
     } else {
       // Show no results
-      f_viewerbook.getDisplay().asyncExec(new Runnable() {
+      EclipseUIUtility.asyncExec(new Runnable() {
         public void run() {
           setViewerVisibility(false);
         }

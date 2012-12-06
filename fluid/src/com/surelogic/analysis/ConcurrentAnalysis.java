@@ -2,27 +2,28 @@ package com.surelogic.analysis;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Executor;
 
-import jsr166y.forkjoin.*;
-import jsr166y.forkjoin.Ops.Procedure;
+import jsr166y.*;
 
 import org.apache.commons.lang3.SystemUtils;
 
 import edu.cmu.cs.fluid.ide.*;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import extra166y.*;
+import extra166y.Ops.Procedure;
 
 public class ConcurrentAnalysis<Q extends ICompUnitContext> {
 	public static final int threadCount = IDE.getInstance().getIntPreference(
 			IDEPreferences.ANALYSIS_THREAD_COUNT);
 	public static final boolean singleThreaded = false || SystemUtils.IS_JAVA_1_5 || threadCount < 2;
-	public static final ForkJoinExecutor pool = singleThreaded ? null
-			: new ForkJoinPool(threadCount);
+	public static final ForkJoinPool pool = new ForkJoinPool(singleThreaded ? 1 : threadCount);
 	
-	private static final IParallelArray<Integer> dummyArray = singleThreaded ? null :
+	private static final ParallelArray<Integer> dummyArray = singleThreaded ? null :
 		ParallelArray.create(threadCount*2, Integer.class, pool);
 	
 	public static void executeOnAllThreads(Procedure<Integer> proc) {
-		if (pool == null) {
+		if (dummyArray == null) {
 			return;
 		}
 		dummyArray.apply(proc);
@@ -45,7 +46,7 @@ public class ConcurrentAnalysis<Q extends ICompUnitContext> {
 	/**
 	 * Used to queue up work across comp units before running in parallel
 	 */
-	private final IParallelArray<Q> workQueue;
+	private final ParallelArray<Q> workQueue;
 	private Procedure<Q> workProc;
 	private static final int FLUSH_SIZE = 20 * threadCount;
 
@@ -54,15 +55,14 @@ public class ConcurrentAnalysis<Q extends ICompUnitContext> {
 		if (runInParallel && type != null) {
 			// System.out.println("Threads: "+threadCount);
 			// System.out.println("Singlethreaded? "+singleThreaded);
-			workQueue = createIParallelArray(type);
+			workQueue = createParallelArray(type);
 		} else {
 			workQueue = null;
 		}
 	}
 
-	protected <E> IParallelArray<E> createIParallelArray(Class<E> type) {
-		final IParallelArray<E> array = runInParallel ? ParallelArray.create(0,
-				type, pool) : new NonParallelArray<E>();
+	protected <E> ParallelArray<E> createParallelArray(Class<E> type) {
+		final ParallelArray<E> array = ParallelArray.create(0, type, pool);
 		return array;
 	}
 
@@ -129,7 +129,7 @@ public class ConcurrentAnalysis<Q extends ICompUnitContext> {
 		if (c.isEmpty()) {
 			return;
 		}
-		final IParallelArray<E> array = createIParallelArray(type);
+		final ParallelArray<E> array = createParallelArray(type);
 		array.asList().addAll(c);
 		/*
 		 * for(Procedure<E> p : procs) { array.apply(p); }

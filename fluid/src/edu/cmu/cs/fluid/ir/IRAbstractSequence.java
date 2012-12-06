@@ -10,6 +10,7 @@ import com.surelogic.Unique;
 
 import edu.cmu.cs.fluid.util.ListIteratable;
 import edu.cmu.cs.fluid.util.SubList;
+import com.surelogic.Starts;
 
 public abstract class IRAbstractSequence<S,T> extends IRAbstractState<T>
 implements IRSequence<T>, List<T> {
@@ -24,15 +25,18 @@ implements IRSequence<T>, List<T> {
 
   public IRAbstractSequence() {}
 
-  public boolean isEmpty() {
+  @Starts("nothing")
+public boolean isEmpty() {
     return size() == 0;
   }
 
-  public Iterator<T> iterator() {
+  @Starts("nothing")
+public Iterator<T> iterator() {
     return elements();
   }
 
-  public boolean containsAll(Collection<?> c) {
+  @Starts("nothing")
+public boolean containsAll(Collection<?> c) {
     for(Object o : c) {
       if (!contains(o)) {
         return false;
@@ -57,7 +61,8 @@ implements IRSequence<T>, List<T> {
   }
 
   // FIX Not efficient
-  public boolean removeAll(Collection<?> c) {
+  @Starts("nothing")
+public boolean removeAll(Collection<?> c) {
     boolean removed = false;
     for(Object o : c) {
       remove(o);
@@ -67,7 +72,8 @@ implements IRSequence<T>, List<T> {
   }
 
   // FIX Not efficient
-  public boolean retainAll(Collection<?> c) {
+  @Starts("nothing")
+public boolean retainAll(Collection<?> c) {
     boolean removed = false;
     for(Object o : this) {
       if (!c.contains(o)) {
@@ -79,13 +85,15 @@ implements IRSequence<T>, List<T> {
   }
 
   // FIX Not efficient
-  public void clear() {    
+  @Starts("nothing")
+public void clear() {    
     for(Object o : this) {
       remove(o);  
     }
   }
 
-  public T get(int i) {
+  @Starts("nothing")
+public T get(int i) {
     return elementAt(i);
   }
 
@@ -100,7 +108,8 @@ implements IRSequence<T>, List<T> {
     insertElementBefore(val, loc);
   }
 
-  public T remove(int i) {
+  @Starts("nothing")
+public T remove(int i) {
     IRLocation loc = location(i);
     T old = elementAt(loc);
     removeElementAt(loc);
@@ -147,19 +156,23 @@ implements IRSequence<T>, List<T> {
   
   protected abstract ListIteratable<T> createListIterator(int i);
   
-  public ListIterator<T> listIterator() {
+  @Starts("nothing")
+public ListIterator<T> listIterator() {
     return getSlotFactory().newListIterator(createListIterator(0));
   }
 
-  public ListIterator<T> listIterator(int i) {
+  @Starts("nothing")
+public ListIterator<T> listIterator(int i) {
     return getSlotFactory().newListIterator(createListIterator(i));
   }
   
-  public List<T> subList(int i1, int i2) {
+  @Starts("nothing")
+public List<T> subList(int i1, int i2) {
     return new SubList<T>(this, i1, i2);
   }
   
-  @Override
+  @Starts("nothing")
+@Override
   @SuppressWarnings("unchecked")
   public final boolean equals(Object o) {
     if (o instanceof List) {

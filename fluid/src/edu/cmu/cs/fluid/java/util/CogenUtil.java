@@ -4,6 +4,7 @@ package edu.cmu.cs.fluid.java.util;
 import java.util.*;
 import java.util.logging.Logger;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -115,7 +116,7 @@ public class CogenUtil implements JavaGlobals {
 		return createType(tEnv, ct.getWildcard());
 	}
 	else if (t instanceof  IJavaNullType) {
-		return NamedType.createNode("java.lang.Object");
+		return NamedType.createNode(SLUtility.JAVA_LANG_OBJECT);
 	}
 	throw new UnsupportedOperationException("Unsupported type: "+t);
   }
@@ -171,7 +172,7 @@ public class CogenUtil implements JavaGlobals {
 
   /// makeFoo
   public static IRNode makeObjectNamedT() {
-    return NamedType.createNode("java.lang.Object");
+    return NamedType.createNode(SLUtility.JAVA_LANG_OBJECT);
   }
   
   public static IRNode makeType(IJavaType ty) {
@@ -334,7 +335,7 @@ public class CogenUtil implements JavaGlobals {
   /// makeEmpty{Type}
   public static IRNode makeNewClass(boolean nested, int mods, String name) {
     return makeClass(nested, mods, name, noNodes,
-		     createNamedT("java.lang.Object"), noNodes, noNodes);
+		     createNamedT(SLUtility.JAVA_LANG_OBJECT), noNodes, noNodes);
   }
   public static IRNode makeNewInterface(boolean nested, int mods, String name){
     return makeInterface(nested, mods, name, noNodes, noNodes, noNodes);

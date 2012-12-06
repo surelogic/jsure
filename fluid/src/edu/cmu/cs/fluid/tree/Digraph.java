@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.logging.Logger;
 
+import com.surelogic.ThreadSafe;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -34,6 +35,7 @@ import edu.cmu.cs.fluid.util.Iteratable;
  * @see Tree
  * @see SymmetricDigraph
  */
+@ThreadSafe
 public class Digraph extends DigraphMixin implements MutableDigraphInterface {
   /**
 	 * Logger for this class

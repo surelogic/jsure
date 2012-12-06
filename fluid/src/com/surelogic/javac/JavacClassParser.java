@@ -3,6 +3,7 @@ package com.surelogic.javac;
 import java.io.*;
 import java.util.*;
 import java.util.Queue;
+import java.util.Stack;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.zip.*;
@@ -11,22 +12,23 @@ import javax.tools.*;
 import javax.tools.JavaFileManager.Location;
 import javax.tools.JavaFileObject.Kind;
 
+import jsr166y.ForkJoinPool;
+import jsr166y.RecursiveTask;
+
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
-import org.apache.commons.lang3.SystemUtils;
-
-import jsr166y.forkjoin.*;
-import jsr166y.forkjoin.Ops.Procedure;
 
 import com.sun.source.tree.*;
 import com.sun.source.util.*;
 import com.sun.tools.javac.api.JavacTool;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.surelogic.*;
 import com.surelogic.analysis.*;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
+import com.surelogic.common.concurrent.RecursiveIOAction;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.adapter.*;
 import com.surelogic.xml.PackageAccessor;
@@ -39,10 +41,13 @@ import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.util.*;
+import extra166y.ParallelArray;
+import extra166y.Ops.Procedure;
 
 public class JavacClassParser {
 	/** Should we try to run things in parallel */
-	private static boolean wantToRunInParallel = false;
+	private static boolean wantToRunInParallel = true;
+	private static boolean useForkJoinTasks = wantToRunInParallel && false;
 	
 	private static final String[] sourceLevels = {
 		"1.5" /*default*/, "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"
@@ -86,20 +91,16 @@ public class JavacClassParser {
     	JavacTool.create().getStandardFileManager(nullListener, null, null);          	    	
 	
     private final Projects projects;
-	private final ForkJoinExecutor pool;
+	private final ForkJoinPool pool;
 	
 	// proj, qname, zip
-	final IParallelArray<Triple<String,String,ZipFile>> jarRefs;
+	final ParallelArray<Triple<String,String,ZipFile>> jarRefs;
 	
-	public JavacClassParser(ForkJoinExecutor executor, Projects p) throws IOException {
+	public JavacClassParser(ForkJoinPool executor, Projects p) throws IOException {
 		pool    = executor;
 		projects = p;
 
-		if (executor == null || SystemUtils.IS_JAVA_1_5) {
-			jarRefs = new NonParallelArray<Triple<String,String,ZipFile>>();
-		} else {
-			jarRefs = ParallelArray.create(0, Triple.class, pool);
-		}
+		jarRefs = ParallelArray.create(0, Triple.class, pool);		
 		fileman.setLocation(StandardLocation.CLASS_OUTPUT, tmpDir);		
 		
 		for(JavacProject jp : p) {
@@ -160,10 +161,10 @@ public class JavacClassParser {
 		final int max;
 		final boolean asBinary;
 		final ThreadLocal<SourceAdapter> adapter;
-		final IParallelArray<CompilationUnitTree> cuts;		
+		final ParallelArray<CompilationUnitTree> cuts;		
 		final Queue<CodeInfo> cus;
 		final References refs;
-        final Map<JavaFileObjectWrapper, JavaSourceFile> sources = new HashMap<JavaFileObjectWrapper, JavaSourceFile>();		
+        final Map<JavaFileObject, JavaSourceFile> sources = new HashMap<JavaFileObject, JavaSourceFile>();		
 		
 		public BatchParser(final JavacProject jp, int max, boolean asBinary) {
 			this.jp = jp;
@@ -176,11 +177,7 @@ public class JavacClassParser {
 					return new SourceAdapter(projects, jp);
 				}
 			};
-			if (pool == null || SystemUtils.IS_JAVA_1_5) {
-				cuts = new NonParallelArray<CompilationUnitTree>();
-			} else {
-				cuts = ParallelArray.create(0, CompilationUnitTree.class, pool);
-			}
+			cuts = ParallelArray.create(0, CompilationUnitTree.class, pool);			
 			cus = new ConcurrentLinkedQueue<CodeInfo>(); // Added to concurrently
 			refs = new References(jp);
 		}
@@ -188,8 +185,8 @@ public class JavacClassParser {
 		void parse(Iterable<JavaSourceFile> files, List<CodeInfo> results, boolean onDemand) 
 		throws IOException {
 			// Eliminate duplicates
-			// Issue w/ hashing on JaveFileObject
-			final Set<JavaFileObjectWrapper> temp  = new HashSet<JavaFileObjectWrapper>(max);
+			// Issue w/ hashing on JaveFileObject - FIXED
+			final Set<JavaFileObject> temp  = new HashSet<JavaFileObject>(max);
 			for(JavaSourceFile p : files) {
 				final CodeInfo info = jp.getTypeEnv().findCompUnit(p.qname);
 				boolean load = !onDemand || info == null;
@@ -204,50 +201,48 @@ public class JavacClassParser {
 						fileman.setLocation(location, Collections.singletonList(new File(zip)));
 						
 						JavaFileObject jfo = fileman.getJavaFileForInput(location, src, Kind.SOURCE);
-						JavaFileObjectWrapper w = new JavaFileObjectWrapper(jfo);
-						temp.add(w);
-						mapSource(w, p);
+						temp.add(jfo);
+						mapSource(jfo, p);
 					}
 					else if ( p.file.exists() && p.file.length() > 0) {						
 						for(JavaFileObject jfo : fileman.getJavaFileObjects(p.file)) {
-							JavaFileObjectWrapper w = new JavaFileObjectWrapper(jfo);
-							temp.add(w);
-							mapSource(w, p);
+							temp.add(jfo);
+							mapSource(jfo, p);
 						}
 					}									
 				}
 			}
-			// Handle in batches
-			final Iterator<JavaFileObjectWrapper> fileI = temp.iterator();
-			final List<JavaFileObject> batch     = new ArrayList<JavaFileObject>(max);
+			if (useForkJoinTasks) {
+				try {
+					parseViaForkJoin(new ArrayList<JavaFileObject>(temp), results, asBinary);
+				} catch(InterruptedException e) {
+					throw new IOException(e);
+				} catch(ExecutionException e) {
+					throw new IOException(e.getCause());
+				}
+			} else {
+				// Handle in batches
+				final Iterator<JavaFileObject> fileI = temp.iterator();
+				final List<JavaFileObject> batch     = new ArrayList<JavaFileObject>(max);
 
-			while (fileI.hasNext()) {
-				if (tEnv.getProgressMonitor().isCanceled()) {
-					throw new CancellationException();
+				while (fileI.hasNext()) {
+					if (tEnv.getProgressMonitor().isCanceled()) {
+						throw new CancellationException();
+					}
+					batch.add(fileI.next());
+
+					if (batch.size() >= max) {
+						parseBatch(batch, results, asBinary);
+						batch.clear();
+					}
 				}
-				batch.add(fileI.next().get());
-				
-				if (batch.size() >= max) {
+				if (!batch.isEmpty()) {
 					parseBatch(batch, results, asBinary);
-					batch.clear();
 				}
-			}
-			if (!batch.isEmpty()) {
-				parseBatch(batch, results, asBinary);
 			}
 		}
 
-		void mapSource(JavaFileObjectWrapper w, JavaSourceFile p) {
-			/*
-			URI uri = jfo.toUri();
-			if (jfo.getName().equals("Base64.java")) {
-				System.out.println("URI = "+uri);
-			}			
-			JavaSourceFile old = sources.put(uri, p);
-			if (old != null && !old.equals(p)) {
-				SLLogger.getLogger().warning("Already mapped "+uri);
-			}
-			*/
+		void mapSource(JavaFileObject w, JavaSourceFile p) {
 			sources.put(w, p);
 		}
 		
@@ -261,8 +256,51 @@ public class JavacClassParser {
 			r.close();
 		}
 		
-		void parseBatch(Iterable<JavaFileObject> files, List<CodeInfo> results, final boolean asBinary) 
-		throws IOException {
+		void parseViaForkJoin(Iterable<JavaFileObject> files, List<CodeInfo> results, final boolean asBinary) 
+		throws IOException, InterruptedException, ExecutionException {
+			final JavacTask javac = initJavac(files);
+			final Trees t = Trees.instance(javac);  
+			//System.out.println("Parsing sources");
+			Stack<AdaptTask> tasks = new Stack<AdaptTask>();
+			for(final CompilationUnitTree cut : javac.parse()) {	        
+				if (debug) {
+					System.out.println("Parsing "+cut.getSourceFile().getName());
+				}
+				tEnv.addPackage(SourceAdapter.getPackage(cut));        	   	
+				final AdaptTask task = new AdaptTask(t, cut);
+				pool.submit(task);
+				tasks.push(task);
+			}
+			while (!tasks.isEmpty()) {
+				final AdaptTask at = tasks.pop();
+				final CodeInfo info = at.get();
+				tEnv.addCompUnit(info, true);
+				results.add(info);
+			}
+		}
+		
+		class AdaptTask extends RecursiveTask<CodeInfo> {
+			private static final long serialVersionUID = 1L;
+			final Trees trees;
+			@Nullable
+			CompilationUnitTree cut;
+			
+			AdaptTask(Trees t, CompilationUnitTree c) {
+				trees = t;
+				cut = c;
+			}
+			
+			@Override
+			protected CodeInfo compute() {
+				try {
+					return adaptCompUnit(trees, cut);
+				} finally {
+					cut = null;
+				}
+			}
+		}
+		
+		private JavacTask initJavac(Iterable<JavaFileObject> files) {
 		    /*
 			for(File f : files) {
 				printStream(f.getName(), new FileInputStream(f));
@@ -285,7 +323,13 @@ public class JavacClassParser {
 	        final JavacTask task = (JavacTask) JavacTool.create().getTask(null, // Output to System.err
 	                fileman, nullListener, options,
 	                null, // Classes for anno processing
-	                files);	        
+	                files);	 
+	        return task;
+		}
+		
+		void parseBatch(Iterable<JavaFileObject> files, List<CodeInfo> results, final boolean asBinary) 
+		throws IOException {
+			final JavacTask task = initJavac(files);
 			try {
 				//Requires mapping Tree to Element
 				//task.getElements().getDocComment(e);
@@ -307,18 +351,9 @@ public class JavacClassParser {
 				cus.clear();
 				System.out.println("Adapting "+cuts.asList().size()+" CUTs");
 				Procedure<CompilationUnitTree> proc = new Procedure<CompilationUnitTree>() {
-					public void op(CompilationUnitTree cut) {
-						if (debug) {
-							System.out.println("Adapting "+cut.getSourceFile().getName());
-						}
-						//PlainIRNode.setCurrentRegion(new IRRegion());
-
-						JCCompilationUnit jcu = (JCCompilationUnit) cut;					
-						JavaSourceFile file = sources.get(new JavaFileObjectWrapper(jcu.sourcefile));
-						CodeInfo info = adapter.get().adapt(t, jcu, file, asBinary || file.asBinary);				        
+					public void op(CompilationUnitTree cut) {	
+						CodeInfo info = adaptCompUnit(t, cut);
 						cus.add(info);
-						Projects.setProject(info.getNode(), jp);
-						//System.out.println("Done adapting "+info.getFileName());
 					}
 				};
 				if (wantToRunInParallel) {
@@ -336,6 +371,21 @@ public class JavacClassParser {
 				//task.finish();
 			}
 		}		
+		
+		CodeInfo adaptCompUnit(final Trees t, final CompilationUnitTree cut) {
+			if (debug) {
+				System.out.println("Adapting "+cut.getSourceFile().getName());
+			}
+			//PlainIRNode.setCurrentRegion(new IRRegion());
+
+			JCCompilationUnit jcu = (JCCompilationUnit) cut;					
+			JavaSourceFile file = sources.get(jcu.sourcefile);
+			CodeInfo info = adapter.get().adapt(t, jcu, file, asBinary || file.asBinary);				        
+			//cus.add(info);
+			Projects.setProject(info.getNode(), jp);
+			//System.out.println("Done adapting "+info.getFileName());
+			return info;
+		}
 	}
 	
 	public void parse(final List<CodeInfo> results) throws IOException {
@@ -417,7 +467,7 @@ public class JavacClassParser {
 				}
 			}
 		}        
-        refs.add("java.lang.Object");
+        refs.add(SLUtility.JAVA_LANG_OBJECT);
         refs.add("java.lang.Class");
         refs.add("java.lang.String"); // For comparison purposes
         refs.add(PromiseConstants.ARRAY_CLASS_QNAME);
@@ -440,15 +490,31 @@ public class JavacClassParser {
         	refs.addAll(PackageAccessor.findPromiseXMLs());
         }
         
-        for(CodeInfo info : results) {
-			//System.out.println("Scanning: "+info.getFileName());
-        	final boolean debug = false;
-        	//info.getFileName().contains("EJBContext");
-        	
-        	if (refs.jp.getTypeEnv() == info.getTypeEnv()) {
-        		refs.scanForReferencedTypes(info.getNode(), debug);
-        	}
-		}		
+        if (false) {//wantToRunInParallel) {
+        	final ParallelArray<CodeInfo> temp = ParallelArray.create(0, CodeInfo.class, pool);
+        	temp.asList().addAll(results);
+        	final Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
+				@Override
+				public void op(CodeInfo info) {
+	        		//System.out.println("Scanning: "+info.getFileName());
+	        		final boolean debug = false;
+	        		if (refs.jp.getTypeEnv() == info.getTypeEnv()) {
+	        			refs.scanForReferencedTypes(info.getNode(), debug);
+	        		}
+				}
+			};
+        	temp.apply(proc);
+        } else {
+        	for(CodeInfo info : results) {
+        		//System.out.println("Scanning: "+info.getFileName());
+        		final boolean debug = false;
+        		//info.getFileName().contains("EJBContext");
+
+        		if (refs.jp.getTypeEnv() == info.getTypeEnv()) {
+        			refs.scanForReferencedTypes(info.getNode(), debug);
+        		}
+        	}		
+        }
         // Check for AWT references
         //boolean usesAWT = false;
         for(String ref : refs.getAllRefs()) {
@@ -617,7 +683,7 @@ public class JavacClassParser {
 					//	System.out.println("\tGot "+ref+" from "+project+": "+jar.getName());
 					//}
 					/*
-					if ("java.lang.Object".equals(ref)) {
+					if (SLUtility.JAVA_LANG_OBJECT.equals(ref)) {
 						System.out.println("Got Object from "+project+": "+jar.getName());
 					}
 					if ("java.lang.Enum".equals(ref)) {
@@ -742,7 +808,7 @@ public class JavacClassParser {
 			srcEnv.addCompUnit(info, true);
 			cus.put(srcProject.getName(), info);
 			Projects.setProject(cu, srcProject);
-			if ("java.lang.Object".equals(ref)) {
+			if (SLUtility.JAVA_LANG_OBJECT.equals(ref)) {
 				System.out.println("Setting project for Object from "+srcProject.getName());
 			}
 			
@@ -911,7 +977,9 @@ public class JavacClassParser {
 				System.out.println("FAST Scanning "+qname);
 			}
 			s.doAccept(cu);
-			refs.put(cu, r);
+			synchronized (refs) {
+				refs.put(cu, r);
+			}
 			/*
         	if (r.contains("javax.swing.WindowConstants") && "jEdit-4.1".equals(jp.getName())) {
         		IRNode type = VisitUtil.getPrimaryType(cu);
@@ -1214,5 +1282,19 @@ public class JavacClassParser {
 			cus.addAll(results);
 		}
 		updateTypeEnvs(cus);
+	}
+	
+	public void parseInParallel(final List<CodeInfo> results) throws IOException {				
+		if (!useForkJoinTasks) {
+			parse(results);
+		}
+		pool.invoke(new RecursiveIOAction() {
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			protected void compute_private() throws IOException {
+				parse(results);
+			}
+		});
 	}
 }

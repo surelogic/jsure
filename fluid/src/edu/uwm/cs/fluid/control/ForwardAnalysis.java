@@ -3,6 +3,7 @@ package edu.uwm.cs.fluid.control;
 
 import java.util.logging.Logger;
 
+import com.surelogic.RequiresLock;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -227,6 +228,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
 
   
   @Override
+  @RequiresLock("ComputeLock")
   protected void transferFlow(Flow node) {
     ControlEdge before = node.getInput();
     ControlEdge after = node.getOutput();
@@ -249,6 +251,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   
   
   @Override
+  @RequiresLock("ComputeLock")
   protected void transferJoin(Join node) {
     ControlEdge in1 = node.getInput(false);
     ControlEdge in2 = node.getInput(true);
@@ -277,6 +280,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   
   
   @Override
+  @RequiresLock("ComputeLock")
   protected void transferSource(Source n) {
     ControlEdge edge = n.getOutput();
     T val = trans.transferComponentSource(((ComponentSource)n).getComponent().getSyntax());
@@ -285,6 +289,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   
   
   @Override
+  @RequiresLock("ComputeLock")
   protected void transferSplit(Split node) {
     ControlEdge in = node.getInput();
     ControlEdge out1 = node.getOutput1();
@@ -323,6 +328,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   }
   
   @Override
+  @RequiresLock("ComputeLock")
   protected void transferPort(
       OutputPort port,
       InputPort dual) {

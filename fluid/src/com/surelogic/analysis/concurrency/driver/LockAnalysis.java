@@ -5,8 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import jsr166y.forkjoin.Ops.Procedure;
-
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.analysis.AbstractAnalysisSharingAnalysis;
 import com.surelogic.analysis.ConcurrencyType;
@@ -38,6 +36,7 @@ import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
+import extra166y.Ops.Procedure;
 
 public class LockAnalysis
 		extends

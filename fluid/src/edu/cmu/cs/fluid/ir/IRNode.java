@@ -1,6 +1,8 @@
 /* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/ir/IRNode.java,v 1.13 2006/03/27 21:35:50 boyland Exp $ */
 package edu.cmu.cs.fluid.ir;
 
+import com.surelogic.ThreadSafe;
+
 /** The intermediate representation node for the FLUID project
  * prototype software development environment.  Each node
  * has an arbitrary and dynamic number of named slots. 
@@ -11,19 +13,26 @@ package edu.cmu.cs.fluid.ir;
  * @see SlotInfo
  * @see PlainIRNode
  */
+@ThreadSafe
 public interface IRNode {
-	public static final int DESTROYED_HASH = 0;
+  public static final int DESTROYED_HASH = 0;
 	
-  public static final Object destroyedNode = new Object() {  	
-    @Override
-    public boolean equals(Object other) {
-	    return other == this || (other != null && other.equals(this));
-    }
-    @Override
-    public int hashCode() {
-	    return DESTROYED_HASH;
-    }
-  };
+  @ThreadSafe
+  public static class DestroyedNode {
+	  DestroyedNode() {
+		// To keep it from being created
+	  } 
+	  @Override
+	  public boolean equals(Object other) {
+		  return other == this || (other != null && other.equals(this));
+	  }
+	  @Override
+	  public int hashCode() {
+		  return DESTROYED_HASH;
+	  }
+  }
+  
+  public static final Object destroyedNode = new DestroyedNode();
 
   /** The "identity" of the node.  For plain IRNode's,
    * the identity is itself.  Used for equality testing.

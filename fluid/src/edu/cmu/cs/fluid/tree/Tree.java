@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.ThreadSafe;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.*;
@@ -34,6 +35,7 @@ import edu.cmu.cs.fluid.util.*;
  * </p>
  * </ul>
  */
+@ThreadSafe
 public class Tree extends Digraph implements MutableTreeInterface {
   public static final Logger LOG = SLLogger.getLogger("TREE");
   public static final String PARENTS = "parents";

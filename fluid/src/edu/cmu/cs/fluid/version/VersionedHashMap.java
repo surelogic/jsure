@@ -10,6 +10,7 @@ import java.util.Set;
 import edu.cmu.cs.fluid.ir.ExplicitSlotFactory;
 import edu.cmu.cs.fluid.util.*;
 import edu.cmu.cs.fluid.derived.IDerivedInformation.UnavailableException;
+import com.surelogic.Starts;
 
 /**
  * A thread-protected version-specific Map.
@@ -184,11 +185,13 @@ public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> 
         return new Map.Entry() {
           final CustomLinkedHashMap.LinkedEntry entry = VersionedIterator.this.entry;
 
-          public Object getKey() {
+          @Starts("nothing")
+		public Object getKey() {
             return entry.getKey();
           }
 
-          public Object getValue() {
+          @Starts("nothing")
+		public Object getValue() {
             return ((VersionedSlot) entry.getValue()).getValue();
           }
 
@@ -209,7 +212,8 @@ public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> 
     /* (non-Javadoc)
      * @see java.util.AbstractCollection#size()
      */
-    @Override
+    @Starts("nothing")
+	@Override
     public int size() {
       ensureDerived();
       Integer size = sizeSlot.getValue();
@@ -219,7 +223,8 @@ public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> 
     /* (non-Javadoc)
      * @see java.util.AbstractCollection#iterator()
      */
-    @Override
+    @Starts("nothing")
+	@Override
     public Iterator iterator() {
       ensureDerived();
       synchronized (VersionedHashMap.this) {
@@ -253,13 +258,15 @@ public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> 
     }
   }
 
-  @Override
+  @Starts("nothing")
+@Override
   @SuppressWarnings("unchecked")
   public Set<Map.Entry<K,V>> entrySet() {
     return myEntrySet;
   }
 
-  @Override
+  @Starts("nothing")
+@Override
   @SuppressWarnings("unchecked")
   public Set<K> keySet() {
     return myKeySet;
@@ -268,7 +275,8 @@ public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> 
   /** Returns true if we have a non-null mapping for this key.
    * @see java.util.Map#containsKey(java.lang.Object)
    */
-  @Override
+  @Starts("nothing")
+@Override
   public boolean containsKey(Object key) {
     return get(key) != null;
   }
@@ -298,7 +306,8 @@ public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> 
     return oldValue;
   }
 
-  @Override
+  @Starts("nothing")
+@Override
   @SuppressWarnings("unchecked")
   public V get(Object key) {
     ensureDerived();
@@ -316,7 +325,8 @@ public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> 
    * @see java.util.Map#remove(java.lang.Object)
    * @see java.util.Map#put
    */
-  @Override
+  @Starts("nothing")
+@Override
   @SuppressWarnings("unchecked")
   public V remove(Object key) {
     return put((K) key, null);

@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import edu.cmu.cs.fluid.derived.*;
 import edu.cmu.cs.fluid.ir.*;
+import com.surelogic.Unique;
+import com.surelogic.RequiresLock;
 
 /**
  * A table representing a Java import list mapping names to declarations.
@@ -19,6 +21,7 @@ public final class UnversionedJavaImportTable extends AbstractJavaImportTable {
   /**
    * Create an empty import table
    */
+  @Unique("return")
   private UnversionedJavaImportTable(IRNode cu, UnversionedJavaBinder b) {
     super(cu, b);
     initialize();
@@ -49,33 +52,22 @@ public final class UnversionedJavaImportTable extends AbstractJavaImportTable {
   public static void clearAll() {
     importTables.clear();
   }
-  
-  /**
-   * The classes etc thare are imported by name.
-   * A map of strings to Entry objects that hold the scope that
-   * the name should be looked up in (again)
-   */
-  //final Map<String,Entry> direct = new HashMap<String,Entry>();
-  
-  /**
-   * The scopes that are imported.  These implement the
-   * imports that end in ".*".
-   * A map from the import to an Entry object.
-   */
-  //final Map<IRNode,Entry> indirect = new HashMap<IRNode,Entry>();
-  
+
   private class UnversionedInfo extends AbstractDerivedInformation {
     @Override
-    public synchronized void clear() {
-      // TODO Is this synchronization right
-      super.clear();
-      direct.clear();
-      indirect.clear();
+    public void clear() {
+    	synchronized (UnversionedJavaImportTable.this) {
+    		super.clear();
+    		direct.clear();
+    		indirect.clear();
+    	}
     }
-
-    @Override
+    
+	@Override
     protected boolean derive() {
-      initialize();
+	  synchronized (UnversionedJavaImportTable.this) {
+		  initialize();
+	  }
       return true;
     }    
   }
@@ -86,7 +78,7 @@ public final class UnversionedJavaImportTable extends AbstractJavaImportTable {
   }
 
   @Override
-  protected synchronized <T> void addScope(Map<T,Entry> map, T key, IJavaScope scope) {
+  protected <T> void addScope(Map<T,Entry> map, T key, IJavaScope scope) {
     UnversionedEntry entry = (UnversionedEntry) map.get(key);
     if (entry == null) {
       entry = new UnversionedEntry(scope);

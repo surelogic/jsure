@@ -228,6 +228,7 @@ public abstract class SlotInfo<T> extends IRObservable {
 		if (num <= 0) {
 			return;
 		}
+		final long start = System.currentTimeMillis();
 		destroyedNodes += num;
 		long cleaned = 0;
 		for (SlotInfo si : anonSIs) {
@@ -236,7 +237,8 @@ public abstract class SlotInfo<T> extends IRObservable {
 		for (SlotInfo si : registry.values()) {
 			cleaned += si.cleanup();
 		}
-		System.out.println("Cleaned: "+cleaned);
+		final long end = System.currentTimeMillis();
+		System.out.println("Cleaned "+cleaned+" in "+(end-start)+" ms");
 		gced += cleaned; 
 	}
 

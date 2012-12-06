@@ -6,6 +6,10 @@ import java.io.PrintStream;
 import java.util.*;
 
 import edu.cmu.cs.fluid.util.*;
+import com.surelogic.Starts;
+import com.surelogic.RegionEffects;
+import com.surelogic.Unique;
+import com.surelogic.Borrowed;
 
 public final class EmptyIRSequence<T> extends IRAbstractState<T> implements IRSequence<T>, List<T> {
   @SuppressWarnings("rawtypes")
@@ -17,7 +21,10 @@ public final class EmptyIRSequence<T> extends IRAbstractState<T> implements IRSe
   public EmptyIRSequence() {
   }
 
-  public int size() {
+  @Borrowed("this")
+@RegionEffects("reads Instance")
+@Starts("nothing")
+public int size() {
     return 0;
   }
 
@@ -137,19 +144,33 @@ public final class EmptyIRSequence<T> extends IRAbstractState<T> implements IRSe
   // Implementation of List
   //===========================================================
 
-  public boolean isEmpty() {
+  @Borrowed("this")
+@RegionEffects("reads Instance")
+@Starts("nothing")
+public boolean isEmpty() {
     return true;
   }
 
-  public boolean contains(Object arg0) {
+  @Borrowed("this")
+@RegionEffects("reads arg0:Instance, Instance")
+@Starts("nothing")
+public boolean contains(@Borrowed Object arg0) {
     return false;
   }
 
-  public Iterator<T> iterator() {
+  @Borrowed("this")
+@RegionEffects("writes Instance")
+@Unique("return")
+@Starts("nothing")
+public Iterator<T> iterator() {
     return new EmptyIterator<T>();
   }
   
-  public Object[] toArray() {
+  @Borrowed("this")
+@RegionEffects("reads Instance")
+@Unique("return")
+@Starts("nothing")
+public Object[] toArray() {
     return noObjects;
   }
 
@@ -161,11 +182,17 @@ public final class EmptyIRSequence<T> extends IRAbstractState<T> implements IRSe
     throw new UnsupportedOperationException("empty sequence cannot be modified");
   }
 
-  public boolean remove(Object arg0) {
+  @Borrowed("this")
+@RegionEffects("reads arg0:Instance; writes Instance")
+@Starts("nothing")
+public boolean remove(@Borrowed Object arg0) {
     throw new UnsupportedOperationException("empty sequence cannot be modified");
   }
 
-  public boolean containsAll(Collection<?> c) {
+  @Borrowed("this")
+@RegionEffects("reads c:Instance, Instance")
+@Starts("nothing")
+public boolean containsAll(@Borrowed Collection<?> c) {
     return c.isEmpty();
   }
 
@@ -177,19 +204,31 @@ public final class EmptyIRSequence<T> extends IRAbstractState<T> implements IRSe
     throw new UnsupportedOperationException("empty sequence cannot be modified");
   }
 
-  public boolean removeAll(Collection<?> arg0) {
+  @Borrowed("this")
+@RegionEffects("reads arg0:Instance; writes Instance")
+@Starts("nothing")
+public boolean removeAll(@Borrowed Collection<?> arg0) {
     throw new UnsupportedOperationException("empty sequence cannot be modified");
   }
 
-  public boolean retainAll(Collection<?> arg0) {
+  @Borrowed("this")
+@RegionEffects("reads arg0:Instance; writes Instance")
+@Starts("nothing")
+public boolean retainAll(@Borrowed Collection<?> arg0) {
     return false;
   }
 
-  public void clear() {
+  @Borrowed("this")
+@RegionEffects("writes Instance")
+@Starts("nothing")
+public void clear() {
     throw new UnsupportedOperationException("empty sequence cannot be modified");
   }
 
-  public T get(int i) {
+  @Borrowed("this")
+@RegionEffects("reads Instance")
+@Starts("nothing")
+public T get(int i) {
     throw new IllegalArgumentException("No such element: "+i);
   }
 
@@ -201,27 +240,47 @@ public final class EmptyIRSequence<T> extends IRAbstractState<T> implements IRSe
     throw new UnsupportedOperationException("empty sequence cannot be modified");
   }
 
-  public T remove(int arg0) {
+  @Borrowed("this")
+@RegionEffects("writes Instance")
+@Starts("nothing")
+public T remove(int arg0) {
     throw new UnsupportedOperationException("empty sequence cannot be modified");
   }
 
-  public int indexOf(Object arg0) {
+  @Borrowed("this")
+@RegionEffects("reads arg0:Instance, Instance")
+@Starts("nothing")
+public int indexOf(@Borrowed Object arg0) {
     return -1;
   }
 
-  public int lastIndexOf(Object arg0) {
+  @Borrowed("this")
+@RegionEffects("reads arg0:Instance, Instance")
+@Starts("nothing")
+public int lastIndexOf(@Borrowed Object arg0) {
     return -1;
   }
 
-  public ListIterator<T> listIterator() {
+  @Borrowed("this")
+@RegionEffects("writes Instance")
+@Unique("return")
+@Starts("nothing")
+public ListIterator<T> listIterator() {
     return new EmptyIterator<T>();
   }
 
-  public ListIterator<T> listIterator(int arg0) {
+  @Borrowed("this")
+@RegionEffects("writes Instance")
+@Unique("return")
+@Starts("nothing")
+public ListIterator<T> listIterator(int arg0) {
     return new EmptyIterator<T>();
   }
 
-  public List<T> subList(int i1, int i2) {
+  @RegionEffects("writes Instance")
+@Unique("return")
+@Starts("nothing")
+public List<T> subList(int i1, int i2) {
     /*
     if (i1 != i2) {
       throw new IllegalArgumentException(i1+" != "+i2);

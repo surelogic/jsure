@@ -4,6 +4,8 @@ package edu.cmu.cs.fluid.tree;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.surelogic.ThreadSafe;
+
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRObservable;
@@ -14,6 +16,7 @@ import edu.cmu.cs.fluid.ir.InsertionPoint;
  * It implements the listerner protocol and
  * also provides some default definitions for functions
  */
+@ThreadSafe
 abstract public class DigraphMixin extends IRObservable
      implements DigraphInterface 
 {

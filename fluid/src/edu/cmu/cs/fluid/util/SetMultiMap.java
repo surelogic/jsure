@@ -7,6 +7,7 @@ package edu.cmu.cs.fluid.util;
 import java.util.*;
 
 import edu.cmu.cs.fluid.NotImplemented;
+import com.surelogic.Starts;
 
 /**
  * @author Edwin
@@ -63,11 +64,13 @@ public class SetMultiMap<K,V> extends CustomHashMap2 implements IMultiMap<K,V> {
       key = k;
     }
     
-    public Object getKey() {
+    @Starts("nothing")
+	public Object getKey() {
       return key;  
     }
 
-    public Object getValue() {
+    @Starts("nothing")
+	public Object getValue() {
       return this;
     }
 

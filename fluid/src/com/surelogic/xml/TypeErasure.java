@@ -1,6 +1,8 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/xml/TypeErasure.java,v 1.1 2007/08/01 20:27:48 swhitman Exp $*/
 package com.surelogic.xml;
 
+import com.surelogic.common.SLUtility;
+
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 
@@ -61,7 +63,7 @@ public class TypeErasure {
 //			System.out.println("parts["+i+"] is " + parts[i] + " != extends");
 		}
 		
-		return "java.lang.Object";
+		return SLUtility.JAVA_LANG_OBJECT;
 	}
 	
 	public static String calcArgErasure(String args, ITypeEnvironment tEnv) {

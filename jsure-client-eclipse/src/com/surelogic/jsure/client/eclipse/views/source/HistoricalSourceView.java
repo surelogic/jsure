@@ -11,6 +11,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.progress.UIJob;
 
+import com.surelogic.NonNull;
 import com.surelogic.common.ISourceZipFileHandles;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.DeclUtil;
@@ -65,6 +66,7 @@ public class HistoricalSourceView extends AbstractHistoricalSourceView
 
 	// Run in UI?
 	@Override
+	@NonNull
 	protected ISourceZipFileHandles findSources(String run) {
 		final JSureScanInfo info = OLD.equals(run) ? 
 				JSureDataDirHub.getInstance().getLastMatchingScanInfo() : 

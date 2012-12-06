@@ -38,6 +38,7 @@ import org.eclipse.ui.progress.UIJob;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.CascadingList;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.ISearchBoxObserver;
 import com.surelogic.common.ui.SearchBox;
 import com.surelogic.common.ui.jobs.SLUIJob;
@@ -226,7 +227,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
 
         f_barColorDark = new Color(f_reportContents.getDisplay(), 241, 120, 46);
         f_barColorLight = new Color(f_reportContents.getDisplay(), 238, 216, 198);
-        f_reportContents.getDisplay().disposeExec(new Runnable() {
+        EclipseUIUtility.disposeExec(new Runnable() {
           public void run() {
             f_barColorDark.dispose();
             f_barColorLight.dispose();

@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
+import com.surelogic.*;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidRuntimeException;
@@ -39,6 +40,8 @@ import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
  * TODO: Get rid of static things -- parameterize by JavaProject.
  * @author boyland
  */
+@Region("private State")
+@RegionLock("StateLock is entries protects State")
 public class JavaMemberTable extends VersionedDerivedInformation implements IJavaMemberTable {
 
   private static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
@@ -56,6 +59,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   public final IJavaSourceRefType type;
   public final IRNode typeDeclaration;
   public final boolean isVersioned;
+  @InRegion("State")
   private boolean repopulated = false;
 
   private JavaMemberTable(IJavaSourceRefType type) {
@@ -81,6 +85,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     populateDeNovo();
   }
 
+  @Unique("return")
   private JavaMemberTable(IRNode tdecl, IJavaSourceRefType t, Version v, boolean versioned) {
     super(v);
     typeDeclaration = tdecl;
@@ -267,9 +272,11 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   
 
   @Override
-  public synchronized void clear() {
+  public void clear() {
     super.clear();
-    entries.clear();
+    synchronized (entries) {
+      entries.clear();
+	}
   }
   
   /**
@@ -404,6 +411,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   /**
    * A table from names to Entries. This table is is externally immutable
    */
+  @UniqueInRegion("State")
   private final HashMap<String,Entry> entries = new HashMap<String,Entry>();
 
   /**
@@ -479,7 +487,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    * @param useNode
    *          use site on whose behalf lookup is done; null if no dynamic
    *          dependency needed
-   * @return
+   * @return A copy of the declarations
    */
   public Iterator<IRNode> getDeclarationsFromUse(String name, IRNode useNode) {
 	if (isVersioned) {
@@ -489,7 +497,11 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     if (useNode != null) {
       entry.addUse(useNode);
     }
-    synchronized (this) {
+    if (!isVersioned) {
+      // Entry already handles synch
+      return entry.getDeclarations();
+    }
+    synchronized (entry) {
     	// Added to prevent comod exceptions
     	Iterator<IRNode> it = entry.getDeclarations();
     	if (!it.hasNext()) {
@@ -524,6 +536,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     }
   }
   
+  // TODO fix
+  // @RegionLock("Lock is this protects Instance")
   protected static interface Entry extends JavaIncrementalBinder.IVersionedDependency, Iterable<IRNode> {
     Iterator<IRNode> getDeclarations();
     void addDeclaration(IRNode decl, Version v);
@@ -629,32 +643,40 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    * Designed to eliminate the Vector in most cases,
    * at the cost of keeping a firstDecl field
    */
+  @RegionLock("Lock is this protects Instance")
   protected static class UnversionedEntry extends AbstractJavaBinder.UnversionedDependency
   implements Entry 
   {
-    private IRNode firstDecl     = null;
-    private Vector<IRNode> decls = null; //new Vector<IRNode>();
-    public void addDeclaration(IRNode decl, Version v) {
+    @Unique("return") 
+    UnversionedEntry(){}
+
+	private IRNode firstDecl     = null;
+    // Includes the first decl
+	@UniqueInRegion("Instance")
+    private List<IRNode> decls = null; //new ArrayList<IRNode>();
+    
+    public synchronized void addDeclaration(IRNode decl, Version v) {
       if (firstDecl == null) {
         firstDecl = decl;
         return;
       }
       if (decls == null) {
-        decls = new Vector<IRNode>();
+        decls = new ArrayList<IRNode>();
         decls.add(firstDecl);
       }
       decls.add(decl);     
     }
-    public Iterator<IRNode> getDeclarations() {
+    public synchronized Iterator<IRNode> getDeclarations() {
       if (decls == null) {
         if (firstDecl == null) {
           return new EmptyIterator<IRNode>();
         }
         return new SingletonIterator<IRNode>(firstDecl);
       }
-      return decls.iterator();
+      // Added to prevent comod exceptions
+      return new ArrayList<IRNode>(decls).iterator();
     }
-    public void removeDeclaration(IRNode decl, Version v) {
+    public synchronized void removeDeclaration(IRNode decl, Version v) {
       if (decls == null) {
         firstDecl = decl.equals(firstDecl) ? null : firstDecl;
       } else {
@@ -669,7 +691,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     }
     
     // no use links
-    public synchronized void notifyUses(Version v) { }
+    @Override
+    public void notifyUses(Version v) { }
 
     public Iterator<IRNode> iterator() {
       return getDeclarations();
@@ -721,9 +744,13 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    * a bottleneck, we will have to investigate caching the versioned scopes.
    * @author boyland
    */
+  @Region("TypeInfo")
+  @RegionLock("TypesLock is this protects TypeInfo")
   private class SuperScope implements IJavaScope {
     final boolean isTypeFormal;
     final AbstractJavaBinder binder;
+
+    @UniqueInRegion("TypeInfo")
     final List<IJavaType> superTypes = new ArrayList<IJavaType>();
     
     public SuperScope(AbstractJavaBinder b) {
@@ -765,11 +792,18 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
      * Checks if the lookup makes no sense because:
      * 1. it's trying to use the supertype to lookup itself
      */
-    private boolean isNonsensicalLookup(IRNode useSite) {
+    private boolean isNonsensicalLookup(LookupContext context) {
+        final IRNode useSite = context.useSite;
     	if (useSite == null) {
     		return false;
     	}
-    	final IRNode type = VisitUtil.getEnclosingType(useSite);
+    	/*
+    	final Operator op = JJNode.tree.getOperator(useSite); 
+    	if (!Type.prototype.includes(op) && !(op instanceof Name)) {
+    		return false;
+    	}
+    	*/
+    	final IRNode type = context.getEnclosingType();//VisitUtil.getEnclosingType(useSite);
     	if (!typeDeclaration.equals(type)) {
     		// The use isn't in this type itself
     		return false;
@@ -797,8 +831,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
 	/* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookup(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
-    public IBinding lookup(String name, IRNode useSite, Selector selector) {
-      if (isNonsensicalLookup(useSite)) {
+    public IBinding lookup(LookupContext context, Selector selector) {
+      if (isNonsensicalLookup(context)) {
     	  return null;
       }
       //LOG.fine("Looking in superclasses for object/type: " + name);
@@ -816,7 +850,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
         if (scope == null) {
         	continue;
         }
-        IBinding binding = scope.lookup(name,useSite,selector);
+        IBinding binding = scope.lookup(context,selector);
         if (binding != null) return binding;
       }
       return null;
@@ -825,7 +859,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
 	/* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookupAll(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
-    public Iteratable<IBinding> lookupAll(String name, IRNode useSite, Selector selector) {
+    public Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
       Iteratable<IBinding> firstResult = null;
       List<IBinding> allResults = null;
       //LOG.fine("Looking in superclasses for method: " + name);
@@ -843,7 +877,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
           LOG.finest("Super of " + JJNode.getInfo(typeDeclaration) + " is " + superType);
         }
         IJavaScope scope = binder.typeScope(superType);
-        Iteratable<IBinding> result = scope.lookupAll(name,useSite,selector);
+        Iteratable<IBinding> result = scope.lookupAll(context,selector);
         if (result.hasNext()) {
           if (firstResult == null) { // common case
             firstResult = result;
@@ -895,21 +929,21 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
 		return false;
 	}   
 	
-    public IBinding lookup(String name, final IRNode useSite, final Selector selector) {
+    public IBinding lookup(LookupContext context, final Selector selector) {
+      final String name = context.name;
       final boolean debug = LOG.isLoggable(Level.FINER);
       if (debug) LOG.fine("Looking for " + name + " in " + this);
-      synchronized (JavaMemberTable.this) {
-    	  if (isVersioned) {
-    		  JavaMemberTable.this.ensureDerived();
-    	  }      
-    	  Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
-    	  while (members.hasNext()) {
-    		  IRNode n = members.next();
-    		  if (debug) LOG.finer("  considering " + DebugUnparser.toString(n));
-    		  if (selector.select(n) && 
-    				  (TypeDeclaration.prototype.includes(n) || BindUtil.isAccessible(tEnv, n, useSite))) {
-    			  return IBinding.Util.makeBinding(n, (IJavaDeclaredType) JavaMemberTable.this.type, tEnv);
-    		  }
+      if (isVersioned) {
+    	  JavaMemberTable.this.ensureDerived();
+      }      
+      final IRNode useSite = context.useSite;
+      Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
+      while (members.hasNext()) {
+    	  IRNode n = members.next();
+    	  if (debug) LOG.finer("  considering " + DebugUnparser.toString(n));
+    	  if (selector.select(n) && 
+    			  (TypeDeclaration.prototype.includes(n) || BindUtil.isAccessible(tEnv, n, useSite))) {
+    		  return IBinding.Util.makeBinding(n, (IJavaDeclaredType) JavaMemberTable.this.type, tEnv);
     	  }
       }
       return null;
@@ -927,34 +961,38 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     	return temp;
     }
     
-    public Iteratable<IBinding> lookupAll(String name, final IRNode useSite, final Selector selector) {
+    public Iteratable<IBinding> lookupAll(LookupContext context, final Selector selector) {
+      final String name = context.name;    	
       final boolean debug = LOG.isLoggable(Level.FINER);
       if (debug) {
         LOG.finer("Looking for all " + name + " in " + this);
         //new FluidError("no error").printStackTrace();
       }
+      // TODO Copy already done by getDeclarationsFromUse()?
       List<IRNode> tempMembers;
-      synchronized (JavaMemberTable.this) {
-    	  if (isVersioned) {
-    		  JavaMemberTable.this.ensureDerived();      
-    	  }
-    	  Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
-    	  if (!JJNode.versioningIsOn && !members.hasNext() && 
-    			  !repopulated) {   
-    		  repopulated = true;
-    		  if (debug) {
-    			  String context = JJNode.getInfoOrNull(typeDeclaration);
-    			  if (context == null) {
-    				  context = DebugUnparser.toString(typeDeclaration);
-    			  }
-    			  LOG.finer("Re-populating member table: "+context);
-    		  }
-    		  populateDeNovo();
-    		  
-    		  members = getDeclarationsFromUse(name,useSite);
-    	  }
-    	  tempMembers = copyIterator(members);
+      if (isVersioned) {
+    	  JavaMemberTable.this.ensureDerived();      
       }
+      final IRNode useSite = context.useSite;
+      Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
+      if (!JJNode.versioningIsOn && !members.hasNext()) {
+    	  synchronized (entries) {
+			if (!repopulated) {
+				repopulated = true;
+		    	  if (debug) {
+		    		  String typeContext = JJNode.getInfoOrNull(typeDeclaration);
+		    		  if (typeContext == null) {
+		    			  typeContext = DebugUnparser.toString(typeDeclaration);
+		    		  }
+		    		  LOG.finer("Re-populating member table: "+typeContext);
+		    	  }
+		    	  populateDeNovo();
+
+		    	  members = getDeclarationsFromUse(name,useSite);
+			}
+    	  }
+      }
+      tempMembers = copyIterator(members);
       if (!tempMembers.isEmpty()) {
           /*
           if ("getCurrentKey".equals(name)) {
@@ -983,6 +1021,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       return JavaMemberTable.this + "$Scope";
     }
 
+    @Vouch("debug code")
     public void printTrace(PrintStream out, int indent) {
       DebugUtil.println(out, indent, "["+this+"]");
       for(Map.Entry<String, Entry> e : entries.entrySet()) {
@@ -1005,6 +1044,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   }
   
   @Override
+  @Vouch("debug code")
   public String debugString() {
     StringBuilder sb = new StringBuilder();
     sb.append(this);

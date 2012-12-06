@@ -2,6 +2,8 @@
 package edu.cmu.cs.fluid.util;
 
 import java.util.*;
+import com.surelogic.RegionEffects;
+import com.surelogic.Borrowed;
 
 /**
  * An iterator with no elements. 
@@ -13,29 +15,41 @@ public class EmptyIterator<T> extends AbstractRemovelessIterator<T> implements L
     super();
   }
 
-  public boolean hasNext()
+  @Borrowed("this")
+@RegionEffects("reads Instance")
+public boolean hasNext()
   {
     return false;
   }
 
-  public T next()
+  @Borrowed("this")
+@RegionEffects("writes Instance")
+public T next()
   {
     throw new NoSuchElementException( "Iterator complete." );
   }
   
-  public boolean hasPrevious() {
+  @Borrowed("this")
+@RegionEffects("reads Instance")
+public boolean hasPrevious() {
     return false;
   }
 
-  public T previous() {
+  @Borrowed("this")
+@RegionEffects("writes Instance")
+public T previous() {
     throw new NoSuchElementException( "Iterator complete." );
   }
 
-  public int nextIndex() {
+  @Borrowed("this")
+@RegionEffects("reads Instance")
+public int nextIndex() {
     return -1;
   }
 
-  public int previousIndex() {
+  @Borrowed("this")
+@RegionEffects("reads Instance")
+public int previousIndex() {
     return -1;
   }
 

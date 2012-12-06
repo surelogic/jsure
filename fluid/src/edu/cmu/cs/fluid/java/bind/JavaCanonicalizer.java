@@ -13,8 +13,11 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.RegionLock;
+import com.surelogic.ThreadSafe;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.AnnotationConstants;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -23,6 +26,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRRegion;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
@@ -117,10 +121,12 @@ import edu.cmu.cs.fluid.version.VersionedRegionDelta;
  * @see edu.cmu.cs.fluid.java.parse.JavaParser
  * @author boyland
  */
+@ThreadSafe
+@RegionLock("StatusLock is class protects isCanonicalizing")
 public class JavaCanonicalizer {
   private static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
 
-  private static final IRNode[] none = new IRNode[0];
+  private static final IRNode[] none = JavaGlobals.noNodes;
 
   private final IBinder binder;
 
@@ -128,7 +134,7 @@ public class JavaCanonicalizer {
 
   private final ITypeEnvironment tEnv;
 
-  private final Visitor<Boolean> doWork = new DoCanon();
+  private final DoCanon doWork = new DoCanon();
 
   private final SyntaxTree tree = (SyntaxTree) JJNode.tree; // NB: must be
                                                             // mutable!
@@ -256,6 +262,7 @@ public class JavaCanonicalizer {
   // but perform the changes themselves post-order.
   //
   // Returns true if anything changed
+  @ThreadSafe
   class DoCanon extends Visitor<Boolean> {
     @Override
     public Boolean doAccept(IRNode node) {
@@ -908,7 +915,7 @@ public class JavaCanonicalizer {
         final boolean isJavaLangObject;
         if ("Object".equals(name)) {
           final String qname = JavaNames.getQualifiedTypeName(node);
-          isJavaLangObject = "java.lang.Object".equals(qname);
+          isJavaLangObject = SLUtility.JAVA_LANG_OBJECT.equals(qname);
         } else {
           isJavaLangObject = false;
         }
@@ -968,7 +975,7 @@ public class JavaCanonicalizer {
         if (!found) {
           IRNode type = VisitUtil.getEnclosingType(node);
           String name = JavaNames.getQualifiedTypeName(type);
-          if ("java.lang.Object".equals(name)) {
+          if (SLUtility.JAVA_LANG_OBJECT.equals(name)) {
             return changed;
           }
           // actually this will be rare because the parser stick in implicit
@@ -1394,14 +1401,18 @@ public class JavaCanonicalizer {
     return binder.getJavaType(n) instanceof IJavaReferenceType;
   }
 
-  protected synchronized boolean contextIsPrimitive(IRNode n) {
-    contextVisitor.loc = tree.getLocation(n);
-    return contextVisitor.doAccept(tree.getParent(n)) == PRIMITIVE_CONTEXT;
+  protected boolean contextIsPrimitive(IRNode n) {
+	synchronized (contextVisitor) {
+		contextVisitor.loc = tree.getLocation(n);
+		return contextVisitor.doAccept(tree.getParent(n)) == PRIMITIVE_CONTEXT;
+	}
   }
 
-  protected synchronized boolean contextIsReference(IRNode n) {
-    contextVisitor.loc = tree.getLocation(n);
-    return contextVisitor.doAccept(tree.getParent(n)) == REFERENCE_CONTEXT;
+  protected boolean contextIsReference(IRNode n) {
+	synchronized (contextVisitor) {
+		contextVisitor.loc = tree.getLocation(n);
+		return contextVisitor.doAccept(tree.getParent(n)) == REFERENCE_CONTEXT;
+	}
   }
 
   static final int REFERENCE_CONTEXT = 1;
@@ -1410,6 +1421,7 @@ public class JavaCanonicalizer {
 
   static final int ANY_CONTEXT = 0;
 
+  @RegionLock("L is this protects Instance")
   class ContextVisitor extends Visitor<Integer> {
     IRLocation loc;
 

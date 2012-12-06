@@ -15,6 +15,7 @@ import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.*;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.derived.IDerivedInformation;
@@ -134,6 +135,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
    * @param root version at which information is initialized
    *   (or null in which case, we wait for the first demand.)
    */
+  @Unique("return")
   protected VersionedDerivedInformation(Version root) {
     if (root != null) setRootVersion(root);
   }
@@ -166,6 +168,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
    * We need to have the lock or the instance is still thread-local.
    * @param root
    */
+  @Borrowed("this")
   private void setRootVersion(Version root) {
     rootVersion = root;
     dynastyDescendants.put(root.getDynastyFounder(),root);

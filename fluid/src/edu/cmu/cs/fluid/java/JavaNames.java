@@ -209,7 +209,9 @@ public final class JavaNames {
 					if (useFullTypes) {
 						result.append(pType);
 					} else {
-						final int lastDot = pType.lastIndexOf('.');
+						final int lastDot = pType.endsWith(" ...") ? 
+								pType.lastIndexOf('.', pType.length()-4) : // Handle varargs 
+								pType.lastIndexOf('.');
 						if (lastDot < 0) {
 							result.append(pType);
 						} else {

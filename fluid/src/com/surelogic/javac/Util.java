@@ -16,17 +16,15 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
 
-import jsr166y.forkjoin.ForkJoinExecutor;
-import jsr166y.forkjoin.IParallelArray;
-import jsr166y.forkjoin.NonParallelArray;
-import jsr166y.forkjoin.Ops.Procedure;
-import jsr166y.forkjoin.ParallelArray;
+import jsr166y.*;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -88,7 +86,6 @@ import edu.cmu.cs.fluid.ir.AbstractIRNode;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.CodeInfo;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
@@ -116,6 +113,8 @@ import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import extra166y.ParallelArray;
+import extra166y.Ops.Procedure;
 
 public class Util {
   public static final String EXPECT_ANALYSIS = "expectAnalysis";
@@ -124,6 +123,7 @@ public class Util {
   /** Should we try to run things in parallel */
   private static boolean wantToRunInParallel = true;// false;
 
+  private static final boolean batchAndCacheBindingsForCanon = false;
   private static final boolean profileMemoryAfterLoading = false;
   private static final boolean testPersistence = false;
   private static final boolean loadPartial = false;
@@ -344,8 +344,8 @@ public class Util {
     return result;
   }
 
-  private static <T> IParallelArray<T> createArray(boolean singleThreaded, Class<T> cls, ForkJoinExecutor pool) {
-    return singleThreaded ? new NonParallelArray<T>() : ParallelArray.create(0, cls, pool);
+  private static <T> ParallelArray<T> createArray(Class<T> cls, ForkJoinPool pool) {
+    return ParallelArray.create(0, cls, pool);
   }
 
   private static <T> void eliminateDups(List<T> all, List<T> unique) {
@@ -368,7 +368,7 @@ public class Util {
     }
 
     final boolean singleThreaded = !wantToRunInParallel || ConcurrentAnalysis.singleThreaded;
-    final ForkJoinExecutor pool = singleThreaded ? null : ConcurrentAnalysis.pool;
+    final ForkJoinPool pool = singleThreaded ? new ForkJoinPool(1) : ConcurrentAnalysis.pool;
     System.out.println("singleThread = " + singleThreaded);
     final JSurePerformance perf = new JSurePerformance(projects);
     perf.setIntProperty("num.threads", singleThreaded ? 1 : ConcurrentAnalysis.threadCount);
@@ -379,7 +379,7 @@ public class Util {
     JavacClassParser loader = new JavacClassParser(pool, projects);
 
     // loader.ensureClassIsLoaded("java.util.concurrent.locks.ReadWriteLock");
-    loader.ensureClassIsLoaded("java.lang.Object");
+    loader.ensureClassIsLoaded(SLUtility.JAVA_LANG_OBJECT);
     final OutputStream results = NullOutputStream.prototype;
         //projects.getResultsFile() == null ? null : new FileOutputStream(projects.getResultsFile());
     final JavacAnalysisEnvironment env = new JavacAnalysisEnvironment(loader, results, projects.getMonitor());
@@ -390,7 +390,7 @@ public class Util {
     }
     env.finishedInit(); // To free up memory
 
-    final IParallelArray<CodeInfo> cus = createArray(singleThreaded, CodeInfo.class, pool);
+    final ParallelArray<CodeInfo> cus = createArray(CodeInfo.class, pool);
     endSubTask(projects.getMonitor());
 
     for (Config config : projects.getConfigs()) {
@@ -416,7 +416,7 @@ public class Util {
     clearCaches(projects); // To clear out old state invalidated by rewriting
     
     perf.markTimeFor("Rewriting");
-    canonicalizeCUs(cus, projects);
+    canonicalizeCUs(perf, cus, projects);
     // Checking if we added type refs by canonicalizing implicit refs
     loader.checkReferences(cus.asList());
     loader = null; // To free up memory
@@ -460,8 +460,8 @@ public class Util {
     long[] times;
     if (analyze) {
       // These are all the SourceCUDrops for this project
-      final IParallelArray<SourceCUDrop> cuds = findSourceCUDrops(singleThreaded, pool);
-      final IParallelArray<SourceCUDrop> allCuds = cuds;// findSourceCUDrops(null,
+      final ParallelArray<SourceCUDrop> cuds = findSourceCUDrops(singleThreaded, pool);
+      final ParallelArray<SourceCUDrop> allCuds = cuds;// findSourceCUDrops(null,
                                                         // singleThreaded,
                                                         // pool);
 
@@ -526,6 +526,8 @@ public class Util {
     perf.setIntProperty("Total.decls", decls);
     perf.setIntProperty("Total.stmts", stmts);
     perf.setIntProperty("Total.blocks", blocks);
+    perf.setLongProperty("Find.canon.time", findTime);
+    perf.setLongProperty("Destroy.time", destroyTime);
     // System.out.println("Binary rewrites : "+binaryRewrites);
     UnversionedJavaBinder.printStats(perf);
     AbstractTypeEnvironment.printStats();
@@ -653,7 +655,7 @@ public class Util {
     }
   }
 
-  private static void testExperimentalFeatures(final Projects projects, IParallelArray<CodeInfo> cus) {
+  private static void testExperimentalFeatures(final Projects projects, ParallelArray<CodeInfo> cus) {
     if (testPersistence) {
       ParseUtil.init();
       try {
@@ -669,8 +671,8 @@ public class Util {
   /**
    * Gets every drop if pd is null
    */
-  private static IParallelArray<SourceCUDrop> findSourceCUDrops(final boolean singleThreaded, final ForkJoinExecutor pool) {
-    final IParallelArray<SourceCUDrop> cuds = createArray(singleThreaded, SourceCUDrop.class, pool);
+  private static ParallelArray<SourceCUDrop> findSourceCUDrops(final boolean singleThreaded, final ForkJoinPool pool) {
+    final ParallelArray<SourceCUDrop> cuds = createArray(SourceCUDrop.class, pool);
     for (SourceCUDrop scud : Sea.getDefault().getDropsOfExactType(SourceCUDrop.class)) {
       cuds.asList().add(scud);
     }
@@ -710,7 +712,7 @@ public class Util {
   }
 
   private static long[] analyzeCUs(final IIRAnalysisEnvironment env, final Projects projects, List<IIRAnalysis> analyses,
-      IParallelArray<SourceCUDrop> cus, IParallelArray<SourceCUDrop> allCus, boolean singleThreaded) {
+      ParallelArray<SourceCUDrop> cus, ParallelArray<SourceCUDrop> allCus, boolean singleThreaded) {
     if (XUtil.recordScript() != null) {
       final File log = (File) projects.getArg(RECORD_ANALYSIS);
       if (log != null) {
@@ -726,7 +728,7 @@ public class Util {
     int i = 0;
     for (final IIRAnalysis a : analyses) {
       final long start = System.currentTimeMillis();
-      final IParallelArray<SourceCUDrop> toAnalyze = a.analyzeAll() ? allCus : cus;
+      final ParallelArray<SourceCUDrop> toAnalyze = a.analyzeAll() ? allCus : cus;
 
       for (final JavacProject project : projects) {
         if (projects.getMonitor().isCanceled()) {
@@ -807,7 +809,7 @@ public class Util {
     return times;
   }
 
-  private static void recordFilesAnalyzed(IParallelArray<SourceCUDrop> allCus, File log) {
+  private static void recordFilesAnalyzed(ParallelArray<SourceCUDrop> allCus, File log) {
     System.out.println("Recording which files actually got (re-)analyzed");
     try {
       final PrintWriter pw = new PrintWriter(log);
@@ -826,7 +828,7 @@ public class Util {
    * 
    * @throws IOException
    */
-  private static void checkForExpectedSourceFiles(IParallelArray<SourceCUDrop> allCus, File expected) {
+  private static void checkForExpectedSourceFiles(ParallelArray<SourceCUDrop> allCus, File expected) {
     System.out.println("Checking source files expected for analysis");
     try {
       final Set<String> cus = RegressionUtility.readLinesAsSet(expected);
@@ -909,20 +911,45 @@ public class Util {
     endSubTask(monitor);
   }
 
-  private static void canonicalizeCUs(final IParallelArray<CodeInfo> cus, final Projects projects) {
-    final SLProgressMonitor monitor = projects.getMonitor();
-    if (monitor.isCanceled()) {
-      throw new CancellationException();
-    }
-    startSubTask(monitor, "Canonicalizing ASTs");
-
-    // Precompute all the bindings
-    final long start = System.currentTimeMillis();
-    final Procedure<CodeInfo> bind = new Procedure<CodeInfo>() {
-      public void op(CodeInfo info) {
-        if (monitor.isCanceled()) {
-          throw new CancellationException();
-        }
+  static abstract class MonitoredProcedure<T> implements Procedure<T> {
+	  private SLProgressMonitor monitor;
+	  private Projects projects;
+	  void setMonitor(SLProgressMonitor mon) {
+		  monitor = mon;
+	  }	  
+	  void setProjects(Projects p) {
+		  projects = p;
+	  }
+	  Projects getProjects() {
+		  return projects;
+	  }
+	  public void op(CodeInfo info) {
+		  if (monitor != null && monitor.isCanceled()) {
+			     throw new CancellationException();
+		  }
+		  process(info);
+	  }
+	  protected abstract void process(CodeInfo info);
+  }
+  
+  static final ConcurrentMap<JavacTypeEnvironment, JavaCanonicalizer> canonicalizers = new ConcurrentHashMap<JavacTypeEnvironment, JavaCanonicalizer>();
+  static JavaCanonicalizer getCanonicalizer(CodeInfo info) {
+	  final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
+	  JavaCanonicalizer rv = canonicalizers.get(tEnv);
+	  if (rv == null) {	  
+		  final UnversionedJavaBinder b = tEnv.getBinder();
+		  final JavaCanonicalizer jcanon = new JavaCanonicalizer(b);
+		  rv = canonicalizers.putIfAbsent(tEnv, jcanon);
+		  if (rv == null) {
+			  rv = jcanon;
+		  }
+	  }
+	  return rv;
+  }
+  
+  static final MonitoredProcedure<CodeInfo> bindProc = new MonitoredProcedure<CodeInfo>() {
+	  @Override
+	  protected void process(CodeInfo info) {
         if (!info.isAsSource()) {
           /*
            * IRNode type = VisitUtil.getPrimaryType(info.getNode()); String
@@ -932,79 +959,118 @@ public class Util {
            */
           return; // Nothing to do on class files
         }
+        if (batchAndCacheBindingsForCanon) {
+        	
+        }
         final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
         final UnversionedJavaBinder b = tEnv.getBinder();
-        for (IRNode n : JJNode.tree.topDown(info.getNode())) {
-          final Operator op = JJNode.tree.getOperator(n);
-          if (AbstractJavaBinder.isGranule(op, n)) {
-            try {
-              b.ensureBindingsOK(n);
-            } catch (RuntimeException e) {
-              SLLogger.getLogger().log(Level.SEVERE,
-                  "Error while binding " + DebugUnparser.toString(n) + "In " + info.getFileName(), e);
-              throw e;
-            }
-          }
-        }
+        b.bindCompUnit(info.getNode(), info.getFileName());
       }
-    };
+  };
 
-    cus.apply(bind);
-    final long end = System.currentTimeMillis();
-    System.out.println("Binding = " + (end - start) + " ms");
+  static final MonitoredProcedure<CodeInfo> canonProc = new MonitoredProcedure<CodeInfo>() {
+	  @Override
+	  protected void process(CodeInfo info) {
+		  if (!info.isAsSource()) {
+			  return; // Nothing to do on class files
+		  }
+		  final IRNode cu = info.getNode();
+		  final IRNode type = VisitUtil.getPrimaryType(cu);
+		  final String typeName = info.getFileName();
+		  try {
+			  final long start = System.currentTimeMillis();
+			  List<IRNode> noncanonical = findNoncanonical(cu);
+			  final long find = System.currentTimeMillis();
+			  /*
+			   * Not quite right, since it will miss (un)boxing and the like if
+			   * (noncanonical.isEmpty()) { return; // Nothing to do }
+			   */
+			  final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
+			  final UnversionedJavaBinder b = tEnv.getBinder();
+			  // TODO needs to be shared, so I can preload the caches
+			  final JavaCanonicalizer jcanon = new JavaCanonicalizer(b);
+			  boolean changed = jcanon.canonicalize(cu);
+			  final long restart = System.currentTimeMillis();
+			  if (changed) {
+				  if (debug) {
+					  System.out.println("Canonicalized     " + typeName);
+				  }
+				  //b.astChanged(cu);
+				  // TODO will this work if run in parallel?
+				  for (JavacProject jp : getProjects()) {
+					  jp.getTypeEnv().getBinder().astChanged(cu);
+				  }
+			  } else if (debug) {
+				  System.out.println("NOT canonicalized " + typeName);
+			  }
+			  destroyNoncanonical(noncanonical);
 
-    final Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
-      public void op(CodeInfo info) {
-        if (monitor.isCanceled()) {
-          throw new CancellationException();
-        }
-        if (!info.isAsSource()) {
-          return; // Nothing to do on class files
-        }
-        final IRNode cu = info.getNode();
-        final IRNode type = VisitUtil.getPrimaryType(cu);
-        final String typeName = info.getFileName();
-        try {
-          List<IRNode> noncanonical = findNoncanonical(cu);
-          /*
-           * Not quite right, since it will miss (un)boxing and the like if
-           * (noncanonical.isEmpty()) { return; // Nothing to do }
-           */
-          final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
-          final UnversionedJavaBinder b = tEnv.getBinder();
-          final JavaCanonicalizer jcanon = new JavaCanonicalizer(b);
-          boolean changed = jcanon.canonicalize(cu);
-          if (changed) {
-            if (debug) {
-              System.out.println("Canonicalized     " + typeName);
-            }
-            b.astChanged(cu);
-          } else if (debug) {
-            System.out.println("NOT canonicalized " + typeName);
-          }
-          destroyNoncanonical(noncanonical);
-
-          // TODO will this work if run in parallel?
-          for (JavacProject jp : projects) {
-            jp.getTypeEnv().getBinder().astChanged(cu);
-          }
-        } catch (Throwable t) {
-          LOG.log(Level.SEVERE, "Exception while processing " + type, t);
-        }
-      }
-    };
-    // cus.apply(proc);
-
-    for (final CodeInfo info : cus) {
-      if (info.getFile().getRelativePath() != null) {
-        System.out.println("Canonicalizing " + info.getFile().getRelativePath());
-      }
-      proc.op(info);
+			  final long destroy = System.currentTimeMillis();
+			  findTime += (find-start);
+			  destroyTime += (destroy-restart);
+		  } catch (Throwable t) {
+			  LOG.log(Level.SEVERE, "Exception while processing " + type, t);
+		  }
+	  }
+  };
+  
+  private static void canonicalizeCUs(JSurePerformance perf, final ParallelArray<CodeInfo> cus, final Projects projects) {
+    final SLProgressMonitor monitor = projects.getMonitor();
+    if (monitor.isCanceled()) {
+      throw new CancellationException();
     }
+    AbstractJavaBinder.printStats();
+    startSubTask(monitor, "Canonicalizing ASTs");
+    
+    // Init procedures
+    bindProc.setMonitor(monitor);
+    canonProc.setMonitor(monitor);
+    canonProc.setProjects(projects);
+    long bindingTime = 0;
+    if (batchAndCacheBindingsForCanon) {
+    	final ParallelArray<CodeInfo> temp = createArray(CodeInfo.class, ConcurrentAnalysis.pool);    	
+    	for(CodeInfo i : cus) {
+    		temp.asList().add(i);
+    		if (temp.size() > 100) {
+    			bindingTime += doCanonicalize(temp, false);
+    			temp.asList().clear();
+    		}
+    	}
+    	if (!temp.isEmpty()) {
+    		bindingTime += doCanonicalize(temp, false);
+    	}
+    } else {
+    	bindingTime = doCanonicalize(cus, true);
+    }
+	perf.setLongProperty("Binding.before.canon", bindingTime);
+	System.out.println("Binding = " + bindingTime + " ms");  	
     SlotInfo.gc();
     endSubTask(monitor);
   }
 
+  /**
+   * Assumes that init is all done
+   * @return the time taken for binding
+   */  
+  private static long doCanonicalize(ParallelArray<CodeInfo> cus, boolean printBinderStats) {
+	  // Precompute all the bindings first
+	  final long start = System.currentTimeMillis();
+	  cus.apply(bindProc);
+	  final long end = System.currentTimeMillis();
+	  if (printBinderStats) {
+		  AbstractJavaBinder.printStats();
+	  }
+	  // cus.apply(proc);
+	  for (final CodeInfo info : cus) {
+	      if (info.getFile().getRelativePath() != null) {
+	        System.out.println("Canonicalizing " + info.getFile().getRelativePath());
+	      }
+	      canonProc.op(info);
+	  }   
+	  return end-start;
+  }
+  
+  static long destroyTime = 0, findTime = 0;
   static int destroyedNodes = 0, canonicalNodes = 0;
   static int decls = 0, stmts = 0, blocks = 0;
 
@@ -1040,7 +1106,7 @@ public class Util {
   }
 
   @SuppressWarnings("deprecation")
-  private static void addRequired(IParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
+  private static void addRequired(ParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
     startSubTask(monitor, "Adding required nodes");
     Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
       public void op(CodeInfo info) {
@@ -1052,14 +1118,16 @@ public class Util {
         PromiseUtil.activateRequiredCuPromises(tEnv.getBinder(), tEnv.getBindHelper(), cu);
       }
     };
-    // cus.apply(proc);
+    cus.apply(proc);
+    /*
     for (final CodeInfo info : cus) {
       proc.op(info);
     }
+    */
     endSubTask(monitor);
   }
 
-  private static void parsePromises(IParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
+  private static void parsePromises(ParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
     ParseUtil.init();
 
     startSubTask(monitor, "Parsing promises");
@@ -1116,7 +1184,7 @@ public class Util {
           if (insideOfMethod(type)) {
             continue;
           }
-          if ("java.lang.Object".equals(name)) {
+          if (SLUtility.JAVA_LANG_OBJECT.equals(name)) {
             v.handleImplicitPromise(type, RegionRules.REGION, "public static All", Collections.<String, String> emptyMap());
           }
           v.handleImplicitPromise(type, RegionRules.REGION, "public static Static extends All", Collections.<String, String> emptyMap());
@@ -1165,7 +1233,7 @@ public class Util {
         }
         /*
          * The model won't show up yet, since it hasn't been scrubbed yet if
-         * ("java.lang.Object".equals(name)) { RegionModel m =
+         * (SLUtility.JAVA_LANG_OBJECT.equals(name)) { RegionModel m =
          * RegionModel.getInstance(name, p.getName()); if (m.getNode() == null)
          * { SLLogger.getLogger().severe(
          * "RegionModel for java.lang.Object has null node"); } }
@@ -1233,7 +1301,7 @@ public class Util {
     monitor.worked(1);
   }
 
-  private static Dependencies checkDependencies(final IParallelArray<CodeInfo> cus) {
+  private static Dependencies checkDependencies(final ParallelArray<CodeInfo> cus) {
     final Dependencies deps = new Dependencies() {
       protected void handlePackage(final PackageDrop pkg) {
         /*
@@ -1273,7 +1341,7 @@ public class Util {
     return deps;
   }
 
-  private static void createCUDrops(IParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
+  private static void createCUDrops(ParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
     if (monitor.isCanceled()) {
       throw new CancellationException();
     }
@@ -1351,15 +1419,16 @@ public class Util {
         }
       }
     };
-    // cus.apply(proc);
-
+    cus.apply(proc);
+    /*
     for (final CodeInfo info : cus) {
       proc.op(info);
     }
+    */
     endSubTask(monitor);
   }
 
-  private static void sortCodeInfos(IParallelArray<CodeInfo> cus) {
+  private static void sortCodeInfos(ParallelArray<CodeInfo> cus) {
     // Required to make sure that we process package-info files first
     Collections.sort(cus.asList(), new Comparator<CodeInfo>() {
       public int compare(CodeInfo o1, CodeInfo o2) {

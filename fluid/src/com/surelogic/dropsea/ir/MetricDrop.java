@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.surelogic.NonNull;
+import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IDecl;
@@ -177,6 +178,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
   }
 
   @Override
+  @RequiresLock("SeaLock")
   public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(METRIC, getMetric().name());

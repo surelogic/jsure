@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.collections15.MultiMap;
 
+import com.surelogic.*;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.Pair;
@@ -24,8 +25,12 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.util.Iteratable;
 
+@ThreadSafe
+@Region("JTEState")
+@RegionLock("JTELock is this protects JTEState")
 public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		IOldTypeEnvironment {
+	@ThreadSafe
 	class Binder extends UnversionedJavaBinder {
 		Binder(JavacTypeEnvironment te) {
 			super(te);
@@ -56,7 +61,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		
 		@Override
 		protected IJavaType getJavaType_internal(IRNode node) {
-			return getTypeEnv(node).binder.getJavaType_javac(node);
+			return getTypeEnv_cached(node).binder.getJavaType_javac(node);
 		}
 
 		private <T> T findClassBodyMembers_javac(IRNode type,
@@ -79,7 +84,9 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	private static final boolean debug = Util.debug;
 	private final ClassTable classes = new ClassTable();
 	private final Binder binder = new Binder(this);
+	@InRegion("JTEState")
 	private SLProgressMonitor monitor;
+	@InRegion("JTEState")
 	private JavacProject project;
 	private final ConcurrentMap<IRNode, List<IRNode>> subtypeMap = new ConcurrentHashMap<IRNode, List<IRNode>>();
 	private final ConcurrentMap<String, CodeInfo> infos = new ConcurrentHashMap<String, CodeInfo>();
@@ -88,6 +95,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	// Same as JavaRuntime.JRE_CONTAINER
 	public static final String JRE_NAME = "org.eclipse.jdt.launching.JRE_CONTAINER";
 
+	@Unique("return")
 	public JavacTypeEnvironment(Projects projs, JavacProject p,
 			SLProgressMonitor monitor) {
 		project = p;
@@ -121,8 +129,10 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		//System.out.println("Making copy()");
 	}
 
+	@InRegion("JTEState")
 	private IRNode arrayClassDeclaration = null;
 	
+	@RequiresLock("JTELock")
 	private IRNode initArrayClassDecl() {
 		final IRNode arrayType = DirtyTricksHelper.createArrayType(project.getName(), project);
 		classes.addOuterClass(PromiseConstants.ARRAY_CLASS_QNAME, arrayType);
@@ -143,7 +153,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	    return arrayClassDeclaration;
 	}
 	
-	public JavacTypeEnvironment copy(JavacProject p) {
+	public synchronized JavacTypeEnvironment copy(JavacProject p) {
 		JavacTypeEnvironment copy = new JavacTypeEnvironment();
 		copy.project = p;
 		copy.infos.putAll(this.infos);
@@ -177,19 +187,19 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		return "JavacTypeEnvironment "+hashCode()+": " + project.getName();
 	}
 
-	void setProgressMonitor(SLProgressMonitor m) {
+	synchronized void setProgressMonitor(SLProgressMonitor m) {
 		monitor = m;
 	}
 
-	public SLProgressMonitor getProgressMonitor() {
+	public synchronized SLProgressMonitor getProgressMonitor() {
 		return monitor;
 	}
 
-	public JavacProject getProject() {
+	public synchronized JavacProject getProject() {
 		return project;
 	}
 
-	void setProject(JavacProject newProject) {
+	synchronized void setProject(JavacProject newProject) {
 		project = newProject;
 	}
 
@@ -198,7 +208,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	}
 
 	@Override
-	public int getMajorJavaVersion() {
+	public synchronized int getMajorJavaVersion() {
 		if (project != null) {
 			return project.getConfig().getIntOption(Config.SOURCE_LEVEL);
 		}
@@ -209,7 +219,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	public IJavaClassTable getClassTable() {
 		return classes;
 	}
-
+	@ThreadSafe
 	private class ClassTable extends AbstractJavaClassTable {
 		private ConcurrentMap<String, IRNode> packages = new ConcurrentHashMap<String, IRNode>();
 		private ConcurrentMap<String, IRNode> outerClasses = new ConcurrentHashMap<String, IRNode>();
@@ -255,7 +265,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 			 * }
 			 */
 			if (useSite != null) {
-				JavacTypeEnvironment tEnv = getTypeEnv(useSite);
+				JavacTypeEnvironment tEnv = getTypeEnv_cached(useSite);
 				return tEnv.classes.getOuterClass(qname);
 			}
 			return getOuterClass(qname);
@@ -271,7 +281,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 
 		IRNode getPackage(String name, IRNode useSite) {
 			if (useSite != null) {
-				JavacTypeEnvironment tEnv = getTypeEnv(useSite);
+				JavacTypeEnvironment tEnv = getTypeEnv_cached(useSite);
 				return tEnv.classes.getPackage(name);
 			}
 			return getPackage(name);
@@ -281,9 +291,10 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 			return packages.get(name);
 		}
 
+		@RequiresLock("JavacTypeEnvironment.this:JTELock")
 		void addOuterClass(String name, IRNode decl) {			
 			/*
-			if (name.endsWith("java.lang.Object")) {
+			if (name.endsWith(SLUtility.JAVA_LANG_OBJECT)) {
 				System.out.println("Adding: "+name+" to "+JavacTypeEnvironment.this); 
 			}
 			*/
@@ -480,6 +491,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		}
 	}
 
+	@RequiresLock("JTELock")
 	private void processCompUnit(final boolean debug, final IRNode top) {
 		List<IRNode> newL = new ArrayList<IRNode>();
 		for (IRNode n : VisitUtil.getAllTypeDecls(top)) {
@@ -578,12 +590,14 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	private final ConcurrentMap<IRNode,JavacTypeEnvironment> typeEnvCache =
 		new ConcurrentHashMap<IRNode, JavacTypeEnvironment>();
 	
+	/*
 	private JavacTypeEnvironment getTypeEnv(IRNode here) {
 		if (here.identity() == IRNode.destroyedNode) {
 			return null;
 		}
 		return computeTypeEnv(here);
 	}
+	*/
 	
 	private JavacTypeEnvironment getTypeEnv_cached(IRNode here) {
 		if (here.identity() == IRNode.destroyedNode) {

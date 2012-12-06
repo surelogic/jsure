@@ -3,17 +3,23 @@ package edu.cmu.cs.fluid.util;
 
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
+import com.surelogic.RegionEffects;
+import com.surelogic.Borrowed;
 
 public class EmptyEnumeration implements Enumeration {
   public static final EmptyEnumeration prototype = new EmptyEnumeration();
 
   public EmptyEnumeration() { }
 
-  public boolean hasMoreElements() {
+  @Borrowed("this")
+@RegionEffects("reads Instance")
+public boolean hasMoreElements() {
     return false;
   }
 
-  public Object nextElement() {
+  @Borrowed("this")
+@RegionEffects("writes Instance")
+public Object nextElement() {
     throw new NoSuchElementException("enumeration complete");
   }
 }

@@ -2,6 +2,7 @@
 package edu.cmu.cs.fluid.util;
 
 import java.util.*;
+import com.surelogic.Starts;
 
 public class SubList<T> implements List<T> {
   private final List<T> l;
@@ -28,23 +29,28 @@ public class SubList<T> implements List<T> {
     }
   }
   
-  public int size() {
+  @Starts("nothing")
+public int size() {
     return size;
   }
 
-  public boolean isEmpty() {
+  @Starts("nothing")
+public boolean isEmpty() {
     return size == 0;
   }
 
-  public boolean contains(Object o) {
+  @Starts("nothing")
+public boolean contains(Object o) {
     return indexOf(o) >= 0;
   }
 
-  public Iterator<T> iterator() {
+  @Starts("nothing")
+public Iterator<T> iterator() {
     return new SubListIterator<T>(l, offset, size);
   }
 
-  public Object[] toArray() {
+  @Starts("nothing")
+public Object[] toArray() {
     Object[] a = new Object[size];
     for(int i=0; i<size; i++) {
       a[i] = get(i);
@@ -70,7 +76,8 @@ public class SubList<T> implements List<T> {
     throw new UnsupportedOperationException("sublists cannot be modified");
   }
 
-  public boolean remove(Object arg0) {
+  @Starts("nothing")
+public boolean remove(Object arg0) {
     throw new UnsupportedOperationException("sublists cannot be modified");
   }
 
@@ -99,13 +106,15 @@ public class SubList<T> implements List<T> {
     throw new UnsupportedOperationException("sublists cannot be modified");
   }
 
-  public void clear() {
+  @Starts("nothing")
+public void clear() {
     for(int i=offset, j=0; j<size; i++, j++) {
       l.set(i, null);
     }
   }
 
-  public T get(int i) {
+  @Starts("nothing")
+public T get(int i) {
     checkBounds(i);
     return l.get(offset + i);
   }
@@ -119,11 +128,13 @@ public class SubList<T> implements List<T> {
     throw new UnsupportedOperationException("sublists cannot be modified");
   }
 
-  public T remove(int i) {
+  @Starts("nothing")
+public T remove(int i) {
     throw new UnsupportedOperationException("sublists cannot be modified");
   }
 
-  public int indexOf(Object o) {
+  @Starts("nothing")
+public int indexOf(Object o) {
     if (o == null) {
       for(int i=offset, j=0; j<size; i++, j++) {
         if (l.get(i) == null) {
@@ -140,7 +151,8 @@ public class SubList<T> implements List<T> {
     return -1;
   }
 
-  public int lastIndexOf(Object o) {
+  @Starts("nothing")
+public int lastIndexOf(Object o) {
     if (o == null) {
       for(int j=size-1, i=offset+j; j>=0; i--, j--) {
         if (l.get(i) == null) {
@@ -157,16 +169,19 @@ public class SubList<T> implements List<T> {
     return -1;
   }
 
-  public ListIterator<T> listIterator() {
+  @Starts("nothing")
+public ListIterator<T> listIterator() {
     return new SubListIterator<T>(l, offset, size);
   }
 
-  public ListIterator<T> listIterator(int i) {
+  @Starts("nothing")
+public ListIterator<T> listIterator(int i) {
     checkBounds(i);
     return new SubListIterator<T>(l, offset, size, i);
   }
 
-  public List<T> subList(int i1, int i2) {
+  @Starts("nothing")
+public List<T> subList(int i1, int i2) {
     return new SubList<T>(l, offset+i1, offset+i2);
   }
 }

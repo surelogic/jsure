@@ -4,6 +4,7 @@
 package edu.cmu.cs.fluid.util;
 
 import java.util.*;
+import com.surelogic.Starts;
 
 /**
  * An immutable set that, when grown, returns a mutable class.
@@ -25,7 +26,8 @@ public class SingletonSet<T> extends AbstractSet<T> implements PossiblyImmutable
   /* (non-Javadoc)
    * @see java.util.Collection#size()
    */
-  @Override
+  @Starts("nothing")
+@Override
   public int size() {
     return 1;
   }
@@ -33,12 +35,14 @@ public class SingletonSet<T> extends AbstractSet<T> implements PossiblyImmutable
   /* (non-Javadoc)
    * @see java.util.Collection#iterator()
    */
-  @Override
+  @Starts("nothing")
+@Override
   public Iterator<T> iterator() {
     return new SingletonIterator<T>(element);
   }
 
-  @SuppressWarnings("unchecked")
+  @Starts("nothing")
+@SuppressWarnings("unchecked")
   @Override
   public boolean equals(Object o) {
     if (o instanceof Set) {
@@ -53,7 +57,8 @@ public class SingletonSet<T> extends AbstractSet<T> implements PossiblyImmutable
   /* (non-Javadoc)
    * @see java.lang.Object#hashCode()
    */
-  @Override
+  @Starts("nothing")
+@Override
   public int hashCode() {
     return element.hashCode();
   }
@@ -61,7 +66,8 @@ public class SingletonSet<T> extends AbstractSet<T> implements PossiblyImmutable
   /* (non-Javadoc)
    * @see java.util.Collection#contains(java.lang.Object)
    */
-  @Override
+  @Starts("nothing")
+@Override
   public boolean contains(Object o) {
     return element.equals(o);
   }

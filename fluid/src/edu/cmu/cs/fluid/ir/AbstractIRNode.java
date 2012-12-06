@@ -2,7 +2,11 @@ package edu.cmu.cs.fluid.ir;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.surelogic.ThreadSafe;
+import com.surelogic.Unique;
+
 import edu.cmu.cs.fluid.FluidError;
+import edu.cmu.cs.fluid.util.IntegerTable;
 
 /**
  * A default implementation of the intermediate representation node interface.
@@ -10,6 +14,7 @@ import edu.cmu.cs.fluid.FluidError;
  * 
  * @author Edwin
  */
+@ThreadSafe
 public abstract class AbstractIRNode implements IRNode {
 	private static final AtomicLong destroyedNodes = new AtomicLong();
 	private static final AtomicLong nodesCreated = new AtomicLong();
@@ -28,7 +33,7 @@ public abstract class AbstractIRNode implements IRNode {
 			return 0;
 		}		
 	}
-
+	@Unique("return")
 	public AbstractIRNode() {
 		nodesCreated.getAndIncrement();
 	}
@@ -165,7 +170,7 @@ public abstract class AbstractIRNode implements IRNode {
 
 	// for convenience
 	public void setSlotValue(SlotInfo<Integer> si, int newValue) {
-		setSlotValue(si, (Integer) (newValue));
+		setSlotValue(si, IntegerTable.newInteger(newValue));
 	}
 
 	/**

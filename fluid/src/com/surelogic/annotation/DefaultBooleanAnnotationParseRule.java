@@ -27,7 +27,7 @@ extends AbstractAnnotationParseRule<A,P> {
 	//private static final Class[] defaultParamTypes = new Class[] { int.class, int.class };
 	
 	@SuppressWarnings("unchecked")
-	private static final Class[] noParamTypes = new Class[0];
+	public static final Class[] noParamTypes = new Class[0];
 	
   protected DefaultBooleanAnnotationParseRule(String name, Operator[] ops, Class<A> dt) {
     super(name, ops, dt);

@@ -2,6 +2,7 @@
 package edu.cmu.cs.fluid.parse;
 
 import com.surelogic.common.SLUtility;
+import com.surelogic.Starts;
 
 /**
  * This exception is thrown when parse errors are encountered.
@@ -96,7 +97,8 @@ public class ParseException extends Exception {
    * of the final stack trace, and hence the correct error message
    * gets displayed.
    */
-  @Override
+  @Starts("nothing")
+@Override
   public String getMessage() {
     if (!specialConstructor) {
       return super.getMessage();

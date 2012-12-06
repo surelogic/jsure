@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.common.Pair;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -19,11 +20,15 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
+import com.surelogic.RegionEffects;
+import com.surelogic.Borrowed;
+import com.surelogic.ThreadSafe;
 
 /**
  * A class that implements some of the basic type operations.
  * (in terms of getClassTable())
  */
+@ThreadSafe
 public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java");
   private static final boolean debug = LOG.isLoggable(Level.FINE);
@@ -123,11 +128,11 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
     while (oType == null) {
       // this method has to be synchronized because otherwise, another thread
       // may see an uninitialized IJavaDeclaredType:
-      IRNode jlo = findNamedType("java.lang.Object");
+      IRNode jlo = findNamedType(SLUtility.JAVA_LANG_OBJECT);
       assert(jlo != null);
       /*
       if (jlo == null) {
-    	  findNamedType("java.lang.Object");
+    	  findNamedType(SLUtility.JAVA_LANG_OBJECT);
       }
       */
       oType = JavaTypeFactory.getDeclaredType(jlo, null, null);
@@ -139,7 +144,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
       }
     }
     if (debug) {
-    	IRNode jlo = findNamedType("java.lang.Object");
+    	IRNode jlo = findNamedType(SLUtility.JAVA_LANG_OBJECT);
     	IJavaDeclaredType jloType = JavaTypeFactory.getDeclaredType(jlo, null, null);
     	if (objectType != jloType) {
     		JavaTypeFactory.getDeclaredType(jlo, null, null);
@@ -359,7 +364,9 @@ private long parseIntLiteral(String token) {
       return type.subst(subst);
     }
     
-    public void remove() {
+    @Borrowed("this")
+	@RegionEffects("writes Instance")
+	public void remove() {
       throw new UnsupportedOperationException("Cannot remove");
     }
   }
@@ -518,7 +525,7 @@ private long parseIntLiteral(String token) {
 	  if (this == getObjectType())
 		  return null;
 	  if (ClassDeclaration.prototype.includes(op)) {
-		  if ("Object".equals(JJNode.getInfo(declaration)) && dt.getName().equals("java.lang.Object")) {
+		  if ("Object".equals(JJNode.getInfo(declaration)) && dt.getName().equals(SLUtility.JAVA_LANG_OBJECT)) {
 			  return null;
 		  }
 		  IRNode extension = ClassDeclaration.getExtension(declaration);

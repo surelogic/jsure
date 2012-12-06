@@ -77,19 +77,6 @@ public final class FilterJavaType extends Filter {
     f_countTotal = runningTotal;
   }
 
-  @Override
-  protected void refreshPorousDrops(List<IProofDrop> incomingResults) {
-    f_porousDrops.clear();
-    for (IProofDrop d : incomingResults) {
-      final String value = getFilterValueFromDropOrNull(d);
-      if (value != null) {
-        if (f_porousValues.contains(value)) {
-          f_porousDrops.add(d);
-        }
-      }
-    }
-  }
-
   private final Map<String, Image> f_valueToImageName = new HashMap<String, Image>();
 
   @Override

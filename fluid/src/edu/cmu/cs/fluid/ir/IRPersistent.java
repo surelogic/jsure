@@ -11,6 +11,7 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.ThreadSafe;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -102,6 +103,7 @@ import edu.cmu.cs.fluid.util.*;
  * @see IRChunk
  */
 @SuppressWarnings("unchecked")
+@ThreadSafe
 public abstract class IRPersistent implements Serializable {
   /**
 	 * Logger for this class

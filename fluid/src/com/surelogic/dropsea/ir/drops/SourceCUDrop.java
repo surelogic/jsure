@@ -42,10 +42,11 @@ public final class SourceCUDrop extends CUDrop {
   /**
    * This is needed because we need to clean up some drops that we place in the
    * sea but are destroyed after construction of the compilation units.
+ * @param sea 
    */
-  @RequiresLock("SeaLock")
-  private static void fillFileToInstanceMapFromSeaQuery() {
-    final List<SourceCUDrop> drops = Sea.getDefault().getDropsOfExactType(SourceCUDrop.class);
+  @RequiresLock("sea:SeaLock")
+  private static void fillFileToInstanceMapFromSeaQuery(Sea sea) {
+    final List<SourceCUDrop> drops = sea.getDropsOfExactType(SourceCUDrop.class);
     FILE_TO_INSTANCE = new ConcurrentHashMap<ICodeFile, SourceCUDrop>(drops.size());
     for (SourceCUDrop drop : drops) {
       if (drop.isValid() && drop.getCompilationUnitIRNode().equals(IRNode.destroyedNode)) {
@@ -72,9 +73,10 @@ public final class SourceCUDrop extends CUDrop {
    *         exist.
    */
   public static SourceCUDrop queryCU(ICodeFile javaFile) {
-    synchronized (Sea.getDefault().getSeaLock()) {
+	final Sea sea = Sea.getDefault();
+    synchronized (sea.getSeaLock()) {
       if (FILE_TO_INSTANCE == null) {
-        fillFileToInstanceMapFromSeaQuery();
+    	  fillFileToInstanceMapFromSeaQuery(sea);
       }
       return FILE_TO_INSTANCE.get(javaFile);
     }

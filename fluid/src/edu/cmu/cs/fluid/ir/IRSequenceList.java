@@ -2,6 +2,7 @@
 package edu.cmu.cs.fluid.ir;
 
 import java.util.*;
+import com.surelogic.Starts;
 
 /**
  * A wrapper that adapts an IRSequence as a {@link java.util.List}.
@@ -125,7 +126,8 @@ public class IRSequenceList<T> extends AbstractSequentialList<T> implements List
   /* (non-Javadoc)
    * @see java.util.AbstractSequentialList#listIterator(int)
    */
-  @Override
+  @Starts("nothing")
+@Override
   public ListIterator<T> listIterator(int index) {
     if (index == 0) return new Iterator(null);
     else return new Iterator(underlying.location(index-1));
@@ -134,7 +136,8 @@ public class IRSequenceList<T> extends AbstractSequentialList<T> implements List
   /* (non-Javadoc)
    * @see java.util.AbstractCollection#size()
    */
-  @Override
+  @Starts("nothing")
+@Override
   public int size() {
     return underlying.size();
   }

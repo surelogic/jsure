@@ -4,11 +4,13 @@ package edu.cmu.cs.fluid.ir;
 import java.io.IOException;
 import java.util.Comparator;
 
+import com.surelogic.Immutable;
+
 import edu.cmu.cs.fluid.NotImplemented;
 
 /** The type of slots storing Java objects.
  */
-
+@Immutable
 public class IRObjectType<T> implements IRType<T> {
   public IRObjectType() {
   }

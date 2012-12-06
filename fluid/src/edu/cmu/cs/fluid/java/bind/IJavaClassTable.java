@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.java.bind;
 
 import java.util.Set;
 
+import com.surelogic.ThreadSafe;
 import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -13,6 +14,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * It keeps back-pointers for incrementality.
  * @author boyland
  */
+@ThreadSafe
 public interface IJavaClassTable {
 
   /**

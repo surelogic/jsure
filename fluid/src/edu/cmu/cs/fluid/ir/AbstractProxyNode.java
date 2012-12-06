@@ -1,11 +1,14 @@
 /* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/ir/AbstractProxyNode.java,v 1.10 2006/08/23 08:56:04 boyland Exp $ */
 package edu.cmu.cs.fluid.ir;
 
+import com.surelogic.ThreadSafe;
+
 /** Placeholders for other IRNodes.
  * These nodes do not have identity in themselves, but instead defer
  * to another node for slot storage.
  * @see ProxyNode
  */
+@ThreadSafe
 public abstract class AbstractProxyNode implements IRNode {
   /** return the IRNode that this node is the proxy for. */
   protected abstract IRNode getIRNode();

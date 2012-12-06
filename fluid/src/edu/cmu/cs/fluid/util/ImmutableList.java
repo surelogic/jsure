@@ -5,6 +5,7 @@ import java.util.AbstractSequentialList;
 import java.util.ListIterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import com.surelogic.Starts;
 
 /** An implementation of lists that are immutable.
  * Traversing the list backwards is very inefficient.
@@ -14,6 +15,9 @@ import java.util.NoSuchElementException;
  */
 public class ImmutableList<T extends Object> extends AbstractSequentialList<T>
 {
+  @SuppressWarnings("unchecked")
+  public static final ImmutableList[] NO_LISTS = new ImmutableList[0];
+
   /*
    * An empty list (that can be safely cast to any type).
    */
@@ -97,12 +101,14 @@ public class ImmutableList<T extends Object> extends AbstractSequentialList<T>
 
   /// List implementation
 
-  @Override
+  @Starts("nothing")
+@Override
   public boolean isEmpty() {
     return head == null;
   }
 
-  @Override
+  @Starts("nothing")
+@Override
   public int size() {
     return (head == null) ? 0 : head.length;
   }
@@ -113,7 +119,8 @@ public class ImmutableList<T extends Object> extends AbstractSequentialList<T>
 
   // the inherited implementation calls the very slow operation
   // previous, which would make this method O(n^2)
-  @Override
+  @Starts("nothing")
+@Override
   public int lastIndexOf(Object o) {
     int i=0;
     int last = -1;
@@ -170,7 +177,8 @@ public class ImmutableList<T extends Object> extends AbstractSequentialList<T>
     }
   }
 
-  @Override
+  @Starts("nothing")
+@Override
   public ListIterator<T> listIterator(int x) {
     if (x < 0 || x > size()) {
       throw new IndexOutOfBoundsException("listIterator");

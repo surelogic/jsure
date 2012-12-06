@@ -3,10 +3,12 @@ package edu.cmu.cs.fluid.ir;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.*;
+import com.surelogic.ThreadSafe;
 
 /** Storage of slots in a ConcurrentHashMap
  * @typeparam Key key (either node or slot info) for slot
  */
+@ThreadSafe
 public class ConcurrentHashedSlots<S,T> extends ConcurrentHashMap<IRNode,S> implements Slots<S,T> {
   private static final long serialVersionUID = 1L;
   

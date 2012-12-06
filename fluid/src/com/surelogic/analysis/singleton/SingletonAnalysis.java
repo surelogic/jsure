@@ -2,8 +2,6 @@ package com.surelogic.analysis.singleton;
 
 import java.util.*;
 
-import jsr166y.forkjoin.Ops.Procedure;
-
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.IBinderClient;
@@ -14,6 +12,7 @@ import com.surelogic.analysis.TopLevelAnalysisVisitor;
 import com.surelogic.analysis.TopLevelAnalysisVisitor.TypeBodyPair;
 import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.annotation.rules.UtilityRules;
+import com.surelogic.common.SLUtility;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.SingletonPromiseDrop;
 
@@ -37,6 +36,7 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.util.Iteratable;
+import extra166y.Ops.Procedure;
 
 public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAnalysis.SingletonVerifier, TypeBodyPair> {	
   /** Should we try to run things in parallel */
@@ -342,7 +342,7 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
         // Are we the readResolve() method?
         if (!JavaNode.getModifier(mdecl, JavaNode.STATIC) &&
             MethodDeclaration.getId(mdecl).equals("readResolve") &&
-            rtBound != null && JavaNames.getQualifiedTypeName(rtBound).equals("java.lang.Object") &&
+            rtBound != null && JavaNames.getQualifiedTypeName(rtBound).equals(SLUtility.JAVA_LANG_OBJECT) &&
             !Parameters.getFormalIterator(MethodDeclaration.getParams(mdecl)).hasNext()) {
           hasReadResolve = true;
           final Iteratable<IRNode> stmts =
@@ -427,7 +427,7 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
           numFields == 1 && numPublicStaticFinalFields == 1;
       final boolean privateFieldPattern =
           numFields == 1 && numPrivateStaticFinalFields == 1;
-      final String typeString = javaType.toString();
+      final String typeString = javaType.toSourceText();
       
       final IRNode singletonField;
       if (publicFieldPattern) {

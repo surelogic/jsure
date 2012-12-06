@@ -12,6 +12,7 @@
 package edu.cmu.cs.fluid.util;
 import  java.util.*;
 import  java.io.*;
+import com.surelogic.Starts;
 
 /**
  * Hash table based implementation of the <tt>Map</tt> interface.  This
@@ -294,7 +295,8 @@ public class CopiedHashMap extends AbstractMap implements Map, Cloneable,
      *
      * @return the number of key-value mappings in this map.
      */
-    @Override
+    @Starts("nothing")
+	@Override
     public int size() {
         return size;
     }
@@ -304,7 +306,8 @@ public class CopiedHashMap extends AbstractMap implements Map, Cloneable,
      *
      * @return <tt>true</tt> if this map contains no key-value mappings.
      */
-    @Override
+    @Starts("nothing")
+	@Override
     public boolean isEmpty() {
         return size == 0;
     }
@@ -322,7 +325,8 @@ public class CopiedHashMap extends AbstractMap implements Map, Cloneable,
      *          <tt>null</tt> if the map contains no mapping for this key.
      * @see #put(Object, Object)
      */
-    @Override
+    @Starts("nothing")
+	@Override
     public Object get(Object key) {
         Object k = maskNull(key);
         int hash = hash(k);
@@ -345,7 +349,8 @@ public class CopiedHashMap extends AbstractMap implements Map, Cloneable,
      * @return <tt>true</tt> if this map contains a mapping for the specified
      * key.
      */
-    @Override
+    @Starts("nothing")
+	@Override
     public boolean containsKey(Object key) {
         Object k = maskNull(key);
         int hash = hash(k);
@@ -537,7 +542,8 @@ public class CopiedHashMap extends AbstractMap implements Map, Cloneable,
      *	       also indicate that the map previously associated <tt>null</tt>
      *	       with the specified key.
      */
-    @Override
+    @Starts("nothing")
+	@Override
     public Object remove(Object key) {
         Entry e = removeEntryForKey(key);
         return (e == null ? e : e.value);
@@ -610,7 +616,8 @@ public class CopiedHashMap extends AbstractMap implements Map, Cloneable,
     /**
      * Removes all mappings from this map.
      */
-    @Override
+    @Starts("nothing")
+	@Override
     public void clear() {
         modCount++;
         Entry tab[] = table;
@@ -627,7 +634,8 @@ public class CopiedHashMap extends AbstractMap implements Map, Cloneable,
      * @return <tt>true</tt> if this map maps one or more keys to the
      *         specified value.
      */
-    @Override
+    @Starts("nothing")
+	@Override
     public boolean containsValue(Object value) {
 	if (value == null) 
             return containsNullValue();
@@ -702,11 +710,13 @@ public class CopiedHashMap extends AbstractMap implements Map, Cloneable,
           next = n;
         }
 
-        public final Object getKey() {
+        @Starts("nothing")
+		public final Object getKey() {
             return unmaskNull(key);
         }
 
-        public final Object getValue() {
+        @Starts("nothing")
+		public final Object getValue() {
             return value;
         }
     
@@ -723,7 +733,8 @@ public class CopiedHashMap extends AbstractMap implements Map, Cloneable,
           next = newNext;
         }
     
-        @Override
+        @Starts("nothing")
+		@Override
         public boolean equals(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
@@ -739,7 +750,8 @@ public class CopiedHashMap extends AbstractMap implements Map, Cloneable,
             return false;
         }
     
-        @Override
+        @Starts("nothing")
+		@Override
         public int hashCode() {
             return (key==NULL_KEY ? 0 : key.hashCode()) ^
                    (value==null   ? 0 : value.hashCode());
@@ -907,30 +919,36 @@ public class CopiedHashMap extends AbstractMap implements Map, Cloneable,
      *
      * @return a set view of the keys contained in this map.
      */
-    @Override
+    @Starts("nothing")
+	@Override
     public Set keySet() {
         Set ks = keySet;
         return (ks != null ? ks : (keySet = new KeySet()));
     }
 
     private class KeySet extends AbstractSet {
-        @Override
+        @Starts("nothing")
+		@Override
         public Iterator iterator() {
             return newKeyIterator();
         }
-        @Override
+        @Starts("nothing")
+		@Override
         public int size() {
             return size;
         }
-        @Override
+        @Starts("nothing")
+		@Override
         public boolean contains(Object o) {
             return containsKey(o);
         }
-        @Override
+        @Starts("nothing")
+		@Override
         public boolean remove(Object o) {
             return CopiedHashMap.this.removeEntryForKey(o) != null;
         }
-        @Override
+        @Starts("nothing")
+		@Override
         public void clear() {
 					CopiedHashMap.this.clear();
         }
@@ -947,26 +965,31 @@ public class CopiedHashMap extends AbstractMap implements Map, Cloneable,
      *
      * @return a collection view of the values contained in this map.
      */
-    @Override
+    @Starts("nothing")
+	@Override
     public Collection values() {
         Collection vs = values;
         return (vs != null ? vs : (values = new Values()));
     }
 
     private class Values extends AbstractCollection {
-        @Override
+        @Starts("nothing")
+		@Override
         public Iterator iterator() {
             return newValueIterator();
         }
-        @Override
+        @Starts("nothing")
+		@Override
         public int size() {
             return size;
         }
-        @Override
+        @Starts("nothing")
+		@Override
         public boolean contains(Object o) {
             return containsValue(o);
         }
-        @Override
+        @Starts("nothing")
+		@Override
         public void clear() {
             CopiedHashMap.this.clear();
         }
@@ -985,18 +1008,21 @@ public class CopiedHashMap extends AbstractMap implements Map, Cloneable,
      * @return a collection view of the mappings contained in this map.
      * @see Map.Entry
      */
-    @Override
+    @Starts("nothing")
+	@Override
     public Set entrySet() {
         Set es = entrySet;
         return (es != null ? es : (entrySet = new EntrySet()));
     }
 
     private class EntrySet extends AbstractSet {
-        @Override
+        @Starts("nothing")
+		@Override
         public Iterator iterator() {
             return newEntryIterator();
         }
-        @Override
+        @Starts("nothing")
+		@Override
         public boolean contains(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
@@ -1004,15 +1030,18 @@ public class CopiedHashMap extends AbstractMap implements Map, Cloneable,
             Entry candidate = getEntry0(e.getKey());
             return candidate != null && candidate.equals(e);
         }
-        @Override
+        @Starts("nothing")
+		@Override
         public boolean remove(Object o) {
             return removeMapping(o) != null;
         }
-        @Override
+        @Starts("nothing")
+		@Override
         public int size() {
             return size;
         }
-        @Override
+        @Starts("nothing")
+		@Override
         public void clear() {
             CopiedHashMap.this.clear();
         }

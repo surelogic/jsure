@@ -3,6 +3,7 @@ package edu.uwm.cs.fluid.control;
 
 import java.util.logging.Logger;
 
+import com.surelogic.RequiresLock;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.control.AddLabel;
@@ -125,6 +126,7 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
   }
 
   @Override
+  @RequiresLock("ComputeLock")
   protected void transferPort(OutputPort dual, InputPort port) {
     if (port instanceof SimpleInputPort) {
       ControlEdge out = ((SimpleInputPort)port).getOutput();
@@ -197,6 +199,7 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
   };
   
   @Override
+  @RequiresLock("ComputeLock")
   protected void transferFlow(Flow node) {
     ControlEdge in = node.getInput();
     ControlEdge out = node.getOutput();
@@ -386,6 +389,7 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
   };
 
   @Override
+  @RequiresLock("ComputeLock")
   protected void transferSplit(Split node) {    
     ControlEdge in = node.getInput();
     ControlEdge out1 = node.getOutput1();
@@ -424,6 +428,7 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
   };
   
   @Override
+  @RequiresLock("ComputeLock")
   protected void transferJoin(Join node) {
     ControlEdge out = node.getOutput();
     ControlEdge in1 = node.getInput1();
@@ -445,6 +450,7 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
   }
 
   @Override
+  @RequiresLock("ComputeLock")
   protected void transferSink(Sink n) {
     ControlEdge in = n.getInput();
     if (n instanceof ComponentSink) {

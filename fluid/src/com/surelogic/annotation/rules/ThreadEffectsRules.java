@@ -87,7 +87,7 @@ public class ThreadEffectsRules extends AnnotationRules {
               getContext().reportErrorAndProposal(
                   new ProposedPromiseDrop("Starts", "nothing", decl, parent, Origin.PROBLEM),
                   "Method must be annotated @Starts(\"nothing\") because it overrides @Starts(\"nothing\") {0}",
-                  JavaNames.genQualifiedMethodConstructorName(parent));
+                  JavaNames.genRelativeFunctionName(parent));
             }
           }
           return good;

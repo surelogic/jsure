@@ -345,7 +345,9 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
 
   private A computeAnalysis(final IRNode flowUnit, final Version v, final boolean debug) {
 	  A fa = createAnalysis(flowUnit);
-	  return computeAnalysis(flowUnit, v, debug, fa);
+	  synchronized (fa) {
+		  return computeAnalysis(flowUnit, v, debug, fa);
+	  }
   }
   
   /**

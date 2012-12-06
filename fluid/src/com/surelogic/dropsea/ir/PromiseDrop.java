@@ -420,6 +420,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     }
   }
 
+  @MustInvokeOnOverride
   @Override
   @NonNull
   protected Pair<IJavaRef, IRNode> getJavaRefAndCorrespondingNode() {
@@ -581,6 +582,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @Override
   @MustInvokeOnOverride
+  @RequiresLock("SeaLock")
   public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(ASSUMED, isAssumed());

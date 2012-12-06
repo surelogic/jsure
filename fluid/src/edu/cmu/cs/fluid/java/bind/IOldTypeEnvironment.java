@@ -13,6 +13,7 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 
 import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
@@ -121,7 +122,7 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       if (rv != null) {
     	  return rv;
       }
-      final IRNode[] noNodes = new IRNode[0];
+      final IRNode[] noNodes = JavaGlobals.noNodes;
       final IRNode tArray = ArrayType.createNode(NamedType.createNode("T"), 1);
       
       final IRNode privateCloneMethod = 
@@ -174,7 +175,7 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       parsetree.clearParent(privateArrayType);
 
       IRNode pkg = NamedPackageDeclaration.createNode(Annotations.createNode(noNodes), "java.lang");
-      CompilationUnit.createNode(pkg, ImportDeclarations.createNode(new IRNode[0]), 
+      CompilationUnit.createNode(pkg, ImportDeclarations.createNode(noNodes), 
           TypeDeclarations.createNode(new IRNode[] {privateArrayType}));
 
       ReturnValueDeclaration.getReturnNode(privateCloneMethod);

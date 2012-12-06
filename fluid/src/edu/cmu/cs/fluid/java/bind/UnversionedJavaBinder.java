@@ -2,16 +2,16 @@
 package edu.cmu.cs.fluid.java.bind;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.logging.Level;
-
-import jsr166y.forkjoin.Ops.Procedure;
 
 import org.apache.commons.collections15.MultiMap;
 
+import com.surelogic.*;
 import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.javac.persistence.JSurePerformance;
 
@@ -25,9 +25,12 @@ import edu.cmu.cs.fluid.java.project.JavaMemberTable;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import extra166y.Ops.Procedure;
+import com.surelogic.Unique;
 
+@ThreadSafe
 public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUnitListener {
-  private static final boolean cacheAllSourceTypes = false;
+  private static final boolean cacheAllSourceTypes = true;
   
   /**
    * Helps to figure out what to invalidate after an AST is modified
@@ -43,24 +46,24 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       }
   } : null;
 	
-  private final ThreadLocal<Map<IJavaSourceRefType,IJavaMemberTable>> memberTableCache = cacheAllSourceTypes ? 
-      new ThreadLocal<Map<IJavaSourceRefType,IJavaMemberTable>>() {
-	  @Override
-	  protected Map<IJavaSourceRefType,IJavaMemberTable> initialValue() {
-		  return new HashMap<IJavaSourceRefType, IJavaMemberTable>();
-	  }
-  } : null;
+  private final ConcurrentMap<IJavaSourceRefType,IJavaMemberTable> memberTableCache = cacheAllSourceTypes ? 
+      new ConcurrentHashMap<IJavaSourceRefType,IJavaMemberTable>() : null;
   
   
   private final Map<IRNode,IJavaMemberTable> oldMemberTableCache = cacheAllSourceTypes ? null :
 	  new ConcurrentHashMap<IRNode, IJavaMemberTable>();
   
-  private final ThreadLocal<IJavaMemberTable> objectTable = cacheAllSourceTypes ? null :
+  private final ThreadLocal<IJavaMemberTable> objectTable =
 	  new ThreadLocal<IJavaMemberTable>() {
 	  protected IJavaMemberTable initialValue() {
 		  return JavaMemberTable.makeBatchTable(typeEnvironment.getObjectType());
 	  }
   };
+  
+  /**
+   * Shared across binders
+   */
+  private static final ConcurrentMap<IRNode, List<IRNode>> granules = new ConcurrentHashMap<IRNode, List<IRNode>>();
   
   public UnversionedJavaBinder(final ITypeEnvironment tEnv) {
     super(tEnv);
@@ -68,6 +71,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     IDE.getInstance().addCompUnitListener(this);
   }
   
+  // TODO not threadsafe
   private JavaCanonicalizer.IBinderCache cache = null;
   
   void setBinderCache(JavaCanonicalizer.IBinderCache c) {
@@ -164,7 +168,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 		UnversionedJavaImportTable.clearAll();
 		if (cacheAllSourceTypes) {
 			sourceTypeParameterizations.clear();
-			ConcurrentAnalysis.clearThreadLocal(memberTableCache);
+			memberTableCache.clear();
 		} else {
 			oldMemberTableCache.clear();
 		}
@@ -176,17 +180,44 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   protected void reset() {
 	  clearAll(true);
   }
+
+  private static Iterable<IRNode> getGranules(final IRNode cu) {
+	  List<IRNode> rv = granules.get(cu);
+	  if (rv == null) {
+		  rv = new ArrayList<IRNode>();
+		  for (IRNode n : JJNode.tree.topDown(cu)) {
+			  final Operator op = JJNode.tree.getOperator(n);
+			  if (AbstractJavaBinder.isGranule(n, op)) {
+				  rv.add(n);
+			  }
+		  }
+		  if (rv.isEmpty()) {
+			  rv = Collections.emptyList();
+		  }
+		  // TODO sync?
+		  granules.put(cu, rv);
+	  }
+	  return rv;
+  }
+  
+  public void bindCompUnit(final IRNode cu, final String name) {
+	  for (IRNode n : getGranules(cu)) {
+		  try {
+			  ensureBindingsOK(n);
+		  } catch (RuntimeException e) {
+              SLLogger.getLogger().log(Level.SEVERE,
+                  "Error while binding " + DebugUnparser.toString(n) + " in " + name, e);
+              throw e;
+		  }
+	  }
+  }
   
   /**
    * Only to be called after canonicalizing an AST
    */
   public synchronized void astChanged(IRNode cu) {
     // If so, we need to clear all the cached data
-    for(final IRNode n : JJNode.tree.topDown(cu)) {
-      final Operator op = JJNode.tree.getOperator(n);
-      if (!isGranule(op, n)) {
-        continue;
-      }
+	for (IRNode n : getGranules(cu)) {
       IGranuleBindings b1 = allGranuleBindings.remove(n);
       IGranuleBindings b2 = partialGranuleBindings.remove(n);
       boolean changed = false;
@@ -213,6 +244,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       }
       */
     }
+	granules.remove(cu);
     JavaTypeFactory.clearCaches();
   }
 
@@ -226,7 +258,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 		  if (types != null) {
 			  removed = true;
 			  
-			  final Map<IJavaSourceRefType,IJavaMemberTable> tables = memberTableCache.get();
+			  final Map<IJavaSourceRefType,IJavaMemberTable> tables = memberTableCache;
 			  final Procedure<Integer> proc = new Procedure<Integer>() {
 				  public void op(Integer ignore) {
 					  for(final IJavaSourceRefType t : types) {
@@ -251,7 +283,10 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   @Override
   public IJavaMemberTable typeMemberTable(IJavaSourceRefType type) {
 	if (cacheAllSourceTypes) {
-		final Map<IJavaSourceRefType,IJavaMemberTable> tables = memberTableCache.get();
+		if (type == typeEnvironment.getObjectType()) {
+			return objectTable.get();
+		}
+		final Map<IJavaSourceRefType,IJavaMemberTable> tables = memberTableCache;
 		IJavaMemberTable rv = tables.get(type);
 		if (rv == null) {
 			// unversioned, uncached
@@ -306,8 +341,8 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   }
   
   @Override
-  protected IGranuleBindings makeGranuleBindings(IRNode cu) {
-    return new CompUnitBindings(cu);
+  protected IGranuleBindings makeGranuleBindings(IRNode cu, boolean needFullInfo) {
+    return new CompUnitBindings(cu, needFullInfo);
   }
   
   /**
@@ -316,14 +351,11 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
    * it dos not do the binding action itself (this is done in
    * {@link #BinderVisitor}.
    * @author Edwin
-   * @lock StatusLock is this protects isDeriving
-   * @region Info
-   * @lock InfoLock is this.unit protects Info
    */
+  @ThreadSafe
   class CompUnitBindings extends AbstractDerivedInformation implements IGranuleBindings {
     final IRNode unit;
-    private boolean hasFullInfo = false;
-    private boolean isDestroyed = false;
+    private final boolean hasFullInfo;
     
     /**
      * binding each use of a name to the declaration that it refers to.
@@ -334,8 +366,10 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
      */
     final SlotInfo<List<IBinding>> methodOverridesAttr;
     
-    CompUnitBindings(IRNode cu) {
+    @Unique("return")
+	CompUnitBindings(IRNode cu, boolean needFullInfo) {
       unit = cu;
+      hasFullInfo = needFullInfo;
       SlotFactory f = SimpleSlotFactory.prototype;
       useToDeclAttr = f.newLabeledAttribute("CompUnitBindings.useToDecl");
       methodOverridesAttr = f.newLabeledAttribute("CompUnitBindings.methodOverrides", null);
@@ -345,14 +379,15 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     	return unit;
     }
     
-    public synchronized boolean isDestroyed() {
-    	return isDestroyed;
+    public boolean isDestroyed() {
+    	return getStatus() == Status.DESTROYED;
     }
     
+    @Override
     public synchronized void destroy() {    	
     	useToDeclAttr.destroy();
     	methodOverridesAttr.destroy();
-    	isDestroyed = true;
+    	super.destroy();
     }
     
     @Override
@@ -372,6 +407,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       return useToDeclAttr;
     }
 
+    @RequiresLock("StatusLock")
     @Override
     protected boolean derive() {
       deriveInfo(this, unit);
@@ -415,10 +451,6 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     
     public boolean containsFullInfo() {
       return hasFullInfo;
-    }
-
-    public void setContainsFullInfo(boolean full) {
-      hasFullInfo = full;      
     }
   }
   

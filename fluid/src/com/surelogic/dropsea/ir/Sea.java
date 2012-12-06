@@ -12,6 +12,7 @@ import com.surelogic.InRegion;
 import com.surelogic.Region;
 import com.surelogic.RegionLock;
 import com.surelogic.ReturnsLock;
+import com.surelogic.Unique;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -46,6 +47,11 @@ public final class Sea {
     return DEFAULT_SEA;
   }
 
+  @Unique("return")
+  public Sea() {
+	  // Nothing to do
+  }
+  
   /**
    * Returns a new list that contains drops within <code>drops</code> that are
    * of <code>dropType</code> or any of its subtypes.

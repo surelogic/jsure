@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.util;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.NoSuchElementException;
+import com.surelogic.Starts;
 
 /** Association list dictionary:
  * Low space overhead but O(n) search time.
@@ -54,7 +55,8 @@ public class AssocList<K,V> extends Dictionary<K,V> {
   /** return number of distinct entries
    * @pure
    */
-  @Override
+  @Starts("nothing")
+@Override
   public final int size() {
   	/*
     int here = 0;
@@ -77,7 +79,8 @@ public class AssocList<K,V> extends Dictionary<K,V> {
   /** return whether no distinct entries
    * @pure
    */
-  @Override
+  @Starts("nothing")
+@Override
   public boolean isEmpty() {
     return key == null && (rest == null || rest.isEmpty());
   }
@@ -94,7 +97,8 @@ public class AssocList<K,V> extends Dictionary<K,V> {
    *   <dt>type<dd> Value
    * </dl>
    */
-  @Override
+  @Starts("nothing")
+@Override
   public final V get(Object key) {
     /*
     if (this.key != null && key.equals(this.key)) return value;
@@ -216,7 +220,8 @@ public class AssocList<K,V> extends Dictionary<K,V> {
    *   <dt>type<dd> Value
    * </dl>
    */
-  @Override
+  @Starts("nothing")
+@Override
   public V remove(Object key) {
     if (this.key == null) {
       return null;
@@ -269,7 +274,8 @@ public class AssocList<K,V> extends Dictionary<K,V> {
    *   <dt>capabilities<dd> cast, read, write
    * </dl>
    */
-  @Override
+  @Starts("nothing")
+@Override
   public Enumeration<K> keys() {
     return new AssocKeyEnumeration<K>(this);
   }
@@ -282,7 +288,8 @@ public class AssocList<K,V> extends Dictionary<K,V> {
    *   <dt>capabilities<dd> cast, read, write
    * </dl>
    */
-  @Override
+  @Starts("nothing")
+@Override
   public Enumeration<V> elements() {
     return new AssocValueEnumeration<V>(this);
   }

@@ -213,6 +213,7 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
 
   @Override
   @MustInvokeOnOverride
+  @RequiresLock("SeaLock")
   public void snapshotAttrs(Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(FOLDER_LOGIC_OPERATOR, getLogicOperator().toString());

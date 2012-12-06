@@ -96,7 +96,7 @@ public abstract class AbstractJSureScanView extends AbstractSLView implements JS
    */
   private void updateViewState() {
     final String label = updateViewer();
-    getCurrentControl().getDisplay().asyncExec(new Runnable() {
+    EclipseUIUtility.asyncExec(new Runnable() {
       public void run() {
         if (label != null) {
           if (getViewer() != null) {

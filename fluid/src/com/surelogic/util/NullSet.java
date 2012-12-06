@@ -2,6 +2,9 @@
 package com.surelogic.util;
 
 import java.util.Set;
+import com.surelogic.Starts;
+import com.surelogic.RegionEffects;
+import com.surelogic.Borrowed;
 
 /**
  * A {@link java.util.Set} implementation that is always empty, and ignores any
@@ -24,13 +27,19 @@ public final class NullSet<E> extends NullCollection<E> implements Set<E> {
     // Nothing to do
   }
   
-  @SuppressWarnings("unchecked")
+  @Borrowed("this")
+@RegionEffects("reads o:Instance, Instance")
+@Starts("nothing")
+@SuppressWarnings("unchecked")
   @Override
-  public boolean equals(final Object o) {
+  public boolean equals(@Borrowed final Object o) {
     return (o == this) || ((o instanceof Set) && (((Set) o).size() == 0));
   }
 
-  @Override
+  @Borrowed("this")
+@RegionEffects("reads Instance")
+@Starts("nothing")
+@Override
   public final int hashCode() {
     return 0;
   }

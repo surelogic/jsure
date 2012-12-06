@@ -5,11 +5,14 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import com.surelogic.ThreadSafe;
+
 import edu.cmu.cs.fluid.util.UniqueID;
 
 /** An IRNode which is referenced by a unique ID.
  * It lives in a region by itself.
  */
+@ThreadSafe
 public class IndependentIRNode extends IRRegion implements IRNode {
   private static final int magic = 0x4949524e; // IIRN
 

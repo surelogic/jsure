@@ -5,6 +5,7 @@ package edu.cmu.cs.fluid.java.project;
 
 import java.util.*;
 
+import com.surelogic.*;
 import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.derived.IDerivedInformation;
@@ -29,6 +30,7 @@ public final class JavaImportTable extends AbstractJavaImportTable {
   /**
    * Create an empty import table
    */
+  @Unique("return")
   private JavaImportTable(IRNode cu, JavaIncrementalBinder b) {
     super(cu, b);
     final Version v = Version.getVersion();
@@ -64,6 +66,7 @@ public final class JavaImportTable extends AbstractJavaImportTable {
    * A map of strings to Entry objects that hold the scope that
    * the name should be looked up in (again)
    */
+  @UniqueInRegion("ImportState")
   final Map<String,Entry> direct = new HashMap<String,Entry>();
   
   /**
@@ -71,6 +74,7 @@ public final class JavaImportTable extends AbstractJavaImportTable {
    * imports that end in ".*".
    * A map from the import to an Entry object.
    */
+  @UniqueInRegion("ImportState")
   final Map<IRNode,Entry> indirect = new HashMap<IRNode,Entry>();
   
   private class VersionedInfo extends VersionedDerivedInformation {
@@ -78,12 +82,13 @@ public final class JavaImportTable extends AbstractJavaImportTable {
       super(v);
     }
     @Override
-    public synchronized void clear() {
-      // TODO Is this synchronization right
-      super.clear();
-      direct.clear();
-      indirect.clear();
-      // factory = null;
+    public void clear() {
+    	synchronized (JavaImportTable.this) {
+    		super.clear();      
+    		direct.clear();
+    		indirect.clear();
+    		// factory = null;
+    	}
     }
 
     @Override
@@ -99,13 +104,15 @@ public final class JavaImportTable extends AbstractJavaImportTable {
       return TreeChangedIterator.iterator(JavaIncrementalBinder.treeChanged,JJNode.tree,node,v1,v2);
     }
     
-    protected void deriveRelated(Version oldV, Version newV) {
+	protected void deriveRelated(Version oldV, Version newV) {
       Version.saveVersion(newV);
       try {
         IRNode imports = CompilationUnit.getImps(compilationUnit);
         // if a whole new node, start from scratch:
         if (JavaIncrementalBinder.parentIsChanged(imports,oldV)) {
-          initialize();
+          synchronized (JavaImportTable.this) {
+        	  initialize();
+          }
           return;
         }
         // otherwise, find all removed nodes, and clear them:
@@ -148,15 +155,17 @@ public final class JavaImportTable extends AbstractJavaImportTable {
       LOG.info("removeImport has no effect: " + DebugUnparser.toString(importNode));
       return; // nothing to remove
     }
-    if (name == null) {
-      removeScope(indirect,importNode,v);
-    } else {
-      removeScope(direct,name,v);
+    synchronized (this) {
+    	if (name == null) {
+    		removeScope(indirect,importNode,v);
+    	} else {
+    		removeScope(direct,name,v);
+    	}
     }
   }
       
   @Override
-  protected synchronized <T> void addScope(Map<T,Entry> map, T key, IJavaScope scope) {
+  protected <T> void addScope(Map<T,Entry> map, T key, IJavaScope scope) {
     VersionedEntry entry = (VersionedEntry) map.get(key);
     if (entry == null) {
       entry = new VersionedEntry(scope);
@@ -172,7 +181,8 @@ public final class JavaImportTable extends AbstractJavaImportTable {
     }
   }
   
-  private synchronized <T> void removeScope(Map<T,Entry> map, T key, Version v) {
+  @RequiresLock("StateLock")
+  private <T> void removeScope(Map<T,Entry> map, T key, Version v) {
     VersionedEntry entry = (VersionedEntry) map.get(key);
     entry.setScope(null,v);
   }

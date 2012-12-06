@@ -174,6 +174,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   }
 
   @Override
+  @RequiresLock("SeaLock")
   public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(VOUCHED, isVouched());

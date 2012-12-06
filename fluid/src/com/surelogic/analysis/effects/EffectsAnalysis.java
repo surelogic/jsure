@@ -5,8 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import jsr166y.forkjoin.Ops.Procedure;
-
 import com.surelogic.analysis.AbstractAnalysisSharingAnalysis;
 import com.surelogic.analysis.CompUnitPair;
 import com.surelogic.analysis.ConcurrencyType;
@@ -70,6 +68,7 @@ import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import extra166y.Ops.Procedure;
 
 public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis,Effects,CompUnitPair> {	
 	/** Should we try to run things in parallel */

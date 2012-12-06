@@ -7,8 +7,9 @@ package edu.cmu.cs.fluid.tree;
 import java.io.PrintWriter;
 import java.util.*;
 
+import com.surelogic.ThreadSafe;
+
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.util.IntegerTable;
 
 /**
  * A type of tree in which each tree has an operator which determines the kinds
@@ -30,6 +31,7 @@ import edu.cmu.cs.fluid.util.IntegerTable;
  * 
  * @see Operator
  */
+@ThreadSafe
 public class SyntaxTree extends Tree implements SyntaxTreeInterface {
 	public static final String OPERATOR = "operator";
 
@@ -47,6 +49,7 @@ public class SyntaxTree extends Tree implements SyntaxTreeInterface {
 		return new DelegatingMutator();
 	}
 
+	/* Debug code
 	int total;
 	Map<Operator, Integer> counts = new HashMap<Operator, Integer>();
 
@@ -71,6 +74,7 @@ public class SyntaxTree extends Tree implements SyntaxTreeInterface {
 		}
 		out.flush();
 	}
+    */
 
 	/* final */
 	SlotInfo<Operator> operatorSlotInfo;
@@ -143,7 +147,7 @@ public class SyntaxTree extends Tree implements SyntaxTreeInterface {
 	 * NB: no slots are mutated with this code.
 	 */
 	public void initNode(IRNode n, Operator op, int min) {
-		count(op);
+		//count(op);
 		((Mutator) mutator).initNode(n, op, min);
 	}
 

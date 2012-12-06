@@ -10,6 +10,7 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.*;
 
 /**
  * This is a class designed to manage and run a set of Runnable tasks that may
@@ -769,6 +770,7 @@ public class TaskManager extends ThreadPoolExecutor {
 		assert false : "This should never be called directly.";
 	}
 
+	@Starts("nothing")
 	@Override
 	public boolean remove(Runnable runnable) {
 		assert false : "This should never be called directly.";
@@ -785,12 +787,16 @@ public class TaskManager extends ThreadPoolExecutor {
 		super.execute(task);
 	}
 
+	@Starts("nothing")
 	@Override
 	public void shutdown() {
-		eventManager.halt();
+		if (eventManager != null) {
+			eventManager.halt();
+		}
 		super.shutdown();
 	}
 
+	@Starts("nothing")
 	@Override
 	public List<Runnable> shutdownNow() {
 		eventManager.halt();

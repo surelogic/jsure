@@ -16,7 +16,7 @@ public class AssignedVars extends AssociativeArrayLattice<IRNode, Assigned.Latti
   private final Assigned[] empty;
   
   private AssignedVars(final IRNode[] modifiedKeys) {
-    super(Assigned.lattice, new Assigned[0], modifiedKeys);
+    super(Assigned.lattice, Assigned.NO_ASSIGNED, modifiedKeys);
 
     // Create a unique reference to the empty value
     final int n = modifiedKeys.length;

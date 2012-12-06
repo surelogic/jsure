@@ -7,6 +7,10 @@ import java.util.Iterator;
 import com.surelogic.common.SLUtility;
 
 import edu.cmu.cs.fluid.util.EmptyIterator;
+import com.surelogic.Starts;
+import com.surelogic.RegionEffects;
+import com.surelogic.Unique;
+import com.surelogic.Borrowed;
 
 /**
  * A {@link java.util.Collection} implementation that is always empty, and ignores any
@@ -41,43 +45,75 @@ public class NullCollection<E> implements Collection<E> {
     return false;
   }
 
-  public final void clear() {
+  @Borrowed("this")
+@RegionEffects("writes Instance")
+@Starts("nothing")
+public final void clear() {
     // Nothing to do
   }
 
-  public final boolean contains(final Object o) {
+  @Borrowed("this")
+@RegionEffects("reads o:Instance, Instance")
+@Starts("nothing")
+public final boolean contains(@Borrowed final Object o) {
     return false;
   }
 
-  public final boolean containsAll(final Collection<?> c) {
+  @Borrowed("this")
+@RegionEffects("reads c:Instance, Instance")
+@Starts("nothing")
+public final boolean containsAll(@Borrowed final Collection<?> c) {
     return false;
   }
 
-  public final boolean isEmpty() {
+  @Borrowed("this")
+@RegionEffects("reads Instance")
+@Starts("nothing")
+public final boolean isEmpty() {
     return true;
   }
 
-  public final Iterator<E> iterator() {
+  @Borrowed("this")
+@RegionEffects("writes Instance")
+@Unique("return")
+@Starts("nothing")
+public final Iterator<E> iterator() {
     return new EmptyIterator<E>();
   }
 
-  public final boolean remove(final Object o) {
+  @Borrowed("this")
+@RegionEffects("reads o:Instance; writes Instance")
+@Starts("nothing")
+public final boolean remove(@Borrowed final Object o) {
     return false;
   }
 
-  public final boolean removeAll(final Collection<?> c) {
+  @Borrowed("this")
+@RegionEffects("reads c:Instance; writes Instance")
+@Starts("nothing")
+public final boolean removeAll(@Borrowed final Collection<?> c) {
     return false;
   }
 
-  public final boolean retainAll(final Collection<?> c) {
+  @Borrowed("this")
+@RegionEffects("reads c:Instance; writes Instance")
+@Starts("nothing")
+public final boolean retainAll(@Borrowed final Collection<?> c) {
     return false;
   }
 
-  public final int size() {
+  @Borrowed("this")
+@RegionEffects("reads Instance")
+@Starts("nothing")
+public final int size() {
     return 0;
   }
 
-  public final Object[] toArray() {
+  @Borrowed("this")
+@RegionEffects("reads Instance")
+@Unique("return")
+@Starts("nothing")
+public final Object[] toArray() {
     return SLUtility.EMPTY_OBJECT_ARRAY;
   }
 

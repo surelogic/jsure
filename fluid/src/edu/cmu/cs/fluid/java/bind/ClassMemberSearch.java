@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.ThreadSafe;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.logging.SLLogger;
 
@@ -15,6 +16,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 
+@ThreadSafe
 public class ClassMemberSearch {
   private static final Logger LOG = SLLogger.getLogger("FLUID.bind");
   

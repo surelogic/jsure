@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.eclipse.jdt.core.*;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.xml.*;
 import com.surelogic.xml.AnnotatedJavaElement.Access;
@@ -104,11 +105,11 @@ public class PromisesXMLBuilder {
 	private static void translateToRawType(IMethod m, StringBuilder sb, ITypeParameter p) throws JavaModelException {
 		String[] bounds = p.getBounds();
 		if (bounds.length == 0) {
-			sb.append("java.lang.Object");
+			sb.append(SLUtility.JAVA_LANG_OBJECT);
 			return;
 		}
 		int i=0;
-		if (bounds.length > 1 && bounds[0].equals("java.lang.Object")) {
+		if (bounds.length > 1 && bounds[0].equals(SLUtility.JAVA_LANG_OBJECT)) {
 			i = 1;
 		} 
 		translatePossibleGenericType(m, sb, translateToRawType(bounds[i]));		
