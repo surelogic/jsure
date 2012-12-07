@@ -1015,6 +1015,7 @@ public class TaskManager extends ThreadPoolExecutor {
 		 * Called by a client when processing of a specific task has begun
 		 * 
 		 */
+		@Starts("nothing")
 		public void halt() {
 			synchronized (this) {
 				running = false;

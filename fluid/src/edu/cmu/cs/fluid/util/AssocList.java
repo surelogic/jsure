@@ -67,6 +67,7 @@ public class AssocList<K,V> extends Dictionary<K,V> {
     return loopSize(this);
   }
   
+  @Starts("nothing")
   private static int loopSize(AssocList cursor) {
 		int here = 0;
 		while (cursor != null) {
@@ -108,6 +109,7 @@ public class AssocList<K,V> extends Dictionary<K,V> {
     return loopGet(this, key);
   }
   
+  @Starts("nothing")
   private static <K,V> V loopGet(AssocList<K,V> cursor, final Object key) {
     //calls++;
     while (cursor != null) {
@@ -244,6 +246,7 @@ public class AssocList<K,V> extends Dictionary<K,V> {
     }
   }
   
+  @Starts("nothing")
   private static <K,V> V loopRemove(AssocList<K,V> cursor, final Object key) {
   	while (cursor != null) {
 			AssocList<K,V> rest = cursor.rest;
@@ -314,6 +317,7 @@ public class AssocList<K,V> extends Dictionary<K,V> {
 class AssocKeyEnumeration<K> implements Enumeration<K> {
   AssocList<K,?> cursor;
    
+  @Starts("nothing")
   AssocKeyEnumeration(AssocList<K,?> start) {
     cursor = start;
   }
@@ -348,6 +352,8 @@ class AssocKeyEnumeration<K> implements Enumeration<K> {
 
 class AssocValueEnumeration<V> implements Enumeration<V> {
   AssocList<?,V> cursor;
+  
+  @Starts("nothing")
   AssocValueEnumeration(AssocList<?,V> start) {
     cursor = start;
   }
