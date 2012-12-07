@@ -1,5 +1,5 @@
 To create opgen.jar:
--- Right-click on plugin.xml and select "PDE Tools | Create Ant Build File"
+-- Right-click on META-INF/MANIFEST.MF and select "PDE Tools | Create Ant Build File"
 -- Right-click on the resulting build.xml and select "Run As | Ant Build" (first)
    You may need to refresh the project before you can see opgen.jar
  
