@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.*;
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
@@ -25,6 +26,8 @@ import edu.cmu.cs.fluid.parse.JJNode;
  * 
  * <p>This class is not thread-safe.
  */
+@Region("ModelState")
+@RegionLock("StateLock is this protects ModelState")
 public final class GlobalLockModel {
   public static final class UnsupportedLockException extends Exception {
 	private static final long serialVersionUID = 1L;
@@ -58,6 +61,7 @@ public final class GlobalLockModel {
    * this map are built by {@link #addRegionLockDeclaration(IBinder, IRNode, IRNode)}
    * and {@link #addPolicyLockDeclaration(IBinder, LockModel, IRNode)}.
    */
+  @UniqueInRegion("ModelState")
   private final Map<IJavaType, ClassRecord> classes =
     new HashMap<IJavaType, ClassRecord>();
   
