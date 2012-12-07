@@ -14,7 +14,9 @@ import com.surelogic.dropsea.ir.ModelingProblemDrop;
 
 @Utility
 public final class DropTypeUtility {
-
+  private DropTypeUtility() {
+	  // To prevent instantiation
+  }
   /**
    * Used to lookup types in the IR drop-sea. If the type moved or has changed
    * this method trys to map the name to the new type in the code. This method
