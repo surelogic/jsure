@@ -34,6 +34,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.BinopExpression;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
 
@@ -182,9 +183,12 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 		@Override
 		public Void visitEqualityExpression(IRNode node) {
 			final IRNode e1 = BinopExpression.getOp1(node);
-			checkIfValueObject(e1);
-			
 			final IRNode e2 = BinopExpression.getOp2(node);
+			if (NullLiteral.prototype.includes(e1) || NullLiteral.prototype.includes(e2)) {
+				// It's ok to compare to null 
+				return null;
+			}
+			checkIfValueObject(e1);
 			checkIfValueObject(e2);
 			return null;
 		}
