@@ -221,8 +221,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	}
 	@ThreadSafe
 	private class ClassTable extends AbstractJavaClassTable {
-		private ConcurrentMap<String, IRNode> packages = new ConcurrentHashMap<String, IRNode>();
-		private ConcurrentMap<String, IRNode> outerClasses = new ConcurrentHashMap<String, IRNode>();
+		private final ConcurrentMap<String, IRNode> packages = new ConcurrentHashMap<String, IRNode>();
+		private final ConcurrentMap<String, IRNode> outerClasses = new ConcurrentHashMap<String, IRNode>();
 
 		public void copy(ClassTable orig) {
 			this.packages.putAll(orig.packages);
