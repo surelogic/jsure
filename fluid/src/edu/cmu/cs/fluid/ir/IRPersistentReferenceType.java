@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.util.Comparator;
 
 import edu.cmu.cs.fluid.util.UniqueID;
+import com.surelogic.ThreadSafe;
 
+@ThreadSafe
 public class IRPersistentReferenceType<T extends IRPersistent> implements IRType<T>
 {
   private IRPersistentReferenceType() {}

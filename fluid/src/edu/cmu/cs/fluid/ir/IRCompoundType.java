@@ -2,10 +2,12 @@
 package edu.cmu.cs.fluid.ir;
 
 import java.io.IOException;
+import com.surelogic.ThreadSafe;
 
 /** These types have compound parts.
  * @see IRCompound
  */
+@ThreadSafe
 public interface IRCompoundType<T> extends IRType<T> {
   /** Return the type associated with compound element i */
   public IRType getType(int i);

@@ -13,9 +13,11 @@ package edu.cmu.cs.fluid.ir;
  */
 import java.io.IOException;
 import java.util.Comparator;
+import com.surelogic.ThreadSafe;
 
 /** Longs are storable.
  */
+@ThreadSafe
 public class IRLongType implements IRType<Long> , Comparator<Long> {
   private IRLongType() {}
   public static final IRLongType prototype = new IRLongType();

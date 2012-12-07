@@ -263,7 +263,7 @@ public abstract class IRPersistent implements Serializable {
   /**
    * We add a special persistence kind for null references
    */
-  private static IRPersistentKind nullKind = new IRPersistentKind() {
+  private static final IRPersistentKind nullKind = new IRPersistentKind() {
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException
     {

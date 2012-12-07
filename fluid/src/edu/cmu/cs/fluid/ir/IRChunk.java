@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.util.FileLocator;
+import com.surelogic.ThreadSafe;
 
 /** 
  * This class represents a <em>chunk</em> of IR that can be written out
@@ -19,6 +20,7 @@ import edu.cmu.cs.fluid.util.FileLocator;
  * @see IRRegion
  * @see Bundle
  */
+@ThreadSafe
 public class IRChunk extends IRPersistent implements IRState {
   private static final int magic = 0x49524300; // "IRC\0"
   private final IRRegion region;
@@ -120,7 +122,7 @@ public class IRChunk extends IRPersistent implements IRState {
 
   /* Kind */
 
-  private static IRPersistentKind kind = new IRPersistentKind() {
+  private static final IRPersistentKind kind = new IRPersistentKind() {
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException {
       IRChunk chunk = (IRChunk) p;

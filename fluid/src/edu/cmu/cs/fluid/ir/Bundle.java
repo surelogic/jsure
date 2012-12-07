@@ -13,12 +13,14 @@ import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.FluidRuntimeException;
 import edu.cmu.cs.fluid.util.FileLocator;
 import edu.cmu.cs.fluid.util.UniqueID;
+import com.surelogic.ThreadSafe;
 
 /** A bundle is a group of persistable attributes that
  * are saved together.  Bundles are disjoint; every attribute
  * belongs to at most one bundle.  Bundles can be stored
  * persistently.  Every bundle has a unique id.
  */
+@ThreadSafe
 @SuppressWarnings("unchecked")
 public class Bundle extends IRPersistent {
   private static final int magic = 0x49524200; // "IRB\0"
@@ -175,7 +177,7 @@ public class Bundle extends IRPersistent {
   /* persistent kind */
 
   
-  private static IRPersistentKind kind = new IRPersistentKind() {
+  private static final IRPersistentKind kind = new IRPersistentKind() {
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException
     {

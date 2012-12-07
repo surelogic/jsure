@@ -18,7 +18,7 @@ public class IndependentIRNode extends IRRegion implements IRNode {
 
   /* storage kind */
 
-  private static IRPersistentKind kind = new IRPersistentKind() {
+  private static final IRPersistentKind kind = new IRPersistentKind() {
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException {
       ((IndependentIRNode) p).getID().write(out);

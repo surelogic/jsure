@@ -3,9 +3,11 @@ package edu.cmu.cs.fluid.ir;
 
 import java.io.IOException;
 import java.util.Comparator;
+import com.surelogic.ThreadSafe;
 
 /** The only unit value is null.
  */
+@ThreadSafe
 public class IRUnitType implements IRType<Void>, Comparator<Void> {
   private IRUnitType() {}
   public static final IRUnitType prototype = new IRUnitType();

@@ -233,7 +233,7 @@ public class VersionedChunk extends IRChunk implements VersionedState {
       return "s" + super.toString();
     }
     
-    static IRPersistentKind kind = new IRPersistentKind() {
+    static final IRPersistentKind kind = new IRPersistentKind() {
       public void writePersistentReference(IRPersistent p, DataOutput out) throws IOException {
         // TODO Auto-generated method stub
         SubsidiaryChunk sc = (SubsidiaryChunk)p;
@@ -298,7 +298,7 @@ public class VersionedChunk extends IRChunk implements VersionedState {
 
     /* Kind */
 
-    private static IRPersistentKind kind = new IRPersistentKind() {
+    private static final IRPersistentKind kind = new IRPersistentKind() {
       public void writePersistentReference(IRPersistent p, DataOutput out)
         throws IOException {
         VersionedChunk.Delta vcd = (VersionedChunk.Delta) p;
@@ -599,7 +599,7 @@ public class VersionedChunk extends IRChunk implements VersionedState {
 
     /* Kind */
 
-    private static IRPersistentKind kind = new IRPersistentKind() {
+    private static final IRPersistentKind kind = new IRPersistentKind() {
       public void writePersistentReference(IRPersistent p, DataOutput out)
         throws IOException {
         Snapshot vcs = (Snapshot) p;

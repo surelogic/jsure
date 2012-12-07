@@ -562,7 +562,7 @@ public class VersionedRegion extends IRRegion implements IRState, IRPersistentOb
 
   /* persistent kind */
 
-  private static IRPersistentKind kind = new IRPersistentKind() {
+  private static final IRPersistentKind kind = new IRPersistentKind() {
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException {
       VersionedRegion vr = (VersionedRegion) p;

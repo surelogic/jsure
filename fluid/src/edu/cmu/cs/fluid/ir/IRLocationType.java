@@ -3,7 +3,9 @@ package edu.cmu.cs.fluid.ir;
 
 import java.io.IOException;
 import java.util.Comparator;
+import com.surelogic.ThreadSafe;
 
+@ThreadSafe
 public class IRLocationType implements IRType<IRLocation> {
   public IRLocationType() {
   }

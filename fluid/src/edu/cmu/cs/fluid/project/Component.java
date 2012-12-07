@@ -190,7 +190,7 @@ public abstract class Component extends IRPersistent implements VersionedState
   }
   
   /* persistent kind */
-  private static IRPersistentKind kind = new IRPersistentKind() {
+  private static final IRPersistentKind kind = new IRPersistentKind() {
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException
     {

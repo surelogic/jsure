@@ -3,10 +3,12 @@ package edu.cmu.cs.fluid.ir;
 
 import java.io.IOException;
 import java.util.Comparator;
+import com.surelogic.ThreadSafe;
 
 /** The type of slots storing strings.
  */
 
+@ThreadSafe
 public class IRStringType implements IRType<String>, Comparator<String> {
   private IRStringType() {
   }

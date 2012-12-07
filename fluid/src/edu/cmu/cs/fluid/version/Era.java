@@ -732,7 +732,7 @@ class EraShadowRegion extends IRRegion {
 
   /* persistent kind */
 
-  static IRPersistentKind kind = new IRPersistentKind() {
+  static final IRPersistentKind kind = new IRPersistentKind() {
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException {
       EraShadowRegion esr = (EraShadowRegion) p;

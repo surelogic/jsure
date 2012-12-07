@@ -3,9 +3,11 @@ package edu.cmu.cs.fluid.ir;
 
 import java.io.IOException;
 import java.util.Comparator;
+import com.surelogic.ThreadSafe;
 
 /** Integers are storable.
  */
+@ThreadSafe
 public class IRIntegerType implements IRType<Integer> , Comparator<Integer> {
   private IRIntegerType() {}
   public static final IRIntegerType prototype = new IRIntegerType();

@@ -5,11 +5,14 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import com.surelogic.ThreadSafe;
+
 /* A class for reading and writing persistent identifiers
  * in other persistent files.  The identifiers are used for
  * imports and exports.
  * @see IRPersistent
  */
+@ThreadSafe
 public interface IRPersistentKind {
   /** Write a reference to a persistent object.
    * @param p the persistent object to refer to

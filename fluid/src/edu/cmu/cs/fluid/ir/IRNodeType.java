@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.util.Comparator;
 
 import edu.cmu.cs.fluid.NotImplemented;
+import com.surelogic.ThreadSafe;
 
 /** The type of IR nodes.  Needed for persistence.
  */
+@ThreadSafe
 public class IRNodeType implements IRType<IRNode> {
   // private Operator op;
   

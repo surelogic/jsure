@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.util.Comparator;
 
 import edu.cmu.cs.fluid.FluidError;
+import com.surelogic.ThreadSafe;
 
 /** IRTypes are storable
  */
+@ThreadSafe
 public class IRTypeType implements IRType<IRType> {
   public static final char TYPE = 'T';
 

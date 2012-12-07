@@ -2,9 +2,11 @@ package edu.cmu.cs.fluid.ir;
 
 import java.io.IOException;
 import java.util.Comparator;
+import com.surelogic.ThreadSafe;
 
 /** Floats are storable.
  */
+@ThreadSafe
 public final class IRFloatType implements IRType<Float> , Comparator<Float> {
   private IRFloatType() {
 	  // Made private

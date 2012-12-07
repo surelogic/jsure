@@ -2,12 +2,14 @@
 package edu.cmu.cs.fluid.ir;
 
 import java.io.IOException;
+import com.surelogic.ThreadSafe;
 
 /** A mixin for IR types that use caching for storage.
  * The methods are implemented 
  * @see IRInput#readCachedObject
  * @see IROutput#writeCachedObject
  */
+@ThreadSafe
 public abstract class CachedType<T> implements IRType<T> {
   public void writeValue(T value, IROutput out)
        throws IOException

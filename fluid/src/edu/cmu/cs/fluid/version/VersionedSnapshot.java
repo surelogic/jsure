@@ -90,7 +90,7 @@ class VersionedSnapshot extends IRChunk {
 
   /* Kind */
 
-  private static IRPersistentKind kind = new IRPersistentKind() {
+  private static final IRPersistentKind kind = new IRPersistentKind() {
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException {
       VersionedSnapshot vs = (VersionedSnapshot) p;

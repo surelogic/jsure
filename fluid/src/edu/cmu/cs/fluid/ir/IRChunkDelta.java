@@ -6,6 +6,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import edu.cmu.cs.fluid.util.UniqueID;
+import com.surelogic.ThreadSafe;
 
 /** A loadable set of information changes of a chunk.
  * 
@@ -16,6 +17,7 @@ import edu.cmu.cs.fluid.util.UniqueID;
  *
  * @see IRChunk
  */
+@ThreadSafe
 public class IRChunkDelta extends IRPersistent {
   private static final int magic = 0x49524344; // "IRCD"
   private final IRChunk chunk;
@@ -53,7 +55,7 @@ public class IRChunkDelta extends IRPersistent {
 
   /* Kind */
 
-  private static IRPersistentKind kind = new IRPersistentKind() {
+  private static final IRPersistentKind kind = new IRPersistentKind() {
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException {
       IRChunkDelta cd = (IRChunkDelta) p;

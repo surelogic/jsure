@@ -92,13 +92,16 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     sizeSlot = getIntSlotStorage().newSlot(IntegerTable.newInteger(size));
   }
   
+  @Containable
   private class SlotList extends ArrayList<S> {
+	@Unique("return")
 	SlotList(SlotStorage<S, T> st, int capacity) {
 		super(capacity);
 	    for (int i=0; i < capacity; ++i) {
 	        super.add(st.newSlot());
 	    }
 	}
+	@Borrowed("this")
 	private void checkSize() {
 		if (super.size() < IRList.this.size()) {
 			LOG.severe("BUG in IRList: elemSlots shorter than size!");
@@ -107,16 +110,19 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
 	}
 	
 	@Override 
+	@Borrowed("this")
 	public boolean add(S e) {
 		checkSize();
 		return super.add(e);
 	}
 	@Starts("nothing")
 	@Override
+	@Borrowed("this")
 	public boolean remove(Object o) {
 		checkSize();
 		return super.remove(o);
 	}
+	@Borrowed("this")
 	public void fillUpTo(final int i, S val) {
 		while (i >= super.size()) {
 	        super.add(val);

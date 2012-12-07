@@ -3,9 +3,11 @@ package edu.cmu.cs.fluid.ir;
 
 import java.io.IOException;
 import java.util.Comparator;
+import com.surelogic.ThreadSafe;
 
 /** Booleans are storable.
  */
+@ThreadSafe
 public class IRBooleanType implements IRType<Boolean>, Comparator<Boolean> {
   private IRBooleanType() {}
   public static final IRBooleanType prototype = new IRBooleanType();

@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.util.Comparator;
 
 import edu.cmu.cs.fluid.NotImplemented;
+import com.surelogic.ThreadSafe;
 
 /** The type of fixed size arrays of Objects,
  * in which each position has a different type of object.
  * @see IRSequenceType
  */
 
+@ThreadSafe
 public class IRRecordType implements IRType {
   private IRType[] elementTypes;
 
