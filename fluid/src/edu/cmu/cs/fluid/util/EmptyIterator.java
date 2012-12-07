@@ -2,14 +2,15 @@
 package edu.cmu.cs.fluid.util;
 
 import java.util.*;
-import com.surelogic.RegionEffects;
-import com.surelogic.Borrowed;
+import com.surelogic.*;
 
 /**
  * An iterator with no elements. 
  */
 public class EmptyIterator<T> extends AbstractRemovelessIterator<T> implements ListIterator<T>
 {
+  @Starts("nothing")
+  @RegionEffects("reads Instance")  
   public EmptyIterator()
   {
     super();
