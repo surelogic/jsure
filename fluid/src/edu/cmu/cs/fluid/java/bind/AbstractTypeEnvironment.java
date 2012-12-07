@@ -20,9 +20,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
-import com.surelogic.RegionEffects;
-import com.surelogic.Borrowed;
-import com.surelogic.ThreadSafe;
+import com.surelogic.*;
 
 /**
  * A class that implements some of the basic type operations.
@@ -888,6 +886,7 @@ private long parseIntLiteral(String token) {
     @Override public boolean check(Operator op) { return (op instanceof TypeDeclInterface); }
   };
   
+  @Immutable
   public static abstract class Check {
     public abstract boolean check(Operator op);
     public final boolean check(IRNode n) {
