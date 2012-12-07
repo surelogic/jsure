@@ -9,7 +9,10 @@ import com.surelogic.dropsea.IDrop;
 
 @Utility
 public final class DropPredicateFactory {
-
+  private DropPredicateFactory() {
+	  // To prevent instantiation
+  }
+	
   private static Map<Class<?>, DropPredicate> f_type = new HashMap<Class<?>, DropPredicate>();
 
   /**
