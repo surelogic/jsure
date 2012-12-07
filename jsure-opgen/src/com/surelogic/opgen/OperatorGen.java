@@ -1162,10 +1162,12 @@ public class OperatorGen extends AbstractASTGenerator {
   private void generateVisitor() {
     generatePkgDecl(stdPackage);
     printJava("import java.util.*;\n");
+    printJava("import com.surelogic.*;\n");
     printJava("import edu.cmu.cs.fluid.ir.*;\n");
     printJava("import edu.cmu.cs.fluid.parse.JJNode;\n");
     printJava("import edu.cmu.cs.fluid.java.*;\n\n");
     printJava("@SuppressWarnings(\"deprecation\")\n");
+    printJava("@ThreadSafe(implementationOnly=true)\n");
     printJava("public abstract class Visitor<T> implements IVisitor<T> {\n");
     printJava("  // two useful methods\n");
     printJava("  public T doAccept(IRNode node) {\n");
