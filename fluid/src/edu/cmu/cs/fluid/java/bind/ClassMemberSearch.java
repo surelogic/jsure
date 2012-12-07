@@ -21,8 +21,6 @@ public class ClassMemberSearch {
   private static final Logger LOG = SLLogger.getLogger("FLUID.bind");
   
   private final IBinder binder;
-  // Not final because it might not be created yet
-  private ITypeEnvironment tEnv;
   
   ClassMemberSearch(IBinder b) {
     binder = b; 
@@ -32,14 +30,11 @@ public class ClassMemberSearch {
     if (type == null) {
       return null;
     }    
-    if (tEnv == null) {
-        tEnv = binder.getTypeEnvironment();
-    }
     final boolean isFormal = TypeFormal.prototype.includes(type);
     if (isFormal) {
       findXinTypeFormal_up(tvs, JavaTypeFactory.getTypeFormal(type));
     } else {
-      IJavaDeclaredType startT = (IJavaDeclaredType) tEnv.getMyThisType(type);
+      IJavaDeclaredType startT = (IJavaDeclaredType) binder.getTypeEnvironment().getMyThisType(type);
       findXinAncestors(tvs, startT);
     }
     
@@ -54,7 +49,7 @@ public class ClassMemberSearch {
       if (isFormal) {
         findXinTypeFormal_up(tvs, JavaTypeFactory.getTypeFormal(type));
       } else {
-        IJavaDeclaredType startT = (IJavaDeclaredType) tEnv.getMyThisType(type);
+        IJavaDeclaredType startT = (IJavaDeclaredType) binder.getTypeEnvironment().getMyThisType(type);
         findXinAncestors(tvs, startT);
       }
     }
@@ -98,7 +93,8 @@ public class ClassMemberSearch {
     s.visitClass(type.getDeclaration());
     
     if (s.visitSuperclass()) {
-      IJavaDeclaredType stype = (IJavaDeclaredType) tEnv.findJavaTypeByName("java.lang.annotation.Annotation");
+      IJavaDeclaredType stype = (IJavaDeclaredType) 
+      	binder.getTypeEnvironment().findJavaTypeByName("java.lang.annotation.Annotation");
       if (stype != null && !type.equals(stype)) {
         if (LOG.isLoggable(Level.FINER)) {
           LOG.finer("Looking for X from "+type+" to "+stype);
@@ -120,7 +116,7 @@ public class ClassMemberSearch {
     s.visitClass(type.getDeclaration());
     
     if (s.visitSuperclass()) {
-      IJavaDeclaredType stype = type.getSuperclass(tEnv);
+      IJavaDeclaredType stype = type.getSuperclass(binder.getTypeEnvironment());
       if (stype != null && !type.equals(stype)) {
         if (LOG.isLoggable(Level.FINER)) {
           LOG.finer("Looking for X from "+type+" to "+stype);
@@ -130,7 +126,7 @@ public class ClassMemberSearch {
     }
     if (s.visitSuperifaces()) {
       boolean first = true;
-      for(IJavaType stype : tEnv.getSuperTypes(type)) {
+      for(IJavaType stype : binder.getTypeEnvironment().getSuperTypes(type)) {
         if (first) {
           first = false;
           continue; // skip superclass
@@ -154,7 +150,7 @@ public class ClassMemberSearch {
     s.visitInterface(type.getDeclaration());
     
     if (s.visitSuperifaces()) {
-      Iteratable<IJavaType> ifaces = tEnv.getSuperTypes(type);
+      Iteratable<IJavaType> ifaces = binder.getTypeEnvironment().getSuperTypes(type);
       if (!ifaces.hasNext()) {
     	  // Due to inability to find a binding
     	  //Iteratable<IJavaType> temp = tEnv.getSuperTypes(type);
@@ -178,7 +174,7 @@ public class ClassMemberSearch {
     s.visitClass(type.getDeclaration());
     
     if (s.visitSuperclass()) {
-      IJavaDeclaredType stype = (IJavaDeclaredType) tEnv.findJavaTypeByName("java.lang.Enum");
+      IJavaDeclaredType stype = (IJavaDeclaredType) binder.getTypeEnvironment().findJavaTypeByName("java.lang.Enum");
       if (stype != null && !type.equals(stype)) {
         if (LOG.isLoggable(Level.FINER)) {
           LOG.finer("Looking for X from "+type+" to "+stype);
@@ -188,7 +184,7 @@ public class ClassMemberSearch {
     }
     if (s.visitSuperifaces()) {
       boolean first = true;
-      for(IJavaType stype : tEnv.getSuperTypes(type)) {
+      for(IJavaType stype : binder.getTypeEnvironment().getSuperTypes(type)) {
         if (first) {
           first = false;
           continue; // skip superclass
@@ -206,7 +202,6 @@ public class ClassMemberSearch {
   
   // Will not return any type formals as part of the iterator
   private Iteratable<IJavaDeclaredType> getFormalBounds(final IJavaTypeFormal formal) {
-    final IBinder b                = tEnv.getBinder();
     final IRNode bounds            = TypeFormal.getBounds(formal.getDeclaration());
     final Iteratable<IRNode> bIter = MoreBounds.getBoundIterator(bounds);
     if (!bIter.hasNext()) { // empty
@@ -245,7 +240,7 @@ public class ClassMemberSearch {
         }        
         if (bounds.hasNext()) {
           IRNode bound = bounds.next();
-          IJavaType t  = b.getJavaType(bound);
+          IJavaType t  = binder.getJavaType(bound);
           if (t instanceof IJavaTypeFormal) {
             nestedIter = getFormalBounds((IJavaTypeFormal) t);      
             return nestedIter.next();
@@ -265,7 +260,7 @@ public class ClassMemberSearch {
     s.visitClass(type.getDeclaration());
     
     if (s.visitSuperclass()) {
-      IJavaDeclaredType stype = type.getSuperclass(tEnv);
+      IJavaDeclaredType stype = type.getSuperclass(binder.getTypeEnvironment());
       if (stype != null && !type.equals(stype)) {
         if (LOG.isLoggable(Level.FINER)) {
           LOG.finer("Looking for X from "+type+" to "+stype);
