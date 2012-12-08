@@ -1853,7 +1853,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
         if (XUtil.testing) {
           afterJob.run(monitor);
         } else {
-          EclipseJob.getInstance().scheduleDb(afterJob, false, false, Util.class.getName());
+          EclipseJob.getInstance().schedule(afterJob, false, false, Util.class.getName());
         }
       }
       monitor.worked(1);
