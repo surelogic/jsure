@@ -9,7 +9,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import com.surelogic.common.core.jobs.EclipseJob;
+import org.eclipse.core.runtime.jobs.Job;
+
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLJob;
@@ -122,7 +124,9 @@ public final class Selection implements JSureDataDirHub.CurrentScanChangeListene
         return SLStatus.OK_STATUS;
       }
     };
-    EclipseJob.getInstance().schedule(job, false, true);
+    final Job eJob = EclipseUtility.toEclipseJob(job);
+    eJob.setSystem(true);
+    eJob.schedule();
   }
 
   public void dispose() {
@@ -486,7 +490,9 @@ public final class Selection implements JSureDataDirHub.CurrentScanChangeListene
         return SLStatus.OK_STATUS;
       }
     };
-    EclipseJob.getInstance().schedule(job, false, true);
+    final Job eJob = EclipseUtility.toEclipseJob(job);
+    eJob.setSystem(true);
+    eJob.schedule();
   }
 
   @Override

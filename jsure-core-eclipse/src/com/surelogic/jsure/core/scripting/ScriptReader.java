@@ -1,20 +1,38 @@
 package com.surelogic.jsure.core.scripting;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.*;
-import org.eclipse.core.runtime.jobs.*;
-import org.eclipse.jdt.core.*;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceDescription;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.jobs.IJobManager;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jdt.core.IJavaProject;
 
 import com.surelogic.common.XUtil;
-import com.surelogic.common.core.jobs.EclipseJob;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.logging.IErrorListener;
-import com.surelogic.jsure.core.driver.*;
+import com.surelogic.jsure.core.driver.JavacBuild;
 
 /**
  * Reads the script line by line
@@ -226,7 +244,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 				  //JavacDriver.getInstance().waitForJSureBuild();
 				  
 				  System.out.println("Rescheduling script reader again");
-				  EclipseJob.getInstance().schedule(this);
+				  EclipseUtility.toEclipseJob(this).schedule();
 				  return SLStatus.OK_STATUS;
 			  }
 		  }

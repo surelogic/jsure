@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -32,8 +33,8 @@ import org.eclipse.swt.widgets.TableColumn;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ILifecycle;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
-import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLJob;
@@ -92,8 +93,9 @@ public final class ScanManagerMediator implements ILifecycle {
           return;
         }
 
-        final SLJob job = JSureDataDirHub.getInstance().getDeleteScansJob(selected);
-        EclipseJob.getInstance().schedule(job, true, false);
+        final Job job = EclipseUtility.toEclipseJob(JSureDataDirHub.getInstance().getDeleteScansJob(selected));
+        job.setUser(true);
+        job.schedule();
       }
       super.run();
     }
@@ -151,7 +153,9 @@ public final class ScanManagerMediator implements ILifecycle {
           return SLStatus.OK_STATUS;
         }
       };
-      EclipseJob.getInstance().schedule(job, true, false);
+      final Job eJob = EclipseUtility.toEclipseJob(job);
+      eJob.setUser(true);
+      eJob.schedule();
     }
   };
 
@@ -175,7 +179,8 @@ public final class ScanManagerMediator implements ILifecycle {
               return SLStatus.OK_STATUS;
             }
           };
-          EclipseJob.getInstance().schedule(job);
+          final Job eJob = EclipseUtility.toEclipseJob(job);
+          eJob.schedule();
         }
       }
     }
@@ -247,7 +252,8 @@ public final class ScanManagerMediator implements ILifecycle {
         return SLStatus.OK_STATUS;
       }
     };
-    EclipseJob.getInstance().schedule(job);
+    final Job eJob = EclipseUtility.toEclipseJob(job);
+    eJob.schedule();
   }
 
   private void setToolbarState() {

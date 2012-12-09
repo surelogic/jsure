@@ -11,7 +11,6 @@ import com.surelogic.Unique;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLJob;
@@ -224,7 +223,7 @@ public final class JSureDataDirHub {
       }
     }
     if (job != null)
-      EclipseJob.getInstance().schedule(job);
+      EclipseUtility.toEclipseJob(job).schedule();
     else
       notifyListeners(true, false, false);
   }
@@ -355,7 +354,7 @@ public final class JSureDataDirHub {
 
       job = getSetCurrentScanJob(value, false, true, false);
     }
-    EclipseJob.getInstance().schedule(job);
+    EclipseUtility.toEclipseJob(job).schedule();
   }
 
   /**
@@ -454,7 +453,7 @@ public final class JSureDataDirHub {
     }
     if (currentScan != null) {
       final SLJob job = getSetCurrentScanJob(currentScan, false, true, false);
-      EclipseJob.getInstance().schedule(job);
+      EclipseUtility.toEclipseJob(job).schedule();
     }
   }
 

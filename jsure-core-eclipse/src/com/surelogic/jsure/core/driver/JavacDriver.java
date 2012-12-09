@@ -71,7 +71,6 @@ import com.surelogic.common.ZipInfo;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.SourceZip;
-import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLJob;
@@ -410,16 +409,16 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
         e.printStackTrace();
       }
       // This is in a job to let it run after plugins are initialized
-      EclipseJob.getInstance().schedule(new AbstractSLJob("Preparing to run update script job") {
+      EclipseUtility.toEclipseJob(new AbstractSLJob("Preparing to run update script job") {
         @Override
         public SLStatus run(SLProgressMonitor monitor) {
           // This cannot lock the workspace, since it prevents
           // builds from happening
           System.out.println("Running update script job");
-          EclipseJob.getInstance().schedule(updateScriptJob);
+          EclipseUtility.toEclipseJob(updateScriptJob).schedule();
           return SLStatus.OK_STATUS;
         }
-      });
+      }).schedule();
     }
   }
 
@@ -1356,7 +1355,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
       if (XUtil.testing) {
         configure.run(new NullSLProgressMonitor());
       } else {
-        EclipseJob.getInstance().schedule(configure);
+        EclipseUtility.toEclipseJob(configure).schedule();
       }
     }
   }
@@ -1408,7 +1407,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
         }
         copy.run(new NullSLProgressMonitor());
       } else {
-        EclipseJob.getInstance().scheduleWorkspace(copy);
+        EclipseUtility.toEntireWorkspaceJob(copy).schedule();
       }
     } catch (Exception e) {
       System.err.println("Unable to make config for JSure");
@@ -1853,7 +1852,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
         if (XUtil.testing) {
           afterJob.run(monitor);
         } else {
-          EclipseJob.getInstance().schedule(afterJob, false, false, Util.class.getName());
+          EclipseUtility.toEclipseJob(afterJob, Util.class.getName()).schedule();
         }
       }
       monitor.worked(1);

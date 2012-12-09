@@ -3,11 +3,11 @@ package com.surelogic.jsure.client.eclipse.handlers;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.common.core.jobs.EclipseJob;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
@@ -82,7 +82,8 @@ public final class VerifyProjectHandler extends
 									c.getAlwaysSavePref());
 				}
 				if (scan) {
-					EclipseJob.getInstance().schedule(job);
+				  final Job eJob = EclipseUtility.toEclipseJob(job);
+				  eJob.schedule();
 				}
 			}
 		};
