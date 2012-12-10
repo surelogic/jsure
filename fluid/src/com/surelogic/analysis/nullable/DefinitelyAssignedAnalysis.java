@@ -95,6 +95,7 @@ public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<As
 
 
     
+    @Override
     public Assigned[] transferComponentSource(final IRNode node) {
       // Everything is not definitely assigned at the start
       return lattice.getEmptyValue();
@@ -152,10 +153,12 @@ public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<As
 
 
   
+  @Override
   public IBinder getBinder() {
     return binder;
   }
 
+  @Override
   public void clearCaches() {
     // do nothing
   }
