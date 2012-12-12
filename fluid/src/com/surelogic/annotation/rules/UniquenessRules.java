@@ -283,11 +283,6 @@ public class UniquenessRules extends AnnotationRules {
           good = false;
           context.reportError(a, "@Unique cannot be used on a volatile field");
         }
-        
-        if (TypeUtil.isStatic(promisedFor) && TypeUtil.isFinal(promisedFor)) {
-          good = false;
-          context.reportError(a, "@Unique cannot be used on a static final field: use @UniqueInRegion instead");
-        }
       }
 
       if (UniquenessRules.isBorrowed(promisedFor)) {
