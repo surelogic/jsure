@@ -22,6 +22,7 @@ import edu.cmu.cs.fluid.java.operator.ClassBodyDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclList;
+import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -48,7 +49,8 @@ public class VouchRules extends AnnotationRules {
     IRNode decl = VisitUtil.getClosestDecl(n);
     while (decl != null) {
       Operator op = JJNode.tree.getOperator(decl);
-      if (ClassBodyDeclaration.prototype.includes(op) || TypeDeclaration.prototype.includes(op)) {
+      if (ClassBodyDeclaration.prototype.includes(op) || TypeDeclaration.prototype.includes(op) || 
+    	  VariableDeclaration.prototype.includes(op)) {
         VouchPromiseDrop rv = getVouchSpec(decl);
         if (rv != null) {
           return rv;

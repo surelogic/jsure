@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.awt.geom" release="1">
+    <class name="RoundRectangle2D">
+        <method name="contains" params="double, double">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="contains" params="double, double, double, double">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="equals" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="getArcHeight">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getArcWidth">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="hashCode">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="intersects" params="double, double, double, double">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setFrame" params="double, double, double, double">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setRoundRect" params="double, double, double, double, double, double">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setRoundRect" params="java.awt.geom.RoundRectangle2D">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <class name="Double">
+            <constructor>
+                <RegionEffects>none</RegionEffects>
+                <Starts>nothing</Starts>
+                <Unique>return</Unique>
+            </constructor>
+
+            <constructor params="double, double, double, double, double, double">
+                <RegionEffects>none</RegionEffects>
+                <Starts>nothing</Starts>
+                <Unique>return</Unique>
+            </constructor>
+
+            <method name="getArcHeight">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="getArcWidth">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="getBounds2D">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="getHeight">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="getWidth">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="getX">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="getY">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="setRoundRect" params="double, double, double, double, double, double">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="setRoundRect" params="java.awt.geom.RoundRectangle2D">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
+                <parameter index="0">
+                    <Borrowed/>
+                </parameter>
+            </method>
+        </class>
+
+        <class name="Float">
+            <constructor>
+                <RegionEffects>none</RegionEffects>
+                <Starts>nothing</Starts>
+                <Unique>return</Unique>
+            </constructor>
+
+            <constructor params="float, float, float, float, float, float">
+                <RegionEffects>none</RegionEffects>
+                <Starts>nothing</Starts>
+                <Unique>return</Unique>
+            </constructor>
+
+            <method name="getArcHeight">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="getArcWidth">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="getBounds2D">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="getHeight">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="getWidth">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="getX">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="getY">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="isEmpty">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="setRoundRect" params="double, double, double, double, double, double">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="setRoundRect" params="float, float, float, float, float, float">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
+            </method>
+
+            <method name="setRoundRect" params="java.awt.geom.RoundRectangle2D">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+                <Starts>nothing</Starts>
+                <parameter index="0">
+                    <Borrowed/>
+                </parameter>
+            </method>
+        </class>
+    </class>
+</package>

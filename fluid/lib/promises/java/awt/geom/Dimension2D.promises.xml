@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.awt.geom" release="1">
+<package name="java.awt.geom" release="2">
     <class name="Dimension2D">
+        <method name="clone">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </method>
+
         <method name="getHeight">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
