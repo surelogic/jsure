@@ -74,6 +74,11 @@ public class VouchRules extends AnnotationRules {
     }
 
     @Override
+    protected boolean producesOtherAASTRootNodes() {
+    	return true;
+    }
+    
+    @Override
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
       if (context.getOp() instanceof VariableDeclList || context.getOp() instanceof ParameterDeclaration) {
         // Redirect to the appropriate rule
