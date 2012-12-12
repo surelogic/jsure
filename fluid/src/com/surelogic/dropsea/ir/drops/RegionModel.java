@@ -144,6 +144,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    * 
    * @return the simple (unqualified) name of the represented region.
    */
+  @Override
   public String getName() {
     return f_simpleName;
   }
@@ -195,10 +196,12 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
     return false;
   }
 
+  @Override
   public RegionModel getModel() {
     return this;
   }
 
+  @Override
   public IRegion getRegion() {
     return this;
   }
@@ -211,20 +214,24 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    * @return true if this is not a field-based region, but rather a declared
    *         region, i.e., @Region
    */
+  @Override
   public boolean isAbstract() {
     return getAAST().isAbstract();
   }
 
+  @Override
   public boolean isFinal() {
     final NewRegionDeclarationNode ast = getAAST();
     return JavaNode.getModifier(ast.getModifiers(), JavaNode.FINAL);
   }
 
+  @Override
   public boolean isVolatile() {
     final NewRegionDeclarationNode ast = getAAST();
     return JavaNode.getModifier(ast.getModifiers(), JavaNode.VOLATILE);
   }
 
+  @Override
   public boolean isStatic() {
     if (getAAST() != null) {
       return getAAST().isStatic();
@@ -242,6 +249,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
     return JavaNode.getModifier(mods, JavaNode.STATIC);
   }
 
+  @Override
   public Visibility getVisibility() {
     if (getAAST() != null) {
       return getAAST().getVisibility();
@@ -255,6 +263,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
     }
   }
 
+  @Override
   public boolean isAccessibleFromType(ITypeEnvironment tEnv, IRNode t) {
 
     if (getAAST() != null) {
@@ -271,6 +280,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    * @throws Exception
    *           If a IRegionBinding doesn't exist
    */
+  @Override
   public RegionModel getParentRegion() {
     final NewRegionDeclarationNode nrdn = this.getAAST();
     RegionModel model = null;
@@ -347,6 +357,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
     return model;
   }
 
+  @Override
   public boolean isSameRegionAs(IRegion o) {
     if (o instanceof FieldRegion) {
       FieldRegion fr = (FieldRegion) o;
@@ -371,14 +382,17 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
     throw new Error("Unrecognized IRegion: " + o);
   }
 
+  @Override
   public boolean ancestorOf(final IRegion other) {
     return AbstractRegion.ancestorOf(this, other);
   }
 
+  @Override
   public boolean includes(final IRegion other) {
     return AbstractRegion.includes(this, other);
   }
 
+  @Override
   public boolean overlapsWith(final IRegion other) {
     return ancestorOf(other) || other.ancestorOf(this);
   }
