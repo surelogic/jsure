@@ -207,9 +207,9 @@ public class UniquenessRules extends AnnotationRules {
     protected IAnnotationScrubber makeScrubber() {
     	// TODO scrub
     	return new AbstractAASTScrubber<ReadOnlyNode, ReadOnlyPromiseDrop>(
-    	    this, ScrubberType.UNORDERED,
-    	    RegionRules.EXPLICIT_BORROWED_IN_REGION,
-    	    RegionRules.SIMPLE_BORROWED_IN_REGION) {
+    	    this, ScrubberType.UNORDERED, BORROWED) {
+//    	    RegionRules.EXPLICIT_BORROWED_IN_REGION,
+//    	    RegionRules.SIMPLE_BORROWED_IN_REGION) {
 	  		@Override
 		  	protected ReadOnlyPromiseDrop makePromiseDrop(ReadOnlyNode n) {
 			  	return storeDropIfNotNull(n, scrubReadOnly(getContext(), n));
