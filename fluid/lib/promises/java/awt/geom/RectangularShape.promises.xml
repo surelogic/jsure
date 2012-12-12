@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.awt.geom" release="1">
+    <class name="RectangularShape">
+        <method name="clone">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="contains" params="java.awt.geom.Point2D">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="contains" params="java.awt.geom.Rectangle2D">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="getBounds">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getCenterX">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getCenterY">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getFrame">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getHeight">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getMaxX">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getMaxY">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getMinX">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getMinY">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getWidth">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getX">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="getY">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="intersects" params="java.awt.geom.Rectangle2D">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance, arg0:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
+        <method name="isEmpty">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setFrame" params="double, double, double, double">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setFrame" params="java.awt.geom.Point2D, java.awt.geom.Dimension2D">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance, arg1:Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setFrame" params="java.awt.geom.Rectangle2D">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setFrameFromCenter" params="double, double, double, double">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setFrameFromCenter" params="java.awt.geom.Point2D, java.awt.geom.Point2D">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance, arg1:Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setFrameFromDiagonal" params="double, double, double, double">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="setFrameFromDiagonal" params="java.awt.geom.Point2D, java.awt.geom.Point2D">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance, arg1:Instance; writes Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>
