@@ -8,6 +8,7 @@ import com.surelogic.aast.promise.VouchSpecificationNode;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
+import com.surelogic.annotation.rules.LockRules.VouchFieldIs_ParseRule;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.dropsea.ir.PromiseDrop;
@@ -74,11 +75,16 @@ public class VouchRules extends AnnotationRules {
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
       if (context.getOp() instanceof VariableDeclList || context.getOp() instanceof ParameterDeclaration) {
         // Redirect to the appropriate rule
-   	    Object rv = PromiseFramework.getInstance().getParseDropRule(LockRules.VOUCH_FIELD_IS)
-   	                      .parse(context, context.getAllText());
-   	    if (rv != null) {
-   	    	return rv;
-   	    }
+    	final VouchFieldIs_ParseRule rule = (VouchFieldIs_ParseRule) 
+    		PromiseFramework.getInstance().getParseDropRule(LockRules.VOUCH_FIELD_IS);
+    	try {
+    		Object rv = rule.parse(context, initParser(context.getAllText()));
+    		if (rv != null) {
+    			return rv;
+    		}
+    	} catch(Exception e) {
+    		// Ignore
+    	}
    	    // Fall through to a normal vouch if it's not one of the special kinds that I know about
       }
       // Make sure there's no reason specified 

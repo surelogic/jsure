@@ -2865,7 +2865,7 @@ public class LockRules extends AnnotationRules {
 
 		// Should only get called by the Vouch parse rule
 		@Override
-		protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) 
+		public Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) 
 		throws Exception {
 			final String id = context.getAllText().trim();
 			final FieldKind kind;
