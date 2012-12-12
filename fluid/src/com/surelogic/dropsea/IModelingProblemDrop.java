@@ -8,5 +8,13 @@ package com.surelogic.dropsea;
  * snapshots using the IR-free drop-sea.
  */
 public interface IModelingProblemDrop extends IDrop, ISnapshotDrop {
-  // marker interface
+
+  /**
+   * Returns if this issue is in the source source code or another location,
+   * such as XML or a JAR.
+   * 
+   * @return {@code true} if this issue is in the source source code,
+   *         {@code false} otherwise
+   */
+  boolean isFromSrc();
 }
