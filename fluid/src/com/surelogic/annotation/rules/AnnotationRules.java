@@ -294,7 +294,7 @@ public abstract class AnnotationRules {
 	private static final TaskManager lastMgr = makeManager();
 
 	private static TaskManager makeManager() {
-		return new TaskManager(ConcurrentAnalysis.threadCount, ConcurrentAnalysis.threadCount, 
+		return new TaskManager(1, 1,//ConcurrentAnalysis.threadCount, ConcurrentAnalysis.threadCount, 
 				60, TimeUnit.SECONDS,
 				new LinkedBlockingQueue<Runnable>());
 	}
