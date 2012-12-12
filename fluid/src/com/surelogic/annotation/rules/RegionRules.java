@@ -730,7 +730,7 @@ public class RegionRules extends AnnotationRules {
     @Override
     protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<UniqueMappingNode, ExplicitUniqueInRegionPromiseDrop>(
-          this, ScrubberType.UNORDERED, REGION, UniquenessRules.UNIQUE) {
+          this, ScrubberType.UNORDERED, IN_REGION, REGION, UniquenessRules.UNIQUE) {
         @Override
         protected ExplicitUniqueInRegionPromiseDrop makePromiseDrop(UniqueMappingNode a) {
           return storeDropIfNotNull(a, scrubExplicitUniqueInRegion(getContext(), a));          
@@ -757,7 +757,7 @@ public class RegionRules extends AnnotationRules {
     @Override
     protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<ExplicitBorrowedInRegionNode, ExplicitBorrowedInRegionPromiseDrop>(
-          this, ScrubberType.UNORDERED, REGION, UniquenessRules.BORROWED) {
+          this, ScrubberType.UNORDERED, IN_REGION, REGION, UniquenessRules.BORROWED) {
         @Override
         protected ExplicitBorrowedInRegionPromiseDrop makePromiseDrop(ExplicitBorrowedInRegionNode a) {
           return storeDropIfNotNull(a, scrubExplicitBorrowedInRegion(getContext(), a));          
@@ -921,6 +921,10 @@ public class RegionRules extends AnnotationRules {
           final IRegion firstVal = entries.get(first).getValue();
           final IRegion secondKey = entries.get(second).getKey();
           final IRegion secondVal = entries.get(second).getValue();
+          final String k1 = firstKey.toString();
+          final String v1 = firstVal.toString();
+          final String k2 = secondKey.toString();
+          final String v2 = secondVal.toString();
           if (firstKey.ancestorOf(secondKey)) {
             if (!firstVal.ancestorOf(secondVal)) {
               context.reportError(a,
