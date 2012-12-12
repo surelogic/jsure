@@ -7,7 +7,6 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
-import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableContentProvider;
@@ -37,16 +36,21 @@ final class ProblemsViewContentProvider extends AbstractResultsTableContentProvi
   }
 
   public Image getColumnImage(Object element, int columnIndex) {
-    if (columnIndex == 0) {
-      if (element instanceof IDrop) {
-        IDrop id = (IDrop) element;
-        if (!id.getProposals().isEmpty()) {
+    if (element instanceof IModelingProblemDrop) {
+      final IModelingProblemDrop mpd = (IModelingProblemDrop) element;
+
+      if (columnIndex == 0) {
+        if (!mpd.getProposals().isEmpty())
           return SLImages.getImage(CommonImages.IMG_ANNOTATION_ERROR_PROPOSED);
-        }
+        else
+          return SLImages.getImage(CommonImages.IMG_ANNOTATION_ERROR);
+      } else if (columnIndex == 1) {
+        if (mpd.isFromSrc())
+          return SLImages.getImage(CommonImages.IMG_JAVA_COMP_UNIT);
+        else
+          return SLImages.getImage(CommonImages.IMG_LIBRARY);
       }
-      return SLImages.getImage(CommonImages.IMG_ANNOTATION_ERROR);
-    } else {
-      return null;
     }
+    return null;
   }
 }
