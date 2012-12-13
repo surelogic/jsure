@@ -1,6 +1,8 @@
 /*$Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/bind/IBinding.java,v 1.13 2008/08/22 16:56:34 chance Exp $*/
 package edu.cmu.cs.fluid.java.bind;
 
+import com.surelogic.Nullable;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 
@@ -23,11 +25,13 @@ public interface IBinding {
    * This includes all the actual type parameters.
    * @return type of the object from which this binding is taken, or null for locals/types
    */
+  @Nullable
   public IJavaDeclaredType getContextType();
   
   /**
    * @return the type of the receiver in the call/field ref being bound
    */
+  @Nullable
   public IJavaReferenceType getReceiverType();
   
   public ITypeEnvironment getTypeEnvironment();
