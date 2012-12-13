@@ -18,6 +18,7 @@ public interface IBinding {
   /**
    * Return the type of the object from which this declaration is taken, with the
    * appropriate type substitutions (e.g., the declaring type)
+   * (Should be the supertype of getReceiverType())
    * 
    * This includes all the actual type parameters.
    * @return type of the object from which this binding is taken, or null for locals/types
