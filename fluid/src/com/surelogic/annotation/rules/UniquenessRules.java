@@ -290,11 +290,18 @@ public class UniquenessRules extends AnnotationRules {
             a, "Cannot be annotated with both @Unique and @Borrowed");
         good = false;
       }
-      if (RegionRules.getExplicitBorrowedInRegion(promisedFor) != null) {
-        context.reportError(
-            a, "Cannot be annotated with both @Unique and @BorrowedInRegion");
-        good = false;
-      }
+      /* Cannot check this here any more, because ExplitBorrowedInRegion's 
+       * dependency on InRegion would cause a cycle if we keep ImmutableRef
+       * dependent on ExplcitBorrowedInRegion (which we need to make
+       * Uniqueness transitively dependent on ExplicitBorrowedInRegion).
+       * So, we check this now in ExplicitBorrowedInRegion, which for the same
+       * reason now has a transitive dependency on Unique.
+       */
+//      if (RegionRules.getExplicitBorrowedInRegion(promisedFor) != null) {
+//        context.reportError(
+//            a, "Cannot be annotated with both @Unique and @BorrowedInRegion");
+//        good = false;
+//      }
       if (RegionRules.getSimpleBorrowedInRegion(promisedFor) != null) {
         context.reportError(
             a, "Cannot be annotated with both @Unique and @BorrowedInRegion");

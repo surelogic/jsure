@@ -41,10 +41,12 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.InRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.MapFieldsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
+import com.surelogic.dropsea.ir.drops.type.constraints.ImmutableRefPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.ExplicitBorrowedInRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.ExplicitUniqueInRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.SimpleBorrowedInRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.SimpleUniqueInRegionPromiseDrop;
+import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.PromiseDropSeqStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
@@ -601,11 +603,18 @@ public class RegionRules extends AnnotationRules {
           a, "Cannot be annotated with both @UniqueInRegion and @Borrowed");
       isGood = false;
     }
-    if (RegionRules.getExplicitBorrowedInRegion(promisedFor) != null) {
-      context.reportError(
-          a, "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
-      isGood = false;
-    }
+    /*
+     * Cannot check this here any more, because ExplitBorrowedInRegion's
+     * dependency on InRegion would cause a cycle if we keep ImmutableRef
+     * dependent on ExplcitBorrowedInRegion (which this rule transitively
+     * depends on). So, we check this now in ExplicitBorrowedInRegion, which for
+     * the same reason now has a transitive dependency on SimpleUniqueInRegion.
+     */
+//    if (RegionRules.getExplicitBorrowedInRegion(promisedFor) != null) {
+//      context.reportError(
+//          a, "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
+//      isGood = false;
+//    }
     if (RegionRules.getSimpleBorrowedInRegion(promisedFor) != null) {
       context.reportError(
           a, "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
@@ -730,7 +739,8 @@ public class RegionRules extends AnnotationRules {
     @Override
     protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<UniqueMappingNode, ExplicitUniqueInRegionPromiseDrop>(
-          this, ScrubberType.UNORDERED, IN_REGION, REGION, UniquenessRules.UNIQUE) {
+          this, ScrubberType.UNORDERED, IN_REGION, REGION, UniquenessRules.UNIQUE,
+          RegionRules.EXPLICIT_BORROWED_IN_REGION) {
         @Override
         protected ExplicitUniqueInRegionPromiseDrop makePromiseDrop(UniqueMappingNode a) {
           return storeDropIfNotNull(a, scrubExplicitUniqueInRegion(getContext(), a));          
@@ -962,8 +972,52 @@ public class RegionRules extends AnnotationRules {
 			IAnnotationScrubberContext context, ExplicitBorrowedInRegionNode a) {
     // must be a reference type variable
     boolean good = UniquenessRules.checkForReferenceType(context, a, "BorrowedInRegion");
-    
     final IRNode promisedFor = a.getPromisedFor();
+    
+    /* Used to check this when scrubbing ImmutableRef, but I cannot check this
+     * there any more, because ExplitBorrowedInRegion's dependency on InRegion
+     * would cause a cycle if we keep ImmutableRef dependent on
+     * ExplcitBorrowedInRegion. So, we check this here now which for the same
+     * reason now has a transitive dependency on ImmutableRef.
+     */
+    final ImmutableRefPromiseDrop immutableRef = LockRules.getImmutableRef(promisedFor);
+    if (immutableRef != null) {
+      context.reportError(
+          immutableRef.getAAST(),
+          "Cannot be annotated with both @Immutable and @BorrowedInRegion");
+      immutableRef.invalidate();
+    }
+
+    /* Used to check this when scrubbing Unique, but I cannot check this there
+     * any more, because ExplitBorrowedInRegion's dependency on InRegion would
+     * cause a cycle if we keep ImmutableRef dependent on
+     * ExplcitBorrowedInRegion (which Unique was depending on). So, we check
+     * this here now which for the same reason now has a transitive dependency
+     * on Unique.
+     */
+    final UniquePromiseDrop unique = UniquenessRules.getUnique(promisedFor);
+    if (unique != null) {
+      context.reportError(
+          unique.getAAST(),
+          "Cannot be annotated with both @Unique and @BorrowedInRegion");
+      unique.invalidate();
+    }
+    
+    /* Used to check this when scrubbing SimpleUniqueInRegion, but I cannot
+     * check this there any more, because ExplitBorrowedInRegion's dependency on
+     * InRegion would cause a cycle if we keep ImmutableRef dependent on
+     * ExplcitBorrowedInRegion (which SimpleUniqueInRegion was depending on).
+     * So, we check this here now which for the same reason now has a transitive
+     * dependency on SimpleUniqueInRegion.
+     */
+    final SimpleUniqueInRegionPromiseDrop simpleUIR = getSimpleUniqueInRegion(promisedFor);
+    if (simpleUIR != null) {
+      context.reportError(
+          simpleUIR.getAAST(),
+          "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
+      simpleUIR.invalidate();
+    }
+
     final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
     if (VariableDeclarator.prototype.includes(promisedForOp)) {
       if (!TypeUtil.isFinal(promisedFor)) {
