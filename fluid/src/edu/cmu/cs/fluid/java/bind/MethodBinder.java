@@ -7,6 +7,7 @@ import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.TypeUtils.*;
@@ -43,6 +44,64 @@ class MethodBinder {
     	return result;
     }
     
+    class CallState {
+    	final IRNode call;
+    	final IRNode targs;		
+    	final IRNode args; 
+    	/**
+    	 * Null for methods
+    	 */
+    	final IRNode constructorType;
+    	/**
+    	 * Computed from the receiver expression for methods
+    	 * Derived from constructorType for constructors
+    	 */
+    	final IJavaType receiverType;
+    	
+    	/**
+    	 * For methods
+    	 */
+    	CallState(IRNode call, IRNode targs, IRNode args) {
+    		this(call, targs, args, null);
+    	}
+    	
+    	CallState(IRNode call, IRNode targs, IRNode args, IRNode type) {    		
+    		this.call = call;
+			this.targs = targs;
+			this.args = args;
+			constructorType = type;			
+	    	receiverType = type == null ? null : typeEnvironment.convertNodeTypeToIJavaType(type);
+    	}
+    	
+        // Convert the args to IJavaTypes
+    	IJavaType[] getArgTypes() {
+    	  if (args == null) {
+    		  return JavaGlobals.noTypes;
+    	  }
+          final int n = JJNode.tree.numChildren(args);
+          if (n == 0) {
+    		  return JavaGlobals.noTypes;
+          }
+          IJavaType[] argTypes = new IJavaType[n];     
+          Iterator<IRNode> argse = JJNode.tree.children(args); 
+          for (int i= 0; i < n; ++i) {
+            IRNode arg = argse.next();
+            argTypes[i] = binder.getJavaType(arg);
+          }
+          return argTypes;
+        }
+
+		boolean usesDiamondOp() {
+			if (constructorType != null && ParameterizedType.prototype.includes(constructorType)) { 
+				IRNode typeArgs = ParameterizedType.getArgs(constructorType);
+				if (JJNode.tree.numChildren(typeArgs) == 0) {
+					return true;
+				}
+			}
+			return false;
+		}
+    }
+    
     private class SearchState {
     	final TypeUtils utils = new TypeUtils(typeEnvironment);
     	final Iterable<IBinding> methods;
@@ -50,6 +109,7 @@ class MethodBinder {
     	final IRNode args; 
     	final IJavaType[] argTypes;
     	final int numTypeArgs;
+    	final boolean usesDiamondOp;
     	
     	BindingInfo bestMethod = null;
     	IJavaType bestClass = null; // type of containing class
@@ -57,12 +117,12 @@ class MethodBinder {
     	final IJavaType[] tmpTypes;
     	MethodState bestState;
     	
-		SearchState(Iterable<IBinding> methods, IRNode targs,
-				IRNode args, IJavaType[] argTypes) {
+		SearchState(Iterable<IBinding> methods, CallState call) {
 			this.methods = methods;
-			this.targs = targs;
-			this.args = args;
-			this.argTypes = argTypes;
+			this.targs = call.targs;
+			this.args = call.args;
+			this.argTypes = call.getArgTypes();
+			usesDiamondOp = call.usesDiamondOp();
 			numTypeArgs = AbstractJavaBinder.numChildrenOrZero(targs);
 			bestArgs = new IJavaType[argTypes.length];
 			tmpTypes = new IJavaType[argTypes.length];
@@ -192,8 +252,8 @@ class MethodBinder {
 	 * specified in section §15.12.2.5. See the following subsections for
 	 * details.
 	 */
-    BindingInfo findBestMethod(Iterable<IBinding> methods, IRNode targs, IRNode args, IJavaType[] argTypes) {
-    	final SearchState state = new SearchState(methods, targs, args, argTypes);
+    BindingInfo findBestMethod(Iterable<IBinding> methods, CallState call) {
+    	final SearchState state = new SearchState(methods, call);
     	BindingInfo best  = findMostSpecificApplicableMethod(state, false, false);
     	if (best == null) {
     		best = findMostSpecificApplicableMethod(state, true, false);

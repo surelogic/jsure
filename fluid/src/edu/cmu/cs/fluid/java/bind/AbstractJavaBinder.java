@@ -21,12 +21,12 @@ import com.surelogic.dropsea.ir.drops.PackageDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.Selector;
+import edu.cmu.cs.fluid.java.bind.MethodBinder.CallState;
 import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
@@ -139,7 +139,6 @@ import edu.cmu.cs.fluid.version.Version;
 @ThreadSafe
 public abstract class AbstractJavaBinder extends AbstractBinder {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
-  private static final IJavaType[] noTypes = JavaGlobals.noTypes;
   
   protected static final boolean storeNullBindings = true;
   protected boolean warnAboutPkgBindings = false;
@@ -1193,25 +1192,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     protected boolean bind(IRNode node, Selector selector, boolean quietWarnings) {
       return bind(node,selector,quietWarnings,JJNode.getInfo(node));
     }
-
-    // Convert the args to IJavaTypes
-
-	private IJavaType[] getArgTypes(IRNode args) {
-	  if (args == null) {
-		  return noTypes;
-	  }
-      final int n = JJNode.tree.numChildren(args);
-      if (n == 0) {
-    	  return noTypes;
-      }
-      IJavaType[] argTypes = new IJavaType[n];     
-      Iterator<IRNode> argse = JJNode.tree.children(args); 
-      for (int i= 0; i < n; ++i) {
-        IRNode arg = argse.next();
-        argTypes[i] = getJavaType(arg);
-      }
-      return argTypes;
-    }
     
 	private IJavaScope.Selector makeAccessSelector(final IRNode from) {
 		return new IJavaScope.AbstractSelector("Ignore") {
@@ -1229,14 +1209,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     /**
      * @return true if bound
      */
-    protected boolean bindCall(IRNode call, IRNode targs, IRNode args, String name, IJavaType recType) {
-      return bindCall(call, targs, args, name, typeScope(recType));
+    protected boolean bindCall(CallState call, String name, IJavaType recType) {
+      return bindCall(call, name, typeScope(recType));
     }
     
     /**
      * @return true if bound
      */
-    protected boolean bindCall(final IRNode call, IRNode targs, IRNode args, final String name, final IJavaScope sc) {
+    protected boolean bindCall(final CallState state, final String name, final IJavaScope sc) {
       /*
       if (pathToTarget != null) {
     	  System.out.println("Not computing binding for call: "+DebugUnparser.toString(call));
@@ -1248,46 +1228,44 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  System.out.println("Binding call: "+DebugUnparser.toString(call));
       }
       */
-      final IJavaType[] argTypes = getArgTypes(args);
       if (debug) {
-        StringBuilder sb = buildStringOfArgTypes(argTypes);
-        LOG.finer("Looking for method: " + name + sb + getInVersionString());
+          StringBuilder sb = buildStringOfArgTypes(state.getArgTypes());
+          LOG.finer("Looking for method: " + name + sb + getInVersionString());
       }
-      
       final IRNode from;
-      final Operator callOp = JJNode.tree.getOperator(call);
+      final Operator callOp = JJNode.tree.getOperator(state.call);
       final boolean needMethod;
       if (AnonClassExpression.prototype.includes(callOp)) {
-    	  from = AnonClassExpression.getBody(call);
+    	  from = AnonClassExpression.getBody(state.call);
     	  needMethod = false;
       } else {
-    	  from = call;
+    	  from = state.call;
     	  needMethod = MethodCall.prototype.includes(callOp);
       }
       
       final IJavaScope.Selector isAccessible = makeAccessSelector(from);
-      lookupContext.use(name,call);
+      lookupContext.use(name,state.call);
       final Iterable<IBinding> methods = new Iterable<IBinding>() {
 //			@Override
 			public Iterator<IBinding> iterator() {
 				return IJavaScope.Util.lookupCallable(sc,lookupContext,isAccessible,needMethod);
 			}
       };
-      BindingInfo bestMethod = methodBinder.findBestMethod(methods, targs, args, argTypes);
+      BindingInfo bestMethod = methodBinder.findBestMethod(methods, state);
       /*
       if (bestMethod != null && AnonClassExpression.prototype.includes(call)) {
         System.out.println("Binding "+call);
       }
       */
       if (bestMethod == null) {
-    	  return bind(call, (IBinding) null);
+    	  return bind(state.call, (IBinding) null);
       }
       /*
       if ("getCurrentKey".equals(name)) {      	
       	System.out.println("Context type for getCurrentKey() = "+bestMethod.method.getContextType());
       }
       */
-      return bind(call, bestMethod.method);
+      return bind(state.call, bestMethod.method);
     }
 
     private StringBuilder buildStringOfArgTypes(IJavaType[] argTypes) {
@@ -1310,10 +1288,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
      * @param targs TODO
      * @param args actual parameters
      */
-    protected boolean bindAllocation(IRNode node, IJavaType ty, IRNode targs, IRNode args) {
+    protected boolean bindAllocation(CallState state) {
+      final IJavaType ty = state.receiverType;
       /*doAccept(args);
       System.err.println("Found allocation site" + DebugUnparser.toString(node));*/
-      //IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(type);
       if (ty instanceof IJavaDeclaredType) {  
         IJavaDeclaredType recType = (IJavaDeclaredType) ty;
         IRNode tdecl = recType.getDeclaration();
@@ -1338,24 +1316,24 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         	System.out.println("Binding newE: "+DebugUnparser.toString(node));
         }
         */
-        boolean success = bindCall(node,targs,args,tname, recType);
+        boolean success = bindCall(state, tname, recType);
         if (!success) {
           // FIX hack to get things to bind for receivers of raw type     
           // (copied from visitMethodCall)
           IJavaType newType = convertRawType(ty, true);
           if (newType != ty) {
-            success = bindCall(node,targs,args,tname, newType);
+            success = bindCall(state,tname, newType);
           }
           if (!success) {
             IJavaType newType2 = convertRawType(ty, false);
             if (newType2 != ty) {
-              success = bindCall(node,targs,args,tname, newType2);
+              success = bindCall(state,tname, newType2);
             }
             
             // Only skip debugging default calls          
             if (!success && pathToTarget == null /*&& 
                 (!JavaCanonicalizer.isActive() || JJNode.tree.numChildren(args) > 0)*/) {
-              bindCall(node,targs,args,tname, recType);
+              bindCall(state,tname, recType);
             }
           }
         }
@@ -1474,8 +1452,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         try {
           scope = sc;
           //System.out.println("Trying to bind ACE: "+DebugUnparser.toString(node));
-          IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(type);
-          boolean success = bindAllocation(node, ty, targs, args);
+          final CallState state = methodBinder.new CallState(node, targs, args, type);
+          boolean success = bindAllocation(state);
           if (!success && pathToTarget == null) {
         	  System.out.println("Couldn't bind "+DebugUnparser.toString(node));
           }
@@ -1669,9 +1647,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         IRNode tdecl = ((IJavaDeclaredType)ty).getDeclaration(); 
         IRNode targs = call.get_TypeArgs(node);
         String tname = JJNode.getInfo(tdecl);
-        boolean success = bindCall(node,targs,call.get_Args(node), tname, ty);
+        final CallState state = methodBinder.new CallState(node, targs, call.get_Args(node));
+        boolean success = bindCall(state, tname, ty);
         if (!success) {
-        	bindCall(node,targs,call.get_Args(node), tname, ty);
+        	bindCall(state, tname, ty);
         }
       } else {
         LOG.warning("super/this has non-class type! " + DebugUnparser.toString(node));
@@ -1736,10 +1715,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         if (!isFullPass || pathToTarget != null) return null;
     	
     	IRNode tdecl = VisitUtil.getEnclosingType(node);
-    	IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(tdecl);
-        boolean success = bindCall(node, null, args, JJNode.getInfo(tdecl), ty);
+        final CallState state = methodBinder.new CallState(node, null, args, tdecl);
+        boolean success = bindCall(state, JJNode.getInfo(tdecl), state.receiverType);
         if (!success) {
-            bindCall(node, null, args, JJNode.getInfo(tdecl), ty);
+            bindCall(state, JJNode.getInfo(tdecl), state.receiverType);
         }
         return null;
     }
@@ -1878,24 +1857,25 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
             // Process as normal method call
           }
         }
-        boolean success = bindCall(node,targs,args,name, toUse);
+        final CallState state = methodBinder.new CallState(node, targs, args);
+        boolean success = bindCall(state,name, toUse);
         if (!success) {
           // FIX hack to get things to bind for receivers of raw type       
           IJavaType newType = convertRawType(recType, true);
           if (newType != recType) {
-            success = bindCall(node,targs,args,name, newType);
+            success = bindCall(state,name, newType);
           }
           if (!success) {
             IJavaType newType2 = convertRawType(recType, false);
             if (newType2 != recType) {
-              success = bindCall(node,targs,args,name, newType2);
+              success = bindCall(state,name, newType2);
             }
             if (!success && pathToTarget == null) {
               System.out.println("Receiver: "+DebugUnparser.toString(receiver));
               System.out.println("Args:     "+DebugUnparser.toString(args));
               IJavaType temp = getJavaType(receiver);
               typeScope(temp);
-              bindCall(node,targs,args,name, toUse);
+              bindCall(state,name, toUse);
             }
           }
         }
@@ -2228,11 +2208,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IRNode args  = newE.get_Args(node);
       doAccept(args);
       if (isFullPass && pathToTarget == null) {
-        //System.out.println(DebugUnparser.toString(node));
-    	IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(type);
-        boolean success = bindAllocation(node,ty,targs, args);
+        //System.out.println(DebugUnparser.toString(node));    	
+    	final CallState state = methodBinder.new CallState(node, targs, args, type);
+        boolean success = bindAllocation(state);
         if (!success) {
-        	bindAllocation(node,ty,targs, args);
+        	bindAllocation(state);
         }
       }
       return null;
@@ -2317,15 +2297,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       doAccept(args);
 
       IRNode typeDecl = getLocalIBinding(type).getNode();
-      IJavaType ty = JavaTypeFactory.convertIRTypeDeclToIJavaType(typeDecl);
-      boolean success = bindAllocation(alloc,ty,((IRNode)null), args);
+      final CallState state = methodBinder.new CallState(alloc, null, args, typeDecl);
+      boolean success = bindAllocation(state);
       if (success && isACE) { 
     	  // bind NewE inside of ACE
     	  try {
     		  IBinding b = alloc.getSlotValue(bindings.getUseToDeclAttr());
         	  bind(AnonClassExpression.getAlloc(alloc), b);
     	  } catch (SlotUndefinedException e) {
-        	  bindAllocation(alloc,ty,((IRNode)null), args);
+        	  bindAllocation(state);
     		  alloc.getSlotValue(bindings.getUseToDeclAttr());
     	  }
       /*
@@ -2973,7 +2953,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   public Iteratable<IBinding>  findOverriddenParentMethods(final IRNode mth) {
 	  final String name   = SomeFunctionDeclaration.getId(mth);
 	  final IRNode td     = VisitUtil.getEnclosingType(mth);
-	  IJavaDeclaredType t = (IJavaDeclaredType) typeEnvironment.convertNodeTypeToIJavaType(td);
+	  final IJavaDeclaredType t = (IJavaDeclaredType) typeEnvironment.convertNodeTypeToIJavaType(td);
   
 	  final MethodBinder mb      = new MethodBinder(this, false);
 	  final List<IBinding> methods = new ArrayList<IBinding>();
@@ -2985,13 +2965,19 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		  // Looking at the inherited members	
 		  final IJavaScope superScope = 
 			  new IJavaScope.SubstScope(typeMemberTable((IJavaDeclaredType) st).asScope(this), getTypeEnvironment(), t);	  
-		  Iterable<IBinding> temp = new Iterable<IBinding>() {
+		  Iterable<IBinding> tempMethods = new Iterable<IBinding>() {
 //			@Override
 			public Iterator<IBinding> iterator() {
 				return superScope.lookupAll(context, IJavaScope.Util.isMethodDecl);
 			}			  
 		  };
-		  BindingInfo best = mb.findBestMethod(temp, null, null, mb.getFormalTypes(t, mth));
+		  final CallState call = mb.new CallState(null, null, null) {
+			  @Override
+			  public IJavaType[] getArgTypes() {
+				  return mb.getFormalTypes(t, mth);
+			  }
+		  };
+		  BindingInfo best = mb.findBestMethod(tempMethods, call);
 		  if (best != null) {
 			  methods.add(best.method);
 		  }
