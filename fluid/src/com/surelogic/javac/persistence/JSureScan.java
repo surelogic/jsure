@@ -202,10 +202,12 @@ public class JSureScan implements Comparable<JSureScan> {
     JSureProjectsXMLReader reader = new JSureProjectsXMLReader();
     reader.read(new File(f_scanDir, PersistenceConstants.PROJECTS_XML));
     f_projectsScanned = reader.getProjects();
-    f_projectsScanned.setMonitor(NullSLProgressMonitor.getFactory().createSLProgressMonitor(""));
-    f_projectsScanned.setScanDir(f_scanDir);
-    if (!f_projectsScanned.getRunDir().equals(f_scanDir)) {
-    	throw new IllegalStateException();
+    if (f_projectsScanned != null) {
+    	f_projectsScanned.setMonitor(NullSLProgressMonitor.getFactory().createSLProgressMonitor(""));
+    	f_projectsScanned.setScanDir(f_scanDir);
+    	if (!f_projectsScanned.getRunDir().equals(f_scanDir)) {
+    		throw new IllegalStateException();
+    	}
     }
     return f_projectsScanned;
   }
