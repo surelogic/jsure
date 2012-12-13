@@ -501,8 +501,13 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 		}
 		final Projects projs = (Projects) pd.getIIRProjects();
 		*/
-		final JSureScan run = JSureDataDirHub.getInstance().getCurrentScan();
-
+		JSureScan run = JSureDataDirHub.getInstance().getCurrentScan();
+		if (run == null) {
+			// Unknown cause?
+			Thread.sleep(5000);
+			run = JSureDataDirHub.getInstance().getCurrentScan();
+		}
+		
 		// Export the results from this run
 		start("Exporting results");
 		try {
