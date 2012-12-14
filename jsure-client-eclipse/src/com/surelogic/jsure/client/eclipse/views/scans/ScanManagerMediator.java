@@ -104,41 +104,41 @@ public final class ScanManagerMediator implements ILifecycle {
   Action getDeleteScanAction() {
     return f_deleteScanAction;
   }
-  
-  private final Action f_rescanAction = new Action() {
-	  @Override
-	  public void run() {
-		  final List<JSureScan> selected = getSelectedScans();
-	      if (selected.size() == 1) {
-	        final JSureScan current = selected.get(0);
-	        if (current != null) {
-	        	try {
-		        	// Collect the projects together
-		        	final List<IJavaProject> selectedProjects = new ArrayList<IJavaProject>();
-					for(final JavacProject p : current.getProjects()) {
-						if (!p.isAsBinary()) {
-							final IJavaProject jp = JDTUtility.getJavaProject(p.getName());
-							if (jp == null) {
-								// Can't find one of the projects
-								MessageDialog.openInformation(f_swtTable.getShell(), "Unable to Re-Verify", 
-										"Missing project '"+p.getName()+"'");
-								return;
-							}
-							selectedProjects.add(jp);
-						}
-					}
-		        	VerifyProjectHandler.verify(selectedProjects);
-				} catch (Exception e) {
-					SLLogger.getLogger().log(Level.WARNING, "Problem reading projects file", e);
-				}
 
-	        }
-	      }
-	  }
+  private final Action f_rescanAction = new Action() {
+    @Override
+    public void run() {
+      final List<JSureScan> selected = getSelectedScans();
+      if (selected.size() == 1) {
+        final JSureScan current = selected.get(0);
+        if (current != null) {
+          try {
+            // Collect the projects together
+            final List<IJavaProject> selectedProjects = new ArrayList<IJavaProject>();
+            for (final JavacProject p : current.getProjects()) {
+              if (!p.isAsBinary()) {
+                final IJavaProject jp = JDTUtility.getJavaProject(p.getName());
+                if (jp == null) {
+                  // Can't find one of the projects
+                  MessageDialog.openInformation(f_swtTable.getShell(), "Unable to Re-Verify", "Missing project '" + p.getName()
+                      + "'");
+                  return;
+                }
+                selectedProjects.add(jp);
+              }
+            }
+            VerifyProjectHandler.verify(selectedProjects);
+          } catch (Exception e) {
+            SLLogger.getLogger().log(Level.WARNING, "Problem reading projects file", e);
+          }
+
+        }
+      }
+    }
   };
-  
+
   Action getRescanAction() {
-	  return f_rescanAction;
+    return f_rescanAction;
   }
 
   private final Action f_refreshAction = new Action() {
@@ -271,21 +271,21 @@ public final class ScanManagerMediator implements ILifecycle {
       }
       oneScanSelectedWithProjectsInWorkspace = true;
       try {
-		for(JavacProject p : selectedScan.getProjects()) {    	  
-			  if (p.shouldExistAsIProject()) {
-				  if (JDTUtility.getJavaProject(p.getName()) == null) {
-					  oneScanSelectedWithProjectsInWorkspace = false;
-					  break;
-				  }
-			  }
-		  }
+        for (JavacProject p : selectedScan.getProjects()) {
+          if (p.shouldExistAsIProject()) {
+            if (JDTUtility.getJavaProject(p.getName()) == null) {
+              oneScanSelectedWithProjectsInWorkspace = false;
+              break;
+            }
+          }
+        }
       } catch (Exception e) {
-    	  SLLogger.getLogger().log(Level.WARNING, "Problem reading projects file", e);
-    	  oneScanSelectedWithProjectsInWorkspace = false;
+        SLLogger.getLogger().log(Level.WARNING, "Problem reading projects file", e);
+        oneScanSelectedWithProjectsInWorkspace = false;
       }
     }
-    f_setAsCurrentAction.setEnabled(oneNonCheckedScanSelected);    
-    f_rescanAction.setEnabled(oneScanSelectedWithProjectsInWorkspace);    
+    f_setAsCurrentAction.setEnabled(oneNonCheckedScanSelected);
+    f_rescanAction.setEnabled(oneScanSelectedWithProjectsInWorkspace);
   }
 
   ScanManagerMediator(CheckboxTableViewer table) {
