@@ -24,6 +24,7 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
+import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
@@ -235,6 +236,13 @@ public final class JSureDecoratedImageUtility {
 
     } else if (drop instanceof IProposedPromiseDrop) {
       baseImageName = CommonImages.IMG_ANNOTATION_PROPOSED;
+
+    } else if (drop instanceof IModelingProblemDrop) {
+      final IModelingProblemDrop problemDrop = (IModelingProblemDrop) drop;
+      if (problemDrop.getProposals().isEmpty())
+        baseImageName = CommonImages.IMG_ANNOTATION_ERROR;
+      else
+        baseImageName = CommonImages.IMG_ANNOTATION_ERROR_PROPOSED;
 
     } else if (drop instanceof IProofDrop) {
       final IProofDrop proofDrop = (IProofDrop) drop;
