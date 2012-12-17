@@ -63,6 +63,7 @@ import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAc
 import com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView;
 import com.surelogic.jsure.core.preferences.IUninterestingPackageFilterObserver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener,
@@ -163,12 +164,14 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     showScanOrEmptyLabel();
 
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
+    UninterestingPackageFilterUtility.registerObserver(this);
   }
 
   @Override
   public void dispose() {
     try {
       JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
+      UninterestingPackageFilterUtility.unregisterObserver(this);
     } finally {
       super.dispose();
     }

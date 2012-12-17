@@ -64,6 +64,7 @@ import com.surelogic.jsure.client.eclipse.preferences.UninterestingPackageFilter
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 import com.surelogic.jsure.core.preferences.IUninterestingPackageFilterObserver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener,
@@ -164,12 +165,14 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     showScanOrEmptyLabel();
 
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
+    UninterestingPackageFilterUtility.registerObserver(this);
   }
 
   @Override
   public void dispose() {
     try {
       JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
+      UninterestingPackageFilterUtility.unregisterObserver(this);
     } finally {
       super.dispose();
     }
@@ -355,6 +358,11 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
           public void run() {
             final TreeViewerUIState state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
             state.restoreViewState(f_treeViewer);
+            if (f_contentProvider.isEmpty()) {
+              f_treeViewer.getControl().setBackground(null);
+            } else {
+              f_treeViewer.getControl().setBackground(f_treeViewer.getControl().getDisplay().getSystemColor(SWT.COLOR_YELLOW));
+            }
           }
         });
       }
