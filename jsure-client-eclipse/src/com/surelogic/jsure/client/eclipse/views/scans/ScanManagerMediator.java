@@ -442,7 +442,7 @@ public final class ScanManagerMediator implements ILifecycle {
           final JSureScan run = (JSureScan) element;
           if (columnIndex == FIRST_COLUMN_INDEX) {
             final Date d = run.getProjects().getDate();
-            return SLUtility.toStringHMS(d);
+            return SLUtility.toStringDayHMS(d);
           }
           if (columnIndex == FIRST_COLUMN_INDEX + 1) {
             return String.format("%1$.1f MB", run.getSizeInMB());

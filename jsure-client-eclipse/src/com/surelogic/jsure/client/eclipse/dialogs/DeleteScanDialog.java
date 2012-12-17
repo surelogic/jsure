@@ -31,7 +31,7 @@ public final class DeleteScanDialog extends Dialog {
 			f_msg = I18N.msg("jsure.dialog.deleteScan.multi.msg");
 		} else {
 			f_msg = I18N.msg("jsure.dialog.deleteScan.msg",
-					SLUtility.toStringHMS(scan.getTimeOfScan()));
+					SLUtility.toStringDayHMS(scan.getTimeOfScan()));
 		}
 
 	}
