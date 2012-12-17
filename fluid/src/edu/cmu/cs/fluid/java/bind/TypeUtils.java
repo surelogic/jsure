@@ -9,9 +9,9 @@ import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.*;
 
 public class TypeUtils {
 	static final boolean useNewTypeInference = true;
@@ -26,6 +26,17 @@ public class TypeUtils {
 	
 	// Utility methods
 	//
+	IRNode getParametersForType(IRNode tdecl) {
+		final Operator op = JJNode.tree.getOperator(tdecl);
+		if (ClassDeclaration.prototype.includes(op)) {
+			return ClassDeclaration.getTypes(tdecl);
+		}
+		else if (InterfaceDeclaration.prototype.includes(op)) {
+			return InterfaceDeclaration.getTypes(tdecl);
+		}
+		return null;
+	}
+	
 	/**
 	 * Creates a proxy if there isn't one
 	 * Gets the existing one otherwise
@@ -321,15 +332,8 @@ public class TypeUtils {
 	
 	private boolean isGeneric(IJavaDeclaredType t) {
 		final IRNode n = t.getDeclaration();
-		Operator op = JJNode.tree.getOperator(n);
-		IRNode typeParams;
-		if (ClassDeclaration.prototype.includes(op)) {
-			typeParams = ClassDeclaration.getTypes(n);
-		}
-		else if (InterfaceDeclaration.prototype.includes(op)) {
-			typeParams = InterfaceDeclaration.getTypes(n);
-		}
-		else {
+		IRNode typeParams = getParametersForType(n);
+		if (typeParams == null) {
 			return false;
 		}
 		return JJNode.tree.hasChildren(typeParams);
@@ -455,8 +459,9 @@ public class TypeUtils {
 		return result;
 	}	
 		
-	public Constraints getEmptyConstraints(Map<IJavaType, IJavaType> substMap, boolean allowBoxing, boolean allowVarargs) {
-		return new Constraints(substMap, allowBoxing, allowVarargs);
+	public Constraints getEmptyConstraints(IRNode call, IBinding method, Map<IJavaType, IJavaType> substMap, 
+			boolean allowBoxing, boolean allowVarargs) {
+		return new Constraints(call, method, substMap, allowBoxing, allowVarargs);
 	}
 	
 	public class Constraints {
@@ -465,8 +470,9 @@ public class TypeUtils {
 		final Set<TypeConstraint> constraints = new HashSet<TypeConstraint>();
 		final Mapping map;
 
-		public Constraints(Map<IJavaType, IJavaType> substMap, boolean box, boolean varargs) {
-			map = new Mapping(substMap);
+		public Constraints(IRNode call, IBinding method, Map<IJavaType, IJavaType> substMap, 
+				boolean box, boolean varargs) {			
+			map = new Mapping(call, method, substMap);
 			allowBoxing = box;
 			allowVarargs = varargs;
 		}
@@ -485,7 +491,7 @@ public class TypeUtils {
 		 * 
 		 * @return true if derived some constraints
 		 */
-		private boolean derive(IJavaType formal, Constraint constraint, IJavaType actual) {
+		boolean derive(IJavaType formal, Constraint constraint, IJavaType actual) {
 			if (formal instanceof IJavaPrimitiveType || actual instanceof IJavaNullType) {
 				// Nothing to do since there can't be any type variables to deal with here
 				//   or
@@ -847,8 +853,15 @@ public class TypeUtils {
 		 */
 		public Mapping computeTypeMapping() {
 			if (useNewTypeInference) {
-				inferTypeParameters(map, constraints);
-				
+				GeneratedConstraints generated = inferTypeParameters(map, constraints);		
+				if (false) {
+					Constraints constraints = handleUnresolvedVariables(map, generated);
+					if (constraints != null) {
+						// Copy over the map
+						map.subst.clear();
+						map.subst.putAll(constraints.map.subst);
+					}
+				}				
 				// Make sure that the variables are at worst the same as the original bound
 				for(Map.Entry<IJavaType,IJavaType> e : map.subst.entrySet()) {
 					final IJavaType origBound = e.getKey().getSuperclass(tEnv);
@@ -860,13 +873,26 @@ public class TypeUtils {
 			}
 			return map;
 		}
+
+		void addConstraintsForType(IRNode tdecl) {
+			// Create "null" entries for these type variables
+			final IRNode typeParams = getParametersForType(tdecl);
+			for(IRNode tf : TypeFormals.getTypeIterator(typeParams)) {
+				final IJavaType fty = JavaTypeFactory.getTypeFormal(tf);
+				map.subst.put(fty, fty);
+			}
+		}
 	}
 	
 	public class Mapping {
+		final IRNode call;
+		final IBinding method;
 		final Map<IJavaType, IJavaType> subst;
 		boolean isUnsatisfiable = false;
 
-		Mapping(Map<IJavaType, IJavaType> substMap) {
+		Mapping(IRNode call, IBinding method, Map<IJavaType, IJavaType> substMap) {
+			this.call = call;
+			this.method = method;
 			subst = new HashMap<IJavaType, IJavaType>(substMap);
 		}
 
@@ -1013,15 +1039,8 @@ public class TypeUtils {
     private void captureMissingTypeParameters(Map<IJavaType, IJavaType> map,
                                               final IJavaDeclaredType fdt, 
                                               final IJavaDeclaredType adt) {
-      final Operator op = JJNode.tree.getOperator(adt.getDeclaration());            
-      final IRNode formals;
-      if (ClassDeclaration.prototype.includes(op)) {        
-        formals = ClassDeclaration.getTypes(adt.getDeclaration());
-      }
-      else if (InterfaceDeclaration.prototype.includes(op)) {
-        formals = InterfaceDeclaration.getTypes(adt.getDeclaration());
-      }
-      else {
+	  IRNode formals = getParametersForType(adt.getDeclaration());
+	  if (formals == null) {
         return; // nothing to do        
       }
       Iterator<IJavaType> fdtParams = fdt.getTypeParameters().iterator(); 
@@ -1173,6 +1192,12 @@ public class TypeUtils {
 		abstract Constraint reverse();
 	}
 
+	private class GeneratedConstraints {
+		final Map<IJavaType,IJavaType> equalities = new HashMap<IJavaType, IJavaType>();
+		final MultiMap<IJavaTypeFormal, TypeConstraint> inequalities = 
+			new MultiHashMap<IJavaTypeFormal, TypeConstraint>();
+	}
+	
 	/**
 	 * JLS 3 p.463
      * -- If U is not one of the type parameters of the method, then U is the type
@@ -1183,15 +1208,16 @@ public class TypeUtils {
      * -- Otherwise, the constraint is of the form Tj = Tk for . Then all constraints
      *    involving Tj are rewritten such that Tj is replaced with Tk, and processing continues
      *    with the next type variable.
+	 * @return 
 	 */
-	void inferTypeParameters(Mapping map, Set<TypeConstraint> constraints) {
+	GeneratedConstraints inferTypeParameters(Mapping map, Set<TypeConstraint> constraints) {
 		/*
 		if (constraints.size() > 1) {
 			System.out.println("Inferring from "+constraints.size()+" constraints");
 		}
 		*/
 		List<TypeConstraint> bounds = new ArrayList<TypeConstraint>();
-		Map<IJavaType,IJavaType> equalities = new HashMap<IJavaType, IJavaType>();
+		GeneratedConstraints generated = new GeneratedConstraints();
 		for(TypeConstraint c : constraints) {
 			/*
 			 * Next, for each type variable Tj, , the implied equality constraints are
@@ -1199,7 +1225,7 @@ public class TypeUtils {
 		     * For each implied equality constraint Tj = U or U = Tj:
 		     */
 			if (c.constraint == Constraint.EQUAL) {
-				final IJavaType old = equalities.get(c.variable);
+				final IJavaType old = generated.equalities.get(c.variable);
 				if (c.variable.equals(c.bound) || c.bound.equals(old)) {
 					// Otherwise, if U is Tj, then this constraint carries no information and may be
 				    // discarded.
@@ -1208,24 +1234,23 @@ public class TypeUtils {
 				else if (old != null) {
 					// Already checked above if the bound is the same as one processed earlier
 					//throw new IllegalStateException(c.variable+" already set to "+old+", now to "+c.bound);
-					equalities.put(c.variable, getLowestUpperBound((IJavaReferenceType) old, c.bound));
+					generated.equalities.put(c.variable, getLowestUpperBound((IJavaReferenceType) old, c.bound));
 					// TODO could be more efficient to use a multimap
 				}
 				else {
-					equalities.put(c.variable, c.bound);
+					generated.equalities.put(c.variable, c.bound);
 				}
 			} else {
 				bounds.add(c);
 			}
 		}
 		// Do substitutions on the bounds using the equalities above, and organize by variable
-		MultiMap<IJavaTypeFormal, TypeConstraint> inequalities = new MultiHashMap<IJavaTypeFormal, TypeConstraint>();
 		for(TypeConstraint c : bounds) {
-			IJavaType newBound = substitute(equalities, c.bound);
+			IJavaType newBound = substitute(generated.equalities, c.bound);
 			if (c.bound.equals(newBound)) {
-				inequalities.put(c.variable, c);
+				generated.inequalities.put(c.variable, c);
 			} else {
-				inequalities.put(c.variable, 
+				generated.inequalities.put(c.variable, 
 						new TypeConstraint(c.variable, c.constraint, (IJavaReferenceType) newBound));
 			}
 		}
@@ -1234,7 +1259,7 @@ public class TypeUtils {
 		 * Given that these constraints are Tj :> U1 ... Tj :> Uk, the type of Tj is inferred
 		 * as lub(U1 ... Uk), computed as follows: 
 		 */
-		for(Map.Entry<IJavaTypeFormal, Collection<TypeConstraint>> e : inequalities.entrySet()) {
+		for(Map.Entry<IJavaTypeFormal, Collection<TypeConstraint>> e : generated.inequalities.entrySet()) {
 			IJavaReferenceType[] inputs = new IJavaReferenceType[e.getValue().size()];
 			int i=0;
 			for(TypeConstraint c : e.getValue()) {
@@ -1250,6 +1275,133 @@ public class TypeUtils {
 			*/
 			map.subst.put(e.getKey(), lub);
 		}
-		map.subst.putAll(equalities);
+		map.subst.putAll(generated.equalities);
+		return generated;
+	}
+
+	/**
+	 * JLS 7 sec 15.12.2.28:
+	 * 
+	 * If any of the method's type arguments were not inferred from the types of the actual
+	 * arguments, they are now inferred as follows.
+     * -- If the method result occurs in a context where it will be subject to assignment
+     *    conversion (§5.2) to a type S, then ... see findAssignmentType() below
+     *    
+     *    let R be the declared result type of the method, and let R' = R[T1=B(T1) ... Tn=B(Tn)], 
+     *    where B(Ti) is the type inferred for Ti in the previous section or Ti if no type was inferred.
+     *    
+     *    Then, a set of initial constraints consisting of (see below)
+ 
+     *    is created and used to infer constraints on the type arguments using the algorithm of §15.12.2.7.
+     *    
+     *    Any equality constraints are resolved, and then, for each remaining constraint of
+     *    the form Ti <: Uk, the argument Ti is inferred to be glb(U1, ..., Uk) (§5.1.10).
+     *    If Ti appears as a type argument in any Uk, then Ti is inferred to be a type variable
+     *    X whose upper bound is the parameterized type given by glb(U1[Ti=X], ...,
+     *    Uk[Ti=X]) and whose lower bound is the null type.
+     *    Any remaining type variable T that has not yet been inferred is then inferred
+     *    to have type Object. If a previously inferred type variable P uses T, then P is
+     *    inferred to be P[T=Object].
+     *    
+     * -- Otherwise, the unresolved type arguments are inferred by invoking the procedure
+     *    described in this section under the assumption that the method result was
+     *    assigned to a variable of type Object.
+	 */
+	Constraints handleUnresolvedVariables(final Mapping map, final GeneratedConstraints generated) {
+		// Check for unresolved vars
+		final Set<IJavaType> unresolved = findUnresolved(map.subst);
+		if (unresolved.isEmpty()) {
+			return null;
+		}
+		final Constraints constraints = getEmptyConstraints(map.call, map.method, map.subst, false, false);
+	    //    -- the constraint S' >> R', provided R is not void; and
+		final IJavaType s_prime = findAssignmentType(map.call);
+		final IJavaType r_prime = computeReturnType(map);
+		if (!(r_prime instanceof IJavaVoidType)) {
+			constraints.derive(s_prime, Constraint.CONVERTIBLE_FROM, r_prime);
+		}
+		for(Map.Entry<IJavaType,IJavaType> e : map.subst.entrySet()) {			
+		    //    -- additional constraints Bi[T1=B(T1) ... Tn=B(Tn)] >> Ti, where Bi is the declared bound of Ti,
+		    //    -- additional constraints B(Ti) << Bi[T1=B(T1) ... Tn=B(Tn)], where Bi is the declared bound of Ti,
+			final IJavaType t_i = e.getKey();
+			final IJavaType b_i_subst = substitute(map.subst, t_i.getSuperclass(tEnv));
+			constraints.derive(t_i, Constraint.CONVERTIBLE_TO, b_i_subst); // flipped around
+			constraints.derive(e.getValue(), Constraint.CONVERTIBLE_TO, b_i_subst);
+		}
+	    //    -- for any constraint of the form V >> Ti generated in §15.12.2.7: a constraint V[T1=B(T1) ... Tn=B(Tn)] >> Ti.
+		for (TypeConstraint c : generated.inequalities.values()) {
+			if (c.constraint == Constraint.CONVERTIBLE_TO && map.subst.containsKey(c.variable)) {
+				constraints.derive(c.variable, Constraint.CONVERTIBLE_TO, substitute(map.subst, c.bound));
+			}			
+		}
+    	//    -- for any constraint of the form Ti = V generated in §15.12.2.7: a constraint Ti = V[T1=B(T1) ... Tn=B(Tn)].	        	
+	    for (Map.Entry<IJavaType, IJavaType> e : generated.equalities.entrySet()) {
+	    	constraints.derive(e.getKey(), Constraint.EQUAL, substitute(map.subst, e.getValue()));
+	    }
+	    final Mapping newMap = constraints.map;
+	    inferTypeParameters(newMap, constraints.constraints);
+	    final Set<IJavaType> stillUnresolved = findUnresolved(newMap.subst);
+	    if (!stillUnresolved.isEmpty()) {
+	    	throw new IllegalStateException("Still have unresolved types: "+stillUnresolved);
+	    }
+		return constraints;
+	}
+
+	private Set<IJavaType> findUnresolved(Map<IJavaType, IJavaType> subst) {
+		Set<IJavaType> rv = new HashSet<IJavaType>();
+		for(Map.Entry<IJavaType,IJavaType> e : subst.entrySet()) {
+			if (e.getKey().equals(e.getValue())) {
+				rv.add(e.getKey());
+			}
+		}	
+		return rv;
+	}
+	
+	/**
+	 * Check if the method result occurs in a context where it will be subject to assignment
+     *    conversion (§5.2) to a type S ...
+     *    
+     *    If S is a reference type, then let S' be S. Otherwise, if S is a primitive type, then
+     *    let S' be the result of applying boxing conversion (§5.1.7) to S.
+	 */
+	private IJavaType findAssignmentType(IRNode call) {
+		final IRNode parent = JJNode.tree.getParent(call);
+		final Operator pop = JJNode.tree.getOperator(parent);
+		IRNode type = null;
+		if (Initialization.prototype.includes(pop)) {
+			// Assuming it's in a vdecl
+			final IRNode vdecl = JJNode.tree.getParent(call);
+			type = VariableDeclarator.getType(vdecl);
+		}
+		else if (AssignmentExpression.prototype.includes(pop)) {
+			type = AssignmentExpression.getOp1(parent);
+		}
+		else if (ReturnStatement.prototype.includes(pop)) {
+			final IRNode method = VisitUtil.getEnclosingClassBodyDecl(parent);
+			type = MethodDeclaration.getReturnType(method);
+		}
+		// TODO what other cases are there?
+		
+		if (type != null) {
+			return boxIfNeeded(tEnv.getBinder().getJavaType(type));
+		}
+		return tEnv.getObjectType();
+	}
+
+	private IJavaType boxIfNeeded(IJavaType origType) {
+		if (origType instanceof IJavaPrimitiveType) {
+			return JavaTypeFactory.getCorrespondingDeclType(tEnv, (IJavaPrimitiveType) origType);
+		}
+		return origType;
+	}
+	
+	private IJavaType computeReturnType(Mapping map) {
+		final IJavaType rt = JavaTypeVisitor.computeReturnType(tEnv.getBinder(), map.method);
+		if (rt instanceof IJavaVoidType) {
+			return rt;
+		}
+		return substitute(map.subst, rt);
+		//return rt.subst(FunctionParameterSubstitution.create(tEnv.getBinder(), map.method.getNode(), map.subst));
+		// TODO what about the info I already inferred?		
 	}
 }
