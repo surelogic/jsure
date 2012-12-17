@@ -1,56 +1,127 @@
 package com.surelogic.jsure.client.eclipse.views.problems;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Queue;
 
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.Viewer;
 
-import com.surelogic.common.CommonImages;
-import com.surelogic.common.ui.SLImages;
+import com.surelogic.NonNull;
+import com.surelogic.Nullable;
+import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
+import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScanInfo;
-import com.surelogic.jsure.client.eclipse.views.AbstractResultsTableContentProvider;
+import com.surelogic.jsure.client.eclipse.model.java.Element;
+import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
+import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
+import com.surelogic.jsure.client.eclipse.model.java.IViewDiffState;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
-import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
-final class ProblemsViewContentProvider extends AbstractResultsTableContentProvider<IModelingProblemDrop> {
+public class ProblemsViewContentProvider implements ITreeContentProvider, IViewDiffState {
 
-  ProblemsViewContentProvider() {
-    super("Description");
+  public void dispose() {
+    // nothing to do
   }
 
-  protected final String getAndSortResults(List<IModelingProblemDrop> mutableContents) {
-    final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
-    if (info == null) {
+  public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+    // nothing to do
+  }
+
+  public Object[] getElements(Object inputElement) {
+    final Element[] root = f_root;
+    return root != null ? root : Element.EMPTY;
+  }
+
+  public Object[] getChildren(Object parentElement) {
+    if (parentElement instanceof Element)
+      return ((Element) parentElement).getChildren();
+    else
+      return Element.EMPTY;
+  }
+
+  public Object getParent(Object element) {
+    if (element instanceof Element)
+      return ((Element) element).getParent();
+    else
       return null;
-    }
-    for (IModelingProblemDrop problem : info.getModelingProblemDrops()) {
+  }
+
+  public boolean hasChildren(Object element) {
+    if (element instanceof Element)
+      return ((Element) element).hasChildren();
+    else
+      return false;
+  }
+
+  private Element[] f_root = null;
+
+  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, final boolean showOnlyAbductive) {
+    final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer(null);
+
+    final ArrayList<IModelingProblemDrop> drops = scan.getModelingProblemDrops();
+    for (IModelingProblemDrop ppd : drops) {
       /*
        * We filter results based upon the code location.
        */
-      if (UninterestingPackageFilterUtility.keep(problem))
-        mutableContents.add(problem);
+      if (UninterestingPackageFilterUtility.keep(ppd))
+        ElementDrop.addToTree(tree, ppd, false);
     }
-    Collections.sort(mutableContents, sortByLocation);
-    return info.getLabel();
+    f_root = tree.getRootElements();
   }
 
-  public Image getColumnImage(Object element, int columnIndex) {
-    if (element instanceof IModelingProblemDrop) {
-      final IModelingProblemDrop mpd = (IModelingProblemDrop) element;
-
-      if (columnIndex == 0) {
-        if (!mpd.getProposals().isEmpty())
-          return SLImages.getImage(CommonImages.IMG_ANNOTATION_ERROR_PROPOSED);
-        else
-          return SLImages.getImage(CommonImages.IMG_ANNOTATION_ERROR);
-      } else if (columnIndex == 1) {
-        if (mpd.isFromSrc())
-          return SLImages.getImage(CommonImages.IMG_JAVA_COMP_UNIT);
-        else
-          return SLImages.getImage(CommonImages.IMG_LIBRARY);
+  /**
+   * Tries to find and return an {@link Element} instance that represents the
+   * passed drop.
+   * 
+   * @param drop
+   *          a drop.
+   * @return an element that represents the drop or {@code null} if none can be
+   *         found.
+   */
+  @Nullable
+  Element findElementForDropOrNull(final IDrop drop) {
+    if (drop == null)
+      return null;
+    final Element[] root = f_root;
+    if (root == null)
+      return null;
+    /*
+     * We do a breath-first search to look for the element because we do not
+     * want to build up a the element tree any more than it is unless we
+     * absolutely have too. Of course, if we got passed a drop that doesn't
+     * exist the code below will expand out the entire element model tree to its
+     * leaves.
+     */
+    final Queue<Element> queue = new LinkedList<Element>();
+    queue.addAll(Arrays.asList(root));
+    while (!queue.isEmpty()) {
+      final Element e = queue.poll();
+      if (e != null) {
+        // is e what we are looking for?
+        if (e instanceof ElementDrop) {
+          if (((ElementDrop) e).getDrop().equals(drop))
+            return e;
+        }
+        queue.addAll(Arrays.asList(e.getChildren()));
       }
     }
     return null;
+  }
+
+  /*
+   * We don't shown differences in this view, so these methods tell the model
+   * this fact.
+   */
+
+  @Nullable
+  public ScanDifferences getScanDifferences() {
+    return null;
+  }
+
+  public boolean highlightDifferences() {
+    return false;
   }
 }

@@ -44,7 +44,8 @@ public final class JSureDecoratedImageUtility {
     ASSUME(CommonImages.DECR_ASSUME), CONSISTENT(CommonImages.DECR_CONSISTENT), DELTA(CommonImages.DECR_DELTA), HINT_INFO(
         CommonImages.DECR_INFO), HINT_WARNING(CommonImages.DECR_WARNING), INCONSISTENT(CommonImages.DECR_INCONSISTENT), REDDOT(
         CommonImages.DECR_REDDOT), TRUSTED(CommonImages.DECR_TRUSTED), UNUSED_CONSISTENT(CommonImages.DECR_UNUSED_CONSISTENT), UNUSED_INCONSISTENT(
-        CommonImages.DECR_UNUSED_INCONSISTENT), VIRTUAL(CommonImages.DECR_VIRTUAL);
+        CommonImages.DECR_UNUSED_INCONSISTENT), VIRTUAL(CommonImages.DECR_VIRTUAL), NEW(CommonImages.DECR_NEW), PROBLEM(
+        CommonImages.DECR_ERROR);
 
     Flag(String imageName) {
       ImageDescriptor id = SLImages.getImageDescriptor(imageName);
@@ -239,10 +240,10 @@ public final class JSureDecoratedImageUtility {
 
     } else if (drop instanceof IModelingProblemDrop) {
       final IModelingProblemDrop problemDrop = (IModelingProblemDrop) drop;
-      if (problemDrop.getProposals().isEmpty())
-        baseImageName = CommonImages.IMG_ANNOTATION_ERROR;
-      else
-        baseImageName = CommonImages.IMG_ANNOTATION_ERROR_PROPOSED;
+      baseImageName = CommonImages.IMG_ANNOTATION;
+      flags.add(Flag.PROBLEM);
+      if (!problemDrop.getProposals().isEmpty())
+        flags.add(Flag.NEW);
 
     } else if (drop instanceof IProofDrop) {
       final IProofDrop proofDrop = (IProofDrop) drop;
@@ -334,6 +335,8 @@ public final class JSureDecoratedImageUtility {
       return Flag.VIRTUAL.getImageDescriptor();
     } else if (flags.contains(Flag.TRUSTED)) {
       return Flag.TRUSTED.getImageDescriptor();
+    } else if (flags.contains(Flag.NEW)) {
+      return Flag.NEW.getImageDescriptor();
     }
     return null;
   }
@@ -346,6 +349,8 @@ public final class JSureDecoratedImageUtility {
       return Flag.HINT_WARNING.getImageDescriptor();
     } else if (flags.contains(Flag.HINT_INFO)) {
       return Flag.HINT_INFO.getImageDescriptor();
+    } else if (flags.contains(Flag.PROBLEM)) {
+      return Flag.PROBLEM.getImageDescriptor();
     }
     return null;
   }

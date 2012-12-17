@@ -234,7 +234,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     }
   };
 
-  protected final Action f_actionAnnotateCode = new ProposedPromisesRefactoringAction() {
+  private final Action f_actionAnnotateCode = new ProposedPromisesRefactoringAction() {
     @Override
     protected List<IProposedPromiseDrop> getProposedDrops() {
       return getSelectedProposals();
