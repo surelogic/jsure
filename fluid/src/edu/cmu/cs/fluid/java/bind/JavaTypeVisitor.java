@@ -406,6 +406,23 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitMethodCall(IRNode node) {
     IBinding b = binder.getIBinding( node );
+    return computeReturnType(b);    
+  }
+  
+  public static IJavaType computeReturnType(IBinder binder, IBinding mb) {
+	  JavaTypeVisitor jtv = JavaTypeVisitor.prototype;
+	  synchronized ( jtv ) {
+		  final IBinder preBinder = jtv.binder;
+		  jtv.binder = binder;
+		  try {
+			  return jtv.computeReturnType(mb);
+		  } finally {
+			  jtv.binder = preBinder;
+		  }
+	  }
+  }
+  
+  private IJavaType computeReturnType(IBinding b) {
     if (b == null) return null;
     IRNode n = b.getNode();
     Operator op = JJNode.tree.getOperator( n );
