@@ -7,6 +7,7 @@ import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.TypeUtils.*;
@@ -43,13 +44,71 @@ class MethodBinder {
     	return result;
     }
     
+    class CallState {
+    	final IRNode call;
+    	final IRNode targs;		
+    	final IRNode args; 
+    	/**
+    	 * Null for methods
+    	 */
+    	final IRNode constructorType;
+    	/**
+    	 * Computed from the receiver expression for methods
+    	 * Derived from constructorType for constructors
+    	 */
+    	final IJavaType receiverType;
+    	
+    	/**
+    	 * For methods
+    	 */
+    	CallState(IRNode call, IRNode targs, IRNode args) {
+    		this(call, targs, args, null);
+    	}
+    	
+    	CallState(IRNode call, IRNode targs, IRNode args, IRNode type) {    		
+    		this.call = call;
+			this.targs = targs;
+			this.args = args;
+			constructorType = type;			
+	    	receiverType = type == null ? null : typeEnvironment.convertNodeTypeToIJavaType(type);
+    	}
+    	
+        // Convert the args to IJavaTypes
+    	IJavaType[] getArgTypes() {
+    	  if (args == null) {
+    		  return JavaGlobals.noTypes;
+    	  }
+          final int n = JJNode.tree.numChildren(args);
+          if (n == 0) {
+    		  return JavaGlobals.noTypes;
+          }
+          IJavaType[] argTypes = new IJavaType[n];     
+          Iterator<IRNode> argse = JJNode.tree.children(args); 
+          for (int i= 0; i < n; ++i) {
+            IRNode arg = argse.next();
+            argTypes[i] = binder.getJavaType(arg);
+          }
+          return argTypes;
+        }
+
+		boolean usesDiamondOp() {
+			if (constructorType != null && ParameterizedType.prototype.includes(constructorType)) { 
+				IRNode typeArgs = ParameterizedType.getArgs(constructorType);
+				if (JJNode.tree.numChildren(typeArgs) == 0) {
+					return true;
+				}
+			}
+			return false;
+		}
+    }
+    
     private class SearchState {
     	final TypeUtils utils = new TypeUtils(typeEnvironment);
     	final Iterable<IBinding> methods;
-    	final IRNode targs;		
-    	final IRNode args; 
+    	final CallState call;
     	final IJavaType[] argTypes;
     	final int numTypeArgs;
+    	final boolean usesDiamondOp;
     	
     	BindingInfo bestMethod = null;
     	IJavaType bestClass = null; // type of containing class
@@ -57,13 +116,12 @@ class MethodBinder {
     	final IJavaType[] tmpTypes;
     	MethodState bestState;
     	
-		SearchState(Iterable<IBinding> methods, IRNode targs,
-				IRNode args, IJavaType[] argTypes) {
+		SearchState(Iterable<IBinding> methods, CallState call) {
 			this.methods = methods;
-			this.targs = targs;
-			this.args = args;
-			this.argTypes = argTypes;
-			numTypeArgs = AbstractJavaBinder.numChildrenOrZero(targs);
+			this.call = call;
+			this.argTypes = call.getArgTypes();
+			usesDiamondOp = call.usesDiamondOp();
+			numTypeArgs = AbstractJavaBinder.numChildrenOrZero(call.targs);
 			bestArgs = new IJavaType[argTypes.length];
 			tmpTypes = new IJavaType[argTypes.length];
 		}
@@ -148,7 +206,8 @@ class MethodBinder {
 		 	final IJavaType[] u = bestArgs;
 		 	// Infer actual type arguments
 		 	final Constraints constraints = 
-	     		utils.getEmptyConstraints(new HashMap<IJavaType,IJavaType>(bestState.substMap), false, false); 		 	
+	     		utils.getEmptyConstraints(match.search.call.call, match.bind,
+	     				new HashMap<IJavaType,IJavaType>(bestState.substMap), false, false); 		 	
 	     	for(int i=0; i<bestArgs.length; i++) {
 	     		// Ui >> Ti
 	     		constraints.addConstraints(u[i], tmpTypes[i]); 
@@ -192,8 +251,8 @@ class MethodBinder {
 	 * specified in section §15.12.2.5. See the following subsections for
 	 * details.
 	 */
-    BindingInfo findBestMethod(Iterable<IBinding> methods, IRNode targs, IRNode args, IJavaType[] argTypes) {
-    	final SearchState state = new SearchState(methods, targs, args, argTypes);
+    BindingInfo findBestMethod(Iterable<IBinding> methods, CallState call) {
+    	final SearchState state = new SearchState(methods, call);
     	BindingInfo best  = findMostSpecificApplicableMethod(state, false, false);
     	if (best == null) {
     		best = findMostSpecificApplicableMethod(state, true, false);
@@ -257,7 +316,7 @@ class MethodBinder {
         	if (s.numTypeArgs != 0) {
         		if (s.numTypeArgs == numTypeFormals) {
         			// Use explicit type arguments
-        			subst = FunctionParameterSubstitution.create(binder, m, s.targs);
+        			subst = FunctionParameterSubstitution.create(binder, m, s.call.targs);
         		}
         	} 
         	methodTypeSubst = subst;
@@ -282,7 +341,7 @@ class MethodBinder {
 	    				IJavaType subst = bind.convertType(jtf); 
 	    				substMap.put(jtf, subst); // FIX slow lookup
 	    			} else {
-	    				IRNode targ = TypeActuals.getType(search.targs, i);
+	    				IRNode targ = TypeActuals.getType(search.call.targs, i);
 	    				IJavaType targT = binder.getJavaType(targ);
 	    				substMap.put(jtf, targT);    			
 	    			}
@@ -354,7 +413,8 @@ class MethodBinder {
     	
     	// First, capture type variables
     	// (expanding varargs to fill in what would be null)
-     	final TypeUtils.Constraints constraints =  s.utils.getEmptyConstraints(m.substMap, allowBoxing, allowVarargs);    	
+     	final TypeUtils.Constraints constraints =
+     		s.utils.getEmptyConstraints(s.call.call, m.bind, m.substMap, allowBoxing, allowVarargs);    	
     	final Iterator<IRNode> fe = JJNode.tree.children(m.formals);
     	IJavaType varArgBase = null;
     	for (int i=0; i < s.argTypes.length; ++i) {
@@ -413,6 +473,11 @@ class MethodBinder {
     			constraints.addConstraints(fty, s.argTypes[i]);
     		}
     	}
+    	if (s.usesDiamondOp) {
+    		// Add constraints for the type's formal parameters 
+    		final IJavaDeclaredType dt = (IJavaDeclaredType) s.call.receiverType;
+    		constraints.addConstraintsForType(dt.getDeclaration());    		
+    	}
     	final TypeUtils.Mapping map = constraints.computeTypeMapping();
     	
     	// Then, substitute and check if compatible
@@ -432,8 +497,8 @@ class MethodBinder {
     				// issue w/ the last/varargs parameter
     				final IJavaArrayType at = (IJavaArrayType) captured;
     				final IJavaType eltType = at.getElementType();
-    				if (allowVarargs && s.args != null) {
-    					final IRNode varArg = Arguments.getArg(s.args, i); 
+    				if (allowVarargs && s.call.args != null) {
+    					final IRNode varArg = Arguments.getArg(s.call.args, i); 
     					if (VarArgsExpression.prototype.includes(varArg)) {
     						inner:
     							for(IRNode arg : VarArgsExpression.getArgIterator(varArg)) {

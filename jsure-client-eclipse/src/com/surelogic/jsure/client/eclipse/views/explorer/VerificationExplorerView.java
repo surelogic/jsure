@@ -503,7 +503,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     if (scan != null) {
       if (f_showDiffTableColumn != null) {
         final String label = oldScan == null ? "No Prior Scan" : "Differences from scan of " + oldScan.getProjects().getLabel()
-            + " at " + SLUtility.toStringHMS(oldScan.getProjects().getDate());
+            + " at " + SLUtility.toStringDayHMS(oldScan.getProjects().getDate());
         f_showDiffTableColumn.getColumn().setText(label);
       }
       final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();

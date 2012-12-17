@@ -58,7 +58,7 @@ public class JSureProjectsXMLReader extends NestedJSureXmlReader implements IXml
         try {
         	time = SLUtility.fromStringForDir(date);
         } catch (ParseException e) {
-        	time = SLUtility.fromStringHMS(date);
+        	time = SLUtility.fromStringDayHMS(date);
         }
         projects = new Projects(loc, "true".equals(isAuto), time, Collections.<String, Object> emptyMap());
       } catch (ParseException e) {

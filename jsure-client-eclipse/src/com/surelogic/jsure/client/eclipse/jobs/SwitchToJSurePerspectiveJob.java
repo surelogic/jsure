@@ -18,51 +18,49 @@ import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
  */
 public final class SwitchToJSurePerspectiveJob extends SLUIJob {
 
-	@Override
-	public IStatus runInUIThread(IProgressMonitor monitor) {
-		/*
-		 * This is run when a scan completes so if we need to show a balloon
-		 * notification.
-		 */
-		if (EclipseUtility
-				.getBooleanPreference(JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS)) {
-			BalloonUtility.showMessage(
-					I18N.msg("jsure.balloon.scandone.title"),
-					I18N.msg("jsure.balloon.scandone.msg"));
-		}
+  public SwitchToJSurePerspectiveJob() {
+    super(SwitchToJSurePerspectiveJob.class.getName());
+  }
 
-		/*
-		 * Ensure that we are not already in the JSure perspective.
-		 */
-		final boolean inJSurePerspective = EclipseUIUtility
-				.isPerspectiveOpen(CodeVerificationPerspective.class.getName());
-		if (inJSurePerspective) {
-			return Status.OK_STATUS; // bail
-		}
+  @Override
+  public IStatus runInUIThread(IProgressMonitor monitor) {
+    /*
+     * This is run when a scan completes so if we need to show a balloon
+     * notification.
+     */
+    if (EclipseUtility.getBooleanPreference(JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS)) {
+      BalloonUtility.showMessage(I18N.msg("jsure.balloon.scandone.title"), I18N.msg("jsure.balloon.scandone.msg"));
+    }
 
-		/*
-		 * Check that we are the only job of this type running. This is trying
-		 * to avoid double prompting the user to change to the Flashlight
-		 * perspective. It may not work in all cases but should eliminate most
-		 * of them.
-		 * 
-		 * In particular if the dialog is already up and the user exits another
-		 * instrumented program then that exit will trigger another instance of
-		 * this job to run. Without this check the user would get two prompts to
-		 * change to the Flashlight perspective.
-		 */
-		final boolean onlySwitchToJSurePerspectiveJobRunning = EclipseUtility
-				.getActiveJobCountOfType(SwitchToJSurePerspectiveJob.class) == 1;
-		if (!onlySwitchToJSurePerspectiveJobRunning) {
-			return Status.OK_STATUS; // bail
-		}
+    /*
+     * Ensure that we are not already in the JSure perspective.
+     */
+    final boolean inJSurePerspective = EclipseUIUtility.isPerspectiveOpen(CodeVerificationPerspective.class.getName());
+    if (inJSurePerspective) {
+      return Status.OK_STATUS; // bail
+    }
 
-		final boolean change = com.surelogic.jsure.client.eclipse.dialogs.ConfirmPerspectiveSwitch
-				.toCodeVerification(EclipseUIUtility.getShell());
-		if (change) {
-			EclipseUIUtility.showPerspective(CodeVerificationPerspective.class
-					.getName());
-		}
-		return Status.OK_STATUS;
-	}
+    /*
+     * Check that we are the only job of this type running. This is trying to
+     * avoid double prompting the user to change to the Flashlight perspective.
+     * It may not work in all cases but should eliminate most of them.
+     * 
+     * In particular if the dialog is already up and the user exits another
+     * instrumented program then that exit will trigger another instance of this
+     * job to run. Without this check the user would get two prompts to change
+     * to the Flashlight perspective.
+     */
+    final boolean onlySwitchToJSurePerspectiveJobRunning = EclipseUtility
+        .getActiveJobCountWithName(SwitchToJSurePerspectiveJob.class.getName()) == 1;
+    if (!onlySwitchToJSurePerspectiveJobRunning) {
+      return Status.OK_STATUS; // bail
+    }
+
+    final boolean change = com.surelogic.jsure.client.eclipse.dialogs.ConfirmPerspectiveSwitch.toCodeVerification(EclipseUIUtility
+        .getShell());
+    if (change) {
+      EclipseUIUtility.showPerspective(CodeVerificationPerspective.class.getName());
+    }
+    return Status.OK_STATUS;
+  }
 }
