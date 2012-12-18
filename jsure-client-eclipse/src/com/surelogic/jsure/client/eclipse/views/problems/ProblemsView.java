@@ -42,10 +42,12 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.ColumnResizeListener;
 import com.surelogic.common.ui.EclipseUIUtility;
@@ -60,6 +62,7 @@ import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.Activator;
+import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.preferences.UninterestingPackageFilterPreferencePage;
@@ -294,6 +297,15 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     }
   };
 
+  private final Action f_openXmlEditor = new Action() {
+    @Override
+    public void run() {
+      final IDecl decl = getDeclarationOfFirstSelected();
+      if (decl != null)
+        PromisesXMLEditor.openInXMLEditor(decl);
+    }
+  };
+
   private void makeActions() {
     f_treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       public void doubleClick(DoubleClickEvent event) {
@@ -359,6 +371,8 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     f_actionShowOnlyFromSrc.setToolTipText(I18N.msg("jsure.eclipse.problems.showOnlyFromSrc.tip"));
     f_showOnlyFromSrc = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROBLEMS_SHOW_ONLY_FROM_SRC);
     f_actionShowOnlyFromSrc.setChecked(f_showOnlyFromSrc);
+
+    f_openXmlEditor.setText(I18N.msg("jsure.eclipse.view.open_xml_editor"));
   }
 
   private void hookContextMenu() {
@@ -369,6 +383,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
         final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
         if (!s.isEmpty()) {
           manager.add(f_actionAnnotateCode);
+          manager.add(f_openXmlEditor);
           manager.add(new Separator());
           manager.add(f_actionExpand);
           manager.add(f_actionCollapse);
@@ -463,6 +478,22 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
   private void selectionChangedHelper() {
     final boolean proposalsSelected = !getSelectedProposals().isEmpty();
     f_actionAnnotateCode.setEnabled(proposalsSelected);
+    final boolean declToOpen = getDeclarationOfFirstSelected() != null;
+    f_openXmlEditor.setEnabled(declToOpen);
+  }
+
+  @Nullable
+  private IDecl getDeclarationOfFirstSelected() {
+    final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+    if (!s.isEmpty()) {
+      final Object first = s.getFirstElement();
+      if (first instanceof ElementDrop) {
+        final IJavaRef ref = ((ElementDrop) first).getDrop().getJavaRef();
+        if (ref != null)
+          return ref.getDeclaration();
+      }
+    }
+    return null;
   }
 
   private List<IProposedPromiseDrop> getSelectedProposals() {

@@ -45,6 +45,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
@@ -93,14 +94,14 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
     abstract void run(Object o);
   }
 
-  private final Action f_open = new SingleElementAction("Open") {
+  private final Action f_openXmlEditor = new SingleElementAction(I18N.msg("jsure.eclipse.view.open_xml_editor")) {
     @Override
     public void run(Object o) {
       handleDoubleClick(o);
     }
   };
 
-  private final Action f_openSource = new SingleElementAction("Open source") {
+  private final Action f_openSource = new SingleElementAction("Open") {
     @Override
     public void run(Object o) {
       handleOpenSource(o);
@@ -259,20 +260,19 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
 
   @Override
   protected void makeActions() {
-    f_actionExpand.setText("Expand");
-    f_actionExpand.setToolTipText("Expand the current selection or all if none");
+    f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
+    f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
     f_actionExpand.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
 
-    f_actionCollapse.setText("Collapse");
-    f_actionCollapse.setToolTipText("Collapse the current selection or all if none");
+    f_actionCollapse.setText(I18N.msg("jsure.eclipse.view.collapse"));
+    f_actionCollapse.setToolTipText(I18N.msg("jsure.eclipse.view.collapse.tip"));
     f_actionCollapse.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
   }
 
   public void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
-    manager.add(f_open);
-    // manager.add(f_new);
     manager.add(f_openSource);
     manager.add(new Separator());
+    manager.add(f_openXmlEditor);
     manager.add(f_copyAnnos);
     manager.add(new Separator());
     manager.add(f_actionExpand);
