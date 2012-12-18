@@ -65,7 +65,8 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
 
   private Element[] f_root = null;
 
-  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, final boolean showOnlyAbductive) {
+  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final ScanDifferences diff,
+      final boolean showOnlyDifferences, final boolean showOnlyFromSrc, final boolean showOnlyAbductive) {
     final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer(null);
 
     final ArrayList<IProposedPromiseDrop> drops = filterOutDuplicates(scan.getProposedPromiseDrops());

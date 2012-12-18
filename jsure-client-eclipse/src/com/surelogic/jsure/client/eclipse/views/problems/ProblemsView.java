@@ -56,6 +56,7 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
+import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.Activator;
@@ -82,6 +83,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
   private final ProblemsViewContentProvider f_contentProvider = new ProblemsViewContentProvider();
   private boolean f_highlightDifferences;
   private boolean f_showOnlyDifferences;
+  private boolean f_showOnlyFromSrc;
 
   private final ViewerSorter f_alphaLineSorter = new ViewerSorter() {
 
@@ -200,6 +202,18 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
       if (f_showOnlyDifferences != buttonChecked) {
         f_showOnlyDifferences = buttonChecked;
         EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROBLEMS_SHOW_ONLY_DIFFERENCES, f_showOnlyDifferences);
+        currentScanChanged(null);
+      }
+    }
+  };
+
+  private final Action f_actionShowOnlyFromSrc = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      final boolean buttonChecked = f_actionShowOnlyFromSrc.isChecked();
+      if (f_showOnlyFromSrc != buttonChecked) {
+        f_showOnlyFromSrc = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROBLEMS_SHOW_ONLY_FROM_SRC, f_showOnlyFromSrc);
         currentScanChanged(null);
       }
     }
@@ -339,6 +353,12 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     f_actionShowOnlyDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.show_only_diffs.tip"));
     f_showOnlyDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROBLEMS_SHOW_ONLY_DIFFERENCES);
     f_actionShowOnlyDifferences.setChecked(f_showOnlyDifferences);
+
+    f_actionShowOnlyFromSrc.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_COMP_UNIT));
+    f_actionShowOnlyFromSrc.setText(I18N.msg("jsure.eclipse.problems.showOnlyFromSrc"));
+    f_actionShowOnlyFromSrc.setToolTipText(I18N.msg("jsure.eclipse.problems.showOnlyFromSrc.tip"));
+    f_showOnlyFromSrc = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROBLEMS_SHOW_ONLY_FROM_SRC);
+    f_actionShowOnlyFromSrc.setChecked(f_showOnlyFromSrc);
   }
 
   private void hookContextMenu() {
@@ -378,6 +398,8 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     pulldown.add(f_actionHighlightDifferences);
     pulldown.add(f_actionShowOnlyDifferences);
     pulldown.add(new Separator());
+    pulldown.add(f_actionShowOnlyFromSrc);
+    pulldown.add(new Separator());
     pulldown.add(f_preferences);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
@@ -388,13 +410,16 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     toolbar.add(f_actionHighlightDifferences);
     toolbar.add(f_actionShowOnlyDifferences);
     toolbar.add(new Separator());
+    toolbar.add(f_actionShowOnlyFromSrc);
+    toolbar.add(new Separator());
     toolbar.add(f_preferences);
   }
 
   private void showScanOrEmptyLabel() {
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
     if (scan != null) {
-      f_contentProvider.changeContentsToCurrentScan(scan);
+      final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
+      f_contentProvider.changeContentsToCurrentScan(scan, diff, f_showOnlyDifferences, f_showOnlyFromSrc);
       setViewerVisibility(true);
 
       // Running too early?

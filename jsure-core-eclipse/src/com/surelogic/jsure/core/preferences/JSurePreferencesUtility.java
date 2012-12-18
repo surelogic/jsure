@@ -160,9 +160,11 @@ public final class JSurePreferencesUtility {
 
   public static final String PROBLEMS_HIGHLIGHT_DIFFERENCES = PREFIX + "problems.highlight.differences";
   public static final String PROBLEMS_SHOW_ONLY_DIFFERENCES = PREFIX + "problems.only.differences";
+  public static final String PROBLEMS_SHOW_ONLY_FROM_SRC = PREFIX + "problems.show.only.from.src";
 
   public static final String PROPOSED_HIGHLIGHT_DIFFERENCES = PREFIX + "proposed.highlight.differences";
   public static final String PROPOSED_SHOW_ONLY_DIFFERENCES = PREFIX + "proposed.only.differences";
+  public static final String PROPOSED_SHOW_ONLY_FROM_SRC = PREFIX + "proposed.show.only.from.src";
 
   /**
    * Gets the JSure data directory. This method ensures that the directory does

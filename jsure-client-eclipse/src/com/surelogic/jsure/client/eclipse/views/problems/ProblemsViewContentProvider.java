@@ -62,7 +62,8 @@ public class ProblemsViewContentProvider implements ITreeContentProvider, IViewD
     return f_root == null | f_root.length == 0;
   }
 
-  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan) {
+  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final ScanDifferences diff,
+      final boolean showOnlyDifferences, final boolean showOnlyFromSrc) {
     final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer(null);
 
     final ArrayList<IModelingProblemDrop> drops = scan.getModelingProblemDrops();
