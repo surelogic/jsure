@@ -187,7 +187,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
       final boolean buttonChecked = f_actionHighlightDifferences.isChecked();
       if (f_highlightDifferences != buttonChecked) {
         f_highlightDifferences = buttonChecked;
-        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROPOSED_HIGHLIGHT_DIFFERENCES, f_highlightDifferences);
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROPOSED_ANNO_HIGHLIGHT_DIFFERENCES, f_highlightDifferences);
         f_contentProvider.setHighlightDifferences(f_highlightDifferences);
         f_treeViewer.refresh();
       }
@@ -200,7 +200,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
       final boolean buttonChecked = f_actionShowOnlyDifferences.isChecked();
       if (f_showOnlyDifferences != buttonChecked) {
         f_showOnlyDifferences = buttonChecked;
-        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROPOSED_SHOW_ONLY_DIFFERENCES, f_showOnlyDifferences);
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROPOSED_ANNO_SHOW_ONLY_DIFFERENCES, f_showOnlyDifferences);
         currentScanChanged(null);
       }
     }
@@ -212,7 +212,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
       final boolean buttonChecked = f_actionShowOnlyFromSrc.isChecked();
       if (f_showOnlyFromSrc != buttonChecked) {
         f_showOnlyFromSrc = buttonChecked;
-        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROPOSED_SHOW_ONLY_FROM_SRC, f_showOnlyFromSrc);
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROPOSED_ANNO_SHOW_ONLY_FROM_SRC, f_showOnlyFromSrc);
         currentScanChanged(null);
       }
     }
@@ -369,20 +369,20 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     f_actionHighlightDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG));
     f_actionHighlightDifferences.setText(I18N.msg("jsure.eclipse.view.highlight_diffs"));
     f_actionHighlightDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.highlight_diffs.tip"));
-    f_highlightDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROPOSED_HIGHLIGHT_DIFFERENCES);
+    f_highlightDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROPOSED_ANNO_HIGHLIGHT_DIFFERENCES);
     f_actionHighlightDifferences.setChecked(f_highlightDifferences);
     f_contentProvider.setHighlightDifferences(f_highlightDifferences);
 
     f_actionShowOnlyDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG_ONLY));
     f_actionShowOnlyDifferences.setText(I18N.msg("jsure.eclipse.view.show_only_diffs"));
     f_actionShowOnlyDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.show_only_diffs.tip"));
-    f_showOnlyDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROPOSED_SHOW_ONLY_DIFFERENCES);
+    f_showOnlyDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROPOSED_ANNO_SHOW_ONLY_DIFFERENCES);
     f_actionShowOnlyDifferences.setChecked(f_showOnlyDifferences);
 
     f_actionShowOnlyFromSrc.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_COMP_UNIT));
     f_actionShowOnlyFromSrc.setText(I18N.msg("jsure.eclipse.proposed.promises.showOnlyFromSrc"));
     f_actionShowOnlyFromSrc.setToolTipText(I18N.msg("jsure.eclipse.proposed.promises.showOnlyFromSrc.tip"));
-    f_showOnlyFromSrc = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROPOSED_SHOW_ONLY_FROM_SRC);
+    f_showOnlyFromSrc = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROPOSED_ANNO_SHOW_ONLY_FROM_SRC);
     f_actionShowOnlyFromSrc.setChecked(f_showOnlyFromSrc);
   }
 

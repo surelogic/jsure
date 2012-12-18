@@ -110,6 +110,9 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultBooleanPreference(PROPOSED_ANNOTATIONS_SHOW_ABDUCTIVE_ONLY, true);
       EclipseUtility.setDefaultIntPreference(PROPOSED_ANNO_COL_TREE_WIDTH, 300);
       EclipseUtility.setDefaultIntPreference(PROPOSED_ANNO_COL_LINE_WIDTH, 40);
+      EclipseUtility.setDefaultBooleanPreference(PROPOSED_ANNO_HIGHLIGHT_DIFFERENCES, true);
+
+      EclipseUtility.setDefaultBooleanPreference(PROBLEMS_HIGHLIGHT_DIFFERENCES, true);
 
       /*
        * We'll take the default-default for the other preferences.
@@ -136,6 +139,9 @@ public final class JSurePreferencesUtility {
   public static final String PROPOSED_ANNOTATIONS_SHOW_ABDUCTIVE_ONLY = PREFIX + "proposed.annotations.show.abductive.only";
   public static final String PROPOSED_ANNO_COL_TREE_WIDTH = PREFIX + "proposed.anno.col.tree.width";
   public static final String PROPOSED_ANNO_COL_LINE_WIDTH = PREFIX + "proposed.anno.col.line.width";
+  public static final String PROPOSED_ANNO_HIGHLIGHT_DIFFERENCES = PREFIX + "proposed.anno.highlight.differences";
+  public static final String PROPOSED_ANNO_SHOW_ONLY_DIFFERENCES = PREFIX + "proposed.anno.only.differences";
+  public static final String PROPOSED_ANNO_SHOW_ONLY_FROM_SRC = PREFIX + "proposed.anno.show.only.from.src";
 
   public static final String VSTATUS_ALPHA_SORT = PREFIX + "verification.status.alpha.sort";
   public static final String VSTATUS_SHOW_HINTS = PREFIX + "verification.status.show.hints";
@@ -161,10 +167,6 @@ public final class JSurePreferencesUtility {
   public static final String PROBLEMS_HIGHLIGHT_DIFFERENCES = PREFIX + "problems.highlight.differences";
   public static final String PROBLEMS_SHOW_ONLY_DIFFERENCES = PREFIX + "problems.only.differences";
   public static final String PROBLEMS_SHOW_ONLY_FROM_SRC = PREFIX + "problems.show.only.from.src";
-
-  public static final String PROPOSED_HIGHLIGHT_DIFFERENCES = PREFIX + "proposed.highlight.differences";
-  public static final String PROPOSED_SHOW_ONLY_DIFFERENCES = PREFIX + "proposed.only.differences";
-  public static final String PROPOSED_SHOW_ONLY_FROM_SRC = PREFIX + "proposed.show.only.from.src";
 
   /**
    * Gets the JSure data directory. This method ensures that the directory does
