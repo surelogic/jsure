@@ -62,7 +62,7 @@ public class ProblemsViewContentProvider implements ITreeContentProvider, IViewD
     return f_root == null | f_root.length == 0;
   }
 
-  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, final boolean showOnlyAbductive) {
+  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan) {
     final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer(null);
 
     final ArrayList<IModelingProblemDrop> drops = scan.getModelingProblemDrops();
@@ -115,17 +115,21 @@ public class ProblemsViewContentProvider implements ITreeContentProvider, IViewD
     return null;
   }
 
-  /*
-   * We don't shown differences in this view, so these methods tell the model
-   * this fact.
-   */
+  @Nullable
+  private ScanDifferences f_scanDifferences;
 
   @Nullable
   public ScanDifferences getScanDifferences() {
-    return null;
+    return f_scanDifferences;
   }
 
+  private boolean f_highlightDifferences;
+
   public boolean highlightDifferences() {
-    return false;
+    return f_highlightDifferences;
+  }
+
+  void setHighlightDifferences(boolean value) {
+    f_highlightDifferences = value;
   }
 }

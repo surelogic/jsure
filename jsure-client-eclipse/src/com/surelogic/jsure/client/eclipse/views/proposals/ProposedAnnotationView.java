@@ -79,6 +79,8 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
   @NonNull
   private final ProposedAnnotationViewContentProvider f_contentProvider = new ProposedAnnotationViewContentProvider();
   private boolean f_showOnlyAbductive;
+  private boolean f_highlightDifferences;
+  private boolean f_showOnlyDifferences;
 
   private final ViewerSorter f_alphaLineSorter = new ViewerSorter() {
 
@@ -176,6 +178,31 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
       super.dispose();
     }
   }
+
+  private final Action f_actionHighlightDifferences = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      final boolean buttonChecked = f_actionHighlightDifferences.isChecked();
+      if (f_highlightDifferences != buttonChecked) {
+        f_highlightDifferences = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROPOSED_HIGHLIGHT_DIFFERENCES, f_highlightDifferences);
+        f_contentProvider.setHighlightDifferences(f_highlightDifferences);
+        f_treeViewer.refresh();
+      }
+    }
+  };
+
+  private final Action f_actionShowOnlyDifferences = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      final boolean buttonChecked = f_actionShowOnlyDifferences.isChecked();
+      if (f_showOnlyDifferences != buttonChecked) {
+        f_showOnlyDifferences = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROPOSED_SHOW_ONLY_DIFFERENCES, f_showOnlyDifferences);
+        currentScanChanged(null);
+      }
+    }
+  };
 
   private final Action f_openProofContext = new Action() {
     @Override
@@ -325,7 +352,18 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
 
     f_actionCopy.setText(I18N.msg("jsure.eclipse.view.copy"));
     f_actionCopy.setToolTipText(I18N.msg("jsure.eclipse.view.copy.tip"));
+    f_actionHighlightDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG));
+    f_actionHighlightDifferences.setText(I18N.msg("jsure.eclipse.view.highlight_diffs"));
+    f_actionHighlightDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.highlight_diffs.tip"));
+    f_highlightDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROPOSED_HIGHLIGHT_DIFFERENCES);
+    f_actionHighlightDifferences.setChecked(f_highlightDifferences);
+    f_contentProvider.setHighlightDifferences(f_highlightDifferences);
 
+    f_actionShowOnlyDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG_ONLY));
+    f_actionShowOnlyDifferences.setText(I18N.msg("jsure.eclipse.view.show_only_diffs"));
+    f_actionShowOnlyDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.show_only_diffs.tip"));
+    f_showOnlyDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROPOSED_SHOW_ONLY_DIFFERENCES);
+    f_actionShowOnlyDifferences.setChecked(f_showOnlyDifferences);
   }
 
   private void hookContextMenu() {
@@ -366,12 +404,18 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     pulldown.add(new Separator());
     pulldown.add(f_actionAnnotateCode);
     pulldown.add(new Separator());
+    pulldown.add(f_actionHighlightDifferences);
+    pulldown.add(f_actionShowOnlyDifferences);
+    pulldown.add(new Separator());
     pulldown.add(f_actionShowOnlyAbductive);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
     toolbar.add(f_actionCollapseAll);
     toolbar.add(new Separator());
     toolbar.add(f_actionAnnotateCode);
+    toolbar.add(new Separator());
+    toolbar.add(f_actionHighlightDifferences);
+    toolbar.add(f_actionShowOnlyDifferences);
     toolbar.add(new Separator());
     toolbar.add(f_actionShowOnlyAbductive);
   }

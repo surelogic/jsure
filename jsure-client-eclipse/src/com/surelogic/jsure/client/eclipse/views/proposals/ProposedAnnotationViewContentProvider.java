@@ -182,17 +182,21 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
     return result;
   }
 
-  /*
-   * We don't shown differences in this view, so these methods tell the model
-   * this fact.
-   */
+  @Nullable
+  private ScanDifferences f_scanDifferences;
 
   @Nullable
   public ScanDifferences getScanDifferences() {
-    return null;
+    return f_scanDifferences;
   }
 
+  private boolean f_highlightDifferences;
+
   public boolean highlightDifferences() {
-    return false;
+    return f_highlightDifferences;
+  }
+
+  void setHighlightDifferences(boolean value) {
+    f_highlightDifferences = value;
   }
 }

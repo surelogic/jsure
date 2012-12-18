@@ -158,6 +158,12 @@ public final class JSurePreferencesUtility {
   public static final String VEXPLORER_COL_LINE_WIDTH = PREFIX + "verification.explorer.col.line.width";
   public static final String VEXPLORER_COL_DIFF_WIDTH = PREFIX + "verification.explorer.col.diff.width";
 
+  public static final String PROBLEMS_HIGHLIGHT_DIFFERENCES = PREFIX + "problems.highlight.differences";
+  public static final String PROBLEMS_SHOW_ONLY_DIFFERENCES = PREFIX + "problems.only.differences";
+
+  public static final String PROPOSED_HIGHLIGHT_DIFFERENCES = PREFIX + "proposed.highlight.differences";
+  public static final String PROPOSED_SHOW_ONLY_DIFFERENCES = PREFIX + "proposed.only.differences";
+
   /**
    * Gets the JSure data directory. This method ensures that the directory does
    * exist on the disk. It checks that is is there and, if not, tries to create

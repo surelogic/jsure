@@ -10,6 +10,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -79,7 +80,8 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
   private TreeViewer f_treeViewer;
   @NonNull
   private final ProblemsViewContentProvider f_contentProvider = new ProblemsViewContentProvider();
-  private boolean f_showOnlyAbductive;
+  private boolean f_highlightDifferences;
+  private boolean f_showOnlyDifferences;
 
   private final ViewerSorter f_alphaLineSorter = new ViewerSorter() {
 
@@ -177,6 +179,31 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
       super.dispose();
     }
   }
+
+  private final Action f_actionHighlightDifferences = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      final boolean buttonChecked = f_actionHighlightDifferences.isChecked();
+      if (f_highlightDifferences != buttonChecked) {
+        f_highlightDifferences = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROBLEMS_HIGHLIGHT_DIFFERENCES, f_highlightDifferences);
+        f_contentProvider.setHighlightDifferences(f_highlightDifferences);
+        f_treeViewer.refresh();
+      }
+    }
+  };
+
+  private final Action f_actionShowOnlyDifferences = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      final boolean buttonChecked = f_actionShowOnlyDifferences.isChecked();
+      if (f_showOnlyDifferences != buttonChecked) {
+        f_showOnlyDifferences = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROBLEMS_SHOW_ONLY_DIFFERENCES, f_showOnlyDifferences);
+        currentScanChanged(null);
+      }
+    }
+  };
 
   private final Action f_actionExpand = new Action() {
     @Override
@@ -295,10 +322,23 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
 
     f_actionCopy.setText(I18N.msg("jsure.eclipse.view.copy"));
     f_actionCopy.setToolTipText(I18N.msg("jsure.eclipse.view.copy.tip"));
+
     f_preferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_FILTER));
     f_preferences.setText(I18N.msg("jsure.eclipse.problems.filter"));
     f_preferences.setToolTipText(I18N.msg("jsure.eclipse.problems.filter.tip"));
 
+    f_actionHighlightDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG));
+    f_actionHighlightDifferences.setText(I18N.msg("jsure.eclipse.view.highlight_diffs"));
+    f_actionHighlightDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.highlight_diffs.tip"));
+    f_highlightDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROBLEMS_HIGHLIGHT_DIFFERENCES);
+    f_actionHighlightDifferences.setChecked(f_highlightDifferences);
+    f_contentProvider.setHighlightDifferences(f_highlightDifferences);
+
+    f_actionShowOnlyDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG_ONLY));
+    f_actionShowOnlyDifferences.setText(I18N.msg("jsure.eclipse.view.show_only_diffs"));
+    f_actionShowOnlyDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.show_only_diffs.tip"));
+    f_showOnlyDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROBLEMS_SHOW_ONLY_DIFFERENCES);
+    f_actionShowOnlyDifferences.setChecked(f_showOnlyDifferences);
   }
 
   private void hookContextMenu() {
@@ -335,6 +375,9 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     pulldown.add(new Separator());
     pulldown.add(f_actionAnnotateCode);
     pulldown.add(new Separator());
+    pulldown.add(f_actionHighlightDifferences);
+    pulldown.add(f_actionShowOnlyDifferences);
+    pulldown.add(new Separator());
     pulldown.add(f_preferences);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
@@ -342,13 +385,16 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     toolbar.add(new Separator());
     toolbar.add(f_actionAnnotateCode);
     toolbar.add(new Separator());
+    toolbar.add(f_actionHighlightDifferences);
+    toolbar.add(f_actionShowOnlyDifferences);
+    toolbar.add(new Separator());
     toolbar.add(f_preferences);
   }
 
   private void showScanOrEmptyLabel() {
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
     if (scan != null) {
-      f_contentProvider.changeContentsToCurrentScan(scan, f_showOnlyAbductive);
+      f_contentProvider.changeContentsToCurrentScan(scan);
       setViewerVisibility(true);
 
       // Running too early?
