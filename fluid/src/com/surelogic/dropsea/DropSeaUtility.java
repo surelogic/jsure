@@ -15,9 +15,9 @@ public final class DropSeaUtility {
     if (o1 != null && o2 == null)
       return false;
 
-    return isSame(o1.getAnnotation(), o2.getAnnotation()) && isSame(o1.getContents(), o2.getContents())
-        && isSame(o1.getReplacedContents(), o2.getReplacedContents()) && isSame(o1.getJavaRef(), o2.getJavaRef())
-        && isAllSame(o1.getAnnoAttributes(), o2.getAnnoAttributes())
+    return isSame(o1.getAnnotation(), o2.getAnnotation()) && isSame(o1.getValue(), o2.getValue())
+        && isSame(o1.getReplacedValue(), o2.getReplacedValue()) && isSame(o1.getJavaRef(), o2.getJavaRef())
+        && isAllSame(o1.getAttributes(), o2.getAttributes())
         && isAllSame(o1.getReplacedAttributes(), o2.getReplacedAttributes());
   }
 

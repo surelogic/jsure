@@ -174,9 +174,23 @@ public class IRFreeDrop implements IDrop {
 
   @NonNull
   public Collection<IRFreeProposedPromiseDrop> getProposals() {
-    if (f_proposedPromises != null)
-      return f_proposedPromises;
-    else
+    if (f_proposedPromises != null) {
+      /*
+       * We need to filter the results that cannot currently be edited into the
+       * code. This is proposals about binary code that do not have an
+       * assumption target. this should be changed back to
+       * 
+       * return f_proposedPromises;
+       * 
+       * when automatic editing of XML is complete.
+       */
+      Collection<IRFreeProposedPromiseDrop> result = new ArrayList<IRFreeProposedPromiseDrop>();
+      for (IRFreeProposedPromiseDrop ppd : f_proposedPromises) {
+        if (ppd.isFromSrc() || ppd.getAssumptionRef().isFromSource())
+          result.add(ppd);
+      }
+      return result;
+    } else
       return Collections.emptyList();
   }
 

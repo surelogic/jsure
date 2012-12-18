@@ -1,6 +1,15 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.*;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ANNOTATION_TYPE;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CONTENTS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FLAVOR_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_REF;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.JAVA_ANNOTATION;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.NO_ANNO_ATTRS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.NO_REPLACED_ATTRS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ORIGIN;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_ANNO;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_CONTENTS;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,6 +17,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.DeclUtil;
@@ -24,6 +34,7 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   @NonNull
   private final Map<String, String> f_replacedAttributes;
   private final String f_JavaAnnotation;
+  @NonNull
   private final String f_annotation;
   private final String f_contents;
   private final String f_replacedAnnotation;
@@ -33,26 +44,26 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
 
   @Override
   boolean aliasTheMessage() {
-	  return true;
+    return true;
   }
-  
+
   void setAnnoAttributes(Map<String, String> value) {
     f_annoAttributes.clear();
-    for(Map.Entry<String, String> e : value.entrySet()) {
-    	if (FLAVOR_ATTR.equals(e.getKey())) {
-    		continue;
-    	}
-    	f_annoAttributes.put(DeclUtil.aliasIfPossible(e.getKey()), e.getValue());
+    for (Map.Entry<String, String> e : value.entrySet()) {
+      if (FLAVOR_ATTR.equals(e.getKey())) {
+        continue;
+      }
+      f_annoAttributes.put(DeclUtil.aliasIfPossible(e.getKey()), e.getValue());
     }
   }
 
   void setReplacedAttributes(Map<String, String> value) {
     f_replacedAttributes.clear();
-    for(Map.Entry<String, String> e : value.entrySet()) {
-    	if (FLAVOR_ATTR.equals(e.getKey())) {
-    		continue;
-    	}
-    	f_replacedAttributes.put(DeclUtil.aliasIfPossible(e.getKey()), e.getValue());
+    for (Map.Entry<String, String> e : value.entrySet()) {
+      if (FLAVOR_ATTR.equals(e.getKey())) {
+        continue;
+      }
+      f_replacedAttributes.put(DeclUtil.aliasIfPossible(e.getKey()), e.getValue());
     }
   }
 
@@ -96,47 +107,59 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     // Java reference must be non-null for a proposed promise
     if (getJavaRef() == null)
       throw new IllegalStateException(I18N.err(44, "getJavaRef()"));
-    
+
     f_annoAttributes = makeAttrs(e.getAttribute(NO_ANNO_ATTRS));
     f_replacedAttributes = makeAttrs(e.getAttribute(NO_REPLACED_ATTRS));
   }
 
-  private static Map<String,String> makeAttrs(String noFlag) {
-	  if ("true".equals(noFlag)) {
-		  return Collections.emptyMap();
-	  } 
-	  return new HashMap<String, String>(0);
+  private static Map<String, String> makeAttrs(String noFlag) {
+    if ("true".equals(noFlag)) {
+      return Collections.emptyMap();
+    }
+    return new HashMap<String, String>(0);
   }
-  
+
   @NonNull
-  public Map<String, String> getAnnoAttributes() {
-    return f_annoAttributes;
-  }
-
-  public Map<String, String> getReplacedAttributes() {
-    return f_replacedAttributes;
-  }
-
   public String getJavaAnnotation() {
     return f_JavaAnnotation;
   }
 
+  @NonNull
   public String getAnnotation() {
     return f_annotation;
   }
 
-  public String getContents() {
+  @Nullable
+  public String getValue() {
     return f_contents;
   }
 
+  @NonNull
+  public Map<String, String> getAttributes() {
+    return f_annoAttributes;
+  }
+
+  @Nullable
   public String getReplacedAnnotation() {
     return f_replacedAnnotation;
   }
 
-  public String getReplacedContents() {
+  @Nullable
+  public String getReplacedValue() {
     return f_replacedContents;
   }
 
+  @NonNull
+  public Map<String, String> getReplacedAttributes() {
+    return f_replacedAttributes;
+  }
+
+  @NonNull
+  public IJavaRef getAssumptionRef() {
+    return f_assumptionRef;
+  }
+
+  @NonNull
   public Origin getOrigin() {
     return f_origin;
   }
@@ -144,13 +167,5 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
   public boolean isAbductivelyInferred() {
     final Origin origin = getOrigin();
     return origin != Origin.CODE;
-  }
-
-  public IJavaRef getAssumptionRef() {
-    return f_assumptionRef;
-  }
-
-  boolean hasAssumptionRef() {
-    return f_assumptionRef != null;
   }
 }

@@ -3,6 +3,7 @@ package com.surelogic.dropsea;
 import java.util.Map;
 
 import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.common.ref.IJavaRef;
 
 /**
@@ -34,13 +35,72 @@ public interface IProposedPromiseDrop extends IAnalysisOutputDrop, ISnapshotDrop
   }
 
   /**
-   * Gets a reference to the Java code this information is about..
+   * Gets the Java annotation being proposed. For
+   * <code>@Starts("nothing")</code> the value of this string would be
+   * {@code "Starts"}.
    * 
-   * @return a reference to the Java code this information is about, cannot be
-   *         {@code null} for a proposed promise drop.
+   * @return the Java annotation being proposed.
    */
   @NonNull
-  IJavaRef getJavaRef();
+  String getAnnotation();
+
+  /**
+   * Gets the value of the Java annotation being proposed. For
+   * <code>@Starts("nothing")</code> the value of this string would be
+   * {@code "nothing"}. For <code>@Borrowed</code>, which has no value, this
+   * string would be {@code null}. The contents placed into this string should
+   * not be escaped. Any embedded quotations or backward slashes will be escaped
+   * before output.
+   * 
+   * @return the value of the Java annotation being proposed.
+   */
+  @Nullable
+  String getValue();
+
+  /**
+   * Gets the non-value attributes for the Java annotation being proposed. The
+   * map is from the name of the attribute to the value.
+   * 
+   * @return non-value attributes for the Java annotation being proposed. May be
+   *         empty.
+   */
+  @NonNull
+  Map<String, String> getAttributes();
+
+  /**
+   * Gets the Java annotation being replaced. For
+   * <code>@Starts("nothing")</code> the value of this string would be
+   * {@code "Starts"}.
+   * 
+   * @return the Java annotation being replaced, or {@code null} if no
+   *         annotation is being replaced.
+   */
+  @Nullable
+  String getReplacedAnnotation();
+
+  /**
+   * Gets the value of the Java annotation being replaced. For
+   * <code>@Starts("nothing")</code> the value of this string would be
+   * {@code "nothing"}. For <code>@Borrowed</code>, which has no value, this
+   * string would be {@code null}. The contents placed into this string should
+   * not be escaped. Any embedded quotations or backward slashes will be escaped
+   * before output.
+   * 
+   * @return the value of the Java annotation being replaced, or {@code null} if
+   *         no annotation is being replaced.
+   */
+  @Nullable
+  String getReplacedValue();
+
+  /**
+   * Gets the non-value attributes for the Java annotation being replaced. The
+   * map is from the name of the attribute to the value.
+   * 
+   * @return non-value attributes for the Java annotation being replaced. May be
+   *         empty.
+   */
+  @NonNull
+  Map<String, String> getReplacedAttributes();
 
   /**
    * Gets a reference to the Java code this proposed promise was proposed from.
@@ -53,24 +113,32 @@ public interface IProposedPromiseDrop extends IAnalysisOutputDrop, ISnapshotDrop
   @NonNull
   IJavaRef getAssumptionRef();
 
-  String getAnnotation();
-
-  String getContents();
-
+  /**
+   * Gets the annotation as it would appear in Java source code. The value, if
+   * any, is escaped.
+   * 
+   * @return the annotation as it would appear in Java source code.
+   */
   @NonNull
-  Map<String, String> getAnnoAttributes();
-
-  String getReplacedAnnotation();
-
-  String getReplacedContents();
-
-  @NonNull
-  Map<String, String> getReplacedAttributes();
-
   String getJavaAnnotation();
 
+  /**
+   * Gets an indication of how this proposal was generated. One of
+   * {@link Origin#CODE}, {@link Origin#MODEL}, {@link Origin#PROBLEM}.
+   * 
+   * @return an indication of how this proposal was generated.
+   */
+  @NonNull
   Origin getOrigin();
 
+  /**
+   * Is this proposed promise inferred from an existing user annotation or
+   * model.
+   * 
+   * @return {@code true} if this proposed promise inferred from an existing
+   *         user annotation or model, {@code false} if this proposal was
+   *         inferred from code with no model/annotation basis for it
+   *         whatsoever.
+   */
   boolean isAbductivelyInferred();
-
 }

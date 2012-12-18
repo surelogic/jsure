@@ -150,11 +150,11 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
     if (anno != null) {
       hash += anno.hashCode();
     }
-    final String contents = ppd.getContents();
+    final String contents = ppd.getValue();
     if (contents != null) {
       hash += contents.hashCode();
     }
-    final String replaced = ppd.getReplacedContents();
+    final String replaced = ppd.getReplacedValue();
     if (replaced != null) {
       hash += replaced.hashCode();
     }
