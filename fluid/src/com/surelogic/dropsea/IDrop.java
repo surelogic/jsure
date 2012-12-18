@@ -103,6 +103,15 @@ public interface IDrop {
   IJavaRef getJavaRef();
 
   /**
+   * Returns if this information is from or about source code or another
+   * location, such as a binary or configuration file.
+   * 
+   * @return {@code true} if this information is from or about source code,
+   *         {@code false} otherwise
+   */
+  boolean isFromSrc();
+
+  /**
    * Gets the set of proposed promises for this drop. The returned list is a
    * copy and may be modified.
    * 

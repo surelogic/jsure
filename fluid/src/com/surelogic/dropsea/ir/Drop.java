@@ -3,6 +3,7 @@ package com.surelogic.dropsea.ir;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CATEGORY_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DIFF_INFO;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DROP;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_SRC;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.HINT_ABOUT;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.MESSAGE;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.MESSAGE_ID;
@@ -45,6 +46,7 @@ import com.surelogic.dropsea.irfree.XmlCreator.Builder;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 
 /**
  * The abstract base class for all drops within the sea, intended to be
@@ -746,7 +748,7 @@ public abstract class Drop implements IDrop {
     final IRNode parent = JavaPromise.getParentOrPromisedFor(f_node);
     final IJavaRef parentRef = JavaNode.getJavaRef(parent);
     if (parentRef == null) {
-    	return null;
+      return null;
     }
     return new Pair<IJavaRef, IRNode>(parentRef, parent);
   }
@@ -758,6 +760,14 @@ public abstract class Drop implements IDrop {
    */
   public final IRNode getNode() {
     return f_node;
+  }
+
+  public boolean isFromSrc() {
+    final IRNode n = getNode();
+    if (n != null) {
+      return !TypeUtil.isBinary(n);
+    }
+    return false;
   }
 
   public final HintDrop addInformationHint(IRNode link, int num, Object... args) {
@@ -1078,6 +1088,8 @@ public abstract class Drop implements IDrop {
     final String cat = getCategorizingMessage();
     if (cat != null)
       s.addAttribute(CATEGORY_ATTR, cat);
+
+    s.addAttribute(FROM_SRC, isFromSrc());
 
     /*
      * Compute diff information we want to pass along into the results

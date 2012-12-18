@@ -2,6 +2,7 @@ package com.surelogic.dropsea.irfree.drops;
 
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CATEGORY_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DIFF_INFO;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_SRC;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.JAVA_REF;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.MESSAGE_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.MESSAGE_ID;
@@ -43,6 +44,8 @@ public class IRFreeDrop implements IDrop {
   private final String f_message;
   @Nullable
   private final String f_messageCanonical;
+  private final boolean f_isFromSrc;
+
   /**
    * This collection is {@code null} until some exist&mdash;most drops have no
    * hints.
@@ -53,9 +56,9 @@ public class IRFreeDrop implements IDrop {
   private final List<IKeyValue> f_diffInfos;
 
   boolean aliasTheMessage() {
-	  return false;
+    return false;
   }
-  
+
   void addProposal(IRFreeProposedPromiseDrop info) {
     if (f_proposedPromises == null) {
       f_proposedPromises = new ArrayList<IRFreeProposedPromiseDrop>(1);
@@ -130,6 +133,7 @@ public class IRFreeDrop implements IDrop {
         SLLogger.getLogger().log(Level.WARNING, I18N.err(288, encodedJavaRef), parseFailure);
       }
     }
+    f_isFromSrc = "true".equals(e.getAttribute(FROM_SRC));
   }
 
   @Nullable
@@ -150,6 +154,10 @@ public class IRFreeDrop implements IDrop {
   @Nullable
   public IJavaRef getJavaRef() {
     return f_javaRef;
+  }
+
+  public final boolean isFromSrc() {
+    return f_isFromSrc;
   }
 
   @NonNull

@@ -42,13 +42,4 @@ public interface IProofDrop extends IDrop, ISnapshotDrop {
    *         hint about it, {@code false} otherwise.
    */
   boolean derivedFromWarningHint();
-
-  /**
-   * Returns if this promise is from source code or from another location, such
-   * as XML. The default value for a promise drop is <code>true</code>.
-   * 
-   * @return {@code true} if the promise was created from an annotation in
-   *         source code, {@code false} otherwise
-   */
-  boolean isFromSrc();
 }

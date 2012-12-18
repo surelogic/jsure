@@ -2,7 +2,6 @@ package com.surelogic.dropsea.irfree.drops;
 
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DERIVED_FROM_SRC_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DERIVED_FROM_WARNING_ATTR;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_SRC;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROVED_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.USES_RED_DOT_ATTR;
 
@@ -14,7 +13,6 @@ public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
   private final boolean f_proofUsesRedDot;
   private final boolean f_provedConsistent;
   private final boolean f_derivedFromSrc;
-  private final boolean f_isFromSrc;
   private final boolean f_derivedFromWarningHint;
 
   IRFreeProofDrop(Entity e, Class<?> irClass) {
@@ -23,7 +21,6 @@ public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
     f_provedConsistent = "true".equals(e.getAttribute(PROVED_ATTR));
     f_derivedFromSrc = "true".equals(e.getAttribute(DERIVED_FROM_SRC_ATTR));
     f_derivedFromWarningHint = "true".equals(e.getAttribute(DERIVED_FROM_WARNING_ATTR));
-    f_isFromSrc = "true".equals(e.getAttribute(FROM_SRC));
   }
 
   public final boolean proofUsesRedDot() {
@@ -40,9 +37,5 @@ public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
 
   public boolean derivedFromWarningHint() {
     return f_derivedFromWarningHint;
-  }
-
-  public final boolean isFromSrc() {
-    return f_isFromSrc;
   }
 }

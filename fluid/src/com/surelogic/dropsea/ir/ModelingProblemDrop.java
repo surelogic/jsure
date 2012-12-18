@@ -1,19 +1,14 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_SRC;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.MODELING_PROBLEM_DROP;
 
-import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.Nullable;
-import com.surelogic.RequiresLock;
 import com.surelogic.common.Pair;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.dropsea.IModelingProblemDrop;
-import com.surelogic.dropsea.irfree.XmlCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.util.TypeUtil;
 
 /**
  * Drop to represent modeling problems reported by the promise scrubber in the
@@ -35,14 +30,6 @@ public final class ModelingProblemDrop extends Drop implements IModelingProblemD
 
   public ModelingProblemDrop(IRNode node) {
     this(node, -1);
-  }
-
-  public boolean isFromSrc() {
-    final IRNode n = getNode();
-    if (n != null) {
-      return !TypeUtil.isBinary(n);
-    }
-    return false;
   }
 
   @Override
@@ -78,13 +65,5 @@ public final class ModelingProblemDrop extends Drop implements IModelingProblemD
   @Override
   public String getXMLElementName() {
     return MODELING_PROBLEM_DROP;
-  }
-
-  @Override
-  @MustInvokeOnOverride
-  @RequiresLock("SeaLock")
-  public void snapshotAttrs(XmlCreator.Builder s) {
-    super.snapshotAttrs(s);
-    s.addAttribute(FROM_SRC, isFromSrc());
   }
 }

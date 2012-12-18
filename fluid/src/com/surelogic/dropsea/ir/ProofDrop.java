@@ -2,7 +2,6 @@ package com.surelogic.dropsea.ir;
 
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DERIVED_FROM_SRC_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DERIVED_FROM_WARNING_ATTR;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_SRC;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROOF_DROP;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROVED_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.USES_RED_DOT_ATTR;
@@ -28,7 +27,6 @@ import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.XmlCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.util.TypeUtil;
 
 /**
  * Represents a promise or a result used in the code/model consistency proof.
@@ -98,14 +96,6 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
     synchronized (f_seaLock) {
       return f_proofUsesRedDot;
     }
-  }
-
-  public boolean isFromSrc() {
-    final IRNode n = getNode();
-    if (n != null) {
-      return !TypeUtil.isBinary(n);
-    }
-    return false;
   }
 
   /**
@@ -347,6 +337,5 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
     s.addAttribute(PROVED_ATTR, provedConsistent());
     s.addAttribute(DERIVED_FROM_SRC_ATTR, derivedFromSrc());
     s.addAttribute(DERIVED_FROM_WARNING_ATTR, derivedFromWarningHint());
-    s.addAttribute(FROM_SRC, isFromSrc());
   }
 }
