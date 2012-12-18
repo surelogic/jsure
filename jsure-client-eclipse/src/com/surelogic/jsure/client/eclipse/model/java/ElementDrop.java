@@ -1,5 +1,6 @@
 package com.surelogic.jsure.client.eclipse.model.java;
 
+import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
@@ -7,6 +8,7 @@ import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.IJavaRef.Position;
+import com.surelogic.common.ui.EclipseColorUtility;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
@@ -40,6 +42,33 @@ public final class ElementDrop extends Element {
       return result;
     }
     return null;
+  }
+
+  /**
+   * Highlights rows in a {@link ViewerCell} based upon differences in this
+   * model.
+   * <p>
+   * This is a utility method used by several JSure views.
+   * 
+   * @param cell
+   *          the cell to examine and set the background color of if differences
+   *          exist.
+   */
+  public static void highlightRowHelper(ViewerCell cell) {
+    if (cell.getElement() instanceof ElementDrop) {
+      final ElementDrop element = (ElementDrop) cell.getElement();
+      if (element.highlightDifferences()) {
+        if (element.isNew() || element.isChanged()) {
+          cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
+          return;
+        }
+        if (element.isOld()) {
+          cell.setBackground(EclipseColorUtility.getDiffHighlightColorObsolete());
+          return;
+        }
+      }
+    }
+    cell.setBackground(null);
   }
 
   private ElementDrop(@NonNull Element parent, @NonNull IDrop drop, boolean fromOldScan) {

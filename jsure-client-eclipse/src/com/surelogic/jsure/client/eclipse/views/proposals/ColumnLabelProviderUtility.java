@@ -20,6 +20,8 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
+      ElementDrop.highlightRowHelper(cell);
+
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         String label = element.getLabel();
@@ -55,6 +57,8 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
+      ElementDrop.highlightRowHelper(cell);
+
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
         final String line = element.getLineNumberAsStringOrNull();

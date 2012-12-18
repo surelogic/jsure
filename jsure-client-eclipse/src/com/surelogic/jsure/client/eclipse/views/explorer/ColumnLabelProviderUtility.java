@@ -18,28 +18,11 @@ import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
 @Utility
 public final class ColumnLabelProviderUtility {
 
-  private static void highlightRowHelper(ViewerCell cell) {
-    if (cell.getElement() instanceof ElementDrop) {
-      final ElementDrop element = (ElementDrop) cell.getElement();
-      if (element.highlightDifferences()) {
-        if (element.isNew() || element.isChanged()) {
-          cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
-          return;
-        }
-        if (element.isOld()) {
-          cell.setBackground(EclipseColorUtility.getDiffHighlightColorObsolete());
-          return;
-        }
-      }
-    }
-    cell.setBackground(null);
-  }
-
   static final StyledCellLabelProvider TREE = new StyledCellLabelProvider() {
 
     @Override
     public void update(ViewerCell cell) {
-      highlightRowHelper(cell);
+      ElementDrop.highlightRowHelper(cell);
 
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
@@ -68,7 +51,7 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      highlightRowHelper(cell);
+      ElementDrop.highlightRowHelper(cell);
 
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
@@ -83,7 +66,7 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      highlightRowHelper(cell);
+      ElementDrop.highlightRowHelper(cell);
 
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
@@ -98,7 +81,7 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      highlightRowHelper(cell);
+      ElementDrop.highlightRowHelper(cell);
 
       if (cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();

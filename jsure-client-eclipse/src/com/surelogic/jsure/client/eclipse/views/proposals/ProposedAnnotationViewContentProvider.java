@@ -67,17 +67,23 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
 
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final ScanDifferences diff,
       final boolean showOnlyDifferences, final boolean showOnlyFromSrc, final boolean showOnlyAbductive) {
+    f_scanDifferences = diff;
     final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer(null);
 
     final ArrayList<IProposedPromiseDrop> drops = filterOutDuplicates(scan.getProposedPromiseDrops());
     for (IProposedPromiseDrop ppd : drops) {
-      if (!showOnlyAbductive || ppd.isAbductivelyInferred()) {
-        /*
-         * We filter results based upon the code location.
-         */
-        if (UninterestingPackageFilterUtility.keep(ppd))
-          ElementDrop.addToTree(tree, ppd, false);
-      }
+      if (showOnlyDifferences && diff != null && diff.isSameInBothScans(ppd))
+        continue;
+      if (showOnlyAbductive && !ppd.isAbductivelyInferred())
+        continue;
+      if (showOnlyFromSrc && !ppd.isFromSrc())
+        continue;
+
+      /*
+       * We filter results based upon the code location.
+       */
+      if (UninterestingPackageFilterUtility.keep(ppd))
+        ElementDrop.addToTree(tree, ppd, false);
     }
     f_root = tree.getRootElements();
   }
