@@ -206,7 +206,7 @@ class MethodBinder {
 		 	final IJavaType[] u = bestArgs;
 		 	// Infer actual type arguments
 		 	final Constraints constraints = 
-	     		utils.getEmptyConstraints(match.search.call.call, match.bind,
+	     		utils.getEmptyConstraints(match.search.call, match.bind,
 	     				new HashMap<IJavaType,IJavaType>(bestState.substMap), false, false); 		 	
 	     	for(int i=0; i<bestArgs.length; i++) {
 	     		// Ui >> Ti
@@ -321,7 +321,7 @@ class MethodBinder {
         	} 
         	methodTypeSubst = subst;
         	
-        	if (numTypeFormals != 0) {
+        	if (numTypeFormals != 0 || search.usesDiamondOp) {
         		substMap = new HashMap<IJavaType,IJavaType>();
         	} else {
         		substMap = Collections.emptyMap();
@@ -414,7 +414,7 @@ class MethodBinder {
     	// First, capture type variables
     	// (expanding varargs to fill in what would be null)
      	final TypeUtils.Constraints constraints =
-     		s.utils.getEmptyConstraints(s.call.call, m.bind, m.substMap, allowBoxing, allowVarargs);    	
+     		s.utils.getEmptyConstraints(s.call, m.bind, m.substMap, allowBoxing, allowVarargs);    	
     	final Iterator<IRNode> fe = JJNode.tree.children(m.formals);
     	IJavaType varArgBase = null;
     	for (int i=0; i < s.argTypes.length; ++i) {

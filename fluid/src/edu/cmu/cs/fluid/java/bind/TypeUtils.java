@@ -8,6 +8,7 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.bind.MethodBinder.CallState;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -459,7 +460,7 @@ public class TypeUtils {
 		return result;
 	}	
 		
-	public Constraints getEmptyConstraints(IRNode call, IBinding method, Map<IJavaType, IJavaType> substMap, 
+	public Constraints getEmptyConstraints(CallState call, IBinding method, Map<IJavaType, IJavaType> substMap, 
 			boolean allowBoxing, boolean allowVarargs) {
 		return new Constraints(call, method, substMap, allowBoxing, allowVarargs);
 	}
@@ -470,7 +471,7 @@ public class TypeUtils {
 		final Set<TypeConstraint> constraints = new HashSet<TypeConstraint>();
 		final Mapping map;
 
-		public Constraints(IRNode call, IBinding method, Map<IJavaType, IJavaType> substMap, 
+		public Constraints(CallState call, IBinding method, Map<IJavaType, IJavaType> substMap, 
 				boolean box, boolean varargs) {			
 			map = new Mapping(call, method, substMap);
 			allowBoxing = box;
@@ -492,6 +493,7 @@ public class TypeUtils {
 		 * @return true if derived some constraints
 		 */
 		boolean derive(IJavaType formal, Constraint constraint, IJavaType actual) {
+			System.out.println("Adding: "+formal+" "+constraint+" "+actual);
 			if (formal instanceof IJavaPrimitiveType || actual instanceof IJavaNullType) {
 				// Nothing to do since there can't be any type variables to deal with here
 				//   or
@@ -885,12 +887,12 @@ public class TypeUtils {
 	}
 	
 	public class Mapping {
-		final IRNode call;
+		final CallState call;
 		final IBinding method;
 		final Map<IJavaType, IJavaType> subst;
 		boolean isUnsatisfiable = false;
 
-		Mapping(IRNode call, IBinding method, Map<IJavaType, IJavaType> substMap) {
+		Mapping(CallState call, IBinding method, Map<IJavaType, IJavaType> substMap) {
 			this.call = call;
 			this.method = method;
 			subst = new HashMap<IJavaType, IJavaType>(substMap);
@@ -1146,7 +1148,7 @@ public class TypeUtils {
 	}
 	
 	private enum Constraint {
-		EQUAL {
+		EQUAL("=") {
 			@Override Constraint reverse() {
 				return this;
 			}
@@ -1154,7 +1156,7 @@ public class TypeUtils {
 		/**
 		 * U << V indicates that type U is convertible to type V by method invocation conversion (�5.3)
 		 */
-		CONVERTIBLE_TO {
+		CONVERTIBLE_TO("<<") {
 			@Override Constraint simplify() {
 				return SUBTYPE_OF;
 			}
@@ -1165,7 +1167,7 @@ public class TypeUtils {
 		/**
 		 * U >> V indicates that type V is convertible to type U by method invocation conversion.
 		 */
-		CONVERTIBLE_FROM {
+		CONVERTIBLE_FROM(">>") {
 			@Override Constraint simplify() {
 				return SUPERTYPE_OF;
 			}
@@ -1174,17 +1176,28 @@ public class TypeUtils {
 			}
 		},
 		/** X is equal or a subtype of Y */
-		SUBTYPE_OF {
+		SUBTYPE_OF("<:") {
 			@Override Constraint reverse() {
 				return SUPERTYPE_OF;
 			}
 		}, 
 		/** X is equal or a supertype of Y */
-		SUPERTYPE_OF {
+		SUPERTYPE_OF(">:") {
 			@Override Constraint reverse() {
 				return SUBTYPE_OF;
 			}
 		};
+
+		final String label;
+		
+		Constraint(String l) {
+			label = l;
+		}
+		
+		@Override
+		public String toString() {
+			return label;
+		}
 		
 		Constraint simplify() {
 			return this;
@@ -1315,10 +1328,10 @@ public class TypeUtils {
 		}
 		final Constraints constraints = getEmptyConstraints(map.call, map.method, map.subst, false, false);
 	    //    -- the constraint S' >> R', provided R is not void; and
-		final IJavaType s_prime = findAssignmentType(map.call);
+		final IJavaType s_prime = findAssignmentType(map.call.call);
 		final IJavaType r_prime = computeReturnType(map);
 		if (!(r_prime instanceof IJavaVoidType)) {
-			constraints.derive(s_prime, Constraint.CONVERTIBLE_FROM, r_prime);
+			constraints.derive(r_prime, Constraint.CONVERTIBLE_TO, s_prime);
 		}
 		for(Map.Entry<IJavaType,IJavaType> e : map.subst.entrySet()) {			
 		    //    -- additional constraints Bi[T1=B(T1) ... Tn=B(Tn)] >> Ti, where Bi is the declared bound of Ti,
@@ -1370,7 +1383,7 @@ public class TypeUtils {
 		IRNode type = null;
 		if (Initialization.prototype.includes(pop)) {
 			// Assuming it's in a vdecl
-			final IRNode vdecl = JJNode.tree.getParent(call);
+			final IRNode vdecl = JJNode.tree.getParent(parent);
 			type = VariableDeclarator.getType(vdecl);
 		}
 		else if (AssignmentExpression.prototype.includes(pop)) {
@@ -1396,10 +1409,16 @@ public class TypeUtils {
 	}
 	
 	private IJavaType computeReturnType(Mapping map) {
-		final IJavaType rt = JavaTypeVisitor.computeReturnType(tEnv.getBinder(), map.method);
+		IJavaType rt = JavaTypeVisitor.computeReturnType(tEnv.getBinder(), map.method);
 		if (rt instanceof IJavaVoidType) {
 			return rt;
 		}
+		else if (map.call.usesDiamondOp()) {
+			IJavaDeclaredType dt = (IJavaDeclaredType) rt;
+			if (dt.getTypeParameters().isEmpty()) {
+				rt = tEnv.convertNodeTypeToIJavaType(dt.getDeclaration());
+			}
+		}		
 		return substitute(map.subst, rt);
 		//return rt.subst(FunctionParameterSubstitution.create(tEnv.getBinder(), map.method.getNode(), map.subst));
 		// TODO what about the info I already inferred?		
