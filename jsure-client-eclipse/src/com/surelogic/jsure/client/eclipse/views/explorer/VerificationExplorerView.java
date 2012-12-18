@@ -52,7 +52,6 @@ import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.dialogs.ImageDialog;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
@@ -62,8 +61,8 @@ import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView;
+import com.surelogic.jsure.core.JSureUtility;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public final class VerificationExplorerView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener {
@@ -508,8 +507,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
       f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, f_showOnlyDifferences, f_showObsoleteDrops,
           f_showOnlyDerivedFromSrc, f_showAnalysisResults, f_showHints);
-      final int modelProblemCount = getModelProblemCount(scan);
-      setModelProblemIndicatorState(modelProblemCount);
+      setModelProblemIndicatorState(JSureUtility.getInterestingModelingProblemCount(scan));
       setViewerVisibility(true);
 
       // Running too early?
@@ -610,19 +608,5 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
     f_actionProblemsIndicator.setToolTipText(tooltip);
 
-  }
-
-  private int getModelProblemCount(final JSureScanInfo info) {
-    int result = 0;
-    if (info != null) {
-      for (IModelingProblemDrop problem : info.getModelingProblemDrops()) {
-        /*
-         * We filter results based upon the resource.
-         */
-        if (UninterestingPackageFilterUtility.keep(problem))
-          result++;
-      }
-    }
-    return result;
   }
 }

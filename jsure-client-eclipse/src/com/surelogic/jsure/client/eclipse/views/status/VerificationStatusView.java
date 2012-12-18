@@ -55,7 +55,6 @@ import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.dialogs.ImageDialog;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScan;
@@ -63,8 +62,8 @@ import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
+import com.surelogic.jsure.core.JSureUtility;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
-import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public final class VerificationStatusView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener {
@@ -570,8 +569,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       }
       final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
       f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, f_showHints);
-      final int modelProblemCount = getModelProblemCount(scan);
-      setModelProblemIndicatorState(modelProblemCount);
+      setModelProblemIndicatorState(JSureUtility.getInterestingModelingProblemCount(scan));
       setViewerVisibility(true);
 
       // Running too early?
@@ -648,19 +646,5 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
     f_actionProblemsIndicator.setToolTipText(tooltip);
 
-  }
-
-  private int getModelProblemCount(final JSureScanInfo info) {
-    int result = 0;
-    if (info != null) {
-      for (IModelingProblemDrop problem : info.getModelingProblemDrops()) {
-        /*
-         * We filter results based upon the resource.
-         */
-        if (UninterestingPackageFilterUtility.keep(problem))
-          result++;
-      }
-    }
-    return result;
   }
 }

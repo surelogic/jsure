@@ -44,6 +44,7 @@ import org.eclipse.ui.progress.UIJob;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -67,6 +68,7 @@ import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.preferences.UninterestingPackageFilterPreferencePage;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
+import com.surelogic.jsure.core.JSureUtility;
 import com.surelogic.jsure.core.preferences.IUninterestingPackageFilterObserver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
@@ -82,6 +84,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
   private PageBook f_viewerbook = null;
   private Label f_noResultsToShowLabel = null;
   private TreeViewer f_treeViewer;
+  private TreeViewerColumn f_columnTree;
   @NonNull
   private final ProblemsViewContentProvider f_contentProvider = new ProblemsViewContentProvider();
   private boolean f_highlightDifferences;
@@ -152,10 +155,10 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     };
     f_treeViewer.addSelectionChangedListener(listener);
 
-    final TreeViewerColumn columnTree = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
-    columnTree.setLabelProvider(ColumnLabelProviderUtility.TREE);
-    columnTree.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.PROPOSED_ANNO_COL_TREE_WIDTH));
-    columnTree.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.PROPOSED_ANNO_COL_TREE_WIDTH));
+    f_columnTree = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
+    f_columnTree.setLabelProvider(ColumnLabelProviderUtility.TREE);
+    f_columnTree.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.PROPOSED_ANNO_COL_TREE_WIDTH));
+    f_columnTree.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.PROPOSED_ANNO_COL_TREE_WIDTH));
     final TreeViewerColumn columnLine = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnLine.setLabelProvider(ColumnLabelProviderUtility.LINE);
     columnLine.getColumn().setText("Line");
@@ -437,11 +440,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
           public void run() {
             final TreeViewerUIState state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
             state.restoreViewState(f_treeViewer);
-            if (f_contentProvider.isEmpty()) {
-              f_treeViewer.getControl().setBackground(null);
-            } else {
-              f_treeViewer.getControl().setBackground(f_treeViewer.getControl().getDisplay().getSystemColor(SWT.COLOR_YELLOW));
-            }
+            updateInterestingModelingProblemCount(scan);
           }
         });
       }
@@ -450,6 +449,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
       EclipseUIUtility.asyncExec(new Runnable() {
         public void run() {
           setViewerVisibility(false);
+          updateInterestingModelingProblemCount(scan);
         }
       });
     }
@@ -467,6 +467,19 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     } else {
       f_viewerbook.showPage(f_noResultsToShowLabel);
     }
+  }
+
+  private void updateInterestingModelingProblemCount(final JSureScanInfo scan) {
+    final int issueCt = JSureUtility.getInterestingModelingProblemCount(scan);
+    final String label;
+    if (issueCt > 0) {
+      label = SLUtility.toStringHumanWithCommas(issueCt) + " modeling problem" + (issueCt > 1 ? "s" : "");
+      f_treeViewer.getControl().setBackground(f_treeViewer.getControl().getDisplay().getSystemColor(SWT.COLOR_YELLOW));
+    } else {
+      label = "No modeling problems";
+      f_treeViewer.getControl().setBackground(null);
+    }
+    f_columnTree.getColumn().setText(label);
   }
 
   private void openInEditor() {
