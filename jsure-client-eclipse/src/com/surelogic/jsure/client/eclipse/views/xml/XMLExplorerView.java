@@ -101,7 +101,7 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
     }
   };
 
-  private final Action f_openSource = new SingleElementAction("Open") {
+  private final Action f_openSource = new SingleElementAction(I18N.msg("jsure.eclipse.view.open_in_editor")) {
     @Override
     public void run(Object o) {
       handleOpenSource(o);

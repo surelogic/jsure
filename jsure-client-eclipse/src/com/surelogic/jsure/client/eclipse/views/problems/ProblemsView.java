@@ -297,7 +297,14 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     }
   };
 
-  private final Action f_openXmlEditor = new Action() {
+  private final Action f_actionOpenInEditor = new Action() {
+    @Override
+    public void run() {
+      openInEditor();
+    }
+  };
+
+  private final Action f_actionOpenXmlEditor = new Action() {
     @Override
     public void run() {
       final IDecl decl = getDeclarationOfFirstSelected();
@@ -309,23 +316,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
   private void makeActions() {
     f_treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       public void doubleClick(DoubleClickEvent event) {
-        final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
-        if (!s.isEmpty()) {
-          final Object first = s.getFirstElement();
-          if (first instanceof ElementDrop) {
-            /*
-             * Try to open an editor at the point this item references in the
-             * code
-             */
-            final IJavaRef ref = ((ElementDrop) first).getDrop().getJavaRef();
-            if (ref != null)
-              Activator.highlightLineInJavaEditor(ref);
-          }
-          // open up the tree one more level
-          if (!f_treeViewer.getExpandedState(first)) {
-            f_treeViewer.expandToLevel(first, 1);
-          }
-        }
+        openInEditor();
       }
     });
 
@@ -372,7 +363,8 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     f_showOnlyFromSrc = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROBLEMS_SHOW_ONLY_FROM_SRC);
     f_actionShowOnlyFromSrc.setChecked(f_showOnlyFromSrc);
 
-    f_openXmlEditor.setText(I18N.msg("jsure.eclipse.view.open_xml_editor"));
+    f_actionOpenInEditor.setText(I18N.msg("jsure.eclipse.view.open_in_editor"));
+    f_actionOpenXmlEditor.setText(I18N.msg("jsure.eclipse.view.open_xml_editor"));
   }
 
   private void hookContextMenu() {
@@ -382,8 +374,10 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
       public void menuAboutToShow(final IMenuManager manager) {
         final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
         if (!s.isEmpty()) {
+          manager.add(f_actionOpenInEditor);
+          manager.add(new Separator());
+          manager.add(f_actionOpenXmlEditor);
           manager.add(f_actionAnnotateCode);
-          manager.add(f_openXmlEditor);
           manager.add(new Separator());
           manager.add(f_actionExpand);
           manager.add(f_actionCollapse);
@@ -475,11 +469,29 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     }
   }
 
+  private void openInEditor() {
+    final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+    if (!s.isEmpty()) {
+      final Object first = s.getFirstElement();
+      if (first instanceof ElementDrop) {
+        /*
+         * Try to open an editor at the point this item references in the code
+         */
+        final IJavaRef ref = ((ElementDrop) first).getDrop().getJavaRef();
+        if (ref != null)
+          Activator.highlightLineInJavaEditor(ref);
+      }
+      // open up the tree one more level
+      if (!f_treeViewer.getExpandedState(first)) {
+        f_treeViewer.expandToLevel(first, 1);
+      }
+    }
+  }
+
   private void selectionChangedHelper() {
     final boolean proposalsSelected = !getSelectedProposals().isEmpty();
     f_actionAnnotateCode.setEnabled(proposalsSelected);
-    final boolean declToOpen = getDeclarationOfFirstSelected() != null;
-    f_openXmlEditor.setEnabled(declToOpen);
+    f_actionOpenXmlEditor.setEnabled(getIfFirstSelectedShouldOpenXmlEditor());
   }
 
   @Nullable
@@ -494,6 +506,21 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
       }
     }
     return null;
+  }
+
+  private boolean getIfFirstSelectedShouldOpenXmlEditor() {
+    final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+    if (!s.isEmpty()) {
+      final Object first = s.getFirstElement();
+      if (first instanceof ElementDrop) {
+        final IDrop drop = ((ElementDrop) first).getDrop();
+        if (drop.isFromSrc())
+          return false;
+        final IJavaRef ref = drop.getJavaRef();
+        return ref != null;
+      }
+    }
+    return false;
   }
 
   private List<IProposedPromiseDrop> getSelectedProposals() {
