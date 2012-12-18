@@ -303,6 +303,12 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
     if (provedConsistent()) {
       if (f_messageConsistent != null)
         setMessageHelper(f_messageConsistent, f_messageConsistentCanonical);
+      if (f_proposalsNotProvedConsistent != null) {
+        for (ProposedPromiseDrop ppd : f_proposalsNotProvedConsistent) {
+          ppd.invalidate();
+        }
+        f_proposalsNotProvedConsistent = null;
+      }
     } else {
       if (f_messageInconsistent != null)
         setMessageHelper(f_messageInconsistent, f_messageInconsistentCanonical);

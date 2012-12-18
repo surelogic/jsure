@@ -46,9 +46,9 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   private final Set<PromiseDrop<? extends IAASTRootNode>> f_checks = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 
   public boolean hasChecked() {
-	synchronized (f_seaLock) {
-		return !f_checks.isEmpty();
-	}
+    synchronized (f_seaLock) {
+      return !f_checks.isEmpty();
+    }
   }
 
   /**
@@ -291,6 +291,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   @RequiresLock("SeaLock")
   @Override
   final void proofFinalize() {
+    super.proofFinalize();
     boolean useConsistentMessage = f_useImmediateConsistencyResultForMessage ? immediatelyConsistent() : provedConsistent();
     if (useConsistentMessage) {
       if (f_messageConsistent != null)
