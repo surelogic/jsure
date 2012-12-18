@@ -297,12 +297,11 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     });
 
     f_openProofContext.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_LOGO));
-    f_openProofContext.setText("Open In Proof Context");
-    f_openProofContext
-        .setToolTipText("Open this proposed promise in the Verification Status view to show it within its proof context");
+    f_openProofContext.setText(I18N.msg("jsure.eclipse.proposed.promises.openInProofContext"));
+    f_openProofContext.setToolTipText(I18N.msg("jsure.eclipse.proposed.promises.openInProofContext.tip"));
 
-    f_actionCollapseAll.setText("Collapse All");
-    f_actionCollapseAll.setToolTipText("Collapse All");
+    f_actionCollapseAll.setText(I18N.msg("jsure.eclipse.view.collapse_all"));
+    f_actionCollapseAll.setToolTipText(I18N.msg("jsure.eclipse.view.collapse_all.tip"));
     f_actionCollapseAll.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
     f_actionAnnotateCode.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
@@ -316,16 +315,16 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     f_showOnlyAbductive = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROPOSED_ANNOTATIONS_SHOW_ABDUCTIVE_ONLY);
     f_actionShowOnlyAbductive.setChecked(f_showOnlyAbductive);
 
-    f_actionExpand.setText("Expand");
-    f_actionExpand.setToolTipText("Expand the current selection or all if none");
+    f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
+    f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
     f_actionExpand.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
 
-    f_actionCollapse.setText("Collapse");
-    f_actionCollapse.setToolTipText("Collapse the current selection or all if none");
+    f_actionCollapse.setText(I18N.msg("jsure.eclipse.view.collapse"));
+    f_actionCollapse.setToolTipText(I18N.msg("jsure.eclipse.view.collapse.tip"));
     f_actionCollapse.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
-    f_actionCopy.setText("Copy");
-    f_actionCopy.setToolTipText("Copy the selected verification result to the clipboard");
+    f_actionCopy.setText(I18N.msg("jsure.eclipse.view.copy"));
+    f_actionCopy.setToolTipText(I18N.msg("jsure.eclipse.view.copy.tip"));
 
   }
 

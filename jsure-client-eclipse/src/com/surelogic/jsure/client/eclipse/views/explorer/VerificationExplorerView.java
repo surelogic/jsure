@@ -372,27 +372,27 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       }
     });
 
-    f_actionCollapseAll.setText("Collapse All");
-    f_actionCollapseAll.setToolTipText("Collapse All");
+    f_actionCollapseAll.setText(I18N.msg("jsure.eclipse.view.collapse_all"));
+    f_actionCollapseAll.setToolTipText(I18N.msg("jsure.eclipse.view.collapse_all.tip"));
     f_actionCollapseAll.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
-    f_actionShowQuickRef.setText("Show Iconography Quick Reference Card");
-    f_actionShowQuickRef.setToolTipText("Show the iconography quick reference card");
+    f_actionShowQuickRef.setText(I18N.msg("jsure.eclipse.view.show_iconography"));
+    f_actionShowQuickRef.setToolTipText(I18N.msg("jsure.eclipse.view.show_iconography.tip"));
     f_actionShowQuickRef.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_QUICK_REF_ICON));
 
     f_actionProblemsIndicator.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_MODEL_PROBLEMS));
     f_actionProblemsIndicator.setEnabled(false);
 
     f_actionHighlightDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG));
-    f_actionHighlightDifferences.setText("Highlight Differences");
-    f_actionHighlightDifferences.setToolTipText("Highlight differences from the last scan");
+    f_actionHighlightDifferences.setText(I18N.msg("jsure.eclipse.view.highlight_diffs"));
+    f_actionHighlightDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.highlight_diffs.tip"));
     f_highlightDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_HIGHLIGHT_DIFFERENCES);
     f_actionHighlightDifferences.setChecked(f_highlightDifferences);
     f_contentProvider.setHighlightDifferences(f_highlightDifferences);
 
     f_actionShowOnlyDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG_ONLY));
-    f_actionShowOnlyDifferences.setText("Show Only Differences");
-    f_actionShowOnlyDifferences.setToolTipText("Show only differences from the last scan");
+    f_actionShowOnlyDifferences.setText(I18N.msg("jsure.eclipse.view.show_only_diffs"));
+    f_actionShowOnlyDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.show_only_diffs.tip"));
     f_showOnlyDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_DIFFERENCES);
     f_actionShowOnlyDifferences.setChecked(f_showOnlyDifferences);
 
@@ -415,25 +415,25 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_actionShowAnalysisResults.setChecked(f_showAnalysisResults);
 
     f_actionShowHints.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
-    f_actionShowHints.setText("Show Information/Warning Hints");
-    f_actionShowHints.setToolTipText("Show information and warning hints about the code");
+    f_actionShowHints.setText(I18N.msg("jsure.eclipse.view.show_hints"));
+    f_actionShowHints.setToolTipText(I18N.msg("jsure.eclipse.view.show_hints.tip"));
     f_showHints = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_HINTS);
     f_actionShowHints.setChecked(f_showHints);
 
     f_openProofContext.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_LOGO));
-    f_openProofContext.setText("Open In Proof Context");
-    f_openProofContext.setToolTipText("Open this result in the Verification Status view to show it within its proof context");
+    f_openProofContext.setText(I18N.msg("jsure.eclipse.explorer.openInProofContext"));
+    f_openProofContext.setToolTipText(I18N.msg("jsure.eclipse.explorer.openInProofContext.tip"));
 
-    f_actionExpand.setText("Expand");
-    f_actionExpand.setToolTipText("Expand the current selection or all if none");
+    f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
+    f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
     f_actionExpand.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
 
-    f_actionCollapse.setText("Collapse");
-    f_actionCollapse.setToolTipText("Collapse the current selection or all if none");
+    f_actionCollapse.setText(I18N.msg("jsure.eclipse.view.collapse"));
+    f_actionCollapse.setToolTipText(I18N.msg("jsure.eclipse.view.collapse.tip"));
     f_actionCollapse.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
-    f_actionCopy.setText("Copy");
-    f_actionCopy.setToolTipText("Copy the selected verification result to the clipboard");
+    f_actionCopy.setText(I18N.msg("jsure.eclipse.view.copy"));
+    f_actionCopy.setToolTipText(I18N.msg("jsure.eclipse.view.copy.tip"));
 
   }
 

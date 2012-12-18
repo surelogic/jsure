@@ -237,7 +237,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
 
     @Override
     protected String getDialogTitle() {
-      return I18N.msg("jsure.eclipse.proposed.promise.edit");
+      return I18N.msg("jsure.eclipse.problems.fix");
     }
   };
 
@@ -276,29 +276,28 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
       }
     });
 
-    f_actionCollapseAll.setText("Collapse All");
-    f_actionCollapseAll.setToolTipText("Collapse All");
+    f_actionCollapseAll.setText(I18N.msg("jsure.eclipse.view.collapse_all"));
+    f_actionCollapseAll.setToolTipText(I18N.msg("jsure.eclipse.view.collapse_all.tip"));
     f_actionCollapseAll.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
-    f_actionAnnotateCode.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
-    f_actionAnnotateCode.setToolTipText(I18N.msg("jsure.eclipse.proposed.promise.tip"));
+    f_actionAnnotateCode.setText(I18N.msg("jsure.eclipse.problems.fix"));
+    f_actionAnnotateCode.setToolTipText(I18N.msg("jsure.eclipse.problems.fix.tip"));
     f_actionAnnotateCode.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION_PROPOSED));
     f_actionAnnotateCode.setEnabled(false); // wait until something is selected
 
-    f_actionExpand.setText("Expand");
-    f_actionExpand.setToolTipText("Expand the current selection or all if none");
+    f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
+    f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
     f_actionExpand.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
 
-    f_actionCollapse.setText("Collapse");
-    f_actionCollapse.setToolTipText("Collapse the current selection or all if none");
+    f_actionCollapse.setText(I18N.msg("jsure.eclipse.view.collapse"));
+    f_actionCollapse.setToolTipText(I18N.msg("jsure.eclipse.view.collapse.tip"));
     f_actionCollapse.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
-    f_actionCopy.setText("Copy");
-    f_actionCopy.setToolTipText("Copy the selected verification result to the clipboard");
-
+    f_actionCopy.setText(I18N.msg("jsure.eclipse.view.copy"));
+    f_actionCopy.setToolTipText(I18N.msg("jsure.eclipse.view.copy.tip"));
     f_preferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_FILTER));
-    f_preferences.setText(I18N.msg("jsure.problems.view.filter"));
-    f_preferences.setToolTipText(I18N.msg("jsure.problems.view.filter.tooltip"));
+    f_preferences.setText(I18N.msg("jsure.eclipse.problems.filter"));
+    f_preferences.setToolTipText(I18N.msg("jsure.eclipse.problems.filter.tip"));
 
   }
 

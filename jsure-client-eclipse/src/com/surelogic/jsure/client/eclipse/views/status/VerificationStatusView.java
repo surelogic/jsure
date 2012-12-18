@@ -387,43 +387,43 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     setHowViewIsSorted(EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_ALPHA_SORT));
 
     f_actionHighlightDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG));
-    f_actionHighlightDifferences.setText("Highlight Differences");
-    f_actionHighlightDifferences.setToolTipText("Highlight differences from the last scan");
+    f_actionHighlightDifferences.setText(I18N.msg("jsure.eclipse.view.highlight_diffs"));
+    f_actionHighlightDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.highlight_diffs.tip"));
     f_highlightDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_HIGHLIGHT_DIFFERENCES);
     f_actionHighlightDifferences.setChecked(f_highlightDifferences);
     f_contentProvider.setHighlightDifferences(f_highlightDifferences);
 
     f_actionShowHints.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_SUGGESTIONS_WARNINGS));
-    f_actionShowHints.setText("Show Information/Warning Hints");
-    f_actionShowHints.setToolTipText("Show information and warning hints about the code");
+    f_actionShowHints.setText(I18N.msg("jsure.eclipse.view.show_hints"));
+    f_actionShowHints.setToolTipText(I18N.msg("jsure.eclipse.view.show_hints.tip"));
     f_showHints = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_HINTS);
     f_actionShowHints.setChecked(f_showHints);
 
-    f_actionExpand.setText("Expand");
-    f_actionExpand.setToolTipText("Expand the current selection or all if none");
+    f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
+    f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
     f_actionExpand.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
 
-    f_actionCollapse.setText("Collapse");
-    f_actionCollapse.setToolTipText("Collapse the current selection or all if none");
+    f_actionCollapse.setText(I18N.msg("jsure.eclipse.view.collapse"));
+    f_actionCollapse.setToolTipText(I18N.msg("jsure.eclipse.view.collapse.tip"));
     f_actionCollapse.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
-    f_actionCollapseAll.setText("Collapse All");
-    f_actionCollapseAll.setToolTipText("Collapse All");
+    f_actionCopy.setText(I18N.msg("jsure.eclipse.view.copy"));
+    f_actionCopy.setToolTipText(I18N.msg("jsure.eclipse.view.copy.tip"));
+
+    f_actionCollapseAll.setText(I18N.msg("jsure.eclipse.view.collapse_all"));
+    f_actionCollapseAll.setToolTipText(I18N.msg("jsure.eclipse.view.collapse_all.tip"));
     f_actionCollapseAll.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
     f_selectIdenticalAncestor.setText("Select Identical Ancestor");
     f_selectIdenticalAncestor.setToolTipText("Select to the node that this element is identical to");
     f_selectIdenticalAncestor.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_UP));
 
-    f_actionCopy.setText("Copy");
-    f_actionCopy.setToolTipText("Copy the selected verification result to the clipboard");
-
     f_actionAddPromiseToCode.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
     f_actionAddPromiseToCode.setToolTipText(I18N.msg("jsure.eclipse.proposed.promise.tip"));
     f_actionAddPromiseToCode.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ANNOTATION_PROPOSED));
 
-    f_actionShowQuickRef.setText("Show Iconography Quick Reference Card");
-    f_actionShowQuickRef.setToolTipText("Show the iconography quick reference card");
+    f_actionShowQuickRef.setText(I18N.msg("jsure.eclipse.view.show_iconography"));
+    f_actionShowQuickRef.setToolTipText(I18N.msg("jsure.eclipse.view.show_iconography.tip"));
     f_actionShowQuickRef.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_QUICK_REF_ICON));
 
     f_actionProblemsIndicator.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JSURE_MODEL_PROBLEMS));
