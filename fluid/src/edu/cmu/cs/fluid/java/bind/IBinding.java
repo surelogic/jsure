@@ -106,8 +106,8 @@ public interface IBinding {
       return makeBinding(n, ty, tEnv, recType, null);
     }
     
-    public static IBinding makeMethodBinding(IBinding mbind, IJavaTypeSubstitution mSubst) {
-      return makeBinding(mbind.getNode(), mbind.getContextType(), 
+    public static IBinding makeMethodBinding(IBinding mbind, IJavaDeclaredType context, IJavaTypeSubstitution mSubst) {
+      return makeBinding(mbind.getNode(), context, 
                          mbind.getTypeEnvironment(), mbind.getReceiverType(), mSubst);
     }
     

@@ -524,11 +524,18 @@ class MethodBinder {
     	}
     	map.export(m.substMap);
 
+    	final IJavaDeclaredType oldContext = m.bind.getContextType();
+    	final IJavaDeclaredType context;
     	final IJavaTypeSubstitution subst;
     	if (!m.substMap.isEmpty() && m.methodTypeSubst == IJavaTypeSubstitution.NULL) {
     		//System.out.println("Making method subst for "+JavaNames.getFullName(mbind.getNode()));
     		subst = 
     			FunctionParameterSubstitution.create(binder, m.bind.getNode(), m.substMap);
+    		if (s.usesDiamondOp) {
+    			context = computeNewContext(m, oldContext);
+    		} else {
+    			context = oldContext;
+    		}
     	} else {
     		/*
     		if (mSubst != IJavaTypeSubstitution.NULL) {
@@ -536,13 +543,30 @@ class MethodBinder {
     		}
     		*/
     		subst = m.methodTypeSubst;
+    		context = oldContext;
     	}
     	if (subst != IJavaTypeSubstitution.NULL) {
-    		return new BindingInfo(IBinding.Util.makeMethodBinding(m.bind, subst), numBoxed, isVarArgs);
+    		return new BindingInfo(IBinding.Util.makeMethodBinding(m.bind, context, subst), numBoxed, isVarArgs);
     	}
     	return new BindingInfo(m.bind, numBoxed, isVarArgs);
 	}
     
+	
+	private IJavaDeclaredType computeNewContext(MethodState m, IJavaDeclaredType oldContext) {
+		final IRNode decl = oldContext.getDeclaration();
+		final IRNode typeParams = ClassDeclaration.getTypes(decl);
+		final List<IJavaType> params = new ArrayList<IJavaType>(JJNode.tree.numChildren(typeParams));
+		for(IRNode formal : TypeFormals.getTypeIterator(typeParams)) {
+			final IJavaTypeFormal tf = JavaTypeFactory.getTypeFormal(formal);
+			final IJavaType subst = m.substMap.get(tf);
+			if (subst == null || subst == tf) {
+				throw new IllegalStateException("Bad substitution for "+tf);
+			}
+			params.add(subst);
+		}
+		return JavaTypeFactory.getDeclaredType(decl, params, oldContext.getOuterType());
+	}
+	
     private IJavaType[] handleBoxing(IJavaType formal, IJavaType[] argTypes, int i) {
     	final IJavaType arg = argTypes[i];
     	if (formal instanceof IJavaReferenceType && arg instanceof IJavaPrimitiveType) {
