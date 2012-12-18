@@ -13,10 +13,13 @@ import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_ANNO;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_ATTRS;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.REPLACED_CONTENTS;
 
+import java.lang.annotation.Annotation;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.surelogic.NonNull;
+import com.surelogic.NotThreadSafe;
 import com.surelogic.Nullable;
 import com.surelogic.RequiresLock;
 import com.surelogic.common.Pair;
@@ -28,7 +31,6 @@ import com.surelogic.common.ref.JavaRef;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.XmlCreator;
-import com.surelogic.dropsea.irfree.XmlCreator.Builder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -44,6 +46,174 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  * placing them into a set.
  */
 public final class ProposedPromiseDrop extends Drop implements IProposedPromiseDrop {
+
+  @NotThreadSafe
+  public static final class Builder {
+
+    @NonNull
+    private final IRNode f_at;
+    @NonNull
+    private final IRNode f_from;
+
+    @Nullable
+    private Origin f_origin = null;
+
+    @NonNull
+    private final String f_annotation;
+    @Nullable
+    private String f_value = null;
+    @NonNull
+    private final Map<String, String> f_attributeNameToValue = new HashMap<String, String>();
+
+    @Nullable
+    private String f_replacedAnnotation = null;
+    @Nullable
+    private String f_replacedValue = null;
+    @NonNull
+    private final Map<String, String> f_replacedAttributeNameToValue = new HashMap<String, String>();
+
+    @Nullable
+    private Drop f_forDrop = null;
+
+    @Nullable
+    private ProofDrop f_forDropOnlyIfNotProvedConsistent = null;
+
+    /**
+     * Constructs a builder to propose the passed annotation.
+     * 
+     * @param annotation
+     *          an annotation in <tt>com.surelogic</tt>.
+     * @throws IllegalArgumentException
+     *           if any of the parameters is {@code null} or the passed
+     *           annotation is not in the package <tt>com.surelogic</tt>.
+     */
+    public Builder(@NonNull Class<? extends Annotation> annotation, @NonNull IRNode at, @NonNull IRNode from) {
+      if (annotation == null)
+        throw new IllegalArgumentException(I18N.err(44, "annotation"));
+      if (at == null)
+        throw new IllegalArgumentException(I18N.err(44, "at"));
+      if (from == null)
+        throw new IllegalArgumentException(I18N.err(44, "from"));
+      if (!SLUtility.SURELOGIC_ANNOTATION_PACKAGE.equals(annotation.getPackage().getName()))
+        throw new IllegalArgumentException(I18N.err(299, annotation.getName()));
+      f_annotation = annotation.getSimpleName();
+      f_at = at;
+      f_from = from;
+    }
+
+    /**
+     * Sets the value of the Java annotation being proposed. For
+     * <code>@Starts("nothing")</code> the value of this string would be
+     * {@code "nothing"}. For <code>@Borrowed</code>, which has no contents, the
+     * value of this string would be {@code null}.
+     * <p>
+     * The contents placed into this string should not be escaped. Any embedded
+     * quotations or backward slashes will be escaped before output using
+     * {@link SLUtility#escapeJavaStringForQuoting(String)}.
+     * 
+     * @param value
+     *          the value of the Java annotation being proposed.
+     * @return this builder.
+     */
+    public Builder setValue(@Nullable String value) {
+      f_value = value;
+      return this;
+    }
+
+    public Builder addAttribute(@NonNull String name, @NonNull String value) {
+      if (name == null)
+        throw new IllegalArgumentException(I18N.err(44, "name"));
+      if (value == null)
+        throw new IllegalArgumentException(I18N.err(44, "value"));
+      f_attributeNameToValue.put(name, value);
+      return this;
+    }
+
+    public Builder setAttributes(@Nullable Map<String, String> nameToValue) {
+      if (nameToValue != null) {
+        f_attributeNameToValue.clear();
+        f_attributeNameToValue.putAll(nameToValue);
+      }
+      return this;
+    }
+
+    public Builder setOrigin(@Nullable Origin value) {
+      f_origin = value;
+      return this;
+    }
+
+    public Builder forDrop(@Nullable Drop value) {
+      f_forDrop = value;
+      return this;
+    }
+
+    public Builder forDropOnlyIfNotProvedConsistent(@Nullable ProofDrop value) {
+      f_forDropOnlyIfNotProvedConsistent = value;
+      return this;
+    }
+
+    public Builder replaceExisting(@NonNull Class<? extends Annotation> annotation) {
+      return replaceExisting(annotation, null, null);
+    }
+
+    public Builder replaceExisting(@NonNull Class<? extends Annotation> annotation, @Nullable String value) {
+      return replaceExisting(annotation, value, null);
+    }
+
+    public Builder replaceExisting(@NonNull Class<? extends Annotation> annotation, @Nullable String value,
+        @Nullable Map<String, String> nameToValue) {
+      if (annotation == null)
+        throw new IllegalArgumentException(I18N.err(44, "annotation"));
+      if (!SLUtility.SURELOGIC_ANNOTATION_PACKAGE.equals(annotation.getPackage().getName()))
+        throw new IllegalArgumentException(I18N.err(299, annotation.getName()));
+      f_replacedAnnotation = annotation.getSimpleName();
+      f_replacedValue = value;
+      if (nameToValue != null) {
+        f_replacedAttributeNameToValue.clear();
+        f_replacedAttributeNameToValue.putAll(nameToValue);
+      }
+      return this;
+    }
+
+    public Builder replaceSameExisting(@Nullable String value) {
+      return replaceSameExisting(value, null);
+    }
+
+    public Builder replaceSameExisting(@Nullable String value, @Nullable Map<String, String> nameToValue) {
+      f_replacedAnnotation = f_annotation;
+      f_replacedValue = value;
+      if (nameToValue != null) {
+        f_replacedAttributeNameToValue.clear();
+        f_replacedAttributeNameToValue.putAll(nameToValue);
+      }
+      return this;
+    }
+
+    public ProposedPromiseDrop build() {
+      /*
+       * Set the default for origin if it is still null. If we are going to be
+       * attached to a promise, even conditional upon its consistency result, we
+       * go with MODEL. We go with PROBLEM otherwise.
+       */
+      if (f_origin == null) {
+        if (f_forDrop == null && f_forDropOnlyIfNotProvedConsistent == null)
+          f_origin = Origin.PROBLEM;
+        else
+          f_origin = Origin.MODEL;
+      }
+
+      final ProposedPromiseDrop result = new ProposedPromiseDrop(f_annotation, f_value, f_attributeNameToValue,
+          f_replacedAnnotation, f_replacedValue, f_replacedAttributeNameToValue, f_at, f_from, f_origin);
+
+      if (f_forDrop != null) {
+        f_forDrop.addProposal(result);
+      }
+      if (f_forDropOnlyIfNotProvedConsistent != null) {
+        f_forDropOnlyIfNotProvedConsistent.addProposalNotProvedConsistent(result);
+      }
+      return result;
+    }
+  }
 
   /**
    * Constructs a new proposed promise. Optionally this promise may replace an
@@ -78,9 +248,9 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
    * @param origin
    *          an indication of how this proposal was generated.
    */
-  public ProposedPromiseDrop(@NonNull String annotation, @Nullable String value,
-      @Nullable Map<String, String> attributeNameToValue, @Nullable String replacedAnnotation, @Nullable String replacedValue,
-      @Nullable Map<String, String> replacedAttributeNameToValue, @NonNull IRNode at, @NonNull IRNode from, @NonNull Origin origin) {
+  private ProposedPromiseDrop(@NonNull String annotation, @Nullable String value,
+      @NonNull Map<String, String> attributeNameToValue, @Nullable String replacedAnnotation, @Nullable String replacedValue,
+      @NonNull Map<String, String> replacedAttributeNameToValue, @NonNull IRNode at, @NonNull IRNode from, @NonNull Origin origin) {
     super(at);
     if (from == null)
       throw new IllegalArgumentException(I18N.err(44, "from"));
@@ -372,7 +542,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   }
 
   @Override
-  public void snapshotRefs(SeaSnapshot s, Builder db) {
+  public void snapshotRefs(SeaSnapshot s, com.surelogic.dropsea.irfree.XmlCreator.Builder db) {
     super.snapshotRefs(s, db);
     s.addProperties(db, ANNO_ATTRS, f_attributeNameToValue);
     s.addProperties(db, REPLACED_ATTRS, f_replacedAttributeNameToValue);
