@@ -428,7 +428,6 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     pulldown.add(f_actionShowOnlyDifferences);
     pulldown.add(new Separator());
     pulldown.add(f_actionShowOnlyFromSrc);
-    pulldown.add(new Separator());
     pulldown.add(f_actionShowOnlyAbductive);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
@@ -440,7 +439,6 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     toolbar.add(f_actionShowOnlyDifferences);
     toolbar.add(new Separator());
     toolbar.add(f_actionShowOnlyFromSrc);
-    toolbar.add(new Separator());
     toolbar.add(f_actionShowOnlyAbductive);
   }
 
