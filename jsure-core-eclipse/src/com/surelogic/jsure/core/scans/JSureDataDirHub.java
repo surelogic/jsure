@@ -366,7 +366,7 @@ public final class JSureDataDirHub {
    */
   private SLJob getSetCurrentScanJob(@Nullable final JSureScan jsureScan, final boolean notifyContentsChanged,
       final boolean notifyCurrentScanChanged, final boolean isNewScan) {
-    return new AbstractSLJob("Loading a JSure Scan...") {
+    return new AbstractSLJob("Loading a JSure Scan... "+jsureScan.getDirName()) {
       public SLStatus run(final SLProgressMonitor monitor) {
         monitor.begin(4);
         try {
