@@ -3,10 +3,12 @@ package com.surelogic.jsure.client.eclipse.views.problems;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 
 import com.surelogic.Utility;
 import com.surelogic.common.ui.EclipseColorUtility;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
@@ -18,7 +20,7 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      ElementDrop.highlightRowHelper(cell);
+      ElementDrop.highlightRowHelper(cell, EclipseUIUtility.getDisplay().getSystemColor(SWT.COLOR_WHITE), null);
 
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();
@@ -47,7 +49,7 @@ public final class ColumnLabelProviderUtility {
 
     @Override
     public void update(ViewerCell cell) {
-      ElementDrop.highlightRowHelper(cell);
+      ElementDrop.highlightRowHelper(cell, EclipseUIUtility.getDisplay().getSystemColor(SWT.COLOR_WHITE), null);
 
       if (cell.getElement() instanceof Element) {
         final Element element = (Element) cell.getElement();

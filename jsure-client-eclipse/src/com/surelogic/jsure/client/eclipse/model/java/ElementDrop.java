@@ -1,6 +1,7 @@
 package com.surelogic.jsure.client.eclipse.model.java;
 
 import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
@@ -55,15 +56,40 @@ public final class ElementDrop extends Element {
    *          exist.
    */
   public static void highlightRowHelper(ViewerCell cell) {
+    highlightRowHelper(cell, null, null);
+  }
+
+  /**
+   * Highlights rows in a {@link ViewerCell} based upon differences in this
+   * model.
+   * <p>
+   * This is a utility method used by several JSure views.
+   * <p>
+   * The colors passed to this method must be managed by the caller, this method
+   * does not dispose of them properly.
+   * 
+   * @param cell
+   *          the cell to examine and set the background color of if differences
+   *          exist.
+   * @param colorNewChanged
+   *          cell background color for new or changed rows.
+   * @param colorObsolete
+   *          cell background color for obsolete rows.
+   */
+  public static void highlightRowHelper(ViewerCell cell, Color colorNewChanged, Color colorObsolete) {
     if (cell.getElement() instanceof ElementDrop) {
       final ElementDrop element = (ElementDrop) cell.getElement();
       if (element.highlightDifferences()) {
         if (element.isNew() || element.isChanged()) {
-          cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
+          if (colorNewChanged == null)
+            colorNewChanged = EclipseColorUtility.getDiffHighlightColorNewChanged();
+          cell.setBackground(colorNewChanged);
           return;
         }
         if (element.isOld()) {
-          cell.setBackground(EclipseColorUtility.getDiffHighlightColorObsolete());
+          if (colorObsolete == null)
+            colorObsolete = EclipseColorUtility.getDiffHighlightColorObsolete();
+          cell.setBackground(colorObsolete);
           return;
         }
       }
