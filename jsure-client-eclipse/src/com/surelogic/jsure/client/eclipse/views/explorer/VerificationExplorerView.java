@@ -397,20 +397,20 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_actionShowOnlyDifferences.setChecked(f_showOnlyDifferences);
 
     f_actionShowObsoleteDrops.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG_OLD_SCAN_ONLY));
-    f_actionShowObsoleteDrops.setText("Show Obsolete Results");
-    f_actionShowObsoleteDrops.setToolTipText("Show obsolete results from the last scan");
+    f_actionShowObsoleteDrops.setText(I18N.msg("jsure.eclipse.explorer.showObsoleteDiffs"));
+    f_actionShowObsoleteDrops.setToolTipText(I18N.msg("jsure.eclipse.explorer.showObsoleteDiffs.tip"));
     f_showObsoleteDrops = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_OBSOLETE_DROP_DIFFERENCES);
     f_actionShowObsoleteDrops.setChecked(f_showObsoleteDrops);
 
     f_actionShowOnlyDerivedFromSrc.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_COMP_UNIT));
-    f_actionShowOnlyDerivedFromSrc.setText("Show Only Results Derived From Source");
-    f_actionShowOnlyDerivedFromSrc.setToolTipText("Show only results derived from Java source code (directly or indirectly)");
+    f_actionShowOnlyDerivedFromSrc.setText(I18N.msg("jsure.eclipse.explorer.showOnlyDerivedFromSrc"));
+    f_actionShowOnlyDerivedFromSrc.setToolTipText(I18N.msg("jsure.eclipse.explorer.showOnlyDerivedFromSrc.tip"));
     f_showOnlyDerivedFromSrc = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_DERIVED_FROM_SRC);
     f_actionShowOnlyDerivedFromSrc.setChecked(f_showOnlyDerivedFromSrc);
 
     f_actionShowAnalysisResults.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ANALYSIS_RESULT));
-    f_actionShowAnalysisResults.setText("Show Analysis Results");
-    f_actionShowAnalysisResults.setToolTipText("Show analysis results about the code");
+    f_actionShowAnalysisResults.setText(I18N.msg("jsure.eclipse.explorer.showAnalysisResults"));
+    f_actionShowAnalysisResults.setToolTipText(I18N.msg("jsure.eclipse.explorer.showAnalysisResults.tip"));
     f_showAnalysisResults = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ANALYSIS_RESULTS);
     f_actionShowAnalysisResults.setChecked(f_showAnalysisResults);
 
@@ -434,7 +434,6 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
 
     f_actionCopy.setText(I18N.msg("jsure.eclipse.view.copy"));
     f_actionCopy.setToolTipText(I18N.msg("jsure.eclipse.view.copy.tip"));
-
   }
 
   private void hookContextMenu() {

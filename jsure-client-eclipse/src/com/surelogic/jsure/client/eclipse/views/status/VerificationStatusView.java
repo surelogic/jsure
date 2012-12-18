@@ -379,11 +379,11 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     });
 
     f_actionAlphaSort.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ALPHA_SORT));
-    f_actionAlphaSort.setText("Sort Contents Alphabetically");
-    f_actionAlphaSort.setToolTipText("Sort contents alphabetically");
+    f_actionAlphaSort.setText(I18N.msg("jsure.eclipse.status.sort_alphabetically"));
+    f_actionAlphaSort.setToolTipText(I18N.msg("jsure.eclipse.status.sort_alphabetically.tip"));
     f_actionJavaSort.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_SORT));
-    f_actionJavaSort.setText("Sort Contents By Java Location");
-    f_actionJavaSort.setToolTipText("Sort contents by Java location");
+    f_actionJavaSort.setText(I18N.msg("jsure.eclipse.status.sort_java"));
+    f_actionJavaSort.setToolTipText(I18N.msg("jsure.eclipse.status.sort_java.tip"));
     setHowViewIsSorted(EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_ALPHA_SORT));
 
     f_actionHighlightDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG));
@@ -414,8 +414,8 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_actionCollapseAll.setToolTipText(I18N.msg("jsure.eclipse.view.collapse_all.tip"));
     f_actionCollapseAll.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
-    f_selectIdenticalAncestor.setText("Select Identical Ancestor");
-    f_selectIdenticalAncestor.setToolTipText("Select to the node that this element is identical to");
+    f_selectIdenticalAncestor.setText(I18N.msg("jsure.eclipse.status.select_ancestor"));
+    f_selectIdenticalAncestor.setToolTipText(I18N.msg("jsure.eclipse.status.select_ancestor.tip"));
     f_selectIdenticalAncestor.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_UP));
 
     f_actionAddPromiseToCode.setText(I18N.msg("jsure.eclipse.proposed.promise.edit"));
