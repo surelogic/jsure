@@ -410,6 +410,12 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   
   public static IJavaType computeReturnType(IBinder binder, IBinding mb) {
+	  if (ConstructorDeclaration.prototype.includes(mb.getNode())) {
+		  if (mb.getContextType() == null) {
+			  throw new IllegalStateException();
+		  }
+		  return mb.getContextType();
+	  }	  
 	  JavaTypeVisitor jtv = JavaTypeVisitor.prototype;
 	  synchronized ( jtv ) {
 		  final IBinder preBinder = jtv.binder;
