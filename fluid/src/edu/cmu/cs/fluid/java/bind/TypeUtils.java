@@ -493,7 +493,7 @@ public class TypeUtils {
 		 * @return true if derived some constraints
 		 */
 		boolean derive(IJavaType formal, Constraint constraint, IJavaType actual) {
-			System.out.println("Adding: "+formal+" "+constraint+" "+actual);
+			//System.out.println("Adding: "+formal+" "+constraint+" "+actual);
 			if (formal instanceof IJavaPrimitiveType || actual instanceof IJavaNullType) {
 				// Nothing to do since there can't be any type variables to deal with here
 				//   or
@@ -856,7 +856,7 @@ public class TypeUtils {
 		public Mapping computeTypeMapping() {
 			if (useNewTypeInference) {
 				GeneratedConstraints generated = inferTypeParameters(map, constraints);		
-				if (false) {
+				if (true) {
 					Constraints constraints = handleUnresolvedVariables(map, generated);
 					if (constraints != null) {
 						// Copy over the map
