@@ -17,6 +17,9 @@ import com.surelogic.common.ref.IJavaRef;
  */
 public interface IProposedPromiseDrop extends IAnalysisOutputDrop, ISnapshotDrop {
 
+  /**
+   * An indication of how a proposal was generated or originated.
+   */
   public enum Origin {
     /**
      * This proposal was inferred from code with no model/annotation basis for
