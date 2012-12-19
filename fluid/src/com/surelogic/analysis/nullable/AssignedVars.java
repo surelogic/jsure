@@ -12,8 +12,9 @@ import edu.uwm.cs.fluid.util.AssociativeArrayLattice;
  * to ASSIGNED.  If the value of this last element is ever not ASSIGNED, then
  * the value of the array is non-normative.
  */
-public class AssignedVars extends AssociativeArrayLattice<IRNode, Assigned.Lattice, Assigned> {
+public final class AssignedVars extends AssociativeArrayLattice<IRNode, Assigned.Lattice, Assigned> {
   private final Assigned[] empty;
+  private final Assigned[] allAssigned;
   
   private AssignedVars(final IRNode[] modifiedKeys) {
     super(Assigned.lattice, Assigned.NO_ASSIGNED, modifiedKeys);
@@ -23,6 +24,10 @@ public class AssignedVars extends AssociativeArrayLattice<IRNode, Assigned.Latti
     empty = new Assigned[n];
     for (int i = 0; i < n-1; i++) empty[i] = Assigned.UNASSIGNED;
     empty[n-1] = Assigned.ASSIGNED;
+    
+    // Create a unique reference to the all assigned value
+    allAssigned = new Assigned[n];
+    for (int i = 0; i < n; i++) allAssigned[i] = Assigned.ASSIGNED;
   }
 
   public static AssignedVars create(final List<IRNode> keys) {
@@ -40,6 +45,10 @@ public class AssignedVars extends AssociativeArrayLattice<IRNode, Assigned.Latti
   @Override
   public Assigned[] getEmptyValue() {
     return empty;
+  }
+  
+  public Assigned[] getAllAssigned() {
+    return allAssigned;
   }
 
   @Override

@@ -15,19 +15,23 @@ public enum Assigned {
       super();
     }
     
+    @Override
     public boolean lessEq(final Assigned v1, final Assigned v2) {
       // Simple linear relationship between the elements
       return v1.ordinal() <= v2.ordinal();
     }
 
+    @Override
     public Assigned top() {
       return TOP;
     }
 
+    @Override
     public Assigned bottom() {
       return BOTTOM;
     }
 
+    @Override
     public Assigned join(final Assigned v1, final Assigned v2) {
       // return whichever is greatest
       if (lessEq(v1, v2)) return v2;
@@ -37,6 +41,7 @@ public enum Assigned {
           "Can't get join of " + v1 + " and " + v2);
     }
 
+    @Override
     public Assigned meet(final Assigned v1, final Assigned v2) {
       // return whichever is least
       if (lessEq(v1, v2)) return v1;

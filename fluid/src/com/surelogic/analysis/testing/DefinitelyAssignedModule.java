@@ -7,7 +7,7 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
-import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.Query;
+import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.NotDefinitelyAssignedQuery;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
@@ -30,6 +30,7 @@ public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<Defi
   protected boolean doAnalysisOnAFile(final IIRAnalysisEnvironment env,
       final CUDrop cud, final IRNode compUnit) {
     runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
+      @Override
       public void run() {
         checkDefinitelyAssignedsForFile(compUnit);
       }
@@ -43,14 +44,14 @@ public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<Defi
     getAnalysis().clear();
   }
   
-  private final class DefinitelyAssignedVisitor extends AbstractJavaAnalysisDriver<Query> {
+  private final class DefinitelyAssignedVisitor extends AbstractJavaAnalysisDriver<NotDefinitelyAssignedQuery> {
     @Override
-    protected Query createNewQuery(final IRNode decl) {
-      return getAnalysis().getAssignedVarsQuery(decl);
+    protected NotDefinitelyAssignedQuery createNewQuery(final IRNode decl) {
+      return getAnalysis().getNotDefinitelyAssignedQuery(decl);
     }
 
     @Override
-    protected Query createSubQuery(final IRNode caller) {
+    protected NotDefinitelyAssignedQuery createSubQuery(final IRNode caller) {
       return currentQuery().getSubAnalysisQuery(caller);
     }
 
