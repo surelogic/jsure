@@ -16,6 +16,7 @@ import com.surelogic.analysis.concurrency.driver.LockAnalysis;
 import com.surelogic.analysis.effects.EffectsAnalysis;
 import com.surelogic.analysis.equality.EqualityAnalysis;
 import com.surelogic.analysis.layers.LayersAnalysis;
+import com.surelogic.analysis.nullable.NullableModule;
 import com.surelogic.analysis.singleton.SingletonAnalysis;
 import com.surelogic.analysis.structure.StructureAnalysis;
 import com.surelogic.analysis.testing.BCAModule;
@@ -103,6 +104,8 @@ public class Javac extends IDE {
 		
 		init(UtilityAnalysis.class, "com.surelogic.jsure.client.eclipse.Utility", true, "Utility class");
     init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
+    
+    init(NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable", false, "Nullable");
     
 		/*
 		AnalysisInfo[] deps = new AnalysisInfo[3];
@@ -301,18 +304,22 @@ public class Javac extends IDE {
 			return false;
 		}
 
-		public Class<? extends IIRAnalysis> getAnalysisClass() {
+		@Override
+    public Class<? extends IIRAnalysis> getAnalysisClass() {
 			return clazz;
 		}
 
+    @Override
 		public String getCategory() {
 			return null; // nothing's "required"
 		}
 
+    @Override
 		public String getLabel() {
 			return label;
 		}
 
+    @Override
 		public String[] getPrerequisiteIds() {
 			String[] result = new String[dependencies.size()];
 			int i=0;
@@ -322,14 +329,17 @@ public class Javac extends IDE {
 			return result;
 		}
 
+    @Override
 		public String getUniqueIdentifier() {
 			return id;
 		}
 
+    @Override
 		public boolean isIncluded() {
 			return IDE.getInstance().getBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX+id);
 		}
 
+    @Override
 		public boolean isProduction() {
 			return isProduction;
 		}

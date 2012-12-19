@@ -22,6 +22,7 @@ import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.NotImplemented;
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -168,5 +169,19 @@ public class NonNullRules extends AnnotationRules {
 				}
 			};
 		}   
+	}
+	
+	
+	
+	public static NonNullPromiseDrop getNonNull(final IRNode decl) {
+	  return getBooleanDrop(nonNullRule.getStorage(), decl);
+	}
+
+	public static NullablePromiseDrop getNullable(final IRNode decl) {
+	  return getBooleanDrop(nullableRule.getStorage(), decl);
+	}
+	
+	public static RawPromiseDrop getRaw(final IRNode decl) {
+	  return getBooleanDrop(rawRule.getStorage(), decl);
 	}
 }

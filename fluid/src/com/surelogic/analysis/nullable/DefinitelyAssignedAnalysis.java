@@ -2,8 +2,11 @@ package com.surelogic.analysis.nullable;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.analysis.IBinderClient;
@@ -35,6 +38,10 @@ import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
  * Determines if a field is definitely assigned by the constructor.
  */
 public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<Assigned[], AssignedVars, JavaForwardAnalysis<Assigned[], AssignedVars>> implements IBinderClient {
+  private final boolean includeFinalFields;
+  
+  
+  // XXX: Not sure how useful this one is going to be, may delete in future
   public final class NotDefinitelyAssignedQuery extends SimplifiedJavaFlowAnalysisQuery<NotDefinitelyAssignedQuery, Set<IRNode>, Assigned[], AssignedVars> {
     public NotDefinitelyAssignedQuery(final IThunk<? extends IJavaFlowAnalysis<Assigned[], AssignedVars>> thunk) {
       super(thunk);
@@ -66,31 +73,71 @@ public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<As
   }
   
   
+  /* May want to create a new Map implementation that wraps around the 
+   * lattice value instead of copying to a new map.
+   */
+  public final class AllResultsQuery extends SimplifiedJavaFlowAnalysisQuery<AllResultsQuery, Map<IRNode, Boolean>, Assigned[], AssignedVars> {
+    public AllResultsQuery(final IThunk<? extends IJavaFlowAnalysis<Assigned[], AssignedVars>> thunk) {
+      super(thunk);
+    }
+    
+    private AllResultsQuery(final Delegate<AllResultsQuery, Map<IRNode, Boolean>, Assigned[], AssignedVars> d) {
+      super(d);
+    }
+    
+    @Override
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.NORMAL_EXIT;
+    }
+
+    @Override
+    protected Map<IRNode, Boolean> processRawResult(
+        final IRNode expr, final AssignedVars lattice, final Assigned[] rawResult) {
+      final Map<IRNode, Boolean> map = new HashMap<IRNode, Boolean>();
+      for (int i = 0; i < rawResult.length - 1; i++) {
+        map.put(lattice.getKey(i), rawResult[i] == Assigned.ASSIGNED ? Boolean.TRUE : Boolean.FALSE);
+      }
+      return Collections.unmodifiableMap(map);
+    }
+
+    @Override
+    protected AllResultsQuery newSubAnalysisQuery(final Delegate<AllResultsQuery, Map<IRNode, Boolean>, Assigned[], AssignedVars> d) {
+      return new AllResultsQuery(d);
+    }
+  }
   
-  public DefinitelyAssignedAnalysis(final IBinder b) {
+  
+  public DefinitelyAssignedAnalysis(final IBinder b, final boolean includeFinal) {
     super(b);
+    includeFinalFields = includeFinal;
   }
 
+  
+
+  private boolean includesField(final IRNode fdecl) {
+    return includeFinalFields || !TypeUtil.isFinal(fdecl);
+  }
+
+  
+  
   @Override
   protected JavaForwardAnalysis<Assigned[], AssignedVars> createAnalysis(final IRNode flowUnit) {
-    // Track all the non-final fields declared in the class
-    // TODO: Just the @NonNull ones
-    final List<IRNode> nonFinalFields = new ArrayList<IRNode>(10);
+    final List<IRNode> fields = new ArrayList<IRNode>(10);
     for (final IRNode fdecl : VisitUtil.getClassFieldDecls(VisitUtil.getEnclosingType(flowUnit))) {
-      if (!TypeUtil.isFinal(fdecl)) {
+      if (includesField(fdecl)) {
         for (final IRNode vd : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(fdecl))) {
-          nonFinalFields.add(vd);
+          fields.add(vd);
         }
       }
     }
-    final AssignedVars l = AssignedVars.create(nonFinalFields);
+    final AssignedVars l = AssignedVars.create(fields);
     final Transfer t = new Transfer(binder, l, 0);
     return new JavaForwardAnalysis<Assigned[], AssignedVars>("Definitely Assigned", l, t, DebugUnparser.viewer);
   }
 
 
   
-  private static final class Transfer extends JavaForwardTransfer<AssignedVars, Assigned[]> {
+  private final class Transfer extends JavaForwardTransfer<AssignedVars, Assigned[]> {
     public Transfer(final IBinder binder, final AssignedVars lattice, final int floor) {
       super(binder, lattice, new SubAnalysisFactory());
     }
@@ -112,8 +159,7 @@ public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<As
       final IRNode target = ((AssignmentInterface) op).getTarget(node);
       if (FieldRef.prototype.includes(target)) {
         final IRNode field = binder.getBinding(target);
-        // TODO: Check that the field is @NOnNull
-        if (!TypeUtil.isFinal(field)) { // lattice doesn't contain the final fields!
+        if (includesField(field)) {
           return lattice.replaceValue(value, field, Assigned.ASSIGNED);
         }
       }
@@ -127,8 +173,7 @@ public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<As
       
       final IRNode p = tree.getParent(tree.getParent(node));
       if (FieldDeclaration.prototype.includes(tree.getOperator(p))) {
-        // TODO: Check that the field is @NonNull
-        if (!TypeUtil.isFinal(p)) { // lattice doesn't contain the final fields!
+        if (includesField(p)) {
           final IRNode initializer = VariableDeclarator.getInit(node);
           if (!NoInitialization.prototype.includes(initializer)) {
             return lattice.replaceValue(value, node, Assigned.ASSIGNED);
@@ -170,7 +215,7 @@ public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<As
   }
   
   
-  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<AssignedVars, Assigned[]> {
+  private final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<AssignedVars, Assigned[]> {
     @Override
     protected JavaForwardAnalysis<Assigned[], AssignedVars> realCreateAnalysis(
         final IRNode caller, final IBinder binder,
@@ -199,5 +244,9 @@ public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<As
 
   public NotDefinitelyAssignedQuery getNotDefinitelyAssignedQuery(final IRNode flowUnit) {
     return new NotDefinitelyAssignedQuery(getAnalysisThunk(flowUnit));
+  }
+  
+  public AllResultsQuery getAllResultsQuery(final IRNode flowUnit) {
+    return new AllResultsQuery(getAnalysisThunk(flowUnit));
   }
 }

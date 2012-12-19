@@ -1,24 +1,25 @@
-package com.surelogic.analysis.testing;
+package com.surelogic.analysis.nullable;
 
 import java.util.Map;
-import java.util.Map.Entry;
 
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
+import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
-import com.surelogic.dropsea.ir.HintDrop;
+import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.dropsea.ir.drops.CUDrop;
+import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
-import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 
-public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<DefinitelyAssignedAnalysis, Unused>{
-  public DefinitelyAssignedModule() {
+public final class NullableModule extends AbstractWholeIRAnalysis<DefinitelyAssignedAnalysis, Unused>{
+  public NullableModule() {
     super("Definitely Assigned");
   }
 
@@ -60,15 +61,15 @@ public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<Defi
     
     @Override
     protected void handleConstructorDeclaration(final IRNode cdecl) {
-      final Map<IRNode, Boolean> fieldStatus = 
+      final Map<IRNode, Boolean> fieldsStatus = 
           currentQuery().getResultFor(ConstructorDeclaration.getBody(cdecl));
-      for (final Entry<IRNode, Boolean> e : fieldStatus.entrySet()) {
-        final HintDrop drop = HintDrop.newInformation(cdecl);
-        drop.setCategorizingMessage(Messages.DSC_NON_NULL);
-        if (e.getValue().booleanValue()) {
-          drop.setMessage(Messages.ASSIGNED, VariableDeclarator.getId(e.getKey()));
-        } else {
-          drop.setMessage(Messages.NOT_ASSIGNED, VariableDeclarator.getId(e.getKey()));
+      for (final Map.Entry<IRNode, Boolean> e : fieldsStatus.entrySet()) {
+        final IRNode fieldDecl = e.getKey();
+        final NonNullPromiseDrop pd = NonNullRules.getNonNull(fieldDecl);
+        if (pd != null) {
+          final boolean isDefinitelyAssigned = e.getValue().booleanValue();
+          ResultsBuilder.createResult(cdecl, pd, isDefinitelyAssigned,
+              900, 901, JavaNames.genSimpleMethodConstructorName(cdecl));
         }
       }
       
