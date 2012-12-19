@@ -44,6 +44,7 @@ import org.eclipse.ui.progress.UIJob;
 import com.surelogic.NonNull;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
@@ -280,6 +281,13 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       f_treeViewer.collapseAll();
     }
   };
+  
+  private final Action f_actionExpandToLevel4 = new Action() {
+	    @Override
+	    public void run() {
+	      f_treeViewer.expandToLevel(4);
+	    }
+  };
 
   private final Action f_selectIdenticalAncestor = new Action() {
     @Override
@@ -413,6 +421,10 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_actionCollapseAll.setToolTipText(I18N.msg("jsure.eclipse.view.collapse_all.tip"));
     f_actionCollapseAll.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
+    f_actionExpandToLevel4.setText("Expand to level 4");
+    f_actionExpandToLevel4.setToolTipText("Expand to level 4 (experimental)");
+    f_actionExpandToLevel4.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
+    
     f_selectIdenticalAncestor.setText(I18N.msg("jsure.eclipse.status.select_ancestor"));
     f_selectIdenticalAncestor.setToolTipText(I18N.msg("jsure.eclipse.status.select_ancestor.tip"));
     f_selectIdenticalAncestor.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_UP));
@@ -474,6 +486,9 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     bars.setGlobalActionHandler(ActionFactory.COPY.getId(), f_actionCopy);
 
     final IMenuManager pulldown = bars.getMenuManager();
+    if (XUtil.useExperimental) {
+    	pulldown.add(f_actionExpandToLevel4);
+    }
     pulldown.add(f_actionCollapseAll);
     pulldown.add(new Separator());
     pulldown.add(f_actionShowQuickRef);
