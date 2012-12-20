@@ -76,9 +76,11 @@ import com.surelogic.jsure.core.scans.JSureDataDirHub;
 public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentScanChangeListener,
     IUninterestingPackageFilterObserver {
 
-  private static final String VIEW_STATE = "ProblemsView_TreeViewerUIState";
+  private static final String VIEW_STATE_FILENAME = SLUtility.VIEW_PERSISTENCE_PREFIX + ProblemsView.class.getSimpleName()
+      + SLUtility.DOT_XML;
 
-  private final File f_viewStatePersistenceFile;
+  @NonNull
+  private final File f_viewStateFile;
 
   private PageBook f_viewerbook = null;
   private Label f_noResultsToShowLabel = null;
@@ -122,7 +124,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
 
   public ProblemsView() {
     final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
-    f_viewStatePersistenceFile = new File(jsureData, VIEW_STATE + ".xml");
+    f_viewStateFile = new File(jsureData, VIEW_STATE_FILENAME);
   }
 
   @Override
@@ -423,8 +425,8 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
       TreeViewerUIState state = null;
       if (viewsSaveTreeState) {
         if (f_contentProvider.isEmpty()) {
-          if (f_viewStatePersistenceFile.exists())
-            state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
+          if (f_viewStateFile.exists())
+            state = TreeViewerUIState.loadFromFile(f_viewStateFile);
         } else {
           state = new TreeViewerUIState(f_treeViewer);
         }
@@ -581,19 +583,29 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
   @Override
   public void saveState(IMemento memento) {
     final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
+    boolean deleteOnExit = false;
     if (viewsSaveTreeState) {
       try {
         final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
-        state.saveToFile(f_viewStatePersistenceFile);
+        if (state.isEmpty())
+          deleteOnExit = true;
+        else
+          state.saveToFile(f_viewStateFile);
       } catch (IOException e) {
-        SLLogger.getLogger().log(Level.WARNING,
-            I18N.err(300, this.getClass().getSimpleName(), f_viewStatePersistenceFile.getAbsolutePath()), e);
+        SLLogger.getLogger().log(Level.WARNING, I18N.err(300, this.getClass().getSimpleName(), f_viewStateFile.getAbsolutePath()),
+            e);
       }
-    } else {
-      if (f_viewStatePersistenceFile.exists()) {
-        f_viewStatePersistenceFile.deleteOnExit();
-      }
+    } else
+      deleteOnExit = true;
+
+    if (deleteOnExit && f_viewStateFile.exists()) {
+      f_viewStateFile.deleteOnExit();
     }
+
+    // obsolete file cleanup 4.4 release TODO remove next release
+    final File obsolete = new File(JSurePreferencesUtility.getJSureDataDirectory(), "ProblemsView_TreeViewerUIState.xml");
+    if (obsolete.exists())
+      obsolete.deleteOnExit();
   }
 
   @Override
