@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.logging.Level;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
@@ -24,12 +27,76 @@ import com.surelogic.jsure.client.eclipse.model.java.IViewDiffState;
 
 public final class VerificationExplorerViewContentProvider implements ITreeContentProvider, IViewDiffState {
 
+  /**
+   * Represents input for this content provider.
+   */
+  static class Input {
+    @NonNull
+    final JSureScanInfo f_scan;
+    @Nullable
+    final JSureScanInfo f_oldScan;
+    @Nullable
+    final ScanDifferences f_diff;
+    final boolean f_showOnlyDifferences;
+    final boolean f_showObsoleteDrops;
+    final boolean f_showOnlyDerivedFromSrc;
+    final boolean f_showAnalysisResults;
+    final boolean f_showHints;
+
+    Input(@NonNull final JSureScanInfo scan, @Nullable JSureScanInfo oldScan, @Nullable final ScanDifferences diff,
+        boolean showOnlyDifferences, boolean showObsoleteDrops, boolean showOnlyDerivedFromSrc, boolean showAnalysisResults,
+        boolean showHints) {
+      f_scan = scan;
+      f_oldScan = oldScan;
+      f_diff = diff;
+      f_showOnlyDifferences = showOnlyDifferences;
+      f_showObsoleteDrops = showObsoleteDrops;
+      f_showOnlyDerivedFromSrc = showOnlyDerivedFromSrc;
+      f_showAnalysisResults = showAnalysisResults;
+      f_showHints = showHints;
+    }
+  }
+
   public void dispose() {
     // nothing to do
   }
 
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-    // nothing to do
+    if (newInput instanceof Input) {
+      final Input in = (Input) newInput;
+      f_scanDifferences = in.f_diff;
+      final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer(this);
+
+      boolean noDiffAndOnlyShowingDiff = in.f_diff == null && in.f_showOnlyDifferences;
+      if (!noDiffAndOnlyShowingDiff) {
+        final ArrayList<IDrop> drops = new ArrayList<IDrop>();
+        drops.addAll(in.f_scan.getProofDrops());
+        if (in.f_showHints)
+          drops.addAll(in.f_scan.getHintDrops());
+        if (in.f_showObsoleteDrops && in.f_diff != null)
+          drops.addAll(in.f_diff.getDropsOnlyInOldScan());
+
+        for (IDrop pd : drops) {
+          if (in.f_showOnlyDifferences && in.f_diff != null && in.f_diff.isSameInBothScans(pd))
+            continue;
+          if (!(pd instanceof IProofDrop || pd instanceof IHintDrop))
+            continue;
+          if (in.f_showOnlyDerivedFromSrc && pd instanceof IProofDrop && !((IProofDrop) pd).derivedFromSrc())
+            continue;
+          if (!in.f_showAnalysisResults && pd instanceof IAnalysisResultDrop)
+            continue;
+          if (pd instanceof IResultFolderDrop)
+            continue;
+          ElementDrop.addToTree(tree, pd, in.f_diff == null ? false : in.f_diff.isNotInNewScan(pd));
+        }
+      }
+      f_root = tree.getRootElements();
+    } else if (newInput == null) {
+      f_root = Element.EMPTY;
+      f_scanDifferences = null;
+    } else {
+      SLLogger.getLogger().log(Level.SEVERE, I18N.err(301, this.getClass().getSimpleName(), newInput));
+    }
   }
 
   public Object[] getElements(Object inputElement) {
@@ -62,38 +129,6 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
 
   public boolean isEmpty() {
     return f_root == null || f_root.length == 0;
-  }
-
-  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final JSureScanInfo oldScan,
-      @Nullable final ScanDifferences diff, final boolean showOnlyDifferences, final boolean showObsoleteDrops,
-      final boolean showOnlyDerivedFromSrc, final boolean showAnalysisResults, final boolean showHints) {
-    f_scanDifferences = diff;
-    final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer(this);
-
-    boolean noDiffAndOnlyShowingDiff = diff == null && showOnlyDifferences;
-    if (!noDiffAndOnlyShowingDiff) {
-      final ArrayList<IDrop> drops = new ArrayList<IDrop>();
-      drops.addAll(scan.getProofDrops());
-      if (showHints)
-        drops.addAll(scan.getHintDrops());
-      if (showObsoleteDrops && diff != null)
-        drops.addAll(diff.getDropsOnlyInOldScan());
-
-      for (IDrop pd : drops) {
-        if (showOnlyDifferences && diff != null && diff.isSameInBothScans(pd))
-          continue;
-        if (!(pd instanceof IProofDrop || pd instanceof IHintDrop))
-          continue;
-        if (showOnlyDerivedFromSrc && pd instanceof IProofDrop && !((IProofDrop) pd).derivedFromSrc())
-          continue;
-        if (!showAnalysisResults && pd instanceof IAnalysisResultDrop)
-          continue;
-        if (pd instanceof IResultFolderDrop)
-          continue;
-        ElementDrop.addToTree(tree, pd, diff == null ? false : diff.isNotInNewScan(pd));
-      }
-    }
-    f_root = tree.getRootElements();
   }
 
   /**

@@ -44,8 +44,8 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
     final boolean f_showOnlyFromSrc;
     final boolean f_showOnlyAbductive;
 
-    Input(@NonNull final JSureScanInfo scan, @Nullable final ScanDifferences diff, final boolean showOnlyDifferences,
-        final boolean showOnlyFromSrc, final boolean showOnlyAbductive) {
+    Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showOnlyDifferences, boolean showOnlyFromSrc,
+        boolean showOnlyAbductive) {
       f_scan = scan;
       f_diff = diff;
       f_showOnlyDifferences = showOnlyDifferences;
@@ -80,7 +80,6 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
           ElementDrop.addToTree(tree, ppd, false);
       }
       f_root = tree.getRootElements();
-
     } else if (newInput == null) {
       f_root = Element.EMPTY;
       f_scanDifferences = null;

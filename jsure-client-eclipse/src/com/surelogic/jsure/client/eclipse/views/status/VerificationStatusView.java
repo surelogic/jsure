@@ -156,9 +156,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     hookContextMenu();
     contributeToActionBars();
 
-    // start empty until the initial build is done
-    setViewerVisibility(false);
-
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
 
     // setup a job to "fake" a scan change.
@@ -179,18 +176,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     } finally {
       super.dispose();
     }
-  }
-
-  @Override
-  public void currentScanChanged(JSureScan doNotUseInThisMethod) {
-    final UIJob job = new SLUIJob() {
-      @Override
-      public IStatus runInUIThread(IProgressMonitor monitor) {
-        showScanOrEmptyLabel();
-        return Status.OK_STATUS;
-      }
-    };
-    job.schedule();
   }
 
   private final Action f_actionAlphaSort = new Action("", IAction.AS_RADIO_BUTTON) {
@@ -544,38 +529,48 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_treeViewer.setSelection(new StructuredSelection(c), true);
   }
 
-  private void showScanOrEmptyLabel() {
-    final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
-    final JSureScanInfo oldScan = JSureDataDirHub.getInstance().getLastMatchingScanInfo();
-    if (scan != null) {
-      // Show results in a tree table
-      if (f_showDiffTableColumn != null) {
-        final String label = oldScan == null ? "No Prior Scan" : "Differences from scan of " + oldScan.getProjects().getLabel()
-            + " at " + SLUtility.toStringDayHMS(oldScan.getProjects().getDate());
-        f_showDiffTableColumn.getColumn().setText(label);
-      }
-      final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
-      f_treeViewer.getTree().setRedraw(false);
-      final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
-      TreeViewerUIState state = null;
-      if (viewsSaveTreeState) {
-        if (f_contentProvider.isEmpty()) {
-          if (f_viewStateFile.exists())
-            state = TreeViewerUIState.loadFromFile(f_viewStateFile);
+  @Override
+  public void currentScanChanged(JSureScan doNotUseInThisMethod) {
+    final UIJob job = new SLUIJob() {
+      @Override
+      public IStatus runInUIThread(IProgressMonitor monitor) {
+        final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
+        final JSureScanInfo oldScan = JSureDataDirHub.getInstance().getLastMatchingScanInfo();
+        if (scan != null) {
+          // Show results in a tree table
+          if (f_showDiffTableColumn != null) {
+            final String label = oldScan == null ? "No Prior Scan" : "Differences from scan of " + oldScan.getProjects().getLabel()
+                + " at " + SLUtility.toStringDayHMS(oldScan.getProjects().getDate());
+            f_showDiffTableColumn.getColumn().setText(label);
+          }
+          final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
+          f_treeViewer.getTree().setRedraw(false);
+          final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
+          TreeViewerUIState state = null;
+          if (viewsSaveTreeState) {
+            if (f_contentProvider.isEmpty()) {
+              if (f_viewStateFile.exists()) {
+                state = TreeViewerUIState.loadFromFile(f_viewStateFile);
+              }
+            } else {
+              state = new TreeViewerUIState(f_treeViewer);
+            }
+          }
+          f_treeViewer.setInput(new VerificationStatusViewContentProvider.Input(scan, oldScan, diff, f_showHints));
+          setModelProblemIndicatorState(JSureUtility.getInterestingModelingProblemCount(scan));
+          if (state != null) {
+            state.restoreViewState(f_treeViewer);
+          }
+          f_treeViewer.getTree().setRedraw(true);
+          f_viewerbook.showPage(f_treeViewer.getControl());
         } else {
-          state = new TreeViewerUIState(f_treeViewer);
+          // Show no results
+          f_viewerbook.showPage(f_noResultsToShowLabel);
         }
+        return Status.OK_STATUS;
       }
-      f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, f_showHints);
-      setModelProblemIndicatorState(JSureUtility.getInterestingModelingProblemCount(scan));
-      if (state != null)
-        state.restoreViewState(f_treeViewer);
-      f_treeViewer.getTree().setRedraw(true);
-      setViewerVisibility(true);
-    } else {
-      // Show no results
-      setViewerVisibility(false);
-    }
+    };
+    job.schedule();
   }
 
   /**
@@ -590,20 +585,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_actionJavaSort.setChecked(!alphabetical);
     f_treeViewer.setSorter(alphabetical ? f_alphaSorter : f_javaSorter);
     EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_ALPHA_SORT, alphabetical);
-  }
-
-  /**
-   * Toggles between the empty viewer page and the Fluid results
-   */
-  private void setViewerVisibility(boolean showResults) {
-    if (f_viewerbook.isDisposed())
-      return;
-    if (showResults) {
-      f_treeViewer.setInput(getViewSite());
-      f_viewerbook.showPage(f_treeViewer.getControl());
-    } else {
-      f_viewerbook.showPage(f_noResultsToShowLabel);
-    }
   }
 
   @Override

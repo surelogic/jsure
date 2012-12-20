@@ -160,9 +160,6 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     hookContextMenu();
     contributeToActionBars();
 
-    // start empty until the initial build is done
-    setViewerVisibility(false);
-
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
     UninterestingPackageFilterUtility.registerObserver(this);
 
@@ -416,47 +413,6 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     toolbar.add(f_preferences);
   }
 
-  private void showScanOrEmptyLabel() {
-    final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
-    if (scan != null) {
-      final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
-      f_treeViewer.getTree().setRedraw(false);
-      final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
-      TreeViewerUIState state = null;
-      if (viewsSaveTreeState) {
-        if (f_contentProvider.isEmpty()) {
-          if (f_viewStateFile.exists())
-            state = TreeViewerUIState.loadFromFile(f_viewStateFile);
-        } else {
-          state = new TreeViewerUIState(f_treeViewer);
-        }
-      }
-      f_contentProvider.changeContentsToCurrentScan(scan, diff, f_showOnlyDifferences, f_showOnlyFromSrc);
-      if (state != null)
-        state.restoreViewState(f_treeViewer);
-      f_treeViewer.getTree().setRedraw(true);
-      setViewerVisibility(true);
-    } else {
-      // Show no results
-      setViewerVisibility(false);
-      updateInterestingModelingProblemCount(scan);
-    }
-  }
-
-  /**
-   * Toggles between the empty viewer page and the Fluid results
-   */
-  private void setViewerVisibility(boolean showResults) {
-    if (f_viewerbook.isDisposed())
-      return;
-    if (showResults) {
-      f_treeViewer.setInput(getViewSite());
-      f_viewerbook.showPage(f_treeViewer.getControl());
-    } else {
-      f_viewerbook.showPage(f_noResultsToShowLabel);
-    }
-  }
-
   private void updateInterestingModelingProblemCount(final JSureScanInfo scan) {
     final int issueCt = JSureUtility.getInterestingModelingProblemCount(scan);
     final String label;
@@ -573,7 +529,32 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     final UIJob job = new SLUIJob() {
       @Override
       public IStatus runInUIThread(IProgressMonitor monitor) {
-        showScanOrEmptyLabel();
+        final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
+        if (scan != null) {
+          final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
+          f_treeViewer.getTree().setRedraw(false);
+          final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
+          TreeViewerUIState state = null;
+          if (viewsSaveTreeState) {
+            if (f_contentProvider.isEmpty()) {
+              if (f_viewStateFile.exists()) {
+                state = TreeViewerUIState.loadFromFile(f_viewStateFile);
+              }
+            } else {
+              state = new TreeViewerUIState(f_treeViewer);
+            }
+          }
+          f_treeViewer.setInput(new ProblemsViewContentProvider.Input(scan, diff, f_showOnlyDifferences, f_showOnlyFromSrc));
+          if (state != null) {
+            state.restoreViewState(f_treeViewer);
+          }
+          f_treeViewer.getTree().setRedraw(true);
+          f_viewerbook.showPage(f_treeViewer.getControl());
+        } else {
+          // Show no results
+          f_viewerbook.showPage(f_noResultsToShowLabel);
+        }
+        updateInterestingModelingProblemCount(scan);
         return Status.OK_STATUS;
       }
     };

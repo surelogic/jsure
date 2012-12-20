@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.logging.Level;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -12,6 +13,8 @@ import org.eclipse.jface.viewers.Viewer;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IPromiseDrop;
@@ -22,12 +25,67 @@ import com.surelogic.javac.persistence.JSureScanInfo;
 
 public final class VerificationStatusViewContentProvider implements ITreeContentProvider {
 
+  static class Input {
+    @NonNull
+    final JSureScanInfo f_scan;
+    @Nullable
+    final JSureScanInfo f_oldScan;
+    @Nullable
+    final ScanDifferences f_diff;
+    final boolean f_showHints;
+
+    Input(@NonNull JSureScanInfo scan, @Nullable JSureScanInfo oldScan, @Nullable ScanDifferences diff, boolean showHints) {
+      f_scan = scan;
+      f_oldScan = oldScan;
+      f_diff = diff;
+      f_showHints = showHints;
+    }
+  }
+
   public void dispose() {
     // nothing to do
   }
 
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-    // nothing to do
+    if (newInput instanceof Input) {
+      final Input in = (Input) newInput;
+      final List<Element> root = new ArrayList<Element>();
+      Element.f_showHints = in.f_showHints;
+      Element.f_diff = in.f_diff;
+      final ElementCategory.Categorizer pc = new ElementCategory.Categorizer(null);
+      for (IPromiseDrop promise : in.f_scan.getPromiseDrops()) {
+        if (promise.isFromSrc() || promise.derivedFromSrc()) {
+          if (showAtTopLevel(promise)) {
+            pc.add(promise);
+          }
+        }
+      }
+      root.addAll(pc.getAllElements());
+
+      if (in.f_showHints) {
+        /*
+         * If the hint is uncategorized we don't show it in this section (it
+         * shows up under the drop it is attached to).
+         */
+        final ElementCategory.Categorizer hc = new ElementCategory.Categorizer(null);
+        for (IHintDrop hint : in.f_scan.getHintDrops()) {
+          if (hint.getCategorizingMessage() != null)
+            hc.add(hint);
+        }
+        if (!hc.isEmpty()) {
+          final ElementCategory.Builder sw = new ElementCategory.Builder(null);
+          sw.setLabel(ElementCategory.SPECIAL_HINT_FOLDER_NAME);
+          sw.setImageName(CommonImages.IMG_INFO);
+          sw.addCategories(hc.getBuilders());
+          root.add(sw.build());
+        }
+      }
+      f_root = root.toArray(new Element[root.size()]);
+    } else if (newInput == null) {
+      f_root = Element.EMPTY;
+    } else {
+      SLLogger.getLogger().log(Level.SEVERE, I18N.err(301, this.getClass().getSimpleName(), newInput));
+    }
   }
 
   public Object[] getElements(Object inputElement) {
@@ -64,42 +122,6 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
 
   void setHighlightDifferences(boolean value) {
     Element.f_highlightDifferences = value;
-  }
-
-  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final JSureScanInfo oldScan,
-      @Nullable final ScanDifferences diff, final boolean showHints) {
-    final List<Element> root = new ArrayList<Element>();
-    Element.f_showHints = showHints;
-    Element.f_diff = diff;
-    final ElementCategory.Categorizer pc = new ElementCategory.Categorizer(null);
-    for (IPromiseDrop promise : scan.getPromiseDrops()) {
-      if (promise.isFromSrc() || promise.derivedFromSrc()) {
-        if (showAtTopLevel(promise)) {
-          pc.add(promise);
-        }
-      }
-    }
-    root.addAll(pc.getAllElements());
-
-    if (showHints) {
-      /*
-       * If the hint is uncategorized we don't show it in this section (it shows
-       * up under the drop it is attached to).
-       */
-      final ElementCategory.Categorizer hc = new ElementCategory.Categorizer(null);
-      for (IHintDrop hint : scan.getHintDrops()) {
-        if (hint.getCategorizingMessage() != null)
-          hc.add(hint);
-      }
-      if (!hc.isEmpty()) {
-        final ElementCategory.Builder sw = new ElementCategory.Builder(null);
-        sw.setLabel(ElementCategory.SPECIAL_HINT_FOLDER_NAME);
-        sw.setImageName(CommonImages.IMG_INFO);
-        sw.addCategories(hc.getBuilders());
-        root.add(sw.build());
-      }
-    }
-    f_root = root.toArray(new Element[root.size()]);
   }
 
   /**
