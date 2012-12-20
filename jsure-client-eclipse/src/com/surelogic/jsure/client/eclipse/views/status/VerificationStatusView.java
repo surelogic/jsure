@@ -70,6 +70,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
 
   private static final String VIEW_STATE = "VerificationStatusView_TreeViewerUIState";
 
+  @NonNull
   private final File f_viewStatePersistenceFile;
 
   private PageBook f_viewerbook = null;
@@ -103,18 +104,8 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   };
 
   public VerificationStatusView() {
-    File viewState = null;
-    try {
-      final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
-      if (jsureData != null) {
-        viewState = new File(jsureData, VIEW_STATE + ".xml");
-      } else {
-        viewState = File.createTempFile(VIEW_STATE, ".xml");
-      }
-    } catch (IOException ignore) {
-      // Nothing to do
-    }
-    f_viewStatePersistenceFile = viewState;
+    final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
+    f_viewStatePersistenceFile = new File(jsureData, VIEW_STATE + ".xml");
   }
 
   @Override
@@ -570,7 +561,8 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       TreeViewerUIState state = null;
       if (viewsSaveTreeState) {
         if (f_contentProvider.isEmpty()) {
-          state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
+          if (f_viewStatePersistenceFile.exists())
+            state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
         } else {
           state = new TreeViewerUIState(f_treeViewer);
         }
@@ -617,12 +609,19 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
 
   @Override
   public void saveState(IMemento memento) {
-    try {
-      final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
-      state.saveToFile(f_viewStatePersistenceFile);
-    } catch (IOException e) {
-      SLLogger.getLogger().log(Level.WARNING,
-          "Trouble when saving ResultsView UI state to " + f_viewStatePersistenceFile.getAbsolutePath(), e);
+    final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
+    if (viewsSaveTreeState) {
+      try {
+        final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
+        state.saveToFile(f_viewStatePersistenceFile);
+      } catch (IOException e) {
+        SLLogger.getLogger().log(Level.WARNING,
+            "Trouble when saving ResultsView UI state to " + f_viewStatePersistenceFile.getAbsolutePath(), e);
+      }
+    } else {
+      if (f_viewStatePersistenceFile.exists()) {
+        f_viewStatePersistenceFile.deleteOnExit();
+      }
     }
   }
 
@@ -641,6 +640,5 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       tooltip = problemCount + " modeling problems" + suffix;
     }
     f_actionProblemsIndicator.setToolTipText(tooltip);
-
   }
 }
