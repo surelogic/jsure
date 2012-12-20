@@ -541,7 +541,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     if (viewsSaveTreeState) {
       try {
         final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
-        if (state.isEmpty())
+        if (state.isEmptyExceptForSelections())
           deleteOnExit = true;
         else
           state.saveToFile(f_viewStateFile);

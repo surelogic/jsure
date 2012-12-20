@@ -613,7 +613,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     if (viewsSaveTreeState) {
       try {
         final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
-        if (state.isEmpty())
+        if (state.isEmptyExceptForSelections())
           deleteOnExit = true;
         else
           state.saveToFile(f_viewStateFile);
