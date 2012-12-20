@@ -59,7 +59,7 @@ public class ProblemsViewContentProvider implements ITreeContentProvider, IViewD
   private Element[] f_root = null;
 
   boolean isEmpty() {
-    return f_root == null | f_root.length == 0;
+    return f_root == null || f_root.length == 0;
   }
 
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final ScanDifferences diff,
