@@ -114,6 +114,8 @@ public final class JSurePreferencesUtility {
 
       EclipseUtility.setDefaultBooleanPreference(PROBLEMS_HIGHLIGHT_DIFFERENCES, true);
 
+      EclipseUtility.setDefaultBooleanPreference(VIEWS_SAVE_TREE_STATE, true);
+
       /*
        * We'll take the default-default for the other preferences.
        */
@@ -167,6 +169,8 @@ public final class JSurePreferencesUtility {
   public static final String PROBLEMS_HIGHLIGHT_DIFFERENCES = PREFIX + "problems.highlight.differences";
   public static final String PROBLEMS_SHOW_ONLY_DIFFERENCES = PREFIX + "problems.only.differences";
   public static final String PROBLEMS_SHOW_ONLY_FROM_SRC = PREFIX + "problems.show.only.from.src";
+
+  public static final String VIEWS_SAVE_TREE_STATE = PREFIX + "views.save.tree.state";
 
   /**
    * Gets the JSure data directory. This method ensures that the directory does

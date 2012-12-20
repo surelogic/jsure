@@ -58,6 +58,10 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
 
   private Element[] f_root = null;
 
+  public boolean isEmpty() {
+    return f_root == null || f_root.length == 0;
+  }
+
   void setHighlightDifferences(boolean value) {
     Element.f_highlightDifferences = value;
   }

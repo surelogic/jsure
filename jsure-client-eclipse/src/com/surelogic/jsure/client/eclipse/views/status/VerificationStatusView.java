@@ -168,23 +168,19 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     // start empty until the initial build is done
     setViewerVisibility(false);
 
-    f_treeViewer.getTree().setRedraw(false);
-    showScanOrEmptyLabel();
-    f_treeViewer.getTree().setRedraw(true);
-
-    // load view state from the persistence file if it exists
-    final TreeViewerUIState state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
-    if (f_viewStatePersistenceFile != null && f_viewStatePersistenceFile.exists()) {
-      EclipseUIUtility.asyncExec(new Runnable() {
-        public void run() {
-          f_treeViewer.getTree().setRedraw(false);
-          state.restoreViewState(f_treeViewer);
-          f_treeViewer.getTree().setRedraw(true);
-        }
-      });
-    }
-
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
+
+    /*
+     * Finally setup a job to "fake" a scan change.
+     */
+    final UIJob job = new SLUIJob() {
+      @Override
+      public IStatus runInUIThread(IProgressMonitor monitor) {
+        currentScanChanged(null);
+        return Status.OK_STATUS;
+      }
+    };
+    job.schedule();
   }
 
   @Override
@@ -201,13 +197,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     final UIJob job = new SLUIJob() {
       @Override
       public IStatus runInUIThread(IProgressMonitor monitor) {
-        if (f_treeViewer != null) {
-          f_treeViewer.getTree().setRedraw(false);
-          final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
-          showScanOrEmptyLabel();
-          state.restoreViewState(f_treeViewer);
-          f_treeViewer.getTree().setRedraw(true);
-        }
+        showScanOrEmptyLabel();
         return Status.OK_STATUS;
       }
     };
@@ -259,16 +249,11 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
-      if (!s.isEmpty()) {
-        for (Object element : s.toList()) {
-          if (element != null) {
-            f_treeViewer.expandToLevel(element, 5);
-          } else {
-            f_treeViewer.expandToLevel(5);
-          }
-        }
-      } else {
-        f_treeViewer.expandToLevel(5);
+      final Object o = s.getFirstElement();
+      if (o != null) {
+        f_treeViewer.getTree().setRedraw(false);
+        f_treeViewer.expandToLevel(o, 5);
+        f_treeViewer.getTree().setRedraw(true);
       }
     }
   };
@@ -277,16 +262,11 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
-      if (!s.isEmpty()) {
-        for (Object element : s.toList()) {
-          if (element != null) {
-            f_treeViewer.collapseToLevel(element, 1);
-          } else {
-            f_treeViewer.collapseAll();
-          }
-        }
-      } else {
-        f_treeViewer.collapseAll();
+      final Object o = s.getFirstElement();
+      if (o != null) {
+        f_treeViewer.getTree().setRedraw(false);
+        f_treeViewer.collapseToLevel(o, 1);
+        f_treeViewer.getTree().setRedraw(true);
       }
     }
   };
@@ -297,12 +277,12 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       f_treeViewer.collapseAll();
     }
   };
-  
+
   private final Action f_actionExpandToLevel4 = new Action() {
-	    @Override
-	    public void run() {
-	      f_treeViewer.expandToLevel(4);
-	    }
+    @Override
+    public void run() {
+      f_treeViewer.expandToLevel(4);
+    }
   };
 
   private final Action f_selectIdenticalAncestor = new Action() {
@@ -440,7 +420,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_actionExpandToLevel4.setText("Expand to level 4");
     f_actionExpandToLevel4.setToolTipText("Expand to level 4 (experimental)");
     f_actionExpandToLevel4.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
-    
+
     f_selectIdenticalAncestor.setText(I18N.msg("jsure.eclipse.status.select_ancestor"));
     f_selectIdenticalAncestor.setToolTipText(I18N.msg("jsure.eclipse.status.select_ancestor.tip"));
     f_selectIdenticalAncestor.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_UP));
@@ -503,7 +483,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
 
     final IMenuManager pulldown = bars.getMenuManager();
     if (XUtil.useExperimental) {
-    	pulldown.add(f_actionExpandToLevel4);
+      pulldown.add(f_actionExpandToLevel4);
     }
     pulldown.add(f_actionCollapseAll);
     pulldown.add(new Separator());
@@ -589,10 +569,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_treeViewer.setSelection(new StructuredSelection(c), true);
   }
 
-  /**
-   * This method does not invoke
-   * <tt>f_treeViewer.getTree().setRedraw(false);</tt> callers should do this.
-   */
   private void showScanOrEmptyLabel() {
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
     final JSureScanInfo oldScan = JSureDataDirHub.getInstance().getLastMatchingScanInfo();
@@ -604,8 +580,21 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
         f_showDiffTableColumn.getColumn().setText(label);
       }
       final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
+      f_treeViewer.getTree().setRedraw(false);
+      final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
+      TreeViewerUIState state = null;
+      if (viewsSaveTreeState) {
+        if (f_contentProvider.isEmpty()) {
+          state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
+        } else {
+          state = new TreeViewerUIState(f_treeViewer);
+        }
+      }
       f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, f_showHints);
       setModelProblemIndicatorState(JSureUtility.getInterestingModelingProblemCount(scan));
+      if (state != null)
+        state.restoreViewState(f_treeViewer);
+      f_treeViewer.getTree().setRedraw(true);
       setViewerVisibility(true);
     } else {
       // Show no results
