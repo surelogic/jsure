@@ -14,9 +14,11 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.analysis.SimplifiedJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
+import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.NoInitialization;
+import edu.cmu.cs.fluid.java.operator.ThisExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -33,12 +35,12 @@ import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
  * Determines if a field is definitely assigned by the constructor.
  */
 public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<Assigned[], AssignedVars, JavaForwardAnalysis<Assigned[], AssignedVars>> implements IBinderClient {
-  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Set<IRNode>, Assigned[], AssignedVars> {
-    public Query(final IThunk<? extends IJavaFlowAnalysis<Assigned[], AssignedVars>> thunk) {
+  public final class NotDefinitelyAssignedQuery extends SimplifiedJavaFlowAnalysisQuery<NotDefinitelyAssignedQuery, Set<IRNode>, Assigned[], AssignedVars> {
+    public NotDefinitelyAssignedQuery(final IThunk<? extends IJavaFlowAnalysis<Assigned[], AssignedVars>> thunk) {
       super(thunk);
     }
     
-    private Query(final Delegate<Query, Set<IRNode>, Assigned[], AssignedVars> d) {
+    private NotDefinitelyAssignedQuery(final Delegate<NotDefinitelyAssignedQuery, Set<IRNode>, Assigned[], AssignedVars> d) {
       super(d);
     }
     
@@ -58,8 +60,8 @@ public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<As
     }
 
     @Override
-    protected Query newSubAnalysisQuery(final Delegate<Query, Set<IRNode>, Assigned[], AssignedVars> d) {
-      return new Query(d);
+    protected NotDefinitelyAssignedQuery newSubAnalysisQuery(final Delegate<NotDefinitelyAssignedQuery, Set<IRNode>, Assigned[], AssignedVars> d) {
+      return new NotDefinitelyAssignedQuery(d);
     }
   }
   
@@ -111,7 +113,7 @@ public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<As
       if (FieldRef.prototype.includes(target)) {
         final IRNode field = binder.getBinding(target);
         // TODO: Check that the field is @NOnNull
-        if (!TypeUtil.isFinal(field)) {
+        if (!TypeUtil.isFinal(field)) { // lattice doesn't contain the final fields!
           return lattice.replaceValue(value, field, Assigned.ASSIGNED);
         }
       }
@@ -126,7 +128,7 @@ public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<As
       final IRNode p = tree.getParent(tree.getParent(node));
       if (FieldDeclaration.prototype.includes(tree.getOperator(p))) {
         // TODO: Check that the field is @NonNull
-        if (!TypeUtil.isFinal(p)) {
+        if (!TypeUtil.isFinal(p)) { // lattice doesn't contain the final fields!
           final IRNode initializer = VariableDeclarator.getInit(node);
           if (!NoInitialization.prototype.includes(initializer)) {
             return lattice.replaceValue(value, node, Assigned.ASSIGNED);
@@ -135,6 +137,36 @@ public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<As
       }
       return value;
     }
+    
+    @Override
+    protected Assigned[] transferCall(
+        final IRNode call, final boolean flag, final Assigned[] value) {
+      if (!lattice.isNormal(value)) return value;
+      
+      /* See if this is a "this(...)" call */
+      if (ConstructorCall.prototype.includes(call) && 
+          ThisExpression.prototype.includes(ConstructorCall.getObject(call))) {
+        if (!flag) {
+          /* After abrupt termination we do not know what the state of the
+           * fields is.
+           */
+          return lattice.getEmptyValue();
+        } else {
+          /* After "this(...)" we get to assume that all the fields are 
+           * definitely assigned.
+           */
+          return lattice.getAllAssigned();
+        }
+      } else {
+        /* Normal method and super(...) calls don't affect the state.
+         * (Well not true, we rely on the analysis engine to take the path
+         * through the field initializations when a super(...) call is 
+         * encountered, but the call itself is not interesting to us.)
+         */
+        return value;
+      }
+    }
+
   }
   
   
@@ -165,7 +197,7 @@ public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<As
 
 
 
-  public Query getAssignedVarsQuery(final IRNode flowUnit) {
-    return new Query(getAnalysisThunk(flowUnit));
+  public NotDefinitelyAssignedQuery getNotDefinitelyAssignedQuery(final IRNode flowUnit) {
+    return new NotDefinitelyAssignedQuery(getAnalysisThunk(flowUnit));
   }
 }

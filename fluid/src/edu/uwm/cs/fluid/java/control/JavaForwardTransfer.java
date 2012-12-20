@@ -27,6 +27,7 @@ public abstract class JavaForwardTransfer<L extends Lattice<T>, T> extends JavaT
    * Needed for ForwardTransfer.
    * @see ForwardTransfer
    */
+  @Override
   public T transferConditional(IRNode node, boolean flag, T before)
   {
     // by default, return the value coming in:
@@ -37,6 +38,7 @@ public abstract class JavaForwardTransfer<L extends Lattice<T>, T> extends JavaT
    * Needed for ForwardTransfer.
    * @see ForwardTransfer
    */
+  @Override
   public final boolean transferLabelTest(IRNode node, Object info,
 				   ControlLabel label,
 				   boolean flag)
@@ -53,6 +55,7 @@ public abstract class JavaForwardTransfer<L extends Lattice<T>, T> extends JavaT
     }
   }
 
+  @Override
   public T transferLoopMerge(IRNode node, T initial, T looped) {
     return lattice.widen(initial,looped);
   }
