@@ -82,10 +82,25 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
   private TreeViewer f_treeViewer;
   @NonNull
   private final ProposedAnnotationViewContentProvider f_contentProvider = new ProposedAnnotationViewContentProvider();
-  private boolean f_showOnlyAbductive;
   private boolean f_highlightDifferences;
+
+  private boolean f_showOnlyAbductive;
+
+  public boolean getShowOnlyAbductive() {
+    return f_showOnlyAbductive;
+  }
+
   private boolean f_showOnlyDifferences;
+
+  public boolean getShowOnlyDifferences() {
+    return f_showOnlyDifferences;
+  }
+
   private boolean f_showOnlyFromSrc;
+
+  public boolean getShowOnlyFromSrc() {
+    return f_showOnlyFromSrc;
+  }
 
   private final ViewerSorter f_alphaLineSorter = new ViewerSorter() {
 
@@ -156,7 +171,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     contributeToActionBars();
 
     // start empty until the initial build is done
-    setViewerVisibility(false);
+    // setViewerVisibility(false);
 
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
     UninterestingPackageFilterUtility.registerObserver(this);
@@ -433,46 +448,6 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     toolbar.add(f_actionShowOnlyAbductive);
   }
 
-  private void showScanOrEmptyLabel() {
-    final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
-    if (scan != null) {
-      final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
-      f_treeViewer.getTree().setRedraw(false);
-      final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
-      TreeViewerUIState state = null;
-      if (viewsSaveTreeState) {
-        if (f_contentProvider.isEmpty()) {
-          if (f_viewStateFile.exists())
-            state = TreeViewerUIState.loadFromFile(f_viewStateFile);
-        } else {
-          state = new TreeViewerUIState(f_treeViewer);
-        }
-      }
-      f_contentProvider.changeContentsToCurrentScan(scan, diff, f_showOnlyDifferences, f_showOnlyFromSrc, f_showOnlyAbductive);
-      if (state != null)
-        state.restoreViewState(f_treeViewer);
-      f_treeViewer.getTree().setRedraw(true);
-      setViewerVisibility(true);
-    } else {
-      // Show no results
-      setViewerVisibility(false);
-    }
-  }
-
-  /**
-   * Toggles between the empty viewer page and the Fluid results
-   */
-  private void setViewerVisibility(boolean showResults) {
-    if (f_viewerbook.isDisposed())
-      return;
-    if (showResults) {
-      f_treeViewer.setInput(getViewSite());
-      f_viewerbook.showPage(f_treeViewer.getControl());
-    } else {
-      f_viewerbook.showPage(f_noResultsToShowLabel);
-    }
-  }
-
   private void selectionChangedHelper() {
     final boolean proposalsSelected = !getSelectedProposals().isEmpty();
     f_actionAnnotateCode.setEnabled(proposalsSelected);
@@ -527,7 +502,32 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     final UIJob job = new SLUIJob() {
       @Override
       public IStatus runInUIThread(IProgressMonitor monitor) {
-        showScanOrEmptyLabel();
+        final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
+        if (scan != null) {
+          final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
+          f_treeViewer.getTree().setRedraw(false);
+          final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
+          TreeViewerUIState state = null;
+          if (viewsSaveTreeState) {
+            if (f_contentProvider.isEmpty()) {
+              if (f_viewStateFile.exists()) {
+                state = TreeViewerUIState.loadFromFile(f_viewStateFile);
+              }
+            } else {
+              state = new TreeViewerUIState(f_treeViewer);
+            }
+          }
+          f_treeViewer.setInput(new ProposedAnnotationViewContentProvider.Input(scan, diff, f_showOnlyDifferences,
+              f_showOnlyFromSrc, f_showOnlyAbductive));
+          if (state != null) {
+            state.restoreViewState(f_treeViewer);
+          }
+          f_treeViewer.getTree().setRedraw(true);
+          f_viewerbook.showPage(f_treeViewer.getControl());
+        } else {
+          // Show no results
+          f_viewerbook.showPage(f_noResultsToShowLabel);
+        }
         return Status.OK_STATUS;
       }
     };

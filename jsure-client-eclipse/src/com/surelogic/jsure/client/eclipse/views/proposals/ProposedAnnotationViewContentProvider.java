@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.logging.Level;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -15,6 +16,8 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.DropSeaUtility;
 import com.surelogic.dropsea.IDrop;
@@ -29,12 +32,61 @@ import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 
 public class ProposedAnnotationViewContentProvider implements ITreeContentProvider, IViewDiffState {
 
+  /**
+   * Represents input for this content provider.
+   */
+  static class Input {
+    @NonNull
+    final JSureScanInfo f_scan;
+    @Nullable
+    final ScanDifferences f_diff;
+    final boolean f_showOnlyDifferences;
+    final boolean f_showOnlyFromSrc;
+    final boolean f_showOnlyAbductive;
+
+    Input(@NonNull final JSureScanInfo scan, @Nullable final ScanDifferences diff, final boolean showOnlyDifferences,
+        final boolean showOnlyFromSrc, final boolean showOnlyAbductive) {
+      f_scan = scan;
+      f_diff = diff;
+      f_showOnlyDifferences = showOnlyDifferences;
+      f_showOnlyFromSrc = showOnlyFromSrc;
+      f_showOnlyAbductive = showOnlyAbductive;
+    }
+  }
+
   public void dispose() {
     // nothing to do
   }
 
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-    // nothing to do
+    if (newInput instanceof Input) {
+      final Input in = (Input) newInput;
+      f_scanDifferences = in.f_diff;
+      final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer(this);
+
+      final ArrayList<IProposedPromiseDrop> drops = filterOutDuplicates(in.f_scan.getProposedPromiseDrops());
+      for (IProposedPromiseDrop ppd : drops) {
+        if (in.f_showOnlyDifferences && in.f_diff != null && in.f_diff.isSameInBothScans(ppd))
+          continue;
+        if (in.f_showOnlyAbductive && !ppd.isAbductivelyInferred())
+          continue;
+        if (in.f_showOnlyFromSrc && !ppd.isFromSrc())
+          continue;
+
+        /*
+         * We filter results based upon the code location.
+         */
+        if (UninterestingPackageFilterUtility.keep(ppd))
+          ElementDrop.addToTree(tree, ppd, false);
+      }
+      f_root = tree.getRootElements();
+
+    } else if (newInput == null) {
+      f_root = Element.EMPTY;
+      f_scanDifferences = null;
+    } else {
+      SLLogger.getLogger().log(Level.SEVERE, I18N.err(301, this.getClass().getSimpleName(), newInput));
+    }
   }
 
   public Object[] getElements(Object inputElement) {
@@ -67,29 +119,6 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
 
   public boolean isEmpty() {
     return f_root == null || f_root.length == 0;
-  }
-
-  void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final ScanDifferences diff,
-      final boolean showOnlyDifferences, final boolean showOnlyFromSrc, final boolean showOnlyAbductive) {
-    f_scanDifferences = diff;
-    final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer(this);
-
-    final ArrayList<IProposedPromiseDrop> drops = filterOutDuplicates(scan.getProposedPromiseDrops());
-    for (IProposedPromiseDrop ppd : drops) {
-      if (showOnlyDifferences && diff != null && diff.isSameInBothScans(ppd))
-        continue;
-      if (showOnlyAbductive && !ppd.isAbductivelyInferred())
-        continue;
-      if (showOnlyFromSrc && !ppd.isFromSrc())
-        continue;
-
-      /*
-       * We filter results based upon the code location.
-       */
-      if (UninterestingPackageFilterUtility.keep(ppd))
-        ElementDrop.addToTree(tree, ppd, false);
-    }
-    f_root = tree.getRootElements();
   }
 
   /**
