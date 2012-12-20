@@ -168,7 +168,21 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     // start empty until the initial build is done
     setViewerVisibility(false);
 
+    f_treeViewer.getTree().setRedraw(false);
     showScanOrEmptyLabel();
+    f_treeViewer.getTree().setRedraw(true);
+
+    // load view state from the persistence file if it exists
+    final TreeViewerUIState state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
+    if (f_viewStatePersistenceFile != null && f_viewStatePersistenceFile.exists()) {
+      EclipseUIUtility.asyncExec(new Runnable() {
+        public void run() {
+          f_treeViewer.getTree().setRedraw(false);
+          state.restoreViewState(f_treeViewer);
+          f_treeViewer.getTree().setRedraw(true);
+        }
+      });
+    }
 
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
   }
@@ -188,9 +202,11 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       @Override
       public IStatus runInUIThread(IProgressMonitor monitor) {
         if (f_treeViewer != null) {
+          f_treeViewer.getTree().setRedraw(false);
           final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
           showScanOrEmptyLabel();
           state.restoreViewState(f_treeViewer);
+          f_treeViewer.getTree().setRedraw(true);
         }
         return Status.OK_STATUS;
       }
@@ -573,10 +589,15 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_treeViewer.setSelection(new StructuredSelection(c), true);
   }
 
+  /**
+   * This method does not invoke
+   * <tt>f_treeViewer.getTree().setRedraw(false);</tt> callers should do this.
+   */
   private void showScanOrEmptyLabel() {
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
     final JSureScanInfo oldScan = JSureDataDirHub.getInstance().getLastMatchingScanInfo();
     if (scan != null) {
+      // Show results in a tree table
       if (f_showDiffTableColumn != null) {
         final String label = oldScan == null ? "No Prior Scan" : "Differences from scan of " + oldScan.getProjects().getLabel()
             + " at " + SLUtility.toStringDayHMS(oldScan.getProjects().getDate());
@@ -586,23 +607,9 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, f_showHints);
       setModelProblemIndicatorState(JSureUtility.getInterestingModelingProblemCount(scan));
       setViewerVisibility(true);
-
-      // Running too early?
-      if (f_viewStatePersistenceFile != null && f_viewStatePersistenceFile.exists()) {
-        EclipseUIUtility.asyncExec(new Runnable() {
-          public void run() {
-            final TreeViewerUIState state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
-            state.restoreViewState(f_treeViewer);
-          }
-        });
-      }
     } else {
       // Show no results
-      EclipseUIUtility.asyncExec(new Runnable() {
-        public void run() {
-          setViewerVisibility(false);
-        }
-      });
+      setViewerVisibility(false);
     }
   }
 
