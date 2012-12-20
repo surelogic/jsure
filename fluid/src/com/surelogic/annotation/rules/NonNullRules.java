@@ -13,6 +13,7 @@ import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
@@ -87,9 +88,8 @@ public class NonNullRules extends AnnotationRules {
 			return new AbstractAASTScrubber<RawNode, RawPromiseDrop>(
 					this, ScrubberType.UNORDERED) {
 				@Override
-				protected PromiseDrop<RawNode> makePromiseDrop(RawNode a) {
-					// TODO
-					return storeDropIfNotNull(a, new RawPromiseDrop(a));
+				protected PromiseDrop<RawNode> makePromiseDrop(final RawNode a) {
+					return storeDropIfNotNull(a, scrubRaw(getContext(), a));
 				}
 			};
 		}   
@@ -132,9 +132,8 @@ public class NonNullRules extends AnnotationRules {
 			return new AbstractAASTScrubber<NonNullNode, NonNullPromiseDrop>(
 					this, ScrubberType.UNORDERED) {
 				@Override
-				protected PromiseDrop<NonNullNode> makePromiseDrop(NonNullNode a) {
-					// TODO
-					return storeDropIfNotNull(a, new NonNullPromiseDrop(a));
+				protected PromiseDrop<NonNullNode> makePromiseDrop(final NonNullNode a) {
+					return storeDropIfNotNull(a, scrubNonNull(getContext(), a));
 				}
 			};
 		}   
@@ -161,16 +160,50 @@ public class NonNullRules extends AnnotationRules {
 		@Override
 		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<NullableNode, NullablePromiseDrop>(
-					this, ScrubberType.UNORDERED) {
+					this, ScrubberType.UNORDERED, NONNULL) {
 				@Override
-				protected PromiseDrop<NullableNode> makePromiseDrop(NullableNode a) {
-					// TODO
-					return storeDropIfNotNull(a, new NullablePromiseDrop(a));
+				protected PromiseDrop<NullableNode> makePromiseDrop(final NullableNode a) {
+					return storeDropIfNotNull(a, scrubNullable(getContext(), a));
 				}
 			};
 		}   
 	}
 	
+	
+	
+  private static NonNullPromiseDrop scrubNonNull(
+      final IAnnotationScrubberContext context,
+      final NonNullNode n) {
+    // Cannot be on a primitive type
+    boolean good = RulesUtilities.checkForReferenceType(context, n, "NonNull");
+    return !good ? null : new NonNullPromiseDrop(n);
+  }
+
+  private static NullablePromiseDrop scrubNullable(
+      final IAnnotationScrubberContext context, final NullableNode n) {
+    final IRNode promisedFor = n.getPromisedFor();
+    // Cannot be on a primitive type
+    boolean good = RulesUtilities.checkForReferenceType(context, n, "Nullable");
+
+    // Cannot also be @NonNull
+    if (getNonNull(promisedFor) != null) {
+      good = false;
+      context.reportError(n, "Cannot be both @NonNull and @Nullable");
+    }
+
+    // TODO: Cannot also be @Raw
+
+    return !good ? null : new NullablePromiseDrop(n);
+  }	
+
+  private static RawPromiseDrop scrubRaw(
+      final IAnnotationScrubberContext context,
+      final RawNode n) {
+    // Cannot be on a primitive type
+    boolean good = RulesUtilities.checkForReferenceType(context, n, "Raw");
+    return !good ? null : new RawPromiseDrop(n);
+  }
+
 	
 	
 	public static NonNullPromiseDrop getNonNull(final IRNode decl) {

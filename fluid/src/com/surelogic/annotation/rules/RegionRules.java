@@ -533,7 +533,7 @@ public class RegionRules extends AnnotationRules {
   static SimpleBorrowedInRegionPromiseDrop scrubSimpleBorrowedInRegion(
 		  IAnnotationScrubberContext context, SimpleBorrowedInRegionNode a) {
     // must be a reference type variable
-    boolean good = UniquenessRules.checkForReferenceType(context, a, "BorrowedInRegion");
+    boolean good = RulesUtilities.checkForReferenceType(context, a, "BorrowedInRegion");
     
     final IRNode promisedFor = a.getPromisedFor();
     final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
@@ -971,7 +971,7 @@ public class RegionRules extends AnnotationRules {
   protected static ExplicitBorrowedInRegionPromiseDrop scrubExplicitBorrowedInRegion(
 			IAnnotationScrubberContext context, ExplicitBorrowedInRegionNode a) {
     // must be a reference type variable
-    boolean good = UniquenessRules.checkForReferenceType(context, a, "BorrowedInRegion");
+    boolean good = RulesUtilities.checkForReferenceType(context, a, "BorrowedInRegion");
     final IRNode promisedFor = a.getPromisedFor();
     
     /* Used to check this when scrubbing ImmutableRef, but I cannot check this

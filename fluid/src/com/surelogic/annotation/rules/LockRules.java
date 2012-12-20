@@ -2455,18 +2455,21 @@ public class LockRules extends AnnotationRules {
     public NotContainable_ParseRule() {
       super(NOT_CONTAINABLE, typeDeclOps, NotContainableNode.class);
     }
+    
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       return new NotContainableNode();
     }
+    
     @Override
     protected IPromiseDropStorage<NotContainablePromiseDrop> makeStorage() {
       return BooleanPromiseDropStorage.create(name(), NotContainablePromiseDrop.class);
     }
-	@Override
-	protected NotContainablePromiseDrop createDrop(NotContainableNode a) {
-		return new NotContainablePromiseDrop(a);
-	}    
+
+    @Override
+  	protected NotContainablePromiseDrop createDrop(NotContainableNode a) {
+  		return new NotContainablePromiseDrop(a);
+  	}    
   }
   
   public static class Mutable_ParseRule 
@@ -2682,7 +2685,7 @@ public class LockRules extends AnnotationRules {
   private static ImmutableRefPromiseDrop scrubImmutableRef(
       final IAnnotationScrubberContext context, final ImmutableRefNode n) {
     // must be a reference type
-    boolean good = UniquenessRules.checkForReferenceType(context, n, "Immutable");
+    boolean good = RulesUtilities.checkForReferenceType(context, n, "Immutable");
     
     final IRNode promisedFor = n.getPromisedFor();
     if (UniquenessRules.isBorrowed(promisedFor)) {
