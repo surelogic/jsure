@@ -150,8 +150,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     columnDiff.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.VSTATUS_COL_DIFF_WIDTH));
     f_showDiffTableColumn = columnDiff;
 
-    f_treeViewer.setInput(getViewSite());
-
     makeActions();
     hookContextMenu();
     contributeToActionBars();
