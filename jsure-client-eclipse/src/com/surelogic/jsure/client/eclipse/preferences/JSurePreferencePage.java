@@ -41,6 +41,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
   private BooleanFieldEditor f_selectProjectsToScan;
   private BooleanFieldEditor f_selectProjectsToUpdateJar;
   private BooleanFieldEditor f_autoSaveDirtyEditorsBeforeVerify;
+  private BooleanFieldEditor f_viewsSaveTreeState;
   private BooleanFieldEditor f_allowJavadocAnnos;
   private ScaleFieldEditor f_analysisThreadCount;
   private ScaleFieldEditor f_toolMemoryMB;
@@ -121,6 +122,10 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_autoSaveDirtyEditorsBeforeVerify = new BooleanFieldEditor(JSurePreferencesUtility.SAVE_DIRTY_EDITORS_BEFORE_VERIFY,
         I18N.msg("jsure.eclipse.preference.page.autoSaveBeforeVerify"), diGroup);
     setupEditor(diGroup, f_autoSaveDirtyEditorsBeforeVerify);
+
+    f_viewsSaveTreeState = new BooleanFieldEditor(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE,
+        I18N.msg("jsure.eclipse.preference.page.viewsSaveTreeState"), diGroup);
+    setupEditor(diGroup, f_viewsSaveTreeState);
 
     final Group annoGroup = createGroup(panel, "preference.page.group.annos");
     f_allowJavadocAnnos = new BooleanFieldEditor(IDEPreferences.ALLOW_JAVADOC_ANNOS,
@@ -228,6 +233,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_selectProjectsToScan.loadDefault();
     f_selectProjectsToUpdateJar.loadDefault();
     f_autoSaveDirtyEditorsBeforeVerify.loadDefault();
+    f_viewsSaveTreeState.loadDefault();
     f_allowJavadocAnnos.loadDefault();
     f_analysisThreadCount.loadDefault();
     f_toolMemoryMB.loadDefault();
@@ -247,6 +253,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_selectProjectsToScan.store();
     f_selectProjectsToUpdateJar.store();
     f_autoSaveDirtyEditorsBeforeVerify.store();
+    f_viewsSaveTreeState.store();
     f_allowJavadocAnnos.store();
     f_analysisThreadCount.store();
     f_toolMemoryMB.store();
