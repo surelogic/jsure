@@ -121,7 +121,7 @@ public class JSureScan implements Comparable<JSureScan> {
     if (!doesDirNameFollowScanNamingConventions(dir.getName())) {
       return false;
     }
-    return findResultsXML(dir).isFile();
+    return !findResultsXML(dir).isFile();
   }
 
   /**
