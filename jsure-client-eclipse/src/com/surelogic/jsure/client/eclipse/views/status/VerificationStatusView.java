@@ -301,7 +301,9 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   private final Action f_actionExpandToLevel4 = new Action() {
 	    @Override
 	    public void run() {
+	      f_treeViewer.getTree().setRedraw(false);
 	      f_treeViewer.expandToLevel(4);
+	      f_treeViewer.getTree().setRedraw(true);
 	    }
   };
 
