@@ -2,7 +2,6 @@ package com.surelogic.annotation.rules;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
 
 import org.antlr.runtime.RecognitionException;
 
@@ -34,14 +33,10 @@ import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinding;
-import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
-import edu.cmu.cs.fluid.java.bind.IJavaType;
-import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
@@ -50,7 +45,6 @@ import edu.cmu.cs.fluid.java.operator.NestedTypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
-import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -220,7 +214,7 @@ public class UniquenessRules extends AnnotationRules {
     private ReadOnlyPromiseDrop scrubReadOnly(
         final IAnnotationScrubberContext context, final ReadOnlyNode n) {
       // must be a reference type variable
-      boolean isGood = checkForReferenceType(context, n, "ReadOnly");
+      boolean isGood = RulesUtilities.checkForReferenceType(context, n, "ReadOnly");
       
       /* Cannot also be borrowed, unless the annotation is on a field.
        * Implies we don't have to check for BorrowedInRegion, because that
@@ -271,7 +265,7 @@ public class UniquenessRules extends AnnotationRules {
     private UniquePromiseDrop scrubUnique(
         final IAnnotationScrubberContext context, final UniqueNode a) {
       // must be a reference type variable
-      boolean good = checkForReferenceType(context, a, "Unique");
+      boolean good = RulesUtilities.checkForReferenceType(context, a, "Unique");
       boolean fromField = false;
       
       // Unique fields must not be volatile or static final
@@ -382,7 +376,7 @@ public class UniquenessRules extends AnnotationRules {
     private BorrowedPromiseDrop scrubBorrowed(
         final IAnnotationScrubberContext context, final BorrowedNode a) {
       // must be a reference type variable
-      boolean good = checkForReferenceType(context, a, "Borrowed");
+      boolean good = RulesUtilities.checkForReferenceType(context, a, "Borrowed");
       boolean fromField = false;
       
       final IRNode promisedFor = a.getPromisedFor();
@@ -415,54 +409,54 @@ public class UniquenessRules extends AnnotationRules {
   }
 
   
-  public static <T extends IAASTRootNode> boolean checkForReferenceType(
-      final IAnnotationScrubberContext context, final T a, final String label) {
-    final IRNode promisedFor = a.getPromisedFor();
-    final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
-    final IJavaType type;
-    if (ParameterDeclaration.prototype.includes(promisedForOp)
-        || ReceiverDeclaration.prototype.includes(promisedForOp)
-        || VariableDeclarator.prototype.includes(promisedForOp)
-        || QualifiedReceiverDeclaration.prototype.includes(promisedForOp)) {
-      type = context.getBinder(promisedFor).getJavaType(promisedFor);
-    } else if (ReturnValueDeclaration.prototype.includes(promisedForOp)) {
-      final IRNode method = JavaPromise.getPromisedFor(promisedFor);
-      type = context.getBinder(method).getJavaType(method);
-    } else {
-      LOG.log(Level.SEVERE, "Unexpected "+promisedForOp.name()+": "+DebugUnparser.toString(promisedFor), new Throwable());
-      return false;
-    }
-    
-    if (type instanceof IJavaPrimitiveType) {
-      if (ReturnValueDeclaration.prototype.includes(promisedForOp)) {
-        final IRNode mdecl = JavaPromise.getPromisedFor(promisedFor);
-        context.reportError(a,
-            "Return of method {0} cannot be annotated with @{1}: Primitive return type",
-            JavaNames.genRelativeFunctionName(mdecl), label);        
-      } else if (ParameterDeclaration.prototype.includes(promisedForOp)) {
-        final IRNode mdecl = 
-            JJNode.tree.getParent(JJNode.tree.getParent(promisedFor));
-        context.reportError(a,
-            "Parameter {0} of method {1} cannot be annotated with @{2}: Primitive type",
-            ParameterDeclaration.getId(promisedFor), 
-            JavaNames.genRelativeFunctionName(mdecl), label);        
-      } else { // VariableDeclarator: QualifiedRecievers and Receivers are not primitive
-        context.reportError(a,
-            "Field {0} cannot be annotated with @{1}: Primitive type",
-            VariableDeclarator.getId(promisedFor), label);        
-      }
-      return false;
-    } else if (type == JavaTypeFactory.voidType) {
-      // Can only be void if the annotation is on a method return node
-      final IRNode mdecl = JavaPromise.getPromisedFor(promisedFor);
-      context.reportError(a,
-          "Return of method {0} cannot be annotated with @{1}: Void return type",
-          JavaNames.genRelativeFunctionName(mdecl), label);
-      return false;
-    } else {
-      return true;
-    }
-  }
+//  public static <T extends IAASTRootNode> boolean checkForReferenceType(
+//      final IAnnotationScrubberContext context, final T a, final String label) {
+//    final IRNode promisedFor = a.getPromisedFor();
+//    final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
+//    final IJavaType type;
+//    if (ParameterDeclaration.prototype.includes(promisedForOp)
+//        || ReceiverDeclaration.prototype.includes(promisedForOp)
+//        || VariableDeclarator.prototype.includes(promisedForOp)
+//        || QualifiedReceiverDeclaration.prototype.includes(promisedForOp)) {
+//      type = context.getBinder(promisedFor).getJavaType(promisedFor);
+//    } else if (ReturnValueDeclaration.prototype.includes(promisedForOp)) {
+//      final IRNode method = JavaPromise.getPromisedFor(promisedFor);
+//      type = context.getBinder(method).getJavaType(method);
+//    } else {
+//      LOG.log(Level.SEVERE, "Unexpected "+promisedForOp.name()+": "+DebugUnparser.toString(promisedFor), new Throwable());
+//      return false;
+//    }
+//    
+//    if (type instanceof IJavaPrimitiveType) {
+//      if (ReturnValueDeclaration.prototype.includes(promisedForOp)) {
+//        final IRNode mdecl = JavaPromise.getPromisedFor(promisedFor);
+//        context.reportError(a,
+//            "Return of method {0} cannot be annotated with @{1}: Primitive return type",
+//            JavaNames.genRelativeFunctionName(mdecl), label);        
+//      } else if (ParameterDeclaration.prototype.includes(promisedForOp)) {
+//        final IRNode mdecl = 
+//            JJNode.tree.getParent(JJNode.tree.getParent(promisedFor));
+//        context.reportError(a,
+//            "Parameter {0} of method {1} cannot be annotated with @{2}: Primitive type",
+//            ParameterDeclaration.getId(promisedFor), 
+//            JavaNames.genRelativeFunctionName(mdecl), label);        
+//      } else { // VariableDeclarator: QualifiedRecievers and Receivers are not primitive
+//        context.reportError(a,
+//            "Field {0} cannot be annotated with @{1}: Primitive type",
+//            VariableDeclarator.getId(promisedFor), label);        
+//      }
+//      return false;
+//    } else if (type == JavaTypeFactory.voidType) {
+//      // Can only be void if the annotation is on a method return node
+//      final IRNode mdecl = JavaPromise.getPromisedFor(promisedFor);
+//      context.reportError(a,
+//          "Return of method {0} cannot be annotated with @{1}: Void return type",
+//          JavaNames.genRelativeFunctionName(mdecl), label);
+//      return false;
+//    } else {
+//      return true;
+//    }
+//  }
   
   
   public static void addUniqueAnnotation(final PromiseDrop<? extends IAASTRootNode> a) {
