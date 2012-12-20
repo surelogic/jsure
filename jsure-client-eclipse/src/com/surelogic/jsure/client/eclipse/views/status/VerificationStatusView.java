@@ -160,9 +160,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
 
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
 
-    /*
-     * Finally setup a job to "fake" a scan change.
-     */
+    // setup a job to "fake" a scan change.
     final UIJob job = new SLUIJob() {
       @Override
       public IStatus runInUIThread(IProgressMonitor monitor) {
@@ -616,7 +614,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
         state.saveToFile(f_viewStatePersistenceFile);
       } catch (IOException e) {
         SLLogger.getLogger().log(Level.WARNING,
-            "Trouble when saving ResultsView UI state to " + f_viewStatePersistenceFile.getAbsolutePath(), e);
+            I18N.err(300, this.getClass().getSimpleName(), f_viewStatePersistenceFile.getAbsolutePath()), e);
       }
     } else {
       if (f_viewStatePersistenceFile.exists()) {

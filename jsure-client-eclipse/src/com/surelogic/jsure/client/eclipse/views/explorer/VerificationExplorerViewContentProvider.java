@@ -60,6 +60,10 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
 
   private Element[] f_root = null;
 
+  public boolean isEmpty() {
+    return f_root == null || f_root.length == 0;
+  }
+
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final JSureScanInfo oldScan,
       @Nullable final ScanDifferences diff, final boolean showOnlyDifferences, final boolean showObsoleteDrops,
       final boolean showOnlyDerivedFromSrc, final boolean showAnalysisResults, final boolean showHints) {

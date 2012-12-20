@@ -65,6 +65,10 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
 
   private Element[] f_root = null;
 
+  public boolean isEmpty() {
+    return f_root == null || f_root.length == 0;
+  }
+
   void changeContentsToCurrentScan(@NonNull final JSureScanInfo scan, @Nullable final ScanDifferences diff,
       final boolean showOnlyDifferences, final boolean showOnlyFromSrc, final boolean showOnlyAbductive) {
     f_scanDifferences = diff;

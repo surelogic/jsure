@@ -51,7 +51,6 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.ColumnResizeListener;
-import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.jobs.SLUIJob;
@@ -122,18 +121,8 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
   };
 
   public ProblemsView() {
-    File viewState = null;
-    try {
-      final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
-      if (jsureData != null) {
-        viewState = new File(jsureData, VIEW_STATE + ".xml");
-      } else {
-        viewState = File.createTempFile(VIEW_STATE, ".xml");
-      }
-    } catch (IOException ignore) {
-      // Nothing to do
-    }
-    f_viewStatePersistenceFile = viewState;
+    final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
+    f_viewStatePersistenceFile = new File(jsureData, VIEW_STATE + ".xml");
   }
 
   @Override
@@ -172,10 +161,18 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     // start empty until the initial build is done
     setViewerVisibility(false);
 
-    showScanOrEmptyLabel();
-
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
     UninterestingPackageFilterUtility.registerObserver(this);
+
+    // setup a job to "fake" a scan change.
+    final UIJob job = new SLUIJob() {
+      @Override
+      public IStatus runInUIThread(IProgressMonitor monitor) {
+        currentScanChanged(null);
+        return Status.OK_STATUS;
+      }
+    };
+    job.schedule();
   }
 
   @Override
@@ -229,16 +226,11 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
-      if (!s.isEmpty()) {
-        for (Object element : s.toList()) {
-          if (element != null) {
-            f_treeViewer.expandToLevel(element, 5);
-          } else {
-            f_treeViewer.expandToLevel(5);
-          }
-        }
-      } else {
-        f_treeViewer.expandToLevel(5);
+      final Object o = s.getFirstElement();
+      if (o != null) {
+        f_treeViewer.getTree().setRedraw(false);
+        f_treeViewer.expandToLevel(o, 5);
+        f_treeViewer.getTree().setRedraw(true);
       }
     }
   };
@@ -247,16 +239,11 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
-      if (!s.isEmpty()) {
-        for (Object element : s.toList()) {
-          if (element != null) {
-            f_treeViewer.collapseToLevel(element, 1);
-          } else {
-            f_treeViewer.collapseAll();
-          }
-        }
-      } else {
-        f_treeViewer.collapseAll();
+      final Object o = s.getFirstElement();
+      if (o != null) {
+        f_treeViewer.getTree().setRedraw(false);
+        f_treeViewer.collapseToLevel(o, 1);
+        f_treeViewer.getTree().setRedraw(true);
       }
     }
   };
@@ -431,27 +418,26 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
     if (scan != null) {
       final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
-      f_contentProvider.changeContentsToCurrentScan(scan, diff, f_showOnlyDifferences, f_showOnlyFromSrc);
-      setViewerVisibility(true);
-
-      // Running too early?
-      if (f_viewStatePersistenceFile != null && f_viewStatePersistenceFile.exists()) {
-        EclipseUIUtility.asyncExec(new Runnable() {
-          public void run() {
-            final TreeViewerUIState state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
-            state.restoreViewState(f_treeViewer);
-            updateInterestingModelingProblemCount(scan);
-          }
-        });
+      f_treeViewer.getTree().setRedraw(false);
+      final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
+      TreeViewerUIState state = null;
+      if (viewsSaveTreeState) {
+        if (f_contentProvider.isEmpty()) {
+          if (f_viewStatePersistenceFile.exists())
+            state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
+        } else {
+          state = new TreeViewerUIState(f_treeViewer);
+        }
       }
+      f_contentProvider.changeContentsToCurrentScan(scan, diff, f_showOnlyDifferences, f_showOnlyFromSrc);
+      if (state != null)
+        state.restoreViewState(f_treeViewer);
+      f_treeViewer.getTree().setRedraw(true);
+      setViewerVisibility(true);
     } else {
       // Show no results
-      EclipseUIUtility.asyncExec(new Runnable() {
-        public void run() {
-          setViewerVisibility(false);
-          updateInterestingModelingProblemCount(scan);
-        }
-      });
+      setViewerVisibility(false);
+      updateInterestingModelingProblemCount(scan);
     }
   }
 
@@ -585,11 +571,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     final UIJob job = new SLUIJob() {
       @Override
       public IStatus runInUIThread(IProgressMonitor monitor) {
-        if (f_treeViewer != null) {
-          final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
-          showScanOrEmptyLabel();
-          state.restoreViewState(f_treeViewer);
-        }
+        showScanOrEmptyLabel();
         return Status.OK_STATUS;
       }
     };
@@ -598,12 +580,19 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
 
   @Override
   public void saveState(IMemento memento) {
-    try {
-      final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
-      state.saveToFile(f_viewStatePersistenceFile);
-    } catch (IOException e) {
-      SLLogger.getLogger().log(Level.WARNING,
-          "Trouble when saving ResultsView UI state to " + f_viewStatePersistenceFile.getAbsolutePath(), e);
+    final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
+    if (viewsSaveTreeState) {
+      try {
+        final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
+        state.saveToFile(f_viewStatePersistenceFile);
+      } catch (IOException e) {
+        SLLogger.getLogger().log(Level.WARNING,
+            I18N.err(300, this.getClass().getSimpleName(), f_viewStatePersistenceFile.getAbsolutePath()), e);
+      }
+    } else {
+      if (f_viewStatePersistenceFile.exists()) {
+        f_viewStatePersistenceFile.deleteOnExit();
+      }
     }
   }
 

@@ -115,18 +115,8 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
   };
 
   public VerificationExplorerView() {
-    File viewState = null;
-    try {
-      final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
-      if (jsureData != null) {
-        viewState = new File(jsureData, VIEW_STATE + ".xml");
-      } else {
-        viewState = File.createTempFile(VIEW_STATE, ".xml");
-      }
-    } catch (IOException ignore) {
-      // Nothing to do
-    }
-    f_viewStatePersistenceFile = viewState;
+    final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
+    f_viewStatePersistenceFile = new File(jsureData, VIEW_STATE + ".xml");
   }
 
   @Override
@@ -169,9 +159,17 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     // start empty until the initial build is done
     setViewerVisibility(false);
 
-    showScanOrEmptyLabel();
-
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
+
+    // setup a job to "fake" a scan change.
+    final UIJob job = new SLUIJob() {
+      @Override
+      public IStatus runInUIThread(IProgressMonitor monitor) {
+        currentScanChanged(null);
+        return Status.OK_STATUS;
+      }
+    };
+    job.schedule();
   }
 
   @Override
@@ -204,16 +202,11 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
-      if (!s.isEmpty()) {
-        for (Object element : s.toList()) {
-          if (element != null) {
-            f_treeViewer.expandToLevel(element, 5);
-          } else {
-            f_treeViewer.expandToLevel(5);
-          }
-        }
-      } else {
-        f_treeViewer.expandToLevel(5);
+      final Object o = s.getFirstElement();
+      if (o != null) {
+        f_treeViewer.getTree().setRedraw(false);
+        f_treeViewer.expandToLevel(o, 5);
+        f_treeViewer.getTree().setRedraw(true);
       }
     }
   };
@@ -222,16 +215,11 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
-      if (!s.isEmpty()) {
-        for (Object element : s.toList()) {
-          if (element != null) {
-            f_treeViewer.collapseToLevel(element, 1);
-          } else {
-            f_treeViewer.collapseAll();
-          }
-        }
-      } else {
-        f_treeViewer.collapseAll();
+      final Object o = s.getFirstElement();
+      if (o != null) {
+        f_treeViewer.getTree().setRedraw(false);
+        f_treeViewer.collapseToLevel(o, 1);
+        f_treeViewer.getTree().setRedraw(true);
       }
     }
   };
@@ -505,27 +493,27 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
         f_showDiffTableColumn.getColumn().setText(label);
       }
       final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
+      f_treeViewer.getTree().setRedraw(false);
+      final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
+      TreeViewerUIState state = null;
+      if (viewsSaveTreeState) {
+        if (f_contentProvider.isEmpty()) {
+          if (f_viewStatePersistenceFile.exists())
+            state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
+        } else {
+          state = new TreeViewerUIState(f_treeViewer);
+        }
+      }
       f_contentProvider.changeContentsToCurrentScan(scan, oldScan, diff, f_showOnlyDifferences, f_showObsoleteDrops,
           f_showOnlyDerivedFromSrc, f_showAnalysisResults, f_showHints);
       setModelProblemIndicatorState(JSureUtility.getInterestingModelingProblemCount(scan));
+      if (state != null)
+        state.restoreViewState(f_treeViewer);
+      f_treeViewer.getTree().setRedraw(true);
       setViewerVisibility(true);
-
-      // Running too early?
-      if (f_viewStatePersistenceFile != null && f_viewStatePersistenceFile.exists()) {
-        EclipseUIUtility.asyncExec(new Runnable() {
-          public void run() {
-            final TreeViewerUIState state = TreeViewerUIState.loadFromFile(f_viewStatePersistenceFile);
-            state.restoreViewState(f_treeViewer);
-          }
-        });
-      }
     } else {
       // Show no results
-      EclipseUIUtility.asyncExec(new Runnable() {
-        public void run() {
-          setViewerVisibility(false);
-        }
-      });
+      setViewerVisibility(false);
     }
   }
 
@@ -570,11 +558,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     final UIJob job = new SLUIJob() {
       @Override
       public IStatus runInUIThread(IProgressMonitor monitor) {
-        if (f_treeViewer != null) {
-          final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
-          showScanOrEmptyLabel();
-          state.restoreViewState(f_treeViewer);
-        }
+        showScanOrEmptyLabel();
         return Status.OK_STATUS;
       }
     };
@@ -583,12 +567,19 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
 
   @Override
   public void saveState(IMemento memento) {
-    try {
-      final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
-      state.saveToFile(f_viewStatePersistenceFile);
-    } catch (IOException e) {
-      SLLogger.getLogger().log(Level.WARNING,
-          "Trouble when saving ResultsView UI state to " + f_viewStatePersistenceFile.getAbsolutePath(), e);
+    final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
+    if (viewsSaveTreeState) {
+      try {
+        final TreeViewerUIState state = new TreeViewerUIState(f_treeViewer);
+        state.saveToFile(f_viewStatePersistenceFile);
+      } catch (IOException e) {
+        SLLogger.getLogger().log(Level.WARNING,
+            I18N.err(300, this.getClass().getSimpleName(), f_viewStatePersistenceFile.getAbsolutePath()), e);
+      }
+    } else {
+      if (f_viewStatePersistenceFile.exists()) {
+        f_viewStatePersistenceFile.deleteOnExit();
+      }
     }
   }
 
@@ -607,6 +598,5 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       tooltip = problemCount + " modeling problems" + suffix;
     }
     f_actionProblemsIndicator.setToolTipText(tooltip);
-
   }
 }
