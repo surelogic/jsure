@@ -212,8 +212,8 @@ public final class ScanDifferences {
   public boolean isNotInNewScan(@NonNull IDrop inOldScan) {
     if (inOldScan == null)
       throw new IllegalArgumentException(I18N.err(44, "inOldScan"));
-    final boolean inNew = f_newChangedFromOld.containsValue(inOldScan) || f_newSameAsOld.containsValue(inOldScan);
-    return !inNew;
+    final boolean inNewToo = f_newChangedFromOld.containsValue(inOldScan) || f_newSameAsOld.containsValue(inOldScan);
+    return !inNewToo;
 
   }
 
@@ -228,8 +228,8 @@ public final class ScanDifferences {
   public boolean isNotInOldScan(@NonNull IDrop inNewScan) {
     if (inNewScan == null)
       throw new IllegalArgumentException(I18N.err(44, "inNewScan"));
-    final boolean inOld = f_newChangedFromOld.containsKey(inNewScan) || f_newSameAsOld.containsKey(inNewScan);
-    return !inOld;
+    final boolean inOldToo = f_newChangedFromOld.containsKey(inNewScan) || f_newSameAsOld.containsKey(inNewScan);
+    return !inOldToo;
   }
 
   /**

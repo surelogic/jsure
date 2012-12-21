@@ -119,6 +119,10 @@ public class JSureScanInfo {
   public List<IDrop> getDropInfo() {
     return loadOrGetDropInfo();
   }
+  
+  public boolean contains(IDrop drop) {
+    return loadOrGetDropInfo().contains(drop);
+  }
 
   @NonNull
   public <T extends IDrop> Set<T> getDropsOfType(Class<? extends T> dropType) {
