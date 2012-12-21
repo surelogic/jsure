@@ -292,12 +292,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 		  for(DropDiff d : c.diffs) {
 			  diffs.addNewChangedFromOld(d.drop, d.old);
 		  }
-		  for(DiffNode n : c.newer) {
-			  diffs.addAsNew(n.drop);
-		  }
-		  for(DiffNode o : c.old) {
-			  diffs.addAsOld(o.drop);
-		  }
+		  // TODO look at c.newer and c.old for removal.
 	  }
 	  return diffs.build();
   }  

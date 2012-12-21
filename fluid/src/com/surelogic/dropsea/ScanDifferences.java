@@ -2,11 +2,13 @@ package com.surelogic.dropsea;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.javac.persistence.JSureScanInfo;
 
 /**
  * Records differences between two drop-sea instances that can be queried. This
@@ -19,18 +21,8 @@ import com.surelogic.Nullable;
  */
 public final class ScanDifferences {
   public static class Builder {
-    private final HashSet<IDrop> f_inNewOnly = new HashSet<IDrop>();
     private final HashMap<IDrop, IDrop> f_newSameAsOld = new HashMap<IDrop, IDrop>();
     private final HashMap<IDrop, IDrop> f_newChangedFromOld = new HashMap<IDrop, IDrop>();
-    private final HashSet<IDrop> f_inOldOnly = new HashSet<IDrop>();
-
-    public void addAsNew(IDrop d) {
-      f_inNewOnly.add(d);
-    }
-
-    public void addAsOld(IDrop d) {
-      f_inOldOnly.add(d);
-    }
 
     public void addAllNewSameAsOld(Map<IDrop, IDrop> matching) {
       f_newSameAsOld.putAll(matching);
@@ -41,21 +33,16 @@ public final class ScanDifferences {
     }
 
     public ScanDifferences build() {
-      return new ScanDifferences(f_inNewOnly, f_newSameAsOld, f_newChangedFromOld, f_inOldOnly);
+      return new ScanDifferences(f_newSameAsOld, f_newChangedFromOld);
     }
   }
 
-  private final HashSet<IDrop> f_inNewOnly;
   private final HashMap<IDrop, IDrop> f_newSameAsOld;
   private final HashMap<IDrop, IDrop> f_newChangedFromOld;
-  private final HashSet<IDrop> f_inOldOnly;
 
-  private ScanDifferences(Set<IDrop> inNewOnly, Map<IDrop, IDrop> newSameAsOld, Map<IDrop, IDrop> newChangedFromOld,
-      Set<IDrop> inOldOnly) {
-    f_inNewOnly = new HashSet<IDrop>(inNewOnly);
+  private ScanDifferences(Map<IDrop, IDrop> newSameAsOld, Map<IDrop, IDrop> newChangedFromOld) {
     f_newSameAsOld = new HashMap<IDrop, IDrop>(newSameAsOld);
     f_newChangedFromOld = new HashMap<IDrop, IDrop>(newChangedFromOld);
-    f_inOldOnly = new HashSet<IDrop>(inOldOnly);
   }
 
   /**
@@ -104,24 +91,44 @@ public final class ScanDifferences {
    * Gets the set of drops in the new scan that were not matched in the new
    * scan.
    * 
+   * @param newScan
+   *          the new scan.
    * @return a set of drops from the new scan that are only in the new scan. The
    *         returned set is a copy and may be freely mutated.
    */
   @NonNull
-  public HashSet<IDrop> getDropsOnlyInNewScan() {
-    return new HashSet<IDrop>(f_inNewOnly);
+  public HashSet<IDrop> getDropsOnlyInNewScan(@NonNull final JSureScanInfo newScan) {
+    if (newScan == null)
+      throw new IllegalArgumentException(I18N.err(44, "newScan"));
+    final HashSet<IDrop> result = new HashSet<IDrop>(newScan.getDropInfo());
+    for (Iterator<IDrop> iterator = result.iterator(); iterator.hasNext();) {
+      final IDrop inNewScan = iterator.next();
+      if (isNotInOldScan(inNewScan))
+        iterator.remove();
+    }
+    return result;
   }
 
   /**
    * Gets the set of drops in the old scan that were not matched in the new
    * scan.
    * 
+   * @param oldScan
+   *          the old scan.
    * @return a set of drops from the old scan that are only in the old scan. The
    *         returned set is a copy and may be freely mutated.
    */
   @NonNull
-  public HashSet<IDrop> getDropsOnlyInOldScan() {
-    return new HashSet<IDrop>(f_inOldOnly);
+  public HashSet<IDrop> getDropsOnlyInOldScan(@NonNull final JSureScanInfo oldScan) {
+    if (oldScan == null)
+      throw new IllegalArgumentException(I18N.err(44, "oldScan"));
+    final HashSet<IDrop> result = new HashSet<IDrop>(oldScan.getDropInfo());
+    for (Iterator<IDrop> iterator = result.iterator(); iterator.hasNext();) {
+      final IDrop inOldScan = iterator.next();
+      if (isNotInNewScan(inOldScan))
+        iterator.remove();
+    }
+    return result;
   }
 
   /**
@@ -138,6 +145,8 @@ public final class ScanDifferences {
    *         the new scan.
    */
   public <T extends IDrop> T getSameInNewScan(T inOldScan) {
+    if (inOldScan == null)
+      throw new IllegalArgumentException(I18N.err(44, "inOldScan"));
     for (Map.Entry<IDrop, IDrop> entry : f_newSameAsOld.entrySet()) {
       if (entry.getValue().equals(inOldScan)) {
         @SuppressWarnings("unchecked")
@@ -159,7 +168,9 @@ public final class ScanDifferences {
    *         the old scan.
    */
   @Nullable
-  public <T extends IDrop> T getSameInOldScan(T inNewScan) {
+  public <T extends IDrop> T getSameInOldScan(@NonNull T inNewScan) {
+    if (inNewScan == null)
+      throw new IllegalArgumentException(I18N.err(44, "inNewScan"));
     @SuppressWarnings("unchecked")
     final T result = (T) f_newSameAsOld.get(inNewScan);
     return result;
@@ -177,7 +188,9 @@ public final class ScanDifferences {
    * @see #getChangedFrom(IDrop)
    * @see #getChangedTo(IDrop)
    */
-  public boolean isChangedButInBothScans(IDrop drop) {
+  public boolean isChangedButInBothScans(@NonNull IDrop drop) {
+    if (drop == null)
+      throw new IllegalArgumentException(I18N.err(44, "drop"));
     final boolean newDropChanged = f_newChangedFromOld.containsKey(drop);
     if (newDropChanged)
       return true;
@@ -196,8 +209,11 @@ public final class ScanDifferences {
    *          a drop from the old scan.
    * @return {@code true} if <tt>inOldScan</tt> is not in the new scan.
    */
-  public boolean isNotInNewScan(IDrop inOldScan) {
-    return f_inOldOnly.contains(inOldScan);
+  public boolean isNotInNewScan(@NonNull IDrop inOldScan) {
+    if (inOldScan == null)
+      throw new IllegalArgumentException(I18N.err(44, "inOldScan"));
+    final boolean inNew = f_newChangedFromOld.containsValue(inOldScan) || f_newSameAsOld.containsValue(inOldScan);
+    return !inNew;
 
   }
 
@@ -209,8 +225,11 @@ public final class ScanDifferences {
    *          a drop from the new scan.
    * @return {@code true} if <tt>inNewScan</tt> was not in the old scan.
    */
-  public boolean isNotInOldScan(IDrop inNewScan) {
-    return f_inNewOnly.contains(inNewScan);
+  public boolean isNotInOldScan(@NonNull IDrop inNewScan) {
+    if (inNewScan == null)
+      throw new IllegalArgumentException(I18N.err(44, "inNewScan"));
+    final boolean inOld = f_newChangedFromOld.containsKey(inNewScan) || f_newSameAsOld.containsKey(inNewScan);
+    return !inOld;
   }
 
   /**
@@ -223,7 +242,9 @@ public final class ScanDifferences {
    * @see #getChangedFrom(IDrop)
    * @see #getChangedTo(IDrop)
    */
-  public boolean isSameInBothScans(IDrop drop) {
+  public boolean isSameInBothScans(@NonNull IDrop drop) {
+    if (drop == null)
+      throw new IllegalArgumentException(I18N.err(44, "drop"));
     final boolean newDropSame = f_newSameAsOld.containsKey(drop);
     if (newDropSame)
       return true;
