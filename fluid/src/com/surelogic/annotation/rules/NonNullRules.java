@@ -68,10 +68,10 @@ public class NonNullRules extends AnnotationRules {
 		@Override
 		protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
 			if (ParameterDeclaration.prototype.includes(context.getOp())) {
-				return parser.nothing();
+				return parser.nothing().getTree();
 			}
 			else if (MethodDeclaration.prototype.includes(context.getOp())) {
-				return parser.rawExpression();
+				return parser.rawExpression().getTree();
 			}
 			throw new NotImplemented();
 		}		
