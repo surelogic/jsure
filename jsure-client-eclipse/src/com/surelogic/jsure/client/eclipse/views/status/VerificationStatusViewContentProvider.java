@@ -29,14 +29,11 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
     @NonNull
     final JSureScanInfo f_scan;
     @Nullable
-    final JSureScanInfo f_oldScan;
-    @Nullable
     final ScanDifferences f_diff;
     final boolean f_showHints;
 
-    Input(@NonNull JSureScanInfo scan, @Nullable JSureScanInfo oldScan, @Nullable ScanDifferences diff, boolean showHints) {
+    Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showHints) {
       f_scan = scan;
-      f_oldScan = oldScan;
       f_diff = diff;
       f_showHints = showHints;
     }

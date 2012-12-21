@@ -554,7 +554,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
               state = new TreeViewerUIState(f_treeViewer);
             }
           }
-          f_treeViewer.setInput(new VerificationStatusViewContentProvider.Input(scan, oldScan, diff, f_showHints));
+          f_treeViewer.setInput(new VerificationStatusViewContentProvider.Input(scan, diff, f_showHints));
           setModelProblemIndicatorState(JSureUtility.getInterestingModelingProblemCount(scan));
           if (state != null) {
             state.restoreViewState(f_treeViewer);
