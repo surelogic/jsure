@@ -74,7 +74,7 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
         if (in.f_showHints)
           drops.addAll(in.f_scan.getHintDrops());
         if (in.f_showObsoleteDrops && in.f_diff != null)
-          drops.addAll(in.f_diff.getDropsOnlyInOldScan());
+          drops.addAll(in.f_diff.getDropsOnlyInOldScan(in.f_oldScan));
 
         for (IDrop pd : drops) {
           if (in.f_showOnlyDifferences && in.f_diff != null && in.f_diff.isSameInBothScans(pd))
@@ -87,7 +87,7 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
             continue;
           if (pd instanceof IResultFolderDrop)
             continue;
-          ElementDrop.addToTree(tree, pd, in.f_diff == null ? false : in.f_diff.isNotInNewScan(pd));
+          ElementDrop.addToTree(tree, pd, in.f_oldScan == null ? false : in.f_oldScan.contains(pd));
         }
       }
       f_root = tree.getRootElements();
