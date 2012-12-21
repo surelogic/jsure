@@ -17,6 +17,7 @@ import com.surelogic.annotation.rules.*;
 import com.surelogic.annotation.rules.LockRulesTestHelper.*;
 import com.surelogic.annotation.rules.MethodEffectsRulesHelper.RegionEffects_ParseRuleHelper;
 import com.surelogic.annotation.rules.RegionRulesTestHelper.*;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.javac.Javac;
 import com.surelogic.jsure.core.Eclipse;
 
@@ -2441,8 +2442,7 @@ public class SLParseTest extends TestCase {
 		 * com.surelogic.annotation.IAnnotationParsingContext#reportError(int,
 		 * java.lang.String)
 		 */
-		@Override
-    public void reportError(int offset, String msg) {
+    public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
 			errorOffset = offset;
 			errorMsg = msg;
 		}

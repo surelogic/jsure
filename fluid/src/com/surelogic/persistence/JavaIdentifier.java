@@ -17,6 +17,7 @@ import com.surelogic.annotation.parse.ScopedPromiseAdaptor;
 import com.surelogic.annotation.parse.ScopedPromiseParse;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -540,7 +541,7 @@ public final class JavaIdentifier {
 		public <T extends IAASTRootNode> void reportAAST(int offset, AnnotationLocation loc, Object o, T ast) {
 			created.add(ast);
 		}
-		public void reportError(int offset, String msg) {
+		public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
 			throw new IllegalStateException("While matching: "+msg);
 		}
 		public void reportException(int offset, Exception e) {

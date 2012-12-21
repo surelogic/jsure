@@ -3,6 +3,7 @@ package com.surelogic.annotation.rules;
 
 import org.antlr.runtime.RecognitionException;
 
+import com.surelogic.Starts;
 import com.surelogic.aast.promise.StartsSpecificationNode;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
@@ -55,6 +56,17 @@ public class ThreadEffectsRules extends AnnotationRules {
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
       return parser.starts().getTree();
     }
+    
+    @Override
+    protected ProposedPromiseDrop.Builder proposeOnRecognitionException(IAnnotationParsingContext context, 
+  		  String badContents, String okPrefix) {
+      ProposedPromiseDrop.Builder p = context.startProposal(Starts.class);
+      if (p == null) {
+    	  return null;
+      }
+      return p.setValue("nothing").replaceSameExisting(badContents);
+    }
+    
     @Override
     protected IPromiseDropStorage<StartsPromiseDrop> makeStorage() {
       return SinglePromiseDropStorage.create(name(), StartsPromiseDrop.class);

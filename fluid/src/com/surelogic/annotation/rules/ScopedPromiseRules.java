@@ -48,6 +48,7 @@ import com.surelogic.annotation.scrub.ValidatedDropCallback;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.AssumePromiseDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.PromisePromiseDrop;
@@ -577,15 +578,11 @@ public class ScopedPromiseRules extends AnnotationRules {
     }
     
     @Override
-    public void reportError(int offset, String msg) {
+    public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
     	hadProblem = true;
     }
     
     public void reportException(int offset, Exception e) {
-    	hadProblem = true;
-    }
-
-    public void reportError(int offset, int number, Object... args) {
     	hadProblem = true;
     }
   }

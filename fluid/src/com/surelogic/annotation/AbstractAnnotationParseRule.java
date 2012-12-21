@@ -6,6 +6,7 @@ import org.antlr.runtime.RecognitionException;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.promise.AbstractNamedPromiseRule;
@@ -80,16 +81,37 @@ implements ISingleAnnotationParseRule<A,P> {
 
   protected final void handleRecognitionException(IAnnotationParsingContext context, String contents,
       RecognitionException e) {
-        if (e.charPositionInLine < contents.length()) {
-          if (e.charPositionInLine > 0) {
-          String ok  = contents.substring(0, e.charPositionInLine);
-          String bad = contents.substring(e.charPositionInLine);
-          context.reportError(e.charPositionInLine, "Unable to parse past @"+name()+' '+ok+" ___ "+bad); 
-          } else {
-            context.reportError(0, "Unable to parse: @"+name()+' '+contents); 
-          }
-        } else {
-        	context.reportException(IAnnotationParsingContext.UNKNOWN, e);
-        }
-      }
+	  final ProposedPromiseDrop.Builder proposal;
+	  if (e.charPositionInLine < contents.length()) {
+		  if (e.charPositionInLine > 0) {
+			  String ok  = contents.substring(0, e.charPositionInLine);
+			  String bad = contents.substring(e.charPositionInLine);
+			  proposal = proposeOnRecognitionException(context, contents, ok);
+			  context.reportErrorAndProposal(e.charPositionInLine, 
+					  "Unable to parse past @"+name()+' '+ok+" ___ "+bad,
+					  proposal); 
+		  } else {
+			  proposal = proposeOnRecognitionException(context, contents, null);
+			  context.reportErrorAndProposal(0, "Unable to parse: @"+name()+' '+contents, proposal); 
+		  }
+	  } else {
+		  proposal = proposeOnRecognitionException(context, contents, null);
+		  if (proposal != null) {
+			  context.reportErrorAndProposal(IAnnotationParsingContext.UNKNOWN, 
+					  "Unable to parse: @"+name()+' '+contents, proposal);
+		  } else {
+			  context.reportException(IAnnotationParsingContext.UNKNOWN, e);
+		  }
+	  }
+  }
+
+  /**
+   * Check if there's a proposal to replace a bad annotation
+   * 
+   * @param badContents The unparseable contents
+   */
+  protected ProposedPromiseDrop.Builder proposeOnRecognitionException(IAnnotationParsingContext context, 
+		  String badContents, String okPrefix) {
+	  return null;
+  }
 }

@@ -1,6 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/SimpleAnnotationParsingContext.java,v 1.5 2008/06/24 19:13:15 thallora Exp $*/
 package com.surelogic.annotation;
 
+import java.lang.annotation.Annotation;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,7 +16,9 @@ import com.surelogic.annotation.test.TestResultType;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -254,21 +257,40 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
 	  }
 	  return JavaNode.isSet(getModifiers(), JavaNode.IMPLICIT);
   }
-  
-  public void reportError(int offset, String msg) {
+    
+  private ModelingProblemDrop reportError(int offset) {
 	  if (ignoreIssue()) {
-		  return;
+		  return null;
 	  }
 	  final int position = mapToSource(offset);
-	  reportError(contextRef, position).setMessage(msg);
+	  return reportError(contextRef, position);
   }
 
-  public void reportError(int offset, int number, Object... args) {
-	  if (ignoreIssue()) {
-		  return;
+  @Override
+  public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
+	  final ModelingProblemDrop error = reportError(offset);
+	  if (error != null) {
+		  error.setMessage(msg);
+		  if (proposal != null) {
+			  proposal.forDrop(error);
+			  proposal.setOrigin(Origin.PROBLEM);
+			  proposal.build();
+		  }
 	  }
-	  final int position = mapToSource(offset);
-	  reportError(contextRef, position).setMessage(number, args);
+  }
+  
+  @Override
+  public void reportError(int offset, int number, Object... args) {
+	  final ModelingProblemDrop error = reportError(offset);
+	  if (error != null) {
+		  error.setMessage(number, args);
+	  }
+  }
+  
+  @Override
+  public ProposedPromiseDrop.Builder startProposal(Class<? extends Annotation> anno) {
+	  IRNode decl = computeDeclNode(annoNode);
+	  return new ProposedPromiseDrop.Builder(anno, decl, contextRef);
   }
   
   public void reportException(int offset, Exception e) {  

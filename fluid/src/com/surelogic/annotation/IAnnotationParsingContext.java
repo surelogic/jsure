@@ -1,7 +1,10 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/IAnnotationParsingContext.java,v 1.9 2007/08/22 20:07:51 chance Exp $ */
 package com.surelogic.annotation;
 
+import java.lang.annotation.Annotation;
+
 import com.surelogic.aast.*;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.irfree.DiffHeuristics;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -62,6 +65,8 @@ public interface IAnnotationParsingContext {
    */
   void reportError(int offset, String msg);
   
+  void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal);
+  
   void reportError(int offset, int number, Object... args);
 
   /**
@@ -71,9 +76,11 @@ public interface IAnnotationParsingContext {
    */
   void reportException(int offset, Exception e);
   
+  ProposedPromiseDrop.Builder startProposal(Class<? extends Annotation> anno);
+  
   IAnnotationParsingContext nullPrototype = 
     new AbstractAnnotationParsingContext(AnnotationSource.JAVADOC) {
-    public void reportError(int offset, String msg) {
+    public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
       System.out.println(msg);
     }
     public <T extends IAASTRootNode> void reportAAST(int offset, AnnotationLocation loc, Object o, T ast) {

@@ -2,6 +2,7 @@
 package com.surelogic.annotation;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -38,15 +39,11 @@ public class AnnotationParsingContextProxy extends AbstractAnnotationParsingCont
     context.reportAAST(offset, loc, o, ast);
   }
 
-  public void reportError(int offset, String msg) {
-    context.reportError(offset, msg);
+  public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
+    context.reportErrorAndProposal(offset, msg, proposal);
   }
 
   public void reportException(int offset, Exception e) {
     context.reportException(offset, e);
-  }
-
-  public void reportError(int offset, int number, Object... args) {
-	context.reportError(offset, number, args);
   }
 }

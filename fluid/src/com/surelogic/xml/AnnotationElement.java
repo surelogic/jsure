@@ -20,6 +20,7 @@ import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.StorageType;
 
@@ -257,7 +258,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 				// Ignore this; we only care that it parses
 			}
 
-			public void reportError(int offset, String msg) {
+			public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
 				// l.reportError("Problem parsing annotation", msg);
 			}
 
