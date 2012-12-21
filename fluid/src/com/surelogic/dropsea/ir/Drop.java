@@ -100,11 +100,13 @@ public abstract class Drop implements IDrop {
     f_mySea.notify(this, DropEvent.Created);
   }
 
+  @Override
   @NonNull
   public Class<?> getIRDropSeaClass() {
     return getClass();
   }
 
+  @Override
   public boolean instanceOfIRDropSea(Class<?> type) {
     return type.isInstance(this);
   }
@@ -173,11 +175,29 @@ public abstract class Drop implements IDrop {
       return;
     }
     synchronized (f_seaLock) {
-      f_message = args.length == 0 ? I18N.res(number) : I18N.res(number, args);
-      f_messageCanonical = args.length == 0 ? I18N.resc(number) : I18N.resc(number, args);
+//      f_message = args.length == 0 ? I18N.res(number) : I18N.res(number, args);
+//      f_messageCanonical = args.length == 0 ? I18N.resc(number) : I18N.resc(number, args);
+      f_message = args.length == 0 ? resolveMessage(number) : resolveMessage(number, args);
+      f_messageCanonical = args.length == 0 ? resolveMessageCanonical(number) : resolveMessageCanonical(number, args);
     }
   }
 
+  protected String resolveMessage(final int number) {
+    return I18N.res(number);
+  }
+
+  protected String resolveMessage(final int number, final Object... args) {
+    return I18N.res(number, args);
+  }
+  
+  protected String resolveMessageCanonical(final int number) {
+    return I18N.resc(number);
+  }
+  
+  protected String resolveMessageCanonical(final int number, final Object... args) {
+    return I18N.resc(number, args);
+  }
+  
   /**
    * This method sets the message for this drop.
    * <p>
@@ -211,6 +231,7 @@ public abstract class Drop implements IDrop {
     f_messageCanonical = messageCanonical;
   }
 
+  @Override
   @NonNull
   public final String getMessage() {
     synchronized (f_seaLock) {
@@ -221,6 +242,7 @@ public abstract class Drop implements IDrop {
     }
   }
 
+  @Override
   @Nullable
   public String getMessageCanonical() {
     synchronized (f_seaLock) {
@@ -305,6 +327,7 @@ public abstract class Drop implements IDrop {
     }
   }
 
+  @Override
   @Nullable
   public String getCategorizingMessage() {
     synchronized (f_seaLock) {
@@ -672,6 +695,7 @@ public abstract class Drop implements IDrop {
     }
   }
 
+  @Override
   @NonNull
   public final Set<HintDrop> getHints() {
     final Set<HintDrop> result = new HashSet<HintDrop>();
@@ -717,6 +741,7 @@ public abstract class Drop implements IDrop {
   }
 
   @Nullable
+  @Override
   public final IJavaRef getJavaRef() {
     Pair<IJavaRef, IRNode> p = getJavaRefAndCorrespondingNode();
     if (p == null) {
@@ -762,6 +787,7 @@ public abstract class Drop implements IDrop {
     return f_node;
   }
 
+  @Override
   public boolean isFromSrc() {
     final IRNode n = getNode();
     if (n != null) {
@@ -858,6 +884,7 @@ public abstract class Drop implements IDrop {
   }
 
   @NonNull
+  @Override
   public final List<ProposedPromiseDrop> getProposals() {
     synchronized (f_seaLock) {
       final List<ProposedPromiseDrop> conditionalProposals = getConditionalProposals();
@@ -873,6 +900,7 @@ public abstract class Drop implements IDrop {
     }
   }
 
+  @Override
   public final boolean containsDiffInfoKey(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_diffInfos)
@@ -882,6 +910,7 @@ public abstract class Drop implements IDrop {
     return false;
   }
 
+  @Override
   public final String getDiffInfoOrNull(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_diffInfos)
@@ -891,6 +920,7 @@ public abstract class Drop implements IDrop {
     return null;
   }
 
+  @Override
   public final long getDiffInfoAsLong(String key, long valueIfNotRepresentable) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_diffInfos)
@@ -900,6 +930,7 @@ public abstract class Drop implements IDrop {
     return valueIfNotRepresentable;
   }
 
+  @Override
   public final int getDiffInfoAsInt(String key, int valueIfNotRepresentable) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_diffInfos)
@@ -909,6 +940,7 @@ public abstract class Drop implements IDrop {
     return valueIfNotRepresentable;
   }
 
+  @Override
   public final <T extends Enum<T>> T getDiffInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_diffInfos)
@@ -918,6 +950,7 @@ public abstract class Drop implements IDrop {
     return valueIfNotRepresentable;
   }
 
+  @Override
   public IJavaRef getDiffInfoAsJavaRefOrThrow(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_diffInfos)
@@ -927,6 +960,7 @@ public abstract class Drop implements IDrop {
     throw new IllegalArgumentException("no value for " + key);
   }
 
+  @Override
   public IJavaRef getDiffInfoAsJavaRefOrNull(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_diffInfos)
@@ -936,6 +970,7 @@ public abstract class Drop implements IDrop {
     return null;
   }
 
+  @Override
   public IDecl getDiffInfoAsDeclOrThrow(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_diffInfos)
@@ -945,6 +980,7 @@ public abstract class Drop implements IDrop {
     throw new IllegalArgumentException("no value for " + key);
   }
 
+  @Override
   public IDecl getDiffInfoAsDeclOrNull(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_diffInfos)

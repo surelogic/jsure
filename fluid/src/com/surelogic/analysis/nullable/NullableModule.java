@@ -19,6 +19,11 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 
 public final class NullableModule extends AbstractWholeIRAnalysis<DefinitelyAssignedAnalysis, Unused>{
+  private static final int DEFINITELY_ASSIGNED = 900;
+  private static final int NOT_DEFINITELY_ASSIGNED = 901;
+  
+  
+  
   public NullableModule() {
     super("Definitely Assigned");
   }
@@ -69,7 +74,8 @@ public final class NullableModule extends AbstractWholeIRAnalysis<DefinitelyAssi
         if (pd != null) {
           final boolean isDefinitelyAssigned = e.getValue().booleanValue();
           ResultsBuilder.createResult(cdecl, pd, isDefinitelyAssigned,
-              900, 901, JavaNames.genSimpleMethodConstructorName(cdecl));
+              DEFINITELY_ASSIGNED, NOT_DEFINITELY_ASSIGNED,
+              JavaNames.genSimpleMethodConstructorName(cdecl));
         }
       }
       

@@ -4,6 +4,7 @@ import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.MODELING_PROBLEM
 
 import com.surelogic.Nullable;
 import com.surelogic.common.Pair;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.dropsea.IModelingProblemDrop;
@@ -32,6 +33,30 @@ public final class ModelingProblemDrop extends Drop implements IModelingProblemD
     this(node, -1);
   }
 
+  
+
+  @Override
+  protected String resolveMessage(final int number) {
+    return I18N.mp(number);
+  }
+
+  @Override
+  protected String resolveMessage(final int number, final Object... args) {
+    return I18N.mp(number, args);
+  }
+  
+  @Override
+  protected String resolveMessageCanonical(final int number) {
+    return I18N.mpc(number);
+  }
+  
+  @Override
+  protected String resolveMessageCanonical(final int number, final Object... args) {
+    return I18N.mpc(number, args);
+  }
+
+  
+  
   @Override
   @Nullable
   protected Pair<IJavaRef, IRNode> getJavaRefAndCorrespondingNode() {

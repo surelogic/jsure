@@ -29,6 +29,8 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 
 public class NonNullRules extends AnnotationRules {	
+  private static final int CANNOT_BE_BOTH = 900;
+  
 	public static final String NONNULL = "NonNull";
 	public static final String NULLABLE = "Nullable";
 	public static final String RAW = "Raw";
@@ -188,7 +190,8 @@ public class NonNullRules extends AnnotationRules {
     // Cannot also be @NonNull
     if (getNonNull(promisedFor) != null) {
       good = false;
-      context.reportError(n, "Cannot be both @NonNull and @Nullable");
+      context.reportError(n, CANNOT_BE_BOTH, "@NonNull", "@Nullable");
+//      context.reportError(n, "Cannot be both @NonNull and @Nullable");
     }
 
     // TODO: Cannot also be @Raw
