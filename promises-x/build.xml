@@ -12,7 +12,8 @@
 	<property name="build-x" location="${basedir}/build-x" />
 
 	<property name="promises-x-src" location="${basedir}/src" />
-	<property name="production-promises" location="${basedir}/../../promises/promises/" />
+	<!-- ENSURE THAT THIS REFERENCES THE 'promises' SVN CHECKED-OUT PROJECT ON YOUR DISK -->
+	<property name="production-promises" location="${basedir}/../../../work/promises/" />
 	<property name="production-promises-src" location="${production-promises}/src/main/java" />
 
 
