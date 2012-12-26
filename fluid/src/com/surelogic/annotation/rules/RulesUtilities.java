@@ -1,12 +1,9 @@
 package com.surelogic.annotation.rules;
 
-import java.util.logging.Level;
-
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
@@ -24,28 +21,48 @@ final class RulesUtilities {
   private RulesUtilities() {
     super();
   }
-
-
-
-  public static <T extends IAASTRootNode> boolean checkForReferenceType(
-      final IAnnotationScrubberContext context, final T a, final String label) {
+  
+  
+  
+  /**
+   * Given an annotation parse node, return the IJavaType of the declaration
+   * it appears on.  Works for annotated ParameterDeclaration, ReceiverDeclaration,
+   * VariableDeclarator, QualifiedReceiverDeclaration, ReturnValueDeclaration.
+   */
+  public static IJavaType getPromisedForDeclarationType(
+      final IAnnotationScrubberContext context, final IAASTRootNode a) {
     final IRNode promisedFor = a.getPromisedFor();
     final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
-    final IJavaType type;
     if (ParameterDeclaration.prototype.includes(promisedForOp)
         || ReceiverDeclaration.prototype.includes(promisedForOp)
         || VariableDeclarator.prototype.includes(promisedForOp)
         || QualifiedReceiverDeclaration.prototype.includes(promisedForOp)) {
-      type = context.getBinder(promisedFor).getJavaType(promisedFor);
+      return context.getBinder(promisedFor).getJavaType(promisedFor);
     } else if (ReturnValueDeclaration.prototype.includes(promisedForOp)) {
       final IRNode method = JavaPromise.getPromisedFor(promisedFor);
-      type = context.getBinder(method).getJavaType(method);
+      return context.getBinder(method).getJavaType(method);
     } else {
-      AnnotationRules.LOG.log(Level.SEVERE,
-          "Unexpected " + promisedForOp.name() + ": " + 
-              DebugUnparser.toString(promisedFor), new Throwable());
-      return false;
+      throw new IllegalArgumentException(
+          "Received annotation promised for " + promisedForOp.name());
     }
+  }
+
+
+
+  public static boolean checkForReferenceType(
+      final IAnnotationScrubberContext context,
+      final IAASTRootNode a, final String label) {
+    final IJavaType type = getPromisedForDeclarationType(context, a);
+    return checkForReferenceType(context, a, label, type);
+  }
+
+
+
+  public static boolean checkForReferenceType(
+      final IAnnotationScrubberContext context, final IAASTRootNode a,
+      final String label, final IJavaType type) {
+    final IRNode promisedFor = a.getPromisedFor();
+    final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
     
     if (type instanceof IJavaPrimitiveType) {
       if (ReturnValueDeclaration.prototype.includes(promisedForOp)) {

@@ -30,5 +30,9 @@ public class RawNode extends AbstractBooleanNode
   public IAASTNode cloneTree(){
   	return new RawNode(offset, upTo);
   }
+  
+  public String getUpTo() {
+    return upTo;
+  }
 }
 
