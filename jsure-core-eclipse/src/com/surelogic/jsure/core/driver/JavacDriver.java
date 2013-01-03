@@ -30,6 +30,7 @@ import java.util.zip.ZipFile;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
+import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -135,7 +136,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
    */
   private static final boolean clearBeforeAnalysis = false;
 
-  private static final boolean useSourceZipsDirectly = true;
+  private static final boolean useSourceZipsDirectly = !(SystemUtils.IS_OS_LINUX && XUtil.runJSureInMemory);
 
   /**
    * If true, create common projects for shared jars Otherwise, jars in
