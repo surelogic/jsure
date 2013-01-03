@@ -349,9 +349,18 @@ nonNullExpression
     : varUse | returnValue 
     ;
     
-rawExpression
-    : thisExpr | returnValue // | static(NamedType)
+rawMethod
+    : thisExpr | returnValue | STATIC '(' namedType ')'
     ;
+
+rawConstructor
+    : STATIC '(' namedType ')' // | nothing
+    ;
+
+rawUpToExpression
+    : STAR | namedType
+    ;
+    
     
 /*************************************************************************************
  * Thread effects rules

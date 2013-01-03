@@ -27,6 +27,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -72,17 +73,21 @@ public class NonNullRules extends AnnotationRules {
 		}
 
 		/**
-		 * @Raw(upTo="*") — on formal parameter of type T
-		 * @Raw(upTo="<type>") — on formal parameter of type T
-		 * @Raw(upTo="*|<type>", value="this") — On method of type T
-		 * @Raw(upTo="*|<type>", value="return") — On method with return type T
-		 * @Raw(upTo="*", value="static(<type>)") — On method/constructor
+		 * @Raw(upTo="*") ï¿½ on formal parameter of type T
+		 * @Raw(upTo="<type>") ï¿½ on formal parameter of type T
+		 * @Raw(upTo="*|<type>", value="this") ï¿½ On method of type T
+		 * @Raw(upTo="*|<type>", value="return") ï¿½ On method with return type T
+		 * @Raw(upTo="*", value="static(<type>)") ï¿½ On method/constructor
 		 */
 		@Override
 		protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
 		  if (MethodDeclaration.prototype.includes(context.getOp())) {
-		    return parser.rawExpression().getTree();
-		  } else { // constructor, parameter, local var
+		    return parser.rawMethod().getTree();
+		  }
+		  else if (ConstructorDeclaration.prototype.includes(context.getOp())) { 
+			  return parser.rawConstructor().getTree();
+		  } 
+		  else { // parameter, local var
 		    return parser.nothing().getTree();
 		  }
 //			if (ParameterDeclaration.prototype.includes(context.getOp())) {
