@@ -86,7 +86,8 @@ public abstract class CUDrop extends Drop {
     // TODO will this suck up space for the source?
     this.f_codeInfo = info;
     f_javaOSFileName = info.getFileName();
-
+    setMessage(this.getClass().getSimpleName()+": "+f_javaOSFileName);
+    
     f_hostEnvResource = info.getHostEnvResource();
 
     Integer loc = (Integer) info.getProperty(CodeInfo.LOC);
