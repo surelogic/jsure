@@ -65,7 +65,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
     byteType, booleanType, charType, doubleType, floatType, intType, longType, shortType    
   };
   
-  public static final IJavaType anyType = new JavaType() {
+  public static final IJavaType anyType = new JavaReferenceType() {
     @Override
     public String toString() {
       return "*";
