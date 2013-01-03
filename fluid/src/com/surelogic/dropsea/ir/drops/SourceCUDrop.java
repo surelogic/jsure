@@ -53,6 +53,11 @@ public final class SourceCUDrop extends CUDrop {
         drop.invalidate();
         continue;
       }
+      if (drop.f_codeInfo == null) {
+    	System.out.println("Null codeInfo for "+drop.getMessage());
+    	drop.invalidate();
+    	continue;
+      }
       final ICodeFile javaFile = drop.f_codeInfo.getFile();
       if (javaFile != null) {
         SourceCUDrop d = FILE_TO_INSTANCE.put(javaFile, drop);
