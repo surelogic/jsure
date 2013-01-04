@@ -20,10 +20,12 @@ public class SLParse extends AbstractParse<SLAnnotationsParser> {
       }
     }  
     try {
-    	printAST(initParser("static(Object)").rawConstructor().tree);
+    	printAST(initParser("Object").rawUpToExpression().tree);
+       	printAST(initParser("*").rawUpToExpression().tree);
     } catch(Exception e) {
     	e.printStackTrace();
     }
+   	printAST(initParser("static(Object)").rawConstructor().tree);
     printAST(initParser("any()").anyInstanceExpression().tree);
     printAST(initParser("implementationOnly=false").annoParameters().tree);
     printAST(initParser("implementationOnly=true").annoParameters().tree);
