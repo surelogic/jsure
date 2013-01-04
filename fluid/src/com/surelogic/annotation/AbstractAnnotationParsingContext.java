@@ -39,6 +39,10 @@ ITestAnnotationParsingContext {
 	  return null;
   }
   
+  public void setProperty(String key, String value) {
+	  // ignore
+  }
+  
   public final AnnotationSource getSourceType() {
     return srcType;
   }
