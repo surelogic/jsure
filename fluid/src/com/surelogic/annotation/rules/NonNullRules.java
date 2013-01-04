@@ -6,9 +6,11 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.NonNullNode;
 import com.surelogic.aast.promise.NullableNode;
 import com.surelogic.aast.promise.RawNode;
+import com.surelogic.annotation.AnnotationLocation;
 import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.annotation.DefaultBooleanAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
+import com.surelogic.annotation.parse.AASTAdaptor;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
@@ -97,10 +99,25 @@ public class NonNullRules extends AnnotationRules {
 //				return parser.rawExpression().getTree();
 //			}
 //			throw new NotImplemented();
-		}		
+		}
+		/**
+		 * To handle static(...)
+		 */
 		@Override
-		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-			return new RawNode(offset, context.getProperty(AnnotationVisitor.UPTO));
+		protected AnnotationLocation translateTokenType(int type, Operator op) {
+			if (type == SLAnnotationsParser.NamedType) {
+				return AnnotationLocation.RECEIVER; // TODO is this right?
+			} else {
+				return super.translateTokenType(type, op);
+			}
+		}
+		@Override
+		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int mappedOffset, int modifiers, AASTAdaptor.Node node) {
+			if (node.getType() == SLAnnotationsParser.NamedType) {
+				// TODO
+				return new RawNode(mappedOffset, node.getText()+" -- "+context.getProperty(AnnotationVisitor.UPTO));
+			}
+			return new RawNode(mappedOffset, context.getProperty(AnnotationVisitor.UPTO));
 		}
 		@Override
 		protected IPromiseDropStorage<RawPromiseDrop> makeStorage() {
@@ -256,7 +273,10 @@ public class NonNullRules extends AnnotationRules {
             final ITypeEnvironment typeEnv =
                 context.getBinder(n.getPromisedFor()).getTypeEnvironment();
             final IJavaType upToType = typeEnv.findJavaTypeByName(upTo);
-            if (TypeUtil.isInterface(((IJavaDeclaredType) upToType).getDeclaration())) {
+            if (upToType == null) {
+              good = false;
+              context.reportError("Unable to find upTo type: "+upTo, n);
+            } else if (TypeUtil.isInterface(((IJavaDeclaredType) upToType).getDeclaration())) {
               // upTo cannot name an interface
               good = false;
               context.reportError(n, NOT_A_SUPERCLASS, upTo, promisedForType.getName());

@@ -33,8 +33,15 @@ extends AbstractAnnotationParseRule<A,P> {
     super(name, ops, dt);
   }
   
+  protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int mappedOffset, int modifiers, AASTAdaptor.Node node) 
+  throws Exception {
+	  return makeAAST(context, mappedOffset, modifiers);
+  }
+  
   /**
    * Uses reflection to create an AAST root node of the appropriate type;
+   * (kept for compatibility with older code)
+   * 
    * @param offset mapped
    */
   protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int modifiers) throws Exception {
@@ -83,11 +90,11 @@ extends AbstractAnnotationParseRule<A,P> {
     }
     return ParseResult.OK;
   }
-
+  
   /**
    * Assumes that parsed text specifies where the annotations should go
    */
-  private void reportAAST(IAnnotationParsingContext context, Tree tn) {
+  protected void reportAAST(IAnnotationParsingContext context, Tree tn) {
     AnnotationLocation loc = translateTokenType(tn.getType(), context.getOp());
     final int offset       = tn.getTokenStartIndex();        
     try {
@@ -98,7 +105,7 @@ extends AbstractAnnotationParseRule<A,P> {
       } else {
     	  mods = context.getModifiers();
       }
-      IAASTRootNode d = makeAAST(context, context.mapToSource(offset), mods);
+      IAASTRootNode d = makeAAST(context, context.mapToSource(offset), mods, node);
       if (d != null) {
     	  final Object o;
     	  if (loc == AnnotationLocation.QUALIFIED_RECEIVER) {
