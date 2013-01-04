@@ -11,8 +11,10 @@ import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.annotation.DefaultBooleanAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.AASTAdaptor;
+import com.surelogic.annotation.parse.AASTAdaptor.Node;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
+import com.surelogic.annotation.parse.SLParse;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
@@ -113,6 +115,18 @@ public class NonNullRules extends AnnotationRules {
 		}
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int mappedOffset, int modifiers, AASTAdaptor.Node node) {
+			final String upTo = context.getProperty(AnnotationVisitor.UPTO);
+			if (upTo == null) {
+				// TODO
+			} else try {
+				AASTAdaptor.Node upToE = (Node) SLParse.prototype.initParser(upTo).rawUpToExpression().getTree();			
+			} catch (RecognitionException e) {
+				handleRecognitionException(context, upTo, e);				
+				return null;
+			} catch (Exception e) {
+				context.reportException(IAnnotationParsingContext.UNKNOWN, e);
+				return null;
+			}
 			if (node.getType() == SLAnnotationsParser.NamedType) {
 				// TODO
 				return new RawNode(mappedOffset, node.getText()+" -- "+context.getProperty(AnnotationVisitor.UPTO));
