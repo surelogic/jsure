@@ -350,11 +350,13 @@ nonNullExpression
     ;
     
 rawMethod
-    : thisExpr | returnValue | STATIC '(' namedType ')'
+    : thisExpr | returnValue 
+    | STATIC '(' namedType ')' -> namedType
     ;
 
 rawConstructor
-    : STATIC '(' namedType ')' // | nothing
+    : STATIC '(' namedType ')' -> namedType
+    | nothing
     ;
 
 rawUpToExpression
