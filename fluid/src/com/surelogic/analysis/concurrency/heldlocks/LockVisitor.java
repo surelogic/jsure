@@ -2451,64 +2451,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	// ----------------------------------------------------------------------
 
 	@Override
-	public Void visitMethodDeclaration(final IRNode mdecl) {
+	public Void visitAnnotationElement(final IRNode eltDecl) {
 		try {
 			// First thing: update the receiver node
-			ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(mdecl);
-
-			/*
-			 * Push any locks acquired to the front of the lock context. Locks
-			 * can come from being a synchronized method and from lock
-			 * preconditions.
-			 */
-			final LockStackFrame syncFrame = ctxtTheHeldLocks.pushNewFrame();
-			boolean syncLockIsIdentifiable = false;
-			boolean syncLockIsPolicyLock = false;
-			if (JavaNode.getModifier(mdecl, JavaNode.SYNCHRONIZED)) {
-				final Set<HeldLock> syncMethodLocks = new HashSet<HeldLock>();
-				lockUtils.convertSynchronizedMethod(mdecl, heldLockFactory,
-						ctxtTheReceiverNode, ctxtJavaType, ctxtTypeDecl,
-						syncMethodLocks);
-				syncFrame.push(syncMethodLocks);
-				// convertSynchronizedMethod(mdecl, ctxtJavaType, ctxtTypeDecl,
-				// syncFrame);
-				syncLockIsPolicyLock = isPolicyLockMethod(mdecl);
-
-				/*
-				 * Complain if expression doesn't match a named lock, or if the
-				 * only named lock is the MUTEX. (Don't complain if the lock is
-				 * a policy lock though.)
-				 */
-				boolean justMUTEX = true;
-				for (final StackLock guard : syncFrame) {
-					justMUTEX &= guard.lock.getLockPromise().equals(
-							lockUtils.getMutex());
-				}
-				if (justMUTEX && !syncLockIsPolicyLock) {
-					if (TypeUtil.isStatic(mdecl)) {
-						makeWarningDrop(
-								Messages.DSC_UNIDENTIFIABLE_LOCK_WARNING,
-								mdecl,
-								Messages.LockAnalysis_ds_SynchronizedStaticMethodWarningDetails,
-								JavaNames.genMethodConstructorName(mdecl),
-								JavaNames.getTypeName(ctxtTypeDecl));
-					} else {
-						makeWarningDrop(
-								Messages.DSC_UNIDENTIFIABLE_LOCK_WARNING,
-								mdecl,
-								Messages.LockAnalysis_ds_SynchronizedMethodWarningDetails,
-								JavaNames.genMethodConstructorName(mdecl));
-					}
-				} else {
-					// Sync is a declared lock/policy lock
-					syncLockIsIdentifiable = true;
-				}
-			}
-
-      final Set<LockSpecificationNode> locksOnParameters = 
-          new HashSet<LockSpecificationNode>();
-	    final LockStackFrame reqFrame = ctxtTheHeldLocks.pushNewFrame();
-			processLockPreconditions(mdecl, reqFrame, locksOnParameters);
+			ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(eltDecl);
 
 			/*
 			 * If the method is declared to return a particular lock, then set
@@ -2516,44 +2462,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			 * ctxtReturnedLock and ctxtReturnsLockDrop for use by
 			 * visitReturnStatement().
 			 */
-			ctxtInsideMethod = mdecl;
-			ctxtBcaQuery = bindingContextAnalysis
-					.getExpressionObjectsQuery(mdecl);
-			updateJUCAnalysisQueries(mdecl);
+			ctxtInsideMethod = eltDecl;
+			ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(eltDecl);
+			updateJUCAnalysisQueries(eltDecl);
 			ctxtConflicter = new ConflictChecker(binder, mayAlias);
-			final ReturnsLockPromiseDrop returnedLockName = LockUtils
-					.getReturnedLock(mdecl);
-      final Set<LockSpecificationNode> returnsLocksOnParameters = 
-          new HashSet<LockSpecificationNode>();
-			if (returnedLockName != null) {
-				ctxtReturnsLockDrop = returnedLockName;
-				ctxtReturnedLock = LockUtils.convertLockNameToMethodContext(
-						mdecl, heldLockFactory, returnedLockName.getAAST()
-								.getLock(), false, null, ctxtTheReceiverNode,
-								returnsLocksOnParameters);
-			}
-			// Analyze the children
-			checkMutabilityOfFormalParameters(
-			    mdecl, locksOnParameters, returnsLocksOnParameters);
-			doAcceptForChildren(mdecl);
-
-			/*
-			 * Check to see if the synchronization was used for anything. This
-			 * needs to be done last because it queries isNeeded(), which is a
-			 * side-effect of calling containsLock() on the lock stack frame.
-			 */
-			if (syncLockIsIdentifiable && !syncLockIsPolicyLock
-					&& !syncFrame.isNeeded()) {
-				final HintDrop info = makeWarningDrop(
-						Messages.DSC_SYNCHRONIZED_UNUSED_WARNING, mdecl,
-						Messages.LockAnalysis_ds_SynchronizationUnused,
-						syncFrame);
-				for (final StackLock stackLock : syncFrame) {
-					stackLock.lock.getLockPromise().addDependent(info);
-				}
-			}
-
-			// TODO: Check to see if the lock preconditions were needed
+			doAcceptForChildren(eltDecl);
 		} finally {
 			// Cleanup the state used for checking returns
 			ctxtTheReceiverNode = null;
@@ -2565,9 +2478,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			ctxtConflicter = null;
 			ctxtReturnsLockDrop = null;
 			ctxtReturnedLock = null;
-
-			ctxtTheHeldLocks.popFrame();
-			ctxtTheHeldLocks.popFrame();
 		}
 		return null;
 	}
@@ -3179,4 +3089,128 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		this.ctxtIsLHS = false;
 		return null;
 	}
+
+  // ----------------------------------------------------------------------
+  
+  @Override
+  public Void visitMethodDeclaration(final IRNode mdecl) {
+  	try {
+  		// First thing: update the receiver node
+  		ctxtTheReceiverNode = JavaPromise.getReceiverNodeOrNull(mdecl);
+  
+  		/*
+  		 * Push any locks acquired to the front of the lock context. Locks
+  		 * can come from being a synchronized method and from lock
+  		 * preconditions.
+  		 */
+  		final LockStackFrame syncFrame = ctxtTheHeldLocks.pushNewFrame();
+  		boolean syncLockIsIdentifiable = false;
+  		boolean syncLockIsPolicyLock = false;
+  		if (JavaNode.getModifier(mdecl, JavaNode.SYNCHRONIZED)) {
+  			final Set<HeldLock> syncMethodLocks = new HashSet<HeldLock>();
+  			lockUtils.convertSynchronizedMethod(mdecl, heldLockFactory,
+  					ctxtTheReceiverNode, ctxtJavaType, ctxtTypeDecl,
+  					syncMethodLocks);
+  			syncFrame.push(syncMethodLocks);
+  			// convertSynchronizedMethod(mdecl, ctxtJavaType, ctxtTypeDecl,
+  			// syncFrame);
+  			syncLockIsPolicyLock = isPolicyLockMethod(mdecl);
+  
+  			/*
+  			 * Complain if expression doesn't match a named lock, or if the
+  			 * only named lock is the MUTEX. (Don't complain if the lock is
+  			 * a policy lock though.)
+  			 */
+  			boolean justMUTEX = true;
+  			for (final StackLock guard : syncFrame) {
+  				justMUTEX &= guard.lock.getLockPromise().equals(
+  						lockUtils.getMutex());
+  			}
+  			if (justMUTEX && !syncLockIsPolicyLock) {
+  				if (TypeUtil.isStatic(mdecl)) {
+  					makeWarningDrop(
+  							Messages.DSC_UNIDENTIFIABLE_LOCK_WARNING,
+  							mdecl,
+  							Messages.LockAnalysis_ds_SynchronizedStaticMethodWarningDetails,
+  							JavaNames.genMethodConstructorName(mdecl),
+  							JavaNames.getTypeName(ctxtTypeDecl));
+  				} else {
+  					makeWarningDrop(
+  							Messages.DSC_UNIDENTIFIABLE_LOCK_WARNING,
+  							mdecl,
+  							Messages.LockAnalysis_ds_SynchronizedMethodWarningDetails,
+  							JavaNames.genMethodConstructorName(mdecl));
+  				}
+  			} else {
+  				// Sync is a declared lock/policy lock
+  				syncLockIsIdentifiable = true;
+  			}
+  		}
+  
+      final Set<LockSpecificationNode> locksOnParameters = 
+          new HashSet<LockSpecificationNode>();
+      final LockStackFrame reqFrame = ctxtTheHeldLocks.pushNewFrame();
+  		processLockPreconditions(mdecl, reqFrame, locksOnParameters);
+  
+  		/*
+  		 * If the method is declared to return a particular lock, then set
+  		 * up context for checking return statements. We set the value of
+  		 * ctxtReturnedLock and ctxtReturnsLockDrop for use by
+  		 * visitReturnStatement().
+  		 */
+  		ctxtInsideMethod = mdecl;
+  		ctxtBcaQuery = bindingContextAnalysis
+  				.getExpressionObjectsQuery(mdecl);
+  		updateJUCAnalysisQueries(mdecl);
+  		ctxtConflicter = new ConflictChecker(binder, mayAlias);
+  		final ReturnsLockPromiseDrop returnedLockName = LockUtils
+  				.getReturnedLock(mdecl);
+      final Set<LockSpecificationNode> returnsLocksOnParameters = 
+          new HashSet<LockSpecificationNode>();
+  		if (returnedLockName != null) {
+  			ctxtReturnsLockDrop = returnedLockName;
+  			ctxtReturnedLock = LockUtils.convertLockNameToMethodContext(
+  					mdecl, heldLockFactory, returnedLockName.getAAST()
+  							.getLock(), false, null, ctxtTheReceiverNode,
+  							returnsLocksOnParameters);
+  		}
+  		// Analyze the children
+  		checkMutabilityOfFormalParameters(
+  		    mdecl, locksOnParameters, returnsLocksOnParameters);
+  		doAcceptForChildren(mdecl);
+  
+  		/*
+  		 * Check to see if the synchronization was used for anything. This
+  		 * needs to be done last because it queries isNeeded(), which is a
+  		 * side-effect of calling containsLock() on the lock stack frame.
+  		 */
+  		if (syncLockIsIdentifiable && !syncLockIsPolicyLock
+  				&& !syncFrame.isNeeded()) {
+  			final HintDrop info = makeWarningDrop(
+  					Messages.DSC_SYNCHRONIZED_UNUSED_WARNING, mdecl,
+  					Messages.LockAnalysis_ds_SynchronizationUnused,
+  					syncFrame);
+  			for (final StackLock stackLock : syncFrame) {
+  				stackLock.lock.getLockPromise().addDependent(info);
+  			}
+  		}
+  
+  		// TODO: Check to see if the lock preconditions were needed
+  	} finally {
+  		// Cleanup the state used for checking returns
+  		ctxtTheReceiverNode = null;
+  		ctxtInsideMethod = null;
+  		ctxtBcaQuery = null;
+  		ctxtHeldLocksQuery = null;
+  		ctxtLocksForQuery = null;
+  		ctxtMustReleaseQuery = null;
+  		ctxtConflicter = null;
+  		ctxtReturnsLockDrop = null;
+  		ctxtReturnedLock = null;
+  
+  		ctxtTheHeldLocks.popFrame();
+  		ctxtTheHeldLocks.popFrame();
+  	}
+  	return null;
+  }
 }
