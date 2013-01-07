@@ -2393,7 +2393,8 @@ public class SLParseTest extends TestCase {
 			this.op = op;
 		}
 
-		void setProperty(String key, String value) {
+		@Override
+		public void setProperty(String key, String value) {
 			props.put(key, value);
 		}
 

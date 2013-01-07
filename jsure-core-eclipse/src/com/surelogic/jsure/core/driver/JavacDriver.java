@@ -30,6 +30,7 @@ import java.util.zip.ZipFile;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
+import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -135,7 +136,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
    */
   private static final boolean clearBeforeAnalysis = false;
 
-  private static final boolean useSourceZipsDirectly = true;
+  private static final boolean useSourceZipsDirectly = !(SystemUtils.IS_OS_LINUX && XUtil.runJSureInMemory);
 
   /**
    * If true, create common projects for shared jars Otherwise, jars in
@@ -281,9 +282,17 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
           testProps.delete();
         }
       }
+      FileUtility.deleteTempFiles(filter);
+      File tmp = null; 
+      try {
+    	  tmp = filter.createTempFolder();
+      } catch (IOException e) {
+          e.printStackTrace();
+      }
+      tempDir = tmp;
+      
       PrintStream out = null;
       ZipInfo zipInfo = null;
-      File tmp = null;
       final File scriptF = new File(workspace, proj + File.separatorChar + ScriptCommands.NAME);
       try {
         if (update == null) {
@@ -302,8 +311,6 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
         if (update == null) {
           out = new PrintStream(scriptF);
         }
-        FileUtility.deleteTempFiles(filter);
-        tmp = filter.createTempFolder();
 
         IJavaProject jp = JDTUtility.getJavaProject(proj);
         if (jp != null) {
@@ -324,8 +331,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
       } catch (IOException e) {
         e.printStackTrace();
       }
-      tempDir = tmp;
-      script = (tmp == null) ? null : out;
+      script = (tempDir == null) ? null : out;
       info = zipInfo;
 
       if (scriptBeingUpdated != null) {

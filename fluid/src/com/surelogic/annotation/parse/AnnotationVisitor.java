@@ -253,6 +253,11 @@ public class AnnotationVisitor extends Visitor<Integer> {
     }
 
     @Override
+    public void setProperty(String key, String value) {
+      properties.put(key, value);
+    }
+    
+    @Override
     protected String getName() {
       return name;
     }

@@ -9,11 +9,15 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.NonNullNode;
 import com.surelogic.aast.promise.NullableNode;
 import com.surelogic.aast.promise.RawNode;
+import com.surelogic.annotation.AnnotationLocation;
 import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.annotation.DefaultBooleanAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
+import com.surelogic.annotation.parse.AASTAdaptor;
+import com.surelogic.annotation.parse.AASTAdaptor.Node;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
+import com.surelogic.annotation.parse.SLParse;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.AbstractPromiseScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
@@ -32,6 +36,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -87,23 +92,63 @@ public class NonNullRules extends AnnotationRules {
 		}
 
 		/**
-		 * @Raw(upTo="*") — on formal parameter of type T
-		 * @Raw(upTo="<type>") — on formal parameter of type T
-		 * @Raw(upTo="*|<type>", value="this") — On method of type T
-		 * @Raw(upTo="*|<type>", value="return") — On method with return type T
-		 * @Raw(upTo="*", value="static(<type>)") — On method/constructor
+		 * @Raw(upTo="*") ï¿½ on formal parameter of type T
+		 * @Raw(upTo="<type>") ï¿½ on formal parameter of type T
+		 * @Raw(upTo="*|<type>", value="this") ï¿½ On method of type T
+		 * @Raw(upTo="*|<type>", value="return") ï¿½ On method with return type T
+		 * @Raw(upTo="*", value="static(<type>)") ï¿½ On method/constructor
 		 */
 		@Override
 		protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
 		  if (MethodDeclaration.prototype.includes(context.getOp())) {
-		    return parser.rawExpression().getTree();
-		  } else { // constructor, parameter, local var
+		    return parser.rawMethod().getTree();
+		  }
+		  else if (ConstructorDeclaration.prototype.includes(context.getOp())) { 
+			  return parser.rawConstructor().getTree();
+		  } 
+		  else { // parameter, local var
 		    return parser.nothing().getTree();
 		  }
-		}		
+//			if (ParameterDeclaration.prototype.includes(context.getOp())) {
+//				return parser.nothing().getTree();
+//			}
+//			else if (MethodDeclaration.prototype.includes(context.getOp())) {
+//				return parser.rawExpression().getTree();
+//			}
+//			throw new NotImplemented();
+		}
+
+		/**
+		 * To handle static(...)
+		 */
 		@Override
-		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-			return new RawNode(offset, context.getProperty(AnnotationVisitor.UPTO));
+		protected AnnotationLocation translateTokenType(int type, Operator op) {
+			if (type == SLAnnotationsParser.NamedType) {
+				return AnnotationLocation.RECEIVER; // TODO is this right?
+			} else {
+				return super.translateTokenType(type, op);
+			}
+		}
+		
+		@Override
+		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int mappedOffset, int modifiers, AASTAdaptor.Node node) {
+			final String upTo = context.getProperty(AnnotationVisitor.UPTO);
+			if (upTo == null) {
+				// TODO
+			} else try {
+				AASTAdaptor.Node upToE = (Node) SLParse.prototype.initParser(upTo).rawUpToExpression().getTree();			
+			} catch (RecognitionException e) {
+				handleRecognitionException(context, upTo, e);				
+				return null;
+			} catch (Exception e) {
+				context.reportException(IAnnotationParsingContext.UNKNOWN, e);
+				return null;
+			}
+			if (node.getType() == SLAnnotationsParser.NamedType) {
+				// TODO
+				return new RawNode(mappedOffset, node.getText()+" -- "+context.getProperty(AnnotationVisitor.UPTO));
+			}
+			return new RawNode(mappedOffset, context.getProperty(AnnotationVisitor.UPTO));
 		}
 		@Override
 		protected IPromiseDropStorage<RawPromiseDrop> makeStorage() {
@@ -271,7 +316,10 @@ public class NonNullRules extends AnnotationRules {
             final ITypeEnvironment typeEnv =
                 context.getBinder(n.getPromisedFor()).getTypeEnvironment();
             final IJavaType upToType = typeEnv.findJavaTypeByName(upTo);
-            if (TypeUtil.isInterface(((IJavaDeclaredType) upToType).getDeclaration())) {
+            if (upToType == null) {
+              good = false;
+              context.reportError("Unable to find upTo type: "+upTo, n);
+            } else if (TypeUtil.isInterface(((IJavaDeclaredType) upToType).getDeclaration())) {
               // upTo cannot name an interface
               good = false;
               context.reportError(n, NOT_A_SUPERCLASS, upTo, promisedForType.getName());

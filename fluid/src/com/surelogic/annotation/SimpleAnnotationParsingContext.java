@@ -302,7 +302,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
 		LOG.warning(txt);
 	} else {
 		LOG.log(Level.SEVERE, "Unexpected problem while parsing promise", e);
-		txt = "Unexpected problem while parsing promise: "+e.getMessage();
+		txt = "Unexpected problem while parsing promise: "+e.getClass()+" -- "+e.getMessage();
 	}
 	if (ignoreIssue()) {
 		return;

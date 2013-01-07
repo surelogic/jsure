@@ -36,6 +36,7 @@ public interface IAnnotationParsingContext {
   int getModifiers();
   
   String getProperty(String key);
+  void setProperty(String key, String name);
   
   /**   
    * @return The kind of source the text is originally from
