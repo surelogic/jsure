@@ -105,7 +105,7 @@ public class SeaSnapshot extends XmlCreator {
       return;
     }
 
-    if (!d.isValid()) {
+    if (!d.isValid() || d.getNode().identity() == IRNode.destroyedNode) {
       System.out.println("Ignoring invalid: " + d.getMessage());
       return; // ignore invalid drops
     }

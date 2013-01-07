@@ -6,6 +6,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
+import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
@@ -535,6 +536,10 @@ public final class JavaNames {
 		}
 		final Operator op = JJNode.tree.getOperator(node);
 		if (SomeFunctionDeclaration.prototype.includes(op)) {
+			if (AnnotationElement.prototype.includes(op)) {
+				IRNode decl = VisitUtil.getEnclosingDecl(node);
+				return getFullName(decl)+'.'+AnnotationElement.getId(node)+"()";
+			}
 			return genQualifiedMethodConstructorName(node);
 		}
 		if (op instanceof TypeDeclInterface) {
