@@ -605,15 +605,18 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			return sb.toString();
 		}
 
-		public Iterator<StackLock> iterator() {
+		@Override
+    public Iterator<StackLock> iterator() {
 			return new Iterator<StackLock>() {
 				private StackLock current = locks;
 
-				public boolean hasNext() {
+				@Override
+        public boolean hasNext() {
 					return current != lastLock;
 				}
 
-				public StackLock next() {
+				@Override
+        public StackLock next() {
 					if (current != lastLock) {
 						final StackLock item = current;
 						current = current.next;
@@ -623,7 +626,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					}
 				}
 
-				public void remove() {
+				@Override
+        public void remove() {
 					throw new UnsupportedOperationException();
 				}
 			};
@@ -691,15 +695,18 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			return sb.toString();
 		}
 
-		public Iterator<StackLock> iterator() {
+		@Override
+    public Iterator<StackLock> iterator() {
 			return new Iterator<StackLock>() {
 				private StackLock current = head.locks;
 
-				public boolean hasNext() {
+				@Override
+        public boolean hasNext() {
 					return current != null;
 				}
 
-				public StackLock next() {
+				@Override
+        public StackLock next() {
 					if (current != null) {
 						final StackLock item = current;
 						current = current.next;
@@ -709,7 +716,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					}
 				}
 
-				public void remove() {
+				@Override
+        public void remove() {
 					throw new UnsupportedOperationException();
 				}
 			};
@@ -767,11 +775,13 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		ctxtMustReleaseQuery = mustRelease.getUnlocksForQuery(flowUnit);
 	}
 
-	public IBinder getBinder() {
+	@Override
+  public IBinder getBinder() {
 		return this.binder;
 	}
 
-	public void clearCaches() {
+	@Override
+  public void clearCaches() {
 		isSafeTypeCache.clear();
 		jucLockUsageManager.clear();
 		lockUtils.clear();
@@ -1963,7 +1973,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		final boolean oldCtxtInsideAnonClassExpr = ctxtInsideAnonClassExpr;
 		InstanceInitializationVisitor.processAnonClassExpression(expr, this,
 				new InstanceInitAction() {
-					public void tryBefore() {
+					@Override
+          public void tryBefore() {
 						ctxtInsideAnonClassExpr = true;
 						// Create the substitution map
 						ctxtEnclosingRefs = MethodCallUtils
@@ -2021,7 +2032,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						ctxtConstructorName = null;
 					}
 
-					public void finallyAfter() {
+					@Override
+          public void finallyAfter() {
 						// restore the global state
 						ctxtInsideAnonClassExpr = oldCtxtInsideAnonClassExpr;
 						ctxtEnclosingRefs = oldEnclosingRefs;
@@ -2039,7 +2051,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						ctxtTheReceiverNode = oldTheReceiverNode;
 					}
 
-					public void afterVisit() {
+					@Override
+          public void afterVisit() {
 						// nothing
 					}
 				});
@@ -2145,7 +2158,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		InstanceInitializationVisitor.processConstructorCall(expr,
 				TypeDeclaration.getBody(ctxtTypeDecl), this,
 				new InstanceInitAction() {
-					public void tryBefore() {
+					@Override
+          public void tryBefore() {
 						ctxtOnBehalfOfConstructor = true;
 						ctxtBcaQuery = ctxtBcaQuery.getSubAnalysisQuery(expr);
 						ctxtHeldLocksQuery = ctxtHeldLocksQuery
@@ -2156,7 +2170,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 								.getSubAnalysisQuery(expr);
 					}
 
-					public void finallyAfter() {
+					@Override
+          public void finallyAfter() {
 						ctxtOnBehalfOfConstructor = false;
 						ctxtBcaQuery = oldBCAQuery;
 						ctxtHeldLocksQuery = oldHeldLocksQuery;
@@ -2164,7 +2179,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						ctxtMustReleaseQuery = oldCtxtMustReleaseQuery;
 					}
 
-					public void afterVisit() {
+					@Override
+          public void afterVisit() {
 						// nothing
 					}
 				});
@@ -3053,7 +3069,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final boolean oldCtxtInsideAnonClassExpr = ctxtInsideAnonClassExpr;
 			InstanceInitializationVisitor.processEnumConstantClassDeclaration(
 					constDecl, this, new InstanceInitAction() {
-						public void tryBefore() {
+						@Override
+            public void tryBefore() {
 							ctxtInsideAnonClassExpr = true;
 							// Create the substitution map
 							ctxtEnclosingRefs = MethodCallUtils
@@ -3112,7 +3129,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							ctxtConstructorName = null;
 						}
 
-						public void finallyAfter() {
+						@Override
+            public void finallyAfter() {
 							// restore the global state
 							ctxtInsideAnonClassExpr = oldCtxtInsideAnonClassExpr;
 							ctxtEnclosingRefs = oldEnclosingRefs;
@@ -3130,7 +3148,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							ctxtTheReceiverNode = oldTheReceiverNode;
 						}
 
-						public void afterVisit() {
+						@Override
+            public void afterVisit() {
 							// nothing
 						}
 					});
