@@ -1,5 +1,8 @@
 package com.surelogic.annotation.rules;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.IAASTRootNode;
@@ -12,8 +15,10 @@ import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
+import com.surelogic.annotation.scrub.AbstractPromiseScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
+import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
@@ -32,7 +37,10 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class NonNullRules extends AnnotationRules {	
@@ -43,12 +51,18 @@ public class NonNullRules extends AnnotationRules {
 	public static final String NONNULL = "NonNull";
 	public static final String NULLABLE = "Nullable";
 	public static final String RAW = "Raw";
+	public static final String CONSISTENCY = "NullableConsistency";
 	
 	private static final NonNullRules instance = new NonNullRules();
 	private static final NonNull_ParseRule nonNullRule = new NonNull_ParseRule();
 	private static final Nullable_ParseRule nullableRule = new Nullable_ParseRule();
 	private static final Raw_ParseRule rawRule = new Raw_ParseRule();
+	private static final NullableConsistencyChecker consistency = new NullableConsistencyChecker();
 	
+  private static final Set<PromiseDrop<?>> annosForMethodChecking = new HashSet<PromiseDrop<?>>();
+
+  
+  
 	private NonNullRules() {
 		// Just to make it a singleton
 	}
@@ -62,6 +76,7 @@ public class NonNullRules extends AnnotationRules {
 		registerParseRuleStorage(fw, nonNullRule);
 		registerParseRuleStorage(fw, nullableRule);
 		registerParseRuleStorage(fw, rawRule);
+		registerScrubber(fw, consistency);
 	} 
 
 	public static class Raw_ParseRule extends DefaultBooleanAnnotationParseRule<RawNode,RawPromiseDrop> {
@@ -85,13 +100,6 @@ public class NonNullRules extends AnnotationRules {
 		  } else { // constructor, parameter, local var
 		    return parser.nothing().getTree();
 		  }
-//			if (ParameterDeclaration.prototype.includes(context.getOp())) {
-//				return parser.nothing().getTree();
-//			}
-//			else if (MethodDeclaration.prototype.includes(context.getOp())) {
-//				return parser.rawExpression().getTree();
-//			}
-//			throw new NotImplemented();
 		}		
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
@@ -111,7 +119,6 @@ public class NonNullRules extends AnnotationRules {
 				}
 			};
 		}   
-		
 	}
 	
 	static Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
@@ -194,7 +201,13 @@ public class NonNullRules extends AnnotationRules {
       final NonNullNode n) {
     // Cannot be on a primitive type
     boolean good = RulesUtilities.checkForReferenceType(context, n, "NonNull");
-    return !good ? null : new NonNullPromiseDrop(n);
+    if (good) {
+      final NonNullPromiseDrop pd = new NonNullPromiseDrop(n);
+      addAnnotationForMethodChecking(pd, pd.getPromisedFor());
+      return pd;
+    } else {
+      return null;
+    }
   }
 
   private static NullablePromiseDrop scrubNullable(
@@ -215,17 +228,24 @@ public class NonNullRules extends AnnotationRules {
       context.reportError(n, CANNOT_BE_BOTH, "@Raw", "@Nullable");
     }
 
-    return !good ? null : new NullablePromiseDrop(n);
+    if (good) {
+      final NullablePromiseDrop pd = new NullablePromiseDrop(n);
+      addAnnotationForMethodChecking(pd, promisedFor);
+      return pd;
+    } else {
+      return null;
+    }
   }	
 
   private static RawPromiseDrop scrubRaw(
       final IAnnotationScrubberContext context, final RawNode n) {
+    final IRNode promisedFor = n.getPromisedFor();
     final IJavaType promisedForType =
         RulesUtilities.getPromisedForDeclarationType(context, n);
     boolean good = true;
     
     // Cannot also be @NonNull
-    if (getNonNull(n.getPromisedFor()) != null) {
+    if (getNonNull(promisedFor) != null) {
       good = false;
       context.reportError(n, CANNOT_BE_BOTH, "@Raw", "@NonNull");
     }
@@ -268,7 +288,57 @@ public class NonNullRules extends AnnotationRules {
       }
     }
     
-    return !good ? null : new RawPromiseDrop(n);
+    if (good) {
+      final RawPromiseDrop pd = new RawPromiseDrop(n);
+      addAnnotationForMethodChecking(pd, promisedFor);
+      return pd;
+    } else {
+      return null;
+    }
+  }
+  
+  
+  
+  private static void addAnnotationForMethodChecking(
+      final PromiseDrop<?> anno, final IRNode promisedFor) {
+    /* Only care about annotations on formal parameters, receivers,
+     * and return values.
+     */
+    final Operator op = JJNode.tree.getOperator(promisedFor);
+    if (ParameterDeclaration.prototype.includes(op) ||
+        ReceiverDeclaration.prototype.includes(op) ||
+        ReturnValueDeclaration.prototype.includes(op)) {
+      annosForMethodChecking.add(anno);
+    }
+  }
+  
+  private static final class NullableConsistencyChecker extends AbstractPromiseScrubber<PromiseDrop<?>> {
+    public NullableConsistencyChecker() {
+      super(ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY, NONE,
+          CONSISTENCY, ScrubberOrder.NORMAL,
+          new String[] { NULLABLE, NONNULL, RAW }); 
+    }
+
+    @Override
+    protected void processDrop(final PromiseDrop<?> a) {
+      // TODO Auto-generated method stub
+    }
+
+    @Override
+    protected boolean processUnannotatedMethodRelatedDecl(
+        final IRNode unannotatedNode) {
+      return true;
+    }
+    
+    @Override
+    protected Iterable<PromiseDrop<?>> getRelevantAnnotations() {
+      return annosForMethodChecking;
+    }
+    
+    @Override
+    protected void finishRun() {
+      annosForMethodChecking.clear();
+    }
   }
 
 	
