@@ -1498,7 +1498,7 @@ public class JavaCanonicalizer {
       } else if (pop instanceof ArrayInitializer) {
         atype = binder.getJavaType(p);
       } else if (pop instanceof ElementValuePair) {
-    	System.out.println("gparent = "+DebugUnparser.toString(tree.getParent(p)));
+    	//System.out.println("gparent = "+DebugUnparser.toString(tree.getParent(p)));
     	atype = binder.getJavaType(p);
       } else {
         throw new FluidError("ArrayInitializer inside a " + pop);
