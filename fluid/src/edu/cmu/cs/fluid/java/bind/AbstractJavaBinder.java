@@ -29,6 +29,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaScope.Selector;
 import edu.cmu.cs.fluid.java.bind.MethodBinder.CallState;
 import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
+import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
@@ -42,6 +43,7 @@ import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.DemandName;
+import edu.cmu.cs.fluid.java.operator.ElementValuePair;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.Expression;
@@ -417,7 +419,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   
   private static boolean isType(Operator op) {
 	  return (Type.prototype.includes(op) && !TypeDeclaration.prototype.includes(op)) ||
-	         TypeActuals.prototype.includes(op);
+	         TypeActuals.prototype.includes(op) || Annotation.prototype.includes(op);
   }
   
   protected IGranuleBindings ensureBindingsOK(final IRNode node) {    
@@ -1673,6 +1675,32 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     public Void visitDemandName(IRNode node) {
       String pkg = DemandName.getPkg(node);
       bindToPackage(node, pkg);
+      return null;
+    }
+    
+    @Override
+    public Void visitElementValuePair(IRNode node) {
+      if (!isFullPass) {    	  
+    	  return null;
+      }
+      final String name = ElementValuePair.getId(node);
+      if (name == null) {
+    	  bind(node, IBinding.NULL);
+    	  return null;
+      }
+      final IRNode anno = VisitUtil.getEnclosingAnnotation(node);
+      final IBinding b = getIBinding(anno);
+      // Lookup the attribute's type
+      for(IRNode decl : VisitUtil.getClassBodyMembers(b.getNode())) {
+    	  final Operator op = JJNode.tree.getOperator(decl);
+    	  if (AnnotationElement.prototype.includes(op)) {
+    		  if (name.equals(AnnotationElement.getId(decl))) {
+    			  bind(node, IBinding.Util.makeBinding(decl, typeEnvironment));
+    			  return null;
+    		  }    		  
+    	  }
+      }
+      bind(node, IBinding.NULL);
       return null;
     }
     
