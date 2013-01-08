@@ -50,6 +50,7 @@ import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
+import edu.cmu.cs.fluid.java.operator.ElementValuePair;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.ExprStatement;
@@ -1496,6 +1497,9 @@ public class JavaCanonicalizer {
         atype = binder.getJavaType(tree.getParent(p));
       } else if (pop instanceof ArrayInitializer) {
         atype = binder.getJavaType(p);
+      } else if (pop instanceof ElementValuePair) {
+    	System.out.println("gparent = "+DebugUnparser.toString(tree.getParent(p)));
+    	atype = binder.getJavaType(p);
       } else {
         throw new FluidError("ArrayInitializer inside a " + pop);
       }

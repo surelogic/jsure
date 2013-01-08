@@ -235,6 +235,12 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   
   @Override
+  public IJavaType visitElementValuePair(IRNode node) {
+	IBinding b = binder.getIBinding(node);
+	return visitAnnotationElement(b.getNode());
+  }
+  
+  @Override
   public IJavaType visitEnumDeclaration(IRNode node) {
     return binder.getTypeEnvironment().getMyThisType( node );
   }
