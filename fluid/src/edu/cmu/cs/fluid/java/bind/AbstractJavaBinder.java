@@ -1680,6 +1680,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitElementValuePair(IRNode node) {
+      // To visit children
+      super.visitElementValuePair(node);
+    	
       if (!isFullPass) {    	  
     	  return null;
       }
