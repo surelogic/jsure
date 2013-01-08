@@ -967,7 +967,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
 
           // Check if the jar is already in some other project (e.g, the JRE)
           String mapped = projects.checkMapping(f);
-          if (hasSourceForJLO && mapped.equals(jre.getName())) {
+          if (hasSourceForJLO && mapped != null && jre != null && mapped.equals(jre.getName())) {
             mapped = null; // treat this jar as if it's part of this project
           }
           if (mapped != null) {
