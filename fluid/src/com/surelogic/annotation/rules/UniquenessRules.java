@@ -1,8 +1,5 @@
 package com.surelogic.annotation.rules;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.IAASTRootNode;
@@ -16,12 +13,10 @@ import com.surelogic.annotation.DefaultBooleanAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
-import com.surelogic.annotation.scrub.AbstractPromiseScrubber;
+import com.surelogic.annotation.scrub.AbstractLatticeConsistencyChecker;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
-import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.annotation.scrub.ScrubberType;
-import com.surelogic.common.Pair;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -33,24 +28,19 @@ import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
-import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedTypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
-import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
-import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 public class UniquenessRules extends AnnotationRules {
   public static final String UNIQUE = "Unique";
@@ -64,9 +54,7 @@ public class UniquenessRules extends AnnotationRules {
   private static final Unique_ParseRule uniqueRule     = new Unique_ParseRule();
   private static final Borrowed_ParseRule borrowedRule = new Borrowed_ParseRule();
   private static final UniquenessConsistencyChecker consistencyChecker = new UniquenessConsistencyChecker();
-  
-  private static final Set<PromiseDrop<? extends IAASTRootNode>> uniquenessTags =
-      new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+
   
   
   public static AnnotationRules getInstance() {
@@ -229,7 +217,7 @@ public class UniquenessRules extends AnnotationRules {
       
       if (isGood) {
         final ReadOnlyPromiseDrop readOnlyPromiseDrop = new ReadOnlyPromiseDrop(n);
-        if (!fromField) addUniqueAnnotation(readOnlyPromiseDrop);
+        if (!fromField) consistencyChecker.addRelevantDrop(readOnlyPromiseDrop); //addUniqueAnnotation(readOnlyPromiseDrop);
         return readOnlyPromiseDrop;
       } else {
         return null;
@@ -323,7 +311,7 @@ public class UniquenessRules extends AnnotationRules {
       
       if (good) {
         final UniquePromiseDrop uniquePromiseDrop = new UniquePromiseDrop(a);
-        if (!fromField) addUniqueAnnotation(uniquePromiseDrop);
+        if (!fromField) consistencyChecker.addRelevantDrop(uniquePromiseDrop); //addUniqueAnnotation(uniquePromiseDrop);
         return uniquePromiseDrop;
       } else {
         return null;
@@ -400,7 +388,7 @@ public class UniquenessRules extends AnnotationRules {
       
       if (good) {
         final BorrowedPromiseDrop borrowedPromiseDrop = new BorrowedPromiseDrop(a);
-        if (!fromField) addUniqueAnnotation(borrowedPromiseDrop);        
+        if (!fromField) consistencyChecker.addRelevantDrop(borrowedPromiseDrop); // addUniqueAnnotation(borrowedPromiseDrop);        
         return borrowedPromiseDrop;
       } else {
         return null;
@@ -408,63 +396,17 @@ public class UniquenessRules extends AnnotationRules {
     }
   }
   
-  
-  
-  public static void addUniqueAnnotation(final PromiseDrop<? extends IAASTRootNode> a) {
-    uniquenessTags.add(a);
-  }
 
   
-  private static final class UniquenessConsistencyChecker extends AbstractPromiseScrubber<PromiseDrop<? extends IAASTRootNode>> {
+  private static final class UniquenessConsistencyChecker extends AbstractLatticeConsistencyChecker<State, State.Lattice> {
+    private final Pair SHARED = new Pair(State.SHARED, Source.NO_PROMISE);
+
     public UniquenessConsistencyChecker() {
-      super(ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY, NONE,
-          CONSISTENCY, ScrubberOrder.NORMAL, new String[] { UNIQUE });
+      super(State.lattice, CONSISTENCY, new String[] { UNIQUE });      
     }
 
     @Override
-    protected void processDrop(PromiseDrop<? extends IAASTRootNode> a) {
-      checkConsistency(a.getPromisedFor(), getState(a), StateSource.getSource(a), false);
-    }
-    
-    @Override
-    protected boolean processUnannotatedMethodRelatedDecl(
-        final IRNode unannotatedNode) {
-      return checkConsistency(unannotatedNode, State.SHARED, StateSource.NO_PROMISE, true);
-    }
-    
-    @Override
-    protected Iterable<PromiseDrop<? extends IAASTRootNode>> getRelevantAnnotations() {
-      return uniquenessTags;
-    }
-
-    @Override
-    protected void finishRun() {
-      uniquenessTags.clear();
-    }
-      
-    enum StateSource { 
-    	NO_PROMISE(0), ASSUMPTION(1), PROMISE(2);
-    	
-    	private final int value;
-    	
-    	StateSource(int v) {
-    		value = v;
-    	}
-    	
-    	static StateSource getSource(PromiseDrop<? extends IAASTRootNode> a) {
-    		return a.isAssumed() ? StateSource.ASSUMPTION : StateSource.PROMISE;
-    	}
-
-    	/**
-    	 * @return true if we should check consistency between the two promises
-    	 */
-		boolean check(StateSource parent) {
-			// At least one promise, or two assumptions
-			return value + parent.value > 1;
-		}
-    }
-    
-    private State getState(final PromiseDrop<? extends IAASTRootNode> a) {
+    protected State getValue(final PromiseDrop<?> a) {
       if (a instanceof UniquePromiseDrop) {
         return ((UniquePromiseDrop) a).allowRead() ? State.UNIQUEWRITE : State.UNIQUE;
       } else if (a instanceof ImmutableRefPromiseDrop) {
@@ -479,127 +421,47 @@ public class UniquenessRules extends AnnotationRules {
       }
     }
 
-    private static Pair<State,StateSource> SHARED = 
-    	new Pair<State,StateSource>(State.SHARED, StateSource.NO_PROMISE);
-    
-    private Pair<State,StateSource> getState(final IRNode n) {
+    @Override
+    protected Pair getValue(final IRNode n) {
       PromiseDrop<?> d = getUnique(n);
       if (d == null) {
-    	  d = LockRules.getImmutableRef(n);
-    	  if (d == null) {
-    		  d = getReadOnly(n);    		
-    		  if (d == null) {
-    			  d = getBorrowed(n);
-    			  if (d == null) {
-    				  return SHARED;
-    			  }
-    		  }
-    	  }
+        d = LockRules.getImmutableRef(n);
+        if (d == null) {
+          d = getReadOnly(n);       
+          if (d == null) {
+            d = getBorrowed(n);
+            if (d == null) {
+              return SHARED;
+            }
+          }
+        }
       }
       // d should be non-null;
-      return new Pair<State,StateSource>(getState(d), StateSource.getSource(d));
+      return new Pair(getValue(d), Source.getSource(d));
     }
-    
-    
-    
-    private boolean checkConsistency(final IRNode promisedFor, final State s, 
-    		final StateSource src, final boolean generateProposal) {
-      /* 3 cases, return value, parameter, receiver.
-       * 
-       * TODO: Do not yet handle the special case of moving from SHARED
-       * to IMMUTABLE.  Not a very practical case because the class itself
-       * has to be immutable already.
-       */
-      boolean good = true;
-      
-      final Operator op = JJNode.tree.getOperator(promisedFor);
-      if (ParameterDeclaration.prototype.includes(op)) {
-        final IRNode mdecl = JJNode.tree.getParent(JJNode.tree.getParent(promisedFor));
-        for (final IBinding bc : getContext().getBinder(mdecl).findOverriddenParentMethods(mdecl)) {
-          final IRNode parentMethod = bc.getNode();
-          
-          // find the same parameter in the original
-          final IRNode params = MethodDeclaration.getParams(mdecl);
-          final IRNode parentParams = MethodDeclaration.getParams(parentMethod);
-          final Iteratable<IRNode> paramsIter = Parameters.getFormalIterator(params);
-          final Iteratable<IRNode> parentParamsIter = Parameters.getFormalIterator(parentParams);
-          while (paramsIter.hasNext()) {
-            final IRNode p = paramsIter.next();
-            final IRNode parentP = parentParamsIter.next();
-            if (p == promisedFor) { // found the original param
-              final Pair<State,StateSource> parentState = getState(parentP);
-              if (src.check(parentState.second()) && 
-            	  !State.lattice.lessEq(parentState.first(), s)) {
-                good = false;
-                if (generateProposal) {
-                  getContext().reportErrorAndProposal(
-                      new ProposedPromiseDrop(parentState.first().getProposedPromiseName(), null, promisedFor, parentP, Origin.PROBLEM),
-                      "The annotation on parameter {0} of {1} cannot be changed from {2} to {3}",
-                      ParameterDeclaration.getId(p),
-                      JavaNames.genRelativeFunctionName(parentMethod),
-                      parentState.first().getAnnotation(), s.getAnnotation());
-                } else {
-                  getContext().reportError(promisedFor,
-                      "The annotation on parameter {0} of {1} cannot be changed from {2} to {3}",
-                      ParameterDeclaration.getId(p),
-                      JavaNames.genRelativeFunctionName(parentMethod),
-                      parentState.first().getAnnotation(), s.getAnnotation());
-                }
-              }
-            }
-          }
-        }
-      } else if (ReceiverDeclaration.prototype.includes(op)) {
-        final IRNode mdecl = JavaPromise.getPromisedFor(promisedFor);
-        for (final IBinding bc : getContext().getBinder(mdecl).findOverriddenParentMethods(mdecl)) {
-          final IRNode parentMethod = bc.getNode();
-          
-          // Get the receiver in the original
-          final IRNode rcvr = JavaPromise.getReceiverNode(parentMethod);
-          final Pair<State,StateSource> parentState = getState(rcvr);  
-          if (src.check(parentState.second()) && !State.lattice.lessEq(parentState.first(), s)) {
-            good = false;
-            if (generateProposal) {
-              getContext().reportErrorAndProposal(
-                  new ProposedPromiseDrop(parentState.first().getProposedPromiseName(), "this", promisedFor, parentMethod, Origin.PROBLEM),
-                  "The annotation on the receiver of {0} cannot be changed from {1} to {2}",
-                  JavaNames.genRelativeFunctionName(parentMethod),
-                  parentState.first().getAnnotation(), s.getAnnotation());
-            } else {
-              getContext().reportError(promisedFor,
-                  "The annotation on the receiver of {0} cannot be changed from {1} to {2}",
-                  JavaNames.genRelativeFunctionName(parentMethod),
-                  parentState.first().getAnnotation(), s.getAnnotation());
-            }
-          }
-        }
-      } else if (ReturnValueDeclaration.prototype.includes(op)) {
-        final IRNode mdecl = JavaPromise.getPromisedFor(promisedFor);
-        for (final IBinding bc : getContext().getBinder(mdecl).findOverriddenParentMethods(mdecl)) {
-          final IRNode parentMethod = bc.getNode();
 
-          // Get the return value in the original
-          final IRNode rcvr = JavaPromise.getReturnNode(parentMethod);
-          final Pair<State,StateSource> parentState = getState(rcvr);        
-          if (src.check(parentState.second()) && !State.lattice.lessEq(s, parentState.first())) {
-            good = false;
-            if (generateProposal) {
-              getContext().reportErrorAndProposal(
-                  new ProposedPromiseDrop(parentState.first().getProposedPromiseName(), "return", promisedFor, parentMethod, Origin.PROBLEM),
-                  "The annotation on the return value of {0} cannot be changed from {1} to {2}",
-                  JavaNames.genRelativeFunctionName(parentMethod),
-                  parentState.first().getAnnotation(), s.getAnnotation());
-            } else {
-              getContext().reportError(promisedFor,
-                  "The annotation on the return value of {0} cannot be changed from {1} to {2}",
-                  JavaNames.genRelativeFunctionName(parentMethod),
-                  parentState.first().getAnnotation(), s.getAnnotation());
-            }
-          }
-        }
-      }
-      
-      return good;
+    @Override
+    protected State getUnannotatedValue() {
+      return State.SHARED;
     }
+
+    @Override
+    protected String getAnnotationName(final State value) {
+      return value.getAnnotation();
+    }
+
+    @Override
+    protected ProposedPromiseDrop proposePromise(
+        final State value, final String valueValue,
+        final IRNode promisedFor, final IRNode parentMethod) {
+      return new ProposedPromiseDrop(value.getProposedPromiseName(), valueValue,
+          promisedFor, parentMethod, Origin.PROBLEM);
+    }
+    
+  }
+  
+  // For LockRules
+  public static void addRelevantUniqueAnnotation(final PromiseDrop<?> a) {
+    consistencyChecker.addRelevantDrop(a);
   }
 }

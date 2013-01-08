@@ -22,7 +22,7 @@ import edu.cmu.cs.fluid.util.Iteratable;
 import edu.uwm.cs.fluid.util.Lattice;
 
 public abstract class AbstractLatticeConsistencyChecker<E, L extends Lattice<E>> extends AbstractPromiseScrubber<PromiseDrop<?>> {
-  private enum Source { 
+  protected enum Source { 
     NO_PROMISE(0), ASSUMPTION(1), PROMISE(2);
       
     private final int value;
@@ -42,7 +42,7 @@ public abstract class AbstractLatticeConsistencyChecker<E, L extends Lattice<E>>
     }
   }
 
-  private final class Pair extends com.surelogic.common.Pair<E, Source> {
+  protected final class Pair extends com.surelogic.common.Pair<E, Source> {
     public Pair(final E v, final Source s) {
       super(v, s);
     }

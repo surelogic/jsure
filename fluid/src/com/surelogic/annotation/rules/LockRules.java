@@ -2718,7 +2718,8 @@ public class LockRules extends AnnotationRules {
     if (good) {
       final ImmutableRefPromiseDrop immutableRefPromiseDrop = new ImmutableRefPromiseDrop(n);
       if (!VariableDeclarator.prototype.includes(promisedFor)) {
-        UniquenessRules.addUniqueAnnotation(immutableRefPromiseDrop);
+        UniquenessRules.addRelevantUniqueAnnotation(immutableRefPromiseDrop);
+//        UniquenessRules.addUniqueAnnotation(immutableRefPromiseDrop);
       }
       return immutableRefPromiseDrop;
     } else {
