@@ -248,10 +248,22 @@ public class TypeUtils {
 			if (v instanceof IJavaWildcardType) {
 				return getLCTA((IJavaWildcardType) u, (IJavaWildcardType) v);
 			} else {
+				if (v instanceof IJavaPrimitiveType) {
+					// TODO is this right?
+					//
+					// This is a type bound, so most likely comes from something like int.class
+					return JavaTypeFactory.wildcardType;
+				}
 				return getLCTA((IJavaReferenceType) v, (IJavaWildcardType) u);
 			}
 		}
 		else if (v instanceof IJavaWildcardType) {
+			if (u instanceof IJavaPrimitiveType) {
+				// TODO is this right?
+				//
+				// This is a type bound, so most likely comes from something like int.class
+				return JavaTypeFactory.wildcardType;
+			}
 			return getLCTA((IJavaReferenceType) u, (IJavaWildcardType) v);			
 		}
 		if (u.equals(v)) {
@@ -1298,17 +1310,17 @@ public class TypeUtils {
 	 * If any of the method's type arguments were not inferred from the types of the actual
 	 * arguments, they are now inferred as follows.
      * -- If the method result occurs in a context where it will be subject to assignment
-     *    conversion (§5.2) to a type S, then ... see findAssignmentType() below
+     *    conversion (ï¿½5.2) to a type S, then ... see findAssignmentType() below
      *    
      *    let R be the declared result type of the method, and let R' = R[T1=B(T1) ... Tn=B(Tn)], 
      *    where B(Ti) is the type inferred for Ti in the previous section or Ti if no type was inferred.
      *    
      *    Then, a set of initial constraints consisting of (see below)
  
-     *    is created and used to infer constraints on the type arguments using the algorithm of §15.12.2.7.
+     *    is created and used to infer constraints on the type arguments using the algorithm of ï¿½15.12.2.7.
      *    
      *    Any equality constraints are resolved, and then, for each remaining constraint of
-     *    the form Ti <: Uk, the argument Ti is inferred to be glb(U1, ..., Uk) (§5.1.10).
+     *    the form Ti <: Uk, the argument Ti is inferred to be glb(U1, ..., Uk) (ï¿½5.1.10).
      *    If Ti appears as a type argument in any Uk, then Ti is inferred to be a type variable
      *    X whose upper bound is the parameterized type given by glb(U1[Ti=X], ...,
      *    Uk[Ti=X]) and whose lower bound is the null type.
@@ -1341,13 +1353,13 @@ public class TypeUtils {
 			constraints.derive(t_i, Constraint.CONVERTIBLE_TO, b_i_subst); // flipped around
 			constraints.derive(e.getValue(), Constraint.CONVERTIBLE_TO, b_i_subst);
 		}
-	    //    -- for any constraint of the form V >> Ti generated in §15.12.2.7: a constraint V[T1=B(T1) ... Tn=B(Tn)] >> Ti.
+	    //    -- for any constraint of the form V >> Ti generated in ï¿½15.12.2.7: a constraint V[T1=B(T1) ... Tn=B(Tn)] >> Ti.
 		for (TypeConstraint c : generated.inequalities.values()) {
 			if (c.constraint == Constraint.CONVERTIBLE_TO && map.subst.containsKey(c.variable)) {
 				constraints.derive(c.variable, Constraint.CONVERTIBLE_TO, substitute(map.subst, c.bound));
 			}			
 		}
-    	//    -- for any constraint of the form Ti = V generated in §15.12.2.7: a constraint Ti = V[T1=B(T1) ... Tn=B(Tn)].	        	
+    	//    -- for any constraint of the form Ti = V generated in ï¿½15.12.2.7: a constraint Ti = V[T1=B(T1) ... Tn=B(Tn)].	        	
 	    for (Map.Entry<IJavaType, IJavaType> e : generated.equalities.entrySet()) {
 	    	constraints.derive(e.getKey(), Constraint.EQUAL, substitute(map.subst, e.getValue()));
 	    }
@@ -1372,10 +1384,10 @@ public class TypeUtils {
 	
 	/**
 	 * Check if the method result occurs in a context where it will be subject to assignment
-     *    conversion (§5.2) to a type S ...
+     *    conversion (ï¿½5.2) to a type S ...
      *    
      *    If S is a reference type, then let S' be S. Otherwise, if S is a primitive type, then
-     *    let S' be the result of applying boxing conversion (§5.1.7) to S.
+     *    let S' be the result of applying boxing conversion (ï¿½5.1.7) to S.
 	 */
 	private IJavaType findAssignmentType(IRNode call) {
 		final IRNode parent = JJNode.tree.getParent(call);
