@@ -749,7 +749,30 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   public IJavaType visitVarArgsExpression(IRNode node) {
     int num = JJNode.tree.numChildren(node);
     if (num > 0) {
-      IJavaType t = doAccept( VarArgsExpression.getArg(node, 0) );    
+      //IJavaType t = doAccept( VarArgsExpression.getArg(node, 0) );        	
+      IJavaType t = null;
+      // Look at all the exprs and combine
+      for(IRNode e : VarArgsExpression.getArgIterator(node)) {
+    	  final IJavaType eT = doAccept(e);
+    	  if (t instanceof IJavaReferenceType) {
+    		  // TODO is this right?
+    		  final IJavaType t2 = eT instanceof IJavaPrimitiveType ? forceBoxed(eT) : eT; 
+    		  t = typeInference3(t, null, t2, e);
+    	  } else if (t == JavaTypeFactory.booleanType) {
+    		  if (eT != JavaTypeFactory.booleanType) {
+        		  throw new IllegalStateException("Not boolean: "+eT);
+    		  }
+    		  // continue
+    	  } else if (t == eT) {
+    		  continue; 
+    	  } else if (t instanceof IJavaPrimitiveType) {
+    		  t = typeInference2(t, eT); // TODO not right for byte, char, short
+    	  } else if (t != null) {
+    		  throw new IllegalStateException("Unknown type: "+eT);
+    	  } else {
+    		  t = eT;
+    	  }
+      }
       return JavaTypeFactory.getArrayType(t, 1);
     }
     //  FIX what should this be?
