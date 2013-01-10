@@ -114,9 +114,9 @@ public final class CFGDiagrammer {
   
  
 
-  private CFGDiagrammer(final IRNode irnode, final boolean noports) {
+  private CFGDiagrammer(final IRNode irnode, Component c, final boolean noports) {
     this.irnode = irnode;
-    comp = JavaComponentFactory.getComponent(irnode, true);
+    comp = c;
     entry = comp.getEntryPort();
     normalExit = comp.getNormalExitPort();
     abruptExit = comp.getAbruptExitPort();
@@ -131,7 +131,13 @@ public final class CFGDiagrammer {
   }
 
   private static String makeCFG(final IRNode irnode, final boolean noports) {
-    return (new CFGDiagrammer(irnode, noports)).getCFGString();
+	  final JavaComponentFactory factory = JavaComponentFactory.startUse();
+	  try {
+		  final Component comp = factory.getComponent(irnode, true);
+		  return (new CFGDiagrammer(irnode, comp, noports)).getCFGString();
+	  } finally {
+		  JavaComponentFactory.finishUse(factory);
+	  }
   }
 
   public static String getDotFileString(final IRNode irnode, final boolean noports) {

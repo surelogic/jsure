@@ -30,22 +30,22 @@ public operator ClassBody extends OptClassBody implements DripOperator, FlowUnit
   /* A ClassBody is a flow unit for the instance initializer.
    */
 
-  public Source getSource(IRNode node) {
-    Component comp = JavaComponentFactory.prototype.getComponent(node);
+  public Source getSource(IRNode node, JavaComponentFactory f) {
+    Component comp = f.getComponent(node);
     VariableSubcomponent sub = (VariableSubcomponent)
       comp.getVariableSubcomponent();
     ControlEdge e = sub.getVariableEdge(2,false);
     return (Source)e.getSource();
   }
-  public Sink getNormalSink(IRNode node) {
-    Component comp = JavaComponentFactory.prototype.getComponent(node);
+  public Sink getNormalSink(IRNode node, JavaComponentFactory f) {
+    Component comp = f.getComponent(node);
     VariableSubcomponent sub = (VariableSubcomponent)
       comp.getVariableSubcomponent();
     ControlEdge e = sub.getVariableEdge(2,true);
     return (Sink)e.getSink();
   }
-  public Sink getAbruptSink(IRNode node) {
-    Component comp = JavaComponentFactory.prototype.getComponent(node);
+  public Sink getAbruptSink(IRNode node, JavaComponentFactory f) {
+    Component comp = f.getComponent(node);
     VariableSubcomponent sub = (VariableSubcomponent)
       comp.getVariableSubcomponent();
     ControlEdge e = sub.getVariableEdge(3,true);

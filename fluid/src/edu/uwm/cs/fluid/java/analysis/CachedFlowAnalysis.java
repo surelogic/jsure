@@ -40,16 +40,21 @@ public abstract class CachedFlowAnalysis<T, L extends Lattice<T>, R extends Cach
 
   @Override
   protected R computeResults(IRNode procedure) {
-    FlowUnit op = (FlowUnit) JJNode.tree.getOperator(procedure);
-    SideEffectingFlowAnalysis<T,L,R> fa = createAnalysis(procedure);
-    fa.initialize(op.getSource(procedure));
-    fa.initialize(op.getNormalSink(procedure));
-    fa.initialize(op.getAbruptSink(procedure));
-    fa.performAnalysis();
-    R results = createResults(fa);
-    fa.collectResults(results);
-    fa.reworkAll();
-    return results;
+	  FlowUnit op = (FlowUnit) JJNode.tree.getOperator(procedure);
+	  SideEffectingFlowAnalysis<T,L,R> fa = createAnalysis(procedure);
+	  final JavaComponentFactory factory = JavaComponentFactory.startUse();
+	  try {
+		  fa.initialize(op.getSource(procedure, factory));
+		  fa.initialize(op.getNormalSink(procedure, factory));
+		  fa.initialize(op.getAbruptSink(procedure, factory));
+		  fa.performAnalysis();
+		  R results = createResults(fa);
+		  fa.collectResults(results);
+		  fa.reworkAll();
+		  return results;
+	  } finally {
+		  JavaComponentFactory.finishUse(factory);
+	  }    
   }
 
   protected abstract R createResults(SideEffectingFlowAnalysis<T,L,R> analysis);
@@ -117,7 +122,10 @@ public abstract class CachedFlowAnalysis<T, L extends Lattice<T>, R extends Cach
     }
     
     protected T getPortResult(IRNode node, int port) {
-      Component comp = JavaComponentFactory.getComponent(node, true);
+      // TODO is this bracketing right?
+      final JavaComponentFactory factory = JavaComponentFactory.startUse();
+      try {
+      Component comp = factory.getComponent(node, true);
       if (comp == null)
         return null;
       ControlNode cn;
@@ -159,6 +167,9 @@ public abstract class CachedFlowAnalysis<T, L extends Lattice<T>, R extends Cach
       if (val == null)
         val = lattice.bottom();
       return val;
+      } finally {
+    	  JavaComponentFactory.finishUse(factory);
+      }
     }
 
   }

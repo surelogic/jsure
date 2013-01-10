@@ -19,7 +19,7 @@ public operator InitDeclaration implements FlowUnit, IHasReceiverDecl {
     SkeletonJavaRefUtility.copyIfPossible(classNode, node);
     return node;    
   }
-  public Source getSource(IRNode node) {
+  public Source getSource(IRNode node, JavaComponentFactory f) {
     IRNode classDecl = JavaPromise.getPromisedFor(node);
     IRNode classBody = null;
     final Operator op = tree.getOperator(classDecl);
@@ -31,9 +31,9 @@ public operator InitDeclaration implements FlowUnit, IHasReceiverDecl {
     } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
       classBody = EnumConstantClassDeclaration.getBody(classDecl);
     }
-    return ClassBody.prototype.getSource(classBody);
+    return ClassBody.prototype.getSource(classBody, f);
   }
-  public Sink getNormalSink(IRNode node) {
+  public Sink getNormalSink(IRNode node, JavaComponentFactory f) {
     IRNode classDecl = JavaPromise.getPromisedFor(node);
     IRNode classBody = null;
     final Operator op = tree.getOperator(classDecl);
@@ -45,9 +45,9 @@ public operator InitDeclaration implements FlowUnit, IHasReceiverDecl {
     } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
       classBody = EnumConstantClassDeclaration.getBody(classDecl);
     }
-    return ClassBody.prototype.getNormalSink(classBody);
+    return ClassBody.prototype.getNormalSink(classBody, f);
   }
-  public Sink getAbruptSink(IRNode node) {
+  public Sink getAbruptSink(IRNode node, JavaComponentFactory f) {
     IRNode classDecl = JavaPromise.getPromisedFor(node);
     IRNode classBody = null;
     final Operator op = tree.getOperator(classDecl);
@@ -59,6 +59,6 @@ public operator InitDeclaration implements FlowUnit, IHasReceiverDecl {
     } else if (EnumConstantClassDeclaration.prototype.includes(op)) {
       classBody = EnumConstantClassDeclaration.getBody(classDecl);
     }
-    return ClassBody.prototype.getAbruptSink(classBody);
+    return ClassBody.prototype.getAbruptSink(classBody, f);
   }
 }
