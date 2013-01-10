@@ -2,6 +2,7 @@ package com.surelogic.annotation.rules;
 
 import org.antlr.runtime.RecognitionException;
 
+import com.surelogic.*;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.BorrowedNode;
 import com.surelogic.aast.promise.ReadOnlyNode;
@@ -36,6 +37,7 @@ import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedTypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -342,6 +344,21 @@ public class UniquenessRules extends AnnotationRules {
       }
       return parser.borrowedFunction().getTree();
     }
+    
+    @Override
+    protected ProposedPromiseDrop.Builder proposeOnRecognitionException(IAnnotationParsingContext context, 
+  		  String badContents, String okPrefix) {
+      ProposedPromiseDrop.Builder p = context.startProposal(Borrowed.class);
+      if (p == null) {
+    	  return null;
+      }
+      p.replaceSameExisting(badContents);
+      if (SomeFunctionDeclaration.prototype.includes(context.getOp())) {
+          return p.setValue("this");
+      }
+      return p.setValue(null);
+    }
+    
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       return new BorrowedNode(offset, JavaNode.isSet(mods, JavaNode.ALLOW_RETURN));
