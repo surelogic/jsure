@@ -14,6 +14,7 @@ public class RawNode extends AbstractBooleanNode
     super(offset);
     this.upTo = upTo == null ? "*" : upTo; 
     upToType = type;
+    type.setParent(this);
   }
 
   @Override

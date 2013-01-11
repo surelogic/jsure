@@ -138,7 +138,9 @@ public class NonNullRules extends AnnotationRules {
 			if (upTo == null) {
 				upToType = new NamedTypeNode(mappedOffset, "*");
 			} else try {
-				AASTAdaptor.Node upToE = (Node) SLParse.prototype.initParser(upTo).rawUpToExpression().getTree();			
+				// TODO workaround for namedType issues
+				String textToParse = upTo.contains("*") ? upTo : upTo+')';
+				AASTAdaptor.Node upToE = (Node) SLParse.prototype.initParser(textToParse).rawUpToExpression().getTree();			
 				upToType = (NamedTypeNode) upToE.finalizeAST(context);
 			} catch (RecognitionException e) {
 				handleRecognitionException(context, upTo, e);				
