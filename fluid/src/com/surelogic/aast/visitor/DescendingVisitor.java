@@ -786,8 +786,8 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
 	  return defaultValue;
   }
 
-  public T visit(RawNode rawNode) {
-	  return defaultValue;
+  public T visit(RawNode n) {
+	  return doAccept(n.getUpToType());
   }
 
   public T visit(ValueObjectNode n) {
