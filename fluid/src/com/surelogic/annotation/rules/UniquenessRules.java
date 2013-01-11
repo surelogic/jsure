@@ -458,7 +458,7 @@ public class UniquenessRules extends AnnotationRules {
     }
 
     @Override
-    protected State getUnannotatedValue() {
+    protected State getUnannotatedValue(final IRNode unannotatedNode) {
       return State.SHARED;
     }
 

@@ -40,6 +40,7 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
+import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -380,7 +381,8 @@ public class NonNullRules extends AnnotationRules {
   // ======================================================================
 	
 	private static final class NullableConsistencyChecker extends AbstractPosetConsistencyChecker<Element, NonNullPoset> {
-	  private final Pair DEFAULT = new Pair(Elements.NULLABLE, Source.NO_PROMISE);
+    private final Pair DEFAULT_NULLABLE = new Pair(Elements.NULLABLE, Source.NO_PROMISE);
+    private final Pair DEFAULT_NON_NULL = new Pair(Elements.NON_NULL, Source.NO_PROMISE);
 	  
     public NullableConsistencyChecker() {
       super(NonNullPoset.INSTANCE, CONSISTENCY,
@@ -431,13 +433,33 @@ public class NonNullRules extends AnnotationRules {
         }
       }
       
+      /* Unannotated formal argument or return value is @Nullable.
+       * Unannotated receiver or qualified receiver is @NonNUll.
+       */
       // Unannotated => Nullable
-      return DEFAULT;
+      final Operator op = JJNode.tree.getOperator(n);
+      if (ReceiverDeclaration.prototype.includes(op) ||
+          QualifiedReceiverDeclaration.prototype.includes(op)) {
+        return DEFAULT_NON_NULL;
+      } else {
+        return DEFAULT_NULLABLE;
+      }
     }
 
     @Override
-    protected Element getUnannotatedValue() {
-      return Elements.NULLABLE;
+    protected Element getUnannotatedValue(final IRNode unannotatedNode) {
+      final Operator op = JJNode.tree.getOperator(unannotatedNode);
+      if (ReceiverDeclaration.prototype.includes(op) ||
+          QualifiedReceiverDeclaration.prototype.includes(op)) {
+        /* Receivers are NON_NULL because a method cannot be called on
+         * "null". Qualified receivers are NON_NULL because nested classes
+         * cannot be instantiated on "null".
+         */
+        return Elements.NON_NULL;
+      } else {
+        /* Formal arguments and return values default to NULLABLE */
+        return Elements.NULLABLE;
+      }
     }
 
     @Override

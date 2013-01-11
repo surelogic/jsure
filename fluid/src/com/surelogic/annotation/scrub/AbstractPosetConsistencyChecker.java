@@ -92,7 +92,7 @@ public abstract class AbstractPosetConsistencyChecker<E, P extends Poset<E>> ext
   protected final boolean processUnannotatedMethodRelatedDecl(
       final IRNode unannotatedNode) {
     return checkConsistency(
-        unannotatedNode, getUnannotatedValue(), Source.NO_PROMISE, true);
+        unannotatedNode, getUnannotatedValue(unannotatedNode), Source.NO_PROMISE, true);
   }
   
 
@@ -113,7 +113,7 @@ public abstract class AbstractPosetConsistencyChecker<E, P extends Poset<E>> ext
     return new Pair(value, Source.getSource(d));
   }
 
-  protected abstract E getUnannotatedValue();
+  protected abstract E getUnannotatedValue(IRNode unannotatedNode);
     
     
     
