@@ -13,7 +13,7 @@ import com.surelogic.annotation.DefaultBooleanAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
-import com.surelogic.annotation.scrub.AbstractLatticeConsistencyChecker;
+import com.surelogic.annotation.scrub.AbstractPosetConsistencyChecker;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberType;
@@ -398,11 +398,11 @@ public class UniquenessRules extends AnnotationRules {
   
 
   
-  private static final class UniquenessConsistencyChecker extends AbstractLatticeConsistencyChecker<State, State.Lattice> {
+  private static final class UniquenessConsistencyChecker extends AbstractPosetConsistencyChecker<State, State.Lattice> {
     private final Pair SHARED = new Pair(State.SHARED, Source.NO_PROMISE);
 
     public UniquenessConsistencyChecker() {
-      super(State.lattice, CONSISTENCY, new String[] { UNIQUE });      
+      super(State.lattice, CONSISTENCY, new String[] { UNIQUE }, true);      
     }
 
     @Override
@@ -437,7 +437,7 @@ public class UniquenessRules extends AnnotationRules {
         }
       }
       // d should be non-null;
-      return new Pair(getValue(d), Source.getSource(d));
+      return getValueImpl(getValue(d), d);
     }
 
     @Override

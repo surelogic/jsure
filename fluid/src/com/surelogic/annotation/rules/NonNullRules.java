@@ -1,8 +1,5 @@
 package com.surelogic.annotation.rules;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.IAASTRootNode;
@@ -19,12 +16,12 @@ import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.parse.SLParse;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
-import com.surelogic.annotation.scrub.AbstractPromiseScrubber;
+import com.surelogic.annotation.scrub.AbstractPosetConsistencyChecker;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
-import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
@@ -47,11 +44,15 @@ import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.uwm.cs.fluid.util.Poset;
 
 public class NonNullRules extends AnnotationRules {	
+  private static final String RAW_STAR = "*";
+  
   private static final int CANNOT_BE_BOTH = 900;
   private static final int BAD_RAW_TYPE = 901;
   private static final int NOT_A_SUPERCLASS = 902;
+  private static final int NO_SUCH_TYPE  = 903;
   
 	public static final String NONNULL = "NonNull";
 	public static final String NULLABLE = "Nullable";
@@ -63,8 +64,6 @@ public class NonNullRules extends AnnotationRules {
 	private static final Nullable_ParseRule nullableRule = new Nullable_ParseRule();
 	private static final Raw_ParseRule rawRule = new Raw_ParseRule();
 	private static final NullableConsistencyChecker consistency = new NullableConsistencyChecker();
-	
-  private static final Set<PromiseDrop<?>> annosForMethodChecking = new HashSet<PromiseDrop<?>>();
 
   
   
@@ -312,13 +311,13 @@ public class NonNullRules extends AnnotationRules {
         } else {
           // Named type must be an ancestor of the annotated type
           final String upTo = n.getUpTo();
-          if (!upTo.equals("*")) {
+          if (!upTo.equals(RAW_STAR)) {
             final ITypeEnvironment typeEnv =
                 context.getBinder(n.getPromisedFor()).getTypeEnvironment();
             final IJavaType upToType = typeEnv.findJavaTypeByName(upTo);
             if (upToType == null) {
               good = false;
-              context.reportError("Unable to find upTo type: "+upTo, n);
+              context.reportError(n, NO_SUCH_TYPE, upTo);
             } else if (TypeUtil.isInterface(((IJavaDeclaredType) upToType).getDeclaration())) {
               // upTo cannot name an interface
               good = false;
@@ -356,41 +355,10 @@ public class NonNullRules extends AnnotationRules {
     if (ParameterDeclaration.prototype.includes(op) ||
         ReceiverDeclaration.prototype.includes(op) ||
         ReturnValueDeclaration.prototype.includes(op)) {
-      annosForMethodChecking.add(anno);
+      consistency.addRelevantDrop(anno);
     }
   }
   
-  private static final class NullableConsistencyChecker extends AbstractPromiseScrubber<PromiseDrop<?>> {
-    public NullableConsistencyChecker() {
-      super(ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY, NONE,
-          CONSISTENCY, ScrubberOrder.NORMAL,
-          new String[] { NULLABLE, NONNULL, RAW }); 
-    }
-
-    @Override
-    protected void processDrop(final PromiseDrop<?> a) {
-      // TODO Auto-generated method stub
-    }
-
-    @Override
-    protected boolean processUnannotatedMethodRelatedDecl(
-        final IRNode unannotatedNode) {
-      return true;
-    }
-    
-    @Override
-    protected Iterable<PromiseDrop<?>> getRelevantAnnotations() {
-      return annosForMethodChecking;
-    }
-    
-    @Override
-    protected void finishRun() {
-      annosForMethodChecking.clear();
-    }
-  }
-
-	
-	
 	public static NonNullPromiseDrop getNonNull(final IRNode decl) {
 	  return getBooleanDrop(nonNullRule.getStorage(), decl);
 	}
@@ -401,5 +369,209 @@ public class NonNullRules extends AnnotationRules {
 	
 	public static RawPromiseDrop getRaw(final IRNode decl) {
 	  return getBooleanDrop(rawRule.getStorage(), decl);
+	}
+	
+	
+  // ======================================================================
+	
+	private static final class NullableConsistencyChecker extends AbstractPosetConsistencyChecker<Element, NonNullPoset> {
+	  private final Pair DEFAULT = new Pair(Elements.NULLABLE, Source.NO_PROMISE);
+	  
+    public NullableConsistencyChecker() {
+      super(NonNullPoset.INSTANCE, CONSISTENCY,
+          new String[] { NULLABLE, NONNULL, RAW }, false);
+    }
+
+    @Override
+    protected Element getValue(final PromiseDrop<?> a) {
+      if (a instanceof NonNullPromiseDrop) {
+        return Elements.NON_NULL;
+      } else if (a instanceof NullablePromiseDrop) {
+        return Elements.NULLABLE;
+      } else if (a instanceof RawPromiseDrop) {
+        final RawPromiseDrop pd = (RawPromiseDrop) a;
+        final String upTo = pd.getUpTo();
+        if (upTo.equals(RAW_STAR)) {
+          return Elements.RAW_STAR;
+        } else {
+          final ITypeEnvironment typeEnv = getContext().getBinder(
+              pd.getPromisedFor()).getTypeEnvironment();
+          final IJavaType upToType = typeEnv.findJavaTypeByName(upTo);
+          return new OverridingRawElement(upToType, typeEnv);
+        }
+      } else {
+        throw new IllegalArgumentException(
+            "No nullable state for " + a.getClass().getName());
+      }
+    }
+
+    @Override
+    protected Pair getValue(final IRNode n) {
+      final NullablePromiseDrop pd1 = getNullable(n);
+      if (pd1 != null) return getValueImpl(Elements.NULLABLE, pd1);
+
+      final NonNullPromiseDrop pd2 = getNonNull(n);
+      if (pd2 != null) return getValueImpl(Elements.NON_NULL, pd2);
+      
+      final RawPromiseDrop rawPD = getRaw(n);
+      if (rawPD != null) {
+        final String upTo = rawPD.getUpTo();
+        if (upTo.equals(RAW_STAR)) {
+          return getValueImpl(Elements.RAW_STAR, rawPD);
+        } else {
+          final ITypeEnvironment typeEnv = getContext().getBinder(
+              rawPD.getPromisedFor()).getTypeEnvironment();
+          final IJavaType upToType = typeEnv.findJavaTypeByName(upTo);
+          return getValueImpl(new OverriddenRawElement(upToType), rawPD);
+        }
+      }
+      
+      // Unannotated => Nullable
+      return DEFAULT;
+    }
+
+    @Override
+    protected Element getUnannotatedValue() {
+      return Elements.NULLABLE;
+    }
+
+    @Override
+    protected String getAnnotationName(final Element value) {
+      return value.getAnnotation();
+    }
+
+    @Override
+    protected ProposedPromiseDrop proposePromise(
+        final Element value, final String valueValue,
+        final IRNode promisedFor, final IRNode parentMethod) {
+      /* XXX Not doing this yet.  Don't forget to set the flag to true in the
+       * constructor when I fix this.
+       */
+      return null;
+    }
+	  
+	}
+	
+  // ======================================================================
+	
+	
+	private static interface Element {
+	  public String getAnnotation();
+//	  public String getProposalName();
+	  public boolean lessEq(Element other);
+	}
+	
+	private static enum Elements implements Element {
+	  NON_NULL("@NonNull") {
+	    @Override
+	    public boolean lessEq(final Element other) {
+	      /* @NonNull is bottom and thus less than everything */
+	      return true;
+	    }
+	  },
+	  
+	  NULLABLE("@Nullable") {
+	    @Override
+	    public boolean lessEq(final Element other) {
+	      /* Equal to itself, but that is it. */
+	      return other == NULLABLE;
+	    }
+	  },
+	  
+	  RAW_STAR("@Raw") {
+	    @Override
+	    public boolean lessEq(final Element other) {
+	      /* equal to itself, but that is it. */
+	      return other == RAW_STAR;
+	    }
+	  };
+	  
+	  private final String annotation;
+	  
+	  private Elements(final String a) {
+	    annotation = a;
+	  }
+	  
+	  @Override
+	  public String getAnnotation() { return annotation; }
+	}
+	
+	/* Need two different classes for Raw elements because Edwin says we should
+	 * compare using the type environment from the overriding method.  This 
+	 * way we can keep track of whether the raw element comes from the overridden
+	 * or overriding method.
+	 */
+	private static abstract class AbstractRawElement implements Element {
+    protected final IJavaType upTo;
+    
+    protected AbstractRawElement(final IJavaType u) {
+      upTo = u;
+    }
+    
+    @Override
+    public String getAnnotation() {
+      return "@Raw(upTo=\"" + upTo.toSourceText()  + "\")";
+    }
+  }
+	
+  private static final class OverriddenRawElement extends AbstractRawElement {
+    public OverriddenRawElement(final IJavaType u) {
+      super(u);
+    }
+
+    @Override 
+    public boolean lessEq(final Element other) {
+      if (other == Elements.RAW_STAR) {
+        return true;
+      } else if (other instanceof OverriddenRawElement) {
+        throw new IllegalArgumentException(
+            "Cannot compare two Raw annotations from overridden methods");
+      } else if (other instanceof OverridingRawElement) {
+        final OverridingRawElement otherRaw = (OverridingRawElement) other;
+        return otherRaw.typeEnv.isSubType(this.upTo, otherRaw.upTo);
+      } else {
+        // Incomparable to @Nullable, greater than @NonNull
+        return false;
+      }
+    }
+  }
+	
+	
+	private static final class OverridingRawElement extends AbstractRawElement {
+	  private final ITypeEnvironment typeEnv;
+	  
+	  public OverridingRawElement(final IJavaType u, final ITypeEnvironment te) {
+	    super(u);
+	    typeEnv = te;
+	  }
+
+    @Override 
+    public boolean lessEq(final Element other) {
+      if (other == Elements.RAW_STAR) {
+        return true;
+      } else if (other instanceof OverridingRawElement) {
+        throw new IllegalArgumentException(
+            "Cannot compare two Raw annoations from overriding methods");
+      } else if (other instanceof OverriddenRawElement) {
+        final OverriddenRawElement otherRaw = (OverriddenRawElement) other;
+        return this.typeEnv.isSubType(this.upTo, otherRaw.upTo);
+      } else {
+        // Incomparable to @Nullable, greater than @NonNull
+        return false;
+      }
+    }
+	}
+	
+	private static final class NonNullPoset implements Poset<Element> {
+	  public static final NonNullPoset INSTANCE = new NonNullPoset();
+	  
+	  private NonNullPoset() {
+	    super();
+	  }
+	  
+    @Override
+    public boolean lessEq(final Element v1, final Element v2) {
+      return v1.lessEq(v2);
+    }
 	}
 }

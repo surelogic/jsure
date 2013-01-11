@@ -3,7 +3,6 @@ package com.surelogic.annotation.scrub;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 
@@ -19,9 +18,9 @@ import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Iteratable;
-import edu.uwm.cs.fluid.util.Lattice;
+import edu.uwm.cs.fluid.util.Poset;
 
-public abstract class AbstractLatticeConsistencyChecker<E, L extends Lattice<E>> extends AbstractPromiseScrubber<PromiseDrop<?>> {
+public abstract class AbstractPosetConsistencyChecker<E, P extends Poset<E>> extends AbstractPromiseScrubber<PromiseDrop<?>> {
   protected enum Source { 
     NO_PROMISE(0), ASSUMPTION(1), PROMISE(2);
       
@@ -29,7 +28,7 @@ public abstract class AbstractLatticeConsistencyChecker<E, L extends Lattice<E>>
       
     private Source(final int v) { value = v; }
       
-    public static Source getSource(PromiseDrop<? extends IAASTRootNode> a) {
+    public static Source getSource(final PromiseDrop<?> a) {
       return a.isAssumed() ? Source.ASSUMPTION : Source.PROMISE;
     }
   
@@ -50,16 +49,18 @@ public abstract class AbstractLatticeConsistencyChecker<E, L extends Lattice<E>>
 
   
 
-  private final L lattice;
+  private final P poset;
   private Collection<PromiseDrop<?>> relevantDrops = new ArrayList<PromiseDrop<?>>();
+  private final boolean proposePromises;
   
   
   
-  public AbstractLatticeConsistencyChecker(
-      final L lat, final String name, final String[] deps) {
+  public AbstractPosetConsistencyChecker(
+      final P p, final String name, final String[] deps, final boolean pp) {
     super(ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY, NONE,
         name, ScrubberOrder.NORMAL, deps);
-    lattice = lat;
+    poset = p;
+    proposePromises = pp;
   }
 
     
@@ -94,11 +95,23 @@ public abstract class AbstractLatticeConsistencyChecker<E, L extends Lattice<E>>
         unannotatedNode, getUnannotatedValue(), Source.NO_PROMISE, true);
   }
   
+
   
-  
+  /**
+   * Called to get the POSET value for a promise from an <em>overriding</em>
+   * method.
+   */
   protected abstract E getValue(PromiseDrop<?> a);
 
+  /**
+   * Called to get the POSET value for a node from an <em>overridden</em>
+   * method.
+   */
   protected abstract Pair getValue(IRNode n);
+  
+  protected final Pair getValueImpl(final E value, final PromiseDrop<?> d) {
+    return new Pair(value, Source.getSource(d));
+  }
 
   protected abstract E getUnannotatedValue();
     
@@ -127,9 +140,9 @@ public abstract class AbstractLatticeConsistencyChecker<E, L extends Lattice<E>>
           if (p == promisedFor) { // found the original param
             final Pair parentState = getValue(parentP);
             if (src.check(parentState.second()) && 
-              !lattice.lessEq(parentState.first(), s)) {
+              !poset.lessEq(parentState.first(), s)) {
               good = false;
-              if (generateProposal) {
+              if (proposePromises && generateProposal) {
                 getContext().reportErrorAndProposal(
                     proposePromise(parentState.first(), null, promisedFor, parentMethod),
                     "The annotation on parameter {0} of {1} cannot be changed from {2} to {3}",
@@ -155,9 +168,9 @@ public abstract class AbstractLatticeConsistencyChecker<E, L extends Lattice<E>>
         // Get the receiver in the original
         final IRNode rcvr = JavaPromise.getReceiverNode(parentMethod);
         final Pair parentState = getValue(rcvr);  
-        if (src.check(parentState.second()) && !lattice.lessEq(parentState.first(), s)) {
+        if (src.check(parentState.second()) && !poset.lessEq(parentState.first(), s)) {
           good = false;
-          if (generateProposal) {
+          if (proposePromises && generateProposal) {
             getContext().reportErrorAndProposal(
                 proposePromise(parentState.first(), "this", promisedFor, parentMethod),
                 "The annotation on the receiver of {0} cannot be changed from {1} to {2}",
@@ -179,9 +192,9 @@ public abstract class AbstractLatticeConsistencyChecker<E, L extends Lattice<E>>
         // Get the return value in the original
         final IRNode rcvr = JavaPromise.getReturnNode(parentMethod);
         final Pair parentState = getValue(rcvr);        
-        if (src.check(parentState.second()) && !lattice.lessEq(s, parentState.first())) {
+        if (src.check(parentState.second()) && !poset.lessEq(s, parentState.first())) {
           good = false;
-          if (generateProposal) {
+          if (proposePromises && generateProposal) {
             getContext().reportErrorAndProposal(
                 proposePromise(parentState.first(), "return", promisedFor, parentMethod),
                 "The annotation on the return value of {0} cannot be changed from {1} to {2}",

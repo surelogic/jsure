@@ -16,7 +16,7 @@ package edu.uwm.cs.fluid.util;
  * @author boyland
  * @param <E> The base elements of the lattice.  They should be immutable
  */
-public interface Lattice<E> extends Hashor<E> {
+public interface Lattice<E> extends Poset<E>, Hashor<E> {
   /**
    * Return whether the first lattice value is less than
    * or equal to the second.  
@@ -24,6 +24,7 @@ public interface Lattice<E> extends Hashor<E> {
    * @param v2
    * @return true if v1 &lt;= v2
    */
+  @Override
   public boolean lessEq(E v1, E v2);
   
   /**
