@@ -1,7 +1,7 @@
 # $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/DefaultValue.op,v 1.3 2006/05/02 20:00:50 chance Exp $
 public operator DefaultValue extends OptDefaultValue implements edu.cmu.cs.fluid.java.bind.IHasType {
   syntax {
-    "default" value:Initializer
+    "default" value:ElementValue
   }
   
   @Override public Component createComponent(IRNode node) {
