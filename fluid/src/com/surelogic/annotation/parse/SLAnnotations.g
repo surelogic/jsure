@@ -360,8 +360,9 @@ rawConstructor
     ;
 
 rawUpToExpression
-    : STAR -> ^(NamedType STAR)
-    | namedType
+    : STAR EOF -> ^(NamedType STAR)
+//    | typeName -> ^(NamedType typeName)
+    | namedType 
     ;
     
     

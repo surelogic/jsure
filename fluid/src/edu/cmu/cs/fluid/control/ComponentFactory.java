@@ -13,6 +13,7 @@ public interface ComponentFactory {
    * as necessary.  The component should be created at most once.
    */
   public Component getComponent(IRNode node);
+  
   /** Return the syntax tree instance for the nodes here. */
   public SyntaxTreeInterface tree();
 }

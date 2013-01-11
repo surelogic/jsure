@@ -1,9 +1,11 @@
 package edu.cmu.cs.fluid.java;
 
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.*;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -13,6 +15,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.parse.JJOperator;
 import edu.cmu.cs.fluid.tree.*;
+import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 
 public final class JavaComponentFactory implements ComponentFactory {
   /**
@@ -24,7 +27,7 @@ public final class JavaComponentFactory implements ComponentFactory {
    * TODO Could this be split up into thread-local maps?
    * (if it doesn't matter that they use the same thing and they mostly don't overlap anyways)
    */
-  public static final JavaComponentFactory prototype = new JavaComponentFactory();
+  private static final JavaComponentFactory prototype = new JavaComponentFactory();
 
   /**
 	 * Each syntax node potentially has a control component. This information is
@@ -32,17 +35,82 @@ public final class JavaComponentFactory implements ComponentFactory {
 	 * is no need to use slots. @type Hashtable[IRNode,Component]
 	 */
   private static final ConcurrentMap<IRNode, Component> components = new ConcurrentHashMap<IRNode, Component>();
+
+  /**
+   * Lock that determines whether I can clear 'components'
+   */
+  private static final ReentrantReadWriteLock activeLock = new ReentrantReadWriteLock();
+
+  private static final CopyOnWriteArrayList<IntraproceduralAnalysis<?, ?, ?>> analyses = 
+		  new CopyOnWriteArrayList<IntraproceduralAnalysis<?,?,?>>();
+  
+  public static void registerAnalysis(IntraproceduralAnalysis<?, ?, ?> a) {
+	  analyses.add(a);
+  }
+  
+  // TODO remove!
+  
+  private static void clearAnalyses() {
+	  for(IntraproceduralAnalysis<?, ?, ?> a : analyses) {
+		  a.clear();
+	  }
+  }
   
   public static void clearCache() {
-	  //checkCache();
-	  components.clear();
+	  try {
+		  activeLock.writeLock().lock();
+		  clear();			  
+	  } finally {
+		  activeLock.writeLock().unlock(); 
+	  }		  
+  }
+  
+  private static void clear() {
+	  components.clear();  
   }
 
+  private static boolean isLowOnMemory() {
+	  // TODO
+	  return components.size() > 100000;
+  }
+  
+  /**
+   * Marks the beginning of a given thread's use of components,
+   * so we can't GC while there are outstanding use
+   */
+  public static JavaComponentFactory startUse() {
+	  // Low and not already holding the read lock
+	  if (isLowOnMemory() && activeLock.getReadHoldCount() == 0) {		  		  
+		  try {
+			  activeLock.writeLock().lock();
+			  if (isLowOnMemory()) {
+				  clear();			  
+				  clearAnalyses(); // Otherwise, they'll hang onto the info
+			  }
+		  } finally {
+			  // This should unblock everyone		  
+			  activeLock.readLock().lock();
+			  activeLock.writeLock().unlock(); // Unlock write, still hold read
+		  }		  
+	  } else {
+		  activeLock.readLock().lock();
+	  }
+	  return prototype;
+  }
+  
+  /**
+   * Marks the end of a given thread's use of components,
+   * specifically so they can be garbage collected
+   */
+  public static void finishUse(JavaComponentFactory factory) {	  
+	  activeLock.readLock().unlock();
+  }
+  
   public Component getComponent(IRNode node) {
     return getComponent(node, false);
   }
   
-  public static Component getComponent(IRNode node, boolean quiet) {
+  public Component getComponent(IRNode node, boolean quiet) {
     final Component comp = components.get(node);
     if (comp == null)
       return prototype.createComponent(node, quiet);

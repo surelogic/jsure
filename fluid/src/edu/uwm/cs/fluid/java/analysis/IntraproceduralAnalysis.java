@@ -355,11 +355,12 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
    */
   @RequiresLock("fa:ComputeLock")
   private A computeAnalysis(final IRNode flowUnit, final Version v, final boolean debug, final A fa) {	  
-	  FlowUnit op = (FlowUnit) tree.getOperator(flowUnit);
-	  fa.initialize(op.getSource(flowUnit));
-	  fa.initialize(op.getNormalSink(flowUnit));
-	  fa.initialize(op.getAbruptSink(flowUnit));
-
+	  final FlowUnit op = (FlowUnit) tree.getOperator(flowUnit);
+	  final JavaComponentFactory factory = JavaComponentFactory.startUse();	  
+	  fa.initialize(op.getSource(flowUnit, factory));
+	  fa.initialize(op.getNormalSink(flowUnit, factory));
+	  fa.initialize(op.getAbruptSink(flowUnit, factory));
+ 
       try {
         if (debug) {
           LOG.fine("Performing " + toString(v, fa, flowUnit) + " ...");
@@ -371,6 +372,7 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
         LOG.log(Level.SEVERE, "Got exception", e);
       } finally {
         v.unclamp();
+        JavaComponentFactory.finishUse(factory);
       }
       if (debug) {
         LOG.fine(" (" + fa.getIterations() + " iterations)");
@@ -395,13 +397,18 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
   }
 
   protected void printAnalysisResults(A fa, IRNode node) {
-    Component cfgComp = JavaComponentFactory.prototype.getComponent(node);
+	final JavaComponentFactory factory = JavaComponentFactory.startUse();
+	try {
+    Component cfgComp = factory.getComponent(node);
     if (cfgComp.getEntryPort() instanceof BlankInputPort) return;
     System.out.println("\nNode: " + DebugUnparser.toString(node));
     //System.out.println(" Entry port and dual are " + cfgComp.getEntryPort() + " " + cfgComp.getEntryPort().getDual());
     printAnalysisResults(fa, cfgComp.getEntryPort().getInputs(), "Entry");
     printAnalysisResults(fa, cfgComp.getNormalExitPort().getOutputs(), "Normal exit");
     printAnalysisResults(fa, cfgComp.getAbruptExitPort().getOutputs(), "Abrupt exit");
+	} finally {
+		JavaComponentFactory.finishUse(factory);
+	}
   }
 
   protected void printAnalysisResults(A fa, ControlEdgeIterator edges, String name) {

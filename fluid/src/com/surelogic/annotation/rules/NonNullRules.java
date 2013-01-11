@@ -3,6 +3,7 @@ package com.surelogic.annotation.rules;
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.promise.NonNullNode;
 import com.surelogic.aast.promise.NullableNode;
 import com.surelogic.aast.promise.RawNode;
@@ -132,10 +133,14 @@ public class NonNullRules extends AnnotationRules {
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int mappedOffset, int modifiers, AASTAdaptor.Node node) {
 			final String upTo = context.getProperty(AnnotationVisitor.UPTO);
+			final NamedTypeNode upToType;
 			if (upTo == null) {
-				// TODO
+				upToType = new NamedTypeNode(mappedOffset, "*");
 			} else try {
-				AASTAdaptor.Node upToE = (Node) SLParse.prototype.initParser(upTo).rawUpToExpression().getTree();			
+				// TODO workaround for namedType issues
+				String textToParse = upTo.contains("*") ? upTo : upTo+')';
+				AASTAdaptor.Node upToE = (Node) SLParse.prototype.initParser(textToParse).rawUpToExpression().getTree();			
+				upToType = (NamedTypeNode) upToE.finalizeAST(context);
 			} catch (RecognitionException e) {
 				handleRecognitionException(context, upTo, e);				
 				return null;
@@ -144,10 +149,10 @@ public class NonNullRules extends AnnotationRules {
 				return null;
 			}
 			if (node.getType() == SLAnnotationsParser.NamedType) {
-				// TODO
-				return new RawNode(mappedOffset, node.getText()+" -- "+context.getProperty(AnnotationVisitor.UPTO));
+				// TODO deal with static(<type>)
+				return new RawNode(mappedOffset, node.getText()+" -- "+upTo, upToType);
 			}
-			return new RawNode(mappedOffset, context.getProperty(AnnotationVisitor.UPTO));
+			return new RawNode(mappedOffset, upTo, upToType);
 		}
 		@Override
 		protected IPromiseDropStorage<RawPromiseDrop> makeStorage() {

@@ -1,16 +1,20 @@
 package com.surelogic.aast.promise;
 
 import com.surelogic.aast.*;
+import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.annotation.rules.NonNullRules;
 
 public class RawNode extends AbstractBooleanNode 
 { 
   private final String upTo;
+  private final NamedTypeNode upToType;
 	
   // Constructors
-  public RawNode(int offset, String upTo) {
+  public RawNode(int offset, String upTo, NamedTypeNode type) {
     super(offset);
     this.upTo = upTo == null ? "*" : upTo; 
+    upToType = type;
+    type.setParent(this);
   }
 
   @Override
@@ -28,11 +32,15 @@ public class RawNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new RawNode(offset, upTo);
+  	return new RawNode(offset, upTo, upToType);
   }
   
   public String getUpTo() {
     return upTo;
+  }
+  
+  public NamedTypeNode getUpToType() {
+	return upToType;
   }
 }
 

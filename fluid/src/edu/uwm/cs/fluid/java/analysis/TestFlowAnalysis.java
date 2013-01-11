@@ -233,22 +233,27 @@ public abstract class TestFlowAnalysis<T, L extends Lattice<T>, A extends FlowAn
   public void analyzeFunction(IRNode node) {
     FlowUnit op = (FlowUnit)JJNode.tree.getOperator(node);
     A fa = createAnalysis(node,binder);
-    fa.initialize(op.getSource(node));
-    fa.initialize(op.getNormalSink(node));
-    fa.initialize(op.getAbruptSink(node));
-    fa.performAnalysis();
-    IRNode body = SomeFunctionDeclaration.getBody(node);
-    for (IRNode n : JJNode.tree.topDown(body)) {
-      if (select(n)) {
-        printAnalysisResults(fa, n);
-      }
+    final JavaComponentFactory factory = JavaComponentFactory.startUse();
+    try {
+    	fa.initialize(op.getSource(node, factory));
+    	fa.initialize(op.getNormalSink(node, factory));
+    	fa.initialize(op.getAbruptSink(node, factory));
+    	fa.performAnalysis();
+    	IRNode body = SomeFunctionDeclaration.getBody(node);
+    	for (IRNode n : JJNode.tree.topDown(body)) {
+    		if (select(n)) {
+    			printAnalysisResults(fa, n, factory);
+    		}
+    	}
+    } finally {
+    	JavaComponentFactory.finishUse(factory);
     }
   }
   
   protected abstract A createAnalysis(IRNode flowUnit, IBinder binder);
   
-  protected void printAnalysisResults(A fa, IRNode node) {
-    Component cfgComp = JavaComponentFactory.prototype.getComponent(node);
+  protected void printAnalysisResults(A fa, IRNode node, JavaComponentFactory factory) {
+	Component cfgComp = factory.getComponent(node);
     if (cfgComp.getEntryPort() instanceof BlankInputPort) return;
     System.out.println("\nNode: " + DebugUnparser.toString(node));
     System.out.print("  Entry:  ");

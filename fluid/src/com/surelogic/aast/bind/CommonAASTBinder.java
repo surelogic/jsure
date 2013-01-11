@@ -257,7 +257,7 @@ public class CommonAASTBinder extends AASTBinder {
       if (name == null || name.length() == 0) {
     	  name = SLUtility.JAVA_LANG_OBJECT;
       }
-      return resolveTypeName(t, name) != null;
+      return "*".equals(name) || resolveTypeName(t, name) != null;
     }
     else if (node instanceof ArrayTypeNode) {
     	ArrayTypeNode at = (ArrayTypeNode) node;

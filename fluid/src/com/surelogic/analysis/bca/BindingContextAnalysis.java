@@ -6,6 +6,7 @@ import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.analysis.SimplifiedJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
@@ -45,7 +46,9 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
 	  }
 	  @Override
 	  protected BindingContextAnalysis create(IBinder b) {
-		  return new BindingContextAnalysis(b, true, ignorePrimitives);
+		  BindingContextAnalysis rv = new BindingContextAnalysis(b, true, ignorePrimitives);
+		  JavaComponentFactory.registerAnalysis(rv);
+		  return rv;
 	  }
   }
   public static final Factory factory = new Factory(true);

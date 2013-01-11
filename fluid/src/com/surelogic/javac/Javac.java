@@ -56,8 +56,6 @@ public class Javac extends IDE {
 			init(StructureAnalysis.class,
 				"com.surelogic.jsure.client.eclipse.StructureAssurance", false, "Structure analysis");
 		}
-		init(EffectsAnalysis.class,
-				"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects");
 		
 		/* Checking of @ThreadSafe, etc., which is run by the lock policy and 
 		 * equality analyses, depend on the results of annotation bounds checking.
@@ -66,9 +64,14 @@ public class Javac extends IDE {
 		    init(ParameterizedTypeAnalysis.class,
 		        "com.surelogic.jsure.client.eclipse.ParameterizedType",
 		        true, "Annotation Bounds");
+		
+	// Lock and EffectAssurance need to be declared together because they share use of BindingContextAnalysis
     init(LockAnalysis.class,
         "com.surelogic.jsure.client.eclipse.LockAssurance3", true, "Lock policy",
         annoBoundsChecking);
+	init(EffectsAnalysis.class,
+			"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects");
+    
     init(EqualityAnalysis.class,
         "com.surelogic.jsure.client.eclipse.EqualityAssurance", true,
         "Reference equality", annoBoundsChecking);

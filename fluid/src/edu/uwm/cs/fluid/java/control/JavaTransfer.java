@@ -15,6 +15,7 @@ import edu.cmu.cs.fluid.control.UnknownLabel;
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -657,9 +658,11 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
     FlowUnit op = (FlowUnit) tree.getOperator(classBody);
     final IJavaFlowAnalysis<T, L> fa = subAnalysisFactory.createSubAnalysis(
         caller, binder, lattice, initial, terminationNormal);
-    final Source source = op.getSource(classBody);
-    final Sink sink = terminationNormal ? op.getNormalSink(classBody) : op.getAbruptSink(classBody);
-    final ControlEdge e1 = getStartEdge(source, sink);
+    final JavaComponentFactory factory = JavaComponentFactory.startUse();
+    try {
+    final Source source = op.getSource(classBody, factory);
+    final Sink sink = terminationNormal ? op.getNormalSink(classBody, factory) : op.getAbruptSink(classBody, factory);
+    final ControlEdge e1 = getStartEdge(source, sink); 
     final ControlEdge e2 = getEndEdge(source, sink);
     
     /* John and I thought this was wrong back on 2010-01-12, and changed 
@@ -720,6 +723,9 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
       System.out.println("**** Run class Initializer " + terminationNormal + " (end) ****");
     }
     return fa.getInfo(e2, ll);
+    } finally {
+    	JavaComponentFactory.finishUse(factory);
+    }
   }
     
   /**

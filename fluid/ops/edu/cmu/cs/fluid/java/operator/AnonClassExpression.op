@@ -90,20 +90,20 @@ public operator AnonClassExpression extends AllocationCallExpression
     return comp;
   }
 
-  public Source getSource(IRNode node) {
-    Component comp = JavaComponentFactory.prototype.getComponent(node);
+  public Source getSource(IRNode node, JavaComponentFactory f) {
+    Component comp = f.getComponent(node);
     Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,bodyLoc));
     ControlEdge e = ((SubcomponentEntryPort)sub.getEntryPort()).getInput();
     return (Source)e.getSource();
   }
-  public Sink getNormalSink(IRNode node) {
-    Component comp = JavaComponentFactory.prototype.getComponent(node);
+  public Sink getNormalSink(IRNode node, JavaComponentFactory f) {
+    Component comp = f.getComponent(node);
     Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,bodyLoc));
     ControlEdge e = ((SubcomponentNormalExitPort)sub.getNormalExitPort()).getOutput();
     return (Sink)e.getSink();
   }
-  public Sink getAbruptSink(IRNode node) {
-    Component comp = JavaComponentFactory.prototype.getComponent(node);
+  public Sink getAbruptSink(IRNode node, JavaComponentFactory f) {
+    Component comp = f.getComponent(node);
     Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,bodyLoc));
     ControlEdge e = ((SubcomponentAbruptExitPort)sub.getAbruptExitPort()).getOutput();
     return (Sink)e.getSink();

@@ -15,19 +15,19 @@ public operator ClassInitDeclaration implements FlowUnit {
     JavaPromise.setClassInitMethod(classNode,node);
     return node;
   }
-  public Source getSource(IRNode node) {
+  public Source getSource(IRNode node, JavaComponentFactory f) {
     IRNode classDecl = JavaPromise.getPromisedFor(node);
     FlowUnit op = (FlowUnit)tree.getOperator(classDecl);
-    return op.getSource(classDecl);
+    return op.getSource(classDecl, f);
   }
-  public Sink getNormalSink(IRNode node) {
+  public Sink getNormalSink(IRNode node, JavaComponentFactory f) {
     IRNode classDecl = JavaPromise.getPromisedFor(node);
     FlowUnit op = (FlowUnit)tree.getOperator(classDecl);
-    return op.getNormalSink(classDecl);
+    return op.getNormalSink(classDecl, f);
   }
-  public Sink getAbruptSink(IRNode node) {
+  public Sink getAbruptSink(IRNode node, JavaComponentFactory f) {
     IRNode classDecl = JavaPromise.getPromisedFor(node);
     FlowUnit op = (FlowUnit)tree.getOperator(classDecl);
-    return op.getAbruptSink(classDecl);
+    return op.getAbruptSink(classDecl, f);
   }
 }

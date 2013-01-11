@@ -209,7 +209,9 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
 
   
   public final T getAfter(final IRNode node, final WhichPort port) {
-    Component comp = JavaComponentFactory.getComponent(node, true);
+	final JavaComponentFactory factory = JavaComponentFactory.startUse();
+	try {
+    Component comp = factory.getComponent(node, true);
     if (comp == null) {
       return null;
     }
@@ -243,6 +245,9 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
       val = lattice.bottom();
     }
     return val;
+	} finally {
+		JavaComponentFactory.finishUse(factory);
+	}
   }
 
   
