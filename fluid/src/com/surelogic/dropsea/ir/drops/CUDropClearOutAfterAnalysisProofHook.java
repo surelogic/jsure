@@ -8,6 +8,8 @@ import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.Sea;
 
+import edu.cmu.cs.fluid.java.JavaNames;
+
 public class CUDropClearOutAfterAnalysisProofHook extends AbstractSeaConsistencyProofHook {
 
   @Override
@@ -19,7 +21,9 @@ public class CUDropClearOutAfterAnalysisProofHook extends AbstractSeaConsistency
     // Clear out proposed promises with null Java references.
     for (ProposedPromiseDrop pp : sea.getDropsOfType(ProposedPromiseDrop.class)) {
       if (pp.getJavaRef() == null || pp.getAssumptionRef() == null) {
-        SLLogger.getLogger().log(Level.WARNING, I18N.err(293, pp.getMessage()));
+    	if (!JavaNames.getFullName(pp.getNode()).startsWith("java.lang.[]")) {
+    		SLLogger.getLogger().log(Level.WARNING, I18N.err(293, pp.getMessage()));
+    	}
         pp.invalidate();
       }
     }
