@@ -1991,6 +1991,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       IRNode tformals = isConstructor? 
           ConstructorDeclaration.getTypes(node) : MethodDeclaration.getTypes(node);
+      if (JJNode.tree.hasChildren(tformals)) {    	  
+    	  addDeclsToScope(tformals, sc);
+    	  sc = new IJavaScope.NestedScope(sc); // necessary to segregate type variables from locals
+      }
       IRNode formals = isConstructor ?
           ConstructorDeclaration.getParams(node) : MethodDeclaration.getParams(node);
       /*
@@ -2005,7 +2009,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  System.out.println("Debugging "+JavaNames.getFullName(node));
       }
       */
-      addDeclsToScope(tformals, sc);
       addDeclsToScope(formals, sc);
       
       doAcceptForChildren(node,sc);
@@ -2721,7 +2724,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       */
       if (!success) {
-    	  bind(node, IJavaScope.Util.combineSelectors(isAccessible, IJavaScope.Util.couldBeNonTypeName));
+    	  if (context.couldBeVariable()) {
+    		  bind(node, IJavaScope.Util.combineSelectors(isAccessible, IJavaScope.Util.couldBeNonTypeName));
+    	  }
     	  bind(node, IJavaScope.Util.combineSelectors(isAccessible, IJavaScope.Util.isPkgTypeDecl));
     	  /*
       } else if ("String".equals(SimpleName.getId(node))) {
