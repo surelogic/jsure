@@ -3,6 +3,7 @@ package com.surelogic.annotation.rules;
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.aast.bind.ISourceRefType;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.promise.NonNullNode;
 import com.surelogic.aast.promise.NullableNode;
@@ -316,11 +317,16 @@ public class NonNullRules extends AnnotationRules {
           context.reportError(n, BAD_RAW_TYPE);
         } else {
           // Named type must be an ancestor of the annotated type
-          final String upTo = n.getUpTo();
-          if (!upTo.equals(RAW_STAR)) {
+          final NamedTypeNode typeName = n.getUpToType();
+          final String upTo = typeName.getType();
+          //final String upTo = n.getUpTo();
+          //if (!upTo.equals(RAW_STAR)) {
+          if (!typeName.getType().equals(RAW_STAR)) {
             final ITypeEnvironment typeEnv =
                 context.getBinder(n.getPromisedFor()).getTypeEnvironment();
-            final IJavaType upToType = typeEnv.findJavaTypeByName(upTo);
+            //final IJavaType upToType = typeEnv.findJavaTypeByName(upTo);
+            final ISourceRefType type = typeName.resolveType();
+            final IJavaType upToType = type.getJavaType();            
             if (upToType == null) {
               good = false;
               context.reportError(n, NO_SUCH_TYPE, upTo);
