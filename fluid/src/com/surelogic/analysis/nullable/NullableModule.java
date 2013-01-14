@@ -30,7 +30,7 @@ public final class NullableModule extends AbstractWholeIRAnalysis<DefinitelyAssi
 
   @Override
   protected DefinitelyAssignedAnalysis constructIRAnalysis(final IBinder binder) {
-    return new DefinitelyAssignedAnalysis(binder, true);
+    return new DefinitelyAssignedAnalysis(binder, false);
   }
 
   @Override
