@@ -83,6 +83,7 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element, RawT
 
 
     
+    @Override
     public Element transferComponentSource(final IRNode node) {
       // Receiver is completely raw at the start
       
@@ -401,6 +402,7 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element, RawT
     protected Element transferUseQualifiedReceiver(
         final IRNode use, final IRNode binding, 
         final Element val) {
+      // Qualified receiver is never raw, and is not part of the analysis
       return val;
 //      if (!lattice.isNormal(val)) return val;
 //      // Qualified receiver is always non-null
@@ -439,10 +441,12 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element, RawT
 
 
   
+  @Override
   public IBinder getBinder() {
     return binder;
   }
 
+  @Override
   public void clearCaches() {
     clear();
   }

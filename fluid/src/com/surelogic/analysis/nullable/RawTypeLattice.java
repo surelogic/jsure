@@ -51,43 +51,52 @@ public final class RawTypeLattice extends AbstractLattice<RawTypeLattice.Element
   
   private static enum Specials implements Element {
     RAW {
+      @Override
       public boolean lessEq(final Element other) {
         return false;
       }
 
+      @Override
       public Element join(final Element other) {
         return this;
       }
 
+      @Override
       public Element meet(final Element other) {
         return other;
       }
     },
     
     IMPOSSIBLE {
+      @Override
       public boolean lessEq(final Element other) {
         // less than or equal to everything but NOT_RAW
         return other != NOT_RAW;
       }
 
+      @Override
       public Element join(final Element other) {
         return other == NOT_RAW ? this : other;
       }
 
+      @Override
       public Element meet(final Element other) {
         return other == NOT_RAW ? other : this;
       }
     },
     
     NOT_RAW  {
+      @Override
       public boolean lessEq(final Element other) {
         return true;
       }
 
+      @Override
       public Element join(final Element other) {
         return other;
       }
 
+      @Override
       public Element meet(final Element other) {
         return this;
       }
@@ -101,6 +110,7 @@ public final class RawTypeLattice extends AbstractLattice<RawTypeLattice.Element
       type = t;
     }
     
+    @Override
     public boolean lessEq(final Element other) {
       if (other == Specials.RAW) {
         return true;
@@ -112,6 +122,7 @@ public final class RawTypeLattice extends AbstractLattice<RawTypeLattice.Element
       }
     }
 
+    @Override
     public Element join(final Element other) {
       // Short circuit joins with ourselves!
       if (this == other) {
@@ -144,6 +155,7 @@ public final class RawTypeLattice extends AbstractLattice<RawTypeLattice.Element
       }
     }
 
+    @Override
     public Element meet(final Element other) {
       if (other == Specials.RAW) {
         return this;
@@ -174,7 +186,7 @@ public final class RawTypeLattice extends AbstractLattice<RawTypeLattice.Element
     
     @Override
     public String toString() {
-      return "RAW(" + type.toString() + ")";
+      return "RAW(" + type.toSourceText() + ")";
     }
   }
 
@@ -192,14 +204,17 @@ public final class RawTypeLattice extends AbstractLattice<RawTypeLattice.Element
   
   
 
+  @Override
   public boolean lessEq(final Element v1, final Element v2) {
     return v1.lessEq(v2);
   }
 
+  @Override
   public Element top() {
     return Specials.RAW;
   }
 
+  @Override
   public Element bottom() {
     return Specials.NOT_RAW;
   }
@@ -225,10 +240,12 @@ public final class RawTypeLattice extends AbstractLattice<RawTypeLattice.Element
     return e;
   }
 
+  @Override
   public Element join(final Element v1, final Element v2) {
     return v1.join(v2);
   }
 
+  @Override
   public Element meet(final Element v1, final Element v2) {
     return v1.meet(v2);
   }
