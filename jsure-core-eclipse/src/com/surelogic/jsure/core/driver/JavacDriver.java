@@ -1541,6 +1541,12 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
     final SureLogicToolsFilter filter = SureLogicToolsPropertiesUtility
         .getFilterFor(excludedSourceFolders, excludedPackagePatterns);
     for (ICompilationUnit icu : cus) {
+      // Check if legal
+      final String name = icu.getElementName();
+      if (!Util.PACKAGE_INFO_JAVA.equals(name) && !SLUtility.isValidJavaIdentifier(name.substring(0, name.length()-5))) {
+    	  continue;
+      }
+      
       final IPath path = icu.getResource().getFullPath();
       final IPath loc = icu.getResource().getLocation();
       final File f = loc.toFile();
