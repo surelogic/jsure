@@ -8,7 +8,7 @@ import edu.uwm.cs.fluid.util.AssociativeArrayLattice;
 
 /**
  * Associative array from non-null field declarations to assigned state.
- * This array always contains an extra element whose value is initialized
+ * This array always contains an extra element indexed by "null" whose value is initialized
  * to ASSIGNED.  If the value of this last element is ever not ASSIGNED, then
  * the value of the array is non-normative.
  */
@@ -17,7 +17,7 @@ public final class AssignedVars extends AssociativeArrayLattice<IRNode, Assigned
   private final Assigned[] allAssigned;
   
   private AssignedVars(final IRNode[] modifiedKeys) {
-    super(Assigned.lattice, Assigned.NO_ASSIGNED, modifiedKeys);
+    super(Assigned.lattice, Assigned.ARRAY_PROTOTYPE, modifiedKeys);
 
     // Create a unique reference to the empty value
     final int n = modifiedKeys.length;

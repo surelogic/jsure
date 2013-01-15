@@ -42,6 +42,7 @@ public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
     return baseLattice;
   }
   
+  @Override
   public final boolean lessEq(T[] v1, T[] v2) {
     for (int i=0; i < size; ++i) {
       if (!baseLattice.lessEq(v1[i],v2[i])) return false;

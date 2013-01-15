@@ -6,12 +6,11 @@ import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.RawTypeAnalysis;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.Query;
-import com.surelogic.analysis.nullable.RawTypeLattice.Element;
+import com.surelogic.analysis.nullable.RawLattice.Element;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -30,6 +29,7 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
   protected boolean doAnalysisOnAFile(final IIRAnalysisEnvironment env,
       final CUDrop cud, final IRNode compUnit) {
     runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
+      @Override
       public void run() {
         checkRawTypesForFile(compUnit);
       }
@@ -54,24 +54,6 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
       return currentQuery().getSubAnalysisQuery(caller);
     }
 
-    
-    
-    @Override
-    protected void enteringEnclosingType(final IRNode newType) {
-      System.out.println(">>> Entering type " + JavaNames.getTypeName(newType));
-    }
-    
-    @Override
-    protected void leavingEnclosingType(final IRNode newType) {
-      System.out.println("<<< Leaving type " + JavaNames.getTypeName(newType));
-    }
-    
-    @Override
-    protected void enteringEnclosingDeclPrefix(
-        final IRNode newDecl, final IRNode anonClassDecl) {
-      System.out.println("############################ Running raw types on " + JavaNames.genQualifiedMethodConstructorName(newDecl) + "############################");
-    }
-    
     
     
 //    @Override

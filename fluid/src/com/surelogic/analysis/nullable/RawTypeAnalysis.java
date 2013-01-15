@@ -2,7 +2,7 @@ package com.surelogic.analysis.nullable;
 
 
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.nullable.RawTypeLattice.Element;
+import com.surelogic.analysis.nullable.RawLattice.Element;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -34,13 +34,13 @@ import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
  * <p>Because we just work on the receiver right now, this only needs to be
  * invoked on constructors.
  */
-public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element, RawTypeLattice, JavaForwardAnalysis<Element, RawTypeLattice>> implements IBinderClient {
-  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Element, Element, RawTypeLattice> {
-    public Query(final IThunk<? extends IJavaFlowAnalysis<Element, RawTypeLattice>> thunk) {
+public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element, RawLattice, JavaForwardAnalysis<Element, RawLattice>> implements IBinderClient {
+  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Element, Element, RawLattice> {
+    public Query(final IThunk<? extends IJavaFlowAnalysis<Element, RawLattice>> thunk) {
       super(thunk);
     }
     
-    private Query(final Delegate<Query, Element, Element, RawTypeLattice> d) {
+    private Query(final Delegate<Query, Element, Element, RawLattice> d) {
       super(d);
     }
     
@@ -51,12 +51,12 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element, RawT
 
     @Override
     protected Element processRawResult(
-        final IRNode expr, final RawTypeLattice lattice, final Element rawResult) {
+        final IRNode expr, final RawLattice lattice, final Element rawResult) {
       return rawResult;
     }
 
     @Override
-    protected Query newSubAnalysisQuery(final Delegate<Query, Element, Element, RawTypeLattice> d) {
+    protected Query newSubAnalysisQuery(final Delegate<Query, Element, Element, RawLattice> d) {
       return new Query(d);
     }
   }
@@ -68,16 +68,16 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element, RawT
   }
 
   @Override
-  protected JavaForwardAnalysis<Element, RawTypeLattice> createAnalysis(final IRNode flowUnit) {
-    final RawTypeLattice l = new RawTypeLattice(binder.getTypeEnvironment());
+  protected JavaForwardAnalysis<Element, RawLattice> createAnalysis(final IRNode flowUnit) {
+    final RawLattice l = new RawLattice(binder.getTypeEnvironment());
     final Transfer t = new Transfer(binder, l, 0);
-    return new JavaForwardAnalysis<RawTypeLattice.Element, RawTypeLattice>("Raw Types", l, t, DebugUnparser.viewer);
+    return new JavaForwardAnalysis<RawLattice.Element, RawLattice>("Raw Types", l, t, DebugUnparser.viewer);
   }
 
 
   
-  private static final class Transfer extends JavaEvaluationTransfer<RawTypeLattice, RawTypeLattice.Element> {
-    public Transfer(final IBinder binder, final RawTypeLattice lattice, final int floor) {
+  private static final class Transfer extends JavaEvaluationTransfer<RawLattice, RawLattice.Element> {
+    public Transfer(final IBinder binder, final RawLattice lattice, final int floor) {
       super(binder, lattice, new SubAnalysisFactory(), floor);
     }
 
@@ -89,7 +89,7 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element, RawT
       
       /* In the future, parameters should be initialized based on annotations */
       
-      return lattice.getRaw();
+      return RawLattice.RAW;
     }
 
     @Override
@@ -108,7 +108,7 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element, RawT
                 typeEnv.getSuperclass(
                     (IJavaDeclaredType) typeEnv.getMyThisType(classDecl)));
           } else { // ThisExpression
-            return lattice.getNotRaw();
+            return RawLattice.NOT_RAW;
           }
         } else if (AnonClassExpression.prototype.includes(node)) {
           final IRNode superClassDecl =
@@ -426,16 +426,16 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element, RawT
   
   
   
-  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<RawTypeLattice, Element> {
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<RawLattice, Element> {
     @Override
-    protected JavaForwardAnalysis<Element, RawTypeLattice> realCreateAnalysis(
+    protected JavaForwardAnalysis<Element, RawLattice> realCreateAnalysis(
         final IRNode caller, final IBinder binder,
-        final RawTypeLattice lattice,
+        final RawLattice lattice,
         final Element initialValue,
         final boolean terminationNormal) {
 //      final int floor = initialValue.first().size();
       final Transfer t = new Transfer(binder, lattice, 0);
-      return new JavaForwardAnalysis<Element, RawTypeLattice>("sub analysis", lattice, t, DebugUnparser.viewer);
+      return new JavaForwardAnalysis<Element, RawLattice>("sub analysis", lattice, t, DebugUnparser.viewer);
     }
   }
 

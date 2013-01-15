@@ -177,10 +177,12 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
   // === Methods from IBinderClient
   // ==================================================================
 
+  @Override
   public IBinder getBinder() {
     return binder;
   }
 
+  @Override
   public void clearCaches() {
     clear();
   }
@@ -1083,6 +1085,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     
     
+    @Override
     public Store transferComponentSource(final IRNode node) {
       return lattice.opStart(mayAlias, node);
     }

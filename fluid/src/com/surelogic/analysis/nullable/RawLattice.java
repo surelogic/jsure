@@ -30,7 +30,7 @@ import edu.uwm.cs.fluid.util.AbstractLattice;
  *   of the other.  This value is directly below each leaf class in the class
  *   hierarchy.</dd>
  *   
- *   <dt>NOW_RAW</dt>
+ *   <dt>NOT_RAW</dt>
  *   <dd>This is the <b>BOTTOM</b> value of the lattice, and is directly below
  *   <b>IMPOSSIBLE</b>.  It means that the variable does not have a raw type at
  *   all; the type of the variable is <i>T</i>.  The nullity of the type is
@@ -42,7 +42,14 @@ import edu.uwm.cs.fluid.util.AbstractLattice;
  * during control flow analysis.  This is because the meet operation is never 
  * invoked. 
  */
-public final class RawTypeLattice extends AbstractLattice<RawTypeLattice.Element> {
+public final class RawLattice extends AbstractLattice<RawLattice.Element> {
+  public static final Element[] ARRAY_PROTOTYPE = new Element[0];
+  public static final Element RAW = Specials.RAW;
+  public static final Element IMPOSSIBLE = Specials.IMPOSSIBLE;
+  public static final Element NOT_RAW = Specials.NOT_RAW;
+  
+  
+  
   public static interface Element {
     public boolean lessEq(Element other);
     public Element join(Element other);
@@ -197,9 +204,9 @@ public final class RawTypeLattice extends AbstractLattice<RawTypeLattice.Element
   
   
   
-  public RawTypeLattice(final ITypeEnvironment te) {
+  public RawLattice(final ITypeEnvironment te) {
     typeEnv = te;
-    classElements = new HashMap<IJavaDeclaredType, RawTypeLattice.ClassElement>();
+    classElements = new HashMap<IJavaDeclaredType, RawLattice.ClassElement>();
   }
   
   
@@ -217,18 +224,6 @@ public final class RawTypeLattice extends AbstractLattice<RawTypeLattice.Element
   @Override
   public Element bottom() {
     return Specials.NOT_RAW;
-  }
-  
-  public Element getRaw() {
-    return Specials.RAW;
-  }
-  
-  public Element getNotRaw() {
-    return Specials.NOT_RAW;
-  }
-  
-  public Element getImpossible() {
-    return Specials.IMPOSSIBLE;
   }
   
   public Element injectClass(final IJavaDeclaredType t) {
