@@ -30,10 +30,12 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
-import edu.uwm.cs.fluid.java.control.JavaEvaluationTransfer;
 import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
+import edu.uwm.cs.fluid.java.control.LatticeDelegatingJavaEvaluationTransfer;
+import edu.uwm.cs.fluid.java.analysis.EvaluationStackLattice;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 
 
@@ -47,21 +49,16 @@ import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
  * <p>Because we just work on the receiver right now, this only needs to be
  * invoked on constructors.
  */
-public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element[], RawVariables, JavaForwardAnalysis<Element[], RawVariables>> implements IBinderClient {
-  /**
-   * When present, the receiver is always the first element in the associative
-   * array.
-   */
-  private static final int THIS = 0;
-  
-  
-  
-  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Element[], Element[], RawVariables> {
-    public Query(final IThunk<? extends IJavaFlowAnalysis<Element[], RawVariables>> thunk) {
+public final class RawTypeAnalysis extends IntraproceduralAnalysis<
+    RawTypeAnalysis.Value, RawTypeAnalysis.Lattice,
+    JavaForwardAnalysis<RawTypeAnalysis.Value, RawTypeAnalysis.Lattice>>
+implements IBinderClient {
+  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Element[], Value, Lattice> {
+    public Query(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
     }
     
-    private Query(final Delegate<Query, Element[], Element[], RawVariables> d) {
+    private Query(final Delegate<Query, Element[], Value, Lattice> d) {
       super(d);
     }
     
@@ -72,12 +69,12 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element[], Ra
 
     @Override
     protected Element[] processRawResult(
-        final IRNode expr, final RawVariables lattice, final Element[] rawResult) {
-      return rawResult;
+        final IRNode expr, final Lattice lattice, final Value rawResult) {
+      return rawResult.second();
     }
 
     @Override
-    protected Query newSubAnalysisQuery(final Delegate<Query, Element[], Element[], RawVariables> d) {
+    protected Query newSubAnalysisQuery(final Delegate<Query, Element[], Value, Lattice> d) {
       return new Query(d);
     }
   }
@@ -91,7 +88,7 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element[], Ra
   
   
   @Override
-  protected JavaForwardAnalysis<Element[], RawVariables> createAnalysis(final IRNode flowUnit) {
+  protected JavaForwardAnalysis<Value, Lattice> createAnalysis(final IRNode flowUnit) {
     final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
     final List<IRNode> refVars = new ArrayList<IRNode>(
         lvd.getLocal().size() + lvd.getExternal().size() + 1);
@@ -106,40 +103,79 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element[], Ra
         binder, lvd.getLocal(), refVars, NullList.<IRNode>prototype());
     LocalVariableDeclarations.separateDeclarations(
         binder, lvd.getExternal(), refVars, NullList.<IRNode>prototype());
-    final RawLattice l = new RawLattice(binder.getTypeEnvironment());
-    final RawVariables rawVars = RawVariables.create(refVars, l);
-    final Transfer t = new Transfer(binder, rawVars, 0);
-    return new JavaForwardAnalysis<RawLattice.Element[], RawVariables>("Raw Types", rawVars, t, DebugUnparser.viewer);
+    final RawLattice rawLattice = new RawLattice(binder.getTypeEnvironment());
+    final RawVariables rawVariables = RawVariables.create(refVars, rawLattice);
+    final Lattice lattice = new Lattice(rawLattice, rawVariables);
+    final Transfer t = new Transfer(binder, lattice, 0);
+    return new JavaForwardAnalysis<Value, Lattice>("Raw Types", lattice, t, DebugUnparser.viewer);
   }
   
     
+
+  public static final class Value extends EvaluationStackLattice.Pair<Element, Element[]> {
+    public Value(final ImmutableList<Element> v1, final Element[] v2) {
+      super(v1, v2);
+    }
+  }
+  
+  public static final class Lattice extends EvaluationStackLattice<
+      Element, Element[], RawLattice, RawVariables, Value> {
+    /**
+     * When present, the receiver is always the first element in the associative
+     * array.
+     */
+    private static final int THIS = 0;
+
     
-//  public static final class Lattice extends PairLattice<ImmutableList<Element>, Element[]> {
-//    private Lattice(final List<IRNode> refVars, final RawLattice rawLattice) {
-//      super(new ListLattice<RawLattice, Element>(rawLattice),
-//          RawVariables.create(refVars, rawLattice));
-//    }
-//    
-//    public boolean isNormal(final Pair<ImmutableList<Element>, Element[]> val) {
-//      return false;
-//    }
-//  }
+    
+    protected Lattice(final RawLattice l1, final RawVariables l2) {
+      super(l1, l2);
+    }
+
+    @Override
+    protected Value newPair(final ImmutableList<Element> v1, final Element[] v2) {
+      return new Value(v1, v2);
+    }
+
+    @Override
+    public Element getAnonymousStackValue() {
+      return RawLattice.NOT_RAW;
+    }
+    
+    
+    
+    public Value getEmptyValue() {
+      return newPair(ImmutableList.<Element>nil(), lattice2.getEmptyValue());
+    }
+    
+    public Element injectClass(final IJavaDeclaredType t) {
+      return lattice2.getBaseLattice().injectClass(t);
+    }
+    
+    public boolean containsThis() {
+      return ReceiverDeclaration.prototype.includes(lattice2.getKey(THIS));
+    }
+    
+    public Value setThis(final Value v, final Element e) {
+      return newPair(v.first(), lattice2.replaceValue(v.second(), THIS, e)); 
+    }
+  }
 
 
   
-  private static final class Transfer extends JavaEvaluationTransfer<RawVariables, RawLattice.Element[]> {
-    public Transfer(final IBinder binder, final RawVariables lattice, final int floor) {
+  private static final class Transfer extends LatticeDelegatingJavaEvaluationTransfer<Lattice, Value, Element> {
+    public Transfer(final IBinder binder, final Lattice lattice, final int floor) {
       super(binder, lattice, new SubAnalysisFactory(), floor);
     }
 
 
     
     @Override
-    public Element[] transferComponentSource(final IRNode node) {
-      Element[] value = lattice.getEmptyValue();
+    public Value transferComponentSource(final IRNode node) {
+      Value value = lattice.getEmptyValue();
       // Receiver is completely raw at the start, if it exists
-      if (ReceiverDeclaration.prototype.includes(lattice.getKey(THIS))) {
-        value = lattice.replaceValue(value, THIS, RawLattice.RAW);
+      if (lattice.containsThis()) {
+        value = lattice.setThis(value, RawLattice.RAW);
       }
       
       /* In the future, parameters should be initialized based on annotations */
@@ -148,8 +184,8 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element[], Ra
     }
 
     @Override
-    protected Element[] transferConstructorCall(
-        final IRNode node, final boolean flag, final Element[] value) {
+    protected Value transferConstructorCall(
+        final IRNode node, final boolean flag, final Value value) {
       if (!lattice.isNormal(value)) return value;
       
       if (flag) {
@@ -161,19 +197,19 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element[], Ra
              * can only appear in a class declaration.
              */
             final IRNode classDecl = VisitUtil.getEnclosingType(node);
-            final Element rcvrState = lattice.getBaseLattice().injectClass(
+            final Element rcvrState = lattice.injectClass(
                 typeEnv.getSuperclass(
                     (IJavaDeclaredType) typeEnv.getMyThisType(classDecl)));
-            return lattice.replaceValue(value, THIS, rcvrState);
+            return lattice.setThis(value, rcvrState);
           } else { // ThisExpression
-            return lattice.replaceValue(value, THIS, RawLattice.NOT_RAW);
+            return lattice.setThis(value, RawLattice.NOT_RAW);
           }
         } else if (AnonClassExpression.prototype.includes(node)) {
           final IRNode superClassDecl =
               binder.getBinding(AnonClassExpression.getType(node));
-          final Element rcvrState= lattice.getBaseLattice().injectClass(
+          final Element rcvrState= lattice.injectClass(
               (IJavaDeclaredType) typeEnv.getMyThisType(superClassDecl));
-          return lattice.replaceValue(value, THIS, rcvrState);
+          return lattice.setThis(value, rcvrState);
         } else if (ImpliedEnumConstantInitialization.prototype.includes(node)
             && EnumConstantClassDeclaration.prototype.includes(tree.getParent(node))) {
           /* The immediately enclosing type is the EnumConstantClassDeclaration
@@ -181,9 +217,9 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element[], Ra
            */
           final IRNode superClassDecl =
               VisitUtil.getEnclosingType(VisitUtil.getEnclosingType(node));
-          final Element rcvrState = lattice.getBaseLattice().injectClass(
+          final Element rcvrState = lattice.injectClass(
               (IJavaDeclaredType) typeEnv.getMyThisType(superClassDecl));
-          return lattice.replaceValue(value, THIS, rcvrState);
+          return lattice.setThis(value, rcvrState);
         } else { // Not sure why it should ever get here
           throw new IllegalStateException(
               "transferConstructorCall() called with a " +
@@ -193,64 +229,6 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element[], Ra
         // exceptional branch: object is not initialized to anything
         return null;
       }
-    }
-    
-    @Override
-    protected Element[] pop(final Element[] value) {
-      if (!lattice.isNormal(value)) return value;
-
-      return value;
-    }
-
-    @Override
-    protected Element[] popAllPending(final Element[] value) {
-      if (!lattice.isNormal(value)) return value;
-      
-      return value;
-//      if (!lattice.isNormal(val)) return val;
-//      if (stackFloorSize == 0) {
-//        return newPair(ImmutableList.<NullInfo>nil(),val.second());
-//      } else {
-//        ImmutableList<NullInfo> newStack = val.first();
-//        while (newStack.size() > stackFloorSize) {
-//          newStack = lattice.getLL().pop(newStack);
-//        }
-//        return newPair(newStack, val.second());
-//      }
-    }
-
-    @Override
-    protected Element[] push(final Element[] value) {
-      if (!lattice.isNormal(value)) return value;
-
-      return value;
-//      return push(val, NullInfo.MAYBENULL);
-    }
-
-//    protected Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> push(Element val, NullInfo ni) {
-//      if (!lattice.isNormal(val)) return val;
-//      return newPair(lattice.getLL().push(val.first(), ni),val.second());
-//    }
-    
-    @Override
-    protected Element[] dup(final Element[] value) {
-      if (!lattice.isNormal(value)) return value;
-
-      return value;
-//      if (!lattice.isNormal(val)) return val;
-//      NullInfo ni = lattice.getLL().peek(val.first());
-//      return push(val,ni);
-    }
-
-    @Override
-    protected Element[] popSecond(final Element[] value) {
-      if (!lattice.isNormal(value)) return value;
-
-      return value;
-//      if (!lattice.isNormal(val)) return val;
-//      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-//      NullInfo ni = ll.peek(val.first());
-//      return newPair(ll.push(ll.pop(ll.pop(val.first())),ni),val.second());
     }
 
 //    @Override
@@ -459,9 +437,9 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element[], Ra
 //    }
     
     @Override
-    protected Element[] transferUseReceiver(
+    protected Value transferUseReceiver(
         final IRNode use, 
-        final Element[] value) {
+        final Value value) {
       if (!lattice.isNormal(value)) return value;
       return value;
 //      if (!lattice.isNormal(val)) return val;
@@ -470,9 +448,9 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element[], Ra
     }
     
     @Override
-    protected Element[] transferUseQualifiedReceiver(
+    protected Value transferUseQualifiedReceiver(
         final IRNode use, final IRNode binding, 
-        final Element[] value) {
+        final Value value) {
       if (!lattice.isNormal(value)) return value;
       // Qualified receiver is never raw, and is not part of the analysis
       return value;
@@ -498,16 +476,15 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element[], Ra
   
   
   
-  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<RawVariables, Element[]> {
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<Lattice, Value> {
     @Override
-    protected JavaForwardAnalysis<Element[], RawVariables> realCreateAnalysis(
+    protected JavaForwardAnalysis<Value, Lattice> realCreateAnalysis(
         final IRNode caller, final IBinder binder,
-        final RawVariables lattice,
-        final Element[] initialValue,
+        final Lattice lattice,
+        final Value initialValue,
         final boolean terminationNormal) {
-//      final int floor = initialValue.first().size();
       final Transfer t = new Transfer(binder, lattice, 0);
-      return new JavaForwardAnalysis<Element[], RawVariables>("sub analysis", lattice, t, DebugUnparser.viewer);
+      return new JavaForwardAnalysis<Value, Lattice>("sub analysis", lattice, t, DebugUnparser.viewer);
     }
   }
 

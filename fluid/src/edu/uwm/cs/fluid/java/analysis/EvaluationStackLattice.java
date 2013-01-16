@@ -55,10 +55,6 @@ implements JavaEvaluationOperations<R, V> {
     return newPair(lattice1.pop(val.first()), val.second());
   }
   
-  // Still don't know here what we should be pushing in general
-  @Override
-  public abstract R push(final R val);
-  
   @Override
   public final R push(final R val, final V v) {
     return newPair(lattice1.push(val.first(), v), val.second());

@@ -20,10 +20,10 @@ public abstract class LatticeDelegatingJavaEvaluationTransfer<L extends Lattice<
     return lattice.pop(val);
   }
   
-  // Leave this abstract because we don't know what to push in general
-  /** Push an unknown element onto the stack. */
   @Override
-  protected abstract T push(T val);
+  protected final T push(final T val) {
+    return push(val, lattice.getAnonymousStackValue());
+  }
 
   /** Push a known element onto the stack. */
   protected final T push(final T val, final V v) {

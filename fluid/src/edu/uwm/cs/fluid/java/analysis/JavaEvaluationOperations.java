@@ -24,8 +24,9 @@ public interface JavaEvaluationOperations<T, V> {
   /** Pop an element from the stack and discard it. */
   public T pop(T val);
   
-  /** Push an unknown element onto the stack. */
-  public T push(T val);
+  /** The value to push on the stack for calls to 
+   * {@link JavaEvaluationTransfer#push}. */
+  public V getAnonymousStackValue();
   
   /** Push a known element onto the stack. */
   public T push(T val, V v);

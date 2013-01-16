@@ -179,8 +179,8 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<
     }
 
     @Override
-    public Value push(final Value val) {
-      return push(val, NullInfo.MAYBENULL);
+    public NullInfo getAnonymousStackValue() {
+      return NullInfo.MAYBENULL;
     }
 
     public Value addNonNull(final Value val, final IRNode var) {
@@ -230,11 +230,6 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<
      * In order to make transfer functions strict, we check at the beginning of
      * each whether we have bottom or not.
      */
-  
-    @Override
-    protected Value push(final Value val) {
-      return push(val, NullInfo.MAYBENULL);
-    }
 
     @Override
     protected Value transferAllocation(final IRNode node, final Value val) {
