@@ -35,8 +35,8 @@ implements JavaEvaluationOperations<R, V> {
   
   
   
-  protected EvaluationStackLattice(final ListLattice<L1, V> l1, final L2 l2) {
-    super(l1, l2);
+  protected EvaluationStackLattice(final L1 l1, final L2 l2) {
+    super(new ListLattice<L1, V>(l1), l2);
   }
 
   
@@ -45,6 +45,7 @@ implements JavaEvaluationOperations<R, V> {
    * Is the value normal?  If not, there has been an analysis error.
    * The value is normal if the stack is valid list.
    */
+  @Override
   public final boolean isNormal(final R val) {
     return lattice1.isList(val.first());
   }
@@ -53,6 +54,10 @@ implements JavaEvaluationOperations<R, V> {
   public final R pop(final R val) {
     return newPair(lattice1.pop(val.first()), val.second());
   }
+  
+  // Still don't know here what we should be pushing in general
+  @Override
+  public abstract R push(final R val);
   
   @Override
   public final R push(final R val, final V v) {

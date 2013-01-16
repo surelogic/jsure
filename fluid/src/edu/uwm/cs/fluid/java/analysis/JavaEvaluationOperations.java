@@ -1,25 +1,33 @@
 package edu.uwm.cs.fluid.java.analysis;
 
 import edu.uwm.cs.fluid.java.control.JavaEvaluationTransfer;
+import edu.uwm.cs.fluid.java.control.LatticeDelegatingJavaEvaluationTransfer;
 
 /**
  * Operations needed for {@link JavaEvaluationTransfer}.  Lattices
  * often need to implement these directly and have the transfer function
- * invoke the method on the lattice.  Should probably retroactively
- * update {@link JavaEvaluationTransfer} to implement this method too, but
- * right now the classes are in the wrong packages for that.  (Also,
- * {@link JavaEvaluationOperations#popAllPending(Object)} has a different
- * signature here to capture the fact that the transfer function has a floor
- * on the stack height to deal with sub analysis issues.)
+ * invoke the method on the lattice.  Analysis implementors can use 
+ * {@link LatticeDelegatingJavaEvaluationTransfer} to directly delegate to
+ * a lattice implementing this interface.
  * 
  * @param <T> The type of the value being pushed around the analysis.
  * @param <V> The type of the value being stored on the stack.
  */
 public interface JavaEvaluationOperations<T, V> {
+  /**
+   * Is the given analysis value "normal"?  If it isn't then transfer
+   * operations should do anything to it, but instead just pass it through
+   * because it represents an analysis error.
+   */
+  public boolean isNormal(T v);
+  
   /** Pop an element from the stack and discard it. */
   public T pop(T val);
   
   /** Push an unknown element onto the stack. */
+  public T push(T val);
+  
+  /** Push a known element onto the stack. */
   public T push(T val, V v);
 
   /** Peek at the top element of the stack. */

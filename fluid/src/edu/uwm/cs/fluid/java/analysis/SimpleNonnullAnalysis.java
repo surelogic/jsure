@@ -26,8 +26,8 @@ import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
-import edu.uwm.cs.fluid.java.control.JavaEvaluationTransfer;
 import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
+import edu.uwm.cs.fluid.java.control.LatticeDelegatingJavaEvaluationTransfer;
 import edu.uwm.cs.fluid.util.*;
 
 
@@ -148,7 +148,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<
       NullLattice, IntersectionLattice<IRNode>,
       Value> { 
     private Lattice() {
-      super(new ListLattice<NullLattice,NullInfo>(NullLattice.getInstance()),
+      super(NullLattice.getInstance(),
           new IntersectionLattice<IRNode>(){
         @Override
         public String toString(ImmutableSet<IRNode> v) {
@@ -177,7 +177,12 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<
     protected Value newPair(final ImmutableList<NullInfo> v1, final ImmutableSet<IRNode> v2) {
       return new Value(v1, v2);
     }
-    
+
+    @Override
+    public Value push(final Value val) {
+      return push(val, NullInfo.MAYBENULL);
+    }
+
     public Value addNonNull(final Value val, final IRNode var) {
       return newPair(val.first(), val.second().addCopy(var));
     }
@@ -193,7 +198,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<
 
   
   
-  private static final class Transfer extends JavaEvaluationTransfer<Lattice, Value> {
+  private static final class Transfer extends LatticeDelegatingJavaEvaluationTransfer<Lattice, Value, NullInfo> {
     private static final NullLattice nullLattice = NullLattice.getInstance();
     private static final SyntaxTreeInterface tree = JJNode.tree; 
     
@@ -225,46 +230,16 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<
      * In order to make transfer functions strict, we check at the beginning of
      * each whether we have bottom or not.
      */
-    
-    @Override
-    protected Value pop(final Value val) {
-      if (!lattice.isNormal(val)) return val;
-      return lattice.pop(val);
-    }
-
-    @Override
-    protected Value popAllPending(final Value val) {
-      if (!lattice.isNormal(val)) return val;
-      return lattice.popAllPending(val, stackFloorSize);
-    }
-
+  
     @Override
     protected Value push(final Value val) {
       return push(val, NullInfo.MAYBENULL);
-    }
-
-    protected Value push(final Value val, final NullInfo ni) {
-      if (!lattice.isNormal(val)) return val;
-      return lattice.push(val, ni);
-    }
-    
-    @Override
-    protected Value dup(final Value val) {
-      if (!lattice.isNormal(val)) return val;
-      return lattice.dup(val);
-    }
-
-    @Override
-    protected Value popSecond(final Value val) {
-      if (!lattice.isNormal(val)) return val;
-      return lattice.popSecond(val);
     }
 
     @Override
     protected Value transferAllocation(final IRNode node, final Value val) {
       return push(val,NullInfo.NOTNULL);
     }
-
 
     @Override
     protected Value transferArrayCreation(final IRNode node, Value val) {
