@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.version;
 
 import java.util.AbstractMap;
 import java.util.AbstractSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -42,6 +43,7 @@ import com.surelogic.Starts;
  * </ul>
  * @see VersionedDerivedInformation
  */
+@Deprecated
 public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
 
   // a VersionedHashMap is rather like a VersionedDerivedInformation instance.
@@ -104,7 +106,7 @@ public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> 
 
   // we also behave as a hash map: here again we define the delegate as a nested
   // class
-  private CustomLinkedHashMap map = new CustomLinkedHashMap();
+  private Map<K, VersionedSlot<V>> map = new HashMap<K, VersionedSlot<V>>();
 
   private final ExplicitSlotFactory factory = VersionedSlotFactory.bidirectional(Version.getVersion());
   
@@ -121,155 +123,157 @@ public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> 
     }
   }
 
-  VersionedEntrySet myEntrySet = new VersionedEntrySet();
-
-  @SuppressWarnings("unchecked") class VersionedEntrySet extends AbstractSet {
-
-    class VersionedIterator extends AbstractIterator {
-      CustomLinkedHashMap.LinkedEntry entry = map.entries;
-
-      Version currentVersion = Version.getVersionLocal();
-
-      CustomLinkedHashMap.LinkedEntry lastEntry = null;
-
-      @SuppressWarnings("unchecked") VersionedIterator() {
-        findNonNullEntry();
-      }
-
-      protected void findNonNullEntry() {
-        while (entry != null) {
-          synchronized (VersionedHashMap.this) {
-            VersionedSlot vs = (VersionedSlot) entry.getValue();
-            if (vs.getValue(currentVersion) != null)
-              break;
-            entry = entry.nextInTable;
-          }
-        }
-      }
-
-      /* (non-Javadoc)
-       * @see java.util.Iterator#remove()
-       */
-      @SuppressWarnings("unchecked")
-      public void remove() {
-        if (lastEntry == null)
-          throw new IllegalStateException("next not called");
-        synchronized (VersionedHashMap.this) {
-          VersionedSlot vs = (VersionedSlot) lastEntry.getValue();
-          lastEntry.setValue(vs.setValue(currentVersion, null));
-        }
-        lastEntry = null;
-      }
-
-      /* (non-Javadoc)
-       * @see java.util.Iterator#hasNext()
-       */
-      public boolean hasNext() {
-        return entry != null;
-      }
-
-      /* (non-Javadoc)
-       * @see java.util.Iterator#next()
-       */
-      public Object next() {
-        if (entry == null)
-          throw new NoSuchElementException("at end of iteration");
-        lastEntry = entry;
-        Object rv = computeNext();
-        entry = entry.nextInTable;
-        findNonNullEntry();
-        return rv;
-      }
-
-      protected Object computeNext() {
-        return new Map.Entry() {
-          final CustomLinkedHashMap.LinkedEntry entry = VersionedIterator.this.entry;
-
-          @Starts("nothing")
-		public Object getKey() {
-            return entry.getKey();
-          }
-
-          @Starts("nothing")
-		public Object getValue() {
-            return ((VersionedSlot) entry.getValue()).getValue();
-          }
-
-          @SuppressWarnings("unchecked")
-          public Object setValue(Object value) {
-            Object oldValue;
-            synchronized (VersionedHashMap.this) {
-              VersionedSlot vs = (VersionedSlot) entry.getValue();
-              oldValue = vs.getValue();
-              entry.setValue(vs.setValue(currentVersion, value));
-            }
-            return oldValue;
-          }
-        };
-      }
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.AbstractCollection#size()
-     */
-    @Starts("nothing")
-	@Override
-    public int size() {
-      ensureDerived();
-      Integer size = sizeSlot.getValue();
-      return size.intValue();
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.AbstractCollection#iterator()
-     */
-    @Starts("nothing")
-	@Override
-    public Iterator iterator() {
-      ensureDerived();
-      synchronized (VersionedHashMap.this) {
-      return new VersionedIterator();
-      }
-    }
-
-  }
-
-  VersionedKeySet myKeySet = new VersionedKeySet();
-
-  class VersionedKeySet extends VersionedEntrySet {
-
-    class VersionedIterator extends VersionedEntrySet.VersionedIterator {
-      @Override
-      protected Object computeNext() {
-        VersionedSlot vs;
-        synchronized (VersionedHashMap.this) {
-          vs = (VersionedSlot) entry.getValue();
-        }
-        return vs.getValue();
-      }
-    }
-
-    @Override
-    public Iterator iterator() {
-      ensureDerived();
-      synchronized (VersionedHashMap.this) {
-      return new VersionedIterator();
-      }
-    }
-  }
+//  VersionedEntrySet myEntrySet = new VersionedEntrySet();
+//
+//  @SuppressWarnings("unchecked") class VersionedEntrySet extends AbstractSet {
+//
+//    class VersionedIterator extends AbstractIterator {
+//      CustomLinkedHashMap.LinkedEntry entry = map.entries;
+//
+//      Version currentVersion = Version.getVersionLocal();
+//
+//      CustomLinkedHashMap.LinkedEntry lastEntry = null;
+//
+//      @SuppressWarnings("unchecked") VersionedIterator() {
+//        findNonNullEntry();
+//      }
+//
+//      protected void findNonNullEntry() {
+//        while (entry != null) {
+//          synchronized (VersionedHashMap.this) {
+//            VersionedSlot vs = (VersionedSlot) entry.getValue();
+//            if (vs.getValue(currentVersion) != null)
+//              break;
+//            entry = entry.nextInTable;
+//          }
+//        }
+//      }
+//
+//      /* (non-Javadoc)
+//       * @see java.util.Iterator#remove()
+//       */
+//      @SuppressWarnings("unchecked")
+//      public void remove() {
+//        if (lastEntry == null)
+//          throw new IllegalStateException("next not called");
+//        synchronized (VersionedHashMap.this) {
+//          VersionedSlot vs = (VersionedSlot) lastEntry.getValue();
+//          lastEntry.setValue(vs.setValue(currentVersion, null));
+//        }
+//        lastEntry = null;
+//      }
+//
+//      /* (non-Javadoc)
+//       * @see java.util.Iterator#hasNext()
+//       */
+//      public boolean hasNext() {
+//        return entry != null;
+//      }
+//
+//      /* (non-Javadoc)
+//       * @see java.util.Iterator#next()
+//       */
+//      public Object next() {
+//        if (entry == null)
+//          throw new NoSuchElementException("at end of iteration");
+//        lastEntry = entry;
+//        Object rv = computeNext();
+//        entry = entry.nextInTable;
+//        findNonNullEntry();
+//        return rv;
+//      }
+//
+//      protected Object computeNext() {
+//        return new Map.Entry() {
+//          final CustomLinkedHashMap.LinkedEntry entry = VersionedIterator.this.entry;
+//
+//          @Starts("nothing")
+//		public Object getKey() {
+//            return entry.getKey();
+//          }
+//
+//          @Starts("nothing")
+//		public Object getValue() {
+//            return ((VersionedSlot) entry.getValue()).getValue();
+//          }
+//
+//          @SuppressWarnings("unchecked")
+//          public Object setValue(Object value) {
+//            Object oldValue;
+//            synchronized (VersionedHashMap.this) {
+//              VersionedSlot vs = (VersionedSlot) entry.getValue();
+//              oldValue = vs.getValue();
+//              entry.setValue(vs.setValue(currentVersion, value));
+//            }
+//            return oldValue;
+//          }
+//        };
+//      }
+//    }
+//
+//    /* (non-Javadoc)
+//     * @see java.util.AbstractCollection#size()
+//     */
+//    @Starts("nothing")
+//	@Override
+//    public int size() {
+//      ensureDerived();
+//      Integer size = sizeSlot.getValue();
+//      return size.intValue();
+//    }
+//
+//    /* (non-Javadoc)
+//     * @see java.util.AbstractCollection#iterator()
+//     */
+//    @Starts("nothing")
+//	@Override
+//    public Iterator iterator() {
+//      ensureDerived();
+//      synchronized (VersionedHashMap.this) {
+//      return new VersionedIterator();
+//      }
+//    }
+//
+//  }
+//
+//  VersionedKeySet myKeySet = new VersionedKeySet();
+//
+//  class VersionedKeySet extends VersionedEntrySet {
+//
+//    class VersionedIterator extends VersionedEntrySet.VersionedIterator {
+//      @Override
+//      protected Object computeNext() {
+//        VersionedSlot vs;
+//        synchronized (VersionedHashMap.this) {
+//          vs = (VersionedSlot) entry.getValue();
+//        }
+//        return vs.getValue();
+//      }
+//    }
+//
+//    @Override
+//    public Iterator iterator() {
+//      ensureDerived();
+//      synchronized (VersionedHashMap.this) {
+//      return new VersionedIterator();
+//      }
+//    }
+//  }
 
   @Starts("nothing")
 @Override
   @SuppressWarnings("unchecked")
   public Set<Map.Entry<K,V>> entrySet() {
-    return myEntrySet;
+	throw new UnsupportedOperationException();
+    //return myEntrySet;
   }
 
   @Starts("nothing")
 @Override
   @SuppressWarnings("unchecked")
   public Set<K> keySet() {
-    return myKeySet;
+	throw new UnsupportedOperationException();	  
+    //return myKeySet;
   }
 
   /** Returns true if we have a non-null mapping for this key.
@@ -330,25 +334,5 @@ public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> 
   @SuppressWarnings("unchecked")
   public V remove(Object key) {
     return put((K) key, null);
-  }
-}
-
-class CustomLinkedHashMap extends CopiedHashMap {
-  LinkedEntry entries = null;
-
-  @Override
-  protected Entry makeEntry(int hash, Object key, Object value, int bucketIndex) {
-    return entries = new LinkedEntry(hash, key, value, table[bucketIndex],
-        entries);
-  }
-
-  static class LinkedEntry extends CopiedHashMap.Entry {
-    protected LinkedEntry nextInTable;
-
-    LinkedEntry(int h, Object k, Object v, Entry n, LinkedEntry nit) {
-      super(h, k, v, n);
-      assert (v instanceof VersionedSlot);
-      nextInTable = nit;
-    }
   }
 }

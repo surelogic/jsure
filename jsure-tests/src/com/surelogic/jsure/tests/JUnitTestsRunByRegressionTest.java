@@ -16,7 +16,6 @@ import edu.cmu.cs.fluid.ir.TestIRPackage;
 import edu.cmu.cs.fluid.java.analysis.TestJavaAnalysisPackage;
 import edu.cmu.cs.fluid.java.bind.TestJavaTypeCache2;
 import edu.cmu.cs.fluid.tree.TestTreePackage;
-import edu.cmu.cs.fluid.util.TestMultiMap;
 import edu.cmu.cs.fluid.version.TestVersionPackage;
 
 public class JUnitTestsRunByRegressionTest extends TestSuite {
@@ -58,7 +57,7 @@ public class JUnitTestsRunByRegressionTest extends TestSuite {
     addTest(new TestSuite(TestTreePackage.class));
 
     // edu.cmu.cd.fluid.util
-    addTest(new TestSuite(TestMultiMap.class));
+    //addTest(new TestSuite(TestMultiMap.class));
 
     // edu.cmu.cs.fluid.version
     addTest(new TestSuite(TestVersionPackage.class));

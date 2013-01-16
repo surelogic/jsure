@@ -35,7 +35,6 @@ Export-Package: com.surelogic.annotation.rules,
  edu.cmu.cs.fluid.mvc.visibility,
  edu.cmu.cs.fluid.test,
  edu.cmu.cs.fluid.tree,
- edu.cmu.cs.fluid.util,
  edu.cmu.cs.fluid.version
 Bundle-ClassPath: .,
  lib/ant.jar,

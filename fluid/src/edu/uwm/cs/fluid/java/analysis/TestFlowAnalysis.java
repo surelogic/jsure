@@ -162,7 +162,7 @@ public abstract class TestFlowAnalysis<T, L extends Lattice<T>, A extends FlowAn
       addCompilationUnitContents(result,vr,"",addedClassesRootNode);
     } else {
       String pString = JJNode.getInfo(packageDeclaration);
-      String[] path = pString.split(".");
+      String[] path = pString.split("\\.");
       addCompilationUnitContents(result,vr,pString+".",getPackageCompNode(path));
     }
     return result;

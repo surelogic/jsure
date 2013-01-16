@@ -7,6 +7,8 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections15.*;
+import org.apache.commons.collections15.multimap.*;
 import org.xml.sax.Attributes;
 
 import com.surelogic.common.FileUtility;
@@ -34,7 +36,15 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
   protected final Map<T, JavaFileStatus<T, P>> resources = new HashMap<T, JavaFileStatus<T, P>>();
   final Map<P, JavaRewrite> canonicalizers = new HashMap<P, JavaRewrite>();
   final Map<P, JavaCanonicalizer> javaCanonicalizers = new HashMap<P, JavaCanonicalizer>();
-  final IMultiMap<P, T> refs = new SetMultiMap<P, T>();
+  final MultiMap<P, T> refs = new MultiHashMap<P, T>() {
+	  @Override
+	  protected Collection<T> createCollection(Collection<? extends T> c) {
+		  if (c == null) {
+			  return new HashSet<T>();
+		  }
+		  return new HashSet<T>(c);
+	  }
+  };
   final SlotHandler slotHandler = new SlotHandler();
   final MemoryHandler memHandler = new MemoryHandler();
   protected boolean okToCanonicalize = false;
@@ -532,12 +542,12 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
   }
 
   public void setProjectReference(P proj, T handle) {
-    refs.map(proj, handle);
+    refs.put(proj, handle);
   }
 
   public P findProject(T id) {
-    for (IMultiMap.Entry<P, T> e : refs.entrySet()) {
-      for (T value : e.getValues()) {
+    for (Map.Entry<P, Collection<T>> e : refs.entrySet()) {
+      for (T value : e.getValue()) {
         if (value.equals(id)) {
           return e.getKey();
         }
