@@ -73,6 +73,7 @@ public class LiveVariableAnalysis extends JavaBackwardAnalysis<ImmutableSet<IRNo
   }
   
   public static class Transfer extends JavaBackwardTransfer<UnionLattice<IRNode>, ImmutableSet<IRNode>> {
+    @Override
     public ImmutableSet<IRNode> transferConditional(IRNode node, boolean flag,
         ImmutableSet<IRNode> after) {
       return after;
@@ -115,6 +116,7 @@ public class LiveVariableAnalysis extends JavaBackwardAnalysis<ImmutableSet<IRNo
      * we can't return the empty set here.  Instead we return a set with
      * one, uninteresting node, in it.
      */
+    @Override
     public ImmutableSet<IRNode> transferComponentSink(IRNode node, boolean normal) {
       LOG.fine("initializing live variables from end");
       return new ImmutableHashOrderSet<IRNode>(new IRNode[]{ignoreMe});

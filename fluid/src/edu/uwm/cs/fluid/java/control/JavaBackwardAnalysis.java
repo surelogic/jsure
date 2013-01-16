@@ -25,6 +25,7 @@ public class JavaBackwardAnalysis<T, L extends Lattice<T>>
    * {@code SAF} needs to the actual type of the flow analysis implementation.
    * 
    */
+  @Override
   public SubAnalysisFactory<L, T> getSubAnalysisFactory() {
     return trans.getSubAnalysisFactory();
   }

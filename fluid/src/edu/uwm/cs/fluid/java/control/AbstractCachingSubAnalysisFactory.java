@@ -30,6 +30,7 @@ public abstract class AbstractCachingSubAnalysisFactory<L extends Lattice<T>, T>
    */
   private final  Map<IRNode, IJavaFlowAnalysis<T, L>> subAnalyses = new HashMap<IRNode, IJavaFlowAnalysis<T, L>>(); 
 
+  @Override
   public final IJavaFlowAnalysis<T, L> createSubAnalysis(
       final IRNode caller, final IBinder binder, final L lattice,
       final T initialValue, final boolean terminationNormal) {
@@ -47,6 +48,7 @@ public abstract class AbstractCachingSubAnalysisFactory<L extends Lattice<T>, T>
    * @param caller The caller to get the already created analysis for.
    * @return The subanalysis object or {@value null} if no subanalysis object has been created for the given caller.
    */
+  @Override
   public final IJavaFlowAnalysis<T, L> getSubAnalysis(final IRNode caller) {
     return subAnalyses.get(caller);
   }

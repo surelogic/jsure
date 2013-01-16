@@ -21,6 +21,7 @@ public abstract class JavaBackwardTransfer<L extends Lattice<T>, T> extends Java
    * Needed for BackwardTransfer.
    * @see BackwardTransfer
    */
+  @Override
   public final boolean testAddLabel(ControlLabel matchLabel,ControlLabel label)
   {
     LabelMatch lm = LabelMatch.compareLabels(matchLabel,label);

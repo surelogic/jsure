@@ -83,7 +83,8 @@ public class StackDepthAnalysis extends JavaForwardAnalysis<Object, FlatLattice>
     /* (non-Javadoc)
      * @see edu.uwm.cs.fluid.control.ForwardTransfer#transferComponentSource(edu.cmu.cs.fluid.ir.IRNode)
      */
-    public Object transferComponentSource(IRNode node) {
+    @Override
+    public Object transferComponentSource(final IRNode node) {
       return 0;
     }
 

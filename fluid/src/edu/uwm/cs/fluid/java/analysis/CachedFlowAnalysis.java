@@ -97,14 +97,17 @@ public abstract class CachedFlowAnalysis<T, L extends Lattice<T>, R extends Cach
       analysis = fa;
     }
     
+    @Override
     public IRNode getProcedure() {
       return procedure;
     }
 
+    @Override
     public T getSlotValue(IRNode node) {
       return getBefore(node);
     }
 
+    @Override
     public boolean valueExists(IRNode node) {
       return true;
     }

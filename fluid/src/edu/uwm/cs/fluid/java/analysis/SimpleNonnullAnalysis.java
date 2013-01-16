@@ -6,7 +6,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
 
@@ -137,19 +136,20 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<
   
 
   
-  public static final class Value extends Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> {
+  public static final class Value extends EvaluationStackLattice.Pair<
+      NullInfo, ImmutableSet<IRNode>> {
     public Value(final ImmutableList<NullInfo> v1, final ImmutableSet<IRNode> v2) {
       super(v1, v2);
     }
   }
   
-  public static final class Lattice extends PairLattice<
-      ImmutableList<NullInfo>,ImmutableSet<IRNode>,
-      ListLattice<NullLattice, NullInfo>, IntersectionLattice<IRNode>,
-      Value> {
+  public static final class Lattice extends EvaluationStackLattice<
+      NullInfo, ImmutableSet<IRNode>,
+      NullLattice, IntersectionLattice<IRNode>,
+      Value> { 
     private Lattice() {
-      super(new ListLattice<NullLattice,NullInfo>(NullLattice.getInstance()), new IntersectionLattice<IRNode>(){
-  
+      super(new ListLattice<NullLattice,NullInfo>(NullLattice.getInstance()),
+          new IntersectionLattice<IRNode>(){
         @Override
         public String toString(ImmutableSet<IRNode> v) {
           StringBuilder sb = new StringBuilder();
@@ -178,45 +178,6 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<
       return new Value(v1, v2);
     }
     
-    public boolean isNormal(Value val) {
-      return lattice1.isList(val.first());
-    }
-    
-    public Value pop(final Value val) {
-      return newPair(lattice1.pop(val.first()), val.second());
-    }
-    
-    public Value popAllPending(final Value val, final int stackFloorSize) {
-      if (stackFloorSize == 0) {
-        return newPair(ImmutableList.<NullInfo>nil(), val.second());
-      } else {
-        ImmutableList<NullInfo> newStack = val.first();
-        while (newStack.size() > stackFloorSize) {
-          newStack = lattice1.pop(newStack);
-        }
-        return newPair(newStack, val.second());
-      }
-    }
-    
-    public Value push(final Value val, final NullInfo ni) {
-      return newPair(lattice1.push(val.first(), ni), val.second());
-    }
-    
-    public Value dup(final Value val) {
-      return push(val, lattice1.peek(val.first()));
-    }
-    
-    public Value popSecond(final Value val) {
-      final NullInfo ni = lattice1.peek(val.first());
-      return newPair(
-          lattice1.push(lattice1.pop(lattice1.pop(val.first())), ni),
-          val.second());
-    }
-    
-    public NullInfo peek(final Value val) {
-      return lattice1.peek(val.first());
-    }
-    
     public Value addNonNull(final Value val, final IRNode var) {
       return newPair(val.first(), val.second().addCopy(var));
     }
@@ -229,68 +190,8 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<
       return val.second().contains(var);
     }
   }
+
   
-//  public static final class Lattice extends PairLattice<ImmutableList<NullInfo>,ImmutableSet<IRNode>> {
-//
-//    private Lattice() {
-//      super(new ListLattice<NullLattice,NullInfo>(NullLattice.getInstance()), new IntersectionLattice<IRNode>(){
-//
-//        @Override
-//        public String toString(ImmutableSet<IRNode> v) {
-//          StringBuilder sb = new StringBuilder();
-//          if (v.isInfinite()) {
-//            sb.append('~');
-//            v = v.invertCopy();
-//          }
-//          sb.append('{');
-//          boolean first = true;
-//          for (IRNode n : v) {
-//            if (first) first = false; else sb.append(',');
-//            try {
-//              sb.append(JJNode.getInfo(n));
-//            } catch (RuntimeException e) {
-//              sb.append(n);
-//            }
-//          }
-//          sb.append('}');
-//          return sb.toString();
-//        }
-//        
-//      });
-//    }
-//    
-//    @SuppressWarnings("unchecked")
-//    public ListLattice<NullLattice,NullInfo> getLL() { 
-//      return (ListLattice<NullLattice, NullInfo>) lattice1; 
-//    }
-//    
-//    @Override
-//    @SuppressWarnings("unused")
-//    public Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> join(
-//        Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> v1,
-//        Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> v2) {
-//      final String s1 = toString(v1);
-//      final String s2 = toString(v2);
-//
-//      Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> join = super.join(v1, v2);
-//      if (isNormal(join)) return join;
-//      if (join.equals(top())) return join;
-//      if (join.equals(bottom())) return join;
-//      System.out.println("Found a non-normal non bottom/top: " + toString(join));
-//      
-//      Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> jj = super.join(v1, v2);
-//      final boolean n = isNormal(jj);
-//      
-//      if (v1.first() == getLL().top()) return top();
-//      else if (v1.first() == getLL().bottom()) return bottom();
-//      System.out.println("Internal assertion error: " + toString(join));
-//      return top();
-//    }
-//    
-//    public boolean isNormal(Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> val) {
-//      return getLL().isList(val.first());
-//    }
-//  }
   
   private static final class Transfer extends JavaEvaluationTransfer<Lattice, Value> {
     private static final NullLattice nullLattice = NullLattice.getInstance();
