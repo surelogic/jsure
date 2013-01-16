@@ -30,7 +30,6 @@ import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaEvaluationTransfer;
 import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
 import edu.uwm.cs.fluid.util.*;
-import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis.NullInfo;
 
 
 /**
@@ -41,13 +40,15 @@ import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis.NullInfo;
  * the initialization of final variables).
  * @author boyland
  */
-public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice, JavaForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice>> implements IBinderClient {
-  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, ImmutableSet<IRNode>, Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice> {
-    public Query(final IThunk<? extends IJavaFlowAnalysis<Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>>, Lattice>> thunk) {
+public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<
+    SimpleNonnullAnalysis.Value, SimpleNonnullAnalysis.Lattice,
+    JavaForwardAnalysis<SimpleNonnullAnalysis.Value, SimpleNonnullAnalysis.Lattice>> implements IBinderClient {
+  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, ImmutableSet<IRNode>, Value, Lattice> {
+    public Query(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
     }
     
-    private Query(final Delegate<Query, ImmutableSet<IRNode>, Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice> d) {
+    private Query(final Delegate<Query, ImmutableSet<IRNode>, Value, Lattice> d) {
       super(d);
     }
 
@@ -59,7 +60,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
 
     
     @Override
-    protected Query newSubAnalysisQuery(final Delegate<Query, ImmutableSet<IRNode>, Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, SimpleNonnullAnalysis.Lattice> d) {
+    protected Query newSubAnalysisQuery(final Delegate<Query, ImmutableSet<IRNode>, Value, Lattice> d) {
       return new Query(d);
     }
 
@@ -67,8 +68,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     
     @Override
     protected ImmutableSet<IRNode> processRawResult(final IRNode expr,
-        final Lattice lattice,
-        final Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> rawResult) {
+        final Lattice lattice, final Value rawResult) {
       return rawResult.second();
     }    
   }
@@ -86,10 +86,10 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
   }
 
   @Override
-  protected JavaForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice> createAnalysis(IRNode flowUnit) {
+  protected JavaForwardAnalysis<Value, Lattice> createAnalysis(IRNode flowUnit) {
     final Lattice l = new Lattice();
     final Transfer t = new Transfer(binder,l, 0);
-    return new JavaForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice>("Java.Nonnull", l, t, DebugUnparser.viewer);
+    return new JavaForwardAnalysis<Value, Lattice>("Java.Nonnull", l, t, DebugUnparser.viewer);
   }
 
   public Query getNonnullBeforeQuery(final IRNode flowUnit) {
@@ -135,15 +135,21 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     
   }
   
-  private static Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> newPair(ImmutableList<NullInfo> o1, ImmutableSet<IRNode> o2) {
-    return new Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>(o1,o2);
+
+  
+  public static final class Value extends Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> {
+    public Value(final ImmutableList<NullInfo> v1, final ImmutableSet<IRNode> v2) {
+      super(v1, v2);
+    }
   }
   
-  public static final class Lattice extends PairLattice<ImmutableList<NullInfo>,ImmutableSet<IRNode>> {
-
+  public static final class Lattice extends PairLattice<
+      ImmutableList<NullInfo>,ImmutableSet<IRNode>,
+      ListLattice<NullLattice, NullInfo>, IntersectionLattice<IRNode>,
+      Value> {
     private Lattice() {
       super(new ListLattice<NullLattice,NullInfo>(NullLattice.getInstance()), new IntersectionLattice<IRNode>(){
-
+  
         @Override
         public String toString(ImmutableSet<IRNode> v) {
           StringBuilder sb = new StringBuilder();
@@ -164,47 +170,130 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
           sb.append('}');
           return sb.toString();
         }
-        
       });
     }
-    
-    @SuppressWarnings("unchecked")
-    public ListLattice<NullLattice,NullInfo> getLL() { 
-      return (ListLattice<NullLattice, NullInfo>) lattice1; 
-    }
-    
-    @Override
-    @SuppressWarnings("unused")
-    public Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> join(
-        Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> v1,
-        Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> v2) {
-      final String s1 = toString(v1);
-      final String s2 = toString(v2);
 
-      Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> join = super.join(v1, v2);
-      if (isNormal(join)) return join;
-      if (join.equals(top())) return join;
-      if (join.equals(bottom())) return join;
-      System.out.println("Found a non-normal non bottom/top: " + toString(join));
-      
-      Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> jj = super.join(v1, v2);
-      final boolean n = isNormal(jj);
-      
-      if (v1.first() == getLL().top()) return top();
-      else if (v1.first() == getLL().bottom()) return bottom();
-      System.out.println("Internal assertion error: " + toString(join));
-      return top();
+    @Override
+    protected Value newPair(final ImmutableList<NullInfo> v1, final ImmutableSet<IRNode> v2) {
+      return new Value(v1, v2);
     }
     
-    public boolean isNormal(Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> val) {
-      return getLL().isList(val.first());
+    public boolean isNormal(Value val) {
+      return lattice1.isList(val.first());
+    }
+    
+    public Value pop(final Value val) {
+      return newPair(lattice1.pop(val.first()), val.second());
+    }
+    
+    public Value popAllPending(final Value val, final int stackFloorSize) {
+      if (stackFloorSize == 0) {
+        return newPair(ImmutableList.<NullInfo>nil(), val.second());
+      } else {
+        ImmutableList<NullInfo> newStack = val.first();
+        while (newStack.size() > stackFloorSize) {
+          newStack = lattice1.pop(newStack);
+        }
+        return newPair(newStack, val.second());
+      }
+    }
+    
+    public Value push(final Value val, final NullInfo ni) {
+      return newPair(lattice1.push(val.first(), ni), val.second());
+    }
+    
+    public Value dup(final Value val) {
+      return push(val, lattice1.peek(val.first()));
+    }
+    
+    public Value popSecond(final Value val) {
+      final NullInfo ni = lattice1.peek(val.first());
+      return newPair(
+          lattice1.push(lattice1.pop(lattice1.pop(val.first())), ni),
+          val.second());
+    }
+    
+    public NullInfo peek(final Value val) {
+      return lattice1.peek(val.first());
+    }
+    
+    public Value addNonNull(final Value val, final IRNode var) {
+      return newPair(val.first(), val.second().addCopy(var));
+    }
+    
+    public Value removeNonNull(final Value val, final IRNode var) {
+      return newPair(val.first(), val.second().removeCopy(var));
+    }
+    
+    public boolean mustBeNonNull(final Value val, final IRNode var) {
+      return val.second().contains(var);
     }
   }
   
-  private static final class Transfer extends JavaEvaluationTransfer<Lattice,Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
-
+//  public static final class Lattice extends PairLattice<ImmutableList<NullInfo>,ImmutableSet<IRNode>> {
+//
+//    private Lattice() {
+//      super(new ListLattice<NullLattice,NullInfo>(NullLattice.getInstance()), new IntersectionLattice<IRNode>(){
+//
+//        @Override
+//        public String toString(ImmutableSet<IRNode> v) {
+//          StringBuilder sb = new StringBuilder();
+//          if (v.isInfinite()) {
+//            sb.append('~');
+//            v = v.invertCopy();
+//          }
+//          sb.append('{');
+//          boolean first = true;
+//          for (IRNode n : v) {
+//            if (first) first = false; else sb.append(',');
+//            try {
+//              sb.append(JJNode.getInfo(n));
+//            } catch (RuntimeException e) {
+//              sb.append(n);
+//            }
+//          }
+//          sb.append('}');
+//          return sb.toString();
+//        }
+//        
+//      });
+//    }
+//    
+//    @SuppressWarnings("unchecked")
+//    public ListLattice<NullLattice,NullInfo> getLL() { 
+//      return (ListLattice<NullLattice, NullInfo>) lattice1; 
+//    }
+//    
+//    @Override
+//    @SuppressWarnings("unused")
+//    public Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> join(
+//        Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> v1,
+//        Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> v2) {
+//      final String s1 = toString(v1);
+//      final String s2 = toString(v2);
+//
+//      Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> join = super.join(v1, v2);
+//      if (isNormal(join)) return join;
+//      if (join.equals(top())) return join;
+//      if (join.equals(bottom())) return join;
+//      System.out.println("Found a non-normal non bottom/top: " + toString(join));
+//      
+//      Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> jj = super.join(v1, v2);
+//      final boolean n = isNormal(jj);
+//      
+//      if (v1.first() == getLL().top()) return top();
+//      else if (v1.first() == getLL().bottom()) return bottom();
+//      System.out.println("Internal assertion error: " + toString(join));
+//      return top();
+//    }
+//    
+//    public boolean isNormal(Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> val) {
+//      return getLL().isList(val.first());
+//    }
+//  }
+  
+  private static final class Transfer extends JavaEvaluationTransfer<Lattice, Value> {
     private static final NullLattice nullLattice = NullLattice.getInstance();
-    
     private static final SyntaxTreeInterface tree = JJNode.tree; 
     
     
@@ -216,7 +305,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
 
     
     @Override
-    public Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferComponentSource(IRNode node) {
+    public Value transferComponentSource(final IRNode node) {
       Set<IRNode> caughtVars = null;
       for (IRNode n : tree.bottomUp(node)) {
         if (tree.getOperator(n) instanceof CatchClause) {
@@ -228,7 +317,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       if (caughtVars != null) {
         initSet = new ImmutableHashOrderSet<IRNode>(caughtVars);
       }
-      return newPair(ImmutableList.<NullInfo>nil(),initSet);
+      return new Value(ImmutableList.<NullInfo>nil(), initSet);
     }
 
     /*
@@ -237,58 +326,47 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
      */
     
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> pop(Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value pop(final Value val) {
       if (!lattice.isNormal(val)) return val;
-      return newPair(lattice.getLL().pop(val.first()),val.second());
+      return lattice.pop(val);
     }
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> popAllPending(Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value popAllPending(final Value val) {
       if (!lattice.isNormal(val)) return val;
-      if (stackFloorSize == 0) {
-        return newPair(ImmutableList.<NullInfo>nil(),val.second());
-      } else {
-        ImmutableList<NullInfo> newStack = val.first();
-        while (newStack.size() > stackFloorSize) {
-          newStack = lattice.getLL().pop(newStack);
-        }
-        return newPair(newStack, val.second());
-      }
+      return lattice.popAllPending(val, stackFloorSize);
     }
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> push(Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value push(final Value val) {
       return push(val, NullInfo.MAYBENULL);
     }
 
-    protected Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> push(Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val, NullInfo ni) {
+    protected Value push(final Value val, final NullInfo ni) {
       if (!lattice.isNormal(val)) return val;
-      return newPair(lattice.getLL().push(val.first(), ni),val.second());
+      return lattice.push(val, ni);
     }
     
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> dup(Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value dup(final Value val) {
       if (!lattice.isNormal(val)) return val;
-      NullInfo ni = lattice.getLL().peek(val.first());
-      return push(val,ni);
+      return lattice.dup(val);
     }
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> popSecond(Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value popSecond(final Value val) {
       if (!lattice.isNormal(val)) return val;
-      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-      NullInfo ni = ll.peek(val.first());
-      return newPair(ll.push(ll.pop(ll.pop(val.first())),ni),val.second());
+      return lattice.popSecond(val);
     }
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferAllocation(IRNode node, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value transferAllocation(final IRNode node, final Value val) {
       return push(val,NullInfo.NOTNULL);
     }
 
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferArrayCreation(IRNode node, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value transferArrayCreation(final IRNode node, Value val) {
       if (!lattice.isNormal(val)) return val;
       if (tree.getOperator(node) instanceof DimExprs) {
         val = pop(val, tree.numChildren(node));
@@ -297,8 +375,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     }
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferAssignVar(IRNode use, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
-//      if (!lattice.isNormal(val)) return val;
+    protected Value transferAssignVar(final IRNode use, final Value val) {
       IRNode var = binder.getIBinding(use).getNode();
       return transferSetVar(var, val);
     }
@@ -309,21 +386,19 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
      * @param val
      * @return
      */
-    @SuppressWarnings("unused")
-    private Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferSetVar(
-        IRNode var, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
-      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-      NullInfo ni = ll.peek(val.first());
+    @SuppressWarnings("unused") // for the "debug" flag
+    private Value transferSetVar(final IRNode var, final Value val) {
+      final NullInfo ni = lattice.peek(val);
       
       if (val.second().contains(var)) { // Variable is coming in as NONNULL
-        if (!nullLattice.lessEq(ni,NullInfo.NOTNULL)) { // Value might be null
-          return newPair(val.first(),val.second().removeCopy(var)); // Now variable might be null
+        if (!nullLattice.lessEq(ni, NullInfo.NOTNULL)) { // Value might be null
+          return lattice.removeNonNull(val, var);
         }
         if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still non null after being assigned " + ni);
         // otherwise, do nothing: not null before, not null afterwards
       } else { // Variable is coming in as possibly null
-        if (nullLattice.lessEq(ni,NullInfo.NOTNULL)) { // Value is not null
-          return newPair(val.first(),val.second().addCopy(var)); // Now the variable is not null
+        if (nullLattice.lessEq(ni, NullInfo.NOTNULL)) { // Value is not null
+          return lattice.addNonNull(val, var);
         }
         if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still maybe null after being assigned " + ni);
         // do nothing : maybe null before, maybe null afterwards
@@ -332,91 +407,96 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
     }
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferBox(IRNode expr, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value transferBox(final IRNode expr, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-      return newPair(ll.push(ll.pop(val.first()),NullInfo.NOTNULL),val.second());
+      return lattice.push(lattice.pop(val), NullInfo.NOTNULL);
     }
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferDefaultInit(IRNode node, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value transferDefaultInit(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      return push(val,NullInfo.NULL);
+      return push(val, NullInfo.NULL);
     }
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferEq(IRNode node, boolean flag, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value transferEq(
+        final IRNode node, final boolean flag, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-      ImmutableList<NullInfo> stack = val.first();
-      ImmutableSet<IRNode> nullVars = val.second();
-      NullInfo ni2 = ll.peek(stack);
-      stack = ll.pop(stack);
-      NullInfo ni1 = ll.peek(stack);
-      stack = ll.pop(stack);
-      stack = ll.push(stack, NullInfo.MAYBENULL);
+
+      Value newValue = val;
+      final NullInfo ni2 = lattice.peek(newValue);
+      newValue = lattice.pop(newValue);
+      final NullInfo ni1 = lattice.peek(newValue);
+      newValue = lattice.pop(newValue);
+      newValue = lattice.push(newValue, NullInfo.MAYBENULL);
+      
       // don't pop the second: we don't care what the top of the stack has for primitives
       // if the condition is impossible, we propagate bottom
-      if (nullLattice.meet(ni1,ni2) == nullLattice.bottom()) {
+      if (nullLattice.meet(ni1, ni2) == nullLattice.bottom()) {
         if (flag) return null; // else fall through to end
       } else
       // if the comparison is guaranteed true, we propagate bottom for false:
-      if (nullLattice.lessEq(ni1,NullInfo.NULL) && nullLattice.lessEq(ni2, NullInfo.NULL)) {
+      if (nullLattice.lessEq(ni1, NullInfo.NULL) && nullLattice.lessEq(ni2, NullInfo.NULL)) {
         if (!flag) return null; // else fall through to end
       } else
       // if we have an *inequality* comparison with null:
       if (!flag) {
-        if (nullLattice.lessEq(ni1,NullInfo.NULL)) {
-          IRNode n = tree.getChild(node, 1); // don't use EqExpression methods because this transfer is called on != also
-          if (tree.getOperator(n) instanceof VariableUseExpression) {
-            IRNode var = binder.getIBinding(n).getNode();
-            nullVars = nullVars.addCopy(var);
+        if (nullLattice.lessEq(ni1, NullInfo.NULL)) {
+          final IRNode n = tree.getChild(node, 1); // don't use EqExpression methods because this transfer is called on != also
+          if (VariableUseExpression.prototype.includes(n)) {
+            final IRNode var = binder.getIBinding(n).getNode();
+            newValue = lattice.addNonNull(newValue, var);
           }
-        } else if (tree.getOperator(tree.getChild(node,1)) instanceof NullLiteral) {
+        } else if (NullLiteral.prototype.includes(tree.getChild(node,1))) {
           // NB: it would be a little more precise if we checked for ni2 being under NULL
           // than what we do here but then we must check for assignments of the variable
           // so that we don't make a wrong conclusion for "x == (x = null)" which, even
           // if false, still leaves x null.  The first branch is is OK because "(x = null) == x"
           // doesn't have the same problem.
-          IRNode n = tree.getChild(node, 0);
-          if (tree.getOperator(n) instanceof VariableUseExpression) {
-            IRNode var = binder.getIBinding(n).getNode();
-            nullVars = nullVars.addCopy(var);
+          final IRNode n = tree.getChild(node, 0);
+          if (VariableUseExpression.prototype.includes(tree.getOperator(n))) {
+            final IRNode var = binder.getIBinding(n).getNode();
+            newValue = lattice.addNonNull(newValue, var);
           }
         }
       }
-      return newPair(stack,nullVars);
+      return newValue;
     }
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferImplicitArrayCreation(IRNode arrayInitializer, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
-      return push(val,NullInfo.NOTNULL);
+    protected Value transferImplicitArrayCreation(
+        final IRNode arrayInitializer, final Value val) {
+      return push(val, NullInfo.NOTNULL);
     }
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferInitializationOfVar(IRNode node, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value transferInitializationOfVar(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      return pop(transferSetVar(node,val));
+      
+      return pop(transferSetVar(node, val));
     }
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferInstanceOf(IRNode node, boolean flag, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value transferInstanceOf(
+        final IRNode node, final boolean flag, final Value val) {
       if (!lattice.isNormal(val)) return val;
+      
       if (!flag) return val;
-      IRNode n = InstanceOfExpression.getValue(node);
-      if (tree.getOperator(n) instanceof VariableUseExpression) {
-        IRNode var = binder.getIBinding(n).getNode();
-        return newPair(val.first(),val.second().addCopy(var));
+      final IRNode n = InstanceOfExpression.getValue(node);
+      if (VariableUseExpression.prototype.includes(n)) {
+        final IRNode var = binder.getIBinding(n).getNode();
+        return lattice.addNonNull(val, var);
       }
       return val;
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings("unused") // for the debug flag
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferIsObject(IRNode n, boolean flag, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value transferIsObject(
+        final IRNode n, final boolean flag, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-      ImmutableList<NullInfo> stack = val.first();
+
+      Value newValue = val;
       // need to find the receiver:
       IRNode p = tree.getParent(n);
       if (tree.getOperator(p) instanceof CallInterface) {
@@ -428,11 +508,11 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
           numArgs = 0;
         }
         while (numArgs > 0) {
-          stack = ll.pop(stack);
+          newValue = lattice.pop(newValue);
           --numArgs;
         }
       }
-      NullInfo ni = ll.peek(stack);
+      final NullInfo ni = lattice.peek(newValue);
       if (flag && nullLattice.lessEq(ni, NullInfo.NULL)) {
         if (debug && LOG.isLoggable(Level.FINE)) LOG.fine("Since we know " + ni + " is null, we can assume " + DebugUnparser.toString(n) + " cannot be dereferenced.");
         return null; // lattice.bottom();
@@ -441,108 +521,102 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
         if (debug && LOG.isLoggable(Level.FINE)) LOG.fine("Since we know " + ni + " is not null, we can assume " + DebugUnparser.toString(n) + " won't throw a NPE.");
         return null; //lattice.bottom();
       }
-      if (flag && tree.getOperator(n) instanceof VariableUseExpression) {
-        IRNode var = binder.getIBinding(n).getNode();
-        return newPair(val.first(),val.second().addCopy(var));
+      if (flag && VariableUseExpression.prototype.includes(n)) {
+        final IRNode var = binder.getIBinding(n).getNode();
+        return lattice.addNonNull(newValue, var);
       }
       return super.transferIsObject(n, flag, val);
     }
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferLiteral(IRNode node, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value transferLiteral(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-      ImmutableList<NullInfo> stack = val.first();
       
-      NullInfo ni;
-      if (tree.getOperator(node) instanceof NullLiteral) {
+      final NullInfo ni;
+      if (NullLiteral.prototype.includes(node)) {
         ni = NullInfo.NULL;
       } else {
         ni = NullInfo.NOTNULL; // all other literals are not null
       }
-      return newPair(ll.push(stack, ni),val.second());
+      return lattice.push(val, ni);
     }
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferToString(IRNode node, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value transferToString(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-      ImmutableList<NullInfo> stack = val.first();
-      if (nullLattice.lessEq(ll.peek(stack),NullInfo.NOTNULL)) return val;
+      
+      if (nullLattice.lessEq(lattice.peek(val), NullInfo.NOTNULL)) return val;
       // otherwise, we can force not null
-      return newPair(ll.push(ll.pop(stack), NullInfo.NOTNULL),val.second());
+      return lattice.push(lattice.pop(val), NullInfo.NOTNULL);
     }
 
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferUseVar(IRNode use, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value transferUseVar(final IRNode use, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-      NullInfo ni;
-      IRNode var = binder.getIBinding(use).getNode();
-      if (val.second().contains(var)) {
+      
+      final NullInfo ni;
+      final IRNode var = binder.getIBinding(use).getNode();
+      if (lattice.mustBeNonNull(val, var)) {
         ni = NullInfo.NOTNULL;
       } else {
         ni = NullInfo.MAYBENULL; // all other literals are not null
       }
-      return newPair(ll.push(val.first(), ni),val.second());
+      return lattice.push(val, ni);
     }
     
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferUseReceiver(
-        final IRNode use, 
-        final Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value transferUseReceiver(final IRNode use, final Value val) {
       if (!lattice.isNormal(val)) return val;
+      
       // Receiver is always non-null
-      return newPair(lattice.getLL().push(val.first(), NullInfo.NOTNULL),val.second());
+      return lattice.push(val, NullInfo.NOTNULL);
     }
     
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferUseQualifiedReceiver(
-        final IRNode use, final IRNode binding, 
-        final Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value transferUseQualifiedReceiver(
+        final IRNode use, final IRNode binding, final Value val) {
       if (!lattice.isNormal(val)) return val;
+      
       // Qualified receiver is always non-null
-      return newPair(lattice.getLL().push(val.first(), NullInfo.NOTNULL),val.second());
+      return lattice.push(val, NullInfo.NOTNULL);
     }
     
     
     @Override
-    protected Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferConcat(
-        IRNode node, Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> val) {
+    protected Value transferConcat(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
+      
       // pop the values of the stack and push a non-null
-      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-      ImmutableList<NullInfo> stack = val.first();
-      stack = ll.pop(stack);
-      stack = ll.pop(stack);
-      stack = ll.push(stack, NullInfo.NOTNULL);
-      return newPair(stack, val.second());
+      Value newValue = lattice.pop(val);
+      newValue = lattice.pop(newValue);
+      newValue = lattice.push(newValue, NullInfo.NOTNULL);
+      return newValue;
     }
   }
   
   
   
-  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<Lattice, Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>> {
+  private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<Lattice, Value> {
     @Override
-    protected JavaForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice> realCreateAnalysis(
+    protected JavaForwardAnalysis<Value, Lattice> realCreateAnalysis(
         final IRNode caller, final IBinder binder,
         final Lattice lattice,
-        final Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>> initialValue,
+        final Value initialValue,
         final boolean terminationNormal) {
       final int floor = initialValue.first().size();
       final Transfer t = new Transfer(binder, lattice, floor);
-      return new JavaForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice>("sub analysis", lattice, t, DebugUnparser.viewer);
+      return new JavaForwardAnalysis<Value, Lattice>("sub analysis", lattice, t, DebugUnparser.viewer);
     }
   }
 
 
   
-  public static final class Test extends TestFlowAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice, JavaForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice>> {
+  public static final class Test extends TestFlowAnalysis<Value, Lattice, JavaForwardAnalysis<Value, Lattice>> {
     @Override
-    protected JavaForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice> createAnalysis(IRNode flowUnit, IBinder binder) {
+    protected JavaForwardAnalysis<Value, Lattice> createAnalysis(IRNode flowUnit, IBinder binder) {
       final Lattice l = new Lattice();
       final Transfer t = new Transfer(binder,l, 0);
-      return new JavaForwardAnalysis<Pair<ImmutableList<NullInfo>,ImmutableSet<IRNode>>, Lattice>("nonnll", l, t, DebugUnparser.viewer);
+      return new JavaForwardAnalysis<Value, Lattice>("nonnll", l, t, DebugUnparser.viewer);
     }
     
     public static void main(String[] args)  {

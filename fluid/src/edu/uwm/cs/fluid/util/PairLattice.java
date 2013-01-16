@@ -1,72 +1,70 @@
-/*$Header: /cvs/fluid/fluid/src/edu/uwm/cs/fluid/util/PairLattice.java,v 1.4 2007/08/22 20:59:03 boyland Exp $*/
 package edu.uwm.cs.fluid.util;
 
 import com.surelogic.common.Pair;
 
 /**
- * A lattice built up as the cartesian product of two lattices.
- * @author boyland
+ * A lattice built up as the Cartesian product of two lattices.
  */
-public class PairLattice<T1, T2> implements Lattice<Pair<T1, T2>> {
-  protected final Lattice<T1> lattice1;
-  protected final Lattice<T2> lattice2;
+public abstract class PairLattice<T1, T2, L1 extends Lattice<T1>, L2 extends Lattice<T2>, V extends Pair<T1, T2>> implements Lattice<V> {
+  protected final L1 lattice1;
+  protected final L2 lattice2;
   
-  public PairLattice(Lattice<T1> l1, Lattice<T2> l2) {
+  public PairLattice(final L1 l1, final L2 l2) {
     lattice1 = l1;
     lattice2 = l2;
   }
   
-  public boolean equals(Pair<T1, T2> v1, Pair<T1, T2> v2) {
-    return lattice1.equals(v1.first(),v2.first()) && lattice2.equals(v1.second(),v2.second());
+  protected abstract V newPair(T1 v1, T2 v2);
+  
+  
+  
+  @Override
+  public final boolean equals(final V v1, final V v2) {
+    return lattice1.equals(v1.first(), v2.first()) 
+        && lattice2.equals(v1.second(), v2.second());
   }
   
-  public int hashCode(Pair<T1, T2> v) {
+  @Override
+  public final int hashCode(final V v) {
     return lattice1.hashCode(v.first()) + lattice2.hashCode(v.second());
   }
-  
-  /* (non-Javadoc)
-   * @see edu.uwm.cs.fluid.util.Lattice#lessEq(E, E)
-   */
-  public boolean lessEq(Pair<T1, T2> v1, Pair<T1, T2> v2) {
-    return lattice1.lessEq(v1.first(),v2.first()) && lattice2.lessEq(v1.second(),v2.second());
+
+  @Override
+  public final boolean lessEq(final V v1, final V v2) {
+    return lattice1.lessEq(v1.first(), v2.first())
+        && lattice2.lessEq(v1.second(), v2.second());
   }
 
-  /* (non-Javadoc)
-   * @see edu.uwm.cs.fluid.util.Lattice#top()
-   */
-  public Pair<T1, T2> top() {
-    return new Pair<T1,T2>(lattice1.top(),lattice2.top());
+  @Override
+  public final V top() {
+    return newPair(lattice1.top(), lattice2.top());
   }
 
-  /* (non-Javadoc)
-   * @see edu.uwm.cs.fluid.util.Lattice#bottom()
-   */
-  public Pair<T1, T2> bottom() {
-    return new Pair<T1,T2>(lattice1.bottom(),lattice2.bottom());
+  @Override
+  public final V bottom() {
+    return newPair(lattice1.bottom(), lattice2.bottom());
   }
 
-  /* (non-Javadoc)
-   * @see edu.uwm.cs.fluid.util.Lattice#join(E, E)
-   */
-  public Pair<T1, T2> join(Pair<T1, T2> v1, Pair<T1, T2> v2) {
-    return new Pair<T1,T2>(lattice1.join(v1.first(),v2.first()),
-                           lattice2.join(v1.second(),v2.second()));
+  @Override
+  public final V join(final V v1, final V v2) {
+    return newPair(lattice1.join(v1.first(), v2.first()),
+        lattice2.join(v1.second(), v2.second()));
   }
 
-  /* (non-Javadoc)
-   * @see edu.uwm.cs.fluid.util.Lattice#meet(E, E)
-   */
-  public Pair<T1, T2> meet(Pair<T1, T2> v1, Pair<T1, T2> v2) {
-    return new Pair<T1,T2>(lattice1.meet(v1.first(),v2.first()),
-                           lattice2.meet(v1.second(),v2.second()));
+  @Override
+  public final V meet(final V v1, final V v2) {
+    return newPair(lattice1.meet(v1.first(), v2.first()),
+        lattice2.meet(v1.second(), v2.second()));
   }
 
-  public Pair<T1, T2> widen(Pair<T1, T2> v1, Pair<T1, T2> v2) {
-    return new Pair<T1,T2>(lattice1.widen(v1.first(),v2.first()),
-                                                   lattice2.widen(v1.second(),v2.second()));
+  @Override
+  public final V widen(final V v1, final V v2) {
+    return newPair(lattice1.widen(v1.first(), v2.first()),
+        lattice2.widen(v1.second(), v2.second()));
   }
 
-  public String toString(Pair<T1,T2> v) {
+  @Override
+  public String toString(final V v) {
     return "<" + lattice1.toString(v.first()) + "," + lattice2.toString(v.second()) + ">";
   }
 }

@@ -111,6 +111,19 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<Element[], Ra
     final Transfer t = new Transfer(binder, rawVars, 0);
     return new JavaForwardAnalysis<RawLattice.Element[], RawVariables>("Raw Types", rawVars, t, DebugUnparser.viewer);
   }
+  
+    
+    
+//  public static final class Lattice extends PairLattice<ImmutableList<Element>, Element[]> {
+//    private Lattice(final List<IRNode> refVars, final RawLattice rawLattice) {
+//      super(new ListLattice<RawLattice, Element>(rawLattice),
+//          RawVariables.create(refVars, rawLattice));
+//    }
+//    
+//    public boolean isNormal(final Pair<ImmutableList<Element>, Element[]> val) {
+//      return false;
+//    }
+//  }
 
 
   
