@@ -15,7 +15,7 @@ import com.surelogic.Borrowed;
  * @author aarong
  */
 public final class NullSet<E> extends NullCollection<E> implements Set<E> {
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   private static final NullSet prototype = new NullSet();
   
   @SuppressWarnings({ "cast", "unchecked" })
@@ -27,19 +27,19 @@ public final class NullSet<E> extends NullCollection<E> implements Set<E> {
     // Nothing to do
   }
   
+  @SuppressWarnings("rawtypes")
   @Borrowed("this")
-@RegionEffects("reads o:Instance, Instance")
-@Starts("nothing")
-@SuppressWarnings("unchecked")
+  @RegionEffects("reads o:Instance, Instance")
+  @Starts("nothing")
   @Override
   public boolean equals(@Borrowed final Object o) {
     return (o == this) || ((o instanceof Set) && (((Set) o).size() == 0));
   }
 
   @Borrowed("this")
-@RegionEffects("reads Instance")
-@Starts("nothing")
-@Override
+  @RegionEffects("reads Instance")
+  @Starts("nothing")
+  @Override
   public final int hashCode() {
     return 0;
   }

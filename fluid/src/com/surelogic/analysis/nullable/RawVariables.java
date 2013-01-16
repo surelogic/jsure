@@ -1,6 +1,7 @@
 package com.surelogic.analysis.nullable;
 
-import com.sun.tools.javac.util.List;
+import java.util.List;
+
 import com.surelogic.analysis.nullable.RawLattice.Element;
 
 import edu.cmu.cs.fluid.ir.IRNode;

@@ -24,7 +24,7 @@ public class NullCollection<E> implements Collection<E> {
   
   
   
-  // Don't complain about unchecked type paramteer and the supposedly useless cast
+  // Don't complain about unchecked type parameter and the supposedly useless cast
   @SuppressWarnings({ "cast", "unchecked" })
   public static <T> NullCollection<T> prototype() {
     return (NullCollection<T>) prototype;
@@ -37,86 +37,99 @@ public class NullCollection<E> implements Collection<E> {
     // Nothing to do
   }
   
+  @Override
   public final boolean add(final E o) {
     return false;
   }
 
+  @Override
   public final boolean addAll(final Collection<? extends E> c) {
     return false;
   }
 
+  @Override
   @Borrowed("this")
-@RegionEffects("writes Instance")
-@Starts("nothing")
-public final void clear() {
+  @RegionEffects("writes Instance")
+  @Starts("nothing")
+  public final void clear() {
     // Nothing to do
   }
 
+  @Override
   @Borrowed("this")
-@RegionEffects("reads o:Instance, Instance")
-@Starts("nothing")
-public final boolean contains(@Borrowed final Object o) {
+  @RegionEffects("reads o:Instance, Instance")
+  @Starts("nothing")
+  public final boolean contains(@Borrowed final Object o) {
     return false;
   }
 
+  @Override
   @Borrowed("this")
-@RegionEffects("reads c:Instance, Instance")
-@Starts("nothing")
-public final boolean containsAll(@Borrowed final Collection<?> c) {
+  @RegionEffects("reads c:Instance, Instance")
+  @Starts("nothing")
+  public final boolean containsAll(@Borrowed final Collection<?> c) {
     return false;
   }
 
+  @Override
   @Borrowed("this")
-@RegionEffects("reads Instance")
-@Starts("nothing")
-public final boolean isEmpty() {
+  @RegionEffects("reads Instance")
+  @Starts("nothing")
+  public final boolean isEmpty() {
     return true;
   }
 
+  @Override
   @Borrowed("this")
-@RegionEffects("writes Instance")
-@Unique("return")
-@Starts("nothing")
-public final Iterator<E> iterator() {
+  @RegionEffects("writes Instance")
+  @Unique("return")
+  @Starts("nothing")
+  public final Iterator<E> iterator() {
     return new EmptyIterator<E>();
   }
 
+  @Override
   @Borrowed("this")
-@RegionEffects("reads o:Instance; writes Instance")
-@Starts("nothing")
-public final boolean remove(@Borrowed final Object o) {
+  @RegionEffects("reads o:Instance; writes Instance")
+  @Starts("nothing")
+  public final boolean remove(@Borrowed final Object o) {
     return false;
   }
 
+  @Override
   @Borrowed("this")
-@RegionEffects("reads c:Instance; writes Instance")
-@Starts("nothing")
-public final boolean removeAll(@Borrowed final Collection<?> c) {
+  @RegionEffects("reads c:Instance; writes Instance")
+  @Starts("nothing")
+  public final boolean removeAll(@Borrowed final Collection<?> c) {
     return false;
   }
 
+  @Override
   @Borrowed("this")
-@RegionEffects("reads c:Instance; writes Instance")
-@Starts("nothing")
-public final boolean retainAll(@Borrowed final Collection<?> c) {
+  @RegionEffects("reads c:Instance; writes Instance")
+  @Starts("nothing")
+  public final boolean retainAll(@Borrowed final Collection<?> c) {
     return false;
   }
 
+  @Override
   @Borrowed("this")
-@RegionEffects("reads Instance")
-@Starts("nothing")
-public final int size() {
+  @RegionEffects("reads Instance")
+  @Starts("nothing")
+  public final int size() {
     return 0;
   }
 
+  @Override
   @Borrowed("this")
-@RegionEffects("reads Instance")
-@Unique("return")
-@Starts("nothing")
-public final Object[] toArray() {
+  @RegionEffects("reads Instance")
+  @Unique("return")
+  @Starts("nothing")
+  public final Object[] toArray() {
     return SLUtility.EMPTY_OBJECT_ARRAY;
   }
 
+  @Override
   public final <T> T[] toArray(final T[] a) {
     if (a.length > 0) a[0] = null;
     return a;

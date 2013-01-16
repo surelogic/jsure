@@ -108,22 +108,27 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
       return instance;
     }
 
+    @Override
     public NullInfo bottom() {
       return NullInfo.IMPOSSIBLE;
     }
 
+    @Override
     public NullInfo join(NullInfo v1, NullInfo v2) {
       return NullInfo.values()[v1.ordinal() | v2.ordinal()];
     }
 
+    @Override
     public boolean lessEq(NullInfo v1, NullInfo v2) {
       return (v1.ordinal() | v2.ordinal()) == v2.ordinal();
     }
 
+    @Override
     public NullInfo meet(NullInfo v1, NullInfo v2) {
       return NullInfo.values()[v1.ordinal() & v2.ordinal()];
     }
 
+    @Override
     public NullInfo top() {
       return NullInfo.MAYBENULL;
     }
@@ -210,6 +215,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
 
 
     
+    @Override
     public Pair<ImmutableList<NullInfo>, ImmutableSet<IRNode>> transferComponentSource(IRNode node) {
       Set<IRNode> caughtVars = null;
       for (IRNode n : tree.bottomUp(node)) {
@@ -547,10 +553,12 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<Pair<Im
 
 
 
+  @Override
   public IBinder getBinder() {
     return binder;
   }
 
+  @Override
   public void clearCaches() {
     clear();
   }

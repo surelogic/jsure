@@ -16,6 +16,7 @@ public class EmptyIterator<T> extends AbstractRemovelessIterator<T> implements L
     super();
   }
 
+  @Override
   @Borrowed("this")
 @RegionEffects("reads Instance")
 public boolean hasNext()
@@ -23,6 +24,7 @@ public boolean hasNext()
     return false;
   }
 
+  @Override
   @Borrowed("this")
 @RegionEffects("writes Instance")
 public T next()
@@ -30,34 +32,40 @@ public T next()
     throw new NoSuchElementException( "Iterator complete." );
   }
   
+  @Override
   @Borrowed("this")
 @RegionEffects("reads Instance")
 public boolean hasPrevious() {
     return false;
   }
 
+  @Override
   @Borrowed("this")
 @RegionEffects("writes Instance")
 public T previous() {
     throw new NoSuchElementException( "Iterator complete." );
   }
 
+  @Override
   @Borrowed("this")
 @RegionEffects("reads Instance")
 public int nextIndex() {
     return -1;
   }
 
+  @Override
   @Borrowed("this")
 @RegionEffects("reads Instance")
 public int previousIndex() {
     return -1;
   }
 
+  @Override
   public void set(final T arg0) {
     throw new UnsupportedOperationException( "set() not supported" );
   }
 
+  @Override
   public void add(final T arg0) {
     throw new UnsupportedOperationException( "add() not supported" );
   }  
