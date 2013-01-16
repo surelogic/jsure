@@ -43,6 +43,7 @@ public class ListLattice<L extends Lattice<T>, T> extends AbstractLattice<Immuta
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.util.Lattice#lessEq(E, E)
    */
+  @Override
   public boolean lessEq(ImmutableList<T> v1, ImmutableList<T> v2) {
     if (v1 == bottom || v2 == top || v1 == v2) return true;
     if (v1 == top || v2 == bottom) return false;
@@ -57,6 +58,7 @@ public class ListLattice<L extends Lattice<T>, T> extends AbstractLattice<Immuta
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.util.Lattice#top()
    */
+  @Override
   public ImmutableList<T> top() {
     return top;
   }
@@ -64,6 +66,7 @@ public class ListLattice<L extends Lattice<T>, T> extends AbstractLattice<Immuta
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.util.Lattice#bottom()
    */
+  @Override
   public ImmutableList<T> bottom() {
     return bottom;
   }
@@ -71,6 +74,7 @@ public class ListLattice<L extends Lattice<T>, T> extends AbstractLattice<Immuta
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.util.Lattice#join(E, E)
    */
+  @Override
   public ImmutableList<T> join(ImmutableList<T> v1, ImmutableList<T> v2) {
     if (v1 == bottom || v2 == top) return v2;
     if (v1 == top || v2 == bottom) return v1;
@@ -89,6 +93,7 @@ public class ListLattice<L extends Lattice<T>, T> extends AbstractLattice<Immuta
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.util.Lattice#meet(E, E)
    */
+  @Override
   public ImmutableList<T> meet(ImmutableList<T> v1, ImmutableList<T> v2) {
     if (v1 == bottom || v2 == top) return v1;
     if (v1 == top || v2 == bottom) return v2;

@@ -36,6 +36,7 @@ public abstract class TripleLattice<T1, T2, T3, V extends Triple<T1, T2, T3>,
   
   
   
+  @Override
   public final boolean equals(
       final V v1, final V v2) {
     return lattice1.equals(v1.first(), v2.first()) &&
@@ -43,26 +44,31 @@ public abstract class TripleLattice<T1, T2, T3, V extends Triple<T1, T2, T3>,
       lattice3.equals(v1.third(), v2.third());
   }
   
+  @Override
   public final int hashCode(final V v) {
     return lattice1.hashCode(v.first()) +
       lattice2.hashCode(v.second()) +
       lattice3.hashCode(v.third());
   }
   
+  @Override
   public final boolean lessEq(V v1, V v2) {
     return lattice1.lessEq(v1.first(), v2.first()) &&
     lattice2.lessEq(v1.second(), v2.second()) &&
     lattice3.lessEq(v1.third(), v2.third());
   }
 
+  @Override
   public final V top() {
     return top;
   }
 
+  @Override
   public final V bottom() {
     return bottom;
   }
 
+  @Override
   public V join(final V v1, final V v2) {
     return newTriple(
         lattice1.join(v1.first(), v2.first()),
@@ -70,6 +76,7 @@ public abstract class TripleLattice<T1, T2, T3, V extends Triple<T1, T2, T3>,
         lattice3.join(v1.third(), v2.third()));
   }
 
+  @Override
   public V meet(final V v1, final V v2) {
     return newTriple(
         lattice1.meet(v1.first(),v2.first()),
@@ -77,6 +84,7 @@ public abstract class TripleLattice<T1, T2, T3, V extends Triple<T1, T2, T3>,
         lattice3.meet(v1.third(), v2.third()));
   }
 
+  @Override
   public V widen(final V v1, final V v2) {
     return newTriple(
         lattice1.widen(v1.first(), v2.first()),
@@ -84,6 +92,7 @@ public abstract class TripleLattice<T1, T2, T3, V extends Triple<T1, T2, T3>,
         lattice3.widen(v1.third(), v2.third()));
   }
 
+  @Override
   public String toString(final V v) {
     return "<" + lattice1.toString(v.first()) + "," + 
       lattice2.toString(v.second()) + "," +
