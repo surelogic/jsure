@@ -427,7 +427,8 @@ public class TypeUtil implements JavaGlobals {
     if (cu == null) {
     	Operator op = JJNode.tree.getOperator(n);
     	LOG.warning("Couldn't find CU for "+n+" -- "+op);
-    	LOG.warning("Unparse: "+DebugUnparser.toString(n));    	
+    	LOG.warning("Unparse: "+DebugUnparser.toString(n));    
+    	throw new IllegalStateException();
     }
     return JavaNode.getModifier(cu, JavaNode.AS_BINARY);
   }

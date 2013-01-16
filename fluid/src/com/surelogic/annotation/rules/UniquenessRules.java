@@ -111,7 +111,7 @@ public class UniquenessRules extends AnnotationRules {
         throw new UnsupportedOperationException();
       }
     } else {
-      uniqueRule.getStorage().add(vdecl, new UniquePromiseDrop(null));
+      uniqueRule.getStorage().add(vdecl, new UniquePromiseDrop(new UniqueNode(0, false)));
     }
   }
   
@@ -123,8 +123,8 @@ public class UniquenessRules extends AnnotationRules {
       if (isBorrowed(vdecl)) {
         throw new UnsupportedOperationException();
       }
-    } else {
-      borrowedRule.getStorage().add(vdecl, new BorrowedPromiseDrop(null));
+    } else {    	
+      borrowedRule.getStorage().add(vdecl, new BorrowedPromiseDrop(new BorrowedNode(0, false)));
     }
   }
   

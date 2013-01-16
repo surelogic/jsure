@@ -64,6 +64,11 @@ public class JarEntry extends AbstractClassPathEntry {
 	}
 	
 	@Override
+	public int hashCode() {
+		return getPath().hashCode();
+	}
+	
+	@Override
 	public String toString() {
 		return path.getAbsolutePath();
 	}

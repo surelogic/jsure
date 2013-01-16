@@ -146,7 +146,7 @@ public final class JavaIdentifier {
 			proj = JavaProjects.getProject(cu);
 
 			if (proj == null) {
-				System.out.println("No project found for "+JJNode.tree.getOperator(decl).name()+" : "+DebugUnparser.toString(decl));
+				throw new IllegalStateException("No project found for "+JJNode.tree.getOperator(decl).name()+" : "+DebugUnparser.toString(decl));
 			}
 		}
 		final IBinder b = proj.getTypeEnv().getBinder();
