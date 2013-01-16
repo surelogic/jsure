@@ -2074,7 +2074,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
               continue checkType;
             }
             // a full match!
-            if (!overs.contains(mdecl)) {
+            if (!contains(overs, mdecl)) {
               overs.add(IBinding.Util.makeBinding(mdecl,jt, getTypeEnvironment())); // FIX
             }
             // whether or not already in, we stop looking
@@ -2086,6 +2086,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       return null;
     } 
+    
+    private boolean contains(List<IBinding> overs, IRNode mdecl) {
+    	for(IBinding b : overs) {
+    		if (b.getNode().equals(mdecl)) {
+    			return true;
+    		}
+    	}
+    	return false;
+    }
     
     @Override
     public Void visitNameType(IRNode node) {

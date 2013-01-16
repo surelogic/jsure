@@ -246,7 +246,7 @@ public final class TypeAnnotationTester {
     final ProofDrop drop = typeTester.testTypeDeclaration(typeDecl);
     if (drop != null) {
       trusts.add(drop);
-      final ResultFolderDrop annoBounds = annoBoundsFolders.get(type);
+      final ResultFolderDrop annoBounds = annoBoundsFolders.get(typeDecl);
       if (annoBounds != null) {
         trusts.add(annoBounds);
       }
