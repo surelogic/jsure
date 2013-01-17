@@ -1079,12 +1079,7 @@ public class TaskManager extends ThreadPoolExecutor {
 		public void uncaughtException(Thread t, Throwable e) {
 			// Error is the only case that afterExecute will not be run
 			if (e instanceof Error) {
-				afterExecute(new Runnable() {
-					@Override
-					public void run() {
-						// Does nothing
-					}					
-				}, e);
+				afterExecute(null, e);
 			}
 		}
 	}
