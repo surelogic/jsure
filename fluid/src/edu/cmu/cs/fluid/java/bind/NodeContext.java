@@ -18,27 +18,50 @@ public class NodeContext {
 	Operator op;
 	IRNode parent;
 	Operator pop;
-	IRNode gparent;
-	Operator gop;
+	//IRNode gparent;
+	//Operator gop;
 	
-	NodeContext(IRNode n) {
-		node = n;
-		op = JJNode.tree.getOperator(n);
+	NodeContext() {
+		this(null);
 	}
 	
-	void reset(IRNode n) {
+	NodeContext(final IRNode n) {
+		node = n;
+		if (n != null) {
+			op = JJNode.tree.getOperator(n);
+		}
+	}
+	
+	NodeContext reset(final IRNode n) {
 		node = n;
 		op = JJNode.tree.getOperator(n);
-		parent = gparent = null;
-		pop = gop = null;
+		parent = /*gparent =*/ null;
+		pop = /*gop =*/ null;
+		return this;
+	}
+	
+	void initParent() {
+		if (parent != null) {
+			return;
+		}
+		parent = JJNode.tree.getParentOrNull(node);
+		if (parent != null) {
+			pop = JJNode.tree.getOperator(parent);
+		} else {
+			pop = null;
+		}
 	}
 	
 	void moveToParent() {
 		node = parent;
 		op = pop;
+		parent = null;
+		pop = null;
+		/*
 		parent = gparent;
 		pop = gop;
 		gparent = null;
 		gop = null;
+		*/
 	}
 }
