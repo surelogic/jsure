@@ -556,7 +556,9 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       int mods = adaptModifiers(node.getModifiers());
       IRNode annos = adaptAnnotations(node.getModifiers(), context);
       IRNode type = adaptType(node.getType(), context);
-      IRNode init = adaptExpr(node.getInitializer(), context);
+
+      final ExpressionTree initializer = node.getInitializer();
+      IRNode init = adaptExpr(initializer, context);
       if (init == null) {
         init = NoInitialization.prototype.jjtCreate();
       } else {
@@ -565,7 +567,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       String id = node.getName().toString();
       id = CommonStrings.intern(id);
       IRNode vd = VariableDeclarator.createNode(id, 0, init);
-      addJavaRefAndCheckForJavadocAnnotations(node.getInitializer(), vd);
+      addJavaRefAndCheckForJavadocAnnotations(initializer == null ? node : initializer, vd);
 
       IRNode[] vars = new IRNode[] { vd };
       IRNode vdecls = VariableDeclarators.createNode(vars);
