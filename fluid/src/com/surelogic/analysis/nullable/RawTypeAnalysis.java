@@ -87,6 +87,35 @@ implements IBinderClient {
   
   
   
+  public final class InferredRawQuery extends SimplifiedJavaFlowAnalysisQuery<InferredRawQuery, Pair<RawVariables, Element[]>, Value, Lattice> {
+    public InferredRawQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
+      super(thunk);
+    }
+    
+    private InferredRawQuery(final Delegate<InferredRawQuery, Pair<RawVariables, Element[]>, Value, Lattice> d) {
+      super(d);
+    }
+    
+    @Override
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.NORMAL_EXIT;
+    }
+
+    @Override
+    protected Pair<RawVariables, Element[]> processRawResult(
+        final IRNode expr, final Lattice lattice, final Value rawResult) {
+      return new Pair<RawVariables, Element[]>(
+          lattice.getInferredLattice(), rawResult.second().second());
+    }
+
+    @Override
+    protected InferredRawQuery newSubAnalysisQuery(final Delegate<InferredRawQuery, Pair<RawVariables, Element[]>, Value, Lattice> d) {
+      return new InferredRawQuery(d);
+    }
+  }
+  
+  
+  
   public final class DebugQuery extends SimplifiedJavaFlowAnalysisQuery<DebugQuery, String, Value, Lattice> {
     public DebugQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
@@ -187,6 +216,10 @@ implements IBinderClient {
       super(l1, l2);
     }
 
+    public RawVariables getInferredLattice() {
+      return lattice2;
+    }
+    
     @Override
     protected State newPair(final Element[] v1, final Element[] v2) {
       return new State(v1, v2);
@@ -199,7 +232,7 @@ implements IBinderClient {
     
     
     public int getNumVariables() {
-      return lattice1.getSize();
+      return lattice1.getNumVariables();
     }
     
     public IRNode getVariable(final int i) {
@@ -211,7 +244,7 @@ implements IBinderClient {
     }
     
     public Element injectPromiseDrop(final RawPromiseDrop pd) {
-      return lattice1.injectPromiseDrop(pd);
+      return lattice1.getBaseLattice().injectPromiseDrop(pd);
     }
     
     public boolean containsThis() {
@@ -262,6 +295,10 @@ implements IBinderClient {
       super(l1, l2);
     }
 
+    public RawVariables getInferredLattice() {
+      return lattice2.getInferredLattice();
+    }
+    
     @Override
     protected Value newPair(final ImmutableList<Element> v1, final State v2) {
       return new Value(v1, v2);
@@ -518,7 +555,6 @@ implements IBinderClient {
       } else {
         return lattice.push(val, RawLattice.NOT_RAW);
       }
-
     }
   }
   
@@ -552,6 +588,10 @@ implements IBinderClient {
 
   public Query getRawTypeQuery(final IRNode flowUnit) {
     return new Query(getAnalysisThunk(flowUnit));
+  }
+  
+  public InferredRawQuery getInferredRawQuery(final IRNode flowUnit) {
+    return new InferredRawQuery(getAnalysisThunk(flowUnit));
   }
   
   public DebugQuery getDebugQuery(final IRNode flowUnit) {

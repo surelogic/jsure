@@ -3,7 +3,6 @@ package com.surelogic.analysis.nullable;
 import java.util.List;
 
 import com.surelogic.analysis.nullable.RawLattice.Element;
-import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -42,6 +41,11 @@ public final class RawVariables extends AssociativeArrayLattice<IRNode, RawLatti
     return new RawVariables(modifiedKeys, lattice);
   }
   
+  public final int getNumVariables() {
+    // Last element is bogus, so ignore it
+    return size - 1;
+  }
+  
   @Override
   protected boolean indexEquals(final IRNode field1, final IRNode field2) {
     return field1.equals(field2);
@@ -71,11 +75,5 @@ public final class RawVariables extends AssociativeArrayLattice<IRNode, RawLatti
         sb.append(VariableDeclarator.getId(index));
       }
     }
-  }
-  
-  
-  
-  public Element injectPromiseDrop(final RawPromiseDrop pd) {
-    return baseLattice.injectPromiseDrop(pd);
   }
 }

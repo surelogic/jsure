@@ -25,7 +25,7 @@ public final class NullableModule extends AbstractWholeIRAnalysis<DefinitelyAssi
   
   
   public NullableModule() {
-    super("Definitely Assigned");
+    super("Nullable");
   }
 
   @Override
