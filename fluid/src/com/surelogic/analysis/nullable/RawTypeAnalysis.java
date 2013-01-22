@@ -8,6 +8,7 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.nullable.RawLattice.Element;
 import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.common.Pair;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 import com.surelogic.util.IThunk;
 import com.surelogic.util.NullList;
@@ -41,6 +42,7 @@ import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
 import edu.uwm.cs.fluid.java.control.LatticeDelegatingJavaEvaluationTransfer;
 import edu.uwm.cs.fluid.java.analysis.EvaluationStackLattice;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
+import edu.uwm.cs.fluid.util.PairLattice;
 
 
 /**
@@ -74,7 +76,7 @@ implements IBinderClient {
     @Override
     protected Element[] processRawResult(
         final IRNode expr, final Lattice lattice, final Value rawResult) {
-      return rawResult.second();
+      return rawResult.second().first();
     }
 
     @Override
@@ -131,27 +133,48 @@ implements IBinderClient {
         (MethodDeclaration.prototype.includes(flowUnitOp) && !TypeUtil.isStatic(flowUnit))) {
       refVars.add(JavaPromise.getReceiverNode(flowUnit));
     }
+    // Add all reference-typed variables in scope
     LocalVariableDeclarations.separateDeclarations(
         binder, lvd.getLocal(), refVars, NullList.<IRNode>prototype());
     LocalVariableDeclarations.separateDeclarations(
         binder, lvd.getExternal(), refVars, NullList.<IRNode>prototype());
+    
+    // Get the local variables that are annotated with @Raw
+    // N.B. Non-ref types variables cannot be @Raw, so we don't have to test for them
+    final List<IRNode> inferred = new ArrayList<IRNode>(lvd.getLocal().size());
+    for (final IRNode v : lvd.getLocal()) {
+      if (!ParameterDeclaration.prototype.includes(v)) {
+        if (NonNullRules.getRaw(v) != null) inferred.add(v);
+      }
+    }
+    
     final RawLattice rawLattice = new RawLattice(binder.getTypeEnvironment());
     final RawVariables rawVariables = RawVariables.create(refVars, rawLattice);
-    final Lattice lattice = new Lattice(rawLattice, rawVariables);
+    final RawVariables inferredLattice = RawVariables.create(inferred, rawLattice);
+    final StateLattice stateLattice = new StateLattice(rawVariables, inferredLattice);
+    final Lattice lattice = new Lattice(rawLattice, stateLattice);
     final Transfer t = new Transfer(binder, lattice, 0);
     return new JavaForwardAnalysis<Value, Lattice>("Raw Types", lattice, t, DebugUnparser.viewer);
   }
   
     
 
-  public static final class Value extends EvaluationStackLattice.Pair<Element, Element[]> {
-    public Value(final ImmutableList<Element> v1, final Element[] v2) {
-      super(v1, v2);
+  /* The analysis state is two associate lists.  The first is a map from all
+   * the reference-valued variables in scope to the current raw state of the
+   * variable.  The second is a map from all the annotated local variable 
+   * declarations (not including parameter declarations) to the inferred
+   * annotation for the variable.  This is used to check against any actual 
+   * annotation on the variable, which must be greater than the inferred
+   * annotation.
+   */
+  private static final class State extends Pair<Element[], Element[]> {
+    public State(final Element[] vars, final Element[] inferred) {
+      super(vars, inferred);
     }
   }
   
-  public static final class Lattice extends EvaluationStackLattice<
-      Element, Element[], RawLattice, RawVariables, Value> {
+  private static final class StateLattice extends PairLattice<
+      Element[], Element[], RawVariables, RawVariables, State> {
     /**
      * When present, the receiver is always the first element in the associative
      * array.
@@ -159,13 +182,88 @@ implements IBinderClient {
     private static final int THIS = 0;
 
     
-    
-    protected Lattice(final RawLattice l1, final RawVariables l2) {
+       
+    public StateLattice(final RawVariables l1, final RawVariables l2) {
       super(l1, l2);
     }
 
     @Override
-    protected Value newPair(final ImmutableList<Element> v1, final Element[] v2) {
+    protected State newPair(final Element[] v1, final Element[] v2) {
+      return new State(v1, v2);
+    }
+    
+    public State getEmptyValue() {
+      return new State(lattice1.getEmptyValue(), lattice2.getEmptyValue());
+    }
+    
+    
+    
+    public int getNumVariables() {
+      return lattice1.getSize();
+    }
+    
+    public IRNode getVariable(final int i) {
+      return lattice1.getKey(i);
+    }
+    
+    public Element injectClass(final IJavaDeclaredType t) {
+      return lattice1.getBaseLattice().injectClass(t);
+    }
+    
+    public Element injectPromiseDrop(final RawPromiseDrop pd) {
+      return lattice1.injectPromiseDrop(pd);
+    }
+    
+    public boolean containsThis() {
+      return ReceiverDeclaration.prototype.includes(lattice1.getKey(THIS));
+    }
+    
+    public State setThis(final State v, final Element e) {
+      return newPair(lattice1.replaceValue(v.first(), THIS, e), v.second()); 
+    }
+    
+    public Element getThis(final State v) {
+      return v.first()[THIS];
+    }
+    
+    public int indexOf(final IRNode var) {
+      return lattice1.indexOf(var);
+    }
+    
+    public State setVar(final State v, final int idx, final Element e) {
+      return newPair(lattice1.replaceValue(v.first(), idx, e), v.second());
+    }
+    
+    public Element getVar(final State v, final int idx) {
+      return v.first()[idx];
+    }
+    
+    public int indexOfInferred(final IRNode var) {
+      return lattice2.indexOf(var);
+    }
+    
+    public State inferVar(final State v, final int idx, final Element e) {
+      final Element current = v.second()[idx];
+      final Element joined = lattice2.getBaseLattice().join(current, e);
+      return newPair(v.first(), lattice2.replaceValue(v.second(), idx, joined));
+      
+    }
+  }
+  
+  public static final class Value extends EvaluationStackLattice.Pair<Element, State> {
+    public Value(final ImmutableList<Element> v1, final State v2) {
+      super(v1, v2);
+    }
+  }
+  
+  public static final class Lattice extends EvaluationStackLattice<
+      Element, State, RawLattice, StateLattice, Value> {
+    protected Lattice(final RawLattice l1, final StateLattice l2) {
+      super(l1, l2);
+    }
+
+    @Override
+    protected Value newPair(final ImmutableList<Element> v1, final State v2) {
       return new Value(v1, v2);
     }
 
@@ -177,11 +275,11 @@ implements IBinderClient {
     
     
     public int getNumVariables() {
-      return lattice2.getSize();
+      return lattice2.getNumVariables();
     }
     
     public IRNode getVariable(final int i) {
-      return lattice2.getKey(i);
+      return lattice2.getVariable(i);
     }
     
     public Value getEmptyValue() {
@@ -189,7 +287,7 @@ implements IBinderClient {
     }
     
     public Element injectClass(final IJavaDeclaredType t) {
-      return lattice2.getBaseLattice().injectClass(t);
+      return lattice2.injectClass(t);
     }
     
     public Element injectPromiseDrop(final RawPromiseDrop pd) {
@@ -197,15 +295,15 @@ implements IBinderClient {
     }
     
     public boolean containsThis() {
-      return ReceiverDeclaration.prototype.includes(lattice2.getKey(THIS));
+      return lattice2.containsThis();
     }
     
     public Value setThis(final Value v, final Element e) {
-      return newPair(v.first(), lattice2.replaceValue(v.second(), THIS, e)); 
+      return newPair(v.first(), lattice2.setThis(v.second(), e)); 
     }
     
     public Element getThis(final Value v) {
-      return v.second()[THIS];
+      return lattice2.getThis(v.second());
     }
     
     public int indexOf(final IRNode var) {
@@ -213,11 +311,19 @@ implements IBinderClient {
     }
     
     public Value setVar(final Value v, final int idx, final Element e) {
-      return newPair(v.first(), lattice2.replaceValue(v.second(), idx, e));
+      return newPair(v.first(), lattice2.setVar(v.second(), idx, e));
     }
     
     public Element getVar(final Value v, final int idx) {
-      return v.second()[idx];
+      return lattice2.getVar(v.second(), idx);
+    }
+    
+    public int indexOfInferred(final IRNode var) {
+      return lattice2.indexOfInferred(var);
+    }
+    
+    public Value inferVar(final Value v, final int idx, final Element e) {
+      return newPair(v.first(), lattice2.inferVar(v.second(), idx, e));
     }
   }
 
@@ -308,10 +414,16 @@ implements IBinderClient {
       return setVar(binder.getIBinding(use).getNode(), val);
     }
 
-    private Value setVar(final IRNode var, final Value val) {
-      final int idx = lattice.indexOf(var);
+    private Value setVar(final IRNode varDecl, final Value val) {
+      final int idx = lattice.indexOf(varDecl);
       if (idx != -1) {
-        return lattice.setVar(val, idx, lattice.peek(val));
+        final Element rawState = lattice.peek(val);
+        Value newValue = lattice.setVar(val, idx, rawState);
+        final int inferredIdx = lattice.indexOfInferred(varDecl);
+        if (inferredIdx != -1) {
+          newValue = lattice.inferVar(newValue, inferredIdx, rawState);
+        }
+        return newValue;
       } else {
         return val;
       }

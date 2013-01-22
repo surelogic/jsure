@@ -18,6 +18,7 @@ public abstract class CachingLattice<E> extends AbstractLattice<E> {
     return prev.value;
   }
 
+  @Override
   public final E top() {
     if (topElement == null) {
       topElement = cache(computeTop());
@@ -25,6 +26,7 @@ public abstract class CachingLattice<E> extends AbstractLattice<E> {
     return topElement;
   }
 
+  @Override
   public final E bottom() {
     if (bottomElement == null) {
       bottomElement = cache(computeBottom());
@@ -32,6 +34,7 @@ public abstract class CachingLattice<E> extends AbstractLattice<E> {
     return bottomElement;
   }
 
+  @Override
   public final E join(E v1, E v2) {
     if (v1 == bottomElement) return v2;
     if (v2 == bottomElement) return v1;
@@ -41,6 +44,7 @@ public abstract class CachingLattice<E> extends AbstractLattice<E> {
     return cache(computeJoin(v1,v2));
   }
 
+  @Override
   public final E meet(E v1, E v2) {
     if (v1 == topElement) return v2;
     if (v2 == topElement) return v1;
