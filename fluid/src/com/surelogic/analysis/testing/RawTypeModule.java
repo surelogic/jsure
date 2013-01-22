@@ -5,13 +5,12 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.Unused;
-import com.surelogic.analysis.nullable.RawLattice;
 import com.surelogic.analysis.nullable.RawTypeAnalysis;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.DebugQuery;
+import com.surelogic.analysis.nullable.RawTypeAnalysis.Inferred;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.InferredRawQuery;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.Query;
 import com.surelogic.analysis.nullable.RawLattice.Element;
-import com.surelogic.analysis.nullable.RawVariables;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.Pair;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -122,16 +121,13 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
     public Void visitMethodBody(final IRNode b) {
       doAcceptForChildren(b);
 
-      final Pair<RawVariables, Element[]> inferredPair =
-          currentQuery().second().getResultFor(b);
-      final RawVariables rv = inferredPair.first();
-      final RawLattice rawLattice = rv.getBaseLattice();
-      for (int i = 0; i < rv.getNumVariables(); i++) {
-        final IRNode varDecl = rv.getKey(i);
+      final Inferred inferredResult = currentQuery().second().getResultFor(b);
+      for (final Pair<IRNode, Element> p : inferredResult) {
+        final IRNode varDecl = p.first();
         final RawPromiseDrop pd = NonNullRules.getRaw(varDecl);
-        final Element annotation = rawLattice.injectPromiseDrop(pd);
-        final Element inferred = inferredPair.second()[i];
-        final boolean isGood = rawLattice.lessEq(annotation, inferred);
+        final Element annotation = inferredResult.injectAnnotation(pd);
+        final Element inferred = p.second();
+        final boolean isGood = inferredResult.isGood(annotation, inferred);
         ResultsBuilder.createResult(varDecl, pd, isGood, 910, 911, inferred);
       }
         

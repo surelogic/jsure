@@ -2,6 +2,7 @@ package com.surelogic.analysis.nullable;
 
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import com.surelogic.analysis.IBinderClient;
@@ -35,6 +36,7 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
@@ -87,12 +89,12 @@ implements IBinderClient {
   
   
   
-  public final class InferredRawQuery extends SimplifiedJavaFlowAnalysisQuery<InferredRawQuery, Pair<RawVariables, Element[]>, Value, Lattice> {
+  public final class InferredRawQuery extends SimplifiedJavaFlowAnalysisQuery<InferredRawQuery, Inferred, Value, Lattice> {
     public InferredRawQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
     }
     
-    private InferredRawQuery(final Delegate<InferredRawQuery, Pair<RawVariables, Element[]>, Value, Lattice> d) {
+    private InferredRawQuery(final Delegate<InferredRawQuery, Inferred, Value, Lattice> d) {
       super(d);
     }
     
@@ -102,15 +104,52 @@ implements IBinderClient {
     }
 
     @Override
-    protected Pair<RawVariables, Element[]> processRawResult(
+    protected Inferred processRawResult(
         final IRNode expr, final Lattice lattice, final Value rawResult) {
-      return new Pair<RawVariables, Element[]>(
+      return new Inferred(
           lattice.getInferredLattice(), rawResult.second().second());
     }
 
     @Override
-    protected InferredRawQuery newSubAnalysisQuery(final Delegate<InferredRawQuery, Pair<RawVariables, Element[]>, Value, Lattice> d) {
+    protected InferredRawQuery newSubAnalysisQuery(final Delegate<InferredRawQuery, Inferred, Value, Lattice> d) {
       return new InferredRawQuery(d);
+    }
+  }
+  
+  public final class Inferred implements Iterable<Pair<IRNode, Element>> {
+    private final RawVariables lattice;
+    private final Element[] values;
+    
+    private Inferred(final RawVariables lat, final Element[] val) {
+      lattice = lat;
+      values = val;
+    }
+    
+    @Override
+    public Iterator<Pair<IRNode, Element>> iterator() {
+      return new AbstractRemovelessIterator<Pair<IRNode, Element>>() {
+        private int idx = 0;
+        
+        @Override
+        public boolean hasNext() {
+          return idx < lattice.getNumVariables();
+        }
+
+        @Override
+        public Pair<IRNode, Element> next() {
+          final int currentIdx = idx++;
+          return new Pair<IRNode, Element>(
+              lattice.getKey(currentIdx), values[currentIdx]);
+        }
+      };
+    }
+    
+    public Element injectAnnotation(final RawPromiseDrop pd) {
+      return lattice.getBaseLattice().injectPromiseDrop(pd);
+    }
+
+    public boolean isGood(final Element anno, final Element inferred) {
+      return lattice.getBaseLattice().lessEq(anno, inferred);
     }
   }
   

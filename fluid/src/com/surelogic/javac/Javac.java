@@ -85,15 +85,15 @@ public class Javac extends IDE {
 		init(com.surelogic.analysis.uniqueness.classic.sideeffecting.UniquenessAnalysisModule.class,
 				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceSE", false, "Uniqueness (Obsolete)");
 
-    init(NonNullModule.class, "com.surelogic.jsure.client.eclipse.NonNull", false, "NonNull");
-    init(RawTypeModule.class, "com.surelogic.jsure.client.eclipse.RawTypes", false, "RawType");
-    init(DefinitelyAssignedModule.class, "com.surelogic.jsure.client.eclipse.DefinitelyAssigned", false, "Definitely Assigned");
+    init(NonNullModule.class, "com.surelogic.jsure.client.eclipse.NonNull", false, "NonNull (for reg tests only)");
+    init(RawTypeModule.class, "com.surelogic.jsure.client.eclipse.RawTypes", false, "RawType (for reg tests only)");
+    init(DefinitelyAssignedModule.class, "com.surelogic.jsure.client.eclipse.DefinitelyAssigned", false, "Definitely Assigned (for reg tests only)");
 		
 		init(LocalVariablesModule.class,
-				"com.surelogic.jsure.client.eclipse.LV", false, "LV");
-		init(BCAModule.class, "com.surelogic.jsure.client.eclipse.BCA", false, "BCA");
+				"com.surelogic.jsure.client.eclipse.LV", false, "Local Variables (for reg tests only)");
+		init(BCAModule.class, "com.surelogic.jsure.client.eclipse.BCA", false, "BCA (for reg tests only)");
 		init(CollectMethodCallsModule.class,
-				"com.surelogic.jsure.client.eclipse.CALLS", false, "Method Calls");
+				"com.surelogic.jsure.client.eclipse.CALLS", false, "Method Calls (for reg tests only)");
     init(com.surelogic.analysis.uniqueness.plusFrom.traditional.NewBenchmarkingUAM.class,
         "com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessNew", false, "Uniqueness Benchmarking (U+F)");
     init(com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.NewBenchmarkingUAM.class,
@@ -101,9 +101,9 @@ public class Javac extends IDE {
 		init(com.surelogic.analysis.uniqueness.classic.sideeffecting.NewBenchmarkingUAM.class,
 				"com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessSE", false, "Uniqueness Benchmarking (SE)");
 		init(TypeBasedAliasModule.class,
-		    "com.surelogic.jsure.cliend.eclipse.TypeBasedAlias", false, "Test Type-Based Alias Analysis");
+		    "com.surelogic.jsure.cliend.eclipse.TypeBasedAlias", false, "Type-Based Alias Analysis (for reg tests only)");
 		
-		init(TypesModule.class, "com.surelogic.jsure.client.eclipse.Types", false, "Type Info");
+		init(TypesModule.class, "com.surelogic.jsure.client.eclipse.Types", false, "Type Info (for reg tests only)");
 		
 		init(UtilityAnalysis.class, "com.surelogic.jsure.client.eclipse.Utility", true, "Utility class");
     init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
