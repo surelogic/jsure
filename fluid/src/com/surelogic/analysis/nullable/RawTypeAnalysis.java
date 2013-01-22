@@ -175,10 +175,9 @@ implements IBinderClient {
     }
     
     
-    /* TODO: Clean up these helper methods. */
     
-    public Iterable<IRNode> getVariables() {
-      return lattice2.indices();
+    public int getNumVariables() {
+      return lattice2.getSize();
     }
     
     public IRNode getVariable(final int i) {
@@ -205,12 +204,6 @@ implements IBinderClient {
       return newPair(v.first(), lattice2.replaceValue(v.second(), THIS, e)); 
     }
     
-    public Value setThis(final Value v, final RawPromiseDrop pd) {
-      return newPair(v.first(),
-          lattice2.replaceValue(
-              v.second(), THIS, lattice2.injectPromiseDrop(pd)));
-    }
-    
     public Element getThis(final Value v) {
       return v.second()[THIS];
     }
@@ -219,26 +212,12 @@ implements IBinderClient {
       return lattice2.indexOf(var);
     }
     
-    public Value setVar(final Value v, final IRNode var, final Element e) {
-      return newPair(v.first(), lattice2.replaceValue(v.second(), var, e));
-    }
-    
     public Value setVar(final Value v, final int idx, final Element e) {
       return newPair(v.first(), lattice2.replaceValue(v.second(), idx, e));
     }
     
-    public Value setVar(final Value v, final int idx, final RawPromiseDrop pd) {
-      return newPair(v.first(),
-          lattice2.replaceValue(
-              v.second(), idx, lattice2.injectPromiseDrop(pd)));
-    }
-    
     public Element getVar(final Value v, final int idx) {
       return v.second()[idx];
-    }
-    
-    public Element getVar(final Value v, final IRNode var) {
-      return v.second()[lattice2.indexOf(var)];
     }
   }
 
@@ -263,7 +242,7 @@ implements IBinderClient {
         if (MethodDeclaration.prototype.includes(node)) {
           final RawPromiseDrop pd = NonNullRules.getRaw(lattice.getVariable(0));
           if (pd != null) {
-            value = lattice.setThis(value, pd);
+            value = lattice.setThis(value, lattice.injectPromiseDrop(pd));
           }
         } else {
           value = lattice.setThis(value, RawLattice.RAW);
@@ -271,17 +250,16 @@ implements IBinderClient {
       }
       
       /* Parameters are initialized based on annotations */
-      int idx = 0;
-      for (final IRNode v : lattice.getVariables()) {
+      for (int idx = 0; idx < lattice.getNumVariables(); idx++) {
+        final IRNode v = lattice.getVariable(idx);
         if (ParameterDeclaration.prototype.includes(v)) {
           final RawPromiseDrop pd = NonNullRules.getRaw(v);
           if (pd != null) {
-            value = lattice.setVar(value, idx, pd);
+            value = lattice.setVar(value, idx, lattice.injectPromiseDrop(pd));
           }
         }
-        idx += 1;
       }
-      
+
       return value;
     }
 
@@ -387,9 +365,10 @@ implements IBinderClient {
       }
     }
 
-    /* TODO: transferEq may be interesting.  On the equal branch we know that
-     * both sides refer to the same object, so we can use the most specific 
-     * raw type (MEET of the two values).
+    /*
+     * Consider for later: transferEq may be interesting. On the equal branch we
+     * know that both sides refer to the same object, so we can use the most
+     * specific raw type (MEET of the two values).
      */
 
     @Override
