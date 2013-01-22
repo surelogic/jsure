@@ -315,7 +315,28 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
    * @return granule which this node is associated with
    */
   public IRNode getGranule(IRNode node) {
-    Operator op;
+	while (node != null) {
+		synchronized (node) {
+		    Operator op = JJNode.tree.getOperator(node);
+		    if (isGranule(node, op)) {
+		    	break;
+		    }
+		    // body of original loop below
+		    IRNode p;
+		    try {
+		    	p = JJNode.tree.getParent(node);        
+		    } catch (SlotUndefinedException e) {
+		    	p = null;
+		    }
+		    if (p == null) {
+		    	// for debugging
+		    	throw new NullPointerException("Has a null/undefined parent: " + node + " with op = " + op);
+		    }
+		    node = p;
+		}
+	}
+	/*
+    Operator op;    
     while (!(isGranule(node, op = JJNode.tree.getOperator(node)))) {
       IRNode p;
       try {
@@ -329,6 +350,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       node = p;
     }
+    */
     return node;
   }
   

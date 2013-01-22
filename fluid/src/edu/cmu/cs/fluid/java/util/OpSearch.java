@@ -12,12 +12,22 @@ public class OpSearch implements JavaGlobals {
   private static IRNode find(OpSearch os, IRNode here, IRNode last) {
     // based on bsi.findRoot
     while (os.continueLoop(here, last)) {
-      IRNode rv = os.foundNode(here, last);
-      if (rv != null) {
-	return rv;
+      if (here == null) {
+    	  // Special case here only for rootSearch
+    	  IRNode rv = os.foundNode(here, last);
+    	  if (rv != null) {
+    		  return rv;
+    	  }
+    	  return null;
       }
-      last = here;
-      here = jtree.getParentOrNull(here);
+      synchronized (here) { // batching the lock acquisition
+    	  IRNode rv = os.foundNode(here, last);
+    	  if (rv != null) {
+    		  return rv;
+    	  }
+    	  last = here;
+    	  here = jtree.getParentOrNull(here);
+      }
     }
     return null;    
   }
@@ -41,7 +51,7 @@ public class OpSearch implements JavaGlobals {
     return (foundNode(n)) ? n : null;
   }
 
-  protected boolean foundNode(IRNode n) {
+  protected final boolean foundNode(IRNode n) {
     Operator op = jtree.getOperator(n);
     return found(op);
   }
