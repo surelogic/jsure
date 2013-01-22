@@ -5,6 +5,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.aast.java.NamedTypeNode;
+import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
+
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.uwm.cs.fluid.util.AbstractLattice;
@@ -235,6 +238,16 @@ public final class RawLattice extends AbstractLattice<RawLattice.Element> {
     return e;
   }
 
+  public Element injectPromiseDrop(final RawPromiseDrop pd) {
+    final NamedTypeNode typeName = pd.getAAST().getUpToType();
+    if (typeName.getType().equals("*")) {
+      return RAW;
+    } else {
+      return injectClass(
+          (IJavaDeclaredType) typeName.resolveType().getJavaType());
+    }
+  }
+  
   @Override
   public Element join(final Element v1, final Element v2) {
     return v1.join(v2);

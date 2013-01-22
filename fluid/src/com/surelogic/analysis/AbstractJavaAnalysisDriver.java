@@ -171,17 +171,20 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
   protected final InstanceInitAction getConstructorCallInitAction(final IRNode ccall) {
     final InstanceInitAction a = getConstructorCallInitAction2(ccall);
     return new InstanceInitAction() {
+      @Override
       public void tryBefore() {
         final Q subAnalysisQuery = createSubQuery(ccall);
         pushQuery(subAnalysisQuery);
         a.tryBefore();
       }
       
+      @Override
       public void finallyAfter() {
         a.finallyAfter();
         popQuery();
       }
       
+      @Override
       public void afterVisit() {
         a.afterVisit();
       }

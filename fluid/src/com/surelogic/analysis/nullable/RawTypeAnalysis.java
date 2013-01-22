@@ -7,6 +7,8 @@ import java.util.List;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.nullable.RawLattice.Element;
+import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 import com.surelogic.util.IThunk;
 import com.surelogic.util.NullList;
 
@@ -20,9 +22,11 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ImpliedEnumConstantInitialization;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
@@ -76,6 +80,34 @@ implements IBinderClient {
     @Override
     protected Query newSubAnalysisQuery(final Delegate<Query, Element[], Value, Lattice> d) {
       return new Query(d);
+    }
+  }
+  
+  
+  
+  public final class DebugQuery extends SimplifiedJavaFlowAnalysisQuery<DebugQuery, String, Value, Lattice> {
+    public DebugQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
+      super(thunk);
+    }
+    
+    private DebugQuery(final Delegate<DebugQuery, String, Value, Lattice> d) {
+      super(d);
+    }
+    
+    @Override
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.NORMAL_EXIT;
+    }
+
+    @Override
+    protected String processRawResult(
+        final IRNode expr, final Lattice lattice, final Value rawResult) {
+      return lattice.toString(rawResult);
+    }
+
+    @Override
+    protected DebugQuery newSubAnalysisQuery(final Delegate<DebugQuery, String, Value, Lattice> d) {
+      return new DebugQuery(d);
     }
   }
   
@@ -143,6 +175,15 @@ implements IBinderClient {
     }
     
     
+    /* TODO: Clean up these helper methods. */
+    
+    public Iterable<IRNode> getVariables() {
+      return lattice2.indices();
+    }
+    
+    public IRNode getVariable(final int i) {
+      return lattice2.getKey(i);
+    }
     
     public Value getEmptyValue() {
       return newPair(ImmutableList.<Element>nil(), lattice2.getEmptyValue());
@@ -152,12 +193,52 @@ implements IBinderClient {
       return lattice2.getBaseLattice().injectClass(t);
     }
     
+    public Element injectPromiseDrop(final RawPromiseDrop pd) {
+      return lattice2.injectPromiseDrop(pd);
+    }
+    
     public boolean containsThis() {
       return ReceiverDeclaration.prototype.includes(lattice2.getKey(THIS));
     }
     
     public Value setThis(final Value v, final Element e) {
       return newPair(v.first(), lattice2.replaceValue(v.second(), THIS, e)); 
+    }
+    
+    public Value setThis(final Value v, final RawPromiseDrop pd) {
+      return newPair(v.first(),
+          lattice2.replaceValue(
+              v.second(), THIS, lattice2.injectPromiseDrop(pd)));
+    }
+    
+    public Element getThis(final Value v) {
+      return v.second()[THIS];
+    }
+    
+    public int indexOf(final IRNode var) {
+      return lattice2.indexOf(var);
+    }
+    
+    public Value setVar(final Value v, final IRNode var, final Element e) {
+      return newPair(v.first(), lattice2.replaceValue(v.second(), var, e));
+    }
+    
+    public Value setVar(final Value v, final int idx, final Element e) {
+      return newPair(v.first(), lattice2.replaceValue(v.second(), idx, e));
+    }
+    
+    public Value setVar(final Value v, final int idx, final RawPromiseDrop pd) {
+      return newPair(v.first(),
+          lattice2.replaceValue(
+              v.second(), idx, lattice2.injectPromiseDrop(pd)));
+    }
+    
+    public Element getVar(final Value v, final int idx) {
+      return v.second()[idx];
+    }
+    
+    public Element getVar(final Value v, final IRNode var) {
+      return v.second()[lattice2.indexOf(var)];
     }
   }
 
@@ -173,16 +254,91 @@ implements IBinderClient {
     @Override
     public Value transferComponentSource(final IRNode node) {
       Value value = lattice.getEmptyValue();
-      // Receiver is completely raw at the start, if it exists
+
       if (lattice.containsThis()) {
-        value = lattice.setThis(value, RawLattice.RAW);
+        /* Receiver is completely raw at the start of constructors
+         * and instance initializer blocks.  Receiver is based on the
+         * annotation at the start of non-static methods.
+         */
+        if (MethodDeclaration.prototype.includes(node)) {
+          final RawPromiseDrop pd = NonNullRules.getRaw(lattice.getVariable(0));
+          if (pd != null) {
+            value = lattice.setThis(value, pd);
+          }
+        } else {
+          value = lattice.setThis(value, RawLattice.RAW);
+        }
       }
       
-      /* In the future, parameters should be initialized based on annotations */
+      /* Parameters are initialized based on annotations */
+      int idx = 0;
+      for (final IRNode v : lattice.getVariables()) {
+        if (ParameterDeclaration.prototype.includes(v)) {
+          final RawPromiseDrop pd = NonNullRules.getRaw(v);
+          if (pd != null) {
+            value = lattice.setVar(value, idx, pd);
+          }
+        }
+        idx += 1;
+      }
       
       return value;
     }
 
+    @Override
+    protected Value pushMethodReturnValue(final IRNode node, final Value val) {
+      // push the value based on the annotation of the method's return node
+      final IRNode methodDecl = binder.getBinding(node);
+      final IRNode returnNode = JavaPromise.getReturnNode(methodDecl);
+      if (returnNode != null) {
+        final RawPromiseDrop pd = NonNullRules.getRaw(returnNode);
+        if (pd != null) {
+          return push(val, lattice.injectPromiseDrop(pd));
+        }
+      }
+      // Void return or no annotatioN: not raw
+      return push(val, RawLattice.NOT_RAW);
+    }
+    
+    /*
+     * In order to make transfer functions strict, we check at the beginning of
+     * each whether we have bottom or not.
+     */
+
+    @Override
+    protected Value transferAllocation(final IRNode node, final Value val) {
+      // new expressions always return fully initialized values.
+      return push(val, RawLattice.NOT_RAW);
+    }
+    
+    @Override
+    protected Value transferArrayCreation(final IRNode node, Value val) {
+      if (!lattice.isNormal(val)) return val;
+      
+      // new arrays are always fully initialized values
+      if (DimExprs.prototype.includes(tree.getOperator(node))) {
+        val = pop(val, tree.numChildren(node));
+      }
+      return push(val, RawLattice.NOT_RAW);
+    }
+    
+    @Override
+    protected Value transferAssignVar(final IRNode use, final Value val) {
+      if (!lattice.isNormal(val)) return val;
+ 
+      // transfer the state of the stack into the variable
+      return setVar(binder.getIBinding(use).getNode(), val);
+    }
+
+    private Value setVar(final IRNode var, final Value val) {
+      final int idx = lattice.indexOf(var);
+      if (idx != -1) {
+        return lattice.setVar(val, idx, lattice.peek(val));
+      } else {
+        return val;
+      }
+    }
+    
     @Override
     protected Value transferConstructorCall(
         final IRNode node, final boolean flag, final Value value) {
@@ -231,247 +387,48 @@ implements IBinderClient {
       }
     }
 
-//    @Override
-//    protected Element transferAllocation(IRNode node, Element val) {
-//      return push(val,NullInfo.NOTNULL);
-//    }
+    /* TODO: transferEq may be interesting.  On the equal branch we know that
+     * both sides refer to the same object, so we can use the most specific 
+     * raw type (MEET of the two values).
+     */
 
-
-//    @Override
-//    protected Element transferArrayCreation(IRNode node, Element val) {
-//      if (!lattice.isNormal(val)) return val;
-//      if (tree.getOperator(node) instanceof DimExprs) {
-//        val = pop(val, tree.numChildren(node));
-//      }
-//      return push(val, NullInfo.NOTNULL);
-//    }
-
-//    @Override
-//    protected Element transferAssignVar(IRNode use, Element val) {
-//      if (!lattice.isNormal(val)) return val;
-//      IRNode var = binder.getIBinding(use).getNode();
-//      return transferSetVar(var, val);
-//    }
-
-//    /**
-//     * Transfer an assignment of a variable to what's on the stack.  Leave stack alone.
-//     * @param var
-//     * @param val
-//     * @return
-//     */
-//    private Element transferSetVar(
-//        IRNode var, Element val) {
-//      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-//      NullInfo ni = ll.peek(val.first());
-//      
-//      if (val.second().contains(var)) { // Variable is coming in as NONNULL
-//        if (!nullLattice.lessEq(ni,NullInfo.NOTNULL)) { // Value might be null
-//          return newPair(val.first(),val.second().removeCopy(var)); // Now variable might be null
-//        }
-//        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still non null after being assigned " + ni);
-//        // otherwise, do nothing: not null before, not null afterwards
-//      } else { // Variable is coming in as possibly null
-//        if (nullLattice.lessEq(ni,NullInfo.NOTNULL)) { // Value is not null
-//          return newPair(val.first(),val.second().addCopy(var)); // Now the variable is not null
-//        }
-//        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still maybe null after being assigned " + ni);
-//        // do nothing : maybe null before, maybe null afterwards
-//      }
-//      return val;
-//    }
-
-//    @Override
-//    protected Element transferBox(IRNode expr, Element val) {
-//      if (!lattice.isNormal(val)) return val;
-//      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-//      return newPair(ll.push(ll.pop(val.first()),NullInfo.NOTNULL),val.second());
-//    }
-
-//    @Override
-//    protected Element transferDefaultInit(IRNode node, Element val) {
-//      if (!lattice.isNormal(val)) return val;
-//      return push(val,NullInfo.NULL);
-//    }
-
-//    @Override
-//    protected Element transferEq(IRNode node, boolean flag, Element val) {
-//      if (!lattice.isNormal(val)) return val;
-//      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-//      ImmutableList<NullInfo> stack = val.first();
-//      ImmutableSet<IRNode> nullVars = val.second();
-//      NullInfo ni2 = ll.peek(stack);
-//      stack = ll.pop(stack);
-//      NullInfo ni1 = ll.peek(stack);
-//      stack = ll.pop(stack);
-//      stack = ll.push(stack, NullInfo.MAYBENULL);
-//      // don't pop the second: we don't care what the top of the stack has for primitives
-//      // if the condition is impossible, we propagate bottom
-//      if (nullLattice.meet(ni1,ni2) == nullLattice.bottom()) {
-//        if (flag) return null; // else fall through to end
-//      } else
-//      // if the comparison is guaranteed true, we propagate bottom for false:
-//      if (nullLattice.lessEq(ni1,NullInfo.NULL) && nullLattice.lessEq(ni2, NullInfo.NULL)) {
-//        if (!flag) return null; // else fall through to end
-//      } else
-//      // if we have an *inequality* comparison with null:
-//      if (!flag) {
-//        if (nullLattice.lessEq(ni1,NullInfo.NULL)) {
-//          IRNode n = tree.getChild(node, 1); // don't use EqExpression methods because this transfer is called on != also
-//          if (tree.getOperator(n) instanceof VariableUseExpression) {
-//            IRNode var = binder.getIBinding(n).getNode();
-//            nullVars = nullVars.addCopy(var);
-//          }
-//        } else if (tree.getOperator(tree.getChild(node,1)) instanceof NullLiteral) {
-//          // NB: it would be a little more precise if we checked for ni2 being under NULL
-//          // than what we do here but then we must check for assignments of the variable
-//          // so that we don't make a wrong conclusion for "x == (x = null)" which, even
-//          // if false, still leaves x null.  The first branch is is OK because "(x = null) == x"
-//          // doesn't have the same problem.
-//          IRNode n = tree.getChild(node, 0);
-//          if (tree.getOperator(n) instanceof VariableUseExpression) {
-//            IRNode var = binder.getIBinding(n).getNode();
-//            nullVars = nullVars.addCopy(var);
-//          }
-//        }
-//      }
-//      return newPair(stack,nullVars);
-//    }
-
-//    @Override
-//    protected Element transferImplicitArrayCreation(IRNode arrayInitializer, Element val) {
-//      return push(val,NullInfo.NOTNULL);
-//    }
-
-//    @Override
-//    protected Element transferInitializationOfVar(IRNode node, Element val) {
-//      if (!lattice.isNormal(val)) return val;
-//      return pop(transferSetVar(node,val));
-//    }
-
-//    @Override
-//    protected Element transferInstanceOf(IRNode node, boolean flag, Element val) {
-//      if (!lattice.isNormal(val)) return val;
-//      if (!flag) return val;
-//      IRNode n = InstanceOfExpression.getValue(node);
-//      if (tree.getOperator(n) instanceof VariableUseExpression) {
-//        IRNode var = binder.getIBinding(n).getNode();
-//        return newPair(val.first(),val.second().addCopy(var));
-//      }
-//      return val;
-//    }
-
-//    @SuppressWarnings("unused")
-//    @Override
-//    protected Element transferIsObject(IRNode n, boolean flag, Element val) {
-//      if (!lattice.isNormal(val)) return val;
-//      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-//      ImmutableList<NullInfo> stack = val.first();
-//      // need to find the receiver:
-//      IRNode p = tree.getParent(n);
-//      if (tree.getOperator(p) instanceof CallInterface) {
-//        final CallInterface cop = ((CallInterface)tree.getOperator(p));
-//        int numArgs;
-//        try {
-//          numArgs = tree.numChildren(cop.get_Args(p));
-//        } catch (final CallInterface.NoArgs e) {
-//          numArgs = 0;
-//        }
-//        while (numArgs > 0) {
-//          stack = ll.pop(stack);
-//          --numArgs;
-//        }
-//      }
-//      NullInfo ni = ll.peek(stack);
-//      if (flag && nullLattice.lessEq(ni, NullInfo.NULL)) {
-//        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine("Since we know " + ni + " is null, we can assume " + DebugUnparser.toString(n) + " cannot be dereferenced.");
-//        return null; // lattice.bottom();
-//      }
-//      if (!flag && nullLattice.lessEq(ni, NullInfo.NOTNULL)) {
-//        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine("Since we know " + ni + " is not null, we can assume " + DebugUnparser.toString(n) + " won't throw a NPE.");
-//        return null; //lattice.bottom();
-//      }
-//      if (flag && tree.getOperator(n) instanceof VariableUseExpression) {
-//        IRNode var = binder.getIBinding(n).getNode();
-//        return newPair(val.first(),val.second().addCopy(var));
-//      }
-//      return super.transferIsObject(n, flag, val);
-//    }
-
-//    @Override
-//    protected Element transferLiteral(IRNode node, Element val) {
-//      if (!lattice.isNormal(val)) return val;
-//      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-//      ImmutableList<NullInfo> stack = val.first();
-//      
-//      NullInfo ni;
-//      if (tree.getOperator(node) instanceof NullLiteral) {
-//        ni = NullInfo.NULL;
-//      } else {
-//        ni = NullInfo.NOTNULL; // all other literals are not null
-//      }
-//      return newPair(ll.push(stack, ni),val.second());
-//    }
-
-//    @Override
-//    protected Element transferToString(IRNode node, Element val) {
-//      if (!lattice.isNormal(val)) return val;
-//      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-//      ImmutableList<NullInfo> stack = val.first();
-//      if (nullLattice.lessEq(ll.peek(stack),NullInfo.NOTNULL)) return val;
-//      // otherwise, we can force not null
-//      return newPair(ll.push(ll.pop(stack), NullInfo.NOTNULL),val.second());
-//    }
-
-//    @Override
-//    protected Element transferUseVar(IRNode use, Element val) {
-//      if (!lattice.isNormal(val)) return val;
-//      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-//      NullInfo ni;
-//      IRNode var = binder.getIBinding(use).getNode();
-//      if (val.second().contains(var)) {
-//        ni = NullInfo.NOTNULL;
-//      } else {
-//        ni = NullInfo.MAYBENULL; // all other literals are not null
-//      }
-//      return newPair(ll.push(val.first(), ni),val.second());
-//    }
+    @Override
+    protected Value transferInitializationOfVar(final IRNode node, final Value val) {
+      if (!lattice.isNormal(val)) return val;
+      return pop(setVar(node, val));
+    }
+    
+    // Start with considering transferInstanceOf()
     
     @Override
-    protected Value transferUseReceiver(
-        final IRNode use, 
-        final Value value) {
-      if (!lattice.isNormal(value)) return value;
-      return value;
-//      if (!lattice.isNormal(val)) return val;
-//      // Receiver is always non-null
-//      return newPair(lattice.getLL().push(val.first(), NullInfo.NOTNULL),val.second());
+    protected Value transferUseReceiver(final IRNode use, final Value val) {
+      if (!lattice.isNormal(val)) return val;
+      return lattice.push(val, lattice.getThis(val));
     }
     
     @Override
     protected Value transferUseQualifiedReceiver(
-        final IRNode use, final IRNode binding, 
-        final Value value) {
-      if (!lattice.isNormal(value)) return value;
-      // Qualified receiver is never raw, and is not part of the analysis
-      return value;
-//      if (!lattice.isNormal(val)) return val;
-//      // Qualified receiver is always non-null
-//      return newPair(lattice.getLL().push(val.first(), NullInfo.NOTNULL),val.second());
+        final IRNode use, final IRNode binding, final Value val) {
+      if (!lattice.isNormal(val)) return val;
+      
+      // Qualified receiver is always fully initialized
+      return lattice.push(val, RawLattice.NOT_RAW);
     }
     
-    
-//    @Override
-//    protected Element transferConcat(
-//        IRNode node, Element val) {
-//      if (!lattice.isNormal(val)) return val;
-//      // pop the values of the stack and push a non-null
-//      final ListLattice<NullLattice, NullInfo> ll = lattice.getLL();
-//      ImmutableList<NullInfo> stack = val.first();
-//      stack = ll.pop(stack);
-//      stack = ll.pop(stack);
-//      stack = ll.push(stack, NullInfo.NOTNULL);
-//      return newPair(stack, val.second());
-//    }
+    @Override
+    protected Value transferUseVar(final IRNode use, final Value val) {
+      if (!lattice.isNormal(val)) return val;
+      
+      // Push the variable state onto the stack
+      final IRNode var = binder.getIBinding(use).getNode();
+      final int idx = var == null ? -1 : lattice.indexOf(var);
+      if (idx != -1) {
+        return lattice.push(val, lattice.getVar(val, idx));
+      } else {
+        return lattice.push(val, RawLattice.NOT_RAW);
+      }
+
+    }
   }
   
   
@@ -504,5 +461,9 @@ implements IBinderClient {
 
   public Query getRawTypeQuery(final IRNode flowUnit) {
     return new Query(getAnalysisThunk(flowUnit));
+  }
+  
+  public DebugQuery getDebugQuery(final IRNode flowUnit) {
+    return new DebugQuery(getAnalysisThunk(flowUnit));
   }
 }

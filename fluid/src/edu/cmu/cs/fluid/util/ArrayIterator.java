@@ -7,8 +7,8 @@ import java.util.NoSuchElementException;
  * creator of the iterator to insure that the contents and size
  * of the array do not change during the lifetime of the iterator.
  */
-public class ArrayIterator<T> extends AbstractRemovelessIterator<T> {
-  /** The array to iteratate over. */
+public final class ArrayIterator<T> extends AbstractRemovelessIterator<T> {
+  /** The array to iterate over. */
   private final T[] array;
   /** The next position in the array to be returned. */
   private int pos = 0;
@@ -18,6 +18,7 @@ public class ArrayIterator<T> extends AbstractRemovelessIterator<T> {
   }
 
   // Inherit javadoc
+  @Override
   public T next() {
     if (pos >= array.length) {
       throw new NoSuchElementException("Iterated too far.");
@@ -27,6 +28,7 @@ public class ArrayIterator<T> extends AbstractRemovelessIterator<T> {
   }
 
   // Inherit javadoc
+  @Override
   public boolean hasNext() {
     return pos < array.length;
   }

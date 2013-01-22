@@ -166,12 +166,14 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.IFlowAnalysis#getName()
    */
+  @Override
   public String getName() {
     return name;
   }
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.IFlowAnalysis#getLattice()
    */
+  @Override
   public L getLattice() {
     return lattice;
   }
@@ -179,6 +181,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.IFlowAnalysis#initialize(edu.cmu.cs.fluid.control.ControlNode)
    */
+  @Override
   public void initialize(ControlNode n) {
     worklist.initialize();
     worklist.add(n);
@@ -261,6 +264,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.IFlowAnalysis#getInfo(edu.cmu.cs.fluid.control.ControlEdge)
    */
+  @Override
   public T getInfo(ControlEdge edge) {
     return infoLattice.joinAll(getRawInfo(edge));
   }
@@ -351,6 +355,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     }
   }
   
+  @Override
   public void performAnalysis() {
     realPerformAnalysis();
   }
@@ -358,6 +363,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.IFlowAnalysis#reworkAll()
    */
+  @Override
   public synchronized void reworkAll() {
     if (worklist.hasNext()) {
       // or log something
@@ -547,6 +553,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.IFlowAnalysis#getIterations()
    */
+  @Override
   public synchronized long getIterations() {
     return iterations;
   }

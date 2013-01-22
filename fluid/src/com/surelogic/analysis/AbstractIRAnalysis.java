@@ -38,11 +38,13 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 		return false;
 	}
 	
-	public Class<?> getGroup() {
+	@Override
+  public Class<?> getGroup() {
 		return null;
 	}
 	
-	public String name() {
+	@Override
+  public String name() {
 		return getClass().getSimpleName();
 	}
 	
@@ -53,7 +55,8 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 		flushWorkQueue();
 	}
 		
-	public void init(IIRAnalysisEnvironment env) {
+	@Override
+  public void init(IIRAnalysisEnvironment env) {
 		// Nothing to do
 	}
     /*
@@ -62,7 +65,8 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 	}
 	*/
 	
-	public final void analyzeBegin(IIRAnalysisEnvironment env, final IIRProject p) {
+	@Override
+  public final void analyzeBegin(IIRAnalysisEnvironment env, final IIRProject p) {
 		final ITypeEnvironment tEnv = IDE.getInstance().getTypeEnv(p);
 		final IBinder binder        = tEnv.getBinder(); 
 		//final IIRProject old        = project;
@@ -120,7 +124,8 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 	}
 	*/
 	
-	public final boolean doAnalysisOnAFile(final IIRAnalysisEnvironment env, final CUDrop cud) {
+	@Override
+  public final boolean doAnalysisOnAFile(final IIRAnalysisEnvironment env, final CUDrop cud) {
 		/*
 		T analysis = getAnalysis();
 		if (analysis == null) {
@@ -128,7 +133,8 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 		}
 		*/
 		Object rv = runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
-			public void run() {
+			@Override
+      public void run() {
 				result = doAnalysisOnAFile(env, cud, cud.getCompilationUnitIRNode());
 			}
 		});
@@ -136,15 +142,18 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends ICom
 	}
 	protected abstract boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, IRNode cu);
 		
-	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+	@Override
+  public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
 		return new EmptyIterator<IRNode>();
 	}
 	
-	public void postAnalysis(IIRProject p) {
+	@Override
+  public void postAnalysis(IIRProject p) {
 		// Nothing to do	
 	}
 	
-	public void finish(IIRAnalysisEnvironment env) {
+	@Override
+  public void finish(IIRAnalysisEnvironment env) {
 		// Nothing to do
 	}
 	

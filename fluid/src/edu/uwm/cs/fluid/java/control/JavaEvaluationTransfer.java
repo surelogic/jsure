@@ -371,11 +371,16 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
       actuals = new EmptyIterator<IRNode>();
     }
     
-    return transferCall(value, actuals, 
+    return transferCall(node, value, actuals, 
         hasOuterObject(node), MethodCall.prototype.includes(op));
   }
 
-  private T transferCall(T value, final Iterable<IRNode> actuals,
+  /* TODO: This can probably be "parameterized" more by delegating to more
+   * protected methods that are meant to be overridden.  I'm concerned that
+   * uniqueness transfer repeats a lot of this work, but also does other things
+   * with the parameters, etc.
+   */
+  private T transferCall(final IRNode node, T value, final Iterable<IRNode> actuals,
       final boolean hasOuter, final boolean isMethodCall) {
     // pop actuals
     // trickier than you might expect because of var args!
@@ -402,11 +407,20 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
       /* Push value even for "void" methods.  The extraneous stack value will
        * be popped by the surrounding "ExpressionStatement" node.
        */
-      value = push(value);
+      value = pushMethodReturnValue(node, value); // push(value);
     }
     return value;
   }
 
+  /**
+   * Handle pushing the method return value onto the stack.  The default
+   * implementation just pushes the default "unknown" value unto the stack.
+   * But this could change, for example, if the return value of the method
+   * is annotated.
+   */
+  protected T pushMethodReturnValue(final IRNode node, final T value) {
+    return push(value);
+  }
   
   /**
 	 * Transfer a value over a successful cast expression. <strong>major
@@ -681,7 +695,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
     } else { // EnumConstantClassConstantDeclaration
       args = OptArguments.getArgIterator(EnumConstantClassDeclaration.getArgs(enumConst));
     }
-    return transferCall(value, args, false, false);
+    return transferCall(impliedInit, value, args, false, false);
   }
   
   /**

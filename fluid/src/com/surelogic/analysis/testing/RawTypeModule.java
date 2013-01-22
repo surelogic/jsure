@@ -5,8 +5,10 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.RawTypeAnalysis;
+import com.surelogic.analysis.nullable.RawTypeAnalysis.DebugQuery;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.Query;
 import com.surelogic.analysis.nullable.RawLattice.Element;
+import com.surelogic.common.Pair;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
@@ -43,15 +45,20 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
     getAnalysis().clear();
   }
   
-  private final class RawTypeVisitor extends AbstractJavaAnalysisDriver<Query> {
+  private final class RawTypeVisitor extends AbstractJavaAnalysisDriver<Pair<Query, DebugQuery>> {
     @Override
-    protected Query createNewQuery(final IRNode decl) {
-      return getAnalysis().getRawTypeQuery(decl);
+    protected Pair<Query, DebugQuery> createNewQuery(final IRNode decl) {
+      final RawTypeAnalysis analysis = getAnalysis();
+      return new Pair<Query, DebugQuery>(
+          analysis.getRawTypeQuery(decl), analysis.getDebugQuery(decl));
     }
 
     @Override
-    protected Query createSubQuery(final IRNode caller) {
-      return currentQuery().getSubAnalysisQuery(caller);
+    protected Pair<Query, DebugQuery> createSubQuery(final IRNode caller) {
+      final Pair<Query, DebugQuery> current = currentQuery();
+      return new Pair<Query, DebugQuery>(
+          current.first().getSubAnalysisQuery(caller),
+          current.second().getSubAnalysisQuery(caller));
     }
 
     
@@ -94,7 +101,7 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
         return null;
       }
 
-      final Element[] rawness = currentQuery().getResultFor(expr);
+      final Element[] rawness = currentQuery().first().getResultFor(expr);
       final HintDrop drop = HintDrop.newInformation(expr);
       drop.setCategorizingMessage(Messages.DSC_NON_NULL);
       drop.setMessage(Messages.RAWNESS, rawness[0]);
@@ -102,8 +109,20 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
     }
     
     @Override
+    public Void visitMethodBody(final IRNode b) {
+      doAcceptForChildren(b);
+
+      final String state = currentQuery().second().getResultFor(b);
+      final HintDrop drop = HintDrop.newInformation(b);
+      drop.setCategorizingMessage(Messages.DSC_NON_NULL);
+      drop.setMessage(Messages.RAW_STATE, state);
+
+      return null;
+    }
+    
+    @Override
     public void handleConstructorCall(final IRNode expr) {
-      final Element rawness[] = currentQuery().getResultFor(expr);
+      final Element rawness[] = currentQuery().first().getResultFor(expr);
       final HintDrop drop = HintDrop.newInformation(expr);
       drop.setCategorizingMessage(Messages.DSC_NON_NULL);
       drop.setMessage(Messages.RAWNESS, rawness[0]);

@@ -22,6 +22,7 @@ final class Messages {
   public static final int RAWNESS = 532;
   public static final int NOT_ASSIGNED = 533;
   public static final int ASSIGNED = 534;
+  public static final int RAW_STATE = 535;
   
   public static final int ALIASED_PARAMETERS = 540;
 
