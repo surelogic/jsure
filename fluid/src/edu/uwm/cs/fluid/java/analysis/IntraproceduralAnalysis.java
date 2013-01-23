@@ -129,6 +129,7 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
   }
   
   /** return the FlowUnit node that includes this node's component. */
+  @SuppressWarnings("null") // for last2Op
   public static IRNode getFlowUnit(final IRNode n) {
     /* We have a problem: The ClassBodyDeclInterface test below triggers a
      * match for anonymous class expressions.  This is not what we want if our 

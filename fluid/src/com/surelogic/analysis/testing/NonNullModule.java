@@ -6,6 +6,8 @@ import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.nullable.NonNullAnalysis;
+import com.surelogic.analysis.nullable.NonNullAnalysis.Query;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
@@ -17,23 +19,22 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis;
-import edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis.Query;
 
-public final class NonNullModule extends AbstractWholeIRAnalysis<SimpleNonnullAnalysis, Unused>{
+public final class NonNullModule extends AbstractWholeIRAnalysis<NonNullAnalysis, Unused>{
   public NonNullModule() {
     super("Non Null");
   }
 
   @Override
-  protected SimpleNonnullAnalysis constructIRAnalysis(final IBinder binder) {
-    return new SimpleNonnullAnalysis(binder);
+  protected NonNullAnalysis constructIRAnalysis(final IBinder binder) {
+    return new NonNullAnalysis(binder);
   }
 
   @Override
   protected boolean doAnalysisOnAFile(final IIRAnalysisEnvironment env,
       final CUDrop cud, final IRNode compUnit) {
     runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
+      @Override
       public void run() {
         checkNonNullForFile(compUnit);
       }
@@ -48,7 +49,7 @@ public final class NonNullModule extends AbstractWholeIRAnalysis<SimpleNonnullAn
 //    JavaComponentFactory.clearCache();
   }
   
-  private final class NonNullVisitor extends AbstractJavaAnalysisDriver<SimpleNonnullAnalysis.Query> {
+  private final class NonNullVisitor extends AbstractJavaAnalysisDriver<Query> {
     @Override
     protected Query createNewQuery(final IRNode decl) {
       return getAnalysis().getNonnullBeforeQuery(decl);
