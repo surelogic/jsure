@@ -148,8 +148,8 @@ implements IBinderClient {
       return lattice.getBaseLattice().injectPromiseDrop(pd);
     }
 
-    public boolean isGood(final Element anno, final Element inferred) {
-      return lattice.getBaseLattice().lessEq(anno, inferred);
+    public boolean lessEq(final Element a, final Element b) {
+      return lattice.getBaseLattice().lessEq(a, b);
     }
   }
   
