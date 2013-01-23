@@ -504,8 +504,10 @@ public class OperatorGen extends AbstractASTGenerator {
       @Override
       public void doForInfo(OpSyntax s, int i, Attribute a, String type) {
         printJava("  public static "+type+" get"+capitalize(a.name)+"(IRNode node) {\n");
+        printJava("    synchronized (node) {\n");
         printJava(accesscheck);
         printJava("    return "+accessRcvrTable.get(a.type)+".get"+capitalize(a.type)+"(node);\n");
+        printJava("    }\n");
         printJava("  }\n\n");
       }
       @Override
@@ -520,16 +522,20 @@ public class OperatorGen extends AbstractASTGenerator {
           printJava("  }\n\n");
           
           printJava("  public static IRNode get"+name+"(SyntaxTreeInterface tree, IRNode node, int i) {\n");
+          printJava("    synchronized (node) {\n");          
           printJava(accesscheck);
           printJava("    return tree.getChild(node,"+s.numChildren+"+i);\n");
+          printJava("    }\n");
           printJava("  }\n\n");
           printJava("  public static Iteratable<IRNode> get"+name+"Iterator(SyntaxTreeInterface tree, IRNode node) {\n");
+          printJava("    synchronized (node) {\n");
           printJava(accesscheck);
           printJava("    Iteratable<IRNode> _result = tree.children(node);\n");
           for (int i=0; i < s.numChildren; ++i) {
             printJava("    _result.next(); // discard prefix\n");
           }
           printJava("    return _result;\n");
+          printJava("    }\n");
           printJava("  }\n\n");
         }        
         else { // a fixed child
@@ -584,13 +590,17 @@ public class OperatorGen extends AbstractASTGenerator {
             printJava("  public static final IRLocation "+c.name+"Location = IRLocation.get("+i+");\n\n");
 
             printJava("  public static IRNode get"+name+"(SyntaxTreeInterface tree, IRNode node) {\n");
+            printJava("    synchronized (node) {\n");
             printJava(accesscheck);
             printJava("    return tree.getChild(node,"+i+");\n");
+            printJava("    }\n");
             printJava("  }\n\n");
                                   
             printJava("  public static void set"+name+"(SyntaxTreeInterface tree, IRNode node, IRNode ch) {\n");
+            printJava("    synchronized (node) {\n");
             printJava(accesscheck);
             printJava("    tree.setChild(node,"+i+",ch);\n");
+            printJava("    }\n");
             printJava("  }\n\n");
             
             // FIX: these could be omitted if there's no abstract child that needs it

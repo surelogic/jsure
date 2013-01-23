@@ -3,3 +3,5 @@
 /javaCompiler...args
 /build.xml
 /@dot
+/@dot.log
+/temp.folder
