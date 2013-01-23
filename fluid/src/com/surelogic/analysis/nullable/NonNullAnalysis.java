@@ -42,9 +42,6 @@ import edu.uwm.cs.fluid.util.*;
  * {@link edu.uwm.cs.fluid.java.analysis.SimpleNonnullAnalysis}.
  * Uses annotations on local formal parameters, method return values,
  * and field declarations.
- * 
- * @author aarong
- *
  */
 public final class NonNullAnalysis extends IntraproceduralAnalysis<
     NonNullAnalysis.Value, NonNullAnalysis.Lattice,
@@ -442,6 +439,27 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
       if (nullLattice.lessEq(lattice.peek(val), NullInfo.NOTNULL)) return val;
       // otherwise, we can force not null
       return lattice.push(lattice.pop(val), NullInfo.NOTNULL);
+    }
+
+    @Override
+    protected Value transferUseField(final IRNode fref, Value val) {
+      if (!lattice.isNormal(val)) return val;
+      
+      /* if the field reference is part of a ++ or += operation, we have to
+       * duplicate the reference for the subsequent write operation. 
+       */
+      if (isBothLhsRhs(fref)) val = dup(val);
+      
+      // pop the object reference
+      val = pop(val);
+      
+      // Push NOTNULL if the field is annotated @NonNull
+      if (NonNullRules.getNonNull(binder.getBinding(fref)) != null) {
+        val = push(val, NullInfo.NOTNULL);
+      } else {
+        val = push(val, NullInfo.MAYBENULL);
+      }
+      return val;
     }
 
     @Override
