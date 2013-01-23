@@ -12,6 +12,7 @@ import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.SimplifiedJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
@@ -34,7 +35,8 @@ import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
 import edu.uwm.cs.fluid.java.control.LatticeDelegatingJavaEvaluationTransfer;
-import edu.uwm.cs.fluid.util.*;
+import edu.uwm.cs.fluid.util.AbstractLattice;
+import edu.uwm.cs.fluid.util.IntersectionLattice;
 
 
 /**
@@ -301,6 +303,20 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
     protected Value transferBox(final IRNode expr, final Value val) {
       if (!lattice.isNormal(val)) return val;
       return lattice.push(lattice.pop(val), NullInfo.NOTNULL);
+    }
+
+    @Override
+    protected Value pushMethodReturnValue(final IRNode node, final Value val) {
+      // push the value based on the annotation of the method's return node
+      final IRNode methodDecl = binder.getBinding(node);
+      final IRNode returnNode = JavaPromise.getReturnNode(methodDecl);
+      if (returnNode != null) {
+        if (NonNullRules.getNonNull(returnNode) != null) {
+          return push(val, NullInfo.NOTNULL);
+        }
+      }
+      // Void return or no annotatioN: nullable
+      return push(val, NullInfo.MAYBENULL);
     }
 
     @Override
