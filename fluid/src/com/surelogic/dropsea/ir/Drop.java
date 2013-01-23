@@ -170,18 +170,25 @@ public abstract class Drop implements IDrop {
    * @see I18N#toStringForUIFolderLabel(String, int)
    */
   public final void setMessage(int number, Object... args) {
-    if (number < 1) {
-      SLLogger.getLogger().warning(I18N.err(257, number));
-      return;
-    }
     synchronized (f_seaLock) {
-//      f_message = args.length == 0 ? I18N.res(number) : I18N.res(number, args);
-//      f_messageCanonical = args.length == 0 ? I18N.resc(number) : I18N.resc(number, args);
-      f_message = args.length == 0 ? resolveMessage(number) : resolveMessage(number, args);
-      f_messageCanonical = args.length == 0 ? resolveMessageCanonical(number) : resolveMessageCanonical(number, args);
+    	setMessageHelper(number, args);
     }
   }
 
+  /**
+   * Meant to be called from the drop constructor
+   */
+  protected final void setMessageHelper(int number, Object... args) {
+	  if (number < 1) {
+		  SLLogger.getLogger().warning(I18N.err(257, number));
+		  return;
+	  }
+	  //	        f_message = args.length == 0 ? I18N.res(number) : I18N.res(number, args);
+	  //	        f_messageCanonical = args.length == 0 ? I18N.resc(number) : I18N.resc(number, args);
+	  f_message = args.length == 0 ? resolveMessage(number) : resolveMessage(number, args);
+	  f_messageCanonical = args.length == 0 ? resolveMessageCanonical(number) : resolveMessageCanonical(number, args);	      
+  }
+  
   protected String resolveMessage(final int number) {
     return I18N.res(number);
   }

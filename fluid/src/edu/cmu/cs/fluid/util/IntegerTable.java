@@ -1,13 +1,17 @@
 package edu.cmu.cs.fluid.util;
 
+import java.util.concurrent.locks.*;
+
 import com.surelogic.*;
 
 /** This class provides a way to store and reuse boxed integers.
  * It can be used to store other boxed types.  The only requirement
  * is that the hashCode() method return a unique value.
  */
-@RegionLock("L is this protects Instance")
+@RegionLock("L is lock protects Instance")
 public class IntegerTable {
+  private final ReadWriteLock lock = new ReentrantReadWriteLock();
+	
   @Unique
   private Bucket[] buckets;
     { //@ unique(buckets); //Can't handle yet: unique(buckets[0]);
@@ -23,15 +27,32 @@ public class IntegerTable {
    * If necessary, create a new boxed integer.
    * @postcondition return != null
    */
-  public synchronized Object get(int v) { //@ limited(this);
-    int h = (v&0x7FFFFFFF)%buckets.length;
-    for (Bucket b = buckets[h]; b != null; b=b.next) {
-      if (b.value.hashCode() == v) return b.value;
-    }
-    Object value = box(v);
-    buckets[h] = new Bucket(value,buckets[h]);
-    if (++size > buckets.length) rehash(); // rehash when full
-    return value;
+  public Object get(int v) { //@ limited(this);
+	// Try to find the value 
+	try {
+		lock.readLock().lock();
+		final int h = (v&0x7FFFFFFF)%buckets.length;
+		for (Bucket b = buckets[h]; b != null; b=b.next) {
+			if (b.value.hashCode() == v) return b.value;
+		}
+	} finally {
+		lock.readLock().unlock();
+	}
+	try {
+		lock.writeLock().lock();
+		// Check for the value again
+		final int h = (v&0x7FFFFFFF)%buckets.length;
+		for (Bucket b = buckets[h]; b != null; b=b.next) {
+			if (b.value.hashCode() == v) return b.value;
+		}
+		// Update the table since not found (again)
+		Object value = box(v);    
+		buckets[h] = new Bucket(value,buckets[h]);
+		if (++size > buckets.length) rehash(); // rehash when full
+		return value;
+	} finally {
+		lock.writeLock().unlock();
+	}
   }
 
   /** Create a new boxed integer (of the desired type). */

@@ -147,10 +147,17 @@ public class Component {
 
   /** Return the subcomponent in the component of our parent. */
   public Subcomponent getSubcomponentInParent() {
-    IRNode parent = tree.getParent(syntax);
-    if (parent == null)
-      return null;
-    return getComponent(parent).getSubcomponent(tree.getLocation(syntax));
+	final IRNode parent;
+	final IRLocation loc;	
+	synchronized (syntax) {
+		parent = tree.getParent(syntax);
+		if (parent == null) {
+			return null;
+		}
+		loc = tree.getLocation(syntax);
+	}	
+    return getComponent(parent).getSubcomponent(loc);
+    
   }
 
   /** Return the node associated with this component */
