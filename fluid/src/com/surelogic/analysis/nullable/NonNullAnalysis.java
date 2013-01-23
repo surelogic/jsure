@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.IBinderClient;
+import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
 
@@ -15,9 +16,12 @@ import edu.cmu.cs.fluid.java.analysis.SimplifiedJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
+import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
@@ -215,17 +219,33 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
     
     @Override
     public Value transferComponentSource(final IRNode node) {
-      Set<IRNode> caughtVars = null;
+      final Set<IRNode> nonNullVars = new HashSet<IRNode>();
+      
+      // XXX: This will capture catch clauses in nested/anonymous classes
       for (IRNode n : tree.bottomUp(node)) {
         if (tree.getOperator(n) instanceof CatchClause) {
-          if (caughtVars == null) caughtVars = new HashSet<IRNode>();
-          caughtVars.add(CatchClause.getParam(n));
+          nonNullVars.add(CatchClause.getParam(n));
         }
       }      
-      ImmutableHashOrderSet<IRNode> initSet = ImmutableHashOrderSet.<IRNode>emptySet();
-      if (caughtVars != null) {
-        initSet = new ImmutableHashOrderSet<IRNode>(caughtVars);
+      
+      // look at the annotations on formal parameters
+      final IRNode params;
+      if (MethodDeclaration.prototype.includes(node)) {
+        params = MethodDeclaration.getParams(node);
+      } else if (ConstructorDeclaration.prototype.includes(node)) {
+        params = ConstructorDeclaration.getParams(node);
+      } else {
+        params = null;
       }
+      if (params != null) {
+        for (final IRNode p : Parameters.getFormalIterator(params)) {
+          if (NonNullRules.getNonNull(p) != null) nonNullVars.add(p);
+        }
+      }
+      
+      final ImmutableHashOrderSet<IRNode> initSet =
+          nonNullVars.isEmpty() ? ImmutableHashOrderSet.<IRNode> emptySet() :
+            new ImmutableHashOrderSet<IRNode>(nonNullVars);
       return new Value(ImmutableList.<NullInfo>nil(), initSet);
     }
 
