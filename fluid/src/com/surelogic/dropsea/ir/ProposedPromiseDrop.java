@@ -272,9 +272,9 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
         .<String, String> emptyMap();
 
     if (value == null) {
-      setMessage(18, annotation);
+      setMessageHelper(18, annotation);
     } else {
-      setMessage(10, annotation, value);
+      setMessageHelper(10, annotation, value);
     }
   }
 

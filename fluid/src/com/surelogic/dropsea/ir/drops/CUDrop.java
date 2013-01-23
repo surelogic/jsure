@@ -139,7 +139,7 @@ public abstract class CUDrop extends Drop {
 
   private void finishInit() {
     getNode().setSlotValue(SI_CUDROP, this);
-    setMessage(11, getClass().getSimpleName(), f_javaOSFileName);
+    setMessageHelper(11, getClass().getSimpleName(), f_javaOSFileName);
   }
 
   public final ITypeEnvironment getTypeEnv() {
