@@ -127,7 +127,7 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
         final RawPromiseDrop pd = NonNullRules.getRaw(varDecl);
         final Element annotation = inferredResult.injectAnnotation(pd);
         final Element inferred = p.second();
-        final boolean isGood = inferredResult.isGood(annotation, inferred);
+        final boolean isGood = inferredResult.lessEq(inferred, annotation);
         ResultsBuilder.createResult(varDecl, pd, isGood, 910, 911, inferred);
       }
         

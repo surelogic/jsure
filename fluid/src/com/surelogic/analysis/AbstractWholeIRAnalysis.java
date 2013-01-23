@@ -21,6 +21,7 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q extends
     LOG = SLLogger.getLogger(logName);
   }
 
+  @Override
   public final boolean analyzeAll() {
     return true;
   }
