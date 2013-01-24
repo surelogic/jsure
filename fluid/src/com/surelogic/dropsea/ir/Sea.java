@@ -597,7 +597,8 @@ public final class Sea {
     f_proofHooks.remove(hook);
   }
 
-  private final Object f_seaLock = new Object();
+  // Made anonymous to customize the type used for the lock
+  private final Object f_seaLock = new Object() {};
 
   /**
    * Gets the lock for this sea.

@@ -129,7 +129,7 @@ public final class JSureDataDirHub {
   /**
    * Protects the mutable state of this class.
    */
-  private final Object f_lock = new Object();
+  private final Object f_lock = new Object() {};
 
   /*
    * Mutable state.
