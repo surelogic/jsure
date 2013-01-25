@@ -15,7 +15,8 @@ public interface IAnalysisReporter {
 	void reportInfo(IRNode n, String msg);
 
 	IAnalysisReporter NULL = new IAnalysisReporter() {
-		public void reportInfo(IRNode n, String msg) {
+		@Override
+    public void reportInfo(IRNode n, String msg) {
 			if (SLLogger.getLogger().isLoggable(Level.FINE)) {
 				SLLogger.getLogger().fine("Doing nothing: " + msg);
 			}

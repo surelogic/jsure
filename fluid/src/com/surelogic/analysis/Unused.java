@@ -9,7 +9,8 @@ import edu.cmu.cs.fluid.ir.IRNode;
 public final class Unused implements ICompUnitContext {
 	private Unused() {}
 
-	public IRNode getCompUnit() {
+	@Override
+  public IRNode getCompUnit() {
 		return null;
 	}
 }

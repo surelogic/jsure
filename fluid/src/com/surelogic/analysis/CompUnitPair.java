@@ -10,7 +10,8 @@ public class CompUnitPair implements ICompUnitContext {
 		node = n;
 	}
 	
-	public IRNode getCompUnit() {
+	@Override
+  public IRNode getCompUnit() {
 		return compUnit;
 	}
 	public IRNode getNode() {

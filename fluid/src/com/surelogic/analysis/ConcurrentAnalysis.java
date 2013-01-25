@@ -2,7 +2,6 @@ package com.surelogic.analysis;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 import jsr166y.*;
 
@@ -34,7 +33,8 @@ public class ConcurrentAnalysis<Q extends ICompUnitContext> {
 			return;
 		}
 		Procedure<Integer> proc = new Procedure<Integer>() {
-			public void op(Integer ignored) {
+			@Override
+      public void op(Integer ignored) {
 				l.remove();
 			}
 		};
@@ -136,7 +136,8 @@ public class ConcurrentAnalysis<Q extends ICompUnitContext> {
 		 */
 		final PromiseFramework frame = PromiseFramework.getInstance();
 		array.apply(new Procedure<E>() {
-			public void op(E arg) {
+			@Override
+      public void op(E arg) {
 				try {
 					frame.pushTypeContext(arg.getCompUnit());
 					proc.op(arg);

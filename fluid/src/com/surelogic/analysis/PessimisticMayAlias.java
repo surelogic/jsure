@@ -11,6 +11,7 @@ public final class PessimisticMayAlias implements IMayAlias {
     super();
   }
   
+  @Override
   public boolean mayAlias(final IRNode expr1, final IRNode expr2) {
     return true;
   }

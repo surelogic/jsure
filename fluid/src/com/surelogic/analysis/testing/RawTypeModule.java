@@ -69,37 +69,6 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
           current.second().getSubAnalysisQuery(caller),
           current.third().getSubAnalysisQuery(caller));
     }
-
-    
-    
-//    @Override
-//    public Void visitVariableUseExpression(final IRNode use) {
-//      // Ignore if we are the LHS of an assignment
-//      final IRNode parent = JJNode.tree.getParent(use);
-//      if (AssignExpression.prototype.includes(parent) &&
-//          AssignExpression.getOp1(parent).equals(use)) {
-//        return null;
-//      }
-//      
-//      // See if the current variable is a primitive or not
-//      final IJavaType type = getBinder().getJavaType(use);
-//      if (type instanceof IJavaReferenceType) {
-//         // See if the current variable is considered to be null or not
-//        final Set<IRNode> nonNull = currentQuery().getResultFor(use);
-//        final IRNode varDecl = getBinder().getBinding(use);
-//        final InfoDrop drop = new InfoDrop(null);
-//        setResultDependUponDrop(drop, use);
-//        drop.setCategory(Messages.DSC_NON_NULL);
-//        final String varName = VariableUseExpression.getId(use);
-//        if (nonNull.contains(varDecl)) {
-//          drop.setResultMessage(Messages.NOT_NULL, varName);
-//        } else {
-//          drop.setResultMessage(Messages.MAYBE_NULL, varName);
-//        }
-//      }
-//      
-//      return null;
-//    }
     
     @Override
     public Void visitThisExpression(final IRNode expr) {

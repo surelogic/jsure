@@ -1345,7 +1345,8 @@ class JavaPromiseChildrenIterator extends AbstractRemovelessIterator<IRNode> {
 	}
 	private static Object noNextElement = new Object();
 
-	public boolean hasNext() {
+	@Override
+  public boolean hasNext() {
 		if (nextIsValid) {
 			return true;
 		}
@@ -1356,7 +1357,8 @@ class JavaPromiseChildrenIterator extends AbstractRemovelessIterator<IRNode> {
 
 	Iterator<IRNode> sub = null;
 
-	public IRNode next() {
+	@Override
+  public IRNode next() {
 		if (nextIsValid || hasNext()) {
 			nextIsValid = false;
 			return (IRNode) next;

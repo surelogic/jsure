@@ -44,6 +44,7 @@ public final class TypeBasedMayAlias implements IMayAlias {
           (type2 instanceof IJavaArrayType));
   }
   
+  @Override
   public boolean mayAlias(final IRNode expr1, final IRNode expr2) {
     final IJavaType upper1 =
         upperBoundGetter.getUpperBound(binder.getJavaType(expr1));

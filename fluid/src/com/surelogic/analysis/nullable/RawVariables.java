@@ -13,7 +13,8 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
- * Associative array from the receiver declaration (if any), and any non-array
+ * Associative array from all the receiver declarations in scope or found 
+ * along the flow of control, and any non-array
  * object-typed local variable and parameter declarations to the raw state of
  * the referenced object. This array always contains an extra element indexed by
  * "null" whose value is initialized to IMPOSSIBLE. If the value of this last
@@ -28,10 +29,6 @@ public final class RawVariables extends IRNodeIndexedExtraElementArrayLattice<Ra
 
     // Create a unique reference to the empty value
     empty = createEmptyValue();
-//    final int n = modifiedKeys.length;
-//    empty = new Element[n];
-//    for (int i = 0; i < n-1; i++) empty[i] = RawLattice.NOT_RAW;
-//    empty[n-1] = RawLattice.IMPOSSIBLE;
   }
 
   public static RawVariables create(

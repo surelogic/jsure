@@ -129,6 +129,7 @@ public class BindingContextAnalysis extends IntraproceduralAnalysis<ImmutableSet
     }
     
     
+    @Override
     public ImmutableSet<IRNode>[] transferComponentSource(final IRNode node) {
       return lattice.getInitialValue();
     }

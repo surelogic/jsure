@@ -45,11 +45,9 @@ public abstract class AbstractThisExpressionBinder extends BinderWrapper impleme
    */
   protected abstract IRNode bindQualifiedReceiver(IRNode outerType, IRNode node);
   
+  @Override
   public final IRNode bindThisExpression(final IRNode expr) {
 	  IRNode result = bindThisExpression_private(expr);
-//	  if (result == null) {
-//		  return bindThisExpression_private(expr);
-//	  }
 	  return result;
   }
   
@@ -77,6 +75,7 @@ public abstract class AbstractThisExpressionBinder extends BinderWrapper impleme
     }
   }
   
+  @Override
   public final IRNode bindThisExpression(final ExpressionNode expr) {
     if (expr == null) {
       return null;
