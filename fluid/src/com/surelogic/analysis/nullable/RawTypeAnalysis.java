@@ -132,7 +132,7 @@ implements IBinderClient {
         
         @Override
         public boolean hasNext() {
-          return idx < lattice.getNumVariables();
+          return idx < lattice.getRealSize();
         }
 
         @Override
@@ -227,7 +227,7 @@ implements IBinderClient {
   
     
 
-  /* The analysis state is two associate lists.  The first is a map from all
+  /* The analysis state is two association lists.  The first is a map from all
    * the reference-valued variables in scope to the current raw state of the
    * variable.  The second is a map from all the annotated local variable 
    * declarations (not including parameter declarations) to the inferred
@@ -271,7 +271,7 @@ implements IBinderClient {
     
     
     public int getNumVariables() {
-      return lattice1.getNumVariables();
+      return lattice1.getRealSize();
     }
     
     public IRNode getVariable(final int i) {

@@ -3,6 +3,7 @@ package com.surelogic.analysis.nullable;
 import java.util.List;
 
 import com.surelogic.analysis.nullable.RawLattice.Element;
+import com.surelogic.util.IRNodeIndexedExtraElementArrayLattice;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -10,7 +11,6 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.uwm.cs.fluid.util.AssociativeArrayLattice;
 
 /**
  * Associative array from the receiver declaration (if any), and any non-array
@@ -19,36 +19,24 @@ import edu.uwm.cs.fluid.util.AssociativeArrayLattice;
  * "null" whose value is initialized to IMPOSSIBLE. If the value of this last
  * element is ever not IMPOSSIBLE, then the value of the array is non-normative.
  */
-public final class RawVariables extends AssociativeArrayLattice<IRNode, RawLattice, RawLattice.Element> {
+public final class RawVariables extends IRNodeIndexedExtraElementArrayLattice<RawLattice, RawLattice.Element> {
   private final Element[] empty;
 
   private RawVariables(
       final IRNode[] modifiedKeys, final RawLattice lat) {
-    super(lat, RawLattice.ARRAY_PROTOTYPE, modifiedKeys);
+    super(lat, modifiedKeys);
 
     // Create a unique reference to the empty value
-    final int n = modifiedKeys.length;
-    empty = new Element[n];
-    for (int i = 0; i < n-1; i++) empty[i] = RawLattice.NOT_RAW;
-    empty[n-1] = RawLattice.IMPOSSIBLE;
+    empty = createEmptyValue();
+//    final int n = modifiedKeys.length;
+//    empty = new Element[n];
+//    for (int i = 0; i < n-1; i++) empty[i] = RawLattice.NOT_RAW;
+//    empty[n-1] = RawLattice.IMPOSSIBLE;
   }
 
   public static RawVariables create(
       final List<IRNode> keys, final RawLattice lattice) {
-    final int originalSize = keys.size();
-    final IRNode[] modifiedKeys = keys.toArray(new IRNode[originalSize + 1]);
-    modifiedKeys[originalSize] = null;
-    return new RawVariables(modifiedKeys, lattice);
-  }
-  
-  public final int getNumVariables() {
-    // Last element is bogus, so ignore it
-    return size - 1;
-  }
-  
-  @Override
-  protected boolean indexEquals(final IRNode field1, final IRNode field2) {
-    return field1.equals(field2);
+    return new RawVariables(modifyKeys(keys), lattice);
   }
 
   @Override
@@ -57,9 +45,15 @@ public final class RawVariables extends AssociativeArrayLattice<IRNode, RawLatti
   }
 
   @Override
-  public boolean isNormal(final Element[] value) {
-    return value[size-1] == RawLattice.IMPOSSIBLE;
+  protected Element[] newArray() {
+    return new Element[size];
   }
+  
+  @Override
+  protected Element getEmptyElementValue() { return RawLattice.NOT_RAW; }
+  
+  @Override
+  protected Element getNormalFlagValue() { return RawLattice.IMPOSSIBLE; }
   
   @Override
   protected void indexToString(final StringBuilder sb, final IRNode index) {

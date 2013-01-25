@@ -6,6 +6,7 @@ import java.util.List;
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.annotation.rules.UniquenessRules;
+import com.surelogic.util.IRNodeIndexedExtraElementArrayLattice;
 
 import edu.cmu.cs.fluid.FluidRuntimeException;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -32,7 +33,6 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.CachedSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;
-import edu.uwm.cs.fluid.util.AssociativeArrayLattice;
 import edu.uwm.cs.fluid.util.UnionLattice;
 
 /**
@@ -69,7 +69,7 @@ import edu.uwm.cs.fluid.util.UnionLattice;
  * element that will never actually be used.
  */
 public final class BindingContext extends
-    AssociativeArrayLattice<IRNode, UnionLattice<IRNode>, ImmutableSet<IRNode>> {
+IRNodeIndexedExtraElementArrayLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>> {
   // =========================================================================
   // == Bogus values for differentiation empty from bottom
   // =========================================================================
@@ -154,12 +154,11 @@ public final class BindingContext extends
   // =========================================================================
   
   /** Create a new BindingContext lattice for a particular method. */
-  @SuppressWarnings("unchecked")
   private BindingContext(
       final IRNode md, final IRNode[] locals, final IRNode[] ignore, 
       final boolean[] isExternal, final IBinder binder) {
     // We add one to the # of locals to make room for our bogus element
-    super(new UnionLattice<IRNode>(), ImmutableSet.NO_SETS, locals);
+    super(new UnionLattice<IRNode>(), locals);
     this.methodDecl = md;
     this.ignore = ignore;
     this.isExternal = isExternal;
@@ -192,41 +191,40 @@ public final class BindingContext extends
         binder);
   }
 
-  
+  @SuppressWarnings("unchecked")
+  @Override
+  protected ImmutableSet<IRNode>[] newArray() {
+    return new ImmutableSet[size];
+  }
   
   // ======================================================================
   // == Associative array methods
   // ======================================================================
-
-  @Override
-  protected boolean indexEquals(final IRNode decl1, final IRNode decl2) {
-    return decl1.equals(decl2);
-  }
 
   /**
    * Get the empty value for the lattice.  This is value has the last index
    * refer to {@link #IGNORE_ME_SINGLETON_SET}, and the rest of the values 
    * refer to the empty set.
    */
-  @SuppressWarnings("unchecked")
   @Override
   public ImmutableSet<IRNode>[] getEmptyValue() {
-    final ImmutableSet<IRNode>[] empty = new ImmutableSet[size];
-    for (int i = 0; i < size - 1; i++) {
-      empty[i] = CachedSet.<IRNode>getEmpty();
-    }
-    empty[size-1] = ignoreMeSingletonSet;
-    return empty;
+    return createEmptyValue();
+//    final ImmutableSet<IRNode>[] empty = new ImmutableSet[size];
+//    for (int i = 0; i < size - 1; i++) {
+//      empty[i] = CachedSet.<IRNode>getEmpty();
+//    }
+//    empty[size-1] = ignoreMeSingletonSet;
+//    return empty;
   }
   
-  /**
-   * Is the lattice value normal, that is, neither top nor bottom?
-   */
   @Override
-  public boolean isNormal(final ImmutableSet<IRNode>[] value) {
-    /* Value is good as long as the bogus element is the special ignore set. */
-    final boolean result = value[size-1] == ignoreMeSingletonSet;
-    return result;
+  protected ImmutableSet<IRNode> getEmptyElementValue() {
+    return CachedSet.<IRNode>getEmpty();
+  }
+  
+  @Override
+  protected ImmutableSet<IRNode> getNormalFlagValue() {
+    return ignoreMeSingletonSet;
   }
   
   // =========================================================================

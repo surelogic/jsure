@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/locks/AbstractLockStackLattice.java,v 1.18 2008/01/19 00:14:21 aarong Exp $*/
 package com.surelogic.analysis.concurrency.heldlocks;
 
 import java.util.Collections;
@@ -82,10 +81,9 @@ abstract class AbstractLockStackLattice extends
    *          The list of unique lock expressions that represent the domain of
    *          the map portion of this lattice.
    */
-  @SuppressWarnings("unchecked")
   protected AbstractLockStackLattice(final ThisExpressionBinder teb, final IBinder b, final HeldLock[] lks,
       final Map<IRNode, Set<HeldLock>> map) {
-    super(new ListLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>>(new UnionLattice<IRNode>()), ImmutableList.NO_LISTS, lks);
+    super(new ListLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>>(new UnionLattice<IRNode>()), lks);
     binder = b;
     thisExprBinder = teb;
     lockExprsToLockSets = map;
@@ -172,6 +170,12 @@ abstract class AbstractLockStackLattice extends
   // == Associative array methods
   // ======================================================================
 
+  @SuppressWarnings("unchecked")
+  @Override
+  protected final ImmutableList<ImmutableSet<IRNode>>[] newArray() {
+    return new ImmutableList[size]; 
+  }
+  
   @Override
   protected final boolean indexEquals(final HeldLock lock1, final HeldLock lock2) {
     return lock1.mustAlias(lock2, thisExprBinder, binder);

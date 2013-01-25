@@ -58,10 +58,12 @@ public final class MustHoldAnalysis extends
   
   
   private final static class EmptyHeldLocksQuery implements JavaFlowAnalysisQuery<HeldLocks> {
+    @Override
     public JavaFlowAnalysisQuery<HeldLocks> getSubAnalysisQuery(final IRNode caller) {
       return this;
     }
 
+    @Override
     public HeldLocks getResultFor(final IRNode expr) {
       return EMPTY_HELD_LOCKS;
     }    
@@ -394,6 +396,7 @@ public final class MustHoldAnalysis extends
       }
     }
 
+    @Override
     public ImmutableList<ImmutableSet<IRNode>>[] transferComponentSource(IRNode node) {
 //      System.out.println("transferComponentSource:");
 //      System.out.flush();

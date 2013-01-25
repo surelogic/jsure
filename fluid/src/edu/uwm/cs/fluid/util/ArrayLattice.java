@@ -1,8 +1,5 @@
 package edu.uwm.cs.fluid.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * A lattice in which the elements are fixed size arrays, each element of which is
  * a lattice element in its own right.  This lattice is cached, but it's
@@ -17,10 +14,10 @@ import java.util.List;
  * @param <L> the lattice of the array elements.
  * @param <T> the type of the array elements
  */
-public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
+public abstract class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
 
   protected final L baseLattice;
-  private final T[] prototype;
+//  private final T[] prototype;
   protected final int size;
   
   /**
@@ -32,10 +29,10 @@ public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
    * @param n length of the arrays
    * @param p sample value of type T[] (recommended: size = 0)
    */
-  public ArrayLattice(L base, int n, T[] p) {
+  public ArrayLattice(L base, int n) { //, T[] p) {
     baseLattice = base;
     size = n;
-    prototype = p;
+//    prototype = p;
   }
   
   public final L getBaseLattice() {
@@ -103,29 +100,41 @@ public class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
     return cache(set(array,i,newValue));
   }
 
-  protected final T[] makeArray(List<T> l) {
-    T[] a = size <= prototype.length ? prototype.clone() : prototype;
-    return l.toArray(a);
-  }
+//  protected final T[] makeArray(List<T> l) {
+//    T[] a = size <= prototype.length ? prototype.clone() : prototype;
+//    return l.toArray(a);
+//  }
 
+  protected abstract T[] newArray();
+  
   @Override
   protected final T[] computeTop() {
-    T top = baseLattice.top();
-    List<T> tops = new ArrayList<T>(size);
-    for (int i=0; i < size; ++i) {
-      tops.add(top);
-    }
-    return makeArray(tops);
+    final T[] topArray = newArray();
+    final T top = baseLattice.top();
+    for (int i = 0; i < size; i++) topArray[i] = top;
+    return topArray;
+    
+//    T top = baseLattice.top();
+//    List<T> tops = new ArrayList<T>(size);
+//    for (int i=0; i < size; ++i) {
+//      tops.add(top);
+//    }
+//    return makeArray(tops);
   }
 
   @Override
   protected final T[] computeBottom() {
-    T bot = baseLattice.bottom();
-    List<T> bots = new ArrayList<T>(size);
-    for (int i=0; i < size; ++i) {
-      bots.add(bot);
-    }
-    return makeArray(bots);
+    final T[] bottomArray = newArray();
+    final T bottom = baseLattice.bottom();
+    for (int i = 0; i < size; i++) bottomArray[i] = bottom;
+    return bottomArray;
+
+//    T bot = baseLattice.bottom();
+//    List<T> bots = new ArrayList<T>(size);
+//    for (int i=0; i < size; ++i) {
+//      bots.add(bot);
+//    }
+//    return makeArray(bots);
   }
 
   @Override

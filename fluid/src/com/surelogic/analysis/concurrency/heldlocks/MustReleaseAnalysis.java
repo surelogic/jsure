@@ -145,6 +145,7 @@ public final class MustReleaseAnalysis extends
       return (returnedLock != null);
     }
     
+    @Override
     public ImmutableList<ImmutableSet<IRNode>>[] transferConditional(
         final IRNode node, final boolean flag, 
         final ImmutableList<ImmutableSet<IRNode>>[] after) {
@@ -295,6 +296,7 @@ public final class MustReleaseAnalysis extends
       }
     }
 
+    @Override
     public ImmutableList<ImmutableSet<IRNode>>[] transferComponentSink(IRNode node, boolean normal) {
       final ImmutableList<ImmutableSet<IRNode>>[] emptyValue = lattice.getEmptyValue();
       return emptyValue;

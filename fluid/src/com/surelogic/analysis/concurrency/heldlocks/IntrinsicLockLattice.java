@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/locks/AbstractLockStackLattice.java,v 1.18 2008/01/19 00:14:21 aarong Exp $*/
 package com.surelogic.analysis.concurrency.heldlocks;
 
 import java.util.HashSet;
@@ -6,7 +5,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
-import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.IJavaRef;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -52,7 +50,7 @@ final class IntrinsicLockLattice extends
    * bottom, and these are not going to be equal to our LatticeValues.LOCKED
    * and LatticeValues.UNLOCKED values.
    * 
-   * AbstractLockStaticLattice needs to deal with bogus elements because its
+   * AbstractLockStackLattice needs to deal with bogus elements because its
    * underlying lattice is a List, and the bottom value there is the empty list.
    * So we need to make sure in that case that the "empty list" is not confused
    * with a bottom value.
@@ -83,16 +81,22 @@ final class IntrinsicLockLattice extends
    */
   private IntrinsicLockLattice(
       final IRNode[] sb, final Set<HeldLock>[] l, final Set<HeldLock> assumed) {
-    super(FlatLattice.prototype, SLUtility.EMPTY_OBJECT_ARRAY, sb);
+//    super(FlatLattice.prototype, SLUtility.EMPTY_OBJECT_ARRAY, sb);
+    super(FlatLattice.prototype, sb);
     locks = l;
     assumedLocks = assumed;
   }
   
-  @SuppressWarnings("unchecked")
+  @Override
+  protected Object[] newArray() {
+    return new Object[size];
+  }
+  
   public static IntrinsicLockLattice createForFlowUnit(
       final IRNode flowUnit, final JUCLockUsageManager jucLockUsageManager) {
     final Map<IRNode, Set<HeldLock>> map = jucLockUsageManager.getSyncBlocks(flowUnit);
     final IRNode[] syncBlocks = new IRNode[map.keySet().size()];
+    @SuppressWarnings("unchecked")
     final Set<HeldLock>[] locks = new Set[syncBlocks.length];
     int i = 0;
     for (final Map.Entry<IRNode, Set<HeldLock>> entry : map.entrySet()) {
@@ -160,12 +164,6 @@ final class IntrinsicLockLattice extends
   private Object[] updateSyncBlock(
       final Object[] oldValue, final IRNode syncBlock, final LatticeValues status) {
     return replaceValue(oldValue, syncBlock, status);
-//    final int idx = indexOf(syncBlock);
-//    Object[] result = oldValue;
-//    if (idx != -1) {
-//      result = replaceValue(result, idx, status);
-//    }
-//    return result;
   }
 
   /**
