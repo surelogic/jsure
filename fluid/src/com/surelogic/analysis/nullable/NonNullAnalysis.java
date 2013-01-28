@@ -6,9 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.nullable.RawLattice.Element;
 import com.surelogic.annotation.rules.NonNullRules;
-import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
 
@@ -144,18 +142,18 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
     
   }
   
-  /* The analysis state is a set of non-null variables and an association list.
-   * The association list is a map from all the annotated local variable 
-   * declarations (not including parameter declarations) to the inferred
-   * annotation for the variable.  This is used to check against any actual 
-   * annotation on the variable, which must be greater than the inferred
-   * annotation.
-   */
-  private static final class State extends Pair<ImmutableSet<IRNode>, NullInfo[]> {
-    public State(final ImmutableSet<IRNode> nonNullVars, final NullInfo[] inferred) {
-      super(nonNullVars, inferred);
-    }
-  }
+//  /* The analysis state is a set of non-null variables and an association list.
+//   * The association list is a map from all the annotated local variable 
+//   * declarations (not including parameter declarations) to the inferred
+//   * annotation for the variable.  This is used to check against any actual 
+//   * annotation on the variable, which must be greater than the inferred
+//   * annotation.
+//   */
+//  private static final class State extends Pair<ImmutableSet<IRNode>, NullInfo[]> {
+//    public State(final ImmutableSet<IRNode> nonNullVars, final NullInfo[] inferred) {
+//      super(nonNullVars, inferred);
+//    }
+//  }
 
 //  private static final class StateLattice extends PairLattice<
 //      ImmutableSet<IRNode>, NullInfo[],

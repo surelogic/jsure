@@ -184,6 +184,22 @@ public final class LocalVariableDeclarations {
       }
       doAcceptForChildren(mdecl);
     }
+    
+    @Override
+    public void handleAnonClassExpression(final IRNode expr) {
+      // Add the receiver of the <init> method
+      receivers.add(
+          JavaPromise.getReceiverNode(JavaPromise.getInitMethod(expr)));
+      super.handleAnonClassExpression(expr);
+    }
+    
+    @Override
+    public void handleEnumConstantClassDeclaration(final IRNode expr) {
+      // Add the receiver of the <init> method
+      receivers.add(
+          JavaPromise.getReceiverNode(JavaPromise.getInitMethod(expr)));
+      super.handleEnumConstantClassDeclaration(expr);
+    }
   }
   
   

@@ -6,8 +6,12 @@ import com.surelogic.analysis.nullable.RawLattice.Element;
 import com.surelogic.util.IRNodeIndexedExtraElementArrayLattice;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -60,6 +64,19 @@ public final class RawVariables extends IRNodeIndexedExtraElementArrayLattice<Ra
       final Operator op = JJNode.tree.getOperator(index);
       if (ReceiverDeclaration.prototype.includes(op)) {
         sb.append("this");
+        final IRNode from = JavaPromise.getPromisedFor(index);
+        if (InitDeclaration.prototype.includes(from)) {
+          sb.append(" from <init> of ");
+          final IRNode clazz = JavaPromise.getPromisedFor(from);
+          sb.append(JavaNames.getRelativeTypeName(clazz));
+          sb.append('@');
+          sb.append(JavaNode.getJavaRef(clazz).getLineNumber());
+        } else {
+          sb.append(" from ");
+          sb.append(JavaNames.genSimpleMethodConstructorName(from));
+          sb.append('@');
+          sb.append(JavaNode.getJavaRef(from).getLineNumber());
+        }
       } else if (ParameterDeclaration.prototype.includes(op)) {
         sb.append(ParameterDeclaration.getId(index));
       } else { // VariableDeclarator

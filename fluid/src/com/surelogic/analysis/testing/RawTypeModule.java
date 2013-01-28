@@ -9,6 +9,7 @@ import com.surelogic.analysis.nullable.RawTypeAnalysis;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.DebugQuery;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.Inferred;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.InferredRawQuery;
+import com.surelogic.analysis.nullable.RawTypeAnalysis.Lattice;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.Query;
 import com.surelogic.analysis.nullable.RawLattice.Element;
 import com.surelogic.annotation.rules.NonNullRules;
@@ -18,6 +19,7 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -79,10 +81,13 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
         return null;
       }
 
-      final Element[] rawness = currentQuery().first().getResultFor(expr);
+      final IRNode rcvrDecl = JavaPromise.getReceiverNode(getEnclosingDecl());
+      final Pair<Lattice, Element[]> result =
+          currentQuery().first().getResultFor(expr);
+      final int idx = result.first().indexOf(rcvrDecl);
       final HintDrop drop = HintDrop.newInformation(expr);
       drop.setCategorizingMessage(Messages.DSC_NON_NULL);
-      drop.setMessage(Messages.RAWNESS, rawness[0]);
+      drop.setMessage(Messages.RAWNESS,  result.second()[idx]);
       return null;
     }
     
@@ -110,10 +115,13 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
     
     @Override
     public void handleConstructorCall(final IRNode expr) {
-      final Element rawness[] = currentQuery().first().getResultFor(expr);
+      final IRNode rcvrDecl = JavaPromise.getReceiverNode(getEnclosingDecl());
+      final Pair<Lattice, Element[]> result =
+          currentQuery().first().getResultFor(expr);
+      final int idx = result.first().indexOf(rcvrDecl);
       final HintDrop drop = HintDrop.newInformation(expr);
       drop.setCategorizingMessage(Messages.DSC_NON_NULL);
-      drop.setMessage(Messages.RAWNESS, rawness[0]);
+      drop.setMessage(Messages.RAWNESS, result.second()[idx]);
       
       super.handleConstructorCall(expr);
     }

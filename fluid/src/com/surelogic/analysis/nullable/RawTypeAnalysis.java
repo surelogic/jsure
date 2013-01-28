@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.surelogic.analysis.AnalysisUtils;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.nullable.RawLattice.Element;
@@ -31,7 +32,6 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
-import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -61,12 +61,12 @@ public final class RawTypeAnalysis extends IntraproceduralAnalysis<
     RawTypeAnalysis.Value, RawTypeAnalysis.Lattice,
     JavaForwardAnalysis<RawTypeAnalysis.Value, RawTypeAnalysis.Lattice>>
 implements IBinderClient {
-  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Element[], Value, Lattice> {
+  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Pair<Lattice, Element[]>, Value, Lattice> {
     public Query(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
     }
     
-    private Query(final Delegate<Query, Element[], Value, Lattice> d) {
+    private Query(final Delegate<Query, Pair<Lattice, Element[]>, Value, Lattice> d) {
       super(d);
     }
     
@@ -76,13 +76,13 @@ implements IBinderClient {
     }
 
     @Override
-    protected Element[] processRawResult(
+    protected Pair<Lattice, Element[]> processRawResult(
         final IRNode expr, final Lattice lattice, final Value rawResult) {
-      return rawResult.second().first();
+      return new Pair<Lattice, Element[]>(lattice, rawResult.second().first());
     }
 
     @Override
-    protected Query newSubAnalysisQuery(final Delegate<Query, Element[], Value, Lattice> d) {
+    protected Query newSubAnalysisQuery(final Delegate<Query, Pair<Lattice, Element[]>, Value, Lattice> d) {
       return new Query(d);
     }
   }
@@ -193,14 +193,11 @@ implements IBinderClient {
   protected JavaForwardAnalysis<Value, Lattice> createAnalysis(final IRNode flowUnit) {
     final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
     final List<IRNode> refVars = new ArrayList<IRNode>(
-        lvd.getLocal().size() + lvd.getExternal().size() + 1);
-    // Receiver is always the first item in the array, if it exists
-    final Operator flowUnitOp = JJNode.tree.getOperator(flowUnit);
-    if (InitDeclaration.prototype.includes(flowUnitOp) || 
-        ConstructorDeclaration.prototype.includes(flowUnitOp) ||
-        (MethodDeclaration.prototype.includes(flowUnitOp) && !TypeUtil.isStatic(flowUnit))) {
-      refVars.add(JavaPromise.getReceiverNode(flowUnit));
-    }
+        lvd.getLocal().size() + lvd.getExternal().size() + lvd.getReceivers().size());
+
+    // Add the receivers
+    refVars.addAll(lvd.getReceivers());
+
     // Add all reference-typed variables in scope
     LocalVariableDeclarations.separateDeclarations(
         binder, lvd.getLocal(), refVars, NullList.<IRNode>prototype());
@@ -221,7 +218,7 @@ implements IBinderClient {
     final RawVariables inferredLattice = RawVariables.create(inferred, rawLattice);
     final StateLattice stateLattice = new StateLattice(rawVariables, inferredLattice);
     final Lattice lattice = new Lattice(rawLattice, stateLattice);
-    final Transfer t = new Transfer(binder, lattice, 0);
+    final Transfer t = new Transfer(flowUnit, binder, lattice, 0);
     return new JavaForwardAnalysis<Value, Lattice>("Raw Types", lattice, t, DebugUnparser.viewer);
   }
   
@@ -243,14 +240,6 @@ implements IBinderClient {
   
   private static final class StateLattice extends PairLattice<
       Element[], Element[], RawVariables, RawVariables, State> {
-    /**
-     * When present, the receiver is always the first element in the associative
-     * array.
-     */
-    private static final int THIS = 0;
-
-    
-       
     public StateLattice(final RawVariables l1, final RawVariables l2) {
       super(l1, l2);
     }
@@ -285,17 +274,13 @@ implements IBinderClient {
     public Element injectPromiseDrop(final RawPromiseDrop pd) {
       return lattice1.getBaseLattice().injectPromiseDrop(pd);
     }
-    
-    public boolean containsThis() {
-      return ReceiverDeclaration.prototype.includes(lattice1.getKey(THIS));
+
+    public State setThis(final State v, final IRNode rcvrDecl, final Element e) {
+      return newPair(lattice1.replaceValue(v.first(), rcvrDecl, e), v.second());
     }
     
-    public State setThis(final State v, final Element e) {
-      return newPair(lattice1.replaceValue(v.first(), THIS, e), v.second()); 
-    }
-    
-    public Element getThis(final State v) {
-      return v.first()[THIS];
+    public Element getThis(final State v, final IRNode rcvrDecl) {
+      return v.first()[lattice1.indexOf(rcvrDecl)];
     }
     
     public int indexOf(final IRNode var) {
@@ -370,16 +355,12 @@ implements IBinderClient {
       return lattice2.injectPromiseDrop(pd);
     }
     
-    public boolean containsThis() {
-      return lattice2.containsThis();
+    public Value setThis(final Value v, final IRNode rcvrDecl, final Element e) {
+      return newPair(v.first(), lattice2.setThis(v.second(), rcvrDecl, e));
     }
     
-    public Value setThis(final Value v, final Element e) {
-      return newPair(v.first(), lattice2.setThis(v.second(), e)); 
-    }
-    
-    public Element getThis(final Value v) {
-      return lattice2.getThis(v.second());
+    public Element getThis(final Value v, final IRNode rcvrDecl) {
+      return lattice2.getThis(v.second(), rcvrDecl);
     }
     
     public int indexOf(final IRNode var) {
@@ -406,28 +387,32 @@ implements IBinderClient {
 
   
   private static final class Transfer extends LatticeDelegatingJavaEvaluationTransfer<Lattice, Value, Element> {
-    public Transfer(final IBinder binder, final Lattice lattice, final int floor) {
-      super(binder, lattice, new SubAnalysisFactory(), floor);
+    private final IRNode flowUnit;
+    
+    public Transfer(final IRNode fu, final IBinder binder, final Lattice lattice, final int floor) {
+      super(binder, lattice, new SubAnalysisFactory(fu), floor);
+      flowUnit = fu;
     }
 
 
     
     @Override
     public Value transferComponentSource(final IRNode node) {
-      Value value = lattice.getEmptyValue();
+      Value value = lattice.getEmptyValue(); // everything is NOT_RAW
 
-      if (lattice.containsThis()) {
-        /* Receiver is completely raw at the start of constructors
-         * and instance initializer blocks.  Receiver is based on the
-         * annotation at the start of non-static methods.
-         */
-        if (MethodDeclaration.prototype.includes(node)) {
-          final RawPromiseDrop pd = NonNullRules.getRaw(lattice.getVariable(0));
-          if (pd != null) {
-            value = lattice.setThis(value, lattice.injectPromiseDrop(pd));
-          }
-        } else {
-          value = lattice.setThis(value, RawLattice.RAW);
+      /* Receiver is completely raw at the start of constructors
+       * and instance initializer blocks.  Receiver is based on the
+       * annotation at the start of non-static methods.
+       */
+      final Operator op = JJNode.tree.getOperator(node);
+      if (ConstructorDeclaration.prototype.includes(op) ||
+          InitDeclaration.prototype.includes(op)) {
+        value = lattice.setThis(value, JavaPromise.getReceiverNode(node), RawLattice.RAW);
+      } else if (MethodDeclaration.prototype.includes(op) && !TypeUtil.isStatic(node)) {
+        final IRNode rcvr = JavaPromise.getReceiverNode(node);
+        final RawPromiseDrop pd = NonNullRules.getRaw(rcvr);
+        if (pd != null) {
+          value = lattice.setThis(value, rcvr, lattice.injectPromiseDrop(pd));
         }
       }
       
@@ -513,6 +498,7 @@ implements IBinderClient {
       if (flag) {
         final ITypeEnvironment typeEnv = binder.getTypeEnvironment();
         if (ConstructorCall.prototype.includes(node)) {
+          final IRNode rcvrDecl = AnalysisUtils.getReceiverNodeAtExpression(node, flowUnit);
           if (SuperExpression.prototype.includes(ConstructorCall.getObject(node))) {
             /* Initialized up to the superclass type.  ConstructorCall expressions
              * can only appear inside of a constructor declaration, which in turn
@@ -522,16 +508,18 @@ implements IBinderClient {
             final Element rcvrState = lattice.injectClass(
                 typeEnv.getSuperclass(
                     (IJavaDeclaredType) typeEnv.getMyThisType(classDecl)));
-            return lattice.setThis(value, rcvrState);
+            return lattice.setThis(value, rcvrDecl, rcvrState);
           } else { // ThisExpression
-            return lattice.setThis(value, RawLattice.NOT_RAW);
+            return lattice.setThis(value, rcvrDecl, RawLattice.NOT_RAW);
           }
         } else if (AnonClassExpression.prototype.includes(node)) {
           final IRNode superClassDecl =
               binder.getBinding(AnonClassExpression.getType(node));
-          final Element rcvrState= lattice.injectClass(
+          final Element rcvrState = lattice.injectClass(
               (IJavaDeclaredType) typeEnv.getMyThisType(superClassDecl));
-          return lattice.setThis(value, rcvrState);
+          final IRNode rcvrDecl =
+              JavaPromise.getReceiverNode(JavaPromise.getInitMethod(node));
+          return lattice.setThis(value, rcvrDecl, rcvrState);
         } else if (ImpliedEnumConstantInitialization.prototype.includes(node)
             && EnumConstantClassDeclaration.prototype.includes(tree.getParent(node))) {
           /* The immediately enclosing type is the EnumConstantClassDeclaration
@@ -541,7 +529,10 @@ implements IBinderClient {
               VisitUtil.getEnclosingType(VisitUtil.getEnclosingType(node));
           final Element rcvrState = lattice.injectClass(
               (IJavaDeclaredType) typeEnv.getMyThisType(superClassDecl));
-          return lattice.setThis(value, rcvrState);
+          final IRNode rcvrDecl =
+              JavaPromise.getReceiverNode(JavaPromise.getInitMethod(
+                  tree.getParent(node)));
+          return lattice.setThis(value, rcvrDecl, rcvrState);
         } else { // Not sure why it should ever get here
           throw new IllegalStateException(
               "transferConstructorCall() called with a " +
@@ -570,7 +561,8 @@ implements IBinderClient {
     @Override
     protected Value transferUseReceiver(final IRNode use, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      return lattice.push(val, lattice.getThis(val));
+      return lattice.push(val, lattice.getThis(val,
+          AnalysisUtils.getReceiverNodeAtExpression(use, flowUnit)));
     }
     
     @Override
@@ -600,13 +592,19 @@ implements IBinderClient {
   
   
   private static final class SubAnalysisFactory extends AbstractCachingSubAnalysisFactory<Lattice, Value> {
+    private final IRNode flowUnit;
+    
+    private SubAnalysisFactory(final IRNode fu) {
+      flowUnit = fu;
+    }
+    
     @Override
     protected JavaForwardAnalysis<Value, Lattice> realCreateAnalysis(
         final IRNode caller, final IBinder binder,
         final Lattice lattice,
         final Value initialValue,
         final boolean terminationNormal) {
-      final Transfer t = new Transfer(binder, lattice, 0);
+      final Transfer t = new Transfer(flowUnit, binder, lattice, 0);
       return new JavaForwardAnalysis<Value, Lattice>("sub analysis", lattice, t, DebugUnparser.viewer);
     }
   }
