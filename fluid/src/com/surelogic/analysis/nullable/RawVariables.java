@@ -1,6 +1,8 @@
 package com.surelogic.analysis.nullable;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import com.surelogic.analysis.nullable.RawLattice.Element;
 import com.surelogic.util.IRNodeIndexedExtraElementArrayLattice;
@@ -26,18 +28,56 @@ import edu.cmu.cs.fluid.tree.Operator;
  */
 public final class RawVariables extends IRNodeIndexedExtraElementArrayLattice<RawLattice, RawLattice.Element> {
   private final Element[] empty;
-
-  private RawVariables(
-      final IRNode[] modifiedKeys, final RawLattice lat) {
+  
+  /**
+   * When the lattice is for a constructor declaration of class C, this is the 
+   * set of all the qualified this uses, "C.this", that appear along the flow 
+   * of control within an anonymous class.  For example, in
+   * 
+   * <pre>
+   * public class C {
+   *   private final Object f = new Object() {
+   *     final Object g = C.this; // (*)
+   *     
+   *     {
+   *       doStuff(C.this) // (*)
+   *       
+   *       new Object() {
+   *         final Object h = C.this; // (*)
+   *       }
+   *     }
+   *     
+   *     private void m() {
+   *       moreStuff(C.this);
+   *     }
+   *   }
+   *   
+   *   public C() {
+   *     super();
+   *   }
+   * }
+   * </pre>
+   * 
+   * <p>the starred uses of "C.this" would be in this list, but the use in 
+   * method <code>m()</code> would not be.  The uses in this set are those 
+   * where the qualified receiver is RAW(X) where X is the superclass of C.
+   * All other uses of qualified receivers are NOT_RAW.  
+   */
+  private final Set<IRNode> qualifiedThis;
+  
+  private RawVariables(final IRNode[] modifiedKeys, final RawLattice lat,
+      final Set<IRNode> qt) {
     super(lat, modifiedKeys);
-
+    qualifiedThis = qt;
+    
     // Create a unique reference to the empty value
     empty = createEmptyValue();
   }
 
   public static RawVariables create(
-      final List<IRNode> keys, final RawLattice lattice) {
-    return new RawVariables(modifyKeys(keys), lattice);
+      final List<IRNode> keys, final RawLattice lattice,
+      final Set<IRNode> qualifiedThis) {
+    return new RawVariables(modifyKeys(keys), lattice, qualifiedThis);
   }
 
   @Override
@@ -55,6 +95,10 @@ public final class RawVariables extends IRNodeIndexedExtraElementArrayLattice<Ra
   
   @Override
   protected Element getNormalFlagValue() { return RawLattice.IMPOSSIBLE; }
+  
+  public boolean isInterestingQualifiedThis(final IRNode qt) {
+    return qualifiedThis.contains(qt);
+  }
   
   @Override
   protected void indexToString(final StringBuilder sb, final IRNode index) {
@@ -83,5 +127,20 @@ public final class RawVariables extends IRNodeIndexedExtraElementArrayLattice<Ra
         sb.append(VariableDeclarator.getId(index));
       }
     }
+  }
+  
+  // for debugging
+  public String qualifiedThisToString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append('{');
+    final Iterator<IRNode> i = qualifiedThis.iterator();
+    while (i.hasNext()) {
+      final IRNode use = i.next();
+      sb.append("use@");
+      sb.append(JavaNode.getJavaRef(use).getLineNumber());
+      if (i.hasNext()) sb.append(", ");
+    }
+    sb.append('}');
+    return sb.toString();
   }
 }

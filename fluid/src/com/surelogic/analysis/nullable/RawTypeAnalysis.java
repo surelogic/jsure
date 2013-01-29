@@ -2,11 +2,16 @@ package com.surelogic.analysis.nullable;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import com.surelogic.analysis.AnalysisUtils;
 import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.InstanceInitAction;
+import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.nullable.RawLattice.Element;
 import com.surelogic.annotation.rules.NonNullRules;
@@ -30,8 +35,10 @@ import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ImpliedEnumConstantInitialization;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
+import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -86,6 +93,38 @@ implements IBinderClient {
       return new Query(d);
     }
   }
+  
+  
+  
+  public final class QualifiedThisQuery extends SimplifiedJavaFlowAnalysisQuery<QualifiedThisQuery, Element, Value, Lattice> {
+    public QualifiedThisQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
+      super(thunk);
+    }
+    
+    private QualifiedThisQuery(final Delegate<QualifiedThisQuery, Element, Value, Lattice> d) {
+      super(d);
+    }
+    
+    @Override
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.NORMAL_EXIT;
+    }
+
+    @Override
+    protected Element processRawResult(
+        final IRNode expr, final Lattice lattice, final Value rawResult) {
+      /* Look at the top value on the stack, that is, get the value that 
+       * was pushed for handling the QualifiedThisExpression. 
+       */
+      return lattice.peek(rawResult);
+    }
+
+    @Override
+    protected QualifiedThisQuery newSubAnalysisQuery(final Delegate<QualifiedThisQuery, Element, Value, Lattice> d) {
+      return new QualifiedThisQuery(d);
+    }
+  }
+
   
   
   
@@ -213,16 +252,85 @@ implements IBinderClient {
       }
     }
     
+    /* If the flow unit is a constructor C(), get all the uses of the  
+     * qualified receiver "C.this" that appear along the initialization control
+     * path within anonymous classes.
+     */
+    final Set<IRNode> uses;
+    if (ConstructorDeclaration.prototype.includes(flowUnit)) {
+      uses = QualifiedThisVisitor.getUses(flowUnit, getBinder());
+    } else {
+      uses = Collections.<IRNode>emptySet();
+    }
+    
     final RawLattice rawLattice = new RawLattice(binder.getTypeEnvironment());
-    final RawVariables rawVariables = RawVariables.create(refVars, rawLattice);
-    final RawVariables inferredLattice = RawVariables.create(inferred, rawLattice);
+    final RawVariables rawVariables = RawVariables.create(refVars, rawLattice, uses);
+    final RawVariables inferredLattice = RawVariables.create(inferred, rawLattice, Collections.<IRNode>emptySet());
     final StateLattice stateLattice = new StateLattice(rawVariables, inferredLattice);
     final Lattice lattice = new Lattice(rawLattice, stateLattice);
     final Transfer t = new Transfer(flowUnit, binder, lattice, 0);
     return new JavaForwardAnalysis<Value, Lattice>("Raw Types", lattice, t, DebugUnparser.viewer);
   }
   
+  
+  
+  /**
+   * Used to visit a constructor declaration from class <code>C</code> and finds
+   * all the uses of the qualified receiver <code>C.this</code> that appears in
+   * the initialization of any anonymous class expressions that appear along the
+   * flow of control of the constructor. These uses are interesting because they
+   * capture the object in a raw state: RAW(X) where X is the superclass of
+   * <code>C</code>. Otherwise uses of qualified receivers are uninteresting.
+   */
+  private final static class QualifiedThisVisitor extends JavaSemanticsVisitor {
+    private final IBinder binder;
+    private final IRNode qualifyingTypeDecl;
+    private final Set<IRNode> uses;
+    private int depth;
     
+    private QualifiedThisVisitor(final IRNode cdecl, final IBinder b) {
+      super(false, cdecl);
+      binder = b;
+      qualifyingTypeDecl = getEnclosingType(); // initialized in super constructor
+      uses = new HashSet<IRNode>();
+      depth = 0;
+    }
+    
+    public static Set<IRNode> getUses(final IRNode cdecl, final IBinder b) {
+      final QualifiedThisVisitor v = new QualifiedThisVisitor(cdecl, b);
+      v.doAccept(cdecl);
+      return v.uses;
+    }
+    
+    @Override
+    protected InstanceInitAction getAnonClassInitAction(
+        final IRNode expr, final IRNode classBody) {
+      return new InstanceInitAction() {
+        @Override
+        public void tryBefore() { depth += 1; }
+
+        @Override
+        public void finallyAfter() { depth -=1; }
+        
+        @Override
+        public void afterVisit() { /* empty */ }
+      };
+    }
+    
+    @Override
+    public Void visitQualifiedThisExpression(final IRNode node) {
+      if (depth > 0) {
+        final IRNode outerType =
+            binder.getBinding(QualifiedThisExpression.getType(node));
+        if (outerType.equals(qualifyingTypeDecl)) {
+          uses.add(node);
+        }
+      }
+      return null;
+    }
+  }
+    
+  
 
   /* The analysis state is two association lists.  The first is a map from all
    * the reference-valued variables in scope to the current raw state of the
@@ -303,7 +411,15 @@ implements IBinderClient {
       final Element current = v.second()[idx];
       final Element joined = lattice2.getBaseLattice().join(current, e);
       return newPair(v.first(), lattice2.replaceValue(v.second(), idx, joined));
-      
+    }
+    
+    public boolean isInterestingQualifiedThis(final IRNode use) {
+      return lattice1.isInterestingQualifiedThis(use);
+    }
+    
+    // For debugging
+    public String qualifiedThisToString() {
+      return lattice1.qualifiedThisToString();
     }
   }
   
@@ -381,6 +497,15 @@ implements IBinderClient {
     
     public Value inferVar(final Value v, final int idx, final Element e) {
       return newPair(v.first(), lattice2.inferVar(v.second(), idx, e));
+    }
+    
+    public boolean isInterestingQualifiedThis(final IRNode use) {
+      return lattice2.isInterestingQualifiedThis(use);
+    }
+    
+    // For debugging
+    public String qualifiedThisToString() {
+      return lattice2.qualifiedThisToString();
     }
   }
 
@@ -570,8 +695,20 @@ implements IBinderClient {
         final IRNode use, final IRNode binding, final Value val) {
       if (!lattice.isNormal(val)) return val;
       
-      // Qualified receiver is always fully initialized
-      return lattice.push(val, RawLattice.NOT_RAW);
+      /* Qualified receiver is fully initialized, unless it appears in the 
+       * initialization of an anonymous class created during the initialization
+       * of the class itself, in which case it is Raw(X), where X is the super
+       * class of the class under initialization.
+       */
+      if (lattice.isInterestingQualifiedThis(use)) {
+        final IJavaDeclaredType qualifyingType =
+            QualifiedReceiverDeclaration.getJavaType(binder, binding);
+        return lattice.push(val,
+            lattice.injectClass(
+                qualifyingType.getSuperclass(binder.getTypeEnvironment())));
+      } else {
+        return lattice.push(val, RawLattice.NOT_RAW);
+      }
     }
     
     @Override
@@ -625,6 +762,10 @@ implements IBinderClient {
 
   public Query getRawTypeQuery(final IRNode flowUnit) {
     return new Query(getAnalysisThunk(flowUnit));
+  }
+  
+  public QualifiedThisQuery getQualifiedThisQuery(final IRNode flowUnit) {
+    return new QualifiedThisQuery(getAnalysisThunk(flowUnit));
   }
   
   public InferredRawQuery getInferredRawQuery(final IRNode flowUnit) {

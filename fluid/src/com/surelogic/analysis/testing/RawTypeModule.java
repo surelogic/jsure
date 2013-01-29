@@ -3,25 +3,23 @@ package com.surelogic.analysis.testing;
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.RawTypeAnalysis;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.DebugQuery;
-import com.surelogic.analysis.nullable.RawTypeAnalysis.Inferred;
-import com.surelogic.analysis.nullable.RawTypeAnalysis.InferredRawQuery;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.Lattice;
+import com.surelogic.analysis.nullable.RawTypeAnalysis.QualifiedThisQuery;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.Query;
 import com.surelogic.analysis.nullable.RawLattice.Element;
-import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.Pair;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
-import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
+import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.util.Triple;
 
@@ -53,20 +51,20 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
     getAnalysis().clear();
   }
   
-  private final class RawTypeVisitor extends AbstractJavaAnalysisDriver<Triple<Query, InferredRawQuery, DebugQuery>> {
+  private final class RawTypeVisitor extends AbstractJavaAnalysisDriver<Triple<Query, QualifiedThisQuery, DebugQuery>> {
     @Override
-    protected Triple<Query, InferredRawQuery, DebugQuery> createNewQuery(final IRNode decl) {
+    protected Triple<Query, QualifiedThisQuery, DebugQuery> createNewQuery(final IRNode decl) {
       final RawTypeAnalysis analysis = getAnalysis();
-      return new Triple<Query, InferredRawQuery, DebugQuery>(
+      return new Triple<Query, QualifiedThisQuery, DebugQuery>(
           analysis.getRawTypeQuery(decl),
-          analysis.getInferredRawQuery(decl),
+          analysis.getQualifiedThisQuery(decl),
           analysis.getDebugQuery(decl));
     }
 
     @Override
-    protected Triple<Query, InferredRawQuery, DebugQuery> createSubQuery(final IRNode caller) {
-      final Triple<Query, InferredRawQuery, DebugQuery> current = currentQuery();
-      return new Triple<Query, InferredRawQuery, DebugQuery>(
+    protected Triple<Query, QualifiedThisQuery, DebugQuery> createSubQuery(final IRNode caller) {
+      final Triple<Query, QualifiedThisQuery, DebugQuery> current = currentQuery();
+      return new Triple<Query, QualifiedThisQuery, DebugQuery>(
           current.first().getSubAnalysisQuery(caller),
           current.second().getSubAnalysisQuery(caller),
           current.third().getSubAnalysisQuery(caller));
@@ -82,12 +80,46 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
       }
 
       final IRNode rcvrDecl = JavaPromise.getReceiverNode(getEnclosingDecl());
+      processReceiverDeclaration(expr, rcvrDecl);
+      return null;
+    }
+
+    private void processReceiverDeclaration(
+        final IRNode expr, final IRNode rcvrDecl) {
       final Pair<Lattice, Element[]> result =
           currentQuery().first().getResultFor(expr);
       final int idx = result.first().indexOf(rcvrDecl);
       final HintDrop drop = HintDrop.newInformation(expr);
       drop.setCategorizingMessage(Messages.DSC_NON_NULL);
       drop.setMessage(Messages.RAWNESS,  result.second()[idx]);
+    }
+    
+    @Override
+    public Void visitQualifiedThisExpression(final IRNode expr) {
+      /* First check if we really aren't a fancy "this", that is,
+       * C.this inside of class C.
+       */
+      // N.B. took this test from JavaEvaluationTransfer.transferUse()
+      final IRNode decl = getBinder().getBinding(expr);
+      if (ReceiverDeclaration.prototype.includes(decl)) {
+        /*
+         * The ReceiverDeclaration we get in 'decl' may be from an
+         * InitDeclaration node, and not from the enclosing
+         * ConsturctorDeclaration. All we want 'decl' for is to find out if the
+         * QualifeidThisExpression really refers to a regular receiver. Now we
+         * can get that receiver from the current enclosing declaration like we
+         * do above in visitThisExpression().
+         */
+        processReceiverDeclaration(
+            expr, JavaPromise.getReceiverNode(getEnclosingDecl()));
+      } else {
+        final Element v = currentQuery().second().getResultFor(expr);
+        final HintDrop drop = HintDrop.newInformation(expr);
+        drop.setCategorizingMessage(Messages.DSC_NON_NULL);
+        drop.setMessage(Messages.QTHIS_RAWNESS, 
+            QualifiedReceiverDeclaration.getJavaType(getBinder(), decl).toSourceText(),
+            v);        
+      }
       return null;
     }
     
@@ -95,20 +127,19 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
     public Void visitMethodBody(final IRNode b) {
       doAcceptForChildren(b);
 
-      final Inferred inferredResult = currentQuery().second().getResultFor(b);
-      for (final Pair<IRNode, Element> p : inferredResult) {
-        final IRNode varDecl = p.first();
-        final RawPromiseDrop pd = NonNullRules.getRaw(varDecl);
-        final Element annotation = inferredResult.injectAnnotation(pd);
-        final Element inferred = p.second();
-        final boolean isGood = inferredResult.lessEq(inferred, annotation);
-        ResultsBuilder.createResult(varDecl, pd, isGood, 910, 911, inferred);
-      }
-        
       final String state = currentQuery().third().getResultFor(b);
       final HintDrop drop = HintDrop.newInformation(b);
       drop.setCategorizingMessage(Messages.DSC_NON_NULL);
       drop.setMessage(Messages.RAW_STATE, state);
+
+      /* This is no good for regression tests because the order of elements
+       * in the set isn't fixed.  Not worth fixing them.  Any errors here
+       * will be reflected as errors in qualified this expressions.
+       */
+//      final Pair<Lattice, Element[]> pair = currentQuery().first().getResultFor(b);
+//      final HintDrop drop2 = HintDrop.newInformation(b);
+//      drop2.setCategorizingMessage(Messages.DSC_NON_NULL);
+//      drop2.setMessage(Messages.USES, pair.first().qualifiedThisToString());
 
       return null;
     }
@@ -116,12 +147,7 @@ public final class RawTypeModule extends AbstractWholeIRAnalysis<RawTypeAnalysis
     @Override
     public void handleConstructorCall(final IRNode expr) {
       final IRNode rcvrDecl = JavaPromise.getReceiverNode(getEnclosingDecl());
-      final Pair<Lattice, Element[]> result =
-          currentQuery().first().getResultFor(expr);
-      final int idx = result.first().indexOf(rcvrDecl);
-      final HintDrop drop = HintDrop.newInformation(expr);
-      drop.setCategorizingMessage(Messages.DSC_NON_NULL);
-      drop.setMessage(Messages.RAWNESS, result.second()[idx]);
+      processReceiverDeclaration(expr, rcvrDecl);
       
       super.handleConstructorCall(expr);
     }
