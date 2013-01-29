@@ -13,7 +13,6 @@ import com.surelogic.tree.SyntaxTreeNode;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo;
-import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
