@@ -71,6 +71,7 @@ import com.surelogic.dropsea.ir.drops.PromisePromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModelClearOutUnusedStaticProofHook;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 import com.surelogic.dropsea.ir.utility.Dependencies;
+import com.surelogic.javac.adapter.*;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureDataDirScanner;
 import com.surelogic.javac.persistence.JSurePerformance;
@@ -414,6 +415,7 @@ public class Util {
     eliminateDups(cus.asList(), cus.asList());
     // checkForDups(cus.asList());
     clearCaches(projects); // To clear out old state invalidated by rewriting
+    //ClassSummarizer.printStats();
     
     perf.markTimeFor("Rewriting");
     canonicalizeCUs(perf, cus, projects);
