@@ -136,7 +136,7 @@ public final class SimpleNonnullAnalysis extends IntraproceduralAnalysis<
   
 
   
-  public static final class Value extends EvaluationStackLattice.Pair<
+  public static final class Value extends EvaluationStackLattice.EvalPair<
       NullInfo, ImmutableSet<IRNode>> {
     public Value(final ImmutableList<NullInfo> v1, final ImmutableSet<IRNode> v2) {
       super(v1, v2);

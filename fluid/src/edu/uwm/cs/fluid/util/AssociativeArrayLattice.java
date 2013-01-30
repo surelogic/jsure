@@ -16,8 +16,6 @@ public abstract class AssociativeArrayLattice<K, L extends Lattice<T>, T> extend
   
   protected AssociativeArrayLattice(
       final L base, final K[] keys) {
-//      final L base, final T[] p, final K[] keys) {
-//    super(base, keys.length, p);
     super(base, keys.length);
     indices = keys;
   }

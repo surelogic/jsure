@@ -10,29 +10,21 @@ package edu.uwm.cs.fluid.util;
  * type as a parameter.  This only helps {@link #getBaseLattice()} have
  * a more precise type.  If this precision is not needed, then {@link L} can
  * always simply be <code>Lattice&lt;T&gt;</code>.
- * @author boyland
  * @param <L> the lattice of the array elements.
  * @param <T> the type of the array elements
  */
 public abstract class ArrayLattice<L extends Lattice<T>, T> extends CachingLattice<T[]> {
-
   protected final L baseLattice;
-//  private final T[] prototype;
   protected final int size;
   
   /**
    * Create an array lattice using the given base lattice and size.
    * @param base base lattice for elements in the arrays.
-   * We take a prototype array so that we can create arrays of the correct
-   * type by cloning.  That is because <code>new T[n]</code> doesn't 
-   * work in Java (sigh).
    * @param n length of the arrays
-   * @param p sample value of type T[] (recommended: size = 0)
    */
-  public ArrayLattice(L base, int n) { //, T[] p) {
+  public ArrayLattice(L base, int n) {
     baseLattice = base;
     size = n;
-//    prototype = p;
   }
   
   public final L getBaseLattice() {
@@ -100,11 +92,6 @@ public abstract class ArrayLattice<L extends Lattice<T>, T> extends CachingLatti
     return cache(set(array,i,newValue));
   }
 
-//  protected final T[] makeArray(List<T> l) {
-//    T[] a = size <= prototype.length ? prototype.clone() : prototype;
-//    return l.toArray(a);
-//  }
-
   protected abstract T[] newArray();
   
   @Override
@@ -113,13 +100,6 @@ public abstract class ArrayLattice<L extends Lattice<T>, T> extends CachingLatti
     final T top = baseLattice.top();
     for (int i = 0; i < size; i++) topArray[i] = top;
     return topArray;
-    
-//    T top = baseLattice.top();
-//    List<T> tops = new ArrayList<T>(size);
-//    for (int i=0; i < size; ++i) {
-//      tops.add(top);
-//    }
-//    return makeArray(tops);
   }
 
   @Override
@@ -128,13 +108,6 @@ public abstract class ArrayLattice<L extends Lattice<T>, T> extends CachingLatti
     final T bottom = baseLattice.bottom();
     for (int i = 0; i < size; i++) bottomArray[i] = bottom;
     return bottomArray;
-
-//    T bot = baseLattice.bottom();
-//    List<T> bots = new ArrayList<T>(size);
-//    for (int i=0; i < size; ++i) {
-//      bots.add(bot);
-//    }
-//    return makeArray(bots);
   }
 
   @Override

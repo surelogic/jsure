@@ -249,7 +249,7 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
     }
   }
   
-  public static final class Value extends EvaluationStackLattice.Pair<
+  public static final class Value extends EvaluationStackLattice.EvalPair<
       NullInfo, State> {
     public Value(final ImmutableList<NullInfo> v1, final State v2) {
       super(v1, v2);

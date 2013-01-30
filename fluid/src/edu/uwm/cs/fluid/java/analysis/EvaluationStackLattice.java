@@ -20,15 +20,15 @@ import edu.uwm.cs.fluid.util.PairLattice;
 public abstract class EvaluationStackLattice<V, S,
     L1 extends Lattice<V>,
     L2 extends Lattice<S>,
-    R extends EvaluationStackLattice.Pair<V, S>>
+    R extends EvaluationStackLattice.EvalPair<V, S>>
 extends PairLattice<ImmutableList<V>, S, ListLattice<L1, V>, L2, R>
 implements JavaEvaluationOperations<R, V> {
   /**
    * @param <V> The type of the stack elements.
    * @param <S> The type of the additional analysis state.
    */
-  public static abstract class Pair<V, S> extends com.surelogic.common.Pair<ImmutableList<V>, S> {
-    public Pair(final ImmutableList<V> v, final S s) {
+  public static abstract class EvalPair<V, S> extends com.surelogic.common.Pair<ImmutableList<V>, S> {
+    public EvalPair(final ImmutableList<V> v, final S s) {
       super(v, s);
     }
   }

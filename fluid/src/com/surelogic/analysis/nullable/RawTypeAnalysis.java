@@ -49,9 +49,8 @@ import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
 import edu.uwm.cs.fluid.java.control.LatticeDelegatingJavaEvaluationTransfer;
-import edu.uwm.cs.fluid.java.analysis.EvaluationStackLattice;
+import edu.uwm.cs.fluid.java.analysis.EvaluationStackLatticeWithInference;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
-import edu.uwm.cs.fluid.util.PairLattice;
 
 
 /**
@@ -340,20 +339,18 @@ implements IBinderClient {
    * annotation on the variable, which must be greater than the inferred
    * annotation.
    */
-  private static final class State extends Pair<Element[], Element[]> {
+  private static final class State
+  extends EvaluationStackLatticeWithInference.StatePair<Element[], Element> {
     public State(final Element[] vars, final Element[] inferred) {
       super(vars, inferred);
     }
   }
   
-  private static final class StateLattice extends PairLattice<
-      Element[], Element[], RawVariables, RawVariables, State> {
+  private static final class StateLattice
+  extends EvaluationStackLatticeWithInference.StatePairLattice<
+      Element[], Element, RawVariables, RawVariables, State> {
     public StateLattice(final RawVariables l1, final RawVariables l2) {
       super(l1, l2);
-    }
-
-    public RawVariables getInferredLattice() {
-      return lattice2;
     }
     
     @Override
@@ -403,16 +400,6 @@ implements IBinderClient {
       return v.first()[idx];
     }
     
-    public int indexOfInferred(final IRNode var) {
-      return lattice2.indexOf(var);
-    }
-    
-    public State inferVar(final State v, final int idx, final Element e) {
-      final Element current = v.second()[idx];
-      final Element joined = lattice2.getBaseLattice().join(current, e);
-      return newPair(v.first(), lattice2.replaceValue(v.second(), idx, joined));
-    }
-    
     public boolean isInterestingQualifiedThis(final IRNode use) {
       return lattice1.isInterestingQualifiedThis(use);
     }
@@ -423,20 +410,20 @@ implements IBinderClient {
     }
   }
   
-  public static final class Value extends EvaluationStackLattice.Pair<Element, State> {
+  public static final class Value
+  extends EvaluationStackLatticeWithInference.EvalValue<
+      Element, Element[], Element, State> {
     public Value(final ImmutableList<Element> v1, final State v2) {
       super(v1, v2);
     }
   }
   
-  public static final class Lattice extends EvaluationStackLattice<
-      Element, State, RawLattice, StateLattice, Value> {
-    protected Lattice(final RawLattice l1, final StateLattice l2) {
+  public static final class Lattice
+  extends EvaluationStackLatticeWithInference<
+      Element, Element[], Element, State,
+      RawLattice, RawVariables, RawVariables, StateLattice, Value> {
+    protected Lattice(final RawLattice l1, final RawTypeAnalysis.StateLattice l2) {
       super(l1, l2);
-    }
-
-    public RawVariables getInferredLattice() {
-      return lattice2.getInferredLattice();
     }
     
     @Override
@@ -489,14 +476,6 @@ implements IBinderClient {
     
     public Element getVar(final Value v, final int idx) {
       return lattice2.getVar(v.second(), idx);
-    }
-    
-    public int indexOfInferred(final IRNode var) {
-      return lattice2.indexOfInferred(var);
-    }
-    
-    public Value inferVar(final Value v, final int idx, final Element e) {
-      return newPair(v.first(), lattice2.inferVar(v.second(), idx, e));
     }
     
     public boolean isInterestingQualifiedThis(final IRNode use) {
