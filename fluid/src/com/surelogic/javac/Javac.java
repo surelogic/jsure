@@ -51,11 +51,9 @@ public class Javac extends IDE {
 		init(ThreadEffectsModule.class,
 				"com.surelogic.jsure.client.eclipse.ThreadEffectAssurance2", true, "Thread effects");
 		init(LayersAnalysis.class,
-				"com.surelogic.jsure.client.eclipse.LayersAssurance", true, "Static structure");
-		if (XUtil.useExperimental) {
-			init(StructureAnalysis.class,
-				"com.surelogic.jsure.client.eclipse.StructureAssurance", false, "Structure analysis");
-		}
+				"com.surelogic.jsure.client.eclipse.LayersAssurance", true, "Static structure");		
+		init(StructureAnalysis.class,
+				"com.surelogic.jsure.client.eclipse.StructureAssurance", true, "Structure analysis");
 		
 		/* Checking of @ThreadSafe, etc., which is run by the lock policy and 
 		 * equality analyses, depend on the results of annotation bounds checking.
