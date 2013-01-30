@@ -121,9 +121,15 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
     return new JavaForwardAnalysis<Value, Lattice>("Java.Nonnull", l, t, DebugUnparser.viewer);
   }
 
+  
+  
   public Query getNonnullBeforeQuery(final IRNode flowUnit) {
     return new Query(getAnalysisThunk(flowUnit));
   }
+  
+//  public InferredNullQuery getInferredNullQuery(final IRNode flowUnit) {
+//    return new InferredNullQuery(getAnalysisThunk(flowUnit));
+//  }
   
 
   
@@ -307,8 +313,6 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
           NullLattice.getInstance(),
           new StateLattice(
               new ModifiedIntersectionLattice(), inferredLattice));
-//              InferredLattice.create(
-//                  Collections.<IRNode> emptyList(), NullLattice.getInstance())));
     }
 
     @Override
@@ -421,16 +425,16 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
      * @return
      */
     @SuppressWarnings("unused") // for the "debug" flag
-    private Value transferSetVar(final IRNode varDecl, final Value val) {
-      // (1) Update the inferred state of the assigned variable
-//      final int inferredIdx = lattice.indexOfInferred(varDecl);
-//      if (inferredIdx != -1) {
-//        newValue = lattice.inferVar(newValue, inferredIdx, rawState);
-//      }
-
-      
+    private Value transferSetVar(final IRNode varDecl, Value val) {
       final NullInfo ni = lattice.peek(val);
       
+      // (1) Update the inferred state of the assigned variable
+      final int inferredIdx = lattice.indexOfInferred(varDecl);
+      if (inferredIdx != -1) {
+        val = lattice.inferVar(val, inferredIdx, ni);
+      }
+
+      // (2) Update the current state of non nul variables
       if (lattice.mustBeNonNull(val, varDecl)) { // Variable is coming in as NONNULL
         if (!nullLattice.lessEq(ni, NullInfo.NOTNULL)) { // Value might be null
           return lattice.removeNonNull(val, varDecl);
