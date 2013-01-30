@@ -1,6 +1,6 @@
 package com.surelogic.analysis.nullable;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -8,8 +8,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.annotation.rules.NonNullRules;
-import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IRNodeIndexedExtraElementArrayLattice;
 import com.surelogic.util.IThunk;
@@ -36,7 +36,10 @@ import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
-import edu.uwm.cs.fluid.java.analysis.EvaluationStackLattice;
+import edu.uwm.cs.fluid.java.analysis.EvaluationStackLatticeWithInference;
+import edu.uwm.cs.fluid.java.analysis.EvaluationStackLatticeWithInference.EvalValue;
+import edu.uwm.cs.fluid.java.analysis.EvaluationStackLatticeWithInference.StatePair;
+import edu.uwm.cs.fluid.java.analysis.EvaluationStackLatticeWithInference.StatePairLattice;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
@@ -44,7 +47,6 @@ import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
 import edu.uwm.cs.fluid.java.control.LatticeDelegatingJavaEvaluationTransfer;
 import edu.uwm.cs.fluid.util.AbstractLattice;
 import edu.uwm.cs.fluid.util.IntersectionLattice;
-import edu.uwm.cs.fluid.util.PairLattice;
 
 
 /**
@@ -101,8 +103,20 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
   }
 
   @Override
-  protected JavaForwardAnalysis<Value, Lattice> createAnalysis(IRNode flowUnit) {
-    final Lattice l = new Lattice();
+  protected JavaForwardAnalysis<Value, Lattice> createAnalysis(final IRNode flowUnit) {
+    // Get the local variables that are annotated with @NonNull
+    // N.B. Non-ref types variables cannot be @Raw, so we don't have to test for them
+    final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
+    final List<IRNode> inferred = new ArrayList<IRNode>(lvd.getLocal().size());
+    for (final IRNode v : lvd.getLocal()) {
+      if (!ParameterDeclaration.prototype.includes(v)) {
+        if (NonNullRules.getNonNull(v) != null) inferred.add(v);
+      }
+    }
+    
+    final InferredLattice inferredLattice =
+        InferredLattice.create(inferred, NullLattice.getInstance());
+    final Lattice l = new Lattice(inferredLattice);
     final Transfer t = new Transfer(binder,l, 0);
     return new JavaForwardAnalysis<Value, Lattice>("Java.Nonnull", l, t, DebugUnparser.viewer);
   }
@@ -209,15 +223,15 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
    * annotation on the variable, which must be greater than the inferred
    * annotation.
    */
-  private static final class State extends Pair<ImmutableSet<IRNode>, NullInfo[]> {
+  private static final class State extends StatePair<ImmutableSet<IRNode>, NullInfo> {
     public State(final ImmutableSet<IRNode> nonNullVars, final NullInfo[] inferred) {
       super(nonNullVars, inferred);
     }
   }
 
-  private static final class StateLattice extends PairLattice<
-      ImmutableSet<IRNode>, NullInfo[], IntersectionLattice<IRNode>, 
-      InferredLattice, State> {
+  private static final class StateLattice extends StatePairLattice<
+      ImmutableSet<IRNode>, NullInfo,
+      IntersectionLattice<IRNode>, InferredLattice, State> {
     private StateLattice(
         final IntersectionLattice<IRNode> l1, final InferredLattice l2) {
       super(l1, l2);
@@ -249,41 +263,52 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
     }
   }
   
-  public static final class Value extends EvaluationStackLattice.EvalPair<
-      NullInfo, State> {
+  public static final class Value extends EvalValue<
+      NullInfo, ImmutableSet<IRNode>, NullInfo, State> {
     public Value(final ImmutableList<NullInfo> v1, final State v2) {
       super(v1, v2);
     }
   }
   
-  public static final class Lattice extends EvaluationStackLattice<
-      NullInfo, State, NullLattice, StateLattice, Value> { 
-    private Lattice() {
-      super(NullLattice.getInstance(),
-          new StateLattice(
-              new IntersectionLattice<IRNode>(){
-        @Override
-        public String toString(ImmutableSet<IRNode> v) {
-          StringBuilder sb = new StringBuilder();
-          if (v.isInfinite()) {
-            sb.append('~');
-            v = v.invertCopy();
-          }
-          sb.append('{');
-          boolean first = true;
-          for (IRNode n : v) {
-            if (first) first = false; else sb.append(',');
-            try {
-              sb.append(JJNode.getInfo(n));
-            } catch (RuntimeException e) {
-              sb.append(n);
-            }
-          }
-          sb.append('}');
-          return sb.toString();
+  private static final class ModifiedIntersectionLattice
+  extends IntersectionLattice<IRNode> {
+    public ModifiedIntersectionLattice() {
+      super();
+    }
+    
+    @Override
+    public String toString(ImmutableSet<IRNode> v) {
+      StringBuilder sb = new StringBuilder();
+      if (v.isInfinite()) {
+        sb.append('~');
+        v = v.invertCopy();
+      }
+      sb.append('{');
+      boolean first = true;
+      for (IRNode n : v) {
+        if (first) first = false; else sb.append(',');
+        try {
+          sb.append(JJNode.getInfo(n));
+        } catch (RuntimeException e) {
+          sb.append(n);
         }
-      },
-      InferredLattice.create(Collections.<IRNode>emptyList() , NullLattice.getInstance())));
+      }
+      sb.append('}');
+      return sb.toString();
+    }
+  }
+  
+  public static final class Lattice extends EvaluationStackLatticeWithInference<
+      NullInfo, ImmutableSet<IRNode>, NullInfo, State,
+      NullLattice, IntersectionLattice<IRNode>, InferredLattice, StateLattice,
+      Value> {
+    private Lattice(final InferredLattice inferredLattice) {
+      super(
+          NullLattice.getInstance(),
+          new StateLattice(
+              new ModifiedIntersectionLattice(), inferredLattice));
+//              InferredLattice.create(
+//                  Collections.<IRNode> emptyList(), NullLattice.getInstance())));
     }
 
     @Override
@@ -391,25 +416,32 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
 
     /**
      * Transfer an assignment of a variable to what's on the stack.  Leave stack alone.
-     * @param var
+     * @param varDecl
      * @param val
      * @return
      */
     @SuppressWarnings("unused") // for the "debug" flag
-    private Value transferSetVar(final IRNode var, final Value val) {
+    private Value transferSetVar(final IRNode varDecl, final Value val) {
+      // (1) Update the inferred state of the assigned variable
+//      final int inferredIdx = lattice.indexOfInferred(varDecl);
+//      if (inferredIdx != -1) {
+//        newValue = lattice.inferVar(newValue, inferredIdx, rawState);
+//      }
+
+      
       final NullInfo ni = lattice.peek(val);
       
-      if (lattice.mustBeNonNull(val, var)) { // Variable is coming in as NONNULL
+      if (lattice.mustBeNonNull(val, varDecl)) { // Variable is coming in as NONNULL
         if (!nullLattice.lessEq(ni, NullInfo.NOTNULL)) { // Value might be null
-          return lattice.removeNonNull(val, var);
+          return lattice.removeNonNull(val, varDecl);
         }
-        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still non null after being assigned " + ni);
+        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(varDecl) + " is still non null after being assigned " + ni);
         // otherwise, do nothing: not null before, not null afterwards
       } else { // Variable is coming in as possibly null
         if (nullLattice.lessEq(ni, NullInfo.NOTNULL)) { // Value is not null
-          return lattice.addNonNull(val, var);
+          return lattice.addNonNull(val, varDecl);
         }
-        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still maybe null after being assigned " + ni);
+        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(varDecl) + " is still maybe null after being assigned " + ni);
         // do nothing : maybe null before, maybe null afterwards
       }
       return val;
