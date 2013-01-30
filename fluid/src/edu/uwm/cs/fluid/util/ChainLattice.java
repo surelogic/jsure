@@ -22,6 +22,7 @@ public class ChainLattice extends AbstractLattice<Integer> {
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.util.Lattice#lessEq(E, E)
    */
+  @Override
   public boolean lessEq(Integer v1, Integer v2) {
     return v1 <= v2;
   }
@@ -29,6 +30,7 @@ public class ChainLattice extends AbstractLattice<Integer> {
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.util.Lattice#top()
    */
+  @Override
   public Integer top() {
     return max;
   }
@@ -36,6 +38,7 @@ public class ChainLattice extends AbstractLattice<Integer> {
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.util.Lattice#bottom()
    */
+  @Override
   public Integer bottom() {
     return zero;
   }
@@ -43,6 +46,7 @@ public class ChainLattice extends AbstractLattice<Integer> {
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.util.Lattice#join(E, E)
    */
+  @Override
   public Integer join(Integer v1, Integer v2) {
     // max
     return v1 < v2 ? v2 : v1;
@@ -51,6 +55,7 @@ public class ChainLattice extends AbstractLattice<Integer> {
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.util.Lattice#meet(E, E)
    */
+  @Override
   public Integer meet(Integer v1, Integer v2) {
     // min
     return v1 < v2 ? v1 : v2;

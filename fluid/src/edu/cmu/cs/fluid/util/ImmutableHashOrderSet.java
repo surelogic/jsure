@@ -208,6 +208,7 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
     return new ImmutableHashOrderSet<T>(!inverse, elements);
   }
 
+  @Override
   public ImmutableSet<T> invertCopy() {
     return invert();
   }
@@ -242,11 +243,13 @@ public class ImmutableHashOrderSet<T> implements ImmutableSet<T>
     return SortedArray.equals(s1.elements,s2.elements);
   }
 
+  @Override
   @Starts("nothing")
 public boolean isEmpty() {
     return !inverse && elements.length == 0;
   }
 
+  @Override
   public boolean isInfinite() {
     return inverse;
   }
@@ -270,6 +273,7 @@ public boolean isEmpty() {
    * @return The number of elements in the set, or
    * <code>Integer.MAX_VALUE</code> if the set is infinite.
    */
+  @Override
   @Starts("nothing")
 public int size()
   {
@@ -295,11 +299,14 @@ public int size()
    * objects not in the set.  The iterator never completes.
    * @return An iterator over the elements.
    */
+  @Override
   @Starts("nothing")
 public Iterator<T> iterator()
   {
     if (inverse) return new AbstractRemovelessIterator<T>() {
+      @Override
       public boolean hasNext() { return true; }
+      @Override
       @SuppressWarnings("unchecked")
       public T next() { return (T) new Object(); }
     };
@@ -314,6 +321,7 @@ public Iterator<T> iterator()
    *
    * @exception OutOfMemoryError Thrown if the set is infinite.
    */
+  @Override
   @Starts("nothing")
 public Object[] toArray()
   {
@@ -340,6 +348,7 @@ public Object[] toArray()
    *
    * @exception OutOfMemoryError Thrown if the set is infinite.
    */
+  @Override
   @SuppressWarnings("unchecked")
   public <V> V[] toArray( V[] a )
   {
@@ -364,6 +373,7 @@ public Object[] toArray()
    * @return <code>true</code> iff the set contains an element
    * <code>e</code> s.t. <code>e.equals( elem )</code>
    */
+  @Override
   @Starts("nothing")
 public boolean contains( final Object elem )
   {
@@ -376,6 +386,7 @@ public boolean contains( final Object elem )
    * @return <code>true</code> iff all the elements of <code>c</code>
    * are contained in this set.
    */
+  @Override
   @Starts("nothing")
 public boolean containsAll( final Collection<?> c )
   {
@@ -408,6 +419,7 @@ public boolean containsAll( final Collection<?> c )
    * Unsupported operation.
    * @throws UnsupportedOperationException Always thrown
    */
+  @Override
   public boolean addAll( final Collection<? extends T> c )
   {
     throw new UnsupportedOperationException( getClass().getName()
@@ -419,6 +431,7 @@ public boolean containsAll( final Collection<?> c )
    * Unsupported operation.
    * @throws UnsupportedOperationException Always thrown
    */
+  @Override
   @Starts("nothing")
 public boolean retainAll( final Collection<?> c )
   {
@@ -431,6 +444,7 @@ public boolean retainAll( final Collection<?> c )
    * Unsupported operation.
    * @throws UnsupportedOperationException Always thrown
    */
+  @Override
   @Starts("nothing")
 public boolean removeAll( final Collection<?> c )
   {
@@ -443,6 +457,7 @@ public boolean removeAll( final Collection<?> c )
    * Unsupported operation.
    * @throws UnsupportedOperationException Always thrown
    */
+  @Override
   @Starts("nothing")
 public void clear()
   {
@@ -498,6 +513,7 @@ public void clear()
    * @throws UnsupportedOperationException Always thrown
    * @see #addElement(Object)
    */
+  @Override
   public boolean add( final T elem )
   {
     throw new UnsupportedOperationException( getClass().getName()
@@ -507,6 +523,7 @@ public void clear()
   /** 
    * Return a new set that includes the given element.
    */
+  @Override
   public ImmutableSet<T> addCopy(T elem) {
     return addElement(elem);
   }
@@ -549,6 +566,7 @@ public void clear()
    * @throws UnsupportedOperationException Always thrown
    * @see #removeElement(Object)
    */
+  @Override
   @Starts("nothing")
 public boolean remove( final Object elem )
   {
@@ -559,6 +577,7 @@ public boolean remove( final Object elem )
   /**
    * Return a new set that does not include the given element.
    */
+  @Override
   public ImmutableSet<T> removeCopy(T elem) {
     return removeElement(elem);
   }
@@ -587,6 +606,7 @@ public boolean remove( final Object elem )
   /** Return a new set that includes all the elements of this
    * set and the argument.
    */
+  @Override
   public ImmutableSet<T> union(Set<T> other) {
     return union(asThis(other));
   }
@@ -620,6 +640,7 @@ public boolean remove( final Object elem )
   /** Return a set of all elements in both this set
    * and the argument.
    */
+  @Override
   public ImmutableSet<T> intersection(Set<T> other) {
     return intersect(asThis(other));
   }
@@ -652,6 +673,7 @@ public boolean remove( final Object elem )
   /** Return a set of all elements in this set that are not in
    * the argument.
    */
+  @Override
   public ImmutableSet<T> difference(Set<T> set) {
     return difference(asThis(set));
   }
@@ -1367,10 +1389,12 @@ class SortedArrayEnumeration<V> implements Enumeration<V> {
     array = a;
   }
 
+  @Override
   public boolean hasMoreElements() {
     return index < array.length;
   }
 
+  @Override
   public V nextElement() throws NoSuchElementException {
     if (index >= array.length)
       throw new NoSuchElementException("set enumeration exhausted");
@@ -1387,10 +1411,12 @@ extends AbstractRemovelessIterator<V>
     array = a;
   }
 
+  @Override
   public boolean hasNext() {
     return index < array.length;
   }
 
+  @Override
   public V next() throws NoSuchElementException {
     if (index >= array.length)
       throw new NoSuchElementException("set iterator exhausted");

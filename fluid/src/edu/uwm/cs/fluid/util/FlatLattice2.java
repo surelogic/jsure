@@ -143,6 +143,7 @@ public final class FlatLattice2<T> extends AbstractLattice<FlatLattice2.Element<
     return v1.height != 0 || v1.getValue().equals(v2.getValue());
   }
   
+  @Override
   public boolean lessEq(final Element<T> v1, final Element<T> v2) {
     if (v1.height == -1 || v2.height == 1) {
       //     v1 is BOTTOM, always less than any v2
@@ -161,10 +162,12 @@ public final class FlatLattice2<T> extends AbstractLattice<FlatLattice2.Element<
     }
   }
 
+  @Override
   public Element<T> top() {
     return topObject;
   }
 
+  @Override
   public Element<T> bottom() {
     return bottomObject;
   }
@@ -173,6 +176,7 @@ public final class FlatLattice2<T> extends AbstractLattice<FlatLattice2.Element<
     return new Top<T>(msg);
   }
 
+  @Override
   public Element<T> join(final Element<T> v1, final Element<T> v2) {
     if (v1.height == -1) return v2;
     if (v2.height == -1) return v1;
@@ -182,6 +186,7 @@ public final class FlatLattice2<T> extends AbstractLattice<FlatLattice2.Element<
     return topObject;
   }
 
+  @Override
   public Element<T> meet(final Element<T> v1, final Element<T> v2) {
     if (v1.height == 1) return v2;
     if (v2.height == 1) return v1;

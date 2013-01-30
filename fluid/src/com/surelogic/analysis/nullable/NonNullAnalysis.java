@@ -362,7 +362,6 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
           nonNullVars.isEmpty() ? ImmutableHashOrderSet.<IRNode> emptySet() :
             new ImmutableHashOrderSet<IRNode>(nonNullVars);
       return lattice.createInitialValue(initSet);
-//      return new Value(ImmutableList.<NullInfo>nil(), new State(initSet, ));
     }
 
     /*

@@ -23,7 +23,7 @@ import edu.uwm.cs.fluid.util.PairLattice;
  * @param <L2> The lattice type of the arbitrary analysis state.
  * @param <L3> The lattice type of the array of inferred variable states.
  * @param <L4> The lattice type of the overall state object.
- * @param <V> The type of the overall value used by analysis.  
+ * @param <R> The type of the overall value used by analysis.  
  */
 public abstract class EvaluationStackLatticeWithInference<
     V,

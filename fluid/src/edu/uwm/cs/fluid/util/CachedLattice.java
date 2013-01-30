@@ -25,6 +25,7 @@ public class CachedLattice<E> extends CachingLattice<E> {
     return baseLattice.hashCode(v);
   }
 
+  @Override
   public boolean lessEq(E v1, E v2) {
     return baseLattice.lessEq(v1,v2);
   }
