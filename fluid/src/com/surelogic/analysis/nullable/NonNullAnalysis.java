@@ -2,6 +2,7 @@ package com.surelogic.analysis.nullable;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -10,6 +11,7 @@ import java.util.logging.Logger;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IRNodeIndexedExtraElementArrayLattice;
 import com.surelogic.util.IThunk;
@@ -33,6 +35,7 @@ import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
+import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
@@ -92,6 +95,68 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
   
   
   
+  public final class InferredNullQuery extends SimplifiedJavaFlowAnalysisQuery<InferredNullQuery, Inferred, Value, Lattice> {
+    public InferredNullQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
+      super(thunk);
+    }
+    
+    private InferredNullQuery(final Delegate<InferredNullQuery, Inferred, Value, Lattice> d) {
+      super(d);
+    }
+    
+    @Override
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.NORMAL_EXIT;
+    }
+
+    @Override
+    protected Inferred processRawResult(
+        final IRNode expr, final Lattice lattice, final Value rawResult) {
+      return new Inferred(
+          lattice.getInferredLattice(), rawResult.second().second());
+    }
+
+    @Override
+    protected InferredNullQuery newSubAnalysisQuery(final Delegate<InferredNullQuery, Inferred, Value, Lattice> d) {
+      return new InferredNullQuery(d);
+    }
+  }
+  
+  public final class Inferred implements Iterable<Pair<IRNode, NullInfo>> {
+    private final InferredLattice lattice;
+    private final NullInfo[] values;
+    
+    private Inferred(final InferredLattice lat, final NullInfo[] val) {
+      lattice = lat;
+      values = val;
+    }
+    
+    @Override
+    public Iterator<Pair<IRNode, NullInfo>> iterator() {
+      return new AbstractRemovelessIterator<Pair<IRNode, NullInfo>>() {
+        private int idx = 0;
+        
+        @Override
+        public boolean hasNext() {
+          return idx < lattice.getRealSize();
+        }
+
+        @Override
+        public Pair<IRNode, NullInfo> next() {
+          final int currentIdx = idx++;
+          return new Pair<IRNode, NullInfo>(
+              lattice.getKey(currentIdx), values[currentIdx]);
+        }
+      };
+    }
+    
+    public boolean lessEq(final NullInfo a, final NullInfo b) {
+      return lattice.getBaseLattice().lessEq(a, b);
+    }
+  }
+  
+  
+  
   private static final boolean debug = false;
   @SuppressWarnings("unused")
   private static final Logger LOG = SLLogger.getLogger("FLUID.control.java.simpleNonNull");
@@ -127,9 +192,9 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
     return new Query(getAnalysisThunk(flowUnit));
   }
   
-//  public InferredNullQuery getInferredNullQuery(final IRNode flowUnit) {
-//    return new InferredNullQuery(getAnalysisThunk(flowUnit));
-//  }
+  public InferredNullQuery getInferredNullQuery(final IRNode flowUnit) {
+    return new InferredNullQuery(getAnalysisThunk(flowUnit));
+  }
   
 
   

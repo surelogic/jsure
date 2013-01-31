@@ -10,6 +10,8 @@ import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
+import com.surelogic.analysis.nullable.NonNullAnalysis.InferredNullQuery;
+import com.surelogic.analysis.nullable.NullableModule.AnalysisBundle.QueryBundle;
 import com.surelogic.analysis.nullable.RawLattice.Element;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.Inferred;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.InferredRawQuery;
@@ -62,20 +64,15 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
   
   
   
-  private final class Visitor
-  extends AbstractJavaAnalysisDriver<Pair<AllResultsQuery, InferredRawQuery>> {
+  private final class Visitor extends AbstractJavaAnalysisDriver<QueryBundle> {
     @Override
-    protected Pair<AllResultsQuery, InferredRawQuery> createNewQuery(final IRNode decl) {
-      return new Pair<AllResultsQuery, InferredRawQuery>(
-          getAnalysis().getDefiniteAssignmentQuery(decl),
-          getAnalysis().getRawTypeQuery(decl));
+    protected QueryBundle createNewQuery(final IRNode decl) {
+      return getAnalysis().new QueryBundle(decl);
     }
 
     @Override
-    protected Pair<AllResultsQuery, InferredRawQuery> createSubQuery(final IRNode caller) {
-      return new Pair<AllResultsQuery, InferredRawQuery>(
-          currentQuery().first().getSubAnalysisQuery(caller),
-          currentQuery().second().getSubAnalysisQuery(caller));
+    protected QueryBundle createSubQuery(final IRNode caller) {
+      return currentQuery().getSubAnalysisQuery(caller);
     }
 
 
@@ -85,7 +82,7 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
       doAcceptForChildren(cdecl);
 
       final Map<IRNode, Boolean> fieldsStatus = 
-          currentQuery().first().getResultFor(ConstructorDeclaration.getBody(cdecl));
+          currentQuery().getDefinitelyAssigned(ConstructorDeclaration.getBody(cdecl));
       for (final Map.Entry<IRNode, Boolean> e : fieldsStatus.entrySet()) {
         final IRNode fieldDecl = e.getKey();
         final NonNullPromiseDrop pd = NonNullRules.getNonNull(fieldDecl);
@@ -102,7 +99,7 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     public Void visitMethodBody(final IRNode body) {
       doAcceptForChildren(body);
       
-      final Inferred inferredResult = currentQuery().second().getResultFor(body);
+      final Inferred inferredResult = currentQuery().getInferredRaw(body);
       for (final Pair<IRNode, Element> p : inferredResult) {
         final IRNode varDecl = p.first();
         final RawPromiseDrop pd = NonNullRules.getRaw(varDecl);
@@ -123,15 +120,19 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
   
   
   
-  public static final class AnalysisBundle implements IBinderClient {
+  static final class AnalysisBundle implements IBinderClient {
     private final IBinder binder;
     private final DefinitelyAssignedAnalysis definiteAssignment;
     private final RawTypeAnalysis rawType;
+    private final NonNullAnalysis nonNull;
+    
+    
     
     private AnalysisBundle(final IBinder b) {
       binder = b;
       definiteAssignment = new DefinitelyAssignedAnalysis(b, false);
       rawType = new RawTypeAnalysis(b);
+      nonNull = new NonNullAnalysis(b);
     }
     
     @Override
@@ -149,12 +150,40 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
       definiteAssignment.clear();
     }
     
-    public AllResultsQuery getDefiniteAssignmentQuery(final IRNode decl) {
-      return definiteAssignment.getAllResultsQuery(decl);
-    }
     
-    public InferredRawQuery getRawTypeQuery(final IRNode decl) {
-      return rawType.getInferredRawQuery(decl);
+    
+    final class QueryBundle {
+      private final AllResultsQuery allResultsQuery;
+      private final InferredRawQuery inferredRawQuery;
+      private final InferredNullQuery inferredNullQuery;
+      
+      public QueryBundle(final IRNode flowUnit) {
+        allResultsQuery = definiteAssignment.getAllResultsQuery(flowUnit);
+        inferredRawQuery = rawType.getInferredRawQuery(flowUnit);
+        inferredNullQuery = nonNull.getInferredNullQuery(flowUnit);
+      }
+      
+      private QueryBundle(final QueryBundle qb, final IRNode caller) {
+        allResultsQuery = qb.allResultsQuery.getSubAnalysisQuery(caller);
+        inferredRawQuery = qb.inferredRawQuery.getSubAnalysisQuery(caller);
+        inferredNullQuery = qb.inferredNullQuery.getSubAnalysisQuery(caller);
+      }
+      
+      public QueryBundle getSubAnalysisQuery(final IRNode caller) {
+        return new QueryBundle(this, caller);
+      }
+      
+      public Map<IRNode, Boolean> getDefinitelyAssigned(final IRNode node) {
+        return allResultsQuery.getResultFor(node);
+      }
+      
+      public RawTypeAnalysis.Inferred getInferredRaw(final IRNode node) {
+        return inferredRawQuery.getResultFor(node);
+      }
+      
+      public NonNullAnalysis.Inferred getInferredNull(final IRNode node) {
+        return inferredNullQuery.getResultFor(node);
+      }
     }
   }
 }
