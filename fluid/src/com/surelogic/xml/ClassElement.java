@@ -27,7 +27,8 @@ public class ClassElement extends AnnotatedJavaElement {
 		super(confirmed, id, access);
 	}
 	
-	public <T> T visit(IJavaElementVisitor<T> v) {
+	@Override
+  public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
 	}
 	
@@ -36,7 +37,8 @@ public class ClassElement extends AnnotatedJavaElement {
 		return ClassDeclaration.prototype;
 	}
 	
-	public final String getImageKey() {
+	@Override
+  public final String getImageKey() {
 		switch (getAccessibility()) {
 		case PROTECTED:
 			return CommonImages.IMG_CLASS_PROTECTED;
@@ -126,7 +128,8 @@ public class ClassElement extends AnnotatedJavaElement {
 	public Collection<MethodElement> getMethods() {
 		final List<MethodElement> elements = new ArrayList<MethodElement>(methods.values());
 		Collections.sort(elements, new Comparator<MethodElement>() {
-			public int compare(MethodElement o1, MethodElement o2) {				
+			@Override
+      public int compare(MethodElement o1, MethodElement o2) {				
 				int rv = o1.getName().compareTo(o2.getName());
 				if (rv == 0) {
 					rv = o1.getParams().compareTo(o2.getParams());
@@ -137,7 +140,8 @@ public class ClassElement extends AnnotatedJavaElement {
 		return elements;
 	}
 
-	public String getLabel() {
+	@Override
+  public String getLabel() {
 		return getName();
 	}
 	
@@ -227,7 +231,8 @@ public class ClassElement extends AnnotatedJavaElement {
 		return false;
 	}
 	
-	public void markAsClean() {
+	@Override
+  public void markAsClean() {
 		super.markAsClean();
 		if (clinit != null) {
 			clinit.markAsClean();

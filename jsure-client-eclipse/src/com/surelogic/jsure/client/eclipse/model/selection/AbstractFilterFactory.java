@@ -2,7 +2,8 @@ package com.surelogic.jsure.client.eclipse.model.selection;
 
 public abstract class AbstractFilterFactory implements ISelectionFilterFactory {
 
-	public final int compareTo(ISelectionFilterFactory o) {
+	@Override
+  public final int compareTo(ISelectionFilterFactory o) {
 		return getFilterLabel().compareTo(o.getFilterLabel());
 	}
 

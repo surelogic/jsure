@@ -60,6 +60,7 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
     f_operator = operator == null ? LogicOperator.AND : operator;
   }
 
+  @Override
   @NonNull
   public LogicOperator getLogicOperator() {
     return f_operator;

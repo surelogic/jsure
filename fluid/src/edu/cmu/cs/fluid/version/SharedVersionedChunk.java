@@ -119,15 +119,19 @@ public class SharedVersionedChunk extends VersionedChunk {
       return psi;
     }*/
     return new PersistentSlotInfo() {
+      @Override
       public SlotFactory getSlotFactory() {
         return psi.getSlotFactory();
       }
+      @Override
       public IRType getType() {
         return psi.getType();
       }
+      @Override
       public boolean isPredefined() {
         return psi.isPredefined();
       }
+      @Override
       public Object getDefaultValue() {
         return psi.getDefaultValue();
       }
@@ -142,24 +146,30 @@ public class SharedVersionedChunk extends VersionedChunk {
       }
 
       // the slot is immutable and unchanging
+      @Override
       public boolean valueChanged(IRNode node) {
         return false;
       }
+      @Override
       public void writeChangedSlot(IRNode node, IROutput out)
         throws IOException {
       }
+      @Override
       public void readChangedSlotValue(IRNode node, IRInput in)
         throws IOException {
         throw new FluidError("assertion failed: should not get here.");
       }
 
+      @Override
       public void writeSlot(IRNode node, IROutput out) throws IOException {
         psi.writeSlot(unwrapNode(node), out);
       }
 
+      @Override
       public void readSlotValue(IRNode node, IRInput in) throws IOException {
         psi.readSlotValue(node, in);
       }
+      @Override
       public void undefineSlot(IRNode node) {
         psi.undefineSlot(node);
       }
@@ -239,82 +249,105 @@ class IROutputWrapper implements IROutput {
     out = o;
   }
 
+  @Override
   public void write(byte[] b) throws IOException {
     out.write(b);
   }
+  @Override
   public void write(byte[] b, int off, int len) throws IOException {
     out.write(b, off, len);
   }
+  @Override
   public void write(int b) throws IOException {
     out.write(b);
   }
 
+  @Override
   public void writeBoolean(boolean v) throws IOException {
     out.writeBoolean(v);
   }
+  @Override
   public void writeByte(int v) throws IOException {
     out.writeByte(v);
   }
+  @Override
   public void writeBytes(String s) throws IOException {
     out.writeBytes(s);
   }
+  @Override
   public void writeChar(int v) throws IOException {
     out.writeChar(v);
   }
+  @Override
   public void writeChars(String s) throws IOException {
     out.writeChars(s);
   }
+  @Override
   public void writeDouble(double v) throws IOException {
     out.writeDouble(v);
   }
+  @Override
   public void writeFloat(float v) throws IOException {
     out.writeFloat(v);
   }
+  @Override
   public void writeInt(int v) throws IOException {
     out.writeInt(v);
   }
+  @Override
   public void writeLong(long v) throws IOException {
     out.writeLong(v);
   }
+  @Override
   public void writeShort(int v) throws IOException {
     out.writeShort(v);
   }
+  @Override
   public void writeUTF(String str) throws IOException {
     out.writeUTF(str);
   }
 
+  @Override
   public void writeNode(IRNode node) throws IOException {
     out.writeNode(node);
   }
 
+  @Override
   public boolean writeCachedObject(Object object) throws IOException {
     return out.writeCachedObject(object);
   }
 
+  @Override
   public void writeIRType(IRType ty) throws IOException {
     out.writeIRType(ty);
   }
 
+  @Override
   public void writeSlotFactory(SlotFactory sf) throws IOException {
     out.writeSlotFactory(sf);
   }
 
+  @Override
   public void writePersistentReference(IRPersistent p) throws IOException {
     out.writePersistentReference(p);
   }
 
+  @Override
   public boolean debug() {
     return out.debug();
   }
 
+  @Override
   public void debugBegin(String x) {
     out.debugBegin(x);
   }
 
+  @Override
   public void debugEnd(String x) {
     out.debugEnd(x);
   }
 
+  @Override
   public void debugMark(String x) {
     out.debugMark(x);
   }

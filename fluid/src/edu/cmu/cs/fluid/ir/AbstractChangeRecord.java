@@ -31,6 +31,7 @@ public abstract class AbstractChangeRecord extends DerivedSlotInfo<Boolean> impl
     return true;
   }
 
+  @Override
   public void update(Observable o, Object arg) {
     if (arg instanceof IRNode || arg == null) setChanged((IRNode)arg);
   }

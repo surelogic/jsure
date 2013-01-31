@@ -47,10 +47,12 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
     return binder.getBinding(n);
   }
 
+  @Override
   public IBinder getBinder() {
     return binder;
   }
 
+  @Override
   public void clearCaches() {
     // Nothing to do
   }

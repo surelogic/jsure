@@ -80,7 +80,8 @@ public class TestResults extends Task implements ContentHandler, ErrorHandler {
 		}
 	}
 	
-	public void execute() {
+	@Override
+  public void execute() {
 		try {
 			if (!logfile.exists()) {
 				logfile.createNewFile();

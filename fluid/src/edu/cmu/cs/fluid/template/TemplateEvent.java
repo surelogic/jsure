@@ -5,7 +5,7 @@ import java.util.EventObject;
 import java.util.Vector;
 
 @Deprecated
-@SuppressWarnings({"unchecked"})
+@SuppressWarnings({"rawtypes"})
 public abstract class TemplateEvent
 extends EventObject
 {

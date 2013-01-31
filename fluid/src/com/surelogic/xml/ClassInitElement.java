@@ -8,11 +8,13 @@ public final class ClassInitElement extends AnnotatedJavaElement implements ICla
 		super(false, "classinit", Access.DEFAULT);
 	}
 
-	public String getLabel() {
+	@Override
+  public String getLabel() {
 		return "<clinit>";
 	}
 	
-	public final String getImageKey() {
+	@Override
+  public final String getImageKey() {
 		return null; // TODO
 	}
 	
@@ -44,7 +46,8 @@ public final class ClassInitElement extends AnnotatedJavaElement implements ICla
 		return null;
 	}
 	
-	public <T> T visit(IJavaElementVisitor<T> v) {
+	@Override
+  public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
 	}
 }

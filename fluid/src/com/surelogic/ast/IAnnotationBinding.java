@@ -9,5 +9,6 @@ public interface IAnnotationBinding extends IBinding {
   /**   
    * @return null if no corresponding source declaration   
    */  
+  @Override
   public IAnnotationDeclarationNode getNode();
 }

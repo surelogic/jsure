@@ -48,7 +48,8 @@ public abstract class AbstractAntlrParseRule<A extends IAASTRootNode,
 	 * @param contents
 	 *            The information defining the annotation
 	 */
-	public final ParseResult parse(IAnnotationParsingContext context, String contents) {
+	@Override
+  public final ParseResult parse(IAnnotationParsingContext context, String contents) {
 		if (!declaredOnValidOp(context.getOp())) {
 			context.reportError(IAnnotationParsingContext.UNKNOWN,
 				"@"+name()+" declared on invalid operator: "+context.getOp().name());

@@ -13,12 +13,14 @@ public abstract class AbstractDiffNode implements IDiffNode, Comparable<IDiffNod
 		status = Status.NEW;
 	}
 	
-	public Status getDiffStatus() {
+	@Override
+  public Status getDiffStatus() {
 		return status;
 	}
 	
 //	@Override
-	public int compareTo(IDiffNode o) {
+	@Override
+  public int compareTo(IDiffNode o) {
 	      int rv = getDiffStatus().compareTo(o.getDiffStatus());
 	      if (rv == 0) {
 	        return getText().compareTo(o.getText());
@@ -27,12 +29,14 @@ public abstract class AbstractDiffNode implements IDiffNode, Comparable<IDiffNod
 	}
 	
 //	@Override
-	public boolean hasChildren() {
+	@Override
+  public boolean hasChildren() {
 		return false;
 	}
 	
 //	@Override
-	public Object[] getChildren() {
+	@Override
+  public Object[] getChildren() {
 		return SLUtility.EMPTY_OBJECT_ARRAY;
 	}
 }

@@ -133,6 +133,7 @@ public abstract class PlainComponent extends Component {
     return rootSlot.isChanged();
   }
 
+  @Override
   public boolean isShared() {
     return region != null && region.isShared();
   }

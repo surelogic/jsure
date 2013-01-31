@@ -63,7 +63,8 @@ public abstract class AbstractPromiseScrubber<P extends PromiseDrop<? extends IA
 	}
 
 	private final IAnnotationTraversalCallback<P> nullCallback = new IAnnotationTraversalCallback<P>() {
-		public void addDerived(P pd, PromiseDrop<? extends P> nonsensical) {
+		@Override
+    public void addDerived(P pd, PromiseDrop<? extends P> nonsensical) {
 			getContext().reportWarning("Ignoring derived drop "+pd, pd.getAAST());
 		}
 	};

@@ -79,6 +79,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     matcher = c;
   }
 
+  @Override
   public boolean isEmpty() {
     if (categories.isEmpty()) {
       return true;
@@ -94,6 +95,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
   @SuppressWarnings({ "rawtypes" })
   public static final DiffCategory[] noCategories = new DiffCategory[0];
 
+  @Override
   @SuppressWarnings("unchecked")
   public DiffCategory<K>[] getCategories() {
     if (categories.isEmpty()) {
@@ -110,6 +112,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     return l.toArray(new DiffCategory[l.size()]);
   }
 
+  @Override
   public void write(File file) throws IOException {
     OutputStream os = new FileOutputStream(file);
     Writer w = new OutputStreamWriter(os, "UTF-8");
@@ -224,7 +227,8 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
   public static IDropFilter augmentDefaultFilter(final IDropFilter f) {
 	  return new IDropFilter() {
 		  // @Override
-		  public boolean keep(IDrop d) {
+		  @Override
+      public boolean keep(IDrop d) {
 			  return select(d) && f.keep(d);
 		  }
 	  };
@@ -265,7 +269,8 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
   public static final IDropSeparator<CPair<String, String>> defaultSeparator = 
 	  new IDropSeparator<CPair<String, String>>() {
 	  // @Override
-	  public CPair<String, String> makeKey(IDrop d) {
+	  @Override
+    public CPair<String, String> makeKey(IDrop d) {
 		  final Class<?> type = d.getIRDropSeaClass();
 		  if (type == null) {
 			  return null;
@@ -285,6 +290,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
   };
 
 //  @Override
+  @Override
   public ScanDifferences build() {
 	  ScanDifferences.Builder diffs = new ScanDifferences.Builder();
 	  for(DiffCategory<?> c : categories.values()) {		  

@@ -346,11 +346,13 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   @NonNull
   private final Origin f_origin;
 
+  @Override
   @NonNull
   public Origin getOrigin() {
     return f_origin;
   }
 
+  @Override
   public boolean isAbductivelyInferred() {
     /*
      * This could change but we take problem and model for now.
@@ -365,6 +367,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   @NonNull
   private final String f_annotation;
 
+  @Override
   @NonNull
   public String getAnnotation() {
     return f_annotation;
@@ -382,6 +385,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   @Nullable
   private final String f_value;
 
+  @Override
   @Nullable
   public String getValue() {
     return f_value;
@@ -409,6 +413,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   @NonNull
   private final Map<String, String> f_attributeNameToValue;
 
+  @Override
   @NonNull
   public Map<String, String> getAttributes() {
     return f_attributeNameToValue;
@@ -419,6 +424,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
     return f_annotation + (f_value == null ? "" : "(\"" + getEscapedValue() + "\")");
   }
 
+  @Override
   @NonNull
   public String getJavaAnnotation() {
     return "@" + getJavaAnnotationNoAtSign();
@@ -430,6 +436,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   @Nullable
   private final String f_replacedAnnotation;
 
+  @Override
   @Nullable
   public String getReplacedAnnotation() {
     return f_replacedAnnotation;
@@ -442,6 +449,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   @Nullable
   private final String f_replacedValue;
 
+  @Override
   @Nullable
   public String getReplacedValue() {
     return f_replacedValue;
@@ -455,6 +463,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   @NonNull
   private final Map<String, String> f_replacedAttributeNameToValue;
 
+  @Override
   @NonNull
   public Map<String, String> getReplacedAttributes() {
     return f_replacedAttributeNameToValue;
@@ -485,6 +494,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
     return VisitUtil.getClosestType(f_requestedFrom);
   }
 
+  @Override
   @NonNull
   public IJavaRef getAssumptionRef() {
     IJavaRef result = JavaNode.getJavaRef(f_requestedFrom);
@@ -514,6 +524,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
    * XML output methods are invoked single-threaded
    */
 
+  @Override
   public String getXMLElementName() {
     return PROPOSED_PROMISE_DROP;
   }

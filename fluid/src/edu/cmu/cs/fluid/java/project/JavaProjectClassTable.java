@@ -236,6 +236,7 @@ public class JavaProjectClassTable extends AbstractJavaClassTable implements IJa
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.project.IJavaClassTable#getOuterClass(java.lang.String, edu.cmu.cs.fluid.ir.IRNode)
    */
+  @Override
   public IRNode getOuterClass(String qName, IRNode useSite) {
     //System.out.println("getOuterClass " + qName + " Called");
     versionSupport.ensureDerived();
@@ -271,11 +272,13 @@ public class JavaProjectClassTable extends AbstractJavaClassTable implements IJa
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.project.IJavaClassTable#allNames()
    */
+  @Override
   public Set<String> allNames() {
     versionSupport.ensureDerived();
     return new HashSet<String>(rep.keySet());
   }
 
+  @Override
   public Iterable<Pair<String, IRNode>> allPackages() {
 	  throw new UnsupportedOperationException();
   }

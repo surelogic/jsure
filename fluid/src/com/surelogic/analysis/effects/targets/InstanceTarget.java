@@ -62,16 +62,19 @@ public final class InstanceTarget extends AbstractTarget {
   
   
   
+  @Override
   public IRNode getReference() {
     return reference;
   }
   
 
   
+  @Override
   public IJavaType getRelativeClass(final IBinder binder) {
     return binder.getJavaType(reference);
   }
   
+  @Override
   public Target degradeRegion(final IRegion newRegion) {
     checkNewRegion(newRegion);
     if (newRegion.isStatic()) {
@@ -83,6 +86,7 @@ public final class InstanceTarget extends AbstractTarget {
   
   
   
+  @Override
   public Target mask(final IBinder binder) {
     IRNode expr = reference;
     Operator exprOp = JJNode.tree.getOperator(expr);
@@ -149,9 +153,11 @@ public final class InstanceTarget extends AbstractTarget {
 
   
 
+  @Override
   public boolean overlapsReceiver(final IRNode rcvrNode) {
     return reference.equals(rcvrNode);
-  }  public TargetRelationship overlapsWith(
+  }  @Override
+  public TargetRelationship overlapsWith(
       final IMayAlias mayAlias, final IBinder binder, final Target t) {
     return ((AbstractTarget) t).overlapsWithInstance(mayAlias, binder, this);
   }
@@ -245,6 +251,7 @@ public final class InstanceTarget extends AbstractTarget {
     return TargetRelationship.newUnrelated();
   }
 
+  @Override
   public boolean mayTargetStateOfReference(
       final IBinder binder, final IRNode formal) {
     return this.reference.equals(formal);
@@ -252,6 +259,7 @@ public final class InstanceTarget extends AbstractTarget {
 
   
   
+  @Override
   public boolean checkTarget(final IBinder b, final Target declaredTarget) {
     return ((AbstractTarget) declaredTarget).checkTargetAgainstInstance(b, this);
   }
@@ -306,12 +314,14 @@ public final class InstanceTarget extends AbstractTarget {
   
   
   
+  @Override
   public InstanceTarget changeEvidence(final TargetEvidence e) {
     return new InstanceTarget(reference, region, e);
   }
 
 
 
+  @Override
   public StringBuilder toString(final StringBuilder sb) {
     /* Because of BCA, uses of parameters are represented as
      * ParameterDeclarations. These unparse as the parameter declaration in the

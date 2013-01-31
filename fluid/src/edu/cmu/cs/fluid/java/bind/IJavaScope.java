@@ -66,16 +66,20 @@ public interface IJavaScope {
   public void printTrace(PrintStream out, int indent);
   
   public static final IJavaScope nullScope = new IJavaScope() {
+    @Override
     public IBinding lookup(LookupContext context, Selector selector) {
       return null;
     }
+    @Override
     public Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
       return EMPTY_BINDINGS_ITERATOR;
     }
+    @Override
     public void printTrace(PrintStream out, int indent) {
       DebugUtil.println(out, indent, "[null]");
     }
-	public boolean canContainPackages() {
+	@Override
+  public boolean canContainPackages() {
 		return false;
 	}
   };
@@ -134,6 +138,7 @@ public interface IJavaScope {
       label = l;  
     }
     
+    @Override
     public String label() {
       return label;
     }
@@ -142,9 +147,11 @@ public interface IJavaScope {
   public static class Util {
     public static Selector combineSelectors(final Selector s1, final Selector s2) {
       return new Selector() {
+        @Override
         public boolean select(IRNode n) {
           return s1.select(n) && s2.select(n);
         }
+        @Override
         public String label() {
           return s1.label()+" & "+s2.label();
         }
@@ -153,9 +160,11 @@ public interface IJavaScope {
     
     public static Selector eitherSelector(final Selector s1, final Selector s2) {
         return new Selector() {
+          @Override
           public boolean select(IRNode n) {
             return s1.select(n) || s2.select(n);
           }
+          @Override
           public String label() {
             return s1.label()+" | "+s2.label();
           }
@@ -163,12 +172,14 @@ public interface IJavaScope {
       }
     
     public static final Selector isTypeDecl = new AbstractSelector("Only type decls") {
+      @Override
       public boolean select(IRNode node) {
         return isTypeDecl(node);
       }
     };
     
     public static final Selector isPkgTypeDecl = new AbstractSelector("Only type/pkg decls") {
+        @Override
         public boolean select(IRNode node) {
           final Operator op = JJNode.tree.getOperator(node);
           return isTypeDecl(op) || op instanceof PackageDeclaration;
@@ -183,6 +194,7 @@ public interface IJavaScope {
     }
     
     public static final Selector isPackageDecl = new AbstractSelector("Only package decls") {
+      @Override
       public boolean select(IRNode node) {
         return JJNode.tree.getOperator(node) instanceof NamedPackageDeclaration;
       }
@@ -198,12 +210,14 @@ public interface IJavaScope {
     }
     
     public static final Selector isConstructorDecl = new AbstractSelector("Only constructors") {
+      @Override
       public boolean select(IRNode node) {
         return JJNode.tree.getOperator(node) instanceof ConstructorDeclaration;
       }
     };
     
     public static final Selector isMethodDecl = new AbstractSelector("Only methods") {
+      @Override
       public boolean select(IRNode node) {
         return JJNode.tree.getOperator(node) instanceof MethodDeclaration;
       }      
@@ -215,6 +229,7 @@ public interface IJavaScope {
     }
     
     public static final Selector isValueDecl = new AbstractSelector("Only value decls") {
+      @Override
       public boolean select(IRNode node) {
         Operator op = JJNode.tree.getOperator(node);
         return op instanceof VariableDeclarator || op instanceof ParameterDeclaration
@@ -226,6 +241,7 @@ public interface IJavaScope {
     }
     
     public static final Selector isAnnotationElt = new AbstractSelector("Only annotation elements") {
+      @Override
       public boolean select(IRNode node) {
         Operator op = JJNode.tree.getOperator(node);
         return op instanceof AnnotationElement;
@@ -237,6 +253,7 @@ public interface IJavaScope {
     }
     
     public static final Selector isAnnoEltOrNoArgMethod = eitherSelector(isAnnotationElt, new AbstractSelector("") {
+      @Override
       public boolean select(IRNode node) {
 			final Operator op = JJNode.tree.getOperator(node);
 			if (op instanceof MethodDeclaration) {
@@ -248,6 +265,7 @@ public interface IJavaScope {
 	});
     
     public static final Selector isReceiverDecl = new AbstractSelector("Only receiver decls") {
+      @Override
       public boolean select(IRNode node) {
         Operator op = JJNode.tree.getOperator(node);
         return op instanceof ReceiverDeclaration;
@@ -258,6 +276,7 @@ public interface IJavaScope {
     }
     
     public static final Selector isLabeledStatement = new AbstractSelector("Only labeled stmts") {
+      @Override
       public boolean select(IRNode node) {
         Operator op = JJNode.tree.getOperator(node);
         return op instanceof LabeledStatement;
@@ -268,6 +287,7 @@ public interface IJavaScope {
     }
         
     public static final Selector isReturnValue = new AbstractSelector("Only return values") {
+      @Override
       public boolean select(IRNode node) {
         Operator op = JJNode.tree.getOperator(node);
         return op instanceof ReturnValueDeclaration;
@@ -278,6 +298,7 @@ public interface IJavaScope {
     }
     
     public static final Selector couldBeNonTypeName = new AbstractSelector("Could bind to a name (not a type)") {
+        @Override
         public boolean select(IRNode node) {
           Operator op = JJNode.tree.getOperator(node);
           return !(op instanceof SomeFunctionDeclaration) && !(op instanceof AnnotationElement) &&
@@ -287,6 +308,7 @@ public interface IJavaScope {
       };
     
     public static final Selector couldBeName = new AbstractSelector("Could bind to a name") {
+      @Override
       public boolean select(IRNode node) {
         Operator op = JJNode.tree.getOperator(node);
         return !(op instanceof SomeFunctionDeclaration) && !(op instanceof AnnotationElement) &&
@@ -298,6 +320,7 @@ public interface IJavaScope {
     }
     
     public static final Selector isntType = new AbstractSelector("Not type decl") {
+      @Override
       public boolean select(IRNode node) {
         return !isTypeDecl(node);
       }      
@@ -307,6 +330,7 @@ public interface IJavaScope {
     }
     
     public static final Selector isStatic = new AbstractSelector("Only static") {
+      @Override
       public boolean select(IRNode node) {
     	Operator op = JJNode.tree.getOperator(node);
     	if (VariableDeclarator.prototype.includes(op)) {
@@ -371,13 +395,15 @@ public interface IJavaScope {
       selector = sel;
     }
     
-	public boolean canContainPackages() {
+	@Override
+  public boolean canContainPackages() {
 		return scope.canContainPackages();
 	}   
     
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookup(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
+    @Override
     public IBinding lookup(LookupContext context, Selector sel) {
       return scope.lookup(context,Util.combineSelectors(selector,sel));
     }
@@ -385,10 +411,12 @@ public interface IJavaScope {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookupAll(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
+    @Override
     public Iteratable<IBinding> lookupAll(LookupContext context, Selector sel) {
       return scope.lookupAll(context,Util.combineSelectors(selector,sel));
     }
 
+    @Override
     public void printTrace(PrintStream out, int indent) {
       DebugUtil.println(out, indent, "[SelectedScope:"+selector.label()+"]");
       scope.printTrace(out, indent+2);
@@ -413,10 +441,12 @@ public interface IJavaScope {
       outer = o;
     }
 
-	public boolean canContainPackages() {
+	@Override
+  public boolean canContainPackages() {
 		return outer.canContainPackages();
 	} 
     
+    @Override
     public IBinding lookup(LookupContext context, Selector selector) {
       boolean debug = LOG.isLoggable(Level.FINER);
       if (debug) {
@@ -432,6 +462,7 @@ public interface IJavaScope {
       return outer.lookup(context,selector);
     }
     
+    @Override
     public Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
       return outer.lookupAll(context,selector);
     }
@@ -474,6 +505,7 @@ public interface IJavaScope {
       return binding.getNode();
     }
 
+    @Override
     public void printTrace(PrintStream out, int indent) {
       if (locals == null) {
         DebugUtil.println(out, indent, "[Empty nested scope]");
@@ -502,10 +534,12 @@ public interface IJavaScope {
       outer = sc;
     }
     
-	public boolean canContainPackages() {
+	@Override
+  public boolean canContainPackages() {
 		return outer.canContainPackages();
 	} 
     
+    @Override
     public IBinding lookup(LookupContext context, Selector selector) {
       List<IBinding> l = locals.get(context.name);
       if (l == null) return outer.lookup(context,selector);
@@ -517,6 +551,7 @@ public interface IJavaScope {
       return outer.lookup(context,selector);
     }
     
+    @Override
     @SuppressWarnings("unchecked")
 	public Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
       List<IBinding> l = locals.get(context.name);
@@ -555,6 +590,7 @@ public interface IJavaScope {
       if (binding.getNode() != null) put(JJNode.getInfo(binding.getNode()),binding);
     }
 
+    @Override
     public void printTrace(PrintStream out, int indent) {
       DebugUtil.println(out, indent, "[OverloadingNested"+hashCode()+"]"+locals);    
       for(String l : locals.keySet()) {
@@ -579,13 +615,15 @@ public interface IJavaScope {
       scope2 = sc2;
     }
 
-	public boolean canContainPackages() {
+	@Override
+  public boolean canContainPackages() {
 		return scope1.canContainPackages() || scope2.canContainPackages();
 	} 
     
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookup(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
+    @Override
     public IBinding lookup(LookupContext context, Selector selector) {
       IBinding result = scope1.lookup(context,selector);
       if (result == null) {
@@ -602,6 +640,7 @@ public interface IJavaScope {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookupAll(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
+    @Override
     @SuppressWarnings("unchecked")
 	public Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
       Iteratable<IBinding> result1 = scope1.lookupAll(context,selector);
@@ -616,6 +655,7 @@ public interface IJavaScope {
       return result2;
     }
 
+    @Override
     public void printTrace(PrintStream out, int indent) {
       DebugUtil.println(out, indent, "[ExtendScope "+hashCode()+"-1]");
       scope1.printTrace(out, indent+2);

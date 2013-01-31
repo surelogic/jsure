@@ -10,11 +10,13 @@ public class FieldElement extends AnnotatedJavaElement implements IClassMember {
 		super(confirmed, id, access);
 	}
 
-	public String getLabel() {
+	@Override
+  public String getLabel() {
 		return "Field "+getName();
 	}
 	
-	public final String getImageKey() {
+	@Override
+  public final String getImageKey() {
 		switch (getAccessibility()) {
 		case PROTECTED:
 			return CommonImages.IMG_FIELD_PROTECTED;
@@ -47,7 +49,8 @@ public class FieldElement extends AnnotatedJavaElement implements IClassMember {
 		return null;
 	}
 	
-	public <T> T visit(IJavaElementVisitor<T> v) {
+	@Override
+  public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
 	}
 }

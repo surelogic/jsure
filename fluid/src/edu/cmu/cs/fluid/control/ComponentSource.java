@@ -16,6 +16,7 @@ public class ComponentSource extends Source implements ComponentNode {
     comp = c;
     value = v;
   }
+  @Override
   public Component getComponent() {
     return comp;
   }

@@ -66,7 +66,8 @@ public class JavacClassParser {
 	
 	public static final DiagnosticListener<JavaFileObject> nullListener = 
 		new DiagnosticListener<JavaFileObject>() {
-		public void report(Diagnostic<? extends JavaFileObject> d) {
+		@Override
+    public void report(Diagnostic<? extends JavaFileObject> d) {
 			System.out.println("JCP: "+d);
 		}		
 	};	
@@ -351,7 +352,8 @@ public class JavacClassParser {
 				cus.clear();
 				System.out.println("Adapting "+cuts.asList().size()+" CUTs");
 				Procedure<CompilationUnitTree> proc = new Procedure<CompilationUnitTree>() {
-					public void op(CompilationUnitTree cut) {	
+					@Override
+          public void op(CompilationUnitTree cut) {	
 						CodeInfo info = adaptCompUnit(t, cut);
 						cus.add(info);
 					}
@@ -671,7 +673,8 @@ public class JavacClassParser {
 	private void handleDanglingJarRefs(final JavacProject jp, final MultiMap<String, CodeInfo> cus) {
 		// Handle refs in jars
 		Procedure<Triple<String,String,ZipFile>> proc = new Procedure<Triple<String,String,ZipFile>>() {
-			public void op(Triple<String,String,ZipFile> tri) {
+			@Override
+      public void op(Triple<String,String,ZipFile> tri) {
 				String project = tri.first();
 				String ref     = tri.second();
 				ZipFile jar    = tri.third();

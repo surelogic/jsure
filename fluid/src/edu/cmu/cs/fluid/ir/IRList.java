@@ -189,6 +189,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
   }
 
   protected static final Integer NO_SIZE = -1; // for reading persistent < 1.5
+  @Override
   public synchronized int size() {
     if (sizeSlot == null) return 0;
     int s = getIntSlotStorage().getSlotValue(sizeSlot);
@@ -227,31 +228,39 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     setSize(size()-1);
   }
 
+  @Override
   public boolean isVariable() {
     return true;
   }
 
+  @Override
   public Iteratable<T> elements() {
     return getSlotFactory().newIterator(new IRSequenceIterator<T>(this));
   }
 
+  @Override
   public synchronized boolean validAt(int i) {
     return validAt(location(i));
   }  
+  @Override
   public synchronized boolean validAt(IRLocation loc) {
     return seq.isValidAt(validateLocation(loc));
   }
 
+  @Override
   public synchronized T elementAt(int i) {
     return elementAt(location(i));
   }  
+  @Override
   public synchronized T elementAt(IRLocation loc) {
     return seq.getElementAt(validateLocation(loc));
   }
 
+  @Override
   public synchronized void setElementAt(T element, int i) {
     setElementAt(element,location(i));
   }  
+  @Override
   public void setElementAt(T element, IRLocation loc) {
     synchronized (this) {
       seq.setElementAt(element,validateLocation(loc));
@@ -259,6 +268,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     noteChanged();
   }
 
+  @Override
   public IRLocation insertElement(T element) {
     IRLocation le;
     synchronized (this) {
@@ -273,6 +283,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     return le;
   }
 
+  @Override
   public IRLocation appendElement(T element) {
     IRLocation le = null;
     synchronized (this) {
@@ -289,6 +300,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     return le;
   }
 
+  @Override
   public IRLocation insertElementBefore(T element, IRLocation loc) {
     IRLocation le;
     synchronized (this) {
@@ -303,6 +315,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     return le;
   }
 
+  @Override
   public IRLocation insertElementAfter(T element, IRLocation loc) {
     IRLocation le;
     synchronized (this) {
@@ -317,6 +330,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     return le;
   }
 
+  @Override
   public void removeElementAt(IRLocation loc) {
     synchronized (this) {
       checkGeneral("remove");
@@ -326,6 +340,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     noteChanged();
   }
 
+  @Override
   public synchronized IRLocation location(int i) {
     IRLocation le = seq.at(i);
     if (le == null) {
@@ -334,6 +349,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     return le;
   }
 
+  @Override
   public synchronized int locationIndex(IRLocation loc) {
     return seq.locate(validateLocation(loc));
   }
@@ -346,31 +362,38 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     return loc2;
   }
 
+  @Override
   public boolean hasElements() {
     return size() != 0;
   }
 
+  @Override
   public synchronized IRLocation firstLocation() {
     return seq.first();
   }
 
+  @Override
   public synchronized IRLocation lastLocation() {
     return seq.last();
   }
 
+  @Override
   public synchronized IRLocation nextLocation(IRLocation loc) {
     return seq.next(validateLocation(loc));
   }
 
+  @Override
   public synchronized IRLocation prevLocation(IRLocation loc) {
     return seq.prev(validateLocation(loc));
   }
 
+  @Override
   public synchronized int compareLocations(IRLocation loc1, IRLocation loc2) {
     return seq.comparePlacements(validateLocation(loc1),
 				 validateLocation(loc2));
   }
 
+  @Override
   public void writeValue(IROutput out)
        throws IOException
   {
@@ -391,6 +414,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     return sf.getOldFactory().<T>newSequence(~initialSize);
   }
 
+  @Override
   public synchronized void writeContents(IRCompoundType t, IROutput out) throws IOException
   {
     /* Some of the values read/written here may be redundant,
@@ -414,6 +438,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     seq.writeContents(et,out);
   }
 
+  @Override
   public synchronized void readContents(IRCompoundType t, IRInput in) throws IOException {
     if (in.debug()) System.out.println("readContents(...) called");
     IRType<T> et = t.getType(0); // must be homogenous
@@ -451,12 +476,14 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     }
   }
 
+  @Override
   public synchronized boolean isChanged() {
     SlotStorage<IntS,Integer> ss = getIntSlotStorage();
     if (ss.isChanged(sizeSlot) || seq.isChanged()) return true;
     return false;
   }
 
+  @Override
   public synchronized void writeChangedContents(IRCompoundType t, IROutput out)
        throws IOException
   {
@@ -475,6 +502,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     seq.writeChangedContents(et,out);
   }
 
+  @Override
   public synchronized void readChangedContents(IRCompoundType t, IRInput in)
        throws IOException 
   {
@@ -518,6 +546,7 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     }    
   }
 
+  @Override
   public synchronized void describe(PrintStream out) {
     out.println("IRList with size: ");
     getIntSlotStorage().describe(sizeSlot,out);
@@ -534,20 +563,24 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
   }
   
   private static Locator fromFront = new Locator() {
+    @Override
     @SuppressWarnings("unchecked")
     public IRLocation first(IRSequence seq) {
       return seq.firstLocation();
     }
+    @Override
     public IRLocation next(IRSequence seq, IRLocation loc) {
       return seq.nextLocation(loc);
     }
   };
   
   private static Locator fromBack = new Locator() {
+    @Override
     @SuppressWarnings("unchecked")
     public IRLocation first(IRSequence seq) {
       return seq.lastLocation();
     }
+    @Override
     public IRLocation next(IRSequence seq, IRLocation loc) {
       return seq.prevLocation(loc);
     }
@@ -573,11 +606,13 @@ public abstract class IRList<IntS,S,ES,T> extends IRAbstractSequence<S,T> {
     return null;
   }
   
+  @Override
   @Starts("nothing")
 public boolean contains(Object o) {
     return locationOf(fromFront, o) != null;
   }
   
+  @Override
   @Starts("nothing")
 public Object[] toArray() {
     int size   = size();
@@ -590,6 +625,7 @@ public Object[] toArray() {
     return a;
   }
 
+  @Override
   @SuppressWarnings("unchecked")
   public <E> E[] toArray(E[] a) {
     int size = size();    
@@ -607,11 +643,13 @@ public Object[] toArray() {
     return a;    
   }
 
+  @Override
   public boolean add(T val) {    
     appendElement(val);
     return true;
   }
 
+  @Override
   @Starts("nothing")
 public boolean remove(Object o) {
     IRLocation loc = locationOf(fromFront, o);
@@ -622,6 +660,7 @@ public boolean remove(Object o) {
     return false;
   }
 
+  @Override
   @Starts("nothing")
 public int indexOf(Object o) {
     IRLocation loc = locationOf(fromFront, o);
@@ -631,6 +670,7 @@ public int indexOf(Object o) {
     return -1;
   }
 
+  @Override
   @Starts("nothing")
 public int lastIndexOf(Object o) {
     IRLocation loc = locationOf(fromBack, o);
@@ -774,78 +814,101 @@ public int lastIndexOf(Object o) {
     @SuppressWarnings("unchecked")
     static final <IntS,S,ES,T> EmptyHeader<IntS,S,ES,T> prototype() { return prototype; }
     
+    @Override
     public T getElementAt(IRLocation loc) {
       throw new IndexOutOfBoundsException("no elements in empty list");
     }
+    @Override
     public boolean isValidAt(IRLocation loc) {
       return false;
     }
+    @Override
     public void setElementAt(Object element, IRLocation loc) {
       throw new IndexOutOfBoundsException("no elements in empty list");
     }
+    @Override
     public IRLocation validateLocation(IRLocation loc) {
       throw new IndexOutOfBoundsException("no elements in empty list");
     }
+    @Override
     public void readChangedContents(IRType et, IRInput in) throws IOException {
     }
+    @Override
     public void writeChangedContents(IRType et, IROutput out) throws IOException {
       out.debugMark("empty_header");
       out.writeByte('Z');
     }
+    @Override
     public boolean isChanged() {
       return false;
     }
+    @Override
     public void readContents(IRType et, IRInput in) throws IOException {
     }
+    @Override
     public void writeContents(IRType et, IROutput out) throws IOException {
       out.debugMark("empty_header");
       out.writeByte('Z');
     }
 
+    @Override
     public int comparePlacements(IRLocation loc1, IRLocation loc2) {
       throw new IndexOutOfBoundsException("no element in empty list");
     }
+    @Override
     public IRLocation last() {
       return null;
     }
+    @Override
     public IRLocation first() {
       return null;
     }
+    @Override
     public IRLocation next(IRLocation loc) {
       throw new IndexOutOfBoundsException("no location in empty list");
     }
+    @Override
     public IRLocation prev(IRLocation loc) {
       throw new IndexOutOfBoundsException("no location in empty list");
     }
 
+    @Override
     public int locate(IRLocation loc) {
       throw new IndexOutOfBoundsException("no element in empty list");
     }
+    @Override
     public IRLocation at(int i) {
       throw new IndexOutOfBoundsException("no element in empty list");
     }
 
+    @Override
     public void remove(IRLocation loc) {
       throw new IndexOutOfBoundsException("no element in empty list");
     }
 
     // these should be protected against in IRList
+    @Override
     public IRLocation insertAfter(IRLocation loc, Object x) {
       throw new FluidError("should not be called");
     }
+    @Override
     public IRLocation insertBefore(IRLocation loc, Object x) {
       throw new FluidError("should not be called");
     }
+    @Override
     public IRLocation append(Object x) {
       throw new FluidError("should not be called");
     }
+    @Override
     public IRLocation insert(Object x) {
       throw new FluidError("should not be called");      
     }
+    @Override
     public Header<IntS,S,ES,T> generalize() {
       // TODO Auto-generated method stub
       return null;
     }
+    @Override
     public void describe(PrintStream out) {
       out.println("IRList[0]");
     }
@@ -876,6 +939,7 @@ public int lastIndexOf(Object o) {
       return elemSlots.get(i);
     }
 
+    @Override
     public IRLocation validateLocation(IRLocation loc) {
       /* Moved to SlotList.checkSize
       if (elemSlots.size() < size()) {
@@ -886,16 +950,19 @@ public int lastIndexOf(Object o) {
       return loc;
     }
 
+    @Override
     public boolean isValidAt(IRLocation loc) {
       int i = loc.getID();
       if (i < 0 || i >= size() || i >= elemSlots.size()) return false;
       return getSlotStorage().isValid(elemSlots.get(i));
     }
 
+    @Override
     public T getElementAt(IRLocation loc) {
       return getSlotStorage().getSlotValue(elemSlots.get(loc.getID()));
     }
 
+    @Override
     public void setElementAt(T element, IRLocation loc) {
       SlotStorage<S,T> sf = getSlotStorage();
       int i = loc.getID();
@@ -904,18 +971,22 @@ public int lastIndexOf(Object o) {
       elemSlots.set(i,slotState);
     }
 
+    @Override
     public IRLocation insertAfter(IRLocation loc, T x) {
       throw new FluidError("should not be called");
     }
 
+    @Override
     public IRLocation insertBefore(IRLocation loc, T x) {
       throw new FluidError("should not be called");
     }
 
+    @Override
     public void remove(IRLocation loc) {
       throw new FluidError("should not be called");
     }
 
+    @Override
     public void writeContents(IRType et, IROutput out) throws IOException {
       out.debugMark("simple_header");
       out.writeByte(getHeaderByte());
@@ -937,6 +1008,7 @@ public int lastIndexOf(Object o) {
       if (out.debug()) System.out.println();
     }
 
+    @Override
     public void readContents(IRType et, IRInput in) throws IOException {
       in.debugMark("simple_header");
       SlotStorage<S,T> sf = getSlotStorage();
@@ -958,6 +1030,7 @@ public int lastIndexOf(Object o) {
       }
     }
 
+    @Override
     public boolean isChanged() {
       SlotStorage<S,T> sf = getSlotStorage();
       for (Iterator<S> it = elemSlots.iterator(); it.hasNext();) {
@@ -966,6 +1039,7 @@ public int lastIndexOf(Object o) {
       return false;
     }
 
+    @Override
     public void writeChangedContents(IRType et, IROutput out) throws IOException {
       out.writeByte(getHeaderByte());
       SlotStorage<S,T> sf = getSlotStorage();

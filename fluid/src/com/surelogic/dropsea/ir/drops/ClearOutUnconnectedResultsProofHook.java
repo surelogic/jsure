@@ -11,6 +11,7 @@ public class ClearOutUnconnectedResultsProofHook extends AbstractSeaConsistencyP
   @Override
   public void preConsistencyProof(Sea sea) {
     sea.invalidateMatching(new DropPredicate() {
+      @Override
       public boolean match(IDrop d) {
         if (d instanceof AnalysisResultDrop)
           return !((AnalysisResultDrop) d).checksAPromise();

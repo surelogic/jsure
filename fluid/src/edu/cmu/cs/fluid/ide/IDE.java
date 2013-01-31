@@ -338,31 +338,38 @@ public abstract class IDE {
 			return delegate;
 		}
 
-		public void reset() {
+		@Override
+    public void reset() {
 			ensureDelegateExists().reset();
 		}
 
-		public void close() {
+		@Override
+    public void close() {
 			ensureDelegateExists().close();
 		}
 
-		public Iterable<Object> getUnreported() {
+		@Override
+    public Iterable<Object> getUnreported() {
 			return ensureDelegateExists().getUnreported();
 		}
 
-		public void reportError(ITest o, Throwable ex) {
+		@Override
+    public void reportError(ITest o, Throwable ex) {
 			ensureDelegateExists().reportError(o, ex);
 		}
 
-		public void reportFailure(ITest o, String msg) {
+		@Override
+    public void reportFailure(ITest o, String msg) {
 			ensureDelegateExists().reportFailure(o, msg);
 		}
 
-		public ITest reportStart(ITest o) {
+		@Override
+    public ITest reportStart(ITest o) {
 			return ensureDelegateExists().reportStart(o);
 		}
 
-		public void reportSuccess(ITest o, String msg) {
+		@Override
+    public void reportSuccess(ITest o, String msg) {
 			ensureDelegateExists().reportSuccess(o, msg);
 		}
 	}
@@ -487,7 +494,8 @@ public abstract class IDE {
 			manager = mm;
 		}
 
-		public boolean isExecuting() {
+		@Override
+    public boolean isExecuting() {
 			return manager.isExecuting();
 		}
 
@@ -498,7 +506,8 @@ public abstract class IDE {
 		 * edu.cmu.cs.cspace.mvc.version.ModificationManager#executeAtomically
 		 * (java.lang.Runnable)
 		 */
-		public void executeAtomically(Runnable r) {
+		@Override
+    public void executeAtomically(Runnable r) {
 			Version.pushDefaultEra(era);
 			if (JJNode.versioningIsOn) {
 				PlainIRNode.setCurrentRegion(region);
@@ -517,7 +526,8 @@ public abstract class IDE {
 		 * edu.cmu.cs.fluid.mvc.version.ModificationManager#executeAtMarker(
 		 * java.lang.Runnable)
 		 */
-		public void executeAtMarker(Runnable r) {
+		@Override
+    public void executeAtMarker(Runnable r) {
 			Version.pushDefaultEra(era);
 			if (JJNode.versioningIsOn) {
 				PlainIRNode.setCurrentRegion(region);
@@ -534,7 +544,8 @@ public abstract class IDE {
 		 * 
 		 * @see edu.cmu.cs.cspace.mvc.version.ModificationManager#getMarker()
 		 */
-		public VersionTrackerModel getMarker() {
+		@Override
+    public VersionTrackerModel getMarker() {
 			return manager.getMarker();
 		}
 
@@ -544,7 +555,8 @@ public abstract class IDE {
 		 * @see
 		 * edu.cmu.cs.cspace.mvc.version.ModificationManager#getVersionSpace()
 		 */
-		public VersionSpaceModel getVersionSpace() {
+		@Override
+    public VersionSpaceModel getVersionSpace() {
 			return manager.getVersionSpace();
 		}
 	}

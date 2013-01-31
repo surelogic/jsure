@@ -10,6 +10,7 @@ package edu.cmu.cs.fluid.control;
  * @see DoubleInputPort
  */
 public abstract class InputPort extends Entity implements Port {
+  @Override
   public ControlEdgeIterator getInputs() {
     Port dual = getDual();
     if (dual == null) {

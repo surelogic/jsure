@@ -132,6 +132,7 @@ public class BareAttributeMergingManager
   }
 
   // inherit javadoc
+  @Override
   public final boolean mergeCompAttributes(
     final Model[] srcModels,
     final String[] srcAttrs,
@@ -174,6 +175,7 @@ public class BareAttributeMergingManager
   }
 
   // inherit javadoc
+  @Override
   public final boolean mergeNodeAttributes(
     final Model[] srcModels,
     final String[] srcAttrs,
@@ -216,10 +218,12 @@ public class BareAttributeMergingManager
     }
   }
 
+  @Override
   public Object getProperty(final String property) {
     return attrManager.getProperty(property);
   }
 
+  @Override
   public void setProperty(final String property, final Object value) {
     attrManager.setProperty(property, value);
   }

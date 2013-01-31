@@ -46,6 +46,7 @@ public final class HintDrop extends Drop implements IHintDrop {
 
   private final HintType f_type;
 
+  @Override
   @NonNull
   public HintType getHintType() {
     return f_type;
@@ -60,6 +61,7 @@ public final class HintDrop extends Drop implements IHintDrop {
     return HINT_DROP;
   }
 
+  @Override
   @MustInvokeOnOverride
   @RequiresLock("SeaLock")
   public void snapshotAttrs(XmlCreator.Builder s) {

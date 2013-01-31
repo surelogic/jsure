@@ -17,6 +17,7 @@ public abstract class PropagateChanges implements Observer {
     changeInfo.addObserver(this);
   }
 
+  @Override
   public void update(Observable o, Object arg) {
     if (o == changeInfo && arg instanceof IRNode) noteChange((IRNode)arg);
   }

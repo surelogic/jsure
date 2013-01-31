@@ -367,11 +367,13 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			return allowRefs.get(type);
 		}
 
-		public void clearCaches() {
+		@Override
+    public void clearCaches() {
 			// Nothing to do, because of flushAnalysis			
 		}
 
-		public IBinder getBinder() {
+		@Override
+    public IBinder getBinder() {
 			return binder;
 		}		
 		

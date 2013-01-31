@@ -41,6 +41,7 @@ implements PureSet.Factory
    * @param sf The slot factory to use to create the model's
    *           structural attributes.
    */
+  @Override
   public PureSet create( final String name, final ExplicitSlotFactory sf )
   throws SlotAlreadyRegisteredException
   {

@@ -238,11 +238,13 @@ public class PackageAccessor implements TestXMLParserConstants {
 					: new ArrayList<String>();
 		}
 
-		public void addPackage(String qname) {
+		@Override
+    public void addPackage(String qname) {
 			results.add(qname);
 		}
 
-		public void addType(String pkg, String name) {
+		@Override
+    public void addType(String pkg, String name) {
 			results.add(computeName(pkg, name));
 		}
 	}

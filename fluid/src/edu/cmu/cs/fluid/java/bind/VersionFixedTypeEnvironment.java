@@ -27,6 +27,7 @@ public class VersionFixedTypeEnvironment extends AbstractTypeEnvironment {
     binder = b;
   }
   
+  @Override
   public IBinder getBinder() {
     return binder;
   }
@@ -59,6 +60,7 @@ public class VersionFixedTypeEnvironment extends AbstractTypeEnvironment {
     return fixed.getClassTable();
   }
 
+  @Override
   public IIRProject getProject() {
 	  return fixed.getProject();
   }

@@ -67,8 +67,10 @@ implements ComponentSlot<T>
     return which() ? slot1 : slot2;
   }
     
+  @Override
   public final IRType<T> getType() { return slot1.getType(); }
   
+  @Override
   public final boolean isChanged()
   {
      synchronized( structLock ) {
@@ -76,6 +78,7 @@ implements ComponentSlot<T>
      }
   }
   
+  @Override
   public final boolean isValid() 
   {
     synchronized( structLock ) {
@@ -83,6 +86,7 @@ implements ComponentSlot<T>
     }
   }
     
+  @Override
   public final T getValue() 
   {
     synchronized( structLock ) {
@@ -94,6 +98,7 @@ implements ComponentSlot<T>
    * Left non-final because we need to be able to change the return value
    * if we are wrapped.  Delegates actual work to {@link #doSetValue}.
    */
+  @Override
   public Slot<T> setValue( final T value )
   throws SlotImmutableException
   {
@@ -118,6 +123,7 @@ implements ComponentSlot<T>
   /**
    * This is probably wrong!
    */
+  @Override
   public final Slot<T> readValue( final IRType<T> t, final IRInput in )
   throws java.io.IOException
   {
@@ -127,6 +133,7 @@ implements ComponentSlot<T>
   /**
    * This is probably wrong!
    */
+  @Override
   public final void writeValue( final IRType<T> t, final IROutput out )
   throws java.io.IOException
   {

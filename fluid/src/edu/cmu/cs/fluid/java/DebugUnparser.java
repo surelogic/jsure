@@ -40,6 +40,7 @@ public class DebugUnparser extends SimpleTokenStream implements JavaUnparser {
 
   private int currLevel = 0;
 
+  @Override
   public void unparse(IRNode node) {
     if (node == null) {
       nullToken.emit(this,node);
@@ -57,6 +58,7 @@ public class DebugUnparser extends SimpleTokenStream implements JavaUnparser {
     }
   }
 
+  @Override
   public JavaUnparseStyle getStyle() {
     return JavaUnparseStyle.prototype;
   }
@@ -85,7 +87,8 @@ public class DebugUnparser extends SimpleTokenStream implements JavaUnparser {
 
   private static final ThreadLocal<DebugUnparser> localUnparser = 
 	  new ThreadLocal<DebugUnparser>() {
-	  protected DebugUnparser initialValue() {
+	  @Override
+    protected DebugUnparser initialValue() {
 		  return new DebugUnparser(MAX);
 	  }
   };
@@ -121,14 +124,17 @@ public class DebugUnparser extends SimpleTokenStream implements JavaUnparser {
     return toString();
   }
   
+  @Override
   public SyntaxTreeInterface getTree() { return tree; }
 
+  @Override
   public boolean isImplicit(IRNode node) {
     // TODO is this the right choice?  I think so.
     return false;
   }
   
   public static final IRNodeViewer viewer = new IRNodeViewer() {
+    @Override
     public String toString(IRNode n) {
       return DebugUnparser.toString(n);
     }    

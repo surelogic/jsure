@@ -26,7 +26,8 @@ public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderC
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
-			public void run() {
+			@Override
+      public void run() {
 				runOverFile(compUnit);
 			}
 		});
@@ -87,15 +88,18 @@ public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderC
 		protected InstanceInitAction getAnonClassInitAction(
 		    final IRNode expr, final IRNode classBody) {
 			return new InstanceInitAction() {
-				public void tryBefore() {
+				@Override
+        public void tryBefore() {
 					reportLocalVariables(JavaPromise.getInitMethod(expr));
 				}
 
-				public void finallyAfter() {
+				@Override
+        public void finallyAfter() {
 					// do nothing
 				}
 
-				public void afterVisit() {
+				@Override
+        public void afterVisit() {
 					// do nothing
 				}
 			};

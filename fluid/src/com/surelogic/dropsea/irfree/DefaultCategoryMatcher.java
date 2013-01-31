@@ -10,7 +10,8 @@ import com.surelogic.dropsea.*;
  */
 public class DefaultCategoryMatcher extends CategoryMatcher {	
   protected static final IDropMatcher matchDeclAndOffset = new AbstractDropMatcher("Decl   ", false) {
-	  public boolean match(IDrop n, IDrop o) {
+	  @Override
+    public boolean match(IDrop n, IDrop o) {
 		  return matchBasics(n, o) && matchIDecls(n.getJavaRef(), o.getJavaRef()) &&
 		         (matchIntDiffInfo(DiffHeuristics.DECL_RELATIVE_OFFSET, n, o) || 
 		    	  matchIntDiffInfo(DiffHeuristics.DECL_END_RELATIVE_OFFSET, n, o));
@@ -28,14 +29,16 @@ public class DefaultCategoryMatcher extends CategoryMatcher {
   */
   
   protected static final IDropMatcher matchOffset = new AbstractDropMatcher("Offset ", false) {
-	  public boolean match(IDrop n, IDrop o) {
+	  @Override
+    public boolean match(IDrop n, IDrop o) {
 		  return matchBasics(n, o) && 
 	             getOffset(n) == getOffset(o);
 	  }
   };
   
   protected static final IDropMatcher matchHashes = new AbstractDropMatcher("Hashed ", false) {
-	  public boolean match(IDrop n, IDrop o) {
+	  @Override
+    public boolean match(IDrop n, IDrop o) {
 		  return matchBasics(n, o) && 
 		         matchLongDiffInfo(DiffHeuristics.FAST_TREE_HASH, n, o) &&
 		         matchLongDiffInfo(DiffHeuristics.FAST_CONTEXT_HASH, n, o);
@@ -50,7 +53,8 @@ public class DefaultCategoryMatcher extends CategoryMatcher {
 		  this.base = base;
 	  }
 
-	  public final boolean match(IDrop n, IDrop o) {
+	  @Override
+    public final boolean match(IDrop n, IDrop o) {
 		  return base.match(n, o) && matchAnalysisHint(getLabel(), n, o);// || matchSupportingInfo(n, o));
 	  }
   }

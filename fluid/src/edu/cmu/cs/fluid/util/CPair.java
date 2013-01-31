@@ -12,7 +12,8 @@ extends Pair<T1,T2> implements Comparable<CPair<T1,T2>>{
 	}
 
 //	@Override
-	public int compareTo(CPair<T1, T2> o) {
+	@Override
+  public int compareTo(CPair<T1, T2> o) {
 		int rv = first().compareTo(o.first());
 		if (rv == 0) {
 			rv = second().compareTo(o.second());

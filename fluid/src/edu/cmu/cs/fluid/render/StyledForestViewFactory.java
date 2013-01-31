@@ -84,6 +84,7 @@ class StyleRebuilder extends ModelAdapter implements Rebuilder {
   }
 
   /** Rebuilds style info for a ForestModel */
+  @Override
   public void rebuild(ModelToModelStatefulView sv, List events) {
     try {
       rebuildModel(sv, events);

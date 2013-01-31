@@ -40,6 +40,7 @@ implements SynthesizedForestView.Factory
 
   
   
+  @Override
   public SynthesizedForestView create(final String name, final Model src, 
                                        final SortedAttributeView sav,
                                        final String labelAttr,

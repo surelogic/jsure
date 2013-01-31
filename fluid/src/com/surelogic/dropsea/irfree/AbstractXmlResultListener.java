@@ -84,11 +84,13 @@ public abstract class AbstractXmlResultListener implements IXmlResultListener {
 		refs.add(new Ref(from, fromId, toRef));
 	}
 	
-	public void start(String uid, String project) {
+	@Override
+  public void start(String uid, String project) {
 		// Do nothing
 	}
 	
-	public void notify(Entity e) {
+	@Override
+  public void notify(Entity e) {
 		//System.out.println("Got "+e);
 		final int id = processEntity(e);
 		
@@ -97,7 +99,8 @@ public abstract class AbstractXmlResultListener implements IXmlResultListener {
 		}
 	}
 
-	public void done() {
+	@Override
+  public void done() {
 		/*
 		for(Map.Entry<String,List<Ref>> e : references.entrySet()) {		
 			if (e.getValue() != DEFINED) {

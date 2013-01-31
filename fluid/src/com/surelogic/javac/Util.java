@@ -201,6 +201,7 @@ public class Util {
       this.out = out == null ? null : new ZipOutputStream(out);
     }
 
+    @Override
     public void ensureClassIsLoaded(String qname) {
       loader.ensureClassIsLoaded(qname);
     }
@@ -209,6 +210,7 @@ public class Util {
       loader = null;
     }
 
+    @Override
     public OutputStream makeResultStream(CUDrop cud) throws IOException {
       if (out == null) {
         return null;
@@ -225,6 +227,7 @@ public class Util {
       return null;
     }
 
+    @Override
     public void closeResultStream() throws IOException {
       if (out != null) {
         hasResults = true;
@@ -232,6 +235,7 @@ public class Util {
       }
     }
 
+    @Override
     public void done() {
       if (out != null) {
         try {
@@ -244,16 +248,19 @@ public class Util {
       }
     }
 
+    @Override
     public IAnalysisMonitor getMonitor() {
       return this;
     }
 
+    @Override
     public void subTask(String name) {
       if (monitor != null) {
         monitor.subTask(name);
       }
     }
 
+    @Override
     public void worked() {
       if (monitor != null) {
         monitor.worked(1);
@@ -757,6 +764,7 @@ public class Util {
 
         final PromiseFramework frame = PromiseFramework.getInstance();
         Procedure<SourceCUDrop> proc = new Procedure<SourceCUDrop>() {
+          @Override
           public void op(SourceCUDrop cud) {
             if (!cud.isAsSource()) {
               // LOG.warning("No analysis on "+cud.javaOSFileName);
@@ -1111,6 +1119,7 @@ public class Util {
   private static void addRequired(ParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
     startSubTask(monitor, "Adding required nodes");
     Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
+      @Override
       public void op(CodeInfo info) {
         final ITypeEnvironment tEnv = info.getTypeEnv();
         if (monitor.isCanceled()) {
@@ -1136,6 +1145,7 @@ public class Util {
     // final File root = new
     // File(IDE.getInstance().getStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY));
     Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
+      @Override
       public void op(CodeInfo info) {
         if (monitor.isCanceled()) {
           throw new CancellationException();
@@ -1305,6 +1315,7 @@ public class Util {
 
   private static Dependencies checkDependencies(final ParallelArray<CodeInfo> cus) {
     final Dependencies deps = new Dependencies() {
+      @Override
       protected void handlePackage(final PackageDrop pkg) {
         /*
          * runVersioned(new AbstractRunner() { public void run() {
@@ -1317,6 +1328,7 @@ public class Util {
         }
       }
 
+      @Override
       protected void handleType(CUDrop d) {
         // ConvertToIR.getInstance().registerClass(d.makeCodeInfo());
         System.err.println("Reprocessing " + d.getMessage());
@@ -1355,6 +1367,7 @@ public class Util {
      * System.out.println("Source: "+cud.javaOSFileName); }
      */
     Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
+      @Override
       public void op(CodeInfo info) {
         if (monitor.isCanceled()) {
           throw new CancellationException();
@@ -1433,6 +1446,7 @@ public class Util {
   private static void sortCodeInfos(ParallelArray<CodeInfo> cus) {
     // Required to make sure that we process package-info files first
     Collections.sort(cus.asList(), new Comparator<CodeInfo>() {
+      @Override
       public int compare(CodeInfo o1, CodeInfo o2) {
         if (o1.getFileName().endsWith(PACKAGE_INFO_JAVA)) {
           return Integer.MIN_VALUE;
@@ -1519,6 +1533,7 @@ public class Util {
       this.excluded = excluded;
     }
 
+    @Override
     public boolean accept(File f) {
       if (f.isDirectory()) {
         for (File exclude : excluded) {
@@ -1533,6 +1548,7 @@ public class Util {
   }
 
   static class NullFilter implements FileFilter {
+    @Override
     public boolean accept(File pathname) {
       return true;
     }

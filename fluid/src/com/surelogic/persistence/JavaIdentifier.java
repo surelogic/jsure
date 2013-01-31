@@ -535,16 +535,20 @@ public final class JavaIdentifier {
 		protected IRNode getAnnoNode() {
 			return decl;
 		}
-		public Operator getOp() {
+		@Override
+    public Operator getOp() {
 			return JJNode.tree.getOperator(decl);
 		}
-		public <T extends IAASTRootNode> void reportAAST(int offset, AnnotationLocation loc, Object o, T ast) {
+		@Override
+    public <T extends IAASTRootNode> void reportAAST(int offset, AnnotationLocation loc, Object o, T ast) {
 			created.add(ast);
 		}
-		public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
+		@Override
+    public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
 			throw new IllegalStateException("While matching: "+msg);
 		}
-		public void reportException(int offset, Exception e) {
+		@Override
+    public void reportException(int offset, Exception e) {
 			throw new IllegalStateException("While matching: "+unparsedTarget, e);
 		}
 	}

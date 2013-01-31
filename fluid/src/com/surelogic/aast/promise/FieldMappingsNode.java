@@ -73,6 +73,7 @@ public class FieldMappingsNode extends AASTRootNode {
     return sb.toString();
   }
 
+  @Override
   public String unparseForPromise() {
 	  // TODO check why the code above doesn't do this
 	  return RegionRules.MAP_FIELDS+"(\""+unparse(false)+"\")";

@@ -11,16 +11,19 @@ public class ToggleBaseline implements IViewActionDelegate {
   private Shell shell = null;
   
   
+  @Override
   public void init(final IViewPart view) {
     currentView = view;
     shell = view.getViewSite().getShell();
   }
 
+  @Override
   public void selectionChanged(
       final IAction action, final ISelection selection) {
     // We don't care about selections
   }
 
+  @Override
   public void run(final IAction action) {
 	  if (currentView instanceof SnapshotDiffView) { 
 		  SnapshotDiffView v = (SnapshotDiffView) currentView;

@@ -44,6 +44,7 @@ public final class TestResultsView extends ViewPart {
   
   
   private final Runnable REFRESH = new Runnable() {
+    @Override
     public void run() {
       treeViewer.refresh();
     }
@@ -148,6 +149,7 @@ public final class TestResultsView extends ViewPart {
       return returnValue;
     }
     
+    @Override
     public void reportError(final ITest o, final Throwable ex) {
       if (report(o, ex)) {
         root.addError(o, ex);
@@ -158,6 +160,7 @@ public final class TestResultsView extends ViewPart {
       }
     }
 
+    @Override
     public void reportFailure(final ITest o, final String msg) {
       if (report(o, msg)) {
         root.addFailure(o, msg);
@@ -169,6 +172,7 @@ public final class TestResultsView extends ViewPart {
       }
     }
 
+    @Override
     public void reportSuccess(final ITest o, final String msg) {
       if (report(o, msg)) {
         root.addSuccess(o, msg);
@@ -184,6 +188,7 @@ public final class TestResultsView extends ViewPart {
   
     
   public final class Factory implements ITestOutputFactory {
+    @Override
     public ITestOutput create(final String name) {
       return new TreeOutput(name);
     }

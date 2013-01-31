@@ -69,7 +69,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 			return super.findClassBodyMembers(type, tvs, throwIfNotFound);
 		}
 
-		public <T> T findClassBodyMembers(IRNode type,
+		@Override
+    public <T> T findClassBodyMembers(IRNode type,
 				ISuperTypeSearchStrategy<T> tvs, boolean throwIfNotFound) {
 			return getTypeEnv_cached(type).binder.findClassBodyMembers_javac(type,
 					tvs, throwIfNotFound);
@@ -195,7 +196,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		return monitor;
 	}
 
-	public synchronized JavacProject getProject() {
+	@Override
+  public synchronized JavacProject getProject() {
 		return project;
 	}
 
@@ -203,7 +205,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		project = newProject;
 	}
 
-	public UnversionedJavaBinder getBinder() {
+	@Override
+  public UnversionedJavaBinder getBinder() {
 		return binder;
 	}
 
@@ -229,7 +232,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 			this.outerClasses.putAll(orig.outerClasses);
 		}
 
-		public Set<String> allNames() {
+		@Override
+    public Set<String> allNames() {
 			return outerClasses.keySet();
 		}
 
@@ -251,7 +255,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 			return gc(packages) + gc(outerClasses);
 		}
 
-		public Iterable<Pair<String, IRNode>> allPackages() {
+		@Override
+    public Iterable<Pair<String, IRNode>> allPackages() {
 			List<Pair<String, IRNode>> pairs = new ArrayList<Pair<String, IRNode>>();
 			for (Map.Entry<String, IRNode> e : packages.entrySet()) {
 				pairs.add(new Pair<String, IRNode>(e.getKey(), e.getValue()));
@@ -259,7 +264,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 			return pairs;
 		}
 
-		public IRNode getOuterClass(String qname, IRNode useSite) {
+		@Override
+    public IRNode getOuterClass(String qname, IRNode useSite) {
 			/*
 			 * if ("java.lang.Class".equals(qname)) { System.out.println(qname);
 			 * }
@@ -651,7 +657,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		return getTypeEnv_cached(dty.getDeclaration()).getSuperclass_javac(dty);
 	}
 
-	protected boolean isSubType(IJavaType s, IJavaType t,
+	@Override
+  protected boolean isSubType(IJavaType s, IJavaType t,
 			final boolean ignoreGenerics) {
 		if (s == null || t == null) {
 			return false;

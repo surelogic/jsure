@@ -63,6 +63,7 @@ public final class SharedThreadModelAdapter
    * has arrived.  When signaled, invokes the wrapped
    * event listener once for each event that has arrived.
    */
+  @Override
   public void run() {
     boolean localShouldStop = false;
     int numEvents = 0;

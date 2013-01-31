@@ -48,21 +48,25 @@ public interface VersionedState extends IRState {
       if (st instanceof IRChunk) {
         return new VersionedState() {
 
+          @Override
           public boolean snapshotIsDefined(Version v) {
             VersionedSnapshot vs = VersionedSnapshot.find((IRChunk)st,v);
             return vs != null && vs.isDefined();
           }
 
+          @Override
           public boolean deltaIsDefined(Era e, Version lastV) {
             VersionedDelta vd = VersionedDelta.find((IRChunk)st,e);
             return vd != null && vd.isDefined(lastV);
           }
 
+          @Override
           public boolean isShared() {
             // TODO Change if we add SharedRegion
             return ((IRChunk)st).getRegion() instanceof SharedVersionedRegion;
           }
 
+          @Override
           public IRState getParent() {
             return st.getParent();
           }

@@ -269,6 +269,7 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
     f_actionCollapse.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
   }
 
+  @Override
   public void fillContextMenu(IMenuManager manager, IStructuredSelection s) {
     manager.add(f_openSource);
     manager.add(new Separator());
@@ -411,10 +412,12 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
       return type;
     }
 
+    @Override
     public void refresh(PackageElement e) {
       refreshAll();
     }
 
+    @Override
     public void refreshAll() {
       new SLUIJob() {
         @Override
@@ -680,6 +683,7 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
       confirmed = JDTUtility.findIType(null, pkg.name, name) != null;
     }
 
+    @Override
     public String getPath() {
       if (pkg.name.length() == 0) {
         return name + TestXMLParserConstants.SUFFIX;
@@ -691,6 +695,7 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
       return true;
     }
 
+    @Override
     public boolean hasLocal() {
       return isLocal;
     }

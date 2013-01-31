@@ -9,6 +9,7 @@ import edu.cmu.cs.fluid.ir.ExplicitSlotFactory;
 public final class StyleSetFactory implements StyleSetModel.Factory {
   public static final StyleSetFactory prototype = new StyleSetFactory();
 
+  @Override
   public StyleSetModel create( final String name, 
                                final ExplicitSlotFactory sf ) 
     throws SlotAlreadyRegisteredException

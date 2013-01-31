@@ -53,6 +53,7 @@ implements LabeledSet
   //===========================================================
 
   // Inherit Java doc
+  @Override
   public void setLabel( final IRNode node, final String label )
   {
     synchronized( structLock ) {
@@ -62,6 +63,7 @@ implements LabeledSet
   }
 
   // Inherit Java doc
+  @Override
   public String getLabel( final IRNode node )
   {
     synchronized( structLock ) {

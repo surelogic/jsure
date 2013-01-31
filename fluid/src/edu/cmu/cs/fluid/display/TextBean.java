@@ -1347,9 +1347,11 @@ public class TextBean
       }
     }
 
+    @Override
     public void ancestorMoved(final HierarchyEvent hierarchyEvent) {
     }
 
+    @Override
     public void ancestorResized(final HierarchyEvent e) {
       final Component parent = getParent();
       if (parent instanceof JViewport) {
@@ -1439,6 +1441,7 @@ public class TextBean
    * the viewport minus the height of one line.
    * @return The distance to scroll to the next "block" of text.
    */
+  @Override
   public int getScrollableBlockIncrement(
     final Rectangle vr,
     final int o,
@@ -1455,6 +1458,7 @@ public class TextBean
    * displayable column.  for vertical scrolling returns the distance
    * to the next fully displayable line.
    */
+  @Override
   public int getScrollableUnitIncrement(
     final Rectangle vr,
     final int o,
@@ -1491,6 +1495,7 @@ public class TextBean
    * @return return the preferred width and height set
    * by the minWidth and minHeight properties.
    */
+  @Override
   public Dimension getPreferredScrollableViewportSize() {
     return requestedSize;
   }
@@ -1500,6 +1505,7 @@ public class TextBean
    * vertical scrolling.
    * @return Always returns <code>false</code>.
    */
+  @Override
   public boolean getScrollableTracksViewportHeight() {
     // track only if the number of lines is more than the number of displayable
     // lines
@@ -1513,6 +1519,7 @@ public class TextBean
    * horizontal scrolling.
    * @return Always returns <code>false</code>.
    */
+  @Override
   public boolean getScrollableTracksViewportWidth() {
     // track only if the text is wider than the view
     return maxLineWidth <= lineWidth;
@@ -1534,6 +1541,7 @@ public class TextBean
    * respectively.
    * @return The insets for auto scrolling.
    */
+  @Override
   public Insets getAutoscrollInsets() {
     final Component parent = getParent();
     if (parent != null && parent instanceof JViewport) {
@@ -1553,6 +1561,7 @@ public class TextBean
    * line as needed.
    * @param loc The position of the pointer.
    */
+  @Override
   public void autoscroll(final Point loc) {
     // System.out.println( "Autoscoll: " + loc );
     final int firstLine = getFirstLine();
@@ -1706,6 +1715,7 @@ class ScrollThread extends Thread {
       this.line = line;
     }
 
+    @Override
     public void run() {
       bean.setFirstLine(line);
     }
@@ -1713,6 +1723,7 @@ class ScrollThread extends Thread {
 }
 
 class MyAdapter extends TextResizedAdapter implements TextClickedListener {
+  @Override
   public void textClicked(TextClickedEvent e) {
     System.out.println(
       "Clicked "
@@ -1770,6 +1781,7 @@ interface StyleManager {
     TextCoord begin,
     TextCoord end);
   public abstract TextStyle getStyleAt(TextCoord c);
+  @Override
   public abstract String toString();
 }
 
@@ -1787,6 +1799,7 @@ final class StylesVector implements StyleManager, Serializable {
     list.addElement(new StyleRange(ts, begin, end));
   }
 
+  @Override
   public final void resetStyles(final String[] lines, final TextStyle ts) {
     list.setSize(0);
     final TextCoord begin = new TextCoord(0, 0),
@@ -1795,6 +1808,7 @@ final class StylesVector implements StyleManager, Serializable {
     list.addElement(new StyleRange(ts, begin, end));
   }
 
+  @Override
   public final StyleRange styleOfCoord(final TextCoord c) {
     for (int i = 0; i < list.size(); i++) {
       StyleRange sr = list.elementAt(i);
@@ -1804,10 +1818,12 @@ final class StylesVector implements StyleManager, Serializable {
     return null;
   }
 
+  @Override
   public final Iterator<StyleRange> getStyles() {
     return list.iterator();
   }
 
+  @Override
   public TextStyle getStyleAt(final TextCoord where) {
     int left = 0, right = list.size() - 1;
     int styleNum = (left + right) >> 1;
@@ -1826,6 +1842,7 @@ final class StylesVector implements StyleManager, Serializable {
     return sr.getStyle();
   }
 
+  @Override
   public final void applyStyle(
     final TextStyle applyMe,
     TextCoord begin,

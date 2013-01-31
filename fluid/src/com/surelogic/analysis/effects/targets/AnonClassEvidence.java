@@ -15,10 +15,12 @@ public class AnonClassEvidence implements TargetEvidence {
     return originalEffect;
   }
   
+  @Override
   public IRNode getLink() {
     return originalEffect.getSource();
   }
 
+  @Override
   public void visit(final EvidenceVisitor v) {
     v.visitAnonClassEvidence(this);
   }

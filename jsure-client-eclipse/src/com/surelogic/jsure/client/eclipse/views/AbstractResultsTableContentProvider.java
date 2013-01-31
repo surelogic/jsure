@@ -15,12 +15,14 @@ public abstract class AbstractResultsTableContentProvider<T extends IDrop> imple
   private final String[] f_labels;
 
   protected final Comparator<T> sortAsString = new Comparator<T>() {
+    @Override
     public int compare(T d1, T d2) {
       return d1.toString().compareTo(d2.toString());
     }
   };
 
   protected final Comparator<IDrop> sortByLocation = new Comparator<IDrop>() {
+    @Override
     public int compare(IDrop d1, IDrop d2) {
       IJavaRef ref = d1.getJavaRef();
       final String tn1 = ref == null ? "" : ref.getTypeNameFullyQualified();
@@ -73,22 +75,27 @@ public abstract class AbstractResultsTableContentProvider<T extends IDrop> imple
     this(new String[] { mainLabel, "Resource", "Line" });
   }
 
+  @Override
   public final String[] getColumnLabels() {
     return f_labels;
   }
 
+  @Override
   public final int numColumns() {
     return f_labels.length;
   }
 
+  @Override
   public final String getColumnTitle(int column) {
     return f_labels[column];
   }
 
+  @Override
   public boolean isIntSortedColumn(int colIdx) {
     return colIdx == 2;
   }
 
+  @Override
   public int getColumnWeight(int column) {
     switch (column) {
     case 0:
@@ -101,10 +108,12 @@ public abstract class AbstractResultsTableContentProvider<T extends IDrop> imple
     return 10;
   }
 
+  @Override
   public Object[] getElements(Object inputElement) {
     return f_contents.toArray();
   }
 
+  @Override
   public String build() {
     f_contents.clear();
     return getAndSortResults(f_contents);
@@ -116,6 +125,7 @@ public abstract class AbstractResultsTableContentProvider<T extends IDrop> imple
     return d.getMessage();
   }
 
+  @Override
   @SuppressWarnings("unchecked")
   public String getColumnText(Object element, int columnIndex) {
     T d = (T) element;
@@ -137,22 +147,27 @@ public abstract class AbstractResultsTableContentProvider<T extends IDrop> imple
     return "";
   }
 
+  @Override
   public final void dispose() {
     f_contents.clear();
   }
 
+  @Override
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
     // throw new UnsupportedOperationException();
   }
 
+  @Override
   public boolean isLabelProperty(Object element, String property) {
     throw new UnsupportedOperationException();
   }
 
+  @Override
   public void addListener(ILabelProviderListener listener) {
     // throw new UnsupportedOperationException();
   }
 
+  @Override
   public void removeListener(ILabelProviderListener listener) {
     // throw new UnsupportedOperationException();
   }

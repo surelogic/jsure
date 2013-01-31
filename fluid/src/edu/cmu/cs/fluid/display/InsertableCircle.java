@@ -16,6 +16,7 @@ public class InsertableCircle implements InsertableGraphic
     super();
   }
 
+  @Override
   public void drawGraphic( final Graphics g, final Color fore,
                            final Font f, final Dimension dim )
   {
@@ -31,5 +32,6 @@ public class InsertableCircle implements InsertableGraphic
    * same location.
    * @return <tt>false</tt>
    */
+  @Override
   public final boolean clearCharacter() { return true; }
 }

@@ -46,6 +46,7 @@ implements LabeledForest.Factory
   
   
   
+  @Override
   public LabeledForest create( final String name, final SlotFactory sf )
   throws SlotAlreadyRegisteredException
   {

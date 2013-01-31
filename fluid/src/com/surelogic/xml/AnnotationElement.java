@@ -96,7 +96,8 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		isBad = !parses(promise, contents);
 	}
 
-	public boolean isReference() {
+	@Override
+  public boolean isReference() {
 		return isReference;
 	}
 
@@ -105,11 +106,13 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		return isBad;
 	}
 
-	public boolean hasChildren() {
+	@Override
+  public boolean hasChildren() {
 		return false;
 	}
 
-	public <T> T visit(IJavaElementVisitor<T> v) {
+	@Override
+  public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
 	}
 
@@ -193,7 +196,8 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		}
 	}
 
-	public boolean delete() {
+	@Override
+  public boolean delete() {
 		markAsModified();
 		attributes.put(DELETE_ATTRB, "true");
 		if (!attributes.containsKey(ORIG_CONTENTS)) {
@@ -235,7 +239,8 @@ public final class AnnotationElement extends AbstractJavaElement implements
 				return null; // None to return
 			}
 
-			public Operator getOp() {
+			@Override
+      public Operator getOp() {
 				if (getParent() == null) {
 					// Might not be fully initialized
 					return PackageDeclaration.prototype;
@@ -253,16 +258,19 @@ public final class AnnotationElement extends AbstractJavaElement implements
 				return text.substring(start, stop);
 			}
 
-			public <T extends IAASTRootNode> void reportAAST(int offset,
+			@Override
+      public <T extends IAASTRootNode> void reportAAST(int offset,
 					AnnotationLocation loc, Object o, T ast) {
 				// Ignore this; we only care that it parses
 			}
 
-			public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
+			@Override
+      public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
 				// l.reportError("Problem parsing annotation", msg);
 			}
 
-			public void reportException(int offset, Exception e) {
+			@Override
+      public void reportException(int offset, Exception e) {
 				SLLogger.getLogger().log(Level.WARNING,
 						"Problem parsing annotation", e);
 				// l.reportError("Problem parsing annotation",
@@ -284,7 +292,8 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		return ok;
 	}
 
-	public Operator getOperator() {
+	@Override
+  public Operator getOperator() {
 		return Annotation.prototype;
 	}
 
@@ -332,11 +341,13 @@ public final class AnnotationElement extends AbstractJavaElement implements
 				|| isToBeDeleted();
 	}
 
-	public boolean isToBeDeleted() {
+	@Override
+  public boolean isToBeDeleted() {
 		return "true".equals(attributes.get(DELETE_ATTRB));
 	}
 
-	public String getLabel() {
+	@Override
+  public String getLabel() {
 		// Preprocess the attributes
 		final Map<String, String> pairs;
 		if (attrDefaults.isEmpty()) {
@@ -381,11 +392,13 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		return sb.toString(); // promise+'('+contents+')';
 	}
 
-	public final String getImageKey() {
+	@Override
+  public final String getImageKey() {
 		return CommonImages.IMG_ANNOTATION;
 	}
 
-	public void mergeAttached(IMergeableElement other) {
+	@Override
+  public void mergeAttached(IMergeableElement other) {
 		// Merge the comments that are attached
 		AnnotationElement a = (AnnotationElement) other;
 		stashDiffState(a);
@@ -437,7 +450,8 @@ public final class AnnotationElement extends AbstractJavaElement implements
 	}
 
 //	@Override
-	public boolean isEquivalent(IMergeableElement o) {
+	@Override
+  public boolean isEquivalent(IMergeableElement o) {
 		if (o instanceof AnnotationElement) {
 			AnnotationElement other = (AnnotationElement) o;
 			return uid.equals(other.uid) &&

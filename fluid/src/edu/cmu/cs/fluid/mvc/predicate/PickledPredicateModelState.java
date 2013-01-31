@@ -140,11 +140,13 @@ public class PickledPredicateModelState
       done = (current >= state.length);
     }
 
+    @Override
     public boolean hasNext()
     {
       return !done;
     }
 
+    @Override
     public PredState next()
     {
       if( done ) throw new NoSuchElementException();

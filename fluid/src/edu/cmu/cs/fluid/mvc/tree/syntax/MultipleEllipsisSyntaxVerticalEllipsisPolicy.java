@@ -59,12 +59,14 @@ implements SyntaxForestVerticalEllipsisPolicy
     merge = shouldMerge;
   }
 
+  @Override
   public void resetPolicy()
   {
     map.clear();
     ellidedMap.clear();
   }
 
+  @Override
   public IRNode nodeSkipped(final IRNode node, final IRNode parent,
       final int newPos, final int oldPos) {
     // merge vertical ellipsis
@@ -137,6 +139,7 @@ implements SyntaxForestVerticalEllipsisPolicy
     }
   }
 
+  @Override
   public void applyPolicy()
   {
     final IRSequence roots =

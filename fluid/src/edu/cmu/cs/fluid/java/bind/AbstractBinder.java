@@ -36,10 +36,12 @@ public abstract class AbstractBinder implements IBinder {
   
   private volatile boolean allowWarnings;
   
+  @Override
   public void enableWarnings() {
 	  allowWarnings = true;
   }
   
+  @Override
   public void disableWarnings() {
 	  allowWarnings = false;
   }
@@ -48,15 +50,18 @@ public abstract class AbstractBinder implements IBinder {
 	  return allowWarnings;
   }
   
+  @Override
   public final IRNode getBinding(IRNode node) {
     IBinding binding = getIBinding(node);
     return binding == null ? null : binding.getNode();
   }
   
+  @Override
   public IBinding getIBinding(IRNode node) {
 	  return getIBinding_impl(node);
   }
   
+  @Override
   public IBinding getIBinding(IRNode node, IRNode contextFlowUnit) {
 	  IBinding rv = getIBinding_impl(node);
 	  
@@ -83,6 +88,7 @@ public abstract class AbstractBinder implements IBinder {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.IBinder#getJavaType(edu.cmu.cs.fluid.ir.IRNode)
    */
+  @Override
   public IJavaType getJavaType(IRNode n) {
     return typeVisitor.getJavaType(n);
   }
@@ -90,11 +96,13 @@ public abstract class AbstractBinder implements IBinder {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.IBinder#getTypeEnvironment()
    */
+  @Override
   public ITypeEnvironment getTypeEnvironment() {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Not in abstract binder");
   }
     
+  @Override
   public final IJavaDeclaredType getSuperclass(IJavaDeclaredType type) {
     if (type == null) {
       return null;
@@ -154,6 +162,7 @@ public abstract class AbstractBinder implements IBinder {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.IBinder#findClassBodyMembers(edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.bind.ITypeSearchStrategy, boolean)
    */
+  @Override
   public <T> T findClassBodyMembers(IRNode type, ISuperTypeSearchStrategy<T> tvs, boolean throwIfNotFound) {
     return search.findClassBodyMembers(type, tvs, throwIfNotFound);
   }
@@ -186,6 +195,7 @@ public abstract class AbstractBinder implements IBinder {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.IBinder#findOverriddenParentMethods(edu.cmu.cs.fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IBinding>  findOverriddenParentMethods(IRNode mth) {
 	  Operator op = JJNode.tree.getOperator(mth);		 
 	  if (ClassInitDeclaration.prototype.includes(op)) {
@@ -245,6 +255,7 @@ private IteratableHashSet<IBinding> findOverridenParentsFromType(IRNode mth,
 /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.IBinder#findOverriddenMethods(edu.cmu.cs.fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IBinding> findOverriddenMethods(final IRNode methodDeclaration) {
     final IteratableHashSet<IBinding> overridden = new IteratableHashSet<IBinding>();
     for (Iterator<IBinding> it = findOverriddenParentMethods(methodDeclaration); it.hasNext();) {
@@ -264,6 +275,7 @@ private IteratableHashSet<IBinding> findOverridenParentsFromType(IRNode mth,
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.IBinder#findOverridingMethodsFromType(edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode>  findOverridingMethodsFromType(IRNode callee, IRNode receiverType) {
 	  final ITypeEnvironment tEnv = getTypeEnvironment();
 	  final IJavaType dt = tEnv.convertNodeTypeToIJavaType(receiverType);

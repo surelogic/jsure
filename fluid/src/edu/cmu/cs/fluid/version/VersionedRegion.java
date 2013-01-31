@@ -316,6 +316,7 @@ public class VersionedRegion extends IRRegion implements IRState, IRPersistentOb
   /**
 	 * Notified that the version has been assigned an era.
 	 */
+  @Override
   public void updatePersistent(IRPersistent p, Object o) {
     if (p instanceof Era && o instanceof Version) {
       fillDelta(getDelta((Era) p), (Version) o);
@@ -416,9 +417,11 @@ public class VersionedRegion extends IRRegion implements IRState, IRPersistentOb
     return new AbstractRemovelessIterator<IRRegion>() {
       private Version v = startingVersion;
       private Era e = startingVersion.getEra();
+      @Override
       public boolean hasNext() {
         return v != null && e != null;
       }
+      @Override
       public IRRegion next() throws NoSuchElementException {
         if (e == null) {
           if (v == null)
@@ -455,6 +458,7 @@ public class VersionedRegion extends IRRegion implements IRState, IRPersistentOb
         initialize();
       }
 
+      @Override
       public boolean hasNext() {
         for (;;) {
           if (rest != null)
@@ -464,6 +468,7 @@ public class VersionedRegion extends IRRegion implements IRState, IRPersistentOb
           moveVersion();
         }
       }
+      @Override
       public IRNode next() throws NoSuchElementException {
         for (;;) {
           if (rest != null)
@@ -504,6 +509,7 @@ public class VersionedRegion extends IRRegion implements IRState, IRPersistentOb
       private int i = 0;
       private VersionedRegionDelta vrd = getDelta(e);
       private int n = vrd.getNumNodes();
+      @Override
       public boolean hasNext() {
         moveEra();
         return i < n;
@@ -522,6 +528,7 @@ public class VersionedRegion extends IRRegion implements IRState, IRPersistentOb
           }
         }
       }
+      @Override
       public IRNode next() throws NoSuchElementException {
         moveEra();
         if (i < n) {
@@ -563,11 +570,13 @@ public class VersionedRegion extends IRRegion implements IRState, IRPersistentOb
   /* persistent kind */
 
   private static final IRPersistentKind kind = new IRPersistentKind() {
+    @Override
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException {
       VersionedRegion vr = (VersionedRegion) p;
       vr.getID().write(out);
     }
+    @Override
     public IRPersistent readPersistentReference(DataInput in)
       throws IOException {
       UniqueID id = UniqueID.read(in);
@@ -617,6 +626,7 @@ public class VersionedRegion extends IRRegion implements IRState, IRPersistentOb
   /* A versioned region is changed in the eras that it gets new nodes.
    * @see edu.cmu.cs.fluid.ir.IRState#getParent()
    */
+  @Override
   public IRState getParent() {
     return null;
   }

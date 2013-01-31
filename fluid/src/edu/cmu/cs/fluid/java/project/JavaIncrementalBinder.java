@@ -162,6 +162,7 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
      * @see #addUse
      * @param v version at which to notify uses (or null if no notification needed)
      */
+    @Override
     public synchronized void notifyUses(Version v) {
       if (v == null) return;
       if (changed != null && changed.contains(v)) return;
@@ -180,6 +181,7 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
      * Add a new use to the dependency.  It is informed of all changes thus far.
      * @param use useSite to add.
      */
+    @Override
     public synchronized void addUse(IRNode use) {
       if (use == null) return;
       if (uses == null) uses = new HashSet<IRNode>();
@@ -267,14 +269,17 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
       methodOverridesAttr = f.newAttribute(null);
     }
 
+    @Override
     public IRNode getNode() {
     	return unit;
     }
     
+    @Override
     public synchronized boolean isDestroyed() {
     	return isDestroyed;
     }
     
+    @Override
     public synchronized void destroy() {
     	useToDeclAttr.destroy();
     	methodOverridesAttr.destroy();
@@ -345,18 +350,22 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
       }
     }
 
+    @Override
     public SlotInfo<List<IBinding>> getMethodOverridesAttr() {
       return methodOverridesAttr;
     }
 
+    @Override
     public SlotInfo<IBinding> getUseToDeclAttr() {
       return useToDeclAttr;
     }
 
+    @Override
     public void ensureDerived(IRNode node) {
       super.ensureDerived();
     }
 
+    @Override
     public boolean containsFullInfo() {
       return true;
     }

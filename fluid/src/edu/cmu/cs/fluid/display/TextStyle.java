@@ -597,6 +597,7 @@ implements Serializable
       where = 0;
     }
 
+    @Override
     public Color next()
     {
       if( where == -1 ) {
@@ -607,6 +608,7 @@ implements Serializable
       }
     }
 
+    @Override
     public boolean hasNext()
     {
       if( where == -1 ) {

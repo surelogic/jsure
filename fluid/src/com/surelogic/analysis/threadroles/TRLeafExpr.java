@@ -194,6 +194,7 @@ public class TRLeafExpr extends TRExpr {
   /* (non-Javadoc)
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
+  @Override
   public int compareTo(TRExpr o) {
     if (this == o) return 0;
     int res = 0;

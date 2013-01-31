@@ -55,6 +55,7 @@ public class Activator extends AbstractUIPlugin implements IRunnableWithProgress
   }
 
   // Used for startup
+  @Override
   public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
     monitor.beginTask("Initializing the JSure tool", 7);
 

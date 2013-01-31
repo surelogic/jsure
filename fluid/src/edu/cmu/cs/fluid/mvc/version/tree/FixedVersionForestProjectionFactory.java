@@ -45,6 +45,7 @@ implements FixedVersionForestProjection.Factory
    * @param tracker The version-tracker model that will control the version
    *               at which <code>srcModel</code> is projected.
    */
+  @Override
   public final FixedVersionForestProjection create(
     final String name, final ForestModel srcModel,
     final VersionTrackerModel tracker )

@@ -204,6 +204,7 @@ public final class JavaImportTable extends AbstractJavaImportTable {
       scopeSlot = scopeSlot.setValue(sc,v);
     }
     
+    @Override
     public IJavaScope getScope() {
       return scopeSlot.getValue();
     }

@@ -61,11 +61,13 @@ public class FieldRefNode extends PrimaryExpressionNode implements
 		return sb.toString();
 	}
 
-	public boolean bindingExists() {
+	@Override
+  public boolean bindingExists() {
 		return AASTBinder.getInstance().isResolvable(this);
 	}
 
-	public IVariableBinding resolveBinding() {
+	@Override
+  public IVariableBinding resolveBinding() {
 		return AASTBinder.getInstance().resolve(this);
 	}
 

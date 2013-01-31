@@ -469,7 +469,8 @@ extends AbstractHierarchyScrubber<A> {
 	}
 	
 	private final IAnnotationTraversalCallback<A> nullCallback = new IAnnotationTraversalCallback<A>() {
-		public void addDerived(A c, PromiseDrop<? extends A> pd) {
+		@Override
+    public void addDerived(A c, PromiseDrop<? extends A> pd) {
 			getContext().reportWarning("Ignoring derived AAST created by "+pd.getClass().getSimpleName(), c);
 		}
 	};
@@ -485,7 +486,8 @@ extends AbstractHierarchyScrubber<A> {
 	}
 		
 	final Comparator<Map.Entry<IRNode,Collection<A>>> entryComparator = new Comparator<Map.Entry<IRNode,Collection<A>>>() {
-		public int compare(Map.Entry<IRNode,Collection<A>> o1, Map.Entry<IRNode,Collection<A>> o2) {
+		@Override
+    public int compare(Map.Entry<IRNode,Collection<A>> o1, Map.Entry<IRNode,Collection<A>> o2) {
 		  IJavaRef r1 = getJavaRef(o1.getKey());
 		  IJavaRef r2 = getJavaRef(o2.getKey());
 			if (r1 == null || r2 == null) {

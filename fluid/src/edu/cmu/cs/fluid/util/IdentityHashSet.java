@@ -60,11 +60,13 @@ public class IdentityHashSet<E> extends AbstractSet<E> {
         }
       }
       
+      @Override
       public boolean hasNext() {
         if (v != version) throw new ConcurrentModificationException("set modified during iteration");
         return i < values.length;
       }
 
+      @Override
       public E next() {
         if (v != version) throw new ConcurrentModificationException("set modified during iteration");
         E result = values[i];
@@ -73,6 +75,7 @@ public class IdentityHashSet<E> extends AbstractSet<E> {
         return result;
       }
 
+      @Override
       @SuppressWarnings("unchecked")
       public void remove() {
         if (v != version) throw new ConcurrentModificationException("set modified during iteration");

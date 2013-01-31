@@ -18,6 +18,7 @@ final class HeldStaticLock extends AbstractHeldLock {
     super(ld, src, sd, assumed, type);
   }
   
+  @Override
   public HeldLock changeSource(final IRNode newSrc) {
     return new HeldStaticLock(lockPromise, newSrc, supportingDrop, isAssumed, type);
   }
@@ -25,6 +26,7 @@ final class HeldStaticLock extends AbstractHeldLock {
   /**
    * Static locks are based on name equivalence.
    */
+  @Override
   public boolean mustAlias(final HeldLock lock, final ThisExpressionBinder teb, final IBinder b) {
     if(lock instanceof HeldStaticLock) {
       return (isWrite() == lock.isWrite())
@@ -38,6 +40,7 @@ final class HeldStaticLock extends AbstractHeldLock {
    * One static lock satisfies another if they refer to same lock declaration,
    * and this lock is a writeLock or both locks are read locks.
    */
+  @Override
   public boolean mustSatisfy(final NeededLock lock, final ThisExpressionBinder teb, final IBinder b) {
     if(lock instanceof NeededStaticLock) {
       if (getUniqueIdentifier().equals(((NeededStaticLock) lock).getUniqueIdentifier())) {

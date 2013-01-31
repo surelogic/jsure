@@ -38,7 +38,8 @@ public final class ThresholdMemoryPolicy extends AbstractMemoryPolicy {
 	}
 
 	class MyListener implements javax.management.NotificationListener {
-		public void handleNotification(Notification notification,
+		@Override
+    public void handleNotification(Notification notification,
 				Object handback) {
 			String notifType = notification.getType();
 			if (notifType
@@ -111,14 +112,16 @@ public final class ThresholdMemoryPolicy extends AbstractMemoryPolicy {
 		return biggest;
 	}
 
-	public void checkIfLowOnMemory() {
+	@Override
+  public void checkIfLowOnMemory() {
 		final boolean lowMem = lowOnMemory.getAndSet(false);
 		if (lowMem /* || memoryUsed() > threshold * memoryLimit() */) {
 			handleLowMemory();
 		}
 	}
 
-	public double percentToUnload() {
+	@Override
+  public double percentToUnload() {
 		double overLimit = (memoryUsed() / (double) memoryLimit()) - threshold;
 		// Get back as much below the limit as we currently are over
 		return (overLimit < 0.0) ? 0.0 : overLimit * 2;

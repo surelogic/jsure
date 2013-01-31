@@ -156,7 +156,8 @@ public class RemoteJSureRun extends AbstractRemoteSLJob {
 				Javac.getDefault().setPreference(IDEPreferences.DEFAULT_JRE, defaultJRE);
 			}
 			return new AbstractSLJob("Running JSure on "+projects.getLabel()) {			
-				public SLStatus run(SLProgressMonitor monitor) {
+				@Override
+        public SLStatus run(SLProgressMonitor monitor) {
 					final File tmpLocation; 
 					try {
 						projects.setMonitor(monitor);				

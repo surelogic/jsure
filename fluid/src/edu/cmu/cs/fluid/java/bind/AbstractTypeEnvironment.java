@@ -60,6 +60,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   private final Map<Pair<IJavaType, IJavaType>, Boolean> subTypeCache = 
 	  new ConcurrentHashMap<Pair<IJavaType,IJavaType>, Boolean>();
   
+  @Override
   public void clearCaches(boolean clearAll) {
 	  objectType.set(null);
 	  stringType = null;
@@ -72,14 +73,17 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  //System.out.println("Total T = "+total);
   }
   
+  @Override
   public int getMajorJavaVersion() {
 	  return 0; // TODO
   }
   
+  @Override
   public void addTypesInCU(IRNode root) {
 	  throw new UnsupportedOperationException();
   }
   
+  @Override
   public IJavaType convertNodeTypeToIJavaType(IRNode nodeType) {
 	  if (nodeType == null) {
 		  return null;
@@ -101,6 +105,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  return result;
   }
   
+  @Override
   public IJavaSourceRefType getMyThisType(IRNode typeDecl) {
 	  if (typeDecl == null) {
 		  return null;
@@ -121,6 +126,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  return result;
   }
   
+  @Override
   public IJavaDeclaredType getObjectType() {
 	IJavaDeclaredType oType = objectType.get();
     while (oType == null) {
@@ -153,6 +159,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   }
 
   private IRNode arrayClassDeclaration = null;
+  @Override
   public synchronized IRNode getArrayClassDeclaration() {
     // no need to be synchronized because nodes havce identity
     // and nothing else.
@@ -166,6 +173,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   }
   
   private IJavaDeclaredType stringType = null;
+  @Override
   public  synchronized IJavaDeclaredType getStringType() {
     if (stringType == null) {
       // this method has to be synchronized because otherwise, another thread
@@ -175,6 +183,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
     return stringType;
   }
 
+  @Override
   public final IBindHelper getBindHelper() {
 	if (helper == null) {
       helper = new BindHelper(getBinder());
@@ -185,6 +194,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.ITypeEnvironment#isAssignmentCompatible(edu.cmu.cs.fluid.java.bind.IJavaType, edu.cmu.cs.fluid.java.bind.IJavaType, edu.cmu.cs.fluid.ir.IRNode)
    */
+  @Override
   public boolean isAssignmentCompatible(IJavaType t1, IJavaType t2, IRNode n2) {
     if (t1.isEqualTo(this, t2)) return true;
     if (t2 == JavaTypeFactory.anyType) {
@@ -198,6 +208,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
     }
   }
   
+  @Override
   public boolean isAssignmentCompatible(IJavaType[] ts1, IJavaType[] ts2) {
     if (ts1.length != ts2.length) return false;
     for (int i=0; i < ts1.length; ++i) {
@@ -241,6 +252,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
    * 
    * @see edu.cmu.cs.fluid.java.bind.ITypeEnvironment#isCallCompatible(edu.cmu.cs.fluid.java.bind.IJavaType, edu.cmu.cs.fluid.java.bind.IJavaType)
    */  
+  @Override
   public boolean isCallCompatible(IJavaType t1, IJavaType t2) {
     if (t1.isEqualTo(this, t2)) return true; 
     if (t2 == JavaTypeFactory.anyType) {
@@ -330,6 +342,7 @@ private long parseIntLiteral(String token) {
 	return i;
 }
 
+  @Override
   public boolean isCallCompatible(IJavaType[] ts1, IJavaType[] ts2) {
     if (ts1.length != ts2.length) return false;
     for (int i=0; i < ts1.length; ++i) {
@@ -362,6 +375,7 @@ private long parseIntLiteral(String token) {
       return type.subst(subst);
     }
     
+    @Override
     @Borrowed("this")
 	@RegionEffects("writes Instance")
 	public void remove() {
@@ -396,6 +410,7 @@ private long parseIntLiteral(String token) {
    * @param ty
    * @return
    */
+  @Override
   public Iteratable<IJavaType> getSuperTypes(IJavaType ty) {
     //IBinder binder               = getBinder();
     final IJavaType javalangobjectType = getObjectType();
@@ -517,6 +532,7 @@ private long parseIntLiteral(String token) {
     return new SupertypesIterator(superclass,ch,subst);
   }
   
+  @Override
   public IJavaDeclaredType getSuperclass(IJavaDeclaredType dt) {
 	  final IRNode declaration = dt.getDeclaration();
 	  final Operator op = JJNode.tree.getOperator(declaration);
@@ -578,10 +594,12 @@ private long parseIntLiteral(String token) {
   /**
 	 * @see edu.cmu.cs.fluid.java.bind.ITypeEnvironment#isSubType(IJavaType, IJavaType)
 	 */
+  @Override
   public final boolean isSubType(IJavaType s, IJavaType t) {
 	  return isSubType(s, t, false);
   }
   
+  @Override
   public final boolean isRawSubType(IJavaType s, IJavaType t) {
 	  return isSubType(s, t, true);
   }
@@ -756,6 +774,7 @@ private long parseIntLiteral(String token) {
     //return false;
   }
   
+  @Override
   public IJavaClassTable getClassTable() {
     throw new UnsupportedOperationException("getClassTable() is not yet implemented!");
   }
@@ -766,27 +785,33 @@ private long parseIntLiteral(String token) {
   }
 
 
+  @Override
   public IRNode findNamedType(String qname) {
     return getClassTable().getOuterClass(qname,null);
   }
 
+  @Override
   public IRNode findNamedType(String qname, IRNode context) {
 	  return getClassTable().getOuterClass(qname, context);
   }
   
+  @Override
   public Iterable<IRNode> getRawSubclasses(IRNode type) {
 	  // Optional method
 	  return new EmptyIterator<IRNode>();
   }  
   
+  @Override
   public IRNode findPackage(String name, IRNode context) {
     return getClassTable().getOuterClass(name,context);
   }
 
+  @Override
   public Iterable<Pair<String,IRNode>> getPackages() {
 	return getClassTable().allPackages(); 
   }
   
+  @Override
   public IJavaType findJavaTypeByName(final String name) {	  
 	// Check for array dimensions
     int dims = 0;    
@@ -894,6 +919,7 @@ private long parseIntLiteral(String token) {
     }
   }  
   
+  @Override
   public IJavaType computeErasure(IJavaType ty) {
     if (!(ty instanceof IJavaReferenceType)) {
       return ty;

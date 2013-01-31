@@ -147,13 +147,16 @@ public class XMLLogDiff {
     // Anything left over in 'log' should be new ...
     for(final EventState e : log.values()) {
       ITest o = new ITest() {
+        @Override
         public String getClassName() {
           return e.event.getLocationInformation().className;
         }
+        @Override
         public IRNode getNode() {
           return null;
         }
-		public String identity() {
+		@Override
+    public String identity() {
 			return toString();
 		} 
       };

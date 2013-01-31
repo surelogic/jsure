@@ -33,6 +33,7 @@ public final class BorrowedPromiseDrop extends BooleanPromiseDrop<BorrowedNode> 
     return getAAST().allowReturn();
   }
 
+  @Override
   public Map<IRegion, IRegion> getAggregationMap(final IRNode fieldDecl) {
     /*
      * Borrowed fields must be final and non-static. Also applies to the

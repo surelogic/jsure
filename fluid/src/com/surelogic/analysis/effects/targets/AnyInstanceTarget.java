@@ -54,14 +54,17 @@ public final class AnyInstanceTarget extends AbstractTarget {
 
   
   
+  @Override
   public IRNode getReference() {
     return null;
   }
   
+  @Override
   public IJavaType getRelativeClass(final IBinder binder) {
     return clazz;
   }
 
+  @Override
   public Target degradeRegion(final IRegion newRegion) {
     checkNewRegion(newRegion);
     if (newRegion.isStatic()) {
@@ -78,6 +81,7 @@ public final class AnyInstanceTarget extends AbstractTarget {
     return false;
   }
 
+  @Override
   public Target mask(final IBinder binder) {
     // Any instance targets are never maskable
     return this;
@@ -85,10 +89,12 @@ public final class AnyInstanceTarget extends AbstractTarget {
 
   
   
+  @Override
   public boolean overlapsReceiver(final IRNode rcvrNode) {
     return false;
   }
 
+  @Override
   public TargetRelationship overlapsWith(
       final IMayAlias mayAlias, final IBinder binder, final Target t) {
     return ((AbstractTarget) t).overlapsWithAnyInstance(binder, this);
@@ -176,6 +182,7 @@ public final class AnyInstanceTarget extends AbstractTarget {
     return TargetRelationship.newUnrelated();
   }
 
+  @Override
   public boolean mayTargetStateOfReference(
       final IBinder binder, final IRNode formal) {
     return areDirectlyRelated(binder, binder.getJavaType(formal), this.clazz);
@@ -183,6 +190,7 @@ public final class AnyInstanceTarget extends AbstractTarget {
 
   
   
+  @Override
   public boolean checkTarget(final IBinder b, final Target declaredTarget) {
     return ((AbstractTarget) declaredTarget).checkTargetAgainstAnyInstance(b, this);
   }
@@ -227,12 +235,14 @@ public final class AnyInstanceTarget extends AbstractTarget {
 
  
   
+  @Override
   public AnyInstanceTarget changeEvidence(final TargetEvidence e) {
     return new AnyInstanceTarget(clazz, region, e);
   }
   
   
 
+  @Override
   public StringBuilder toString(final StringBuilder sb) {
     sb.append("any("); 
     if (clazz instanceof IJavaDeclaredType) {

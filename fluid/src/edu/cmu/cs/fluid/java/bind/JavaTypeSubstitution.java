@@ -50,7 +50,8 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 			  }
 		  }
 		  
-		  public IJavaType get(IJavaTypeFormal jtf) {
+		  @Override
+      public IJavaType get(IJavaTypeFormal jtf) {
 			  ensureSubst();
 			  if (realSubst == null) {
 				  return jtf;
@@ -58,7 +59,8 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 			  return realSubst.get(jtf);
 		  }
 
-		  public List<IJavaType> substTypes(IJavaDeclaredType context, List<IJavaType> types) {
+		  @Override
+      public List<IJavaType> substTypes(IJavaDeclaredType context, List<IJavaType> types) {
 			  if (types.isEmpty()) {
 				  return types;
 			  }
@@ -73,7 +75,8 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 			  return realSubst.substTypes(context, types);
 		  }
 
-		  public IJavaTypeSubstitution combine(IJavaTypeSubstitution other) {
+		  @Override
+      public IJavaTypeSubstitution combine(IJavaTypeSubstitution other) {
 			  ensureSubst();
 			  if (realSubst == null) {
 				  return NULL.combine(other);
@@ -81,7 +84,8 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 			  return realSubst.combine(other);
 		  }
 
-		  public ITypeEnvironment getTypeEnv() {
+		  @Override
+      public ITypeEnvironment getTypeEnv() {
 			  ensureSubst();
 			  if (realSubst == null) {
 				  return null;

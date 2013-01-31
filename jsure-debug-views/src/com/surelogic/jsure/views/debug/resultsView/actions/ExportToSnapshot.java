@@ -27,15 +27,18 @@ public class ExportToSnapshot implements IViewActionDelegate {
   // private IViewPart currentView = null;
   private Shell shell = null;
 
+  @Override
   public void init(final IViewPart view) {
     // currentView = view;
     shell = view.getViewSite().getShell();
   }
 
+  @Override
   public void selectionChanged(final IAction action, final ISelection selection) {
     // We don't care about selections
   }
 
+  @Override
   public void run(final IAction action) {
     /*
      * Find the project that the results belong to. 

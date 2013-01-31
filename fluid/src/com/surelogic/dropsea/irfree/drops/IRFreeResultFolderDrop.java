@@ -25,6 +25,7 @@ public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop imple
     f_operator = operator;
   }
 
+  @Override
   @NonNull
   public LogicOperator getLogicOperator() {
     return f_operator;

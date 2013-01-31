@@ -19,39 +19,47 @@ public class TemplateType implements IRType {
     super();
   }
 
+  @Override
   public boolean isValid(Object value) {
     return (value instanceof Template);
   }
 
+  @Override
   public Comparator getComparator() 
   {
     return null;
   }
   
   /** Write a value out. */
+  @Override
   public void writeValue(Object value, IROutput out) throws IOException {
   }
   
   /** Read a value in. */
+  @Override
   public Object readValue(IRInput in) throws IOException {
     return null;
   }
 
   /** Write the type out (starting with a registered byte). */
+  @Override
   public void writeType(IROutput out) throws IOException {
   }
 
   /** Read a type in continuing after the registered byte. */
+  @Override
   public IRType readType(IRInput in) throws IOException {
     return null;
   }
 
   /** @exception fluid.NotImplemented */
+  @Override
   public Object fromString(String s) {
     throw new NotImplemented("fluid.ir.TemplateType.fromString()");
   }
 
   /** @exception fluid.NotImplemented */
+  @Override
   public String toString(Object o) {
     throw new NotImplemented("fluid.ir.TemplateType.toString()");
   }

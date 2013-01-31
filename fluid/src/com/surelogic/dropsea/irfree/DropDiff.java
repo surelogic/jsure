@@ -27,16 +27,19 @@ public class DropDiff extends DiffNode implements IViewable {
 		return drop.getMessage();
 	}
 
-	public String getText() {
+	@Override
+  public String getText() {
 		return toString();
 	}
 
-	public boolean hasChildren() {
+	@Override
+  public boolean hasChildren() {
 		// This exists because there are diffs
 		return true;
 	}
 
-	public Object[] getChildren() {
+	@Override
+  public Object[] getChildren() {
 		return children;
 	}
 
@@ -166,7 +169,8 @@ public class DropDiff extends DiffNode implements IViewable {
 		ResultPredicate(String l) {
 			super(l);
 		}
-		final boolean getAttr(IProofDrop d) {
+		@Override
+    final boolean getAttr(IProofDrop d) {
 			if (d instanceof IResultDrop) {
 				final IResultDrop rd = (IResultDrop) d;
 				return getAttr(rd);

@@ -53,7 +53,8 @@ public abstract class AbstractScanTreeView<T> extends
 
 	/********************* Methods to handle selections ******************************/
 
-	protected void appendText(StringBuilder sb, Object elt) {
+	@Override
+  protected void appendText(StringBuilder sb, Object elt) {
 		sb.append(f_content.getText(elt));
 	}
 }

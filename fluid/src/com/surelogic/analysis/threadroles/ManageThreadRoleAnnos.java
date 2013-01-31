@@ -18,7 +18,8 @@ public class ManageThreadRoleAnnos extends AbstractIRAnalysis<TRolesFirstPass,Un
 		super(false, Unused.class);
 	}
 
-	public boolean analyzeAll() {
+	@Override
+  public boolean analyzeAll() {
 		return false;
 	}
 	

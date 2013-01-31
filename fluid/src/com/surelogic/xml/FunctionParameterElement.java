@@ -16,7 +16,8 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 		return index;
 	}
 
-	public String getLabel() {
+	@Override
+  public String getLabel() {
 		final AbstractFunctionElement parent = (AbstractFunctionElement) getParent();
 		try {
 			if (parent == null) {
@@ -33,7 +34,8 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 		}
 	}
 	
-	public final String getImageKey() {
+	@Override
+  public final String getImageKey() {
 		return null; // TODO
 	}
 	
@@ -58,7 +60,8 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 		return null;
 	}
 	
-	public <T> T visit(IJavaElementVisitor<T> v) {
+	@Override
+  public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
 	}
 }

@@ -14,5 +14,6 @@ public interface IJavaNestedType extends IJavaDeclaredType, INestedType {
   /** Return the type this type is nested in.
    * This type, itself, may be a nested type.
    */
+  @Override
   IJavaDeclaredType getOuterType();
 }

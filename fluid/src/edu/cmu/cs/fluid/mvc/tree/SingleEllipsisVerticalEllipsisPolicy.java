@@ -85,12 +85,14 @@ implements ForestVerticalEllipsisPolicy
     return where;
   }
 
+  @Override
   public void resetPolicy()
   {
     ellipsisMap.clear();
     ellidedMap.clear();
   }
 
+  @Override
   public IRNode nodeSkipped(final IRNode node, final IRNode parent,
       final int pos, final int oldPos) {
     IRNode ellipsis;
@@ -114,6 +116,7 @@ implements ForestVerticalEllipsisPolicy
     return ellipsis;
   }
 
+  @Override
   public void applyPolicy()
   {
     for( Iterator keys = ellipsisMap.keySet().iterator(); keys.hasNext(); )

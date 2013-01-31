@@ -131,14 +131,17 @@ public class VersionedChunk extends IRChunk implements VersionedState {
     return Snapshot.get(this, v);
   }
 
+  @Override
   public boolean deltaIsDefined(Era e, Version lastV) {
     VersionedDelta d = VersionedDelta.find(this,e);
     return d != null && d.isDefined(lastV);
   }
+  @Override
   public boolean snapshotIsDefined(Version v) {
     VersionedSnapshot s = VersionedSnapshot.find(this,v);
     return s != null && s.isDefined();
   }
+  @Override
   public boolean isShared() {
     IRRegion region = getRegion();
     return region instanceof VersionedRegion && ((VersionedRegion)region).isShared();
@@ -164,12 +167,14 @@ public class VersionedChunk extends IRChunk implements VersionedState {
   /* Kind */
 
   private static IRPersistentKind kind = new IRPersistentKind() {
+    @Override
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException {
       IRChunk chunk = (IRChunk) p;
       chunk.getRegion().writeReference(out);
       chunk.getBundle().writeReference(out);
     }
+    @Override
     public IRPersistent readPersistentReference(DataInput in)
       throws IOException {
       VersionedRegion vr = (VersionedRegion) IRPersistent.readReference(in);
@@ -234,6 +239,7 @@ public class VersionedChunk extends IRChunk implements VersionedState {
     }
     
     static final IRPersistentKind kind = new IRPersistentKind() {
+      @Override
       public void writePersistentReference(IRPersistent p, DataOutput out) throws IOException {
         // TODO Auto-generated method stub
         SubsidiaryChunk sc = (SubsidiaryChunk)p;
@@ -241,6 +247,7 @@ public class VersionedChunk extends IRChunk implements VersionedState {
         sc.getBundle().writeReference(out);
       }
 
+      @Override
       public IRPersistent readPersistentReference(DataInput in) throws IOException {
         // TODO Auto-generated method stub
         VersionedRegionDelta vrd = (VersionedRegionDelta)IRPersistent.readReference(in);
@@ -299,6 +306,7 @@ public class VersionedChunk extends IRChunk implements VersionedState {
     /* Kind */
 
     private static final IRPersistentKind kind = new IRPersistentKind() {
+      @Override
       public void writePersistentReference(IRPersistent p, DataOutput out)
         throws IOException {
         VersionedChunk.Delta vcd = (VersionedChunk.Delta) p;
@@ -306,6 +314,7 @@ public class VersionedChunk extends IRChunk implements VersionedState {
         vcd.getChunk().getBundle().writeReference(out);
         vcd.getEra().writeReference(out);
       }
+      @Override
       public IRPersistent readPersistentReference(DataInput in)
         throws IOException {
         VersionedRegion vr = (VersionedRegion) IRPersistent.readReference(in);
@@ -600,6 +609,7 @@ public class VersionedChunk extends IRChunk implements VersionedState {
     /* Kind */
 
     private static final IRPersistentKind kind = new IRPersistentKind() {
+      @Override
       public void writePersistentReference(IRPersistent p, DataOutput out)
         throws IOException {
         Snapshot vcs = (Snapshot) p;
@@ -608,6 +618,7 @@ public class VersionedChunk extends IRChunk implements VersionedState {
         vcs.getVersion().getEra().writeReference(out);
         vcs.getVersion().write(out);
       }
+      @Override
       public IRPersistent readPersistentReference(DataInput in)
         throws IOException {
         VersionedRegion vr = (VersionedRegion) IRPersistent.readReference(in);

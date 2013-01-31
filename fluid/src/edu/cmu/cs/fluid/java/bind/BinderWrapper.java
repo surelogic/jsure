@@ -15,54 +15,66 @@ public abstract class BinderWrapper implements IBinder {
 		binder = b;
 	}
 	
-	public void disableWarnings() {
+	@Override
+  public void disableWarnings() {
 		binder.disableWarnings();
 	}
 
-	public void enableWarnings() {
+	@Override
+  public void enableWarnings() {
 		binder.enableWarnings();
 	}
 
-	public <T> T findClassBodyMembers(IRNode type,
+	@Override
+  public <T> T findClassBodyMembers(IRNode type,
 			ISuperTypeSearchStrategy<T> tvs, boolean throwIfNotFound) {
 		return binder.findClassBodyMembers(type, tvs, throwIfNotFound);
 	}
 
-	public Iteratable<IBinding> findOverriddenMethods(IRNode methodDeclaration) {
+	@Override
+  public Iteratable<IBinding> findOverriddenMethods(IRNode methodDeclaration) {
 		return binder.findOverriddenMethods(methodDeclaration);
 	}
 
-	public Iteratable<IBinding> findOverriddenParentMethods(IRNode mth) {
+	@Override
+  public Iteratable<IBinding> findOverriddenParentMethods(IRNode mth) {
 		return binder.findOverriddenParentMethods(mth);
 	}
 	
-	public Iteratable<IRNode> findOverridingMethodsFromType(IRNode callee,
+	@Override
+  public Iteratable<IRNode> findOverridingMethodsFromType(IRNode callee,
 			IRNode receiverType) {
 		return binder.findOverridingMethodsFromType(callee, receiverType);
 	}
 
-	public IRNode getBinding(IRNode name) {
+	@Override
+  public IRNode getBinding(IRNode name) {
 		return binder.getBinding(name);
 	}
 
-	public IBinding getIBinding(IRNode node) {
+	@Override
+  public IBinding getIBinding(IRNode node) {
 		return binder.getIBinding(node);
 	}
 
-	public IBinding getIBinding(IRNode node, IRNode context) {
+	@Override
+  public IBinding getIBinding(IRNode node, IRNode context) {
 		return binder.getIBinding(node, context);
 	}
 	
-	public IJavaType getJavaType(IRNode n) {
+	@Override
+  public IJavaType getJavaType(IRNode n) {
 		return binder.getJavaType(n);
 	}
 
-	@SuppressWarnings("deprecation")
+	@Override
+  @SuppressWarnings("deprecation")
 	public IJavaDeclaredType getSuperclass(IJavaDeclaredType type) {
 		return binder.getSuperclass(type);
 	}
 
-	public ITypeEnvironment getTypeEnvironment() {
+	@Override
+  public ITypeEnvironment getTypeEnvironment() {
 		return binder.getTypeEnvironment();
 	}
 }

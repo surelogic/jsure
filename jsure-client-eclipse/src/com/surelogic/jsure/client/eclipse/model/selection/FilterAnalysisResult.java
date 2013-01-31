@@ -11,10 +11,12 @@ import com.surelogic.dropsea.IResultDrop;
 public final class FilterAnalysisResult extends Filter implements IOnlyResultsPorus {
 
   public static final ISelectionFilterFactory FACTORY = new AbstractFilterFactory() {
+    @Override
     public Filter construct(Selection selection, Filter previous) {
       return new FilterAnalysisResult(selection, previous, getFilterLabel());
     }
 
+    @Override
     public String getFilterLabel() {
       return "Analysis Result";
     }

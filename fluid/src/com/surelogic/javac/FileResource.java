@@ -55,6 +55,7 @@ public class FileResource implements ICodeFile {
     this(pkg, computeCUName(sourceFile.relativePath), sourceFile.getLocation(), proj);
   }
 
+  @Override
   public String getProjectName() {
     return project;
   }
@@ -105,14 +106,17 @@ public class FileResource implements ICodeFile {
     return new Pair<URI, String>(origURI, null);
   }
 
+  @Override
   public Object getHostEnvResource() {
     return null;
   }
 
+  @Override
   public String getPackage() {
     return pkgName;
   }
 
+  @Override
   public String getRelativePath() {
     return relativePath;
   }

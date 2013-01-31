@@ -2,5 +2,6 @@
 package edu.cmu.cs.fluid.control;
 
 public interface ComponentPort extends Port,ComponentNode {
+  @Override
   public abstract Component getComponent();
 }

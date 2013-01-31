@@ -30,19 +30,23 @@ public class AnnotationParsingContextProxy extends AbstractAnnotationParsingCont
     return context.getAnnoNode();
   }
 
+  @Override
   public Operator getOp() {
     return context.getOp();
   }
 
+  @Override
   public <T extends IAASTRootNode> void reportAAST(int offset,
       AnnotationLocation loc, Object o, T ast) {
     context.reportAAST(offset, loc, o, ast);
   }
 
+  @Override
   public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
     context.reportErrorAndProposal(offset, msg, proposal);
   }
 
+  @Override
   public void reportException(int offset, Exception e) {
     context.reportException(offset, e);
   }

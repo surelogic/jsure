@@ -71,18 +71,23 @@ public class SimpleComponentSlot<T>
   //=================================================================
 
   // inherit java doc
+  @Override
   public IRType<T> getType() { return type; }
 
   // inherit java doc
+  @Override
   public boolean isChanged() { return slot.isChanged(); }
 
   // inherit java doc
+  @Override
   public boolean isValid() { return slot.isValid(); }
 
   // inherit java doc
+  @Override
   public T getValue() { return slot.getValue(); }
 
   // inherit java doc
+  @Override
   public Slot<T> setValue( final T value )
   throws SlotImmutableException
   {
@@ -92,6 +97,7 @@ public class SimpleComponentSlot<T>
   }
 
   // inherit java doc
+  @Override
   public Slot<T> readValue( final IRType<T> t, final IRInput in )
   throws java.io.IOException
   {
@@ -100,6 +106,7 @@ public class SimpleComponentSlot<T>
   }
 
   // inherit java doc
+  @Override
   public void writeValue( final IRType<T> t, final IROutput out )
   throws java.io.IOException
   {
@@ -108,6 +115,7 @@ public class SimpleComponentSlot<T>
   }
 
   /** Describe the wrapped slot. */
+  @Override
   public void describe(PrintStream out) {
     slot.describe(out);
   }

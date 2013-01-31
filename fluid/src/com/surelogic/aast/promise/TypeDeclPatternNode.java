@@ -75,7 +75,8 @@ public class TypeDeclPatternNode extends ConcreteTargetNode implements
 		return sb.toString();
 	}
 
-	public boolean typeExists() {
+	@Override
+  public boolean typeExists() {
 		//TODO add InPattern check
 		if ("*".equals(getType())) {
 			return true;

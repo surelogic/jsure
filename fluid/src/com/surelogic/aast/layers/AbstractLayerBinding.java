@@ -16,23 +16,28 @@ public abstract class AbstractLayerBinding implements ILayerBinding, Iterable<IR
 		kind = k;
 	}
 	
-	public LayerBindingKind getKind() {
+	@Override
+  public LayerBindingKind getKind() {
 		return kind;
 	}
 	
-	public IReferenceCheckDrop getOther() {
+	@Override
+  public IReferenceCheckDrop getOther() {
 		return null;
 	}
 
-	public Iterable<IRNode> getPackages() {
+	@Override
+  public Iterable<IRNode> getPackages() {
 		return this;
 	}
 	
-	public Iterator<IRNode> iterator() {
+	@Override
+  public Iterator<IRNode> iterator() {
 		return new EmptyIterator<IRNode>();
 	}
 	
-	public IRNode getType() {
+	@Override
+  public IRNode getType() {
 		return null;
 	}
 }

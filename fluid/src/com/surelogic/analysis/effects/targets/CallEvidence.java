@@ -11,10 +11,12 @@ public class CallEvidence implements TargetEvidence {
 
   public final IRNode getMethod() { return methodDecl; }
   
+  @Override
   public IRNode getLink() {
     return methodDecl;
   }
   
+  @Override
   public void visit(final EvidenceVisitor v) {
     v.visitCallEvidence(this);
   }

@@ -115,7 +115,6 @@ public class OperatorEagerProxyNodeGen extends AbstractOperatorProxyNodeGen {
   protected void generateConstructors(OpSyntax s) {
     generateStandardConstructor(s, ROOT_TYPE, "IRNode n");
   }  
-  @SuppressWarnings("unused")
   @Override
   protected String createNoFooNode(OpSyntax s, Child c) {
     if (convertOptNodes) {

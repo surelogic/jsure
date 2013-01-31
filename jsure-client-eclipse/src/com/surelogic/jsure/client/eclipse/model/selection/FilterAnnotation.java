@@ -11,10 +11,12 @@ import com.surelogic.dropsea.IProofDrop;
 public final class FilterAnnotation extends Filter implements IOnlyPromisesPorus {
 
   public static final ISelectionFilterFactory FACTORY = new AbstractFilterFactory() {
+    @Override
     public Filter construct(Selection selection, Filter previous) {
       return new FilterAnnotation(selection, previous, getFilterLabel());
     }
 
+    @Override
     public String getFilterLabel() {
       return "Annotation";
     }

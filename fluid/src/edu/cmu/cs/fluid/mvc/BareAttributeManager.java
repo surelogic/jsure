@@ -199,6 +199,7 @@ public class BareAttributeManager
    * @exception IllegalArgumentException Thrown if the IRNode is not
    * identified with an attribute in this manager.
    */
+  @Override
   public String getAttributeName(final IRNode node)
     throws UnknownAttributeException {
     String name = null;
@@ -238,6 +239,7 @@ public class BareAttributeManager
    * @exception UnknownAttributeException Thrown if the IRNode is not
    * identified with an attribute in this manager.
    */
+  @Override
   public boolean isNodeAttribute(final IRNode node)
     throws UnknownAttributeException {
     boolean done = false;
@@ -290,6 +292,7 @@ public class BareAttributeManager
    * Get the value of a property.  This default implementation doesn't 
    * understand any properties and always throws an exception.
    */
+  @Override
   public Object getProperty(final String property) {
     throw new IllegalArgumentException(
       "Attribute managers of class "
@@ -303,6 +306,7 @@ public class BareAttributeManager
    * Set the value of a property.  This default implementation doesn't 
    * understand any properties and always throws an exception.
    */
+  @Override
   public void setProperty(final String property, final Object value) {
     throw new IllegalArgumentException(
       "Attribute managers of class "
@@ -329,12 +333,14 @@ public class BareAttributeManager
   //===========================================================
 
   // inherit Javadoc
+  @Override
   public final Iterator<String> getComponentAttributes() {
     final Set<String> copy = new HashSet<String>(compAttrs.keySet());
     return copy.iterator();
   }
 
   // inherit Javadoc
+  @Override
   public final boolean isComponentAttribute(final String attr) {
     return compAttrs.keySet().contains(attr);
   }
@@ -372,6 +378,7 @@ public class BareAttributeManager
   //===========================================================
 
   // inherit Javadoc
+  @Override
   public final <T> ComponentSlot<T> addCompAttribute(
     final String attr,
     final int kind,
@@ -396,6 +403,7 @@ public class BareAttributeManager
   }
 
   // inherit Javadoc
+  @Override
   public final void addCompAttributeImpl(
     final String attr,
     final int kind,
@@ -412,6 +420,7 @@ public class BareAttributeManager
   //===========================================================
 
   // inherit Javadoc
+  @Override
   public final <T> ComponentSlot<T> addCompAttribute(
     final String attr,
     final int kind,
@@ -425,6 +434,7 @@ public class BareAttributeManager
   }
 
   // inherit Javadoc
+  @Override
   public final <T> ComponentSlot<T> addCompAttribute(
     final String attr,
     final int kind,
@@ -463,21 +473,25 @@ public class BareAttributeManager
   }
 
   // inherit Javadoc
+  @Override
   public final int getCompAttrKind(final String attr) {
     return getCompAttrRecord(attr).kind;
   }
 
   // Inherit javadoc
+  @Override
   public final IRNode getCompAttrNode(final String attr) {
     return getCompAttrRecord(attr).node;
   }
 
   // inherit Javadoc
+  @Override
   public final boolean isCompAttrMutable(final String attr) {
     return getCompAttrRecord(attr).isMutable;
   }
 
   // inherit Javadoc
+  @Override
   public final ComponentSlot getCompAttribute(final String attr) {
     return getCompAttrRecord(attr).wrapped;
   }
@@ -499,12 +513,14 @@ public class BareAttributeManager
   //===========================================================
 
   // inherit Javadoc
+  @Override
   public final Iterator<String> getNodeAttributes() {
     final Set<String> copy = new HashSet<String>(nodeAttrs.keySet());
     return copy.iterator();
   }
 
   // inherit Javadoc
+  @Override
   public final boolean isNodeAttribute(final String attr) {
     return nodeAttrs.keySet().contains(attr);
   }
@@ -514,6 +530,7 @@ public class BareAttributeManager
   //===========================================================
 
   // inherit Javadoc
+  @Override
   public final <T> SlotInfo<T> addNodeAttribute(
     final String attr,
     final int kind,
@@ -535,6 +552,7 @@ public class BareAttributeManager
   }
 
   // inherit Javadoc
+  @Override
   public final <T> SlotInfo<T> addNodeAttribute(
     final String attr,
     final int kind,
@@ -545,6 +563,7 @@ public class BareAttributeManager
   }
 
   // inherit Javadoc
+  @Override
   public final void addNodeAttributeImpl(
     final String attr,
     final int kind,
@@ -561,6 +580,7 @@ public class BareAttributeManager
   //===========================================================
 
   // inherit Javadoc
+  @Override
   public final <T> SlotInfo<T> addNodeAttribute(
     final String att,
     final int kind,
@@ -570,6 +590,7 @@ public class BareAttributeManager
   }
 
   // inherit Javadoc
+  @Override
   public final <T> SlotInfo<T> addNodeAttribute(
     final String att,
     int kind,
@@ -611,32 +632,38 @@ public class BareAttributeManager
   }
 
   // inherit Javadoc
+  @Override
   public final int getNodeAttrKind(final String attr) {
     return getNodeAttrRecord(attr).kind;
   }
 
   // Inherit javadoc
+  @Override
   public final IRNode getNodeAttrNode(final String attr) {
     return getNodeAttrRecord(attr).node;
   }
 
   // inherit Javadoc
+  @Override
   public final boolean isNodeAttrMutable(final String attr) {
     return getNodeAttrRecord(attr).isMutable;
   }
 
   // inherit Javadoc
+  @Override
   public int getNodeAttrDomain(final String attr) {
     final Model[] srcs = getNodeAttrRecord(attr).sources;
     return (srcs == null) ? Model.MODEL_DOMAIN : Model.SRC_DOMAIN;
   }
 
   // inherit Javadoc
+  @Override
   public Model[] getNodeAttrDomainSrcs(final String attr) {
     return getNodeAttrRecord(attr).getSources();
   }
 
   // inherit Javadoc
+  @Override
   public final SlotInfo getNodeAttribute(final String attr) {
     return getNodeAttrRecord(attr).wrappedSlotInfo;
   }

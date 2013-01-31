@@ -26,6 +26,7 @@ public abstract class TRoleStaticStructure implements ITRoleStaticAcceptor {
   }
 
   
+  @Override
   public abstract void accept(
       ITRoleStaticVisitor visitor);
 

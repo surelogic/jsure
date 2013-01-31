@@ -52,7 +52,8 @@ public class FindFieldStrategy extends AbstractSuperTypeSearchStrategy<IRNode> {
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.eclipse.bind.ITypeSearchStrategy#getResult()
 	 */
-	public IRNode getResult() {
+	@Override
+  public IRNode getResult() {
 		return result;
 	}
 }

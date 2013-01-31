@@ -40,26 +40,32 @@ public abstract class AASTBinder implements IAASTBinder {
     return findNearestType(promisedFor);
   }
   
+  @Override
   public boolean isResolvable(RegionNameNode node) {
     return resolve(node) != null;
   }
   
+  @Override
   public boolean isResolvable(QualifiedRegionNameNode node) {
     return resolve(node) != null;
   }
   
+  @Override
   public boolean isResolvable(SimpleLockNameNode node) {
     return resolve(node) != null;
   }
   
+  @Override
   public boolean isResolvable(QualifiedLockNameNode node) {
     return resolve(node) != null;
   }
   
+  @Override
   public boolean isResolvable(ThreadRoleImportNode node) {
     return resolve(node) != null;
   }
   
+  @Override
   public IRegionBinding resolve(RegionSpecificationNode node) {
     if (node instanceof RegionNameNode) {
       return resolve((RegionNameNode) node);
@@ -68,6 +74,7 @@ public abstract class AASTBinder implements IAASTBinder {
     }
   }
   
+  @Override
   public IVariableBinding resolve(VariableUseExpressionNode here) {
     IRNode promisedFor = here.getPromisedFor();
     final IRNode decl  = BindUtil.findLV(promisedFor, here.getId());
@@ -75,9 +82,11 @@ public abstract class AASTBinder implements IAASTBinder {
       return null;
     }
     return new IVariableBinding() {
+      @Override
       public IRNode getNode() {
         return decl;
       }
+      @Override
       public IJavaType getJavaType() {
         IRNode t = ParameterDeclaration.getType(decl);
         return binder.getJavaType(t);
@@ -85,14 +94,17 @@ public abstract class AASTBinder implements IAASTBinder {
     };
   }
   
+  @Override
   public boolean isResolvable(VariableUseExpressionNode here) {
     return resolve(here) != null;
   }
    
+  @Override
   public boolean isResolvable(ThisExpressionNode node) {
     return true;
   }
   
+  @Override
   public boolean isResolvable(QualifiedThisExpressionNode node) {
     return node.getType().typeExists(); 
   }

@@ -20,6 +20,7 @@ public class BufferWorklist implements Worklist {
     super();
   }
 
+  @Override
   public void initialize() {
     if (LOG.isLoggable(Level.FINER)) {
       LOG.finer("initializing");
@@ -27,22 +28,27 @@ public class BufferWorklist implements Worklist {
    // do nothing
   }
 
+  @Override
   public void start() {
     // do nothing
   }
 
+  @Override
   public boolean hasNext() {
     return !queue.isEmpty();
   }
 
+  @Override
   public int size() {
     return queue.size();
   }
   
+  @Override
   public ControlNode next() {
     return queue.remove();
   }
 
+  @Override
   public void add(ControlNode node) {
     if (LOG.isLoggable(Level.FINER)) {
       LOG.finer("Adding " + node + " to worklist");

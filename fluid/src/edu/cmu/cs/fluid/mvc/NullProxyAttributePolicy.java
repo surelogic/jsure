@@ -15,6 +15,7 @@ implements ProxyAttributePolicy
 
   protected NullProxyAttributePolicy() { super(); }
 
+  @Override
   public AVPair[] attributesFor( final Model model, final Set skippedNodes )
   {
     return empty;  

@@ -97,7 +97,8 @@ public abstract class AbstractSearchDialog extends Dialog {
 
 		void init() {
 			f_searchTable.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
+				@Override
+        public void handleEvent(Event event) {
 					setDialogState();
 				}
 			});

@@ -27,37 +27,45 @@ public class TypeVisitor extends SignatureVisitor {
 	
     /////////////////////////////////
 	// For a type formal:
-	public void visitFormalTypeParameter(String name) {
+	@Override
+  public void visitFormalTypeParameter(String name) {
 		throw new UnsupportedOperationException();
 	}	
 	// Zero or one time
-	public SignatureVisitor visitClassBound() {
+	@Override
+  public SignatureVisitor visitClassBound() {
 		throw new UnsupportedOperationException();
 	}
 	// One or more times
-	public SignatureVisitor visitInterfaceBound() {
+	@Override
+  public SignatureVisitor visitInterfaceBound() {
 		throw new UnsupportedOperationException();
 	}
 
 	/////////////////////////////////
 	// For a type decl
-	public SignatureVisitor visitSuperclass() {
+	@Override
+  public SignatureVisitor visitSuperclass() {
 		throw new UnsupportedOperationException();
 	}	
 	// One or more times
-	public SignatureVisitor visitInterface() {
+	@Override
+  public SignatureVisitor visitInterface() {
 		throw new UnsupportedOperationException();
 	}	
 	
     /////////////////////////////////
 	// For a method
-	public SignatureVisitor visitParameterType() {
+	@Override
+  public SignatureVisitor visitParameterType() {
 		throw new UnsupportedOperationException();
 	}
-	public SignatureVisitor visitReturnType() {
+	@Override
+  public SignatureVisitor visitReturnType() {
 		throw new UnsupportedOperationException();
 	}
-	public SignatureVisitor visitExceptionType() {
+	@Override
+  public SignatureVisitor visitExceptionType() {
 		throw new UnsupportedOperationException();
 	}
 	
@@ -69,7 +77,8 @@ public class TypeVisitor extends SignatureVisitor {
 	
     /////////////////////////////////
 	// For a type
-	public void visitBaseType(char t) {
+	@Override
+  public void visitBaseType(char t) {
 		switch (t) {
 		case 'V':
 			type = VoidType.prototype.jjtCreate();
@@ -104,10 +113,12 @@ public class TypeVisitor extends SignatureVisitor {
 		visitEnd();
 	}
 
-	public SignatureVisitor visitArrayType() {
+	@Override
+  public SignatureVisitor visitArrayType() {
 		final TypeVisitor outer = this;
 		return new TypeVisitor() {
-			protected void finish() {
+			@Override
+      protected void finish() {
 				if (varargs) {
 					outer.type = VarArgsType.createNode(this.getType()); 
 				} else {
@@ -118,23 +129,28 @@ public class TypeVisitor extends SignatureVisitor {
 		};
 	}
 
-	public void visitTypeVariable(String name) {
+	@Override
+  public void visitTypeVariable(String name) {
 		type = NamedType.createNode(name);
 		visitEnd();
 	}
 	
-	public void visitClassType(String name) {
+	@Override
+  public void visitClassType(String name) {
 		type = ClassAdapter.adaptTypeName(name);
 		typeActuals.clear();
 	}
 
-	public void visitTypeArgument() {
+	@Override
+  public void visitTypeArgument() {
 		typeActuals.add(WildcardType.prototype.jjtCreate());
 	}
-	public SignatureVisitor visitTypeArgument(char boundType) {
+	@Override
+  public SignatureVisitor visitTypeArgument(char boundType) {
 		final TypeVisitor outer = this;
 		return new TypeVisitor() {
-			protected void finish() {
+			@Override
+      protected void finish() {
 				IRNode t = this.getType();
 				outer.typeActuals.add(t); // FIX what about the boundType?
 			}
@@ -149,12 +165,14 @@ public class TypeVisitor extends SignatureVisitor {
 		}
 	}
 	
-	public void visitInnerClassType(String name) {
+	@Override
+  public void visitInnerClassType(String name) {
 		makeParamType();
 		type = TypeRef.createNode(type, name);			
 	}
 	
-	public final void visitEnd() {
+	@Override
+  public final void visitEnd() {
 		makeParamType();
 		checkForNullType();
 		finish();

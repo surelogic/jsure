@@ -91,6 +91,7 @@ extends AbstractCore
   private static final class AllVersionVerifier
   implements VersionVerifier
   {
+    @Override
     public boolean shouldChangeToVersion( final Version v )
     {
       return true;
@@ -190,6 +191,7 @@ extends AbstractCore
   private final static class StandardFactory
   implements Factory
   {
+    @Override
     public VersionTrackerModelCore create(
       final String name, final Model model, final Object structLock,
       final AttributeManager manager, final VersionVerifier vv,

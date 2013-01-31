@@ -7,6 +7,7 @@ package edu.cmu.cs.fluid.util;
 public abstract class SimpleRemovelessIterator<T> extends SimpleIterator<T> {
   public SimpleRemovelessIterator() { super(); }
   public SimpleRemovelessIterator(T initial) { super(initial); }
+  @Override
   public final void remove()
   {
     throw new UnsupportedOperationException( "remove() not supported" );

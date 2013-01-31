@@ -106,6 +106,7 @@ public final class JavaComponentFactory implements ComponentFactory {
 	  activeLock.readLock().unlock();
   }
   
+  @Override
   public Component getComponent(IRNode node) {
     return getComponent(node, false);
   }
@@ -146,6 +147,7 @@ public final class JavaComponentFactory implements ComponentFactory {
     return comp;
   }
 
+  @Override
   public SyntaxTreeInterface tree() {
     return JJOperator.tree;
   }

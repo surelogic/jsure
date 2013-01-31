@@ -29,26 +29,31 @@ public class SubList<T> implements List<T> {
     }
   }
   
+  @Override
   @Starts("nothing")
 public int size() {
     return size;
   }
 
+  @Override
   @Starts("nothing")
 public boolean isEmpty() {
     return size == 0;
   }
 
+  @Override
   @Starts("nothing")
 public boolean contains(Object o) {
     return indexOf(o) >= 0;
   }
 
+  @Override
   @Starts("nothing")
 public Iterator<T> iterator() {
     return new SubListIterator<T>(l, offset, size);
   }
 
+  @Override
   @Starts("nothing")
 public Object[] toArray() {
     Object[] a = new Object[size];
@@ -58,6 +63,7 @@ public Object[] toArray() {
     return a;
   }
 
+  @Override
   @SuppressWarnings("unchecked")
   public <E> E[] toArray(E[] a) {
     if (a.length < size) {
@@ -72,15 +78,18 @@ public Object[] toArray() {
     return a;    
   }
 
+  @Override
   public boolean add(T arg0) {
     throw new UnsupportedOperationException("sublists cannot be modified");
   }
 
+  @Override
   @Starts("nothing")
 public boolean remove(Object arg0) {
     throw new UnsupportedOperationException("sublists cannot be modified");
   }
 
+  @Override
   public boolean containsAll(Collection c) {
     for(Object o : c) {
       if (!contains(o)) {
@@ -90,22 +99,27 @@ public boolean remove(Object arg0) {
     return true;
   }
 
+  @Override
   public boolean addAll(Collection arg0) {
     throw new UnsupportedOperationException("sublists cannot be modified");
   }
 
+  @Override
   public boolean addAll(int arg0, Collection arg1) {
     throw new UnsupportedOperationException("sublists cannot be modified");
   }
 
+  @Override
   public boolean removeAll(Collection arg0) {
     throw new UnsupportedOperationException("sublists cannot be modified");
   }
 
+  @Override
   public boolean retainAll(Collection arg0) {
     throw new UnsupportedOperationException("sublists cannot be modified");
   }
 
+  @Override
   @Starts("nothing")
 public void clear() {
     for(int i=offset, j=0; j<size; i++, j++) {
@@ -113,26 +127,31 @@ public void clear() {
     }
   }
 
+  @Override
   @Starts("nothing")
 public T get(int i) {
     checkBounds(i);
     return l.get(offset + i);
   }
 
+  @Override
   public T set(int i, T val) {
     checkBounds(i);
     return l.set(offset + i, val);
   }
 
+  @Override
   public void add(int i, T arg1) {
     throw new UnsupportedOperationException("sublists cannot be modified");
   }
 
+  @Override
   @Starts("nothing")
 public T remove(int i) {
     throw new UnsupportedOperationException("sublists cannot be modified");
   }
 
+  @Override
   @Starts("nothing")
 public int indexOf(Object o) {
     if (o == null) {
@@ -151,6 +170,7 @@ public int indexOf(Object o) {
     return -1;
   }
 
+  @Override
   @Starts("nothing")
 public int lastIndexOf(Object o) {
     if (o == null) {
@@ -169,17 +189,20 @@ public int lastIndexOf(Object o) {
     return -1;
   }
 
+  @Override
   @Starts("nothing")
 public ListIterator<T> listIterator() {
     return new SubListIterator<T>(l, offset, size);
   }
 
+  @Override
   @Starts("nothing")
 public ListIterator<T> listIterator(int i) {
     checkBounds(i);
     return new SubListIterator<T>(l, offset, size, i);
   }
 
+  @Override
   @Starts("nothing")
 public List<T> subList(int i1, int i2) {
     return new SubList<T>(l, offset+i1, offset+i2);

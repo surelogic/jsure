@@ -268,6 +268,7 @@ extends AbstractCore
   private static class StandardFactory
   implements Factory
   {
+    @Override
     public VersionSpaceModelCore create(
       final String name, final Version rootVersion, 
       final String[] names, final ForestModelCore fmc,

@@ -44,33 +44,40 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
     f_isVirtual = "true".equals(e.getAttribute(VIRTUAL));
   }
 
+  @Override
   @NonNull
   public Collection<? extends IAnalysisResultDrop> getCheckedBy() {
     return f_checkedByResults;
   }
 
+  @Override
   @NonNull
   public Collection<? extends IPromiseDrop> getDependentPromises() {
     return f_dependentPromises;
   }
 
+  @Override
   @NonNull
   public Collection<? extends IPromiseDrop> getDeponentPromises() {
     return f_deponentPromises;
   }
 
+  @Override
   public boolean isAssumed() {
     return f_isAssumed;
   }
 
+  @Override
   public boolean isCheckedByAnalysis() {
     return f_isCheckedByAnalysis;
   }
 
+  @Override
   public boolean isIntendedToBeCheckedByAnalysis() {
     return f_isIntendedToBeCheckedByAnalysis;
   }
 
+  @Override
   public boolean isVirtual() {
     return f_isVirtual;
   }

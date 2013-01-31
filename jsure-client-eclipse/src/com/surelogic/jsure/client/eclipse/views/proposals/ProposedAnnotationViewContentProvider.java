@@ -54,10 +54,12 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
     }
   }
 
+  @Override
   public void dispose() {
     // nothing to do
   }
 
+  @Override
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
     if (newInput instanceof Input) {
       final Input in = (Input) newInput;
@@ -88,11 +90,13 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
     }
   }
 
+  @Override
   public Object[] getElements(Object inputElement) {
     final Element[] root = f_root;
     return root != null ? root : Element.EMPTY;
   }
 
+  @Override
   public Object[] getChildren(Object parentElement) {
     if (parentElement instanceof Element)
       return ((Element) parentElement).getChildren();
@@ -100,6 +104,7 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
       return Element.EMPTY;
   }
 
+  @Override
   public Object getParent(Object element) {
     if (element instanceof Element)
       return ((Element) element).getParent();
@@ -107,6 +112,7 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
       return null;
   }
 
+  @Override
   public boolean hasChildren(Object element) {
     if (element instanceof Element)
       return ((Element) element).hasChildren();
@@ -224,6 +230,7 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
   @Nullable
   private ScanDifferences f_scanDifferences;
 
+  @Override
   @Nullable
   public ScanDifferences getScanDifferences() {
     return f_scanDifferences;
@@ -231,6 +238,7 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
 
   private boolean f_highlightDifferences;
 
+  @Override
   public boolean highlightDifferences() {
     return f_highlightDifferences;
   }

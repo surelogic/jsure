@@ -16,10 +16,12 @@ public abstract class AbstractPromiseParsedCallback implements IPromiseParsedCal
    */
   private boolean done;
 
+  @Override
   public void reset() {
     done = false;
   }
 
+  @Override
   public boolean wasCalled() {
     return done;
   }
@@ -40,7 +42,8 @@ public abstract class AbstractPromiseParsedCallback implements IPromiseParsedCal
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.eclipse.promise.IPromiseParsedCallback#parsed()
 	 */
-	public void parsed() {
+	@Override
+  public void parsed() {
     /*
     if (done) {
       noteWarning("Promise already declared to be parsed.");
@@ -52,14 +55,16 @@ public abstract class AbstractPromiseParsedCallback implements IPromiseParsedCal
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.eclipse.promise.IPromiseParsedCallback#parsed(edu.cmu.cs.fluid.ir.IRNode)
 	 */
-	public void parsed(IRNode n) {
+	@Override
+  public void parsed(IRNode n) {
 		done();
 	}
 
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.eclipse.promise.IPromiseParsedCallback#notParsed(java.lang.String)
 	 */
-	public void noteProblem(String description) {
+	@Override
+  public void noteProblem(String description) {
     done();
 	}
 }

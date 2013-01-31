@@ -12,14 +12,16 @@ public class VariableInputFlow extends VariableInputControlNode implements OneOu
 	/*
 	 * @see edu.cmu.cs.fluid.control.OneOutput#getOutput()
 	 */
-	public ControlEdge getOutput() {
+	@Override
+  public ControlEdge getOutput() {
 		return output_;
 	}
 	
 	/** 
 	 * @see edu.cmu.cs.fluid.control.OneOutput#setOutput(edu.cmu.cs.fluid.control.ControlEdge)
 	 */
-	public void setOutput(ControlEdge output) {
+	@Override
+  public void setOutput(ControlEdge output) {
 		output_ = output;
 		
 	}
@@ -27,7 +29,8 @@ public class VariableInputFlow extends VariableInputControlNode implements OneOu
 	/** 
 	 * @see edu.cmu.cs.fluid.control.ControlNode#getOutputs()
 	 */
-	public ControlEdgeIterator getOutputs() {
+	@Override
+  public ControlEdgeIterator getOutputs() {
 		return getVariableOutputs();
 	}
 	

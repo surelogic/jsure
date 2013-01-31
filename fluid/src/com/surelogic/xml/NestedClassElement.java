@@ -17,7 +17,8 @@ public class NestedClassElement extends ClassElement implements IClassMember {
 		return clone;
 	}
 	
-	NestedClassElement copyIfDirty() {
+	@Override
+  NestedClassElement copyIfDirty() {
 		if (isDirty()) {
 			NestedClassElement clone = new NestedClassElement(isConfirmed(), getName(), getAccessibility());
 			copyIfDirty(clone);

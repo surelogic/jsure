@@ -33,11 +33,13 @@ public class BooleanAttributePredicate
     goodValue = v;
   }
 
+  @Override
   public String getLabel()
   {
     return goodValue.toString();
   }
 
+  @Override
   public boolean includesValue( final Object value )
   {
     return goodValue.equals( value );

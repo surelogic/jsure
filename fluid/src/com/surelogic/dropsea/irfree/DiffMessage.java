@@ -17,12 +17,14 @@ public class DiffMessage extends AbstractDiffNode {
 		status = s;
 	}
 	
-	public IDrop getDrop() {
+	@Override
+  public IDrop getDrop() {
 		return null;
 	}
 	
 //	@Override
-	public String getText() {
+	@Override
+  public String getText() {
 		return text;
 	}
 }

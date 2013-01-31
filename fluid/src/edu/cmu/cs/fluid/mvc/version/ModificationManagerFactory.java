@@ -14,6 +14,7 @@ implements ModificationManager.Factory
     
   private ModificationManagerFactory() {}
   
+  @Override
   public ModificationManager create(
     final VersionSpaceModel versionSpace, final VersionTrackerModel marker )
   {

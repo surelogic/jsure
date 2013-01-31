@@ -34,7 +34,8 @@ public class ThreadRoleAssurance extends AbstractWholeIRAnalysis<TRoleSecondPass
 	@Override
 	public void finish(IIRAnalysisEnvironment env) {
 	    runInVersion(new AbstractRunner() {
-	        public void run() {
+	        @Override
+          public void run() {
 	          LOG.info("Finishing color assurance");
 	          TRoleSecondPass.getInstance().cspEnd(getBinder());
 	          LOG.info("Color Assurance complete.");

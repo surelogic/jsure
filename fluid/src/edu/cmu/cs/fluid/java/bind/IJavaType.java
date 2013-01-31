@@ -27,6 +27,7 @@ import edu.cmu.cs.fluid.util.Iteratable;
  * @see JavaTypeFactory
  */
 public interface IJavaType extends IType {
+  @Override
   public String getName();
   
   /**

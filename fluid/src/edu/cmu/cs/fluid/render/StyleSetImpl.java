@@ -64,77 +64,97 @@ public class StyleSetImpl extends AbstractSetModel
     }
   }
 
+  @Override
   public void setStyleName( final IRNode node, final String s ) {
     setValue(0, node, s);
   }
+  @Override
   public String getStyleName( final IRNode node ) {
     return (String) getValue(0, node);
   }
 
+  @Override
   public void setHtmlTag( final IRNode node, final String s ) {
     setValue(1, node, s);
   }
+  @Override
   public String getHtmlTag( final IRNode node ) {
     return (String) getValue(1, node);
   }
 
+  @Override
   public void setIcon( final IRNode node, final Icon i ) {
     setValue(2, node, i);
   }
+  @Override
   public Icon getIcon( final IRNode node ) {
     return (Icon) getValue(2, node);
   }
 
+  @Override
   public void setLabel( final IRNode node, final String s ) {
     setValue(3, node, s);
   }
+  @Override
   public String getLabel( final IRNode node ) {
     return (String) getValue(3, node);
   }
 
+  @Override
   public void setHorizontalTextAlignment( IRNode node, int i ) {
     setValue(4, node, IntegerTable.newInteger(i));
   }
 
+  @Override
   public int getHorizontalTextAlignment( IRNode node ) {
     return ((Integer) getValue(4, node)).intValue();
   }
 
+  @Override
   public void setHorizontalTextPosition( IRNode node, int i ) {
     setValue(5, node, IntegerTable.newInteger(i));
   }
 
+  @Override
   public int getHorizontalTextPosition( IRNode node ) {
     return ((Integer) getValue(5, node)).intValue();
   }
 
+  @Override
   public void setVerticalTextAlignment( IRNode node, int i ) {
     setValue(6, node, IntegerTable.newInteger(i));
   }
 
+  @Override
   public int getVerticalTextAlignment( IRNode node ) {
     return ((Integer) getValue(6, node)).intValue();
   }
 
+  @Override
   public void setVerticalTextPosition( IRNode node, int i ) {
     setValue(7, node, IntegerTable.newInteger(i));
   }
 
+  @Override
   public int getVerticalTextPosition( IRNode node ) {
     return ((Integer) getValue(7, node)).intValue();
   }
 
+  @Override
   public void setColor( final IRNode node, final String s ) {
     setValue(8, node, s);
   }
+  @Override
   public String getColor( final IRNode node ) {
     // debug("Getting color for style "+node);
     return (String) getValue(8, node);
   }
 
+  @Override
   public void setIconName( final IRNode node, final String s ) {
     setValue(9, node, s);
   }
+  @Override
   public String getIconName( final IRNode node ) {
     return (String) getValue(9, node);
   }

@@ -18,7 +18,8 @@ public abstract class AbstractTypeSearchStrategy<T> implements ITypeSearchStrate
 	/**
 	 * @see edu.cmu.cs.fluid.java.bind.ITypeSearchStrategy#getLabel()
 	 */
-	public final String getLabel() {
+	@Override
+  public final String getLabel() {
 		return prefix + " " + name;
 	}
 	

@@ -52,10 +52,12 @@ public class SimpleComponentSlotFactory implements ComponentSlot.Factory {
     slotFactory = sf;
   }
 
+  @Override
   public <T> ComponentSlot<T> undefinedSlot(final IRType<T> type) {
     return new SimpleComponentSlot<T>(type, slotFactory);
   }
 
+  @Override
   public <T> ComponentSlot<T> predefinedSlot(final IRType<T> type, final T value) {
     if (!type.isValid(value)) {
       throw new IllegalArgumentException("Initial value is not of appropriate IRType.");

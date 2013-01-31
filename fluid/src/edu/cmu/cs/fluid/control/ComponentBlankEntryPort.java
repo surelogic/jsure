@@ -13,20 +13,24 @@ public class ComponentBlankEntryPort extends BlankInputPort
     comp.registerEntryPort(this);
   }
 
+  @Override
   public Component getComponent() {
     return component;
   }
 
+  @Override
   public Port getDual() {
     Subcomponent sub = component.getSubcomponentInParent();
     if (sub == null) return null;
     return sub.getEntryPort();
   }  
 
+  @Override
   public IRNode getSyntax() {
     return component.getSyntax();
   }
 
+  @Override
   public Subcomponent getSubcomponent() {
     return component.getSubcomponentInParent();
   }

@@ -44,6 +44,7 @@ implements SimpleAttributeView.Factory
   
 
   // Inherit javadoc 
+  @Override
   public SimpleAttributeView create( final String name, final Model src )
   throws SlotAlreadyRegisteredException
   {

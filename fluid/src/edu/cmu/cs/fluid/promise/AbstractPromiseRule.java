@@ -23,7 +23,8 @@ public abstract class AbstractPromiseRule implements IPromiseRule
 		this.ops = ops;
 	}
 	
-	public Operator[] getOps(Class type) {
+	@Override
+  public Operator[] getOps(Class type) {
 		return ops;
 	}
 }

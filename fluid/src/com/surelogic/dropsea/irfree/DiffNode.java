@@ -19,12 +19,14 @@ public class DiffNode extends AbstractDiffNode {
 		drop = d;
 	}
 
-	public IDrop getDrop() {
+	@Override
+  public IDrop getDrop() {
 		return drop;
 	}
 	
 //	@Override
-	public String getText() {
+	@Override
+  public String getText() {
 		return drop.getMessage();
 	}
 	

@@ -12,6 +12,7 @@ public final class ValueObjectPromiseDrop extends BooleanPromiseDrop<ValueObject
     setCategorizingMessage(Messages.DSC_LAYERS_ISSUES);
   }
   
+  @Override
   public void validated(final ValueObjectPromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);

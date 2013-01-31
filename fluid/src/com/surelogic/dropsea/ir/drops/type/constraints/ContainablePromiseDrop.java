@@ -24,6 +24,7 @@ public final class ContainablePromiseDrop extends ModifiedBooleanPromiseDrop<Con
     return getAAST().allowReferenceObject();
   }
   
+  @Override
   public void validated(final ContainablePromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);

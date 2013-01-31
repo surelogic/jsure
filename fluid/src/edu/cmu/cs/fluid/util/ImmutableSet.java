@@ -27,6 +27,7 @@ public interface ImmutableSet<T> extends Set<T>, PossiblyImmutableSet<T> {
    * this in the return type.
    * @return new set with additional element (or same if this element already included.)
    */
+  @Override
   public ImmutableSet<T> addCopy(T element);
   
   /** Return the inverse of this set: which includes

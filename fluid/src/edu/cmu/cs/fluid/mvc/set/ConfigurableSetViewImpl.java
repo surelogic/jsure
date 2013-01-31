@@ -147,6 +147,7 @@ implements ConfigurableSetView
   /**
    * Set the ellipsis policy.
    */
+  @Override
   public void setSetEllipsisPolicy( final boolean p )
   {
     synchronized( structLock ) {
@@ -158,6 +159,7 @@ implements ConfigurableSetView
   /**
    * Get the ellipsis policy
    */
+  @Override
   public boolean getSetEllipsisPolicy()
   {
     synchronized( structLock ) {
@@ -252,6 +254,7 @@ implements ConfigurableSetView
   //-----------------------------------------------------------------------
   //-----------------------------------------------------------------------
 
+  @Override
   public boolean isProxyNode( final IRNode node )
   {
     synchronized( structLock ) {
@@ -259,6 +262,7 @@ implements ConfigurableSetView
     }
   }
 
+  @Override
   public IRNode getProxyNode( final IRNode node )
   {
     synchronized( structLock ) {
@@ -266,6 +270,7 @@ implements ConfigurableSetView
     }
   }
 
+  @Override
   public boolean isHidden( final IRNode node )
   {
     synchronized( structLock ) {
@@ -273,6 +278,7 @@ implements ConfigurableSetView
     }
   }
 
+  @Override
   public boolean isShown( final IRNode node )
   {
     synchronized( structLock ) {
@@ -280,6 +286,7 @@ implements ConfigurableSetView
     }
   }
  
+  @Override
   public void setHidden( final IRNode node, final boolean isHidden )
   {
     synchronized( structLock ) {
@@ -290,6 +297,7 @@ implements ConfigurableSetView
                        isHidden ? Boolean.TRUE : Boolean.FALSE ) );
   }
 
+  @Override
   public void setHiddenForAllNodes( final boolean isHidden )
   {
     synchronized( structLock ) {

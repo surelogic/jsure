@@ -95,49 +95,62 @@ implements MutableSymmetricDigraphInterface {
    * @exception SlotImmutableException
    * 	if node already in graph.
    */
+  @Override
   public void initNode(IRNode n, int numParents, int numChildren) {
     ((Mutator)mutator).initNode(n,numParents,numChildren);
   }
 
+  @Override
   public boolean hasParents(IRNode node) {
     return getParents(node).hasElements();
   }
+  @Override
   public int numParents(IRNode node) {
     return getParents(node).size();
   }
 
+  @Override
   public IRLocation parentLocation(IRNode node, int i) {
     return getParents(node).location(i);
   }
+  @Override
   public int parentLocationIndex(IRNode node, IRLocation loc) {
     return getParents(node).locationIndex(loc);
   }
 
+  @Override
   public IRLocation firstParentLocation(IRNode node) {
     return getParents(node).firstLocation();
   }
+  @Override
   public IRLocation lastParentLocation(IRNode node) {
     return getParents(node).lastLocation();
   }
+  @Override
   public IRLocation nextParentLocation(IRNode node, IRLocation loc) {
     return getParents(node).nextLocation(loc);
   }
+  @Override
   public IRLocation prevParentLocation(IRNode node, IRLocation loc) {
     return getParents(node).prevLocation(loc);
   }
 
+  @Override
   public int compareParentLocations(IRNode node,
 				    IRLocation loc1, IRLocation loc2) {
     return getParents(node).compareLocations(loc1,loc2);
   }
 
+  @Override
   public IRNode getParent(IRNode node, int i) {
     return (getParents(node).elementAt(i));
   }
+  @Override
   public IRNode getParent(IRNode node, IRLocation loc) {
     return (getParents(node).elementAt(loc));
   }
 
+  @Override
   public Iteratable<IRNode> parents(IRNode node) {
     return mutator.protect(getParents(node).elements());
   }
@@ -188,6 +201,7 @@ implements MutableSymmetricDigraphInterface {
    * @param i 0-based indicator of parent to change
    * @param newParent new node to be parent, may be null.
    */
+  @Override
   public void setParent(IRNode node, int i, IRNode newParent) {
     setParent(node,getParents(node).location(i),newParent);
   }
@@ -198,6 +212,7 @@ implements MutableSymmetricDigraphInterface {
    * @param loc location to change parent.
    * @param newParent new node to be parent, may be null.
    */
+  @Override
   public void setParent(IRNode node, IRLocation loc, IRNode newParent) {
     ((Mutator)mutator).setParent(node,loc,newParent);
   }
@@ -208,6 +223,7 @@ implements MutableSymmetricDigraphInterface {
    * If the parents are variable in size, we append to the end.
    * @exception IllegalChildException if there is no space to add
    */
+  @Override
   public void addParent(IRNode node, IRNode newParent)
        throws IllegalChildException
   {
@@ -223,6 +239,7 @@ implements MutableSymmetricDigraphInterface {
    * @see #addParent
    * @exception IllegalChildException if parent is not a parent of node
    */
+  @Override
   public void removeParent(IRNode node, IRNode parent)
        throws IllegalChildException
   {
@@ -237,6 +254,7 @@ implements MutableSymmetricDigraphInterface {
    * @exception IllegalChildException if oldParent is not a parent, or
    *            newParent is not suitable.
    */
+  @Override
   public void replaceParent(IRNode node, IRNode oldParent, IRNode newParent)
        throws IllegalChildException
   {
@@ -245,6 +263,7 @@ implements MutableSymmetricDigraphInterface {
   }
 
   /** Remove all the parents of a node. */
+  @Override
   public void removeParents(IRNode node) {
     IRSequence parents = getParents(node);
     //boolean variable = parents.isVariable();
@@ -260,12 +279,14 @@ implements MutableSymmetricDigraphInterface {
   }
 
   /** Remove a node from the graph. */
+  @Override
   public void removeNode(IRNode node) {
     removeChildren(node);
     removeParents(node);
   }
   
   /** Return all the nodes connected with a root. */
+  @Override
   public Iteratable<IRNode> connectedNodes(IRNode root) {
     return mutator.protect(new ConnectedNodes(this,root));
   }
@@ -296,6 +317,7 @@ implements MutableSymmetricDigraphInterface {
 	initNode(n,p.intValue(),numChildren);
       }
     }
+    @Override
     public void initNode(IRNode n, int numParents, int numChildren) {
       super.initNode(n,numChildren);
       IRSequence<IRNode> seq = slotFactory.newSequence(numParents);
@@ -395,6 +417,7 @@ implements MutableSymmetricDigraphInterface {
 	throw new IllegalChildException("cannot add a child to node");
     }
 
+    @Override
     public void setParent(IRNode node, IRLocation loc, IRNode newParent) {
       IRSequence<IRNode> parents = getParents(node);
       IRNode oldParent = null;
@@ -425,6 +448,7 @@ implements MutableSymmetricDigraphInterface {
       }
     }
 
+    @Override
     public void addNullParent(IRNode node)
        throws IllegalChildException
     {
@@ -447,6 +471,7 @@ implements MutableSymmetricDigraphInterface {
       }
     }
 
+    @Override
     public void removeNullParent(IRNode node)
        throws IllegalChildException
     {
@@ -539,6 +564,7 @@ implements MutableSymmetricDigraphInterface {
   protected class DelegatingMutator extends Digraph.DelegatingMutator
 				    implements Mutator
   {
+    @Override
     public void initNode(IRNode n, int numParents, int numChildren) {
       initNumParents.pushValue(new Integer(numParents));
       try {
@@ -547,9 +573,11 @@ implements MutableSymmetricDigraphInterface {
 	initNumParents.popValue();
       }
     }
+    @Override
     public void setParent(IRNode node, IRLocation loc, IRNode newParent) {
       getParents(node).setElementAt(newParent,loc);
     }
+    @Override
     public void addNullParent(IRNode node) throws IllegalChildException {
       IRSequence<IRNode> parents = getParents(node);
       if (parents.isVariable()) {
@@ -562,6 +590,7 @@ implements MutableSymmetricDigraphInterface {
 	findParent(node,null); // for exception side-effect
       }
     }
+    @Override
     public void removeNullParent(IRNode node) throws IllegalChildException {
       IRSequence<IRNode> parents = getParents(node);
       if (parents.isVariable()) {

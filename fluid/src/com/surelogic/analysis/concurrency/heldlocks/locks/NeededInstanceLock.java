@@ -46,10 +46,12 @@ final class NeededInstanceLock extends AbstractNeededLock {
     return sb.toString();
   }
 
+  @Override
   public boolean mayHaveAliasInCallingContext() {
     return QualifiedReceiverDeclaration.prototype.includes(obj);
   }
   
+  @Override
   public NeededLock getAliasInCallingContext(
       final EnclosingRefs enclosingRefs, final NeededLockFactory lockFactory) {
     final IRNode newObj = enclosingRefs.replace(obj);

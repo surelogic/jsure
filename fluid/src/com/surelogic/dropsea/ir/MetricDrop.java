@@ -44,6 +44,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
    */
   private final Metric f_metric;
 
+  @Override
   @NonNull
   public Metric getMetric() {
     return f_metric;
@@ -55,6 +56,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
   @UniqueInRegion("DropState")
   private final List<IKeyValue> f_metricInfos = new ArrayList<IKeyValue>();
 
+  @Override
   public boolean containsMetricInfoKey(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_metricInfos)
@@ -64,6 +66,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
     return false;
   }
 
+  @Override
   public String getMetricInfoOrNull(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_metricInfos)
@@ -73,6 +76,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
     return null;
   }
 
+  @Override
   public long getMetricInfoAsLong(String key, long valueIfNotRepresentable) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_metricInfos)
@@ -82,6 +86,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
     return valueIfNotRepresentable;
   }
 
+  @Override
   public int getMetricInfoAsInt(String key, int valueIfNotRepresentable) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_metricInfos)
@@ -91,6 +96,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
     return valueIfNotRepresentable;
   }
 
+  @Override
   public <T extends Enum<T>> T getMetricInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_metricInfos)
@@ -100,6 +106,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
     return valueIfNotRepresentable;
   }
 
+  @Override
   public IJavaRef getMetricAsJavaRefOrThrow(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_metricInfos)
@@ -109,6 +116,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
     throw new IllegalArgumentException("no value for " + key);
   }
 
+  @Override
   public IJavaRef getMetricAsJavaRefOrNull(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_metricInfos)
@@ -118,6 +126,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
     return null;
   }
 
+  @Override
   public IDecl getMetricAsDeclOrThrow(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_metricInfos)
@@ -127,6 +136,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
     throw new IllegalArgumentException("no value for " + key);
   }
 
+  @Override
   public IDecl getMetricAsDeclOrNull(String key) {
     synchronized (f_seaLock) {
       for (IKeyValue di : f_metricInfos)

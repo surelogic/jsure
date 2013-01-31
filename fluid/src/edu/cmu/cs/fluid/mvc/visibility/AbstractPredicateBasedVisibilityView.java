@@ -158,6 +158,7 @@ implements PredicateBasedVisibilityView
   //===========================================================
   
   // Inherite javadoc
+  @Override
   public void setDefaultVisibility( final boolean isVisible )
   {
     final Boolean val = isVisible ? Boolean.TRUE : Boolean.FALSE;
@@ -170,6 +171,7 @@ implements PredicateBasedVisibilityView
   }
   
   // Inherite javadoc
+  @Override
   public boolean getDefaultVisibility()
   {
     synchronized( structLock ) {

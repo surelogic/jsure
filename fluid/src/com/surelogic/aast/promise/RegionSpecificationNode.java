@@ -21,6 +21,7 @@ implements Resolvable {
     this.id = id;
   }
 
+  @Override
   public boolean bindingExists() {
     return AASTBinder.getInstance().isResolvable(this);
   }

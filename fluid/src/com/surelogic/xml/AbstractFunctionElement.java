@@ -39,7 +39,8 @@ implements IClassMember, TestXMLParserConstants
 		return isStatic;
 	}
 	
-	public final String getImageKey() {
+	@Override
+  public final String getImageKey() {
 		switch (getAccessibility()) {
 		case PROTECTED:
 			return CommonImages.IMG_METHOD_PROTECTED;
@@ -152,7 +153,8 @@ implements IClassMember, TestXMLParserConstants
 		return false;
 	}
 	
-	public void markAsClean() {
+	@Override
+  public void markAsClean() {
 		super.markAsClean();
 		for(FunctionParameterElement p : params) {
 			if (p != null) {
@@ -205,7 +207,8 @@ implements IClassMember, TestXMLParserConstants
 	/**
 	 * @return The number of annotations added
 	 */
-	int applyPromises(final AnnotationVisitor v, final IRNode func) {
+	@Override
+  int applyPromises(final AnnotationVisitor v, final IRNode func) {
 		if (func == null) {
 			return 0;
 		}

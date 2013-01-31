@@ -198,6 +198,7 @@ implements AttributeBasedPredicateVisibilityView
   //===========================================================
 
   // inherit javadoc
+  @Override
   public void setDisplayed( final IRNode node, final boolean val )
   {
     final Boolean v = val ? Boolean.TRUE : Boolean.FALSE;
@@ -209,6 +210,7 @@ implements AttributeBasedPredicateVisibilityView
   }
   
   // inherit javadoc
+  @Override
   public boolean isDisplayed( final IRNode node )
   {
     synchronized( structLock ) {

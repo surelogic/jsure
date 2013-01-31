@@ -22,34 +22,42 @@ public class ModelType implements IRType<Model> {
     super();
   }
 
+  @Override
   public boolean isValid(final Object x) {
     return x instanceof Model;
   }
 
+  @Override
   public Comparator<Model> getComparator() {
     throw new RuntimeException("Method not yet implemented!");
   }
 
+  @Override
   public void writeValue(final Model v, final IROutput out) throws IOException {
     throw new RuntimeException("Method not yet implemented!");
   }
 
+  @Override
   public Model readValue(final IRInput in) throws IOException {
     throw new RuntimeException("Method not yet implemented!");
   }
 
+  @Override
   public void writeType(final IROutput out) throws IOException {
     out.writeByte('M');
   }
 
+  @Override
   public IRType<Model> readType(final IRInput in) {
     return this;
   }
 
+  @Override
   public Model fromString(final String str) {
     throw new RuntimeException("Method not yet implemented!");
   }
 
+  @Override
   public String toString(final Model obj) {
     throw new RuntimeException("Method not yet implemented!");
   }

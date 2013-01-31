@@ -133,6 +133,7 @@ public class BareAttributeInheritanceManager
   }
 
   // inherit javadoc
+  @Override
   public final boolean inheritCompAttribute(
     final Model srcModel,
     final String srcAttr,
@@ -161,6 +162,7 @@ public class BareAttributeInheritanceManager
   }
 
   // inherit javadoc
+  @Override
   public final boolean inheritNodeAttribute(
     final Model srcModel,
     final String srcAttr,
@@ -190,6 +192,7 @@ public class BareAttributeInheritanceManager
   }
 
   // inherit javadoc
+  @Override
   public final void inheritAttributesFromModel(
     final Model srcModel,
     final AttributeInheritancePolicy policy,
@@ -235,6 +238,7 @@ public class BareAttributeInheritanceManager
    *           get the wrong property would indicate an error in the
    *           implementation of the Model that is using the manager.
    */
+  @Override
   public Object getProperty(final String property) {
     return attrManager.getProperty(property);
   }
@@ -254,6 +258,7 @@ public class BareAttributeInheritanceManager
    *
    *           <p>May also be thrown if the value is unacceptable.
    */
+  @Override
   public void setProperty(final String property, final Object value) {
     attrManager.setProperty(property, value);
   }

@@ -33,7 +33,8 @@ public final class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnaly
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
-			public void run() {
+			@Override
+      public void run() {
 				runOverFile(compUnit);
 			}
 		});

@@ -148,6 +148,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
    * then there is no urgency to fix this starvation problem.
    * @throws DerivationException if this thread is currently deriving
    */
+  @Override
   public synchronized void clear() {
     if (isDeriving()) {
       throw new DerivationException("currently dderiving in this thread: cannot clear");
@@ -241,6 +242,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
    * or another production.
    * @return true if already in the process of deriving things.
    */
+  @Override
   public boolean isDeriving() {
     return deriving.getValue() != null;
   }
@@ -278,6 +280,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
    * @throws UnavailableException if not derived and cannot be demanded
    * @throws DerivationException if not derived and already in the process of deriving a different version.
    */
+  @Override
   public void ensureDerived() throws UnavailableException {
     Version version = Version.getVersion();
     // LOG.fine("ensureDerived " + version);
@@ -401,6 +404,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.version.VersionedDerivedInformation.Derivation#firstVersion()
      */
+    @Override
     public Version firstVersion() {
       return first;
     }
@@ -408,6 +412,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.version.VersionedDerivedInformation.Derivation#process()
      */
+    @Override
     public void process() {
       deriveVersion(first);
     }
@@ -415,6 +420,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.version.VersionedDerivedInformation.Derivation#recordCompletion()
      */
+    @Override
     public void recordCompletion() {
       setRootVersion(first);
     }
@@ -422,6 +428,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.version.VersionedDerivedInformation.Derivation#isInProcess(edu.cmu.cs.fluid.version.Version)
      */
+    @Override
     public boolean isInProcess(Version v) {
       return v == first;
     }
@@ -444,6 +451,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.version.VersionedDerivedInformation.Derivation#firstVersion()
      */
+    @Override
     public Version firstVersion() {
       return from;
     }
@@ -451,6 +459,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.version.VersionedDerivedInformation.Derivation#process()
      */
+    @Override
     public void process() {
       final boolean debug = LOG.isLoggable(Level.FINE);
       Version p;
@@ -466,6 +475,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.version.VersionedDerivedInformation.Derivation#recordCompletion()
      */
+    @Override
     public void recordCompletion() {
       Version p;
       for (p = from; p != to; ) {
@@ -477,6 +487,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.version.VersionedDerivedInformation.Derivation#isInProcess(edu.cmu.cs.fluid.version.Version)
      */
+    @Override
     public boolean isInProcess(Version v) {
       return v == curr || curr != null && from.comesFrom(v) && v.comesFrom(curr);
     }
@@ -500,10 +511,12 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
       versions = path;
     }
     
+    @Override
     public Version firstVersion() {
       return versions.get(versions.size()-1);
     }
 
+    @Override
     public void process() {
       final boolean debug = LOG.isLoggable(Level.FINE);
       Version prev = from;
@@ -517,12 +530,14 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
       }
     }
 
+    @Override
     public void recordCompletion() {
       for (ListIterator<Version> it = versions.listIterator(versions.size()); it.hasPrevious();) {
         assumeDerived(it.previous());
       }
     }
 
+    @Override
     public boolean isInProcess(Version v) {
       return curr != null && curr.comesFrom(v) && v.comesFrom(from);
     }
@@ -538,6 +553,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.version.VersionedDerivedInformation.Derivation#firstVersion()
      */
+    @Override
     public Version firstVersion() {
       return deriv1.firstVersion();
     }
@@ -545,6 +561,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.version.VersionedDerivedInformation.Derivation#process()
      */
+    @Override
     public void process() {
       deriv1.process();
       deriv2.process();
@@ -553,6 +570,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.version.VersionedDerivedInformation.Derivation#recordCompletion()
      */
+    @Override
     public void recordCompletion() {
       deriv1.recordCompletion();
       deriv2.recordCompletion();
@@ -561,6 +579,7 @@ public abstract class VersionedDerivedInformation implements IDerivedInformation
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.version.VersionedDerivedInformation.Derivation#isInProcess(edu.cmu.cs.fluid.version.Version)
      */
+    @Override
     public boolean isInProcess(Version v) {
       return deriv1.isInProcess(v) || deriv2.isInProcess(v);
     }

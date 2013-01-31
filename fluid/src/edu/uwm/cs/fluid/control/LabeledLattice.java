@@ -37,21 +37,26 @@ public final class LabeledLattice<T> {
   }
   public static abstract class AbstractCombiner<T2,U> implements Combiner<T2,U> {
     protected final UnaryOp<T2,U> identityOp = new UnaryOp<T2,U>() {
+      @Override
       public T2 operate(T2 x, U v) { return x; }
     };
+    @Override
     public UnaryOp<T2,U> bindLeftBottom() {
       return identityOp;
     }
+    @Override
     public UnaryOp<T2,U> bindRightBottom() {
       return identityOp;
     }    
   }
   public final Combiner<T,Void> joinCombiner  = new AbstractCombiner<T,Void>() {
+    @Override
     public T combine(T v1, T v2, Void arg) {
       return lattice.join(v1,v2);
     }
   };
   public final Combiner<T,Void> widenCombiner  = new AbstractCombiner<T,Void>() {
+    @Override
     public T combine(T v1, T v2, Void arg) {
       return lattice.widen(v1,v2);
   }};
@@ -62,6 +67,7 @@ public final class LabeledLattice<T> {
   }
   
   public final UnaryOp<T,Void> identityOp = new UnaryOp<T,Void>() {
+    @Override
     public T operate(T x, Void v) { return x; }
   };
   

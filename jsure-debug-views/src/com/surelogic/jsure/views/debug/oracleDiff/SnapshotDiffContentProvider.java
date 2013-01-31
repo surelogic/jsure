@@ -102,6 +102,7 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
     return file;
   }
 
+  @Override
   public Object[] getElements(Object input) {
     if (diff != null) {
       Object[] rv = diff.getCategories();
@@ -113,6 +114,7 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
     return nothingToDiff;
   }
 
+  @Override
   public Object[] getChildren(Object parent) {
     if (parent instanceof IViewable) {
       IViewable c = (IViewable) parent;
@@ -121,10 +123,12 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
     return noElements;
   }
 
+  @Override
   public Object getParent(Object element) {
     return null;// throw new UnsupportedOperationException();
   }
 
+  @Override
   public boolean hasChildren(Object element) {
     if (element instanceof IViewable) {
       IViewable c = (IViewable) element;
@@ -133,6 +137,7 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
     return false;
   }
 
+  @Override
   public String getText(Object element) {
     if (element instanceof IViewable) {
       IViewable c = (IViewable) element;
@@ -154,6 +159,7 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
     return null;
   }
 
+  @Override
   public Image getImage(Object element) {
     if (element instanceof IDiffNode) {
       IDiffNode e = (IDiffNode) element;
@@ -176,23 +182,28 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
     return null;
   }
 
+  @Override
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
     // TODO Auto-generated method stub
   }
 
+  @Override
   public boolean isLabelProperty(Object element, String property) {
     // TODO Auto-generated method stub
     return false;
   }
 
+  @Override
   public void addListener(ILabelProviderListener listener) {
     // TODO Auto-generated method stub
   }
 
+  @Override
   public void removeListener(ILabelProviderListener listener) {
     // TODO Auto-generated method stub
   }
 
+  @Override
   public void dispose() {
     // TODO Auto-generated method stub
   }

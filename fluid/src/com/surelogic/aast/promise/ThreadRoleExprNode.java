@@ -30,6 +30,7 @@ public class ThreadRoleExprNode extends AASTRootNode {
     theExpr = elem;
   }
 
+  @Override
   public final String unparseForPromise() {
 	  throw new UnsupportedOperationException();
   }

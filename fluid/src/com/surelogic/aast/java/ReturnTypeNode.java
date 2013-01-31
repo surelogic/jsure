@@ -21,6 +21,7 @@ implements ResolvableToType {
     super(offset);
   }
 
+  @Override
   public boolean typeExists() {
     return AASTBinder.getInstance().isResolvableToType(this);
   }

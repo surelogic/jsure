@@ -22,35 +22,43 @@ public class AttributePredicateType implements IRType<AttributePredicate> {
     super();
   }
 
+  @Override
   public boolean isValid(final Object x) {
     return x instanceof AttributePredicate;
   }
 
+  @Override
   public Comparator<AttributePredicate> getComparator() {
     return null;
   }
 
+  @Override
   public void writeValue(final AttributePredicate v, final IROutput out) throws IOException {
     // needs to be implemented
   }
 
+  @Override
   public AttributePredicate readValue(final IRInput in) throws IOException {
     // needs to be implemented
     return null;
   }
 
+  @Override
   public void writeType(final IROutput out) throws IOException {
     out.writeByte('P');
   }
 
+  @Override
   public IRType<AttributePredicate> readType(final IRInput in) {
     return this;
   }
 
+  @Override
   public AttributePredicate fromString(final String str) {
     throw new RuntimeException("Method not yet implemented!");
   }
 
+  @Override
   public String toString(final AttributePredicate obj) {
     throw new RuntimeException("Method not yet implemented!");
   }

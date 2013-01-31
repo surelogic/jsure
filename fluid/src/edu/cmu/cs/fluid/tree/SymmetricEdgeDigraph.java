@@ -91,6 +91,7 @@ implements MutableSymmetricEdgeDigraphInterface
     return super.transformEdgeEvent(e,ev);
   }
 
+  @Override
   public IRNode getSource(IRNode e) {
     assertEdge(e);
     return underlyingEdges.getParent(e,0);
@@ -100,6 +101,7 @@ implements MutableSymmetricEdgeDigraphInterface
   // we go ahead and perform the (partially redundant) checks.
 
   /** Set the source of an edge keeping the structure consistent. */
+  @Override
   public void setSource(IRNode e, IRNode n)
        throws StructureException
   {
@@ -109,12 +111,14 @@ implements MutableSymmetricEdgeDigraphInterface
   }
 
   /** Return the i'th edge arriving at a node. */
+  @Override
   public IRNode getParentEdge(IRNode node, int i) {
     assertNode(node);
     return underlyingNodes.getParent(node,i);
   }
 
   /** Return the ingoing edge at location loc. */
+  @Override
   public IRNode getParentEdge(IRNode node, IRLocation loc) {
     assertNode(node);
     return underlyingNodes.getParent(node,loc);
@@ -126,6 +130,7 @@ implements MutableSymmetricEdgeDigraphInterface
    * If the parents are variable in size, we append to the end.
    * @exception StructureException if there is no space to add
    */
+  @Override
   public void addParentEdge(IRNode node, IRNode newParentEdge)
        throws StructureException
   {
@@ -140,6 +145,7 @@ implements MutableSymmetricEdgeDigraphInterface
    * @exception StructureException
    *            if parentEdge is not an incoming edge of node
    */
+  @Override
   public void removeParentEdge(IRNode node, IRNode parentEdge)
        throws StructureException
   {
@@ -152,6 +158,7 @@ implements MutableSymmetricEdgeDigraphInterface
    * @exception StructureException if oldParentEdge is not an incoming edge, 
    *            or newParentEdge is not suitable.
    */
+  @Override
   public void replaceParentEdge(IRNode node,
 				IRNode oldParentEdge,
 				IRNode newParentEdge)
@@ -167,6 +174,7 @@ implements MutableSymmetricEdgeDigraphInterface
    * See caveats on @{link SymmetricDigraph#setParent(IRNode,int,IRNode)}.
    * @param parentEdge incoming edge to use (may be null)
    */
+  @Override
   public void setParentEdge(IRNode node, int i, IRNode parentEdge) {
     assertNode(node);
     if (parentEdge != null) assertEdge(parentEdge);
@@ -177,6 +185,7 @@ implements MutableSymmetricEdgeDigraphInterface
    * on @{link SymmetricDigraph#setParent(IRNode,IRLocation,IRNode)}.
    * @param parentEdge incoming edge to use (may be null)
    */
+  @Override
   public void setParentEdge(IRNode node, IRLocation loc, IRNode parentEdge) {
     assertNode(node);
     if (parentEdge != null) assertEdge(parentEdge);
@@ -186,6 +195,7 @@ implements MutableSymmetricEdgeDigraphInterface
   /** Insert a parent.
    * <strong>The insertion point is ignored.</strong>
    */
+  @Override
   public IRLocation insertParentEdge(IRNode node, IRNode parentEdge,
 				     InsertionPoint ip)
   {
@@ -196,12 +206,14 @@ implements MutableSymmetricEdgeDigraphInterface
   }
 
   /** Return an enumeration of the incoming edges to a node. */
+  @Override
   public Iterator<IRNode> parentEdges(IRNode node) {
     assertNode(node);
     return underlyingNodes.parents(node);
   }
 
   /** Remove an edge from the graph. */
+  @Override
   public void disconnect(IRNode edge) {
     setSource(edge,null);
     setSink(edge,null);
@@ -240,45 +252,57 @@ implements MutableSymmetricEdgeDigraphInterface
 
   // routines to satisfy SymmetricDigraphInterface
 
+  @Override
   public boolean hasParents(IRNode node) {
     return underlyingNodes.hasParents(node);
   }
+  @Override
   public int numParents(IRNode node) {
     return underlyingNodes.numParents(node);
   }
 
+  @Override
   public IRLocation parentLocation(IRNode node, int i) {
     return underlyingNodes.parentLocation(node,i);
   }
+  @Override
   public int parentLocationIndex(IRNode node, IRLocation loc) {
     return underlyingNodes.parentLocationIndex(node,loc);
   }
 
+  @Override
   public IRLocation firstParentLocation(IRNode node) {
     return underlyingNodes.firstParentLocation(node);
   }
+  @Override
   public IRLocation lastParentLocation(IRNode node) {
     return underlyingNodes.firstParentLocation(node);
   }
+  @Override
   public IRLocation nextParentLocation(IRNode node, IRLocation loc) {
     return underlyingNodes.nextParentLocation(node,loc);
   }
+  @Override
   public IRLocation prevParentLocation(IRNode node, IRLocation loc) {
     return underlyingNodes.prevParentLocation(node,loc);
   }
 
+  @Override
   public int compareParentLocations(IRNode node,
 				    IRLocation loc1, IRLocation loc2) {
     return underlyingNodes.compareParentLocations(node,loc1,loc2);
   }
 
+  @Override
   public IRNode getParent(IRNode node, int i) {
     return getSource(getParentEdge(node,i));
   }
+  @Override
   public IRNode getParent(IRNode node, IRLocation loc) {
     return getSource(getParentEdge(node,loc));
   }
 
+  @Override
   public Iteratable<IRNode> parents(IRNode node) {
     return mutator.protect(new ParentIterator(this,node));
   }
@@ -337,9 +361,11 @@ implements MutableSymmetricEdgeDigraphInterface
       return new AbstractRemovelessIterator<IRNode>() {
         @SuppressWarnings("unchecked")
         final Iterator<IRNode> edges = ParentsWrapper.super.elements();
+        @Override
         public boolean hasNext() {
           return edges.hasNext();
         }
+        @Override
         public IRNode next() {
           return getSource(edges.next());
         }
@@ -352,6 +378,7 @@ implements MutableSymmetricEdgeDigraphInterface
       super(sf);
     }
 
+    @Override
     public void initNode(IRNode n, int numParents, int numChildren) {
       initBareNode(n);
       underlyingNodes.initNode(n,numParents,numChildren);
@@ -477,6 +504,7 @@ implements MutableSymmetricEdgeDigraphInterface
   }
 
   class DelegatingMutator extends EdgeDigraph.DelegatingMutator implements Mutator {
+    @Override
     public void initNode(IRNode n, int numParents, int numChildren) {
       underlyingNodes.initNode(n,numParents,numChildren);
     }
@@ -505,10 +533,12 @@ class ParentIterator extends AbstractRemovelessIterator<IRNode> {
     }
   }
 
+  @Override
   public boolean hasNext() {
     return next != null;
   }
 
+  @Override
   public IRNode next() throws NoSuchElementException {
     if (next == null) throw new NoSuchElementException("no more children");
     try {

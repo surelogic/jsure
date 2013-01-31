@@ -23,10 +23,12 @@ public abstract class AbstractTestOutput implements ITestOutput {
     }
   }
   
+  @Override
   public void reset() {
 	  tracker.clear();
   }
   
+  @Override
   public ITest reportStart(ITest o) {
     Object prev = tracker.putIfAbsent(o, noResult);
     if (prev != null) {
@@ -58,6 +60,7 @@ public abstract class AbstractTestOutput implements ITestOutput {
     return true;
   }
 
+  @Override
   public Iterable<Object> getUnreported() {
     // copied to avoid ConcurrentModEx
     final List<Entry<ITest,Object>> list = new ArrayList<Entry<ITest,Object>>(tracker.entrySet());
@@ -76,6 +79,7 @@ public abstract class AbstractTestOutput implements ITestOutput {
     };
   }
   
+  @Override
   public void close() {
 	  final List<Entry<ITest,Object>> list = new ArrayList<Entry<ITest,Object>>(tracker.entrySet());
 	  for(Entry<ITest,Object> e : list) {

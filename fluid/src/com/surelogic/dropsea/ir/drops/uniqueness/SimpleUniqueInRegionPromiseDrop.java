@@ -38,19 +38,23 @@ public final class SimpleUniqueInRegionPromiseDrop extends PromiseDrop<UniqueInR
     return true;
   }
 
+  @Override
   public void validated(final InRegionPromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);
   }
 
+  @Override
   public boolean allowRead() {
     return getAAST().allowRead();
   }
 
+  @Override
   public SimpleUniqueInRegionPromiseDrop getDrop() {
     return this;
   }
 
+  @Override
   public Map<IRegion, IRegion> getAggregationMap(final IRNode fieldDecl) {
     final RegionModel instanceRegion = RegionModel.getInstanceRegion(fieldDecl);
     final IRegion dest = this.getAAST().getSpec().resolveBinding().getRegion();

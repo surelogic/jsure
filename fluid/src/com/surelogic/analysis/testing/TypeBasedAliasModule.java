@@ -26,7 +26,8 @@ public final class TypeBasedAliasModule extends AbstractWholeIRAnalysis<IBinderC
 	protected boolean doAnalysisOnAFile(
 	    final IIRAnalysisEnvironment env, final CUDrop cud, final IRNode compUnit) {
 		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
-			public void run() {
+			@Override
+      public void run() {
 				runOverFile(compUnit);
 			}
 		});

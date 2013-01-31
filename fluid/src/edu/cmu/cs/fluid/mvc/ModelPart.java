@@ -44,6 +44,7 @@ public abstract class ModelPart extends edu.cmu.cs.fluid.ir.DefaultDescribe impl
    * Return the model this is part of.
    * @see edu.cmu.cs.fluid.ir.IRState#getParent()
    */
+  @Override
   public IRState getParent() {
     return partOf;
   }

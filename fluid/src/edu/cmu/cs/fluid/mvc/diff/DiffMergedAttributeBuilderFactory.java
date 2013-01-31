@@ -39,6 +39,7 @@ implements BareAttributeMergingManager.MergedAttributeBuilderFactory
   }
   
   // inherit javadoc.
+  @Override
   public BareAttributeMergingManager.MergedAttributeBuilder create()
   {
     return new DiffMergedAttributeBuilder( idPhantom, compSwitcher, nodeSwitcher );
@@ -85,6 +86,7 @@ implements BareAttributeMergingManager.MergedAttributeBuilder
    * on the name of the switcher attribute and convert it to a 
    * CompontSlot.
    */
+  @Override
   public <T> ComponentSlot<T> buildCompAttribute(
     final Model partOf, final Object mutex, final String attr,
     final Object mode, final ComponentSlot<T>[] attrs,
@@ -121,6 +123,7 @@ implements BareAttributeMergingManager.MergedAttributeBuilder
    * on the name of the switcher attribute and convert it to a 
    * CompontSlot.
    */
+  @Override
   public <T> SlotInfo<T> buildNodeAttribute(
     final Model partOf, final Object mutex, final String attr,
     final Object mode, final SlotInfo<T>[] attrs,
@@ -157,6 +160,7 @@ implements BareAttributeMergingManager.MergedAttributeBuilder
    * Considers the mode
    * {@link AttributeMergingManager#MUTABLE_LOCAL_MERGED}  to be mutable.
    */
+  @Override
   public boolean isModeMutable( final Object mode )
   {
     return (mode == AttributeMergingManager.MUTABLE_LOCAL_MERGED);

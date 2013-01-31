@@ -50,7 +50,8 @@ public class RegexUtil {
 				return "\\" + groupNumber;
 		}
 
-		public String toString() {
+		@Override
+    public String toString() {
 			return "group: " + groupNumber;
 		}
 	}
@@ -69,7 +70,8 @@ public class RegexUtil {
 			return text;
 		}
 
-		public String toString() {
+		@Override
+    public String toString() {
 			return "string: " + text;
 		}
 	}

@@ -18,16 +18,19 @@ public class IRVersionType implements IRType<Version> {
   }
 
   /** Return true if a legally obtainable version. */
+  @Override
   public boolean isValid(Object value) {
     return value instanceof Version && ((Version)value).isFrozen();
   }
 
+  @Override
   public Comparator<Version> getComparator() 
   {
     return null;
   }
 
   /** Write a version to an IR stream. (We handle null as a special case) */
+  @Override
   public void writeValue(Version value, IROutput out)
        throws IOException
   {
@@ -51,6 +54,7 @@ public class IRVersionType implements IRType<Version> {
   }
 
   /** Read a version from an IR stream. */
+  @Override
   public Version readValue(IRInput in)
        throws IOException
   {
@@ -76,19 +80,23 @@ public class IRVersionType implements IRType<Version> {
     return v;
   }
 
+  @Override
   public void writeType(IROutput out) throws IOException
   {
     out.writeByte('V');
   }
 
+  @Override
   public IRType<Version> readType(IRInput in) { return this; }
 
   /** @exception fluid.NotImplemented */
+  @Override
   public Version fromString(String s) {
     throw new NotImplemented("fluid.version.IRVersionType.fromString()");
   }
 
   /** @exception fluid.NotImplemented */
+  @Override
   public String toString(Version o) {
     throw new NotImplemented("fluid.version.IRVersionType.toString()");
   }

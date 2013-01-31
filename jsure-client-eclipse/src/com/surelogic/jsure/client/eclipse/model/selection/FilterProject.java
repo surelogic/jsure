@@ -10,10 +10,12 @@ import com.surelogic.dropsea.IProofDrop;
 public final class FilterProject extends Filter {
 
   public static final ISelectionFilterFactory FACTORY = new AbstractFilterFactory() {
+    @Override
     public Filter construct(Selection selection, Filter previous) {
       return new FilterProject(selection, previous, getFilterLabel());
     }
 
+    @Override
     public String getFilterLabel() {
       return "Project";
     }

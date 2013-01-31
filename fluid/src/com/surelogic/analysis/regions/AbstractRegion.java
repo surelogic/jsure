@@ -70,14 +70,17 @@ public abstract class AbstractRegion implements IRegion {
     return includes;
   }
   
+  @Override
   public final boolean ancestorOf(IRegion other) {
     return ancestorOf(this, other);
   }
 
+  @Override
   public final boolean includes(IRegion other) {
     return includes(this, other);
   }
   
+  @Override
   public final boolean overlapsWith(final IRegion other){
     return ancestorOf(other) || other.ancestorOf(this);
   }

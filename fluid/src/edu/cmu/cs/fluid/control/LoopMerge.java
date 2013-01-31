@@ -20,6 +20,7 @@ public class LoopMerge extends Merge implements ComponentNode {
     component = comp;
   }
 
+  @Override
   public Component getComponent() {
     return component;
   }

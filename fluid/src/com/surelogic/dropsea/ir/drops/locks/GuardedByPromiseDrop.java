@@ -14,6 +14,7 @@ public class GuardedByPromiseDrop extends PromiseDrop<GuardedByNode> implements 
     setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
   }
 
+  @Override
   public void validated(final LockModel lm) {
     lm.setVirtual(true);
     lm.setSourceDrop(this);

@@ -16,6 +16,7 @@ public class ComponentSink extends Sink implements ComponentNode {
     comp = c;
     value = v;
   }
+  @Override
   public Component getComponent() {
     return comp;
   }

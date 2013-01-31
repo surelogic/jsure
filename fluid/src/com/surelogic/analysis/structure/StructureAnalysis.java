@@ -145,12 +145,14 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 		}
 
 //		@Override
-		public IBinder getBinder() {
+		@Override
+    public IBinder getBinder() {
 			return b;
 		}
 
 //		@Override
-		public void clearCaches() {
+		@Override
+    public void clearCaches() {
 			// Nothing to do yet
 		}
 

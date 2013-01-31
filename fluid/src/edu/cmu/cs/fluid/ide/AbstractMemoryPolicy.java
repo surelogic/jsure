@@ -7,7 +7,8 @@ import java.util.*;
 public abstract class AbstractMemoryPolicy implements IMemoryPolicy {
 	private final List<ILowMemoryHandler> loMemHandlers = new ArrayList<ILowMemoryHandler>();
 
-	public synchronized boolean addLowMemoryHandler(ILowMemoryHandler h) {
+	@Override
+  public synchronized boolean addLowMemoryHandler(ILowMemoryHandler h) {
 		if (loMemHandlers.contains(h)) {
 			return false;
 		}
@@ -25,17 +26,20 @@ public abstract class AbstractMemoryPolicy implements IMemoryPolicy {
 		}
 	}
 
-	public long memoryUsed() {
+	@Override
+  public long memoryUsed() {
 		MemoryMXBean b = ManagementFactory.getMemoryMXBean();
 		return b.getHeapMemoryUsage().getUsed();
 	}
 
-	public long memoryLimit() {
+	@Override
+  public long memoryLimit() {
 		MemoryMXBean b = ManagementFactory.getMemoryMXBean();
 		return b.getHeapMemoryUsage().getCommitted();
 	}
 	
-	public void shutdown() {
+	@Override
+  public void shutdown() {
 		// Nothing to do
 	}
 }

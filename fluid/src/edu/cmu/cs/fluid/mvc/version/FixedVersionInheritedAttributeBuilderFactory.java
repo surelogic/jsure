@@ -31,6 +31,7 @@ implements BareAttributeInheritanceManager.InheritedAttributeBuilderFactory
   }
   
   // inherit javadoc.
+  @Override
   public BareAttributeInheritanceManager.InheritedAttributeBuilder create()
   {
     return new FixedVersionInheritedAttributeBuilder( tracker );
@@ -63,6 +64,7 @@ implements BareAttributeInheritanceManager.InheritedAttributeBuilder
    * or {@link SequentialFixedVersionModelAttribute}
    * if the attribute's type is IRSequence.
    */ 
+  @Override
   @SuppressWarnings("unchecked")
   public ComponentSlot buildCompAttribute(
     final Model partOf, final Object mutex, final String attr,
@@ -85,6 +87,7 @@ implements BareAttributeInheritanceManager.InheritedAttributeBuilder
    * or {@link SequentialFixedVersionNodeAttribute}
    * if the attribute's type is IRSequence.
    */
+  @Override
   @SuppressWarnings("unchecked")
   public SlotInfo buildNodeAttribute(
     final Model partOf, final Object mutex, final String attr,
@@ -102,6 +105,7 @@ implements BareAttributeInheritanceManager.InheritedAttributeBuilder
   /**
    * Considers no modes to be mutable.
    */
+  @Override
   public boolean isModeMutable( final Object mode )
   {
     return false;

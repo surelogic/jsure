@@ -17,6 +17,7 @@ public abstract class PromiseDeclarationNode extends DeclarationNode
     super(offset, id);
   }
   
+  @Override
   public String unparseForPromise() {
 	  return unparse(false);
   }

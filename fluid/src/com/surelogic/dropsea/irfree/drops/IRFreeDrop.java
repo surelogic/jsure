@@ -136,35 +136,42 @@ public class IRFreeDrop implements IDrop {
     f_isFromSrc = "true".equals(e.getAttribute(FROM_SRC));
   }
 
+  @Override
   @Nullable
   public String getCategorizingMessage() {
     return f_categorizingMessage;
   }
 
+  @Override
   @NonNull
   public String getMessage() {
     return f_message;
   }
 
+  @Override
   @NonNull
   public String getMessageCanonical() {
     return f_messageCanonical;
   }
 
+  @Override
   @Nullable
   public IJavaRef getJavaRef() {
     return f_javaRef;
   }
 
+  @Override
   public final boolean isFromSrc() {
     return f_isFromSrc;
   }
 
+  @Override
   @NonNull
   public Class<?> getIRDropSeaClass() {
     return f_irDropSeaClass;
   }
 
+  @Override
   public final boolean instanceOfIRDropSea(Class<?> type) {
     if (type == null)
       return false;
@@ -172,6 +179,7 @@ public class IRFreeDrop implements IDrop {
     return type.isAssignableFrom(f_irDropSeaClass);
   }
 
+  @Override
   @NonNull
   public Collection<IRFreeProposedPromiseDrop> getProposals() {
     if (f_proposedPromises != null) {
@@ -194,6 +202,7 @@ public class IRFreeDrop implements IDrop {
       return Collections.emptyList();
   }
 
+  @Override
   @NonNull
   public final Collection<IRFreeHintDrop> getHints() {
     if (f_analysisHints != null)
@@ -202,6 +211,7 @@ public class IRFreeDrop implements IDrop {
       return Collections.emptyList();
   }
 
+  @Override
   public boolean containsDiffInfoKey(String key) {
     for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
@@ -209,6 +219,7 @@ public class IRFreeDrop implements IDrop {
     return false;
   }
 
+  @Override
   public String getDiffInfoOrNull(String key) {
     for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
@@ -216,6 +227,7 @@ public class IRFreeDrop implements IDrop {
     return null;
   }
 
+  @Override
   public long getDiffInfoAsLong(String key, long valueIfNotRepresentable) {
     for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
@@ -223,6 +235,7 @@ public class IRFreeDrop implements IDrop {
     return valueIfNotRepresentable;
   }
 
+  @Override
   public int getDiffInfoAsInt(String key, int valueIfNotRepresentable) {
     for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
@@ -230,6 +243,7 @@ public class IRFreeDrop implements IDrop {
     return valueIfNotRepresentable;
   }
 
+  @Override
   public <T extends Enum<T>> T getDiffInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType) {
     for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
@@ -237,6 +251,7 @@ public class IRFreeDrop implements IDrop {
     return valueIfNotRepresentable;
   }
 
+  @Override
   public IJavaRef getDiffInfoAsJavaRefOrThrow(String key) {
     for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
@@ -244,6 +259,7 @@ public class IRFreeDrop implements IDrop {
     throw new IllegalArgumentException("no value for " + key);
   }
 
+  @Override
   public IJavaRef getDiffInfoAsJavaRefOrNull(String key) {
     for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
@@ -251,6 +267,7 @@ public class IRFreeDrop implements IDrop {
     return null;
   }
 
+  @Override
   public IDecl getDiffInfoAsDeclOrThrow(String key) {
     for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))
@@ -258,6 +275,7 @@ public class IRFreeDrop implements IDrop {
     throw new IllegalArgumentException("no value for " + key);
   }
 
+  @Override
   public IDecl getDiffInfoAsDeclOrNull(String key) {
     for (IKeyValue di : f_diffInfos)
       if (di.getKey().equals(key))

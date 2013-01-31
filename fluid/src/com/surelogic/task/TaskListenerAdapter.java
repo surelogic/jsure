@@ -10,28 +10,32 @@ public class TaskListenerAdapter implements ITaskListener {
 	/* (non-Javadoc)
 	 * @see com.surelogic.task.ITaskListener#allTasksComplete()
 	 */
-	public void allTasksComplete() {
+	@Override
+  public void allTasksComplete() {
 
 	}
 
 	/* (non-Javadoc)
 	 * @see com.surelogic.task.ITaskListener#startingTasks()
 	 */
-	public void startingTasks() {
+	@Override
+  public void startingTasks() {
 
 	}
 
 	/* (non-Javadoc)
 	 * @see com.surelogic.task.ITaskListener#taskCompleted(java.lang.Runnable)
 	 */
-	public void taskCompleted(Runnable task) {
+	@Override
+  public void taskCompleted(Runnable task) {
 
 	}
 
 	/* (non-Javadoc)
 	 * @see com.surelogic.task.ITaskListener#taskStarted(java.lang.Runnable)
 	 */
-	public void taskStarted(Runnable task) {
+	@Override
+  public void taskStarted(Runnable task) {
 
 	}
 

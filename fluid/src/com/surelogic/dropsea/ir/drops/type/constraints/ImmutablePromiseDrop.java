@@ -20,6 +20,7 @@ public final class ImmutablePromiseDrop extends ModifiedBooleanPromiseDrop<Immut
     setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
   }
 
+  @Override
   public void validated(final ImmutablePromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);

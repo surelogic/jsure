@@ -293,6 +293,7 @@ public class ModelCore extends AbstractCore {
       pairs = p;
     }
 
+    @Override
     public List<ModelEvent> execute() {
       final Model model = ModelCore.this.partOf;
       // Verify that all attributes exist and are mutable
@@ -528,6 +529,7 @@ public class ModelCore extends AbstractCore {
       pairs = p;
     }
 
+    @Override
     public List<ModelEvent> execute() {
       final Model model = ModelCore.this.partOf;
       // First very that all the attributes exist and are mutable
@@ -601,6 +603,7 @@ public class ModelCore extends AbstractCore {
   
   public Model.AtomizedModelAction atomizeAction(final Model.AtomizedModelAction action) {
     return new Model.AtomizedModelAction() {
+      @Override
       public List<ModelEvent> execute() {
         synchronized (structLock) {
           List<ModelEvent> xtraEvents = null;
@@ -931,10 +934,12 @@ public class ModelCore extends AbstractCore {
       slotFactory = sf;
     }
 
+    @Override
     public final SlotFactory getFactory() {
       return slotFactory;
     }
 
+    @Override
     public ModelCore create(
       final String name,
       final Model model,

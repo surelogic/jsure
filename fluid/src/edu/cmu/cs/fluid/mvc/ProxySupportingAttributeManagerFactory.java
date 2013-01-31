@@ -42,6 +42,7 @@ implements AttributeInheritanceManager.Factory
   { 
   }
 
+  @Override
   public AttributeInheritanceManager create(
     final Model model, final Object mutex, final AttributeManager attrManager )
   {

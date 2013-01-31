@@ -6,14 +6,17 @@ public class ErrorOutput extends AbstractTestOutput {
     super(s);
   }
 
+  @Override
   public void reportError(ITest o, Throwable ex) {
     throw new Error(ex);
   }
 
+  @Override
   public void reportFailure(ITest o, String msg) {
     throw new Error(msg);
   }
 
+  @Override
   public void reportSuccess(ITest o, String msg) {
     report(o, msg);
   }
@@ -21,6 +24,7 @@ public class ErrorOutput extends AbstractTestOutput {
   public static final ITestOutput prototype = new ErrorOutput("Error");
   
   public static final ITestOutputFactory factory = new ITestOutputFactory() {
+    @Override
     public ITestOutput create(String name) {
       return prototype;
     }

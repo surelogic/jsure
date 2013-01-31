@@ -45,6 +45,7 @@ implements PureTree.Factory
     isMutable = mutable;
   }
   
+  @Override
   public PureTree create( final String name, final SlotFactory sf )
   throws SlotAlreadyRegisteredException
   {

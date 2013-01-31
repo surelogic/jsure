@@ -52,10 +52,12 @@ implements IHasVariableBinding {
     return sb.toString();
   }
 
+  @Override
   public boolean bindingExists() {
     return AASTBinder.getInstance().isResolvable(this);
   }
 
+  @Override
   public IVariableBinding resolveBinding() {
     return AASTBinder.getInstance().resolve(this);
   }

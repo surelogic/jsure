@@ -62,12 +62,14 @@ implements ForestVerticalEllipsisPolicy
     merge = shouldMerge;
   }
 
+  @Override
   public void resetPolicy()
   {
     map.clear();
     ellidedMap.clear();
   }
 
+  @Override
   public IRNode nodeSkipped(final IRNode node, final IRNode parent,
       final int pos, final int oldPos) {
     if (merge && parent != null && forest.isEllipsis(parent)) {
@@ -104,6 +106,7 @@ implements ForestVerticalEllipsisPolicy
     }
   }
 
+  @Override
   public void applyPolicy()
   {
     final IRSequence roots =

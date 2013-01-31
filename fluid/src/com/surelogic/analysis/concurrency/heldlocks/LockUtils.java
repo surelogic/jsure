@@ -345,6 +345,7 @@ public final class LockUtils {
       final Effects.Query fxQuery = effects.getEffectsQuery(flowUnit, bcaQuery);
       final ConflictChecker conflicter = new ConflictChecker(binder, mayAlias);
       
+      @Override
       public boolean isFinal(final IRNode expr) {
         final Operator op = JJNode.tree.getOperator(expr);
         if (CastExpression.prototype.includes(op)) {

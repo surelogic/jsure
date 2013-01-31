@@ -14,6 +14,7 @@ import edu.cmu.cs.fluid.java.IHasPromisedFor;
  */
 public interface IAASTRootNode extends IAASTNode, IHasPromisedFor {
   void clearPromisedFor();
+  @Override
   IRNode getPromisedFor();
   AASTStatus getStatus();
   AnnotationSource getSrcType();

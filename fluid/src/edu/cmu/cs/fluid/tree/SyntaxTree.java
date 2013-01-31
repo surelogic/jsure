@@ -84,7 +84,8 @@ public class SyntaxTree extends Tree implements SyntaxTreeInterface {
 	 * 
 	 * @precondition nonNull(node)
 	 */
-	public Operator getOperator(IRNode node) {
+	@Override
+  public Operator getOperator(IRNode node) {
 		if (node == null) {
 			/** This is not necessarily a bad thing */
 			LOG.warning("Node is null in getting operator");
@@ -94,7 +95,8 @@ public class SyntaxTree extends Tree implements SyntaxTreeInterface {
 		return (node.getSlotValue(operatorSlotInfo));
 	}
 
-	public boolean opExists(IRNode node) {
+	@Override
+  public boolean opExists(IRNode node) {
 		return node.valueExists(operatorSlotInfo);
 	}
 
@@ -138,7 +140,8 @@ public class SyntaxTree extends Tree implements SyntaxTreeInterface {
 	 * Create a node for the particular operator. The number of children
 	 * required is determined from the operator.
 	 */
-	public void initNode(IRNode n, Operator op) {
+	@Override
+  public void initNode(IRNode n, Operator op) {
 		initNode(n, op, 0);
 	}
 
@@ -146,7 +149,8 @@ public class SyntaxTree extends Tree implements SyntaxTreeInterface {
 	 * Create a node for a particular operator, with minimum number of children
 	 * NB: no slots are mutated with this code.
 	 */
-	public void initNode(IRNode n, Operator op, int min) {
+	@Override
+  public void initNode(IRNode n, Operator op, int min) {
 		//count(op);
 		((Mutator) mutator).initNode(n, op, min);
 	}
@@ -155,7 +159,8 @@ public class SyntaxTree extends Tree implements SyntaxTreeInterface {
 	 * Create a node for a particular operator, with particular children. NB: no
 	 * slots are mutated with this code.
 	 */
-	public void initNode(IRNode n, Operator op, IRNode[] children) {
+	@Override
+  public void initNode(IRNode n, Operator op, IRNode[] children) {
 		initNode(n, op, children.length);
 		for (int i = 0; i < children.length; ++i) {
 			setChild(n, i, children[i]);
@@ -182,7 +187,8 @@ public class SyntaxTree extends Tree implements SyntaxTreeInterface {
 		 * children (relevant only for variable arity nodes). NB: no slots are
 		 * mutated with this code.
 		 */
-		public void initNode(IRNode n, Operator op, int min) {
+		@Override
+    public void initNode(IRNode n, Operator op, int min) {
 			int num = (op == null) ? -1 : op.numChildren();
 			if (num < 0) {
 				if (~num < min)
@@ -291,7 +297,8 @@ public class SyntaxTree extends Tree implements SyntaxTreeInterface {
 		 * children (relevant only for variable arity nodes). <bf>This code is
 		 * noncompliant and will mutate slots.</bf>
 		 */
-		public void initNode(IRNode n, Operator op, int min) {
+		@Override
+    public void initNode(IRNode n, Operator op, int min) {
 			setOperator(n, op); // which sets up children too
 			// ! now expand as necessary
 			// ! NB: this mutates slots!

@@ -299,10 +299,12 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     IJavaScope getScope();
   }
   
+  @Override
   public boolean canContainPackages() {
 	  return false;
   } 
   
+  @Override
   public final synchronized IBinding lookup(LookupContext context, Selector selector) {
 	final String name = context.name;
     if (LOG.isLoggable(Level.FINER)) {
@@ -374,6 +376,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     // found nothing:
     return null;
   }
+  @Override
   public final synchronized Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
 	final String name = context.name;	  
     final IRNode useSite = context.useSite;
@@ -426,6 +429,7 @@ private Pair<IJavaScope, String> resolveNamedType(IRNode useSite, String qName) 
     return rv;
   }
   
+  @Override
   @Vouch("debug code")
   public void printTrace(PrintStream out, int indent) {
     DebugUtil.println(out, indent,"[Import table: "+this.compilationUnit+"]");

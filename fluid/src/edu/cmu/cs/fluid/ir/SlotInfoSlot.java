@@ -18,17 +18,20 @@ public class SlotInfoSlot<T> extends AbstractSlot<T> {
 
     public IRNode getNode() { return node; }
 
+    @Override
     public T getValue() throws SlotUndefinedException
     {
 	return node.getSlotValue(attr);
     }
 
+    @Override
     public Slot<T> setValue(T newValue) throws SlotImmutableException
     {
 	node.setSlotValue(attr,newValue);
 	return this;
     }
 
+    @Override
     public boolean isValid()
     {
 	return node.valueExists(attr);

@@ -105,6 +105,7 @@ public abstract class AbstractVersionSpaceToVersionTrackerStatefulView
   //===========================================================
 
   // Called from within critical section
+  @Override
   public boolean shouldChangeToVersion(final Version ver) {
     return srcModel.isPresent(ver.getShadowNode());
   }

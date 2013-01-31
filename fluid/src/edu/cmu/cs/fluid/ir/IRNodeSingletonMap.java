@@ -13,6 +13,7 @@ public class IRNodeSingletonMap<V> extends SingletonMap<IRNode, V> implements Cl
     super(k, v);
   }
 
+  @Override
   public int cleanup() {
     IRNode key = getKey();
     if (key == null) return 0;

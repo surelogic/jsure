@@ -136,6 +136,7 @@ extends AbstractCore
   {
     public StandardFactory() {}
 
+    @Override
     public VisibilityModelCore create(
       final String name, final Model model, final Object structLock,
       final Model visOf, final AttributeManager manager )

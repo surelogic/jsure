@@ -11,5 +11,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 public interface NestedTypeDeclInterface extends ClassBodyDeclInterface, TypeDeclInterface, NestedDeclInterface { 
   IRNode get_Annos(IRNode n);
   IRNode get_Types(IRNode n);
+  @Override
   IRNode get_Body(IRNode n);    
 }

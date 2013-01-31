@@ -115,6 +115,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
     }
   }
 
+  @Override
   public Iterator<IJavaFileStatus<T>> iterator() {
     return new FilterIterator<Map.Entry<T, JavaFileStatus<T, P>>, IJavaFileStatus<T>>(resources.entrySet().iterator()) {
       @Override
@@ -175,6 +176,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
     }
   }
 
+  @Override
   public synchronized void ensureAllCanonical() {
     for (IJavaFileStatus<T> s : this) {
       s.canonicalize();
@@ -245,10 +247,12 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
    * 
    * @throws IOException
    */
+  @Override
   public synchronized void persistNew() throws IOException {
     persistAll(false);
   }
 
+  @Override
   public synchronized void persistAll() throws IOException {
     if (loadedFromArchive) {
       return;
@@ -316,6 +320,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
     }
   }
 
+  @Override
   public synchronized List<CodeInfo> loadArchiveIndex() throws IOException {
     // Check for an archive
     final File archive = new File(getDataDirectory(), "temp.zip"); // TODO fix
@@ -358,14 +363,17 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
       return null;
     }
 
+    @Override
     public Entity makeEntity(String name, Attributes a) {
       return new Entity(name, a);
     }
 
+    @Override
     public void start(String uid, String project) {
       // Nothing to do
     }
 
+    @Override
     public void notify(Entity e) {
       final JavaFileStatus<T, P> s = JavaFileStatus.recreate(AbstractJavaFileLocator.this, e);
       resources.put(s.id(), s);
@@ -377,10 +385,12 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
     private void setupCUDrop(final JavaFileStatus<T, P> s) {
       final String javaOSFileName = s.label();
       final CodeInfo info = new CodeInfo(null, new AbstractCodeFile() {
+        @Override
         public String getPackage() {
           return VisitUtil.getPackageName(s.root());
         }
 
+        @Override
         public Object getHostEnvResource() {
           return s.id();
         }
@@ -409,6 +419,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
       infos.add(info);
     }
 
+    @Override
     public void done() {
       // Nothing to do
     }
@@ -444,6 +455,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
     }
   }
 
+  @Override
   public synchronized IJavaFileStatus<T> register(P project, T handle, String label, long modTime, IRNode root, Type type) {
     loadedFromArchive = false;
 
@@ -461,6 +473,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
     return s;
   }
 
+  @Override
   public synchronized IJavaFileStatus<T> getStatusForAST(IRNode root) {
     if (root == null) {
       return null;
@@ -500,14 +513,17 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
     return null;
   }
 
+  @Override
   public synchronized boolean isLoaded(T handle) {
     return resources.containsKey(handle);
   }
 
+  @Override
   public synchronized IJavaFileStatus<T> getStatus(T handle) {
     return resources.get(handle);
   }
 
+  @Override
   public synchronized IJavaFileStatus<T> unregister(T handle) {
     JavaFileStatus<T, P> s = resources.remove(handle);
     if (s != null) {
@@ -532,6 +548,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
     }
   }
 
+  @Override
   public IJavaFileStatus<T> isUpToDate(T id, long time, Type thisType) {
     IJavaFileStatus<T> status = getStatus(id);
     long modTime = mapTimeStamp(time);
@@ -541,10 +558,12 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
     return null;
   }
 
+  @Override
   public void setProjectReference(P proj, T handle) {
     refs.put(proj, handle);
   }
 
+  @Override
   public P findProject(T id) {
     for (Map.Entry<P, Collection<T>> e : refs.entrySet()) {
       for (T value : e.getValue()) {
@@ -556,6 +575,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
     return null;
   }
 
+  @Override
   public synchronized void printSummary(PrintWriter pw) {
     for (JavaFileStatus<T, P> s : resources.values()) {
       s.printSummary(pw);
@@ -563,6 +583,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
   }
 
   protected class SlotHandler implements IUndefinedSlotHandler {
+    @Override
     public boolean handleSlotUndefinedException(@SuppressWarnings("rawtypes") PersistentSlotInfo si, IRNode n) {
       IRRegion owner = IRRegion.getOwnerOrNull(n);
       if (owner == null) {
@@ -594,6 +615,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
   protected class MemoryHandler implements ILowMemoryHandler {
     Random r = new Random(hashCode());
 
+    @Override
     public void handleLowMemory(IMemoryPolicy mp) {
       final double ratio = mp.percentToUnload();
       if (ratio < 0.01) {

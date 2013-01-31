@@ -26,10 +26,12 @@ final class ModificationManagerImpl implements ModificationManager {
     marker = vm;
   }
 
+  @Override
   public boolean isExecuting() {
 	return reentranceCount.get() > 0;    
   }
   
+  @Override
   public synchronized void executeAtomically(final Runnable runner) {
     final Version startVersion = marker.getVersion();
     Version endVersion = null;
@@ -94,6 +96,7 @@ final class ModificationManagerImpl implements ModificationManager {
 	 * 
 	 * @see edu.cmu.cs.fluid.mvc.version.ModificationManager#executeAtMarker(java.lang.Runnable)
 	 */
+  @Override
   public void executeAtMarker(Runnable runner) {
 	// TODO fix when VICs are used
     // FIX executeAtomically(runner);     
@@ -112,10 +115,12 @@ final class ModificationManagerImpl implements ModificationManager {
 	}		 
   }
 
+  @Override
   public VersionTrackerModel getMarker() {
     return marker;
   }
 
+  @Override
   public VersionSpaceModel getVersionSpace() {
     return versionSpace;
   }

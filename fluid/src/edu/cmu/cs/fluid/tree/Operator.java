@@ -165,7 +165,9 @@ public abstract class Operator implements Cloneable {
   public Iterator<Operator> instantiate(final SyntaxTreeInterface tree,
       final Iterator<IRNode> enm) {
     return new AbstractRemovelessIterator<Operator>() {
+      @Override
       public boolean hasNext() { return enm.hasNext(); }
+      @Override
       public Operator next() throws NoSuchElementException {
         return instantiate(tree, enm.next());
       }

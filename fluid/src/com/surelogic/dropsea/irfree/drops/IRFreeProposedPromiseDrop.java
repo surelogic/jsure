@@ -119,51 +119,61 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     return new HashMap<String, String>(0);
   }
 
+  @Override
   @NonNull
   public String getJavaAnnotation() {
     return f_JavaAnnotation;
   }
 
+  @Override
   @NonNull
   public String getAnnotation() {
     return f_annotation;
   }
 
+  @Override
   @Nullable
   public String getValue() {
     return f_contents;
   }
 
+  @Override
   @NonNull
   public Map<String, String> getAttributes() {
     return f_annoAttributes;
   }
 
+  @Override
   @Nullable
   public String getReplacedAnnotation() {
     return f_replacedAnnotation;
   }
 
+  @Override
   @Nullable
   public String getReplacedValue() {
     return f_replacedContents;
   }
 
+  @Override
   @NonNull
   public Map<String, String> getReplacedAttributes() {
     return f_replacedAttributes;
   }
 
+  @Override
   @NonNull
   public IJavaRef getAssumptionRef() {
     return f_assumptionRef;
   }
 
+  @Override
   @NonNull
   public Origin getOrigin() {
     return f_origin;
   }
 
+  @Override
   public boolean isAbductivelyInferred() {
     final Origin origin = getOrigin();
     return origin != Origin.CODE;

@@ -203,7 +203,8 @@ public final class LibraryAnnotationDialog extends TitleAreaDialog {
 			}
 
 			table.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event e) {
+				@Override
+        public void handleEvent(Event e) {
 					for (final TableItem item : table.getItems()) {
 						if (item.getData() instanceof Attribute) {
 							final Attribute a = (Attribute) item.getData();

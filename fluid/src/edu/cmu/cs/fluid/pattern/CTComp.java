@@ -13,6 +13,7 @@ public class CTComp implements Comparator
     st = synt;
   }
   
+  @Override
   public int compare(Object x, Object y)
   {
     IRNode xn = (IRNode)x;

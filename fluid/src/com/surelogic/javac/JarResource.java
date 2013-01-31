@@ -3,7 +3,6 @@ package com.surelogic.javac;
 import edu.cmu.cs.fluid.java.ICodeFile;
 
 public class JarResource implements ICodeFile {
-	@SuppressWarnings("unused")
 	private final String jarName;
 	private final String qname;
 	private final String project;
@@ -14,19 +13,23 @@ public class JarResource implements ICodeFile {
 		project = p;
 	}
 
-	public String getProjectName() {
+	@Override
+  public String getProjectName() {
 		return project;
 	}
 	
-	public Object getHostEnvResource() {
+	@Override
+  public Object getHostEnvResource() {
 		return null;
 	}
 	
-	public String getRelativePath() {
+	@Override
+  public String getRelativePath() {
 		return null;
 	}
 
-	public String getPackage() {
+	@Override
+  public String getPackage() {
 		int lastDot = qname.lastIndexOf('.');		
 		return lastDot < 0 ? qname : qname.substring(0, lastDot);
 	}

@@ -41,12 +41,14 @@ class UnassignedBiVersionedSlot<T> extends UnassignedVersionedSlot<T> implements
     return (VersionedSlot<T>) setValue(newValue, v);
   }
   
+  @Override
   public VersionedDerivedSlot<T> setValue(T newValue, Version newVersion) {
     // easiest to give the work to RootedBiVersionedSlot
     RootedBiVersionedSlot<T> mutable = new RootedBiVersionedSlot<T>(rootVersion,initialValue);
     return mutable.setValue(newValue,newVersion);
   }
   
+  @Override
   public Version getRootVersion() {
     return rootVersion;
   }

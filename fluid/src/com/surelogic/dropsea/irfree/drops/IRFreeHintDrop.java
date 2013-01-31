@@ -38,6 +38,7 @@ public final class IRFreeHintDrop extends IRFreeDrop implements IHintDrop {
 	  return true;
   }
   
+  @Override
   @NonNull
   public HintType getHintType() {
     return f_type;

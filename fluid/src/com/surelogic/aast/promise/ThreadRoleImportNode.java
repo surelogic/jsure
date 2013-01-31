@@ -41,7 +41,8 @@ public class ThreadRoleImportNode extends AASTRootNode implements
 		this.id = id;
 	}
 
-	public final String unparseForPromise() {
+	@Override
+  public final String unparseForPromise() {
 		throw new UnsupportedOperationException();
 	}
 	
@@ -81,18 +82,21 @@ public class ThreadRoleImportNode extends AASTRootNode implements
 		return new ThreadRoleImportNode(getOffset(), new String(getId()));
 	}
 
-	public boolean bindingExists() {
+	@Override
+  public boolean bindingExists() {
 		return AASTBinder.getInstance().isResolvable(this);
 	}
 
-	public ITRoleImportBinding resolveBinding() {
+	@Override
+  public ITRoleImportBinding resolveBinding() {
 		if (AASTBinder.getInstance().resolve(this) == null) {
 			return null;
 		}
 		return this;
 	}
 
-	public IRNode getTRoleImport() {
+	@Override
+  public IRNode getTRoleImport() {
 		return AASTBinder.getInstance().resolve(this);
 	}
 

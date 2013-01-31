@@ -34,6 +34,7 @@ extends EdgeDigraphInterface
    * @exception EdgeDigraphException if e is not initialized as an edge.
    * @exception SlotUndefinedException if this edge has no sink.
    */
+  @Override
   public IRNode getSink(IRNode e);
 
   /** Set the sink of an edge, and if necessary keep the structure

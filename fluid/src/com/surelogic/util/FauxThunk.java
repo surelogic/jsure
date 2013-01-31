@@ -14,6 +14,7 @@ public final class FauxThunk<R> implements IThunk<R> {
     value = v;
   }
   
+  @Override
   public R getValue() {
     return value;
   }
@@ -21,6 +22,7 @@ public final class FauxThunk<R> implements IThunk<R> {
   /**
    * Always returns <code>true</code>.
    */
+  @Override
   public boolean isEvaluated() {
     return true;
   }

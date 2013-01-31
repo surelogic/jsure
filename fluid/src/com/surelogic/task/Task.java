@@ -51,21 +51,24 @@ class Task implements ITask {
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public synchronized Iterator<ITask> getDependencies() {
+	@Override
+  public synchronized Iterator<ITask> getDependencies() {
 		return dependencies.iterator();
 	}
 
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public synchronized Iterator<ITask> getDependents() {
+	@Override
+  public synchronized Iterator<ITask> getDependents() {
 		return dependents.iterator();
 	}
 
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public synchronized void addDependency(ITask dependency) {
+	@Override
+  public synchronized void addDependency(ITask dependency) {
 		if (!dependencies.contains(dependency)) {
 			dependencies.add(dependency);
 			dependency.addDependent(this);
@@ -76,7 +79,8 @@ class Task implements ITask {
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public void addDependencies(ITask[] deps) {
+	@Override
+  public void addDependencies(ITask[] deps) {
 		for (ITask task : deps) {
 			addDependency(task);
 		}
@@ -85,7 +89,8 @@ class Task implements ITask {
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public synchronized void removeDependency(ITask dependency) {
+	@Override
+  public synchronized void removeDependency(ITask dependency) {
 		if (dependencies.contains(dependency)) {
 			dependencies.remove(dependency);
 			dependency.removeDependent(dependency);
@@ -96,7 +101,8 @@ class Task implements ITask {
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public synchronized void removeAllDependencies() {
+	@Override
+  public synchronized void removeAllDependencies() {
 		for (ITask task : dependencies) {
 			task.removeDependent(this);
 		}
@@ -107,7 +113,8 @@ class Task implements ITask {
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public synchronized void addDependent(ITask dependent) {
+	@Override
+  public synchronized void addDependent(ITask dependent) {
 		if (!dependents.contains(dependent)) {
 			dependents.add(dependent);
 		}
@@ -116,7 +123,8 @@ class Task implements ITask {
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public synchronized void removeDependent(final ITask dependent) {
+	@Override
+  public synchronized void removeDependent(final ITask dependent) {
 		if (dependents.contains(dependent)) {
 			dependents.remove(dependent);
 		}
@@ -125,14 +133,16 @@ class Task implements ITask {
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public synchronized void removeAllDependents() {
+	@Override
+  public synchronized void removeAllDependents() {
 		dependents.clear();
 	}
 
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public synchronized void dependencyMet() {
+	@Override
+  public synchronized void dependencyMet() {
 		if (dependencyCount > 0) {
 			dependencyCount--;
 		}
@@ -147,7 +157,8 @@ class Task implements ITask {
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public synchronized void notifyDependents() {
+	@Override
+  public synchronized void notifyDependents() {
 		for (ITask task : dependents) {
 			task.dependencyMet();
 		}
@@ -160,7 +171,8 @@ class Task implements ITask {
 	 * so to avoid hanging the system.
 	 * @see com.surelogic.task.ITask
 	 */
-	public void run() {
+	@Override
+  public void run() {
 		try {
 			runnable.run();
 			synchronized (this) {
@@ -176,14 +188,16 @@ class Task implements ITask {
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public synchronized int getDependencyCount() {
+	@Override
+  public synchronized int getDependencyCount() {
 		return dependencyCount;
 	}
 
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public synchronized void resetDependencyCount() {
+	@Override
+  public synchronized void resetDependencyCount() {
 		dependencyCount = dependencies.size();
 	}
 
@@ -199,7 +213,8 @@ class Task implements ITask {
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public void markTask() {
+	@Override
+  public void markTask() {
 		synchronized (markLock) {
 			marked = true;
 		}
@@ -208,7 +223,8 @@ class Task implements ITask {
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public void unmarkTask() {
+	@Override
+  public void unmarkTask() {
 		synchronized (markLock) {
 			marked = false;
 		}
@@ -217,7 +233,8 @@ class Task implements ITask {
 	/**
 	 * @see com.surelogic.task.ITask
 	 */
-	public boolean isMarked() {
+	@Override
+  public boolean isMarked() {
 		synchronized (markLock) {
 			return marked;
 		}
@@ -228,7 +245,8 @@ class Task implements ITask {
 	 * @param executed
 	 *            True if this task has, or is going to, be executed
 	 */
-	public synchronized void resetState() {
+	@Override
+  public synchronized void resetState() {
 		this.state = TaskState.WAITING;
 	}
 
@@ -237,7 +255,8 @@ class Task implements ITask {
 	 * @return True if this task has been handed to
 	 *         ThreadPoolExecutor.execute(Runnable)
 	 */
-	public synchronized TaskState state() {
+	@Override
+  public synchronized TaskState state() {
 		return state;
 	}
 

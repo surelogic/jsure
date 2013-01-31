@@ -58,6 +58,7 @@ implements LabeledSequence.Factory
    *   sequence is is already defined by the specific IRSequence wrapped
    *   by the model.)
    */
+  @Override
   public LabeledSequence create( final String name, final SlotFactory sf )
   throws SlotAlreadyRegisteredException
   {

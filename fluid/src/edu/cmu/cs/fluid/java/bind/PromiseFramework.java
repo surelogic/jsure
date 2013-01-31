@@ -86,6 +86,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
    * @param rule
    * @return true if completed successfully
    */
+  @Override
   public boolean registerParseDropRule(IAnnotationParseRule rule) {
 	  return registerParseDropRule(rule, false);
   }
@@ -113,6 +114,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     return tag;
   }
   
+  @Override
   public IAnnotationParseRule getParseDropRule(String tag) {
     return parseMap.get(tag);
   }
@@ -121,6 +123,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
 	  return parseMap.values();
   }
   
+  @Override
   public <D extends PromiseDrop>
   boolean registerDropStorage(IPromiseDropStorage<D> stor) {
     String tag = stor.name();
@@ -153,6 +156,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     return true;
   }
   
+  @Override
   public IPromiseDropStorage findStorage(String tag) {
     IPromiseDropStorage stor = storageMap.get(tag);
     return stor;
@@ -455,6 +459,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
   }
 
   public static class HasPromisesProcessor implements IPromiseProcessor {
+    @Override
     public String getIdentifier() {
       return "Has promises";
     }
@@ -464,6 +469,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.bind.IPromiseProcessor#processBooleanPromise(edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo)
      */
+    @Override
     public void processBooleanPromise(IRNode n, TokenInfo info) {
       found = true;      
     }
@@ -471,6 +477,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.bind.IPromiseProcessor#processNodePromise(edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo, edu.cmu.cs.fluid.ir.IRNode)
      */
+    @Override
     public void processNodePromise(IRNode n, TokenInfo info, IRNode sub) {
       found = true;
     }
@@ -478,6 +485,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.bind.IPromiseProcessor#processSequencePromise(edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo, java.util.Iterator)
      */
+    @Override
     public void processSequencePromise(IRNode n, TokenInfo info, Iteratable e) {
       found = true;      
     }
@@ -485,6 +493,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.bind.IPromiseProcessor#getProcessorForReceiver(edu.cmu.cs.fluid.ir.IRNode)
      */
+    @Override
     public IPromiseProcessor getProcessorForReceiver(IRNode n, IRNode receiver) {
       return this;
     }
@@ -492,6 +501,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.bind.IPromiseProcessor#getProcessorForReturnNode(edu.cmu.cs.fluid.ir.IRNode)
      */
+    @Override
     public IPromiseProcessor getProcessorForReturnNode(IRNode n, IRNode retnode) {
       return this;
     }
@@ -499,6 +509,7 @@ public class PromiseFramework implements IPromiseFramework, PromiseConstants {
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.bind.IPromiseProcessor#continueProcessing()
      */
+    @Override
     public boolean continueProcessing() {
       return !found;
     }

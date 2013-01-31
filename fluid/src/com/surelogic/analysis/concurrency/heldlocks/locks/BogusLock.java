@@ -32,10 +32,12 @@ final class BogusLock implements HeldLock {
     lockExpr = le;
   }
   
+  @Override
   public HeldLock changeSource(final IRNode newSrc) {
     return this;
   }
 
+  @Override
   public boolean isBogus() {
     return true;
   }
@@ -44,6 +46,7 @@ final class BogusLock implements HeldLock {
    * Returns {@code null} because this is not a real lock and so it doesn't 
    * have a lock declaration.
    */
+  @Override
   public AbstractLockDeclarationNode getLockDecl() {
     return null;
   }
@@ -52,18 +55,22 @@ final class BogusLock implements HeldLock {
    * Returns {@code null} because this is not a real lock and so it doesn't 
    * have a lock promise
    */
+  @Override
   public LockModel getLockPromise() {
     return null;
   }
 
+  @Override
   public String getName() {
     return "BogusLock";
   }
 
+  @Override
   public IRNode getSource() {
     return lockExpr;
   }
   
+  @Override
   public PromiseDrop<?> getSupportingDrop() {
     return null;
   }
@@ -72,6 +79,7 @@ final class BogusLock implements HeldLock {
     return null;
   }
   
+  @Override
   public boolean mustAlias(
       final HeldLock lock, final ThisExpressionBinder teb, final IBinder b) {
     if (lock instanceof BogusLock) {
@@ -81,15 +89,18 @@ final class BogusLock implements HeldLock {
     }
   }
   
+  @Override
   public boolean mustSatisfy(
       final NeededLock lock, final ThisExpressionBinder teb, final IBinder b) {
     return false;
   }
 
+  @Override
   public boolean isAssumed() {
     return false;
   }
   
+  @Override
   public boolean isWrite() {
     // This doesn't matter for bogus locks
     return false;

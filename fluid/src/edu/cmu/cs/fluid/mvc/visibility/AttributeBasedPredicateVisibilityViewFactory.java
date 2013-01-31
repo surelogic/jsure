@@ -47,6 +47,7 @@ implements AttributeBasedPredicateVisibilityView.Factory
    * @param predModel The predicate model whose visibility is being
    *  modeled by the new stateful viev.
    */
+  @Override
   public AttributeBasedPredicateVisibilityView create(
     final String name, final AttributeModel attrModel,
     final PredicateModel predModel )

@@ -38,6 +38,7 @@ public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.Types
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
+      @Override
       public void run() {
 				runOverFile(compUnit);
 			}
@@ -138,10 +139,12 @@ public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.Types
       showType(e);
     }
 
+    @Override
     public IBinder getBinder() {
       return binder;
     }
 
+    @Override
     public void clearCaches() {
       // do nothing
     }

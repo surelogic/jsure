@@ -44,6 +44,7 @@ implements PureDigraph.Factory
     isMutable = mutable;
   }
   
+  @Override
   public PureDigraph create( final String name, final SlotFactory sf )
   throws SlotAlreadyRegisteredException
   {

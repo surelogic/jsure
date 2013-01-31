@@ -223,10 +223,12 @@ public class JSureScan implements Comparable<JSureScan> {
     return f_lastPartialScan;
   }
 
+  @Override
   public int compareTo(JSureScan o) {
     return f_timeOfScan.compareTo(o.f_timeOfScan);
   }
 
+  @Override
   public String toString() {
     if (f_lastPartialScan != null) {
       return "JSureScan: " + f_scanDir.getName() + " ->\n\t" + f_lastPartialScan;

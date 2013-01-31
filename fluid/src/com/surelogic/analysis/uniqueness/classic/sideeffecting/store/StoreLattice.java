@@ -730,6 +730,7 @@ extends TripleLattice<Element<Integer>,
       } else if (localStatus.compareTo(State.NULL) > 0) { // can be unique
         recordGoodUnique(srcOp, uDrop.getDrop(), Messages.ASSIGN_IS_UNIQUE,
             new InfoAdder() {
+              @Override
               public void addSupportingInformation(
                   final AbstractWholeIRAnalysis<UniquenessAnalysis, ?> analysis,
                   final IBinder binder, final ResultDrop resultDrop) {
@@ -968,6 +969,7 @@ extends TripleLattice<Element<Integer>,
           msg.chooseMsg(Messages.ACTUAL_IS_UNIQUE,
               Messages.RETURN_IS_UNIQUE, Messages.ASSIGN_IS_UNIQUE),
               new InfoAdder() {
+                @Override
                 public void addSupportingInformation(
                     final AbstractWholeIRAnalysis<UniquenessAnalysis, ?> analysis,
                     final IBinder binder, final ResultDrop resultDrop) {
@@ -1560,6 +1562,7 @@ extends TripleLattice<Element<Integer>,
       recordBadBorrowed(srcOp, topOfStack, objects,
           Messages.BORROWED_AS_UNIQUE, Messages.BORROWED_AS_UNIQUE_RETURN,
           new InfoAdder() {
+            @Override
             public void addSupportingInformation(
                 final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
                 final IBinder binder, final ResultDrop resultDrop) {
@@ -1575,6 +1578,7 @@ extends TripleLattice<Element<Integer>,
     if (shouldRecordResult()) {
       recordBadUnique(srcOp, uDrop, Messages.ACTUAL_IS_UNDEFINED,
           new InfoAdder() {
+            @Override
             public void addSupportingInformation(
                 final AbstractWholeIRAnalysis<UniquenessAnalysis, ?> analysis,
                 final IBinder binder, final ResultDrop resultDrop) {

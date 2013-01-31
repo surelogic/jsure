@@ -9,6 +9,7 @@ public abstract class AbstractAttributePredicate
   public String toString() {
     return getLabel();
   }
+  @Override
   public boolean includesValues( Object[] values ) {
     if (values == null || values.length != 1) {
       throw new FluidError("Not a single value");

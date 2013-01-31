@@ -15,7 +15,8 @@ implements IReferenceCheckDrop {
 		setMessage(12, getAAST().toString());
 	}
 	
-	public final boolean check(IRNode type) {
+	@Override
+  public final boolean check(IRNode type) {
 		return getAAST().check(type);
 	}
 }

@@ -47,6 +47,7 @@ implements AttributeInheritancePolicy
    * one.
    * @param from The model whose attributes should possibly be inherited.
    */
+  @Override
   public final HowToInherit[] compAttrsToInherit( final Model from )
   {
     final Iterator<String> attrs = from.getComponentAttributes();
@@ -69,6 +70,7 @@ implements AttributeInheritancePolicy
    * one.
    * @param from The model whose attributes should possibly be inherited.
    */
+  @Override
   public final HowToInherit[] nodeAttrsToInherit( final Model from )
   {
     final Iterator<String> attrs = from.getNodeAttributes();

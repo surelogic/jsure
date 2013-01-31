@@ -13,6 +13,7 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
     binder = b;
   }
   
+  @Override
   public final ITypeEnvironment getTypeEnv() {
 	  return binder.getTypeEnvironment();
   }
@@ -32,6 +33,7 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
    * Search for the substitution corresponding to the given type formal
    * (if any)
    */
+  @Override
   public IJavaType get(IJavaTypeFormal jtf) {
 	  IJavaType rv = process(jtf, new Process<IJavaType>() {
 		@Override
@@ -106,6 +108,7 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
    * @param types list of types to substitute
    * @return immutable list of substituted types.
    */
+  @Override
   public final List<IJavaType> substTypes(IJavaDeclaredType context, List<IJavaType> types) {
     if (types.isEmpty()) return types;
     boolean changed = false; // FIX unused?
@@ -119,6 +122,7 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
     return res; //? new ImmutableList(res.toArray())
   }
   
+  @Override
   public IJavaTypeSubstitution combine(final IJavaTypeSubstitution other) {
 	  final IJavaTypeSubstitution me = this;
 	  return new AbstractTypeSubstitution(binder) {

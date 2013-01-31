@@ -12,20 +12,24 @@ public class ComponentBlankAbruptExitPort extends BlankOutputPort
     comp.registerAbruptExitPort(this);
   }
 
+  @Override
   public Component getComponent() {
     return component;
   }
 
+  @Override
   public Port getDual() {
     Subcomponent sub = component.getSubcomponentInParent();
     if (sub == null) return null;
     return sub.getAbruptExitPort();
   }  
 
+  @Override
   public IRNode getSyntax() {
     return component.getSyntax();
   }
 
+  @Override
   public Subcomponent getSubcomponent() {
     return component.getSubcomponentInParent();
   }

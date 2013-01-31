@@ -86,6 +86,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
   @Override
   void init() {
     CascadingList.IColumn c = new CascadingList.IColumn() {
+      @Override
       public Composite createContents(Composite panel) {
         f_panel = new Composite(panel, SWT.NONE);
         f_panel.setLayout(new FillLayout());
@@ -113,6 +114,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
         f_graphColumn.setToolTipText("# of applicable results with the given value");
         f_reportContents.setBackground(f_reportGroup.getBackground());
         f_reportContents.addFocusListener(new FocusListener() {
+          @Override
           public void focusGained(FocusEvent e) {
             if (valueList == null || valueList.isEmpty()) {
               Color focused = f_reportContents.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION);
@@ -122,12 +124,14 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
             }
           }
 
+          @Override
           public void focusLost(FocusEvent e) {
             f_totalCount.setBackground(null);
             f_totalCount.setForeground(null);
           }
         });
         f_reportContents.addKeyListener(new KeyListener() {
+          @Override
           public void keyPressed(KeyEvent e) {
             MColumn column = null;
             if (e.keyCode == SWT.ARROW_LEFT) {
@@ -162,11 +166,13 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
             }
           }
 
+          @Override
           public void keyReleased(KeyEvent e) {
             // Nothing to do
           }
         });
         f_reportContents.addListener(SWT.Traverse, new Listener() {
+          @Override
           public void handleEvent(Event e) {
             switch (e.detail) {
             case SWT.TRAVERSE_TAB_NEXT:
@@ -209,6 +215,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
           }
         });
         f_reportContents.addListener(SWT.MouseMove, new Listener() {
+          @Override
           public void handleEvent(Event e) {
             Point p = new Point(e.x, e.y);
             TableItem item = f_reportContents.getItem(p);
@@ -219,6 +226,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
           }
         });
         f_reportContents.addListener(SWT.MouseExit, new Listener() {
+          @Override
           public void handleEvent(Event e) {
             f_mouseOverLine = "";
             f_reportContents.redraw();
@@ -228,6 +236,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
         f_barColorDark = new Color(f_reportContents.getDisplay(), 241, 120, 46);
         f_barColorLight = new Color(f_reportContents.getDisplay(), 238, 216, 198);
         EclipseUIUtility.disposeExec(new Runnable() {
+          @Override
           public void run() {
             f_barColorDark.dispose();
             f_barColorLight.dispose();
@@ -240,6 +249,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
         f_reportContents.addListener(SWT.SetData, new Listener() {
           // Only called the first time the TableItem is shown
           // Intended to initialize the item
+          @Override
           public void handleEvent(Event event) {
             final TableItem item = (TableItem) event.item;
             final int index = event.index;
@@ -258,6 +268,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
            * the opportunity to specify the width and/or height of a cell's
            * content
            */
+          @Override
           public void handleEvent(Event event) {
             if (event.index == 1) {
               event.width = GRAPH_WIDTH;
@@ -273,6 +284,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
            * client to indicate whether the cell's default foreground should be
            * drawn following the drawing of the background.
            */
+          @Override
           public void handleEvent(Event event) {
             if (event.index == 1) {
               /*
@@ -291,6 +303,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
            * been drawn. This event allows a client to augment the cell, or to
            * completely draw the cell's content.
            */
+          @Override
           public void handleEvent(Event event) {
             if (event.index == 1) {
               /*
@@ -364,11 +377,13 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
 
         final ISearchBoxObserver observer = new ISearchBoxObserver() {
 
+          @Override
           public void searchTextChangedTo(String text) {
             f_filter.setFilterExpression(text);
             getSelection().refresh();
           }
 
+          @Override
           public void searchTextCleared() {
             f_filter.clearFilterExpression();
             getSelection().refresh();
@@ -393,6 +408,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
 
         f_menu = new Menu(f_reportGroup.getShell(), SWT.POP_UP);
         f_menu.addListener(SWT.Show, new Listener() {
+          @Override
           public void handleEvent(Event event) {
             final boolean valuesExist = f_filter.hasValues();
             f_selectAllMenuItem.setEnabled(valuesExist);
@@ -404,6 +420,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
         f_selectAllMenuItem = new MenuItem(f_menu, SWT.PUSH);
         f_selectAllMenuItem.setText("Select All");
         f_selectAllMenuItem.addListener(SWT.Selection, new Listener() {
+          @Override
           public void handleEvent(Event event) {
             selectAllItems();
           }
@@ -411,6 +428,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
         f_deselectAllMenuItem = new MenuItem(f_menu, SWT.PUSH);
         f_deselectAllMenuItem.setText("Deselect All");
         f_deselectAllMenuItem.addListener(SWT.Selection, new Listener() {
+          @Override
           public void handleEvent(Event event) {
             f_filter.setPorousNone();
             for (TableItem item : f_reportContents.getItems()) {
@@ -422,6 +440,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
         f_sortByCountMenuItem = new MenuItem(f_menu, SWT.CHECK);
         f_sortByCountMenuItem.setText("Sort By Result Count");
         f_sortByCountMenuItem.addListener(SWT.Selection, new Listener() {
+          @Override
           public void handleEvent(Event event) {
             f_sortByCount = !f_sortByCount;
             updateReport();
@@ -601,6 +620,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
     item.setChecked(f_filter.isPorous(value));
   }
 
+  @Override
   public void filterChanged(Filter filter) {
     if (f_panel.isDisposed())
       return;
@@ -618,6 +638,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
     SLLogger.getLogger().log(Level.SEVERE, "query for " + this.getClass().getName() + " failed on " + filter, e);
   }
 
+  @Override
   public void filterDisposed(Filter filter) {
     dispose();
   }

@@ -26,6 +26,7 @@ public final class MapFieldsPromiseDrop extends PromiseDrop<FieldMappingsNode> i
     return false;
   }
 
+  @Override
   public void validated(InRegionPromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);

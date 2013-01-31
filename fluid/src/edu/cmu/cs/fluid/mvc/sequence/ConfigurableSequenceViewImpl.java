@@ -155,6 +155,7 @@ implements ConfigurableSequenceView
   /**
    * Set the ellipsis policy.
    */
+  @Override
   public void setSequenceEllipsisPolicy( final SequenceEllipsisPolicy p )
   {
     synchronized( structLock ) {
@@ -166,6 +167,7 @@ implements ConfigurableSequenceView
   /**
    * Get the ellipsis policy
    */
+  @Override
   public SequenceEllipsisPolicy getSequenceEllipsisPolicy()
   {
     synchronized( structLock ) {
@@ -272,6 +274,7 @@ implements ConfigurableSequenceView
    */
   // Called by ellipsis policy, which is called by the Rebuilder,
   // running in the monitor.
+  @Override
   public void insertEllipsisBefore( final IRLocation pos, final Set<IRNode> nodes )
   {
     final IRNode node = new PlainIRNode();
@@ -287,6 +290,7 @@ implements ConfigurableSequenceView
    */
   // Called by ellipsis policy, which is called by the Rebuilder,
   // running in the monitor.
+  @Override
   public void insertEllipsisAfter( final IRLocation pos, final Set<IRNode> nodes )
   {
     final IRNode node = new PlainIRNode();
@@ -318,6 +322,7 @@ implements ConfigurableSequenceView
   //-----------------------------------------------------------------------
   //-----------------------------------------------------------------------
 
+  @Override
   public boolean isProxyNode( final IRNode node )
   {
     synchronized( structLock ) {
@@ -325,6 +330,7 @@ implements ConfigurableSequenceView
     }
   }
 
+  @Override
   public IRNode getProxyNode( final IRNode node )
   {
     synchronized( structLock ) {
@@ -332,6 +338,7 @@ implements ConfigurableSequenceView
     }
   }
 
+  @Override
   public boolean isHidden( final IRNode node )
   {
     synchronized( structLock ) {
@@ -339,6 +346,7 @@ implements ConfigurableSequenceView
     }
   }
 
+  @Override
   public boolean isShown( final IRNode node )
   {
     synchronized( structLock ) {
@@ -346,6 +354,7 @@ implements ConfigurableSequenceView
     }
   }
  
+  @Override
   public void setHidden( final IRNode node, final boolean isHidden )
   {
     synchronized( structLock ) {
@@ -356,6 +365,7 @@ implements ConfigurableSequenceView
                        isHidden ? Boolean.TRUE : Boolean.FALSE ) );
   }
 
+  @Override
   public void setHiddenForAllNodes( final boolean isHidden )
   {
     synchronized( structLock ) {

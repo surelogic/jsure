@@ -120,6 +120,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 
       if (runInParallel() == ConcurrencyType.INTERNALLY) {
         runInParallel(MethodRecord.class, methods, new Procedure<MethodRecord>() {
+          @Override
           public void op(MethodRecord mr) {
             final String methodName = JavaNames.genRelativeFunctionName(mr.mdecl);
             if (monitor != null) {
@@ -277,7 +278,8 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 			usedUniqueFields.add(uDrop);
 		}
 
-		public IRNode getCompUnit() {
+		@Override
+    public IRNode getCompUnit() {
 			return VisitUtil.getEnclosingCompilationUnit(mdecl);
 		}
 	}

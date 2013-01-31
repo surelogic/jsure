@@ -84,6 +84,7 @@ extends AbstractCore
   private static class StandardFactory
   implements Factory
   {
+    @Override
     public VersionSpaceToVersionTrackerStatefulViewCore create(
       final Model model, final Object structLock,
       final AttributeManager manager, final AttributeChangedCallback cb )

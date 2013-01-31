@@ -95,6 +95,7 @@ public final class SeaStats {
 	}
 	
 	public static final Splitter<String> splitByProject = new Splitter<String>() {
+        @Override
         public String getLabel(IDrop d) {
             IJavaRef sr = d.getJavaRef();
             if (sr != null) {            	
@@ -116,6 +117,7 @@ public final class SeaStats {
 	};
 	
   public static final Counter[] STANDARD_COUNTERS = { new Counter() {
+    @Override
     public String count(IDrop d) {
       final IJavaRef sr = d.getJavaRef();
       if (sr == null || sr.getWithin() != IJavaRef.Within.JAVA_FILE) {

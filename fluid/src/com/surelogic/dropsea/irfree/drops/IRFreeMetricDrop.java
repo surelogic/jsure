@@ -41,11 +41,13 @@ public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
     }
   }
 
+  @Override
   @NonNull
   public Metric getMetric() {
     return f_metric;
   }
 
+  @Override
   public boolean containsMetricInfoKey(String key) {
     for (IKeyValue di : f_metricInfos)
       if (di.getKey().equals(key))
@@ -53,6 +55,7 @@ public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
     return false;
   }
 
+  @Override
   public String getMetricInfoOrNull(String key) {
     for (IKeyValue di : f_metricInfos)
       if (di.getKey().equals(key))
@@ -60,6 +63,7 @@ public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
     return null;
   }
 
+  @Override
   public long getMetricInfoAsLong(String key, long valueIfNotRepresentable) {
     for (IKeyValue di : f_metricInfos)
       if (di.getKey().equals(key))
@@ -67,6 +71,7 @@ public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
     return valueIfNotRepresentable;
   }
 
+  @Override
   public int getMetricInfoAsInt(String key, int valueIfNotRepresentable) {
     for (IKeyValue di : f_metricInfos)
       if (di.getKey().equals(key))
@@ -74,6 +79,7 @@ public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
     return valueIfNotRepresentable;
   }
 
+  @Override
   public <T extends Enum<T>> T getMetricInfoAsEnum(String key, T valueIfNotRepresentable, Class<T> elementType) {
     for (IKeyValue di : f_metricInfos)
       if (di.getKey().equals(key))
@@ -81,6 +87,7 @@ public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
     return valueIfNotRepresentable;
   }
 
+  @Override
   public IJavaRef getMetricAsJavaRefOrThrow(String key) {
     for (IKeyValue di : f_metricInfos)
       if (di.getKey().equals(key))
@@ -88,6 +95,7 @@ public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
     throw new IllegalArgumentException("no value for " + key);
   }
 
+  @Override
   public IJavaRef getMetricAsJavaRefOrNull(String key) {
     for (IKeyValue di : f_metricInfos)
       if (di.getKey().equals(key))
@@ -95,6 +103,7 @@ public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
     return null;
   }
 
+  @Override
   public IDecl getMetricAsDeclOrThrow(String key) {
     for (IKeyValue di : f_metricInfos)
       if (di.getKey().equals(key))
@@ -102,6 +111,7 @@ public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
     throw new IllegalArgumentException("no value for " + key);
   }
 
+  @Override
   public IDecl getMetricAsDeclOrNull(String key) {
     for (IKeyValue di : f_metricInfos)
       if (di.getKey().equals(key))

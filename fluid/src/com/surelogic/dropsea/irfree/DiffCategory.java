@@ -44,10 +44,12 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
     return !hasChildren();
   }
 
+  @Override
   public boolean hasChildren() {
     return !old.isEmpty() || !newer.isEmpty() || !diffs.isEmpty();
   }
 
+  @Override
   public Object[] getChildren() {
     DiffNode[] a = new DiffNode[old.size() + newer.size()];
     int i = 0;
@@ -68,6 +70,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
     List<Object> temp = new ArrayList<Object>(diffs.size() + a.length);
     temp.addAll(diffs);
     Collections.sort(temp, new Comparator<Object>() {
+      @Override
       public int compare(Object o1, Object o2) {
         return o1.toString().compareTo(o2.toString());
       }
@@ -78,10 +81,12 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
     return temp.toArray();
   }
 
+  @Override
   public String getText() {
     return key.toString(); // FIX
   }
 
+  @Override
   public int compareTo(DiffCategory<K> other) {
     return key.compareTo(other.key);
   }
@@ -222,6 +227,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
   private static List<DiffNode> sortByOffset(Collection<DiffNode> unsorted) {
     List<DiffNode> l = new ArrayList<DiffNode>(unsorted);
     Collections.sort(l, new Comparator<DiffNode>() {
+      @Override
       public int compare(DiffNode o1, DiffNode o2) {
         return offset(o1) - offset(o2);
       }

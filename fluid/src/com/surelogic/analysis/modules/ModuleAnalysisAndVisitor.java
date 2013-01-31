@@ -994,11 +994,13 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
     return publicFields;
   }
 
+  @Override
   public void clearCaches() {
 	  // TODO Auto-generated method stub
 
   }
 
+  @Override
   public IBinder getBinder() {
 	  // TODO Auto-generated method stub
 	  return null;

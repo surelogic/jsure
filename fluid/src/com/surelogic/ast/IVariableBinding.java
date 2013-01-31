@@ -7,5 +7,6 @@ import com.surelogic.ast.java.operator.*;
 public interface IVariableBinding extends IBinding {
   IDeclaredType getContextType();
   IType convertType(IType t);
+  @Override
   IVariableDeclarationNode getNode();
 }

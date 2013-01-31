@@ -25,14 +25,17 @@ implements ForestEllipsisPolicy
     super();
   }
 
+  @Override
   public void resetPolicy()
   {
   }
 
+  @Override
   public void nodeSkipped( final IRNode node, final IRNode parent, int pos )
   {
   }
 
+  @Override
   public void applyPolicy()
   {
   }

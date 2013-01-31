@@ -341,6 +341,7 @@ public final class ScanManagerMediator implements ILifecycle {
     f_table.addCheckStateListener(f_checkStateListener);
 
     f_swtTable.addListener(SWT.Selection, new Listener() {
+      @Override
       public void handleEvent(final Event event) {
         setToolbarState();
       }

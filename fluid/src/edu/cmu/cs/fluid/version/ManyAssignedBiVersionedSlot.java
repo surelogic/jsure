@@ -35,6 +35,7 @@ public class ManyAssignedBiVersionedSlot<T> extends ManyAssignedVersionedSlot<T>
     return (VersionedSlot<T>) setValue(newValue,v);
   }
   
+  @Override
   public synchronized VersionedDerivedSlot<T> setValue(T newValue, Version v) {
     // TODO: avoid redundant set calls.  This is safe for BI slots since they handle contiguous trees.
     if (v == null) throw new NullPointerException("can't set using a null version");
@@ -59,6 +60,7 @@ public class ManyAssignedBiVersionedSlot<T> extends ManyAssignedVersionedSlot<T>
     return this;
   }
 
+  @Override
   public Version getRootVersion() {
     return rootVersion;
   }

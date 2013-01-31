@@ -41,6 +41,7 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
     }
   }
 
+  @Override
   public Iterator<SCC> iterator() {
     return allSCCs.iterator();
   }
@@ -98,6 +99,7 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
       nodes = ns;
     }
     
+    @Override
     public Iterator<IRNode> iterator() {
       return nodes.iterator();
     }

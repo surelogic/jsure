@@ -21,6 +21,7 @@ public class NullAnnotationParseRule extends AbstractNamedPromiseRule implements
     super(name, anyOp);
   }
 
+  @Override
   public boolean declaredOnValidOp(Operator declaredOn) {
 	  for (Operator op : ops) {
 		  if (op.includes(declaredOn)) {
@@ -30,14 +31,17 @@ public class NullAnnotationParseRule extends AbstractNamedPromiseRule implements
 	  return false;
   }
   
+  @Override
   public IAnnotationScrubber getScrubber() {
     return null;
   }
 
+  @Override
   public IPromiseDropStorage getStorage() {
     return null;
   }
 
+  @Override
   public ParseResult parse(IAnnotationParsingContext context, String contents) {
 	  return ParseResult.IGNORE;
   }

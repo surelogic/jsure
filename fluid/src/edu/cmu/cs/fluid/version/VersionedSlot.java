@@ -276,6 +276,7 @@ public abstract class VersionedSlot<T> extends AbstractSlot<T> {
 	 * @throws SlotUnknownException
 	 *           if we do not know whetehr the slot has a value.
 	 */
+  @Override
   public T getValue()
     throws SlotUndefinedException, SlotUnknownException {
     return getValue(Version.getVersionLocal());
@@ -302,6 +303,7 @@ public abstract class VersionedSlot<T> extends AbstractSlot<T> {
   /**
 	 * Set the value of this slot for a new child of the current version.
 	 */
+  @Override
   public Slot<T> setValue(T newValue) {
     if (!(this instanceof VersionedDerivedSlot)) Version.bumpVersion();
     return setValue(Version.getVersionLocal(), newValue);
@@ -317,6 +319,7 @@ public abstract class VersionedSlot<T> extends AbstractSlot<T> {
   /** Does the slot have a value at the current version? */
   // <b>Special behavior when @{link #getEra()} returns a
   // non-null era.</b>
+  @Override
   public boolean isValid() {
     getEra();
     //if (era != null) return isChanged(era);

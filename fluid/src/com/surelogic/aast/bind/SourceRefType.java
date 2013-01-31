@@ -12,16 +12,20 @@ public class SourceRefType extends Type implements ISourceRefType {
     eb = b;
   }
 
+  @Override
   public boolean fieldExists(String id) {
     IRNode o = eb.findClassBodyMembers(type, new FindFieldStrategy(eb, id), true);       
     return o != null;
   }    
+  @Override
   public IVariableBinding findField(String id) {
     final IRNode o = eb.findClassBodyMembers(type, new FindFieldStrategy(eb, id), true);       
     return new IVariableBinding() {
+      @Override
       public IRNode getNode() {
         return o;
       }
+      @Override
       public IJavaType getJavaType() {
         IRNode t = VariableDeclarator.getType(o);
         return eb.getJavaType(t);

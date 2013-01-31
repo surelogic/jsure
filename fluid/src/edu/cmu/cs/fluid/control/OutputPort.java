@@ -17,6 +17,7 @@ public abstract class OutputPort extends AbstractProxyNode implements Port {
   public IRNode getIRNode() {
     return getDual();
   }
+  @Override
   public ControlEdgeIterator getOutputs() {
     Port dual = getDual();
     if (dual == null) {

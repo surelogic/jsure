@@ -52,6 +52,7 @@ implements AttributeChangedCallback
   /**
    * Handle an attribute changed event by doing nothing.
    */
+  @Override
   public void attributeChanged( final String attr, final IRNode node,
                                 final Object value )
   {

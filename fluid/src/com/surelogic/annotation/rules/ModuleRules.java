@@ -315,7 +315,8 @@ public class ModuleRules extends AnnotationRules {
 	  NoWildcards(String pattern) {
 		  this.match = pattern;
 	  }
-	  public boolean match(String s) {
+	  @Override
+    public boolean match(String s) {
 		  return match.equals(s);
 	  }    
   }
@@ -327,7 +328,8 @@ public class ModuleRules extends AnnotationRules {
 		  final String wildcards = noDots.replaceAll("\\*", ".*");
 		  compiledPattern = Pattern.compile(wildcards);
 	  }
-	  public boolean match(String s) {
+	  @Override
+    public boolean match(String s) {
 		  Matcher m = compiledPattern.matcher(s);
 		  return m.matches();
 	  }    

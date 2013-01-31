@@ -69,6 +69,7 @@ public final class ImageCacheView extends ViewPart {
     toolbar.add(f_refresh);
 
     final UIJob job = new SLUIJob() {
+      @Override
       public IStatus runInUIThread(IProgressMonitor monitor) {
         updateContents();
         return Status.OK_STATUS;

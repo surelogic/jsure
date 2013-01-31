@@ -16,7 +16,8 @@ public class ReplaceEntire implements Apply {
 		newObject = obj;
 	}
 	
-	public ImmutableHashOrderSet<Object> apply(
+	@Override
+  public ImmutableHashOrderSet<Object> apply(
 			ImmutableHashOrderSet<Object> other) {
 		if (other.contains(var)) return newObject;
 		return other;

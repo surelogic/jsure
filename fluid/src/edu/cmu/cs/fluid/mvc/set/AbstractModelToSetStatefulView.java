@@ -98,12 +98,14 @@ implements ModelToSetStatefulView
   }
 
   /** Insure that a node is in the mode. */
+  @Override
   public void addNode( final IRNode node )
   {
     throw new UnsupportedOperationException( "Cannot modify a projection." );
   }
 
   /** Get the number of elements in the set. */
+  @Override
   public int size()
   {
     synchronized( structLock ) {

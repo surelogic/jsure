@@ -66,6 +66,7 @@ public class VouchSpecificationNode extends TargetedAnnotationNode
 	  return new VouchSpecificationNode(offset, reason);
   }
 
+  @Override
   public boolean implies(IAASTRootNode other) {
 	  return false; // TODO Cannot be matched
   }

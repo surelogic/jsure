@@ -38,7 +38,8 @@ public abstract class AbstractIRNode implements IRNode {
 		nodesCreated.getAndIncrement();
 	}
 
-	public Object identity() {
+	@Override
+  public Object identity() {
 		if (destroyed())
 			return destroyedNode;
 		return this;
@@ -69,7 +70,8 @@ public abstract class AbstractIRNode implements IRNode {
 	 * If the node is not in a region, mark it as destroyed. Otherwise, the
 	 * whole region needs to be destroyed.
 	 */
-	public void destroy() {
+	@Override
+  public void destroy() {
 		synchronized (this) {
 			hash = DESTROYED_HASH;
 			destroyedNodes.incrementAndGet();
@@ -125,7 +127,8 @@ public abstract class AbstractIRNode implements IRNode {
 	 * @exception SlotUndefinedException
 	 *                If the slot is not initialized with a value.
 	 */
-	public <T> T getSlotValue(SlotInfo<T> si) throws SlotUndefinedException {
+	@Override
+  public <T> T getSlotValue(SlotInfo<T> si) throws SlotUndefinedException {
 		try {
 			return si.getSlotValue(this);
 		} catch (SlotUndefinedException e) {
@@ -155,7 +158,8 @@ public abstract class AbstractIRNode implements IRNode {
 	 *            <dd>store
 	 *            </dl>
 	 */
-	public <T> void setSlotValue(SlotInfo<T> si, T newValue)
+	@Override
+  public <T> void setSlotValue(SlotInfo<T> si, T newValue)
 			throws SlotImmutableException {
 		if (si == null) {
 			throw new NullPointerException();
@@ -164,12 +168,14 @@ public abstract class AbstractIRNode implements IRNode {
 	}
 
 	// for convenience:
-	public int getIntSlotValue(SlotInfo<Integer> si) {
+	@Override
+  public int getIntSlotValue(SlotInfo<Integer> si) {
 		return (this.<Integer> getSlotValue(si)).intValue();
 	}
 
 	// for convenience
-	public void setSlotValue(SlotInfo<Integer> si, int newValue) {
+	@Override
+  public void setSlotValue(SlotInfo<Integer> si, int newValue) {
 		setSlotValue(si, IntegerTable.newInteger(newValue));
 	}
 
@@ -186,7 +192,8 @@ public abstract class AbstractIRNode implements IRNode {
 	 * @precondition nonNull(si)
 	 * @return true if getSlotValue would return a value, false otherwise
 	 */
-	public <T> boolean valueExists(SlotInfo<T> si) {
+	@Override
+  public <T> boolean valueExists(SlotInfo<T> si) {
 		return si.valueExists(this);
 	}
 }

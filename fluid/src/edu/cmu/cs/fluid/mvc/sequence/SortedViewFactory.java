@@ -58,6 +58,7 @@ implements SortedView.Factory
    *  does not name a node-level attribute of the source model that
    *  has been inherited by the sorted view.
    */
+  @Override
   public SortedView create(
     final String name, final Model srcModel, final String attr,
     final boolean isAscending, final AttributeInheritancePolicy policy )

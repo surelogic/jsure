@@ -75,6 +75,7 @@ public class VersionedRegionDelta extends IRRegion {
   /* persistent kind */
 
   static final IRPersistentKind kind = new IRPersistentKind() {
+    @Override
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException {
       VersionedRegionDelta vrd = (VersionedRegionDelta) p;
@@ -82,6 +83,7 @@ public class VersionedRegionDelta extends IRRegion {
       vrd.getEra().writeReference(out);
       // out.writeInt(vrd.getNumNodes());
     }
+    @Override
     public IRPersistent readPersistentReference(DataInput in)
       throws IOException {
       VersionedRegion vr = (VersionedRegion) IRPersistent.readReference(in);

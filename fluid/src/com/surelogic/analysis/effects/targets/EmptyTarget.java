@@ -23,16 +23,19 @@ public final class EmptyTarget extends AbstractTarget {
   
   
   
+  @Override
   public IRNode getReference() {
     return null;
   }
   
   
   
+  @Override
   public IJavaType getRelativeClass(final IBinder binder) {
     return null;
   }
   
+  @Override
   public Target degradeRegion(final IRegion newRegion) {
     // doesn't use the region, so return self
     return this;
@@ -40,15 +43,18 @@ public final class EmptyTarget extends AbstractTarget {
 
   
   
+  @Override
   public Target mask(final IBinder binder) {
     // We want this to percolate up to the results, so never mask them
     return this;
   }
 
+  @Override
   public boolean overlapsReceiver(final IRNode rcvrNode) {
     return false;
   }
 
+  @Override
   public TargetRelationship overlapsWith(
       final IMayAlias mayAlias, final IBinder binder, final Target t) {
     return ((AbstractTarget) t).overlapsWithEmpty(binder, this);
@@ -88,6 +94,7 @@ public final class EmptyTarget extends AbstractTarget {
     return TargetRelationship.newUnrelated();
   }
 
+  @Override
   public boolean mayTargetStateOfReference(
       final IBinder binder, final IRNode formal) {
     return false;
@@ -95,6 +102,7 @@ public final class EmptyTarget extends AbstractTarget {
 
 
   
+  @Override
   public boolean checkTarget(final IBinder b, final Target declaredTarget) {
     return ((AbstractTarget) declaredTarget).checkTargetAgainstEmpty(b, this);
   }
@@ -136,12 +144,14 @@ public final class EmptyTarget extends AbstractTarget {
   
   
   
+  @Override
   public EmptyTarget changeEvidence(final TargetEvidence e) {
     return new EmptyTarget(e);
   }
   
   
   
+  @Override
   public StringBuilder toString(final StringBuilder sb) {
     sb.append("nothing");
     return sb;

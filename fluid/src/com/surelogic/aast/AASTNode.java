@@ -14,10 +14,12 @@ public abstract class AASTNode implements IAASTNode {
     this.offset = offset;
   }
 
+  @Override
   public AASTNode getParent() {
     return parent;
   }
 
+  @Override
   public AASTRootNode getRoot() {
 	  AASTNode here = this;	  
 	  AASTNode parent = here.getParent();
@@ -41,6 +43,7 @@ public abstract class AASTNode implements IAASTNode {
 	  }
   }
   
+  @Override
   public int getOffset() {
     return offset;
   }
@@ -54,6 +57,7 @@ public abstract class AASTNode implements IAASTNode {
     return unparse(true);
   }
   
+  @Override
   public final String unparse(boolean debug) {
     return unparse(debug, 0);
   }
@@ -77,11 +81,15 @@ public abstract class AASTNode implements IAASTNode {
     unparseList(sb, l, ", ");
   }
   
+  @Override
   public abstract String unparse(boolean debug, int indent);
+  @Override
   public abstract <T> T accept(INodeVisitor<T> visitor);
   
+  @Override
   public abstract IAASTNode cloneTree();
 
+  @Override
   public IRNode getPromisedFor() {
     AASTNode n    = this;
     AASTNode last = n;

@@ -26,6 +26,7 @@ implements IPromiseDropSeqStorage<D> {
 	  return s;
   }
   
+  @Override
   public StorageType type() {
     return StorageType.SEQ;
   }
@@ -35,11 +36,13 @@ implements IPromiseDropSeqStorage<D> {
     return si;
   }
   
+  @Override
   public void init(SlotInfo<List<D>> si) {
     checkSlotInfo(this.si, si);
     this.si = si;
   }
   
+  @Override
   public D add(IRNode n, D d) {
     checkArguments(n, d);
     List<D> l;
@@ -65,6 +68,7 @@ implements IPromiseDropSeqStorage<D> {
     return d;
   }
   
+  @Override
   public void remove(IRNode n, D d) {
     checkArguments(n, d);
     List<D> l = n.getSlotValue(si);
@@ -77,12 +81,14 @@ implements IPromiseDropSeqStorage<D> {
     }
   }
   
+  @Override
   public boolean isDefined(IRNode n) {
     checkArgument(n);
     List<D> l = n.getSlotValue(si);    
     return l != null && !l.isEmpty();
   }
   
+  @Override
   public Iterable<D> getDrops(IRNode n) {
 	  if (n == null) {
 		  return new EmptyIterator<D>();

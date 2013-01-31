@@ -32,10 +32,12 @@ implements ListIteratable<T>
     }
   }
   
+  @Override
   public boolean hasNext() {
     return loc != END;
   }
 
+  @Override
   public T next() throws NoSuchElementException {
     try {
       if (loc == END) {
@@ -55,6 +57,7 @@ implements ListIteratable<T>
     }
   }
 
+  @Override
   public boolean hasPrevious() {
     IRLocation prev;
     if (loc == END) {
@@ -65,6 +68,7 @@ implements ListIteratable<T>
     return prev != null;
   }
 
+  @Override
   public T previous() {
     try {      
       if (loc == END) {
@@ -79,6 +83,7 @@ implements ListIteratable<T>
     }
   }
 
+  @Override
   public int nextIndex() {
     if (loc == END) {
       throw new IllegalStateException("No next location");
@@ -86,6 +91,7 @@ implements ListIteratable<T>
     return seq.locationIndex(loc);
   }
 
+  @Override
   public int previousIndex() {
     IRLocation prev;
     if (loc == END) {
@@ -99,6 +105,7 @@ implements ListIteratable<T>
     return seq.locationIndex(prev);
   }
 
+  @Override
   public void set(T val) {
     if (last == null) {
       throw new IllegalStateException("No location to set");
@@ -106,6 +113,7 @@ implements ListIteratable<T>
     seq.setElementAt(val, last);
   }
 
+  @Override
   public void add(T val) {
     if (loc == END) {
       seq.appendElement(val); 
@@ -115,6 +123,7 @@ implements ListIteratable<T>
     last = null; 
   }
   
+  @Override
   public void remove() {
     if (last == null) {
       throw new IllegalStateException("No location to set");

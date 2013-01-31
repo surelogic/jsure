@@ -56,6 +56,7 @@ extends AbstractAnnotationParseRule<A,P> {
    * Assumes that parsed text specifies where the annotations should go
    * Handles differences between syntax for Java 5 and Javadoc
    */
+  @Override
   public final ParseResult parse(IAnnotationParsingContext context, String contents) {
     if (!declaredOnValidOp(context.getOp())) {
       context.reportError(IAnnotationParsingContext.UNKNOWN,

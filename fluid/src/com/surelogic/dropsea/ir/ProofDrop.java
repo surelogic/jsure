@@ -53,6 +53,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
    * @return {@code true} if consistent, {@code false} otherwise (consistency
    *         can't be proved).
    */
+  @Override
   public boolean provedConsistent() {
     synchronized (f_seaLock) {
       return f_provedConsistent;
@@ -65,6 +66,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
   @InRegion("DropState")
   boolean f_derivedFromSrc = false;
 
+  @Override
   public boolean derivedFromSrc() {
     synchronized (f_seaLock) {
       return f_derivedFromSrc;
@@ -78,6 +80,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
   @InRegion("DropState")
   boolean f_derivedFromWarningHint = false;
 
+  @Override
   public boolean derivedFromWarningHint() {
     synchronized (f_seaLock) {
       return f_derivedFromWarningHint;
@@ -92,6 +95,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
   @InRegion("DropState")
   boolean f_proofUsesRedDot = true;
 
+  @Override
   public boolean proofUsesRedDot() {
     synchronized (f_seaLock) {
       return f_proofUsesRedDot;

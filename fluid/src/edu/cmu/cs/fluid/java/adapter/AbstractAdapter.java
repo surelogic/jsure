@@ -35,7 +35,8 @@ public class AbstractAdapter {
 		IRNode call(T t, CodeContext context, int i, int n);
 	}
 	protected static abstract class AbstractFunction<T> implements Function<T> {
-		public final IRNode call(T t, CodeContext context, int i, int n) {
+		@Override
+    public final IRNode call(T t, CodeContext context, int i, int n) {
 			return call(t, context);
 		}
 		public abstract IRNode call(T t, CodeContext context);

@@ -44,6 +44,7 @@ class OnceAssignedBiVersionedSlot<T> extends OnceAssignedVersionedSlot<T> implem
     return (VersionedSlot<T>) setValue(newValue,v);
   }
   
+  @Override
   public synchronized VersionedDerivedSlot<T> setValue(T newValue, Version v) {
     if (LOG.isLoggable(Level.FINE)) {
       LOG.fine(debugString()+": set " + v + "->" + newValue);
@@ -72,6 +73,7 @@ class OnceAssignedBiVersionedSlot<T> extends OnceAssignedVersionedSlot<T> implem
     return (VersionedDerivedSlot<T>)super.setValue(v, newValue);
   }
 
+  @Override
   public Version getRootVersion() {
     return rootVersion;
   }

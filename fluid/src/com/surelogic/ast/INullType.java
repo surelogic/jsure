@@ -5,10 +5,12 @@ import com.surelogic.ast.java.operator.IDeclarationNode;
 
 public interface INullType extends IReferenceType {
   INullType NULL = new INullType() {
+    @Override
     public String getName() {
       return "null";
     }
 
+    @Override
     public boolean isAssignmentCompatibleTo(IType t) {
       return t instanceof IReferenceType;
     }
@@ -19,10 +21,12 @@ public interface INullType extends IReferenceType {
     }
     */
 
+    @Override
     public boolean isSubtypeOf(IType t) {
       return t instanceof INullType;
     }
 
+    @Override
     public IDeclarationNode getNode() {
       return null;
     }

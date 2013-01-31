@@ -30,41 +30,52 @@ public class ImplicitSlotStorage<T> implements SlotStorage<T, T> {
     undefinedValue = undefVal;
   }
   
+  @Override
   public boolean isThreadSafe() {
 	// Ok because there's no state to worry about
 	return true;
   }
   
+  @Override
   public SlotFactory getSlotFactory() {
     return factory;
   }
   
+  @Override
   public T newSlot() {
     return undefinedValue;
   }
+  @Override
   public T newSlot(T initialValue) {
     return initialValue;
   }
+  @Override
   public T getSlotValue(T slotState) {
     if (slotState != undefinedValue) return slotState;
     throw new SlotUndefinedException("undefined implicit slot");
   }
+  @Override
   public T setSlotValue(T slotState, T newValue) {
     return newValue;
   }
+  @Override
   public boolean isValid(T slotState) {
     return slotState != undefinedValue;
   }
+  @Override
   public boolean isChanged(T slotState) {
     return false; // we do not check without implicit slots
   }
+  @Override
   public void writeSlotValue(T slotState, IRType<T> ty, IROutput out) throws IOException {
     ty.writeValue(slotState,out);
   }
+  @Override
   public T readSlotValue(T slotState, IRType<T> ty, IRInput in) throws IOException {
     return ty.readValue(in);
   }
 
+  @Override
   public void describe(T slotState, PrintStream out) {
     if (slotState == undefinedValue) {
       out.print("<undefined>");

@@ -51,6 +51,7 @@ public final class GuardedByNode extends AASTRootNode
     return sb.toString();  
   }
 
+  @Override
   public String unparseForPromise() {
 	  return unparse(false);
   }

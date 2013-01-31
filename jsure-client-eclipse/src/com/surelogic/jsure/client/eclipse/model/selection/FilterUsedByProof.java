@@ -12,10 +12,12 @@ import com.surelogic.dropsea.IProofDrop;
 public final class FilterUsedByProof extends Filter implements IOnlyResultsPorus {
 
   public static final ISelectionFilterFactory FACTORY = new AbstractFilterFactory() {
+    @Override
     public Filter construct(Selection selection, Filter previous) {
       return new FilterUsedByProof(selection, previous, getFilterLabel());
     }
 
+    @Override
     public String getFilterLabel() {
       return "Used By Proof";
     }

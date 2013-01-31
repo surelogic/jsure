@@ -29,6 +29,7 @@ abstract class AbstractILock implements ILock {
   /**
    * Get the lock declaration node.
    */
+  @Override
   public final AbstractLockDeclarationNode getLockDecl() {
     return lockPromise.getAAST();
   }
@@ -36,6 +37,7 @@ abstract class AbstractILock implements ILock {
   /**
    * @return Returns the promise drop associated with the lock.
    */
+  @Override
   public final LockModel getLockPromise() {
     return lockPromise;
   }
@@ -43,6 +45,7 @@ abstract class AbstractILock implements ILock {
   /**
    * Get the name of the lock.
    */
+  @Override
   public final String getName() {
 	if (getLockDecl() == null) {
 		return null;
@@ -50,6 +53,7 @@ abstract class AbstractILock implements ILock {
     return getLockDecl().getId();
   }
 
+  @Override
   public final boolean isWrite() {
     return type != Type.READ;
   }

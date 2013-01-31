@@ -31,9 +31,11 @@ public interface IJavaTypeSubstitution {
   IJavaTypeSubstitution combine(IJavaTypeSubstitution other);
   
   static final IJavaTypeSubstitution NULL = new IJavaTypeSubstitution() {
+    @Override
     public IJavaType get(IJavaTypeFormal jtf) {
       return jtf;
     }
+    @Override
     public List<IJavaType> substTypes(IJavaDeclaredType context, List<IJavaType> types) {
       return types;
     }
@@ -42,11 +44,13 @@ public interface IJavaTypeSubstitution {
     	return "NULL SUBST";
     }
 
-	public IJavaTypeSubstitution combine(IJavaTypeSubstitution other) {
+	@Override
+  public IJavaTypeSubstitution combine(IJavaTypeSubstitution other) {
 		return (other == null) ? this : other;
 	}
 
-	public ITypeEnvironment getTypeEnv() {
+	@Override
+  public ITypeEnvironment getTypeEnv() {
 		return null;
 	}
   };

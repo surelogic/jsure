@@ -18,26 +18,32 @@ public abstract class TRoleStructVisitor implements ITRoleStaticVisitor {
   // method called for any operator without a visit method overridden.
   public abstract void visit(TRoleStaticStructure node);
   
+  @Override
   public void visitBlock(TRoleStaticBlock node) {
     visit(node);
   }
 
+  @Override
   public void visitCU(TRoleStaticCU node) {
     visit(node);
   }
 
+  @Override
   public void visitCall(TRoleStaticCall node) {
     visit(node);
   }
 
+  @Override
   public void visitClass(TRoleStaticClass node) {
     visit(node);
   }
 
+  @Override
   public void visitMeth(TRoleStaticMeth node) {
     visit(node);
   }
 
+  @Override
   public void visitReference(TRoleStaticRef node) {
     visit(node);
   }

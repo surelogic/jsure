@@ -77,9 +77,11 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		// Nothing to do right now
 	}
 	
-	public void run() {
+	@Override
+  public void run() {
 		IDE.runAtMarker(new AbstractRunner() {
-			public void run() {
+			@Override
+      public void run() {
 				try {
 					if (SLLogger.getLogger().isLoggable(Level.FINER)) {
 						SLLogger.getLogger().finer(
@@ -452,7 +454,8 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			return false;
 		}
 		
-		public void addDerived(A clone, PromiseDrop<? extends A> pd) {
+		@Override
+    public void addDerived(A clone, PromiseDrop<? extends A> pd) {
 			IRNode ty = VisitUtil.getClosestType(clone.getPromisedFor());
 			List<A> l = byType.get(ty);
 			if (l == null || l.isEmpty()) {

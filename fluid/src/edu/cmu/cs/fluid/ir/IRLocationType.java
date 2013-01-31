@@ -17,10 +17,12 @@ public class IRLocationType implements IRType<IRLocation> {
    * as an IRLocation.
    * @return true if an IRLocation or null.
    */
+  @Override
   public boolean isValid(Object x) {
     return x == null || x instanceof IRLocation;
   }
 
+  @Override
   public Comparator<IRLocation> getComparator() {
     return null;
   }
@@ -31,6 +33,7 @@ public class IRLocationType implements IRType<IRLocation> {
    * @see #isValid
    * @throws IOException if error happens while writing
    */
+  @Override
   public void writeValue(IRLocation v, IROutput out) throws IOException {
     if (v == null) {
       out.writeInt(-1);
@@ -44,6 +47,7 @@ public class IRLocationType implements IRType<IRLocation> {
    * @see #isValid
    * @throws IOException if error happens while reading
    */
+  @Override
   public IRLocation readValue(IRInput in) throws IOException {
     int id = in.readInt();
     if (id == -1) {
@@ -52,17 +56,21 @@ public class IRLocationType implements IRType<IRLocation> {
       return IRLocation.get(id);
     }
   }
+  @Override
   public void writeType(IROutput out) throws IOException {
     out.writeByte('L');
   }
+  @Override
   public IRType<IRLocation> readType(IRInput in) {
     return this;
   }
 
+  @Override
   public IRLocation fromString(String s) {
     return IRLocation.valueOf(s);
   }
 
+  @Override
   public String toString(IRLocation o) {
     if (o == null)
       return "";

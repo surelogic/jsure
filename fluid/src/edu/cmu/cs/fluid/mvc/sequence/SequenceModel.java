@@ -102,6 +102,7 @@ extends SetModel, IRSequence<IRNode>
    * Returns an iterator over the nodes in the order they
    * appear in the sequence.
    */
+  @Override
   public Iterator<IRNode> getNodes();
 
 

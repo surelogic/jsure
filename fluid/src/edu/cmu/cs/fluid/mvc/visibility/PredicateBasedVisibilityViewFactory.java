@@ -45,6 +45,7 @@ implements PredicateBasedVisibilityView.Factory
    *  A run-time exception will be thrown if this model is not a
    *  predicate model of the <cide>srcModel</code>.
    */
+  @Override
   public PredicateBasedVisibilityView create(
     final String name, final Model srcModel, final PredicateModel predModel )
   throws SlotAlreadyRegisteredException

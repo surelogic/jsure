@@ -5,7 +5,6 @@
 package edu.cmu.cs.fluid.tree;
 
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.ThreadSafe;
@@ -70,6 +69,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 *           if node is null
 	 * @see #getParentOrNull(IRNode)
 	 */
+  @Override
   public IRNode getParent(IRNode node) {
 	/*
     final IRSequence<IRNode> seq = getParents(node);
@@ -106,6 +106,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 * Set the parent of a node to null. If it currently has a parent, the node
 	 * is first removed from this parent's children.
 	 */
+  @Override
   public void clearParent(IRNode node) {
     ((Mutator) mutator).clearParent(node);
   }
@@ -130,6 +131,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 * 
 	 * @see #getParent(IRNode)
 	 */
+  @Override
   public IRNode getParentOrNull(IRNode node) {
     if (node == null) {
       return null;
@@ -165,6 +167,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 * The location is a value used by an IRSequence to locate an element. For
 	 * IRArray, it is an integer. @precondition nonNull(node)
 	 */
+  @Override
   public IRLocation getLocation(IRNode node) {
     return node.getSlotValue(locationSlotInfo);
   }
@@ -224,18 +227,22 @@ public class Tree extends Digraph implements MutableTreeInterface {
     locationSlotInfo = new MutableDelegatingSlotInfo<IRLocation>(orig.locationSlotInfo, sf);
 }
 
+  @Override
   public Iteratable<IRNode> connectedNodes(final IRNode node) {
     throw new UnsupportedOperationException("not yet implemented");
   }
 
+  @Override
   public void initNode(final IRNode node, final int numP, final int numC) {
     throw new UnsupportedOperationException("not yet implemented");
   }
 
+  @Override
   public void removeNode(final IRNode node) {
     throw new UnsupportedOperationException("not yet implemented");
   }
 
+  @Override
   public void replaceParent(
     final IRNode node,
     final IRNode oldParent,
@@ -243,18 +250,22 @@ public class Tree extends Digraph implements MutableTreeInterface {
     throw new UnsupportedOperationException("not yet implemented");
   }
 
+  @Override
   public void removeParent(final IRNode node, final IRNode oldParent) {
     throw new UnsupportedOperationException("not yet implemented");
   }
 
+  @Override
   public void removeParents(final IRNode node) {
     throw new UnsupportedOperationException("not yet implemented");
   }
 
+  @Override
   public void addParent(final IRNode node, final IRNode newParent) {
     throw new UnsupportedOperationException("not yet implemented");
   }
 
+  @Override
   public void setParent(
     final IRNode node,
     final int i,
@@ -262,6 +273,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
     throw new UnsupportedOperationException("not yet implemented");
   }
 
+  @Override
   public void setParent(
     final IRNode node,
     final IRLocation loc,
@@ -273,6 +285,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 * Place a subtree as the child of another node. The subtree is first removed
 	 * from where it currently is stored, if necessary.
 	 */
+  @Override
   public void setSubtree(IRNode parent, int i, IRNode newChild) {
     if (parentExists(newChild))
       clearParent(newChild);
@@ -283,6 +296,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 * Place a subtree as the child of another node. The subtree is first removed
 	 * from where it currently is stored, if necessary.
 	 */
+  @Override
   public void setSubtree(IRNode parent, IRLocation loc, IRNode newChild) {
     if (parentExists(newChild))
       clearParent(newChild);
@@ -299,6 +313,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 *              If oldChild does currently have a parent or newChild is not
 	 *              legal in the place of oldChild.
 	 */
+  @Override
   public void replaceSubtree(IRNode oldChild, IRNode newChild)
     throws IllegalChildException {
     IRNode parent = getParent(oldChild);
@@ -320,6 +335,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 * @exception IllegalChildException
 	 *              If either node is not legal in the place of the other.
 	 */
+  @Override
   public void exchangeSubtree(IRNode node1, IRNode node2)
     throws IllegalChildException {
     IRNode parent1 = getParentOrNull(node1);
@@ -349,6 +365,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 * subtree is first removed from wherever it currently resides. @precondition
 	 * nonNull(parent) && nonNull(newChild) && nonNull(ip)
 	 */
+  @Override
   public IRLocation insertSubtree(
     IRNode node,
     IRNode newChild,
@@ -362,6 +379,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 * first removed from wherever it currently resides. @precondition
 	 * nonNull(parent) && nonNull(newChild)
 	 */
+  @Override
   public void insertSubtree(IRNode parent, IRNode newChild) {
     removeSubtree(newChild);
     insertChild(parent, newChild);
@@ -372,6 +390,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 * removed from wherever it currently resides. @precondition nonNull(parent) &&
 	 * nonNull(newChild)
 	 */
+  @Override
   public void appendSubtree(IRNode parent, IRNode newChild) {
     removeSubtree(newChild);
     appendChild(parent, newChild);
@@ -381,6 +400,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 * Remove a subtree from a variable size sequence. The same function as
 	 * {@link #clearParent}. @precondition nonNull(node)
 	 */
+  @Override
   public void removeSubtree(IRNode node) {
     clearParent(node);
   }
@@ -395,6 +415,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 * @param newChild
 	 *          a subtree to be put in the sequence after oldChild.
 	 */
+  @Override
   public void insertSubtreeAfter(IRNode newChild, IRNode oldChild) {
     removeSubtree(newChild);
     insertChildAfter(getParent(oldChild), newChild, oldChild);
@@ -410,6 +431,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 * @param newChild
 	 *          a subtree to be put in sequence before oldChild.
 	 */
+  @Override
   public void insertSubtreeBefore(IRNode newChild, IRNode oldChild) {
     removeSubtree(newChild);
     insertChildBefore(getParent(oldChild), newChild, oldChild);
@@ -418,6 +440,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
   /**
 	 * Return the root of a subtree.
 	 */
+  @Override
   public IRNode getRoot(IRNode subtree) {
     IRNode parent;
     while (true) {
@@ -438,6 +461,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 * Return an enumeration of nodes in the subtree starting with leaves and
 	 * working toward the node given. A postorder traversal.
 	 */
+  @Override
   public Iteratable<IRNode> bottomUp(IRNode subtree) {
     return mutator.protect(new TreeWalkIterator(this, subtree, true));
   }
@@ -445,6 +469,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 * Return an enumeration of nodes in the subtree starting with this node and
 	 * working toward the leaves. A preorder traversal.
 	 */
+  @Override
   public Iteratable<IRNode> topDown(IRNode subtree) {
     return mutator.protect(new TreeWalkIterator(this, subtree, false));
   }
@@ -467,6 +492,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
   /**
 	 * Return an enumeration of nodes from this one to a root.
 	 */
+  @Override
   public Iteratable<IRNode> rootWalk(final IRNode node) {
     return rootWalk(node, null);
   }
@@ -477,9 +503,11 @@ public class Tree extends Digraph implements MutableTreeInterface {
   public Iteratable<IRNode> rootWalk(final IRNode node, final IRNode root) {
     return mutator.protect(new AbstractRemovelessIterator<IRNode>() {
       IRNode n = node;
+      @Override
       public boolean hasNext() {
         return n != null;
       }
+      @Override
       public IRNode next() {
         if (n == null)
           throw new NoSuchElementException("to root");
@@ -550,6 +578,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
 	 *         </dl>
 	 *         In particular, < 0 means precedes in preorder
 	 */
+  @Override
   public int comparePreorder(IRNode node1, IRNode node2) {
     IRNode root1 = node1, root2 = node2;
     int d1 = 0, d2 = 0;
@@ -606,13 +635,16 @@ public class Tree extends Digraph implements MutableTreeInterface {
 
   // Satisfying SymmetricDigraphInterface:
 
+  @Override
   public boolean hasParents(IRNode node) {
     return true;
   }
+  @Override
   public int numParents(IRNode node) {
     return 1;
   }
 
+  @Override
   public IRLocation parentLocation(IRNode n, int i) {
 	if (i != 0) {
 	  return null;
@@ -620,6 +652,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
     return IRLocation.zeroPrototype;
   }
 
+  @Override
   public int parentLocationIndex(IRNode n, IRLocation loc) {
 	if (loc == null || loc != IRLocation.zeroPrototype) {
 	  return -1;
@@ -627,22 +660,27 @@ public class Tree extends Digraph implements MutableTreeInterface {
     return 0;
   }
 
+  @Override
   public IRLocation firstParentLocation(IRNode n) {
 	return IRLocation.zeroPrototype;
   }
 
+  @Override
   public IRLocation lastParentLocation(IRNode n) {
 	return IRLocation.zeroPrototype;
   }
 
+  @Override
   public IRLocation nextParentLocation(IRNode n, IRLocation loc) {
     return null;
   }
 
+  @Override
   public IRLocation prevParentLocation(IRNode n, IRLocation loc) {
     return null;
   }
 
+  @Override
   public int compareParentLocations(
     IRNode n,
     IRLocation loc1,
@@ -650,17 +688,20 @@ public class Tree extends Digraph implements MutableTreeInterface {
     return loc1 == loc2 ? 0 : -1;
   }
 
+  @Override
   public IRNode getParent(IRNode node, int i) {
     if (i == 0)
       return getParent(node);
     throw new IRSequenceException("only one parent");
   }
+  @Override
   public IRNode getParent(IRNode node, IRLocation loc) {
     if (parentLocationIndex(node, loc) == 0)
       return getParent(node);
     throw new IRSequenceException("only one parent");
   }
 
+  @Override
   public Iteratable<IRNode> parents(IRNode node) {
     return new SingletonIterator<IRNode>(getParent(node));
   }
@@ -715,10 +756,12 @@ public class Tree extends Digraph implements MutableTreeInterface {
 
     protected void checkChild(IRNode parent, IRLocation loc, IRNode child)
       throws IllegalChildException {
+      // do nothing
     }
 
     protected void checkVariableChild(IRNode parent, IRNode child)
       throws IllegalChildException {
+      // do nothing
     }
 
     /** Called when a node gains a parent. */
@@ -775,6 +818,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
       b.saveAttribute(locationSlotInfo);
     }
 
+    @Override
     public void clearParent(IRNode node) {
       IRNode parent;
       if (parentExists(node)) {
@@ -793,6 +837,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
       return;
     }
 
+    @SuppressWarnings("rawtypes")
     protected final SlotInfo wrappedParentAttribute =
         new WrappedParentSlotInfo();
     /*
@@ -800,9 +845,11 @@ public class Tree extends Digraph implements MutableTreeInterface {
       new WrappedParentsSlotInfo();
     */
 
+    @SuppressWarnings("rawtypes")
     protected final SlotInfo wrappedLocationAttribute =
       new WrappedLocationSlotInfo();
 
+    @SuppressWarnings("rawtypes")
     @Override
     public SlotInfo getAttribute(String name) {
       if (name == PARENTS) {
@@ -814,6 +861,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
       }
     }
 
+    @SuppressWarnings("rawtypes")
     class WrappedParentSlotInfo extends DerivedSlotInfo {
         @Override
         public IRType type() {
@@ -887,6 +935,7 @@ public class Tree extends Digraph implements MutableTreeInterface {
       }
     }
 
+    @SuppressWarnings("rawtypes")
     class WrappedLocationSlotInfo extends DerivedSlotInfo {
       @Override
       public IRType type() {
@@ -906,11 +955,12 @@ public class Tree extends Digraph implements MutableTreeInterface {
   protected class DelegatingMutator
     extends Digraph.DelegatingMutator
     implements Mutator {
+    @Override
     public void clearParent(IRNode node) {
       setParent(node, null);
     }
-    @SuppressWarnings("unchecked")
-	@Override
+	@SuppressWarnings("rawtypes")
+  @Override
     public SlotInfo getAttribute(String name) {
       if (name.equals(PARENTS))
         return parentSlotInfo;

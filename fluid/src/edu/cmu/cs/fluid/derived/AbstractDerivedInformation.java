@@ -20,17 +20,20 @@ public abstract class AbstractDerivedInformation implements IDerivedInformation 
   private final AtomicReference<Status> status = 
 	  new AtomicReference<Status>(Status.NOT_DERIVED);
     
+  @Override
   public synchronized void clear() {
 	// TODO what if destroyed?
 	status.set(Status.NOT_DERIVED);
   }
   
+  @Override
   public final boolean isDeriving() {
     return status.get() == Status.IS_DERIVING;
   }
   
   // This has to protect itself from other threads trying to 
   // use it, as well as notice if it's trying to re-derive
+  @Override
   public synchronized final void ensureDerived() throws UnavailableException {
 	final String label = getLabel();
 	/*

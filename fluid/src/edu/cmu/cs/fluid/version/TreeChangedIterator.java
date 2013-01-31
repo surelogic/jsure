@@ -78,10 +78,12 @@ public class TreeChangedIterator extends AbstractRemovelessIterator<IRNode>
     next = null;
   }
 
+  @Override
   public boolean hasNext() {
     return next != null;
   }
 
+  @Override
   public IRNode next() {
     if (next == null) throw new NoSuchElementException("no more changed nodes");
     IRNode n = next;

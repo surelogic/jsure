@@ -50,6 +50,7 @@ implements ConfigurableSequenceView.Factory
    *  exported model.
    * @param proxyPolicy The policy for attributing proxy nodes.
    */
+  @Override
   public ConfigurableSequenceView create(
     final String name, final SequenceModel src, final VisibilityModel vizModel,
     final AttributeInheritancePolicy attrPolicy,

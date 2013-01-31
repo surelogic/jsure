@@ -24,14 +24,17 @@ implements SequenceEllipsisPolicy
 
   //==============================================================
 
+  @Override
   public void resetPolicy()
   {
   }
 
+  @Override
   public void nodeSkipped( final IRNode node, final int loc )
   {
   }
 
+  @Override
   public void applyPolicy()
   {
   }

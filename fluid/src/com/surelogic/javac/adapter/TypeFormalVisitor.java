@@ -31,7 +31,8 @@ public class TypeFormalVisitor extends TypeVisitor {
 	@Override
 	public SignatureVisitor visitClassBound() {
 		return new TypeVisitor() {
-			protected void finish() {
+			@Override
+      protected void finish() {
 				TypeFormalVisitor.this.bounds.add(this.getType());
 			}
 		};
@@ -40,7 +41,8 @@ public class TypeFormalVisitor extends TypeVisitor {
 	@Override
 	public SignatureVisitor visitInterfaceBound() {
 		return new TypeVisitor() {
-			protected void finish() {
+			@Override
+      protected void finish() {
 				TypeFormalVisitor.this.bounds.add(this.getType());
 			}
 		};

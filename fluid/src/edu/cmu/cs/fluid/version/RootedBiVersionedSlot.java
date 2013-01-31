@@ -55,6 +55,7 @@ class RootedBiVersionedSlot<T> extends UnassignedVersionedSlot<T> implements Ver
     return (VersionedSlot<T>) setValue(newValue, v);
   }
   
+  @Override
   public VersionedDerivedSlot<T> setValue(T newValue, Version newVersion) {
     if (rootVersion == newVersion) {
       if (newValue == initialValue) { // stupid collections:  || newValue.equals(initialValue)) {
@@ -78,6 +79,7 @@ class RootedBiVersionedSlot<T> extends UnassignedVersionedSlot<T> implements Ver
     }
   }
 
+  @Override
   public Version getRootVersion() {
     return rootVersion;
   }

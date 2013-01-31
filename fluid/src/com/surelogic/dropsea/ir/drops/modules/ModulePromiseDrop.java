@@ -390,6 +390,7 @@ public abstract class ModulePromiseDrop extends PromiseDrop<ModuleChoiceNode> {
   }
 
   private static DropPredicate definingDropPred = new DropPredicate() {
+    @Override
     public boolean match(IDrop d) {
       if (d instanceof Drop) {
         Drop rd = (Drop) d;

@@ -135,6 +135,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListene
     }
   }
 
+  @Override
   public Entity makeEntity(String name, Attributes a) {
     if (JAVA_DECL_INFO.equals(name))
       return new SeaEntity(name, a);

@@ -43,6 +43,7 @@ implements LabeledSequence
   //== Attribute Convience Methods
   //===========================================================
 
+  @Override
   public void setLabel( final IRNode node, final String label )
   {
     synchronized( structLock ) {
@@ -51,6 +52,7 @@ implements LabeledSequence
     modelCore.fireModelEvent( new AttributeValuesChangedEvent( this, node, LABEL, label ) );
   }
 
+  @Override
   public String getLabel( final IRNode node )
   {
     synchronized( structLock ) {

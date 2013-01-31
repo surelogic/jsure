@@ -268,6 +268,7 @@ public abstract class CachedProceduralAnalysis<T,R extends CachedProceduralAnaly
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.analysis.CachedProceduralAnalysis.Results#getProcedure()
      */
+    @Override
     public IRNode getProcedure() {
       return procedure;
     }
@@ -275,6 +276,7 @@ public abstract class CachedProceduralAnalysis<T,R extends CachedProceduralAnaly
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.analysis.CachedProceduralAnalysis.Results#valueExists(edu.cmu.cs.fluid.ir.IRNode)
      */
+    @Override
     public boolean valueExists(IRNode node) {
       return results != null && results.keySet().contains(node);
     }
@@ -282,6 +284,7 @@ public abstract class CachedProceduralAnalysis<T,R extends CachedProceduralAnaly
     /* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.analysis.CachedProceduralAnalysis.Results#getSlotValue()
      */
+    @Override
     public T getSlotValue(IRNode node) {
       if (results == null) return null;
       return results.get(node);

@@ -24,14 +24,17 @@ public abstract class AbstractModelChain implements ModelChain {
     baseModel = model;
   }
 
+  @Override
   public Model getBaseModel() {
     return baseModel;
   }
 
+  @Override
   public Model getLastModel() {
     return baseModel;
   }
 
+  @Override
   public Model getModelAt(int index) {
     if (index == 0) {
       return baseModel;
@@ -39,17 +42,23 @@ public abstract class AbstractModelChain implements ModelChain {
     return null; 
   }
 
+  @Override
   public int size() { return 1; }
 
+  @Override
   public VisibilityModel getVisModel() { return visModel; }
 
+  @Override
   public PredicateModel getPredModel() { return predModel; }
 
+  @Override
   public AttributeModel getAttrModel() { return attrModel; }
 
+  @Override
   public AttributeBasedPredicateVisibilityView getPredVisModel() { 
     return predVisModel; 
   }
 
+  @Override
   public StyleSetModel getPalette() { return palette; }
 }

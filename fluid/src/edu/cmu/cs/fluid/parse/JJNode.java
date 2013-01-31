@@ -176,13 +176,17 @@ public class JJNode extends PlainIRNode implements Node {
   }
 
   // unused methods
+  @Override
   public void jjtOpen() { // unused
   }
+  @Override
   public void jjtClose() { // unused
   }
+  @Override
   public void jjtSetParent(Node n) { // unused
   }
 
+  @Override
   public void jjtAddChild(Node n) {
 	//if (appendChild)
 	if (nextChild < 0)
@@ -190,6 +194,7 @@ public class JJNode extends PlainIRNode implements Node {
     else
       tree.setChild(this, nextChild++, (JJNode) n);
   }
+  @Override
   public void jjtAddChild(Node n, int i) {
     //if (appendChild)
 	if (nextChild < 0)

@@ -26,6 +26,7 @@ public class IRSequenceList<T> extends AbstractSequentialList<T> implements List
     /* (non-Javadoc)
      * @see java.util.ListIterator#hasNext()
      */
+    @Override
     public boolean hasNext() {
       if (loc == null) return underlying.firstLocation() != null;
       return underlying.nextLocation(loc) != null;
@@ -34,6 +35,7 @@ public class IRSequenceList<T> extends AbstractSequentialList<T> implements List
     /* (non-Javadoc)
      * @see java.util.ListIterator#next()
      */
+    @Override
     public T next() {
       forward = true;
       if (loc == null) loc = underlying.firstLocation();
@@ -47,12 +49,14 @@ public class IRSequenceList<T> extends AbstractSequentialList<T> implements List
     /* (non-Javadoc)
      * @see java.util.ListIterator#hasPrevious()
      */
+    @Override
     public boolean hasPrevious() {
       return loc != null;
     }
     /* (non-Javadoc)
      * @see java.util.ListIterator#previous()
      */
+    @Override
     public T previous() {
       forward = false;
       if (loc == null) {
@@ -65,6 +69,7 @@ public class IRSequenceList<T> extends AbstractSequentialList<T> implements List
     /* (non-Javadoc)
      * @see java.util.ListIterator#nextIndex()
      */
+    @Override
     public int nextIndex() {
       if (loc == null) return 0;
       return underlying.locationIndex(loc)+1;
@@ -72,6 +77,7 @@ public class IRSequenceList<T> extends AbstractSequentialList<T> implements List
     /* (non-Javadoc)
      * @see java.util.ListIterator#previousIndex()
      */
+    @Override
     public int previousIndex() {
       if (loc == null) return -1;
       return underlying.locationIndex(loc);
@@ -79,6 +85,7 @@ public class IRSequenceList<T> extends AbstractSequentialList<T> implements List
     /* (non-Javadoc)
      * @see java.util.ListIterator#remove()
      */
+    @Override
     public void remove() {
       if (forward) {
         if (loc == null) throw new IllegalStateException("next() not called yet.");
@@ -99,6 +106,7 @@ public class IRSequenceList<T> extends AbstractSequentialList<T> implements List
     /* (non-Javadoc)
      * @see java.util.ListIterator#set(E)
      */
+    @Override
     public void set(T o) {
       if (forward) {
         if (loc == null) throw new IllegalStateException("next() not called yet.");
@@ -117,6 +125,7 @@ public class IRSequenceList<T> extends AbstractSequentialList<T> implements List
     /* (non-Javadoc)
      * @see java.util.ListIterator#add(E)
      */
+    @Override
     public void add(T o) {
       if (loc == null) loc = underlying.insertElement(o);
       else loc = underlying.insertElementAfter(o,loc);

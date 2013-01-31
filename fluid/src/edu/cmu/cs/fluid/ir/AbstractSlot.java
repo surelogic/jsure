@@ -10,14 +10,17 @@ public abstract class AbstractSlot<T> implements Slot<T> {
   /** Does this slot contain changed information.
    * By default, assume not.
    */
+  @Override
   public boolean isChanged() {
     return false;
   }
+  @Override
   public void writeValue(IRType<T> ty, IROutput out) 
      throws IOException
   {
     ty.writeValue(getValue(),out);
   }
+  @Override
   public Slot<T> readValue(IRType<T> ty, IRInput in) 
      throws IOException
   {
@@ -25,6 +28,7 @@ public abstract class AbstractSlot<T> implements Slot<T> {
     return setValue(ty.readValue(in));
   }
 
+  @Override
   public void describe(PrintStream out) {
     out.println(getClass().getName());
   }
