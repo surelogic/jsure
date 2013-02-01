@@ -4,7 +4,6 @@ package com.surelogic.analysis.nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -13,6 +12,11 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.InstanceInitAction;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.LocalVariableDeclarations;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalValue;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalLattice;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePair;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePairLattice;
 import com.surelogic.analysis.nullable.RawLattice.Element;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.Pair;
@@ -43,14 +47,11 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
 import edu.uwm.cs.fluid.java.control.LatticeDelegatingJavaEvaluationTransfer;
-import edu.uwm.cs.fluid.java.analysis.EvaluationStackLatticeWithInference;
-import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 
 
 /**
@@ -63,9 +64,10 @@ import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
  * <p>Because we just work on the receiver right now, this only needs to be
  * invoked on constructors.
  */
-public final class RawTypeAnalysis extends IntraproceduralAnalysis<
-    RawTypeAnalysis.Value, RawTypeAnalysis.Lattice,
-    JavaForwardAnalysis<RawTypeAnalysis.Value, RawTypeAnalysis.Lattice>>
+public final class RawTypeAnalysis 
+extends StackEvaluatingAnalysisWithInference<
+    Element, Element[], Element, RawTypeAnalysis.State, RawTypeAnalysis.Value,
+    RawLattice, RawVariables, RawVariables, RawTypeAnalysis.StateLattice, RawTypeAnalysis.Lattice>
 implements IBinderClient {
   public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Pair<Lattice, Element[]>, Value, Lattice> {
     public Query(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
@@ -127,67 +129,34 @@ implements IBinderClient {
   
   
   
-  public final class InferredRawQuery extends SimplifiedJavaFlowAnalysisQuery<InferredRawQuery, Inferred, Value, Lattice> {
-    public InferredRawQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
+  public final class InferredRawQuery extends InferredVarStateQuery<
+      InferredRawQuery, Element, Value, Inferred, RawVariables, Lattice> {
+    private InferredRawQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
     }
     
     private InferredRawQuery(final Delegate<InferredRawQuery, Inferred, Value, Lattice> d) {
       super(d);
     }
+
+    @Override
+    protected Inferred makeInferredResult(final RawVariables lat, final Element[] val) {
+      return new Inferred(lat, val);
+    }
     
-    @Override
-    protected RawResultFactory getRawResultFactory() {
-      return RawResultFactory.NORMAL_EXIT;
-    }
-
-    @Override
-    protected Inferred processRawResult(
-        final IRNode expr, final Lattice lattice, final Value rawResult) {
-      return new Inferred(
-          lattice.getInferredLattice(), rawResult.second().second());
-    }
-
     @Override
     protected InferredRawQuery newSubAnalysisQuery(final Delegate<InferredRawQuery, Inferred, Value, Lattice> d) {
       return new InferredRawQuery(d);
     }
   }
   
-  public final class Inferred implements Iterable<Pair<IRNode, Element>> {
-    private final RawVariables lattice;
-    private final Element[] values;
-    
+  public final class Inferred extends InferredResult<Element, RawVariables> {
     private Inferred(final RawVariables lat, final Element[] val) {
-      lattice = lat;
-      values = val;
-    }
-    
-    @Override
-    public Iterator<Pair<IRNode, Element>> iterator() {
-      return new AbstractRemovelessIterator<Pair<IRNode, Element>>() {
-        private int idx = 0;
-        
-        @Override
-        public boolean hasNext() {
-          return idx < lattice.getRealSize();
-        }
-
-        @Override
-        public Pair<IRNode, Element> next() {
-          final int currentIdx = idx++;
-          return new Pair<IRNode, Element>(
-              lattice.getKey(currentIdx), values[currentIdx]);
-        }
-      };
+      super(lat, val);
     }
     
     public Element injectAnnotation(final RawPromiseDrop pd) {
       return lattice.getBaseLattice().injectPromiseDrop(pd);
-    }
-
-    public boolean lessEq(final Element a, final Element b) {
-      return lattice.getBaseLattice().lessEq(a, b);
     }
   }
   
@@ -339,16 +308,14 @@ implements IBinderClient {
    * annotation on the variable, which must be greater than the inferred
    * annotation.
    */
-  private static final class State
-  extends EvaluationStackLatticeWithInference.StatePair<Element[], Element> {
+  static final class State extends StatePair<Element[], Element> {
     public State(final Element[] vars, final Element[] inferred) {
       super(vars, inferred);
     }
   }
   
-  private static final class StateLattice
-  extends EvaluationStackLatticeWithInference.StatePairLattice<
-      Element[], Element, RawVariables, RawVariables, State> {
+  static final class StateLattice extends StatePairLattice<
+      Element[], Element, State, RawVariables, RawVariables> {
     public StateLattice(final RawVariables l1, final RawVariables l2) {
       super(l1, l2);
     }
@@ -410,18 +377,16 @@ implements IBinderClient {
     }
   }
   
-  public static final class Value
-  extends EvaluationStackLatticeWithInference.EvalValue<
+  public static final class Value extends EvalValue<
       Element, Element[], Element, State> {
     public Value(final ImmutableList<Element> v1, final State v2) {
       super(v1, v2);
     }
   }
   
-  public static final class Lattice
-  extends EvaluationStackLatticeWithInference<
-      Element, Element[], Element, State,
-      RawLattice, RawVariables, RawVariables, StateLattice, Value> {
+  public static final class Lattice extends EvalLattice<
+      Element, Element[], Element, State, Value,
+      RawLattice, RawVariables, RawVariables, StateLattice> {
     protected Lattice(final RawLattice l1, final RawTypeAnalysis.StateLattice l2) {
       super(l1, l2);
     }
@@ -738,6 +703,11 @@ implements IBinderClient {
   }
 
 
+  
+  @Override
+  public InferredRawQuery getInferredVarStateQuery(final IRNode flowUnit) {
+    return new InferredRawQuery(getAnalysisThunk(flowUnit));
+  }
 
   public Query getRawTypeQuery(final IRNode flowUnit) {
     return new Query(getAnalysisThunk(flowUnit));
@@ -745,10 +715,6 @@ implements IBinderClient {
   
   public QualifiedThisQuery getQualifiedThisQuery(final IRNode flowUnit) {
     return new QualifiedThisQuery(getAnalysisThunk(flowUnit));
-  }
-  
-  public InferredRawQuery getInferredRawQuery(final IRNode flowUnit) {
-    return new InferredRawQuery(getAnalysisThunk(flowUnit));
   }
   
   public DebugQuery getDebugQuery(final IRNode flowUnit) {

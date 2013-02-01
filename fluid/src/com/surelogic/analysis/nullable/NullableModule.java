@@ -159,8 +159,8 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
       
       public QueryBundle(final IRNode flowUnit) {
         allResultsQuery = definiteAssignment.getAllResultsQuery(flowUnit);
-        inferredRawQuery = rawType.getInferredRawQuery(flowUnit);
-        inferredNullQuery = nonNull.getInferredNullQuery(flowUnit);
+        inferredRawQuery = rawType.getInferredVarStateQuery(flowUnit);
+        inferredNullQuery = nonNull.getInferredVarStateQuery(flowUnit);
       }
       
       private QueryBundle(final QueryBundle qb, final IRNode caller) {
