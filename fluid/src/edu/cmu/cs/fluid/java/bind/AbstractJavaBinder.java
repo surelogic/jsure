@@ -12,6 +12,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections15.MultiMap;
+import org.apache.commons.collections15.multimap.MultiHashMap;
+
 import com.surelogic.ThreadSafe;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.common.XUtil;
@@ -3028,6 +3031,16 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 	  context.foundNewType(td);
 	  context.use(name, mth);
 	  
+	  /*
+	  final List<IJavaType> temp = new ArrayList<IJavaType>();
+	  for(IJavaType st : t.getSupertypes(typeEnvironment)) {
+		  temp.add(st);
+	  }
+	  Set<IJavaType> temp2 = new HashSet<IJavaType>(temp);
+	  if (temp.size() != temp2.size()) {
+		  System.out.println("Found duplicates");
+	  }	  
+	  */
 	  for(IJavaType st : t.getSupertypes(typeEnvironment)) {
 		  // Looking at the inherited members	
 		  final IJavaScope superScope = 
@@ -3049,6 +3062,36 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 			  methods.add(best.method);
 		  }
 	  }
-	  return IteratorUtil.makeIteratable(methods);
+	  final Collection<IBinding> noDups = removeDuplicateBindings(methods);
+	  return IteratorUtil.makeIteratable(noDups);
+  }
+  
+  private Collection<IBinding> removeDuplicateBindings(final List<IBinding> methods) {
+	  final MultiMap<IRNode, IBinding> hashed = new MultiHashMap<IRNode, IBinding>(methods.size());
+	 outer:
+	  for(final IBinding m : methods) {
+		  final Collection<IBinding> temp = hashed.get(m.getNode());
+		  if (temp != null) {
+			  // check for duplicates
+			  for(final IBinding b : temp) {
+				  if (equals(b.getContextType(), m.getContextType())) {
+					  continue outer;
+				  }
+			  }
+		  }
+		  hashed.put(m.getNode(), m);
+	  }
+	  return hashed.values();
+  }
+  
+  private boolean equals(IJavaType t1, IJavaType t2) {
+	  if (t1 == t2) {
+		  return true;
+	  }
+	  // Already checked above if both are null
+	  if (t1 == null || t2 == null) {
+		  return false;
+	  }
+	  return t1.equals(t2);
   }
 }
