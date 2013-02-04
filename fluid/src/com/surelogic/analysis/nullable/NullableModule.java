@@ -11,9 +11,9 @@ import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
 import com.surelogic.analysis.nullable.NonNullAnalysis.InferredNullQuery;
+import com.surelogic.analysis.nullable.NonNullAnalysis.NullInfo;
 import com.surelogic.analysis.nullable.NullableModule.AnalysisBundle.QueryBundle;
 import com.surelogic.analysis.nullable.RawLattice.Element;
-import com.surelogic.analysis.nullable.RawTypeAnalysis.Inferred;
 import com.surelogic.analysis.nullable.RawTypeAnalysis.InferredRawQuery;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.Pair;
@@ -99,15 +99,25 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     public Void visitMethodBody(final IRNode body) {
       doAcceptForChildren(body);
       
-      final Inferred inferredResult = currentQuery().getInferredRaw(body);
-      for (final Pair<IRNode, Element> p : inferredResult) {
+      final RawTypeAnalysis.Inferred inferredRaw = currentQuery().getInferredRaw(body);
+      for (final Pair<IRNode, Element> p : inferredRaw) {
         final IRNode varDecl = p.first();
         final RawPromiseDrop pd = NonNullRules.getRaw(varDecl);
-        final Element annotation = inferredResult.injectAnnotation(pd);
+        final Element annotation = inferredRaw.injectAnnotation(pd);
         final Element inferred = p.second();
-        final boolean isGood = inferredResult.lessEq(inferred, annotation);
+        final boolean isGood = inferredRaw.lessEq(inferred, annotation);
         ResultsBuilder.createResult(
             varDecl, pd, isGood, RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
+      }
+      
+      final NonNullAnalysis.Inferred inferredNull = currentQuery().getInferredNull(body);
+      for (final Pair<IRNode, NullInfo> p : inferredNull) {
+        final IRNode varDecl = p.first();
+        final NullInfo inferred = p.second();
+        final boolean isGood = inferredNull.lessEq(inferred, NullInfo.NOTNULL);
+        ResultsBuilder.createResult(
+            varDecl, NonNullRules.getNonNull(varDecl), isGood,
+            RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
       }
       return null;
     }
