@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="android.text" release="1">
+    <class name="TextUtils">
+        <class name="SimpleStringSplitter">
+            <method name="hasNext">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>reads Instance</RegionEffects>
+            </method>
+
+            <method name="iterator">
+                <Borrowed allowReturn="true">this</Borrowed>
+                <RegionEffects>writes this:Instance</RegionEffects>
+                <Unique>return</Unique>
+            </method>
+
+            <method name="next">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+
+            <method name="remove">
+                <Borrowed>this</Borrowed>
+                <RegionEffects>writes Instance</RegionEffects>
+            </method>
+        </class>
+    </class>
+</package>

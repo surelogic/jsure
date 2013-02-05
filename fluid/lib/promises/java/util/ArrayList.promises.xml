@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" release="9">
+<package name="java.util" release="11">
     <class name="ArrayList">
         <Containable allowReferenceObject="true"/>
         <NotThreadSafe/>
@@ -83,7 +83,22 @@
             <Starts>nothing</Starts>
         </method>
 
+        <method name="equals" params="java.lang.Object">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads arg0:Instance, Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <parameter index="0">
+                <Borrowed/>
+            </parameter>
+        </method>
+
         <method name="get" params="int">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+
+        <method name="hashCode">
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>

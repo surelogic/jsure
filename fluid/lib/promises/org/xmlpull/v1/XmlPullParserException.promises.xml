@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="org.xmlpull.v1" release="1">
+    <class name="XmlPullParserException">
+        <method name="printStackTrace">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>
