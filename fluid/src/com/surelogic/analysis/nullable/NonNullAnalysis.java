@@ -16,7 +16,7 @@ import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePair;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePairLattice;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.util.IRNodeIndexedExtraElementArrayLattice;
+import com.surelogic.util.IRNodeIndexedArrayLattice;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -213,26 +213,21 @@ implements IBinderClient {
   
   
   public static final class InferredLattice extends 
-  IRNodeIndexedExtraElementArrayLattice<NullLattice, NullInfo> {
+  IRNodeIndexedArrayLattice<NullLattice, NullInfo> {
     private final NullInfo[] empty;
     
-    private InferredLattice(final NullLattice base, final IRNode[] keys) {
+    private InferredLattice(final NullLattice base, final List<IRNode> keys) {
       super(base, keys);
       empty = createEmptyValue();
     }
 
     public static InferredLattice create(final List<IRNode> vars, final NullLattice lattice) {
-      return new InferredLattice(lattice, modifyKeys(vars));
+      return new InferredLattice(lattice, vars);
     }
     
     @Override
     protected NullInfo getEmptyElementValue() {
       return NullInfo.IMPOSSIBLE;
-    }
-
-    @Override
-    protected NullInfo getNormalFlagValue() {
-      return NullInfo.NULL;
     }
 
     @Override

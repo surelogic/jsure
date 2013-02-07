@@ -332,7 +332,7 @@ implements IBinderClient {
     
     
     public int getNumVariables() {
-      return lattice1.getRealSize();
+      return lattice1.getSize();
     }
     
     public IRNode getVariable(final int i) {

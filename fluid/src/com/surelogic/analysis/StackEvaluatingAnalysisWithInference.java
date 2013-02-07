@@ -3,7 +3,7 @@ package com.surelogic.analysis;
 import java.util.Iterator;
 
 import com.surelogic.common.Pair;
-import com.surelogic.util.IRNodeIndexedExtraElementArrayLattice;
+import com.surelogic.util.IRNodeIndexedArrayLattice;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -45,7 +45,7 @@ public abstract class StackEvaluatingAnalysisWithInference<
     R extends StackEvaluatingAnalysisWithInference.EvalValue<V, S, I, SS>,
     L1 extends Lattice<V>,
     L2 extends Lattice<S>,
-    L3 extends IRNodeIndexedExtraElementArrayLattice<? extends Lattice<I>, I>,
+    L3 extends IRNodeIndexedArrayLattice<? extends Lattice<I>, I>,
     L4 extends StackEvaluatingAnalysisWithInference.StatePairLattice<S, I, SS, L2, L3>,
     L5 extends StackEvaluatingAnalysisWithInference.EvalLattice<V, S, I, SS, R, L1, L2, L3, L4>>
 extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
@@ -93,7 +93,7 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
   public static abstract class StatePairLattice<
       S, I, V extends StatePair<S, I>,
       L1 extends Lattice<S>,
-      L2 extends IRNodeIndexedExtraElementArrayLattice<? extends Lattice<I>, I>>
+      L2 extends IRNodeIndexedArrayLattice<? extends Lattice<I>, I>>
   extends PairLattice<S, I[], L1, L2, V> {
     protected StatePairLattice(final L1 l1, final L2 l2) {
       super(l1, l2);
@@ -179,7 +179,7 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
       R extends StackEvaluatingAnalysisWithInference.EvalValue<V, S, I, SS>,
       L1 extends Lattice<V>,
       L2 extends Lattice<S>,
-      L3 extends IRNodeIndexedExtraElementArrayLattice<? extends Lattice<I>, I>,
+      L3 extends IRNodeIndexedArrayLattice<? extends Lattice<I>, I>,
       L4 extends StackEvaluatingAnalysisWithInference.StatePairLattice<S, I, SS, L2, L3>>
   extends EvaluationStackLattice<V, SS, L1, L4, R> {
     protected EvalLattice(final L1 l1, final L4 l2) {
@@ -212,7 +212,7 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
   public static abstract class InferredVarStateQuery<
       SELF extends InferredVarStateQuery<SELF, I, V, R, L1, L2>, 
       I, V extends EvalValue<?, ?, I, ?>, R extends InferredResult<I, L1>,
-      L1 extends IRNodeIndexedExtraElementArrayLattice<? extends Lattice<I>, I>,
+      L1 extends IRNodeIndexedArrayLattice<? extends Lattice<I>, I>,
       L2 extends StackEvaluatingAnalysisWithInference.EvalLattice<?, ?, I, ?, V, ?, ?, L1, ?>>
   extends SimplifiedJavaFlowAnalysisQuery<SELF, R, V, L2> {
     protected InferredVarStateQuery(final IThunk<? extends IJavaFlowAnalysis<V, L2>> thunk) {
@@ -249,7 +249,7 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
    */
   public static abstract class InferredResult<
       I,
-      L extends IRNodeIndexedExtraElementArrayLattice<? extends Lattice<I>, I>>
+      L extends IRNodeIndexedArrayLattice<? extends Lattice<I>, I>>
   implements Iterable<Pair<IRNode, I>> {
     protected final L lattice;
     protected final I[] values;
@@ -266,7 +266,7 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
         
         @Override
         public boolean hasNext() {
-          return idx < lattice.getRealSize();
+          return idx < lattice.getSize();
         }
 
         @Override

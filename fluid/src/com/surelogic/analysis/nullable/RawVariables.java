@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.surelogic.analysis.nullable.RawLattice.Element;
-import com.surelogic.util.IRNodeIndexedExtraElementArrayLattice;
+import com.surelogic.util.IRNodeIndexedArrayLattice;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -22,11 +22,9 @@ import edu.cmu.cs.fluid.tree.Operator;
  * Associative array from all the receiver declarations in scope or found 
  * along the flow of control, and any non-array
  * object-typed local variable and parameter declarations to the raw state of
- * the referenced object. This array always contains an extra element indexed by
- * "null" whose value is initialized to IMPOSSIBLE. If the value of this last
- * element is ever not IMPOSSIBLE, then the value of the array is non-normative.
+ * the referenced object.
  */
-public final class RawVariables extends IRNodeIndexedExtraElementArrayLattice<RawLattice, RawLattice.Element> {
+public final class RawVariables extends IRNodeIndexedArrayLattice<RawLattice, RawLattice.Element> {
   private final Element[] empty;
   
   /**
@@ -65,9 +63,9 @@ public final class RawVariables extends IRNodeIndexedExtraElementArrayLattice<Ra
    */
   private final Set<IRNode> qualifiedThis;
   
-  private RawVariables(final IRNode[] modifiedKeys, final RawLattice lat,
-      final Set<IRNode> qt) {
-    super(lat, modifiedKeys);
+  private RawVariables(
+      final List<IRNode> keys, final RawLattice lat, final Set<IRNode> qt) {
+    super(lat, keys);
     qualifiedThis = qt;
     
     // Create a unique reference to the empty value
@@ -77,7 +75,7 @@ public final class RawVariables extends IRNodeIndexedExtraElementArrayLattice<Ra
   public static RawVariables create(
       final List<IRNode> keys, final RawLattice lattice,
       final Set<IRNode> qualifiedThis) {
-    return new RawVariables(modifyKeys(keys), lattice, qualifiedThis);
+    return new RawVariables(keys, lattice, qualifiedThis);
   }
 
   @Override
@@ -92,9 +90,6 @@ public final class RawVariables extends IRNodeIndexedExtraElementArrayLattice<Ra
   
   @Override
   protected Element getEmptyElementValue() { return RawLattice.NOT_RAW; }
-  
-  @Override
-  protected Element getNormalFlagValue() { return RawLattice.IMPOSSIBLE; }
   
   public boolean isInterestingQualifiedThis(final IRNode qt) {
     return qualifiedThis.contains(qt);

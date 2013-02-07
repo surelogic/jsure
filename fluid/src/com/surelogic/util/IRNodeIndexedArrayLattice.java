@@ -1,5 +1,7 @@
 package com.surelogic.util;
 
+import java.util.List;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.uwm.cs.fluid.util.AssociativeArrayLattice;
 import edu.uwm.cs.fluid.util.Lattice;
@@ -10,11 +12,17 @@ import edu.uwm.cs.fluid.util.Lattice;
  */
 public abstract class IRNodeIndexedArrayLattice<L extends Lattice<T>, T> extends
     AssociativeArrayLattice<IRNode, L, T> {
-
   protected IRNodeIndexedArrayLattice(
       final L base, final IRNode[] keys) {
     super(base, keys);
   }
+
+  protected IRNodeIndexedArrayLattice(
+      final L base, final List<IRNode> keyList) {
+    this(base, keyList.toArray(new IRNode[keyList.size()]));
+  }
+
+  
   
   @Override
   protected final boolean indexEquals(final IRNode k1, final IRNode k2) {
