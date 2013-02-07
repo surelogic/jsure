@@ -67,7 +67,7 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
 	  return super.toString(); // +" "+DebugUnparser.toString(this);
   }
   
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   static Set<SlotInfo> noticed = new HashSet<SlotInfo>();
   
   @Override
