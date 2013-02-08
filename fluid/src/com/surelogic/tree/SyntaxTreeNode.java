@@ -1,12 +1,11 @@
 /*$Header$*/
 package com.surelogic.tree;
 
-import java.util.*;
-
 import com.surelogic.common.ref.IJavaRef;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.operator.IllegalCode;
 import edu.cmu.cs.fluid.tree.*;
 
 public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
@@ -38,6 +37,29 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
 	initFields();
   }
 
+  public static SyntaxTreeNode create(Operator op, IRNode[] children) {
+	  class IllegalNode extends SyntaxTreeNode {
+		  public IllegalNode(Operator op, IRNode[] children) {
+			  super(op, children);
+		  }			  
+		  public IllegalNode(Operator op) {
+			  super(op);	  
+		  }
+	  }
+	  if (op instanceof IllegalCode) {
+		  if (children != null) {
+			  return new IllegalNode(op, children);
+		  } else {
+			  return new IllegalNode(op);
+		  }
+	  }
+	  if (children != null) {
+		  return new SyntaxTreeNode(op, children);
+	  } else {
+		  return new SyntaxTreeNode(op);
+	  }
+  }
+  
   private void initFields() {
     /*
      * Initialize to undefined value if not defined by JavaNode
@@ -67,9 +89,6 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
 	  return super.toString(); // +" "+DebugUnparser.toString(this);
   }
   
-  @SuppressWarnings("unchecked")
-  static Set<SlotInfo> noticed = new HashSet<SlotInfo>();
-  
   @Override
   public synchronized void destroy() {
 	  super.destroy();
@@ -80,8 +99,12 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
 	  parent = null;
 	  srcRef = null;
 	  modifiers = null;
+	  //destroyed.add(this.toString());
   }
   /*
+  @SuppressWarnings("unchecked")
+  static Set<SlotInfo> noticed = new HashSet<SlotInfo>();
+
   @Override
   public <T> void setSlotValue(SlotInfo<T> si, T newValue) {
 	  try {
@@ -97,6 +120,17 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
 			  }
 		  }
 	  }
+  }
+  */
+  /*
+  static final Set<String> destroyed = new ConcurrentHashSet<String>();
+  
+  @Override
+  protected void finalize() throws Throwable {	  
+	  if (destroyed.contains(this.toString())) {
+		  System.out.println(this);
+	  }
+	  super.finalize();
   }
   */
 }

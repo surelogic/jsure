@@ -46,28 +46,28 @@ public class JavaPromise extends JavaNode {
 
 	public static JavaNode makeJavaPromise(Operator op) {
     if (JJNode.specializeForSyntaxTree) {
-      return new SyntaxTreeNode(op);    
+    	return SyntaxTreeNode.create(op, null);
     }
 		return new JavaPromise(tree, op);
 	}
 
 	public static JavaNode makeJavaPromise(Operator op, IRNode[] children) {
     if (JJNode.specializeForSyntaxTree) {
-      return new SyntaxTreeNode(op, children);    
+      return SyntaxTreeNode.create(op, children);    
     }
 		return new JavaPromise(tree, op, children);
 	}
 
 	public static JavaNode makeJavaPromise(SyntaxTreeInterface tree, Operator op) {
     if (JJNode.specializeForSyntaxTree && JJNode.tree == tree) {
-      return new SyntaxTreeNode(op);    
+      return SyntaxTreeNode.create(op, null);    
     }
 		return new JavaPromise(tree, op);
 	}
 
 	public static JavaNode makeJavaPromise(SyntaxTreeInterface tree, Operator op, IRNode[] children) {
     if (JJNode.specializeForSyntaxTree && JJNode.tree == tree) {
-      return new SyntaxTreeNode(op, children);    
+      return SyntaxTreeNode.create(op, children);    
     }
 	  return new JavaPromise(tree, op, children);
 	}
