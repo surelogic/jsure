@@ -23,6 +23,14 @@ public final class SkeletonJavaRefUtility {
 
   private static final Map<IRNode, JavaRefSkeletonBuilder> nodeToSkeleton = new ConcurrentHashMap<IRNode, JavaRefSkeletonBuilder>();
 
+  public static void removeInfo(IRNode key) {
+	  nodeToSkeleton.remove(key);
+  }
+  
+  public static void removeAllInfo() {
+	  nodeToSkeleton.clear();
+  }
+  
   public static void registerSourceLocation(DeclFactory factory, IRNode node, FileResource fileResource, int lineNumber,
       int offset, int length) {
     final JavaRefSourceBuilder b = new JavaRefSourceBuilder(factory, fileResource, lineNumber, offset, length);
