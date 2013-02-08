@@ -63,7 +63,7 @@ public final class RawLattice extends AbstractLattice<RawLattice.Element> {
     RAW {
       @Override
       public boolean lessEq(final Element other) {
-        return false;
+        return other == RAW;
       }
 
       @Override
