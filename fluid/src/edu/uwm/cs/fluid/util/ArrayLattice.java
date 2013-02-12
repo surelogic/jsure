@@ -143,9 +143,9 @@ public abstract class ArrayLattice<L extends Lattice<T>, T> extends CachingLatti
     if (v == top()) sb.append("** TOP **").append(toStringPrefixSeparator());
     else if (v == bottom()) sb.append("** BOTTOM **").append(toStringPrefixSeparator());
     
+    sb.append(toStringOpen());
     for (int i = 0; i < v.length; ++i) {
-      if (i == 0) sb.append(toStringOpen());
-      else sb.append(toStringSeparator());
+      if (i != 0) sb.append(toStringSeparator());
       indexToString(sb, i);
       sb.append(toStringConnector());
       valueToString(sb, v[i]);

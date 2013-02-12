@@ -197,7 +197,6 @@ abstract class AbstractLockStackLattice extends
     return empty;
   }
 
-  @Override
   public final boolean isNormal(final ImmutableList<ImmutableSet<IRNode>>[] value) {
     return value != bottom() && value != top();
   }

@@ -73,11 +73,6 @@ public abstract class AssociativeArrayLattice<K, L extends Lattice<T>, T> extend
    */
   public abstract T[] getEmptyValue();
   
-  /**
-   * Is the lattice value normal: that is, neither top nor bottom, or erroneous.
-   */
-  public abstract boolean isNormal(T[] value);
-  
 
 
   // ======================================================================

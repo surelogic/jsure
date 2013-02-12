@@ -12,11 +12,11 @@ import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalLattice;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalValue;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.InferredHelper;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePair;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePairLattice;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.util.IRNodeIndexedExtraElementArrayLattice;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -33,10 +33,8 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
-import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
@@ -59,11 +57,8 @@ import edu.uwm.cs.fluid.util.IntersectionLattice;
  */
 public final class NonNullAnalysis 
 extends StackEvaluatingAnalysisWithInference<
-    NonNullAnalysis.NullInfo, ImmutableSet<IRNode>, NonNullAnalysis.NullInfo,
-    NonNullAnalysis.State, NonNullAnalysis.Value,
-    NonNullAnalysis.NullLattice, IntersectionLattice<IRNode>,
-    NonNullAnalysis.InferredLattice, NonNullAnalysis.StateLattice,
-    NonNullAnalysis.Lattice>
+    NonNullAnalysis.NullInfo, NonNullAnalysis.Value,
+    NonNullAnalysis.NullLattice, NonNullAnalysis.Lattice>
 implements IBinderClient {
   public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Set<IRNode>, Value, Lattice> {
     public Query(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
@@ -98,7 +93,7 @@ implements IBinderClient {
   
   
   public final class InferredNullQuery extends InferredVarStateQuery<
-       InferredNullQuery, NullInfo, Value, Inferred, InferredLattice, Lattice> {
+       InferredNullQuery, NullInfo, NullLattice, Value, Inferred, Lattice> {
     private InferredNullQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
     }
@@ -109,8 +104,8 @@ implements IBinderClient {
 
     @Override
     protected Inferred makeInferredResult(
-        final InferredLattice lattice, final NullInfo[] inferredVars) {
-      return new Inferred(lattice, inferredVars);
+        final IRNode[] keys, final InferredPair<NullInfo>[] val, final NullLattice sl) {
+      return new Inferred(keys, val, sl);
     }
 
     @Override
@@ -119,9 +114,9 @@ implements IBinderClient {
     }
   }
   
-  public final class Inferred extends InferredResult<NullInfo, InferredLattice> {
-    private Inferred(final InferredLattice lat, final NullInfo[] val) {
-      super(lat, val);
+  public final class Inferred extends InferredResult<NullInfo, NullLattice> {
+    private Inferred(final IRNode[] keys, final InferredPair<NullInfo>[] val, final NullLattice sl) {
+      super(keys, val, sl);
     }
   }
   
@@ -142,16 +137,14 @@ implements IBinderClient {
     // Get the local variables that are annotated with @NonNull
     // N.B. Non-ref types variables cannot be @Raw, so we don't have to test for them
     final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
-    final List<IRNode> inferred = new ArrayList<IRNode>(lvd.getLocal().size());
+    final List<IRNode> varsToInfer = new ArrayList<IRNode>(lvd.getLocal().size());
     for (final IRNode v : lvd.getLocal()) {
       if (!ParameterDeclaration.prototype.includes(v)) {
-        if (NonNullRules.getNonNull(v) != null) inferred.add(v);
+        if (NonNullRules.getNonNull(v) != null) varsToInfer.add(v);
       }
     }
     
-    final InferredLattice inferredLattice =
-        InferredLattice.create(inferred, NullLattice.getInstance());
-    final Lattice l = new Lattice(inferredLattice);
+    final Lattice l = new Lattice(varsToInfer);
     final Transfer t = new Transfer(binder,l, 0);
     return new JavaForwardAnalysis<Value, Lattice>("Java.Nonnull", l, t, DebugUnparser.viewer);
   }
@@ -173,7 +166,9 @@ implements IBinderClient {
     IMPOSSIBLE, NOTNULL, NULL, MAYBENULL;
   }
   
-  public static final class NullLattice extends AbstractLattice<NullInfo> {
+  public static final class NullLattice
+  extends AbstractLattice<NullInfo>
+  implements InferredHelper<NullInfo> {
     private static final NullLattice instance = new NullLattice();
 
     private NullLattice() {
@@ -208,50 +203,14 @@ implements IBinderClient {
     public NullInfo top() {
       return NullInfo.MAYBENULL;
     }
-  }
-  
-  
-  
-  public static final class InferredLattice extends 
-  IRNodeIndexedExtraElementArrayLattice<NullLattice, NullInfo> {
-    private final NullInfo[] empty;
-    
-    private InferredLattice(final NullLattice base, final IRNode[] keys) {
-      super(base, keys);
-      empty = createEmptyValue();
-    }
 
-    public static InferredLattice create(final List<IRNode> vars, final NullLattice lattice) {
-      return new InferredLattice(lattice, modifyKeys(vars));
-    }
-    
     @Override
-    protected NullInfo getEmptyElementValue() {
+    public NullInfo getEmptyElementValue() {
       return NullInfo.IMPOSSIBLE;
     }
 
     @Override
-    protected NullInfo getNormalFlagValue() {
-      return NullInfo.NULL;
-    }
-
-    @Override
-    public NullInfo[] getEmptyValue() {
-      return empty;
-    }
-
-    @Override
-    protected void indexToString(final StringBuilder sb, final IRNode index) {
-      final Operator op = JJNode.tree.getOperator(index);
-      if (ParameterDeclaration.prototype.includes(op)) {
-        sb.append(ParameterDeclaration.getId(index));
-      } else { // VariableDeclarator
-        sb.append(VariableDeclarator.getId(index));
-      }
-    }
-
-    @Override
-    protected NullInfo[] newArray() {
+    public NullInfo[] newArray(final int size) {
       return new NullInfo[size];
     }
   }
@@ -266,26 +225,27 @@ implements IBinderClient {
    * annotation.
    */
   public static final class State extends StatePair<ImmutableSet<IRNode>, NullInfo> {
-    public State(final ImmutableSet<IRNode> nonNullVars, final NullInfo[] inferred) {
+    public State(final ImmutableSet<IRNode> nonNullVars, final InferredPair<NullInfo>[] inferred) {
       super(nonNullVars, inferred);
     }
   }
 
   public static final class StateLattice extends StatePairLattice<
       ImmutableSet<IRNode>, NullInfo, State,
-      IntersectionLattice<IRNode>, InferredLattice> {
+      IntersectionLattice<IRNode>, NullLattice> {
     private StateLattice(
-        final IntersectionLattice<IRNode> l1, final InferredLattice l2) {
-      super(l1, l2);
+        final IntersectionLattice<IRNode> l1, final NullLattice l2,
+        final List<IRNode> keys) {
+      super(l1, l2, keys);
     }
     
     @Override
-    protected State newPair(final ImmutableSet<IRNode> v1, final NullInfo[] v2) {
+    protected State newPair(final ImmutableSet<IRNode> v1, final InferredPair<NullInfo>[] v2) {
       return new State(v1, v2);
     }
 
     public State createInitialValue(final ImmutableSet<IRNode> initSet) {
-      return newPair(initSet, lattice2.getEmptyValue());
+      return newPair(initSet, getEmptyInferredValue());
     }
     
     public State addNonNull(final State val, final IRNode var) {
@@ -341,13 +301,13 @@ implements IBinderClient {
   }
   
   public static final class Lattice extends EvalLattice<
-      NullInfo, ImmutableSet<IRNode>, NullInfo, State, Value,
-      NullLattice, IntersectionLattice<IRNode>, InferredLattice, StateLattice> {
-    private Lattice(final InferredLattice inferredLattice) {
+      NullInfo, NullInfo, State, Value,
+      NullLattice, NullLattice, StateLattice> {
+    private Lattice(final List<IRNode> keys) {
       super(
           NullLattice.getInstance(),
           new StateLattice(
-              new ModifiedIntersectionLattice(), inferredLattice));
+              new ModifiedIntersectionLattice(), NullLattice.getInstance(), keys));
     }
 
     @Override
