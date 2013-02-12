@@ -213,28 +213,25 @@ public class LockAnalysis
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud,
 			final IRNode compUnit) {
+		boolean flushed = false;
 		if (byCompUnit) {
-			boolean flushed = queueWork(new TypeBodyPair(compUnit, null));
-			if (flushed) {
-				JavaComponentFactory.clearCache();
-			}
-			return true;
-		}
-		// FIX factor out?
-		final ClassProcessor cp = new ClassProcessor(getAnalysis());
-		TopLevelAnalysisVisitor.processCompilationUnit(cp, compUnit);
-		if (runInParallel() == ConcurrencyType.INTERNALLY) {
-			if (queueWork) {
-				boolean flushed = queueWork(cp.getTypeBodies());
-				if (flushed) {
-					JavaComponentFactory.clearCache();
+			flushed = queueWork(new TypeBodyPair(compUnit, null));
+		} else {
+			// FIX factor out?
+			final ClassProcessor cp = new ClassProcessor(getAnalysis());
+			TopLevelAnalysisVisitor.processCompilationUnit(cp, compUnit);
+			if (runInParallel() == ConcurrencyType.INTERNALLY) {
+				if (queueWork) {
+					flushed = queueWork(cp.getTypeBodies());
+				} else {
+					runInParallel(TypeBodyPair.class, cp.getTypeBodies(),
+							getWorkProcedure());
 				}
-			} else {
-				runInParallel(TypeBodyPair.class, cp.getTypeBodies(),
-						getWorkProcedure());
 			}
 		}
-		
+		if (flushed) {
+			JavaComponentFactory.clearCache();
+		}
 		return true;
 	}
 
