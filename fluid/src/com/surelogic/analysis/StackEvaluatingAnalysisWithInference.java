@@ -1,6 +1,7 @@
 package com.surelogic.analysis;
 
 import java.util.Iterator;
+import java.util.List;
 
 import com.surelogic.common.Pair;
 import com.surelogic.util.IRNodeIndexedArrayLattice;
@@ -9,6 +10,10 @@ import com.surelogic.util.IThunk;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.analysis.SimplifiedJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.uwm.cs.fluid.java.analysis.EvaluationStackLattice;
@@ -23,7 +28,7 @@ import edu.uwm.cs.fluid.util.PairLattice;
  * evaluation stack, additional arbitrary state, and also infers the state
  * of local variables.
  * 
- * <p>Primarily aggregates additoinal class declarations that are all
+ * <p>Primarily aggregates additional class declarations that are all
  * interrelated.
  * 
  * @param <V> The type of the stack elements.
@@ -33,7 +38,7 @@ import edu.uwm.cs.fluid.util.PairLattice;
  * @param <R> The type of the overall value used by analysis.  
  * @param <L1> The lattice type of the stack elements.
  * @param <L2> The lattice type of the arbitrary analysis state.
- * @param <L3> The lattice type of the array of inferred variable states.
+ * @param <L3> The lattice type of the inferred variable states.
  * @param <L4> The lattice type of the overall state object.
  * @parma <L5> The lattice type of the overall analysis.
  */
@@ -45,7 +50,7 @@ public abstract class StackEvaluatingAnalysisWithInference<
     R extends StackEvaluatingAnalysisWithInference.EvalValue<V, S, I, SS>,
     L1 extends Lattice<V>,
     L2 extends Lattice<S>,
-    L3 extends IRNodeIndexedArrayLattice<? extends Lattice<I>, I>,
+    L3 extends Lattice<I> & StackEvaluatingAnalysisWithInference.InferredHelper<I>,
     L4 extends StackEvaluatingAnalysisWithInference.StatePairLattice<S, I, SS, L2, L3>,
     L5 extends StackEvaluatingAnalysisWithInference.EvalLattice<V, S, I, SS, R, L1, L2, L3, L4>>
 extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
@@ -82,30 +87,88 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
   
   
   /**
+   * Mixin interface for lattices for the inferred values.  Adds functionality
+   * that allows the lattice for the array of inferred values to be encapsulated
+   * here.
+   */
+  public static interface InferredHelper<I> {
+    public I getEmptyElementValue();
+    public I[] newArray(int size);
+  }
+  
+  
+  /**
+   * Lattice for array of inferred variable states.
+   *
+   * @param <I> The type of the state to be inferred for each local variable.
+   * @param <L> The lattice type for the inferred values.
+   */
+  private static final class InferredLattice<I, L extends Lattice<I> & InferredHelper<I>> extends 
+  IRNodeIndexedArrayLattice<L, I> {
+    private final I[] empty;
+    
+    public InferredLattice(final L base, final List<IRNode> keys) {
+      super(base, keys);
+      empty = createEmptyValue();
+    }
+    
+    @Override
+    protected I getEmptyElementValue() {
+      return baseLattice.getEmptyElementValue();
+    }
+
+    @Override
+    public I[] getEmptyValue() {
+      return empty;
+    }
+
+    @Override
+    protected void indexToString(final StringBuilder sb, final IRNode index) {
+      final Operator op = JJNode.tree.getOperator(index);
+      if (ParameterDeclaration.prototype.includes(op)) {
+        sb.append(ParameterDeclaration.getId(index));
+      } else { // VariableDeclarator
+        sb.append(VariableDeclarator.getId(index));
+      }
+    }
+
+    @Override
+    protected I[] newArray() {
+      return baseLattice.newArray(size);
+    }
+  }
+  
+  
+  
+  /**
    * Lattice type for the state component of the evaluation. 
    *
    * @param <S> The type of the arbitrary analysis state.
    * @param <I> The type of the state to be inferred for each local variable.
-   * @param <L1> The lattice type for the arbitrary analysis state.
-   * @param <L2> The lattice type for the array of inferred variable states.
    * @param <V> The type of overall state object used during evaluation.
+   * @param <L1> The lattice type for the arbitrary analysis state.
+   * @param <L2> The lattice type for the variable states.
    */
   public static abstract class StatePairLattice<
       S, I, V extends StatePair<S, I>,
       L1 extends Lattice<S>,
-      L2 extends IRNodeIndexedArrayLattice<? extends Lattice<I>, I>>
-  extends PairLattice<S, I[], L1, L2, V> {
-    protected StatePairLattice(final L1 l1, final L2 l2) {
-      super(l1, l2);
+      L2 extends Lattice<I> & InferredHelper<I>>
+  extends PairLattice<S, I[], L1, InferredLattice<I, L2>, V> {
+    protected StatePairLattice(final L1 l1, final L2 l2, final List<IRNode> keys) {
+      super(l1, new InferredLattice<I, L2>(l2, keys));
     }
     
     
     
-    public final L2 getInferredLattice() {
+    public final InferredLattice<I, L2> getInferredLattice() {
       return lattice2;
     }
     
     
+    
+    public final I[] getEmptyInferredValue() {
+      return lattice2.getEmptyValue();
+    }
     
     /**
      * Get the array index of the given variable in the array of inferred
@@ -168,7 +231,7 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
    * @param <R> The type of the overall value used by analysis.  
    * @param <L1> The lattice type of the stack elements.
    * @param <L2> The lattice type of the arbitrary analysis state.
-   * @param <L3> The lattice type of the array of inferred variable states.
+   * @param <L3> The lattice type of the inferred variable states.
    * @param <L4> The lattice type of the overall state object.
    */
   public static abstract class EvalLattice<
@@ -179,7 +242,7 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
       R extends StackEvaluatingAnalysisWithInference.EvalValue<V, S, I, SS>,
       L1 extends Lattice<V>,
       L2 extends Lattice<S>,
-      L3 extends IRNodeIndexedArrayLattice<? extends Lattice<I>, I>,
+      L3 extends Lattice<I> & InferredHelper<I>,
       L4 extends StackEvaluatingAnalysisWithInference.StatePairLattice<S, I, SS, L2, L3>>
   extends EvaluationStackLattice<V, SS, L1, L4, R> {
     protected EvalLattice(final L1 l1, final L4 l2) {
@@ -188,7 +251,7 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
     
     
     
-    public final L3 getInferredLattice() {
+    public final InferredLattice<I, L3> getInferredLattice() {
       return lattice2.getInferredLattice();
     }
     
@@ -210,9 +273,8 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
   
   
   public static abstract class InferredVarStateQuery<
-      SELF extends InferredVarStateQuery<SELF, I, V, R, L1, L2>, 
-      I, V extends EvalValue<?, ?, I, ?>, R extends InferredResult<I, L1>,
-      L1 extends IRNodeIndexedArrayLattice<? extends Lattice<I>, I>,
+      SELF extends InferredVarStateQuery<SELF, I, L1, V, R, L2>, 
+      I, L1 extends Lattice<I> & InferredHelper<I>, V extends EvalValue<?, ?, I, ?>, R extends InferredResult<I, L1>,
       L2 extends StackEvaluatingAnalysisWithInference.EvalLattice<?, ?, I, ?, V, ?, ?, L1, ?>>
   extends SimplifiedJavaFlowAnalysisQuery<SELF, R, V, L2> {
     protected InferredVarStateQuery(final IThunk<? extends IJavaFlowAnalysis<V, L2>> thunk) {
@@ -235,7 +297,7 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
           lattice.getInferredLattice(), rawResult.second().second());
     }
 
-    protected abstract R makeInferredResult(L1 lattice, I[] inferredVars);
+    protected abstract R makeInferredResult(IRNodeIndexedArrayLattice<L1, I> lattice, I[] inferredVars);
   }
 
   
@@ -245,16 +307,13 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
    * {@link InferredVarStateQuery}.
    *
    * @param <I> The type of the state to be inferred for each local variable.
-   * @param <L> The lattice type of the array of inferred variable states.
    */
-  public static abstract class InferredResult<
-      I,
-      L extends IRNodeIndexedArrayLattice<? extends Lattice<I>, I>>
+  public static abstract class InferredResult<I, L extends Lattice<I>>
   implements Iterable<Pair<IRNode, I>> {
-    protected final L lattice;
+    protected final IRNodeIndexedArrayLattice<L, I> lattice;
     protected final I[] values;
     
-    protected InferredResult(final L lat, final I[] val) {
+    protected InferredResult(final IRNodeIndexedArrayLattice<L, I> lat, final I[] val) {
       lattice = lat;
       values = val;
     }
@@ -285,6 +344,6 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
   
   
   
-  public abstract InferredVarStateQuery<?, I, R, ? extends InferredResult<I, L3>, L3, L5>
+  public abstract InferredVarStateQuery<?, I, L3, R, ? extends InferredResult<I, L3>, L5>
   getInferredVarStateQuery(IRNode flowUnit);  
 }
