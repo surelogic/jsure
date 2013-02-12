@@ -17,7 +17,7 @@ public abstract class JJOperator extends Operator {
   @Override
   public final IRNode createNode() {
 	if (JJNode.specializeForSyntaxTree) {
-		  return new SyntaxTreeNode(this);
+		return SyntaxTreeNode.create(this, null);
 	} 
     return new JJNode(this);
   }
@@ -25,7 +25,7 @@ public abstract class JJOperator extends Operator {
   @Override
   public final IRNode createNode(SyntaxTreeInterface tree) {
 	if (JJNode.specializeForSyntaxTree && tree == tree()) {
-		return new SyntaxTreeNode(this);
+		return SyntaxTreeNode.create(this, null);
 	} 
     return new JJNode(tree, this);
   }

@@ -59,7 +59,9 @@ import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.tool.SureLogicToolsFilter;
 import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.dropsea.IAnalysisOutputDrop;
+import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.MetricDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.SeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.drops.BinaryCUDrop;
@@ -90,6 +92,7 @@ import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
+import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
 import edu.cmu.cs.fluid.java.adapter.AdapterUtil;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 import edu.cmu.cs.fluid.java.bind.AbstractTypeEnvironment;
@@ -531,10 +534,12 @@ public class Util {
       }
     }
     perf.setIntProperty("Total.try.destroyed", destroyedNodes);
+    //perf.setIntProperty("Total.not.destroyed", diffNodes);
     perf.setIntProperty("Total.canonical", canonicalNodes);
     perf.setIntProperty("Total.decls", decls);
     perf.setIntProperty("Total.stmts", stmts);
     perf.setIntProperty("Total.blocks", blocks);
+    perf.setIntProperty("Total.loc", computeLOC());
     perf.setLongProperty("Find.canon.time", findTime);
     perf.setLongProperty("Destroy.time", destroyTime);
     // System.out.println("Binary rewrites : "+binaryRewrites);
@@ -543,6 +548,14 @@ public class Util {
     perf.store();
     perf.print(System.out);
     return tmpLocation;
+  }
+
+  private static int computeLOC() {
+	int loc = 0;
+	for(MetricDrop m : Sea.getDefault().getDropsOfExactType(MetricDrop.class)) {
+		loc += m.getMetricInfoAsInt(IMetricDrop.SLOC_LINE_COUNT, 0);		
+	}
+	return loc;
   }
 
   private static void filterResultsBySureLogicToolsPropertiesFile(Projects projects) {
@@ -989,7 +1002,7 @@ public class Util {
 		  final String typeName = info.getFileName();
 		  try {
 			  final long start = System.currentTimeMillis();
-			  List<IRNode> noncanonical = findNoncanonical(cu);
+			  final Nodes nodes = findNoncanonical(cu);
 			  final long find = System.currentTimeMillis();
 			  /*
 			   * Not quite right, since it will miss (un)boxing and the like if
@@ -1013,7 +1026,7 @@ public class Util {
 			  } else if (debug) {
 				  System.out.println("NOT canonicalized " + typeName);
 			  }
-			  destroyNoncanonical(noncanonical);
+			  destroyNoncanonical(nodes);
 
 			  final long destroy = System.currentTimeMillis();
 			  findTime += (find-start);
@@ -1081,15 +1094,27 @@ public class Util {
   }
   
   static long destroyTime = 0, findTime = 0;
-  static int destroyedNodes = 0, canonicalNodes = 0;
+  static int destroyedNodes = 0, canonicalNodes = 0;//, diffNodes = 0;
   static int decls = 0, stmts = 0, blocks = 0;
 
-  private static List<IRNode> findNoncanonical(IRNode cu) {
-    List<IRNode> noncanonical = new ArrayList<IRNode>();
+  static class Nodes {
+	  //final Set<IRNode> original = new HashSet<IRNode>();
+	  final List<IRNode> noncanonical = new ArrayList<IRNode>();
+	  final IRNode cu;
+	  
+	  Nodes(IRNode cu) {
+		this.cu = cu;
+	  }
+  }
+  
+  private static Nodes findNoncanonical(IRNode cu) {
+	Nodes rv = new Nodes(cu);
     for (IRNode n : JJNode.tree.topDown(cu)) {
+      //rv.original.add(n);
+      
       Operator op = JJNode.tree.getOperator(n);
       if (op instanceof IllegalCode) {
-        noncanonical.add(n);
+        rv.noncanonical.add(n);
       } else {
         // FIX these aren't all of them
         canonicalNodes++;
@@ -1104,13 +1129,27 @@ public class Util {
         }
       }
     }
-    return noncanonical;
+    return rv;
   }
 
-  private static void destroyNoncanonical(List<IRNode> noncanonical) {
-    destroyedNodes += noncanonical.size();
+  private static void destroyNoncanonical(Nodes nodes) {
+	/*
+	for (IRNode n : JJNode.tree.topDown(nodes.cu)) {
+		nodes.original.remove(n);
+	}
+	final int origSize = nodes.original.size();
+	*/
+	final int noncanonSize = nodes.noncanonical.size();
+	/*
+	if (origSize != noncanonSize) {
+		//System.out.println("Found "+origSize+" nodes vs. "+noncanonSize+" noncanonical");
+		diffNodes += (origSize - noncanonSize);
+	}
+	*/
+    destroyedNodes += noncanonSize;
 
-    for (IRNode n : noncanonical) {
+    for (IRNode n : nodes.noncanonical) {
+      SkeletonJavaRefUtility.removeInfo(n);	
       n.destroy();
     }
   }

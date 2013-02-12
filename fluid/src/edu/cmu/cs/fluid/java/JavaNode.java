@@ -82,28 +82,28 @@ public class JavaNode extends JJNode {
 
   public static JavaNode makeJavaNode(Operator op) {
     if (JJNode.specializeForSyntaxTree) {
-      return new SyntaxTreeNode(op);
+      return SyntaxTreeNode.create(op, null);
     }
     return new JavaNode(tree, op);
   }
 
   public static JavaNode makeJavaNode(Operator op, IRNode[] children) {
     if (JJNode.specializeForSyntaxTree) {
-      return new SyntaxTreeNode(op, children);
+      return SyntaxTreeNode.create(op, children);
     }
     return new JavaNode(tree, op, children);
   }
 
   public static JavaNode makeJavaNode(SyntaxTreeInterface tree, Operator op) {
     if (JJNode.specializeForSyntaxTree && JJNode.tree == tree) {
-      return new SyntaxTreeNode(op);
+      return SyntaxTreeNode.create(op, null);
     }
     return new JavaNode(tree, op);
   }
 
   public static JavaNode makeJavaNode(SyntaxTreeInterface tree, Operator op, IRNode[] children) {
     if (JJNode.specializeForSyntaxTree && JJNode.tree == tree) {
-      return new SyntaxTreeNode(op, children);
+      return SyntaxTreeNode.create(op, children);
     }
     return new JavaNode(tree, op, children);
   }
