@@ -221,47 +221,6 @@ implements IBinderClient {
   
   
   
-//  public static final class InferredLattice extends 
-//  IRNodeIndexedArrayLattice<NullLattice, NullInfo> {
-//    private final NullInfo[] empty;
-//    
-//    private InferredLattice(final NullLattice base, final List<IRNode> keys) {
-//      super(base, keys);
-//      empty = createEmptyValue();
-//    }
-//
-//    public static InferredLattice create(final List<IRNode> vars, final NullLattice lattice) {
-//      return new InferredLattice(lattice, vars);
-//    }
-//    
-//    @Override
-//    protected NullInfo getEmptyElementValue() {
-//      return NullInfo.IMPOSSIBLE;
-//    }
-//
-//    @Override
-//    public NullInfo[] getEmptyValue() {
-//      return empty;
-//    }
-//
-//    @Override
-//    protected void indexToString(final StringBuilder sb, final IRNode index) {
-//      final Operator op = JJNode.tree.getOperator(index);
-//      if (ParameterDeclaration.prototype.includes(op)) {
-//        sb.append(ParameterDeclaration.getId(index));
-//      } else { // VariableDeclarator
-//        sb.append(VariableDeclarator.getId(index));
-//      }
-//    }
-//
-//    @Override
-//    protected NullInfo[] newArray() {
-//      return new NullInfo[size];
-//    }
-//  }
-  
-  
-  
   /* The analysis state is a set of non-null variables and an association list.
    * The association list is a map from all the annotated local variable 
    * declarations (not including parameter declarations) to the inferred
