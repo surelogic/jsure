@@ -67,8 +67,8 @@ import edu.uwm.cs.fluid.java.control.LatticeDelegatingJavaEvaluationTransfer;
  */
 public final class RawTypeAnalysis 
 extends StackEvaluatingAnalysisWithInference<
-    Element, Element[], Element, RawTypeAnalysis.State, RawTypeAnalysis.Value,
-    RawLattice, RawVariables, RawLattice, RawTypeAnalysis.StateLattice, RawTypeAnalysis.Lattice>
+    Element, RawTypeAnalysis.Value,
+    RawLattice, RawTypeAnalysis.Lattice>
 implements IBinderClient {
   public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Pair<Lattice, Element[]>, Value, Lattice> {
     public Query(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
@@ -387,8 +387,8 @@ implements IBinderClient {
   }
   
   public static final class Lattice extends EvalLattice<
-      Element, Element[], Element, State, Value,
-      RawLattice, RawVariables, RawLattice, StateLattice> {
+      Element, Element, State, Value,
+      RawLattice, RawLattice, StateLattice> {
     protected Lattice(final RawLattice l1, final RawTypeAnalysis.StateLattice l2) {
       super(l1, l2);
     }

@@ -58,11 +58,8 @@ import edu.uwm.cs.fluid.util.IntersectionLattice;
  */
 public final class NonNullAnalysis 
 extends StackEvaluatingAnalysisWithInference<
-    NonNullAnalysis.NullInfo, ImmutableSet<IRNode>, NonNullAnalysis.NullInfo,
-    NonNullAnalysis.State, NonNullAnalysis.Value,
-    NonNullAnalysis.NullLattice, IntersectionLattice<IRNode>,
-    NonNullAnalysis.NullLattice, NonNullAnalysis.StateLattice,
-    NonNullAnalysis.Lattice>
+    NonNullAnalysis.NullInfo, NonNullAnalysis.Value,
+    NonNullAnalysis.NullLattice, NonNullAnalysis.Lattice>
 implements IBinderClient {
   public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Set<IRNode>, Value, Lattice> {
     public Query(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
@@ -305,8 +302,8 @@ implements IBinderClient {
   }
   
   public static final class Lattice extends EvalLattice<
-      NullInfo, ImmutableSet<IRNode>, NullInfo, State, Value,
-      NullLattice, IntersectionLattice<IRNode>, NullLattice, StateLattice> {
+      NullInfo, NullInfo, State, Value,
+      NullLattice, NullLattice, StateLattice> {
     private Lattice(final List<IRNode> keys) {
       super(
           NullLattice.getInstance(),
