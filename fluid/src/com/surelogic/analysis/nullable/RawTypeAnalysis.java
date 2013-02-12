@@ -21,7 +21,6 @@ import com.surelogic.analysis.nullable.RawLattice.Element;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.Pair;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
-import com.surelogic.util.IRNodeIndexedArrayLattice;
 import com.surelogic.util.IThunk;
 import com.surelogic.util.NullList;
 
@@ -142,8 +141,8 @@ implements IBinderClient {
 
     @Override
     protected Inferred makeInferredResult(
-        final IRNodeIndexedArrayLattice<RawLattice, Element> lat, final Element[] val) {
-      return new Inferred(lat, val);
+        final IRNode[] keys, final InferredPair<Element>[] val, final RawLattice l) {
+      return new Inferred(keys, val, l);
     }
     
     @Override
@@ -153,12 +152,12 @@ implements IBinderClient {
   }
   
   public final class Inferred extends InferredResult<Element, RawLattice> {
-    private Inferred(final IRNodeIndexedArrayLattice<RawLattice, Element> lat, final Element[] val) {
-      super(lat, val);
+    private Inferred(final IRNode[] keys, final InferredPair<Element>[] val, final RawLattice l) {
+      super(keys, val, l);
     }
     
     public Element injectAnnotation(final RawPromiseDrop pd) {
-      return lattice.getBaseLattice().injectPromiseDrop(pd);
+      return inferredStateLattice.injectPromiseDrop(pd);
     }
   }
   
@@ -310,7 +309,7 @@ implements IBinderClient {
    * annotation.
    */
   static final class State extends StatePair<Element[], Element> {
-    public State(final Element[] vars, final Element[] inferred) {
+    public State(final Element[] vars, final InferredPair<Element>[] inferred) {
       super(vars, inferred);
     }
   }
@@ -323,7 +322,7 @@ implements IBinderClient {
     }
     
     @Override
-    protected State newPair(final Element[] v1, final Element[] v2) {
+    protected State newPair(final Element[] v1, final InferredPair<Element>[] v2) {
       return new State(v1, v2);
     }
     

@@ -46,6 +46,4 @@ public class IntersectionLattice<T> extends AbstractLattice<ImmutableSet<T>> {
   public ImmutableSet<T> join(ImmutableSet<T> v1, ImmutableSet<T> v2) {
     return v1.intersection(v2);
   }
-
-  
 }

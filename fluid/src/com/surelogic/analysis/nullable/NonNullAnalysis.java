@@ -17,7 +17,6 @@ import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePair;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePairLattice;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.util.IRNodeIndexedArrayLattice;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -105,8 +104,8 @@ implements IBinderClient {
 
     @Override
     protected Inferred makeInferredResult(
-        final IRNodeIndexedArrayLattice<NullLattice, NullInfo> lattice, final NullInfo[] inferredVars) {
-      return new Inferred(lattice, inferredVars);
+        final IRNode[] keys, final InferredPair<NullInfo>[] val, final NullLattice sl) {
+      return new Inferred(keys, val, sl);
     }
 
     @Override
@@ -116,8 +115,8 @@ implements IBinderClient {
   }
   
   public final class Inferred extends InferredResult<NullInfo, NullLattice> {
-    private Inferred(final IRNodeIndexedArrayLattice<NullLattice, NullInfo> lat, final NullInfo[] val) {
-      super(lat, val);
+    private Inferred(final IRNode[] keys, final InferredPair<NullInfo>[] val, final NullLattice sl) {
+      super(keys, val, sl);
     }
   }
   
@@ -226,7 +225,7 @@ implements IBinderClient {
    * annotation.
    */
   public static final class State extends StatePair<ImmutableSet<IRNode>, NullInfo> {
-    public State(final ImmutableSet<IRNode> nonNullVars, final NullInfo[] inferred) {
+    public State(final ImmutableSet<IRNode> nonNullVars, final InferredPair<NullInfo>[] inferred) {
       super(nonNullVars, inferred);
     }
   }
@@ -241,7 +240,7 @@ implements IBinderClient {
     }
     
     @Override
-    protected State newPair(final ImmutableSet<IRNode> v1, final NullInfo[] v2) {
+    protected State newPair(final ImmutableSet<IRNode> v1, final InferredPair<NullInfo>[] v2) {
       return new State(v1, v2);
     }
 
