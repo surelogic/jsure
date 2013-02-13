@@ -3213,4 +3213,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
   	}
   	return null;
   }
+
+  /**
+   * Accessor to allow LockUtils to be reused
+   */
+  public LockUtils getLockUtils() {
+	  return lockUtils;
+  }
 }
