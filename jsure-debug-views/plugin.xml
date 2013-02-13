@@ -18,6 +18,11 @@
 			class="com.surelogic.jsure.views.debug.imageCache.ImageCacheView"
 			id="com.surelogic.jsure.views.debug.imageCache.ImageCacheView">
 		</view>
+		<view name="JSure Scan File View"
+			category="com.surelogic.jsure.views.debug"
+			class="com.surelogic.jsure.views.debug.scans.JSureScanFileView"
+			id="com.surelogic.jsure.views.debug.scans.JSureScanFileView">
+		</view>
 	</extension>
 
   <extension point="org.eclipse.ui.viewActions">
