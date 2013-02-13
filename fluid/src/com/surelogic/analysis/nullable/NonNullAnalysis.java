@@ -375,7 +375,7 @@ implements IBinderClient {
     @Override
     protected Value transferAssignVar(final IRNode use, final Value val) {
       IRNode var = binder.getIBinding(use).getNode();
-      return transferSetVar(var, val);
+      return transferSetVar(var, val, use);
     }
 
     /**
@@ -385,13 +385,13 @@ implements IBinderClient {
      * @return
      */
     @SuppressWarnings("unused") // for the "debug" flag
-    private Value transferSetVar(final IRNode varDecl, Value val) {
+    private Value transferSetVar(final IRNode varDecl, Value val, final IRNode src) {
       final NullInfo ni = lattice.peek(val);
       
       // (1) Update the inferred state of the assigned variable
       final int inferredIdx = lattice.indexOfInferred(varDecl);
       if (inferredIdx != -1) {
-        val = lattice.inferVar(val, inferredIdx, ni);
+        val = lattice.inferVar(val, inferredIdx, ni, src);
       }
 
       // (2) Update the current state of non nul variables
@@ -492,7 +492,7 @@ implements IBinderClient {
     protected Value transferInitializationOfVar(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
       
-      return pop(transferSetVar(node, val));
+      return pop(transferSetVar(node, val, node));
     }
 
     @Override

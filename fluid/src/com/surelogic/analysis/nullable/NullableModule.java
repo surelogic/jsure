@@ -1,12 +1,14 @@
 package com.surelogic.analysis.nullable;
 
 import java.util.Map;
+import java.util.Set;
 
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.ResultsBuilder;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.Assignment;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.InferredVarStateQuery;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.Result;
 import com.surelogic.analysis.Unused;
@@ -17,7 +19,8 @@ import com.surelogic.analysis.nullable.NonNullAnalysis.NullLattice;
 import com.surelogic.analysis.nullable.NullableModule.AnalysisBundle.QueryBundle;
 import com.surelogic.analysis.nullable.RawLattice.Element;
 import com.surelogic.annotation.rules.NonNullRules;
-import com.surelogic.common.Pair;
+import com.surelogic.dropsea.ir.HintDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
@@ -26,6 +29,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.util.Triple;
 
 public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule.AnalysisBundle, Unused>{
   private static final int DEFINITELY_ASSIGNED = 900;
@@ -33,6 +37,7 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
   
   private static final int RAW_LOCAL_GOOD = 910;
   private static final int RAW_LOCAL_BAD = 911;
+  private static final int ASSIGNMENT = 912;
   
   
   
@@ -89,7 +94,7 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
         final NonNullPromiseDrop pd = NonNullRules.getNonNull(fieldDecl);
         if (pd != null) {
           final boolean isDefinitelyAssigned = e.getValue().booleanValue();
-          ResultsBuilder.createResult(cdecl, pd, isDefinitelyAssigned,
+          final ResultDrop rd = ResultsBuilder.createResult(cdecl, pd, isDefinitelyAssigned,
               DEFINITELY_ASSIGNED, NOT_DEFINITELY_ASSIGNED,
               JavaNames.genSimpleMethodConstructorName(cdecl));
         }
@@ -101,24 +106,36 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
       doAcceptForChildren(body);
       
       final Result<RawLattice.Element, RawLattice> inferredRaw = currentQuery().getInferredRaw(body);
-      for (final Pair<IRNode, Element> p : inferredRaw) {
+      for (final Triple<IRNode, Element, Set<Assignment<Element>>> p : inferredRaw) {
         final IRNode varDecl = p.first();
         final RawPromiseDrop pd = NonNullRules.getRaw(varDecl);
         final Element annotation = inferredRaw.getLattice().injectPromiseDrop(pd);
         final Element inferred = p.second();
         final boolean isGood = inferredRaw.lessEq(inferred, annotation);
-        ResultsBuilder.createResult(
+        final ResultDrop rd = ResultsBuilder.createResult(
             varDecl, pd, isGood, RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
+        
+        for (final Assignment<Element> a : p.third()) {
+          final HintDrop hint = HintDrop.newInformation(a.first());
+          hint.setMessage(ASSIGNMENT, a.second());
+          rd.addDependent(hint);
+        }
       }
       
       final Result<NullInfo, NullLattice> inferredNull = currentQuery().getInferredNull(body);
-      for (final Pair<IRNode, NullInfo> p : inferredNull) {
+      for (final Triple<IRNode, NullInfo, Set<Assignment<NullInfo>>> p : inferredNull) {
         final IRNode varDecl = p.first();
         final NullInfo inferred = p.second();
         final boolean isGood = inferredNull.lessEq(inferred, NullInfo.NOTNULL);
-        ResultsBuilder.createResult(
+        final ResultDrop rd = ResultsBuilder.createResult(
             varDecl, NonNullRules.getNonNull(varDecl), isGood,
             RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
+        
+        for (final Assignment<NullInfo> a : p.third()) {
+          final HintDrop hint = HintDrop.newInformation(a.first());
+          hint.setMessage(ASSIGNMENT, a.second());
+          rd.addDependent(hint);
+        }
       }
       return null;
     }

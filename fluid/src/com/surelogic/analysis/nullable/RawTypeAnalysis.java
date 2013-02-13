@@ -507,17 +507,17 @@ implements IBinderClient {
       if (!lattice.isNormal(val)) return val;
  
       // transfer the state of the stack into the variable
-      return setVar(binder.getIBinding(use).getNode(), val);
+      return setVar(binder.getIBinding(use).getNode(), val, use);
     }
 
-    private Value setVar(final IRNode varDecl, final Value val) {
+    private Value setVar(final IRNode varDecl, final Value val, final IRNode src) {
       final int idx = lattice.indexOf(varDecl);
       if (idx != -1) {
         final Element rawState = lattice.peek(val);
         Value newValue = lattice.setVar(val, idx, rawState);
         final int inferredIdx = lattice.indexOfInferred(varDecl);
         if (inferredIdx != -1) {
-          newValue = lattice.inferVar(newValue, inferredIdx, rawState);
+          newValue = lattice.inferVar(newValue, inferredIdx, rawState, src);
         }
         return newValue;
       } else {
@@ -588,7 +588,7 @@ implements IBinderClient {
     @Override
     protected Value transferInitializationOfVar(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      return pop(setVar(node, val));
+      return pop(setVar(node, val, node));
     }
     
     // Start with considering transferInstanceOf()

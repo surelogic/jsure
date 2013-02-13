@@ -2,8 +2,8 @@ package com.surelogic.analysis;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
-import com.surelogic.common.Pair;
 import com.surelogic.util.IRNodeIndexedArrayLattice;
 import com.surelogic.util.IThunk;
 
@@ -18,6 +18,7 @@ import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
+import edu.cmu.cs.fluid.util.Triple;
 import edu.uwm.cs.fluid.java.analysis.EvaluationStackLattice;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
@@ -126,8 +127,10 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
      * Set the inferred state of a local variable at the given index.
      */
     public InferredPair<I> inferVar(
-        final InferredPair<I> current, final I v) {
-      return newPair(lattice1.join(current.getInferred(), v), current.second());
+        final InferredPair<I> current, final I v, final IRNode src) {
+      return newPair(
+          lattice1.join(current.getInferred(), v),
+          current.second().addCopy(new Assignment<I>(src, v)));
     }
   }
   
@@ -185,8 +188,8 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
      * Set the inferred state of a local variable at the given index.
      */
     public final InferredPair<I>[] inferVar(
-        final InferredPair<I>[] current, final int idx, final I v) {
-      return replaceValue(current, idx, baseLattice.inferVar(current[idx], v));
+        final InferredPair<I>[] current, final int idx, final I v, final IRNode src) {
+      return replaceValue(current, idx, baseLattice.inferVar(current[idx], v, src));
     }
 
   }
@@ -256,8 +259,8 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
     /**
      * Set the inferred state of a local variable at the given index.
      */
-    public final V inferVar(final V state, final int idx, final I v) {
-      return newPair(state.first(), lattice2.inferVar(state.second(), idx, v));
+    public final V inferVar(final V state, final int idx, final I v, final IRNode src) {
+      return newPair(state.first(), lattice2.inferVar(state.second(), idx, v, src));
     }
   }
 
@@ -328,8 +331,8 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
       return lattice2.indexOfInferred(var);
     }
     
-    public final R inferVar(final R v, final int idx, final I e) {
-      return newPair(v.first(), lattice2.inferVar(v.second(), idx, e));
+    public final R inferVar(final R v, final int idx, final I e, final IRNode src) {
+      return newPair(v.first(), lattice2.inferVar(v.second(), idx, e, src));
     }
   }
 
@@ -381,7 +384,7 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
    * @param <I> The type of the state to be inferred for each local variable.
    */
   public static final class Result<I, L extends Lattice<I>>
-  implements Iterable<Pair<IRNode, I>> {
+  implements Iterable<Triple<IRNode, I, Set<Assignment<I>>>> {
     private final L inferredStateLattice;
     private final IRNode[] keys;
     private final InferredPair<I>[] values;
@@ -393,8 +396,8 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
     }
     
     @Override
-    public final Iterator<Pair<IRNode, I>> iterator() {
-      return new AbstractRemovelessIterator<Pair<IRNode, I>>() {
+    public final Iterator<Triple<IRNode, I, Set<Assignment<I>>>> iterator() {
+      return new AbstractRemovelessIterator<Triple<IRNode, I, Set<Assignment<I>>>>() {
         private int idx = 0;
         
         @Override
@@ -403,10 +406,12 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
         }
 
         @Override
-        public Pair<IRNode, I> next() {
+        public Triple<IRNode, I, Set<Assignment<I>>> next() {
           final int currentIdx = idx++;
-          return new Pair<IRNode, I>(
-              keys[currentIdx], values[currentIdx].getInferred());
+          final InferredPair<I> inferredPair = values[currentIdx];
+          return new Triple<IRNode, I, Set<Assignment<I>>>(
+              keys[currentIdx],
+              inferredPair.getInferred(), inferredPair.second());
         }
       };
     }
