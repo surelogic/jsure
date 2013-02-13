@@ -92,36 +92,6 @@ implements IBinderClient {
   
   
   
-  public final class InferredNullQuery extends InferredVarStateQuery<
-       InferredNullQuery, NullInfo, NullLattice, Value, Inferred, Lattice> {
-    private InferredNullQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
-      super(thunk);
-    }
-    
-    private InferredNullQuery(final Delegate<InferredNullQuery, Inferred, Value, Lattice> d) {
-      super(d);
-    }
-
-    @Override
-    protected Inferred makeInferredResult(
-        final IRNode[] keys, final InferredPair<NullInfo>[] val, final NullLattice sl) {
-      return new Inferred(keys, val, sl);
-    }
-
-    @Override
-    protected InferredNullQuery newSubAnalysisQuery(final Delegate<InferredNullQuery, Inferred, Value, Lattice> d) {
-      return new InferredNullQuery(d);
-    }
-  }
-  
-  public final class Inferred extends InferredResult<NullInfo, NullLattice> {
-    private Inferred(final IRNode[] keys, final InferredPair<NullInfo>[] val, final NullLattice sl) {
-      super(keys, val, sl);
-    }
-  }
-  
-  
-  
   private static final boolean debug = false;
   @SuppressWarnings("unused")
   private static final Logger LOG = SLLogger.getLogger("FLUID.control.java.simpleNonNull");
@@ -153,11 +123,6 @@ implements IBinderClient {
   
   public Query getNonnullBeforeQuery(final IRNode flowUnit) {
     return new Query(getAnalysisThunk(flowUnit));
-  }
-  
-  @Override
-  public InferredNullQuery getInferredVarStateQuery(final IRNode flowUnit) {
-    return new InferredNullQuery(getAnalysisThunk(flowUnit));
   }
   
 

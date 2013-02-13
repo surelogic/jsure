@@ -339,16 +339,15 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
 
   
   
-  public static abstract class InferredVarStateQuery<
-      SELF extends InferredVarStateQuery<SELF, I, L1, V, R, L2>, 
-      I, L1 extends Lattice<I> & InferredHelper<I>, V extends EvalValue<?, ?, I, ?>, R extends InferredResult<I, L1>,
+  public static final class InferredVarStateQuery<
+      I, L1 extends Lattice<I> & InferredHelper<I>, V extends EvalValue<?, ?, I, ?>,
       L2 extends StackEvaluatingAnalysisWithInference.EvalLattice<?, I, ?, V, ?, L1, ?>>
-  extends SimplifiedJavaFlowAnalysisQuery<SELF, R, V, L2> {
+  extends SimplifiedJavaFlowAnalysisQuery<InferredVarStateQuery<I, L1, V, L2>, Result<I, L1>, V, L2> {
     protected InferredVarStateQuery(final IThunk<? extends IJavaFlowAnalysis<V, L2>> thunk) {
       super(thunk);
     }
     
-    protected InferredVarStateQuery(final Delegate<SELF, R, V, L2> d) {
+    protected InferredVarStateQuery(final Delegate<InferredVarStateQuery<I, L1, V, L2>, Result<I, L1>, V, L2> d) {
       super(d);
     }
     
@@ -358,16 +357,19 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
     }
 
     @Override
-    protected final R processRawResult(
+    protected final Result<I, L1> processRawResult(
         final IRNode expr, final L2 lattice, final V rawResult) {
-      return makeInferredResult(
+      return new Result<I, L1>(
           lattice.getInferredStateKeys(),
           rawResult.second().second(),
           lattice.getInferredStateLattice());
     }
 
-    protected abstract R makeInferredResult(
-        IRNode[] keys, InferredPair<I>[] values, L1 lattice);
+    @Override
+    protected InferredVarStateQuery<I, L1, V, L2> newSubAnalysisQuery(
+        final Delegate<InferredVarStateQuery<I, L1, V, L2>, Result<I, L1>, V, L2> delegate) {
+      return new InferredVarStateQuery<I, L1, V, L2>(delegate);
+    }
   }
 
   
@@ -378,13 +380,13 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
    *
    * @param <I> The type of the state to be inferred for each local variable.
    */
-  public static abstract class InferredResult<I, L extends Lattice<I>>
+  public static final class Result<I, L extends Lattice<I>>
   implements Iterable<Pair<IRNode, I>> {
-    protected final L inferredStateLattice;
-    protected final IRNode[] keys;
-    protected final InferredPair<I>[] values;
+    private final L inferredStateLattice;
+    private final IRNode[] keys;
+    private final InferredPair<I>[] values;
     
-    protected InferredResult(final IRNode[] keys, final InferredPair<I>[] val, final L sl) {
+    protected Result(final IRNode[] keys, final InferredPair<I>[] val, final L sl) {
       this.keys = keys;
       this.values = val;
       this.inferredStateLattice = sl;
@@ -408,6 +410,10 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
         }
       };
     }
+    
+    public L getLattice() {
+      return inferredStateLattice;
+    }
 
     public final boolean lessEq(final I a, final I b) {
       return inferredStateLattice.lessEq(a, b);
@@ -416,6 +422,8 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
   
   
   
-  public abstract InferredVarStateQuery<?, I, L3, R, ? extends InferredResult<I, L3>, L5>
-  getInferredVarStateQuery(IRNode flowUnit);  
+  public final InferredVarStateQuery<I, L3, R, L5>
+  getInferredVarStateQuery(final IRNode flowUnit) {
+    return new InferredVarStateQuery<I, L3, R, L5>(getAnalysisThunk(flowUnit));
+  }
 }

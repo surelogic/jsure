@@ -7,14 +7,15 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.ResultsBuilder;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.InferredVarStateQuery;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.Result;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
-import com.surelogic.analysis.nullable.NonNullAnalysis.InferredNullQuery;
 import com.surelogic.analysis.nullable.NonNullAnalysis.NullInfo;
+import com.surelogic.analysis.nullable.NonNullAnalysis.NullLattice;
 import com.surelogic.analysis.nullable.NullableModule.AnalysisBundle.QueryBundle;
 import com.surelogic.analysis.nullable.RawLattice.Element;
-import com.surelogic.analysis.nullable.RawTypeAnalysis.InferredRawQuery;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.Pair;
 import com.surelogic.dropsea.ir.drops.CUDrop;
@@ -99,18 +100,18 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     public Void visitMethodBody(final IRNode body) {
       doAcceptForChildren(body);
       
-      final RawTypeAnalysis.Inferred inferredRaw = currentQuery().getInferredRaw(body);
+      final Result<RawLattice.Element, RawLattice> inferredRaw = currentQuery().getInferredRaw(body);
       for (final Pair<IRNode, Element> p : inferredRaw) {
         final IRNode varDecl = p.first();
         final RawPromiseDrop pd = NonNullRules.getRaw(varDecl);
-        final Element annotation = inferredRaw.injectAnnotation(pd);
+        final Element annotation = inferredRaw.getLattice().injectPromiseDrop(pd);
         final Element inferred = p.second();
         final boolean isGood = inferredRaw.lessEq(inferred, annotation);
         ResultsBuilder.createResult(
             varDecl, pd, isGood, RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
       }
       
-      final NonNullAnalysis.Inferred inferredNull = currentQuery().getInferredNull(body);
+      final Result<NullInfo, NullLattice> inferredNull = currentQuery().getInferredNull(body);
       for (final Pair<IRNode, NullInfo> p : inferredNull) {
         final IRNode varDecl = p.first();
         final NullInfo inferred = p.second();
@@ -164,8 +165,8 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     
     final class QueryBundle {
       private final AllResultsQuery allResultsQuery;
-      private final InferredRawQuery inferredRawQuery;
-      private final InferredNullQuery inferredNullQuery;
+      private final InferredVarStateQuery<RawLattice.Element, RawLattice, ?, ?> inferredRawQuery;
+      private final InferredVarStateQuery<NullInfo, NullLattice, ?, ?> inferredNullQuery;
       
       public QueryBundle(final IRNode flowUnit) {
         allResultsQuery = definiteAssignment.getAllResultsQuery(flowUnit);
@@ -187,11 +188,11 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
         return allResultsQuery.getResultFor(node);
       }
       
-      public RawTypeAnalysis.Inferred getInferredRaw(final IRNode node) {
+      public Result<RawLattice.Element, RawLattice> getInferredRaw(final IRNode node) {
         return inferredRawQuery.getResultFor(node);
       }
       
-      public NonNullAnalysis.Inferred getInferredNull(final IRNode node) {
+      public Result<NullInfo, NullLattice> getInferredNull(final IRNode node) {
         return inferredNullQuery.getResultFor(node);
       }
     }

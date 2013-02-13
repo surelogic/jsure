@@ -125,41 +125,6 @@ implements IBinderClient {
       return new QualifiedThisQuery(d);
     }
   }
-
-  
-  
-  
-  public final class InferredRawQuery extends InferredVarStateQuery<
-      InferredRawQuery, Element, RawLattice, Value, Inferred, Lattice> {
-    private InferredRawQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
-      super(thunk);
-    }
-    
-    private InferredRawQuery(final Delegate<InferredRawQuery, Inferred, Value, Lattice> d) {
-      super(d);
-    }
-
-    @Override
-    protected Inferred makeInferredResult(
-        final IRNode[] keys, final InferredPair<Element>[] val, final RawLattice l) {
-      return new Inferred(keys, val, l);
-    }
-    
-    @Override
-    protected InferredRawQuery newSubAnalysisQuery(final Delegate<InferredRawQuery, Inferred, Value, Lattice> d) {
-      return new InferredRawQuery(d);
-    }
-  }
-  
-  public final class Inferred extends InferredResult<Element, RawLattice> {
-    private Inferred(final IRNode[] keys, final InferredPair<Element>[] val, final RawLattice l) {
-      super(keys, val, l);
-    }
-    
-    public Element injectAnnotation(final RawPromiseDrop pd) {
-      return inferredStateLattice.injectPromiseDrop(pd);
-    }
-  }
   
   
   
@@ -705,11 +670,6 @@ implements IBinderClient {
 
 
   
-  @Override
-  public InferredRawQuery getInferredVarStateQuery(final IRNode flowUnit) {
-    return new InferredRawQuery(getAnalysisThunk(flowUnit));
-  }
-
   public Query getRawTypeQuery(final IRNode flowUnit) {
     return new Query(getAnalysisThunk(flowUnit));
   }
