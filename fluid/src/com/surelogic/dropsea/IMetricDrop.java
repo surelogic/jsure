@@ -53,8 +53,28 @@ public interface IMetricDrop extends IDrop, ISnapshotDrop {
    * STATE_WRT_CONCURRENCY
    */
 
-  // TODO
-
+  /**
+   * A count of @Immutable-typed fields in the type
+   */
+  String CONCURR_IMMUTABLE_COUNT = "concurr-immutable-count";
+  /**
+   * A count of @ThreadSafe-typed fields in the type
+   */
+  String CONCURR_THREADSAFE_COUNT = "concurr-threadsafe-count";
+  /**
+   * A count of lock-protected fields in the type
+   */
+  String CONCURR_LOCK_PROTECTED_COUNT = "concurr-lock-protected-count";
+  /**
+   * A count of thread-confined fields in the type
+   */
+  String CONCURR_THREAD_CONFINED_COUNT = "concurr-thread-confined-count";
+  /**
+   * A count of fields not covered above in the type
+   */
+  String CONCURR_OTHER_COUNT = "concurr-other-count";
+  
+  
   /**
    * Gets the metric this drop of information contributes too.
    * <p>

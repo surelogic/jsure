@@ -73,7 +73,6 @@ import com.surelogic.dropsea.ir.drops.PromisePromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModelClearOutUnusedStaticProofHook;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 import com.surelogic.dropsea.ir.utility.Dependencies;
-import com.surelogic.javac.adapter.*;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureDataDirScanner;
 import com.surelogic.javac.persistence.JSurePerformance;
@@ -552,8 +551,10 @@ public class Util {
 
   private static int computeLOC() {
 	int loc = 0;
-	for(MetricDrop m : Sea.getDefault().getDropsOfExactType(MetricDrop.class)) {
-		loc += m.getMetricInfoAsInt(IMetricDrop.SLOC_LINE_COUNT, 0);		
+	for(MetricDrop m : Sea.getDefault().getDropsOfExactType(MetricDrop.class)) {		
+		if (m.getMetric() == IMetricDrop.Metric.SLOC) {
+			loc += m.getMetricInfoAsInt(IMetricDrop.SLOC_LINE_COUNT, 0);		
+		}
 	}
 	return loc;
   }
