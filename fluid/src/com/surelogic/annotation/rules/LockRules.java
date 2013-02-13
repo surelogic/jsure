@@ -452,7 +452,7 @@ public class LockRules extends AnnotationRules {
   }
   
   public static ThreadConfinedPromiseDrop getThreadConfinedDrop(final IRNode fieldDecl) {
-	    return getDrop(threadConfinedRule.getStorage(), fieldDecl);
+	    return getBooleanDrop(threadConfinedRule.getStorage(), fieldDecl);
   }
   
   @Override
