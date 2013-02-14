@@ -11,7 +11,7 @@ import java.util.Set;
  * give useful results.
  */
 public interface ImmutableSet<T> extends Set<T>, PossiblyImmutableSet<T> {
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   ImmutableSet[] NO_SETS = new ImmutableSet[0];
                
   /** Returns true if the set is infinite.

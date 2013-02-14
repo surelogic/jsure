@@ -104,41 +104,8 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     @Override
     public Void visitMethodBody(final IRNode body) {
       doAcceptForChildren(body);
-      
-      final InferredRaw inferredRaw = currentQuery().getInferredRaw(body);
-      processInferredResults(inferredRaw);
-//      for (final InferredVarState<RawLattice.Element> p : inferredRaw) {
-//        final IRNode varDecl = p.getLocal();
-//        final RawPromiseDrop pd = NonNullRules.getRaw(varDecl);
-//        final Element annotation = inferredRaw.injectPromiseDrop(pd);
-//        final Element inferred = p.getState();
-//        final boolean isGood = inferredRaw.lessEq(inferred, annotation);
-//        final ResultDrop rd = ResultsBuilder.createResult(
-//            varDecl, pd, isGood, RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
-//        
-//        for (final Assignment<Element> a : p.getAssignments()) {
-//          final HintDrop hint = HintDrop.newInformation(a.getWhere());
-//          hint.setMessage(ASSIGNMENT, a.getState());
-//          rd.addDependent(hint);
-//        }
-//      }
-      
-      final InferredNonNull inferredNull = currentQuery().getInferredNull(body);
-      processInferredResults(inferredNull);
-//      for (final InferredVarState<NullInfo> p : inferredNull) {
-//        final IRNode varDecl = p.getLocal();
-//        final NullInfo inferred = p.getState();
-//        final boolean isGood = inferredNull.lessEq(inferred, NullInfo.NOTNULL);
-//        final ResultDrop rd = ResultsBuilder.createResult(
-//            varDecl, NonNullRules.getNonNull(varDecl), isGood,
-//            RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
-//        
-//        for (final Assignment<NullInfo> a : p.getAssignments()) {
-//          final HintDrop hint = HintDrop.newInformation(a.getWhere());
-//          hint.setMessage(ASSIGNMENT, a.getState());
-//          rd.addDependent(hint);
-//        }
-//      }
+      processInferredResults(currentQuery().getInferredRaw(body));
+      processInferredResults(currentQuery().getInferredNull(body));
       return null;
     }
 

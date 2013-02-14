@@ -1,5 +1,7 @@
 package com.surelogic.analysis;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -9,6 +11,7 @@ import com.surelogic.util.IRNodeIndexedArrayLattice;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.analysis.SimplifiedJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -73,6 +76,11 @@ extends IntraproceduralAnalysis<T, L_T, JavaForwardAnalysis<T, L_T>> {
       super(where, state);
     }
     
+    @Override
+    protected String firstToString(final IRNode where) {
+      return Integer.toString(JavaNode.getJavaRef(where).getOffset());
+    }
+    
     public IRNode getWhere() { return first(); }
     public I getState() { return second(); }
   }
@@ -96,6 +104,27 @@ extends IntraproceduralAnalysis<T, L_T, JavaForwardAnalysis<T, L_T>> {
   }
   
   
+  private static final class ModifiedUnionLattice<I>
+  extends UnionLattice<Assignment<I>> {
+    private static Comparator<String> COMPARE = new Comparator<String>() {
+      @Override
+      public int compare(final String o1, final String o2) {
+        return o1.compareTo(o2);
+      }
+    };
+    
+    public ModifiedUnionLattice() { super(); }
+    
+    @Override
+    public String toString(final ImmutableSet<Assignment<I>> set) {
+      final String[] array = new String[set.size()];
+      int i = 0;
+      for (final Assignment<I> a : set) { array[i++] = a.toString(); }
+      Arrays.sort(array, COMPARE);
+      return Arrays.toString(array);
+    }
+  }
+  
   
   /**
    * Lattice for {@link InferredPair} values.
@@ -106,7 +135,7 @@ extends IntraproceduralAnalysis<T, L_T, JavaForwardAnalysis<T, L_T>> {
   private static final class InferredPairLattice<I, L extends Lattice<I>>
   extends PairLattice<I, ImmutableSet<Assignment<I>>, L, UnionLattice<Assignment<I>>, InferredPair<I>> {
     public InferredPairLattice(final L l1) {
-      super(l1, new UnionLattice<Assignment<I>>());
+      super(l1, new ModifiedUnionLattice<I>());
     }
 
     @Override
@@ -371,21 +400,6 @@ extends IntraproceduralAnalysis<T, L_T, JavaForwardAnalysis<T, L_T>> {
     protected final RawResultFactory getRawResultFactory() {
       return RawResultFactory.NORMAL_EXIT;
     }
-//
-//    @Override
-//    protected final R processRawResult(
-//        final IRNode expr, final L_T lattice, final T rawResult) {
-//      return new Result<I, L_I>(
-//          lattice.getInferredStateKeys(),
-//          rawResult.second().second(),
-//          lattice.getInferredStateLattice());
-//    }
-//
-//    @Override
-//    protected InferredVarStateQuery<I, T, L_I, L_T> newSubAnalysisQuery(
-//        final Delegate<InferredVarStateQuery<I, T, L_I, L_T>, Result<I, L_I>, T, L_T> delegate) {
-//      return new InferredVarStateQuery<I, T, L_I, L_T>(delegate);
-//    }
   }
 
   
@@ -452,12 +466,4 @@ extends IntraproceduralAnalysis<T, L_T, JavaForwardAnalysis<T, L_T>> {
     public I getState() { return second(); }
     public Set<Assignment<I>> getAssignments() { return third(); }    
   }
-  
-  
-  
-//  public final InferredVarStateQuery<I, T, L_I, L_T>
-//  getInferredVarStateQuery(final IRNode flowUnit) {
-//    return new InferredVarStateQuery<I, T, L_I, L_T>(
-//        getAnalysisThunk(flowUnit));
-//  }
 }
