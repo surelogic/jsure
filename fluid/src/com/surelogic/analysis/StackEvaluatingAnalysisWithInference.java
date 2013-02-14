@@ -23,9 +23,9 @@ import edu.uwm.cs.fluid.java.analysis.EvaluationStackLattice;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
-import edu.uwm.cs.fluid.util.IntersectionLattice;
 import edu.uwm.cs.fluid.util.Lattice;
 import edu.uwm.cs.fluid.util.PairLattice;
+import edu.uwm.cs.fluid.util.UnionLattice;
 
 /**
  * Specialized intraprocedural analysis whose flow analysis models an 
@@ -97,9 +97,9 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
   
   
   private static final class InferredPairLattice<I, L extends Lattice<I> & InferredHelper<I>>
-  extends PairLattice<I, ImmutableSet<Assignment<I>>, L, IntersectionLattice<Assignment<I>>, InferredPair<I>> {
+  extends PairLattice<I, ImmutableSet<Assignment<I>>, L, UnionLattice<Assignment<I>>, InferredPair<I>> {
     public InferredPairLattice(final L l1) {
-      super(l1, new IntersectionLattice<Assignment<I>>());
+      super(l1, new UnionLattice<Assignment<I>>());
     }
 
     @Override
@@ -128,6 +128,11 @@ extends IntraproceduralAnalysis<R, L5, JavaForwardAnalysis<R, L5>> {
      */
     public InferredPair<I> inferVar(
         final InferredPair<I> current, final I v, final IRNode src) {
+      /* Here we are just adding the assignment to the set.  But I wonder 
+       * if the correct thing to do is to JOIN the incoming state with any
+       * existing state for the same assignment site.  So far this doesn't
+       * seem to be a problem.
+       */
       return newPair(
           lattice1.join(current.getInferred(), v),
           current.second().addCopy(new Assignment<I>(src, v)));

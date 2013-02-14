@@ -94,7 +94,7 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
         final NonNullPromiseDrop pd = NonNullRules.getNonNull(fieldDecl);
         if (pd != null) {
           final boolean isDefinitelyAssigned = e.getValue().booleanValue();
-          final ResultDrop rd = ResultsBuilder.createResult(cdecl, pd, isDefinitelyAssigned,
+          ResultsBuilder.createResult(cdecl, pd, isDefinitelyAssigned,
               DEFINITELY_ASSIGNED, NOT_DEFINITELY_ASSIGNED,
               JavaNames.genSimpleMethodConstructorName(cdecl));
         }
