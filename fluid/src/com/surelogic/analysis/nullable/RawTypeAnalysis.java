@@ -156,6 +156,57 @@ implements IBinderClient {
   
   
   
+  public final class InferredRaw
+  extends Result<RawLattice.Element, RawLattice, RawPromiseDrop> {
+    protected InferredRaw(
+        final IRNode[] keys, final InferredPair<Element>[] val,
+        final RawLattice sl) {
+      super(keys, val, sl);
+    }
+
+    @Override
+    public RawPromiseDrop getPromiseDrop(final IRNode n) {
+      return NonNullRules.getRaw(n);
+    }
+    
+    @Override
+    public Element injectPromiseDrop(final RawPromiseDrop pd) {
+      return inferredStateLattice.injectPromiseDrop(pd);
+    }
+  }
+  
+  
+  
+  public final class InferredRawQuery
+  extends InferredVarStateQuery<InferredRawQuery, RawLattice.Element, Value, RawLattice, Lattice, InferredRaw> {
+    protected InferredRawQuery(
+        final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
+      super(thunk);
+    }
+    
+    protected InferredRawQuery(
+        final Delegate<InferredRawQuery, InferredRaw, Value, Lattice> d) {
+      super(d);
+    }
+    
+    @Override
+    protected InferredRaw processRawResult(
+        final IRNode expr, final Lattice lattice, final Value rawResult) {
+      return new InferredRaw(
+          lattice.getInferredStateKeys(),
+          rawResult.second().second(),
+          lattice.getInferredStateLattice());
+    }
+
+    @Override
+    protected InferredRawQuery newSubAnalysisQuery(
+        final Delegate<InferredRawQuery, InferredRaw, Value, Lattice> delegate) {
+      return new InferredRawQuery(delegate);
+    }
+  }
+  
+  
+  
   public RawTypeAnalysis(final IBinder b) {
     super(b);
   }
@@ -680,5 +731,9 @@ implements IBinderClient {
   
   public DebugQuery getDebugQuery(final IRNode flowUnit) {
     return new DebugQuery(getAnalysisThunk(flowUnit));
+  }
+  
+  public InferredRawQuery getInferredRawQuery(final IRNode flowUnit) {
+    return new InferredRawQuery(getAnalysisThunk(flowUnit));
   }
 }

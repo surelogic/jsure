@@ -12,11 +12,11 @@ import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalLattice;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalValue;
-import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.InferredHelper;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePair;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePairLattice;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -92,6 +92,57 @@ implements IBinderClient {
   
   
   
+  public final class InferredNonNull
+  extends Result<NullInfo, NullLattice, NonNullPromiseDrop> {
+    protected InferredNonNull(
+        final IRNode[] keys, final InferredPair<NullInfo>[] val,
+        final NullLattice sl) {
+      super(keys, val, sl);
+    }
+
+    @Override
+    public NonNullPromiseDrop getPromiseDrop(final IRNode n) {
+      return NonNullRules.getNonNull(n);
+    }
+    
+    @Override
+    public NullInfo injectPromiseDrop(final NonNullPromiseDrop pd) {
+      return NullInfo.NOTNULL;
+    }
+  }
+  
+  
+  
+  public final class InferredNonNullQuery
+  extends InferredVarStateQuery<InferredNonNullQuery, NullInfo, Value, NullLattice, Lattice, InferredNonNull> {
+    protected InferredNonNullQuery(
+        final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
+      super(thunk);
+    }
+    
+    protected InferredNonNullQuery(
+        final Delegate<InferredNonNullQuery, InferredNonNull, Value, Lattice> d) {
+      super(d);
+    }
+    
+    @Override
+    protected InferredNonNull processRawResult(
+        final IRNode expr, final Lattice lattice, final Value rawResult) {
+      return new InferredNonNull(
+          lattice.getInferredStateKeys(),
+          rawResult.second().second(),
+          lattice.getInferredStateLattice());
+    }
+
+    @Override
+    protected InferredNonNullQuery newSubAnalysisQuery(
+        final Delegate<InferredNonNullQuery, InferredNonNull, Value, Lattice> delegate) {
+      return new InferredNonNullQuery(delegate);
+    }
+  }
+  
+  
+  
   private static final boolean debug = false;
   @SuppressWarnings("unused")
   private static final Logger LOG = SLLogger.getLogger("FLUID.control.java.simpleNonNull");
@@ -118,12 +169,6 @@ implements IBinderClient {
     final Transfer t = new Transfer(binder,l, 0);
     return new JavaForwardAnalysis<Value, Lattice>("Java.Nonnull", l, t, DebugUnparser.viewer);
   }
-
-  
-  
-  public Query getNonnullBeforeQuery(final IRNode flowUnit) {
-    return new Query(getAnalysisThunk(flowUnit));
-  }
   
 
   
@@ -132,8 +177,7 @@ implements IBinderClient {
   }
   
   public static final class NullLattice
-  extends AbstractLattice<NullInfo>
-  implements InferredHelper<NullInfo> {
+  extends AbstractLattice<NullInfo> {
     private static final NullLattice instance = new NullLattice();
 
     private NullLattice() {
@@ -167,16 +211,6 @@ implements IBinderClient {
     @Override
     public NullInfo top() {
       return NullInfo.MAYBENULL;
-    }
-
-    @Override
-    public NullInfo getEmptyElementValue() {
-      return NullInfo.IMPOSSIBLE;
-    }
-
-    @Override
-    public NullInfo[] newArray(final int size) {
-      return new NullInfo[size];
     }
   }
   
@@ -659,5 +693,15 @@ implements IBinderClient {
   @Override
   public void clearCaches() {
     clear();
+  }
+
+  
+  
+  public Query getNonnullBeforeQuery(final IRNode flowUnit) {
+    return new Query(getAnalysisThunk(flowUnit));
+  }
+  
+  public InferredNonNullQuery getInferredNonNullQuery(final IRNode flowUnit) {
+    return new InferredNonNullQuery(getAnalysisThunk(flowUnit));
   }
 }

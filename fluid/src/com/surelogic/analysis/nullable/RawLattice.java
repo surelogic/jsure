@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.aast.java.NamedTypeNode;
-import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.InferredHelper;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
@@ -47,8 +46,7 @@ import edu.uwm.cs.fluid.util.AbstractLattice;
  * invoked. 
  */
 public final class RawLattice
-extends AbstractLattice<RawLattice.Element>
-implements InferredHelper<RawLattice.Element> {
+extends AbstractLattice<RawLattice.Element> {
   public static final Element[] ARRAY_PROTOTYPE = new Element[0];
   public static final Element RAW = Specials.RAW;
   public static final Element IMPOSSIBLE = Specials.IMPOSSIBLE;
@@ -259,17 +257,5 @@ implements InferredHelper<RawLattice.Element> {
   @Override
   public Element meet(final Element v1, final Element v2) {
     return v1.meet(v2);
-  }
-
-
-
-  @Override
-  public Element getEmptyElementValue() {
-    return NOT_RAW;
-  }
-
-  @Override
-  public Element[] newArray(final int size) {
-    return new Element[size];
   }
 }

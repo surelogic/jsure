@@ -1,7 +1,6 @@
 package com.surelogic.analysis.nullable;
 
 import java.util.Map;
-import java.util.Set;
 
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
@@ -9,27 +8,28 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.Assignment;
-import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.InferredVarStateQuery;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.InferredVarState;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.Result;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
-import com.surelogic.analysis.nullable.NonNullAnalysis.NullInfo;
-import com.surelogic.analysis.nullable.NonNullAnalysis.NullLattice;
+import com.surelogic.analysis.nullable.NonNullAnalysis.InferredNonNull;
+import com.surelogic.analysis.nullable.NonNullAnalysis.InferredNonNullQuery;
 import com.surelogic.analysis.nullable.NullableModule.AnalysisBundle.QueryBundle;
-import com.surelogic.analysis.nullable.RawLattice.Element;
+import com.surelogic.analysis.nullable.RawTypeAnalysis.InferredRaw;
+import com.surelogic.analysis.nullable.RawTypeAnalysis.InferredRawQuery;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.dropsea.ir.HintDrop;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
-import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
-import edu.cmu.cs.fluid.util.Triple;
+import edu.uwm.cs.fluid.util.Lattice;
 
 public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule.AnalysisBundle, Unused>{
   private static final int DEFINITELY_ASSIGNED = 900;
@@ -105,39 +105,60 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     public Void visitMethodBody(final IRNode body) {
       doAcceptForChildren(body);
       
-      final Result<RawLattice.Element, RawLattice> inferredRaw = currentQuery().getInferredRaw(body);
-      for (final Triple<IRNode, Element, Set<Assignment<Element>>> p : inferredRaw) {
-        final IRNode varDecl = p.first();
-        final RawPromiseDrop pd = NonNullRules.getRaw(varDecl);
-        final Element annotation = inferredRaw.getLattice().injectPromiseDrop(pd);
-        final Element inferred = p.second();
-        final boolean isGood = inferredRaw.lessEq(inferred, annotation);
+      final InferredRaw inferredRaw = currentQuery().getInferredRaw(body);
+      processInferredResults(inferredRaw);
+//      for (final InferredVarState<RawLattice.Element> p : inferredRaw) {
+//        final IRNode varDecl = p.getLocal();
+//        final RawPromiseDrop pd = NonNullRules.getRaw(varDecl);
+//        final Element annotation = inferredRaw.injectPromiseDrop(pd);
+//        final Element inferred = p.getState();
+//        final boolean isGood = inferredRaw.lessEq(inferred, annotation);
+//        final ResultDrop rd = ResultsBuilder.createResult(
+//            varDecl, pd, isGood, RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
+//        
+//        for (final Assignment<Element> a : p.getAssignments()) {
+//          final HintDrop hint = HintDrop.newInformation(a.getWhere());
+//          hint.setMessage(ASSIGNMENT, a.getState());
+//          rd.addDependent(hint);
+//        }
+//      }
+      
+      final InferredNonNull inferredNull = currentQuery().getInferredNull(body);
+      processInferredResults(inferredNull);
+//      for (final InferredVarState<NullInfo> p : inferredNull) {
+//        final IRNode varDecl = p.getLocal();
+//        final NullInfo inferred = p.getState();
+//        final boolean isGood = inferredNull.lessEq(inferred, NullInfo.NOTNULL);
+//        final ResultDrop rd = ResultsBuilder.createResult(
+//            varDecl, NonNullRules.getNonNull(varDecl), isGood,
+//            RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
+//        
+//        for (final Assignment<NullInfo> a : p.getAssignments()) {
+//          final HintDrop hint = HintDrop.newInformation(a.getWhere());
+//          hint.setMessage(ASSIGNMENT, a.getState());
+//          rd.addDependent(hint);
+//        }
+//      }
+      return null;
+    }
+
+    private <I, L extends Lattice<I>, P extends PromiseDrop<?>> 
+    void processInferredResults(final Result<I, L, P> result) {
+      for (final InferredVarState<I> p : result) {
+        final IRNode varDecl = p.getLocal();
+        final P pd = result.getPromiseDrop(varDecl);
+        final I annotation = result.injectPromiseDrop(pd);
+        final I inferred = p.getState();
+        final boolean isGood = result.lessEq(inferred, annotation);
         final ResultDrop rd = ResultsBuilder.createResult(
             varDecl, pd, isGood, RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
         
-        for (final Assignment<Element> a : p.third()) {
-          final HintDrop hint = HintDrop.newInformation(a.first());
-          hint.setMessage(ASSIGNMENT, a.second());
+        for (final Assignment<I> a : p.getAssignments()) {
+          final HintDrop hint = HintDrop.newInformation(a.getWhere());
+          hint.setMessage(ASSIGNMENT, a.getState());
           rd.addDependent(hint);
         }
-      }
-      
-      final Result<NullInfo, NullLattice> inferredNull = currentQuery().getInferredNull(body);
-      for (final Triple<IRNode, NullInfo, Set<Assignment<NullInfo>>> p : inferredNull) {
-        final IRNode varDecl = p.first();
-        final NullInfo inferred = p.second();
-        final boolean isGood = inferredNull.lessEq(inferred, NullInfo.NOTNULL);
-        final ResultDrop rd = ResultsBuilder.createResult(
-            varDecl, NonNullRules.getNonNull(varDecl), isGood,
-            RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
-        
-        for (final Assignment<NullInfo> a : p.third()) {
-          final HintDrop hint = HintDrop.newInformation(a.first());
-          hint.setMessage(ASSIGNMENT, a.second());
-          rd.addDependent(hint);
-        }
-      }
-      return null;
+      }      
     }
   }
 
@@ -182,13 +203,13 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     
     final class QueryBundle {
       private final AllResultsQuery allResultsQuery;
-      private final InferredVarStateQuery<RawLattice.Element, RawLattice, ?, ?> inferredRawQuery;
-      private final InferredVarStateQuery<NullInfo, NullLattice, ?, ?> inferredNullQuery;
+      private final InferredRawQuery inferredRawQuery;
+      private final InferredNonNullQuery inferredNullQuery;
       
       public QueryBundle(final IRNode flowUnit) {
         allResultsQuery = definiteAssignment.getAllResultsQuery(flowUnit);
-        inferredRawQuery = rawType.getInferredVarStateQuery(flowUnit);
-        inferredNullQuery = nonNull.getInferredVarStateQuery(flowUnit);
+        inferredRawQuery = rawType.getInferredRawQuery(flowUnit);
+        inferredNullQuery = nonNull.getInferredNonNullQuery(flowUnit);
       }
       
       private QueryBundle(final QueryBundle qb, final IRNode caller) {
@@ -205,11 +226,11 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
         return allResultsQuery.getResultFor(node);
       }
       
-      public Result<RawLattice.Element, RawLattice> getInferredRaw(final IRNode node) {
+      public InferredRaw getInferredRaw(final IRNode node) {
         return inferredRawQuery.getResultFor(node);
       }
       
-      public Result<NullInfo, NullLattice> getInferredNull(final IRNode node) {
+      public InferredNonNull getInferredNull(final IRNode node) {
         return inferredNullQuery.getResultFor(node);
       }
     }
