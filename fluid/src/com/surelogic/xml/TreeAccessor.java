@@ -343,6 +343,9 @@ public final class TreeAccessor implements TestXMLParserConstants {
 	    } else {
 	    	inner = findNestedClass(lastSeg, outer.getDeclaration());
 	    }
+	    if (inner == null) {
+	    	return null;
+	    }
 	    IJavaType rv = tEnv.convertNodeTypeToIJavaType(inner);
 	    if (dims > 0) {
 	    	return JavaTypeFactory.getArrayType(rv, dims);
