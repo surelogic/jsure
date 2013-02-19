@@ -2,6 +2,7 @@ package com.surelogic.jsure.client.eclipse.actions;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -21,6 +22,7 @@ import org.eclipse.ui.IEditorActionDelegate;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IStorageEditorInput;
 
+import com.surelogic.common.core.JDTUtility;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.core.persistence.JavaIdentifierUtil;
 import com.surelogic.xml.TestXMLParserConstants;
@@ -70,18 +72,25 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 				
 				final Visitor v = new Visitor();
 				root.accept(v);
-				final String qname = v.getQualifiedTypeName();
-				if (qname != null) {
+				final ITypeBinding typeB = v.getQualifiedType();
+				if (typeB != null) {
 					/*
 					final String xmlRoot = JSurePreferencesUtility.getJSureXMLDirectory().getAbsolutePath();
 					String path = xmlRoot+slash+qname.replace('.', slash)+TestXMLParserConstants.SUFFIX;
 					IEditorPart editor = EclipseUIUtility.openInEditor(path);
-					*/
-					String path = qname.replace('.', '/')+TestXMLParserConstants.SUFFIX;
-					IEditorPart editor = PromisesXMLEditor.openInEditor(path, false);
-					if (editor instanceof PromisesXMLEditor && v.getMethodName() != null) {
+					*/				
+					IType type = findIType(typeB);
+					//String path = qname.replace('.', '/')+TestXMLParserConstants.SUFFIX;
+					IEditorPart editor = PromisesXMLEditor.openInXMLEditor(type, false);
+					if (editor instanceof PromisesXMLEditor) {
 						final PromisesXMLEditor pxe = (PromisesXMLEditor) editor;
-						pxe.focusOnMethod(v.getMethodName(), v.getMethodParameters());					
+						if (v.getMethodName() != null) {
+							pxe.focusOnMethod(v.getMethodName(), v.getMethodParameters());					
+						} 
+						else if (typeB.getQualifiedName().startsWith(type.getFullyQualifiedName())) {
+							String fullName = typeB.getQualifiedName();
+							pxe.focusOnNestedType(fullName.substring(type.getFullyQualifiedName().length()+1, fullName.length()));
+						}
 					}
 				}				
 			} catch (Exception e) {
@@ -90,6 +99,16 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 		}
 	}
 	
+	private IType findIType(ITypeBinding type) {
+		if (type.getDeclaringClass() != null) {
+			return findIType(type.getDeclaringClass());
+		}
+		if (type.getDeclaringMethod() != null) {
+			return findIType(type.getDeclaringMethod().getDeclaringClass());
+		}
+		return JDTUtility.findIType(null, type.getPackage().getName(), type.getName());
+	}
+
 	class Visitor extends ASTVisitor {
 		private MethodInvocation call;
 		private IMethodBinding binding;
@@ -157,9 +176,9 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 			return null;
 		}
 		
-		String getQualifiedTypeName() {
-			if (typeB != null) {
-				return typeB.getErasure().getQualifiedName();
+		ITypeBinding getQualifiedType() {
+			if (typeB != null) {				
+				return typeB.getErasure();
 			}
 			return null;
 		}
