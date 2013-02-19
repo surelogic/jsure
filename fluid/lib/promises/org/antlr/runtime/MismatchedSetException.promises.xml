@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="org.antlr.runtime" release="1">
+    <class name="MismatchedSetException">
+        <method name="toString">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads All</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>
