@@ -983,6 +983,10 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
   }
 
   public static IEditorPart openInXMLEditor(final IType t) {
+	  return openInXMLEditor(t, false);
+  }
+  
+  public static IEditorPart openInXMLEditor(final IType t, boolean readOnly) {
     String qname = t.getFullyQualifiedName();
     int firstDollar = qname.indexOf('$');
     if (firstDollar >= 0) {
@@ -990,7 +994,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
       qname = qname.substring(0, firstDollar);
       // TODO find nested classes
     }
-    return PromisesXMLEditor.openInEditor(qname.replace('.', '/') + TestXMLParserConstants.SUFFIX, false);
+    return PromisesXMLEditor.openInEditor(qname.replace('.', '/') + TestXMLParserConstants.SUFFIX, readOnly);
   }
 
   public static IEditorPart openInEditor(final String path, final boolean readOnly) {
