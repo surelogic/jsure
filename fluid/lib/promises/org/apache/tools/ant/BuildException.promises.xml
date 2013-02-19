@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="org.apache.tools.ant" release="1">
+    <class name="BuildException">
+        <method name="toString">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads All</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>
