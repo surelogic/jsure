@@ -57,8 +57,15 @@ public class JavaIdentifierUtil {
 	}
 	
 	public static String encodeParameterType(ITypeBinding t) {
-		// TODO Auto-generated method stub
-		return t.getQualifiedName();
+		return encodeParameterType(t, true);
+	}
+	
+	public static String encodeParameterType(ITypeBinding t, boolean fullyQualify) {
+		if (fullyQualify) {
+			return t.getQualifiedName();
+		} else {
+			return t.getName();
+		}
 	}
 	
 	// TODO map a JavaIdentifier to a ???
