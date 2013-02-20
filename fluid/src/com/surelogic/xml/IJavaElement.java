@@ -13,6 +13,11 @@ public interface IJavaElement {
   <T> T visit(IJavaElementVisitor<T> v);
 
   /**
+   * @return the simple name for this element
+   */
+  String getName();
+  
+  /**
    * Sets the parent of this in the XML tree. An exception will be thrown if the
    * parent is already set.
    * 

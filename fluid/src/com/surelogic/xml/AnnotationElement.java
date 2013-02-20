@@ -96,6 +96,10 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		isBad = !parses(promise, contents);
 	}
 
+	public final String getName() {
+		return promise;
+	}
+	
 	@Override
   public boolean isReference() {
 		return isReference;
