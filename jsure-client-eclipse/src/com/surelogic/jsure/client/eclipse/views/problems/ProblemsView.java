@@ -473,8 +473,8 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
       final Object first = s.getFirstElement();
       if (first instanceof ElementDrop) {
         final IDrop drop = ((ElementDrop) first).getDrop();
-        if (drop.isFromSrc())
-          return false;
+        //if (drop.isFromSrc())
+        //  return false;
         final IJavaRef ref = drop.getJavaRef();
         return ref != null;
       }
