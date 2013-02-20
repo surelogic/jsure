@@ -47,11 +47,13 @@ public class ShowAnnotationsForITypeAction implements IObjectActionDelegate {
 			final Object o = selection.getFirstElement();
 			if (o instanceof IMember) {
 				IMember m = (IMember) o;
+				/*
 				ICompilationUnit cu = m.getCompilationUnit();
 				if (cu != null) {
 					JavaUI.openInEditor(m, true, true);
 					return;
 				}
+				*/
 				if (o instanceof IType) {
 					final IType t = (IType) o;
 					openInXMLEditor(t);
