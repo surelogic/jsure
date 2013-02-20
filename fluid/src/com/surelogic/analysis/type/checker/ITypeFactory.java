@@ -1,6 +1,9 @@
 package com.surelogic.analysis.type.checker;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
+import edu.cmu.cs.fluid.java.operator.ReferenceType;
+import edu.cmu.cs.fluid.java.operator.ReturnType;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
@@ -68,13 +71,60 @@ public interface ITypeFactory {
    */
   public IType getClassType(IType type);
   
-//  public IType getNamedType(String name);
+  /**
+   * Get the reference type based on a type expression.
+   * 
+   * @param referenceTypeExpr
+   *          A node whose Operator type is a subtype of {@link ReferenceType}.
+   * @return The {@link IType} object described by the type expression.
+   * @throws IllegalArgumentException Thrown if the expression does not
+   * describe a legal type.
+   */
+  public IType getReferenceTypeFromExpression(IRNode referenceTypeExpr);
 
+  /**
+   * Get the reference type defined by the given type declaration.
+   *  
+   * @param typeDecl A ClassDeclaration or InterfaceDeclaration node.
+   * @return The type corresponding to the declaration.
+   */
+  public IType getReferenceTypeFromDeclaration(IRNode typeDecl);
+  
+  /**
+   * Get the array type from the given base type and number of dimensions.
+   * 
+   * @param baseType
+   *          The element type of the array.
+   * @param dims
+   *          The number of dimensions in the array, must be greater than 0.
+   * @return The type of the specified array.
+   */
+  public IType getArrayType(IType baseType, int dims);
+  
+  
+  
+  // ======================================================================
+  // == Any Type
+  // ======================================================================
+
+  /**
+   * Get the type from a type expression.
+   * 
+   * @param A
+   *          node whose operator type is a subtype of {@link ReturnType}.
+   * @return The type object described by the expression.
+   */
+  public IType getTypeFromExpression(IRNode typeExpr);
+  
   
   
   // ======================================================================
   // == Boxing Conversion
   // ======================================================================
+  
+  /* XXX: This should be moved somewhere else.  That is, conversions should
+   * not be in the type factory, but in some kind of conversion engine.
+   */ 
   
   /**
    * Perform a boxing conversion on the given primitive type.

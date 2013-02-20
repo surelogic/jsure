@@ -2263,8 +2263,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		// Only non-final fields need to be protected
 		final IRNode id = binder.getBinding(fieldRef);
 		if (!TypeUtil.isFinal(id)) {
-			final IRegion fieldAsRegion = RegionModel.getInstance(binder
-					.getBinding(fieldRef));
+			final IRegion fieldAsRegion = RegionModel.getInstance(id);
 			final Target target;
 			if (fieldAsRegion.isStatic()) {
 				target = lockUtils.createClassTarget(fieldAsRegion);
