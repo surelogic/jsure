@@ -60,7 +60,7 @@ public class ShowAnnotationsForITypeAction implements IObjectActionDelegate {
 					if (m instanceof IMethod && e instanceof PromisesXMLEditor) {
 						final IMethod m2 = (IMethod) m;
 						final PromisesXMLEditor xe = (PromisesXMLEditor) e;
-						xe.focusOnMethod(m2.getElementName(), null);
+						xe.focusOnMethod(m2.getDeclaringType().getElementName(), m2.getElementName(), null);
 					}
 					// TODO find member
 				}

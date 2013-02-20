@@ -10,6 +10,7 @@ import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.QualifiedName;
@@ -85,7 +86,7 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 					if (editor instanceof PromisesXMLEditor) {
 						final PromisesXMLEditor pxe = (PromisesXMLEditor) editor;
 						if (v.getMethodName() != null) {
-							pxe.focusOnMethod(v.getMethodName(), v.getMethodParameters());					
+							pxe.focusOnMethod(typeB.getName(), v.getMethodName(), v.getMethodParameters());					
 						} 
 						else if (typeB.getQualifiedName().startsWith(type.getFullyQualifiedName())) {
 							String fullName = typeB.getQualifiedName();
@@ -110,6 +111,7 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 	}
 
 	class Visitor extends ASTVisitor {
+		private MethodDeclaration mdecl;
 		private MethodInvocation call;
 		private IMethodBinding binding;
 		private ITypeBinding typeB;
@@ -139,6 +141,23 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 					name = node;			
 					typeB = (ITypeBinding) b;
 				}
+			}
+			return true;
+		}
+		
+		@Override
+		public boolean visit(MethodDeclaration node) {			
+			if (containsSelection(node.getStartPosition(), node.getLength())) {
+				if (mdecl != null) {
+					if (node.getStartPosition() < mdecl.getStartPosition()) {
+						// Keep looking
+						return true;
+					}
+				} 
+				//System.out.println("Position = "+node.getStartPosition()+" ("+selection.getOffset()+")");
+				mdecl = node;
+				binding = mdecl.resolveBinding();
+				typeB = binding.getDeclaringClass();
 			}
 			return true;
 		}
@@ -197,14 +216,14 @@ public class ShowAnnotationsAction implements IEditorActionDelegate {
 				case 0:
 					return "";
 				case 1:
-					return JavaIdentifierUtil.encodeParameterType(params[0]);
+					return JavaIdentifierUtil.encodeParameterType(params[0], false);
 				default:
 					final StringBuilder sb = new StringBuilder();
 					for(ITypeBinding t : params) {
 						if (sb.length() > 0) {
-							sb.append(","); // Same as AbstractFunctionElement.normalize()
+							sb.append(", "); // Same as AbstractFunctionElement.normalize()
 						}
-						sb.append(JavaIdentifierUtil.encodeParameterType(t));
+						sb.append(JavaIdentifierUtil.encodeParameterType(t, false));
 					}
 					return sb.toString();
 				}

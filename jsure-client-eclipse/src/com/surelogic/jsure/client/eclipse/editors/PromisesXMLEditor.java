@@ -827,10 +827,10 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     }
   }
 
-  public void focusOnMethod(final String name, final String params) {
+  public void focusOnMethod(final String enclosingTypeName, final String name, final String params) {
     PackageElement p = provider.pkg;
     if (p != null) {
-      final MethodElement m = p.visit(new MethodFinder(name, params));
+      final AbstractFunctionElement m = p.visit(new MethodFinder(enclosingTypeName, enclosingTypeName.equals(name) ? "new" : name, params));
       if (m != null) {
         focusOn(m);
       }
@@ -902,19 +902,31 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     }
   }
 
-  static class MethodFinder extends ElementFinder<MethodElement> {
+  static class MethodFinder extends ElementFinder<AbstractFunctionElement> {
+	final String enclosingTypeName;
     final String name, params;
 
-    MethodFinder(final String name, final String params) {
+    MethodFinder(String type, final String name, final String params) {
+      enclosingTypeName = type;
       this.name = name;
       this.params = params;
     }
 
     @Override
-    public MethodElement visit(final MethodElement m) {
-      if (name.equals(m.getName())) {
+    public AbstractFunctionElement visit(final ConstructorElement c) {
+        if (enclosingTypeName.equals(c.getParent().getName()) && name.equals(c.getName())) {
+            if (params == null || params.equals(c.getParams())) {
+            	return c;           
+            }
+        }
+        return null;
+    }
+    
+    @Override
+    public AbstractFunctionElement visit(final MethodElement m) {
+      if (enclosingTypeName.equals(m.getParent().getName()) && name.equals(m.getName())) {
         if (params == null || params.equals(m.getParams())) {
-          return m;
+        	return m;           
         }
       }
       return null;
