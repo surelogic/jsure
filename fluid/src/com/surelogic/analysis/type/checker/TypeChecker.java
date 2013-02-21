@@ -5,11 +5,13 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ArrayCreationExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FloatLiteral;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
 import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -37,10 +39,13 @@ import edu.cmu.cs.fluid.tree.Operator;
 public class TypeChecker extends Visitor<IType> {
   private final IBinder binder;
   private final ITypeFactory typeFactory;
+  private final IConversionEngine conversionEngine;
   
-  public TypeChecker(final IBinder b, final ITypeFactory tf) {
+  public TypeChecker(final IBinder b,
+      final ITypeFactory tf, final IConversionEngine ce) {
     binder = b;
     typeFactory = tf;
+    conversionEngine = ce;
   }
 
   
@@ -148,8 +153,7 @@ public class TypeChecker extends Visitor<IType> {
     final Operator typeExprOp = JJNode.tree.getOperator(typeExpr);
     if (PrimitiveType.prototype.includes(typeExprOp)) { // case #2
       return typeFactory.getClassType(
-          typeFactory.box(
-              typeFactory.getPrimitiveType(typeExprOp)));
+          conversionEngine.box(typeFactory.getPrimitiveType(typeExprOp)));
     } else if (VoidType.prototype.includes(typeExprOp)) { // case #3
       return typeFactory.getClassType(typeFactory.getVoidType());
     } else { // case #1
@@ -274,11 +278,28 @@ public class TypeChecker extends Visitor<IType> {
      * The type of the field access expression is the type of the member field
      * after capture conversion (¤5.1.10).
      */
-    // THis is a VariableDeclarator or possibly a EnumConstantDeclaration node
-    // XXX: Check on this
-    final IRNode fieldDecl = binder.getBinding(fieldRefExpr);
     
-    return null;
+    /* Binding the field reference expression gets the VariableDeclarator
+     * of the accessed field, or the EnumConstantDeclaration of the accessed
+     * enumeration constant.
+     * 
+     * N.B. Per ¤8.9.2 the type of an enumeration constant is the enumeration
+     * type E that contains the constant declaration.
+     */
+    final IRNode varDecl = binder.getBinding(fieldRefExpr);
+    final IType fieldType;
+    if (VariableDeclarator.prototype.includes(varDecl)) {
+      final IRNode fieldDecl = JJNode.tree.getParent(JJNode.tree.getParent(varDecl));
+      final IRNode typeExpr = FieldDeclaration.getType(fieldDecl);
+      fieldType = typeFactory.getTypeFromExpression(typeExpr);
+      
+      // TYPECHECK: If the field is not static, need to check the type
+      // TYPECHECK: of the object expression (for null)
+    } else {
+      final IRNode enumDecl = JJNode.tree.getParent(JJNode.tree.getParent(varDecl));
+      fieldType = typeFactory.getReferenceTypeFromDeclaration(enumDecl);
+    }
+    return conversionEngine.capture(fieldType);
   }
 }
 

@@ -115,25 +115,4 @@ public interface ITypeFactory {
    * @return The type object described by the expression.
    */
   public IType getTypeFromExpression(IRNode typeExpr);
-  
-  
-  
-  // ======================================================================
-  // == Boxing Conversion
-  // ======================================================================
-  
-  /* XXX: This should be moved somewhere else.  That is, conversions should
-   * not be in the type factory, but in some kind of conversion engine.
-   */ 
-  
-  /**
-   * Perform a boxing conversion on the given primitive type.
-   * 
-   * @param primitiveType
-   *          The type to box convert.
-   * @return The boxed type.
-   * @throws IllegalArgumentException
-   *           Thrown if the given type represents the <code>void</code> type.
-   */
-  public IType box(IPrimitiveType primitiveType);
 }
