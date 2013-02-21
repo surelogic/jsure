@@ -1,13 +1,18 @@
 package com.surelogic.analysis.type.checker;
 
+import java.util.List;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ArrayCreationExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
+import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
+import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FloatLiteral;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
@@ -48,6 +53,55 @@ public class TypeChecker extends Visitor<IType> {
     conversionEngine = ce;
   }
 
+  
+  
+  // ======================================================================
+  // == ¤6.5.6 Expression Names
+  // ======================================================================
+
+  /* Qualified expression names refer to fields, and are handled by
+   * visitFieldRef() below.  Here we only handle simple expression names
+   * that refer to local variables or parameters.  Simple expressions that
+   * refer to fields are converted by the parse tree to have explicit "this"
+   * references and thus are also handled by visitFieldRef() below.
+   */
+  
+  @Override
+  public IType visitVariableUseExpression(final IRNode varUseExpr) {
+    /*
+     * If the expression name appears in a context where it is subject to
+     * assignment conversion or method invocation conversion or casting
+     * conversion, then the type of the expression name is the declared type of
+     * the field, local variable, or parameter after capture conversion
+     * (¤5.1.10).
+     * 
+     * That is, if the expression name appears "on the right hand side", its
+     * type is subject to capture conversion. If the expression name is a
+     * variable that appears "on the left hand side", its type is not subject to
+     * capture conversion.
+     */
+    final IRNode parent = JJNode.tree.getParent(varUseExpr);
+    final Operator parentOp = JJNode.tree.getOperator(parent);
+    boolean shouldCaptureConvert = true;
+    if (parentOp instanceof AssignmentInterface) {
+      if (((AssignmentInterface) parentOp).getTarget(parent) == varUseExpr) {
+        shouldCaptureConvert = false;
+      }
+    }
+    
+    final IRNode nameDecl = binder.getBinding(varUseExpr);
+    final IRNode typeExpr;
+    if (ParameterDeclaration.prototype.includes(nameDecl)) {
+      typeExpr = ParameterDeclaration.getType(nameDecl);
+    } else { // VariableDeclarator
+      typeExpr = DeclStatement.getType(
+          JJNode.tree.getParent(JJNode.tree.getParent(nameDecl)));
+    }
+    IType type = typeFactory.getTypeFromExpression(typeExpr);
+    if (shouldCaptureConvert) type = conversionEngine.capture(type);
+    return type;
+  }
+  
   
   
   // ======================================================================
@@ -274,9 +328,24 @@ public class TypeChecker extends Visitor<IType> {
   
   @Override
   public IType visitFieldRef(final IRNode fieldRefExpr) {
+    doAcceptForChildren(fieldRefExpr);
+
     /*
-     * The type of the field access expression is the type of the member field
-     * after capture conversion (¤5.1.10).
+     * This rule technically only applies when the object expression is a
+     * Primary, "super", or "ClassName.super" expression: The type of the field
+     * access expression is the type of the member field after capture
+     * conversion (¤5.1.10).
+     * 
+     * But the rules in ¤6.5.6 for expression names, also say to use the
+     * type of the field after capture conversion, except in the case where we
+     * have a simple expression name "f" that refers to a non-final instance 
+     * field.  In that case, we are only supposed to use capture conversion
+     * if the expression appears as an rvalue.  That is, if it's on the left
+     * hand side of an assignment, then no capture conversion is performed.
+     * Two issues here: (1) it means that "f = ..." and "this.f = ..." aren't
+     * handled the same way, which is strange; (2) Our parse tree does not
+     * allow us to tell the difference between the two because we always add 
+     * in the implicit "this".
      */
     
     /* Binding the field reference expression gets the VariableDeclarator
@@ -300,6 +369,40 @@ public class TypeChecker extends Visitor<IType> {
       fieldType = typeFactory.getReferenceTypeFromDeclaration(enumDecl);
     }
     return conversionEngine.capture(fieldType);
+  }
+
+  
+  
+  // ======================================================================
+  // == ¤15.12 Method Invocation Expressions
+  // ======================================================================
+  
+  // TODO
+
+  
+  
+  // ======================================================================
+  // == ¤15.13 Array Access Expressions
+  // ======================================================================
+ 
+  @Override
+  public IType visitArrayRefExpression(final IRNode arrayRefExpr) {
+    /*
+     * The type of the array reference expression must be an array type (call it
+     * T[], an array whose components are of type T).
+     * 
+     * (Ignoring the type checking of the index expression: it only involves
+     * primitive types.)
+     * 
+     * The type of the array access expression is the result of applying capture
+     * conversion (¤5.1.10) to T.
+     */
+    // TYPECHECK: Need to check that the array reference expression isn't null.
+    final List<IType> componentTypes =
+        doAcceptForChildrenWithResults(arrayRefExpr);
+    final IType elementType =
+        typeFactory.getArrayElementType(componentTypes.get(0));
+    return conversionEngine.capture(elementType);
   }
 }
 

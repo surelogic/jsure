@@ -101,6 +101,17 @@ public interface ITypeFactory {
    */
   public IType getArrayType(IType baseType, int dims);
   
+  /**
+   * Get the element type from the given array type.
+   * 
+   * @param arrayType
+   * The array type.
+   * @return the element type of the array.
+   * @exception IllegalArgumentException Thrown if the given type is not 
+   * an array type.
+   */
+  public IType getArrayElementType(IType arrayType);
+  
   
   
   // ======================================================================
