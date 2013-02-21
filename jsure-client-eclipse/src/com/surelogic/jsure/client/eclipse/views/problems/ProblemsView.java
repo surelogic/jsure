@@ -65,6 +65,7 @@ import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
+import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
 import com.surelogic.jsure.client.eclipse.preferences.UninterestingPackageFilterPreferencePage;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 import com.surelogic.jsure.core.JSureUtility;
@@ -463,6 +464,9 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
         if (ref != null)
           return ref.getDeclaration();
       }
+      else if (first instanceof ElementJavaDecl) {
+    	  return ((ElementJavaDecl) first).getDeclaration();
+      }
     }
     return null;
   }
@@ -477,6 +481,9 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
         //  return false;
         final IJavaRef ref = drop.getJavaRef();
         return ref != null;
+      }
+      else if (first instanceof ElementJavaDecl) {
+    	return true;  
       }
     }
     return false;
