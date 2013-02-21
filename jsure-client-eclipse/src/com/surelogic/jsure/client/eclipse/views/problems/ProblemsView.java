@@ -441,6 +441,10 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
         if (ref != null)
           Activator.highlightLineInJavaEditor(ref);
       }
+      else if (first instanceof ElementJavaDecl) {
+    	  final ElementJavaDecl ejd = (ElementJavaDecl) first;
+    	  Activator.highlightLineInJavaEditor(ejd.getDeclaration());
+      }
       // open up the tree one more level
       if (!f_treeViewer.getExpandedState(first)) {
         f_treeViewer.expandToLevel(first, 1);
