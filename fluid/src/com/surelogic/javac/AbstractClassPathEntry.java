@@ -29,4 +29,9 @@ public abstract class AbstractClassPathEntry implements IClassPathEntry {
   public JavaSourceFile mapPath(URI path) {
 		return null;
 	}
+	
+	@Override
+	public File getFileForClassPath() {
+		return null;
+	}
 }

@@ -5,8 +5,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.zip.*;
 
-import com.surelogic.common.FileUtility;
-import com.surelogic.common.SLUtility;
+import com.surelogic.common.*;
 import com.surelogic.dropsea.irfree.XmlCreator;
 import com.surelogic.javac.persistence.*;
 
@@ -211,5 +210,10 @@ public class JarEntry extends AbstractClassPathEntry {
 			return computeTargetName(targetDir, parent.getParentFile(), parent.getName()+'_'+name);
 		}
 		return target;
+	}
+	
+	@Override
+	public File getFileForClassPath() {
+		return path;
 	}
 }
