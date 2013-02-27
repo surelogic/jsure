@@ -88,6 +88,8 @@ public abstract class AbstractJSureScanView extends AbstractSLView implements JS
   }
 
   /**
+   * Not run in the SWT thread
+   * 
    * @return The label to be shown in the title
    */
   protected abstract String updateViewer();
