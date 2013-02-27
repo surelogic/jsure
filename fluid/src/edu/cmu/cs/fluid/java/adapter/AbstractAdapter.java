@@ -32,6 +32,7 @@ import edu.cmu.cs.fluid.unparse.TokenView;
 
 public class AbstractAdapter {
 	protected interface Function<T> {
+		// Can return null
 		IRNode call(T t, CodeContext context, int i, int n);
 	}
 	protected static abstract class AbstractFunction<T> implements Function<T> {
@@ -376,12 +377,16 @@ public class AbstractAdapter {
 		if (size == 0) {
 			return noNodes;
 		}
-		
-		IRNode[] result = new IRNode[size];
+		final List<IRNode> temp = new ArrayList<IRNode>(size);
+		//IRNode[] result = new IRNode[size];
 		for(int i=0; i<size; i++) {
-			result[i] = f.call(trees.get(i), context, i, size);
+			//result[i] = f.call(trees.get(i), context, i, size);
+			IRNode result = f.call(trees.get(i), context, i, size);
+			if (result != null) {
+				temp.add(result);
+			}
 		}
-		return result;
+		return temp.toArray(new IRNode[temp.size()]);
 	}
 	
 	protected <T> IRNode[] map(Function<T> f, T[] trees, CodeContext context) {
