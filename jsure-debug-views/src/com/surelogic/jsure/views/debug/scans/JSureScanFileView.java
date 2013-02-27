@@ -10,6 +10,7 @@ import org.eclipse.swt.widgets.*;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.jobs.remote.AbstractRemoteSLJob;
+import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.ScanProperty;
 import com.surelogic.jsure.client.eclipse.views.AbstractJSureScanView;
@@ -51,7 +52,13 @@ public class JSureScanFileView extends AbstractJSureScanView {
 			//f_fileLabel.setText(scan.getDirName());
 			
 			//AbstractRemoteSLJob.LOG_NAME;
-			f_fileText.setText(FileUtility.getFileContentsAsString(new File(scan.getDir(), ScanProperty.SCAN_PROPERTIES)));
+			final String contents = FileUtility.getFileContentsAsString(new File(scan.getDir(), ScanProperty.SCAN_PROPERTIES));
+		    EclipseUIUtility.asyncExec(new Runnable() {
+		        @Override
+		        public void run() {
+					f_fileText.setText(contents);
+		        }
+		    });
 			return scan.getDirName();
 		}
 		return null;
