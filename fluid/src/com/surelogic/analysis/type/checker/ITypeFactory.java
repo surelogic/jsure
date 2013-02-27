@@ -28,7 +28,7 @@ public interface ITypeFactory {
   /** Get the type for <code>char</code>. */
   public IPrimitiveType getCharType();
   /** Get the type for <code>short</code>. */
-  public IPrimitiveType getShort();
+  public IPrimitiveType getShortType();
   /** Get the type for <code>int</code>. */
   public IPrimitiveType getIntType();
   /** Get the type for <code>long</code>. */

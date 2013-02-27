@@ -9,11 +9,17 @@ import edu.cmu.cs.fluid.java.operator.ArrayType;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
+import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FloatLiteral;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParenExpression;
+import edu.cmu.cs.fluid.java.operator.PlusExpression;
+import edu.cmu.cs.fluid.java.operator.PostDecrementExpression;
+import edu.cmu.cs.fluid.java.operator.PostIncrementExpression;
+import edu.cmu.cs.fluid.java.operator.PreDecrementExpression;
+import edu.cmu.cs.fluid.java.operator.PreIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
@@ -42,6 +48,15 @@ import edu.cmu.cs.fluid.tree.Operator;
  * the <code>typeCheck</code> methods do not check anything.
  */
 public class TypeChecker extends Visitor<IType> {
+  private static final String JAVA_LANG_DOUBLE = "java.lang.Double";
+  private static final String JAVA_LANG_FLOAT = "java.lang.Float";
+  private static final String JAVA_LANG_LONG = "java.lang.Long";
+  private static final String JAVA_LANG_INTEGER = "java.lang.Integer";
+  private static final String JAVA_LANG_CHARACTER = "java.lang.Character";
+  private static final String JAVA_LANG_SHORT = "java.lang.Short";
+  private static final String JAVA_LANG_BYTE = "java.lang.Byte";
+  private static final String JAVA_LANG_BOOLEAN = "java.lang.Boolean";
+  
   private final IBinder binder;
   private final ITypeFactory typeFactory;
   private final IConversionEngine conversionEngine;
@@ -56,6 +71,236 @@ public class TypeChecker extends Visitor<IType> {
   
   
   // ======================================================================
+  // == Base checks
+  // ======================================================================
+
+  /* ¤4.2 Primitive types and values */
+  
+  protected final boolean isBooleanType(final IType type) {
+    // TODO: Make this real when I flesh out the ITypes
+    return false;
+  }
+  
+  protected final boolean isByteType(final IType type) {
+    // TODO: Make this real when I flesh out the ITypes
+    return false;
+  }
+  
+  protected final boolean isShortType(final IType type) {
+    // TODO: Make this real when I flesh out the ITypes
+    return false;
+  }
+  
+  protected final boolean isIntType(final IType type) {
+    // TODO: Make this real when I flesh out the ITypes
+    return false;
+  }
+  
+  protected final boolean isLongType(final IType type) {
+    // TODO: Make this real when I flesh out the ITypes
+    return false;
+  }
+  
+  protected final boolean isCharType(final IType type) {
+    // TODO: Make this real when I flesh out the ITypes
+    return false;
+  }
+  
+  protected final boolean isFloatType(final IType type) {
+    // TODO: Make this real when I flesh out the ITypes
+    return false;
+  }
+  
+  protected final boolean isDoubleType(final IType type) {
+    // TODO: Make this real when I flesh out the ITypes
+    return false;
+  }
+  
+  protected final boolean isNullType(final IType type) {
+    // TODO: Make this real when I flesh out the ITypes
+    return false;
+  }
+  
+  protected final boolean isIntegralType(final IType type) {
+    return isByteType(type) ||
+        isShortType(type) ||
+        isIntType(type) ||
+        isLongType(type) ||
+        isCharType(type);
+  }
+  
+  protected final boolean isFloatingPointType(final IType type) {
+    return isFloatType(type) || isDoubleType(type);
+  }
+  
+  protected final boolean isNumericType(final IType type) {
+    return isIntegralType(type) || isFloatingPointType(type);
+  }
+
+  protected final boolean isPrimitiveType(final IType type) {
+    return isBooleanType(type) || isNumericType(type);
+  }
+  
+  protected final boolean isNamedType(final IType type, final String typeName) {
+    // TODO: Make this real when I flesh out the ITypes
+    return false;
+  }
+
+  
+  
+  // ======================================================================
+  // == Conversions
+  // ======================================================================
+
+  /**
+   * Widen the given primitive type to the given primitive type according to
+   * ¤5.1.2.  Includes identity conversion.
+   */
+  protected final IType widenPrimitive(final IType type, final IPrimitiveType widenTo) {
+    if (!widenTo.canWiden(type)) {
+      throw new IllegalArgumentException(
+          type + " cannot be widened to " + widenTo);
+    } else {
+      return widenTo;
+    }
+  }
+  
+  /**
+   * Unbox the given type according to ¤5.1.8.
+   */
+  protected final IType unbox(final IType type) {
+    /*
+     * N.B. I purposely don't call preProcessUnbox() here, because I don't 
+     * want to preprocess types that will cause an exception.
+     */
+    if (isNamedType(type, JAVA_LANG_BOOLEAN)) {
+      preProcessUnbox(type);
+      return typeFactory.getBooleanType();
+    } else if (isNamedType(type, JAVA_LANG_BYTE)) {
+      preProcessUnbox(type);
+      return typeFactory.getByteType();
+    } else if (isNamedType(type, JAVA_LANG_SHORT)) {
+      preProcessUnbox(type);
+      return typeFactory.getShortType();
+    } else if (isNamedType(type, JAVA_LANG_CHARACTER)) {
+      preProcessUnbox(type);
+      return typeFactory.getCharType();
+    } else if (isNamedType(type, JAVA_LANG_INTEGER)) {
+      preProcessUnbox(type);
+      return typeFactory.getIntType();
+    } else if (isNamedType(type, JAVA_LANG_LONG)) {
+      preProcessUnbox(type);
+      return typeFactory.getLongType();
+    } else if (isNamedType(type, JAVA_LANG_FLOAT)) {
+      preProcessUnbox(type);
+      return typeFactory.getFloatType();
+    } else if (isNamedType(type, JAVA_LANG_DOUBLE)) {
+      preProcessUnbox(type);
+      return typeFactory.getDoubleType();
+    } else {
+      throw new IllegalArgumentException(type + " cannot be unboxed");
+    }
+  }
+
+  protected void preProcessUnbox(final IType type) {
+    // TODO: Figure out how to get the source expression here.  Don't yet 
+    // TODO: want to commit to passing it directly.
+    // TYPECHECK: Check for @NonNull here
+  }
+  
+  /**
+   * Is the type "convertible to a numeric type" as defined in ¤5.1.8.
+   */
+  protected final boolean isConvertibleToNumericType(final IType type) {
+    return isNumericType(type) ||
+        isNamedType(type, JAVA_LANG_BYTE) ||
+        isNamedType(type, JAVA_LANG_SHORT) ||
+        isNamedType(type, JAVA_LANG_CHARACTER) ||
+        isNamedType(type, JAVA_LANG_INTEGER) ||
+        isNamedType(type, JAVA_LANG_LONG) ||
+        isNamedType(type, JAVA_LANG_FLOAT) ||
+        isNamedType(type, JAVA_LANG_DOUBLE);
+  }
+
+  /**
+   * Is the type "convertible to a integral type" as defined in ¤5.1.8.
+   */
+  protected final boolean isConvertibleToIntegralType(final IType type) {
+    return isIntegralType(type) ||
+        isNamedType(type, JAVA_LANG_BYTE) ||
+        isNamedType(type, JAVA_LANG_SHORT) ||
+        isNamedType(type, JAVA_LANG_CHARACTER) ||
+        isNamedType(type, JAVA_LANG_INTEGER) ||
+        isNamedType(type, JAVA_LANG_LONG);
+  }
+  
+  
+  
+  // ======================================================================
+  // == Promotions
+  // ======================================================================
+
+  /* Here we always assume that the promotion is possible: that is, that a 
+   * previous check has been made to weed out bad expressions, such as not
+   * trying to promote an expression that is not convertible to an integral type 
+   * using unary numeric promotion.
+   */
+
+  /**
+   * Promote the given type using unary numeric promotion as defined 
+   * in ¤5.6.1.
+   */
+  protected final IType unaryNumericPromotion(final IType type) {
+    if (isNamedType(type, JAVA_LANG_BYTE) ||
+        isNamedType(type, JAVA_LANG_SHORT) ||
+        isNamedType(type, JAVA_LANG_CHARACTER) ||
+        isNamedType(type, JAVA_LANG_INTEGER)) {
+      return widenPrimitive(unbox(type), typeFactory.getIntType());
+    } else if (isNamedType(type, JAVA_LANG_LONG) ||
+        isNamedType(type, JAVA_LANG_FLOAT) ||
+        isNamedType(type, JAVA_LANG_DOUBLE)) {
+      return unbox(type);
+    } else if (isByteType(type) ||
+        isShortType(type) ||
+        isCharType(type)) {
+      return widenPrimitive(type, typeFactory.getIntType());
+    } else {
+      return type;
+    }
+  }
+  
+  /**
+   * Give a subclass a chance to refine the qualifiers on the type being
+   * returned after unaryNumericPromotion.
+   * 
+   * @param originalType
+   *          The type before promotion
+   * @param type
+   *          The type after promotion
+   * @return The type after further processing.
+   */
+  protected IType postProcessUnuaryNumericPromotion(
+      final IType originalType, final IType type) {
+    return type;
+  }
+  
+  
+  
+  // ======================================================================
+  // == Hooks for further processing
+  // ======================================================================
+
+  protected IType postProcessType(final IType type) {
+    return type;
+  }
+  
+  protected void error(final IRNode expr, final IType type, final String desc) {
+    // nothing to do by default
+  }
+  
+  
+   
+  // ======================================================================
   // == ¤6.5.6 Expression Names
   // ======================================================================
 
@@ -67,7 +312,7 @@ public class TypeChecker extends Visitor<IType> {
    */
   
   @Override
-  public IType visitVariableUseExpression(final IRNode varUseExpr) {
+  public final IType visitVariableUseExpression(final IRNode varUseExpr) {
     /*
      * If the expression name appears in a context where it is subject to
      * assignment conversion or method invocation conversion or casting
@@ -82,10 +327,10 @@ public class TypeChecker extends Visitor<IType> {
      */
     final IRNode parent = JJNode.tree.getParent(varUseExpr);
     final Operator parentOp = JJNode.tree.getOperator(parent);
-    boolean shouldCaptureConvert = true;
+    boolean isRValue = true;
     if (parentOp instanceof AssignmentInterface) {
       if (((AssignmentInterface) parentOp).getTarget(parent) == varUseExpr) {
-        shouldCaptureConvert = false;
+        isRValue = false;
       }
     }
     
@@ -98,10 +343,60 @@ public class TypeChecker extends Visitor<IType> {
           JJNode.tree.getParent(JJNode.tree.getParent(nameDecl)));
     }
     IType type = typeFactory.getTypeFromExpression(typeExpr);
-    if (shouldCaptureConvert) type = conversionEngine.capture(type);
-    return type;
+    if (isRValue) type = conversionEngine.capture(type);    
+    return postProcessVariableUseExpression(varUseExpr, nameDecl, isRValue, type);
   }
   
+  protected IType postProcessVariableUseExpression(
+      final IRNode varUseExpr, final IRNode nameDecl,
+      final boolean isRValue, final IType type) {
+    // TYPECHECK: Need to check the flow analyses to get the @NonNull/@Raw state
+    return postProcessType(type);
+  }
+  
+  
+  
+  // ======================================================================
+  // == ¤8.3 Field Declarations
+  // ======================================================================
+  
+  // TODO
+  
+  
+  
+  // ======================================================================
+  // == ¤9.3 Field (Constant) Declarations
+  // ======================================================================
+  
+  // TODO
+  
+  
+  
+  // ======================================================================
+  // == ¤10.6 Array Initializers
+  // ======================================================================
+  
+  /*
+   * Each variable initializer must be assignment-compatible (¤5.2) with the
+   * array's component type, or a compile-time error occurs.
+   */
+  
+  /*
+   * Problem: How to keep track of the array type as we go into nested
+   * initializers, e.g.,
+   * "new int[][][] { { { 1, 2, 3 }, { 4, 5, 6 } }, { { 7 }, { 8 } } }"
+   */
+  
+  // TODO
+
+  
+  
+  // ======================================================================
+  // == ¤14.4 Local Variable Declaration Statements
+  // ======================================================================
+  
+  // TODO
+
   
   
   // ======================================================================
@@ -136,10 +431,16 @@ public class TypeChecker extends Visitor<IType> {
      * The type of an integer literal (¤3.10.1) that ends with L or l is long
      * (¤4.2.1). The type of any other integer literal is int (¤4.2.1).
      */
-    return getTypeBasedOnEndTag(IntLiteral.getToken(intLiteral), 'L', 
+    final IType type = getTypeBasedOnEndTag(
+        IntLiteral.getToken(intLiteral), 'L', 
         typeFactory.getLongType(), typeFactory.getIntType());
+    return postProcessIntLiteral(intLiteral, type);
   }
 
+  protected IType postProcessIntLiteral(final IRNode intLiteral, final IType type) {
+    return postProcessType(type);
+  }
+  
   @Override
   public final IType visitFloatLiteral(final IRNode floatLiteral) {
     /*
@@ -148,8 +449,14 @@ public class TypeChecker extends Visitor<IType> {
      * The type of any other floating-point literal is double and its value must
      * be an element of the double value set (¤4.2.3).
      */
-    return getTypeBasedOnEndTag(FloatLiteral.getToken(floatLiteral), 'F', 
+    final IType type = getTypeBasedOnEndTag(
+        FloatLiteral.getToken(floatLiteral), 'F', 
         typeFactory.getFloatType(), typeFactory.getDoubleType());
+    return postProcessFloatLiteral(floatLiteral, type);
+  }
+
+  protected IType postProcessFloatLiteral(final IRNode floatLiteral, final IType type) {
+    return postProcessType(type);
   }
   
   @Override
@@ -157,7 +464,12 @@ public class TypeChecker extends Visitor<IType> {
     /*
      * The type of a boolean literal (¤3.10.3) is boolean (¤4.2.5).
      */
-    return typeFactory.getBooleanType();
+    return postProcessBooleanLiteral(
+        booleanLiteral, typeFactory.getBooleanType());
+  }
+
+  protected IType postProcessBooleanLiteral(final IRNode booleanLiteral, final IType type) {
+    return postProcessType(type);
   }
   
   @Override
@@ -165,7 +477,11 @@ public class TypeChecker extends Visitor<IType> {
     /*
      * The type of a character literal (¤3.10.4) is char (¤4.2.1).
      */
-    return typeFactory.getCharType();
+    return postProcessCharLiteral(charLiteral, typeFactory.getCharType());
+  }
+
+  protected IType postProcessCharLiteral(final IRNode charLiteral, final IType type) {
+    return postProcessType(type);
   }
   
   @Override
@@ -173,7 +489,12 @@ public class TypeChecker extends Visitor<IType> {
     /*
      * The type of a string literal (¤3.10.5) is String (¤4.3.3).
      */
-    return typeFactory.getStringType();
+    return postProcessStringLiteral(stringLiteral, typeFactory.getStringType());
+  }
+
+  protected IType postProcessStringLiteral(final IRNode stringLiteral, final IType type) {
+    // TYPECHECK: When null checking, a String literal is a "@NonNull String"
+    return postProcessType(type);
   }
   
   @Override
@@ -182,7 +503,11 @@ public class TypeChecker extends Visitor<IType> {
      * The type of the null literal null (¤3.10.7) is the null type (¤4.1); its
      * value is the null reference.
      */
-    return typeFactory.getNullType();
+    return postProcessNullLiteral(nullLiteral, typeFactory.getNullType());
+  }
+
+  protected IType postProcessNullLiteral(final IRNode nullLiteral, final IType type) {
+    return postProcessType(type);
   }
 
   
@@ -205,21 +530,28 @@ public class TypeChecker extends Visitor<IType> {
      */
     final IRNode typeExpr = ClassExpression.getType(classExpr);
     final Operator typeExprOp = JJNode.tree.getOperator(typeExpr);
+    final IType type;
     if (PrimitiveType.prototype.includes(typeExprOp)) { // case #2
-      return typeFactory.getClassType(
+      type = typeFactory.getClassType(
           conversionEngine.box(typeFactory.getPrimitiveType(typeExprOp)));
     } else if (VoidType.prototype.includes(typeExprOp)) { // case #3
-      return typeFactory.getClassType(typeFactory.getVoidType());
+      type = typeFactory.getClassType(typeFactory.getVoidType());
     } else { // case #1
       /* 
        * Expression is a ReferenceType, more specifically it must be a
        * NamedType or an ArrayType.
        */
-      return typeFactory.getClassType(
+      type = typeFactory.getClassType(
           typeFactory.getReferenceTypeFromExpression(typeExpr));
     }
+    return postProcessClassExpression(classExpr, type);
   }
 
+  protected IType postProcessClassExpression(final IRNode classExpr, final IType type) {
+    // TYPECHECK: When null checking the returned type is actually @NonNull!
+    return postProcessType(type);
+  }
+  
   
   
   // ======================================================================
@@ -231,10 +563,17 @@ public class TypeChecker extends Visitor<IType> {
     /*
      * The type of this is the class C within which the keyword this occurs.
      */
-    return typeFactory.getReferenceTypeFromDeclaration(
+    final IType type = typeFactory.getReferenceTypeFromDeclaration(
         VisitUtil.getEnclosingType(thisExpr));
+    return postProcessThisExpression(thisExpr, type);
   }
 
+  protected IType postProcessThisExpression(final IRNode thisExpr, final IType type) {
+    // TYPECHECK: When null checking the type of the receiver is @NonNull!
+    // TYPECHECK: Need to check the flow analysis to get the @Raw state
+    return postProcessType(type);
+  }
+  
   
   
   // ======================================================================
@@ -252,9 +591,16 @@ public class TypeChecker extends Visitor<IType> {
      */
     final IRNode decl = binder.getBinding(
         QualifiedThisExpression.getType(qualifiedThisExpr));
-    return typeFactory.getReferenceTypeFromDeclaration(decl);
+    final IType type = typeFactory.getReferenceTypeFromDeclaration(decl);
+    return postProcessQualifiedThisExpression(qualifiedThisExpr, type);
   }
 
+  protected IType postProcessQualifiedThisExpression(final IRNode qualifiedThisExpr, final IType type) {
+    // TYPECHECK: The qualified receiver is always @NonNull!
+    // TYPECHECK: Need to check the flow analysis to get the @Raw state
+    return postProcessType(type);
+  }
+  
   
   
   // ======================================================================
@@ -262,13 +608,18 @@ public class TypeChecker extends Visitor<IType> {
   // ======================================================================
   
   @Override
-  public IType visitParenExpression(final IRNode parenExpr) {
+  public final IType visitParenExpression(final IRNode parenExpr) {
     /*
      * A parenthesized expression is a primary expression whose type is the type
      * of the contained expression and whose value at run-time is the value of
      * the contained expression.
      */
-    return doAccept(ParenExpression.getOp(parenExpr)); 
+    return postProcessParenExpresion(parenExpr, 
+        doAccept(ParenExpression.getOp(parenExpr))); 
+  }
+  
+  protected IType postProcessParenExpresion(final IRNode parenExpr, final IType type) {
+    return postProcessType(type);
   }
 
   
@@ -286,17 +637,33 @@ public class TypeChecker extends Visitor<IType> {
   // ======================================================================
   
   @Override
-  public IType visitArrayCreationExpression(final IRNode arrayExpr) {
-    /* Process the children first.  We assume the code compiles, so we don't
-     * care about checking that the types of the dimension expressions are
-     * integer. 
+  public final IType visitArrayCreationExpression(final IRNode arrayExpr) {
+    /*
+     * The type of each dimension expression within a DimExpr must be a type
+     * that is convertible (¤5.1.8) to an integral type, or a compile-time error
+     * occurs.
+     * 
+     * Each dimension expression undergoes unary numeric promotion (¤5.6.1). The
+     * promoted type must be int, or a compile-time error occurs.
      */
-    // TYPECHECK: We do care about handling the initialization expressions.
-    // TYPECHECK: See ¤10.6.
-    doAcceptForChildren(arrayExpr);
+    final IRNode dimExprs = ArrayCreationExpression.getAllocated(arrayExpr);
+    for (final IRNode sizeExpr : DimExprs.getSizeIterator(dimExprs)) {
+      IType type = doAccept(sizeExpr);
+      if (!isConvertibleToIntegralType(type)) {
+        error(sizeExpr, type, "Type is not convertible to an integral type"); 
+      } else {
+        type = unaryNumericPromotion(type);
+        if (!isIntType(type)) {
+          error(sizeExpr, type, "Type is not int");
+        }
+      }
+    }
+    
+    // Don't forget the initializer
+    doAccept(ArrayCreationExpression.getInit(arrayExpr));
     
     /*
-     * The type of the array creation expression is an array type that can
+     * The type of the array creation expression is an array type that can be
      * denoted by a copy of the array creation expression from which the new
      * keyword and every DimExpr expression and array initializer have been
      * deleted.
@@ -311,13 +678,22 @@ public class TypeChecker extends Visitor<IType> {
      * ArrayCreationExpression is an ArrayType.
      */
     IRNode baseType = ArrayCreationExpression.getBase(arrayExpr);
-    int dims = JJNode.tree.numChildren(ArrayCreationExpression.getAllocated(arrayExpr));
+    int numDims = JJNode.tree.numChildren(
+        ArrayCreationExpression.getAllocated(arrayExpr));
     if (ArrayType.prototype.includes(baseType)) {
-      dims += ArrayType.getDims(baseType); // must go first
+      numDims += ArrayType.getDims(baseType); // must go first
       baseType = ArrayType.getBase(baseType); // resets baseType
     }
-    return typeFactory.getArrayType(
-        typeFactory.getTypeFromExpression(baseType), dims);
+    return postProcessArrayCreationExpression(arrayExpr,
+        typeFactory.getArrayType(
+            typeFactory.getTypeFromExpression(baseType), numDims));
+  }
+  
+  protected IType postProcessArrayCreationExpression(
+      final IRNode arrayExpr, final IType type) {
+    // TYPECHECK: (1) Created array is always non-null
+    // TYPECHECK: (2) Array elements might be non-null
+    return postProcessType(type);
   }
 
   
@@ -327,7 +703,7 @@ public class TypeChecker extends Visitor<IType> {
   // ======================================================================
   
   @Override
-  public IType visitFieldRef(final IRNode fieldRefExpr) {
+  public final IType visitFieldRef(final IRNode fieldRefExpr) {
     doAcceptForChildren(fieldRefExpr);
 
     /*
@@ -368,7 +744,16 @@ public class TypeChecker extends Visitor<IType> {
       final IRNode enumDecl = JJNode.tree.getParent(JJNode.tree.getParent(varDecl));
       fieldType = typeFactory.getReferenceTypeFromDeclaration(enumDecl);
     }
-    return conversionEngine.capture(fieldType);
+    return postProcessFieldRefExpression(
+        fieldRefExpr, varDecl, conversionEngine.capture(fieldType));
+  }
+  
+  protected IType postProcessFieldRefExpression(
+      final IRNode fieldRefExpr, final IRNode varDecl, final IType type) {
+    // TYPECHECK: Need to check the field declaration to get the 
+    // TYPECHECK: @NonNull/@Raw state.  EnumDeclarations are always 
+    // TYPECHECK: NonNull?
+    return postProcessType(type);
   }
 
   
@@ -386,7 +771,7 @@ public class TypeChecker extends Visitor<IType> {
   // ======================================================================
  
   @Override
-  public IType visitArrayRefExpression(final IRNode arrayRefExpr) {
+  public final IType visitArrayRefExpression(final IRNode arrayRefExpr) {
     /*
      * The type of the array reference expression must be an array type (call it
      * T[], an array whose components are of type T).
@@ -396,13 +781,137 @@ public class TypeChecker extends Visitor<IType> {
      * 
      * The type of the array access expression is the result of applying capture
      * conversion (¤5.1.10) to T.
+     * 
+     * The index expression undergoes unary numeric promotion (¤5.6.1).
      */
     // TYPECHECK: Need to check that the array reference expression isn't null.
+    // TYPECHECK: The index expression might be UNBOXED which requires a null check too.
     final List<IType> componentTypes =
         doAcceptForChildrenWithResults(arrayRefExpr);
     final IType elementType =
         typeFactory.getArrayElementType(componentTypes.get(0));
-    return conversionEngine.capture(elementType);
+    return postProcessArrayRefExpression(
+        arrayRefExpr, conversionEngine.capture(elementType));
+  }
+  
+  protected IType postProcessArrayRefExpression(final IRNode arrayRefExpr, final IType type) {
+    // TYPECHECK: The array element type might be @NonNull
+    return postProcessType(type);
+  }
+
+  
+  
+  // ======================================================================
+  // == ¤15.14.2 Postfix Increment Operator
+  // ======================================================================
+  
+  @Override
+  public final IType visitPostIncrementExpression(final IRNode postIncExpr) {
+    /*
+     * The result of the postfix expression must be a variable of a type that is
+     * convertible (¤5.1.8) to a numeric type, or a compile-time error occurs.
+     * 
+     * The type of the postfix increment expression is the type of the variable.
+     */
+    return postProcessPostIncrementExpression(
+        postIncExpr, doAccept(PostIncrementExpression.getOp(postIncExpr)));
+  }
+  
+  protected IType postProcessPostIncrementExpression(final IRNode postIncExpr, final IType type) {
+    return postProcessType(type);
+  }
+
+  
+  
+  // ======================================================================
+  // == ¤15.14.3 Postfix Decrement Operator
+  // ======================================================================
+  
+  @Override
+  public final IType visitPostDecrementExpression(final IRNode postDecExpr) {
+    /*
+     * The result of the postfix expression must be a variable of a type that is
+     * convertible (¤5.1.8) to a numeric type, or a compile-time error occurs.
+     * 
+     * The type of the postfix decrement expression is the type of the variable.
+     */
+    return postProcessPostDecrementExpression(
+        postDecExpr, doAccept(PostDecrementExpression.getOp(postDecExpr)));
+  }
+  
+  protected IType postProcessPostDecrementExpression(final IRNode postDecExpr, final IType type) {
+    return postProcessType(type);
+  }
+
+  
+  
+  // ======================================================================
+  // == ¤15.15.1 Prefix Increment Operator
+  // ======================================================================
+  
+  @Override
+  public final IType visitPreIncrementExpression(final IRNode preIncExpr) {
+    /*
+     * The result of the unary expression must be a variable of a type that is
+     * convertible (¤5.1.8) to a numeric type, or a compile-time error occurs.
+     * 
+     * The type of the prefix increment expression is the type of the variable.
+     */
+    return postProcessPreIncrementExpression(
+        preIncExpr, doAccept(PreIncrementExpression.getOp(preIncExpr)));
+  }
+  
+  protected IType postProcessPreIncrementExpression(final IRNode preIncExpr, final IType type) {
+    return postProcessType(type);
+  }
+
+  
+  
+  // ======================================================================
+  // == ¤15.15.2 Prefix Decrement Operator
+  // ======================================================================
+  
+  @Override
+  public final IType visitPreDecrementExpression(final IRNode preDecExpr) {
+    /*
+     * The result of the unary expression must be a variable of a type that is
+     * convertible (¤5.1.8) to a numeric type, or a compile-time error occurs.
+     * 
+     * The type of the prefix decrement expression is the type of the variable.
+     */
+    return postProcessPreDecrementExpression(
+        preDecExpr, doAccept(PreDecrementExpression.getOp(preDecExpr)));
+  }
+  
+  protected IType postProcessPreDecrementExpression(final IRNode preDecExpr, final IType type) {
+    return postProcessType(type);
+  }
+
+  
+  
+  // ======================================================================
+  // == ¤15.15.3 Unary Plus Operator
+  // ======================================================================
+  
+  @Override
+  public final IType visitPlusExpression(final IRNode plusExpr) {
+    /*
+     * The type of the operand expression of the unary + operator must be a type
+     * that is convertible (¤5.1.8) to a primitive numeric type, or a
+     * compile-time error occurs.
+     * 
+     * Unary numeric promotion (¤5.6.1) is performed on the operand. The type of
+     * the unary plus expression is the promoted type of the operand.
+     * 
+     * N.B. Unary numeric promotion includes conversion to a numeric type, which
+     * may introduce an UNBOX which would need a null check.
+     */
+    final IType operandType = doAccept(PlusExpression.getOp(plusExpr));
+    return postProcessPlusExpresion(
+        plusExpr, conversionEngine.unaryNumericPromotion(operandType));
+  }
+  
+  protected IType postProcessPlusExpresion(final IRNode plusExpr, final IType type) {
+    return postProcessType(type);
   }
 }
-
