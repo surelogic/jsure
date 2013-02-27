@@ -95,7 +95,9 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	public static final String JRE_LIBRARY = "JRE System Library";
 	// Same as JavaRuntime.JRE_CONTAINER
 	public static final String JRE_NAME = "org.eclipse.jdt.launching.JRE_CONTAINER";
-
+	public static final String ANDROID_FWK_NAME = "com.android.ide.eclipse.adt.ANDROID_FRAMEWORK";
+	public static final String ANDROID_LIB_NAME = "com.android.ide.eclipse.adt.LIBRARIES";
+	
 	@Unique("return")
 	public JavacTypeEnvironment(Projects projs, JavacProject p,
 			SLProgressMonitor monitor) {
@@ -606,6 +608,9 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	*/
 	
 	private JavacTypeEnvironment getTypeEnv_cached(IRNode here) {
+		if (here == null) {
+			return null;
+		}
 		if (here.identity() == IRNode.destroyedNode) {
 			return null;
 		}
