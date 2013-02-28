@@ -1,16 +1,18 @@
 package com.surelogic.analysis.type.checker;
 
-import java.util.List;
+import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ArrayCreationExpression;
+import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.FloatLiteral;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -25,17 +27,15 @@ import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.operator.VoidType;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
-/*
- * NOTE: Holding off on the "typeCheck" methods because I need to figure out
- * still how I'm going to allow subclasses to hook in an modify the generated 
- * types when they find an annotation.  For now I'm going to leave 
- * crumbs in the code by inserting "// TYPECHECK" in the code with appropriate
- * additional comments.
- */
+// TODO: Need to do error handling when getBinding() fails
+
+// TODO: Need to do better recovery when there is a call to error(): what should the type checker return in this case?  Right now it just continues
+
 /**
  * Visitor that computes the type of each expression, checking the types along
  * the way.  We assume that we only run on Java code that already compiles.
@@ -141,11 +141,21 @@ public class TypeChecker extends Visitor<IType> {
     return isBooleanType(type) || isNumericType(type);
   }
   
+  protected final boolean isReferenceType(final IType type) {
+    // TODO: May be there will be a cheaper way to test this
+    return !isPrimitiveType(type);
+  }
+  
   protected final boolean isNamedType(final IType type, final String typeName) {
     // TODO: Make this real when I flesh out the ITypes
     return false;
   }
 
+  protected final boolean isArrayType(final IType type) {
+    // TODO: Make this real when I flesh out the ITypes
+    return false;
+  }
+  
   
   
   // ======================================================================
@@ -270,6 +280,34 @@ public class TypeChecker extends Visitor<IType> {
   }
   
   /**
+   * Promote the given types using binary numeric promotion as defined
+   * in ¤5.6.2.
+   */
+  protected final Pair<IType, IType> binaryNumericPromotion(
+      IType type1, IType type2) {
+    if (isReferenceType(type1)) type1 = unbox(type1);
+    if (isReferenceType(type2)) type2 = unbox(type2);
+
+    if (isDoubleType(type1)) {
+      type2 = typeFactory.getDoubleType();
+    } else if (isDoubleType(type2)) {
+      type1 = typeFactory.getDoubleType();
+    } else if (isFloatType(type1)) {
+      type2 = typeFactory.getFloatType();
+    } else if (isFloatType(type2)) {
+      type1 = typeFactory.getFloatType();
+    } else if (isLongType(type1)) {
+      type2 = typeFactory.getLongType();
+    } else if (isLongType(type2)) {
+      type1 = typeFactory.getLongType();
+    } else {
+      type1 = typeFactory.getIntType();
+      type2 = typeFactory.getIntType();
+    }
+    return new Pair<IType, IType>(type1, type2);
+  }
+  
+  /**
    * Give a subclass a chance to refine the qualifiers on the type being
    * returned after unaryNumericPromotion.
    * 
@@ -283,6 +321,24 @@ public class TypeChecker extends Visitor<IType> {
       final IType originalType, final IType type) {
     return type;
   }
+
+
+  /**
+   * First checks if type is convertible to an integral type (¤5.1.8), and if 
+   * so, tests if the type is <code>int</code> after unary numeric promotion
+   * (¤5.6.1).
+   */
+  protected final void unaryNumericPromotionToIntIfConvertable(
+      final IRNode expr, IType type) {
+    if (!isConvertibleToIntegralType(type)) {
+      error(expr, type, "Type is not convertible to an integral type"); 
+    } else {
+      type = unaryNumericPromotion(type);
+      if (!isIntType(type)) {
+        error(expr, type, "Type is not int");
+      }
+    }
+  }
   
   
   
@@ -294,6 +350,10 @@ public class TypeChecker extends Visitor<IType> {
     return type;
   }
   
+  /*
+   * TODO: Redo the error description as Enum
+   */
+
   protected void error(final IRNode expr, final IType type, final String desc) {
     // nothing to do by default
   }
@@ -649,14 +709,7 @@ public class TypeChecker extends Visitor<IType> {
     final IRNode dimExprs = ArrayCreationExpression.getAllocated(arrayExpr);
     for (final IRNode sizeExpr : DimExprs.getSizeIterator(dimExprs)) {
       IType type = doAccept(sizeExpr);
-      if (!isConvertibleToIntegralType(type)) {
-        error(sizeExpr, type, "Type is not convertible to an integral type"); 
-      } else {
-        type = unaryNumericPromotion(type);
-        if (!isIntType(type)) {
-          error(sizeExpr, type, "Type is not int");
-        }
-      }
+      unaryNumericPromotionToIntIfConvertable(sizeExpr, type);
     }
     
     // Don't forget the initializer
@@ -724,6 +777,12 @@ public class TypeChecker extends Visitor<IType> {
      * in the implicit "this".
      */
     
+    final IRNode objectExpr = FieldRef.getObject(fieldRefExpr);
+    final IType objectType = doAccept(objectExpr);
+    if (isPrimitiveType(objectType)) {
+      error(objectExpr, objectType, "Type is not a reference type");
+    }
+    
     /* Binding the field reference expression gets the VariableDeclarator
      * of the accessed field, or the EnumConstantDeclaration of the accessed
      * enumeration constant.
@@ -738,14 +797,20 @@ public class TypeChecker extends Visitor<IType> {
       final IRNode typeExpr = FieldDeclaration.getType(fieldDecl);
       fieldType = typeFactory.getTypeFromExpression(typeExpr);
       
-      // TYPECHECK: If the field is not static, need to check the type
-      // TYPECHECK: of the object expression (for null)
+      if (!TypeUtil.isStatic(varDecl)) {
+        preProcessObjectReference(objectExpr, objectType);
+      }
     } else {
       final IRNode enumDecl = JJNode.tree.getParent(JJNode.tree.getParent(varDecl));
       fieldType = typeFactory.getReferenceTypeFromDeclaration(enumDecl);
     }
     return postProcessFieldRefExpression(
         fieldRefExpr, varDecl, conversionEngine.capture(fieldType));
+  }
+
+  // Only called for instance fields
+  protected void preProcessObjectReference(final IRNode objectExpr, final IType objectType) {
+    // TYPECHECK: Check the type of the object expression for null
   }
   
   protected IType postProcessFieldRefExpression(
@@ -776,22 +841,30 @@ public class TypeChecker extends Visitor<IType> {
      * The type of the array reference expression must be an array type (call it
      * T[], an array whose components are of type T).
      * 
-     * (Ignoring the type checking of the index expression: it only involves
-     * primitive types.)
+     * The index expression undergoes unary numeric promotion (¤5.6.1). The
+     * promoted type must be int, or a compile-time error occurs.
      * 
      * The type of the array access expression is the result of applying capture
      * conversion (¤5.1.10) to T.
-     * 
-     * The index expression undergoes unary numeric promotion (¤5.6.1).
      */
-    // TYPECHECK: Need to check that the array reference expression isn't null.
-    // TYPECHECK: The index expression might be UNBOXED which requires a null check too.
-    final List<IType> componentTypes =
-        doAcceptForChildrenWithResults(arrayRefExpr);
-    final IType elementType =
-        typeFactory.getArrayElementType(componentTypes.get(0));
+    final IRNode refExpr = ArrayRefExpression.getArray(arrayRefExpr);
+    final IType arrayType = doAccept(refExpr);
+    if (!isArrayType(arrayType)) {
+      error(refExpr, arrayType, "Not an array type");
+    }
+    processArrayReference(refExpr, arrayType);
+    
+    final IRNode indexExpr = ArrayRefExpression.getIndex(arrayRefExpr);
+    final IType indexType = doAccept(indexExpr);
+    unaryNumericPromotionToIntIfConvertable(indexExpr, indexType);
+    
+    final IType elementType = typeFactory.getArrayElementType(arrayType);
     return postProcessArrayRefExpression(
         arrayRefExpr, conversionEngine.capture(elementType));
+  }
+  
+  protected void processArrayReference(final IRNode refExpr, final IType type) {
+    // TYPECHECK: Need to check that the array reference expression isn't null.
   }
   
   protected IType postProcessArrayRefExpression(final IRNode arrayRefExpr, final IType type) {
@@ -813,8 +886,13 @@ public class TypeChecker extends Visitor<IType> {
      * 
      * The type of the postfix increment expression is the type of the variable.
      */
-    return postProcessPostIncrementExpression(
-        postIncExpr, doAccept(PostIncrementExpression.getOp(postIncExpr)));
+    final IRNode opExpr = PostIncrementExpression.getOp(postIncExpr);
+    final IType exprType = doAccept(opExpr);
+    if (!isConvertibleToNumericType(exprType)) {
+      error(opExpr, exprType, "Not convertible to a numeric type");
+    }
+    binaryNumericPromotion(exprType, typeFactory.getIntType());
+    return postProcessPostIncrementExpression(postIncExpr, exprType);
   }
   
   protected IType postProcessPostIncrementExpression(final IRNode postIncExpr, final IType type) {
@@ -835,8 +913,13 @@ public class TypeChecker extends Visitor<IType> {
      * 
      * The type of the postfix decrement expression is the type of the variable.
      */
-    return postProcessPostDecrementExpression(
-        postDecExpr, doAccept(PostDecrementExpression.getOp(postDecExpr)));
+    final IRNode opExpr = PostDecrementExpression.getOp(postDecExpr);
+    final IType exprType = doAccept(opExpr);
+    if (!isConvertibleToNumericType(exprType)) {
+      error(opExpr, exprType, "Not convertible to a numeric type");
+    }
+    binaryNumericPromotion(exprType, typeFactory.getIntType());
+    return postProcessPostDecrementExpression(postDecExpr, exprType);
   }
   
   protected IType postProcessPostDecrementExpression(final IRNode postDecExpr, final IType type) {
@@ -857,8 +940,13 @@ public class TypeChecker extends Visitor<IType> {
      * 
      * The type of the prefix increment expression is the type of the variable.
      */
-    return postProcessPreIncrementExpression(
-        preIncExpr, doAccept(PreIncrementExpression.getOp(preIncExpr)));
+    final IRNode opExpr = PreIncrementExpression.getOp(preIncExpr);
+    final IType exprType = doAccept(opExpr);
+    if (!isConvertibleToNumericType(exprType)) {
+      error(opExpr, exprType, "Not convertible to a numeric type");
+    }
+    binaryNumericPromotion(exprType, typeFactory.getIntType());
+    return postProcessPreIncrementExpression(preIncExpr, exprType);
   }
   
   protected IType postProcessPreIncrementExpression(final IRNode preIncExpr, final IType type) {
@@ -879,8 +967,13 @@ public class TypeChecker extends Visitor<IType> {
      * 
      * The type of the prefix decrement expression is the type of the variable.
      */
-    return postProcessPreDecrementExpression(
-        preDecExpr, doAccept(PreDecrementExpression.getOp(preDecExpr)));
+    final IRNode opExpr = PreDecrementExpression.getOp(preDecExpr);
+    final IType exprType = doAccept(opExpr);
+    if (!isConvertibleToNumericType(exprType)) {
+      error(opExpr, exprType, "Not convertible to a numeric type");
+    }
+    binaryNumericPromotion(exprType, typeFactory.getIntType());
+    return postProcessPreDecrementExpression(preDecExpr, exprType);
   }
   
   protected IType postProcessPreDecrementExpression(final IRNode preDecExpr, final IType type) {
@@ -906,9 +999,14 @@ public class TypeChecker extends Visitor<IType> {
      * N.B. Unary numeric promotion includes conversion to a numeric type, which
      * may introduce an UNBOX which would need a null check.
      */
-    final IType operandType = doAccept(PlusExpression.getOp(plusExpr));
-    return postProcessPlusExpresion(
-        plusExpr, conversionEngine.unaryNumericPromotion(operandType));
+    final IRNode opExpr = PlusExpression.getOp(plusExpr);
+    IType operandType = doAccept(opExpr);
+    if (!isConvertibleToNumericType(operandType)) {
+      error(opExpr, operandType, "Not convertible to a numeric type");
+    } else {
+      operandType = unaryNumericPromotion(operandType);
+    }
+    return postProcessPlusExpresion(plusExpr, operandType);
   }
   
   protected IType postProcessPlusExpresion(final IRNode plusExpr, final IType type) {
