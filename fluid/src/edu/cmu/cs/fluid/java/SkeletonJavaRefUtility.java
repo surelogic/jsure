@@ -106,6 +106,9 @@ public final class SkeletonJavaRefUtility {
    *         {@code false} otherwise.
    */
   public static boolean hasRegistered(IRNode node) {
+	if (node == null) {
+		return false;
+	}
     return nodeToSkeleton.containsKey(node) || JavaNode.hasJavaRef(node);
   }
 

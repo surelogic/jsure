@@ -8,6 +8,7 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.zip.*;
 
+import javax.lang.model.element.Element;
 import javax.tools.*;
 import javax.tools.JavaFileManager.Location;
 import javax.tools.JavaFileObject.Kind;
@@ -85,11 +86,7 @@ public class JavacClassParser {
 
 	private final Map<File,File> mappedSources = new ConcurrentHashMap<File, File>();
 	
-	private final Set<String> requiredRefs = new HashSet<String>();
-	
-	// Use default charset	
-    private final StandardJavaFileManager fileman = 
-    	JavacTool.create().getStandardFileManager(nullListener, null, null);          	    	
+	private final Set<String> requiredRefs = new HashSet<String>();        	    	
 	
     private final Projects projects;
 	private final ForkJoinPool pool;
@@ -102,7 +99,6 @@ public class JavacClassParser {
 		projects = p;
 
 		jarRefs = ParallelArray.create(0, Triple.class, pool);		
-		fileman.setLocation(StandardLocation.CLASS_OUTPUT, tmpDir);		
 		
 		for(JavacProject jp : p) {
 			//System.out.println("Initializing "+jp.getName());
@@ -167,7 +163,11 @@ public class JavacClassParser {
 		final References refs;
         final Map<JavaFileObject, JavaSourceFile> sources = new HashMap<JavaFileObject, JavaSourceFile>();		
 		
-		public BatchParser(final JavacProject jp, int max, boolean asBinary) {
+		// Use default charset	
+	    final StandardJavaFileManager fileman = 
+	    	JavacTool.create().getStandardFileManager(nullListener, null, null);   
+        
+		public BatchParser(final JavacProject jp, int max, boolean asBinary) throws IOException {
 			this.jp = jp;
 			this.tEnv = jp.getTypeEnv();
 			this.max = max;
@@ -181,6 +181,21 @@ public class JavacClassParser {
 			cuts = ParallelArray.create(0, CompilationUnitTree.class, pool);			
 			cus = new ConcurrentLinkedQueue<CodeInfo>(); // Added to concurrently
 			refs = new References(jp);
+			
+			fileman.setLocation(StandardLocation.CLASS_OUTPUT, tmpDir);		
+			fileman.setLocation(StandardLocation.CLASS_PATH, collectClasses(jp));
+			// TODO What about other projects?
+		}
+		
+		Iterable<File> collectClasses(JavacProject jp) {
+			List<File> classpath = new ArrayList<File>();
+			for(IClassPathEntry cpe : jp.getConfig().getClassPath()) {
+				File f = cpe.getFileForClassPath();
+				if (f != null) {
+					classpath.add(f);
+				}
+			}
+			return classpath;
 		}
 
 		void parse(Iterable<JavaSourceFile> files, List<CodeInfo> results, boolean onDemand) 
@@ -278,6 +293,19 @@ public class JavacClassParser {
 				tEnv.addCompUnit(info, true);
 				results.add(info);
 			}
+			timeAnalysis(javac);
+ 		}
+
+		private void timeAnalysis(final JavacTask javac) throws IOException {			
+			if (true) {
+				return;
+			}
+			long start = System.currentTimeMillis();
+			for(Element e : javac.analyze()) {
+				System.out.println("Analyzed "+e.getSimpleName());
+			}
+			long end = System.currentTimeMillis();
+			System.out.println("Analysis time: "+(end-start)+" ms");
 		}
 		
 		class AdaptTask extends RecursiveTask<CodeInfo> {
@@ -347,7 +375,8 @@ public class JavacClassParser {
 					//scanForReferencedTypes(refs, cut);        	
 					cuts.asList().add(cut);
 				}
-
+				timeAnalysis(task);
+				
 				final Trees t = Trees.instance(task);        	        
 				cus.clear();
 				System.out.println("Adapting "+cuts.asList().size()+" CUTs");

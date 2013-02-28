@@ -379,6 +379,9 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   }
 
   private void addJavaRefAndCheckForJavadocAnnotations(Tree t, IRNode result) {
+	if (result == null) {
+		return;
+	}
     if (SkeletonJavaRefUtility.hasRegistered(result))
       return;
 
@@ -1374,7 +1377,8 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     // IRNode defVal = acceptNode(node.getDefaultValue());
     if (rType == null) {
       if (className == null) {
-        throw new IllegalArgumentException("No class name for constructor");
+    	  System.err.println("No class name for constructor: "+node);
+    	  return null;
       }
       IRNode rv = ConstructorDeclaration.createNode(annos, mods, TypeFormals.createNode(typs), className,
           Parameters.createNode(fmls), Throws.createNode(exs), body);
