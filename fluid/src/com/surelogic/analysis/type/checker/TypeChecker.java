@@ -15,6 +15,7 @@ import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.FloatLiteral;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
+import edu.cmu.cs.fluid.java.operator.MinusExpression;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.PlusExpression;
@@ -328,7 +329,7 @@ public class TypeChecker extends Visitor<IType> {
    * so, tests if the type is <code>int</code> after unary numeric promotion
    * (¤5.6.1).
    */
-  protected final void unaryNumericPromotionToIntIfConvertable(
+  protected final void unaryNumericPromotionToIntIfConvertible(
       final IRNode expr, IType type) {
     if (!isConvertibleToIntegralType(type)) {
       error(expr, type, "Type is not convertible to an integral type"); 
@@ -340,6 +341,34 @@ public class TypeChecker extends Visitor<IType> {
     }
   }
   
+  /**
+   * First checks if type is convertible to a numeric type (¤5.1.8), and if 
+   * so, performs unary numeric promotion (¤5.6.1).
+   */
+  protected final void unaryNumericPromotionIfConvertibleToNumeric(
+      final IRNode expr, final IType type) {
+    if (!isConvertibleToNumericType(type)) {
+      error(expr, type, "Not convertible to a numeric type");
+    } else {
+      // Force the promotion so we can toggle an unbox if necessary; don't care about the resulting type
+      unaryNumericPromotion(type);
+    }
+  }
+  
+  /**
+   * First checks if type is convertible to an integral type (¤5.1.8), and if 
+   * so, performs unary numeric promotion (¤5.6.1).
+   */
+  protected final void unaryNumericPromotionIfConvertibleToIntegral(
+      final IRNode expr, final IType type) {
+    if (!isConvertibleToIntegralType(type)) {
+      error(expr, type, "Not convertible to an integral type");
+    } else {
+      // Force the promotion so we can toggle an unbox if necessary; don't care about the resulting type
+      unaryNumericPromotion(type);
+    }
+  }
+
   
   
   // ======================================================================
@@ -353,7 +382,6 @@ public class TypeChecker extends Visitor<IType> {
   /*
    * TODO: Redo the error description as Enum
    */
-
   protected void error(final IRNode expr, final IType type, final String desc) {
     // nothing to do by default
   }
@@ -709,7 +737,7 @@ public class TypeChecker extends Visitor<IType> {
     final IRNode dimExprs = ArrayCreationExpression.getAllocated(arrayExpr);
     for (final IRNode sizeExpr : DimExprs.getSizeIterator(dimExprs)) {
       IType type = doAccept(sizeExpr);
-      unaryNumericPromotionToIntIfConvertable(sizeExpr, type);
+      unaryNumericPromotionToIntIfConvertible(sizeExpr, type);
     }
     
     // Don't forget the initializer
@@ -856,7 +884,7 @@ public class TypeChecker extends Visitor<IType> {
     
     final IRNode indexExpr = ArrayRefExpression.getIndex(arrayRefExpr);
     final IType indexType = doAccept(indexExpr);
-    unaryNumericPromotionToIntIfConvertable(indexExpr, indexType);
+    unaryNumericPromotionToIntIfConvertible(indexExpr, indexType);
     
     final IType elementType = typeFactory.getArrayElementType(arrayType);
     return postProcessArrayRefExpression(
@@ -885,6 +913,9 @@ public class TypeChecker extends Visitor<IType> {
      * convertible (¤5.1.8) to a numeric type, or a compile-time error occurs.
      * 
      * The type of the postfix increment expression is the type of the variable.
+     * 
+     * Before the addition, binary numeric promotion (¤5.6.2) is performed on
+     * the value 1 and the value of the variable.
      */
     final IRNode opExpr = PostIncrementExpression.getOp(postIncExpr);
     final IType exprType = doAccept(opExpr);
@@ -912,6 +943,9 @@ public class TypeChecker extends Visitor<IType> {
      * convertible (¤5.1.8) to a numeric type, or a compile-time error occurs.
      * 
      * The type of the postfix decrement expression is the type of the variable.
+     * 
+     * Before the subtraction, binary numeric promotion (¤5.6.2) is performed on
+     * the value 1 and the value of the variable.
      */
     final IRNode opExpr = PostDecrementExpression.getOp(postDecExpr);
     final IType exprType = doAccept(opExpr);
@@ -939,6 +973,9 @@ public class TypeChecker extends Visitor<IType> {
      * convertible (¤5.1.8) to a numeric type, or a compile-time error occurs.
      * 
      * The type of the prefix increment expression is the type of the variable.
+     * 
+     * Before the addition, binary numeric promotion (¤5.6.2) is performed on
+     * the value 1 and the value of the variable.
      */
     final IRNode opExpr = PreIncrementExpression.getOp(preIncExpr);
     final IType exprType = doAccept(opExpr);
@@ -966,6 +1003,9 @@ public class TypeChecker extends Visitor<IType> {
      * convertible (¤5.1.8) to a numeric type, or a compile-time error occurs.
      * 
      * The type of the prefix decrement expression is the type of the variable.
+     * 
+     * Before the subtraction, binary numeric promotion (¤5.6.2) is performed on
+     * the value 1 and the value of the variable.
      */
     final IRNode opExpr = PreDecrementExpression.getOp(preDecExpr);
     final IType exprType = doAccept(opExpr);
@@ -995,21 +1035,71 @@ public class TypeChecker extends Visitor<IType> {
      * 
      * Unary numeric promotion (¤5.6.1) is performed on the operand. The type of
      * the unary plus expression is the promoted type of the operand.
-     * 
-     * N.B. Unary numeric promotion includes conversion to a numeric type, which
-     * may introduce an UNBOX which would need a null check.
      */
     final IRNode opExpr = PlusExpression.getOp(plusExpr);
-    IType operandType = doAccept(opExpr);
-    if (!isConvertibleToNumericType(operandType)) {
-      error(opExpr, operandType, "Not convertible to a numeric type");
-    } else {
-      operandType = unaryNumericPromotion(operandType);
-    }
+    final IType operandType = doAccept(opExpr);
+    unaryNumericPromotionIfConvertibleToNumeric(opExpr, operandType);
+    // XXX: Wrong, need to reutrn the promoted type
     return postProcessPlusExpresion(plusExpr, operandType);
   }
   
   protected IType postProcessPlusExpresion(final IRNode plusExpr, final IType type) {
     return postProcessType(type);
   }
+
+  
+  
+  // ======================================================================
+  // == ¤15.15.4 Unary Minus Operator
+  // ======================================================================
+  
+  @Override
+  public final IType visitMinusExpression(final IRNode minusExpr) {
+    /*
+     * The type of the operand expression of the unary - operator must be a type
+     * that is convertible (¤5.1.8) to a primitive numeric type, or a
+     * compile-time error occurs.
+     * 
+     * Unary numeric promotion (¤5.6.1) is performed on the operand.
+     * 
+     * The type of the unary minus expression is the promoted type of the
+     * operand.
+     */
+    final IRNode opExpr = MinusExpression.getOp(minusExpr);
+    final IType operandType = doAccept(opExpr);
+    unaryNumericPromotionIfConvertibleToNumeric(opExpr, operandType);
+    // XXX: Wrong, need to reutrn the promoted type
+    return postProcessMinusExpresion(minusExpr, operandType);
+ }
+  
+  protected IType postProcessMinusExpresion(final IRNode minusExpr, final IType type) {
+    return postProcessType(type);
+  }
+
+  
+  
+//  // ======================================================================
+//  // == ¤15.15.5 Bitwise Complement Operator ~
+//  // ======================================================================
+//  
+//  @Override
+//  public final IType visitComplementExpression(final IRNode complementExpr) {
+//    /*
+//     * The type of the operand expression of the unary ~ operator must be a type
+//     * that is convertible (¤5.1.8) to a primitive integral type, or a
+//     * compile-time error occurs.
+//     * 
+//     * Unary numeric promotion (¤5.6.1) is performed on the operand. The type of
+//     * the unary bitwise complement expression is the promoted type of the
+//     * operand.
+//     */
+//    final IRNode opExpr = ComplementExpression.getOp(complementExpr);
+//    final IType operandType = doAccept(opExpr);
+//    unaryNumericPromotionIfConvertibleToIntegral(opExpr, operandType);
+//    return null;
+//  }
+//  
+//  protected IType postProcessComplementExpression(final IRNode complementExpr, final IType type) {
+//    return postProcessType(type);
+//  }
 }
