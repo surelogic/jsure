@@ -33,19 +33,19 @@ public interface IConversionEngine {
 
 
 
-  // ======================================================================
-  // == ¤5.6.1 Unary Numeric Promotion
-  // ======================================================================
-  
-  /**
-   * Perform unary numeric promotion on the given type.
-   * 
-   * @param type
-   *          the type to promote.
-   * @return The promoted type.
-   * @exception IllegalArgumentException
-   *              Thrown if unary numeric promotion is not applicable to the
-   *              given type.
-   */
-  public IType unaryNumericPromotion(IType type);
+//  // ======================================================================
+//  // == ¤5.6.1 Unary Numeric Promotion
+//  // ======================================================================
+//  
+//  /**
+//   * Perform unary numeric promotion on the given type.
+//   * 
+//   * @param type
+//   *          the type to promote.
+//   * @return The promoted type.
+//   * @exception IllegalArgumentException
+//   *              Thrown if unary numeric promotion is not applicable to the
+//   *              given type.
+//   */
+//  public IType unaryNumericPromotion(IType type);
 }
