@@ -1105,6 +1105,10 @@ public class OperatorGen extends AbstractASTGenerator {
       printJava("  public <T> T accept(IRNode node, IVisitor<T> visitor) {\n");
       printJava("    return visitor.visit"+s.name+"(node);\n");
       printJava("  }\n\n");
+      
+      printJava("  public <T, E extends Exception> T accept(IRNode node, IVisitorWithException<T, E> visitor) throws E {\n");
+      printJava("    return visitor.visit"+s.name+"(node);\n");
+      printJava("  }\n\n");
     }
   }
   
@@ -1123,10 +1127,16 @@ public class OperatorGen extends AbstractASTGenerator {
     generateIAcceptor();
 
     openPrintStream(stdPath + File.separator + "IVisitor.java");
-    generateIVisitor();
+    generateIVisitor(false);
     
     openPrintStream(stdPath + File.separator + "Visitor.java");
-    generateVisitor();
+    generateVisitor(false);
+    
+    openPrintStream(stdPath + File.separator + "IVisitorWithException.java");
+    generateIVisitor(true);
+    
+    openPrintStream(stdPath + File.separator + "VisitorWithException.java");
+    generateVisitor(true);
     
     openPrintStream(stdPath + File.separator + "TestVisitor.java");
     generateTestVisitor();
@@ -1154,22 +1164,33 @@ public class OperatorGen extends AbstractASTGenerator {
     printJava("import edu.cmu.cs.fluid.ir.*;\n\n");
     printJava("public interface IAcceptor {\n");
     printJava("  public <T> T accept(IRNode node, IVisitor<T> visitor);\n");
+    printJava("  public <T, E extends Exception> T accept(IRNode node, IVisitorWithException<T, E> visitor) throws E;\n");
     printJava("}\n");
   }
   
-  private void generateIVisitor() {
+  private void generateIVisitor(boolean withException) {
     generatePkgDecl(stdPackage);
     printJava("import edu.cmu.cs.fluid.ir.*;\n\n");
     printJava("@SuppressWarnings(\"deprecation\")\n");
-    printJava("public interface IVisitor<T> {\n");
+    if (withException) {
+    	printJava("public interface IVisitorWithException<T, E extends Exception> {\n");
+    } else {
+    	printJava("public interface IVisitor<T> {\n");
+    }
     for (Map.Entry<String,OpSyntax> e : iterate()) {
       OpSyntax s = e.getValue();
-      printJava("  public T visit"+capitalize(s.name)+"(IRNode node);\n");
+      if (withException) {
+    	  printJava("  public T visit"+capitalize(s.name)+"(IRNode node) throws E;\n");
+      } else {
+    	  printJava("  public T visit"+capitalize(s.name)+"(IRNode node);\n");
+      }
     }
     printJava("}\n");
   }
   
-  private void generateVisitor() {
+  private void generateVisitor(boolean withException) {
+	final String throwsClause = 
+			withException ? " throws E" : "";
     generatePkgDecl(stdPackage);
     printJava("import java.util.*;\n");
     printJava("import com.surelogic.*;\n");
@@ -1178,18 +1199,22 @@ public class OperatorGen extends AbstractASTGenerator {
     printJava("import edu.cmu.cs.fluid.java.*;\n\n");
     printJava("@SuppressWarnings(\"deprecation\")\n");
     printJava("@ThreadSafe(implementationOnly=true)\n");
-    printJava("public abstract class Visitor<T> implements IVisitor<T> {\n");
+    if (withException) {
+       	printJava("public abstract class VisitorWithException<T, E extends Exception> implements IVisitorWithException<T, E> {\n");
+    } else {
+    	printJava("public abstract class Visitor<T> implements IVisitor<T> {\n");
+    }
     printJava("  // two useful methods\n");
-    printJava("  public T doAccept(IRNode node) {\n");
+    printJava("  public T doAccept(IRNode node)"+throwsClause+" {\n");
     printJava("    return ((IAcceptor)JJNode.tree.getOperator(node)).accept(node,this);\n");
     printJava("  }\n\n");
-    printJava("  public void doAcceptForChildren(IRNode node) {\n");
+    printJava("  public void doAcceptForChildren(IRNode node)"+throwsClause+" {\n");
     printJava("    Iterator enm = JJNode.tree.children(node);\n");
     printJava("    while (enm.hasNext()) {\n");
     printJava("      doAccept((IRNode)enm.next());\n");
     printJava("    }\n");
     printJava("  }\n\n");
-    printJava("  public List<T> doAcceptForChildrenWithResults(IRNode node) {\n");
+    printJava("  public List<T> doAcceptForChildrenWithResults(IRNode node)"+throwsClause+" {\n");
     printJava("    List<T> results = new ArrayList<T>();\n");
     printJava("    Iterator enm = JJNode.tree.children(node);\n");
     printJava("    while (enm.hasNext()) {\n");
@@ -1198,12 +1223,12 @@ public class OperatorGen extends AbstractASTGenerator {
     printJava("    return Collections.unmodifiableList(results);\n");
     printJava("  }\n\n");
     printJava("  // method called for any operator without a visit method overridden.\n");
-    printJava("  public T visit(IRNode node) { return null; }\n");
+    printJava("  public T visit(IRNode node)"+throwsClause+" { return null; }\n");
 
     for (Map.Entry<String,OpSyntax> e : iterate()) {
       OpSyntax s = e.getValue();
 
-      printJava("  public T visit"+capitalize(s.name)+"(IRNode node) {\n");
+      printJava("  public T visit"+capitalize(s.name)+"(IRNode node)"+throwsClause+" {\n");
       printJava("    return visit"+capitalize(s.parentOperator)+"(node);\n");
       printJava("  }\n");    
     }
