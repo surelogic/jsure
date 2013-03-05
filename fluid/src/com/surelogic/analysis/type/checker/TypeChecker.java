@@ -1,7 +1,5 @@
 package com.surelogic.analysis.type.checker;
 
-import com.surelogic.common.Pair;
-
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ArrayCreationExpression;
@@ -12,11 +10,13 @@ import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.ComplementExpression;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
+import edu.cmu.cs.fluid.java.operator.DivExpression;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.FloatLiteral;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
 import edu.cmu.cs.fluid.java.operator.MinusExpression;
+import edu.cmu.cs.fluid.java.operator.MulExpression;
 import edu.cmu.cs.fluid.java.operator.NotExpression;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParenExpression;
@@ -27,6 +27,7 @@ import edu.cmu.cs.fluid.java.operator.PreDecrementExpression;
 import edu.cmu.cs.fluid.java.operator.PreIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
+import edu.cmu.cs.fluid.java.operator.RemExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VisitorWithException;
 import edu.cmu.cs.fluid.java.operator.VoidType;
@@ -303,6 +304,19 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
 
   /**
+   * Assert that the type is convertible to a numeric type: returns normally
+   * if {@link #isConvertibleToNumericType} is <code>true</code>; throws
+   * an exception if not.
+   */
+  protected final void assertConvertibleToNumericType(
+      final IType type, final IRNode expr)
+  throws TypeCheckingFailed {
+    if (!isConvertibleToNumericType(type)) {
+      error(expr, type, JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE);
+    }
+  }
+  
+  /**
    * Is the type "convertible to a integral type" as defined in ¤5.1.8.
    */
   protected final boolean isConvertibleToIntegralType(final IType type) {
@@ -312,6 +326,19 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
         isNamedType(type, JAVA_LANG_CHARACTER) ||
         isNamedType(type, JAVA_LANG_INTEGER) ||
         isNamedType(type, JAVA_LANG_LONG);
+  }
+
+  /**
+   * Assert that the type is convertible to a numeric type: returns normally
+   * if {@link #isConvertibleToNumericType} is <code>true</code>; throws
+   * an exception if not.
+   */
+  protected final void assertConvertibleToIntegralType(
+      final IType type, final IRNode expr)
+  throws TypeCheckingFailed {
+    if (!isConvertibleToIntegralType(type)) {
+      error(expr, type, JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE);
+    }
   }
   
   
@@ -355,28 +382,20 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
    * Promote the given types using binary numeric promotion as defined
    * in ¤5.6.2.
    */
-  protected final Pair<IType, IType> binaryNumericPromotion(
+  protected final IType binaryNumericPromotion(
       IType type1, IType type2) {
     if (isReferenceType(type1)) type1 = unbox(type1);
     if (isReferenceType(type2)) type2 = unbox(type2);
 
-    if (isDoubleType(type1)) {
-      type2 = typeFactory.getDoubleType();
-    } else if (isDoubleType(type2)) {
-      type1 = typeFactory.getDoubleType();
-    } else if (isFloatType(type1)) {
-      type2 = typeFactory.getFloatType();
-    } else if (isFloatType(type2)) {
-      type1 = typeFactory.getFloatType();
-    } else if (isLongType(type1)) {
-      type2 = typeFactory.getLongType();
-    } else if (isLongType(type2)) {
-      type1 = typeFactory.getLongType();
+    if (isDoubleType(type1) || isDoubleType(type2)) {
+      return typeFactory.getDoubleType();
+    } else if (isFloatType(type1) || isFloatType(type2)) {
+      return typeFactory.getFloatType();
+    } else if (isLongType(type1) || isLongType(type2)) {
+      return typeFactory.getLongType();
     } else {
-      type1 = typeFactory.getIntType();
-      type2 = typeFactory.getIntType();
+      return typeFactory.getIntType();
     }
-    return new Pair<IType, IType>(type1, type2);
   }
   
 //  /**
@@ -415,13 +434,10 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   protected final void unaryNumericPromotionToIntIfConvertible(
       final IRNode expr, IType type)
   throws TypeCheckingFailed {
-    if (!isConvertibleToIntegralType(type)) {
-      error(expr, type, JavaError.NOT_CONVERTIBLE_TO_INTEGRAL_TYPE);
-    } else {
-      type = unaryNumericPromotion(type);
-      if (!isIntType(type)) {
-        error(expr, type, JavaError.NOT_INT);
-      }
+    assertConvertibleToIntegralType(type, expr);
+    type = unaryNumericPromotion(type);
+    if (!isIntType(type)) {
+      error(expr, type, JavaError.NOT_INT);
     }
   }
   
@@ -432,13 +448,9 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   protected final IType unaryNumericPromotionIfConvertibleToNumeric(
       final IRNode expr, final IType type)
   throws TypeCheckingFailed {
-    if (!isConvertibleToNumericType(type)) {
-      error(expr, type, JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE);
-      return null; // DEAD CODE: error() always throws an exception
-    } else {
-      // Force the promotion so we can toggle an unbox if necessary; don't care about the resulting type
-      return unaryNumericPromotion(type);
-    }
+    assertConvertibleToNumericType(type, expr);
+    // Force the promotion so we can toggle an unbox if necessary; don't care about the resulting type
+    return unaryNumericPromotion(type);
   }
   
   /**
@@ -448,13 +460,9 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   protected final IType unaryNumericPromotionIfConvertibleToIntegral(
       final IRNode expr, final IType type)
   throws TypeCheckingFailed {
-    if (!isConvertibleToIntegralType(type)) {
-      error(expr, type, JavaError.NOT_CONVERTIBLE_TO_INTEGRAL_TYPE);
-      return null; // DEAD CODE: error() always throws an exception
-    } else {
-      // Force the promotion so we can toggle an unbox if necessary; don't care about the resulting type
-      return unaryNumericPromotion(type);
-    }
+    assertConvertibleToIntegralType(type, expr);
+    // Force the promotion so we can toggle an unbox if necessary; don't care about the resulting type
+    return unaryNumericPromotion(type);
   }
 
   
@@ -1041,9 +1049,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      */
     final IRNode opExpr = PostIncrementExpression.getOp(postIncExpr);
     final IType exprType = doAccept(opExpr);
-    if (!isConvertibleToNumericType(exprType)) {
-      error(opExpr, exprType, JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE);
-    }
+    assertConvertibleToNumericType(exprType, opExpr);
     binaryNumericPromotion(exprType, typeFactory.getIntType());
     return postProcessPostIncrementExpression(postIncExpr, exprType);
   }
@@ -1077,9 +1083,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      */
     final IRNode opExpr = PostDecrementExpression.getOp(postDecExpr);
     final IType exprType = doAccept(opExpr);
-    if (!isConvertibleToNumericType(exprType)) {
-      error(opExpr, exprType, JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE);
-    }
+    assertConvertibleToNumericType(exprType, opExpr);
     binaryNumericPromotion(exprType, typeFactory.getIntType());
     return postProcessPostDecrementExpression(postDecExpr, exprType);
   }
@@ -1113,9 +1117,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      */
     final IRNode opExpr = PreIncrementExpression.getOp(preIncExpr);
     final IType exprType = doAccept(opExpr);
-    if (!isConvertibleToNumericType(exprType)) {
-      error(opExpr, exprType, JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE);
-    }
+    assertConvertibleToNumericType(exprType, opExpr);
     binaryNumericPromotion(exprType, typeFactory.getIntType());
     return postProcessPreIncrementExpression(preIncExpr, exprType);
   }
@@ -1149,9 +1151,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      */
     final IRNode opExpr = PreDecrementExpression.getOp(preDecExpr);
     final IType exprType = doAccept(opExpr);
-    if (!isConvertibleToNumericType(exprType)) {
-      error(opExpr, exprType, JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE);
-    }
+    assertConvertibleToNumericType(exprType, opExpr);
     binaryNumericPromotion(exprType, typeFactory.getIntType());
     return postProcessPreDecrementExpression(preDecExpr, exprType);
   }
@@ -1301,6 +1301,91 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   protected IType postProcessNotExpression(final IRNode notExpr, final IType type) {
+    return postProcessType(type);
+  }
+
+
+
+  // ======================================================================
+  // == ¤15.16 Cast Expressions
+  // ======================================================================
+
+  // TODO
+  
+
+
+  // ======================================================================
+  // == ¤15.17 Multiplicative Operators
+  // ======================================================================
+  
+  private IType visitMultiplicativeOperator(
+      final IRNode expr, final IRNode op1, final IRNode op2) 
+  throws TypeCheckingFailed {
+    /*
+     * The type of each of the operands of a multiplicative operator must be a
+     * type that is convertible (¤5.1.8) to a primitive numeric type, or a
+     * compile-time error occurs.
+     * 
+     * Binary numeric promotion is performed on the operands (¤5.6.2).
+     * 
+     * The type of a multiplicative expression is the promoted type of its
+     * operands.
+     */
+    
+    /*
+     * Do not catch any type errors in the sub expressions, because we are
+     * unable to type this expression if we cannot get the sub expression
+     * types.
+     */
+    final IType type1 = doAccept(op1);
+    assertConvertibleToNumericType(type1, op1);
+    
+    final IType type2 = doAccept(op2);
+    assertConvertibleToNumericType(type2, op2);
+    
+    final IType resultType = binaryNumericPromotion(type1, type2);
+    return resultType;
+  }
+  
+  @Override
+  public final IType visitMulExpression(final IRNode mulExpr) 
+  throws TypeCheckingFailed {
+    return postProcessMulExpression(
+        mulExpr,
+        visitMultiplicativeOperator(
+            mulExpr,
+            MulExpression.getOp1(mulExpr), MulExpression.getOp2(mulExpr)));
+  }
+  
+  protected IType postProcessMulExpression(final IRNode mulExpr, final IType type) {
+    return postProcessType(type);
+  }
+  
+  @Override
+  public final IType visitDivExpression(final IRNode divExpr) 
+  throws TypeCheckingFailed {
+    return postProcessDivExpression(
+        divExpr,
+        visitMultiplicativeOperator(
+            divExpr,
+            DivExpression.getOp1(divExpr), DivExpression.getOp2(divExpr)));
+  }
+  
+  protected IType postProcessDivExpression(final IRNode divExpr, final IType type) {
+    return postProcessType(type);
+  }
+  
+  @Override
+  public final IType visitRemExpression(final IRNode remExpr) 
+  throws TypeCheckingFailed {
+    return postProcessRemExpression(
+        remExpr,
+        visitMultiplicativeOperator(
+            remExpr,
+            RemExpression.getOp1(remExpr), RemExpression.getOp2(remExpr)));
+  }
+  
+  protected IType postProcessRemExpression(final IRNode remExpr, final IType type) {
     return postProcessType(type);
   }
 }
