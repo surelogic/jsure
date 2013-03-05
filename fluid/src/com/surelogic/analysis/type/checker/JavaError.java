@@ -13,6 +13,7 @@ public enum JavaError implements ITypeError {
   NOT_INT("Type is not int"),
   NOT_REFERENCE_TYPE("Type is not a reference type"),
   NOT_ARRAY_TYPE("Type is not an array"),
+  NOT_BOOLEAN_TYPE("Type is not boolean or java.lang.Boolean"),
   
   A("");
   

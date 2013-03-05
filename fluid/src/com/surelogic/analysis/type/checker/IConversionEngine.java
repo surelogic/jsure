@@ -5,16 +5,16 @@ public interface IConversionEngine {
   // == ¤5.1.7 Boxing Conversion
   // ======================================================================
   
-  /**
-   * Perform a boxing conversion on the given primitive type.
-   * 
-   * @param primitiveType
-   *          The type to box convert.
-   * @return The boxed type.
-   * @throws IllegalArgumentException
-   *           Thrown if the given type represents the <code>void</code> type.
-   */
-  public IType box(IPrimitiveType primitiveType);
+//  /**
+//   * Perform a boxing conversion on the given primitive type.
+//   * 
+//   * @param primitiveType
+//   *          The type to box convert.
+//   * @return The boxed type.
+//   * @throws IllegalArgumentException
+//   *           Thrown if the given type represents the <code>void</code> type.
+//   */
+//  public IType box(IPrimitiveType primitiveType);
 
 
 

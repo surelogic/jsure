@@ -60,6 +60,7 @@ public interface ITypeFactory {
   
   /** Get the type for <code>java.lang.Object</code>. */
   public IType getObjectType();
+  
   /** Get the type for <code>java.lang.String</code>. */
   public IType getStringType();
 
@@ -89,6 +90,13 @@ public interface ITypeFactory {
    * @return The type corresponding to the declaration.
    */
   public IType getReferenceTypeFromDeclaration(IRNode typeDecl);
+  
+  /**
+   * Get the reference type with the given name.
+   * @param name The fully qualified name of a class/interface.
+   * @return The type corresponding to the name.
+   */
+  public IType getReferenceTypeFromName(String name);
   
   /**
    * Get the array type from the given base type and number of dimensions.

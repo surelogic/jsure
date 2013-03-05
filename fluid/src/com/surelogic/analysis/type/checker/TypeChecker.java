@@ -17,6 +17,7 @@ import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.FloatLiteral;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
 import edu.cmu.cs.fluid.java.operator.MinusExpression;
+import edu.cmu.cs.fluid.java.operator.NotExpression;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.PlusExpression;
@@ -214,6 +215,33 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
           type + " cannot be widened to " + widenTo);
     } else {
       return widenTo;
+    }
+  }
+  
+  /**
+   * Box the given type according to ¤5.1.7.
+   */
+  protected final IType box(final IType type) {
+    if (isBooleanType(type)) {
+      return typeFactory.getReferenceTypeFromName(JAVA_LANG_BOOLEAN);
+    } else if (isByteType(type)) {
+      return typeFactory.getReferenceTypeFromName(JAVA_LANG_BYTE);
+    } else if (isShortType(type)) {
+      return typeFactory.getReferenceTypeFromName(JAVA_LANG_SHORT);
+    } else if (isCharType(type)) {
+      return typeFactory.getReferenceTypeFromName(JAVA_LANG_CHARACTER);
+    } else if (isIntType(type)) {
+      return typeFactory.getReferenceTypeFromName(JAVA_LANG_INTEGER);
+    } else if (isLongType(type)) {
+      return typeFactory.getReferenceTypeFromName(JAVA_LANG_LONG);
+    } else if (isFloatType(type)) {
+      return typeFactory.getReferenceTypeFromName(JAVA_LANG_FLOAT);
+    } else if (isDoubleType(type)) {
+      return typeFactory.getReferenceTypeFromName(JAVA_LANG_DOUBLE);
+    } else if (isNullType(type)) {
+      return type;
+    } else {
+      throw new IllegalArgumentException(type + " cannot be boxed");
     }
   }
   
@@ -677,7 +705,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     final IType type;
     if (PrimitiveType.prototype.includes(typeExprOp)) { // case #2
       type = typeFactory.getClassType(
-          conversionEngine.box(typeFactory.getPrimitiveType(typeExprOp)));
+          box(typeFactory.getPrimitiveType(typeExprOp)));
     } else if (VoidType.prototype.includes(typeExprOp)) { // case #3
       type = typeFactory.getClassType(typeFactory.getVoidType());
     } else { // case #1
@@ -1231,6 +1259,48 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   protected IType postProcessComplementExpression(final IRNode complementExpr, final IType type) {
+    return postProcessType(type);
+  }
+
+  
+  
+  // ======================================================================
+  // == ¤15.15.6 Logical Complement Operator !
+  // ======================================================================
+  
+  @Override
+  public final IType visitNotExpression(final IRNode notExpr) {
+    /*
+     * The type of the operand expression of the unary ! operator must be
+     * boolean or Boolean, or a compile-time error occurs.
+     * 
+     * The type of the unary logical complement expression is boolean.
+     * 
+     * At run-time, the operand is subject to unboxing conversion (¤5.1.8) if
+     * necessary.
+     */
+    
+    final IRNode opExpr = NotExpression.getOp(notExpr);
+    try {
+      final IType operandType = doAccept(opExpr);
+      final boolean isBoxedBoolean = isNamedType(operandType, JAVA_LANG_BOOLEAN);
+      if (!(isBooleanType(operandType) || isBoxedBoolean)) {
+        error(opExpr, operandType, JavaError.NOT_BOOLEAN_TYPE);
+      }
+      if (isBoxedBoolean) {
+        // Force an unbox to enable null-checking 
+        unbox(operandType);
+      }
+    } catch (final TypeCheckingFailed e) {
+      /*
+       * Eat any type errors in the subexpression because the type of the
+       * expression is always boolean.
+       */
+    }
+    return typeFactory.getBooleanType();
+  }
+  
+  protected IType postProcessNotExpression(final IRNode notExpr, final IType type) {
     return postProcessType(type);
   }
 }
