@@ -216,6 +216,7 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
         return (SlotInfo<T>) makeParentSI(name, def, (StoredSlotInfo<IRNode, IRNode>) backupSI);
       }
     else if (type instanceof IRSequenceType) {
+      @SuppressWarnings("rawtypes")
       IRSequenceType t = (IRSequenceType) type;
       IRSequence<IRNode> def = undefined ? Constants.undefinedSequence : 
     	                       (IRSequence<IRNode>) defaultValue;

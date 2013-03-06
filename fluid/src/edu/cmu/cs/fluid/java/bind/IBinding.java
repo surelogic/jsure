@@ -53,19 +53,24 @@ public interface IBinding {
 	  IJavaTypeSubstitution getSubst() {
 		  return null;
 	  }
-	  public IJavaType convertType(IJavaType ty) {
+	  @Override
+    public IJavaType convertType(IJavaType ty) {
 		  return ty;
 	  }
-	  public IJavaDeclaredType getContextType() {
+	  @Override
+    public IJavaDeclaredType getContextType() {
 		  return null;
 	  }
-	  public IJavaReferenceType getReceiverType() {
+	  @Override
+    public IJavaReferenceType getReceiverType() {
 		  return null;
 	  }
-	  public IRNode getNode() {
+	  @Override
+    public IRNode getNode() {
 		  return null;
 	  }
-	  public ITypeEnvironment getTypeEnvironment() {
+	  @Override
+    public ITypeEnvironment getTypeEnvironment() {
 		  return null;
 	  }
       @Override

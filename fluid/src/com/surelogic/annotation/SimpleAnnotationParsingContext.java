@@ -105,6 +105,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
    */
   protected abstract void postAASTCreate(final AASTRootNode root);
   
+  @Override
   public <T extends IAASTRootNode> 
   void reportAAST(int offset, AnnotationLocation loc, Object o, T ast) {
     if (ast == null) {
@@ -293,6 +294,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
 	  return new ProposedPromiseDrop.Builder(anno, decl, contextRef);
   }
   
+  @Override
   public void reportException(int offset, Exception e) {  
 	final int position = mapToSource(offset);
 	final String txt;
@@ -310,6 +312,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
 	reportError(contextRef, position).setMessage(txt);
   }
 
+  @Override
   public Operator getOp() {
     IRNode decl = computeDeclNode(annoNode);
     return JJNode.tree.getOperator(decl);

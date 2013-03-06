@@ -13,7 +13,8 @@ public class MethodElement extends AbstractFunctionElement {
 		super(id, e);
 	}
 
-	public String getLabel() {
+	@Override
+  public String getLabel() {
 		return getName()+"("+getParams()+")";
 	}
 	
@@ -38,7 +39,8 @@ public class MethodElement extends AbstractFunctionElement {
 		return null;
 	}
 	
-	public <T> T visit(IJavaElementVisitor<T> v) {
+	@Override
+  public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
 	}
 }

@@ -8,19 +8,23 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 
 
 public abstract class AbstractAnalysisEnvironment implements IIRAnalysisEnvironment {
-	public IAnalysisMonitor getMonitor() {
+	@Override
+  public IAnalysisMonitor getMonitor() {
 		return null;
 	}
 
-	public OutputStream makeResultStream(CUDrop cud) throws IOException {
+	@Override
+  public OutputStream makeResultStream(CUDrop cud) throws IOException {
 		throw new UnsupportedOperationException();
 	}
 	
-	public void closeResultStream() throws IOException {
+	@Override
+  public void closeResultStream() throws IOException {
 		// Nothing to do yet
 	}
 	
-	public void done() {
+	@Override
+  public void done() {
 		// Nothing to do yet
 	}
 }

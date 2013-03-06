@@ -11,6 +11,7 @@ import com.surelogic.ast.ICaptureType;
  * @author chance
  */
 public interface IJavaCaptureType extends IJavaReferenceType, ICaptureType {
+  @Override
   IJavaWildcardType getWildcard();
   
   /** Get the lower bound (if any), e.g. ? super X.
@@ -19,6 +20,7 @@ public interface IJavaCaptureType extends IJavaReferenceType, ICaptureType {
    * @return lower bound (or null, if none)
    * @see com.surelogic.ast.ICaptureType#getLowerBound()
    */
+  @Override
   public IJavaReferenceType getLowerBound();
   
   /** Get the least upper bound (if any), e.g. ? extends X, 
@@ -28,5 +30,6 @@ public interface IJavaCaptureType extends IJavaReferenceType, ICaptureType {
    * @return upper bound (or null, if none)
    * @see com.surelogic.ast.ICaptureType#getUpperBound()
    */
+  @Override
   public IJavaReferenceType getUpperBound();
 }

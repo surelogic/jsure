@@ -14,6 +14,7 @@ public class ComponentChoice extends Choice implements ComponentNode {
     super(v);
     comp = c;
   }
+  @Override
   public Component getComponent() {
     return comp;
   }

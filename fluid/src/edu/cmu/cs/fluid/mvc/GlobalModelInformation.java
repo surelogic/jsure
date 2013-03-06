@@ -141,6 +141,7 @@ public final class GlobalModelInformation {
   
   private class IDComparator implements Comparator<Model> {
     /** Caller must hold the lock on the GlobalModelInformation object */
+    @Override
     public int compare(final Model m1, final Model m2) {
       final long id1 = unsafeGetModelID(m1);
       final long id2 = unsafeGetModelID(m2);

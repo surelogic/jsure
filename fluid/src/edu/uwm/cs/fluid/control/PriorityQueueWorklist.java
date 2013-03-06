@@ -34,6 +34,7 @@ public class PriorityQueueWorklist implements Worklist, Comparator<ControlNode> 
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.Worklist#initialize()
    */
+  @Override
   public void initialize() {
     if (roots == null) roots = new ArrayList<ControlNode>();
     sccs = null;
@@ -43,6 +44,7 @@ public class PriorityQueueWorklist implements Worklist, Comparator<ControlNode> 
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.Worklist#start()
    */
+  @Override
   public void start() {
     sccs = new SCCGraph(ControlFlowGraph.prototype,roots,!isForward);
     pqueue = new PriorityQueue<ControlNode>(10,this);
@@ -55,11 +57,13 @@ public class PriorityQueueWorklist implements Worklist, Comparator<ControlNode> 
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.Worklist#hasNext()
    */
+  @Override
   public boolean hasNext() {
     return pqueue == null ? false : !pqueue.isEmpty();
 //    return !pqueue.isEmpty();
   }
 
+  @Override
   public int size() {
 	return pqueue.size();
   }
@@ -67,6 +71,7 @@ public class PriorityQueueWorklist implements Worklist, Comparator<ControlNode> 
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.Worklist#next()
    */
+  @Override
   public ControlNode next() {
     return pqueue.remove();
   }
@@ -74,6 +79,7 @@ public class PriorityQueueWorklist implements Worklist, Comparator<ControlNode> 
   /* (non-Javadoc)
    * @see edu.uwm.cs.fluid.control.Worklist#add(edu.cmu.cs.fluid.control.ControlNode)
    */
+  @Override
   public void add(ControlNode node) {
     if (pqueue == null) {
       roots.add(node);
@@ -99,6 +105,7 @@ public class PriorityQueueWorklist implements Worklist, Comparator<ControlNode> 
   /* (non-Javadoc)
    * @see java.util.Comparator#compare(T, T)
    */
+  @Override
   public int compare(ControlNode o1, ControlNode o2) {
     if (o1.equals(o2)) return 0;
     return sccs.precedes(o1,o2) ? -1 : 1;

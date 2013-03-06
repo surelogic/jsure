@@ -29,30 +29,37 @@ public class FieldRegion extends AbstractRegion {
     field = ref;
   }
   
+  @Override
   public boolean isStatic() {
     return TypeUtil.isStatic(field);
   }
   
+  @Override
   public boolean isAbstract() {
     return false;
   }
   
+  @Override
   public boolean isFinal() {
     return TypeUtil.isFinal(field);
   }
   
+  @Override
   public boolean isVolatile() {
     return TypeUtil.isVolatile(field);
   }
   
+  @Override
   public IRNode getNode() {
     return field;
   }
   
+  @Override
   public IRegion getRegion() {
     return this;
   }
   
+  @Override
   public String getName() {
     if (EnumConstantDeclaration.prototype.includes(field)) {
       return EnumConstantDeclaration.getId(field);
@@ -61,19 +68,23 @@ public class FieldRegion extends AbstractRegion {
     }
   }
   
+  @Override
   public Visibility getVisibility() {
     return Visibility.getVisibilityOf(
         JJNode.tree.getParent(JJNode.tree.getParent(field)));
   }
   
+  @Override
   public boolean isAccessibleFromType(ITypeEnvironment tEnv, IRNode t) {
     return BindUtil.isAccessibleInsideType(tEnv, field, t);
   }
   
+  @Override
   public RegionModel getModel() {
     return RegionModel.getInstance(this);
   }
   
+  @Override
   public IRegion getParentRegion() {
     // This is a field-based region, look for a @InRegion
     // and return that region if it exists, otherwise return the defaults
@@ -114,6 +125,7 @@ public class FieldRegion extends AbstractRegion {
     }
   }
 
+  @Override
   public boolean isSameRegionAs(IRegion o) {
     if (o instanceof FieldRegion) {
       FieldRegion fr = (FieldRegion) o;

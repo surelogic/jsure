@@ -33,6 +33,7 @@ public class SuffixFileFilter extends FileFilter implements FilenameFilter {
       return false;
   }
   
+  @Override
   public boolean accept(File dir, String name) {         
     for(int i=0; i<suffix.length; i++) {
       if (name.endsWith(suffix[i])) return true;

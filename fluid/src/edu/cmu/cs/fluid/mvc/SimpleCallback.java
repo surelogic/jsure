@@ -19,6 +19,7 @@ public abstract class SimpleCallback implements AttributeChangedCallback {
     attrs = a;
   }
 
+  @Override
   public void attributeChanged(
     final String attr,
     final IRNode node,

@@ -94,6 +94,7 @@ public class VersionCursor extends VersionTracker {
   @Deprecated
   public void attachObserver(Observable subject, final Observer watcher) {
     subject.addObserver(new Observer() {
+      @Override
       public void update(Observable s, Object arg) {
 	if (isActive()) watcher.update(s,arg);
       }

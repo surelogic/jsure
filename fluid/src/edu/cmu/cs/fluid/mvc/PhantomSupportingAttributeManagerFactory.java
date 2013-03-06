@@ -25,6 +25,7 @@ implements AttributeInheritanceManager.Factory
    * @param mutex The lock used to protect the state of the model.
    * @param attrManager The attribute manager of the model.
    */
+  @Override
   public AttributeInheritanceManager create(
     final Model model, final Object mutex, final AttributeManager attrManager )
   {

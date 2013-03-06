@@ -14,9 +14,11 @@ import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
  * @see PairControlEdgeIterator
  */
 public abstract class ControlEdgeIterator extends AbstractRemovelessIterator<IRNode> {
+  @Override
   public IRNode next() throws NoSuchElementException {
     return nextControlEdge();
   }
+  @Override
   abstract public boolean hasNext();
   abstract public ControlEdge nextControlEdge() throws NoSuchElementException;
 }

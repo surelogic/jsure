@@ -19,11 +19,13 @@ public class ConstantAttributePredicate
     value = v;
   }
 
+  @Override
   public String getLabel()
   {
     return value ? "All" : "None";
   }
 
+  @Override
   public boolean includesValue( final Object v )
   {
     return value;

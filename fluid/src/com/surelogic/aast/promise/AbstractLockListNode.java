@@ -70,7 +70,8 @@ public abstract class AbstractLockListNode extends AASTRootNode {
 		return sb.toString();
 	}
 	
-	public String unparseForPromise() {
+	@Override
+  public String unparseForPromise() {
 		return unparse(false);
 	}
 }

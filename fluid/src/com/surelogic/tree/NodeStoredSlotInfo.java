@@ -56,6 +56,7 @@ abstract class NodeStoredSlotInfo<T> extends StoredSlotInfo<T,T> {
 	}
   }
 
+  @Override
   public final void undefineSlot(IRNode node) {
 	if (node instanceof SyntaxTreeNode) {
 		SyntaxTreeNode n = (SyntaxTreeNode) node;

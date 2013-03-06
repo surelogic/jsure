@@ -17,27 +17,32 @@ public enum DefaultTargetFactory implements TargetFactory {
   
   
   
+  @Override
   public AnyInstanceTarget createAnyInstanceTarget(
       final IJavaReferenceType clazz, final IRegion region,
       final TargetEvidence evidence) {
     return new AnyInstanceTarget(clazz, region, evidence);
   }
 
+  @Override
   public ClassTarget createClassTarget(
       final IRegion region, final TargetEvidence elabEvidence) {
     return new ClassTarget(region, elabEvidence);
   }
 
+  @Override
   public EmptyTarget createEmptyTarget(final TargetEvidence evidence) {
     return new EmptyTarget(evidence);
   }
 
+  @Override
   public InstanceTarget createInstanceTarget(
       final IRNode object, final IRegion region,
       final TargetEvidence evidence) {
     return new InstanceTarget(object, region, evidence);
   }
   
+  @Override
   public LocalTarget createLocalTarget(final IRNode varDecl) {
     return new LocalTarget(varDecl);
   }

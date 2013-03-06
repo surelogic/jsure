@@ -14,6 +14,7 @@ public final class AnnotationBoundsPromiseDrop extends BooleanPromiseDrop<Annota
     setCategorizingMessage(JavaGlobals.ANNO_BOUNDS_CAT);
   }
 
+  @Override
   public void validated(final AnnotationBoundsPromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);

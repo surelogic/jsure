@@ -31,7 +31,8 @@ public class JavacProject implements IIRProject, IClassPathContext {
 		initTEnv();
 	}
 	
-	public Projects getParent() {
+	@Override
+  public Projects getParent() {
 	    return parent;
 	}
 
@@ -87,7 +88,8 @@ public class JavacProject implements IIRProject, IClassPathContext {
 		return "JavacProject "+hashCode()+": "+name;
 	}
 	
-	public String getName() {
+	@Override
+  public String getName() {
 		return name;
 	}
 	
@@ -96,7 +98,8 @@ public class JavacProject implements IIRProject, IClassPathContext {
 		initTEnv();
 	}
 	
-	public JavacTypeEnvironment getTypeEnv() {
+	@Override
+  public JavacTypeEnvironment getTypeEnv() {
 		if (first) {
 			//System.out.println("First time accessing type env for "+name);
 			first = false;

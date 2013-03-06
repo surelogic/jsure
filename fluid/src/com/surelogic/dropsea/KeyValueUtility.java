@@ -236,11 +236,13 @@ public final class KeyValueUtility {
       f_key = DeclUtil.aliasIfPossible(key);
     }
 
+    @Override
     @NonNull
     public final String getKey() {
       return f_key;
     }
 
+    @Override
     @NonNull
     public final String encodeForPersistence() {
       final StringBuilder b = new StringBuilder();
@@ -269,19 +271,23 @@ public final class KeyValueUtility {
       f_value = DeclUtil.aliasIfPossible(value);
     }
 
+    @Override
     @NonNull
     public String getValueAsString() {
       return f_value;
     }
 
+    @Override
     public long getValueAsLong(long valueIfNotRepresentable) {
       return valueIfNotRepresentable;
     }
 
+    @Override
     public int getValueAsInt(int valueIfNotRepresentable) {
       return valueIfNotRepresentable;
     }
 
+    @Override
     public <T extends Enum<T>> T getValueAsEnum(T valueIfNotRepresentable, Class<T> elementType) {
       for (T element : EnumSet.allOf(elementType)) {
         if (element.toString().equals(f_value))
@@ -357,19 +363,23 @@ public final class KeyValueUtility {
       f_value = value;
     }
 
+    @Override
     @NonNull
     public String getValueAsString() {
       return Integer.toString(f_value);
     }
 
+    @Override
     public long getValueAsLong(long valueIfNotRepresentable) {
       return (long) f_value;
     }
 
+    @Override
     public int getValueAsInt(int valueIfNotRepresentable) {
       return f_value;
     }
 
+    @Override
     public <T extends Enum<T>> T getValueAsEnum(T valueIfNotRepresentable, Class<T> elementType) {
       return valueIfNotRepresentable;
     }
@@ -438,15 +448,18 @@ public final class KeyValueUtility {
       f_value = value;
     }
 
+    @Override
     @NonNull
     public String getValueAsString() {
       return Long.toString(f_value);
     }
 
+    @Override
     public long getValueAsLong(long valueIfNotRepresentable) {
       return f_value;
     }
 
+    @Override
     public int getValueAsInt(int valueIfNotRepresentable) {
       if (f_value < Integer.MIN_VALUE || f_value > Integer.MAX_VALUE)
         return valueIfNotRepresentable;
@@ -454,6 +467,7 @@ public final class KeyValueUtility {
         return (int) f_value;
     }
 
+    @Override
     public <T extends Enum<T>> T getValueAsEnum(T valueIfNotRepresentable, Class<T> elementType) {
       return valueIfNotRepresentable;
     }

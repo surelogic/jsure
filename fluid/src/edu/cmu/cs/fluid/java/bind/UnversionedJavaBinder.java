@@ -55,7 +55,8 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   
   private final ThreadLocal<IJavaMemberTable> objectTable =
 	  new ThreadLocal<IJavaMemberTable>() {
-	  protected IJavaMemberTable initialValue() {
+	  @Override
+    protected IJavaMemberTable initialValue() {
 		  return JavaMemberTable.makeBatchTable(typeEnvironment.getObjectType());
 	  }
   };
@@ -139,6 +140,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   }
   */
   
+  @Override
   public void astsChanged() {
 	//System.out.println("Cleared out state for "+this);
     clearAll(true);
@@ -215,6 +217,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   /**
    * Only to be called after canonicalizing an AST
    */
+  @Override
   public synchronized void astChanged(IRNode cu) {
     // If so, we need to clear all the cached data
 	for (IRNode n : getGranules(cu)) {
@@ -260,7 +263,8 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 			  
 			  final Map<IJavaSourceRefType,IJavaMemberTable> tables = memberTableCache;
 			  final Procedure<Integer> proc = new Procedure<Integer>() {
-				  public void op(Integer ignore) {
+				  @Override
+          public void op(Integer ignore) {
 					  for(final IJavaSourceRefType t : types) {
 						  tables.remove(t);
 					  }
@@ -375,10 +379,12 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       methodOverridesAttr = f.newLabeledAttribute("CompUnitBindings.methodOverrides", null);
     }
 
+    @Override
     public IRNode getNode() {
     	return unit;
     }
     
+    @Override
     public boolean isDestroyed() {
     	return getStatus() == Status.DESTROYED;
     }
@@ -399,10 +405,12 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     	return rv;
     }
     
+    @Override
     public SlotInfo<List<IBinding>> getMethodOverridesAttr() {
       return methodOverridesAttr;
     }
 
+    @Override
     public SlotInfo<IBinding> getUseToDeclAttr() {
       return useToDeclAttr;
     }
@@ -426,6 +434,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       return true;
     }
 
+    @Override
     public void ensureDerived(IRNode node) {
       if (node.valueExists(useToDeclAttr)) {
         return;
@@ -449,6 +458,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       }
     }
     
+    @Override
     public boolean containsFullInfo() {
       return hasFullInfo;
     }

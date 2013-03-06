@@ -50,6 +50,7 @@ public class ThreadRoleNotNode extends AASTNode implements TRoleLit, ThreadRoleO
     return sb.toString();
   }
   
+  @Override
   public TRExpr buildTRExpr(IRNode where) {
     TRExpr res = target.buildTRExpr(null);
     return res;

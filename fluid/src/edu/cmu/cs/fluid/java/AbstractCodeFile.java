@@ -2,10 +2,12 @@
 package edu.cmu.cs.fluid.java;
 
 public abstract class AbstractCodeFile implements ICodeFile {
-	public String getProjectName() {
+	@Override
+  public String getProjectName() {
 		throw new UnsupportedOperationException();
 	}
-	public String getRelativePath() {
+	@Override
+  public String getRelativePath() {
 		return null;
 	}
 }

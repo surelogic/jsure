@@ -49,6 +49,7 @@ public class VersionedChangeRecord extends AbstractChangeRecord implements Chang
    * Warning: there is another function {@link #clearChanged()} that has a completely
    * different function and which shouldn't be used.
    */
+  @Override
   public void clearChanges() {
     source = Version.getVersion();
   }
@@ -58,6 +59,7 @@ public class VersionedChangeRecord extends AbstractChangeRecord implements Chang
    * @param node
    * @return true if we have recorded a change for this node (since the last clear).
    */
+  @Override
   public boolean isChanged(IRNode node) {
     if (source != null) return changed(node,source);
     else return changed(node,Version.getVersion().parent());
@@ -66,6 +68,7 @@ public class VersionedChangeRecord extends AbstractChangeRecord implements Chang
   /**
    * Record that something has changed for this node.
    */
+  @Override
   public boolean setChanged(IRNode node) {
     if (VersionedSlot.getEra() != null) {
       List<Version> eraChanges = VersionedSlot.getEraChanges();
@@ -194,14 +197,17 @@ class EmptyVersionSet implements VersionSet {
   public static EmptyVersionSet prototype = new EmptyVersionSet();
   private static Iterable<Version> noVersions = new EmptyIterator<Version>();
 
+  @Override
   public VersionSet add(Version v) {
     return SingletonVersionSet.create(v);
   }
 
+  @Override
   public boolean changed(Version v1, Version v2) {
     return false;
   }
   
+  @Override
   public Iterable<Version> changes() {
     return noVersions;
   }
@@ -227,6 +233,7 @@ class SingletonVersionSet implements VersionSet {
     version = v;
   }
 
+  @Override
   public VersionSet add(Version v) {
     Version current = v;
     if (version == current)
@@ -235,10 +242,12 @@ class SingletonVersionSet implements VersionSet {
     return new ManyVersions(version).add(v);
   }
 
+  @Override
   public boolean changed(Version v1, Version v2) {
     return version.isBetween(v1, v2);
   }
 
+  @Override
   public Iterable<Version> changes() {
     return new SingletonIterator<Version>(version);
   }
@@ -280,6 +289,7 @@ class ManyVersions implements VersionSet {
     return min;
   }
 
+  @Override
   public VersionSet add(Version v) {
     addVersion(v);
     return this;
@@ -303,6 +313,7 @@ class ManyVersions implements VersionSet {
      */
   }
 
+  @Override
   public boolean changed(Version v1, Version v2) {
     // TODO: If this code is slow, we can try substituting with a HashSet.
     Version lca = Version.latestCommonAncestor(v1, v2);
@@ -330,6 +341,7 @@ class ManyVersions implements VersionSet {
     return false;
   }
 
+  @Override
   public Iterable<Version> changes() {
     return versionLog;
   }

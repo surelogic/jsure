@@ -57,6 +57,7 @@ implements PhantomNodeIdentifier
   /**
    * Query if a node is a phantom node.
    */
+  @Override
   public abstract boolean isPhantomNode( IRNode node );
    
   /**
@@ -65,6 +66,7 @@ implements PhantomNodeIdentifier
    * @exception UnknownAttributeException Thrown if the map attribute is not
    * found in the model associated with this phantom node identifier.
    */
+  @Override
   @SuppressWarnings("unchecked")
   public final IRNode mapPhantomNode( final IRNode node )
   {

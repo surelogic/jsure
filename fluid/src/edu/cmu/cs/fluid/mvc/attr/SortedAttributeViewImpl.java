@@ -88,6 +88,7 @@ implements SortedAttributeView
   /**
    * Get the value of {@link #ATTR_KIND} attribute.
    */
+  @Override
   public int getKind( final IRNode node )
   {
     // synchronization taken care of in the attribute wrapper via inheritance
@@ -97,6 +98,7 @@ implements SortedAttributeView
   /**
    * Get the value of {@link #ATTR_LABEL} attribute.
    */
+  @Override
   public String getLabel( final IRNode node )
   {
     // synchronization taken care of in the attribute wrapper via inheritance
@@ -106,6 +108,7 @@ implements SortedAttributeView
   /**
    * Set the value of {@link #ATTR_LABEL} attribute.
    */
+  @Override
   public void setLabel( final IRNode node, String label )
   {
     // synchronization taken care of in the attribute wrapper via inheritance
@@ -117,6 +120,7 @@ implements SortedAttributeView
   /**
    * Get the value of {@link #ATTR_NAME} attribute.
    */
+  @Override
   public String getName( final IRNode node )
   {
     // synchronization taken care of in the attribute wrapper via inheritance
@@ -126,6 +130,7 @@ implements SortedAttributeView
   /**
    * Get the value of {@link #ATTR_TYPE} attribute.
    */
+  @Override
   public IRType getType( final IRNode node )
   {
     // synchronization taken care of in the attribute wrapper via inheritance
@@ -135,6 +140,7 @@ implements SortedAttributeView
   /**
    * Get the value of {@link #IS_MUTABLE} attribute.
    */
+  @Override
   public boolean isMutable( final IRNode node )
   {
     // synchronization taken care of in the attribute wrapper via inheritance
@@ -145,6 +151,7 @@ implements SortedAttributeView
   /**
    * Get the value of {@link #DOMAIN} attribute.
    */
+  @Override
   public IRSequence getDomain( final IRNode node )
   {
     // synchronization taken care of in the attribute wrapper via inheritance
@@ -154,6 +161,7 @@ implements SortedAttributeView
   /**
    * Get the value of {@link #IS_NODE_ATTR} attribute.
    */
+  @Override
   public boolean isNodeAttr( final IRNode node )
   {
     // synchronization taken care of in the attribute wrapper via inheritance
@@ -164,6 +172,7 @@ implements SortedAttributeView
   /**
    * Get pickled representation of the model's current state.
    */
+  @Override
   public PickledAttributeModelState getPickledState()
   {
     // pass the buck to the source model
@@ -180,6 +189,7 @@ implements SortedAttributeView
    * @exception IllegalArgumentException Thrown if the
    * pickle did not come from this model.
    */
+  @Override
   public void setStateFromPickle(PickledAttributeModelState pickle)
   {
     // Pass the buck to the source model, which will break, which will

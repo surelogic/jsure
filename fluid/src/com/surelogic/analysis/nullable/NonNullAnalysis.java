@@ -1,15 +1,22 @@
 package com.surelogic.analysis.nullable;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.nullable.RawLattice.Element;
+import com.surelogic.analysis.LocalVariableDeclarations;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalLattice;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalValue;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePair;
+import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePairLattice;
 import com.surelogic.annotation.rules.NonNullRules;
-import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -24,6 +31,7 @@ import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -31,8 +39,6 @@ import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
-import edu.uwm.cs.fluid.java.analysis.EvaluationStackLattice;
-import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
@@ -49,15 +55,17 @@ import edu.uwm.cs.fluid.util.IntersectionLattice;
  * for local variables so the local variables annotated with NonNull can be
  * checked.
  */
-public final class NonNullAnalysis extends IntraproceduralAnalysis<
-    NonNullAnalysis.Value, NonNullAnalysis.Lattice,
-    JavaForwardAnalysis<NonNullAnalysis.Value, NonNullAnalysis.Lattice>> implements IBinderClient {
-  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, ImmutableSet<IRNode>, Value, Lattice> {
+public final class NonNullAnalysis 
+extends StackEvaluatingAnalysisWithInference<
+    NonNullAnalysis.NullInfo, NonNullAnalysis.Value,
+    NonNullAnalysis.NullLattice, NonNullAnalysis.Lattice>
+implements IBinderClient {
+  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Set<IRNode>, Value, Lattice> {
     public Query(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
     }
     
-    private Query(final Delegate<Query, ImmutableSet<IRNode>, Value, Lattice> d) {
+    private Query(final Delegate<Query, Set<IRNode>, Value, Lattice> d) {
       super(d);
     }
 
@@ -69,17 +77,68 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
 
     
     @Override
-    protected Query newSubAnalysisQuery(final Delegate<Query, ImmutableSet<IRNode>, Value, Lattice> d) {
+    protected Query newSubAnalysisQuery(final Delegate<Query, Set<IRNode>, Value, Lattice> d) {
       return new Query(d);
     }
 
 
     
     @Override
-    protected ImmutableSet<IRNode> processRawResult(final IRNode expr,
+    protected Set<IRNode> processRawResult(final IRNode expr,
         final Lattice lattice, final Value rawResult) {
-      return rawResult.second();
+      return lattice.getNullVars(rawResult);
     }    
+  }
+  
+  
+  
+  public final class InferredNonNull
+  extends Result<NullInfo, NullLattice, NonNullPromiseDrop> {
+    protected InferredNonNull(
+        final IRNode[] keys, final InferredPair<NullInfo>[] val,
+        final NullLattice sl) {
+      super(keys, val, sl);
+    }
+
+    @Override
+    public NonNullPromiseDrop getPromiseDrop(final IRNode n) {
+      return NonNullRules.getNonNull(n);
+    }
+    
+    @Override
+    public NullInfo injectPromiseDrop(final NonNullPromiseDrop pd) {
+      return NullInfo.NOTNULL;
+    }
+  }
+  
+  
+  
+  public final class InferredNonNullQuery
+  extends InferredVarStateQuery<InferredNonNullQuery, NullInfo, Value, NullLattice, Lattice, InferredNonNull> {
+    protected InferredNonNullQuery(
+        final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
+      super(thunk);
+    }
+    
+    protected InferredNonNullQuery(
+        final Delegate<InferredNonNullQuery, InferredNonNull, Value, Lattice> d) {
+      super(d);
+    }
+    
+    @Override
+    protected InferredNonNull processRawResult(
+        final IRNode expr, final Lattice lattice, final Value rawResult) {
+      return new InferredNonNull(
+          lattice.getInferredStateKeys(),
+          rawResult.second().second(),
+          lattice.getInferredStateLattice());
+    }
+
+    @Override
+    protected InferredNonNullQuery newSubAnalysisQuery(
+        final Delegate<InferredNonNullQuery, InferredNonNull, Value, Lattice> delegate) {
+      return new InferredNonNullQuery(delegate);
+    }
   }
   
   
@@ -95,24 +154,36 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
   }
 
   @Override
-  protected JavaForwardAnalysis<Value, Lattice> createAnalysis(IRNode flowUnit) {
-    final Lattice l = new Lattice();
+  protected JavaForwardAnalysis<Value, Lattice> createAnalysis(final IRNode flowUnit) {
+    // Get the local variables that are annotated with @NonNull
+    // N.B. Non-ref types variables cannot be @Raw, so we don't have to test for them
+    final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
+    final List<IRNode> varsToInfer = new ArrayList<IRNode>(lvd.getLocal().size());
+    for (final IRNode v : lvd.getLocal()) {
+      if (!ParameterDeclaration.prototype.includes(v)) {
+        if (NonNullRules.getNonNull(v) != null) varsToInfer.add(v);
+      }
+    }
+    
+    final Lattice l = new Lattice(varsToInfer);
     final Transfer t = new Transfer(binder,l, 0);
     return new JavaForwardAnalysis<Value, Lattice>("Java.Nonnull", l, t, DebugUnparser.viewer);
   }
-
-  public Query getNonnullBeforeQuery(final IRNode flowUnit) {
-    return new Query(getAnalysisThunk(flowUnit));
-  }
   
 
+  
   public static enum NullInfo {
     IMPOSSIBLE, NOTNULL, NULL, MAYBENULL;
   }
   
-  public static final class NullLattice extends AbstractLattice<NullInfo> {
+  public static final class NullLattice
+  extends AbstractLattice<NullInfo> {
     private static final NullLattice instance = new NullLattice();
 
+    private NullLattice() {
+      super();
+    }
+    
     public static NullLattice getInstance() {
       return instance;
     }
@@ -141,8 +212,9 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
     public NullInfo top() {
       return NullInfo.MAYBENULL;
     }
-    
   }
+  
+  
   
   /* The analysis state is a set of non-null variables and an association list.
    * The association list is a map from all the annotated local variable 
@@ -151,56 +223,94 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
    * annotation on the variable, which must be greater than the inferred
    * annotation.
    */
-  private static final class State extends Pair<ImmutableSet<IRNode>, NullInfo[]> {
-    public State(final ImmutableSet<IRNode> nonNullVars, final NullInfo[] inferred) {
+  public static final class State extends StatePair<ImmutableSet<IRNode>, NullInfo> {
+    public State(final ImmutableSet<IRNode> nonNullVars, final InferredPair<NullInfo>[] inferred) {
       super(nonNullVars, inferred);
     }
   }
 
-//  private static final class StateLattice extends PairLattice<
-//      ImmutableSet<IRNode>, NullInfo[],
-//      IntersectionLattice<IRNode>, 
+  public static final class StateLattice extends StatePairLattice<
+      ImmutableSet<IRNode>, NullInfo, State,
+      IntersectionLattice<IRNode>, NullLattice> {
+    private StateLattice(
+        final IntersectionLattice<IRNode> l1, final NullLattice l2,
+        final List<IRNode> keys) {
+      super(l1, l2, keys);
+    }
+    
+    @Override
+    protected State newPair(final ImmutableSet<IRNode> v1, final InferredPair<NullInfo>[] v2) {
+      return new State(v1, v2);
+    }
 
+    public State createInitialValue(final ImmutableSet<IRNode> initSet) {
+      return newPair(initSet, getEmptyInferredValue());
+    }
+    
+    public State addNonNull(final State val, final IRNode var) {
+      return newPair(val.first().addCopy(var), val.second());
+    }
+    
+    public State removeNonNull(final State val, final IRNode var) {
+      return newPair(val.first().removeCopy(var), val.second());
+    }
+    
+    public boolean mustBeNonNull(final State val, final IRNode var) {
+      return val.first().contains(var);
+    }
+    
+    public Set<IRNode> getNullVars(final State val) {
+      return val.first();
+    }
+  }
   
-  public static final class Value extends EvaluationStackLattice.Pair<
-      NullInfo, ImmutableSet<IRNode>> {
-    public Value(final ImmutableList<NullInfo> v1, final ImmutableSet<IRNode> v2) {
+  public static final class Value extends EvalValue<
+      NullInfo, ImmutableSet<IRNode>, NullInfo, State> {
+    public Value(final ImmutableList<NullInfo> v1, final State v2) {
       super(v1, v2);
     }
   }
   
-  public static final class Lattice extends EvaluationStackLattice<
-      NullInfo, ImmutableSet<IRNode>,
-      NullLattice, IntersectionLattice<IRNode>,
-      Value> { 
-    private Lattice() {
-      super(NullLattice.getInstance(),
-          new IntersectionLattice<IRNode>(){
-        @Override
-        public String toString(ImmutableSet<IRNode> v) {
-          StringBuilder sb = new StringBuilder();
-          if (v.isInfinite()) {
-            sb.append('~');
-            v = v.invertCopy();
-          }
-          sb.append('{');
-          boolean first = true;
-          for (IRNode n : v) {
-            if (first) first = false; else sb.append(',');
-            try {
-              sb.append(JJNode.getInfo(n));
-            } catch (RuntimeException e) {
-              sb.append(n);
-            }
-          }
-          sb.append('}');
-          return sb.toString();
+  private static final class ModifiedIntersectionLattice
+  extends IntersectionLattice<IRNode> {
+    public ModifiedIntersectionLattice() {
+      super();
+    }
+    
+    @Override
+    public String toString(ImmutableSet<IRNode> v) {
+      StringBuilder sb = new StringBuilder();
+      if (v.isInfinite()) {
+        sb.append('~');
+        v = v.invertCopy();
+      }
+      sb.append('{');
+      boolean first = true;
+      for (IRNode n : v) {
+        if (first) first = false; else sb.append(',');
+        try {
+          sb.append(JJNode.getInfo(n));
+        } catch (RuntimeException e) {
+          sb.append(n);
         }
-      });
+      }
+      sb.append('}');
+      return sb.toString();
+    }
+  }
+  
+  public static final class Lattice extends EvalLattice<
+      NullInfo, NullInfo, State, Value,
+      NullLattice, NullLattice, StateLattice> {
+    private Lattice(final List<IRNode> keys) {
+      super(
+          NullLattice.getInstance(),
+          new StateLattice(
+              new ModifiedIntersectionLattice(), NullLattice.getInstance(), keys));
     }
 
     @Override
-    protected Value newPair(final ImmutableList<NullInfo> v1, final ImmutableSet<IRNode> v2) {
+    protected Value newPair(final ImmutableList<NullInfo> v1, final State v2) {
       return new Value(v1, v2);
     }
 
@@ -209,16 +319,25 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
       return NullInfo.MAYBENULL;
     }
 
+    public Value createInitialValue(final ImmutableSet<IRNode> initSet) {
+      return newPair(
+          ImmutableList.<NullInfo>nil(), lattice2.createInitialValue(initSet));
+    }
+    
     public Value addNonNull(final Value val, final IRNode var) {
-      return newPair(val.first(), val.second().addCopy(var));
+      return newPair(val.first(), lattice2.addNonNull(val.second(), var));
     }
     
     public Value removeNonNull(final Value val, final IRNode var) {
-      return newPair(val.first(), val.second().removeCopy(var));
+      return newPair(val.first(), lattice2.removeNonNull(val.second(), var));
     }
     
     public boolean mustBeNonNull(final Value val, final IRNode var) {
-      return val.second().contains(var);
+      return lattice2.mustBeNonNull(val.second(), var);
+    }
+    
+    public Set<IRNode> getNullVars(final Value val) {
+      return lattice2.getNullVars(val.second());
     }
   }
 
@@ -265,7 +384,7 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
       final ImmutableHashOrderSet<IRNode> initSet =
           nonNullVars.isEmpty() ? ImmutableHashOrderSet.<IRNode> emptySet() :
             new ImmutableHashOrderSet<IRNode>(nonNullVars);
-      return new Value(ImmutableList.<NullInfo>nil(), initSet);
+      return lattice.createInitialValue(initSet);
     }
 
     /*
@@ -290,30 +409,37 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
     @Override
     protected Value transferAssignVar(final IRNode use, final Value val) {
       IRNode var = binder.getIBinding(use).getNode();
-      return transferSetVar(var, val);
+      return transferSetVar(var, val, use);
     }
 
     /**
      * Transfer an assignment of a variable to what's on the stack.  Leave stack alone.
-     * @param var
+     * @param varDecl
      * @param val
      * @return
      */
     @SuppressWarnings("unused") // for the "debug" flag
-    private Value transferSetVar(final IRNode var, final Value val) {
+    private Value transferSetVar(final IRNode varDecl, Value val, final IRNode src) {
       final NullInfo ni = lattice.peek(val);
       
-      if (val.second().contains(var)) { // Variable is coming in as NONNULL
+      // (1) Update the inferred state of the assigned variable
+      final int inferredIdx = lattice.indexOfInferred(varDecl);
+      if (inferredIdx != -1) {
+        val = lattice.inferVar(val, inferredIdx, ni, src);
+      }
+
+      // (2) Update the current state of non nul variables
+      if (lattice.mustBeNonNull(val, varDecl)) { // Variable is coming in as NONNULL
         if (!nullLattice.lessEq(ni, NullInfo.NOTNULL)) { // Value might be null
-          return lattice.removeNonNull(val, var);
+          return lattice.removeNonNull(val, varDecl);
         }
-        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still non null after being assigned " + ni);
+        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(varDecl) + " is still non null after being assigned " + ni);
         // otherwise, do nothing: not null before, not null afterwards
       } else { // Variable is coming in as possibly null
         if (nullLattice.lessEq(ni, NullInfo.NOTNULL)) { // Value is not null
-          return lattice.addNonNull(val, var);
+          return lattice.addNonNull(val, varDecl);
         }
-        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(var) + " is still maybe null after being assigned " + ni);
+        if (debug && LOG.isLoggable(Level.FINE)) LOG.fine(JJNode.getInfo(varDecl) + " is still maybe null after being assigned " + ni);
         // do nothing : maybe null before, maybe null afterwards
       }
       return val;
@@ -400,7 +526,7 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
     protected Value transferInitializationOfVar(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
       
-      return pop(transferSetVar(node, val));
+      return pop(transferSetVar(node, val, node));
     }
 
     @Override
@@ -567,5 +693,15 @@ public final class NonNullAnalysis extends IntraproceduralAnalysis<
   @Override
   public void clearCaches() {
     clear();
+  }
+
+  
+  
+  public Query getNonnullBeforeQuery(final IRNode flowUnit) {
+    return new Query(getAnalysisThunk(flowUnit));
+  }
+  
+  public InferredNonNullQuery getInferredNonNullQuery(final IRNode flowUnit) {
+    return new InferredNonNullQuery(getAnalysisThunk(flowUnit));
   }
 }

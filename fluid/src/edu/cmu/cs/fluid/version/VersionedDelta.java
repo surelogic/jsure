@@ -130,12 +130,14 @@ public class VersionedDelta extends IRChunkDelta {
   /* Kind */
 
   private static IRPersistentKind kind = new IRPersistentKind() {
+    @Override
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException {
       VersionedDelta vd = (VersionedDelta) p;
       vd.getChunk().writeReference(out);
       vd.getEra().writeReference(out);
     }
+    @Override
     public IRPersistent readPersistentReference(DataInput in)
       throws IOException {
       IRChunk chunk = (IRChunk) IRPersistent.readReference(in);

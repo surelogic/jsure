@@ -24,11 +24,13 @@ public abstract class AbstractScrubber implements IAnnotationScrubber {
 	/**
 	 * Returns the scrubber's name
 	 */
-	public final String name() {
+	@Override
+  public final String name() {
 		return name;
 	}
 
-	public ScrubberOrder order() {
+	@Override
+  public ScrubberOrder order() {
 		return order;
 	}
 
@@ -36,7 +38,8 @@ public abstract class AbstractScrubber implements IAnnotationScrubber {
 	 * Returns a list of strings, each of which is the name of another scrubber
 	 * that this scrubber depends on having run before it.
 	 */
-	public final String[] dependsOn() {
+	@Override
+  public final String[] dependsOn() {
 		return dependencies;
 	}
 
@@ -44,14 +47,16 @@ public abstract class AbstractScrubber implements IAnnotationScrubber {
 	 * Returns a list of strings, each of which is the name of another scrubber
 	 * that this scrubber needs to run before.
 	 */
-	public final String[] shouldRunBefore() {
+	@Override
+  public final String[] shouldRunBefore() {
 		return runsBefore;
 	}
 
 	/**
 	 * Sets the context for reporting errors, etc.
 	 */
-	public final void setContext(IAnnotationScrubberContext c) {
+	@Override
+  public final void setContext(IAnnotationScrubberContext c) {
 		context = c;
 	}
 		  
@@ -70,7 +75,8 @@ public abstract class AbstractScrubber implements IAnnotationScrubber {
 	*/
 	
 	protected static final Comparator<IAASTRootNode> aastComparator = new Comparator<IAASTRootNode>() {
-		public int compare(IAASTRootNode o1, IAASTRootNode o2) {
+		@Override
+    public int compare(IAASTRootNode o1, IAASTRootNode o2) {
 			final IRNode p1 = o1.getPromisedFor();
 			final IRNode p2 = o2.getPromisedFor();
 			int rv;
@@ -90,7 +96,8 @@ public abstract class AbstractScrubber implements IAnnotationScrubber {
 	
 	protected static final Comparator<PromiseDrop<? extends IAASTRootNode>> dropComparator =  
 		new Comparator<PromiseDrop<? extends IAASTRootNode>>() {
-			public int compare(PromiseDrop<? extends IAASTRootNode> o1,
+			@Override
+      public int compare(PromiseDrop<? extends IAASTRootNode> o1,
 					PromiseDrop<? extends IAASTRootNode> o2) {
 				return aastComparator.compare(o1.getAAST(), o2.getAAST());
 			}

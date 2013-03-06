@@ -23,6 +23,7 @@ public abstract class TextResizedAdapter implements TextResizedListener
    * Called when a TextResizedEvent is sent.
    * @param e The TextResizedEvent containing the old and new textWidth values.
    */
+  @Override
   public void textResized( final TextResizedEvent e ) {
     
   }
@@ -32,6 +33,7 @@ public abstract class TextResizedAdapter implements TextResizedListener
    * textResized.
    * @param e The TextResizedEvent containing the old and new textWidth values.
    */
+  @Override
   public void propertyChange( final PropertyChangeEvent e )
   {
     textResized( (TextResizedEvent)e );

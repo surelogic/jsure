@@ -6,8 +6,10 @@ public abstract class SimpleOutputPort extends OutputPort
 {
   protected ControlEdge input;
 
+  @Override
   public ControlEdge getInput() { return input; }
 
+  @Override
   public void setInput(ControlEdge e) 
       throws EdgeLinkageError
   { 
@@ -15,6 +17,7 @@ public abstract class SimpleOutputPort extends OutputPort
     input = e; 
   }
 
+  @Override
   public ControlEdgeIterator getInputs() {
     return new SingleControlEdgeIterator(input);
   }

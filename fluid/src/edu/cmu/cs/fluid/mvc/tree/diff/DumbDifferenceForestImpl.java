@@ -235,6 +235,7 @@ implements DumbDifferenceForest
   /**
    * Get the value of the {@link DifferenceForestModel#NODE_ATTR_SRC} attribute.
    */
+  @Override
   public boolean getNodeSelector( final IRNode node )
   {
     synchronized( structLock ) {

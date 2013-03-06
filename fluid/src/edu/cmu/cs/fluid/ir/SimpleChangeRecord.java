@@ -32,6 +32,7 @@ public class SimpleChangeRecord extends AbstractChangeRecord {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.ChangeRecord#clearChanges()
    */
+  @Override
   public void clearChanges() {
     synchronized (this) {
       if (changes == null) changes = new HashSet<IRNode>();
@@ -42,6 +43,7 @@ public class SimpleChangeRecord extends AbstractChangeRecord {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.ChangeRecord#isChanged(edu.cmu.cs.fluid.ir.IRNode)
    */
+  @Override
   public boolean isChanged(IRNode node) {
     synchronized (this) {
       return changes == null || changes.contains(node);
@@ -51,6 +53,7 @@ public class SimpleChangeRecord extends AbstractChangeRecord {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.ChangeRecord#setChanged(edu.cmu.cs.fluid.ir.IRNode)
    */
+  @Override
   public boolean setChanged(IRNode node) {
     synchronized (this) {
       if (changes == null) return false;

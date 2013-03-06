@@ -16,10 +16,12 @@ public class IROperatorType extends CachedType<Operator> {
   public static final IROperatorType prototype = new IROperatorType();
   static { IRPersistent.registerIRType(prototype,'O'); }
 
+  @Override
   public boolean isValid(Object x) {
     return x == null || x instanceof Operator;
   }
 
+  @Override
   public Comparator<Operator> getComparator() 
   {
     return null;
@@ -39,16 +41,20 @@ public class IROperatorType extends CachedType<Operator> {
     Operator op = Operator.findOperatorInternal(in.readUTF());
     return op.readInstance(in);
   }
+  @Override
   public void writeType(IROutput out) throws IOException
   {
     out.writeByte('O');
   }
+  @Override
   public IRType<Operator> readType(IRInput in) { return this; }
     
+  @Override
   public Operator fromString(String s) {
     return Operator.findOperatorInternal(s);
   }
 
+  @Override
   public String toString(Operator op) {
     return op.name();
   }

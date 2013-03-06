@@ -11,5 +11,6 @@ public interface IPromiseDropSeqStorage<D extends PromiseDrop>
 extends IPromiseDropStorage<D> 
 {
   void init(SlotInfo<List<D>> si);
+  @Override
   SlotInfo<List<D>> getSeqSlotInfo();
 }

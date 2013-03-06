@@ -45,6 +45,7 @@ implements AttributeNameMap
   /**
    * Returns the input String.
    */
+  @Override
   public String mapCompAttribute( final String srcName )
   {
     return srcName;
@@ -53,6 +54,7 @@ implements AttributeNameMap
   /**
    * Returns the input String.
    */
+  @Override
   public String mapNodeAttribute( final String srcName )
   {
     return srcName;

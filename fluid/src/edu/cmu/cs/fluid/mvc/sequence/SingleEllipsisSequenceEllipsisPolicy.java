@@ -48,16 +48,19 @@ implements SequenceEllipsisPolicy
 
   //==============================================================
 
+  @Override
   public void resetPolicy()
   {
     nodes.clear();
   }
 
+  @Override
   public void nodeSkipped( final IRNode node, final int loc )
   {
     nodes.add( node );
   }
 
+  @Override
   public void applyPolicy()
   {
     if( nodes.size() > 0 ) {

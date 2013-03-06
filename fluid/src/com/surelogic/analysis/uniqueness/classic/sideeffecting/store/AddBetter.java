@@ -26,6 +26,7 @@ final class AddBetter implements Apply {
     additional = add;
   }
 
+  @Override
   public ImmutableHashOrderSet<Object> apply(
       final ImmutableHashOrderSet<Object> other) {
     if (other.contains(var)) {

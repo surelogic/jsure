@@ -69,7 +69,8 @@ public class LockAnalysis
 	private final AtomicReference<GlobalLockModel> lockModelHandle =
 	    new AtomicReference<GlobalLockModel>(null);
 	
-	
+	private final AtomicReference<ConcurrentStateMetrics> metrics = 
+		new AtomicReference<ConcurrentStateMetrics>(null);
 	
 	public LockAnalysis() {
 		super(willRunInParallel, queueWork ? TypeBodyPair.class : null,
@@ -100,29 +101,30 @@ public class LockAnalysis
 	    final IRNode typeDecl, final IRNode typeBody) {
 	  lv.analyzeClass(typeBody);
 	  
-    final ThreadSafePromiseDrop threadSafeDrop =
-      LockRules.getThreadSafeImplementation(typeDecl);
-    // If null, assume it's not meant to be thread safe
-    // Also check for verify=false
-    if (threadSafeDrop != null && threadSafeDrop.verify()) {
-      new ThreadSafeProcessor(getBinder(), threadSafeDrop, typeDecl, typeBody, lockModelHandle.get()).processType();
-    }
-    
-    final ContainablePromiseDrop containableDrop = 
-      LockRules.getContainableImplementation(typeDecl);
-    // no @Containable annotation --> Default "annotation" of not containable
-    // Also check for verify=false
-    if (containableDrop != null && containableDrop.verify()) {
-      new ContainableProcessor(getBinder(), containableDrop, typeDecl, typeBody).processType();
-    }
+	  final ThreadSafePromiseDrop threadSafeDrop =
+			  LockRules.getThreadSafeImplementation(typeDecl);
+	  // If null, assume it's not meant to be thread safe
+	  // Also check for verify=false
+	  if (threadSafeDrop != null && threadSafeDrop.verify()) {
+		  new ThreadSafeProcessor(getBinder(), threadSafeDrop, typeDecl, typeBody, lockModelHandle.get()).processType();
+	  }
 
-		final ImmutablePromiseDrop immutableDrop = LockRules
-				.getImmutableImplementation(typeDecl);
-		// no @Immutable annotation --> Default "annotation" of mutable
-		// Also check for verify=false
-		if (immutableDrop != null && immutableDrop.verify()) {
-			new ImmutableProcessor(getBinder(), immutableDrop, typeDecl, typeBody, lockModelHandle.get()).processType();
-		}
+	  final ContainablePromiseDrop containableDrop = 
+			  LockRules.getContainableImplementation(typeDecl);
+	  // no @Containable annotation --> Default "annotation" of not containable
+	  // Also check for verify=false
+	  if (containableDrop != null && containableDrop.verify()) {
+		  new ContainableProcessor(getBinder(), containableDrop, typeDecl, typeBody).processType();
+	  }
+
+	  final ImmutablePromiseDrop immutableDrop = LockRules
+			  .getImmutableImplementation(typeDecl);
+	  // no @Immutable annotation --> Default "annotation" of mutable
+	  // Also check for verify=false
+	  if (immutableDrop != null && immutableDrop.verify()) {
+		  new ImmutableProcessor(getBinder(), immutableDrop, typeDecl, typeBody, lockModelHandle.get()).processType();
+	  }	  
+	  metrics.get().summarizeFieldInfo(typeDecl, typeBody, lv.getLockUtils());	  
 	}
 
 	@Override
@@ -136,6 +138,10 @@ public class LockAnalysis
 	public void startAnalyzeBegin(final IIRProject p, final IBinder binder) {
 		super.startAnalyzeBegin(p, binder);
 
+		// Make sure that the metrics are initialized with the appropriate binder
+		final ConcurrentStateMetrics metricsRef = new ConcurrentStateMetrics(binder);
+		metrics.set(metricsRef);
+		
 		// Initialize the global lock model
 		final GlobalLockModel globalLockModel = new GlobalLockModel(binder);
 
@@ -213,28 +219,25 @@ public class LockAnalysis
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud,
 			final IRNode compUnit) {
+		boolean flushed = false;
 		if (byCompUnit) {
-			boolean flushed = queueWork(new TypeBodyPair(compUnit, null));
-			if (flushed) {
-				JavaComponentFactory.clearCache();
-			}
-			return true;
-		}
-		// FIX factor out?
-		final ClassProcessor cp = new ClassProcessor(getAnalysis());
-		TopLevelAnalysisVisitor.processCompilationUnit(cp, compUnit);
-		if (runInParallel() == ConcurrencyType.INTERNALLY) {
-			if (queueWork) {
-				boolean flushed = queueWork(cp.getTypeBodies());
-				if (flushed) {
-					JavaComponentFactory.clearCache();
+			flushed = queueWork(new TypeBodyPair(compUnit, null));
+		} else {
+			// FIX factor out?
+			final ClassProcessor cp = new ClassProcessor(getAnalysis());
+			TopLevelAnalysisVisitor.processCompilationUnit(cp, compUnit);
+			if (runInParallel() == ConcurrencyType.INTERNALLY) {
+				if (queueWork) {
+					flushed = queueWork(cp.getTypeBodies());
+				} else {
+					runInParallel(TypeBodyPair.class, cp.getTypeBodies(),
+							getWorkProcedure());
 				}
-			} else {
-				runInParallel(TypeBodyPair.class, cp.getTypeBodies(),
-						getWorkProcedure());
 			}
 		}
-		
+		if (flushed) {
+			JavaComponentFactory.clearCache();
+		}
 		return true;
 	}
 

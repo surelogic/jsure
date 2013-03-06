@@ -35,6 +35,7 @@ public final class DropPredicateFactory {
       result = f_type.get(dropClass);
       if (result == null) {
         result = new DropPredicate() {
+          @Override
           public boolean match(IDrop d) {
             /*
              * This comparison has to work for all IDropInfo instances.
@@ -70,6 +71,7 @@ public final class DropPredicateFactory {
       result = f_exactType.get(dropClass);
       if (result == null) {
         result = new DropPredicate() {
+          @Override
           public boolean match(IDrop d) {
             /*
              * This comparison has to work for all IDropInfo instances.

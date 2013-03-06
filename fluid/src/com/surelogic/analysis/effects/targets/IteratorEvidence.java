@@ -14,6 +14,7 @@ public final class IteratorEvidence implements TargetEvidence {
     moreEvidence = more;
   }
   
+  @Override
   public IRNode getLink() {
     return iterator;
   }
@@ -22,6 +23,7 @@ public final class IteratorEvidence implements TargetEvidence {
     return moreEvidence;
   }
   
+  @Override
   public void visit(final EvidenceVisitor v) {
     v.visitIteratorEvidence(this);
   }

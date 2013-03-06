@@ -94,6 +94,7 @@ extends AbstractCore
   private static class StandardFactory
   implements Factory
   {
+    @Override
     public DifferenceModelCore create(
       final String name, final Model model, final Object structLock,
       final AttributeManager manager )

@@ -23,6 +23,14 @@ public final class SkeletonJavaRefUtility {
 
   private static final Map<IRNode, JavaRefSkeletonBuilder> nodeToSkeleton = new ConcurrentHashMap<IRNode, JavaRefSkeletonBuilder>();
 
+  public static void removeInfo(IRNode key) {
+	  nodeToSkeleton.remove(key);
+  }
+  
+  public static void removeAllInfo() {
+	  nodeToSkeleton.clear();
+  }
+  
   public static void registerSourceLocation(DeclFactory factory, IRNode node, FileResource fileResource, int lineNumber,
       int offset, int length) {
     final JavaRefSourceBuilder b = new JavaRefSourceBuilder(factory, fileResource, lineNumber, offset, length);
@@ -98,6 +106,9 @@ public final class SkeletonJavaRefUtility {
    *         {@code false} otherwise.
    */
   public static boolean hasRegistered(IRNode node) {
+	if (node == null) {
+		return false;
+	}
     return nodeToSkeleton.containsKey(node) || JavaNode.hasJavaRef(node);
   }
 
@@ -119,6 +130,7 @@ public final class SkeletonJavaRefUtility {
       f_lineNumber = lineNumber;
     }
     
+    @Override
     public final IJavaRef buildOrNullOnFailure(@NonNull IRNode node) {
       /*
       if (cache != null) {
@@ -143,6 +155,7 @@ public final class SkeletonJavaRefUtility {
       f_resource = resource;
     }
 
+    @Override
     IJavaRef build(@NonNull Pair<IDecl, IJavaRef.Position> pair) {
       final JavaRef.Builder b = new JavaRef.Builder(pair.first());
       b.setPositionRelativeToDeclaration(pair.second());
@@ -168,6 +181,7 @@ public final class SkeletonJavaRefUtility {
       f_length = length;
     }
 
+    @Override
     IJavaRef build(@NonNull Pair<IDecl, IJavaRef.Position> pair) {
       final JavaRef.Builder b = new JavaRef.Builder(pair.first());
       b.setPositionRelativeToDeclaration(pair.second());

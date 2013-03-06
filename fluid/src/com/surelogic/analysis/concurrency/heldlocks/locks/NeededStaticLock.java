@@ -30,10 +30,12 @@ final class NeededStaticLock extends AbstractNeededLock {
     return sb.toString();
   }
 
+  @Override
   public boolean mayHaveAliasInCallingContext() {
     return false;
   }
   
+  @Override
   public NeededLock getAliasInCallingContext(
       final EnclosingRefs enclosingRefs, final NeededLockFactory lockFactory) {
     // Static locks never have an alternative

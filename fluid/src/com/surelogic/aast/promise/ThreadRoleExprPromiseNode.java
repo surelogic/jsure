@@ -32,6 +32,7 @@ public abstract class ThreadRoleExprPromiseNode extends AASTRootNode {
     this.kind = kind;
   }
 
+  @Override
   public final String unparseForPromise() {
 	  throw new UnsupportedOperationException();
   }

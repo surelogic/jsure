@@ -128,6 +128,7 @@ extends AbstractCore
   private static class StandardFactory
   implements Factory
   {
+    @Override
     public ViewCore create( final String name, final Model model,
                              final Object structLock,
                              final AttributeManager manager )

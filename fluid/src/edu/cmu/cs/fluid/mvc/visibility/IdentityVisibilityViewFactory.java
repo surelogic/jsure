@@ -40,6 +40,7 @@ implements IdentityVisibilityView.Factory
   
   
   
+  @Override
   public IdentityVisibilityView create( final String name, final Model srcModel )
   throws SlotAlreadyRegisteredException
   {

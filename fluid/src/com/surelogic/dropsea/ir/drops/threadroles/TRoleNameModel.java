@@ -174,6 +174,7 @@ public class TRoleNameModel extends Drop implements IThreadRoleDrop, Comparable<
 
   private static DropPredicate definingDropPred = new DropPredicate() {
 
+    @Override
     public boolean match(IDrop d) {
       return d.instanceOfIRDropSea(TRoleDeclareDrop.class) || d.instanceOfIRDropSea(TRoleRevokeDrop.class) || d.instanceOfIRDropSea(TRoleGrantDrop.class)
           || d.instanceOfIRDropSea(TRoleIncompatibleDrop.class) || d.instanceOfIRDropSea(TRoleRenameDrop.class)
@@ -341,6 +342,7 @@ public class TRoleNameModel extends Drop implements IThreadRoleDrop, Comparable<
 /* (non-Javadoc)
  * @see java.lang.Comparable#compareTo(java.lang.Object)
  */
+@Override
 public int compareTo(TRoleNameModel o) {
 	final TRoleNameModel canonModel = getCanonicalNameModel();
 	return canonModel.tRoleName.compareTo(o.getCanonicalNameModel().tRoleName);

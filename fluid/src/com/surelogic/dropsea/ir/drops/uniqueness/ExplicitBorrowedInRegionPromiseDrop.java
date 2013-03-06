@@ -33,6 +33,7 @@ public final class ExplicitBorrowedInRegionPromiseDrop extends PromiseDrop<Expli
     return true;
   }
 
+  @Override
   public Map<IRegion, IRegion> getAggregationMap(final IRNode fieldDecl) {
     final Map<IRegion, IRegion> aggregationMap = new HashMap<IRegion, IRegion>();
     for (final RegionMappingNode mapping : this.getAAST().getSpec().getMappingList()) {

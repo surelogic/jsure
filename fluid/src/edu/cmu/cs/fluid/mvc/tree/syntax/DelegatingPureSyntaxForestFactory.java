@@ -50,6 +50,7 @@ implements PureSyntaxForest.Factory
   
   
   
+  @Override
   public PureSyntaxForest create( final String name, final SlotFactory sf )
   throws SlotAlreadyRegisteredException
   {

@@ -188,6 +188,7 @@ extends AbstractCore
       syntaxTree = tree;
     }
     
+    @Override
     public SyntaxForestModelCore create(
       final String name, final Model model, final Object structLock,
       final AttributeManager manager )

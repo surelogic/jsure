@@ -46,6 +46,7 @@ implements LabeledSet.Factory
    *           structural and informational (e.g., {@link LabeledSet#LABEL})
    *           attributes.
    */
+  @Override
   public LabeledSet create( final String name, final ExplicitSlotFactory sf )
   throws SlotAlreadyRegisteredException
   {

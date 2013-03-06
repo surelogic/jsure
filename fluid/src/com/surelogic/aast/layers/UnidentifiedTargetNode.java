@@ -104,11 +104,13 @@ public class UnidentifiedTargetNode extends AbstractLayerMatchTarget implements 
 		return false;
 	}
 	
-	public boolean bindingExists() {
+	@Override
+  public boolean bindingExists() {
 		return AASTBinder.getInstance().isResolvable(this);
 	}
 
-	public ILayerBinding resolveBinding() {
+	@Override
+  public ILayerBinding resolveBinding() {
 		return AASTBinder.getInstance().resolve(this);
 	}
 

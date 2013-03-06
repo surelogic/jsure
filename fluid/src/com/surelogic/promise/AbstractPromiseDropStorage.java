@@ -22,18 +22,22 @@ implements IPromiseDropStorage<D> {
     this.base = base;
   }
   
+  @Override
   public final String name() {
     return name;
   }
   
+  @Override
   public final Class<D> baseDropType() {
     return base;
   }
 
+  @Override
   public SlotInfo<List<D>> getSeqSlotInfo() {
     throw new UnsupportedOperationException();
   }
 
+  @Override
   public SlotInfo<D> getSlotInfo() {
     throw new UnsupportedOperationException();
   }

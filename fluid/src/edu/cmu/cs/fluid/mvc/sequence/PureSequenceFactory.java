@@ -43,6 +43,7 @@ implements PureSequence.Factory
   
 
   // inherit javadoc
+  @Override
   public PureSequence create( final String name, final SlotFactory sf )
   throws SlotAlreadyRegisteredException
   {

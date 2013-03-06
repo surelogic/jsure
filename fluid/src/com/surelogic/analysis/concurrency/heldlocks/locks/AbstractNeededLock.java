@@ -17,6 +17,7 @@ abstract class AbstractNeededLock extends AbstractILock implements NeededLock {
     super(lm, type);
   }
   
+  @Override
   public final boolean isSatisfiedByLockSet(final Set<HeldLock> lockSet,
       final ThisExpressionBinder thisExprBinder, final IBinder binder) {
     for (final HeldLock current : lockSet) {

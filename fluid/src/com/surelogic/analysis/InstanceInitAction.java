@@ -20,8 +20,11 @@ package com.surelogic.analysis;
  */
 public interface InstanceInitAction {
   public static final InstanceInitAction NULL_ACTION = new InstanceInitAction() {
+    @Override
     public void tryBefore() { /* do nothing */ }
+    @Override
     public void finallyAfter() { /* do nothing */ }
+    @Override
     public void afterVisit() { /* do nothing */ }
   };
 

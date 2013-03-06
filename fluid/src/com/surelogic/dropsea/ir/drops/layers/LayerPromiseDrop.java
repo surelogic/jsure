@@ -17,14 +17,17 @@ public class LayerPromiseDrop extends AbstractReferenceCheckDrop<LayerNode> {
     return getAAST().getId();
   }
 
+  @Override
   public int getResultMessageKind() {
     return 350;
   }
 
+  @Override
   public Object[] getArgs(IRNode binding, IRNode type, IRNode context) {
     return new Object[] { binding, VisitUtil.getClosestType(context) };
   }
 
+  @Override
   public boolean isPartOf(IRNode type) {
     // Compute qualified name for this layer
     final IRNode cu = VisitUtil.getEnclosingCompilationUnit(getNode());

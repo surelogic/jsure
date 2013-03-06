@@ -61,6 +61,7 @@ implements SequenceEllipsisPolicy
   
   //==============================================================
 
+  @Override
   public void resetPolicy()
   {
     nodes.clear();
@@ -68,6 +69,7 @@ implements SequenceEllipsisPolicy
     currentLoc = -1;
   }
 
+  @Override
   public void nodeSkipped( final IRNode node, final int loc )
   {
     if( loc != currentLoc ) {
@@ -78,6 +80,7 @@ implements SequenceEllipsisPolicy
     nodes.add( node );
   }
 
+  @Override
   public void applyPolicy()
   {
     // Push the last location

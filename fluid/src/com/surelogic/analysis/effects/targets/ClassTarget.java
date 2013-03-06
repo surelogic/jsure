@@ -25,17 +25,20 @@ public final class ClassTarget extends AbstractTarget {
   
   
   
+  @Override
   public IRNode getReference() {
     return null;
   }
   
 
   
+  @Override
   public IJavaType getRelativeClass(final IBinder binder) {
     final IRNode cdecl = VisitUtil.getClosestType(region.getNode());
     return JavaTypeFactory.getMyThisType(cdecl);
   }
 
+  @Override
   public ClassTarget degradeRegion(final IRegion newRegion) {
     checkNewRegion(newRegion);
     return new ClassTarget(newRegion, evidence);
@@ -43,6 +46,7 @@ public final class ClassTarget extends AbstractTarget {
   
   
 
+  @Override
   public Target mask(final IBinder binder) {
     // class targets are never maskable
     return this;
@@ -50,10 +54,12 @@ public final class ClassTarget extends AbstractTarget {
 
   
   
+  @Override
   public boolean overlapsReceiver(final IRNode rcvrNode) {
     return false;
   }
 
+  @Override
   public TargetRelationship overlapsWith(
       final IMayAlias mayAlias, final IBinder binder, final Target t) {
     return ((AbstractTarget) t).overlapsWithClass(binder, this);
@@ -138,6 +144,7 @@ public final class ClassTarget extends AbstractTarget {
     }
   }
 
+  @Override
   public boolean mayTargetStateOfReference(
       final IBinder binder, final IRNode formal) {
     /* This is too conservative.  I should really check to see if any of the
@@ -150,6 +157,7 @@ public final class ClassTarget extends AbstractTarget {
 
   
   
+  @Override
   public boolean checkTarget(final IBinder b, final Target declaredTarget) {
     return ((AbstractTarget) declaredTarget).checkTargetAgainstClass(b, this);
   }
@@ -191,11 +199,13 @@ public final class ClassTarget extends AbstractTarget {
 
   
   
+  @Override
   public ClassTarget changeEvidence(final TargetEvidence e) {
     return new ClassTarget(region, e);
   }
 
 
+  @Override
   public StringBuilder toString(final StringBuilder sb) {
     sb.append(
         JavaNames.getQualifiedTypeName(

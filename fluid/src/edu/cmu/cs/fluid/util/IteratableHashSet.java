@@ -12,16 +12,19 @@ public class IteratableHashSet<T> extends HashSet<T> implements Iteratable<T> {
     }
   }
   
+  @Override
   public boolean hasNext() {
     init();
     return it.hasNext();
   }
 
+  @Override
   public T next() {
     init();
     return it.next();
   }
 
+  @Override
   public void remove() {
     init();
     it.remove();

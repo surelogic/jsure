@@ -65,6 +65,7 @@ import com.surelogic.jsure.client.eclipse.Activator;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
+import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
 import com.surelogic.jsure.client.eclipse.preferences.UninterestingPackageFilterPreferencePage;
 import com.surelogic.jsure.client.eclipse.refactor.ProposedPromisesRefactoringAction;
 import com.surelogic.jsure.core.JSureUtility;
@@ -304,6 +305,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
 
   private void makeActions() {
     f_treeViewer.addDoubleClickListener(new IDoubleClickListener() {
+      @Override
       public void doubleClick(DoubleClickEvent event) {
         openInEditor();
       }
@@ -360,6 +362,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     MenuManager menuMgr = new MenuManager("#PopupMenu");
     menuMgr.setRemoveAllWhenShown(true);
     menuMgr.addMenuListener(new IMenuListener() {
+      @Override
       public void menuAboutToShow(final IMenuManager manager) {
         final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
         if (!s.isEmpty()) {
@@ -438,6 +441,10 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
         if (ref != null)
           Activator.highlightLineInJavaEditor(ref);
       }
+      else if (first instanceof ElementJavaDecl) {
+    	  final ElementJavaDecl ejd = (ElementJavaDecl) first;
+    	  Activator.highlightLineInJavaEditor(ejd.getDeclaration());
+      }
       // open up the tree one more level
       if (!f_treeViewer.getExpandedState(first)) {
         f_treeViewer.expandToLevel(first, 1);
@@ -461,6 +468,9 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
         if (ref != null)
           return ref.getDeclaration();
       }
+      else if (first instanceof ElementJavaDecl) {
+    	  return ((ElementJavaDecl) first).getDeclaration();
+      }
     }
     return null;
   }
@@ -471,10 +481,13 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
       final Object first = s.getFirstElement();
       if (first instanceof ElementDrop) {
         final IDrop drop = ((ElementDrop) first).getDrop();
-        if (drop.isFromSrc())
-          return false;
+        //if (drop.isFromSrc())
+        //  return false;
         final IJavaRef ref = drop.getJavaRef();
         return ref != null;
+      }
+      else if (first instanceof ElementJavaDecl) {
+    	return true;  
       }
     }
     return false;

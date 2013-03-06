@@ -74,10 +74,12 @@ public final class QualifiedLockNameNode extends LockNameNode {
     return base;
   }
   
+  @Override
   public boolean bindingExists() {
     return AASTBinder.getInstance().isResolvable(this);
   }
 
+  @Override
   public ILockBinding resolveBinding() {
     return AASTBinder.getInstance().resolve(this);
   }

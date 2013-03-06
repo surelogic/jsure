@@ -66,6 +66,7 @@ implements SortedAttributeView.Factory
 
   
   
+  @Override
   public SortedAttributeView create(
     final String name, final AttributeModel srcModel, final String attr, 
     final boolean isAscending, final AttributeInheritancePolicy policy )
@@ -123,6 +124,7 @@ implements SortedAttributeView.Factory
 
     
 
+    @Override
     public HowToInherit[] compAttrsToInherit( final Model from )
     {
 
@@ -144,6 +146,7 @@ implements SortedAttributeView.Factory
       }
     }
   
+    @Override
     public HowToInherit[] nodeAttrsToInherit( final Model from )
     {
 

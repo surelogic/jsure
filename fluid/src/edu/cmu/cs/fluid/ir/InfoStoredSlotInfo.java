@@ -153,6 +153,7 @@ public class InfoStoredSlotInfo<S,T> extends StoredSlotInfo<S,T> {
     slots.compact();
   }
   
+  @Override
   public void undefineSlot(IRNode node) {
     slots.undefineSlot(node);
   }

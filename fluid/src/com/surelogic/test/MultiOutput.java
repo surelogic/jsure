@@ -9,36 +9,43 @@ public class MultiOutput implements ITestOutput {
     this.o2 = o2;
   }
 
+  @Override
   public void reset() {
 	  o1.reset();
 	  o2.reset();
   }
   
+  @Override
   public ITest reportStart(ITest o) {
     o1.reportStart(o);
     o2.reportStart(o);
     return o;
   }
   
+  @Override
   public void reportError(ITest o, Throwable ex) {
     o1.reportError(o, ex);
     o2.reportError(o, ex);
   } 
 
+  @Override
   public void reportFailure(ITest o, String msg) {
     o1.reportFailure(o, msg);
     o2.reportFailure(o, msg);
   }
 
+  @Override
   public void reportSuccess(ITest o, String msg) {
     o1.reportSuccess(o, msg);
     o2.reportSuccess(o, msg);
   }
 
+  @Override
   public Iterable<Object> getUnreported() {
     return o1.getUnreported();
   }
   
+  @Override
   public void close() {
     o1.close();
     o2.close();
@@ -52,6 +59,7 @@ public class MultiOutput implements ITestOutput {
   public static ITestOutputFactory makeFactory(final ITestOutputFactory f1, 
                                                final ITestOutputFactory f2) {
     return new ITestOutputFactory() {
+      @Override
       public ITestOutput create(String name) {
         return new MultiOutput(f1.create(name), f2.create(name));
       }

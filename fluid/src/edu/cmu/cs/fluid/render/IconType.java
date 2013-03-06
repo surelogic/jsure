@@ -29,22 +29,26 @@ public class IconType implements IRType<Icon>
     super();
   }
 
+  @Override
   public boolean isValid( final Object x )
   {
     return x instanceof Icon;
   }
 
+  @Override
   public Comparator<Icon> getComparator() 
   {
     return null;
   }
   
+  @Override
   public void writeValue( final Icon v, final IROutput out) 
   throws IOException
   {
     // needs to be implemented
   }
 
+  @Override
   public Icon readValue( final IRInput in )
   throws IOException
   {
@@ -52,22 +56,26 @@ public class IconType implements IRType<Icon>
     return null;
   }
 
+  @Override
   public void writeType( final IROutput out )
   throws IOException
   {
     out.writeByte( regType );
   }
 
+  @Override
   public IRType<Icon> readType( final IRInput in )
   {
     return this;
   }
 
+  @Override
   public Icon fromString( final String str )
   {
     throw new RuntimeException( "Method not yet implemented!" );
   }
 
+  @Override
   public String toString( final Icon obj )
   {
     throw new RuntimeException( "Method not yet implemented!" );

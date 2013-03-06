@@ -97,6 +97,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     }
   }
 
+  @Override
   public void selectionChanged(final Selection selecton) {
     changed();
   }
@@ -121,6 +122,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
   }
 
   private final KeyListener f_keyListener = new KeyListener() {
+    @Override
     public void keyPressed(final KeyEvent e) {
       if (e.character == 0x01 && f_table != null) {
         f_table.selectAll();
@@ -128,6 +130,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
       }
     }
 
+    @Override
     public void keyReleased(final KeyEvent e) {
       // Nothing to do
     }
@@ -147,6 +150,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
   };
 
   private final Listener f_doubleClick = new Listener() {
+    @Override
     public void handleEvent(final Event event) {
       final IProofDrop info = getSelectedItem();
       if (info != null) {
@@ -162,6 +166,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
   };
 
   private final IColumn f_iColumn = new IColumn() {
+    @Override
     public Composite createContents(final Composite panel) {
       f_table = new Table(panel, SWT.FULL_SELECTION);
       // add one column so pack works rigth on all operating systems
@@ -172,6 +177,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
       f_table.setItemCount(0);
 
       f_table.addListener(SWT.Traverse, new Listener() {
+        @Override
         public void handleEvent(final Event e) {
           switch (e.detail) {
           case SWT.TRAVERSE_ESCAPE:

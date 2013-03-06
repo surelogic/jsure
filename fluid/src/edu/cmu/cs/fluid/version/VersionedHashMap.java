@@ -262,7 +262,6 @@ public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> 
 
   @Starts("nothing")
 @Override
-  @SuppressWarnings("unchecked")
   public Set<Map.Entry<K,V>> entrySet() {
 	throw new UnsupportedOperationException();
     //return myEntrySet;
@@ -270,7 +269,6 @@ public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> 
 
   @Starts("nothing")
 @Override
-  @SuppressWarnings("unchecked")
   public Set<K> keySet() {
 	throw new UnsupportedOperationException();	  
     //return myKeySet;
@@ -285,8 +283,8 @@ public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> 
     return get(key) != null;
   }
 
+  @SuppressWarnings({ "cast", "unchecked" })
   @Override
-  @SuppressWarnings("unchecked")
   public V put(K key, V value) {
     checkMutable();
     V oldValue;
@@ -312,7 +310,7 @@ public class VersionedHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> 
 
   @Starts("nothing")
 @Override
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "cast" })
   public V get(Object key) {
     ensureDerived();
     VersionedSlot<V> vs;

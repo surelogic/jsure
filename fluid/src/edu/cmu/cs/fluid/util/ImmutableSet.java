@@ -11,7 +11,7 @@ import java.util.Set;
  * give useful results.
  */
 public interface ImmutableSet<T> extends Set<T>, PossiblyImmutableSet<T> {
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   ImmutableSet[] NO_SETS = new ImmutableSet[0];
                
   /** Returns true if the set is infinite.
@@ -27,6 +27,7 @@ public interface ImmutableSet<T> extends Set<T>, PossiblyImmutableSet<T> {
    * this in the return type.
    * @return new set with additional element (or same if this element already included.)
    */
+  @Override
   public ImmutableSet<T> addCopy(T element);
   
   /** Return the inverse of this set: which includes

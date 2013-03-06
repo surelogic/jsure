@@ -19,6 +19,7 @@ public interface IJavaTypeFormal extends IJavaSourceRefType, ITypeFormal {
   /**
    * @return the type formal declaration AST node.
    */
+  @Override
   public IRNode getDeclaration();
   
   /**
@@ -29,6 +30,7 @@ public interface IJavaTypeFormal extends IJavaSourceRefType, ITypeFormal {
    * Use {@link #getSuperclass(ITypeEnvironment)} instead.
    * @see com.surelogic.ast.ITypeFormal#getExtendsBound()
    */
+  @Override
   @Deprecated
   public IJavaReferenceType getExtendsBound();
 }

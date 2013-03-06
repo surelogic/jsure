@@ -60,11 +60,13 @@ implements ForestEllipsisPolicy
     return where;
   }
 
+  @Override
   public void resetPolicy()
   {
     map.clear();
   }
 
+  @Override
   public void nodeSkipped( final IRNode node, final IRNode parent, final int pos )
   {
     final Object key = (parent == null) ? treeLevel : parent;
@@ -76,6 +78,7 @@ implements ForestEllipsisPolicy
     nodes.add( node );
   }
 
+  @Override
   public void applyPolicy()
   {
     for( Iterator keys = map.keySet().iterator(); keys.hasNext(); )

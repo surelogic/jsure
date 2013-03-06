@@ -15,10 +15,12 @@ import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 public final class FilterVerificationJudgment extends Filter implements IOnlyPromisesPorus {
 
   public static final ISelectionFilterFactory FACTORY = new AbstractFilterFactory() {
+    @Override
     public Filter construct(Selection selection, Filter previous) {
       return new FilterVerificationJudgment(selection, previous, getFilterLabel());
     }
 
+    @Override
     public String getFilterLabel() {
       return "Verification Judgment";
     }

@@ -42,17 +42,20 @@ implements IRType
   //== IRType Methods
   //==============================================================
 
+  @Override
   public boolean isValid( final Object x )
   {
     return x instanceof PickledAttributeModelState;
   }
 
   /** Type does not have an order */
+  @Override
   public Comparator getComparator() 
   {
     return null;
   }
   
+  @Override
   public void writeValue( final Object v, final IROutput out ) 
   throws IOException
   {
@@ -60,28 +63,33 @@ implements IRType
     pickle.writeValue( out );
   }
 
+  @Override
   public Object readValue( final IRInput in )
   throws IOException
   {
     return PickledAttributeModelState.readValue( in );
   }
 
+  @Override
   public void writeType( final IROutput out )
   throws IOException
   {
     out.writeByte( TYPE_ID );
   }
 
+  @Override
   public IRType readType( final IRInput in )
   {
     return this;
   }
 
+  @Override
   public Object fromString( final String str )
   {
     throw new RuntimeException( "Method not yet implemented!" );
   }
 
+  @Override
   public String toString( final Object obj )
   {
     throw new RuntimeException( "Method not yet implemented!" );

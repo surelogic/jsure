@@ -242,6 +242,9 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
         fluidXML = "";
         localXML = null;
       }
+      if (roots.length > 0 && roots[0] == null) {
+          roots = SLUtility.EMPTY_OBJECT_ARRAY;
+      }
     }
     return null;
   }

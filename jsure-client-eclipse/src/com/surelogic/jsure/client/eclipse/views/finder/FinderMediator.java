@@ -53,12 +53,14 @@ public final class FinderMediator implements ILifecycle, CascadingList.ICascadin
   @Override
   public void init() {
     f_clearSelectionItem.addListener(SWT.Selection, new Listener() {
+      @Override
       public void handleEvent(Event event) {
         clearToNewWorkingSelection();
       }
     });
 
     f_breadcrumbs.addListener(SWT.Selection, new Listener() {
+      @Override
       public void handleEvent(Event event) {
         final int column = Integer.parseInt(event.text);
         f_finder.show(column);
@@ -66,6 +68,7 @@ public final class FinderMediator implements ILifecycle, CascadingList.ICascadin
     });
 
     f_openSearchItem.addListener(SWT.Selection, new Listener() {
+      @Override
       public void handleEvent(Event event) {
         OpenSearchDialog dialog = new OpenSearchDialog(f_finder.getShell());
         if (Window.CANCEL != dialog.open()) {
@@ -81,6 +84,7 @@ public final class FinderMediator implements ILifecycle, CascadingList.ICascadin
     });
 
     f_saveSearchAsItem.addListener(SWT.Selection, new Listener() {
+      @Override
       public void handleEvent(Event event) {
         SaveSearchAsDialog dialog = new SaveSearchAsDialog(f_finder.getShell());
         if (Window.CANCEL != dialog.open()) {
@@ -99,6 +103,7 @@ public final class FinderMediator implements ILifecycle, CascadingList.ICascadin
     });
 
     f_deleteSearchItem.addListener(SWT.Selection, new Listener() {
+      @Override
       public void handleEvent(Event event) {
         DeleteSearchDialog dialog = new DeleteSearchDialog(f_finder.getShell());
         dialog.open();
@@ -106,6 +111,7 @@ public final class FinderMediator implements ILifecycle, CascadingList.ICascadin
     });
 
     f_savedSelections.addListener(SWT.Selection, new Listener() {
+      @Override
       public void handleEvent(Event event) {
         final String selectionName = event.text;
         /*
@@ -213,6 +219,7 @@ public final class FinderMediator implements ILifecycle, CascadingList.ICascadin
 
   }
 
+  @Override
   public void savedSelectionsChanged(SelectionManager manager) {
     updateSavedSelections();
   }

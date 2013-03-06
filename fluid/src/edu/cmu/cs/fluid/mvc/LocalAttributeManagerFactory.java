@@ -27,6 +27,7 @@ implements AttributeManager.Factory
   }
   
   // inherit the javadoc 
+  @Override
   public AttributeManager create( final Model model, final Object structLock )
   {
     return new BareAttributeManager( model, structLock );

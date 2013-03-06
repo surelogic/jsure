@@ -126,5 +126,6 @@ extends DigraphInterface
    * Optional part of the 
    * @param o
    */
+  @Override
   public void addObserver(Observer o);
 }

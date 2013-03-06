@@ -85,7 +85,8 @@ class AnnoBuilder extends AnnotationVisitor {
 		pairs.add(ElementValuePair.createNode(name, n));
 	}
 	
-	public void visit(String name, Object value) {
+	@Override
+  public void visit(String name, Object value) {
 		/*
 		System.out.println("\t"+name+" = "+value);
 		if (type.contains("Unique") && "allowRead".contains(name)) {
@@ -95,7 +96,8 @@ class AnnoBuilder extends AnnotationVisitor {
 		add(name, adaptValue(value));
 	}
 
-	public AnnotationVisitor visitAnnotation(final String name, String desc) {
+	@Override
+  public AnnotationVisitor visitAnnotation(final String name, String desc) {
 		final AnnoBuilder outer = this;
 		return new AnnoBuilder(desc) {
 			@Override
@@ -106,16 +108,19 @@ class AnnoBuilder extends AnnotationVisitor {
 		};
 	}
 
-	public AnnotationVisitor visitArray(String name) {
+	@Override
+  public AnnotationVisitor visitArray(String name) {
 		return new ArrayBuilder(this, name);
 	}
 
-	public void visitEnum(String name, String typeDesc, String value) {
+	@Override
+  public void visitEnum(String name, String typeDesc, String value) {
 		IRNode type = ClassAdapter.adaptTypeDescriptor(typeDesc);
 		add(name, FieldRef.createNode(TypeExpression.createNode(type), value));
 	}
 	
-	public void visitEnd() {
+	@Override
+  public void visitEnd() {
 		if (pairs.isEmpty()) {
 			result = MarkerAnnotation.createNode(type);
 		} else {

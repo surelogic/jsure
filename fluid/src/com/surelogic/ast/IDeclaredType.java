@@ -4,5 +4,6 @@ package com.surelogic.ast;
 import com.surelogic.ast.java.operator.ITypeDeclarationNode;
 
 public interface IDeclaredType extends ISourceRefType {
+  @Override
   public ITypeDeclarationNode getNode();
 }

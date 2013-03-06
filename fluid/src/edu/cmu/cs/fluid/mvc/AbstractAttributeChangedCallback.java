@@ -54,6 +54,7 @@ implements AttributeChangedCallback
    * a model-level attribute then this is <code>null</code>.
    * @param value The new value of the attribute.
    */
+  @Override
   public final void attributeChanged(
     final String attr, final IRNode node, final Object value )
   {

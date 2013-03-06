@@ -55,10 +55,12 @@ public class JavaFmtStream extends FmtStream implements JavaUnparser {
     }
   }
 
+  @Override
   public JavaUnparseStyle getStyle() {
     return style;
   }
 
+  @Override
   public SyntaxTreeInterface getTree() {
     return tree;
   }

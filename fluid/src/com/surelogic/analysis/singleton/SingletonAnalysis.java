@@ -67,7 +67,8 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
 		super(willRunInParallel, queueWork ? TypeBodyPair.class : null, "SingletonAssurance");
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			setWorkProcedure(new Procedure<TypeBodyPair>() {
-				public void op(TypeBodyPair n) {
+				@Override
+        public void op(TypeBodyPair n) {
 					if (byCompUnit) {
 					  TopLevelAnalysisVisitor.processCompilationUnit(
 		            // actually n.typeDecl is a CompilationUnit here!
@@ -174,10 +175,12 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
     
     
     
+    @Override
     public IBinder getBinder() {
       return binder;
     }
 
+    @Override
     public void clearCaches() {
       // do nothing
     }

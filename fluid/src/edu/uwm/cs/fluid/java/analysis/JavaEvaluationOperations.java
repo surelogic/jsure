@@ -10,6 +10,8 @@ import edu.uwm.cs.fluid.java.control.LatticeDelegatingJavaEvaluationTransfer;
  * {@link LatticeDelegatingJavaEvaluationTransfer} to directly delegate to
  * a lattice implementing this interface.
  * 
+ * <p>This is meant to be a mixin interface for lattice implementations.
+ * 
  * @param <T> The type of the value being pushed around the analysis.
  * @param <V> The type of the value being stored on the stack.
  */

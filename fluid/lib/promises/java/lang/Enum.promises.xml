@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="1">
+<package name="java.lang" release="2">
     <class name="Enum">
         <Containable implementationOnly="true"/>
         <Immutable implementationOnly="true"/>
@@ -10,9 +10,17 @@
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </constructor>
-        
+
+        <method name="name">
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
+        <method name="ordinal">
+            <RegionEffects>reads this:Instance</RegionEffects>
+        </method>
+
         <method name="toString">
-          <RegionEffects>reads this:Instance</RegionEffects>
+            <RegionEffects>reads this:Instance</RegionEffects>
         </method>
     </class>
 </package>

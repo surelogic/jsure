@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.analysis.AnalysisUtils;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.LocalVariableDeclarations;
@@ -53,15 +54,12 @@ import edu.cmu.cs.fluid.java.operator.ArithUnopExpression;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
-import edu.cmu.cs.fluid.java.operator.ClassBody;
-import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.CompareExpression;
 import edu.cmu.cs.fluid.java.operator.ComplementExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EqualityExpression;
-import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -1011,7 +1009,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     @Override
     protected Store transferUseReceiver(final IRNode use, final Store s) {
-      return lattice.opGet(s, use, getReceiverNodeAtExpression(use));
+      return lattice.opGet(s, use, AnalysisUtils.getReceiverNodeAtExpression(use, flowUnit));
     }
     
     @Override
@@ -1026,7 +1024,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         return lattice.opGet(s, use, decl);
       } else {
         // We start by getting the receiver
-        Store newStore = lattice.opGet(s, use, getReceiverNodeAtExpression(use));
+        Store newStore = lattice.opGet(s, use, AnalysisUtils.getReceiverNodeAtExpression(use, flowUnit));
 
         /* Loop up the nested class hierarchy until we find the class whose
          * qualified receiver declaration equals 'decl'.  We are guaranteed
@@ -1044,43 +1042,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         
         return newStore;
       }      
-    }
-
-    /**
-     * Get the receiver node appropriate for use at the given expression.
-     * Normally this is the receiver node from the flow unit being analyzed,
-     * unless the given node is inside a FieldDeclaration or ClassInitializer
-     * that is itself inside an AnonClassExpression or EnumConstantDeclaration.
-     * In that case, we use the receiver node from the InitMethod for the 
-     * class expression.
-     */
-    private IRNode getReceiverNodeAtExpression(final IRNode use) {
-      /* Need to determine if the use is inside a field init or init block
-       * of an anonymous class expression.
-       */
-      IRNode getReceiverFrom = null;
-      for (final IRNode current : VisitUtil.rootWalk(use)) {
-        final Operator op = JJNode.tree.getOperator(current);
-        if (ClassBody.prototype.includes(op)) {
-          // done: skipped past anything potentially interesting
-          getReceiverFrom = flowUnit;
-          break;
-        } else if (FieldDeclaration.prototype.includes(op) ||
-            ClassInitializer.prototype.includes(op)) {
-          /* Have to check against FieldDeclaration to avoid capturing local
-           * variable initializers.  This cannot be used in a static context,
-           * so don't even check for it
-           */
-          final IRNode enclosingType = VisitUtil.getEnclosingType(current);
-          final Operator enclosingOp = JJNode.tree.getOperator(enclosingType);
-          if (AnonClassExpression.prototype.includes(enclosingOp) ||
-              EnumConstantClassDeclaration.prototype.includes(enclosingOp)) {
-            getReceiverFrom = JavaPromise.getInitMethod(enclosingType);
-            break;
-          }
-        }
-      }
-      return JavaPromise.getReceiverNode(getReceiverFrom);
     }
     
     

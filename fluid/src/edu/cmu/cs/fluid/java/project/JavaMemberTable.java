@@ -489,6 +489,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    *          dependency needed
    * @return A copy of the declarations
    */
+  @Override
   public Iterator<IRNode> getDeclarationsFromUse(String name, IRNode useNode) {
 	if (isVersioned) {
 		ensureDerived();
@@ -556,6 +557,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
      * @return enumeration of all declarations entered for this class with the
      *         given name.
      */
+    @Override
     public Iterator<IRNode> getDeclarations() {
       return declarations.elements();
     }
@@ -583,6 +585,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
      * @param decl
      * @param v version at which change should be record.  (null if no such version)
      */
+    @Override
     public void addDeclaration(IRNode decl, Version v) {
       if (findDeclaration(decl) != null) return;
       if (LOG.isLoggable(Level.FINE)) {
@@ -598,6 +601,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
      * 
      * @param decl
      */
+    @Override
     public void removeDeclaration(IRNode decl, Version v) {
       IRLocation loc = findDeclaration(decl);
       if (loc == null) return;
@@ -608,6 +612,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       notifyUses(v);
     }
 
+    @Override
     public Iterator<IRNode> iterator() {
       return declarations.elements();
     }
@@ -621,19 +626,24 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   implements Entry 
   {
     private Vector<IRNode> decls = new Vector<IRNode>();
+    @Override
     public void addDeclaration(IRNode decl, Version v) {
       decls.add(decl);
     }
+    @Override
     public Iterator<IRNode> getDeclarations() {
       return decls.iterator();
     }
+    @Override
     public void removeDeclaration(IRNode decl, Version v) {
       decls.remove(decl);
     }
     
     // no use links
+    @Override
     public synchronized void notifyUses(Version v) { }
 
+    @Override
     public Iterator<IRNode> iterator() {
       return decls.iterator();
     }
@@ -655,6 +665,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
 	@UniqueInRegion("Instance")
     private List<IRNode> decls = null; //new ArrayList<IRNode>();
     
+    @Override
     public synchronized void addDeclaration(IRNode decl, Version v) {
       if (firstDecl == null) {
         firstDecl = decl;
@@ -666,6 +677,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       }
       decls.add(decl);     
     }
+    @Override
     public synchronized Iterator<IRNode> getDeclarations() {
       if (decls == null) {
         if (firstDecl == null) {
@@ -676,6 +688,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       // Added to prevent comod exceptions
       return new ArrayList<IRNode>(decls).iterator();
     }
+    @Override
     public synchronized void removeDeclaration(IRNode decl, Version v) {
       if (decls == null) {
         firstDecl = decl.equals(firstDecl) ? null : firstDecl;
@@ -694,6 +707,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     @Override
     public void notifyUses(Version v) { }
 
+    @Override
     public Iterator<IRNode> iterator() {
       return getDeclarations();
     }
@@ -705,6 +719,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    * In other words, it is versioned if the member table itself is versioned.
    *@param binder binder to use on demand to look up super types.
    */
+  @Override
   public IJavaScope asScope(AbstractJavaBinder binder) {
 	  if (binder != cachedBinder) {
         cachedFullScope = new IJavaScope.ExtendScope(asLocalScope(binder.getTypeEnvironment()),
@@ -714,6 +729,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       return cachedFullScope;    
   }
  
+  @Override
   public IJavaScope asSuperScope(AbstractJavaBinder binder) {
 	  if (binder != cachedBinder) {
         cachedFullScope = new SuperScope(binder);
@@ -732,6 +748,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    * Return a scope that only mimics the member table, not looking at superclasses.
    * @return scope for members in this table.
    */
+  @Override
   public Scope asLocalScope(ITypeEnvironment tEnv) {
     return new Scope(tEnv);
   }
@@ -758,7 +775,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       isTypeFormal = TypeFormal.prototype.includes(typeDeclaration);
     }
     
-	public boolean canContainPackages() {
+	@Override
+  public boolean canContainPackages() {
 		return false;
 	}    
     
@@ -831,6 +849,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
 	/* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookup(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
+    @Override
     public IBinding lookup(LookupContext context, Selector selector) {
       if (isNonsensicalLookup(context)) {
     	  return null;
@@ -859,6 +878,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
 	/* (non-Javadoc)
      * @see edu.cmu.cs.fluid.java.project.JavaScope#lookupAll(java.lang.String, edu.cmu.cs.fluid.ir.IRNode, edu.cmu.cs.fluid.java.project.JavaScope.Selector)
      */
+    @Override
     public Iteratable<IBinding> lookupAll(LookupContext context, Selector selector) {
       Iteratable<IBinding> firstResult = null;
       List<IBinding> allResults = null;
@@ -904,6 +924,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       }
     }
 
+    @Override
     public void printTrace(PrintStream out, int indent) {
       DebugUtil.println(out, indent, "[SuperScope for "+JavaNames.getFullTypeName(typeDeclaration)+"]");
       for (IJavaType superType : getSuperTypes()) {
@@ -925,10 +946,12 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     	tEnv = te;
     }
     
-	public boolean canContainPackages() {
+	@Override
+  public boolean canContainPackages() {
 		return false;
 	}   
 	
+    @Override
     public IBinding lookup(LookupContext context, final Selector selector) {
       final String name = context.name;
       final boolean debug = LOG.isLoggable(Level.FINER);
@@ -961,6 +984,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     	return temp;
     }
     
+    @Override
     public Iteratable<IBinding> lookupAll(LookupContext context, final Selector selector) {
       final String name = context.name;    	
       final boolean debug = LOG.isLoggable(Level.FINER);
@@ -1021,6 +1045,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       return JavaMemberTable.this + "$Scope";
     }
 
+    @Override
     @Vouch("debug code")
     public void printTrace(PrintStream out, int indent) {
       DebugUtil.println(out, indent, "["+this+"]");

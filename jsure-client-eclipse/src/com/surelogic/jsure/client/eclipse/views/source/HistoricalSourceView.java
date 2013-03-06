@@ -15,6 +15,7 @@ import com.surelogic.NonNull;
 import com.surelogic.common.ISourceZipFileHandles;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.DeclUtil;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractHistoricalSourceView;
@@ -74,14 +75,16 @@ public class HistoricalSourceView extends AbstractHistoricalSourceView
 		final ISourceZipFileHandles zips;
 		if (info == null) {
 			zips = new ISourceZipFileHandles() {
-				public Iterable<File> getSourceZips() {
+				@Override
+        public Iterable<File> getSourceZips() {
 					return Collections.emptyList();
 				}
 			};
 		} else {
 			setSourceSnapshotTime(info.getJSureRun().getTimeOfScan());
 			zips = new ISourceZipFileHandles() {
-				public Iterable<File> getSourceZips() {
+				@Override
+        public Iterable<File> getSourceZips() {
 					return info.getJSureRun().getSourceZips();
 				}
 			};
@@ -94,6 +97,13 @@ public class HistoricalSourceView extends AbstractHistoricalSourceView
 	  tryToOpenInEditor(javaRef.getPackageName(),
         DeclUtil.getTypeNameDollarSignOrNull(javaRef.getDeclaration()), 
         javaRef.getLineNumber(), tryToUseOld);
+	}
+	
+	public static void tryToOpenInEditor(final IDecl decl, final boolean tryToUseOld) {
+	  if (decl == null) return;
+	  tryToOpenInEditor(DeclUtil.getPackageNameOrEmpty(decl),
+		        DeclUtil.getTypeNameDollarSignOrNull(decl), 
+		        1, tryToUseOld);
 	}
 
 	public static void tryToOpenInEditor(final String pkg, final String type,

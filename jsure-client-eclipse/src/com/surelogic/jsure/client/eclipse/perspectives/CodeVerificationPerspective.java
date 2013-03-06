@@ -18,6 +18,7 @@ import com.surelogic.jsure.client.eclipse.views.xml.XMLExplorerView;
  */
 public final class CodeVerificationPerspective implements IPerspectiveFactory {
 
+  @Override
   public void createInitialLayout(IPageLayout layout) {
     final String scanMgt = ScanManagerView.class.getName();
     final String verificationStatusView = VerificationStatusView.class.getName();

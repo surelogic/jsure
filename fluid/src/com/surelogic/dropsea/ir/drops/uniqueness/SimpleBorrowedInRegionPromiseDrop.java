@@ -38,11 +38,13 @@ public final class SimpleBorrowedInRegionPromiseDrop extends PromiseDrop<SimpleB
     return true;
   }
 
+  @Override
   public void validated(final InRegionPromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);
   }
 
+  @Override
   public Map<IRegion, IRegion> getAggregationMap(final IRNode fieldDecl) {
     final RegionModel instanceRegion = RegionModel.getInstanceRegion(fieldDecl);
     final IRegion dest = this.getAAST().getSpec().resolveBinding().getRegion();

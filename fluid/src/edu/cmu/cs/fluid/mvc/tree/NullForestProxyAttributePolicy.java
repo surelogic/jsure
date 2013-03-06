@@ -22,6 +22,7 @@ implements ForestProxyAttributePolicy
    * <i>NB</i>, the node <code>root</code> <em>is present</em>
    * in the model.
    */
+  @Override
   public AVPair[] attributesFor( final ForestModel model, final IRNode root )
   {
     return empty;

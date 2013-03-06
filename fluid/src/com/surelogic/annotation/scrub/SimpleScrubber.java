@@ -20,8 +20,10 @@ public abstract class SimpleScrubber extends AbstractScrubber {
 	super(NONE, name, order, deps);
   }
 
+  @Override
   public final void run() {
     IDE.runAtMarker(new AbstractRunner() {
+      @Override
       public void run() {
         scrub();
         AASTStore.sync();

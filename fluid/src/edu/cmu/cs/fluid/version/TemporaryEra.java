@@ -33,6 +33,7 @@ public class TemporaryEra implements PossibleEra {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.version.PossibleEra#isLoaded(edu.cmu.cs.fluid.ir.IRState)
    */
+  @Override
   public boolean isLoaded(IRState st) {
     // defer to the root version.
     return root.isLoaded(st);

@@ -375,6 +375,7 @@ extends AbstractCore
       factory = sf;
     }
 
+    @Override
     public AttributeModelCore create(
       final String name, final Model model, final Object lock,
       final AttributeManager manager, final AttributeChangedCallback cb )

@@ -56,10 +56,12 @@ public class VisitUtil implements JavaGlobals {
     return new AbstractRemovelessIterator<IRNode>() {
       IRNode next = starting;
 
+      @Override
       public boolean hasNext() {
         return next != null;
       }
 
+      @Override
       public IRNode next() {
         if (next == null)
           throw new NoSuchElementException("root walk done");
@@ -178,10 +180,12 @@ public class VisitUtil implements JavaGlobals {
     return new AbstractRemovelessIterator<IRNode>() {
       IRNode next = closest ? getClosestType(starting) : getEnclosingType(starting);
 
+      @Override
       public boolean hasNext() {
         return next != null;
       }
 
+      @Override
       public IRNode next() {
         if (next == null)
           throw new NoSuchElementException("root walk done");

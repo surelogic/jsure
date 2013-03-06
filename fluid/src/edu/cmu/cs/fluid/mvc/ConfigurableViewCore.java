@@ -305,6 +305,7 @@ public final class ConfigurableViewCore extends AbstractCore {
   }
 
   private static class StandardFactory implements Factory {
+    @Override
     public ConfigurableViewCore create(
       final String name,
       final Model model,

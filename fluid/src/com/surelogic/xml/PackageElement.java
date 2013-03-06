@@ -25,7 +25,8 @@ public class PackageElement extends AnnotatedJavaElement {
 		}
 	}
 
-	public <T> T visit(IJavaElementVisitor<T> v) {
+	@Override
+  public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
 	}
 
@@ -49,7 +50,8 @@ public class PackageElement extends AnnotatedJavaElement {
 		return PackageDeclaration.prototype;
 	}
 
-	public final String getImageKey() {
+	@Override
+  public final String getImageKey() {
 		return CommonImages.IMG_PACKAGE;
 	}
 
@@ -57,7 +59,8 @@ public class PackageElement extends AnnotatedJavaElement {
 		return clazz;
 	}
 
-	public String getLabel() {
+	@Override
+  public String getLabel() {
 		return getName();
 	}
 
@@ -90,7 +93,8 @@ public class PackageElement extends AnnotatedJavaElement {
 		return super.isModified();
 	}
 
-	public void markAsClean() {
+	@Override
+  public void markAsClean() {
 		super.markAsClean();
 		if (clazz != null) {
 			clazz.markAsClean();

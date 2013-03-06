@@ -54,6 +54,7 @@ final class StitchedSyntaxForestView
       transform = xf.create(this, forestModCore, synModCore);
     }
     transform.init(new AttributeHandler() {
+      @Override
       @SuppressWarnings("unchecked")
       public SlotInfo addNodeAttribute(String name, IRType type, SlotFactory sf, boolean mutable) {
         SlotInfo si = null;
@@ -78,30 +79,35 @@ final class StitchedSyntaxForestView
   //== SyntaxForestModel methods
   //===========================================================
 
+  @Override
   public Operator getOperator(final IRNode n) {
     synchronized (structLock) {
       return synModCore.getOperator(n);
     }
   }
 
+  @Override
   public boolean opExists(final IRNode n) {
     synchronized (structLock) {
       return synModCore.opExists(n);
     }
   }
 
+  @Override
   public void initNode(final IRNode n, final Operator op) {
     synchronized (structLock) {
       synModCore.initNode(n, op);
     }
   }
 
+  @Override
   public void initNode(final IRNode n, final Operator op, final int min) {
     synchronized (structLock) {
       synModCore.initNode(n, op, min);
     }
   }
 
+  @Override
   public void initNode(
     final IRNode n,
     final Operator op,

@@ -15,11 +15,13 @@ abstract class AbstractJavaElement implements IJavaElement {
 	private IJavaElement parent;
 	private boolean isDirty;
 
-	public final IJavaElement getParent() {
+	@Override
+  public final IJavaElement getParent() {
 		return parent;
 	}
 
-	public final void setParent(IJavaElement p) {
+	@Override
+  public final void setParent(IJavaElement p) {
 		if (p == null) {
 			throw new IllegalStateException("Trying to clear the parent");
 		}
@@ -41,22 +43,26 @@ abstract class AbstractJavaElement implements IJavaElement {
 		parent = p;
 	}
 
-	public boolean isBad() {
+	@Override
+  public boolean isBad() {
 		return false;
 	}
 
-	public boolean isEditable() {
+	@Override
+  public boolean isEditable() {
 		return false;
 	}
 
-	public boolean isDirty() {
+	@Override
+  public boolean isDirty() {
 		return isDirty;
 	}
 
 	/**
 	 * Here only to be overridden by Comment/AnnotationElement
 	 */
-	public boolean isModified() {
+	@Override
+  public boolean isModified() {
 		return false;
 	}
 
@@ -68,7 +74,8 @@ abstract class AbstractJavaElement implements IJavaElement {
 		isDirty = false;
 	}
 
-	public PackageElement getRootParent() {
+	@Override
+  public PackageElement getRootParent() {
 		final IJavaElement e = getParent();
 		if (e instanceof PackageElement) {
 			// we are at the root
@@ -82,17 +89,20 @@ abstract class AbstractJavaElement implements IJavaElement {
 		}
 	}
 
-	public int getReleaseVersion() {
+	@Override
+  public int getReleaseVersion() {
 		final PackageElement e = getRootParent();
 		return e.getReleaseVersion();
 	}
 
-	public void setReleaseVersion(int value) {
+	@Override
+  public void setReleaseVersion(int value) {
 		final PackageElement e = getRootParent();
 		e.setReleaseVersion(value);
 	}
 
-	public final void incrementReleaseVersion() {
+	@Override
+  public final void incrementReleaseVersion() {
 		setReleaseVersion(getReleaseVersion() + 1);
 	}
 
@@ -305,7 +315,8 @@ abstract class AbstractJavaElement implements IJavaElement {
 		markAsDirty();
 	}
 
-	public Object[] getChildren() {
+	@Override
+  public Object[] getChildren() {
 		if (hasChildren()) {
 			List<Object> children = new ArrayList<Object>();
 			collectOtherChildren(children);
@@ -332,7 +343,8 @@ abstract class AbstractJavaElement implements IJavaElement {
 		}
 	}
 	
-	public boolean isStatic() {
+	@Override
+  public boolean isStatic() {
 	  return false;
 	}
 

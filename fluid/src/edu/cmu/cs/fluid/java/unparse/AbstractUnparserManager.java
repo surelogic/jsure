@@ -72,6 +72,7 @@ public class AbstractUnparserManager implements IUnparserManager
     unparser.getStyle().setUnparsePromises( true );
     updateWithWidth( initWidth );    
   } 
+  @Override
   public Iterator<IRNode> getRoots() { return parseRoots.iterator(); }
   
   /**
@@ -79,6 +80,7 @@ public class AbstractUnparserManager implements IUnparserManager
    * @return An array of Strings of the unparsed text.  <em>Warning</em>:
    * The array is shared, and should not be modified by the caller.
    */
+  @Override
   public synchronized String[] getUnparsedText()
   {
     return unparsed;
@@ -90,6 +92,7 @@ public class AbstractUnparserManager implements IUnparserManager
    * has changed width.  It should not be used, for example, when the current
    * version has changed.
    */
+  @Override
   public synchronized String[] unparseWithWidth( final int lineWidth )
   {
     tview = new TokenView( lineWidth, tokens, false );
@@ -104,6 +107,7 @@ public class AbstractUnparserManager implements IUnparserManager
    * width.  This should be used when the parse tree itself has changed, for
    * example, because the version has changed.
    */
+  @Override
   public synchronized String[] updateWithWidth( final int lineWidth )
   {
     final boolean debug = LOG.isLoggable(Level.FINE);
@@ -131,6 +135,7 @@ public class AbstractUnparserManager implements IUnparserManager
    * @return The IRNode associated with the text location, or <code>null</code>
    * if there is not node associated with the position.
    */
+  @Override
   public synchronized IRNode getNodeAt( final TextCoord where )
   {
     /* For some reason the unparser starts at line 1, and refuses to
@@ -145,6 +150,7 @@ public class AbstractUnparserManager implements IUnparserManager
    * Returns <code>null</code> if the location doesn't have a node
    * associated with it.
    */
+  @Override
   public synchronized TextRegion getNodeRegion( final TextCoord where )
   {
     /* For some reason the unparser starts at line 1, and refuses to
@@ -167,6 +173,7 @@ public class AbstractUnparserManager implements IUnparserManager
    * IRNode within the parse tree.
    * @exception NullPointerException Thrown if the given node is null.
    */
+  @Override
   public synchronized TextRegion getNodeRegion( final IRNode node )
   {
     try {

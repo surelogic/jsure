@@ -13,7 +13,6 @@ import java.util.Set;
 
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.dropsea.irfree.XmlCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
@@ -54,7 +53,8 @@ public class Config extends AbstractClassPathEntry {
 		containsJavaLangObject = hasJLO;
 	}
 
-	public void outputToXML(XmlCreator.Builder proj) {
+	@Override
+  public void outputToXML(XmlCreator.Builder proj) {
 		// Just the reference to this
 		XmlCreator.Builder b = proj.nest(PersistenceConstants.PROJECT);
 		b.addAttribute("name", name);
@@ -215,6 +215,7 @@ public class Config extends AbstractClassPathEntry {
 		return files;
 	}
 
+    @Override
     public JavaSourceFile mapPath(URI path) {
     	for(IClassPathEntry e : classPath) {
     		JavaSourceFile mapped;    	
@@ -235,7 +236,8 @@ public class Config extends AbstractClassPathEntry {
     	return null;
     }
 
-	public void init(JavacProject jp, JavacClassParser loader) throws IOException {
+	@Override
+  public void init(JavacProject jp, JavacClassParser loader) throws IOException {
 		if (loader.ensureInitialized(jp, this)) {
 			return;
 		}
@@ -292,7 +294,8 @@ public class Config extends AbstractClassPathEntry {
 	/**
 	 * This must be overridden to complete things
 	 */
-	public void zipSources(File zipDir) throws IOException {
+	@Override
+  public void zipSources(File zipDir) throws IOException {
 		if (followRefs) {
 			for(IClassPathEntry e : classPath) {
 				if (e != this) {
@@ -302,7 +305,8 @@ public class Config extends AbstractClassPathEntry {
 		}
 	}
 
-	public void copySources(File zipDir, File targetDir) throws IOException {
+	@Override
+  public void copySources(File zipDir, File targetDir) throws IOException {
 		if (followRefs) {
 			for(IClassPathEntry e : classPath) {
 				if (e != this) {
@@ -312,7 +316,8 @@ public class Config extends AbstractClassPathEntry {
 		}
 	}
 
-	public void relocateJars(File targetDir) throws IOException {
+	@Override
+  public void relocateJars(File targetDir) throws IOException {
 		if (followRefs) {
 			for(IClassPathEntry e : classPath) {
 				if (e != this) {

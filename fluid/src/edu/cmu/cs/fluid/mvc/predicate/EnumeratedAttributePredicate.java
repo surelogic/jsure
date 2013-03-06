@@ -18,11 +18,13 @@ public class EnumeratedAttributePredicate
     goodElement = v;
   }
 
+  @Override
   public String getLabel()
   {
     return goodElement.toString();
   }
 
+  @Override
   public boolean includesValue( final Object value )
   {
     return goodElement.equals( value );

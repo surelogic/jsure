@@ -60,6 +60,7 @@ public class ThreadRoleNameNode extends AASTNode implements TRoleLit, ThreadRole
   }
 
 
+  @Override
   public TRExpr buildTRExpr(IRNode where) {
     TRExpr res = new TRLeafExpr(TRoleNameModel.getInstance(id, where));
     return res;

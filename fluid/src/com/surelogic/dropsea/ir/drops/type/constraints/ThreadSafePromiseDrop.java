@@ -19,6 +19,7 @@ public final class ThreadSafePromiseDrop extends ModifiedBooleanPromiseDrop<Thre
     setCategorizingMessage(JavaGlobals.LOCK_ASSURANCE_CAT);
   }
 
+  @Override
   public void validated(final ThreadSafePromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);

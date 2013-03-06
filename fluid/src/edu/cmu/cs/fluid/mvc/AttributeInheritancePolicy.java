@@ -90,11 +90,13 @@ public interface AttributeInheritancePolicy
 final class NullAttributeInheritancePolicy
 implements AttributeInheritancePolicy
 {
+  @Override
   public HowToInherit[] compAttrsToInherit( final Model from ) 
   {
     return AttributeInheritancePolicy.emptyArray;
   }
   
+  @Override
   public HowToInherit[] nodeAttrsToInherit( final Model from ) 
   {
     return AttributeInheritancePolicy.emptyArray;

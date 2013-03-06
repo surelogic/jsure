@@ -12,6 +12,7 @@ final class Equal implements Filter {
     both = areEqual;
   }
 
+  @Override
   public boolean filter(ImmutableSet<Object> node) {
 	  if (node.contains(State.IMMUTABLE)) return true; // aliases always possible
 	  if (node.contains(v1)) {

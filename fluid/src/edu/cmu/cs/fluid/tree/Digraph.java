@@ -147,6 +147,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
 	 * @throws SlotImmutableException
 	 *           if node already in graph
 	 */
+  @Override
   public void initNode(IRNode n) {
     initNode(n, -1);
   }
@@ -164,18 +165,22 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
 	 * @throws SlotImmutableException
 	 *           if node already in graph
 	 */
+  @Override
   public void initNode(IRNode n, int numChildren) {
     mutator.initNode(n, numChildren);
   }
 
   /** Return true if the node is part of this direction graph. */
+  @Override
   public boolean isNode(IRNode n) {
     return n.valueExists(childrenSlotInfo);
   }
 
+  @Override
   public boolean hasChildren(IRNode node) {
     return getChildren(node).hasElements();
   }
+  @Override
   public int numChildren(IRNode node) {
     return getChildren(node).size();
   }
@@ -184,13 +189,16 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
     return getChildren(node).isVariable();
   }
 
+  @Override
   public IRLocation childLocation(IRNode node, int i) {
     return getChildren(node).location(i);
   }
+  @Override
   public int childLocationIndex(IRNode node, IRLocation loc) {
     return getChildren(node).locationIndex(loc);
   }
 
+  @Override
   public IRLocation firstChildLocation(IRNode node) {
     IRSequence<IRNode> children = getChildren(node);
     if (children != null) {
@@ -205,16 +213,20 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
       throw new FluidError("Null pointer");
     }
   }
+  @Override
   public IRLocation lastChildLocation(IRNode node) {
     return getChildren(node).lastLocation();
   }
+  @Override
   public IRLocation nextChildLocation(IRNode node, IRLocation loc) {
     return getChildren(node).nextLocation(loc);
   }
+  @Override
   public IRLocation prevChildLocation(IRNode node, IRLocation loc) {
     return getChildren(node).prevLocation(loc);
   }
 
+  @Override
   public int compareChildLocations(
     IRNode node,
     IRLocation loc1,
@@ -222,12 +234,15 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
     return getChildren(node).compareLocations(loc1, loc2);
   }
 
+  @Override
   public boolean hasChild(IRNode node, int i) {
     return getChildren(node).validAt(i);
   }
+  @Override
   public boolean hasChild(IRNode node, IRLocation loc) {
     return getChildren(node).validAt(loc);
   }
+  @Override
   public IRNode getChild(IRNode node, int i) {
     try {
       return (getChildren(node).elementAt(i));
@@ -240,6 +255,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
       throw e;
     }
   }
+  @Override
   public IRNode getChild(IRNode node, IRLocation loc) {
     try {
       return (getChildren(node).elementAt(loc));
@@ -300,6 +316,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
 	 * @exception IllegalChildException
 	 *              if the child is not suitable
 	 */
+  @Override
   public void setChild(IRNode node, int i, IRNode newChild)
     throws IllegalChildException {
     IRLocation loc = getChildren(node).location(i);
@@ -316,6 +333,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
 	 * @exception IllegalChildException
 	 *              if the child is not suitable
 	 */
+  @Override
   public void setChild(IRNode node, IRLocation loc, IRNode newChild)
     throws IllegalChildException {
     mutator.setChild(node, loc, newChild);
@@ -349,6 +367,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
 	 * @exception IllegalChildException
 	 *              if there is no space to add
 	 */
+  @Override
   public void addChild(IRNode node, IRNode newChild)
     throws IllegalChildException {
     if (getChildren(node).isVariable()) {
@@ -368,6 +387,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
 	 * @exception IllegalChildException
 	 *              if oldChild is not a child, or newChild is not suitable.
 	 */
+  @Override
   public void replaceChild(IRNode node, IRNode oldChild, IRNode newChild)
     throws IllegalChildException {
     setChild(node, findChild(node, oldChild), newChild);
@@ -423,6 +443,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
 	 *              if oldChild is not a child, newChild is not suitable, or the
 	 *              parent cannot accept new children.
 	 */
+  @Override
   public void insertChildAfter(IRNode node, IRNode newChild, IRNode oldChild)
     throws IllegalChildException {
     insertChild(
@@ -438,6 +459,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
 	 *              if if oldChild is not a child, newChild is not suitable, or
 	 *              the parent cannot accept new children.
 	 */
+  @Override
   public void insertChildBefore(IRNode node, IRNode newChild, IRNode oldChild)
     throws IllegalChildException {
     insertChild(
@@ -455,6 +477,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
 	 * @exception IllegalChildException
 	 *              if oldChild is not a child,
 	 */
+  @Override
   public void removeChild(IRNode node, IRNode oldChild)
     throws IllegalChildException {
     removeChild(node, findChild(node, oldChild));
@@ -464,6 +487,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
 	 * Remove the child (if any) at the given location. Replace with null if
 	 * sequence is fixed.
 	 */
+  @Override
   public void removeChild(IRNode node, IRLocation loc) {
     if (getChildren(node).isVariable()) {
       mutator.removeChild(node, loc);
@@ -473,6 +497,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
   }
 
   /** Remove all the children of a node. */
+  @Override
   public void removeChildren(IRNode node) {
     IRSequence children = getChildren(node);
     for (IRLocation loc = firstChildLocation(node); loc != null;) {
@@ -483,6 +508,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
   }
 
   /** Return the children of a node in order. */
+  @Override
   public Iteratable<IRNode> children(IRNode node) {
 	final IRSequence<IRNode> seq = getChildren(node);
 	if (seq == null) {
@@ -491,6 +517,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
     return mutator.protect(seq.elements());
   }
   
+  @Override
   @SuppressWarnings("unchecked")
   public List<IRNode> childList(IRNode node) {
     // rather roundabout, but it uses existing abstractions
@@ -506,6 +533,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
 	 * Return an enumeration of the nodes in the graph. First we return the root
 	 * given and then recursively the enumerations of each of its children.
 	 */
+  @Override
   public Iteratable<IRNode> depthFirstSearch(IRNode node) {
     return mutator.protect(new DepthFirstSearch(this, node));
   }
@@ -513,6 +541,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
   /**
 	 * Return slot info for given name. Consistency is
 	 */
+  @Override
   public SlotInfo getAttribute(String name) {
     return mutator.getAttribute(name);
   }
@@ -546,6 +575,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
       slotFactory = sf;
     }
 
+    @Override
     public void initNode(IRNode n, int numChildren) {
       IRSequence<IRNode> seq = slotFactory.newSequence(numChildren);
       setChildren(n, seq);
@@ -610,6 +640,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
       }
     }
 
+    @Override
     public void setChild(IRNode node, IRLocation loc, IRNode newChild)
       throws IllegalChildException {
       /*
@@ -658,6 +689,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
       }
     }
 
+    @Override
     public IRLocation insertChild(
       IRNode node,
       IRNode newChild,
@@ -678,6 +710,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
       return newloc;
     }
 
+    @Override
     public void removeChild(IRNode node, IRLocation loc) {
       IRSequence children = getChildren(node);
       IRNode oldChild = null;
@@ -693,13 +726,16 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
       }
     }
 
+    @Override
     public void addObserver(Observer o) {
       childrenSlotInfo.addObserver(o);
     }
 
+    @Override
     public void saveAttributes(Bundle b) {
       b.saveAttribute(childrenSlotInfo);
     }
+    @Override
     @SuppressWarnings("unchecked")
     public Iteratable<IRNode> protect(Iteratable e) {
       return slotFactory.newIterator((Iteratable<IRNode>)e);
@@ -708,6 +744,7 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
     protected final SlotInfo wrappedChildrenAttribute =
       new WrappedChildrenSlotInfo();
 
+    @Override
     public SlotInfo getAttribute(String name) {
       if (name.equals(CHILDREN))
         return wrappedChildrenAttribute;
@@ -769,35 +806,43 @@ public class Digraph extends DigraphMixin implements MutableDigraphInterface {
   }
 
   protected class DelegatingMutator implements Mutator {
+    @Override
     public void initNode(IRNode node, int numChildren) {
       IRSequence<IRNode> seq = SimpleSlotFactory.prototype.newSequence(numChildren);
       setChildren(node, seq);
     }
+    @Override
     public void setChild(IRNode node, IRLocation loc, IRNode child) {
       getChildren(node).setElementAt(child, loc);
     }
+    @Override
     public IRLocation insertChild(
       IRNode node,
       IRNode newChild,
       InsertionPoint ip) {
       return ip.insert(getChildren(node), newChild);
     }
+    @Override
     public void removeChild(IRNode node, IRLocation loc) {
       getChildren(node).removeElementAt(loc);
     }
     
+    @Override
     public void addObserver(Observer o) {
       // nothing
     }
     
+    @Override
     public void saveAttributes(Bundle b) {
     }
+    @Override
     public SlotInfo getAttribute(String name) {
       if (name == CHILDREN)
         return childrenSlotInfo;
       else
         return null;
     }
+    @Override
     @SuppressWarnings("unchecked")
     public Iteratable<IRNode> protect(Iteratable e) {
       return e;

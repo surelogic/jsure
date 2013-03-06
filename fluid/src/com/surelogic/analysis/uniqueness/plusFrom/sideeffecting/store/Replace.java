@@ -30,7 +30,8 @@ public class Replace implements Apply {
 		additional = add;
 	}
 
-	public ImmutableHashOrderSet<Object> apply(
+	@Override
+  public ImmutableHashOrderSet<Object> apply(
 			final ImmutableHashOrderSet<Object> other) {
 		if (other.contains(var)) {
 			/* Only add if ALL the receiver/parameter declarations MAY ALIAS

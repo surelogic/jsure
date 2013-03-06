@@ -20,14 +20,17 @@ public class ConstantExplicitSlotFactory extends AbstractExplicitSlotFactory {
     IRPersistent.registerSlotFactory(prototype,'c');
   }
 
+  @Override
   public <T> Slot<T> undefinedSlot() {
     return new UndefinedConstantSlot<T>();
   }
+  @Override
   public <T> Slot<T> predefinedSlot(T value) {
     return new ConstantSlot<T>(value);
   }
   
   
+  @Override
   public void noteChange(IRState state) {
     // Do nothing (no changes for constant slots);
   }
@@ -59,6 +62,7 @@ class UndefinableConstantSlot<T> extends UndefinedSlot<T> {
     throw new SlotUnknownException("Slot value not loaded.",this);
   }
 
+  @Override
   public Slot<T> setValue(T newValue) throws SlotImmutableException {
     throw new SlotImmutableException("Slot cannot be defined");
   }

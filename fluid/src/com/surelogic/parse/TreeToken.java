@@ -39,10 +39,12 @@ public class TreeToken extends CommonToken implements Tree, Cloneable {
     return text;
   }
 
+  @Override
   public void addChild(Tree t) {
     throw new UnsupportedOperationException("Can't add children to "+this.text);
   }
 
+  @Override
   public Tree dupNode() {
     try {
       return (Tree) clone();
@@ -55,71 +57,87 @@ public class TreeToken extends CommonToken implements Tree, Cloneable {
     return dupNode();
   }
 
+  @Override
   public Tree getChild(int i) {
     throw new IllegalArgumentException("No children here");
   }
 
+  @Override
   public int getChildCount() {
     return 0;
   }
 
+  @Override
   public int getTokenStartIndex() {
     return 0;
   }
 
+  @Override
   public int getTokenStopIndex() {
     return 0;
   }
 
+  @Override
   public boolean isNil() {
     return false;
   }
 
+  @Override
   public void setTokenStartIndex(int index) {
     // does nothing
   }
 
+  @Override
   public void setTokenStopIndex(int index) {
     // does nothing
   }
 
+  @Override
   public String toStringTree() {
     return toString();
   }
 
+  @Override
   public Object deleteChild(int i) {
 	  // TODO Auto-generated method stub
 	  throw new UnsupportedOperationException();
   }
 
+  @Override
   public void freshenParentAndChildIndexes() {
 	  // TODO Auto-generated method stub
 	  throw new UnsupportedOperationException();
   }
 
+  @Override
   public int getChildIndex() {
 	  return childIndex;
   }
 
+  @Override
   public Tree getParent() {
 	  // TODO Auto-generated method stub
 	  throw new UnsupportedOperationException();
   }
 
+  @Override
   public void replaceChildren(int i, int j, Object obj) {
 	  // TODO Auto-generated method stub
 	  throw new UnsupportedOperationException();
   }
 
+  @Override
   public void setChild(int i, Tree tree) {
 	  // TODO Auto-generated method stub
 	  throw new UnsupportedOperationException();
   }
 
+  @Override
   public void setChildIndex(int i) {
 	  childIndex = i;
   }
 
+  @Override
   public void setParent(Tree tree) {
 	  parent = tree;
   }

@@ -179,29 +179,36 @@ public abstract class AbstractNodeAdaptor extends CommonTreeAdaptor {
       return sb.toString();
     }
 
+    @Override
     public Tree dupNode() {
       throw new NotImplemented();
     }
 
+    @Override
     public String getText() {
       return id;
     }
 
+    @Override
     public int getType() {
       return type;
     }
     
+    @Override
     public int getTokenStartIndex() {
       return start;
     }
 
+    @Override
     public int getTokenStopIndex() {
       return stop;
     }
 
+    @Override
     public void setTokenStartIndex(int index) {
     }
 
+    @Override
     public void setTokenStopIndex(int index) {
     }
     

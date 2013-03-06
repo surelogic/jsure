@@ -131,11 +131,13 @@ public class PickledAttributeModelState
       done = (current >= state.length);
     }
 
+    @Override
     public boolean hasNext()
     {
       return !done;
     }
 
+    @Override
     public AttrState next()
     {
       if( done ) throw new NoSuchElementException();

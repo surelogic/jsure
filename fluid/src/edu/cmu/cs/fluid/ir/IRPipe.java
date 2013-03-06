@@ -36,6 +36,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IROutput#writeNode(edu.cmu.cs.fluid.ir.IRNode)
    */
+  @Override
   public void writeNode(IRNode node) {
     add(node);
   }
@@ -43,6 +44,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IROutput#writeCachedObject(java.lang.Object)
    */
+  @Override
   public boolean writeCachedObject(Object object) {
     if (!writeCache.containsKey(object)) {
       int size = writeCache.size();
@@ -57,6 +59,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IROutput#writeIRType(edu.cmu.cs.fluid.ir.IRType)
    */
+  @Override
   public void writeIRType(IRType ty) {
     add(ty);
   }
@@ -64,6 +67,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IROutput#writeSlotFactory(edu.cmu.cs.fluid.ir.SlotFactory)
    */
+  @Override
   public void writeSlotFactory(SlotFactory sf) {
     add(sf);
   }
@@ -71,6 +75,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IROutput#writePersistentReference(edu.cmu.cs.fluid.ir.IRPersistent)
    */
+  @Override
   public void writePersistentReference(IRPersistent p) {
     add(p);
   }
@@ -78,6 +83,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IROutput#debug()
    */
+  @Override
   public boolean debug() {
     return false;
   }
@@ -85,24 +91,28 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IROutput#debugBegin(java.lang.String)
    */
+  @Override
   public void debugBegin(String x) {
   }
 
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IROutput#debugEnd(java.lang.String)
    */
+  @Override
   public void debugEnd(String x) {
   }
 
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IROutput#debugMark(java.lang.String)
    */
+  @Override
   public void debugMark(String x) {
   }
 
   /* (non-Javadoc)
    * @see java.io.DataOutput#write(int)
    */
+  @Override
   public void write(int b) {
     add((byte)b);
   }
@@ -110,6 +120,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataOutput#write(byte[])
    */
+  @Override
   public void write(byte[] b) {
     add(b.clone());
   }
@@ -117,6 +128,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataOutput#write(byte[], int, int)
    */
+  @Override
   public void write(byte[] b, int off, int len) {
     byte[] copy = new byte[len];
     for (int i=0; i < len; ++i) {
@@ -128,6 +140,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataOutput#writeBoolean(boolean)
    */
+  @Override
   public void writeBoolean(boolean v) {
     add(v);
   }
@@ -135,6 +148,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataOutput#writeByte(int)
    */
+  @Override
   public void writeByte(int v) {
     add((byte)v);
   }
@@ -142,6 +156,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataOutput#writeShort(int)
    */
+  @Override
   public void writeShort(int v) {
     add((short)v);
   }
@@ -149,6 +164,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataOutput#writeChar(int)
    */
+  @Override
   public void writeChar(int v) {
     add((char)v);
   }
@@ -156,6 +172,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataOutput#writeInt(int)
    */
+  @Override
   public void writeInt(int v) {
     add(v);
   }
@@ -163,6 +180,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataOutput#writeLong(long)
    */
+  @Override
   public void writeLong(long v) {
     add(v);
   }
@@ -170,6 +188,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataOutput#writeFloat(float)
    */
+  @Override
   public void writeFloat(float v) {
     add(v);
   }
@@ -177,6 +196,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataOutput#writeDouble(double)
    */
+  @Override
   public void writeDouble(double v) {
     add(v);
   }
@@ -184,6 +204,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataOutput#writeBytes(java.lang.String)
    */
+  @Override
   public void writeBytes(String s) {
     add(s.getBytes());
   }
@@ -191,6 +212,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataOutput#writeChars(java.lang.String)
    */
+  @Override
   public void writeChars(String s) {
     add(s.toCharArray());
   }
@@ -198,6 +220,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataOutput#writeUTF(java.lang.String)
    */
+  @Override
   public void writeUTF(String str) {
     add(str);
   }
@@ -205,6 +228,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IRInput#getVersion()
    */
+  @Override
   public int getVersion() {
     return IRPersistent.version;
   }
@@ -212,6 +236,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IRInput#getRevision()
    */
+  @Override
   public int getRevision() {
     return IRPersistent.revision;
   }
@@ -219,6 +244,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IRInput#readNode()
    */
+  @Override
   public IRNode readNode() {
     return (IRNode)remove();
   }
@@ -226,6 +252,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IRInput#readCachedObject()
    */
+  @Override
   public Object readCachedObject() {
     int index = (Integer)remove();
     if (index < readCache.size()) {
@@ -237,6 +264,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IRInput#cacheReadObject(java.lang.Object)
    */
+  @Override
   public void cacheReadObject(Object object) {
     readCache.add(object);
   }
@@ -244,6 +272,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IRInput#readIRType()
    */
+  @Override
   public IRType readIRType() {
     return (IRType)remove();
   }
@@ -251,6 +280,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IRInput#readSlotFactory()
    */
+  @Override
   public SlotFactory readSlotFactory() {
     return (SlotFactory)remove();
   }
@@ -258,6 +288,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IRInput#readPersistentReference()
    */
+  @Override
   public IRPersistent readPersistentReference() {
     return (IRPersistent)remove();
   }
@@ -265,6 +296,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#readFully(byte[])
    */
+  @Override
   public void readFully(byte[] b) {
     readFully(b,0,b.length);
   }
@@ -272,6 +304,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#readFully(byte[], int, int)
    */
+  @Override
   public void readFully(byte[] b, int off, int len) {
     // We may have to permit partial reads, or reads of multiple byte arrays
     byte[] read = (byte[])remove();
@@ -286,6 +319,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#skipBytes(int)
    */
+  @Override
   public int skipBytes(int n) {
     byte[] read = (byte[])remove();
     return read.length;
@@ -294,6 +328,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#readBoolean()
    */
+  @Override
   public boolean readBoolean() {
     return (Boolean)remove();
   }
@@ -301,6 +336,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#readByte()
    */
+  @Override
   public byte readByte() {
     return (Byte)remove();
   }
@@ -308,6 +344,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#readUnsignedByte()
    */
+  @Override
   public int readUnsignedByte() {
     return readByte() & 255;
   }
@@ -315,6 +352,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#readShort()
    */
+  @Override
   public short readShort() {
     return (Short)remove();
   }
@@ -322,6 +360,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#readUnsignedShort()
    */
+  @Override
   public int readUnsignedShort() {
     return readShort() & 0xFFFF;
   }
@@ -329,6 +368,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#readChar()
    */
+  @Override
   public char readChar() {
     return (Character)remove();
   }
@@ -336,6 +376,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#readInt()
    */
+  @Override
   public int readInt() {
     return (Integer)remove();
   }
@@ -343,6 +384,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#readLong()
    */
+  @Override
   public long readLong() {
     return (Long)remove();
   }
@@ -350,6 +392,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#readFloat()
    */
+  @Override
   public float readFloat() {
     return (Float)remove();
   }
@@ -357,6 +400,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#readDouble()
    */
+  @Override
   public double readDouble() {
     return (Double)remove();
   }
@@ -364,6 +408,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#readLine()
    */
+  @Override
   public String readLine() {
     byte[] read = (byte[])remove();
     return new String(read);
@@ -372,6 +417,7 @@ public class IRPipe implements IROutput, IRInput {
   /* (non-Javadoc)
    * @see java.io.DataInput#readUTF()
    */
+  @Override
   public String readUTF() {
     return (String)remove();
   }

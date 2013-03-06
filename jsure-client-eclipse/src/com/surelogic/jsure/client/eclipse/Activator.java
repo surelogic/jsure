@@ -14,6 +14,7 @@ import org.osgi.framework.BundleContext;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.license.SLLicenseProduct;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
 import com.surelogic.common.ui.DialogTouchNotificationUI;
@@ -55,6 +56,7 @@ public class Activator extends AbstractUIPlugin implements IRunnableWithProgress
   }
 
   // Used for startup
+  @Override
   public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
     monitor.beginTask("Initializing the JSure tool", 7);
 
@@ -138,4 +140,8 @@ public class Activator extends AbstractUIPlugin implements IRunnableWithProgress
     HistoricalSourceView.tryToOpenInEditor(javaRef, tryToUseOld);
   }
 
+  public static void highlightLineInJavaEditor(IDecl decl) {
+	  JDTUIUtility.tryToOpenInEditor(decl);
+	  HistoricalSourceView.tryToOpenInEditor(decl, false);	  
+  }
 }

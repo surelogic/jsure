@@ -17,6 +17,7 @@ class Comps
 
 class OPComp implements Comparator<Operator>
 {
+  @Override
   public int compare(Operator x, Operator y)
   {
     return (x).name().compareTo((y).name());
@@ -25,6 +26,7 @@ class OPComp implements Comparator<Operator>
 
 class STComp implements Comparator<TreeSet<Integer>>
 {
+  @Override
   public int compare(TreeSet<Integer> xs, TreeSet<Integer> ys)
   {
     if (xs.size() < ys.size())
@@ -49,6 +51,7 @@ class STComp implements Comparator<TreeSet<Integer>>
 
 class VTComp implements Comparator<List<Integer>>
 {
+  @Override
   public int compare(List<Integer> xv, List<Integer> yv)
   {
     if (xv.size() < yv.size())
@@ -71,6 +74,7 @@ class VTComp implements Comparator<List<Integer>>
 
 class SSTComp implements Comparator<TreeSet<TreeSet<Integer>>>
 {
+  @Override
   public int compare(TreeSet<TreeSet<Integer>> xs, TreeSet<TreeSet<Integer>> ys)
   {
     if (xs.size() < ys.size())
@@ -96,6 +100,7 @@ class SSTComp implements Comparator<TreeSet<TreeSet<Integer>>>
 
 class SVTComp implements Comparator<TreeSet<List<Integer>>>
 {
+  @Override
   public int compare(TreeSet<List<Integer>> xs, TreeSet<List<Integer>> ys)
   {
     Comparator<List<Integer>> vtc = Comps.vt;
@@ -121,6 +126,7 @@ class SVTComp implements Comparator<TreeSet<List<Integer>>>
 
 class VSTComp implements Comparator<List<TreeSet<Integer>>>
 {
+  @Override
   public int compare(List<TreeSet<Integer>> xv, List<TreeSet<Integer>> yv)
   {
     Comparator<TreeSet<Integer>> stc = Comps.st;
@@ -144,6 +150,7 @@ class VSTComp implements Comparator<List<TreeSet<Integer>>>
 
 class VSSTComp implements Comparator<List<TreeSet<TreeSet<Integer>>>>
 {
+  @Override
   public int compare(List<TreeSet<TreeSet<Integer>>> xv, List<TreeSet<TreeSet<Integer>>> yv)
   {
     if (xv.size() < yv.size())
@@ -167,6 +174,7 @@ class VSSTComp implements Comparator<List<TreeSet<TreeSet<Integer>>>>
 
 class MVSSTComp implements Comparator<Map<String,List<TreeSet<TreeSet<Integer>>>>>
 {
+  @Override
   public int compare(Map<String,List<TreeSet<TreeSet<Integer>>>> xm, 
                      Map<String,List<TreeSet<TreeSet<Integer>>>> ym)
   {

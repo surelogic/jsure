@@ -24,6 +24,7 @@ implements IBooleanPromiseDropStorage<D> {
 	  return s;
   }
 
+  @Override
   public StorageType type() {
     return StorageType.BOOLEAN;
   }
@@ -33,11 +34,13 @@ implements IBooleanPromiseDropStorage<D> {
     return si;
   }
   
+  @Override
   public void init(SlotInfo<D> si) {
     checkSlotInfo(this.si, si);
     this.si = si;
   }
 
+  @Override
   public D add(IRNode n, D d) {
     checkArguments(n, d);
     D old = n.getSlotValue(si);
@@ -49,6 +52,7 @@ implements IBooleanPromiseDropStorage<D> {
     return d;
   }
 
+  @Override
   public void remove(IRNode n, D d) {
     checkArguments(n, d);
     D old = n.getSlotValue(si);
@@ -58,12 +62,14 @@ implements IBooleanPromiseDropStorage<D> {
     n.setSlotValue(si, null);
   }
 
+  @Override
   public boolean isDefined(IRNode n) {
     checkArgument(n);
     D old = n.getSlotValue(si);
     return old != null;
   }
   
+  @Override
   public Iterable<D> getDrops(IRNode n) {
 	  if (n == null) {
 		  return new EmptyIterator<D>();

@@ -188,6 +188,7 @@ public final class IntrinsicLockAnalysis extends
       }
     }
 
+    @Override
     public Object[] transferComponentSource(IRNode node) {
       // Initial state of affairs is no locks held
       return lattice.getEmptyValue();

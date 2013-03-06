@@ -19,6 +19,7 @@ abstract class HeldInstanceLock extends AbstractHeldLock {
 	 * Here we cop out and use syntactic equality of final expressions instead
 	 * of dealing with aliasing.
 	 */
+  @Override
   public boolean mustAlias(
       final HeldLock lock, final ThisExpressionBinder teb, final IBinder binder) {
     /* First check that the lock name are equal.
@@ -36,6 +37,7 @@ abstract class HeldInstanceLock extends AbstractHeldLock {
     }
   }
 
+  @Override
   public boolean mustSatisfy(
       final NeededLock lock, final ThisExpressionBinder teb, final IBinder binder) {
     /* First check that the lock name are equal.

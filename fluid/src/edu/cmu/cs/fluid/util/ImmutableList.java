@@ -1,4 +1,3 @@
-/* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/util/ImmutableList.java,v 1.9 2007/04/03 10:44:15 boyland Exp $ */
 package edu.cmu.cs.fluid.util;
 
 import java.util.AbstractSequentialList;
@@ -15,7 +14,7 @@ import com.surelogic.Starts;
  */
 public class ImmutableList<T extends Object> extends AbstractSequentialList<T>
 {
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public static final ImmutableList[] NO_LISTS = new ImmutableList[0];
 
   /*
@@ -124,7 +123,7 @@ public class ImmutableList<T extends Object> extends AbstractSequentialList<T>
   public int lastIndexOf(Object o) {
     int i=0;
     int last = -1;
-    for (ConsCell p = head; p != null; p = p.cdr, ++i) {
+    for (ConsCell<T> p = head; p != null; p = p.cdr, ++i) {
       if (equals(o,p.car)) last = i;
     }
     return last;
@@ -140,15 +139,19 @@ public class ImmutableList<T extends Object> extends AbstractSequentialList<T>
     ConsCell<T> p;
     int index = 0;
     public Iterator (ConsCell<T> c) { p = c; }
+    @Override
     public void add(T o) {
       throw new UnsupportedOperationException("ImmutableList.add");
     }
+    @Override
     public boolean hasNext() {
       return p != null;
     }
+    @Override
     public boolean hasPrevious() {
       return index > 0;
     }
+    @Override
     public T next() {
       if (p == null) throw new NoSuchElementException("end of ImmutableList");
       T r = p.car;
@@ -156,9 +159,11 @@ public class ImmutableList<T extends Object> extends AbstractSequentialList<T>
       ++index;
       return r;
     }
+    @Override
     public int nextIndex() {
       return index;
     }
+    @Override
     public T previous() {
       //! slow function
       if (index == 0) throw new NoSuchElementException("start of ImmutableList");
@@ -166,12 +171,15 @@ public class ImmutableList<T extends Object> extends AbstractSequentialList<T>
       --index;
       return p.car;
     }
+    @Override
     public int previousIndex() {
       return index-1;
     }
+    @Override
     public void remove() {
       throw new UnsupportedOperationException("ImmutableList.remove");
     }
+    @Override
     public void set(T o) {
       throw new UnsupportedOperationException("ImmutableList.set");
     }

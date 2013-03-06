@@ -68,6 +68,7 @@ public abstract class IRAbstractState<T> implements IRStoredState<T> {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IRState#getParent()
    */
+  @Override
   public IRState getParent() {
     return parent;
   }
@@ -80,6 +81,7 @@ public abstract class IRAbstractState<T> implements IRStoredState<T> {
    * it is set to different values in different threads.
    * @param p parent for this state.  Ignored if null.
    */
+  @Override
   public void setParent(IRState p) {
     if (p == null) return;
     if (parent != null && !parent.equals(p) && 
@@ -94,6 +96,7 @@ public abstract class IRAbstractState<T> implements IRStoredState<T> {
     parent = p;
   }
   
+  @Override
   public void setParent(SlotInfo<T> si, IRNode n) {
 	  setParent(new SlotState<T>(si, n));
   }

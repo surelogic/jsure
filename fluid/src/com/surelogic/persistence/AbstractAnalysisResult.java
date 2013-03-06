@@ -16,6 +16,7 @@ public abstract class AbstractAnalysisResult implements IAnalysisResult, Persist
     location = loc;
   }
 
+  @Override
   public void outputToXML(JSureResultsXMLCreator creator, XmlCreator.Builder outer) {
     XmlCreator.Builder b = outer.nest(RESULT);
     attributesToXML(b);

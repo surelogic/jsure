@@ -33,23 +33,28 @@ public abstract class IRFreeAnalysisResultDrop extends IRFreeProofDrop implement
     f_usedByProof = "true".equals(e.getAttribute(USED_BY_PROOF));
   }
 
+  @Override
   public boolean hasChecked() {
     return !f_checkedPromises.isEmpty();
   }
 
+  @Override
   public Collection<? extends IPromiseDrop> getChecked() {
     return f_checkedPromises;
   }
 
+  @Override
   @NonNull
   public Collection<IProofDrop> getTrusted() {
     return new HashSet<IProofDrop>(f_trusted);
   }
 
+  @Override
   public boolean hasTrusted() {
     return !f_trusted.isEmpty();
   }
 
+  @Override
   public boolean usedByProof() {
     return f_usedByProof;
   }

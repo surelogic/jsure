@@ -148,7 +148,8 @@ public class PropertyRegexTask extends AbstractPropertySetterTask {
 		return output;
 	}
 
-	protected void validate() {
+	@Override
+  protected void validate() {
 		super.validate();
 		if (regexp == null)
 			throw new BuildException("No match expression specified.");
@@ -157,7 +158,8 @@ public class PropertyRegexTask extends AbstractPropertySetterTask {
 					"You must specify either a replace or select expression");
 	}
 
-	public void execute() throws BuildException {
+	@Override
+  public void execute() throws BuildException {
 		validate();
 
 		String output = input;

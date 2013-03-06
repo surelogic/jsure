@@ -12,10 +12,12 @@ public class PairIterator<T> extends AbstractRemovelessIterator<T> {
     value2 = v2;
   }
 
+  @Override
   public boolean hasNext() {
     return done < 2;
   }
 
+  @Override
   public T next() {
     switch (++done) {
     case 1: return value1;

@@ -74,6 +74,7 @@ final class ConfigurableSyntaxForestViewImpl
   }
   
   // Model will/must already be locked when this is called
+  @Override
   public void setEllipsisAt(
       final IRNode ellipsis, 
     final IRNode parent,
@@ -190,30 +191,35 @@ final class ConfigurableSyntaxForestViewImpl
   //== SyntaxForestModel methods
   //===========================================================
 
+  @Override
   public Operator getOperator(final IRNode n) {
     synchronized (structLock) {
       return synModCore.getOperator(n);
     }
   }
 
+  @Override
   public boolean opExists(final IRNode n) {
     synchronized (structLock) {
       return synModCore.opExists(n);
     }
   }
 
+  @Override
   public void initNode(final IRNode n, final Operator op) {
     synchronized (structLock) {
       synModCore.initNode(n, op);
     }
   }
 
+  @Override
   public void initNode(final IRNode n, final Operator op, final int min) {
     synchronized (structLock) {
       synModCore.initNode(n, op, min);
     }
   }
 
+  @Override
   public void initNode(
     final IRNode n,
     final Operator op,

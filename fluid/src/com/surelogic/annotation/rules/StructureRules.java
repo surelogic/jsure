@@ -57,6 +57,7 @@ public class StructureRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<MustInvokeOnOverrideNode> makePromiseDrop(MustInvokeOnOverrideNode a) {
 				  	if (isInFinalContext(a.getPromisedFor())) {
+				  		getContext().reportError("Cannot annotate a final method with @MustInvokeOnOverride", a);
 			    		return null; // illegal
 			    	}
 					final MustInvokeOnOverridePromiseDrop d = new MustInvokeOnOverridePromiseDrop(a);

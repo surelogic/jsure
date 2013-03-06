@@ -8,10 +8,12 @@ public class HashedSlots<S,T> extends IRNodeHashedMap<S> implements Slots<S,T> {
     super(2);
   }
   
+  @Override
   public boolean isThreadSafe() {
 	  return false;
   }
   
+  @Override
   public S getSlot(IRNode key, S noSlotState) {
     /*
     if (containsKey(key))
@@ -28,6 +30,7 @@ public class HashedSlots<S,T> extends IRNodeHashedMap<S> implements Slots<S,T> {
     return containsKey(key) ? null : noSlotState;
   }
   
+  @Override
   public S setSlot(IRNode key, S slot, S noSlotState) {
     return put(key, slot);
   }
@@ -35,6 +38,7 @@ public class HashedSlots<S,T> extends IRNodeHashedMap<S> implements Slots<S,T> {
   /**
    * FIX this shouldn't be called for versioned slots
    */
+  @Override
   public void undefineSlot(IRNode node) {
     remove(node);
   }

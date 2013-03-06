@@ -91,6 +91,7 @@ public final class LockModel extends ModelDrop<AbstractLockDeclarationNode> impl
     return ld.getId();
   }
 
+  @Override
   public LockModel getModel() {
     return this;
   }

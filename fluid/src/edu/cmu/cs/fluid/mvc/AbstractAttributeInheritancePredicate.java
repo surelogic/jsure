@@ -18,11 +18,13 @@ public abstract class AbstractAttributeInheritancePredicate
   }
 
   // Javadoc inherited
+  @Override
   public Object howToInherit( Model from, String attr ) {
     return SKIP_ME;
   }
 
   // Javadoc inherited
+  @Override
   public String inheritAs(final String attr) {
     return attr;
   }

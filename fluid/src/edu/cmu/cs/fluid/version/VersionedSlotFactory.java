@@ -54,6 +54,7 @@ public class VersionedSlotFactory extends AbstractExplicitSlotFactory {
 	 * Create a versioned slot with no default that cannot be persisted.
 	 * @see VersionedStructureFactory#getVS
 	 */
+  @Override
   public <T> Slot<T> undefinedSlot() {
     return this.<T>undefinedSlot(null);
   }
@@ -61,6 +62,7 @@ public class VersionedSlotFactory extends AbstractExplicitSlotFactory {
   /**
 	 * Create a versioned slot with given default that cannot be persisted.
 	 */
+  @Override
   public <T> Slot<T> predefinedSlot(T value) {
     return predefinedSlot(value, null);
   }
@@ -148,6 +150,7 @@ public class VersionedSlotFactory extends AbstractExplicitSlotFactory {
     return new VersionedChangeRecord(name);
   }
 
+  @Override
   public void noteChange(IRState state) {
     Version.getVersionLocal().noteChanged(state);
   }
@@ -186,13 +189,16 @@ class BidirectionalVersionedSlotFactory extends AbstractExplicitSlotFactory {
   public <T> Iteratable<T> newIterator(Iteratable<T> e) {
     return VersionedSlotFactory.prototype.newIterator(e);
   }
+  @Override
   public <T> Slot<T> predefinedSlot(T value) {
     return new UnassignedBiVersionedSlot<T>(rootVersion,value);
   }
+  @Override
   public <T> Slot<T> undefinedSlot() {
     return new UnassignedBiVersionedSlot<T>(rootVersion);
   }
   
+  @Override
   public void noteChange(IRState state) {
     // nothing: information is derived.
   }

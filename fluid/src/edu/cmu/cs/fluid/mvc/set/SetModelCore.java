@@ -171,6 +171,7 @@ extends AbstractCore
       pairs = p;
     }
 
+    @Override
     public List<ModelEvent> execute() {
       final SetModel sm = (SetModel) SetModelCore.this.partOf;
       sm.addNode( node );
@@ -226,6 +227,7 @@ extends AbstractCore
       csFactory = csf;
     }
 
+    @Override
     public SetModelCore create(
       final String name, final Model model, final Object structLock,
       final AttributeManager manager )

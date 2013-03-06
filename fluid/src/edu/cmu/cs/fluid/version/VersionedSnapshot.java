@@ -91,6 +91,7 @@ class VersionedSnapshot extends IRChunk {
   /* Kind */
 
   private static final IRPersistentKind kind = new IRPersistentKind() {
+    @Override
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException {
       VersionedSnapshot vs = (VersionedSnapshot) p;
@@ -99,6 +100,7 @@ class VersionedSnapshot extends IRChunk {
       vs.getVersion().getEra().writeReference(out);
       vs.getVersion().write(out);
     }
+    @Override
     public IRPersistent readPersistentReference(DataInput in)
       throws IOException {
       IRRegion r = (IRRegion) IRPersistent.readReference(in);

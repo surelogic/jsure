@@ -15,6 +15,7 @@ public class BindHelper implements IBindHelper {
   /**
    * @see edu.cmu.cs.fluid.java.bind.IBindHelper#getNamedTypeBinding(IRNode)
    */
+  @Override
   public IRNode getNamedTypeBinding(IRNode type) {
     return binder.getBinding(type);
   }
@@ -22,6 +23,7 @@ public class BindHelper implements IBindHelper {
   /**
    * @see edu.cmu.cs.fluid.java.bind.IBindHelper#getHelper(IRNode)
    */
+  @Override
   public IBindHelper getHelper(IRNode type) {
     return this;
   }
@@ -29,6 +31,7 @@ public class BindHelper implements IBindHelper {
   /**
    * @see edu.cmu.cs.fluid.java.bind.IBindHelper#findFieldInBody(IRNode, String)
    */
+  @Override
   public IRNode findFieldInBody(IRNode body, String name) {
     return BindUtil.findFieldInBody(body, name);
   }

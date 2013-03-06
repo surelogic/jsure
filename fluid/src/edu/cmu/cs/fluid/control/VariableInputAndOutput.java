@@ -19,11 +19,13 @@ public class VariableInputAndOutput extends VariableInputControlNode implements 
 	/**
 	 * @see edu.cmu.cs.fluid.control.VariableOutput#indicateOutputEdge(ControlNode, edu.cmu.cs.fluid.control.ControlEdge)
 	 */
-	public void indicateOutputEdge(ControlNode n, ControlEdge e) {
+	@Override
+  public void indicateOutputEdge(ControlNode n, ControlEdge e) {
 		outputEdgeMap_.put(n, e);
 	}
 	
-	public ControlEdgeIterator getOutputs() {
+	@Override
+  public ControlEdgeIterator getOutputs() {
 		return getVariableOutputs();
 	}
 	
@@ -34,7 +36,8 @@ public class VariableInputAndOutput extends VariableInputControlNode implements 
 	/**
 	 * @see edu.cmu.cs.fluid.control.VariableOutput#hasOutputEdge(edu.cmu.cs.fluid.control.ControlNode)
 	 */
-	public boolean hasOutputEdge(ControlNode n) {
+	@Override
+  public boolean hasOutputEdge(ControlNode n) {
 		return outputEdgeMap_.containsKey(n);
 		
 	}
@@ -42,14 +45,16 @@ public class VariableInputAndOutput extends VariableInputControlNode implements 
 	/**
 	 * @see edu.cmu.cs.fluid.control.VariableOutput#getPrimaryOutputEdge()
 	 */
-	public ControlEdge getPrimaryOutputEdge() {
+	@Override
+  public ControlEdge getPrimaryOutputEdge() {
 		return primaryOutputEdge_;
 	}
 	
 	/**
 	 * @see edu.cmu.cs.fluid.control.VariableOutput#setPrimaryEdge(edu.cmu.cs.fluid.control.ControlEdge)
 	 */
-	public void setPrimaryEdge(ControlEdge e) {
+	@Override
+  public void setPrimaryEdge(ControlEdge e) {
 		primaryOutputEdge_ = e;
 	}
 }

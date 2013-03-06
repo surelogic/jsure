@@ -22,9 +22,11 @@ abstract public class DigraphMixin extends IRObservable
 {
   private final List<DigraphListener> listeners = new CopyOnWriteArrayList<DigraphListener>();
 
+  @Override
   public void addDigraphListener(DigraphListener dl) {
     listeners.add(dl);
   }
+  @Override
   public void removeDigraphListener(DigraphListener dl) {
     listeners.remove(dl);
   }

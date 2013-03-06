@@ -26,13 +26,16 @@ public class ControlFlowGraph extends DigraphMixin
 {
   public static final ControlFlowGraph prototype = new ControlFlowGraph();
 
+  @Override
   public SlotInfo getAttribute(String attr) {
     throw new NotImplemented(); // TODO
   }
 
+  @Override
   public boolean hasChildren(IRNode node) {
     return numChildren(node) > 0;
   }
+  @Override
   public int numChildren(IRNode node) {
     if (node instanceof OutputPort) {
       node = ((OutputPort)node).getDual();
@@ -45,6 +48,7 @@ public class ControlFlowGraph extends DigraphMixin
     return 0;
   }
 
+  @Override
   public IRLocation childLocation(IRNode node, int i) {
     if (node instanceof OutputPort) {
       node = ((OutputPort)node).getDual();
@@ -57,12 +61,15 @@ public class ControlFlowGraph extends DigraphMixin
     }
     return null;
   }
+  @Override
   public int childLocationIndex(IRNode node, IRLocation loc) {
     return ((ControlEdgeLocation)loc).asInteger();
   }
+  @Override
   public IRLocation firstChildLocation(IRNode node) {
     return childLocation(node,0);
   }
+  @Override
   public IRLocation lastChildLocation(IRNode node) {
     if (node instanceof OutputPort) {
       node = ((OutputPort)node).getDual();
@@ -74,18 +81,22 @@ public class ControlFlowGraph extends DigraphMixin
     }
     return null;
   }
+  @Override
   public IRLocation nextChildLocation(IRNode node, IRLocation loc) {
     return ((ControlEdgeLocation)loc).next();
   }
+  @Override
   public IRLocation prevChildLocation(IRNode node, IRLocation loc) {
     return ((ControlEdgeLocation)loc).prev();
   }
 
+  @Override
   public int compareChildLocations(IRNode node,
 				   IRLocation loc1, IRLocation loc2) {
     return loc1.getID() - loc2.getID();
   }
 
+  @Override
   public boolean hasChild(IRNode node, int i) {
     try {
       getChild(node,i);
@@ -94,6 +105,7 @@ public class ControlFlowGraph extends DigraphMixin
       return false;
     }
   }
+  @Override
   public boolean hasChild(IRNode node, IRLocation loc) {
     try {
       getChild(node,loc);
@@ -103,13 +115,16 @@ public class ControlFlowGraph extends DigraphMixin
     }
   }
 
+  @Override
   public IRNode getChild(IRNode node, int i) {
     return getSink(getChildEdge(node,i));
   }
+  @Override
   public IRNode getChild(IRNode node, IRLocation loc) {
     return getSink(getChildEdge(node,loc));
   }
 
+  @Override
   public Iteratable<IRNode> children(IRNode node) {
     if (node instanceof OutputPort) {
       node = ((OutputPort)node).getDual();
@@ -125,13 +140,16 @@ public class ControlFlowGraph extends DigraphMixin
     return new EmptyIterator<IRNode>();
   }
 
+  @Override
   public List<IRNode> childList(IRNode node) {
     throw new NotImplemented();
   }
   
+  @Override
   public boolean hasParents(IRNode node) {
     return numParents(node) > 0;
   }
+  @Override
   public int numParents(IRNode node) {
     if (node instanceof InputPort) {
       node = ((InputPort)node).getDual();
@@ -144,6 +162,7 @@ public class ControlFlowGraph extends DigraphMixin
     return 0;
   }
 
+  @Override
   public IRLocation parentLocation(IRNode node, int i) {
     if (node instanceof InputPort) {
       node = ((InputPort)node).getDual();
@@ -156,12 +175,15 @@ public class ControlFlowGraph extends DigraphMixin
     }
     return null;
   }
+  @Override
   public int parentLocationIndex(IRNode node, IRLocation loc) {
     return ((ControlEdgeLocation)loc).asInteger();
   }
+  @Override
   public IRLocation firstParentLocation(IRNode node) {
     return parentLocation(node,0);
   }
+  @Override
   public IRLocation lastParentLocation(IRNode node) {
     if (node instanceof InputPort) {
       node = ((InputPort)node).getDual();
@@ -173,25 +195,31 @@ public class ControlFlowGraph extends DigraphMixin
     }
     return null;
   }
+  @Override
   public IRLocation nextParentLocation(IRNode node, IRLocation loc) {
     return ((ControlEdgeLocation)loc).next();
   }
+  @Override
   public IRLocation prevParentLocation(IRNode node, IRLocation loc) {
     return ((ControlEdgeLocation)loc).prev();
   }
 
+  @Override
   public int compareParentLocations(IRNode node,
 				    IRLocation loc1, IRLocation loc2) {
     return loc1.getID() - loc2.getID();
   }
 
+  @Override
   public IRNode getParent(IRNode node, int i) {
     return getSource(getParentEdge(node,i));
   }
+  @Override
   public IRNode getParent(IRNode node, IRLocation loc) {
     return getSource(getParentEdge(node,loc));
   }
 
+  @Override
   public Iteratable<IRNode> parents(IRNode node) {
     if (node instanceof InputPort) {
       node = ((InputPort)node).getDual();
@@ -207,35 +235,44 @@ public class ControlFlowGraph extends DigraphMixin
     return new EmptyIterator<IRNode>();
   }
 
+  @Override
   public IRNode getSink(IRNode edge) {
     return ((ControlEdge)edge).getSink();
   }
+  @Override
   public IRNode getChildEdge(IRNode node, int i) {
     return getChildEdge(node,childLocation(node,i));
   }
+  @Override
   public IRNode getChildEdge(IRNode node, IRLocation loc) {
     return ((ControlEdgeLocation)loc).getControlEdge(node);
   }
 
+  @Override
   public Iterator<IRNode> childEdges(IRNode node) {
     return ((ControlNode)node).getOutputs();
   }
 
+  @Override
   public IRNode getSource(IRNode edge) {
     return ((ControlEdge)edge).getSource();
   }
 
+  @Override
   public IRNode getParentEdge(IRNode node, int i) {
     return getParentEdge(node,parentLocation(node,i));
   }
+  @Override
   public IRNode getParentEdge(IRNode node, IRLocation loc) {
     return ((ControlEdgeLocation)loc).getControlEdge(node);
   }
 
+  @Override
   public Iterator<IRNode> parentEdges(IRNode node) {
     return ((ControlNode)node).getInputs();
   }
 
+  @Override
   public Iterator<IRNode> connections(IRNode n1, IRNode n2) {
     return new EdgeDigraphConnections(this,n1,n2);
   }

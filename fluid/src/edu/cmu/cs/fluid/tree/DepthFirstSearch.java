@@ -110,6 +110,7 @@ public class DepthFirstSearch extends AbstractRemovelessIterator<IRNode> {
     }
   }
 
+  @Override
   public boolean hasNext() {
     if (nextResult != null) return true;
     if (node == null) return false;
@@ -122,6 +123,7 @@ public class DepthFirstSearch extends AbstractRemovelessIterator<IRNode> {
     return true;
   }
 
+  @Override
   public IRNode next() throws NoSuchElementException {
     IRNode rv = getNext();
     if (rv.equals(noNext)) {

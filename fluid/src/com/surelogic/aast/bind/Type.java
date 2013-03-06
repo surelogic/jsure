@@ -13,10 +13,12 @@ public class Type implements IType {
     type = t;
   }
   
+  @Override
   public IJavaType getJavaType() {
     return JavaTypeFactory.getMyThisType(type);
   }
 
+  @Override
   public IRNode getNode() {
     return type;
   }

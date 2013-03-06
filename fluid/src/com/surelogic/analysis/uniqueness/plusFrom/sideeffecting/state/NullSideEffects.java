@@ -30,10 +30,12 @@ public final class NullSideEffects implements ISideEffects {
   // === Control side effect production 
   // ==================================================================
   
+  @Override
   public void setSuppressDrops(final boolean value) {
     // Do nothing
   }
   
+  @Override
   public void setAbruptResults(final boolean value) {
     // Do nothing
   }
@@ -44,11 +46,13 @@ public final class NullSideEffects implements ISideEffects {
   // == Compromising unique fields
   // ==================================================================
   
+  @Override
   public void recordReadOfBorrowedField(final IRNode srcOp,
       final PromiseDrop<? extends IAASTRootNode> promiseDrop) {
     // Do nothing
   }
 
+  @Override
   public void recordCompromisingOfUnique(
       final IRNode srcOp, final Integer topOfStack, final State localStatus,
       final ImmutableSet<FieldTriple> fieldStore,
@@ -56,27 +60,32 @@ public final class NullSideEffects implements ISideEffects {
     // Do Nothing
   }
   
+  @Override
   public void recordUndefinedFrom(
       final IRNode srcOp, final Set<Object> affectedVars, final int msg) {
     // Do nothing
   }
   
+  @Override
   public void recordUndefiningOfUnique(
       final IRNode srcOp, final Integer topOfStack, final State localStatus,
       final Store s) {
     // Do nothing
   }
   
+  @Override
   public void recordLoadOfCompromisedField(
       final IRNode srcOp, final State fieldState, final IRNode fieldDecl) {
     // Do nothing
   }
   
+  @Override
   public void recordIndirectLoadOfCompromisedField(
       final IRNode srcOp, final State fieldState, final IRNode fieldDecl) {
     // Do nothing
   }
   
+  @Override
   public void recordLossOfCompromisedField(
       final IRNode srcOp, final State fieldState, final IRNode fieldDecl) {
     // Do nothing
@@ -88,16 +97,19 @@ public final class NullSideEffects implements ISideEffects {
   // == Alias burying
   // ==================================================================
   
+  @Override
   public void recordBuriedRead(final IRNode srcOp, final Object local,
       final BuriedMessage msg) {
     // Do nothing
   }
   
+  @Override
   public void recordBuryingFieldRead(final IRNode srcOp,
       final IRNode fieldDecl, final Set<Object> affectedVars) {
     // Do nothing
   }
   
+  @Override
   public void recordBuryingMethodEffects(final IRNode srcOp,
       final Set<IRNode> loadedFields, final Set<Object> affectedVars,
       final RegionEffectsPromiseDrop fxDrop) {
@@ -109,6 +121,7 @@ public final class NullSideEffects implements ISideEffects {
   // == Bad Values
   // ==================================================================
 
+  @Override
   public void recordBadSet(final Object local, final IRNode op) {
     // Do nothing
   }
@@ -119,6 +132,7 @@ public final class NullSideEffects implements ISideEffects {
   // == Manage Result Drops
   // ==================================================================
 
+  @Override
   public void makeResultDrops() {
     // Do nothing
   }

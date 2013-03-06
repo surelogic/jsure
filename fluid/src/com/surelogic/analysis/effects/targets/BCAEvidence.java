@@ -22,10 +22,12 @@ public final class BCAEvidence extends ElaborationEvidence {
     return srcExpr;
   }
   
+  @Override
   public IRNode getLink() {
     return useExpr;
   }
   
+  @Override
   public void visit(final EvidenceVisitor v) {
     v.visitBCAEvidence(this);
   }

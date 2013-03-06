@@ -39,12 +39,14 @@ public abstract class FmtStream implements TokenStream {
     return t;
   }
 
+  @Override
   public void append(Breakpoint bp, IRNode aloc) {
     lastNotBP = false;
     if (debug) s.append(".");
     t.insertToken(aloc, bp);
   }
 
+  @Override
   public void append(Token tok, IRNode aloc) {
     if (lastNotBP)
       this.append(IndepBP.DEFAULTBP, aloc);
@@ -53,6 +55,7 @@ public abstract class FmtStream implements TokenStream {
     t.insertToken(aloc, tok);
   }
 
+  @Override
   public void append(boolean open, Token tok, IRNode aloc) {
     if (open && lastNotBP)
       this.append(IndepBP.DEFAULTBP, astStack.peek());

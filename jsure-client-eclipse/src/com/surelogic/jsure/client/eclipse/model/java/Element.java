@@ -15,6 +15,7 @@ public abstract class Element implements IViewDiffState {
    * Compares elements by their label.
    */
   public static final Comparator<Element> ALPHA = new Comparator<Element>() {
+    @Override
     public int compare(Element o1, Element o2) {
       if (o1 == null && o2 == null)
         return 0;
@@ -50,11 +51,13 @@ public abstract class Element implements IViewDiffState {
   @Nullable
   private final IViewDiffState f_viewDiffState;
 
+  @Override
   @Nullable
   public final ScanDifferences getScanDifferences() {
     return f_viewDiffState == null ? null : f_viewDiffState.getScanDifferences();
   }
 
+  @Override
   public boolean highlightDifferences() {
     return f_viewDiffState == null ? false : f_viewDiffState.highlightDifferences();
   }

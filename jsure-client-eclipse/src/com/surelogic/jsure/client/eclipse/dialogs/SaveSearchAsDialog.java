@@ -53,7 +53,8 @@ public final class SaveSearchAsDialog extends Dialog {
 		label.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 		final Text name = new Text(panel, SWT.SINGLE);
 		name.addListener(SWT.Modify, new Listener() {
-			public void handleEvent(Event event) {
+			@Override
+      public void handleEvent(Event event) {
 				f_name = name.getText();
 			}
 		});

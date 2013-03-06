@@ -13,38 +13,47 @@ public class LatticeWrapper<T> implements Lattice<T> {
     wrapped = l;
   }
   
+  @Override
   public boolean equals(T v1, T v2) {
     return wrapped.equals(v1,v2);
   }
 
+  @Override
   public int hashCode(T v) {
     return wrapped.hashCode(v);
   }
 
+  @Override
   public String toString(T v) {
     return wrapped.toString(v);
   }
 
+  @Override
   public T widen(T v1, T v2) {
     return wrapped.widen(v1,v2);
   }
 
+  @Override
   public T bottom() {
     return wrapped.bottom();
   }
 
+  @Override
   public T join(T v1, T v2) {
     return wrapped.join(v1,v2);
   }
 
+  @Override
   public boolean lessEq(T v1, T v2) {
     return wrapped.lessEq(v1,v2);
   }
 
+  @Override
   public T meet(T v1, T v2) {
     return wrapped.meet(v1,v2);
   }
 
+  @Override
   public T top() {
     return wrapped.top();
   }

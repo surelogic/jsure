@@ -21,6 +21,7 @@ public abstract class Thunk<R> implements IThunk<R> {
    */
   protected abstract R evaluate();
   
+  @Override
   public final R getValue() {
     if (!evaluated) {
       value = evaluate();
@@ -29,6 +30,7 @@ public abstract class Thunk<R> implements IThunk<R> {
     return value;
   }
   
+  @Override
   public final boolean isEvaluated() {
     return evaluated;
   }

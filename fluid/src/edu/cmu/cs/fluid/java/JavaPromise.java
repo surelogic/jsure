@@ -13,7 +13,6 @@ import com.surelogic.tree.SyntaxTreeNode;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo;
-import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -47,28 +46,28 @@ public class JavaPromise extends JavaNode {
 
 	public static JavaNode makeJavaPromise(Operator op) {
     if (JJNode.specializeForSyntaxTree) {
-      return new SyntaxTreeNode(op);    
+    	return SyntaxTreeNode.create(op, null);
     }
 		return new JavaPromise(tree, op);
 	}
 
 	public static JavaNode makeJavaPromise(Operator op, IRNode[] children) {
     if (JJNode.specializeForSyntaxTree) {
-      return new SyntaxTreeNode(op, children);    
+      return SyntaxTreeNode.create(op, children);    
     }
 		return new JavaPromise(tree, op, children);
 	}
 
 	public static JavaNode makeJavaPromise(SyntaxTreeInterface tree, Operator op) {
     if (JJNode.specializeForSyntaxTree && JJNode.tree == tree) {
-      return new SyntaxTreeNode(op);    
+      return SyntaxTreeNode.create(op, null);    
     }
 		return new JavaPromise(tree, op);
 	}
 
 	public static JavaNode makeJavaPromise(SyntaxTreeInterface tree, Operator op, IRNode[] children) {
     if (JJNode.specializeForSyntaxTree && JJNode.tree == tree) {
-      return new SyntaxTreeNode(op, children);    
+      return SyntaxTreeNode.create(op, children);    
     }
 	  return new JavaPromise(tree, op, children);
 	}
@@ -1345,7 +1344,8 @@ class JavaPromiseChildrenIterator extends AbstractRemovelessIterator<IRNode> {
 	}
 	private static Object noNextElement = new Object();
 
-	public boolean hasNext() {
+	@Override
+  public boolean hasNext() {
 		if (nextIsValid) {
 			return true;
 		}
@@ -1356,7 +1356,8 @@ class JavaPromiseChildrenIterator extends AbstractRemovelessIterator<IRNode> {
 
 	Iterator<IRNode> sub = null;
 
-	public IRNode next() {
+	@Override
+  public IRNode next() {
 		if (nextIsValid || hasNext()) {
 			nextIsValid = false;
 			return (IRNode) next;

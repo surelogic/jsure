@@ -6,12 +6,16 @@ public abstract class DoubleOutputPort extends OutputPort
 {
   protected ControlEdge input1, input2;
   
+  @Override
   public ControlEdge getInput1() { return input1; }
+  @Override
   public ControlEdge getInput2() { return input2; }
+  @Override
   public ControlEdge getInput(boolean secondary) {
     return secondary ? input2 : input1;
   }
 
+  @Override
   public void setInput1(ControlEdge e)
       throws EdgeLinkageError
   {
@@ -19,6 +23,7 @@ public abstract class DoubleOutputPort extends OutputPort
     input1 = e;
   }
 
+  @Override
   public void setInput2(ControlEdge e)
       throws EdgeLinkageError
   {
@@ -26,6 +31,7 @@ public abstract class DoubleOutputPort extends OutputPort
     input2 = e;
   }
 
+  @Override
   public ControlEdgeIterator getInputs() {
     return new PairControlEdgeIterator(input1,input2);
   }

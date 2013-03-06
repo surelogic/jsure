@@ -45,6 +45,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   @UniqueInRegion("DropState")
   private final Set<PromiseDrop<? extends IAASTRootNode>> f_checks = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 
+  @Override
   public boolean hasChecked() {
     synchronized (f_seaLock) {
       return !f_checks.isEmpty();
@@ -58,6 +59,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    * @return the non-null (possibly empty) set of promise drops established, or
    *         checked, by this result.
    */
+  @Override
   public final HashSet<? extends PromiseDrop<? extends IAASTRootNode>> getChecked() {
     synchronized (f_seaLock) {
       return new HashSet<PromiseDrop<? extends IAASTRootNode>>(f_checks);
@@ -142,6 +144,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     }
   }
 
+  @Override
   @NonNull
   public HashSet<ProofDrop> getTrusted() {
     synchronized (f_seaLock) {
@@ -155,6 +158,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
     }
   }
 
+  @Override
   public boolean hasTrusted() {
     synchronized (f_seaLock) {
       return !f_trusts.isEmpty();
@@ -195,6 +199,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   @InRegion("DropState")
   boolean f_usedByProof = true;
 
+  @Override
   public boolean usedByProof() {
     synchronized (f_seaLock) {
       return f_usedByProof;

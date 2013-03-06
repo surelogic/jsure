@@ -23,7 +23,8 @@ public class TestListener extends AbstractXmlResultListener {
 	public void done() {
 	}
 	*/	
-	public Entity makeEntity(String name, Attributes a) {
+	@Override
+  public Entity makeEntity(String name, Attributes a) {
 		return new Entity(name, a);
 	}
 }

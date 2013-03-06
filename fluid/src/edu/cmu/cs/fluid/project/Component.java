@@ -117,6 +117,7 @@ public abstract class Component extends IRPersistent implements VersionedState
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IRState#getParent()
    */
+  @Override
   public IRState getParent() {
     return null;
   }
@@ -180,10 +181,12 @@ public abstract class Component extends IRPersistent implements VersionedState
     return Snapshot.get(this,v);
   }
   
+  @Override
   public boolean deltaIsDefined(Era e, Version lastV) {
     Delta d = Delta.find(this,e);
     return d != null && d.isDefined(lastV);
   }
+  @Override
   public boolean snapshotIsDefined(Version v) {
     Snapshot s = Snapshot.find(this,v);
     return s != null && s.isDefined();
@@ -191,6 +194,7 @@ public abstract class Component extends IRPersistent implements VersionedState
   
   /* persistent kind */
   private static final IRPersistentKind kind = new IRPersistentKind() {
+    @Override
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException
     {
@@ -200,6 +204,7 @@ public abstract class Component extends IRPersistent implements VersionedState
       ComponentFactory factory = comp.getFactory();
       out.writeUTF(factory.getName());
     }
+    @Override
     public IRPersistent readPersistentReference(DataInput in)
       throws IOException
     {
@@ -383,6 +388,7 @@ public abstract class Component extends IRPersistent implements VersionedState
         forceComplete();
       }
       VersionedSlot.runInEra(era, new IORunnable() {
+        @Override
         public void run() throws IOException {
           comp.writeChangedContents(out);
         }
@@ -392,6 +398,7 @@ public abstract class Component extends IRPersistent implements VersionedState
     @Override
     protected void read(final IRInput in) throws IOException {
       VersionedSlot.runInEra(era, new IORunnable() {
+        @Override
         public void run() throws IOException {
           comp.readChangedContents(in);
         }

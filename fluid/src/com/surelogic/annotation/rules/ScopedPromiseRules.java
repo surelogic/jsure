@@ -553,6 +553,7 @@ public class ScopedPromiseRules extends AnnotationRules {
       contents = c;
     }
 
+    @Override
     public String getAllText() {
       return contents;
     }
@@ -582,6 +583,7 @@ public class ScopedPromiseRules extends AnnotationRules {
     	hadProblem = true;
     }
     
+    @Override
     public void reportException(int offset, Exception e) {
     	hadProblem = true;
     }
@@ -689,6 +691,7 @@ public class ScopedPromiseRules extends AnnotationRules {
      * com.surelogic.annotation.scrub.ValidatedDropCallback#validated(edu.cmu
      * .cs.fluid.sea.PromiseDrop)
      */
+    @Override
     public void validated(PromiseDrop pd) {
       if (scopedPromiseDrop instanceof AssumePromiseDrop) {
         pd.setAssumed(true);
@@ -795,6 +798,7 @@ public class ScopedPromiseRules extends AnnotationRules {
         copy.setSrcType(orig.getSrcType());
         AASTStore.addDerived(copy, d, new ValidatedDropCallback<PromisePromiseDrop>() {
 
+          @Override
           public void validated(PromisePromiseDrop pd) {
             pd.setVirtual(true);
             pd.setSourceDrop(d);

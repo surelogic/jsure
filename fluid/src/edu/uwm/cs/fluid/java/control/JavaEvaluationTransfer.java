@@ -580,7 +580,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
   @Override
   protected final T transferEnumConstantDeclaration(final IRNode node, final T value) {
     /* N.B. Should be handled as a special case of field initialization,
-     * and then as an anonymous class expression, if necesssary.
+     * and then as an anonymous class expression, if necessary.
      */
     T v = transferEnumConstantDeclarationAsFieldInit(node, value);
     if (EnumConstantClassDeclaration.prototype.includes(node)) {

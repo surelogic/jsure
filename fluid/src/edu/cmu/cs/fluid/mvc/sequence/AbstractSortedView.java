@@ -241,6 +241,7 @@ extends AbstractModelToSequenceStatefulView
   private final class AttributeBasedTotalOrder
   implements Comparator<IRNode>
   {
+    @Override
     public int compare( final IRNode o1, final IRNode o2 )
     {
       final String v1 = srcModel.nodeValueToString( o1, sortAttrShadow );

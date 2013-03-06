@@ -43,7 +43,7 @@ public class TempListNode extends AASTNode {
     return -1;
   }
   
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public List toList() {
     return children;
   }

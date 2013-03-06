@@ -43,6 +43,7 @@ public final class EmptyEvidence implements TargetEvidence {
     link = n;
   }
   
+  @Override
   public IRNode getLink() {
     return link;
   }
@@ -55,6 +56,7 @@ public final class EmptyEvidence implements TargetEvidence {
     return comesFrom == null ? null : comesFrom.getEvidence();
   }
   
+  @Override
   public void visit(final EvidenceVisitor v) {
     v.visitEmptyEvidence(this);
   }

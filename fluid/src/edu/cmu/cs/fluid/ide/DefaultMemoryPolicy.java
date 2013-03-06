@@ -9,10 +9,12 @@ package edu.cmu.cs.fluid.ide;
 public final class DefaultMemoryPolicy extends AbstractMemoryPolicy {
   public static final IMemoryPolicy prototype = new DefaultMemoryPolicy();
 
+  @Override
   public void checkIfLowOnMemory() {
 	  // Nothing to do
   }
   
+  @Override
   public double percentToUnload() {
     return 0;
   }

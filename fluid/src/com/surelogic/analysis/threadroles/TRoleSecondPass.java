@@ -1676,10 +1676,12 @@ public class TRoleSecondPass implements IBinderClient {
   /**
    * @return Returns the binder.
    */
+  @Override
   public IBinder getBinder() {
     return binder;
   }
 
+  @Override
   public void clearCaches() {
     // TODO Auto-generated method stub
 

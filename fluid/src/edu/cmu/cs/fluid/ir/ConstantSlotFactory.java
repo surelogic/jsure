@@ -24,6 +24,7 @@ public class ConstantSlotFactory extends AbstractImplicitSlotFactory {
     return ConstantSlotFactory.prototype;
   }
   
+  @Override
   public void noteChange(IRState state) {
     // DO nothing (constant information has no changes)
   }

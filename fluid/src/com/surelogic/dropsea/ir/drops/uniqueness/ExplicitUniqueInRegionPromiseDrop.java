@@ -33,14 +33,17 @@ public final class ExplicitUniqueInRegionPromiseDrop extends PromiseDrop<UniqueM
     return true;
   }
 
+  @Override
   public boolean allowRead() {
     return getAAST().allowRead();
   }
 
+  @Override
   public ExplicitUniqueInRegionPromiseDrop getDrop() {
     return this;
   }
 
+  @Override
   public Map<IRegion, IRegion> getAggregationMap(final IRNode fieldDecl) {
     final Map<IRegion, IRegion> aggregationMap = new HashMap<IRegion, IRegion>();
     for (final RegionMappingNode mapping : this.getAAST().getSpec().getMappingList()) {

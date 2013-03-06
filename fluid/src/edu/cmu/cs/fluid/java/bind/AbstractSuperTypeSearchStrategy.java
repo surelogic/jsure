@@ -50,7 +50,8 @@ public abstract class AbstractSuperTypeSearchStrategy<T>
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.eclipse.bind.ISuperTypeSearchStrategy#visitInterface(edu.cmu.cs.fluid.ir.IRNode)
 	 */
-	public final void visitInterface(IRNode type) {
+	@Override
+  public final void visitInterface(IRNode type) {
     boolean visited = visitedBefore(type);
     if (visited) {
       return;
@@ -58,6 +59,7 @@ public abstract class AbstractSuperTypeSearchStrategy<T>
     visitClass_internal(type);
 	}
   
+  @Override
   public final void visitClass(IRNode type) {
     boolean visited = visitedBefore(type);
     if (visited) {
@@ -71,24 +73,28 @@ public abstract class AbstractSuperTypeSearchStrategy<T>
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.eclipse.bind.ISuperTypeSearchStrategy#visitSuperclass()
 	 */
-	public boolean visitSuperclass() {
+	@Override
+  public boolean visitSuperclass() {
 		return searchAfterLastType;
 	}
 	
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.eclipse.bind.ISuperTypeSearchStrategy#visitSuperifaces()
 	 */
-	public boolean visitSuperifaces() {
+	@Override
+  public boolean visitSuperifaces() {
 		// Defaults to the same as visitSuperclass()
 		return visitSuperclass();
 	}
 	
-	public void reset() {
+	@Override
+  public void reset() {
 	  visited.clear();
 	  result = null;
 	}
 	
-	public T getResult() {
+	@Override
+  public T getResult() {
 	  return result;
 	}
 }

@@ -22,6 +22,7 @@ implements MutableSequenceAttributeValueWrapper.Callback
     callback = cb;
   }
 
+  @Override
   public void setElementAt(
     final IRSequence seq, final IRNode parent, final Object elt,
     final Object oldElt )
@@ -29,6 +30,7 @@ implements MutableSequenceAttributeValueWrapper.Callback
     callback.attributeChanged( attribute, parent, seq );
   }
 
+  @Override
   public void insertElementAt(
     final IRSequence seq, final IRNode parent, final Object elt,
     final InsertionPoint ip )
@@ -36,6 +38,7 @@ implements MutableSequenceAttributeValueWrapper.Callback
     callback.attributeChanged( attribute, parent, seq );
   }
 
+  @Override
   public void removeElementAt(
     final IRSequence seq, final IRNode parent, final Object oldElt )
   {

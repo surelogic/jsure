@@ -9,6 +9,7 @@ final class Remove implements Apply {
     old = rid;
   }
 
+  @Override
   public ImmutableHashOrderSet<Object> apply(
       final ImmutableHashOrderSet<Object> other) {
     return other.difference(old);

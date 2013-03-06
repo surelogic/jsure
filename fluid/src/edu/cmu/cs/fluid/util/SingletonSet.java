@@ -75,6 +75,7 @@ public class SingletonSet<T> extends AbstractSet<T> implements PossiblyImmutable
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.util.PossiblyImmutableSet#addCopy(java.lang.Object)
    */
+  @Override
   public PossiblyImmutableSet<T> addCopy(T e) {
     if (element.equals(e)) return this;
     return new MutableSet<T>(this).addCopy(e);

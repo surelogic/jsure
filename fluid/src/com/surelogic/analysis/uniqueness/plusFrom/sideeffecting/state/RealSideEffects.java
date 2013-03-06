@@ -213,10 +213,12 @@ public final class RealSideEffects implements ISideEffects {
   // === Control side effect production 
   // ==================================================================
   
+  @Override
   public void setSuppressDrops(final boolean value) {
     suppressDrops = value;
   }
   
+  @Override
   public void setAbruptResults(final boolean value) {
     abruptDrops = value;
   }
@@ -249,12 +251,14 @@ public final class RealSideEffects implements ISideEffects {
   // == Compromising unique fields
   // ==================================================================
   
+  @Override
   public void recordReadOfBorrowedField(final IRNode srcOp,
       final PromiseDrop<? extends IAASTRootNode> promiseDrop) {
     addToMappedSet(
         readBorrowedFields, promiseDrop, new BorrowedRead(srcOp, abruptDrops));
   }
 
+  @Override
   public void recordCompromisingOfUnique(
       final IRNode srcOp, final Integer topOfStack, final State localStatus,
       final ImmutableSet<FieldTriple> fieldStore,
@@ -264,6 +268,7 @@ public final class RealSideEffects implements ISideEffects {
         fieldStore, compromisedAt);
   }
   
+  @Override
   public void recordUndefiningOfUnique(
       final IRNode srcOp, final Integer topOfStack, final State localStatus,
       final Store s) {
@@ -296,6 +301,7 @@ public final class RealSideEffects implements ISideEffects {
     }
   }
   
+  @Override
   public void recordLoadOfCompromisedField(
       final IRNode srcOp, final State fieldState, final IRNode fieldDecl) {
     if (!suppressDrops) {
@@ -306,6 +312,7 @@ public final class RealSideEffects implements ISideEffects {
     }        
   }
   
+  @Override
   public void recordIndirectLoadOfCompromisedField(
       final IRNode srcOp, final State fieldState, final IRNode fieldDecl) {
     if (!suppressDrops) {
@@ -317,6 +324,7 @@ public final class RealSideEffects implements ISideEffects {
     }
   }
   
+  @Override
   public void recordLossOfCompromisedField(
       final IRNode srcOp, final State fieldState, final IRNode fieldDecl) {
     if (!suppressDrops) {
@@ -331,6 +339,7 @@ public final class RealSideEffects implements ISideEffects {
   // == Alias burying
   // ==================================================================
   
+  @Override
   public void recordBuriedRead(final IRNode srcOp, final Object local,
       final BuriedMessage msg) {
     if (!suppressDrops) {
@@ -338,6 +347,7 @@ public final class RealSideEffects implements ISideEffects {
     }
   }
   
+  @Override
   public void recordUndefinedFrom(
       final IRNode srcOp, final Set<Object> affectedVars, final int msg) {
     for (final Object lv : affectedVars) {
@@ -357,6 +367,7 @@ public final class RealSideEffects implements ISideEffects {
     }
   }
   
+  @Override
   public void recordBuryingFieldRead(final IRNode srcOp,
       final IRNode fieldDecl, final Set<Object> affectedVars) {
     if (!suppressDrops) {
@@ -369,6 +380,7 @@ public final class RealSideEffects implements ISideEffects {
     }
   }
   
+  @Override
   public void recordBuryingMethodEffects(final IRNode srcOp,
       final Set<IRNode> loadedFields, final Set<Object> affectedVars,
       final RegionEffectsPromiseDrop fxDrop) {
@@ -392,6 +404,7 @@ public final class RealSideEffects implements ISideEffects {
   // == Bad Values
   // ==================================================================
 
+  @Override
   public void recordBadSet(final Object local, final IRNode op) {
     if (!suppressDrops) {
       addToMappedSet(badSets, local, op);
@@ -472,6 +485,7 @@ public final class RealSideEffects implements ISideEffects {
     }
   }
 
+  @Override
   public void makeResultDrops() {
     // Link loaded compromised fields with comprising locations
     crossReferenceKilledFields(Messages.COMPROMISED_READ, false, loadedCompromisedFields);

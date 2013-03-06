@@ -52,6 +52,7 @@ implements BareAttributeInheritanceManager.InheritedAttributeBuilderFactory
   }
   
   // inherit javadoc.
+  @Override
   public BareAttributeInheritanceManager.InheritedAttributeBuilder create()
   {
     return new ProxySupportingInheritedAttributeBuilder( proxyAttributes );
@@ -114,6 +115,7 @@ implements BareAttributeInheritanceManager.InheritedAttributeBuilder
    * {@link edu.cmu.cs.fluid.mvc.attributes.GuardedMutableModelAttribute}, or
    * {@link edu.cmu.cs.fluid.mvc.attributes.GuardedImmutableModelAttribute}.
    */ 
+  @Override
   public <T> ComponentSlot<T> buildCompAttribute(
     final Model partOf, final Object mutex, final String attr,
     final Object mode, final ComponentSlot<T> ca,
@@ -129,6 +131,7 @@ implements BareAttributeInheritanceManager.InheritedAttributeBuilder
    * {@link edu.cmu.cs.fluid.mvc.attributes.GuardedImmutableNodeAttribute},
    * but that supports proxy nodes.
    */ 
+  @Override
   public <T> SlotInfo<T> buildNodeAttribute(
     final Model partOf, final Object mutex, final String attr,
     final Object mode, final SlotInfo<T> si, final AttributeChangedCallback cb )
@@ -200,6 +203,7 @@ implements BareAttributeInheritanceManager.InheritedAttributeBuilder
    * {@link ProxyNodeSupport#MUTABLE_SOURCE_PROXY}
    * to be mutable.
    */
+  @Override
   public boolean isModeMutable( final Object mode )
   {
     return    (mode == AttributeInheritanceManager.MUTABLE_LOCAL)

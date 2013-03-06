@@ -24,11 +24,13 @@ extends AbstractRemovelessIterator<T>
     enumeration = enm;
   }
 
+  @Override
   public boolean hasNext()
   {
     return enumeration.hasMoreElements();
   }
 
+  @Override
   public T next()
   {
     return enumeration.nextElement();

@@ -9,5 +9,6 @@ public interface IBooleanPromiseDropStorage<D extends PromiseDrop>
 extends IPromiseDropStorage<D> 
 {
   void init(SlotInfo<D> si);
+  @Override
   SlotInfo<D> getSlotInfo();
 }

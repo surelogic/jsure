@@ -229,6 +229,7 @@ public final class SynthesizedForestViewImpl
 	 * @see edu.cmu.cs.edu.cmu.cs.fluid.mvc.tree.SynthesizedForestView#addComparator(java.lang.String,
 	 *      java.util.Comparator)
 	 */
+  @Override
   public void addComparator(String attr, Comparator<Object> c) {
     comparators.put(attr, c);
   }
@@ -239,6 +240,7 @@ public final class SynthesizedForestViewImpl
 		 * 
 		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 		 */
+    @Override
     public int compare(T o1, T o2) {
       return o1.equals(o2) ? 0 : 1;
     }

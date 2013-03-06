@@ -1076,7 +1076,8 @@ public class TaskManager extends ThreadPoolExecutor {
 		 * itself also catches this error and uses that to notify its dependents so that part of afterExecute() is
 		 * still performed, albeit at a different point.
 		 */
-		public void uncaughtException(Thread t, Throwable e) {
+		@Override
+    public void uncaughtException(Thread t, Throwable e) {
 			// Error is the only case that afterExecute will not be run
 			if (e instanceof Error) {
 				afterExecute(null, e);

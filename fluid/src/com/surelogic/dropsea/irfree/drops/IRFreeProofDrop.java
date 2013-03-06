@@ -23,18 +23,22 @@ public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
     f_derivedFromWarningHint = "true".equals(e.getAttribute(DERIVED_FROM_WARNING_ATTR));
   }
 
+  @Override
   public final boolean proofUsesRedDot() {
     return f_proofUsesRedDot;
   }
 
+  @Override
   public final boolean provedConsistent() {
     return f_provedConsistent;
   }
 
+  @Override
   public final boolean derivedFromSrc() {
     return f_derivedFromSrc;
   }
 
+  @Override
   public boolean derivedFromWarningHint() {
     return f_derivedFromWarningHint;
   }

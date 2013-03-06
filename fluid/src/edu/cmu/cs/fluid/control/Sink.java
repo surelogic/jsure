@@ -12,16 +12,20 @@ public abstract class Sink extends Entity
      implements ControlNode, OneInput, NoOutput
 {
   protected ControlEdge input;
+  @Override
   public ControlEdge getInput() { return input; }
+  @Override
   public void setInput(ControlEdge input) 
       throws EdgeLinkageError
   {
     if (this.input != null) throw new EdgeLinkageError("input already set");
     this.input = input;
   }
+  @Override
   public ControlEdgeIterator getInputs() {
     return new SingleControlEdgeIterator(input);
   }
+  @Override
   public ControlEdgeIterator getOutputs() {
     return EmptyControlEdgeIterator.prototype;
   }

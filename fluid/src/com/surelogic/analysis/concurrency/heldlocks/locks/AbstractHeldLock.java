@@ -79,18 +79,22 @@ abstract class AbstractHeldLock extends AbstractILock implements HeldLock {
   /**
    * Get the node that names the lock.
    */
+  @Override
   public final IRNode getSource() {
     return srcExpr;
   }
   
+  @Override
   public final PromiseDrop<?> getSupportingDrop() {
     return supportingDrop;
   }
   
+  @Override
   public final boolean isAssumed() {
     return isAssumed;
   }
 
+  @Override
   public final boolean isBogus() {
     return false;
   }

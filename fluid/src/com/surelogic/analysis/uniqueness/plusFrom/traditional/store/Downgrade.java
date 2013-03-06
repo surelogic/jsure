@@ -20,7 +20,8 @@ public class Downgrade implements Apply {
 	
 	private static ImmutableHashOrderSet<Object> pseudos = new ImmutableHashOrderSet<Object>(State.values());
 	
-	public ImmutableHashOrderSet<Object> apply(
+	@Override
+  public ImmutableHashOrderSet<Object> apply(
 			ImmutableHashOrderSet<Object> other) {
 		// we don't change immutable objects (cannot be downgraded)
 		if (other.contains(State.IMMUTABLE)) return other;

@@ -47,22 +47,22 @@ public class ShowAnnotationsForITypeAction implements IObjectActionDelegate {
 			final Object o = selection.getFirstElement();
 			if (o instanceof IMember) {
 				IMember m = (IMember) o;
+				/*
 				ICompilationUnit cu = m.getCompilationUnit();
 				if (cu != null) {
 					JavaUI.openInEditor(m, true, true);
 					return;
 				}
+				*/
 				if (o instanceof IType) {
 					final IType t = (IType) o;
 					openInXMLEditor(t);
 				} else {
-					final IEditorPart e = openInXMLEditor(m.getDeclaringType());
-					if (m instanceof IMethod && e instanceof PromisesXMLEditor) {
+					final PromisesXMLEditor xe = openInXMLEditor(m.getDeclaringType());
+					if (m instanceof IMethod) {
 						final IMethod m2 = (IMethod) m;
-						final PromisesXMLEditor xe = (PromisesXMLEditor) e;
-						xe.focusOnMethod(m2.getElementName(), null);
-					}
-					// TODO find member
+						xe.focusOnMethod(m2.getDeclaringType().getElementName(), m2.getElementName(), null);
+					} 
 				}
 			} else if (o instanceof ICompilationUnit) {
 				ICompilationUnit cu = (ICompilationUnit) o;
@@ -82,7 +82,7 @@ public class ShowAnnotationsForITypeAction implements IObjectActionDelegate {
 		}
 	}
 
-	public static IEditorPart openInXMLEditor(final IType t) {
+	public static PromisesXMLEditor openInXMLEditor(final IType t) {
 		String qname = t.getFullyQualifiedName();
 		int firstDollar = qname.indexOf('$');
 		if (firstDollar >= 0) {
@@ -90,7 +90,13 @@ public class ShowAnnotationsForITypeAction implements IObjectActionDelegate {
 			qname = qname.substring(0, firstDollar);
 			// TODO find nested classes
 		}
-		return PromisesXMLEditor.openInEditor(qname.replace('.', '/')
+		PromisesXMLEditor xe = (PromisesXMLEditor) 
+				PromisesXMLEditor.openInEditor(qname.replace('.', '/')
 				+ TestXMLParserConstants.SUFFIX, false);
+		if (firstDollar >= 0) {
+			qname = t.getFullyQualifiedName();
+			xe.focusOnNestedType(qname.substring(firstDollar+1, qname.length()).replace('$', '.'));
+		}
+		return xe;
 	}
 }

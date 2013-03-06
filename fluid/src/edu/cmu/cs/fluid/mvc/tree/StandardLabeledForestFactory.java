@@ -45,6 +45,7 @@ implements LabeledForest.Factory
     isMutable = mutable;
   }
   
+  @Override
   public LabeledForest create( final String name, final SlotFactory sf )
   throws SlotAlreadyRegisteredException
   {

@@ -41,6 +41,7 @@ public class ThreadRoleGrantNode extends ThreadRoleNameListNode {
   /**
    * @return A non-null, but possibly empty list of nodes
    */
+  @Override
   public List<ThreadRoleNameNode> getThreadRoleList() {
     return tRoles;
   }

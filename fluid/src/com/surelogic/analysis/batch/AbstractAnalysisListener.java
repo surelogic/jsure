@@ -3,18 +3,22 @@ package com.surelogic.analysis.batch;
 
 
 public abstract class AbstractAnalysisListener implements IAnalysisListener {
+  @Override
   public void analysisStarting() {
 	  // Nothing to do
   }
 
+  @Override
   public void analysisCompleted() {
 	  // Nothing to do
   }
 
+  @Override
   public void analysisPostponed() {
 	  // Nothing to do
   }
 
+  @Override
   public void analysisCancelled() {
 	  // Nothing to do
   }

@@ -225,6 +225,7 @@ private static int cuCount = 0;
     }
     
     private DropPredicate tRoleDeclPred = new DropPredicate() {
+      @Override
       public boolean match(IDrop d) {
         return d.instanceOfIRDropSea(TRoleDeclareDrop.class);
       }
@@ -2772,11 +2773,13 @@ private static int cuCount = 0;
     compUnitsToVisit.clear();
   }
 
+@Override
 public void clearCaches() {
 	// TODO Auto-generated method stub
 	
 }
 
+@Override
 public IBinder getBinder() {
 	// TODO Auto-generated method stub
 	return null;

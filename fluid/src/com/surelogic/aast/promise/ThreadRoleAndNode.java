@@ -69,6 +69,7 @@ public class ThreadRoleAndNode extends AASTNode implements ThreadRoleOrElem, Thr
   }
 
   
+  @Override
   public TRExpr buildTRExpr(IRNode where) {
     TRExpr res = null;
     for (TRoleLit cl: andElems) {

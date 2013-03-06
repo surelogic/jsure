@@ -29,14 +29,16 @@ public class ScheduleWorklist implements Worklist {
 		isForward = forward;
 	}
 	
-	public void initialize() {
+	@Override
+  public void initialize() {
 		if (roots == null) roots = new ArrayList<ControlNode>();
 		outerIterator = null;
 		current = null;
 		innerIterator = null;
 	}
 
-	public void start() {
+	@Override
+  public void start() {
 		SCCGraph sccs = new SCCGraph(ControlFlowGraph.prototype,roots,!isForward);
 		outerIterator = sccs.iterator();
 		current = null;
@@ -44,14 +46,16 @@ public class ScheduleWorklist implements Worklist {
 		roots = null;
 	}
 
-	public boolean hasNext() {
+	@Override
+  public boolean hasNext() {
 		if (outerIterator == null) return false;
 		if (outerIterator.hasNext()) return true;
 		if (innerIterator == null) return false;
 		return (innerIterator.hasNext() || repeatCurrent);
 	}
 
-	public ControlNode next() {
+	@Override
+  public ControlNode next() {
 		if (!hasNext()) throw new NoSuchElementException("no more elements in worklist");
 		if (innerIterator != null) {
 			if (!innerIterator.hasNext()) {
@@ -71,12 +75,14 @@ public class ScheduleWorklist implements Worklist {
 		return (ControlNode)innerIterator.next();
 	}
 
-	public int size() {
+	@Override
+  public int size() {
 		if (hasNext()) return 1;
 		return 0;
 	}
 
-	public void add(ControlNode node) {
+	@Override
+  public void add(ControlNode node) {
 		if (roots != null) {
 			roots.add(node);
 		} else {

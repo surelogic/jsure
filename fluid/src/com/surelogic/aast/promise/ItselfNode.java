@@ -47,11 +47,13 @@ implements IHasVariableBinding {
 		return visitor.visit(this);
 	}
 
-	public boolean bindingExists() {
+	@Override
+  public boolean bindingExists() {
 		return AASTBinder.getInstance().isResolvable(this);
 	}
 
-	public IVariableBinding resolveBinding() {
+	@Override
+  public IVariableBinding resolveBinding() {
 		return AASTBinder.getInstance().resolve(this);
 	}
 

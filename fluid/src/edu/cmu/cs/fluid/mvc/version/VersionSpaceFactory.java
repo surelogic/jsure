@@ -38,6 +38,7 @@ implements VersionSpaceModel.Factory
    * Create a new minimal implementation of VersionMarkerModel that
    * initially points given version.
    */
+  @Override
   public VersionSpaceModel create(
     final String name, final Version root, final String[] cursorNames )
   throws SlotAlreadyRegisteredException

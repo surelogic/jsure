@@ -5,8 +5,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.zip.*;
 
-import com.surelogic.common.FileUtility;
-import com.surelogic.common.SLUtility;
+import com.surelogic.common.*;
 import com.surelogic.dropsea.irfree.XmlCreator;
 import com.surelogic.javac.persistence.*;
 
@@ -34,7 +33,8 @@ public class JarEntry extends AbstractClassPathEntry {
 		return path;
 	}
 	
-	public void outputToXML(XmlCreator.Builder proj) {
+	@Override
+  public void outputToXML(XmlCreator.Builder proj) {
 		XmlCreator.Builder b = proj.nest(PersistenceConstants.JAR);
 		b.addAttribute(PersistenceConstants.PATH, path.getAbsolutePath());
 		b.addAttribute(PersistenceConstants.ORIG_PATH, origPath.getAbsolutePath());
@@ -73,7 +73,8 @@ public class JarEntry extends AbstractClassPathEntry {
 		return path.getAbsolutePath();
 	}
 	
-	public void init(JavacProject jp, JavacClassParser loader) throws IOException {
+	@Override
+  public void init(JavacProject jp, JavacClassParser loader) throws IOException {
 		if (!isExported() && jp.getConfig() != project) {
 			// Not supposed to be exported
 			return;
@@ -148,7 +149,8 @@ public class JarEntry extends AbstractClassPathEntry {
 		}
 	}
 
-	public void relocateJars(File targetDir) throws IOException {
+	@Override
+  public void relocateJars(File targetDir) throws IOException {
 		final File target = computeTargetName(targetDir, path.getParentFile(), path.getName());
 		if (target == null) {
 			// Nothing to do now
@@ -208,5 +210,10 @@ public class JarEntry extends AbstractClassPathEntry {
 			return computeTargetName(targetDir, parent.getParentFile(), parent.getName()+'_'+name);
 		}
 		return target;
+	}
+	
+	@Override
+	public File getFileForClassPath() {
+		return path;
 	}
 }

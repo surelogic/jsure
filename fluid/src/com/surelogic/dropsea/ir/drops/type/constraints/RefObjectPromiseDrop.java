@@ -12,6 +12,7 @@ public final class RefObjectPromiseDrop extends BooleanPromiseDrop<RefObjectNode
     setCategorizingMessage(Messages.DSC_LAYERS_ISSUES);
   }
 
+  @Override
   public void validated(final RefObjectPromiseDrop pd) {
     pd.setVirtual(true);
     pd.setSourceDrop(this);

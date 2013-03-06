@@ -133,6 +133,7 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
       region = r;
       includePromises = include;
     }
+    @Override
     public String getIdentifier() {
       return "Promise Saver";
     }    
@@ -260,38 +261,47 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
     return project;
   }
   
+  @Override
   public T id() {
     return id;
   }
 
+  @Override
   public String label() {
     return label;
   }
    
+  @Override
   public long modTime() {
     return modTime;
   }
   
+  @Override
   public IRNode root() {
     return root;
   }
   
+  @Override
   public boolean asSource() {
     return type == Type.SOURCE;
   }
   
+  @Override
   public Type getType() {
     return type;
   }
   
+  @Override
   public boolean isLoaded() {
     return loaded;
   }
 
+  @Override
   public boolean isPersistent() {
     return persistent;
   }
 
+  @Override
   public void canonicalize() {
     if (canonical) {
       return;
@@ -340,10 +350,12 @@ public class JavaFileStatus<T,P> extends AbstractJavaFileStatus<T> {
     isCanonicalizing = false;
   }
   
+  @Override
   public boolean isCanonical() {
     return canonical;
   }
 
+  @Override
   public boolean isCanonicalizing() {
 	return isCanonicalizing;
   }

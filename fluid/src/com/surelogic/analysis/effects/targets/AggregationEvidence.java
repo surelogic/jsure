@@ -34,10 +34,12 @@ public final class AggregationEvidence extends ElaborationEvidence {
     return regionMapping;
   }
   
+  @Override
   public IRNode getLink() {
     return getOriginalExpression();
   }
   
+  @Override
   public void visit(final EvidenceVisitor v) {
     v.visitAggregationEvidence(this);
   }

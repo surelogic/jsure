@@ -58,11 +58,13 @@ public class PromisesXMLReader extends NestedJSureXmlReader implements
 		return null;
 	}
 
-	public void start(String pkg, String na) {
+	@Override
+  public void start(String pkg, String na) {
 		pkgName = pkg;
 	}
 
-	public Entity makeEntity(String name, Attributes a) {
+	@Override
+  public Entity makeEntity(String name, Attributes a) {
 		// System.out.println("Making entity for "+name);
 		return new Entity(name, a);
 	}
@@ -70,7 +72,8 @@ public class PromisesXMLReader extends NestedJSureXmlReader implements
 	/**
 	 * Called for 'top-level' entities within the package
 	 */
-	public void notify(Entity e) {
+	@Override
+  public void notify(Entity e) {
 		final String name = e.getName().toLowerCase();
 		if (CLASS.equals(name)) {
 			final String id = e.getAttribute(NAME_ATTRB);
@@ -150,7 +153,8 @@ public class PromisesXMLReader extends NestedJSureXmlReader implements
 		return e;
 	}
 
-	public void done() {
+	@Override
+  public void done() {
 		pkg = new PackageElement(true, pkgName, releaseVersion, clazz);
 		for (AnnotationElement a : promises) {
 			pkg.addPromise(a);

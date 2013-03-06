@@ -18,6 +18,7 @@ public interface IJavaWildcardType extends IJavaReferenceType, IWildcardType {
    * @return lower bound (or null, if none)
    * @see com.surelogic.ast.IWildcardType#getLowerBound()
    */
+  @Override
   public IJavaReferenceType getLowerBound();
   
   /** Get the upper bound (if any), e.g. ? extends X 
@@ -26,5 +27,6 @@ public interface IJavaWildcardType extends IJavaReferenceType, IWildcardType {
    * @return upper bound (or null, if none)
    * @see com.surelogic.ast.IWildcardType#getUpperBound()
    */
+  @Override
   public IJavaReferenceType getUpperBound();
 }

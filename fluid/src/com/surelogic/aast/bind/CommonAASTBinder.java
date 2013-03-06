@@ -93,25 +93,30 @@ public class CommonAASTBinder extends AASTBinder {
 	  return tEnv.findNamedType(qname, context);
   }
   
+  @Override
   public boolean isResolvable(FieldRefNode node) {
     ISourceRefType t = (ISourceRefType) node.getObject().resolveType();
     return (t == null) ? false : t.fieldExists(node.getId());
   }
   
+  @Override
   public boolean isResolvable(ItselfNode node) {
 	  return true; // It has to have a field decl to hang off of
   }
   
+  @Override
   public ISourceRefType resolveType(ImplicitQualifierNode node) {
     final IRNode tdecl = findNearestType(node);
     return createISourceRefType(tdecl);
   }
   
+  @Override
   public ISourceRefType resolveType(ThisExpressionNode node) {
     final IRNode tdecl = findNearestType(node);
     return createISourceRefType(tdecl);
   }
   
+  @Override
   public ISourceRefType resolveType(SuperExpressionNode node) {
     final IRNode tdecl = findNearestType(node);
     return createISourceRefType(tdecl);
@@ -155,6 +160,7 @@ public class CommonAASTBinder extends AASTBinder {
     return o;
   }
   
+  @Override
   public boolean isResolvable(AASTNode node) {
 	  return resolve(node) != null;
   }
@@ -247,6 +253,7 @@ public class CommonAASTBinder extends AASTBinder {
   }
   */
   
+  @Override
   public boolean isResolvableToType(AASTNode node) {
     if (node instanceof PrimitiveTypeNode) {
       return true;      
@@ -266,10 +273,12 @@ public class CommonAASTBinder extends AASTBinder {
     throw new UnsupportedOperationException("Auto-generated method stub: "+node.getClass().getName()); // TODO
   }
 
+  @Override
   public IBinding resolve(AASTNode node) {
     throw new UnsupportedOperationException("Auto-generated method stub: "+node.getClass().getName()); // TODO
   }
 
+  @Override
   public IVariableBinding resolve(final ThisExpressionNode node) {
     // FIXME assumed to be on a method
 	final IRNode mdecl = node.getPromisedFor();
@@ -278,25 +287,30 @@ public class CommonAASTBinder extends AASTBinder {
 		return null;
 	}
     return new IVariableBinding() {
+      @Override
       public IJavaType getJavaType() {
         IRNode fast  = node.getPromisedFor();
         IRNode tdecl = VisitUtil.getClosestType(fast);
         return JavaTypeFactory.getMyThisType(tdecl);
       }
+      @Override
       public IRNode getNode() {
     	return receiver;
       }
     };
   }
   
+  @Override
   public IVariableBinding resolve(final SuperExpressionNode node) {
     // FIXME assumed to be on a method
     return new IVariableBinding() {
+      @Override
       public IJavaType getJavaType() {
         IRNode fast  = node.getPromisedFor();
         IRNode tdecl = VisitUtil.getClosestType(fast);
         return JavaTypeFactory.getMyThisType(tdecl);
       }
+      @Override
       public IRNode getNode() {
         IRNode mdecl = node.getPromisedFor();
         return JavaPromise.getReceiverNodeOrNull(mdecl);
@@ -304,6 +318,7 @@ public class CommonAASTBinder extends AASTBinder {
     };
   }
   
+  @Override
   public IVariableBinding resolve(final QualifiedThisExpressionNode node) {
     final ISourceRefType type = node.getType().resolveType();
     if (type == null) {
@@ -327,33 +342,40 @@ public class CommonAASTBinder extends AASTBinder {
     */
     }
     return new IVariableBinding() {
+      @Override
       public IJavaType getJavaType() {
         return type.getJavaType();
       }
+      @Override
       public IRNode getNode() {  
         return rv;
       }
     };
   }
 
+  @Override
   public IVariableBinding resolve(FieldRefNode node) {
     ISourceRefType t = (ISourceRefType) node.getObject().resolveType();
     return t.findField(node.getId());
   }
   
+  @Override
   public IVariableBinding resolve(final ItselfNode node) {
 	  return new IVariableBinding() {		
-		public IRNode getNode() {
+		@Override
+    public IRNode getNode() {
 			return node.getPromisedFor();
 		}
 		
-		public IJavaType getJavaType() {
+		@Override
+    public IJavaType getJavaType() {
 			IRNode n = getNode();
 			return eb.getJavaType(n);
 		}
 	};
   }
   
+  @Override
   public IRegionBinding resolve(RegionNameNode node) {
     if (node.getParent() instanceof EffectSpecificationNode) {
       EffectSpecificationNode effect = (EffectSpecificationNode) node.getParent();
@@ -378,6 +400,7 @@ public class CommonAASTBinder extends AASTBinder {
     return findRegionModel(tdecl, node.getId());
   }
   
+  @Override
   public IRegionBinding resolve(QualifiedRegionNameNode node) {
     final ISourceRefType type = node.getType().resolveType();
     return findRegionModel(type, node.getId());
@@ -388,11 +411,13 @@ public class CommonAASTBinder extends AASTBinder {
     return o;
   }
   
+  @Override
   public ILockBinding resolve(SimpleLockNameNode node) {
     final IRNode tdecl = findNearestType(node);
     return findLockModel(tdecl, node.getId());
   }
   
+  @Override
   public ILockBinding resolve(QualifiedLockNameNode node) {
     final IType type = node.getBase().resolveType();
     if (type == null) {
@@ -404,6 +429,7 @@ public class CommonAASTBinder extends AASTBinder {
   /* (non-Javadoc)
    * @see com.surelogic.aast.bind.IAASTBinder#resolve(com.surelogic.aast.promise.ColorImportNode)
    */
+  @Override
   public IRNode resolve(ThreadRoleImportNode node) {
     // the ColorImportNode has an id String (accessible via getID()) that is either
     // the name of a Type or the name of a package.  When it's a type, we want to get
@@ -420,6 +446,7 @@ public class CommonAASTBinder extends AASTBinder {
    return res;
   }
   
+  @Override
   public IType resolveType(AASTNode node) {
     if (node instanceof IHasVariableBinding) {
       IHasVariableBinding ivb = (IHasVariableBinding) node;
@@ -503,9 +530,11 @@ public class CommonAASTBinder extends AASTBinder {
       }
       */
       return new IType() {
+        @Override
         public IRNode getNode() {
           return eb.getBinding(type);
         }
+        @Override
         public IJavaType getJavaType() {
           return eb.getJavaType(type);
         }
@@ -514,10 +543,12 @@ public class CommonAASTBinder extends AASTBinder {
     return null;
   }
 
+  @Override
   public IReferenceType resolveType(ReferenceTypeNode node) {
     throw new UnsupportedOperationException("Auto-generated method stub: "+node.getClass().getName()); // TODO
   }
 
+  @Override
   public ISourceRefType resolveType(ClassTypeNode node) {
     if (node instanceof NamedTypeNode) {
       NamedTypeNode t = (NamedTypeNode) node;
@@ -533,18 +564,22 @@ public class CommonAASTBinder extends AASTBinder {
     throw new UnsupportedOperationException("Auto-generated method stub: "+node.getClass().getName()); // TODO
   }
 
+  @Override
   public IPrimitiveType resolveType(PrimitiveTypeNode node) {
     throw new UnsupportedOperationException("Auto-generated method stub: "+node.getClass().getName()); // TODO
   }
 
+  @Override
   public IVoidType resolveType(VoidTypeNode node) {
     throw new UnsupportedOperationException("Auto-generated method stub: "+node.getClass().getName()); // TODO
   }
 
+  @Override
   public Iterable<ISourceRefType> resolveType(TypeDeclPatternNode node) {
     throw new UnsupportedOperationException("Auto-generated method stub: "+node.getClass().getName()); // TODO
   }
 
+  @Override
   public IMethodBinding resolve(MethodCallNode node) {
 	  final IRNode fast  = node.getPromisedFor();
       final IRNode tdecl = VisitUtil.getClosestType(fast);
@@ -556,7 +591,8 @@ public class CommonAASTBinder extends AASTBinder {
     	  if (node.getId().equals(MethodDeclaration.getId(method)) &&
     	      JJNode.tree.numChildren(MethodDeclaration.getParams(method)) == 0) {
     		  return new IMethodBinding() {
-    			  public IRNode getNode() {
+    			  @Override
+            public IRNode getNode() {
     				  return method;
     			  }		  
     		  };
@@ -565,14 +601,17 @@ public class CommonAASTBinder extends AASTBinder {
       return null;
   }
 
+  @Override
   public boolean isResolvable(MethodCallNode node) {
 	  return resolve(node) != null;
   }
 
+  @Override
   public boolean isResolvable(UnidentifiedTargetNode node) {
 	  return resolve(node) != null;
   }
 
+  @Override
   public ILayerBinding resolve(UnidentifiedTargetNode node) {
 	  final AASTNode parent = node.getParent();
 	  final AASTRootNode root = parent.getRoot();

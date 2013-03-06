@@ -16,11 +16,14 @@ public interface IJavaArrayType extends IJavaReferenceType, IArrayType {
   /** Return the element type, or array type with
    * one fewer dimension.
    */
+  @Override
   IJavaType getElementType();
 
   /** Return the number of dimensions remaining. */
+  @Override
   int getDimensions();
 
   /** Return the base type after removing all array types */
+  @Override
   IJavaType getBaseType();
 }

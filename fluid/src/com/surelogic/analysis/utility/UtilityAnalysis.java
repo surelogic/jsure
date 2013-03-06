@@ -65,7 +65,8 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 		super(willRunInParallel, queueWork ? TypeBodyPair.class : null, "UtilityAssurance");
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			setWorkProcedure(new Procedure<TypeBodyPair>() {
-				public void op(TypeBodyPair n) {
+				@Override
+        public void op(final TypeBodyPair n) {
 					if (byCompUnit) {
 					  TopLevelAnalysisVisitor.processCompilationUnit(
 		            // actually n.typeDecl is a CompilationUnit here!
@@ -363,10 +364,12 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
     
     
     
+    @Override
     public IBinder getBinder() {
       return binder;
     }
 
+    @Override
     public void clearCaches() {
       // do nothing
     }

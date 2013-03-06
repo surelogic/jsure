@@ -2,6 +2,7 @@
 package edu.cmu.cs.fluid.control;
 
 public abstract class BlankOutputPort extends OutputPort implements NoInput {
+  @Override
   public ControlEdgeIterator getInputs() {
     return EmptyControlEdgeIterator.prototype;
   }

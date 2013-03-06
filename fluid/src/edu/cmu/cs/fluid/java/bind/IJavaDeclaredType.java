@@ -19,6 +19,7 @@ public interface IJavaDeclaredType extends IJavaSourceRefType, IDeclaredType {
    * This may be a class or interface declaration or an
    * anonymous class declaration.
    */
+  @Override
   IRNode getDeclaration();
 
   /** In Java 1.5 and later, return the type parameters
@@ -32,8 +33,10 @@ public interface IJavaDeclaredType extends IJavaSourceRefType, IDeclaredType {
    * be a declared type.
    * @see edu.cmu.cs.fluid.java.bind.IJavaType#getSuperclass(edu.cmu.cs.fluid.java.bind.ITypeEnvironment)
    */
+  @Override
   IJavaDeclaredType getSuperclass(ITypeEnvironment tEnv);
   
+  @Override
   IJavaDeclaredType subst(IJavaTypeSubstitution subst);
   
   /** Return the depth of nesting for this type.

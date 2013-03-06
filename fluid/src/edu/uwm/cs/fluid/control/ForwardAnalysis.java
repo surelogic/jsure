@@ -69,6 +69,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   
   final LabeledLattice.UnaryOp<T,IRNode> conditionalTrueTransfer = 
     new LabeledLattice.UnaryOp<T,IRNode>() {
+    @Override
     public T operate(T x, IRNode arg) {
       LOG.finer("calling componentTrueTransfer");
       return trans.transferConditional(arg,true,x);
@@ -76,6 +77,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   };
   final LabeledLattice.UnaryOp<T,IRNode> conditionalFalseTransfer = 
     new LabeledLattice.UnaryOp<T,IRNode>() {
+    @Override
     public T operate(T x, IRNode arg) {
       LOG.finer("calling componentFalseTransfer");
       return trans.transferConditional(arg,false,x);
@@ -84,6 +86,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   
   final LabeledLattice.UnaryOp<T,ComponentFlow> componentFlowTransfer =
     new LabeledLattice.UnaryOp<T,ComponentFlow>() {
+    @Override
     public T operate(T x, ComponentFlow arg) {
       LOG.finer("calling componentFlowTransfer");
       return trans.transferComponentFlow(arg.getComponent().getSyntax(),arg.getInfo(),x);
@@ -91,6 +94,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   };
   final LabeledLattice.UnaryOp<T,SubcomponentFlow> subcomponentFlowTransfer =
     new LabeledLattice.UnaryOp<T,SubcomponentFlow>() {
+    @Override
     public T operate(T x, SubcomponentFlow arg) {
       LOG.finer("calling subcomponentFlowTransfer");
       return trans.transferComponentFlow(arg.getSyntax(),arg.getInfo(),x);
@@ -98,6 +102,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   };
   final LabeledLattice.UnaryOp<T,ComponentChoice> componentChoiceTrueTransfer =
     new LabeledLattice.UnaryOp<T,ComponentChoice>() {
+    @Override
     public T operate(T x, ComponentChoice arg) {
       LOG.finer("calling componentChoiceTrueTransfer");
       return trans.transferComponentChoice(arg.getSyntax(),arg.getInfo(),true,x);
@@ -105,6 +110,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   };
   final LabeledLattice.UnaryOp<T,SubcomponentChoice> subcomponentChoiceTrueTransfer =
     new LabeledLattice.UnaryOp<T,SubcomponentChoice>() {
+    @Override
     public T operate(T x, SubcomponentChoice arg) {
       LOG.finer("calling componentChoiceTrueTransfer (for subcomponent choice)");
       return trans.transferComponentChoice(arg.getSyntax(),arg.getInfo(),true,x);
@@ -112,6 +118,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   };
   final LabeledLattice.UnaryOp<T,ComponentChoice> componentChoiceFalseTransfer =
     new LabeledLattice.UnaryOp<T,ComponentChoice>() {
+    @Override
     public T operate(T x, ComponentChoice arg) {
       LOG.finer("calling componentChoiceFalseTransfer");
       return trans.transferComponentChoice(arg.getSyntax(),arg.getInfo(),false,x);
@@ -119,6 +126,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   };
   final LabeledLattice.UnaryOp<T,SubcomponentChoice> subcomponentChoiceFalseTransfer =
     new LabeledLattice.UnaryOp<T,SubcomponentChoice>() {
+    @Override
     public T operate(T x, SubcomponentChoice arg) {
       LOG.finer("calling componentChoiceFalseTransfer (for subcomponent choice)");
       return trans.transferComponentChoice(arg.getSyntax(),arg.getInfo(),false,x);
@@ -126,6 +134,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   };
   final LabeledLattice.LabelOp<ControlLabel> addLabelOp =
     new LabeledLattice.LabelOp<ControlLabel>() {
+    @Override
     public LabelList operate(LabelList ll, ControlLabel arg) {
       LOG.finer("calling addLabelOp");
       return ll.addLabel(arg);
@@ -133,6 +142,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   };
   final LabeledLattice.LabelOp<ControlLabel> dropLabelOp =
     new LabeledLattice.LabelOp<ControlLabel>() {
+    @Override
     public LabelList operate(LabelList ll, ControlLabel arg) {
       LOG.finer("calling dropLabelOp");
       return ll.dropLabel(arg);
@@ -140,6 +150,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   };
   final LabeledLattice.LabelOp<LabelTest> testLabelTrueOp =
     new LabeledLattice.LabelOp<LabelTest>() {
+    @Override
     public LabelList operate(LabelList ll, LabelTest arg) {
       LOG.finer("calling testLabelTrueOp");
       ControlLabel label = ll.firstLabel();
@@ -154,6 +165,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   };
   final LabeledLattice.LabelOp<LabelTest> testLabelFalseOp =
     new LabeledLattice.LabelOp<LabelTest>() {
+    @Override
     public LabelList operate(LabelList ll, LabelTest arg) {
       LOG.finer("calling testLabelFalseOp");
       ControlLabel label = ll.firstLabel();
@@ -169,6 +181,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   
   final LabeledLattice.LabelOp<Void> pendingLabelStripOp =
     new LabeledLattice.LabelOp<Void>() {
+    @Override
     public LabelList operate(LabelList ll, Void arg) {
       LOG.finer("calling pendingLabelStripOp");
       ControlLabel saved = ll.firstLabel();
@@ -190,6 +203,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   };
   final LabeledLattice.Combiner<T,LoopMerge> loopMergeOp =
     new LabeledLattice.AbstractCombiner<T,LoopMerge>() {
+    @Override
     public T combine(T value, T otherValue, LoopMerge node) {
       LOG.finer("calling loopMergeOp");
       IRNode loop = node.getComponent().getSyntax();

@@ -17,13 +17,16 @@ public class TypeSetPromiseDrop extends AbstractReferenceCheckDrop<TypeSetNode> 
 		return getAAST().getId();
 	}
 
-	public boolean isPartOf(IRNode type) {
+	@Override
+  public boolean isPartOf(IRNode type) {
 		return getAAST().check(type);
 	}
-	public int getResultMessageKind() {
+	@Override
+  public int getResultMessageKind() {
 		throw new UnsupportedOperationException();
 	}
-	public Object[] getArgs(IRNode binding, IRNode type, IRNode context) {
+	@Override
+  public Object[] getArgs(IRNode binding, IRNode type, IRNode context) {
 		throw new UnsupportedOperationException();
 	}
 }

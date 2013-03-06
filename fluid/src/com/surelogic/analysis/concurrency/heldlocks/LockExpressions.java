@@ -357,6 +357,7 @@ final class LockExpressions {
     protected InstanceInitAction getAnonClassInitAction(
         final IRNode anonClass, final IRNode classBody) {
       return new InstanceInitAction() {
+        @Override
         public void tryBefore() {
           try {
             teb.newDeclaration(JavaPromise.getInitMethodOrNull(anonClass));
@@ -365,10 +366,12 @@ final class LockExpressions {
           }
         }
         
+        @Override
         public void finallyAfter() {
           teb.pop();
         }
         
+        @Override
         public void afterVisit() { // do nothing
         }
       };

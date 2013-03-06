@@ -14,6 +14,7 @@ public class ComponentFlow extends Flow implements ComponentNode {
     comp = c;
     value = v;
   }
+  @Override
   public Component getComponent() {
     return comp;
   }

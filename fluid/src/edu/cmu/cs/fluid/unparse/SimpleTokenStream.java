@@ -40,6 +40,7 @@ public class SimpleTokenStream implements TokenStream {
     sb.setLength(0);
   }
 
+  @Override
   public void append(Breakpoint bp, IRNode aloc) {
     if (!eliding) {  
       lastNotBP = false;
@@ -48,6 +49,7 @@ public class SimpleTokenStream implements TokenStream {
     }
   }
 
+  @Override
   public void append(Token tok, IRNode aloc) {
     if (!eliding) {
       if (lastNotBP)
@@ -57,6 +59,7 @@ public class SimpleTokenStream implements TokenStream {
     }
   }
 
+  @Override
   public void append(boolean open, Token tok, IRNode aloc) {
     if (!eliding && open && lastNotBP)
       this.append(IndepBP.DEFAULTBP, aloc);

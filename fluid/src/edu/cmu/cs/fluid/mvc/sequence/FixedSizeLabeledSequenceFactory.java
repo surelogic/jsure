@@ -51,6 +51,7 @@ implements LabeledSequence.Factory
   
 
   // inherit javadoc
+  @Override
   public LabeledSequence create( final String name, final SlotFactory sf )
   throws SlotAlreadyRegisteredException
   {

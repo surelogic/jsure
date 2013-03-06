@@ -87,6 +87,7 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
     /**
      * Always forwards the bottom value to {@link #processRawResult}.
      */
+    @Override
     public R getResultFor(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode expr) {
       return owner.getBottomReturningResult(lattice, expr);
     }
@@ -96,6 +97,7 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
      * method is ever called.
      * @throws UnsupportedOperationException Always thrown.
      */
+    @Override
     public SELF getSubAnalysisQuery(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode caller) {
       throw new UnsupportedOperationException(
           "Cannot get a subanalysis query from a bottom-returning query");
@@ -119,6 +121,7 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
      * {@link rawResultFactory} and forward the value to
      * {@link processRawResult}.
      */
+    @Override
     public R getResultFor(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode expr) {
       return owner.getEvaluatedAnalysisResult(analysis, lattice, expr);
     }
@@ -129,6 +132,7 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
      * so we either create a query based on {@link HasEvaluatedAnalysis} or
      * {@link IsBottomReturning}. 
      */
+    @Override
     public SELF getSubAnalysisQuery(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode caller) {
       final IJavaFlowAnalysis<T, L> sub =
         analysis.getSubAnalysisFactory().getSubAnalysis(caller);
@@ -172,6 +176,7 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
      * Evaluates the thunked analysis, and then forwards the request to the
      * new delegate object.
      */
+    @Override
     public R getResultFor(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode expr) {
       return evaluateAnalysis(owner).getResultFor(owner, expr);
     }
@@ -179,6 +184,7 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
     /**
      * Return a new query whose delegate is a {@link HasThunkedSubAnalysis}.
      */
+    @Override
     public SELF getSubAnalysisQuery(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode caller) {
       return owner.newSubAnalysisQuery(new HasThunkedSubAnalysis<SELF, R, T, L>(analysisThunk, caller));
     }
@@ -228,6 +234,7 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
      * Evaluate the analysis object, and forward the call to the new delegate
      * object.
      */
+    @Override
     public R getResultFor(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode expr) {
       return evaluateAnalysis(owner).getResultFor(owner, expr);
     }
@@ -240,6 +247,7 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
      * subanalysys doesn't exist, because in that case we would be trying to get
      * a subanalysis from a bottom-returning query, which is an error.
      */
+    @Override
     public SELF getSubAnalysisQuery(final AbstractJavaFlowAnalysisQuery<SELF, R, T, L> owner, final IRNode subCaller) {
       final IThunk<IJavaFlowAnalysis<T, L>> subThunk = 
         new Thunk<IJavaFlowAnalysis<T, L>>() {
@@ -297,10 +305,12 @@ public abstract class AbstractJavaFlowAnalysisQuery<SELF extends JavaFlowAnalysi
   
   
   
+  @Override
   public final R getResultFor(final IRNode expr) {
     return delegate.getResultFor(this, expr);
   }
 
+  @Override
   public final SELF getSubAnalysisQuery(final IRNode caller) {
     return delegate.getSubAnalysisQuery(this, caller);
   }

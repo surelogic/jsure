@@ -26,14 +26,17 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
 	  return true;
   }
   
+  @Override
   public boolean isConsistent() {
     return f_isConsistent;
   }
 
+  @Override
   public boolean isVouched() {
     return f_isVouched;
   }
 
+  @Override
   public boolean isTimeout() {
     return f_isTimeout;
   }

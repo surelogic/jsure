@@ -54,6 +54,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.MutableTreeInterface#getParentOrNull(fluid.ir.IRNode)
    */
+  @Override
   public IRNode getParentOrNull(IRNode node) {
     return getTree(node).getParentOrNull(node);
   }
@@ -62,6 +63,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.MutableTreeInterface#rootWalk(fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode> rootWalk(IRNode node) {
     throw new NotImplemented("Needs more thought"); // TODO
   }
@@ -69,6 +71,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.MutableTreeInterface#comparePreorder(fluid.ir.IRNode, fluid.ir.IRNode)
    */
+  @Override
   public int comparePreorder(IRNode node1, IRNode node2) {
     throw new NotImplemented("Needs more thought"); // TODO
   }
@@ -77,6 +80,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.MutableSymmetricDigraphInterface#connectedNodes(fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode> connectedNodes(IRNode root) {
     throw new NotImplemented("Needs more thought"); // TODO
   }
@@ -84,6 +88,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.TreeInterface#getParent(fluid.ir.IRNode)
    */
+  @Override
   public IRNode getParent(IRNode node) {
     return getTree(node).getParent(node);
   }
@@ -91,6 +96,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.TreeInterface#getLocation(fluid.ir.IRNode)
    */
+  @Override
   public IRLocation getLocation(IRNode node) {
     return getTree(node).getLocation(node);
   }
@@ -98,6 +104,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.TreeInterface#getRoot(fluid.ir.IRNode)
    */
+  @Override
   public IRNode getRoot(IRNode subtree) {
     throw new NotImplemented("Needs more thought"); // TODO
   }
@@ -105,6 +112,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.TreeInterface#bottomUp(fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode> bottomUp(IRNode subtree) {
     throw new NotImplemented("Needs more thought"); // TODO
   }
@@ -112,6 +120,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.TreeInterface#topDown(fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode> topDown(IRNode subtree) {
     throw new NotImplemented("Needs more thought"); // TODO
   }
@@ -119,6 +128,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.MutableDigraphInterface#isNode(fluid.ir.IRNode)
    */
+  @Override
   public boolean isNode(IRNode n) {
     return getTree(n).isNode(n);
   }
@@ -127,6 +137,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.MutableDigraphInterface#depthFirstSearch(fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode> depthFirstSearch(IRNode node) {
     throw new NotImplemented("Needs more thought"); // TODO
   }
@@ -134,6 +145,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#hasParents(fluid.ir.IRNode)
    */
+  @Override
   public boolean hasParents(IRNode node) {
     return getTree(node).hasParents(node);
   }
@@ -141,6 +153,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#numParents(fluid.ir.IRNode)
    */
+  @Override
   public int numParents(IRNode node) {
     return getTree(node).numParents(node);
   }
@@ -148,6 +161,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#parentLocation(fluid.ir.IRNode, int)
    */
+  @Override
   public IRLocation parentLocation(IRNode node, int i) {
     return getTree(node).parentLocation(node, i);
   }
@@ -155,6 +169,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#parentLocationIndex(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public int parentLocationIndex(IRNode node, IRLocation loc) {
     return getTree(node).parentLocationIndex(node, loc);
   }
@@ -162,6 +177,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#firstParentLocation(fluid.ir.IRNode)
    */
+  @Override
   public IRLocation firstParentLocation(IRNode node) {
     return getTree(node).firstParentLocation(node);
   }
@@ -169,6 +185,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#lastParentLocation(fluid.ir.IRNode)
    */
+  @Override
   public IRLocation lastParentLocation(IRNode node) {
     return getTree(node).lastParentLocation(node);
   }
@@ -176,6 +193,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#nextParentLocation(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public IRLocation nextParentLocation(IRNode node, IRLocation ploc) {
     return getTree(node).nextParentLocation(node, ploc);
   }
@@ -183,6 +201,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#prevParentLocation(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public IRLocation prevParentLocation(IRNode node, IRLocation ploc) {
     return getTree(node).prevParentLocation(node, ploc);
   }
@@ -190,6 +209,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#compareParentLocations(fluid.ir.IRNode, fluid.ir.IRLocation, fluid.ir.IRLocation)
    */
+  @Override
   public int compareParentLocations(
     IRNode node,
     IRLocation loc1,
@@ -200,6 +220,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#getParent(fluid.ir.IRNode, int)
    */
+  @Override
   public IRNode getParent(IRNode node, int i) {
     return getTree(node).getParent(node, i);
   }
@@ -207,6 +228,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#getParent(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public IRNode getParent(IRNode node, IRLocation loc) {
     return getTree(node).getParent(node, loc);
   }
@@ -214,6 +236,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#parents(fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode> parents(IRNode node) {
     return getTree(node).parents(node);
   }
@@ -221,6 +244,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#hasChildren(fluid.ir.IRNode)
    */
+  @Override
   public boolean hasChildren(IRNode node) {
     return getTree(node).hasChildren(node);
   }
@@ -228,6 +252,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#numChildren(fluid.ir.IRNode)
    */
+  @Override
   public int numChildren(IRNode node) {
     return getTree(node).numChildren(node);
   }
@@ -235,6 +260,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#childLocation(fluid.ir.IRNode, int)
    */
+  @Override
   public IRLocation childLocation(IRNode node, int i) {
     return getTree(node).childLocation(node, i);
   }
@@ -242,6 +268,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#childLocationIndex(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public int childLocationIndex(IRNode node, IRLocation loc) {
     return getTree(node).childLocationIndex(node, loc);
   }
@@ -249,6 +276,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#firstChildLocation(fluid.ir.IRNode)
    */
+  @Override
   public IRLocation firstChildLocation(IRNode node) {
     return getTree(node).firstChildLocation(node);
   }
@@ -256,6 +284,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#lastChildLocation(fluid.ir.IRNode)
    */
+  @Override
   public IRLocation lastChildLocation(IRNode node) {
     return getTree(node).lastChildLocation(node);
   }
@@ -263,6 +292,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#nextChildLocation(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public IRLocation nextChildLocation(IRNode node, IRLocation loc) {
     return getTree(node).nextChildLocation(node, loc);
   }
@@ -270,6 +300,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#prevChildLocation(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public IRLocation prevChildLocation(IRNode node, IRLocation loc) {
     return getTree(node).prevChildLocation(node, loc);
   }
@@ -277,6 +308,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#compareChildLocations(fluid.ir.IRNode, fluid.ir.IRLocation, fluid.ir.IRLocation)
    */
+  @Override
   public int compareChildLocations(
     IRNode node,
     IRLocation loc1,
@@ -287,6 +319,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#hasChild(fluid.ir.IRNode, int)
    */
+  @Override
   public boolean hasChild(IRNode node, int i) {
     return getTree(node).hasChild(node, i);
   }
@@ -294,6 +327,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#hasChild(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public boolean hasChild(IRNode node, IRLocation loc) {
     return getTree(node).hasChild(node, loc);
   }
@@ -301,6 +335,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#getChild(fluid.ir.IRNode, int)
    */
+  @Override
   public IRNode getChild(IRNode node, int i) {
     return getTree(node).getChild(node, i);
   }
@@ -308,6 +343,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#getChild(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public IRNode getChild(IRNode node, IRLocation loc) {
     return getTree(node).getChild(node, loc);
   }
@@ -315,10 +351,12 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#children(fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode> children(IRNode node) {
     return getTree(node).children(node);
   }
   
+  @Override
   public List<IRNode> childList(IRNode node) {
     return getTree(node).childList(node);
   }
@@ -326,21 +364,24 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.tree.DigraphInterface#addDigraphListener(fluid.tree.DigraphListener)
 	 */
-	public void addDigraphListener(DigraphListener dl) {
+	@Override
+  public void addDigraphListener(DigraphListener dl) {
 		throw new UnsupportedOperationException( "Cannot modify a projection." );
 	}
 
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.tree.DigraphInterface#removeDigraphListener(fluid.tree.DigraphListener)
 	 */
-	public void removeDigraphListener(DigraphListener dl) {
+	@Override
+  public void removeDigraphListener(DigraphListener dl) {
 		throw new UnsupportedOperationException( "Cannot modify a projection." );
 	}
 
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.tree.DigraphInterface#getAttribute(java.lang.String)
 	 */
-	@SuppressWarnings("unchecked")
+	@Override
+  @SuppressWarnings("unchecked")
     public SlotInfo getAttribute(final String name) {
 	  final SlotInfo treeSI = tree.getAttribute(name);
 	  if (treeSI == null) {
@@ -364,6 +405,7 @@ public class MergedTree extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.MutableDigraphInterface#addObserver(java.util.Observer)
    */
+  @Override
   public void addObserver(Observer o) {
     // TODO Auto-generated method stub
     
@@ -385,6 +427,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.MutableTreeInterface#getParentOrNull(fluid.ir.IRNode)
    */
+  @Override
   public IRNode getParentOrNull(IRNode node) {
     return parentTree.getParentOrNull(node);
   }
@@ -392,6 +435,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.MutableTreeInterface#rootWalk(fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode> rootWalk(IRNode node) {
     return parentTree.rootWalk(node);
   }
@@ -399,6 +443,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.MutableTreeInterface#comparePreorder(fluid.ir.IRNode, fluid.ir.IRNode)
    */
+  @Override
   public int comparePreorder(IRNode node1, IRNode node2) {
     throw new NotImplemented();
      // TODO Auto-generated method stub
@@ -408,6 +453,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.MutableSymmetricDigraphInterface#connectedNodes(fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode> connectedNodes(IRNode root) {
     // TODO Auto-generated method stub
     throw new NotImplemented();
@@ -416,6 +462,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.TreeInterface#getParent(fluid.ir.IRNode)
    */
+  @Override
   public IRNode getParent(IRNode node) {
     return parentTree.getParent(node);
   }
@@ -423,6 +470,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.TreeInterface#getLocation(fluid.ir.IRNode)
    */
+  @Override
   public IRLocation getLocation(IRNode node) {
     // TODO Auto-generated method stub
     throw new NotImplemented();
@@ -431,6 +479,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.TreeInterface#getRoot(fluid.ir.IRNode)
    */
+  @Override
   public IRNode getRoot(IRNode subtree) {
     return parentTree.getRoot(subtree);
   }
@@ -438,6 +487,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.TreeInterface#bottomUp(fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode> bottomUp(IRNode subtree) {
     return childTree.bottomUp(subtree);
   }
@@ -445,6 +495,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.TreeInterface#topDown(fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode> topDown(IRNode subtree) {
     return childTree.topDown(subtree);
   }
@@ -452,6 +503,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.MutableDigraphInterface#isNode(fluid.ir.IRNode)
    */
+  @Override
   public boolean isNode(IRNode n) {
     return parentTree.isNode(n) && childTree.isNode(n);
   }
@@ -460,6 +512,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.MutableDigraphInterface#depthFirstSearch(fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode> depthFirstSearch(IRNode node) {
     return childTree.depthFirstSearch(node);
   }
@@ -467,6 +520,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#hasParents(fluid.ir.IRNode)
    */
+  @Override
   public boolean hasParents(IRNode node) {
     return parentTree.hasParents(node);
   }
@@ -474,6 +528,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#numParents(fluid.ir.IRNode)
    */
+  @Override
   public int numParents(IRNode node) {
     return parentTree.numParents(node);
   }
@@ -481,6 +536,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#parentLocation(fluid.ir.IRNode, int)
    */
+  @Override
   public IRLocation parentLocation(IRNode node, int i) {
     return parentTree.parentLocation(node, i);
   }
@@ -488,6 +544,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#parentLocationIndex(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public int parentLocationIndex(IRNode node, IRLocation loc) {
     return parentTree.parentLocationIndex(node, loc);
   }
@@ -495,6 +552,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#firstParentLocation(fluid.ir.IRNode)
    */
+  @Override
   public IRLocation firstParentLocation(IRNode node) {
     return parentTree.firstParentLocation(node);
   }
@@ -502,6 +560,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#lastParentLocation(fluid.ir.IRNode)
    */
+  @Override
   public IRLocation lastParentLocation(IRNode node) {
     return parentTree.lastParentLocation(node);
   }
@@ -509,6 +568,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#nextParentLocation(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public IRLocation nextParentLocation(IRNode node, IRLocation ploc) {
     return parentTree.nextParentLocation(node, ploc);
   }
@@ -516,6 +576,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#prevParentLocation(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public IRLocation prevParentLocation(IRNode node, IRLocation ploc) {
     return parentTree.prevParentLocation(node, ploc);
   }
@@ -523,6 +584,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#compareParentLocations(fluid.ir.IRNode, fluid.ir.IRLocation, fluid.ir.IRLocation)
    */
+  @Override
   public int compareParentLocations(
     IRNode node,
     IRLocation loc1,
@@ -533,6 +595,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#getParent(fluid.ir.IRNode, int)
    */
+  @Override
   public IRNode getParent(IRNode node, int i) {
     return parentTree.getParent(node, i);
   }
@@ -540,6 +603,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#getParent(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public IRNode getParent(IRNode node, IRLocation loc) {
     return parentTree.getParent(node, loc);
   }
@@ -547,6 +611,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.SymmetricDigraphInterface#parents(fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode> parents(IRNode node) {
     return parentTree.parents(node);
   }
@@ -554,6 +619,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#hasChildren(fluid.ir.IRNode)
    */
+  @Override
   public boolean hasChildren(IRNode node) {
     return childTree.hasChildren(node);
   }
@@ -561,6 +627,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#numChildren(fluid.ir.IRNode)
    */
+  @Override
   public int numChildren(IRNode node) {
     return childTree.numChildren(node);
   }
@@ -568,6 +635,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#childLocation(fluid.ir.IRNode, int)
    */
+  @Override
   public IRLocation childLocation(IRNode node, int i) {
     return childTree.childLocation(node, i);
   }
@@ -575,6 +643,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#childLocationIndex(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public int childLocationIndex(IRNode node, IRLocation loc) {
     return childTree.childLocationIndex(node, loc);
   }
@@ -582,6 +651,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#firstChildLocation(fluid.ir.IRNode)
    */
+  @Override
   public IRLocation firstChildLocation(IRNode node) {
     return childTree.firstChildLocation(node);
   }
@@ -589,6 +659,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#lastChildLocation(fluid.ir.IRNode)
    */
+  @Override
   public IRLocation lastChildLocation(IRNode node) {
     return childTree.lastChildLocation(node);
   }
@@ -596,6 +667,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#nextChildLocation(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public IRLocation nextChildLocation(IRNode node, IRLocation loc) {
     return childTree.nextChildLocation(node, loc);
   }
@@ -603,6 +675,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#prevChildLocation(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public IRLocation prevChildLocation(IRNode node, IRLocation loc) {
     return childTree.prevChildLocation(node, loc);
   }
@@ -610,6 +683,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#compareChildLocations(fluid.ir.IRNode, fluid.ir.IRLocation, fluid.ir.IRLocation)
    */
+  @Override
   public int compareChildLocations(
     IRNode node,
     IRLocation loc1,
@@ -620,6 +694,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#hasChild(fluid.ir.IRNode, int)
    */
+  @Override
   public boolean hasChild(IRNode node, int i) {
     return childTree.hasChild(node, i);
   }
@@ -627,6 +702,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#hasChild(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public boolean hasChild(IRNode node, IRLocation loc) {
     return childTree.hasChild(node, loc);
   }
@@ -634,6 +710,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#getChild(fluid.ir.IRNode, int)
    */
+  @Override
   public IRNode getChild(IRNode node, int i) {
     return childTree.getChild(node, i);
   }
@@ -641,6 +718,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#getChild(fluid.ir.IRNode, fluid.ir.IRLocation)
    */
+  @Override
   public IRNode getChild(IRNode node, IRLocation loc) {
     return childTree.getChild(node, loc);
   }
@@ -648,10 +726,12 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#children(fluid.ir.IRNode)
    */
+  @Override
   public Iteratable<IRNode> children(IRNode node) {
     return childTree.children(node);
   }
   
+  @Override
   public List<IRNode> childList(IRNode node) {
     return childTree.childList(node);
   }
@@ -659,6 +739,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#addDigraphListener(fluid.tree.DigraphListener)
    */
+  @Override
   public void addDigraphListener(DigraphListener dl) {
     throw new UnsupportedOperationException( "Cannot modify a projection." );
   }
@@ -666,6 +747,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#removeDigraphListener(fluid.tree.DigraphListener)
    */
+  @Override
   public void removeDigraphListener(DigraphListener dl) {
     throw new UnsupportedOperationException( "Cannot modify a projection." );
   }
@@ -673,6 +755,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.DigraphInterface#getAttribute(java.lang.String)
    */
+  @Override
   public SlotInfo getAttribute(String name) {
     // TODO Auto-generated method stub
     throw new NotImplemented();
@@ -681,6 +764,7 @@ class MergedTreeAdapter extends AbstractImmutableTree implements MutableTreeInte
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.tree.MutableDigraphInterface#addObserver(java.util.Observer)
    */
+  @Override
   public void addObserver(Observer o) {
     // TODO Auto-generated method stub
     

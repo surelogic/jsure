@@ -28,6 +28,7 @@ public abstract class ScopedPromiseDrop extends PromiseDrop<ScopedPromiseNode> i
     return true;
   }
 
+  @Override
   public void validated(PromiseDrop<ScopedPromiseNode> pd) {
     throw new UnsupportedOperationException();
   }

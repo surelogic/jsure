@@ -229,6 +229,7 @@ implements Serializable, Comparable<TextCoord>
    * @exception ClassCastException Thrown if <code>o</code> is not
    * a <code>TextCoord</code>.
    */
+  @Override
   public int compareTo( final TextCoord tc )
   {
     try

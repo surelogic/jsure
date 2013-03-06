@@ -14,7 +14,8 @@ public class ConstructorElement extends AbstractFunctionElement {
 		super("new", e);
 	}
 
-	public String getLabel() {
+	@Override
+  public String getLabel() {
 		return "Constructor("+getParams()+")";
 	}
 	
@@ -39,7 +40,8 @@ public class ConstructorElement extends AbstractFunctionElement {
 		return null;
 	}
 	
-	public <T> T visit(IJavaElementVisitor<T> v) {
+	@Override
+  public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
 	}
 }

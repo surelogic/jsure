@@ -52,6 +52,7 @@ public abstract class AbstractJSureScanView extends AbstractSLView implements JS
   /**
    * Enables various functionality if non-null
    */
+  @Override
   protected StructuredViewer getViewer() {
     return null;
   }
@@ -87,6 +88,8 @@ public abstract class AbstractJSureScanView extends AbstractSLView implements JS
   }
 
   /**
+   * Not run in the SWT thread
+   * 
    * @return The label to be shown in the title
    */
   protected abstract String updateViewer();
@@ -97,6 +100,7 @@ public abstract class AbstractJSureScanView extends AbstractSLView implements JS
   private void updateViewState() {
     final String label = updateViewer();
     EclipseUIUtility.asyncExec(new Runnable() {
+      @Override
       public void run() {
         if (label != null) {
           if (getViewer() != null) {

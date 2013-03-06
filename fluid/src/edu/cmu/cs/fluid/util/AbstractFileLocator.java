@@ -26,6 +26,7 @@ public abstract class AbstractFileLocator implements FileLocator {
     super();
   }
 
+  @Override
   public OutputStream openFileWriteOrNull(String name) {
     File file = this.locateFile(name, false);
     if (file == null) return null;
@@ -36,6 +37,7 @@ public abstract class AbstractFileLocator implements FileLocator {
     }     
   }
 
+  @Override
   public OutputStream openFileWrite(String name) throws IOException {
     OutputStream os = openFileWriteOrNull(name);
     if (os == null) {
@@ -44,6 +46,7 @@ public abstract class AbstractFileLocator implements FileLocator {
     return os;
   }
 
+  @Override
   public InputStream openFileReadOrNull(String name) {
     File file = this.locateFile(name, true);
     if (file == null) return null;
@@ -54,6 +57,7 @@ public abstract class AbstractFileLocator implements FileLocator {
     }
   }
 
+  @Override
   public InputStream openFileRead(String name) throws IOException {
     InputStream is = openFileReadOrNull(name);
     if (is == null) {
@@ -62,6 +66,7 @@ public abstract class AbstractFileLocator implements FileLocator {
     return is;
   }
 
+  @Override
   public void commit() throws IOException {
     // do nothing
   }

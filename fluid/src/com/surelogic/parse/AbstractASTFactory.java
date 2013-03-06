@@ -11,7 +11,8 @@ import java.util.*;
 public abstract class AbstractASTFactory<T> implements IASTFactory<T> {
 	private Map<String, IASTFactory<T>> factories = null;
 
-	public T create(String token, int start, int stop, int mods,
+	@Override
+  public T create(String token, int start, int stop, int mods,
 			String id, int dims, List<T> kids) {
 		checkToken(token);
 		if (factories != null) {
@@ -42,7 +43,8 @@ public abstract class AbstractASTFactory<T> implements IASTFactory<T> {
 
 	protected abstract T createTempNode(List<T> kids);
 	
-	public IASTFactory<T> registerFactory(String token, IASTFactory<T> f) {
+	@Override
+  public IASTFactory<T> registerFactory(String token, IASTFactory<T> f) {
 		checkToken(token);
 		if (f == null) {
 			throw new IllegalArgumentException("Null factory provided for "
@@ -60,7 +62,8 @@ public abstract class AbstractASTFactory<T> implements IASTFactory<T> {
 		}
 	}
 
-	public boolean handles(String token) {
+	@Override
+  public boolean handles(String token) {
 		checkToken(token);
 		if (factories != null) {
 			IASTFactory<T> f = factories.get(token);

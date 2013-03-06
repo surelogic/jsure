@@ -135,7 +135,6 @@ final class IntrinsicLockLattice extends
    * Do we have a value that is not the bottom or the top value of the
    * lattice?
    */
-  @Override
   public boolean isNormal(final Object[] value) {
     return value != bottom() && value != top();
   }

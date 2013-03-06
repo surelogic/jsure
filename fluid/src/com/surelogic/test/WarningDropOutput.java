@@ -35,6 +35,7 @@ public class WarningDropOutput extends AbstractTestOutput {
     return drop;
   }
 
+  @Override
   public void reportError(ITest o, Throwable ex) {
     if (report(o, ex)) {
       // FIX store the exception
@@ -43,12 +44,14 @@ public class WarningDropOutput extends AbstractTestOutput {
     }
   }
 
+  @Override
   public void reportFailure(ITest o, String msg) {
     if (report(o, msg)) {
       newDrop(o, msg);
     }
   }
 
+  @Override
   public void reportSuccess(ITest o, String msg) {
     if (report(o, msg)) {
       newDrop(o, msg, true);
@@ -59,6 +62,7 @@ public class WarningDropOutput extends AbstractTestOutput {
   // WarningDropOutput("Test Results");
 
   public static final ITestOutputFactory factory = new ITestOutputFactory() {
+    @Override
     public ITestOutput create(String name) {
       return new WarningDropOutput(name);
     }

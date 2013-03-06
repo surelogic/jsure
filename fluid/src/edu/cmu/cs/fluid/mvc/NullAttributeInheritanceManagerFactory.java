@@ -38,6 +38,7 @@ implements AttributeInheritanceManager.Factory
   }
   
   // inherit javadoc
+  @Override
   public AttributeInheritanceManager create(
     final Model model, final Object mutex, final AttributeManager attrManager )
   {
@@ -67,6 +68,7 @@ implements AttributeInheritanceManager
    * Get the value of a property.  This default implementation doesn't 
    * understand any properties and always throws an exception.
    */
+  @Override
   public Object getProperty( final String property )
   throws IllegalArgumentException
   {
@@ -79,6 +81,7 @@ implements AttributeInheritanceManager
    * Set the value of a property.  This default implementation doesn't 
    * understand any properties and always throws an exception.
    */
+  @Override
   public void setProperty( final String property, final Object value )
   throws IllegalArgumentException
   {
@@ -90,6 +93,7 @@ implements AttributeInheritanceManager
   /**
    * This implementation does nothing.
    */
+  @Override
   public void inheritAttributesFromModel(
     final Model srcModel, final AttributeInheritancePolicy policy,
     final AttributeChangedCallback cb )
@@ -100,6 +104,7 @@ implements AttributeInheritanceManager
   /**
    * Always refuses to inherit the attribute; always returns <code>false</code>.
    */
+  @Override
   public boolean inheritCompAttribute(
     final Model model, final String srcAttr, final String attr,
     final Object mode, final int kind, final AttributeChangedCallback cb )
@@ -110,6 +115,7 @@ implements AttributeInheritanceManager
   /**
    * Always refuses to inherit the attribute; always returns <code>false</code>.
    */
+  @Override
   public boolean inheritNodeAttribute(
     final Model model, final String srcAttr, final String attr,
     final Object mode, final int kind, final AttributeChangedCallback cb )

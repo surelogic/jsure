@@ -194,6 +194,7 @@ public abstract class AbstractMessages {
       field.setAccessible(true);
     } else {
       AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        @Override
         public Object run() {
           field.setAccessible(true);
           return null;

@@ -42,6 +42,7 @@ implements FixedVersionProjection.Factory
    * @param tracker The version-tracker model that will control the version
    *               at which <code>srcModel</code> is projected.
    */
+  @Override
   public final FixedVersionProjection create(
     final String name, final Model srcModel, final VersionTrackerModel tracker )
   throws SlotAlreadyRegisteredException

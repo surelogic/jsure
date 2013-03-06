@@ -9,11 +9,13 @@ public abstract class AbstractDropMatcher implements IDropMatcher {
 		warnIfMatched = warn;
 	}
 
-	public final String getLabel() {
+	@Override
+  public final String getLabel() {
 		return name;
 	}
 	
-	public final boolean warnIfMatched() {
+	@Override
+  public final boolean warnIfMatched() {
 		return warnIfMatched;
 	}
 }

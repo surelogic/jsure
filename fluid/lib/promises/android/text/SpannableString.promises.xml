@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="android.text" release="1">
+    <class name="SpannableString">
+        <method name="subSequence" params="int, int">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </method>
+    </class>
+</package>

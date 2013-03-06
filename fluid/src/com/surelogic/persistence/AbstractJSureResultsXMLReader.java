@@ -38,14 +38,17 @@ public abstract class AbstractJSureResultsXMLReader<T> extends NestedJSureXmlRea
     return null;
   }
 
+  @Override
   public final Entity makeEntity(String name, Attributes a) {
     return new Entity(name, a);
   }
 
+  @Override
   public final void start(String uid, String project) {
     // System.out.println("uid = "+uid);
   }
 
+  @Override
   public void notify(Entity e) {
     if (!RESULT.equals(e.getName())) {
       throw new IllegalStateException("Unexpected top-level entity: " + e.getName());
@@ -84,6 +87,7 @@ public abstract class AbstractJSureResultsXMLReader<T> extends NestedJSureXmlRea
 
   protected abstract void finishResult(T result, Entity e, boolean checkedPromises);
 
+  @Override
   public final void done() {
     // Nothing to do here?
   }

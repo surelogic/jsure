@@ -31,18 +31,22 @@ ITestAnnotationParsingContext {
     srcType = src;
   }
   
+  @Override
   public int getModifiers() {
 	  return JavaNode.ALL_FALSE;
   }
   
+  @Override
   public String getProperty(String key) {
 	  return null;
   }
   
+  @Override
   public void setProperty(String key, String value) {
 	  // ignore
   }
   
+  @Override
   public final AnnotationSource getSourceType() {
     return srcType;
   }
@@ -72,10 +76,12 @@ ITestAnnotationParsingContext {
     throw new UnsupportedOperationException();
   }
   
+  @Override
   public void setTestResultForUpcomingPromise(TestResultType r, String explan) {
     setTestResultForUpcomingPromise(TestResult.newResult(getAnnoNode(), r, explan));    
   } 
   
+  @Override
   public void setTestResultForUpcomingPromise(TestResultType r, String context, String explan) {
     setTestResultForUpcomingPromise(TestResult.newResult(getAnnoNode(), r, context, explan));    
   }
@@ -84,14 +90,17 @@ ITestAnnotationParsingContext {
    * Returns a default mapping from the offsets seen by the parse rule
    * and the actual source offsets
    */
+  @Override
   public int mapToSource(int offset) {
     return offset;
   }
   
+  @Override
   public String getSelectedText(int start, int stop) {
 	throw new UnsupportedOperationException();
   }
     
+  @Override
   public String getAllText() {
 	throw new UnsupportedOperationException();
   }
@@ -99,18 +108,22 @@ ITestAnnotationParsingContext {
   /**
    * Convenience method for annotations that will appear on the default declaration
    */
+  @Override
   public final <T extends IAASTRootNode> void reportAAST(int offset, T ast) {
     reportAAST(offset, AnnotationLocation.DECL, null, ast);
   }
   
+  @Override
   public final void reportError(int offset, String msg) {
 	reportErrorAndProposal(offset, msg, null);
   }
  
+  @Override
   public void reportError(int offset, int number, Object... args) {
 	reportErrorAndProposal(offset, I18N.res(number, args), null);
   }
   
+  @Override
   public ProposedPromiseDrop.Builder startProposal(Class<? extends Annotation> anno) {
 	  return null;
   }
@@ -118,6 +131,7 @@ ITestAnnotationParsingContext {
   /**
    * Convenience method for AnnotationLocations that don't provide any context
    */
+  @Override
   public final <T extends IAASTRootNode> void reportAAST(int offset, AnnotationLocation loc, T ast) {
     reportAAST(offset, loc, null, ast);
   }

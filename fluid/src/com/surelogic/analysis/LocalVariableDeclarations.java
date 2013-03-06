@@ -2,8 +2,9 @@ package com.surelogic.analysis;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
+
+import com.surelogic.util.NullList;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -48,6 +49,19 @@ public final class LocalVariableDeclarations {
    */
   private List<IRNode> external = new ArrayList<IRNode>();
   
+  /**
+   * Receivers declared on and internal to the method's flow of control.
+   * This includes the receiver of the method/constructor declaration itself,
+   * plus any receivers of anonymous class expressions inside the method, and
+   * those along the initialization path of those anonymous  class expressions.
+   */
+  private List<IRNode> receivers = new ArrayList<IRNode>();
+  
+  /**
+   * Receivers declared on classes that enclose the flow unit.
+   */
+  private List<IRNode> qualifiedReceivers = new ArrayList<IRNode>();
+  
   
   
   // =========================================================================
@@ -57,9 +71,13 @@ public final class LocalVariableDeclarations {
   /**
    * Private; get instances using {@link #getDeclarationsFor(IRNode)}.
    */
-  private LocalVariableDeclarations(final List<IRNode> l, final List<IRNode> e) {
+  private LocalVariableDeclarations(
+      final List<IRNode> l, final List<IRNode> e,
+      final List<IRNode> r, final List<IRNode> q) {
     local = Collections.unmodifiableList(l);
     external = Collections.unmodifiableList(e);
+    receivers = Collections.unmodifiableList(r);
+    qualifiedReceivers = Collections.unmodifiableList(q);
   }
   
   
@@ -72,12 +90,17 @@ public final class LocalVariableDeclarations {
     return external;
   }
   
-  public Iteratable<IRNode> getAllDeclarations() {
-    return new AppendIterator<IRNode>(local.iterator(), external.iterator());
+  public List<IRNode> getReceivers() {
+    return receivers;
+  }
+  
+  public List<IRNode> getQualifiedReceivers() {
+    return qualifiedReceivers;
   }
   
   public Iteratable<IRNode> getAllParameterDeclarations() {
-    return new FilterIterator<IRNode, IRNode>(getAllDeclarations()) {
+    return new FilterIterator<IRNode, IRNode>(
+        new AppendIterator<IRNode>(local.iterator(), external.iterator())) {
       @Override
       protected Object select(final IRNode o) {
         return ParameterDeclaration.prototype.includes(o) ? o : IteratorUtil.noElement;
@@ -98,15 +121,18 @@ public final class LocalVariableDeclarations {
    * ClassInitDeclaration.
    */
   private static final class LocalDeclarationsVisitor extends JavaSemanticsVisitor {
-    private final List<IRNode> declarations = new LinkedList<IRNode>();
- 
+    private final List<IRNode> declarations;
+    private final List<IRNode> receivers;
 
     
     /**
      * Only instantiate internal to {@link #getDeclarationsFor(IRNode)}.
      */
-    private LocalDeclarationsVisitor(final IRNode mdecl) {
+    private LocalDeclarationsVisitor(final IRNode mdecl,
+        final List<IRNode> d, final List<IRNode> r) {
       super(false, mdecl);
+      declarations = d;
+      receivers = r;
     }
     
     
@@ -119,10 +145,11 @@ public final class LocalVariableDeclarations {
      *          A MethodDeclaration, ConstructorDeclaration, InitDeclaration, or
      *          ClassInitDeclaration node.
      */
-    public static List<IRNode> getDeclarationsFor(final IRNode mdecl) {
-      final LocalDeclarationsVisitor v = new LocalDeclarationsVisitor(mdecl);
+    public static void getDeclarationsFor(
+        final IRNode mdecl, final List<IRNode> d, final List<IRNode> r) {
+      final LocalDeclarationsVisitor v = 
+          new LocalDeclarationsVisitor(mdecl, d, r);
       v.doAccept(mdecl);
-      return v.declarations;
     }
 
     
@@ -142,6 +169,36 @@ public final class LocalVariableDeclarations {
       declarations.add(varDecl);
       // Need to process the initializer, if any
       doAcceptForChildren(varDecl);
+    }
+    
+    @Override
+    public void handleConstructorDeclaration(final IRNode cdecl) {
+      receivers.add(JavaPromise.getReceiverNode(cdecl));
+      doAcceptForChildren(cdecl);
+    }
+    
+    @Override
+    public void handleMethodDeclaration(final IRNode mdecl) {
+      if (!TypeUtil.isStatic(mdecl)) {
+        receivers.add(JavaPromise.getReceiverNode(mdecl));
+      }
+      doAcceptForChildren(mdecl);
+    }
+    
+    @Override
+    public void handleAnonClassExpression(final IRNode expr) {
+      // Add the receiver of the <init> method
+      receivers.add(
+          JavaPromise.getReceiverNode(JavaPromise.getInitMethod(expr)));
+      super.handleAnonClassExpression(expr);
+    }
+    
+    @Override
+    public void handleEnumConstantClassDeclaration(final IRNode expr) {
+      // Add the receiver of the <init> method
+      receivers.add(
+          JavaPromise.getReceiverNode(JavaPromise.getInitMethod(expr)));
+      super.handleEnumConstantClassDeclaration(expr);
     }
   }
   
@@ -353,14 +410,21 @@ public final class LocalVariableDeclarations {
    *          ClassInitDeclaration node.
    */
   public static LocalVariableDeclarations getDeclarationsFor(final IRNode mdecl) {
-    final List<IRNode> local = LocalDeclarationsVisitor.getDeclarationsFor(mdecl);
-    final List<IRNode> external;
+    final List<IRNode> locals = new ArrayList<IRNode>(10);
+    final List<IRNode> receivers = new ArrayList<IRNode>(5);
+    LocalDeclarationsVisitor.getDeclarationsFor(mdecl, locals, receivers);
+    
+    final List<IRNode> externals;
+    final List<IRNode> qualifiedReceivers;
     if (ClassInitDeclaration.prototype.includes(mdecl)) {
-      external = Collections.emptyList();
+      externals = Collections.emptyList();
+      qualifiedReceivers = Collections.emptyList();
     } else {
-      external = getExternallyDeclaredVariables(mdecl);
+      externals = new ArrayList<IRNode>(5);
+      qualifiedReceivers = new ArrayList<IRNode>(5);
+      getExternallyDeclaredVariables(mdecl, externals, qualifiedReceivers);
     }    
-    return new LocalVariableDeclarations(local, external);
+    return new LocalVariableDeclarations(locals, externals, receivers, qualifiedReceivers);
   }
   
   /**
@@ -371,8 +435,8 @@ public final class LocalVariableDeclarations {
    *          A MethodDeclaration, ConstructorDeclaration, or InitDeclaration
    *          node.
    */
-  public static List<IRNode> getExternallyDeclaredVariables(final IRNode mdecl) {
-    final List<IRNode> external = new ArrayList<IRNode>();
+  public static void getExternallyDeclaredVariables(final IRNode mdecl,
+      final List<IRNode> externals, final List<IRNode> qualifiedReceivers) {
     IRNode current = InitDeclaration.prototype.includes(mdecl) ?
         JavaPromise.getPromisedFor(mdecl) : JJNode.tree.getParentOrNull(mdecl);
     IRNode lastTypeDecl = null;
@@ -382,11 +446,11 @@ public final class LocalVariableDeclarations {
     while (current != null) {
       final Operator op = JJNode.tree.getOperator(current);
       if (MethodDeclaration.prototype.includes(op)) {
-        ExternalDeclarationsVisitor.getDeclarationsFor(current, lastTypeDecl, external);
+        ExternalDeclarationsVisitor.getDeclarationsFor(current, lastTypeDecl, externals);
       } else if (ConstructorDeclaration.prototype.includes(op)) {
-        ExternalDeclarationsVisitor.getDeclarationsFor(current, lastTypeDecl, external);
+        ExternalDeclarationsVisitor.getDeclarationsFor(current, lastTypeDecl, externals);
       } else if (ClassInitializer.prototype.includes(op)) {
-        ExternalDeclarationsVisitor.getDeclarationsFor(current, lastTypeDecl, external);
+        ExternalDeclarationsVisitor.getDeclarationsFor(current, lastTypeDecl, externals);
       } else if (NestedClassDeclaration.prototype.includes(op)) {
         lastTypeDecl = current;
       } else if (NestedInterfaceDeclaration.prototype.includes(op)) {
@@ -400,6 +464,11 @@ public final class LocalVariableDeclarations {
       }
       current = JJNode.tree.getParentOrNull(current); 
     }
-    return external;
   }
+  
+  public static List<IRNode> getExternallyDeclaredVariables(final IRNode mdecl) {
+    final List<IRNode> result = new ArrayList<IRNode>(10);
+    getExternallyDeclaredVariables(mdecl, result, NullList.<IRNode>prototype());
+    return Collections.unmodifiableList(result);
+  }  
 }

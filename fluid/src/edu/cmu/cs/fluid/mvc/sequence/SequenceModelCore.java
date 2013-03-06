@@ -294,16 +294,21 @@ implements IRSequence<IRNode>
   private class SeqSizeComponentSlot extends DefaultDescribe
   implements ComponentSlot<Integer>
   {
+    @Override
     public IRType<Integer> getType() { return IRIntegerType.prototype; }
 
+    @Override
     public Integer getValue()
     {
       return IntegerTable.newInteger( sequence.size() );
     }
 
+    @Override
     public boolean isValid() { return true; }
+    @Override
     public boolean isChanged() { return true; }
   
+    @Override
     public Slot<Integer> setValue( final Integer newValue ) 
       throws SlotImmutableException
     {
@@ -311,12 +316,14 @@ implements IRSequence<IRNode>
 					"\"SetModel.SIZE\"" );
     }
 
+    @Override
     public void writeValue( final IRType ty, final IROutput out )
       throws IOException
     {
       throw new UnsupportedOperationException( "Not yet implemented" ); 
     }
 
+    @Override
     public Slot<Integer> readValue( final IRType ty, final IRInput in )
       throws IOException
     {
@@ -335,8 +342,10 @@ implements IRSequence<IRNode>
   private class FirstEltComponentSlot extends DefaultDescribe
   implements ComponentSlot<IRNode>
   {
+    @Override
     public IRType<IRNode> getType() { return IRNodeType.prototype; }
 
+    @Override
     public IRNode getValue()
     {
       return
@@ -345,9 +354,12 @@ implements IRSequence<IRNode>
 	: sequence.elementAt( 0 );
     }
 
+    @Override
     public boolean isValid() { return true; }
+    @Override
     public boolean isChanged() { return true; }
   
+    @Override
     public Slot<IRNode> setValue( final IRNode newValue ) 
       throws SlotImmutableException
     {
@@ -355,12 +367,14 @@ implements IRSequence<IRNode>
 					"\"SequenceModel.FIRST\"" );
     }
 
+    @Override
     public void writeValue( final IRType ty, final IROutput out )
       throws IOException
     {
       throw new UnsupportedOperationException( "Not yet implemented" ); 
     }
 
+    @Override
     public Slot<IRNode> readValue( final IRType ty, final IRInput in )
       throws IOException
     {
@@ -380,46 +394,55 @@ implements IRSequence<IRNode>
   }
   
   // Inherit java doc for IRSequence 
+  @Override
   public int size() {
     return sequence.size();
   }
 
   // Inherit java doc for IRSequence 
+  @Override
   public boolean isVariable() {
     return sequence.isVariable();
   }
 
   // Inherit java doc for IRSequence 
+  @Override
   public boolean hasElements() {
     return sequence.hasElements(); 
   }
 
   // Inherit java doc for IRSequence 
+  @Override
   @SuppressWarnings("unchecked")
   public Iteratable<IRNode> elements() {
     return sequence.elements(); 
   }
 
   // Inherit java doc for IRSequence 
+  @Override
   public boolean validAt( final int i ) {
     return sequence.validAt( i );
   }
 
   // Inherit java doc for IRSequence 
+  @Override
   public boolean validAt(IRLocation loc) {
     return sequence.validAt(loc);
   }
 
   // Inherit java doc for IRSequence 
+  @Override
   public IRNode elementAt( final int i ) {
     return sequence.elementAt( i );
   }
 
   // Inherit java doc for IRSequence 
+  @Override
   public IRNode elementAt( final IRLocation loc ) {
     return sequence.elementAt(loc);
   }
 
+  @Override
   public void setElementAt( final IRNode element, final int i ) {
     IRLocation loc = location(i);
     if (loc == null)
@@ -429,6 +452,7 @@ implements IRSequence<IRNode>
 
   // Inherit java doc for IRSequence 
   // Override to update the locations attribute
+  @Override
   public void setElementAt( final IRNode element, final IRLocation loc )
   {
     /*
@@ -445,18 +469,22 @@ implements IRSequence<IRNode>
     newNode.setSlotValue( locations, loc );
   }
 
+  @Override
   public IRLocation insertElement( final IRNode element ) {
     return insertElementAt(element,InsertionPoint.first);
   }
 
+  @Override
   public IRLocation appendElement( final IRNode element ) {
     return insertElementAt(element,InsertionPoint.last);
   }
   
+  @Override
   public IRLocation insertElementBefore( final IRNode element, final IRLocation i ) {
     return insertElementAt(element,InsertionPoint.createBefore(i));
   }
 
+  @Override
   public IRLocation insertElementAfter( final IRNode element, final IRLocation i ) {
     return insertElementAt(element,InsertionPoint.createAfter(i));
   }
@@ -479,6 +507,7 @@ implements IRSequence<IRNode>
   
   // Inherit java doc for IRSequence 
   // Override to update the locations attribute
+  @Override
   public void removeElementAt( final IRLocation i ) {
     final IRNode old = elementAt( i );
     sequence.removeElementAt( i );
@@ -487,71 +516,84 @@ implements IRSequence<IRNode>
   }
     
   // Inherit java doc for IRSequence 
+  @Override
   public IRLocation location( final int i ) {
     return sequence.location(i);
   }
 
   // Inherit java doc for IRSequence 
+  @Override
   public int locationIndex( final IRLocation loc ) {
     return sequence.locationIndex(loc);
   }
 
   // Inherit java doc for IRSequence 
+  @Override
   public IRLocation firstLocation() {
     return sequence.firstLocation();
   }
 
   // Inherit java doc for IRSequence 
+  @Override
   public IRLocation lastLocation() {
     return sequence.lastLocation();
   }
 
   // Inherit java doc for IRSequence 
+  @Override
   public IRLocation nextLocation( final IRLocation loc ) {
     return sequence.nextLocation(loc);
   }
   
   // Inherit java doc for IRSequence 
+  @Override
   public IRLocation prevLocation( final IRLocation loc ) {
     return sequence.prevLocation(loc);
   }
 
   // Inherit java doc for IRSequence 
+  @Override
   public int compareLocations( final IRLocation loc1, final IRLocation loc2 ) {
     return sequence.compareLocations(loc1,loc2);
   }
 
   // I/O currently NOPs (sequences are "derived", not in storable form.
 
+  @Override
   public void writeValue( final IROutput out)
   throws IOException
   {
     sequence.writeValue( out );
   }
 
+  @Override
   public void writeContents( final IRCompoundType t, final IROutput out)
   throws IOException
   {
     sequence.writeContents( t, out );
   }
 
+  @Override
   public void readContents( final IRCompoundType t, final IRInput in )
   throws IOException
   {
     sequence.readContents( t, in );
   }
 
+  @Override
   public boolean isChanged()
   {
     return sequence.isChanged();
   }
 
+  @Override
   public void writeChangedContents( final IRCompoundType t, final IROutput out )
   throws IOException
   {
     sequence.writeChangedContents( t, out );
   }
 
+  @Override
   public void readChangedContents( final IRCompoundType t, final IRInput in )
   throws IOException
   {
@@ -612,6 +654,7 @@ implements IRSequence<IRNode>
       pairs = p;
     }
 
+    @Override
     public List<ModelEvent> execute() {
       final Model model = SequenceModelCore.this.partOf;
       final AVPair locAtt = AVPair.findAttribute(pairs, SequenceModel.LOCATION);
@@ -849,6 +892,7 @@ implements IRSequence<IRNode>
       isMutable = isMut;
     }
 
+    @Override
     public SequenceModelCore create(
       final Model model, final Object lock, final AttributeManager manager,
       final String name, final AttributeChangedCallback cb )

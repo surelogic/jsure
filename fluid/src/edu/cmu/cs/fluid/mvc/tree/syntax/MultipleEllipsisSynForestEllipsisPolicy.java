@@ -53,11 +53,13 @@ implements ForestEllipsisPolicy
     forest = fm;
   }
 
+  @Override
   public void resetPolicy()
   {
     map.clear();
   }
 
+  @Override
   public void nodeSkipped( final IRNode node, final IRNode parent, final int pos )
   {
     final Object key = (parent == null) ? treeLevel : parent;
@@ -84,6 +86,7 @@ implements ForestEllipsisPolicy
     rec.set.add( node );
   }
 
+  @Override
   public void applyPolicy()
   {
     final IRSequence roots =

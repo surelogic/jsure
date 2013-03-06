@@ -64,6 +64,7 @@ public class SimpleForestApp extends edu.cmu.cs.fluid.util.SimpleApp {
     VizModels create(String name, Model source) throws SlotAlreadyRegisteredException;
 
     VizModelsFactory prototype = new VizModelsFactory() {
+      @Override
       public VizModels create(String name, Model source) throws SlotAlreadyRegisteredException {
         // Set up the style palette
         StyleSetModel palette =
@@ -109,6 +110,7 @@ public class SimpleForestApp extends edu.cmu.cs.fluid.util.SimpleApp {
 		 * 
 		 * @see edu.cmu.cs.fluid.mvc.examples.SimpleForestModelChain#getTracker()
 		 */
+    @Override
     public VersionTrackerModel getTracker() {
       return tracker;
     }
@@ -117,6 +119,7 @@ public class SimpleForestApp extends edu.cmu.cs.fluid.util.SimpleApp {
 		 * 
 		 * @see edu.cmu.cs.fluid.mvc.examples.SimpleForestModelChain#getPalette()
 		 */
+    @Override
     public StyleSetModel getPalette() {
       return palette;
     }
@@ -125,6 +128,7 @@ public class SimpleForestApp extends edu.cmu.cs.fluid.util.SimpleApp {
 		 * 
 		 * @see edu.cmu.cs.fluid.mvc.examples.SimpleForestModelChain#getPredModel()
 		 */
+    @Override
     public PredicateModel getPredModel() {
       return predModel;
     }
@@ -133,6 +137,7 @@ public class SimpleForestApp extends edu.cmu.cs.fluid.util.SimpleApp {
 		 * 
 		 * @see edu.cmu.cs.fluid.mvc.examples.SimpleForestModelChain#getVisibilityModel()
 		 */
+    @Override
     public VisibilityModel getVisibilityModel() {
       return visModel;
     }
@@ -152,6 +157,7 @@ public class SimpleForestApp extends edu.cmu.cs.fluid.util.SimpleApp {
 		 * 
 		 * @see edu.cmu.cs.fluid.mvc.examples.SimpleForestModelChain#getBaseModel()
 		 */
+    @Override
     public ForestModel getBaseModel() {
       return forest;
     }
@@ -160,6 +166,7 @@ public class SimpleForestApp extends edu.cmu.cs.fluid.util.SimpleApp {
 		 * 
 		 * @see edu.cmu.cs.fluid.mvc.examples.SimpleForestModelChain#getFixedModel()
 		 */
+    @Override
     public ForestModel getFixedModel() {
       return fixProj;
     }
@@ -169,6 +176,7 @@ public class SimpleForestApp extends edu.cmu.cs.fluid.util.SimpleApp {
 		 * 
 		 * @see edu.cmu.cs.fluid.mvc.examples.SimpleForestModelChain#getConfigurableView()
 		 */
+    @Override
     public ForestModel getConfigurableView() {
       return config;
     }
@@ -246,6 +254,7 @@ public class SimpleForestApp extends edu.cmu.cs.fluid.util.SimpleApp {
 		 * 
 		 * @see edu.cmu.cs.fluid.mvc.examples.SimpleForestModelChain#getBaseModel()
 		 */
+    @Override
     public ForestModel getBaseModel() {
       return forest;
     }
@@ -254,6 +263,7 @@ public class SimpleForestApp extends edu.cmu.cs.fluid.util.SimpleApp {
 		 * 
 		 * @see edu.cmu.cs.fluid.mvc.examples.SimpleForestModelChain#getFixedModel()
 		 */
+    @Override
     public ForestModel getFixedModel() {
       return fixProj;
     }
@@ -263,18 +273,22 @@ public class SimpleForestApp extends edu.cmu.cs.fluid.util.SimpleApp {
 		 * 
 		 * @see edu.cmu.cs.fluid.mvc.examples.SimpleForestModelChain#getConfigurableView()
 		 */
+    @Override
     public ForestModel getConfigurableView() {
       return config;
     }
 
+    @Override
     public SyntaxForestModel getBaseSyntaxModel() {
       return forest;
     }
 
+    @Override
     public SyntaxForestModel getFixedSyntaxModel() {
       return fixProj;
     }
 
+    @Override
     public SyntaxForestModel getConfigurableSyntaxView() {
       return config;
     }
@@ -470,9 +484,11 @@ public class SimpleForestApp extends edu.cmu.cs.fluid.util.SimpleApp {
       pairs[0] = new AVPair(SyntaxForestModel.OPERATOR, Ellipsis.prototype);
     }
     */
+    @Override
     public AVPair[] attributesFor(Model model, Set skippedNodes) {
       return pairs;
     }
+    @Override
     public AVPair[] attributesFor(ForestModel model, IRNode root) {
       return pairs;
     }

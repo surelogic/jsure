@@ -38,6 +38,7 @@ public final class VersionedListIterator<T>
     v.mark();
   }
 
+  @Override
   public boolean hasNext() {
     try {
       Version.saveVersion();
@@ -48,6 +49,7 @@ public final class VersionedListIterator<T>
     }
   }
 
+  @Override
   public T next() {
     try {
       // LOG.info("Iterator from "+Version.getVersion()+" to "+v);
@@ -62,6 +64,7 @@ public final class VersionedListIterator<T>
     }
   }
 
+  @Override
   public boolean hasPrevious() {
     try {
       Version.saveVersion();
@@ -72,6 +75,7 @@ public final class VersionedListIterator<T>
     }
   }
 
+  @Override
   public T previous() {
     try {
       Version.saveVersion();
@@ -82,6 +86,7 @@ public final class VersionedListIterator<T>
     }
   }
 
+  @Override
   public int nextIndex() {
     try {
       Version.saveVersion();
@@ -92,6 +97,7 @@ public final class VersionedListIterator<T>
     }
   }
 
+  @Override
   public int previousIndex() {
     try {
       Version.saveVersion();
@@ -102,6 +108,7 @@ public final class VersionedListIterator<T>
     }
   }
 
+  @Override
   public void set(T val) {
     try {
       Version.saveVersion();
@@ -112,6 +119,7 @@ public final class VersionedListIterator<T>
     }
   }
 
+  @Override
   public void add(T val) {
     try {
       Version.saveVersion();

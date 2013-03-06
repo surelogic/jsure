@@ -362,6 +362,7 @@ public class Era extends IRPersistent implements PossibleEra {
    * This information is cached.
    * @see edu.cmu.cs.fluid.version.PossibleEra#isLoaded(edu.cmu.cs.fluid.ir.IRState)
    */
+  @Override
   public synchronized boolean isLoaded(IRState st) {
     st = (IRState) IRState.Operations.asPersistent(st);
     VersionedChunk.debugIsDefined = 540;
@@ -580,10 +581,12 @@ public class Era extends IRPersistent implements PossibleEra {
   /* Persistent kind */
 
   public static final IRPersistentKind kind = new IRPersistentKind() {
+    @Override
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException {
       ((Era) p).getID().write(out);
     }
+    @Override
     public IRPersistent readPersistentReference(DataInput in)
       throws IOException {
       UniqueID id = UniqueID.read(in);
@@ -682,15 +685,18 @@ class EraIterator implements Iterator<Version> {
 	 * Return next version. Overrides method in superclass to fetch version from
 	 * shadow node.
 	 */
+  @Override
   public Version next() throws NoSuchElementException {
     IRNode next = dfs.next();
     return Version.getShadowVersion(next);
   }
 
+  @Override
   public boolean hasNext() {
     return dfs.hasNext();
   }
 
+  @Override
   public void remove() {
     dfs.remove();
   }
@@ -733,11 +739,13 @@ class EraShadowRegion extends IRRegion {
   /* persistent kind */
 
   static final IRPersistentKind kind = new IRPersistentKind() {
+    @Override
     public void writePersistentReference(IRPersistent p, DataOutput out)
       throws IOException {
       EraShadowRegion esr = (EraShadowRegion) p;
       esr.era.writeReference(out);
     }
+    @Override
     public IRPersistent readPersistentReference(DataInput in)
       throws IOException {
       Era e = (Era) IRPersistent.readReference(in);

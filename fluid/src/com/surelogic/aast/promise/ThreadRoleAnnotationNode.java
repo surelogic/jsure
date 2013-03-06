@@ -13,6 +13,7 @@ public abstract class ThreadRoleAnnotationNode extends AASTRootNode {
     super(offset);
   }
   
+  @Override
   public final String unparseForPromise() {
 	  throw new UnsupportedOperationException();
   }

@@ -37,6 +37,7 @@ public final class VersionedIterator<T>
     v.mark();
   }
 
+  @Override
   public boolean hasNext() {
     try {
       Version.saveVersion();
@@ -47,6 +48,7 @@ public final class VersionedIterator<T>
     }
   }
 
+  @Override
   public T next() {
     try {
       // LOG.info("Iterator from "+Version.getVersion()+" to "+v);

@@ -28,22 +28,26 @@ public class ForestEllipsisPolicyType implements IRType<ForestEllipsisPolicy>
     super();
   }
 
+  @Override
   public boolean isValid( final Object x )
   {
     return x instanceof ForestEllipsisPolicy;
   }
 
+  @Override
   public Comparator<ForestEllipsisPolicy> getComparator() 
   {
     return null;
   }
   
+  @Override
   public void writeValue( final ForestEllipsisPolicy v, final IROutput out ) 
   throws IOException
   {
     // needs to be implemented
   }
 
+  @Override
   public ForestEllipsisPolicy readValue( final IRInput in )
   throws IOException
   {
@@ -51,21 +55,25 @@ public class ForestEllipsisPolicyType implements IRType<ForestEllipsisPolicy>
     return null;
   }
 
+  @Override
   public void writeType( final IROutput out )
   throws IOException
   {
     out.writeByte( 'Q' );
   }
 
+  @Override
   public IRType<ForestEllipsisPolicy> readType( final IRInput in )
   {
     return this;
   }
 
+  @Override
   public ForestEllipsisPolicy fromString(String s) {
     throw new NotImplemented();
   }
 
+  @Override
   public String toString(ForestEllipsisPolicy o) {
     throw new NotImplemented();
   }

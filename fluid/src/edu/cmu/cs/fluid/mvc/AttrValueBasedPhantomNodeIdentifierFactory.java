@@ -57,6 +57,7 @@ implements PhantomNodeIdentifier.Factory
    * Create an new attribute-value&ndash;based phantom node identifier object.
    * @param model The model the identifier is to be associated with.
    */
+  @Override
   public PhantomNodeIdentifier create( final Model model )
   {
     return new AttrValueBasedPhantomNodeIdentifier(

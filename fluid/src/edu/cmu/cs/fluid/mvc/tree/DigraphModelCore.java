@@ -633,6 +633,7 @@ public final class DigraphModelCore extends AbstractCore {
       isMutable = mutable;
     }
 
+    @Override
     public DigraphModelCore create(
       final String name,
       final Model model,
@@ -670,6 +671,7 @@ public final class DigraphModelCore extends AbstractCore {
       isMutable = mutable;
     }
 
+    @Override
     public DigraphModelCore create(
       final String name,
       final Model model,

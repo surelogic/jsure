@@ -74,10 +74,12 @@ public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDete
   }
 
   class FastVisitor extends Visitor<Object> implements IBinderClient {
+    @Override
     public void clearCaches() {
       // Nothing to do
     }
 
+    @Override
     public IBinder getBinder() {
       // TODO Auto-generated method stub
       return null;

@@ -16,8 +16,6 @@ public abstract class AssociativeArrayLattice<K, L extends Lattice<T>, T> extend
   
   protected AssociativeArrayLattice(
       final L base, final K[] keys) {
-//      final L base, final T[] p, final K[] keys) {
-//    super(base, keys.length, p);
     super(base, keys.length);
     indices = keys;
   }
@@ -74,11 +72,6 @@ public abstract class AssociativeArrayLattice<K, L extends Lattice<T>, T> extend
    * legitimate values.
    */
   public abstract T[] getEmptyValue();
-  
-  /**
-   * Is the lattice value normal: that is, neither top nor bottom, or erroneous.
-   */
-  public abstract boolean isNormal(T[] value);
   
 
 

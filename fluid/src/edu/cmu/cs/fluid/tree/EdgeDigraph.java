@@ -84,6 +84,7 @@ public class EdgeDigraph extends DigraphMixin
     underlyingNodes = underlyingEdges = underlying;
     underlyingChildrenAttribute = underlyingNodes.getAttribute("children");
     underlying.addObserver(new Observer() {
+      @Override
       public void update(Observable obs, Object node) {
 	notifyIRObservers((IRNode)node);
       }
@@ -129,6 +130,7 @@ public class EdgeDigraph extends DigraphMixin
    * an underlying graph change.  Otherwise, we would be notifying
    * the observer while we were in an inconsistent state.
    */
+  @Override
   public void update(Observable obs, Object node) {
     if (obs == underlyingNodes) notifyDefineObservers((IRNode)node);
   }
@@ -156,6 +158,7 @@ public class EdgeDigraph extends DigraphMixin
   }
 
   /** Relay underlying events to listeners */
+  @Override
   public void handleDigraphEvent(DigraphEvent ev) {
     if (hasListeners()) {
       informDigraphListeners(transformEvent(ev));
@@ -270,6 +273,7 @@ public class EdgeDigraph extends DigraphMixin
    * @exception EdgeDigraphException if e is not initialized as an edge.
    * @exception SlotUndefinedException if this edge has no sink.
    */
+  @Override
   public IRNode getSink(IRNode e) {
     assertEdge(e);
     return underlyingEdges.getChild(e,0);
@@ -306,12 +310,14 @@ public class EdgeDigraph extends DigraphMixin
   }
 
   /** Return the i'th edge leaving a node. */
+  @Override
   public IRNode getChildEdge(IRNode node, int i) {
     assertNode(node);
     return underlyingNodes.getChild(node,i);
   }
 
   /** Return the outgoing edge at location loc. */
+  @Override
   public IRNode getChildEdge(IRNode node, IRLocation loc) {
     assertNode(node);
     return underlyingNodes.getChild(node,loc);
@@ -441,6 +447,7 @@ public class EdgeDigraph extends DigraphMixin
     setSink(edge,child);
   }
 
+  @Override
   public Iteratable<IRNode> childEdges(IRNode node) {
     assertNode(node);
     return underlyingNodes.children(node);
@@ -449,45 +456,54 @@ public class EdgeDigraph extends DigraphMixin
   
   // And now the routines in DigraphInterface
 
+  @Override
   public boolean hasChildren(IRNode node) {
     assertNode(node);
     return underlyingNodes.hasChildren(node);
   }
+  @Override
   public int numChildren(IRNode node) {
     assertNode(node);
     return underlyingNodes.numChildren(node);
   }
 
+  @Override
   public IRLocation childLocation(IRNode node, int i) {
     assertNode(node);
     return underlyingNodes.childLocation(node,i);
   }
 
+  @Override
   public int childLocationIndex(IRNode node, IRLocation loc) {
     assertNode(node);
     return underlyingNodes.childLocationIndex(node,loc);
   }
 
+  @Override
   public IRLocation firstChildLocation(IRNode node) {
     assertNode(node);
     return underlyingNodes.firstChildLocation(node);
   }
 
+  @Override
   public IRLocation lastChildLocation(IRNode node) {
     assertNode(node);
     return underlyingNodes.lastChildLocation(node);
   }
 
+  @Override
   public IRLocation nextChildLocation(IRNode node, IRLocation loc) {
     assertNode(node);
     return underlyingNodes.nextChildLocation(node,loc);
   }
 
+  @Override
   public IRLocation prevChildLocation(IRNode node, IRLocation loc) {
     assertNode(node);
     return underlyingNodes.prevChildLocation(node,loc);
   }
 
+  @Override
   public int compareChildLocations(IRNode node,
 				   IRLocation loc1, IRLocation loc2) {
     assertNode(node);
@@ -503,6 +519,7 @@ public class EdgeDigraph extends DigraphMixin
    * This condition is only satisfied if there is an outgoing edge
    * at the given index, and that edge has a (possibly null) sink.
    */
+  @Override
   public boolean hasChild(IRNode node, int i) {    
     return hasChildEdge(node,i) &&
       hasSink(getChildEdge(node,i));
@@ -511,22 +528,27 @@ public class EdgeDigraph extends DigraphMixin
    * This condition is only satisfied if there is an outgoing edge
    * at the given location, and that edge has a (possibly null) sink.
    */
+  @Override
   public boolean hasChild(IRNode node, IRLocation loc) {
     return hasChildEdge(node,loc) &&
       hasSink(getChildEdge(node,loc));
   }
 
+  @Override
   public IRNode getChild(IRNode node, int i) {
     return getSink(getChildEdge(node,i));
   }
+  @Override
   public IRNode getChild(IRNode node, IRLocation loc) {
     return getSink(getChildEdge(node,loc));
   }
 
+  @Override
   public Iteratable<IRNode> children(IRNode n) {
     return mutator.protect(new EdgeDigraphChildIterator(this,n));
   }
   
+  @Override
   public List<IRNode> childList(IRNode n) {
     throw new NotImplemented();
   }
@@ -582,6 +604,7 @@ public class EdgeDigraph extends DigraphMixin
   
   // TODO: removeChildren
 
+  @Override
   public Iterator<IRNode> connections(IRNode n1, IRNode n2) {
     assertNode(n1);
     if (n2 != null) assertNode(n2);
@@ -652,9 +675,11 @@ public class EdgeDigraph extends DigraphMixin
       return new AbstractRemovelessIterator<IRNode>() {
         @SuppressWarnings("unchecked")
         final Iterator<IRNode> edges = ChildrenWrapper.super.elements();
+        @Override
         public boolean hasNext() {
           return edges.hasNext();
         }
+        @Override
         public IRNode next() {
           IRNode e = edges.next();
           if (e == null) {
@@ -666,6 +691,7 @@ public class EdgeDigraph extends DigraphMixin
     }
   }
   
+  @Override
   public SlotInfo getAttribute(String name) {
     if (name.equals("children")) return wrappedChildrenAttribute;
     else return mutator.getAttribute(name);
@@ -682,10 +708,12 @@ public class EdgeDigraph extends DigraphMixin
     protected final void initBareEdge(IRNode e) {
       e.setSlotValue(isEdgeSlotInfo,Boolean.TRUE);
     }
+    @Override
     public void initNode(IRNode n, int numChildren) {
       initBareNode(n);
       underlyingNodes.initNode(n,numChildren);
     }
+    @Override
     public void initEdge(IRNode e) {
       initBareEdge(e);
       underlyingEdges.initNode(e,1);
@@ -705,6 +733,7 @@ public class EdgeDigraph extends DigraphMixin
       throws EdgeDigraphException
       {}
 
+    @Override
     public void setSink(IRNode e, IRNode n) throws StructureException {
       assertEdge(e);
       if (n != null) {
@@ -714,6 +743,7 @@ public class EdgeDigraph extends DigraphMixin
       underlyingEdges.setChild(e,0,n);
     }
 
+    @Override
     public void setChildEdge(IRNode node, IRLocation loc, IRNode newChildEdge){
       assertNode(node);
       if (newChildEdge != null) {
@@ -723,6 +753,7 @@ public class EdgeDigraph extends DigraphMixin
       underlyingNodes.setChild(node,loc,newChildEdge);
     }
 
+    @Override
     public IRLocation insertChildEdge(IRNode node,
 				      IRNode newChildEdge,
 				      InsertionPoint ip)
@@ -736,6 +767,7 @@ public class EdgeDigraph extends DigraphMixin
       return underlyingNodes.insertChild(node,newChildEdge,ip);
     }
 
+    @Override
     public void removeChildEdge(IRNode node, IRNode oldChildEdge)
       throws StructureException
     {
@@ -744,11 +776,13 @@ public class EdgeDigraph extends DigraphMixin
       underlyingNodes.removeChild(node,oldChildEdge);
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public Iteratable<IRNode> protect(Iteratable enm) {
       return slotFactory.newIterator((Iteratable<IRNode>) enm);
     }
 
+    @Override
     public void saveAttributes(Bundle b) {
       underlyingNodes.saveAttributes(b);
       b.saveAttribute(isEdgeSlotInfo);
@@ -761,6 +795,7 @@ public class EdgeDigraph extends DigraphMixin
     protected final SlotInfo wrappedSinksAttribute =
       new WrappedSinksSlotInfo();
 
+    @Override
     public SlotInfo getAttribute(String name) {
       if (name.equals(IS_EDGE)) return wrappedIsEdgeAttribute;
       else if (name.equals(CHILD_EDGES)) return wrappedChildEdgesAttribute;
@@ -905,32 +940,41 @@ public class EdgeDigraph extends DigraphMixin
     final SlotInfo<IRSequence<IRNode>> sinksAttribute =
       underlyingEdges.getAttribute("children");
 
+    @Override
     public void initNode(IRNode n, int numChildren) {
       IRSequence<IRNode> seq = SimpleSlotFactory.prototype.newSequence(numChildren);
       n.setSlotValue(childEdgesAttribute,seq);
     }
+    @Override
     public void initEdge(IRNode e) {
       e.setSlotValue(isEdgeSlotInfo,Boolean.TRUE);
     }
+    @Override
     public void setSink(IRNode e, IRNode n) {
       underlyingEdges.setChild(e,0,n);
     }
+    @Override
     public void setChildEdge(IRNode node, IRLocation loc, IRNode newChildEdge){
       underlyingNodes.setChild(node,loc,newChildEdge);
     }
+    @Override
     public IRLocation insertChildEdge(IRNode node, IRNode newChildEdge,
 				      InsertionPoint ip) {
       return underlyingNodes.insertChild(node,newChildEdge,ip);
     }
+    @Override
     public void removeChildEdge(IRNode node, IRNode oldChildEdge) {
       underlyingNodes.removeChild(node,oldChildEdge);
     }
+    @Override
     @SuppressWarnings("unchecked")
     public Iteratable<IRNode>  protect(Iteratable enm) {
       return enm;      
     }
+    @Override
     public void saveAttributes(Bundle b) { }
 
+    @Override
     public SlotInfo getAttribute(String name) {
       if (name.equals(IS_EDGE)) return isEdgeSlotInfo;
       else if (name.equals(CHILD_EDGES)) return childEdgesAttribute;
@@ -955,10 +999,12 @@ class EdgeDigraphChildIterator extends AbstractRemovelessIterator<IRNode> {
     }
   }
 
+  @Override
   public boolean hasNext() {
     return next != null;
   }
 
+  @Override
   public IRNode next() throws NoSuchElementException {
     if (next == null) throw new NoSuchElementException("no more children");
     try {

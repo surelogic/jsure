@@ -75,6 +75,8 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IDecl;
+import com.surelogic.common.ref.IDecl.Kind;
+import com.surelogic.common.ref.IDeclParameter;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
@@ -827,10 +829,58 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     }
   }
 
-  public void focusOnMethod(final String name, final String params) {
+  public void focusOn(IDecl decl) {
+	if (decl == null) {
+		return;
+	}
+	switch (decl.getKind()) {
+	case CLASS:
+		focusOnNestedType(getRelativeTypeName(decl));
+		break;
+	case CONSTRUCTOR:
+	case METHOD:
+		focusOnMethod(decl.getParent().getName(), decl.getName(), formatParams(decl.getParameters()));
+	default:
+	}
+  }
+  
+  private String getRelativeTypeName(IDecl decl) {	  
+	StringBuilder sb = new StringBuilder();
+	computeRelativeTypeName(sb, decl);
+	return sb.toString();
+  }
+
+  private void computeRelativeTypeName(StringBuilder sb, IDecl decl) {
+	if (decl == null) {
+		return;
+	}
+	if (decl.getKind() == Kind.CLASS) {
+		computeRelativeTypeName(sb, decl.getParent());
+		if (sb.length() > 0) {
+			sb.append('.');			
+		}
+		sb.append(decl.getName());
+	}
+  }
+
+  private String formatParams(List<IDeclParameter> parameters) {
+	if (parameters.isEmpty()) {
+		return "";
+	}
+	StringBuilder sb = new StringBuilder();
+	for(IDeclParameter p : parameters) {
+		if (sb.length() > 0) {
+			sb.append(", ");
+		}
+		sb.append(p.getTypeOf().getCompact());
+	}
+	return sb.toString();
+  }
+
+  public void focusOnMethod(final String enclosingTypeName, final String name, final String params) {
     PackageElement p = provider.pkg;
     if (p != null) {
-      final MethodElement m = p.visit(new MethodFinder(name, params));
+      final AbstractFunctionElement m = p.visit(new MethodFinder(enclosingTypeName, enclosingTypeName.equals(name) ? "new" : name, params));
       if (m != null) {
         focusOn(m);
       }
@@ -902,19 +952,31 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     }
   }
 
-  static class MethodFinder extends ElementFinder<MethodElement> {
+  static class MethodFinder extends ElementFinder<AbstractFunctionElement> {
+	final String enclosingTypeName;
     final String name, params;
 
-    MethodFinder(final String name, final String params) {
+    MethodFinder(String type, final String name, final String params) {
+      enclosingTypeName = type;
       this.name = name;
       this.params = params;
     }
 
     @Override
-    public MethodElement visit(final MethodElement m) {
-      if (name.equals(m.getName())) {
+    public AbstractFunctionElement visit(final ConstructorElement c) {
+        if (enclosingTypeName.equals(c.getParent().getName()) && name.equals(c.getName())) {
+            if (params == null || params.equals(c.getParams())) {
+            	return c;           
+            }
+        }
+        return null;
+    }
+    
+    @Override
+    public AbstractFunctionElement visit(final MethodElement m) {
+      if (enclosingTypeName.equals(m.getParent().getName()) && name.equals(m.getName())) {
         if (params == null || params.equals(m.getParams())) {
-          return m;
+        	return m;           
         }
       }
       return null;
@@ -979,10 +1041,17 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     if (decl == null)
       throw new IllegalArgumentException(I18N.err(44, "decl"));
     final String qname = DeclUtil.getTypeNameFullyQualifiedOutermostTypeNameOnly(decl);
-    return PromisesXMLEditor.openInEditor(qname.replace('.', '/') + TestXMLParserConstants.SUFFIX, false);
+    PromisesXMLEditor xe = (PromisesXMLEditor)
+    		PromisesXMLEditor.openInEditor(qname.replace('.', '/') + TestXMLParserConstants.SUFFIX, false);
+    xe.focusOn(decl);
+    return xe;
   }
 
   public static IEditorPart openInXMLEditor(final IType t) {
+	  return openInXMLEditor(t, false);
+  }
+  
+  public static IEditorPart openInXMLEditor(final IType t, boolean readOnly) {
     String qname = t.getFullyQualifiedName();
     int firstDollar = qname.indexOf('$');
     if (firstDollar >= 0) {
@@ -990,7 +1059,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
       qname = qname.substring(0, firstDollar);
       // TODO find nested classes
     }
-    return PromisesXMLEditor.openInEditor(qname.replace('.', '/') + TestXMLParserConstants.SUFFIX, false);
+    return PromisesXMLEditor.openInEditor(qname.replace('.', '/') + TestXMLParserConstants.SUFFIX, readOnly);
   }
 
   public static IEditorPart openInEditor(final String path, final boolean readOnly) {
@@ -1114,7 +1183,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     contents.setSelection(new StructuredSelection(e));
     contents.reveal(e);
   }
-
+  
   static class Comparer implements IElementComparer {
     @Override
     public int hashCode(final Object element) {

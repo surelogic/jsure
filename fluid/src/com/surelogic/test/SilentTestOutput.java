@@ -14,14 +14,17 @@ public final class SilentTestOutput extends AbstractTestOutput {
 
 
 
+  @Override
   public void reportError(final ITest o, final Throwable ex) {
     report(o, ex);
   }
 
+  @Override
   public void reportFailure(final ITest o, final String msg) {
     report(o, msg);
   }
 
+  @Override
   public void reportSuccess(final ITest o, final String msg) {
     report(o, msg);
   }
@@ -29,6 +32,7 @@ public final class SilentTestOutput extends AbstractTestOutput {
 
 
   public static final ITestOutputFactory factory = new ITestOutputFactory() {
+    @Override
     public ITestOutput create(String name) {
       return new SilentTestOutput(name);
     }

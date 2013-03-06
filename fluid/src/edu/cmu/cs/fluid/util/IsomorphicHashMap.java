@@ -23,14 +23,17 @@ public class IsomorphicHashMap<K,V> extends HashMap<K,V> implements IsomorphicMa
     return super.put(key, val);
   }
   
+  @Override
   public boolean containsKeyFor(V val) {
     return inverse.containsKey(val);
   }
 
+  @Override
   public K getCorrespondingKey(V val) {
     return inverse.get(val);
   }
 
+  @Override
   public K removeCorrespondingKey(V val) {
     K key = getCorrespondingKey(val);
     inverse.remove(val);

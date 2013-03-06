@@ -12,10 +12,12 @@ import edu.cmu.cs.fluid.ir.IRNode;
 public class SilentWarningReport implements IWarningReport {
   public static final IWarningReport prototype = new SilentWarningReport();
 
+  @Override
   public void reportWarning(String description, IRNode here) {  
     // do nothing
   }
 
+  @Override
   public void reportProblem(String description, IRNode here) {
     // do nothing
   }

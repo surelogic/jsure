@@ -4,6 +4,7 @@ package com.surelogic.ast;
 import com.surelogic.ast.java.operator.ITypeFormalNode;
 
 public interface ITypeFormal extends ISourceRefType {
+  @Override
   public ITypeFormalNode getNode();
   public IReferenceType getExtendsBound();
 }

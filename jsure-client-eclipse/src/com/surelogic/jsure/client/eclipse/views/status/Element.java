@@ -20,6 +20,7 @@ abstract class Element {
    * Compares elements by their label.
    */
   static final Comparator<Element> ALPHA = new Comparator<Element>() {
+    @Override
     public int compare(Element o1, Element o2) {
       if (o1 == null && o2 == null)
         return 0;
@@ -36,6 +37,7 @@ abstract class Element {
    * Compares elements by Java project, package, type, line number, label.
    */
   static final Comparator<Element> JAVA = new Comparator<Element>() {
+    @Override
     public int compare(Element o1, Element o2) {
       if (o1 == null && o2 == null)
         return 0;

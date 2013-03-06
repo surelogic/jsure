@@ -45,6 +45,7 @@ implements FixedVersionSyntaxForestProjection.Factory
    * @param tracker The version-tracker model that will control the version
    *               at which <code>srcModel</code> is projected.
    */
+  @Override
   public final FixedVersionSyntaxForestProjection create(
     final String name, final SyntaxForestModel srcModel,
     final VersionTrackerModel tracker )

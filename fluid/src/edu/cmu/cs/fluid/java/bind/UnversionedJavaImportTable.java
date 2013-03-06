@@ -105,6 +105,7 @@ public final class UnversionedJavaImportTable extends AbstractJavaImportTable {
       scope = sc;
     }
     
+    @Override
     public IJavaScope getScope() {
       return scope;
     }

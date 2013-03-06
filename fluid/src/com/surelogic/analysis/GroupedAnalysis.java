@@ -17,11 +17,13 @@ public class GroupedAnalysis implements IIRAnalysis {
 		analyses = grouped.toArray(new IIRAnalysis[grouped.size()]);
 	}
 
-	public Class<?> getGroup() {
+	@Override
+  public Class<?> getGroup() {
 		return group;
 	}
 	
-	public String name() {
+	@Override
+  public String name() {
 		StringBuilder sb = new StringBuilder();
 		for(IIRAnalysis a : analyses) {
 			if (sb.length() > 0) {
@@ -32,27 +34,32 @@ public class GroupedAnalysis implements IIRAnalysis {
 		return sb.toString();
 	}
 
-	public ConcurrencyType runInParallel() {
+	@Override
+  public ConcurrencyType runInParallel() {
 		return analyses[0].runInParallel();
 	}
 	
-	public boolean analyzeAll() {
+	@Override
+  public boolean analyzeAll() {
 		return analyses[0].analyzeAll();
 	}
 
-	public void init(IIRAnalysisEnvironment env) {
+	@Override
+  public void init(IIRAnalysisEnvironment env) {
 		for(IIRAnalysis a : analyses) {
 			a.init(env);
 		}
 	}
 	
-	public void analyzeBegin(IIRAnalysisEnvironment env, IIRProject p) {
+	@Override
+  public void analyzeBegin(IIRAnalysisEnvironment env, IIRProject p) {
 		for(IIRAnalysis a : analyses) {
 			a.analyzeBegin(env, p);
 		}
 	}
 
-	public boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud) {
+	@Override
+  public boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud) {
 		for(IIRAnalysis a : analyses) {
 			a.doAnalysisOnAFile(env, cud);
 		}
@@ -60,7 +67,8 @@ public class GroupedAnalysis implements IIRAnalysis {
 	}
 
 
-	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+	@Override
+  public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
 		for(IIRAnalysis a : analyses) {
 			handleAnalyzeEnd(a, env, p);
 		}
@@ -81,13 +89,15 @@ public class GroupedAnalysis implements IIRAnalysis {
 		} while (moreToAnalyze);
 	}
 
-	public void postAnalysis(IIRProject p) {
+	@Override
+  public void postAnalysis(IIRProject p) {
 		for(IIRAnalysis a : analyses) {
 			a.postAnalysis(p);
 		}
 	}
 
-	public void finish(IIRAnalysisEnvironment env) {
+	@Override
+  public void finish(IIRAnalysisEnvironment env) {
 		for(IIRAnalysis a : analyses) {
 			a.finish(env);
 		}

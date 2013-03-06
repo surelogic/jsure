@@ -39,6 +39,7 @@ public final class BasicInheritedAttributeBuilderFactory
   }
 
   // inherit javadoc.
+  @Override
   public BareAttributeInheritanceManager.InheritedAttributeBuilder create() {
     return singletonBuilder;
   }
@@ -63,6 +64,7 @@ final class BasicInheritedAttributeBuilder
    * {@link GuardedMutableModelAttribute}, or
    * {@link GuardedImmutableModelAttribute}.
    */
+  @Override
   public <T> ComponentSlot<T> buildCompAttribute(
     final Model partOf,
     final Object mutex,
@@ -95,6 +97,7 @@ final class BasicInheritedAttributeBuilder
    * {@link GuardedNodeAttribute}, or
    * {@link GuardedImmutableNodeAttribute}.
    */
+  @Override
   public <T> SlotInfo<T> buildNodeAttribute(
     final Model partOf,
     final Object mutex,
@@ -127,6 +130,7 @@ final class BasicInheritedAttributeBuilder
    * {@link AttributeInheritanceManager#MUTABLE_SOURCE}
    * to be mutable.
    */
+  @Override
   public boolean isModeMutable(final Object mode) {
     return (mode == AttributeInheritanceManager.MUTABLE_LOCAL)
       || (mode == AttributeInheritanceManager.MUTABLE_SOURCE);

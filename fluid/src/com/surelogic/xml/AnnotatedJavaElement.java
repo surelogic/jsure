@@ -29,7 +29,8 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 		this.access = access;
 	}
 
-	public abstract Operator getOperator();
+	@Override
+  public abstract Operator getOperator();
 
 	void confirm() {
 		confirmed = true;
@@ -106,7 +107,8 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 			filterDeleted(sorted, promises.values());
 		}
 		Collections.sort(sorted, new Comparator<AnnotationElement>() {
-			public int compare(AnnotationElement o1, AnnotationElement o2) {
+			@Override
+      public int compare(AnnotationElement o1, AnnotationElement o2) {
 				int rv = o1.getPromise().compareTo(o2.getPromise());
 				if (rv == 0) {
 					// This break order for those with dependencies
@@ -119,7 +121,8 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 		return sorted;
 	}
 
-	public boolean hasChildren() {
+	@Override
+  public boolean hasChildren() {
 		return !promises.isEmpty()/* || super.hasChildren() */;
 	}
 
@@ -154,7 +157,8 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 		return false;
 	}
 
-	public void markAsClean() {
+	@Override
+  public void markAsClean() {
 		super.markAsClean();
 		for (AnnotationElement a : promises.values()) {
 			a.markAsClean();

@@ -1,5 +1,7 @@
 package com.surelogic.annotation.rules;
 
+import java.util.Collections;
+
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.*;
@@ -12,6 +14,7 @@ import com.surelogic.annotation.AnnotationLocation;
 import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.annotation.DefaultBooleanAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
+import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.AbstractPosetConsistencyChecker;
@@ -353,6 +356,9 @@ public class UniquenessRules extends AnnotationRules {
     	  return null;
       }
       p.replaceSameExisting(badContents);
+      if (JavaNode.isSet(context.getModifiers(), JavaNode.ALLOW_RETURN)) {
+    	  p.setAttributes(Collections.singletonMap(AnnotationVisitor.ALLOW_RETURN, "true"));
+      }
       if (SomeFunctionDeclaration.prototype.includes(context.getOp())) {
           return p.setValue("this");
       }

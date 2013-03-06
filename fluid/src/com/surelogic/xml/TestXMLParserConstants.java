@@ -56,7 +56,8 @@ public interface TestXMLParserConstants {
 	public static final String PROMISES_XML_REL_PATH = "lib/promises";
 
 	public static final FileFilter XML_FILTER = new FileFilter() {
-		public boolean accept(File f) {
+		@Override
+    public boolean accept(File f) {
 			return f.isDirectory() || f.getName().endsWith(SUFFIX);
 		}
 	};

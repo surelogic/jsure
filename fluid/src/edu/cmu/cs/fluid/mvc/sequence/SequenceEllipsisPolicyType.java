@@ -27,22 +27,26 @@ public class SequenceEllipsisPolicyType implements IRType<SequenceEllipsisPolicy
     super();
   }
 
+  @Override
   public boolean isValid( final Object x )
   {
     return x instanceof SequenceEllipsisPolicyType;
   }
 
+  @Override
   public Comparator<SequenceEllipsisPolicy> getComparator() 
   {
     return null;
   }
   
+  @Override
   public void writeValue( final SequenceEllipsisPolicy v, final IROutput out ) 
   throws IOException
   {
     // needs to be implemented
   }
 
+  @Override
   public SequenceEllipsisPolicy readValue( final IRInput in )
   throws IOException
   {
@@ -50,22 +54,26 @@ public class SequenceEllipsisPolicyType implements IRType<SequenceEllipsisPolicy
     return null;
   }
 
+  @Override
   public void writeType( final IROutput out )
   throws IOException
   {
     out.writeByte( 'Q' );
   }
 
+  @Override
   public IRType<SequenceEllipsisPolicy> readType( final IRInput in )
   {
     return this;
   }
 
+  @Override
   public SequenceEllipsisPolicy fromString( final String str )
   {
     throw new RuntimeException( "Method not yet implemented!" );
   }
 
+  @Override
   public String toString( final SequenceEllipsisPolicy obj )
   {
     throw new RuntimeException( "Method not yet implemented!" );

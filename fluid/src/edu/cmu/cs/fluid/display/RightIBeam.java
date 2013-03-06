@@ -60,6 +60,7 @@ public class RightIBeam implements InsertableGraphic
    * @param f The font, derived from the appropriate TextStyle
    * @param dim The dimensions of the cell
    */
+  @Override
   public void drawGraphic( final Graphics g, final Color fore,
                            final Font f, final Dimension dim )
   {
@@ -74,5 +75,6 @@ public class RightIBeam implements InsertableGraphic
    * shows through.
    * @return <TT>false</tt>
    */
+  @Override
   public final boolean clearCharacter() { return false; }
 }

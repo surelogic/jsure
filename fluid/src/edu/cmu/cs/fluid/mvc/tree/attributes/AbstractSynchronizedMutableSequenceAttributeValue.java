@@ -90,6 +90,7 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
    * A null callback.
    */
   private static final class NullCallback implements Callback {
+    @Override
     public void insertElementAt(
       final IRSequence seq,
       final IRNode seqNode,
@@ -97,12 +98,14 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
       final InsertionPoint loc) {
     }
 
+    @Override
     public void removeElementAt(
       final IRSequence seq,
       final IRNode seqNode,
       final Object oldElt) {
     }
 
+    @Override
     public void setElementAt(
       final IRSequence seq,
       final IRNode seqNode,
@@ -148,24 +151,28 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
 
   // ---- Methods ----------
     
+  @Override
   public final int size() {
     synchronized (structLock) {
       return sequence.size();
     }
   }
 
+  @Override
   public final boolean isVariable() {
     synchronized (structLock) {
       return sequence.isVariable();
     }
   }
 
+  @Override
   public final boolean hasElements() {
     synchronized (structLock) {
       return sequence.hasElements();
     }
   }
 
+  @Override
   public final Iteratable<T> elements() {
     /* Create a new enumeration based on the wrapped presentation.
      * This way the enumeration picks up any changes made by the
@@ -174,6 +181,7 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
     return new IRSequenceIterator<T>(this);
   }
 
+  @Override
   public final boolean validAt(final int i) {
     synchronized (structLock) {
       final IRLocation loc = sequence.location(i);
@@ -183,6 +191,7 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
     }
   }
 
+  @Override
   public final boolean validAt(final IRLocation loc) {
     synchronized (structLock) {
       return validAtImpl(loc);
@@ -194,6 +203,7 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
    */
   protected abstract boolean validAtImpl(IRLocation loc);
 
+  @Override
   public final T elementAt(int i) {
     synchronized (structLock) {
       final IRLocation loc = sequence.location(i);
@@ -203,6 +213,7 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
     }
   }
 
+  @Override
   public final T elementAt(final IRLocation loc) {
     synchronized (structLock) {
       return elementAtImpl(loc);
@@ -214,6 +225,7 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
    */
   protected abstract T elementAtImpl(IRLocation loc);
 
+  @Override
   public final void setElementAt(final T element, final int i) {
     Object oldElt = null;
     synchronized (structLock) {
@@ -225,6 +237,7 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
     callback.setElementAt( sequence, belongsTo, element, oldElt );
   }
 
+  @Override
   public final void setElementAt(final T element, final IRLocation loc) {
     Object oldElt = null;
     synchronized (structLock) {
@@ -245,20 +258,24 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
     return oldElt;
   }
 
+  @Override
   public final IRLocation insertElement(final T element) {
     return insertElementAt(element,InsertionPoint.first);
   }
 
+  @Override
   public final IRLocation appendElement(final T element) {
     return insertElementAt(element,InsertionPoint.last);
   }
 
+  @Override
   public final IRLocation insertElementBefore(
     final T element,
     final IRLocation i) {
       return insertElementAt(element,InsertionPoint.createBefore(i));
   }
 
+  @Override
   public final IRLocation insertElementAfter(
     final T element,
     final IRLocation i) {
@@ -277,6 +294,7 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
     return newLoc;
   }
 
+  @Override
   public final void removeElementAt(final IRLocation i) {
     T oldElt = null;
     synchronized( structLock ) {
@@ -289,42 +307,49 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
     callback.removeElementAt( sequence, belongsTo, oldElt );
   }
 
+  @Override
   public final IRLocation location(final int i) {
     synchronized (structLock) {
       return sequence.location(i);
     }
   }
 
+  @Override
   public final int locationIndex(final IRLocation loc) {
     synchronized (structLock) {
       return sequence.locationIndex(loc);
     }
   }
 
+  @Override
   public final IRLocation firstLocation() {
     synchronized (structLock) {
       return sequence.firstLocation();
     }
   }
 
+  @Override
   public final IRLocation lastLocation() {
     synchronized (structLock) {
       return sequence.lastLocation();
     }
   }
 
+  @Override
   public final IRLocation nextLocation(final IRLocation loc) {
     synchronized (structLock) {
       return sequence.nextLocation(loc);
     }
   }
 
+  @Override
   public final IRLocation prevLocation(final IRLocation loc) {
     synchronized (structLock) {
       return sequence.prevLocation(loc);
     }
   }
 
+  @Override
   public final int compareLocations(
     final IRLocation loc1,
     final IRLocation loc2) {
@@ -333,27 +358,34 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
     }
   }
 
+  @Override
   public void writeValue(IROutput out) throws IOException {
   }
 
+  @Override
   public void describe(PrintStream out) {
   }
 
+  @Override
   public void writeContents(IRCompoundType t, IROutput out)
     throws IOException {
   }
 
+  @Override
   public void readContents(IRCompoundType t, IRInput in) throws IOException {
   }
 
+  @Override
   public boolean isChanged() {
     return false;
   }
 
+  @Override
   public void writeChangedContents(IRCompoundType t, IROutput out)
     throws IOException {
   }
 
+  @Override
   public void readChangedContents(IRCompoundType t, IRInput in)
     throws IOException {
   }
@@ -361,6 +393,7 @@ public abstract class AbstractSynchronizedMutableSequenceAttributeValue<T>
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.IRState#getParent()
    */
+  @Override
   public IRState getParent() {
     synchronized (structLock) {
       return sequence.getParent();

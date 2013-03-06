@@ -50,6 +50,7 @@ implements ConfigurableSetView.Factory
    * @param ellipsisPolicy The initial value for the
    * {@link ConfigurableSetView#ELLIPSIS_POLICY} attribute.
    */
+  @Override
   public ConfigurableSetView create(
     final String name, final SetModel src, final VisibilityModel vizModel,
     final AttributeInheritancePolicy attrPolicy,

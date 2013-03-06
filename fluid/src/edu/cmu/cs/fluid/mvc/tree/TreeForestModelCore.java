@@ -91,6 +91,7 @@ extends ForestModelCore
       callback = cb;
     }
 
+    @Override
     public void setElementAt(
       final IRSequence seq, final IRNode parent, final Object elt,
       final Object oldElt )
@@ -107,6 +108,7 @@ extends ForestModelCore
       }
     }
 
+    @Override
     public void insertElementAt(
       final IRSequence seq, final IRNode parent, final Object elt,
       final InsertionPoint ip )
@@ -120,6 +122,7 @@ extends ForestModelCore
       }
     }
 
+    @Override
     public void removeElementAt(
       final IRSequence seq, final IRNode parent, final Object oldElt )
     {
@@ -335,6 +338,7 @@ extends ForestModelCore
       isMutable = mutable;
     }
 
+    @Override
     public ForestModelCore create(
       final String name, final Model model, final Object structLock,
       final AttributeManager manager, final AttributeChangedCallback cb )
@@ -364,6 +368,7 @@ extends ForestModelCore
       isMutable = mutable;
     }
 
+    @Override
     public ForestModelCore create(
       final String name, final Model model, final Object structLock,
       final AttributeManager manager, final AttributeChangedCallback cb )

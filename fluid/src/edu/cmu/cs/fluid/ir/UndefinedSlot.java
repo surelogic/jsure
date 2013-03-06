@@ -5,9 +5,11 @@ package edu.cmu.cs.fluid.ir;
  * but throws an exception if not replaced before used.
  */
 public abstract class UndefinedSlot<T> extends AbstractSlot<T> {
+  @Override
   public T getValue() {
     throw new SlotUndefinedException();
   }
+  @Override
   public boolean isValid() {
     return false;
   }

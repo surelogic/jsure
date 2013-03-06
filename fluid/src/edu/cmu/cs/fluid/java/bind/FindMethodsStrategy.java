@@ -111,14 +111,16 @@ public class FindMethodsStrategy
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.eclipse.bind.ISubTypeSearchStrategy#visitSubclasses()
 	 */
-	public boolean visitSubclasses() {
+	@Override
+  public boolean visitSubclasses() {
 		return searchAfterLastType;
 	}
 
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.eclipse.bind.ITypeSearchStrategy#getResult()
 	 */
-	public Object getResult() {
+	@Override
+  public Object getResult() {
 		return methods.iterator();
 	}
 }

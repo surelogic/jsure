@@ -36,6 +36,7 @@ implements VersionCursorModel.Factory
    * given VersionSpace, and which initially points to the root
    * version of the space.
    */
+  @Override
   public VersionCursorModel create(
     final String name, final VersionSpaceModel src, final boolean isFollowing )
   throws SlotAlreadyRegisteredException

@@ -66,11 +66,13 @@ public class MethodCallNode extends PrimaryExpressionNode implements
 		return sb.toString();
 	}
 
-	public boolean bindingExists() {
+	@Override
+  public boolean bindingExists() {
 		return AASTBinder.getInstance().isResolvable(this);
 	}
 
-	public IMethodBinding resolveBinding() {
+	@Override
+  public IMethodBinding resolveBinding() {
 		return AASTBinder.getInstance().resolve(this);
 	}
 

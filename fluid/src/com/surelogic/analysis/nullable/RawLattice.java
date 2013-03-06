@@ -45,7 +45,8 @@ import edu.uwm.cs.fluid.util.AbstractLattice;
  * during control flow analysis.  This is because the meet operation is never 
  * invoked. 
  */
-public final class RawLattice extends AbstractLattice<RawLattice.Element> {
+public final class RawLattice
+extends AbstractLattice<RawLattice.Element> {
   public static final Element[] ARRAY_PROTOTYPE = new Element[0];
   public static final Element RAW = Specials.RAW;
   public static final Element IMPOSSIBLE = Specials.IMPOSSIBLE;
@@ -63,7 +64,7 @@ public final class RawLattice extends AbstractLattice<RawLattice.Element> {
     RAW {
       @Override
       public boolean lessEq(final Element other) {
-        return false;
+        return other == RAW;
       }
 
       @Override

@@ -10,21 +10,26 @@ public class ListSlots<S,T> extends AssocList<IRNode,S> implements Slots<S,T> {
     super();
   }
   
+  @Override
   public boolean isThreadSafe() {
 	  return false;
   }
   
+  @Override
   public S getSlot(IRNode key, S def) {
     return get(key);
   }
+  @Override
   public S setSlot(IRNode key, S slot, S def) {
     return put(key, slot);
   }
+  @Override
   public int cleanup() {
     // TODO ignored
     return 0;
   }
   
+  @Override
   public boolean compact() {
     // Nothing to reallocate
     return false;
@@ -33,6 +38,7 @@ public class ListSlots<S,T> extends AssocList<IRNode,S> implements Slots<S,T> {
   /**
    * FIX this shouldn't be called for versioned slots
    */
+  @Override
   public void undefineSlot(IRNode node) {
     remove(node);
   }

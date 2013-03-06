@@ -62,6 +62,7 @@ implements VersionMarkerModel
   //== Attribute Convienence methods
   //===========================================================
 
+  @Override
   public void setVersion( final Version ver )
   {
     synchronized( structLock ) {
@@ -71,6 +72,7 @@ implements VersionMarkerModel
       new AttributeValuesChangedEvent( this, VERSION, ver ) );
   }
 	
+  @Override
   public Version getVersion()
   {
     synchronized( structLock ) {

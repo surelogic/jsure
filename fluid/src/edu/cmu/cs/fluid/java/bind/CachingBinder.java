@@ -34,7 +34,8 @@ public class CachingBinder extends AbstractBinder implements JavaCanonicalizer.I
 		return orig.getTypeEnvironment();
 	}
 	
-	protected IBinding getIBinding_impl(IRNode node) {
+	@Override
+  protected IBinding getIBinding_impl(IRNode node) {
 		/*
 		IBinding b = bindingCache.get(node);
 		if (b != null) {
@@ -55,7 +56,8 @@ public class CachingBinder extends AbstractBinder implements JavaCanonicalizer.I
 		return orig.getJavaType(node);
 	}
 	
-	public void init(final IRNode tree) {		
+	@Override
+  public void init(final IRNode tree) {		
 		final boolean isUJB = orig instanceof UnversionedJavaBinder;
 		synchronized (activeCUs) {
 			if (activeCUs.contains(tree)) {
@@ -96,15 +98,18 @@ public class CachingBinder extends AbstractBinder implements JavaCanonicalizer.I
 		}
 	}
 
-	public IBinding checkForBinding(IRNode node) {
+	@Override
+  public IBinding checkForBinding(IRNode node) {
 		return bindingCache.get(node);
 	}
 	
-	public IJavaType checkForType(IRNode node) {
+	@Override
+  public IJavaType checkForType(IRNode node) {
 		return typeCache.get(node);
 	}
 	
-	public void map(IRNode old, IRNode now) {
+	@Override
+  public void map(IRNode old, IRNode now) {
 		if (old.equals(now)) {
 			return;
 		}
@@ -122,7 +127,8 @@ public class CachingBinder extends AbstractBinder implements JavaCanonicalizer.I
 		//System.out.println("Mapped "+label+" for "+now);
 	}
 	
-	public void addBinding(IRNode node, IBinding b) {
+	@Override
+  public void addBinding(IRNode node, IBinding b) {
 		// FIX check if null / already there?		
 		/*
 		if (b != null) {
@@ -132,7 +138,8 @@ public class CachingBinder extends AbstractBinder implements JavaCanonicalizer.I
 		bindingCache.put(node, b);
 	}
 	
-	public void finish(IRNode tree) {
+	@Override
+  public void finish(IRNode tree) {
 		synchronized (activeCUs) {
 			activeCUs.remove(tree);
 			if (activeCUs.isEmpty()) {

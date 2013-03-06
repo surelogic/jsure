@@ -45,6 +45,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   @InRegion("DropState")
   private boolean f_consistent = false;
 
+  @Override
   public boolean isConsistent() {
     synchronized (f_seaLock) {
       return f_consistent;
@@ -93,6 +94,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   @InRegion("DropState")
   private boolean vouched = false;
 
+  @Override
   public boolean isVouched() {
     synchronized (f_seaLock) {
       return vouched;
@@ -126,6 +128,7 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
     }
   }
 
+  @Override
   public boolean isTimeout() {
     synchronized (f_seaLock) {
       return timeout;

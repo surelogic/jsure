@@ -32,8 +32,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
-import edu.cmu.cs.fluid.java.adapter.AbstractAdapter;
-import edu.cmu.cs.fluid.java.adapter.CodeContext;
+import edu.cmu.cs.fluid.java.adapter.*;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
 import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.Annotations;
@@ -141,7 +140,7 @@ public class ClassAdapter extends AbstractAdapter {
     }
     return new File(jar.getName());
   }
-
+  
   public IRNode getRoot() throws IOException {
     final String label;
     InputStream is = null;
@@ -156,6 +155,22 @@ public class ClassAdapter extends AbstractAdapter {
       is = new FileInputStream(classFile);
     }
     if (is != null) {
+      /*
+      // TODO test code
+      InputStream is2 = null;
+      if (jar != null) {
+    	  ZipEntry e = jar.getEntry(className);
+    	  if (e != null) {
+    		  is2 = jar.getInputStream(e);
+    	  }
+      } else {
+    	  is2 = new FileInputStream(classFile);
+      }
+      final ClassReader cr2 = new ClassReader(is2);
+      cr2.accept(new ClassSummarizer(), 0);
+      // TODO end test code
+      */
+    	
       ClassReader cr = new ClassReader(is);
       cr.accept(new Visitor(), 0);
       /*

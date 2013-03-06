@@ -165,6 +165,7 @@ implements ModelListener
   }
   
   
+  @Override
   public int getColumnCount()
   {
     return 1 + attrNames.length;
@@ -184,11 +185,13 @@ implements ModelListener
     else return attrNames[idx-1];
   }
   
+  @Override
   public int getRowCount()
   {
     return nodes.size();
   }
   
+  @Override
   public Object getValueAt( final int rowIdx, final int colIdx )
   {
     try {
@@ -210,6 +213,7 @@ implements ModelListener
     }
   }  
 
+  @Override
   public void breakView( final ModelEvent e )
   {  
     if(e.shouldCauseRebuild()) {
@@ -218,10 +222,12 @@ implements ModelListener
     }
   }
   
+  @Override
   public void addedToModel(final Model m) {
     // do nothing
   }
   
+  @Override
   public void removedFromModel(final Model m) {
     // do nothing;
   }

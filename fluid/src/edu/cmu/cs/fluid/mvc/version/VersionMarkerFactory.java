@@ -36,6 +36,7 @@ implements VersionMarkerModel.Factory
    * Create a new minimal implementation of VersionMarkerModel that
    * initially points given version.
    */
+  @Override
   public VersionMarkerModel create( final String name, final Version version )
   throws SlotAlreadyRegisteredException
   {

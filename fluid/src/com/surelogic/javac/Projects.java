@@ -192,6 +192,7 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
       return srcProjects.get(0);
   }
 
+  @Override
   public String getLabel() {
     final StringBuilder sb = new StringBuilder();
     for (String p : getSourceProjectNamesAlpha()) {
@@ -214,6 +215,7 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
     return monitor;
   }
 
+  @Override
   public JavacProject get(String name) {
     return projects.get(name);
   }
@@ -241,6 +243,7 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
     };
   }
 
+  @Override
   public Iterable<String> getProjectNames() {
     return new FilterIterator<JavacProject, String>(iterator()) {
       @Override
@@ -250,11 +253,13 @@ public class Projects extends JavaProjects implements IIRProjects, Iterable<Java
     };
   }
 
+  @Override
   public Iterable<? extends IIRProject> getProjects() {
     populateOrdering();
     return ordering;
   }
 
+  @Override
   public Iterator<JavacProject> iterator() {
     populateOrdering();
     return ordering.iterator();

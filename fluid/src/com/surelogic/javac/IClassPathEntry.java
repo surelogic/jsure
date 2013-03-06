@@ -17,4 +17,8 @@ public interface IClassPathEntry {
 	void relocateJars(File targetDir) throws IOException;
 	
 	void outputToXML(XmlCreator.Builder b);
+	/**
+	 * @return a File suitable for adding to the classpath, or null
+	 */
+	File getFileForClassPath();
 }

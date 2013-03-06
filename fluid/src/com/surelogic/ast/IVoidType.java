@@ -5,10 +5,12 @@ import com.surelogic.ast.java.operator.IDeclarationNode;
 
 public interface IVoidType extends IType {
   IVoidType VOID = new IVoidType() {
+    @Override
     public String getName() {
       return "void";
     }
 
+    @Override
     public boolean isAssignmentCompatibleTo(IType t) {
       return (t instanceof IVoidType);
     }
@@ -19,10 +21,12 @@ public interface IVoidType extends IType {
     }
     */
 
+    @Override
     public boolean isSubtypeOf(IType t) {
       return (t instanceof IVoidType);
     }
 
+    @Override
     public IDeclarationNode getNode() {
       return null;
     }

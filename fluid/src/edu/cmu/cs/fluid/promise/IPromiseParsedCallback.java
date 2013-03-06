@@ -60,6 +60,7 @@ public interface IPromiseParsedCallback {
       LOG.warning("Ignoring notParsed: " + desc);
     }
 
+    @Override
     public void noteWarning(String desc) {
       LOG.warning("Ignoring warning: " + desc);
     }

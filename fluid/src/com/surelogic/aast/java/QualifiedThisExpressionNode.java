@@ -67,10 +67,12 @@ public class QualifiedThisExpressionNode extends SomeThisExpressionNode {
     return visitor.visit(this);
   }
   
+  @Override
   public boolean bindingExists() {
     return AASTBinder.getInstance().isResolvable(this);
   }
 
+  @Override
   public IVariableBinding resolveBinding() {
     return AASTBinder.getInstance().resolve(this);
   }

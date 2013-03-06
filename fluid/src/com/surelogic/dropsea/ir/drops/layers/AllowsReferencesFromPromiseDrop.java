@@ -10,13 +10,16 @@ public class AllowsReferencesFromPromiseDrop extends AbstractReferenceCheckDrop<
 	public AllowsReferencesFromPromiseDrop(AllowsReferencesFromNode a) {
 		super(a);
 	}
-	public int getResultMessageKind() {
+	@Override
+  public int getResultMessageKind() {
 		return 350;
 	}
-	public Object[] getArgs(IRNode binding, IRNode type, IRNode context) {
+	@Override
+  public Object[] getArgs(IRNode binding, IRNode type, IRNode context) {
 		return new Object[] { binding, type };
 	}
-	public boolean isPartOf(IRNode type) {
+	@Override
+  public boolean isPartOf(IRNode type) {
 		throw new UnsupportedOperationException();
 	}	
 }

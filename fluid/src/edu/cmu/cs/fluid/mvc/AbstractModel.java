@@ -162,6 +162,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
    * By default, no parent
    * @see edu.cmu.cs.fluid.ir.IRState#getParent()
    */
+  @Override
   public IRState getParent() {
     return null;
   }
@@ -212,6 +213,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
    * Basic implementation of the shutdown method.  Removes all
    * listeners registered with this class.
    */
+  @Override
   public void shutdown() {
     // remove the listeners
     modelCore.removeAllModelListeners();
@@ -262,6 +264,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
 	 *              Thrown if the IRNode is not identified with an attribute in
 	 *              this manager.
 	 */
+  @Override
   public final String getAttributeName(final IRNode node)
     throws UnknownAttributeException {
     synchronized (structLock) {
@@ -280,6 +283,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
 	 *              Thrown if the IRNode is not identified with an attribute in
 	 *              this manager.
 	 */
+  @Override
   public final boolean isNodeAttribute(final IRNode node)
     throws UnknownAttributeException {
     synchronized (structLock) {
@@ -292,6 +296,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   //===========================================================
 
   // Inherit Javadoc from Model Interface
+  @Override
   public <T> ComponentSlot<T> addCompAttribute(
     final String name,
     final IRType<T> type,
@@ -313,6 +318,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final Iterator<String> getComponentAttributes() {
     synchronized (structLock) {
       return modelCore.getComponentAttributes();
@@ -320,6 +326,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final boolean isComponentAttribute(final String att) {
     synchronized (structLock) {
       return modelCore.isComponentAttribute(att);
@@ -327,6 +334,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final int getCompAttrKind(final String att) {
     synchronized (structLock) {
       return modelCore.getCompAttrKind(att);
@@ -334,6 +342,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final IRNode getCompAttrNode(final String att) {
     synchronized (structLock) {
       return modelCore.getCompAttrNode(att);
@@ -341,6 +350,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final boolean isCompAttrMutable(final String attr) {
     synchronized (structLock) {
       return modelCore.isCompAttrMutable(attr);
@@ -348,6 +358,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final ComponentSlot getCompAttribute(final String attr) {
     synchronized (structLock) {
       return modelCore.getCompAttribute(attr);
@@ -361,6 +372,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
 	 * 
 	 * @see ModelCore#setCompAttributes
 	 */
+  @Override
   public final void setCompAttributes(final AVPair[] pairs) {
     synchronized (structLock) {
       modelCore.setCompAttributes(pairs);
@@ -372,6 +384,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   //===========================================================
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final <T> SlotInfo<T> addNodeAttribute(
     final String name,
     final IRType<T> type,
@@ -393,6 +406,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final <T> SlotInfo<T> addNodeAttribute(
     final String name,
     final IRType<T> type,
@@ -416,6 +430,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final Iterator<String> getNodeAttributes() {
     synchronized (structLock) {
       return modelCore.getNodeAttributes();
@@ -423,6 +438,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final boolean isNodeAttribute(final String att) {
     synchronized (structLock) {
       return modelCore.isNodeAttribute(att);
@@ -430,6 +446,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final int getNodeAttrKind(final String attr) {
     synchronized (structLock) {
       return modelCore.getNodeAttrKind(attr);
@@ -437,6 +454,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final IRNode getNodeAttrNode(final String attr) {
     synchronized (structLock) {
       return modelCore.getNodeAttrNode(attr);
@@ -444,6 +462,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final boolean isNodeAttrMutable(final String attr) {
     synchronized (structLock) {
       return modelCore.isNodeAttrMutable(attr);
@@ -451,6 +470,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final int getNodeAttrDomain(final String att) {
     synchronized (structLock) {
       return modelCore.getNodeAttrDomain(att);
@@ -458,6 +478,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final Model[] getNodeAttrDomainSrcs(final String att) {
     synchronized (structLock) {
       return modelCore.getNodeAttrDomainSrcs(att);
@@ -465,6 +486,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final SlotInfo getNodeAttribute(final String att) {
     synchronized (structLock) {
       return modelCore.getNodeAttribute(att);
@@ -478,6 +500,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
 	 * 
 	 * @see ModelCore#setNodeAttributes
 	 */
+  @Override
   public void setNodeAttributes(final IRNode node, final AVPair[] pairs) {
     synchronized (structLock) {
       modelCore.setNodeAttributes(node, pairs);
@@ -489,12 +512,15 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   //===========================================================
 
   // Inherit JavaDoc from Model interface
+  @Override
   public abstract Iterator<IRNode> getNodes();
 
   // Inherit JavaDoc from Model interface
+  @Override
   public abstract void addNode(IRNode n, AVPair[] vals);
 
   // Inherit JavaDoc from Model interface
+  @Override
   public abstract void removeNode(IRNode n);
 
   /**
@@ -508,6 +534,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
 	 *         the model.
 	 */
   // Inherit JavaDoc from Model interface
+  @Override
   public final boolean isAttributable(final IRNode node, final String attr) {
     synchronized (structLock) {
       final Model[] srcs = attrManager.getNodeAttrDomainSrcs(attr);
@@ -529,6 +556,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
 
   // inherit javadoc
   // explicitly list for completeness...
+  @Override
   public abstract boolean isPresent(IRNode node);
 
   /**
@@ -540,6 +568,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
 	 * <p>
 	 * This default implementation always returns <code>false</code>.
 	 */
+  @Override
   public boolean isOtherwiseAttributable(final IRNode node) {
     return false;
   }
@@ -549,6 +578,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   //===========================================================
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final IRNode getNode() {
     synchronized (structLock) {
       return modelCore.getNode();
@@ -556,6 +586,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final String getName() {
     synchronized (structLock) {
       return modelCore.getName();
@@ -563,6 +594,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final Set<IRNode> getEllidedNodes(final IRNode node) {
     synchronized (structLock) {
       return modelCore.getEllidedNodes(node);
@@ -570,6 +602,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final boolean isEllipsis(final IRNode node) {
     synchronized (structLock) {
       return modelCore.isEllipsis(node);
@@ -580,6 +613,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   //== Atomic Actions
   //===========================================================
 
+  @Override
   public final Model.AtomizedModelAction atomizeAction(final Model.AtomizedModelAction action) {
     return modelCore.atomizeAction(action);
   }
@@ -589,6 +623,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   //===========================================================
 
   // Inherit JavaDoc from Model interface
+  @Override
   public String toString(final IRNode node) {
     synchronized (structLock) {
       return modelCore.toString(node);
@@ -596,6 +631,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public String idNode(final IRNode node) {
     synchronized (structLock) {
       return modelCore.idNode(node);
@@ -603,6 +639,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public String nodeValueToString(final IRNode node, final String attr)
     throws UnknownAttributeException {
     synchronized (structLock) {
@@ -611,6 +648,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public String compValueToString(final String attr)
     throws UnknownAttributeException {
     synchronized (structLock) {
@@ -623,11 +661,13 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   //===========================================================
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final void addModelListener(final ModelListener l) {
     modelCore.addModelListener(l);
   }
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final void removeModelListener(final ModelListener l) {
     modelCore.removeModelListener(l);
   }
@@ -637,6 +677,7 @@ public abstract class AbstractModel extends DefaultDescribe implements Model {
   //===========================================================
 
   // Inherit JavaDoc from Model interface
+  @Override
   public final boolean upChainFrom(final View v) {
     synchronized (structLock) {
       return modelCore.upChainFrom(v);

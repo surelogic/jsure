@@ -10,10 +10,12 @@ package edu.cmu.cs.fluid.template;
 public class TemplateAdapter
 implements TemplateListener
 {
+  @Override
   public void templateIsRunning( final TemplateEvent r )
   {
   }
 
+  @Override
   public void templateIsDone( final TemplateEvent r )
   {
   }

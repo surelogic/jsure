@@ -486,6 +486,7 @@ public abstract class AbstractConfigurableForest
 	 * subtree rooted at the given root node.
 	 */
   private static final GetIter getSubtree = new GetIter() {
+    @Override
     public final Iterator<IRNode> get(final ForestModel fm, final IRNode root) {
       return fm.topDown(root);
     }
@@ -496,6 +497,7 @@ public abstract class AbstractConfigurableForest
 	 * children of the given node.
 	 */
   private static final GetIter getChildren = new GetIter() {
+    @Override
     public final Iterator<IRNode> get(final ForestModel fm, final IRNode root) {
       return fm.children(root);
     }
@@ -506,6 +508,7 @@ public abstract class AbstractConfigurableForest
 	 * siblings of the given node.
 	 */
   private static final GetIter getSiblings = new GetIter() {
+    @Override
     public final Iterator<IRNode> get(final ForestModel fm, final IRNode root) {
       final IRNode parent = fm.getParent(root);
       if (parent == null) {
@@ -533,6 +536,7 @@ public abstract class AbstractConfigurableForest
 	 * the sub-trees rooted at the siblings of the given node.
 	 */
   private static final GetIter getSiblingSubs = new GetIter() {
+    @Override
     public final Iterator<IRNode> get(final ForestModel fm, final IRNode root) {
       return new ProcessIterator<IRNode>(getSiblings.get(fm, root)) {
         final boolean debug = LOG.isLoggable(Level.FINE);

@@ -46,6 +46,7 @@ class IndependentVersionedSlot<T> extends IRAbstractState implements Slot<T> {
     base = UnassignedVersionedSlot.<T>create(value);
   }
 
+  @Override
   public void describe(PrintStream out) {
     base.describe(out);
   }
@@ -54,6 +55,7 @@ class IndependentVersionedSlot<T> extends IRAbstractState implements Slot<T> {
     return base.size();
   }
 
+  @Override
   public boolean isValid() {
     return Version.isCurrentlyLoaded(this) && base.isValid();
   }
@@ -62,6 +64,7 @@ class IndependentVersionedSlot<T> extends IRAbstractState implements Slot<T> {
    * and inform the current version
    * of the change.
    */
+  @Override
   public Slot<T> setValue(T newValue) {
     if (!Version.isCurrentlyLoaded(this)) {
       throw new SlotImmutableException("slot not loaded for current version");
@@ -74,6 +77,7 @@ class IndependentVersionedSlot<T> extends IRAbstractState implements Slot<T> {
     return this;
   }
 
+  @Override
   public T getValue() {
     if (!Version.isCurrentlyLoaded(this)) {
       throw new SlotImmutableException("slot not loaded for current version");
@@ -94,6 +98,7 @@ class IndependentVersionedSlot<T> extends IRAbstractState implements Slot<T> {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.Slot#isChanged()
    */
+  @Override
   public boolean isChanged() {
     return base.isChanged();
   }
@@ -101,6 +106,7 @@ class IndependentVersionedSlot<T> extends IRAbstractState implements Slot<T> {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.Slot#readValue(edu.cmu.cs.fluid.ir.IRType, edu.cmu.cs.fluid.ir.IRInput)
    */
+  @Override
   public Slot<T> readValue(IRType<T> ty, IRInput in) throws IOException {
     Slot newb = base.readValue(ty,in);
     if (newb != base) {
@@ -112,6 +118,7 @@ class IndependentVersionedSlot<T> extends IRAbstractState implements Slot<T> {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.ir.Slot#writeValue(edu.cmu.cs.fluid.ir.IRType, edu.cmu.cs.fluid.ir.IROutput)
    */
+  @Override
   public void writeValue(IRType<T> ty, IROutput out) throws IOException {
     if (getParent() == null) {
       LOG.warning("IndependentVersionedSlot not connected to persistable state! " + this);

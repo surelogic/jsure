@@ -24,7 +24,8 @@ public abstract class AbstractSingleLockNode extends AASTRootNode {
 		return lock;
 	}
 	
-	public final String unparseForPromise() {
+	@Override
+  public final String unparseForPromise() {
 		return unparse(false);
 	}
 	

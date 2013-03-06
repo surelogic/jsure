@@ -31,5 +31,6 @@ public interface TextResizedListener extends PropertyChangeListener
    * textResized.
    * @param e The TextResizedEvent containing the old and new textWidth values.
    */
+  @Override
   public void propertyChange( PropertyChangeEvent e );
 }

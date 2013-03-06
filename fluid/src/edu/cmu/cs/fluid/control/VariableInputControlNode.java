@@ -25,7 +25,8 @@ public abstract class VariableInputControlNode extends PlainIRNode implements Co
 	/** 
 	 * @see edu.cmu.cs.fluid.control.ControlNode#getInputs()
 	 */
-	public ControlEdgeIterator getInputs() {
+	@Override
+  public ControlEdgeIterator getInputs() {
 		return getVariableInputs();
 	}
 	
@@ -41,7 +42,8 @@ public abstract class VariableInputControlNode extends PlainIRNode implements Co
 	/**
 	 * @see edu.cmu.cs.fluid.control.VariableInput#indicateInputEdge(ControlNode, edu.cmu.cs.fluid.control.ControlEdge)
 	 */
-	public void indicateInputEdge(ControlNode n, ControlEdge e) {
+	@Override
+  public void indicateInputEdge(ControlNode n, ControlEdge e) {
 		if (! (n instanceof VariableInput))
 			throw new EdgeLinkageError(NODE_TYPE_NOT_SUPPORTED);
 		else if (! (e instanceof VariableInputControlEdge))
@@ -53,7 +55,8 @@ public abstract class VariableInputControlNode extends PlainIRNode implements Co
 	/**
 	 * @see edu.cmu.cs.fluid.control.VariableInput#hasInputEdge(edu.cmu.cs.fluid.control.ControlNode)
 	 */
-	public boolean hasInputEdge(ControlNode n) {
+	@Override
+  public boolean hasInputEdge(ControlNode n) {
 		return inputEdgeMap_.containsKey(n);
 	}
 	

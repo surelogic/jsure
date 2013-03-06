@@ -26,12 +26,14 @@ public abstract class AbstractJavaClassTable implements IJavaClassTable {
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.project.IJavaClassTable#packageScope(edu.cmu.cs.fluid.ir.IRNode)
    */
+  @Override
   public IJavaScope packageScope(IRNode pdecl) {
     return packageScope(NamedPackageDeclaration.getId(pdecl));
   }
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.project.IJavaClassTable#packageScope(java.lang.String)
    */
+  @Override
   public IJavaPackageScope packageScope(String pName) {
     String prefix;
     if (pName.length() == 0) {
@@ -52,10 +54,12 @@ public abstract class AbstractJavaClassTable implements IJavaClassTable {
       this.prefix = prefix;
     }
 
-	public boolean canContainPackages() {
+	@Override
+  public boolean canContainPackages() {
 		return true;
 	} 
     
+    @Override
     public IBinding lookup(LookupContext context, Selector selector) {
       final String qname = prefix + context.name;
       IRNode node = getOuterClass(qname,context.useSite);
@@ -70,6 +74,7 @@ public abstract class AbstractJavaClassTable implements IJavaClassTable {
       return null;
     }
 
+    @Override
     public Iteratable<IBinding> lookupAll(LookupContext context,
         Selector selector) {
       IRNode node = getOuterClass(prefix + context.name,context.useSite);
@@ -82,6 +87,7 @@ public abstract class AbstractJavaClassTable implements IJavaClassTable {
       return IJavaScope.EMPTY_BINDINGS_ITERATOR;
     }
 
+    @Override
     public void printTrace(PrintStream out, int indent) {
       DebugUtil.println(out, indent, "[PackageScope:"+prefix+"]");
     }

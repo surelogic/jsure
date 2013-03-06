@@ -27,6 +27,7 @@ public class EdgeDigraphConnections extends AbstractRemovelessIterator<IRNode> {
   private boolean nextIsValid = false;
   private IRNode nextEdge = null;
   
+  @Override
   public boolean hasNext() {
     if (!nextIsValid) {
       try {	
@@ -40,6 +41,7 @@ public class EdgeDigraphConnections extends AbstractRemovelessIterator<IRNode> {
     return nextEdge != null;
   }
   
+  @Override
   public IRNode next() throws NoSuchElementException {
     if (nextIsValid) {
       if (nextEdge == null)

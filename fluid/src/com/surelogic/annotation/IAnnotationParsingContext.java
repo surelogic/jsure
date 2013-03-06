@@ -81,15 +81,19 @@ public interface IAnnotationParsingContext {
   
   IAnnotationParsingContext nullPrototype = 
     new AbstractAnnotationParsingContext(AnnotationSource.JAVADOC) {
+    @Override
     public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
       System.out.println(msg);
     }
+    @Override
     public <T extends IAASTRootNode> void reportAAST(int offset, AnnotationLocation loc, Object o, T ast) {
     	// Nothing to do
     }
+    @Override
     public void reportException(int offset, Exception e) {
       e.printStackTrace();
     }
+    @Override
     public Operator getOp() {
       return null;
     }

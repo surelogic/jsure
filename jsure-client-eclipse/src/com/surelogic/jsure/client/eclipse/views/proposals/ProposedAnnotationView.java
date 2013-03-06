@@ -322,6 +322,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
 
   private void makeActions() {
     f_treeViewer.addDoubleClickListener(new IDoubleClickListener() {
+      @Override
       public void doubleClick(DoubleClickEvent event) {
         final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
         if (!s.isEmpty()) {
@@ -396,6 +397,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     MenuManager menuMgr = new MenuManager("#PopupMenu");
     menuMgr.setRemoveAllWhenShown(true);
     menuMgr.addMenuListener(new IMenuListener() {
+      @Override
       public void menuAboutToShow(final IMenuManager manager) {
         final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
         if (!s.isEmpty()) {

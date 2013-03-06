@@ -80,7 +80,6 @@ public abstract class AbstractASTGenerator extends AbstractGenerator {
     return "I"+name+"Node";
   }
   
-  @SuppressWarnings("unused")
   protected String makeConvertedInterfaceName(String name) {
     if (convertOptNodes) {
       String variant = getNonnullVariant(name);

@@ -1102,6 +1102,7 @@ extends TripleLattice<Element<Integer>,
   
   private static interface ConsumeSideEffects {
     public static final ConsumeSideEffects NONE = new ConsumeSideEffects() {
+      @Override
       public void produceSideEffects(
           final Store s, final IRNode srcOp, final Integer topOfStack,
           final State localStatus) {
@@ -1150,6 +1151,7 @@ extends TripleLattice<Element<Integer>,
       final int msg, final Object... args) {
     return opConsume(s, srcOp, State.SHARED,
         new ConsumeSideEffects() {
+          @Override
           public void produceSideEffects(
               final Store s, final IRNode srcOp, final Integer topOfStack,
               final State localStatus) {
@@ -1167,6 +1169,7 @@ extends TripleLattice<Element<Integer>,
   public Store opConsumeUnique(final Store s, final IRNode srcOp) {
     return opConsume(s, srcOp, State.UNIQUE,
         new ConsumeSideEffects() {
+          @Override
           public void produceSideEffects(
               final Store s, final IRNode srcOp, final Integer topOfStack,
               final State localStatus) {

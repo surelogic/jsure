@@ -52,7 +52,8 @@ public final class AnalysisSelectionPreferencePage extends
 
 	private AnalysisModuleContentProvider analysisModuleContentProvider;
 
-	public void init(IWorkbench workbench) {
+	@Override
+  public void init(IWorkbench workbench) {
 		// do nothing
 	}
 
@@ -372,11 +373,13 @@ public final class AnalysisSelectionPreferencePage extends
 		/**
 		 * @see org.eclipse.jface.viewers.ITreeContentProvider#getChildren(java.lang.Object)
 		 */
-		public Object[] getChildren(Object parentElement) {
+		@Override
+    public Object[] getChildren(Object parentElement) {
 			PreferenceTreeNode node = (PreferenceTreeNode) parentElement;
 			PreferenceTreeNode[] result = filterNodes(node.prerequesites);
 			Arrays.sort(result, new Comparator<PreferenceTreeNode>() {
-				public int compare(PreferenceTreeNode o1, PreferenceTreeNode o2) {
+				@Override
+        public int compare(PreferenceTreeNode o1, PreferenceTreeNode o2) {
 					PreferenceTreeNode p1 = o1;
 					PreferenceTreeNode p2 = o2;
 					return p1.original.am.getLabel().compareToIgnoreCase(
@@ -386,18 +389,22 @@ public final class AnalysisSelectionPreferencePage extends
 			return result;
 		}
 
-		public Object getParent(Object element) {
+		@Override
+    public Object getParent(Object element) {
 			return null;
 		}
 
-		public boolean hasChildren(Object element) {
+		@Override
+    public boolean hasChildren(Object element) {
 			return (this.getChildren(element).length > 0);
 		}
 
-		public Object[] getElements(Object inputElement) {
+		@Override
+    public Object[] getElements(Object inputElement) {
 			PreferenceTreeNode[] result = filterNodes(m_checktreeContents);
 			Arrays.sort(result, new Comparator<PreferenceTreeNode>() {
-				public int compare(PreferenceTreeNode o1, PreferenceTreeNode o2) {
+				@Override
+        public int compare(PreferenceTreeNode o1, PreferenceTreeNode o2) {
 					PreferenceTreeNode p1 = o1;
 					PreferenceTreeNode p2 = o2;
 					return p1.original.am.getLabel().compareToIgnoreCase(
@@ -407,11 +414,13 @@ public final class AnalysisSelectionPreferencePage extends
 			return result;
 		}
 
-		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+		@Override
+    public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 			// nothing to do
 		}
 
-		public void checkStateChanged(CheckStateChangedEvent event) {
+		@Override
+    public void checkStateChanged(CheckStateChangedEvent event) {
 			PreferenceTreeNode node = (PreferenceTreeNode) event.getElement();
 			node.original.isOn = event.getChecked();
 			if (node.original.isOn) {
@@ -457,11 +466,13 @@ public final class AnalysisSelectionPreferencePage extends
 			return SLImages.getImage(CommonImages.IMG_EMPTY_DOT);
 		}
 
-		public void treeCollapsed(TreeExpansionEvent event) {
+		@Override
+    public void treeCollapsed(TreeExpansionEvent event) {
 			setState();
 		}
 
-		public void treeExpanded(TreeExpansionEvent event) {
+		@Override
+    public void treeExpanded(TreeExpansionEvent event) {
 			setState();
 		}
 	}

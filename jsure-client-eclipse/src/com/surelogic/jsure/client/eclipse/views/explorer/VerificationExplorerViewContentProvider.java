@@ -57,10 +57,12 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
     }
   }
 
+  @Override
   public void dispose() {
     // nothing to do
   }
 
+  @Override
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
     if (newInput instanceof Input) {
       final Input in = (Input) newInput;
@@ -99,11 +101,13 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
     }
   }
 
+  @Override
   public Object[] getElements(Object inputElement) {
     final Element[] root = f_root;
     return root != null ? root : Element.EMPTY;
   }
 
+  @Override
   public Object[] getChildren(Object parentElement) {
     if (parentElement instanceof Element)
       return ((Element) parentElement).getChildren();
@@ -111,6 +115,7 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
       return Element.EMPTY;
   }
 
+  @Override
   public Object getParent(Object element) {
     if (element instanceof Element)
       return ((Element) element).getParent();
@@ -118,6 +123,7 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
       return null;
   }
 
+  @Override
   public boolean hasChildren(Object element) {
     if (element instanceof Element)
       return ((Element) element).hasChildren();
@@ -173,6 +179,7 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
   @Nullable
   private ScanDifferences f_scanDifferences;
 
+  @Override
   @Nullable
   public ScanDifferences getScanDifferences() {
     return f_scanDifferences;
@@ -180,6 +187,7 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
 
   private boolean f_highlightDifferences;
 
+  @Override
   public boolean highlightDifferences() {
     return f_highlightDifferences;
   }

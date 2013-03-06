@@ -108,6 +108,7 @@ final class CollectMethodCalls extends IntraproceduralAnalysis<ImmutableSet<IRNo
       return out;
   }
 
+    @Override
     public ImmutableSet<IRNode> transferComponentSource(final IRNode node) {
       return ImmutableHashOrderSet.emptySet();
     }
@@ -128,10 +129,12 @@ final class CollectMethodCalls extends IntraproceduralAnalysis<ImmutableSet<IRNo
 
 
 
+  @Override
   public IBinder getBinder() {
     return binder;
   }
 
+  @Override
   public void clearCaches() {
     clear();
   }

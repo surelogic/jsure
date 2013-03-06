@@ -113,6 +113,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     return null;
   }
 
+  @Override
   public final IRNode getPromisedFor() {
     return getNode();
   }
@@ -199,6 +200,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * @return <code>true</code> if the PromiseDrop is intended to be checked by
    *         analysis, <code>false</code> otherwise.
    */
+  @Override
   public boolean isIntendedToBeCheckedByAnalysis() {
     return true;
   }
@@ -221,6 +223,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * @return <code>true</code> if the PromiseDrop is considered checked by
    *         analysis, <code>false</code> otherwise.
    */
+  @Override
   public boolean isCheckedByAnalysis() {
     synchronized (f_seaLock) {
       if (!f_fromSrc) {
@@ -276,6 +279,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     }
   }
 
+  @Override
   @NonNull
   public final Set<AnalysisResultDrop> getCheckedBy() {
     final HashSet<AnalysisResultDrop> result = new HashSet<AnalysisResultDrop>();
@@ -294,6 +298,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     return result;
   }
 
+  @Override
   @NonNull
   public final Set<PromiseDrop<? extends IAASTRootNode>> getDependentPromises() {
     synchronized (f_seaLock) {
@@ -301,6 +306,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     }
   }
 
+  @Override
   @NonNull
   public final Set<PromiseDrop<? extends IAASTRootNode>> getDeponentPromises() {
     synchronized (f_seaLock) {
@@ -327,6 +333,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * @return <code>true</code> if the promise is assumed, <code>false</code>
    *         otherwise.
    */
+  @Override
   public final boolean isAssumed() {
     synchronized (f_seaLock) {
       return f_assumed;
@@ -352,6 +359,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * @return <code>true</code> if the promise is virtual, <code>false</code>
    *         otherwise.
    */
+  @Override
   public final boolean isVirtual() {
     synchronized (f_seaLock) {
       return f_virtual;

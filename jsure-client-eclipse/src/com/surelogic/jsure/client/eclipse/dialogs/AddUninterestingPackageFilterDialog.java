@@ -103,7 +103,8 @@ public final class AddUninterestingPackageFilterDialog extends TitleAreaDialog {
 				false));
 		f_filterText.setText("");
 		f_filterText.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
+			@Override
+      public void modifyText(ModifyEvent e) {
 				checkIfFilterisOkay();
 			}
 		});

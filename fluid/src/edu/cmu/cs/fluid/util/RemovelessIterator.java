@@ -24,11 +24,13 @@ extends AbstractRemovelessIterator<T>
     iterator = iter;
   }
 
+  @Override
   public boolean hasNext()
   {
     return iterator.hasNext();
   }
 
+  @Override
   public T next()
   {
     return iterator.next();

@@ -37,15 +37,18 @@ public abstract class ScanProperty<T> {
     		return Collections.emptySet();
     	}
     	final Map.Entry<String,Object> e = new Map.Entry<String,Object>() {
-			@Starts("nothing")
+			@Override
+      @Starts("nothing")
 			public String getKey() {
 				return key;
 			}
-			@Starts("nothing")
+			@Override
+      @Starts("nothing")
 			public Object getValue() {
 				return value;
 			}
-			public Object setValue(Object value) {
+			@Override
+      public Object setValue(Object value) {
 				return null;
 			}
     	};

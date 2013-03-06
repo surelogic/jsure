@@ -93,7 +93,8 @@ public class ThreadRoleOrNode extends AASTNode implements ThreadRoleExprElem {
     return new ThreadRoleOrNode(getOffset(), orElemsCopy);
 	}
 	
-	public TRExpr buildTRExpr(IRNode where) {
+	@Override
+  public TRExpr buildTRExpr(IRNode where) {
 	  TRExpr res = null;
 	  boolean first = true;
 	  for (ThreadRoleOrElem oe: orElems) {

@@ -59,7 +59,9 @@ import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.tool.SureLogicToolsFilter;
 import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.dropsea.IAnalysisOutputDrop;
+import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.MetricDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.SeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.drops.BinaryCUDrop;
@@ -89,6 +91,7 @@ import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
+import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
 import edu.cmu.cs.fluid.java.adapter.AdapterUtil;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 import edu.cmu.cs.fluid.java.bind.AbstractTypeEnvironment;
@@ -200,6 +203,7 @@ public class Util {
       this.out = out == null ? null : new ZipOutputStream(out);
     }
 
+    @Override
     public void ensureClassIsLoaded(String qname) {
       loader.ensureClassIsLoaded(qname);
     }
@@ -208,6 +212,7 @@ public class Util {
       loader = null;
     }
 
+    @Override
     public OutputStream makeResultStream(CUDrop cud) throws IOException {
       if (out == null) {
         return null;
@@ -224,6 +229,7 @@ public class Util {
       return null;
     }
 
+    @Override
     public void closeResultStream() throws IOException {
       if (out != null) {
         hasResults = true;
@@ -231,6 +237,7 @@ public class Util {
       }
     }
 
+    @Override
     public void done() {
       if (out != null) {
         try {
@@ -243,16 +250,19 @@ public class Util {
       }
     }
 
+    @Override
     public IAnalysisMonitor getMonitor() {
       return this;
     }
 
+    @Override
     public void subTask(String name) {
       if (monitor != null) {
         monitor.subTask(name);
       }
     }
 
+    @Override
     public void worked() {
       if (monitor != null) {
         monitor.worked(1);
@@ -414,6 +424,7 @@ public class Util {
     eliminateDups(cus.asList(), cus.asList());
     // checkForDups(cus.asList());
     clearCaches(projects); // To clear out old state invalidated by rewriting
+    //ClassSummarizer.printStats();
     
     perf.markTimeFor("Rewriting");
     canonicalizeCUs(perf, cus, projects);
@@ -522,10 +533,12 @@ public class Util {
       }
     }
     perf.setIntProperty("Total.try.destroyed", destroyedNodes);
+    //perf.setIntProperty("Total.not.destroyed", diffNodes);
     perf.setIntProperty("Total.canonical", canonicalNodes);
     perf.setIntProperty("Total.decls", decls);
     perf.setIntProperty("Total.stmts", stmts);
     perf.setIntProperty("Total.blocks", blocks);
+    perf.setIntProperty("Total.loc", computeLOC());
     perf.setLongProperty("Find.canon.time", findTime);
     perf.setLongProperty("Destroy.time", destroyTime);
     // System.out.println("Binary rewrites : "+binaryRewrites);
@@ -534,6 +547,16 @@ public class Util {
     perf.store();
     perf.print(System.out);
     return tmpLocation;
+  }
+
+  private static int computeLOC() {
+	int loc = 0;
+	for(MetricDrop m : Sea.getDefault().getDropsOfExactType(MetricDrop.class)) {		
+		if (m.getMetric() == IMetricDrop.Metric.SLOC) {
+			loc += m.getMetricInfoAsInt(IMetricDrop.SLOC_LINE_COUNT, 0);		
+		}
+	}
+	return loc;
   }
 
   private static void filterResultsBySureLogicToolsPropertiesFile(Projects projects) {
@@ -755,6 +778,7 @@ public class Util {
 
         final PromiseFramework frame = PromiseFramework.getInstance();
         Procedure<SourceCUDrop> proc = new Procedure<SourceCUDrop>() {
+          @Override
           public void op(SourceCUDrop cud) {
             if (!cud.isAsSource()) {
               // LOG.warning("No analysis on "+cud.javaOSFileName);
@@ -979,7 +1003,7 @@ public class Util {
 		  final String typeName = info.getFileName();
 		  try {
 			  final long start = System.currentTimeMillis();
-			  List<IRNode> noncanonical = findNoncanonical(cu);
+			  final Nodes nodes = findNoncanonical(cu);
 			  final long find = System.currentTimeMillis();
 			  /*
 			   * Not quite right, since it will miss (un)boxing and the like if
@@ -1003,7 +1027,7 @@ public class Util {
 			  } else if (debug) {
 				  System.out.println("NOT canonicalized " + typeName);
 			  }
-			  destroyNoncanonical(noncanonical);
+			  destroyNoncanonical(nodes);
 
 			  final long destroy = System.currentTimeMillis();
 			  findTime += (find-start);
@@ -1071,15 +1095,27 @@ public class Util {
   }
   
   static long destroyTime = 0, findTime = 0;
-  static int destroyedNodes = 0, canonicalNodes = 0;
+  static int destroyedNodes = 0, canonicalNodes = 0;//, diffNodes = 0;
   static int decls = 0, stmts = 0, blocks = 0;
 
-  private static List<IRNode> findNoncanonical(IRNode cu) {
-    List<IRNode> noncanonical = new ArrayList<IRNode>();
+  static class Nodes {
+	  //final Set<IRNode> original = new HashSet<IRNode>();
+	  final List<IRNode> noncanonical = new ArrayList<IRNode>();
+	  final IRNode cu;
+	  
+	  Nodes(IRNode cu) {
+		this.cu = cu;
+	  }
+  }
+  
+  private static Nodes findNoncanonical(IRNode cu) {
+	Nodes rv = new Nodes(cu);
     for (IRNode n : JJNode.tree.topDown(cu)) {
+      //rv.original.add(n);
+      
       Operator op = JJNode.tree.getOperator(n);
       if (op instanceof IllegalCode) {
-        noncanonical.add(n);
+        rv.noncanonical.add(n);
       } else {
         // FIX these aren't all of them
         canonicalNodes++;
@@ -1094,13 +1130,27 @@ public class Util {
         }
       }
     }
-    return noncanonical;
+    return rv;
   }
 
-  private static void destroyNoncanonical(List<IRNode> noncanonical) {
-    destroyedNodes += noncanonical.size();
+  private static void destroyNoncanonical(Nodes nodes) {
+	/*
+	for (IRNode n : JJNode.tree.topDown(nodes.cu)) {
+		nodes.original.remove(n);
+	}
+	final int origSize = nodes.original.size();
+	*/
+	final int noncanonSize = nodes.noncanonical.size();
+	/*
+	if (origSize != noncanonSize) {
+		//System.out.println("Found "+origSize+" nodes vs. "+noncanonSize+" noncanonical");
+		diffNodes += (origSize - noncanonSize);
+	}
+	*/
+    destroyedNodes += noncanonSize;
 
-    for (IRNode n : noncanonical) {
+    for (IRNode n : nodes.noncanonical) {
+      SkeletonJavaRefUtility.removeInfo(n);	
       n.destroy();
     }
   }
@@ -1109,6 +1159,7 @@ public class Util {
   private static void addRequired(ParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
     startSubTask(monitor, "Adding required nodes");
     Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
+      @Override
       public void op(CodeInfo info) {
         final ITypeEnvironment tEnv = info.getTypeEnv();
         if (monitor.isCanceled()) {
@@ -1134,6 +1185,7 @@ public class Util {
     // final File root = new
     // File(IDE.getInstance().getStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY));
     Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
+      @Override
       public void op(CodeInfo info) {
         if (monitor.isCanceled()) {
           throw new CancellationException();
@@ -1303,6 +1355,7 @@ public class Util {
 
   private static Dependencies checkDependencies(final ParallelArray<CodeInfo> cus) {
     final Dependencies deps = new Dependencies() {
+      @Override
       protected void handlePackage(final PackageDrop pkg) {
         /*
          * runVersioned(new AbstractRunner() { public void run() {
@@ -1315,6 +1368,7 @@ public class Util {
         }
       }
 
+      @Override
       protected void handleType(CUDrop d) {
         // ConvertToIR.getInstance().registerClass(d.makeCodeInfo());
         System.err.println("Reprocessing " + d.getMessage());
@@ -1353,6 +1407,7 @@ public class Util {
      * System.out.println("Source: "+cud.javaOSFileName); }
      */
     Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
+      @Override
       public void op(CodeInfo info) {
         if (monitor.isCanceled()) {
           throw new CancellationException();
@@ -1431,6 +1486,7 @@ public class Util {
   private static void sortCodeInfos(ParallelArray<CodeInfo> cus) {
     // Required to make sure that we process package-info files first
     Collections.sort(cus.asList(), new Comparator<CodeInfo>() {
+      @Override
       public int compare(CodeInfo o1, CodeInfo o2) {
         if (o1.getFileName().endsWith(PACKAGE_INFO_JAVA)) {
           return Integer.MIN_VALUE;
@@ -1517,6 +1573,7 @@ public class Util {
       this.excluded = excluded;
     }
 
+    @Override
     public boolean accept(File f) {
       if (f.isDirectory()) {
         for (File exclude : excluded) {
@@ -1531,6 +1588,7 @@ public class Util {
   }
 
   static class NullFilter implements FileFilter {
+    @Override
     public boolean accept(File pathname) {
       return true;
     }

@@ -230,7 +230,8 @@ public class VersionedUnitSlotInfo extends
 	 * @param node
 	 *            a tree node
 	 */
-	public void update(Observable obs, Object node) {
+	@Override
+  public void update(Observable obs, Object node) {
 		setChanged((IRNode) node);
 	}
 
@@ -282,41 +283,50 @@ class VersionedUnitSlotFactory extends VersionedSlotFactory {
 class VersionedUnitStorage implements SlotStorage<VersionedUnitSlot, Void> {
 	public static final VersionedUnitStorage prototype = new VersionedUnitStorage();
 
-	public boolean isThreadSafe() {
+	@Override
+  public boolean isThreadSafe() {
 		return false;
 	}
 	
-	public VersionedUnitSlot newSlot() {
+	@Override
+  public VersionedUnitSlot newSlot() {
 		return NoVersions.prototype;
 	}
 
-	public VersionedUnitSlot newSlot(Void initialValue) {
+	@Override
+  public VersionedUnitSlot newSlot(Void initialValue) {
 		return NoVersions.prototype;
 	}
 
-	public Void getSlotValue(VersionedUnitSlot slotState) {
+	@Override
+  public Void getSlotValue(VersionedUnitSlot slotState) {
 		return null;
 	}
 
-	public VersionedUnitSlot setSlotValue(VersionedUnitSlot slotState,
+	@Override
+  public VersionedUnitSlot setSlotValue(VersionedUnitSlot slotState,
 			Void newValue) {
 		return slotState.setValue();
 	}
 
-	public boolean isValid(VersionedUnitSlot slotState) {
+	@Override
+  public boolean isValid(VersionedUnitSlot slotState) {
 		return true;
 	}
 
-	public boolean isChanged(VersionedUnitSlot slotState) {
+	@Override
+  public boolean isChanged(VersionedUnitSlot slotState) {
 		return slotState.isChanged();
 	}
 
-	public void writeSlotValue(VersionedUnitSlot slotState, IRType<Void> ty,
+	@Override
+  public void writeSlotValue(VersionedUnitSlot slotState, IRType<Void> ty,
 			IROutput out) throws IOException {
 		slotState.writeValue(ty, out);
 	}
 
-	public VersionedUnitSlot readSlotValue(VersionedUnitSlot slotState,
+	@Override
+  public VersionedUnitSlot readSlotValue(VersionedUnitSlot slotState,
 			IRType<Void> ty, IRInput in) throws IOException {
 		return slotState.readValue(ty, in);
 	}
@@ -326,7 +336,8 @@ class VersionedUnitStorage implements SlotStorage<VersionedUnitSlot, Void> {
 	 * 
 	 * @see edu.cmu.cs.fluid.ir.SlotStorage#describe(S, java.io.PrintStream)
 	 */
-	public void describe(VersionedUnitSlot slotState, PrintStream out) {
+	@Override
+  public void describe(VersionedUnitSlot slotState, PrintStream out) {
 		slotState.describe(out);
 	}
 
@@ -335,7 +346,8 @@ class VersionedUnitStorage implements SlotStorage<VersionedUnitSlot, Void> {
 	 * 
 	 * @see edu.cmu.cs.fluid.ir.SlotStorage#getSlotFactory()
 	 */
-	public SlotFactory getSlotFactory() {
+	@Override
+  public SlotFactory getSlotFactory() {
 		return VersionedUnitSlotFactory.prototype;
 	}
 
@@ -350,15 +362,18 @@ abstract class VersionedUnitSlot extends AbstractSlot<Void> {
 		return false;
 	}
 
-	public Void getValue() {
+	@Override
+  public Void getValue() {
 		return null;
 	}
 
-	public boolean isValid() {
+	@Override
+  public boolean isValid() {
 		return true;
 	}
 
-	public Slot<Void> setValue(Void newValue) {
+	@Override
+  public Slot<Void> setValue(Void newValue) {
 		return setValue();
 	}
 

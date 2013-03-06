@@ -10,19 +10,28 @@ public abstract class AbstractClassPathEntry implements IClassPathEntry {
 		isExported = export;
 	}
 	
-	public boolean isExported() {
+	@Override
+  public boolean isExported() {
 		return isExported;
 	}
 	
-	public void zipSources(File zipDir) throws IOException {
+	@Override
+  public void zipSources(File zipDir) throws IOException {
 		// Nothing to do here
 	}
 
-	public void copySources(File zipDir, File targetDir) throws IOException {
+	@Override
+  public void copySources(File zipDir, File targetDir) throws IOException {
 		// Nothing to do here
 	}
 
-	public JavaSourceFile mapPath(URI path) {
+	@Override
+  public JavaSourceFile mapPath(URI path) {
+		return null;
+	}
+	
+	@Override
+	public File getFileForClassPath() {
 		return null;
 	}
 }

@@ -40,16 +40,19 @@ public final class LocalTarget extends AbstractTarget {
 
   
 
+  @Override
   public IRNode getReference() {
     return null;
   }
   
   
   
+  @Override
   public IJavaType getRelativeClass(final IBinder binder) {
     return null;
   }
   
+  @Override
   public LocalTarget degradeRegion(final IRegion newRegion) {
     // doesn't use the region, so return self
     return this;
@@ -57,6 +60,7 @@ public final class LocalTarget extends AbstractTarget {
   
   
   
+  @Override
   public Target mask(final IBinder binder) {
     // Local targets are always ignorable outside the current context
     return null;
@@ -64,10 +68,12 @@ public final class LocalTarget extends AbstractTarget {
 
   
 
+  @Override
   public boolean overlapsReceiver(final IRNode rcvrNode) {
     return false;
   }
 
+  @Override
   public TargetRelationship overlapsWith(
       final IMayAlias mayAlias, final IBinder binder, final Target t) {
     return ((AbstractTarget) t).overlapsWithLocal(binder, this);
@@ -111,6 +117,7 @@ public final class LocalTarget extends AbstractTarget {
     return TargetRelationship.newUnrelated();
   }
   
+  @Override
   public boolean mayTargetStateOfReference(
       final IBinder binder, final IRNode formal) {
     /* Doesn't make sense because we should not have a local target in the 
@@ -122,6 +129,7 @@ public final class LocalTarget extends AbstractTarget {
 
   
 
+  @Override
   public boolean checkTarget(final IBinder b, final Target declaredTarget) {
     return ((AbstractTarget) declaredTarget).checkTargetAgainstLocal(b, this);
   }
@@ -179,6 +187,7 @@ public final class LocalTarget extends AbstractTarget {
   
   
   
+  @Override
   public LocalTarget changeEvidence(final TargetEvidence e) {
     // Catch errors: Local targets should never reach a context where this method is invoked.
     throw new UnsupportedOperationException("Local targets don't have evidence");
@@ -193,6 +202,7 @@ public final class LocalTarget extends AbstractTarget {
 	 *         representation of the variable use and <i>H</I> is the hashcode
 	 *         of the IRNode representing the variable use
 	 */
+  @Override
   public StringBuilder toString(final StringBuilder sb) {
     final Operator op = JJNode.tree.getOperator(var);
     if (VariableDeclarator.prototype.includes(op)) {

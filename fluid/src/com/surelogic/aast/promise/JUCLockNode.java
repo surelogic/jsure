@@ -25,10 +25,12 @@ public abstract class JUCLockNode extends LockSpecificationNode {
 		this.lock = lock;
 	}
 	
+  @Override
   public boolean bindingExists() {
     return AASTBinder.getInstance().isResolvable(this);
   }
 
+  @Override
   public ILockBinding resolveBinding() {
     return null; // FIX AASTBinder.getInstance().resolve(this);
   }

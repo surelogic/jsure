@@ -42,6 +42,7 @@ implements FixedVersionSyntaxForestProjection
   //== SyntaxForest methods
   //===========================================================
   
+  @Override
   public Operator getOperator( final IRNode node )
   {
     Version.saveVersion();
@@ -53,6 +54,7 @@ implements FixedVersionSyntaxForestProjection
     }
   }
 
+  @Override
   public boolean opExists( final IRNode node )
   {
     Version.saveVersion();
@@ -64,16 +66,19 @@ implements FixedVersionSyntaxForestProjection
     }
   }
 
+  @Override
   public void initNode( final IRNode n, final Operator op )
   {
     throw new UnsupportedOperationException( "Cannot modify a projection." );
   }
 
+  @Override
   public void initNode( final IRNode n, final Operator op, final int min )
   {
     throw new UnsupportedOperationException( "Cannot modify a projection." );
   }
 
+  @Override
   public void initNode(
     final IRNode n, final Operator op, final IRNode[] children )
   {

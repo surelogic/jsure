@@ -45,6 +45,7 @@ implements SimplePredicateView.Factory
   {
   }
 
+  @Override
   public SimplePredicateView create( final String name, final Model src )
   throws SlotAlreadyRegisteredException
   {

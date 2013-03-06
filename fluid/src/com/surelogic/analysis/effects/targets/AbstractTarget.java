@@ -53,6 +53,7 @@ abstract class AbstractTarget implements Target {
    * 
    * @return The region component
    */
+  @Override
   public final IRegion getRegion() {
     return region;
   }
@@ -133,6 +134,7 @@ abstract class AbstractTarget implements Target {
 
   
   
+  @Override
   public final TargetEvidence getEvidence() {
     return evidence;
   }

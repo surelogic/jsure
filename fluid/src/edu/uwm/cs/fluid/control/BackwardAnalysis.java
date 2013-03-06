@@ -161,6 +161,7 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
 
   final LabeledLattice.LabelOp<ControlLabel> unAddLabelOp =
     new LabeledLattice.LabelOp<ControlLabel>() {
+    @Override
     public LabelList operate(LabelList ll, ControlLabel arg) {
       ControlLabel label = ll.firstLabel();
       if (label != null
@@ -173,12 +174,14 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
   };
   final LabeledLattice.UnaryOp<T,ComponentFlow> componentFlowTransfer =
     new LabeledLattice.UnaryOp<T,ComponentFlow>() {
+    @Override
     public T operate(T x, ComponentFlow arg) {
       return trans.transferComponentFlow(arg.getComponent().getSyntax(),arg.getInfo(),x);
     }
   };
   final LabeledLattice.UnaryOp<T,SubcomponentFlow> subcomponentFlowTransfer =
     new LabeledLattice.UnaryOp<T,SubcomponentFlow>() {
+    @Override
     public T operate(T x, SubcomponentFlow arg) {
       return trans.transferComponentFlow(arg.getSyntax(),arg.getInfo(),x);
     }
@@ -186,6 +189,7 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
   
   final LabeledLattice.LabelOp<Boolean> unPendingLabelStripOp =
     new LabeledLattice.LabelOp<Boolean>() {
+    @Override
     public LabelList operate(LabelList ll, Boolean arg) {
       ControlLabel saved = ll.firstLabel();
       if (saved == null) return null;
@@ -222,27 +226,32 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
   final LabeledLattice.Combiner<T,ComponentChoice> componentChoiceCombiner =
     new LabeledLattice.Combiner<T,ComponentChoice>() {
      public final UnaryOp<T,ComponentChoice> leftBottom = new UnaryOp<T,ComponentChoice>() {
-       public T operate(T x, ComponentChoice arg) { 
+       @Override
+      public T operate(T x, ComponentChoice arg) { 
          IRNode node = arg.getSyntax();
          Object info = arg.getInfo();
          return trans.transferComponentChoice(node,info,false,x);
        }
      };
      public final UnaryOp<T,ComponentChoice> rightBottom = new UnaryOp<T,ComponentChoice>() {
-       public T operate(T x, ComponentChoice arg) { 
+       @Override
+      public T operate(T x, ComponentChoice arg) { 
          IRNode node = arg.getSyntax();
          Object info = arg.getInfo();
          T r1 = trans.transferComponentChoice(node,info,true,x);
          return r1; 
        }
      };
-     public UnaryOp<T,ComponentChoice> bindLeftBottom() {
+     @Override
+    public UnaryOp<T,ComponentChoice> bindLeftBottom() {
        return leftBottom;
      }
-     public UnaryOp<T,ComponentChoice> bindRightBottom() {
+     @Override
+    public UnaryOp<T,ComponentChoice> bindRightBottom() {
        return rightBottom;
      }
-     public T combine(T x, T y, ComponentChoice arg) {
+     @Override
+    public T combine(T x, T y, ComponentChoice arg) {
         IRNode node = arg.getSyntax();
         Object info = arg.getInfo();
         T r1 = trans.transferComponentChoice(node,info,true,x);
@@ -255,27 +264,32 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
   final LabeledLattice.Combiner<T,SubcomponentChoice> subcomponentChoiceCombiner =
       new LabeledLattice.Combiner<T,SubcomponentChoice>() {
        public final UnaryOp<T,SubcomponentChoice> leftBottom = new UnaryOp<T,SubcomponentChoice>() {
-         public T operate(T x, SubcomponentChoice arg) { 
+         @Override
+        public T operate(T x, SubcomponentChoice arg) { 
            IRNode node = arg.getSyntax();
            Object info = arg.getInfo();
            return trans.transferComponentChoice(node,info,false,x);
          }
        };
        public final UnaryOp<T,SubcomponentChoice> rightBottom = new UnaryOp<T,SubcomponentChoice>() {
-         public T operate(T x, SubcomponentChoice arg) { 
+         @Override
+        public T operate(T x, SubcomponentChoice arg) { 
            IRNode node = arg.getSyntax();
            Object info = arg.getInfo();
            T r1 = trans.transferComponentChoice(node,info,true,x);
            return r1; 
          }
        };
-       public UnaryOp<T,SubcomponentChoice> bindLeftBottom() {
+       @Override
+      public UnaryOp<T,SubcomponentChoice> bindLeftBottom() {
          return leftBottom;
        }
-       public UnaryOp<T,SubcomponentChoice> bindRightBottom() {
+       @Override
+      public UnaryOp<T,SubcomponentChoice> bindRightBottom() {
          return rightBottom;
        }
-       public T combine(T x, T y, SubcomponentChoice arg) {
+       @Override
+      public T combine(T x, T y, SubcomponentChoice arg) {
           IRNode node = arg.getSyntax();
           Object info = arg.getInfo();
           T r1 = trans.transferComponentChoice(node,info,true,x);
@@ -288,22 +302,27 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
   final LabeledLattice.Combiner<T, IRNode> conditionalCombiner =
     new LabeledLattice.Combiner<T,IRNode>() {
       public final UnaryOp<T,IRNode> leftBottom = new UnaryOp<T,IRNode>() {
+        @Override
         public T operate(T x, IRNode arg) { 
           return trans.transferConditional(arg,false,x);
         }
       };
       public final UnaryOp<T,IRNode> rightBottom = new UnaryOp<T,IRNode>() {
+        @Override
         public T operate(T x, IRNode arg) { 
           T r1 = trans.transferConditional(arg,true,x);
           return r1; 
         }
       };
+      @Override
       public UnaryOp<T,IRNode> bindLeftBottom() {
         return leftBottom;
       }
+      @Override
       public UnaryOp<T,IRNode> bindRightBottom() {
         return rightBottom;
       }
+    @Override
     public T combine(T x, T y, IRNode arg) {
       T xp = trans.transferConditional(arg, true, x);
       T yp = trans.transferConditional(arg, false, y);
@@ -339,25 +358,30 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
    */
   final LabeledLattice.Combiner<T, DynamicSplit> dynamicSplitCombiner = new LabeledLattice.Combiner<T, DynamicSplit>() {
     public final UnaryOp<T, DynamicSplit> leftBottom = new UnaryOp<T, DynamicSplit>() {
+      @Override
       public T operate(T x, DynamicSplit arg) {
         return combine(lattice.bottom(), x, arg);
       }
     };
 
     public final UnaryOp<T, DynamicSplit> rightBottom = new UnaryOp<T, DynamicSplit>() {
+      @Override
       public T operate(T x, DynamicSplit arg) {
         return combine(x, lattice.bottom(), arg);
       }
     };
 
+    @Override
     public UnaryOp<T, DynamicSplit> bindLeftBottom() {
       return leftBottom;
     }
 
+    @Override
     public UnaryOp<T, DynamicSplit> bindRightBottom() {
       return rightBottom;
     }
 
+    @Override
     public T combine(T x, T y, DynamicSplit arg) {
       if (!arg.test(true))
         x = lattice.bottom();
@@ -377,12 +401,14 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
   
   final LabeledLattice.LabelOp<ControlLabel> addLabelOp =
     new LabeledLattice.LabelOp<ControlLabel>() {
+    @Override
     public LabelList operate(LabelList ll, ControlLabel arg) {
       return ll.addLabel(arg);
     }
   };
   final LabeledLattice.LabelOp<ControlLabel> nopLabelOp =
     new LabeledLattice.LabelOp<ControlLabel>() {
+    @Override
     public LabelList operate(LabelList ll, ControlLabel arg) {
       return ll;
     }
@@ -422,6 +448,7 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
 
   final LabeledLattice.LabelOp<ControlLabel> dropLabelOp =
     new LabeledLattice.LabelOp<ControlLabel>() {
+    @Override
     public LabelList operate(LabelList ll, ControlLabel arg) {
       return ll.dropLabel(arg);
     }
