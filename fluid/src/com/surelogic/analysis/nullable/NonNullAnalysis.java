@@ -24,6 +24,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.SimplifiedJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
@@ -33,6 +34,7 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
@@ -409,7 +411,8 @@ implements IBinderClient {
     @Override
     protected Value transferAssignVar(final IRNode use, final Value val) {
       IRNode var = binder.getIBinding(use).getNode();
-      return transferSetVar(var, val, use);
+      return transferSetVar(var, val,
+          AssignExpression.getOp2(JJNode.tree.getParent(use)));
     }
 
     /**
@@ -526,7 +529,7 @@ implements IBinderClient {
     protected Value transferInitializationOfVar(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
       
-      return pop(transferSetVar(node, val, node));
+      return pop(transferSetVar(node, val, VariableDeclarator.getInit(node)));
     }
 
     @Override

@@ -998,7 +998,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     if (!isArrayType(arrayType)) {
       error(refExpr, arrayType, JavaError.NOT_ARRAY_TYPE);
     }
-    processArrayReference(refExpr, arrayType);
+    preProcessArrayReference(refExpr, arrayType);
     
     final IRNode indexExpr = ArrayRefExpression.getIndex(arrayRefExpr);
     try {
@@ -1015,7 +1015,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
         arrayRefExpr, conversionEngine.capture(elementType));
   }
   
-  protected void processArrayReference(final IRNode refExpr, final IType type) {
+  protected void preProcessArrayReference(final IRNode refExpr, final IType type) {
     // TYPECHECK: Need to check that the array reference expression isn't null.
   }
   

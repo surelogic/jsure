@@ -26,9 +26,12 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.Initialization;
+import edu.cmu.cs.fluid.java.operator.NoInitialization;
 import edu.uwm.cs.fluid.util.Lattice;
 
 public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule.AnalysisBundle, Unused>{
@@ -121,8 +124,20 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
             varDecl, pd, isGood, RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
         
         for (final Assignment<I> a : p.getAssignments()) {
-          final HintDrop hint = HintDrop.newInformation(a.getWhere());
-          hint.setMessage(ASSIGNMENT, a.getState());
+          final IRNode src = a.getWhere();
+          String unparse;
+          if (Initialization.prototype.includes(src)) {
+            unparse = DebugUnparser.toString(Initialization.getValue(src), -1);
+          } else if (NoInitialization.prototype.includes(src)) {
+            unparse = "null (by default)";
+          } else {
+            unparse = DebugUnparser.toString(src, -1);
+          }
+          if (unparse.length() > 39) {
+            unparse = unparse.substring(0, 39) + "\u2026";
+          }
+          final HintDrop hint = HintDrop.newInformation(src);
+          hint.setMessage(ASSIGNMENT, a.getState(), unparse);
           rd.addDependent(hint);
         }
       }      
