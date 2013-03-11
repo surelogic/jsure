@@ -2,6 +2,7 @@ package com.surelogic.analysis.type.checker;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.operator.AddExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayCreationExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
@@ -14,7 +15,12 @@ import edu.cmu.cs.fluid.java.operator.DivExpression;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.FloatLiteral;
+import edu.cmu.cs.fluid.java.operator.GreaterThanEqualExpression;
+import edu.cmu.cs.fluid.java.operator.GreaterThanExpression;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
+import edu.cmu.cs.fluid.java.operator.LeftShiftExpression;
+import edu.cmu.cs.fluid.java.operator.LessThanEqualExpression;
+import edu.cmu.cs.fluid.java.operator.LessThanExpression;
 import edu.cmu.cs.fluid.java.operator.MinusExpression;
 import edu.cmu.cs.fluid.java.operator.MulExpression;
 import edu.cmu.cs.fluid.java.operator.NotExpression;
@@ -28,6 +34,10 @@ import edu.cmu.cs.fluid.java.operator.PreIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.RemExpression;
+import edu.cmu.cs.fluid.java.operator.RightShiftExpression;
+import edu.cmu.cs.fluid.java.operator.StringConcat;
+import edu.cmu.cs.fluid.java.operator.SubExpression;
+import edu.cmu.cs.fluid.java.operator.UnsignedRightShiftExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VisitorWithException;
 import edu.cmu.cs.fluid.java.operator.VoidType;
@@ -58,6 +68,8 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   private static final String JAVA_LANG_SHORT = "java.lang.Short";
   private static final String JAVA_LANG_BYTE = "java.lang.Byte";
   private static final String JAVA_LANG_BOOLEAN = "java.lang.Boolean";
+  
+  private static final String JAVA_LANG_STRING = "java.lang.String";
   
   private final IBinder binder;
   private final ITypeFactory typeFactory;
@@ -339,6 +351,14 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     if (!isConvertibleToIntegralType(type)) {
       error(expr, type, JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE);
     }
+  }
+  
+  /**
+   * Perform a string conversion as define in ¤5.1.11.
+   */
+  protected final IType string(final IRNode expr, final IType type) {
+    // XXX: Probably want a preprocess method here
+    return typeFactory.getStringType();
   }
   
   
@@ -1388,4 +1408,304 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   protected IType postProcessRemExpression(final IRNode remExpr, final IType type) {
     return postProcessType(type);
   }
+
+
+
+  // ======================================================================
+  // == ¤15.18.1 String Concatenation Operator +
+  // ======================================================================
+
+  @Override
+  public IType visitStringConcat(final IRNode concat) {
+    /*
+     * If only one operand expression is of type String, then string conversion
+     * (¤5.1.11) is performed on the other operand to produce a string at
+     * run-time.
+     * 
+     * The result of string concatenation is a reference to a String object that
+     * is the concatenation of the two operand strings.
+     */
+    try {
+      final IRNode op1 = StringConcat.getOp1(concat);
+      IType type1 = doAccept(op1);
+      if (!isNamedType(type1, JAVA_LANG_STRING)) {
+        type1 = string(op1, type1);
+      }
+    } catch (final TypeCheckingFailed e) {
+      /*
+       * Can ignore this because the overall type of this expression is always
+       * string.
+       */
+    }
+
+    try {
+      final IRNode op2 = StringConcat.getOp2(concat);
+      IType type2 = doAccept(op2);
+      if (!isNamedType(type2, JAVA_LANG_STRING)) {
+        type2 = string(op2, type2);
+      }
+    } catch (final TypeCheckingFailed e) {
+      /*
+       * Can ignore this because the overall type of this expression is always
+       * string.
+       */
+    }
+
+    return postProcessStringConcat(concat, typeFactory.getStringType());
+  }
+  
+  protected IType postProcessStringConcat(final IRNode concat, final IType type) {
+    return postProcessType(type);
+  }
+
+
+
+  // ======================================================================
+  // == ¤15.18.1 Additive Operators (+ and -) for Numeric Types
+  // ======================================================================
+
+  private IType visitAdditiveOperator(
+      final IRNode expr, final IRNode op1, final IRNode op2) 
+  throws TypeCheckingFailed {
+    /*
+     * The type of each of the operands of the + operator must be a type that is
+     * convertible (¤5.1.8) to a primitive numeric type, or a compile-time error
+     * occurs.
+     * 
+     * Binary numeric promotion is performed on the operands (¤5.6.2).
+     * 
+     * The type of an additive expression on numeric operands is the promoted
+     * type of its operands.
+     */
+
+    /*
+     * Do not catch any type errors in the sub expressions, because we are
+     * unable to type this expression if we cannot get the sub expression
+     * types.
+     */
+    final IType type1 = doAccept(op1);
+    assertConvertibleToNumericType(type1, op1);
+    
+    final IType type2 = doAccept(op2);
+    assertConvertibleToNumericType(type2, op2);
+    
+    final IType resultType = binaryNumericPromotion(type1, type2);
+    return resultType;
+  }
+  
+  @Override
+  public final IType visitAddExpression(final IRNode addExpr) 
+  throws TypeCheckingFailed {
+    return postProcessAddExpression(
+        addExpr,
+        visitAdditiveOperator(addExpr,
+            AddExpression.getOp1(addExpr),
+            AddExpression.getOp2(addExpr)));
+  }
+  
+  protected IType postProcessAddExpression(final IRNode addExpr, final IType type) {
+    return postProcessType(type);
+  }
+  
+  @Override
+  public final IType visitSubExpression(final IRNode subExpr) 
+  throws TypeCheckingFailed {
+    return postProcessSubExpression(
+        subExpr,
+        visitAdditiveOperator(subExpr,
+            SubExpression.getOp1(subExpr),
+            SubExpression.getOp2(subExpr)));
+  }
+  
+  protected IType postProcessSubExpression(final IRNode subExpr, final IType type) {
+    return postProcessType(type);
+  }
+
+
+
+  // ======================================================================
+  // == ¤15.19 Shift Operators
+  // ======================================================================
+
+  private IType visitShiftOperator(
+      final IRNode expr, final IRNode op1, final IRNode op2)
+  throws TypeCheckingFailed {
+    /*
+     * Unary numeric promotion (¤5.6.1) is performed on each operand separately.
+     * (Binary numeric promotion (¤5.6.2) is not performed on the operands.)
+     * 
+     * It is a compile-time error if the type of each of the operands of a shift
+     * operator, after unary numeric promotion, is not a primitive integral
+     * type.
+     * 
+     * The type of the shift expression is the promoted type of the left-hand
+     * operand.
+     */
+    
+    /* Do not catch this error because we need the type of the LHS to type
+     * this expression.
+     */
+    final IType type1 = unaryNumericPromotion(doAccept(op1));
+    if (!isIntegralType(type1)) {
+      error(op1, type1, JavaError.NOT_INTEGRAL_TYPE); 
+    }
+    
+    try {
+      final IType type2 = unaryNumericPromotion(doAccept(op2));
+      if (!isIntegralType(type2)) {
+        error(op2, type2, JavaError.NOT_INTEGRAL_TYPE); 
+      }
+    } catch (final TypeCheckingFailed e) {
+      /*
+       * Can eat this error because we only need the type of LHS to type
+       * the shift expression.
+       */
+    }
+    
+    return type1;
+  }
+  
+  @Override
+  public final IType visitLeftShiftExpression(final IRNode leftShift)
+  throws TypeCheckingFailed {
+    return postProcessLeftShiftExpression(
+        leftShift,
+        visitShiftOperator(leftShift,
+            LeftShiftExpression.getOp1(leftShift),
+            LeftShiftExpression.getOp2(leftShift)));
+  }
+  
+  protected IType postProcessLeftShiftExpression(final IRNode leftShift, final IType type) {
+    return postProcessType(type);
+  }
+  
+  @Override
+  public final IType visitRightShiftExpression(final IRNode rightShift)
+  throws TypeCheckingFailed {
+    return postProcessRightShiftExpression(
+        rightShift,
+        visitShiftOperator(rightShift,
+            RightShiftExpression.getOp1(rightShift),
+            RightShiftExpression.getOp2(rightShift)));
+  }
+  
+  protected IType postProcessRightShiftExpression(final IRNode rightShift, final IType type) {
+    return postProcessType(type);
+  }
+  
+  @Override
+  public final IType visitUnsignedRightShiftExpression(final IRNode unsignedShift)
+  throws TypeCheckingFailed {
+    return postProcesUnsignedRightShiftExpression(
+        unsignedShift,
+        visitShiftOperator(unsignedShift,
+            UnsignedRightShiftExpression.getOp1(unsignedShift),
+            UnsignedRightShiftExpression.getOp2(unsignedShift)));
+  }
+  
+  protected IType postProcesUnsignedRightShiftExpression(final IRNode unsignedShift, final IType type) {
+    return postProcessType(type);
+  }
+
+
+
+  // ======================================================================
+  // == ¤15.20.1 Numerical Comparison Operators <, <=, >, and >=
+  // ======================================================================
+
+  private IType visitNumericalComparison(
+      final IRNode expr, final IRNode op1, final IRNode op2) {
+    /*
+     * The type of a relational expression is always boolean.
+     * 
+     * The type of each of the operands of a numerical comparison operator must
+     * be a type that is convertible (¤5.1.8) to a primitive numeric type, or a
+     * compile-time error occurs.
+     * 
+     * Binary numeric promotion is performed on the operands (¤5.6.2).
+     */
+    try {
+      final IType type1 = doAccept(op1);
+      assertConvertibleToNumericType(type1, op1);
+
+      final IType type2 = doAccept(op2);
+      assertConvertibleToNumericType(type2, op2);
+      
+      binaryNumericPromotion(type1, type2);
+    } catch (final TypeCheckingFailed e) {
+      /* Can eat the exception because the expression type is always
+       * boolean.
+       */
+    }
+
+    return typeFactory.getBooleanType();
+  }
+  
+  @Override
+  public final IType visitLessThanExpression(final IRNode expr) {
+    return postProcessLessThanExpression(
+        expr,
+        visitNumericalComparison(expr,
+            LessThanExpression.getOp1(expr),
+            LessThanExpression.getOp2(expr)));
+  }
+  
+  protected IType postProcessLessThanExpression(final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
+  
+  @Override
+  public final IType visitLessThanEqualExpression(final IRNode expr) {
+    return postProcessLessThanEqualExpression(
+        expr,
+        visitNumericalComparison(expr,
+            LessThanEqualExpression.getOp1(expr),
+            LessThanEqualExpression.getOp2(expr)));
+  }
+  
+  protected IType postProcessLessThanEqualExpression(final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
+  
+  @Override
+  public final IType visitGreaterThanExpression(final IRNode expr) {
+    return postProcessGreaterThanExpression(
+        expr,
+        visitNumericalComparison(expr,
+            GreaterThanExpression.getOp1(expr),
+            GreaterThanExpression.getOp2(expr)));
+  }
+  
+  protected IType postProcessGreaterThanExpression(final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
+  
+  @Override
+  public final IType visitGreaterThanEqualExpression(final IRNode expr) {
+    return postProcessGreaterThanEqualExpression(
+        expr,
+        visitNumericalComparison(expr,
+            GreaterThanEqualExpression.getOp1(expr),
+            GreaterThanEqualExpression.getOp2(expr)));
+  }
+  
+  protected IType postProcessGreaterThanEqualExpression(final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
+
+
+
+  // ======================================================================
+  // == ¤15.20.2 Type Comparison Operator instanceof
+  // ======================================================================
+
+  // TODO
+  
+  
+  
+  // ======================================================================
+  // == ¤15.21 Equality Operators
+  // ======================================================================
+
 }
+
