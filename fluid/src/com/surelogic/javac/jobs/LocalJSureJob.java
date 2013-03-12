@@ -43,7 +43,7 @@ public class LocalJSureJob extends AbstractLocalSLJob {
 	}
 	
 	@Override
-	protected Class<?> getRemoteClass() {
+	protected Class<? extends AbstractRemoteSLJob> getRemoteClass() {
 		return RemoteJSureRun.class;
 	}
 
