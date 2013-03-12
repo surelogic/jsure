@@ -16,6 +16,8 @@ public enum JavaError implements ITypeError {
   NOT_BOOLEAN_TYPE("Type is not boolean or java.lang.Boolean"),
   NOT_INTEGRAL_TYPE("Type is not a primitive integral type"),
   
+  NOT_APPLICABLE("Operator is not applicable to the given types"),
+  
   A("");
   
   private JavaError(final String msg) {
