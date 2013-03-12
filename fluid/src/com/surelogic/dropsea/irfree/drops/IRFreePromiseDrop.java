@@ -12,7 +12,7 @@ import java.util.List;
 import com.surelogic.NonNull;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IPromiseDrop;
-import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.dropsea.irfree.JSureEntity;
 
 public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
 
@@ -36,7 +36,7 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
     f_deponentPromises.add(p);
   }
 
-  IRFreePromiseDrop(Entity e, Class<?> irClass) {
+  IRFreePromiseDrop(JSureEntity e, Class<?> irClass) {
     super(e, irClass);
     f_isAssumed = "true".equals(e.getAttribute(ASSUMED));
     f_isCheckedByAnalysis = "true".equals(e.getAttribute(CHECKED_BY_ANALYSIS));

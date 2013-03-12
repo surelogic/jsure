@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.ir.drops.CUDrop;
-import com.surelogic.dropsea.irfree.XmlCreator;
 
 public class JSureResultsXMLCreator extends XmlCreator {
   public JSureResultsXMLCreator(OutputStream out) throws IOException {

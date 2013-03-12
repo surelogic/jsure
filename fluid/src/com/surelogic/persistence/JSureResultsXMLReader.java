@@ -5,13 +5,13 @@ import java.util.Map;
 
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
-import com.surelogic.dropsea.irfree.Entity;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;

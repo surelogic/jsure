@@ -3,7 +3,7 @@ package com.surelogic.javac;
 import java.io.File;
 import java.io.IOException;
 
-import com.surelogic.dropsea.irfree.XmlCreator;
+import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
 /**

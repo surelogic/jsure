@@ -5,9 +5,9 @@ import java.util.Set;
 
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.RequiresLock;
+import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
-import com.surelogic.dropsea.irfree.XmlCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SimpleSlotFactory;

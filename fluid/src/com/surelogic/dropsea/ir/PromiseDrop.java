@@ -27,11 +27,10 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.IJavaRef.Position;
 import com.surelogic.common.ref.JavaRef;
+import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.ICustomizedPromiseDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
-import com.surelogic.dropsea.irfree.XmlCreator;
-import com.surelogic.dropsea.irfree.XmlCreator.Builder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
@@ -601,7 +600,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @Override
   @MustInvokeOnOverride
-  public void snapshotRefs(SeaSnapshot s, Builder db) {
+  public void snapshotRefs(SeaSnapshot s, XmlCreator.Builder db) {
     super.snapshotRefs(s, db);
     for (Drop c : getCheckedBy()) {
       s.refDrop(db, CHECKED_BY_RESULTS, c);

@@ -1,6 +1,6 @@
 package com.surelogic.xml;
 
-import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.common.xml.Entity;
 
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;

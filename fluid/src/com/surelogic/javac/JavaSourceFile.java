@@ -5,9 +5,8 @@ import java.net.URI;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.Pair;
-import com.surelogic.dropsea.irfree.XmlCreator;
+import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
-
 
 public class JavaSourceFile {
 	public final String qname;

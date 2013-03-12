@@ -22,6 +22,7 @@ import org.xml.sax.Attributes;
 
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -34,7 +35,7 @@ import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.ScopedPromiseDrop;
 import com.surelogic.dropsea.irfree.AbstractXmlResultListener;
 import com.surelogic.dropsea.irfree.DropTypeUtility;
-import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.dropsea.irfree.JSureEntity;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListener {
@@ -49,7 +50,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListene
       refCache = null;
   }
 
-  private class SeaEntity extends Entity {
+  private class SeaEntity extends JSureEntity {
 
     public SeaEntity(String name, Attributes a) {
       super(name, a);

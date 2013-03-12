@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.zip.*;
 
 import com.surelogic.common.*;
-import com.surelogic.dropsea.irfree.XmlCreator;
+import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.javac.persistence.*;
 
 /**

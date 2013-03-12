@@ -2,7 +2,7 @@ package com.surelogic.dropsea.irfree;
 
 import org.xml.sax.Attributes;
 
-import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.common.xml.Entity;
 
 public interface IXmlResultListener {
 	/**

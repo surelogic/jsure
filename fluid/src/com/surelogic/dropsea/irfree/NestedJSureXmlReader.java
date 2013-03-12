@@ -17,6 +17,8 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.xml.Entity;
+import com.surelogic.common.xml.XmlReader;
 
 public abstract class NestedJSureXmlReader extends DefaultHandler {
 
@@ -30,7 +32,7 @@ public abstract class NestedJSureXmlReader extends DefaultHandler {
   public static final String DEPENDENT = "dependent";
 
   public static final String UID_ATTR = "uid";
-  public static final String ID_ATTR = "id";
+  public static final String ID_ATTR = XmlReader.ID_ATTR;
 
   public static final String MESSAGE_ATTR = "message";
 

@@ -28,9 +28,9 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.IJavaRef.Position;
 import com.surelogic.common.ref.JavaRef;
+import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
-import com.surelogic.dropsea.irfree.XmlCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -553,7 +553,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   }
 
   @Override
-  public void snapshotRefs(SeaSnapshot s, com.surelogic.dropsea.irfree.XmlCreator.Builder db) {
+  public void snapshotRefs(SeaSnapshot s, XmlCreator.Builder db) {
     super.snapshotRefs(s, db);
     s.addProperties(db, ANNO_ATTRS, f_attributeNameToValue);
     s.addProperties(db, REPLACED_ATTRS, f_replacedAttributeNameToValue);

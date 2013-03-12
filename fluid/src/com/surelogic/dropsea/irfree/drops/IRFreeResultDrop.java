@@ -5,7 +5,7 @@ import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TIMEOUT;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.VOUCHED;
 
 import com.surelogic.dropsea.IResultDrop;
-import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.dropsea.irfree.JSureEntity;
 
 public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements IResultDrop {
 
@@ -13,7 +13,7 @@ public final class IRFreeResultDrop extends IRFreeAnalysisResultDrop implements 
   private final boolean f_isVouched;
   private final boolean f_isTimeout;
 
-  IRFreeResultDrop(Entity e, Class<?> irClass) {
+  IRFreeResultDrop(JSureEntity e, Class<?> irClass) {
     super(e, irClass);
 
     f_isConsistent = "true".equals(e.getAttribute(CONSISTENT));

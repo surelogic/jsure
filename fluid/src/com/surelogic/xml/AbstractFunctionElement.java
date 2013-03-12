@@ -4,7 +4,7 @@ import java.util.*;
 
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.CommonImages;
-import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.common.xml.Entity;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.Parameters;

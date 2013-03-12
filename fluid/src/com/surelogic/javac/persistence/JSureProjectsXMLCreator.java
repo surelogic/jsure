@@ -5,7 +5,7 @@ import java.io.OutputStream;
 import java.util.Map;
 
 import com.surelogic.common.SLUtility;
-import com.surelogic.dropsea.irfree.XmlCreator;
+import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.javac.IClassPathEntry;
 import com.surelogic.javac.JavaSourceFile;
 import com.surelogic.javac.JavacProject;

@@ -10,8 +10,8 @@ import java.util.zip.ZipEntry;
 
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.irfree.Entity;
 import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
 
 /**

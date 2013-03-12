@@ -23,7 +23,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.dropsea.irfree.JSureEntity;
 
 public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProposedPromiseDrop {
 
@@ -67,7 +67,7 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     }
   }
 
-  IRFreeProposedPromiseDrop(Entity e, Class<?> irClass) {
+  IRFreeProposedPromiseDrop(JSureEntity e, Class<?> irClass) {
     super(e, irClass);
 
     f_JavaAnnotation = e.getAttributeByAliasIfPossible(JAVA_ANNOTATION);

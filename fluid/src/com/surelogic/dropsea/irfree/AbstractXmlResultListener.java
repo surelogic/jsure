@@ -2,7 +2,7 @@ package com.surelogic.dropsea.irfree;
 
 import java.util.*;
 
-import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.common.xml.Entity;
 
 /**
  * Handles references to entities that haven't been defined yet

@@ -14,10 +14,9 @@ import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
+import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
-import com.surelogic.dropsea.irfree.XmlCreator;
-import com.surelogic.dropsea.irfree.XmlCreator.Builder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -330,7 +329,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   }
 
   @Override
-  public final void snapshotRefs(SeaSnapshot s, Builder db) {
+  public final void snapshotRefs(SeaSnapshot s, XmlCreator.Builder db) {
     super.snapshotRefs(s, db);
     for (Drop c : getCheckedReference()) {
       s.refDrop(db, CHECKED_PROMISE, c);

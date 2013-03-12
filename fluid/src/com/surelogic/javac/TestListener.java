@@ -4,7 +4,6 @@ import org.xml.sax.Attributes;
 
 import com.surelogic.common.xml.*;
 import com.surelogic.dropsea.irfree.AbstractXmlResultListener;
-import com.surelogic.dropsea.irfree.Entity;
 
 public class TestListener extends AbstractXmlResultListener {
 	@Override

@@ -17,7 +17,6 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.*;
 import com.surelogic.dropsea.ir.drops.BinaryCUDrop;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
-import com.surelogic.dropsea.irfree.Entity;
 import com.surelogic.dropsea.irfree.IXmlResultListener;
 import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
 

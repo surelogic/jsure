@@ -31,7 +31,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.common.xml.Entities;
+import com.surelogic.common.xml.*;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IHintDrop.HintType;
@@ -40,8 +40,6 @@ import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.irfree.DiffHeuristics;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
-import com.surelogic.dropsea.irfree.XmlCreator;
-import com.surelogic.dropsea.irfree.XmlCreator.Builder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -1162,7 +1160,7 @@ public abstract class Drop implements IDrop {
   }
 
   @MustInvokeOnOverride
-  public void snapshotRefs(SeaSnapshot s, Builder db) {
+  public void snapshotRefs(SeaSnapshot s, XmlCreator.Builder db) {
     for (Drop c : getHints()) {
       s.refDrop(db, HINT_ABOUT, c);
     }

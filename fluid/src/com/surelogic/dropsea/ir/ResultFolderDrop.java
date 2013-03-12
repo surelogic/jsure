@@ -7,9 +7,9 @@ import com.surelogic.InRegion;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
+import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
-import com.surelogic.dropsea.irfree.XmlCreator.Builder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -215,7 +215,7 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
   @Override
   @MustInvokeOnOverride
   @RequiresLock("SeaLock")
-  public void snapshotAttrs(Builder s) {
+  public void snapshotAttrs(XmlCreator.Builder s) {
     super.snapshotAttrs(s);
     s.addAttribute(FOLDER_LOGIC_OPERATOR, getLogicOperator().toString());
   }

@@ -4,17 +4,17 @@ import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.HINT_TYPE_ATTR;
 
 import com.surelogic.NonNull;
 import com.surelogic.dropsea.IHintDrop;
-import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.dropsea.irfree.JSureEntity;
 
 public final class IRFreeHintDrop extends IRFreeDrop implements IHintDrop {
 
   private final HintType f_type;
 
-  IRFreeHintDrop(Entity e, Class<?> irClass) {
+  IRFreeHintDrop(JSureEntity e, Class<?> irClass) {
     this(e, irClass, null);
   }
 
-  IRFreeHintDrop(Entity e, Class<?> irClass, HintType forBackwardsCompatiblityOnly) {
+  IRFreeHintDrop(JSureEntity e, Class<?> irClass, HintType forBackwardsCompatiblityOnly) {
     super(e, irClass);
     if (forBackwardsCompatiblityOnly != null) {
       f_type = forBackwardsCompatiblityOnly;

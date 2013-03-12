@@ -9,10 +9,8 @@ package com.surelogic.dropsea.ir.drops.threadroles;
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.RequiresLock;
 import com.surelogic.analysis.threadroles.TRoleMessages;
+import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.irfree.XmlCreator;
-
-
 
 /**
  * @author dfsuther

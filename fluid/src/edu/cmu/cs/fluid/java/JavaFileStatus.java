@@ -2,14 +2,12 @@ package edu.cmu.cs.fluid.java;
 
 import java.io.*;
 
-import com.surelogic.common.xml.Entities;
-import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.common.xml.*;
 import com.surelogic.tree.SyntaxTreeRegion;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
 import edu.cmu.cs.fluid.java.bind.*;
-import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;

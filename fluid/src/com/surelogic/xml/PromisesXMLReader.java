@@ -6,7 +6,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.xml.sax.Attributes;
 
-import com.surelogic.dropsea.irfree.Entity;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.irfree.IXmlResultListener;
 import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
 import com.surelogic.xml.AnnotatedJavaElement.Access;

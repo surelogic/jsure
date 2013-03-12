@@ -3,8 +3,8 @@ package com.surelogic.persistence;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
+import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.irfree.XmlCreator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 

@@ -3,7 +3,7 @@ package com.surelogic.javac;
 import java.io.*;
 import java.net.URI;
 
-import com.surelogic.dropsea.irfree.XmlCreator;
+import com.surelogic.common.xml.XmlCreator;
 
 public interface IClassPathEntry {
 	/**

@@ -25,6 +25,7 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.StringCache;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISnapshotDrop;
 import com.surelogic.dropsea.ir.Drop;
