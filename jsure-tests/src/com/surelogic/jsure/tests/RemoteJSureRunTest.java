@@ -1,6 +1,6 @@
 package com.surelogic.jsure.tests;
 
-import java.io.BufferedReader;
+import java.io.File;
 
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.jobs.AbstractSLJob;
@@ -18,12 +18,16 @@ public class RemoteJSureRunTest extends RemoteJSureRun {
 	}
 	
 	@Override
-	protected SLJob init(BufferedReader br, Monitor mon) throws Throwable {
+	protected void init() {
 		out.println("Setting up XML output");
 		Javac.getDefault().addTestOutputFactory(JUnitXMLOutput.factory);
 		//System.out.println("Added JUnitXMLOutput.factory");
-
-		final SLJob job = super.init(br, mon);
+		super.init();
+	}
+	
+	@Override
+	protected SLJob finishInit(final File runDir) throws Throwable {
+		final SLJob job = super.finishInit(runDir);
 		return new AbstractSLJob(job.getName()) {
 			@Override
 			public SLStatus run(SLProgressMonitor monitor) {
