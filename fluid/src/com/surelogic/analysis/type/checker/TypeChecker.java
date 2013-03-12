@@ -3,12 +3,15 @@ package com.surelogic.analysis.type.checker;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AddExpression;
+import edu.cmu.cs.fluid.java.operator.AndExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayCreationExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.ComplementExpression;
+import edu.cmu.cs.fluid.java.operator.ConditionalAndExpression;
+import edu.cmu.cs.fluid.java.operator.ConditionalOrExpression;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.DivExpression;
@@ -24,6 +27,7 @@ import edu.cmu.cs.fluid.java.operator.LessThanExpression;
 import edu.cmu.cs.fluid.java.operator.MinusExpression;
 import edu.cmu.cs.fluid.java.operator.MulExpression;
 import edu.cmu.cs.fluid.java.operator.NotExpression;
+import edu.cmu.cs.fluid.java.operator.OrExpression;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.PlusExpression;
@@ -41,6 +45,7 @@ import edu.cmu.cs.fluid.java.operator.UnsignedRightShiftExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VisitorWithException;
 import edu.cmu.cs.fluid.java.operator.VoidType;
+import edu.cmu.cs.fluid.java.operator.XorExpression;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -90,14 +95,14 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
 
   // Protected: allow subclasses to fail in new ways
   protected final void error(
-      final IRNode expr, final IType type, final ITypeError error)
+      final ITypeError error, final IRNode expr, final IType... type)
   throws TypeCheckingFailed {
-    handleError(expr, type, error);
+    handleError(error, expr, type);
     throw new TypeCheckingFailed(expr, error);
   }
   
   protected void handleError(
-      final IRNode expr, final IType type, final ITypeError error) {
+      final ITypeError error, final IRNode expr, final IType... type) {
     // nothing to do by default
   }
 
@@ -116,7 +121,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   throws TypeCheckingFailed {
     final IRNode binding = binder.getBinding(expr);
     if (binding == null) {
-      error(expr, null, JavaError.NAME_NOT_RESOLVABLE);
+      error(JavaError.NAME_NOT_RESOLVABLE, expr);
       // really dead code: error always throws an exception
       return null;
     } else {
@@ -177,6 +182,11 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     return false;
   }
   
+  protected final boolean isVoidType(final IType type) {
+    // TODO: Make this real when I flesh out the ITypes
+    return false;
+  }
+  
   protected final boolean isIntegralType(final IType type) {
     return isByteType(type) ||
         isShortType(type) ||
@@ -211,7 +221,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     // TODO: Make this real when I flesh out the ITypes
     return false;
   }
-  
+
   
   
   // ======================================================================
@@ -324,7 +334,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
       final IType type, final IRNode expr)
   throws TypeCheckingFailed {
     if (!isConvertibleToNumericType(type)) {
-      error(expr, type, JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE);
+      error(JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE, expr, type);
     }
   }
   
@@ -349,7 +359,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
       final IType type, final IRNode expr)
   throws TypeCheckingFailed {
     if (!isConvertibleToIntegralType(type)) {
-      error(expr, type, JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE);
+      error(JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE, expr, type);
     }
   }
   
@@ -457,7 +467,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     assertConvertibleToIntegralType(type, expr);
     type = unaryNumericPromotion(type);
     if (!isIntType(type)) {
-      error(expr, type, JavaError.NOT_INT);
+      error(JavaError.NOT_INT, expr, type);
     }
   }
   
@@ -940,7 +950,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     final IRNode objectExpr = FieldRef.getObject(fieldRefExpr);
     final IType objectType = doAccept(objectExpr);
     if (isPrimitiveType(objectType)) {
-      error(objectExpr, objectType, JavaError.NOT_REFERENCE_TYPE);
+      error(JavaError.NOT_REFERENCE_TYPE, objectExpr, objectType);
     }
     
     /* Binding the field reference expression gets the VariableDeclarator
@@ -1016,7 +1026,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     final IRNode refExpr = ArrayRefExpression.getArray(arrayRefExpr);
     final IType arrayType = doAccept(refExpr);
     if (!isArrayType(arrayType)) {
-      error(refExpr, arrayType, JavaError.NOT_ARRAY_TYPE);
+      error(JavaError.NOT_ARRAY_TYPE, refExpr, arrayType);
     }
     preProcessArrayReference(refExpr, arrayType);
     
@@ -1305,7 +1315,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
       final IType operandType = doAccept(opExpr);
       final boolean isBoxedBoolean = isNamedType(operandType, JAVA_LANG_BOOLEAN);
       if (!(isBooleanType(operandType) || isBoxedBoolean)) {
-        error(opExpr, operandType, JavaError.NOT_BOOLEAN_TYPE);
+        error(JavaError.NOT_BOOLEAN_TYPE, opExpr, operandType);
       }
       if (isBoxedBoolean) {
         // Force an unbox to enable null-checking 
@@ -1547,13 +1557,13 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      */
     final IType type1 = unaryNumericPromotion(doAccept(op1));
     if (!isIntegralType(type1)) {
-      error(op1, type1, JavaError.NOT_INTEGRAL_TYPE); 
+      error(JavaError.NOT_INTEGRAL_TYPE, op1, type1); 
     }
     
     try {
       final IType type2 = unaryNumericPromotion(doAccept(op2));
       if (!isIntegralType(type2)) {
-        error(op2, type2, JavaError.NOT_INTEGRAL_TYPE); 
+        error(JavaError.NOT_INTEGRAL_TYPE, op2, type2); 
       }
     } catch (final TypeCheckingFailed e) {
       /*
@@ -1707,5 +1717,272 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   // == ¤15.21 Equality Operators
   // ======================================================================
 
+  // TODO
+  
+  
+  
+  // ======================================================================
+  // == ¤15.22 Bitwise and Logical Operators
+  // ======================================================================
+  
+  private IType visitBitwiseAndLogical(
+      final IRNode expr, final IRNode op1, final IRNode op2)
+  throws TypeCheckingFailed {
+    /*
+     * ¤15.22.1 Integer Bitwise Operators &, ^, and |
+     * 
+     * When both operands of an operator &, ^, or | are of a type that is
+     * convertible (¤5.1.8) to a primitive integral type, binary numeric
+     * promotion is first performed on the operands (¤5.6.2).
+     * 
+     * The type of the bitwise operator expression is the promoted type of the
+     * operands.
+     * 
+     * 
+     * ¤15.22.2 Boolean Logical Operators &, ^, and |
+     * 
+     * When both operands of a &, ^, or | operator are of type boolean or
+     * Boolean, then the type of the bitwise operator expression is boolean. In
+     * all cases, the operands are subject to unboxing conversion (¤5.1.8) as
+     * necessary.
+     */
+    
+    /* Cannot catch the exceptions here because without the types of the
+     * operands we cannot determine the type of this expression.
+     */
+    final IType type1 = doAccept(op1);
+    final IType type2 = doAccept(op2);
+    
+    if (isConvertibleToIntegralType(type1) && isConvertibleToIntegralType(type2)) {
+      return binaryNumericPromotion(type1, type2);
+    } else {
+      final boolean isBoxedBoolean1 = isNamedType(type1, JAVA_LANG_BOOLEAN);
+      final boolean isBoxedBoolean2 = isNamedType(type2, JAVA_LANG_BOOLEAN);
+      if ((isBooleanType(type1) || isBoxedBoolean1) &&
+          (isBooleanType(type2) || isBoxedBoolean2)) {
+        if (isBoxedBoolean1) unbox(type1);
+        if (isBoxedBoolean2) unbox(type2);
+        return typeFactory.getBooleanType();
+      }
+    }
+    error(JavaError.NOT_APPLICABLE, expr, type1, type2);
+    return null; // DEAD CODE: error() always throws an exception
+  }
+  
+  @Override
+  public final IType visitAndExpression(final IRNode expr)
+  throws TypeCheckingFailed {
+    return postProcessAndExpression(expr,
+        visitBitwiseAndLogical(expr,
+            AndExpression.getOp1(expr),
+            AndExpression.getOp2(expr)));
+  }
+  
+  protected IType postProcessAndExpression(final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
+  
+  @Override
+  public final IType visitOrExpression(final IRNode expr)
+  throws TypeCheckingFailed {
+    return postProcessOrExpression(expr,
+        visitBitwiseAndLogical(expr,
+            OrExpression.getOp1(expr),
+            OrExpression.getOp2(expr)));
+  }
+  
+  protected IType postProcessOrExpression(final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
+  
+  @Override
+  public final IType visitXorExpression(final IRNode expr)
+  throws TypeCheckingFailed {
+    return postProcessXorExpression(expr,
+        visitBitwiseAndLogical(expr,
+            XorExpression.getOp1(expr),
+            XorExpression.getOp2(expr)));
+  }
+  
+  protected IType postProcessXorExpression(final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
+
+
+
+  // ======================================================================
+  // == ¤15.23 Conditional-And Operator
+  // ======================================================================
+  
+  @Override
+  public final IType visitConditionalAndExpression(final IRNode expr) {
+    /*
+     * Each operand of the conditional-and operator must be of type boolean or
+     * Boolean, or a compile-time error occurs.
+     * 
+     * The type of a conditional-and expression is always boolean.
+     * 
+     * At run-time, the left-hand operand expression is evaluated first; if the
+     * result has type Boolean, it is subjected to unboxing conversion (¤5.1.8).
+     * 
+     * If the value of the left-hand operand is true, then the right-hand
+     * expression is evaluated; if the result has type Boolean, it is subjected
+     * to unboxing conversion (¤5.1.8).
+     */
+    try {
+      final IRNode op1 = ConditionalAndExpression.getOp1(expr);
+      final IType type1 = doAccept(op1);
+      final boolean isBoxedBoolean1 = isNamedType(type1, JAVA_LANG_BOOLEAN);
+      if (!isBooleanType(type1) && !isBoxedBoolean1) {
+        error(JavaError.NOT_BOOLEAN_TYPE, op1, type1);
+      }
+      if (isBoxedBoolean1) unbox(type1);
+    } catch (final TypeCheckingFailed e) {
+      /* Can eat the exception because the result type is always boolean. */
+    }
+
+    try {
+      final IRNode op2 = ConditionalAndExpression.getOp2(expr);
+      final IType type2 = doAccept(op2);
+      final boolean isBoxedBoolean2 = isNamedType(type2, JAVA_LANG_BOOLEAN);
+      if (!isBooleanType(type2) && !isBoxedBoolean2) {
+        error(JavaError.NOT_BOOLEAN_TYPE, op2, type2);
+      }
+      if (isBoxedBoolean2) unbox(type2);
+    } catch (final TypeCheckingFailed e) {
+      /* Can eat the exception because the result type is always boolean. */
+    }
+    
+    return postProcessConditionalAndExpression(
+        expr, typeFactory.getBooleanType());
+  }
+    
+  protected IType postProcessConditionalAndExpression(
+      final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
+
+
+
+  // ======================================================================
+  // == ¤15.24 Conditional-Or Operator
+  // ======================================================================
+  
+  @Override
+  public final IType visitConditionalOrExpression(final IRNode expr) {
+    /*
+     * Each operand of the conditional-or operator must be of type boolean or
+     * Boolean, or a compile-time error occurs.
+     * 
+     * The type of a conditional-or expression is always boolean.
+     * 
+     * At run-time, the left-hand operand expression is evaluated first; if the
+     * result has type Boolean, it is subjected to unboxing conversion (¤5.1.8).
+     * 
+     * If the value of the left-hand operand is false, then the right-hand
+     * expression is evaluated; if the result has type Boolean, it is subjected
+     * to unboxing conversion (¤5.1.8).
+     */
+    try {
+      final IRNode op1 = ConditionalOrExpression.getOp1(expr);
+      final IType type1 = doAccept(op1);
+      final boolean isBoxedBoolean1 = isNamedType(type1, JAVA_LANG_BOOLEAN);
+      if (!isBooleanType(type1) && !isBoxedBoolean1) {
+        error(JavaError.NOT_BOOLEAN_TYPE, op1, type1);
+      }
+      if (isBoxedBoolean1) unbox(type1);
+    } catch (final TypeCheckingFailed e) {
+      /* Can eat the exception because the result type is always boolean. */
+    }
+
+    try {
+      final IRNode op2 = ConditionalOrExpression.getOp2(expr);
+      final IType type2 = doAccept(op2);
+      final boolean isBoxedBoolean2 = isNamedType(type2, JAVA_LANG_BOOLEAN);
+      if (!isBooleanType(type2) && !isBoxedBoolean2) {
+        error(JavaError.NOT_BOOLEAN_TYPE, op2, type2);
+      }
+      if (isBoxedBoolean2) unbox(type2);
+    } catch (final TypeCheckingFailed e) {
+      /* Can eat the exception because the result type is always boolean. */
+    }
+    
+    return postProcessConditionalOrExpression(
+        expr, typeFactory.getBooleanType());
+  }
+    
+  protected IType postProcessConditionalOrExpression(
+      final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
+
+
+
+  // ======================================================================
+  // == ¤15.25 Conditional Operator ?:
+  // ======================================================================
+
+  @Override
+  public final IType visitConditionalExpression(final IRNode expr) {
+    /*
+     * The first expression must be of type boolean or Boolean, or a
+     * compile-time error occurs.
+     * 
+     * It is a compile-time error for either the second or the third operand
+     * expression to be an invocation of a void method.
+     * 
+     * The type of a conditional expression is determined as follows:
+     * 
+     * If the second and third operands have the same type (which may be the
+     * null type), then that is the type of the conditional expression.
+     * 
+     * If one of the second and third operands is of primitive type T, and the
+     * type of the other is the result of applying boxing conversion (¤5.1.7) to
+     * T, then the type of the conditional expression is T.
+     * 
+     * If one of the second and third operands is of the null type and the type
+     * of the other is a reference type, then the type of the conditional
+     * expression is that reference type.
+     * 
+     * Otherwise, if the second and third operands have types that are
+     * convertible (¤5.1.8) to numeric types, then there are several cases:
+     * 
+     * If one of the operands is of type byte or Byte and the other is of type
+     * short or Short, then the type of the conditional expression is short.
+     * 
+     * If one of the operands is of type T where T is byte, short, or char, and
+     * the other operand is a constant expression (¤15.28) of type int whose
+     * value is representable in type T, then the type of the conditional
+     * expression is T.
+     * 
+     * If one of the operands is of type T, where T is Byte, Short, or
+     * Character, and the other operand is a constant expression (¤15.28) of
+     * type int whose value is representable in the type U which is the result
+     * of applying unboxing conversion to T, then the type of the conditional
+     * expression is U.
+     * 
+     * Otherwise, binary numeric promotion (¤5.6.2) is applied to the operand
+     * types, and the type of the conditional expression is the promoted type of
+     * the second and third operands.
+     * 
+     * Otherwise, the second and third operands are of types S1 and S2
+     * respectively. Let T1 be the type that results from applying boxing
+     * conversion to S1, and let T2 be the type that results from applying
+     * boxing conversion to S2.
+     * 
+     * The type of the conditional expression is the result of applying capture
+     * conversion (¤5.1.10) to lub(T1, T2) (¤15.12.2.7).
+     * 
+     * At run-time, the first operand expression of the conditional expression
+     * is evaluated first. If necessary, unboxing conversion is performed on the
+     * result.
+     */
+    
+    // TODO
+    return null;
+  }
+  
+  
+  // TODO: Assignment expressions
 }
 
