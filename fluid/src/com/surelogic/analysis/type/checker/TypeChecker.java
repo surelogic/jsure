@@ -15,15 +15,18 @@ import edu.cmu.cs.fluid.java.operator.ConditionalOrExpression;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.DivExpression;
+import edu.cmu.cs.fluid.java.operator.ExprStatement;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.FloatLiteral;
 import edu.cmu.cs.fluid.java.operator.GreaterThanEqualExpression;
 import edu.cmu.cs.fluid.java.operator.GreaterThanExpression;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
+import edu.cmu.cs.fluid.java.operator.LabeledStatement;
 import edu.cmu.cs.fluid.java.operator.LeftShiftExpression;
 import edu.cmu.cs.fluid.java.operator.LessThanEqualExpression;
 import edu.cmu.cs.fluid.java.operator.LessThanExpression;
+import edu.cmu.cs.fluid.java.operator.LocalClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.MinusExpression;
 import edu.cmu.cs.fluid.java.operator.MulExpression;
 import edu.cmu.cs.fluid.java.operator.NotExpression;
@@ -601,11 +604,89 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
+  // == ¤14.2 Blocks
+  // ======================================================================
+
+  @Override
+  public final IType visitBlockStatement(final IRNode statement) {
+    try {
+      doAcceptForChildren(statement);
+    } catch (final TypeCheckingFailed e) {
+      /* Children of this node are also statements, and can never throw this
+       * exception.
+       */
+    }
+    return typeFactory.getVoidType();
+  }
+
+  
+  
+  // ======================================================================
+  // == ¤14.3 Local Class Declarations
+  // ======================================================================
+
+  @Override
+  public final IType visitLocalClassDeclaration(final IRNode decl) {
+    try {
+      doAccept(LocalClassDeclaration.getBody(decl));
+    } catch (final TypeCheckingFailed e) {
+      /* Class body eats exceptions, so we won't have any
+       */
+    }
+    return typeFactory.getVoidType();
+  }
+
+  
+  
+  // ======================================================================
   // == ¤14.4 Local Variable Declaration Statements
   // ======================================================================
   
   // TODO
 
+  
+  
+  // ======================================================================
+  // == ¤14.6 Empty Statement
+  // ======================================================================
+
+  @Override
+  public final IType visitEmptyStatement(final IRNode statement) {
+    return typeFactory.getVoidType();
+  }
+
+  
+  
+  // ======================================================================
+  // == ¤14.7 Labeled Statement
+  // ======================================================================
+
+  @Override
+  public final IType visitLabeledStatement(final IRNode statement) {
+    try {
+      doAccept(LabeledStatement.getStmt(statement));
+    } catch (final TypeCheckingFailed e) {
+      // Statements cannot throw this, and we always return void type
+    }
+    return typeFactory.getVoidType();
+  }
+
+  
+  
+  // ======================================================================
+  // == ¤14.8 Expression Statement
+  // ======================================================================
+
+  @Override
+  public final IType visitExprStatement(final IRNode statement) {
+    try {
+      doAccept(ExprStatement.getExpr(statement));
+    } catch (final TypeCheckingFailed e) {
+      // Eat exception, return type is always void 
+    }
+    return typeFactory.getVoidType();
+  }
+  
   
   
   // ======================================================================
