@@ -82,6 +82,7 @@ import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.QualifiedName;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.SimpleName;
+import edu.cmu.cs.fluid.java.operator.SingleElementAnnotation;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.StringLiteral;
@@ -1498,6 +1499,9 @@ public class JavaCanonicalizer {
       } else if (pop instanceof ArrayInitializer) {
         atype = binder.getJavaType(p);
       } else if (pop instanceof ElementValuePair) {
+    	//System.out.println("gparent = "+DebugUnparser.toString(tree.getParent(p)));
+    	atype = binder.getJavaType(p);
+      } else if (pop instanceof SingleElementAnnotation) {
     	//System.out.println("gparent = "+DebugUnparser.toString(tree.getParent(p)));
     	atype = binder.getJavaType(p);
       } else {

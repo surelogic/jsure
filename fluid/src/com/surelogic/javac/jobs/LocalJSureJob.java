@@ -43,44 +43,33 @@ public class LocalJSureJob extends AbstractLocalSLJob {
 	}
 	
 	@Override
-	protected Class<?> getRemoteClass() {
+	protected Class<? extends AbstractRemoteSLJob> getRemoteClass() {
 		return RemoteJSureRun.class;
 	}
 
 	@Override
 	protected void setupClassPath(boolean debug, CommandlineJava cmdj, Project proj, Path path) {
-		final Set<File> jars    = new HashSet<File>();
-		final ConfigHelper util = new ConfigHelper(config);
+		final ConfigHelper util = new ConfigHelper(debug, config);
 		// All unpacked
-		util.addPluginToPath(debug, jars, JSureConstants.COMMON_PLUGIN_ID, true);
-		util.addAllPluginJarsToPath(debug, jars, JSureConstants.COMMON_PLUGIN_ID, "lib/runtime");
-		util.addPluginToPath(debug, jars, JSureConstants.FLUID_PLUGIN_ID, true);
-		util.addAllPluginJarsToPath(debug, jars, JSureConstants.FLUID_PLUGIN_ID, "lib/runtime");
-		//util.addPluginToPath(debug, jars, JSureConstants.FLUID_JAVAC_PLUGIN_ID, true);
+		util.addPluginAndJarsToPath(JSureConstants.COMMON_PLUGIN_ID, "lib/runtime");
+		util.addPluginAndJarsToPath(JSureConstants.FLUID_PLUGIN_ID, "lib/runtime");
 		final boolean isMac = SystemUtils.IS_OS_MAC_OSX;
-		/*
-		if (!isMac) {
-			util.addAllPluginJarsToPath(debug, jars, JSureConstants.FLUID_JAVAC_PLUGIN_ID, "lib");
-		}
-		*/
 		if (XUtil.testing) {
-			util.addPluginToPath(debug, jars, JSureConstants.JSURE_TESTS_PLUGIN_ID, true);
-			util.addAllPluginJarsToPath(debug, jars, JSureConstants.JSURE_TESTS_PLUGIN_ID, "lib");
-			util.addPluginJarsToPath(debug, jars, JSureConstants.JUNIT_PLUGIN_ID, "junit.jar");
+			util.addPluginAndJarsToPath(JSureConstants.JSURE_TESTS_PLUGIN_ID, "lib");
+			util.addPluginJarsToPath(JSureConstants.JUNIT_PLUGIN_ID, "junit.jar");
 		}
 		
-		for(File jar : jars) {
+		for(File jar : util.getPath()) {
 			addToPath(proj, path, jar, true);
 		}
 
 		if (isMac) {
 			// Add lib/javac.jar to the bootpath
-			jars.clear();
-			//util.addAllPluginJarsToPath(debug, jars, JSureConstants.FLUID_JAVAC_PLUGIN_ID, "lib");		
-			util.addPluginJarsToPath(debug, jars, JSureConstants.FLUID_PLUGIN_ID, "lib/runtime/javac.jar");
+			util.clear();
+			util.addPluginJarsToPath(JSureConstants.FLUID_PLUGIN_ID, "lib/runtime/javac.jar");
 			
 			final Path bootpath = cmdj.createBootclasspath(proj);		
-			for(File jar : jars) {
+			for(File jar : util.getPath()) {
 				addToPath(proj, bootpath, jar, true);
 			}
 			String defaultPath = System.getProperty("sun.boot.class.path");
@@ -103,8 +92,8 @@ public class LocalJSureJob extends AbstractLocalSLJob {
 		}
 		cmdj.createVmArgument().setValue("-D"+RemoteJSureRun.RUN_DIR_PROP+"="+config.getRunDirectory());
 		
-		final ConfigHelper util = new ConfigHelper(config);
-		String location = util.getPluginDir(false, JSureConstants.FLUID_PLUGIN_ID, true);
+		final ConfigHelper util = new ConfigHelper(debug, config);
+		String location = util.getPluginDir(JSureConstants.FLUID_PLUGIN_ID, true);
 		try {
 			cmdj.createVmArgument().setValue("-D"+RemoteJSureRun.FLUID_DIRECTORY_URL+"="+new File(location).toURI().toURL());
 		} catch (MalformedURLException e) {
