@@ -16,9 +16,9 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.irfree.DiffMessage;
-import com.surelogic.dropsea.irfree.Entity;
 import com.surelogic.dropsea.irfree.IDiffNode;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
@@ -144,14 +144,17 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
       return c.getText();
     } else if (element instanceof Entity) {
       Entity e = (Entity) element;
+      /*
       StringBuilder sb = new StringBuilder();
       if (e.isNewer()) {
         sb.append("New: ");
       } else if (e.isOld()) {
         sb.append("Old: ");
       }
+      
       sb.append(e.getAttribute(MESSAGE_ATTR));
       return sb.toString();
+      */
     } else if (element instanceof IDrop) {
       IDrop d = (IDrop) element;
       return d.getClass().getSimpleName() + ": " + d.getMessage();
@@ -171,13 +174,16 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
       case OLD:
         return SLImages.getImage(CommonImages.IMG_EDIT_DELETE);
       }
+    
     } else if (element instanceof Entity) {
       Entity e = (Entity) element;
+      /*
       if (e.isNewer()) {
         return SLImages.getImage(CommonImages.IMG_EDIT_ADD);
       } else if (e.isOld()) {
         return SLImages.getImage(CommonImages.IMG_EDIT_DELETE);
       }
+      */
     }
     return null;
   }
