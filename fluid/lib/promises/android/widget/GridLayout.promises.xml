@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="android.widget" release="1">
+    <class name="GridLayout">
+        <class name="Assoc">
+            <Containable/>
+        </class>
+    </class>
+</package>
