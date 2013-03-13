@@ -17,6 +17,7 @@ import edu.cmu.cs.fluid.java.operator.ConditionalOrExpression;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.DivExpression;
+import edu.cmu.cs.fluid.java.operator.DoStatement;
 import edu.cmu.cs.fluid.java.operator.ElseClause;
 import edu.cmu.cs.fluid.java.operator.ExprStatement;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
@@ -48,10 +49,12 @@ import edu.cmu.cs.fluid.java.operator.RemExpression;
 import edu.cmu.cs.fluid.java.operator.RightShiftExpression;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.SubExpression;
+import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.cmu.cs.fluid.java.operator.UnsignedRightShiftExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VisitorWithException;
 import edu.cmu.cs.fluid.java.operator.VoidType;
+import edu.cmu.cs.fluid.java.operator.WhileStatement;
 import edu.cmu.cs.fluid.java.operator.XorExpression;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -518,6 +521,24 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   protected IType postProcessType(final IType type) {
     return type;
   }
+
+  
+  
+  
+
+  /**
+   * Type check a conditional expression, and assert that its type is boolean or
+   * java.lang.Boolean, performing an unbox conversion if necessary.  Eats 
+   * any type-checking failed exception.
+   */
+  protected final void processCondition(final IRNode condExpr) {
+    try {
+      assertIsBooleanWithUnbox(doAccept(condExpr), condExpr);
+    } catch (final TypeCheckingFailed e) {
+      // Ignore, result type is always void
+    }
+  }
+
   
   
    
@@ -713,13 +734,10 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * If the result is of type Boolean, it is subject to unboxing conversion
      * (¤5.1.8).
      */
-    try {
-      final IRNode cond = IfStatement.getCond(ifThenElse);
-      assertIsBooleanWithUnbox(doAccept(cond), cond);
-    } catch (final TypeCheckingFailed e) {
-      // Ignore, result type is always void
-    }
     
+    // Eat exceptions: result type is always void
+    processCondition(IfStatement.getCond(ifThenElse));
+
     try {
       doAccept(IfStatement.getThenPart(ifThenElse));
       
@@ -749,13 +767,8 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * If the result is of type Boolean, it is subject to unboxing conversion
      * (¤5.1.8).
      */
-    try {
-      final IRNode cond = AssertStatement.getAssertion(assertStmt);
-      assertIsBooleanWithUnbox(doAccept(cond), cond);
-    } catch (final TypeCheckingFailed e) {
-      // Ignore, result type is always void
-    }
-    
+    // Can eat the any failture because the return type is always void
+    processCondition(AssertStatement.getAssertion(assertStmt));
     return typeFactory.getVoidType();
   }
 
@@ -773,12 +786,8 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * In the second form of the assert statement, it is a compile-time error if
      * Expression2 is void (¤15.1).
      */
-    try {
-      final IRNode cond = AssertMessageStatement.getAssertion(assertStmt);
-      assertIsBooleanWithUnbox(doAccept(cond), cond);
-    } catch (final TypeCheckingFailed e) {
-      // Ignore, result type is always void
-    }
+    // Can eat the any failture because the return type is always void
+    processCondition(AssertMessageStatement.getAssertion(assertStmt));
     
     try {
       final IRNode expr = AssertMessageStatement.getMessage(assertStmt);
@@ -809,8 +818,146 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
 
   @Override
   public final IType visitWhileStatement(final IRNode whileStmt) {
+    /*
+     * The Expression must have type boolean or Boolean, or a compile-time error
+     * occurs.
+     * 
+     * If the result is of type Boolean, it is subject to unboxing conversion
+     * (¤5.1.8).
+     */
+    // Eat the exception: Return type is always void
+    processCondition(WhileStatement.getCond(whileStmt));
+    
+    try {
+      doAccept(WhileStatement.getLoop(whileStmt));
+    } catch (final TypeCheckingFailed e) {
+      // Should never be thrown because the nested statement will eat it.
+    }
     
     return typeFactory.getVoidType();
+  }
+  
+  
+  
+  // ======================================================================
+  // == ¤14.13 The do Statement
+  // ======================================================================
+
+  @Override
+  public final IType visitDoStatement(final IRNode doStmt) {
+    /*
+     * The Expression must have type boolean or Boolean, or a compile-time error
+     * occurs.
+     * 
+     * If the result is of type Boolean, it is subject to unboxing conversion
+     * (¤5.1.8).
+     */
+    // Eat the exception: Return type is always void
+    processCondition(DoStatement.getCond(doStmt));
+    
+    try {
+      doAccept(DoStatement.getLoop(doStmt));
+    } catch (final TypeCheckingFailed e) {
+      // Should never be thrown because the nested statement will eat it.
+    }
+    
+    return typeFactory.getVoidType();
+  }
+  
+  
+  
+  // ======================================================================
+  // == ¤14.14 The for Statement
+  // ======================================================================
+
+  // TODO
+  
+  
+  
+  // ======================================================================
+  // == ¤14.15 The break Statement
+  // ======================================================================
+
+  @Override
+  public final IType visitBreakStatement(final IRNode breakStmt) {
+    // nothing to do
+    return typeFactory.getVoidType();
+  }
+  
+  @Override
+  public final IType visitLabeledBreakStatement(final IRNode breakStmt) {
+    // nothing to do
+    return typeFactory.getVoidType();
+  }
+  
+  
+  
+  // ======================================================================
+  // == ¤14.16 The continue Statement
+  // ======================================================================
+
+  @Override
+  public final IType visitContinueStatement(final IRNode continueStmt) {
+    // nothing to do
+    return typeFactory.getVoidType();
+  }
+  
+  @Override
+  public final IType visitLabeledContinueStatement(final IRNode continueStmt) {
+    // nothing to do
+    return typeFactory.getVoidType();
+  }
+  
+  
+  
+  // ======================================================================
+  // == ¤14.17 The return Statement
+  // ======================================================================
+
+  // TODO
+  
+  
+  
+  // ======================================================================
+  // == ¤14.18 The throw Statement
+  // ======================================================================
+
+  // TODO
+  
+  
+  
+  // ======================================================================
+  // == ¤14.19 The synchronized Statement
+  // ======================================================================
+
+  @Override
+  public final IType visitSynchronizedStatement(final IRNode syncStmt) {
+    /*
+     * The type of Expression must be a reference type, or a compile-time error
+     * occurs.
+     */
+    try {
+      final IRNode lockExpr = SynchronizedStatement.getLock(syncStmt);
+      final IType type = doAccept(lockExpr);
+      if (!isReferenceType(type)) {
+        error(JavaError.NOT_REFERENCE_TYPE, lockExpr, type);
+      }
+      preProcessLockExpression(lockExpr, type);
+    } catch (final TypeCheckingFailed e) {
+      // eat the error: our type is always void
+    }
+    
+    try {
+      doAccept(SynchronizedStatement.getBlock(syncStmt));
+    } catch (final TypeCheckingFailed e) {
+      // eat the error: our type is always void
+    }
+    
+    return typeFactory.getVoidType();
+  }
+  
+  protected void preProcessLockExpression(final IRNode expr, final IType type) {
+    // Check for null
   }
   
   
@@ -1517,15 +1664,11 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * necessary.
      */
     
-    try {
-      final IRNode opExpr = NotExpression.getOp(notExpr);
-      assertIsBooleanWithUnbox(doAccept(opExpr), opExpr);
-    } catch (final TypeCheckingFailed e) {
-      /*
-       * Eat any type errors in the subexpression because the type of the
-       * expression is always boolean.
-       */
-    }
+    /*
+     * Eat any type errors in the subexpression because the type of the
+     * expression is always boolean.
+     */
+    processCondition(NotExpression.getOp(notExpr));
     return typeFactory.getBooleanType();
   }
   
@@ -2013,20 +2156,13 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * expression is evaluated; if the result has type Boolean, it is subjected
      * to unboxing conversion (¤5.1.8).
      */
-    try {
-      final IRNode op1 = ConditionalAndExpression.getOp1(expr);
-      assertIsBooleanWithUnbox(doAccept(op1),  op1);
-    } catch (final TypeCheckingFailed e) {
-      /* Can eat the exception because the result type is always boolean. */
-    }
 
-    try {
-      final IRNode op2 = ConditionalAndExpression.getOp2(expr);
-      assertIsBooleanWithUnbox(doAccept(op2),  op2);
-    } catch (final TypeCheckingFailed e) {
-      /* Can eat the exception because the result type is always boolean. */
-    }
-    
+    /* Can eat the exception because the result type is always boolean. */
+    processCondition(ConditionalAndExpression.getOp1(expr));
+
+    /* Can eat the exception because the result type is always boolean. */
+    processCondition(ConditionalAndExpression.getOp2(expr));
+
     return postProcessConditionalAndExpression(
         expr, typeFactory.getBooleanType());
   }
@@ -2057,19 +2193,12 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * expression is evaluated; if the result has type Boolean, it is subjected
      * to unboxing conversion (¤5.1.8).
      */
-    try {
-      final IRNode op1 = ConditionalOrExpression.getOp1(expr);
-      assertIsBooleanWithUnbox(doAccept(op1),  op1);
-    } catch (final TypeCheckingFailed e) {
-      /* Can eat the exception because the result type is always boolean. */
-    }
 
-    try {
-      final IRNode op2 = ConditionalOrExpression.getOp2(expr);
-      assertIsBooleanWithUnbox(doAccept(op2),  op2);
-    } catch (final TypeCheckingFailed e) {
-      /* Can eat the exception because the result type is always boolean. */
-    }
+    /* Can eat the exception because the result type is always boolean. */
+    processCondition(ConditionalOrExpression.getOp1(expr));
+
+    /* Can eat the exception because the result type is always boolean. */
+    processCondition(ConditionalOrExpression.getOp2(expr));
     
     return postProcessConditionalOrExpression(
         expr, typeFactory.getBooleanType());
