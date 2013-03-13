@@ -3,7 +3,6 @@ package com.surelogic.javac;
 import org.xml.sax.Attributes;
 
 import com.surelogic.common.xml.*;
-import com.surelogic.dropsea.irfree.AbstractXmlResultListener;
 
 public class TestListener extends AbstractXmlResultListener {
 	@Override

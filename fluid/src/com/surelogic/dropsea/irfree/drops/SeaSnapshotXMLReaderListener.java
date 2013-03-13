@@ -22,6 +22,7 @@ import org.xml.sax.Attributes;
 
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.xml.AbstractXmlResultListener;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
@@ -33,7 +34,6 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.ScopedPromiseDrop;
-import com.surelogic.dropsea.irfree.AbstractXmlResultListener;
 import com.surelogic.dropsea.irfree.DropTypeUtility;
 import com.surelogic.dropsea.irfree.JSureEntity;
 import com.surelogic.dropsea.irfree.SeaSnapshot;

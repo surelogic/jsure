@@ -10,7 +10,7 @@ import org.xml.sax.Attributes;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entity;
-import com.surelogic.dropsea.irfree.IXmlResultListener;
+import com.surelogic.common.xml.IXmlResultListener;
 import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
 import com.surelogic.javac.Config;
 import com.surelogic.javac.JarEntry;

@@ -10,8 +10,8 @@ import org.xml.sax.Attributes;
 
 import com.surelogic.analysis.IIRProjects;
 import com.surelogic.common.xml.Entity;
+import com.surelogic.common.xml.IXmlResultListener;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.irfree.IXmlResultListener;
 import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
 
 public abstract class AbstractJSureResultsXMLReader<T> extends NestedJSureXmlReader implements IXmlResultListener,
