@@ -1,8 +1,8 @@
 package edu.cmu.cs.fluid.java.bind;
 
 import com.surelogic.ThreadSafe;
+import com.surelogic.common.util.*;
 
-import edu.cmu.cs.fluid.util.*;
 import edu.cmu.cs.fluid.ir.*;
 
 /**

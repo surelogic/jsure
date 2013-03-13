@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.mvc.*;
@@ -24,8 +25,6 @@ import edu
   .attributes
   .SequenceAttributeCallbackToAttributeCallback;
 import edu.cmu.cs.fluid.tree.*;
-import edu.cmu.cs.fluid.util.EmptyIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  * Abstract implemenation of core class for <code>ForestModel</code>.

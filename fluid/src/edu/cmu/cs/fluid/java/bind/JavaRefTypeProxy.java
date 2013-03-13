@@ -5,10 +5,10 @@ import java.io.PrintStream;
 
 import com.surelogic.ast.IType;
 import com.surelogic.ast.java.operator.IDeclarationNode;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IROutput;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  * Used to represent infinite types, 

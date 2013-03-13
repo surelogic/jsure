@@ -3,6 +3,7 @@ package com.surelogic.annotation.scrub;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 
@@ -17,7 +18,6 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Iteratable;
 import edu.uwm.cs.fluid.util.Poset;
 
 public abstract class AbstractPosetConsistencyChecker<E, P extends Poset<E>> extends AbstractPromiseScrubber<PromiseDrop<?>> {

@@ -4,8 +4,9 @@ package edu.cmu.cs.fluid.tree;
 import java.util.*;
 import org.apache.commons.collections15.*;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.util.*;
 
 /** An enumeration of the nodes in a directed graph.
  * "Depth-first" means we look at all nodes reachable through

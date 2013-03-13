@@ -1,9 +1,10 @@
 /* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/tree/TreeInterface.java,v 1.7 2007/07/10 22:16:32 aarong Exp $ */
 package edu.cmu.cs.fluid.tree;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /** Classes implementing this interface provide routines
  * to traverse trees of IRNodes.

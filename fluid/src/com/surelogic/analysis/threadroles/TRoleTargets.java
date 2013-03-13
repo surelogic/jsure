@@ -23,6 +23,7 @@ import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
 import com.surelogic.analysis.regions.*;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.WholeModuleFXDrop;
 //import com.surelogic.dropsea.ir.drops.promises.ModuleModel;
@@ -36,7 +37,6 @@ import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.EmptyIterator;
 
 
 public class TRoleTargets {

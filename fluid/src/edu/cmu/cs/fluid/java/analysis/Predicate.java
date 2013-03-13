@@ -4,9 +4,9 @@ import java.util.Iterator;
 import java.util.Hashtable;
 
 import com.surelogic.analysis.effects.Effect;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.FluidRuntimeException;
-import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.version.Version;
 
 /** A predicate is a statement that is valid at some control point

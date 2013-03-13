@@ -3,6 +3,8 @@ package edu.cmu.cs.fluid.util;
 
 import java.util.NoSuchElementException;
 
+import com.surelogic.common.util.AbstractRemovelessIterator;
+
 public class TripleIterator<T> extends AbstractRemovelessIterator<T> {
   private int done = 0;
   private final T value1, value2, value3;

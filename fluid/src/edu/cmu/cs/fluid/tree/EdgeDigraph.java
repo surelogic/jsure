@@ -3,10 +3,10 @@ package edu.cmu.cs.fluid.tree;
 
 import java.util.*;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /** A form of graph in which edges have identity and may be attributed.
  * <P> Known bugs:

@@ -9,9 +9,9 @@ import java.util.logging.Logger;
 import com.surelogic.annotation.rules.CompUnitPattern;
 import com.surelogic.annotation.rules.ModuleRules;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.util.*;
 
 public class JSureProperties {
 	private static final Logger LOG = SLLogger.getLogger("analysis.JSureProperties");

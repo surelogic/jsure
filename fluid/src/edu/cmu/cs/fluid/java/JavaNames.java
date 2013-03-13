@@ -2,6 +2,8 @@ package edu.cmu.cs.fluid.java;
 
 import java.util.Iterator;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -35,10 +37,6 @@ import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.EmptyIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
-import edu.cmu.cs.fluid.util.IteratorUtil;
-import edu.cmu.cs.fluid.util.SimpleRemovelessIterator;
 
 /**
  * Some utility routines to help report information about Java nodes by creating

@@ -2,10 +2,10 @@
 package com.surelogic.promise;
 
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
-import edu.cmu.cs.fluid.util.*;
 
 public final class SinglePromiseDropStorage<D extends PromiseDrop<?>> 
 extends AbstractPromiseDropStorage<D>

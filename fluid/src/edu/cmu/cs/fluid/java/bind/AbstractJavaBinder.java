@@ -19,6 +19,7 @@ import com.surelogic.ThreadSafe;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -97,8 +98,6 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableList;
-import edu.cmu.cs.fluid.util.Iteratable;
-import edu.cmu.cs.fluid.util.IteratorUtil;
 import edu.cmu.cs.fluid.util.Stack;
 import edu.cmu.cs.fluid.version.Version;
 

@@ -5,8 +5,7 @@ import java.util.List;
 import java.util.ListIterator;
 
 import com.surelogic.Borrowed;
-
-import edu.cmu.cs.fluid.util.EmptyIterator;
+import com.surelogic.common.util.EmptyIterator;
 
 public final class NullList<E> extends NullCollection<E> implements List<E> {
   @SuppressWarnings("rawtypes")

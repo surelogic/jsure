@@ -9,6 +9,7 @@ import java.util.NoSuchElementException;
 import java.util.logging.Level;
 
 import com.surelogic.tree.SyntaxTreeNode;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.parse.JJNode;

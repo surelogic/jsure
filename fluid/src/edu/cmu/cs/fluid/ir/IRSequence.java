@@ -5,8 +5,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 import com.surelogic.common.SLUtility;
-
-import edu.cmu.cs.fluid.util.Iteratable;
+import com.surelogic.common.util.*;
 
 /** A collection of values in order.
  * Some sequences are fixed in size, others are variable.

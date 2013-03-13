@@ -3,6 +3,8 @@ package edu.cmu.cs.fluid.mvc.tree;
 
 import java.util.*;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.mvc.*;
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -11,7 +13,6 @@ import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.tree.DigraphListener;
 import edu.cmu.cs.fluid.tree.StructureException;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  *

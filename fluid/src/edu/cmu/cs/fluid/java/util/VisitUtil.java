@@ -4,6 +4,9 @@ package edu.cmu.cs.fluid.java.util;
 import java.util.*;
 import java.util.Stack;
 
+import com.surelogic.common.util.*;
+import static com.surelogic.common.util.IteratorUtil.noElement;
+
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -15,7 +18,6 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 import edu.cmu.cs.fluid.util.*;
-import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
 
 // This is for code that is used to "visit" parts of a tree, given a root
 public class VisitUtil implements JavaGlobals {

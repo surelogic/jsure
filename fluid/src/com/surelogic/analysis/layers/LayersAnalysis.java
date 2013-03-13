@@ -15,6 +15,7 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.Unused;
 import com.surelogic.annotation.rules.LayerRules;
 import com.surelogic.common.Pair;
+import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
@@ -42,7 +43,6 @@ import edu.cmu.cs.fluid.java.operator.UnnamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.FilterIterator;
 
 public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis.LayersInfo,Unused> {
 	public LayersAnalysis() {

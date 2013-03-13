@@ -3,8 +3,7 @@ package edu.cmu.cs.fluid.ir;
 
 import java.util.*;
 
-import edu.cmu.cs.fluid.util.Iteratable;
-
+import com.surelogic.common.util.*;
 /**
  * SlotInfoWrapper for "making changes" to a SlotInfo, 
  * without actually changing the original.

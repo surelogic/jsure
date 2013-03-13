@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.logging.*;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRLocation;
@@ -15,7 +16,6 @@ import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 // This is for code that is used to lookup and bind names to declarations
 public class BindUtil implements JavaGlobals {

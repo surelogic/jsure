@@ -1,8 +1,9 @@
 /* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/tree/SymmetricDigraph.java,v 1.35 2007/07/10 22:16:32 aarong Exp $ */
 package edu.cmu.cs.fluid.tree;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.util.Iteratable;
 import edu.cmu.cs.fluid.util.ThreadGlobal;
 
 /** Directed graphs that can be traversed in either direction.

@@ -1,9 +1,9 @@
 package edu.cmu.cs.fluid.mvc.version;
 
 import java.util.*;
+import com.surelogic.common.util.*;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.version.*;
-import edu.cmu.cs.fluid.util.*;
 import edu.cmu.cs.fluid.mvc.*;
 
 /**

@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.logging.*;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.DebugUnparser;

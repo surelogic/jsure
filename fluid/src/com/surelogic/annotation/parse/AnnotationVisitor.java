@@ -22,6 +22,7 @@ import com.surelogic.annotation.rules.StandardRules;
 import com.surelogic.annotation.rules.TestRules;
 import com.surelogic.annotation.test.TestResult;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 import com.surelogic.javac.adapter.SourceAdapter;
 
 import edu.cmu.cs.fluid.ide.IDE;
@@ -55,7 +56,6 @@ import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 public class AnnotationVisitor extends Visitor<Integer> {
   public static final String IMPLEMENTATION_ONLY = "implementationOnly";

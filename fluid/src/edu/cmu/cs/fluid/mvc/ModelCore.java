@@ -4,9 +4,9 @@ package edu.cmu.cs.fluid.mvc;
 
 import java.util.*;
 
+import com.surelogic.common.util.*;
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  * Core implemenation of the <code>Model</code> interface.

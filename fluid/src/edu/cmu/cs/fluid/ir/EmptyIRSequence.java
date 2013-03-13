@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.*;
 
-import edu.cmu.cs.fluid.util.*;
+import com.surelogic.common.util.*;
 import com.surelogic.Starts;
 import com.surelogic.RegionEffects;
 import com.surelogic.Unique;

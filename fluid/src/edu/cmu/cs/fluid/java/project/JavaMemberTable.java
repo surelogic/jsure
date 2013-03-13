@@ -10,6 +10,7 @@ import java.util.logging.Level;
 
 import com.surelogic.*;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.FluidRuntimeException;
 import edu.cmu.cs.fluid.debug.DebugUtil;
@@ -27,7 +28,6 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 import edu.cmu.cs.fluid.version.*;
-import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
 
 /**
  * Table for a class or interface that nables us to map names to sequences of
@@ -1033,7 +1033,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     				  // No context type? (filled in later?)
     				  return IBinding.Util.makeBinding(n);
     			  }
-    			  return noElement;
+    			  return IteratorUtil.noElement;
     		  }
     	  };        
       }

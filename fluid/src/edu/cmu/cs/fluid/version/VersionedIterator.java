@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
-import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
+import com.surelogic.common.util.*;
 
 /**
  * A wrapper around an ietartor that sets the version correctly before calling

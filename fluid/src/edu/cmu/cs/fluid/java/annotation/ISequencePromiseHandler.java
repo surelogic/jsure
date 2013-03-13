@@ -4,9 +4,10 @@
  */
 package edu.cmu.cs.fluid.java.annotation;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 
 /**

@@ -14,11 +14,8 @@ import java.util.Set;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.XmlCreator;
+import com.surelogic.common.util.*;
 import com.surelogic.javac.persistence.PersistenceConstants;
-
-import edu.cmu.cs.fluid.util.FilterIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
-import edu.cmu.cs.fluid.util.IteratorUtil;
 
 public class Config extends AbstractClassPathEntry {
 	protected static final boolean followRefs = false;

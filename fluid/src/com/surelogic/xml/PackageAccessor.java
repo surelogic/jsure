@@ -10,6 +10,7 @@ import java.util.zip.ZipFile;
 import org.xml.sax.InputSource;
 
 import com.surelogic.common.FileUtility;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;

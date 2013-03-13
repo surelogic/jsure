@@ -8,12 +8,12 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+import com.surelogic.common.util.*;
 import edu.cmu.cs.fluid.mvc.*;
 import edu.cmu.cs.fluid.mvc.set.SetModel;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.IntegerTable;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  * Generic implementation of the (new) functionality

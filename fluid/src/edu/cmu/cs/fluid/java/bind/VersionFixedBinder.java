@@ -7,11 +7,11 @@ package edu.cmu.cs.fluid.java.bind;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.util.Iteratable;
 import edu.cmu.cs.fluid.version.Version;
 
 public class VersionFixedBinder extends AbstractBinder {

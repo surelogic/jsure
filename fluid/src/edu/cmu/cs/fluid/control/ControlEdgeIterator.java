@@ -3,8 +3,9 @@ package edu.cmu.cs.fluid.control;
 
 import java.util.NoSuchElementException;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
 
 /**
  * Class to represent sequences of control nodes of Java programs.

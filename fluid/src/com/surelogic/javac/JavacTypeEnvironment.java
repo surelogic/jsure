@@ -12,6 +12,7 @@ import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.jobs.SLProgressMonitor;
+import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 
@@ -22,8 +23,6 @@ import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.util.EmptyIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 @ThreadSafe
 @Region("JTEState")

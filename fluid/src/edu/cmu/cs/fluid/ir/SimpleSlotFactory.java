@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import edu.cmu.cs.fluid.util.EmptyIterator;
+import com.surelogic.common.util.*;
 
 /** The family of simple (mutable and unversioned) slots. 
  * 

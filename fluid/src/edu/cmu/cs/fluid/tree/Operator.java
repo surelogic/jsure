@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.Hashtable;
 import java.util.*;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.FluidRuntimeException;
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.*;

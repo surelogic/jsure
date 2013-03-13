@@ -1,8 +1,9 @@
 // $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/ir/UnimplementedSlotFactory.java,v 1.11 2008/10/27 15:26:44 chance Exp $
 package edu.cmu.cs.fluid.ir;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.NotImplemented;
-import edu.cmu.cs.fluid.util.*;
 
 /** A slot factory for which every
  * method throws an NotImplemented exception.

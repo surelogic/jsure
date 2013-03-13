@@ -5,6 +5,7 @@ import java.util.ListIterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import com.surelogic.Starts;
+import com.surelogic.common.util.AbstractListIterator;
 
 /** An implementation of lists that are immutable.
  * Traversing the list backwards is very inefficient.

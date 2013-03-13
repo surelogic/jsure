@@ -1,10 +1,10 @@
 package edu.cmu.cs.fluid.mvc.tree;
 
+import com.surelogic.common.util.*;
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.InsertionPoint;
 import edu.cmu.cs.fluid.tree.MutableTreeInterface;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  * A model that represents a forest, that is, a sequence of trees.  The 
