@@ -21,6 +21,7 @@ import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.DivExpression;
 import edu.cmu.cs.fluid.java.operator.DoStatement;
 import edu.cmu.cs.fluid.java.operator.ElseClause;
+import edu.cmu.cs.fluid.java.operator.EqExpression;
 import edu.cmu.cs.fluid.java.operator.ExprStatement;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
@@ -37,6 +38,7 @@ import edu.cmu.cs.fluid.java.operator.LessThanExpression;
 import edu.cmu.cs.fluid.java.operator.LocalClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.MinusExpression;
 import edu.cmu.cs.fluid.java.operator.MulExpression;
+import edu.cmu.cs.fluid.java.operator.NotEqExpression;
 import edu.cmu.cs.fluid.java.operator.NotExpression;
 import edu.cmu.cs.fluid.java.operator.OrExpression;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -393,6 +395,13 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   protected final IType string(final IRNode expr, final IType type) {
     // XXX: Probably want a preprocess method here
     return typeFactory.getStringType();
+  }
+  
+  /* ¤5.5 Casting conversion */
+  
+  protected final boolean isCastable(final IType from, final IType to) {
+    // TODO: make this real
+    return false;
   }
   
   
@@ -2158,7 +2167,122 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   // == ¤15.21 Equality Operators
   // ======================================================================
 
-  // TODO
+  protected final IType visitEqualityOperator(
+      final IRNode expr, final IRNode op1, final IRNode op2) {
+    /*
+     * The type of an equality expression is always boolean.
+     */
+    
+    IType type1 = null;   
+    try {
+      type1 = doAccept(op1);
+    } catch (final TypeCheckingFailed e) {
+      type1 = null;
+    }
+    
+    IType type2 = null;
+    try {
+      type2 = doAccept(op2);
+    } catch (final TypeCheckingFailed e) {
+      type2 = null;
+    }
+    
+    if (type1 != null && type2 != null) {
+      /*
+       * ¤15.21.1 Numerical Equality Operators == and !=
+       * 
+       * If the operands of an equality operator are both of numeric type, or
+       * one is of numeric type and the other is convertible (¤5.1.8) to numeric
+       * type, binary numeric promotion is performed on the operands (¤5.6.2).
+       * 
+       * 
+       * ¤15.21.2 Numerical Equality Operators == and !=
+       * 
+       * If the operands of an equality operator are both of type boolean, or if
+       * one operand is of type boolean and the other is of type Boolean, then
+       * the operation is boolean equality.
+       * 
+       * If one of the operands is of type Boolean, it is subjected to unboxing
+       * conversion (¤5.1.8).
+       * 
+       * 
+       * ¤15.21.3 Reference Equality Operators == and !=
+       * 
+       * If the operands of an equality operator are both of either reference
+       * type or the null type, then the operation is object equality.
+       * 
+       * It is a compile-time error if it is impossible to convert the type of
+       * either operand to the type of the other by a casting conversion (¤5.5).
+       * The run-time values of the two operands would necessarily be unequal.
+       */
+      final boolean isNumeric1 = isNumericType(type1);
+      final boolean isNumeric2 = isNumericType(type2);
+      final boolean isBoolean1 = isBooleanType(type1);
+      final boolean isBoolean2 = isBooleanType(type2);
+      final boolean isBoxedBoolean1 = isNamedType(type1, JAVA_LANG_BOOLEAN);
+      final boolean isBoxedBoolean2 = isNamedType(type2, JAVA_LANG_BOOLEAN);
+      final boolean isRef1 = isReferenceType(type1);
+      final boolean isRef2 = isReferenceType(type2);
+      final boolean isNull1 = isNullType(type1);
+      final boolean isNull2 = isNullType(type2);
+      
+      if ((isNumeric1 && isNumeric2) || 
+          (isNumeric1 && isConvertibleToNumericType(type2)) ||
+          (isNumeric2 && isConvertibleToNumericType(type1))) {
+        binaryNumericPromotion(type1, type2);
+      } else if ((isBoolean1 && isBoolean2) ||
+            (isBoolean1 && isBoxedBoolean2) ||
+            (isBoolean2 && isBoxedBoolean1)) {
+        if (isBoxedBoolean1) unbox(type1);
+        if (isBoxedBoolean2) unbox(type2);
+      } else if ((isRef1 || isNull1) && (isRef2 || isNull2)) {
+        if (!isCastable(type1, type2) && !isCastable(type2, type1)) {
+          try {
+            error(JavaError.NOT_APPLICABLE, expr, type1, type2);
+          } catch (final TypeCheckingFailed e) {
+            // always return boolean
+          }
+        } else {
+          /* 
+           * Both types are already reference, so there is no need for boxing
+           * or unboxing that may cause strange things to happen.
+           */
+        }
+      } else {
+        try {
+          error(JavaError.NOT_APPLICABLE, expr, type1, type2);
+        } catch (final TypeCheckingFailed e) {
+          // always return boolean
+        }
+      }
+    }
+    
+    return typeFactory.getBooleanType();
+  }
+  
+  @Override
+  public final IType visitEqExpression(final IRNode expr) {
+    return postProcessEqExpression(expr,
+        visitEqualityOperator(expr,
+            EqExpression.getOp1(expr),
+            EqExpression.getOp2(expr)));
+  }
+  
+  protected IType postProcessEqExpression(final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
+  
+  @Override
+  public final IType visitNotEqExpression(final IRNode expr) {
+    return postProcessNotEqExpression(expr,
+        visitEqualityOperator(expr,
+            NotEqExpression.getOp1(expr),
+            NotEqExpression.getOp2(expr)));
+  }
+  
+  protected IType postProcessNotEqExpression(final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
   
   
   
@@ -2392,4 +2516,3 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   // TODO: Assignment expressions
 }
-
