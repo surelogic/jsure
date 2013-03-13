@@ -10,6 +10,8 @@ import edu.cmu.cs.fluid.java.operator.ArrayType;
 import edu.cmu.cs.fluid.java.operator.AssertMessageStatement;
 import edu.cmu.cs.fluid.java.operator.AssertStatement;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
+import edu.cmu.cs.fluid.java.operator.CatchClause;
+import edu.cmu.cs.fluid.java.operator.CatchClauses;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.ComplementExpression;
 import edu.cmu.cs.fluid.java.operator.ConditionalAndExpression;
@@ -22,6 +24,7 @@ import edu.cmu.cs.fluid.java.operator.ElseClause;
 import edu.cmu.cs.fluid.java.operator.ExprStatement;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.Finally;
 import edu.cmu.cs.fluid.java.operator.FloatLiteral;
 import edu.cmu.cs.fluid.java.operator.GreaterThanEqualExpression;
 import edu.cmu.cs.fluid.java.operator.GreaterThanExpression;
@@ -50,6 +53,7 @@ import edu.cmu.cs.fluid.java.operator.RightShiftExpression;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.SubExpression;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
+import edu.cmu.cs.fluid.java.operator.TryStatement;
 import edu.cmu.cs.fluid.java.operator.UnsignedRightShiftExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VisitorWithException;
@@ -960,6 +964,41 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     // Check for null
   }
   
+  
+  
+  // ======================================================================
+  // == ¤14.20 The try Statement
+  // ======================================================================
+
+  @Override
+  public final IType visitTryStatement(final IRNode tryStmt) {
+    try {
+      doAccept(TryStatement.getBlock(tryStmt));
+    } catch (final TypeCheckingFailed e) {
+      // Should never be thrown, but handed by the nested statements
+    }
+
+    final IRNode catchClauses = TryStatement.getCatchPart(tryStmt);
+    for (final IRNode catchClause : CatchClauses.getCatchClauseIterator(catchClauses)) {
+      try {
+        doAccept(CatchClause.getBody(catchClause));
+      } catch (final TypeCheckingFailed e) {
+        // Should never be thrown, but handed by the nested statements
+      }
+    }
+
+    final IRNode finallyClause = TryStatement.getFinallyPart(tryStmt);
+    if (Finally.prototype.includes(finallyClause)) {
+      try {
+        doAccept(Finally.getBody(finallyClause));
+      } catch (final TypeCheckingFailed e) {
+        // Should never be thrown, but handed by the nested statements
+      }
+    }
+    
+    return typeFactory.getVoidType();
+  }
+
   
   
   // ======================================================================
