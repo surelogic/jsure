@@ -5,8 +5,8 @@ import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DERIVED_FROM_WAR
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROVED_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.USES_RED_DOT_ATTR;
 
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IProofDrop;
-import com.surelogic.dropsea.irfree.JSureEntity;
 
 public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
 
@@ -15,7 +15,7 @@ public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
   private final boolean f_derivedFromSrc;
   private final boolean f_derivedFromWarningHint;
 
-  IRFreeProofDrop(JSureEntity e, Class<?> irClass) {
+  IRFreeProofDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
     f_proofUsesRedDot = "true".equals(e.getAttribute(USES_RED_DOT_ATTR));
     f_provedConsistent = "true".equals(e.getAttribute(PROVED_ATTR));

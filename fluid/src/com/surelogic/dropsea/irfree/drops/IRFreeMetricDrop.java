@@ -10,10 +10,10 @@ import com.surelogic.NonNull;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.KeyValueUtility;
-import com.surelogic.dropsea.irfree.JSureEntity;
 
 public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
 
@@ -23,7 +23,7 @@ public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
   @NonNull
   private final List<IKeyValue> f_metricInfos;
 
-  IRFreeMetricDrop(JSureEntity e, Class<?> irClass) {
+  IRFreeMetricDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
 
     String metricString = e.getAttribute(METRIC);

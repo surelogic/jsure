@@ -20,11 +20,11 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.irfree.DiffHeuristics;
-import com.surelogic.dropsea.irfree.JSureEntity;
 
 public class IRFreeDrop implements IDrop {
 
@@ -73,7 +73,7 @@ public class IRFreeDrop implements IDrop {
     f_analysisHints.add(hint);
   }
 
-  IRFreeDrop(JSureEntity e, Class<?> irClass) {
+  IRFreeDrop(Entity e, Class<?> irClass) {
     if (e == null)
       throw new IllegalArgumentException(I18N.err(44, "e"));
     if (irClass == null)
