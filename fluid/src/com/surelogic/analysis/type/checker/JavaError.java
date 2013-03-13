@@ -18,6 +18,8 @@ public enum JavaError implements ITypeError {
   
   NOT_APPLICABLE("Operator is not applicable to the given types"),
   
+  VOID_NOT_ALLOWED("Expression may not be void"),
+  
   A("");
   
   private JavaError(final String msg) {

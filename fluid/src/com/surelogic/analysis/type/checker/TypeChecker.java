@@ -7,6 +7,8 @@ import edu.cmu.cs.fluid.java.operator.AndExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayCreationExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
+import edu.cmu.cs.fluid.java.operator.AssertMessageStatement;
+import edu.cmu.cs.fluid.java.operator.AssertStatement;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.ComplementExpression;
@@ -15,12 +17,14 @@ import edu.cmu.cs.fluid.java.operator.ConditionalOrExpression;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.DivExpression;
+import edu.cmu.cs.fluid.java.operator.ElseClause;
 import edu.cmu.cs.fluid.java.operator.ExprStatement;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.FloatLiteral;
 import edu.cmu.cs.fluid.java.operator.GreaterThanEqualExpression;
 import edu.cmu.cs.fluid.java.operator.GreaterThanExpression;
+import edu.cmu.cs.fluid.java.operator.IfStatement;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
 import edu.cmu.cs.fluid.java.operator.LabeledStatement;
 import edu.cmu.cs.fluid.java.operator.LeftShiftExpression;
@@ -53,8 +57,6 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-
-// TODO: Need to do error handling when getBinding() fails
 
 /**
  * Visitor that computes the type of each expression, checking the types along
@@ -686,8 +688,117 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     }
     return typeFactory.getVoidType();
   }
+
   
   
+  // ======================================================================
+  // == ¤14.9 The if Statement
+  // ======================================================================
+
+  @Override
+  public final IType visitIfStatement(final IRNode ifThenElse) {
+    /*
+     * The Expression must have type boolean or Boolean, or a compile-time error
+     * occurs.
+     * 
+     * If the result is of type Boolean, it is subject to unboxing conversion
+     * (¤5.1.8).
+     */
+    try {
+      final IRNode cond = IfStatement.getCond(ifThenElse);
+      final IType type = doAccept(cond);
+      final boolean isBoxedBoolean = isNamedType(type, JAVA_LANG_BOOLEAN);
+      if (!isBooleanType(type) && isBoxedBoolean) {
+        error(JavaError.NOT_BOOLEAN_TYPE, cond, type);
+      }
+      if (isBoxedBoolean) unbox(type);
+    } catch (final TypeCheckingFailed e) {
+      // Ignore, result type is always void
+    }
+    
+    try {
+      doAccept(IfStatement.getThenPart(ifThenElse));
+      
+      final IRNode elsePart = IfStatement.getElsePart(ifThenElse);
+      if (ElseClause.prototype.includes(elsePart)) {
+        doAccept(ElseClause.getElseStmt(elsePart));
+      }
+    } catch (final TypeCheckingFailed e) {
+      // Won't ever be thrown because the nested statements will eat it.
+    }
+    
+    return typeFactory.getVoidType();
+  }
+  
+  
+  
+  // ======================================================================
+  // == ¤14.10 The assert Statement
+  // ======================================================================
+
+  @Override
+  public final IType visitAssertStatement(final IRNode assertStmt) {
+    /*
+     * It is a compile-time error if Expression1 does not have type boolean or
+     * Boolean.
+     * 
+     * If the result is of type Boolean, it is subject to unboxing conversion
+     * (¤5.1.8).
+     */
+    try {
+      final IRNode cond = AssertStatement.getAssertion(assertStmt);
+      final IType type = doAccept(cond);
+      final boolean isBoxedBoolean = isNamedType(type, JAVA_LANG_BOOLEAN);
+      if (!isBooleanType(type) && isBoxedBoolean) {
+        error(JavaError.NOT_BOOLEAN_TYPE, cond, type);
+      }
+      if (isBoxedBoolean) unbox(type);
+    } catch (final TypeCheckingFailed e) {
+      // Ignore, result type is always void
+    }
+    
+    return typeFactory.getVoidType();
+  }
+
+  
+
+  @Override
+  public final IType visitAssertMessageStatement(final IRNode assertStmt) {
+    /*
+     * It is a compile-time error if Expression1 does not have type boolean or
+     * Boolean.
+     * 
+     * If the result is of type Boolean, it is subject to unboxing conversion
+     * (¤5.1.8).
+     * 
+     * In the second form of the assert statement, it is a compile-time error if
+     * Expression2 is void (¤15.1).
+     */
+    try {
+      final IRNode cond = AssertMessageStatement.getAssertion(assertStmt);
+      final IType type = doAccept(cond);
+      final boolean isBoxedBoolean = isNamedType(type, JAVA_LANG_BOOLEAN);
+      if (!isBooleanType(type) && isBoxedBoolean) {
+        error(JavaError.NOT_BOOLEAN_TYPE, cond, type);
+      }
+      if (isBoxedBoolean) unbox(type);
+    } catch (final TypeCheckingFailed e) {
+      // Ignore, result type is always void
+    }
+    
+    try {
+      final IRNode expr = AssertMessageStatement.getMessage(assertStmt);
+      final IType type = doAccept(expr);
+      if (isVoidType(type)) {
+        error(JavaError.VOID_NOT_ALLOWED, expr, type);
+      }
+    } catch (final TypeCheckingFailed e) {
+      // Ignore, result type is always void
+    }
+    
+    return typeFactory.getVoidType();
+  }
+
   
   // ======================================================================
   // == ¤15.8.1 Lexical Literals

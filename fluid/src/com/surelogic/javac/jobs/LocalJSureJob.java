@@ -15,7 +15,8 @@ import com.surelogic.common.jobs.remote.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 
 public class LocalJSureJob extends AbstractLocalSLJob {
-	public static final int DEFAULT_PORT = true ? 0 : 20111;
+	@SuppressWarnings("unused")
+  public static final int DEFAULT_PORT = true ? 0 : 20111;
 	public static final AbstractLocalHandlerFactory<LocalJSureJob,ILocalJSureConfig> factory = 
 		new AbstractLocalHandlerFactory<LocalJSureJob,ILocalJSureConfig>("jsure-console", LocalJSureJob.DEFAULT_PORT) {
 		@Override
@@ -90,7 +91,7 @@ public class LocalJSureJob extends AbstractLocalSLJob {
 			cmdj.createVmArgument().setValue("-D"+AnnotationRules.XML_LOG_PROP+"=RemoteJSureRun.AnnotationRules");
 			cmdj.createVmArgument().setValue("-D"+XUtil.testingProp+"="+XUtil.testing);
 		}
-		cmdj.createVmArgument().setValue("-D"+RemoteJSureRun.RUN_DIR_PROP+"="+config.getRunDirectory());
+		cmdj.createVmArgument().setValue("-D"+RemoteScanJob.RUN_DIR_PROP+"="+config.getRunDirectory());
 		
 		final ConfigHelper util = new ConfigHelper(debug, config);
 		String location = util.getPluginDir(JSureConstants.FLUID_PLUGIN_ID, true);
