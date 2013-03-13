@@ -4,6 +4,8 @@ import java.io.BufferedWriter;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -23,7 +25,6 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
-import edu.cmu.cs.fluid.util.EmptyIterator;
 
 /** This class is not thread safe!  Multiple instances of an XMLGenerator can 
  * not be run at the same time.

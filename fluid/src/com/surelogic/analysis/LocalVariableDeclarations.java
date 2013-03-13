@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.surelogic.util.NullList;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -25,10 +26,6 @@ import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.AppendIterator;
-import edu.cmu.cs.fluid.util.FilterIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
-import edu.cmu.cs.fluid.util.IteratorUtil;
 
 public final class LocalVariableDeclarations {
   // =========================================================================

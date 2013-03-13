@@ -28,6 +28,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
 import com.surelogic.Starts;
+import com.surelogic.common.util.EmptyIterator;
 
 /**
  * Originally AbstractHashedMap from Commons Collections (generic), but modified

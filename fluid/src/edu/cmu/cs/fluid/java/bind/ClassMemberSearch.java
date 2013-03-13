@@ -8,13 +8,13 @@ import java.util.logging.Logger;
 import com.surelogic.ThreadSafe;
 import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.*;
 
 @ThreadSafe
 public class ClassMemberSearch {

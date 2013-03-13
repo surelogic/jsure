@@ -9,6 +9,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
+import static com.surelogic.common.util.IteratorUtil.noElement;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.ir.IREnumeratedType.Element;
@@ -16,7 +18,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.mvc.*;
 import edu.cmu.cs.fluid.mvc.visibility.VisibilityModel;
 import edu.cmu.cs.fluid.util.*;
-import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
+
 
 /**
  * An abstract implementation of {@link ConfigurableForestView}. Provides the

@@ -3,9 +3,10 @@ package edu.cmu.cs.fluid.tree;
 
 import java.util.*;
 
+import com.surelogic.common.util.AbstractRemovelessIterator;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
-import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
 
 /** An enumeration of connections between two nodes.
  * The first node must be a node in an edge digraph,

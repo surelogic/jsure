@@ -2,8 +2,8 @@
 package edu.cmu.cs.fluid.mvc.sequence;
 
 import java.io.IOException;
+import com.surelogic.common.util.*;
 import edu.cmu.cs.fluid.mvc.*;
-import edu.cmu.cs.fluid.util.Iteratable;
 import edu.cmu.cs.fluid.ir.*;
 
 /**

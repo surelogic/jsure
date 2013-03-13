@@ -7,9 +7,9 @@ package edu.cmu.cs.fluid.java.bind;
 import java.io.PrintStream;
 
 import com.surelogic.ast.IType;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  * Interface for types that are stored in the type slot.

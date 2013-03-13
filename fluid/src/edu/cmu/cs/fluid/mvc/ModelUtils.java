@@ -11,8 +11,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.ir.IRSequence;
-import edu.cmu.cs.fluid.util.EmptyIterator;
 
 /**
  * Various utility methods for dealing with models and model processing.

@@ -4,7 +4,8 @@
 package edu.cmu.cs.fluid.ir;
 
 import com.surelogic.Borrowed;
-
+import com.surelogic.common.util.*;
+import static com.surelogic.common.util.IteratorUtil.noElement;
 import edu.cmu.cs.fluid.util.*;
 
 

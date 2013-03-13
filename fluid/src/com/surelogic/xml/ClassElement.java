@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.Pair;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
@@ -14,7 +15,6 @@ import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.*;
 
 public class ClassElement extends AnnotatedJavaElement {
 	private final Map<String,NestedClassElement> classes = new HashMap<String,NestedClassElement>(0);

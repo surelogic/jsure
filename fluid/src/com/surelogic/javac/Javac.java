@@ -30,6 +30,7 @@ import com.surelogic.analysis.testing.TypesModule;
 import com.surelogic.analysis.threads.ThreadEffectsModule;
 import com.surelogic.analysis.utility.UtilityAnalysis;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.util.*;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 
 import edu.cmu.cs.fluid.ide.IClassPath;
@@ -37,7 +38,6 @@ import edu.cmu.cs.fluid.ide.IClassPathContext;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
-import edu.cmu.cs.fluid.util.FilterIterator;
 import edu.cmu.cs.fluid.util.IntegerTable;
 
 public class Javac extends IDE {

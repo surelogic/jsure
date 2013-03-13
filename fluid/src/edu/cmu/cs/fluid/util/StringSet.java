@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.util;
 
 import java.util.*;
 import com.surelogic.Starts;
+import com.surelogic.common.util.AbstractRemovelessIterator;
 
 /**
  * A Set that is optimized for, and therefore can only contain,

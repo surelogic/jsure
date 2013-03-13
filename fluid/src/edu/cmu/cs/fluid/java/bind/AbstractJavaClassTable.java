@@ -5,14 +5,13 @@ import java.io.PrintStream;
 import java.util.logging.Level;
 
 import com.surelogic.ThreadSafe;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.debug.DebugUtil;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
-import edu.cmu.cs.fluid.util.Iteratable;
-import edu.cmu.cs.fluid.util.SingletonIterator;
 
 
 /**

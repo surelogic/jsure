@@ -5,6 +5,7 @@ package edu.cmu.cs.fluid.util;
 
 import java.util.*;
 import com.surelogic.Starts;
+import com.surelogic.common.util.SingletonIterator;
 
 /**
  * An immutable set that, when grown, returns a mutable class.

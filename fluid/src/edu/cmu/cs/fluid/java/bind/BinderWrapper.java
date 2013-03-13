@@ -1,7 +1,8 @@
 package edu.cmu.cs.fluid.java.bind;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  * Meant to have some of the methods overridden

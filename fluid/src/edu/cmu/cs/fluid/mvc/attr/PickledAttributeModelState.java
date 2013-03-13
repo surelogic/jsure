@@ -5,13 +5,14 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.mvc.Model;
 import edu.cmu.cs.fluid.mvc.set.SetModel;
 import edu.cmu.cs.fluid.ir.IRInput;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IROutput;
 import edu.cmu.cs.fluid.ir.SlotInfo;
-import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
 
 public class PickledAttributeModelState
 {

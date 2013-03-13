@@ -8,6 +8,8 @@ package edu.cmu.cs.fluid.mvc.tree.attributes;
 
 import java.io.IOException;
 import java.io.PrintStream;
+
+import com.surelogic.common.util.*;
 import edu.cmu.cs.fluid.ir.IRCompoundType;
 import edu.cmu.cs.fluid.ir.IRInput;
 import edu.cmu.cs.fluid.ir.IRLocation;
@@ -18,7 +20,6 @@ import edu.cmu.cs.fluid.ir.IRSequenceIterator;
 import edu.cmu.cs.fluid.ir.IRSequenceException;
 import edu.cmu.cs.fluid.ir.IRState;
 import edu.cmu.cs.fluid.ir.InsertionPoint;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  * Abstract wrapper for IRSequences that are values of model attributes. 

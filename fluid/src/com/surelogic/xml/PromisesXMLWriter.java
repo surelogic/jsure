@@ -11,10 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.surelogic.common.xml.Entities;
-
-import edu.cmu.cs.fluid.util.EmptyIterator;
-import edu.cmu.cs.fluid.util.FilterIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
+import com.surelogic.common.util.*;
 
 public class PromisesXMLWriter implements TestXMLParserConstants {
 	private static final int INCR = 2;

@@ -5,7 +5,7 @@ import java.awt.Font;
 import java.io.Serializable;
 import java.util.*;
 
-import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
+import com.surelogic.common.util.*;
 
 /* 
  * November 18, 1997 -- Changed so that font and point size is not specified

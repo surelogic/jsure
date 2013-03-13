@@ -2,6 +2,8 @@ package edu.cmu.cs.fluid.mvc.version.tree;
 
 import java.util.*;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.mvc.ModelCore;
 import edu.cmu.cs.fluid.mvc.ViewCore;
 import edu.cmu.cs.fluid.mvc.tree.ForestModel;
@@ -14,7 +16,6 @@ import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.tree.DigraphListener;
 import edu.cmu.cs.fluid.tree.StructureException;
-import edu.cmu.cs.fluid.util.Iteratable;
 import edu.cmu.cs.fluid.version.Version;
 
 /**

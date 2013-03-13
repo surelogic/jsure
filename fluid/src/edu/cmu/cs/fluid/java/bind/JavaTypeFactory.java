@@ -16,15 +16,14 @@ import com.surelogic.ast.java.operator.ITypeFormalNode;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.CustomizableHashCodeMap;
-import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.util.ImmutableList;
-import edu.cmu.cs.fluid.util.Iteratable;
 import edu.cmu.cs.fluid.util.SingletonMap;
 import edu.cmu.cs.fluid.debug.DebugUtil;
 import edu.cmu.cs.fluid.ir.*;

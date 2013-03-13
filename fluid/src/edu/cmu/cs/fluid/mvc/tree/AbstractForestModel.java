@@ -3,6 +3,8 @@ package edu.cmu.cs.fluid.mvc.tree;
 
 import java.util.*;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.mvc.*;
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -10,7 +12,7 @@ import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.ir.SlotFactory;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.tree.DigraphListener;
-import edu.cmu.cs.fluid.util.Iteratable;
+
 
 /**
  * An abstract implementation of the getters of a Forest Model.  Can be either

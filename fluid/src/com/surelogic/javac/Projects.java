@@ -20,13 +20,13 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
+import com.surelogic.common.util.*;
 import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
 import com.surelogic.javac.persistence.PersistenceConstants;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.util.FilterIterator;
 
 public class Projects extends JavaProjects implements IIRProjects, Iterable<JavacProject> {
   public static JavacProject getProject(IRNode cu) {

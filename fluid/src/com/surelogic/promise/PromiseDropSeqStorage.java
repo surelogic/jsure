@@ -4,11 +4,11 @@ package com.surelogic.promise;
 import java.util.*;
 
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.util.*;
 
 public final class PromiseDropSeqStorage<D extends PromiseDrop<?>> 
 extends AbstractPromiseDropStorage<D>

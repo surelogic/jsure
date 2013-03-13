@@ -3,7 +3,7 @@ package edu.cmu.cs.fluid.ir;
 
 import java.util.*;
 
-import edu.cmu.cs.fluid.util.*;
+import com.surelogic.common.util.*;
 
 /** List Iterator of elements in an IRSequence.
  */

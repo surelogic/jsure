@@ -1,11 +1,12 @@
 // $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/version/VersionedSequenceProjection.java,v 1.9 2007/07/10 22:16:32 aarong Exp $
 package edu.cmu.cs.fluid.version;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRSequence;
 import edu.cmu.cs.fluid.ir.IRSequenceWrapper;
 import edu.cmu.cs.fluid.ir.InsertionPoint;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  * Projects the contents of a (versioned) sequence into a particular version

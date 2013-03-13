@@ -1,9 +1,10 @@
 /* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/ir/IRSequenceWrapper.java,v 1.11 2007/07/10 22:16:31 aarong Exp $ */
 package edu.cmu.cs.fluid.ir;
 
+import com.surelogic.common.util.*;
+
 import java.io.IOException;
 import java.io.PrintStream;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /** Wrap a sequence and delegate all methods to it.
  * To change the way mutations are done, it is only necessary to override <ul>

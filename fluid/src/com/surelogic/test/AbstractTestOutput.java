@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
 
-import edu.cmu.cs.fluid.util.*;
+import com.surelogic.common.util.*;
 
 public abstract class AbstractTestOutput implements ITestOutput {
   private static final Object noResult = new Object();

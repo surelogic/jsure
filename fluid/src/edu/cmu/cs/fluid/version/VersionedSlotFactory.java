@@ -8,10 +8,9 @@ package edu.cmu.cs.fluid.version;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.util.Iteratable;
-import edu.cmu.cs.fluid.util.ListIteratable;
 
 /** The family of versioned (partially mutable) slots. */
 public class VersionedSlotFactory extends AbstractExplicitSlotFactory {

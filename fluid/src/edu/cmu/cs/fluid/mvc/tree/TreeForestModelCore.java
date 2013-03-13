@@ -2,6 +2,8 @@ package edu.cmu.cs.fluid.mvc.tree;
 
 import java.util.Iterator;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.mvc.AVPair;
 import edu.cmu.cs.fluid.mvc.AttributeChangedCallback;
 import edu.cmu.cs.fluid.mvc.AttributeManager;
@@ -10,9 +12,6 @@ import edu.cmu.cs.fluid.mvc.tree.attributes.MutableSequenceAttributeValueWrapper
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.tree.MutableTreeInterface;
 import edu.cmu.cs.fluid.tree.Tree;
-import edu.cmu.cs.fluid.util.EmptyIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
-import edu.cmu.cs.fluid.util.SingletonIterator;
 
 /**
  * Concrete core for <code>ForestModel</code>.  Allows the forest

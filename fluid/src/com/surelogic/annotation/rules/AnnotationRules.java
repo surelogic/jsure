@@ -1,7 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/rules/AnnotationRules.java,v 1.48 2008/10/29 14:17:16 chance Exp $*/
 package com.surelogic.annotation.rules;
 
-import static edu.cmu.cs.fluid.util.IteratorUtil.noElement;
+import com.surelogic.common.util.*;
 
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
@@ -36,6 +36,7 @@ import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -63,9 +64,6 @@ import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
-import edu.cmu.cs.fluid.util.EmptyIterator;
-import edu.cmu.cs.fluid.util.FilterIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  * A place for code common across rules packs
@@ -640,7 +638,7 @@ public abstract class AnnotationRules {
 				}
 				// return isBogus((IRNode) o) ? notSelected : o;
 				if (isBogus(o)) {
-					return noElement;
+					return IteratorUtil.noElement;
 				} else {
 					return o;
 				}

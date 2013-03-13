@@ -10,12 +10,11 @@ import java.util.logging.Logger;
 
 import com.surelogic.ThreadSafe;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.util.EmptyIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  * A class with functions for creating and traversing directed graphs. The

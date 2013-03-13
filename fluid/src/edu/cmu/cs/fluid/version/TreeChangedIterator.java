@@ -5,10 +5,10 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Stack;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.tree.TreeInterface;
-import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
-import edu.cmu.cs.fluid.util.EmptyIterator;
 
 public class TreeChangedIterator extends AbstractRemovelessIterator<IRNode>
 {

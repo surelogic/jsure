@@ -4,16 +4,14 @@ package edu.cmu.cs.fluid.control;
 import java.util.Iterator;
 import java.util.List;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.tree.DigraphMixin;
 import edu.cmu.cs.fluid.tree.EdgeDigraphConnections;
 import edu.cmu.cs.fluid.tree.StructureException;
 import edu.cmu.cs.fluid.tree.SymmetricEdgeDigraphInterface;
-import edu.cmu.cs.fluid.util.EmptyIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
-import edu.cmu.cs.fluid.util.PairIterator;
-import edu.cmu.cs.fluid.util.SingletonIterator;
 
 /** Relate a control-flow graph as a kind of symmetric edge directed
  * graph.  This is only for viewing; the way control nodes and edges

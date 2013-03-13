@@ -5,8 +5,8 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.util.*;
 
-import edu.cmu.cs.fluid.util.EmptyIterator;
 import com.surelogic.Starts;
 import com.surelogic.RegionEffects;
 import com.surelogic.Unique;

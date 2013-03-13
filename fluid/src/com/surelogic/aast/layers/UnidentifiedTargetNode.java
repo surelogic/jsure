@@ -6,13 +6,13 @@ import java.util.*;
 import com.surelogic.aast.*;
 import com.surelogic.aast.bind.*;
 import com.surelogic.aast.AbstractAASTNodeFactory;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.Declaration;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.SingletonIterator;
 
 /**
  * Could be a layer, typeset, package, or type

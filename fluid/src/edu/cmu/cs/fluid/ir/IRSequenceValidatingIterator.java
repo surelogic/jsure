@@ -5,7 +5,7 @@ package edu.cmu.cs.fluid.ir;
 
 import java.util.NoSuchElementException;
 
-import edu.cmu.cs.fluid.util.*;
+import com.surelogic.common.util.*;
 
 /**
  * Iterator over IRSequences that skips over invalid entries.

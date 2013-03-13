@@ -4,12 +4,12 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.mvc.*;
 import edu.cmu.cs.fluid.mvc.tree.AbstractForestToModelStatefulView;
-import edu.cmu.cs.fluid.util.EmptyIterator;
 import edu.cmu.cs.fluid.version.Version;
 
 /**

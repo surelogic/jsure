@@ -1,7 +1,7 @@
 /* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/ir/SlotFactory.java,v 1.18 2008/10/27 15:26:44 chance Exp $ */
 package edu.cmu.cs.fluid.ir;
 
-import edu.cmu.cs.fluid.util.*;
+import com.surelogic.common.util.*;
 
 /** An interface to a family of slots.
  * This interface can be used to parameterize complex objects.

@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.ListIterator;
 
 import com.surelogic.Unique;
+import com.surelogic.common.util.*;
 
-import edu.cmu.cs.fluid.util.ListIteratable;
 import edu.cmu.cs.fluid.util.SubList;
 import com.surelogic.Starts;
 

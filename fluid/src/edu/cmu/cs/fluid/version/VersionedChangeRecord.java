@@ -8,14 +8,14 @@ import java.util.Observer;
 import java.util.Map;
 import java.util.Vector;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.ir.AbstractChangeRecord;
 import edu.cmu.cs.fluid.ir.ChangeRecord;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeHashedMap;
 import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.tree.TreeInterface;
-import edu.cmu.cs.fluid.util.EmptyIterator;
-import edu.cmu.cs.fluid.util.SingletonIterator;
 
 /**
  * Change information recorded by version.

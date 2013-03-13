@@ -9,12 +9,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Observer;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.DerivedSlotInfo;
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /**
  * May not be right in general for methods that compute answers for the

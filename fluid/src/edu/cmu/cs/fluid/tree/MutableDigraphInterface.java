@@ -3,10 +3,11 @@ package edu.cmu.cs.fluid.tree;
 
 import java.util.Observer;
 
+import com.surelogic.common.util.Iteratable;
+
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.InsertionPoint;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 public interface MutableDigraphInterface
 extends DigraphInterface

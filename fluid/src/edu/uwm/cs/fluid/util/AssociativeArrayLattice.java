@@ -1,6 +1,6 @@
 package edu.uwm.cs.fluid.util;
 
-import edu.cmu.cs.fluid.util.ArrayIterator;
+import com.surelogic.common.util.*;
 
 /**
  * An array lattice where each array element is associated with a index value.

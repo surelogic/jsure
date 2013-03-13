@@ -4,9 +4,9 @@ package edu.cmu.cs.fluid.tree;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
-import edu.cmu.cs.fluid.util.Iteratable;
 
 /** Graphs with explicit edges which can be traversed in either direction.
  * <P> Known bugs:

@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.AbstractRemovelessIterator;
 import com.surelogic.Starts;
 
 /** An implementation of sets with some provision for infinite sets

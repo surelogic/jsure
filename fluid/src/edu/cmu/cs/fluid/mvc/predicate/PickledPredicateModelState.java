@@ -6,11 +6,12 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import com.surelogic.common.util.*;
+
 import edu.cmu.cs.fluid.mvc.Model;
 import edu.cmu.cs.fluid.mvc.sequence.SequenceModel;
 import edu.cmu.cs.fluid.mvc.set.SetModel;
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.util.AbstractRemovelessIterator;
 
 public class PickledPredicateModelState
 {

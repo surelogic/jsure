@@ -3,10 +3,10 @@ package com.surelogic.promise;
 
 
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
-import edu.cmu.cs.fluid.util.*;
 
 public final class BooleanPromiseDropStorage<D extends BooleanPromiseDrop<?>> 
 extends AbstractPromiseDropStorage<D>

@@ -8,6 +8,7 @@ import java.util.logging.*;
 import com.surelogic.*;
 import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.debug.DebugUtil;
 import edu.cmu.cs.fluid.derived.IDerivedInformation;
@@ -17,7 +18,6 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.*;
 
 /**
  * A table representing a Java import list mapping names to declarations.
