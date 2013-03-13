@@ -49,13 +49,16 @@ import edu.cmu.cs.fluid.java.operator.PreIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.RemExpression;
+import edu.cmu.cs.fluid.java.operator.Resources;
 import edu.cmu.cs.fluid.java.operator.RightShiftExpression;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.SubExpression;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
+import edu.cmu.cs.fluid.java.operator.TryResource;
 import edu.cmu.cs.fluid.java.operator.TryStatement;
 import edu.cmu.cs.fluid.java.operator.UnsignedRightShiftExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.operator.VariableResource;
 import edu.cmu.cs.fluid.java.operator.VisitorWithException;
 import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.operator.WhileStatement;
@@ -99,6 +102,23 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     conversionEngine = ce;
   }
 
+  
+  
+  // ======================================================================
+  // == Default visitor
+  // ======================================================================
+
+  /*
+   * Throw an exception if we get here, because it means we forgot to handle
+   * an operator.
+   */
+  @Override
+  public final IType visit(final IRNode n) {
+    throw new UnsupportedOperationException(
+        "Uh oh, we need to do something for " +
+            JJNode.tree.getOperator(n).name());
+  }
+  
   
   
   // ======================================================================
@@ -680,6 +700,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   // TODO
 
+  // TODO Also VariableResource!
   
   
   // ======================================================================
@@ -999,6 +1020,45 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     return typeFactory.getVoidType();
   }
 
+  @Override
+  public final IType visitTryResource(final IRNode tryStmt) {
+    final IRNode resources = TryResource.getResources(tryStmt);
+    for (final IRNode varResource : Resources.getResourceIterator(resources)) {
+      try {
+        // XXX: This skips over the VariableResource, and goes straight to the VariableDeclarator.  Might not be a good idea.
+        doAccept(VariableResource.getVar(varResource));
+      } catch (final TypeCheckingFailed e) {
+        // Should never be thrown, but handed by the nested statements
+      }
+    }
+    
+    try {
+      doAccept(TryResource.getBlock(tryStmt));
+    } catch (final TypeCheckingFailed e) {
+      // Should never be thrown, but handed by the nested statements
+    }
+
+    final IRNode catchClauses = TryResource.getCatchPart(tryStmt);
+    for (final IRNode catchClause : CatchClauses.getCatchClauseIterator(catchClauses)) {
+      try {
+        doAccept(CatchClause.getBody(catchClause));
+      } catch (final TypeCheckingFailed e) {
+        // Should never be thrown, but handed by the nested statements
+      }
+    }
+
+    final IRNode finallyClause = TryResource.getFinallyPart(tryStmt);
+    if (Finally.prototype.includes(finallyClause)) {
+      try {
+        doAccept(Finally.getBody(finallyClause));
+      } catch (final TypeCheckingFailed e) {
+        // Should never be thrown, but handed by the nested statements
+      }
+    }
+    
+    return typeFactory.getVoidType();
+  }
+  
   
   
   // ======================================================================
