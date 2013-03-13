@@ -101,23 +101,6 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     typeFactory = tf;
     conversionEngine = ce;
   }
-
-  
-  
-  // ======================================================================
-  // == Default visitor
-  // ======================================================================
-
-  /*
-   * Throw an exception if we get here, because it means we forgot to handle
-   * an operator.
-   */
-  @Override
-  public final IType visit(final IRNode n) {
-    throw new UnsupportedOperationException(
-        "Uh oh, we need to do something for " +
-            JJNode.tree.getOperator(n).name());
-  }
   
   
   
@@ -138,7 +121,20 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     // nothing to do by default
   }
 
-  
+
+
+  // ======================================================================
+  // == Default post processor
+  // ======================================================================
+
+  protected IType postProcessType(final IType type) {
+    /* 
+     * Override to record errors as a side effect, for example.
+     */
+    return type;
+  }
+
+
   
   // ======================================================================
   // == Bind names
@@ -164,10 +160,8 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == Base checks
+  // == ¤4.2 Primitive types and values
   // ======================================================================
-
-  /* ¤4.2 Primitive types and values */
   
   protected final boolean isBooleanType(final IType type) {
     // TODO: Make this real when I flesh out the ITypes
@@ -219,6 +213,9 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     return false;
   }
   
+  /**
+   * Is the type an integral type as defined in ¤4.2?
+   */
   protected final boolean isIntegralType(final IType type) {
     return isByteType(type) ||
         isShortType(type) ||
@@ -227,18 +224,36 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
         isCharType(type);
   }
   
+  /**
+   * Is the type a floating-point type as defined in ¤4.2?
+   */
   protected final boolean isFloatingPointType(final IType type) {
     return isFloatType(type) || isDoubleType(type);
   }
   
+  /**
+   * Is the type a numeric type as defined in ¤4.2?
+   */
   protected final boolean isNumericType(final IType type) {
     return isIntegralType(type) || isFloatingPointType(type);
   }
 
+  /**
+   * Is the type a primitive type as defined in ¤4.2?
+   */
   protected final boolean isPrimitiveType(final IType type) {
     return isBooleanType(type) || isNumericType(type);
   }
   
+  
+  
+  // ======================================================================
+  // == ¤4.3 Reference types and values
+  // ======================================================================
+    
+  /**
+   * Is the type a reference type as defined in ¤4.3?
+   */
   protected final boolean isReferenceType(final IType type) {
     // TODO: May be there will be a cheaper way to test this
     return !isPrimitiveType(type);
@@ -249,24 +264,18 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     return false;
   }
 
+  /**
+   * Is the type an array type as defined in ¤4.3?
+   */
   protected final boolean isArrayType(final IType type) {
     // TODO: Make this real when I flesh out the ITypes
     return false;
-  }
-  
-  protected final void assertIsBooleanWithUnbox(final IType type, final IRNode expr)
-  throws TypeCheckingFailed {
-    final boolean isBoxedBoolean = isNamedType(type, JAVA_LANG_BOOLEAN);
-    if (!(isBooleanType(type) || isBoxedBoolean)) {
-      error(JavaError.NOT_BOOLEAN_TYPE, expr, type);
-    }
-    if (isBoxedBoolean) unbox(type);
   }
 
   
   
   // ======================================================================
-  // == Conversions
+  // == ¤5.1 Conversions
   // ======================================================================
 
   /**
@@ -365,19 +374,6 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
         isNamedType(type, JAVA_LANG_FLOAT) ||
         isNamedType(type, JAVA_LANG_DOUBLE);
   }
-
-  /**
-   * Assert that the type is convertible to a numeric type: returns normally
-   * if {@link #isConvertibleToNumericType} is <code>true</code>; throws
-   * an exception if not.
-   */
-  protected final void assertConvertibleToNumericType(
-      final IType type, final IRNode expr)
-  throws TypeCheckingFailed {
-    if (!isConvertibleToNumericType(type)) {
-      error(JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE, expr, type);
-    }
-  }
   
   /**
    * Is the type "convertible to a integral type" as defined in ¤5.1.8.
@@ -389,19 +385,6 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
         isNamedType(type, JAVA_LANG_CHARACTER) ||
         isNamedType(type, JAVA_LANG_INTEGER) ||
         isNamedType(type, JAVA_LANG_LONG);
-  }
-
-  /**
-   * Assert that the type is convertible to a numeric type: returns normally
-   * if {@link #isConvertibleToNumericType} is <code>true</code>; throws
-   * an exception if not.
-   */
-  protected final void assertConvertibleToIntegralType(
-      final IType type, final IRNode expr)
-  throws TypeCheckingFailed {
-    if (!isConvertibleToIntegralType(type)) {
-      error(JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE, expr, type);
-    }
   }
   
   /**
@@ -415,7 +398,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == Promotions
+  // == ¤5.6 Numeric Promotions
   // ======================================================================
 
   /* Here we always assume that the promotion is possible: that is, that a 
@@ -468,21 +451,6 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
       return typeFactory.getIntType();
     }
   }
-  
-//  /**
-//   * Give a subclass a chance to refine the qualifiers on the type being
-//   * returned after unaryNumericPromotion.
-//   * 
-//   * @param originalType
-//   *          The type before promotion
-//   * @param type
-//   *          The type after promotion
-//   * @return The type after further processing.
-//   */
-//  protected IType postProcessUnuaryNumericPromotion(
-//      final IType originalType, final IType type) {
-//    return type;
-//  }
 
 
   
@@ -491,7 +459,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   // ----------------------------------------------------------------------
 
   /*
-   * Unlike the above, this operations perform the necessary check of
+   * Unlike the above, these operations perform the necessary check of
    * applicability before performing promotion, and report type checking errors
    * if the promotion cannot be applied, or if the result after
    * promotion/conversion is not what is desired.
@@ -539,16 +507,8 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == Hooks for further processing
+  // == Other helper methods
   // ======================================================================
-
-  protected IType postProcessType(final IType type) {
-    return type;
-  }
-
-  
-  
-  
 
   /**
    * Type check a conditional expression, and assert that its type is boolean or
@@ -562,10 +522,65 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
       // Ignore, result type is always void
     }
   }
+  
+  protected final void assertIsBooleanWithUnbox(final IType type, final IRNode expr)
+  throws TypeCheckingFailed {
+    final boolean isBoxedBoolean = isNamedType(type, JAVA_LANG_BOOLEAN);
+    if (!(isBooleanType(type) || isBoxedBoolean)) {
+      error(JavaError.NOT_BOOLEAN_TYPE, expr, type);
+    }
+    if (isBoxedBoolean) unbox(type);
+  }
+
+  /**
+   * Assert that the type is convertible to a numeric type: returns normally
+   * if {@link #isConvertibleToNumericType} is <code>true</code>; throws
+   * an exception if not.
+   */
+  protected final void assertConvertibleToIntegralType(
+      final IType type, final IRNode expr)
+  throws TypeCheckingFailed {
+    if (!isConvertibleToIntegralType(type)) {
+      error(JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE, expr, type);
+    }
+  }
+
+  /**
+   * Assert that the type is convertible to a numeric type: returns normally
+   * if {@link #isConvertibleToNumericType} is <code>true</code>; throws
+   * an exception if not.
+   */
+  protected final void assertConvertibleToNumericType(
+      final IType type, final IRNode expr)
+  throws TypeCheckingFailed {
+    if (!isConvertibleToNumericType(type)) {
+      error(JavaError.NOT_CONVERTIBLE_TO_NUMERIC_TYPE, expr, type);
+    }
+  }
+  
+  
+  
+  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  // @@ Start of visitor methods
+  // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  
+  // ======================================================================
+  // == Default visitor
+  // ======================================================================
+
+  /*
+   * Throw an exception if we get here, because it means we forgot to handle
+   * an operator.
+   */
+  @Override
+  public final IType visit(final IRNode n) {
+    throw new UnsupportedOperationException(
+        "Uh oh, we need to do something for " +
+            JJNode.tree.getOperator(n).name());
+  }
 
   
   
-   
   // ======================================================================
   // == ¤6.5.6 Expression Names
   // ======================================================================
@@ -700,7 +715,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   // TODO
 
-  // TODO Also VariableResource!
+  // TODO Also VariableResource! But we currently skip over those
   
   
   // ======================================================================
