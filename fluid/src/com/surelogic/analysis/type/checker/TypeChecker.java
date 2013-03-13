@@ -226,6 +226,15 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     // TODO: Make this real when I flesh out the ITypes
     return false;
   }
+  
+  protected final void assertIsBooleanWithUnbox(final IType type, final IRNode expr)
+  throws TypeCheckingFailed {
+    final boolean isBoxedBoolean = isNamedType(type, JAVA_LANG_BOOLEAN);
+    if (!(isBooleanType(type) || isBoxedBoolean)) {
+      error(JavaError.NOT_BOOLEAN_TYPE, expr, type);
+    }
+    if (isBoxedBoolean) unbox(type);
+  }
 
   
   
@@ -706,12 +715,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      */
     try {
       final IRNode cond = IfStatement.getCond(ifThenElse);
-      final IType type = doAccept(cond);
-      final boolean isBoxedBoolean = isNamedType(type, JAVA_LANG_BOOLEAN);
-      if (!isBooleanType(type) && isBoxedBoolean) {
-        error(JavaError.NOT_BOOLEAN_TYPE, cond, type);
-      }
-      if (isBoxedBoolean) unbox(type);
+      assertIsBooleanWithUnbox(doAccept(cond), cond);
     } catch (final TypeCheckingFailed e) {
       // Ignore, result type is always void
     }
@@ -747,12 +751,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      */
     try {
       final IRNode cond = AssertStatement.getAssertion(assertStmt);
-      final IType type = doAccept(cond);
-      final boolean isBoxedBoolean = isNamedType(type, JAVA_LANG_BOOLEAN);
-      if (!isBooleanType(type) && isBoxedBoolean) {
-        error(JavaError.NOT_BOOLEAN_TYPE, cond, type);
-      }
-      if (isBoxedBoolean) unbox(type);
+      assertIsBooleanWithUnbox(doAccept(cond), cond);
     } catch (final TypeCheckingFailed e) {
       // Ignore, result type is always void
     }
@@ -776,12 +775,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      */
     try {
       final IRNode cond = AssertMessageStatement.getAssertion(assertStmt);
-      final IType type = doAccept(cond);
-      final boolean isBoxedBoolean = isNamedType(type, JAVA_LANG_BOOLEAN);
-      if (!isBooleanType(type) && isBoxedBoolean) {
-        error(JavaError.NOT_BOOLEAN_TYPE, cond, type);
-      }
-      if (isBoxedBoolean) unbox(type);
+      assertIsBooleanWithUnbox(doAccept(cond), cond);
     } catch (final TypeCheckingFailed e) {
       // Ignore, result type is always void
     }
@@ -799,6 +793,27 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     return typeFactory.getVoidType();
   }
 
+  
+  
+  // ======================================================================
+  // == ¤14.11 The switch Statement
+  // ======================================================================
+
+  // TODO
+  
+  
+  
+  // ======================================================================
+  // == ¤14.11 The while Statement
+  // ======================================================================
+
+  @Override
+  public final IType visitWhileStatement(final IRNode whileStmt) {
+    
+    return typeFactory.getVoidType();
+  }
+  
+  
   
   // ======================================================================
   // == ¤15.8.1 Lexical Literals
@@ -1502,17 +1517,9 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * necessary.
      */
     
-    final IRNode opExpr = NotExpression.getOp(notExpr);
     try {
-      final IType operandType = doAccept(opExpr);
-      final boolean isBoxedBoolean = isNamedType(operandType, JAVA_LANG_BOOLEAN);
-      if (!(isBooleanType(operandType) || isBoxedBoolean)) {
-        error(JavaError.NOT_BOOLEAN_TYPE, opExpr, operandType);
-      }
-      if (isBoxedBoolean) {
-        // Force an unbox to enable null-checking 
-        unbox(operandType);
-      }
+      final IRNode opExpr = NotExpression.getOp(notExpr);
+      assertIsBooleanWithUnbox(doAccept(opExpr), opExpr);
     } catch (final TypeCheckingFailed e) {
       /*
        * Eat any type errors in the subexpression because the type of the
@@ -1572,10 +1579,8 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   @Override
   public final IType visitMulExpression(final IRNode mulExpr) 
   throws TypeCheckingFailed {
-    return postProcessMulExpression(
-        mulExpr,
-        visitMultiplicativeOperator(
-            mulExpr,
+    return postProcessMulExpression(mulExpr,
+        visitMultiplicativeOperator(mulExpr,
             MulExpression.getOp1(mulExpr), MulExpression.getOp2(mulExpr)));
   }
   
@@ -1586,10 +1591,8 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   @Override
   public final IType visitDivExpression(final IRNode divExpr) 
   throws TypeCheckingFailed {
-    return postProcessDivExpression(
-        divExpr,
-        visitMultiplicativeOperator(
-            divExpr,
+    return postProcessDivExpression(divExpr,
+        visitMultiplicativeOperator(divExpr,
             DivExpression.getOp1(divExpr), DivExpression.getOp2(divExpr)));
   }
   
@@ -1600,10 +1603,8 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   @Override
   public final IType visitRemExpression(final IRNode remExpr) 
   throws TypeCheckingFailed {
-    return postProcessRemExpression(
-        remExpr,
-        visitMultiplicativeOperator(
-            remExpr,
+    return postProcessRemExpression(remExpr,
+        visitMultiplicativeOperator(remExpr,
             RemExpression.getOp1(remExpr), RemExpression.getOp2(remExpr)));
   }
   
@@ -1698,8 +1699,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   @Override
   public final IType visitAddExpression(final IRNode addExpr) 
   throws TypeCheckingFailed {
-    return postProcessAddExpression(
-        addExpr,
+    return postProcessAddExpression(addExpr,
         visitAdditiveOperator(addExpr,
             AddExpression.getOp1(addExpr),
             AddExpression.getOp2(addExpr)));
@@ -1712,8 +1712,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   @Override
   public final IType visitSubExpression(final IRNode subExpr) 
   throws TypeCheckingFailed {
-    return postProcessSubExpression(
-        subExpr,
+    return postProcessSubExpression(subExpr,
         visitAdditiveOperator(subExpr,
             SubExpression.getOp1(subExpr),
             SubExpression.getOp2(subExpr)));
@@ -1770,8 +1769,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   @Override
   public final IType visitLeftShiftExpression(final IRNode leftShift)
   throws TypeCheckingFailed {
-    return postProcessLeftShiftExpression(
-        leftShift,
+    return postProcessLeftShiftExpression(leftShift,
         visitShiftOperator(leftShift,
             LeftShiftExpression.getOp1(leftShift),
             LeftShiftExpression.getOp2(leftShift)));
@@ -1784,8 +1782,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   @Override
   public final IType visitRightShiftExpression(final IRNode rightShift)
   throws TypeCheckingFailed {
-    return postProcessRightShiftExpression(
-        rightShift,
+    return postProcessRightShiftExpression(rightShift,
         visitShiftOperator(rightShift,
             RightShiftExpression.getOp1(rightShift),
             RightShiftExpression.getOp2(rightShift)));
@@ -1798,8 +1795,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   @Override
   public final IType visitUnsignedRightShiftExpression(final IRNode unsignedShift)
   throws TypeCheckingFailed {
-    return postProcesUnsignedRightShiftExpression(
-        unsignedShift,
+    return postProcesUnsignedRightShiftExpression(unsignedShift,
         visitShiftOperator(unsignedShift,
             UnsignedRightShiftExpression.getOp1(unsignedShift),
             UnsignedRightShiftExpression.getOp2(unsignedShift)));
@@ -1845,8 +1841,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   @Override
   public final IType visitLessThanExpression(final IRNode expr) {
-    return postProcessLessThanExpression(
-        expr,
+    return postProcessLessThanExpression(expr,
         visitNumericalComparison(expr,
             LessThanExpression.getOp1(expr),
             LessThanExpression.getOp2(expr)));
@@ -1858,8 +1853,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   @Override
   public final IType visitLessThanEqualExpression(final IRNode expr) {
-    return postProcessLessThanEqualExpression(
-        expr,
+    return postProcessLessThanEqualExpression(expr,
         visitNumericalComparison(expr,
             LessThanEqualExpression.getOp1(expr),
             LessThanEqualExpression.getOp2(expr)));
@@ -1871,8 +1865,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   @Override
   public final IType visitGreaterThanExpression(final IRNode expr) {
-    return postProcessGreaterThanExpression(
-        expr,
+    return postProcessGreaterThanExpression(expr,
         visitNumericalComparison(expr,
             GreaterThanExpression.getOp1(expr),
             GreaterThanExpression.getOp2(expr)));
@@ -1884,8 +1877,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   @Override
   public final IType visitGreaterThanEqualExpression(final IRNode expr) {
-    return postProcessGreaterThanEqualExpression(
-        expr,
+    return postProcessGreaterThanEqualExpression(expr,
         visitNumericalComparison(expr,
             GreaterThanEqualExpression.getOp1(expr),
             GreaterThanEqualExpression.getOp2(expr)));
@@ -2023,24 +2015,14 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      */
     try {
       final IRNode op1 = ConditionalAndExpression.getOp1(expr);
-      final IType type1 = doAccept(op1);
-      final boolean isBoxedBoolean1 = isNamedType(type1, JAVA_LANG_BOOLEAN);
-      if (!isBooleanType(type1) && !isBoxedBoolean1) {
-        error(JavaError.NOT_BOOLEAN_TYPE, op1, type1);
-      }
-      if (isBoxedBoolean1) unbox(type1);
+      assertIsBooleanWithUnbox(doAccept(op1),  op1);
     } catch (final TypeCheckingFailed e) {
       /* Can eat the exception because the result type is always boolean. */
     }
 
     try {
       final IRNode op2 = ConditionalAndExpression.getOp2(expr);
-      final IType type2 = doAccept(op2);
-      final boolean isBoxedBoolean2 = isNamedType(type2, JAVA_LANG_BOOLEAN);
-      if (!isBooleanType(type2) && !isBoxedBoolean2) {
-        error(JavaError.NOT_BOOLEAN_TYPE, op2, type2);
-      }
-      if (isBoxedBoolean2) unbox(type2);
+      assertIsBooleanWithUnbox(doAccept(op2),  op2);
     } catch (final TypeCheckingFailed e) {
       /* Can eat the exception because the result type is always boolean. */
     }
@@ -2077,24 +2059,14 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      */
     try {
       final IRNode op1 = ConditionalOrExpression.getOp1(expr);
-      final IType type1 = doAccept(op1);
-      final boolean isBoxedBoolean1 = isNamedType(type1, JAVA_LANG_BOOLEAN);
-      if (!isBooleanType(type1) && !isBoxedBoolean1) {
-        error(JavaError.NOT_BOOLEAN_TYPE, op1, type1);
-      }
-      if (isBoxedBoolean1) unbox(type1);
+      assertIsBooleanWithUnbox(doAccept(op1),  op1);
     } catch (final TypeCheckingFailed e) {
       /* Can eat the exception because the result type is always boolean. */
     }
 
     try {
       final IRNode op2 = ConditionalOrExpression.getOp2(expr);
-      final IType type2 = doAccept(op2);
-      final boolean isBoxedBoolean2 = isNamedType(type2, JAVA_LANG_BOOLEAN);
-      if (!isBooleanType(type2) && !isBoxedBoolean2) {
-        error(JavaError.NOT_BOOLEAN_TYPE, op2, type2);
-      }
-      if (isBoxedBoolean2) unbox(type2);
+      assertIsBooleanWithUnbox(doAccept(op2),  op2);
     } catch (final TypeCheckingFailed e) {
       /* Can eat the exception because the result type is always boolean. */
     }
