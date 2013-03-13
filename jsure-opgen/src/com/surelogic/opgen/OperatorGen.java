@@ -160,6 +160,9 @@ public class OperatorGen extends AbstractASTGenerator {
       printJava("import java.util.logging.*;\n");
     }
     
+    if (s.isVariable()) {
+      printJava("import com.surelogic.common.util.*;\n");
+    }
     if (s.afterText.contains("Component") || s.afterText.contains("Sink")) {
       printJava("import edu.cmu.cs.fluid.control.*;\n");
     }
@@ -182,9 +185,11 @@ public class OperatorGen extends AbstractASTGenerator {
     printJava("import edu.cmu.cs.fluid.tree.*;\n");
     printJava("import edu.cmu.cs.fluid.unparse.Token;\n");
     printJava("import edu.cmu.cs.fluid.unparse.*;\n");
+    /*
     if (s.isVariable()) {
       printJava("import edu.cmu.cs.fluid.util.*;\n");
     }
+    */
     printJava("\n");
 //  if ($header ne "") {
 //  open(HEADERFILE,$header) || throw new Error("Could not read header file $header");
