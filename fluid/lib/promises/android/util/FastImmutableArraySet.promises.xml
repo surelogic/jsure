@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="android.util" release="1">
+    <class name="FastImmutableArraySet">
+        <method name="iterator">
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+            <Starts>nothing</Starts>
+            <Unique>return</Unique>
+        </method>
+
+        <method name="size">
+            <Borrowed>this</Borrowed>
+            <RegionEffects>reads Instance</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
+    </class>
+</package>

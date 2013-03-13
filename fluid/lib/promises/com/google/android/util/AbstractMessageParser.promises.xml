@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="com.google.android.util" release="1">
+    <class name="AbstractMessageParser">
+        <class name="Token">
+            <class name="Type">
+                <method name="toString">
+                    <RegionEffects>reads Instance</RegionEffects>
+                </method>
+            </class>
+        </class>
+    </class>
+</package>

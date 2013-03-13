@@ -1,11 +1,11 @@
 package com.surelogic.dropsea.irfree.drops;
 
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IModelingProblemDrop;
-import com.surelogic.dropsea.irfree.JSureEntity;
 
 public class IRFreeModelingProblemDrop extends IRFreeDrop implements IModelingProblemDrop {
 
-  IRFreeModelingProblemDrop(JSureEntity e, Class<?> irClass) {
+  IRFreeModelingProblemDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
   }
 

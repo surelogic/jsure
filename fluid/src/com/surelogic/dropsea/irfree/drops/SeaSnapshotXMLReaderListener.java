@@ -35,7 +35,6 @@ import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.ScopedPromiseDrop;
 import com.surelogic.dropsea.irfree.DropTypeUtility;
-import com.surelogic.dropsea.irfree.JSureEntity;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListener {
@@ -50,7 +49,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListene
       refCache = null;
   }
 
-  private class SeaEntity extends JSureEntity {
+  private class SeaEntity extends Entity {
 
     public SeaEntity(String name, Attributes a) {
       super(name, a);

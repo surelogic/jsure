@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="android.support.v4.app" release="1">
+    <class name="TaskStackBuilder">
+        <method name="iterator">
+            <Borrowed allowReturn="true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+            <Unique>return</Unique>
+        </method>
+    </class>
+</package>

@@ -8,10 +8,10 @@ import java.util.HashSet;
 import java.util.List;
 
 import com.surelogic.NonNull;
+import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
-import com.surelogic.dropsea.irfree.JSureEntity;
 
 public abstract class IRFreeAnalysisResultDrop extends IRFreeProofDrop implements IAnalysisResultDrop {
 
@@ -27,7 +27,7 @@ public abstract class IRFreeAnalysisResultDrop extends IRFreeProofDrop implement
     f_trusted.add(info);
   }
 
-  IRFreeAnalysisResultDrop(JSureEntity e, Class<?> irClass) {
+  IRFreeAnalysisResultDrop(Entity e, Class<?> irClass) {
     super(e, irClass);
 
     f_usedByProof = "true".equals(e.getAttribute(USED_BY_PROOF));
