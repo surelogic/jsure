@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.Pair;
+import com.surelogic.common.java.*;
 
 import edu.cmu.cs.fluid.java.ICodeFile;
 
