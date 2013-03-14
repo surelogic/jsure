@@ -95,13 +95,10 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   private final IBinder binder;
   private final ITypeFactory typeFactory;
-  private final IConversionEngine conversionEngine;
   
-  public TypeChecker(final IBinder b,
-      final ITypeFactory tf, final IConversionEngine ce) {
+  public TypeChecker(final IBinder b, final ITypeFactory tf) {
     binder = b;
     typeFactory = tf;
-    conversionEngine = ce;
   }
   
   
@@ -390,7 +387,15 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   /**
-   * Perform a string conversion as define in ¤5.1.11.
+   * Perform a capture conversion as defined in ¤5.1.10.
+   */
+  protected final IType capture(final IType type) {
+    // TODO: Make this real
+    return type;
+  }
+  
+  /**
+   * Perform a string conversion as defined in ¤5.1.11.
    */
   protected final IType string(final IRNode expr, final IType type) {
     // XXX: Probably want a preprocess method here
@@ -635,7 +640,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
           JJNode.tree.getParent(JJNode.tree.getParent(nameDecl)));
     }
     IType type = typeFactory.getTypeFromExpression(typeExpr);
-    if (isRValue) type = conversionEngine.capture(type);    
+    if (isRValue) type = capture(type);    
     return postProcessVariableUseExpression(varUseExpr, nameDecl, isRValue, type);
   }
   
@@ -1452,7 +1457,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
       fieldType = typeFactory.getReferenceTypeFromDeclaration(enumDecl);
     }
     return postProcessFieldRefExpression(
-        fieldRefExpr, varDecl, conversionEngine.capture(fieldType));
+        fieldRefExpr, varDecl, capture(fieldType));
   }
 
   // Only called for instance fields
@@ -1519,7 +1524,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     }
     final IType elementType = typeFactory.getArrayElementType(arrayType);
     return postProcessArrayRefExpression(
-        arrayRefExpr, conversionEngine.capture(elementType));
+        arrayRefExpr, capture(elementType));
   }
   
   protected void preProcessArrayReference(final IRNode refExpr, final IType type) {
