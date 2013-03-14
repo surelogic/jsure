@@ -30,6 +30,7 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
 import com.surelogic.common.concurrent.RecursiveIOAction;
+import com.surelogic.common.java.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.adapter.*;
 import com.surelogic.xml.PackageAccessor;
@@ -45,7 +46,7 @@ import edu.cmu.cs.fluid.util.*;
 import extra166y.ParallelArray;
 import extra166y.Ops.Procedure;
 
-public class JavacClassParser {
+public class JavacClassParser implements IJavacClassParser {
 	/** Should we try to run things in parallel */
 	private static boolean wantToRunInParallel = true;
 	private static boolean useForkJoinTasks = wantToRunInParallel && false;
@@ -1284,11 +1285,11 @@ public class JavacClassParser {
 	/**
 	 * @return true if already initialized, false if not (and set to be true)
 	 */
-	public boolean ensureInitialized(JavacProject jp, Config config) {
+	public boolean ensureInitialized(IJavaProject jp, Config config) {
 		if (initialized.containsValue(jp, config)) {
 			return true;
 		}
-		initialized.put(jp, config);
+		initialized.put((JavacProject) jp, config);
 		return false;
 	}
 

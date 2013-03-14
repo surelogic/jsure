@@ -72,6 +72,7 @@ import com.surelogic.common.ZipInfo;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.SourceZip;
+import com.surelogic.common.java.*;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLJob;
@@ -88,16 +89,11 @@ import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.dropsea.ir.utility.ClearStateUtility;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
-import com.surelogic.javac.Config;
-import com.surelogic.javac.IClassPathEntry;
-import com.surelogic.javac.JarEntry;
-import com.surelogic.javac.JavaSourceFile;
 import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.PromiseMatcher;
-import com.surelogic.javac.SrcEntry;
 import com.surelogic.javac.Util;
 import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.LocalJSureJob;
@@ -1126,9 +1122,11 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
         return null;
       }
       for (IClasspathEntry cpe : jp.getRawClasspath()) {
+    	System.out.println("Scanning: "+cpe);
         switch (cpe.getEntryKind()) {
         case IClasspathEntry.CPE_CONTAINER:
           final String path = cpe.getPath().toPortableString();
+          //IClasspathEntry resolved = JavaCore.getResolvedClasspathEntry(cpe); 
           if (path.startsWith(JavacTypeEnvironment.JRE_NAME)) {
             final IClasspathContainer cc = JavaCore.getClasspathContainer(cpe.getPath(), jp);
             if (cc == null) {

@@ -83,13 +83,13 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.surelogic.annotation.JavadocAnnotation;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.java.JavaSourceFile;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.ir.MetricDrop;
 import com.surelogic.javac.FileResource;
-import com.surelogic.javac.JavaSourceFile;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.Projects;
 

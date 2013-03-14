@@ -11,6 +11,7 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.java.*;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.drops.CUDrop;

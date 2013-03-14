@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.zip.ZipOutputStream;
 
 import com.surelogic.common.*;
+import com.surelogic.common.java.*;
 
 /**
  * A hack to zip up all the files for the Config
