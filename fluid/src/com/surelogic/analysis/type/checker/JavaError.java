@@ -20,6 +20,8 @@ public enum JavaError implements ITypeError {
   
   VOID_NOT_ALLOWED("Expression may not be void"),
   
+  NOT_ASSIGNABLE("Type is not assignable"),
+  
   A("");
   
   private JavaError(final String msg) {

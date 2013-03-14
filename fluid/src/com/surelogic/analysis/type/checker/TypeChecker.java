@@ -9,6 +9,7 @@ import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
 import edu.cmu.cs.fluid.java.operator.AssertMessageStatement;
 import edu.cmu.cs.fluid.java.operator.AssertStatement;
+import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.CatchClauses;
@@ -40,6 +41,7 @@ import edu.cmu.cs.fluid.java.operator.MinusExpression;
 import edu.cmu.cs.fluid.java.operator.MulExpression;
 import edu.cmu.cs.fluid.java.operator.NotEqExpression;
 import edu.cmu.cs.fluid.java.operator.NotExpression;
+import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
 import edu.cmu.cs.fluid.java.operator.OrExpression;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParenExpression;
@@ -400,6 +402,16 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   protected final IType string(final IRNode expr, final IType type) {
     // XXX: Probably want a preprocess method here
     return typeFactory.getStringType();
+  }
+  
+  /* 5.2 Assignment conversion */
+  protected final boolean assignment(final IType lhs, final IType rhs) {
+    // TODO: Make this real
+    
+    // XXX: Needs to first determine how to convert the type, and then convert
+    // XXX: it, to get the unbox/box effects, but we don't want to unbox if 
+    // XXX: ultimately unboxing is not useful.
+    return false;
   }
   
   /* ¤5.5 Casting conversion */
@@ -2519,5 +2531,74 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   
-  // TODO: Assignment expressions
+
+  // ======================================================================
+  // == ¤15.26 Assignment Operators
+  // ======================================================================
+
+  /*
+   * The result of the first operand of an assignment operator must be a
+   * variable, or a compile-time error occurs.
+   * 
+   * This operand may be a named variable, such as a local variable or a field
+   * of the current object or class, or it may be a computed variable, as can
+   * result from a field access (¤15.11) or an array access (¤15.13).
+   * 
+   * The type of the assignment expression is the type of the variable after
+   * capture conversion (¤5.1.10).
+   */
+
+  @Override
+  public final IType visitAssignExpression(final IRNode expr)
+  throws TypeCheckingFailed {
+    /*
+     * The type of the assignment expression is the type of the variable after
+     * capture conversion (¤5.1.10).
+     * 
+     * A compile-time error occurs if the type of the right-hand operand cannot
+     * be converted to the type of the variable by assignment conversion (¤5.2).
+     */
+    
+    // Don't catch failures on the lhs
+    final IType lhsType = doAccept(AssignExpression.getOp1(expr));
+    try {
+      final IType rhsType = doAccept(AssignExpression.getOp2(expr));
+      if (!assignment(lhsType, rhsType)) {
+        error(JavaError.NOT_ASSIGNABLE, expr, lhsType, rhsType);
+      }
+    } catch (final TypeCheckingFailed e) {
+      // Ignore: the type of this expression is derived from the type of the LHS
+    }
+    
+    return postProcessAssignExpression(expr, capture(lhsType));
+  }
+  
+  protected IType postProcessAssignExpression(final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
+  
+  @Override
+  public final IType visitOpAssignExpression(final IRNode expr)
+  throws TypeCheckingFailed {
+    /*
+     * A compound assignment expression of the form E1 op= E2 is equivalent to
+     * E1 = (T) ((E1) op (E2)), where T is the type of E1, except that E1 is
+     * evaluated only once.
+     * 
+     * op is one of * / % + - << >> >>> & ^ |
+     */
+    
+    // TODO: Work out the handling of the promotions, etc, necessary.  This should go away when I switch over to using Box/UnboxExpressions
+    
+    // don't catch failures on the lhs
+    final IType lhsType = doAccept(OpAssignExpression.getOp1(expr));
+    return postProcessOpAssignExpression(expr, capture(lhsType));
+  }
+  
+  protected IType postProcessOpAssignExpression(final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
 }
+
+
+
