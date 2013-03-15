@@ -371,7 +371,8 @@ public class JavaCanonicalizer {
       }
       if (type == JavaTypeFactory.nullType) {
         // Replace with String
-        IRNode nullString = StringLiteral.createNode("null");
+        IRNode nullString = StringLiteral.createNode("\"null\"");
+        JavaNode.setImplicit(nullString);
         replaceSubtree(node, nullString);
         return true;
       }
@@ -391,21 +392,21 @@ public class JavaCanonicalizer {
       return true;
     }
 
-    private void generateConversionToString(IRNode node, IJavaPrimitiveType type) {
-      String typeName = type.getCorrespondingTypeName();
-      if (typeName == null) {
-        throw new IllegalArgumentException("No type for " + type);
-      }
-      // Constructed this way to preserve the location of 'node'
-      IRNode nt = NamedType.createNode(typeName);
-      IRNode te = TypeExpression.createNode(nt);
-      JavaNode.setImplicit(te);
-      IRNode mc = JavaNode.makeJavaNode(NonPolymorphicMethodCall.prototype);
-      replaceSubtree(node, mc);
-
-      IRNode args = Arguments.createNode(new IRNode[] { node });
-      finishToString(mc, te, args);
-    }
+//    private void generateConversionToString(IRNode node, IJavaPrimitiveType type) {
+//      String typeName = type.getCorrespondingTypeName();
+//      if (typeName == null) {
+//        throw new IllegalArgumentException("No type for " + type);
+//      }
+//      // Constructed this way to preserve the location of 'node'
+//      IRNode nt = NamedType.createNode(typeName);
+//      IRNode te = TypeExpression.createNode(nt);
+//      JavaNode.setImplicit(te);
+//      IRNode mc = JavaNode.makeJavaNode(NonPolymorphicMethodCall.prototype);
+//      replaceSubtree(node, mc);
+//
+//      IRNode args = Arguments.createNode(new IRNode[] { node });
+//      finishToString(mc, te, args);
+//    }
 
     private void finishToString(IRNode mc, IRNode base, IRNode args) {
       NonPolymorphicMethodCall.setObject(mc, base);
