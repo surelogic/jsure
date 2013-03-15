@@ -16,8 +16,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +25,6 @@ import java.util.logging.Level;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -42,15 +38,9 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jdt.core.Flags;
-import org.eclipse.jdt.core.IClasspathContainer;
-import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageDeclaration;
 import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.surelogic.analysis.JSureProperties;
@@ -60,7 +50,6 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.FileUtility.TempFileFilter;
 import com.surelogic.common.Pair;
 import com.surelogic.common.PeriodicUtility;
-import com.surelogic.common.SLUtility;
 import com.surelogic.common.TextArchiver;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.ZipInfo;
@@ -78,14 +67,11 @@ import com.surelogic.common.jobs.remote.TestCode;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
-import com.surelogic.common.tool.SureLogicToolsFilter;
-import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.dropsea.ir.utility.ClearStateUtility;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
 import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacProject;
-import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.Util;
 import com.surelogic.javac.jobs.ILocalJSureConfig;
@@ -136,7 +122,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects> implements IResou
 
   // private final List<IProject> building = new ArrayList<IProject>();
   private final Map<String, Object> args = new HashMap<String, Object>();
-  private final Map<IProject, ProjectInfo> projects = new HashMap<IProject, ProjectInfo>();
+  private final Map<IProject, ProjectInfo<JavacProject>> projects = new HashMap<IProject, ProjectInfo<JavacProject>>();
   /**
    * Only used for scripting
    */
@@ -809,450 +795,32 @@ public class JavacDriver extends AbstractJavaScanner<Projects> implements IResou
 
   volatile SLProgressMonitor lastMonitor = null;
 
-  class ProjectInfo {
-    final IProject project;
-    final List<ICompilationUnit> allCompUnits;
-    final Set<ICompilationUnit> cuDelta = new HashSet<ICompilationUnit>();
-    final Set<IResource> removed = new HashSet<IResource>();
-    /**
-     * All comp units includes delta?
-     */
-    boolean updated = true;
-    boolean active = true;
+  class JavacProjectInfo extends ProjectInfo<JavacProject> {
 
-    ProjectInfo(IProject p, List<ICompilationUnit> cus) {
-      project = p;
-      allCompUnits = new ArrayList<ICompilationUnit>(cus);
-    }
+	JavacProjectInfo(IProject project, List<ICompilationUnit> cus) {
+		super(project, cus);
+	}
+	 
+	@Override
+	protected void setProjectSpecificProperties(Config config) {
+		// TODO obsolete?
+		Properties props2 = JSureProperties.read(config.getLocation());
+		if (props2 != null) {
+			JSureProperties.handle(config.getProject(), props2);
+		}
+	}
 
-    void setActive(boolean value) {
-      active = value;
-    }
+	@Override
+	protected ProjectInfo<JavacProject> getProjectInfo(IProject proj) {
+		return JavacDriver.this.projects.get(proj);
+	}
 
-    boolean isActive() {
-      return active;
-    }
-
-    boolean hasDeltas() {
-      return !cuDelta.isEmpty();
-    }
-
-    void registerDelta(List<ICompilationUnit> cus) {
-      if (!cus.isEmpty()) {
-        cuDelta.addAll(cus);
-        updated = false;
-      }
-    }
-
-    void registerResourcesDelta(List<Pair<IResource, Integer>> resources) {
-      for (Pair<IResource, Integer> p : resources) {
-        if (p.second() == IResourceDelta.REMOVED && p.first().getName().endsWith(".java")) {
-          removed.add(p.first());
-          updated = false;
-        }
-      }
-    }
-
-    private boolean needsUpdate() {
-      return !updated && !cuDelta.isEmpty();
-    }
-
-    Iterable<ICompilationUnit> getAllCompUnits() {
-      if (needsUpdate()) {
-        update(allCompUnits, cuDelta, removed);
-      }
-      return allCompUnits;
-    }
-
-    Iterable<IResource> getRemovedResources() {
-      return removed;
-    }
-
-    Iterable<ICompilationUnit> getDelta() {
-      if (needsUpdate()) {
-        Iterable<ICompilationUnit> result = new ArrayList<ICompilationUnit>(cuDelta);
-        update(allCompUnits, cuDelta, removed);
-        return result;
-      }
-      return allCompUnits;
-    }
-
-    /**
-     * Adds itself to projects to make sure that it's not created multiple times
-     */
-    Config makeConfig(final Projects projects, boolean all) throws JavaModelException {
-      final IJavaProject jp = JDTUtility.getJavaProject(project.getName());
-      if (jp == null) {
-        return null;
-      }
-      scanForJDK(projects, jp);
-
-      final File location = EclipseUtility.resolveIPath(project.getLocation());
-      Config config = new ZippedConfig(project.getName(), location, false, containsJavaLangObject(jp));
-      projects.add(config);
-      setOptions(config);
-
-      for (IResource res : getRemovedResources()) {
-        final File f = res.getLocation().toFile();
-        config.addRemovedFile(f);
-      }
-      for (JavaSourceFile jsf : convertCompUnits(config, all ? getAllCompUnits() : getDelta())) {
-        config.addFile(jsf);
-      }
-      addDependencies(projects, config, project, false);
-      return config;
-    }
-
-    private void setOptions(Config config) {
-      final IJavaProject jp = JDTUtility.getJavaProject(config.getProject());
-      if (config.getLocation() != null) {
-        /*
-         * Moved to clearProjectInfo() // TODO Is this right for multi-project
-         * configurations? ModuleRules.clearSettings();
-         * ModuleRules.clearAsSourcePatterns();
-         * ModuleRules.clearAsNeededPatterns();
-         */
-
-        final IFile propsFile = jp.getProject().getFile(SureLogicToolsPropertiesUtility.PROPS_FILE);
-        final Properties props = SureLogicToolsPropertiesUtility.readFileOrNull(propsFile.getLocation().toFile());
-        if (props != null) {
-          for (Map.Entry<Object, Object> p : props.entrySet()) {
-            // System.out.println("Tool set "+p.getKey()+" = "+p.getValue());
-            config.setOption(p.getKey().toString(), p.getValue());
-          }
-        }
-        // TODO obsolete?
-        Properties props2 = JSureProperties.read(config.getLocation());
-        if (props2 != null) {
-          JSureProperties.handle(config.getProject(), props2);
-        }
-      }
-      // Reordered to avoid conflicts
-      int version = JDTUtility.getMajorJavaSourceVersion(jp);
-      config.setOption(Config.SOURCE_LEVEL, version);
-      // System.out.println(config.getProject()+": set to level "+version);
-    }
-
-    void addDependencies(Projects projects, Config config, IProject p, boolean addSource) throws JavaModelException {
-      final IJavaProject jp = JDTUtility.getJavaProject(p.getName());
-      // TODO what export rules?
-      final JavacProject jre = scanForJDK(projects, jp);
-      final boolean hasSourceForJLO = containsJavaLangObject(jp);
-      System.out.println("Project " + jp);
-
-      for (IClasspathEntry cpe : jp.getResolvedClasspath(true)) {
-        System.out.println("\tCPE = " + cpe);
-        // TODO ignorable since they'll be handled by the compiler
-        // cpe.getAccessRules();
-        // cpe.combineAccessRules();
-
-        switch (cpe.getEntryKind()) {
-        case IClasspathEntry.CPE_SOURCE:
-          if (addSource) {
-            addSourceFiles(config, cpe);
-          }
-          config.addToClassPath(config);
-          // TODO makeRelativeTo is a 3.5 API
-          config.addToClassPath(new SrcEntry(config, cpe.getPath().makeRelativeTo(p.getFullPath()).toString()));
-          break;
-        case IClasspathEntry.CPE_LIBRARY:
-          // System.out.println("Adding "+cpe.getPath()+" for "+p.getName());
-          final File f = EclipseUtility.resolveIPath(cpe.getPath());
-
-          // Check if the jar is already in some other project (e.g, the JRE)
-          String mapped = projects.checkMapping(f);
-          if (hasSourceForJLO && mapped != null && jre != null && mapped.equals(jre.getName())) {
-            mapped = null; // treat this jar as if it's part of this project
-          }
-          if (mapped != null) {
-            JavacProject mappedProj = projects.get(mapped);
-            if (mappedProj == null) {
-              // Make project for jar
-              mappedProj = makeJarConfig(projects, f, mapped);
-            }
-            config.addToClassPath(mappedProj.getConfig());
-          } else {
-            config.addJar(f, cpe.isExported());
-          }
-          break;
-        case IClasspathEntry.CPE_PROJECT:
-          final String projName = cpe.getPath().lastSegment();
-          final JavacProject jcp = projects.get(projName);
-          if (jcp != null) {
-            // Already created
-            config.addToClassPath(jcp.getConfig());
-            break;
-          }
-          final IProject proj = ResourcesPlugin.getWorkspace().getRoot().getProject(projName);
-          final ProjectInfo info = JavacDriver.this.projects.get(proj);
-          final Config dep;
-          if (info != null) {
-            final boolean hasDeltas = info.hasDeltas();
-            dep = info.makeConfig(projects, hasDeltas);
-          } else {
-            final File location = EclipseUtility.resolveIPath(proj.getLocation());
-            dep = new ZippedConfig(projName, location, cpe.isExported(),
-                containsJavaLangObject(JDTUtility.getJavaProject(projName)));
-            projects.add(dep);
-            setOptions(dep);
-          }
-          config.addToClassPath(dep);
-
-          if (info == null) {
-            addDependencies(projects, dep, proj, true);
-          }
-          break;
-        default:
-          System.out.println("Unexpected: " + cpe);
-        }
-      }
-      if (jre != null && !hasSourceForJLO) {
-        // Add JRE if not already added
-        boolean hasJRE = false;
-        for (IClassPathEntry e : config.getClassPath()) {
-          if (e.equals(jre.getConfig())) {
-            hasJRE = true;
-            break;
-          }
-        }
-        if (!hasJRE) {
-          System.out.println("Adding missing JRE: " + jre.getName());
-          config.addToClassPath(jre.getConfig());
-        }
-      }
-      projects.resetOrdering();
-    }
-
-    private void addSourceFiles(Config config, IClasspathEntry cpe) {
-      // TODO handle multiple deltas?
-      /*
-       * final File dir = EclipseUtility.resolveIPath(cpe.getPath()); final
-       * File[] excludes = new File[cpe.getExclusionPatterns().length]; int i=0;
-       * for(IPath xp : cpe.getExclusionPatterns()) { excludes[i] =
-       * EclipseUtility.resolveIPath(xp); i++; }
-       */
-      IContainer root = (IContainer) ResourcesPlugin.getWorkspace().getRoot().findMember(cpe.getPath());
-      final IResource[] excludes = new IResource[cpe.getExclusionPatterns().length];
-      int i = 0;
-      for (IPath xp : cpe.getExclusionPatterns()) {
-        excludes[i] = root.findMember(xp);
-        i++;
-      }
-      addJavaFiles(root, config, excludes);
-    }
-
-    private void addJavaFiles(IContainer dir, Config config, IResource... excluded) {
-      try {
-        addJavaFiles("", dir, config, excluded);
-      } catch (CoreException e) {
-        e.printStackTrace();
-      }
-    }
-
-    private void addJavaFiles(String pkg, IContainer dir, Config config, IResource[] excluded) throws CoreException {
-      for (IResource x : excluded) {
-        if (dir.equals(x)) {
-          return;
-        }
-      }
-      if (dir == null || !dir.exists()) {
-        return;
-      }
-      // System.out.println("Scanning "+dir.getAbsolutePath());
-      boolean added = false;
-      for (IResource r : dir.members()) {
-        if (r instanceof IFile && r.getName().endsWith(".java")) {
-          final ICompilationUnit icu = JavaCore.createCompilationUnitFrom((IFile) r);
-          if ((icu != null) && (icu.getJavaProject().isOnClasspath(icu))) {
-            final File f = r.getLocation().toFile();
-            // System.out.println("Found source file: "+f.getPath());
-            /*
-             * String typeName = f.getName().substring(0, f.getName().length() -
-             * 5); String qname = pkg.length() == 0 ? typeName : pkg + '.' +
-             * typeName; config.addFile(new JavaSourceFile(qname, f, f
-             * .getAbsolutePath()));
-             */
-            final String path = f.getAbsolutePath();
-            /*
-             * TODO Problem due to hashing conflict?
-             * 
-             * for(IType t : icu.getAllTypes()) { final String qname =
-             * t.getFullyQualifiedName(); config.addFile(new
-             * JavaSourceFile(qname, f, path)); }
-             */
-            final String qname = computeQualifiedName(icu);
-
-            // TODO Used when there's no project info
-            config.addFile(new JavaSourceFile(qname, f, path, false));
-
-            if (!added) {
-              added = true;
-              /*
-               * if (debug) { System.out.println("Found java files in "+pkg); }
-               */
-              config.addPackage(pkg);
-            }
-          }
-        }
-        if (r instanceof IContainer) {
-          final String newPkg = pkg == "" ? r.getName() : pkg + '.' + r.getName();
-          addJavaFiles(newPkg, (IContainer) r, config, excluded);
-        }
-      }
-    }
-
-    /**
-     * Create a project/config for a shared jar
-     */
-    private JavacProject makeJarConfig(Projects projects, File f, String name) {
-      System.out.println("Creating shared jar: " + name);
-      // Use its containing directory as a location
-      final Config config = new Config(name, f.getParentFile(), true, false);
-      config.addJar(f, true);
-      return projects.add(config);
-    }
-
-    /**
-     * Look for a container in the raw classpath that corresponds to a JRE
-     */
-    private JavacProject scanForJDK(Projects projects, IJavaProject jp) throws JavaModelException {
-      if (jp == null) {
-        return null;
-      }
-      for (IClasspathEntry cpe : jp.getRawClasspath()) {
-    	System.out.println("Scanning: "+cpe);
-        switch (cpe.getEntryKind()) {
-        case IClasspathEntry.CPE_CONTAINER:
-          final String path = cpe.getPath().toPortableString();
-          //IClasspathEntry resolved = JavaCore.getResolvedClasspathEntry(cpe); 
-          if (path.startsWith(JavacTypeEnvironment.JRE_NAME)) {
-            final IClasspathContainer cc = JavaCore.getClasspathContainer(cpe.getPath(), jp);
-            if (cc == null) {
-              // Creating project from sun.boot.classpath
-              JavacProject jcp = projects.get(path);
-              if (jcp == null) {
-                final String classpath = System.getProperty("sun.boot.class.path");
-                System.out.println("sun.boot.class.path = " + classpath);
-
-                final Config config = new Config(path, null, true, true);
-                for (String jar : classpath.split(File.pathSeparator)) {
-                  final File f = new File(jar);
-                  config.addJar(f, true);
-                  projects.mapToProject(f, path);
-                }
-                JavacEclipse.getDefault().setPreference(IDEPreferences.DEFAULT_JRE, path);
-                jcp = projects.add(config);
-              }
-              return jcp;
-            } else {
-              JavacProject jcp = findJRE(projects, cc);
-              if (jcp == null) {
-                jcp = projects.add(makeConfig(projects, cc));
-              }
-              return jcp;
-            }
-          }
-        }
-      }
-      return null;
-    }
-
-    private JavacProject findJRE(Projects projects, final IClasspathContainer cc) {
-      final String name = cc.getPath().toPortableString();
-      JavacProject jcp = projects.get(name);
-      if (jcp == null) {
-        // Not found by name, so check for existing JREs
-        for (JavacProject p : projects) {
-          if (p.getName().startsWith(JavacTypeEnvironment.JRE_NAME) && compareJREs(p.getConfig(), cc)) {
-            return p;
-          }
-        }
-      }
-      return jcp;
-    }
-
-    private boolean compareJREs(Config c, final IClasspathContainer cc) {
-      final IClasspathEntry[] cpes = cc.getClasspathEntries();
-      int i = 0;
-      for (IClassPathEntry e : c.getClassPath()) {
-        if (i >= cpes.length) {
-          return false;
-        }
-        final IClasspathEntry cpe = cpes[i];
-        switch (cpe.getEntryKind()) {
-        case IClasspathEntry.CPE_LIBRARY:
-          final File f = EclipseUtility.resolveIPath(cpe.getPath());
-          if (!(e instanceof JarEntry)) {
-            return false;
-          }
-          JarEntry j = (JarEntry) e;
-          if (!f.equals(j.getPath())) {
-            return false;
-          }
-          break;
-        default:
-          return false;
-        }
-        i++;
-      }
-      return true;
-    }
-
-    /**
-     * Make a Config for the JRE
-     */
-    private Config makeConfig(Projects projects, final IClasspathContainer cc) {
-      final String name = cc.getPath().toPortableString();
-      final Config config = new Config(name, null, true, true);
-      for (IClasspathEntry cpe : cc.getClasspathEntries()) {
-        switch (cpe.getEntryKind()) {
-        case IClasspathEntry.CPE_LIBRARY:
-          final File f = EclipseUtility.resolveIPath(cpe.getPath());
-          // System.out.println("Adding "+f+" for "+cc.getDescription());
-          config.addJar(f, true);
-          projects.mapToProject(f, name);
-          break;
-        default:
-          throw new IllegalStateException("Got entryKind: " + cpe.getEntryKind());
-        }
-      }
-      JavacEclipse.getDefault().setPreference(IDEPreferences.DEFAULT_JRE, name);
-      return config;
-    }
-
-    /**
-     * Either add/remove as needed
-     * 
-     * @param removed2
-     */
-    void update(Collection<ICompilationUnit> all, Collection<ICompilationUnit> cus, Set<IResource> removed) {
-      // Filter out removed files
-      final Iterator<ICompilationUnit> it = all.iterator();
-      while (it.hasNext()) {
-        final ICompilationUnit cu = it.next();
-        if (removed.contains(cu.getResource())) {
-          it.remove();
-        }
-      }
-      // Add in changed ones
-      for (ICompilationUnit cu : cus) {
-        // TODO use a Set instead?
-        if (cu.getResource().exists()) {
-          if (!all.contains(cu)) {
-            all.add(cu);
-            // System.out.println("Added:   "+cu.getHandleIdentifier());
-          } else {
-            // System.out.println("Exists:  "+cu.getHandleIdentifier());
-          }
-        } else {
-          all.remove(cu);
-          // System.out.println("Deleted: "+cu.getHandleIdentifier());
-        }
-      }
-      updated = true;
-    }
+	@Override
+	protected void setDefaultJRE(String name) {
+		JavacEclipse.getDefault().setPreference(IDEPreferences.DEFAULT_JRE, name);
+	}
   }
-
+  
   public void preBuild(final IProject p) {
     System.out.println("Pre-build for " + p);
     /*
@@ -1264,15 +832,6 @@ public class JavacDriver extends AbstractJavaScanner<Projects> implements IResou
   }
 
   /**
-   * @return true if the given project contains java.lang.Object in source form
-   * @throws JavaModelException
-   */
-  boolean containsJavaLangObject(IJavaProject jp) throws JavaModelException {
-    IType t = jp.findType(SLUtility.JAVA_LANG_OBJECT);
-    return t.getCompilationUnit() != null;
-  }
-
-  /**
    * Register resources
    */
   @SuppressWarnings({ "rawtypes" })
@@ -1280,7 +839,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects> implements IResou
     final int k = getBuildKind(args);
     if (k == IncrementalProjectBuilder.CLEAN_BUILD || k == IncrementalProjectBuilder.FULL_BUILD) {
       // TODO what about resources?
-      projects.put(project, new ProjectInfo(project, cus));
+      projects.put(project, new JavacProjectInfo(project, cus));
       SLLogger.getLogger().fine("Got full build for " + project.getName());
       if (script != null) {
         cacheCompUnits(cus);
@@ -1404,42 +963,19 @@ public class JavacDriver extends AbstractJavaScanner<Projects> implements IResou
   }
   
   @Override 
-  protected void scheduleScanForExecution(Projects newProjects, Map<String, Object> args, SLJob copy) throws Exception {
+  protected void scheduleScanForExecution(Projects newProjects, SLJob copy) throws Exception {
 	  if (ScriptCommands.USE_EXPECT && script != null) {
 		  recordFilesToBuild(newProjects);
 	  }
 	  if (XUtil.testing) {
-		  final File expected = (File) args.get(ScriptCommands.EXPECT_BUILD);
+		  final File expected = (File) newProjects.getArg(ScriptCommands.EXPECT_BUILD);
 		  if (expected != null && expected.exists()) {
 			  checkForExpectedSourceFiles(newProjects, expected);
 		  }
 		  copy.run(new NullSLProgressMonitor());
 	  } else {
-		  super.scheduleScanForExecution(newProjects, args, copy);
+		  super.scheduleScanForExecution(newProjects, copy);
 	  }
-  }
-  
-  @SuppressWarnings("unused")
-  private void doBuild(final Projects newProjects, Map<String, Object> args, SLProgressMonitor monitor, boolean useSeparateJVM) {
-    try {
-      final File dataDir = prepForScan(newProjects, monitor, useSeparateJVM);
-      final File runDir = new File(dataDir, newProjects.getRun());
-      final File zips = new File(runDir, PersistenceConstants.ZIPS_DIR);
-      final File target = new File(runDir, PersistenceConstants.SRCS_DIR);
-      target.mkdirs();
-      markAsRunning(runDir);
-
-      AbstractAnalysisJob<?> analysis = makeAnalysisJob(newProjects, target, zips, useSeparateJVM);
-      SLJob copy = new CopyProjectsJob(newProjects, target, zips, analysis);
-      scheduleScanForExecution(newProjects, args, copy);      
-    } catch (Exception e) {
-      System.err.println("Unable to make config for JSure");
-      e.printStackTrace();
-      if (XUtil.testing) {
-        throw (RuntimeException) e;
-      }
-      return;
-    }
   }
 
   private void findModifiedFiles(final Projects newProjects, Projects oldProjects) {
@@ -1474,7 +1010,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects> implements IResou
         if (cus != null && cus.size() > 0) {
           System.out.println(ijp.getElementName() + " has " + cus.size() + " modified files");
           try {
-            c.intersectFiles(convertCompUnits(c, cus));
+            c.intersectFiles(ProjectInfo.convertCompUnits(c, cus));
           } catch (JavaModelException e1) {
             // Suppressed, since it's an optimization
           }
@@ -1548,77 +1084,6 @@ public class JavacDriver extends AbstractJavaScanner<Projects> implements IResou
 
   }
 
-  private Collection<JavaSourceFile> convertCompUnits(Config config, final Iterable<ICompilationUnit> cus)
-      throws JavaModelException {
-    final List<JavaSourceFile> files = new ArrayList<JavaSourceFile>();
-    // setup filter
-    final IProject p = EclipseUtility.getProject(config.getProject());
-    final String[] excludedSourceFolders = config.getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_FOLDER);
-    final String[] excludedPackagePatterns = config.getListOption(SureLogicToolsPropertiesUtility.SCAN_EXCLUDE_SOURCE_PACKAGE);
-    final SureLogicToolsFilter filter = SureLogicToolsPropertiesUtility
-        .getFilterFor(excludedSourceFolders, excludedPackagePatterns);
-    for (ICompilationUnit icu : cus) {
-      // Check if legal
-      final String name = icu.getElementName();
-      if (!Util.PACKAGE_INFO_JAVA.equals(name) && !SLUtility.isValidJavaIdentifier(name.substring(0, name.length()-5))) {
-    	  continue;
-      }
-      
-      final IPath path = icu.getResource().getFullPath();
-      final IPath loc = icu.getResource().getLocation();
-      final File f = loc.toFile();
-      final String qname;
-      String packageName = "";
-      for (IPackageDeclaration pd : icu.getPackageDeclarations()) {
-        packageName = pd.getElementName();
-        config.addPackage(pd.getElementName());
-      }
-      if (f.exists()) {
-        qname = computeQualifiedName(icu);
-      } else { // Removed
-        qname = f.getName();
-      }
-      boolean excludeFilterMatchesTreatAsBinary = filter.matches(path.toFile().getAbsolutePath(), packageName);
-      files.add(new JavaSourceFile(qname, f, path.toPortableString(), excludeFilterMatchesTreatAsBinary));
-    }
-    return files;
-  }
-
-  String computeQualifiedName(ICompilationUnit icu) throws JavaModelException {
-    String qname = null;
-    for (IType t : icu.getTypes()) {
-      qname = t.getFullyQualifiedName();
-      /*
-       * if (qname.endsWith("SingleSignOnEntry")) {
-       * System.out.println("Looking at "+qname); }
-       */
-      final int flags = t.getFlags();
-      if (Flags.isPublic(flags)) {
-        // This is the only public top-level type
-        break;
-      } else {
-        // System.out.println("Got a non-public type: "+qname);
-      }
-    }
-    if (qname == null) {
-      // Backup method: unreliable since the qname may not match the
-      // filename
-      String pkg = null;
-      for (IPackageDeclaration pd : icu.getPackageDeclarations()) {
-        pkg = pd.getElementName();
-        break;
-      }
-      qname = icu.getElementName();
-      if (qname.endsWith(".java")) {
-        qname = qname.substring(0, qname.length() - 5);
-      }
-      if (pkg != null) {
-        qname = pkg + '.' + qname;
-      }
-    }
-    return qname;
-  }
-
   /**
    * Wait for a normal Eclipse build
    */
@@ -1647,13 +1112,11 @@ public class JavacDriver extends AbstractJavaScanner<Projects> implements IResou
 
   class ConfigureJob extends AbstractSLJob {
     final Projects projects;
-    final Map<String, Object> args;
     final boolean ignoreNature;
 
     ConfigureJob(String name, File location, boolean isAuto, Map<String, Object> args, boolean ignoreNature) {
-      super(name);
-      this.args = new HashMap<String, Object>(args);
-      projects = new Projects(location, isAuto, this.args);
+      super(name);      
+      projects = new Projects(location, isAuto,  new HashMap<String, Object>(args));
       args.clear();
       this.ignoreNature = ignoreNature;
     }
@@ -1684,7 +1147,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects> implements IResou
         return SLStatus.CANCEL_STATUS;
       }
       final boolean runRemote = !XUtil.runJSureInMemory && ignoreNature;
-      doBuild(projects, args, monitor, runRemote);
+      startScan(projects, monitor, runRemote);
       return SLStatus.OK_STATUS;
     }
   }

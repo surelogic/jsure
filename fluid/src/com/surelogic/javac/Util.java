@@ -133,7 +133,6 @@ public class Util {
   private static final boolean loadPartial = false;
   public static final boolean useResultsXML = false;
 
-  public static final String PACKAGE_INFO_JAVA = SLUtility.PACKAGE_INFO + ".java";
   public static final boolean debug = false;
   private static final String HOME = System.getProperty("user.home");
 
@@ -1205,7 +1204,7 @@ public class Util {
           name = JavaNames.genPrimaryTypeName(cu);
         }
         if (name == null) {
-          if (!info.getFileName().endsWith(PACKAGE_INFO_JAVA)) {
+          if (!info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
             return;
           }
           name = info.getFile().getPackage();
@@ -1381,7 +1380,7 @@ public class Util {
       // Check for sources
       if (info.getType() == Type.SOURCE) { // TODO what about interfaces?
         CUDrop d;
-        if (info.getFileName().endsWith(PACKAGE_INFO_JAVA)) {
+        if (info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
           d = PackageDrop.findPackage(info.getFile().getPackage());
         } else {
           d = SourceCUDrop.queryCU(info.getFile());
@@ -1423,7 +1422,7 @@ public class Util {
         switch (info.getType()) {
         case SOURCE:
         case INTERFACE:
-          if (info.getFileName().endsWith(PACKAGE_INFO_JAVA)) {
+          if (info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
             // System.out.println("Found package: "+info.getFileName());
             outOfDate = PackageDrop.findPackage(file.getPackage());
           } else {
@@ -1459,7 +1458,7 @@ public class Util {
         // System.out.println("Creating drop: "+info.getFileName());
 
         if (info.getType().fromSourceFile()) {
-          if (info.getFileName().endsWith(PACKAGE_INFO_JAVA)) {
+          if (info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
             final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
             tEnv.addPackage(info.getFile().getPackage(), info.getNode());
             // PackageDrop.createPackage(info.getFile().getPackage(),
@@ -1489,10 +1488,10 @@ public class Util {
     Collections.sort(cus.asList(), new Comparator<CodeInfo>() {
       @Override
       public int compare(CodeInfo o1, CodeInfo o2) {
-        if (o1.getFileName().endsWith(PACKAGE_INFO_JAVA)) {
+        if (o1.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
           return Integer.MIN_VALUE;
         }
-        if (o2.getFileName().endsWith(PACKAGE_INFO_JAVA)) {
+        if (o2.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
           return Integer.MAX_VALUE;
         }
         return o1.getFileName().compareTo(o2.getFileName());

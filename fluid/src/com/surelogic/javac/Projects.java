@@ -29,7 +29,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 
-public class Projects extends JavaProjects implements IIRProjects, Iterable<JavacProject> {
+public class Projects extends JavaProjects<JavacProject> implements IIRProjects, Iterable<JavacProject> {
   public static JavacProject getProject(IRNode cu) {
     return (JavacProject) JavaProjects.getProject(cu);
   }

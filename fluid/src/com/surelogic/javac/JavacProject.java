@@ -9,7 +9,7 @@ import com.surelogic.common.jobs.SLProgressMonitor;
 
 import edu.cmu.cs.fluid.ide.IClassPathContext;
 
-public class JavacProject implements IIRProject, IClassPathContext, IJavaProject {
+public class JavacProject implements IIRProject, IClassPathContext, ISLJavaProject {
 	private final Projects parent;
 	private final Config config;
 	private final String name;	
@@ -109,7 +109,7 @@ public class JavacProject implements IIRProject, IClassPathContext, IJavaProject
 	}
 
 	public boolean shouldExistAsIProject() {
-		return !name.startsWith(JavacTypeEnvironment.JRE_NAME);
+		return !name.startsWith(Config.JRE_NAME);
 	}
 	
 	public boolean isAsBinary() {

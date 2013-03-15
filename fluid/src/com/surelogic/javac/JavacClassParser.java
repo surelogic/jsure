@@ -1285,7 +1285,7 @@ public class JavacClassParser implements IJavacClassParser {
 	/**
 	 * @return true if already initialized, false if not (and set to be true)
 	 */
-	public boolean ensureInitialized(IJavaProject jp, Config config) {
+	public boolean ensureInitialized(ISLJavaProject jp, Config config) {
 		if (initialized.containsValue(jp, config)) {
 			return true;
 		}

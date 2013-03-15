@@ -9,7 +9,7 @@ import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
-public class JavaProjects extends JavaProjectSet {
+public abstract class JavaProjects<P> extends JavaProjectSet<P> {
 	private static final IRObjectType<IIRProject> projectType = new IRObjectType<IIRProject>();
 	protected static final SlotInfo<IIRProject> projectSI = 
 		JavaNode.getVersionedSlotInfo(JavaProjects.class.getName(), projectType);
