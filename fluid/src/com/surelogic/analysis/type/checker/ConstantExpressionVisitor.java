@@ -1,7 +1,6 @@
 package com.surelogic.analysis.type.checker;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AddExpression;
@@ -24,7 +23,6 @@ import edu.cmu.cs.fluid.java.operator.LessThanExpression;
 import edu.cmu.cs.fluid.java.operator.MinusExpression;
 import edu.cmu.cs.fluid.java.operator.MulExpression;
 import edu.cmu.cs.fluid.java.operator.NamedType;
-import edu.cmu.cs.fluid.java.operator.NoInitialization;
 import edu.cmu.cs.fluid.java.operator.NonPolymorphicMethodCall;
 import edu.cmu.cs.fluid.java.operator.NotEqExpression;
 import edu.cmu.cs.fluid.java.operator.NotExpression;
@@ -45,14 +43,15 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.operator.XorExpression;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
-import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * Visitor that is used to determine if an expression is a "constant
  * expression" as defined in JLS ¤15.28.
  */
 public class ConstantExpressionVisitor extends Visitor<Boolean> {
+  private static final String NULL_AS_STRING = "\"null\"";
+  private static final String JAVA_LANG_STRING = "java.lang.String";
+  private static final String TO_STRING = "toString";
   private final IBinder binder;
   
   
@@ -103,7 +102,8 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
      * "null" if the NullLiteral is part of a StringConcat operation. We need to
      * check for this because the NullLiteral is never a constant expression.
      */
-    if (JavaNode.wasImplicit(e) && StringLiteral.getToken(e).equals("\"null\"")) {
+    if (JavaNode.wasImplicit(e) &&
+        StringLiteral.getToken(e).equals(NULL_AS_STRING)) {
       return false;
     } else {
       return true;
@@ -120,7 +120,8 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   public Boolean visitCastExpression(final IRNode e) {
     final IRNode type = CastExpression.getType(e);
     if (PrimitiveType.prototype.includes(type) ||
-        (NamedType.prototype.includes(type) && NamedType.getType(type).equals("java.lang.String"))) {
+        (NamedType.prototype.includes(type) &&
+            NamedType.getType(type).equals(JAVA_LANG_STRING))) {
       return doAccept(CastExpression.getExpr(e));
     } else {
       return false;
@@ -192,15 +193,8 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   
   @Override
   public Boolean visitStringConcat(final IRNode e) {
-    final IRNode sub1 = StringConcat.getOp1(e);
-    final IRNode sub2 = StringConcat.getOp2(e);
-    final Operator op1 = JJNode.tree.getOperator(sub1);
-    final Operator op2 = JJNode.tree.getOperator(sub2);
-    final Boolean doAccept1 = doAccept(sub1);
-    final Boolean doAccept2 = doAccept(sub2);
-    final String s1 = DebugUnparser.toString(sub1);
-    final String s2 = DebugUnparser.toString(sub2);
-    return doAccept1 && doAccept2;
+    return doAccept(StringConcat.getOp1(e)) &&
+        doAccept(StringConcat.getOp2(e));
   }
   
   @Override
@@ -390,7 +384,7 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
    * Box and Unbox expressions do not exist in the Java syntax, they are
    * introduced by our Java Canonicalizer.  We pass through them here
    * because they aren't part of the syntax.  I think we only encounter them
-   * in a Constant Expression when it is a strong concatentation such as
+   * in a Constant Expression when it is a String concatenation such as
    * "foo" + 3, where the canonicalizer turns the 3 into X.toString(), where
    * X is a box expression of the literal 3.
    */
@@ -417,7 +411,7 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   
   @Override
   public Boolean visitNonPolymorphicMethodCall(final IRNode e) {
-    if (NonPolymorphicMethodCall.getMethod(e).equals("toString") &&
+    if (NonPolymorphicMethodCall.getMethod(e).equals(TO_STRING) &&
         JavaNode.wasImplicit(NonPolymorphicMethodCall.getArgs(e))) {
       return doAccept(NonPolymorphicMethodCall.getObject(e));
     } else {
