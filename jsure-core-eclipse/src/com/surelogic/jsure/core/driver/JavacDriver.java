@@ -15,7 +15,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -25,12 +24,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
-import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -62,7 +58,6 @@ import com.surelogic.annotation.rules.ModuleRules;
 import com.surelogic.common.AbstractJavaZip;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.FileUtility.TempFileFilter;
-import com.surelogic.common.FileUtility.UnzipCallback;
 import com.surelogic.common.Pair;
 import com.surelogic.common.PeriodicUtility;
 import com.surelogic.common.SLUtility;
@@ -71,13 +66,12 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.ZipInfo;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
-import com.surelogic.common.core.SourceZip;
+import com.surelogic.common.core.java.*;
 import com.surelogic.common.java.*;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
-import com.surelogic.common.jobs.SLSeverity;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.jobs.remote.AbstractRemoteSLJob;
 import com.surelogic.common.jobs.remote.TestCode;
@@ -93,7 +87,6 @@ import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
-import com.surelogic.javac.PromiseMatcher;
 import com.surelogic.javac.Util;
 import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.LocalJSureJob;
@@ -131,8 +124,6 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
    * Clear all the JSure state before each build
    */
   private static final boolean clearBeforeAnalysis = false;
-
-  private static final boolean useSourceZipsDirectly = !(SystemUtils.IS_OS_LINUX && XUtil.runJSureInMemory);
 
   /**
    * If true, create common projects for shared jars Otherwise, jars in
@@ -565,9 +556,16 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
     List<String> lines = new LinkedList<String>();
     String line = "";
     try {
-      BufferedReader in = new BufferedReader(new FileReader(f));
-      while ((line = in.readLine()) != null) {
-        lines.add(line);
+      BufferedReader in = null;
+      try {
+    	  in = new BufferedReader(new FileReader(f));
+    	  while ((line = in.readLine()) != null) {
+    		  lines.add(line);
+    	  }       
+      } finally {
+    	  if (in != null) {
+    		  in.close();
+    	  }
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -1400,7 +1398,7 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
       // TODO create constants?
 
       AnalysisJob analysis = new AnalysisJob(oldProjects, newProjects, target, zips, useSeparateJVM);
-      CopyJob copy = new CopyJob(newProjects, target, zips, analysis);
+      SLJob copy = new CopyProjectsJob(newProjects, target, zips, analysis);
       if (ScriptCommands.USE_EXPECT && script != null) {
         recordFilesToBuild(newProjects);
       }
@@ -1600,132 +1598,6 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
     return qname;
   }
 
-  static class ZippedConfig extends Config {
-    ZippedConfig(String name, File location, boolean isExported, boolean hasJLO) {
-      super(name, location, isExported, hasJLO);
-    }
-
-    @Override
-    protected Config newConfig(String name, File location, boolean isExported, boolean hasJLO) {
-      return new ZippedConfig(name, location, isExported, hasJLO);
-    }
-
-    @Override
-    public void zipSources(File zipDir) throws IOException {
-      final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(getProject());
-      final SourceZip srcZip = new SourceZip(project);
-      File zipFile = new File(zipDir, project.getName() + ".zip");
-      if (!zipFile.exists()) {
-        zipFile.getParentFile().mkdirs();
-        srcZip.generateSourceZip(zipFile.getAbsolutePath(), project);
-      } else {
-        // System.out.println("Already exists: "+zipFile);
-      }
-      super.zipSources(zipDir);
-    }
-
-    @Override
-    public void copySources(File zipDir, File targetDir) throws IOException {
-      final IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(getProject());
-      targetDir.mkdir();
-
-      File projectDir = new File(targetDir, project.getName());
-      File zipFile = new File(zipDir, project.getName() + ".zip");
-      ZipFile zf = new ZipFile(zipFile);
-
-      // Get class mapping (qname->zip path)
-      Properties props = new Properties();
-      ZipEntry mapping = zf.getEntry(AbstractJavaZip.CLASS_MAPPING);
-      props.load(zf.getInputStream(mapping));
-
-      // Reverse mapping
-      final Map<String, List<String>> path2qnames = new HashMap<String, List<String>>();
-
-      // Needed to keep javac from dying on a bad qualified name
-      boolean pathsContainDot = false;
-      // int count = 0;
-      for (Map.Entry<Object, Object> e : props.entrySet()) {
-        final String path = (String) e.getValue();
-        if (useSourceZipsDirectly) {
-          final int len = path.length();
-          // Assumes that it ends with '.java'
-          // 
-          // Not a bug, but it STARTS looking at the index specified 
-          //if (path.lastIndexOf('.', len - 5) >= 0) {          
-          final int firstDot = path.indexOf('.');
-          if (firstDot >= 0 && firstDot < len - 5) {
-            pathsContainDot = true;
-          }
-        }
-        List<String> l = path2qnames.get(path);
-        if (l == null) {
-          l = new ArrayList<String>();
-          path2qnames.put(path, l);
-        }
-        l.add((String) e.getKey());
-        // count++;
-      }
-      // System.out.println(getProject()+": class mapping "+count);
-      /*
-       * for(JavaSourceFile f : getFiles()) {
-       * System.out.println(getProject()+": "+f.relativePath); }
-       */
-      final List<JavaSourceFile> srcFiles = new ArrayList<JavaSourceFile>();
-      final UnzipCallback callback = new UnzipCallback() {
-        @Override
-        public void unzipped(ZipEntry ze, File f) {
-          // Finish setting up srcFiles
-          if (ze.getName().endsWith(".java")) {
-            final List<String> names = path2qnames.get(ze.getName());
-            if (names != null) {
-              for (String name : names) {
-            	/*
-                if (name.contains("$")) {
-                  System.out.println("Mapping " + name + " to " + f.getAbsolutePath());
-                }
-                */
-                // The last two parameters don't matter because
-                // they'll just be thrown away when we call
-                // setFiles() below
-                srcFiles.add(new JavaSourceFile(name/*
-                                                     * .replace( '$', '.')
-                                                     */, f, null, false));
-              }
-            } else if (ze.getName().endsWith("/package-info.java")) {
-              System.out.println("What to do about package-info.java?");
-            } else {
-              System.err.println("Unable to get qname for " + ze.getName());
-            }
-          } else {
-            // System.out.println("Not a java file: "+ze.getName());
-          }
-        }
-      };
-      if (useSourceZipsDirectly && !pathsContainDot) {
-    	System.out.println("Using source zips directly for "+getProject());
-        // OK
-        // jar:///C:/Documents%20and%20Settings/UncleBob/lib/vendorA.jar!com/vendora/LibraryClass.class
-        final Enumeration<? extends ZipEntry> e = zf.entries();
-        final String zipPath = zipFile.getAbsolutePath();
-        while (e.hasMoreElements()) {
-          ZipEntry ze = e.nextElement();
-          File f = PromiseMatcher.makeZipReference(zipPath, ze.getName());
-          // System.out.println("URI = "+f.toURI());
-          callback.unzipped(ze, f);
-        }
-      } else {
-        FileUtility.unzipFile(zf, projectDir, callback);
-        // To prevent issues with importing projects
-        File dotProject = new File(projectDir, ".project");
-        if (dotProject.exists()) {
-          dotProject.renameTo(new File(projectDir, ".project.bak"));
-        }
-      }
-      this.setFiles(srcFiles);
-      super.copySources(zipDir, targetDir);
-    }
-  }
-
   /**
    * Wait for a normal Eclipse build
    */
@@ -1796,291 +1668,184 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
     }
   }
 
-  abstract class JavacJob extends AbstractSLJob {
-    final Projects projects;
-    /**
-     * Where the source files will be copied to
-     */
-    final File targetDir;
+  class AnalysisJob extends AbstractAnalysisJob<Projects> {
+	  private final Projects oldProjects;
+	  
+	  AnalysisJob(Projects oldProjects, Projects projects, File target, File zips, boolean useSeparateJVM) {
+		  super(projects, target, zips, useSeparateJVM);
+		  if (useSeparateJVM) {
+			  this.oldProjects = null;
+		  } else {
+			  this.oldProjects = oldProjects;
+		  }
+	  }
 
-    /**
-     * Where the source zips will be created
-     */
-    final File zipDir;
+	  @Override
+	  public SLStatus run(SLProgressMonitor monitor) {
+		  lastMonitor = monitor;
+		  projects.setMonitor(monitor);
+		  /*
+		   * if (XUtil.testingWorkspace) {
+		   * System.out.println("Clearing state before running analysis");
+		   * ClearProjectListener.clearJSureState(); }
+		   */
+		  return super.run(monitor);
+	  }
+		  
+	  @Override
+	  protected void init(SLProgressMonitor monitor) throws IOException {
+		  JavacEclipse.initialize();
+		  System.out.println("JSure data dir  = " + IDE.getInstance().getStringPreference(IDEPreferences.JSURE_DATA_DIRECTORY));
+		  System.out.println("XML diff dir    = " + IDE.getInstance().getStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY));
+		  NotificationHub.notifyAnalysisStarting();
+		  JavacEclipse.getDefault().savePreferences(projects.getRunDir());
+	  }
+	  
+	  @Override
+	  protected LocalJSureJob makeLocalJob() throws Exception {
+		  // Normally done by Javac, but needs to be repeated locally
+		  final boolean noConflict;
+		  if (oldProjects != null) {
+			  noConflict = !projects.conflictsWith(oldProjects);
+			  if (noConflict) {
+				  projects.init(oldProjects);
+			  } else {
+				  System.out.println("Detected a conflict between projects");
+			  }
+		  } else {
+			  noConflict = true;
+		  }
+		  
+		  System.out.println("run = " + projects.getRun());
+		  final String msg = "Running JSure for " + projects.getLabel();
+		  ILocalJSureConfig cfg = new ILocalJSureConfig() {
+			  @Override
+			  public boolean isVerbose() {
+				  return SLLogger.getLogger().isLoggable(Level.FINE) || XUtil.testing;
+			  }
 
-    JavacJob(String name, Projects projects, File target, File zips) {
-      super(name);
-      this.projects = projects;
-      targetDir = target;
-      zipDir = zips;
+			  @Override
+			  public String getTestCode() {
+				  return TestCode.NONE.name();
+			  }
+
+			  @Override
+			  public int getMemorySize() {
+				  return JSurePreferencesUtility.getMaxMemorySize();
+			  }
+
+			  @Override
+			  public String getPluginDir(String id, boolean required) {
+				  try {
+					  return EclipseUtility.getDirectoryOf(id);
+				  } catch (IllegalStateException e) {
+					  if (required) {
+						  throw e;
+					  } else {
+						  return null;
+					  }
+				  }
+			  }
+
+			  @Override
+			  public String getRunDirectory() {
+				  return projects.getRunDir().getAbsolutePath();
+			  }
+
+			  @Override
+			  public String getLogPath() {
+				  return new File(projects.getRunDir(), AbstractRemoteSLJob.LOG_NAME).getAbsolutePath();
+			  }
+		  };
+		  return LocalJSureJob.factory.newJob(msg, 100, cfg);
+	  }
+
+	  @Override
+	  protected boolean analyzeInVM() throws Exception {
+		  File tmpLocation;
+		  if (clearBeforeAnalysis || oldProjects == null) {
+			  // ClearProjectListener.clearJSureState();
+
+			  tmpLocation = Util.openFiles(projects, true);
+		  } else {
+			  tmpLocation = Util.openFiles(oldProjects, projects, true);
+		  }
+		  boolean ok = tmpLocation != null;
+		  // Persist the Sea
+		  //final File tmpLocation = RemoteJSureRun.snapshot(System.out, projects.getLabel(), projects.getRunDir());
+		  /*
+    SeaStats.createSummaryZip(new File(projects.getRunDir(), RemoteJSureRun.SUMMARIES_ZIP), Sea.getDefault().getDrops(),
+        SeaStats.splitByProject, SeaStats.STANDARD_COUNTERS);
+    System.out.println("Finished " + RemoteJSureRun.SUMMARIES_ZIP);
+		   */
+
+		  // Create empty files
+		  /*
+    final File log = new File(projects.getRunDir(), RemoteJSureRun.LOG_NAME);
+    log.createNewFile();
+		   */
+		  ClearStateUtility.clearAllState();
+		  RemoteJSureRun.renameToFinalName(System.out, projects.getRunDir(), tmpLocation);
+		  return ok;
+	  }
+	    
+	  @Override
+	  protected void handleSuccess() {
+		  final File runDir = projects.getRunDir();
+		  // Unneeded after running the scan
+		  FileUtility.recursiveDelete(new File(runDir, PersistenceConstants.SRCS_DIR), false);
+
+		  JSureDataDirHub.getInstance().scanDirectoryAdded(projects.getRunDir());
+	  }
+
+	  @Override 
+	  protected void handleFailure() {
+		  NotificationHub.notifyAnalysisPostponed();
+	  }
+
+	  @Override
+	  protected void handleCrash(SLProgressMonitor monitor, SLStatus status) {
+		  if (monitor.isCanceled()) {				
+			  return; // Ignore this 
+		  }
+		  if (XUtil.testing && status.getException() != null) { 			  
+			  throw new RuntimeException(status.getException());
+		  }
+		  /*
+		   * Collect information and report this scan crash to SureLogic.
+		   */
+		  final File rollup = collectCrashFiles(projects);
+		  if (XUtil.testing) {
+			  if (status.getException() != null) {
+				  status.getException().printStackTrace();
+				  throw new RuntimeException(status.getException());
+			  } else {
+				  System.err.println("CRASH: " + status.getMessage());
+				  throw new RuntimeException(status.getMessage());
+			  }
+		  } else {
+			  JSureScanCrashReport.getInstance().getReporter().reportScanCrash(status, rollup);
+		  }
+		  /*
+		   * Because we already opened a dialog above about the crash, log it and
+		   * bail out of the job.
+		   */
+		  status.logTo(SLLogger.getLogger());
+	  }
+
+    protected void endAnalysis(SLProgressMonitor monitor) {
+    	if (lastMonitor == monitor) {
+			lastMonitor = null;
+		}
     }
-  }
+    
+    protected void finish(SLProgressMonitor monitor) {
+		NotificationHub.notifyAnalysisCompleted();
+		// recordViewUpdate();
 
-  class CopyJob extends JavacJob {
-    private final SLJob afterJob;
-
-    CopyJob(Projects projects, File target, File zips, SLJob after) {
-      super("Copying project info for " + projects.getLabel(), projects, target, zips);
-      afterJob = after;
-    }
-
-    @Override
-    public SLStatus run(SLProgressMonitor monitor) {
-      monitor.begin(3);
-      final long start = System.currentTimeMillis();
-      try {
-        for (Config config : projects.getConfigs()) {
-          if (monitor.isCanceled()) {
-            return SLStatus.CANCEL_STATUS;
-          }
-          config.zipSources(zipDir);
-        }
-      } catch (IOException e) {
-        return SLStatus.createErrorStatus("Problem while zipping sources", e);
-      }
-      monitor.worked(1);
-      final long zip = System.currentTimeMillis();
-      try {
-        for (Config config : projects.getConfigs()) {
-          if (monitor.isCanceled()) {
-            return SLStatus.CANCEL_STATUS;
-          }
-          config.relocateJars(targetDir);
-        }
-      } catch (IOException e) {
-        return SLStatus.createErrorStatus("Problem while copying jars", e);
-      }
-      final long end = System.currentTimeMillis();
-      monitor.worked(1);
-      System.out.println("Zipping         = " + (zip - start) + " ms");
-      System.out.println("Relocating jars = " + (end - zip) + " ms");
-
-      if (monitor.isCanceled()) {
-        return SLStatus.CANCEL_STATUS;
-      }
-      if (afterJob != null) {
-        if (XUtil.testing) {
-          afterJob.run(monitor);
-        } else {
-          EclipseUtility.toEclipseJob(afterJob, Util.class.getName()).schedule();
-        }
-      }
-      monitor.worked(1);
-      return SLStatus.OK_STATUS;
-    }
-  }
-
-  class AnalysisJob extends JavacJob {
-    private final Projects oldProjects;
-    private final boolean useSeparateJVM;
-
-    AnalysisJob(Projects oldProjects, Projects projects, File target, File zips, boolean useSeparateJVM) {
-      super("Running JSure on " + projects.getLabel(), projects, target, zips);
-      if (useSeparateJVM) {
-        this.oldProjects = null;
-      } else {
-        this.oldProjects = oldProjects;
-      }
-      this.useSeparateJVM = useSeparateJVM;
-    }
-
-    @Override
-    public SLStatus run(SLProgressMonitor monitor) {
-      lastMonitor = monitor;
-      projects.setMonitor(monitor);
-      /*
-       * if (XUtil.testingWorkspace) {
-       * System.out.println("Clearing state before running analysis");
-       * ClearProjectListener.clearJSureState(); }
-       */
-      System.out.println("Starting analysis for " + projects.getLabel());
-      final long start = System.currentTimeMillis();
-      try {
-        for (Config config : projects.getConfigs()) {
-          config.copySources(zipDir, targetDir);
-        }
-      } catch (IOException e) {
-        return SLStatus.createErrorStatus("Problem while copying sources", e);
-      }
-      final long end = System.currentTimeMillis();
-      System.out.println("Copying sources = " + (end - start) + " ms");
-
-      JavacEclipse.initialize();
-      System.out.println("JSure data dir  = " + IDE.getInstance().getStringPreference(IDEPreferences.JSURE_DATA_DIRECTORY));
-      System.out.println("XML diff dir    = " + IDE.getInstance().getStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY));
-      NotificationHub.notifyAnalysisStarting();
-      try {
-        boolean ok = false;
-        JavacEclipse.getDefault().savePreferences(projects.getRunDir());
-
-        if (useSeparateJVM) {
-          // Normally done by Javac, but needs to be repeated locally
-          final boolean noConflict;
-          if (oldProjects != null) {
-            noConflict = !projects.conflictsWith(oldProjects);
-            if (noConflict) {
-              projects.init(oldProjects);
-            } else {
-              System.out.println("Detected a conflict between projects");
-            }
-          } else {
-            noConflict = true;
-          }
-          LocalJSureJob job = makeLocalJSureJob(projects);
-          SLStatus status = job.run(monitor);
-          if (status == SLStatus.OK_STATUS) {
-            ok = true;
-
-            /*
-             * // Normally done by Javac, but needs to be repeated // locally if
-             * (oldProjects != null && noConflict) { final Projects merged =
-             * projects.merge(oldProjects); ProjectsDrop.ensureDrop(merged); //
-             * System.out.println("Merged projects: "+merged.getLabel()); } else
-             * { ProjectsDrop.ensureDrop(projects); }
-             */
-          } else if (status != SLStatus.CANCEL_STATUS && status.getSeverity() == SLSeverity.ERROR) {
-            handleCrash(status);
-          }
-        } else {
-          File tmpLocation;
-          if (clearBeforeAnalysis || oldProjects == null) {
-            // ClearProjectListener.clearJSureState();
-
-        	tmpLocation = Util.openFiles(projects, true);
-          } else {
-        	tmpLocation = Util.openFiles(oldProjects, projects, true);
-          }
-          ok = tmpLocation != null;
-          // Persist the Sea
-          //final File tmpLocation = RemoteJSureRun.snapshot(System.out, projects.getLabel(), projects.getRunDir());
-          /*
-          SeaStats.createSummaryZip(new File(projects.getRunDir(), RemoteJSureRun.SUMMARIES_ZIP), Sea.getDefault().getDrops(),
-              SeaStats.splitByProject, SeaStats.STANDARD_COUNTERS);
-          System.out.println("Finished " + RemoteJSureRun.SUMMARIES_ZIP);
-          */
-
-          // Create empty files
-          /*
-          final File log = new File(projects.getRunDir(), RemoteJSureRun.LOG_NAME);
-          log.createNewFile();
-          */
-          ClearStateUtility.clearAllState();
-          RemoteJSureRun.renameToFinalName(System.out, projects.getRunDir(), tmpLocation);
-        }
-        if (ok) {
-          final File runDir = projects.getRunDir();
-          // Unneeded after running the scan
-          FileUtility.recursiveDelete(new File(runDir, PersistenceConstants.SRCS_DIR), false);
-
-          JSureDataDirHub.getInstance().scanDirectoryAdded(projects.getRunDir());
-        } else {
-          NotificationHub.notifyAnalysisPostponed(); // TODO fix
-          if (lastMonitor == monitor) {
-            lastMonitor = null;
-          }
-          return SLStatus.CANCEL_STATUS;
-        }
-      } catch (Throwable e) {
-        e.printStackTrace();
-        NotificationHub.notifyAnalysisPostponed(); // TODO
-        if (monitor.isCanceled()) {
-          if (lastMonitor == monitor) {
-            lastMonitor = null;
-          }
-          return SLStatus.CANCEL_STATUS;
-        }
-        if (XUtil.testing) {
-          throw new RuntimeException(e);
-        }
-        handleCrash(SLStatus.createErrorStatus("Problem while running JSure", e));
-        return SLStatus.CANCEL_STATUS;
-      } finally {
-        endAnalysis();
-      }
-      NotificationHub.notifyAnalysisCompleted();
-      // recordViewUpdate();
-
-      // Cleared here after notifications are processed
-      // to prevent redoing some (binder) work
-      IDE.getInstance().clearCaches();
-
-      if (lastMonitor == monitor) {
-        lastMonitor = null;
-      }
-
-      return SLStatus.OK_STATUS;
-    }
-
-    private void handleCrash(SLStatus status) {
-      /*
-       * Collect information and report this scan crash to SureLogic.
-       */
-      final File rollup = collectCrashFiles(projects);
-      if (XUtil.testing) {
-        if (status.getException() != null) {
-          status.getException().printStackTrace();
-          throw new RuntimeException(status.getException());
-        } else {
-          System.err.println("CRASH: " + status.getMessage());
-          throw new RuntimeException(status.getMessage());
-        }
-      } else {
-        JSureScanCrashReport.getInstance().getReporter().reportScanCrash(status, rollup);
-      }
-      /*
-       * Because we already opened a dialog above about the crash, log it and
-       * bail out of the job.
-       */
-      status.logTo(SLLogger.getLogger());
-    }
-
-    private LocalJSureJob makeLocalJSureJob(final Projects projects) {
-      System.out.println("run = " + projects.getRun());
-      final String msg = "Running JSure for " + projects.getLabel();
-      ILocalJSureConfig cfg = new ILocalJSureConfig() {
-        @Override
-        public boolean isVerbose() {
-          return SLLogger.getLogger().isLoggable(Level.FINE) || XUtil.testing;
-        }
-
-        @Override
-        public String getTestCode() {
-          return TestCode.NONE.name();
-        }
-
-        @Override
-        public int getMemorySize() {
-          return JSurePreferencesUtility.getMaxMemorySize();
-        }
-
-        @Override
-        public String getPluginDir(String id, boolean required) {
-          try {
-            return EclipseUtility.getDirectoryOf(id);
-          } catch (IllegalStateException e) {
-            if (required) {
-              throw e;
-            } else {
-              return null;
-            }
-          }
-        }
-
-        @Override
-        public String getRunDirectory() {
-          return projects.getRunDir().getAbsolutePath();
-        }
-
-        @Override
-        public String getLogPath() {
-          return new File(projects.getRunDir(), AbstractRemoteSLJob.LOG_NAME).getAbsolutePath();
-        }
-      };
-      return LocalJSureJob.factory.newJob(msg, 100, cfg);
-    }
-
-    protected void endAnalysis() {
-      // Nothing to do anymore
+		// Cleared here after notifications are processed
+		// to prevent redoing some (binder) work
+		IDE.getInstance().clearCaches();
     }
   }
 
