@@ -13,11 +13,6 @@ import com.surelogic.javac.persistence.PersistenceConstants;
 import com.surelogic.persistence.*;
 
 public class PromiseMatcher {	
-	public static File makeZipReference(String zipPath, String relativePath) {
-  		String path = "jar:///"+zipPath+'!'+relativePath;
-		return new File(path.replace('\\', '/'));
-	}
-	
 	public static boolean findAndLoad(File dataDir) throws Exception {
 		File run = null;
 		for(File f : dataDir.listFiles()) {
@@ -55,7 +50,8 @@ public class PromiseMatcher {
 			for(Map.Entry<Object,Object> e : props.entrySet()) {
 				final String path = e.getValue().toString();
 				//TODO is this right?
-				path2JSF.put(path, new JavaSourceFile(e.getKey().toString(), makeZipReference(srcPath, path), path, false));
+				path2JSF.put(path, new JavaSourceFile(e.getKey().toString(), 
+						AbstractJavaZip.makeZipReference(srcPath, path), path, false));
 			}			
 		}
 		
