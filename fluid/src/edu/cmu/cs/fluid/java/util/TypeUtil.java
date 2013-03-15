@@ -221,6 +221,10 @@ public class TypeUtil implements JavaGlobals {
    *          A VariableDeclarator, ParameterDeclaration, or FieldDeclaration
    */
   public static boolean isFinal(final IRNode node) {
+    return isFinal(node, true);
+  }
+
+  public static boolean isFinal(final IRNode node, final boolean useVouch) {
     final Operator op = JJNode.tree.getOperator(node);
     if (VariableDeclarator.prototype.includes(op)) {
       if (TypeUtil.isInterface(VisitUtil.getEnclosingType(node))) {
@@ -228,7 +232,7 @@ public class TypeUtil implements JavaGlobals {
       } else if (JavaNode.getModifier(JJNode.tree.getParent(JJNode.tree
           .getParent(node)), JavaNode.FINAL)) {
         return true; // declared final
-      } else { // Check for @Vouch("final")
+      } else if (useVouch) { // Check for @Vouch("final")
         final VouchFieldIsPromiseDrop vouchFinal = LockRules.getVouchFieldIs(node);
         if (vouchFinal != null && vouchFinal.isFinal()) {
           // We have an @Vouch("final")
@@ -247,7 +251,7 @@ public class TypeUtil implements JavaGlobals {
     }
     return false;
   }
-  
+
   /**
    * Is the given VariableDeclarator volatile?
    */
