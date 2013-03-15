@@ -1,6 +1,7 @@
 /*$Header: /cvs/fluid/fluid/.settings/org.eclipse.jdt.ui.prefs,v 1.2 2006/03/27 21:35:50 boyland Exp $*/
 package com.surelogic.analysis;
 
+import com.surelogic.common.java.JavaProjectSet;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.*;
@@ -8,7 +9,7 @@ import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
-public class JavaProjects {
+public class JavaProjects extends JavaProjectSet {
 	private static final IRObjectType<IIRProject> projectType = new IRObjectType<IIRProject>();
 	protected static final SlotInfo<IIRProject> projectSI = 
 		JavaNode.getVersionedSlotInfo(JavaProjects.class.getName(), projectType);
