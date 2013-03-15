@@ -7,6 +7,7 @@ import java.util.zip.*;
 import com.surelogic.annotation.parse.*;
 import com.surelogic.common.AbstractJavaZip;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.java.*;
 import com.surelogic.javac.persistence.*;
 import com.surelogic.javac.persistence.PersistenceConstants;
 import com.surelogic.persistence.*;

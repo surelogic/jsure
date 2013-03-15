@@ -4,11 +4,12 @@ import java.io.File;
 import java.util.*;
 
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.common.java.*;
 import com.surelogic.common.jobs.SLProgressMonitor;
 
 import edu.cmu.cs.fluid.ide.IClassPathContext;
 
-public class JavacProject implements IIRProject, IClassPathContext {
+public class JavacProject implements IIRProject, IClassPathContext, IJavaProject {
 	private final Projects parent;
 	private final Config config;
 	private final String name;	
@@ -150,5 +151,9 @@ public class JavacProject implements IIRProject, IClassPathContext {
 
 	public boolean containsJavaLangObject() {
 		return containsJavaLangObject;
+	}
+	
+	public void addPackage(String pkgName) {
+		tEnv.addPackage(pkgName);
 	}
 }

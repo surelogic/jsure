@@ -12,14 +12,11 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.common.xml.IXmlResultListener;
 import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
-import com.surelogic.javac.Config;
-import com.surelogic.javac.JarEntry;
-import com.surelogic.javac.JavaSourceFile;
+import com.surelogic.common.java.*;
 import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
-import com.surelogic.javac.SrcEntry;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
