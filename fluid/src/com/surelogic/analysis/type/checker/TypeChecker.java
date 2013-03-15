@@ -16,6 +16,7 @@ import edu.cmu.cs.fluid.java.operator.CatchClauses;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.ComplementExpression;
 import edu.cmu.cs.fluid.java.operator.ConditionalAndExpression;
+import edu.cmu.cs.fluid.java.operator.ConditionalExpression;
 import edu.cmu.cs.fluid.java.operator.ConditionalOrExpression;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
@@ -163,6 +164,11 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   // ======================================================================
   // == §4.2 Primitive types and values
   // ======================================================================
+  
+  protected final boolean isSameType(final IType type1, final IType type2) {
+    // TODO: Make this real
+    return false;
+  }
   
   protected final boolean isBooleanType(final IType type) {
     // TODO: Make this real when I flesh out the ITypes
@@ -2471,7 +2477,8 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   // ======================================================================
 
   @Override
-  public final IType visitConditionalExpression(final IRNode expr) {
+  public final IType visitConditionalExpression(final IRNode expr) 
+  throws TypeCheckingFailed {
     /*
      * The first expression must be of type boolean or Boolean, or a
      * compile-time error occurs.
@@ -2526,8 +2533,57 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * result.
      */
     
-    // TODO
-    return null;
+    try {
+      final IRNode cond = ConditionalExpression.getCond(expr);
+      final IType type1 = doAccept(cond);
+      assertIsBooleanWithUnbox(type1, cond);
+    } catch (final TypeCheckingFailed e) {
+      // Can eat the exception because the overall type is not based on the type of the condition
+    }
+    
+    final IRNode ifTrue = ConditionalExpression.getIftrue(expr);
+    final IType type2 = doAccept(ifTrue);
+    final IRNode ifFalse = ConditionalExpression.getIffalse(expr);
+    final IType type3 = doAccept(ifFalse);
+    
+    if (isVoidType(type2)) {
+      error(JavaError.VOID_NOT_ALLOWED, ifTrue, type2);
+    }
+    if (isVoidType(type3)) {
+      error(JavaError.VOID_NOT_ALLOWED, ifFalse, type3);
+    }
+    
+    IType result = null;
+    if (isSameType(type2,  type3)) {
+      result = type2;
+    } else if (isPrimitiveType(type2) && isSameType(box(type2), type3)) {
+      result = type2;
+    } else if (isPrimitiveType(type3) && isSameType(box(type3), type2)) {
+      result = type3;
+    } else if (isNullType(type2) && isReferenceType(type3)) {
+      result = type3;
+    } else if (isNullType(type3) && isReferenceType(type2)) {
+      result = type2;
+    } else if (isConvertibleToNumericType(type2) && isConvertibleToNumericType(type3)) {
+      /* Need to be careful about order here: check "constant expressions" 
+       * first, even though they are described after the byte–short option. 
+       */
+      if (((isByteType(type2) || isNamedType(type2, JAVA_LANG_BYTE)) &&
+              (isShortType(type3) || isNamedType(type3, JAVA_LANG_SHORT))) ||
+          ((isByteType(type3) || isNamedType(type3, JAVA_LANG_BYTE)) &&
+              (isShortType(type2) || isNamedType(type2, JAVA_LANG_SHORT)))) {
+        result = typeFactory.getShortType();
+      }
+    } else {
+      result = null;
+    }
+    return postProcessConditionalExpression(expr, result);
+  }
+  
+  protected IType postProcessConditionalExpression(final IRNode expr, final IType type) {
+    // TODO: What to do here, if anything?  Could be smart about processing
+    // reference types.
+    return postProcessType(type);
   }
   
   
