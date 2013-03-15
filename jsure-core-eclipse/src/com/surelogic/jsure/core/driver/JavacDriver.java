@@ -113,7 +113,7 @@ import difflib.Patch;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
-public class JavacDriver implements IResourceChangeListener, CurrentScanChangeListener {
+public class JavacDriver extends AbstractJavaScanner<Projects> implements IResourceChangeListener, CurrentScanChangeListener {
   private static final String SCRIPT_TEMP = "scriptTemp";
   private static final String CRASH_FILES = "crash.log.txt";
 
@@ -1362,30 +1362,33 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
     }
   }
 
-  @SuppressWarnings("unused")
-  private void doBuild(final Projects newProjects, Map<String, Object> args, SLProgressMonitor monitor, boolean useSeparateJVM) {
-    try {
-      if (!XUtil.testing) {
-        System.out.println("Configuring analyses for doBuild");
-        ((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
-      }
-      // final boolean hasDeltas = info.hasDeltas();
-      makeProjects(newProjects, monitor);
+  @Override
+  protected File prepForScan(Projects newProjects, SLProgressMonitor monitor, boolean useSeparateJVM) throws Exception {
+	  if (!XUtil.testing) {
+		  System.out.println("Configuring analyses for doBuild");
+		  ((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
+	  }
+	  // final boolean hasDeltas = info.hasDeltas();
+	  makeProjects(newProjects, monitor);
 
-      final File dataDir = JSurePreferencesUtility.getJSureDataDirectory();
-      final Projects oldProjects = useSeparateJVM ? null : null;// (Projects)
-                                                                // ProjectsDrop.getProjects();
-      if (oldProjects != null) {
-        System.out.println("Old projects = " + oldProjects.getLabel());
-      }
-      newProjects.computeScan(dataDir, oldProjects);
-
-      final File runDir = new File(dataDir, newProjects.getRun());
-      final File zips = new File(runDir, PersistenceConstants.ZIPS_DIR);
-      final File target = new File(runDir, PersistenceConstants.SRCS_DIR);
-      target.mkdirs();
+	  final File dataDir = JSurePreferencesUtility.getJSureDataDirectory();
+	  final Projects oldProjects = useSeparateJVM ? null : null;// (Projects)
+	  // ProjectsDrop.getProjects();
+	  if (oldProjects != null) {
+		  System.out.println("Old projects = " + oldProjects.getLabel());
+	  }
+	  newProjects.computeScan(dataDir, oldProjects);
+	  return dataDir;
+  }
+  
+  @Override
+  protected void markAsRunning(File runDir) {
       RemoteJSureRun.markAsRunning(runDir);
-      
+  }
+  
+  @Override
+  protected AnalysisJob makeAnalysisJob(Projects newProjects, File target, File zips, boolean useSeparateJVM) {
+	  Projects oldProjects = null; // See code in prepForScan()
       /*
        * TODO JSureHistoricalSourceView.setLastRun(newProjects, new
        * ISourceZipFileHandles() { public Iterable<File> getSourceZips() {
@@ -1397,20 +1400,38 @@ public class JavacDriver implements IResourceChangeListener, CurrentScanChangeLi
       }
       // TODO create constants?
 
-      AnalysisJob analysis = new AnalysisJob(oldProjects, newProjects, target, zips, useSeparateJVM);
+      return new AnalysisJob(oldProjects, newProjects, target, zips, useSeparateJVM);
+  }
+  
+  @Override 
+  protected void scheduleScanForExecution(Projects newProjects, Map<String, Object> args, SLJob copy) throws Exception {
+	  if (ScriptCommands.USE_EXPECT && script != null) {
+		  recordFilesToBuild(newProjects);
+	  }
+	  if (XUtil.testing) {
+		  final File expected = (File) args.get(ScriptCommands.EXPECT_BUILD);
+		  if (expected != null && expected.exists()) {
+			  checkForExpectedSourceFiles(newProjects, expected);
+		  }
+		  copy.run(new NullSLProgressMonitor());
+	  } else {
+		  super.scheduleScanForExecution(newProjects, args, copy);
+	  }
+  }
+  
+  @SuppressWarnings("unused")
+  private void doBuild(final Projects newProjects, Map<String, Object> args, SLProgressMonitor monitor, boolean useSeparateJVM) {
+    try {
+      final File dataDir = prepForScan(newProjects, monitor, useSeparateJVM);
+      final File runDir = new File(dataDir, newProjects.getRun());
+      final File zips = new File(runDir, PersistenceConstants.ZIPS_DIR);
+      final File target = new File(runDir, PersistenceConstants.SRCS_DIR);
+      target.mkdirs();
+      markAsRunning(runDir);
+
+      AbstractAnalysisJob<?> analysis = makeAnalysisJob(newProjects, target, zips, useSeparateJVM);
       SLJob copy = new CopyProjectsJob(newProjects, target, zips, analysis);
-      if (ScriptCommands.USE_EXPECT && script != null) {
-        recordFilesToBuild(newProjects);
-      }
-      if (XUtil.testing) {
-        final File expected = (File) args.get(ScriptCommands.EXPECT_BUILD);
-        if (expected != null && expected.exists()) {
-          checkForExpectedSourceFiles(newProjects, expected);
-        }
-        copy.run(new NullSLProgressMonitor());
-      } else {
-        EclipseUtility.toEntireWorkspaceJob(copy).schedule();
-      }
+      scheduleScanForExecution(newProjects, args, copy);      
     } catch (Exception e) {
       System.err.println("Unable to make config for JSure");
       e.printStackTrace();
