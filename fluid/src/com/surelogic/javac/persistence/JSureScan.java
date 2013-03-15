@@ -16,9 +16,9 @@ import java.util.zip.ZipFile;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.java.Config;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.regression.RegressionUtility;
-import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 
@@ -237,7 +237,7 @@ public class JSureScan implements Comparable<JSureScan> {
   }
 
   public Map<String, JSureFileInfo> getLatestFilesForProject(String proj) throws IOException {
-    if (proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
+    if (proj.startsWith(Config.JRE_NAME)) {
       return Collections.emptyMap();
     }
     final File srcZip = new File(getSourceZipsDir(), proj + ".zip");

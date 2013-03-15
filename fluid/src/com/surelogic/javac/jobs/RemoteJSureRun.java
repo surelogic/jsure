@@ -103,7 +103,7 @@ public class RemoteJSureRun extends RemoteScanJob {
 		String defaultJRE = null;
 		for(Config c : projects.getConfigs()) {
 			out.println("Looking for JRE in "+c.getProject());
-			if (c.getProject().startsWith(JavacTypeEnvironment.JRE_NAME)) {
+			if (c.getProject().startsWith(Config.JRE_NAME)) {
 				defaultJRE = c.getProject();
 				break;
 			}

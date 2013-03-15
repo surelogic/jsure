@@ -15,7 +15,6 @@ import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
 import com.surelogic.common.java.*;
 import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacProject;
-import com.surelogic.javac.JavacTypeEnvironment;
 import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
@@ -89,7 +88,7 @@ public class JSureProjectsXMLReader extends NestedJSureXmlReader implements IXml
     final String location = e.getAttribute(LOCATION);
     final boolean isExported = "true".equals(e.getAttribute(IS_EXPORTED));
     final boolean hasJLO = "true".equals(e.getAttribute(HAS_JLO));
-    if (proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
+    if (proj.startsWith(Config.JRE_NAME)) {
       // TODO what if this should be JavacEclipse?
       Javac.getDefault().setPreference(IDEPreferences.DEFAULT_JRE, proj);
     }

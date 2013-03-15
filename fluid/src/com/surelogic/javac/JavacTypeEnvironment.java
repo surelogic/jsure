@@ -91,12 +91,6 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	private JavacProject project;
 	private final ConcurrentMap<IRNode, List<IRNode>> subtypeMap = new ConcurrentHashMap<IRNode, List<IRNode>>();
 	private final ConcurrentMap<String, CodeInfo> infos = new ConcurrentHashMap<String, CodeInfo>();
-
-	public static final String JRE_LIBRARY = "JRE System Library";
-	// Same as JavaRuntime.JRE_CONTAINER
-	public static final String JRE_NAME = "org.eclipse.jdt.launching.JRE_CONTAINER";
-	public static final String ANDROID_FWK_NAME = "com.android.ide.eclipse.adt.ANDROID_FRAMEWORK";
-	public static final String ANDROID_LIB_NAME = "com.android.ide.eclipse.adt.LIBRARIES";
 	
 	@Unique("return")
 	public JavacTypeEnvironment(Projects projs, JavacProject p,
@@ -107,7 +101,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		this.monitor = monitor;
 		AnnotationRules.initialize();
 
-		if (p.getName().startsWith(JRE_NAME) || p.containsJavaLangObject()) {
+		if (p.getName().startsWith(Config.JRE_NAME) || p.containsJavaLangObject()) {
 			initArrayClassDecl();
 		} else {
 			final String jre = IDE.getInstance().getStringPreference(
@@ -423,7 +417,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		IRNode pkgNode = null;
 		if (addAlways || (pkgNode = classes.getPackage(pkg, cu)) != null) {
 			if (pkgNode == null || Projects.getProject(pkgNode) == newProj) {
-				final IRNode root = info.getFileName().endsWith(Util.PACKAGE_INFO_JAVA) ? info.getNode() : null;
+				final IRNode root = info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA) ? info.getNode() : null;
 				changed = classes.addPackage(project, pkg, root, !addAlways);
 				if (root != null) {
 					infos.put(pkg+'.'+SLUtility.PACKAGE_INFO, info);

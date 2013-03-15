@@ -20,6 +20,7 @@ import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.text.edits.TextEdit;
 
 import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.java.Config;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IDecl.Kind;
@@ -28,7 +29,6 @@ import com.surelogic.common.refactor.AnnotationDescription;
 import com.surelogic.common.refactor.AnnotationDescription.CU;
 import com.surelogic.common.ui.refactor.PromisesAnnotationRewriter;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.javac.JavacTypeEnvironment;
 
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 
@@ -96,7 +96,7 @@ public class ProposedPromisesChange {
         .getAllowsMultipleAnnosSet());
     try {
       for (final String proj : projects) {
-        if (proj == null || proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
+        if (proj == null || proj.startsWith(Config.JRE_NAME)) {
           // All binaries, so use assumption
           continue;
         }
@@ -121,7 +121,7 @@ public class ProposedPromisesChange {
         }
       }
       for (final String proj : projects) {
-        if (proj == null || proj.startsWith(JavacTypeEnvironment.JRE_NAME)) {
+        if (proj == null || proj.startsWith(Config.JRE_NAME)) {
           continue;
         }
         final IJavaProject selectedProject = JDTUtility.getJavaProject(proj);
