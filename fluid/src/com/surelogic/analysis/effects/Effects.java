@@ -15,7 +15,6 @@ import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.InstanceInitAction;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
@@ -46,6 +45,7 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.ReadOnlyPromiseDrop;
+import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -120,7 +120,7 @@ public final class Effects implements IBinderClient {
   //----------------------------------------------------------------------
 
   private RegionModel getAllRegion(final IRNode context) {
-	  final IIRProject p = JavaProjects.getEnclosingProject(context);
+	  final IIRProject p = Projects.getEnclosingProject(context);
 	  if (p != allRegionProj) {
 		  // Update, since it's the wrong project
 		  allRegion = RegionModel.getAllRegion(p);

@@ -54,7 +54,6 @@ import com.surelogic.aast.promise.ThreadSafeNode;
 import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.aast.promise.WriteLockNode;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.concurrency.heldlocks.FieldKind;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.AnnotationLocation;
@@ -94,6 +93,7 @@ import com.surelogic.dropsea.ir.drops.type.constraints.MutablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.NotContainablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.NotThreadSafePromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ThreadSafePromiseDrop;
+import com.surelogic.javac.Projects;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.PromiseDropSeqStorage;
@@ -199,7 +199,7 @@ public class LockRules extends AnnotationRules {
 	@Override
   public boolean addIfNotAlreadyProtected(ITypeEnvironment tenv, 
 			String qualifiedRegionName, IJavaDeclaredType clazz) {
-		final IIRProject p = JavaProjects.getEnclosingProject(clazz.getDeclaration());
+		final IIRProject p = Projects.getEnclosingProject(clazz.getDeclaration());
 		IProtectedRegions state = projects.get(p.getName());
 		if (state == null) {
 			state = new Project_ProtectedRegions();

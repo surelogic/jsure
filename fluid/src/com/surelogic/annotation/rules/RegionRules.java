@@ -23,7 +23,6 @@ import com.surelogic.aast.promise.SimpleBorrowedInRegionNode;
 import com.surelogic.aast.promise.UniqueInRegionNode;
 import com.surelogic.aast.promise.UniqueMappingNode;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.regions.FieldRegion;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
@@ -47,6 +46,7 @@ import com.surelogic.dropsea.ir.drops.uniqueness.ExplicitUniqueInRegionPromiseDr
 import com.surelogic.dropsea.ir.drops.uniqueness.SimpleBorrowedInRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.SimpleUniqueInRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
+import com.surelogic.javac.Projects;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.PromiseDropSeqStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
@@ -1196,10 +1196,10 @@ public class RegionRules extends AnnotationRules {
 
 	  @Override
     public boolean isNameAlreadyUsed(IRNode type, String simpleName, String qualifiedName) {
-		  final IIRProject p = JavaProjects.getEnclosingProject(type);
+		  final IIRProject p = Projects.getEnclosingProject(type);
 		  if (p == null) {
 			  System.out.println("No project for "+qualifiedName);
-			  JavaProjects.getProject(type);
+			  Projects.getProject(type);
 		  }
 		  IGlobalRegionState state = projects.get(p.getName());
 		  if (state == null) {

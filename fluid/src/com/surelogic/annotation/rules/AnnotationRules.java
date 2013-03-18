@@ -26,7 +26,6 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.DeclarationNode;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
@@ -36,11 +35,11 @@ import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
+import com.surelogic.javac.Projects;
 import com.surelogic.promise.IBooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropSeqStorage;
 import com.surelogic.promise.IPromiseDropStorage;
@@ -400,7 +399,7 @@ public abstract class AnnotationRules {
 
 		@Override
     public IBinder getBinder(IRNode context) {
-			final IIRProject p = JavaProjects.getEnclosingProject(context);
+			final IIRProject p = Projects.getEnclosingProject(context);
 			return p.getTypeEnv().getBinder();
 			//return IDE.getInstance().getTypeEnv().getBinder();
 		}

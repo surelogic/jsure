@@ -15,10 +15,10 @@ import java.util.logging.Logger;
 
 import com.surelogic.RegionLock;
 import com.surelogic.ThreadSafe;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRLocation;
@@ -453,7 +453,7 @@ public class JavaCanonicalizer {
       boolean isStatic = to == null ? isStatic(context, VisitUtil.getEnclosingClassBodyDecl(context)) : isStatic(to, to);
       if (isStatic) {
         if (tEnv.findNamedType(type.getName()) == null) {
-          final ITypeEnvironment tEnv2 = JavaProjects.getEnclosingProject(to).getTypeEnv();
+          final ITypeEnvironment tEnv2 = Projects.getEnclosingProject(to).getTypeEnv();
           if (tEnv2 != tEnv) {
             // HACK
             // This may introduce a new static dependency from this file to the

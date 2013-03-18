@@ -5,6 +5,7 @@ import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
 import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
@@ -15,7 +16,7 @@ public class PromiseRef {
 	private final boolean useImplication;
 	
 	public PromiseRef(String anno, String details, IRNode decl, boolean implies) {
-		final IIRProject p = JavaProjects.getEnclosingProject(decl);
+		final IIRProject p = Projects.getEnclosingProject(decl);
 		location = JavaIdentifier.encodeDecl(p.getTypeEnv().getProject(), decl);
 		promise = anno;
 		contents = details;

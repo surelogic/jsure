@@ -38,7 +38,6 @@ import com.surelogic.aast.promise.SimpleLockNameNode;
 import com.surelogic.aast.promise.ThreadRoleImportNode;
 import com.surelogic.aast.promise.TypeDeclPatternNode;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.bind.FindLockModelStrategy;
 import com.surelogic.annotation.bind.FindRegionModelStrategy;
@@ -50,6 +49,7 @@ import com.surelogic.dropsea.ir.drops.layers.IReferenceCheckDrop;
 import com.surelogic.dropsea.ir.drops.layers.LayerPromiseDrop;
 import com.surelogic.dropsea.ir.drops.layers.TypeSetPromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
+import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -682,7 +682,7 @@ public class CommonAASTBinder extends AASTBinder {
 		  final String prefix = qname.substring(0, qname.length()-1);
 		  final List<IRNode> pkgs = new ArrayList<IRNode>();
 		  
-		  final IIRProject proj = JavaProjects.getEnclosingProject(context);
+		  final IIRProject proj = Projects.getEnclosingProject(context);
 		  for(Pair<String,IRNode> p : proj.getTypeEnv().getPackages()) {
 			  if (p.first().startsWith(prefix)) {
 				  IRNode pkg = p.second();

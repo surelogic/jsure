@@ -1300,7 +1300,7 @@ public class JavacClassParser implements IJavacClassParser {
 		// Organize by project
 		final MultiMap<String,CodeInfo> byProject = new MultiHashMap<String, CodeInfo>();
 		for(CodeInfo info : cus) {
-			final IIRProject p = JavaProjects.getProject(info.getNode());
+			final IIRProject p = Projects.getProject(info.getNode());
 			byProject.put(p.getName(), info);
 			//System.out.println(p.getName()+" : "+info.getFileName());
 		}

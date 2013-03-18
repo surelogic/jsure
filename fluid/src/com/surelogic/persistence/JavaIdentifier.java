@@ -7,7 +7,6 @@ import java.util.StringTokenizer;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.IIRProjects;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.annotation.AbstractAnnotationParsingContext;
 import com.surelogic.annotation.AnnotationLocation;
 import com.surelogic.annotation.AnnotationSource;
@@ -19,6 +18,7 @@ import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
+import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -143,7 +143,7 @@ public final class JavaIdentifier {
 		final StringBuilder sb = new StringBuilder();
 		
 		if (proj == null) {
-			proj = JavaProjects.getProject(cu);
+			proj = Projects.getProject(cu);
 
 			if (proj == null) {
 				throw new IllegalStateException("No project found for "+JJNode.tree.getOperator(decl).name()+" : "+DebugUnparser.toString(decl));

@@ -9,6 +9,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
+import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.*;
@@ -130,7 +131,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			switch (scrubberType) {
 			case INCLUDE_SUBTYPES_BY_HIERARCHY:
 				for(IRNode type : new ArrayList<IRNode>(byType.keySet())) {
-					final IIRProject p = JavaProjects.getEnclosingProject(type);
+					final IIRProject p = Projects.getEnclosingProject(type);
 					/*
 					if ("I".equals(JJNode.getInfoOrNull(type))) {
 						System.out.println("Looking at my type");
@@ -209,7 +210,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 					System.out.println("Looking for overrides for "+loc+" on "+JavaNames.getFullName(enclosingFunc));
                 */
 				}
-				final IIRProject p = JavaProjects.getEnclosingProject(type);
+				final IIRProject p = Projects.getEnclosingProject(type);
 				for(IRNode om : p.getTypeEnv().getBinder().findOverridingMethodsFromType(enclosingFunc, type)) {					
 					/*
                     if (name().equals(UniquenessRules.CONSISTENCY)) {
@@ -287,7 +288,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			if (done.contains(decl)) {
 				return;
 			}
-			final IIRProject p = JavaProjects.getEnclosingProject(decl);
+			final IIRProject p = Projects.getEnclosingProject(decl);
 			// get super types
 			for (IJavaType st : p.getTypeEnv().getSuperTypes(dt)) {
 				walkHierarchy((IJavaDeclaredType) st);
@@ -438,7 +439,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 			if (!byType.isEmpty()) {
 				for (IRNode type : byType.keySet()) {
 					final IJavaSourceRefType dt = JavaTypeFactory.getMyThisType(type);
-					final IIRProject p = JavaProjects.getEnclosingProject(type);
+					final IIRProject p = Projects.getEnclosingProject(type);
 					// get super types
 					for (IJavaType st : p.getTypeEnv().getSuperTypes(dt)) {
 						if (st instanceof IJavaDeclaredType) {

@@ -6,9 +6,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.ThreadSafe;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.util.*;
+import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -41,7 +41,7 @@ public class ClassMemberSearch {
     final T o = tvs.getResult();  
     if (o == null && throwIfNotFound) {
       final String context = type+" -- "+DebugUnparser.toString(type)+"\nfor project "+
-                             JavaProjects.getEnclosingProject(type).getName();      
+    		  Projects.getEnclosingProject(type).getName();      
       LOG.log(Level.INFO, "Couldn't find " + tvs.getLabel() + " in " + context
               //, new Throwable(">>> Just for Stack Trace <<<")
               );

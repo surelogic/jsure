@@ -11,7 +11,6 @@ import com.surelogic.aast.promise.InRegionNode;
 import com.surelogic.aast.promise.NewRegionDeclarationNode;
 import com.surelogic.aast.promise.RegionSpecificationNode;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.analysis.regions.AbstractRegion;
 import com.surelogic.analysis.regions.FieldRegion;
 import com.surelogic.analysis.regions.IRegion;
@@ -20,6 +19,7 @@ import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.UiShowAtTopLevel;
+import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
@@ -404,7 +404,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
 
   private static String getJRE(IRNode context) {
     if (context != null) {
-      final IIRProject thisProj = JavaProjects.getEnclosingProject(context);
+      final IIRProject thisProj = Projects.getEnclosingProject(context);
       return getJRE(thisProj);
     }
     return IDE.getInstance().getStringPreference(IDEPreferences.DEFAULT_JRE);
@@ -412,7 +412,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
 
   private static String getJRE(IIRProject thisProj) {
     final IJavaDeclaredType jlo = thisProj.getTypeEnv().getObjectType();
-    final IIRProject jloProj = JavaProjects.getEnclosingProject(jlo);
+    final IIRProject jloProj = Projects.getEnclosingProject(jlo);
     return jloProj.getName();
   }
 
@@ -432,7 +432,7 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
    * Get the "Static" region for the given class or interface.
    */
   public static RegionModel getStaticRegionForClass(final IRNode typeDecl) {
-    final IIRProject thisProj = JavaProjects.getEnclosingProject(typeDecl);
+    final IIRProject thisProj = Projects.getEnclosingProject(typeDecl);
     return RegionModel.getInstance(JavaNames.getFullTypeName(typeDecl) + ".Static", thisProj.getName());
   }
 

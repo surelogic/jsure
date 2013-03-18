@@ -4,12 +4,12 @@ import java.util.logging.Level;
 
 import com.surelogic.aast.promise.PromiseDeclarationNode;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -53,7 +53,7 @@ public abstract class ModelDrop<D extends PromiseDeclarationNode> extends Promis
 	    if (context == null)
 	      throw new IllegalArgumentException(I18N.err(44, "projectName"));
 	    
-	  IIRProject p = JavaProjects.getEnclosingProject(context);
+	  IIRProject p = Projects.getEnclosingProject(context);
       final String project = p == null ? "" : p.getName();
       return new Pair<String,String>(name, project);
   }

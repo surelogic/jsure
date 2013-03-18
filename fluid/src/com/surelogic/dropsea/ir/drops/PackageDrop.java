@@ -11,12 +11,12 @@ import java.util.logging.Level;
 
 import com.surelogic.InRegion;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.Sea;
+import com.surelogic.javac.Projects;
 import com.surelogic.xml.PromisesXMLParser;
 import com.surelogic.xml.TestXMLParserConstants;
 
@@ -80,7 +80,7 @@ public final class PackageDrop extends CUDrop {
         SLLogger.getLogger().finer("Couldn't find " + xmlName);
       }
     }
-    JavaProjects.setProject(root, tEnv.getProject());
+    Projects.setProject(root, tEnv.getProject());
   }
 
   public static String computeXMLPath(String pkgName) {
@@ -168,7 +168,7 @@ public final class PackageDrop extends CUDrop {
       IRNode imports = ImportDeclarations.createNode(noNodes);
       IRNode types = TypeDeclarations.createNode(noNodes);
       root = edu.cmu.cs.fluid.java.operator.CompilationUnit.createNode(n, imports, types);
-      JavaProjects.setProject(root, proj);
+      Projects.setProject(root, proj);
             
       JavaNode.makeFluidJavaRefForPackage(proj, n);
       SLLogger.getLogger().fine("Creating IR for package " + name);

@@ -5,7 +5,6 @@ import java.util.Iterator;
 import com.surelogic.aast.promise.RefObjectNode;
 import com.surelogic.aast.promise.ValueObjectNode;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaProjects;
 import com.surelogic.annotation.SimpleBooleanAnnotationParseRule;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
@@ -17,6 +16,7 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.RefObjectPromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ValueObjectPromiseDrop;
+import com.surelogic.javac.Projects;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 
@@ -151,7 +151,7 @@ public class EqualityRules extends AnnotationRules {
 					final boolean isInterface = InterfaceDeclaration.prototype.includes(op);
 					final boolean isAbstract = TypeUtil.isAbstract(tdecl);
 					if (!isInterface && !isAbstract) {
-						final IIRProject p = JavaProjects.getEnclosingProject(tdecl);					
+						final IIRProject p = Projects.getEnclosingProject(tdecl);					
 						Iterator<IRNode> it = p.getTypeEnv().getRawSubclasses(tdecl).iterator();
 						if (it.hasNext()) {
 							getContext().reportError(a, I18N.res(SHOULD_BE_ABSTRACT, JavaNames.getRelativeTypeNameDotSep(it.next())));
@@ -173,7 +173,7 @@ public class EqualityRules extends AnnotationRules {
 				@Override 
 			    protected final boolean processUnannotatedType(final IJavaSourceRefType dt) {
 					// Check if superclass has this annotation
-					final IIRProject p = JavaProjects.getEnclosingProject(dt.getDeclaration());	
+					final IIRProject p = Projects.getEnclosingProject(dt.getDeclaration());	
 					for(IJavaType st : dt.getSupertypes(p.getTypeEnv())) {
 						IJavaDeclaredType sdt = (IJavaDeclaredType) st;
 						if (getValueObjectDrop(sdt.getDeclaration()) != null) {
@@ -266,7 +266,7 @@ public class EqualityRules extends AnnotationRules {
 					 * class is not an enumeration: enums are implicitly @ReferenceObject.
 					 */
 				  if (!EnumDeclaration.prototype.includes(dt.getDeclaration())) {
-  					final IIRProject p = JavaProjects.getEnclosingProject(dt.getDeclaration());	
+  					final IIRProject p = Projects.getEnclosingProject(dt.getDeclaration());	
   					for(IJavaType st : dt.getSupertypes(p.getTypeEnv())) {
   						IJavaDeclaredType sdt = (IJavaDeclaredType) st;
   						if (getRefObjectDrop(sdt.getDeclaration()) != null) {
@@ -312,7 +312,7 @@ public class EqualityRules extends AnnotationRules {
 	 * (not counting java.lang.Object)
 	 */
 	static IRNode findNonObjectImpl(final IRNode tdecl, final String methodName) {
-		final IIRProject p = JavaProjects.getEnclosingProject(tdecl);
+		final IIRProject p = Projects.getEnclosingProject(tdecl);
 		final AbstractSearch s = new AbstractSearch(p.getTypeEnv().getBinder(), methodName) {
 			@Override
 			boolean matchesArgs(IRNode params) {
@@ -328,7 +328,7 @@ public class EqualityRules extends AnnotationRules {
 	 * (not counting java.lang.Object)
 	 */
 	static IRNode findSingleObjectArgImpl(IRNode tdecl, final String name) {
-		final IIRProject p = JavaProjects.getEnclosingProject(tdecl);
+		final IIRProject p = Projects.getEnclosingProject(tdecl);
 		final AbstractSearch s = new AbstractSearch(p.getTypeEnv().getBinder(), name) {
 			@Override
 			boolean matchesArgs(IRNode params) {
