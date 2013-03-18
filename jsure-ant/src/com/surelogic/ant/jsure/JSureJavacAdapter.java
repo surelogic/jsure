@@ -23,7 +23,6 @@ import com.surelogic.javac.Util;
 import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.JSureConstants;
 import com.surelogic.javac.jobs.LocalJSureJob;
-import com.surelogic.javac.persistence.PersistenceConstants;
 import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;

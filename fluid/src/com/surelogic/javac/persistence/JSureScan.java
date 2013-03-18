@@ -17,6 +17,8 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.java.Config;
+
+import com.surelogic.common.java.PersistenceConstants;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.javac.Projects;
@@ -201,7 +203,7 @@ public class JSureScan implements Comparable<JSureScan> {
     // Get info about projects
     JSureProjectsXMLReader reader = new JSureProjectsXMLReader();
     reader.read(new File(f_scanDir, PersistenceConstants.PROJECTS_XML));
-    f_projectsScanned = reader.getProjects();
+    f_projectsScanned = (Projects) reader.getProjects();
     if (f_projectsScanned != null) {
     	f_projectsScanned.setMonitor(new NullSLProgressMonitor());
     	f_projectsScanned.setScanDir(f_scanDir);

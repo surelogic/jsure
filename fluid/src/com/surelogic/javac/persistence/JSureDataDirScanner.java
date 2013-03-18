@@ -15,6 +15,7 @@ import java.util.zip.ZipFile;
 
 import com.surelogic.common.StringCache;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.java.PersistenceConstants;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.javac.JavacProject;

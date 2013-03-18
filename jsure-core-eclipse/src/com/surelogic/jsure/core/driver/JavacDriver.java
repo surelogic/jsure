@@ -79,7 +79,6 @@ import com.surelogic.javac.jobs.LocalJSureJob;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
-import com.surelogic.javac.persistence.PersistenceConstants;
 import com.surelogic.javac.persistence.ScanProperty;
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;

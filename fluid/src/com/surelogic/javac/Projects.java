@@ -1,28 +1,15 @@
 package com.surelogic.javac;
 
 import java.io.File;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import com.surelogic.analysis.*;
 import com.surelogic.common.Pair;
-import com.surelogic.common.SLUtility;
-import com.surelogic.common.XUtil;
-import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.java.*;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
-import com.surelogic.common.util.*;
-import com.surelogic.javac.persistence.JSureProjectsXMLCreator;
-import com.surelogic.javac.persistence.PersistenceConstants;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRObjectType;
@@ -110,51 +97,32 @@ public class Projects extends JavaProjectSet<JavacProject> implements IIRProject
     }
   }
 
+  public static final IJavaFactory<JavacProject> javaFactory = new IJavaFactory<JavacProject>() {	
+	public JavaProjectSet<JavacProject> newProjectSet(File location, boolean isAuto, Date d, Map<String, Object> args) {		
+		return new Projects(location, isAuto, d, args);
+	}
+	
+	public JavacProject newProject(JavaProjectSet<JavacProject> projects,
+			Config config, String name, SLProgressMonitor monitor) {
+		return new JavacProject((Projects) projects, config, name, monitor);
+	}
+};
+  
   private final HashMap<Pair<String, File>, CodeInfo> loadedClasses = new HashMap<Pair<String, File>, CodeInfo>();
 
   public Projects(File loc, boolean isAuto, Map<String, Object> args) {
-    super(loc, isAuto, new Date(), args);
+    super(javaFactory, loc, isAuto, new Date(), args);
   }
 
   public Projects(File loc, boolean isAuto, Date d, Map<String, Object> args) {
-	super(loc, isAuto, d, args);
+	super(javaFactory, loc, isAuto, d, args);
   }
 
   /**
    * Only used by Util and jsure-ant
    */
   public Projects(Config cfg, SLProgressMonitor monitor) {
-	 super(cfg, monitor);
-  }
-  
-  public void computeScan(File dataDir, Projects oldProjects) throws Exception {
-    if (f_scanDirName != UNINIT) {
-      throw new IllegalStateException("Run already set: " + f_scanDirName);
-    }
-    if (oldProjects != null) {
-      setPreviousPartialScan(oldProjects.f_scanDirName);
-    }
-
-    final String scanDirName = SLUtility.getScanDirectoryName(getFirstProjectNameAlphaOrNull(), multiProject(), getDate());
-    f_scanDirName = scanDirName;
-    f_scanDir = new File(dataDir, scanDirName);
-    f_scanDir.mkdirs();
-
-    final String resultsName = oldProjects != null ? PersistenceConstants.PARTIAL_RESULTS_ZIP : PersistenceConstants.RESULTS_ZIP;
-    f_resultsFile = new File(f_scanDir, resultsName);
-
-    // System.out.println("Contents of projects: "+run);
-    final File xml = new File(f_scanDir, PersistenceConstants.PROJECTS_XML);
-    final PrintStream pw = new PrintStream(xml);
-    try {
-      JSureProjectsXMLCreator creator = new JSureProjectsXMLCreator(pw);
-      // TODO the problem is that I won't know what the last run was until
-      // later ...
-
-      creator.write(this);
-    } finally {
-      pw.close();
-    }
+	 super(javaFactory, cfg, monitor);
   }
 
   public void setMonitor(SLProgressMonitor m) {
@@ -162,49 +130,6 @@ public class Projects extends JavaProjectSet<JavacProject> implements IIRProject
       p.getTypeEnv().setProgressMonitor(m);
     }
     monitor = m;
-  }
-
-  public JavacProject add(Config cfg) {
-    if (f_scanDirName != UNINIT) {
-      throw new IllegalStateException("Adding config after run already set: " + f_scanDirName);
-    }
-    resetOrdering();
-    JavacProject p = new JavacProject(this, cfg, cfg.getProject(), monitor);
-    projects.put(cfg.getProject(), p);
-    return p;
-  }
-
-  /**
-   * Create a new Projects, removing the specified projects
-   */
-  public Projects remove(Collection<String> removed) {
-    if (removed == null) {
-      return null;
-    }
-    if (!XUtil.testing) {
-      final Iterator<String> it = removed.iterator();
-      while (it.hasNext()) {
-        String name = it.next();
-        if (get(name) == null) {
-          // eliminate projects that don't exist
-          System.err.println("No such project: " + name);
-          it.remove();
-        }
-      }
-    }
-    if (removed.isEmpty()) {
-      return this;
-    }
-    Projects p = new Projects(location, isAuto, args);
-    for (JavacProject old : projects.values()) {
-      if (!removed.contains(old.getName())) {
-        p.projects.put(old.getName(), old);
-      }
-    }
-    if (p.projects.isEmpty()) {
-      return null;
-    }
-    return p;
   }
 
   public boolean conflictsWith(Projects oldProjects) {
