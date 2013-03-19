@@ -119,13 +119,19 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   @Override
   public Boolean visitCastExpression(final IRNode e) {
     final IRNode type = CastExpression.getType(e);
-    if (PrimitiveType.prototype.includes(type) ||
-        (NamedType.prototype.includes(type) &&
-            NamedType.getType(type).equals(JAVA_LANG_STRING))) {
+    if (isPrimitiveTypeOrString(type)) {
       return doAccept(CastExpression.getExpr(e));
     } else {
       return false;
     }
+  }
+
+
+
+  private boolean isPrimitiveTypeOrString(final IRNode type) {
+    return PrimitiveType.prototype.includes(type) ||
+        (NamedType.prototype.includes(type) &&
+            NamedType.getType(type).equals(JAVA_LANG_STRING));
   }
   
   
@@ -370,8 +376,10 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
         // final, now check the initializer
         final IRNode init = VariableDeclarator.getInit(fdecl);
         if (Initialization.prototype.includes(init)) {
-          // check if the initializer is constant
-          return doAccept(Initialization.getValue(init));
+          // (1) Check the type of the field: must be primitive or String
+          // (2) check if the initializer is constant
+          return isPrimitiveTypeOrString(VariableDeclarator.getType(fdecl)) &&
+              doAccept(Initialization.getValue(init));
         }
       }
     }
