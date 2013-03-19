@@ -11,6 +11,7 @@ import edu.cmu.cs.fluid.java.operator.AssertMessageStatement;
 import edu.cmu.cs.fluid.java.operator.AssertStatement;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
+import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.CatchClauses;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
@@ -32,6 +33,7 @@ import edu.cmu.cs.fluid.java.operator.FloatLiteral;
 import edu.cmu.cs.fluid.java.operator.GreaterThanEqualExpression;
 import edu.cmu.cs.fluid.java.operator.GreaterThanExpression;
 import edu.cmu.cs.fluid.java.operator.IfStatement;
+import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
 import edu.cmu.cs.fluid.java.operator.LabeledStatement;
 import edu.cmu.cs.fluid.java.operator.LeftShiftExpression;
@@ -281,6 +283,16 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
 
   
   
+  /**
+   * Is the type reifiable as defined in §4.7?
+   */
+  protected final boolean isReifiable(final IType type) {
+    // TODO: Make this real
+    return false;
+  }
+  
+  
+  
   // ======================================================================
   // == §5.1 Conversions
   // ======================================================================
@@ -321,7 +333,8 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     } else if (isNullType(type)) {
       return type;
     } else {
-      throw new IllegalArgumentException(type + " cannot be boxed");
+      // identity conversion
+      return type;
     }
   }
   
@@ -421,10 +434,31 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   /* §5.5 Casting conversion */
-  
+
   protected final boolean isCastable(final IType from, final IType to) {
     // TODO: make this real
     return false;
+  }
+
+  protected final void cast(final IType from, final IType to)
+  throws TypeCheckingFailed {
+    // TODO: make this real
+    
+    // throw exception if type 'from' is may not be converted to type 'to'
+  }
+
+  
+  
+  // ======================================================================
+  // == Least upper bound
+  // ======================================================================
+
+  /**
+   * Compute the least upper bound of type types as defined in §15.12.2.7.
+   */
+  protected final IType lub(final IType type1, final IType type2) {
+    // TODO: Make this real
+    return null;
   }
   
   
@@ -1828,7 +1862,35 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   // == §15.16 Cast Expressions
   // ======================================================================
 
-  // TODO
+  @Override
+  public final IType visitCastExpression(final IRNode expr) {
+    /*
+     * The type of a cast expression is the result of applying capture
+     * conversion (§5.1.10) to the type whose name appears within the
+     * parentheses.
+     * 
+     * It is a compile-time error if the compile-time type of the operand may
+     * never be cast to the type specified by the cast operator according to the
+     * rules of casting conversion (§5.5).
+     */
+    final IType type = typeFactory.getTypeFromExpression(
+        CastExpression.getType(expr));
+    
+    try {
+      final IRNode subExpr = CastExpression.getExpr(expr);
+      final IType subExprType = doAccept(subExpr);
+      cast(subExprType, type);
+    } catch (final TypeCheckingFailed e) {
+      // Eat the exception: return type is determined by the type expression
+    }
+    
+    
+    return postProcessCastExpression(expr, capture(type));
+  }
+  
+  protected IType postProcessCastExpression(final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
   
 
 
@@ -2182,7 +2244,45 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   // == §15.20.2 Type Comparison Operator instanceof
   // ======================================================================
 
-  // TODO
+  @Override
+  public final IType visitInstanceOfExpression(final IRNode expr) {
+    /*
+     * The type of the RelationalExpression operand of the instanceof operator
+     * must be a reference type or the null type; otherwise, a compile-time
+     * error occurs.
+     * 
+     * It is a compile-time error if the ReferenceType mentioned after the
+     * instanceof operator does not denote a reference type that is reifiable
+     * (§4.7).
+     */
+    
+    try {
+      final IRNode value = InstanceOfExpression.getValue(expr);
+      final IType type = doAccept(value);
+      if (!isReferenceType(type) && !isNullType(type)) {
+        error(JavaError.NOT_REFERENCE_OR_NULL_TYPE, value, type);
+      }
+    } catch (final TypeCheckingFailed e) {
+      // Eat error because return type is always boolean
+    }
+    
+    try {
+      final IRNode typeExpr = InstanceOfExpression.getType(expr);
+      final IType type = doAccept(typeExpr);
+      if (!isReifiable(type)) {
+        error(JavaError.NOT_REIFIABLE, typeExpr, type);
+      }
+    } catch (final TypeCheckingFailed e) {
+      // Eat error because return type is always boolean
+    }
+    
+    // The return type is always boolean
+    return postProcessInstanceOfExpression(expr, typeFactory.getBooleanType());
+  }
+  
+  protected IType postProcessInstanceOfExpression(final IRNode expr, final IType type) {
+    return postProcessType(type);
+  }
   
   
   
@@ -2260,6 +2360,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
         if (isBoxedBoolean2) unbox(type2);
       } else if ((isRef1 || isNull1) && (isRef2 || isNull2)) {
         if (!isCastable(type1, type2) && !isCastable(type2, type1)) {
+          // TODO: What about the side effects of casting?  Might unbox?
           try {
             error(JavaError.NOT_APPLICABLE, expr, type1, type2);
           } catch (final TypeCheckingFailed e) {
@@ -2566,16 +2667,20 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
       result = type2;
     } else if (isConvertibleToNumericType(type2) && isConvertibleToNumericType(type3)) {
       /* Need to be careful about order here: check "constant expressions" 
-       * first, even though they are described after the byte–short option. 
+       * first, even though they are described after the byte–short option.
+       * 
+       *  XXX: Not worried about constant expressions for now.
        */
       if (((isByteType(type2) || isNamedType(type2, JAVA_LANG_BYTE)) &&
               (isShortType(type3) || isNamedType(type3, JAVA_LANG_SHORT))) ||
           ((isByteType(type3) || isNamedType(type3, JAVA_LANG_BYTE)) &&
               (isShortType(type2) || isNamedType(type2, JAVA_LANG_SHORT)))) {
         result = typeFactory.getShortType();
+      } else {
+        result = binaryNumericPromotion(type2, type3);
       }
     } else {
-      result = null;
+      result = capture(lub(box(type2), box(type3)));
     }
     return postProcessConditionalExpression(expr, result);
   }

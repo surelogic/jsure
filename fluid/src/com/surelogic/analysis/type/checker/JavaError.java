@@ -12,6 +12,7 @@ public enum JavaError implements ITypeError {
   
   NOT_INT("Type is not int"),
   NOT_REFERENCE_TYPE("Type is not a reference type"),
+  NOT_REFERENCE_OR_NULL_TYPE("Type is not a reference type or the null type"),
   NOT_ARRAY_TYPE("Type is not an array"),
   NOT_BOOLEAN_TYPE("Type is not boolean or java.lang.Boolean"),
   NOT_INTEGRAL_TYPE("Type is not a primitive integral type"),
@@ -21,6 +22,8 @@ public enum JavaError implements ITypeError {
   VOID_NOT_ALLOWED("Expression may not be void"),
   
   NOT_ASSIGNABLE("Type is not assignable"),
+  
+  NOT_REIFIABLE("Type is not reifiable"),
   
   A("");
   
