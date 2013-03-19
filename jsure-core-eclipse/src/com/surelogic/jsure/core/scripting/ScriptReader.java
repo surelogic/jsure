@@ -28,11 +28,12 @@ import org.eclipse.jdt.core.IJavaProject;
 
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.core.java.JavaBuild;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.logging.IErrorListener;
-import com.surelogic.jsure.core.driver.JavacBuild;
+import com.surelogic.jsure.core.driver.JavacDriver;
 
 /**
  * Reads the script line by line
@@ -378,7 +379,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 
 		
 		System.out.println("Analyzing.");
-		JavacBuild.analyze(new ArrayList<IJavaProject>(active), IErrorListener.throwListener);
+		JavaBuild.analyze(JavacDriver.getInstance(), new ArrayList<IJavaProject>(active), IErrorListener.throwListener);
 		System.out.println("FINISHED build for: ");
 		for(IJavaProject p : active) {
 			System.out.println("\t"+p.getElementName());

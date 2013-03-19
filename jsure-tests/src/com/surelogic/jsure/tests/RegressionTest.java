@@ -32,6 +32,7 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
+import com.surelogic.common.core.java.JavaBuild;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.dropsea.irfree.ISeaDiff;
@@ -40,7 +41,7 @@ import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.driver.ConsistencyListener;
 import com.surelogic.jsure.core.driver.DoubleChecker;
-import com.surelogic.jsure.core.driver.JavacBuild;
+import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.driver.JavacEclipse;
 import com.surelogic.jsure.core.listeners.IAnalysisListener;
 import com.surelogic.jsure.core.listeners.NotificationHub;
@@ -461,7 +462,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 				System.out.println("Couldn't get java project for "+p);
 			}
 		}
-		JavacBuild.analyze(jprojects, IErrorListener.throwListener);
+		JavaBuild.analyze(JavacDriver.getInstance(), jprojects, IErrorListener.throwListener);
 		end("Done running JSure analysis...");
 
 		final String projectName = project.getName();

@@ -8,6 +8,7 @@ import org.eclipse.jdt.core.IJavaProject;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.core.java.JavaBuild;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
@@ -24,7 +25,6 @@ import com.surelogic.common.ui.dialogs.JavaProjectSelectionDialog;
 import com.surelogic.common.ui.dialogs.SaveDirtyFilesUtility;
 import com.surelogic.common.ui.dialogs.SaveDirtyFilesUtility.Config;
 import com.surelogic.common.ui.handlers.AbstractProjectSelectedMenuHandler;
-import com.surelogic.jsure.core.driver.JavacBuild;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
@@ -52,7 +52,7 @@ public final class VerifyProjectHandler extends
 			public SLStatus run(SLProgressMonitor monitor) {
 				JavacDriver.waitForBuild();
 
-				final boolean okay = JavacBuild.analyze(selectedProjects,
+				final boolean okay = JavaBuild.analyze(JavacDriver.getInstance(), selectedProjects,
 						BalloonUtility.errorListener);
 				if (okay) {
 					showStartBalloon();
