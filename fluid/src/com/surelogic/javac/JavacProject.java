@@ -1,42 +1,29 @@
 package com.surelogic.javac;
 
-import java.io.File;
-import java.util.*;
-
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.common.java.*;
 import com.surelogic.common.jobs.SLProgressMonitor;
 
 import edu.cmu.cs.fluid.ide.IClassPathContext;
 
-public class JavacProject implements IIRProject, IClassPathContext, ISLJavaProject {
-	private final Projects parent;
-	private final Config config;
-	private final String name;	
+public class JavacProject extends JavaProject implements IIRProject, IClassPathContext {
 	private JavacTypeEnvironment tEnv;
-	private Map<File,File> mappedJars = new HashMap<File, File>();
-	boolean active = true;
 	boolean first = true;
-	final boolean containsJavaLangObject;
 	
 	JavacProject(String name, SLProgressMonitor monitor) {
 		this(null, null, name, monitor);
 	}
 
 	JavacProject(Projects p, Config cfg, String name, SLProgressMonitor monitor) {
-		parent = p;
-		config = cfg;
-		this.name = name;
-		containsJavaLangObject = cfg == null ? false : cfg.containsJavaLangObject();
+		super(p, cfg, name, monitor);
 		tEnv = new JavacTypeEnvironment(p, this, monitor);		
 		initTEnv();
 	}
-	
-	@Override
-  public Projects getParent() {
-	    return parent;
-	}
 
+	public Projects getIRParent() {
+		return (Projects) getParent();
+	}
+	
 	private void initTEnv() {
 		for(String pkg : config.getPackages()) {
         	tEnv.addPackage(pkg);
@@ -45,11 +32,8 @@ public class JavacProject implements IIRProject, IClassPathContext, ISLJavaProje
 
 	public JavacProject(Projects p, JavacProject oldProject, Config deltaConfig, SLProgressMonitor monitor) 
 	throws MergeException {
-		parent = p;
-		name   = oldProject.name;
-		config = oldProject.config.merge(deltaConfig);
+		super(p, oldProject.config.merge(deltaConfig), oldProject.name, monitor);
 		tEnv   = oldProject.tEnv;
-		containsJavaLangObject = oldProject.containsJavaLangObject();
 		tEnv.setProject(this);
 	}
 
@@ -80,18 +64,9 @@ public class JavacProject implements IIRProject, IClassPathContext, ISLJavaProje
 	}
 	*/
 	
-	public Config getConfig() {
-		return config;
-	}
-	
 	@Override
 	public String toString() {
 		return "JavacProject "+hashCode()+": "+name;
-	}
-	
-	@Override
-  public String getName() {
-		return name;
 	}
 	
 	void setTypeEnv(JavacTypeEnvironment te) {		
@@ -108,31 +83,6 @@ public class JavacProject implements IIRProject, IClassPathContext, ISLJavaProje
 		return tEnv;
 	}
 
-	public boolean shouldExistAsIProject() {
-		return !name.startsWith(Config.JRE_NAME);
-	}
-	
-	public boolean isAsBinary() {
-		return !config.getBoolOption(Config.AS_SOURCE);
-	}
-
-	public void mapJar(File path, File orig) {
-		//System.out.println("Mapping "+path+" to "+orig);
-		mappedJars.put(path, orig);
-	}
-
-	public void collectMappedJars(Map<File, File> collected) {
-		collected.putAll(mappedJars);
-		/*
-		for(Map.Entry<File, File> e : mappedJars.entrySet()) {
-			Object replaced = collected.put(e.getKey(), e.getValue());
-			if (replaced != null) {
-				System.out.println("Replaced mapping for "+e.getKey());
-			}
-		}
-		*/
-	}
-
 	public void init(JavacProject old) throws MergeException {
 		old.config.checkForDiffs(config);
 		
@@ -141,18 +91,7 @@ public class JavacProject implements IIRProject, IClassPathContext, ISLJavaProje
 		old.deactivate();
 	}
 	
-	public void deactivate() {
-		active = false;
-	}
-
-	public boolean isActive() {
-		return active;
-	}
-
-	public boolean containsJavaLangObject() {
-		return containsJavaLangObject;
-	}
-	
+	@Override
 	public void addPackage(String pkgName) {
 		tEnv.addPackage(pkgName);
 	}

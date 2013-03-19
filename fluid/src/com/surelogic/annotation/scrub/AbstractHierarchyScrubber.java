@@ -373,7 +373,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 
 		private Iterable<IRNode> getRawSubclasses(IIRProject proj, IRNode decl) {
 			final Set<IRNode> subs = new HashSet<IRNode>();
-			for(IIRProject p : proj.getParent().getProjects()) {
+			for(IIRProject p : proj.getIRParent().getProjects()) {
 				for(IRNode n : p.getTypeEnv().getRawSubclasses(decl)) {
 					subs.add(n);
 				}
