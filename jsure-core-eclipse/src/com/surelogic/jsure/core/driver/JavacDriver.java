@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Level;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -54,14 +53,14 @@ import com.surelogic.common.ZipInfo;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.java.*;
+import com.surelogic.common.core.jobs.EclipseLocalConfig;
 import com.surelogic.common.java.*;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
-import com.surelogic.common.jobs.remote.AbstractRemoteSLJob;
-import com.surelogic.common.jobs.remote.TestCode;
+import com.surelogic.common.jobs.remote.*;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
@@ -72,7 +71,6 @@ import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.Util;
-import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.LocalJSureJob;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSureScan;
@@ -1028,45 +1026,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
 		  
 		  System.out.println("run = " + projects.getRun());
 		  final String msg = "Running JSure for " + projects.getLabel();
-		  ILocalJSureConfig cfg = new ILocalJSureConfig() {
-			  @Override
-			  public boolean isVerbose() {
-				  return SLLogger.getLogger().isLoggable(Level.FINE) || XUtil.testing;
-			  }
-
-			  @Override
-			  public String getTestCode() {
-				  return TestCode.NONE.name();
-			  }
-
-			  @Override
-			  public int getMemorySize() {
-				  return JSurePreferencesUtility.getMaxMemorySize();
-			  }
-
-			  @Override
-			  public String getPluginDir(String id, boolean required) {
-				  try {
-					  return EclipseUtility.getDirectoryOf(id);
-				  } catch (IllegalStateException e) {
-					  if (required) {
-						  throw e;
-					  } else {
-						  return null;
-					  }
-				  }
-			  }
-
-			  @Override
-			  public String getRunDirectory() {
-				  return projects.getRunDir().getAbsolutePath();
-			  }
-
-			  @Override
-			  public String getLogPath() {
-				  return new File(projects.getRunDir(), AbstractRemoteSLJob.LOG_NAME).getAbsolutePath();
-			  }
-		  };
+		  ILocalConfig cfg = new EclipseLocalConfig(JSurePreferencesUtility.getMaxMemorySize(), projects.getRunDir());
 		  return LocalJSureJob.factory.newJob(msg, 100, cfg);
 	  }
 
