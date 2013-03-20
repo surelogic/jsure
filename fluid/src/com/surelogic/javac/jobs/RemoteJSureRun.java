@@ -13,20 +13,23 @@ import com.surelogic.common.jobs.remote.*;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.javac.Javac;
-import com.surelogic.javac.JavacTypeEnvironment;
+import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.Util;
-import com.surelogic.javac.persistence.JSureScan;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
-public class RemoteJSureRun extends RemoteScanJob {
+public class RemoteJSureRun extends RemoteScanJob<Projects,JavacProject> {
 	public static final String FLUID_DIRECTORY_URL = "fluid.directory.url";
 	private static final String RESULTS_XML  = "sea_snapshot.xml";
 	private static final String COMPRESSED_RESULTS_XML = RESULTS_XML+FileUtility.GZIP_SUFFIX;
 	private static final String TEMP_RESULTS_XML  = TEMP_PREFIX+RESULTS_XML;
 	private static final String COMPRESSED_TEMP_RESULTS_XML = TEMP_PREFIX+RESULTS_XML+FileUtility.GZIP_SUFFIX;
+	
+	public RemoteJSureRun() {
+		super(Projects.javaFactory);
+	}
 	
 	public static void main(String[] args) {
 		RemoteJSureRun job = new RemoteJSureRun();
@@ -85,14 +88,7 @@ public class RemoteJSureRun extends RemoteScanJob {
 	}
 	
 	@Override
-	protected SLJob finishInit(final File runDir) throws Throwable {
-		out.println("Creating run");
-		final JSureScan run = new JSureScan(runDir);
-		out.println("run = "+run.getDirName());
-
-		final Projects projects = run.getProjects();
-		out.println("projects = "+projects.getLabel());
-
+	protected SLJob finishInit(final File runDir, final Projects projects) throws Throwable {
 		// Finish initializing
 		Javac.getDefault().loadPreferences(runDir);			
 		out.println("JSure data dir = "+

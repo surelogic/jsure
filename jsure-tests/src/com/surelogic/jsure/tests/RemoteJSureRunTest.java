@@ -8,6 +8,7 @@ import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.javac.Javac;
+import com.surelogic.javac.Projects;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.test.xml.JUnitXMLOutput;
 
@@ -26,8 +27,8 @@ public class RemoteJSureRunTest extends RemoteJSureRun {
 	}
 	
 	@Override
-	protected SLJob finishInit(final File runDir) throws Throwable {
-		final SLJob job = super.finishInit(runDir);
+	protected SLJob finishInit(final File runDir, final Projects projects) throws Throwable {
+		final SLJob job = super.finishInit(runDir, projects);
 		return new AbstractSLJob(job.getName()) {
 			@Override
 			public SLStatus run(SLProgressMonitor monitor) {
