@@ -202,8 +202,7 @@ public class JSureScan implements Comparable<JSureScan> {
     }
     // Get info about projects
     JSureProjectsXMLReader reader = new JSureProjectsXMLReader();
-    reader.read(new File(f_scanDir, PersistenceConstants.PROJECTS_XML));
-    f_projectsScanned = (Projects) reader.getProjects();
+    f_projectsScanned = (Projects) reader.readProjectsXML(f_scanDir);
     if (f_projectsScanned != null) {
     	f_projectsScanned.setMonitor(new NullSLProgressMonitor());
     	f_projectsScanned.setScanDir(f_scanDir);
