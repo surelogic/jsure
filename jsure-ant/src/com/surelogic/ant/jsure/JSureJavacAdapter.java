@@ -13,14 +13,12 @@ import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.util.StringUtils;
 
 import com.surelogic.common.jobs.NullSLProgressMonitor;
-import com.surelogic.common.jobs.remote.AbstractRemoteSLJob;
-import com.surelogic.common.jobs.remote.TestCode;
+import com.surelogic.common.jobs.remote.*;
 import com.surelogic.common.java.*;
 import com.surelogic.javac.ConfigZip;
 import com.surelogic.javac.Javac;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.Util;
-import com.surelogic.javac.jobs.ILocalJSureConfig;
 import com.surelogic.javac.jobs.JSureConstants;
 import com.surelogic.javac.jobs.LocalJSureJob;
 import com.surelogic.xml.TestXMLParserConstants;
@@ -112,21 +110,12 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 		return true;
 	}
 
-	private ILocalJSureConfig makeJSureConfig(final Projects projects) {
-		return new ILocalJSureConfig() {
+	private ILocalConfig makeJSureConfig(final Projects projects) {
+		final int memSize = parseMemorySize(memoryMaximumSize);
+		return new AbstractLocalConfig(memSize, projects.getRunDir()) {
 			@Override
       public boolean isVerbose() {
 				return verbose;
-			}
-
-			@Override
-      public String getTestCode() {
-				return TestCode.NONE.name();
-			}
-
-			@Override
-      public int getMemorySize() {
-				return parseMemorySize(memoryMaximumSize);
 			}
 
 			@Override
@@ -139,17 +128,6 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 				}
 				throw new IllegalStateException("Unknown plugin id requested: "
 						+ id);
-			}
-
-			@Override
-      public String getRunDirectory() {
-				return projects.getRunDir().getAbsolutePath();
-			}
-
-			@Override
-      public String getLogPath() {
-				return new File(projects.getRunDir(), AbstractRemoteSLJob.LOG_NAME)
-						.getAbsolutePath();
 			}
 		};
 	}
