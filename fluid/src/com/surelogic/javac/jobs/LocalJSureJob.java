@@ -17,20 +17,20 @@ import edu.cmu.cs.fluid.parse.JJNode;
 public class LocalJSureJob extends AbstractLocalSLJob {
 	@SuppressWarnings("unused")
   public static final int DEFAULT_PORT = true ? 0 : 20111;
-	public static final AbstractLocalHandlerFactory<LocalJSureJob,ILocalJSureConfig> factory = 
-		new AbstractLocalHandlerFactory<LocalJSureJob,ILocalJSureConfig>("jsure-console", LocalJSureJob.DEFAULT_PORT) {
+	public static final AbstractLocalHandlerFactory<LocalJSureJob,ILocalConfig> factory = 
+		new AbstractLocalHandlerFactory<LocalJSureJob,ILocalConfig>("jsure-console", LocalJSureJob.DEFAULT_PORT) {
 		@Override
-		protected LocalJSureJob createJob(String name, int work, ILocalJSureConfig config, Console console) {
+		protected LocalJSureJob createJob(String name, int work, ILocalConfig config, Console console) {
 			return new LocalJSureJob(name, work, config, console);
 		}
 	};
 	
-	private final ILocalJSureConfig config;
+	private final ILocalConfig config;
 	
 	/**
 	 * Assuming that everything's already persisted
 	 */
-	LocalJSureJob(String name, int work, ILocalJSureConfig config, Console console) {
+	LocalJSureJob(String name, int work, ILocalConfig config, Console console) {
 		super(name, work, config, console);
 		this.config = config;
 	}
