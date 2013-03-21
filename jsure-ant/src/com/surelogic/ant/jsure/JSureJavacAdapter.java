@@ -121,7 +121,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 			@Override
       public String getPluginDir(String id, boolean required) {
 				File home = new File(scan.getHome());
-				if (JSureConstants.COMMON_PLUGIN_ID.equals(id)) {
+				if (AbstractLocalSLJob.COMMON_PLUGIN_ID.equals(id)) {
 					return new File(home, "lib/common").getAbsolutePath();
 				} else if (JSureConstants.FLUID_PLUGIN_ID.equals(id)) {
 					return new File(home, "lib/fluid").getAbsolutePath();

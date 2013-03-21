@@ -14,7 +14,7 @@ import com.surelogic.common.jobs.remote.*;
 
 import edu.cmu.cs.fluid.parse.JJNode;
 
-public class LocalJSureJob extends AbstractLocalSLJob {
+public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 	@SuppressWarnings("unused")
   public static final int DEFAULT_PORT = true ? 0 : 20111;
 	public static final AbstractLocalHandlerFactory<LocalJSureJob,ILocalConfig> factory = 
@@ -25,14 +25,11 @@ public class LocalJSureJob extends AbstractLocalSLJob {
 		}
 	};
 	
-	private final ILocalConfig config;
-	
 	/**
 	 * Assuming that everything's already persisted
 	 */
 	LocalJSureJob(String name, int work, ILocalConfig config, Console console) {
 		super(name, work, config, console);
-		this.config = config;
 	}
 
 	@Override 
@@ -49,10 +46,9 @@ public class LocalJSureJob extends AbstractLocalSLJob {
 	}
 
 	@Override
-	protected void setupClassPath(boolean debug, CommandlineJava cmdj, Project proj, Path path) {
-		final ConfigHelper util = new ConfigHelper(debug, config);
+	protected void setupClassPath(final ConfigHelper util, CommandlineJava cmdj, Project proj, Path path) {
 		// All unpacked
-		util.addPluginAndJarsToPath(JSureConstants.COMMON_PLUGIN_ID, "lib/runtime");
+		util.addPluginAndJarsToPath(COMMON_PLUGIN_ID, "lib/runtime");
 		util.addPluginAndJarsToPath(JSureConstants.FLUID_PLUGIN_ID, "lib/runtime");
 		final boolean isMac = SystemUtils.IS_OS_MAC_OSX;
 		if (XUtil.testing) {
