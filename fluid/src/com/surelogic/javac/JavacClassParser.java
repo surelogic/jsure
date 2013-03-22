@@ -443,7 +443,7 @@ public class JavacClassParser extends JavaClassPath {
         Util.startSubTask(parser.tEnv.getProgressMonitor(), "Handling references for "+parser.jp.getName()); 
         final References refs = parser.refs;
 		if (loadAllLibraries) {
-			for(Pair<String,String> keys : classToFile.keySet()) {
+			for(Pair<String,String> keys : getMapKeys()) {
 				// Only look at ones from this project
 				if (parser.jp.getName().equals(keys.first())) {
 					//System.out.println("Force-loading: "+keys.second());
@@ -537,7 +537,7 @@ public class JavacClassParser extends JavaClassPath {
 		String lastJar       = null;		
 		for(String ref : refs) {
 			//System.out.println("Got ref to "+ref+" from "+jp.getName());		    			
-			Pair<String,Object> p = classToFile.get(Pair.getInstance(jp.getName(), ref));
+			final Pair<String,Object> p = getMapping(jp.getName(), ref);
 			if (p == null) {
 				SLLogger.getLogger().warning("Unable to find ref "+ref+" in "+jp.getName());
 				continue;
@@ -601,7 +601,7 @@ public class JavacClassParser extends JavaClassPath {
 		for(Map.Entry<String,Collection<String>> e : maybeNewPkgs.entrySet()) {
 			for(String pkg : new HashSet<String>(e.getValue())) {
 				final String qname = pkg+'.'+SLUtility.PACKAGE_INFO;
-				if (!refs.contains(qname) && classToFile.containsKey(Pair.getInstance(e.getKey(), qname))) {
+				if (!refs.contains(qname) && isMapped(e.getKey(), qname)) {
 					moreRefs.put(e.getKey(), qname);
 				}
 			}
@@ -903,7 +903,7 @@ public class JavacClassParser extends JavaClassPath {
 		if (jp.getTypeEnv().findPackage(qname, null) != null) {
 			return null;
 		}
-		if (classToFile.containsKey(Pair.getInstance(jp.getName(), qname))) {
+		if (isMapped(jp.getName(), qname)) {
 			return qname;
 		/*
 		} else if (qname.startsWith("org.eclipse") || 
