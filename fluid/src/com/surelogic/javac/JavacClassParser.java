@@ -46,7 +46,7 @@ import edu.cmu.cs.fluid.util.*;
 import extra166y.ParallelArray;
 import extra166y.Ops.Procedure;
 
-public class JavacClassParser implements IJavacClassParser {
+public class JavacClassParser extends JavaClassPath {
 	/** Should we try to run things in parallel */
 	private static boolean wantToRunInParallel = true;
 	private static boolean useForkJoinTasks = wantToRunInParallel && false;
@@ -76,14 +76,6 @@ public class JavacClassParser implements IJavacClassParser {
 	
 	// Key: project
 	private final Map<String,BatchParser> parsers = new HashMap<String, BatchParser>();
-	
-	// Key: project
-	// Key: qualified name
-	// Pair1 = new project
-	// Map to String if a jar
-	// Map to File   if source
-	private final HashMap<Pair<String,String>,Pair<String,Object>> classToFile = 
-		new HashMap<Pair<String,String>, Pair<String,Object>>();
 
 	private final Map<File,File> mappedSources = new ConcurrentHashMap<File, File>();
 	
@@ -106,46 +98,6 @@ public class JavacClassParser implements IJavacClassParser {
 			parsers.put(jp.getName(), new BatchParser(jp, 100, jp.isAsBinary()));
         	jp.getConfig().init(jp, this);
         	jp.collectMappedJars(mappedSources);
-		}
-	}
-
-	/*
-	 * Checking for a duplicate effectively simulates 
-	 * searching the classpath
-	 */
-	public void map(String destProj, String jarName, String srcProj, String name) {
-	  final Pair<String,String> key = Pair.getInstance(destProj, name);
-		if (!classToFile.containsKey(key)) {
-/*
-			if (!jarName.contains("jdk")) {
-				System.out.println("Mapping "+name+" to "+jarName);
-			}
-*/
-			classToFile.put(key, new Pair<String,Object>(srcProj, jarName));		
-		}
-	}
-	
-	public void mapFile(String destProj, String qname, String srcProj, JavaSourceFile file) {
-	  final Pair<String,String> key = Pair.getInstance(destProj, qname);
-		if (!classToFile.containsKey(key)) {
-/*
-			if (!file.toString().contains("jdk")) {
-				System.out.println("Mapping "+qname+" to "+file);
-			}
-*/
-			classToFile.put(key, new Pair<String,Object>(srcProj, file));
-		}
-	}
-
-	public void mapClass(String destProj, String qname, String srcProj, File f) {
-	  final Pair<String,String> key = Pair.getInstance(destProj, qname);
-		if (!classToFile.containsKey(key)) {
-/*
-			if (!f.toString().contains("jdk")) {
-				System.out.println("Mapping "+qname+" to "+f);
-			}
-*/
-			classToFile.put(key, new Pair<String,Object>(srcProj, f));
 		}
 	}
 	
@@ -1272,19 +1224,6 @@ public class JavacClassParser implements IJavacClassParser {
 			}
 			return false;
 		}
-	}
-
-	private final MultiMap<JavacProject,Config> initialized = new MultiHashMap<JavacProject, Config>();
-	
-	/**
-	 * @return true if already initialized, false if not (and set to be true)
-	 */
-	public boolean ensureInitialized(ISLJavaProject jp, Config config) {
-		if (initialized.containsValue(jp, config)) {
-			return true;
-		}
-		initialized.put((JavacProject) jp, config);
-		return false;
 	}
 
 	/**
