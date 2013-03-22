@@ -1274,12 +1274,6 @@ public class JavacClassParser implements IJavacClassParser {
 		}
 	}
 
-	public String convertClassToQname(String name) {
-		String raw   = name.substring(0, name.length()-6);
-		String qname = raw.replace('/', '.');
-		return qname;
-	}
-
 	private final MultiMap<JavacProject,Config> initialized = new MultiHashMap<JavacProject, Config>();
 	
 	/**
