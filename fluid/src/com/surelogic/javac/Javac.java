@@ -20,6 +20,7 @@ import com.surelogic.analysis.nullable.NullableModule;
 import com.surelogic.analysis.singleton.SingletonAnalysis;
 import com.surelogic.analysis.structure.StructureAnalysis;
 import com.surelogic.analysis.testing.BCAModule;
+import com.surelogic.analysis.testing.BinderModule;
 import com.surelogic.analysis.testing.CollectMethodCallsModule;
 import com.surelogic.analysis.testing.ConstantExpressionModule;
 import com.surelogic.analysis.testing.DefinitelyAssignedModule;
@@ -102,8 +103,11 @@ public class Javac extends IDE {
 		init(TypeBasedAliasModule.class,
 		    "com.surelogic.jsure.cliend.eclipse.TypeBasedAlias", false, "Type-Based Alias Analysis (for reg tests only)");
 		
+		
 		init(TypesModule.class, "com.surelogic.jsure.client.eclipse.Types", false, "Type Info (for reg tests only)");
 		init(ConstantExpressionModule.class, "com.surelogic.jsure.client.eclipse.ConstantExpr", false, "Constant Expressions (for reg tests only)");
+		init(BinderModule.class, "com.surelogic.jsure.client.eclipse.Binder", false, "Binder (for reg tests only)");
+    
 		
 		init(UtilityAnalysis.class, "com.surelogic.jsure.client.eclipse.Utility", true, "Utility class");
     init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");

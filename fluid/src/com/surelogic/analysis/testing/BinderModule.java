@@ -1,17 +1,21 @@
 package com.surelogic.analysis.testing;
 
-import com.surelogic.analysis.*;
-import com.surelogic.analysis.type.checker.ConstantExpressionVisitor;
+import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.IIRAnalysisEnvironment;
+import com.surelogic.analysis.JavaSemanticsVisitor;
+import com.surelogic.analysis.Unused;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.operator.AssignExpression;
 
-public final class ConstantExpressionModule extends AbstractWholeIRAnalysis<IBinderClient, Unused> {
-	public ConstantExpressionModule() {
-		super("ConstantExpressionModule");
+public final class BinderModule extends AbstractWholeIRAnalysis<IBinderClient, Unused> {
+	public BinderModule() {
+		super("BinderModule");
 	}
 
 	@Override
@@ -42,22 +46,21 @@ public final class ConstantExpressionModule extends AbstractWholeIRAnalysis<IBin
 	}
 	
 	private final class TestConstantExpressions extends JavaSemanticsVisitor {
-	  final ConstantExpressionVisitor ceVisitor;
-	  
 		public TestConstantExpressions() {
 			super(true);
-			ceVisitor = new ConstantExpressionVisitor(getBinder());
 		}
 		
 		@Override
-		public final Void visitAssignExpression(final IRNode e) {
-		  super.visitAssignExpression(e);
-		  
-		  final IRNode rhs = AssignExpression.getOp2(e);
-      final boolean isConstant = ceVisitor.doAccept(rhs);
-      final HintDrop drop = HintDrop.newInformation(rhs);
-      drop.setMessage(isConstant ? "Constant" : "Not Constant");
-		  return null;
+		protected final void handleMethodCall(final IRNode e) {
+		  super.handleMethodCall(e);
+		  processNode(e);
+		}
+
+		private void processNode(final IRNode e) {
+		  final IRNode boundTo = getBinder().getBinding(e);
+      final HintDrop drop = HintDrop.newInformation(e);
+      drop.setMessage(DebugUnparser.toString(e) + " binds to "
+          + JavaNames.genMethodConstructorName(boundTo));
 		}
 	}
 }

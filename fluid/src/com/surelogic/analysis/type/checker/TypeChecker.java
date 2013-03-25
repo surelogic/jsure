@@ -1884,7 +1884,6 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
       // Eat the exception: return type is determined by the type expression
     }
     
-    
     return postProcessCastExpression(expr, capture(type));
   }
   
