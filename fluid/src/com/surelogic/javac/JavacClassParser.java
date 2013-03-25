@@ -46,7 +46,7 @@ import edu.cmu.cs.fluid.util.*;
 import extra166y.ParallelArray;
 import extra166y.Ops.Procedure;
 
-public class JavacClassParser extends JavaClassPath {
+public class JavacClassParser extends JavaClassPath<Projects> {
 	/** Should we try to run things in parallel */
 	private static boolean wantToRunInParallel = true;
 	private static boolean useForkJoinTasks = wantToRunInParallel && false;
@@ -81,22 +81,20 @@ public class JavacClassParser extends JavaClassPath {
 	
 	private final Set<String> requiredRefs = new HashSet<String>();        	    	
 	
-    private final Projects projects;
+	//private final Projects projects;
 	private final ForkJoinPool pool;
 	
 	// proj, qname, zip
 	final ParallelArray<Triple<String,String,ZipFile>> jarRefs;
 	
 	public JavacClassParser(ForkJoinPool executor, Projects p) throws IOException {
+		super(p);
 		pool    = executor;
-		projects = p;
-
 		jarRefs = ParallelArray.create(0, Triple.class, pool);		
 		
 		for(JavacProject jp : p) {
 			//System.out.println("Initializing "+jp.getName());
 			parsers.put(jp.getName(), new BatchParser(jp, 100, jp.isAsBinary()));
-        	jp.getConfig().init(jp, this);
         	jp.collectMappedJars(mappedSources);
 		}
 	}
