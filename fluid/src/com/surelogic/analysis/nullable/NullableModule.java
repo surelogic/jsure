@@ -68,6 +68,8 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
   protected void visitCompilationUnit(final IRNode compUnit) {
     final Visitor v = new Visitor();
     v.doAccept(compUnit);
+    
+    getAnalysis().typeCheck(compUnit);
     getAnalysis().clear();
   }
   
@@ -156,6 +158,7 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     private final DefinitelyAssignedAnalysis definiteAssignment;
     private final RawTypeAnalysis rawType;
     private final NonNullAnalysis nonNull;
+    private final NonNullTypeChecker typeChecker;
     
     
     
@@ -164,6 +167,11 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
       definiteAssignment = new DefinitelyAssignedAnalysis(b, false);
       rawType = new RawTypeAnalysis(b);
       nonNull = new NonNullAnalysis(b);
+      typeChecker = new NonNullTypeChecker(nonNull);
+    }
+    
+    public void typeCheck(final IRNode cu) {
+      typeChecker.doAccept(cu);
     }
     
     @Override

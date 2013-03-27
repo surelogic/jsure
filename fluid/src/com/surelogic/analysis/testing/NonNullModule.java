@@ -7,7 +7,7 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.NonNullAnalysis;
-import com.surelogic.analysis.nullable.NonNullAnalysis.Query;
+import com.surelogic.analysis.nullable.NonNullAnalysis.VariableStateQuery;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
@@ -49,14 +49,14 @@ public final class NonNullModule extends AbstractWholeIRAnalysis<NonNullAnalysis
 //    JavaComponentFactory.clearCache();
   }
   
-  private final class NonNullVisitor extends AbstractJavaAnalysisDriver<Query> {
+  private final class NonNullVisitor extends AbstractJavaAnalysisDriver<VariableStateQuery> {
     @Override
-    protected Query createNewQuery(final IRNode decl) {
-      return getAnalysis().getNonnullBeforeQuery(decl);
+    protected VariableStateQuery createNewQuery(final IRNode decl) {
+      return getAnalysis().getVariableStateQuery(decl);
     }
 
     @Override
-    protected Query createSubQuery(final IRNode caller) {
+    protected VariableStateQuery createSubQuery(final IRNode caller) {
       return currentQuery().getSubAnalysisQuery(caller);
     }
 

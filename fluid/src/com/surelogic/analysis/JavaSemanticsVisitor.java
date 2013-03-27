@@ -1079,20 +1079,6 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
       handleInstanceInitializer(expr);
     }
     return null;
-
-//    if (TypeUtil.isStatic(expr)) {
-//      enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);
-//      try {
-//        handleStaticInitializer(expr);
-//      } finally {
-//        leaveEnclosingDecl(null);
-//      }
-//    } else {
-//      if (insideConstructor) { // case (2)
-//        handleInstanceInitializer(expr);
-//      }
-//    }
-//    return null;
   }
   
   /**
