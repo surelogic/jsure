@@ -88,7 +88,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 	final ParallelArray<Triple<String,String,ZipFile>> jarRefs;
 	
 	public JavacClassParser(ForkJoinPool executor, Projects p) throws IOException {
-		super(p);
+		super(p, false);
 		pool    = executor;
 		jarRefs = ParallelArray.create(0, Triple.class, pool);		
 		
