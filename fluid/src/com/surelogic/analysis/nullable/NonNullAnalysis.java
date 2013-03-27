@@ -62,12 +62,44 @@ extends StackEvaluatingAnalysisWithInference<
     NonNullAnalysis.NullInfo, NonNullAnalysis.Value,
     NonNullAnalysis.NullLattice, NonNullAnalysis.Lattice>
 implements IBinderClient {
-  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Set<IRNode>, Value, Lattice> {
-    public Query(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
+  public final class StackQuery extends SimplifiedJavaFlowAnalysisQuery<StackQuery, NullInfo, Value, Lattice> {
+    public StackQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
     }
     
-    private Query(final Delegate<Query, Set<IRNode>, Value, Lattice> d) {
+    private StackQuery(final Delegate<StackQuery, NullInfo, Value, Lattice> d) {
+      super(d);
+    }
+
+    @Override
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.NORMAL_EXIT;
+    }
+
+
+    
+    @Override
+    protected StackQuery newSubAnalysisQuery(final Delegate<StackQuery, NullInfo, Value, Lattice> d) {
+      return new StackQuery(d);
+    }
+
+
+    
+    @Override
+    protected NullInfo processRawResult(final IRNode expr,
+        final Lattice lattice, final Value rawResult) {
+      return lattice.peek(rawResult);
+    }    
+  }
+  
+  
+  
+  public final class VariableStateQuery extends SimplifiedJavaFlowAnalysisQuery<VariableStateQuery, Set<IRNode>, Value, Lattice> {
+    public VariableStateQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
+      super(thunk);
+    }
+    
+    private VariableStateQuery(final Delegate<VariableStateQuery, Set<IRNode>, Value, Lattice> d) {
       super(d);
     }
 
@@ -79,8 +111,8 @@ implements IBinderClient {
 
     
     @Override
-    protected Query newSubAnalysisQuery(final Delegate<Query, Set<IRNode>, Value, Lattice> d) {
-      return new Query(d);
+    protected VariableStateQuery newSubAnalysisQuery(final Delegate<VariableStateQuery, Set<IRNode>, Value, Lattice> d) {
+      return new VariableStateQuery(d);
     }
 
 
@@ -431,7 +463,7 @@ implements IBinderClient {
         val = lattice.inferVar(val, inferredIdx, ni, src);
       }
 
-      // (2) Update the current state of non nul variables
+      // (2) Update the current state of non null variables
       if (lattice.mustBeNonNull(val, varDecl)) { // Variable is coming in as NONNULL
         if (!nullLattice.lessEq(ni, NullInfo.NOTNULL)) { // Value might be null
           return lattice.removeNonNull(val, varDecl);
@@ -700,8 +732,12 @@ implements IBinderClient {
 
   
   
-  public Query getNonnullBeforeQuery(final IRNode flowUnit) {
-    return new Query(getAnalysisThunk(flowUnit));
+  public StackQuery getStackQuery(final IRNode flowUnit) {
+    return new StackQuery(getAnalysisThunk(flowUnit));
+  }
+
+  public VariableStateQuery getVariableStateQuery(final IRNode flowUnit) {
+    return new VariableStateQuery(getAnalysisThunk(flowUnit));
   }
   
   public InferredNonNullQuery getInferredNonNullQuery(final IRNode flowUnit) {
