@@ -12,29 +12,33 @@ public class AntlrLexerTokens {
     FileReader r                  = new FileReader(name);
     LineNumberReader lr           = new LineNumberReader(r);
     String line;
-    while ((line = lr.readLine()) != null) {
-      String token;
-      Integer num;
-      if (line.startsWith("'='=")) {
-    	  token = "'='";
-    	  num = Integer.valueOf(line.substring(4));
-      } else {
-    	  StringTokenizer st = new StringTokenizer(line, "=");
-    	  token = st.nextToken();
-    	  num  = Integer.valueOf(st.nextToken());
-          if (st.hasMoreTokens()) {
-              throw new IllegalArgumentException("Wrong format: "+line);
-          }
-      }
+    try {
+    	while ((line = lr.readLine()) != null) {
+    		String token;
+    		Integer num;
+    		if (line.startsWith("'='=")) {
+    			token = "'='";
+    			num = Integer.valueOf(line.substring(4));
+    		} else {
+    			StringTokenizer st = new StringTokenizer(line, "=");
+    			token = st.nextToken();
+    			num  = Integer.valueOf(st.nextToken());
+    			if (st.hasMoreTokens()) {
+    				throw new IllegalArgumentException("Wrong format: "+line);
+    			}
+    		}
 
-      //System.out.println(token+" => "+num);
-      map.put(num, token);
-      if ("START_IMAGINARY".equals(token)) {
-        start = num;
-      } 
-      else if ("END_IMAGINARY".equals(token)) {
-        end = num;
-      }
+    		//System.out.println(token+" => "+num);
+    		map.put(num, token);
+    		if ("START_IMAGINARY".equals(token)) {
+    			start = num;
+    		} 
+    		else if ("END_IMAGINARY".equals(token)) {
+    			end = num;
+    		}
+    	}
+    } finally {
+    	lr.close();
     }
   }
 

@@ -147,12 +147,16 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 		  FileReader fr = new FileReader(f);
 		  BufferedReader br = new BufferedReader(fr);
 		  String line;
-		  while ((line = br.readLine()) != null) {
-			  //System.out.println("Scanning: "+line);
-			  if (line.contains(keyword)) {
-				  //System.out.println("Found "+keyword);
-				  return true;
+		  try {
+			  while ((line = br.readLine()) != null) {
+				  //System.out.println("Scanning: "+line);
+				  if (line.contains(keyword)) {
+					  //System.out.println("Found "+keyword);
+					  return true;
+				  }
 			  }
+		  } finally {
+			  br.close();
 		  }
 	  } catch(IOException e) {
 		  // Ignore

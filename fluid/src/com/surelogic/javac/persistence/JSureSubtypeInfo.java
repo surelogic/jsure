@@ -36,6 +36,7 @@ public class JSureSubtypeInfo {
 			final ZipEntry ze = new ZipEntry(name);
 			out.putNextEntry(ze);
 
+			@SuppressWarnings("resource") // closed via out
 			final PrintWriter pw = new PrintWriter(out);
 			for(CUDrop sub : e.getValue()) {
 				final String sName = computeCUName(sub);

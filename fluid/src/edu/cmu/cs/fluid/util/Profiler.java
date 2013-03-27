@@ -31,7 +31,8 @@ public class Profiler {
   public static void main(String[] args) throws IOException {
     InputStream in = (args.length > 0) ? 
       new FileInputStream(args[0]) : System.in;
-    BufferedReader prof = new BufferedReader(new InputStreamReader(in));
+    @SuppressWarnings("resource") // Don't care
+	BufferedReader prof = new BufferedReader(new InputStreamReader(in));
 
     String unknown = "<unknown_caller>";
     Hashtable<String,Stats> times = new Hashtable<String,Stats>();
