@@ -155,22 +155,6 @@ public class ClassAdapter extends AbstractAdapter {
       is = new FileInputStream(classFile);
     }
     if (is != null) {
-      /*
-      // TODO test code
-      InputStream is2 = null;
-      if (jar != null) {
-    	  ZipEntry e = jar.getEntry(className);
-    	  if (e != null) {
-    		  is2 = jar.getInputStream(e);
-    	  }
-      } else {
-    	  is2 = new FileInputStream(classFile);
-      }
-      final ClassReader cr2 = new ClassReader(is2);
-      cr2.accept(new ClassSummarizer(), 0);
-      // TODO end test code
-      */
-    	
       ClassReader cr = new ClassReader(is);
       cr.accept(new Visitor(), 0);
       /*
