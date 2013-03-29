@@ -167,7 +167,7 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
       definiteAssignment = new DefinitelyAssignedAnalysis(b, false);
       rawType = new RawTypeAnalysis(b);
       nonNull = new NonNullAnalysis(b);
-      typeChecker = new NonNullTypeChecker(nonNull);
+      typeChecker = new NonNullTypeChecker(b, nonNull, rawType);
     }
     
     public void typeCheck(final IRNode cu) {

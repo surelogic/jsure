@@ -69,6 +69,38 @@ extends StackEvaluatingAnalysisWithInference<
     Element, RawTypeAnalysis.Value,
     RawLattice, RawTypeAnalysis.Lattice>
 implements IBinderClient {
+  public final class StackQuery extends SimplifiedJavaFlowAnalysisQuery<StackQuery, Element, Value, Lattice> {
+    public StackQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
+      super(thunk);
+    }
+    
+    private StackQuery(final Delegate<StackQuery, Element, Value, Lattice> d) {
+      super(d);
+    }
+
+    @Override
+    protected RawResultFactory getRawResultFactory() {
+      return RawResultFactory.NORMAL_EXIT;
+    }
+
+
+    
+    @Override
+    protected StackQuery newSubAnalysisQuery(final Delegate<StackQuery, Element, Value, Lattice> d) {
+      return new StackQuery(d);
+    }
+
+
+    
+    @Override
+    protected Element processRawResult(final IRNode expr,
+        final Lattice lattice, final Value rawResult) {
+      return lattice.peek(rawResult);
+    }    
+  }
+  
+  
+  
   public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Pair<Lattice, Element[]>, Value, Lattice> {
     public Query(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
@@ -720,6 +752,10 @@ implements IBinderClient {
   }
 
 
+  
+  public StackQuery getStackQuery(final IRNode flowUnit) {
+    return new StackQuery(getAnalysisThunk(flowUnit));
+  }
   
   public Query getRawTypeQuery(final IRNode flowUnit) {
     return new Query(getAnalysisThunk(flowUnit));
