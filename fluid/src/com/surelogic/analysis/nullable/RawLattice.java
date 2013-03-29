@@ -13,44 +13,38 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.uwm.cs.fluid.util.AbstractLattice;
 
 /**
- * Lattice for computing the raw type of a local variable.  Values from this
+ * Lattice for computing the raw type of a local variable. Values from this
  * lattice are interpreted with respect to the declared type <i>T</i> of the
- * variable.  Normal values from this lattice are class declarations.  So a 
- * value of class <i>C</i> means the type of the variable is
- * <i>T</i><sup>raw(<i>C</i>)-</sup>.  The structure of this lattice is thus
- * derived from the class hierarchy of the program under analysis.  There are
+ * variable. Normal values from this lattice are class declarations. So a value
+ * of class <i>C</i> means the type of the variable is
+ * <i>T</i><sup>raw(<i>C</i>)-</sup>. The structure of this lattice is thus
+ * derived from the class hierarchy of the program under analysis. There are
  * three special values:
  * 
  * <dl>
- *   <dt>RAW</dt>
- *   <dd>This is the <b>TOP</b> value of the lattice, and is ordered directly
- *   above <code>java.lang.Object</code>.  This value means that the type
- *   of the local variable is <i>T</i><sup>raw-</sup>.
- *   
- *   <dt>IMPOSSIBLE<dt>
- *   <dd>This value exists only because of the {@link #meet} operation, so that
- *   we can give a value for the meet of two class where one is not an ancestor
- *   of the other.  This value is directly below each leaf class in the class
- *   hierarchy.</dd>
- *   
- *   <dt>NOT_RAW</dt>
- *   <dd>This is the <b>BOTTOM</b> value of the lattice, and is directly below
- *   <b>IMPOSSIBLE</b>.  It means that the variable does not have a raw type at
- *   all; the type of the variable is <i>T</i>.  The nullity of the type is
- *   obtained from external information.</dd>
- * </dl>
+ * <dt>NOT_RAW</dt>
+ * <dd>This is the <b>TOP</b> value of the lattice. It means that the variable
+ * does not have a raw type at all; the type of the variable is <i>T</i>. The
+ * nullity of the type is obtained from external information.</dd>
  * 
- * <p>The position of <b>IMPOSSIBLE</b> in the lattice is unfortunate, but
- * shouldn't cause any problems in practice because the value should never arise
- * during control flow analysis.  This is because the meet operation is never 
- * invoked. 
+ * <dt>RAW</dt>
+ * <dd>Directly below NOT_RAW, and directly above <code>java.lang.Object</code>.
+ * This value means that the type of the local variable is
+ * <i>T</i><sup>raw-</sup>.
+ * 
+ * <dt>IMPOSSIBLE</dt>
+ * <dd>The <b>BOTTOM</b> value. This value exists only because of the
+ * {@link #meet} operation, so that we can give a value for the meet of two
+ * class where one is not an ancestor of the other. This value is directly below
+ * each leaf class in the class hierarchy.</dd>
+ * </dl>
  */
 public final class RawLattice
 extends AbstractLattice<RawLattice.Element> {
   public static final Element[] ARRAY_PROTOTYPE = new Element[0];
+  public static final Element NOT_RAW = Specials.NOT_RAW;
   public static final Element RAW = Specials.RAW;
   public static final Element IMPOSSIBLE = Specials.IMPOSSIBLE;
-  public static final Element NOT_RAW = Specials.NOT_RAW;
   
   
   
@@ -61,15 +55,15 @@ extends AbstractLattice<RawLattice.Element> {
   }
   
   private static enum Specials implements Element {
-    RAW {
+    NOT_RAW  {
       @Override
       public boolean lessEq(final Element other) {
-        return other == RAW;
+        return other == NOT_RAW;
       }
 
       @Override
       public Element join(final Element other) {
-        return this;
+        return NOT_RAW;
       }
 
       @Override
@@ -77,28 +71,28 @@ extends AbstractLattice<RawLattice.Element> {
         return other;
       }
     },
-    
-    IMPOSSIBLE {
+
+    RAW {
       @Override
       public boolean lessEq(final Element other) {
-        // less than or equal to everything but NOT_RAW
-        return other != NOT_RAW;
+        return other == RAW || other == NOT_RAW;
       }
 
       @Override
       public Element join(final Element other) {
-        return other == NOT_RAW ? this : other;
+        return other == NOT_RAW ? other : this;
       }
 
       @Override
       public Element meet(final Element other) {
-        return other == NOT_RAW ? other : this;
+        return other == NOT_RAW ? this : other;
       }
     },
     
-    NOT_RAW  {
+    IMPOSSIBLE {
       @Override
       public boolean lessEq(final Element other) {
+        // less than or equal to everything
         return true;
       }
 
@@ -123,9 +117,9 @@ extends AbstractLattice<RawLattice.Element> {
     
     @Override
     public boolean lessEq(final Element other) {
-      if (other == Specials.RAW) {
+      if (other == Specials.RAW || other == Specials.NOT_RAW) {
         return true;
-      } else if (other == Specials.IMPOSSIBLE || other == Specials.NOT_RAW) {
+      } else if (other == Specials.IMPOSSIBLE) {
         return false;
       } else {
         final ClassElement ce = (ClassElement) other;
@@ -140,9 +134,9 @@ extends AbstractLattice<RawLattice.Element> {
         return this;
       }
       
-      if (other == Specials.RAW) {
+      if (other == Specials.RAW || other == Specials.NOT_RAW) {
         return other;
-      } else if (other == Specials.IMPOSSIBLE || other == Specials.NOT_RAW) {
+      } else if (other == Specials.IMPOSSIBLE) {
         return this;
       } else {
         // Join with a class other than ourself (short-circuited above)
@@ -168,9 +162,9 @@ extends AbstractLattice<RawLattice.Element> {
 
     @Override
     public Element meet(final Element other) {
-      if (other == Specials.RAW) {
+      if (other == Specials.RAW || other == Specials.NOT_RAW) {
         return this;
-      } else if (other == Specials.IMPOSSIBLE || other == Specials.NOT_RAW) {
+      } else if (other == Specials.IMPOSSIBLE) {
         return other;
       } else {
         final ClassElement ce = (ClassElement) other;
@@ -222,12 +216,12 @@ extends AbstractLattice<RawLattice.Element> {
 
   @Override
   public Element top() {
-    return Specials.RAW;
+    return Specials.NOT_RAW;
   }
 
   @Override
   public Element bottom() {
-    return Specials.NOT_RAW;
+    return Specials.IMPOSSIBLE;
   }
   
   public Element injectClass(final IJavaDeclaredType t) {
