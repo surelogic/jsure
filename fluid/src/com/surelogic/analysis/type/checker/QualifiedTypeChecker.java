@@ -3,7 +3,11 @@ package com.surelogic.analysis.type.checker;
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.operator.ArrayLength;
+import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.BoxExpression;
+import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.ReturnStatement;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.cmu.cs.fluid.java.operator.ThrowStatement;
 import edu.cmu.cs.fluid.java.operator.UnboxExpression;
@@ -72,7 +76,28 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   // == Statements
   // ======================================================================
 
-  // TODO: Return statements: needs to be treated like an assignment
+  @Override
+  public final Void visitReturnStatement(final IRNode s) {
+    /*
+     * ¤14.17
+     * 
+     * The Expression must denote a variable or value of some type T, or a
+     * compile-time error occurs.
+     * 
+     * The type T must be assignable (¤5.2) to the declared result type of the
+     * method, or a compile-time error occurs.
+     */
+    doAcceptForChildren(s);
+    checkReturnStatement(s, ReturnStatement.getValue(s));
+    return null;
+  }
+  
+  protected void checkReturnStatement(
+      final IRNode returnStmt, final IRNode valueExpr) {
+    // Do nothing
+  }
+  
+  
   
   @Override
   public final Void visitThrowStatement(final IRNode s) {
@@ -123,4 +148,67 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   // ======================================================================
   // == Expressions
   // ======================================================================
+  
+  // TODO: Class Instance Creation Expressions
+  
+  // TODO: Array Creation Expressions
+  
+//  @Override
+//  public final Void visitArrayLength(final IRNode e) {
+//    /*
+//     * N.B. Special case of field access: A 'final int' non-static field.
+//     */
+//    doAcceptForChildren(e);
+//    checkArrayLength(e, ArrayLength.getObject(e));
+//    return null;
+//  }
+//  
+//  protected void checkArrayLength(
+//      final IRNode arrayLenExpr, final IRNode objectExpr) {
+//    // Do nothing
+//  }
+  
+  @Override
+  public final Void visitFieldRef(final IRNode e) {
+    /*
+     * ¤15.11.1
+     * 
+     * If the field is not static: É If the value of the Primary is null, then a
+     * NullPointerException is thrown.
+     */
+    doAcceptForChildren(e);
+    checkFieldRef(e, FieldRef.getObject(e));
+    return null;
+  }
+  
+  protected void checkFieldRef(
+      final IRNode fieldRefExpr, final IRNode objectExpr) {
+    // do nothing
+  }
+
+  // TODO: Method invocation expressions
+  
+  @Override
+  public final Void visitArrayRefExpression(final IRNode e) {
+    /*
+     * ¤15.13
+     * 
+     * Otherwise, if the value of the array reference expression is null, then a
+     * NullPointerException is thrown.
+     * 
+     * Otherwise, the value of the array reference expression indeed refers to
+     * an array. If the value of the index expression is less than zero, or
+     * greater than or equal to the array's length, then an
+     * ArrayIndexOutOfBoundsException is thrown.
+     */
+    doAcceptForChildren(e);
+    checkArrayRefExpression(
+        e, ArrayRefExpression.getArray(e), ArrayRefExpression.getIndex(e));
+    return null;
+  }
+  
+  protected void checkArrayRefExpression(final IRNode arrayRefExpr,
+      final IRNode arrayExpr, final IRNode indexExpr) {
+    // do nothing
+  }
 }
