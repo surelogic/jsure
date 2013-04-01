@@ -26,6 +26,7 @@ import com.surelogic.analysis.testing.ConstantExpressionModule;
 import com.surelogic.analysis.testing.DefinitelyAssignedModule;
 import com.surelogic.analysis.testing.LocalVariablesModule;
 import com.surelogic.analysis.testing.NonNullModule;
+import com.surelogic.analysis.testing.NonNullRawTypeModule;
 import com.surelogic.analysis.testing.RawTypeModule;
 import com.surelogic.analysis.testing.TypeBasedAliasModule;
 import com.surelogic.analysis.testing.TypesModule;
@@ -87,6 +88,7 @@ public class Javac extends IDE {
 
     init(NonNullModule.class, "com.surelogic.jsure.client.eclipse.NonNull", false, "NonNull (for reg tests only)");
     init(RawTypeModule.class, "com.surelogic.jsure.client.eclipse.RawTypes", false, "RawType (for reg tests only)");
+    init(NonNullRawTypeModule.class, "com.surelogic.jsure.client.eclipse.NonNullRawTypes", false, "Combined NonNull & RawType (for reg tests only)");
     init(DefinitelyAssignedModule.class, "com.surelogic.jsure.client.eclipse.DefinitelyAssigned", false, "Definitely Assigned (for reg tests only)");
 		
 		init(LocalVariablesModule.class,
