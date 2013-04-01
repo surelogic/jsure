@@ -51,7 +51,7 @@ public class PromiseMatcher {
 				final String path = e.getValue().toString();
 				//TODO is this right?
 				path2JSF.put(path, new JavaSourceFile(e.getKey().toString(), 
-						AbstractJavaZip.makeZipReference(srcPath, path), path, false));
+						AbstractJavaZip.makeZipReference(srcPath, path), path, false, p.getName()));
 			}			
 		}
 		

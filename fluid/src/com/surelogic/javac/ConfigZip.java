@@ -13,7 +13,7 @@ import com.surelogic.common.java.*;
  */
 public class ConfigZip extends AbstractJavaZip<JavaSourceFile> {
 	private final Config config;
-	private final JavaSourceFile root = new JavaSourceFile(null, null, null, false);
+	private final JavaSourceFile root = new JavaSourceFile(null, null, null, false, null);
 	
 	public ConfigZip(Config c) {
 		config = c;
