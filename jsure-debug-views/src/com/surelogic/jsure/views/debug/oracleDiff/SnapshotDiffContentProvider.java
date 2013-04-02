@@ -173,6 +173,7 @@ public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
         return SLImages.getImage(CommonImages.IMG_EDIT_ADD);
       case OLD:
         return SLImages.getImage(CommonImages.IMG_EDIT_DELETE);
+      default:
       }
     
     } else if (element instanceof Entity) {
