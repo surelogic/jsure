@@ -19,13 +19,13 @@ import com.surelogic.common.jobs.remote.*;
 public class JSecureDriver extends AbstractJavaScanner<JavaProjectSet<JavaProject>, JavaProject> {
 	static final String RESULTS_XML = "jsecure.xml";
 	
-	protected JSecureDriver() {
+	public JSecureDriver() {
 		super(IJavaFactory.prototype);
 	}
 
 	@Override
 	protected File getDataDirectory() {
-		File result = EclipseUtility.getJSureDataDirectory();
+		File result = EclipseUtility.getJSecureDataDirectory();
 	    FileUtility.ensureDirectoryExists(result);
 	    return result;
 	}
@@ -65,7 +65,7 @@ public class JSecureDriver extends AbstractJavaScanner<JavaProjectSet<JavaProjec
 		return new AbstractAnalysisJob<JavaProjectSet<JavaProject>>(projects, target, zips, useSeparateJVM) {			
 			@Override
 			protected void init(SLProgressMonitor monitor) throws Exception {
-				System.out.println("JSecure started initializing");
+				System.out.println("JSecure started initializing: "+projects.getLocation());
 			}
 			
 			@Override
