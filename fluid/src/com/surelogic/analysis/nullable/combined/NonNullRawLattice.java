@@ -167,11 +167,15 @@ extends AbstractLattice<NonNullRawLattice.Element> {
     };
   }
   
-  private final class ClassElement implements Element {
+  public final class ClassElement implements Element {
     private final IJavaDeclaredType type;
     
     public ClassElement(final IJavaDeclaredType t) {
       type = t;
+    }
+    
+    public IJavaDeclaredType getType() {
+      return type;
     }
     
     @Override

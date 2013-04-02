@@ -17,6 +17,7 @@ import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalValue;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalLattice;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePair;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePairLattice;
+import com.surelogic.analysis.nullable.combined.NonNullRawLattice.ClassElement;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.Pair;
@@ -30,17 +31,25 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.SimplifiedJavaFlowAnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.AssignExpression;
+import edu.cmu.cs.fluid.java.operator.CallInterface;
+import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ImpliedEnumConstantInitialization;
+import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -259,6 +268,7 @@ implements IBinderClient {
     for (final IRNode v : lvd.getLocal()) {
       if (!ParameterDeclaration.prototype.includes(v)) {
         if (NonNullRules.getRaw(v) != null) varsToInfer.add(v);
+        if (NonNullRules.getNonNull(v) != null) varsToInfer.add(v);
       }
     }
     
@@ -278,7 +288,7 @@ implements IBinderClient {
     final StateLattice stateLattice = new StateLattice(rawVariables, rawLattice, varsToInfer);
     final Lattice lattice = new Lattice(rawLattice, stateLattice);
     final Transfer t = new Transfer(flowUnit, binder, lattice, 0);
-    return new JavaForwardAnalysis<Value, Lattice>("Raw Types", lattice, t, DebugUnparser.viewer);
+    return new JavaForwardAnalysis<Value, Lattice>("NonNull and Raw Types", lattice, t, DebugUnparser.viewer);
   }
   
   
@@ -405,6 +415,14 @@ implements IBinderClient {
       return newPair(lattice1.replaceValue(v.first(), idx, e), v.second());
     }
     
+    public State setVarNonNullIfNotAlready(final State v, final int idx) {
+      if (getVar(v, idx).lessEq(NonNullRawLattice.RAW)) {
+        return v;
+      } else {
+        return setVar(v, idx, NonNullRawLattice.NOT_NULL);
+      }
+    }
+    
     public Element getVar(final State v, final int idx) {
       return v.first()[idx];
     }
@@ -482,6 +500,10 @@ implements IBinderClient {
       return newPair(v.first(), lattice2.setVar(v.second(), idx, e));
     }
     
+    public Value setVarNonNullIfNotAlready(final Value v, final int idx) {
+      return newPair(v.first(), lattice2.setVarNonNullIfNotAlready(v.second(), idx));
+    }
+    
     public Element getVar(final Value v, final int idx) {
       return lattice2.getVar(v.second(), idx);
     }
@@ -510,31 +532,45 @@ implements IBinderClient {
     
     @Override
     public Value transferComponentSource(final IRNode node) {
-      Value value = lattice.getEmptyValue(); // everything is NOT_RAW
+      Value value = lattice.getEmptyValue(); // everything is MAYBE_NULL
 
       /* Receiver is completely raw at the start of constructors
        * and instance initializer blocks.  Receiver is based on the
-       * annotation at the start of non-static methods.
+       * annotation at the start of non-static methods.  Otherwise it 
+       * is NOT_NULL.
        */
       final Operator op = JJNode.tree.getOperator(node);
+      final IRNode rcvr = JavaPromise.getReceiverNode(node);
+      Element rcvrState = NonNullRawLattice.NOT_NULL;
       if (ConstructorDeclaration.prototype.includes(op) ||
           InitDeclaration.prototype.includes(op)) {
-        value = lattice.setThis(value, JavaPromise.getReceiverNode(node), NonNullRawLattice.RAW);
+        rcvrState = NonNullRawLattice.RAW;
       } else if (MethodDeclaration.prototype.includes(op) && !TypeUtil.isStatic(node)) {
-        final IRNode rcvr = JavaPromise.getReceiverNode(node);
         final RawPromiseDrop pd = NonNullRules.getRaw(rcvr);
-        if (pd != null) {
-          value = lattice.setThis(value, rcvr, lattice.injectPromiseDrop(pd));
-        }
+        if (pd != null) rcvrState = lattice.injectPromiseDrop(pd);
       }
-      
-      /* Parameters are initialized based on annotations */
+      value = lattice.setThis(value, rcvr, rcvrState);
+
+      /* 
+       * Parameters are initialized based on annotations.
+       * 
+       * Caught exceptions—also parameter declarations—are always NOT_NULL.
+       */
       for (int idx = 0; idx < lattice.getNumVariables(); idx++) {
         final IRNode v = lattice.getVariable(idx);
         if (ParameterDeclaration.prototype.includes(v)) {
-          final RawPromiseDrop pd = NonNullRules.getRaw(v);
-          if (pd != null) {
-            value = lattice.setVar(value, idx, lattice.injectPromiseDrop(pd));
+          if (CatchClause.prototype.includes(JJNode.tree.getParent(v))) {
+            value = lattice.setVar(value, idx, NonNullRawLattice.NOT_NULL);
+          } else { // normal parameter
+            // N.B. Parameter cannot have both @Raw and @NonNull annotations
+            final RawPromiseDrop pd = NonNullRules.getRaw(v);
+            if (pd != null) {
+              value = lattice.setVar(value, idx, lattice.injectPromiseDrop(pd));
+            }
+            
+            if (NonNullRules.getNonNull(v) != null) {
+              value = lattice.setVar(value, idx, NonNullRawLattice.NOT_NULL);
+            }
           }
         }
       }
@@ -548,6 +584,11 @@ implements IBinderClient {
       final IRNode methodDecl = binder.getBinding(node);
       final IRNode returnNode = JavaPromise.getReturnNode(methodDecl);
       if (returnNode != null) {
+        // NB. Either @Raw or @NonNull but never both
+        if (NonNullRules.getNonNull(returnNode) != null) {
+          return push(val, NonNullRawLattice.NOT_NULL);
+        }
+
         final RawPromiseDrop pd = NonNullRules.getRaw(returnNode);
         if (pd != null) {
           return push(val, lattice.injectPromiseDrop(pd));
@@ -584,17 +625,18 @@ implements IBinderClient {
       if (!lattice.isNormal(val)) return val;
  
       // transfer the state of the stack into the variable
-      return setVar(binder.getIBinding(use).getNode(), val, use);
+      return setVar(binder.getIBinding(use).getNode(), val,
+          AssignExpression.getOp2(JJNode.tree.getParent(use)));
     }
 
     private Value setVar(final IRNode varDecl, final Value val, final IRNode src) {
       final int idx = lattice.indexOf(varDecl);
       if (idx != -1) {
-        final Element rawState = lattice.peek(val);
-        Value newValue = lattice.setVar(val, idx, rawState);
+        final Element stackState = lattice.peek(val);
+        Value newValue = lattice.setVar(val, idx, stackState);
         final int inferredIdx = lattice.indexOfInferred(varDecl);
         if (inferredIdx != -1) {
-          newValue = lattice.inferVar(newValue, inferredIdx, rawState, src);
+          newValue = lattice.inferVar(newValue, inferredIdx, stackState, src);
         }
         return newValue;
       } else {
@@ -602,6 +644,23 @@ implements IBinderClient {
       }
     }
     
+    @Override
+    protected Value transferBox(final IRNode expr, final Value val) {
+      if (!lattice.isNormal(val)) return val;
+      return lattice.push(lattice.pop(val), NonNullRawLattice.NOT_NULL);
+    }
+
+    @Override
+    protected Value transferConcat(final IRNode node, final Value val) {
+      if (!lattice.isNormal(val)) return val;
+      
+      // pop the values of the stack and push a non-null
+      Value newValue = lattice.pop(val);
+      newValue = lattice.pop(newValue);
+      newValue = lattice.push(newValue, NonNullRawLattice.NOT_NULL);
+      return newValue;
+    }
+
     @Override
     protected Value transferConstructorCall(
         final IRNode node, final boolean flag, final Value value) {
@@ -656,19 +715,223 @@ implements IBinderClient {
       }
     }
 
+    @Override
+    protected Value transferDefaultInit(final IRNode node, final Value val) {
+      if (!lattice.isNormal(val)) return val;
+      return push(val, NonNullRawLattice.NULL);
+    }
+
     /*
      * Consider for later: transferEq may be interesting. On the equal branch we
      * know that both sides refer to the same object, so we can use the most
      * specific raw type (MEET of the two values).
      */
+    
+    @Override
+    protected Value transferEq(
+        final IRNode node, final boolean flag, final Value val) {
+      if (!lattice.isNormal(val)) return val;
+
+      Value newValue = val;
+      final Element ni2 = lattice.peek(newValue);
+      newValue = lattice.pop(newValue);
+      final Element ni1 = lattice.peek(newValue);
+      newValue = lattice.pop(newValue);
+      newValue = lattice.push(newValue, NonNullRawLattice.MAYBE_NULL);
+      
+      final Element meet = ni1.meet(ni2);
+      
+      // if the condition is impossible, we propagate bottom
+      if (meet == NonNullRawLattice.IMPOSSIBLE) {
+        if (flag) return null; // else fall through to end
+      }
+      // if the comparison is guaranteed true, we propagate bottom for false:
+      else if (ni1.lessEq(NonNullRawLattice.NULL) && ni2.lessEq(NonNullRawLattice.NULL)) {
+        if (!flag) return null; // else fall through to end
+      }
+      /*
+       * If we have an *inequality* comparison with null, then we can consider
+       * the variable being tested as non-null, but only if it isn't already
+       * RAW or NOT_NULL.
+       */
+      else if (!flag) {
+        if (ni1.lessEq(NonNullRawLattice.NULL)) {
+          final IRNode n = tree.getChild(node, 1); // don't use EqExpression methods because this transfer is called on != also
+          if (VariableUseExpression.prototype.includes(n)) {
+            final int idx = lattice.indexOf(binder.getIBinding(n).getNode());
+            newValue = lattice.setVarNonNullIfNotAlready(newValue, idx);
+          }
+        } else if (NullLiteral.prototype.includes(tree.getChild(node,1))) {
+          /*
+           * NB: it would be a little more precise if we checked for ni2 being
+           * under NULL than what we do here but then we must check for
+           * assignments of the variable so that we don't make a wrong
+           * conclusion for "x == (x = null)" which, even if false, still leaves
+           * x null. The first branch is OK because "(x = null) == x" doesn't
+           * have the same problem.
+           */
+          final IRNode n = tree.getChild(node, 0);
+          if (VariableUseExpression.prototype.includes(tree.getOperator(n))) {
+            final int idx = lattice.indexOf(binder.getIBinding(n).getNode());
+            newValue = lattice.setVarNonNullIfNotAlready(newValue, idx);
+          }
+        } else {
+          // TRUE BRANCH: can update variables to be the meet of the two sides
+        }
+      }
+      return newValue;
+    }    
+    @Override
+    protected Value transferImplicitArrayCreation(
+        final IRNode arrayInitializer, final Value val) {
+      return push(val, NonNullRawLattice.NOT_NULL);
+    }
 
     @Override
     protected Value transferInitializationOfVar(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      return pop(setVar(node, val, node));
+      return pop(setVar(node, val, VariableDeclarator.getInit(node)));
+    }
+
+    @Override
+    protected Value transferInstanceOf(
+        final IRNode node, final boolean flag, final Value val) {
+      if (!lattice.isNormal(val)) return val;
+      
+      if (!flag) return val;
+      
+      /* TRUE branch: The value cannot be null because otherwise it would
+       * not be an instance of something.  If the value of a variable is being
+       * tested, we can update its state to reflect this fact, but only if 
+       * it isn't already known to be raw or non-null.  NEVER change raw
+       * to non-null because that will alter how the fields of the referenced
+       * object are treated.
+       */
+      final IRNode n = InstanceOfExpression.getValue(node);
+      if (VariableUseExpression.prototype.includes(n)) {
+        final int idx = lattice.indexOf(binder.getIBinding(n).getNode());
+        return lattice.setVarNonNullIfNotAlready(val, idx);
+      }
+      return val;
+    }
+
+    @Override
+    protected Value transferIsObject(
+        final IRNode n, final boolean flag, final Value val) {
+      if (!lattice.isNormal(val)) return val;
+
+      /*
+       * If the operation is a method call, pop the arguments to access the
+       * state of the receiver. Use a *copy* of the lattice value to do this.
+       */
+      Value newValue = val;
+      final IRNode p = tree.getParent(n);
+      if (tree.getOperator(p) instanceof CallInterface) {
+        final CallInterface cop = ((CallInterface)tree.getOperator(p));
+        int numArgs;
+        try {
+          numArgs = tree.numChildren(cop.get_Args(p));
+        } catch (final CallInterface.NoArgs e) {
+          numArgs = 0;
+        }
+        while (numArgs > 0) {
+          newValue = lattice.pop(newValue);
+          --numArgs;
+        }
+      }
+      
+      /*
+       * Impossible situations: (1) We know the object is null, but we are
+       * testing the true (object is not null) path. (2) We know the object is
+       * not null, but we are testing the false (object is null) path.
+       */
+      final Element ni = lattice.peek(newValue);
+      if (flag && ni.lessEq(NonNullRawLattice.NULL)) {
+        return null; // lattice.bottom();
+      }
+      if (!flag && ni.lessEq(NonNullRawLattice.RAW)) {
+        return null; //lattice.bottom();
+      }
+      
+      /*
+       * If we are on the true (object is not null) path and the expression
+       * being tested is a variable use, then we can mark the variable as
+       * not-null, if it isn't already RAW or NOT_NULL.
+       */
+      if (flag && VariableUseExpression.prototype.includes(n)) {
+        final int idx = lattice.indexOf(binder.getIBinding(n).getNode());
+        return lattice.setVarNonNullIfNotAlready(val, idx);
+      }
+      return super.transferIsObject(n, flag, val);
+    }
+
+    @Override
+    protected Value transferLiteral(final IRNode node, final Value val) {
+      if (!lattice.isNormal(val)) return val;
+      
+      final Element ni;
+      if (NullLiteral.prototype.includes(node)) {
+        ni = NonNullRawLattice.NULL;
+      } else {
+        ni = NonNullRawLattice.NOT_NULL; // all other literals are not null
+      }
+      return lattice.push(val, ni);
+    }
+
+    @Override
+    protected Value transferToString(final IRNode node, final Value val) {
+      if (!lattice.isNormal(val)) return val;
+      
+      if (lattice.peek(val).lessEq(NonNullRawLattice.NOT_NULL)) return val;
+      // otherwise, we can force not null
+      return lattice.push(lattice.pop(val), NonNullRawLattice.NOT_NULL);
     }
     
-    // Start with considering transferInstanceOf()
+    @Override
+    protected Value transferUseField(final IRNode fref, Value val) {
+      if (!lattice.isNormal(val)) return val;
+      
+      /* if the field reference is part of a ++ or += operation, we have to
+       * duplicate the reference for the subsequent write operation. 
+       */
+      if (isBothLhsRhs(fref)) val = dup(val);
+      
+      // pop the object reference
+      final Element refState = lattice.peek(val);
+      val = pop(val);
+
+      /*
+       * If the field is @NonNull, then we push NOT_NULL, unless the object
+       * reference is RAW.  In that case, we have to check to see if the 
+       * field is initialized yet.  If so, we push NOT_NULL, otherwise we must
+       * push MAYBE_NULL.  If the field is not annotated, we push MAYBE_NULL.
+       */
+      final IRNode fieldDecl = binder.getBinding(fref);
+      if (NonNullRules.getNonNull(fieldDecl) != null) {
+        if (refState == NonNullRawLattice.RAW) {
+          // No fields are initialized
+          val = push(val, NonNullRawLattice.MAYBE_NULL);
+        } else if (refState instanceof ClassElement) {
+          // Partially initialized class
+          final IJavaDeclaredType initializedThrough =
+              ((ClassElement) refState).getType();
+          
+          final ITypeEnvironment typeEnvironment = binder.getTypeEnvironment();
+          final IRNode fieldDeclaredIn = VisitUtil.getEnclosingType(fieldDecl);
+          final IJavaType fieldIsFrom = typeEnvironment.getMyThisType(fieldDeclaredIn);
+          if (!typeEnvironment.isSubType(fieldIsFrom, initializedThrough)) {
+            val = push(val, NonNullRawLattice.MAYBE_NULL);
+          } else {
+            val = push(val, NonNullRawLattice.NOT_NULL);
+          }
+        } else {
+          val = push(val, NonNullRawLattice.NOT_NULL);
+        }
+      } else {
+        val = push(val, NonNullRawLattice.MAYBE_NULL);
+      }
+      return val;
+    }
     
     @Override
     protected Value transferUseReceiver(final IRNode use, final Value val) {
