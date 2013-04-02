@@ -531,33 +531,32 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 		*/
 		MultiMap<String,JavaSourceFile> asBinary = new MultiHashMap<String,JavaSourceFile>();
 		List<Triple<String,String,File>> classFiles = new ArrayList<Triple<String,String,File>>();
-		ZipFile jar          = null;
-		String lastJar       = null;		
+		ZipFile jar  = null;
+		File lastJar = null;		
 		for(String ref : refs) {
 			//System.out.println("Got ref to "+ref+" from "+jp.getName());		    			
-			final Pair<String,Object> p = getMapping(jp.getName(), ref);
+			final IJavaFile p = getMapping(jp.getName(), ref);
 			if (p == null) {
 				SLLogger.getLogger().warning("Unable to find ref "+ref+" in "+jp.getName());
 				continue;
 			}
-			final Object o = p.second();
-			if (o instanceof String) {				
+			switch (p.getType()) {
+			case CLASS_FROM_JAR:	
 				// Jar file
 				//System.out.println("Got ref to jarred class "+ref);
-				String jarName = (String) o;
-				if (!jarName.equals(lastJar)) {
-					lastJar = jarName;
-					jar     = new ZipFile(jarName);
+				if (!p.getFile().equals(lastJar)) {
+					lastJar = p.getFile();
+					jar     = new ZipFile(p.getFile());
 				}
-				jarRefs.asList().add(new Triple<String,String,ZipFile>(p.first(), ref, jar));
-			} 
-			else if (o instanceof JavaSourceFile) {
-				asBinary.put(p.first(), (JavaSourceFile) o);
-			}
-			else if (o instanceof File) {
+				jarRefs.asList().add(new Triple<String,String,ZipFile>(p.getProject(), ref, jar));
+				break;
+			case SOURCE:
+				asBinary.put(p.getProject(), (JavaSourceFile) p);
+				break;
+			case CLASS:
 				// Assume .class
 				//System.out.println("Got ref to class "+ref);				
-				File f = (File) o;
+				File f = p.getFile();
 				String name = f.getName();
 				int dollar = name.indexOf('$');
 				if (dollar >= 0) {
@@ -566,8 +565,9 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 					f = new File(f.getParentFile(), name.substring(0, dollar)+".class");
 					ref = ref.substring(0, ref.length()-name.length()+6)+outerName;
 				}
-				classFiles.add(new Triple<String,String,File>(p.first(), ref, f));				
-			} else {
+				classFiles.add(new Triple<String,String,File>(p.getProject(), ref, f));				
+				break;
+			default:
 				System.out.println("Unknown ref: "+ref);
 			}
 		}		

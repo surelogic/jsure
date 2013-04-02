@@ -25,11 +25,10 @@ public class RemoteJSecureJob extends RemoteScanJob<JavaProjectSet<JavaProject>,
 				ZipFile lastZip = null;
 				try {
 					for(Pair<String,String> key: classes.getMapKeys()) {
-						Pair<String,Object> info = classes.getMapping(key);
+						IJavaFile info = classes.getMapping(key);
 						// How to distinguish libraries?
-						if (info.second() instanceof String) {
-							final String jarPath = (String) info.second();
-							ZipFile jar = new ZipFile(jarPath);
+						if (info.getType() == IJavaFile.Type.CLASS_FOR_SRC) {
+							ZipFile jar = new ZipFile(info.getFile());
 							summarizer.summarize(jar, key.second());
 						}
 					}	
