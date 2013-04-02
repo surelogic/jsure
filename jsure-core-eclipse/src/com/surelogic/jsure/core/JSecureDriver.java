@@ -20,7 +20,20 @@ public class JSecureDriver extends AbstractJavaScanner<JavaProjectSet<JavaProjec
 	static final String RESULTS_XML = "jsecure.xml";
 	
 	public JSecureDriver() {
-		super(IJavaFactory.prototype);
+		super(new IJavaFactory<JavaProject>() {
+			public JavaProject newProject(JavaProjectSet<JavaProject> projects,
+					Config config, String name, SLProgressMonitor monitor) {
+				return IJavaFactory.prototype.newProject(projects, config, name, monitor);
+			}
+
+			@Override
+			public JavaProjectSet<JavaProject> newProjectSet(File loc,
+					boolean isAuto, Date time, Map<String, Object> args) {
+				final JavaProjectSet<JavaProject> rv = IJavaFactory.prototype.newProjectSet(loc, isAuto, time, args);
+				rv.setArg(SrcEntry.ZIP_BINARIES, Boolean.TRUE);
+				return rv;
+			}
+		});
 	}
 
 	@Override
