@@ -252,6 +252,7 @@ public class DropDiff extends DiffNode implements IViewable {
 			case OLD:
 				w.println("\t\tOld    : " + n.getText());
 				break;
+			default:
 			}
 		}	
 	}

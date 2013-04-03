@@ -87,7 +87,6 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 			cmdj.createVmArgument().setValue("-D"+AnnotationRules.XML_LOG_PROP+"=RemoteJSureRun.AnnotationRules");
 			cmdj.createVmArgument().setValue("-D"+XUtil.testingProp+"="+XUtil.testing);
 		}
-		cmdj.createVmArgument().setValue("-D"+RemoteScanJob.RUN_DIR_PROP+"="+config.getRunDirectory());
 		
 		final ConfigHelper util = new ConfigHelper(debug, config);
 		String location = util.getPluginDir(JSureConstants.FLUID_PLUGIN_ID, true);

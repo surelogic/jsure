@@ -1432,6 +1432,7 @@ public class Util {
           break;
         case BINARY:
           outOfDate = BinaryCUDrop.queryCU(file.getProjectName(), info.getFileName());
+        default:
         }
 
         if (outOfDate != null) {

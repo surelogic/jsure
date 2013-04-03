@@ -1,7 +1,6 @@
 package com.surelogic.jsure.core;
 
 import java.io.*;
-import java.util.zip.*;
 
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.*;
@@ -20,24 +19,27 @@ public class RemoteJSecureJob extends RemoteScanJob<JavaProjectSet<JavaProject>,
 		final JavaClassPath<JavaProjectSet<JavaProject>> classes = new JavaClassPath<JavaProjectSet<JavaProject>>(projects, true);
 		return new AbstractSLJob("Running JSecure on "+projects.getLabel()) {
 			@Override
-			public SLStatus run(SLProgressMonitor monitor) {
-				ClassSummarizer summarizer = new ClassSummarizer();
-				ZipFile lastZip = null;
+			public SLStatus run(final SLProgressMonitor monitor) {
+				final ClassSummarizer summarizer = new ClassSummarizer();
+				//ZipFile lastZip = null;
 				try {
-					for(Pair<String,String> key: classes.getMapKeys()) {
-						IJavaFile info = classes.getMapping(key);
-						// How to distinguish libraries?
+					for(final Pair<String,String> key: classes.getMapKeys()) {
+						final IJavaFile info = classes.getMapping(key);
 						if (info.getType() == IJavaFile.Type.CLASS_FOR_SRC) {
-							ZipFile jar = new ZipFile(info.getFile());
-							summarizer.summarize(jar, key.second());
+							summarizer.summarize(info.getStream());
 						}
 					}	
 				} catch(IOException e) {
 					return SLStatus.createErrorStatus(e);
 				}
-				return null;
+				return SLStatus.OK_STATUS;
 			}
 		};		
+	}
+	
+	public static void main(String[] args) {
+		RemoteJSecureJob job = new RemoteJSecureJob();
+		job.run();
 	}
 }
 
@@ -55,6 +57,7 @@ class LocalJSecureJob extends AbstractLocalSLJob<ILocalConfig> {
 	protected void setupClassPath(final ConfigHelper util, CommandlineJava cmdj,
 			Project proj, Path path) {
         util.addPluginAndJarsToPath(COMMON_PLUGIN_ID, "lib/runtime");
+        util.addPluginToPath("com.surelogic.jsure.core");
         // TODO anything else needed?
         for (File jar : util.getPath()) {
             addToPath(proj, path, jar, true);

@@ -268,6 +268,7 @@ public class DeclFactory {
       return parent.getTypeParameterBuilderAt(num);
     case FIELD: // EnumConstantClassDecl
       return buildNonTypeDecl(decl, (Declaration) t, parent);
+    default:
     }
     return null;
   }
@@ -373,6 +374,7 @@ public class DeclFactory {
       final int num = computePosition(decl);
       // return buildParameter(decl, num, name);
       return parent.getParameterBuilderAt(num);
+    default:
     }
     return null;
   }
