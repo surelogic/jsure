@@ -919,10 +919,14 @@ implements IBinderClient {
           final IJavaDeclaredType initializedThrough =
               ((ClassElement) refState).getType();
           
+          /* If the field is declared in a proper subtype of the type named
+           * in the RAW declaration, then the field is not yet initialized.
+           */
           final ITypeEnvironment typeEnvironment = binder.getTypeEnvironment();
           final IRNode fieldDeclaredIn = VisitUtil.getEnclosingType(fieldDecl);
           final IJavaType fieldIsFrom = typeEnvironment.getMyThisType(fieldDeclaredIn);
-          if (!typeEnvironment.isSubType(fieldIsFrom, initializedThrough)) {
+          if (typeEnvironment.isSubType(fieldIsFrom, initializedThrough) &&
+              !fieldIsFrom.equals(initializedThrough)) {
             val = push(val, NonNullRawLattice.MAYBE_NULL);
           } else {
             val = push(val, NonNullRawLattice.NOT_NULL);
