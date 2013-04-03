@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.util.IRNodeIndexedArrayLattice;
@@ -78,7 +79,8 @@ extends IntraproceduralAnalysis<T, L_T, JavaForwardAnalysis<T, L_T>> {
     
     @Override
     protected String firstToString(final IRNode where) {
-      return Integer.toString(JavaNode.getJavaRef(where).getOffset());
+      final IJavaRef javaRef = JavaNode.getJavaRef(where);
+      return javaRef == null ? "?" : Integer.toString(javaRef.getOffset());
     }
     
     public IRNode getWhere() { return first(); }

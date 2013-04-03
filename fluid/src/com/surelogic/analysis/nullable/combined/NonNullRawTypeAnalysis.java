@@ -179,7 +179,7 @@ implements IBinderClient {
     @Override
     protected String processRawResult(
         final IRNode expr, final Lattice lattice, final Value rawResult) {
-      return lattice.toString(rawResult);
+      return rawResult == null ? "null" : lattice.toString(rawResult);
     }
 
     @Override
