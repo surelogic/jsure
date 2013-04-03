@@ -102,12 +102,14 @@ extends AbstractLattice<NonNullRawLattice.Element> {
 
       @Override
       public Element join(final Element other) {
-        return other == MAYBE_NULL ? other : this;
+        if (other == IMPOSSIBLE || other == NULL) return this;
+        else return MAYBE_NULL;
       }
 
       @Override
       public Element meet(final Element other) {
-        return other == MAYBE_NULL ? this : other;
+        if (other == MAYBE_NULL || other == NULL) return this;
+        else return IMPOSSIBLE;
       }
     },
     
@@ -119,12 +121,15 @@ extends AbstractLattice<NonNullRawLattice.Element> {
 
       @Override
       public Element join(final Element other) {
-        return other == MAYBE_NULL ? other : this;
+        if (other == MAYBE_NULL || other == NULL) return MAYBE_NULL;
+        else return this;
       }
 
       @Override
       public Element meet(final Element other) {
-        return other == MAYBE_NULL ? this : other;
+        if (other == MAYBE_NULL) return this;
+        else if (other == NULL) return IMPOSSIBLE;
+        else return other;
       }
     },
     
@@ -143,8 +148,7 @@ extends AbstractLattice<NonNullRawLattice.Element> {
 
       @Override
       public Element meet(final Element other) {
-        if (other == IMPOSSIBLE) return IMPOSSIBLE;
-        else if (other == NULL) return IMPOSSIBLE;
+        if (other == IMPOSSIBLE || other == NULL) return IMPOSSIBLE;
         else return this;
       }
     },
@@ -199,9 +203,11 @@ extends AbstractLattice<NonNullRawLattice.Element> {
       
       if (other == Specials.NOT_NULL || other == Specials.IMPOSSIBLE) {
         return this;
-      } else if (other == Specials.NULL) {
+      } else if (other == Specials.NULL || other == Specials.MAYBE_NULL) {
         return Specials.MAYBE_NULL;
-      } else if (other instanceof ClassElement) {
+      } else if (other == Specials.RAW) { 
+        return Specials.RAW;
+      } else {  // Must be a ClassElement
         // Join with a class other than ourself (short-circuited above)
         final Set<IJavaDeclaredType> ancestors = new HashSet<IJavaDeclaredType>();
         IJavaDeclaredType current = type;
@@ -220,15 +226,11 @@ extends AbstractLattice<NonNullRawLattice.Element> {
         throw new RuntimeException(
             "Couldn't find least common ancestor for types " + 
                 type + " and " + ce.type);
-      } else {
-        return other; // RAW or MAYBE_NULL
       }
     }
 
     @Override
     public Element meet(final Element other) {
-      
-      
       if (other == Specials.MAYBE_NULL || other == Specials.RAW) {
         return this;
       } else if (other == Specials.NOT_NULL || other == Specials.IMPOSSIBLE) {

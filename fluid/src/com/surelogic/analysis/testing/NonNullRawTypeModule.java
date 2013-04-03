@@ -17,7 +17,11 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
+import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -131,16 +135,6 @@ public final class NonNullRawTypeModule extends AbstractWholeIRAnalysis<NonNullR
       final HintDrop drop = HintDrop.newInformation(b);
       drop.setCategorizingMessage(Messages.DSC_NON_NULL);
       drop.setMessage(Messages.RAW_STATE, state);
-
-      /* This is no good for regression tests because the order of elements
-       * in the set isn't fixed.  Not worth fixing them.  Any errors here
-       * will be reflected as errors in qualified this expressions.
-       */
-//      final Pair<Lattice, Element[]> pair = currentQuery().first().getResultFor(b);
-//      final HintDrop drop2 = HintDrop.newInformation(b);
-//      drop2.setCategorizingMessage(Messages.DSC_NON_NULL);
-//      drop2.setMessage(Messages.USES, pair.first().qualifiedThisToString());
-
       return null;
     }
     
@@ -150,6 +144,33 @@ public final class NonNullRawTypeModule extends AbstractWholeIRAnalysis<NonNullR
       processReceiverDeclaration(expr, rcvrDecl);
       
       super.handleConstructorCall(expr);
+    }
+
+    @Override
+    public Void visitVariableUseExpression(final IRNode use) {
+      // Ignore if we are the LHS of an assignment
+      final IRNode parent = JJNode.tree.getParent(use);
+      if (AssignExpression.prototype.includes(parent) &&
+          AssignExpression.getOp1(parent).equals(use)) {
+        return null;
+      }
+      
+      // See if the current variable is a primitive or not
+      final IJavaType type = getBinder().getJavaType(use);
+      if (type instanceof IJavaReferenceType) {
+         // See if the current variable is considered to be null or not
+        final Pair<Lattice, Element[]> result =
+            currentQuery().first().getResultFor(use);
+        final int idx = result.first().indexOf(getBinder().getBinding(use));
+        final Element state = result.second()[idx];
+        
+        final HintDrop drop = HintDrop.newInformation(use);
+        drop.setCategorizingMessage(Messages.DSC_NON_NULL);
+        final String varName = VariableUseExpression.getId(use);
+        drop.setMessage(Messages.VAR_STATE, varName, state.toString());
+      }
+      
+      return null;
     }
   }
 

@@ -17,6 +17,7 @@ final class Messages {
 
   public static final int LOCAL_VARS = 520;
 
+  public static final int VAR_STATE = 529;
   public static final int NOT_NULL = 530;
   public static final int MAYBE_NULL = 531;
   public static final int RAWNESS = 532;
