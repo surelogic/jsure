@@ -1,4 +1,4 @@
-package com.surelogic.jsure.core;
+package com.surelogic.jsecure.client.eclipse;
 
 import java.io.File;
 import java.io.IOException;

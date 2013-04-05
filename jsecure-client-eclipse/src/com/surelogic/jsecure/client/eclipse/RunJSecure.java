@@ -12,7 +12,6 @@ import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.java.*;
 import com.surelogic.common.ui.BalloonUtility;
 import com.surelogic.javac.*;
-import com.surelogic.jsure.core.JSecureDriver;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public class RunJSecure implements IViewActionDelegate {
