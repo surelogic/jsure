@@ -15,13 +15,17 @@ import com.surelogic.common.StringCache;
  * @author edwin
  */
 public class ClassSummarizer extends ClassVisitor {
+	public final static String DB_PATH = "neo4j-db";
+	
 	public class Clazz {
 		
 	}
 	
-	Clazz result = null;
+	Clazz result = null;	
 
-	public ClassSummarizer() {
+	
+	
+	public ClassSummarizer(File runDir) {
 		super(Opcodes.ASM4);
 	}
 
@@ -189,5 +193,10 @@ public class ClassSummarizer extends ClassVisitor {
 	public void visitSource(String source, String debug) {
 		System.out.println("Source: "+source);
 		super.visitSource(source, debug);
+	}
+
+	public void close() {
+		// TODO Auto-generated method stub
+		
 	}
 }

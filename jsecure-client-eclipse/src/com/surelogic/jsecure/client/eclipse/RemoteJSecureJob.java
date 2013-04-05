@@ -20,7 +20,7 @@ public class RemoteJSecureJob extends RemoteScanJob<JavaProjectSet<JavaProject>,
 		return new AbstractSLJob("Running JSecure on "+projects.getLabel()) {
 			@Override
 			public SLStatus run(final SLProgressMonitor monitor) {
-				final ClassSummarizer summarizer = new ClassSummarizer();
+				final ClassSummarizer summarizer = new ClassSummarizer(runDir);
 				//ZipFile lastZip = null;
 				try {
 					for(final Pair<String,String> key: classes.getMapKeys()) {
@@ -31,6 +31,8 @@ public class RemoteJSecureJob extends RemoteScanJob<JavaProjectSet<JavaProject>,
 					}	
 				} catch(IOException e) {
 					return SLStatus.createErrorStatus(e);
+				} finally {
+					summarizer.close();
 				}
 				return SLStatus.OK_STATUS;
 			}
