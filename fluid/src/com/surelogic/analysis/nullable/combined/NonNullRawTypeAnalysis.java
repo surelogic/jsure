@@ -21,6 +21,7 @@ import com.surelogic.analysis.nullable.combined.NonNullRawLattice.ClassElement;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.Pair;
+import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 import com.surelogic.util.IThunk;
 import com.surelogic.util.NullList;
@@ -190,52 +191,53 @@ implements IBinderClient {
   
   
   
-  public final class InferredRaw
-  extends Result<NonNullRawLattice.Element, NonNullRawLattice, RawPromiseDrop> {
-    protected InferredRaw(
+  public final class Inferred
+  extends Result<NonNullRawLattice.Element, NonNullRawLattice, PromiseDrop<?>> {
+    protected Inferred(
         final IRNode[] keys, final InferredPair<Element>[] val,
         final NonNullRawLattice sl) {
       super(keys, val, sl);
     }
 
     @Override
-    public RawPromiseDrop getPromiseDrop(final IRNode n) {
-      return NonNullRules.getRaw(n);
+    public PromiseDrop<?> getPromiseDrop(final IRNode n) {
+      final RawPromiseDrop raw = NonNullRules.getRaw(n);
+      return (raw != null) ? raw : NonNullRules.getNonNull(n);
     }
     
     @Override
-    public Element injectPromiseDrop(final RawPromiseDrop pd) {
+    public Element injectPromiseDrop(final PromiseDrop<?> pd) {
       return inferredStateLattice.injectPromiseDrop(pd);
     }
   }
   
   
   
-  public final class InferredRawQuery
-  extends InferredVarStateQuery<InferredRawQuery, NonNullRawLattice.Element, Value, NonNullRawLattice, Lattice, InferredRaw> {
-    protected InferredRawQuery(
+  public final class InferredQuery
+  extends InferredVarStateQuery<InferredQuery, NonNullRawLattice.Element, Value, NonNullRawLattice, Lattice, Inferred> {
+    protected InferredQuery(
         final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
     }
     
-    protected InferredRawQuery(
-        final Delegate<InferredRawQuery, InferredRaw, Value, Lattice> d) {
+    protected InferredQuery(
+        final Delegate<InferredQuery, Inferred, Value, Lattice> d) {
       super(d);
     }
     
     @Override
-    protected InferredRaw processRawResult(
+    protected Inferred processRawResult(
         final IRNode expr, final Lattice lattice, final Value rawResult) {
-      return new InferredRaw(
+      return new Inferred(
           lattice.getInferredStateKeys(),
           rawResult.second().second(),
           lattice.getInferredStateLattice());
     }
 
     @Override
-    protected InferredRawQuery newSubAnalysisQuery(
-        final Delegate<InferredRawQuery, InferredRaw, Value, Lattice> delegate) {
-      return new InferredRawQuery(delegate);
+    protected InferredQuery newSubAnalysisQuery(
+        final Delegate<InferredQuery, Inferred, Value, Lattice> delegate) {
+      return new InferredQuery(delegate);
     }
   }
   
@@ -1033,7 +1035,7 @@ implements IBinderClient {
     return new DebugQuery(getAnalysisThunk(flowUnit));
   }
   
-  public InferredRawQuery getInferredRawQuery(final IRNode flowUnit) {
-    return new InferredRawQuery(getAnalysisThunk(flowUnit));
+  public InferredQuery getInferredQuery(final IRNode flowUnit) {
+    return new InferredQuery(getAnalysisThunk(flowUnit));
   }
 }

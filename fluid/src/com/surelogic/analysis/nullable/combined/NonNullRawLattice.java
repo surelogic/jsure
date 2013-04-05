@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.aast.java.NamedTypeNode;
+import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
@@ -304,13 +306,19 @@ extends AbstractLattice<NonNullRawLattice.Element> {
     return e;
   }
 
-  public Element injectPromiseDrop(final RawPromiseDrop pd) {
-    final NamedTypeNode typeName = pd.getAAST().getUpToType();
-    if (typeName.getType().equals("*")) {
-      return RAW;
+  public Element injectPromiseDrop(final PromiseDrop<?> pd) {
+    if (pd instanceof RawPromiseDrop) {
+      final NamedTypeNode typeName = ((RawPromiseDrop) pd).getAAST().getUpToType();
+      if (typeName.getType().equals("*")) {
+        return RAW;
+      } else {
+        return injectClass(
+            (IJavaDeclaredType) typeName.resolveType().getJavaType());
+      }
+    } else if (pd instanceof NonNullPromiseDrop) {
+      return NOT_NULL;
     } else {
-      return injectClass(
-          (IJavaDeclaredType) typeName.resolveType().getJavaType());
+      return IMPOSSIBLE;
     }
   }
   

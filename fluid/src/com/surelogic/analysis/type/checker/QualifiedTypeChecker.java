@@ -3,7 +3,6 @@ package com.surelogic.analysis.type.checker;
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.operator.ArrayLength;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.BoxExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
@@ -152,21 +151,6 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   // TODO: Class Instance Creation Expressions
   
   // TODO: Array Creation Expressions
-  
-//  @Override
-//  public final Void visitArrayLength(final IRNode e) {
-//    /*
-//     * N.B. Special case of field access: A 'final int' non-static field.
-//     */
-//    doAcceptForChildren(e);
-//    checkArrayLength(e, ArrayLength.getObject(e));
-//    return null;
-//  }
-//  
-//  protected void checkArrayLength(
-//      final IRNode arrayLenExpr, final IRNode objectExpr) {
-//    // Do nothing
-//  }
   
   @Override
   public final Void visitFieldRef(final IRNode e) {
