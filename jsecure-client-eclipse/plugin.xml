@@ -1,0 +1,13 @@
+<?eclipse version="3.0"?>
+<plugin>
+  <extension point="org.eclipse.ui.viewActions">    
+    <viewContribution id="com.surelogic.jsure.views.debug.viewContributions.ResultsView"
+      targetID="com.surelogic.jsure.client.eclipse.views.status.VerificationStatusView">
+      <action id="com.surelogic.jsure.views.debug.runJSecure"
+        label="Run JSecure"
+        menubarPath="additions"
+        class="com.surelogic.jsecure.client.eclipse.RunJSecure">
+      </action>
+    </viewContribution>  
+  </extension>   
+</plugin>

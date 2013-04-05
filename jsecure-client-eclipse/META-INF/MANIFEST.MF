@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: JSecure Eclipse Client
+Bundle-SymbolicName: com.surelogic.jsecure.client.eclipse;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-Vendor: SureLogic, Inc.
+Require-Bundle: com.surelogic.common;bundle-version="4.4.0",
+ com.surelogic.common.core;bundle-version="4.4.0",
+ org.eclipse.jdt.core,
+ com.surelogic.common.ui;bundle-version="4.4.0",
+ org.eclipse.ui,
+ com.surelogic.jsure.core;bundle-version="4.4.0",
+ edu.cmu.cs.fluid;bundle-version="4.4.0"
+Bundle-ClassPath: lib/geronimo-jta_1.1_spec-1.1.1.jar,
+ lib/neo4j-kernel-1.8.2.jar,
+ .
+Bundle-ActivationPolicy: lazy
+Import-Package: org.osgi.framework
