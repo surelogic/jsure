@@ -58,6 +58,7 @@ class LocalJSecureJob extends AbstractLocalSLJob<ILocalConfig> {
 			Project proj, Path path) {
         util.addPluginAndJarsToPath(COMMON_PLUGIN_ID, "lib/runtime");
         util.addPluginToPath("com.surelogic.jsure.core");
+        util.addPluginAndJarsToPath("com.surelogic.jsecure.client.eclipse", "lib");
         // TODO anything else needed?
         for (File jar : util.getPath()) {
             addToPath(proj, path, jar, true);
