@@ -5,6 +5,10 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.*;
 
+import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
 import org.objectweb.asm.*;
 
 import com.surelogic.common.StringCache;
@@ -15,18 +19,38 @@ import com.surelogic.common.StringCache;
  * @author edwin
  */
 public class ClassSummarizer extends ClassVisitor {
-	public final static String DB_PATH = "neo4j-db";
+	public static final String DB_PATH = "neo4j-db";
+	public static final String FUNC_IDX = "function-index";
+	public static final String FUNC_KEY = "function-key";
+	public static final String FUNC_NAME = "func-name";
+	public static final String FUNC_CLASS = "func-class";
+	
+	public static enum RelTypes implements RelationshipType {
+		// X calls method/constructor Y
+	    CALLS, 
+	    // A uses field B
+	    USES
+	}
 	
 	public class Clazz {
+		final String name;
 		
+		Clazz(String id) {
+			name = id;
+		}
 	}
 	
 	Clazz result = null;	
 
-	
+	final GraphDatabaseService graphDb;
+	final Index<Node> funcIndex;
 	
 	public ClassSummarizer(File runDir) {
 		super(Opcodes.ASM4);
+		
+		graphDb = new GraphDatabaseFactory().newEmbeddedDatabase( new File(runDir, DB_PATH).getAbsolutePath() );
+		funcIndex = graphDb.index().forNodes( FUNC_IDX );
+		registerShutdownHook( graphDb );
 	}
 
 	public Clazz summarize(ZipFile jar, String className) throws IOException {
@@ -70,6 +94,7 @@ public class ClassSummarizer extends ClassVisitor {
 		System.out.println("Visiting class: "+name);
 		System.out.println("Class Major Version: "+version);
 		System.out.println("Super class: "+superName);
+		result = new Clazz(name);
 		super.visit(version, access, name, signature, superName, interfaces);
 	}
 
@@ -132,9 +157,12 @@ public class ClassSummarizer extends ClassVisitor {
 	 * When a method is encountered
 	 */
 	@Override
-	public MethodVisitor visitMethod(int access, String name,
-			String desc, String signature, String[] exceptions) {
-		System.out.println("Method: "+name+" "+desc);
+	public MethodVisitor visitMethod(int access, final String name,
+			final String desc, String signature, String[] exceptions) {
+		final String id = name+" "+desc;
+		final Node func = findFunctionNode(result.name, id);
+		System.out.println("Method: "+id);
+		
 		//return super.visitMethod(access, name, desc, signature, exceptions);
         MethodVisitor oriMv= new MethodVisitor(Opcodes.ASM4) {
         	@Override
@@ -196,7 +224,39 @@ public class ClassSummarizer extends ClassVisitor {
 	}
 
 	public void close() {
-		// TODO Auto-generated method stub
-		
+		graphDb.shutdown();
+	}
+	
+	private static void registerShutdownHook( final GraphDatabaseService graphDb ) {
+	    // Registers a shutdown hook for the Neo4j instance so that it
+	    // shuts down nicely when the VM exits (even if you "Ctrl-C" the
+	    // running example before it's completed)
+	    Runtime.getRuntime().addShutdownHook( new Thread()
+	    {
+	        @Override
+	        public void run()
+	        {
+	            graphDb.shutdown();
+	        }
+	    } );
+	}
+	
+	private Node findFunctionNode(String clazzName, String funcName) {
+		String id = clazzName+", "+funcName;
+		IndexHits<Node> hits = funcIndex.get(FUNC_KEY, id);
+		if (hits.hasNext()) {
+			return hits.getSingle();
+		}
+		// Need to create
+		Node node = graphDb.createNode();
+	    node.setProperty( FUNC_KEY, id );
+	    node.setProperty(FUNC_CLASS, clazzName);
+	    node.setProperty(FUNC_NAME, funcName);
+	    funcIndex.add( node, FUNC_KEY, id );
+	    return node;
+	}
+	
+	private void addReference(Node caller, RelationshipType rel, Node callee) {
+		caller.createRelationshipTo(callee, rel);
 	}
 }
