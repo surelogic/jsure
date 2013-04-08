@@ -21,9 +21,10 @@ import com.surelogic.common.StringCache;
 public class ClassSummarizer extends ClassVisitor {
 	public static final String DB_PATH = "neo4j-db";
 	public static final String FUNC_IDX = "function-index";
-	public static final String FUNC_KEY = "function-key";
-	public static final String FUNC_NAME = "func-name";
-	public static final String FUNC_CLASS = "func-class";
+	public static final String INDEX_KEY = "index-key";
+	public static final String NODE_NAME = "node-name";
+	public static final String PARENT_CLASS = "parent-class";
+	public static final String FIELD_IDX = "field-index";
 	
 	public static enum RelTypes implements RelationshipType {
 		// X calls method/constructor Y
@@ -44,12 +45,14 @@ public class ClassSummarizer extends ClassVisitor {
 
 	final GraphDatabaseService graphDb;
 	final Index<Node> funcIndex;
+	final Index<Node> fieldIndex;
 	
 	public ClassSummarizer(File runDir) {
 		super(Opcodes.ASM4);
 		
 		graphDb = new GraphDatabaseFactory().newEmbeddedDatabase( new File(runDir, DB_PATH).getAbsolutePath() );
 		funcIndex = graphDb.index().forNodes( FUNC_IDX );
+		fieldIndex = graphDb.index().forNodes( FIELD_IDX );
 		registerShutdownHook( graphDb );
 	}
 
@@ -68,9 +71,16 @@ public class ClassSummarizer extends ClassVisitor {
 	public Clazz summarize(InputStream is) throws IOException {		
 		init();
 		
-		final ClassReader cr2 = new ClassReader(is);
-		cr2.accept(this, 0);		
-		return finish();
+		final Transaction tx = graphDb.beginTx();
+		try {
+			final ClassReader cr2 = new ClassReader(is);
+			cr2.accept(this, 0);		
+			// Updating operations go here
+		    tx.success();
+		} finally {
+		    tx.finish();
+		}
+		return finish();		
 	}
 	
 	public void init() {
@@ -170,7 +180,10 @@ public class ClassSummarizer extends ClassVisitor {
         			String desc) {
         		System.out.println("\tField:  "+owner+", "+name+", "+desc);
         		getHandle(opcode, owner, name, desc);
-        		super.visitFieldInsn(opcode, owner, name, desc);
+        		super.visitFieldInsn(opcode, owner, name, desc);        		
+        		
+        		final Node field = findField(owner, name);
+        		addReference(func, RelTypes.USES, field);
         	}
         	
         	@Override
@@ -179,6 +192,9 @@ public class ClassSummarizer extends ClassVisitor {
          		System.out.println("\tMethod: "+owner+", "+name+", "+desc);
         		getHandle(opcode, owner, name, desc);
         		super.visitMethodInsn(opcode, owner, name, desc);
+        		
+        		final Node callee = findFunctionNode(owner, name, desc);
+        		addReference(func, RelTypes.CALLS, callee);
         	}
         	
         	@Override
@@ -241,18 +257,30 @@ public class ClassSummarizer extends ClassVisitor {
 	    } );
 	}
 	
+	private Node findFunctionNode(String clazzName, String name, String desc) {
+		return findFunctionNode(clazzName, name+' '+desc);
+	}
+	
 	private Node findFunctionNode(String clazzName, String funcName) {
-		String id = clazzName+", "+funcName;
-		IndexHits<Node> hits = funcIndex.get(FUNC_KEY, id);
+		return findNode(funcIndex, clazzName, funcName);
+	}
+	
+	private Node findField(String clazzName, String fieldName) {
+		return findNode(fieldIndex, clazzName, fieldName);
+	}
+	
+	private Node findNode(Index<Node> index, String clazzName, String nodeName) {
+		String id = clazzName+", "+nodeName;
+		IndexHits<Node> hits = index.get(INDEX_KEY, id);
 		if (hits.hasNext()) {
 			return hits.getSingle();
 		}
 		// Need to create
 		Node node = graphDb.createNode();
-	    node.setProperty( FUNC_KEY, id );
-	    node.setProperty(FUNC_CLASS, clazzName);
-	    node.setProperty(FUNC_NAME, funcName);
-	    funcIndex.add( node, FUNC_KEY, id );
+	    node.setProperty( INDEX_KEY, id );
+	    node.setProperty(PARENT_CLASS, clazzName);
+	    node.setProperty(NODE_NAME, nodeName);
+	    index.add( node, INDEX_KEY, id );
 	    return node;
 	}
 	
