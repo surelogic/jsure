@@ -28,7 +28,8 @@ public class RemoteJSecureJob extends RemoteScanJob<JavaProjectSet<JavaProject>,
 						if (info.getType() == IJavaFile.Type.CLASS_FOR_SRC) {
 							summarizer.summarize(info.getStream());
 						}
-					}	
+					}
+					summarizer.dump();
 				} catch(IOException e) {
 					return SLStatus.createErrorStatus(e);
 				} finally {

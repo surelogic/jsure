@@ -9,6 +9,7 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.tooling.GlobalGraphOperations;
 import org.objectweb.asm.*;
 
 import com.surelogic.common.StringCache;
@@ -286,5 +287,21 @@ public class ClassSummarizer extends ClassVisitor {
 	
 	private void addReference(Node caller, RelationshipType rel, Node callee) {
 		caller.createRelationshipTo(callee, rel);
+	}
+
+	public void dump() {
+		System.out.println("Dumping database:");
+		for(Node n : GlobalGraphOperations.at(graphDb).getAllNodes()) {
+			if (!n.hasProperty(INDEX_KEY)) {
+				continue;
+			}
+			System.out.println(n.getProperty(INDEX_KEY)+" calls ...");
+			if (!n.hasRelationship(RelTypes.CALLS, Direction.OUTGOING)) {
+				continue;
+			}
+			for(Relationship r : n.getRelationships(RelTypes.CALLS, Direction.OUTGOING)) {
+				System.out.println("\t"+r.getEndNode().getProperty(INDEX_KEY));
+			}
+		}
 	}
 }
