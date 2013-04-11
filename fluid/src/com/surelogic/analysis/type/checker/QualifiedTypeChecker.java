@@ -19,7 +19,7 @@ import edu.cmu.cs.fluid.java.operator.UnboxExpression;
  */
 public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver<Q> {
   protected QualifiedTypeChecker() {
-    // TODO Auto-generated constructor stub
+    super();
   }
 
   
@@ -130,7 +130,7 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
      * A synchronized statement is executed by first evaluating the Expression.
      * Then:
      * 
-     * f the value of the Expression is null, a NullPointerException is thrown.
+     * If the value of the Expression is null, a NullPointerException is thrown.
      */
     doAcceptForChildren(s);
     checkSynchronizedStatement(s, SynchronizedStatement.getLock(s));
@@ -193,6 +193,63 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   
   protected void checkArrayRefExpression(final IRNode arrayRefExpr,
       final IRNode arrayExpr, final IRNode indexExpr) {
+    // do nothing
+  }
+  
+  @Override
+  public final Void visitDivExpression(final IRNode e) {
+    /*
+     * ¤15.17.2
+     * 
+     * If the value of the divisor in an integer division is 0, then an
+     * ArithmeticException is thrown.
+     */
+    doAcceptForChildren(e);
+    checkDivExpression(e);
+    return null;
+  }
+  
+  protected void checkDivExpression(final IRNode divExpr) {
+    // do nothing
+  }
+  
+  @Override
+  public final Void visitRemExpression(final IRNode e) {
+    /*
+     * ¤15.17.3
+     * 
+     * If the value of the divisor for an integer remainder operator is 0, then
+     * an ArithmeticException is thrown.
+     */
+    doAcceptForChildren(e);
+    checkRemExpression(e);
+    return null;
+  }
+  
+  protected void checkRemExpression(final IRNode remExpr) {
+    // do nothing
+  }
+  
+  @Override
+  public final Void visitAssignExpression(final IRNode e) {
+    /*
+     * ¤15.26.1
+     * 
+     * N.B. Most of this is actually handled by visitFieldRef() and
+     * visitArrayRefExpression(). 
+     * 
+     * If the left-hand operand is an array access expression (¤15.13) then
+     * an ArrayStoreException is raised if the run-time type of the object being
+     * assigned to the array is a proper supertype of the run-time type of the
+     * array element. 
+     * 
+     */
+    doAcceptForChildren(e);
+    checkAssignExpression(e);
+    return null;
+  }
+  
+  protected void checkAssignExpression(final IRNode assignExpr) {
     // do nothing
   }
 }

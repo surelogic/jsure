@@ -35,7 +35,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
-import edu.cmu.cs.fluid.java.operator.AssignExpression;
+import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
@@ -45,6 +45,7 @@ import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ImpliedEnumConstantInitialization;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.NoInitialization;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
@@ -631,9 +632,19 @@ implements IBinderClient {
  
       // transfer the state of the stack into the variable
       return setVar(binder.getIBinding(use).getNode(), val,
-          AssignExpression.getOp2(JJNode.tree.getParent(use)));
+          getAssignmentSource(use));
     }
 
+    private IRNode getAssignmentSource(final IRNode e) {
+      IRNode current = e;
+      Operator op = null;
+      do {
+        current = JJNode.tree.getParent(current);
+        op = JJNode.tree.getOperator(current);
+      } while (!(op instanceof AssignmentInterface));
+      return ((AssignmentInterface) op).getSource(current);
+    }
+    
     private Value setVar(final IRNode varDecl, final Value val, final IRNode src) {
       final int idx = lattice.indexOf(varDecl);
       if (idx != -1) {
@@ -721,6 +732,19 @@ implements IBinderClient {
     }
 
     @Override
+    protected Value transferCrement(
+        final IRNode node, final Operator op, final Value val) {
+      /* Let the value pass through.  If the type is primitive, then the 
+       * top of the stack is MAYBE_NULL, which we want to leave it because
+       * the result will also be primitive.  If the top of the stack is not
+       * MAYBE_NULL, then we have an object (an instance of Number) that was 
+       * unboxed, so we want to leave the top of the stack alone because
+       * this operation doesn't affect the status of the object reference.
+       */
+      return val;
+    }
+
+    @Override
     protected Value transferDefaultInit(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
       return push(val, NonNullRawLattice.NULL);
@@ -795,7 +819,24 @@ implements IBinderClient {
     @Override
     protected Value transferInitializationOfVar(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      return pop(setVar(node, val, VariableDeclarator.getInit(node)));
+      /* 
+       * Locals without initializers are "not definitely assigned".  They are
+       * not NULL (unlike fields without initializers).  The Java compiler
+       * will reject any uses of the variable if the variable is "not definitely
+       * assigned" at the point of the use.  So we do not set the value of the
+       * variable in our model if the initializer is the default one.
+       * 
+       */
+      final IRNode init = VariableDeclarator.getInit(node);
+      if (NoInitialization.prototype.includes(init)) {
+        /*
+         * Just pop the stack: transferDefaultInit() pushes a value that we want
+         * to ignore
+         */
+        return pop(val);
+      } else {
+        return pop(setVar(node, val, init));
+      }
     }
 
     @Override

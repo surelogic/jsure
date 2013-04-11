@@ -92,6 +92,8 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     checkForNull(unboxedExpr);
   }
   
+  // TODO: Return?
+  
   @Override
   protected void checkThrowStatement(
       final IRNode throwStmt, final IRNode thrownExpr) {
