@@ -40,6 +40,7 @@ import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.CrementExpression;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ImpliedEnumConstantInitialization;
@@ -734,14 +735,52 @@ implements IBinderClient {
     @Override
     protected Value transferCrement(
         final IRNode node, final Operator op, final Value val) {
-      /* Let the value pass through.  If the type is primitive, then the 
-       * top of the stack is MAYBE_NULL, which we want to leave it because
-       * the result will also be primitive.  If the top of the stack is not
-       * MAYBE_NULL, then we have an object (an instance of Number) that was 
-       * unboxed, so we want to leave the top of the stack alone because
-       * this operation doesn't affect the status of the object reference.
+      /*
+       * This turns out to be a weird method because of the way John puts the
+       * control flow graph together. It works like you would expect for prefix
+       * operations. But for postfix operations, this actually gets called
+       * twice: Once before the variable is assigned, and once after the
+       * variable is assigned. In the first call, "op" is PreIncrementExpression
+       * or PreDecrementExpression corresponding to the actual
+       * PostIncrementExpression or PostDecrementExpression, respectively. In
+       * the second call, "op" is the inverse operation, PreDecrementExpression
+       * or PreIncrementExpression, to reverse the effects of the first call for
+       * the actual value returned by the expression. (That is, in the way our
+       * flow graph models things, the increment/decrement always happens first,
+       * then the variable is updated, and then, if necessary, the value is
+       * corrected.
        */
-      return val;
+      final Operator tt = JJNode.tree.getOperator(node);
+      if (tt.equals(op)) { // Definitely a prefix operation
+        /*
+         * Prefix expressions yield NOT_NULL always because the value is either
+         * primitive or a newly boxed value.
+         */
+        return lattice.push(lattice.pop(val), NonNullRawLattice.NOT_NULL);
+      } else { // Definitely a postfix operation
+        // Is this the first call, before the variable assignment?
+        if (((CrementExpression) tt).baseOp().equals(op)) {
+          /*
+           * NOT_NULL always because the value after assignment is either
+           * primitive or a newly boxed value.
+           * 
+           * We do not POP the stack, because we want to preserve the state
+           * of the value of the variable so that we can use it in the second
+           * corrective call.
+           */
+          return lattice.push(val, NonNullRawLattice.NOT_NULL);
+        } else { // It's the second, corrective call
+          /*
+           * We want to return the state of the value of the variable before the
+           * original operation. Need to retrieve this from the stack: It's 
+           * the second item on the stack, under the value return by the 
+           * assignment expression.  We don't care about the result of the assignment,
+           * we want the state of things before the expression was evaluated,
+           * so we pop the stack to expose the state saved in the first call.
+           */
+          return lattice.pop(val);
+        }
+      }
     }
 
     @Override
@@ -932,6 +971,18 @@ implements IBinderClient {
       // otherwise, we can force not null
       return lattice.push(lattice.pop(val), NonNullRawLattice.NOT_NULL);
     }
+    
+//    @Override
+//    protected Value transferUnbox(final IRNode expr, final Value val) {
+//      if (!lattice.isNormal(val)) return val;
+//      /*
+//       * Always push NOT_NULL, because that is what we use to represent
+//       * primitive values (see transferLiteral())
+//       * 
+//       * Unbox can never yield a null.  
+//       */
+//      return lattice.push(lattice.pop(val), NonNullRawLattice.NOT_NULL);
+//    }
     
     @Override
     protected Value transferUseField(final IRNode fref, Value val) {
