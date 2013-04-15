@@ -29,6 +29,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
 import edu.cmu.cs.fluid.java.operator.AddExpression;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
@@ -75,6 +76,7 @@ import edu.cmu.cs.fluid.java.operator.NestedEnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedTypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.NonPolymorphicMethodCall;
+import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
 import edu.cmu.cs.fluid.java.operator.OuterObjectSpecifier;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
@@ -801,6 +803,48 @@ public class JavaCanonicalizer {
     }
 
     @Override
+    public Boolean visitOpAssignExpression(final IRNode node) {
+      /*
+       * If the expression is "s += x", where s is a String, then we have
+       * to update the OpAssignment to be a StringConcat, and make sure that
+       * x is promoted to a String.
+       */
+      final JavaOperator op = OpAssignExpression.getOp(node);
+      if (op instanceof AddExpression && 
+          binder.getJavaType(node) == tEnv.getStringType()) {
+        // Reset the operator to StringConcat
+        /* N.B. OpAssignExpression.getOp() synchronizes on the node, so we
+         * do the same for setting the op. 
+         */
+        synchronized (node) {
+          JavaNode.setOp(node, StringConcat.prototype);
+        }
+        
+        // process the left-hand side
+        doAccept(OpAssignExpression.getOp1(node));
+        
+        // Promote the right-hand side
+        IRNode op2 = OpAssignExpression.getOp2(node);
+        IJavaType t2 = binder.getJavaType(op2);
+
+        // This *may* generate boxing
+        LOG.finer("visiting second operand of opAssign SC: " + tree.getOperator(op2));
+
+        // Need to be reloaded, since they might have been boxed, and may be
+        // otherwise changed
+        IRNode newOp2 = OpAssignExpression.getOp2(node);
+        if (t2 instanceof IJavaPrimitiveType && !(tree.getOperator(newOp2) instanceof BoxExpression)) {
+          boxExpression(newOp2);
+          newOp2 = OpAssignExpression.getOp1(node);
+        }
+        generateToString(newOp2, t2);
+        return true;
+      } else {
+        return super.visitOpAssignExpression(node);
+      }
+    }
+
+    @Override
     public Boolean visitAnonClassExpression(IRNode node) {
       // Reordered to process names before modifying 'extends' or 'implements'
       return doAcceptForChildren_rev(node);
@@ -1098,6 +1142,7 @@ public class JavaCanonicalizer {
         recType = t;
       }
 
+      @Override
       public IJavaReferenceType getReceiverType() {
         return recType;
       }
@@ -1107,6 +1152,7 @@ public class JavaCanonicalizer {
         recType = t;
       }
 
+      @Override
       public IJavaType convertType(IJavaType ty) {
         if (subst == null) {
           IJavaDeclaredType ct = getContextType();
@@ -1135,14 +1181,17 @@ public class JavaCanonicalizer {
           }
           if (numParams == 0) {
             return new MethodBinding(type) {
+              @Override
               public IJavaDeclaredType getContextType() {
                 return type;
               }
 
+              @Override
               public IRNode getNode() {
                 return m;
               }
 
+              @Override
               public ITypeEnvironment getTypeEnvironment() {
                 return binder.getTypeEnvironment();
               }
@@ -1343,7 +1392,7 @@ public class JavaCanonicalizer {
       // TODO check to see if there are polymorphic implicit arguments.
       return changed;
     }
-
+    
     @Override
     public Boolean visitStringConcat(IRNode node) {
       IRNode op1 = StringConcat.getOp1(node);
@@ -1369,7 +1418,7 @@ public class JavaCanonicalizer {
       }
       if (t2 instanceof IJavaPrimitiveType && !(tree.getOperator(newOp2) instanceof BoxExpression)) {
         boxExpression(newOp2);
-        newOp2 = StringConcat.getOp1(node);
+        newOp2 = StringConcat.getOp2(node);
         changed = true;
       }
 
