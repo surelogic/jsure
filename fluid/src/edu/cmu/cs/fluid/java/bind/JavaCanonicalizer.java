@@ -45,6 +45,7 @@ import edu.cmu.cs.fluid.java.operator.ArrayType;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
 import edu.cmu.cs.fluid.java.operator.BoxExpression;
+import edu.cmu.cs.fluid.java.operator.BoxingOpAssignExpression;
 import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
@@ -805,43 +806,58 @@ public class JavaCanonicalizer {
     @Override
     public Boolean visitOpAssignExpression(final IRNode node) {
       /*
+       * If the type of the expression is not primitive, and not String, it must
+       * be a boxed number or boxed boolean value.  In that case, we have to
+       * change the operator type of the node to BoxedOpAssignExpression.
+       * 
        * If the expression is "s += x", where s is a String, then we have
        * to update the OpAssignment to be a StringConcat, and make sure that
        * x is promoted to a String.
        */
       final JavaOperator op = OpAssignExpression.getOp(node);
-      if (op instanceof AddExpression && 
-          binder.getJavaType(node) == tEnv.getStringType()) {
-        // Reset the operator to StringConcat
-        /* N.B. OpAssignExpression.getOp() synchronizes on the node, so we
-         * do the same for setting the op. 
-         */
-        synchronized (node) {
-          JavaNode.setOp(node, StringConcat.prototype);
+      final IJavaType javaType = binder.getJavaType(node);
+      if (javaType == tEnv.getStringType()) {
+        if (op instanceof AddExpression) {
+          // Reset the operator to StringConcat
+          /* N.B. OpAssignExpression.getOp() synchronizes on the node, so we
+           * do the same for setting the op. 
+           */
+          synchronized (node) {
+            JavaNode.setOp(node, StringConcat.prototype);
+          }
+          
+          // process the left-hand side
+          doAccept(OpAssignExpression.getOp1(node));
+          
+          // Promote the right-hand side
+          IRNode op2 = OpAssignExpression.getOp2(node);
+          IJavaType t2 = binder.getJavaType(op2);
+  
+          // This *may* generate boxing
+          LOG.finer("visiting second operand of opAssign SC: " + tree.getOperator(op2));
+          doAccept(op2);
+          
+          // Need to be reloaded, since they might have been boxed, and may be
+          // otherwise changed
+          IRNode newOp2 = OpAssignExpression.getOp2(node);
+          if (t2 instanceof IJavaPrimitiveType && !(tree.getOperator(newOp2) instanceof BoxExpression)) {
+            boxExpression(newOp2);
+            newOp2 = OpAssignExpression.getOp1(node);
+          }
+          generateToString(newOp2, t2);
+          return true;
         }
-        
-        // process the left-hand side
-        doAccept(OpAssignExpression.getOp1(node));
-        
-        // Promote the right-hand side
-        IRNode op2 = OpAssignExpression.getOp2(node);
-        IJavaType t2 = binder.getJavaType(op2);
-
-        // This *may* generate boxing
-        LOG.finer("visiting second operand of opAssign SC: " + tree.getOperator(op2));
-
-        // Need to be reloaded, since they might have been boxed, and may be
-        // otherwise changed
-        IRNode newOp2 = OpAssignExpression.getOp2(node);
-        if (t2 instanceof IJavaPrimitiveType && !(tree.getOperator(newOp2) instanceof BoxExpression)) {
-          boxExpression(newOp2);
-          newOp2 = OpAssignExpression.getOp1(node);
-        }
-        generateToString(newOp2, t2);
+      } else if (!(javaType instanceof IJavaPrimitiveType)) {
+        final IRNode op1 = OpAssignExpression.getOp1(node);
+        final IRNode op2 = OpAssignExpression.getOp2(node);
+        tree.removeSubtree(op1);
+        tree.removeSubtree(op2);
+        final IRNode newNode = BoxingOpAssignExpression.createNode(op1, op, op2);
+        replaceSubtree(node, newNode);
+        super.visitOpAssignExpression(newNode);
         return true;
-      } else {
-        return super.visitOpAssignExpression(node);
       }
+      return super.visitOpAssignExpression(node);
     }
 
     @Override

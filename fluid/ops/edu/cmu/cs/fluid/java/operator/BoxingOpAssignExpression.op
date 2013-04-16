@@ -1,0 +1,59 @@
+# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/OpAssignExpression.op,v 1.10 2007/01/09 22:23:55 chance Exp $
+/*
+ * Version of Op Assignment that is used when we have 
+ * "x op= y" and x is a boxed type.  The result of the operation "op"
+ * needs to be boxed before it can be reassigned to x.  
+ */
+public operator BoxingOpAssignExpression extends OpAssignExpression
+{
+  syntax {
+    op1:Expression $op:Op <> "=" op2:Expression
+  }
+
+  /** Create the control-flow graph component for
+   *  an op assignment expression.
+   *
+   * This is like the component we create for OpAssignExpression, except
+   * that we insert a Box node after OP is performed, and before the 
+   * assignment is performed.
+   */
+  @Override public Component createComponent(IRNode node) {
+    Component comp = new Component(node,1,1,1);
+    Subcomponent sublhs = 
+        new Subcomponent(comp,tree.childLocation(node,op1Loc),1,1,1);
+    Subcomponent subrhs = 
+        new Subcomponent(comp,tree.childLocation(node,op2Loc),1,1,1);
+    ControlNode doOperation = new ComponentChoice(comp,Boolean.TRUE);
+    ControlNode throwArithmeticException =
+      new AddLabel(PrimitiveExceptionLabel.primitiveArithmeticException);
+    ControlNode doBox = new ComponentFlow(comp, "box");
+    ControlNode doAssign = new ComponentChoice(comp,null); // must be null
+    ControlNode throwArrayStoreException =
+      new AddLabel(PrimitiveExceptionLabel.primitiveArrayStoreException);
+    ControlNode abruptMerge1 = new Merge();
+    ControlNode abruptMerge2 = new Merge();
+    ControlNode abruptMerge3 = new Merge();
+
+    // normal control flow:
+    ControlEdge.connect(comp.getEntryPort(),sublhs.getEntryPort());
+    ControlEdge.connect(sublhs.getNormalExitPort(),subrhs.getEntryPort());
+    ControlEdge.connect(subrhs.getNormalExitPort(),doOperation);
+    ControlEdge.connect(doOperation, doBox);
+    ControlEdge.connect(doBox, doAssign);
+//    ControlEdge.connect(doOperation,doAssign);
+    ControlEdge.connect(doAssign,comp.getNormalExitPort());
+
+    // connect up all possible abrupt edges.
+    ControlEdge.connect(sublhs.getAbruptExitPort(),abruptMerge1);
+    ControlEdge.connect(subrhs.getAbruptExitPort(),abruptMerge1);
+    ControlEdge.connect(doOperation,throwArithmeticException);
+    ControlEdge.connect(throwArithmeticException,abruptMerge2);
+    ControlEdge.connect(doAssign,throwArrayStoreException);
+    ControlEdge.connect(throwArrayStoreException,abruptMerge2);
+    ControlEdge.connect(abruptMerge1,abruptMerge3);
+    ControlEdge.connect(abruptMerge2,abruptMerge3);
+    ControlEdge.connect(abruptMerge3,comp.getAbruptExitPort());
+    
+    return comp;
+  }  
+}

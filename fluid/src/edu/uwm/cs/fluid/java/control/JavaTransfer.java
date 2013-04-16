@@ -108,6 +108,8 @@ public abstract class JavaTransfer<L extends Lattice<T>, T> {
       return transferNestedClass(TypeDeclarationStatement.getTypedec(node), value);
     } else if (EnumConstantDeclaration.prototype.includes(op)) {
       return transferEnumConstantDeclaration(node, value);
+    } else if (OpAssignExpression.prototype.includes(op) && info == "box") {
+      return transferOperation(node, BoxExpression.prototype, info, value);
     } else {
       return transferOperation(node, op, info, value);
     }
