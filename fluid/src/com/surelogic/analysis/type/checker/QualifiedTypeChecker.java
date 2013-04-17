@@ -235,14 +235,16 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
     /*
      * ¤15.26.1
      * 
+     * A compile-time error occurs if the type of the right-hand operand cannot
+     * be converted to the type of the variable by assignment conversion (¤5.2).
+     * 
      * N.B. Most of this is actually handled by visitFieldRef() and
-     * visitArrayRefExpression(). 
+     * visitArrayRefExpression().
      * 
-     * If the left-hand operand is an array access expression (¤15.13) then
-     * an ArrayStoreException is raised if the run-time type of the object being
+     * If the left-hand operand is an array access expression (¤15.13) then an
+     * ArrayStoreException is raised if the run-time type of the object being
      * assigned to the array is a proper supertype of the run-time type of the
-     * array element. 
-     * 
+     * array element.
      */
     doAcceptForChildren(e);
     checkAssignExpression(e);

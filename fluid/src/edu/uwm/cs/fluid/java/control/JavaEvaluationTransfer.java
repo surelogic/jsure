@@ -1040,17 +1040,26 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
 	 */
   protected boolean isBothLhsRhs(IRNode node) {
     IRNode p = tree.getParentOrNull(node);
-    final boolean returnVal =
-      (p != null
-        && (tree.getOperator(p) instanceof CrementExpression
-          || (tree.getOperator(p) instanceof OpAssignExpression
-            && node.equals(tree.getChild(p, 0)))));
-    if (LOG.isLoggable(Level.FINE)) {
-      LOG.fine("isBothLhsRhs: node = " + DebugUnparser.toString(node));
-      LOG.fine("isBothLhsRhs: p = " + DebugUnparser.toString(p));
-      LOG.fine("isBothLhsRhs: returnVal = " + returnVal);
+    if (p != null) {
+      IRNode testAgainstFirstChild = node;
+      if (UnboxExpression.prototype.includes(p)) {
+        testAgainstFirstChild = p;
+        p = tree.getParentOrNull(p);
+      }
+      final boolean returnVal =
+          (p != null
+            && (tree.getOperator(p) instanceof CrementExpression
+              || (tree.getOperator(p) instanceof OpAssignExpression
+                && testAgainstFirstChild.equals(tree.getChild(p, 0)))));
+        if (LOG.isLoggable(Level.FINE)) {
+          LOG.fine("isBothLhsRhs: node = " + DebugUnparser.toString(node));
+          LOG.fine("isBothLhsRhs: p = " + DebugUnparser.toString(p));
+          LOG.fine("isBothLhsRhs: returnVal = " + returnVal);
+        }
+        return returnVal;
+    } else {
+      return false;
     }
-    return returnVal;
   }
 
   /**

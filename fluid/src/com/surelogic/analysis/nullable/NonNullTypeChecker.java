@@ -14,6 +14,8 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   private static final int POSSIBLY_NULL = 915;
   private static final int DEFINITELY_NULL = 916;
+  private static final int POSSIBLY_NULL_UNBOX = 917;
+  private static final int DEFINITELY_NULL_UNBOX = 918; 
   
   
   
@@ -74,13 +76,17 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
 
 
   private void checkForNull(final IRNode expr) {
+    checkForNull(expr, false);
+  }
+  
+  private void checkForNull(final IRNode expr, final boolean isUnbox) {
     final Element state = currentQuery().getResultFor(expr);
     if (state == NonNullRawLattice.MAYBE_NULL) {
       final HintDrop drop = HintDrop.newWarning(expr);
-      drop.setMessage(POSSIBLY_NULL);
+      drop.setMessage(isUnbox ? POSSIBLY_NULL_UNBOX : POSSIBLY_NULL);
     } else if (state == NonNullRawLattice.NULL) {
       final HintDrop drop = HintDrop.newWarning(expr);
-      drop.setMessage(DEFINITELY_NULL);
+      drop.setMessage(isUnbox ? DEFINITELY_NULL_UNBOX : DEFINITELY_NULL);
     }
   }
 
@@ -89,10 +95,10 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   @Override
   protected void checkUnboxExpression(
       final IRNode unboxExpr, final IRNode unboxedExpr) {
-    checkForNull(unboxedExpr);
+    checkForNull(unboxedExpr, true);
   }
   
-  // TODO: Return?
+  // TODO: Return
   
   @Override
   protected void checkThrowStatement(
