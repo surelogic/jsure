@@ -217,30 +217,33 @@ public class PromisesXMLReader extends NestedJSureXmlReader implements
 	public static PackageElement load(String relativePath, File fluid,
 			File local) {
 		// System.out.println("Getting XML for "+relativePath);
-		PackageElement p = cache.get(relativePath);
-		if (p == null) {
-			PackageElement f = loadOrNull(fluid);
-			if (f != null) {
-				// Remember appropriate attributes to diff
-				f.visit(new DiffHelper());
-			}
-			PackageElement l = loadOrNull(local);
-			if (f == null) {
-				p = l;
-			} else if (l == null) {
-				p = f;
-			} else {
-				l.mergeDeep(f, MergeType.JSURE_TO_LOCAL);
-				p = l;
-				p.markAsClean();
-			}
+		PackageElement p = null;
+		synchronized (cache) {
+			p = cache.get(relativePath);
 			if (p == null) {
-				return null;
+				PackageElement f = loadOrNull(fluid);
+				if (f != null) {
+					// Remember appropriate attributes to diff
+					f.visit(new DiffHelper());
+				}
+				PackageElement l = loadOrNull(local);
+				if (f == null) {
+					p = l;
+				} else if (l == null) {
+					p = f;
+				} else {
+					l.mergeDeep(f, MergeType.JSURE_TO_LOCAL);
+					p = l;
+					p.markAsClean();
+				}
+				if (p == null) {
+					return null;
+				}
+				// System.out.println("Loaded XML for "+relativePath);
+				cache.put(relativePath, p);
+			} else {
+				// System.out.println("Used cache for "+relativePath);
 			}
-			// System.out.println("Loaded XML for "+relativePath);
-			cache.put(relativePath, p);
-		} else {
-			// System.out.println("Used cache for "+relativePath);
 		}
 		return p;
 	}
@@ -257,11 +260,15 @@ public class PromisesXMLReader extends NestedJSureXmlReader implements
 	}
 
 	public static void clear(String relativePath) {
-		cache.remove(relativePath);
+		synchronized (cache) {
+			cache.remove(relativePath);
+		}
 	}
 
 	public static PackageElement get(String path) {
-		return cache.get(path);
+		synchronized (cache) {
+			return cache.get(path);
+		}
 	}
 	
 	// HACK!?!
@@ -269,8 +276,10 @@ public class PromisesXMLReader extends NestedJSureXmlReader implements
 		if (p == null) {
 			return;
 		}
-		if (!cache.containsKey(path)) {
-			cache.put(path, p);
+		synchronized (cache) {
+			if (!cache.containsKey(path)) {
+				cache.put(path, p);
+			}
 		}
 	}
 }
