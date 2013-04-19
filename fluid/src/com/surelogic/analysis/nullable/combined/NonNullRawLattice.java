@@ -5,9 +5,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.Nullable;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
+import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
@@ -76,6 +78,7 @@ extends AbstractLattice<NonNullRawLattice.Element> {
     public boolean lessEq(Element other);
     public Element join(Element other);
     public Element meet(Element other);
+    public String getAnnotation();
   }
   
   private static enum Specials implements Element {
@@ -93,6 +96,11 @@ extends AbstractLattice<NonNullRawLattice.Element> {
       @Override
       public Element meet(final Element other) {
         return other;
+      }
+      
+      @Override
+      public String getAnnotation() {
+        return "@Nullable";
       }
     },
     
@@ -112,6 +120,11 @@ extends AbstractLattice<NonNullRawLattice.Element> {
       public Element meet(final Element other) {
         if (other == MAYBE_NULL || other == NULL) return this;
         else return IMPOSSIBLE;
+      }
+      
+      @Override
+      public String getAnnotation() {
+        return "null";
       }
     },
     
@@ -133,6 +146,11 @@ extends AbstractLattice<NonNullRawLattice.Element> {
         else if (other == NULL) return IMPOSSIBLE;
         else return other;
       }
+      
+      @Override
+      public String getAnnotation() {
+        return "@Raw";
+      }
     },
     
     NOT_NULL {
@@ -153,6 +171,11 @@ extends AbstractLattice<NonNullRawLattice.Element> {
         if (other == IMPOSSIBLE || other == NULL) return IMPOSSIBLE;
         else return this;
       }
+      
+      @Override
+      public String getAnnotation() {
+        return "@NonNull";
+      }
     },
     
     IMPOSSIBLE {
@@ -170,13 +193,18 @@ extends AbstractLattice<NonNullRawLattice.Element> {
       public Element meet(final Element other) {
         return this;
       }
+            
+      @Override
+      public String getAnnotation() {
+        return "impossible";
+      }
     };
   }
   
   public final class ClassElement implements Element {
     private final IJavaDeclaredType type;
     
-    public ClassElement(final IJavaDeclaredType t) {
+    private ClassElement(final IJavaDeclaredType t) {
       type = t;
     }
     
@@ -258,6 +286,11 @@ extends AbstractLattice<NonNullRawLattice.Element> {
     }
     
     @Override
+    public String getAnnotation() {
+      return "@Raw(upTo=\"" + type.toSourceText() + "\")";
+    }
+    
+    @Override
     public int hashCode() {
       return type.hashCode();
     }
@@ -315,6 +348,8 @@ extends AbstractLattice<NonNullRawLattice.Element> {
         return injectClass(
             (IJavaDeclaredType) typeName.resolveType().getJavaType());
       }
+    } else if (pd == null || pd instanceof NullablePromiseDrop) {
+      return MAYBE_NULL;
     } else if (pd instanceof NonNullPromiseDrop) {
       return NOT_NULL;
     } else {

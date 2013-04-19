@@ -74,12 +74,12 @@ extends StackEvaluatingAnalysisWithInference<
     Element, NonNullRawTypeAnalysis.Value,
     NonNullRawLattice, NonNullRawTypeAnalysis.Lattice>
 implements IBinderClient {
-  public final class StackQuery extends SimplifiedJavaFlowAnalysisQuery<StackQuery, Element, Value, Lattice> {
+  public final class StackQuery extends SimplifiedJavaFlowAnalysisQuery<StackQuery, StackQueryResult, Value, Lattice> {
     public StackQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
     }
     
-    private StackQuery(final Delegate<StackQuery, Element, Value, Lattice> d) {
+    private StackQuery(final Delegate<StackQuery, StackQueryResult, Value, Lattice> d) {
       super(d);
     }
 
@@ -91,17 +91,32 @@ implements IBinderClient {
 
     
     @Override
-    protected StackQuery newSubAnalysisQuery(final Delegate<StackQuery, Element, Value, Lattice> d) {
+    protected StackQuery newSubAnalysisQuery(final Delegate<StackQuery, StackQueryResult, Value, Lattice> d) {
       return new StackQuery(d);
     }
 
 
     
     @Override
-    protected Element processRawResult(final IRNode expr,
+    protected StackQueryResult processRawResult(final IRNode expr,
         final Lattice lattice, final Value rawResult) {
-      return lattice.peek(rawResult);
+      return new StackQueryResult(
+          lattice.getStackElementLattice(), lattice.peek(rawResult));
     }    
+  }
+  
+  
+  public static final class StackQueryResult {
+    private final NonNullRawLattice lattice;
+    private final Element value;
+    
+    private StackQueryResult(final NonNullRawLattice l, final Element v) {
+      lattice = l;
+      value = v;
+    }
+    
+    public NonNullRawLattice getLattice() { return lattice; }
+    public Element getValue() { return value; }
   }
   
   
@@ -464,6 +479,10 @@ implements IBinderClient {
     @Override
     public Element getAnonymousStackValue() {
       return NonNullRawLattice.MAYBE_NULL;
+    }
+    
+    public NonNullRawLattice getStackElementLattice() {
+      return lattice1.getBaseLattice();
     }
     
     

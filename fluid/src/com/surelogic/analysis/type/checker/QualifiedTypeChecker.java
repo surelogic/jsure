@@ -4,6 +4,7 @@ import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
+import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.BoxExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.ReturnStatement;
@@ -247,11 +248,13 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
      * array element.
      */
     doAcceptForChildren(e);
-    checkAssignExpression(e);
+    checkAssignExpression(
+        e, AssignExpression.getOp1(e), AssignExpression.getOp2(e));
     return null;
   }
   
-  protected void checkAssignExpression(final IRNode assignExpr) {
+  protected void checkAssignExpression(
+      final IRNode assignExpr, final IRNode lhs, final IRNode rhs) {
     // do nothing
   }
 }
