@@ -14,12 +14,13 @@ import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ReferenceType;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -91,51 +92,33 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     if (state == NonNullRawLattice.MAYBE_NULL &&
         potentialAncestorState == NonNullRawLattice.MAYBE_NULL) {
       return typeEnvironment.isSubType(type, potentialAncestorType);
-    } else {
-      // At least one of the types is qualified
-      
-//      // Are both types arrays?
-//      if (type instanceof IJavaArrayType && 
-//          potentialAncestorType instanceof IJavaArrayType) {
-//        final IJavaType baseType = ((IJavaArrayType) type).getBaseType();
-//        final IJavaType potentialAncestorBaseType =
-//            ((IJavaArrayType) potentialAncestorType).getBaseType();
-//        // Dead in the water if normal subtyping fails
-//        if (typeEnvironment.isSubType(type, potentialAncestorType)) {
-//        }
-//        
-//        // TODO
-//        return false;
-//      } else {
-        // At least one of the types is qualified, and neither is an array
-        
-        // Dead in the water if normal subtyping fails
-        if (typeEnvironment.isSubType(type, potentialAncestorType)) {
-          if (potentialAncestorState == NonNullRawLattice.MAYBE_NULL) {
-            return state == NonNullRawLattice.NOT_NULL ||
-                state == NonNullRawLattice.MAYBE_NULL ||
-                state == NonNullRawLattice.NULL;
-          } else if (potentialAncestorState == NonNullRawLattice.NOT_NULL) {
-            return state == NonNullRawLattice.NOT_NULL;
-          } else if (potentialAncestorState == NonNullRawLattice.RAW) {
-            return state == NonNullRawLattice.NOT_NULL ||
-                state == NonNullRawLattice.RAW ||
-                state instanceof ClassElement;
-          } else if (potentialAncestorState instanceof ClassElement) {
-            if (state instanceof ClassElement) {
-              final IJavaType t1 = ((ClassElement) state).getType();
-              final IJavaType t2 = ((ClassElement) potentialAncestorState).getType();
-              return typeEnvironment.isSubType(t1, t2);
-            } else {
-              return state == NonNullRawLattice.NOT_NULL;
-            }
+    } else { // At least one of the types is qualified
+      // Dead in the water if normal subtyping fails
+      if (typeEnvironment.isSubType(type, potentialAncestorType)) {
+        if (potentialAncestorState == NonNullRawLattice.MAYBE_NULL) {
+          return state == NonNullRawLattice.NOT_NULL ||
+              state == NonNullRawLattice.MAYBE_NULL ||
+              state == NonNullRawLattice.NULL;
+        } else if (potentialAncestorState == NonNullRawLattice.NOT_NULL) {
+          return state == NonNullRawLattice.NOT_NULL;
+        } else if (potentialAncestorState == NonNullRawLattice.RAW) {
+          return state == NonNullRawLattice.NOT_NULL ||
+              state == NonNullRawLattice.RAW ||
+              state instanceof ClassElement;
+        } else if (potentialAncestorState instanceof ClassElement) {
+          if (state instanceof ClassElement) {
+            final IJavaType t1 = ((ClassElement) state).getType();
+            final IJavaType t2 = ((ClassElement) potentialAncestorState).getType();
+            return typeEnvironment.isSubType(t1, t2);
           } else {
-            return false;
+            return state == NonNullRawLattice.NOT_NULL;
           }
         } else {
           return false;
         }
-//      }
+      } else {
+        return false;
+      }
     }
   }
   
@@ -212,6 +195,12 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   protected void checkSynchronizedStatement(
       final IRNode syncStmt, final IRNode lockExpr) {
     checkForNull(lockExpr);
+  }
+  
+  @Override
+  protected void checkOuterObjectSpecifier(final IRNode e,
+      final IRNode object, final IRNode call) {
+    checkForNull(object);
   }
   
   @Override

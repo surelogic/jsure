@@ -7,6 +7,7 @@ import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.BoxExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.OuterObjectSpecifier;
 import edu.cmu.cs.fluid.java.operator.ReturnStatement;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.cmu.cs.fluid.java.operator.ThrowStatement;
@@ -149,9 +150,67 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   // == Expressions
   // ======================================================================
   
+  @Override
+  public final Void visitOuterObjectSpecifier(final IRNode e) {
+    /*
+     * ¤15.9.4
+     * 
+     * if the class instance creation expression is a qualified class instance
+     * creation expression, the qualifying primary expression is evaluated. If
+     * the qualifying expression evaluates to null, a NullPointerException is
+     * raised, and the class instance creation expression completes abruptly.
+     * 
+     * ¤8.8.7.1
+     * 
+     * If the superclass constructor invocation is qualified, then the Primary
+     * expression p immediately preceding ".super" is evaluated.
+     * 
+     * If p evaluates to null, a NullPointerException is raised, and the
+     * superclass constructor invocation completes abruptly.
+     */
+    doAcceptForChildren(e);
+    checkOuterObjectSpecifier(
+        e, OuterObjectSpecifier.getObject(e), OuterObjectSpecifier.getCall(e));
+    return null;
+  }
+  
+  protected void checkOuterObjectSpecifier(final IRNode e,
+      final IRNode object, final IRNode call) {
+    // do nothing
+  }
+  
   // TODO: Class Instance Creation Expressions
   
-  // TODO: Array Creation Expressions
+  @Override
+  public final Void visitArrayCreationExpression(final IRNode e) {
+    /*
+     * ¤15.10.1
+     * 
+     * If there are no dimension expressions, then there must be an array
+     * initializer.
+     * 
+     * A newly allocated array will be initialized with the values provided by
+     * the array initializer as described in ¤10.6.
+     * 
+     * From ¤10.6: Each variable initializer must be assignment-compatible
+     * (¤5.2) with the array's component type, or a compile-time error occurs.
+     * 
+     * XXX: Not going to worry about checking initalizers yet.  They also
+     * come up when checking field declarations and local variable declarations.
+     * Checking them won't be necessary until/if we have arrays of @NonNull
+     * references.
+     *      * 
+     * If the value of any DimExpr expression is less than zero, then a
+     * NegativeArraySizeException is thrown.
+     */
+    doAcceptForChildren(e);
+    checkArrayCreationExpression(e);
+    return null;
+  }
+  
+  protected void checkArrayCreationExpression(final IRNode e) {
+    // do nothing
+  }
   
   @Override
   public final Void visitFieldRef(final IRNode e) {
