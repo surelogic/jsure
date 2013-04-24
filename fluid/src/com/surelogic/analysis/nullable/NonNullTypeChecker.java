@@ -1,7 +1,8 @@
 package com.surelogic.analysis.nullable;
 
+import java.util.Iterator;
+
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice;
-import com.surelogic.analysis.nullable.combined.NonNullRawLattice.ClassElement;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.StackQuery;
@@ -14,15 +15,18 @@ import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
-import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
-import edu.cmu.cs.fluid.java.operator.MethodCall;
+import edu.cmu.cs.fluid.java.operator.Arguments;
+import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.ReferenceType;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
@@ -36,13 +40,12 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   
   
   
-  private final IBinder binder;
   private final NonNullRawTypeAnalysis nonNullRawTypeAnalysis;
   
   
   public NonNullTypeChecker(final IBinder b,
       final NonNullRawTypeAnalysis nonNullRaw) {
-    binder = b;
+    super(b);
     nonNullRawTypeAnalysis = nonNullRaw;
   }
 
@@ -75,53 +78,6 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     }
   }
   
-  private boolean isSubType(final IJavaType type, final Element state,
-      final IJavaType potentialAncestorType,
-      final Element potentialAncestorState) {
-    final ITypeEnvironment typeEnvironment = binder.getTypeEnvironment();
-    /*
-     * Raw types cannot be given to MAYBE_NULL because they might not be
-     * fully initialized.  The whole point of raw types is to keep track
-     * of how much of the object has been initialized so far.
-     * 
-     * We do not allow @Raw on array types.  There is no way to view
-     * an array that is partially initialized.
-     */
-
-    // If neither type is qualified, do the normal thing
-    if (state == NonNullRawLattice.MAYBE_NULL &&
-        potentialAncestorState == NonNullRawLattice.MAYBE_NULL) {
-      return typeEnvironment.isSubType(type, potentialAncestorType);
-    } else { // At least one of the types is qualified
-      // Dead in the water if normal subtyping fails
-      if (typeEnvironment.isSubType(type, potentialAncestorType)) {
-        if (potentialAncestorState == NonNullRawLattice.MAYBE_NULL) {
-          return state == NonNullRawLattice.NOT_NULL ||
-              state == NonNullRawLattice.MAYBE_NULL ||
-              state == NonNullRawLattice.NULL;
-        } else if (potentialAncestorState == NonNullRawLattice.NOT_NULL) {
-          return state == NonNullRawLattice.NOT_NULL;
-        } else if (potentialAncestorState == NonNullRawLattice.RAW) {
-          return state == NonNullRawLattice.NOT_NULL ||
-              state == NonNullRawLattice.RAW ||
-              state instanceof ClassElement;
-        } else if (potentialAncestorState instanceof ClassElement) {
-          if (state instanceof ClassElement) {
-            final IJavaType t1 = ((ClassElement) state).getType();
-            final IJavaType t2 = ((ClassElement) potentialAncestorState).getType();
-            return typeEnvironment.isSubType(t1, t2);
-          } else {
-            return state == NonNullRawLattice.NOT_NULL;
-          }
-        } else {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    }
-  }
-  
   private String getTypeName(final IJavaType type, final Element qualifier) {
     if (qualifier == NonNullRawLattice.NULL) {
       return "null";
@@ -130,13 +86,24 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     }
   }
 
-  private void checkAssignability(
+  private void checkReferenceAssignability(
       final IRNode expr, 
       final IJavaType type, final Element state,
       final IJavaType potentialAncestorType,
       final Element potentialAncestorState) {
-    final boolean isGood =
-        isSubType(type, state, potentialAncestorType, potentialAncestorState);
+    /*
+     * Raw types cannot be given to MAYBE_NULL because they might not be
+     * fully initialized.  The whole point of raw types is to keep track
+     * of how much of the object has been initialized so far.
+     * 
+     * We do not allow @Raw on array types.  There is no way to view
+     * an array that is partially initialized.
+     * 
+     * We don't actually need to test if the types are subtypes because
+     * we are assuming the normal Java code compiles/type-checks cleanly.
+     */
+    final boolean isGood = potentialAncestorState.isAssignableFrom(
+        binder.getTypeEnvironment(), state);
     final HintDrop drop = HintDrop.newWarning(expr);
     drop.setMessage(isGood ? ASSIGNABLE : NOT_ASSIGNABLE,
         getTypeName(type, state),
@@ -153,8 +120,29 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     final RawPromiseDrop raw = NonNullRules.getRaw(node);
     return raw;
   }
-
   
+  private void checkAssignability(
+      final IRNode expr, final IRNode decl, final IRNode declTypeNode) {
+    if (ReferenceType.prototype.includes(declTypeNode)) {
+      final IJavaType declType =
+          JavaTypeFactory.convertNodeTypeToIJavaType(declTypeNode, binder);
+      checkAssignability(expr, decl, declType, false);
+    }
+  }
+  
+  private void checkAssignability(
+      final IRNode expr, final IRNode decl, final IJavaType declType,
+      final boolean onlyCheckIfRaw) {
+    final IJavaType exprType = binder.getJavaType(expr);
+    final StackQueryResult queryResult = currentQuery().getResultFor(expr);
+    final Element exprState = queryResult.getValue();
+    
+    final PromiseDrop<?> declPD = getPromise(decl);
+    if (!onlyCheckIfRaw || declPD instanceof RawPromiseDrop) {
+      final Element declState = queryResult.getLattice().injectPromiseDrop(declPD);
+      checkReferenceAssignability(expr, exprType, exprState, declType, declState);
+    }
+  }
   
   @Override
   protected void checkUnboxExpression(
@@ -163,26 +151,24 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   }
   
   @Override
+  protected void checkFieldInitialization(
+      final IRNode fieldDecl, final IRNode varDecl) {
+    final IRNode init = VariableDeclarator.getInit(varDecl);
+    if (Initialization.prototype.includes(init)) {
+      final IRNode initExpr = Initialization.getValue(init);
+      final IRNode typeNode = VariableDeclarator.getType(varDecl);
+      checkAssignability(initExpr, varDecl, typeNode);
+    }
+  }
+  
+  @Override
   protected void checkReturnStatement(
       final IRNode returnStmt, final IRNode valueExpr) {
     // N.B. Must be a MethodDeclaration because constructors cannot return values
     final IRNode methodDecl = VisitUtil.getEnclosingMethod(returnStmt);
     final IRNode returnTypeNode = MethodDeclaration.getReturnType(methodDecl);
-    if (ReferenceType.prototype.includes(returnTypeNode)) {
-      final IJavaType exprType = binder.getJavaType(valueExpr);
-      final StackQueryResult queryResult = currentQuery().getResultFor(valueExpr);
-      final Element exprState = queryResult.getValue();
-
-      final IJavaType returnType =
-          JavaTypeFactory.convertNodeTypeToIJavaType(returnTypeNode, binder);
-      final PromiseDrop<?> returnPD =
-          getPromise(JavaPromise.getReturnNode(methodDecl));
-      final Element returnState = 
-              queryResult.getLattice().injectPromiseDrop(returnPD);
-      
-      checkAssignability(
-          valueExpr, exprType, exprState, returnType, returnState);
-    }
+    checkAssignability(
+        valueExpr, JavaPromise.getReturnNode(methodDecl), returnTypeNode);
   }
   
   @Override
@@ -204,6 +190,33 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   }
   
   @Override
+  protected void checkActualsVsFormals(final IRNode call,
+      final IRNode actuals, final IRNode formals) {
+    // Actuals must be assignable to the formals
+    final Iterator<IRNode> actualsIter = Arguments.getArgIterator(actuals);
+    final Iterator<IRNode> formalsIter = Parameters.getFormalIterator(formals);
+    while (actualsIter.hasNext()) {
+      final IRNode actualExpr = actualsIter.next();
+      final IRNode formalDecl = formalsIter.next();
+      final IRNode formalTypeNode = ParameterDeclaration.getType(formalDecl);
+      checkAssignability(actualExpr, formalDecl, formalTypeNode);
+    }    
+  }
+
+  @Override
+  protected void checkMethodTarget(
+      final IRNode call, final IRNode methodDecl, final IRNode target) {
+    // (1) check that the target is not null
+    checkForNull(target);
+    
+    // (2) check the target against the receiver annotation
+    final IRNode rcvrDecl = JavaPromise.getReceiverNode(methodDecl);
+    final IRNode typeDecl = VisitUtil.getEnclosingType(methodDecl);
+    final IJavaType type = JavaTypeFactory.getMyThisType(typeDecl);
+    checkAssignability(target, rcvrDecl, type, true);
+  }
+  
+  @Override
   protected void checkFieldRef(
       final IRNode fieldRefExpr, final IRNode objectExpr) {
     final IRNode fieldDecl = binder.getBinding(fieldRefExpr);
@@ -221,6 +234,13 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   @Override
   protected void checkAssignExpression(
       final IRNode assignExpr, final IRNode lhs, final IRNode rhs) {
-    // TODO: Need to check for assignment compatibility
+    /* 
+     * @NonNull fields must be assigned @NonNull references.
+     */
+    if (FieldRef.prototype.includes(lhs)) {
+      final IRNode fieldDecl = binder.getBinding(lhs);
+      final IRNode typeNode = VariableDeclarator.getType(fieldDecl);
+      checkAssignability(rhs, fieldDecl, typeNode);
+    }
   }
 }

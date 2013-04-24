@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.surelogic.Nullable;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
@@ -13,6 +12,7 @@ import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.uwm.cs.fluid.util.AbstractLattice;
 
@@ -79,6 +79,7 @@ extends AbstractLattice<NonNullRawLattice.Element> {
     public Element join(Element other);
     public Element meet(Element other);
     public String getAnnotation();
+    public boolean isAssignableFrom(ITypeEnvironment tEnv, Element other);
   }
   
   private static enum Specials implements Element {
@@ -101,6 +102,14 @@ extends AbstractLattice<NonNullRawLattice.Element> {
       @Override
       public String getAnnotation() {
         return "@Nullable";
+      }
+      
+      @Override
+      public boolean isAssignableFrom(
+          final ITypeEnvironment tEnv, final Element other) {
+        return other == NonNullRawLattice.NOT_NULL ||
+            other == NonNullRawLattice.MAYBE_NULL ||
+            other == NonNullRawLattice.NULL;
       }
     },
     
@@ -125,6 +134,12 @@ extends AbstractLattice<NonNullRawLattice.Element> {
       @Override
       public String getAnnotation() {
         return "null";
+      }
+      
+      @Override
+      public boolean isAssignableFrom(
+          final ITypeEnvironment tEnv, final Element other) {
+        return other == NonNullRawLattice.NULL;
       }
     },
     
@@ -151,6 +166,14 @@ extends AbstractLattice<NonNullRawLattice.Element> {
       public String getAnnotation() {
         return "@Raw";
       }
+      
+      @Override
+      public boolean isAssignableFrom(
+          final ITypeEnvironment tEnv, final Element other) {
+        return other == NonNullRawLattice.NOT_NULL ||
+            other == NonNullRawLattice.RAW ||
+            other instanceof ClassElement;
+      }
     },
     
     NOT_NULL {
@@ -176,6 +199,12 @@ extends AbstractLattice<NonNullRawLattice.Element> {
       public String getAnnotation() {
         return "@NonNull";
       }
+      
+      @Override
+      public boolean isAssignableFrom(
+          final ITypeEnvironment tEnv, final Element other) {
+        return other == NonNullRawLattice.NOT_NULL;
+      }
     },
     
     IMPOSSIBLE {
@@ -197,6 +226,12 @@ extends AbstractLattice<NonNullRawLattice.Element> {
       @Override
       public String getAnnotation() {
         return "impossible";
+      }
+      
+      @Override
+      public boolean isAssignableFrom(
+          final ITypeEnvironment tEnv, final Element other) {
+        return false;
       }
     };
   }
@@ -288,6 +323,18 @@ extends AbstractLattice<NonNullRawLattice.Element> {
     @Override
     public String getAnnotation() {
       return "@Raw(upTo=\"" + type.toSourceText() + "\")";
+    }
+    
+    @Override
+    public boolean isAssignableFrom(
+        final ITypeEnvironment tEnv, final Element other) {
+      if (other instanceof ClassElement) {
+        final IJavaType t1 = ((ClassElement) other).getType();
+        final IJavaType t2 = this.getType();
+        return tEnv.isSubType(t1, t2);
+      } else {
+        return other == NonNullRawLattice.NOT_NULL;
+      }
     }
     
     @Override

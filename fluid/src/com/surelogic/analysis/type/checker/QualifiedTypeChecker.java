@@ -1,17 +1,30 @@
 package com.surelogic.analysis.type.checker;
 
+import java.util.Iterator;
+
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.BoxExpression;
+import edu.cmu.cs.fluid.java.operator.CallInterface;
+import edu.cmu.cs.fluid.java.operator.CallInterface.NoArgs;
+import edu.cmu.cs.fluid.java.operator.DeclStatement;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.OuterObjectSpecifier;
 import edu.cmu.cs.fluid.java.operator.ReturnStatement;
+import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.SynchronizedStatement;
 import edu.cmu.cs.fluid.java.operator.ThrowStatement;
 import edu.cmu.cs.fluid.java.operator.UnboxExpression;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * Visitor that tries to provide method hooks for semantic situations that 
@@ -20,8 +33,13 @@ import edu.cmu.cs.fluid.java.operator.UnboxExpression;
  * may generate a particular run-time exception.
  */
 public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver<Q> {
-  protected QualifiedTypeChecker() {
+  protected final IBinder binder;
+
+  
+  
+  protected QualifiedTypeChecker(final IBinder b) {
     super();
+    binder = b;
   }
 
   
@@ -74,9 +92,59 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   
   
   // ======================================================================
+  // == Declarations
+  // ======================================================================
+
+  @Override
+  public final void handleFieldDeclaration(final IRNode fd) {
+    super.handleFieldDeclaration(fd);
+    
+    /*
+     * §8.3.2
+     * 
+     * If a field declarator contains a variable initializer, then it has the
+     * semantics of an assignment (§15.26) to the declared variable.
+     */
+    final Iterator<IRNode> varDecls = 
+        VariableDeclarators.getVarIterator(FieldDeclaration.getVars(fd));
+    while (varDecls.hasNext()) {
+      final IRNode vd = varDecls.next();
+      checkFieldInitialization(fd, vd);
+    }
+  }
+  
+  protected void checkFieldInitialization(
+      final IRNode fieldDecl, final IRNode varDecl) {
+    // do nothing
+  }
+  
+  
+  
+  // ======================================================================
   // == Statements
   // ======================================================================
 
+  @Override
+  public final Void visitDeclStatement(final IRNode s) {
+    super.visitDeclStatement(s);
+    
+    /*
+     * Initializers should be handled as assignment
+     */
+    final Iterator<IRNode> varDecls =
+        VariableDeclarators.getVarIterator(DeclStatement.getVars(s));
+    while (varDecls.hasNext()) {
+      final IRNode vd = varDecls.next();
+      checkVariableInitialization(s, vd);
+    }
+    
+    return null;
+  }
+  
+  protected void checkVariableInitialization(final IRNode declStmt, final IRNode vd) {
+    // do nothing
+  }
+  
   @Override
   public final Void visitReturnStatement(final IRNode s) {
     /*
@@ -179,7 +247,53 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
     // do nothing
   }
   
-  // TODO: Class Instance Creation Expressions
+  @Override
+  protected final void handleMethodCall(final IRNode e) {
+    super.handleMethodCall(e); // made sure handleAsMethodCall() is called
+    
+    /*
+     * §15.12.4.4
+     * 
+     * Otherwise, an instance method is to be invoked and there is a target
+     * reference. If the target reference is null, a NullPointerException is
+     * thrown at this point.
+     */
+    final IRNode methodDecl = binder.getBinding(e);
+    if (!TypeUtil.isStatic(methodDecl)) {
+      final IRNode target = MethodCall.getObject(e);
+      checkMethodTarget(e, methodDecl, target);
+    }
+  }
+  
+  protected void checkMethodTarget(final IRNode call,
+      final IRNode methodDecl, final IRNode target) {
+    // do nothing
+  }
+
+  @Override
+  protected final void handleAsMethodCall(final IRNode e) {
+    /* Here we deal with formal–actual parameter matching for all
+     * types of calls.
+     */
+    try {
+      // Get the actuals
+      final Operator exprOp = JJNode.tree.getOperator(e);
+      final IRNode actuals = ((CallInterface) exprOp).get_Args(e);
+  
+      // get the formals
+      final IRNode decl = binder.getBinding(e);
+      final IRNode formals = SomeFunctionDeclaration.getParams(decl); 
+      
+      checkActualsVsFormals(e, actuals, formals);
+    } catch (final NoArgs ex) {
+      // No arguments: nothing to check!
+    }
+  }
+  
+  protected void checkActualsVsFormals(final IRNode call,
+      final IRNode actuals, final IRNode formals) {
+    // do nothing
+  }
   
   @Override
   public final Void visitArrayCreationExpression(final IRNode e) {
@@ -229,8 +343,6 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
       final IRNode fieldRefExpr, final IRNode objectExpr) {
     // do nothing
   }
-
-  // TODO: Method invocation expressions
   
   @Override
   public final Void visitArrayRefExpression(final IRNode e) {
