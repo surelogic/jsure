@@ -1048,18 +1048,20 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     @Override
     @Vouch("debug code")
     public void printTrace(PrintStream out, int indent) {
-      DebugUtil.println(out, indent, "["+this+"]");
-      for(Map.Entry<String, Entry> e : entries.entrySet()) {
-        String prefix = e.getKey()+" = ";
-        boolean declared = false;
-        for(IRNode decl : e.getValue()) {
-          DebugUtil.println(out, indent+2, prefix+DebugUnparser.toString(decl));
-          declared = true;          
-        }
-        if (!declared) {
-          DebugUtil.println(out, indent+2, prefix+"???");
-        }
-      }
+    	DebugUtil.println(out, indent, "["+this+"]");
+    	synchronized (entries) {
+    		for(Map.Entry<String, Entry> e : entries.entrySet()) {
+    			String prefix = e.getKey()+" = ";
+    			boolean declared = false;
+    			for(IRNode decl : e.getValue()) {
+    				DebugUtil.println(out, indent+2, prefix+DebugUnparser.toString(decl));
+    				declared = true;          
+    			}
+    			if (!declared) {
+    				DebugUtil.println(out, indent+2, prefix+"???");
+    			}
+    		}
+    	}
     }
   }
   
@@ -1074,14 +1076,16 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     StringBuilder sb = new StringBuilder();
     sb.append(this);
     sb.append('\n');
-    for (Map.Entry<String,Entry> e : entries.entrySet()) {
-      sb.append("  " + e.getKey() + ":");
-      for (Iterator<IRNode> it = e.getValue().getDeclarations(); it.hasNext();) {
-        IRNode n = it.next();
-        sb.append(' ');
-        sb.append(n);
-      }
-      sb.append('\n');
+    synchronized (entries) {
+    	for (Map.Entry<String,Entry> e : entries.entrySet()) {
+    		sb.append("  " + e.getKey() + ":");
+    		for (Iterator<IRNode> it = e.getValue().getDeclarations(); it.hasNext();) {
+    			IRNode n = it.next();
+    			sb.append(' ');
+    			sb.append(n);
+    		}
+    		sb.append('\n');
+    	}
     }
     return sb.toString();
   }
