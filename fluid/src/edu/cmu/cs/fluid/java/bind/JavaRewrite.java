@@ -666,6 +666,10 @@ public class JavaRewrite implements JavaGlobals {
     if (op instanceof NamedType || op instanceof NameType) {
       // Need to bind first, because this will be in a different CU
       IRNode type = te.getBinder().getBinding(x);
+      if (type == null) {
+    	  // Resort to using the name directly
+    	  return NamedType.createNode(JJNode.getInfo(x));
+      }
       return buildNamedType(type);
     } else if (op instanceof ArrayType) {
       IRNode base = ArrayType.getBase(x);
