@@ -1240,12 +1240,24 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 		for(String proj : byProject.keySet()) {
 			//System.out.println("Checking refs for "+proj);
 			final Collection<CodeInfo> info = byProject.get(proj);
-		    final BatchParser parser = parsers.get(proj);
 		    final List<CodeInfo> results = new ArrayList<CodeInfo>(info);
-			handleReferences(parser, results);
+		    checkReferences(results, proj);
 			cus.addAll(results);
 		}
 		updateTypeEnvs(cus);
+	}
+	
+	private void checkReferences(final List<CodeInfo> results, final String proj) throws IOException {
+		final BatchParser parser = parsers.get(proj);
+		handleReferences(parser, results);		
+	}
+	
+	public void checkReferences(CodeInfo info) throws IOException {
+		final IIRProject p = Projects.getProject(info.getNode());
+	    final List<CodeInfo> results = new ArrayList<CodeInfo>();
+	    results.add(info);
+		checkReferences(results, p.getName());
+		updateTypeEnvs(results);
 	}
 	
 	public void parseInParallel(final List<CodeInfo> results) throws IOException {				

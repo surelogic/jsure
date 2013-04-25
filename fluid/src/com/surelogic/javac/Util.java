@@ -417,10 +417,11 @@ public class Util {
 
     perf.markTimeFor("Parsing");
     // checkForDups(cus.asList());
-    rewriteCUs(projects, cus.asList(), projects.getMonitor());
+    rewriteCUs(projects, cus.asList(), projects.getMonitor(), loader);
     // checkForDups(cus.asList());
     // Really to check if we added type refs via default constructors
-    loader.checkReferences(cus.asList());
+//    loader.checkReferences(cus.asList());
+    
     eliminateDups(cus.asList(), cus.asList());
     // checkForDups(cus.asList());
     clearCaches(projects); // To clear out old state invalidated by rewriting
@@ -872,8 +873,10 @@ public class Util {
 
   /**
    * Adds default constructors, calls to super(), and implicit Enum methods
+ * @param loader 
    */
-  private static void rewriteCUs(Projects projects, List<CodeInfo> cus, SLProgressMonitor monitor) {
+  private static void rewriteCUs(Projects projects, List<CodeInfo> cus, SLProgressMonitor monitor, JavacClassParser loader) 
+  throws IOException {
     final Map<ITypeEnvironment, JavaRewrite> rewrites = new HashMap<ITypeEnvironment, JavaRewrite>();
     // int binaryRewrites = 0;
     startSubTask(monitor, "Rewriting CUs");
@@ -900,7 +903,10 @@ public class Util {
       if (type == null) {
         // package-info.java?
         continue;
-      }
+      }      
+      if (info.getFileName().endsWith("DrawApplet.java")) {
+    	  System.out.println("Found DrawApplet");
+      }      
       /*
        * if (JavaNode.getModifier(cu, JavaNode.AS_BINARY)) {
        * //System.out.println("Skipping  "+JavaNames.getFullTypeName(type));
@@ -927,6 +933,7 @@ public class Util {
          * if (JavaNode.getModifier(cu, JavaNode.AS_BINARY)) { binaryRewrites++;
          * }
          */
+        loader.checkReferences(info);
       } else if (debug) {
         System.out.println("NOT rewriting " + JavaNames.getFullTypeName(type));
       }
