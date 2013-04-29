@@ -96,6 +96,7 @@ import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
 import edu.cmu.cs.fluid.java.adapter.AdapterUtil;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 import edu.cmu.cs.fluid.java.bind.AbstractTypeEnvironment;
+import edu.cmu.cs.fluid.java.bind.ICompUnitListener;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaCanonicalizer;
 import edu.cmu.cs.fluid.java.bind.JavaRewrite;
@@ -875,7 +876,7 @@ public class Util {
    * Adds default constructors, calls to super(), and implicit Enum methods
  * @param loader 
    */
-  private static void rewriteCUs(Projects projects, List<CodeInfo> cus, SLProgressMonitor monitor, JavacClassParser loader) 
+  private static void rewriteCUs(Projects projects, final List<CodeInfo> cus, SLProgressMonitor monitor, final JavacClassParser loader) 
   throws IOException {
     final Map<ITypeEnvironment, JavaRewrite> rewrites = new HashMap<ITypeEnvironment, JavaRewrite>();
     // int binaryRewrites = 0;
@@ -891,6 +892,32 @@ public class Util {
       binders.add((JavacTypeEnvironment.Binder) b);
     }
 
+    final Map<IRNode,CodeInfo> infoMap = new HashMap<IRNode,CodeInfo>(cus.size());
+    for(CodeInfo info : cus) {
+    	infoMap.put(info.getNode(), info);
+    }
+    final ICompUnitListener refHandler = new ICompUnitListener() {
+		public void astsChanged() {
+			try {
+				loader.checkReferences(cus);
+			} catch (IOException e) {
+				throw new IllegalStateException(e);
+			}
+		}		
+		public void astChanged(IRNode cu) {
+			try {
+				CodeInfo info = infoMap.get(cu);
+				if (info == null) {
+					throw new NullPointerException("Couldn't find "+cu);
+				}
+				loader.checkReferences(info);	
+			} catch (IOException e) {
+				throw new IllegalStateException(e);
+			}
+		}
+	};
+    IDE.getInstance().addCompUnitListener(refHandler);
+	
     for (CodeInfo info : cus) {
       if (monitor.isCanceled()) {
         throw new CancellationException();
@@ -938,6 +965,7 @@ public class Util {
         System.out.println("NOT rewriting " + JavaNames.getFullTypeName(type));
       }
     }
+    IDE.getInstance().removeCompUnitListener(refHandler);
     JavaMemberTable.clearAll();
     endSubTask(monitor);
   }
