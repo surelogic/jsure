@@ -12,9 +12,12 @@ import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.java.QualifiedThisExpressionNode;
 import com.surelogic.aast.java.ThisExpressionNode;
 import com.surelogic.aast.promise.GuardedByNode;
+import com.surelogic.aast.promise.ItselfNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
+import com.surelogic.aast.promise.NewRegionDeclarationNode;
 import com.surelogic.aast.promise.QualifiedClassLockExpressionNode;
 import com.surelogic.aast.promise.RegionNameNode;
+import com.surelogic.aast.promise.UniqueInRegionNode;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
@@ -30,6 +33,7 @@ import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -101,7 +105,7 @@ public class JcipRules extends AnnotationRules {
 			// Run this before Lock to create virtual declarations
 			// TODO group similar decls within a type?
 			return new AbstractAASTScrubber<GuardedByNode, GuardedByPromiseDrop>(this, ScrubberType.UNORDERED, 
-					new String[] { LockRules.LOCK }, SLUtility.EMPTY_STRING_ARRAY) {
+					new String[] { RegionRules.REGION, LockRules.LOCK, RegionRules.SIMPLE_UNIQUE_IN_REGION }, SLUtility.EMPTY_STRING_ARRAY) {
 				@Override
 				protected PromiseDrop<GuardedByNode> makePromiseDrop(GuardedByNode a) {
 //					GuardedByPromiseDrop d = new GuardedByPromiseDrop(a);
@@ -121,8 +125,8 @@ public class JcipRules extends AnnotationRules {
     final IRNode classDecl = VisitUtil.getEnclosingType(fieldDecl);
     final String fieldId = VariableDeclarator.getId(fieldDecl);
     final String id = MessageFormat.format("Guard$_{0}", fieldId);
-    final RegionNameNode region = new RegionNameNode(a.getOffset(), fieldId);
 
+    String newRegionId = null;
     final ExpressionNode field;
     if (lock instanceof ThisExpressionNode) {
       field = (ThisExpressionNode) lock.cloneTree();
@@ -134,15 +138,43 @@ public class JcipRules extends AnnotationRules {
             (NamedTypeNode) ((ClassExpressionNode) lock).getType().cloneTree());
     } else if (lock instanceof QualifiedThisExpressionNode) {
       field = (QualifiedThisExpressionNode) lock.cloneTree();   
+    } else if (lock instanceof ItselfNode) {
+      newRegionId = MessageFormat.format("State$_{0}", fieldId);
+      field = new FieldRefNode(0, new ThisExpressionNode(0), fieldId);
+
+      final NewRegionDeclarationNode regionDecl = 
+    		  new NewRegionDeclarationNode(0, extractAccessMods(VariableDeclarator.getMods(fieldDecl)), newRegionId, null);
+      regionDecl.setPromisedFor(classDecl, a.getAnnoContext());
+      regionDecl.setSrcType(a.getSrcType());
+      AASTStore.addDerived(regionDecl, d);
+      
+      final UniqueInRegionNode uir = new UniqueInRegionNode(0, new RegionNameNode(0, newRegionId), false);
+      uir.setPromisedFor(fieldDecl, a.getAnnoContext());
+      uir.setSrcType(a.getSrcType());
+      AASTStore.addDerived(uir, d);
     } else {
     	context.reportWarning(a, "Unconverted @GuardedBy: "+lock);
     	return d;
     }
+    final RegionNameNode region = new RegionNameNode(a.getOffset(), newRegionId == null ? fieldId : newRegionId);
     final LockDeclarationNode regionLockDecl =
     	new LockDeclarationNode(a.getOffset(), id, field, region);
     regionLockDecl.setPromisedFor(classDecl, a.getAnnoContext());
     regionLockDecl.setSrcType(a.getSrcType());
     AASTStore.addDerived(regionLockDecl, d);
     return d;
+  }
+  
+  private static int extractAccessMods(final int mods) {
+	  if (JavaNode.isSet(mods, JavaNode.PRIVATE)) {
+		  return JavaNode.PRIVATE;
+	  }
+	  if (JavaNode.isSet(mods, JavaNode.PROTECTED)) {
+		  return JavaNode.PROTECTED;
+	  }
+	  if (JavaNode.isSet(mods, JavaNode.PUBLIC)) {
+		  return JavaNode.PUBLIC;
+	  }
+	  return JavaNode.ALL_FALSE;
   }
 }
