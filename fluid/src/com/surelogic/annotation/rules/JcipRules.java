@@ -35,6 +35,7 @@ import com.surelogic.promise.SinglePromiseDropStorage;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
@@ -108,7 +109,6 @@ public class JcipRules extends AnnotationRules {
 					new String[] { RegionRules.REGION, LockRules.LOCK, RegionRules.SIMPLE_UNIQUE_IN_REGION }, SLUtility.EMPTY_STRING_ARRAY) {
 				@Override
 				protected PromiseDrop<GuardedByNode> makePromiseDrop(GuardedByNode a) {
-//					GuardedByPromiseDrop d = new GuardedByPromiseDrop(a);
 					return storeDropIfNotNull(a, scrubGuardedBy(getContext(), a));
 				}
 			};
@@ -117,7 +117,6 @@ public class JcipRules extends AnnotationRules {
 	
   private static GuardedByPromiseDrop scrubGuardedBy(
       final IAnnotationScrubberContext context, final GuardedByNode a) {
-    // No scrubbing?
     final GuardedByPromiseDrop d = new GuardedByPromiseDrop(a);
     
     final ExpressionNode lock = a.getLock();
@@ -125,12 +124,30 @@ public class JcipRules extends AnnotationRules {
     final IRNode classDecl = VisitUtil.getEnclosingType(fieldDecl);
     final String fieldId = VariableDeclarator.getId(fieldDecl);
     final String id = MessageFormat.format("Guard$_{0}", fieldId);
-
+    final int fieldMods = VariableDeclarator.getMods(fieldDecl);
+    final boolean fieldIsStatic = JavaNode.isSet(fieldMods, JavaNode.STATIC);
+    
     String newRegionId = null;
     final ExpressionNode field;
     if (lock instanceof ThisExpressionNode) {
+      if (fieldIsStatic) {
+    	  context.reportError(a, "Static field \""+fieldId+"\" cannot be guarded by \"this\"");
+    	  return d;
+      }
       field = (ThisExpressionNode) lock.cloneTree();
     } else if (lock instanceof FieldRefNode) {
+      final FieldRefNode ref = (FieldRefNode) lock;
+      final IRNode lockField = ref.resolveBinding().getNode();
+      final int lockMods = VariableDeclarator.getMods(lockField);
+      final boolean lockIsStatic = JavaNode.isSet(lockMods, JavaNode.STATIC);
+      if (fieldIsStatic && !lockIsStatic) {
+    	  context.reportError(a, "Static field \""+fieldId+"\" cannot be guarded by instance lock \""+ref.getId()+"\"");
+    	  return d;
+      }
+      if (!fieldIsStatic && lockIsStatic) {
+    	  context.reportWarning(a, "Instance field \""+fieldId+"\" should not be guarded by static lock \""+ref.getId()+"\"");
+    	  return d;
+      }
       field = (FieldRefNode) lock.cloneTree();
     } else if (lock instanceof ClassExpressionNode) {
       field = 
@@ -139,11 +156,17 @@ public class JcipRules extends AnnotationRules {
     } else if (lock instanceof QualifiedThisExpressionNode) {
       field = (QualifiedThisExpressionNode) lock.cloneTree();   
     } else if (lock instanceof ItselfNode) {
+      // Check if it's an Object type
+      final IRNode type = VariableDeclarator.getType(fieldDecl);
+      if (PrimitiveType.prototype.includes(type)) {
+    	  context.reportError(a, "Primitive-typed field \""+fieldId+"\" cannot guard itself");
+    	  return d;
+      }
       newRegionId = MessageFormat.format("State$_{0}", fieldId);
       field = new FieldRefNode(0, new ThisExpressionNode(0), fieldId);
 
       final NewRegionDeclarationNode regionDecl = 
-    		  new NewRegionDeclarationNode(0, extractAccessMods(VariableDeclarator.getMods(fieldDecl)), newRegionId, null);
+    		  new NewRegionDeclarationNode(0, extractAccessMods(fieldMods), newRegionId, null);
       regionDecl.setPromisedFor(classDecl, a.getAnnoContext());
       regionDecl.setSrcType(a.getSrcType());
       AASTStore.addDerived(regionDecl, d);
@@ -166,15 +189,25 @@ public class JcipRules extends AnnotationRules {
   }
   
   private static int extractAccessMods(final int mods) {
+	  final boolean isStatic = JavaNode.isSet(mods, JavaNode.STATIC);
 	  if (JavaNode.isSet(mods, JavaNode.PRIVATE)) {
+		  if (isStatic) {
+			  return JavaNode.PRIVATE | JavaNode.STATIC;
+		  }
 		  return JavaNode.PRIVATE;
 	  }
 	  if (JavaNode.isSet(mods, JavaNode.PROTECTED)) {
+		  if (isStatic) {
+			  return JavaNode.PROTECTED | JavaNode.STATIC;
+		  }
 		  return JavaNode.PROTECTED;
 	  }
 	  if (JavaNode.isSet(mods, JavaNode.PUBLIC)) {
+		  if (isStatic) {
+			  return JavaNode.PUBLIC | JavaNode.STATIC;
+		  }
 		  return JavaNode.PUBLIC;
-	  }
-	  return JavaNode.ALL_FALSE;
+	  }	 
+	  return isStatic ? JavaNode.STATIC : JavaNode.ALL_FALSE;
   }
 }
