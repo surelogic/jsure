@@ -148,6 +148,20 @@ public class JcipRules extends AnnotationRules {
     	  context.reportWarning(a, "Instance field \""+fieldId+"\" should not be guarded by static lock \""+ref.getId()+"\"");
     	  return d;
       }
+      if (JavaNode.isSet(fieldMods, JavaNode.FINAL)) {
+          if (isPrimTyped(fieldDecl)) {
+        	  context.reportError(a, "Primitive-typed field \""+fieldId+"\" is final and does not need locking");
+        	  return d;
+          } else {
+        	  // An Object, and thus needs @UniqueInRegion
+              newRegionId = MessageFormat.format("State$_{0}", fieldId);
+              
+              final UniqueInRegionNode uir = new UniqueInRegionNode(0, new RegionNameNode(0, newRegionId), false);
+              uir.setPromisedFor(fieldDecl, a.getAnnoContext());
+              uir.setSrcType(a.getSrcType());
+              AASTStore.addDerived(uir, d);
+          }
+      }
       field = (FieldRefNode) lock.cloneTree();
     } else if (lock instanceof ClassExpressionNode) {
       field = 
@@ -156,20 +170,12 @@ public class JcipRules extends AnnotationRules {
     } else if (lock instanceof QualifiedThisExpressionNode) {
       field = (QualifiedThisExpressionNode) lock.cloneTree();   
     } else if (lock instanceof ItselfNode) {
-      // Check if it's an Object type
-      final IRNode type = VariableDeclarator.getType(fieldDecl);
-      if (PrimitiveType.prototype.includes(type)) {
+      if (isPrimTyped(fieldDecl)) {
     	  context.reportError(a, "Primitive-typed field \""+fieldId+"\" cannot guard itself");
     	  return d;
       }
       newRegionId = MessageFormat.format("State$_{0}", fieldId);
       field = new FieldRefNode(0, new ThisExpressionNode(0), fieldId);
-
-      final NewRegionDeclarationNode regionDecl = 
-    		  new NewRegionDeclarationNode(0, extractAccessMods(fieldMods), newRegionId, null);
-      regionDecl.setPromisedFor(classDecl, a.getAnnoContext());
-      regionDecl.setSrcType(a.getSrcType());
-      AASTStore.addDerived(regionDecl, d);
       
       final UniqueInRegionNode uir = new UniqueInRegionNode(0, new RegionNameNode(0, newRegionId), false);
       uir.setPromisedFor(fieldDecl, a.getAnnoContext());
@@ -179,13 +185,30 @@ public class JcipRules extends AnnotationRules {
     	context.reportWarning(a, "Unconverted @GuardedBy: "+lock);
     	return d;
     }
-    final RegionNameNode region = new RegionNameNode(a.getOffset(), newRegionId == null ? fieldId : newRegionId);
+    final RegionNameNode region;
+    if (newRegionId != null) {    	
+        region = new RegionNameNode(a.getOffset(), newRegionId);
+        
+        final NewRegionDeclarationNode regionDecl = 
+      		  new NewRegionDeclarationNode(0, extractAccessMods(fieldMods), newRegionId, null);
+        regionDecl.setPromisedFor(classDecl, a.getAnnoContext());
+        regionDecl.setSrcType(a.getSrcType());
+        AASTStore.addDerived(regionDecl, d);
+    } else {
+        region = new RegionNameNode(a.getOffset(), fieldId);
+    }
     final LockDeclarationNode regionLockDecl =
     	new LockDeclarationNode(a.getOffset(), id, field, region);
     regionLockDecl.setPromisedFor(classDecl, a.getAnnoContext());
     regionLockDecl.setSrcType(a.getSrcType());
     AASTStore.addDerived(regionLockDecl, d);
     return d;
+  }
+  
+  private static boolean isPrimTyped(IRNode fieldDecl) {
+	  // Check if it's an Object type
+      final IRNode type = VariableDeclarator.getType(fieldDecl);
+      return PrimitiveType.prototype.includes(type);
   }
   
   private static int extractAccessMods(final int mods) {
