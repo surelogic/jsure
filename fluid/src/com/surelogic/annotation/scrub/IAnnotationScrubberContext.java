@@ -32,6 +32,5 @@ public interface IAnnotationScrubberContext {
   void reportError(String msg, IAASTNode n);
   
   void reportWarning(IAASTNode n, int number, Object... args);
-  void reportWarning(IAASTNode n, String msgTemplate, Object... args);
   void reportWarning(String msg, IAASTNode n);
 }

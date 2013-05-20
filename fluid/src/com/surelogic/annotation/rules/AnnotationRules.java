@@ -385,12 +385,6 @@ public abstract class AnnotationRules {
     public void reportWarning(IAASTNode n, int number, Object... args) {
 			reportError(n, number, args);
 		}
-		
-		@Override
-    public void reportWarning(IAASTNode n, String msgTemplate,
-				Object... args) {
-			reportWarning(MessageFormat.format(msgTemplate, args), n);
-		}
 
 		@Override
     public void reportWarning(String msg, IAASTNode n) {

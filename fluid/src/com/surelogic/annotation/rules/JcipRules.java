@@ -154,7 +154,8 @@ public class JcipRules extends AnnotationRules {
     	  return d;
       }
       if (!fieldIsStatic && lockIsStatic) {
-    	  context.reportWarning(a, "Instance field \""+fieldId+"\" should not be guarded by static lock \""+ref.getId()+"\"");
+    	  // Should this really prevent it from being validated?
+    	  context.reportError("Instance field \""+fieldId+"\" should not be guarded by static lock \""+ref.getId()+"\"", a);
     	  return d;
       }
       if (JavaNode.isSet(fieldMods, JavaNode.FINAL)) {
@@ -182,7 +183,7 @@ public class JcipRules extends AnnotationRules {
       newRegionId = makeNewUniqueInRegion(d, fieldId);
       field = new FieldRefNode(0, new ThisExpressionNode(0), fieldId);
     } else {
-    	context.reportWarning(a, "Unconverted @GuardedBy: "+lock);
+    	context.reportError("Unconverted @GuardedBy: "+lock, a);
     	return d;
     }
     final RegionNameNode region;
