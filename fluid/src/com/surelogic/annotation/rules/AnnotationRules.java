@@ -35,6 +35,9 @@ import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.IKeyValue;
+import com.surelogic.dropsea.IModelingProblemDrop;
+import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -318,54 +321,65 @@ public abstract class AnnotationRules {
 	
 	private IAnnotationScrubberContext context = new IAnnotationScrubberContext() {		
 		@Override
-    public void reportError(IAASTNode n, int number, Object... args) {			
+		public ModelingProblemDrop reportError(IAASTNode n, int number, Object... args) {			
 			if (ignoreNode(n)) {
-				return;
+				return null;
 			}
-			makeProblemDrop(n.getPromisedFor(),	n.getOffset()).setMessage(number, args);
-		}
-		
-		@Override
-    public void reportError(final IAASTNode n, final String msgTemplate,
-				final Object... args) {
-			reportError(MessageFormat.format(msgTemplate, args), n);
+			final ModelingProblemDrop d = makeProblemDrop(n.getPromisedFor(), n.getOffset());
+			d.setMessage(number, args);
+			return d;
 		}
 
 		@Override
-    public void reportError(String msg, IAASTNode n) {
+		public IModelingProblemDrop reportError(final IAASTNode n, final String msgTemplate,
+				final Object... args) {
+			return reportError(MessageFormat.format(msgTemplate, args), n);
+		}
+
+		@Override
+		public ModelingProblemDrop reportError(String msg, IAASTNode n) {
 			if (ignoreNode(n)) {
-				return;
+				return null;
 			}
 			if (!msg.contains(" on ")) {
 				//IRNode here = n.getPromisedFor();
 				msg = msg + " on " + n;//JavaNames.getFullName(here);
 			}
-			makeProblemDrop(n.getPromisedFor(),	n.getOffset()).setMessage(msg);
+			final ModelingProblemDrop d = makeProblemDrop(n.getPromisedFor(), n.getOffset());
+			d.setMessage(msg);
+			return d;
 		}
 
 		@Override
-    public void reportError(IRNode n, String msgTemplate, Object... args) {
-			reportError_private(n, msgTemplate, args);
+		public IModelingProblemDrop reportError(IRNode n, String msgTemplate, Object... args) {
+			return reportError_private(n, msgTemplate, args);
 		}
 
 		@Override
-    public void reportError(IRNode n, int number, Object... args) {
-			makeProblemDrop(n, UNKNOWN).setMessage(number, args);
+		public IModelingProblemDrop reportError(IRNode n, int number, Object... args) {
+			return reportError_private(n, number, args);
 		}
-		
+
 		@Override
-    public void reportErrorAndProposal(ProposedPromiseDrop p, int number, Object... args) {
-			ModelingProblemDrop d = makeProblemDrop(p.getNode(), UNKNOWN);
-			d.setMessage(number, args);
+		public IModelingProblemDrop reportErrorAndProposal(ProposedPromiseDrop p, int number, Object... args) {
+			ModelingProblemDrop d = reportError_private(p.getNode(), number, args);
 			d.addProposal(p);
+			return d;
+		}
+
+		private ModelingProblemDrop reportError_private(IRNode n, int number, Object... args) {
+			final ModelingProblemDrop d = makeProblemDrop(n, UNKNOWN);
+			d.setMessage(number, args);
+			return d;
 		}
 		
 		@Override
-    public void reportErrorAndProposal(ProposedPromiseDrop p,
+		public ModelingProblemDrop reportErrorAndProposal(ProposedPromiseDrop p,
 				String msgTemplate, Object... args) {
 			ModelingProblemDrop d = reportError_private(p.getNode(),
 					msgTemplate, args);
 			d.addProposal(p);
+			return d;
 		}
 
 		private ModelingProblemDrop reportError_private(IRNode n,
@@ -382,17 +396,34 @@ public abstract class AnnotationRules {
 		}
 
 		@Override
-    public void reportWarning(IAASTNode n, int number, Object... args) {
-			reportError(n, number, args);
+		public IModelingProblemDrop reportWarning(IAASTNode n, int number, Object... args) {
+			return markAsWarning(reportError(n, number, args));
 		}
 
 		@Override
-    public void reportWarning(String msg, IAASTNode n) {
-			reportError(msg, n);
+		public IModelingProblemDrop reportWarning(String msg, IAASTNode n) {
+			return markAsWarning(reportError(msg, n));
 		}
 
 		@Override
-    public IBinder getBinder(IRNode context) {
+		public IModelingProblemDrop reportWarningAndProposal(ProposedPromiseDrop p,
+				String msgTemplate, Object... args) {
+			final ModelingProblemDrop d = reportErrorAndProposal(p, msgTemplate, args);
+			return markAsWarning(d);
+		}
+
+		private ModelingProblemDrop markAsWarning(final ModelingProblemDrop d) {
+			if (d != null) {
+				final IKeyValue diffInfo = 
+					KeyValueUtility.getEnumInstance(IModelingProblemDrop.SEVERITY_HINT, 
+							IModelingProblemDrop.Severity.WARNING);         
+				d.addOrReplaceDiffInfo(diffInfo);
+			}
+			return d;
+		}
+		
+		@Override
+		public IBinder getBinder(IRNode context) {
 			final IIRProject p = Projects.getEnclosingProject(context);
 			return p.getTypeEnv().getBinder();
 			//return IDE.getInstance().getTypeEnv().getBinder();

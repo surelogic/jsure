@@ -161,7 +161,7 @@ public class MethodEffectsRules extends AnnotationRules {
                     new ProposedPromiseDrop(
                         REGIONEFFECTS, cloned.unparseForPromise(true),
                         decl, overriddenMethod, Origin.PROBLEM);
-                getContext().reportErrorAndProposal(p,
+                getContext().reportWarningAndProposal(p,
                     "Cannot add effect writes java.lang.Object:All to the declared effects of {0}",
                     JavaNames.genRelativeFunctionName(overriddenMethod));
               }          
