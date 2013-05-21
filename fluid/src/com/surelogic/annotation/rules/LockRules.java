@@ -1973,7 +1973,7 @@ public class LockRules extends AnnotationRules {
                     notName, name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               } else if (!isMoreSpecific && !zAnno.isAssumed()) {
-                context.reportErrorAndProposal(
+                context.reportWarningAndProposal(
                     new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
                     "Interface must be annotated @{0} because it extends the @{0} interface {1}",
                     name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
@@ -1994,7 +1994,7 @@ public class LockRules extends AnnotationRules {
                     notName, name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               } else if (!isMoreSpecific && !anno.isAssumed()) {
-                context.reportErrorAndProposal(
+                context.reportWarningAndProposal(
                     new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
                     "Class must be annotated @{0} because it implements a @{0} interface {1}",
                     name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
@@ -2007,7 +2007,7 @@ public class LockRules extends AnnotationRules {
                     notName, name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               } else if (!anno.isAssumed()) {
-                context.reportErrorAndProposal(
+                context.reportWarningAndProposal(
                     new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
                     "Class must be annotated @{0} because it extends a @{0} class {1}",
                     name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
