@@ -2,6 +2,7 @@
 package com.surelogic.annotation.rules;
 
 import java.text.MessageFormat;
+import java.util.*;
 
 import org.antlr.runtime.RecognitionException;
 
@@ -34,9 +35,11 @@ import com.surelogic.promise.SinglePromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public class JcipRules extends AnnotationRules {
@@ -46,6 +49,26 @@ public class JcipRules extends AnnotationRules {
 
 	private static final GuardedBy_ParseRule guardedByRule = new GuardedBy_ParseRule();
 
+	private static final boolean useLockNotFieldForName = true;
+	
+	/**
+	 * The IRNode of the lock field (class, or receiver decl)
+	 * 
+	 * A hack, but it works because we're no longer doing incremental runs
+	 */	
+	private static final Set<IRNode> declaredLocks = 
+			useLockNotFieldForName ? new HashSet<IRNode>() : Collections.<IRNode>emptySet();
+	
+	/**
+	 *  Referenced region also declared at the same time
+	 */
+	private static boolean isLockAlreadyDeclared(IRNode lockNode) {		
+		if (lockNode == null) {
+			throw new NullPointerException();
+		}
+		return declaredLocks.contains(lockNode);
+	}
+			
 	public static AnnotationRules getInstance() {
 		return instance;
 	}
@@ -115,6 +138,10 @@ public class JcipRules extends AnnotationRules {
 		}
 	}
 	
+  /**
+   * If using the lock to create names for region/lock decls,
+   * -- no need to create a "field" expr if DUPLICATE
+   */
   private static GuardedByPromiseDrop scrubGuardedBy(
       final IAnnotationScrubberContext context, final GuardedByNode a) {
     final GuardedByPromiseDrop d = new GuardedByPromiseDrop(a);
@@ -123,10 +150,11 @@ public class JcipRules extends AnnotationRules {
     final IRNode fieldDecl = a.getPromisedFor();
     final IRNode classDecl = VisitUtil.getEnclosingType(fieldDecl);
     final String fieldId = VariableDeclarator.getId(fieldDecl);
-    final String id = MessageFormat.format("Guard$_{0}", fieldId);
     final int fieldMods = VariableDeclarator.getMods(fieldDecl);
-    final boolean fieldIsStatic = JavaNode.isSet(fieldMods, JavaNode.STATIC);
-    
+    final boolean fieldIsStatic = JavaNode.isSet(fieldMods, JavaNode.STATIC);    
+
+    // Either of the below might be null to indicate that we shouldn't create a new region/lock decl
+    // since they are already declared
     String newRegionId = null;
     final ExpressionNode field;
     if (lock instanceof ThisExpressionNode) {
@@ -143,7 +171,12 @@ public class JcipRules extends AnnotationRules {
               newRegionId = makeNewUniqueInRegion(d, fieldId);
           }
       }
-      field = (ThisExpressionNode) lock.cloneTree();
+      if (useLockNotFieldForName && 
+    		  isLockAlreadyDeclared(JavaPromise.getReceiverNode(classDecl))) {
+    	  field = null;
+      } else {
+    	  field = (ThisExpressionNode) lock.cloneTree();
+      }
     } else if (lock instanceof FieldRefNode) {
       final FieldRefNode ref = (FieldRefNode) lock;
       final IRNode lockField = ref.resolveBinding().getNode();
@@ -158,51 +191,71 @@ public class JcipRules extends AnnotationRules {
     	  context.reportError("Instance field \""+fieldId+"\" should not be guarded by static lock \""+ref.getId()+"\"", a);
     	  return d;
       }
-      if (JavaNode.isSet(fieldMods, JavaNode.FINAL)) {
-          if (isPrimTyped(fieldDecl)) {
-        	  context.reportError(a, "Primitive-typed field \""+fieldId+"\" is final and does not need locking");
-        	  return d;
-          } else {
-        	  // An Object, and thus needs @UniqueInRegion
-              newRegionId = makeNewUniqueInRegion(d, fieldId);
+      if (useLockNotFieldForName && isLockAlreadyDeclared(lockField)) {
+    	  field = null;
+      } else {
+          if (JavaNode.isSet(fieldMods, JavaNode.FINAL)) {
+              if (isPrimTyped(fieldDecl)) {
+            	  context.reportError(a, "Primitive-typed field \""+fieldId+"\" is final and does not need locking");
+            	  return d;
+              } else {
+            	  // An Object, and thus needs @UniqueInRegion
+                  newRegionId = makeNewUniqueInRegion(d, fieldId);
+              }
           }
+    	  field = (FieldRefNode) lock.cloneTree();
       }
-      field = (FieldRefNode) lock.cloneTree();
     } else if (lock instanceof ClassExpressionNode) {
-      field = 
-        new QualifiedClassLockExpressionNode(lock.getOffset(),
-            (NamedTypeNode) ((ClassExpressionNode) lock).getType().cloneTree());
+      if (useLockNotFieldForName && isLockAlreadyDeclared(classDecl)) {
+    	  field = null;
+      } else {
+    	  field = new QualifiedClassLockExpressionNode(lock.getOffset(),
+    			  (NamedTypeNode) ((ClassExpressionNode) lock).getType().cloneTree());
+      }
     } else if (lock instanceof QualifiedThisExpressionNode) {
-      field = (QualifiedThisExpressionNode) lock.cloneTree();   
+      final QualifiedThisExpressionNode qThis = (QualifiedThisExpressionNode) lock;
+      if (useLockNotFieldForName && 
+    		  isLockAlreadyDeclared(qThis.resolveBinding().getNode())) {
+      	  field = null;
+      } else {
+    	  field = (QualifiedThisExpressionNode) lock.cloneTree();   
+      }
     } else if (lock instanceof ItselfNode) {
       if (isPrimTyped(fieldDecl)) {
     	  context.reportError(a, "Primitive-typed field \""+fieldId+"\" cannot guard itself");
     	  return d;
       }
-	  // An Object, and thus needs @UniqueInRegion
-      newRegionId = makeNewUniqueInRegion(d, fieldId);
-      field = new FieldRefNode(0, new ThisExpressionNode(0), fieldId);
+      if (useLockNotFieldForName && isLockAlreadyDeclared(fieldDecl)) {
+      	  field = null;
+      } else {
+    	  // An Object, and thus needs @UniqueInRegion
+    	  newRegionId = makeNewUniqueInRegion(d, fieldId);
+    	  field = new FieldRefNode(0, new ThisExpressionNode(0), fieldId);
+      }
     } else {
     	context.reportError("Unconverted @GuardedBy: "+lock, a);
     	return d;
     }
-    final RegionNameNode region;
-    if (newRegionId != null) {    	
-        region = new RegionNameNode(a.getOffset(), newRegionId);
-        
-        final NewRegionDeclarationNode regionDecl = 
-      		  new NewRegionDeclarationNode(0, extractAccessMods(fieldMods), newRegionId, null);
-        regionDecl.setPromisedFor(classDecl, a.getAnnoContext());
-        regionDecl.setSrcType(a.getSrcType());
-        AASTStore.addDerived(regionDecl, d);
-    } else {
-        region = new RegionNameNode(a.getOffset(), fieldId);
+    if (field != null) {
+    	final RegionNameNode region;
+    	if (newRegionId != null) {    	
+    		region = new RegionNameNode(a.getOffset(), newRegionId);
+
+    		final NewRegionDeclarationNode regionDecl = 
+    				new NewRegionDeclarationNode(0, extractAccessMods(fieldMods), newRegionId, null);
+    		regionDecl.setPromisedFor(classDecl, a.getAnnoContext());
+    		regionDecl.setSrcType(a.getSrcType());
+    		AASTStore.addDerived(regionDecl, d);
+    	} else {
+    		region = new RegionNameNode(a.getOffset(), fieldId);
+    	}
+    	final String id = MessageFormat.format("Guard$_{0}", fieldId);
+    	final LockDeclarationNode regionLockDecl =
+    			new LockDeclarationNode(a.getOffset(), id, field, region);
+    	regionLockDecl.setPromisedFor(classDecl, a.getAnnoContext());
+    	regionLockDecl.setSrcType(a.getSrcType());
+    	AASTStore.addDerived(regionLockDecl, d);
     }
-    final LockDeclarationNode regionLockDecl =
-    	new LockDeclarationNode(a.getOffset(), id, field, region);
-    regionLockDecl.setPromisedFor(classDecl, a.getAnnoContext());
-    regionLockDecl.setSrcType(a.getSrcType());
-    AASTStore.addDerived(regionLockDecl, d);
     return d;
   }
   
