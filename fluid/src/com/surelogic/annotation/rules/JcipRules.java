@@ -9,12 +9,14 @@ import org.antlr.runtime.RecognitionException;
 import com.surelogic.aast.java.ClassExpressionNode;
 import com.surelogic.aast.java.ExpressionNode;
 import com.surelogic.aast.java.FieldRefNode;
+import com.surelogic.aast.java.MethodCallNode;
 import com.surelogic.aast.java.NamedTypeNode;
 import com.surelogic.aast.java.QualifiedThisExpressionNode;
 import com.surelogic.aast.java.ThisExpressionNode;
 import com.surelogic.aast.promise.GuardedByNode;
 import com.surelogic.aast.promise.ItselfNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
+import com.surelogic.aast.promise.LockSpecificationNode;
 import com.surelogic.aast.promise.NewRegionDeclarationNode;
 import com.surelogic.aast.promise.QualifiedClassLockExpressionNode;
 import com.surelogic.aast.promise.RegionNameNode;
@@ -37,6 +39,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
@@ -49,15 +52,12 @@ public class JcipRules extends AnnotationRules {
 
 	private static final GuardedBy_ParseRule guardedByRule = new GuardedBy_ParseRule();
 
-	private static final boolean useLockNotFieldForName = true;
-	
 	/**
 	 * The IRNode of the lock field (class, or receiver decl)
 	 * 
 	 * A hack, but it works because we're no longer doing incremental runs
 	 */	
-	private static final Set<IRNode> declaredLocks = 
-			useLockNotFieldForName ? new HashSet<IRNode>() : Collections.<IRNode>emptySet();
+	private static final Set<IRNode> declaredLocks = new HashSet<IRNode>();
 	
 	/**
 	 *  Referenced region also declared at the same time
@@ -145,6 +145,9 @@ public class JcipRules extends AnnotationRules {
   private static GuardedByPromiseDrop scrubGuardedBy(
       final IAnnotationScrubberContext context, final GuardedByNode a) {
     final GuardedByPromiseDrop d = new GuardedByPromiseDrop(a);
+    if (MethodDeclaration.prototype.includes(a.getPromisedFor())) {
+    	return handleGuardedByOnMethod(context, d);
+    }
     
     final ExpressionNode lock = a.getLock();
     final IRNode fieldDecl = a.getPromisedFor();
@@ -152,7 +155,9 @@ public class JcipRules extends AnnotationRules {
     final String fieldId = VariableDeclarator.getId(fieldDecl);
     final int fieldMods = VariableDeclarator.getMods(fieldDecl);
     final boolean fieldIsStatic = JavaNode.isSet(fieldMods, JavaNode.STATIC);    
-
+    final IRNode lockDecl;
+	final String lockId;
+    
     // Either of the below might be null to indicate that we shouldn't create a new region/lock decl
     // since they are already declared
     String newRegionId = null;
@@ -162,17 +167,19 @@ public class JcipRules extends AnnotationRules {
     	  context.reportError(a, "Static field \""+fieldId+"\" cannot be guarded by \"this\"");
     	  return d;
       }
+      lockDecl = JavaPromise.getReceiverNode(classDecl);
+      lockId = "this";
+      
       if (JavaNode.isSet(fieldMods, JavaNode.FINAL)) {
           if (isPrimTyped(fieldDecl)) {
         	  context.reportError(a, "Primitive-typed field \""+fieldId+"\" is final and does not need locking");
         	  return d;
           } else {
         	  // An Object, and thus needs @UniqueInRegion
-              newRegionId = makeNewUniqueInRegion(d, fieldId);
+              newRegionId = makeNewUniqueInRegion(d, lockId);
           }
       }
-      if (useLockNotFieldForName && 
-    		  isLockAlreadyDeclared(JavaPromise.getReceiverNode(classDecl))) {
+      if (isLockAlreadyDeclared(lockDecl)) {
     	  field = null;
       } else {
     	  field = (ThisExpressionNode) lock.cloneTree();
@@ -191,7 +198,9 @@ public class JcipRules extends AnnotationRules {
     	  context.reportError("Instance field \""+fieldId+"\" should not be guarded by static lock \""+ref.getId()+"\"", a);
     	  return d;
       }
-      if (useLockNotFieldForName && isLockAlreadyDeclared(lockField)) {
+      lockId = VariableDeclarator.getId(lockField);
+    	  
+      if (isLockAlreadyDeclared(lockField)) {
     	  field = null;
       } else {
           if (JavaNode.isSet(fieldMods, JavaNode.FINAL)) {
@@ -199,39 +208,44 @@ public class JcipRules extends AnnotationRules {
             	  context.reportError(a, "Primitive-typed field \""+fieldId+"\" is final and does not need locking");
             	  return d;
               } else {
-            	  // An Object, and thus needs @UniqueInRegion
-                  newRegionId = makeNewUniqueInRegion(d, fieldId);
+            	  // An Object, and thus needs @UniqueInRegion            	  
+                  newRegionId = makeNewUniqueInRegion(d, lockId);
               }
           }
     	  field = (FieldRefNode) lock.cloneTree();
       }
     } else if (lock instanceof ClassExpressionNode) {
-      if (useLockNotFieldForName && isLockAlreadyDeclared(classDecl)) {
+      final ClassExpressionNode classExpr = (ClassExpressionNode) lock;
+      if (isLockAlreadyDeclared(classDecl)) {
     	  field = null;
       } else {
     	  field = new QualifiedClassLockExpressionNode(lock.getOffset(),
-    			  (NamedTypeNode) ((ClassExpressionNode) lock).getType().cloneTree());
+    			  (NamedTypeNode) classExpr.getType().cloneTree());
       }
+      lockId = classExpr.getType()+"_class";  	  
     } else if (lock instanceof QualifiedThisExpressionNode) {
       final QualifiedThisExpressionNode qThis = (QualifiedThisExpressionNode) lock;
-      if (useLockNotFieldForName && 
-    		  isLockAlreadyDeclared(qThis.resolveBinding().getNode())) {
+      if (isLockAlreadyDeclared(qThis.resolveBinding().getNode())) {
       	  field = null;
       } else {
     	  field = (QualifiedThisExpressionNode) lock.cloneTree();   
       }
+      lockId = qThis.getType()+"_this";
     } else if (lock instanceof ItselfNode) {
       if (isPrimTyped(fieldDecl)) {
     	  context.reportError(a, "Primitive-typed field \""+fieldId+"\" cannot guard itself");
     	  return d;
       }
-      if (useLockNotFieldForName && isLockAlreadyDeclared(fieldDecl)) {
+      lockId = fieldId;
+      
+      if (isLockAlreadyDeclared(fieldDecl)) {
       	  field = null;
       } else {
     	  // An Object, and thus needs @UniqueInRegion
-    	  newRegionId = makeNewUniqueInRegion(d, fieldId);
+    	  newRegionId = makeNewUniqueInRegion(d, lockId);
     	  field = new FieldRefNode(0, new ThisExpressionNode(0), fieldId);
       }
+    //} else if (lock instanceof MethodCallNode) { // no-args method
     } else {
     	context.reportError("Unconverted @GuardedBy: "+lock, a);
     	return d;
@@ -249,7 +263,8 @@ public class JcipRules extends AnnotationRules {
     	} else {
     		region = new RegionNameNode(a.getOffset(), fieldId);
     	}
-    	final String id = MessageFormat.format("Guard$_{0}", fieldId);
+    	// FIX based on the lock
+    	final String id = MessageFormat.format("Guard$_{0}", lockId);
     	final LockDeclarationNode regionLockDecl =
     			new LockDeclarationNode(a.getOffset(), id, field, region);
     	regionLockDecl.setPromisedFor(classDecl, a.getAnnoContext());
@@ -259,10 +274,19 @@ public class JcipRules extends AnnotationRules {
     return d;
   }
   
-  private static String makeNewUniqueInRegion(GuardedByPromiseDrop d, String fieldId) {
+  /* Converts to a RequiresLock */
+  private static GuardedByPromiseDrop handleGuardedByOnMethod(IAnnotationScrubberContext context, GuardedByPromiseDrop d) {
+	// TODO Auto-generated method stub
+	  
+	final LockSpecificationNode lsn;
+	  
+	return d;
+  }
+
+private static String makeNewUniqueInRegion(GuardedByPromiseDrop d, String lockId) {
 	  final GuardedByNode a = d.getAAST();
 	  final IRNode fieldDecl = a.getPromisedFor();
-      final String newRegionId = MessageFormat.format("State$_{0}", fieldId);
+      final String newRegionId = MessageFormat.format("State$_{0}", lockId);
       
       final UniqueInRegionNode uir = new UniqueInRegionNode(0, new RegionNameNode(0, newRegionId), false);
       uir.setPromisedFor(fieldDecl, a.getAnnoContext());
