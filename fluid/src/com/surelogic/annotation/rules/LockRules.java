@@ -142,7 +142,7 @@ public class LockRules extends AnnotationRules {
 
   public static final String LOCK = "RegionLock";
 //	private static final String IS_LOCK = "IsLock";
-	private static final String REQUIRES_LOCK = "RequiresLock";
+	public static final String REQUIRES_LOCK = "RequiresLock";
 	private static final String RETURNS_LOCK = "ReturnsLock";
 	private static final String PROHIBITS_LOCK = "ProhibitsLock";
 	private static final String POLICY_LOCK = "PolicyLock";

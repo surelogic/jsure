@@ -9,7 +9,7 @@ import org.antlr.runtime.RecognitionException;
 import com.surelogic.NonNull;
 import com.surelogic.aast.AASTRootNode;
 import com.surelogic.aast.java.*;
-import com.surelogic.aast.promise.GuardedByNode;
+import com.surelogic.aast.promise.*;
 import com.surelogic.aast.promise.InRegionNode;
 import com.surelogic.aast.promise.ItselfNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
@@ -28,6 +28,7 @@ import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
+import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.annotation.scrub.ValidatedDropCallback;
 import com.surelogic.common.SLUtility;
@@ -51,7 +52,16 @@ public class JcipRules extends AnnotationRules {
 	private static final AnnotationRules instance = new JcipRules();
 
 	private static final GuardedBy_ParseRule guardedByRule = new GuardedBy_ParseRule();
-
+	private static final IAnnotationScrubber methodScrubber = 
+		new AbstractAASTScrubber<MethodGuardedByNode, GuardedByPromiseDrop>("methodGuardedBy", MethodGuardedByNode.class, 
+				guardedByRule.getStorage(), ScrubberType.UNORDERED, 
+				new String[] { GUARDED_BY }, ScrubberOrder.NORMAL, LockRules.REQUIRES_LOCK) {
+		@Override
+		protected PromiseDrop<GuardedByNode> makePromiseDrop(MethodGuardedByNode a) {
+			return storeDropIfNotNull(a, scrubGuardedBy(getContext(), a));
+		}
+	};
+	
 	/**
 	 * The IRNode of the lock field (class, or receiver decl)
 	 * 
@@ -78,6 +88,7 @@ public class JcipRules extends AnnotationRules {
 	@Override
 	public void register(PromiseFramework fw) {
 		registerParseRuleStorage(fw, guardedByRule);
+		registerScrubber(fw, methodScrubber);
 	}
 
 	static class GuardedBy_ParseRule
@@ -90,6 +101,9 @@ public class JcipRules extends AnnotationRules {
 		@Override
 		protected Object parse(IAnnotationParsingContext context,
 				SLAnnotationsParser parser) throws RecognitionException {
+			if (MethodDeclaration.prototype.includes(context.getOp())) {
+				return parser.methodGuardedBy().getTree();
+			}
 			return parser.guardedBy().getTree();
 		}
 
@@ -103,7 +117,8 @@ public class JcipRules extends AnnotationRules {
 		protected IAnnotationScrubber makeScrubber() {
 			// Run this before Lock to create virtual declarations
 			return new AbstractAASTScrubber<GuardedByNode, GuardedByPromiseDrop>(this, ScrubberType.UNORDERED, 
-					new String[] { RegionRules.REGION, LockRules.LOCK, RegionRules.SIMPLE_UNIQUE_IN_REGION }, SLUtility.EMPTY_STRING_ARRAY) {
+					new String[] { RegionRules.REGION, LockRules.LOCK, RegionRules.IN_REGION, RegionRules.SIMPLE_UNIQUE_IN_REGION }, 
+					SLUtility.EMPTY_STRING_ARRAY) {
 				@Override
 				protected PromiseDrop<GuardedByNode> makePromiseDrop(GuardedByNode a) {
 					return storeDropIfNotNull(a, scrubGuardedBy(getContext(), a));
@@ -153,11 +168,19 @@ public class JcipRules extends AnnotationRules {
 			});
         }
     } else {
+    	// Create a policy lock if there isn't already a lock decl
+    	if (rv.lockField != null) {
+    		final PolicyLockDeclarationNode lockDecl = new PolicyLockDeclarationNode(0, rv.lockId, rv.lockField);
+    		lockDecl.setPromisedFor(d.getPromisedFor(), d.getAAST().getAnnoContext());
+    		lockDecl.setSrcType(d.getAAST().getSrcType());
+        	AASTStore.addDerived(lockDecl, d);
+    	}    	
     	/* Converts to a RequiresLock for a method */
     	final LockSpecificationNode spec = new SimpleLockNameNode(0, rv.lockId);  
     	final RequiresLockNode req = new RequiresLockNode(0, Collections.singletonList(spec));
     	req.setPromisedFor(d.getPromisedFor(), d.getAAST().getAnnoContext());
     	req.setSrcType(d.getAAST().getSrcType());
+    	AASTStore.addDerived(req, d);
     }
     return d;
   }
@@ -215,6 +238,16 @@ public class JcipRules extends AnnotationRules {
 		return new Result(lockDecl, lockId, newRegionId, field);
 	}
 	
+	private Result makeResultForMethod(final ExpressionNode lock, final IRNode lockDecl, final String lockId) {
+		final ExpressionNode field;
+		if (isLockAlreadyDeclared(lockDecl)) {
+			field = null;
+		} else {
+			field = (ExpressionNode) lock.cloneTree();
+		}
+		return new Result(lockDecl, lockId, null, field);
+	}
+	
 	public Result visit(ThisExpressionNode lock) {
 		if (targetIsStatic) {
 			context.reportError(anno, "Static field \""+targetId+"\" cannot be guarded by \"this\"");
@@ -225,7 +258,7 @@ public class JcipRules extends AnnotationRules {
 		if (isFieldNotMethod) {
 			return makeResultForField(lock, lockDecl, lockId);
 		} else {
-			return new Result(lockDecl, lockId);
+			return makeResultForMethod(lock, lockDecl, lockId);
 		}
 	}
 	
@@ -247,7 +280,7 @@ public class JcipRules extends AnnotationRules {
 		if (isFieldNotMethod) {
 			return makeResultForField(lock, lockField, lockId);
 		} else {
-			return new Result(lockField, lockId);
+			return makeResultForMethod(lock, lockField, lockId);
 		}
 	}
 	
@@ -255,12 +288,12 @@ public class JcipRules extends AnnotationRules {
 		final String targetLabel = isFieldNotMethod ? "field" : "method";
 		final String id = lock.getType().toString().replace('.', '$')+"_class";
 		final ExpressionNode field;
-		String newRegionId = makeNewInRegion(id, false);
+		String newRegionId = isFieldNotMethod ? makeNewInRegion(id, false) : null;
 		if (!targetIsStatic) {
 			context.reportError("Instance "+targetLabel+" \""+targetId+"\" should not be guarded by static lock \""+lock+"\"", anno);
 			return null;
 		}
-		if (!isFieldNotMethod || isLockAlreadyDeclared(enclosingTypeDecl)) {
+		if (isLockAlreadyDeclared(enclosingTypeDecl)) {
 			field = null;
 		} else {
 			field = new QualifiedClassLockExpressionNode(lock.getOffset(),
@@ -279,7 +312,7 @@ public class JcipRules extends AnnotationRules {
 		if (isFieldNotMethod) {
 			return makeResultForField(lock, lockNode, id);
 		}
-		return new Result(lockNode, id);
+		return makeResultForMethod(lock, lockNode, id);
 	}
 	
 	public Result visit(ItselfNode lock) {

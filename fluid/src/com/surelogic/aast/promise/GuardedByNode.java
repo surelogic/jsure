@@ -10,7 +10,7 @@ import com.surelogic.aast.INodeVisitor;
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.AbstractAASTNodeFactory;
 
-public final class GuardedByNode extends AASTRootNode 
+public class GuardedByNode extends AASTRootNode 
 { 
   // Fields
   private final ExpressionNode lock;

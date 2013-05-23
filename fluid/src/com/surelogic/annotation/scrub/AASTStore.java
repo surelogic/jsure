@@ -78,6 +78,10 @@ public final class AASTStore {
     addByPromisedFor(ast);
   }
   
+  /**
+   * Add to group by the concrete class 
+   * (e.g. super- and subclasses are separate)
+   */
   @RequiresLock("StoreLock")
   private static <T extends IAASTRootNode> 
   void addByClass(T ast) {  	  
