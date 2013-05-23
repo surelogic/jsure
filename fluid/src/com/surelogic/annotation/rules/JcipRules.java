@@ -6,21 +6,21 @@ import java.util.*;
 
 import org.antlr.runtime.RecognitionException;
 
-import com.surelogic.aast.java.ClassExpressionNode;
-import com.surelogic.aast.java.ExpressionNode;
-import com.surelogic.aast.java.FieldRefNode;
-import com.surelogic.aast.java.MethodCallNode;
-import com.surelogic.aast.java.NamedTypeNode;
-import com.surelogic.aast.java.QualifiedThisExpressionNode;
-import com.surelogic.aast.java.ThisExpressionNode;
+import com.surelogic.NonNull;
+import com.surelogic.aast.AASTRootNode;
+import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.GuardedByNode;
+import com.surelogic.aast.promise.InRegionNode;
 import com.surelogic.aast.promise.ItselfNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.aast.promise.LockSpecificationNode;
 import com.surelogic.aast.promise.NewRegionDeclarationNode;
 import com.surelogic.aast.promise.QualifiedClassLockExpressionNode;
 import com.surelogic.aast.promise.RegionNameNode;
+import com.surelogic.aast.promise.RequiresLockNode;
+import com.surelogic.aast.promise.SimpleLockNameNode;
 import com.surelogic.aast.promise.UniqueInRegionNode;
+import com.surelogic.aast.visitor.DescendingVisitor;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
@@ -29,6 +29,7 @@ import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberType;
+import com.surelogic.annotation.scrub.ValidatedDropCallback;
 import com.surelogic.common.SLUtility;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
@@ -42,7 +43,6 @@ import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
-import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public class JcipRules extends AnnotationRules {
@@ -57,48 +57,23 @@ public class JcipRules extends AnnotationRules {
 	 * 
 	 * A hack, but it works because we're no longer doing incremental runs
 	 */	
-	private static final Set<IRNode> declaredLocks = new HashSet<IRNode>();
+	private static final Map<IRNode,LockDeclarationNode> declaredLocks = new HashMap<IRNode,LockDeclarationNode>();
 	
 	/**
 	 *  Referenced region also declared at the same time
+	 *  
+	 *  Also adds the node to the set
 	 */
 	private static boolean isLockAlreadyDeclared(IRNode lockNode) {		
 		if (lockNode == null) {
 			throw new NullPointerException();
 		}
-		return declaredLocks.contains(lockNode);
+		return declaredLocks.containsKey(lockNode);
 	}
 			
 	public static AnnotationRules getInstance() {
 		return instance;
 	}
-
-	/*
-	public static VouchPromiseDrop getVouchSpec(IRNode decl) {
-		return getDrop(vouchRule.getStorage(), decl);
-	}
-	*/
-
-	/**
-	 * Returns the closest vouch applicable for the given IRNode, if any
-	 */
-	/*
-	public static VouchPromiseDrop getEnclosingVouch(final IRNode n) {
-		IRNode decl = VisitUtil.getClosestDecl(n);
-		while (decl != null) {
-			Operator op = JJNode.tree.getOperator(decl);
-			if (ClassBodyDeclaration.prototype.includes(op)
-					|| TypeDeclaration.prototype.includes(op)) {
-				VouchPromiseDrop rv = getVouchSpec(decl);
-				if (rv != null) {
-					return rv;
-				}
-			}
-			decl = VisitUtil.getEnclosingDecl(decl);
-		}
-		return null;
-	}
-	*/
 
 	@Override
 	public void register(PromiseFramework fw) {
@@ -127,7 +102,6 @@ public class JcipRules extends AnnotationRules {
 		@Override
 		protected IAnnotationScrubber makeScrubber() {
 			// Run this before Lock to create virtual declarations
-			// TODO group similar decls within a type?
 			return new AbstractAASTScrubber<GuardedByNode, GuardedByPromiseDrop>(this, ScrubberType.UNORDERED, 
 					new String[] { RegionRules.REGION, LockRules.LOCK, RegionRules.SIMPLE_UNIQUE_IN_REGION }, SLUtility.EMPTY_STRING_ARRAY) {
 				@Override
@@ -145,162 +119,246 @@ public class JcipRules extends AnnotationRules {
   private static GuardedByPromiseDrop scrubGuardedBy(
       final IAnnotationScrubberContext context, final GuardedByNode a) {
     final GuardedByPromiseDrop d = new GuardedByPromiseDrop(a);
-    if (MethodDeclaration.prototype.includes(a.getPromisedFor())) {
-    	return handleGuardedByOnMethod(context, d);
+	final LockVisitor v = new LockVisitor(context, d); 
+	final Result rv = v.doAccept(a.getLock());
+    if (rv == null) {
+    	d.invalidate();
+    	return null;
     }
-    
-    final ExpressionNode lock = a.getLock();
-    final IRNode fieldDecl = a.getPromisedFor();
-    final IRNode classDecl = VisitUtil.getEnclosingType(fieldDecl);
-    final String fieldId = VariableDeclarator.getId(fieldDecl);
-    final int fieldMods = VariableDeclarator.getMods(fieldDecl);
-    final boolean fieldIsStatic = JavaNode.isSet(fieldMods, JavaNode.STATIC);    
-    final IRNode lockDecl;
-	final String lockId;
-    
-    // Either of the below might be null to indicate that we shouldn't create a new region/lock decl
-    // since they are already declared
-    String newRegionId = null;
-    final ExpressionNode field;
-    if (lock instanceof ThisExpressionNode) {
-      if (fieldIsStatic) {
-    	  context.reportError(a, "Static field \""+fieldId+"\" cannot be guarded by \"this\"");
-    	  return d;
-      }
-      lockDecl = JavaPromise.getReceiverNode(classDecl);
-      lockId = "this";
-      
-      if (JavaNode.isSet(fieldMods, JavaNode.FINAL)) {
-          if (isPrimTyped(fieldDecl)) {
-        	  context.reportError(a, "Primitive-typed field \""+fieldId+"\" is final and does not need locking");
-        	  return d;
-          } else {
-        	  // An Object, and thus needs @UniqueInRegion
-              newRegionId = makeNewUniqueInRegion(d, lockId);
-          }
-      }
-      if (isLockAlreadyDeclared(lockDecl)) {
-    	  field = null;
-      } else {
-    	  field = (ThisExpressionNode) lock.cloneTree();
-      }
-    } else if (lock instanceof FieldRefNode) {
-      final FieldRefNode ref = (FieldRefNode) lock;
-      final IRNode lockField = ref.resolveBinding().getNode();
-      final int lockMods = VariableDeclarator.getMods(lockField);
-      final boolean lockIsStatic = JavaNode.isSet(lockMods, JavaNode.STATIC);
-      if (fieldIsStatic && !lockIsStatic) {
-    	  context.reportError(a, "Static field \""+fieldId+"\" cannot be guarded by instance lock \""+ref.getId()+"\"");
-    	  return d;
-      }
-      if (!fieldIsStatic && lockIsStatic) {
-    	  // Should this really prevent it from being validated?
-    	  context.reportError("Instance field \""+fieldId+"\" should not be guarded by static lock \""+ref.getId()+"\"", a);
-    	  return d;
-      }
-      lockId = VariableDeclarator.getId(lockField);
-    	  
-      if (isLockAlreadyDeclared(lockField)) {
-    	  field = null;
-      } else {
-          if (JavaNode.isSet(fieldMods, JavaNode.FINAL)) {
-              if (isPrimTyped(fieldDecl)) {
-            	  context.reportError(a, "Primitive-typed field \""+fieldId+"\" is final and does not need locking");
-            	  return d;
-              } else {
-            	  // An Object, and thus needs @UniqueInRegion            	  
-                  newRegionId = makeNewUniqueInRegion(d, lockId);
-              }
-          }
-    	  field = (FieldRefNode) lock.cloneTree();
-      }
-    } else if (lock instanceof ClassExpressionNode) {
-      final ClassExpressionNode classExpr = (ClassExpressionNode) lock;
-      if (isLockAlreadyDeclared(classDecl)) {
-    	  field = null;
-      } else {
-    	  field = new QualifiedClassLockExpressionNode(lock.getOffset(),
-    			  (NamedTypeNode) classExpr.getType().cloneTree());
-      }
-      lockId = classExpr.getType()+"_class";  	  
-    } else if (lock instanceof QualifiedThisExpressionNode) {
-      final QualifiedThisExpressionNode qThis = (QualifiedThisExpressionNode) lock;
-      if (isLockAlreadyDeclared(qThis.resolveBinding().getNode())) {
-      	  field = null;
-      } else {
-    	  field = (QualifiedThisExpressionNode) lock.cloneTree();   
-      }
-      lockId = qThis.getType()+"_this";
-    } else if (lock instanceof ItselfNode) {
-      if (isPrimTyped(fieldDecl)) {
-    	  context.reportError(a, "Primitive-typed field \""+fieldId+"\" cannot guard itself");
-    	  return d;
-      }
-      lockId = fieldId;
-      
-      if (isLockAlreadyDeclared(fieldDecl)) {
-      	  field = null;
-      } else {
-    	  // An Object, and thus needs @UniqueInRegion
-    	  newRegionId = makeNewUniqueInRegion(d, lockId);
-    	  field = new FieldRefNode(0, new ThisExpressionNode(0), fieldId);
-      }
-    //} else if (lock instanceof MethodCallNode) { // no-args method
-    } else {
-    	context.reportError("Unconverted @GuardedBy: "+lock, a);
-    	return d;
-    }
-    if (field != null) {
-    	final RegionNameNode region;
-    	if (newRegionId != null) {    	
-    		region = new RegionNameNode(a.getOffset(), newRegionId);
+    if (v.isFieldNotMethod) {
+        if (rv.lockField != null) {        
+        	// Changed to create a new region for every lock decl (instead of depending on the type of field)
+        	final RegionNameNode region = new RegionNameNode(a.getOffset(), rv.newRegionId);
 
-    		final NewRegionDeclarationNode regionDecl = 
-    				new NewRegionDeclarationNode(0, extractAccessMods(fieldMods), newRegionId, null);
-    		regionDecl.setPromisedFor(classDecl, a.getAnnoContext());
-    		regionDecl.setSrcType(a.getSrcType());
-    		AASTStore.addDerived(regionDecl, d);
-    	} else {
-    		region = new RegionNameNode(a.getOffset(), fieldId);
-    	}
-    	// FIX based on the lock
-    	final String id = MessageFormat.format("Guard$_{0}", lockId);
-    	final LockDeclarationNode regionLockDecl =
-    			new LockDeclarationNode(a.getOffset(), id, field, region);
-    	regionLockDecl.setPromisedFor(classDecl, a.getAnnoContext());
-    	regionLockDecl.setSrcType(a.getSrcType());
-    	AASTStore.addDerived(regionLockDecl, d);
+        	final NewRegionDeclarationNode regionDecl = 
+        			new NewRegionDeclarationNode(0, extractAccessMods(v.targetMods), rv.newRegionId, null);
+        	regionDecl.setPromisedFor(v.enclosingTypeDecl, a.getAnnoContext());
+        	regionDecl.setSrcType(a.getSrcType());
+        	AASTStore.addDerived(regionDecl, d);
+
+        	final LockDeclarationNode regionLockDecl =
+        			new LockDeclarationNode(a.getOffset(), rv.lockId, rv.lockField, region);
+        	regionLockDecl.setPromisedFor(v.enclosingTypeDecl, a.getAnnoContext());
+        	regionLockDecl.setSrcType(a.getSrcType());
+        	AASTStore.addDerived(regionLockDecl, d);
+        	declaredLocks.put(rv.lockNode, regionLockDecl);
+        } else {
+        	// Link the @GuardedBy drop to the lock model when it's created
+        	final LockDeclarationNode previousDecl = declaredLocks.get(rv.lockNode);
+        	AASTStore.triggerWhenValidated(previousDecl, new ValidatedDropCallback<PromiseDrop<?>>() {
+				@Override
+				public void validated(PromiseDrop<?> lm) {				
+					d.addDependent(lm);
+				}
+			});
+        }
+    } else {
+    	/* Converts to a RequiresLock for a method */
+    	final LockSpecificationNode spec = new SimpleLockNameNode(0, rv.lockId);  
+    	final RequiresLockNode req = new RequiresLockNode(0, Collections.singletonList(spec));
+    	req.setPromisedFor(d.getPromisedFor(), d.getAAST().getAnnoContext());
+    	req.setSrcType(d.getAAST().getSrcType());
     }
     return d;
   }
   
-  /* Converts to a RequiresLock */
-  private static GuardedByPromiseDrop handleGuardedByOnMethod(IAnnotationScrubberContext context, GuardedByPromiseDrop d) {
-	// TODO Auto-generated method stub
+  // Returning null means that there was a problem and we're not creating anything
+  static class LockVisitor extends DescendingVisitor<Result> {		
+	final IAnnotationScrubberContext context;
+	final GuardedByPromiseDrop drop;
+	final GuardedByNode anno;
+    final IRNode target; // being protected
+    final IRNode enclosingTypeDecl;
+	final boolean isFieldNotMethod;
+    final String targetId;
+    final int targetMods;
+    final boolean targetIsStatic;  
+	
+	public LockVisitor(final IAnnotationScrubberContext context, final GuardedByPromiseDrop d) {
+		super(null);
+		this.context = context;
+		drop = d;
+		anno = d.getAAST();
+		target = d.getPromisedFor();		
+		enclosingTypeDecl = VisitUtil.getEnclosingType(target);
+		isFieldNotMethod = VariableDeclarator.prototype.includes(target);
+		if (isFieldNotMethod) {
+			targetId = VariableDeclarator.getId(target);
+			targetMods = VariableDeclarator.getMods(target);
+		} else {
+			targetId = MethodDeclaration.getId(target);
+			targetMods = MethodDeclaration.getModifiers(target);
+		}
+		targetIsStatic = JavaNode.isSet(targetMods, JavaNode.STATIC);    
+	}
+
+	private Result makeResultForField(final ExpressionNode lock, final IRNode lockDecl, final String lockId) {
+		// Always need to create an Unique/InRegion, but not Region decl
+		String newRegionId = null;		
+		if (JavaNode.isSet(targetMods, JavaNode.FINAL)) {
+			if (isPrimTyped(target)) {
+				context.reportError(anno, "Primitive-typed field \""+targetId+"\" is final and does not need locking");
+				return null;
+			} else {
+				// An Object, and thus needs @UniqueInRegion
+				newRegionId = makeNewInRegion(lockId, true);
+			}
+		} else {
+			newRegionId = makeNewInRegion(lockId, false);
+		}
+		final ExpressionNode field;
+		if (isLockAlreadyDeclared(lockDecl)) {
+			field = null;
+		} else {
+			field = (ExpressionNode) lock.cloneTree();
+		}
+		return new Result(lockDecl, lockId, newRegionId, field);
+	}
+	
+	public Result visit(ThisExpressionNode lock) {
+		if (targetIsStatic) {
+			context.reportError(anno, "Static field \""+targetId+"\" cannot be guarded by \"this\"");
+			return null;
+		}
+		final IRNode lockDecl = JavaPromise.getReceiverNode(enclosingTypeDecl);
+		final String lockId = "this";
+		if (isFieldNotMethod) {
+			return makeResultForField(lock, lockDecl, lockId);
+		} else {
+			return new Result(lockDecl, lockId);
+		}
+	}
+	
+	public Result visit(FieldRefNode lock) {
+		final IRNode lockField = lock.resolveBinding().getNode();
+		final int lockMods = VariableDeclarator.getMods(lockField);
+		final boolean lockIsStatic = JavaNode.isSet(lockMods, JavaNode.STATIC);
+		final String targetLabel = isFieldNotMethod ? "field" : "method";
+		if (targetIsStatic && !lockIsStatic) {
+			context.reportError(anno, "Static "+targetLabel+" \""+targetId+"\" cannot be guarded by instance lock \""+lock.getId()+"\"");
+			return null;
+		}
+		if (!targetIsStatic && lockIsStatic) {
+			// Should this really prevent it from being validated?
+			context.reportError("Instance "+targetLabel+" \""+targetId+"\" should not be guarded by static lock \""+lock.getId()+"\"", anno);
+			return null;
+		}
+		final String lockId = VariableDeclarator.getId(lockField);		
+		if (isFieldNotMethod) {
+			return makeResultForField(lock, lockField, lockId);
+		} else {
+			return new Result(lockField, lockId);
+		}
+	}
+	
+	public Result visit(ClassExpressionNode lock) {
+		final String targetLabel = isFieldNotMethod ? "field" : "method";
+		final String id = lock.getType().toString().replace('.', '$')+"_class";
+		final ExpressionNode field;
+		String newRegionId = makeNewInRegion(id, false);
+		if (!targetIsStatic) {
+			context.reportError("Instance "+targetLabel+" \""+targetId+"\" should not be guarded by static lock \""+lock+"\"", anno);
+			return null;
+		}
+		if (!isFieldNotMethod || isLockAlreadyDeclared(enclosingTypeDecl)) {
+			field = null;
+		} else {
+			field = new QualifiedClassLockExpressionNode(lock.getOffset(),
+					(NamedTypeNode) lock.getType().cloneTree());
+		}
+		return new Result(enclosingTypeDecl, id, newRegionId, field);
+	}
+	
+	public Result visit(QualifiedThisExpressionNode lock) {		
+		if (true) {
+			context.reportError("Unconverted @GuardedBy: currently unable to handle qualified receiver "+lock+" as a lock", anno);
+			return null;
+		}
+		final IRNode lockNode = lock.resolveBinding().getNode();
+		final String id = lock.getType().toString().replace('.', '$')+"_this";
+		if (isFieldNotMethod) {
+			return makeResultForField(lock, lockNode, id);
+		}
+		return new Result(lockNode, id);
+	}
+	
+	public Result visit(ItselfNode lock) {
+		if (!isFieldNotMethod) {
+			context.reportError(anno, "A method cannot be annotated to guard itself");
+			return null;
+		}
+		if (isPrimTyped(target)) {
+			context.reportError(anno, "Primitive-typed field \""+targetId+"\" cannot guard itself");
+			return null;
+		}
+		String newRegionId = makeNewInRegion(targetId, true);
+		final ExpressionNode field;
+		if (isLockAlreadyDeclared(target)) {
+			field = null;
+		} else {
+			// An Object, and thus needs @UniqueInRegion	
+			field = new FieldRefNode(0, new ThisExpressionNode(0), targetId);
+		}
+		return new Result(target, targetId, newRegionId, field);
+	}
+	
+	public Result visit(MethodCallNode lock) { // no-args method
+    	context.reportError("Unconverted @GuardedBy: currently unable to handle method "+lock+"() as a lock", anno);
+		return null;
+	}
+	
+	public Result visit(ExpressionNode lock) {
+    	context.reportError("Unconverted @GuardedBy: "+lock, anno);
+		return null;
+	}
+	
+	private String makeNewInRegion(String lockId, boolean alsoUnique) {
+		final String newRegionId = MessageFormat.format("State$_{0}", lockId);
+		final RegionNameNode name = new RegionNameNode(0, newRegionId);
+		final AASTRootNode root;
+		if (alsoUnique) {
+			root = new UniqueInRegionNode(0, name, false);
+		} else {
+			root = new InRegionNode(0, name);
+		}
+		root.setPromisedFor(target, anno.getAnnoContext());
+		root.setSrcType(anno.getSrcType());
+		AASTStore.addDerived(root, drop);
+		return newRegionId;      
+	}
+	
+	private static boolean isPrimTyped(IRNode fieldDecl) {
+		// Check if it's an Object type
+		final IRNode type =	VariableDeclarator.getType(fieldDecl);
+		return PrimitiveType.prototype.includes(type);
+	}
+  }
+  
+  static class Result {
+	@NonNull
+	final IRNode lockNode;
 	  
-	final LockSpecificationNode lsn;
-	  
-	return d;
+	@NonNull
+	final String lockId;	  
+    
+    // Either of the below might be null to indicate that we shouldn't create a new region/lock decl
+    // since they are already declared
+	// 
+	// Only used if it's for a field
+	final String newRegionId;
+    final ExpressionNode lockField;
+    
+	Result(IRNode n, String id, String rid, ExpressionNode f) {
+		lockNode = n;
+		lockId = MessageFormat.format("Guard$_{0}", id);
+		newRegionId = rid;
+		lockField = f;
+	}
+	Result(IRNode n, String id) {
+		this(n, id, null, null);
+	}
   }
 
-private static String makeNewUniqueInRegion(GuardedByPromiseDrop d, String lockId) {
-	  final GuardedByNode a = d.getAAST();
-	  final IRNode fieldDecl = a.getPromisedFor();
-      final String newRegionId = MessageFormat.format("State$_{0}", lockId);
-      
-      final UniqueInRegionNode uir = new UniqueInRegionNode(0, new RegionNameNode(0, newRegionId), false);
-      uir.setPromisedFor(fieldDecl, a.getAnnoContext());
-      uir.setSrcType(a.getSrcType());
-      AASTStore.addDerived(uir, d);
-      return newRegionId;      
-  }
-  
-  private static boolean isPrimTyped(IRNode fieldDecl) {
-	  // Check if it's an Object type
-      final IRNode type = VariableDeclarator.getType(fieldDecl);
-      return PrimitiveType.prototype.includes(type);
-  }
-  
   private static int extractAccessMods(final int mods) {
 	  final boolean isStatic = JavaNode.isSet(mods, JavaNode.STATIC);
 	  if (JavaNode.isSet(mods, JavaNode.PRIVATE)) {
