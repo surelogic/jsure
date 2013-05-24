@@ -55,7 +55,7 @@ public class JcipRules extends AnnotationRules {
 	private static final IAnnotationScrubber methodScrubber = 
 		new AbstractAASTScrubber<MethodGuardedByNode, GuardedByPromiseDrop>("methodGuardedBy", MethodGuardedByNode.class, 
 				guardedByRule.getStorage(), ScrubberType.UNORDERED, 
-				new String[] { GUARDED_BY }, ScrubberOrder.NORMAL, LockRules.REQUIRES_LOCK) {
+				new String[] { LockRules.REQUIRES_LOCK }, ScrubberOrder.NORMAL, GUARDED_BY) {
 		@Override
 		protected PromiseDrop<GuardedByNode> makePromiseDrop(MethodGuardedByNode a) {
 			return storeDropIfNotNull(a, scrubGuardedBy(getContext(), a));
@@ -95,7 +95,7 @@ public class JcipRules extends AnnotationRules {
 			extends
 			DefaultSLAnnotationParseRule<GuardedByNode, GuardedByPromiseDrop> {
 		protected GuardedBy_ParseRule() {
-			super(GUARDED_BY, fieldDeclOp, GuardedByNode.class);
+			super(GUARDED_BY, fieldMethodDeclOps, GuardedByNode.class);
 		}
 
 		@Override
@@ -171,15 +171,15 @@ public class JcipRules extends AnnotationRules {
     	// Create a policy lock if there isn't already a lock decl
     	if (rv.lockField != null) {
     		final PolicyLockDeclarationNode lockDecl = new PolicyLockDeclarationNode(0, rv.lockId, rv.lockField);
-    		lockDecl.setPromisedFor(d.getPromisedFor(), d.getAAST().getAnnoContext());
-    		lockDecl.setSrcType(d.getAAST().getSrcType());
+    		lockDecl.setPromisedFor(v.enclosingTypeDecl, a.getAnnoContext());
+    		lockDecl.setSrcType(a.getSrcType());
         	AASTStore.addDerived(lockDecl, d);
     	}    	
     	/* Converts to a RequiresLock for a method */
     	final LockSpecificationNode spec = new SimpleLockNameNode(0, rv.lockId);  
     	final RequiresLockNode req = new RequiresLockNode(0, Collections.singletonList(spec));
-    	req.setPromisedFor(d.getPromisedFor(), d.getAAST().getAnnoContext());
-    	req.setSrcType(d.getAAST().getSrcType());
+    	req.setPromisedFor(d.getPromisedFor(), a.getAnnoContext());
+    	req.setSrcType(a.getSrcType());
     	AASTStore.addDerived(req, d);
     }
     return d;
