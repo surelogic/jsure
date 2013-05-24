@@ -12,7 +12,7 @@ public final class MethodGuardedByNode extends GuardedByNode
 { 
   // Fields
   public static final AbstractAASTNodeFactory factory = new AbstractAASTNodeFactory(
-  "GuardedBy") {
+  "MethodGuardedBy") {
 	  @Override
 	  public AASTNode create(String _token, int _start, int _stop, int _mods,
 			  String _id, int _dims, List<AASTNode> _kids) {
