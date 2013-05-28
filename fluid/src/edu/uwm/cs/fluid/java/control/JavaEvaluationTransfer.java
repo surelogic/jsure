@@ -408,7 +408,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
       /* Push value even for "void" methods.  The extraneous stack value will
        * be popped by the surrounding "ExpressionStatement" node.
        */
-      value = pushMethodReturnValue(node, value); // push(value);
+      value = pushMethodReturnValue(node, value); 
     }
     return value;
   }

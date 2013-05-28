@@ -59,11 +59,15 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableList;
+import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
 import edu.uwm.cs.fluid.java.control.LatticeDelegatingJavaEvaluationTransfer;
+import edu.uwm.cs.fluid.util.PairLattice;
+import edu.uwm.cs.fluid.util.UnionLattice;
 
 
 /**
@@ -74,6 +78,11 @@ extends StackEvaluatingAnalysisWithInference<
     Element, NonNullRawTypeAnalysis.Value,
     NonNullRawLattice, NonNullRawTypeAnalysis.Lattice>
 implements IBinderClient {
+  private static final ImmutableHashOrderSet<IRNode> EMPTY =
+      ImmutableHashOrderSet.<IRNode>emptySet();
+
+  
+  
   public final class StackQuery extends SimplifiedJavaFlowAnalysisQuery<StackQuery, StackQueryResult, Value, Lattice> {
     public StackQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
@@ -101,7 +110,8 @@ implements IBinderClient {
     protected StackQueryResult processRawResult(final IRNode expr,
         final Lattice lattice, final Value rawResult) {
       return new StackQueryResult(
-          lattice.getStackElementLattice(), lattice.peek(rawResult));
+          lattice.getStackElementLattice().getElementLattice(),
+          lattice.peek(rawResult).first());
     }    
   }
   
@@ -169,7 +179,7 @@ implements IBinderClient {
       /* Look at the top value on the stack, that is, get the value that 
        * was pushed for handling the QualifiedThisExpression. 
        */
-      return lattice.peek(rawResult);
+      return lattice.peek(rawResult).first();
     }
 
     @Override
@@ -281,8 +291,8 @@ implements IBinderClient {
     LocalVariableDeclarations.separateDeclarations(
         binder, lvd.getExternal(), refVars, NullList.<IRNode>prototype());
     
-    // Get the local variables that are annotated with @Raw
-    // N.B. Non-ref types variables cannot be @Raw, so we don't have to test for them
+    // Get the local variables that are annotated with @Raw or @NonNull
+    // N.B. Non-ref types variables cannot be @Raw or @NonNull, so we don't have to test for them
     final List<IRNode> varsToInfer = new ArrayList<IRNode>(lvd.getLocal().size());
     for (final IRNode v : lvd.getLocal()) {
       if (!ParameterDeclaration.prototype.includes(v)) {
@@ -303,9 +313,10 @@ implements IBinderClient {
     }
     
     final NonNullRawLattice rawLattice = new NonNullRawLattice(binder.getTypeEnvironment());
+    final BaseLattice baseLattice = new BaseLattice(rawLattice, new UnionLattice<IRNode>());
     final LocalStateLattice rawVariables = LocalStateLattice.create(refVars, rawLattice, uses);
     final StateLattice stateLattice = new StateLattice(rawVariables, rawLattice, varsToInfer);
-    final Lattice lattice = new Lattice(rawLattice, stateLattice);
+    final Lattice lattice = new Lattice(baseLattice, stateLattice);
     final Transfer t = new Transfer(flowUnit, binder, lattice, 0);
     return new JavaForwardAnalysis<Value, Lattice>("NonNull and Raw Types", lattice, t, DebugUnparser.viewer);
   }
@@ -368,6 +379,60 @@ implements IBinderClient {
     }
   }
     
+  
+  
+  /**
+   * Base value for the analysis, a pair of non-null state and a set of IRNodes
+   * representing the possible source expressions of the value. Each IRNode in
+   * the set is either a VariableUseExpresssion that binds to a
+   * ReceiverDeclaration, ParameterDeclaration, a NewExpression, an
+   * AnonClassExpression, an ArrayCreationExpression, a ReturnValueDeclaration,
+   * BoxExpression, StringConcat, CrementExpression, NoInitialization,
+   * NullLiteral, ArrayInitializer,
+   * or a FieldRef. The set portion is managed by a UnionLattice.
+   * 
+   * TODO: Rename this later.
+   */
+  public static final class Base extends Pair<Element, ImmutableSet<IRNode>> {
+    public Base(final Element nonNullState, final ImmutableSet<IRNode> sources) {
+      super(nonNullState, sources);
+    }
+    
+    public Element getNonNullState() { return first(); }
+    public Set<IRNode> getSources() { return second(); } 
+  }
+  
+  static final class BaseLattice extends PairLattice<Element, ImmutableSet<IRNode>, NonNullRawLattice, UnionLattice<IRNode>, Base> {
+    public BaseLattice(final NonNullRawLattice l1, final UnionLattice<IRNode> l2) {
+      super(l1, l2);
+    }
+
+    @Override
+    protected Base newPair(final Element v1, final ImmutableSet<IRNode> v2) {
+      return new Base(v1, v2);
+    }
+    
+    public Base getEmpty() {
+      return new Base(NonNullRawLattice.MAYBE_NULL, lattice2.bottom());
+    }
+
+    public NonNullRawLattice getElementLattice() { 
+      return lattice1;
+    }
+    
+    public Element injectClass(final IJavaDeclaredType t) {
+      return lattice1.injectClass(t);
+    }
+    
+    public Element injectPromiseDrop(final RawPromiseDrop pd) {
+      return lattice1.injectPromiseDrop(pd);
+    }
+    
+    public Base injectValue(final Element v) {
+      return newPair(v, ImmutableHashOrderSet.<IRNode>emptySet());
+    }
+  }
+  
   
 
   /* The analysis state is two association lists.  The first is a map from all
@@ -457,31 +522,31 @@ implements IBinderClient {
   }
   
   public static final class Value extends EvalValue<
-      Element, Element[], Element, State> {
-    public Value(final ImmutableList<Element> v1, final State v2) {
+      Base, Element[], Element, State> {
+    public Value(final ImmutableList<Base> v1, final State v2) {
       super(v1, v2);
     }
   }
   
   public static final class Lattice extends EvalLattice<
-      Element, Element, State, Value,
-      NonNullRawLattice, NonNullRawLattice, StateLattice> {
-    protected Lattice(final NonNullRawLattice l1,
+      Base, Element, State, Value,
+      BaseLattice, NonNullRawLattice, StateLattice> {
+    protected Lattice(final BaseLattice l1,
         final NonNullRawTypeAnalysis.StateLattice l2) {
       super(l1, l2);
     }
     
     @Override
-    protected Value newPair(final ImmutableList<Element> v1, final State v2) {
+    protected Value newPair(final ImmutableList<Base> v1, final State v2) {
       return new Value(v1, v2);
     }
 
     @Override
-    public Element getAnonymousStackValue() {
-      return NonNullRawLattice.MAYBE_NULL;
+    public Base getAnonymousStackValue() {
+      return lattice1.getBaseLattice().getEmpty();
     }
     
-    public NonNullRawLattice getStackElementLattice() {
+    public BaseLattice getStackElementLattice() {
       return lattice1.getBaseLattice();
     }
     
@@ -496,7 +561,11 @@ implements IBinderClient {
     }
     
     public Value getEmptyValue() {
-      return newPair(ImmutableList.<Element>nil(), lattice2.getEmptyValue());
+      return newPair(ImmutableList.<Base>nil(), lattice2.getEmptyValue());
+    }
+    
+    public Base baseValue(final Element e, final IRNode src) {
+      return lattice1.getBaseLattice().newPair(e, EMPTY.addElement(src));
     }
     
     public Element injectClass(final IJavaDeclaredType t) {
@@ -506,7 +575,7 @@ implements IBinderClient {
     public Element injectPromiseDrop(final RawPromiseDrop pd) {
       return lattice2.injectPromiseDrop(pd);
     }
-    
+
     public Value setThis(final Value v, final IRNode rcvrDecl, final Element e) {
       return newPair(v.first(), lattice2.setThis(v.second(), rcvrDecl, e));
     }
@@ -543,7 +612,7 @@ implements IBinderClient {
 
 
   
-  private static final class Transfer extends LatticeDelegatingJavaEvaluationTransfer<Lattice, Value, Element> {
+  private static final class Transfer extends LatticeDelegatingJavaEvaluationTransfer<Lattice, Value, Base> {
     private final IRNode flowUnit;
     
     public Transfer(final IRNode fu, final IBinder binder, final Lattice lattice, final int floor) {
@@ -563,12 +632,12 @@ implements IBinderClient {
        * is NOT_NULL.
        */
       final Operator op = JJNode.tree.getOperator(node);
+      final IRNode rcvr = JavaPromise.getReceiverNode(node);
       if (ConstructorDeclaration.prototype.includes(op) ||
           InitDeclaration.prototype.includes(op)) {
         value = lattice.setThis(
             value, JavaPromise.getReceiverNode(node), NonNullRawLattice.RAW);
       } else if (MethodDeclaration.prototype.includes(op) && !TypeUtil.isStatic(node)) {
-        final IRNode rcvr = JavaPromise.getReceiverNode(node);
         final RawPromiseDrop pd = NonNullRules.getRaw(rcvr);
         if (pd != null) {
           value = lattice.setThis(value, rcvr, lattice.injectPromiseDrop(pd));
@@ -612,16 +681,20 @@ implements IBinderClient {
       if (returnNode != null) {
         // NB. Either @Raw or @NonNull but never both
         if (NonNullRules.getNonNull(returnNode) != null) {
-          return push(val, NonNullRawLattice.NOT_NULL);
+          return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, node));
         }
 
         final RawPromiseDrop pd = NonNullRules.getRaw(returnNode);
         if (pd != null) {
-          return push(val, lattice.injectPromiseDrop(pd));
+          return push(val, lattice.baseValue(lattice.injectPromiseDrop(pd), node));
         }
       }
       // Void return or no annotatioN: not raw
-      return push(val, NonNullRawLattice.MAYBE_NULL);
+      /* N.B. If the method is void return then returnNode is null.  This is
+       * okay because the "return value" from the method will be thrown away
+       * by the flow analysis. 
+       */
+      return push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, node));
     }
     
     /*
@@ -632,7 +705,9 @@ implements IBinderClient {
     @Override
     protected Value transferAllocation(final IRNode node, final Value val) {
       // new expressions always return fully initialized values.
-      return push(val, NonNullRawLattice.NOT_NULL);
+      // XXX: What operators do we have here?  I think NewExpression and AnonClassExpression
+      // final Operator op = JJNode.tree.getOperator(node)
+      return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, node));
     }
     
     @Override
@@ -643,7 +718,9 @@ implements IBinderClient {
       if (DimExprs.prototype.includes(tree.getOperator(node))) {
         val = pop(val, tree.numChildren(node));
       }
-      return push(val, NonNullRawLattice.NOT_NULL);
+      // XXX: What operators do we have here?  I think ArrayCreationExpression
+      // final Operator op = JJNode.tree.getOperator(node)
+      return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, node));
     }
     
     @Override
@@ -668,11 +745,11 @@ implements IBinderClient {
     private Value setVar(final IRNode varDecl, final Value val, final IRNode src) {
       final int idx = lattice.indexOf(varDecl);
       if (idx != -1) {
-        final Element stackState = lattice.peek(val);
-        Value newValue = lattice.setVar(val, idx, stackState);
+        final Base stackState = lattice.peek(val);
+        Value newValue = lattice.setVar(val, idx, stackState.first());
         final int inferredIdx = lattice.indexOfInferred(varDecl);
         if (inferredIdx != -1) {
-          newValue = lattice.inferVar(newValue, inferredIdx, stackState, src);
+          newValue = lattice.inferVar(newValue, inferredIdx, stackState.first(), src);
         }
         return newValue;
       } else {
@@ -683,7 +760,8 @@ implements IBinderClient {
     @Override
     protected Value transferBox(final IRNode expr, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      return lattice.push(lattice.pop(val), NonNullRawLattice.NOT_NULL);
+      return lattice.push(lattice.pop(val),
+          lattice.baseValue(NonNullRawLattice.NOT_NULL, expr));
     }
 
     @Override
@@ -693,7 +771,8 @@ implements IBinderClient {
       // pop the values of the stack and push a non-null
       Value newValue = lattice.pop(val);
       newValue = lattice.pop(newValue);
-      newValue = lattice.push(newValue, NonNullRawLattice.NOT_NULL);
+      newValue = lattice.push(newValue, 
+          lattice.baseValue(NonNullRawLattice.NOT_NULL, node));
       return newValue;
     }
 
@@ -775,7 +854,8 @@ implements IBinderClient {
          * Prefix expressions yield NOT_NULL always because the value is either
          * primitive or a newly boxed value.
          */
-        return lattice.push(lattice.pop(val), NonNullRawLattice.NOT_NULL);
+        return lattice.push(lattice.pop(val), 
+            lattice.baseValue(NonNullRawLattice.NOT_NULL, node));
       } else { // Definitely a postfix operation
         // Is this the first call, before the variable assignment?
         if (((CrementExpression) tt).baseOp().equals(op)) {
@@ -787,7 +867,8 @@ implements IBinderClient {
            * of the value of the variable so that we can use it in the second
            * corrective call.
            */
-          return lattice.push(val, NonNullRawLattice.NOT_NULL);
+          return lattice.push(val, 
+              lattice.baseValue(NonNullRawLattice.NOT_NULL, node));
         } else { // It's the second, corrective call
           /*
            * We want to return the state of the value of the variable before the
@@ -805,7 +886,7 @@ implements IBinderClient {
     @Override
     protected Value transferDefaultInit(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      return push(val, NonNullRawLattice.NULL);
+      return push(val, lattice.baseValue(NonNullRawLattice.NULL, node));
     }
 
     /*
@@ -820,11 +901,15 @@ implements IBinderClient {
       if (!lattice.isNormal(val)) return val;
 
       Value newValue = val;
-      final Element ni2 = lattice.peek(newValue);
+      final Element ni2 = lattice.peek(newValue).first();
       newValue = lattice.pop(newValue);
-      final Element ni1 = lattice.peek(newValue);
+      final Element ni1 = lattice.peek(newValue).first();
       newValue = lattice.pop(newValue);
-      newValue = lattice.push(newValue, NonNullRawLattice.MAYBE_NULL);
+      /* The source expression doesn't matter here because the result of an
+       * equality expression is a primitive boolean type.
+       */
+      newValue = lattice.push(newValue, 
+          lattice.baseValue(NonNullRawLattice.MAYBE_NULL, node));
       
       final Element meet = ni1.meet(ni2);
       
@@ -868,10 +953,12 @@ implements IBinderClient {
       }
       return newValue;
     }    
+    
     @Override
     protected Value transferImplicitArrayCreation(
         final IRNode arrayInitializer, final Value val) {
-      return push(val, NonNullRawLattice.NOT_NULL);
+      return push(val, 
+          lattice.baseValue(NonNullRawLattice.NOT_NULL, arrayInitializer));
     }
 
     @Override
@@ -949,7 +1036,7 @@ implements IBinderClient {
        * testing the true (object is not null) path. (2) We know the object is
        * not null, but we are testing the false (object is null) path.
        */
-      final Element ni = lattice.peek(newValue);
+      final Element ni = lattice.peek(newValue).first();
       if (flag && ni.lessEq(NonNullRawLattice.NULL)) {
         return null; // lattice.bottom();
       }
@@ -979,18 +1066,25 @@ implements IBinderClient {
       } else {
         ni = NonNullRawLattice.NOT_NULL; // all other literals are not null
       }
-      return lattice.push(val, ni);
+      return lattice.push(val, lattice.baseValue(ni, node));
     }
 
-    @Override
-    protected Value transferToString(final IRNode node, final Value val) {
-      if (!lattice.isNormal(val)) return val;
-      
-      if (lattice.peek(val).lessEq(NonNullRawLattice.NOT_NULL)) return val;
-      // otherwise, we can force not null
-      return lattice.push(lattice.pop(val), NonNullRawLattice.NOT_NULL);
-    }
+    /*
+     * Only called by transferConcat() as implemented in JavaEvaluationTransfer,
+     * and we override transferConcat() here to work differently.
+     */
     
+//    @Override
+//    protected Value transferToString(final IRNode node, final Value val) {
+//      if (!lattice.isNormal(val)) return val;
+//      
+//      if (lattice.peek(val).lessEq(NonNullRawLattice.NOT_NULL)) return val;
+//      // otherwise, we can force not null
+//      return lattice.push(lattice.pop(val), NonNullRawLattice.NOT_NULL);
+//    }
+    
+    
+    // 2013-05-16 Why is this commented out?
 //    @Override
 //    protected Value transferUnbox(final IRNode expr, final Value val) {
 //      if (!lattice.isNormal(val)) return val;
@@ -1013,7 +1107,7 @@ implements IBinderClient {
       if (isBothLhsRhs(fref)) val = dup(val);
       
       // pop the object reference
-      final Element refState = lattice.peek(val);
+      final Element refState = lattice.peek(val).first();
       val = pop(val);
 
       /*
@@ -1026,7 +1120,7 @@ implements IBinderClient {
       if (NonNullRules.getNonNull(fieldDecl) != null) {
         if (refState == NonNullRawLattice.RAW) {
           // No fields are initialized
-          val = push(val, NonNullRawLattice.MAYBE_NULL);
+          val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, fref));
         } else if (refState instanceof ClassElement) {
           // Partially initialized class
           final IJavaDeclaredType initializedThrough =
@@ -1040,15 +1134,15 @@ implements IBinderClient {
           final IJavaType fieldIsFrom = typeEnvironment.getMyThisType(fieldDeclaredIn);
           if (typeEnvironment.isSubType(fieldIsFrom, initializedThrough) &&
               !fieldIsFrom.equals(initializedThrough)) {
-            val = push(val, NonNullRawLattice.MAYBE_NULL);
+            val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, fref));
           } else {
-            val = push(val, NonNullRawLattice.NOT_NULL);
+            val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, fref));
           }
         } else {
-          val = push(val, NonNullRawLattice.NOT_NULL);
+          val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, fref));
         }
       } else {
-        val = push(val, NonNullRawLattice.MAYBE_NULL);
+        val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, fref));
       }
       return val;
     }
@@ -1056,8 +1150,9 @@ implements IBinderClient {
     @Override
     protected Value transferUseReceiver(final IRNode use, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      return lattice.push(val, lattice.getThis(val,
-          AnalysisUtils.getReceiverNodeAtExpression(use, flowUnit)));
+      final Element nullState = lattice.getThis(val,
+          AnalysisUtils.getReceiverNodeAtExpression(use, flowUnit));
+      return lattice.push(val, lattice.baseValue(nullState, use));
     }
     
     @Override
@@ -1074,10 +1169,13 @@ implements IBinderClient {
         final IJavaDeclaredType qualifyingType =
             QualifiedReceiverDeclaration.getJavaType(binder, binding);
         return lattice.push(val,
-            lattice.injectClass(
-                qualifyingType.getSuperclass(binder.getTypeEnvironment())));
+            lattice.baseValue(
+                  lattice.injectClass(
+                      qualifyingType.getSuperclass(binder.getTypeEnvironment())),
+                  use));
       } else {
-        return lattice.push(val, NonNullRawLattice.NOT_NULL);
+        return lattice.push(val, 
+            lattice.baseValue(NonNullRawLattice.NOT_NULL, use));
       }
     }
     
@@ -1089,9 +1187,12 @@ implements IBinderClient {
       final IRNode var = binder.getIBinding(use).getNode();
       final int idx = var == null ? -1 : lattice.indexOf(var);
       if (idx != -1) {
-        return lattice.push(val, lattice.getVar(val, idx));
+        return lattice.push(val, 
+            lattice.baseValue(lattice.getVar(val, idx), use));
       } else {
-        return lattice.push(val, NonNullRawLattice.MAYBE_NULL);
+        // N.B. primitively typed variable
+        return lattice.push(val,
+            lattice.baseValue(NonNullRawLattice.MAYBE_NULL, use));
       }
     }
   }
