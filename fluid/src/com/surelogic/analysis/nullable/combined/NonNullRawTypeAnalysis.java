@@ -632,12 +632,12 @@ implements IBinderClient {
        * is NOT_NULL.
        */
       final Operator op = JJNode.tree.getOperator(node);
-      final IRNode rcvr = JavaPromise.getReceiverNode(node);
       if (ConstructorDeclaration.prototype.includes(op) ||
           InitDeclaration.prototype.includes(op)) {
         value = lattice.setThis(
             value, JavaPromise.getReceiverNode(node), NonNullRawLattice.RAW);
       } else if (MethodDeclaration.prototype.includes(op) && !TypeUtil.isStatic(node)) {
+        final IRNode rcvr = JavaPromise.getReceiverNode(node);
         final RawPromiseDrop pd = NonNullRules.getRaw(rcvr);
         if (pd != null) {
           value = lattice.setThis(value, rcvr, lattice.injectPromiseDrop(pd));
