@@ -858,11 +858,23 @@ public final class LockUtils {
             final NeededLock l;
             if (neededLock.lockDecl.isLockStatic()) {
               l = neededLockFactory.createStaticLock(lm, type);
+              result.add(l);
             } else {                
-              l = neededLockFactory.createInstanceLock(
-                  t.getReference(), lm, type);
+              final IRNode reference = t.getReference();
+              /* XXX: This should never be NULL, but right now it is because
+               * the effects processing is screwed up.  AnyInstance targets
+               * can reach this point, and they break everything.  So to
+               * keep from generating a null and having exceptions later,
+               * we ignore them here.  THIS IS WRONG AND NEEDS TO BE FIXED
+               * CORRECTLY LATER!
+               */
+              if (reference != null) {
+                l = neededLockFactory.createInstanceLock(
+                    reference, lm, type);
+                result.add(l);
+              }
             }
-            result.add(l);
+//            result.add(l);
           }
         }
       }

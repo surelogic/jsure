@@ -77,6 +77,7 @@ tokens {
   Throws;
   MethodCall;
   GuardedBy;
+  MethodGuardedBy;
   Itself;
   AnnoParameters;
   ExplicitBorrowedInRegion;
@@ -618,6 +619,10 @@ writesEffect
 
 guardedBy
   : guardedBySpec EOF -> ^(GuardedBy guardedBySpec)
+  ;
+  
+methodGuardedBy
+  : guardedBySpec EOF -> ^(MethodGuardedBy guardedBySpec)
   ;
   
 guardedBySpec

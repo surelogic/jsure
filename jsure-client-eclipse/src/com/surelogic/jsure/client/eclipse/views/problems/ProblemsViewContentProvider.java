@@ -11,6 +11,7 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IDrop;
@@ -22,6 +23,8 @@ import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
 import com.surelogic.jsure.client.eclipse.model.java.IViewDiffState;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
+
+import static com.surelogic.dropsea.IModelingProblemDrop.*;
 
 public class ProblemsViewContentProvider implements ITreeContentProvider, IViewDiffState {
 
@@ -35,7 +38,8 @@ public class ProblemsViewContentProvider implements ITreeContentProvider, IViewD
     final ScanDifferences f_diff;
     final boolean f_showOnlyDifferences;
     final boolean f_showOnlyFromSrc;
-
+    final boolean f_showOnlyErrors = XUtil.useExperimental && false;
+    
     Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showOnlyDifferences, boolean showOnlyFromSrc) {
       f_scan = scan;
       f_diff = diff;
@@ -62,7 +66,9 @@ public class ProblemsViewContentProvider implements ITreeContentProvider, IViewD
           continue;
         if (in.f_showOnlyFromSrc && !ppd.isFromSrc())
           continue;
-
+        if (in.f_showOnlyErrors && ppd.getDiffInfoAsEnum(SEVERITY_HINT, Severity.ERROR, Severity.class) != Severity.ERROR) {
+          continue;
+        }
         /*
          * We filter results based upon the code location.
          */

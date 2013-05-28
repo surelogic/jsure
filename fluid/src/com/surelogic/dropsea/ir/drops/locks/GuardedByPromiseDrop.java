@@ -7,7 +7,7 @@ import com.surelogic.dropsea.ir.drops.IDerivedDropCreator;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 
-public class GuardedByPromiseDrop extends PromiseDrop<GuardedByNode> implements IDerivedDropCreator<LockModel> {
+public class GuardedByPromiseDrop extends PromiseDrop<GuardedByNode> implements IDerivedDropCreator<PromiseDrop<?>> {
 
   public GuardedByPromiseDrop(GuardedByNode a) {
     super(a);
@@ -15,7 +15,7 @@ public class GuardedByPromiseDrop extends PromiseDrop<GuardedByNode> implements 
   }
 
   @Override
-  public void validated(final LockModel lm) {
+  public void validated(final PromiseDrop<?> lm) {
     lm.setVirtual(true);
     lm.setSourceDrop(this);
   }

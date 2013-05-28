@@ -19,6 +19,8 @@ public interface IDEPreferences {
   String TIMEOUT_FLAG = PREFIX + "timeoutFlag";
   String TIMEOUT_SEC = PREFIX + "timeoutSec";
 
+  String PHYS_MEMORY = PREFIX + "physMemoryInMB";
+  
   String[] BOOL_PREFS_TO_SYNC = { ALLOW_JAVADOC_ANNOS, LOAD_ALL_CLASSES, SCAN_MAY_USE_COMPRESSION, SCAN_MAY_RUN_UNIQUENESS,
       TIMEOUT_FLAG, MAKE_NONABDUCTIVE_PROPOSALS };
 

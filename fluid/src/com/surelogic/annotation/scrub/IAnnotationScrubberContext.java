@@ -2,6 +2,7 @@
 package com.surelogic.annotation.scrub;
 
 import com.surelogic.aast.*;
+import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.irfree.DiffHeuristics;
 
@@ -21,17 +22,17 @@ public interface IAnnotationScrubberContext {
   /**
    * Report error on the same IRNode that the proposal is set for
    */
-  void reportErrorAndProposal(ProposedPromiseDrop p, String msgTemplate, Object... args);
-  void reportErrorAndProposal(ProposedPromiseDrop p, int number, Object... args);
+  IModelingProblemDrop reportErrorAndProposal(ProposedPromiseDrop p, String msgTemplate, Object... args);
+  IModelingProblemDrop reportErrorAndProposal(ProposedPromiseDrop p, int number, Object... args);
   
-  void reportError(IRNode n, String msgTemplate, Object... args);
-  void reportError(IRNode n, int number, Object... args);
+  IModelingProblemDrop reportError(IRNode n, String msgTemplate, Object... args);
+  IModelingProblemDrop reportError(IRNode n, int number, Object... args);
   
-  void reportError(IAASTNode n, int number, Object... args);
-  void reportError(IAASTNode n, String msgTemplate, Object... args);
-  void reportError(String msg, IAASTNode n);
+  IModelingProblemDrop reportError(IAASTNode n, int number, Object... args);
+  IModelingProblemDrop reportError(IAASTNode n, String msgTemplate, Object... args);
+  IModelingProblemDrop reportError(String msg, IAASTNode n);
   
-  void reportWarning(IAASTNode n, int number, Object... args);
-  void reportWarning(IAASTNode n, String msgTemplate, Object... args);
-  void reportWarning(String msg, IAASTNode n);
+  IModelingProblemDrop reportWarning(IAASTNode n, int number, Object... args);
+  IModelingProblemDrop reportWarning(String msg, IAASTNode n);
+  IModelingProblemDrop reportWarningAndProposal(ProposedPromiseDrop p, String msgTemplate, Object... args);
 }

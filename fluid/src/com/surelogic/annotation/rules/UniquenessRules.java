@@ -310,7 +310,7 @@ public class UniquenessRules extends AnnotationRules {
         final IRNode decl = JavaPromise.getPromisedFor(promisedFor);
         if (ConstructorDeclaration.prototype.includes(decl) && 
             isBorrowed(JavaPromise.getReceiverNodeOrNull(decl))) {
-          context.reportWarning(a, "Use of both @Unique(\"return\") and @Borrowed(\"this\") on a constructor is redundant");
+          context.reportWarning("Use of both @Unique(\"return\") and @Borrowed(\"this\") on a constructor is redundant", a);
         }
       }
       

@@ -1,8 +1,6 @@
 package com.surelogic.annotation.parse;
 
-import static com.surelogic.common.AnnotationConstants.JCIP_PREFIX;
-import static com.surelogic.common.AnnotationConstants.PROMISE_PREFIX;
-import static com.surelogic.common.AnnotationConstants.VALUE_ATTR;
+import static com.surelogic.common.AnnotationConstants.*;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -123,7 +121,10 @@ public class AnnotationVisitor extends Visitor<Integer> {
       IJavaDeclaredType type = (IJavaDeclaredType) tEnv.getBinder().getJavaType(anno);
       id = JavaNames.getQualifiedTypeName(type);
     }
-    if (id.startsWith(PROMISE_PREFIX) || (id.startsWith(JCIP_PREFIX) && (id.endsWith("ThreadSafe") || id.endsWith(".Immutable")))) {
+    if (id.startsWith(PROMISE_PREFIX) || 
+       (id.startsWith(JCIP_PREFIX) && (id.endsWith(".GuardedBy") || id.endsWith(".ThreadSafe") || id.endsWith(".Immutable"))) ||
+       (id.startsWith(ANDROID_INTERNAL_PREFIX) && (id.endsWith(".GuardedBy") || id.endsWith(".Immutable"))) ||
+       (id.startsWith(JAVAX_PREFIX) && (id.endsWith(".GuardedBy") || id.endsWith(".Immutable")))) {
       int lastDot = id.lastIndexOf('.');
       return id.substring(lastDot + 1);
     }

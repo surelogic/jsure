@@ -255,6 +255,10 @@ public abstract class IDE {
 		compUnitListeners.add(l);
 	}
 
+	public final void removeCompUnitListener(ICompUnitListener l) {
+		compUnitListeners.remove(l);
+	}
+	
 	/**
 	 * Only to be called after canonicalizing an AST
 	 */

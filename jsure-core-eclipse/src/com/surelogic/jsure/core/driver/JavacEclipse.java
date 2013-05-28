@@ -5,6 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.core.MemoryUtility;
 import com.surelogic.javac.Javac;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
@@ -13,7 +14,7 @@ public class JavacEclipse extends Javac {
   static final JavacEclipse instance = new JavacEclipse();
 
   public static void initialize() {
-    // Nothing to do right now, besides create the instance above
+	instance.setPreference(IDEPreferences.PHYS_MEMORY, MemoryUtility.computePhysMemorySizeInMb());
   }
 
   public static JavacEclipse getDefault() {

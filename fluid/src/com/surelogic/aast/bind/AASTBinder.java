@@ -106,6 +106,7 @@ public abstract class AASTBinder implements IAASTBinder {
   
   @Override
   public boolean isResolvable(QualifiedThisExpressionNode node) {
-    return node.getType().typeExists(); 
+	//return node.getType().typeExists(); 
+	return resolve(node) != null;
   }
 }
