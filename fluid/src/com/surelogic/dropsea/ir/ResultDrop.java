@@ -8,6 +8,7 @@ import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.VOUCHED;
 import com.surelogic.InRegion;
 import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.IResultDrop;
 
@@ -184,4 +185,14 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
     s.addAttribute(CONSISTENT, isConsistent());
     s.addAttribute(TIMEOUT, isTimeout());
   }
+  /*
+  @Override
+  protected String resolveMessage(final int number, final Object... args) {
+	  String rv = I18N.res(number, args);
+	  if (rv.contains("densityDpi")) {
+		  System.out.println("Found densityDpi");
+	  }
+	  return rv;
+  }
+  */
 }
