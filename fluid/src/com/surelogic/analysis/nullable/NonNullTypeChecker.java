@@ -1,10 +1,12 @@
 package com.surelogic.analysis.nullable;
 
 import java.util.Iterator;
+import java.util.Set;
 
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis;
+import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Source;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.StackQuery;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.StackQueryResult;
 import com.surelogic.analysis.type.checker.QualifiedTypeChecker;
@@ -15,6 +17,7 @@ import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -29,6 +32,7 @@ import edu.cmu.cs.fluid.java.operator.ReferenceType;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
 
 public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   private static final int POSSIBLY_NULL = 915;
@@ -68,13 +72,21 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   }
   
   private void checkForNull(final IRNode expr, final boolean isUnbox) {
-    final Element state = currentQuery().getResultFor(expr).getValue();
+    final StackQueryResult queryResult = currentQuery().getResultFor(expr);
+    final Element state = queryResult.getValue();
     if (state == NonNullRawLattice.MAYBE_NULL) {
       final HintDrop drop = HintDrop.newWarning(expr);
       drop.setMessage(isUnbox ? POSSIBLY_NULL_UNBOX : POSSIBLY_NULL);
     } else if (state == NonNullRawLattice.NULL) {
       final HintDrop drop = HintDrop.newWarning(expr);
       drop.setMessage(isUnbox ? DEFINITELY_NULL_UNBOX : DEFINITELY_NULL);
+    }
+    
+    final Set<Source> sources = queryResult.getSources();
+    for (final Source s : sources) {
+      final IRNode n = s.second();
+      final HintDrop drop = HintDrop.newInformation(expr);
+      drop.setMessage("Comes from \"" + DebugUnparser.toString(n) + "\" (" + JJNode.tree.getOperator(n).name() + ") KIND=" + s.first());
     }
   }
   
@@ -142,6 +154,15 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       final Element declState = queryResult.getLattice().injectPromiseDrop(declPD);
       checkReferenceAssignability(expr, exprType, exprState, declType, declState);
     }
+    
+    
+    final Set<Source> sources = queryResult.getSources();
+    for (final Source s : sources) {
+      final IRNode n = s.second();
+      final HintDrop drop = HintDrop.newInformation(expr);
+      drop.setMessage("Comes from \"" + DebugUnparser.toString(n) + "\" (" + JJNode.tree.getOperator(n).name() + ") KIND=" + s.first());
+    }
+
   }
   
   @Override

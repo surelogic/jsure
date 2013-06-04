@@ -6,6 +6,7 @@ import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis;
+import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Base;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.DebugQuery;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Lattice;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.QualifiedThisQuery;
@@ -90,7 +91,7 @@ public final class NonNullRawTypeModule extends AbstractWholeIRAnalysis<NonNullR
 
     private void processReceiverDeclaration(
         final IRNode expr, final IRNode rcvrDecl) {
-      final Pair<Lattice, Element[]> result =
+      final Pair<Lattice, Base[]> result =
           currentQuery().first().getResultFor(expr);
       final int idx = result.first().indexOf(rcvrDecl);
       final HintDrop drop = HintDrop.newInformation(expr);
@@ -159,10 +160,10 @@ public final class NonNullRawTypeModule extends AbstractWholeIRAnalysis<NonNullR
       final IJavaType type = getBinder().getJavaType(use);
       if (type instanceof IJavaReferenceType) {
          // See if the current variable is considered to be null or not
-        final Pair<Lattice, Element[]> result =
+        final Pair<Lattice, Base[]> result =
             currentQuery().first().getResultFor(use);
         final int idx = result.first().indexOf(getBinder().getBinding(use));
-        final Element state = result.second()[idx];
+        final Element state = result.second()[idx].first();
         
         final HintDrop drop = HintDrop.newInformation(use);
         drop.setCategorizingMessage(Messages.DSC_NON_NULL);

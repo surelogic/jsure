@@ -4,7 +4,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
+import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Base;
+import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.BaseLattice;
 import com.surelogic.util.IRNodeIndexedArrayLattice;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -24,8 +25,8 @@ import edu.cmu.cs.fluid.tree.Operator;
  * object-typed local variable and parameter declarations to the raw state of
  * the referenced object.
  */
-public final class LocalStateLattice extends IRNodeIndexedArrayLattice<NonNullRawLattice, NonNullRawLattice.Element> {
-  private final Element[] empty;
+public final class LocalStateLattice extends IRNodeIndexedArrayLattice<BaseLattice, Base> {
+  private final Base[] empty;
   
   /**
    * When the lattice is for a constructor declaration of class C, this is the 
@@ -64,7 +65,7 @@ public final class LocalStateLattice extends IRNodeIndexedArrayLattice<NonNullRa
   private final Set<IRNode> qualifiedThis;
   
   private LocalStateLattice(
-      final List<IRNode> keys, final NonNullRawLattice lat, final Set<IRNode> qt) {
+      final List<IRNode> keys, final BaseLattice lat, final Set<IRNode> qt) {
     super(lat, keys);
     qualifiedThis = qt;
     
@@ -73,23 +74,23 @@ public final class LocalStateLattice extends IRNodeIndexedArrayLattice<NonNullRa
   }
 
   public static LocalStateLattice create(
-      final List<IRNode> keys, final NonNullRawLattice lattice,
+      final List<IRNode> keys, final BaseLattice lattice,
       final Set<IRNode> qualifiedThis) {
     return new LocalStateLattice(keys, lattice, qualifiedThis);
   }
 
   @Override
-  public Element[] getEmptyValue() {
+  public Base[] getEmptyValue() {
     return empty;
   }
 
   @Override
-  protected Element[] newArray() {
-    return new Element[size];
+  protected Base[] newArray() {
+    return new Base[size];
   }
   
   @Override
-  protected Element getEmptyElementValue() { return NonNullRawLattice.MAYBE_NULL; }
+  protected Base getEmptyElementValue() { return baseLattice.getEmpty(); }
   
   public boolean isInterestingQualifiedThis(final IRNode qt) {
     return qualifiedThis.contains(qt);
