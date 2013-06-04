@@ -104,7 +104,10 @@ public class ProposedPromisesChange {
         for (final IPackageFragment frag : selectedProject.getPackageFragments()) {
           for (final ICompilationUnit unit : frag.getCompilationUnits()) {
             final CU check = new CU(proj, frag.getElementName(), unit.getElementName());
-            promiseMap.put(check, map.remove(check));
+            final Set<AnnotationDescription> toInsert = map.remove(check);
+            if (toInsert != null) {
+            	promiseMap.put(check, toInsert);
+            }
           }
         }
       }
