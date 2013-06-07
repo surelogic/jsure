@@ -11,9 +11,11 @@ import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Base;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Kind;
+import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.SimpleKind;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Source;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.StackQuery;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.StackQueryResult;
+import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.ThisKind;
 import com.surelogic.analysis.type.checker.QualifiedTypeChecker;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.dropsea.ir.Drop;
@@ -42,11 +44,8 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   private static final int POSSIBLY_NULL = 915;
-  private static final int DEFINITELY_NULL = 916;
-  private static final int POSSIBLY_NULL_UNBOX = 917;
-  private static final int DEFINITELY_NULL_UNBOX = 918; 
-  private static final int ASSIGNABLE = 919;
-  private static final int NOT_ASSIGNABLE = 920;
+  private static final int POSSIBLY_NULL_UNBOX = 916;
+  private static final int READ_FROM = 917;
   
   private static final int GOOD_ASSIGN_FOLDER = 930;
   private static final int BAD_ASSIGN_FOLDER = 931;
@@ -84,25 +83,16 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   
   private void checkForNull(final IRNode expr, final boolean isUnbox) {
     final StackQueryResult queryResult = currentQuery().getResultFor(expr);
-    final Element state = queryResult.getValue();
-    
-//    if (state == NonNullRawLattice.MAYBE_NULL) {
-//      final HintDrop drop = HintDrop.newWarning(expr);
-//      drop.setMessage(isUnbox ? POSSIBLY_NULL_UNBOX : POSSIBLY_NULL);
-//    } else if (state == NonNullRawLattice.NULL) {
-//      final HintDrop drop = HintDrop.newWarning(expr);
-//      drop.setMessage(isUnbox ? DEFINITELY_NULL_UNBOX : DEFINITELY_NULL);
-//    }
-    
-    // XXX: Do we still need to differentiate between Unbox and not?
-    
+    final Element state = queryResult.getValue();    
     if (state == NonNullRawLattice.MAYBE_NULL || state == NonNullRawLattice.NULL) {
       // Hunt for any @Nullable annotations 
-      createWarningResults(expr, queryResult, queryResult.getSources(), new LinkedList<IRNode>());
+      buildWarningResults(isUnbox, expr, queryResult,
+          queryResult.getSources(), new LinkedList<IRNode>());
     }
   }
   
-  private void createWarningResults(
+  private void buildWarningResults(
+      final boolean isUnbox,
       final IRNode expr,
       final StackQueryResult queryResult,
       final Set<Source> sources,
@@ -112,24 +102,25 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       final Kind k = src.first();
       final IRNode where = src.second();
       
-      if (k == Kind.VAR_USE) {
+      if (k == SimpleKind.VAR_USE || k instanceof ThisKind) {
         final IRNode vd = binder.getBinding(where);
         final Base varValue = queryResult.lookupVar(vd);
         chain.addLast(where);
-        createWarningResults(expr, queryResult, varValue.second(), chain);
-        chain.removeLast();        
+        buildWarningResults(isUnbox, expr, queryResult, varValue.second(), chain);
+        chain.removeLast();    
       } else {
         final PromiseDrop<?> pd = getAnnotation(k.getAnnotatedNode(binder, where));
         if (pd instanceof NullablePromiseDrop) { // N.B. null is never an instance of anything
-          HintDrop hd = pd.addWarningHint(expr, "Possible dereference of null value");
+          HintDrop hd = pd.addWarningHint(
+              expr, isUnbox ? POSSIBLY_NULL_UNBOX : POSSIBLY_NULL);
           for (final IRNode readFrom : chain) {
-            // XXX: this is the "read from variable" message
-            hd = hd.addInformationHint(readFrom, "Read from " + DebugUnparser.toString(readFrom));
+            hd = hd.addInformationHint(
+                readFrom, READ_FROM, DebugUnparser.toString(readFrom));
           }
           
-          // XXX: This messages needs to come from the Kind k.
-          hd.addInformationHint(where,
-              "Read from " + DebugUnparser.toString(where));
+          hd.addInformationHint(
+              where, k.getMessage(),
+              src.third().getAnnotation(), k.unparse(where));
         }
       }
     }
@@ -156,59 +147,6 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     }
   }
   
-//  private void checkAssignability(
-//      final IRNode expr, final IRNode decl, final boolean onlyCheckIfRaw) {
-//    final StackQueryResult queryResult = currentQuery().getResultFor(expr);
-//    final Element exprState = queryResult.getValue();
-//    
-//    final PromiseDrop<?> declPD = getPromise(decl);
-//    if (!onlyCheckIfRaw || declPD instanceof RawPromiseDrop) {
-//      final Element declState = queryResult.getLattice().injectPromiseDrop(declPD);
-//      /*
-//       * Raw types cannot be given to MAYBE_NULL because they might not be
-//       * fully initialized.  The whole point of raw types is to keep track
-//       * of how much of the object has been initialized so far.
-//       * 
-//       * We do not allow @Raw on array types.  There is no way to view
-//       * an array that is partially initialized.
-//       * 
-//       * We don't actually need to test if the types are subtypes because
-//       * we are assuming the normal Java code compiles/type-checks cleanly.
-//       */
-//      final boolean isGood = declState.isAssignableFrom(
-//          binder.getTypeEnvironment(), exprState);
-//      final HintDrop drop = HintDrop.newWarning(expr);
-//      drop.setMessage(isGood ? ASSIGNABLE : NOT_ASSIGNABLE,
-//          exprState.getAnnotation(), declState.getAnnotation());
-//      
-//      /* XXX: Problem for results: if declPD is null, then we have something
-//       * that is @Nullable with no annotation.  It is an error to pass a @Raw
-//       * reference to it, but then we do not have a promise to report the error
-//       * on. 
-//       * 
-//       * Possible solution: report the error on both the LHS promise, and the
-//       * RHS promise?  Try this later.
-//       */
-//      
-//      if (declPD != null) {
-//        final ResultsBuilder builder = new ResultsBuilder(declPD);
-//        ResultFolderDrop folder = builder.createRootAndFolder(
-//            expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
-//            declState.getAnnotation());
-////        final Set<Source> sources = queryResult.getSources();
-//        buildChain(folder, expr, queryResult, queryResult.getSources(), new LinkedList<IRNode>());
-////        for (final Source src : sources) {
-////          final StackQueryResult subResult = currentQuery().getResultFor(src.second());
-////          final Element subState = subResult.getValue();
-////          final ResultDrop rd = ResultsBuilder.createResult(
-////              folder, expr, declState.isAssignableFrom(binder.getTypeEnvironment(), subState),
-////              GOOD_ASSIGN, BAD_ASSIGN, subState.getAnnotation(), declState.getAnnotation());
-////          buildChain(rd, expr, subResult, src, new LinkedList<IRNode>());
-////        }
-//      }
-//    }
-//  }
-    
   private void checkAssignability(
       final IRNode expr, final IRNode decl, final boolean onlyCheckIfRaw) {
     final PromiseDrop<?> declPD = getPromise(decl);
@@ -229,27 +167,26 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
             expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
             declState.getAnnotation());
         for (final Source src : queryResult.getSources()) {
-          buildChain2(folder, expr, declState, queryResult, src, new LinkedList<IRNode>());
+          buildChain(folder, expr, declState, queryResult, src, new LinkedList<IRNode>());
         }
       }
     }
   }
   
-  private void buildChain2(
+  private void buildChain(
       final ResultFolderDrop folder, final IRNode origExpr, final Element declState,
       final StackQueryResult queryResult, final Source src,
       final Deque<IRNode> chain) {
     final Kind k = src.first();
     final IRNode where = src.second();
       
-    if (k == Kind.VAR_USE) {
+    if (k == SimpleKind.VAR_USE || k instanceof ThisKind) {
       final IRNode vd = binder.getBinding(where);
       final Base varValue = queryResult.lookupVar(vd);
       chain.addLast(where);
       for (final Source src2 : varValue.second()) {
         final StackQueryResult newQuery = currentQuery().getResultFor(src2.second());
-        // TODO: Must get the state based on the KIND:
-        buildChain2(folder, origExpr, declState, newQuery, src2, chain);
+        buildChain(folder, origExpr, declState, newQuery, src2, chain);
       }
       chain.removeLast();
     } else {
@@ -267,55 +204,15 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
 
       Drop hd = result;
       for (final IRNode readFrom : chain) {
-        // XXX: this is the "read from variable" message
-        hd = hd.addInformationHint(readFrom, "Read from " + DebugUnparser.toString(readFrom));
+        hd = hd.addInformationHint(
+            readFrom, READ_FROM, DebugUnparser.toString(readFrom));
       }  
-      // XXX: This messages needs to come from the Kind k.
-      hd.addInformationHint(where,
-          "Read from " + DebugUnparser.toString(where));
-      
+      hd.addInformationHint(
+          where, k.getMessage(),
+          srcState.getAnnotation(), k.unparse(where));
     }
   }
-  
-
-//  private void buildChain(
-//      final ResultFolderDrop folder, final IRNode origExpr,
-//      final StackQueryResult queryResult, final Set<Source> sources, 
-//      final Deque<IRNode> chain) {
-//    for (final Source src : sources) {
-//      final Kind k = src.first();
-//      final IRNode where = src.second();
-//    
-//      if (k == Kind.VAR_USE) {
-//        final IRNode vd = binder.getBinding(where);
-//        final Base varValue = queryResult.lookupVar(vd);
-//        final StackQueryResult subResult = currentQuery().getResultFor(expr)
-//        chain.addLast(where);
-//        buildChain(folder, origExpr, queryResult, varValue.second(), chain);
-//        chain.removeLast();        
-//      } else {
-//        final ResultDrop result = ResultsBuilder.createResult(
-//            folder, expr, declState.isAssignableFrom(binder.getTypeEnvironment(), subState),
-//            GOOD_ASSIGN, BAD_ASSIGN, subState.getAnnotation(), declState.getAnnotation());
-//        
-//        final PromiseDrop<?> pd = getAnnotation(k.getAnnotatedNode(binder, where));
-//        if (pd != null) {
-//          result.addTrusted(pd);
-//        }
-//        
-//        Drop hd = result;
-//        for (final IRNode readFrom : chain) {
-//          // XXX: this is the "read from variable" message
-//          hd = hd.addInformationHint(readFrom, "Read from " + DebugUnparser.toString(readFrom));
-//        }
-//          
-//        // XXX: This messages needs to come from the Kind k.
-//        hd.addInformationHint(where,
-//            "Read from " + DebugUnparser.toString(where));
-//      }
-//    }
-//  }
-  
+    
   @Override
   protected void checkUnboxExpression(
       final IRNode unboxExpr, final IRNode unboxedExpr) {
