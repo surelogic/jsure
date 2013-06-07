@@ -63,6 +63,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
+import edu.cmu.cs.fluid.util.Triple;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
@@ -453,9 +454,9 @@ implements IBinderClient {
     }
   }
   
-  public static final class Source extends Pair<Kind, IRNode> {
-    public Source(final Kind k, final IRNode where) {
-      super(k, where);
+  public static final class Source extends Triple<Kind, IRNode, Element> {
+    public Source(final Kind k, final IRNode where, final Element value) {
+      super(k, where, value);
     }
     
     public IRNode getAnnotatedNode(final IBinder binder) {
@@ -467,6 +468,7 @@ implements IBinderClient {
       for (final Source src : sources) {
         final Kind k = src.first();
         final IRNode where = src.second();
+        final Element value = src.third();
         final Operator op = JJNode.tree.getOperator(where);
         final int line = JavaNode.getJavaRef(where).getLineNumber();
         sb.append(k);
@@ -474,6 +476,8 @@ implements IBinderClient {
         sb.append(op.name());
         sb.append('@');
         sb.append(line);
+        sb.append(", ");
+        sb.append(value);
         sb.append("] ");
       }
       sb.append('}');
@@ -501,7 +505,7 @@ implements IBinderClient {
     }
     
     public Base(final Element nonNullState, final Kind k, final IRNode where) {
-      this(nonNullState, EMPTY.addElement(new Source(k, where)));
+      this(nonNullState, EMPTY.addElement(new Source(k, where, nonNullState)));
     }
     
     public Element getNonNullState() { return first(); }
@@ -690,7 +694,7 @@ implements IBinderClient {
     }
     
     public Base baseValue(final Element e, final Kind k, final IRNode where) {
-      return lattice1.getBaseLattice().newPair(e, EMPTY.addElement(new Source(k, where)));
+      return lattice1.getBaseLattice().newPair(e, EMPTY.addElement(new Source(k, where, e)));
     }
     
     public Element injectClass(final IJavaDeclaredType t) {

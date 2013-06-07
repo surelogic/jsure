@@ -229,7 +229,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
             expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
             declState.getAnnotation());
         for (final Source src : queryResult.getSources()) {
-          buildChain2(folder, expr, declState, queryResult, queryResult.getValue(), src, new LinkedList<IRNode>());
+          buildChain2(folder, expr, declState, queryResult, src, new LinkedList<IRNode>());
         }
       }
     }
@@ -237,7 +237,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   
   private void buildChain2(
       final ResultFolderDrop folder, final IRNode origExpr, final Element declState,
-      final StackQueryResult queryResult, final Element currentState, final Source src,
+      final StackQueryResult queryResult, final Source src,
       final Deque<IRNode> chain) {
     final Kind k = src.first();
     final IRNode where = src.second();
@@ -249,16 +249,16 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       for (final Source src2 : varValue.second()) {
         final StackQueryResult newQuery = currentQuery().getResultFor(src2.second());
         // TODO: Must get the state based on the KIND:
-        final Element state = src2.first() == Kind.FORMAL_PARAMETER ? varValue.first() : newQuery.getValue();
-        buildChain2(folder, origExpr, declState, newQuery, state, src2, chain);
+        buildChain2(folder, origExpr, declState, newQuery, src2, chain);
       }
       chain.removeLast();
     } else {
+      final Element srcState = src.third();
       final ResultDrop result = ResultsBuilder.createResult(
           folder, origExpr,
-          declState.isAssignableFrom(binder.getTypeEnvironment(), currentState),
+          declState.isAssignableFrom(binder.getTypeEnvironment(), srcState),
           GOOD_ASSIGN, BAD_ASSIGN,
-          currentState.getAnnotation(), declState.getAnnotation());
+          srcState.getAnnotation(), declState.getAnnotation());
 
       final PromiseDrop<?> pd = getAnnotation(k.getAnnotatedNode(binder, where));
       if (pd != null) {
