@@ -112,23 +112,38 @@ implements IBinderClient {
         final Lattice lattice, final Value rawResult) {
       return new StackQueryResult(
           lattice.getStackElementLattice().getElementLattice(),
-          lattice.peek(rawResult));
+          lattice.peek(rawResult),
+          lattice.getLocalStateLattice(),
+          rawResult.second().first());
     }    
   }
   
   
   public static final class StackQueryResult {
-    private final NonNullRawLattice lattice;
+    private final NonNullRawLattice nonNullLattice;
     private final Base value;
     
-    private StackQueryResult(final NonNullRawLattice l, final Base v) {
-      lattice = l;
+    private final LocalStateLattice localLattice;
+    private final Base locals[];
+    
+    
+    
+    private StackQueryResult(
+        final NonNullRawLattice l, final Base v,
+        final LocalStateLattice lsl, final Base[] lcls) {
+      nonNullLattice = l;
       value = v;
+      localLattice = lsl;
+      locals = lcls;
     }
     
-    public NonNullRawLattice getLattice() { return lattice; }
+    public NonNullRawLattice getLattice() { return nonNullLattice; }
     public Element getValue() { return value.first(); }
     public Set<Source> getSources() { return value.second(); }
+    
+    public Base lookupVar(final IRNode decl) {
+      return locals[localLattice.indexOf(decl)];
+    }
   }
   
   
@@ -387,19 +402,35 @@ implements IBinderClient {
     RECEIVER_ANON_CLASS(-1),
     NEW_ARRAY(-1),
     BOX(-1),
-    METHOD_RETURN(-1),
+    METHOD_RETURN(-1) {
+      @Override
+      public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
+        final IRNode mdecl = binder.getBinding(where);
+        return JavaPromise.getReturnNode(mdecl);
+      }
+    },
     CAUGHT_EXCEPTION(-1),
     RECEIVER_CONSTRUCTOR_CALL(-1),
     RECEIVER_RAW_OBJECT(-1),
     BOXED_CREMENT(-1),
     RECEIVER_ENUM_CLASS(-1),
     EQUALITY(-1),
-    FIELD_REF(-1),
+    FIELD_REF(-1) {
+      @Override
+      public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
+        return binder.getBinding(where);
+      }
+    },
     INSTANCEOF(-1),
     NEW_OBJECT(-1),
     UNITIALIZED(-1),
     NULL(-1),
-    FORMAL_PARAMETER(-1),
+    FORMAL_PARAMETER(-1) {
+      @Override
+      public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
+        return where;
+      }
+    },
     QUALIFIED_THIS(-1),
     RECEIVER_METHOD(-1),
     STRING_CONCAT(-1),
@@ -416,11 +447,19 @@ implements IBinderClient {
     public final int getMessage() {
       return msg;
     }
+    
+    public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
+      return null;
+    }
   }
   
   public static final class Source extends Pair<Kind, IRNode> {
     public Source(final Kind k, final IRNode where) {
       super(k, where);
+    }
+    
+    public IRNode getAnnotatedNode(final IBinder binder) {
+      return first().getAnnotatedNode(binder, second());
     }
     
     public static String setToString(final Set<Source> sources) {
@@ -544,6 +583,10 @@ implements IBinderClient {
     
     
     
+    public LocalStateLattice getLocalStateLattice() {
+      return lattice1;
+    }
+    
     public int getNumVariables() {
       return lattice1.getSize();
     }
@@ -628,6 +671,10 @@ implements IBinderClient {
       return lattice1.getBaseLattice();
     }
     
+    public LocalStateLattice getLocalStateLattice() {
+      return lattice2.getLocalStateLattice();
+    }
+    
     
     
     public int getNumVariables() {
@@ -702,7 +749,11 @@ implements IBinderClient {
     
     @Override
     public Value transferComponentSource(final IRNode node) {
-      Value value = lattice.getEmptyValue(); // everything is MAYBE_NULL
+      /* 
+       * Everything is MAYBE_NULL, but we reset them below to capture
+       * source information.
+       */
+      Value value = lattice.getEmptyValue(); 
 
       /* Receiver is completely raw at the start of constructors
        * and instance initializer blocks.  Receiver is based on the
@@ -745,11 +796,12 @@ implements IBinderClient {
             if (pd != null) {
               value = lattice.setVar(value, idx, 
                   lattice.baseValue(lattice.injectPromiseDrop(pd), Kind.FORMAL_PARAMETER, v));
-            }
-            
-            if (NonNullRules.getNonNull(v) != null) {
+            } else if (NonNullRules.getNonNull(v) != null) {
               value = lattice.setVar(value, idx,
                   lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.FORMAL_PARAMETER, v));
+            } else { // no annotation or @Nullable
+              value = lattice.setVar(value, idx,
+                  lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.FORMAL_PARAMETER, v));
             }
           }
         }

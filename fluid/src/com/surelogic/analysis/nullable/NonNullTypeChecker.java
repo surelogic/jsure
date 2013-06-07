@@ -1,27 +1,34 @@
 package com.surelogic.analysis.nullable;
 
+import java.util.Deque;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Set;
 
+import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis;
+import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Base;
+import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Kind;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Source;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.StackQuery;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.StackQueryResult;
 import com.surelogic.analysis.type.checker.QualifiedTypeChecker;
 import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
+import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.bind.IJavaType;
-import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.Initialization;
@@ -32,7 +39,6 @@ import edu.cmu.cs.fluid.java.operator.ReferenceType;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.parse.JJNode;
 
 public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   private static final int POSSIBLY_NULL = 915;
@@ -41,6 +47,11 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   private static final int DEFINITELY_NULL_UNBOX = 918; 
   private static final int ASSIGNABLE = 919;
   private static final int NOT_ASSIGNABLE = 920;
+  
+  private static final int GOOD_ASSIGN_FOLDER = 930;
+  private static final int BAD_ASSIGN_FOLDER = 931;
+  private static final int GOOD_ASSIGN = 932;
+  private static final int BAD_ASSIGN = 933;
   
   
   
@@ -74,56 +85,61 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   private void checkForNull(final IRNode expr, final boolean isUnbox) {
     final StackQueryResult queryResult = currentQuery().getResultFor(expr);
     final Element state = queryResult.getValue();
-    if (state == NonNullRawLattice.MAYBE_NULL) {
-      final HintDrop drop = HintDrop.newWarning(expr);
-      drop.setMessage(isUnbox ? POSSIBLY_NULL_UNBOX : POSSIBLY_NULL);
-    } else if (state == NonNullRawLattice.NULL) {
-      final HintDrop drop = HintDrop.newWarning(expr);
-      drop.setMessage(isUnbox ? DEFINITELY_NULL_UNBOX : DEFINITELY_NULL);
-    }
     
-    final Set<Source> sources = queryResult.getSources();
-    for (final Source s : sources) {
-      final IRNode n = s.second();
-      final HintDrop drop = HintDrop.newInformation(expr);
-      drop.setMessage("Comes from \"" + DebugUnparser.toString(n) + "\" (" + JJNode.tree.getOperator(n).name() + ") KIND=" + s.first());
+//    if (state == NonNullRawLattice.MAYBE_NULL) {
+//      final HintDrop drop = HintDrop.newWarning(expr);
+//      drop.setMessage(isUnbox ? POSSIBLY_NULL_UNBOX : POSSIBLY_NULL);
+//    } else if (state == NonNullRawLattice.NULL) {
+//      final HintDrop drop = HintDrop.newWarning(expr);
+//      drop.setMessage(isUnbox ? DEFINITELY_NULL_UNBOX : DEFINITELY_NULL);
+//    }
+    
+    // XXX: Do we still need to differentiate between Unbox and not?
+    
+    if (state == NonNullRawLattice.MAYBE_NULL || state == NonNullRawLattice.NULL) {
+      // Hunt for any @Nullable annotations 
+      createWarningResults(expr, queryResult, queryResult.getSources(), new LinkedList<IRNode>());
     }
   }
   
-  private String getTypeName(final IJavaType type, final Element qualifier) {
-    if (qualifier == NonNullRawLattice.NULL) {
-      return "null";
-    } else {
-      return qualifier.getAnnotation() + " " + type.toSourceText();
+  private void createWarningResults(
+      final IRNode expr,
+      final StackQueryResult queryResult,
+      final Set<Source> sources,
+      final Deque<IRNode> chain) {
+    // Hunt for any @Nullable annotations 
+    for (final Source src : sources) {
+      final Kind k = src.first();
+      final IRNode where = src.second();
+      
+      if (k == Kind.VAR_USE) {
+        final IRNode vd = binder.getBinding(where);
+        final Base varValue = queryResult.lookupVar(vd);
+        chain.addLast(where);
+        createWarningResults(expr, queryResult, varValue.second(), chain);
+        chain.removeLast();        
+      } else {
+        final PromiseDrop<?> pd = getAnnotation(k.getAnnotatedNode(binder, where));
+        if (pd instanceof NullablePromiseDrop) { // N.B. null is never an instance of anything
+          HintDrop hd = pd.addWarningHint(expr, "Possible dereference of null value");
+          for (final IRNode readFrom : chain) {
+            // XXX: this is the "read from variable" message
+            hd = hd.addInformationHint(readFrom, "Read from " + DebugUnparser.toString(readFrom));
+          }
+          
+          // XXX: This messages needs to come from the Kind k.
+          hd.addInformationHint(where,
+              "Read from " + DebugUnparser.toString(where));
+        }
+      }
     }
   }
-
-  private void checkReferenceAssignability(
-      final IRNode expr, 
-      final IJavaType type, final Element state,
-      final IJavaType potentialAncestorType,
-      final Element potentialAncestorState) {
-    /*
-     * Raw types cannot be given to MAYBE_NULL because they might not be
-     * fully initialized.  The whole point of raw types is to keep track
-     * of how much of the object has been initialized so far.
-     * 
-     * We do not allow @Raw on array types.  There is no way to view
-     * an array that is partially initialized.
-     * 
-     * We don't actually need to test if the types are subtypes because
-     * we are assuming the normal Java code compiles/type-checks cleanly.
-     */
-    final boolean isGood = potentialAncestorState.isAssignableFrom(
-        binder.getTypeEnvironment(), state);
-    final HintDrop drop = HintDrop.newWarning(expr);
-    drop.setMessage(isGood ? ASSIGNABLE : NOT_ASSIGNABLE,
-        getTypeName(type, state),
-        getTypeName(potentialAncestorType, potentialAncestorState));
-
-//    ResultsBuilder.createResult(expr, pd, isGood, ASSIGNABLE, NOT_ASSIGNABLE,
-//        state, type.toSourceText(),
-//        potentialAncestorState, potentialAncestorType.toSourceText());
+  
+  private PromiseDrop<?> getAnnotation(final IRNode n) {
+    PromiseDrop<?> pd = NonNullRules.getRaw(n);
+    if (pd == null) pd = NonNullRules.getNonNull(n);
+    if (pd == null) pd = NonNullRules.getNullable(n);
+    return pd;
   }
   
   private PromiseDrop<?> getPromise(final IRNode node) {
@@ -136,34 +152,169 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   private void checkAssignability(
       final IRNode expr, final IRNode decl, final IRNode declTypeNode) {
     if (ReferenceType.prototype.includes(declTypeNode)) {
-      final IJavaType declType =
-          JavaTypeFactory.convertNodeTypeToIJavaType(declTypeNode, binder);
-      checkAssignability(expr, decl, declType, false);
+      checkAssignability(expr, decl, false);
     }
   }
   
-  private void checkAssignability(
-      final IRNode expr, final IRNode decl, final IJavaType declType,
-      final boolean onlyCheckIfRaw) {
-    final IJavaType exprType = binder.getJavaType(expr);
-    final StackQueryResult queryResult = currentQuery().getResultFor(expr);
-    final Element exprState = queryResult.getValue();
+//  private void checkAssignability(
+//      final IRNode expr, final IRNode decl, final boolean onlyCheckIfRaw) {
+//    final StackQueryResult queryResult = currentQuery().getResultFor(expr);
+//    final Element exprState = queryResult.getValue();
+//    
+//    final PromiseDrop<?> declPD = getPromise(decl);
+//    if (!onlyCheckIfRaw || declPD instanceof RawPromiseDrop) {
+//      final Element declState = queryResult.getLattice().injectPromiseDrop(declPD);
+//      /*
+//       * Raw types cannot be given to MAYBE_NULL because they might not be
+//       * fully initialized.  The whole point of raw types is to keep track
+//       * of how much of the object has been initialized so far.
+//       * 
+//       * We do not allow @Raw on array types.  There is no way to view
+//       * an array that is partially initialized.
+//       * 
+//       * We don't actually need to test if the types are subtypes because
+//       * we are assuming the normal Java code compiles/type-checks cleanly.
+//       */
+//      final boolean isGood = declState.isAssignableFrom(
+//          binder.getTypeEnvironment(), exprState);
+//      final HintDrop drop = HintDrop.newWarning(expr);
+//      drop.setMessage(isGood ? ASSIGNABLE : NOT_ASSIGNABLE,
+//          exprState.getAnnotation(), declState.getAnnotation());
+//      
+//      /* XXX: Problem for results: if declPD is null, then we have something
+//       * that is @Nullable with no annotation.  It is an error to pass a @Raw
+//       * reference to it, but then we do not have a promise to report the error
+//       * on. 
+//       * 
+//       * Possible solution: report the error on both the LHS promise, and the
+//       * RHS promise?  Try this later.
+//       */
+//      
+//      if (declPD != null) {
+//        final ResultsBuilder builder = new ResultsBuilder(declPD);
+//        ResultFolderDrop folder = builder.createRootAndFolder(
+//            expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
+//            declState.getAnnotation());
+////        final Set<Source> sources = queryResult.getSources();
+//        buildChain(folder, expr, queryResult, queryResult.getSources(), new LinkedList<IRNode>());
+////        for (final Source src : sources) {
+////          final StackQueryResult subResult = currentQuery().getResultFor(src.second());
+////          final Element subState = subResult.getValue();
+////          final ResultDrop rd = ResultsBuilder.createResult(
+////              folder, expr, declState.isAssignableFrom(binder.getTypeEnvironment(), subState),
+////              GOOD_ASSIGN, BAD_ASSIGN, subState.getAnnotation(), declState.getAnnotation());
+////          buildChain(rd, expr, subResult, src, new LinkedList<IRNode>());
+////        }
+//      }
+//    }
+//  }
     
+  private void checkAssignability(
+      final IRNode expr, final IRNode decl, final boolean onlyCheckIfRaw) {
     final PromiseDrop<?> declPD = getPromise(decl);
     if (!onlyCheckIfRaw || declPD instanceof RawPromiseDrop) {
-      final Element declState = queryResult.getLattice().injectPromiseDrop(declPD);
-      checkReferenceAssignability(expr, exprType, exprState, declType, declState);
+      /* XXX: Problem for results: if declPD is null, then we have something
+       * that is @Nullable with no annotation.  It is an error to pass a @Raw
+       * reference to it, but then we do not have a promise to report the error
+       * on. 
+       * 
+       * Possible solution: report the error on both the LHS promise, and the
+       * RHS promise?  Try this later.
+       */
+      if (declPD != null) {
+        final StackQueryResult queryResult = currentQuery().getResultFor(expr);
+        final Element declState = queryResult.getLattice().injectPromiseDrop(declPD);        
+        final ResultsBuilder builder = new ResultsBuilder(declPD);
+        ResultFolderDrop folder = builder.createRootAndFolder(
+            expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
+            declState.getAnnotation());
+        for (final Source src : queryResult.getSources()) {
+          buildChain2(folder, expr, declState, queryResult, queryResult.getValue(), src, new LinkedList<IRNode>());
+        }
+      }
     }
-    
-    
-    final Set<Source> sources = queryResult.getSources();
-    for (final Source s : sources) {
-      final IRNode n = s.second();
-      final HintDrop drop = HintDrop.newInformation(expr);
-      drop.setMessage("Comes from \"" + DebugUnparser.toString(n) + "\" (" + JJNode.tree.getOperator(n).name() + ") KIND=" + s.first());
-    }
-
   }
+  
+  private void buildChain2(
+      final ResultFolderDrop folder, final IRNode origExpr, final Element declState,
+      final StackQueryResult queryResult, final Element currentState, final Source src,
+      final Deque<IRNode> chain) {
+    final Kind k = src.first();
+    final IRNode where = src.second();
+      
+    if (k == Kind.VAR_USE) {
+      final IRNode vd = binder.getBinding(where);
+      final Base varValue = queryResult.lookupVar(vd);
+      chain.addLast(where);
+      for (final Source src2 : varValue.second()) {
+        final StackQueryResult newQuery = currentQuery().getResultFor(src2.second());
+        // TODO: Must get the state based on the KIND:
+        final Element state = src2.first() == Kind.FORMAL_PARAMETER ? varValue.first() : newQuery.getValue();
+        buildChain2(folder, origExpr, declState, newQuery, state, src2, chain);
+      }
+      chain.removeLast();
+    } else {
+      final ResultDrop result = ResultsBuilder.createResult(
+          folder, origExpr,
+          declState.isAssignableFrom(binder.getTypeEnvironment(), currentState),
+          GOOD_ASSIGN, BAD_ASSIGN,
+          currentState.getAnnotation(), declState.getAnnotation());
+
+      final PromiseDrop<?> pd = getAnnotation(k.getAnnotatedNode(binder, where));
+      if (pd != null) {
+        result.addTrusted(pd);
+      }
+
+      Drop hd = result;
+      for (final IRNode readFrom : chain) {
+        // XXX: this is the "read from variable" message
+        hd = hd.addInformationHint(readFrom, "Read from " + DebugUnparser.toString(readFrom));
+      }  
+      // XXX: This messages needs to come from the Kind k.
+      hd.addInformationHint(where,
+          "Read from " + DebugUnparser.toString(where));
+      
+    }
+  }
+  
+
+//  private void buildChain(
+//      final ResultFolderDrop folder, final IRNode origExpr,
+//      final StackQueryResult queryResult, final Set<Source> sources, 
+//      final Deque<IRNode> chain) {
+//    for (final Source src : sources) {
+//      final Kind k = src.first();
+//      final IRNode where = src.second();
+//    
+//      if (k == Kind.VAR_USE) {
+//        final IRNode vd = binder.getBinding(where);
+//        final Base varValue = queryResult.lookupVar(vd);
+//        final StackQueryResult subResult = currentQuery().getResultFor(expr)
+//        chain.addLast(where);
+//        buildChain(folder, origExpr, queryResult, varValue.second(), chain);
+//        chain.removeLast();        
+//      } else {
+//        final ResultDrop result = ResultsBuilder.createResult(
+//            folder, expr, declState.isAssignableFrom(binder.getTypeEnvironment(), subState),
+//            GOOD_ASSIGN, BAD_ASSIGN, subState.getAnnotation(), declState.getAnnotation());
+//        
+//        final PromiseDrop<?> pd = getAnnotation(k.getAnnotatedNode(binder, where));
+//        if (pd != null) {
+//          result.addTrusted(pd);
+//        }
+//        
+//        Drop hd = result;
+//        for (final IRNode readFrom : chain) {
+//          // XXX: this is the "read from variable" message
+//          hd = hd.addInformationHint(readFrom, "Read from " + DebugUnparser.toString(readFrom));
+//        }
+//          
+//        // XXX: This messages needs to come from the Kind k.
+//        hd.addInformationHint(where,
+//            "Read from " + DebugUnparser.toString(where));
+//      }
+//    }
+//  }
   
   @Override
   protected void checkUnboxExpression(
@@ -232,9 +383,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     
     // (2) check the target against the receiver annotation
     final IRNode rcvrDecl = JavaPromise.getReceiverNode(methodDecl);
-    final IRNode typeDecl = VisitUtil.getEnclosingType(methodDecl);
-    final IJavaType type = JavaTypeFactory.getMyThisType(typeDecl);
-    checkAssignability(target, rcvrDecl, type, true);
+    checkAssignability(target, rcvrDecl, true);
   }
   
   @Override
