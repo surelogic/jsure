@@ -44,6 +44,7 @@ import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.CrementExpression;
 import edu.cmu.cs.fluid.java.operator.DimExprs;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.ImpliedEnumConstantInitialization;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
@@ -459,12 +460,22 @@ implements IBinderClient {
       }
     },
     STRING_CONCAT(959),
-//    THIS(-1),
     IS_OBJECT(961),
     VAR_USE(-1) {
       @Override
       public IRNode bind(final IBinder binder, final IRNode where) {
         return binder.getBinding(where);
+      }
+    },
+    ENUM_CONSTANT(962) {
+      @Override
+      public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
+        return binder.getBinding(where);
+      }
+      
+      @Override
+      public String unparse(final IRNode w) {
+        return EnumConstantDeclaration.getId(w);
       }
     };
     
@@ -1328,7 +1339,11 @@ implements IBinderClient {
        * push MAYBE_NULL.  If the field is not annotated, we push MAYBE_NULL.
        */
       final IRNode fieldDecl = binder.getBinding(fref);
-      if (NonNullRules.getNonNull(fieldDecl) != null) {
+      // XXX: Hack: check for EnumConstantDeclaration
+      if (EnumConstantDeclaration.prototype.includes(fieldDecl)) {
+        // Always @NonNull
+        val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.ENUM_CONSTANT, fieldDecl));
+      } else if (NonNullRules.getNonNull(fieldDecl) != null) {
         if (refState == NonNullRawLattice.RAW) {
           // No fields are initialized
           val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, SimpleKind.FIELD_REF, fref));
