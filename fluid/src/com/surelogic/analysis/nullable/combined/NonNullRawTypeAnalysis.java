@@ -424,7 +424,14 @@ implements IBinderClient {
     RECEIVER_RAW_OBJECT(946),
     BOXED_CREMENT(947),
     RECEIVER_ENUM_CLASS(948),
-    EQUALITY(949),
+    EQUALITY(949) {
+      @Override
+      public String unparse(final IRNode w) {
+        IRNode n = tree.getChild(w,  0);
+        if (!VariableUseExpression.prototype.includes(n)) n = tree.getChild(w, 1);
+        return VariableUseExpression.getId(n);
+      }
+    },
     FIELD_REF(950) {
       @Override
       public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
@@ -439,7 +446,7 @@ implements IBinderClient {
     INSTANCEOF(951),
     NEW_OBJECT(952),
     UNITIALIZED(953),
-    NULL(954),
+    NULL_LITERAL(954),
     FORMAL_PARAMETER(955) {
       @Override
       public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
@@ -477,7 +484,8 @@ implements IBinderClient {
       public String unparse(final IRNode w) {
         return EnumConstantDeclaration.getId(w);
       }
-    };
+    },
+    STRING_LITERAL(963);
     
     private final int msg;
     
@@ -1282,42 +1290,14 @@ implements IBinderClient {
     protected Value transferLiteral(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
       
-      final Element ni;
       if (NullLiteral.prototype.includes(node)) {
-        ni = NonNullRawLattice.NULL;
+        return lattice.push(val, lattice.baseValue(
+            NonNullRawLattice.NULL, SimpleKind.NULL_LITERAL, node));
       } else {
-        ni = NonNullRawLattice.NOT_NULL; // all other literals are not null
+        return lattice.push(val, lattice.baseValue(
+            NonNullRawLattice.NOT_NULL, SimpleKind.STRING_LITERAL, node));
       }
-      return lattice.push(val, lattice.baseValue(ni, SimpleKind.NULL, node));
     }
-
-    /*
-     * Only called by transferConcat() as implemented in JavaEvaluationTransfer,
-     * and we override transferConcat() here to work differently.
-     */
-    
-//    @Override
-//    protected Value transferToString(final IRNode node, final Value val) {
-//      if (!lattice.isNormal(val)) return val;
-//      
-//      if (lattice.peek(val).lessEq(NonNullRawLattice.NOT_NULL)) return val;
-//      // otherwise, we can force not null
-//      return lattice.push(lattice.pop(val), NonNullRawLattice.NOT_NULL);
-//    }
-    
-    
-    // 2013-05-16 Why is this commented out?
-//    @Override
-//    protected Value transferUnbox(final IRNode expr, final Value val) {
-//      if (!lattice.isNormal(val)) return val;
-//      /*
-//       * Always push NOT_NULL, because that is what we use to represent
-//       * primitive values (see transferLiteral())
-//       * 
-//       * Unbox can never yield a null.  
-//       */
-//      return lattice.push(lattice.pop(val), NonNullRawLattice.NOT_NULL);
-//    }
     
     @Override
     protected Value transferUseField(final IRNode fref, Value val) {
