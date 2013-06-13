@@ -467,14 +467,14 @@ implements IBinderClient {
       }
     },
     STRING_CONCAT(959),
-    IS_OBJECT(961),
+    IS_OBJECT(960),
     VAR_USE(-1) {
       @Override
       public IRNode bind(final IBinder binder, final IRNode where) {
         return binder.getBinding(where);
       }
     },
-    ENUM_CONSTANT(962) {
+    ENUM_CONSTANT(961) {
       @Override
       public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
         return binder.getBinding(where);
@@ -485,7 +485,7 @@ implements IBinderClient {
         return EnumConstantDeclaration.getId(w);
       }
     },
-    STRING_LITERAL(963);
+    STRING_LITERAL(962);
     
     private final int msg;
     
@@ -1312,18 +1312,23 @@ implements IBinderClient {
       final Element refState = lattice.peek(val).first();
       val = pop(val);
 
+      final IRNode fieldDecl = binder.getBinding(fref);
+      /*
+       * If the field is actually an enumeration constant then it is always
+       * @NonNull.  We could instead use virtual @NonNull annotations on
+       * EnumConstantDeclaration nodes, but Tim thinks that is overkill.
+       */
+      if (EnumConstantDeclaration.prototype.includes(fieldDecl)) {
+        // Always @NonNull
+        val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.ENUM_CONSTANT, fieldDecl));
+      }
       /*
        * If the field is @NonNull, then we push NOT_NULL, unless the object
        * reference is RAW.  In that case, we have to check to see if the 
        * field is initialized yet.  If so, we push NOT_NULL, otherwise we must
        * push MAYBE_NULL.  If the field is not annotated, we push MAYBE_NULL.
        */
-      final IRNode fieldDecl = binder.getBinding(fref);
-      // XXX: Hack: check for EnumConstantDeclaration
-      if (EnumConstantDeclaration.prototype.includes(fieldDecl)) {
-        // Always @NonNull
-        val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.ENUM_CONSTANT, fieldDecl));
-      } else if (NonNullRules.getNonNull(fieldDecl) != null) {
+      else if (NonNullRules.getNonNull(fieldDecl) != null) {
         if (refState == NonNullRawLattice.RAW) {
           // No fields are initialized
           val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, SimpleKind.FIELD_REF, fref));
