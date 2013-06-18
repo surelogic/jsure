@@ -18,6 +18,7 @@ import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.StackQuer
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.ThisKind;
 import com.surelogic.analysis.type.checker.QualifiedTypeChecker;
 import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.dropsea.ir.AnalysisResultDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
@@ -167,52 +168,40 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
             expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
             declState.getAnnotation());
         for (final Source src : queryResult.getSources()) {
-          buildChain(folder, expr, declState, /*queryResult,*/ src, new LinkedList<IRNode>());
+          buildNewChain(folder, declState, src);
         }
       }
     }
   }
-  
-  private void buildChain(
-      final ResultFolderDrop folder, final IRNode origExpr, final Element declState,
-      /*final StackQueryResult queryResult,*/ final Source src,
-      final Deque<IRNode> chain) {
+
+  private void buildNewChain(final AnalysisResultDrop parent,
+      final Element declState, final Source src) {
     final Kind k = src.first();
     final IRNode where = src.second();
       
     if (k == SimpleKind.VAR_USE || k instanceof ThisKind) {
       final IRNode vd = binder.getBinding(where);
       final StackQueryResult newQuery = currentQuery().getResultFor(where);
-      final Base varValue = newQuery./*queryResult.*/lookupVar(vd);
-      chain.addLast(where);
+      final Base varValue = newQuery.lookupVar(vd);
+      final ResultFolderDrop f = ResultsBuilder.createAndFolder(
+          parent, where, READ_FROM, READ_FROM, DebugUnparser.toString(where));
       for (final Source src2 : varValue.second()) {
-        buildChain(folder, origExpr, declState, /*newQuery,*/ src2, chain);
+        buildNewChain(f, declState, src2);
       }
-      chain.removeLast();
     } else {
       final Element srcState = src.third();
       final ResultDrop result = ResultsBuilder.createResult(
-          folder, origExpr,
           declState.isAssignableFrom(binder.getTypeEnvironment(), srcState),
-          GOOD_ASSIGN, BAD_ASSIGN,
-          srcState.getAnnotation(), declState.getAnnotation());
-
+          parent, where,
+          k.getMessage(), srcState.getAnnotation(), k.unparse(where));
       final PromiseDrop<?> pd = getAnnotation(k.getAnnotatedNode(binder, where));
       if (pd != null) {
         result.addTrusted(pd);
       }
-
-      Drop hd = result;
-      for (final IRNode readFrom : chain) {
-        hd = hd.addInformationHint(
-            readFrom, READ_FROM, DebugUnparser.toString(readFrom));
-      }  
-      hd.addInformationHint(
-          where, k.getMessage(),
-          srcState.getAnnotation(), k.unparse(where));
     }
   }
-    
+
+  
   @Override
   protected void checkUnboxExpression(
       final IRNode unboxExpr, final IRNode unboxedExpr) {
