@@ -167,7 +167,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
             expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
             declState.getAnnotation());
         for (final Source src : queryResult.getSources()) {
-          buildChain(folder, expr, declState, queryResult, src, new LinkedList<IRNode>());
+          buildChain(folder, expr, declState, /*queryResult,*/ src, new LinkedList<IRNode>());
         }
       }
     }
@@ -175,18 +175,18 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   
   private void buildChain(
       final ResultFolderDrop folder, final IRNode origExpr, final Element declState,
-      final StackQueryResult queryResult, final Source src,
+      /*final StackQueryResult queryResult,*/ final Source src,
       final Deque<IRNode> chain) {
     final Kind k = src.first();
     final IRNode where = src.second();
       
     if (k == SimpleKind.VAR_USE || k instanceof ThisKind) {
       final IRNode vd = binder.getBinding(where);
-      final Base varValue = queryResult.lookupVar(vd);
+      final StackQueryResult newQuery = currentQuery().getResultFor(where);
+      final Base varValue = newQuery./*queryResult.*/lookupVar(vd);
       chain.addLast(where);
       for (final Source src2 : varValue.second()) {
-        final StackQueryResult newQuery = currentQuery().getResultFor(src2.second());
-        buildChain(folder, origExpr, declState, newQuery, src2, chain);
+        buildChain(folder, origExpr, declState, /*newQuery,*/ src2, chain);
       }
       chain.removeLast();
     } else {

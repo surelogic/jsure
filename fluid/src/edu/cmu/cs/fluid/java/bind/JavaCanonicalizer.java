@@ -49,6 +49,7 @@ import edu.cmu.cs.fluid.java.operator.BoxingOpAssignExpression;
 import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
+import edu.cmu.cs.fluid.java.operator.ConditionalExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
@@ -1628,6 +1629,11 @@ public class JavaCanonicalizer {
 
     @Override
     public Integer visitConditionalExpression(IRNode node) {
+      // Conditional section of the expression is always primitive
+      if (loc.equals(ConditionalExpression.condLocation)) {
+        return PRIMITIVE_CONTEXT;
+      }
+      
       if (binder.getJavaType(node) instanceof IJavaPrimitiveType) {
         return PRIMITIVE_CONTEXT;
       } else {
