@@ -19,7 +19,6 @@ import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.ThisKind;
 import com.surelogic.analysis.type.checker.QualifiedTypeChecker;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.dropsea.ir.AnalysisResultDrop;
-import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -50,8 +49,6 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   
   private static final int GOOD_ASSIGN_FOLDER = 930;
   private static final int BAD_ASSIGN_FOLDER = 931;
-  private static final int GOOD_ASSIGN = 932;
-  private static final int BAD_ASSIGN = 933;
   
   
   
