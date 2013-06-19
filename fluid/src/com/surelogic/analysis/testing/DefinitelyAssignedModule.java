@@ -1,6 +1,4 @@
-package com.surelogic.analysis.testing;
-
-import java.util.Map;
+package com.surelogic.analysis.testing;import java.util.Map;
 import java.util.Map.Entry;
 
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;
@@ -16,6 +14,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 
 public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<DefinitelyAssignedAnalysis, Unused>{
   public DefinitelyAssignedModule() {
@@ -63,16 +62,36 @@ public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<Defi
       final Map<IRNode, Boolean> fieldStatus = 
           currentQuery().getResultFor(ConstructorDeclaration.getBody(cdecl));
       for (final Entry<IRNode, Boolean> e : fieldStatus.entrySet()) {
-        final HintDrop drop = HintDrop.newInformation(cdecl);
-        drop.setCategorizingMessage(Messages.DSC_NON_NULL);
-        if (e.getValue().booleanValue()) {
-          drop.setMessage(Messages.ASSIGNED, VariableDeclarator.getId(e.getKey()));
-        } else {
-          drop.setMessage(Messages.NOT_ASSIGNED, VariableDeclarator.getId(e.getKey()));
+        if (!TypeUtil.isStatic(e.getKey())) {
+          final HintDrop drop = HintDrop.newInformation(cdecl);
+          drop.setCategorizingMessage(Messages.DSC_NON_NULL);
+          if (e.getValue().booleanValue()) {
+            drop.setMessage(Messages.ASSIGNED, VariableDeclarator.getId(e.getKey()));
+          } else {
+            drop.setMessage(Messages.NOT_ASSIGNED, VariableDeclarator.getId(e.getKey()));
+          }
         }
       }
       
       doAcceptForChildren(cdecl);
+    }
+
+
+    
+    @Override
+    protected void handleClassInitDeclaration(final IRNode classBody, final IRNode node) {
+      final Map<IRNode, Boolean> fieldStatus = currentQuery().getResultFor(classBody);
+      for (final Entry<IRNode, Boolean> e : fieldStatus.entrySet()) {
+        if (TypeUtil.isStatic(e.getKey())) {
+          final HintDrop drop = HintDrop.newInformation(classBody);
+          drop.setCategorizingMessage(Messages.DSC_NON_NULL);
+          if (e.getValue().booleanValue()) {
+            drop.setMessage(Messages.ASSIGNED, VariableDeclarator.getId(e.getKey()));
+          } else {
+            drop.setMessage(Messages.NOT_ASSIGNED, VariableDeclarator.getId(e.getKey()));
+          }
+        }
+      }
     }
   }
 

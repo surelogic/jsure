@@ -31,12 +31,15 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.NoInitialization;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 
 public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule.AnalysisBundle, Unused>{
   private static final String ELLIPSIS = "\u2026";
 
   private static final int DEFINITELY_ASSIGNED = 900;
   private static final int NOT_DEFINITELY_ASSIGNED = 901;
+  private static final int DEFINITELY_ASSIGNED_STATIC = 902;
+  private static final int NOT_DEFINITELY_ASSIGNED_STATIC = 903;
   
   private static final int RAW_LOCAL_GOOD = 910;
   private static final int RAW_LOCAL_BAD = 911;
@@ -91,19 +94,9 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     @Override
     protected void handleConstructorDeclaration(final IRNode cdecl) {
       doAcceptForChildren(cdecl);
-
-      final Map<IRNode, Boolean> fieldsStatus = 
-          currentQuery().getDefinitelyAssigned(ConstructorDeclaration.getBody(cdecl));
-      for (final Map.Entry<IRNode, Boolean> e : fieldsStatus.entrySet()) {
-        final IRNode fieldDecl = e.getKey();
-        final NonNullPromiseDrop pd = NonNullRules.getNonNull(fieldDecl);
-        if (pd != null) {
-          final boolean isDefinitelyAssigned = e.getValue().booleanValue();
-          ResultsBuilder.createResult(cdecl, pd, isDefinitelyAssigned,
-              DEFINITELY_ASSIGNED, NOT_DEFINITELY_ASSIGNED,
-              JavaNames.genSimpleMethodConstructorName(cdecl));
-        }
-      }
+      processFields(ConstructorDeclaration.getBody(cdecl), false,
+          cdecl, DEFINITELY_ASSIGNED, NOT_DEFINITELY_ASSIGNED,
+          JavaNames.genSimpleMethodConstructorName(cdecl));
     }
     
     @Override
@@ -138,6 +131,35 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
         }
       }
       return null;
+    }
+
+    @Override
+    protected void handleClassInitDeclaration(
+        final IRNode classBody, final IRNode node) {
+      processFields(classBody, true, classBody,
+          DEFINITELY_ASSIGNED_STATIC, NOT_DEFINITELY_ASSIGNED_STATIC,
+          "<clinit>");
+    }
+
+  
+  
+    private void processFields(
+        final IRNode analysisNode, final boolean useStatic,
+        final IRNode resultNode, final int goodMsg, final int badMsg,
+        final String name) {
+      final Map<IRNode, Boolean> fieldsStatus = 
+          currentQuery().getDefinitelyAssigned(analysisNode);
+      for (final Map.Entry<IRNode, Boolean> e : fieldsStatus.entrySet()) {
+        final IRNode fieldDecl = e.getKey();
+        if (TypeUtil.isStatic(fieldDecl) == useStatic) {
+          final NonNullPromiseDrop pd = NonNullRules.getNonNull(fieldDecl);
+          if (pd != null) {
+            final boolean isDefinitelyAssigned = e.getValue().booleanValue();
+            ResultsBuilder.createResult(resultNode, pd, isDefinitelyAssigned,
+                goodMsg, badMsg, name);
+          }
+        }
+      }
     }
   }
 
