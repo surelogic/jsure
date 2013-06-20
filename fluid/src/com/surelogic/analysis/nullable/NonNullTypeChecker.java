@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
 
+import com.surelogic.aast.promise.NullableNode;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
@@ -23,7 +24,6 @@ import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
-import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
@@ -131,13 +131,6 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     return pd;
   }
   
-  private PromiseDrop<?> getPromise(final IRNode node) {
-    final NonNullPromiseDrop nonNull = NonNullRules.getNonNull(node);
-    if (nonNull != null) return nonNull;
-    final RawPromiseDrop raw = NonNullRules.getRaw(node);
-    return raw;
-  }
-  
   private void checkAssignability(
       final IRNode expr, final IRNode decl, final IRNode declTypeNode) {
     if (ReferenceType.prototype.includes(declTypeNode)) {
@@ -147,7 +140,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   
   private void checkAssignability(
       final IRNode expr, final IRNode decl, final boolean onlyCheckIfRaw) {
-    final PromiseDrop<?> declPD = getPromise(decl);
+    final PromiseDrop<?> declPD = getAnnotation(decl);
     if (!onlyCheckIfRaw || declPD instanceof RawPromiseDrop) {
       /* XXX: Problem for results: if declPD is null, then we have something
        * that is @Nullable with no annotation.  It is an error to pass a @Raw
@@ -166,6 +159,34 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
             declState.getAnnotation());
         for (final Source src : queryResult.getSources()) {
           buildNewChain(folder, declState, src);
+        }
+      } else {
+        /* Like above, but we know the declared state is @Nullable,
+         * and we only care about the negative results.  First we have to 
+         * determine if there are any negative results.  If there are,
+         * we first introduce a new NullablePromiseDrop.
+         */
+        final StackQueryResult queryResult = currentQuery().getResultFor(expr);
+        boolean hasNegativeResult = false;
+        final Iterator<Source> it = queryResult.getSources().iterator();
+        while (it.hasNext() && !hasNegativeResult) {
+          final Source src = it.next();
+          hasNegativeResult |= testChain(NonNullRawLattice.MAYBE_NULL, src);
+        }
+        
+        if (hasNegativeResult) {
+          final NullableNode nn = new NullableNode(0);
+          nn.setPromisedFor(decl, null);
+          final NullablePromiseDrop drop = new NullablePromiseDrop(nn);
+          drop.setVirtual(true);
+          final ResultsBuilder builder = new ResultsBuilder(drop);
+          ResultFolderDrop folder = builder.createRootAndFolder(
+              expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
+              NonNullRawLattice.MAYBE_NULL.getAnnotation());
+          for (final Source src : queryResult.getSources()) {
+            buildNewChain(folder, NonNullRawLattice.MAYBE_NULL, src);
+          }
+          
         }
       }
     }
@@ -195,6 +216,28 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       if (pd != null) {
         result.addTrusted(pd);
       }
+    }
+  }
+
+  // Return true, if there is a negative assurance result
+  private boolean testChain(final Element declState, final Source src) {
+    final Kind k = src.first();
+    final IRNode where = src.second();
+      
+    if (k == SimpleKind.VAR_USE || k instanceof ThisKind) {
+      final IRNode vd = binder.getBinding(where);
+      final StackQueryResult newQuery = currentQuery().getResultFor(where);
+      final Base varValue = newQuery.lookupVar(vd);
+      boolean hasNegative = false;
+      final Iterator<Source> it = varValue.second().iterator();
+      while (it.hasNext() && !hasNegative) {
+        final Source src2 = it.next();
+        hasNegative |= testChain(declState, src2);
+      }
+      return hasNegative;
+    } else {
+      final Element srcState = src.third();
+      return !declState.isAssignableFrom(binder.getTypeEnvironment(), srcState);
     }
   }
 
