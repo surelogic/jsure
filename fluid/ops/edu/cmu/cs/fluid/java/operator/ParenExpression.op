@@ -13,4 +13,12 @@ public operator ParenExpression extends PrimaryExpression
   @Override public Component createComponent(IRNode node) {
     return new SimpleComponent(node);
   }
+  
+  public static Token openParen() {
+    return littoken1;
+  }
+  
+  public static Token closeParen() {
+    return littoken2;
+  }
 }
