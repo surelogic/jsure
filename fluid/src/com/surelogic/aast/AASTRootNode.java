@@ -48,6 +48,11 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
 	  annoContext = null;
   }
   
+  public final void copyPromisedForContext(IRNode newPromisedFor, AASTRootNode copiedContext) {
+	  setPromisedFor(newPromisedFor, copiedContext.getAnnoContext());
+      setSrcType(copiedContext.getSrcType());
+  }
+  
   @Override
   public final AnnotationSource getSrcType() {
     return srcType;

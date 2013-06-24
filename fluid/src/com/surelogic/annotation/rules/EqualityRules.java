@@ -116,8 +116,7 @@ public class EqualityRules extends AnnotationRules {
               final Operator subOp = JJNode.tree.getOperator(sub);
               if (AnonClassExpression.prototype.includes(subOp)) {
                 final ValueObjectNode derived = new ValueObjectNode();
-                derived.setPromisedFor(sub, a.getAnnoContext());
-                derived.setSrcType(a.getSrcType());
+                derived.copyPromisedForContext(sub, a);
                 cb.addDerived(derived, originalPromiseDrop);
               }
             }
@@ -225,8 +224,7 @@ public class EqualityRules extends AnnotationRules {
 	            final Operator subOp = JJNode.tree.getOperator(sub);
 	            if (AnonClassExpression.prototype.includes(subOp)) {
 	              final RefObjectNode derived = new RefObjectNode();
-	              derived.setPromisedFor(sub, a.getAnnoContext());
-	              derived.setSrcType(a.getSrcType());
+	              derived.copyPromisedForContext(sub, a);
 	              cb.addDerived(derived, originalPromiseDrop);
 	            }
 			      }

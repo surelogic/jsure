@@ -147,14 +147,12 @@ public class JcipRules extends AnnotationRules {
 
         	final NewRegionDeclarationNode regionDecl = 
         			new NewRegionDeclarationNode(0, extractAccessMods(v.targetMods), rv.newRegionId, null);
-        	regionDecl.setPromisedFor(v.enclosingTypeDecl, a.getAnnoContext());
-        	regionDecl.setSrcType(a.getSrcType());
+        	regionDecl.copyPromisedForContext(v.enclosingTypeDecl, a);
         	AASTStore.addDerived(regionDecl, d);
 
         	final LockDeclarationNode regionLockDecl =
         			new LockDeclarationNode(a.getOffset(), rv.lockId, rv.lockField, region);
-        	regionLockDecl.setPromisedFor(v.enclosingTypeDecl, a.getAnnoContext());
-        	regionLockDecl.setSrcType(a.getSrcType());
+        	regionLockDecl.copyPromisedForContext(v.enclosingTypeDecl, a);
         	AASTStore.addDerived(regionLockDecl, d);
         	declaredLocks.put(rv.lockNode, regionLockDecl);
         } else {
@@ -171,15 +169,13 @@ public class JcipRules extends AnnotationRules {
     	// Create a policy lock if there isn't already a lock decl
     	if (rv.lockField != null) {
     		final PolicyLockDeclarationNode lockDecl = new PolicyLockDeclarationNode(0, rv.lockId, rv.lockField);
-    		lockDecl.setPromisedFor(v.enclosingTypeDecl, a.getAnnoContext());
-    		lockDecl.setSrcType(a.getSrcType());
+    		lockDecl.copyPromisedForContext(v.enclosingTypeDecl, a);
         	AASTStore.addDerived(lockDecl, d);
     	}    	
     	/* Converts to a RequiresLock for a method */
     	final LockSpecificationNode spec = new SimpleLockNameNode(0, rv.lockId);  
     	final RequiresLockNode req = new RequiresLockNode(0, Collections.singletonList(spec));
-    	req.setPromisedFor(d.getPromisedFor(), a.getAnnoContext());
-    	req.setSrcType(a.getSrcType());
+    	req.copyPromisedForContext(d.getPromisedFor(), a);
     	AASTStore.addDerived(req, d);
     }
     return d;
@@ -354,8 +350,7 @@ public class JcipRules extends AnnotationRules {
 		} else {
 			root = new InRegionNode(0, name);
 		}
-		root.setPromisedFor(target, anno.getAnnoContext());
-		root.setSrcType(anno.getSrcType());
+		root.copyPromisedForContext(target, anno);
 		AASTStore.addDerived(root, drop);
 		return newRegionId;      
 	}

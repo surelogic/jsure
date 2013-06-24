@@ -794,8 +794,7 @@ public class ScopedPromiseRules extends AnnotationRules {
         // create type-level @Promise
         final ScopedPromiseNode copy = new ScopedPromiseNode(orig.getOffset(), orig.getPromise(), (PromiseTargetNode) orig
             .getTargets().cloneTree());
-        copy.setPromisedFor(type, orig.getAnnoContext());
-        copy.setSrcType(orig.getSrcType());
+        copy.copyPromisedForContext(type, orig);
         AASTStore.addDerived(copy, d, new ValidatedDropCallback<PromisePromiseDrop>() {
 
           @Override

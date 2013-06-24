@@ -460,8 +460,7 @@ public class RegionRules extends AnnotationRules {
   	  }	  
       FieldRegion field = (FieldRegion) spec.resolveBinding().getRegion();
       InRegionNode mapInto = inRegionRule.makeRoot((RegionSpecificationNode)a.getTo().cloneTree());
-      mapInto.setPromisedFor(field.getNode(), a.getAnnoContext());
-      mapInto.setSrcType(a.getSrcType()); // FIX
+      mapInto.copyPromisedForContext(field.getNode(), a);
       
       AASTStore.addDerived(mapInto, drop);
     }
@@ -710,8 +709,7 @@ public class RegionRules extends AnnotationRules {
           (RegionSpecificationNode) a.getSpec().cloneTree();
         final InRegionNode inRegion =
           new InRegionNode(a.getOffset(), regionSpec);
-        inRegion.setPromisedFor(promisedFor, a.getAnnoContext());
-        inRegion.setSrcType(a.getSrcType());
+        inRegion.copyPromisedForContext(promisedFor, a);
         AASTStore.addDerived(inRegion, drop);
       }
       
