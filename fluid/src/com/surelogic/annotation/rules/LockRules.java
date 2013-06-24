@@ -954,7 +954,7 @@ public class LockRules extends AnnotationRules {
 				@Override
         protected PromiseDrop<AbstractLockDeclarationNode> makePromiseDrop(
 						LockDeclarationNode a) {
-					return AnnotationRules.storeDropIfNotNull(lockRule.getStorage(), a,
+					return AnnotationRules.storeDropIfNotNull(lockRule.getStorage(),
 							scrubLock(getContext(), protectedRegions, a));
 				}
 			};
@@ -1535,7 +1535,7 @@ public class LockRules extends AnnotationRules {
 				@Override
         protected PromiseDrop<AbstractLockDeclarationNode> makePromiseDrop(
 						PolicyLockDeclarationNode a) {
-					return AnnotationRules.storeDropIfNotNull(lockRule.getStorage(), a,
+					return AnnotationRules.storeDropIfNotNull(lockRule.getStorage(),
 							scrubPolicyLock(getContext(), a));
 				}
 			};

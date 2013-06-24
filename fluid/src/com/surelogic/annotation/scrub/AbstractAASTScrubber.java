@@ -518,7 +518,7 @@ extends AbstractHierarchyScrubber<A> {
 	};
 
 	protected P storeDropIfNotNull(A a, P pd) {
-	  return AnnotationRules.storeDropIfNotNull(stor, a, pd);
+	  return AnnotationRules.storeDropIfNotNull(stor, pd);
 	}
 	
 	/**

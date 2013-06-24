@@ -497,11 +497,14 @@ public abstract class AnnotationRules {
 	 * @return The drop passed in
 	 */
 	public static <A extends IAASTRootNode, P extends PromiseDrop<? super A>> P storeDropIfNotNull(
-			IPromiseDropStorage<P> stor, A a, P pd) {
+			IPromiseDropStorage<P> stor, P pd) {
 		if (pd == null) {
 			return null;
 		}
-		final IRNode n = a.getPromisedFor();
+		final IRNode n = pd.getPromisedFor();
+		if (n == null) {
+			return null;
+		}
 		final IRNode mapped = PromiseFramework.getInstance().mapToProxyNode(n);
 		/*
 		 * if (mapped != n) {
@@ -511,6 +514,17 @@ public abstract class AnnotationRules {
 		return stor.add(mapped, pd);
 	}
 
+	/**
+	 * Attach the promise drop to a IRNode outside of the normal scrubber architecture.
+	 * @param iPromiseDropStorage 
+	 */
+	public static <A extends IAASTRootNode, P extends PromiseDrop<? super A>> void attachAsVirtual(
+			IPromiseDropStorage<P> stor, P pd) {
+		pd.setVirtual(true);
+		// What else?
+		storeDropIfNotNull(stor, pd);
+	}
+	
 	private static <P extends PromiseDrop<?>> P getMappedValue(SlotInfo<P> si,
 			final IRNode n) {
 		final PromiseFramework frame = PromiseFramework.getInstance();
