@@ -5,7 +5,7 @@
  * @see ClassBody
  * @see ConstructorDeclaration
  */
-public operator ReceiverDeclaration implements edu.cmu.cs.fluid.java.bind.IHasType {
+public operator ReceiverDeclaration implements IOnlyAttachedToFunction, edu.cmu.cs.fluid.java.bind.IHasType {
   syntax { "this" }
   /** Logger instance for debugging. */
   private static final java.util.logging.Logger LOG =

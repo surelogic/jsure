@@ -3,7 +3,7 @@
 /** An explicit declaration of the return value.
  * @see MethodDeclaration
  */
-public operator ReturnValueDeclaration {
+public operator ReturnValueDeclaration implements IOnlyAttachedToFunction {
   syntax { "?" "return" }
   public static IRNode getType(IRNode node) {
     return MethodDeclaration.getReturnType(JavaPromise.getPromisedFor(node));
