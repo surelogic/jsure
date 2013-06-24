@@ -19,9 +19,11 @@ import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.StackQuer
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.ThisKind;
 import com.surelogic.analysis.type.checker.QualifiedTypeChecker;
 import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.AnalysisResultDrop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
@@ -39,6 +41,7 @@ import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.ReferenceType;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
@@ -158,10 +161,10 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
             expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
             declState.getAnnotation());
         for (final Source src : queryResult.getSources()) {
-          buildNewChain(folder, declState, src);
+          buildNewChain(expr, folder, declState, src);
         }
       } else {
-        /* Like above, but we know the declared state is @Nullable,
+        /* Like above, but we know the declared state is implicitly @Nullable,
          * and we only care about the negative results.  First we have to 
          * determine if there are any negative results.  If there are,
          * we first introduce a new NullablePromiseDrop.
@@ -184,7 +187,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
               expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
               NonNullRawLattice.MAYBE_NULL.getAnnotation());
           for (final Source src : queryResult.getSources()) {
-            buildNewChain(folder, NonNullRawLattice.MAYBE_NULL, src);
+            buildNewChain(expr, folder, NonNullRawLattice.MAYBE_NULL, src);
           }
           
         }
@@ -192,7 +195,8 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     }
   }
 
-  private void buildNewChain(final AnalysisResultDrop parent,
+  private void buildNewChain(final IRNode rhsExpr, 
+      final AnalysisResultDrop parent,
       final Element declState, final Source src) {
     final Kind k = src.first();
     final IRNode where = src.second();
@@ -204,7 +208,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       final ResultFolderDrop f = ResultsBuilder.createAndFolder(
           parent, where, READ_FROM, READ_FROM, DebugUnparser.toString(where));
       for (final Source src2 : varValue.second()) {
-        buildNewChain(f, declState, src2);
+        buildNewChain(rhsExpr, f, declState, src2);
       }
     } else {
       final Element srcState = src.third();
@@ -213,8 +217,17 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
           parent, where,
           k.getMessage(), srcState.getAnnotation(), k.unparse(where));
       final PromiseDrop<?> pd = getAnnotation(k.getAnnotatedNode(binder, where));
-      if (pd != null) {
-        result.addTrusted(pd);
+      if (pd != null) result.addTrusted(pd);
+      
+      if (declState == NonNullRawLattice.NOT_NULL && 
+          VariableUseExpression.prototype.includes(rhsExpr)) {
+        final IRNode decl = binder.getBinding(rhsExpr);
+        if (ParameterDeclaration.prototype.includes(decl) &&
+            getAnnotation(decl) == null) {
+          result.addProposalNotProvedConsistent(
+              new ProposedPromiseDrop(
+                  "NonNull", null, decl, rhsExpr, Origin.PROBLEM));
+        }
       }
     }
   }

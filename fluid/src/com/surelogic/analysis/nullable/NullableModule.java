@@ -13,16 +13,20 @@ import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
 import com.surelogic.analysis.nullable.NullableModule.AnalysisBundle.QueryBundle;
+import com.surelogic.analysis.nullable.combined.NonNullRawLattice;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Inferred;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.InferredQuery;
 import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
+import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -31,7 +35,9 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.NoInitialization;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
 
 public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule.AnalysisBundle, Unused>{
   private static final String ELLIPSIS = "\u2026";
@@ -106,28 +112,45 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
       for (final InferredVarState<Element> p : result) {
         final IRNode varDecl = p.getLocal();
         final PromiseDrop<?> pd = result.getPromiseDrop(varDecl);
-        final Element annotation = result.injectPromiseDrop(pd);
-        final Element inferred = p.getState();
-        final boolean isGood = result.lessEq(inferred, annotation);
-        final ResultDrop rd = ResultsBuilder.createResult(
-            varDecl, pd, isGood, RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
+        if (pd != null) {
+          final Element annotation = result.injectPromiseDrop(pd);
+          final Element inferred = p.getState();
+          final boolean isGood = result.lessEq(inferred, annotation);
+          final ResultDrop rd = ResultsBuilder.createResult(
+              varDecl, pd, isGood, RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
+          
+          for (final Assignment<Element> a : p.getAssignments()) {
+            final IRNode src = a.getWhere();
+            String unparse;
+            if (Initialization.prototype.includes(src)) {
+              unparse = DebugUnparser.toString(Initialization.getValue(src), -1);
+            } else if (NoInitialization.prototype.includes(src)) {
+              unparse = "null (by default)";
+            } else {
+              unparse = DebugUnparser.toString(src, -1);
+            }
+            if (unparse.length() > 39) {
+              unparse = unparse.substring(0, 39) + ELLIPSIS;
+            }
+            final HintDrop hint = HintDrop.newInformation(src);
+            hint.setMessage(ASSIGNMENT, a.getState(), unparse);
+            rd.addDependent(hint);
+          }
+        }
         
-        for (final Assignment<Element> a : p.getAssignments()) {
-          final IRNode src = a.getWhere();
-          String unparse;
-          if (Initialization.prototype.includes(src)) {
-            unparse = DebugUnparser.toString(Initialization.getValue(src), -1);
-          } else if (NoInitialization.prototype.includes(src)) {
-            unparse = "null (by default)";
-          } else {
-            unparse = DebugUnparser.toString(src, -1);
+        // XXX: Proposal is landing on the method declaration not the local variable declaration,  Find out why
+        
+        // Can we propose @NonNull?
+        if (p.getState() == NonNullRawLattice.NOT_NULL) {
+          if (pd == null) {
+            final IRNode where = VariableDeclarator.prototype.includes(varDecl) ? JJNode.tree.getParent(JJNode.tree.getParent(varDecl)) : varDecl;
+            final ProposedPromiseDrop proposal = new ProposedPromiseDrop(
+                "NonNull", null, where, body, Origin.CODE);
+          } else if (pd instanceof NullablePromiseDrop) {
+            final ProposedPromiseDrop proposal = new ProposedPromiseDrop(
+                "NonNull", null, "Nullable", null, varDecl, body, Origin.CODE);
+            pd.addProposal(proposal);
           }
-          if (unparse.length() > 39) {
-            unparse = unparse.substring(0, 39) + ELLIPSIS;
-          }
-          final HintDrop hint = HintDrop.newInformation(src);
-          hint.setMessage(ASSIGNMENT, a.getState(), unparse);
-          rd.addDependent(hint);
         }
       }
       return null;

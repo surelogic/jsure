@@ -313,6 +313,12 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
         Collections.<String, String> emptyMap(), at, from, origin);
   }
 
+  public ProposedPromiseDrop(@NonNull String annotation, @Nullable String value, @NonNull String replacedAnnotation, @Nullable String replacedValue,
+      @NonNull IRNode at, @NonNull IRNode from, @NonNull Origin origin) {
+    this(annotation, value, Collections.<String, String> emptyMap(), replacedAnnotation, replacedValue,
+        Collections.<String, String> emptyMap(), at, from, origin);
+  }
+
   /**
    * Constructs a new proposed promise that does not replace an existing
    * promise.

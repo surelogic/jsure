@@ -248,8 +248,10 @@ implements IBinderClient {
 
     @Override
     public PromiseDrop<?> getPromiseDrop(final IRNode n) {
-      final RawPromiseDrop raw = NonNullRules.getRaw(n);
-      return (raw != null) ? raw : NonNullRules.getNonNull(n);
+      PromiseDrop<?> pd = NonNullRules.getRaw(n);
+      if (pd == null) pd = NonNullRules.getNonNull(n);
+      if (pd == null) pd = NonNullRules.getNullable(n);
+      return pd;
     }
     
     @Override
@@ -316,8 +318,9 @@ implements IBinderClient {
     final List<IRNode> varsToInfer = new ArrayList<IRNode>(lvd.getLocal().size());
     for (final IRNode v : lvd.getLocal()) {
       if (!ParameterDeclaration.prototype.includes(v)) {
-        if (NonNullRules.getRaw(v) != null) varsToInfer.add(v);
-        if (NonNullRules.getNonNull(v) != null) varsToInfer.add(v);
+        varsToInfer.add(v);
+//        if (NonNullRules.getRaw(v) != null) varsToInfer.add(v);
+//        if (NonNullRules.getNonNull(v) != null) varsToInfer.add(v);
       }
     }
     
