@@ -17,6 +17,7 @@ import edu.cmu.cs.fluid.java.operator.Declaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.IOnlyAttachedToFunction;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
@@ -577,6 +578,10 @@ public final class JavaNames {
 		final IRNode type = VisitUtil.getEnclosingType(node);
 		if (type == null) {
 			return getFieldDecl(node);
+		}
+		if (op instanceof IOnlyAttachedToFunction) {
+			final IRNode func = JavaPromise.getParentOrPromisedFor(node);
+			return genRelativeFunctionName(func) + '.' + getFieldDecl(node);			
 		}
 		return getRelativeTypeNameDotSep(type) + '.' + getFieldDecl(node);
 	}

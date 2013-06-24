@@ -1,6 +1,6 @@
 # $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/ParameterDeclaration.op,v 1.9 2006/07/27 15:28:57 chance Exp $
 public operator ParameterDeclaration extends VariableDeclaration
-	implements DripOperator 
+	implements DripOperator, IOnlyAttachedToFunction
 {
   syntax {
     annos:Annotations  

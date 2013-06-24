@@ -13,6 +13,7 @@ import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.FluidRuntimeException;
 import edu.cmu.cs.fluid.control.Component;
 import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.parse.Ellipsis;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.parse.JJOperator;
@@ -160,7 +161,16 @@ public class JavaOperator extends JJOperator {
   public void unparseWrapper(IRNode node, JavaUnparser u) {
     OPENTOKEN.emit(u, node);
     JavaPromise.unparsePromises(node, u);
-    unparse(node, u);
+    if (JavaNode.getModifier(node, JavaNode.HAS_PARENS)) {
+    	// Modified from ParenExpression
+        ParenExpression.openParen().emit(u,node);
+        u.getStyle().getPAREN().emit(u,node);
+        u.unparse(tree.getChild(node,0));
+        u.getStyle().getENDPAREN().emit(u,node);
+        ParenExpression.closeParen().emit(u,node);
+    } else {
+    	unparse(node, u);
+    }
     CLOSETOKEN.emit(u, node);
   }
 
