@@ -18,6 +18,7 @@ import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.StackQuer
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.StackQueryResult;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.ThisKind;
 import com.surelogic.analysis.type.checker.QualifiedTypeChecker;
+import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.AnalysisResultDrop;
@@ -181,7 +182,8 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
           final NullableNode nn = new NullableNode(0);
           nn.setPromisedFor(decl, null);
           final NullablePromiseDrop drop = new NullablePromiseDrop(nn);
-          drop.setVirtual(true);
+          AnnotationRules.attachAsVirtual(NonNullRules.getNullableStorage(), drop);
+          
           final ResultsBuilder builder = new ResultsBuilder(drop);
           ResultFolderDrop folder = builder.createRootAndFolder(
               expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,

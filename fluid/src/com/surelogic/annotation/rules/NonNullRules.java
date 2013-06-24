@@ -68,7 +68,9 @@ public class NonNullRules extends AnnotationRules {
 	private static final Raw_ParseRule rawRule = new Raw_ParseRule();
 	private static final NullableConsistencyChecker consistency = new NullableConsistencyChecker();
 
-  
+	public static IPromiseDropStorage<NullablePromiseDrop> getNullableStorage() {
+		return nullableRule.getStorage();
+	}
   
 	private NonNullRules() {
 		// Just to make it a singleton
