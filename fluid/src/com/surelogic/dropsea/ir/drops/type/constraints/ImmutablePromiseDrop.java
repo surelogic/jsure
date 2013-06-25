@@ -7,7 +7,7 @@ import com.surelogic.dropsea.ir.drops.ModifiedBooleanPromiseDrop;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 
 /**
- * Promise drop for "NotThreadSafe" promises.
+ * Promise drop for "Immutable" promises.
  * 
  * @see edu.cmu.com.surelogic.analysis.locks.held.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
