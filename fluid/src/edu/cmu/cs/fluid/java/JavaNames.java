@@ -580,7 +580,7 @@ public final class JavaNames {
 			return getFieldDecl(node);
 		}
 		if (op instanceof IOnlyAttachedToFunction) {
-			final IRNode func = JavaPromise.getParentOrPromisedFor(node);
+			final IRNode func = VisitUtil.getEnclosingMethod(node);
 			return genRelativeFunctionName(func) + '.' + getFieldDecl(node);			
 		}
 		return getRelativeTypeNameDotSep(type) + '.' + getFieldDecl(node);
