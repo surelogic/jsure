@@ -165,7 +165,7 @@ public class JavaOperator extends JJOperator {
     	// Modified from ParenExpression
         ParenExpression.openParen().emit(u,node);
         u.getStyle().getPAREN().emit(u,node);
-        u.unparse(tree.getChild(node,0));
+        unparse(node, u);
         u.getStyle().getENDPAREN().emit(u,node);
         ParenExpression.closeParen().emit(u,node);
     } else {
