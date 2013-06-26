@@ -1536,8 +1536,12 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   }
 
   public IRNode visitParenthesized(ParenthesizedTree node, CodeContext context) {
-    IRNode e = adaptExpr(node.getExpression(), context);
-    return ParenExpression.createNode(e);
+    final IRNode e = adaptExpr(node.getExpression(), context);
+    final int oldMods = JavaNode.getModifiers(e);
+    JavaNode.setModifiers(e, JavaNode.setModifier(oldMods, JavaNode.HAS_PARENS, true));
+    //String unparse = DebugUnparser.toString(e);
+    return e;
+    //return ParenExpression.createNode(e);
   }
 
   public IRNode visitPrimitiveType(PrimitiveTypeTree node, CodeContext context) {
