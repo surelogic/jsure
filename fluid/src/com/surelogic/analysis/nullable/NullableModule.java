@@ -19,14 +19,11 @@ import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Inferred;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.InferredQuery;
 import com.surelogic.annotation.rules.NonNullRules;
-import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
-import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -42,6 +39,8 @@ import edu.cmu.cs.fluid.parse.JJNode;
 public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule.AnalysisBundle, Unused>{
   private static final String ELLIPSIS = "\u2026";
 
+  private static final int NON_NULL_LOCAL_CATEGORY = 900;
+  
   private static final int DEFINITELY_ASSIGNED = 900;
   private static final int NOT_DEFINITELY_ASSIGNED = 901;
   private static final int DEFINITELY_ASSIGNED_STATIC = 902;
@@ -50,6 +49,8 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
   private static final int RAW_LOCAL_GOOD = 910;
   private static final int RAW_LOCAL_BAD = 911;
   private static final int ASSIGNMENT = 912;
+  
+  private static final int LOCAL_NON_NULL = 935;
   
   
   
@@ -138,19 +139,15 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
           }
         }
         
-        // XXX: Proposal is landing on the method declaration not the local variable declaration,  Find out why
-        
-        // Can we propose @NonNull?
+        /* 
+         * Cannot put proposed promises on local variable declarations.
+         * use info drops instead.
+         */
         if (p.getState() == NonNullRawLattice.NOT_NULL) {
-          if (pd == null) {
-            final IRNode where = VariableDeclarator.prototype.includes(varDecl) ? JJNode.tree.getParent(JJNode.tree.getParent(varDecl)) : varDecl;
-            final ProposedPromiseDrop proposal = new ProposedPromiseDrop(
-                "NonNull", null, where, body, Origin.CODE);
-          } else if (pd instanceof NullablePromiseDrop) {
-            final ProposedPromiseDrop proposal = new ProposedPromiseDrop(
-                "NonNull", null, "Nullable", null, varDecl, body, Origin.CODE);
-            pd.addProposal(proposal);
-          }
+          final IRNode where = JJNode.tree.getParent(JJNode.tree.getParent(varDecl));
+          final HintDrop hint = HintDrop.newInformation(where);
+          hint.setCategorizingMessage(NON_NULL_LOCAL_CATEGORY);
+          hint.setMessage(LOCAL_NON_NULL, VariableDeclarator.getId(varDecl));
         }
       }
       return null;

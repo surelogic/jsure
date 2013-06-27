@@ -319,8 +319,6 @@ implements IBinderClient {
     for (final IRNode v : lvd.getLocal()) {
       if (!ParameterDeclaration.prototype.includes(v)) {
         varsToInfer.add(v);
-//        if (NonNullRules.getRaw(v) != null) varsToInfer.add(v);
-//        if (NonNullRules.getNonNull(v) != null) varsToInfer.add(v);
       }
     }
     
