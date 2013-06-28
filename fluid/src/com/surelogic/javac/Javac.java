@@ -114,7 +114,7 @@ public class Javac extends IDE {
 		init(UtilityAnalysis.class, "com.surelogic.jsure.client.eclipse.Utility", true, "Utility class");
     init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
     
-    init(NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable", false, "Nullable");
+    init(NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable", true, "Nullable");
     
 		/*
 		AnalysisInfo[] deps = new AnalysisInfo[3];

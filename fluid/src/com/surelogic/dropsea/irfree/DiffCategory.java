@@ -101,10 +101,12 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
       return;
     }
 
+    /*
     // Null if the title's already printed
     if (title != null && hasChildren()) {
       out.println(title);
     }
+    */
     /*
      * for(Entity o : sortByOffset(old)) {
      * out.println("\tOld    : "+toString(o)); } for(Entity o :
@@ -115,18 +117,27 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
       if (suppressOld(o.drop)) {  
     	  old.remove(o);
       } else {
+    	  title = printTitle(out, title);
     	  out.println("\tOld    : " + msg);
       }
     }
     for (DiffNode o : sortByOffset(newer)) {
    	  if (suppress(o.drop)) {  
-   		newer.remove(o);
+   		  newer.remove(o);
    	  } else {
+    	  title = printTitle(out, title);
    		  out.println("\tNewer  : " + toString(o));
    	  }
     }
   }
 
+  private String printTitle(final PrintStream out, String title) {
+	  if (title != null) {
+		  out.println(title);
+	  }
+	  return null;
+  }
+  
   /*
   private String[] resultFilterPrefixes = {
 		  "Borrowed parameters of",
