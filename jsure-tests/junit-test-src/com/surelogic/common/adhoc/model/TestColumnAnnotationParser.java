@@ -3,6 +3,7 @@ package com.surelogic.common.adhoc.model;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 
@@ -131,6 +132,21 @@ public class TestColumnAnnotationParser extends TestCase {
     c = ColumnAnnotationParserUtility.parse("(sum)");
     assertTrue(c.isValid());
     assertFalse(c.getAddCommas());
+  }
+
+  public void testHumanReadableDuration() {
+    c = ColumnAnnotationParserUtility.parse("(human-readable-duration)");
+    assertTrue(c.isValid());
+    assertTrue(c.getHumanReadableDuration());
+    assertSame(TimeUnit.NANOSECONDS, c.getHumanReadableDurationUnit());
+    c = ColumnAnnotationParserUtility.parse("(human-readable-duration unit 'SECONDS')");
+    assertTrue(c.isValid());
+    assertTrue(c.getHumanReadableDuration());
+    assertSame(TimeUnit.SECONDS, c.getHumanReadableDurationUnit());
+    c = ColumnAnnotationParserUtility.parse("(human-readable-duration unit 'BOGAS IGNORE ME')");
+    assertTrue(c.isValid());
+    assertTrue(c.getHumanReadableDuration());
+    assertSame(TimeUnit.NANOSECONDS, c.getHumanReadableDurationUnit());
   }
 
   public void testPrefix() {
