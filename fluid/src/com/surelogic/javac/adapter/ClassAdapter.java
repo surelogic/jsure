@@ -169,6 +169,12 @@ public class ClassAdapter extends AbstractAdapter {
     	  for(IRNode v : VisitUtil.getClassFieldDeclarators(root)) {
     		  SkeletonJavaRefUtility.copyIfPossible(root, v);
     	  }
+    	  for(IRNode d : VisitUtil.getClassBodyMembers(root)) {
+    		  if (FieldDeclaration.prototype.includes(d)) {
+    			  continue; // Already handled above
+    		  }
+    		  SkeletonJavaRefUtility.copyIfPossible(root, d);
+    	  }
     	  final Operator op = JJNode.tree.getOperator(root);
     	  IRNode formals = null;
     	  if (ClassDeclaration.prototype.includes(op)) {
