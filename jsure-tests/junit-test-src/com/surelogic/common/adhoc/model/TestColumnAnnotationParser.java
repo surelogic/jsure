@@ -4,9 +4,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.surelogic.common.Justification;
-
 import junit.framework.TestCase;
+
+import com.surelogic.common.Justification;
 
 public class TestColumnAnnotationParser extends TestCase {
 
@@ -45,7 +45,7 @@ public class TestColumnAnnotationParser extends TestCase {
     assertFalse(c.sumPartialRows());
     assertFalse(c.countPartialRows());
     assertFalse(c.countDistinct());
-    assertEquals("", c.getSuffix());
+    assertEquals("", c.getAggregateSuffix());
     assertEquals(Collections.emptySet(), c.getOnSet());
   }
 
@@ -129,22 +129,22 @@ public class TestColumnAnnotationParser extends TestCase {
     assertTrue(c.isValid());
     assertTrue(c.sumPartialRows());
     assertEquals(Collections.emptySet(), c.getOnSet());
-    assertEquals("", c.getSuffix());
+    assertEquals("", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(sum ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.sumPartialRows());
     assertEquals(Collections.emptySet(), c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(sum on 1 ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.sumPartialRows());
     assertEquals(one, c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(sum on 1,2,3,4,5 ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.sumPartialRows());
     assertEquals(oneThruFive, c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
   }
 
   public void testCount() {
@@ -154,28 +154,28 @@ public class TestColumnAnnotationParser extends TestCase {
     assertNull(c.getCountReplaceValueWith());
     assertFalse(c.countDistinct());
     assertEquals(Collections.emptySet(), c.getOnSet());
-    assertEquals("", c.getSuffix());
+    assertEquals("", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(count ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.countPartialRows());
     assertNull(c.getCountReplaceValueWith());
     assertFalse(c.countDistinct());
     assertEquals(Collections.emptySet(), c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(count on 1 ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.countPartialRows());
     assertNull(c.getCountReplaceValueWith());
     assertFalse(c.countDistinct());
     assertEquals(one, c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(count on 1,2,3,4,5 ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.countPartialRows());
     assertNull(c.getCountReplaceValueWith());
     assertFalse(c.countDistinct());
     assertEquals(oneThruFive, c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
   }
 
   public void testCountDistinct() {
@@ -185,28 +185,28 @@ public class TestColumnAnnotationParser extends TestCase {
     assertNull(c.getCountReplaceValueWith());
     assertTrue(c.countDistinct());
     assertEquals(Collections.emptySet(), c.getOnSet());
-    assertEquals("", c.getSuffix());
+    assertEquals("", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(count distinct ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.countPartialRows());
     assertNull(c.getCountReplaceValueWith());
     assertTrue(c.countDistinct());
     assertEquals(Collections.emptySet(), c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(count distinct on 1 ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.countPartialRows());
     assertNull(c.getCountReplaceValueWith());
     assertTrue(c.countDistinct());
     assertEquals(one, c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(count distinct on 1,2,3,4,5 ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.countPartialRows());
     assertNull(c.getCountReplaceValueWith());
     assertTrue(c.countDistinct());
     assertEquals(oneThruFive, c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
   }
 
   public void testCountReplaceValuesWithOne() {
@@ -216,35 +216,35 @@ public class TestColumnAnnotationParser extends TestCase {
     assertEquals(c.getCountReplaceValueWith(), "1");
     assertFalse(c.countDistinct());
     assertEquals(Collections.emptySet(), c.getOnSet());
-    assertEquals("", c.getSuffix());
+    assertEquals("", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(count replace-value-with '')");
     assertTrue(c.isValid());
     assertTrue(c.countPartialRows());
     assertEquals(c.getCountReplaceValueWith(), "");
     assertFalse(c.countDistinct());
     assertEquals(Collections.emptySet(), c.getOnSet());
-    assertEquals("", c.getSuffix());
+    assertEquals("", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(count replace-value-with 'one' ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.countPartialRows());
     assertEquals(c.getCountReplaceValueWith(), "one");
     assertFalse(c.countDistinct());
     assertEquals(Collections.emptySet(), c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(count replace-value-with 'one' on 1 ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.countPartialRows());
     assertEquals(c.getCountReplaceValueWith(), "one");
     assertFalse(c.countDistinct());
     assertEquals(one, c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(count replace-value-with '1' on 1,2,3,4,5 ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.countPartialRows());
     assertEquals(c.getCountReplaceValueWith(), "1");
     assertFalse(c.countDistinct());
     assertEquals(oneThruFive, c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
   }
 
   public void testCountReplaceValuesWithOneDistinct() {
@@ -254,28 +254,28 @@ public class TestColumnAnnotationParser extends TestCase {
     assertEquals(c.getCountReplaceValueWith(), "one");
     assertTrue(c.countDistinct());
     assertEquals(Collections.emptySet(), c.getOnSet());
-    assertEquals("", c.getSuffix());
+    assertEquals("", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(count distinct replace-value-with 'one' ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.countPartialRows());
     assertEquals(c.getCountReplaceValueWith(), "one");
     assertTrue(c.countDistinct());
     assertEquals(Collections.emptySet(), c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(count distinct replace-value-with 'one' on 1 ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.countPartialRows());
     assertEquals(c.getCountReplaceValueWith(), "one");
     assertTrue(c.countDistinct());
     assertEquals(one, c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
     c = ColumnAnnotationParserUtility.parse("(count distinct replace-value-with 'one' on 1,2,3,4,5 ' ms')");
     assertTrue(c.isValid());
     assertTrue(c.countPartialRows());
     assertEquals(c.getCountReplaceValueWith(), "one");
     assertTrue(c.countDistinct());
     assertEquals(oneThruFive, c.getOnSet());
-    assertEquals(" ms", c.getSuffix());
+    assertEquals(" ms", c.getAggregateSuffix());
   }
 
   public void testBad() {
