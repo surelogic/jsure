@@ -8,6 +8,7 @@ import java.util.Set;
 import com.surelogic.aast.promise.NullableNode;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice;
+import com.surelogic.analysis.nullable.combined.NonNullRawLattice.ClassElement;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Base;
@@ -53,7 +54,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   
   private static final int GOOD_ASSIGN_FOLDER = 930;
   private static final int BAD_ASSIGN_FOLDER = 931;
-  
+  private static final int RAW_INTO_NULLABLE = 932;
   
   
   private final NonNullRawTypeAnalysis nonNullRawTypeAnalysis;
@@ -220,6 +221,12 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
           k.getMessage(), srcState.getAnnotation(), k.unparse(where));
       final PromiseDrop<?> pd = getAnnotation(k.getAnnotatedNode(binder, where));
       if (pd != null) result.addTrusted(pd);
+      
+      if (declState == NonNullRawLattice.MAYBE_NULL &&
+          (srcState == NonNullRawLattice.RAW ||
+           srcState instanceof ClassElement)) {
+        result.addInformationHint(where, RAW_INTO_NULLABLE);
+      }
       
       if (declState == NonNullRawLattice.NOT_NULL && 
           VariableUseExpression.prototype.includes(rhsExpr)) {
