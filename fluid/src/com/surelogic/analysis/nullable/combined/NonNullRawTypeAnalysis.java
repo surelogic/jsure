@@ -941,12 +941,14 @@ implements IBinderClient {
       if (!lattice.isNormal(val)) return val;
       
       // new arrays are always fully initialized values
+      IRNode arrayCreation = node;
       if (DimExprs.prototype.includes(tree.getOperator(node))) {
         val = pop(val, tree.numChildren(node));
+        arrayCreation = tree.getParent(node);
       }
       // XXX: What operators do we have here?  I think ArrayCreationExpression
       // final Operator op = JJNode.tree.getOperator(node)
-      return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.NEW_ARRAY, node));
+      return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.NEW_ARRAY, arrayCreation));
     }
     
     @Override
