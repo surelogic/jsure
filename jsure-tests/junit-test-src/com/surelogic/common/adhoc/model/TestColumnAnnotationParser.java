@@ -124,6 +124,56 @@ public class TestColumnAnnotationParser extends TestCase {
     assertNull(c.getIconName());
   }
 
+  public void testAddCommas() {
+    c = ColumnAnnotationParserUtility.parse("(add-commas)");
+    assertTrue(c.isValid());
+    assertTrue(c.getAddCommas());
+    c = ColumnAnnotationParserUtility.parse("(sum)");
+    assertTrue(c.isValid());
+    assertFalse(c.getAddCommas());
+  }
+
+  public void testPrefix() {
+    c = ColumnAnnotationParserUtility.parse("(prefix '')");
+    assertTrue(c.isValid());
+    assertEquals("", c.getPrefix());
+    assertEquals("", c.getSuffix());
+    c = ColumnAnnotationParserUtility.parse("(prefix ' ms')");
+    assertTrue(c.isValid());
+    assertEquals(" ms", c.getPrefix());
+    assertEquals("", c.getSuffix());
+    c = ColumnAnnotationParserUtility.parse("(prefix 'test do it')");
+    assertTrue(c.isValid());
+    assertEquals("test do it", c.getPrefix());
+    assertEquals("", c.getSuffix());
+  }
+
+  public void testSuffix() {
+    c = ColumnAnnotationParserUtility.parse("(suffix '')");
+    assertTrue(c.isValid());
+    assertEquals("", c.getPrefix());
+    assertEquals("", c.getSuffix());
+    c = ColumnAnnotationParserUtility.parse("(suffix ' ms')");
+    assertTrue(c.isValid());
+    assertEquals("", c.getPrefix());
+    assertEquals(" ms", c.getSuffix());
+    c = ColumnAnnotationParserUtility.parse("(suffix 'test do it')");
+    assertTrue(c.isValid());
+    assertEquals("", c.getPrefix());
+    assertEquals("test do it", c.getSuffix());
+  }
+  
+  public void testAffix() {
+    c = ColumnAnnotationParserUtility.parse("(prefix 'value=')(suffix ' ms')");
+    assertTrue(c.isValid());
+    assertEquals("value=", c.getPrefix());
+    assertEquals(" ms", c.getSuffix());
+    c = ColumnAnnotationParserUtility.parse("(suffix ' ms')(prefix 'value=')");
+    assertTrue(c.isValid());
+    assertEquals("value=", c.getPrefix());
+    assertEquals(" ms", c.getSuffix());
+  }
+
   public void testSum() {
     c = ColumnAnnotationParserUtility.parse("(sum)");
     assertTrue(c.isValid());
