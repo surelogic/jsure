@@ -1135,7 +1135,11 @@ public abstract class Drop implements IDrop {
     /*
      * Compute diff information we want to pass along into the results
      */
-    DiffHeuristics.computeDiffInfo(this, getJavaRefAndCorrespondingNode());
+    final Pair<IJavaRef,IRNode> loc = getJavaRefAndCorrespondingNode();
+    if (loc == null) {
+    	getJavaRefAndCorrespondingNode();
+    }    
+    DiffHeuristics.computeDiffInfo(this, loc);
     addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_TREE_HASH, SeaSnapshot.computeHash(getNode())));
     addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_CONTEXT_HASH,
         SeaSnapshot.computeContextHash(getNode())));
