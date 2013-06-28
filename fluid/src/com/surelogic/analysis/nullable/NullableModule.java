@@ -19,22 +19,31 @@ import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Inferred;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.InferredQuery;
 import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
+import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
+import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.NoInitialization;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule.AnalysisBundle, Unused>{
   private static final String ELLIPSIS = "\u2026";
@@ -52,12 +61,55 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
   
   private static final int LOCAL_NON_NULL = 935;
   
+  private static final int TRIVIAL_METHOD_RETURN = 970;
+  private static final int TRIVIAL_PARAMETER = 971;
+  private static final int TRIVIAL_FIELD = 972;
+  private static final int TRIVIAL_UNKNOWN = 973;
+  
   
   
   public NullableModule() {
     super("Nullable");
   }
 
+  @Override
+  public void init(final IIRAnalysisEnvironment env) {
+    Sea.getDefault().addConsistencyProofHook(new AbstractSeaConsistencyProofHook() {
+      @Override
+      public void preConsistencyProof(final Sea sea) {
+        /* Find all the @NonNull, @Nullable, and @Raw annotations that do not have
+         * any results under them.
+         */
+        addTrivialResults(sea, NonNullPromiseDrop.class);
+        addTrivialResults(sea, NullablePromiseDrop.class);
+        addTrivialResults(sea, RawPromiseDrop.class);
+      }
+    });
+  }
+  
+  private static <C extends PromiseDrop<?>> void addTrivialResults(
+      final Sea sea, final Class<C> T) {
+    for (final C p : sea.getDropsOfType(T)) {
+      if (p.getDependentCount() == 0) {
+        final ResultDrop r = new ResultDrop(p.getNode());
+        r.setConsistent();
+        r.addChecked(p);
+        
+        final Operator op = JJNode.tree.getOperator(p.getPromisedFor());
+        if (ReturnValueDeclaration.prototype.includes(op)) {
+          r.setMessage(TRIVIAL_METHOD_RETURN);
+        } else if (ParameterDeclaration.prototype.includes(op) ||
+            ReceiverDeclaration.prototype.includes(op)) {
+          r.setMessage(TRIVIAL_PARAMETER);
+        } else if (VariableDeclarator.prototype.includes(op)) {
+          r.setMessage(TRIVIAL_FIELD);
+        } else {
+          r.setMessage(TRIVIAL_UNKNOWN);
+        }
+      }
+    }
+  }
+  
   @Override
   protected AnalysisBundle constructIRAnalysis(final IBinder binder) {
     return new AnalysisBundle(binder);
