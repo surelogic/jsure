@@ -20,6 +20,8 @@ import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Inferred;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.InferredQuery;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
+import com.surelogic.dropsea.ir.AnalysisResultDrop;
+import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -34,7 +36,6 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
-import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.NoInitialization;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -90,12 +91,13 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
   private static <C extends PromiseDrop<?>> void addTrivialResults(
       final Sea sea, final Class<C> T) {
     for (final C p : sea.getDropsOfType(T)) {
-      if (p.getDependentCount() == 0) {
+      final Operator op = JJNode.tree.getOperator(p.getPromisedFor());
+      if (!hasRealResult(p)) {
         final ResultDrop r = new ResultDrop(p.getNode());
         r.setConsistent();
         r.addChecked(p);
         
-        final Operator op = JJNode.tree.getOperator(p.getPromisedFor());
+//        final Operator op = JJNode.tree.getOperator(p.getPromisedFor());
         if (ReturnValueDeclaration.prototype.includes(op)) {
           r.setMessage(TRIVIAL_METHOD_RETURN);
         } else if (ParameterDeclaration.prototype.includes(op) ||
@@ -108,6 +110,13 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
         }
       }
     }
+  }
+  
+  private static boolean hasRealResult(final PromiseDrop<?> p) {
+    for (final Drop d : p.getDependents()) {
+      if (d instanceof AnalysisResultDrop) return true;
+    }
+    return false;
   }
   
   @Override
