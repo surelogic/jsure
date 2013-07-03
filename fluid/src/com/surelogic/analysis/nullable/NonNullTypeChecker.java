@@ -46,6 +46,8 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   private static final int POSSIBLY_NULL = 915;
@@ -147,13 +149,11 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       final IRNode expr, final IRNode decl, final boolean onlyCheckIfRaw) {
     final PromiseDrop<?> declPD = getAnnotation(decl);
     if (!onlyCheckIfRaw || declPD instanceof RawPromiseDrop) {
-      /* XXX: Problem for results: if declPD is null, then we have something
+      /* Problem for results: if declPD is null, then we have something
        * that is @Nullable with no annotation.  It is an error to pass a @Raw
        * reference to it, but then we do not have a promise to report the error
-       * on. 
-       * 
-       * Possible solution: report the error on both the LHS promise, and the
-       * RHS promise?  Try this later.
+       * on.  So we have to add a virtual @Nullable annotation.  See the ELSE 
+       * branch.
        */
       if (declPD != null) {
         final StackQueryResult queryResult = currentQuery().getResultFor(expr);
@@ -273,12 +273,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   @Override
   protected void checkFieldInitialization(
       final IRNode fieldDecl, final IRNode varDecl) {
-    final IRNode init = VariableDeclarator.getInit(varDecl);
-    if (Initialization.prototype.includes(init)) {
-      final IRNode initExpr = Initialization.getValue(init);
-      final IRNode typeNode = VariableDeclarator.getType(varDecl);
-      checkAssignability(initExpr, varDecl, typeNode);
-    }
+    checkAssignmentInitializer(varDecl);
   }
   
   @Override
@@ -354,11 +349,29 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       final IRNode assignExpr, final IRNode lhs, final IRNode rhs) {
     /* 
      * @NonNull fields must be assigned @NonNull references.
+     * @NonNull locals must be assigned @NonNUll references.
      */
-    if (FieldRef.prototype.includes(lhs)) {
+    final Operator op = JJNode.tree.getOperator(lhs);
+    if (FieldRef.prototype.includes(op) ||
+        VariableUseExpression.prototype.includes(op)) {
       final IRNode fieldDecl = binder.getBinding(lhs);
       final IRNode typeNode = VariableDeclarator.getType(fieldDecl);
       checkAssignability(rhs, fieldDecl, typeNode);
+    }
+  }
+
+  @Override
+  protected void checkVariableInitialization(
+      final IRNode declStmt, final IRNode vd) {
+    checkAssignmentInitializer(vd);
+  }
+
+  private void checkAssignmentInitializer(final IRNode vd) {
+    final IRNode init = VariableDeclarator.getInit(vd);
+    if (Initialization.prototype.includes(init)) {
+      final IRNode initExpr = Initialization.getValue(init);
+      final IRNode typeNode = VariableDeclarator.getType(vd);
+      checkAssignability(initExpr, vd, typeNode);
     }
   }
 }
