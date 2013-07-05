@@ -7,7 +7,6 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.ResultsBuilder;
-import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.Assignment;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.InferredVarState;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
@@ -30,12 +29,9 @@ import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
-import edu.cmu.cs.fluid.java.operator.Initialization;
-import edu.cmu.cs.fluid.java.operator.NoInitialization;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
@@ -45,18 +41,12 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule.AnalysisBundle, Unused>{
-  private static final String ELLIPSIS = "\u2026";
-
   private static final int NON_NULL_LOCAL_CATEGORY = 900;
   
   private static final int DEFINITELY_ASSIGNED = 900;
   private static final int NOT_DEFINITELY_ASSIGNED = 901;
   private static final int DEFINITELY_ASSIGNED_STATIC = 902;
   private static final int NOT_DEFINITELY_ASSIGNED_STATIC = 903;
-  
-  private static final int RAW_LOCAL_GOOD = 910;
-  private static final int RAW_LOCAL_BAD = 911;
-  private static final int ASSIGNMENT = 912;
   
   private static final int LOCAL_NON_NULL = 935;
   
@@ -162,38 +152,11 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
       doAcceptForChildren(body);
       final Inferred result = currentQuery().getInferred(body);
       for (final InferredVarState<Element> p : result) {
-        final IRNode varDecl = p.getLocal();
-        final PromiseDrop<?> pd = result.getPromiseDrop(varDecl);
-        if (pd != null) {
-          final Element annotation = result.injectPromiseDrop(pd);
-          final Element inferred = p.getState();
-          final boolean isGood = result.lessEq(inferred, annotation);
-          final ResultDrop rd = ResultsBuilder.createResult(
-              varDecl, pd, isGood, RAW_LOCAL_GOOD, RAW_LOCAL_BAD, inferred);
-          
-          for (final Assignment<Element> a : p.getAssignments()) {
-            final IRNode src = a.getWhere();
-            String unparse;
-            if (Initialization.prototype.includes(src)) {
-              unparse = DebugUnparser.toString(Initialization.getValue(src), -1);
-            } else if (NoInitialization.prototype.includes(src)) {
-              unparse = "null (by default)";
-            } else {
-              unparse = DebugUnparser.toString(src, -1);
-            }
-            if (unparse.length() > 39) {
-              unparse = unparse.substring(0, 39) + ELLIPSIS;
-            }
-            final HintDrop hint = HintDrop.newInformation(src);
-            hint.setMessage(ASSIGNMENT, a.getState(), unparse);
-            rd.addDependent(hint);
-          }
-        }
-        
         /* 
          * Cannot put proposed promises on local variable declarations.
          * use info drops instead.
          */
+        final IRNode varDecl = p.getLocal();
         if (p.getState() == NonNullRawLattice.NOT_NULL) {
           final IRNode where = JJNode.tree.getParent(JJNode.tree.getParent(varDecl));
           final HintDrop hint = HintDrop.newInformation(where);
