@@ -415,16 +415,24 @@ public class RegionRules extends AnnotationRules {
 
       if (annotationIsGood) {
         final InRegionPromiseDrop mip = new InRegionPromiseDrop(a);
-        final RegionModel fieldModel = RegionModel.getInstance(promisedFor).getModel();
-        final RegionModel parentModel = parentDecl.getModel();
-        fieldModel.addDependent(parentModel);
-        fieldModel.addDependent(mip);
+        setupRegionModelForField(mip, parentDecl);
         return mip;
       }
     }
     return null;
   }
 
+  private static void setupRegionModelForField(PromiseDrop<?> promise, IRegionBinding parentDecl) {
+	  setupRegionModelForField(promise, parentDecl, promise.getPromisedFor());
+  }
+  
+  public static void setupRegionModelForField(PromiseDrop<?> promise, IRegionBinding parentDecl, IRNode field) {
+      final RegionModel fieldModel = RegionModel.getInstance(field).getModel();
+      final RegionModel parentModel = parentDecl.getModel();
+      fieldModel.addDependent(parentModel);
+      fieldModel.addDependent(promise);
+  }
+  
   public static class MapFields_ParseRule 
   extends DefaultSLAnnotationParseRule<FieldMappingsNode,MapFieldsPromiseDrop> {
     protected MapFields_ParseRule() {
@@ -711,6 +719,8 @@ public class RegionRules extends AnnotationRules {
           new InRegionNode(a.getOffset(), regionSpec);
         inRegion.copyPromisedForContext(promisedFor, a);
         AASTStore.addDerived(inRegion, drop);
+      } else {
+    	setupRegionModelForField(drop, destDecl);
       }
       
       return drop;
