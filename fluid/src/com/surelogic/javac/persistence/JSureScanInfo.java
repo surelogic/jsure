@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +19,8 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.SourceZipLookup.Lines;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.IDecl;
+import com.surelogic.common.ref.IDecl.Kind;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IMetricDrop;
@@ -26,6 +29,8 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
+import com.surelogic.dropsea.ir.drops.RegionModel;
+import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import com.surelogic.dropsea.irfree.CategoryMatcher;
 import com.surelogic.dropsea.irfree.DefaultCategoryMatcher;
 import com.surelogic.dropsea.irfree.IDropFilter;
@@ -89,12 +94,16 @@ public class JSureScanInfo {
       if (skipLoading) {
         throw new Exception("Skipping loading");
       }
-      f_dropInfo = SeaSnapshot.loadSnapshot(f_loader, f_run.getResultsFile());
+      f_dropInfo = SeaSnapshot.loadSnapshot(f_loader, f_run.getResultsFile());      
       final long end = System.currentTimeMillis();
       System.out.println(" (in " + SLUtility.toStringDurationMS(end - start, TimeUnit.MILLISECONDS) + ")");
-      
+            
       // Used to precompute properties
       ScanProperty.getScanProperties(f_run.getDir(), this, REQUIRED_PROPS);
+      
+      if (printBadLocks) {
+    	  new BadLockInfo().print();
+      }
     } catch (Exception e) {
       System.out.println(" (FAILED)");
       SLLogger.getLogger().log(Level.WARNING, "general failure loading all drops from a snapshot of drop-sea", e);
@@ -125,14 +134,13 @@ public class JSureScanInfo {
   }
 
   @NonNull
-  public <T extends IDrop> Set<T> getDropsOfType(Class<? extends T> dropType) {
+  public <T extends IDrop> Set<IDrop> getDropsOfType(Class<? extends T> dropType) {
     List<IDrop> info = loadOrGetDropInfo();
     if (!info.isEmpty()) {
-      final Set<T> result = new HashSet<T>();
+      final Set<IDrop> result = new HashSet<IDrop>();
       for (IDrop i : info) {
         if (i.instanceOfIRDropSea(dropType)) {
-          @SuppressWarnings("unchecked")
-          final T i1 = (T) i;
+          final IDrop i1 = i;
           result.add(i1);
         }
       }
@@ -279,4 +287,182 @@ public class JSureScanInfo {
   @SuppressWarnings("unchecked")
   private static final List<ScanProperty<JSureScanInfo>> REQUIRED_PROPS = 
 	  SLUtility.list(DROP_DEMOGRAPHICS);
+    
+  public static final boolean printBadLocks = false;
+  
+  /**
+   * For aiding prioritization of bad lock decls
+   */
+  class BadLockInfo {
+	  private final Set<IPromiseDrop> regionModels = new HashSet<IPromiseDrop>();
+	  private final IPromiseDrop INSTANCE;
+	  private final Set<IPromiseDrop> INSTANCE_ONLY;
+	  
+	  BadLockInfo() {
+		  IPromiseDrop instance = null;
+		  for(IDrop d : getDropsOfType(RegionModel.class)) {
+			  final IPromiseDrop reg = (IPromiseDrop) d;
+			  regionModels.add(reg);
+			  //if ("Region(\"public Instance extends All\") on Object".equals(reg.getMessage())) {
+			  if (reg.getMessage().contains("Instance extends All")) {
+				  instance = reg;
+			  }
+		  }		  		  
+		  INSTANCE = instance;
+		  INSTANCE_ONLY = Collections.singleton(INSTANCE);
+	  }
+	  
+	  private Iterable<IPromiseDrop> getRegionModels() {
+		  return regionModels;
+	  }
+	  
+	  void print() {
+		  final List<IPromiseDrop> models = new ArrayList<IPromiseDrop>();
+		  for(final IDrop d : getDropsOfType(LockModel.class)) {		  		  
+			  final IPromiseDrop lm = (IPromiseDrop) d;
+			  models.add(lm);
+		  }		  
+		  Collections.sort(models, new Comparator<IPromiseDrop>() {
+			@Override
+			public int compare(IPromiseDrop o1, IPromiseDrop o2) {				
+				int rv = o1.getJavaRef().getTypeNameFullyQualified().compareTo(o2.getJavaRef().getTypeNameFullyQualified());
+				if (rv == 0) {
+					return o1.getMessage().compareTo(o2.getMessage());
+				}
+				return rv;
+			}
+		  });
+		  for(final IPromiseDrop lm : models) {
+			  if (!lm.provedConsistent()) {
+				  boolean nonEmpty = false;
+				  if (lm.getMessage().startsWith("PolicyLock")) {
+					  continue;
+				  }
+				  System.out.println(lm.getMessage()+" -- "+lm.getJavaRef().getPackageName());
+				  for(IPromiseDrop pf : findProtectedFields(lm)) {					  
+					  if (pf == null) {
+						  continue;
+					  }					  
+					  System.out.println("\t"+pf.getMessage()+" : "+pf.getJavaRef().getDeclaration().getTypeOf().getCompact());
+					  nonEmpty = true;
+				  }
+				  if (nonEmpty) {
+					  System.out.println();
+				  } else {
+					  System.out.println();
+					  //System.out.println("\tNothing found?\n");
+				  }
+			  }
+		  }	
+		  System.out.println();
+	  }	  
+  
+	  private Set<IPromiseDrop> findProtectedFields(IPromiseDrop lm) {
+		  final IPromiseDrop protectedRegion = findDependentRegionModel(lm);
+		  String guardedByRegion = null;
+		  if (lm.getMessage().contains("protects State$_")) {
+			  int start = lm.getMessage().indexOf("State$_");
+			  int end = lm.getMessage().indexOf("\")", start);
+			  guardedByRegion = lm.getMessage().substring(start, end);
+		  }
+		  if (protectedRegion == null) {
+			  if (lm.getMessage().contains("protects Instance\")")) {
+				  return findContainedFields(lm.getJavaRef().getDeclaration());
+			  }
+			  System.out.println("No region models:");
+			  for(IPromiseDrop dep : lm.getDependentPromises()) {
+				  System.out.println("\t"+dep.getMessage());
+			  }
+			  return Collections.emptySet();
+		  }
+		  if (isDeclaredOnField(protectedRegion)) {
+			  return Collections.singleton(protectedRegion);
+		  }  
+		  if (protectedRegion == INSTANCE) {
+			  // A lot of regions otherwise connect to Instance			  
+			  /*
+			  final String search = lm.getJavaRef().getDeclaration().getName();
+			  System.out.println("\tRegions containing: "+search);
+			  for(IDrop d : getRegionModels()) {
+				  if (d.getMessage().contains(search)) {
+					  System.out.println("\t"+d.getMessage());
+				  }
+			  }	
+			  */		 
+			  return findContainedFields(lm.getJavaRef().getDeclaration());
+		  }
+		  // Find fields within protectedRegion		
+		  final Set<IPromiseDrop> set = new HashSet<IPromiseDrop>();
+		  for(IDrop d : getRegionModels()) {
+			  final IPromiseDrop reg = (IPromiseDrop) d;
+			  if (isDeclaredOnField(reg)) {
+				  if (isEnclosedBy(reg, protectedRegion)) {
+					  set.add(reg);
+				  }
+			  }
+		  }
+		  /*
+		  if (set.isEmpty()) {
+			  final String search = lm.getJavaRef().getDeclaration().getName();
+					  //"extends "+guardedByRegion;
+			  for(IDrop d : getRegionModels()) {
+				  if (d.getMessage().contains(search)) {
+					  System.out.println("\t"+d.getMessage());
+				  }
+			  }
+		  }
+		  */
+		  return set;
+	  }
+
+	  /**
+	   * Find the fields inside the decl
+	   */
+	  // Note: doesn't handle fields in subclasses
+	  private Set<IPromiseDrop> findContainedFields(final IDecl cdecl) {			  
+		  final Set<IPromiseDrop> set = new HashSet<IPromiseDrop>();
+		  for(IPromiseDrop reg : getRegionModels()) {
+			  //if (isDeclaredOnField(reg)) {
+				  final IDecl loc = reg.getJavaRef().getDeclaration();				 
+				  final IDecl parent = loc.getParent();
+				  if (cdecl.isSameDeclarationAsSloppy(parent)) {
+					  set.add(reg);
+				  }
+				  else if (parent.getName().equals(cdecl.getName())) {
+					  System.out.println("Almost ...");
+				  }
+			  //}
+		  }
+		  return set;
+		  //return INSTANCE_ONLY;
+	  }
+
+	  private boolean isDeclaredOnField(IPromiseDrop pd) {
+		  try {
+			  return pd.getJavaRef().getDeclaration().getKind() == Kind.FIELD;
+		  } catch(NullPointerException e) {
+			  return false;
+		  }
+	  }
+
+	  private IPromiseDrop findDependentRegionModel(IPromiseDrop lm) {
+		  for(IPromiseDrop dep : lm.getDependentPromises()) {
+			  if (dep.instanceOfIRDropSea(RegionModel.class)) {
+				  return dep;
+			  }
+		  }
+		  return null;
+	  }
+
+	  private boolean isEnclosedBy(final IPromiseDrop reg, final IPromiseDrop protectedRegion) {
+		  final IPromiseDrop enclosingRegion = findDependentRegionModel(reg);
+		  if (protectedRegion == enclosingRegion) {
+			  return true;
+		  }
+		  if (enclosingRegion != null) {
+			  return isEnclosedBy(enclosingRegion, protectedRegion);
+		  }
+		  return false;
+	  }
+  }
 }

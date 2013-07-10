@@ -94,6 +94,7 @@ import com.surelogic.dropsea.ir.drops.type.constraints.NotContainablePromiseDrop
 import com.surelogic.dropsea.ir.drops.type.constraints.NotThreadSafePromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ThreadSafePromiseDrop;
 import com.surelogic.javac.Projects;
+import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.PromiseDropSeqStorage;
@@ -112,25 +113,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
-import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
-import edu.cmu.cs.fluid.java.operator.ClassBody;
-import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
-import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
-import edu.cmu.cs.fluid.java.operator.DeclStatement;
-import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
-import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
-import edu.cmu.cs.fluid.java.operator.Extensions;
-import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
-import edu.cmu.cs.fluid.java.operator.Implements;
-import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
-import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
-import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
-import edu.cmu.cs.fluid.java.operator.Type;
-import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
-import edu.cmu.cs.fluid.java.operator.VariableDeclList;
-import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
-import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
+import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -1139,7 +1122,20 @@ public class LockRules extends AnnotationRules {
           wd.setCategorizingMessage(com.surelogic.analysis.concurrency.driver.Messages.DSC_UNSUPPORTED_MODEL);
           model.addDependent(wd);
         }
-                
+        if (JSureScanInfo.printBadLocks && RegionModel.INSTANCE.equals(regionBinding.getModel().getRegionName())) {
+            // Make region models for all the fields linked to Instance
+        	// TODO what about subclasses?
+        	for(IRNode containedField : VisitUtil.getClassFieldDeclarators(promisedForType.getDeclaration())) {
+        		final int mods = VariableDeclarator.getMods(containedField);        		
+        		if (JavaNode.getModifier(mods, JavaNode.FINAL)) {
+        			final IRNode type = VariableDeclarator.getType(containedField);
+        			if (PrimitiveType.prototype.includes(type)) {
+        				continue; // It's a constant, so we can ignore it
+        			}
+        		}
+        		RegionRules.setupRegionModelForField(model, regionBinding, containedField);        
+        	}
+        }
         return model;
       }
       return null;
