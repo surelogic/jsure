@@ -10,8 +10,10 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.TypeUtils.*;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -31,6 +33,19 @@ class MethodBinder {
 		this.debug = debug;
 	}
     
+	IJavaScope.Selector makeAccessSelector(final IRNode from) {
+		return new IJavaScope.AbstractSelector("Ignore") {
+			@Override
+			public String label() {
+				return "Is accessible from "+DebugUnparser.toString(from);
+			}
+			public boolean select(IRNode decl) {
+				boolean ok = BindUtil.isAccessible(typeEnvironment, decl, from);
+				return ok;
+			}    	  
+		};
+	}
+	
     private boolean isCallCompatible(IJavaType t1, IJavaType t2) {
     	if (t1 == null || t2 == null) {    	
     		return false;
@@ -164,7 +179,7 @@ class MethodBinder {
 			 * -- The declared types of the parameters of the other method are U1, ... , Un.
 			 * -- If the second method is generic then let R1 ... Rp , be its formal type
 			 *    parameters, let Bl be the declared bound of Rl, , let A1 ... Ap be the
-			 *    actual type arguments inferred (§15.12.2.7) for this invocation under the initial
+			 *    actual type arguments inferred (ï¿½15.12.2.7) for this invocation under the initial
 			 *    constraints Ti << Ui, and let Si = Ui[R1 = A1, ..., Rp = Ap] ; otherwise let Si = Ui .
 			 *    
 			 * Conditions:
@@ -227,31 +242,38 @@ class MethodBinder {
     
 	/**
 	 * The process of determining applicability begins by determining the
-	 * potentially applicable methods (§15.12.2.1). The remainder of the process
+	 * potentially applicable methods (ï¿½15.12.2.1). The remainder of the process
 	 * is split into three phases.
 	 * 
-	 * The first phase (§15.12.2.2) performs overload resolution without
+	 * The first phase (ï¿½15.12.2.2) performs overload resolution without
 	 * permitting boxing or unboxing conversion, or the use of variable arity
 	 * method invocation. If no applicable method is found during this phase
 	 * then processing continues to the second phase.
 	 * 
-	 * The second phase (§15.12.2.3) performs overload resolution while allowing
+	 * The second phase (ï¿½15.12.2.3) performs overload resolution while allowing
 	 * boxing and unboxing, but still precludes the use of variable arity method
 	 * invocation. If no applicable method is found during this phase then
 	 * processing continues to the third phase.
 	 * 
-	 * The third phase (§15.12.2.4) allows overloading to be combined with
+	 * The third phase (ï¿½15.12.2.4) allows overloading to be combined with
 	 * variable arity methods, boxing and unboxing. Deciding whether a method is
-	 * applicable will, in the case of generic methods (§8.4.4), require that
+	 * applicable will, in the case of generic methods (ï¿½8.4.4), require that
 	 * actual type arguments be determined. Actual type arguments may be passed
 	 * explicitly or implicitly. If they are passed implicitly, they must be
-	 * inferred (§15.12.2.7) from the types of the argument expressions. If
+	 * inferred (ï¿½15.12.2.7) from the types of the argument expressions. If
 	 * several applicable methods have been identified during one of the three
 	 * phases of applicability testing, then the most specific one is chosen, as
-	 * specified in section §15.12.2.5. See the following subsections for
+	 * specified in section ï¿½15.12.2.5. See the following subsections for
 	 * details.
 	 */
-    BindingInfo findBestMethod(Iterable<IBinding> methods, CallState call) {
+    BindingInfo findBestMethod(final IJavaScope scope, final LookupContext context, final boolean needMethod, IRNode from, CallState call) {
+        final IJavaScope.Selector isAccessible = makeAccessSelector(from);
+        final Iterable<IBinding> methods = new Iterable<IBinding>() {
+//  			@Override
+  			public Iterator<IBinding> iterator() {
+  				return IJavaScope.Util.lookupCallable(scope, context, isAccessible, needMethod);
+  			}
+        };
     	final SearchState state = new SearchState(methods, call);
     	BindingInfo best  = findMostSpecificApplicableMethod(state, false, false);
     	if (best == null) {

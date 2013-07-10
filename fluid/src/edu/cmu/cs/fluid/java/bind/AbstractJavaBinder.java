@@ -1218,19 +1218,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     protected boolean bind(IRNode node, Selector selector, boolean quietWarnings) {
       return bind(node,selector,quietWarnings,JJNode.getInfo(node));
     }
-    
-	private IJavaScope.Selector makeAccessSelector(final IRNode from) {
-		return new IJavaScope.AbstractSelector("Ignore") {
-			@Override
-			public String label() {
-				return "Is accessible from "+DebugUnparser.toString(from);
-			}
-			public boolean select(IRNode decl) {
-				boolean ok = BindUtil.isAccessible(typeEnvironment, decl, from);
-				return ok;
-			}    	  
-		};
-	}
 	
     /**
      * @return true if bound
@@ -1269,15 +1256,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  needMethod = MethodCall.prototype.includes(callOp);
       }
       
-      final IJavaScope.Selector isAccessible = makeAccessSelector(from);
       lookupContext.use(name,state.call);
-      final Iterable<IBinding> methods = new Iterable<IBinding>() {
-//			@Override
-			public Iterator<IBinding> iterator() {
-				return IJavaScope.Util.lookupCallable(sc,lookupContext,isAccessible,needMethod);
-			}
-      };
-      BindingInfo bestMethod = methodBinder.findBestMethod(methods, state);
+      BindingInfo bestMethod = methodBinder.findBestMethod(sc, lookupContext, needMethod, from, state);
       /*
       if (bestMethod != null && AnonClassExpression.prototype.includes(call)) {
         System.out.println("Binding "+call);
@@ -2719,7 +2699,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  System.out.println("Binding 'Inner': "+context);
       }
       */      
-      final IJavaScope.Selector isAccessible = makeAccessSelector(node);
+      final IJavaScope.Selector isAccessible = methodBinder.makeAccessSelector(node);
       /*
       if ("Lock".equals(JJNode.getInfoOrNull(node))) {
     	  IRNode parent = JJNode.tree.getParentOrNull(node);
@@ -3020,6 +3000,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   
   @Override
   public Iteratable<IBinding>  findOverriddenParentMethods(final IRNode mth) {
+	  final int mods = JavaNode.getModifiers(mth);
+	  if (JavaNode.isSet(mods, JavaNode.PRIVATE) || JavaNode.isSet(mods, JavaNode.STATIC)) {
+		  return EmptyIterator.prototype();
+	  }
 	  final String name   = SomeFunctionDeclaration.getId(mth);
 	  final IRNode td     = VisitUtil.getEnclosingType(mth);
 	  final IJavaDeclaredType t = (IJavaDeclaredType) typeEnvironment.convertNodeTypeToIJavaType(td);
@@ -3040,23 +3024,21 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		  System.out.println("Found duplicates");
 	  }	  
 	  */
-	  for(IJavaType st : t.getSupertypes(typeEnvironment)) {
+	  final CallState call = mb.new CallState(null, null, null) {
+		  @Override
+		  public IJavaType[] getArgTypes() {
+			  return mb.getFormalTypes(t, mth);
+		  }
+	  };
+	  
+	  for(IJavaType superT : t.getSupertypes(typeEnvironment)) {
+		  final IJavaDeclaredType st = (IJavaDeclaredType) superT;
 		  // Looking at the inherited members	
 		  final IJavaScope superScope = 
-			  new IJavaScope.SubstScope(typeMemberTable((IJavaDeclaredType) st).asScope(this), getTypeEnvironment(), t);	  
-		  Iterable<IBinding> tempMethods = new Iterable<IBinding>() {
-//			@Override
-			public Iterator<IBinding> iterator() {
-				return superScope.lookupAll(context, IJavaScope.Util.isMethodDecl);
-			}			  
-		  };
-		  final CallState call = mb.new CallState(null, null, null) {
-			  @Override
-			  public IJavaType[] getArgTypes() {
-				  return mb.getFormalTypes(t, mth);
-			  }
-		  };
-		  BindingInfo best = mb.findBestMethod(tempMethods, call);
+			  new IJavaScope.SubstScope(typeMemberTable(st).asScope(this), getTypeEnvironment(), t);	  
+
+		  // Specialized for methods!
+		  BindingInfo best = mb.findBestMethod(superScope, context, true, st.getDeclaration(), call);
 		  if (best != null) {
 			  methods.add(best.method);
 		  }
