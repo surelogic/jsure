@@ -462,4 +462,15 @@ public final class RegionModel extends ModelDrop<NewRegionDeclarationNode> imple
     }
     return false;
   }
+  
+  /*
+  @RequiresLock("SeaLock")
+  @Override
+  protected void invalidate_internal() {
+	  if (!"Static".equals(f_simpleName)) {
+		  System.out.println("Invalidating region model: "+f_regionName);
+		  new Throwable().printStackTrace();
+	  }
+  }
+  */
 }
