@@ -355,7 +355,12 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     if (FieldRef.prototype.includes(op) ||
         VariableUseExpression.prototype.includes(op)) {
       final IRNode fieldDecl = binder.getBinding(lhs);
-      final IRNode typeNode = VariableDeclarator.getType(fieldDecl);
+      final IRNode typeNode;
+      if (VariableDeclarator.prototype.includes(fieldDecl)) {
+    	  typeNode = VariableDeclarator.getType(fieldDecl);
+      } else {
+    	  typeNode = ParameterDeclaration.getType(fieldDecl);
+      }
       checkAssignability(rhs, fieldDecl, typeNode);
     }
   }
