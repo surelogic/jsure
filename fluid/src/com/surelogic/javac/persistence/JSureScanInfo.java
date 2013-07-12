@@ -465,4 +465,10 @@ public class JSureScanInfo {
 		  return false;
 	  }
   }
+
+  public void clear() {
+	  f_dropInfo = null;
+	  f_loader.clear();
+	  f_run.clear();
+  }
 }

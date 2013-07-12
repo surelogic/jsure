@@ -5,6 +5,7 @@ import com.surelogic.common.java.*;
 import com.surelogic.common.jobs.SLProgressMonitor;
 
 import edu.cmu.cs.fluid.ide.IClassPathContext;
+import edu.cmu.cs.fluid.ide.IDE;
 
 public class JavacProject extends JavaProject implements IIRProject, IClassPathContext {
 	private JavacTypeEnvironment tEnv;
@@ -94,5 +95,11 @@ public class JavacProject extends JavaProject implements IIRProject, IClassPathC
 	@Override
 	public void addPackage(String pkgName) {
 		tEnv.addPackage(pkgName);
+	}
+	
+	@Override
+	public void clear() {
+	    IDE.getInstance().removeCompUnitListener(tEnv.getBinder());
+		super.clear();
 	}
 }

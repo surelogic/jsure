@@ -420,6 +420,13 @@ public final class JSureDataDirHub {
                 monitor.worked(1);
               }
             }
+            if (f_currentScanInfo != null) {
+            	f_currentScanInfo.clear();
+            
+            	if (f_lastMatchingScanInfo != null) {
+            		f_lastMatchingScanInfo.clear();
+            	}
+            }
             f_currentScan = jsureScan;
             f_currentScanInfo = currentScanInfo;
             f_lastMatchingScanInfo = lastMatchingScanInfo;

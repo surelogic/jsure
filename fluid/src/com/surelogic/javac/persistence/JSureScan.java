@@ -319,4 +319,8 @@ public class JSureScan implements Comparable<JSureScan> {
 	}
     return Arrays.asList(dir.listFiles());
   }
+
+  void clear() {
+	  f_projectsScanned.clear();
+  }
 }
