@@ -5,6 +5,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.*;
 
+import org.neo4j.cypher.javacompat.ExecutionEngine;
+import org.neo4j.cypher.javacompat.ExecutionResult;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.index.Index;
@@ -21,11 +23,11 @@ import com.surelogic.common.StringCache;
  */
 public class ClassSummarizer extends ClassVisitor {
 	public static final String DB_PATH = "neo4j-db";
-	public static final String FUNC_IDX = "function-index";
-	public static final String INDEX_KEY = "index-key";
-	public static final String NODE_NAME = "node-name";
-	public static final String PARENT_CLASS = "parent-class";
-	public static final String FIELD_IDX = "field-index";
+	public static final String FUNC_IDX = "functionIndex";
+	public static final String INDEX_KEY = "indexKey";
+	public static final String NODE_NAME = "nodeName";
+	public static final String PARENT_CLASS = "parentClass";
+	public static final String FIELD_IDX = "fieldIndex";
 	
 	public static enum RelTypes implements RelationshipType {
 		// X calls method/constructor Y
@@ -241,6 +243,7 @@ public class ClassSummarizer extends ClassVisitor {
 	}
 
 	public void close() {
+		System.out.println("Shutting down");		
 		graphDb.shutdown();
 	}
 	
@@ -303,5 +306,12 @@ public class ClassSummarizer extends ClassVisitor {
 				System.out.println("\t"+r.getEndNode().getProperty(INDEX_KEY));
 			}
 		}
+	}
+
+	public void query(String cypher) {
+		// let's execute a query now
+		ExecutionEngine engine = new ExecutionEngine( graphDb );
+		ExecutionResult result = engine.execute(cypher);
+		System.out.println(result.dumpToString());
 	}
 }

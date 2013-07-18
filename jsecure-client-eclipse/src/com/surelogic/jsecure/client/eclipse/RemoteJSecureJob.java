@@ -10,6 +10,8 @@ import com.surelogic.common.java.*;
 import com.surelogic.common.jobs.*;
 import com.surelogic.common.jobs.remote.*;
 
+import static com.surelogic.jsecure.client.eclipse.ClassSummarizer.*;
+
 public class RemoteJSecureJob extends RemoteScanJob<JavaProjectSet<JavaProject>,JavaProject> {
 	protected RemoteJSecureJob() {
 		super(IJavaFactory.prototype);
@@ -67,4 +69,18 @@ class LocalJSecureJob extends AbstractLocalSLJob<ILocalConfig> {
             addToPath(proj, path, jar, true);
         }
 	}	
+	
+	@Override
+	public SLStatus run(final SLProgressMonitor topMonitor) {
+		final SLStatus s = super.run(topMonitor);
+		final File runDir = new File(config.getRunDirectory());
+		final ClassSummarizer summarizer = new ClassSummarizer(runDir);
+		//summarizer.dump();
+		// TODO query for ()V methods
+		//OK "start n=node(*) where has(n."+NODE_NAME+") return n, n."+NODE_NAME 
+		summarizer.query("start caller=node(*) MATCH caller-[r?:"+RelTypes.CALLS+"]->callee return caller, callee" );
+		
+		summarizer.close();
+		return s;
+	}
 }
