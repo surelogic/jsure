@@ -37,6 +37,7 @@ import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
+import com.surelogic.javac.Javac;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.driver.ConsistencyListener;
@@ -55,6 +56,7 @@ import com.surelogic.test.ITestOutput;
 import com.surelogic.test.xml.JUnitXMLOutput;
 
 import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.logging.XMLLogDiff;
 
@@ -238,6 +240,8 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     final File analysisSettingsFile = findFile(project, ScriptCommands.ANALYSIS_SETTINGS, true);
     if (analysisSettingsFile != null && analysisSettingsFile.exists() && analysisSettingsFile.isFile()) {
       System.out.println("Found project-specific analysis settings.");
+      deactivateAllAnalyses();
+      
       JSureAnalysisXMLReader.readStateFrom(analysisSettingsFile);
       DoubleChecker.getDefault().initAnalyses();
 
@@ -251,6 +255,12 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     }
   }
 
+  void deactivateAllAnalyses() {
+	  for(String id : Javac.getAvailableAnalyses()) {
+		  EclipseUtility.setBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id, false);
+	  }
+  }
+  
   private IProjectDescription getProjectDescription(IWorkspace workspace, File dotProjectFile) {
     IPath path = new Path(dotProjectFile.getPath());
     try {

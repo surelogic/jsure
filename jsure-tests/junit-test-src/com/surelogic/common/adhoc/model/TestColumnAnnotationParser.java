@@ -148,6 +148,21 @@ public class TestColumnAnnotationParser extends TestCase {
     assertTrue(c.getHumanReadableDuration());
     assertSame(TimeUnit.NANOSECONDS, c.getHumanReadableDurationUnit());
   }
+  
+  public void testBlankIf() {
+    c = ColumnAnnotationParserUtility.parse("(hide)");
+    assertTrue(c.isValid());
+    assertNull(c.getBlankIf());
+    c = ColumnAnnotationParserUtility.parse("(blank-if '')");
+    assertTrue(c.isValid());
+    assertNull(c.getBlankIf());
+    c = ColumnAnnotationParserUtility.parse("(blank-if '0')");
+    assertTrue(c.isValid());
+    assertEquals("0", c.getBlankIf());
+    c = ColumnAnnotationParserUtility.parse("(blank-if 'test do it')");
+    assertTrue(c.isValid());
+    assertEquals("test do it", c.getBlankIf());
+  }
 
   public void testPrefix() {
     c = ColumnAnnotationParserUtility.parse("(prefix '')");
