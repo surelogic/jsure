@@ -4,6 +4,13 @@ import java.io.File;
 import java.net.URL;
 import java.util.logging.Level;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.progress.UIJob;
+
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
@@ -11,10 +18,13 @@ import com.surelogic.common.ILifecycle;
 import com.surelogic.common.adhoc.AdHocManager;
 import com.surelogic.common.adhoc.AdHocManagerAdapter;
 import com.surelogic.common.adhoc.AdHocQuery;
+import com.surelogic.common.adhoc.AdHocQueryResult;
 import com.surelogic.common.adhoc.IAdHocDataSource;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.jdbc.DBConnection;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsecure.client.eclipse.Activator;
 import com.surelogic.jsecure.client.eclipse.JSecureScan;
 import com.surelogic.jsecure.client.eclipse.views.adhoc.QueryEditorView;
@@ -139,6 +149,22 @@ public class JSecureDataSource extends AdHocManagerAdapter implements IAdHocData
 	    return new String[] { scanDir.getId(), "JSecure.query" };
 	}
 
+	@Override
+	public void notifySelectedResultChange(final AdHocQueryResult result) {
+		final UIJob job = new SLUIJob() {
+			@Override
+			public IStatus runInUIThread(final IProgressMonitor monitor) {
+				final IViewPart view = EclipseUIUtility.showView(QueryResultsView.class.getName(), null, IWorkbenchPage.VIEW_VISIBLE);
+				if (view instanceof QueryResultsView) {
+					final QueryResultsView queryResultsView = (QueryResultsView) view;
+					queryResultsView.displayResult(result);
+				}
+				return Status.OK_STATUS;
+			}
+		};
+		job.schedule();
+	}
+	
 	@Override
 	public boolean queryResultWillBeEmpty(AdHocQuery query) {
 		// TODO Auto-generated method stub
