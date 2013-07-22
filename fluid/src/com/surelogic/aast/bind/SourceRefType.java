@@ -19,7 +19,10 @@ public class SourceRefType extends Type implements ISourceRefType {
   }    
   @Override
   public IVariableBinding findField(String id) {
-    final IRNode o = eb.findClassBodyMembers(type, new FindFieldStrategy(eb, id), true);       
+    final IRNode o = eb.findClassBodyMembers(type, new FindFieldStrategy(eb, id), true);      
+    if (o == null) {
+    	return null;
+    }
     return new IVariableBinding() {
       @Override
       public IRNode getNode() {
