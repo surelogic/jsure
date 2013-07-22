@@ -76,10 +76,9 @@ class LocalJSecureJob extends AbstractLocalSLJob<ILocalConfig> {
 		final File runDir = new File(config.getRunDirectory());
 		final ClassSummarizer summarizer = new ClassSummarizer(runDir);
 		//summarizer.dump();
-		// TODO query for ()V methods
 		//OK "start n=node(*) where has(n."+NODE_NAME+") return n, n."+NODE_NAME 
-		summarizer.query("START caller=node(*) MATCH caller-[r?:"+RelTypes.CALLS+"]->callee WHERE callee."+NODE_NAME+"! =~ '.*()V' return caller, callee" );
-		
+		//"START caller=node(*) MATCH caller-[r?:"+RelTypes.CALLS+"]->callee WHERE callee."+NODE_NAME+"! =~ '.*()V' return caller, callee" );
+		summarizer.query("g.V.outE('"+RelTypes.CALLS+"')");		
 		summarizer.close();
 		return s;
 	}

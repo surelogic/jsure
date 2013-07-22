@@ -10,4 +10,33 @@
       </action>
     </viewContribution>  
   </extension>   
+	<extension point="org.eclipse.ui.views">
+		<category name="JSecure" id="com.surelogic.jsecure.JSecure">
+		</category>
+		<!-- UI for entering ad hoc queries -->
+		<view allowMultiple="false" category="com.surelogic.jsecure.JSecure"
+			class="com.surelogic.jsecure.client.eclipse.views.adhoc.QueryEditorView"
+			icon="platform:/plugin/com.surelogic.common/lib/images/query.gif"
+			id="com.surelogic.jsecure.client.eclipse.views.adhoc.QueryEditorView"
+			name="Query Editor">
+		</view>
+		<view allowMultiple="false" category="com.surelogic.jsecure.JSecure"
+			class="com.surelogic.jsecure.client.eclipse.views.adhoc.QueryResultExplorerView"
+			icon="platform:/plugin/com.surelogic.common/lib/images/drum_explorer.gif"
+			id="com.surelogic.jsecure.client.eclipse.views.adhoc.QueryResultExplorerView"
+			name="Query Results Explorer">
+		</view>
+		<view allowMultiple="false" category="com.surelogic.jsecure.JSecure"
+			class="com.surelogic.jsecure.client.eclipse.views.adhoc.QueryResultsView"
+			icon="platform:/plugin/com.surelogic.common/lib/images/drum.gif"
+			id="com.surelogic.jsecure.client.eclipse.views.adhoc.QueryResultsView"
+			name="Query Results">
+		</view>
+		<view allowMultiple="false" category="com.surelogic.jsecure.JSecure"
+			class="com.surelogic.jsecure.client.eclipse.views.adhoc.QuerydocView"
+			icon="platform:/plugin/com.surelogic.common/lib/images/doc.gif"
+			id="com.surelogic.jsecure.client.eclipse.views.adhoc.QuerydocView"
+			name="Querydoc">
+		</view>	
+    </extension>			
 </plugin>
