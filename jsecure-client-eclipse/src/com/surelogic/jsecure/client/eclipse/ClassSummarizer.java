@@ -5,16 +5,15 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.*;
 
-import org.neo4j.cypher.javacompat.ExecutionEngine;
-import org.neo4j.cypher.javacompat.ExecutionResult;
-import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.graphdb.index.Index;
-import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.tooling.GlobalGraphOperations;
+import javax.script.*;
+
 import org.objectweb.asm.*;
 
 import com.surelogic.common.StringCache;
+
+import com.tinkerpop.blueprints.*;
+import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.pipes.Pipe;
 
 /**
  * Creates a Clazz after visiting
@@ -22,18 +21,22 @@ import com.surelogic.common.StringCache;
  * @author edwin
  */
 public class ClassSummarizer extends ClassVisitor {
-	public static final String DB_PATH = "neo4j-db";
-	public static final String FUNC_IDX = "functionIndex";
-	public static final String INDEX_KEY = "indexKey";
-	public static final String NODE_NAME = "nodeName";
-	public static final String PARENT_CLASS = "parentClass";
-	public static final String FIELD_IDX = "fieldIndex";
+	public static final String DB_PATH = "orientdb";
+	//public static final String FUNC_IDX = "function-index";
+	public static final String INDEX_KEY = "index-key";
+	public static final String NODE_NAME = "node-name";
+	public static final String PARENT_CLASS = "parent-class";
+	//public static final String FIELD_IDX = "field-index";
 	
-	public static enum RelTypes implements RelationshipType {
+	public static enum RelTypes /*implements RelationshipType*/ {
 		// X calls method/constructor Y
 	    CALLS, 
 	    // A uses field B
 	    USES
+	}
+	
+	public static enum VertexType {
+		CLASS, FUNCTION, FIELD
 	}
 	
 	public class Clazz {
@@ -46,16 +49,22 @@ public class ClassSummarizer extends ClassVisitor {
 	
 	Clazz result = null;	
 
-	final GraphDatabaseService graphDb;
-	final Index<Node> funcIndex;
-	final Index<Node> fieldIndex;
-	
+	final TransactionalGraph graphDb;
+
 	public ClassSummarizer(File runDir) {
 		super(Opcodes.ASM4);
 		
-		graphDb = new GraphDatabaseFactory().newEmbeddedDatabase( new File(runDir, DB_PATH).getAbsolutePath() );
-		funcIndex = graphDb.index().forNodes( FUNC_IDX );
-		fieldIndex = graphDb.index().forNodes( FIELD_IDX );
+		File dbLoc = new File(runDir, DB_PATH);
+		/*
+		OGraphDatabase odb = new OGraphDatabase("local:"+dbLoc.getAbsolutePath());
+		if (!odb.exists()) {
+			odb.create();
+		}
+		odb.open(null, null);
+		*/
+		OrientGraph graph = new OrientGraph("local:"+dbLoc.getAbsolutePath());
+		graphDb = graph;
+		graph.createKeyIndex(INDEX_KEY, Vertex.class);
 		registerShutdownHook( graphDb );
 	}
 
@@ -72,17 +81,19 @@ public class ClassSummarizer extends ClassVisitor {
 	}
 	
 	public Clazz summarize(InputStream is) throws IOException {		
-		init();
-		
-		final Transaction tx = graphDb.beginTx();
+		init();		
 		try {
-			final ClassReader cr2 = new ClassReader(is);
-			cr2.accept(this, 0);		
 			// Updating operations go here
-		    tx.success();
-		} finally {
-		    tx.finish();
+			final ClassReader cr2 = new ClassReader(is);
+			cr2.accept(this, 0);				
+		} catch (RuntimeException e) {
+		    graphDb.rollback();
+		    throw e;
+		} catch (IOException e) {
+			graphDb.rollback();
+			throw e;
 		}
+		graphDb.commit();
 		return finish();		
 	}
 	
@@ -173,7 +184,7 @@ public class ClassSummarizer extends ClassVisitor {
 	public MethodVisitor visitMethod(int access, final String name,
 			final String desc, String signature, String[] exceptions) {
 		final String id = name+" "+desc;
-		final Node func = findFunctionNode(result.name, id);
+		final Vertex func = findFunctionVertex(result.name, id);
 		System.out.println("Method: "+id);
 		
 		//return super.visitMethod(access, name, desc, signature, exceptions);
@@ -185,7 +196,7 @@ public class ClassSummarizer extends ClassVisitor {
         		getHandle(opcode, owner, name, desc);
         		super.visitFieldInsn(opcode, owner, name, desc);        		
         		
-        		final Node field = findField(owner, name);
+        		final Vertex field = findField(owner, name);
         		addReference(func, RelTypes.USES, field);
         	}
         	
@@ -196,7 +207,7 @@ public class ClassSummarizer extends ClassVisitor {
         		getHandle(opcode, owner, name, desc);
         		super.visitMethodInsn(opcode, owner, name, desc);
         		
-        		final Node callee = findFunctionNode(owner, name, desc);
+        		final Vertex callee = findFunctionVertex(owner, name, desc);
         		addReference(func, RelTypes.CALLS, callee);
         	}
         	
@@ -247,7 +258,7 @@ public class ClassSummarizer extends ClassVisitor {
 		graphDb.shutdown();
 	}
 	
-	private static void registerShutdownHook( final GraphDatabaseService graphDb ) {
+	private static void registerShutdownHook( final TransactionalGraph graphDb ) {
 	    // Registers a shutdown hook for the Neo4j instance so that it
 	    // shuts down nicely when the VM exits (even if you "Ctrl-C" the
 	    // running example before it's completed)
@@ -261,57 +272,61 @@ public class ClassSummarizer extends ClassVisitor {
 	    } );
 	}
 	
-	private Node findFunctionNode(String clazzName, String name, String desc) {
-		return findFunctionNode(clazzName, name+' '+desc);
+	private Vertex findFunctionVertex(String clazzName, String name, String desc) {
+		return findFunctionVertex(clazzName, name+' '+desc);
 	}
 	
-	private Node findFunctionNode(String clazzName, String funcName) {
-		return findNode(funcIndex, clazzName, funcName);
+	private Vertex findFunctionVertex(String clazzName, String funcName) {
+		return findVertex(VertexType.FUNCTION, clazzName, funcName);
 	}
 	
-	private Node findField(String clazzName, String fieldName) {
-		return findNode(fieldIndex, clazzName, fieldName);
+	private Vertex findField(String clazzName, String fieldName) {
+		return findVertex(VertexType.FIELD, clazzName, fieldName);
 	}
 	
-	private Node findNode(Index<Node> index, String clazzName, String nodeName) {
-		String id = clazzName+", "+nodeName;
-		IndexHits<Node> hits = index.get(INDEX_KEY, id);
-		if (hits.hasNext()) {
-			return hits.getSingle();
+	private Vertex findVertex(VertexType type, String clazzName, String nodeName) {
+		// Check if already created
+		final String id = clazzName+", "+nodeName;
+		for(Vertex v : graphDb.getVertices(INDEX_KEY, id)) {
+			return v; // return the first!
 		}
 		// Need to create
-		Node node = graphDb.createNode();
+		Vertex node = graphDb.addVertex(null/*"class:"+type*/);
 	    node.setProperty( INDEX_KEY, id );
 	    node.setProperty(PARENT_CLASS, clazzName);
 	    node.setProperty(NODE_NAME, nodeName);
-	    index.add( node, INDEX_KEY, id );
 	    return node;
 	}
 	
-	private void addReference(Node caller, RelationshipType rel, Node callee) {
-		caller.createRelationshipTo(callee, rel);
+	private void addReference(Vertex caller, RelTypes rel, Vertex callee) {
+		//Edge eLives = 
+		graphDb.addEdge(null, caller, callee, rel.toString());
 	}
 
 	public void dump() {
 		System.out.println("Dumping database:");
-		for(Node n : GlobalGraphOperations.at(graphDb).getAllNodes()) {
-			if (!n.hasProperty(INDEX_KEY)) {
-				continue;
-			}
+		for (Vertex n : graphDb.getVertices()) {
 			System.out.println(n.getProperty(INDEX_KEY)+" calls ...");
-			if (!n.hasRelationship(RelTypes.CALLS, Direction.OUTGOING)) {
-				continue;
-			}
-			for(Relationship r : n.getRelationships(RelTypes.CALLS, Direction.OUTGOING)) {
-				System.out.println("\t"+r.getEndNode().getProperty(INDEX_KEY));
+			for(Edge e : n.getEdges(Direction.OUT, RelTypes.CALLS.toString())) {
+				System.out.println("\t"+e.getVertex(Direction.OUT).getProperty(INDEX_KEY));
 			}
 		}
 	}
 
-	public void query(String cypher) {
+	public void query(String query) {
 		// let's execute a query now
-		ExecutionEngine engine = new ExecutionEngine( graphDb );
-		ExecutionResult result = engine.execute(cypher);
-		System.out.println(result.dumpToString());
+		ScriptEngineManager manager = new ScriptEngineManager();
+		ScriptEngine engine = manager.getEngineByName("gremlin-groovy");
+		engine.getBindings(ScriptContext.ENGINE_SCOPE).put("g", graphDb);
+		try {
+			Pipe<?,?> result = (Pipe<?,?>) engine.eval(query);
+			for(Object o : result) {
+				System.out.println(o);
+			}
+		} catch (ScriptException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 }
