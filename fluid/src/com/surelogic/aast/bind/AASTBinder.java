@@ -76,10 +76,13 @@ public abstract class AASTBinder implements IAASTBinder {
   
   @Override
   public IVariableBinding resolve(VariableUseExpressionNode here) {
-    IRNode promisedFor = here.getPromisedFor();
+    final IRNode promisedFor = here.getPromisedFor();
     final IRNode decl  = BindUtil.findLV(promisedFor, here.getId());
     if (decl == null) {
-      return null;
+      // Check if it's a field in the current type
+      final IRNode type = findNearestType(here);
+      final ISourceRefType srt = createISourceRefType(type);
+      return srt.findField(here.getId());    	
     }
     return new IVariableBinding() {
       @Override
@@ -93,6 +96,8 @@ public abstract class AASTBinder implements IAASTBinder {
       } 
     };
   }
+  
+  protected abstract ISourceRefType createISourceRefType(IRNode type);
   
   @Override
   public boolean isResolvable(VariableUseExpressionNode here) {

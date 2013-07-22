@@ -496,7 +496,8 @@ public class CommonAASTBinder extends AASTBinder {
     return new Type(type);
   }
   
-  private ISourceRefType createISourceRefType(final IRNode type) {
+  @Override
+  protected ISourceRefType createISourceRefType(final IRNode type) {
     if (type == null) {
       return null;
     }
