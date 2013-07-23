@@ -5,7 +5,6 @@ import java.sql.*;
 import java.util.Map;
 import java.util.Properties;
 
-import com.orientechnologies.orient.core.db.graph.OGraphDatabase;
 import com.tinkerpop.blueprints.*;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 

@@ -4,6 +4,11 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 public class GremlinResultSetMetadata implements ResultSetMetaData {
+	final String[] props;
+	
+	public GremlinResultSetMetadata(String[] props) {
+		this.props = props;
+	}
 
 	@Override
 	public <T> T unwrap(Class<T> iface) throws SQLException {
@@ -19,7 +24,7 @@ public class GremlinResultSetMetadata implements ResultSetMetaData {
 
 	@Override
 	public int getColumnCount() throws SQLException {
-		return 1;
+		return props.length;
 	}
 
 	@Override
@@ -66,7 +71,7 @@ public class GremlinResultSetMetadata implements ResultSetMetaData {
 
 	@Override
 	public String getColumnLabel(int column) throws SQLException {
-		return "Result";
+		return props[column-1];
 	}
 
 	@Override

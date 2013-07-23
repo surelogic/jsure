@@ -5,13 +5,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
+import java.util.*;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.pipes.Pipe;
 
 public class GremlinStatement implements Statement {
 	final ScriptEngine engine;
@@ -120,19 +123,29 @@ public class GremlinStatement implements Statement {
 
 	@Override
 	public boolean execute(String sql) throws SQLException {
+		// Extract the embedded Gremlin query
 		final StringBuilder sb = new StringBuilder();
+		String[] props = null;
 		for(String line : sql.split("\\n")) {
 			if (line.startsWith("--")) {
 				sb.append(line.substring(2)).append(' ');
+			} else {
+				// Parse the SQL
+				props = parseProperties(line);
+				break;
 			}
 		}
 		String cypher = sb.toString();
 		try {
 			Object result = engine.eval(cypher);
-			if (result != null) {
-				System.out.println(result);
-				resultSet = new GremlinResultSet(result);
+			if (result instanceof Pipe) {
+				@SuppressWarnings("unchecked")
+				Pipe<?,? extends Element> p = (Pipe<?,? extends Element>) result;
+				resultSet = new GremlinResultSet(p, props);
 				return true;
+			}
+			else if (result != null) {
+				throw new SQLException("Unexpected result type: "+result.getClass());
 			}
 		} catch (ScriptException e) {
 			throw new SQLException(e);
@@ -140,6 +153,27 @@ public class GremlinStatement implements Statement {
 		return false;
 	}
 
+	/**
+	 * Extract the properties to display
+	 */
+	private String[] parseProperties(String sql) throws SQLException {
+		final String[] parts = sql.split("[ ,]");
+		final int len = parts.length;
+		if (len > 3 && "select".equalsIgnoreCase(parts[0]) &&
+			"from".equalsIgnoreCase(parts[len-2]) &&
+			"gremlin".equalsIgnoreCase(parts[len-1])) {
+			// Can't copy due to empty strings
+			List<String> props = new ArrayList<String>(len-3);
+			for(int i=1; i<len-2; i++) {
+				if (parts[i] != null && parts[i].length() > 0) {
+					props.add(parts[i]);
+				}
+			}
+			return props.toArray(new String[props.size()]);
+		}
+		throw new SQLException("Not following the pattern SELECT prop1, prop2, ... FROM GREMLIN: "+sql);
+	}
+	
 	@Override
 	public ResultSet getResultSet() throws SQLException {
 		return resultSet;

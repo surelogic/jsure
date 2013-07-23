@@ -19,18 +19,20 @@ import java.sql.SQLXML;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.Calendar;
 import java.util.*;
 
+import com.tinkerpop.blueprints.*;
 import com.tinkerpop.pipes.Pipe;
 
 public class GremlinResultSet implements ResultSet {
-	final Pipe<?,?> pipe;
-	Iterator<?> iterator;
-	Object currentRow;
+	final String[] props;
+	final Pipe<?,? extends Element> pipe;
+	Iterator<? extends Element> iterator;
+	Element currentElement;
 	
-	public GremlinResultSet(Object result) {
-		pipe = (Pipe<?, ?>) result;
+	public GremlinResultSet(Pipe<?,? extends Element> result, String[] props) {
+		this.props = props;
+		pipe = result;
 		iterator = pipe.iterator();
 	}
 
@@ -43,13 +45,12 @@ public class GremlinResultSet implements ResultSet {
 	@Override
 	public boolean isWrapperFor(Class<?> iface) throws SQLException {
 		throw new UnsupportedOperationException();
-		
 	}
 
 	@Override
 	public boolean next() throws SQLException {
 		if (iterator.hasNext()) {
-			currentRow = iterator.next();
+			currentElement = iterator.next();
 			return true;
 		}
 		return false;
@@ -66,13 +67,48 @@ public class GremlinResultSet implements ResultSet {
 	}
 
 	@Override
-	public String getString(int columnIndex) throws SQLException {
-		if (currentRow != null) {
-			return currentRow.toString();
+	public String getString(final int columnIndex) throws SQLException {
+		final int i = columnIndex-1;
+		if (currentElement != null) {
+			//return currentElement.toString();
+			if ("id".equalsIgnoreCase(props[i])) {
+				return currentElement.getId().toString();
+			}
+			if (currentElement instanceof Edge) {
+				Edge v = (Edge) currentElement;
+				return getFromEdge(v, props[i]);				
+			}
+			/*
+			if (currentElement instanceof Vertex) {
+				Vertex v = (Vertex) currentElement;
+				String rv = getFromVertex(v, props[i]);
+				if (rv != null) {
+					return rv;
+				}
+			}
+			*/
+			return currentElement.getProperty(props[i]);
 		}
 		return null;
 	}
+	
+	private static String getFromVertex(Vertex v, String prop) {
+		return v.getProperty(prop);
+	}
 
+	private static String getFromEdge(Edge e, String prop) {
+		if ("label".equals(prop)) {
+			return e.getLabel();
+		}
+		if (prop.startsWith("head.")) {
+			return getFromVertex(e.getVertex(Direction.IN), prop.substring(5));
+		}
+		if (prop.startsWith("tail.")) {
+			return getFromVertex(e.getVertex(Direction.OUT), prop.substring(5));
+		}
+		return e.getProperty(prop);
+	}
+	
 	@Override
 	public boolean getBoolean(int columnIndex) throws SQLException {
 		throw new UnsupportedOperationException();
@@ -281,7 +317,7 @@ public class GremlinResultSet implements ResultSet {
 
 	@Override
 	public ResultSetMetaData getMetaData() throws SQLException {
-		return new GremlinResultSetMetadata();
+		return new GremlinResultSetMetadata(props);
 	}
 
 	@Override
