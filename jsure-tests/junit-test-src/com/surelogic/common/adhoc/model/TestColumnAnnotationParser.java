@@ -148,7 +148,7 @@ public class TestColumnAnnotationParser extends TestCase {
     assertTrue(c.getHumanReadableDuration());
     assertSame(TimeUnit.NANOSECONDS, c.getHumanReadableDurationUnit());
   }
-  
+
   public void testBlankIf() {
     c = ColumnAnnotationParserUtility.parse("(hide)");
     assertTrue(c.isValid());
@@ -167,14 +167,35 @@ public class TestColumnAnnotationParser extends TestCase {
   public void testPrefix() {
     c = ColumnAnnotationParserUtility.parse("(prefix '')");
     assertTrue(c.isValid());
+    assertFalse(c.getPrefixOnlyIfNonempty());
     assertEquals("", c.getPrefix());
     assertEquals("", c.getSuffix());
     c = ColumnAnnotationParserUtility.parse("(prefix ' ms')");
     assertTrue(c.isValid());
+    assertFalse(c.getPrefixOnlyIfNonempty());
     assertEquals(" ms", c.getPrefix());
     assertEquals("", c.getSuffix());
     c = ColumnAnnotationParserUtility.parse("(prefix 'test do it')");
     assertTrue(c.isValid());
+    assertFalse(c.getPrefixOnlyIfNonempty());
+    assertEquals("test do it", c.getPrefix());
+    assertEquals("", c.getSuffix());
+  }
+
+  public void testPrefixOnlyIfNonempty() {
+    c = ColumnAnnotationParserUtility.parse("(prefix-only-if-nonempty '')");
+    assertTrue(c.isValid());
+    assertTrue(c.getPrefixOnlyIfNonempty());
+    assertEquals("", c.getPrefix());
+    assertEquals("", c.getSuffix());
+    c = ColumnAnnotationParserUtility.parse("(prefix-only-if-nonempty ' ms')");
+    assertTrue(c.isValid());
+    assertTrue(c.getPrefixOnlyIfNonempty());
+    assertEquals(" ms", c.getPrefix());
+    assertEquals("", c.getSuffix());
+    c = ColumnAnnotationParserUtility.parse("(prefix-only-if-nonempty 'test do it')");
+    assertTrue(c.isValid());
+    assertTrue(c.getPrefixOnlyIfNonempty());
     assertEquals("test do it", c.getPrefix());
     assertEquals("", c.getSuffix());
   }
@@ -182,14 +203,35 @@ public class TestColumnAnnotationParser extends TestCase {
   public void testSuffix() {
     c = ColumnAnnotationParserUtility.parse("(suffix '')");
     assertTrue(c.isValid());
+    assertFalse(c.getSuffixOnlyIfNonempty());
     assertEquals("", c.getPrefix());
     assertEquals("", c.getSuffix());
     c = ColumnAnnotationParserUtility.parse("(suffix ' ms')");
     assertTrue(c.isValid());
+    assertFalse(c.getSuffixOnlyIfNonempty());
     assertEquals("", c.getPrefix());
     assertEquals(" ms", c.getSuffix());
     c = ColumnAnnotationParserUtility.parse("(suffix 'test do it')");
     assertTrue(c.isValid());
+    assertFalse(c.getSuffixOnlyIfNonempty());
+    assertEquals("", c.getPrefix());
+    assertEquals("test do it", c.getSuffix());
+  }
+
+  public void testSuffixOnlyIfNonempty() {
+    c = ColumnAnnotationParserUtility.parse("(suffix-only-if-nonempty '')");
+    assertTrue(c.isValid());
+    assertTrue(c.getSuffixOnlyIfNonempty());
+    assertEquals("", c.getPrefix());
+    assertEquals("", c.getSuffix());
+    c = ColumnAnnotationParserUtility.parse("(suffix-only-if-nonempty ' ms')");
+    assertTrue(c.isValid());
+    assertTrue(c.getSuffixOnlyIfNonempty());
+    assertEquals("", c.getPrefix());
+    assertEquals(" ms", c.getSuffix());
+    c = ColumnAnnotationParserUtility.parse("(suffix-only-if-nonempty 'test do it')");
+    assertTrue(c.isValid());
+    assertTrue(c.getSuffixOnlyIfNonempty());
     assertEquals("", c.getPrefix());
     assertEquals("test do it", c.getSuffix());
   }
