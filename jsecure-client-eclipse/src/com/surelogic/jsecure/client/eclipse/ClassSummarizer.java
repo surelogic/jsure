@@ -23,9 +23,9 @@ import com.tinkerpop.pipes.Pipe;
 public class ClassSummarizer extends ClassVisitor {
 	public static final String DB_PATH = "orientdb";
 	//public static final String FUNC_IDX = "function-index";
-	public static final String INDEX_KEY = "index-key";
-	public static final String NODE_NAME = "node-name";
-	public static final String PARENT_CLASS = "parent-class";
+	public static final String INDEX_KEY = "indexKey";
+	public static final String NODE_NAME = "nodeName";
+	public static final String PARENT_CLASS = "parentClass";
 	//public static final String FIELD_IDX = "field-index";
 	
 	public static enum RelTypes /*implements RelationshipType*/ {
