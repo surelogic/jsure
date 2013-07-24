@@ -87,16 +87,16 @@ public class GremlinResultSet implements ResultSet {
 				}
 			}
 			*/
-			return currentElement.getProperty(props[i]);
+			return getNonnullProperty(currentElement, props[i]);
 		}
 		return null;
 	}
 	
-	private static String getFromVertex(Vertex v, String prop) {
-		return v.getProperty(prop);
+	private static String getFromVertex(Vertex v, String prop) throws SQLException {
+		return getNonnullProperty(v, prop);
 	}
 
-	private static String getFromEdge(Edge e, String prop) {
+	private static String getFromEdge(Edge e, String prop) throws SQLException {
 		if ("label".equals(prop)) {
 			return e.getLabel();
 		}
@@ -106,7 +106,15 @@ public class GremlinResultSet implements ResultSet {
 		if (prop.startsWith("tail.")) {
 			return getFromVertex(e.getVertex(Direction.OUT), prop.substring(5));
 		}
-		return e.getProperty(prop);
+		return getNonnullProperty(e, prop);
+	}
+
+	private static String getNonnullProperty(Element e, String prop) throws SQLException {
+		String rv = e.getProperty(prop);
+		if (rv == null) {
+			throw new SQLException("No such property '"+prop+"'on "+e.getClass().getSimpleName());
+		}
+		return rv;
 	}
 	
 	@Override
