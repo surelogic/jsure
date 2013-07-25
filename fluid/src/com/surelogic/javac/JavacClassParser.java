@@ -52,7 +52,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 	private static boolean useForkJoinTasks = wantToRunInParallel && false;
 	
 	private static final String[] sourceLevels = {
-		"1.5" /*default*/, "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7"
+		"1.5" /*default*/, "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8"
 	}; 
 	
 	private static final boolean debug = Util.debug;
