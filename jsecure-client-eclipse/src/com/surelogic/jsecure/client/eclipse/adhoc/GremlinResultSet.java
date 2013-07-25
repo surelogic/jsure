@@ -25,12 +25,12 @@ import com.tinkerpop.blueprints.*;
 import com.tinkerpop.pipes.Pipe;
 
 public class GremlinResultSet implements ResultSet {
-	final String[] props;
+	final Property[] props;
 	final Pipe<?,? extends Element> pipe;
 	Iterator<? extends Element> iterator;
 	Element currentElement;
 	
-	public GremlinResultSet(Pipe<?,? extends Element> result, String[] props) {
+	public GremlinResultSet(Pipe<?,? extends Element> result, Property[] props) {
 		this.props = props;
 		pipe = result;
 		iterator = pipe.iterator();
@@ -71,12 +71,12 @@ public class GremlinResultSet implements ResultSet {
 		final int i = columnIndex-1;
 		if (currentElement != null) {
 			//return currentElement.toString();
-			if ("id".equalsIgnoreCase(props[i])) {
+			if ("id".equalsIgnoreCase(props[i].expr)) {
 				return currentElement.getId().toString();
 			}
 			if (currentElement instanceof Edge) {
 				Edge v = (Edge) currentElement;
-				return getFromEdge(v, props[i]);				
+				return getFromEdge(v, props[i].expr);				
 			}
 			/*
 			if (currentElement instanceof Vertex) {
@@ -87,7 +87,7 @@ public class GremlinResultSet implements ResultSet {
 				}
 			}
 			*/
-			return getNonnullProperty(currentElement, props[i]);
+			return getNonnullProperty(currentElement, props[i].expr);
 		}
 		return null;
 	}

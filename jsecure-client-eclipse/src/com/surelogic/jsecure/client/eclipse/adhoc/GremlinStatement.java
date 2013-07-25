@@ -125,7 +125,7 @@ public class GremlinStatement implements Statement {
 	public boolean execute(String sql) throws SQLException {
 		// Extract the embedded Gremlin query
 		final StringBuilder sb = new StringBuilder();
-		String[] props = null;
+		Property[] props = null;
 		for(String line : sql.split("\\n")) {
 			if (line.startsWith("--")) {
 				sb.append(line.substring(2)).append(' ');
@@ -156,20 +156,29 @@ public class GremlinStatement implements Statement {
 	/**
 	 * Extract the properties to display
 	 */
-	private String[] parseProperties(String sql) throws SQLException {
+	private Property[] parseProperties(String sql) throws SQLException {
 		final String[] parts = sql.split("[ ,]");
 		final int len = parts.length;
 		if (len > 3 && "select".equalsIgnoreCase(parts[0]) &&
 			"from".equalsIgnoreCase(parts[len-2]) &&
 			"gremlin".equalsIgnoreCase(parts[len-1])) {
-			// Can't copy due to empty strings
-			List<String> props = new ArrayList<String>(len-3);
+			// Preprocess to group expressions and labels
+			List<Property> props = new ArrayList<Property>(len-3); 
+			Property lastProp = null;
 			for(int i=1; i<len-2; i++) {
 				if (parts[i] != null && parts[i].length() > 0) {
-					props.add(parts[i]);
+					if (parts[i].startsWith("\"") && parts[i].endsWith("\"")) {
+						if (lastProp == null) {
+							throw new SQLException("Missing Gremlin expression before "+parts[i]);
+						}
+						lastProp.setLabel(parts[i].substring(1, parts[i].length()-1));
+					} else {
+						lastProp = new Property(parts[i]);
+						props.add(lastProp);
+					} 
 				}
 			}
-			return props.toArray(new String[props.size()]);
+			return props.toArray(new Property[props.size()]);
 		}
 		throw new SQLException("Not following the pattern SELECT prop1, prop2, ... FROM GREMLIN: "+sql);
 	}

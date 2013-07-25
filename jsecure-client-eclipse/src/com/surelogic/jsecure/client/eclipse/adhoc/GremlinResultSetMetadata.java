@@ -4,9 +4,9 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 public class GremlinResultSetMetadata implements ResultSetMetaData {
-	final String[] props;
+	final Property[] props;
 	
-	public GremlinResultSetMetadata(String[] props) {
+	public GremlinResultSetMetadata(Property[] props) {
 		this.props = props;
 	}
 
@@ -71,7 +71,7 @@ public class GremlinResultSetMetadata implements ResultSetMetaData {
 
 	@Override
 	public String getColumnLabel(int column) throws SQLException {
-		return props[column-1];
+		return props[column-1].label;
 	}
 
 	@Override
