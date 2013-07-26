@@ -22,11 +22,22 @@ import com.tinkerpop.pipes.Pipe;
  */
 public class ClassSummarizer extends ClassVisitor {
 	public static final String DB_PATH = "orientdb";
-	//public static final String FUNC_IDX = "function-index";
 	public static final String INDEX_KEY = "indexKey";
+	/**
+	 * Signature of the method
+	 */
 	public static final String NODE_NAME = "nodeName";
+	/**
+	 * Qualified name of the enclosing class
+	 */
 	public static final String PARENT_CLASS = "parentClass";
-	//public static final String FIELD_IDX = "field-index";
+	
+	/**
+	 * For display purposes
+	 */
+	public static final String DECL_LABEL = "declLabel";
+	public static final String CLASS_LABEL = "classLabel";
+	public static final String ICON = "icon";
 	
 	public static enum RelTypes /*implements RelationshipType*/ {
 		// X calls method/constructor Y
@@ -36,7 +47,19 @@ public class ClassSummarizer extends ClassVisitor {
 	}
 	
 	public static enum VertexType {
-		CLASS, FUNCTION, FIELD
+		/*CLASS,*/ FUNCTION() {
+			@Override
+			DeclType encodeType(String nodeName) {
+				return nodeName.contains("<init>") ? DeclType.CO : DeclType.ME;
+			}	
+		}, 
+		FIELD() {
+			@Override
+			DeclType encodeType(String nodeName) {
+				return DeclType.FL;
+			}			
+		};
+		abstract DeclType encodeType(String nodeName);
 	}
 	
 	public class Clazz {
@@ -181,11 +204,10 @@ public class ClassSummarizer extends ClassVisitor {
 	 * When a method is encountered
 	 */
 	@Override
-	public MethodVisitor visitMethod(int access, final String name,
+	public MethodVisitor visitMethod(final int access, final String name,
 			final String desc, String signature, String[] exceptions) {
-		final String id = name+" "+desc;
-		final Vertex func = findFunctionVertex(result.name, id);
-		System.out.println("Method: "+id);
+		final Vertex func = findFunctionVertex(result.name, name, desc, access);
+		System.out.println("Method: "+name+' '+desc);
 		
 		//return super.visitMethod(access, name, desc, signature, exceptions);
         MethodVisitor oriMv= new MethodVisitor(Opcodes.ASM4) {
@@ -196,7 +218,7 @@ public class ClassSummarizer extends ClassVisitor {
         		getHandle(opcode, owner, name, desc);
         		super.visitFieldInsn(opcode, owner, name, desc);        		
         		
-        		final Vertex field = findField(owner, name);
+        		final Vertex field = findField(owner, name, -1);
         		addReference(func, RelTypes.USES, field);
         	}
         	
@@ -207,7 +229,7 @@ public class ClassSummarizer extends ClassVisitor {
         		getHandle(opcode, owner, name, desc);
         		super.visitMethodInsn(opcode, owner, name, desc);
         		
-        		final Vertex callee = findFunctionVertex(owner, name, desc);
+        		final Vertex callee = findFunctionVertex(owner, name, desc, -1);
         		addReference(func, RelTypes.CALLS, callee);
         	}
         	
@@ -272,32 +294,40 @@ public class ClassSummarizer extends ClassVisitor {
 	    } );
 	}
 	
-	private Vertex findFunctionVertex(String clazzName, String name, String desc) {
-		return findFunctionVertex(clazzName, name+' '+desc);
+	private Vertex findFunctionVertex(String clazzName, String name, String desc, int mods) {
+		return findVertex(VertexType.FUNCTION, clazzName, name+' '+desc, mods);
 	}
 	
-	private Vertex findFunctionVertex(String clazzName, String funcName) {
-		return findVertex(VertexType.FUNCTION, clazzName, funcName);
+	private Vertex findField(String clazzName, String fieldName, int mods) {
+		return findVertex(VertexType.FIELD, clazzName, fieldName, mods);
 	}
 	
-	private Vertex findField(String clazzName, String fieldName) {
-		return findVertex(VertexType.FIELD, clazzName, fieldName);
-	}
-	
-	private Vertex findVertex(VertexType type, String clazzName, String nodeName) {
+	private Vertex findVertex(VertexType type, String clazzName, String nodeName, int access) {
 		// Check if already created
 		final String id = clazzName+", "+nodeName;
 		for(Vertex v : graphDb.getVertices(INDEX_KEY, id)) {
+			if (access != -1 && v.getProperty(ICON) == null) {
+			    v.setProperty(ICON, encodeIconForDecl(type.encodeType(nodeName), access));
+			}
 			return v; // return the first!
-		}
+		}		
 		// Need to create
 		Vertex node = graphDb.addVertex(null/*"class:"+type*/);
 	    node.setProperty( INDEX_KEY, id );
 	    node.setProperty(PARENT_CLASS, clazzName);
 	    node.setProperty(NODE_NAME, nodeName);
+	    node.setProperty(CLASS_LABEL, convertToClassLabel(clazzName));
+	    if (access != -1) {
+	    	node.setProperty(ICON, encodeIconForDecl(type.encodeType(nodeName), access));
+	    }
 	    return node;
 	}
 	
+	private String convertToClassLabel(final String clazzName) {
+		//final int lastSlash = clazzName.lastIndexOf('/');
+		return clazzName.replace('/', '.');
+	}
+
 	private void addReference(Vertex caller, RelTypes rel, Vertex callee) {
 		//Edge eLives = 
 		graphDb.addEdge(null, caller, callee, rel.toString());
@@ -328,5 +358,81 @@ public class ClassSummarizer extends ClassVisitor {
 			e.printStackTrace();
 		}
 
+	}
+	
+	enum DeclType {
+		CO, ME, FL
+	}
+	
+	public String encodeIconForDecl(DeclType type, int access) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append('@');
+		sb.append(type.toString()).append(':');
+		sb.append(encodeAccess(access));
+		encodeModifiers(sb, access);
+		System.out.println("Encoding: "+sb);
+		return sb.toString();
+	}
+	
+	private String encodeAccess(int access) {
+	    if ((access & Opcodes.ACC_PRIVATE) != 0) {
+	    	return "PR";
+	    }
+	    if ((access & Opcodes.ACC_PROTECTED) != 0) {
+	    	return "PO";
+	    }
+	    if ((access & Opcodes.ACC_PUBLIC) != 0) {
+	    	return "PU";
+	    }
+	    return "DE";
+	}
+	
+	private void encodeModifiers(final StringBuilder sb, int access) {
+		boolean first = true;
+		if ((access & Opcodes.ACC_ABSTRACT) != 0) {
+			if (first) {
+				first = false;
+				sb.append(':');
+			}
+			sb.append('A');
+		}
+		if ((access & Opcodes.ACC_FINAL) != 0) {
+			if (first) {
+				first = false;
+				sb.append(':');
+			}
+			sb.append('F');
+		}
+		/*
+		    if ((access & Opcodes.ACC_NATIVE) != 0) {
+		    }
+		 */
+		if ((access & Opcodes.ACC_STATIC) != 0) {
+			if (first) {
+				first = false;
+				sb.append(':');
+			}
+			sb.append('S');
+		}
+		/*
+		if ((access & Opcodes.ACC_SYNCHRONIZED) != 0) {
+		}
+		if ((access & Opcodes.ACC_TRANSIENT) != 0) {
+		}
+		*/
+		if ((access & Opcodes.ACC_VOLATILE) != 0) {
+			if (first) {
+				first = false;
+				sb.append(':');
+			}
+			sb.append('V');
+		}
+		if ((access & Opcodes.ACC_BRIDGE) != 0 || (access & Opcodes.ACC_SYNTHETIC) != 0 ) {
+			if (first) {
+				first = false;
+				sb.append(':');
+			}
+			sb.append('I');
+		}
 	}
 }
