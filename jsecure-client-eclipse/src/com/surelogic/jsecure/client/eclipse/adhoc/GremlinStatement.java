@@ -130,8 +130,9 @@ public class GremlinStatement implements Statement {
 			if (line.startsWith("--")) {
 				sb.append(line.substring(2)).append(' ');
 			} else {
+				int start = sql.indexOf(line);
 				// Parse the SQL
-				props = parseProperties(line);
+				props = parseProperties(sql.substring(start));
 				break;
 			}
 		}
@@ -157,7 +158,7 @@ public class GremlinStatement implements Statement {
 	 * Extract the properties to display
 	 */
 	private Property[] parseProperties(String sql) throws SQLException {
-		final String[] parts = sql.split("[ ,]");
+		final String[] parts = sql.split("[\n ,]");
 		final int len = parts.length;
 		if (len > 3 && "select".equalsIgnoreCase(parts[0]) &&
 			"from".equalsIgnoreCase(parts[len-2]) &&
