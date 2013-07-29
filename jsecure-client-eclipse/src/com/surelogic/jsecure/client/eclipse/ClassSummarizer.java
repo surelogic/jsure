@@ -8,6 +8,7 @@ import java.util.zip.*;
 import javax.script.*;
 
 import org.objectweb.asm.*;
+import org.objectweb.asm.commons.Method;
 
 import com.surelogic.common.StringCache;
 
@@ -317,6 +318,7 @@ public class ClassSummarizer extends ClassVisitor {
 	    node.setProperty(PARENT_CLASS, clazzName);
 	    node.setProperty(NODE_NAME, nodeName);
 	    node.setProperty(CLASS_LABEL, convertToClassLabel(clazzName));
+	    node.setProperty(DECL_LABEL, convertToDeclLabel(type, nodeName));
 	    if (access != -1) {
 	    	node.setProperty(ICON, encodeIconForDecl(type.encodeType(nodeName), access));
 	    }
@@ -328,6 +330,39 @@ public class ClassSummarizer extends ClassVisitor {
 		return clazzName.replace('/', '.');
 	}
 
+	private String convertToDeclLabel(final VertexType type, final String nodeName) {
+		if (type == VertexType.FUNCTION) {
+			final int space = nodeName.indexOf(' ');
+			String name = nodeName.substring(0, space);
+			String desc = nodeName.substring(space+1);
+			Method m = new Method(name, desc);
+			StringBuilder sb = new StringBuilder();
+			sb.append(name).append('(');
+			
+			boolean first = true;
+			for(final Type t : m.getArgumentTypes()) {
+				if (first) {
+					first = false;
+				} else {
+					sb.append(", ");
+				}
+				switch (t.getSort()) {
+				case Type.ARRAY:
+					sb.append(t.getElementType().getClassName());
+					for(int i=0; i<t.getDimensions(); i++) {
+						sb.append("[]");
+					}
+					break;
+				default:
+					sb.append(t.getClassName());					
+				}
+			}
+			sb.append(')');
+			return sb.toString();
+		}
+		return nodeName;
+	}
+	
 	private void addReference(Vertex caller, RelTypes rel, Vertex callee) {
 		//Edge eLives = 
 		graphDb.addEdge(null, caller, callee, rel.toString());
