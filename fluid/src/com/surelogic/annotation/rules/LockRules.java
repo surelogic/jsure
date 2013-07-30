@@ -1612,6 +1612,8 @@ public class LockRules extends AnnotationRules {
               + "\" does not exist", v); //$NON-NLS-1$
           isBad = true;
         } else {
+          final IRNode n = var.getNode();
+          final Operator op = JJNode.tree.getOperator(n);
           getBinding = true;
           checkForInstanceQualifiedStatic = true;
         }
