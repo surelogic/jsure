@@ -208,14 +208,14 @@ public class ClassSummarizer extends ClassVisitor {
 	public MethodVisitor visitMethod(final int access, final String name,
 			final String desc, String signature, String[] exceptions) {
 		final Vertex func = findFunctionVertex(result.name, name, desc, access);
-		System.out.println("Method: "+name+' '+desc);
+		//System.out.println("Method: "+name+' '+desc);
 		
 		//return super.visitMethod(access, name, desc, signature, exceptions);
         MethodVisitor oriMv= new MethodVisitor(Opcodes.ASM4) {
         	@Override
         	public void visitFieldInsn(int opcode, String owner, String name,
         			String desc) {
-        		System.out.println("\tField:  "+owner+", "+name+", "+desc);
+        		//System.out.println("\tField:  "+owner+", "+name+", "+desc);
         		getHandle(opcode, owner, name, desc);
         		super.visitFieldInsn(opcode, owner, name, desc);        		
         		
@@ -226,7 +226,7 @@ public class ClassSummarizer extends ClassVisitor {
         	@Override
         	public void visitMethodInsn(int opcode, String owner, String name,
         			String desc) {
-         		System.out.println("\tMethod: "+owner+", "+name+", "+desc);
+        		//System.out.println("\tMethod: "+owner+", "+name+", "+desc);
         		getHandle(opcode, owner, name, desc);
         		super.visitMethodInsn(opcode, owner, name, desc);
         		
@@ -369,6 +369,7 @@ public class ClassSummarizer extends ClassVisitor {
 	}
 
 	public void dump() {
+		/*
 		System.out.println("Dumping database:");
 		for (Vertex n : graphDb.getVertices()) {
 			System.out.println(n.getProperty(INDEX_KEY)+" calls ...");
@@ -376,6 +377,7 @@ public class ClassSummarizer extends ClassVisitor {
 				System.out.println("\t"+e.getVertex(Direction.OUT).getProperty(INDEX_KEY));
 			}
 		}
+		*/
 	}
 
 	public void query(String query) {
@@ -405,7 +407,7 @@ public class ClassSummarizer extends ClassVisitor {
 		sb.append(type.toString()).append(':');
 		sb.append(encodeAccess(access));
 		encodeModifiers(sb, access);
-		System.out.println("Encoding: "+sb);
+		//System.out.println("Encoding: "+sb);
 		return sb.toString();
 	}
 	
