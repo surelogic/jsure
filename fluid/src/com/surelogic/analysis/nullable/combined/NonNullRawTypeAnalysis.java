@@ -21,6 +21,7 @@ import com.surelogic.analysis.nullable.combined.NonNullRawLattice.ClassElement;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.Pair;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 import com.surelogic.util.IThunk;
@@ -444,6 +445,17 @@ implements IBinderClient {
         return FieldRef.getId(w);
       }
     },
+    RAW_FIELD_REF(963) {
+      @Override
+      public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
+        return binder.getBinding(where);
+      }
+      
+      @Override
+      public String unparse(final IRNode w) {
+        return FieldRef.getId(w);
+      }
+    },
     INSTANCEOF(951),
     NEW_OBJECT(952),
     UNITIALIZED(953),
@@ -555,7 +567,8 @@ implements IBinderClient {
         final IRNode where = src.second();
         final Element value = src.third();
         final Operator op = JJNode.tree.getOperator(where);
-        final int line = JavaNode.getJavaRef(where).getLineNumber();
+        final IJavaRef javaRef = JavaNode.getJavaRef(where);
+        final int line = javaRef == null ? -1 : javaRef.getLineNumber();
         sb.append(k);
         sb.append('[');
         sb.append(op.name());
@@ -1334,7 +1347,7 @@ implements IBinderClient {
       else if (NonNullRules.getNonNull(fieldDecl) != null) {
         if (refState == NonNullRawLattice.RAW) {
           // No fields are initialized
-          val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, SimpleKind.FIELD_REF, fref));
+          val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, SimpleKind.RAW_FIELD_REF, fref));
         } else if (refState instanceof ClassElement) {
           // Partially initialized class
           final IJavaDeclaredType initializedThrough =
@@ -1348,7 +1361,7 @@ implements IBinderClient {
           final IJavaType fieldIsFrom = typeEnvironment.getMyThisType(fieldDeclaredIn);
           if (typeEnvironment.isSubType(fieldIsFrom, initializedThrough) &&
               !fieldIsFrom.equals(initializedThrough)) {
-            val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, SimpleKind.FIELD_REF, fref));
+            val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, SimpleKind.RAW_FIELD_REF, fref));
           } else {
             val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.FIELD_REF, fref));
           }
