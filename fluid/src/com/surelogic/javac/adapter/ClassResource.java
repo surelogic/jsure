@@ -3,6 +3,7 @@ package com.surelogic.javac.adapter;
 import java.io.File;
 
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.java.Config;
 import com.surelogic.javac.JavacProject;
 
 public class ClassResource {
@@ -56,8 +57,7 @@ public class ClassResource {
 
   public String getJavaRefProjectName() {
     final String prjName = project.getName();
-    final String prefix = "org.eclipse.jdt.launching.JRE_CONTAINER";
-    if (prjName.startsWith(prefix)) {
+    if (prjName.startsWith(Config.JRE_NAME)) {
       return SLUtility.LIBRARY_PROJECT;
     } else
       return prjName;

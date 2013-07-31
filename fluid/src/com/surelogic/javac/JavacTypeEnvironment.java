@@ -533,7 +533,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 					// List<IRNode> oldL = subtypeMap.putIfAbsent(s.getDeclaration(), newL);
 					final JavacTypeEnvironment tEnv = getTypeEnv_cached(s.getDeclaration());
 					if (debug && tEnv != this) {
-						if (tEnv.getProject().getName().contains("org.eclipse.jdt.launching.JRE_CONTAINER")) {
+						if (tEnv.getProject().getName().contains(Config.JRE_NAME)) {
 							System.out.println("JRE adding supertype: "+s+" <--- "+t);
 						} else {
 							System.out.println(tEnv.getProject().getName()+" adding supertype: "+s+" <--- "+t);
