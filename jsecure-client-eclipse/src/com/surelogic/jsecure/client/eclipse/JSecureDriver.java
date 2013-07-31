@@ -89,7 +89,7 @@ public class JSecureDriver extends AbstractJavaScanner<JavaProjectSet<JavaProjec
 			
 			@Override
 			protected AbstractLocalSLJob<?> makeLocalJob() throws Exception {
-				return new LocalJSecureJob("JSecure", 100, new EclipseLocalConfig(1024, projects.getRunDir()));
+				return new LocalJSecureJob("JSecure", 100, new EclipseLocalConfig(4096, projects.getRunDir()));
 			}
 			
 			@Override
