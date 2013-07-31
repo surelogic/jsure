@@ -18,20 +18,36 @@ public class RemoteJSecureJob extends RemoteScanJob<JavaProjectSet<JavaProject>,
 	}
 	
 	protected SLJob finishInit(final File runDir, final JavaProjectSet<JavaProject> projects) throws Throwable {
-		final JavaClassPath<JavaProjectSet<JavaProject>> classes = new JavaClassPath<JavaProjectSet<JavaProject>>(projects, true);
+		final JavaClassPath<JavaProjectSet<JavaProject>> classes = new JavaClassPath<JavaProjectSet<JavaProject>>(projects, true);		
 		return new AbstractSLJob("Running JSecure on "+projects.getLabel()) {
 			@Override
 			public SLStatus run(final SLProgressMonitor monitor) {
 				final ClassSummarizer summarizer = new ClassSummarizer(runDir);
 				//ZipFile lastZip = null;
 				try {
+					int fromJars = 0;
+					monitor.begin(classes.getMapKeys().size());					
 					for(final Pair<String,String> key: classes.getMapKeys()) {
+						System.out.println("Got key: "+key);
+						monitor.worked(1);
+						
 						final IJavaFile info = classes.getMapping(key);
 						if (info.getType() == IJavaFile.Type.CLASS_FOR_SRC) {
+							// TODO what about the jars?
 							summarizer.summarize(info.getStream());
+						}
+						else if (info.getType() != IJavaFile.Type.SOURCE) {
+							if (key.first().startsWith(Config.JRE_NAME)) {
+								// Skip classes only referenced from the JRE
+								continue;
+							}
+							fromJars++;
+							summarizer.summarize(info.getStream());
+							// TODO eliminate duplicates between projects?
 						}
 					}
 					summarizer.dump();
+					System.out.println("Summarized from jars: "+fromJars);
 				} catch(IOException e) {
 					return SLStatus.createErrorStatus(e);
 				} finally {
@@ -70,6 +86,7 @@ class LocalJSecureJob extends AbstractLocalSLJob<ILocalConfig> {
         }
 	}	
 	
+	/*
 	@Override
 	public SLStatus run(final SLProgressMonitor topMonitor) {
 		final SLStatus s = super.run(topMonitor);
@@ -82,4 +99,5 @@ class LocalJSecureJob extends AbstractLocalSLJob<ILocalConfig> {
 		summarizer.close();
 		return s;
 	}
+	*/
 }
