@@ -352,16 +352,22 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
      * @NonNull locals must be assigned @NonNUll references.
      */
     final Operator op = JJNode.tree.getOperator(lhs);
-    if (FieldRef.prototype.includes(op) ||
-        VariableUseExpression.prototype.includes(op)) {
-      final IRNode fieldDecl = binder.getBinding(lhs);
-      final IRNode typeNode;
-      if (VariableDeclarator.prototype.includes(fieldDecl)) {
-    	  typeNode = VariableDeclarator.getType(fieldDecl);
-      } else {
-    	  typeNode = ParameterDeclaration.getType(fieldDecl);
+    if (FieldRef.prototype.includes(op)) {
+      final IRNode varDecl = binder.getBinding(lhs);
+      final IRNode typeNode = VariableDeclarator.getType(varDecl);
+      checkAssignability(rhs, varDecl, typeNode);
+    } else if (VariableUseExpression.prototype.includes(op)) {
+      /* Only check the assignment if the lhs is local variable, NOT if it
+       * is a parameter.  The annotations on the two mean different things.
+       */
+      final IRNode varOrParamDecl = binder.getBinding(lhs);
+      if (VariableDeclarator.prototype.includes(varOrParamDecl)) {
+        // Only check if the local is explicitly annotated
+        if (getAnnotation(varOrParamDecl) != null) {
+          final IRNode typeNode = VariableDeclarator.getType(varOrParamDecl);
+          checkAssignability(rhs, varOrParamDecl, typeNode);
+        }
       }
-      checkAssignability(rhs, fieldDecl, typeNode);
     }
   }
 
@@ -374,9 +380,12 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   private void checkAssignmentInitializer(final IRNode vd) {
     final IRNode init = VariableDeclarator.getInit(vd);
     if (Initialization.prototype.includes(init)) {
-      final IRNode initExpr = Initialization.getValue(init);
-      final IRNode typeNode = VariableDeclarator.getType(vd);
-      checkAssignability(initExpr, vd, typeNode);
+      // Only check if the local is explicitly annotated
+      if (getAnnotation(vd) != null) {
+        final IRNode initExpr = Initialization.getValue(init);
+        final IRNode typeNode = VariableDeclarator.getType(vd);
+        checkAssignability(initExpr, vd, typeNode);
+      }
     }
   }
 }
