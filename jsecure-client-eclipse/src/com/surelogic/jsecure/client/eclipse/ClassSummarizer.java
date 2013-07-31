@@ -139,9 +139,11 @@ public class ClassSummarizer extends ClassVisitor {
 	@Override
 	public void visit(int version, int access, String name,
 			String signature, String superName, String[] interfaces) {
+		/*
 		System.out.println("Visiting class: "+name);
 		System.out.println("Class Major Version: "+version);
 		System.out.println("Super class: "+superName);
+		*/
 		result = new Clazz(name);
 		super.visit(version, access, name, signature, superName, interfaces);
 	}
@@ -151,7 +153,7 @@ public class ClassSummarizer extends ClassVisitor {
 	 */
 	@Override
 	public void visitOuterClass(String owner, String name, String desc) {
-		System.out.println("Outer class: "+owner);
+		//System.out.println("Outer class: "+owner);
 		super.visitOuterClass(owner, name, desc);
 	}
 
@@ -190,14 +192,14 @@ public class ClassSummarizer extends ClassVisitor {
 	@Override
 	public FieldVisitor visitField(int access, String name,
 			String desc, String signature, Object value) {
-		System.out.println("Field: "+name+" "+desc+" value:"+value);
+		//System.out.println("Field: "+name+" "+desc+" value:"+value);
 		return super.visitField(access, name, desc, signature, value);
 	}
 
 
 	@Override
 	public void visitEnd() {
-		System.out.println("Method ends here");
+		//System.out.println("Method ends here");
 		super.visitEnd();
 	}
 
@@ -272,7 +274,7 @@ public class ClassSummarizer extends ClassVisitor {
 	 */
 	@Override
 	public void visitSource(String source, String debug) {
-		System.out.println("Source: "+source);
+		//System.out.println("Source: "+source);
 		super.visitSource(source, debug);
 	}
 
@@ -315,6 +317,9 @@ public class ClassSummarizer extends ClassVisitor {
 		// Need to create
 		Vertex node = graphDb.addVertex(null/*"class:"+type*/);
 	    node.setProperty( INDEX_KEY, id );
+	    if (clazzName == null) {
+	    	throw new NullPointerException("Null clazzName");
+	    }
 	    node.setProperty(PARENT_CLASS, clazzName);
 	    node.setProperty(NODE_NAME, nodeName);
 	    node.setProperty(CLASS_LABEL, convertToClassLabel(clazzName));
