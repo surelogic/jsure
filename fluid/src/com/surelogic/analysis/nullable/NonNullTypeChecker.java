@@ -13,11 +13,9 @@ import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Base;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Kind;
-import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.SimpleKind;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Source;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.StackQuery;
 import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.StackQueryResult;
-import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.ThisKind;
 import com.surelogic.analysis.type.checker.QualifiedTypeChecker;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.NonNullRules;
@@ -106,7 +104,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       final Kind k = src.first();
       final IRNode where = src.second();
       
-      if (k == SimpleKind.VAR_USE || k instanceof ThisKind) {
+      if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
         final IRNode vd = binder.getBinding(where);
         final StackQueryResult newQuery = currentQuery().getResultFor(where);
         final Base varValue = newQuery.lookupVar(vd);
@@ -201,7 +199,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       final Kind k = src.first();
       final IRNode where = src.second();
         
-      if (k == SimpleKind.VAR_USE || k instanceof ThisKind) {
+      if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
         final IRNode vd = binder.getBinding(where);
         final StackQueryResult newQuery = currentQuery().getResultFor(where);
         final Base varValue = newQuery.lookupVar(vd);
@@ -242,7 +240,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     final Kind k = src.first();
     final IRNode where = src.second();
       
-    if (k == SimpleKind.VAR_USE || k instanceof ThisKind) {
+    if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
       final IRNode vd = binder.getBinding(where);
       final StackQueryResult newQuery = currentQuery().getResultFor(where);
       final Base varValue = newQuery.lookupVar(vd);
@@ -291,7 +289,6 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   @Override
   protected void checkSynchronizedStatement(
       final IRNode syncStmt, final IRNode lockExpr) {
-    final String s = DebugUnparser.toString(lockExpr);
     checkForNull(lockExpr);
   }
   

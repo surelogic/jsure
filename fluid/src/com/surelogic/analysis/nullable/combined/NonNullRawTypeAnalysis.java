@@ -403,14 +403,10 @@ implements IBinderClient {
     
   
   
-  public interface Kind {
-    public int getMessage();
-    public String unparse(IRNode w);
-    public IRNode getAnnotatedNode(IBinder binder, IRNode where);
-    public IRNode bind(IBinder binder, IRNode where);
-  }
-  
-  public enum SimpleKind implements Kind {
+  public enum Kind {
+    VAR_USE(-1),
+    THIS_EXPR(-1),
+
     RECEIVER_ANON_CLASS(940),
     NEW_ARRAY(941),
     BOX(942),
@@ -481,12 +477,6 @@ implements IBinderClient {
     },
     STRING_CONCAT(959),
     IS_OBJECT(960),
-    VAR_USE(-1) {
-      @Override
-      public IRNode bind(final IBinder binder, final IRNode where) {
-        return binder.getBinding(where);
-      }
-    },
     ENUM_CONSTANT(961) {
       @Override
       public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
@@ -502,54 +492,24 @@ implements IBinderClient {
     
     private final int msg;
     
-    SimpleKind(final int m) {
+    Kind(final int m) {
       msg = m;
     }
     
-    @Override
     public final int getMessage() {
       return msg;
     }
     
-    @Override
     public String unparse(final IRNode w) {
       return DebugUnparser.toString(w);
     }
     
-    @Override
     public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
       return null;
     }
-    
-    @Override
-    public IRNode bind(final IBinder binder, final IRNode where) {
-      return null;
-    }    
   }
+
   
-  public static final class ThisKind implements Kind {
-    private final IRNode flowUnit;
-    
-    public ThisKind(final IRNode fu) {
-      flowUnit = fu;
-    }
-    
-    @Override
-    public int getMessage() { return -1; }
-    
-    @Override
-    public String unparse(final IRNode w) { return "this"; }
-    
-    @Override
-    public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
-      return null;
-    }
-    
-    @Override
-    public IRNode bind(final IBinder binder, final IRNode where) {
-      return AnalysisUtils.getReceiverNodeAtExpression(where, flowUnit);
-    }
-  }
   
   public static final class Source extends Triple<Kind, IRNode, Element> {
     public Source(final Kind k, final IRNode where, final Element value) {
@@ -867,16 +827,16 @@ implements IBinderClient {
           InitDeclaration.prototype.includes(op)) {
         value = lattice.setThis(
             value, JavaPromise.getReceiverNode(node),
-            lattice.baseValue(NonNullRawLattice.RAW, SimpleKind.RECEIVER_RAW_OBJECT, node));
+            lattice.baseValue(NonNullRawLattice.RAW, Kind.RECEIVER_RAW_OBJECT, node));
       } else if (MethodDeclaration.prototype.includes(op) && !TypeUtil.isStatic(node)) {
         final IRNode rcvr = JavaPromise.getReceiverNode(node);
         final RawPromiseDrop pd = NonNullRules.getRaw(rcvr);
         if (pd != null) {
           value = lattice.setThis(value, rcvr, 
-              lattice.baseValue(lattice.injectPromiseDrop(pd), SimpleKind.RECEIVER_METHOD, rcvr));
+              lattice.baseValue(lattice.injectPromiseDrop(pd), Kind.RECEIVER_METHOD, rcvr));
         } else {
           value = lattice.setThis(value, rcvr, 
-              lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.RECEIVER_METHOD, rcvr));
+              lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.RECEIVER_METHOD, rcvr));
         }
       }
 
@@ -891,19 +851,19 @@ implements IBinderClient {
           final IRNode parent = JJNode.tree.getParent(v);
           if (CatchClause.prototype.includes(parent)) {
             value = lattice.setVar(value, idx,
-                lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.CAUGHT_EXCEPTION, v));
+                lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.CAUGHT_EXCEPTION, v));
           } else { // normal parameter
             // N.B. Parameter cannot have both @Raw and @NonNull annotations
             final RawPromiseDrop pd = NonNullRules.getRaw(v);
             if (pd != null) {
               value = lattice.setVar(value, idx, 
-                  lattice.baseValue(lattice.injectPromiseDrop(pd), SimpleKind.FORMAL_PARAMETER, v));
+                  lattice.baseValue(lattice.injectPromiseDrop(pd), Kind.FORMAL_PARAMETER, v));
             } else if (NonNullRules.getNonNull(v) != null) {
               value = lattice.setVar(value, idx,
-                  lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.FORMAL_PARAMETER, v));
+                  lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.FORMAL_PARAMETER, v));
             } else { // no annotation or @Nullable
               value = lattice.setVar(value, idx,
-                  lattice.baseValue(NonNullRawLattice.MAYBE_NULL, SimpleKind.FORMAL_PARAMETER, v));
+                  lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.FORMAL_PARAMETER, v));
             }
           }
         }
@@ -920,12 +880,12 @@ implements IBinderClient {
       if (returnNode != null) {
         // NB. Either @Raw or @NonNull but never both
         if (NonNullRules.getNonNull(returnNode) != null) {
-          return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.METHOD_RETURN, node));
+          return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.METHOD_RETURN, node));
         }
 
         final RawPromiseDrop pd = NonNullRules.getRaw(returnNode);
         if (pd != null) {
-          return push(val, lattice.baseValue(lattice.injectPromiseDrop(pd), SimpleKind.METHOD_RETURN, node));
+          return push(val, lattice.baseValue(lattice.injectPromiseDrop(pd), Kind.METHOD_RETURN, node));
         }
       }
       // Void return or no annotatioN: not raw
@@ -933,7 +893,7 @@ implements IBinderClient {
        * okay because the "return value" from the method will be thrown away
        * by the flow analysis. 
        */
-      return push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, SimpleKind.METHOD_RETURN, node));
+      return push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.METHOD_RETURN, node));
     }
     
     /*
@@ -946,7 +906,7 @@ implements IBinderClient {
       // new expressions always return fully initialized values.
       // XXX: What operators do we have here?  I think NewExpression and AnonClassExpression
       // final Operator op = JJNode.tree.getOperator(node)
-      return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.NEW_OBJECT, node));
+      return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.NEW_OBJECT, node));
     }
     
     @Override
@@ -961,7 +921,7 @@ implements IBinderClient {
       }
       // XXX: What operators do we have here?  I think ArrayCreationExpression
       // final Operator op = JJNode.tree.getOperator(node)
-      return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.NEW_ARRAY, arrayCreation));
+      return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.NEW_ARRAY, arrayCreation));
     }
     
     @Override
@@ -1002,7 +962,7 @@ implements IBinderClient {
     protected Value transferBox(final IRNode expr, final Value val) {
       if (!lattice.isNormal(val)) return val;
       return lattice.push(lattice.pop(val),
-          lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.BOX, expr));
+          lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.BOX, expr));
     }
 
     @Override
@@ -1013,7 +973,7 @@ implements IBinderClient {
       Value newValue = lattice.pop(val);
       newValue = lattice.pop(newValue);
       newValue = lattice.push(newValue, 
-          lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.STRING_CONCAT, node));
+          lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.STRING_CONCAT, node));
       return newValue;
     }
 
@@ -1036,10 +996,10 @@ implements IBinderClient {
                 typeEnv.getSuperclass(
                     (IJavaDeclaredType) typeEnv.getMyThisType(classDecl)));
             return lattice.setThis(value, rcvrDecl, 
-                lattice.baseValue(rcvrState, SimpleKind.RECEIVER_CONSTRUCTOR_CALL, node));
+                lattice.baseValue(rcvrState, Kind.RECEIVER_CONSTRUCTOR_CALL, node));
           } else { // ThisExpression
             return lattice.setThis(value, rcvrDecl,
-                lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.RECEIVER_CONSTRUCTOR_CALL, node));
+                lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.RECEIVER_CONSTRUCTOR_CALL, node));
           }
         } else if (AnonClassExpression.prototype.includes(node)) {
           final IRNode superClassDecl =
@@ -1049,7 +1009,7 @@ implements IBinderClient {
           final IRNode rcvrDecl =
               JavaPromise.getReceiverNode(JavaPromise.getInitMethod(node));
           return lattice.setThis(value, rcvrDecl, 
-              lattice.baseValue(rcvrState, SimpleKind.RECEIVER_ANON_CLASS, node));
+              lattice.baseValue(rcvrState, Kind.RECEIVER_ANON_CLASS, node));
         } else if (ImpliedEnumConstantInitialization.prototype.includes(node)
             && EnumConstantClassDeclaration.prototype.includes(tree.getParent(node))) {
           /* The immediately enclosing type is the EnumConstantClassDeclaration
@@ -1063,7 +1023,7 @@ implements IBinderClient {
               JavaPromise.getReceiverNode(JavaPromise.getInitMethod(
                   tree.getParent(node)));
           return lattice.setThis(value, rcvrDecl,
-              lattice.baseValue(rcvrState, SimpleKind.RECEIVER_ANON_CLASS, tree.getParent(node)));
+              lattice.baseValue(rcvrState, Kind.RECEIVER_ANON_CLASS, tree.getParent(node)));
         } else { // Not sure why it should ever get here
           throw new IllegalStateException(
               "transferConstructorCall() called with a " +
@@ -1100,7 +1060,7 @@ implements IBinderClient {
          * primitive or a newly boxed value.
          */
         return lattice.push(lattice.pop(val), 
-            lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.BOXED_CREMENT, node));
+            lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.BOXED_CREMENT, node));
       } else { // Definitely a postfix operation
         // Is this the first call, before the variable assignment?
         if (((CrementExpression) tt).baseOp().equals(op)) {
@@ -1113,7 +1073,7 @@ implements IBinderClient {
            * corrective call.
            */
           return lattice.push(val, 
-              lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.BOXED_CREMENT, node));
+              lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.BOXED_CREMENT, node));
         } else { // It's the second, corrective call
           /*
            * We want to return the state of the value of the variable before the
@@ -1131,7 +1091,7 @@ implements IBinderClient {
     @Override
     protected Value transferDefaultInit(final IRNode node, final Value val) {
       if (!lattice.isNormal(val)) return val;
-      return push(val, lattice.baseValue(NonNullRawLattice.NULL, SimpleKind.UNITIALIZED, node));
+      return push(val, lattice.baseValue(NonNullRawLattice.NULL, Kind.UNITIALIZED, node));
     }
 
     /*
@@ -1154,7 +1114,7 @@ implements IBinderClient {
        * equality expression is a primitive boolean type.
        */
       newValue = lattice.push(newValue, 
-          lattice.baseValue(NonNullRawLattice.MAYBE_NULL, SimpleKind.EQUALITY, node));
+          lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.EQUALITY, node));
       
       final Element meet = ni1.meet(ni2);
       
@@ -1176,7 +1136,7 @@ implements IBinderClient {
           final IRNode n = tree.getChild(node, 1); // don't use EqExpression methods because this transfer is called on != also
           if (VariableUseExpression.prototype.includes(n)) {
             final int idx = lattice.indexOf(binder.getIBinding(n).getNode());
-            newValue = lattice.setVarNonNullIfNotAlready(newValue, idx, SimpleKind.EQUALITY, node);
+            newValue = lattice.setVarNonNullIfNotAlready(newValue, idx, Kind.EQUALITY, node);
           }
         } else if (NullLiteral.prototype.includes(tree.getChild(node,1))) {
           /*
@@ -1190,7 +1150,7 @@ implements IBinderClient {
           final IRNode n = tree.getChild(node, 0);
           if (VariableUseExpression.prototype.includes(tree.getOperator(n))) {
             final int idx = lattice.indexOf(binder.getIBinding(n).getNode());
-            newValue = lattice.setVarNonNullIfNotAlready(newValue, idx, SimpleKind.EQUALITY, node);
+            newValue = lattice.setVarNonNullIfNotAlready(newValue, idx, Kind.EQUALITY, node);
           }
         } else {
           // TRUE BRANCH: can update variables to be the meet of the two sides
@@ -1203,7 +1163,7 @@ implements IBinderClient {
     protected Value transferImplicitArrayCreation(
         final IRNode arrayInitializer, final Value val) {
       return push(val, 
-          lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.NEW_ARRAY, arrayInitializer));
+          lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.NEW_ARRAY, arrayInitializer));
     }
 
     @Override
@@ -1246,7 +1206,7 @@ implements IBinderClient {
       final IRNode n = InstanceOfExpression.getValue(node);
       if (VariableUseExpression.prototype.includes(n)) {
         final int idx = lattice.indexOf(binder.getIBinding(n).getNode());
-        return lattice.setVarNonNullIfNotAlready(val, idx, SimpleKind.INSTANCEOF, node);
+        return lattice.setVarNonNullIfNotAlready(val, idx, Kind.INSTANCEOF, node);
       }
       return val;
     }
@@ -1297,7 +1257,7 @@ implements IBinderClient {
       if (flag && VariableUseExpression.prototype.includes(n)) {
         final IRNode varDecl = binder.getIBinding(n).getNode();
         final int idx = lattice.indexOf(varDecl);
-        return lattice.setVarNonNullIfNotAlready(val, idx, SimpleKind.IS_OBJECT, n);
+        return lattice.setVarNonNullIfNotAlready(val, idx, Kind.IS_OBJECT, n);
       }
       return super.transferIsObject(n, flag, val);
     }
@@ -1308,10 +1268,10 @@ implements IBinderClient {
       
       if (NullLiteral.prototype.includes(node)) {
         return lattice.push(val, lattice.baseValue(
-            NonNullRawLattice.NULL, SimpleKind.NULL_LITERAL, node));
+            NonNullRawLattice.NULL, Kind.NULL_LITERAL, node));
       } else {
         return lattice.push(val, lattice.baseValue(
-            NonNullRawLattice.NOT_NULL, SimpleKind.STRING_LITERAL, node));
+            NonNullRawLattice.NOT_NULL, Kind.STRING_LITERAL, node));
       }
     }
     
@@ -1336,7 +1296,7 @@ implements IBinderClient {
        */
       if (EnumConstantDeclaration.prototype.includes(fieldDecl)) {
         // Always @NonNull
-        val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.ENUM_CONSTANT, fieldDecl));
+        val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.ENUM_CONSTANT, fieldDecl));
       }
       /*
        * If the field is @NonNull, then we push NOT_NULL, unless the object
@@ -1347,7 +1307,7 @@ implements IBinderClient {
       else if (NonNullRules.getNonNull(fieldDecl) != null) {
         if (refState == NonNullRawLattice.RAW) {
           // No fields are initialized
-          val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, SimpleKind.RAW_FIELD_REF, fref));
+          val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.RAW_FIELD_REF, fref));
         } else if (refState instanceof ClassElement) {
           // Partially initialized class
           final IJavaDeclaredType initializedThrough =
@@ -1361,15 +1321,15 @@ implements IBinderClient {
           final IJavaType fieldIsFrom = typeEnvironment.getMyThisType(fieldDeclaredIn);
           if (typeEnvironment.isSubType(fieldIsFrom, initializedThrough) &&
               !fieldIsFrom.equals(initializedThrough)) {
-            val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, SimpleKind.RAW_FIELD_REF, fref));
+            val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.RAW_FIELD_REF, fref));
           } else {
-            val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.FIELD_REF, fref));
+            val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.FIELD_REF, fref));
           }
         } else {
-          val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.FIELD_REF, fref));
+          val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.FIELD_REF, fref));
         }
       } else {
-        val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, SimpleKind.FIELD_REF, fref));
+        val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.FIELD_REF, fref));
       }
       return val;
     }
@@ -1379,7 +1339,7 @@ implements IBinderClient {
       if (!lattice.isNormal(val)) return val;
       final IRNode receiverNode = AnalysisUtils.getReceiverNodeAtExpression(use, flowUnit);
       final Element nullState = lattice.getThis(val, receiverNode).first();
-      return lattice.push(val, lattice.baseValue(nullState, new ThisKind(flowUnit), use));
+      return lattice.push(val, lattice.baseValue(nullState, Kind.THIS_EXPR, use));
     }
     
     @Override
@@ -1399,10 +1359,10 @@ implements IBinderClient {
             lattice.baseValue(
                   lattice.injectClass(
                       qualifyingType.getSuperclass(binder.getTypeEnvironment())),
-                  SimpleKind.QUALIFIED_THIS, use));
+                  Kind.QUALIFIED_THIS, use));
       } else {
         return lattice.push(val, 
-            lattice.baseValue(NonNullRawLattice.NOT_NULL, SimpleKind.QUALIFIED_THIS, use));
+            lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.QUALIFIED_THIS, use));
       }
     }
     
@@ -1415,11 +1375,11 @@ implements IBinderClient {
       final int idx = var == null ? -1 : lattice.indexOf(var);
       if (idx != -1) {
         return lattice.push(val, 
-            lattice.baseValue(lattice.getVar(val, idx).first(), SimpleKind.VAR_USE, use));
+            lattice.baseValue(lattice.getVar(val, idx).first(), Kind.VAR_USE, use));
       } else {
         // N.B. primitively typed variable
         return lattice.push(val,
-            lattice.baseValue(NonNullRawLattice.MAYBE_NULL, SimpleKind.VAR_USE, use));
+            lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.VAR_USE, use));
       }
     }
   }
