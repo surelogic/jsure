@@ -168,7 +168,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
          * we first introduce a new NullablePromiseDrop.
          */
         final StackQueryResult queryResult = currentQuery().getResultFor(expr);
-        final boolean hasNegativeResult =  testChainOuter(NonNullRawLattice.MAYBE_NULL, queryResult.getSources());
+        final boolean hasNegativeResult =  testChain(NonNullRawLattice.MAYBE_NULL, queryResult.getSources());
 //        boolean hasNegativeResult = false;
 //        final Iterator<Source> it = queryResult.getSources().iterator();
 //        while (it.hasNext() && !hasNegativeResult) {
@@ -242,39 +242,28 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     }
   }
   
-  private boolean testChainOuter(final Element declState, final Set<Source> sources) {
+  private boolean testChain(final Element declState, final Set<Source> sources) {
     boolean hasNegative = false;
     final Iterator<Source> it = sources.iterator();
     while (it.hasNext() && !hasNegative) {
-      final Source src2 = it.next();
-      hasNegative |= testChain(declState, src2);
+      final Source src = it.next();
+      final Kind k = src.first();
+      final IRNode where = src.second();
+        
+      if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
+        final IRNode vd = binder.getBinding(where);
+        final StackQueryResult newQuery = currentQuery().getResultFor(where);
+        final Base varValue = newQuery.lookupVar(vd);
+        hasNegative |= testChain(declState, varValue.second());
+      } else {
+        final Element srcState = src.third();
+        hasNegative |= !declState.isAssignableFrom(binder.getTypeEnvironment(), srcState);
+      }
     }
     return hasNegative;
   }
-  
-  // Return true, if there is a negative assurance result
-  private boolean testChain(final Element declState, final Source src) {
-    final Kind k = src.first();
-    final IRNode where = src.second();
-      
-    if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
-      final IRNode vd = binder.getBinding(where);
-      final StackQueryResult newQuery = currentQuery().getResultFor(where);
-      final Base varValue = newQuery.lookupVar(vd);
-      return testChainOuter(declState, varValue.second());
-//      boolean hasNegative = false;
-//      final Iterator<Source> it = varValue.second().iterator();
-//      while (it.hasNext() && !hasNegative) {
-//        final Source src2 = it.next();
-//        hasNegative |= testChain(declState, src2);
-//      }
-//      return hasNegative;
-    } else {
-      final Element srcState = src.third();
-      return !declState.isAssignableFrom(binder.getTypeEnvironment(), srcState);
-    }
-  }
 
+  
   
   @Override
   protected void checkUnboxExpression(
