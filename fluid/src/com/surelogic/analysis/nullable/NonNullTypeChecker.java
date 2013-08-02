@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import com.surelogic.aast.promise.NullableNode;
+import com.surelogic.analysis.AbstractThisExpressionBinder;
+import com.surelogic.analysis.InstanceInitAction;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice.ClassElement;
@@ -57,14 +59,78 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   private static final int RAW_INTO_NULLABLE = 932;
   
   
+  private final ThisExpressionBinder thisExprBinder;
   private final NonNullRawTypeAnalysis nonNullRawTypeAnalysis;
+  
+  private IRNode receiverDecl = null;
+
   
   
   public NonNullTypeChecker(final IBinder b,
       final NonNullRawTypeAnalysis nonNullRaw) {
     super(b);
+    thisExprBinder = new ThisExpressionBinder(b);
     nonNullRawTypeAnalysis = nonNullRaw;
   }
+  
+  
+  
+  // ======================================================================
+  // == Manage the binding of this expression
+  // ======================================================================
+  
+  @Override
+  protected void handleMethodDeclaration(final IRNode mdecl) {
+    receiverDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
+    super.handleMethodDeclaration(mdecl);
+  }
+  
+  @Override
+  protected void handleConstructorDeclaration(final IRNode cdecl) {
+    receiverDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
+    super.handleConstructorDeclaration(cdecl);
+  }
+  
+  @Override
+  protected InstanceInitAction getAnonClassInitAction(
+      final IRNode expr, final IRNode classBody) {
+    return new InstanceInitAction() {
+      final IRNode oldReceiverDecl = receiverDecl;
+      
+      @Override
+      public void tryBefore() {
+        receiverDecl = JavaPromise.getReceiverNodeOrNull(getEnclosingDecl());
+      }
+      
+      @Override
+      public void finallyAfter() {
+        receiverDecl = oldReceiverDecl;
+      }
+      
+      @Override
+      public void afterVisit() {
+        // does nothing
+      }
+    };
+  }
+  
+  private final class ThisExpressionBinder extends AbstractThisExpressionBinder {
+    public ThisExpressionBinder(final IBinder b) {
+      super(b);
+    }
+
+    @Override
+    protected IRNode bindReceiver(IRNode node) {
+      return receiverDecl;
+    }
+    
+    @Override
+    protected IRNode bindQualifiedReceiver(IRNode outerType, IRNode node) {
+      return JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
+    }    
+  }
+
+  // ======================================================================
 
   
   
@@ -105,7 +171,8 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       final IRNode where = src.second();
       
       if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
-        final IRNode vd = binder.getBinding(where);
+        final IRNode vd = k.bind(where, binder, thisExprBinder);
+//            k == Kind.VAR_USE ? binder.getBinding(where) : thisExprBinder.bindThisExpression(where);
         final StackQueryResult newQuery = currentQuery().getResultFor(where);
         final Base varValue = newQuery.lookupVar(vd);
         chain.addLast(where);
@@ -168,14 +235,8 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
          * we first introduce a new NullablePromiseDrop.
          */
         final StackQueryResult queryResult = currentQuery().getResultFor(expr);
-        final boolean hasNegativeResult =  testChain(NonNullRawLattice.MAYBE_NULL, queryResult.getSources());
-//        boolean hasNegativeResult = false;
-//        final Iterator<Source> it = queryResult.getSources().iterator();
-//        while (it.hasNext() && !hasNegativeResult) {
-//          final Source src = it.next();
-//          hasNegativeResult |= testChain(NonNullRawLattice.MAYBE_NULL, src);
-//        }
-        
+        final boolean hasNegativeResult = 
+            testChain(NonNullRawLattice.MAYBE_NULL, queryResult.getSources());
         if (hasNegativeResult) {
           // Do we already have a virtual promise drop?
           final PromiseDrop<?> drop;
@@ -207,7 +268,8 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       final IRNode where = src.second();
         
       if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
-        final IRNode vd = binder.getBinding(where);
+        final IRNode vd = k.bind(where, binder, thisExprBinder);
+//            k == Kind.VAR_USE ? binder.getBinding(where) : thisExprBinder.bindThisExpression(where);
         final StackQueryResult newQuery = currentQuery().getResultFor(where);
         final Base varValue = newQuery.lookupVar(vd);
         final ResultFolderDrop f = ResultsBuilder.createAndFolder(
@@ -251,7 +313,8 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       final IRNode where = src.second();
         
       if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
-        final IRNode vd = binder.getBinding(where);
+        final IRNode vd = k.bind(where, binder, thisExprBinder);
+//            k == Kind.VAR_USE ? binder.getBinding(where) : thisExprBinder.bindThisExpression(where);
         final StackQueryResult newQuery = currentQuery().getResultFor(where);
         final Base varValue = newQuery.lookupVar(vd);
         hasNegative |= testChain(declState, varValue.second());

@@ -17,6 +17,7 @@ import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalValue;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalLattice;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePair;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePairLattice;
+import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice.ClassElement;
 import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
 import com.surelogic.annotation.rules.NonNullRules;
@@ -404,8 +405,20 @@ implements IBinderClient {
   
   
   public enum Kind {
-    VAR_USE(-1),
-    THIS_EXPR(-1),
+    VAR_USE(-1) {
+      @Override
+      public IRNode bind(final IRNode expr,
+          final IBinder b, final ThisExpressionBinder teb) {
+        return b.getBinding(expr);
+      }
+    },
+    THIS_EXPR(-1) {
+      @Override
+      public IRNode bind(final IRNode expr,
+          final IBinder b, final ThisExpressionBinder teb) {
+        return teb.bindThisExpression(expr);
+      }
+    },
 
     RECEIVER_ANON_CLASS(940),
     NEW_ARRAY(941),
@@ -496,8 +509,23 @@ implements IBinderClient {
       msg = m;
     }
     
+    /* A cleaner implementation would separate out VAR_USE and THIS_EXPR
+     * from the rest of the elements. But because Java lacks a typecase
+     * operation, doing so would necessitate the use of a typecast in the 
+     * testChain(), buildNewChain(), and buildWarningResults() methods
+     * NonNullTypeChecker.  Not clear that requiring that would be any cleaner
+     * than being sloppy like we are doing now.
+     */
+    
+    // N.B. Not needed by VAR_USE or THIS_EXPR
     public final int getMessage() {
       return msg;
+    }
+    
+    // N.B. Only needed by VAR_USE and THIS_EXPR
+    public IRNode bind(
+        final IRNode expr, final IBinder b, final ThisExpressionBinder teb) {
+      return null;
     }
     
     public String unparse(final IRNode w) {
