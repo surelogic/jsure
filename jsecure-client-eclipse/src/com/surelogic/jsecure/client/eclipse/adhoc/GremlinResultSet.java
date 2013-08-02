@@ -26,11 +26,14 @@ import com.tinkerpop.pipes.Pipe;
 
 public class GremlinResultSet implements ResultSet {
 	final Property[] props;
-	final Pipe<?,? extends Element> pipe;
-	Iterator<? extends Element> iterator;
-	Element currentElement;
+	final Pipe<?,?> pipe;
+	Iterator<?> iterator;
+	Object current;
+	// Should be the same as current
+	List<?> currentList = null;
+	int currentIndex = -1;
 	
-	public GremlinResultSet(Pipe<?,? extends Element> result, Property[] props) {
+	public GremlinResultSet(Pipe<?,?> result, Property[] props) {
 		this.props = props;
 		pipe = result;
 		iterator = pipe.iterator();
@@ -49,8 +52,28 @@ public class GremlinResultSet implements ResultSet {
 
 	@Override
 	public boolean next() throws SQLException {
+		if (currentList != null) {
+			currentIndex++;
+			if (currentIndex < currentList.size()) {
+				//System.out.println("\tWorking on #"+currentIndex+" from "+currentList);
+				return true;
+			}
+			// otherwise, we're done with this list
+			//System.out.println("\tDone with "+currentList);
+			currentList = null;
+			currentIndex = -1;
+		}
 		if (iterator.hasNext()) {
-			currentElement = iterator.next();
+			current = iterator.next();
+			
+			if (current instanceof List) {
+				//System.out.println("Starting on "+current);
+				currentList = (List<?>) current;
+				currentIndex = 0;
+				if (currentList.isEmpty()) {
+					throw new SQLException("Not expecting an empty list");
+				}
+			}
 			return true;
 		}
 		return false;
@@ -69,14 +92,25 @@ public class GremlinResultSet implements ResultSet {
 	@Override
 	public String getString(final int columnIndex) throws SQLException {
 		final int i = columnIndex-1;
-		if (currentElement != null) {
+		final Object o; 
+		if (i != 0 && currentList != null) {
+			o = currentList.get(currentIndex);
+		} else {
+			o = current;
+		}
+		return getString(o, props[i].expr);
+	}
+	
+	private static String getString(final Object o, final String prop) throws SQLException {
+		if (o instanceof Element) {
+			Element currentElement = (Element) o;
 			//return currentElement.toString();
-			if ("id".equalsIgnoreCase(props[i].expr)) {
+			if ("id".equalsIgnoreCase(prop)) {
 				return currentElement.getId().toString();
 			}
 			if (currentElement instanceof Edge) {
 				Edge v = (Edge) currentElement;
-				return getFromEdge(v, props[i].expr);				
+				return getFromEdge(v, prop);				
 			}
 			/*
 			if (currentElement instanceof Vertex) {
@@ -87,7 +121,26 @@ public class GremlinResultSet implements ResultSet {
 				}
 			}
 			*/
-			return getNonnullProperty(currentElement, props[i].expr);
+			return getNonnullProperty(currentElement, prop);
+		}
+		else if (o instanceof List) {
+			final List<?> l = (List<?>) o;
+			final StringBuilder sb = new StringBuilder();
+			sb.append('{');
+			boolean first = true;
+			for(Object o2 : l) {
+				if (first) {
+					first = false;
+				} else {
+					sb.append(", ");
+				}
+				sb.append(getString(o2, prop));
+			}
+			sb.append('}');
+			return sb.toString();
+		}
+		else if (o instanceof Map) {
+			
 		}
 		return null;
 	}
