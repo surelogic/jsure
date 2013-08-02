@@ -153,7 +153,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
        * on.  So we have to add a virtual @Nullable annotation.  See the ELSE 
        * branch.
        */
-      if (declPD != null) {
+      if (declPD != null && !declPD.isVirtual()) { // Skip virtual @Nullables
         final StackQueryResult queryResult = currentQuery().getResultFor(expr);
         final Element declState = queryResult.getLattice().injectPromiseDrop(declPD);        
         final ResultsBuilder builder = new ResultsBuilder(declPD);
@@ -168,18 +168,25 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
          * we first introduce a new NullablePromiseDrop.
          */
         final StackQueryResult queryResult = currentQuery().getResultFor(expr);
-        boolean hasNegativeResult = false;
-        final Iterator<Source> it = queryResult.getSources().iterator();
-        while (it.hasNext() && !hasNegativeResult) {
-          final Source src = it.next();
-          hasNegativeResult |= testChain(NonNullRawLattice.MAYBE_NULL, src);
-        }
+        final boolean hasNegativeResult =  testChainOuter(NonNullRawLattice.MAYBE_NULL, queryResult.getSources());
+//        boolean hasNegativeResult = false;
+//        final Iterator<Source> it = queryResult.getSources().iterator();
+//        while (it.hasNext() && !hasNegativeResult) {
+//          final Source src = it.next();
+//          hasNegativeResult |= testChain(NonNullRawLattice.MAYBE_NULL, src);
+//        }
         
         if (hasNegativeResult) {
-          final NullableNode nn = new NullableNode(0);
-          nn.setPromisedFor(decl, null);
-          final NullablePromiseDrop drop = new NullablePromiseDrop(nn);
-          AnnotationRules.attachAsVirtual(NonNullRules.getNullableStorage(), drop);
+          // Do we already have a virtual promise drop?
+          final PromiseDrop<?> drop;
+          if (declPD == null) {
+            final NullableNode nn = new NullableNode(0);
+            nn.setPromisedFor(decl, null);
+            drop = new NullablePromiseDrop(nn);
+            AnnotationRules.attachAsVirtual(NonNullRules.getNullableStorage(), (NullablePromiseDrop) drop);
+          } else {
+            drop = declPD;
+          }
           
           final ResultsBuilder builder = new ResultsBuilder(drop);
           ResultFolderDrop folder = builder.createRootAndFolder(
@@ -235,6 +242,16 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     }
   }
   
+  private boolean testChainOuter(final Element declState, final Set<Source> sources) {
+    boolean hasNegative = false;
+    final Iterator<Source> it = sources.iterator();
+    while (it.hasNext() && !hasNegative) {
+      final Source src2 = it.next();
+      hasNegative |= testChain(declState, src2);
+    }
+    return hasNegative;
+  }
+  
   // Return true, if there is a negative assurance result
   private boolean testChain(final Element declState, final Source src) {
     final Kind k = src.first();
@@ -244,13 +261,14 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       final IRNode vd = binder.getBinding(where);
       final StackQueryResult newQuery = currentQuery().getResultFor(where);
       final Base varValue = newQuery.lookupVar(vd);
-      boolean hasNegative = false;
-      final Iterator<Source> it = varValue.second().iterator();
-      while (it.hasNext() && !hasNegative) {
-        final Source src2 = it.next();
-        hasNegative |= testChain(declState, src2);
-      }
-      return hasNegative;
+      return testChainOuter(declState, varValue.second());
+//      boolean hasNegative = false;
+//      final Iterator<Source> it = varValue.second().iterator();
+//      while (it.hasNext() && !hasNegative) {
+//        final Source src2 = it.next();
+//        hasNegative |= testChain(declState, src2);
+//      }
+//      return hasNegative;
     } else {
       final Element srcState = src.third();
       return !declState.isAssignableFrom(binder.getTypeEnvironment(), srcState);
