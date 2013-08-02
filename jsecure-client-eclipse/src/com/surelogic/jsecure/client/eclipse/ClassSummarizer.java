@@ -1,6 +1,7 @@
 package com.surelogic.jsecure.client.eclipse;
 
 import java.io.*;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.*;
@@ -74,7 +75,8 @@ public class ClassSummarizer extends ClassVisitor {
 	Clazz result = null;	
 
 	final TransactionalGraph graphDb;
-
+	final Map<String,Vertex> keyedMap = new HashMap<String, Vertex>();
+	
 	public ClassSummarizer(File runDir) {
 		super(Opcodes.ASM4);
 		
@@ -89,6 +91,7 @@ public class ClassSummarizer extends ClassVisitor {
 		OrientGraph graph = new OrientGraph("local:"+dbLoc.getAbsolutePath());
 		graphDb = graph;
 		graph.createKeyIndex(INDEX_KEY, Vertex.class);
+		//graph.createKeyIndex(arg0, Edge.class);
 		registerShutdownHook( graphDb );
 	}
 
@@ -305,15 +308,19 @@ public class ClassSummarizer extends ClassVisitor {
 		return findVertex(VertexType.FIELD, clazzName, fieldName, mods);
 	}
 	
-	private Vertex findVertex(VertexType type, String clazzName, String nodeName, int access) {
+	private Vertex findVertex(VertexType type, String clazzName, String nodeName, int access) {		
 		// Check if already created
 		final String id = clazzName+", "+nodeName;
-		for(Vertex v : graphDb.getVertices(INDEX_KEY, id)) {
+		//for(Vertex v : graphDb.getVertices(INDEX_KEY, id)) {
+		final Vertex v = keyedMap.get(id);
+		if (v != null) {		
+
 			if (access != -1 && v.getProperty(ICON) == null) {
 			    v.setProperty(ICON, encodeIconForDecl(type.encodeType(nodeName), access));
 			}
 			return v; // return the first!
-		}		
+		}
+		
 		// Need to create
 		Vertex node = graphDb.addVertex(null/*"class:"+type*/);
 	    node.setProperty( INDEX_KEY, id );
@@ -327,6 +334,7 @@ public class ClassSummarizer extends ClassVisitor {
 	    if (access != -1) {
 	    	node.setProperty(ICON, encodeIconForDecl(type.encodeType(nodeName), access));
 	    }
+	    keyedMap.put(id, node);
 	    return node;
 	}
 	
@@ -369,8 +377,15 @@ public class ClassSummarizer extends ClassVisitor {
 	}
 	
 	private void addReference(Vertex caller, RelTypes rel, Vertex callee) {
-		//Edge eLives = 
-		graphDb.addEdge(null, caller, callee, rel.toString());
+		final String label = rel.toString();
+		// Check if edge already exists
+		for(Edge e : caller.getEdges(Direction.OUT, label)) {
+			if (callee.equals(e.getVertex(Direction.IN))) {
+				// Already created
+				return;
+			}
+		}
+		graphDb.addEdge(null, caller, callee, label);
 	}
 
 	public void dump() {
