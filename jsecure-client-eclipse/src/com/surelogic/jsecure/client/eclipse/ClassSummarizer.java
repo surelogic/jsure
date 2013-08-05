@@ -33,6 +33,8 @@ public class ClassSummarizer extends ClassVisitor {
 	 * Qualified name of the enclosing class
 	 */
 	public static final String PARENT_CLASS = "parentClass";
+
+	public static final String CALLED = "called";
 	
 	/**
 	 * For display purposes
@@ -217,6 +219,13 @@ public class ClassSummarizer extends ClassVisitor {
 		
 		//return super.visitMethod(access, name, desc, signature, exceptions);
         MethodVisitor oriMv= new MethodVisitor(Opcodes.ASM4) {
+        	int lastLine = -1;
+        	        
+        	public void visitLineNumber(int line, Label start) {
+        		//System.out.println("Line "+line+" -- "+start);
+        		lastLine = line;
+        	}
+        	
         	@Override
         	public void visitFieldInsn(int opcode, String owner, String name,
         			String desc) {
@@ -226,6 +235,7 @@ public class ClassSummarizer extends ClassVisitor {
         		
         		final Vertex field = findField(owner, name, -1);
         		addReference(func, RelTypes.USES, field);
+        		// TODO where do I store the source refs?
         	}
         	
         	@Override
@@ -237,6 +247,7 @@ public class ClassSummarizer extends ClassVisitor {
         		
         		final Vertex callee = findFunctionVertex(owner, name, desc, -1);
         		addReference(func, RelTypes.CALLS, callee);
+        		// TODO where do I store the source refs?
         	}
         	
         	@Override
@@ -244,6 +255,7 @@ public class ClassSummarizer extends ClassVisitor {
         			Handle bsm, Object... bsmArgs) {
          		System.out.println("\tDynamic: "+name+", "+desc+" via "+bsm.getOwner()+", "+bsm.getName()+", "+bsm.getDesc());
         		super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
+        		// TODO should I record these uses?
         	}
         };
         return oriMv;
@@ -386,6 +398,7 @@ public class ClassSummarizer extends ClassVisitor {
 			}
 		}
 		graphDb.addEdge(null, caller, callee, label);
+		callee.setProperty(CALLED, Boolean.TRUE);
 	}
 
 	public void dump() {
