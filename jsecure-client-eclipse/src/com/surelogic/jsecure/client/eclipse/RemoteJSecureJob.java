@@ -10,8 +10,6 @@ import com.surelogic.common.java.*;
 import com.surelogic.common.jobs.*;
 import com.surelogic.common.jobs.remote.*;
 
-import static com.surelogic.jsecure.client.eclipse.ClassSummarizer.*;
-
 public class RemoteJSecureJob extends RemoteScanJob<JavaProjectSet<JavaProject>,JavaProject> {
 	protected RemoteJSecureJob() {
 		super(IJavaFactory.prototype);
@@ -28,13 +26,13 @@ public class RemoteJSecureJob extends RemoteScanJob<JavaProjectSet<JavaProject>,
 					int fromJars = 0;
 					monitor.begin(classes.getMapKeys().size());					
 					for(final Pair<String,String> key: classes.getMapKeys()) {
-						System.out.println("Got key: "+key);
+						//System.out.println("Got key: "+key);
 						monitor.worked(1);
 						
 						final IJavaFile info = classes.getMapping(key);
 						if (info.getType() == IJavaFile.Type.CLASS_FOR_SRC) {
 							// TODO what about the jars?
-							summarizer.summarize(info.getStream());
+							summarizer.summarize(info.getStream(), true);
 						}
 						else if (info.getType() != IJavaFile.Type.SOURCE) {
 							if (key.first().startsWith(Config.JRE_NAME)) {
@@ -42,12 +40,12 @@ public class RemoteJSecureJob extends RemoteScanJob<JavaProjectSet<JavaProject>,
 								continue;
 							}
 							fromJars++;
-							summarizer.summarize(info.getStream());
+							summarizer.summarize(info.getStream(), false);
 							// TODO eliminate duplicates between projects?
 						}
 					}
 					summarizer.dump();
-					System.out.println("Summarized from jars: "+fromJars);
+					//System.out.println("Summarized from jars: "+fromJars);
 				} catch(IOException e) {
 					return SLStatus.createErrorStatus(e);
 				} finally {

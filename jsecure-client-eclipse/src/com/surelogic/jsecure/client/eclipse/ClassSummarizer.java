@@ -11,6 +11,7 @@ import javax.script.*;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.Method;
 
+import com.surelogic.common.PerformanceProperties;
 import com.surelogic.common.StringCache;
 
 import com.tinkerpop.blueprints.*;
@@ -43,12 +44,27 @@ public class ClassSummarizer extends ClassVisitor {
 	public static final String CLASS_LABEL = "classLabel";
 	public static final String ICON = "icon";
 	
+	public static final String LINE = "line";
+	public static final String CALLS_HERE = "callsHere";
+	public static final String USES_HERE = "usesHere";
+	
 	public static enum RelTypes /*implements RelationshipType*/ {
 		// X calls method/constructor Y
-	    CALLS, 
+	    CALLS(CALLS_HERE), 
 	    // A uses field B
-	    USES
-	}
+	    USES(USES_HERE);
+	    
+	    private final String here;
+	    
+	    private RelTypes(String here) {
+	    	this.here = here;
+	    }
+	    
+	    // Used to preserve the source info	    
+	    public String getRefHere() {
+	    	return here;
+	    }
+ 	}
 	
 	public static enum VertexType {
 		/*CLASS,*/ FUNCTION() {
@@ -78,8 +94,14 @@ public class ClassSummarizer extends ClassVisitor {
 
 	final TransactionalGraph graphDb;
 	final Map<String,Vertex> keyedMap = new HashMap<String, Vertex>();
+	final PerformanceProperties perf;
+	int numMethods;
+	int numDistinctCalls;
+	int numDistinctUses;
+	int numClasses;
+	int numFromSource;
 	
-	public ClassSummarizer(File runDir) {
+	public ClassSummarizer(final File runDir) {
 		super(Opcodes.ASM4);
 		
 		File dbLoc = new File(runDir, DB_PATH);
@@ -95,21 +117,24 @@ public class ClassSummarizer extends ClassVisitor {
 		graph.createKeyIndex(INDEX_KEY, Vertex.class);
 		//graph.createKeyIndex(arg0, Edge.class);
 		registerShutdownHook( graphDb );
+		
+		perf = new PerformanceProperties("jsecure.", runDir.getName(), runDir, "scan.properties");
+		perf.startTiming();
 	}
 
-	public Clazz summarize(ZipFile jar, String className) throws IOException {
+	public Clazz summarize(ZipFile jar, String className, boolean fromSource) throws IOException {
 		ZipEntry e = jar.getEntry(className);
 		if (e != null) {
-			return summarize(jar.getInputStream(e));		
+			return summarize(jar.getInputStream(e), fromSource);		
 		}
 		return null;
 	}
 	
-	public Clazz summarize(File classFile) throws IOException {
-		return summarize(new FileInputStream(classFile));
+	public Clazz summarize(File classFile, boolean fromSource) throws IOException {
+		return summarize(new FileInputStream(classFile), fromSource);
 	}
 	
-	public Clazz summarize(InputStream is) throws IOException {		
+	public Clazz summarize(InputStream is, boolean fromSource) throws IOException {		
 		init();		
 		try {
 			// Updating operations go here
@@ -123,6 +148,10 @@ public class ClassSummarizer extends ClassVisitor {
 			throw e;
 		}
 		graphDb.commit();
+		numClasses++;
+		if (fromSource) {
+			numFromSource++;
+		}
 		return finish();		
 	}
 	
@@ -136,7 +165,7 @@ public class ClassSummarizer extends ClassVisitor {
 		} finally {
 			result = null;
 		}
-	}
+	} 
 
 	/*
 	 * Called when a class is visited. This is the method called first
@@ -234,7 +263,7 @@ public class ClassSummarizer extends ClassVisitor {
         		super.visitFieldInsn(opcode, owner, name, desc);        		
         		
         		final Vertex field = findField(owner, name, -1);
-        		addReference(func, RelTypes.USES, field);
+        		addReference(func, RelTypes.USES, field, lastLine);
         		// TODO where do I store the source refs?
         	}
         	
@@ -246,7 +275,7 @@ public class ClassSummarizer extends ClassVisitor {
         		super.visitMethodInsn(opcode, owner, name, desc);
         		
         		final Vertex callee = findFunctionVertex(owner, name, desc, -1);
-        		addReference(func, RelTypes.CALLS, callee);
+        		addReference(func, RelTypes.CALLS, callee, lastLine);
         		// TODO where do I store the source refs?
         	}
         	
@@ -293,12 +322,21 @@ public class ClassSummarizer extends ClassVisitor {
 		super.visitSource(source, debug);
 	}
 
-	public void close() {
+	public void close() {		
 		System.out.println("Shutting down");		
 		graphDb.shutdown();
+		perf.stopTiming("totalTimeInMillis");
+		
+		perf.setIntProperty("vertices", keyedMap.size());
+		perf.setIntProperty("methods", numMethods);
+		perf.setIntProperty("calls", numDistinctCalls);
+		perf.setIntProperty("uses", numDistinctUses);
+		perf.setIntProperty("classes", numClasses);
+		perf.setIntProperty("fromSource", numFromSource);
+		perf.store();
 	}
 	
-	private static void registerShutdownHook( final TransactionalGraph graphDb ) {
+	private void registerShutdownHook( final TransactionalGraph graphDb ) {
 	    // Registers a shutdown hook for the Neo4j instance so that it
 	    // shuts down nicely when the VM exits (even if you "Ctrl-C" the
 	    // running example before it's completed)
@@ -307,7 +345,7 @@ public class ClassSummarizer extends ClassVisitor {
 	        @Override
 	        public void run()
 	        {
-	            graphDb.shutdown();
+	        	close();
 	        }
 	    } );
 	}
@@ -347,6 +385,10 @@ public class ClassSummarizer extends ClassVisitor {
 	    	node.setProperty(ICON, encodeIconForDecl(type.encodeType(nodeName), access));
 	    }
 	    keyedMap.put(id, node);
+	    
+	    if (type == VertexType.FUNCTION) {
+	    	numMethods++;
+	    }
 	    return node;
 	}
 	
@@ -388,8 +430,9 @@ public class ClassSummarizer extends ClassVisitor {
 		return nodeName;
 	}
 	
-	private void addReference(Vertex caller, RelTypes rel, Vertex callee) {
+	private void addReference(Vertex caller, RelTypes rel, Vertex callee, int line) {
 		final String label = rel.toString();
+		// TODO is this really necessary?
 		// Check if edge already exists
 		for(Edge e : caller.getEdges(Direction.OUT, label)) {
 			if (callee.equals(e.getVertex(Direction.IN))) {
@@ -398,7 +441,13 @@ public class ClassSummarizer extends ClassVisitor {
 			}
 		}
 		graphDb.addEdge(null, caller, callee, label);
-		callee.setProperty(CALLED, Boolean.TRUE);
+		if (rel == RelTypes.CALLS) {
+			callee.setProperty(CALLED, Boolean.TRUE);			
+			graphDb.addEdge(null, caller, callee, rel.getRefHere());
+			numDistinctCalls++;
+		} else {
+			numDistinctUses++;
+		}
 	}
 
 	public void dump() {
