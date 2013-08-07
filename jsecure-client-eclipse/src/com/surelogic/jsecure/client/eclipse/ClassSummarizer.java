@@ -325,15 +325,17 @@ public class ClassSummarizer extends ClassVisitor {
 	public void close() {		
 		System.out.println("Shutting down");		
 		graphDb.shutdown();
-		perf.stopTiming("totalTimeInMillis");
+		if (perf.isTiming()) {
+			perf.stopTiming("totalTimeInMillis");
 		
-		perf.setIntProperty("vertices", keyedMap.size());
-		perf.setIntProperty("methods", numMethods);
-		perf.setIntProperty("calls", numDistinctCalls);
-		perf.setIntProperty("uses", numDistinctUses);
-		perf.setIntProperty("classes", numClasses);
-		perf.setIntProperty("fromSource", numFromSource);
-		perf.store();
+			perf.setIntProperty("vertices", keyedMap.size());
+			perf.setIntProperty("methods", numMethods);
+			perf.setIntProperty("calls", numDistinctCalls);
+			perf.setIntProperty("uses", numDistinctUses);
+			perf.setIntProperty("classes", numClasses);
+			perf.setIntProperty("fromSource", numFromSource);
+			perf.store();
+		}
 	}
 	
 	private void registerShutdownHook( final TransactionalGraph graphDb ) {
