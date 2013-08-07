@@ -571,37 +571,63 @@ public class ClassSummarizer extends ClassVisitor {
 		final ClassSummarizer summarizer = new ClassSummarizer(runDir);
 		//ZipFile lastZip = null;
 		try {
-			int fromJars = 0;
-			monitor.begin(classes.getMapKeys().size());					
-			
-			//TODO Change this to summarize on demand! (not all)
-			for(final Pair<String,String> key: classes.getMapKeys()) {
-				//System.out.println("Got key: "+key);
-				monitor.worked(1);
-				
-				final IJavaFile info = classes.getMapping(key);
-				if (info.getType() == IJavaFile.Type.CLASS_FOR_SRC) {
-					// TODO what about the jars?
-					summarizer.summarize(info.getStream(), true);
-				}
-				else if (info.getType() != IJavaFile.Type.SOURCE) {
-					if (key.first().startsWith(Config.JRE_NAME)) {
-						// Skip classes only referenced from the JRE
-						continue;
-					}
-					System.out.println("Summarizing "+key);
-					fromJars++;							
-					summarizer.summarize(info.getStream(), false);
-					// TODO eliminate duplicates between projects?
-				}
-			}
+	
+			summarizer.process(classes, monitor);
 			summarizer.dump();
-			System.out.println("Summarized from jars: "+fromJars);
+
 		} catch(IOException e) {
 			return SLStatus.createErrorStatus(e);
 		} finally {
 			summarizer.close();
 		}
 		return SLStatus.OK_STATUS;
+	}
+
+	private void process(JavaClassPath<JavaProjectSet<JavaProject>> classes,
+			SLProgressMonitor monitor) throws IOException {
+		final List<IJavaFile> sources = new ArrayList<IJavaFile>();
+		for(final Pair<String,String> key: classes.getMapKeys()) {			
+			final IJavaFile info = classes.getMapping(key);
+			if (info.getType() == IJavaFile.Type.CLASS_FOR_SRC) {
+				sources.add(info);
+			}
+		}
+		JavaClassPath.Processor p = new JavaClassPath.Processor() {
+			public Iterable<String> process(IJavaFile info) throws IOException {
+				ClassSummarizer.this.summarize(info.getStream(), true);
+				// TODO
+				return Collections.emptySet();
+			}
+		};
+		classes.process(p, sources);
+	}
+	
+	private void processOld(JavaClassPath<JavaProjectSet<JavaProject>> classes,
+			SLProgressMonitor monitor) throws IOException {
+		int fromJars = 0;
+		monitor.begin(classes.getMapKeys().size());
+		
+		//TODO Change this to summarize on demand! (not all)
+		for(final Pair<String,String> key: classes.getMapKeys()) {
+			//System.out.println("Got key: "+key);
+			monitor.worked(1);
+			
+			final IJavaFile info = classes.getMapping(key);
+			if (info.getType() == IJavaFile.Type.CLASS_FOR_SRC) {
+				// TODO what about the jars?
+				summarize(info.getStream(), true);
+			}
+			else if (info.getType() != IJavaFile.Type.SOURCE) {
+				if (key.first().startsWith(Config.JRE_NAME)) {
+					// Skip classes only referenced from the JRE
+					continue;
+				}
+				System.out.println("Summarizing "+key);
+				fromJars++;							
+				summarize(info.getStream(), false);
+				// TODO eliminate duplicates between projects?
+			}
+		}		
+		System.out.println("Summarized from jars: "+fromJars);
 	}
 }
