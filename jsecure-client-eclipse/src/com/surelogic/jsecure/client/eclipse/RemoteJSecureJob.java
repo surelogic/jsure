@@ -5,7 +5,6 @@ import java.io.*;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.*;
 
-import com.surelogic.common.*;
 import com.surelogic.common.java.*;
 import com.surelogic.common.jobs.*;
 import com.surelogic.common.jobs.remote.*;
@@ -19,44 +18,13 @@ public class RemoteJSecureJob extends RemoteScanJob<JavaProjectSet<JavaProject>,
 		final JavaClassPath<JavaProjectSet<JavaProject>> classes = new JavaClassPath<JavaProjectSet<JavaProject>>(projects, true);		
 		return new AbstractSLJob("Running JSecure on "+projects.getLabel()) {
 			@Override
-			public SLStatus run(final SLProgressMonitor monitor) {
-				final ClassSummarizer summarizer = new ClassSummarizer(runDir);
-				//ZipFile lastZip = null;
-				try {
-					int fromJars = 0;
-					monitor.begin(classes.getMapKeys().size());					
-					for(final Pair<String,String> key: classes.getMapKeys()) {
-						//System.out.println("Got key: "+key);
-						monitor.worked(1);
-						
-						final IJavaFile info = classes.getMapping(key);
-						if (info.getType() == IJavaFile.Type.CLASS_FOR_SRC) {
-							// TODO what about the jars?
-							summarizer.summarize(info.getStream(), true);
-						}
-						else if (info.getType() != IJavaFile.Type.SOURCE) {
-							if (key.first().startsWith(Config.JRE_NAME)) {
-								// Skip classes only referenced from the JRE
-								continue;
-							}
-							fromJars++;
-							summarizer.summarize(info.getStream(), false);
-							// TODO eliminate duplicates between projects?
-						}
-					}
-					summarizer.dump();
-					//System.out.println("Summarized from jars: "+fromJars);
-				} catch(IOException e) {
-					return SLStatus.createErrorStatus(e);
-				} finally {
-					summarizer.close();
-				}
-				return SLStatus.OK_STATUS;
+			public SLStatus run(final SLProgressMonitor monitor) {								
+				return ClassSummarizer.summarize(runDir, classes, monitor);
 			}
 		};		
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String... args) {
 		RemoteJSecureJob job = new RemoteJSecureJob();
 		job.run();
 	}

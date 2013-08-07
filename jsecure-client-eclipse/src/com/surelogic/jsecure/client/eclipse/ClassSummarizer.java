@@ -11,8 +11,16 @@ import javax.script.*;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.Method;
 
+import com.surelogic.common.Pair;
 import com.surelogic.common.PerformanceProperties;
 import com.surelogic.common.StringCache;
+import com.surelogic.common.java.Config;
+import com.surelogic.common.java.IJavaFile;
+import com.surelogic.common.java.JavaClassPath;
+import com.surelogic.common.java.JavaProject;
+import com.surelogic.common.java.JavaProjectSet;
+import com.surelogic.common.jobs.SLProgressMonitor;
+import com.surelogic.common.jobs.SLStatus;
 
 import com.tinkerpop.blueprints.*;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -555,5 +563,45 @@ public class ClassSummarizer extends ClassVisitor {
 			}
 			sb.append('I');
 		}
+	}
+
+	public static SLStatus summarize(final File runDir, 
+			                         final JavaClassPath<JavaProjectSet<JavaProject>> classes, 
+			                         final SLProgressMonitor monitor) {
+		final ClassSummarizer summarizer = new ClassSummarizer(runDir);
+		//ZipFile lastZip = null;
+		try {
+			int fromJars = 0;
+			monitor.begin(classes.getMapKeys().size());					
+			
+			//TODO Change this to summarize on demand! (not all)
+			for(final Pair<String,String> key: classes.getMapKeys()) {
+				//System.out.println("Got key: "+key);
+				monitor.worked(1);
+				
+				final IJavaFile info = classes.getMapping(key);
+				if (info.getType() == IJavaFile.Type.CLASS_FOR_SRC) {
+					// TODO what about the jars?
+					summarizer.summarize(info.getStream(), true);
+				}
+				else if (info.getType() != IJavaFile.Type.SOURCE) {
+					if (key.first().startsWith(Config.JRE_NAME)) {
+						// Skip classes only referenced from the JRE
+						continue;
+					}
+					System.out.println("Summarizing "+key);
+					fromJars++;							
+					summarizer.summarize(info.getStream(), false);
+					// TODO eliminate duplicates between projects?
+				}
+			}
+			summarizer.dump();
+			System.out.println("Summarized from jars: "+fromJars);
+		} catch(IOException e) {
+			return SLStatus.createErrorStatus(e);
+		} finally {
+			summarizer.close();
+		}
+		return SLStatus.OK_STATUS;
 	}
 }
