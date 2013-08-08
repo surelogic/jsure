@@ -12,6 +12,7 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.signature.*;
 
+import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
 import com.surelogic.common.Pair;
 import com.surelogic.common.PerformanceProperties;
 import com.surelogic.common.StringCache;
@@ -175,9 +176,12 @@ public class ClassSummarizer extends ClassVisitor {
 		}
 		odb.open(null, null);
 		*/
+		//OGlobalConfiguration.BLUEPRINTS_TX_MODE.setValue(1);
 		OrientGraph graph = new OrientGraph("local:"+dbLoc.getAbsolutePath());
 		graphDb = graph;
 		graph.createKeyIndex(INDEX_KEY, Vertex.class);
+		graph.getRawGraph().declareIntent(new OIntentMassiveInsert());		
+		
 		//graph.createKeyIndex(arg0, Edge.class);
 		registerShutdownHook( graphDb );
 		
