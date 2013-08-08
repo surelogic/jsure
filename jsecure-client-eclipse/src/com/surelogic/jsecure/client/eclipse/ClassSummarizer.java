@@ -10,6 +10,7 @@ import javax.script.*;
 
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.Method;
+import org.objectweb.asm.signature.*;
 
 import com.surelogic.common.Pair;
 import com.surelogic.common.PerformanceProperties;
@@ -90,12 +91,66 @@ public class ClassSummarizer extends ClassVisitor {
 		abstract DeclType encodeType(String nodeName);
 	}
 	
-	public class Clazz {
+	public class Clazz extends SignatureVisitor {
 		final String name;
 		
+		final Set<String> dependencies = new HashSet<String>();
+		
 		Clazz(String id) {
+			super(Opcodes.ASM4);
 			name = id;
 		}
+
+		void processDescriptor(String desc) {
+			final Type t = Type.getType(desc);
+			processType(t);
+		}
+		
+		void processType(final Type t) {
+			switch (t.getSort()) {
+			case Type.OBJECT:
+				processTypeName(t.getClassName());
+				break;
+			case Type.METHOD:
+				processType(t.getReturnType());
+				for(Type at : t.getArgumentTypes()) {
+					processType(at);
+				}
+				break;
+			default:
+			}
+		}
+		
+		void processSignature(String sig) {
+			if (sig == null) {
+				return;
+			}
+			new SignatureReader(sig).accept(this);
+		}
+
+		@Override
+		public void visitClassType(String qname) {			
+			processTypeName(qname);
+		}
+
+		void processTypeName(String type) {
+			final int lastSlash = type.lastIndexOf('/');
+			type = type.replace('/', '.');
+			dependencies.add(type);
+			
+			for(int i = type.lastIndexOf('$'); i>lastSlash; i = type.lastIndexOf('$')) {
+				type = type.substring(0, i);
+				dependencies.add(type);
+			}
+		}
+
+		/*
+		@Override
+		public void visitInnerClassType(String arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+		*/
 	}
 	
 	Clazz result = null;	
@@ -180,13 +235,17 @@ public class ClassSummarizer extends ClassVisitor {
 	 */
 	@Override
 	public void visit(int version, int access, String name,
-			String signature, String superName, String[] interfaces) {
-		/*
+			String signature, String superName, String[] interfaces) {		
 		System.out.println("Visiting class: "+name);
+		/*
 		System.out.println("Class Major Version: "+version);
 		System.out.println("Super class: "+superName);
 		*/
 		result = new Clazz(name);
+		if (superName != null) {
+			result.processTypeName(superName);
+		}
+		result.processSignature(signature);				
 		super.visit(version, access, name, signature, superName, interfaces);
 	}
 
@@ -206,6 +265,7 @@ public class ClassSummarizer extends ClassVisitor {
 	public AnnotationVisitor visitAnnotation(String desc,
 			boolean visible) {
 		//System.out.println("Annotation: "+desc);
+		result.processDescriptor(desc);
 		return super.visitAnnotation(desc, visible);
 	}
 
@@ -235,6 +295,7 @@ public class ClassSummarizer extends ClassVisitor {
 	public FieldVisitor visitField(int access, String name,
 			String desc, String signature, Object value) {
 		//System.out.println("Field: "+name+" "+desc+" value:"+value);
+		result.processSignature(signature);
 		return super.visitField(access, name, desc, signature, value);
 	}
 
@@ -255,9 +316,12 @@ public class ClassSummarizer extends ClassVisitor {
 		//System.out.println("Method: "+name+' '+desc);
 		
 		//return super.visitMethod(access, name, desc, signature, exceptions);
+		result.processDescriptor(desc);
+		result.processSignature(signature);
         MethodVisitor oriMv= new MethodVisitor(Opcodes.ASM4) {
         	int lastLine = -1;
         	        
+        	@Override
         	public void visitLineNumber(int line, Label start) {
         		//System.out.println("Line "+line+" -- "+start);
         		lastLine = line;
@@ -269,6 +333,7 @@ public class ClassSummarizer extends ClassVisitor {
         		//System.out.println("\tField:  "+owner+", "+name+", "+desc);
         		getHandle(opcode, owner, name, desc);
         		super.visitFieldInsn(opcode, owner, name, desc);        		
+        		result.processDescriptor(desc);
         		
         		final Vertex field = findField(owner, name, -1);
         		addReference(func, RelTypes.USES, field, lastLine);
@@ -281,6 +346,7 @@ public class ClassSummarizer extends ClassVisitor {
         		//System.out.println("\tMethod: "+owner+", "+name+", "+desc);
         		getHandle(opcode, owner, name, desc);
         		super.visitMethodInsn(opcode, owner, name, desc);
+        		result.processDescriptor(desc);
         		
         		final Vertex callee = findFunctionVertex(owner, name, desc, -1);
         		addReference(func, RelTypes.CALLS, callee, lastLine);
@@ -292,7 +358,49 @@ public class ClassSummarizer extends ClassVisitor {
         			Handle bsm, Object... bsmArgs) {
          		System.out.println("\tDynamic: "+name+", "+desc+" via "+bsm.getOwner()+", "+bsm.getName()+", "+bsm.getDesc());
         		super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
+        		result.processDescriptor(desc);
         		// TODO should I record these uses?
+        	}
+        	
+        	@Override
+        	public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+        		result.processDescriptor(desc);
+        		return super.visitAnnotation(desc, visible);
+        	}
+        	
+        	@Override
+            public void visitLocalVariable(String name, String desc, String signature,
+                    Label start, Label end, int index) {
+            	super.visitLocalVariable(name, desc, signature, start, end, index);
+            	result.processSignature(signature);
+            }
+        	
+        	@Override
+            public void visitMultiANewArrayInsn(String desc, int dims) {
+           		result.processDescriptor(desc);
+        		super.visitMultiANewArrayInsn(desc, dims);
+        	}
+        	
+        	@Override
+            public AnnotationVisitor visitParameterAnnotation(int parameter,
+                    String desc, boolean visible) {
+        		result.processDescriptor(desc);
+        		return super.visitParameterAnnotation(parameter, desc, visible);
+        	}
+        	
+        	@Override
+            public void visitTryCatchBlock(Label start, Label end, Label handler,
+                    String type) {
+        		super.visitTryCatchBlock(start, end, handler, type);
+        		if (type != null) {
+        			result.processTypeName(type);
+        		}
+        	}
+        		
+        	@Override
+            public void visitTypeInsn(int opcode, String type) {
+        		super.visitTypeInsn(opcode, type);
+        		result.processTypeName(type);
         	}
         };
         return oriMv;
@@ -594,15 +702,13 @@ public class ClassSummarizer extends ClassVisitor {
 		}
 		JavaClassPath.Processor p = new JavaClassPath.Processor() {
 			public Iterable<String> process(IJavaFile info) throws IOException {
-				ClassSummarizer.this.summarize(info.getStream(), true);
-				// TODO
-				return Collections.emptySet();
+				return ClassSummarizer.this.summarize(info.getStream(), true).dependencies;				
 			}
 		};
 		classes.process(p, sources);
 	}
 	
-	private void processOld(JavaClassPath<JavaProjectSet<JavaProject>> classes,
+	public void processAllClasses(JavaClassPath<JavaProjectSet<JavaProject>> classes,
 			SLProgressMonitor monitor) throws IOException {
 		int fromJars = 0;
 		monitor.begin(classes.getMapKeys().size());
