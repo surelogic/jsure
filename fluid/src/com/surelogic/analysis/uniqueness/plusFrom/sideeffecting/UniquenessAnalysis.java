@@ -826,7 +826,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 
     @Override
     protected Store transferAllocation(final IRNode node, final Store s) {
-      return lattice.opNew(s);
+    	// Check to see if this is  de-sugared lambda expression
+    	// in which case, we return a VALUE object instead.
+    	IRNode p = tree.getParent(node);
+    	if (tree.getOperator(p) instanceof AnonClassExpression &&
+    			(AnonClassExpression.getIsLambda(node) & JavaNode.IMPLICIT) != 0) {
+    		return lattice.opValue(s, node);
+    	}
+    	return lattice.opNew(s);
     }
     
     @Override

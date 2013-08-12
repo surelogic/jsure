@@ -4,6 +4,7 @@ public operator AnonClassExpression extends AllocationCallExpression
     implements NestedDeclInterface, TypeDeclInterface, FlowUnit
 {
   syntax {
+    $isLambda:Modifiers(implicit)
     alloc:NewExpression body:ClassBody
   }
   properties {
