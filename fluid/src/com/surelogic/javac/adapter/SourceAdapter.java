@@ -1338,19 +1338,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   }
 
   public IRNode adaptMethod(MethodTree node, String className, TypeKind kind, CodeContext context) {
-    final boolean varargs;
     List<? extends VariableTree> params = node.getParameters();
-    if (params.size() > 0) {
-      VariableTree v = params.get(params.size() - 1);
-      String last = v.toString();
-      varargs = v.getType().getKind() == Tree.Kind.ARRAY_TYPE && last.contains("...");
-      /*
-       * TODO is this the best way to figure this out? if (varargs) {
-       * System.out.println("Found varargs: "+node); }
-       */
-    } else {
-      varargs = false;
-    }
 
     int mods = adaptModifiers(node.getModifiers());
     if (kind == TypeKind.IFACE || kind == TypeKind.ANNO) {
@@ -1364,7 +1352,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 
     IRNode annos = adaptAnnotations(node.getModifiers(), context);
     IRNode[] typs = map(acceptNodes, node.getTypeParameters(), context);
-    IRNode[] fmls = map(varargs ? adaptVarargsParameters : adaptParameters, node.getParameters(), context);
+    IRNode[] fmls = adaptParameterList(params, context);
     IRNode[] exs = map(adaptTypes, node.getThrows(), context);
     IRNode body = acceptNode(node.getBody(), context);
     if (asBinary && !context.fromAnnotation()) {
@@ -1407,6 +1395,28 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     addJavaRefAndCheckForJavadocAnnotations(node, rv);
     createRequiredMethodNodes(JavaNode.isSet(mods, JavaNode.STATIC), rv);
     return rv;
+  }
+
+  /** Adapt a parameter list, taking into account variable arity parameter lists.
+   * @param params list of parameters 
+   * @param context context to use
+   * @return array of formal parameter objects.
+   */
+  public IRNode[] adaptParameterList(List<? extends VariableTree> params, CodeContext context) {
+	  final boolean varargs;
+	  if (params.size() > 0) {
+		  VariableTree v = params.get(params.size() - 1);
+		  String last = v.toString();
+		  varargs = v.getType().getKind() == Tree.Kind.ARRAY_TYPE && last.contains("...");
+		  /*
+		   * TODO is this the best way to figure this out? if (varargs) {
+		   * System.out.println("Found varargs: "+node); }
+		   */
+	  } else {
+		  varargs = false;
+	  }
+	  IRNode[] fmls = map(varargs ? adaptVarargsParameters : adaptParameters, params, context);
+	  return fmls;
   }
 
   public IRNode visitMethodInvocation(MethodInvocationTree node, CodeContext context) {
@@ -1777,16 +1787,38 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     return rv;
   }
 
-  // needed for Java 8?
+  // needed for Java 8
   public IRNode visitAnnotatedType(AnnotatedTypeTree arg0, CodeContext c) {
+	// TODO: implement this new node
     throw new UnsupportedOperationException();
   }
 
   public IRNode visitLambdaExpression(LambdaExpressionTree arg0, CodeContext c) {
-    throw new UnsupportedOperationException();
+	  final IRNode[] fmls = adaptParameterList(arg0.getParameters(),c);
+	  final IRNode body;
+	  switch (arg0.getBodyKind()) {
+	  case STATEMENT:
+		  body = MethodBody.createNode(adaptStatement(arg0.getBody(),c));
+		  break;
+	  case EXPRESSION:
+		  body = adaptExpr(arg0.getBody(),c);
+		  break;
+	  default:
+		  throw new AssertionError("should not be possible");
+	  }
+	  return LambdaExpression.createNode(Parameters.createNode(fmls), body);  
   }
 
   public IRNode visitMemberReference(MemberReferenceTree arg0, CodeContext c) {
-    throw new UnsupportedOperationException();
+	  final IRNode[] targs = map(adaptTypes, arg0.getTypeArguments(), c);
+	  final IRNode typeArgs = TypeActuals.createNode(targs);
+	  switch (arg0.getMode()) {
+	  case INVOKE:
+		  return MethodReference.createNode(adaptExpr(arg0.getQualifierExpression(),c), typeArgs, arg0.getName().toString());
+	  case NEW:
+		  return ConstructorReference.createNode(adaptExpr(arg0.getQualifierExpression(),c), typeArgs);
+	  default:
+		  throw new AssertionError("should not be possible");
+	  }
   }
 }
