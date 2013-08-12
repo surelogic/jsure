@@ -1,0 +1,18 @@
+/**
+ * An expression for Java 8's new lambda expression syntax.
+ * Expressions of this form are removed during canonicalization,
+ * and replaced with special {@link AnonClassExpression} nodes.
+ * occurs in non-canonical Java trees.
+ * The second parameter is either a MethodBody node, or an Expression;
+ * we cannot canonicalize (e.g. replace an expression e with "{return e;}")
+ * because void lambda bodies can be (statement) expressions of any type.
+ * Ideally, one might wish to declare a new interface to capture
+ * these two situations.
+ */
+public operator LambdaExpression extends PrimaryExpression implements IllegalCode
+{
+  syntax { params:Parameters "->" body:Operator }
+  properties {
+    noncanonical=true 
+  } 
+}

@@ -1,0 +1,12 @@
+/**
+ * Temporary syntax for Java 8's method reference.
+ * The receiver could be a type expression,  
+ */
+public operator ConstructorReference extends PrimaryExpression implements IllegalCode
+{
+  syntax { receiver:Expression <> "::" @typeArgs:TypeActuals? "new" }
+  properties {
+    bindsTo=Constructor
+    noncanonical=true 
+  }
+}
