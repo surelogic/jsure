@@ -737,7 +737,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   
   /**
    * The actual work of binding and maintaining scopes.
-   * This code has extra machinery in it too handle granules and incrementality.
+   * This code has extra machinery in it to handle granules and incrementality.
    * <P>
    * The binding process has several distinct modes
    * going down the tree:
