@@ -19,9 +19,12 @@ import com.surelogic.ThreadSafe;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.util.*;
+import com.surelogic.common.util.EmptyIterator;
+import com.surelogic.common.util.Iteratable;
+import com.surelogic.common.util.IteratorUtil;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 
+import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -37,14 +40,18 @@ import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
+import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.Call;
+import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassType;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
+import edu.cmu.cs.fluid.java.operator.ConditionalExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.ConstructorReference;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.DemandName;
 import edu.cmu.cs.fluid.java.operator.ElementValuePair;
@@ -70,6 +77,7 @@ import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.NormalEnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.OuterObjectSpecifier;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.QualifiedName;
 import edu.cmu.cs.fluid.java.operator.QualifiedSuperExpression;
@@ -308,6 +316,56 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   		return parent;
   	}
   	return null;
+  }
+
+  
+  /**
+   * Return the target type for a poly expression.
+   * @param pe poly expression node
+   * @return type this expression is expected to be
+   */
+  public IJavaType getPolyExpressionTargetType(IRNode pe) {
+	  IRNode p = JavaNode.tree.getParent(pe);
+	  IRLocation loc = JavaNode.tree.getLocation(pe);
+	  Operator op = JavaNode.tree.getOperator(p);
+	  if (AssignExpression.prototype.includes(op)) {
+		  if (loc.equals(AssignExpression.op2Location)) {
+			  return getJavaType(AssignExpression.getOp1(pe));
+		  }
+	  } else if (CastExpression.prototype.includes(op)) {
+		  return getJavaType(p);
+	  } else if (ConditionalExpression.prototype.includes(op)) {
+		  if (loc.equals(ConditionalExpression.condLoc)) {
+			  return JavaTypeFactory.booleanType;
+		  } else {
+			  return getPolyExpressionTargetType(p);
+		  }
+	  } else if (ParenExpression.prototype.includes(op)) {
+		  return getPolyExpressionTargetType(p);
+	  } else if (Arguments.prototype.includes(op)) {
+		  IBinding bi = getIBinding(JavaNode.tree.getParent(p));
+		  int i = JavaNode.tree.childLocationIndex(p, loc);
+		  if (bi != null) {
+			  IRNode decl = getBinding(JavaNode.tree.getParent(p));
+			  if (decl != null) {
+				  final IRNode formals;
+				  Operator dop = JavaNode.tree.getOperator(decl);
+				  if (MethodDeclaration.prototype.includes(dop)) {
+					  formals = MethodDeclaration.getParams(decl);
+				  } else if (ConstructorDeclaration.prototype.includes(dop)) {
+					  formals = ConstructorDeclaration.getParams(decl);
+				  } else {
+					  LOG.warning("what could a call be bound to? " + dop);
+					  return null;
+				  }
+				  return bi.convertType(getJavaType(JavaNode.tree.getChild(formals, i)));
+			  }
+		  }
+	  } 
+	  // We make wish to make this a "fine" warning if all method call invocations
+	  // are treated as something that coiuld learn from the target type.
+	  LOG.warning("poly expression has bad context: " + op);
+	  return null;
   }
   
   /**
@@ -1669,6 +1727,18 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       return processMethodDeclaration(node, true);
     }    
     
+    @Override
+    public Void visitConstructorReference(IRNode node) {
+    	visit(node);
+    	if (!isFullPass || pathToTarget != null) return null;
+    	ConstructorReference cref = (ConstructorReference) getOperator(node);
+
+    	// TODO: WRITE THIS CODE
+    	// Problem: Poly expressions need their context type
+    	// before they can bind.
+    	return super.visitConstructorReference(node);
+    }
+    	 
     @Override
     public Void visitDeclStatement(IRNode node) {
       addDeclsToScope(DeclStatement.getVars(node),(IJavaScope.NestedScope)scope);
