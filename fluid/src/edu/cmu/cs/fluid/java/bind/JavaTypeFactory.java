@@ -38,7 +38,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  * the instances.
  * @author boyland
  */
-public class JavaTypeFactory implements IRType, Cleanable {
+public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
   /** This prototype is needed only for IRType */
   public static final JavaTypeFactory prototype = new JavaTypeFactory();
 
@@ -357,6 +357,31 @@ public class JavaTypeFactory implements IRType, Cleanable {
     return a;
   }
   
+  private static JavaTypeCache2<List<IJavaType>,IJavaType,JavaFunctionType> functionTypes =
+	      new JavaTypeCache2<List<IJavaType>,IJavaType,JavaFunctionType>();
+
+  private static JavaTypeCache2<List<IJavaType>,IJavaType,JavaFunctionType> varFunctionTypes =
+	      new JavaTypeCache2<List<IJavaType>,IJavaType,JavaFunctionType>();
+
+  public static IJavaFunctionType getFunctionType(boolean isVariable, IJavaType returnType, IJavaType... paramTypes) {
+	  List<IJavaType> ptypes = Arrays.asList(paramTypes.clone()); // defensive
+	  JavaFunctionType ft;
+	  if (isVariable) {
+		  ft = varFunctionTypes.get(ptypes, returnType);
+	  } else {
+		  ft = functionTypes.get(ptypes, returnType);
+	  }
+	  if (ft == null) {
+		  ft = new JavaFunctionType(paramTypes,returnType,isVariable);
+		  if (isVariable) {
+			  varFunctionTypes.put(ptypes, returnType, ft);
+		  } else {
+			  functionTypes.put(ptypes, returnType, ft);
+		  }
+	  }
+	  return ft;
+  }
+  
   static void clearCaches() {
 	  // Nothing to do here
   }
@@ -368,6 +393,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
 	  arrayTypes.clear();
 	  lowerBounded.clear();
 	  upperBounded.clear();
+	  functionTypes.clear();
 	  initRootTypes();
   }
   
@@ -398,7 +424,8 @@ public class JavaTypeFactory implements IRType, Cleanable {
     	  return null; // program may have binding error
       } 
       IRNode decl = b.getNode();
-      if (true) {
+      // We now let the IBinding do the work for us: 
+      {
           /*
     	  String name = DebugUnparser.toString(nodeType);
     	  if ("Context".equals(name)) {
@@ -406,7 +433,8 @@ public class JavaTypeFactory implements IRType, Cleanable {
     	  }
           */
     	  return b.convertType(convertNodeTypeToIJavaType(decl, binder));
-      }      
+      }  
+      /*
       if (TypeFormal.prototype.includes(decl)) {
         return getTypeFormal(decl);
       }
@@ -416,7 +444,7 @@ public class JavaTypeFactory implements IRType, Cleanable {
         IJavaDeclaredType dt = (IJavaDeclaredType) convertNodeTypeToIJavaType(enclosingType, binder);
         return getDeclaredType(decl, null, dt);
       }
-      return getDeclaredType(decl,null,null);
+      return getDeclaredType(decl,null,null);*/
     } else if (op instanceof TypeRef) {
       IJavaType outer = convertNodeTypeToIJavaType(TypeRef.getBase(nodeType),binder);
       IBinding b = binder.getIBinding(nodeType);
@@ -623,20 +651,25 @@ public class JavaTypeFactory implements IRType, Cleanable {
   /**
    * Return the IRType
    */
-  public static IRType getIJavaTypeType() { return prototype; }
+  public static IRType<IJavaType> getIJavaTypeType() { return prototype; }
 
   public boolean isValid(Object x) {
     return x instanceof IJavaType;
   }
 
-  public Comparator getComparator() { return null; }
+  /**
+   * Return a null comparator.
+   * Do not use!
+   * @return null comparator
+   */
+  public Comparator<IJavaType> getComparator() { return null; }
 
-  public void writeValue(Object value, IROutput out) throws IOException {
+  public void writeValue(IJavaType value, IROutput out) throws IOException {
     JavaType t = (JavaType)value;
     t.writeValue(out);
   }
 
-  public Object readValue(IRInput in) throws IOException {
+  public IJavaType readValue(IRInput in) throws IOException {
     int c = in.readByte();
     // we use abbreviations reminiscent of the class file format for types:
     switch (c) {
@@ -683,15 +716,15 @@ public class JavaTypeFactory implements IRType, Cleanable {
     out.writeByte(TYPE_BYTE);
   }
 
-  public IRType readType(IRInput in) throws IOException {
+  public IRType<IJavaType> readType(IRInput in) throws IOException {
     return this;
   }
 
-  public Object fromString(String s) {
+  public IJavaType fromString(String s) {
     return null; // TODO
   }
 
-  public String toString(Object o) {
+  public String toString(IJavaType o) {
     return o.toString();
   }
 
@@ -717,7 +750,27 @@ public class JavaTypeFactory implements IRType, Cleanable {
   }
 }
 
-abstract class JavaType implements IJavaType {
+abstract class JavaTypeCleanable {
+	  /**
+	   * Whether this type is currently valid, doesn't use deleted nodes.
+	   * This implementation returns true by default.
+	   * @return true if not using deleted nodes
+	   */
+	  public boolean isValid() {
+	    return true;
+	  }
+	  
+	  /**
+	   * Perform any cleanup of any nested caches.
+	   * By default, do nothing
+	   * @return some indication of how much cleanup was done.
+	   */
+	  int cleanup() {
+	    return 0;
+	  }	
+}
+
+abstract class JavaType extends JavaTypeCleanable implements IJavaType {
   
   public IJavaType subst(IJavaTypeSubstitution s) {
     return this; // assume no change;
@@ -749,23 +802,6 @@ abstract class JavaType implements IJavaType {
     return env.getSuperTypes(this);
   }
   
-  /**
-   * Whether this type is currently valid, doesn't use deleted nodes.
-   * This implementation returns true by default.
-   * @return true if not using deleted nodes
-   */
-  public boolean isValid() {
-    return true;
-  }
-  
-  /**
-   * Perform any cleanup of any nested caches.
-   * By default, do nothing
-   * @return some indication of how much cleanup was done.
-   */
-  int cleanup() {
-    return 0;
-  }
   
   public void printStructure(PrintStream out, int indent) {
     DebugUtil.println(out, indent, this.getClass().getSimpleName()+": "+this.toString());
@@ -1597,7 +1633,7 @@ class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
 }
 
 class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
-  private final static Logger LOG = SLLogger.getLogger("FLUID.java.bind");
+  // private final static Logger LOG = SLLogger.getLogger("FLUID.java.bind");
   final IRNode declaration;
   final List<IJavaType> parameters;
 
@@ -1898,12 +1934,77 @@ class JavaAnonType extends JavaDeclaredType implements IJavaDeclaredType {
 	  }
 }
 
+class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
+	private final IJavaType[] pieces; // 0 = return type, rest are parameter types
+	private final boolean isVariable;
+	private final ParameterTypes paramTypes = new ParameterTypes();
+	
+	public JavaFunctionType(IJavaType[] parts, boolean isVar) {
+		pieces = parts;
+		isVariable = isVar;
+	}
+	
+	public JavaFunctionType(IJavaType[] params, IJavaType rt, boolean isVar) {
+		pieces = new IJavaType[params.length+1];
+		pieces[0] = rt;
+		for (int i=0; i < params.length; ++i) {
+			pieces[i+1] = params[i];
+		}
+		isVariable = isVar;
+	}
+
+	@Override
+	public List<IJavaType> getParameterTypes() {
+		return paramTypes;
+	}
+
+	@Override
+	public IJavaType getReturnType() {
+		return pieces[0];
+	}
+
+	@Override
+	public boolean isVariable() {
+		return isVariable;
+	}
+	
+	private class ParameterTypes extends AbstractList<IJavaType> {
+		@Override
+		public IJavaType get(int arg0) {
+			if (arg0 < 0) throw new IndexOutOfBoundsException("negative index not allowed: " + arg0);
+			return pieces[arg0+1];
+		}
+
+		@Override
+		public int size() {
+			return pieces.length-1;
+		}
+	}
+
+	@Override
+	public boolean isValid() {
+		for (IJavaType t : pieces) {
+			if (!t.isValid()) return false;
+		}
+		return true;
+	}
+
+	@Override
+	int cleanup() {
+		int total = 0;
+		for (IJavaType t : pieces) {
+			total += ((JavaType)t).cleanup();
+		}
+		return total;
+	}
+}
+
 /*
  * The following three classes are used
  * to implement cleanable caches of types.
  */
 
-class JavaTypeCache2<K1,K2,T extends JavaType> extends CustomizableHashCodeMap<K1,CleanableMap<K2,T>> 
+class JavaTypeCache2<K1,K2,T extends JavaTypeCleanable> extends CustomizableHashCodeMap<K1,CleanableMap<K2,T>> 
   implements CleanableMap<K1,CleanableMap<K2,T>> {
   
   public JavaTypeCache2() {
@@ -1951,7 +2052,7 @@ class JavaTypeCache2<K1,K2,T extends JavaType> extends CustomizableHashCodeMap<K
 }
 
 // FIX this doesn't cache the hashCode() for Lists!!!
-class JavaTypeCache<K,T extends JavaType> extends CustomizableHashCodeMap<K,T>  
+class JavaTypeCache<K,T extends JavaTypeCleanable> extends CustomizableHashCodeMap<K,T>  
     implements CleanableMap<K,T> {
   JavaTypeCache() {
     super(DEFAULT_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_THRESHOLD);
@@ -1959,7 +2060,7 @@ class JavaTypeCache<K,T extends JavaType> extends CustomizableHashCodeMap<K,T>
 
   @Override
   protected boolean isValidEntry(HashEntry<K, T> e) {
-    JavaType jt = e.getValue();
+    JavaTypeCleanable jt = e.getValue();
     if (jt == null) {
       return true;
     }
@@ -1974,7 +2075,7 @@ class JavaTypeCache<K,T extends JavaType> extends CustomizableHashCodeMap<K,T>
   }
 }
 
-class SingletonJavaTypeCache<K,T extends JavaType> extends SingletonMap<K,T> 
+class SingletonJavaTypeCache<K,T extends JavaTypeCleanable> extends SingletonMap<K,T> 
     implements CleanableMap<K,T> {
 
   public SingletonJavaTypeCache(K k, T v) {
@@ -1982,7 +2083,7 @@ class SingletonJavaTypeCache<K,T extends JavaType> extends SingletonMap<K,T>
   }
 
   public int cleanup() {
-    JavaType jt = getValue();
+    JavaTypeCleanable jt = getValue();
     if (jt == null || jt.isValid()) return 0;
     clear();
     return 1;
