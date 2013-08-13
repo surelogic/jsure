@@ -4,7 +4,6 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.*;
 
 import javax.script.*;
 
@@ -12,7 +11,11 @@ import org.objectweb.asm.*;
 import org.objectweb.asm.commons.Method;
 import org.objectweb.asm.signature.*;
 
+import com.orientechnologies.orient.core.exception.OSerializationException;
 import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
+import com.orientechnologies.orient.core.metadata.schema.OClass;
+import com.orientechnologies.orient.core.metadata.schema.OType;
+import com.orientechnologies.orient.core.serialization.OSerializableStream;
 import com.surelogic.common.Pair;
 import com.surelogic.common.PerformanceProperties;
 import com.surelogic.common.StringCache;
@@ -35,6 +38,9 @@ import com.tinkerpop.pipes.Pipe;
  */
 public class ClassSummarizer extends ClassVisitor {
 	public static final String DB_PATH = "orientdb";
+	/**
+	 * for methods, the parent class and method signature
+	 */
 	public static final String INDEX_KEY = "indexKey";
 	/**
 	 * Signature of the method
@@ -44,7 +50,8 @@ public class ClassSummarizer extends ClassVisitor {
 	 * Qualified name of the enclosing class
 	 */
 	public static final String PARENT_CLASS = "parentClass";
-
+	public static final String PROJECT = "project";
+	
 	public static final String CALLED = "called";
 	
 	/**
@@ -153,11 +160,25 @@ public class ClassSummarizer extends ClassVisitor {
 		}
 		*/
 	}
+
+	// Should match the code above in processTypeName()
+	private String getProject(String clazzName)  {
+		final int lastSlash = clazzName.lastIndexOf('/');
+		String type = clazzName.replace('/', '.');
+		String proj = projectMap.get(type);
+		if (proj == null) {
+			for(int i = type.lastIndexOf('$'); i>lastSlash && proj == null; i = type.lastIndexOf('$')) {
+				type = type.substring(0, i);
+				proj = projectMap.get(type);
+			}
+		}
+		return proj;
+	}
 	
 	Clazz result = null;	
 
 	final TransactionalGraph graphDb;
-	final Map<String,Vertex> keyedMap = new HashMap<String, Vertex>();
+	final Map<Id,Vertex> keyedMap = new HashMap<Id, Vertex>();
 	final PerformanceProperties perf;
 	int numMethods;
 	int numDistinctCalls;
@@ -165,8 +186,15 @@ public class ClassSummarizer extends ClassVisitor {
 	int numClasses;
 	int numFromSource;
 	
-	public ClassSummarizer(final File runDir) {
+	final JavaClassPath<JavaProjectSet<JavaProject>> classPath;
+	// Class to project
+	final Map<String,String> projectMap = new HashMap<String, String>();
+	// The project that the projectMap is precomputed for
+	String mappedProject = null;
+
+	public ClassSummarizer(final File runDir, JavaClassPath<JavaProjectSet<JavaProject>> classes) {
 		super(Opcodes.ASM4);
+		classPath = classes;
 		
 		File dbLoc = new File(runDir, DB_PATH);
 		/*
@@ -181,31 +209,22 @@ public class ClassSummarizer extends ClassVisitor {
 		graphDb = graph;
 		graph.createKeyIndex(INDEX_KEY, Vertex.class);
 		graph.getRawGraph().declareIntent(new OIntentMassiveInsert());		
-		
+		/*
+		final OClass vertexClass = graph.getVertexBaseType();
+		vertexClass.createProperty(INDEX_KEY, OType.CUSTOM);
+		*/
 		//graph.createKeyIndex(arg0, Edge.class);
 		registerShutdownHook( graphDb );
 		
 		perf = new PerformanceProperties("jsecure.", runDir.getName(), runDir, "scan.properties");
 		perf.startTiming();
 	}
-
-	public Clazz summarize(ZipFile jar, String className, boolean fromSource) throws IOException {
-		ZipEntry e = jar.getEntry(className);
-		if (e != null) {
-			return summarize(jar.getInputStream(e), fromSource);		
-		}
-		return null;
-	}
 	
-	public Clazz summarize(File classFile, boolean fromSource) throws IOException {
-		return summarize(new FileInputStream(classFile), fromSource);
-	}
-	
-	public Clazz summarize(InputStream is, boolean fromSource) throws IOException {		
-		init();		
+	public Clazz summarize(IJavaFile file, boolean fromSource) throws IOException {		
+		init(file);		
 		try {
 			// Updating operations go here
-			final ClassReader cr2 = new ClassReader(is);
+			final ClassReader cr2 = new ClassReader(file.getStream());
 			cr2.accept(this, 0);				
 		} catch (RuntimeException e) {
 		    graphDb.rollback();
@@ -222,8 +241,17 @@ public class ClassSummarizer extends ClassVisitor {
 		return finish();		
 	}
 	
-	public void init() {
+	public void init(IJavaFile file) {
 		result = null;
+		if (file.getProject().equals(mappedProject)) {
+			return; // Already computed
+		}
+		mappedProject = file.getProject();
+		for(Pair<String,String> key : classPath.getMapKeys()) {
+			if (mappedProject.equals(key.first())) {				
+				projectMap.put(key.second(), classPath.getMapping(key).getProject());
+			}
+		}
 	}
 
 	public Clazz finish() {
@@ -480,9 +508,75 @@ public class ClassSummarizer extends ClassVisitor {
 		return findVertex(VertexType.FIELD, clazzName, fieldName, mods);
 	}
 	
+	public static class Id implements OSerializableStream {		
+		private static final long serialVersionUID = -2645241538925404431L;
+		
+		final String className, nodeName, project;
+		
+		Id(String proj, String clazz, String node) {
+			project = proj;
+			className = clazz;
+			nodeName = node;
+		}
+		/* Including this causes an unmarshalling exception
+		public String toString() {
+		*/
+		public String getLabel() {
+			if (project == null) {
+				return className+", "+nodeName;
+			}
+			return project+", "+className+", "+nodeName;
+		}		
+		
+		public boolean equals(final Object o) {
+			if (o instanceof Id) {
+				final Id other = (Id) o;
+				return className.equals(other.className) && 
+					   nodeName.equals(other.nodeName) &&
+					   (project == null ? other.project == null : project.equals(other.project));
+			}
+			return false;
+		}
+		
+		public int hashCode() {
+			return className.hashCode() + nodeName.hashCode() + 
+					(project == null ? 0 : project.hashCode());
+		}
+		
+		public Id fromStream(byte[] buf)
+				throws OSerializationException {
+			ByteArrayInputStream bytes = new ByteArrayInputStream(buf);
+			try {
+				ObjectInputStream in = new ObjectInputStream(bytes);
+				return (Id) in.readObject();			
+			} catch (Exception e) {
+				throw new OSerializationException("Unable to deserialize Id", e);
+			}
+		}
+
+		public byte[] toStream() throws OSerializationException {
+			ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+			try {
+				ObjectOutputStream out = new ObjectOutputStream(bytes);
+				out.writeObject(this);
+				out.flush();
+				return bytes.toByteArray();
+			} catch (IOException e) {
+				throw new OSerializationException("Unable to serialize: "+getLabel(), e);
+			}
+		}
+	}	
+	
 	private Vertex findVertex(VertexType type, String clazzName, String nodeName, int access) {		
+		final String project = getProject(clazzName);
+		if (project == null) {
+			if (!clazzName.startsWith("[")) {
+				throw new NullPointerException();
+			}
+		}
+		
 		// Check if already created
-		final String id = clazzName+", "+nodeName;
+		final Id id = new Id(project, clazzName, nodeName);
 		//for(Vertex v : graphDb.getVertices(INDEX_KEY, id)) {
 		final Vertex v = keyedMap.get(id);
 		if (v != null) {		
@@ -495,7 +589,8 @@ public class ClassSummarizer extends ClassVisitor {
 		
 		// Need to create
 		Vertex node = graphDb.addVertex(null/*"class:"+type*/);
-	    node.setProperty( INDEX_KEY, id );
+	    node.setProperty( INDEX_KEY, id.getLabel());
+	    
 	    if (clazzName == null) {
 	    	throw new NullPointerException("Null clazzName");
 	    }
@@ -680,7 +775,7 @@ public class ClassSummarizer extends ClassVisitor {
 	public static SLStatus summarize(final File runDir, 
 			                         final JavaClassPath<JavaProjectSet<JavaProject>> classes, 
 			                         final SLProgressMonitor monitor) {
-		final ClassSummarizer summarizer = new ClassSummarizer(runDir);
+		final ClassSummarizer summarizer = new ClassSummarizer(runDir, classes);
 		//ZipFile lastZip = null;
 		try {
 	
@@ -706,7 +801,7 @@ public class ClassSummarizer extends ClassVisitor {
 		}
 		JavaClassPath.Processor p = new JavaClassPath.Processor() {
 			public Iterable<String> process(IJavaFile info) throws IOException {
-				return ClassSummarizer.this.summarize(info.getStream(), true).dependencies;				
+				return ClassSummarizer.this.summarize(info, true).dependencies;				
 			}
 		};
 		classes.process(p, sources);
@@ -725,7 +820,7 @@ public class ClassSummarizer extends ClassVisitor {
 			final IJavaFile info = classes.getMapping(key);
 			if (info.getType() == IJavaFile.Type.CLASS_FOR_SRC) {
 				// TODO what about the jars?
-				summarize(info.getStream(), true);
+				summarize(info, true);
 			}
 			else if (info.getType() != IJavaFile.Type.SOURCE) {
 				if (key.first().startsWith(Config.JRE_NAME)) {
@@ -734,7 +829,7 @@ public class ClassSummarizer extends ClassVisitor {
 				}
 				System.out.println("Summarizing "+key);
 				fromJars++;							
-				summarize(info.getStream(), false);
+				summarize(info, false);
 				// TODO eliminate duplicates between projects?
 			}
 		}		

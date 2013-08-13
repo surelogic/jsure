@@ -12,11 +12,15 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import com.surelogic.common.adhoc.AdHocQuery;
+import com.surelogic.common.adhoc.AdHocQueryMeta;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.pipes.Pipe;
 
 public class GremlinStatement implements Statement {
+	static final String GREMLIN = "gremlin";
+	
 	final ScriptEngine engine;
 	ResultSet resultSet;
 	
@@ -122,23 +126,11 @@ public class GremlinStatement implements Statement {
 	}
 
 	@Override
-	public boolean execute(String sql) throws SQLException {
-		// Extract the embedded Gremlin query
-		final StringBuilder sb = new StringBuilder();
-		Property[] props = null;
-		for(String line : sql.split("\\n")) {
-			if (line.startsWith("--")) {
-				sb.append(line.substring(2)).append(' ');
-			} else {
-				int start = sql.indexOf(line);
-				// Parse the SQL
-				props = parseProperties(sql.substring(start));
-				break;
-			}
-		}
-		String cypher = sb.toString();
+	public boolean execute(String sqlText) throws SQLException {
+		final AdHocQueryMeta gremlin = AdHocQuery.getMetaFromStringWithName(sqlText, GREMLIN);		
+		final Property[] props = parseProperties(extractSQL(sqlText));
 		try {
-			Object result = engine.eval(cypher);
+			Object result = engine.eval(gremlin.getText());
 			if (result instanceof Pipe) {
 				@SuppressWarnings("unchecked")
 				Pipe<?,? extends Element> p = (Pipe<?,? extends Element>) result;
@@ -152,6 +144,22 @@ public class GremlinStatement implements Statement {
 			throw new SQLException(e);
 		}
 		return false;
+	}
+
+	/**
+	 * Removes the comments
+	 */
+	private String extractSQL(String sql) {
+		final StringBuilder sb = new StringBuilder();
+		for(String line : sql.split("\\n")) {
+			if (line.startsWith("--")) {
+				continue; // Ignoring comments
+			} else {
+				sb.append(line);
+				sb.append('\n'); // Takes the place of the newline
+			}
+		}
+		return sb.toString();
 	}
 
 	/**
