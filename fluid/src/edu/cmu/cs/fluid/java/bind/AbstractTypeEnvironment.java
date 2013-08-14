@@ -308,7 +308,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
     return false;
   }
 
-private long parseIntLiteral(String token) {
+  private long parseIntLiteral(String token) {
 	final long i;
 	if (token.endsWith("L") || token.endsWith("l")) {
         token = token.substring(0, token.length()-1);
@@ -352,7 +352,124 @@ private long parseIntLiteral(String token) {
     return true;
   }
   
-  class SupertypesIterator extends SimpleIterator<IJavaType> {
+  
+  /// Java 8: FunctionType methods
+  
+  @Override
+  public IJavaFunctionType computeErasure(IJavaFunctionType ft) {
+	  // not pretty, but at least simple:
+	  IJavaType[] ptypes = ft.getParameterTypes().toArray(JavaTypeFactory.emptyTypes);
+	  IJavaType[] etypes = ft.getExceptions().toArray(JavaTypeFactory.emptyTypes);
+	  return JavaTypeFactory.getFunctionType(
+			  null, computeErasure(ft.getReturnType()), 
+			  Arrays.asList(ptypes), ft.isVariable(), 
+			  new HashSet<IJavaType>(Arrays.asList(etypes)));
+  }
+  
+  @Override
+  public IJavaFunctionType isFunctionalType(IJavaType t) {
+	  // TODO Auto-generated method stub
+	  return null;
+  }
+
+  /* Two methods or constructors, M and N, have the same signature if 
+   * they have the same name, 
+   * the same type parameters (if any) (8.4.4), and, 
+   * after adapting the formal parameter types of N 
+   * to the the type parameters of M, the same formal parameter types.
+   * 
+   * Two methods or constructors M and N have the same type parameters if 
+   * both of the following are true:
+   * 1. M and N have same number of type parameters (possibly zero).
+   * 2. Where A1, ... , An are the type parameters of M and 
+   *    B1, ..., Bn are the type parameters of N, 
+   *    let theta=[B1:=A1, ..., Bn:=An]. 
+   *    Then, for all i, 1²i²n, 
+   *        the bound of Ai is the same type as theta applied to the bound of Bi. 
+   * Where two methods or constructors M and N have the same type parameters, 
+   * a type mentioned in N can be adapted to the type parameters of M 
+   * by applying theta, as defined above, to the type.
+   * 
+   * JTB: theta is a SimpleTypeSubstitution from the type formals of ft1 to
+   * the type formals of ft2.
+   */
+  @Override
+  public boolean isSameSignature(IJavaFunctionType ft1, IJavaFunctionType ft2) {
+	  int ntf = ft1.getTypeFormals().size();
+	  if (ntf != ft2.getTypeFormals().size()) return false;
+	  
+	  int nf = ft1.getParameterTypes().size();
+	  if (nf != ft2.getParameterTypes().size()) return false;
+	  
+	  IJavaTypeSubstitution theta = new SimpleTypeSubstitution(
+			  getBinder(),ft1.getTypeFormals(),ft2.getTypeFormals());
+	  
+	  for (int i=0; i < ntf; ++i) {
+		  if (ft1.getTypeFormals().get(i).getExtendsBound(this).subst(theta) !=
+				  ft2.getTypeFormals().get(i).getExtendsBound(this)) {
+			  return false;
+		  }
+	  }
+	  
+	  for (int i=0; i < nf; ++i) {
+		if (ft1.getParameterTypes().get(i).subst(theta) !=
+				ft2.getParameterTypes().get(i)) {
+			return false;
+		}
+	  }
+	  
+	  return true;
+  }
+  
+  /* The signature of a method m1 is a subsignature of the signature of a method m2 
+   * if either:
+   * m2 has the same signature as m1, or
+   * the signature of m1 is the same as the erasure (¤4.6) of the signature of m2.
+   */
+  @Override
+  public boolean isSubsignature(IJavaFunctionType ft1, IJavaFunctionType ft2) {
+	  return isSameSignature(ft1,ft2) ||
+			  isSameSignature(ft1,computeErasure(ft2));
+  }
+
+  /*
+   * A method declaration d1 with return type R1 is return-type-substitutable for another method d2 with return type R2, if and only if the following conditions hold:
+   *
+   * If R1 is void then R2 is void.
+   * If R1 is a primitive type, then R2 is identical to R1.
+   * If R1 is a reference type then one of the following is true:
+   *     R1, adapted to the type parameters of d2 (8.4.4), is a subtype of R2. or
+   *     R1 can be converted to a subtype of R2 by unchecked conversion (5.1.9), or
+   *     d1 does not have the same signature as d2 (8.4.2), and R1 = |R2| 
+   * 
+   * JTB: Presumably all uses of R1 in the second and third choices should refer
+   * to R1, adapted to the type parameters of d2.
+   * Also presumably, we don't call this method if the function types are wildly different
+   * (say with different numbers of type parameters).
+   */
+  @Override
+  public boolean isReturnTypeSubstitutable(IJavaFunctionType ft1,
+		  IJavaFunctionType ft2) {
+	  IJavaType r1 = ft1.getReturnType();
+	  IJavaType r2 = ft2.getReturnType();
+	  if (r1 == JavaTypeFactory.voidType || r1 instanceof IJavaPrimitiveType) {
+		  return r2 == r1;
+	  }
+	  if (r2 == JavaTypeFactory.voidType || r2 instanceof IJavaPrimitiveType) {
+		  return false;
+	  }
+	  if (ft1.getTypeFormals().size() != ft2.getTypeFormals().size()) return false;
+	  IJavaTypeSubstitution subst = new SimpleTypeSubstitution(getBinder(),ft1.getTypeFormals(),ft2.getTypeFormals());
+	  r1 = r1.subst(subst);
+	  if (isSubType(r1,r2)) return true;
+	  //XXX: Not sure how to do (ii)
+	  //(iii) without the extra check seems to handle most things.
+	  if (r1 == computeErasure(r2)) return true;
+	  return false;
+  }
+
+
+class SupertypesIterator extends SimpleIterator<IJavaType> {
     Iterator<IRNode> nodes;
     IJavaTypeSubstitution subst;
     
@@ -952,6 +1069,17 @@ private long parseIntLiteral(String token) {
       return computeErasure(ct.getWildcard());
     }
     return ty;
+  }
+  
+  /**
+   * Destructively erase an array of types.
+   * @param args
+   * @return
+   */
+  public void doErasure(IJavaType[] args) {
+	  for (int i=0; i < args.length; ++i) {
+		  args[i] = computeErasure(args[i]);
+	  }
   }
 }
 

@@ -17,11 +17,22 @@ import edu.cmu.cs.fluid.ir.IRNode;
  */
 public interface IJavaTypeFormal extends IJavaSourceRefType, ITypeFormal {
   /**
+   * Get the IRNode associated with this type formal.
+   * Don't use this method to get the bound.
+   * @see getExtendsBounds
    * @return the type formal declaration AST node.
    */
   @Override
   public IRNode getDeclaration();
   
+  /**
+   * Get the bounds for this type variable as a single IJavaType.
+   * Multiple bounds result in an intersection type.
+   * @param te type environment (needed)
+   * @return extends bounds.
+   */
+  public IJavaReferenceType getExtendsBound(ITypeEnvironment te);
+
   /**
    * Get the extends bound.
    * @deprecated

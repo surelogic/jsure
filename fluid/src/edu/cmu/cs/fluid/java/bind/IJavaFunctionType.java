@@ -4,7 +4,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * A representation of a function type.
+ * A representation of a "function descriptor", that is the
+ * signature + return type and exceptions thrown of the method
+ * type of a functional interface type.  It does not include the name
+ * of the method, but everything else.
  * @see ITypeEnvironment.isFunctionalType
  */
 public interface IJavaFunctionType {

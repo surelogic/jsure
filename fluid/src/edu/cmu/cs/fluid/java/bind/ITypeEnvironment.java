@@ -184,6 +184,27 @@ public interface ITypeEnvironment {
   
   boolean isCallCompatible(IJavaType[] types1, IJavaType[] types2);
   
+  /// Java 8 methods: (mainly concerning IJavaFunctionType)
+  
+  IJavaFunctionType computeErasure(IJavaFunctionType ft);
+  
+  /**
+   * Return a function type if the given reference type is 
+   * a "functional type" as described in the Java 8 specification.
+   * (Formerly this was called "functional interface type").
+   * @param t reference type to consider
+   * @return function type if it is indeed a "functional type",
+   * or null otherwise
+   */
+  IJavaFunctionType isFunctionalType(IJavaType t);
+  
+  boolean isSameSignature(IJavaFunctionType ft1, IJavaFunctionType ft2);
+
+  boolean isSubsignature(IJavaFunctionType ft1, IJavaFunctionType ft2);
+  
+  boolean isReturnTypeSubstitutable(IJavaFunctionType ft1, IJavaFunctionType ft2);
+  
+  
 	/**
 	 * In fluid/configuration, perhaps it should be the directory component
 	 * where all the package's classes live.
@@ -223,4 +244,5 @@ public interface ITypeEnvironment {
 	IIRProject getProject();
 
 	void addTypesInCU(IRNode root);
+
 }
