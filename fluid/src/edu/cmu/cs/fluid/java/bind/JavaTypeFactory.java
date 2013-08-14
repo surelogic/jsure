@@ -357,27 +357,29 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     return a;
   }
   
-  private static JavaTypeCache2<List<IJavaType>,IJavaType,JavaFunctionType> functionTypes =
-	      new JavaTypeCache2<List<IJavaType>,IJavaType,JavaFunctionType>();
+  // each function type is mapped to itself, a special kind of set:
+  private static Map<JavaFunctionType,JavaFunctionType> functionTypes =
+	      new HashMap<JavaFunctionType,JavaFunctionType>();
+  private static final IJavaTypeFormal[] emptyTypeFormals = new IJavaTypeFormal[0];
+  static final IJavaType[] emptyTypes = new IJavaType[0];
+	
 
-  private static JavaTypeCache2<List<IJavaType>,IJavaType,JavaFunctionType> varFunctionTypes =
-	      new JavaTypeCache2<List<IJavaType>,IJavaType,JavaFunctionType>();
-
-  public static IJavaFunctionType getFunctionType(boolean isVariable, IJavaType returnType, IJavaType... paramTypes) {
-	  List<IJavaType> ptypes = Arrays.asList(paramTypes.clone()); // defensive
-	  JavaFunctionType ft;
-	  if (isVariable) {
-		  ft = varFunctionTypes.get(ptypes, returnType);
-	  } else {
-		  ft = functionTypes.get(ptypes, returnType);
-	  }
-	  if (ft == null) {
-		  ft = new JavaFunctionType(paramTypes,returnType,isVariable);
-		  if (isVariable) {
-			  varFunctionTypes.put(ptypes, returnType, ft);
-		  } else {
-			  functionTypes.put(ptypes, returnType, ft);
-		  }
+  public static IJavaFunctionType getFunctionType(
+		  List<IJavaTypeFormal> typeFormals,
+		  IJavaType returnType,
+		  List<IJavaType> paramTypes,
+		  boolean isVariable,
+		  Set<IJavaType> throwTypes) {
+	  JavaFunctionType ft = new JavaFunctionType(
+			  typeFormals.toArray(emptyTypeFormals),
+			  returnType,
+			  paramTypes.toArray(emptyTypes),
+			  isVariable,
+			  throwTypes.toArray(emptyTypes));
+	  JavaFunctionType result = functionTypes.get(ft);
+	  if (result == null) {
+		  result = ft;
+		  functionTypes.put(ft, ft);
 	  }
 	  return ft;
   }
@@ -1935,24 +1937,71 @@ class JavaAnonType extends JavaDeclaredType implements IJavaDeclaredType {
 }
 
 class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
+	private final IJavaTypeFormal[] typeFormals;
 	private final IJavaType[] pieces; // 0 = return type, rest are parameter types
+	private final IJavaType[] exceptions; // throw types
 	private final boolean isVariable;
+	private final TypeFormals typeFormalList = new TypeFormals();
 	private final ParameterTypes paramTypes = new ParameterTypes();
+	private final ThrowTypes throwTypes = new ThrowTypes();
+	private final int hashCode;
 	
-	public JavaFunctionType(IJavaType[] parts, boolean isVar) {
-		pieces = parts;
-		isVariable = isVar;
-	}
-	
-	public JavaFunctionType(IJavaType[] params, IJavaType rt, boolean isVar) {
-		pieces = new IJavaType[params.length+1];
+	public JavaFunctionType(
+			IJavaTypeFormal[] tfs, 
+			IJavaType rt, 
+			IJavaType[] pts,
+			boolean isVar,
+			IJavaType[] ths) {
+		typeFormals = tfs;
+		pieces = new IJavaType[pts.length+1];
 		pieces[0] = rt;
-		for (int i=0; i < params.length; ++i) {
-			pieces[i+1] = params[i];
+		for (int i=0; i < pts.length; ++i) {
+			pieces[i+1] = pts[i];
 		}
 		isVariable = isVar;
+		exceptions = ths;
+		hashCode = computeHashCode();
 	}
 
+	private int computeHashCode() {
+		// Warning: this method is called from the constructor,
+		// before the hash code is assigned
+		int h = 0;
+		for (IJavaType p : pieces) {
+			h += p.hashCode();
+			h *= 3;
+		}
+		h += typeFormalList.hashCode();
+		h *= 5;
+		h += throwTypes.hashCode();
+		if (isVariable) h ^= 1066;
+		return h;
+	}
+	
+	@Override
+	public boolean equals(Object x) {
+		if (x == null || x.getClass() != this.getClass()) {
+			return false;
+		}
+		if (x == this) return true;
+		JavaFunctionType ft = (JavaFunctionType)x;
+		if (ft.hashCode != hashCode) return false;
+		return ft.typeFormalList.equals(typeFormalList) &&
+				ft.throwTypes.equals(throwTypes) &&
+				Arrays.equals(ft.pieces, pieces) &&
+				ft.isVariable == isVariable;
+	}
+	
+	@Override 
+	public int hashCode() {
+		return hashCode;
+	}
+	
+	@Override
+	public List<IJavaTypeFormal> getTypeFormals() {
+		return typeFormalList;
+	}
+	
 	@Override
 	public List<IJavaType> getParameterTypes() {
 		return paramTypes;
@@ -1964,8 +2013,25 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 	}
 
 	@Override
+	public Set<IJavaType> getExceptions() {
+		return throwTypes;
+	}
+	
+	@Override
 	public boolean isVariable() {
 		return isVariable;
+	}
+	
+	private class TypeFormals extends AbstractList<IJavaTypeFormal> {
+		@Override
+		public int size() {
+			return typeFormals.length;
+		}
+		
+		@Override
+		public IJavaTypeFormal get(int i) {
+			return typeFormals[i];
+		}
 	}
 	
 	private class ParameterTypes extends AbstractList<IJavaType> {
@@ -1981,9 +2047,150 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 		}
 	}
 
+	private class ThrowTypes extends AbstractSet<IJavaType> {
+		@Override
+		public int size() {
+			return exceptions.length;
+		}
+		
+		@Override
+		public Iterator<IJavaType> iterator() {
+			return new Iterator<IJavaType>() {
+				private int index = -1;
+				@Override
+				public boolean hasNext() {
+					return index+1 < exceptions.length;
+				}
+				@Override
+				public IJavaType next() {
+					if (!hasNext()) throw new NoSuchElementException("no more"); 
+					++index;
+					return exceptions[index];
+				}
+				@Override
+				public void remove() {
+					throw new UnsupportedOperationException("immutable");
+				}
+			};
+		}
+	}
+
+	@Override
+	public String toString() {
+		return "JavaFunctionType(" + typeFormalList + "," + getReturnType() +
+				"," + paramTypes + "," + isVariable + "," + throwTypes + ")";
+	}
+	
+	@Override
+	public String toSourceText() {
+		StringBuilder sb = new StringBuilder();
+		if (typeFormals.length > 0) {
+			boolean first = true;
+			for (IJavaTypeFormal tf : typeFormals) {
+				if (first) {
+					sb.append("<");
+					first = false;
+				}
+				else sb.append(",");
+				sb.append(tf.toSourceText());
+			}
+			sb.append("< ");
+		}
+		sb.append(pieces[0].toSourceText());
+		sb.append(" ? ");
+		if (pieces.length > 1) {
+			boolean first = true;
+			for (int i=1; i < pieces.length; ++i) {
+				if (first) {
+					sb.append("(");
+					first = false;
+				} else sb.append(",");
+				if (i+1 == pieces.length && isVariable) {
+					if (pieces[i] instanceof IJavaArrayType) {
+						sb.append(((IJavaArrayType)pieces[i]).getElementType().toSourceText());
+						sb.append("...");
+					} else {
+						sb.append(pieces[i].toSourceText());
+					}
+				} else {
+					sb.append(pieces[i].toSourceText());
+				}
+				sb.append(" arg" + i);
+			}
+			sb.append(")");
+		} else sb.append("()");
+		if (exceptions.length > 0) {
+			boolean first = true;
+			for (IJavaType t : exceptions) {
+				if (first) {
+					sb.append(" throws ");
+					first = false;
+				} else {
+					sb.append(",");
+				}
+				sb.append(t.toSourceText());
+			}
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Perform a substitution on the function type
+	 * for type variables <em>outside</em> the scope.
+	 * @see instantiate
+	 * @param s type substitution on outer variables
+	 * @return substituted function type
+	 */
+	@Override
+	public IJavaFunctionType subst(IJavaTypeSubstitution s) {
+		for (IJavaTypeFormal f : typeFormals) {
+			if (s.get(f) != f) throw new IllegalArgumentException("substitution applies to formal, use instantiate instead");
+		}
+		return JavaTypeFactory.getFunctionType(
+				Arrays.asList(subst(typeFormals,s)), 
+				getReturnType().subst(s), 
+				Arrays.asList(subst(paramTypes.toArray(JavaTypeFactory.emptyTypes),s)), 
+				isVariable, 
+				new HashSet<IJavaType>(Arrays.asList(subst(exceptions,s))));
+	}
+
+	@Override
+	public IJavaFunctionType instantiate(List<IJavaTypeFormal> newFormals, IJavaTypeSubstitution s) {
+		for (IJavaTypeFormal f : typeFormals) {
+			if (s.get(f) == f && !newFormals.contains(f)) {
+				throw new IllegalArgumentException("instantiation didn't handle " + f);
+			}
+		}
+		return JavaTypeFactory.getFunctionType(
+				newFormals,
+				getReturnType().subst(s), 
+				Arrays.asList(subst(paramTypes.toArray(JavaTypeFactory.emptyTypes),s)), 
+				isVariable, 
+				new HashSet<IJavaType>(Arrays.asList(subst(exceptions,s))));		
+	}
+	
+	private <T extends IJavaType> T[] subst(T[] ts, IJavaTypeSubstitution s) {
+		T[] result = ts;
+		for (int i=0; i < ts.length; ++i) {
+			@SuppressWarnings("unchecked")
+			T piece = (T)ts[i].subst(s);
+			if (piece != ts[i]) {
+				if (ts == result) result = ts.clone();
+				result[i] = piece;
+			}
+		}
+		return result;
+	}
+
 	@Override
 	public boolean isValid() {
+		for (IJavaTypeFormal t : typeFormals) {
+			if (!t.isValid()) return false;
+		}
 		for (IJavaType t : pieces) {
+			if (!t.isValid()) return false;
+		}
+		for (IJavaType t : exceptions) {
 			if (!t.isValid()) return false;
 		}
 		return true;
@@ -2000,9 +2207,83 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 }
 
 /*
- * The following three classes are used
+ * The following classes are used
  * to implement cleanable caches of types.
  */
+
+class JavaTypeCache4<K1,K2,K3,K4,T extends JavaTypeCleanable> extends CustomizableHashCodeMap<K1,JavaTypeCache3<K2,K3,K4,T>>
+	implements CleanableMap<K1,JavaTypeCache3<K2,K3,K4,T>>
+{
+	public JavaTypeCache4() {
+		super(DEFAULT_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_THRESHOLD);
+	}
+
+	public T get(K1 k1, K2 k2, K3 k3, K4 k4) {
+		JavaTypeCache3<K2,K3,K4,T> subCache = super.get(k1);
+		if (subCache == null) {
+			return null;
+		}
+		return subCache.get(k2,k3,k4);
+	}
+	
+	public void put(K1 k1, K2 k2, K3 k3, K4 k4, T v) {
+		JavaTypeCache3<K2,K3,K4,T> subCache = super.get(k1);
+		if (subCache == null) {
+			subCache = new JavaTypeCache3<K2,K3,K4,T>();
+			super.put(k1,subCache);
+		}
+		subCache.put(k2, k3, k4, v);
+	}
+	  
+	@Override
+	protected boolean isValidEntry(HashEntry<K1, JavaTypeCache3<K2, K3, K4, T>> e) {
+		JavaTypeCache3<K2, K3, K4, T> subCache = e.getValue();
+		subCache.cleanup();
+		return !subCache.isEmpty(); // if no entries, then ditch it.
+	}
+
+	@Override
+	public int cleanup() {
+	  return super.cleanup();
+	}
+}
+
+class JavaTypeCache3<K1,K2,K3,T extends JavaTypeCleanable> extends CustomizableHashCodeMap<K1,JavaTypeCache2<K2,K3,T>>
+implements CleanableMap<K1,JavaTypeCache2<K2,K3,T>>
+{
+	public JavaTypeCache3() {
+		super(DEFAULT_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_THRESHOLD);
+	}
+
+	public T get(K1 k1, K2 k2, K3 k3) {
+		JavaTypeCache2<K2,K3,T> subCache = super.get(k1);
+		if (subCache == null) {
+			return null;
+		}
+		return subCache.get(k2,k3);
+	}
+
+	public void put(K1 k1, K2 k2, K3 k3, T v) {
+		JavaTypeCache2<K2,K3,T> subCache = super.get(k1);
+		if (subCache == null) {
+			subCache = new JavaTypeCache2<K2,K3,T>();
+			super.put(k1,subCache);
+		}
+		subCache.put(k2, k3, v);
+	}
+
+	@Override
+	protected boolean isValidEntry(HashEntry<K1, JavaTypeCache2<K2, K3, T>> e) {
+		JavaTypeCache2<K2, K3, T> subCache = e.getValue();
+		subCache.cleanup();
+		return !subCache.isEmpty(); // if no entries, then ditch it.
+	}
+
+	@Override
+	public int cleanup() {
+		return super.cleanup();
+	}
+}
 
 class JavaTypeCache2<K1,K2,T extends JavaTypeCleanable> extends CustomizableHashCodeMap<K1,CleanableMap<K2,T>> 
   implements CleanableMap<K1,CleanableMap<K2,T>> {

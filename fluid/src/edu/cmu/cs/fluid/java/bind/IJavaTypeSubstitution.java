@@ -12,7 +12,7 @@ import java.util.*;
 public interface IJavaTypeSubstitution {
   /**
    * Search for the substitution corresponding to the given type formal
-   * (if any)
+   * (if any).  If none, return the type formal back.
    */
   IJavaType get(IJavaTypeFormal jtf);
 
