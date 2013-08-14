@@ -370,6 +370,9 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 		  List<IJavaType> paramTypes,
 		  boolean isVariable,
 		  Set<IJavaType> throwTypes) {
+	  if (typeFormals == null) typeFormals = Collections.emptyList();
+	  if (paramTypes == null) paramTypes = Collections.emptyList();
+	  if (throwTypes == null) throwTypes = Collections.emptySet();
 	  JavaFunctionType ft = new JavaFunctionType(
 			  typeFormals.toArray(emptyTypeFormals),
 			  returnType,
@@ -397,6 +400,63 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 	  upperBounded.clear();
 	  functionTypes.clear();
 	  initRootTypes();
+  }
+  
+  /**
+   * Get the function type corresponding to a method or constructor declaration.
+   * For a method declaration, the receiver can be 
+   * @param memDecl node for method or constructor
+   * @param receiverType type to use for receiver, or null if it should be omitted
+   * For a constructor, the receiver type must be set.
+   * @param binder binder (needed to perform task)
+   * @return function type for this member
+   */
+  public static IJavaFunctionType getMemberFunctionType(
+		  IRNode memDecl, 
+		  IJavaType receiverType, 
+		  IBinder binder) {
+	  IRNode tformals;
+	  IRNode formals;
+	  IRNode throwsNode;
+	  List<IJavaType> paramTypes = new ArrayList<IJavaType>();
+	  Operator op = JavaNode.tree.getOperator(memDecl);
+	  IJavaType returnType;
+	  if (MethodDeclaration.prototype.includes(op)) {
+		  tformals = MethodDeclaration.getTypes(memDecl);
+		  formals = MethodDeclaration.getParams(memDecl);
+		  returnType = binder.getJavaType(MethodDeclaration.getReturnType(memDecl));
+		  if (receiverType != null) {
+			  paramTypes.add(receiverType);
+		  }
+		  throwsNode = MethodDeclaration.getExceptions(memDecl);
+	  } else if (ConstructorDeclaration.prototype.includes(op)) {
+		  tformals = ConstructorDeclaration.getTypes(memDecl);
+		  formals = ConstructorDeclaration.getParams(memDecl);
+		  if (receiverType == null) throw new IllegalArgumentException("constructors need non-null receiver types");
+		  returnType = receiverType;
+		  throwsNode = ConstructorDeclaration.getExceptions(memDecl);
+	  } else {
+		  throw new IllegalArgumentException("passed a node of wrong type: " + op);
+	  }
+	  List<IJavaTypeFormal> typeFormals = null;
+	  for (IRNode tf : JavaNode.tree.children(tformals)) {
+		  if (typeFormals == null) typeFormals = new ArrayList<IJavaTypeFormal>();
+		  typeFormals.add(getTypeFormal(tf));
+	  }
+	  boolean isVariable = true;
+	  for (IRNode f : JavaNode.tree.children(formals)) {
+		  IRNode ptype = ParameterDeclaration.getType(f);
+		  paramTypes.add(binder.getJavaType(ptype));
+		  if (VarArgsType.prototype.includes(JavaNode.tree.getOperator(ptype))) {
+			  isVariable = true;
+		  }
+	  }
+	  Set<IJavaType> throwTypes = null;
+	  for (IRNode et : JavaNode.tree.children(throwsNode)) {
+		  if (throwTypes == null) throwTypes = new HashSet<IJavaType>();
+		  throwTypes.add(binder.getJavaType(et));
+	  }
+	  return getFunctionType(typeFormals,returnType,paramTypes,isVariable,throwTypes);
   }
   
   /**
