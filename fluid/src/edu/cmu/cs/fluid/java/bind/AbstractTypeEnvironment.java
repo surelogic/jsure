@@ -372,6 +372,31 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  return null;
   }
 
+  public IJavaFunctionType isFunctionalInterface(IRNode idecl) {
+	  SingleMethodGroupSignatures sigs = getInterfaceSingleMethodSignatures(idecl);
+	  if (sigs == null) return null;
+	  if (sigs.size() == 0) return null;
+	  // TODO: we need to see if there is a single signature
+	  // that is a subsignature of all others and is return compatible.
+	  // If so return it, otherwise
+	  return null; // TODO
+  }
+  
+  // a helper method for isFunctionalInterface
+  /**
+   * Return a collection of signature all with the same name and arity that
+   * this interface exclusively defines, ignoring all public methods of Object
+   * and those override equivalent to them.  If there are no such methods,
+   * the collection is empty.  If there are more than one name, or more than
+   * one arity, then return null.
+   * @param idecl IRNode for an interface declaration
+   * @return
+   */
+  SingleMethodGroupSignatures getInterfaceSingleMethodSignatures(IRNode idecl) {
+	  // TODO: stubbed
+	  return null;
+  }
+  
   /* Two methods or constructors, M and N, have the same signature if 
    * they have the same name, 
    * the same type parameters (if any) (8.4.4), and, 
@@ -384,7 +409,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
    * 2. Where A1, ... , An are the type parameters of M and 
    *    B1, ..., Bn are the type parameters of N, 
    *    let theta=[B1:=A1, ..., Bn:=An]. 
-   *    Then, for all i, 1²i²n, 
+   *    Then, for all i, 1ï¿½iï¿½n, 
    *        the bound of Ai is the same type as theta applied to the bound of Bi. 
    * Where two methods or constructors M and N have the same type parameters, 
    * a type mentioned in N can be adapted to the type parameters of M 
@@ -424,12 +449,17 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   /* The signature of a method m1 is a subsignature of the signature of a method m2 
    * if either:
    * m2 has the same signature as m1, or
-   * the signature of m1 is the same as the erasure (¤4.6) of the signature of m2.
+   * the signature of m1 is the same as the erasure (ï¿½4.6) of the signature of m2.
    */
   @Override
   public boolean isSubsignature(IJavaFunctionType ft1, IJavaFunctionType ft2) {
 	  return isSameSignature(ft1,ft2) ||
 			  isSameSignature(ft1,computeErasure(ft2));
+  }
+
+  @Override
+  public boolean isOverrideEquivalent(IJavaFunctionType ft1, IJavaFunctionType ft2) {
+	  return isSubsignature(ft1,ft2) || isSubsignature(ft2,ft1);
   }
 
   /*

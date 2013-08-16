@@ -202,6 +202,8 @@ public interface ITypeEnvironment {
 
   boolean isSubsignature(IJavaFunctionType ft1, IJavaFunctionType ft2);
   
+  boolean isOverrideEquivalent(IJavaFunctionType ft1, IJavaFunctionType ft2);
+  
   boolean isReturnTypeSubstitutable(IJavaFunctionType ft1, IJavaFunctionType ft2);
   
   
