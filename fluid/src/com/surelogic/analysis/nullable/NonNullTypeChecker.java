@@ -172,7 +172,6 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       
       if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
         final IRNode vd = k.bind(where, binder, thisExprBinder);
-//            k == Kind.VAR_USE ? binder.getBinding(where) : thisExprBinder.bindThisExpression(where);
         final StackQueryResult newQuery = currentQuery().getResultFor(where);
         final Base varValue = newQuery.lookupVar(vd);
         chain.addLast(where);
@@ -269,7 +268,6 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
         
       if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
         final IRNode vd = k.bind(where, binder, thisExprBinder);
-//            k == Kind.VAR_USE ? binder.getBinding(where) : thisExprBinder.bindThisExpression(where);
         final StackQueryResult newQuery = currentQuery().getResultFor(where);
         final Base varValue = newQuery.lookupVar(vd);
         final ResultFolderDrop f = ResultsBuilder.createAndFolder(
@@ -314,7 +312,6 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
         
       if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
         final IRNode vd = k.bind(where, binder, thisExprBinder);
-//            k == Kind.VAR_USE ? binder.getBinding(where) : thisExprBinder.bindThisExpression(where);
         final StackQueryResult newQuery = currentQuery().getResultFor(where);
         final Base varValue = newQuery.lookupVar(vd);
         hasNegative |= testChain(declState, varValue.second());

@@ -435,7 +435,15 @@ implements IBinderClient {
     RECEIVER_RAW_OBJECT(946),
     BOXED_CREMENT(947),
     RECEIVER_ENUM_CLASS(948),
-    EQUALITY(949) {
+    EQUALITY_NOTNULL(949) {
+      @Override
+      public String unparse(final IRNode w) {
+        IRNode n = tree.getChild(w,  0);
+        if (!VariableUseExpression.prototype.includes(n)) n = tree.getChild(w, 1);
+        return VariableUseExpression.getId(n);
+      }
+    },
+    EQUALITY_NULL(964) {
       @Override
       public String unparse(final IRNode w) {
         IRNode n = tree.getChild(w,  0);
@@ -1134,7 +1142,7 @@ implements IBinderClient {
       if (!lattice.isNormal(val)) return val;
 
       Value newValue = val;
-      final Element ni2 = lattice.peek(newValue).first();
+//      final Element ni2 = lattice.peek(newValue).first();
       newValue = lattice.pop(newValue);
       final Element ni1 = lattice.peek(newValue).first();
       newValue = lattice.pop(newValue);
@@ -1142,47 +1150,67 @@ implements IBinderClient {
        * equality expression is a primitive boolean type.
        */
       newValue = lattice.push(newValue, 
-          lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.EQUALITY, node));
+          lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.EQUALITY_NOTNULL, node));
+
+      /* Used to short circuit impossible flow paths.   But we don't want to 
+       * do this because it leaves spots in the flow graph where we do not have
+       * analysis results.
+       */
+
+//      final Element meet = ni1.meet(ni2);
+//      
+//      // if the condition is impossible, we propagate bottom
+//      if (meet == NonNullRawLattice.IMPOSSIBLE) {
+//        if (flag) return null; // else fall through to end
+//      }
+//      // if the comparison is guaranteed true, we propagate bottom for false:
+//      else if (ni1.lessEq(NonNullRawLattice.NULL) && ni2.lessEq(NonNullRawLattice.NULL)) {
+//        if (!flag) return null; // else fall through to end
+//      }
       
-      final Element meet = ni1.meet(ni2);
-      
-      // if the condition is impossible, we propagate bottom
-      if (meet == NonNullRawLattice.IMPOSSIBLE) {
-        if (flag) return null; // else fall through to end
-      }
-      // if the comparison is guaranteed true, we propagate bottom for false:
-      else if (ni1.lessEq(NonNullRawLattice.NULL) && ni2.lessEq(NonNullRawLattice.NULL)) {
-        if (!flag) return null; // else fall through to end
-      }
       /*
+       * 
+       * IF we have an *equality* comparison with null, we mark the variable
+       * as being null.
+       * 
        * If we have an *inequality* comparison with null, then we can consider
        * the variable being tested as non-null, but only if it isn't already
        * RAW or NOT_NULL.
        */
-      else if (!flag) {
-        if (ni1.lessEq(NonNullRawLattice.NULL)) {
-          final IRNode n = tree.getChild(node, 1); // don't use EqExpression methods because this transfer is called on != also
-          if (VariableUseExpression.prototype.includes(n)) {
-            final int idx = lattice.indexOf(binder.getIBinding(n).getNode());
-            newValue = lattice.setVarNonNullIfNotAlready(newValue, idx, Kind.EQUALITY, node);
+      if (ni1.lessEq(NonNullRawLattice.NULL)) {
+        final IRNode n = tree.getChild(node, 1); // don't use EqExpression methods because this transfer is called on != also
+        if (VariableUseExpression.prototype.includes(n)) {
+          final int idx = lattice.indexOf(binder.getIBinding(n).getNode());
+          if (flag) {
+            newValue = lattice.setVar(newValue, idx,
+                lattice.baseValue(NonNullRawLattice.NULL, Kind.EQUALITY_NULL, node));
+          } else {
+            newValue = lattice.setVarNonNullIfNotAlready(
+                newValue, idx, Kind.EQUALITY_NOTNULL, node);
           }
-        } else if (NullLiteral.prototype.includes(tree.getChild(node,1))) {
-          /*
-           * NB: it would be a little more precise if we checked for ni2 being
-           * under NULL than what we do here but then we must check for
-           * assignments of the variable so that we don't make a wrong
-           * conclusion for "x == (x = null)" which, even if false, still leaves
-           * x null. The first branch is OK because "(x = null) == x" doesn't
-           * have the same problem.
-           */
-          final IRNode n = tree.getChild(node, 0);
-          if (VariableUseExpression.prototype.includes(tree.getOperator(n))) {
-            final int idx = lattice.indexOf(binder.getIBinding(n).getNode());
-            newValue = lattice.setVarNonNullIfNotAlready(newValue, idx, Kind.EQUALITY, node);
-          }
-        } else {
-          // TRUE BRANCH: can update variables to be the meet of the two sides
         }
+      } else if (NullLiteral.prototype.includes(tree.getChild(node,1))) {
+        /*
+         * NB: it would be a little more precise if we checked for ni2 being
+         * under NULL than what we do here but then we must check for
+         * assignments of the variable so that we don't make a wrong
+         * conclusion for "x == (x = null)" which, even if false, still leaves
+         * x null. The first branch is OK because "(x = null) == x" doesn't
+         * have the same problem.
+         */
+        final IRNode n = tree.getChild(node, 0);
+        if (VariableUseExpression.prototype.includes(tree.getOperator(n))) {
+          final int idx = lattice.indexOf(binder.getIBinding(n).getNode());
+          if (flag) {
+            newValue = lattice.setVar(newValue, idx,
+                lattice.baseValue(NonNullRawLattice.NULL, Kind.EQUALITY_NULL, node));
+          } else {
+            newValue = lattice.setVarNonNullIfNotAlready(
+                newValue, idx, Kind.EQUALITY_NOTNULL, node);
+          }
+        }
+      } else {
+        // TRUE BRANCH: can update variables to be the meet of the two sides
       }
       return newValue;
     }    
@@ -1264,18 +1292,22 @@ implements IBinderClient {
         }
       }
       
-      /*
-       * Impossible situations: (1) We know the object is null, but we are
-       * testing the true (object is not null) path. (2) We know the object is
-       * not null, but we are testing the false (object is null) path.
+      /* Used to short circuit impossible flow paths.   But we don't want to 
+       * do this because it leaves spots in the flow graph where we do not have
+       * analysis results.
        */
-      final Element ni = lattice.peek(newValue).first();
-      if (flag && ni.lessEq(NonNullRawLattice.NULL)) {
-        return null; // lattice.bottom();
-      }
-      if (!flag && ni.lessEq(NonNullRawLattice.RAW)) {
-        return null; //lattice.bottom();
-      }
+//      /*
+//       * Impossible situations: (1) We know the object is null, but we are
+//       * testing the true (object is not null) path. (2) We know the object is
+//       * not null, but we are testing the false (object is null) path.
+//       */
+//      final Element ni = lattice.peek(newValue).first();
+//      if (flag && ni.lessEq(NonNullRawLattice.NULL)) {
+//        return null; // lattice.bottom();
+//      }
+//      if (!flag && ni.lessEq(NonNullRawLattice.RAW)) {
+//        return null; //lattice.bottom();
+//      }
       
       /*
        * If we are on the true (object is not null) path and the expression
