@@ -71,6 +71,10 @@ public class NonNullRules extends AnnotationRules {
 	public static IPromiseDropStorage<NullablePromiseDrop> getNullableStorage() {
 		return nullableRule.getStorage();
 	}
+
+  public static IPromiseDropStorage<NonNullPromiseDrop> getNonNullStorage() {
+    return nonNullRule.getStorage();
+  }
   
 	private NonNullRules() {
 		// Just to make it a singleton
