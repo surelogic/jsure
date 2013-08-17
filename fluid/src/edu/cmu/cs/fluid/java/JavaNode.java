@@ -211,19 +211,22 @@ public class JavaNode extends JJNode {
 
   public static final int HAS_PARENS = (1 << 24);
   
+  public static final int DEFAULT = (1 << 25);  // new modifier in Java 8
+  
   public static final int[] MODIFIERS = { ABSTRACT, FINAL, NATIVE, PRIVATE, PROTECTED, PUBLIC, STATIC, SYNCHRONIZED, TRANSIENT,
       VOLATILE, STRICTFP, IMPLICIT, INSTANCE, VARARGS, WRITE, AS_BINARY, IS_GRANULE, NOT_GRANULE, IMPLEMENTATION_ONLY, NO_VERIFY,
-      ALLOW_RETURN, ALLOW_READ, ALLOW_REF_OBJECT, HAS_PARENS };
+      ALLOW_RETURN, ALLOW_READ, ALLOW_REF_OBJECT, HAS_PARENS, DEFAULT };
 
   public static final String MODIFIERS_ID = "Java.modifiers";
 
-  private static final int LASTMODIFIER = HAS_PARENS;
+  private static final int LASTMODIFIER = DEFAULT;
   public static final int ILLEGAL_MOD = LASTMODIFIER << 1;
 
   static final String[] modifiers = { "abstract", "final", "native", "private", "protected", "public", "static", "synchronized",
       "transient", "volatile", "strictfp", "", // implicit
       "instance", "varargs", "write", "binary", "isGranule", "notGranule", 
-      "implementationOnly", "noVerify", "allowReturn", "allowRead", "allowReferenceObject", "hasParens"
+      "implementationOnly", "noVerify", "allowReturn", "allowRead", "allowReferenceObject", 
+      "hasParens", "default"
   };
   
   private static final SlotInfo<Integer> modifiersSlotInfo = getVersionedSlotInfo(MODIFIERS_ID, IRIntegerType.prototype,
