@@ -691,6 +691,10 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       case VOLATILE:
         mods = JavaNode.setModifier(mods, JavaNode.VOLATILE, true);
         break;
+      /* XXX: enable this case after javac JAR updated for "default" modifier
+      case DEFAULT:
+    	  mods = JavaNode.setModifier(mods, JavaNode.DEFAULT, true);
+      */
       }
     }
     return mods;
