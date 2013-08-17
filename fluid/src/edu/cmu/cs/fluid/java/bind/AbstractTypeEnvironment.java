@@ -16,6 +16,7 @@ import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -382,6 +383,11 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  return null; // TODO
   }
   
+  // efficiency, avoid complex case for methods without these names.
+  private final Set<String> javaPublicMethodNames = 
+		  new HashSet<String>(Arrays.asList("equals","getClass","hashCode",
+				  "notify","notifyAll","toString","wait"));
+  
   // a helper method for isFunctionalInterface
   /**
    * Return a collection of signature all with the same name and arity that
@@ -393,8 +399,58 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
    * @return
    */
   SingleMethodGroupSignatures getInterfaceSingleMethodSignatures(IRNode idecl) {
-	  // TODO: stubbed
-	  return null;
+	  if (idecl == null) return null;
+	  if (!InterfaceDeclaration.prototype.includes(JavaNode.tree.getOperator(idecl))) {
+		  return null;
+	  }
+	  
+	  // get all inherited methods
+	  SingleMethodGroupSignatures result = SingleMethodGroupSignatures.EmptyMethodGroupSignatures.instance;
+	  for (IRNode extn : JavaNode.tree.children(InterfaceDeclaration.getExtensions(idecl))) {
+		  IJavaType extt = this.convertNodeTypeToIJavaType(extn);
+		  if (extt instanceof IJavaDeclaredType) {
+			  IJavaDeclaredType dt = (IJavaDeclaredType)extt;
+			  IRNode edecl = dt.getDeclaration();
+			  SingleMethodGroupSignatures igroup = getInterfaceSingleMethodSignatures(edecl);
+			  if (igroup == null) return null;
+			  if (igroup.size() == 0) continue;
+			  IJavaTypeSubstitution sub = IJavaTypeSubstitution.NULL;
+			  if (JavaNode.tree.numChildren(InterfaceDeclaration.getTypes(edecl)) > 0) {
+				  List<IJavaTypeFormal> tformals = new ArrayList<IJavaTypeFormal>();
+				  for (IRNode tfn : JavaNode.tree.children(InterfaceDeclaration.getTypes(edecl))) {
+					  tformals.add(JavaTypeFactory.getTypeFormal(tfn));
+				  }
+				  sub = new SimpleTypeSubstitution(getBinder(),tformals,dt.getTypeParameters());
+			  }
+			  result = result.add(igroup.subst(sub));
+			  if (result == null) return null; // give up immediately
+		  }
+	  }
+	  
+	  for (IRNode memNode : JavaNode.tree.children(InterfaceDeclaration.getBody(idecl))) {
+		  // must be a method declaration
+		  if (!MethodDeclaration.prototype.includes(JavaNode.tree.getOperator(memNode))) continue;
+		  // ignore if default or static
+		  int mods = JavaNode.getModifiers(memNode);
+		  if ((mods & (JavaNode.DEFAULT|JavaNode.STATIC)) != 0) continue;
+		  
+		  String name = JavaNode.getInfo(memNode);
+		  IJavaFunctionType sig = JavaTypeFactory.getMemberFunctionType(memNode, null, getBinder());
+		  // ignore if a public method in Object
+		  if (javaPublicMethodNames.contains(name)) {
+			  IRNode odecl = this.findNamedType("Java.lang.Object");
+			  for (IRNode omem : JavaNode.tree.children(ClassDeclaration.getBody(odecl))) {
+				  if (JavaNode.getInfo(omem).equals(name)) {
+					  IJavaFunctionType osig = JavaTypeFactory.getMemberFunctionType(omem, null, getBinder());
+					  if (isSameSignature(sig,osig)) continue; // ignore this method
+				  }
+			  }
+		  }
+		  
+		  result = result.add(new SingleMethodGroupSignatures.SingletonMethodGroupSignature(name,sig));
+		  if (result == null) return null;
+	  }
+	  return result;
   }
   
   /* Two methods or constructors, M and N, have the same signature if 

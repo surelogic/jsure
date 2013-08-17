@@ -1347,6 +1347,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     int mods = adaptModifiers(node.getModifiers());
     if (kind == TypeKind.IFACE || kind == TypeKind.ANNO) {
       mods = JavaNode.setModifier(mods, JavaNode.PUBLIC, true);
+      // XXX: don't mark abstract unless not STATIC or DEFAULT (can't do until we have a new javac.jar)
       mods = JavaNode.setModifier(mods, JavaNode.ABSTRACT, true);
     }
     if (JavaNode.getModifier(mods, JavaNode.STATIC)) {

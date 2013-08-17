@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.java.bind;
 
 import java.util.AbstractCollection;
+import java.util.AbstractList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -17,6 +18,7 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 	public String getName();
 	public int getArity();
 	public SingleMethodGroupSignatures add(SingleMethodGroupSignatures other);
+	public SingleMethodGroupSignatures subst(IJavaTypeSubstitution theta);
 
 	public static class EmptyMethodGroupSignatures 
 	extends AbstractCollection<IJavaFunctionType> 
@@ -38,6 +40,11 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 		@Override
 		public SingleMethodGroupSignatures add(SingleMethodGroupSignatures other) {
 			return other;
+		}
+		
+		@Override
+		public SingleMethodGroupSignatures subst(IJavaTypeSubstitution theta) {
+			return this;
 		}
 
 		@Override
@@ -75,11 +82,18 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 
 		@Override
 		public SingleMethodGroupSignatures add(SingleMethodGroupSignatures other) {
+			if (other == null) return null;
 			if (other.size() == 0) return this;
 			if (other.getName().equals(name) && other.getArity() == getArity()) {
 				return new JoinedMethodGroupSignatures(this,other);
 			}
 			return null;
+		}
+
+		@Override
+		public SingleMethodGroupSignatures subst(IJavaTypeSubstitution theta) {
+			if (theta == IJavaTypeSubstitution.NULL) return this;
+			return new SingletonMethodGroupSignature(name,signature.subst(theta));
 		}
 
 		@Override
@@ -123,11 +137,22 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 
 		@Override
 		public SingleMethodGroupSignatures add(SingleMethodGroupSignatures other) {
+			if (other == null) return null;
 			if (other.size() == 0) return this;
 			if (other.getName().equals(getName()) && other.getArity() == getArity()) {
 				return new JoinedMethodGroupSignatures(this,other);
 			}
 			return null;			
+		}
+
+		
+		@Override
+		public SingleMethodGroupSignatures subst(IJavaTypeSubstitution theta) {
+			IJavaFunctionType[] sigs = this.toArray(new IJavaFunctionType[size()]);
+			for (int i=0; i < sigs.length; ++i) {
+				sigs[i] = sigs[i].subst(theta);
+			}
+			return new ArrayMethodGroupSignatures(getName(),sigs);
 		}
 
 		@Override
@@ -140,5 +165,61 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 			return size;
 		}
 		
+	}
+	
+	static class ArrayMethodGroupSignatures
+	extends AbstractList<IJavaFunctionType>
+	implements SingleMethodGroupSignatures
+	{
+		private final String name;
+		private final IJavaFunctionType[] sigs;
+		
+		public ArrayMethodGroupSignatures(String n, IJavaFunctionType[] ss) {
+			if (ss.length < 1) {
+				throw new IllegalArgumentException("array must not be empty");
+			}
+			name = n;
+			sigs = ss;
+		}
+		
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public int getArity() {
+			return sigs[0].getParameterTypes().size();
+		}
+
+		@Override
+		public SingleMethodGroupSignatures add(SingleMethodGroupSignatures other) {
+			if (other == null) return null;
+			if (other.size() == 0) return this;
+			if (other.getName().equals(getName()) && other.getArity() == getArity()) {
+				return new JoinedMethodGroupSignatures(this,other);
+			}
+			return null;			
+		}
+
+		@Override
+		public SingleMethodGroupSignatures subst(IJavaTypeSubstitution theta) {
+			if (theta == IJavaTypeSubstitution.NULL) return this;
+			IJavaFunctionType[] news = sigs.clone();
+			for (int i=0; i < sigs.length; ++i) {
+				news[i] = sigs[i].subst(theta);
+			}
+			return new ArrayMethodGroupSignatures(name,news);
+		}
+
+		@Override
+		public int size() {
+			return sigs.length;
+		}
+		
+		@Override
+		public IJavaFunctionType get(int i) {
+			return sigs[i];
+		}
 	}
 }
