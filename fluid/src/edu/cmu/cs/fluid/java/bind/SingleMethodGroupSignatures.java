@@ -56,11 +56,46 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 		public int size() {
 			return 0;
 		}
+		
+		@Override
+		public String toString() {
+			return "SIG{}";
+		}
+	}
+	
+	public static abstract class AbstractMethodGroupSignatures 
+	extends AbstractCollection<IJavaFunctionType> 
+	implements SingleMethodGroupSignatures
+	{
+		@Override
+		public SingleMethodGroupSignatures add(SingleMethodGroupSignatures other) {
+			if (other == null) return null;
+			if (other.size() == 0) return this;
+			if (other.getName().equals(getName()) && other.getArity() == getArity()) {
+				return new JoinedMethodGroupSignatures(this,other);
+			}
+			return null;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			boolean started = false;
+			for (IJavaFunctionType ft : this) {
+				if (!started) {
+					sb.append(getName() + "@{");
+					started = true;
+				} else {
+					sb.append(",");
+				}
+				sb.append(ft.toSourceText());
+			}
+			return sb.toString();
+		}
 	}
 	
 	public static class SingletonMethodGroupSignature
-	extends AbstractCollection<IJavaFunctionType>
-	implements SingleMethodGroupSignatures
+	extends AbstractMethodGroupSignatures
 	{
 		private final String name;
 		private final IJavaFunctionType signature;
@@ -80,15 +115,6 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 			return signature.getParameterTypes().size();
 		}
 
-		@Override
-		public SingleMethodGroupSignatures add(SingleMethodGroupSignatures other) {
-			if (other == null) return null;
-			if (other.size() == 0) return this;
-			if (other.getName().equals(name) && other.getArity() == getArity()) {
-				return new JoinedMethodGroupSignatures(this,other);
-			}
-			return null;
-		}
 
 		@Override
 		public SingleMethodGroupSignatures subst(IJavaTypeSubstitution theta) {
@@ -108,8 +134,7 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 	}
 	
 	static class JoinedMethodGroupSignatures
-	extends AbstractCollection<IJavaFunctionType>
-	implements SingleMethodGroupSignatures
+	extends AbstractMethodGroupSignatures
 	{
 
 		private final SingleMethodGroupSignatures sigs1, sigs2;
@@ -134,17 +159,6 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 		public int getArity() {
 			return sigs1.getArity();
 		}
-
-		@Override
-		public SingleMethodGroupSignatures add(SingleMethodGroupSignatures other) {
-			if (other == null) return null;
-			if (other.size() == 0) return this;
-			if (other.getName().equals(getName()) && other.getArity() == getArity()) {
-				return new JoinedMethodGroupSignatures(this,other);
-			}
-			return null;			
-		}
-
 		
 		@Override
 		public SingleMethodGroupSignatures subst(IJavaTypeSubstitution theta) {
@@ -220,6 +234,23 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 		@Override
 		public IJavaFunctionType get(int i) {
 			return sigs[i];
+		}
+
+		// duplicating this code is annoying...  in Java 8, a default method would work.
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			boolean started = false;
+			for (IJavaFunctionType ft : this) {
+				if (!started) {
+					sb.append(getName() + "@{");
+					started = true;
+				} else {
+					sb.append(",");
+				}
+				sb.append(ft.toSourceText());
+			}
+			return sb.toString();
 		}
 	}
 }

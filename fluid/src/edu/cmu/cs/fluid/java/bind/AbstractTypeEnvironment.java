@@ -374,13 +374,36 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   }
 
   public IJavaFunctionType isFunctionalInterface(IRNode idecl) {
+	  /* For interface I, 
+	   * let M be the set of abstract methods that are members of I 
+	   * but that do not have the same signature as any 
+	   * public instance method of the class Object. 
+	   * Then I is a functional interface 
+	   *    if there exists a method m in M for which the following conditions hold:
+       *    * The signature of m is a subsignature (8.4.2) 
+       *      of every method's signature in M.
+       *    * m is return-type-substitutable (8.4.5) for every method in M.
+       */
 	  SingleMethodGroupSignatures sigs = getInterfaceSingleMethodSignatures(idecl);
 	  if (sigs == null) return null;
 	  if (sigs.size() == 0) return null;
-	  // TODO: we need to see if there is a single signature
+	  // We need to see if there is a single signature
 	  // that is a subsignature of all others and is return compatible.
-	  // If so return it, otherwise
-	  return null; // TODO
+	  // If so return it, otherwise return null
+	  // for now, do the very simplest literal thing:
+	  for (IJavaFunctionType ft1 : sigs) {
+		  boolean OK = true;
+		  for (IJavaFunctionType ft2 : sigs) {
+			  if (ft1 != ft2 && // every *other* method
+				  !isSubsignature(ft1, ft2) ||
+				  !isReturnTypeSubstitutable(ft1,ft2)) {
+				  OK = false;
+				  break;
+			  }
+		  }
+		  if (OK) return ft1;
+	  }
+	  return null;
   }
   
   // efficiency, avoid complex case for methods without these names.
@@ -396,7 +419,9 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
    * the collection is empty.  If there are more than one name, or more than
    * one arity, then return null.
    * @param idecl IRNode for an interface declaration
-   * @return
+   * @return collection of signatures if all such signatures have the same
+   * name and arity.  Otherwise, return an empty signature (if no such methods) or null 
+   * (if there are conflicting names and/or arities). 
    */
   SingleMethodGroupSignatures getInterfaceSingleMethodSignatures(IRNode idecl) {
 	  if (idecl == null) return null;
@@ -427,6 +452,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 		  }
 	  }
 	  
+	  // look at all methods declared in the interface
 	  for (IRNode memNode : JavaNode.tree.children(InterfaceDeclaration.getBody(idecl))) {
 		  // must be a method declaration
 		  if (!MethodDeclaration.prototype.includes(JavaNode.tree.getOperator(memNode))) continue;
