@@ -419,7 +419,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 	  IRNode formals;
 	  IRNode throwsNode;
 	  List<IJavaType> paramTypes = new ArrayList<IJavaType>();
-	  Operator op = JavaNode.tree.getOperator(memDecl);
+	  Operator op = JJNode.tree.getOperator(memDecl);
 	  IJavaType returnType;
 	  if (MethodDeclaration.prototype.includes(op)) {
 		  tformals = MethodDeclaration.getTypes(memDecl);
@@ -439,20 +439,20 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 		  throw new IllegalArgumentException("passed a node of wrong type: " + op);
 	  }
 	  List<IJavaTypeFormal> typeFormals = null;
-	  for (IRNode tf : JavaNode.tree.children(tformals)) {
+	  for (IRNode tf : JJNode.tree.children(tformals)) {
 		  if (typeFormals == null) typeFormals = new ArrayList<IJavaTypeFormal>();
 		  typeFormals.add(getTypeFormal(tf));
 	  }
 	  boolean isVariable = true;
-	  for (IRNode f : JavaNode.tree.children(formals)) {
+	  for (IRNode f : JJNode.tree.children(formals)) {
 		  IRNode ptype = ParameterDeclaration.getType(f);
 		  paramTypes.add(binder.getJavaType(ptype));
-		  if (VarArgsType.prototype.includes(JavaNode.tree.getOperator(ptype))) {
+		  if (VarArgsType.prototype.includes(JJNode.tree.getOperator(ptype))) {
 			  isVariable = true;
 		  }
 	  }
 	  Set<IJavaType> throwTypes = null;
-	  for (IRNode et : JavaNode.tree.children(throwsNode)) {
+	  for (IRNode et : JJNode.tree.children(throwsNode)) {
 		  if (throwTypes == null) throwTypes = new HashSet<IJavaType>();
 		  throwTypes.add(binder.getJavaType(et));
 	  }
