@@ -1,4 +1,4 @@
-package com.surelogic.analysis.nullable.combined;
+package com.surelogic.analysis.nullable;
 
 import java.util.HashMap;
 import java.util.HashSet;
