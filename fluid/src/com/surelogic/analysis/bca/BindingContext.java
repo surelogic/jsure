@@ -209,12 +209,6 @@ IRNodeIndexedExtraElementArrayLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>
   @Override
   public ImmutableSet<IRNode>[] getEmptyValue() {
     return createEmptyValue();
-//    final ImmutableSet<IRNode>[] empty = new ImmutableSet[size];
-//    for (int i = 0; i < size - 1; i++) {
-//      empty[i] = CachedSet.<IRNode>getEmpty();
-//    }
-//    empty[size-1] = ignoreMeSingletonSet;
-//    return empty;
   }
   
   @Override

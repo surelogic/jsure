@@ -82,7 +82,7 @@ import edu.uwm.cs.fluid.util.UnionLattice;
 public final class NonNullRawTypeAnalysis 
 extends StackEvaluatingAnalysisWithInference<
     Element, NonNullRawTypeAnalysis.Value,
-    NonNullRawLattice, NonNullRawTypeAnalysis.Lattice>
+    NonNullRawTypeAnalysis.InferredLattice, NonNullRawTypeAnalysis.Lattice>
 implements IBinderClient {
   private static final ImmutableHashOrderSet<Source> EMPTY =
       ImmutableHashOrderSet.<Source>emptySet();
@@ -243,7 +243,7 @@ implements IBinderClient {
   public final class Inferred
   extends Result<NonNullRawLattice.Element, NonNullRawLattice, PromiseDrop<?>> {
     protected Inferred(
-        final IRNode[] keys, final InferredPair<Element>[] val,
+        final IRNode[] keys, final Element[] val,
         final NonNullRawLattice sl) {
       super(keys, val, sl);
     }
@@ -265,7 +265,7 @@ implements IBinderClient {
   
   
   public final class InferredQuery
-  extends InferredVarStateQuery<InferredQuery, NonNullRawLattice.Element, Value, NonNullRawLattice, Lattice, Inferred> {
+  extends InferredVarStateQuery<InferredQuery, NonNullRawLattice.Element, Value, NonNullRawLattice, InferredLattice, Lattice, Inferred> {
     protected InferredQuery(
         final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
@@ -338,7 +338,7 @@ implements IBinderClient {
     final NonNullRawLattice rawLattice = new NonNullRawLattice(binder.getTypeEnvironment());
     final BaseLattice baseLattice = new BaseLattice(rawLattice, new UnionLattice<Source>());
     final LocalStateLattice rawVariables = LocalStateLattice.create(refVars, baseLattice, uses);
-    final StateLattice stateLattice = new StateLattice(rawVariables, rawLattice, varsToInfer);
+    final StateLattice stateLattice = new StateLattice(rawVariables, new InferredLattice(rawLattice, varsToInfer));
     final Lattice lattice = new Lattice(baseLattice, stateLattice);
     final Transfer t = new Transfer(flowUnit, binder, lattice, 0);
     return new JavaForwardAnalysis<Value, Lattice>("NonNull and Raw Types", lattice, t, DebugUnparser.viewer);
@@ -581,6 +581,20 @@ implements IBinderClient {
   
   
   
+  protected static final class InferredLattice extends
+  StackEvaluatingAnalysisWithInference.InferredLattice<Element, NonNullRawLattice> {
+    public InferredLattice(final NonNullRawLattice base, final List<IRNode> keys) {
+      super(base, keys);
+    }
+
+    @Override
+    protected Element[] newArray() {
+      return new Element[size];
+    }    
+  }
+  
+  
+  
   /**
    * Base value for the analysis, a pair of non-null state and a set of IRNodes
    * representing the possible source expressions of the value. Each IRNode in
@@ -658,20 +672,19 @@ implements IBinderClient {
    * annotation.
    */
   static final class State extends StatePair<Base[], Element> {
-    public State(final Base[] vars, final InferredPair<Element>[] inferred) {
+    public State(final Base[] vars, final Element[] inferred) {
       super(vars, inferred);
     }
   }
   
   static final class StateLattice extends StatePairLattice<
-      Base[], Element, State, LocalStateLattice, NonNullRawLattice> {
-    public StateLattice(final LocalStateLattice l1, final NonNullRawLattice l2,
-        final List<IRNode> keys) {
-      super(l1, l2, keys);
+      Base[], Element, State, LocalStateLattice, InferredLattice> {
+    public StateLattice(final LocalStateLattice l1, final InferredLattice l2) {
+      super(l1, l2);
     }
     
     @Override
-    protected State newPair(final Base[] v1, final InferredPair<Element>[] v2) {
+    protected State newPair(final Base[] v1, final Element[] v2) {
       return new State(v1, v2);
     }
     
@@ -684,7 +697,11 @@ implements IBinderClient {
     public LocalStateLattice getLocalStateLattice() {
       return lattice1;
     }
-    
+        
+    public NonNullRawLattice getInferredStateLattice() {
+      return lattice2.getBaseLattice();
+    }
+
     public int getNumVariables() {
       return lattice1.getSize();
     }
@@ -749,7 +766,7 @@ implements IBinderClient {
   
   public static final class Lattice extends EvalLattice<
       Base, Element, State, Value,
-      BaseLattice, NonNullRawLattice, StateLattice> {
+      BaseLattice, InferredLattice, StateLattice> {
     protected Lattice(final BaseLattice l1,
         final NonNullRawTypeAnalysis.StateLattice l2) {
       super(l1, l2);
@@ -773,6 +790,9 @@ implements IBinderClient {
       return lattice2.getLocalStateLattice();
     }
     
+    public NonNullRawLattice getInferredStateLattice() {
+      return lattice2.getInferredStateLattice();
+    }
     
     
     public int getNumVariables() {
