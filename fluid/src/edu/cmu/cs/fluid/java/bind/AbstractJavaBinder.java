@@ -325,9 +325,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
    * @return type this expression is expected to be
    */
   public IJavaType getPolyExpressionTargetType(IRNode pe) {
-	  IRNode p = JavaNode.tree.getParent(pe);
-	  IRLocation loc = JavaNode.tree.getLocation(pe);
-	  Operator op = JavaNode.tree.getOperator(p);
+	  IRNode p = JJNode.tree.getParent(pe);
+	  IRLocation loc = JJNode.tree.getLocation(pe);
+	  Operator op = JJNode.tree.getOperator(p);
 	  if (AssignExpression.prototype.includes(op)) {
 		  if (loc.equals(AssignExpression.op2Location)) {
 			  return getJavaType(AssignExpression.getOp1(pe));
@@ -343,13 +343,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 	  } else if (ParenExpression.prototype.includes(op)) {
 		  return getPolyExpressionTargetType(p);
 	  } else if (Arguments.prototype.includes(op)) {
-		  IBinding bi = getIBinding(JavaNode.tree.getParent(p));
-		  int i = JavaNode.tree.childLocationIndex(p, loc);
+		  IBinding bi = getIBinding(JJNode.tree.getParent(p));
+		  int i = JJNode.tree.childLocationIndex(p, loc);
 		  if (bi != null) {
-			  IRNode decl = getBinding(JavaNode.tree.getParent(p));
+			  IRNode decl = getBinding(JJNode.tree.getParent(p));
 			  if (decl != null) {
 				  final IRNode formals;
-				  Operator dop = JavaNode.tree.getOperator(decl);
+				  Operator dop = JJNode.tree.getOperator(decl);
 				  if (MethodDeclaration.prototype.includes(dop)) {
 					  formals = MethodDeclaration.getParams(decl);
 				  } else if (ConstructorDeclaration.prototype.includes(dop)) {
@@ -358,7 +358,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 					  LOG.warning("what could a call be bound to? " + dop);
 					  return null;
 				  }
-				  return bi.convertType(getJavaType(JavaNode.tree.getChild(formals, i)));
+				  return bi.convertType(getJavaType(JJNode.tree.getChild(formals, i)));
 			  }
 		  }
 	  } 

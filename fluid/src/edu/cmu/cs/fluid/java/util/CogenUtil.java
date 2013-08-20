@@ -288,7 +288,7 @@ public class CogenUtil implements JavaGlobals {
   /// makeAnonClass
   public static JavaNode makeAnonClass(IRNode type, IRNode[] args, 
 				     IRNode[] members) {
-    return AnonClassExpression.createNode(
+    return AllocationCallExpression.createNode(
         NonPolymorphicNewExpression.createNode(type, Arguments.createNode(args)),
 					  ClassBody.createNode(members));
   }
