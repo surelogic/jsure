@@ -1,4 +1,4 @@
-package com.surelogic.analysis.nullable.combined;
+package com.surelogic.analysis.nullable;
 
 
 import java.util.ArrayList;
@@ -18,8 +18,8 @@ import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalLattice;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePair;
 import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePairLattice;
 import com.surelogic.analysis.ThisExpressionBinder;
-import com.surelogic.analysis.nullable.combined.NonNullRawLattice.ClassElement;
-import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
+import com.surelogic.analysis.nullable.NonNullRawLattice.ClassElement;
+import com.surelogic.analysis.nullable.NonNullRawLattice.Element;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.Pair;
 import com.surelogic.common.ref.IJavaRef;

@@ -1,11 +1,11 @@
-package com.surelogic.analysis.nullable.combined;
+package com.surelogic.analysis.nullable;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Base;
-import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.BaseLattice;
+import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Base;
+import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.BaseLattice;
 import com.surelogic.util.IRNodeIndexedArrayLattice;
 
 import edu.cmu.cs.fluid.ir.IRNode;

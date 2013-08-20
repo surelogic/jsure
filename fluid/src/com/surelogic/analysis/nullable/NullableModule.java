@@ -11,12 +11,10 @@ import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.InferredVarSt
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
+import com.surelogic.analysis.nullable.NonNullRawLattice.Element;
+import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Inferred;
+import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.InferredQuery;
 import com.surelogic.analysis.nullable.NullableModule.AnalysisBundle.QueryBundle;
-import com.surelogic.analysis.nullable.combined.NonNullRawLattice;
-import com.surelogic.analysis.nullable.combined.NonNullRawLattice.Element;
-import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis;
-import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.Inferred;
-import com.surelogic.analysis.nullable.combined.NonNullRawTypeAnalysis.InferredQuery;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.HintDrop;
