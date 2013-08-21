@@ -30,8 +30,8 @@ public class TestFunctionalInterfacePseudoAnalysis extends AbstractWholeIRAnalys
 	 * @param inParallel
 	 * @param type
 	 */
-	public TestFunctionalInterfacePseudoAnalysis(boolean inParallel, Class<Unused> type) {
-		super(inParallel, type, "TestFunctionalInterface");
+	public TestFunctionalInterfacePseudoAnalysis() {
+		super("TestFunctionalInterface");
 		System.out.println("Started the test-is-functional pseudo-analysis");
 		LOG.warning("Test analysis is being run.  Please excuse the mess.");
 	}
@@ -62,8 +62,8 @@ public class TestFunctionalInterfacePseudoAnalysis extends AbstractWholeIRAnalys
 
 	    @Override
 	    public Void visitInterfaceDeclaration(IRNode idecl) {
-	    	System.out.println("For interface " + JavaNode.getInfo(idecl));
-	    	System.out.println("  " + ((AbstractTypeEnvironment)binder.getTypeEnvironment()).getInterfaceSingleMethodSignatures(idecl));
+	    	LOG.warning("For interface " + JavaNode.getInfo(idecl));
+	    	LOG.warning("  " + ((AbstractTypeEnvironment)binder.getTypeEnvironment()).getInterfaceSingleMethodSignatures(idecl));
 	    	return null;	
 	    }
 	    

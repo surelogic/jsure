@@ -659,10 +659,11 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 		  IJavaFunctionType sig = JavaTypeFactory.getMemberFunctionType(memNode, null, getBinder());
 		  // ignore if a public method in Object
 		  if (javaPublicMethodNames.contains(name)) {
-			  IRNode odecl = this.findNamedType("Java.lang.Object");
+			  IRNode odecl = this.findNamedType("java.lang.Object");
 			  for (IRNode omem : JJNode.tree.children(ClassDeclaration.getBody(odecl))) {
 				  if (JJNode.getInfo(omem).equals(name)) {
 					  IJavaFunctionType osig = JavaTypeFactory.getMemberFunctionType(omem, null, getBinder());
+					  LOG.warning("  comparing " + sig + " and " + osig);
 					  if (isSameSignature(sig,osig)) continue; // ignore this method
 				  }
 			  }
