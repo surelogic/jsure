@@ -10,6 +10,7 @@ public interface IDEPreferences {
   String JSURE_XML_DIFF_DIRECTORY = PREFIX + "xml.diff.directory";
   String SCAN_MAY_USE_COMPRESSION = PREFIX + "scan.may.use.compression";
   String LOAD_ALL_CLASSES = PREFIX + "load.all.classes";
+  String TREAT_AS_JAVA_8 = PREFIX + "treat.as.java.8";
   String UNINTERESTING_PACKAGE_FILTERS = PREFIX + "modeling.problem.filters";
   String MAKE_NONABDUCTIVE_PROPOSALS = PREFIX + "make.nonabductive.proposals";
 
@@ -22,7 +23,7 @@ public interface IDEPreferences {
   String PHYS_MEMORY = PREFIX + "physMemoryInMB";
   
   String[] BOOL_PREFS_TO_SYNC = { ALLOW_JAVADOC_ANNOS, LOAD_ALL_CLASSES, SCAN_MAY_USE_COMPRESSION, SCAN_MAY_RUN_UNIQUENESS,
-      TIMEOUT_FLAG, MAKE_NONABDUCTIVE_PROPOSALS };
+      TIMEOUT_FLAG, MAKE_NONABDUCTIVE_PROPOSALS, TREAT_AS_JAVA_8 };
 
   String[] INT_PREFS_TO_SYNC = { TOOL_MEMORY_MB, ANALYSIS_THREAD_COUNT, TIMEOUT_WARNING_SEC, TIMEOUT_SEC, };
 

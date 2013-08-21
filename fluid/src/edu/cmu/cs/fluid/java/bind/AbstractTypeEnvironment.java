@@ -620,13 +620,13 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
    */
   public SingleMethodGroupSignatures getInterfaceSingleMethodSignatures(IRNode idecl) {
 	  if (idecl == null) return null;
-	  if (!InterfaceDeclaration.prototype.includes(JavaNode.tree.getOperator(idecl))) {
+	  if (!InterfaceDeclaration.prototype.includes(JJNode.tree.getOperator(idecl))) {
 		  return null;
 	  }
 	  
 	  // get all inherited methods
 	  SingleMethodGroupSignatures result = SingleMethodGroupSignatures.EmptyMethodGroupSignatures.instance;
-	  for (IRNode extn : JavaNode.tree.children(InterfaceDeclaration.getExtensions(idecl))) {
+	  for (IRNode extn : JJNode.tree.children(InterfaceDeclaration.getExtensions(idecl))) {
 		  IJavaType extt = this.convertNodeTypeToIJavaType(extn);
 		  if (extt instanceof IJavaDeclaredType) {
 			  IJavaDeclaredType dt = (IJavaDeclaredType)extt;
@@ -635,9 +635,9 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 			  if (igroup == null) return null;
 			  if (igroup.size() == 0) continue;
 			  IJavaTypeSubstitution sub = IJavaTypeSubstitution.NULL;
-			  if (JavaNode.tree.numChildren(InterfaceDeclaration.getTypes(edecl)) > 0) {
+			  if (JJNode.tree.numChildren(InterfaceDeclaration.getTypes(edecl)) > 0) {
 				  List<IJavaTypeFormal> tformals = new ArrayList<IJavaTypeFormal>();
-				  for (IRNode tfn : JavaNode.tree.children(InterfaceDeclaration.getTypes(edecl))) {
+				  for (IRNode tfn : JJNode.tree.children(InterfaceDeclaration.getTypes(edecl))) {
 					  tformals.add(JavaTypeFactory.getTypeFormal(tfn));
 				  }
 				  sub = new SimpleTypeSubstitution(getBinder(),tformals,dt.getTypeParameters());
@@ -648,20 +648,20 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  }
 	  
 	  // look at all methods declared in the interface
-	  for (IRNode memNode : JavaNode.tree.children(InterfaceDeclaration.getBody(idecl))) {
+	  for (IRNode memNode : JJNode.tree.children(InterfaceDeclaration.getBody(idecl))) {
 		  // must be a method declaration
-		  if (!MethodDeclaration.prototype.includes(JavaNode.tree.getOperator(memNode))) continue;
+		  if (!MethodDeclaration.prototype.includes(JJNode.tree.getOperator(memNode))) continue;
 		  // ignore if default or static
 		  int mods = JavaNode.getModifiers(memNode);
 		  if ((mods & (JavaNode.DEFAULT|JavaNode.STATIC)) != 0) continue;
 		  
-		  String name = JavaNode.getInfo(memNode);
+		  String name = JJNode.getInfo(memNode);
 		  IJavaFunctionType sig = JavaTypeFactory.getMemberFunctionType(memNode, null, getBinder());
 		  // ignore if a public method in Object
 		  if (javaPublicMethodNames.contains(name)) {
 			  IRNode odecl = this.findNamedType("Java.lang.Object");
-			  for (IRNode omem : JavaNode.tree.children(ClassDeclaration.getBody(odecl))) {
-				  if (JavaNode.getInfo(omem).equals(name)) {
+			  for (IRNode omem : JJNode.tree.children(ClassDeclaration.getBody(odecl))) {
+				  if (JJNode.getInfo(omem).equals(name)) {
 					  IJavaFunctionType osig = JavaTypeFactory.getMemberFunctionType(omem, null, getBinder());
 					  if (isSameSignature(sig,osig)) continue; // ignore this method
 				  }
