@@ -56,120 +56,7 @@ extends IntraproceduralAnalysis<T, L_T, JavaForwardAnalysis<T, L_T>> {
   
   // ======================================================================
   
-  
-  
-//  /**
-//   * Record of an assignment to a local variable.
-//   * 
-//   * @param <I> The type of the state to be inferred for each local variable.
-//   */
-//  public static final class Assignment<I>
-//  extends com.surelogic.common.Pair<IRNode, I> {
-//    public Assignment(final IRNode where, final I state) {
-//      super(where, state);
-//    }
-//    
-//    @Override
-//    protected String firstToString(final IRNode where) {
-//      final IJavaRef javaRef = JavaNode.getJavaRef(where);
-//      return javaRef == null ? "?" : Integer.toString(javaRef.getOffset());
-//    }
-//    
-//    public IRNode getWhere() { return first(); }
-//    public I getState() { return second(); }
-//  }
-  
-  
-  
-//  /**
-//   * Pair of the inferred least state for a local variable and its set
-//   * of assignments.
-//   * 
-//   * @param <I> The type of the state to be inferred for each local variable.
-//   */
-//  public static final class InferredPair<I>
-//  extends com.surelogic.common.Pair<I, ImmutableSet<Assignment<I>>> {
-//    public InferredPair(final I state, ImmutableSet<Assignment<I>> assignments) {
-//      super(state, assignments);
-//    }
-//    
-//    public I getState() { return first(); }
-//    public ImmutableSet<Assignment<I>> getAssignments() { return second(); }
-//  }
-  
-  
-//  private static final class ModifiedUnionLattice<I>
-//  extends UnionLattice<Assignment<I>> {
-//    private static Comparator<String> COMPARE = new Comparator<String>() {
-//      @Override
-//      public int compare(final String o1, final String o2) {
-//        return o1.compareTo(o2);
-//      }
-//    };
-//    
-//    public ModifiedUnionLattice() { super(); }
-//    
-//    @Override
-//    public String toString(final ImmutableSet<Assignment<I>> set) {
-//      final String[] array = new String[set.size()];
-//      int i = 0;
-//      for (final Assignment<I> a : set) { array[i++] = a.toString(); }
-//      Arrays.sort(array, COMPARE);
-//      return Arrays.toString(array);
-//    }
-//  }
-  
-  
-//  /**
-//   * Lattice for {@link InferredPair} values.
-//   *
-//   * @param <I> The type of the state to be inferred for each local variable.
-//   * @param <I> The lattice type of the inferred variable states.
-//   */
-//  private static final class InferredPairLattice<I, L extends Lattice<I>>
-//  extends PairLattice<I, ImmutableSet<Assignment<I>>, L, UnionLattice<Assignment<I>>, InferredPair<I>> {
-//    public InferredPairLattice(final L l1) {
-//      super(l1, new ModifiedUnionLattice<I>());
-//    }
-//
-//    @Override
-//    protected InferredPair<I> newPair(
-//        final I v1, final ImmutableSet<Assignment<I>> v2) {
-//      return new InferredPair<I>(v1, v2);
-//    }
-//    
-//    public InferredPair<I> getEmptyElementValue() {
-//      return newPair(lattice1.bottom(),
-//          ImmutableHashOrderSet.<Assignment<I>>emptySet());
-//    }
-//    
-//    @SuppressWarnings("unchecked")
-//    public InferredPair<I>[] newArray(final int size) {
-//      // XXX: See if I can fix this in some elegant way
-//      return new InferredPair[size];
-//    }
-//    
-//    public L getInferredStateLattice() {
-//      return lattice1;
-//    }
-//    
-//    /**
-//     * Set the inferred state of a local variable at the given index.
-//     */
-//    public InferredPair<I> inferVar(
-//        final InferredPair<I> current, final I v, final IRNode src) {
-//      /* Here we are just adding the assignment to the set.  But I wonder 
-//       * if the correct thing to do is to JOIN the incoming state with any
-//       * existing state for the same assignment site.  So far this doesn't
-//       * seem to be a problem.
-//       */
-//      return newPair(
-//          lattice1.join(current.getState(), v),
-//          current.second().addCopy(new Assignment<I>(src, v)));
-//    }
-//  }
-  
-  
+    
   
   /**
    * Lattice for array of inferred variable states.
@@ -205,19 +92,10 @@ extends IntraproceduralAnalysis<T, L_T, JavaForwardAnalysis<T, L_T>> {
         sb.append(VariableDeclarator.getId(index));
       }
     }
-
-//    @Override
-//    protected InferredPair<I>[] newArray() {
-//      return baseLattice.newArray(size);
-//    }
     
     public final IRNode[] cloneKeys() {
       return indices.clone();
     }
-    
-//    public L getInferredStateLattice() {
-//      return baseLattice.getInferredStateLattice();
-//    }
     
     /**
      * Set the inferred state of a local variable at the given index.
