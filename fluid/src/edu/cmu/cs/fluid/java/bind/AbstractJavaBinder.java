@@ -2841,7 +2841,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  System.out.println("Binding 'Inner': "+context);
       }
       */      
-      final IJavaScope.Selector isAccessible = methodBinder.makeAccessSelector(node);
+      final IJavaScope.Selector isAccessible = MethodBinder.makeAccessSelector(typeEnvironment, node);
       /*
       if ("Lock".equals(JJNode.getInfoOrNull(node))) {
     	  IRNode parent = JJNode.tree.getParentOrNull(node);
