@@ -4,10 +4,24 @@
  */
 package edu.cmu.cs.fluid.java.bind;
 
-import java.util.*;
-import java.util.logging.Logger;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.AbstractList;
+import java.util.AbstractSet;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.logging.Logger;
 
 import com.surelogic.ast.IType;
 import com.surelogic.ast.java.operator.IDeclarationNode;
@@ -16,20 +30,68 @@ import com.surelogic.ast.java.operator.ITypeFormalNode;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.util.*;
+import com.surelogic.common.util.AppendIterator;
+import com.surelogic.common.util.EmptyIterator;
+import com.surelogic.common.util.Iteratable;
+import com.surelogic.common.util.SingletonIterator;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.NotImplemented;
+import edu.cmu.cs.fluid.debug.DebugUtil;
+import edu.cmu.cs.fluid.ir.AbstractIRNode;
+import edu.cmu.cs.fluid.ir.Cleanable;
+import edu.cmu.cs.fluid.ir.CleanableMap;
+import edu.cmu.cs.fluid.ir.IRInput;
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.IRNodeHashedMap;
+import edu.cmu.cs.fluid.ir.IROutput;
+import edu.cmu.cs.fluid.ir.IRPersistent;
+import edu.cmu.cs.fluid.ir.IRType;
+import edu.cmu.cs.fluid.ir.SlotUndefinedException;
+import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.JavaOperator;
+import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.ArrayDeclaration;
+import edu.cmu.cs.fluid.java.operator.ArrayType;
+import edu.cmu.cs.fluid.java.operator.BooleanType;
+import edu.cmu.cs.fluid.java.operator.ByteType;
+import edu.cmu.cs.fluid.java.operator.CaptureType;
+import edu.cmu.cs.fluid.java.operator.CharType;
+import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.DoubleType;
+import edu.cmu.cs.fluid.java.operator.FloatType;
+import edu.cmu.cs.fluid.java.operator.IntType;
+import edu.cmu.cs.fluid.java.operator.IntegralType;
+import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.LongType;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.MoreBounds;
+import edu.cmu.cs.fluid.java.operator.NameType;
+import edu.cmu.cs.fluid.java.operator.NamedType;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.ParameterizedType;
+import edu.cmu.cs.fluid.java.operator.PrimitiveType;
+import edu.cmu.cs.fluid.java.operator.ShortType;
+import edu.cmu.cs.fluid.java.operator.Type;
+import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeFormal;
+import edu.cmu.cs.fluid.java.operator.TypeRef;
+import edu.cmu.cs.fluid.java.operator.UnionType;
+import edu.cmu.cs.fluid.java.operator.VarArgsType;
+import edu.cmu.cs.fluid.java.operator.VoidType;
+import edu.cmu.cs.fluid.java.operator.WildcardExtendsType;
+import edu.cmu.cs.fluid.java.operator.WildcardSuperType;
+import edu.cmu.cs.fluid.java.operator.WildcardType;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.CustomizableHashCodeMap;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.SingletonMap;
-import edu.cmu.cs.fluid.debug.DebugUtil;
-import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.*;
-import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 /**
  * Class that handles instances of classes that implement
@@ -1237,6 +1299,23 @@ class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectio
   @Override
   public String toFullyQualifiedText() {
 	  return primaryBound.toFullyQualifiedText()+" & "+secondaryBound.toFullyQualifiedText();
+  }
+  
+  @Override
+  public Iterator<IJavaType> iterator() {
+	  final Iterator<IJavaType> it1;
+	  if (primaryBound instanceof IJavaIntersectionType) {
+		  it1 = ((IJavaIntersectionType)primaryBound).iterator();
+	  } else {
+		  it1 = new SingletonIterator<IJavaType>(primaryBound);
+	  }
+	  final Iterator<IJavaType> it2;
+	  if (secondaryBound instanceof IJavaIntersectionType) {
+		  it2 = ((IJavaIntersectionType)secondaryBound).iterator();
+	  } else {
+		  it2 = new SingletonIterator<IJavaType>(secondaryBound);
+	  }
+	  return new AppendIterator<IJavaType>(it1,it2);
   }
   
   @Override

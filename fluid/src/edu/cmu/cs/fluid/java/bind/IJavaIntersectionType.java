@@ -8,7 +8,7 @@ package edu.cmu.cs.fluid.java.bind;
  * @see IJavaTypeFormal
  * @author boyland
  */
-public interface IJavaIntersectionType extends IJavaReferenceType {
+public interface IJavaIntersectionType extends IJavaReferenceType, Iterable<IJavaType> {
   /**
    * Return the <em>primary</em> supertype of this intersection type.
    * This will be the same result as

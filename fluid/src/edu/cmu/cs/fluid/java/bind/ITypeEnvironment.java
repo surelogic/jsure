@@ -13,7 +13,11 @@ import edu.cmu.cs.fluid.tree.*;
 public interface ITypeEnvironment {
 	/** The Tree used to build all the ASTs used here */
   SyntaxTreeInterface parsetree = JJNode.tree;
-	
+
+  /**
+   * Return what version of Java we can handle (5,6,7,8...)
+   * @return Java version we can handle.
+   */
   int getMajorJavaVersion();
   
   public abstract IJavaClassTable getClassTable();

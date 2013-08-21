@@ -1,28 +1,73 @@
 package edu.cmu.cs.fluid.java.bind;
 
-import java.util.*;
+import static com.surelogic.common.util.IteratorUtil.noElement;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.Borrowed;
+import com.surelogic.Immutable;
+import com.surelogic.RegionEffects;
+import com.surelogic.ThreadSafe;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.util.*;
-import static com.surelogic.common.util.IteratorUtil.noElement;
+import com.surelogic.common.util.EmptyIterator;
+import com.surelogic.common.util.FilterIterator;
+import com.surelogic.common.util.Iteratable;
+import com.surelogic.common.util.PairIterator;
+import com.surelogic.common.util.SimpleIterator;
+import com.surelogic.common.util.SingletonIterator;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
+import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
+import edu.cmu.cs.fluid.java.operator.ArithUnopExpression;
+import edu.cmu.cs.fluid.java.operator.ArrayDeclaration;
+import edu.cmu.cs.fluid.java.operator.BooleanType;
+import edu.cmu.cs.fluid.java.operator.ByteType;
+import edu.cmu.cs.fluid.java.operator.CharType;
+import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
+import edu.cmu.cs.fluid.java.operator.FloatType;
+import edu.cmu.cs.fluid.java.operator.IntLiteral;
+import edu.cmu.cs.fluid.java.operator.IntType;
+import edu.cmu.cs.fluid.java.operator.IntegralType;
+import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.LongType;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.MoreBounds;
+import edu.cmu.cs.fluid.java.operator.NumericType;
+import edu.cmu.cs.fluid.java.operator.PrimitiveType;
+import edu.cmu.cs.fluid.java.operator.ReferenceType;
+import edu.cmu.cs.fluid.java.operator.ReturnTypeInterface;
+import edu.cmu.cs.fluid.java.operator.ShortType;
+import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeFormal;
+import edu.cmu.cs.fluid.java.operator.TypeInterface;
+import edu.cmu.cs.fluid.java.operator.UnopExpression;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.*;
-import com.surelogic.*;
+import edu.cmu.cs.fluid.util.TripleIterator;
 
 /**
  * A class that implements some of the basic type operations.
@@ -77,7 +122,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   
   @Override
   public int getMajorJavaVersion() {
-	  return 0; // TODO
+	  return 8; // sort of
   }
   
   @Override
@@ -367,12 +412,103 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 			  new HashSet<IJavaType>(Arrays.asList(etypes)));
   }
   
+  /**
+   * Check whether this type is a functional type,
+   * and if so return its descriptor.  This code
+   * meets the Java specification, modified to simplify
+   * the definition for an intersection type.
+   * @param t type to check
+   * @return descriptor if this is a function type and null otherwise
+   */
   @Override
   public IJavaFunctionType isFunctionalType(IJavaType t) {
-	  // TODO Auto-generated method stub
-	  return null;
+	  /*
+	   *  A function type is one of the following:
+       *  - A non-generic functional interface
+       *  - A parameterization (4.5) of a functional interface
+       *  - A raw functional interface type (4.8)
+       *  - An intersection (4.9) of interface types that meets the following criteria:
+       *    (i) Exactly one element of the intersection is a functional interface type. 
+       *        Let F be this interface.
+       *    (ii) A notional interface, I, that extends all the interfaces in the 
+       *         intersection would be a functional interface. 
+       *         If any of the intersection elements is a parameterized type, 
+       *         then I is generic: for each element of the intersection 
+       *         that is a parameterized type J<A1...An>, let P1...Pn be the type parameters of J; 
+       *         then P1...Pn are also type parameters of I, and 
+       *         I extends the type J<P1...Pn>.
+       *    (iii) The function descriptor of I is the same as the function descriptor of F 
+       *          (after adapting for any type parameters (8.4.4)). 
+       * JTB: The last definition is changed (in this code) to be have simpler criteria
+       *    (i) Exactly one of the elements of the intersection is a functional interface type
+       *    (ii) All other interfaces have no members other than ones with
+       *         the same signature as any public instance method of the class Object
+       *         
+       * The function descriptor of a parameterized functional interface, F<A1...An>, 
+       * where A1...An are type arguments (4.5.1), is derived as follows. 
+       * Let P1...Pn be the type parameters of F; 
+       * types T1...Tn are derived from the type arguments 
+       * according to the following rules (for 1 ≤ i ≤ n):
+       *  - If Ai is a type, then Ti = Ai.
+       *  - If Ai is a upper-bounded wildcard ? extends Ui, then Ti = Ui.
+       *  - If Ai is a lower-bounded wildcard ? super Li, then Ti = Li.
+       *  - If Ai is an unbound wildcard ?, 
+       *    then if Pi has upper bound Bi that mentions none of P1...Pn, 
+       *    then Ti = Bi; otherwise, Ti = Object. 
+       * If F<T1...Tn> is a well-formed type, 
+       * then the descriptor of F<A1...An> is the result of applying substitution 
+       *   [P1:=T1, ..., Pn:=Tn] to the descriptor of interface F. 
+       * Otherwise, the descriptor of F<A1...An> is undefined.
+       * JTB: This definition is a mess
+       *      Something could be a function type but not have a descriptor.
+       *      I will modify it to simply be the capture-handling substitution
+       *      
+       * The function descriptor of a raw functional interface type 
+       * is the erasure of the functional interface's descriptor.
+       *
+       * The function descriptor of an intersection that is a function type 
+       * is the same as the function descriptor of the functional interface or 
+       * parameterization of a functional interface that is an element of the intersection. 
+	   */
+	  if (t instanceof IJavaIntersectionType) {
+		  IJavaIntersectionType intt = (IJavaIntersectionType)t;
+		  boolean found = false;
+		  for (IJavaType piece : intt) {
+			  if (!(piece instanceof IJavaDeclaredType)) return null;
+			  IJavaDeclaredType p = (IJavaDeclaredType)piece;
+			  SingleMethodGroupSignatures sigs = this.getInterfaceSingleMethodSignatures(p.getDeclaration());
+			  if (sigs == null) return null;
+			  if (sigs.size() == 0) continue; // ignore this one
+			  if (found) return null; // more than one, can't be right
+			  found = true;
+			  t = p;
+		  }
+		  // fall through
+	  }
+	  if (!(t instanceof IJavaDeclaredType)) return null;
+	  IJavaDeclaredType p = (IJavaDeclaredType)t;
+	  IRNode decl = p.getDeclaration();
+	  IJavaFunctionType descriptor = isFunctionalInterface(decl);
+	  if (descriptor == null) return null;
+	  IRNode typeFormalsNode = InterfaceDeclaration.getTypes(decl);
+	  if (JavaNode.tree.numChildren(typeFormalsNode) > 0) {
+		  List<IJavaType> actuals = p.getTypeParameters();
+		  if (actuals.size() == 0) return computeErasure(descriptor);
+		  List<IJavaTypeFormal> formals = new ArrayList<IJavaTypeFormal>();
+		  for (IRNode tf : JavaNode.tree.children(typeFormalsNode)) {
+			  formals.add(JavaTypeFactory.getTypeFormal(tf));
+		  }
+		  return descriptor.subst(new SimpleTypeSubstitution(getBinder(),formals,actuals));
+	  }
+	  return descriptor;
   }
 
+  /**
+   * If the interface is a functional interface, return its descriptor.
+   * Otherwise return null.  Meets the Java specification.
+   * @param idecl node of the interface declaration
+   * @return descriptor (if a functional interface) or null (if not)
+   */
   public IJavaFunctionType isFunctionalInterface(IRNode idecl) {
 	  /* For interface I, 
 	   * let M be the set of abstract methods that are members of I 
@@ -383,6 +519,27 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
        *    * The signature of m is a subsignature (8.4.2) 
        *      of every method's signature in M.
        *    * m is return-type-substitutable (8.4.5) for every method in M.
+       *    
+       * The descriptor of I consists of the following:
+       *   Type parameters, formal parameters, and return types: 
+       *     Let m be a method in M with 
+       *     i) a signature that is a subsignature of every method's signature in M and 
+       *     ii) a return type that is a subtype of every method's return type in M 
+       *         (after adapting for any type parameters (8.4.4)); 
+       *     if no such method exists, then let m be a method in M that 
+       *     i) has a signature that is a subsignature of every method's signature in M and
+       *     ii) is return-type-substitutable for every method in M. 
+       *     Then the descriptor's type parameters, formal parameter types, and return type
+       *     are as given by m. 
+       *   Thrown types: 
+       *     The descriptor's thrown types are derived from the throws clauses 
+       *     of the methods in M. If the descriptor is generic, these clauses 
+       *     are first adapted to the type parameters of m (see above); 
+       *     if the descriptor is not generic but at least one method in M is, 
+       *     these clauses are first erased. 
+       *     Then the descriptor's thrown types include every type, E, satisfying the following constraints:
+       *     * E is mentioned in one of the throws clauses.
+       *     * For each throws clause, E is a subtype of some type named in that clause.
        */
 	  SingleMethodGroupSignatures sigs = getInterfaceSingleMethodSignatures(idecl);
 	  if (sigs == null) return null;
@@ -391,19 +548,57 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  // that is a subsignature of all others and is return compatible.
 	  // If so return it, otherwise return null
 	  // for now, do the very simplest literal thing:
+	  IJavaFunctionType descriptorStrict = null, descriptorLoose = null;
 	  for (IJavaFunctionType ft1 : sigs) {
-		  boolean OK = true;
+		  Boolean strict = Boolean.TRUE;
 		  for (IJavaFunctionType ft2 : sigs) {
-			  if (ft1 != ft2 && // every *other* method
-				  !isSubsignature(ft1, ft2) ||
+			  if (ft1 == ft2) continue;
+			  if (!isSubsignature(ft1, ft2) ||
 				  !isReturnTypeSubstitutable(ft1,ft2)) {
-				  OK = false;
+				  strict = null;
 				  break;
 			  }
+			  SimpleTypeSubstitution s = new SimpleTypeSubstitution(getBinder(),ft2.getTypeFormals(),ft1.getTypeFormals());
+			  if (!isSubType(ft1.getReturnType(),ft2.getReturnType().subst(s))) {
+				  strict = Boolean.FALSE;
+			  }
 		  }
-		  if (OK) return ft1;
+		  if (strict == null) continue;
+		  if (strict) descriptorStrict = ft1;
+		  else descriptorLoose = null;
 	  }
-	  return null;
+	  IJavaFunctionType result = descriptorStrict;
+	  if (result == null) result = descriptorLoose;
+	  if (result == null) return result;
+	  if (sigs.size() == 1) return result;
+	  
+	  // figure out the intersection of the throws
+	  Collection<Set<IJavaType>> throwSets = new ArrayList<Set<IJavaType>>();
+	  Set<IJavaType> resultThrows = new HashSet<IJavaType>();
+	  for (IJavaFunctionType ft : sigs) {
+		  Set<IJavaType> ts = ft.getExceptions();
+		  if (result.getTypeFormals().size() == 0 && ft.getTypeFormals().size() > 0) {
+			  Set<IJavaType> erased = new HashSet<IJavaType>();
+			  for (IJavaType t : ts) {
+				  erased.add(computeErasure(t));
+			  }
+			  ts = erased;
+		  }
+		  throwSets.add(ts);
+	  }
+	  for (Set<IJavaType> setOfCandidates : throwSets) {
+		  testCandidate: for (IJavaType candidate : setOfCandidates) {
+			  inSet: for (Set<IJavaType> throwSet : throwSets) {
+				  for (IJavaType th : throwSet) {
+					  if (isSubType(candidate,th)) continue inSet; // OK here
+				  }
+				  continue testCandidate; // no good, try next candidate
+			  }
+			  resultThrows.add(candidate);
+ 		  }
+	  }
+	  // modify the function type accordingly
+	  return JavaTypeFactory.getFunctionType(result.getTypeFormals(), result.getReturnType(), result.getParameterTypes(), result.isVariable(), resultThrows);
   }
   
   // efficiency, avoid complex case for methods without these names.
@@ -423,7 +618,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
    * name and arity.  Otherwise, return an empty signature (if no such methods) or null 
    * (if there are conflicting names and/or arities). 
    */
-  SingleMethodGroupSignatures getInterfaceSingleMethodSignatures(IRNode idecl) {
+  public SingleMethodGroupSignatures getInterfaceSingleMethodSignatures(IRNode idecl) {
 	  if (idecl == null) return null;
 	  if (!InterfaceDeclaration.prototype.includes(JavaNode.tree.getOperator(idecl))) {
 		  return null;

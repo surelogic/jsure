@@ -1731,11 +1731,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     public Void visitConstructorReference(IRNode node) {
     	visit(node);
     	if (!isFullPass || pathToTarget != null) return null;
-    	ConstructorReference cref = (ConstructorReference) getOperator(node);
-
+    	IJavaType targetType = getPolyExpressionTargetType(node);
+    	if (targetType == null) {
+    		LOG.warning("constructor reference must be in a poly context: " + DebugUnparser.toString(node));
+    		return null;
+    	}
     	// TODO: WRITE THIS CODE
-    	// Problem: Poly expressions need their context type
-    	// before they can bind.
+    	// Next step: see if this is a functional type.
+    	LOG.warning("constructor reference binding is not yet implemented");
     	return super.visitConstructorReference(node);
     }
     	 
