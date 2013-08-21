@@ -13,7 +13,11 @@ import edu.cmu.cs.fluid.tree.*;
 public interface ITypeEnvironment {
 	/** The Tree used to build all the ASTs used here */
   SyntaxTreeInterface parsetree = JJNode.tree;
-	
+
+  /**
+   * Return what version of Java we can handle (5,6,7,8...)
+   * @return Java version we can handle.
+   */
   int getMajorJavaVersion();
   
   public abstract IJavaClassTable getClassTable();
@@ -206,6 +210,25 @@ public interface ITypeEnvironment {
   
   boolean isReturnTypeSubstitutable(IJavaFunctionType ft1, IJavaFunctionType ft2);
   
+  /**
+   * Can a method of type ft1 be used to implement a method of type ft2?
+   * Ignoring void, can we implement a method with ft2's signatures
+   * if the body is <code> return ft1(args...) </code>.
+   * @param ft1 first function type, must not be null
+   * @param ft2 second function type, must not be null
+   * @param ikind coercions permitted, must not be null
+   * @return whether ft1 is call compatoble with ft2
+   */
+  boolean isCallCompatible(IJavaFunctionType ft1, IJavaFunctionType ft2, InvocationKind ikind);
+  
+  /**
+   * Three kinds of invocation checks:
+   * STRICT = no un/boxing or variable arity arguments
+   * LOOSE = un/boxing permitted, but not variable arity arguments
+   * VARIABLE = un/boxing and varioable arity permitted.
+   */
+  public static enum InvocationKind { STRICT, LOOSE, VARIABLE };
+
   
 	/**
 	 * In fluid/configuration, perhaps it should be the directory component

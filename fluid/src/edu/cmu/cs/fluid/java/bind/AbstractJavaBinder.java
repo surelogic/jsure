@@ -2,8 +2,10 @@
 package edu.cmu.cs.fluid.java.bind;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -33,6 +35,7 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.Selector;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment.InvocationKind;
 import edu.cmu.cs.fluid.java.bind.MethodBinder.CallState;
 import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
@@ -201,6 +204,17 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   @Override
   public final ITypeEnvironment getTypeEnvironment() {
     return typeEnvironment;
+  }
+  
+  /**
+   * Return true if the declaration is visible from the use point.
+   * @param node declaration node
+   * @param from use occurrence
+   * @return whether the declaration is visible.
+   */
+  public boolean isVisible(IRNode node, IRNode from) {
+	  // XXX: FIX this
+	  return true;
   }
   
   /**
@@ -1474,7 +1488,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 			decl = b.getNode();
 		}
 		if (decl != null) {
-			IJavaScope scope = typeScope(JavaTypeFactory.convertIRTypeDeclToIJavaType(decl));
+			IJavaScope scope = typeScope(getTypeEnvironment().convertNodeTypeToIJavaType(decl));
 			return scope.lookup(lookupContext.use(id, node), IJavaScope.Util.isTypeDecl);    
 		}
 		return null;
@@ -1731,12 +1745,85 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     public Void visitConstructorReference(IRNode node) {
     	visit(node);
     	if (!isFullPass || pathToTarget != null) return null;
-    	ConstructorReference cref = (ConstructorReference) getOperator(node);
+    	IJavaType targetType = getPolyExpressionTargetType(node);
+    	if (targetType == null) {
+    		LOG.warning("constructor reference must be in a poly context: " + DebugUnparser.toString(node));
+    		return null;
+    	}
+    	IJavaFunctionType ft = getTypeEnvironment().isFunctionalType(targetType);
+    	if (ft == null) {
+    		LOG.warning("contructor reference must have a functional type, not: " +
+    				targetType.toSourceText());
+    		return null;
+    	}
+    	IJavaType ownerT = getJavaType(ConstructorReference.getReceiver(node));
+    	if (ownerT instanceof IJavaArrayType) {
+    		// check that ft can accept a function type
+    		// that (int -> ownerT) is applicable.
+    		IJavaFunctionType myType = JavaTypeFactory.getFunctionType(null, ownerT, Arrays.<IJavaType>asList(JavaTypeFactory.intType), false, null);
+    		if (getTypeEnvironment().isCallCompatible(myType, ft, InvocationKind.VARIABLE)) {
+    			// TODO: what is the binding we want?
+    			LOG.info("Array creation reference works");
+    		} else {
+    			LOG.warning("array creation is not compatible with " + ft.toSourceText());
+    		}
+    	}
+    	if (!(ownerT instanceof IJavaDeclaredType)) {
+    		LOG.warning("constructor reference type must name a class, not " + ownerT.toSourceText());
+    		return null;
+    	}
+    	IJavaDeclaredType owner = (IJavaDeclaredType)ownerT;
+    	if (owner.getTypeParameters().size() > 0) {
+    		LOG.warning("constructor reference takes type parameters explicitly, not before ::");
+    		return null;
+    	}
+    	IRNode cdecl = owner.getDeclaration();
+		if (!ClassDeclaration.prototype.includes(JJNode.tree.getOperator(cdecl))) {
+    		LOG.warning("constructoir reference must name a class, not an interface: "
+    				+ owner.toSourceText());
+    		return null;
+    	}
 
-    	// TODO: WRITE THIS CODE
-    	// Problem: Poly expressions need their context type
-    	// before they can bind.
-    	return super.visitConstructorReference(node);
+    	List<IJavaType> params = new ArrayList<IJavaType>();
+    	for (IRNode tn : JJNode.tree.children(ConstructorReference.getTypeArgs(node))) {
+    		params.add(getTypeEnvironment().convertNodeTypeToIJavaType(tn));
+    	}
+    	IJavaType rType = JavaTypeFactory.getDeclaredType(
+    			cdecl, 
+    			params, 
+    			owner.getOuterType());
+    	Map<IJavaFunctionType,IRNode> candidates = new HashMap<IJavaFunctionType,IRNode>();
+    	for (IRNode member : JJNode.tree.children(ClassDeclaration.getBody(node))) {
+    		if (ConstructorDeclaration.prototype.includes(JJNode.tree.getOperator(member))) {
+    			if (isVisible(member,node)) {
+    				candidates.put(JavaTypeFactory.getMemberFunctionType(member, rType, AbstractJavaBinder.this), member);
+    			}
+    		}
+    	}
+    	if (candidates.size() == 0) {
+    		LOG.warning("No candidates (public constructors) for " + DebugUnparser.toString(node));
+    		return null;
+    	}
+    	List<IRNode> applicable = new ArrayList<IRNode>();
+    	for (InvocationKind ikind : InvocationKind.values()) {
+    		applicable.clear();
+    		for (Map.Entry<IJavaFunctionType, IRNode> e : candidates.entrySet()) {
+    			if (getTypeEnvironment().isCallCompatible(e.getKey(), ft, ikind)) {
+    				applicable.add(e.getValue());
+    			}
+    		}
+    		if (applicable.size() == 1) break;
+    		if (applicable.size() > 1) {
+    			LOG.warning("Multiple applicable candidates for " + DebugUnparser.toString(node));
+    			return null;
+    		}
+    	}
+    	if (applicable.isEmpty()) {
+    		LOG.warning("No applicable candidates for " + DebugUnparser.toString(node));
+    		return null;
+    	}
+    	bind(node,applicable.get(0));
+    	return null;
     }
     	 
     @Override
@@ -1932,7 +2019,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 //        if (recType instanceof IJavaDeclaredType) {
 //          System.out.println(DebugUnparser.toString(((IJavaDeclaredType) recType).getDeclaration()));
 //        }
-        String recName = recType.toString();
+        //String recName = recType.toString();
         /*
         if (recName.startsWith("org.apache.hadoop.mapreduce.Mapper") && recName.endsWith(">.Context")) {
         	System.out.println("Binding call for "+recName);
@@ -2361,11 +2448,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (!isFullPass || pathToTarget != null) {
         return visit(node);
       }
-      /*
-      if (foundIssue) {
-    	  System.out.println("Binding OOS");
-      }
-*/
+     
       // All of the below is in another granule now
       IRNode qual = OuterObjectSpecifier.getObject(node);
       IRNode alloc = OuterObjectSpecifier.getCall(node);
@@ -2957,7 +3040,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IBinding baseB = getLocalIBinding(base);
       if (baseB != null) {
     	  IRNode baseDecl = baseB.getNode();
-    	  IJavaScope tScope = typeScope(JavaTypeFactory.convertIRTypeDeclToIJavaType(baseDecl));
+    	  IJavaScope tScope = typeScope(getTypeEnvironment().convertNodeTypeToIJavaType(baseDecl));
     	  boolean success = bind(node,tScope,IJavaScope.Util.isTypeDecl);
     	  if (!success) {
     		  bind(node,tScope,IJavaScope.Util.isTypeDecl);
