@@ -774,6 +774,12 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  if (r1 == computeErasure(r2)) return true;
 	  return false;
   }
+  
+  @Override
+  public boolean isCallCompatible(IJavaFunctionType ft1, IJavaFunctionType ft2, InvocationKind kind) {
+	  // TODO: stub
+	  return false;  
+  }
 
 
 class SupertypesIterator extends SimpleIterator<IJavaType> {
