@@ -15,6 +15,7 @@ import com.surelogic.analysis.concurrency.detector.ConcurrencyDetector;
 import com.surelogic.analysis.concurrency.driver.LockAnalysis;
 import com.surelogic.analysis.effects.EffectsAnalysis;
 import com.surelogic.analysis.equality.EqualityAnalysis;
+import com.surelogic.analysis.jtb.TestFunctionalInterfacePseudoAnalysis;
 import com.surelogic.analysis.layers.LayersAnalysis;
 import com.surelogic.analysis.nullable.NullableModule;
 import com.surelogic.analysis.singleton.SingletonAnalysis;
@@ -31,6 +32,7 @@ import com.surelogic.analysis.testing.TypesModule;
 import com.surelogic.analysis.threads.ThreadEffectsModule;
 import com.surelogic.analysis.utility.UtilityAnalysis;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.util.*;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 
@@ -111,8 +113,8 @@ public class Javac extends IDE {
     init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
     
     init(NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable", true, "Nullable");
-    
-		/*
+    init(TestFunctionalInterfacePseudoAnalysis.class,"com.surelogic.jsure.client.eclipse.TestIsFunctional", false, "Functional (for tests only)");
+    /*
 		AnalysisInfo[] deps = new AnalysisInfo[3];
 		deps[0] = init(Module_IRAnalysis.class, 
 				"com.surelogic.jsure.client.eclipse.ModuleAnalysis2", false, "");
