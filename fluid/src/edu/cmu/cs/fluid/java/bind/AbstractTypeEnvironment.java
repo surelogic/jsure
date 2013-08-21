@@ -777,7 +777,10 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   
   @Override
   public boolean isCallCompatible(IJavaFunctionType ft1, IJavaFunctionType ft2, InvocationKind kind) {
-	  // TODO: stub
+	  // TODO: write this using the new constraint stuff.
+	  if (!kind.isVariable() && ft1.getParameterTypes().size() != ft2.getParameterTypes().size()) {
+		  return false;
+	  }
 	  return false;  
   }
 
