@@ -62,6 +62,7 @@ public class TestFunctionalInterfacePseudoAnalysis extends AbstractWholeIRAnalys
 
 	    @Override
 	    public Void visitInterfaceDeclaration(IRNode idecl) {
+	    	System.out.println("******************* THIS WILL NEVER SHOW UP!!!!! ******");
 	    	LOG.warning("For interface " + JavaNode.getInfo(idecl));
 	    	LOG.warning("  " + ((AbstractTypeEnvironment)binder.getTypeEnvironment()).getInterfaceSingleMethodSignatures(idecl));
 	    	return null;	

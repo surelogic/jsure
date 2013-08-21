@@ -648,6 +648,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  }
 	  
 	  // look at all methods declared in the interface
+	  considerMethod:
 	  for (IRNode memNode : JJNode.tree.children(InterfaceDeclaration.getBody(idecl))) {
 		  // must be a method declaration
 		  if (!MethodDeclaration.prototype.includes(JJNode.tree.getOperator(memNode))) continue;
@@ -664,7 +665,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 				  if (JJNode.getInfo(omem).equals(name)) {
 					  IJavaFunctionType osig = JavaTypeFactory.getMemberFunctionType(omem, null, getBinder());
 					  LOG.warning("  comparing " + sig + " and " + osig);
-					  if (isSameSignature(sig,osig)) continue; // ignore this method
+					  if (isSameSignature(sig,osig)) continue considerMethod; // ignore this method
 				  }
 			  }
 		  }
