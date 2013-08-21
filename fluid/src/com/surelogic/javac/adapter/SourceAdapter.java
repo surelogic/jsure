@@ -1520,7 +1520,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     if (node.getClassBody() != null) {
       IRNode body = makeAnonClassBody(node, context);
       String name = getNextACEName();
-      result = AllocationCallExpression.createNode(result, body);
+      result = AnonClassExpression.createNode(JavaNode.ALL_FALSE, result, body);
       JJNode.setInfo(result, name);
       addJavaRefAndCheckForJavadocAnnotations(node, result);
       createRequiredAnonClassNodes(result);
