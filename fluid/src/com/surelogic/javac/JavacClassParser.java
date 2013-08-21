@@ -6,6 +6,7 @@ import java.util.Queue;
 import java.util.Stack;
 import java.util.concurrent.*;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.*;
 
 import javax.lang.model.element.Element;
@@ -47,6 +48,8 @@ import extra166y.ParallelArray;
 import extra166y.Ops.Procedure;
 
 public class JavacClassParser extends JavaClassPath<Projects> {
+	private static Logger LOG = SLLogger.getLogger();
+
 	/** Should we try to run things in parallel */
 	private static boolean wantToRunInParallel = true;
 	private static boolean useForkJoinTasks = wantToRunInParallel && false;
@@ -168,11 +171,19 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 						fileman.setLocation(location, Collections.singletonList(new File(zip)));
 						
 						JavaFileObject jfo = fileman.getJavaFileForInput(location, src, Kind.SOURCE);
+						if (jfo == null) {
+							LOG.warning("Couldn't get Java file for " + path);
+							continue;
+						}
 						temp.add(jfo);
 						mapSource(jfo, p);
 					}
 					else if ( p.file.exists() && p.file.length() > 0) {						
 						for(JavaFileObject jfo : fileman.getJavaFileObjects(p.file)) {
+							if (jfo == null) {
+								LOG.warning("Couldn't get Java file for " + path);
+								continue;
+							}
 							temp.add(jfo);
 							mapSource(jfo, p);
 						}
