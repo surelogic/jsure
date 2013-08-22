@@ -577,12 +577,21 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  Set<IJavaType> resultThrows = new HashSet<IJavaType>();
 	  for (IJavaFunctionType ft : sigs) {
 		  Set<IJavaType> ts = ft.getExceptions();
-		  if (result.getTypeFormals().size() == 0 && ft.getTypeFormals().size() > 0) {
+		  List<IJavaTypeFormal> tfs1 = result.getTypeFormals();
+		  List<IJavaTypeFormal> tfs2 = ft.getTypeFormals();
+		  if (tfs1.size() == 0 && tfs2.size() > 0) {
 			  Set<IJavaType> erased = new HashSet<IJavaType>();
 			  for (IJavaType t : ts) {
 				  erased.add(computeErasure(t));
 			  }
 			  ts = erased;
+		  } else if (tfs1.size() > 0 && tfs2.size() > 0) {
+			  Set<IJavaType> adapted = new HashSet<IJavaType>();
+			  IJavaTypeSubstitution s = new SimpleTypeSubstitution(getBinder(), tfs2, tfs1);
+			  for (IJavaType t : ts) {
+				  adapted.add(t.subst(s));
+			  }
+			  ts = adapted;
 		  }
 		  throwSets.add(ts);
 	  }
