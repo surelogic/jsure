@@ -90,6 +90,7 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 				}
 				sb.append(ft.toSourceText());
 			}
+			sb.append("}");
 			return sb.toString();
 		}
 	}
@@ -250,6 +251,7 @@ public interface SingleMethodGroupSignatures extends Collection<IJavaFunctionTyp
 				}
 				sb.append(ft.toSourceText());
 			}
+			sb.append("}");
 			return sb.toString();
 		}
 	}
