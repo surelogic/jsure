@@ -191,11 +191,21 @@ public interface ITypeEnvironment {
   /// Java 8 methods: (mainly concerning IJavaFunctionType)
   
   IJavaFunctionType computeErasure(IJavaFunctionType ft);
+
+  /**
+   * If the interface is a functional interface, return its descriptor.
+   * Otherwise return null.  Meets the Java specification.
+   * @param idecl node of the interface declaration
+   * @return descriptor (if a functional interface) or null (if not)
+   */
+  public IJavaFunctionType isFunctionalInterface(IRNode idecl);
   
   /**
    * Return a function type if the given reference type is 
    * a "functional type" as described in the Java 8 specification.
    * (Formerly this was called "functional interface type").
+   * XXX: The implementation does not exactly match the spec.
+   * See comments in {@link AbstractTypeEnvironment#isFunctionalType(IJavaType)}.
    * @param t reference type to consider
    * @return function type if it is indeed a "functional type",
    * or null otherwise
