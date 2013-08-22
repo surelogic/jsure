@@ -16,6 +16,8 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.AbstractTypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaFunctionType;
+import edu.cmu.cs.fluid.java.bind.SingleMethodGroupSignatures;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 
 /**
@@ -49,7 +51,9 @@ public class TestFunctionalInterfacePseudoAnalysis extends AbstractWholeIRAnalys
 		return true;
 	}
 
-	protected void runOverFile(final IRNode compUnit) {
+	// synchronized so that log messages for various files are not intermingled.
+	// this is a debugging analysis, not a real analysis.
+	protected synchronized void runOverFile(final IRNode compUnit) {
 		getAnalysis().doAccept(compUnit);
 	}	
 
@@ -63,8 +67,12 @@ public class TestFunctionalInterfacePseudoAnalysis extends AbstractWholeIRAnalys
 	    @Override
 	    public Void visitInterfaceDeclaration(IRNode idecl) {
 	    	System.out.println("******************* THIS WILL NEVER SHOW UP!!!!! ******");
+	    	System.err.println("!!!!!!!! THIS NEVER SHOWS UP EITHER !!!!!!!!");
 	    	LOG.warning("For interface " + JavaNode.getInfo(idecl));
-	    	LOG.warning("  " + ((AbstractTypeEnvironment)binder.getTypeEnvironment()).getInterfaceSingleMethodSignatures(idecl));
+	    	SingleMethodGroupSignatures sigs = ((AbstractTypeEnvironment)binder.getTypeEnvironment()).getInterfaceSingleMethodSignatures(idecl);
+			LOG.warning("  M = " + (sigs == null ? "<too many>" : sigs));
+	    	IJavaFunctionType ft = binder.getTypeEnvironment().isFunctionalInterface(idecl);
+	    	LOG.warning("  descriptor = " + ((ft == null) ? "<none>" : ft.toSourceText()));
 	    	return null;	
 	    }
 	    
