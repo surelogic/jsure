@@ -830,7 +830,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     	// in which case, we return a VALUE object instead.
     	IRNode p = tree.getParent(node);
     	if (tree.getOperator(p) instanceof AnonClassExpression &&
-    			(AnonClassExpression.getIsLambda(node) & JavaNode.IMPLICIT) != 0) {
+    			(AnonClassExpression.getIsLambda(p) & JavaNode.IMPLICIT) != 0) {
     		return lattice.opValue(s, node);
     	}
     	return lattice.opNew(s);
