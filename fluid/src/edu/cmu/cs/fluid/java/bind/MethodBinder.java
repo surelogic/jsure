@@ -33,7 +33,7 @@ class MethodBinder {
 		this.debug = debug;
 	}
     
-	IJavaScope.Selector makeAccessSelector(final IRNode from) {
+	static IJavaScope.Selector makeAccessSelector(final ITypeEnvironment typeEnvironment, final IRNode from) {
 		return new IJavaScope.AbstractSelector("Ignore") {
 			@Override
 			public String label() {
@@ -267,7 +267,7 @@ class MethodBinder {
 	 * details.
 	 */
     BindingInfo findBestMethod(final IJavaScope scope, final LookupContext context, final boolean needMethod, IRNode from, CallState call) {
-        final IJavaScope.Selector isAccessible = makeAccessSelector(from);
+        final IJavaScope.Selector isAccessible = makeAccessSelector(typeEnvironment, from);
         final Iterable<IBinding> methods = new Iterable<IBinding>() {
 //  			@Override
   			public Iterator<IBinding> iterator() {

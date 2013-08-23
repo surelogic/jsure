@@ -577,12 +577,21 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  Set<IJavaType> resultThrows = new HashSet<IJavaType>();
 	  for (IJavaFunctionType ft : sigs) {
 		  Set<IJavaType> ts = ft.getExceptions();
-		  if (result.getTypeFormals().size() == 0 && ft.getTypeFormals().size() > 0) {
+		  List<IJavaTypeFormal> tfs1 = result.getTypeFormals();
+		  List<IJavaTypeFormal> tfs2 = ft.getTypeFormals();
+		  if (tfs1.size() == 0 && tfs2.size() > 0) {
 			  Set<IJavaType> erased = new HashSet<IJavaType>();
 			  for (IJavaType t : ts) {
 				  erased.add(computeErasure(t));
 			  }
 			  ts = erased;
+		  } else if (tfs1.size() > 0 && tfs2.size() > 0) {
+			  Set<IJavaType> adapted = new HashSet<IJavaType>();
+			  IJavaTypeSubstitution s = new SimpleTypeSubstitution(getBinder(), tfs2, tfs1);
+			  for (IJavaType t : ts) {
+				  adapted.add(t.subst(s));
+			  }
+			  ts = adapted;
 		  }
 		  throwSets.add(ts);
 	  }
@@ -648,6 +657,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  }
 	  
 	  // look at all methods declared in the interface
+	  considerMethod:
 	  for (IRNode memNode : JJNode.tree.children(InterfaceDeclaration.getBody(idecl))) {
 		  // must be a method declaration
 		  if (!MethodDeclaration.prototype.includes(JJNode.tree.getOperator(memNode))) continue;
@@ -659,11 +669,11 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 		  IJavaFunctionType sig = JavaTypeFactory.getMemberFunctionType(memNode, null, getBinder());
 		  // ignore if a public method in Object
 		  if (javaPublicMethodNames.contains(name)) {
-			  IRNode odecl = this.findNamedType("Java.lang.Object");
+			  IRNode odecl = this.findNamedType("java.lang.Object");
 			  for (IRNode omem : JJNode.tree.children(ClassDeclaration.getBody(odecl))) {
 				  if (JJNode.getInfo(omem).equals(name)) {
 					  IJavaFunctionType osig = JavaTypeFactory.getMemberFunctionType(omem, null, getBinder());
-					  if (isSameSignature(sig,osig)) continue; // ignore this method
+					  if (isSameSignature(sig,osig)) continue considerMethod; // ignore this method
 				  }
 			  }
 		  }
@@ -777,7 +787,10 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   
   @Override
   public boolean isCallCompatible(IJavaFunctionType ft1, IJavaFunctionType ft2, InvocationKind kind) {
-	  // TODO: stub
+	  // TODO: write this using the new constraint stuff.
+	  if (!kind.isVariable() && ft1.getParameterTypes().size() != ft2.getParameterTypes().size()) {
+		  return false;
+	  }
 	  return false;  
   }
 

@@ -191,11 +191,21 @@ public interface ITypeEnvironment {
   /// Java 8 methods: (mainly concerning IJavaFunctionType)
   
   IJavaFunctionType computeErasure(IJavaFunctionType ft);
+
+  /**
+   * If the interface is a functional interface, return its descriptor.
+   * Otherwise return null.  Meets the Java specification.
+   * @param idecl node of the interface declaration
+   * @return descriptor (if a functional interface) or null (if not)
+   */
+  public IJavaFunctionType isFunctionalInterface(IRNode idecl);
   
   /**
    * Return a function type if the given reference type is 
    * a "functional type" as described in the Java 8 specification.
    * (Formerly this was called "functional interface type").
+   * XXX: The implementation does not exactly match the spec.
+   * See comments in {@link AbstractTypeEnvironment#isFunctionalType(IJavaType)}.
    * @param t reference type to consider
    * @return function type if it is indeed a "functional type",
    * or null otherwise
@@ -214,6 +224,7 @@ public interface ITypeEnvironment {
    * Can a method of type ft1 be used to implement a method of type ft2?
    * Ignoring void, can we implement a method with ft2's signatures
    * if the body is <code> return ft1(args...) </code>.
+   * TODO: we probably want to return a map of bindings of type variables.
    * @param ft1 first function type, must not be null
    * @param ft2 second function type, must not be null
    * @param ikind coercions permitted, must not be null
@@ -227,7 +238,15 @@ public interface ITypeEnvironment {
    * LOOSE = un/boxing permitted, but not variable arity arguments
    * VARIABLE = un/boxing and varioable arity permitted.
    */
-  public static enum InvocationKind { STRICT, LOOSE, VARIABLE };
+  public static enum InvocationKind { 
+	  STRICT, LOOSE, VARIABLE;
+	  public boolean canBoxUnbox() {
+		  return this != STRICT;
+	  }
+	  public boolean isVariable() {
+		  return this == VARIABLE;
+	  }
+  };
 
   
 	/**

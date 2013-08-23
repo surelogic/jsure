@@ -207,17 +207,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   }
   
   /**
-   * Return true if the declaration is visible from the use point.
-   * @param node declaration node
-   * @param from use occurrence
-   * @return whether the declaration is visible.
-   */
-  public boolean isVisible(IRNode node, IRNode from) {
-	  // XXX: FIX this
-	  return true;
-  }
-  
-  /**
    * Whether this node can be printed for debugging information.
    * Because of versioning, it may be dangerous to try to print a node.
    * @param node
@@ -1795,7 +1784,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	Map<IJavaFunctionType,IRNode> candidates = new HashMap<IJavaFunctionType,IRNode>();
     	for (IRNode member : JJNode.tree.children(ClassDeclaration.getBody(node))) {
     		if (ConstructorDeclaration.prototype.includes(JJNode.tree.getOperator(member))) {
-    			if (isVisible(member,node)) {
+    			if (BindUtil.isAccessible(getTypeEnvironment(),member,node)) {
     				candidates.put(JavaTypeFactory.getMemberFunctionType(member, rType, AbstractJavaBinder.this), member);
     			}
     		}
@@ -2852,7 +2841,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  System.out.println("Binding 'Inner': "+context);
       }
       */      
-      final IJavaScope.Selector isAccessible = methodBinder.makeAccessSelector(node);
+      final IJavaScope.Selector isAccessible = MethodBinder.makeAccessSelector(typeEnvironment, node);
       /*
       if ("Lock".equals(JJNode.getInfoOrNull(node))) {
     	  IRNode parent = JJNode.tree.getParentOrNull(node);

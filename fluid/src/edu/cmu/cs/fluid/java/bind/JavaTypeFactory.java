@@ -2233,7 +2233,7 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 				else sb.append(",");
 				sb.append(tf.toSourceText());
 			}
-			sb.append("< ");
+			sb.append("> ");
 		}
 		sb.append(pieces[0].toSourceText());
 		sb.append(" ? ");
