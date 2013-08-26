@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.surelogic.Nullable;
+import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -145,7 +146,9 @@ public interface IBinding {
     
     private static IBinding makeBinding(final IRNode n, final IJavaDeclaredType ty, final ITypeEnvironment tEnv, 
                                        final IJavaReferenceType recType, final IJavaTypeSubstitution mSubst) {
+      if (!XUtil.testing) {    	
     	LOG.warning("makeBinding with " + ty + " * " + recType);
+      }
       // we might wish to create node classes which satisfy IBinding with null substitution
       if (n instanceof IBinding && ty == null) return (IBinding)n;
       final IJavaTypeSubstitution subst;
