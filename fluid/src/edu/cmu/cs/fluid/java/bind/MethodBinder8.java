@@ -117,12 +117,12 @@ public class MethodBinder8 {
     	}
     	// Check varargs/arity -> parameters
     	final int numParams = numChildren(params);
-    	final int numArgs = numChildren(call.args);
+    	final int numArgs = call.args.length;
     	final IRNode lastParam;
     	if (numParams > 0 && VarArgsType.prototype.includes(ParameterDeclaration.getType(lastParam = getChild(params, numParams-1)))) {
     		// varargs
     		if (numArgs < numParams-1 || 
-    			!arePotentiallyCompatible(mb, numParams-1, children(params), children(call.args))) {
+    			!arePotentiallyCompatible(mb, numParams-1, children(params), call.args)) {
     			return false;
     		}
     		// check the varargs
@@ -130,30 +130,27 @@ public class MethodBinder8 {
     			final IJavaArrayType at = (IJavaArrayType) getParamType(lastParam);
     			final IJavaType t = at.getElementType();
     			if (numArgs == numParams) {
-    				final IRNode e = getChild(call.args, numParams-1);
+    				final IRNode e = call.args[numParams-1];
     				if (!isPotentiallyCompatible(mb, e, at) && !isPotentiallyCompatible(mb, e, t)) {
     					return false;
     				}
-    			} else if (!areTheRestPotentiallyCompatible(mb, numParams, t, children(call.args))) {
+    			} else if (!areTheRestPotentiallyCompatible(mb, numParams, t, call.args)) {
     				return false;    				
     			}
     		}
     	} else { // no varargs
     		if (numParams != numArgs || 
-    			!arePotentiallyCompatible(mb, numParams, children(params), children(call.args))) {
+    			!arePotentiallyCompatible(mb, numParams, children(params), call.args)) {
     			return false;
     		}
     	}
     	
     	// Check type arguments (if any)
-    	if (call.targs != null) {
-    		final int numTypeArgs = numChildren(call.targs);
-
-    		final int numTypeParams = numChildren(typeParams);
-    		if (numTypeArgs != numTypeParams) {
-    			return false;
-    		}
-    	}
+    	final int numTypeArgs = call.getNumTypeArgs();
+    	final int numTypeParams = numChildren(typeParams);
+    	if (numTypeArgs != numTypeParams) {
+    		return false;
+    	}    	
     	return true;
     }
     
@@ -166,14 +163,14 @@ public class MethodBinder8 {
     /**
      * check the first N parameters/arguments
      */
-    private boolean arePotentiallyCompatible(IBinding mb, final int limit, final Iterable<IRNode> params, final Iterator<IRNode> args) {
+    private boolean arePotentiallyCompatible(IBinding mb, final int limit, final Iterable<IRNode> params, final IRNode[] args) {
     	int i = 0;
     	for(IRNode param : params) {
-    		if (!args.hasNext()) {
+    		if (i >= args.length) {
     			return false;
     		}
     		final IJavaType t = getParamType(param);
-    		if (!isPotentiallyCompatible(mb, args.next(), t)) {
+    		if (!isPotentiallyCompatible(mb, args[i], t)) {
     			return false;
     		}
     		i++;
@@ -188,7 +185,7 @@ public class MethodBinder8 {
     /**
      * check the arguments against T after the first N
      */
-    private boolean areTheRestPotentiallyCompatible(IBinding mb, final int start, final IJavaType t, final Iterable<IRNode> args) {
+    private boolean areTheRestPotentiallyCompatible(IBinding mb, final int start, final IJavaType t, final IRNode[] args) {
     	int i = 0;
     	for(IRNode arg : args) { 		
     		if (i++ < start) {

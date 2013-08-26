@@ -54,10 +54,9 @@ public class FunctionParameterSubstitution extends AbstractTypeSubstitution {
     return new FunctionParameterSubstitution(b, md, actuals);
   }
 
-  public static IJavaTypeSubstitution create(IBinder b, IBinding mbind, IRNode targs) {
-	  final int numActuals = JJNode.tree.numChildren(targs);
-	  List<IJavaType> actuals = new ArrayList<IJavaType>(numActuals);
-	  for(IRNode actual : TypeActuals.getTypeIterator(targs)) {
+  public static IJavaTypeSubstitution create(IBinder b, IBinding mbind, IRNode[] targs) {
+	  List<IJavaType> actuals = new ArrayList<IJavaType>(targs.length);
+	  for(IRNode actual : targs) {
 	      IJavaType actualType  = b.getJavaType(actual);
 	      actuals.add(actualType);
 	  }

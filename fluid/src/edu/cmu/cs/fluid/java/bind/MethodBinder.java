@@ -61,8 +61,8 @@ class MethodBinder {
     
     class CallState {
     	final IRNode call;
-    	final IRNode targs;		
-    	final IRNode args; 
+    	final IRNode[] targs;		
+    	final IRNode[] args; 
     	/**
     	 * Null for methods
     	 */
@@ -82,10 +82,23 @@ class MethodBinder {
     	
     	CallState(IRNode call, IRNode targs, IRNode args, IRNode type) {    		
     		this.call = call;
-			this.targs = targs;
-			this.args = args;
+			this.targs = getNodes(targs);
+			this.args = getNodes(args);
 			constructorType = type;			
 	    	receiverType = type == null ? null : typeEnvironment.convertNodeTypeToIJavaType(type);
+    	}
+    	
+    	private IRNode[] getNodes(IRNode n) {
+    		if (n == null) {
+    			return null;
+    		}
+            final int num = JJNode.tree.numChildren(n);
+            final IRNode[] rv = new IRNode[num];
+            Iterator<IRNode> children = JJNode.tree.children(n); 
+            for (int i= 0; i < num; ++i) {
+            	rv[i] = children.next();            
+            }
+            return rv;
     	}
     	
         // Convert the args to IJavaTypes
@@ -93,15 +106,12 @@ class MethodBinder {
     	  if (args == null) {
     		  return JavaGlobals.noTypes;
     	  }
-          final int n = JJNode.tree.numChildren(args);
-          if (n == 0) {
+          if (args.length == 0) {
     		  return JavaGlobals.noTypes;
           }
-          IJavaType[] argTypes = new IJavaType[n];     
-          Iterator<IRNode> argse = JJNode.tree.children(args); 
-          for (int i= 0; i < n; ++i) {
-            IRNode arg = argse.next();
-            argTypes[i] = binder.getJavaType(arg);
+          IJavaType[] argTypes = new IJavaType[args.length];     
+          for (int i= 0; i < args.length; ++i) {
+            argTypes[i] = binder.getJavaType(args[i]);
           }
           return argTypes;
         }
@@ -114,6 +124,10 @@ class MethodBinder {
 				}
 			}
 			return false;
+		}
+
+		public int getNumTypeArgs() {
+			return targs == null ? 0 : targs.length;
 		}
     }
     
@@ -136,7 +150,7 @@ class MethodBinder {
 			this.call = call;
 			this.argTypes = call.getArgTypes();
 			usesDiamondOp = call.usesDiamondOp();
-			numTypeArgs = AbstractJavaBinder.numChildrenOrZero(call.targs);
+			numTypeArgs = call.getNumTypeArgs();
 			bestArgs = new IJavaType[argTypes.length];
 			tmpTypes = new IJavaType[argTypes.length];
 		}
@@ -363,7 +377,7 @@ class MethodBinder {
 	    				IJavaType subst = bind.convertType(jtf); 
 	    				substMap.put(jtf, subst); // FIX slow lookup
 	    			} else {
-	    				IRNode targ = TypeActuals.getType(search.call.targs, i);
+	    				IRNode targ = search.call.targs[i];
 	    				IJavaType targT = binder.getJavaType(targ);
 	    				substMap.put(jtf, targT);    			
 	    			}
@@ -520,7 +534,7 @@ class MethodBinder {
     				final IJavaArrayType at = (IJavaArrayType) captured;
     				final IJavaType eltType = at.getElementType();
     				if (allowVarargs && s.call.args != null) {
-    					final IRNode varArg = Arguments.getArg(s.call.args, i); 
+    					final IRNode varArg = s.call.args[i]; 
     					if (VarArgsExpression.prototype.includes(varArg)) {
     						inner:
     							for(IRNode arg : VarArgsExpression.getArgIterator(varArg)) {
