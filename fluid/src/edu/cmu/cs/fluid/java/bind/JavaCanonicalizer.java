@@ -47,12 +47,14 @@ import edu.cmu.cs.fluid.java.operator.BlockStatement;
 import edu.cmu.cs.fluid.java.operator.BoxExpression;
 import edu.cmu.cs.fluid.java.operator.BoxingOpAssignExpression;
 import edu.cmu.cs.fluid.java.operator.CastExpression;
+import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConditionalExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
+import edu.cmu.cs.fluid.java.operator.Dims;
 import edu.cmu.cs.fluid.java.operator.ElementValuePair;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
@@ -66,6 +68,7 @@ import edu.cmu.cs.fluid.java.operator.IllegalCode;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.IntLiteral;
 import edu.cmu.cs.fluid.java.operator.IntType;
+import edu.cmu.cs.fluid.java.operator.LambdaExpression;
 import edu.cmu.cs.fluid.java.operator.LessThanExpression;
 import edu.cmu.cs.fluid.java.operator.MethodBody;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -82,18 +85,22 @@ import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
 import edu.cmu.cs.fluid.java.operator.OuterObjectSpecifier;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
+import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.QualifiedName;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
+import edu.cmu.cs.fluid.java.operator.ReturnStatement;
 import edu.cmu.cs.fluid.java.operator.SimpleName;
 import edu.cmu.cs.fluid.java.operator.SingleElementAnnotation;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.StringLiteral;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
+import edu.cmu.cs.fluid.java.operator.Throws;
 import edu.cmu.cs.fluid.java.operator.TypeActuals;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.TypeExpression;
+import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.TypeRef;
 import edu.cmu.cs.fluid.java.operator.UnboxExpression;
 import edu.cmu.cs.fluid.java.operator.VarArgsExpression;
@@ -1330,7 +1337,103 @@ public class JavaCanonicalizer {
       return true;
     }
 
+    
     @Override
+	public Boolean visitLambdaExpression(IRNode node) {
+    	//XXX: We assume already that "this" or "super" inside the L-E
+    	// have been correctly bound / or will be correctly bound.
+    	//XXX: What about marker interfaces in the interface type?
+    	// Let's make sure that a marked ACE is not checked too strictly...
+    	IJavaType ty = new TypeUtils(binder.getTypeEnvironment()).getPolyExpressionTargetType(node);
+    	IJavaFunctionType fty = binder.getTypeEnvironment().isFunctionalType(ty);
+    	// XXX: we should actually be making something that
+    	// is an instance of of *all* these. 
+    	IJavaDeclaredType base = null;
+    	if (ty instanceof IJavaDeclaredType) {
+    		base = (IJavaDeclaredType)ty;
+    	} else if (ty instanceof IJavaIntersectionType) {
+    		for (IJavaType ty1 : (IJavaIntersectionType)ty) {
+    			if (binder.getTypeEnvironment().isFunctionalType(ty1) != null) {
+    				if (ty1 instanceof IJavaDeclaredType) {
+    					base = (IJavaDeclaredType)ty1;
+    				}
+    			}
+    		}
+    	}
+    	if (base == null) {
+    		LOG.severe("what is the interface?");
+    		return false;
+    	}
+    	//XXX: Fix this to use a public interface.
+    	String methodName = ((AbstractTypeEnvironment)binder.getTypeEnvironment()).getInterfaceSingleMethodSignatures(base.getDeclaration()).getName();
+    	IRNode origBody = LambdaExpression.getBody(node);
+    	doAccept(origBody);
+    	origBody = LambdaExpression.getBody(node);
+    	IRNode newBody;
+    	if (fty.getReturnType() == JavaTypeFactory.voidType) {
+    		if (Expression.prototype.includes(origBody)) {
+    			newBody = ExprStatement.createNode(origBody);
+    		} else {
+    			newBody = origBody;
+    		}
+    	} else {
+    		if (Expression.prototype.includes(origBody)) {
+    			newBody = ReturnStatement.createNode(origBody);
+    		} else {
+    			newBody = origBody;
+    		}
+    	}
+    	IRNode mbody = MethodBody.createNode(BlockStatement.createNode(new IRNode[]{newBody}));
+    	
+    	List<IRNode> newParamList = new ArrayList<IRNode>();
+    	Iterator<IJavaType> rqdit = fty.getParameterTypes().iterator();
+    	for (IRNode formal : JJNode.tree.children(LambdaExpression.getParams(node))) {
+    		IRNode ftype = ParameterDeclaration.getType(formal);
+    		// we need to come up with the convention for how
+    		// to handle an inferred parameter type
+    		if (NamedType.prototype.includes(ftype) && JJNode.getInfo(ftype).equals("")) {
+    			IRNode ptype = createType(rqdit.next());
+    			IRNode annos = Annotations.createNode(none);
+    			IRNode newParam = ParameterDeclaration.createNode(annos, JavaNode.ALL_FALSE, ptype, JJNode.getInfo(formal));
+    			newParamList.add(newParam);
+    		} else {
+    			JJNode.tree.removeSubtree(formal);
+    			newParamList.add(formal);
+    		}
+    	}
+    	IRNode newParams = Parameters.createNode(newParamList.toArray(none));
+    	
+    	List<IRNode> exceptionList = new ArrayList<IRNode>();
+    	for (IJavaType tt : fty.getExceptions()) {
+    		exceptionList.add(createType(tt));
+    	}
+    	IRNode exceptions = Throws.createNode(exceptionList.toArray(none));
+
+    	// Possibly add @Override or Fluid annotations.
+    	// What effects will be inferred ?
+    	IRNode annos = Annotations.createNode(none);
+    	IRNode types = TypeFormals.createNode(none);
+    	int modifiers = JavaNode.ALL_FALSE|JavaNode.PUBLIC;
+		IRNode rtype = createType(fty.getReturnType());
+		
+		IRNode mdecl = MethodDeclaration.createNode(annos,modifiers, types, rtype, methodName, newParams, 0, exceptions, mbody);
+		IRNode cbody = ClassBody.createNode(new IRNode[]{mdecl});
+		
+		List<IRNode> typeArgList = new ArrayList<IRNode>();
+		for (IJavaType t : base.getTypeParameters()) {
+			typeArgList.add(createType(t));
+		}
+		IRNode typeArgs = TypeActuals.createNode(typeArgList.toArray(none));
+		IRNode classType = createNamedType(base.getDeclaration(),null);
+		IRNode nexp = NewExpression.createNode(typeArgs, classType, Arguments.createNode(none));
+		IRNode ace = AnonClassExpression.createNode(JavaNode.IMPLICIT, nexp, cbody);
+		
+		replaceSubtree(node,ace);
+		
+		return true;
+	}
+
+	@Override
     public Boolean visitMethodDeclaration(IRNode node) {
       return super.visitMethodDeclaration(node);
     }
