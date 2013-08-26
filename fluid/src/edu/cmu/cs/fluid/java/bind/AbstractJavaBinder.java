@@ -37,6 +37,8 @@ import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.Selector;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment.InvocationKind;
 import edu.cmu.cs.fluid.java.bind.MethodBinder.CallState;
+import edu.cmu.cs.fluid.java.bind.TypeUtils.Constraint;
+import edu.cmu.cs.fluid.java.bind.TypeUtils.Constraints;
 import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
 import edu.cmu.cs.fluid.java.operator.AnnotationElement;
@@ -71,6 +73,7 @@ import edu.cmu.cs.fluid.java.operator.ImplicitReceiver;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodReference;
 import edu.cmu.cs.fluid.java.operator.Name;
 import edu.cmu.cs.fluid.java.operator.NameExpression;
 import edu.cmu.cs.fluid.java.operator.NameType;
@@ -98,6 +101,7 @@ import edu.cmu.cs.fluid.java.operator.TypeActuals;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclarationStatement;
+import edu.cmu.cs.fluid.java.operator.TypeExpression;
 import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.TypeRef;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
@@ -1756,6 +1760,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		} else {
     			LOG.warning("array creation is not compatible with " + ft.toSourceText());
     		}
+    		return null;
     	}
     	if (!(ownerT instanceof IJavaDeclaredType)) {
     		LOG.warning("constructor reference type must name a class, not " + ownerT.toSourceText());
@@ -1768,18 +1773,32 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	}
     	IRNode cdecl = owner.getDeclaration();
 		if (!ClassDeclaration.prototype.includes(JJNode.tree.getOperator(cdecl))) {
-    		LOG.warning("constructoir reference must name a class, not an interface: "
+    		LOG.warning("constructor reference must name a class, not an interface: "
     				+ owner.toSourceText());
     		return null;
     	}
+		
+		List<IJavaTypeFormal> typeFormals = null;
+		if (JJNode.tree.numChildren(ClassDeclaration.getTypes(cdecl)) > 0) {
+			typeFormals = new ArrayList<IJavaTypeFormal>();
+			for (IRNode tf : JJNode.tree.children(ClassDeclaration.getTypes(cdecl))) {
+				typeFormals.add(JavaTypeFactory.getTypeFormal(tf));
+			}
+		}
 
-    	List<IJavaType> params = new ArrayList<IJavaType>();
-    	for (IRNode tn : JJNode.tree.children(ConstructorReference.getTypeArgs(node))) {
-    		params.add(getTypeEnvironment().convertNodeTypeToIJavaType(tn));
+    	List<IJavaType> typeActuals = null;
+    	if (JJNode.tree.numChildren(ConstructorReference.getTypeArgs(node)) > 0) {
+    		typeActuals = new ArrayList<IJavaType>();
+    		for (IRNode tn : JJNode.tree.children(ConstructorReference.getTypeArgs(node))) {
+    			typeActuals.add(getTypeEnvironment().convertNodeTypeToIJavaType(tn));
+    		}
     	}
+    	
+    	// If type parameters are here, they will be substituted 
+    	// If type parameters are missing, they will be inferred.
     	IJavaType rType = JavaTypeFactory.getDeclaredType(
     			cdecl, 
-    			params, 
+    			typeFormals == null ? null : new ArrayList<IJavaType>(typeFormals), 
     			owner.getOuterType());
     	Map<IJavaFunctionType,IRNode> candidates = new HashMap<IJavaFunctionType,IRNode>();
     	for (IRNode member : JJNode.tree.children(ClassDeclaration.getBody(node))) {
@@ -1793,11 +1812,19 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		LOG.warning("No candidates (public constructors) for " + DebugUnparser.toString(node));
     		return null;
     	}
+    	
     	List<IRNode> applicable = new ArrayList<IRNode>();
+    	InvocationKind applicableKind = null;
+    	IJavaFunctionType applicableType = null;
     	for (InvocationKind ikind : InvocationKind.values()) {
     		applicable.clear();
     		for (Map.Entry<IJavaFunctionType, IRNode> e : candidates.entrySet()) {
-    			if (getTypeEnvironment().isCallCompatible(e.getKey(), ft, ikind)) {
+    			IJavaFunctionType cft = e.getKey();
+    			Constraints cs = new TypeUtils(typeEnvironment).new Constraints(IBinding.Util.makeBinding(cdecl),typeFormals,ikind);
+    			if (cs.deriveForParamaters(cft.getParameterTypes(), ft.getParameterTypes(), cft.isVariable()) &&
+    					cs.getSubstitution() != null) {
+    				applicableType = cft;
+    				applicableKind = ikind;
     				applicable.add(e.getValue());
     			}
     		}
@@ -1811,6 +1838,43 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		LOG.warning("No applicable candidates for " + DebugUnparser.toString(node));
     		return null;
     	}
+    	
+    	// now we generate constraints AGAIN
+    	// because this time we don't compute the type substitution until later
+		Constraints cs = new TypeUtils(typeEnvironment).
+				new Constraints(IBinding.Util.makeBinding(cdecl),
+						typeFormals,
+						applicableKind);
+		if (!cs.deriveForParamaters(applicableType.getParameterTypes(), 
+				ft.getParameterTypes(), applicableType.isVariable())) {
+			LOG.severe("constraints fail the second time???");
+			return null;
+		}
+		
+    	// check return type
+    	if (!cs.derive(applicableType.getReturnType(), 
+    			Constraint.CONVERTIBLE_TO, ft.getReturnType())) {
+    		LOG.warning("Only applicable canditate had bad return type");
+    		return null;
+    	}
+    	IJavaTypeSubstitution sub = cs.getSubstitution();
+    	if (sub == null) {
+    		LOG.warning("Only applicable candidate constraints cannot be satisfied");
+    		return null;
+    	}
+    	
+    	IJavaType rte = JavaTypeFactory.getDeclaredType(typeEnvironment.findNamedType("java.lang.RuntimeException"), null, null);
+    	// check throws
+    	checkThrow: for (IJavaType ttype : applicableType.subst(sub).getExceptions()) {
+    		if (typeEnvironment.isSubType(ttype, rte)) continue checkThrow;
+    		for (IJavaType atype : ft.getExceptions()) {
+    			if (typeEnvironment.isSubType(ttype, atype)) continue checkThrow;
+    		}
+    		LOG.warning("only applicable candidate has incomplete throw: " + ttype);
+    		return null;
+    	}
+    	
+    	//XXX: the binding should have the inferred type parameters.
     	bind(node,applicable.get(0));
     	return null;
     }
@@ -2246,7 +2310,30 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	return false;
     }
     
+    
     @Override
+	public Void visitMethodReference(IRNode node) {
+    	super.visitMethodReference(node);
+    	if (!isFullPass) return null;
+    	IJavaType targetType = getPolyExpressionTargetType(node);
+    	if (targetType == null) {
+    		LOG.warning("method reference must be in a poly context: " + DebugUnparser.toString(node));
+    		return null;
+    	}
+    	IJavaFunctionType ft = getTypeEnvironment().isFunctionalType(targetType);
+    	if (ft == null) {
+    		LOG.warning("method reference must have a functional type, not: " +
+    				targetType.toSourceText());
+    		return null;
+    	}
+    	IRNode receiver = MethodReference.getReceiver(node);
+		IJavaType ownerT = getJavaType(receiver);
+		boolean typeReceiver = TypeExpression.prototype.includes(JJNode.tree.getOperator(receiver));
+    	// TODO: more to do here.
+    	return null;
+	}
+
+	@Override
     public Void visitNameType(IRNode node) {
       /*
       if (DebugUnparser.toString(node).contains("Context")) {
