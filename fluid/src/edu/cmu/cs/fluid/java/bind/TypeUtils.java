@@ -8,6 +8,7 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment.InvocationKind;
 import edu.cmu.cs.fluid.java.bind.MethodBinder.CallState;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -484,6 +485,25 @@ public class TypeUtils {
 		final Set<TypeConstraint> constraints = new HashSet<TypeConstraint>();
 		final Mapping map;
 
+		/**
+		 * Constructor for a new set of constraints.
+		 * The John-approved interface.
+		 * @param method method being called, should not be null
+		 * @param typeFormals, type formals of the method or of class for constructor
+		 * @param ikind kind of invocation context (must not be null)
+		 */
+		public Constraints(IBinding method, List<IJavaTypeFormal> typeFormals, InvocationKind ikind) {
+			Map<IJavaType,IJavaType> initialMap = new HashMap<IJavaType,IJavaType>();
+			if (typeFormals != null) {
+				for (IJavaTypeFormal tf : typeFormals) {
+					initialMap.put(tf, tf);
+				}
+			}
+			map = new Mapping(null, method, initialMap);
+			allowBoxing = ikind.canBoxUnbox();
+			allowVarargs = ikind.isVariable();
+		}
+		
 		public Constraints(CallState call, IBinding method, Map<IJavaType, IJavaType> substMap, 
 				boolean box, boolean varargs) {			
 			map = new Mapping(call, method, substMap);
@@ -497,6 +517,41 @@ public class TypeUtils {
 			
 			// New code to match JLS 3 section 15.12.2.7
 			derive(formal, Constraint.CONVERTIBLE_FROM, actual);			
+		}
+		
+		/**
+		 * Check that the actual parameter types work for formal parameter types.
+		 * If this is a var-arg method and allowVarArgs is true, 
+		 * then var-arg invocation is possible.
+		 * XXX: This method will need to be updated for Java 8 if it is to be used
+		 * for applicability checking.  For Java 8, we don't always have the
+		 * parameter types.
+		 * @param formals list of formal types, must not be null
+		 * @param actuals list of actual types, must not be null
+		 * @param isVar the last formal is a var-arg formal
+		 * @return whether we can call this method with the given actual types.
+		 */
+		public boolean deriveForParamaters(List<? extends IJavaType> formals, List<? extends IJavaType> actuals, boolean isVar) {
+			int fsize = formals.size();
+			int asize = actuals.size();
+			boolean OK = true;
+			
+			if (fsize == asize) {
+				 OK = true;
+				 for (int i=0; OK && i < fsize; ++i) {
+					 OK = derive(formals.get(i),Constraint.CONVERTIBLE_FROM,actuals.get(i));
+				 }
+				 if (OK) return true;
+			}
+			if (!allowVarargs || !isVar || asize < fsize-1) return false;
+			for (int i=0; OK && i < fsize-1; ++i) {
+				 OK = derive(formals.get(i),Constraint.CONVERTIBLE_FROM,actuals.get(i));				
+			}
+			IJavaType restType = ((IJavaArrayType)formals.get(fsize-1)).getElementType();
+			for (int i=fsize-1; OK && i < asize; ++i) {
+				 OK = derive(restType,Constraint.CONVERTIBLE_FROM,actuals.get(i));
+			}
+			return OK;
 		}
 		
 		/**
@@ -869,7 +924,7 @@ public class TypeUtils {
 		public Mapping computeTypeMapping() {
 			if (useNewTypeInference) {
 				GeneratedConstraints generated = inferTypeParameters(map, constraints);		
-				if (true) {
+				if (map.call != null) {
 					Constraints constraints = handleUnresolvedVariables(map, generated);
 					if (constraints != null) {
 						// Copy over the map
@@ -887,6 +942,18 @@ public class TypeUtils {
 				}
 			}
 			return map;
+		}
+		
+		public IJavaTypeSubstitution getSubstitution() {
+			if (map.subst.isEmpty()) return IJavaTypeSubstitution.NULL;
+			if (!map.checkIfSatisfiesBounds()) return null;
+			List<IJavaTypeFormal> formals = new ArrayList<IJavaTypeFormal>();
+			List<IJavaType> actuals = new ArrayList<IJavaType>();
+			for (Map.Entry<IJavaType,IJavaType> e : map.subst.entrySet()) {
+				formals.add((IJavaTypeFormal)e.getKey());
+				actuals.add(e.getValue());
+			}
+			return new SimpleTypeSubstitution(tEnv.getBinder(), formals,actuals);
 		}
 
 		void addConstraintsForType(IRNode tdecl) {
@@ -1160,7 +1227,7 @@ public class TypeUtils {
 		}
 	}
 	
-	private enum Constraint {
+	public enum Constraint {
 		EQUAL("=") {
 			@Override Constraint reverse() {
 				return this;
