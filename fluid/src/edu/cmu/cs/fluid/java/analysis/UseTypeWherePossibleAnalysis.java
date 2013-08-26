@@ -274,7 +274,7 @@ public final class UseTypeWherePossibleAnalysis {
   @SuppressWarnings("deprecation")
   private IJavaType getEnclosingType(IRNode method) {
     IRNode td = VisitUtil.getEnclosingType(method);
-    return JavaTypeFactory.convertIRTypeDeclToIJavaType(td);
+    return JavaTypeFactory.getMyThisType(td);
   }
 
   /**

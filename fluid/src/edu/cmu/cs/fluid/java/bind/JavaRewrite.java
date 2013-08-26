@@ -588,7 +588,7 @@ public class JavaRewrite implements JavaGlobals {
 
     // copy parent's throws clause
     IRNode[] throwsC;
-    IJavaDeclaredType type = (IJavaDeclaredType) JavaTypeFactory.convertIRTypeDeclToIJavaType(decl);
+    IJavaDeclaredType type = (IJavaDeclaredType) JavaTypeFactory.getMyThisType(decl);
     if (!isSuper_JavaLangObject(decl, type)) {
       throwsC = makeDefaultThrows(type);
     } else {

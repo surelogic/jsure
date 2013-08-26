@@ -406,6 +406,12 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  // not pretty, but at least simple:
 	  IJavaType[] ptypes = ft.getParameterTypes().toArray(JavaTypeFactory.emptyTypes);
 	  IJavaType[] etypes = ft.getExceptions().toArray(JavaTypeFactory.emptyTypes);
+	  for (int i=0; i < ptypes.length; ++i) {
+		  ptypes[i] = computeErasure(ptypes[i]);
+	  }
+	  for (int i=0; i < etypes.length; ++i) {
+		  etypes[i] = computeErasure(etypes[i]);
+	  }
 	  return JavaTypeFactory.getFunctionType(
 			  null, computeErasure(ft.getReturnType()), 
 			  Arrays.asList(ptypes), ft.isVariable(), 
@@ -550,22 +556,29 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 	  // for now, do the very simplest literal thing:
 	  IJavaFunctionType descriptorStrict = null, descriptorLoose = null;
 	  for (IJavaFunctionType ft1 : sigs) {
+		  // LOG.warning("Considering sig: " + ft1);
 		  Boolean strict = Boolean.TRUE;
 		  for (IJavaFunctionType ft2 : sigs) {
 			  if (ft1 == ft2) continue;
 			  if (!isSubsignature(ft1, ft2) ||
 				  !isReturnTypeSubstitutable(ft1,ft2)) {
+				  /*if (!isSubsignature(ft1, ft2)) {
+					  LOG.warning("  not a subsig of " + ft2);
+				  } else if (!isReturnTypeSubstitutable(ft1, ft2)) {
+					  LOG.warning("  not return type substitutable of " + ft2);
+				  }*/
 				  strict = null;
 				  break;
 			  }
 			  SimpleTypeSubstitution s = new SimpleTypeSubstitution(getBinder(),ft2.getTypeFormals(),ft1.getTypeFormals());
 			  if (!isSubType(ft1.getReturnType(),ft2.getReturnType().subst(s))) {
+				  // LOG.warning("  not a strict subtype of " + ft2);
 				  strict = Boolean.FALSE;
 			  }
 		  }
 		  if (strict == null) continue;
 		  if (strict) descriptorStrict = ft1;
-		  else descriptorLoose = null;
+		  else descriptorLoose = ft1;
 	  }
 	  IJavaFunctionType result = descriptorStrict;
 	  if (result == null) result = descriptorLoose;
@@ -1126,6 +1139,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 				List<IJavaType> sl = sd.getTypeParameters();
 				List<IJavaType> tl = td.getTypeParameters();
 				if (tl.isEmpty()) return result = true; // raw types
+				//XXX: should do this: if (sl.isEmpty()) return result = false; // raw is NOT a subtype
 				Iterator<IJavaType> sli = sl.iterator();
 				Iterator<IJavaType> tli = tl.iterator();
 				// if we find any non-matches, we fail
