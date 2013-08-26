@@ -557,7 +557,7 @@ implements IBinderClient {
     }
     
     public static String setToString(final Set<Source> sources) {
-      final StringBuilder sb = new StringBuilder("{ ");
+      final List<String> strings = new ArrayList<String>();
       for (final Source src : sources) {
         final Kind k = src.first();
         final IRNode where = src.second();
@@ -565,6 +565,7 @@ implements IBinderClient {
         final Operator op = JJNode.tree.getOperator(where);
         final IJavaRef javaRef = JavaNode.getJavaRef(where);
         final int line = javaRef == null ? -1 : javaRef.getLineNumber();
+        final StringBuilder sb = new StringBuilder();
         sb.append(k);
         sb.append('[');
         sb.append(op.name());
@@ -572,7 +573,15 @@ implements IBinderClient {
         sb.append(line);
         sb.append(", ");
         sb.append(value);
-        sb.append("] ");
+        sb.append("]");
+        strings.add(sb.toString());
+      }
+      Collections.sort(strings);
+      
+      final StringBuilder sb = new StringBuilder("{ ");
+      for (final String s : strings) {
+        sb.append(s);
+        sb.append(' ');
       }
       sb.append('}');
       return sb.toString();
