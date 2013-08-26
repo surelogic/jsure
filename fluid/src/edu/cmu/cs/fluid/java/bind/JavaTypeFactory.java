@@ -354,7 +354,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
    * @param decl IRNode of type declaration (or an anonymous class expression,
    * apparently?)
    * @param params an immutable list of IJavaType for the type parameters.
-   * nil is an acceptable parameter value and means no parameters.
+   * nil is an acceptable parameter value and means no parameters (RAW).
    * @param outer the context type.
    */
   public static IJavaDeclaredType getDeclaredType(IRNode decl,
@@ -684,37 +684,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       }
 
   }
-  
-  /**
-   * Like convertNodeTypeToIJavaType, but primarily handles type declarations.
-   * This method has confused purpose and will be removed since we have replaced its functionality.
-   * @deprecated use convertNodeTypeToIJavaType
-   */
-  @Deprecated
-  public static IJavaType convertIRTypeDeclToIJavaType(IRNode nodeType) {
-    Operator op = JJNode.tree.getOperator(nodeType);
     
-    if (op == TypeDeclaration.prototype) { // formerly a hacked nullType
-      return getNullType();
-    } else if (op instanceof TypeFormal) {
-      return getTypeFormal(nodeType);      
-    } else if (op instanceof TypeDeclInterface) {
-      return getMyThisType(nodeType);
-    } else if (op instanceof ArrayDeclaration) {
-      IJavaType bt = convertIRTypeDeclToIJavaType(ArrayDeclaration.getBase(nodeType));
-      return getArrayType(bt, ArrayDeclaration.getDims(nodeType));
-    } else if (op instanceof PrimitiveType) {
-      return getPrimitiveType((PrimitiveType)op);
-    } else if (op instanceof VoidType) {
-      return getVoidType();
-    } else if (op == Type.prototype) {
-      return JavaTypeFactory.anyType;
-    } else {
-      LOG.severe("Cannot convert type " + op);
-      return null;
-    }
-  }
-  
   public static IJavaSourceRefType getMyThisType(IRNode tdecl) {
 	  return getMyThisType(tdecl, false);
   }
@@ -1745,7 +1715,7 @@ class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
   @Override
   public IJavaType getSuperclass(ITypeEnvironment env) {
     IRNode decl = env.findNamedType(SLUtility.JAVA_LANG_OBJECT);
-    return JavaTypeFactory.convertIRTypeDeclToIJavaType(decl);
+    return JavaTypeFactory.getMyThisType(decl);
   }
   
   @Override
