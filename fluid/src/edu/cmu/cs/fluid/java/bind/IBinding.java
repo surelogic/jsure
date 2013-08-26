@@ -1,10 +1,16 @@
 /*$Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/bind/IBinding.java,v 1.13 2008/08/22 16:56:34 chance Exp $*/
 package edu.cmu.cs.fluid.java.bind;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+
 import com.surelogic.Nullable;
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.parse.JJNode;
 
 /**
  * The result of binding in Java 5.
@@ -21,7 +27,9 @@ public interface IBinding {
    * Return the type of the object from which this declaration is taken, with the
    * appropriate type substitutions (e.g., the declaring type)
    * (Should be the supertype of getReceiverType())
-   * 
+   * XXX: The previous two descriptions are contradictory:
+   * XXX: the receiver type is precisely the type of the object from which this declaration
+   * XXX: is taken, not its supertype.
    * This includes all the actual type parameters.
    * @return type of the object from which this binding is taken, or null for locals/types
    */
@@ -105,7 +113,7 @@ public interface IBinding {
    * @author boyland
    */
   public static class Util {
-    
+    private static final Logger LOG = SLLogger.getLogger("fluid.java.bind");
     public static IBinding makeBinding(final IRNode n, final IJavaDeclaredType ty, ITypeEnvironment tEnv, 
         final IJavaReferenceType recType) {
       return makeBinding(n, ty, tEnv, recType, null);
@@ -116,8 +124,28 @@ public interface IBinding {
                          mbind.getTypeEnvironment(), mbind.getReceiverType(), mSubst);
     }
     
+    public static IBinding makeMethodBinding(final ITypeEnvironment tenv, final IRNode mdecl, final IJavaDeclaredType recType, final IJavaTypeSubstitution mSubst) {
+    	IRNode tdecl = recType.getDeclaration();
+    	List<IJavaTypeFormal> tFormals = new ArrayList<IJavaTypeFormal>();
+    	for (IRNode tf : JJNode.tree.children(new TypeUtils(tenv).getParametersForType(tdecl))) {
+    		tFormals.add(JavaTypeFactory.getTypeFormal(tf));
+    	}
+    	final IJavaTypeSubstitution tSubst = new SimpleTypeSubstitution(tenv.getBinder(),tFormals,recType.getTypeParameters());
+    	return new PartialBinding(mdecl,tenv.getSuperclass(recType),tenv,recType) {
+    		@Override
+    		public IJavaType convertType(IJavaType type) {
+    	          if (type == null) return null;
+    	          if (mSubst != null) {
+    	            return type.subst(mSubst).subst(tSubst);
+    	          }
+    	          return type.subst(tSubst);    			
+    		}
+    	};
+    }
+    
     private static IBinding makeBinding(final IRNode n, final IJavaDeclaredType ty, final ITypeEnvironment tEnv, 
                                        final IJavaReferenceType recType, final IJavaTypeSubstitution mSubst) {
+    	LOG.warning("makeBinding with " + ty + " * " + recType);
       // we might wish to create node classes which satisfy IBinding with null substitution
       if (n instanceof IBinding && ty == null) return (IBinding)n;
       final IJavaTypeSubstitution subst;
@@ -141,11 +169,8 @@ public interface IBinding {
       return new PartialBinding(n, ty, tEnv, recType) {
     	@Override
         public IJavaType convertType(IJavaType type) {
-          if (type == null) return null;
-          if (mSubst != null) {
-            return type.subst(mSubst).subst(subst);
-          }
-          return type.subst(subst);
+    		if (type == null) return null;
+    		return type.subst(mSubst).subst(subst);          
         }
       };
     }
