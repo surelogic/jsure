@@ -1139,7 +1139,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 				List<IJavaType> sl = sd.getTypeParameters();
 				List<IJavaType> tl = td.getTypeParameters();
 				if (tl.isEmpty()) return result = true; // raw types
-				//XXX: should do this: if (sl.isEmpty()) return result = false; // raw is NOT a subtype
+				if (sl.isEmpty()) return result = false; // raw is NOT a subtype
 				Iterator<IJavaType> sli = sl.iterator();
 				Iterator<IJavaType> tli = tl.iterator();
 				// if we find any non-matches, we fail
