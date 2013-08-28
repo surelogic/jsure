@@ -170,10 +170,6 @@ public interface IBinding {
     
     private static IBinding makeBinding(final IRNode n, final IJavaDeclaredType ty, final ITypeEnvironment tEnv, 
                                        final IJavaReferenceType recType, final IJavaTypeSubstitution mSubst) {
-<<<<<<< HEAD
-    	LOG.warning("makeBinding with " + ty + " * " + recType);
-=======
->>>>>>> branch 'master' of ssh://edwin@fluid.surelogic.com/var/git/jsure
       // we might wish to create node classes which satisfy IBinding with null substitution
       if (n instanceof IBinding && ty == null) return (IBinding)n;
       final IJavaTypeSubstitution subst;
