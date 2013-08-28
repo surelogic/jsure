@@ -76,6 +76,7 @@ import edu.cmu.cs.fluid.java.operator.NameExpression;
 import edu.cmu.cs.fluid.java.operator.NameType;
 import edu.cmu.cs.fluid.java.operator.NamedType;
 import edu.cmu.cs.fluid.java.operator.NestedAnnotationDeclaration;
+import edu.cmu.cs.fluid.java.operator.NestedClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedDeclInterface;
 import edu.cmu.cs.fluid.java.operator.NestedEnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedTypeDeclInterface;
@@ -687,7 +688,7 @@ public class JavaCanonicalizer {
             baseType = CogenUtil.createNamedType(enclosingType);
             addBinding(baseType, IBinding.Util.makeBinding(enclosingType, tEnv));
           } else {
-            baseType = createDeclaredType(enclosingT);
+            baseType = createDeclaredType(enclosingT, isNonstaticNestedClass(tdecl));
           }
           return result = TypeRef.createNode(baseType, name);
         }
@@ -706,13 +707,17 @@ public class JavaCanonicalizer {
       }
     }
 
-    // What if I have wildcards and other sorts of types?
+    private boolean isNonstaticNestedClass(IRNode tdecl) {
+    	return NestedClassDeclaration.prototype.includes(tdecl) && !JavaNode.getModifier(tdecl, JavaNode.STATIC);
+	}
+
+	// What if I have wildcards and other sorts of types?
     private IRNode createType(IJavaType t) {
       if (t == null) {
         return null;
       }
       if (t instanceof IJavaDeclaredType) {
-        return createDeclaredType((IJavaDeclaredType) t);
+        return createDeclaredType((IJavaDeclaredType) t, false);
       }
       if (t instanceof IJavaTypeFormal) {
         IJavaTypeFormal f = (IJavaTypeFormal) t;
@@ -748,7 +753,7 @@ public class JavaCanonicalizer {
       throw new IllegalStateException("Unexpected type: " + t);
     }
 
-    private IRNode createDeclaredType(IJavaDeclaredType dt) {
+    private IRNode createDeclaredType(IJavaDeclaredType dt, boolean preserveTypeParams) {
       IRNode enclosingT = dt.getDeclaration();
       IBinding b;
       if (dt.getOuterType() != null) {
@@ -762,15 +767,18 @@ public class JavaCanonicalizer {
         return result;
       }
       // Don't keep parameters if all formals
-      if (allTypeFormals(dt.getTypeParameters())) {
+      // BUT
+      // Need to preserve parameters if it's surrounding a non-static class
+      if (allTypeFormals(dt.getTypeParameters()) && !preserveTypeParams) {
         return result;
-      }
-
+      }  
       IRNode[] args = new IRNode[dt.getTypeParameters().size()];
       for (int i = 0; i < args.length; i++) {
         args[i] = createType(dt.getTypeParameters().get(i));
       }
-      return ParameterizedType.createNode(result, TypeActuals.createNode(args));
+      IRNode rv = ParameterizedType.createNode(result, TypeActuals.createNode(args));
+      JavaNode.setModifiers(rv, JavaNode.IMPLICIT);
+      return rv;
     }
 
     private boolean allTypeFormals(List<IJavaType> typeParameters) {
