@@ -87,7 +87,7 @@ implements IBinderClient {
 
   
   
-  public final class StackQuery extends SimplifiedJavaFlowAnalysisQuery<StackQuery, StackQueryResult, EvalValue, EvalLattice> {
+  public static final class StackQuery extends SimplifiedJavaFlowAnalysisQuery<StackQuery, StackQueryResult, EvalValue, EvalLattice> {
     public StackQuery(final IThunk<? extends IJavaFlowAnalysis<EvalValue, EvalLattice>> thunk) {
       super(thunk);
     }
@@ -151,7 +151,7 @@ implements IBinderClient {
   
   
   
-  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Pair<EvalLattice, Base[]>, EvalValue, EvalLattice> {
+  public static final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Pair<EvalLattice, Base[]>, EvalValue, EvalLattice> {
     public Query(final IThunk<? extends IJavaFlowAnalysis<EvalValue, EvalLattice>> thunk) {
       super(thunk);
     }
@@ -179,7 +179,7 @@ implements IBinderClient {
   
   
   
-  public final class QualifiedThisQuery extends SimplifiedJavaFlowAnalysisQuery<QualifiedThisQuery, Element, EvalValue, EvalLattice> {
+  public static final class QualifiedThisQuery extends SimplifiedJavaFlowAnalysisQuery<QualifiedThisQuery, Element, EvalValue, EvalLattice> {
     public QualifiedThisQuery(final IThunk<? extends IJavaFlowAnalysis<EvalValue, EvalLattice>> thunk) {
       super(thunk);
     }
@@ -210,7 +210,7 @@ implements IBinderClient {
   
   
   
-  public final class DebugQuery extends SimplifiedJavaFlowAnalysisQuery<DebugQuery, String, EvalValue, EvalLattice> {
+  public static final class DebugQuery extends SimplifiedJavaFlowAnalysisQuery<DebugQuery, String, EvalValue, EvalLattice> {
     public DebugQuery(final IThunk<? extends IJavaFlowAnalysis<EvalValue, EvalLattice>> thunk) {
       super(thunk);
     }
@@ -235,16 +235,18 @@ implements IBinderClient {
       return new DebugQuery(d);
     }
   }
+
   
-  public static abstract class InferredVarStateQuery<SELF extends InferredVarStateQuery<SELF, R>, R extends Result<?>>
-      extends SimplifiedJavaFlowAnalysisQuery<SELF, R, EvalValue, EvalLattice> {
-    protected InferredVarStateQuery(
+
+  public static final class InferredQuery
+  extends SimplifiedJavaFlowAnalysisQuery<InferredQuery, Inferred, EvalValue, EvalLattice> {
+    protected InferredQuery(
         final IThunk<? extends IJavaFlowAnalysis<EvalValue, EvalLattice>> thunk) {
       super(thunk);
     }
-
-    protected InferredVarStateQuery(
-        final Delegate<SELF, R, EvalValue, EvalLattice> d) {
+    
+    protected InferredQuery(
+        final Delegate<InferredQuery, Inferred, EvalValue, EvalLattice> d) {
       super(d);
     }
 
@@ -252,27 +254,33 @@ implements IBinderClient {
     protected final RawResultFactory getRawResultFactory() {
       return RawResultFactory.NORMAL_EXIT;
     }
+    
+    @Override
+    protected Inferred processRawResult(
+        final IRNode expr, final EvalLattice lattice, final EvalValue rawResult) {
+      return new Inferred(
+          lattice.getInferredStateKeys(),
+          rawResult.second().second(),
+          lattice.getInferredStateLattice());
+    }
+  
+    @Override
+    protected InferredQuery newSubAnalysisQuery(
+        final Delegate<InferredQuery, Inferred, EvalValue, EvalLattice> delegate) {
+      return new InferredQuery(delegate);
+    }
   }
 
 
-  /**
-   * Abstract result type for the the "inferred variables query"
-   * {@link InferredVarStateQuery}.
-   * 
-   * @param <I>
-   *          The type of the state to be inferred for each local variable.
-   * @param <L>
-   *          The lattice type of the inferred variable states.
-   */
-  public static abstract class Result<P extends PromiseDrop<?>> implements
-      Iterable<InferredVarState> {
+  public static final class Inferred implements Iterable<InferredVarState> {
     protected final NonNullRawLattice inferredStateLattice;
 
     private final IRNode[] keys;
 
     private final Element[] values;
 
-    protected Result(final IRNode[] keys, final Element[] val,
+    protected Inferred(
+        final IRNode[] keys, final Element[] val,
         final NonNullRawLattice sl) {
       this.keys = keys;
       this.values = val;
@@ -280,7 +288,7 @@ implements IBinderClient {
     }
 
     @Override
-    public final Iterator<InferredVarState> iterator() {
+    public Iterator<InferredVarState> iterator() {
       return new AbstractRemovelessIterator<InferredVarState>() {
         private int idx = 0;
 
@@ -298,14 +306,22 @@ implements IBinderClient {
       };
     }
 
-    public final boolean lessEq(final Element a, final Element b) {
+    public boolean lessEq(final Element a, final Element b) {
       return inferredStateLattice.lessEq(a, b);
     }
-
-    public abstract P getPromiseDrop(IRNode n);
-
-    public abstract Element injectPromiseDrop(P pd);
+  
+    public PromiseDrop<?> getPromiseDrop(final IRNode n) {
+      PromiseDrop<?> pd = NonNullRules.getRaw(n);
+      if (pd == null) pd = NonNullRules.getNonNull(n);
+      if (pd == null) pd = NonNullRules.getNullable(n);
+      return pd;
+    }
+    
+    public Element injectPromiseDrop(final PromiseDrop<?> pd) {
+      return inferredStateLattice.injectPromiseDrop(pd);
+    }
   }
+
 
   public static final class InferredVarState extends Pair<IRNode, Element> {
     public InferredVarState(final IRNode varDecl, final Element state) {
@@ -320,58 +336,6 @@ implements IBinderClient {
       return second();
     }
   }  
-  
-  public final class Inferred
-  extends Result<PromiseDrop<?>> {
-    protected Inferred(
-        final IRNode[] keys, final Element[] val,
-        final NonNullRawLattice sl) {
-      super(keys, val, sl);
-    }
-
-    @Override
-    public PromiseDrop<?> getPromiseDrop(final IRNode n) {
-      PromiseDrop<?> pd = NonNullRules.getRaw(n);
-      if (pd == null) pd = NonNullRules.getNonNull(n);
-      if (pd == null) pd = NonNullRules.getNullable(n);
-      return pd;
-    }
-    
-    @Override
-    public Element injectPromiseDrop(final PromiseDrop<?> pd) {
-      return inferredStateLattice.injectPromiseDrop(pd);
-    }
-  }
-  
-  
-  
-  public final class InferredQuery
-  extends InferredVarStateQuery<InferredQuery, Inferred> {
-    protected InferredQuery(
-        final IThunk<? extends IJavaFlowAnalysis<EvalValue, EvalLattice>> thunk) {
-      super(thunk);
-    }
-    
-    protected InferredQuery(
-        final Delegate<InferredQuery, Inferred, EvalValue, EvalLattice> d) {
-      super(d);
-    }
-    
-    @Override
-    protected Inferred processRawResult(
-        final IRNode expr, final EvalLattice lattice, final EvalValue rawResult) {
-      return new Inferred(
-          lattice.getInferredStateKeys(),
-          rawResult.second().second(),
-          lattice.getInferredStateLattice());
-    }
-
-    @Override
-    protected InferredQuery newSubAnalysisQuery(
-        final Delegate<InferredQuery, Inferred, EvalValue, EvalLattice> delegate) {
-      return new InferredQuery(delegate);
-    }
-  }
   
   
   
