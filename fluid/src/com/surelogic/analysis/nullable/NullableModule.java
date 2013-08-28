@@ -7,13 +7,12 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.ResultsBuilder;
-import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.InferredVarState;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
-import com.surelogic.analysis.nullable.NonNullRawLattice.Element;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Inferred;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.InferredQuery;
+import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.InferredVarState;
 import com.surelogic.analysis.nullable.NullableModule.AnalysisBundle.QueryBundle;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
@@ -149,7 +148,7 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     public Void visitMethodBody(final IRNode body) {
       doAcceptForChildren(body);
       final Inferred result = currentQuery().getInferred(body);
-      for (final InferredVarState<Element> p : result) {
+      for (final InferredVarState p : result) {
         /* 
          * Cannot put proposed promises on local variable declarations.
          * use info drops instead.

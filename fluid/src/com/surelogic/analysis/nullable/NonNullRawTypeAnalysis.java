@@ -4,6 +4,7 @@ package com.surelogic.analysis.nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -12,19 +13,16 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.InstanceInitAction;
 import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.LocalVariableDeclarations;
-import com.surelogic.analysis.StackEvaluatingAnalysisWithInference;
-import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalValue;
-import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.EvalLattice;
-import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePair;
-import com.surelogic.analysis.StackEvaluatingAnalysisWithInference.StatePairLattice;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.nullable.NonNullRawLattice.ClassElement;
 import com.surelogic.analysis.nullable.NonNullRawLattice.Element;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.Pair;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.util.AbstractRemovelessIterator;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
+import com.surelogic.util.IRNodeIndexedArrayLattice;
 import com.surelogic.util.IThunk;
 import com.surelogic.util.NullList;
 
@@ -68,6 +66,8 @@ import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 import edu.cmu.cs.fluid.util.Triple;
+import edu.uwm.cs.fluid.java.analysis.EvaluationStackLattice;
+import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 import edu.uwm.cs.fluid.java.control.AbstractCachingSubAnalysisFactory;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
 import edu.uwm.cs.fluid.java.control.JavaForwardAnalysis;
@@ -80,16 +80,18 @@ import edu.uwm.cs.fluid.util.UnionLattice;
  * TODO
  */
 public final class NonNullRawTypeAnalysis 
-extends StackEvaluatingAnalysisWithInference<
-    Element, NonNullRawTypeAnalysis.Value,
-    NonNullRawTypeAnalysis.InferredLattice, NonNullRawTypeAnalysis.Lattice>
+extends IntraproceduralAnalysis<
+    NonNullRawTypeAnalysis.Value,
+    NonNullRawTypeAnalysis.Lattice,
+    JavaForwardAnalysis<NonNullRawTypeAnalysis.Value,
+    NonNullRawTypeAnalysis.Lattice>>
 implements IBinderClient {
-  private static final ImmutableHashOrderSet<Source> EMPTY =
+  protected static final ImmutableHashOrderSet<Source> EMPTY =
       ImmutableHashOrderSet.<Source>emptySet();
 
   
   
-  public final class StackQuery extends SimplifiedJavaFlowAnalysisQuery<StackQuery, StackQueryResult, Value, Lattice> {
+  public static final class StackQuery extends SimplifiedJavaFlowAnalysisQuery<StackQuery, StackQueryResult, Value, Lattice> {
     public StackQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
     }
@@ -153,7 +155,7 @@ implements IBinderClient {
   
   
   
-  public final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Pair<Lattice, Base[]>, Value, Lattice> {
+  public static final class Query extends SimplifiedJavaFlowAnalysisQuery<Query, Pair<Lattice, Base[]>, Value, Lattice> {
     public Query(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
     }
@@ -181,7 +183,7 @@ implements IBinderClient {
   
   
   
-  public final class QualifiedThisQuery extends SimplifiedJavaFlowAnalysisQuery<QualifiedThisQuery, Element, Value, Lattice> {
+  public static final class QualifiedThisQuery extends SimplifiedJavaFlowAnalysisQuery<QualifiedThisQuery, Element, Value, Lattice> {
     public QualifiedThisQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
     }
@@ -212,7 +214,7 @@ implements IBinderClient {
   
   
   
-  public final class DebugQuery extends SimplifiedJavaFlowAnalysisQuery<DebugQuery, String, Value, Lattice> {
+  public static final class DebugQuery extends SimplifiedJavaFlowAnalysisQuery<DebugQuery, String, Value, Lattice> {
     public DebugQuery(final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
     }
@@ -237,18 +239,47 @@ implements IBinderClient {
       return new DebugQuery(d);
     }
   }
+
   
+
+  public static final class Inferred implements Iterable<InferredVarState> {
+    protected final NonNullRawLattice inferredStateLattice;
   
+    private final IRNode[] keys;
   
-  public final class Inferred
-  extends Result<NonNullRawLattice.Element, NonNullRawLattice, PromiseDrop<?>> {
+    private final Element[] values;
+  
     protected Inferred(
         final IRNode[] keys, final Element[] val,
         final NonNullRawLattice sl) {
-      super(keys, val, sl);
+      this.keys = keys;
+      this.values = val;
+      this.inferredStateLattice = sl;
     }
-
+  
     @Override
+    public Iterator<InferredVarState> iterator() {
+      return new AbstractRemovelessIterator<InferredVarState>() {
+        private int idx = 0;
+  
+        @Override
+        public boolean hasNext() {
+          return idx < keys.length;
+        }
+  
+        @Override
+        public InferredVarState next() {
+          final int currentIdx = idx++;
+          final Element inferredState = values[currentIdx];
+          return new InferredVarState(keys[currentIdx], inferredState);
+        }
+      };
+    }
+  
+    public boolean lessEq(final Element a, final Element b) {
+      return inferredStateLattice.lessEq(a, b);
+    }
+  
     public PromiseDrop<?> getPromiseDrop(final IRNode n) {
       PromiseDrop<?> pd = NonNullRules.getRaw(n);
       if (pd == null) pd = NonNullRules.getNonNull(n);
@@ -256,16 +287,14 @@ implements IBinderClient {
       return pd;
     }
     
-    @Override
     public Element injectPromiseDrop(final PromiseDrop<?> pd) {
       return inferredStateLattice.injectPromiseDrop(pd);
     }
   }
-  
-  
-  
-  public final class InferredQuery
-  extends InferredVarStateQuery<InferredQuery, NonNullRawLattice.Element, Value, NonNullRawLattice, InferredLattice, Lattice, Inferred> {
+
+
+  public static final class InferredQuery
+  extends SimplifiedJavaFlowAnalysisQuery<InferredQuery, Inferred, Value, Lattice> {
     protected InferredQuery(
         final IThunk<? extends IJavaFlowAnalysis<Value, Lattice>> thunk) {
       super(thunk);
@@ -274,6 +303,11 @@ implements IBinderClient {
     protected InferredQuery(
         final Delegate<InferredQuery, Inferred, Value, Lattice> d) {
       super(d);
+    }
+
+    @Override
+    protected final RawResultFactory getRawResultFactory() {
+      return RawResultFactory.NORMAL_EXIT;
     }
     
     @Override
@@ -284,13 +318,28 @@ implements IBinderClient {
           rawResult.second().second(),
           lattice.getInferredStateLattice());
     }
-
+  
     @Override
     protected InferredQuery newSubAnalysisQuery(
         final Delegate<InferredQuery, Inferred, Value, Lattice> delegate) {
       return new InferredQuery(delegate);
     }
   }
+
+
+  public static final class InferredVarState extends Pair<IRNode, Element> {
+    public InferredVarState(final IRNode varDecl, final Element state) {
+      super(varDecl, state);
+    }
+
+    public IRNode getLocal() {
+      return first();
+    }
+
+    public Element getState() {
+      return second();
+    }
+  }  
   
   
   
@@ -401,9 +450,9 @@ implements IBinderClient {
       return null;
     }
   }
-    
   
   
+
   public enum Kind {
     VAR_USE(-1) {
       @Override
@@ -551,10 +600,10 @@ implements IBinderClient {
     public Source(final Kind k, final IRNode where, final Element value) {
       super(k, where, value);
     }
-    
-    public IRNode getAnnotatedNode(final IBinder binder) {
-      return first().getAnnotatedNode(binder, second());
-    }
+//    
+//    public IRNode getAnnotatedNode(final IBinder binder) {
+//      return first().getAnnotatedNode(binder, second());
+//    }
     
     public static String setToString(final Set<Source> sources) {
       final List<String> strings = new ArrayList<String>();
@@ -590,20 +639,60 @@ implements IBinderClient {
   
   
   
-  protected static final class InferredLattice extends
-  StackEvaluatingAnalysisWithInference.InferredLattice<Element, NonNullRawLattice> {
+  /**
+   * Lattice for array of inferred variable states.
+   *
+   * @param <I> The type of the state to be inferred for each local variable.
+   * @param <L> The lattice type for the inferred values.
+   */
+  public static final class InferredLattice
+  extends IRNodeIndexedArrayLattice<NonNullRawLattice, Element> {
+    private final Element[] empty;
+    
     public InferredLattice(final NonNullRawLattice base, final List<IRNode> keys) {
       super(base, keys);
+      empty = createEmptyValue();
     }
-
+    
+    @Override
+    protected final Element getEmptyElementValue() {
+      return baseLattice.bottom();
+    }
+  
+    @Override
+    public final Element[] getEmptyValue() {
+      return empty;
+    }
+  
     @Override
     protected Element[] newArray() {
       return new Element[size];
     }    
+  
+    @Override
+    protected final void indexToString(final StringBuilder sb, final IRNode index) {
+      final Operator op = JJNode.tree.getOperator(index);
+      if (ParameterDeclaration.prototype.includes(op)) {
+        sb.append(ParameterDeclaration.getId(index));
+      } else { // VariableDeclarator
+        sb.append(VariableDeclarator.getId(index));
+      }
+    }
+    
+    public final IRNode[] cloneKeys() {
+      return indices.clone();
+    }
+    
+    /**
+     * Set the inferred state of a local variable at the given index.
+     */
+    public final Element[] inferVar(
+        final Element[] current, final int idx, final Element v, final IRNode src) {
+      return replaceValue(current, idx, baseLattice.join(current[idx], v));
+    }
   }
-  
-  
-  
+
+
   /**
    * Base value for the analysis, a pair of non-null state and a set of IRNodes
    * representing the possible source expressions of the value. Each IRNode in
@@ -624,9 +713,9 @@ implements IBinderClient {
     public Base(final Element nonNullState, final Kind k, final IRNode where) {
       this(nonNullState, EMPTY.addElement(new Source(k, where, nonNullState)));
     }
-    
-    public Element getNonNullState() { return first(); }
-    public Set<Source> getSources() { return second(); } 
+//    
+//    public Element getNonNullState() { return first(); }
+//    public Set<Source> getSources() { return second(); } 
     
     @Override
     protected String secondToString(final ImmutableSet<Source> sources) {
@@ -660,9 +749,9 @@ implements IBinderClient {
       return lattice1.injectPromiseDrop(pd);
     }
     
-    public Base injectValue(final Element v) {
-      return newPair(v, ImmutableHashOrderSet.<Source>emptySet());
-    }
+//    public Base injectValue(final Element v) {
+//      return newPair(v, ImmutableHashOrderSet.<Source>emptySet());
+//    }
     
     @Override
     public String toString(final Base b) {
@@ -671,25 +760,61 @@ implements IBinderClient {
   }
   
   
-
-  /* The analysis state is two association lists.  The first is a map from all
-   * the reference-valued variables in scope to the current raw state of the
-   * variable.  The second is a map from all the annotated local variable 
-   * declarations (not including parameter declarations) to the inferred
-   * annotation for the variable.  This is used to check against any actual 
-   * annotation on the variable, which must be greater than the inferred
-   * annotation.
+  /**
+   * Pair value for the evaluation state.
+   *
+   * @param <S> The type of the arbitrary analysis state.
+   * @param <I> The type of the state to be inferred for each local variable.
    */
-  static final class State extends StatePair<Base[], Element> {
-    public State(final Base[] vars, final Element[] inferred) {
-      super(vars, inferred);
+  public static final class State
+  extends com.surelogic.common.Pair<Base[], Element[]> {
+    public State(final Base[] s, final Element[] i) {
+      super(s, i);
     }
   }
   
-  static final class StateLattice extends StatePairLattice<
-      Base[], Element, State, LocalStateLattice, InferredLattice> {
-    public StateLattice(final LocalStateLattice l1, final InferredLattice l2) {
+  
+  
+  /**
+   * Lattice type for the state component of the evaluation. 
+   *
+   * @param <S> The type of the arbitrary analysis state.
+   * @param <I> The type of the state to be inferred for each local variable.
+   * @param <V> The type of overall state object used during evaluation.
+   * @param <L_S> The lattice type for the arbitrary analysis state.
+   * @param <L_I> The lattice type for the inferred variable states.
+   */
+  public static final class StateLattice
+  extends PairLattice<Base[], Element[], LocalStateLattice, InferredLattice, State> {
+    protected StateLattice(final LocalStateLattice l1, final InferredLattice l2) {
       super(l1, l2);
+    }
+    
+    
+    
+    public final IRNode[] getInferredStateKeys() {
+      return lattice2.cloneKeys();
+    }
+    
+    public final Element[] getEmptyInferredValue() {
+      return lattice2.getEmptyValue();
+    }
+    
+    /**
+     * Get the array index of the given variable in the array of inferred
+     * variables.
+     * @return The array index of the variable, or -1 if the variable is not 
+     * in the array.
+     */
+    public final int indexOfInferred(final IRNode var) {
+      return lattice2.indexOf(var);
+    }
+    
+    /**
+     * Set the inferred state of a local variable at the given index.
+     */
+    public final State inferVar(final State state, final int idx, final Element v, final IRNode src) {
+      return newPair(state.first(), lattice2.inferVar(state.second(), idx, v, src));
     }
     
     @Override
@@ -765,20 +890,63 @@ implements IBinderClient {
       return lattice1.qualifiedThisToString();
     }
   }
+
   
-  public static final class Value extends EvalValue<
-      Base, Base[], Element, State> {
-    public Value(final ImmutableList<Base> v1, final State v2) {
+  
+  // ======================================================================
+
+
+  
+  /**
+   * Value type for the overall value pushed around by the analysis.
+   * First component is the evaluation stack, and the second component
+   * is a pair of arbitrary stack, and an array of inferred local variable
+   * states.
+   * 
+   * @param <E> The type of stack elements.
+   * @param <S> The type of the arbitrary analysis state.
+   * @param <I> The type of the state to be inferred for each local variable.
+   * @param <V> The overall type of the state component for the EvaluationStackLattice.
+   */
+  public static final class Value
+  extends EvaluationStackLattice.EvalPair<Base, State> {
+    protected Value(final ImmutableList<Base> v1, final State v2) {
       super(v1, v2);
     }
   }
-  
-  public static final class Lattice extends EvalLattice<
-      Base, Element, State, Value,
-      BaseLattice, InferredLattice, StateLattice> {
-    protected Lattice(final BaseLattice l1,
-        final NonNullRawTypeAnalysis.StateLattice l2) {
+
+
+
+  /**
+   * Specialization of {@link EvaluationStackLattice} for use with
+   * {@link Value}.
+   * 
+   * @param <E> The type of the stack elements.
+   * @param <I> The type of the state to be inferred for each local variable
+   * @param <V> The type of overall state object used during evaluation.
+   * @param <R> The type of the overall value used by analysis.  
+   * @param <L_E> The lattice type of the stack elements.
+   * @param <L_I> The lattice type of the inferred variable states.
+   * @param <L_V> The lattice type of the overall state object.
+   */
+  public static final class Lattice
+  extends EvaluationStackLattice<Base, State, BaseLattice, StateLattice, Value> {
+    protected Lattice(final BaseLattice l1, final StateLattice l2) {
       super(l1, l2);
+    }
+   
+    
+    
+    public final IRNode[] getInferredStateKeys() {
+      return lattice2.getInferredStateKeys();
+    }
+    
+    public final int indexOfInferred(final IRNode var) {
+      return lattice2.indexOfInferred(var);
+    }
+    
+    public final Value inferVar(final Value v, final int idx, final Element e, final IRNode src) {
+      return newPair(v.first(), lattice2.inferVar(v.second(), idx, e, src));
     }
     
     @Override
@@ -855,12 +1023,8 @@ implements IBinderClient {
     public boolean isInterestingQualifiedThis(final IRNode use) {
       return lattice2.isInterestingQualifiedThis(use);
     }
-    
-    // For debugging
-    public String qualifiedThisToString() {
-      return lattice2.qualifiedThisToString();
-    }
   }
+
 
 
   
