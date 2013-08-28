@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import com.surelogic.Nullable;
-import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -15,6 +14,30 @@ import edu.cmu.cs.fluid.parse.JJNode;
 
 /**
  * The result of binding in Java 5.
+ * 
+ * Consider:
+ *
+ *	class Map<K,V> { 
+ *	    public K first();
+ *	    ... // no "iterator" method 
+ *      }
+ *
+ *	class Set<E> extends Map<E,Boolean> implements Cloneable {
+ *	    public Iterator<E> iterator() { ... }
+ *	    ... // no "first" method 
+ *	}
+ *
+ *
+ *	Set<String> s = ...
+ *
+ *	... s.iterator() ...
+ *	... s.first() ...
+ *
+ * For the first method call, the context type is indeed the receiver type
+ *	 Set<String>    E -> String
+ * For the second method call, the context type is the relevant supertype
+ *	 Map<String,Boolean>   K -> String, V -> Boolean
+ * 
  * @author boyland
  */
 public interface IBinding {
@@ -25,13 +48,14 @@ public interface IBinding {
   public IRNode getNode();
   
   /**
+   * This returns the correctly substituted supertype relevant to the 
+   * *declaration* returned by getNode() (e.g. of the method being called).
+   * 
    * Return the type of the object from which this declaration is taken, with the
    * appropriate type substitutions (e.g., the declaring type)
-   * (Should be the supertype of getReceiverType())
-   * XXX: The previous two descriptions are contradictory:
-   * XXX: the receiver type is precisely the type of the object from which this declaration
-   * XXX: is taken, not its supertype.
+   * (Should be a supertype of getReceiverType())
    * This includes all the actual type parameters.
+   * 
    * @return type of the object from which this binding is taken, or null for locals/types
    */
   @Nullable
@@ -146,9 +170,6 @@ public interface IBinding {
     
     private static IBinding makeBinding(final IRNode n, final IJavaDeclaredType ty, final ITypeEnvironment tEnv, 
                                        final IJavaReferenceType recType, final IJavaTypeSubstitution mSubst) {
-      if (!XUtil.testing) {    	
-    	LOG.warning("makeBinding with " + ty + " * " + recType);
-      }
       // we might wish to create node classes which satisfy IBinding with null substitution
       if (n instanceof IBinding && ty == null) return (IBinding)n;
       final IJavaTypeSubstitution subst;
