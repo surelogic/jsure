@@ -4,8 +4,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.surelogic.analysis.nullable2.StackEvaluatingAnalysisWithInference.Base;
-import com.surelogic.analysis.nullable2.StackEvaluatingAnalysisWithInference.BaseLattice;
+import com.surelogic.analysis.nullable2.NonNullRawTypeAnalysis.Base;
+import com.surelogic.analysis.nullable2.NonNullRawTypeAnalysis.BaseLattice;
 import com.surelogic.util.IRNodeIndexedArrayLattice;
 
 import edu.cmu.cs.fluid.ir.IRNode;

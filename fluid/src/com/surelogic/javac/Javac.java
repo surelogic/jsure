@@ -27,6 +27,7 @@ import com.surelogic.analysis.testing.ConstantExpressionModule;
 import com.surelogic.analysis.testing.DefinitelyAssignedModule;
 import com.surelogic.analysis.testing.LocalVariablesModule;
 import com.surelogic.analysis.testing.NonNullRawTypeModule;
+import com.surelogic.analysis.testing.NonNullRawTypeModule2;
 import com.surelogic.analysis.testing.TypeBasedAliasModule;
 import com.surelogic.analysis.testing.TypesModule;
 import com.surelogic.analysis.threads.ThreadEffectsModule;
@@ -87,6 +88,7 @@ public class Javac extends IDE {
 				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceSE", false, "Uniqueness (Obsolete)");
 
     init(NonNullRawTypeModule.class, "com.surelogic.jsure.client.eclipse.NonNullRawTypes", false, "Combined NonNull & RawType (for reg tests only)");
+    init(NonNullRawTypeModule2.class, "com.surelogic.jsure.client.eclipse.NonNullRawTypes2", false, "Combined NonNull & RawType (for reg tests only) 2222");
     init(DefinitelyAssignedModule.class, "com.surelogic.jsure.client.eclipse.DefinitelyAssigned", false, "Definitely Assigned (for reg tests only)");
 		
 		init(LocalVariablesModule.class,
@@ -113,6 +115,7 @@ public class Javac extends IDE {
     init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
     
     init(NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable", true, "Nullable");
+    init(com.surelogic.analysis.nullable2.NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable2", true, "Nullable 2222");
     init(TestFunctionalInterfacePseudoAnalysis.class,"com.surelogic.jsure.client.eclipse.TestIsFunctional", false, "Functional (for tests only)");
     /*
 		AnalysisInfo[] deps = new AnalysisInfo[3];
