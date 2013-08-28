@@ -15,14 +15,11 @@ public class SimpleTypeSubstitution extends AbstractTypeSubstitution {
 		this.actuals = new ArrayList<IJavaType>();
 		int n = formals.size();
 		if (n > 0 && actuals.size() == 0) {
-			// hack: we replace all formals with their upperbounds
-			// where each variable is replaced with their erased upper bounds.
-			for (IJavaTypeFormal ft : formals) {
-				this.actuals.add(b.getTypeEnvironment().computeErasure(ft));
-			}
+			// for raw access: we replace all type formals by their erased upper bounds
 			ArrayList<IJavaType> newActuals = new ArrayList<IJavaType>();
+			ITypeEnvironment tenv = b.getTypeEnvironment();
 			for (IJavaTypeFormal ft : formals) {
-				newActuals.add(ft.getExtendsBound(b.getTypeEnvironment()).subst(this));
+				newActuals.add(tenv.computeErasure(ft.getExtendsBound(tenv)));
 			}
 			this.actuals = newActuals;
 		} else {

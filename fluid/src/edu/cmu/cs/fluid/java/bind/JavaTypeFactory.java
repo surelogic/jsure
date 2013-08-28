@@ -75,7 +75,6 @@ import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.ShortType;
-import edu.cmu.cs.fluid.java.operator.Type;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
@@ -556,19 +555,9 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     		  System.out.println("Converting Context");
     	  }
           */
-    	  return b.convertType(convertNodeTypeToIJavaType(decl, binder));
+    	  //return b.convertType(convertNodeTypeToIJavaType(decl, binder));
+    	  return b.convertType(getMyThisType(decl, true));
       }  
-      /*
-      if (TypeFormal.prototype.includes(decl)) {
-        return getTypeFormal(decl);
-      }
-      // LOG.info("Binding " + DebugUnparser.toString(nodeType) + " to " + JavaNode.getInfo(decl));
-      IRNode enclosingType = VisitUtil.getEnclosingType(decl);
-      if (enclosingType != null) {
-        IJavaDeclaredType dt = (IJavaDeclaredType) convertNodeTypeToIJavaType(enclosingType, binder);
-        return getDeclaredType(decl, null, dt);
-      }
-      return getDeclaredType(decl,null,null);*/
     } else if (op instanceof TypeRef) {
       IJavaType outer = convertNodeTypeToIJavaType(TypeRef.getBase(nodeType),binder);
       IBinding b = binder.getIBinding(nodeType);

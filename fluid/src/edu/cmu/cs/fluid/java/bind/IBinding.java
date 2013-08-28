@@ -1,13 +1,43 @@
 /*$Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/bind/IBinding.java,v 1.13 2008/08/22 16:56:34 chance Exp $*/
 package edu.cmu.cs.fluid.java.bind;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+
 import com.surelogic.Nullable;
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.parse.JJNode;
 
 /**
  * The result of binding in Java 5.
+ * 
+ * Consider:
+ *
+ *	class Map<K,V> { 
+ *	    public K first();
+ *	    ... // no "iterator" method 
+ *      }
+ *
+ *	class Set<E> extends Map<E,Boolean> implements Cloneable {
+ *	    public Iterator<E> iterator() { ... }
+ *	    ... // no "first" method 
+ *	}
+ *
+ *
+ *	Set<String> s = ...
+ *
+ *	... s.iterator() ...
+ *	... s.first() ...
+ *
+ * For the first method call, the context type is indeed the receiver type
+ *	 Set<String>    E -> String
+ * For the second method call, the context type is the relevant supertype
+ *	 Map<String,Boolean>   K -> String, V -> Boolean
+ * 
  * @author boyland
  */
 public interface IBinding {
@@ -18,11 +48,14 @@ public interface IBinding {
   public IRNode getNode();
   
   /**
+   * This returns the correctly substituted supertype relevant to the 
+   * *declaration* returned by getNode() (e.g. of the method being called).
+   * 
    * Return the type of the object from which this declaration is taken, with the
    * appropriate type substitutions (e.g., the declaring type)
-   * (Should be the supertype of getReceiverType())
-   * 
+   * (Should be a supertype of getReceiverType())
    * This includes all the actual type parameters.
+   * 
    * @return type of the object from which this binding is taken, or null for locals/types
    */
   @Nullable
@@ -105,7 +138,7 @@ public interface IBinding {
    * @author boyland
    */
   public static class Util {
-    
+    private static final Logger LOG = SLLogger.getLogger("fluid.java.bind");
     public static IBinding makeBinding(final IRNode n, final IJavaDeclaredType ty, ITypeEnvironment tEnv, 
         final IJavaReferenceType recType) {
       return makeBinding(n, ty, tEnv, recType, null);
@@ -114,6 +147,25 @@ public interface IBinding {
     public static IBinding makeMethodBinding(IBinding mbind, IJavaDeclaredType context, IJavaTypeSubstitution mSubst) {
       return makeBinding(mbind.getNode(), context, 
                          mbind.getTypeEnvironment(), mbind.getReceiverType(), mSubst);
+    }
+    
+    public static IBinding makeMethodBinding(final ITypeEnvironment tenv, final IRNode mdecl, final IJavaDeclaredType recType, final IJavaTypeSubstitution mSubst) {
+    	IRNode tdecl = recType.getDeclaration();
+    	List<IJavaTypeFormal> tFormals = new ArrayList<IJavaTypeFormal>();
+    	for (IRNode tf : JJNode.tree.children(new TypeUtils(tenv).getParametersForType(tdecl))) {
+    		tFormals.add(JavaTypeFactory.getTypeFormal(tf));
+    	}
+    	final IJavaTypeSubstitution tSubst = new SimpleTypeSubstitution(tenv.getBinder(),tFormals,recType.getTypeParameters());
+    	return new PartialBinding(mdecl,tenv.getSuperclass(recType),tenv,recType) {
+    		@Override
+    		public IJavaType convertType(IJavaType type) {
+    	          if (type == null) return null;
+    	          if (mSubst != null) {
+    	            return type.subst(mSubst).subst(tSubst);
+    	          }
+    	          return type.subst(tSubst);    			
+    		}
+    	};
     }
     
     private static IBinding makeBinding(final IRNode n, final IJavaDeclaredType ty, final ITypeEnvironment tEnv, 
@@ -141,11 +193,8 @@ public interface IBinding {
       return new PartialBinding(n, ty, tEnv, recType) {
     	@Override
         public IJavaType convertType(IJavaType type) {
-          if (type == null) return null;
-          if (mSubst != null) {
-            return type.subst(mSubst).subst(subst);
-          }
-          return type.subst(subst);
+    		if (type == null) return null;
+    		return type.subst(mSubst).subst(subst);          
         }
       };
     }

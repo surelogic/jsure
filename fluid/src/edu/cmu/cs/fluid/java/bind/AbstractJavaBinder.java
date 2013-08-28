@@ -324,56 +324,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   	}
   	return null;
   }
-
-  
-  /**
-   * Return the target type for a poly expression.
-   * @param pe poly expression node
-   * @return type this expression is expected to be
-   */
-  public IJavaType getPolyExpressionTargetType(IRNode pe) {
-	  IRNode p = JJNode.tree.getParent(pe);
-	  IRLocation loc = JJNode.tree.getLocation(pe);
-	  Operator op = JJNode.tree.getOperator(p);
-	  if (AssignExpression.prototype.includes(op)) {
-		  if (loc.equals(AssignExpression.op2Location)) {
-			  return getJavaType(AssignExpression.getOp1(pe));
-		  }
-	  } else if (CastExpression.prototype.includes(op)) {
-		  return getJavaType(p);
-	  } else if (ConditionalExpression.prototype.includes(op)) {
-		  if (loc.equals(ConditionalExpression.condLoc)) {
-			  return JavaTypeFactory.booleanType;
-		  } else {
-			  return getPolyExpressionTargetType(p);
-		  }
-	  } else if (ParenExpression.prototype.includes(op)) {
-		  return getPolyExpressionTargetType(p);
-	  } else if (Arguments.prototype.includes(op)) {
-		  IBinding bi = getIBinding(JJNode.tree.getParent(p));
-		  int i = JJNode.tree.childLocationIndex(p, loc);
-		  if (bi != null) {
-			  IRNode decl = getBinding(JJNode.tree.getParent(p));
-			  if (decl != null) {
-				  final IRNode formals;
-				  Operator dop = JJNode.tree.getOperator(decl);
-				  if (MethodDeclaration.prototype.includes(dop)) {
-					  formals = MethodDeclaration.getParams(decl);
-				  } else if (ConstructorDeclaration.prototype.includes(dop)) {
-					  formals = ConstructorDeclaration.getParams(decl);
-				  } else {
-					  LOG.warning("what could a call be bound to? " + dop);
-					  return null;
-				  }
-				  return bi.convertType(getJavaType(JJNode.tree.getChild(formals, i)));
-			  }
-		  }
-	  } 
-	  // We make wish to make this a "fine" warning if all method call invocations
-	  // are treated as something that coiuld learn from the target type.
-	  LOG.warning("poly expression has bad context: " + op);
-	  return null;
-  }
   
   /**
    * Return the granule of binding associated with this node, or throw
@@ -1738,7 +1688,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     public Void visitConstructorReference(IRNode node) {
     	visit(node);
     	if (!isFullPass || pathToTarget != null) return null;
-    	IJavaType targetType = getPolyExpressionTargetType(node);
+    	TypeUtils utils = new TypeUtils(getTypeEnvironment());
+    	IJavaType targetType = utils.getPolyExpressionTargetType(node);
     	if (targetType == null) {
     		LOG.warning("constructor reference must be in a poly context: " + DebugUnparser.toString(node));
     		return null;
@@ -1755,7 +1706,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		// that (int -> ownerT) is applicable.
     		IJavaFunctionType myType = JavaTypeFactory.getFunctionType(null, ownerT, Arrays.<IJavaType>asList(JavaTypeFactory.intType), false, null);
     		if (getTypeEnvironment().isCallCompatible(myType, ft, InvocationKind.VARIABLE)) {
-    			// TODO: what is the binding we want?
+    			// NB: no binding for array creation
     			LOG.info("Array creation reference works");
     		} else {
     			LOG.warning("array creation is not compatible with " + ft.toSourceText());
@@ -1820,7 +1771,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		applicable.clear();
     		for (Map.Entry<IJavaFunctionType, IRNode> e : candidates.entrySet()) {
     			IJavaFunctionType cft = e.getKey();
-    			Constraints cs = new TypeUtils(typeEnvironment).new Constraints(IBinding.Util.makeBinding(cdecl),typeFormals,ikind);
+    			Constraints cs = utils.new Constraints(IBinding.Util.makeBinding(cdecl),typeFormals,ikind);
     			if (cs.deriveForParamaters(cft.getParameterTypes(), ft.getParameterTypes(), cft.isVariable()) &&
     					cs.getSubstitution() != null) {
     				applicableType = cft;
@@ -1841,7 +1792,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	
     	// now we generate constraints AGAIN
     	// because this time we don't compute the type substitution until later
-		Constraints cs = new TypeUtils(typeEnvironment).
+		Constraints cs = utils.
 				new Constraints(IBinding.Util.makeBinding(cdecl),
 						typeFormals,
 						applicableKind);
@@ -1874,8 +1825,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		return null;
     	}
     	
-    	//XXX: the binding should have the inferred type parameters.
-    	bind(node,applicable.get(0));
+    	bind(node,IBinding.Util.makeMethodBinding(typeEnvironment, cdecl, owner, sub));
     	return null;
     }
     	 
@@ -2315,7 +2265,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 	public Void visitMethodReference(IRNode node) {
     	super.visitMethodReference(node);
     	if (!isFullPass) return null;
-    	IJavaType targetType = getPolyExpressionTargetType(node);
+    	TypeUtils utils = new TypeUtils(getTypeEnvironment());
+    	IJavaType targetType = utils.getPolyExpressionTargetType(node);
     	if (targetType == null) {
     		LOG.warning("method reference must be in a poly context: " + DebugUnparser.toString(node));
     		return null;

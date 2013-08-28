@@ -7,6 +7,7 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 
 import com.surelogic.common.Pair;
 
+import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment.InvocationKind;
 import edu.cmu.cs.fluid.java.bind.MethodBinder.CallState;
@@ -1503,4 +1504,53 @@ public class TypeUtils {
 		//return rt.subst(FunctionParameterSubstitution.create(tEnv.getBinder(), map.method.getNode(), map.subst));
 		// TODO what about the info I already inferred?		
 	}
+	
+	/**
+	 * Return the target type for a poly expression.
+	 * @param pe poly expression node
+	 * @return type this expression is expected to be
+	 */
+	public IJavaType getPolyExpressionTargetType(IRNode pe) {
+		  IRNode p = JJNode.tree.getParent(pe);
+		  IRLocation loc = JJNode.tree.getLocation(pe);
+		  Operator op = JJNode.tree.getOperator(p);
+		  if (AssignExpression.prototype.includes(op)) {
+			  if (loc.equals(AssignExpression.op2Location)) {
+				  return tEnv.getBinder().getJavaType(AssignExpression.getOp1(pe));
+			  }
+		  } else if (CastExpression.prototype.includes(op)) {
+			  return tEnv.getBinder().getJavaType(p);
+		  } else if (ConditionalExpression.prototype.includes(op)) {
+			  if (loc.equals(ConditionalExpression.condLoc)) {
+				  return JavaTypeFactory.booleanType;
+			  } else {
+				  return getPolyExpressionTargetType(p);
+			  }
+		  } else if (ParenExpression.prototype.includes(op)) {
+			  return getPolyExpressionTargetType(p);
+		  } else if (Arguments.prototype.includes(op)) {
+			  IBinding bi = tEnv.getBinder().getIBinding(JJNode.tree.getParent(p));
+			  int i = JJNode.tree.childLocationIndex(p, loc);
+			  if (bi != null) {
+				  IRNode decl = tEnv.getBinder().getBinding(JJNode.tree.getParent(p));
+				  if (decl != null) {
+					  final IRNode formals;
+					  Operator dop = JJNode.tree.getOperator(decl);
+					  if (MethodDeclaration.prototype.includes(dop)) {
+						  formals = MethodDeclaration.getParams(decl);
+					  } else if (ConstructorDeclaration.prototype.includes(dop)) {
+						  formals = ConstructorDeclaration.getParams(decl);
+					  } else {
+						  //LOG.warning("what could a call be bound to? " + dop);
+						  return null;
+					  }
+					  return bi.convertType(tEnv.getBinder().getJavaType(JJNode.tree.getChild(formals, i)));
+				  }
+			  }
+		  } 
+		  // We make wish to make this a "fine" warning if all method call invocations
+		  // are treated as something that could learn from the target type.
+		  //LOG.warning("poly expression has bad context: " + op);
+		  return null;
+	  }
 }
