@@ -1171,6 +1171,9 @@ public class JavaCanonicalizer {
       IJavaTypeSubstitution subst;
 
       public MethodBinding(IJavaSourceRefType t) {
+      	if (t == null) {
+    		throw new NullPointerException();
+    	}    	  
         recType = t;
       }
 
@@ -1181,6 +1184,9 @@ public class JavaCanonicalizer {
 
       public void updateRecType(IJavaSourceRefType t) {
         // FIX check t;
+    	if (t == null) {
+    		throw new NullPointerException();
+    	}
         recType = t;
       }
 
