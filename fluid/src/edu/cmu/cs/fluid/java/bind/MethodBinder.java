@@ -76,8 +76,12 @@ class MethodBinder {
     	/**
     	 * For methods
     	 */
-    	CallState(IRNode call, IRNode targs, IRNode args) {
-    		this(call, targs, args, null);
+    	CallState(IRNode call, IRNode targs, IRNode args, IJavaType recType) {
+      		this.call = call;
+      		this.targs = getNodes(targs);
+      		this.args = getNodes(args);
+      		receiverType = recType;
+      		constructorType = null;
     	}
     	
     	CallState(IRNode call, IRNode targs, IRNode args, IRNode type) {    		
@@ -581,10 +585,13 @@ class MethodBinder {
     		subst = m.methodTypeSubst;
     		context = oldContext;
     	}
+    	IBinding newB;
     	if (subst != IJavaTypeSubstitution.NULL) {
-    		return new BindingInfo(IBinding.Util.makeMethodBinding(m.bind, context, subst), numBoxed, isVarArgs);
+    		newB = IBinding.Util.makeMethodBinding(m.bind, context, subst, s.call.receiverType);
+    	} else {
+    		newB = IBinding.Util.addReceiverType(m.bind, s.call.receiverType);
     	}
-    	return new BindingInfo(m.bind, numBoxed, isVarArgs);
+    	return new BindingInfo(newB, numBoxed, isVarArgs);
 	}
     
 	

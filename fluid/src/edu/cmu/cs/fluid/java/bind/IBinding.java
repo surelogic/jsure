@@ -139,14 +139,12 @@ public interface IBinding {
    */
   public static class Util {
     private static final Logger LOG = SLLogger.getLogger("fluid.java.bind");
-    public static IBinding makeBinding(final IRNode n, final IJavaDeclaredType ty, ITypeEnvironment tEnv, 
-        final IJavaReferenceType recType) {
-      return makeBinding(n, ty, tEnv, recType, null);
-    }
     
-    public static IBinding makeMethodBinding(IBinding mbind, IJavaDeclaredType context, IJavaTypeSubstitution mSubst) {
-      return makeBinding(mbind.getNode(), context, 
-                         mbind.getTypeEnvironment(), mbind.getReceiverType(), mSubst);
+    public static IBinding makeMethodBinding(IBinding mbind, IJavaDeclaredType context, IJavaTypeSubstitution mSubst, IJavaType recType) {
+      return makeBinding(mbind.getNode(), 
+    		             context == null ? mbind.getContextType() : context, 
+                         mbind.getTypeEnvironment(), 
+                         recType == null ? mbind.getReceiverType() : (IJavaReferenceType) recType, mSubst);
     }
     
     public static IBinding makeMethodBinding(final ITypeEnvironment tenv, final IRNode mdecl, final IJavaDeclaredType recType, final IJavaTypeSubstitution mSubst) {
@@ -169,9 +167,16 @@ public interface IBinding {
     }
     
     private static IBinding makeBinding(final IRNode n, final IJavaDeclaredType ty, final ITypeEnvironment tEnv, 
-                                       final IJavaReferenceType recType, final IJavaTypeSubstitution mSubst) {
+                                        IJavaReferenceType recType, final IJavaTypeSubstitution mSubst) {
       // we might wish to create node classes which satisfy IBinding with null substitution
       if (n instanceof IBinding && ty == null) return (IBinding)n;
+      if (recType != null && !recType.isSubtype(tEnv, ty)) {
+    	  System.err.println("Receiver type "+recType+" isn't a subtype of the context type "+ty);
+      }
+      if (recType == null) {
+    	  recType = ty;
+      }
+      
       final IJavaTypeSubstitution subst;
       if (ty != null) {
         subst = JavaTypeSubstitution.create(tEnv, ty);
@@ -269,5 +274,16 @@ public interface IBinding {
       if (ty == null) return s;
       else return s + "@" + ty;
     }
+
+    /**
+     * Create a binding that includes the given receiver type
+     * 
+     * TODO need to fix the context type to match?
+     */
+	public static IBinding addReceiverType(IBinding bind, IJavaType receiverType) {		
+		return makeBinding(bind.getNode(), bind.getContextType(), 
+				bind.getTypeEnvironment(), 
+				(IJavaReferenceType) receiverType, null);
+	} 
   }
 }

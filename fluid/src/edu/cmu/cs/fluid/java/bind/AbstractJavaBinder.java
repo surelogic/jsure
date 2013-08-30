@@ -1668,7 +1668,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         IRNode tdecl = ((IJavaDeclaredType)ty).getDeclaration(); 
         IRNode targs = call.get_TypeArgs(node);
         String tname = JJNode.getInfo(tdecl);
-        final CallState state = methodBinder.new CallState(node, targs, call.get_Args(node));
+        final CallState state = methodBinder.new CallState(node, targs, call.get_Args(node), ty);
         boolean success = bindCall(state, tname, ty);
         if (!success) {
         	bindCall(state, tname, ty);
@@ -2052,7 +2052,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
             // Process as normal method call
           }
         }
-        final CallState state = methodBinder.new CallState(node, targs, args);
+        final CallState state = methodBinder.new CallState(node, targs, args, recType);
         boolean success = bindCall(state,name, toUse);
         if (!success) {
           // FIX hack to get things to bind for receivers of raw type       
@@ -3204,7 +3204,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		  System.out.println("Found duplicates");
 	  }	  
 	  */
-	  final CallState call = mb.new CallState(null, null, null) {
+	  final CallState call = mb.new CallState(null, null, null, t) {
 		  @Override
 		  public IJavaType[] getArgTypes() {
 			  return mb.getFormalTypes(t, mth);
