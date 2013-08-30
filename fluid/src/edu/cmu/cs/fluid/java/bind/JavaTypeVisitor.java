@@ -446,7 +446,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     	  b.getContextType().equals(objectT) && 
           MethodDeclaration.getId(n).equals("getClass") &&
           JJNode.tree.numChildren(MethodDeclaration.getParams(n)) == 0) {
-        IJavaDeclaredType upper = computeErasure((IJavaDeclaredType) b.getReceiverType());
+        IJavaReferenceType upper = (IJavaReferenceType) binder.getTypeEnvironment().computeErasure(b.getReceiverType());
         IRNode classDecl        = binder.getTypeEnvironment().findNamedType("java.lang.Class");
         List<IJavaType> params = new ArrayList<IJavaType>(1);
         params.add(JavaTypeFactory.getWildcardType(upper, null));
