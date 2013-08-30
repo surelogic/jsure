@@ -26,7 +26,6 @@ import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.*;
 import edu.cmu.cs.fluid.version.*;
 
 /**
@@ -1030,8 +1029,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     				  if (debug) {
     					  LOG.finer("Selected node from " + Scope.this);
     				  }
-    				  // No context type? (filled in later?)
-    				  return IBinding.Util.makeBinding(n);
+    				  return IBinding.Util.makeBinding(n, (IJavaDeclaredType) type, tEnv);
     			  }
     			  return IteratorUtil.noElement;
     		  }
