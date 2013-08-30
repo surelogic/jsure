@@ -779,7 +779,7 @@ public interface IJavaScope {
         IRNode node = binding.getNode();
         IRNode bdecl = VisitUtil.getEnclosingType(node);
         if (context.getDeclaration() == bdecl) {
-          IBinding newBinding = IBinding.Util.makeBinding(node,context,tEnv, context);
+          IBinding newBinding = IBinding.Util.makeBinding(node, context, tEnv);
           return newBinding;
         }
         //LOG.warning("substBinding didn't expect to get here...");
@@ -787,52 +787,16 @@ public interface IJavaScope {
         if (c == null) {
         	computeContextType(bdecl);
         }
-        return IBinding.Util.makeBinding(node,c, tEnv, context);
+        return IBinding.Util.makeBinding(node,c, tEnv);
       }
       if (context == bContext) {
     	  // No need to do substitution, since we're talking about a binding from the same type
     	  return binding; 
       }
       if (subst == null) {
-        // return binding;
-        return IBinding.Util.makeBinding(binding.getNode(),bContext, tEnv, context);
-      }
-      return IBinding.Util.makeBinding(binding.getNode(),bContext.subst(subst), tEnv, context);
-      /* To delay the substitution until later
-      return new IBinding.Util.NodeBinding(binding.getNode()) {
-    	  IBinding real = null;
-    	  
-    	  private void computeBinding() {
-    		  if (real != null) {
-    			  return;
-    		  }
-    		  real = IBinding.Util.makeBinding(binding.getNode(),bContext.subst(subst), tEnv, context);
-    	  }
-
-    	  @Override
-    	  public ITypeEnvironment getTypeEnvironment() {
-    		  return tEnv;
-    	  }
-    	  
-    	  @Override
-    	  public IJavaType convertType(IJavaType ty) {
-    		  computeBinding();
-    		  return real.convertType(ty);
-    	  }
-
-    	  @Override
-    	  public IJavaDeclaredType getContextType() {
-    		  computeBinding();
-    		  return real.getContextType();
-    	  }
-
-    	  @Override
-    	  public IJavaReferenceType getReceiverType() {
-    		  computeBinding();
-    		  return real.getReceiverType();
-    	  }
-      };
-      */
+    	return binding;
+      }      
+      return IBinding.Util.makeBinding(binding.getNode(),bContext.subst(subst), tEnv);
     }
     
     private IJavaDeclaredType computeContextType(final IRNode bdecl) {
