@@ -1168,7 +1168,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         }
         return false;
       }
-      return bind(node,IBinding.Util.makeBinding(binding, getTypeEnvironment()));
+      return bind(node,IBinding.Util.makeBinding(binding));
     }
     
     /**
@@ -1862,7 +1862,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	  final Operator op = JJNode.tree.getOperator(decl);
     	  if (AnnotationElement.prototype.includes(op)) {
     		  if (name.equals(AnnotationElement.getId(decl))) {
-    			  bind(node, IBinding.Util.makeBinding(decl, typeEnvironment));
+    			  bind(node, IBinding.Util.makeBinding(decl));
     			  return null;
     		  }    		  
     	  }

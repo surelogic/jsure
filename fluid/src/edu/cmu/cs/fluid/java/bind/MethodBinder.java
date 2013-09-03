@@ -587,9 +587,9 @@ class MethodBinder {
     	}
     	IBinding newB;
     	if (subst != IJavaTypeSubstitution.NULL) {
-    		newB = IBinding.Util.makeMethodBinding(m.bind, context, subst, s.call.receiverType);
+    		newB = IBinding.Util.makeMethodBinding(m.bind, context, subst, s.call.receiverType, typeEnvironment);
     	} else {
-    		newB = IBinding.Util.addReceiverType(m.bind, s.call.receiverType);
+    		newB = IBinding.Util.addReceiverType(m.bind, s.call.receiverType, typeEnvironment);
     	}
     	return new BindingInfo(newB, numBoxed, isVarArgs);
 	}

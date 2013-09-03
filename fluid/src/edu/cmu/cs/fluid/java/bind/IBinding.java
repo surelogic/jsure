@@ -67,8 +67,6 @@ public interface IBinding {
   @Nullable
   public IJavaReferenceType getReceiverType();
   
-  public ITypeEnvironment getTypeEnvironment();
-  
   /**
    * Perform a type substitution on the given type.
    * Essential this call does
@@ -102,10 +100,7 @@ public interface IBinding {
     public IRNode getNode() {
 		  return null;
 	  }
-	  @Override
-    public ITypeEnvironment getTypeEnvironment() {
-		  return null;
-	  }
+
       @Override
       public String toString() {
         if (getNode() == null) return "<none>";
@@ -140,10 +135,10 @@ public interface IBinding {
   public static class Util {
     private static final Logger LOG = SLLogger.getLogger("fluid.java.bind");
     
-    public static IBinding makeMethodBinding(IBinding mbind, IJavaDeclaredType context, IJavaTypeSubstitution mSubst, IJavaType recType) {
+    public static IBinding makeMethodBinding(IBinding mbind, IJavaDeclaredType context, IJavaTypeSubstitution mSubst, IJavaType recType, ITypeEnvironment tEnv) {
       return makeBinding(mbind.getNode(), 
     		             context == null ? mbind.getContextType() : context, 
-                         mbind.getTypeEnvironment(), 
+    		             tEnv,
                          recType == null ? mbind.getReceiverType() : (IJavaReferenceType) recType, mSubst);
     }
     
@@ -154,7 +149,7 @@ public interface IBinding {
     		tFormals.add(JavaTypeFactory.getTypeFormal(tf));
     	}
     	final IJavaTypeSubstitution tSubst = new SimpleTypeSubstitution(tenv.getBinder(),tFormals,recType.getTypeParameters());
-    	return new PartialBinding(mdecl,tenv.getSuperclass(recType),tenv,recType) {
+    	return new PartialBinding(mdecl,tenv.getSuperclass(recType),recType) {
     		@Override
     		public IJavaType convertType(IJavaType type) {
     	          if (type == null) return null;
@@ -187,7 +182,7 @@ public interface IBinding {
 //        System.out.println("Null");
 //      }
       if (mSubst == null) {
-          return new PartialBinding(n, ty, tEnv, recType) {
+          return new PartialBinding(n, ty, recType) {
           	@Override
               public IJavaType convertType(IJavaType type) {
                 if (type == null) return null;
@@ -195,7 +190,7 @@ public interface IBinding {
               }
             };  
       }
-      return new PartialBinding(n, ty, tEnv, recType) {
+      return new PartialBinding(n, ty, recType) {
     	@Override
         public IJavaType convertType(IJavaType type) {
     		if (type == null) return null;
@@ -205,50 +200,32 @@ public interface IBinding {
     }
     
     public static class PartialBinding extends NodeBinding {
-		private final IJavaDeclaredType ty;
+		private final IJavaDeclaredType contextType;
 		private final IJavaReferenceType recType;
-		private final ITypeEnvironment tEnv;
 		
-		PartialBinding(IRNode n, IJavaDeclaredType context, ITypeEnvironment te, 
+		PartialBinding(IRNode n, IJavaDeclaredType context,
 				       IJavaReferenceType receiver) {
 			super(n);
-			ty      = context;
+			contextType = context;
 			recType = receiver;
-			tEnv    = te;
 		}
         @Override
     	public final IJavaDeclaredType getContextType() {
-    		return ty;
+    		return contextType;
     	}
         @Override
     	public final IJavaReferenceType getReceiverType() {
     		return recType;
-    	}
-        @Override
-    	public final ITypeEnvironment getTypeEnvironment() {
-    		return tEnv;
     	}
     }
     
 	public static IBinding makeBinding(final IRNode binding, final IJavaDeclaredType context,
 			                           final ITypeEnvironment typeEnvironment) {
 		if (context == null) {
-			return makeBinding(binding, typeEnvironment);
+			return makeBinding(binding);
 		}
 		return makeBinding(binding, context, typeEnvironment, null, null);
 	}
-    
-	public static IBinding makeBinding(final IRNode binding,
-			                           final ITypeEnvironment typeEnvironment) {
-		if (typeEnvironment == null) {
-			return makeBinding(binding);
-		}
-		return new NodeBinding(binding) {
-			@Override public ITypeEnvironment getTypeEnvironment() {
-				return typeEnvironment;
-			}
-		};
-	}	
 	
 	public static IBinding makeBinding(final IRNode n) {
 		return new NodeBinding(n);
@@ -280,9 +257,8 @@ public interface IBinding {
      * 
      * TODO need to fix the context type to match?
      */
-	public static IBinding addReceiverType(IBinding bind, IJavaType receiverType) {		
-		return makeBinding(bind.getNode(), bind.getContextType(), 
-				bind.getTypeEnvironment(), 
+	public static IBinding addReceiverType(IBinding bind, IJavaType receiverType, ITypeEnvironment tEnv) {		
+		return makeBinding(bind.getNode(), bind.getContextType(), tEnv,  
 				(IJavaReferenceType) receiverType, null);
 	} 
   }
