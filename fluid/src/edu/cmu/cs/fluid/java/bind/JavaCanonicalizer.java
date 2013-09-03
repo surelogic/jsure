@@ -1392,6 +1392,7 @@ public class JavaCanonicalizer {
     		}
     	} else {
     		if (Expression.prototype.includes(origBody)) {
+    			JJNode.tree.removeSubtree(origBody);
     			newBody = ReturnStatement.createNode(origBody);
     		} else {
     			newBody = origBody;
