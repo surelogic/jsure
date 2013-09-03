@@ -1518,7 +1518,10 @@ public class TypeUtils {
 			  if (loc.equals(AssignExpression.op2Location)) {
 				  return tEnv.getBinder().getJavaType(AssignExpression.getOp1(pe));
 			  }
-		  } else if (CastExpression.prototype.includes(op)) {
+		  } else if (Initialization.prototype.includes(op)) {
+			  IRNode gp = JJNode.tree.getParent(p);
+			  return tEnv.getBinder().getJavaType(VariableDeclarator.getType(gp));
+ 		  } else if (CastExpression.prototype.includes(op)) {
 			  return tEnv.getBinder().getJavaType(p);
 		  } else if (ConditionalExpression.prototype.includes(op)) {
 			  if (loc.equals(ConditionalExpression.condLoc)) {
