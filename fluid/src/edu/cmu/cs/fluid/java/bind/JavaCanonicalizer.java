@@ -484,7 +484,7 @@ public class JavaCanonicalizer {
           return ThisExpression.prototype.createNode();
         }
         IRNode nt = CogenUtil.createNamedType(type.getDeclaration());
-        addBinding(nt, IBinding.Util.makeBinding(type.getDeclaration(), tEnv));
+        addBinding(nt, IBinding.Util.makeBinding(type.getDeclaration()));
         return TypeExpression.createNode(nt);
       }
       IRNode thisClass = VisitUtil.getEnclosingType(context);
@@ -686,7 +686,7 @@ public class JavaCanonicalizer {
           if (enclosingT == null) {
             IRNode enclosingType = VisitUtil.getEnclosingType(tdecl);
             baseType = CogenUtil.createNamedType(enclosingType);
-            addBinding(baseType, IBinding.Util.makeBinding(enclosingType, tEnv));
+            addBinding(baseType, IBinding.Util.makeBinding(enclosingType));
           } else {
             baseType = createDeclaredType(enclosingT, isNonstaticNestedClass(tdecl));
           }
@@ -1169,11 +1169,13 @@ public class JavaCanonicalizer {
     private abstract class MethodBinding implements IBinding {
       IJavaSourceRefType recType;
       IJavaTypeSubstitution subst;
-
-      public MethodBinding(IJavaSourceRefType t) {
+      final ITypeEnvironment tEnv;
+      
+      public MethodBinding(ITypeEnvironment te, IJavaSourceRefType t) {
       	if (t == null) {
     		throw new NullPointerException();
     	}    	  
+      	tEnv = te;
         recType = t;
       }
 
@@ -1195,7 +1197,7 @@ public class JavaCanonicalizer {
         if (subst == null) {
           IJavaDeclaredType ct = getContextType();
           if (ct != null) {
-            subst = JavaTypeSubstitution.create(getTypeEnvironment(), ct);
+            subst = JavaTypeSubstitution.create(tEnv, ct);
           }
         }
         if (subst != null) {
@@ -1218,7 +1220,7 @@ public class JavaCanonicalizer {
             numParams = JJNode.tree.numChildren(MethodDeclaration.getParams(m));
           }
           if (numParams == 0) {
-            return new MethodBinding(type) {
+            return new MethodBinding(binder.getTypeEnvironment(), type) {
               @Override
               public IJavaDeclaredType getContextType() {
                 return type;
@@ -1227,11 +1229,6 @@ public class JavaCanonicalizer {
               @Override
               public IRNode getNode() {
                 return m;
-              }
-
-              @Override
-              public ITypeEnvironment getTypeEnvironment() {
-                return binder.getTypeEnvironment();
               }
             };
           }
@@ -1392,6 +1389,7 @@ public class JavaCanonicalizer {
     		}
     	} else {
     		if (Expression.prototype.includes(origBody)) {
+    			JJNode.tree.removeSubtree(origBody);
     			newBody = ReturnStatement.createNode(origBody);
     		} else {
     			newBody = origBody;
