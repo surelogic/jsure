@@ -396,6 +396,12 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   
   @Override
+  public IJavaType visitLambdaExpression(IRNode node) {
+	// TODO do we have to redo this whole thing?
+	return null;
+  }
+  
+  @Override
   public IJavaType visitLogBinopExpression(IRNode node) {
     IRNode node1 = BinopExpression.getOp1( node );
     IJavaType node1_type = doAccept( node1 );
