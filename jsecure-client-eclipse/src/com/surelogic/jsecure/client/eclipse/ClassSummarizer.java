@@ -13,8 +13,6 @@ import org.objectweb.asm.signature.*;
 
 import com.orientechnologies.orient.core.exception.OSerializationException;
 import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
-import com.orientechnologies.orient.core.metadata.schema.OClass;
-import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.serialization.OSerializableStream;
 import com.surelogic.common.Pair;
 import com.surelogic.common.PerformanceProperties;
@@ -53,6 +51,7 @@ public class ClassSummarizer extends ClassVisitor {
 	public static final String PROJECT = "project";
 	
 	public static final String CALLED = "called";
+	public static final String FROM_SOURCE = "fromSource";
 	
 	/**
 	 * For display purposes
@@ -185,13 +184,14 @@ public class ClassSummarizer extends ClassVisitor {
 	int numDistinctUses;
 	int numClasses;
 	int numFromSource;
-	
+		
 	final JavaClassPath<JavaProjectSet<JavaProject>> classPath;
 	// Class to project
 	final Map<String,String> projectMap = new HashMap<String, String>();
 	// The project that the projectMap is precomputed for
 	String mappedProject = null;
-
+	boolean fromSource;
+	
 	public ClassSummarizer(final File runDir, JavaClassPath<JavaProjectSet<JavaProject>> classes) {
 		super(Opcodes.ASM4);
 		classPath = classes;
@@ -221,7 +221,7 @@ public class ClassSummarizer extends ClassVisitor {
 	}
 	
 	public Clazz summarize(IJavaFile file, boolean fromSource) throws IOException {		
-		init(file);		
+		init(file, fromSource);
 		try {
 			// Updating operations go here
 			final ClassReader cr2 = new ClassReader(file.getStream());
@@ -241,7 +241,7 @@ public class ClassSummarizer extends ClassVisitor {
 		return finish();		
 	}
 	
-	public void init(IJavaFile file) {
+	public void init(IJavaFile file, boolean fromSource) {
 		result = null;
 		if (file.getProject().equals(mappedProject)) {
 			return; // Already computed
@@ -252,6 +252,7 @@ public class ClassSummarizer extends ClassVisitor {
 				projectMap.put(key.second(), classPath.getMapping(key).getProject());
 			}
 		}
+		this.fromSource = fromSource;
 	}
 
 	public Clazz finish() {
@@ -580,9 +581,9 @@ public class ClassSummarizer extends ClassVisitor {
 		//for(Vertex v : graphDb.getVertices(INDEX_KEY, id)) {
 		final Vertex v = keyedMap.get(id);
 		if (v != null) {		
-
 			if (access != -1 && v.getProperty(ICON) == null) {
 			    v.setProperty(ICON, encodeIconForDecl(type.encodeType(nodeName), access));
+			    v.setProperty(FROM_SOURCE, fromSource);
 			}
 			return v; // return the first!
 		}
@@ -600,6 +601,7 @@ public class ClassSummarizer extends ClassVisitor {
 	    node.setProperty(DECL_LABEL, convertToDeclLabel(type, nodeName));
 	    if (access != -1) {
 	    	node.setProperty(ICON, encodeIconForDecl(type.encodeType(nodeName), access));
+	    	node.setProperty(FROM_SOURCE, fromSource);
 	    }
 	    keyedMap.put(id, node);
 	    
