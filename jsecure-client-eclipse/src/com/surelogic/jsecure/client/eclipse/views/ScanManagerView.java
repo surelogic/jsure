@@ -1,5 +1,5 @@
 package com.surelogic.jsecure.client.eclipse.views;
 
-public class ScansView {
+public class ScanManagerView {
 
 }

@@ -39,4 +39,47 @@
 			name="Querydoc">
 		</view>	
     </extension>			
+
+	<!-- JSecure perspective links and Java perspective links -->
+
+	<extension point="org.eclipse.ui.perspectives">
+		<perspective name="JSecure"
+			class="com.surelogic.jsecure.client.eclipse.perspectives.JSecurePerspective"
+			id="com.surelogic.jsecure.client.eclipse.perspectives.JSecurePerspective">
+			<!--icon="platform:/plugin/com.surelogic.common/lib/images/jsure_logo.gif"-->			
+		</perspective>
+	</extension>
+
+	<extension point="org.eclipse.ui.perspectiveExtensions">
+		<perspectiveExtension
+			targetID="com.surelogic.jsecure.client.eclipse.perspectives.JSecurePerspective">
+			<perspectiveShortcut id="org.eclipse.jdt.ui.JavaPerspective">
+			</perspectiveShortcut>
+		</perspectiveExtension>
+	</extension>
+
+	<extension point="org.eclipse.ui.perspectiveExtensions">
+		<perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
+			<perspectiveShortcut
+				id="com.surelogic.jsecure.client.eclipse.perspectives.JSecurePerspective">
+			</perspectiveShortcut>
+		</perspectiveExtension>
+	</extension>
+	
+	<extension point="org.eclipse.ui.perspectiveExtensions">
+		<perspectiveExtension
+			targetID="com.surelogic.jsecure.client.eclipse.perspectives.JSecurePerspective">
+			<perspectiveShortcut id="org.eclipse.jdt.ui.JavaPerspective">
+			</perspectiveShortcut>
+			<viewShortcut
+				id="com.surelogic.jsecure.client.eclipse.views.adhoc.QueryEditorView">
+			</viewShortcut>
+			<viewShortcut
+				id="com.surelogic.jsecure.client.eclipse.views.adhoc.QueryResultsView">
+			</viewShortcut>
+			<viewShortcut
+				id="com.surelogic.jsecure.client.eclipse.views.adhoc.QuerydocView">
+			</viewShortcut>
+		</perspectiveExtension>
+	</extension>	
 </plugin>
