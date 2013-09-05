@@ -63,6 +63,11 @@ public class ClassSummarizer extends ClassVisitor {
 	public static final String LINE = "line";
 	public static final String CALLS_HERE = "callsHere";
 	public static final String USES_HERE = "usesHere";
+	/**
+	 * Property of the edge
+	 */
+	public static final String WRITES_FIELD = "writesField";
+	public static final String READS_FIELD = "readsField";
 	
 	public static enum RelTypes /*implements RelationshipType*/ {
 		// X calls method/constructor Y
@@ -369,7 +374,7 @@ public class ClassSummarizer extends ClassVisitor {
         		result.processDescriptor(desc);
         		
         		final Vertex field = findField(owner, name, -1);
-        		addReference(func, RelTypes.USES, field, lastLine);
+        		addReference(func, RelTypes.USES, field, lastLine, opcode);
         		// TODO where do I store the source refs?
         	}
         	
@@ -382,7 +387,7 @@ public class ClassSummarizer extends ClassVisitor {
         		result.processDescriptor(desc);
         		
         		final Vertex callee = findFunctionVertex(owner, name, desc, -1);
-        		addReference(func, RelTypes.CALLS, callee, lastLine);
+        		addReference(func, RelTypes.CALLS, callee, lastLine, opcode);
         		// TODO where do I store the source refs?
         	}
         	
@@ -649,23 +654,33 @@ public class ClassSummarizer extends ClassVisitor {
 		return nodeName;
 	}
 	
-	private void addReference(Vertex caller, RelTypes rel, Vertex callee, int line) {
+	private void addReference(Vertex caller, RelTypes rel, Vertex callee, int line, int opcode) {
 		final String label = rel.toString();
 		// TODO is this really necessary?
 		// Check if edge already exists
 		for(Edge e : caller.getEdges(Direction.OUT, label)) {
 			if (callee.equals(e.getVertex(Direction.IN))) {
 				// Already created
+				//TODO check opcode
 				return;
 			}
 		}
-		graphDb.addEdge(null, caller, callee, label);
-		if (rel == RelTypes.CALLS) {
+		final Edge edge = graphDb.addEdge(null, caller, callee, label);
+		switch (rel) {
+		case CALLS:
 			callee.setProperty(CALLED, Boolean.TRUE);			
-			graphDb.addEdge(null, caller, callee, rel.getRefHere());
+			Edge e = graphDb.addEdge(null, caller, callee, rel.getRefHere());			
 			numDistinctCalls++;
-		} else {
+			break;
+		case USES:
+			if (opcode == Opcodes.GETFIELD || opcode == Opcodes.GETSTATIC) {
+				edge.setProperty(READS_FIELD, Boolean.TRUE);
+			}
+			else if (opcode == Opcodes.PUTFIELD || opcode == Opcodes.PUTSTATIC) {
+				edge.setProperty(WRITES_FIELD, Boolean.TRUE);
+			}
 			numDistinctUses++;
+			break;
 		}
 	}
 
