@@ -325,32 +325,32 @@ public class OrientConnection implements Connection {
 		
 	}
 
-	@Override
+	//@Override
 	public void setSchema(String schema) throws SQLException {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
+	//@Override
 	public String getSchema() throws SQLException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
+	//@Override
 	public void abort(Executor executor) throws SQLException {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
+	//@Override
 	public void setNetworkTimeout(Executor executor, int milliseconds)
 			throws SQLException {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
+	//@Override
 	public int getNetworkTimeout() throws SQLException {
 		// TODO Auto-generated method stub
 		return 0;
