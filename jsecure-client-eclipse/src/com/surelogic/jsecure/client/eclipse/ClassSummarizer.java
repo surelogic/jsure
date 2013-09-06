@@ -52,6 +52,7 @@ public class ClassSummarizer extends ClassVisitor {
 	
 	public static final String CALLED = "called";
 	public static final String FROM_SOURCE = "fromSource";
+	public static final String INVOKE_DYNAMIC = "invokeDynamic";
 	
 	/**
 	 * For display purposes
@@ -397,7 +398,7 @@ public class ClassSummarizer extends ClassVisitor {
          		System.out.println("\tDynamic: "+name+", "+desc+" via "+bsm.getOwner()+", "+bsm.getName()+", "+bsm.getDesc());
         		super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
         		result.processDescriptor(desc);
-        		// TODO should I record these uses?
+        		func.setProperty(INVOKE_DYNAMIC, Boolean.TRUE);
         	}
         	
         	@Override
@@ -609,6 +610,7 @@ public class ClassSummarizer extends ClassVisitor {
 	    	node.setProperty(FROM_SOURCE, fromSource);
 	    }
 	    keyedMap.put(id, node);
+    	node.setProperty(INVOKE_DYNAMIC, Boolean.FALSE);
 	    
 	    if (type == VertexType.FUNCTION) {
 	    	numMethods++;
