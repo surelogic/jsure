@@ -407,6 +407,9 @@ public class CommonAASTBinder extends AASTBinder {
   }
 
   private LockModel findLockModel(IRNode tdecl, String name) {
+	if (tdecl == null) {
+		return null;
+	}
     LockModel o = eb.findClassBodyMembers(tdecl, new FindLockModelStrategy(eb, name), true);       
     return o;
   }
