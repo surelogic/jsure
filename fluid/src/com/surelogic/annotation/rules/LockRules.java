@@ -1613,7 +1613,22 @@ public class LockRules extends AnnotationRules {
           isBad = true;
         } else {
           final IRNode n = var.getNode();
+          /* Bind to either a ParameterDeclaration or a VariableDeclarator.
+           * If VariableDeclarator, we have to check that the field is 
+           * a final instance field. whose type is a user-declared type.
+           */
           final Operator op = JJNode.tree.getOperator(n);
+          if  (VariableDeclarator.prototype.includes(op)) {
+            if (TypeUtil.isStatic(n)) {
+              report.reportError("Field cannot be static", base);
+              isBad = true;
+            }
+            if (!TypeUtil.isFinal(n) ) {
+              report.reportError("Field must be final", base);
+              isBad = true;
+            }
+            // TODO: Test the type
+          }
           getBinding = true;
           checkForInstanceQualifiedStatic = true;
         }
