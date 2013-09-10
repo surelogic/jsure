@@ -2,6 +2,8 @@
 package com.surelogic.analysis.concurrency.heldlocks.locks;
 
 import com.surelogic.aast.java.ExpressionNode;
+import com.surelogic.aast.java.FieldRefNode;
+import com.surelogic.aast.java.ThisExpressionNode;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
@@ -47,5 +49,16 @@ class AASTHeldInstanceLock extends HeldInstanceLock {
   @Override
   protected boolean checkSyntacticEquality(ThisExpressionBinder teb, IBinder b, HeldInstanceLock other) {
     return other.checkSyntacticEquality(teb, b, this.objAAST);
+  }
+  
+  @Override
+  protected boolean isFieldExprOfThis(IBinder b, IRNode varDecl) {
+    if (objAAST instanceof FieldRefNode) {
+      final FieldRefNode fieldRef = (FieldRefNode) objAAST;
+      if (fieldRef.getObject() instanceof ThisExpressionNode) {
+        return fieldRef.resolveBinding().getNode().equals(varDecl);
+      }
+    }
+    return false;
   }
 }

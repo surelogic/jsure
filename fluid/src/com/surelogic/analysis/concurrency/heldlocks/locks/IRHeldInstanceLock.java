@@ -9,6 +9,8 @@ import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.operator.FieldRef;
+import edu.cmu.cs.fluid.java.operator.ThisExpression;
 
 class IRHeldInstanceLock extends HeldInstanceLock {
   /**
@@ -54,5 +56,15 @@ class IRHeldInstanceLock extends HeldInstanceLock {
   @Override
   protected boolean checkSyntacticEquality(ThisExpressionBinder teb, IBinder b, HeldInstanceLock other) {
     return other.checkSyntacticEquality(teb, b, this.obj);
+  }
+  
+  @Override
+  protected boolean isFieldExprOfThis(IBinder b, IRNode varDecl) {
+    if (FieldRef.prototype.includes(obj)) {
+      if (ThisExpression.prototype.includes(FieldRef.getObject(obj))) {
+        return b.getBinding(obj).equals(varDecl);
+      }
+    }
+    return false;
   }
 }

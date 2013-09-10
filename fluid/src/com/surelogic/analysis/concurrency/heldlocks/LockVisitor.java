@@ -1603,19 +1603,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			return LockHeldResult.NOT_HELD;
 		}
 
-		// private boolean isLockSatisfied(
-		// final NeededLock neededLock, final Set<HeldLock> heldJUCLocks) { //,
-		// final Set<HeldLock> heldIntrinsicLocks) {
-		// return ctxtTheHeldLocks.satisfiesLock(neededLock, thisExprBinder,
-		// binder, true)
-		// || neededLock.isSatisfiedByLockSet(heldJUCLocks, thisExprBinder,
-		// binder);
-		// // return neededLock.isSatisfiedByLockSet(heldIntrinsicLocks,
-		// thisExprBinder, binder)
-		// // || neededLock.isSatisfiedByLockSet(heldJUCLocks, thisExprBinder,
-		// binder);
-		// }
-
 		public final void assureNeededLocks(final Set<NeededLock> neededLocks,
 				final MustHoldAnalysis.HeldLocks heldJUCLocks,
 				final int goodCategory, final int badCategory,

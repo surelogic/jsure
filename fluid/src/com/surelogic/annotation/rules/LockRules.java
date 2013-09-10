@@ -1617,8 +1617,7 @@ public class LockRules extends AnnotationRules {
            * If VariableDeclarator, we have to check that the field is 
            * a final instance field. whose type is a user-declared type.
            */
-          final Operator op = JJNode.tree.getOperator(n);
-          if  (VariableDeclarator.prototype.includes(op)) {
+          if (VariableDeclarator.prototype.includes(n)) {
             if (TypeUtil.isStatic(n)) {
               report.reportError("Field cannot be static", base);
               isBad = true;
@@ -1627,7 +1626,17 @@ public class LockRules extends AnnotationRules {
               report.reportError("Field must be final", base);
               isBad = true;
             }
-            // TODO: Test the type
+            
+            /* Should test the type of the field.  But, the binding of the
+             * lock name already fails before we get here if the type of the
+             * field is primitive, or if the lock name doesn't exist.
+             */
+            /*
+            if (report.getBinder(n).getJavaType(n) instanceof IJavaPrimitiveType) {
+              report.reportError("Field must have a non-primitive type", base);
+              isBad = true;
+            }
+            */
           }
           getBinding = true;
           checkForInstanceQualifiedStatic = true;

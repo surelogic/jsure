@@ -1351,9 +1351,14 @@ public final class LockUtils {
         objExpr = map.get(qrcvr);
       } else {
         VariableUseExpressionNode use = (VariableUseExpressionNode) base;
-        
-        // Lock is "<UseExpression>.<LockName>"
-        objExpr = map.get(use.resolveBinding().getNode());
+        final IRNode node = use.resolveBinding().getNode();
+        if (VariableDeclarator.prototype.includes(node)) {
+          // Lock is "<field>.<LockName>"
+          return node;
+        } else { // operator is ParameterDeclaration, find the actual
+          // Lock is "<UseExpression>.<LockName>"
+          objExpr = map.get(node);
+        }
       }
     }
     return objExpr;

@@ -7,6 +7,7 @@ import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 
 abstract class HeldInstanceLock extends AbstractHeldLock {
   HeldInstanceLock(
@@ -45,9 +46,19 @@ abstract class HeldInstanceLock extends AbstractHeldLock {
     if (!(lock instanceof NeededInstanceLock)) {
       return false;
     } else {
+      final NeededInstanceLock neededLock = (NeededInstanceLock) lock;
       if (getUniqueIdentifier().equals(lock.getUniqueIdentifier())) {
-        if (checkSyntacticEquality(teb, binder, ((NeededInstanceLock) lock).getObject())) {
-          return isWrite() || (!isWrite() && !lock.isWrite());
+        if (VariableDeclarator.prototype.includes(neededLock.getObject())) {
+          /* Object expression of the held lock must be of the form "this.f"
+           * where "f" is the field in the VariableDeclarator.
+           */
+          return isFieldExprOfThis(binder, neededLock.getObject());
+        } else {
+          final boolean isSyntacticallyEqual = checkSyntacticEquality(
+              teb, binder, neededLock.getObject());
+          if (isSyntacticallyEqual) {
+            return isWrite() || (!isWrite() && !lock.isWrite());
+          }
         }
       }
       return false;
@@ -84,4 +95,6 @@ abstract class HeldInstanceLock extends AbstractHeldLock {
   protected abstract boolean checkSyntacticEquality(ThisExpressionBinder teb, IBinder b, ExpressionNode other);
   
   protected abstract boolean checkSyntacticEquality(ThisExpressionBinder teb, IBinder b, HeldInstanceLock other);
+
+  protected abstract boolean isFieldExprOfThis(IBinder binder, IRNode varDecl);
 }
