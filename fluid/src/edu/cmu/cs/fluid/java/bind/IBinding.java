@@ -3,10 +3,8 @@ package edu.cmu.cs.fluid.java.bind;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import com.surelogic.Nullable;
-import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -16,7 +14,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
  * The result of binding in Java 5.
  * 
  * Consider:
- *
+ * <pre>
  *	class Map<K,V> { 
  *	    public K first();
  *	    ... // no "iterator" method 
@@ -32,7 +30,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
  *
  *	... s.iterator() ...
  *	... s.first() ...
- *
+ * </pre>
  * For the first method call, the context type is indeed the receiver type
  *	 Set<String>    E -> String
  * For the second method call, the context type is the relevant supertype
@@ -53,7 +51,7 @@ public interface IBinding {
    * 
    * Return the type of the object from which this declaration is taken, with the
    * appropriate type substitutions (e.g., the declaring type)
-   * (Should be a supertype of getReceiverType())
+   * (Should be a (perhaps improper) supertype of getReceiverType())
    * This includes all the actual type parameters.
    * 
    * @return type of the object from which this binding is taken, or null for locals/types
@@ -133,7 +131,7 @@ public interface IBinding {
    * @author boyland
    */
   public static class Util {
-    private static final Logger LOG = SLLogger.getLogger("fluid.java.bind");
+    //private static final Logger LOG = SLLogger.getLogger("fluid.java.bind");
     
     public static IBinding makeMethodBinding(IBinding mbind, IJavaDeclaredType context, IJavaTypeSubstitution mSubst, IJavaType recType, ITypeEnvironment tEnv) {
       return makeBinding(mbind.getNode(), 
@@ -142,6 +140,14 @@ public interface IBinding {
                          recType == null ? mbind.getReceiverType() : (IJavaReferenceType) recType, mSubst);
     }
     
+    /**
+     * Generate a binding where the recType and the context type are the same.
+     * @param tenv type environment
+     * @param mdecl method declaration
+     * @param recType receiver type
+     * @param mSubst substitution for the method's type formals.
+     * @return
+     */
     public static IBinding makeMethodBinding(final ITypeEnvironment tenv, final IRNode mdecl, final IJavaDeclaredType recType, final IJavaTypeSubstitution mSubst) {
     	IRNode tdecl = recType.getDeclaration();
     	List<IJavaTypeFormal> tFormals = new ArrayList<IJavaTypeFormal>();
@@ -149,7 +155,7 @@ public interface IBinding {
     		tFormals.add(JavaTypeFactory.getTypeFormal(tf));
     	}
     	final IJavaTypeSubstitution tSubst = new SimpleTypeSubstitution(tenv.getBinder(),tFormals,recType.getTypeParameters());
-    	return new PartialBinding(mdecl,tenv.getSuperclass(recType),recType) {
+    	return new PartialBinding(mdecl,recType,recType) {
     		@Override
     		public IJavaType convertType(IJavaType type) {
     	          if (type == null) return null;
@@ -161,6 +167,14 @@ public interface IBinding {
     	};
     }
     
+    /**
+     * @param n
+     * @param ty
+     * @param tEnv
+     * @param recType
+     * @param mSubst
+     * @return
+     */
     private static IBinding makeBinding(final IRNode n, final IJavaDeclaredType ty, final ITypeEnvironment tEnv, 
                                         IJavaReferenceType recType, final IJavaTypeSubstitution mSubst) {
       // we might wish to create node classes which satisfy IBinding with null substitution
