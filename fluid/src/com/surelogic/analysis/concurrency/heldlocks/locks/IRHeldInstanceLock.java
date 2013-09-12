@@ -11,10 +11,13 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 
 class IRHeldInstanceLock extends HeldInstanceLock {
   /**
    * The object-valued expression that this lock is associated with.
+   * This is a VariableDeclarator in the case that the lock is "field:lock",
+   * in which case it symbolizes a reference to that field via the receiver.
    */
   private final IRNode obj;
   
@@ -57,9 +60,19 @@ class IRHeldInstanceLock extends HeldInstanceLock {
   protected boolean checkSyntacticEquality(ThisExpressionBinder teb, IBinder b, HeldInstanceLock other) {
     return other.checkSyntacticEquality(teb, b, this.obj);
   }
+
+  @Override
+  protected boolean testFieldSpecialCase(NeededLock lock, ThisExpressionBinder teb, IBinder b) {
+    if (VariableDeclarator.prototype.includes(obj)) {
+      // We have the special case, check to see if the needed lock is "this.f"
+      return lock.isFieldExprOfThis(b, obj);
+    }
+    return false;
+  }
   
   @Override
   protected boolean isFieldExprOfThis(IBinder b, IRNode varDecl) {
+    // TODO: Probably need to also check to see if "obj" is a VariableDeclarator
     if (FieldRef.prototype.includes(obj)) {
       if (ThisExpression.prototype.includes(FieldRef.getObject(obj))) {
         return b.getBinding(obj).equals(varDecl);

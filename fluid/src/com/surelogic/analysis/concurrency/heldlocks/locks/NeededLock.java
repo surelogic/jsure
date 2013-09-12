@@ -5,6 +5,7 @@ import java.util.Set;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
 /**
@@ -58,4 +59,6 @@ public interface NeededLock extends ILock {
   public NeededLock getAliasInCallingContext(
       MethodCallUtils.EnclosingRefs enclosingRefs, 
       NeededLockFactory lockFactory);
+  
+  public boolean isFieldExprOfThis(IBinder b, IRNode varDecl);
 }

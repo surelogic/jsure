@@ -1255,10 +1255,21 @@ public final class LockUtils {
           // Lock is "x.y.Z.this.<LockName>"
           return heldLockFactory.createInstanceLock(canonicalQThis, lockDecl, src, supportingDrop, isAssumed, lockType);
         } else {
-          // Lock is "<UseExpression>.<LockName>"
-          if (locksOnParameters != null) locksOnParameters.add(lockSpec);
-          return heldLockFactory.createInstanceLock(
-              base, lockDecl, src, supportingDrop, isAssumed, lockType);
+          /* Lock is "<UseExpression>.<LockName>".  The expression
+           * could bind to a VariableDeclaration, in which case it signifies
+           * that the lock is on a field of the receiver.  That is,
+           * if we have "f.L", and f binds to a field f, then the lock
+           * being held is "this.f:L".
+           */
+          final IRNode n = ((VariableUseExpressionNode) base).resolveBinding().getNode();
+          if (VariableDeclarator.prototype.includes(n)) {
+            return heldLockFactory.createInstanceLock(
+                n, lockDecl, src, supportingDrop, isAssumed, lockType);
+          } else {
+            if (locksOnParameters != null) locksOnParameters.add(lockSpec);
+            return heldLockFactory.createInstanceLock(
+                base, lockDecl, src, supportingDrop, isAssumed, lockType);
+          }
         }
       }
     }

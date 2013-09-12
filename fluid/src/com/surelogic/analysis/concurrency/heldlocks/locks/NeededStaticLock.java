@@ -3,6 +3,9 @@ package com.surelogic.analysis.concurrency.heldlocks.locks;
 import com.surelogic.analysis.MethodCallUtils.EnclosingRefs;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+
 
 /**
  * Representation of a lock that is represented by a static field.  Such locks
@@ -40,5 +43,11 @@ final class NeededStaticLock extends AbstractNeededLock {
       final EnclosingRefs enclosingRefs, final NeededLockFactory lockFactory) {
     // Static locks never have an alternative
     return null;
+  }
+  
+  @Override
+  public boolean isFieldExprOfThis(final IBinder b, final IRNode varDecl) {
+    // Static fields are never field expressions on "this"
+    return false;
   }
 }

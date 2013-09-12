@@ -48,6 +48,9 @@ abstract class HeldInstanceLock extends AbstractHeldLock {
     } else {
       final NeededInstanceLock neededLock = (NeededInstanceLock) lock;
       if (getUniqueIdentifier().equals(lock.getUniqueIdentifier())) {
+        if (testFieldSpecialCase(lock, teb,binder)) {
+          return true;
+        }
         if (VariableDeclarator.prototype.includes(neededLock.getObject())) {
           /* Object expression of the held lock must be of the form "this.f"
            * where "f" is the field in the VariableDeclarator.
@@ -96,5 +99,7 @@ abstract class HeldInstanceLock extends AbstractHeldLock {
   
   protected abstract boolean checkSyntacticEquality(ThisExpressionBinder teb, IBinder b, HeldInstanceLock other);
 
+  protected abstract boolean testFieldSpecialCase(NeededLock lock, ThisExpressionBinder teb, IBinder b);
+  
   protected abstract boolean isFieldExprOfThis(IBinder binder, IRNode varDecl);
 }

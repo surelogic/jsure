@@ -50,10 +50,19 @@ class AASTHeldInstanceLock extends HeldInstanceLock {
   protected boolean checkSyntacticEquality(ThisExpressionBinder teb, IBinder b, HeldInstanceLock other) {
     return other.checkSyntacticEquality(teb, b, this.objAAST);
   }
+
+  @Override
+  protected boolean testFieldSpecialCase(NeededLock lock, ThisExpressionBinder teb, IBinder b) {
+    // <field_id>:<lock_id> is always represented as an IRHeldInstanceLock
+    return false;
+  }
   
   @Override
   protected boolean isFieldExprOfThis(IBinder b, IRNode varDecl) {
-    if (objAAST instanceof FieldRefNode) {
+    // first see if we are also the special case
+    if (objAAST.equals(varDecl)) {
+      return true;
+    } else if (objAAST instanceof FieldRefNode) {
       final FieldRefNode fieldRef = (FieldRefNode) objAAST;
       if (fieldRef.getObject() instanceof ThisExpressionNode) {
         return fieldRef.resolveBinding().getNode().equals(varDecl);
