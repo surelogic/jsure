@@ -163,7 +163,8 @@ public class GremlinResultSet implements ResultSet {
 	}
 
 	private static String getNonnullProperty(Element e, String prop) throws SQLException {
-		String rv = e.getProperty(prop);
+		Object o = e.getProperty(prop);
+		String rv = o != null ? o.toString() : null;
 		if (rv == null && !"icon".equals(prop)) {
 			throw new SQLException("No such property '"+prop+"'on "+e.getClass().getSimpleName());
 		}
