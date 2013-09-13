@@ -50,7 +50,9 @@ public class ClassSummarizer extends ClassVisitor {
 	public static final String PARENT_CLASS = "parentClass";
 	public static final String PROJECT = "project";
 	
+	// These two are actually redundant
 	public static final String CALLED = "called";
+	public static final String NUM_TIMES_CALLED = "numCalled";
 	public static final String FROM_SOURCE = "fromSource";
 	public static final String INVOKE_DYNAMIC = "invokeDynamic";
 	
@@ -479,6 +481,10 @@ public class ClassSummarizer extends ClassVisitor {
 
 	public void close() {		
 		System.out.println("Shutting down");		
+		if (perf.isTiming()) {
+			// Make sure we only do this once
+			doWholeProgramAnalysis();
+		}		
 		graphDb.shutdown();
 		if (perf.isTiming()) {
 			perf.stopTiming("totalTimeInMillis");
@@ -492,7 +498,7 @@ public class ClassSummarizer extends ClassVisitor {
 			perf.store();
 		}
 	}
-	
+
 	private void registerShutdownHook( final TransactionalGraph graphDb ) {
 	    // Registers a shutdown hook for the Neo4j instance so that it
 	    // shuts down nicely when the VM exits (even if you "Ctrl-C" the
@@ -671,6 +677,8 @@ public class ClassSummarizer extends ClassVisitor {
 		switch (rel) {
 		case CALLS:
 			callee.setProperty(CALLED, Boolean.TRUE);			
+			Integer num = callee.getProperty(NUM_TIMES_CALLED);
+			callee.setProperty(NUM_TIMES_CALLED, num == null ? 1 : num+1);
 			Edge e = graphDb.addEdge(null, caller, callee, rel.getRefHere());			
 			numDistinctCalls++;
 			break;
@@ -853,5 +861,10 @@ public class ClassSummarizer extends ClassVisitor {
 			}
 		}		
 		System.out.println("Summarized from jars: "+fromJars);
+	}
+	
+	private void doWholeProgramAnalysis() {
+		// TODO Auto-generated method stub
+		
 	}
 }
