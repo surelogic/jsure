@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.*;
 
 import javax.script.*;
 
@@ -55,6 +56,7 @@ public class ClassSummarizer extends ClassVisitor {
 	public static final String NUM_TIMES_CALLED = "numCalled";
 	public static final String FROM_SOURCE = "fromSource";
 	public static final String INVOKE_DYNAMIC = "invokeDynamic";
+	public static final String INTERESTING_STRING = "interesting";
 	
 	/**
 	 * For display purposes
@@ -337,6 +339,9 @@ public class ClassSummarizer extends ClassVisitor {
 			String desc, String signature, Object value) {
 		//System.out.println("Field: "+name+" "+desc+" value:"+value);
 		result.processSignature(signature);
+		if (value != null) { // Only available for static fields
+			
+		}
 		return super.visitField(access, name, desc, signature, value);
 	}
 
@@ -442,6 +447,22 @@ public class ClassSummarizer extends ClassVisitor {
             public void visitTypeInsn(int opcode, String type) {
         		super.visitTypeInsn(opcode, type);
         		result.processTypeName(type);
+        	}
+        	
+        	/**
+        	 * Visits a LDC instruction. Note that new constant types may be added in
+        	 * future versions of the Java Virtual Machine. To easily detect new
+        	 * constant types, implementations of this method should check for
+        	 * unexpected constant types, like this:
+        	 */
+        	public void visitLdcInsn(Object cst) {
+        		if (cst instanceof String) {
+        			String value = (String) cst;
+        			int i = findInString(value);
+        			if (i >= 0) {
+        				func.setProperty(INTERESTING_STRING, value);
+        			}
+        		} 
         	}
         };
         return oriMv;
@@ -596,6 +617,7 @@ public class ClassSummarizer extends ClassVisitor {
 			if (access != -1 && v.getProperty(ICON) == null) {
 			    v.setProperty(ICON, encodeIconForDecl(type.encodeType(nodeName), access));
 			    v.setProperty(FROM_SOURCE, fromSource);
+			    v.setProperty(INTERESTING_STRING, "");
 			}
 			return v; // return the first!
 		}
@@ -614,6 +636,7 @@ public class ClassSummarizer extends ClassVisitor {
 	    if (access != -1) {
 	    	node.setProperty(ICON, encodeIconForDecl(type.encodeType(nodeName), access));
 	    	node.setProperty(FROM_SOURCE, fromSource);
+		    node.setProperty(INTERESTING_STRING, "");
 	    }
 	    keyedMap.put(id, node);
     	node.setProperty(INVOKE_DYNAMIC, Boolean.FALSE);
@@ -866,5 +889,27 @@ public class ClassSummarizer extends ClassVisitor {
 	private void doWholeProgramAnalysis() {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	static final Pattern interestingPattern = Pattern.compile("\u00ca\u00fe\u00ba\u00be|defineClass|forName");
+	
+	private int findInString(String s) {
+        Matcher matcher = interestingPattern.matcher(s);
+        if (matcher.find()) {
+        	return matcher.start();
+        }
+        /*
+        boolean found = false;
+        while (matcher.find()) {
+            console.format("I found the text" +
+                " \"%s\" starting at " +
+                "index %d and ending at index %d.%n",
+                matcher.group(),
+                matcher.start(),
+                matcher.end());
+            found = true;
+        }
+        */
+        return -1;
 	}
 }
