@@ -10,6 +10,7 @@ import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 
 class AASTHeldInstanceLock extends HeldInstanceLock {
   private final ExpressionNode objAAST;
@@ -58,11 +59,19 @@ class AASTHeldInstanceLock extends HeldInstanceLock {
   }
   
   @Override
+  protected IRNode getFieldOfThis(final IBinder b) {
+    if (objAAST instanceof FieldRefNode) {
+      final FieldRefNode fieldRef = (FieldRefNode) objAAST;
+      if (fieldRef.getObject() instanceof ThisExpressionNode) {
+        return fieldRef.resolveBinding().getNode();
+      }
+    }
+    return null;
+  }
+  
+  @Override
   protected boolean isFieldExprOfThis(IBinder b, IRNode varDecl) {
-    // first see if we are also the special case
-    if (objAAST.equals(varDecl)) {
-      return true;
-    } else if (objAAST instanceof FieldRefNode) {
+    if (objAAST instanceof FieldRefNode) {
       final FieldRefNode fieldRef = (FieldRefNode) objAAST;
       if (fieldRef.getObject() instanceof ThisExpressionNode) {
         return fieldRef.resolveBinding().getNode().equals(varDecl);

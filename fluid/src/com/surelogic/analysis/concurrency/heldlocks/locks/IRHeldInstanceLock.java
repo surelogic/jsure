@@ -12,6 +12,8 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 class IRHeldInstanceLock extends HeldInstanceLock {
   /**
@@ -71,8 +73,24 @@ class IRHeldInstanceLock extends HeldInstanceLock {
   }
   
   @Override
+  protected IRNode getFieldOfThis(final IBinder b) {
+    final Operator op = JJNode.tree.getOperator(obj);
+    if (VariableDeclarator.prototype.includes(op)) {
+      return obj;
+    }
+    if (FieldRef.prototype.includes(op)) {
+      if (ThisExpression.prototype.includes(FieldRef.getObject(obj))) {
+        return b.getBinding(obj);
+      }
+    }
+    return null;
+  }
+  
+  @Override
   protected boolean isFieldExprOfThis(IBinder b, IRNode varDecl) {
-    // TODO: Probably need to also check to see if "obj" is a VariableDeclarator
+    if (obj.equals(varDecl)) {
+      return true;
+    }
     if (FieldRef.prototype.includes(obj)) {
       if (ThisExpression.prototype.includes(FieldRef.getObject(obj))) {
         return b.getBinding(obj).equals(varDecl);
