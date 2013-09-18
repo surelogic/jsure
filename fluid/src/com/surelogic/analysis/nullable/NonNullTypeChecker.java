@@ -80,14 +80,24 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   
   @Override
   protected void handleMethodDeclaration(final IRNode mdecl) {
-    receiverDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
-    super.handleMethodDeclaration(mdecl);
+    final IRNode oldReceiverDecl = receiverDecl;
+    try {
+      receiverDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
+      super.handleMethodDeclaration(mdecl);
+    } finally {
+      receiverDecl = oldReceiverDecl;
+    }
   }
   
   @Override
   protected void handleConstructorDeclaration(final IRNode cdecl) {
-    receiverDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
-    super.handleConstructorDeclaration(cdecl);
+    final IRNode oldReceiverDecl = receiverDecl;
+    try {
+      receiverDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
+      super.handleConstructorDeclaration(cdecl);
+    } finally {
+      receiverDecl = oldReceiverDecl;
+    }
   }
   
   @Override
@@ -322,7 +332,13 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
         final IRNode vd = k.bind(where, binder, thisExprBinder);
         final StackQueryResult newQuery = currentQuery().getResultFor(where);
-        final Base varValue = newQuery.lookupVar(vd);
+        Base varValue;
+        try {
+          varValue = newQuery.lookupVar(vd);
+        } catch (ArrayIndexOutOfBoundsException e) {
+          k.bind(where, binder, thisExprBinder);
+          varValue = null;
+        }
         hasNegative |= testChain(testRawOnly, declState, varValue.second());
       } else {
         final Element srcState = src.third();

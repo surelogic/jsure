@@ -1375,6 +1375,53 @@ public final class LockUtils {
     return objExpr;
   }
   
+  
+  
+  private static abstract class LockSpecProcessor<T extends ILock> {
+    public final T getLock(
+        final IRNode mdecl, final LockSpecificationNode lockSpec,
+        final Map<IRNode, IRNode> map) {
+      final LockModel lockModel = lockSpec.resolveBinding().getModel();
+      final LockNameNode lockName = lockSpec.getLock();
+      final Type type = convertType(lockSpec.getType());
+      if (lockModel.isLockStatic()) {
+        return createStaticLock(lockModel, type);
+      } else {
+        final IRNode objExpr = 
+          convertObjectExpressionToCallerContext(mdecl, lockName, map);
+        if (objExpr != null) {
+          return createInstanceLock(objExpr, lockModel, type);
+        } else {
+          return null;
+        }
+      }
+    }
+    
+    protected abstract T createStaticLock(LockModel lock, ILock.Type type);
+    
+    protected abstract T createInstanceLock(IRNode obj, LockModel lock, ILock.Type type);
+  }
+  
+  private static final class NeededLockProcessor extends LockSpecProcessor<NeededLock> {
+    private final NeededLockFactory factory;
+    
+    public NeededLockProcessor(final NeededLockFactory f) {
+      factory = f;
+    }
+    
+    @Override
+    protected NeededLock createStaticLock(final LockModel lock, final Type type) {
+      return factory.createStaticLock(lock, type);
+    }
+
+    @Override
+    protected NeededLock createInstanceLock(
+        final IRNode obj, final LockModel lock, final Type type) {
+      return factory.createInstanceLock(obj, lock, type);
+    }
+  }
+  
+  
   public LockModel getMutex() {
     return mutex;
   }
