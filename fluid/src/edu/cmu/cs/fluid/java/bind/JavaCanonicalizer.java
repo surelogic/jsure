@@ -1297,8 +1297,9 @@ public class JavaCanonicalizer {
       final IRNode itType = // CogenUtil.createType(binder.getTypeEnvironment(),
                             // itTB);
       // Iterator<?>
-      ParameterizedType.createNode(NamedType.createNode("java.util.Iterator"),
-          TypeActuals.createNode(new IRNode[] { WildcardType.prototype.jjtCreate() }));
+        ParameterizedType.createNode(NamedType.createNode("java.util.Iterator"),
+            TypeActuals.createNode(new IRNode[] { WildcardType.prototype.jjtCreate() }));
+      JavaNode.setModifiers(itType, JavaNode.IMPLICIT);
 
       IRNode itCall = makeSimpleCall(collection, "iterator");// makeSimpleCall(iterable,
                                                              // "iterator");
