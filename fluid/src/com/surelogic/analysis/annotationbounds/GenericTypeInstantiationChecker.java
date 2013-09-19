@@ -33,6 +33,7 @@ import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 import com.surelogic.dropsea.irfree.DiffHeuristics;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
@@ -253,6 +254,10 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
      */
     doAcceptForChildren(pType);
 
+    if (JavaNode.wasImplicit(pType)) {
+      return null;
+    }
+    
     // See if there are any bounds to check
     final IRNode baseTypeDecl =
         binder.getBinding(ParameterizedType.getBase(pType));
