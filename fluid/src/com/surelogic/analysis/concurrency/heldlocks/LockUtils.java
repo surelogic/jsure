@@ -911,9 +911,11 @@ public final class LockUtils {
         MethodCallUtils.constructFormalToActualMap(binder, mcall, mdecl, callingDecl);
 
       // Now, build the set of locks by substituting actuals for formals
+      final NeededLockProcessor p = new NeededLockProcessor(neededLockFactory);
       for(final LockSpecificationNode ln : lockNames) {
-        final NeededLock lock =
-          convertNeededLockNameToCallerContext(mdecl, ln, m);
+//        final NeededLock lock =
+//          convertNeededLockNameToCallerContext(mdecl, ln, m);
+        final NeededLock lock = p.getLock(mdecl, ln, m);
         if (lock != null) locks.goodLocks.add(lock);
         else locks.badLocks.add(ln);
       }
