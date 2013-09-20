@@ -237,12 +237,13 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 					}
 				}				
 			}
-            /*
+			/*
+			System.out.println("For "+AbstractHierarchyScrubber.this);
 			final Set<IRNode> removed = new HashSet<IRNode>(declsToCheck);
 			removed.retainAll(hasAASTs);
 			for(IRNode r : removed) {
 				IRNode f = VisitUtil.getClosestClassBodyDecl(r);
-				System.out.println("Removed "+JavaNames.getFullName(f));
+				System.out.println("\tRemoved "+JavaNames.getFullName(f));
 			}
 			*/
 			// Remove decls that we'll already look at			
