@@ -1189,8 +1189,9 @@ public final class LockUtils {
     if (returnedLock != null) {
       final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
           binder, mcall, mdecl, callingDecl);
-      return convertHeldLockNameToCallerContext(
-          mdecl, heldLockFactory, returnedLock.getAAST().getLock(), type, src, m);
+      return new HeldLockProcessor(heldLockFactory, src).getLock(mdecl, returnedLock.getAAST().getLock(), m, type);
+//      return convertHeldLockNameToCallerContext(
+//          mdecl, heldLockFactory, returnedLock.getAAST().getLock(), type, src, m);
     } else {
       return null;
     }
@@ -1367,7 +1368,7 @@ public final class LockUtils {
         final IRNode node = use.resolveBinding().getNode();
         if (VariableDeclarator.prototype.includes(node)) {
           // Lock is "<field>.<LockName>"
-          return node;
+          objExpr = node;
         } else { // operator is ParameterDeclaration, find the actual
           // Lock is "<UseExpression>.<LockName>"
           objExpr = map.get(node);
@@ -1383,14 +1384,44 @@ public final class LockUtils {
     public final T getLock(
         final IRNode mdecl, final LockSpecificationNode lockSpec,
         final Map<IRNode, IRNode> map) {
+      return getLock(mdecl, lockSpec, map, convertType(lockSpec.getType()));
+    }
+    
+    public final T getLock(
+        final IRNode mdecl, final LockSpecificationNode lockSpec,
+        final Map<IRNode, IRNode> map, final Type type) {
       final LockModel lockModel = lockSpec.resolveBinding().getModel();
       final LockNameNode lockName = lockSpec.getLock();
-      final Type type = convertType(lockSpec.getType());
       if (lockModel.isLockStatic()) {
         return createStaticLock(lockModel, type);
       } else {
-        final IRNode objExpr = 
-          convertObjectExpressionToCallerContext(mdecl, lockName, map);
+        final IRNode objExpr;
+        if (lockName instanceof SimpleLockNameNode) {
+          // XXX: What about unqualified static fields?
+          // Lock is "this.<LockName>"
+          objExpr = map.get(JavaPromise.getReceiverNodeOrNull(mdecl));
+        } else { // QualifiedLockNameNode
+          final ExpressionNode base = ((QualifiedLockNameNode) lockName).getBase();
+          if (base instanceof ThisExpressionNode) {
+            // Lock is "this.<LockName>"
+            objExpr = map.get(JavaPromise.getReceiverNodeOrNull(mdecl));
+          } else if (base instanceof QualifiedThisExpressionNode) {
+            // Lock is "Class.this.<LockName>"
+            final QualifiedThisExpressionNode qthis = (QualifiedThisExpressionNode) base;
+            final IRNode qrcvr = JavaPromise.getQualifiedReceiverNodeByName(mdecl, qthis.getType().resolveType().getNode());
+            objExpr = map.get(qrcvr);
+          } else {
+            VariableUseExpressionNode use = (VariableUseExpressionNode) base;
+            final IRNode node = use.resolveBinding().getNode();
+            if (VariableDeclarator.prototype.includes(node)) {
+              // Lock is "<field>.<LockName>"
+              objExpr = node;
+            } else { // operator is ParameterDeclaration, find the actual
+              // Lock is "<UseExpression>.<LockName>"
+              objExpr = map.get(node);
+            }
+          }
+        }
         if (objExpr != null) {
           return createInstanceLock(objExpr, lockModel, type);
         } else {
@@ -1422,6 +1453,28 @@ public final class LockUtils {
       return factory.createInstanceLock(obj, lock, type);
     }
   }
+  
+  private static final class HeldLockProcessor extends LockSpecProcessor<HeldLock> {
+    private final HeldLockFactory factory;
+    private final IRNode src;
+    
+    public HeldLockProcessor(final HeldLockFactory f, final IRNode s) {
+      factory = f;
+      src = s;
+    }
+    
+    @Override
+    protected HeldLock createStaticLock(final LockModel lock, final Type type) {
+      return factory.createStaticLock(lock, src, null, false, type);
+    }
+
+    @Override
+    protected HeldLock createInstanceLock(
+        final IRNode obj, final LockModel lock, final Type type) {
+      return factory.createInstanceLock(obj, lock, src, null, false, type);
+    }
+  }
+
   
   
   public LockModel getMutex() {
