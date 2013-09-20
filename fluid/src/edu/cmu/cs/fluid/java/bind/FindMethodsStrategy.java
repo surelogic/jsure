@@ -35,6 +35,13 @@ public class FindMethodsStrategy
     paramTypes = types;
   }
 
+  IJavaType[] getCopyOfParamTypes() {
+	  if (paramTypes.length == 0) {
+		  return paramTypes;
+	  }
+	  return Arrays.copyOf(paramTypes, paramTypes.length);
+  }
+  
   /*
    * Returns true if found
    */
@@ -64,22 +71,7 @@ public class FindMethodsStrategy
         if (fineIsLoggable) {
           LOG.fine("Matched name against "+DebugUnparser.toString(method));
         }
-        final IRNode params = MethodDeclaration.getParams(method);
-        final Iterator<IRNode> p = Parameters.getFormalIterator(params);
-
-        for (int j = 0; j < paramTypes.length; j++) {
-          if (!p.hasNext()) {
-            continue loop; // no match
-          }
-          final IRNode pd = p.next();
-          // final IRNode pt = binder.mapTypeBinding(binder.getFluidBinding(pd));
-          final IJavaType pt = binder.getJavaType(pd);
-
-          if (!paramTypes[j].equals(pt)) { // FIXME is this right?
-            continue loop;
-          }
-        }
-        if (p.hasNext()) { // this method has more params than what I'm trying to match
+        if (matchMethodSig(method) != MatchStatus.MATCH) {
           continue loop;
         }
         /*
@@ -100,6 +92,34 @@ public class FindMethodsStrategy
     return false;
   }
 
+  protected enum MatchStatus { MATCH, NO_MATCH, NEVER }
+  
+  protected MatchStatus matchMethodSig(IRNode method) {
+	  return matchMethodSig(method, paramTypes);
+  }
+  
+  protected MatchStatus matchMethodSig(final IRNode method, final IJavaType[] paramTypes){
+      final IRNode params = MethodDeclaration.getParams(method);
+      final Iterator<IRNode> p = Parameters.getFormalIterator(params);
+  
+      for (int j = 0; j < paramTypes.length; j++) {
+        if (!p.hasNext()) {
+          return MatchStatus.NEVER; // no match
+        }
+        final IRNode pd = p.next();
+        // final IRNode pt = binder.mapTypeBinding(binder.getFluidBinding(pd));
+        final IJavaType pt = binder.getJavaType(pd);
+
+        if (!paramTypes[j].equals(pt)) { // FIXME is this right?
+          return MatchStatus.NO_MATCH;
+        }
+      }
+      if (p.hasNext()) { // this method has more params than what I'm trying to match
+        return MatchStatus.NEVER;
+      }
+      return MatchStatus.MATCH;
+  }
+  
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.eclipse.bind.ISubTypeSearchStrategy#visitClass_internal(edu.cmu.cs.fluid.ir.IRNode)
 	 */
