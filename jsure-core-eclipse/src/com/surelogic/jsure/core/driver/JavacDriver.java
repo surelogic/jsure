@@ -660,6 +660,9 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
       try {
         final String path = computePrefix();
         final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
+        if (info == null) {
+        	return;
+        }
         final File results = info.getJSureRun().getResultsFile();        
         final String name = prefix + 
         		(results.getName().endsWith(".gz") ? RegressionUtility.JSURE_SNAPSHOT_SUFFIX+".gz" : RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
@@ -722,7 +725,8 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
         }
         final File settings = new File(projDir, ScriptCommands.ANALYSIS_SETTINGS);
         if (!settings.exists()) {
-          DoubleChecker.getDefault().writePrefsToXML(settings);
+          ((JavacEclipse) IDE.getInstance()).writePrefsToXML(settings);
+          //DoubleChecker.getDefault().writePrefsToXML(settings);
           info.zipFile(baseDir, settings);
         }
         final File props = new File(projDir, ScriptCommands.TEST_PROPERTIES);
