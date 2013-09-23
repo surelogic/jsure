@@ -657,12 +657,14 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
     if (script != null) {
       // Export results
       final String prefix = "expectedResults" + getId();
-      final String name = prefix + RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
-      final File location = new File(scriptResourcesDir, name);
       try {
         final String path = computePrefix();
         final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
-        FileUtility.copy(info.getJSureRun().getResultsFile(), location);
+        final File results = info.getJSureRun().getResultsFile();        
+        final String name = prefix + 
+        		(results.getName().endsWith(".gz") ? RegressionUtility.JSURE_SNAPSHOT_SUFFIX+".gz" : RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
+        final File location = new File(scriptResourcesDir, name);
+        FileUtility.copy(results, location);
 
         printToScript(ScriptCommands.COMPARE_RESULTS + " workspace " + path + '/' + name + " " + path + "/../" + prefix
             + RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX);
