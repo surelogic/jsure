@@ -272,19 +272,27 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
         }
 
         IJavaProject jp = JDTUtility.getJavaProject(proj);
+        boolean cached = false;
         if (jp != null) {
           loadFileCache(jp);
+          cached = true;
         } else {
           for (IJavaProject p : JDTUtility.getJavaProjects()) {
             try {
               String projPath = p.getCorrespondingResource().getLocation().toOSString();
               if (projPath.contains(proj)) {
                 loadFileCache(p);
+                cached = true;
               }
             } catch (JavaModelException e) {
               e.printStackTrace();
             }
           }
+        }
+        if (!cached) {
+        	System.err.println("Unable to cache project "+proj);
+        } else {
+        	System.out.println("Starting scripting for project "+proj);
         }
         JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
       } catch (IOException e) {
@@ -675,6 +683,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
     if (info != null) {
       if (script != null) {
         script.close();
+        System.out.println("Stopped scripting.");
       }
       try {
         final File projDir = scriptResourcesDir.getParentFile();
@@ -746,6 +755,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
           info.zipFile(baseDir, props);
         }
         info.close();
+        System.out.println("Finished script: "+info.getFile());
       } catch (IOException e) {
         e.printStackTrace();
       }
