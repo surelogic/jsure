@@ -24,10 +24,19 @@ public class FindOverriddenMethodsStrategy extends FindMethodsStrategy implement
 	 */
 	private boolean atFirstType = true;
 	
+	/*
+	 * Types of the parameters (not just the names)
+	 */
+	private final IJavaType[] erasureParamTypes;
+	
 	public FindOverriddenMethodsStrategy(IBinder bind, IRNode method, boolean all) {
 		super(bind, getName(method), getParamTypes(bind, method));
     //System.out.println("Looking to match "+DebugUnparser.toString(method));
 		findAll = all;
+		erasureParamTypes = super.getCopyOfParamTypes();
+		for(int i=0; i<erasureParamTypes.length; i++) {
+			erasureParamTypes[i] = bind.getTypeEnvironment().computeErasure(erasureParamTypes[i]);
+		}
 	}
 
 	static String getName(IRNode method) {
@@ -76,5 +85,14 @@ public class FindOverriddenMethodsStrategy extends FindMethodsStrategy implement
       LOG.fine("Still searching after "+JavaNames.getTypeName(type));
 			searchAfterLastType = true;
 		}
+	}
+	
+	@Override
+	protected MatchStatus matchMethodSig(IRNode method) {
+		MatchStatus rv = super.matchMethodSig(method);
+		if (rv != MatchStatus.NO_MATCH) {
+			return rv;
+		}
+ 		return matchMethodSig(method, erasureParamTypes);
 	}
 }
