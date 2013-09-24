@@ -272,19 +272,27 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
         }
 
         IJavaProject jp = JDTUtility.getJavaProject(proj);
+        boolean cached = false;
         if (jp != null) {
           loadFileCache(jp);
+          cached = true;
         } else {
           for (IJavaProject p : JDTUtility.getJavaProjects()) {
             try {
               String projPath = p.getCorrespondingResource().getLocation().toOSString();
               if (projPath.contains(proj)) {
                 loadFileCache(p);
+                cached = true;
               }
             } catch (JavaModelException e) {
               e.printStackTrace();
             }
           }
+        }
+        if (!cached) {
+        	System.err.println("Unable to cache project "+proj);
+        } else {
+        	System.out.println("Starting scripting for project "+proj);
         }
         JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
       } catch (IOException e) {
@@ -649,12 +657,17 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
     if (script != null) {
       // Export results
       final String prefix = "expectedResults" + getId();
-      final String name = prefix + RegressionUtility.JSURE_SNAPSHOT_SUFFIX;
-      final File location = new File(scriptResourcesDir, name);
       try {
         final String path = computePrefix();
         final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
-        FileUtility.copy(info.getJSureRun().getResultsFile(), location);
+        if (info == null) {
+        	return;
+        }
+        final File results = info.getJSureRun().getResultsFile();        
+        final String name = prefix + 
+        		(results.getName().endsWith(".gz") ? RegressionUtility.JSURE_SNAPSHOT_SUFFIX+".gz" : RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
+        final File location = new File(scriptResourcesDir, name);
+        FileUtility.copy(results, location);
 
         printToScript(ScriptCommands.COMPARE_RESULTS + " workspace " + path + '/' + name + " " + path + "/../" + prefix
             + RegressionUtility.JSURE_SNAPSHOT_DIFF_SUFFIX);
@@ -675,6 +688,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
     if (info != null) {
       if (script != null) {
         script.close();
+        System.out.println("Stopped scripting.");
       }
       try {
         final File projDir = scriptResourcesDir.getParentFile();
@@ -711,7 +725,8 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
         }
         final File settings = new File(projDir, ScriptCommands.ANALYSIS_SETTINGS);
         if (!settings.exists()) {
-          DoubleChecker.getDefault().writePrefsToXML(settings);
+          ((JavacEclipse) IDE.getInstance()).writePrefsToXML(settings);
+          //DoubleChecker.getDefault().writePrefsToXML(settings);
           info.zipFile(baseDir, settings);
         }
         final File props = new File(projDir, ScriptCommands.TEST_PROPERTIES);
@@ -746,6 +761,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
           info.zipFile(baseDir, props);
         }
         info.close();
+        System.out.println("Finished script: "+info.getFile());
       } catch (IOException e) {
         e.printStackTrace();
       }

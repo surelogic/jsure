@@ -135,7 +135,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 		final File proj = new File(projectPath);
 		final File dotProj = new File(proj, ".project");
 		// Check if the file contains dcNature
-		if (contains(dotProj, "dcNature")) {
+		if (contains(dotProj, ".jdt.core.java"/*"dcNature"*/)) {
 			active.add(jp);
 		}
 	  }	
@@ -391,6 +391,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	} else {
 		System.out.println("build workspace");
 		ResourcesPlugin.getWorkspace().build(kind, null);
+		throw new UnsupportedOperationException("No longer doing builds with an Eclipse Builder");
 	}
   }
   

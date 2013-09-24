@@ -129,17 +129,17 @@ public final class JSureDataDirHub {
   /**
    * Protects the mutable state of this class.
    */
-  private final Object f_lock = new Object() {};
+  final Object f_lock = new Object();
 
   /*
    * Mutable state.
    */
 
-  private JSureDataDir f_dataDir;
-  private JSureScan f_currentScan = null;
-  private JSureScanInfo f_currentScanInfo = null;
-  private JSureScanInfo f_lastMatchingScanInfo = null;
-  private ScanDifferences f_scanDiff = null;
+  JSureDataDir f_dataDir;
+  JSureScan f_currentScan = null;
+  JSureScanInfo f_currentScanInfo = null;
+  JSureScanInfo f_lastMatchingScanInfo = null;
+  ScanDifferences f_scanDiff = null;
 
   @Unique
   private JSureDataDirHub() {
@@ -228,7 +228,7 @@ public final class JSureDataDirHub {
       notifyListeners(true, false, false);
   }
 
-  private void notifyListeners(boolean notifyContentsChanged, boolean notifyCurrentScanChanged, boolean isNewScan) {
+  void notifyListeners(boolean notifyContentsChanged, boolean notifyCurrentScanChanged, boolean isNewScan) {
     final JSureDataDir dataDir;
     final JSureScan currentScan;
     synchronized (f_lock) {
@@ -421,11 +421,11 @@ public final class JSureDataDirHub {
               }
             }
             if (f_currentScanInfo != null) {
-            	f_currentScanInfo.clear();
-            
-            	if (f_lastMatchingScanInfo != null) {
-            		f_lastMatchingScanInfo.clear();
-            	}
+              f_currentScanInfo.clear();
+
+              if (f_lastMatchingScanInfo != null) {
+                f_lastMatchingScanInfo.clear();
+              }
             }
             f_currentScan = jsureScan;
             f_currentScanInfo = currentScanInfo;
@@ -449,7 +449,7 @@ public final class JSureDataDirHub {
 
   private static final String NONE = "(NONE)";
 
-  private void loadCurrentScanPreference() {
+  void loadCurrentScanPreference() {
     JSureScan currentScan = null;
     String value = EclipseUtility.getStringPreference(JSurePreferencesUtility.CURRENT_SCAN);
     final JSureDataDir dataDir;
@@ -466,7 +466,7 @@ public final class JSureDataDirHub {
     }
   }
 
-  private void saveCurrentScanPreference() {
+  void saveCurrentScanPreference() {
     final JSureScan current = getCurrentScan();
     String value = NONE;
     if (current != null) {

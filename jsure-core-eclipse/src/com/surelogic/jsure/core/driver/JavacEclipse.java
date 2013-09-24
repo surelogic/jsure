@@ -1,8 +1,11 @@
 package com.surelogic.jsure.core.driver;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.*;
 
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.MemoryUtility;
@@ -45,6 +48,35 @@ public class JavacEclipse extends Javac {
     setPreference(IDEPreferences.JSURE_DATA_DIRECTORY, EclipseUtility.getJSureDataDirectory().getAbsolutePath());
   }
 
+  public void writePrefsToXML(File settings) throws FileNotFoundException {
+	  final List<String> m_includedExtensions = new ArrayList<String>();
+	  final List<String> m_nonProductionAnalysisExtensions = new ArrayList<String>();
+	  for (String id : getAvailableAnalyses()) {
+	      boolean value = EclipseUtility.getBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id);
+	      if (value) {
+	    	  m_includedExtensions.add(id);
+	      } else {
+	    	  m_nonProductionAnalysisExtensions.add(id);
+	      }
+	  }
+	  // Modified from DoubleChecker
+	  final PrintWriter pw = new PrintWriter(settings);
+	  pw.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+	  pw.println("<preferences>");
+	  pw.println("  <included-analysis-modules>");
+	  for (String id : m_includedExtensions) {
+		  pw.println("    <id>" + id + "</id>");
+	  }
+	  pw.println("  </included-analysis-modules>");
+	  pw.println("  <excluded-analysis-modules>");
+	  for (String id : m_nonProductionAnalysisExtensions) {
+		  pw.println("    <id>" + id + "</id>");
+	  }
+	  pw.println("  </excluded-analysis-modules>");
+	  pw.println("</preferences>");
+	  pw.close();
+  }
+  
   @Override
   public URL getResourceRoot() {
     try {

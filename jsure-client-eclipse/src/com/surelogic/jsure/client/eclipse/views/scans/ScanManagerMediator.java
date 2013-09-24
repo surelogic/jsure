@@ -60,13 +60,13 @@ public final class ScanManagerMediator implements ILifecycle {
    * 
    * The below constants help to implement this extra column.
    */
-  private static final boolean EXTRA_COLUMN = !SystemUtils.IS_OS_MAC_OSX;
-  private static final int EXTRA_COLUMN_WIDTH = 27;
-  private static final int FIRST_COLUMN_INDEX = EXTRA_COLUMN ? 1 : 0;
+  static final boolean EXTRA_COLUMN = !SystemUtils.IS_OS_MAC_OSX;
+  static final int EXTRA_COLUMN_WIDTH = 27;
+  static final int FIRST_COLUMN_INDEX = EXTRA_COLUMN ? 1 : 0;
 
-  private final CheckboxTableViewer f_table;
-  private final Table f_swtTable;
-  private final ICheckStateListener f_checkStateListener = new ICheckStateListener() {
+  final CheckboxTableViewer f_table;
+  final Table f_swtTable;
+  final ICheckStateListener f_checkStateListener = new ICheckStateListener() {
 
     @Override
     public void checkStateChanged(CheckStateChangedEvent event) {
@@ -81,7 +81,7 @@ public final class ScanManagerMediator implements ILifecycle {
     }
   };
 
-  private final Action f_deleteScanAction = new Action() {
+  final Action f_deleteScanAction = new Action() {
 
     @Override
     public void run() {
@@ -190,7 +190,7 @@ public final class ScanManagerMediator implements ILifecycle {
     return f_setAsCurrentAction;
   }
 
-  private List<JSureScan> getSelectedScans() {
+  List<JSureScan> getSelectedScans() {
     IStructuredSelection selected = (IStructuredSelection) f_table.getSelection();
     if (selected.isEmpty())
       return Collections.emptyList();
@@ -228,7 +228,7 @@ public final class ScanManagerMediator implements ILifecycle {
 
   }
 
-  private void showCurrentScanInUi() {
+  void showCurrentScanInUi() {
     f_table.setAllChecked(false);
     final JSureScan current = JSureDataDirHub.getInstance().getCurrentScan();
     if (current != null)
@@ -238,13 +238,13 @@ public final class ScanManagerMediator implements ILifecycle {
       packColumns();
   }
 
-  private void packColumns() {
+  void packColumns() {
     TableUtility.packColumns(f_table);
     if (EXTRA_COLUMN)
       f_swtTable.getColumn(0).setWidth(EXTRA_COLUMN_WIDTH);
   }
 
-  private void reactToCheckStateChanged(final JSureScan current) {
+  void reactToCheckStateChanged(final JSureScan current) {
     final SLJob job = new AbstractSLJob("Update current selection") {
       @Override
       public SLStatus run(SLProgressMonitor monitor) {
@@ -256,7 +256,7 @@ public final class ScanManagerMediator implements ILifecycle {
     eJob.schedule();
   }
 
-  private void setToolbarState() {
+  void setToolbarState() {
     final boolean oneOrMoreScansSelected = f_swtTable.getSelectionCount() > 0;
 
     f_deleteScanAction.setEnabled(oneOrMoreScansSelected);
@@ -389,7 +389,7 @@ public final class ScanManagerMediator implements ILifecycle {
     return f_swtTable.getDisplay();
   }
 
-  private static class MyContentProvider implements IStructuredContentProvider {
+  static class MyContentProvider implements IStructuredContentProvider {
 
     @Override
     public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
@@ -411,7 +411,7 @@ public final class ScanManagerMediator implements ILifecycle {
     }
   }
 
-  private static class MyLabelProvider extends LabelProvider implements ITableLabelProvider {
+  static class MyLabelProvider extends LabelProvider implements ITableLabelProvider {
 
     @Override
     public Image getColumnImage(Object element, int columnIndex) {
