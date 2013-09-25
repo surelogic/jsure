@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/locks/locks/BogusLock.java,v 1.13 2009/02/17 14:01:32 aarong Exp $*/
 package com.surelogic.analysis.concurrency.heldlocks.locks;
 
 import com.surelogic.aast.promise.AbstractLockDeclarationNode;
@@ -83,7 +82,7 @@ final class BogusLock implements HeldLock {
   public boolean mustAlias(
       final HeldLock lock, final ThisExpressionBinder teb, final IBinder b) {
     if (lock instanceof BogusLock) {
-      return AbstractHeldLock.checkSyntacticEquality(this.lockExpr, ((BogusLock) lock).lockExpr, teb, b);
+      return AbstractILock.checkSyntacticEquality(this.lockExpr, ((BogusLock) lock).lockExpr, teb, b);
     } else {
       return false;
     }

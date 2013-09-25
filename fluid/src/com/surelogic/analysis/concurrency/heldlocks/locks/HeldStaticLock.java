@@ -28,7 +28,7 @@ final class HeldStaticLock extends AbstractHeldLock {
    */
   @Override
   public boolean mustAlias(final HeldLock lock, final ThisExpressionBinder teb, final IBinder b) {
-    if(lock instanceof HeldStaticLock) {
+    if (lock instanceof HeldStaticLock) {
       return (isWrite() == lock.isWrite())
         && getUniqueIdentifier().equals(((HeldStaticLock) lock).getUniqueIdentifier());
     } else {
@@ -42,7 +42,7 @@ final class HeldStaticLock extends AbstractHeldLock {
    */
   @Override
   public boolean mustSatisfy(final NeededLock lock, final ThisExpressionBinder teb, final IBinder b) {
-    if(lock instanceof NeededStaticLock) {
+    if (lock instanceof NeededStaticLock) {
       if (getUniqueIdentifier().equals(((NeededStaticLock) lock).getUniqueIdentifier())) {
         return isWrite() || (!isWrite() && !lock.isWrite());
       } 
@@ -52,7 +52,7 @@ final class HeldStaticLock extends AbstractHeldLock {
   
   @Override
   public boolean equals(final Object o) {
-    if( o instanceof HeldStaticLock ) {
+    if  (o instanceof HeldStaticLock) {
       return baseEquals((HeldStaticLock) o);
     } else {
       return false;

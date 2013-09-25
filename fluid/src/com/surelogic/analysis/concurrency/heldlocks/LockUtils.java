@@ -869,12 +869,10 @@ public final class LockUtils {
                * CORRECTLY LATER!
                */
               if (reference != null) {
-                l = neededLockFactory.createInstanceLock(
-                    reference, lm, type);
+                l = neededLockFactory.createInstanceLock(reference, lm, type);
                 result.add(l);
               }
             }
-//            result.add(l);
           }
         }
       }
@@ -913,8 +911,6 @@ public final class LockUtils {
       // Now, build the set of locks by substituting actuals for formals
       final NeededLockProcessor p = new NeededLockProcessor(neededLockFactory);
       for(final LockSpecificationNode ln : lockNames) {
-//        final NeededLock lock =
-//          convertNeededLockNameToCallerContext(mdecl, ln, m);
         final NeededLock lock = p.getLock(mdecl, ln, m);
         if (lock != null) locks.goodLocks.add(lock);
         else locks.badLocks.add(ln);
@@ -1190,8 +1186,6 @@ public final class LockUtils {
       final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
           binder, mcall, mdecl, callingDecl);
       return new HeldLockProcessor(heldLockFactory, src).getLock(mdecl, returnedLock.getAAST().getLock(), m, type);
-//      return convertHeldLockNameToCallerContext(
-//          mdecl, heldLockFactory, returnedLock.getAAST().getLock(), type, src, m);
     } else {
       return null;
     }
@@ -1266,8 +1260,8 @@ public final class LockUtils {
            */
           final IRNode n = ((VariableUseExpressionNode) base).resolveBinding().getNode();
           if (VariableDeclarator.prototype.includes(n)) {
-            return heldLockFactory.createInstanceLock(
-                n, lockDecl, src, supportingDrop, isAssumed, lockType);
+            return heldLockFactory.createFieldRefLock(
+                formalRcvr, n, lockDecl, src, supportingDrop, isAssumed, lockType);
           } else {
             if (locksOnParameters != null) locksOnParameters.add(lockSpec);
             return heldLockFactory.createInstanceLock(
@@ -1276,106 +1270,6 @@ public final class LockUtils {
         }
       }
     }
-  }
-  
-  /**
-   * Given a LockSpecification from a <code>requiresLock</code>, convert it into the
-   * lock object that is <em>needed</em> in the calling context. This involved
-   * replacing formal parameter names with actual argument expressions.
-   * 
-   * @param lock
-   *          A LockSpecification node from a <code>requiresLock</code> or
-   *          <code>returnsLock</code> annotation.
-   * @param formalRcvr
-   *          The node representing the formal receiver for the method; used to
-   *          look up the actual receiver expression in <code>map</code>
-   * @param map
-   *          The map from formals to actuals, including a mapping for the
-   *          receiver.
-   * @return The Lock named by the annotation, or <code>null</code> if the lock
-   * cannot be named in the calling context.
-   */
-  public NeededLock convertNeededLockNameToCallerContext(
-      final IRNode mdecl, final LockSpecificationNode lockSpec,
-      final Map<IRNode, IRNode> map) {
-    final LockModel lockModel = lockSpec.resolveBinding().getModel();
-    final LockNameNode lockName = lockSpec.getLock();
-    final Type type = convertType(lockSpec.getType());
-    if (lockModel.isLockStatic()) {
-      return neededLockFactory.createStaticLock(lockModel, type);
-    } else {
-      final IRNode objExpr = 
-        convertObjectExpressionToCallerContext(mdecl, lockName, map);
-      if (objExpr != null) {
-        return neededLockFactory.createInstanceLock(
-            objExpr, lockModel, type);
-      } else {
-        return null;
-      }
-    }
-  }
-  
-  /**
-   * Given a LockName from a <code>returnsLock</code> annotation, convert it
-   * into the lock object that will be <em>held</em> in the calling context.
-   * This involved replacing formal parameter names with actual argument
-   * expressions.
-   * 
-   * @param lock
-   *          A LockName node <code>returnsLock</code> annotation.
-   * @param src
-   *          The expression blamed for the construction of the lock
-   * @param formalRcvr
-   *          The node representing the formal receiver for the method; used to
-   *          look up the actual receiver expression in <code>map</code>
-   * @param map
-   *          The map from formals to actuals, including a mapping for the
-   *          receiver.
-   * @return The Lock named by the annotation
-   */
-  public static HeldLock convertHeldLockNameToCallerContext(
-      final IRNode mdecl, final HeldLockFactory heldLockFactory, final LockNameNode lockName, final ILock.Type type,
-      final IRNode src, final Map<IRNode, IRNode> map) {
-    final LockModel lockModel = lockName.resolveBinding().getModel();  
-    if (lockModel.isLockStatic()) {
-      return heldLockFactory.createStaticLock(lockModel, src, null, false, type);
-    } else {
-      final IRNode objExpr =
-        convertObjectExpressionToCallerContext(mdecl, lockName, map);
-      return heldLockFactory.createInstanceLock(objExpr, lockModel, src, null, false, type);
-    }
-  }
-
-  private static IRNode convertObjectExpressionToCallerContext(
-      final IRNode mdecl, final LockNameNode lock, final Map<IRNode, IRNode> map) {
-    IRNode objExpr = null;
-    if (lock instanceof SimpleLockNameNode) {
-      // XXX: What about unqualified static fields?
-      // Lock is "this.<LockName>"
-      objExpr = map.get(JavaPromise.getReceiverNodeOrNull(mdecl));
-    } else { // QualifiedLockNameNode
-      final ExpressionNode base = ((QualifiedLockNameNode) lock).getBase();
-      if (base instanceof ThisExpressionNode) {
-        // Lock is "this.<LockName>"
-        objExpr = map.get(JavaPromise.getReceiverNodeOrNull(mdecl));
-      } else if (base instanceof QualifiedThisExpressionNode) {
-        // Lock is "Class.this.<LockName>"
-        final QualifiedThisExpressionNode qthis = (QualifiedThisExpressionNode) base;
-        final IRNode qrcvr = JavaPromise.getQualifiedReceiverNodeByName(mdecl, qthis.getType().resolveType().getNode());
-        objExpr = map.get(qrcvr);
-      } else {
-        VariableUseExpressionNode use = (VariableUseExpressionNode) base;
-        final IRNode node = use.resolveBinding().getNode();
-        if (VariableDeclarator.prototype.includes(node)) {
-          // Lock is "<field>.<LockName>"
-          objExpr = node;
-        } else { // operator is ParameterDeclaration, find the actual
-          // Lock is "<UseExpression>.<LockName>"
-          objExpr = map.get(node);
-        }
-      }
-    }
-    return objExpr;
   }
   
   
@@ -1414,8 +1308,12 @@ public final class LockUtils {
             VariableUseExpressionNode use = (VariableUseExpressionNode) base;
             final IRNode node = use.resolveBinding().getNode();
             if (VariableDeclarator.prototype.includes(node)) {
-              // Lock is "<field>.<LockName>"
-              objExpr = node;
+              /* Lock is "<field>.<LockName>".  Need to make into a field 
+               * reference on the actual receiver.
+               */
+              return createFieldRefLock(
+                  map.get(JavaPromise.getReceiverNodeOrNull(mdecl)),
+                  node, lockModel, type);
             } else { // operator is ParameterDeclaration, find the actual
               // Lock is "<UseExpression>.<LockName>"
               objExpr = map.get(node);
@@ -1433,6 +1331,8 @@ public final class LockUtils {
     protected abstract T createStaticLock(LockModel lock, ILock.Type type);
     
     protected abstract T createInstanceLock(IRNode obj, LockModel lock, ILock.Type type);
+    
+    protected abstract T createFieldRefLock(IRNode rcvr, IRNode fdecl, LockModel lock, ILock.Type type);
   }
   
   private static final class NeededLockProcessor extends LockSpecProcessor<NeededLock> {
@@ -1451,6 +1351,12 @@ public final class LockUtils {
     protected NeededLock createInstanceLock(
         final IRNode obj, final LockModel lock, final Type type) {
       return factory.createInstanceLock(obj, lock, type);
+    }
+
+    @Override
+    protected NeededLock createFieldRefLock(
+        final IRNode rcvr, final IRNode fdecl, final LockModel lock, final Type type) {
+      return factory.createFieldRefLock(rcvr, fdecl, lock, type);
     }
   }
   
@@ -1472,6 +1378,12 @@ public final class LockUtils {
     protected HeldLock createInstanceLock(
         final IRNode obj, final LockModel lock, final Type type) {
       return factory.createInstanceLock(obj, lock, src, null, false, type);
+    }
+
+    @Override
+    protected HeldLock createFieldRefLock(
+        final IRNode rcvr, final IRNode fdecl, final LockModel lock, final Type type) {
+      return factory.createFieldRefLock(rcvr, fdecl, lock, src, null, false, type);
     }
   }
 

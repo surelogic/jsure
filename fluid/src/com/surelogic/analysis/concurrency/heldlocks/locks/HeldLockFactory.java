@@ -32,6 +32,14 @@ public final class HeldLockFactory {
 
   
   
+  public HeldLock createFieldRefLock(
+      final IRNode o, final IRNode vd, final LockModel ld, final IRNode src,
+      final PromiseDrop<?> sd, final boolean isAssumed, final Type type) {
+    return new HeldFieldRefLock(
+        thisBinder.bindThisExpression(o), vd, ld, src, sd, isAssumed, type);
+  }
+  
+  
   public HeldLock createStaticLock(
       final LockModel ld, final IRNode src, final PromiseDrop<?> sd,
       final boolean isAssumed, final Type type) {

@@ -20,6 +20,11 @@ public final class NeededLockFactory {
     return new NeededInstanceLock(thisBinder.bindThisExpression(o), lm, type);
   } 
   
+  public NeededLock createFieldRefLock(
+      final IRNode r, final IRNode vd, final LockModel lm, final Type type) {
+    return new NeededFieldRefLock(thisBinder.bindThisExpression(r), vd, lm, type);
+  }
+  
   public NeededLock createStaticLock(
       final LockModel lm, final Type type) {
     return new NeededStaticLock(lm, type);

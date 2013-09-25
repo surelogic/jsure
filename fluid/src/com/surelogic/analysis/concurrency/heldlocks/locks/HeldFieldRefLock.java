@@ -7,30 +7,38 @@ import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 
-final class IRHeldInstanceLock extends HeldInstanceLock {
+final class HeldFieldRefLock extends HeldInstanceLock {
   /**
-   * The object-valued expression that this lock is associated with.
-   * This is a VariableDeclarator in the case that the lock is "field:lock",
-   * in which case it symbolizes a reference to that field via the receiver.
+   * The object-valued expression that is the receiver for the lock
+   * expression.
    */
   final IRNode obj;
   
-  IRHeldInstanceLock(
-      final IRNode o, final LockModel lm, final IRNode src,
+  /**
+   * VariableDeclarator of the field that is being referenced.
+   */
+  final IRNode varDecl;
+
+  
+  
+  HeldFieldRefLock(
+      final IRNode o, final IRNode vd, final LockModel lm, final IRNode src,
       final PromiseDrop<?> sd, final boolean assumed, final Type type) {
     super(lm, src, sd, assumed, type);
     if (o == null) {
       throw new NullPointerException("obj is null");
     }
     obj = o;
+    varDecl = vd;
   }
 
   @Override
   public boolean equals(final Object o) {
-    if (o instanceof IRHeldInstanceLock) {
-      final IRHeldInstanceLock hil = (IRHeldInstanceLock) o;
-      return baseEquals(hil) && obj.equals(hil.obj);
+    if (o instanceof HeldFieldRefLock) {
+      final HeldFieldRefLock hil = (HeldFieldRefLock) o;
+      return baseEquals(hil) && obj.equals(hil.obj) && varDecl.equals(hil.varDecl);
     } else {
       return false;
     }
@@ -38,42 +46,43 @@ final class IRHeldInstanceLock extends HeldInstanceLock {
 
   @Override
   public HeldLock changeSource(final IRNode newSrc) {
-    return new IRHeldInstanceLock(obj, lockPromise, newSrc, supportingDrop, isAssumed, type);
+    return new HeldFieldRefLock(obj, varDecl, lockPromise, newSrc, supportingDrop, isAssumed, type);
   }
 
   @Override
   boolean mustAliasLockExpr(
       final HeldInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return lock.mustAliasIR(this, teb, binder);
+    return lock.mustAliasFieldRef(this, teb, binder);
   }
   
   @Override
   boolean mustAliasAAST(
       final AASTHeldInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return checkSyntacticEquality(obj, lock.objAAST, teb, binder);
+    return checkFieldRef(teb, binder, obj, varDecl, lock.objAAST);
   }
   
   @Override
   boolean mustAliasIR(
       final IRHeldInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return checkSyntacticEquality(obj, lock.obj, teb, binder);
+    return checkFieldRef(teb, binder, obj, varDecl, lock.obj);
   }
   
   @Override
   boolean mustAliasFieldRef(
       final HeldFieldRefLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return checkFieldRef(teb, binder, lock.obj, lock.varDecl, obj);
+    return varDecl.equals(lock.varDecl)
+        && checkSyntacticEquality(obj, lock.obj, teb, binder);
   }
 
   @Override
   boolean mustSatisfyLockExpr(
       final AbstractNeededInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return lock.satisfiesIR(this, teb, binder);
+    return lock.satisfiesFieldRef(this, teb, binder);
   }
-
+  
   @Override
   protected String objToString() {
-    return DebugUnparser.toString(obj);
+    return DebugUnparser.toString(obj) + "." + VariableDeclarator.getId(varDecl);
   }
 
 //  @Override
@@ -125,5 +134,32 @@ final class IRHeldInstanceLock extends HeldInstanceLock {
 //      }
 //    }
 //    return false;
+//  }
+
+
+
+//  boolean checkFieldRef(
+//      final ThisExpressionBinder teb, final IBinder binder,
+//      final IRNode lockExpr) {
+//    // Check field equality first because syntactic equality is more expensive
+//    if (FieldRef.prototype.includes(lockExpr)) {
+//      return varDecl.equals(binder.getBinding(lockExpr))
+//          && checkSyntacticEquality(obj, FieldRef.getObject(lockExpr), teb, binder);
+//    } else {
+//      return false;
+//    }
+//  }
+//
+//  boolean checkFieldRef(
+//      final ThisExpressionBinder teb, final IBinder binder,
+//      final ExpressionNode lockExpr) {
+//    if (lockExpr instanceof FieldRefNode) {
+//      final FieldRefNode fieldRef = (FieldRefNode) lockExpr;
+//      // Check field equality first because syntactic equality is more expensive
+//      return varDecl.equals(fieldRef.resolveBinding().getNode())
+//          && checkSyntacticEquality(obj, fieldRef.getObject(), teb, binder);
+//    } else {
+//      return false;
+//    }
 //  }
 }
