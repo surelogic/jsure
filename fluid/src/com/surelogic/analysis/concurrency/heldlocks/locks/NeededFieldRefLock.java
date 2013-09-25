@@ -74,9 +74,4 @@ final class NeededFieldRefLock extends AbstractNeededInstanceLock {
       final EnclosingRefs enclosingRefs, final NeededLockFactory lockFactory) {
     return null;
   }
-  
-  @Override
-  public boolean isFieldExprOfThis(final IBinder b, final IRNode varDecl) {
-    return true;
-  }
 }

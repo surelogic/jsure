@@ -7,8 +7,6 @@ import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser; 
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.operator.FieldRef;
-import edu.cmu.cs.fluid.java.operator.ThisExpression;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 
 final class NeededInstanceLock extends AbstractNeededInstanceLock {
@@ -68,21 +66,6 @@ final class NeededInstanceLock extends AbstractNeededInstanceLock {
       return lockFactory.createInstanceLock(newObj, lockPromise, type);
     } else {
       return null;
-    }
-  }
-  
-  @Override
-  public boolean isFieldExprOfThis(final IBinder b, final IRNode varDecl) {
-    // See if we are also a special case
-    if (obj.equals(varDecl)) {
-      return true;
-    } else {
-      if (FieldRef.prototype.includes(obj)) {
-        if (ThisExpression.prototype.includes(FieldRef.getObject(obj))) {
-          return b.getBinding(obj).equals(varDecl);
-        }
-      }
-      return false;
     }
   }
 }

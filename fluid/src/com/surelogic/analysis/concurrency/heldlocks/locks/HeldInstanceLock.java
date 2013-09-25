@@ -62,23 +62,6 @@ abstract class HeldInstanceLock extends AbstractHeldLock {
         if (mustSatisfyLockExpr(neededLock, teb, binder)) {
           return isWrite() || (!isWrite() && !lock.isWrite());
         }
-        
-//        if (testFieldSpecialCase(lock, teb,binder)) {
-//          return true;
-//        }
-//        if (VariableDeclarator.prototype.includes(neededLock.getObject())) {
-//          /* Object expression of the held lock must be of the form "this.f"
-//           * where "f" is the field in the VariableDeclarator.
-//           */
-//          return isFieldExprOfThis(binder, neededLock.getObject());
-//        } else {
-//          final boolean isSyntacticallyEqual = checkSyntacticEquality(
-//              teb, binder, neededLock.getObject());
-//          if (isSyntacticallyEqual) {
-//            return isWrite() || (!isWrite() && !lock.isWrite());
-//          }
-//        }
-        
       }
       return false;
     }
@@ -101,23 +84,4 @@ abstract class HeldInstanceLock extends AbstractHeldLock {
   }
   
   protected abstract String objToString();
-  
-//  protected abstract boolean checkSyntacticEquality(ThisExpressionBinder teb, IBinder b, IRNode other);
-//  
-//  protected abstract boolean checkSyntacticEquality(ThisExpressionBinder teb, IBinder b, ExpressionNode other);
-//  
-//  protected abstract boolean checkSyntacticEquality(ThisExpressionBinder teb, IBinder b, HeldInstanceLock other);
-
-//  protected abstract boolean testFieldSpecialCase(NeededLock lock, ThisExpressionBinder teb, IBinder b);
-  
-  
-  
-  
-//  /**
-//   * If the object expression is of the form "this.f", then return the 
-//   * VariableDeclarator for f.  Otherwise, return <code>null</code>.
-//   */
-//  protected abstract IRNode getFieldOfThis(IBinder binder);
-//  
-//  protected abstract boolean isFieldExprOfThis(IBinder binder, IRNode varDecl);
 }
