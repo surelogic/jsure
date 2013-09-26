@@ -188,7 +188,11 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
         chain.removeLast();    
       } else {
         final PromiseDrop<?> pd = getAnnotation(k.getAnnotatedNode(binder, where));
-        if (pd instanceof NullablePromiseDrop) { // N.B. null is never an instance of anything
+        /* Add a warning if the promise is a REAL @Nullable annotation,
+         * but skip the warning if the @Nullable is a virtual one added by
+         * checkAssignability for reporting problems with @Raw.
+         */
+        if (pd instanceof NullablePromiseDrop && !pd.isVirtual()) { // N.B. null is never an instance of anything
           HintDrop hd = pd.addWarningHint(
               expr, isUnbox ? POSSIBLY_NULL_UNBOX : POSSIBLY_NULL);
           for (final IRNode readFrom : chain) {
