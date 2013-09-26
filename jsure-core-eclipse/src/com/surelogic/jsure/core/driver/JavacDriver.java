@@ -861,7 +861,11 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
   public void doExplicitBuild(Map args, boolean ignoreNature) {
     JavacEclipse.initialize();
     if (script != null) {
-      printToScript(ScriptCommands.RUN_JSURE);
+      StringBuilder sb = new StringBuilder(ScriptCommands.RUN_JSURE);
+      for(IProject p : getProjects()) {
+    	  sb.append(' ').append(p.getName());
+      }
+      printToScript(sb.toString());
     }
     super.doExplicitBuild(args, ignoreNature);
   }
