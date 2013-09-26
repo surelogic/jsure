@@ -124,7 +124,13 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
         	if (contents.length > 0) {
         		// Lookup projects
         		List<IJavaProject> projs = new ArrayList<IJavaProject>(contents.length);
+        		boolean first = true;
         		for(String p : contents) {
+        			if (first) {
+        				// Skip the first (command)
+        				first = false;
+        				continue;
+        			}
         			IJavaProject proj = JDTUtility.getJavaProject(p);
         			if (proj == null) {
         				throw new IllegalArgumentException("Unknown project: "+proj);
