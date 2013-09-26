@@ -600,10 +600,6 @@ implements IBinderClient {
     public Source(final Kind k, final IRNode where, final Element value) {
       super(k, where, value);
     }
-//    
-//    public IRNode getAnnotatedNode(final IBinder binder) {
-//      return first().getAnnotatedNode(binder, second());
-//    }
     
     public static String setToString(final Set<Source> sources) {
       final List<String> strings = new ArrayList<String>();

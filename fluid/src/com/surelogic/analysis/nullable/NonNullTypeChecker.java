@@ -20,6 +20,7 @@ import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.StackQueryResult;
 import com.surelogic.analysis.type.checker.QualifiedTypeChecker;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.AnalysisResultDrop;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -63,6 +64,8 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   
   private IRNode receiverDecl = null;
 
+  private Set<PromiseDrop<?>> createdVirtualAnnotations;
+  
   
   
   public NonNullTypeChecker(final IBinder b,
@@ -70,6 +73,11 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     super(b);
     thisExprBinder = new ThisExpressionBinder(b);
     nonNullRawTypeAnalysis = nonNullRaw;
+    createdVirtualAnnotations = new ConcurrentHashSet<PromiseDrop<?>>();
+  }
+  
+  public void clearCaches() {
+    createdVirtualAnnotations.clear();
   }
   
   
@@ -192,7 +200,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
          * but skip the warning if the @Nullable is a virtual one added by
          * checkAssignability for reporting problems with @Raw.
          */
-        if (pd instanceof NullablePromiseDrop && !pd.isVirtual()) { // N.B. null is never an instance of anything
+        if (pd instanceof NullablePromiseDrop && !createdVirtualAnnotations.contains(pd)) { // N.B. null is never an instance of anything
           HintDrop hd = pd.addWarningHint(
               expr, isUnbox ? POSSIBLY_NULL_UNBOX : POSSIBLY_NULL);
           for (final IRNode readFrom : chain) {
@@ -232,7 +240,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
      * ELSE branch.
      */
     final PromiseDrop<?> declPD = getAnnotation(decl);
-    if (declPD != null && !declPD.isVirtual()) { // Skip virtual @Nullables
+    if (declPD != null && !createdVirtualAnnotations.contains(declPD)) { // Skip virtual @Nullables
       final StackQueryResult queryResult = currentQuery().getResultFor(expr);
       final Element declState = queryResult.getLattice().injectPromiseDrop(declPD);        
       final ResultsBuilder builder = new ResultsBuilder(declPD);
@@ -258,13 +266,17 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
           if (noAnnoIsNonNull) {
             final NonNullNode nn = new NonNullNode(0);
             nn.setPromisedFor(decl, null);
-            drop = new NonNullPromiseDrop(nn);
-            AnnotationRules.attachAsVirtual(NonNullRules.getNonNullStorage(), (NonNullPromiseDrop) drop);
+            final NonNullPromiseDrop viritualNonNull = new NonNullPromiseDrop(nn);
+            AnnotationRules.attachAsVirtual(NonNullRules.getNonNullStorage(), viritualNonNull);
+            createdVirtualAnnotations.add(viritualNonNull);
+            drop = viritualNonNull;
           } else {
             final NullableNode nn = new NullableNode(0);
             nn.setPromisedFor(decl, null);
-            drop = new NullablePromiseDrop(nn);
-            AnnotationRules.attachAsVirtual(NonNullRules.getNullableStorage(), (NullablePromiseDrop) drop);
+            final NullablePromiseDrop virtualNullable = new NullablePromiseDrop(nn);
+            AnnotationRules.attachAsVirtual(NonNullRules.getNullableStorage(), virtualNullable);
+            createdVirtualAnnotations.add(virtualNullable);
+            drop = virtualNullable;
           }
         } else {
           drop = declPD;
@@ -336,13 +348,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
         final IRNode vd = k.bind(where, binder, thisExprBinder);
         final StackQueryResult newQuery = currentQuery().getResultFor(where);
-        Base varValue;
-        try {
-          varValue = newQuery.lookupVar(vd);
-        } catch (ArrayIndexOutOfBoundsException e) {
-          k.bind(where, binder, thisExprBinder);
-          varValue = null;
-        }
+        final Base varValue = newQuery.lookupVar(vd);
         hasNegative |= testChain(testRawOnly, declState, varValue.second());
       } else {
         final Element srcState = src.third();

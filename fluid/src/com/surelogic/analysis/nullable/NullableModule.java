@@ -229,6 +229,7 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     public void clearCaches() {
       definiteAssignment.clearCaches();
       nonNullRawType.clearCaches();
+      typeChecker.clearCaches();
     }
     
     public void clear() {
