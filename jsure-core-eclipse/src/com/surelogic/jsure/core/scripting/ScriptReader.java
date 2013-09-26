@@ -28,6 +28,7 @@ import org.eclipse.jdt.core.IJavaProject;
 
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.java.JavaBuild;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
@@ -45,7 +46,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
   /**
    * Build after every command
    */
-  boolean autoBuild = true;
+  boolean autoBuild = false;
   boolean changed   = false;
   boolean buildNow  = false;
   final Map<String,Object> args = new HashMap<String, Object>();  
@@ -120,7 +121,20 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
     commands.put(ScriptCommands.RUN_JSURE, new AbstractCommand() {
         @Override
         public boolean execute(ICommandContext context, String... contents) throws Exception {
-            build();
+        	if (contents.length > 0) {
+        		// Lookup projects
+        		List<IJavaProject> projs = new ArrayList<IJavaProject>(contents.length);
+        		for(String p : contents) {
+        			IJavaProject proj = JDTUtility.getJavaProject(p);
+        			if (proj == null) {
+        				throw new IllegalArgumentException("Unknown project: "+proj);
+        			}
+        			projs.add(proj);
+        		}
+        		JavaBuild.analyze(JavacDriver.getInstance(), projs, IErrorListener.throwListener);
+        	} else {
+        		build();
+        	}
             return false;
         }        
     });

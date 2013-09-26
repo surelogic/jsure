@@ -51,6 +51,7 @@ public class CompareResults extends AbstractCommand {
 		final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
 		
 		System.out.println("Using oracle: "+oracle);		
+		System.out.println("Using current: "+info.getLabel());
 		ISeaDiff diff = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER, 
 				oracle, info);
 		
