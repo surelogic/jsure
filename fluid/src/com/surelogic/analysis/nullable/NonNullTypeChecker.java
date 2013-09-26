@@ -64,7 +64,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   
   private IRNode receiverDecl = null;
 
-  private Set<PromiseDrop<?>> createdVirtualAnnotations;
+  private static final Set<PromiseDrop<?>> createdVirtualAnnotations = new ConcurrentHashSet<PromiseDrop<?>>();
   
   
   
@@ -73,7 +73,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     super(b);
     thisExprBinder = new ThisExpressionBinder(b);
     nonNullRawTypeAnalysis = nonNullRaw;
-    createdVirtualAnnotations = new ConcurrentHashSet<PromiseDrop<?>>();
+    //createdVirtualAnnotations = new ConcurrentHashSet<PromiseDrop<?>>();
   }
   
   public void clearCaches() {
