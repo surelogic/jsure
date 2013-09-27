@@ -34,7 +34,10 @@ import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.logging.IErrorListener;
+import com.surelogic.javac.Projects;
+import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.jsure.core.driver.JavacDriver;
+import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 /**
  * Reads the script line by line
@@ -137,7 +140,16 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
         			}
         			projs.add(proj);
         		}
-        		JavaBuild.analyze(JavacDriver.getInstance(), projs, IErrorListener.throwListener);
+        		final Projects p = JavaBuild.analyze(JavacDriver.getInstance(), projs, IErrorListener.throwListener);        		
+        		// Wait for the current scan to update
+        		JSureScan current = null;
+        		do {
+        			if (current != null) {
+        				System.out.println("Waiting for current scan to update ...");
+        				Thread.sleep(1000);
+        			}
+        			current = JSureDataDirHub.getInstance().getCurrentScan();
+        		} while (!current.getDir().equals(p.getRunDir()));
         	} else {
         		build();
         	}
