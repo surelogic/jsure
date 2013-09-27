@@ -52,8 +52,8 @@ public final class VerifyProjectHandler extends
 			public SLStatus run(SLProgressMonitor monitor) {
 				JavacDriver.waitForBuild();
 
-				final boolean okay = JavaBuild.analyze(JavacDriver.getInstance(), selectedProjects,
-						BalloonUtility.errorListener);
+				final boolean okay = 
+						JavaBuild.analyze(JavacDriver.getInstance(), selectedProjects, BalloonUtility.errorListener) != null;
 				if (okay) {
 					showStartBalloon();
 				}
