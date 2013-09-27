@@ -858,7 +858,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
 
   @Override
   @SuppressWarnings({ "rawtypes" })
-  public void doExplicitBuild(Map args, boolean ignoreNature) {
+  public Projects doExplicitBuild(Map args, boolean ignoreNature) {
     JavacEclipse.initialize();
     if (script != null) {
       StringBuilder sb = new StringBuilder(ScriptCommands.RUN_JSURE);
@@ -867,11 +867,11 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
       }
       printToScript(sb.toString());
     }
-    super.doExplicitBuild(args, ignoreNature);
+    return super.doExplicitBuild(args, ignoreNature);
   }
 
   @Override
-  public void configureBuild(File location, boolean isAuto /* IProject p */, boolean ignoreNature) {
+  public Projects configureBuild(File location, boolean isAuto /* IProject p */, boolean ignoreNature) {
     // System.out.println("Finished 'build' for "+p);
     /*
      * //ProjectDrop.ensureDrop(p.getName(), p); final ProjectInfo info =
@@ -889,7 +889,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
       SLLogger.getLogger().fine("Configuring analyses for build");
       ((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
     }
-    super.configureBuild(location, isAuto, ignoreNature);
+    return super.configureBuild(location, isAuto, ignoreNature);
   }
 
   @Override
