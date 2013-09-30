@@ -124,35 +124,38 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
     commands.put(ScriptCommands.RUN_JSURE, new AbstractCommand() {
         @Override
         public boolean execute(ICommandContext context, String... contents) throws Exception {
-        	if (contents.length > 0) {
+        	final Projects p;
+        	if (contents.length > 1) {
         		// Lookup projects
         		List<IJavaProject> projs = new ArrayList<IJavaProject>(contents.length);
         		boolean first = true;
-        		for(String p : contents) {
+        		for(String arg : contents) {
         			if (first) {
         				// Skip the first (command)
         				first = false;
         				continue;
         			}
-        			IJavaProject proj = JDTUtility.getJavaProject(p);
+        			IJavaProject proj = JDTUtility.getJavaProject(arg);
         			if (proj == null) {
         				throw new IllegalArgumentException("Unknown project: "+proj);
         			}
         			projs.add(proj);
         		}
-        		final Projects p = JavaBuild.analyze(JavacDriver.getInstance(), projs, IErrorListener.throwListener);        		
-        		// Wait for the current scan to update
-        		JSureScan current = null;
-        		do {
-        			if (current != null) {
-        				System.out.println("Waiting for current scan to update ...");
-        				Thread.sleep(1000);
-        			}
-        			current = JSureDataDirHub.getInstance().getCurrentScan();
-        		} while (!current.getDir().equals(p.getRunDir()));
+        		p = JavaBuild.analyze(JavacDriver.getInstance(), projs, IErrorListener.throwListener);        		   
         	} else {
-        		build();
+        		p = build();
         	}
+     		if (p != null) {
+    			// Wait for the current scan to update
+    			JSureScan current = null;
+    			do {
+    				if (current != null) {
+    					System.out.println("Waiting for current scan to update ...");
+    					Thread.sleep(1000);
+    				}
+    				current = JSureDataDirHub.getInstance().getCurrentScan();
+    			} while (current == null || !current.getDir().equals(p.getRunDir()));
+    		}
             return false;
         }        
     });
@@ -387,10 +390,10 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	  // Nothing to do yet
   }
   
-  private void build() throws CoreException {	  
+  private Projects build() throws CoreException {	  
 	  //build(IncrementalProjectBuilder.CLEAN_BUILD); //OK
 	  //build(IncrementalProjectBuilder.FULL_BUILD); //NO
-	  build(IncrementalProjectBuilder.INCREMENTAL_BUILD); //NO
+	  return build(IncrementalProjectBuilder.INCREMENTAL_BUILD); //NO
 	  //build(IncrementalProjectBuilder.AUTO_BUILD); //NO?
 	  /*
 	  try {
@@ -403,7 +406,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	  */
   }
   
-  private void build(int kind) throws CoreException {
+  private Projects build(int kind) throws CoreException {
 	if (projects != null && !active.isEmpty()) {
 		try {
 			System.out.println("Sleeping to let the file system sync ...");
@@ -415,11 +418,12 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 
 		
 		System.out.println("Analyzing.");
-		JavaBuild.analyze(JavacDriver.getInstance(), new ArrayList<IJavaProject>(active), IErrorListener.throwListener);
+		Projects projs = JavaBuild.analyze(JavacDriver.getInstance(), new ArrayList<IJavaProject>(active), IErrorListener.throwListener);
 		System.out.println("FINISHED build for: ");
 		for(IJavaProject p : active) {
 			System.out.println("\t"+p.getElementName());
 		}
+		return projs;
 	} else {
 		System.out.println("build workspace");
 		ResourcesPlugin.getWorkspace().build(kind, null);
