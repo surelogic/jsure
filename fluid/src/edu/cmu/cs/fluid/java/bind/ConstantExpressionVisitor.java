@@ -74,7 +74,7 @@ public class ConstantExpressionVisitor extends Visitor<Object> {
   }
   
   public Boolean visitFalseExpression(IRNode e) {
-    return Boolean.TRUE;
+    return Boolean.FALSE;
   }
   
   @Override
