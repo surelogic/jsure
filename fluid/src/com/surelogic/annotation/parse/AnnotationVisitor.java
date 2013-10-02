@@ -516,14 +516,18 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return modifiers;
   }
 
-  private static boolean extractBoolean(IRNode valuePair, boolean defValue) {
+  private boolean extractBoolean(IRNode valuePair, boolean defValue) {
     IRNode value = ElementValuePair.getValue(valuePair);
+    Boolean rv = (Boolean) constExprVisitor.doAccept(value);
+    return rv.booleanValue();
+	/*
     if (TrueExpression.prototype.includes(value)) {
       return true;
     } else if (FalseExpression.prototype.includes(value)) {
       return false;
     }
     return defValue;
+    */
   }
 
   @Override
