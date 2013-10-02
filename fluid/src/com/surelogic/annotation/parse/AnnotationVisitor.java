@@ -29,6 +29,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.bind.ConstantExpressionVisitor;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
@@ -73,11 +74,13 @@ public class AnnotationVisitor extends Visitor<Integer> {
   TestResult nextResult = null;
   boolean clearResult = true;
   private final boolean allowJavadoc;
-
+  private final ConstantExpressionVisitor constExprVisitor;
+  
   public AnnotationVisitor(ITypeEnvironment te, String label) {
     tEnv = te;
     name = label;
     allowJavadoc = allowJavadoc(te);
+    constExprVisitor = new ConstantExpressionVisitor(te.getBinder());
   }
 
   public static boolean allowJavadoc(ITypeEnvironment te) {
@@ -441,8 +444,12 @@ public class AnnotationVisitor extends Visitor<Integer> {
     }
     return b.toString();
   }
-
+  
   String extractString(IRNode value) {
+	  return constExprVisitor.doAccept(value).toString();
+  }
+  
+  String extractString_old(IRNode value) {
 	final IBinder b = tEnv.getBinder();
 	final IJavaType t = b.getJavaType(value);
 	if (tEnv.getStringType().equals(t)) {
