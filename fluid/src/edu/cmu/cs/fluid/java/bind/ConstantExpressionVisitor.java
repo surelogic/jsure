@@ -80,8 +80,9 @@ public class ConstantExpressionVisitor extends Visitor<Object> {
   @Override
   public Character visitCharLiteral(final IRNode e) {
 	// TODO
+	// includes the single quotes
 	String value = CharLiteral.getToken(e);
-    return Character.valueOf(value.charAt(0));
+    return Character.valueOf(value.charAt(1));
   }
   
   @Override
