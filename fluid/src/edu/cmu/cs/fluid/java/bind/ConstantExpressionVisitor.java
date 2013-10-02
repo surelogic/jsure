@@ -45,6 +45,8 @@ public class ConstantExpressionVisitor extends Visitor<Object> {
   @Override
   public Number visitIntLiteral(final IRNode e) {
 	final String intStr = IntLiteral.getToken( e );
+	return parseIntLiteral(intStr);
+	/*
 	//For a Integer Literal in java Language, if the end of it is 'L' or 'l', then it is long type, 
 	//otherwise it is int type(not short or byte type). 
 	final int length = intStr.length();
@@ -54,6 +56,42 @@ public class ConstantExpressionVisitor extends Visitor<Object> {
 		return Long.parseLong(intStr.substring(0, length-1));
 	}
     return Integer.parseInt(intStr);
+    */
+  }
+  
+  private Number parseIntLiteral(String token) {
+	final Number i;
+	if (token.endsWith("L") || token.endsWith("l")) {
+        token = token.substring(0, token.length()-1);
+        if (token.startsWith("0")) { // hex or octal?
+          if (token.length() == 1) {
+            i = 0;
+          }
+          else if (token.startsWith("0x")) { // hex
+          i = Long.parseLong(token.substring(2), 16);
+          }
+          else {
+            i = Long.parseLong(token.substring(1), 8);
+          }
+        } else {
+          i = Long.parseLong(token);
+        } 
+      } else {
+        if (token.startsWith("0")) { // hex or octal?
+          if (token.length() == 1) {
+            i = 0;
+          }
+          else if (token.startsWith("0x")) { // hex
+          i = Integer.parseInt(token.substring(2), 16);
+          }
+          else {
+            i = Integer.parseInt(token.substring(1), 8);
+          }
+        } else {
+          i = Integer.parseInt(token);
+        } 
+      }
+	return i;
   }
   
   @Override
