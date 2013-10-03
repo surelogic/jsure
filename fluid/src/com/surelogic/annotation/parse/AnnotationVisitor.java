@@ -446,7 +446,11 @@ public class AnnotationVisitor extends Visitor<Integer> {
   }
   
   String extractString(IRNode value) {
-	  return constExprVisitor.doAccept(value).toString();
+	  try {
+		  return constExprVisitor.doAccept(value).toString();
+	  } catch(NullPointerException e) {
+		  return constExprVisitor.doAccept(value).toString();
+	  }
   }
   
   String extractString_old(IRNode value) {
