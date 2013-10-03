@@ -654,6 +654,10 @@ public class ConstantExpressionVisitor extends Visitor<Object> {
         TypeExpression.prototype.includes(objectExpr)) {
       // Check the field declaration
       final IRNode fdecl = binder.getBinding(e);
+      if (EnumConstantDeclaration.prototype.includes(fdecl)) {
+    	// TODO actually considered a const, but how to get the actual value?
+        return EnumConstantDeclaration.getId(fdecl);
+      }
       if (TypeUtil.isFinal(fdecl, false)) {
         // final, now check the initializer
         final IRNode init = VariableDeclarator.getInit(fdecl);
@@ -665,7 +669,7 @@ public class ConstantExpressionVisitor extends Visitor<Object> {
         }
       }
     }
-    return false;
+    return NO_CONST_VALUE;
   }
   
   
@@ -705,7 +709,7 @@ public class ConstantExpressionVisitor extends Visitor<Object> {
         JavaNode.wasImplicit(NonPolymorphicMethodCall.getArgs(e))) {
       return doAccept(NonPolymorphicMethodCall.getObject(e));
     } else {
-      return false;
+      return NO_CONST_VALUE;
     }
   }
   
