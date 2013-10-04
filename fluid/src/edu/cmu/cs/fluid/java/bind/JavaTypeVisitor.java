@@ -129,6 +129,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     IRNode dimEs       = ArrayCreationExpression.getAllocated( node );
     int dims           = ArrayCreationExpression.getUnallocated(node) +
                          JJNode.tree.numChildren(dimEs);
+    // TODO capture conversion
     return JavaTypeFactory.getArrayType( baseType, dims );
   }
   
@@ -215,6 +216,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitCastExpression(IRNode node) {
     IRNode decl = CastExpression.getType( node );
+    // TODO capture conversion
     return doAccept( decl );
   }
   
