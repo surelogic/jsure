@@ -58,6 +58,13 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
    * @param jt   The corresponding actual type
    */
   protected final IJavaType captureWildcardType(IJavaTypeFormal jtf, IRNode decl, IJavaType jt) {
+	  if (decl != jtf.getDeclaration()) {
+		  throw new IllegalStateException("Type formal doesn't match decl");
+	  }
+	  return captureWildcardType(binder, jtf, jt);
+  }
+  
+  public static final IJavaType captureWildcardType(IBinder binder, IJavaTypeFormal jtf, IJavaType jt) {
     if (jt instanceof IJavaWildcardType) {
       IJavaWildcardType wt = (IJavaWildcardType) jt;
  
@@ -70,7 +77,7 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
 
           * Otherwise, Si = Ti. 
 
-      Capture conversion on any type other than a parameterized type (§4.5) acts as an identity conversion (§5.1.1). Capture conversions never require a special action at run time and therefore never throw an exception at run time.
+      Capture conversion on any type other than a parameterized type (ï¿½4.5) acts as an identity conversion (ï¿½5.1.1). Capture conversions never require a special action at run time and therefore never throw an exception at run time.
 
       Capture conversion is not applied recursively.
       */
@@ -81,7 +88,7 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
     	  // It is a compile-time error if for any two classes (not interfaces) Vi and Vj,Vi is not a subclass of Vj or vice versa.
     	  
     	  // Note that the code below considers the type formals' bounds separately when computing the greatest lower bound
-    	  IRNode irBounds        = TypeFormal.getBounds(decl);   
+    	  IRNode irBounds        = TypeFormal.getBounds(jtf.getDeclaration());   
     	  IJavaReferenceType glb = JavaTypeFactory.computeGreatestLowerBound(binder, wt.getUpperBound(), irBounds);
     	  return JavaTypeFactory.getCaptureType(wt, JavaTypeFactory.nullType, glb); // 
       } else {
@@ -91,7 +98,7 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
     		  // then Si is a fresh type variable whose upper bound is Ui[A1 := S1, ..., An := Sn] and whose lower bound is Bi.
     		  return JavaTypeFactory.getCaptureType(wt, wt.getLowerBound(), formalBound);
     	  } else {
-    		  // If Ti is a wildcard type argument (§4.5.1) of the form ? 
+    		  // If Ti is a wildcard type argument (ï¿½4.5.1) of the form ? 
     		  // then Si is a fresh type variable whose upper bound is Ui[A1 := S1, ..., An := Sn] and whose lower bound is the null type.
     		  return JavaTypeFactory.getCaptureType(wt, JavaTypeFactory.nullType, formalBound);
     	  }
