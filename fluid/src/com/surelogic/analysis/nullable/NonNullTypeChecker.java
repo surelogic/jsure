@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
 
+import com.surelogic.aast.*;
 import com.surelogic.aast.promise.NonNullNode;
 import com.surelogic.aast.promise.NullableNode;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
@@ -30,6 +31,7 @@ import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
+import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -266,17 +268,11 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
           if (noAnnoIsNonNull) {
             final NonNullNode nn = new NonNullNode(0);
             nn.setPromisedFor(decl, null);
-            final NonNullPromiseDrop viritualNonNull = new NonNullPromiseDrop(nn);
-            AnnotationRules.attachAsVirtual(NonNullRules.getNonNullStorage(), viritualNonNull);
-            createdVirtualAnnotations.add(viritualNonNull);
-            drop = viritualNonNull;
+            drop = attachAsVirtual(NonNullRules.getNonNullStorage(), new NonNullPromiseDrop(nn));
           } else {
             final NullableNode nn = new NullableNode(0);
             nn.setPromisedFor(decl, null);
-            final NullablePromiseDrop virtualNullable = new NullablePromiseDrop(nn);
-            AnnotationRules.attachAsVirtual(NonNullRules.getNullableStorage(), virtualNullable);
-            createdVirtualAnnotations.add(virtualNullable);
-            drop = virtualNullable;
+            drop = attachAsVirtual(NonNullRules.getNullableStorage(), new NullablePromiseDrop(nn));
           }
         } else {
           drop = declPD;
@@ -291,6 +287,19 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     }
   }
 
+  private <A extends IAASTRootNode, T extends PromiseDrop<? super A>> T attachAsVirtual(IPromiseDropStorage<T> storage, T drop) {
+	  try {
+	     AnnotationRules.attachAsVirtual(storage, drop);
+         createdVirtualAnnotations.add(drop);
+         return drop;
+	  } catch(IllegalArgumentException e) {
+		 // Assumed to be already created
+		 drop.invalidate();
+		 return drop.getNode().getSlotValue(storage.getSlotInfo());
+		 //return storage.getDrops(drop.getNode()).iterator().next();
+	  }
+  }
+  
   private void buildNewChain(final boolean testRawOnly, 
       final IRNode rhsExpr, final AnalysisResultDrop parent,
       final Element declState, final Set<Source> sources) {
