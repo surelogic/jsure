@@ -709,9 +709,6 @@ implements IBinderClient {
     public Base(final Element nonNullState, final Kind k, final IRNode where) {
       this(nonNullState, EMPTY.addElement(new Source(k, where, nonNullState)));
     }
-//    
-//    public Element getNonNullState() { return first(); }
-//    public Set<Source> getSources() { return second(); } 
     
     @Override
     protected String secondToString(final ImmutableSet<Source> sources) {
@@ -744,10 +741,6 @@ implements IBinderClient {
     public Element injectPromiseDrop(final RawPromiseDrop pd) {
       return lattice1.injectPromiseDrop(pd);
     }
-    
-//    public Base injectValue(final Element v) {
-//      return newPair(v, ImmutableHashOrderSet.<Source>emptySet());
-//    }
     
     @Override
     public String toString(final Base b) {

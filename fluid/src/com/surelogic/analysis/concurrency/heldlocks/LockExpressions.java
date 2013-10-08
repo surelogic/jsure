@@ -329,7 +329,7 @@ final class LockExpressions {
     
     public LockExpressionVisitor(final IRNode mdecl, final LockUtils lu,
         final IBinder b, final BindingContextAnalysis bca) {
-      super(false, mdecl);
+      super(false, mdecl, true);
       this.bca = bca;
       lockUtils = lu;
       teb = new TEB(b, mdecl);

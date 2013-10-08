@@ -48,6 +48,10 @@ public final class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnaly
 	}	
 	
   private final class BCAVisitor extends AbstractJavaAnalysisDriver<BindingContextAnalysis.Query> {
+    public BCAVisitor() {
+      super(true);
+    }
+    
     @Override
     protected Query createNewQuery(final IRNode decl) {
       return getAnalysis().getExpressionObjectsQuery(decl);

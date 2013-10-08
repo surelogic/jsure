@@ -124,6 +124,10 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
   
   
   private final class Visitor extends AbstractJavaAnalysisDriver<QueryBundle> {
+    public Visitor() {
+      super(true);
+    }
+    
     @Override
     protected QueryBundle createNewQuery(final IRNode decl) {
       return getAnalysis().new QueryBundle(decl);
