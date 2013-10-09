@@ -33,7 +33,6 @@ public class AddUpdatePromisesLibraryHandler extends AbstractProjectSelectedMenu
     }
 
     for (IJavaProject jp : selectedProjects) {
-      System.out.println("scheduled job for " + jp.getProject().getName());
       SLUIJob job = PromisesJarUtility.getAddUpdatePromisesLibraryUIJob(jp);
       job.schedule();
     }
