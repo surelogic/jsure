@@ -62,6 +62,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedDeclInterface;
@@ -325,12 +326,19 @@ public class CommonAASTBinder extends AASTBinder {
       return null;
     }
     // Actually, this could be a method or a type
-    final IRNode decl = VisitUtil.getClosestClassBodyDecl(node.getPromisedFor());    
-    final IRNode rv    = JavaPromise.getQualifiedReceiverNodeByName(decl, type.getNode());
-    if (rv == null) {
-        JavaPromise.getQualifiedReceiverNodeByName(decl, type.getNode());
-    	return null;
-    /*
+    final IRNode decl;
+    IRNode temp = VisitUtil.getClosestClassBodyDecl(node.getPromisedFor());
+    if (FieldDeclaration.prototype.includes(temp)) {
+    	decl = VisitUtil.getEnclosingClassBodyDecl(temp);
+    } else {
+    	decl = temp;
+    }
+    try {
+    	final IRNode rv = JavaPromise.getQualifiedReceiverNodeByName(decl, type.getNode());
+    	if (rv == null) {
+    		JavaPromise.getQualifiedReceiverNodeByName(decl, type.getNode());
+    		return null;
+    		/*
     } else {
     	// Check for "other" refs to enclosing types
     	IRNode tdecl = VisitUtil.getClosestType(decl);
@@ -339,18 +347,22 @@ public class CommonAASTBinder extends AASTBinder {
     		// TODO how to explain why this doesn't "bind"?
     		return null;
     	}
-    */
+    		 */
+    	}
+    	return new IVariableBinding() {
+    		@Override
+    		public IJavaType getJavaType() {
+    			return type.getJavaType();
+    		}
+    		@Override
+    		public IRNode getNode() {  
+    			return rv;
+    		}
+    	};
+    } catch (Exception e) {
+    	e.printStackTrace();
+    	return null;
     }
-    return new IVariableBinding() {
-      @Override
-      public IJavaType getJavaType() {
-        return type.getJavaType();
-      }
-      @Override
-      public IRNode getNode() {  
-        return rv;
-      }
-    };
   }
 
   @Override
