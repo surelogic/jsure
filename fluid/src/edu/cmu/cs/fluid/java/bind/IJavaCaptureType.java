@@ -8,9 +8,11 @@ import com.surelogic.ast.ICaptureType;
 
 /**
  * "capture" type derived from a wildcard type
- * @author chance
+ * -- A fresh type variable with bounds, according to JLS 7, sec 5.1.10
+ * 
+ * @author edwin
  */
-public interface IJavaCaptureType extends IJavaReferenceType, ICaptureType {
+public interface IJavaCaptureType extends IJavaReferenceType, IJavaTypeVariable, ICaptureType {
   @Override
   IJavaWildcardType getWildcard();
   

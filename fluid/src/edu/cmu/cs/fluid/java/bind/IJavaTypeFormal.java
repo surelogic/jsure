@@ -15,7 +15,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * the type parameter.  It is substituted when the class is parameterized.
  * @author boyland
  */
-public interface IJavaTypeFormal extends IJavaSourceRefType, ITypeFormal {
+public interface IJavaTypeFormal extends IJavaSourceRefType, IJavaTypeVariable, ITypeFormal {
   /**
    * Get the IRNode associated with this type formal.
    * Don't use this method to get the bound.

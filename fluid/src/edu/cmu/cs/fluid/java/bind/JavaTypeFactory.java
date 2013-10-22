@@ -556,7 +556,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     	  }
           */
     	  //return b.convertType(convertNodeTypeToIJavaType(decl, binder));
-    	  return b.convertType(getMyThisType(decl, true));
+    	  return b.convertType(binder, getMyThisType(decl, true));
       }  
     } else if (op instanceof TypeRef) {
       IJavaType outer = convertNodeTypeToIJavaType(TypeRef.getBase(nodeType),binder);
@@ -564,7 +564,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       if (b == null) {
     	  return null;
       }
-      return b.convertType(getDeclaredType(b.getNode(),null,(IJavaDeclaredType)outer));
+      return b.convertType(binder, getDeclaredType(b.getNode(),null,(IJavaDeclaredType)outer));
     } else if (op instanceof TypeFormal) {
       return getTypeFormal(nodeType);      
     } else if (op instanceof TypeDeclInterface) {
@@ -610,7 +610,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       }
       IBinding baseB = binder.getIBinding(baseNode);
       if (baseB != null) {
-    	  return baseB.convertType(rv);
+    	  return baseB.convertType(binder, rv);
       }
       return rv;
     } else if (op instanceof WildcardSuperType) {
@@ -1163,6 +1163,10 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
     DebugUtil.println(out, indent, "TypeFormal: "); 
     JavaNode.dumpTree(out, declaration, indent+2);
   }
+
+  public IJavaReferenceType getUpperBound(ITypeEnvironment te) {
+	  return getExtendsBound();
+  }
 }
 
 class BoundedTypeFormal extends JavaTypeFormal {
@@ -1591,12 +1595,12 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
 
   @Override
   public String toSourceText() {
-	  throw new UnsupportedOperationException();
+	  return wildcard.toSourceText(); // TODO is this right?
   }
   
   @Override
   public String toFullyQualifiedText() {
-	  throw new UnsupportedOperationException();
+	  return wildcard.toFullyQualifiedText(); // TODO
   }
   
   @Override
@@ -1645,6 +1649,10 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
 		  return true;
 	  }
 	  return false;
+  }
+
+  public IJavaReferenceType getUpperBound(ITypeEnvironment te) {
+	  return getUpperBound();
   }
 }
 

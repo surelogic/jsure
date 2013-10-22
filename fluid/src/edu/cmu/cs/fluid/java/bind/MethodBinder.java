@@ -368,7 +368,7 @@ class MethodBinder {
         	}
     	}
 
-		void initSubstMap() { 	
+		void initSubstMap(IBinder binder) { 	
 	    	if (numTypeFormals != 0) {
 	    		int i = 0;
 	    		for(IRNode tf : JJNode.tree.children(typeFormals)) {
@@ -378,7 +378,7 @@ class MethodBinder {
 		    				JavaNames.getFullName(VisitUtil.getEnclosingDecl(jtf.getDeclaration())));
 	    			 */
 	    			if (search.numTypeArgs == 0) {    		
-	    				IJavaType subst = bind.convertType(jtf); 
+	    				IJavaType subst = bind.convertType(binder, jtf); 
 	    				substMap.put(jtf, subst); // FIX slow lookup
 	    			} else {
 	    				IRNode targ = search.call.targs[i];
@@ -419,7 +419,7 @@ class MethodBinder {
     		m.match = null;
     		return m; 
     	}    	
-    	m.initSubstMap();
+    	m.initSubstMap(binder);
     	
     	m.match = matchedParameters(s, allowBoxing, allowVarargs, m);    	
     	if (m.match == null && !m.substMap.isEmpty()) {
@@ -478,7 +478,7 @@ class MethodBinder {
     			IRNode ptype  = ParameterDeclaration.getType(fe.next());    		
     			fty = binder.getTypeEnvironment().convertNodeTypeToIJavaType(ptype);
     			
-    			fty = m.bind.convertType(fty);
+    			fty = m.bind.convertType(binder, fty);
     	
     			if (allowVarargs && ptype == varType) {
     				// Check if I need to use varargs

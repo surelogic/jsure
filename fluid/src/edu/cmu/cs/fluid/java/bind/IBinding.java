@@ -8,6 +8,9 @@ import com.surelogic.Nullable;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.parse.JJNode;
 
 /**
@@ -76,16 +79,55 @@ public interface IBinding {
    * @param ty type to substitute with
    * @return substitued type.
    */
-  public IJavaType convertType(IJavaType ty);
+  public IJavaType convertType(IBinder binder, IJavaType ty);
   
   public static class Null implements IBinding {
 	  IJavaTypeSubstitution getSubst() {
 		  return null;
 	  }
 	  @Override
-    public IJavaType convertType(IJavaType ty) {
+	  public IJavaType convertType(IBinder binder, final IJavaType ty) {
+		  return ty; // TODO
+		  //return captureWildcards(binder, ty);
+	  }
+	  
+	  // TODO where should this be called?
+	  static IJavaType captureWildcards(IBinder binder, final IJavaType ty) {
+		  // Check if it's parameterized
+		  if (ty instanceof IJavaDeclaredType) {
+			  final IJavaDeclaredType jdt = (IJavaDeclaredType) ty;			  
+			  final List<IJavaType> oldTypes = jdt.getTypeParameters();
+			  if (!oldTypes.isEmpty()) {
+				  final List<IJavaType> newTypes = new ArrayList<IJavaType>(oldTypes.size());
+				  final IRNode formals = getTypes(jdt.getDeclaration());
+				  boolean different = false;
+				  int i = 0;
+				  for(final IRNode formal : TypeFormals.getTypeIterator(formals)) {
+					  final IJavaTypeFormal jtf = JavaTypeFactory.getTypeFormal(formal);
+					  final IJavaType old = oldTypes.get(i);
+					  IJavaType t = AbstractTypeSubstitution.captureWildcardType(binder, jtf, old);
+					  newTypes.add(t);
+					  i++;
+					  if (old != t) {
+						  different = true;
+					  }
+				  }
+				  if (different) {					 				  
+					  return JavaTypeFactory.getDeclaredType(jdt.getDeclaration(), newTypes, jdt.getOuterType());
+				  }
+			  }
+		  }
 		  return ty;
 	  }
+	  
+	  private static IRNode getTypes(IRNode tdecl) {
+		  if (ClassDeclaration.prototype.includes(tdecl)) {
+			  return ClassDeclaration.getTypes(tdecl);
+		  } else {
+			  return InterfaceDeclaration.getTypes(tdecl);
+		  }
+	  }
+	  
 	  @Override
     public IJavaDeclaredType getContextType() {
 		  return null;
@@ -157,7 +199,7 @@ public interface IBinding {
     	final IJavaTypeSubstitution tSubst = new SimpleTypeSubstitution(tenv.getBinder(),tFormals,recType.getTypeParameters());
     	return new PartialBinding(mdecl,recType,recType) {
     		@Override
-    		public IJavaType convertType(IJavaType type) {
+    		public IJavaType convertType(IBinder binder, IJavaType type) {
     	          if (type == null) return null;
     	          if (mSubst != null) {
     	            return type.subst(mSubst).subst(tSubst);
@@ -198,7 +240,7 @@ public interface IBinding {
       if (mSubst == null) {
           return new PartialBinding(n, ty, recType) {
           	@Override
-              public IJavaType convertType(IJavaType type) {
+              public IJavaType convertType(IBinder binder, IJavaType type) {
                 if (type == null) return null;
                 return type.subst(subst);
               }
@@ -206,7 +248,7 @@ public interface IBinding {
       }
       return new PartialBinding(n, ty, recType) {
     	@Override
-        public IJavaType convertType(IJavaType type) {
+        public IJavaType convertType(IBinder binder, IJavaType type) {
     		if (type == null) return null;
     		return type.subst(mSubst).subst(subst);          
         }

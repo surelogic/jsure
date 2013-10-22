@@ -339,7 +339,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     if (n == null) {
     	return null;
     }
-    return b.convertType(doAccept( n ));
+    return b.convertType(binder, doAccept( n ));
   }
   
   @Override
@@ -479,10 +479,10 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
       }
       */
       IRNode returnType = MethodDeclaration.getReturnType( n );      
-      return b.convertType(binder.getTypeEnvironment().convertNodeTypeToIJavaType( returnType ));
+      return b.convertType(binder, binder.getTypeEnvironment().convertNodeTypeToIJavaType( returnType ));
     } else if (op instanceof AnnotationElement) {
       IRNode returnType = AnnotationElement.getType(n);
-      return b.convertType(binder.getTypeEnvironment().convertNodeTypeToIJavaType( returnType ));
+      return b.convertType(binder, binder.getTypeEnvironment().convertNodeTypeToIJavaType( returnType ));
     } else {
       return null;
     }
@@ -559,7 +559,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   	  }
     }
     */
-    return b.convertType(doAccept( n ));
+    return b.convertType(binder, doAccept( n ));
   }
   
   @Override
@@ -801,7 +801,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     if (b.getContextType() != null) {
       LOG.info("expected binding of local to have empty content: " + b);
     }
-    return b.convertType(doAccept( n )); // probably a NOP
+    return b.convertType(binder, doAccept( n )); // probably a NOP
   }
   
   @Override

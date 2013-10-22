@@ -521,10 +521,10 @@ public class JavaTypeInfoVisitor extends Visitor<JavaTypeInfoVisitor.TypeInfo> {
       }
       */
       IRNode returnType = MethodDeclaration.getReturnType( n );      
-      return b.convertType(binder.getTypeEnvironment().convertNodeTypeToIJavaType( returnType ));
+      return b.convertType(binder, binder.getTypeEnvironment().convertNodeTypeToIJavaType( returnType ));
     } else if (op instanceof AnnotationElement) {
       IRNode returnType = AnnotationElement.getType(n);
-      return b.convertType(binder.getTypeEnvironment().convertNodeTypeToIJavaType( returnType ));
+      return b.convertType(binder, binder.getTypeEnvironment().convertNodeTypeToIJavaType( returnType ));
     } else {
       return null;
     }
@@ -850,7 +850,7 @@ public class JavaTypeInfoVisitor extends Visitor<JavaTypeInfoVisitor.TypeInfo> {
 		  return NONE;
 	  }
 	  TypeInfo rv = doAccept( n );
-	  IJavaType temp = b.convertType(rv.type); // probably a NOP
+	  IJavaType temp = b.convertType(binder, rv.type); // probably a NOP
 	  if (temp != rv.type) {
 		  rv = getTypeInfo(temp);
 	  }

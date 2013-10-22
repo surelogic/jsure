@@ -43,8 +43,16 @@ public class JavaRefTypeProxy extends JavaReferenceType implements IJavaReferenc
 		}
 		if (complete != Boolean.FALSE) {
 			throw new IllegalStateException();
-		}
+		}		
 		type = t;	
+		complete = Boolean.TRUE;
+	}
+	
+	public IJavaReferenceType getResult() {
+		if (complete != Boolean.TRUE) {
+			throw new IllegalStateException();
+		}
+		return type;
 	}
 	
 	@Override

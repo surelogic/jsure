@@ -368,6 +368,9 @@ public class TypeUtils {
 			p = getProxy(types[0], types[1]);
 			Boolean complete = p.isComplete();
 			if (complete != null) {
+				if (complete) {
+					return p.getResult();
+				}
 				return p;				
 			}
 			// otherwise, we haven't started computing this yet
@@ -588,8 +591,8 @@ public class TypeUtils {
 					IJavaArrayType a = (IJavaArrayType) actual;
 					return derive(f.getElementType(), constraint/*.simplify()?*/, a.getElementType());
 				} 
-				else if (actual instanceof IJavaTypeFormal) {
-					IJavaTypeFormal a = (IJavaTypeFormal) actual;
+				else if (actual instanceof IJavaTypeVariable) {
+					IJavaTypeVariable a = (IJavaTypeVariable) actual;
 					return deriveForArray(f.getElementType(), constraint/*.simplify()?*/, a.getSuperclass(tEnv));
 				} 
 				map.markAsUnsatisfiable();
@@ -597,7 +600,12 @@ public class TypeUtils {
 			else if (formal instanceof IJavaDeclaredType) {
 				IJavaDeclaredType f = (IJavaDeclaredType) formal;
 				if (constraint == Constraint.CONVERTIBLE_TO) {
-					// This turns out to be pretty different from the cases below
+					// TODO is this right?
+					if (actual instanceof IJavaIntersectionType) {
+						IJavaIntersectionType it = (IJavaIntersectionType) actual;											
+						return derive(formal, constraint, it.getPrimarySupertype()) | derive(formal, constraint, it.getSecondarySupertype());
+					}
+					// This turns out to be pretty different from the cases below					
 					return deriveForDeclaredType_to(f, (IJavaDeclaredType) actual);
 				}
 				if (actual == JavaTypeFactory.anyType) {
@@ -607,11 +615,11 @@ public class TypeUtils {
 				// Find bounds that match f
 				return deriveForDeclaredType(f, constraint, (IJavaReferenceType) actual);							
 			}
-			else if (formal instanceof IJavaTypeFormal) {
+			else if (formal instanceof IJavaTypeVariable) {
 				// TODO check if this is one of the relevant type variables
 				if (map.subst.containsKey(formal)) {
 					// p.453: Otherwise, if F = Tj, then the constraint Tj :> A is implied.
-					IJavaTypeFormal f = (IJavaTypeFormal) formal;
+					IJavaTypeVariable f = (IJavaTypeVariable) formal;
 					IJavaReferenceType a = (IJavaReferenceType) actual;
 					constraints.add(new TypeConstraint(f, constraint.simplify(), a));
 				}
@@ -1201,11 +1209,11 @@ public class TypeUtils {
 	 * 15.12.2.7 Inferring Type Arguments Based on Actual Arguments
 	 */
 	private final class TypeConstraint {
-		final IJavaTypeFormal variable;
+		final IJavaTypeVariable variable;
 		final Constraint constraint;
 		final IJavaReferenceType bound;
 		
-		TypeConstraint(IJavaTypeFormal v, Constraint c, IJavaReferenceType x) {
+		TypeConstraint(IJavaTypeVariable v, Constraint c, IJavaReferenceType x) {
 			variable = v;
 			constraint = c;
 			bound = x;
@@ -1288,8 +1296,8 @@ public class TypeUtils {
 
 	private class GeneratedConstraints {
 		final Map<IJavaType,IJavaType> equalities = new HashMap<IJavaType, IJavaType>();
-		final MultiMap<IJavaTypeFormal, TypeConstraint> inequalities = 
-			new MultiHashMap<IJavaTypeFormal, TypeConstraint>();
+		final MultiMap<IJavaTypeVariable, TypeConstraint> inequalities = 
+			new MultiHashMap<IJavaTypeVariable, TypeConstraint>();
 	}
 	
 	/**
@@ -1353,7 +1361,7 @@ public class TypeUtils {
 		 * Given that these constraints are Tj :> U1 ... Tj :> Uk, the type of Tj is inferred
 		 * as lub(U1 ... Uk), computed as follows: 
 		 */
-		for(Map.Entry<IJavaTypeFormal, Collection<TypeConstraint>> e : generated.inequalities.entrySet()) {
+		for(Map.Entry<IJavaTypeVariable, Collection<TypeConstraint>> e : generated.inequalities.entrySet()) {
 			IJavaReferenceType[] inputs = new IJavaReferenceType[e.getValue().size()];
 			int i=0;
 			for(TypeConstraint c : e.getValue()) {
@@ -1547,7 +1555,7 @@ public class TypeUtils {
 						  //LOG.warning("what could a call be bound to? " + dop);
 						  return null;
 					  }
-					  return bi.convertType(tEnv.getBinder().getJavaType(JJNode.tree.getChild(formals, i)));
+					  return bi.convertType(tEnv.getBinder(), tEnv.getBinder().getJavaType(JJNode.tree.getChild(formals, i)));
 				  }
 			  }
 		  } 

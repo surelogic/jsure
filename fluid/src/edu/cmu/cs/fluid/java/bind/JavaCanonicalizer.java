@@ -1193,7 +1193,7 @@ public class JavaCanonicalizer {
       }
 
       @Override
-      public IJavaType convertType(IJavaType ty) {
+      public IJavaType convertType(IBinder binder, IJavaType ty) {
         if (subst == null) {
           IJavaDeclaredType ct = getContextType();
           if (ct != null) {
@@ -1203,7 +1203,7 @@ public class JavaCanonicalizer {
         if (subst != null) {
           return ty.subst(subst);
         }
-        return null;
+        return ty;
       }
     }
 
@@ -1278,7 +1278,7 @@ public class JavaCanonicalizer {
       }
       IRNode rtype = MethodDeclaration.getReturnType(mb.getNode());
       IJavaType rtypeT = binder.getJavaType(rtype);
-      IJavaDeclaredType itTB = (IJavaDeclaredType) mb.convertType(rtypeT);
+      IJavaDeclaredType itTB = (IJavaDeclaredType) mb.convertType(binder, rtypeT);
 
       // handle children
       doAcceptForChildren(stmt);

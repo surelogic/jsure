@@ -2553,7 +2553,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 	
 	private IJavaType getType(IBinding b) {
 		IJavaType t = AbstractJavaBinder.this.getJavaType(b.getNode());
-		return b.convertType(t);		
+		return b.convertType(AbstractJavaBinder.this, t);		
 	}
     
     @Override
@@ -2598,7 +2598,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IJavaScope scope;
       if (bbop instanceof TypeDeclaration) {
         IJavaType baseType = JavaTypeFactory.getMyThisType(baseBinding.getNode(), true);
-        scope = typeScope(baseBinding.convertType(baseType));
+        scope = typeScope(baseBinding.convertType(AbstractJavaBinder.this, baseType));
       } else if (bbop instanceof VariableDeclarator || bbop instanceof ParameterDeclaration) {
         scope = typeScope(getType(baseBinding));
       } else if (bbop instanceof NamedPackageDeclaration) {
