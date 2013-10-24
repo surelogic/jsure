@@ -722,7 +722,9 @@ public class JavaCanonicalizer {
       if (t instanceof IJavaTypeFormal) {
         IJavaTypeFormal f = (IJavaTypeFormal) t;
         String name = JJNode.getInfoOrNull(f.getDeclaration());
-        return createNamedType(name);
+        IRNode result = createNamedType(name);
+        addBinding(result, IBinding.Util.makeBinding(f.getDeclaration()));
+        return result;
       }
       if (t instanceof IJavaWildcardType) {
         IJavaWildcardType w = (IJavaWildcardType) t;
@@ -1483,11 +1485,10 @@ public class JavaCanonicalizer {
     @Override
     public Boolean visitNewExpression(IRNode node) {
       IRNode old = NewExpression.getType(node);
-      /*
-       * String unparse = DebugUnparser.toString(old); if
-       * ("Inner".equals(unparse)) {
-       * System.out.println("Found Inner: "+DebugUnparser.toString(node)); }
-       */
+      String unparse = DebugUnparser.toString(old);
+      if ("SecureIterator".equals(unparse)) {
+    	  System.out.println("Found Inner: "+DebugUnparser.toString(node)); 
+      }      
       boolean changed = doAcceptForChildren_rev(node);
       if (changed) {
         map(old, NewExpression.getType(node));
