@@ -414,7 +414,8 @@ public class JavaPromise extends JavaNode {
 		// Check if it's actually a normal receiver node
 		String name = JavaNames.getFullTypeName_local(type);
 		if (typeName.equals(name)) {
-			if (type != declNode) {
+			if (!type.equals(declNode)) {
+				// Probably a method decl
 				return getReceiverNode(declNode);
 			} else {
 				throw new IllegalStateException("No receiver node to get from "+JavaNames.getFullTypeName(type));
