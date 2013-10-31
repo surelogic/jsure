@@ -1530,6 +1530,9 @@ public class Util {
       @Override
       public int compare(CodeInfo o1, CodeInfo o2) {
         if (o1.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
+          if (o2.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
+              return o1.getFileName().compareTo(o2.getFileName());
+          }
           return Integer.MIN_VALUE;
         }
         if (o2.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
