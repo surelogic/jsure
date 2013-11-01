@@ -1883,7 +1883,7 @@ public class JavaCanonicalizer {
       IRNode rdecl = binder.getBinding(node);
       IRNode rtype = ReturnValueDeclaration.getType(rdecl);
       Operator top = tree.getOperator(rtype);
-      return top instanceof PrimitiveType ? PRIMITIVE_CONTEXT : ANY_CONTEXT;
+      return top instanceof PrimitiveType ? PRIMITIVE_CONTEXT : REFERENCE_CONTEXT;
     }
 
     @Override
