@@ -2,6 +2,8 @@ package edu.uwm.cs.fluid.util;
 
 import com.surelogic.common.util.*;
 
+import edu.cmu.cs.fluid.java.DebugUnparser;
+
 /**
  * An array lattice where each array element is associated with a index value.
  * @param <K> The type of the associative index values
@@ -49,6 +51,8 @@ public abstract class AssociativeArrayLattice<K, L extends Lattice<T>, T> extend
    */
   public final int indexOf(final K key) {
     for (int i = 0; i < indices.length; i++) {
+      StringBuilder sb = new StringBuilder();
+      indexToString(sb, i);
       if (indexEquals(key, indices[i])) return i;      
     }
     return -1;

@@ -558,7 +558,8 @@ implements IBinderClient {
         return EnumConstantDeclaration.getId(w);
       }
     },
-    STRING_LITERAL(962);
+    STRING_LITERAL(962),
+    VAR_ARGS(965);
     
     private final int msg;
     
@@ -1061,7 +1062,7 @@ implements IBinderClient {
       /* 
        * Parameters are initialized based on annotations.
        * 
-       * Caught exceptions—also parameter declarations—are always NOT_NULL.
+       * Caught exceptions, also parameter declarations, are always NOT_NULL.
        */
       for (int idx = 0; idx < lattice.getNumVariables(); idx++) {
         final IRNode v = lattice.getVariable(idx);
@@ -1623,6 +1624,20 @@ implements IBinderClient {
         return lattice.push(val,
             lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.VAR_USE, use));
       }
+    }
+
+    @Override
+    protected Value transferVarArgs(final IRNode node, Value val) {
+      if (!lattice.isNormal(val)) return val;
+      
+      // pop the array elements
+      val = pop(val, JJNode.tree.numChildren(node));
+      
+      /* Push a new non-null value indicating we have an implicitly 
+       * create array. 
+       */
+      return lattice.push(val,
+          lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.VAR_ARGS, node));
     }
   }
   

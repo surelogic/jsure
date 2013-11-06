@@ -137,6 +137,8 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
         return transferClassExpression(node, val);
       } else if (ParenExpression.prototype.includes(op)) {
         return transferParens(node, val);
+      } else if (VarArgsExpression.prototype.includes(op)) {
+        return transferVarArgs(node, val);
       }
     } else if (Statement.prototype.includes(op)) {
       if (BlockStatement.prototype.includes(op)) {
@@ -379,14 +381,15 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
   private T transferCall(final IRNode callNode, 
       T value, final Iterable<IRNode> actuals,
       final boolean hasOuter, final boolean isMethodCall) {
-    // pop actuals
-    // trickier than you might expect because of var args!
+    /* Used to worry about VarArgsExpression here, but now that I have
+     * added transferVarArgs, we don't have to do that any more.
+     */
     for (final IRNode arg : actuals) {
-      if (VarArgsExpression.prototype.includes(arg)) {
-        value = pop(value, callNode, tree.numChildren(arg));
-      } else {
+//      if (VarArgsExpression.prototype.includes(arg)) {
+//        value = pop(value, callNode, tree.numChildren(arg));
+//      } else {
         value = pop(value, callNode);
-      }
+//      }
     }
 
     // if constructor, pop qualifications
@@ -984,7 +987,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 */
   @Override
   protected T transferUse(IRNode node, Operator op, T value) {
-    if (op instanceof ThisExpression) {
+    if (op instanceof ThisExpression || op instanceof SuperExpression) {
       return transferUseReceiver(node, value);
     } else if (op instanceof VariableUseExpression)
       return transferUseVar(node, value);
@@ -994,20 +997,20 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
       return transferUseArrayLength(node, value);
     else if (op instanceof ArrayRefExpression)
       return transferUseArray(node, value);
-    else if (
-        op instanceof SuperExpression || op instanceof QualifiedSuperExpression)
-          return transferUseVar(node,value);
-     else if (op instanceof QualifiedThisExpression) {
-       final IRNode bindsTo = binder.getBinding(node);
-       if (bindsTo == null) {
-         // ERRROR!
-         LOG.warning("Cannot find binding for " + DebugUnparser.toString(node));
-         return push(value, node);
-       } else if (ReceiverDeclaration.prototype.includes(bindsTo)) {
-         return transferUseReceiver(node, value);
-       } else {
-         return transferUseQualifiedReceiver(node, bindsTo, value);
-       }
+//    else if (
+//        op instanceof SuperExpression || op instanceof QualifiedSuperExpression)
+//          return transferUseVar(node,value);
+    else if (op instanceof QualifiedThisExpression || op instanceof QualifiedSuperExpression) {
+      final IRNode bindsTo = binder.getBinding(node);
+      if (bindsTo == null) {
+        // ERRROR!
+        LOG.warning("Cannot find binding for " + DebugUnparser.toString(node));
+        return push(value, node);
+      } else if (ReceiverDeclaration.prototype.includes(bindsTo)) {
+        return transferUseReceiver(node, value);
+      } else {
+        return transferUseQualifiedReceiver(node, bindsTo, value);
+      }
     }
     else
       throw new FluidError("use is strange: " + op);
@@ -1077,7 +1080,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
   }
 
   /**
-   * Transfer evaluation over use of a ThisExpression or QualifiedThisExpression
+   * Transfer evaluation over use of a ThisExpression, SuperExpression, or QualifiedThisExpression
    * that is equivalent to a regular ThisExpression (e.g., "C.this" inside of 
    * class C).  <strong>leaf</strong>
    */
@@ -1092,6 +1095,14 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
    */
   protected abstract T transferUseQualifiedReceiver(
       IRNode qThis, IRNode qRcvr, T val);
+  
+  /**
+   * Transfer evaluation over the creation of an implicit array for
+   * a varargs argument. 
+   */
+  protected T transferVarArgs(IRNode node, T value) {
+    return push(pop(value, node, tree.numChildren(node)), node);
+  }
 
   /**
    * Transfer a lattice value over ^ connective. <strong>leaf </strong>

@@ -3,7 +3,4 @@ public operator VarArgsExpression extends Expression {
   syntax {
     arg:Expression */ ( <> "," <comma> ) 
   }
-  @Override public Component createComponent(IRNode node) {
-    return new SequenceComponent(node);
-  }
 }

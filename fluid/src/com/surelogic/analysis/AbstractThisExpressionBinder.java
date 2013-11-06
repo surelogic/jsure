@@ -9,6 +9,7 @@ import com.surelogic.aast.java.ThisExpressionNode;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.BinderWrapper;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.operator.QualifiedSuperExpression;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
@@ -69,7 +70,14 @@ public abstract class AbstractThisExpressionBinder extends BinderWrapper impleme
          * appearing in a static method.
          */
         return bindQualifiedReceiver(outerType, expr);
-      } else {
+      } else if (QualifiedSuperExpression.prototype.includes(op)) {
+        final IRNode outerType =
+            binder.getBinding(QualifiedSuperExpression.getType(expr));
+          /* We assume sanity here: that is, that a qualified receiver is not
+           * appearing in a static method.
+           */
+          return bindQualifiedReceiver(outerType, expr);
+        } else {
         return expr;
       }
     }
