@@ -171,7 +171,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    *         otherwise.
    */
   public boolean checksAPromise() {
-    return checksAPromiseHelper(this);
+    return checksAPromiseHelper(this, new HashSet<AnalysisResultDrop>());
   }
 
   /**
@@ -180,17 +180,24 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    * 
    * @param result
    *          a result.
+   * @param examined
+   *          the set of results already examined to guard against infinite
+   *          recursion.
    * @return {@code true} if the passed result checks a promise, {@code false}
    *         otherwise.
    */
-  private boolean checksAPromiseHelper(final AnalysisResultDrop result) {
+  private boolean checksAPromiseHelper(@NonNull final AnalysisResultDrop result, @NonNull final Set<AnalysisResultDrop> examined) {
     // directly checks a promise
     if (result.hasChecked())
       return true;
-    // indirectly checks a promise
-    for (final AnalysisResultDrop trustedByResult : result.getTrustedBy())
-      if (checksAPromiseHelper(trustedByResult))
-        return true;
+    // guard against infinite recursion
+    if (!examined.contains(result)) {
+      examined.add(result);
+      // indirectly checks a promise
+      for (final AnalysisResultDrop trustedByResult : result.getTrustedBy())
+        if (checksAPromiseHelper(trustedByResult, examined))
+          return true;
+    }
     // doesn't check a promise
     return false;
   }
