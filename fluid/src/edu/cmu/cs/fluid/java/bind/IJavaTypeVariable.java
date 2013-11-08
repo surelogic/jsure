@@ -1,11 +1,20 @@
 package edu.cmu.cs.fluid.java.bind;
 
+import edu.cmu.cs.fluid.ir.IRNode;
+
 /**
  * An interface to unify type formals and capture types
  * 
  * @author edwin
  */
 public interface IJavaTypeVariable extends IJavaType {
+	//public IRNode getDeclaration();
+	
+	/**
+	 * e.g. ? super X
+	 */
+	public IJavaReferenceType getLowerBound();
+	
 	/** Get the least upper bound (if any), e.g. ? extends X, 
 	 * by combining the upper bounds from the wildcard type and the type parameter.
 	 * (See JLS 7 page 63)
