@@ -322,6 +322,16 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
       return false;
     }    
     if (n2 != null) {
+      final ConstantExpressionVisitor v = new ConstantExpressionVisitor(getBinder());
+      Object value = v.doAccept(n2);
+      if (value instanceof Number && !(value instanceof Double || value instanceof Float)) {
+    	  final long i = ((Number) value).longValue();
+    	  if (i >= -128 && i < 128 && op1 instanceof ByteType) return true;
+          if (i >= -32768 && i < 32768 && op1 instanceof ShortType) return true;
+          if (i >= 0 && i < 65536 && op1 instanceof CharType) return true;
+          // otherwise, fall through to normal case.
+      }
+      /*
       Operator op = JJNode.tree.getOperator(n2);
       if (op instanceof ArithUnopExpression) {
     	  return arePrimTypesCompatible(t1, t2, UnopExpression.getOp(n2));    	  
@@ -334,6 +344,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
         if (i >= 0 && i < 65536 && op1 instanceof CharType) return true;
         // otherwise, fall through to normal case.
       }
+      */
     }
     // According to JLS: No primitive widening to a char type
     if (op1 instanceof CharType) return false;
