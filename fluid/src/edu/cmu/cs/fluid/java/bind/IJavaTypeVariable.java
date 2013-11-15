@@ -7,7 +7,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * 
  * @author edwin
  */
-public interface IJavaTypeVariable extends IJavaType {
+public interface IJavaTypeVariable extends IJavaReferenceType {
 	//public IRNode getDeclaration();
 	
 	/**
