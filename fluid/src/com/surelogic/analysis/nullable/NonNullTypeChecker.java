@@ -1,8 +1,11 @@
 package com.surelogic.analysis.nullable;
 
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.aast.*;
@@ -35,6 +38,7 @@ import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.Arguments;
@@ -93,6 +97,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     final IRNode oldReceiverDecl = receiverDecl;
     try {
       receiverDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
+      System.out.println("NonNull: " + JavaNames.genQualifiedMethodConstructorName(mdecl));
       super.handleMethodDeclaration(mdecl);
     } finally {
       receiverDecl = oldReceiverDecl;
@@ -104,6 +109,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     final IRNode oldReceiverDecl = receiverDecl;
     try {
       receiverDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
+      System.out.println("NonNull: " + JavaNames.genQualifiedMethodConstructorName(cdecl));
       super.handleConstructorDeclaration(cdecl);
     } finally {
       receiverDecl = oldReceiverDecl;
@@ -299,21 +305,35 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
 		 //return storage.getDrops(drop.getNode()).iterator().next();
 	  }
   }
-  
+
   private void buildNewChain(final boolean testRawOnly, 
       final IRNode rhsExpr, final AnalysisResultDrop parent,
       final Element declState, final Set<Source> sources) {
+    buildNewChain(testRawOnly, rhsExpr, parent, declState, sources,
+        new HashMap<IRNode, AnalysisResultDrop>());
+  }
+  
+  private void buildNewChain(final boolean testRawOnly, 
+      final IRNode rhsExpr, final AnalysisResultDrop parent,
+      final Element declState, final Set<Source> sources,
+      final Map<IRNode, AnalysisResultDrop> visitedUseSites) {
     for (final Source src : sources) {
       final Kind k = src.first();
       final IRNode where = src.second();
         
       if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
-        final IRNode vd = k.bind(where, binder, thisExprBinder);
-        final StackQueryResult newQuery = currentQuery().getResultFor(where);
-        final Base varValue = newQuery.lookupVar(vd);
-        final ResultFolderDrop f = ResultsBuilder.createAndFolder(
-            parent, where, READ_FROM, READ_FROM, DebugUnparser.toString(where));
-        buildNewChain(testRawOnly, rhsExpr, f, declState, varValue.second());
+        final AnalysisResultDrop x = visitedUseSites.get(where);
+        if (x != null) {
+          parent.addTrusted(x);
+        } else {
+          final IRNode vd = k.bind(where, binder, thisExprBinder);
+          final StackQueryResult newQuery = currentQuery().getResultFor(where);
+          final Base varValue = newQuery.lookupVar(vd);
+          final ResultFolderDrop f = ResultsBuilder.createAndFolder(
+              parent, where, READ_FROM, READ_FROM, DebugUnparser.toString(where));
+          visitedUseSites.put(where, f);
+          buildNewChain(testRawOnly, rhsExpr, f, declState, varValue.second(), visitedUseSites);
+        }
       } else {
         final Element srcState = src.third();
         if (!testRawOnly || (srcState == NonNullRawLattice.RAW || srcState instanceof ClassElement)) {
@@ -344,9 +364,15 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       }
     }
   }
-  
+
   private boolean testChain(
       final boolean testRawOnly, final Element declState, final Set<Source> sources) {
+    return testChain(testRawOnly, declState, sources, new HashSet<IRNode>());
+  }
+  
+  private boolean testChain(
+      final boolean testRawOnly, final Element declState, final Set<Source> sources,
+      final Set<IRNode> visitedUseSites) {
     boolean hasNegative = false;
     final Iterator<Source> it = sources.iterator();
     while (it.hasNext() && !hasNegative) {
@@ -355,10 +381,13 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
       final IRNode where = src.second();
         
       if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
-        final IRNode vd = k.bind(where, binder, thisExprBinder);
-        final StackQueryResult newQuery = currentQuery().getResultFor(where);
-        final Base varValue = newQuery.lookupVar(vd);
-        hasNegative |= testChain(testRawOnly, declState, varValue.second());
+        if (!visitedUseSites.contains(where)) {
+          visitedUseSites.add(where);
+          final IRNode vd = k.bind(where, binder, thisExprBinder);
+          final StackQueryResult newQuery = currentQuery().getResultFor(where);
+          final Base varValue = newQuery.lookupVar(vd);
+          hasNegative |= testChain(testRawOnly, declState, varValue.second(), visitedUseSites);
+        }
       } else {
         final Element srcState = src.third();
         if (!testRawOnly || (srcState == NonNullRawLattice.RAW || srcState instanceof ClassElement)) {

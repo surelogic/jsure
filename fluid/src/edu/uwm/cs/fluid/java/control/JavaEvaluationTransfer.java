@@ -388,7 +388,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
     /* Used to worry about VarArgsExpression here, but now that I have
      * added transferVarArgs, we don't have to do that any more.
      */
-    for (final IRNode arg : actuals) {
+    for (@SuppressWarnings("unused") final IRNode arg : actuals) {
 //      if (VarArgsExpression.prototype.includes(arg)) {
 //        value = pop(value, tree.numChildren(arg));
 //      } else {

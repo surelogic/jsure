@@ -39,6 +39,7 @@ import edu.cmu.cs.fluid.java.operator.Annotations;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
 import edu.cmu.cs.fluid.java.operator.BooleanType;
 import edu.cmu.cs.fluid.java.operator.ByteType;
+import edu.cmu.cs.fluid.java.operator.CharLiteral;
 import edu.cmu.cs.fluid.java.operator.CharType;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
@@ -48,11 +49,15 @@ import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DoubleType;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.Extensions;
+import edu.cmu.cs.fluid.java.operator.FalseExpression;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.FloatLiteral;
 import edu.cmu.cs.fluid.java.operator.FloatType;
 import edu.cmu.cs.fluid.java.operator.Implements;
 import edu.cmu.cs.fluid.java.operator.ImpliedEnumConstantInitialization;
 import edu.cmu.cs.fluid.java.operator.ImportDeclarations;
+import edu.cmu.cs.fluid.java.operator.Initialization;
+import edu.cmu.cs.fluid.java.operator.IntLiteral;
 import edu.cmu.cs.fluid.java.operator.IntType;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.LongType;
@@ -66,11 +71,14 @@ import edu.cmu.cs.fluid.java.operator.NestedInterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.NoDefaultValue;
 import edu.cmu.cs.fluid.java.operator.NoInitialization;
 import edu.cmu.cs.fluid.java.operator.NoMethodBody;
+import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.ShortType;
 import edu.cmu.cs.fluid.java.operator.SimpleEnumConstantDeclaration;
+import edu.cmu.cs.fluid.java.operator.StringLiteral;
 import edu.cmu.cs.fluid.java.operator.Throws;
+import edu.cmu.cs.fluid.java.operator.TrueExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclarations;
 import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.TypeRef;
@@ -331,7 +339,7 @@ public class ClassAdapter extends AbstractAdapter {
     }
   }
 
-  public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, Object value) {
+  public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, final Object value) {
     if ((access & Opcodes.ACC_PRIVATE) != 0) {
       return null;
     }
@@ -379,7 +387,8 @@ public class ClassAdapter extends AbstractAdapter {
           new SignatureReader(signature).accept(tv);
           type = tv.getType();
         }
-        IRNode vdecl = VariableDeclarator.createNode(name, 0, NoInitialization.prototype.jjtCreate());
+        IRNode init = createInit(name, value);
+        IRNode vdecl = VariableDeclarator.createNode(name, 0, init);
         IRNode vars = VariableDeclarators.createNode(new IRNode[] { vdecl });
         IRNode result = FieldDeclaration.createNode(annos, mods, type, vars);
         members.add(result);
@@ -388,6 +397,55 @@ public class ClassAdapter extends AbstractAdapter {
 
   }
 
+  IRNode createInit(String name, Object value) {
+	  if (value != null) {		  
+		  IRNode v = createValue(value);
+		  if (v != null) {
+			  return Initialization.createNode(v);
+		  }
+	  }
+	  //TODO null for enums?
+	  return NoInitialization.prototype.jjtCreate();
+  }
+
+  IRNode createValue(Object value) {
+	  if (value instanceof String) {
+	      String s = (String) value;
+	      if (SourceAdapter.includeQuotesInStringLiteral) {
+	        if (s.length() == 0) {
+	          s = "\"\"";
+	        } else {
+	          s = '\"' + s + '\"';
+	        }
+	      }
+		  return StringLiteral.createNode((String) s);		  
+	  }
+	  if (value instanceof Boolean) {
+		  return ((Boolean) value).booleanValue() ? TrueExpression.prototype.jjtCreate() : FalseExpression.prototype.jjtCreate();			  
+	  }
+	  if (value instanceof Integer) {
+		  return IntLiteral.createNode(CommonStrings.valueOf((Integer) value)); // FIX
+	  }
+	  if (value instanceof Long) {
+	      return IntLiteral.createNode(value.toString() + 'L'); // FIX
+	  }
+	  if (value instanceof Double) {
+	      return FloatLiteral.createNode(value.toString()); // FIX
+	  }
+	  if (value instanceof Float) {
+	      return FloatLiteral.createNode(value.toString() + 'f'); // FIX
+	  }
+	  if (value instanceof Character) {
+	      Character c = (Character) value;
+	      return CharLiteral.createNode("'\\u" + Integer.toHexString(c.charValue()) + "'");
+	  }	  
+	  //return NullLiteral.prototype.jjtCreate();
+	  if (value != null) {
+		  throw new IllegalStateException("Unable to create literal for "+value);
+	  }
+	  return null;
+  }
+  
   private class FieldDeclVisitor extends TypeVisitor {
     @Override
     public SignatureVisitor visitSuperclass() {

@@ -88,7 +88,6 @@ import edu.cmu.cs.fluid.java.operator.StringLiteral;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclarationStatement;
 import edu.cmu.cs.fluid.java.operator.UnboxExpression;
-import edu.cmu.cs.fluid.java.operator.VarArgsExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
@@ -659,37 +658,37 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         throw new FluidError("#formals != #actuals");
       }
       
-      /* Handle varargs: If the last actual argument is a VarArgsExpression, we 
-       * have to deal with the fact that in reality the final argument is a 
-       * an array: That is, if the called method is 
-       * 
-       *   void foo(int x, Object... y) { ... }
-       *   
-       * and the call is "foo(a, b, c, d)", we really have the call
-       * "foo(a, new Object[] { b, c, d, })".  So we need to simulate the 
-       * array assignments for the last 3 arguments, and then push a new 
-       * object on the stack to account for the array.  Then we check that 
-       * new object against the last declared formal parameter.
-       */
-      final IRNode lastActual = JJNode.tree.getChild(actuals, numActuals - 1);
-      if (VarArgsExpression.prototype.includes(lastActual)) {
-        // compromise each actual argument that is part of the var args expression
-        final int numActualsInArray = JJNode.tree.numChildren(lastActual);
-        for (int count = numActualsInArray - 1; count >= 0; count--) {
-          if (!s.isValid()) return s;
-          s = lattice.opCompromise(s, JJNode.tree.getChild(lastActual, count),
-              Messages.COMPROMISED_BY_VARARGS_ASSIGNMENT,
-              DebugUnparser.toString(lastActual));
-        }
+//      /* Handle varargs: If the last actual argument is a VarArgsExpression, we 
+//       * have to deal with the fact that in reality the final argument is a 
+//       * an array: That is, if the called method is 
+//       * 
+//       *   void foo(int x, Object... y) { ... }
+//       *   
+//       * and the call is "foo(a, b, c, d)", we really have the call
+//       * "foo(a, new Object[] { b, c, d, })".  So we need to simulate the 
+//       * array assignments for the last 3 arguments, and then push a new 
+//       * object on the stack to account for the array.  Then we check that 
+//       * new object against the last declared formal parameter.
+//       */
+//      final IRNode lastActual = JJNode.tree.getChild(actuals, numActuals - 1);
+//      if (VarArgsExpression.prototype.includes(lastActual)) {
+//        // compromise each actual argument that is part of the var args expression
+//        final int numActualsInArray = JJNode.tree.numChildren(lastActual);
+//        for (int count = numActualsInArray - 1; count >= 0; count--) {
+//          if (!s.isValid()) return s;
+//          s = lattice.opCompromise(s, JJNode.tree.getChild(lastActual, count),
+//              Messages.COMPROMISED_BY_VARARGS_ASSIGNMENT,
+//              DebugUnparser.toString(lastActual));
+//        }
+//        if (!s.isValid()) return s;
+//        // push a new object to represent the array
+//        s = lattice.opNew(s);
+//      } else {
+//        /* Make sure we have a valid store below; we have a valid store coming
+//         * out of the true branch already.
+//         */
         if (!s.isValid()) return s;
-        // push a new object to represent the array
-        s = lattice.opNew(s);
-      } else {
-        /* Make sure we have a valid store below; we have a valid store coming
-         * out of the true branch already.
-         */
-        if (!s.isValid()) return s;
-      }
+//      }
       
       for (int n = numActuals - 1; n >= 0; n--) {
         final IRNode formal = formals != null ? tree.getChild(formals, n) : null;
@@ -1517,6 +1516,36 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         
         return newStore;
       }
+    }
+    
+    @Override
+    protected Store transferVarArgs(final IRNode node, Store s) {
+      if (!s.isValid()) return s;
+
+      /* In reality the final argument is an array: That is, if the
+       * called method is 
+       * 
+       *   void foo(int x, Object... y) { ... }
+       *   
+       * and the call is "foo(a, b, c, d)", we really have the call
+       * "foo(a, new Object[] { b, c, d, })".  So we need to simulate the 
+       * array assignments for the last 3 arguments, and then push a new 
+       * object on the stack to account for the array.  Then we check that 
+       * new object against the last declared formal parameter.
+       */
+
+      // compromise each actual argument that is part of the var args expression
+      final int numActualsInArray = JJNode.tree.numChildren(node);
+      for (int count = numActualsInArray - 1; count >= 0; count--) {
+        if (!s.isValid()) return s;
+        s = lattice.opCompromise(s, JJNode.tree.getChild(node, count),
+            Messages.COMPROMISED_BY_VARARGS_ASSIGNMENT,
+            DebugUnparser.toString(node));
+      }
+      if (!s.isValid()) return s;
+
+      // push a new object to represent the array
+      return lattice.opNew(s);
     }
     
     private IRNode effectformal(Effect x) {
