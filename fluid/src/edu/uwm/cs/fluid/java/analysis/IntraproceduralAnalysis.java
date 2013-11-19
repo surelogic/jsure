@@ -7,6 +7,7 @@ package edu.uwm.cs.fluid.java.analysis;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,6 +46,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 import edu.cmu.cs.fluid.version.Version;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
+import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 import edu.uwm.cs.fluid.control.LabeledLattice.LabeledValue;
 import edu.uwm.cs.fluid.util.Lattice;
 
@@ -68,6 +70,11 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
 
   public static final SyntaxTreeInterface tree = JJNode.tree;
 
+  private final Map<Pair<IRNode, Version>, AnalysisGaveUp> gaveUpOn =
+      new HashMap<Pair<IRNode, Version>, AnalysisGaveUp>();
+  
+  
+  
   /** Allocate an anonymous analysis. */
   protected IntraproceduralAnalysis(IBinder b) {
 	  this(b, false);
@@ -295,53 +302,69 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
 	 */
   public final A getAnalysis(IRNode flowUnit) {
     final boolean debug = LOG.isLoggable(Level.FINE);
-    
     Version v = Version.getVersion();
-    if (useMapCache) {
-    	final A fa;
-    	synchronized (mapCache) {
-    	  final Pair<IRNode, Version> key = Pair.getInstance(flowUnit, v);
-    		A temp = mapCache.get(key);
-    		if (temp == null) {
-    			// Start with uncomputed analysis
-    			temp = createAnalysis(flowUnit);
-    			mapCache.put(key, temp);
-    		}
-    		fa = temp;
-		}    
-    	synchronized (fa) {
-        	// Compute if necessary
-    		if (!fa.isComputed()) {
-    			computeAnalysis(flowUnit, v, debug, fa);
-    			fa.setComputed();
-    		}
-    	}
-    	return fa;
-    }    
-    IntraproceduralAnalysisCache<T, L, A> c = cache;
-    int cached = 0;
-    while (c.flowUnit != flowUnit || c.version != v) {
-      // System.out.println("Rejecting " + c.toString());
-      c = c.getNext();
-      if (c == cache) { // back to the front; no analysis found
-    	A fa = computeAnalysis(flowUnit, v, debug);
-        c = new IntraproceduralAnalysisCache<T, L, A>(flowUnit, v, fa);
-        
-        if (cached >= maxCached) {
-          // System.out.println("Flushing " + cache.getPrev().toString());
-          cache.getPrev().unlink();
-        }
-        break;
+    
+    // Don't redo work if the analysis already timed out on the flow unit
+    final Pair<IRNode, Version> key = Pair.getInstance(flowUnit, v);
+    synchronized (gaveUpOn) {
+      final AnalysisGaveUp e = gaveUpOn.get(key);
+      if (e != null) {
+        throw new AnalysisGaveUp(e);
       }
-      ++cached;
     }
-    if (c != cache) { // put in front.
-      c.unlink();
-      c.link(cache);
-      cache = c;
+    
+    try {
+      if (useMapCache) {
+      	final A fa;
+      	synchronized (mapCache) {
+  //    	  final Pair<IRNode, Version> key = Pair.getInstance(flowUnit, v);
+      		A temp = mapCache.get(key);
+      		if (temp == null) {
+      			// Start with uncomputed analysis
+      			temp = createAnalysis(flowUnit);
+      			mapCache.put(key, temp);
+      		}
+      		fa = temp;
+  		}    
+      	synchronized (fa) {
+          	// Compute if necessary
+      		if (!fa.isComputed()) {
+      			computeAnalysis(flowUnit, v, debug, fa);
+      			fa.setComputed();
+      		}
+      	}
+      	return fa;
+      }    
+      IntraproceduralAnalysisCache<T, L, A> c = cache;
+      int cached = 0;
+      while (c.flowUnit != flowUnit || c.version != v) {
+        // System.out.println("Rejecting " + c.toString());
+        c = c.getNext();
+        if (c == cache) { // back to the front; no analysis found
+      	A fa = computeAnalysis(flowUnit, v, debug);
+          c = new IntraproceduralAnalysisCache<T, L, A>(flowUnit, v, fa);
+          
+          if (cached >= maxCached) {
+            // System.out.println("Flushing " + cache.getPrev().toString());
+            cache.getPrev().unlink();
+          }
+          break;
+        }
+        ++cached;
+      }
+      if (c != cache) { // put in front.
+        c.unlink();
+        c.link(cache);
+        cache = c;
+      }
+      // System.out.println("Found " + c.toString());
+      return c.analysis;
+    } catch (final AnalysisGaveUp e2) {
+      synchronized (gaveUpOn) {
+        gaveUpOn.put(key, e2);
+      }
+      throw e2;
     }
-    // System.out.println("Found " + c.toString());
-    return c.analysis;
   }
 
   private A computeAnalysis(final IRNode flowUnit, final Version v, final boolean debug) {

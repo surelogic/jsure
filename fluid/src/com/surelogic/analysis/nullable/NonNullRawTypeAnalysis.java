@@ -390,7 +390,7 @@ implements IBinderClient {
     final StateLattice stateLattice = new StateLattice(rawVariables, new InferredLattice(rawLattice, varsToInfer));
     final Lattice lattice = new Lattice(baseLattice, stateLattice);
     final Transfer t = new Transfer(flowUnit, binder, lattice, 0);
-    return new JavaForwardAnalysis<Value, Lattice>("NonNull and Raw Types", lattice, t, DebugUnparser.viewer);
+    return new JavaForwardAnalysis<Value, Lattice>("NonNull and Raw Types", lattice, t, DebugUnparser.viewer, true);
   }
   
   
@@ -1657,7 +1657,7 @@ implements IBinderClient {
         final Value initialValue,
         final boolean terminationNormal) {
       final Transfer t = new Transfer(flowUnit, binder, lattice, 0);
-      return new JavaForwardAnalysis<Value, Lattice>("sub analysis", lattice, t, DebugUnparser.viewer);
+      return new JavaForwardAnalysis<Value, Lattice>("sub analysis", lattice, t, DebugUnparser.viewer, true);
     }
   }
 

@@ -1,6 +1,9 @@
 package com.surelogic.analysis.nullable;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
@@ -36,9 +39,13 @@ import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
 public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule.AnalysisBundle, Unused>{
+  private static final long NANO_SECONDS_PER_SECOND = 1000000000L;
+
   private static final int NON_NULL_LOCAL_CATEGORY = 900;
+  private static final int TIME_OUT_CATEGORY = 901;
   
   private static final int DEFINITELY_ASSIGNED = 900;
   private static final int NOT_DEFINITELY_ASSIGNED = 901;
@@ -51,6 +58,8 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
   private static final int TRIVIAL_PARAMETER = 971;
   private static final int TRIVIAL_FIELD = 972;
   private static final int TRIVIAL_UNKNOWN = 973;
+  
+  private static final int TIME_OUT = 980;
   
   
   
@@ -151,19 +160,33 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     @Override
     public Void visitMethodBody(final IRNode body) {
       doAcceptForChildren(body);
-      final Inferred result = currentQuery().getInferred(body);
-      for (final InferredVarState p : result) {
-        /* 
-         * Cannot put proposed promises on local variable declarations.
-         * use info drops instead.
-         */
-        final IRNode varDecl = p.getLocal();
-        if (p.getState() == NonNullRawLattice.NOT_NULL) {
-          final IRNode where = JJNode.tree.getParent(JJNode.tree.getParent(varDecl));
-          final HintDrop hint = HintDrop.newInformation(where);
-          hint.setCategorizingMessage(NON_NULL_LOCAL_CATEGORY);
-          hint.setMessage(LOCAL_NON_NULL, VariableDeclarator.getId(varDecl));
+      final long startTime = System.nanoTime();
+      try {
+        final Inferred result = currentQuery().getInferred(body);
+        for (final InferredVarState p : result) {
+          /* 
+           * Cannot put proposed promises on local variable declarations.
+           * use info drops instead.
+           */
+          final IRNode varDecl = p.getLocal();
+          if (p.getState() == NonNullRawLattice.NOT_NULL &&
+              NonNullRules.getNonNull(varDecl) == null) {
+            final IRNode where = JJNode.tree.getParent(JJNode.tree.getParent(varDecl));
+            final HintDrop hint = HintDrop.newInformation(where);
+            hint.setCategorizingMessage(NON_NULL_LOCAL_CATEGORY);
+            hint.setMessage(LOCAL_NON_NULL, VariableDeclarator.getId(varDecl));
+          }
         }
+      } catch (final AnalysisGaveUp e) {
+        final long endTime = System.nanoTime();
+        final long duration = endTime - startTime;
+        final String name = JavaNames.genQualifiedMethodConstructorName(JJNode.tree.getParent(body));
+        final ResultDrop rd = new ResultDrop(JJNode.tree.getParent(body));
+        rd.setTimeout();
+        rd.setCategorizingMessage(TIME_OUT_CATEGORY);
+        rd.setMessage(TIME_OUT, e.timeOut / NANO_SECONDS_PER_SECOND,
+            name, duration / NANO_SECONDS_PER_SECOND);
+        getAnalysis().addTimeOut(body);
       }
       return null;
     }
@@ -209,7 +232,8 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     private final IBinder binder;
     private final DefinitelyAssignedAnalysis definiteAssignment;
     private final NonNullRawTypeAnalysis nonNullRawType;
-    private final NonNullTypeChecker typeChecker;
+//    private final NonNullTypeChecker typeChecker;
+    private final Set<IRNode> timedOutMethodBodies = new HashSet<IRNode>();
     
     
     
@@ -217,10 +241,12 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
       binder = b;
       definiteAssignment = new DefinitelyAssignedAnalysis(b, false);
       nonNullRawType = new NonNullRawTypeAnalysis(b);
-      typeChecker = new NonNullTypeChecker(b, nonNullRawType);
+//      typeChecker = new NonNullTypeChecker(b, nonNullRawType);
     }
     
     public void typeCheck(final IRNode cu) {
+      final NonNullTypeChecker typeChecker =
+          new NonNullTypeChecker(binder, nonNullRawType, timedOutMethodBodies);
       typeChecker.doAccept(cu);
     }
     
@@ -233,11 +259,20 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     public void clearCaches() {
       definiteAssignment.clearCaches();
       nonNullRawType.clearCaches();
-      typeChecker.clearCaches();
+      NonNullTypeChecker.clearCaches();
     }
     
     public void clear() {
       definiteAssignment.clear();
+      timedOutMethodBodies.clear();
+    }
+    
+    public void addTimeOut(final IRNode mBody) {
+      timedOutMethodBodies.add(mBody);
+    }
+    
+    public Set<IRNode> getTimedOut() {
+      return Collections.unmodifiableSet(timedOutMethodBodies);
     }
     
     

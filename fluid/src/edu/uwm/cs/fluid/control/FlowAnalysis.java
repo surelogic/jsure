@@ -74,6 +74,10 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
       this.timeOut = time;
       this.count = c;
     }
+    
+    public AnalysisGaveUp(final AnalysisGaveUp other) {
+      this(other.fa, other.timeOut, other.count);
+    }
   }
 
   
@@ -109,6 +113,10 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   
   private boolean isComputed = false;
   
+  private AnalysisGaveUp gaveUp = null;
+  
+  
+  
   /** Create a new instance of flow analysis.
    * @param l the lattice of values for the analysis.
    * @see #getInfo
@@ -138,6 +146,16 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   @RequiresLock("ComputeLock")
   public final void setComputed() {
 	  isComputed = true;
+  }
+  
+  @RequiresLock("ComputeLock") 
+  public final void setGaveUp(final AnalysisGaveUp e) {
+    gaveUp = e;
+  }
+  
+  @RequiresLock("ComputeLock")
+  public AnalysisGaveUp getGaveUp() {
+    return gaveUp;
   }
   
   /**
@@ -346,7 +364,10 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
         }
         
         if (shouldTimeOut && System.nanoTime() > deadline) {
-          throw new AnalysisGaveUp(this, timeOutDuration, globalCount);
+          final AnalysisGaveUp e =
+              new AnalysisGaveUp(this, timeOutDuration, globalCount);
+          setGaveUp(e);
+          throw e;
         }
       }
       work(worklist.next());

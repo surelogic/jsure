@@ -67,6 +67,8 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   
   private final ThisExpressionBinder thisExprBinder;
   private final NonNullRawTypeAnalysis nonNullRawTypeAnalysis;
+
+  private final Set<IRNode> badMethodBodies;
   
   private IRNode receiverDecl = null;
 
@@ -75,14 +77,15 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   
   
   public NonNullTypeChecker(final IBinder b,
-      final NonNullRawTypeAnalysis nonNullRaw) {
+      final NonNullRawTypeAnalysis nonNullRaw,
+      final Set<IRNode> badMethodBodies) {
     super(b);
     thisExprBinder = new ThisExpressionBinder(b);
     nonNullRawTypeAnalysis = nonNullRaw;
-    //createdVirtualAnnotations = new ConcurrentHashSet<PromiseDrop<?>>();
+    this.badMethodBodies = badMethodBodies;
   }
   
-  public void clearCaches() {
+  public static void clearCaches() {
     createdVirtualAnnotations.clear();
   }
   
@@ -157,6 +160,14 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
 
   // ======================================================================
 
+  @Override
+  public Void visitMethodBody(final IRNode mBody) {
+    if (!badMethodBodies.contains(mBody)) {
+      super.visitMethodBody(mBody);
+    }
+    return null;
+  }
+  
   
   
   @Override
