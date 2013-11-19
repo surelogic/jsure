@@ -333,6 +333,13 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
     }
     
     
+    // Don't go inside annotations, they aren't interesting, and cause problems.
+    @Override
+    public Void visitAnnotation(final IRNode annotation) {
+      return null;
+    }
+
+    
     
     /* Case 4: invoking method with unique parameter.
      */

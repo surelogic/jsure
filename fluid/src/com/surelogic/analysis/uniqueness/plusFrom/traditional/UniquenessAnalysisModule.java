@@ -1189,6 +1189,13 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     }
     
     
+    // Don't go inside annotations, they aren't interesting, and cause problems.
+    @Override
+    public Void visitAnnotation(final IRNode annotation) {
+      return null;
+    }
+
+    
     
     /* Case (4): invoking method with UNIQUE parameter or IMMUTABLE parameters,
      * or a READ-ONLY or IMMUTABLE return value
