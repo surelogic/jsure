@@ -9,12 +9,12 @@
         </constructor>
 
         <method name="clearCache">
-            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <RegionEffects>writes Static</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="clearCache" params="java.lang.ClassLoader">
-            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <RegionEffects>writes Static</RegionEffects>
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
@@ -31,32 +31,32 @@
         </method>
 
         <method name="getBundle" params="java.lang.String">
-            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <RegionEffects>writes Static</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="getBundle" params="java.lang.String, java.util.Locale">
-            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <RegionEffects>writes Static</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="getBundle" params="java.lang.String, java.util.Locale, java.lang.ClassLoader">
-            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <RegionEffects>writes Static</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="getBundle" params="java.lang.String, java.util.Locale, java.lang.ClassLoader, java.util.ResourceBundle.Control">
-            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <RegionEffects>writes Static</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="getBundle" params="java.lang.String, java.util.Locale, java.util.ResourceBundle.Control">
-            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <RegionEffects>writes Static</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
         <method name="getBundle" params="java.lang.String, java.util.ResourceBundle.Control">
-            <RegionEffects>writes ResourceBundle:Static</RegionEffects>
+            <RegionEffects>writes Static</RegionEffects>
             <Starts>nothing</Starts>
         </method>
 
