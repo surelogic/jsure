@@ -418,7 +418,11 @@ public class JavaPromise extends JavaNode {
 				// Probably a method decl
 				return getReceiverNode(declNode);
 			} else {
-				throw new IllegalStateException("No receiver node to get from "+JavaNames.getFullTypeName(type));
+				IRNode rv = getReceiverNode(declNode);
+				if (rv == null) {
+					throw new IllegalStateException("No receiver node to get from "+JavaNames.getFullTypeName(type));
+				}
+				return rv;
 			}
 		}
 		
