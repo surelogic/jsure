@@ -477,7 +477,7 @@ public class Util {
       final ParallelArray<SourceCUDrop> allCuds = cuds;// findSourceCUDrops(null,
                                                         // singleThreaded,
                                                         // pool);
-
+      checkforCUs(cus, cuds);
       times = analyzeCUs(env, projects, analyses, cuds, allCuds, singleThreaded);
       env.done();
       matchResults(projects);
@@ -551,6 +551,21 @@ public class Util {
     return tmpLocation;
   }
 
+  private static void checkforCUs(ParallelArray<CodeInfo> cus, ParallelArray<SourceCUDrop> cuds) {
+	Map<IRNode, SourceCUDrop> drops = new HashMap<IRNode, SourceCUDrop>(cuds.size());
+	for(SourceCUDrop d : cuds) {
+		drops.put(d.getNode(), d);
+	}
+	for(CodeInfo info : cus) {
+		if (!info.isAsSource()) {
+			continue;
+		}
+		if (drops.get(info.getNode()) == null) {
+			SLLogger.getLogger().log(Level.INFO, "Didn't find source drop for "+info.getFileName(), new Throwable());
+		}
+	}
+  }
+  
   private static int computeLOC() {
 	int loc = 0;
 	for(MetricDrop m : Sea.getDefault().getDropsOfExactType(MetricDrop.class)) {		
@@ -759,7 +774,8 @@ public class Util {
     for (final IIRAnalysis a : analyses) {
       final long start = System.currentTimeMillis();
       final ParallelArray<SourceCUDrop> toAnalyze = a.analyzeAll() ? allCus : cus;
-
+      //System.out.println(a.name()+" analyzing "+(a.analyzeAll() ? "all CUs" : "source CUs"));
+      
       for (final JavacProject project : projects) {
         if (projects.getMonitor().isCanceled()) {
           throw new CancellationException();
@@ -1506,9 +1522,11 @@ public class Util {
             // info.getNode());
           } else {
             new SourceCUDrop(info);
+            System.out.println("Created source drop for " + info.getFileName());
           }
         } else {
           new BinaryCUDrop(info);
+          System.out.println("Created binary drop for " + info.getFileName());
         }
         if (debug) {
           System.out.println("Created drop for " + info.getFileName());
