@@ -421,7 +421,7 @@ public class Javac extends IDE {
 					analyses.add(a);		
 				} else {
 					// Potentially grouped analysis
-					if (a.getGroup() != group) {
+					if (a.getGroup() != group || runDifferently(a, grouped)) {
 						// Different group
 						handleGroup(analyses, group, grouped);
 						group = a.getGroup();
@@ -436,6 +436,13 @@ public class Javac extends IDE {
 		}
 		handleGroup(analyses, group, grouped);
 		return analyses;
+	}
+
+	private static boolean runDifferently(IIRAnalysis a, List<IIRAnalysis> grouped) {
+		if (grouped.isEmpty()) {
+			return true;
+		}
+		return a.runInParallel() != grouped.get(0).runInParallel();
 	}
 
 	/**
