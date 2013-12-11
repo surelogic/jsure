@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 import com.surelogic.RequiresLock;
 import com.surelogic.analysis.IIRProject;
@@ -54,8 +55,8 @@ public final class SourceCUDrop extends CUDrop {
         continue;
       }
       if (drop.f_codeInfo == null) {
-    	System.out.println("Null codeInfo for "+drop.getMessage());
-    	drop.invalidate();
+    	System.out.println("Ignoring null codeInfo for "+drop.getMessage());
+    	//drop.invalidate();
     	continue;
       }
       final ICodeFile javaFile = drop.f_codeInfo.getFile();
@@ -117,4 +118,12 @@ public final class SourceCUDrop extends CUDrop {
     }
     return result;
   }
+  
+  /*
+  @Override
+  @RequiresLock("SeaLock")
+  protected void invalidate_internal() {
+	  SLLogger.getLogger().log(Level.INFO, "Invalidating a SourceCUDrop: "+getJavaOSFileName(), new Throwable());
+  }
+  */
 }
