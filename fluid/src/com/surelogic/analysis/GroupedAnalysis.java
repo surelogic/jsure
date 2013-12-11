@@ -2,6 +2,7 @@ package com.surelogic.analysis;
 
 import java.util.List;
 
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
@@ -15,6 +16,16 @@ public class GroupedAnalysis implements IIRAnalysis {
 	public GroupedAnalysis(Class<?> group, List<IIRAnalysis> grouped) {
 		this.group = group;
 		analyses = grouped.toArray(new IIRAnalysis[grouped.size()]);
+		
+		// Check if all running the same way
+		IIRAnalysis first = null;
+		for(IIRAnalysis a : grouped) {
+			if (first == null) {
+				first = a;
+			} else if (first.runInParallel() != a.runInParallel()) {
+				SLLogger.getLogger().info(first.getClass().getCanonicalName()+": "+first.runInParallel()+" != "+a.runInParallel()+" :"+a);
+			}
+		}
 	}
 
 	@Override
