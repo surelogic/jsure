@@ -142,6 +142,20 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     }
     if (separator != null) {
       separateIntoCategories(old, newer);
+
+      // Check if we lost any 
+      int numOld = 0;
+      int numNew = 0;
+      for(DiffCategory<K> c : categories.values()) {
+    	  numOld += c.old.size();
+    	  numNew += c.newer.size();
+      }
+      if (old.size() != numOld) {
+    	  throw new IllegalStateException("Lost some old drops");
+      }
+      if (newer.size() != numNew) {
+    	  throw new IllegalStateException("Lost some new drops");
+      }
     } else {
       DiffCategory<K> all = new DiffCategory<K>(null);
       all.addAllOld(old);
@@ -257,6 +271,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
   
   private static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, Collection<IDrop> old,
       Collection<? extends IDrop> newer) {
+	System.out.println("old/newer: "+old.size()+" vs "+newer.size());
     SeaSnapshotDiff<CPair<String, String>> rv = new SeaSnapshotDiff<CPair<String, String>>();
     rv.setFilter(augmentDefaultFilter(f));
     rv.setSeparator(defaultSeparator);
