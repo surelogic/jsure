@@ -557,7 +557,7 @@ public class Util {
 		drops.put(d.getNode(), d);
 	}
 	for(CodeInfo info : cus) {
-		if (!info.isAsSource()) {
+		if (!info.isAsSource() || info.getFileName().endsWith("package-info.java")) {
 			continue;
 		}
 		if (drops.get(info.getNode()) == null) {
