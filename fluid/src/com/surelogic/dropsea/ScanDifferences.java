@@ -1,9 +1,6 @@
 package com.surelogic.dropsea;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
@@ -23,7 +20,8 @@ public final class ScanDifferences {
   public static class Builder {
     private final HashMap<IDrop, IDrop> f_newSameAsOld = new HashMap<IDrop, IDrop>();
     private final HashMap<IDrop, IDrop> f_newChangedFromOld = new HashMap<IDrop, IDrop>();
-
+    private final Set<IDrop> f_new = new HashSet<IDrop>();
+    
     public void addAllNewSameAsOld(Map<IDrop, IDrop> matching) {
       f_newSameAsOld.putAll(matching);
     }
@@ -32,17 +30,27 @@ public final class ScanDifferences {
       f_newChangedFromOld.put(n, o);
     }
 
+	public void addNew(IDrop drop) {
+		if (drop != null) {
+			f_new.add(drop);
+		}
+	}
+    
     public ScanDifferences build() {
-      return new ScanDifferences(f_newSameAsOld, f_newChangedFromOld);
+      return new ScanDifferences(f_newSameAsOld, f_newChangedFromOld, f_new);
     }
+
+
   }
 
   private final HashMap<IDrop, IDrop> f_newSameAsOld;
   private final HashMap<IDrop, IDrop> f_newChangedFromOld;
-
-  private ScanDifferences(Map<IDrop, IDrop> newSameAsOld, Map<IDrop, IDrop> newChangedFromOld) {
+  private final Set<IDrop> f_new;
+  
+  ScanDifferences(Map<IDrop, IDrop> newSameAsOld, Map<IDrop, IDrop> newChangedFromOld, Set<IDrop> newSet) {
     f_newSameAsOld = new HashMap<IDrop, IDrop>(newSameAsOld);
     f_newChangedFromOld = new HashMap<IDrop, IDrop>(newChangedFromOld);
+    f_new = new HashSet<IDrop>(newSet);
   }
 
   /**
@@ -228,8 +236,9 @@ public final class ScanDifferences {
   public boolean isNotInOldScan(@NonNull IDrop inNewScan) {
     if (inNewScan == null)
       throw new IllegalArgumentException(I18N.err(44, "inNewScan"));
-    final boolean inOldToo = f_newChangedFromOld.containsKey(inNewScan) || f_newSameAsOld.containsKey(inNewScan);
-    return !inOldToo;
+    //final boolean inOldToo = f_newChangedFromOld.containsKey(inNewScan) || f_newSameAsOld.containsKey(inNewScan);
+    //return !inOldToo;
+    return f_new.contains(inNewScan);
   }
 
   /**

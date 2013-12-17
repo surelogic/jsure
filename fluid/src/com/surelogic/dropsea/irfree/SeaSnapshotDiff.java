@@ -8,12 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.ref.IJavaRef;
@@ -312,6 +307,9 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 		  diffs.addAllNewSameAsOld(c.newMatchingOld);
 		  for(DropDiff d : c.diffs) {
 			  diffs.addNewChangedFromOld(d.drop, d.old);
+		  }
+		  for(DiffNode n : c.newer) {
+			  diffs.addNew(n.drop);
 		  }
 	  }
 	  return diffs.build();
