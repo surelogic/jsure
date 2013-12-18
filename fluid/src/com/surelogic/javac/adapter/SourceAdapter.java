@@ -842,7 +842,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     if (label != null) {
       return LabeledBreakStatement.createNode(label.toString());
     }
-    return SomeBreakStatement.createNode("");
+    return BreakStatement.prototype.jjtCreate();
   }
 
   public IRNode visitCase(CaseTree node, CodeContext context) {
@@ -1075,7 +1075,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     if (label != null) {
       return LabeledContinueStatement.createNode(label.toString());
     }
-    return SomeContinueStatement.createNode("");
+    return ContinueStatement.prototype.jjtCreate();
   }
 
   public IRNode visitDoWhileLoop(DoWhileLoopTree node, CodeContext context) {
