@@ -69,6 +69,19 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
   protected T dup(T val) {
     return push(val);
   }
+  
+  /**
+   * Pop a known boolean value from the stack.  If the stack
+   * abstraction could not include this value on it, this routine
+   * may and should return null.
+   * @param val  stack before the pop
+   * @param bool boolean value (not null)
+   * @param srcOp IRNode where this operation is taking place.
+   * @return stack after popping this value
+   */
+  protected T popBoolean(T val, Boolean bool, IRNode srcOp) {
+	return pop(val);
+  }
 
   /**
 	 * Perform a transfer over a ComponentFlow which operates on the stack of
@@ -111,8 +124,9 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
       } else if (BinopExpression.prototype.includes(op)) {
         if (ConditionalAndExpression.prototype.includes(op)
           || ConditionalOrExpression.prototype.includes(op)) {
+          if (info == null) throw new FluidError("expected discardTrue or False");
           /* discard value not causing short-circuit: */
-          return pop(val);
+          return popBoolean(val,(Boolean)info,node);
         } else
           return transferBinop(node, op, val);
       } else if (UnopExpression.prototype.includes(op)) {
@@ -132,7 +146,7 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
           return transferArrayInitializer(node, val);
         }
       } else if (ConditionalExpression.prototype.includes(op)) {
-        return pop(val); // discard value without consideration
+        return popBoolean(val,(Boolean)info,node);
       } else if (ClassExpression.prototype.includes(op)) {
         return transferClassExpression(node, val);
       } else if (ParenExpression.prototype.includes(op)) {
@@ -143,16 +157,22 @@ public abstract class JavaEvaluationTransfer<L extends Lattice<T>, T> extends Ja
     } else if (Statement.prototype.includes(op)) {
       if (BlockStatement.prototype.includes(op)) {
         return transferCloseScope(node,((Boolean)info).booleanValue(),val);
+      } else if (ExprStatement.prototype.includes(op)) {
+    	return pop(val); // discard value computed
+      } else if (AssertMessageStatement.prototype.includes(op) && info == null) {
+    	return pop(val); // discard string message
       } else if (/* discard values without consideration */
         AssertMessageStatement.prototype.includes(op)
           || AssertStatement.prototype.includes(op)
           || DoStatement.prototype.includes(op)
-          || ExprStatement.prototype.includes(op)
           || ForStatement.prototype.includes(op)
           || IfStatement.prototype.includes(op)
           // || IfElseStatement.prototype.includes(op)
           || WhileStatement.prototype.includes(op)) {
-        return pop(val);
+    	if (info == null) {
+          throw new FluidError("Expected discardTrue or discardFalse?");
+    	}
+        return popBoolean(val,(Boolean)info,node);
       } else if (ReturnStatement.prototype.includes(op)) {
         return transferReturn(node, val);
       } else if (SwitchStatement.prototype.includes(op)) {
