@@ -14,7 +14,7 @@ public operator ConditionalAndExpression extends BinopExpression
         new Subcomponent(comp,tree.childLocation(node,op2Loc),1,2,1);
     ControlNode falseMerge = new Merge();
     ControlNode abruptMerge = new Merge();
-    ControlNode discardTrue = new ComponentFlow(comp,this);
+    ControlNode discardTrue = new ComponentFlow(comp,Boolean.TRUE);
     // connect through (first edge on a boolean port is the true edge).
     ControlEdge.connect(comp.getEntryPort(),sub0.getEntryPort());
     ControlEdge.connect(sub0.getNormalExitPort(),discardTrue);
