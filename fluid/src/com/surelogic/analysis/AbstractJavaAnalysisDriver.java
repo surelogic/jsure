@@ -160,14 +160,14 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
   /**
    * Not sure yet why you would want this, but being comprehensive.
    */
-  protected final void leavingEnclosingDeclPrefix(final IRNode oldDecl) {
+  protected void leavingEnclosingDeclPrefix(final IRNode oldDecl) {
     // do nothing
   }
 
   /**
    * Really only intended to update labels and status messages.
    */
-  protected final void leavingEnclosingDeclPostfix(final IRNode oldDecl) {
+  protected void leavingEnclosingDeclPostfix(final IRNode oldDecl) {
     // do nothing
   }
   
