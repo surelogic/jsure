@@ -559,7 +559,13 @@ implements IBinderClient {
       }
     },
     STRING_LITERAL(962),
-    VAR_ARGS(965);
+    VAR_ARGS(965),
+    NO_VALUE(966) {
+      @Override
+      public String unparse(final IRNode w) {
+        return "";
+      }
+    };
     
     private final int msg;
     
@@ -608,13 +614,13 @@ implements IBinderClient {
         final Kind k = src.first();
         final IRNode where = src.second();
         final Element value = src.third();
-        final Operator op = JJNode.tree.getOperator(where);
+        final Operator op = where == null ? null : JJNode.tree.getOperator(where);
         final IJavaRef javaRef = JavaNode.getJavaRef(where);
         final int line = javaRef == null ? -1 : javaRef.getLineNumber();
         final StringBuilder sb = new StringBuilder();
         sb.append(k);
         sb.append('[');
-        sb.append(op.name());
+        sb.append(op == null ? "none" : op.name());
         sb.append('@');
         sb.append(line);
         sb.append(", ");
@@ -728,7 +734,8 @@ implements IBinderClient {
     }
     
     public Base getEmpty() {
-      return new Base(NonNullRawLattice.MAYBE_NULL, lattice2.bottom());
+      return new Base(NonNullRawLattice.MAYBE_NULL, Kind.NO_VALUE, null);
+//      return new Base(NonNullRawLattice.MAYBE_NULL, lattice2.bottom());
     }
 
     public NonNullRawLattice getElementLattice() { 

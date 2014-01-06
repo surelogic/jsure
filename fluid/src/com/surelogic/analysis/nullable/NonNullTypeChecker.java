@@ -38,6 +38,7 @@ import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -54,6 +55,7 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
 public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   private static final int POSSIBLY_NULL = 915;
@@ -99,8 +101,8 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   protected void handleMethodDeclaration(final IRNode mdecl) {
     final IRNode oldReceiverDecl = receiverDecl;
     try {
+//      System.out.println("Type Checking " + JavaNames.genQualifiedMethodConstructorName(mdecl));
       receiverDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
-      System.out.println("NonNull: " + JavaNames.genQualifiedMethodConstructorName(mdecl));
       super.handleMethodDeclaration(mdecl);
     } finally {
       receiverDecl = oldReceiverDecl;
@@ -111,8 +113,8 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   protected void handleConstructorDeclaration(final IRNode cdecl) {
     final IRNode oldReceiverDecl = receiverDecl;
     try {
+//      System.out.println("Type Checking " + JavaNames.genQualifiedMethodConstructorName(cdecl));
       receiverDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
-      System.out.println("NonNull: " + JavaNames.genQualifiedMethodConstructorName(cdecl));
       super.handleConstructorDeclaration(cdecl);
     } finally {
       receiverDecl = oldReceiverDecl;
@@ -187,12 +189,16 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   }
   
   private void checkForNull(final IRNode expr, final boolean isUnbox) {
-    final StackQueryResult queryResult = currentQuery().getResultFor(expr);
-    final Element state = queryResult.getValue();    
-    if (state == NonNullRawLattice.MAYBE_NULL || state == NonNullRawLattice.NULL) {
-      // Hunt for any @Nullable annotations 
-      buildWarningResults(isUnbox, expr, 
-          queryResult.getSources(), new LinkedList<IRNode>());
+    try {
+      final StackQueryResult queryResult = currentQuery().getResultFor(expr);
+      final Element state = queryResult.getValue();    
+      if (state == NonNullRawLattice.MAYBE_NULL || state == NonNullRawLattice.NULL) {
+        // Hunt for any @Nullable annotations 
+        buildWarningResults(isUnbox, expr, 
+            queryResult.getSources(), new LinkedList<IRNode>());
+      }
+    } catch (AnalysisGaveUp e) {
+      // do nothing
     }
   }
   
@@ -213,7 +219,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
         chain.addLast(where);
         buildWarningResults(isUnbox, expr, varValue.second(), chain);
         chain.removeLast();    
-      } else {
+      } else if (k != Kind.NO_VALUE) {
         final PromiseDrop<?> pd = getAnnotation(k.getAnnotatedNode(binder, where));
         /* Add a warning if the promise is a REAL @Nullable annotation,
          * but skip the warning if the @Nullable is a virtual one added by
@@ -259,48 +265,53 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
      * ELSE branch.
      */
     final PromiseDrop<?> declPD = getAnnotation(decl);
-    if (declPD != null && !createdVirtualAnnotations.contains(declPD)) { // Skip virtual @Nullables
-      final StackQueryResult queryResult = currentQuery().getResultFor(expr);
-      final Element declState = queryResult.getLattice().injectPromiseDrop(declPD);        
-      final ResultsBuilder builder = new ResultsBuilder(declPD);
-      ResultFolderDrop folder = builder.createRootAndFolder(
-          expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
-          declState.getAnnotation());
-      buildNewChain(false, expr, folder, declState, queryResult.getSources());
-    } else {
-      /*
-       * Like above, but we know the declared state is implicitly @Nullable or
-       * @NonNull, and we only care about the negative results. First we have to
-       * determine if there are any negative results. If there are, we first
-       * introduce a new NullablePromiseDrop or NonNullPromiseDrop.
-       */
-      final StackQueryResult queryResult = currentQuery().getResultFor(expr);
-      final Element testAgainst = noAnnoIsNonNull ?
-          NonNullRawLattice.NOT_NULL : NonNullRawLattice.MAYBE_NULL;
-      final boolean hasNegativeResult = testChain(noAnnoIsNonNull, testAgainst, queryResult.getSources());
-      if (hasNegativeResult) {
-        // Do we already have a virtual promise drop?
-        final PromiseDrop<?> drop;
-        if (declPD == null) {
-          if (noAnnoIsNonNull) {
-            final NonNullNode nn = new NonNullNode(0);
-            nn.setPromisedFor(decl, null);
-            drop = attachAsVirtual(NonNullRules.getNonNullStorage(), new NonNullPromiseDrop(nn));
-          } else {
-            final NullableNode nn = new NullableNode(0);
-            nn.setPromisedFor(decl, null);
-            drop = attachAsVirtual(NonNullRules.getNullableStorage(), new NullablePromiseDrop(nn));
-          }
-        } else {
-          drop = declPD;
-        }
-        
-        final ResultsBuilder builder = new ResultsBuilder(drop);
+    try {
+      final StackQuery currentQuery = currentQuery();
+      if (declPD != null && !createdVirtualAnnotations.contains(declPD)) { // Skip virtual @Nullables
+        final StackQueryResult queryResult = currentQuery.getResultFor(expr);
+        final Element declState = queryResult.getLattice().injectPromiseDrop(declPD);        
+        final ResultsBuilder builder = new ResultsBuilder(declPD);
         ResultFolderDrop folder = builder.createRootAndFolder(
             expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
-            testAgainst.getAnnotation());
-        buildNewChain(noAnnoIsNonNull, expr, folder, testAgainst, queryResult.getSources());
+            declState.getAnnotation());
+        buildNewChain(false, expr, folder, declState, queryResult.getSources());
+      } else {
+        /*
+         * Like above, but we know the declared state is implicitly @Nullable or
+         * @NonNull, and we only care about the negative results. First we have to
+         * determine if there are any negative results. If there are, we first
+         * introduce a new NullablePromiseDrop or NonNullPromiseDrop.
+         */
+        final StackQueryResult queryResult = currentQuery.getResultFor(expr);
+        final Element testAgainst = noAnnoIsNonNull ?
+            NonNullRawLattice.NOT_NULL : NonNullRawLattice.MAYBE_NULL;
+        final boolean hasNegativeResult = testChain(noAnnoIsNonNull, testAgainst, queryResult.getSources());
+        if (hasNegativeResult) {
+          // Do we already have a virtual promise drop?
+          final PromiseDrop<?> drop;
+          if (declPD == null) {
+            if (noAnnoIsNonNull) {
+              final NonNullNode nn = new NonNullNode(0);
+              nn.setPromisedFor(decl, null);
+              drop = attachAsVirtual(NonNullRules.getNonNullStorage(), new NonNullPromiseDrop(nn));
+            } else {
+              final NullableNode nn = new NullableNode(0);
+              nn.setPromisedFor(decl, null);
+              drop = attachAsVirtual(NonNullRules.getNullableStorage(), new NullablePromiseDrop(nn));
+            }
+          } else {
+            drop = declPD;
+          }
+          
+          final ResultsBuilder builder = new ResultsBuilder(drop);
+          ResultFolderDrop folder = builder.createRootAndFolder(
+              expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
+              testAgainst.getAnnotation());
+          buildNewChain(noAnnoIsNonNull, expr, folder, testAgainst, queryResult.getSources());
+        }
       }
+    } catch (AnalysisGaveUp e) {
+      // do nothing
     }
   }
 
@@ -345,7 +356,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
           visitedUseSites.put(where, f);
           buildNewChain(testRawOnly, rhsExpr, f, declState, varValue.second(), visitedUseSites);
         }
-      } else {
+      } else if (k != Kind.NO_VALUE) {
         final Element srcState = src.third();
         if (!testRawOnly || (srcState == NonNullRawLattice.RAW || srcState instanceof ClassElement)) {
           final ResultDrop result = ResultsBuilder.createResult(
@@ -399,7 +410,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
           final Base varValue = newQuery.lookupVar(vd);
           hasNegative |= testChain(testRawOnly, declState, varValue.second(), visitedUseSites);
         }
-      } else {
+      } else if (k != Kind.NO_VALUE) {
         final Element srcState = src.third();
         if (!testRawOnly || (srcState == NonNullRawLattice.RAW || srcState instanceof ClassElement)) {
           hasNegative |= !declState.isAssignableFrom(binder.getTypeEnvironment(), srcState);
@@ -534,5 +545,21 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
         checkAssignability(initExpr, vd, typeNode);
       }
     }
+  }
+
+  
+  
+  private JavaComponentFactory jcf = null;
+  
+  @Override
+  protected void enteringEnclosingDeclPrefix(
+      final IRNode newDecl, final IRNode anonClassDecl) {
+    jcf = JavaComponentFactory.startUse();
+  }
+  
+  @Override
+  protected final void leavingEnclosingDeclPostfix(final IRNode oldDecl) {
+    JavaComponentFactory.finishUse(jcf);
+    jcf = null;
   }
 }

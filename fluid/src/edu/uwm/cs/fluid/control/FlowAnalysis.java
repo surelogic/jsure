@@ -205,20 +205,22 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     worklist.add(n);
   }
   
-  /** Initialize the lattice value for this control edge
-   * to the default "bottom" value.
-   * @deprecated use initialize(edge.getSource())
-   */
-  @Deprecated
-  public void initialize(ControlEdge edge) {
-    initialize(edge,lattice.bottom());
-  }
+//  /** Initialize the lattice value for this control edge
+//   * to the default "bottom" value.
+//   * @deprecated use initialize(edge.getSource())
+//   */
+//  @Deprecated
+//  public void initialize(ControlEdge edge) {
+//    initialize(edge,lattice.bottom());
+//  }
+  
   /** Initialize the lattice value for this control edge
    * as specified.
    */
   public void initialize(ControlEdge edge, T value) {
     initialize(edge,LabelList.empty,value);
   }
+  
   /** Initialize the lattice value for this control edge
    * and labellist as specified.
    */
@@ -293,6 +295,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   @RequiresLock("ComputeLock")
   protected void setInfo(ControlEdge edge, LabeledLattice.LabeledValue<T> lv) {
     if (lv == null) return; // assume transfers are strict
+    
     LabeledLattice.LabeledValue<T> old = infoMap.get(edge);
     
     String newString = null;
@@ -377,6 +380,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
   }
   
   @Override
+  @RequiresLock("ComputeLock")
   public void performAnalysis() {
     realPerformAnalysis();
   }

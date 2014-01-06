@@ -1,4 +1,6 @@
-package com.surelogic.analysis.testing;import java.util.Map;
+package com.surelogic.analysis.testing;
+
+import java.util.Map;
 import java.util.Map.Entry;
 
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;

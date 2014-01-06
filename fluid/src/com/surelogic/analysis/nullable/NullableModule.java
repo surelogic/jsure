@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.ResultsBuilder;
@@ -29,6 +30,7 @@ import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
@@ -65,6 +67,11 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
   
   public NullableModule() {
     super("Nullable");
+  }
+
+  @Override
+  public ConcurrencyType runInParallel() {
+    return ConcurrencyType.NEVER;
   }
 
   @Override
@@ -113,20 +120,16 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
   @Override
   protected boolean doAnalysisOnAFile(final IIRAnalysisEnvironment env,
       final CUDrop cud, final IRNode compUnit) {
-    runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
-      @Override
-      public void run() {
-        visitCompilationUnit(compUnit);
-      }
-    });
+    visitCompilationUnit(compUnit);
     return true;
   }
 
   protected void visitCompilationUnit(final IRNode compUnit) {
+    getAnalysis().typeCheck(compUnit);    
+
     final Visitor v = new Visitor();
     v.doAccept(compUnit);
     
-    getAnalysis().typeCheck(compUnit);
     getAnalysis().clear();
   }
   
@@ -186,7 +189,13 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
         rd.setCategorizingMessage(TIME_OUT_CATEGORY);
         rd.setMessage(TIME_OUT, e.timeOut / NANO_SECONDS_PER_SECOND,
             name, duration / NANO_SECONDS_PER_SECOND);
+        // XXX: Need to attach this result to some promises!!!
         getAnalysis().addTimeOut(body);
+        
+        final HintDrop hd = HintDrop.newWarning(JJNode.tree.getParent(body));
+        hd.setCategorizingMessage(TIME_OUT_CATEGORY);
+        hd.setMessage(TIME_OUT, e.timeOut / NANO_SECONDS_PER_SECOND,
+            name, duration / NANO_SECONDS_PER_SECOND);
       }
       return null;
     }
@@ -219,6 +228,22 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
         }
       }
     }
+
+
+    
+    private JavaComponentFactory jcf = null;
+    
+    @Override
+    protected void enteringEnclosingDeclPrefix(
+        final IRNode newDecl, final IRNode anonClassDecl) {
+      jcf = JavaComponentFactory.startUse();
+    }
+    
+    @Override
+    protected final void leavingEnclosingDeclPostfix(final IRNode oldDecl) {
+      JavaComponentFactory.finishUse(jcf);
+      jcf = null;
+    }
   }
 
   @Override
@@ -232,7 +257,6 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     private final IBinder binder;
     private final DefinitelyAssignedAnalysis definiteAssignment;
     private final NonNullRawTypeAnalysis nonNullRawType;
-//    private final NonNullTypeChecker typeChecker;
     private final Set<IRNode> timedOutMethodBodies = new HashSet<IRNode>();
     
     
@@ -241,7 +265,6 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
       binder = b;
       definiteAssignment = new DefinitelyAssignedAnalysis(b, false);
       nonNullRawType = new NonNullRawTypeAnalysis(b);
-//      typeChecker = new NonNullTypeChecker(b, nonNullRawType);
     }
     
     public void typeCheck(final IRNode cu) {

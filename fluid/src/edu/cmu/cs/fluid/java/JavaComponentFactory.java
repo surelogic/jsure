@@ -84,6 +84,7 @@ public final class JavaComponentFactory implements ComponentFactory {
 		  try {
 			  activeLock.writeLock().lock();
 			  if (isLowOnMemory()) {
+			    System.out.println("~~~~~~ Clearing component cache ~~~~~~");
 				  clear();			  
 				  clearAnalyses(); // Otherwise, they'll hang onto the info
 			  }
