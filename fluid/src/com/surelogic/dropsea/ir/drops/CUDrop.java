@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.RequiresLock;
+import com.surelogic.analysis.IAnalysisGranule;
 import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
@@ -22,7 +23,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  * Drop representing a compilation unit, suitable for promise and result drops
  * to depend upon. Created and invalidated by the eAST to fAST converter.
  */
-public abstract class CUDrop extends Drop {
+public abstract class CUDrop extends Drop implements IAnalysisGranule {
 
   private static final SlotInfo<CUDrop> SI_CUDROP = SimpleSlotFactory.prototype.newLabeledAttribute("CUDrop", null);
 
@@ -48,6 +49,10 @@ public abstract class CUDrop extends Drop {
    */
   public final IRNode getCompilationUnitIRNode() {
     return getNode();
+  }
+  
+  public final IRNode getCompUnit() {
+	return getNode();
   }
 
   private final Object f_hostEnvResource;
