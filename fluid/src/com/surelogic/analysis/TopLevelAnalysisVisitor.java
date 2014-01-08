@@ -125,7 +125,7 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
   
   // ----------------------------------------------------------------------
 
-  public final static class TypeBodyPair extends Pair<IRNode, IRNode> implements ICompUnitContext {
+  public final static class TypeBodyPair extends Pair<IRNode, IRNode> implements IAnalysisGranule {
     public TypeBodyPair(final IRNode td, final IRNode cb) {
       super(td, cb);
     }

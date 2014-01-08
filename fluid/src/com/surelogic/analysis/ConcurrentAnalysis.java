@@ -12,7 +12,7 @@ import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import extra166y.*;
 import extra166y.Ops.Procedure;
 
-public class ConcurrentAnalysis<Q extends ICompUnitContext> {
+public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 	public static final int threadCount = IDE.getInstance().getIntPreference(
 			IDEPreferences.ANALYSIS_THREAD_COUNT);
 	public static final boolean singleThreaded = false || SystemUtils.IS_JAVA_1_5 || threadCount < 2;
@@ -124,7 +124,7 @@ public class ConcurrentAnalysis<Q extends ICompUnitContext> {
 	/**
 	 * Used by various analyses to handle concurrency themselves
 	 */
-	protected <E extends ICompUnitContext> void runInParallel(Class<E> type, Collection<E> c,
+	protected <E extends IAnalysisGranule> void runInParallel(Class<E> type, Collection<E> c,
 			final Procedure<E> proc) {
 		if (c.isEmpty()) {
 			return;

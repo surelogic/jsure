@@ -7,8 +7,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
-import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.*;
 import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Sea;

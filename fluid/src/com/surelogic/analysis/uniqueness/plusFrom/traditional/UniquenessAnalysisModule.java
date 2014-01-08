@@ -10,15 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.analysis.ConcurrencyType;
-import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.analysis.ICompUnitContext;
-import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaSemanticsVisitor;
-import com.surelogic.analysis.LocalVariableDeclarations;
-import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.*;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysis.AbruptErrorQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysis.IsInvalidQuery;
@@ -1116,7 +1108,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	
 	
 	
-	private static final class TypeAndMethod implements ICompUnitContext {
+	private static final class TypeAndMethod implements IAnalysisGranule {
 	  public final IRNode typeDecl;
 	  public final IRNode methodDecl;
 	  

@@ -8,7 +8,7 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.control.LabelList;
 import edu.cmu.cs.fluid.util.CachedSet;
 
-public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q extends ICompUnitContext> extends AbstractIRAnalysis<T, Q> {
+public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q extends IAnalysisGranule> extends AbstractIRAnalysis<T, Q> {
 
   protected final Logger LOG;
 

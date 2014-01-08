@@ -2,7 +2,7 @@ package com.surelogic.analysis;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
-public class CompUnitPair implements ICompUnitContext {
+public class CompUnitPair implements IAnalysisGranule {
 	final IRNode compUnit, node;
 	
 	public CompUnitPair(IRNode cu, IRNode n) {

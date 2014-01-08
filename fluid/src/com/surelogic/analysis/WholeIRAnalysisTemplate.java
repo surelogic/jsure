@@ -6,7 +6,7 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
-public class WholeIRAnalysisTemplate<T extends IBinderClient,Q extends ICompUnitContext> extends AbstractWholeIRAnalysis<T,Q> {
+public class WholeIRAnalysisTemplate<T extends IBinderClient,Q extends IAnalysisGranule> extends AbstractWholeIRAnalysis<T,Q> {
 	public WholeIRAnalysisTemplate() {
 		super("foo");
 	}

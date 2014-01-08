@@ -7,16 +7,14 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
-import com.surelogic.analysis.ConcurrentAnalysis;
-import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.analysis.ICompUnitContext;
+import com.surelogic.analysis.*;
 
 /**
  * A minimum analysis module, intended to be extended by other classes to create
  * new analysis modules. Analysis modules are singleton classes that implement
  * the {@link IAnalysis}interface.
  */
-public class AbstractAnalysisModule<Q extends ICompUnitContext> extends ConcurrentAnalysis<Q> implements IAnalysis {
+public class AbstractAnalysisModule<Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> implements IAnalysis {
   public AbstractAnalysisModule() {
 	  super(false, null);
   }

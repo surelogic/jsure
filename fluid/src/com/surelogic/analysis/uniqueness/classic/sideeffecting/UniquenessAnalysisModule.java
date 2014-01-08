@@ -8,14 +8,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.analysis.AbstractAnalysisSharingAnalysis;
-import com.surelogic.analysis.ConcurrencyType;
-import com.surelogic.analysis.IAnalysisMonitor;
-import com.surelogic.analysis.ICompUnitContext;
-import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.JavaSemanticsVisitor;
-import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.classic.sideeffecting.store.StoreLattice;
@@ -265,7 +258,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 	  return visitor.getResults();
 	}
 
-	private static class MethodRecord implements ICompUnitContext {
+	private static class MethodRecord implements IAnalysisGranule {
 		public final IRNode mdecl;
 		public final Set<PromiseDrop<? extends IAASTRootNode>> usedUniqueFields;
 
