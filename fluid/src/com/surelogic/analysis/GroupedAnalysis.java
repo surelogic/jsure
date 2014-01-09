@@ -71,9 +71,9 @@ public class GroupedAnalysis<Q extends IAnalysisGranule> implements IIRAnalysis<
 	}
 
 	@Override
-  public boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, Q cud) {
+  public boolean doAnalysisOnGranule(IIRAnalysisEnvironment env, Q cud) {
 		for(IIRAnalysis<Q> a : analyses) {
-			a.doAnalysisOnAFile(env, cud);
+			a.doAnalysisOnGranule(env, cud);
 		}
 		return true;
 	}
@@ -96,7 +96,7 @@ public class GroupedAnalysis<Q extends IAnalysisGranule> implements IIRAnalysis<
 				moreToAnalyze = true;
 	
 				// TODO parallelize?
-				a.doAnalysisOnAFile(env, granule);
+				a.doAnalysisOnGranule(env, granule);
 			}
 		} while (moreToAnalyze);
 	}

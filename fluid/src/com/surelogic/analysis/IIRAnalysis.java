@@ -1,24 +1,30 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/IIRAnalysis.java,v 1.4 2008/08/14 20:31:20 chance Exp $*/
+/*$Header: 
+ * /cvs/fluid/fluid/src/com/surelogic/analysis/IIRAnalysis.java,v 1.4 2008/08/14 20:31:20 chance Exp $*/
 package com.surelogic.analysis;
 
 /**
- * The sequence of events for analyses A1 to An, projects P1, P2 with shared analyses S1, S2:
+ * The sequence of events for projects P,
+ * analyses on comp units Ac, and
+ * flow analyses on types and methods At, Am with shared analyses S:
+ * 
  *    for (A) {
  *      a.init(env)
  *    }
- *    for (A) {
- *      for (P) {
- *        for (S) {
- *          s.analyzeBegin(env, p)
- *        }
- *        for (p) {
- *          s.doAnalysisOnAFile(...)
+ *    for (P) {
+ *      for (Ai in {Ac, At, Am}) {
+ *        for (Ai) {
+ *          a.analyzeBegin(env, p)
+ *        }                
+ *        for (granule : a.getGranules(p)) {
+ *          for (Ai) {
+ *            a.doAnalysisOnGranule(granule)
+ *          }
  *        }        
- *        for (S) {
- *          s.analyzeEnd(p)
+ *        for (Ai) {
+ *          a.analyzeEnd(p)
  *        }
- *        for (S) {
- *          s.postAnalysis(p)
+ *        for (Ai) {
+ *          a.postAnalysis(p)
  *        }
  *      }
  *    }
@@ -64,7 +70,7 @@ public interface IIRAnalysis<Q extends IAnalysisGranule> {
 	/**
 	 * May be interleaved with other analyses in its analysis group
 	 */
-	boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, Q granule);
+	boolean doAnalysisOnGranule(IIRAnalysisEnvironment env, Q granule);
 	
 	/**
 	 * Called when there is no more (known) work to do for this analysis

@@ -129,7 +129,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAna
 	*/
 	
 	@Override
-  public final boolean doAnalysisOnAFile(final IIRAnalysisEnvironment env, final CUDrop cud) {
+  public final boolean doAnalysisOnGranule(final IIRAnalysisEnvironment env, final CUDrop cud) {
 		/*
 		T analysis = getAnalysis();
 		if (analysis == null) {

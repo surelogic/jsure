@@ -771,7 +771,7 @@ public class Util {
     System.out.println("Starting analyses");
     long[] times = new long[analyses.size()];
     int i = 0;
-    for (final IIRAnalysis a : analyses) {
+    for (final IIRAnalysis<CUDrop> a : analyses) {
       final long start = System.currentTimeMillis();
       final ParallelArray<SourceCUDrop> toAnalyze = a.analyzeAll() ? allCus : cus;
       //System.out.println(a.name()+" analyzing "+(a.analyzeAll() ? "all CUs" : "source CUs"));
@@ -814,7 +814,7 @@ public class Util {
               // System.out.println("Running "+a.name()+" on "+cud.javaOSFileName);
               try {
                 frame.pushTypeContext(cud.getCompilationUnitIRNode());
-                a.doAnalysisOnAFile(env, cud);
+                a.doAnalysisOnGranule(env, cud);
               } catch (RuntimeException e) {
                 System.err.println("Error while processing " + cud.getJavaOSFileName());
                 throw e;
