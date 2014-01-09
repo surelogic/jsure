@@ -80,7 +80,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 	}
 
 	@Override
-	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+	public Iterable<CUDrop> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
     /* Link control flow PROMISE drops to unique fields.  We do this here,
      * and not in StoreLattice.makeResultDrops() because we only want one
      * result drop between the unique promise drop and the control flow drops.

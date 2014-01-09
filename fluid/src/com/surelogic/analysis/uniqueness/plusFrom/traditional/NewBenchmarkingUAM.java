@@ -75,7 +75,7 @@ public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalys
 	}
 
 	@Override
-	public Iterable<IRNode>  analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+	public Iterable<CUDrop>  analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
     // Create the drops from the drop builders
     finishBuild();
 		

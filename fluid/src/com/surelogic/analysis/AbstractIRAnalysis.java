@@ -17,7 +17,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
-public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> implements IIRAnalysis {
+public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> implements IIRAnalysis<CUDrop> {
 	//private IIRProject project;
 	private IBinder binder;
 	protected final ThreadLocalAnalyses analyses = new ThreadLocalAnalyses();
@@ -40,6 +40,10 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAna
 	
 	@Override
   public Class<?> getGroup() {
+		return null;
+	}
+	
+	public IAnalysisGranulator<CUDrop> getGranulator() {
 		return null;
 	}
 	
@@ -143,8 +147,8 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAna
 	protected abstract boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, IRNode cu);
 		
 	@Override
-  public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
-		return new EmptyIterator<IRNode>();
+  public Iterable<CUDrop> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+		return new EmptyIterator<CUDrop>();
 	}
 	
 	@Override

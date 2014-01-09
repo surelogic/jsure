@@ -4,22 +4,19 @@ import java.util.List;
 
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.util.*;
-import com.surelogic.dropsea.ir.drops.CUDrop;
 
-import edu.cmu.cs.fluid.ir.IRNode;
-
-public class GroupedAnalysis implements IIRAnalysis {
+public class GroupedAnalysis<Q extends IAnalysisGranule> implements IIRAnalysis<Q> {
 	private final Class<?> group;
-	private final IIRAnalysis[] analyses;
+	private final IIRAnalysis<Q>[] analyses;
 
 	
-	public GroupedAnalysis(Class<?> group, List<IIRAnalysis> grouped) {
+	public GroupedAnalysis(Class<?> group, List<IIRAnalysis<Q>> grouped) {
 		this.group = group;
 		analyses = grouped.toArray(new IIRAnalysis[grouped.size()]);
 		
 		// Check if all running the same way
-		IIRAnalysis first = null;
-		for(IIRAnalysis a : grouped) {
+		IIRAnalysis<Q> first = null;
+		for(IIRAnalysis<Q> a : grouped) {
 			if (first == null) {
 				first = a;
 			} else if (first.runInParallel() != a.runInParallel()) {
@@ -33,10 +30,14 @@ public class GroupedAnalysis implements IIRAnalysis {
 		return group;
 	}
 	
+	public IAnalysisGranulator<Q> getGranulator() {
+		return analyses[0].getGranulator(); // TODO
+	}
+	
 	@Override
   public String name() {
 		StringBuilder sb = new StringBuilder();
-		for(IIRAnalysis a : analyses) {
+		for(IIRAnalysis<Q> a : analyses) {
 			if (sb.length() > 0) {
 				sb.append(", ");
 			}
@@ -57,21 +58,21 @@ public class GroupedAnalysis implements IIRAnalysis {
 
 	@Override
   public void init(IIRAnalysisEnvironment env) {
-		for(IIRAnalysis a : analyses) {
+		for(IIRAnalysis<Q> a : analyses) {
 			a.init(env);
 		}
 	}
 	
 	@Override
   public void analyzeBegin(IIRAnalysisEnvironment env, IIRProject p) {
-		for(IIRAnalysis a : analyses) {
+		for(IIRAnalysis<Q> a : analyses) {
 			a.analyzeBegin(env, p);
 		}
 	}
 
 	@Override
-  public boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud) {
-		for(IIRAnalysis a : analyses) {
+  public boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, Q cud) {
+		for(IIRAnalysis<Q> a : analyses) {
 			a.doAnalysisOnAFile(env, cud);
 		}
 		return true;
@@ -79,37 +80,37 @@ public class GroupedAnalysis implements IIRAnalysis {
 
 
 	@Override
-  public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
-		for(IIRAnalysis a : analyses) {
+  public Iterable<Q> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+		for(IIRAnalysis<Q> a : analyses) {
 			handleAnalyzeEnd(a, env, p);
 		}
-		return new EmptyIterator<IRNode>();
+		return new EmptyIterator<Q>();
 	}
 	
-	public static void handleAnalyzeEnd(IIRAnalysis a, IIRAnalysisEnvironment env, IIRProject project) {
+	public static <Q extends IAnalysisGranule> 
+	void handleAnalyzeEnd(IIRAnalysis<Q> a, IIRAnalysisEnvironment env, IIRProject project) {
 		boolean moreToAnalyze;
 		do {
 			moreToAnalyze = false;
-			for(IRNode n : a.analyzeEnd(env, project)) {
+			for(Q granule : a.analyzeEnd(env, project)) {
 				moreToAnalyze = true;
 	
-				final CUDrop cud = CUDrop.queryCU(n);
 				// TODO parallelize?
-				a.doAnalysisOnAFile(env, cud);
+				a.doAnalysisOnAFile(env, granule);
 			}
 		} while (moreToAnalyze);
 	}
 
 	@Override
   public void postAnalysis(IIRProject p) {
-		for(IIRAnalysis a : analyses) {
+		for(IIRAnalysis<Q> a : analyses) {
 			a.postAnalysis(p);
 		}
 	}
 
 	@Override
   public void finish(IIRAnalysisEnvironment env) {
-		for(IIRAnalysis a : analyses) {
+		for(IIRAnalysis<Q> a : analyses) {
 			a.finish(env);
 		}
 	}

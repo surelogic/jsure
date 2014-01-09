@@ -108,7 +108,7 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
 	}
 
 	@Override
-	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+	public Iterable<CUDrop> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
     // Remove any control flow drops that aren't used for anything
     for (final ResultDrop cfDrop : controlFlowDrops) {
       //System.out.println("Looking at control flow drop: "+cfDrop);

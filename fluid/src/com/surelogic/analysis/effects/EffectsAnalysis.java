@@ -118,7 +118,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	}
   
   @Override
-  public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+  public Iterable<CUDrop> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
     finishBuild();
     return super.analyzeEnd(env, p);
   }

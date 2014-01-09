@@ -135,7 +135,7 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
 	}
 	
 	@Override
-	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+	public Iterable<CUDrop> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
 		finishBuild();
 		return super.analyzeEnd(env, p);
 	}

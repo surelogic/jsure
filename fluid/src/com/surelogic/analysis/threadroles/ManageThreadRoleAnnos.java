@@ -40,8 +40,8 @@ public class ManageThreadRoleAnnos extends AbstractIRAnalysis<TRolesFirstPass,Un
 	}
 
 	@Override
-	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
-		final Iterable<IRNode> reprocessThese = TRolesFirstPass.getInstance().trfpEnd();
+	public Iterable<CUDrop> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+		final Iterable<CUDrop> reprocessThese = null;//TRolesFirstPass.getInstance().trfpEnd();
 		// TODO move some of this code to finish()?
 		return reprocessThese;
 	}

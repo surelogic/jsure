@@ -44,7 +44,7 @@ public final class ParameterizedTypeAnalysis extends AbstractWholeIRAnalysis<Gen
 	}
 	
 	@Override
-	public Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+	public Iterable<CUDrop> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
 	  for (final IRNode unusedInstantiatedClass : GenericTypeInstantiationChecker.getUnusedBoundClasses()) {
 	    final AnnotationBoundsPromiseDrop drop = LockRules.getAnnotationBounds(unusedInstantiatedClass);
 	    ResultsBuilder.createResult(true, drop, unusedInstantiatedClass, NEVER_USED);

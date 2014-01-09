@@ -1,10 +1,6 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/IIRAnalysis.java,v 1.4 2008/08/14 20:31:20 chance Exp $*/
 package com.surelogic.analysis;
 
-import com.surelogic.dropsea.ir.drops.CUDrop;
-
-import edu.cmu.cs.fluid.ir.IRNode;
-
 /**
  * The sequence of events for analyses A1 to An, projects P1, P2 with shared analyses S1, S2:
  *    for (A) {
@@ -32,14 +28,23 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * 
  * @author Edwin
  */
-public interface IIRAnalysis {	
+public interface IIRAnalysis<Q extends IAnalysisGranule> {	
 	/**
 	 * Used internally for debug output
 	 */
 	String name();
 	boolean analyzeAll();
+	
+	@Deprecated
 	ConcurrencyType runInParallel();
+	
 	Class<?> getGroup();
+	
+	/**
+	 * Determines how comp units get broken up into analysis granules
+	 * If null, CUDrops are used as is
+	 */
+	IAnalysisGranulator<Q> getGranulator();
 	
 	/**
 	 * Called when the analysis is created, and before any loading
@@ -59,14 +64,14 @@ public interface IIRAnalysis {
 	/**
 	 * May be interleaved with other analyses in its analysis group
 	 */
-	boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud);
+	boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, Q granule);
 	
 	/**
 	 * Called when there is no more (known) work to do for this analysis
 	 * 
 	 * OK to finish things that don't affect any other analyses
 	 */
-	Iterable<IRNode> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p);
+	Iterable<Q> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p);
 
 	/**
 	 * Called after all analysis in its group are done
