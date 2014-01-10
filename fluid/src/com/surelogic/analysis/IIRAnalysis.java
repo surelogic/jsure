@@ -56,11 +56,6 @@ public interface IIRAnalysis<Q extends IAnalysisGranule> {
 	 * Called when the analysis is created, and before any loading
 	 */
 	void init(IIRAnalysisEnvironment env);
-	
-	/**
-	 * Called after ASTs are ready, but before any analysis
-	 */
-	//void preAnalysis(IIRAnalysisEnvironment env);
 
 	/**
 	 * Called before starting this analysis on the given project

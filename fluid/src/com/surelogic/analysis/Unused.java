@@ -1,6 +1,7 @@
 package com.surelogic.analysis;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 
 /**
  * A placeholder for use with ConcurrentAnalysis type arguments
@@ -10,7 +11,17 @@ public final class Unused implements IAnalysisGranule {
 	private Unused() {}
 
 	@Override
-  public IRNode getCompUnit() {
+	public IRNode getCompUnit() {
+		return null;
+	}
+
+	@Override
+	public ITypeEnvironment getTypeEnv() {
+		return null;
+	}
+
+	@Override
+	public String getLabel() {
 		return null;
 	}
 }

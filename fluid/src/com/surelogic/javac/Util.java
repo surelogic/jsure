@@ -32,6 +32,7 @@ import org.apache.commons.lang3.SystemUtils;
 
 import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.analysis.GroupedAnalysis;
+import com.surelogic.analysis.IAnalysisGranule;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
@@ -355,10 +356,6 @@ public class Util {
     return result;
   }
 
-  private static <T> ParallelArray<T> createArray(Class<T> cls, ForkJoinPool pool) {
-    return ParallelArray.create(0, cls, pool);
-  }
-
   private static <T> void eliminateDups(List<T> all, List<T> unique) {
     Set<T> temp = new HashSet<T>(all);
     all.clear();
@@ -379,15 +376,13 @@ public class Util {
     }
 
     final boolean singleThreaded = !wantToRunInParallel || ConcurrentAnalysis.singleThreaded;
-    final ForkJoinPool pool = singleThreaded ? new ForkJoinPool(1) : ConcurrentAnalysis.pool;
     System.out.println("singleThread = " + singleThreaded);
-    final JSurePerformance perf = new JSurePerformance(projects);
-    perf.setIntProperty("num.threads", singleThreaded ? 1 : ConcurrentAnalysis.threadCount);
+    final JSurePerformance perf = new JSurePerformance(projects, singleThreaded);
     
     ScopedPromisesLexer.init();
     SLAnnotationsLexer.init();
     SLThreadRoleAnnotationsLexer.init();
-    JavacClassParser loader = new JavacClassParser(pool, projects);
+    JavacClassParser loader = new JavacClassParser(perf.pool, projects);
 
     // loader.ensureClassIsLoaded("java.util.concurrent.locks.ReadWriteLock");
     loader.ensureClassIsLoaded(SLUtility.JAVA_LANG_OBJECT);
@@ -401,7 +396,7 @@ public class Util {
     }
     env.finishedInit(); // To free up memory
 
-    final ParallelArray<CodeInfo> cus = createArray(CodeInfo.class, pool);
+    final ParallelArray<CodeInfo> cus = perf.createArray(CodeInfo.class);
     endSubTask(projects.getMonitor());
 
     for (Config config : projects.getConfigs()) {
@@ -473,7 +468,7 @@ public class Util {
     long[] times;
     if (analyze) {
       // These are all the SourceCUDrops for this project
-      final ParallelArray<SourceCUDrop> cuds = findSourceCUDrops(singleThreaded, pool);
+      final ParallelArray<SourceCUDrop> cuds = findSourceCUDrops(perf);
       final ParallelArray<SourceCUDrop> allCuds = cuds;// findSourceCUDrops(null,
                                                         // singleThreaded,
                                                         // pool);
@@ -716,8 +711,8 @@ public class Util {
   /**
    * Gets every drop if pd is null
    */
-  private static ParallelArray<SourceCUDrop> findSourceCUDrops(final boolean singleThreaded, final ForkJoinPool pool) {
-    final ParallelArray<SourceCUDrop> cuds = createArray(SourceCUDrop.class, pool);
+  private static ParallelArray<SourceCUDrop> findSourceCUDrops(final JSurePerformance perf) {
+    final ParallelArray<SourceCUDrop> cuds = perf.createArray(SourceCUDrop.class);
     for (SourceCUDrop scud : Sea.getDefault().getDropsOfExactType(SourceCUDrop.class)) {
       cuds.asList().add(scud);
     }
@@ -856,6 +851,125 @@ public class Util {
     return times;
   }
 
+  static class AnalysisInfo<Q extends IAnalysisGranule> {
+	  final IIRAnalysisEnvironment env;
+	  final Map<JavacProject, List<Q>> granules = new HashMap<JavacProject, List<Q>>();
+	  final ParallelArray<Q> toAnalyze;
+	  final boolean singleThreaded; // for the whole group of analyses
+	  final SLProgressMonitor monitor;
+	  
+	  AnalysisInfo(Class<Q> cls, IIRAnalysisEnvironment e, JSurePerformance perf, SLProgressMonitor mon) {
+		  env = e;
+		  singleThreaded = perf.singleThreaded;
+		  toAnalyze = perf.createArray(cls);
+		  monitor = mon;
+	  }
+
+	  ParallelArray<Q> getGranules(final JavacProject project) {
+		  toAnalyze.asList().clear();
+		  toAnalyze.asList().addAll(granules.get(project));
+		  return toAnalyze;
+	  }
+	  	  
+	  Procedure<Q> getProcedure(final JavacProject project, final List<IIRAnalysis<Q>> analyses, final long[] times) {
+		  final PromiseFramework frame = PromiseFramework.getInstance();	  
+		  return new Procedure<Q>() {	  
+			  @Override
+			  public void op(Q granule) {
+				  /*			  
+				  if (!granule.isAsSource()) {
+					  // LOG.warning("No analysis on "+granule.javaOSFileName);
+					  return;
+				  }
+				  */
+				  if (monitor.isCanceled()) {
+					  throw new CancellationException();
+				  }				  
+				  if (project.getTypeEnv() == granule.getTypeEnv()) { // Same project!
+					  // System.out.println("Running "+a.name()+" on "+granule.javaOSFileName);
+					  try {
+						  frame.pushTypeContext(granule.getCompUnit());
+						  int i = 0;
+						  for (final IIRAnalysis<Q> a : analyses) {
+							  final long start = System.nanoTime();
+							  a.doAnalysisOnGranule(env, granule);
+							  final long end = System.nanoTime();
+							  times[i] += end - start;
+							  i++;	
+						  }
+
+					  } catch (RuntimeException e) {
+						  System.err.println("Error while processing " + granule.getLabel());
+						  throw e;
+					  } finally {
+						  frame.popTypeContext();
+					  }
+				  }				  
+			  }
+		  };
+	  }
+	  
+	  long[] analyzeAProject(final JavacProject project, List<IIRAnalysis<Q>> analyses) {		  
+		  final ParallelArray<Q> granules = getGranules(project);
+		  final long[] times = new long[analyses.size()]; // in nanos
+		  int i = 0;
+		  for (final IIRAnalysis<Q> a : analyses) {
+			  //System.out.println(a.name()+" analyzing "+(a.analyzeAll() ? "all CUs" : "source CUs"));
+	  
+			  if (monitor.isCanceled()) {
+				  throw new CancellationException();
+			  }
+			  final String inParallel = singleThreaded ? "" : "parallel ";
+			  startSubTask(monitor, "Starting " + inParallel + a.name() + " [" + i + "]: " + granules.size() + " for " + project.getName());
+			  final long start = System.nanoTime();
+			  a.analyzeBegin(env, project);
+			  final long end = System.nanoTime();
+			  times[i] += end - start;
+			  i++;
+		  }
+
+		  final Procedure<Q> proc = getProcedure(project, analyses, times); 
+		  if (singleThreaded) {
+			  for (final Q granule : granules) {
+				  proc.op(granule);
+			  }
+		  } else {			  			  
+			  granules.apply(proc);
+		  }
+		  
+		  // Finishing up loose ends (if any)
+		  for (final IIRAnalysis<Q> a : analyses) {
+			  final long start = System.nanoTime();
+			  GroupedAnalysis.handleAnalyzeEnd(a, env, project);
+			  final long end = System.nanoTime();
+			  times[i] += end - start;
+			  i++;	
+		  }
+		  
+		  // All analysis is done
+		  i = 0;
+		  for (final IIRAnalysis<Q> a : analyses) {
+			  final long start = System.nanoTime();
+			  a.postAnalysis(project);
+			  final long end = System.nanoTime();
+			  times[i] += end - start;
+			  i++;	
+			  endSubTask(monitor);
+		  }
+		  
+		  // Finish
+		  i = 0;
+		  for (final IIRAnalysis<Q> a : analyses) {
+			  final long start = System.nanoTime();
+			  a.finish(env);
+			  final long end = System.nanoTime();
+			  times[i] += end - start;
+			  i++;
+		  }
+		  return times;	  
+	  }
+  }
+	  
   private static void recordFilesAnalyzed(ParallelArray<SourceCUDrop> allCus, File log) {
     System.out.println("Recording which files actually got (re-)analyzed");
     try {
@@ -1003,13 +1117,13 @@ public class Util {
 	  Projects getProjects() {
 		  return projects;
 	  }
-	  public void op(CodeInfo info) {
+	  public void op(T info) {
 		  if (monitor != null && monitor.isCanceled()) {
 			     throw new CancellationException();
 		  }
 		  process(info);
 	  }
-	  protected abstract void process(CodeInfo info);
+	  protected abstract void process(T info);
   }
   
   static final ConcurrentMap<JavacTypeEnvironment, JavaCanonicalizer> canonicalizers = new ConcurrentHashMap<JavacTypeEnvironment, JavaCanonicalizer>();
@@ -1108,7 +1222,7 @@ public class Util {
     canonProc.setProjects(projects);
     long bindingTime = 0;
     if (batchAndCacheBindingsForCanon) {
-    	final ParallelArray<CodeInfo> temp = createArray(CodeInfo.class, ConcurrentAnalysis.pool);    	
+    	final ParallelArray<CodeInfo> temp = perf.createArray(CodeInfo.class);    	
     	for(CodeInfo i : cus) {
     		temp.asList().add(i);
     		if (temp.size() > 100) {

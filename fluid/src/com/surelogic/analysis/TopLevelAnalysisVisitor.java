@@ -3,6 +3,7 @@ package com.surelogic.analysis;
 import com.surelogic.common.Pair;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
@@ -125,17 +126,19 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
   
   // ----------------------------------------------------------------------
 
-  public final static class TypeBodyPair extends Pair<IRNode, IRNode> implements IAnalysisGranule {
+  public final static class TypeBodyPair extends GranuleInType implements IAnalysisGranule {
+	private final IRNode classBody;
+	  
     public TypeBodyPair(final IRNode td, final IRNode cb) {
-      super(td, cb);
+      super(td);
+      classBody = cb;
     }
     
-    public IRNode typeDecl() { return first(); }
-    public IRNode classBody() { return second(); }
-
-	@Override
-  public IRNode getCompUnit() {
-		return VisitUtil.getEnclosingCompilationUnit(first());
+    public IRNode typeDecl() { return typeDecl; }
+    public IRNode classBody() { return classBody; }
+    
+	public String getLabel() {
+		return JavaNames.getFullTypeName(typeDecl);
 	}
   }
 

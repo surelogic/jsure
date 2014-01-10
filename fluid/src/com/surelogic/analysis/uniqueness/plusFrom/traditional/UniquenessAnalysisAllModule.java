@@ -1106,45 +1106,6 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
     }
   }
 	
-	
-	
-	private static final class TypeAndMethod implements IAnalysisGranule {
-	  public final IRNode typeDecl;
-	  public final IRNode methodDecl;
-	  
-	  public TypeAndMethod(final IRNode td, final IRNode md) {
-	    typeDecl = td;
-	    methodDecl = md;
-	  }
-	  
-	  @Override
-    public IRNode getCompUnit() {
-		  return VisitUtil.getEnclosingCompilationUnit(typeDecl);
-	  }
-	  
-    public IRNode getClassBody() {
-      return VisitUtil.getClassBody(typeDecl);
-    }
-	  
-	  @Override
-    public boolean equals(final Object other) {
-	    if (other instanceof TypeAndMethod) {
-	      final TypeAndMethod tan = (TypeAndMethod) other;
-	      return typeDecl == tan.typeDecl && methodDecl == tan.methodDecl;
-	    } else {
-	      return false;
-	    }
-	  }
-	  
-	  @Override
-	  public int hashCode() {
-	    int result = 17;
-	    result = 31 * result + typeDecl.hashCode();
-	    result = 31 * result + methodDecl.hashCode();
-	    return result;
-	  }
-	}
-	
 	private static final class NewShouldAnalyzeVisitor extends JavaSemanticsVisitor {
     /**
      * The output of the visitation: the set of method/constructor declarations

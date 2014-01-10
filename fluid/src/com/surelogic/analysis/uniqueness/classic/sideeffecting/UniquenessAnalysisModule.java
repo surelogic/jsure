@@ -20,6 +20,7 @@ import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop;
+import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
@@ -27,6 +28,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
@@ -274,6 +276,16 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 		@Override
     public IRNode getCompUnit() {
 			return VisitUtil.getEnclosingCompilationUnit(mdecl);
+		}
+
+		@Override
+		public ITypeEnvironment getTypeEnv() {
+			return Projects.getEnclosingProject(mdecl).getTypeEnv();
+		}
+
+		@Override
+		public String getLabel() {
+			return JavaNames.getFullName(mdecl);
 		}
 	}
 	

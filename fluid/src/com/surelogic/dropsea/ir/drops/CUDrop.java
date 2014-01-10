@@ -54,6 +54,10 @@ public abstract class CUDrop extends Drop implements IAnalysisGranule {
   public final IRNode getCompUnit() {
 	return getNode();
   }
+  
+  public final String getLabel() {
+	return f_javaOSFileName;
+  }
 
   private final Object f_hostEnvResource;
 
