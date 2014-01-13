@@ -164,6 +164,21 @@ public class TestColumnAnnotationParser extends TestCase {
     assertEquals("test do it", c.getBlankIf());
   }
 
+  public void testChangeIf() {
+    c = ColumnAnnotationParserUtility.parse("(hide)");
+    assertTrue(c.isValid());
+    assertNull(c.getChangeIfFrom());
+    assertNull(c.getChangeIfTo());
+    c = ColumnAnnotationParserUtility.parse("(change-if '' to '')");
+    assertTrue(c.isValid());
+    assertEquals("", c.getChangeIfFrom());
+    assertEquals("", c.getChangeIfTo());
+    c = ColumnAnnotationParserUtility.parse("(change-if '-1' to 'unknown')");
+    assertTrue(c.isValid());
+    assertEquals("-1", c.getChangeIfFrom());
+    assertEquals("unknown", c.getChangeIfTo());
+  }
+
   public void testPrefix() {
     c = ColumnAnnotationParserUtility.parse("(prefix '')");
     assertTrue(c.isValid());
