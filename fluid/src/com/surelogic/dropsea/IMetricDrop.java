@@ -26,8 +26,6 @@ public interface IMetricDrop extends IDrop, ISnapshotDrop {
    * <i>Lock policy</i> or <i>Static structure</i>.
    * <p>
    * Values are always <tt>String</tt>.
-   * <p>
-   * <b>MANDITORY</b> This value should be in each scan time report.
    */
   final String SCAN_TIME_ANALYSIS_NAME = "scan-time-analysis-name";
 
@@ -35,8 +33,6 @@ public interface IMetricDrop extends IDrop, ISnapshotDrop {
    * The duration in nanoseconds of the portion of the scan.
    * <p>
    * Values are always <tt>long</tt>.
-   * <p>
-   * <b>MANDITORY</b> This value should be in each scan time report.
    */
   final String SCAN_TIME_DURATION_NS = "scan-time-duration-ns";
 
