@@ -14,8 +14,41 @@ public interface IMetricDrop extends IDrop, ISnapshotDrop {
    * compatibility.
    */
   public enum Metric {
-    SLOC, STATE_WRT_CONCURRENCY
+    SCAN_TIME, SLOC, STATE_WRT_CONCURRENCY
   }
+
+  /*
+   * SCAN_TIME
+   */
+
+  /**
+   * The name of the analysis this scan time report is about. For example
+   * <i>Lock policy</i> or <i>Static structure</i>.
+   * <p>
+   * Values are always <tt>String</tt>.
+   * <p>
+   * <b>MANDITORY</b> This value should be in each scan time report.
+   */
+  final String SCAN_TIME_ANALYSIS_NAME = "scan-time-analysis-name";
+
+  /**
+   * The duration in nanoseconds of the portion of the scan.
+   * <p>
+   * Values are always <tt>long</tt>.
+   * <p>
+   * <b>MANDITORY</b> This value should be in each scan time report.
+   */
+  final String SCAN_TIME_DURATION_NS = "scan-time-duration-ns";
+
+  /**
+   * The static scope this scan time report is about. For example, a compilation
+   * unit, a type, or a method.
+   * <p>
+   * Values are always <tt>IJavaNode</tt>.
+   * <p>
+   * <b>MANDITORY</b> This value should be in each scan time report.
+   */
+  final String SCAN_TIME_SCOPE = "scan-time-scope";
 
   /*
    * SLOC
@@ -24,30 +57,30 @@ public interface IMetricDrop extends IDrop, ISnapshotDrop {
   /**
    * A count of blank lines in the compilation unit.
    */
-  String SLOC_BLANK_LINE_COUNT = "sloc-blank-line-count";
+  final String SLOC_BLANK_LINE_COUNT = "sloc-blank-line-count";
   /**
    * A count of the lines in the compilation unit that are entirely or partially
    * a comment.
    */
-  String SLOC_CONTAINS_COMMENT_LINE_COUNT = "sloc-contains-comment-line-count";
+  final String SLOC_CONTAINS_COMMENT_LINE_COUNT = "sloc-contains-comment-line-count";
   /**
    * A count of the number of Java declarations, at any scope level, in the
    * compilation unit.
    */
-  String SLOC_JAVA_DECLARATION_COUNT = "sloc-java-declaration-count";
+  final String SLOC_JAVA_DECLARATION_COUNT = "sloc-java-declaration-count";
   /**
    * A count of the number of Java statements, at any scope level, in the
    * compilation unit.
    */
-  String SLOC_JAVA_STATEMENT_COUNT = "sloc-java-statement-count";
+  final String SLOC_JAVA_STATEMENT_COUNT = "sloc-java-statement-count";
   /**
    * A count of the number of lines in the compilation unit.
    */
-  String SLOC_LINE_COUNT = "sloc-line-count";
+  final String SLOC_LINE_COUNT = "sloc-line-count";
   /**
    * A count of the number of ";" which appear within the compilation unit.
    */
-  String SLOC_SEMICOLON_COUNT = "sloc-semicolon-count";
+  final String SLOC_SEMICOLON_COUNT = "sloc-semicolon-count";
 
   /*
    * STATE_WRT_CONCURRENCY
@@ -56,25 +89,24 @@ public interface IMetricDrop extends IDrop, ISnapshotDrop {
   /**
    * A count of @Immutable-typed fields in the type
    */
-  String CONCURR_IMMUTABLE_COUNT = "concurr-immutable-count";
+  final String CONCURR_IMMUTABLE_COUNT = "concurr-immutable-count";
   /**
    * A count of @ThreadSafe-typed fields in the type
    */
-  String CONCURR_THREADSAFE_COUNT = "concurr-threadsafe-count";
+  final String CONCURR_THREADSAFE_COUNT = "concurr-threadsafe-count";
   /**
    * A count of lock-protected fields in the type
    */
-  String CONCURR_LOCK_PROTECTED_COUNT = "concurr-lock-protected-count";
+  final String CONCURR_LOCK_PROTECTED_COUNT = "concurr-lock-protected-count";
   /**
    * A count of thread-confined fields in the type
    */
-  String CONCURR_THREAD_CONFINED_COUNT = "concurr-thread-confined-count";
+  final String CONCURR_THREAD_CONFINED_COUNT = "concurr-thread-confined-count";
   /**
    * A count of fields not covered above in the type
    */
-  String CONCURR_OTHER_COUNT = "concurr-other-count";
-  
-  
+  final String CONCURR_OTHER_COUNT = "concurr-other-count";
+
   /**
    * Gets the metric this drop of information contributes too.
    * <p>
