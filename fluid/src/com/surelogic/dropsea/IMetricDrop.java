@@ -41,10 +41,15 @@ public interface IMetricDrop extends IDrop, ISnapshotDrop {
   final String SCAN_TIME_DURATION_NS = "scan-time-duration-ns";
 
   /**
-   * The static scope this scan time report is about. For example, a compilation
-   * unit, a type, or a method.
+   * The static scope Java declaration that this scan time report is about. For
+   * example, a compilation unit, a type, a method, or a field. Normally this
+   * value is a compilation unit or a Java declaration.
    * <p>
-   * Values are always <tt>IJavaNode</tt>.
+   * The scope for a particular compilation unit and analysis should be
+   * consistent. All reports should be at the same level, e.g., method or
+   * compilation.
+   * <p>
+   * Values are always {@link IJavaRef}.
    * <p>
    * <b>MANDITORY</b> This value should be in each scan time report.
    */
