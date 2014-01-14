@@ -180,6 +180,13 @@
 			class="com.surelogic.jsure.client.eclipse.views.proposals.ProposedAnnotationView"
 			id="com.surelogic.jsure.client.eclipse.views.proposals.ProposedAnnotationView">
 		</view>
+		
+		<view name="Analysis-Enabled Metrics" allowMultiple="false"
+			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_metrics.gif"
+			category="com.surelogic.jsure"
+			class="com.surelogic.jsure.client.eclipse.views.metrics.ScanMetricsView"
+			id="com.surelogic.jsure.client.eclipse.views.metrics.ScanMetricsView">
+		</view>
 	</extension>
 
 	<!-- JSure perspective links and Java perspective links -->

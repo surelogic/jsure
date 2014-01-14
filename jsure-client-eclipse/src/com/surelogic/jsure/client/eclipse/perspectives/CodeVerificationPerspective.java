@@ -6,6 +6,7 @@ import org.eclipse.ui.IPerspectiveFactory;
 
 import com.surelogic.jsure.client.eclipse.views.explorer.VerificationExplorerView;
 import com.surelogic.jsure.client.eclipse.views.finder.FinderView;
+import com.surelogic.jsure.client.eclipse.views.metrics.ScanMetricsView;
 import com.surelogic.jsure.client.eclipse.views.problems.ProblemsView;
 import com.surelogic.jsure.client.eclipse.views.proposals.ProposedAnnotationView;
 import com.surelogic.jsure.client.eclipse.views.scans.ScanManagerView;
@@ -28,6 +29,7 @@ public final class CodeVerificationPerspective implements IPerspectiveFactory {
     final String problemsView = ProblemsView.class.getName();
     final String histSrcView = HistoricalSourceView.class.getName();
     final String xmlExplorerView = XMLExplorerView.class.getName();
+    final String metricsView = ScanMetricsView.class.getName();
     final String editorArea = layout.getEditorArea();
 
     final IFolderLayout scanMgtArea = layout.createFolder("scanMgtArea", IPageLayout.TOP, 0.15f, editorArea);
@@ -39,6 +41,7 @@ public final class CodeVerificationPerspective implements IPerspectiveFactory {
     final IFolderLayout resultsArea = layout.createFolder("resultsArea", IPageLayout.TOP, 0.4f, editorArea);
     resultsArea.addView(verificationStatusView);
     resultsArea.addView(verificationExplorerView);
+    resultsArea.addView(metricsView);
 
     final IFolderLayout rightOfResultsArea = layout.createFolder("rightOfResultsArea", IPageLayout.RIGHT, 0.6f, "resultsArea");
     rightOfResultsArea.addView(proposedAnnotationView);

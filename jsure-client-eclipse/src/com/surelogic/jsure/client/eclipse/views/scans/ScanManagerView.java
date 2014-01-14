@@ -115,7 +115,6 @@ public final class ScanManagerView extends ViewPart implements JSureDataDirHub.C
   @Override
   public void currentScanChanged(JSureScan scan) {
     notifyMediatorInSwtThread();
-
   }
 
   private void notifyMediatorInSwtThread() {
