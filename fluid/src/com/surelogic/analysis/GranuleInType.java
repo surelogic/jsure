@@ -20,4 +20,8 @@ public abstract class GranuleInType implements IAnalysisGranule {
 	public ITypeEnvironment getTypeEnv() {
 		return Projects.getEnclosingProject(typeDecl).getTypeEnv();
 	}
+	
+	public boolean isAsSource() {
+		return true;
+	}
 }

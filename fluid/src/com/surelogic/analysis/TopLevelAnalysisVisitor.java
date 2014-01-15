@@ -126,7 +126,7 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
   
   // ----------------------------------------------------------------------
 
-  public final static class TypeBodyPair extends GranuleInType implements IAnalysisGranule {
+  public final static class TypeBodyPair extends GranuleInType {
 	private final IRNode classBody;
 	  
     public TypeBodyPair(final IRNode td, final IRNode cb) {

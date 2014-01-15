@@ -287,6 +287,11 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 		public String getLabel() {
 			return JavaNames.getFullName(mdecl);
 		}
+
+		@Override
+		public boolean isAsSource() {
+			return true;
+		}
 	}
 	
 	

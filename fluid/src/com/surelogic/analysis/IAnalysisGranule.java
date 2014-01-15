@@ -12,6 +12,8 @@ public interface IAnalysisGranule {
 
 	ITypeEnvironment getTypeEnv();
 	
+	boolean isAsSource();
+	
 	/**
 	 * Used to identify the granule (esp. for debugging)
 	 */

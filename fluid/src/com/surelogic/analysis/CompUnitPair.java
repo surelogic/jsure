@@ -32,4 +32,9 @@ public class CompUnitPair implements IAnalysisGranule {
 	public String getLabel() {
 		return JavaNames.getFullName(node);
 	}
+
+	@Override
+	public boolean isAsSource() {
+		return true;
+	}
 }

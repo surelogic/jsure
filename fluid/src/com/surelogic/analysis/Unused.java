@@ -24,4 +24,10 @@ public final class Unused implements IAnalysisGranule {
 	public String getLabel() {
 		return null;
 	}
+
+	@Override
+	public boolean isAsSource() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }
