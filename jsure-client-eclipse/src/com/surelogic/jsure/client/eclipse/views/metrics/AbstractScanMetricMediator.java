@@ -1,5 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.metrics;
 
+import java.util.ArrayList;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -12,10 +14,11 @@ import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.jobs.SLUIJob;
+import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
-import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 /**
  * This class handles showing that no scan is selected for each metric mediator.
@@ -61,14 +64,13 @@ public abstract class AbstractScanMetricMediator implements IScanMetricMediator 
   @NonNull
   protected abstract String getMetricLabel();
 
-  public final void refreshScanContents() {
+  public final void refreshScanContents(final @Nullable JSureScanInfo scan, final @Nullable ArrayList<IMetricDrop> drops) {
     final UIJob job = new SLUIJob() {
       @Override
       public IStatus runInUIThread(IProgressMonitor monitor) {
-        final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
         if (scan != null) {
           f_viewerbook.showPage(f_control);
-          refreshMetricContentsFor(scan);
+          refreshMetricContentsFor(scan, drops);
         } else {
           // Show no results
           f_viewerbook.showPage(f_noResultsToShowLabel);
@@ -81,7 +83,7 @@ public abstract class AbstractScanMetricMediator implements IScanMetricMediator 
 
   /**
    * Implementors use this method to update the metric display to show results
-   * for the passed scan.
+   * for the passed scan. The passed list of drops should not be mutated.
    * <p>
    * This method is always invoked within the SWT thread.
    * <p>
@@ -89,6 +91,8 @@ public abstract class AbstractScanMetricMediator implements IScanMetricMediator 
    * 
    * @param scan
    *          results and information about a JSure scan.
+   * @param drops
+   *          metric drops about a JSure scan.
    */
-  protected abstract void refreshMetricContentsFor(@NonNull JSureScanInfo scan);
+  protected abstract void refreshMetricContentsFor(@Nullable JSureScanInfo scan, @Nullable ArrayList<IMetricDrop> drops);
 }

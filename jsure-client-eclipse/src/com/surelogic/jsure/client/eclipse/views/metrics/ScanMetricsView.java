@@ -1,5 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views.metrics;
 
+import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -16,8 +17,10 @@ import org.eclipse.ui.progress.UIJob;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
+import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.views.metrics.mediators.ScanTimeMetricMediator;
 import com.surelogic.jsure.client.eclipse.views.metrics.mediators.SlocMetricMediator;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
@@ -108,8 +111,11 @@ public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.C
       EclipseUIUtility.asyncExec(new Runnable() {
         @Override
         public void run() {
+          // We only want to copy the metrics drops once, so we do it here
+          final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
+          final ArrayList<IMetricDrop> drops = scan != null ? scan.getMetricDrops() : null;
           for (IScanMetricMediator mediator : f_mediators)
-            mediator.refreshScanContents();
+            mediator.refreshScanContents(scan, drops);
         }
       });
   }

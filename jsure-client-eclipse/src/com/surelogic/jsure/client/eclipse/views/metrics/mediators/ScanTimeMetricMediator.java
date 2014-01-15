@@ -1,11 +1,15 @@
 package com.surelogic.jsure.client.eclipse.views.metrics.mediators;
 
+import java.util.ArrayList;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.ui.part.PageBook;
 
+import com.surelogic.Nullable;
+import com.surelogic.dropsea.DropSeaUtility;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.views.metrics.AbstractScanMetricMediator;
@@ -38,7 +42,8 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
   }
 
   @Override
-  protected void refreshMetricContentsFor(JSureScanInfo scan) {
+  protected void refreshMetricContentsFor(@Nullable JSureScanInfo scan, @Nullable ArrayList<IMetricDrop> drops) {
+    final ArrayList<IMetricDrop> metricDrops = DropSeaUtility.filterMetricsToOneType(IMetricDrop.Metric.SCAN_TIME, drops);
     // TODO
   }
 
