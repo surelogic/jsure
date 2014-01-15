@@ -427,7 +427,7 @@ public class TypeUtil implements JavaGlobals {
    * Is the given node part of a compiled binary?
    */
   public static boolean isBinary(IRNode n) {
-    final IRNode cu = VisitUtil.getEnclosingCompilationUnit(n);
+    final IRNode cu = VisitUtil.getEnclosingCUorHere(n);
     if (cu == null) {
     	Operator op = JJNode.tree.getOperator(n);
     	LOG.warning("Couldn't find CU for "+n+" -- "+op);
