@@ -173,6 +173,8 @@ public final class JSurePreferencesUtility {
 
   public static final String VIEWS_SAVE_TREE_STATE = PREFIX + "views.save.tree.state";
 
+  public static final String METRIC_VIEW_TAB_SELECTION = PREFIX + "metric.view.tab.selection";
+
   /**
    * Gets the JSure data directory. This method ensures that the directory does
    * exist on the disk. It checks that is is there and, if not, tries to create
