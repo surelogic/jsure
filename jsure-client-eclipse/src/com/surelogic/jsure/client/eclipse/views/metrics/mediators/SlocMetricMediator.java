@@ -48,6 +48,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
   Composite f_panel = null;
 
+  Label f_totalSlocScanned = null;
   Scale f_thresholdScale = null;
   Text f_thresholdLabel = null;
 
@@ -66,11 +67,9 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     GridLayout topLayout = new GridLayout(4, false);
     top.setLayout(topLayout);
 
-    Label total = new Label(top, SWT.NONE);
-    GridData gd = new GridData(SWT.FILL, SWT.CENTER, false, false);
-    gd.widthHint = 100;
-    total.setLayoutData(gd);
-    total.setText("TOTAL");
+    f_totalSlocScanned = new Label(top, SWT.NONE);
+    f_totalSlocScanned.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+    f_totalSlocScanned.setForeground(f_totalSlocScanned.getDisplay().getSystemColor(SWT.COLOR_LINK_FOREGROUND));
 
     Label threshold = new Label(top, SWT.RIGHT);
     threshold.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -96,7 +95,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     });
 
     f_thresholdLabel = new Text(top, SWT.SINGLE);
-    gd = new GridData(SWT.FILL, SWT.CENTER, false, false);
+    GridData gd = new GridData(SWT.FILL, SWT.CENTER, false, false);
     gd.widthHint = 80;
     f_thresholdLabel.setLayoutData(gd);
     f_thresholdLabel.setText(SLUtility.toStringHumanWithCommas(savedThreshold));
@@ -148,17 +147,25 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD, threshold);
   }
 
+  private void updateTotal(long total) {
+    f_totalSlocScanned.setText(SLUtility.toStringHumanWithCommas(total) + " SLOC scanned");
+  }
+
   @Override
   protected void refreshMetricContentsFor(@Nullable JSureScanInfo scan, @Nullable ArrayList<IMetricDrop> drops) {
     final ArrayList<IMetricDrop> metricDrops = DropSeaUtility.filterMetricsToOneType(IMetricDrop.Metric.SLOC, drops);
     System.out.println("Got " + metricDrops.size() + " SLOC metric drops.");
+    long total = 0;
     for (IMetricDrop drop : metricDrops) {
+      int sloc = drop.getMetricInfoAsInt(IMetricDrop.SLOC_LINE_COUNT, 0);
+      total += sloc;
       System.out.println("-----");
       System.out.println(drop.getJavaRef().toString());
-      System.out.println("  line count = " + drop.getMetricInfoAsInt(IMetricDrop.SLOC_LINE_COUNT, 0));
+      System.out.println("  line count = " + sloc);
       System.out.println("     ; count = " + drop.getMetricInfoAsInt(IMetricDrop.SLOC_SEMICOLON_COUNT, 0));
       System.out.println(" blank lines = " + drop.getMetricInfoAsInt(IMetricDrop.SLOC_BLANK_LINE_COUNT, 0));
     }
+    updateTotal(total);
   }
 
   @Override
