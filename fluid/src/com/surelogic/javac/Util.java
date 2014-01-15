@@ -61,7 +61,9 @@ import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.tool.SureLogicToolsFilter;
 import com.surelogic.common.tool.SureLogicToolsPropertiesUtility;
 import com.surelogic.dropsea.IAnalysisOutputDrop;
+import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.IMetricDrop;
+import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.MetricDrop;
 import com.surelogic.dropsea.ir.Sea;
@@ -984,7 +986,9 @@ public class Util {
 							  final long start = System.nanoTime();
 							  a.doAnalysisOnGranule(env, granule);
 							  final long end = System.nanoTime();
-							  timing.times[i] += end - start;
+							  final long time = end - start;
+							  recordTime(granule, a, time);
+							  timing.times[i] += time;
 							  i++;	
 						  }
 
@@ -999,6 +1003,17 @@ public class Util {
 		  };
 	  }
 	  
+	  protected void recordTime(Q granule, IIRAnalysis<Q> a, long t_in_ns) {
+		  final MetricDrop d = new MetricDrop(granule.getNode(), IMetricDrop.Metric.SCAN_TIME);
+		  //d.setMessage(25, info.getFile().getRelativePath());
+		  
+		  final IKeyValue name = KeyValueUtility.getStringInstance(IMetricDrop.SCAN_TIME_ANALYSIS_NAME, a.name());
+		  d.addOrReplaceMetricInfo(name);
+		  
+		  final IKeyValue time = KeyValueUtility.getLongInstance(IMetricDrop.SCAN_TIME_DURATION_NS, t_in_ns);
+		  d.addOrReplaceMetricInfo(time);
+	  }
+
 	  void analyzeAProject(final JavacProject project, List<IIRAnalysis<Q>> analyses, final AllTimings timing) {		  
 		  final ParallelArray<Q> granules = getGranules(project);
 		  int i = 0;

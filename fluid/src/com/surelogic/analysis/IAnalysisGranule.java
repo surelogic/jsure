@@ -18,4 +18,9 @@ public interface IAnalysisGranule {
 	 * Used to identify the granule (esp. for debugging)
 	 */
 	String getLabel();
+	
+	/**
+	 * Get the node corresponding to the granule
+	 */
+	IRNode getNode();
 }
