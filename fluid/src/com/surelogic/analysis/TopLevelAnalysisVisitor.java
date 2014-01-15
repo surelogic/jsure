@@ -1,7 +1,5 @@
 package com.surelogic.analysis;
 
-import com.surelogic.common.Pair;
-
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
@@ -11,7 +9,6 @@ import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
   // ======================================================================
@@ -132,6 +129,10 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
     public TypeBodyPair(final IRNode td, final IRNode cb) {
       super(td);
       classBody = cb;
+    }
+    
+    public IRNode getNode() {
+    	return typeDecl;
     }
     
     public IRNode typeDecl() { return typeDecl; }

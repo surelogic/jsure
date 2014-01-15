@@ -27,7 +27,11 @@ public final class Unused implements IAnalysisGranule {
 
 	@Override
 	public boolean isAsSource() {
-		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public IRNode getNode() {
+		return null;
 	}
 }

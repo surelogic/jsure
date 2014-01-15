@@ -278,6 +278,10 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 			return VisitUtil.getEnclosingCompilationUnit(mdecl);
 		}
 
+		public IRNode getNode() {
+			return mdecl;
+		}
+		
 		@Override
 		public ITypeEnvironment getTypeEnv() {
 			return Projects.getEnclosingProject(mdecl).getTypeEnv();
