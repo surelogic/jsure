@@ -174,6 +174,7 @@ public final class JSurePreferencesUtility {
   public static final String VIEWS_SAVE_TREE_STATE = PREFIX + "views.save.tree.state";
 
   public static final String METRIC_VIEW_TAB_SELECTION = PREFIX + "metric.view.tab.selection";
+  public static final String METRIC_VIEW_SLOC_THRESHOLD = PREFIX + "metric.view.sloc.threshold";
 
   /**
    * Gets the JSure data directory. This method ensures that the directory does

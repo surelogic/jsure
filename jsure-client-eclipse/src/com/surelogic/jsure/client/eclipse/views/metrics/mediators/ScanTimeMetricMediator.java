@@ -44,7 +44,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
   @Override
   protected void refreshMetricContentsFor(@Nullable JSureScanInfo scan, @Nullable ArrayList<IMetricDrop> drops) {
     final ArrayList<IMetricDrop> metricDrops = DropSeaUtility.filterMetricsToOneType(IMetricDrop.Metric.SCAN_TIME, drops);
-    // TODO
+    System.out.println("Got " + metricDrops.size() + " SCAN_TIME metric drops.");
   }
 
   @Override
