@@ -27,14 +27,13 @@ import com.surelogic.analysis.testing.ConstantExpressionModule;
 import com.surelogic.analysis.testing.DefinitelyAssignedModule;
 import com.surelogic.analysis.testing.LocalVariablesModule;
 import com.surelogic.analysis.testing.NonNullRawTypeModule;
-import com.surelogic.analysis.testing.NonNullRawTypeModule;
 import com.surelogic.analysis.testing.TypeBasedAliasModule;
 import com.surelogic.analysis.testing.TypesModule;
 import com.surelogic.analysis.threads.ThreadEffectsModule;
 import com.surelogic.analysis.utility.UtilityAnalysis;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.util.*;
+import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 
 import edu.cmu.cs.fluid.ide.IClassPath;
@@ -388,7 +387,7 @@ public class Javac extends IDE {
 	 * Returns a filtered list of analyses, sorted properly to account for
 	 * dependencies
 	 */
-	public static List<IIRAnalysis> makeAnalyses() {
+	public static List<IIRAnalysis<CUDrop>> makeAnalyses() {
 		String test = XUtil.runTest();
 		if (test != null) {
 			Benchmark b = Benchmark.valueOf(test);
@@ -396,7 +395,7 @@ public class Javac extends IDE {
 				switch (b) {
 				case UAM:
 					return Collections
-							.<IIRAnalysis> singletonList(new com.surelogic.analysis.uniqueness.plusFrom.traditional.NewBenchmarkingUAM());
+							.<IIRAnalysis<CUDrop>> singletonList(new com.surelogic.analysis.uniqueness.plusFrom.traditional.NewBenchmarkingUAM());
 				default:
 				}
 			}
@@ -408,12 +407,12 @@ public class Javac extends IDE {
 				active.add(info);
 			}
 		}
-		List<IIRAnalysis> analyses = new ArrayList<IIRAnalysis>();
-		List<IIRAnalysis> grouped = new ArrayList<IIRAnalysis>();
+		List<IIRAnalysis<CUDrop>> analyses = new ArrayList<IIRAnalysis<CUDrop>>();
+		List<IIRAnalysis<CUDrop>> grouped = new ArrayList<IIRAnalysis<CUDrop>>();
 		Class<?> group = null;
 		for (AnalysisInfo info : active) {
 			try {
-				IIRAnalysis a = info.clazz.newInstance();
+				IIRAnalysis<CUDrop> a = info.clazz.newInstance();
 				System.out.println("Created " + info.clazz.getName());
 				if (a.getGroup() == null) {
 					// Independent analysis
@@ -438,7 +437,7 @@ public class Javac extends IDE {
 		return analyses;
 	}
 
-	private static boolean runDifferently(IIRAnalysis a, List<IIRAnalysis> grouped) {
+	private static boolean runDifferently(IIRAnalysis<CUDrop> a, List<IIRAnalysis<CUDrop>> grouped) {
 		if (grouped.isEmpty()) {
 			return true;
 		}
@@ -448,14 +447,14 @@ public class Javac extends IDE {
 	/**
 	 * @param grouped will be empty afterwards
 	 */
-	private static void handleGroup(List<IIRAnalysis> analyses,	Class<?> group, List<IIRAnalysis> grouped) {
+	private static void handleGroup(List<IIRAnalysis<CUDrop>> analyses,	Class<?> group, List<IIRAnalysis<CUDrop>> grouped) {
 		if (grouped.isEmpty()) {
 			return; // Nothing to do
 		}
 		if (grouped.size() == 1) {
 			analyses.add(grouped.get(0));
 		} else {
-			analyses.add(new GroupedAnalysis(group, grouped));
+			analyses.add(new GroupedAnalysis<CUDrop>(group, grouped));
 		}
 		grouped.clear();
 		return;
