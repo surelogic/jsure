@@ -1,24 +1,76 @@
 package com.surelogic.jsure.client.eclipse.views.metrics;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.part.ViewPart;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.progress.UIJob;
+
+import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.jsure.client.eclipse.views.metrics.mediators.ScanTimeMetricMediator;
+import com.surelogic.jsure.client.eclipse.views.metrics.mediators.SlocMetricMediator;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.ContentsChangeListener,
     JSureDataDirHub.CurrentScanChangeListener {
 
-  private ScanMetricsMediator f_mediator = null;
+  private TabFolder f_metricFolder = null;
+  private final CopyOnWriteArrayList<IScanMetricMediator> f_mediators = new CopyOnWriteArrayList<IScanMetricMediator>();
 
   @Override
   public void createPartControl(Composite parent) {
-    parent.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_RED));
+    f_metricFolder = new TabFolder(parent, SWT.NONE);
+
+    /*
+     * A D D   N E W   M E T R I C S   H E R E
+     * 
+     * Each new metric display needs a mediator implementation. Construct the
+     * mediator and add it to the mediator list. The order of creation matches
+     * the tab order in the user interface display.
+     */
+
+    f_mediators.add(new SlocMetricMediator(f_metricFolder)); // SLOC
+    f_mediators.add(new ScanTimeMetricMediator(f_metricFolder)); // SCAN_TIME
+
+    // Finished adding new metrics, initialize all of them
+    for (IScanMetricMediator mediator : f_mediators)
+      mediator.init();
+
+    // Persist the selected tab when it changes
+    f_metricFolder.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        int selectedTab = f_metricFolder.getSelectionIndex();
+        EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_TAB_SELECTION, selectedTab);
+      }
+    });
+    // Restore the selected tab (or use 0 which is the int preference default)
+    f_metricFolder.setSelection(EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_TAB_SELECTION));
+
     JSureDataDirHub.getInstance().addContentsChangeListener(this);
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
+
+    // setup a job to "fake" a scan change.
+    final UIJob job = new SLUIJob() {
+      @Override
+      public IStatus runInUIThread(IProgressMonitor monitor) {
+        currentScanChanged(null);
+        return Status.OK_STATUS;
+      }
+    };
+    job.schedule();
   }
 
   @Override
@@ -27,9 +79,9 @@ public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.C
       JSureDataDirHub.getInstance().removeContentsChangeListener(this);
       JSureDataDirHub.getInstance().removeCurrentScanChangeListener(this);
 
-      if (f_mediator != null)
-        f_mediator.dispose();
-      f_mediator = null;
+      for (IScanMetricMediator mediator : f_mediators)
+        mediator.dispose();
+      f_mediators.clear();
     } finally {
       super.dispose();
     }
@@ -37,28 +89,27 @@ public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.C
 
   @Override
   public void setFocus() {
-    final ScanMetricsMediator mediator = f_mediator;
-    if (mediator != null)
-      mediator.setFocus();
+    if (f_metricFolder != null)
+      f_metricFolder.setFocus();
   }
 
   @Override
   public void scanContentsChanged(JSureDataDir dataDir) {
-    notifyMediatorInSwtThread();
+    notifyMediatorsInSwtThread();
   }
 
   @Override
   public void currentScanChanged(JSureScan scan) {
-    notifyMediatorInSwtThread();
+    notifyMediatorsInSwtThread();
   }
 
-  private void notifyMediatorInSwtThread() {
-    final ScanMetricsMediator mediator = f_mediator;
-    if (mediator != null)
+  final void notifyMediatorsInSwtThread() {
+    if (!f_mediators.isEmpty())
       EclipseUIUtility.asyncExec(new Runnable() {
         @Override
         public void run() {
-          mediator.refreshScanContents();
+          for (IScanMetricMediator mediator : f_mediators)
+            mediator.refreshScanContents();
         }
       });
   }
