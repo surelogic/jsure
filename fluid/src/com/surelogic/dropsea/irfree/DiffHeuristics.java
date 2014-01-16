@@ -84,8 +84,9 @@ public class DiffHeuristics {
 
   public static void computeDiffInfo(final Drop drop, final Pair<IJavaRef, IRNode> loc) {
     if (loc == null || loc.first() == null || loc.second() == null) {
-      if (!(drop instanceof ResultFolderDrop)
-          && !"Field length is final".equals(drop.getMessage())) {
+      if (!(drop instanceof ResultFolderDrop) &&
+    	  !(drop instanceof MetricDrop) &&
+          !"Field length is final".equals(drop.getMessage())) {
         SLLogger.getLogger().warning("Diff info not computed due to missing location: " + drop.getMessage());
       }
       return;
