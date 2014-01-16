@@ -6,7 +6,9 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.*;
 
-import com.surelogic.analysis.GroupedAnalysis;
+import com.surelogic.analysis.Analyses;
+import com.surelogic.analysis.AnalysisGroup;
+import com.surelogic.analysis.IAnalysisGranulator;
 import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.IIRProject;
@@ -58,6 +60,9 @@ public class Javac extends IDE {
 		init(StructureAnalysis.class,
 				"com.surelogic.jsure.client.eclipse.StructureAssurance", true, "Structure analysis");
 		
+	    init(UtilityAnalysis.class, "com.surelogic.jsure.client.eclipse.Utility", true, "Utility class");
+	    init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
+		
 		/* Checking of @ThreadSafe, etc., which is run by the lock policy and 
 		 * equality analyses, depend on the results of annotation bounds checking.
 		 */
@@ -66,6 +71,10 @@ public class Javac extends IDE {
 		        "com.surelogic.jsure.client.eclipse.ParameterizedType",
 		        true, "Annotation Bounds");
 		
+	    init(EqualityAnalysis.class,
+	            "com.surelogic.jsure.client.eclipse.EqualityAssurance", true,
+	            "Reference equality", annoBoundsChecking);
+
 	// Lock and EffectAssurance need to be declared together because they share use of BindingContextAnalysis
     init(LockAnalysis.class,
         "com.surelogic.jsure.client.eclipse.LockAssurance3", true, "Lock policy",
@@ -73,10 +82,6 @@ public class Javac extends IDE {
 	init(EffectsAnalysis.class,
 			"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects");
     
-    init(EqualityAnalysis.class,
-        "com.surelogic.jsure.client.eclipse.EqualityAssurance", true,
-        "Reference equality", annoBoundsChecking);
-
     init(com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisModule.class,
         "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM", false, "Uniqueness + From");
     init(com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisAllModule.class,
@@ -108,10 +113,6 @@ public class Javac extends IDE {
 		init(TypesModule.class, "com.surelogic.jsure.client.eclipse.Types", false, "Type Info (for reg tests only)");
 		init(ConstantExpressionModule.class, "com.surelogic.jsure.client.eclipse.ConstantExpr", false, "Constant Expressions (for reg tests only)");
 		init(BinderModule.class, "com.surelogic.jsure.client.eclipse.Binder", false, "Binder (for reg tests only)");
-    
-		
-		init(UtilityAnalysis.class, "com.surelogic.jsure.client.eclipse.Utility", true, "Utility class");
-    init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
     
     init(NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable", true, "Nullable");
 //    init(com.surelogic.analysis.nullable2.NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable2", true, "Nullable 2222");
@@ -387,15 +388,19 @@ public class Javac extends IDE {
 	 * Returns a filtered list of analyses, sorted properly to account for
 	 * dependencies
 	 */
-	public static List<IIRAnalysis<CUDrop>> makeAnalyses() {
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static Analyses makeAnalyses() {
+		final Analyses analyses = new Analyses();
 		String test = XUtil.runTest();
 		if (test != null) {
 			Benchmark b = Benchmark.valueOf(test);
 			if (b != null) {
 				switch (b) {
 				case UAM:
-					return Collections
-							.<IIRAnalysis<CUDrop>> singletonList(new com.surelogic.analysis.uniqueness.plusFrom.traditional.NewBenchmarkingUAM());
+					AnalysisGroup<CUDrop> g = new AnalysisGroup<CUDrop>(null, 0, 
+							new com.surelogic.analysis.uniqueness.plusFrom.traditional.NewBenchmarkingUAM());
+					analyses.add(g);
+					return analyses;
 				default:
 				}
 			}
@@ -407,55 +412,55 @@ public class Javac extends IDE {
 				active.add(info);
 			}
 		}
-		List<IIRAnalysis<CUDrop>> analyses = new ArrayList<IIRAnalysis<CUDrop>>();
-		List<IIRAnalysis<CUDrop>> grouped = new ArrayList<IIRAnalysis<CUDrop>>();
-		Class<?> group = null;
+		List<IIRAnalysis<?>> grouped = new ArrayList<IIRAnalysis<?>>();
+		IAnalysisGranulator<?> granulator = null;
 		for (AnalysisInfo info : active) {
 			try {
-				IIRAnalysis<CUDrop> a = info.clazz.newInstance();
+				IIRAnalysis<?> a = info.clazz.newInstance();
 				System.out.println("Created " + info.clazz.getName());
+				/*
 				if (a.getGroup() == null) {
 					// Independent analysis
 					handleGroup(analyses, group, grouped);
 					analyses.add(a);		
 				} else {
+				*/
 					// Potentially grouped analysis
-					if (a.getGroup() != group || runDifferently(a, grouped)) {
+					if (startNewGroup(a, grouped)) {
 						// Different group
-						handleGroup(analyses, group, grouped);
-						group = a.getGroup();
+						System.out.println("Starting a new group for "+a.name());
+						handleGroup(analyses, granulator, grouped);
+						granulator = a.getGranulator();
 					}					
 					grouped.add(a);
-				}				
+				//}				
 			} catch (InstantiationException e) {
 				e.printStackTrace();
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
 			}
 		}
-		handleGroup(analyses, group, grouped);
+		handleGroup(analyses, granulator, grouped);
 		return analyses;
 	}
 
-	private static boolean runDifferently(IIRAnalysis<CUDrop> a, List<IIRAnalysis<CUDrop>> grouped) {
+	private static boolean startNewGroup(IIRAnalysis<?> a, List<IIRAnalysis<?>> grouped) {
 		if (grouped.isEmpty()) {
 			return true;
 		}
-		return a.runInParallel() != grouped.get(0).runInParallel();
+		IIRAnalysis<?> first = grouped.get(0);
+		return a.getGranulator() != first.getGranulator() || a.getGroup() != first.getGroup() || a.runInParallel() != first.runInParallel();
 	}
 
 	/**
 	 * @param grouped will be empty afterwards
 	 */
-	private static void handleGroup(List<IIRAnalysis<CUDrop>> analyses,	Class<?> group, List<IIRAnalysis<CUDrop>> grouped) {
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static void handleGroup(Analyses analyses, IAnalysisGranulator<?> g, List<IIRAnalysis<?>> grouped) {
 		if (grouped.isEmpty()) {
 			return; // Nothing to do
 		}
-		if (grouped.size() == 1) {
-			analyses.add(grouped.get(0));
-		} else {
-			analyses.add(new GroupedAnalysis<CUDrop>(group, grouped));
-		}
+		analyses.add(new AnalysisGroup(g, analyses.size(), grouped.toArray(new IIRAnalysis<?>[grouped.size()])));
 		grouped.clear();
 		return;
 	}
