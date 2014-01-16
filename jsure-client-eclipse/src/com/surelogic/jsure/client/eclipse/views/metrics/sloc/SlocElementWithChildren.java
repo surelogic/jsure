@@ -1,0 +1,33 @@
+package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.surelogic.NonNull;
+
+public abstract class SlocElementWithChildren extends SlocElement {
+
+  protected SlocElementWithChildren(SlocElement parent, String label) {
+    super(parent, label);
+  }
+
+  @NonNull
+  private final ArrayList<SlocElement> f_children = new ArrayList<SlocElement>();
+
+  final void addChild(SlocElement child) {
+    if (child == null)
+      return;
+    f_children.add(child);
+  }
+
+  @Override
+  @NonNull
+  public final SlocElement[] getChildren() {
+    return f_children.toArray(new SlocElement[f_children.size()]);
+  }
+
+  @NonNull
+  final List<SlocElement> getChildrenAsListReference() {
+    return f_children;
+  }
+}
