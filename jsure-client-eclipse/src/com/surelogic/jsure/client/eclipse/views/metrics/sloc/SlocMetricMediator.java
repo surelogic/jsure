@@ -1,20 +1,26 @@
-package com.surelogic.jsure.client.eclipse.views.metrics.mediators;
+package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 
 import java.util.ArrayList;
 
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Text;
@@ -23,6 +29,7 @@ import org.eclipse.ui.part.PageBook;
 import com.surelogic.Nullable;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.ui.EclipseColorUtility;
 import com.surelogic.dropsea.DropSeaUtility;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
@@ -55,14 +62,12 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
   @Override
   protected Control initMetricDisplay(PageBook parent) {
     f_panel = new Composite(parent, SWT.NONE);
-    f_panel.setBackground(f_panel.getDisplay().getSystemColor(SWT.COLOR_RED));
 
     GridLayout layout = new GridLayout();
     layout.marginHeight = layout.marginWidth = layout.horizontalSpacing = layout.verticalSpacing = 0;
     f_panel.setLayout(layout);
 
     Composite top = new Composite(f_panel, SWT.BORDER);
-    // top.setBackground(f_panel.getDisplay().getSystemColor(SWT.COLOR_BLUE));
     top.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     GridLayout topLayout = new GridLayout(4, false);
     top.setLayout(topLayout);
@@ -114,12 +119,46 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
       }
     });
 
-    TreeViewer f_treeViewer = new TreeViewer(f_panel, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+    final SashForm sash = new SashForm(f_panel, SWT.HORIZONTAL | SWT.SMOOTH);
+    sash.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+    sash.setLayout(new FillLayout());
+
+    /*
+     * Left-hand-side shows tree-table.
+     */
+    TreeViewer f_treeViewer = new TreeViewer(sash, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
     // f_treeViewer.setContentProvider(f_contentProvider);
     // f_treeViewer.setSorter(f_alphaLineSorter);
     f_treeViewer.getTree().setHeaderVisible(true);
     f_treeViewer.getTree().setLinesVisible(true);
-    f_treeViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+    /*
+     * Right-hand-side shows graph
+     */
+    final Group rhs = new Group(sash, SWT.NONE);
+    rhs.setText("Details");
+
+    final Canvas canvas = new Canvas(rhs, SWT.NONE);
+    canvas.setBackground(canvas.getDisplay().getSystemColor(SWT.COLOR_RED));
+
+    sash.setWeights(new int[] { EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_LHS_WEIGHT),
+        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_RHS_WEIGHT) });
+
+    /*
+     * When the left-hand-side composite is resized we'll just guess that the
+     * sash is involved. Hopefully, this is conservative. This seems to be the
+     * only way to do this.
+     */
+    f_treeViewer.getControl().addListener(SWT.Resize, new Listener() {
+      @Override
+      public void handleEvent(final Event event) {
+        final int[] weights = sash.getWeights();
+        if (weights != null && weights.length == 2) {
+          EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_LHS_WEIGHT, weights[0]);
+          EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_RHS_WEIGHT, weights[1]);
+        }
+      }
+    });
 
     return f_panel;
   }

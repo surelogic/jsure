@@ -21,8 +21,8 @@ import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureDataDir;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.JSureScanInfo;
-import com.surelogic.jsure.client.eclipse.views.metrics.mediators.ScanTimeMetricMediator;
-import com.surelogic.jsure.client.eclipse.views.metrics.mediators.SlocMetricMediator;
+import com.surelogic.jsure.client.eclipse.views.metrics.scantime.ScanTimeMetricMediator;
+import com.surelogic.jsure.client.eclipse.views.metrics.sloc.SlocMetricMediator;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
