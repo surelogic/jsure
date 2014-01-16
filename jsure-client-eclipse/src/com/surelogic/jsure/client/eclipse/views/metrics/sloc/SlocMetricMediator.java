@@ -29,7 +29,6 @@ import org.eclipse.ui.part.PageBook;
 import com.surelogic.Nullable;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
-import com.surelogic.common.ui.EclipseColorUtility;
 import com.surelogic.dropsea.DropSeaUtility;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
@@ -74,7 +73,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
     f_totalSlocScanned = new Label(top, SWT.NONE);
     f_totalSlocScanned.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-    f_totalSlocScanned.setForeground(f_totalSlocScanned.getDisplay().getSystemColor(SWT.COLOR_LINK_FOREGROUND));
+    f_totalSlocScanned.setForeground(f_totalSlocScanned.getDisplay().getSystemColor(SWT.COLOR_BLUE));
 
     Label threshold = new Label(top, SWT.RIGHT);
     threshold.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
