@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Set;
 
 import com.surelogic.analysis.AbstractAnalysisSharingAnalysis;
-import com.surelogic.analysis.CompUnitPair;
 import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.TopLevelType;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.AnonClassEvidence;
@@ -70,7 +70,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import extra166y.Ops.Procedure;
 
-public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis,Effects,CompUnitPair> {	
+public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis,Effects,TopLevelType> {	
 	/** Should we try to run things in parallel */
 	private static boolean wantToRunInParallel = false;
 
@@ -85,13 +85,13 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
   private final Effects.ElaborationErrorCallback callback;
   
 	public EffectsAnalysis() {
-		super(willRunInParallel, CompUnitPair.class, "EffectAssurance2", BindingContextAnalysis.factory);
+		super(willRunInParallel, TopLevelType.class, "EffectAssurance2", BindingContextAnalysis.factory);
 		callback = new ElaborationErrorReporter();
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
-			setWorkProcedure(new Procedure<CompUnitPair>() {
+			setWorkProcedure(new Procedure<TopLevelType>() {
 				@Override
-        public void op(CompUnitPair compUnit) {
-					checkEffectsForFile(compUnit.getNode());
+        public void op(TopLevelType type) {
+					checkEffectsForFile(type.getNode());
 				}				
 			});
 		}
@@ -126,7 +126,9 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
-			queueWork(new CompUnitPair(cud.getCompilationUnitIRNode(), compUnit));
+			for(IRNode t : VisitUtil.getTypeDecls(compUnit)) {
+				queueWork(new TopLevelType(t));
+			}
 		} else {
 			checkEffectsForFile(compUnit);
 		}
