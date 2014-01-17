@@ -30,6 +30,12 @@ public class SlocViewContentProvider implements ITreeContentProvider {
     }
   }
 
+  private final SlocMetricMediator f_mediator;
+
+  public SlocViewContentProvider(SlocMetricMediator mediator) {
+    f_mediator = mediator;
+  }
+
   @Override
   public void dispose() {
     // nothing to do
@@ -43,6 +49,7 @@ public class SlocViewContentProvider implements ITreeContentProvider {
       for (IMetricDrop drop : in.f_drops) {
         tree.addToTree(drop);
       }
+      f_mediator.updateTotal(tree.computeTotalsOnScanProjectPackage());
       f_root = tree.getRootElements();
     } else if (newInput == null) {
       f_root = SlocElement.EMPTY;

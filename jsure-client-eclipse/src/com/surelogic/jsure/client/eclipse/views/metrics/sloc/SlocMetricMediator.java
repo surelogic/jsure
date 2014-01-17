@@ -37,6 +37,7 @@ import com.surelogic.Nullable;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.ui.ColumnResizeListener;
+import com.surelogic.common.ui.EclipseColorUtility;
 import com.surelogic.dropsea.DropSeaUtility;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
@@ -69,7 +70,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
   TreeViewer f_treeViewer = null;
 
   @NonNull
-  SlocViewContentProvider f_contentProvider = new SlocViewContentProvider();
+  SlocViewContentProvider f_contentProvider = new SlocViewContentProvider(this);
 
   @Override
   protected Control initMetricDisplay(PageBook parent) {
@@ -153,7 +154,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
     final TreeViewerColumn columnLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
-      long getMetricValue(SlocElementLeaf metric) {
+      long getMetricValue(SlocElement metric) {
         return metric.getLineCount();
       }
     });
@@ -164,7 +165,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
     final TreeViewerColumn columnBlankLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnBlankLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
-      long getMetricValue(SlocElementLeaf metric) {
+      long getMetricValue(SlocElement metric) {
         return metric.getBlankLineCount();
       }
     });
@@ -176,7 +177,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
     final TreeViewerColumn columnContainsCommentLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnContainsCommentLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
-      long getMetricValue(SlocElementLeaf metric) {
+      long getMetricValue(SlocElement metric) {
         return metric.getContainsCommentLineCount();
       }
     });
@@ -188,7 +189,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
     final TreeViewerColumn columnJavaDeclarationCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnJavaDeclarationCount.setLabelProvider(new MetricDataCellLabelProvider() {
-      long getMetricValue(SlocElementLeaf metric) {
+      long getMetricValue(SlocElement metric) {
         return metric.getJavaDeclarationCount();
       }
     });
@@ -200,7 +201,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
     final TreeViewerColumn columnJavaStatementCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnJavaStatementCount.setLabelProvider(new MetricDataCellLabelProvider() {
-      long getMetricValue(SlocElementLeaf metric) {
+      long getMetricValue(SlocElement metric) {
         return metric.getJavaStatementCount();
       }
     });
@@ -212,7 +213,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
     final TreeViewerColumn columnSemicolonCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnSemicolonCount.setLabelProvider(new MetricDataCellLabelProvider() {
-      long getMetricValue(SlocElementLeaf metric) {
+      long getMetricValue(SlocElement metric) {
         return metric.getSemicolonCount();
       }
     });
@@ -278,7 +279,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD, threshold);
   }
 
-  private void updateTotal(long total) {
+  void updateTotal(long total) {
     f_totalSlocScanned.setText(SLUtility.toStringHumanWithCommas(total) + " SLOC scanned");
   }
 
@@ -318,14 +319,16 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
      *          a data containing Sloc metric element.
      * @return the metric data.
      */
-    abstract long getMetricValue(SlocElementLeaf metric);
+    abstract long getMetricValue(SlocElement metric);
 
     @Override
     public void update(ViewerCell cell) {
-      if (cell.getElement() instanceof SlocElementLeaf) {
-        final SlocElementLeaf element = (SlocElementLeaf) cell.getElement();
+      if (cell.getElement() instanceof SlocElement) {
+        final SlocElement element = (SlocElement) cell.getElement();
         final long data = getMetricValue(element);
         cell.setText(SLUtility.toStringHumanWithCommas(data));
+        if (element instanceof SlocElementWithChildren)
+          cell.setForeground(EclipseColorUtility.getSubtleTextColor());
       }
     }
   };
@@ -341,13 +344,13 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     public void paintControl(PaintEvent e) {
       final Rectangle clientArea = f_canvas.getClientArea();
       e.gc.setAntialias(SWT.ON);
-      
+
       // Pie chart at top
 
       int chartDiameter = clientArea.width - 10;
       e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_BLUE));
       e.gc.fillArc(5, 5, chartDiameter, chartDiameter, 5, 300);
-      
+
       // Bar chart at bottom
     }
   }
