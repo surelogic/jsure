@@ -2,15 +2,22 @@ package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 
 import java.util.ArrayList;
 
+import org.eclipse.jface.viewers.CellLabelProvider;
+import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.TreeViewerColumn;
+import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -25,9 +32,11 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.part.PageBook;
 
+import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.ui.ColumnResizeListener;
 import com.surelogic.dropsea.DropSeaUtility;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
@@ -56,6 +65,11 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
   Label f_totalSlocScanned = null;
   Scale f_thresholdScale = null;
   Text f_thresholdLabel = null;
+
+  TreeViewer f_treeViewer = null;
+
+  @NonNull
+  SlocViewContentProvider f_contentProvider = new SlocViewContentProvider();
 
   @Override
   protected Control initMetricDisplay(PageBook parent) {
@@ -126,19 +140,98 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     /*
      * Left-hand-side shows tree-table.
      */
-    TreeViewer f_treeViewer = new TreeViewer(sash, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
-    // f_treeViewer.setContentProvider(f_contentProvider);
+    f_treeViewer = new TreeViewer(sash, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+    f_treeViewer.setContentProvider(f_contentProvider);
     // f_treeViewer.setSorter(f_alphaLineSorter);
     f_treeViewer.getTree().setHeaderVisible(true);
     f_treeViewer.getTree().setLinesVisible(true);
+
+    final TreeViewerColumn columnTree = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
+    columnTree.setLabelProvider(TREE);
+    columnTree.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_TREE_WIDTH));
+    columnTree.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_TREE_WIDTH));
+
+    final TreeViewerColumn columnLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    columnLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
+      long getMetricValue(SlocElementLeaf metric) {
+        return metric.getLineCount();
+      }
+    });
+    columnLineCount.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_LINE_COUNT_WIDTH));
+    columnLineCount.getColumn().addControlListener(
+        new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_LINE_COUNT_WIDTH));
+    columnLineCount.getColumn().setText("SLOC");
+
+    final TreeViewerColumn columnBlankLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    columnBlankLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
+      long getMetricValue(SlocElementLeaf metric) {
+        return metric.getBlankLineCount();
+      }
+    });
+    columnBlankLineCount.getColumn().setWidth(
+        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_BLANK_LINE_COUNT_WIDTH));
+    columnBlankLineCount.getColumn().addControlListener(
+        new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_BLANK_LINE_COUNT_WIDTH));
+    columnBlankLineCount.getColumn().setText("Blank Lines");
+
+    final TreeViewerColumn columnContainsCommentLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    columnContainsCommentLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
+      long getMetricValue(SlocElementLeaf metric) {
+        return metric.getContainsCommentLineCount();
+      }
+    });
+    columnContainsCommentLineCount.getColumn().setWidth(
+        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_CONTAINS_COMMENT_LINE_COUNT_WIDTH));
+    columnContainsCommentLineCount.getColumn().addControlListener(
+        new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_CONTAINS_COMMENT_LINE_COUNT_WIDTH));
+    columnContainsCommentLineCount.getColumn().setText("Commented Lines");
+
+    final TreeViewerColumn columnJavaDeclarationCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    columnJavaDeclarationCount.setLabelProvider(new MetricDataCellLabelProvider() {
+      long getMetricValue(SlocElementLeaf metric) {
+        return metric.getJavaDeclarationCount();
+      }
+    });
+    columnJavaDeclarationCount.getColumn().setWidth(
+        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_JAVA_DECLARATION_COUNT_WIDTH));
+    columnJavaDeclarationCount.getColumn().addControlListener(
+        new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_JAVA_DECLARATION_COUNT_WIDTH));
+    columnJavaDeclarationCount.getColumn().setText("Java Declarations");
+
+    final TreeViewerColumn columnJavaStatementCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    columnJavaStatementCount.setLabelProvider(new MetricDataCellLabelProvider() {
+      long getMetricValue(SlocElementLeaf metric) {
+        return metric.getJavaStatementCount();
+      }
+    });
+    columnJavaStatementCount.getColumn().setWidth(
+        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_JAVA_STATEMENT_COUNT_WIDTH));
+    columnJavaStatementCount.getColumn().addControlListener(
+        new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_JAVA_STATEMENT_COUNT_WIDTH));
+    columnJavaStatementCount.getColumn().setText("Java Statements");
+
+    final TreeViewerColumn columnSemicolonCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    columnSemicolonCount.setLabelProvider(new MetricDataCellLabelProvider() {
+      long getMetricValue(SlocElementLeaf metric) {
+        return metric.getSemicolonCount();
+      }
+    });
+    columnSemicolonCount.getColumn().setWidth(
+        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_SEMICOLON_COUNT_WIDTH));
+    columnSemicolonCount.getColumn().addControlListener(
+        new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_SEMICOLON_COUNT_WIDTH));
+    columnSemicolonCount.getColumn().setText("Semicolon Count");
 
     /*
      * Right-hand-side shows graph
      */
     final Composite rhs = new Composite(sash, SWT.BORDER);
+    rhs.setLayout(new FillLayout());
 
-    final Canvas canvas = new Canvas(rhs, SWT.NONE);
+    final Canvas canvas = new Canvas(rhs, SWT.DOUBLE_BUFFERED);
     canvas.setBackground(canvas.getDisplay().getSystemColor(SWT.COLOR_RED));
+    final SlocCanvasEventHandler handler = new SlocCanvasEventHandler(canvas);
+    canvas.addPaintListener(handler);
 
     sash.setWeights(new int[] { EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_LHS_WEIGHT),
         EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_RHS_WEIGHT) });
@@ -192,22 +285,70 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
   @Override
   protected void refreshMetricContentsFor(@Nullable JSureScanInfo scan, @Nullable ArrayList<IMetricDrop> drops) {
     final ArrayList<IMetricDrop> metricDrops = DropSeaUtility.filterMetricsToOneType(IMetricDrop.Metric.SLOC, drops);
-    System.out.println("Got " + metricDrops.size() + " SLOC metric drops.");
-    long total = 0;
-    for (IMetricDrop drop : metricDrops) {
-      int sloc = drop.getMetricInfoAsInt(IMetricDrop.SLOC_LINE_COUNT, 0);
-      total += sloc;
-      System.out.println("-----");
-      System.out.println(drop.getJavaRef().toString());
-      System.out.println("  line count = " + sloc);
-      System.out.println("     ; count = " + drop.getMetricInfoAsInt(IMetricDrop.SLOC_SEMICOLON_COUNT, 0));
-      System.out.println(" blank lines = " + drop.getMetricInfoAsInt(IMetricDrop.SLOC_BLANK_LINE_COUNT, 0));
-    }
-    updateTotal(total);
+    f_treeViewer.setInput(new SlocViewContentProvider.Input(scan, metricDrops));
   }
 
   @Override
   public void dispose() {
     // Nothing to do
+  }
+
+  static final StyledCellLabelProvider TREE = new StyledCellLabelProvider() {
+
+    @Override
+    public void update(ViewerCell cell) {
+
+      if (cell.getElement() instanceof SlocElement) {
+        final SlocElement element = (SlocElement) cell.getElement();
+        String label = element.getLabel();
+        cell.setText(label);
+        cell.setImage(element.getImage());
+      } else
+        super.update(cell);
+    }
+  };
+
+  static abstract class MetricDataCellLabelProvider extends CellLabelProvider {
+
+    /**
+     * Implementations should extract the proper data for the column based upon
+     * the passed metric.
+     * 
+     * @param metric
+     *          a data containing Sloc metric element.
+     * @return the metric data.
+     */
+    abstract long getMetricValue(SlocElementLeaf metric);
+
+    @Override
+    public void update(ViewerCell cell) {
+      if (cell.getElement() instanceof SlocElementLeaf) {
+        final SlocElementLeaf element = (SlocElementLeaf) cell.getElement();
+        final long data = getMetricValue(element);
+        cell.setText(SLUtility.toStringHumanWithCommas(data));
+      }
+    }
+  };
+
+  private final class SlocCanvasEventHandler implements PaintListener {
+
+    final Canvas f_canvas;
+
+    public SlocCanvasEventHandler(Canvas canvas) {
+      f_canvas = canvas;
+    }
+
+    public void paintControl(PaintEvent e) {
+      final Rectangle clientArea = f_canvas.getClientArea();
+      e.gc.setAntialias(SWT.ON);
+      
+      // Pie chart at top
+
+      int chartDiameter = clientArea.width - 10;
+      e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_BLUE));
+      e.gc.fillArc(5, 5, chartDiameter, chartDiameter, 5, 300);
+      
+      // Bar chart at bottom
+    }
   }
 }

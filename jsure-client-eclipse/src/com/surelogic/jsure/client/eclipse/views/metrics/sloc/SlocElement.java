@@ -8,12 +8,10 @@ import com.surelogic.common.i18n.I18N;
 
 public abstract class SlocElement {
 
-  protected SlocElement(SlocElement parent, String label) {
+  protected SlocElement(@Nullable SlocElement parent, @NonNull String label) {
     if (label == null)
       throw new IllegalStateException(I18N.err(44, "label"));
     f_label = label;
-    if (parent == null)
-      throw new IllegalStateException(I18N.err(44, "parent"));
     f_parent = parent;
   }
 

@@ -1,11 +1,14 @@
 package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.NonNull;
+import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
@@ -20,18 +23,11 @@ public class SlocViewContentProvider implements ITreeContentProvider {
     final JSureScanInfo f_scan;
     @NonNull
     final ArrayList<IMetricDrop> f_drops;
-    final int f_thresholdSloc;
-    final boolean f_filter;
-    final boolean f_highlight;
 
-    Input(@NonNull JSureScanInfo scan, @NonNull ArrayList<IMetricDrop> drops, int thresholdSloc, boolean filter, boolean highlight) {
+    Input(@NonNull JSureScanInfo scan, @NonNull ArrayList<IMetricDrop> drops) {
       f_scan = scan;
       f_drops = drops;
-      f_thresholdSloc = thresholdSloc;
-      f_filter = filter;
-      f_highlight = highlight;
     }
-
   }
 
   @Override
@@ -41,7 +37,18 @@ public class SlocViewContentProvider implements ITreeContentProvider {
 
   @Override
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-    // TODO Auto-generated method stub
+    if (newInput instanceof Input) {
+      final Input in = (Input) newInput;
+      final Folderizer tree = new Folderizer(in.f_scan.findProjectsLabel());
+      for (IMetricDrop drop : in.f_drops) {
+        tree.addToTree(drop);
+      }
+      f_root = tree.getRootElements();
+    } else if (newInput == null) {
+      f_root = SlocElement.EMPTY;
+    } else {
+      SLLogger.getLogger().log(Level.SEVERE, I18N.err(301, this.getClass().getSimpleName(), newInput));
+    }
 
   }
 
