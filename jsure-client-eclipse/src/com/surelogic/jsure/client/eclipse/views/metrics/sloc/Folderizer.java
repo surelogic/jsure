@@ -1,6 +1,5 @@
 package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 
-import java.util.List;
 import java.util.logging.Level;
 
 import com.surelogic.NonNull;
@@ -77,7 +76,7 @@ public final class Folderizer {
      */
     final String projectName = javaRef.getEclipseProjectName();
     SlocElementProject project = null;
-    for (SlocElement e : f_scan.getChildren()) {
+    for (SlocElement e : f_scan.getChildrenAsListReference()) {
       if (e instanceof SlocElementProject) {
         final SlocElementProject ep = (SlocElementProject) e;
         if (projectName.equals(ep.getLabel())) {
@@ -94,8 +93,7 @@ public final class Folderizer {
      * Package
      */
     final String pkgName = drop.getJavaRef().getPackageName();
-    final List<SlocElement> children = project.getChildrenAsListReference();
-    for (SlocElement e : children) {
+    for (SlocElement e : project.getChildrenAsListReference()) {
       if (e instanceof SlocElementPackage) {
         final SlocElementPackage ep = (SlocElementPackage) e;
         if (pkgName.equals(ep.getLabel())) {
@@ -107,5 +105,45 @@ public final class Folderizer {
     final SlocElementPackage pkg = new SlocElementPackage(pkgName);
     project.addChild(pkg);
     return pkg;
+  }
+
+  /**
+   * Computes totals on non-leaf rows and returns the total SLOC of the whole
+   * scan.
+   * 
+   * @return the total SLOC of the whole scan.
+   */
+  public long computeTotalsOnScanProjectPackage() {
+    for (SlocElement eproj : f_scan.getChildrenAsListReference()) {
+      if (eproj instanceof SlocElementProject) {
+        final SlocElementProject proj = (SlocElementProject) eproj;
+        for (SlocElement epkg : proj.getChildrenAsListReference()) {
+          if (epkg instanceof SlocElementPackage) {
+            final SlocElementPackage pkg = (SlocElementPackage) epkg;
+            for (SlocElement ecu : pkg.getChildrenAsListReference()) {
+              pkg.f_blankLineCount += ecu.f_blankLineCount;
+              pkg.f_containsCommentLineCount += ecu.f_containsCommentLineCount;
+              pkg.f_javaDeclarationCount += ecu.f_javaDeclarationCount;
+              pkg.f_javaStatementCount += ecu.f_javaStatementCount;
+              pkg.f_lineCount += ecu.f_lineCount;
+              pkg.f_semicolonCount += ecu.f_semicolonCount;
+            }
+            proj.f_blankLineCount += pkg.f_blankLineCount;
+            proj.f_containsCommentLineCount += pkg.f_containsCommentLineCount;
+            proj.f_javaDeclarationCount += pkg.f_javaDeclarationCount;
+            proj.f_javaStatementCount += pkg.f_javaStatementCount;
+            proj.f_lineCount += pkg.f_lineCount;
+            proj.f_semicolonCount += pkg.f_semicolonCount;
+          }
+        }
+        f_scan.f_blankLineCount += proj.f_blankLineCount;
+        f_scan.f_containsCommentLineCount += proj.f_containsCommentLineCount;
+        f_scan.f_javaDeclarationCount += proj.f_javaDeclarationCount;
+        f_scan.f_javaStatementCount += proj.f_javaStatementCount;
+        f_scan.f_lineCount += proj.f_lineCount;
+        f_scan.f_semicolonCount += proj.f_semicolonCount;
+      }
+    }
+    return f_scan.f_lineCount;
   }
 }
