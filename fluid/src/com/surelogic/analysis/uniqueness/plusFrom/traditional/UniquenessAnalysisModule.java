@@ -61,7 +61,7 @@ import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
 import extra166y.Ops.Procedure;
 
-public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniquenessAnalysis,Unused> {
+public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniquenessAnalysis,CUDrop> {
   private static final long NANO_SECONDS_PER_SECOND = 1000000000L;
 
   

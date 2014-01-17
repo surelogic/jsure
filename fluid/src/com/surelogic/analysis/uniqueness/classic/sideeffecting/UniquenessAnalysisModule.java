@@ -20,15 +20,13 @@ import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop;
-import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
-import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
@@ -42,7 +40,7 @@ import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
 import extra166y.Ops.Procedure;
 
-public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, UniquenessAnalysis, Unused> {
+public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, UniquenessAnalysis, UniquenessAnalysisModule.MethodRecord> {
   private static final long NANO_SECONDS_PER_SECOND = 1000000000L;
 
   
@@ -260,7 +258,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 	  return visitor.getResults();
 	}
 
-	private static class MethodRecord extends TypeAndMethod {
+	static class MethodRecord extends TypeAndMethod {
 		public final Set<PromiseDrop<? extends IAASTRootNode>> usedUniqueFields;
 
 		public MethodRecord(final IRNode m) {

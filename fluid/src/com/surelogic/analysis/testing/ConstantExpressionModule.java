@@ -9,7 +9,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 
-public final class ConstantExpressionModule extends AbstractWholeIRAnalysis<IBinderClient, Unused> {
+public final class ConstantExpressionModule extends AbstractWholeIRAnalysis<IBinderClient, TopLevelType> {
 	public ConstantExpressionModule() {
 		super("ConstantExpressionModule");
 	}

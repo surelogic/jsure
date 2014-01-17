@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.TopLevelType;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
@@ -24,7 +24,7 @@ import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
  * @author boyland
  *
  */
-public class TestFunctionalInterfacePseudoAnalysis extends AbstractWholeIRAnalysis<TestFunctionalInterfacePseudoAnalysis.Visitor,Unused> {
+public class TestFunctionalInterfacePseudoAnalysis extends AbstractWholeIRAnalysis<TestFunctionalInterfacePseudoAnalysis.Visitor,TopLevelType> {
 
 	private static Logger LOG = SLLogger.getLogger("com.surelogic.test");
 	

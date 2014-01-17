@@ -10,7 +10,7 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.TopLevelType;
 import com.surelogic.annotation.rules.StructureRules;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
@@ -27,7 +27,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.IntegerTable;
 
-public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAnalysis.PerThreadInfo,Unused> {
+public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAnalysis.PerThreadInfo,TopLevelType> {
 	public StructureAnalysis() {
 		super("Structure");
 	}

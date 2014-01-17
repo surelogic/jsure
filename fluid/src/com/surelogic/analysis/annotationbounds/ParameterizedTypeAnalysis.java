@@ -6,7 +6,7 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.ResultsBuilder;
-import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.TopLevelType;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
@@ -15,7 +15,7 @@ import com.surelogic.dropsea.ir.drops.method.constraints.AnnotationBoundsPromise
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
-public final class ParameterizedTypeAnalysis extends AbstractWholeIRAnalysis<GenericTypeInstantiationChecker, Unused> {
+public final class ParameterizedTypeAnalysis extends AbstractWholeIRAnalysis<GenericTypeInstantiationChecker, TopLevelType> {
   private static final int NEVER_USED = 550;
   
   public ParameterizedTypeAnalysis() {

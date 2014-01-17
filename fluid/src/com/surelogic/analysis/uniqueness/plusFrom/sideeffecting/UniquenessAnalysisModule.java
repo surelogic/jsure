@@ -59,7 +59,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import extra166y.Ops.Procedure;
 
-public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniquenessAnalysis,Unused> {
+public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<UniquenessAnalysis,TypeAndMethod> {
   /**
    * All the method control flow result drops we create.  We scan this at the
    * end to invalidate any drops that are not used.

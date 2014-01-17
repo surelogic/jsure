@@ -1,11 +1,7 @@
 package com.surelogic.analysis.testing;
 
-import com.surelogic.analysis.AbstractJavaAnalysisDriver;
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.TopLevelAnalysisVisitor;
 import com.surelogic.analysis.TopLevelAnalysisVisitor.SimpleClassProcessor;
-import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.*;
 import com.surelogic.analysis.testing.CollectMethodCalls.Query;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -17,7 +13,7 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 
-public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<CollectMethodCalls, Unused> {
+public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<CollectMethodCalls, TopLevelType> {
 	public CollectMethodCallsModule() {
 		super("CMCategory");
 	}

@@ -13,7 +13,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
-public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderClient, Unused> {
+public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderClient, TopLevelType> {
 	public LocalVariablesModule() {
 		super("LVCategory");
 	}

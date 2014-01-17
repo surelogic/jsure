@@ -1,10 +1,6 @@
 package com.surelogic.analysis.testing;
 
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.JavaSemanticsVisitor;
-import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.*;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
@@ -13,7 +9,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
-public final class BinderModule extends AbstractWholeIRAnalysis<IBinderClient, Unused> {
+public final class BinderModule extends AbstractWholeIRAnalysis<IBinderClient, TopLevelType> {
 	public BinderModule() {
 		super("BinderModule");
 	}
