@@ -1,12 +1,14 @@
 package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.logging.Level;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.NonNull;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IMetricDrop;
@@ -45,7 +47,7 @@ public class SlocViewContentProvider implements ITreeContentProvider {
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
     if (newInput instanceof Input) {
       final Input in = (Input) newInput;
-      final Folderizer tree = new Folderizer(in.f_scan.findProjectsLabel());
+      final Folderizer tree = new Folderizer("Scan at " + SLUtility.toStringDayHMS(in.f_scan.getProjects().getDate()));
       for (IMetricDrop drop : in.f_drops) {
         tree.addToTree(drop);
       }

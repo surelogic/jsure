@@ -3,6 +3,9 @@ package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 import java.util.ArrayList;
 
 import org.eclipse.jface.viewers.CellLabelProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
@@ -41,6 +44,7 @@ import com.surelogic.common.ui.EclipseColorUtility;
 import com.surelogic.dropsea.DropSeaUtility;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.views.metrics.AbstractScanMetricMediator;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
@@ -68,6 +72,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
   Text f_thresholdLabel = null;
 
   TreeViewer f_treeViewer = null;
+  Canvas f_canvas = null;
 
   @NonNull
   SlocViewContentProvider f_contentProvider = new SlocViewContentProvider(this);
@@ -146,6 +151,11 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     // f_treeViewer.setSorter(f_alphaLineSorter);
     f_treeViewer.getTree().setHeaderVisible(true);
     f_treeViewer.getTree().setLinesVisible(true);
+    f_treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+      public void selectionChanged(SelectionChangedEvent event) {
+        f_canvas.redraw();
+      }
+    });
 
     final TreeViewerColumn columnTree = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnTree.setLabelProvider(TREE);
@@ -229,10 +239,9 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     final Composite rhs = new Composite(sash, SWT.BORDER);
     rhs.setLayout(new FillLayout());
 
-    final Canvas canvas = new Canvas(rhs, SWT.DOUBLE_BUFFERED);
-    canvas.setBackground(canvas.getDisplay().getSystemColor(SWT.COLOR_RED));
-    final SlocCanvasEventHandler handler = new SlocCanvasEventHandler(canvas);
-    canvas.addPaintListener(handler);
+    f_canvas = new Canvas(rhs, SWT.DOUBLE_BUFFERED);
+    final SlocCanvasEventHandler handler = new SlocCanvasEventHandler();
+    f_canvas.addPaintListener(handler);
 
     sash.setWeights(new int[] { EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_LHS_WEIGHT),
         EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_RHS_WEIGHT) });
@@ -287,6 +296,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
   protected void refreshMetricContentsFor(@Nullable JSureScanInfo scan, @Nullable ArrayList<IMetricDrop> drops) {
     final ArrayList<IMetricDrop> metricDrops = DropSeaUtility.filterMetricsToOneType(IMetricDrop.Metric.SLOC, drops);
     f_treeViewer.setInput(new SlocViewContentProvider.Input(scan, metricDrops));
+    f_treeViewer.expandToLevel(3);
   }
 
   @Override
@@ -294,7 +304,10 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     // Nothing to do
   }
 
-  static final StyledCellLabelProvider TREE = new StyledCellLabelProvider() {
+  /**
+   * Handles the tree portion of the metrics view
+   */
+  static final CellLabelProvider TREE = new CellLabelProvider() {
 
     @Override
     public void update(ViewerCell cell) {
@@ -304,11 +317,13 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         String label = element.getLabel();
         cell.setText(label);
         cell.setImage(element.getImage());
-      } else
-        super.update(cell);
+      }
     }
   };
 
+  /**
+   * Handles all the counts colums of the metrics view
+   */
   static abstract class MetricDataCellLabelProvider extends CellLabelProvider {
 
     /**
@@ -333,25 +348,37 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     }
   };
 
+  /**
+   * Draws the metrics graph on the screen.
+   */
   private final class SlocCanvasEventHandler implements PaintListener {
 
-    final Canvas f_canvas;
-
-    public SlocCanvasEventHandler(Canvas canvas) {
-      f_canvas = canvas;
-    }
-
     public void paintControl(PaintEvent e) {
-      final Rectangle clientArea = f_canvas.getClientArea();
-      e.gc.setAntialias(SWT.ON);
+      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+      final Object o = s.getFirstElement();
+      if (o instanceof SlocElement) {
+        SlocElement element = (SlocElement) o;
+        final Rectangle clientArea = f_canvas.getClientArea();
+        e.gc.setAntialias(SWT.ON);
 
-      // Pie chart at top
+        // Pie chart at top
+        double degPerLine = 1.0 / (((double) element.f_lineCount) / 360.0);
+        int arcBlank = (int) ((double) element.f_blankLineCount * degPerLine);
+        int arcCommented = (int) ((double) element.f_containsCommentLineCount * degPerLine);
 
-      int chartDiameter = clientArea.width - 10;
-      e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_BLUE));
-      e.gc.fillArc(5, 5, chartDiameter, chartDiameter, 5, 300);
+        int chartDiameter = clientArea.width - 10;
 
-      // Bar chart at bottom
+        e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
+        e.gc.fillArc(5, 5, chartDiameter, chartDiameter, 90, arcBlank);
+        e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_GREEN));
+        e.gc.fillArc(5, 5, chartDiameter, chartDiameter, 90, -arcCommented);
+
+        e.gc.setForeground(e.gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
+        e.gc.drawOval(5, 5, chartDiameter, chartDiameter);
+
+        // Bar chart at bottom
+      }
+
     }
   }
 }
