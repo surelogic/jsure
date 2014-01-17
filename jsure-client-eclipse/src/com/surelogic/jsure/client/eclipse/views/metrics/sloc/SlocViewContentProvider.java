@@ -1,7 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.logging.Level;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;

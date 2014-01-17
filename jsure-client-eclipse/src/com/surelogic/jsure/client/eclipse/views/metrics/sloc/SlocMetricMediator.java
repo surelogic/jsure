@@ -6,7 +6,6 @@ import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.ViewerCell;
@@ -20,6 +19,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -44,7 +44,6 @@ import com.surelogic.common.ui.EclipseColorUtility;
 import com.surelogic.dropsea.DropSeaUtility;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
-import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.views.metrics.AbstractScanMetricMediator;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
@@ -361,6 +360,21 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         final Rectangle clientArea = f_canvas.getClientArea();
         e.gc.setAntialias(SWT.ON);
 
+        int fold = 0;
+
+        // e.gc.setFont(JFaceResources.getBannerFont());
+        e.gc.setForeground(e.gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
+
+        String title = element.getLabel();
+        Point titleExtent = e.gc.stringExtent(title);
+        int xPos = (clientArea.width / 2) - (titleExtent.x / 2);
+        if (xPos < 20)
+          xPos = 20;
+        e.gc.drawImage(element.getImage(), xPos - 18, 10 + (titleExtent.y / 2) - 8);
+        e.gc.drawText(title, xPos, 10, true);
+
+        fold += titleExtent.y + 20;
+
         // Pie chart at top
         double degPerLine = 1.0 / (((double) element.f_lineCount) / 360.0);
         int arcBlank = (int) ((double) element.f_blankLineCount * degPerLine);
@@ -369,12 +383,23 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         int chartDiameter = clientArea.width - 10;
 
         e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
-        e.gc.fillArc(5, 5, chartDiameter, chartDiameter, 90, arcBlank);
+        e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, arcBlank);
         e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_GREEN));
-        e.gc.fillArc(5, 5, chartDiameter, chartDiameter, 90, -arcCommented);
+        e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, -arcCommented);
 
-        e.gc.setForeground(e.gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
-        e.gc.drawOval(5, 5, chartDiameter, chartDiameter);
+        String blankTxt = SLUtility.toStringHumanWithCommas(element.f_blankLineCount) + " blank";
+        int blankTxtWidth = e.gc.stringExtent(blankTxt).x;
+        String commentedTxt = SLUtility.toStringHumanWithCommas(element.f_containsCommentLineCount) + " commented";
+        String slocTxt = SLUtility.toStringHumanWithCommas(element.f_lineCount) + " SLOC";
+        int slocTxtWidth = e.gc.stringExtent(slocTxt).x;
+
+        e.gc.drawText(blankTxt, (chartDiameter / 2) - blankTxtWidth - 5, fold + (chartDiameter / 4), true);
+        e.gc.drawText(commentedTxt, (chartDiameter / 2) + 10, fold + (chartDiameter / 4), true);
+        e.gc.drawText(slocTxt, (chartDiameter / 2) + 5 - (slocTxtWidth / 2), fold + 3 * (chartDiameter / 4), true);
+
+        e.gc.drawOval(5, fold + 5, chartDiameter, chartDiameter);
+
+        fold += chartDiameter + 10;
 
         // Bar chart at bottom
       }
