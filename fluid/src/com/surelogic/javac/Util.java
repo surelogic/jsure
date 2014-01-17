@@ -793,6 +793,7 @@ public class Util {
     			first = false;
     			   
         		// TODO do this with each group above?
+    			// TODO in parallel?
         		for(CUDrop d : allCus) {
         			for(IAnalysisGranulator<?> g : analyses.getGranulators()) {
         				g.extractGranules(d.getCompilationUnitIRNode());
@@ -802,6 +803,16 @@ public class Util {
      				granules.putAll(g, g.getGranules());
      			}
     		}
+    	}
+    	
+    	// Finish all analyses
+    	int i = 0;
+    	for (final IIRAnalysis<?> a : analyses) {
+    		final long start = System.nanoTime();
+    		a.finish(env);
+    		final long end = System.nanoTime();
+    		timings.times[i] += end - start;
+    		i++;
     	}
         return timings.summarize();
     }
@@ -993,17 +1004,13 @@ public class Util {
 		  }
 	  }
 	  
-	  ParallelArray<Q> getGranules(final JavacProject project) {
+	  ParallelArray<Q> prepGranules(final Collection<Q> granules) {
 		  toAnalyze.asList().clear();
-		  
-		  final Collection<Q> fromProj = granules.get(project.getTypeEnv());
-		  if (fromProj != null) {
-			  toAnalyze.asList().addAll(fromProj);
-		  }
+		  toAnalyze.asList().addAll(granules);
 		  return toAnalyze;
 	  }
 	  
-	  private Procedure<Q> getProcedure(final JavacProject project, final IAnalysisGroup<Q> analyses, final ThreadLocal<AnalysisTimings> timings) {
+	  private Procedure<Q> getProcedure(final IAnalysisGroup<Q> analyses, final ThreadLocal<AnalysisTimings> timings) {
 		  final PromiseFramework frame = PromiseFramework.getInstance();	  
 		  return new Procedure<Q>() {	  
 			  @Override
@@ -1015,30 +1022,28 @@ public class Util {
 				  if (monitor.isCanceled()) {
 					  throw new CancellationException();
 				  }				  
-				  if (project.getTypeEnv() == granule.getTypeEnv()) { // Same project!
-					  // System.out.println("Running "+a.name()+" on "+granule.javaOSFileName);
-					  try {
-						  final AnalysisTimings timing = timings.get();
-						  frame.pushTypeContext(granule.getCompUnit());
-						  int i = analyses.getOffset();
-						  for (final IIRAnalysis<Q> a : analyses) {
-							  final long start = System.nanoTime();
-							  a.doAnalysisOnGranule(env, granule);
-							  final long end = System.nanoTime();
-							  final long time = end - start;
-							  recordTime(granule, a, time);
-							  timing.times[i] += time;
-							  i++;	
-						  }
-
-					  } catch (RuntimeException e) {
-						  System.err.println("Error while processing " + granule.getLabel());
-						  throw e;
-					  } finally {
-						  frame.popTypeContext();
+				  // System.out.println("Running "+a.name()+" on "+granule.javaOSFileName);
+				  try {
+					  final AnalysisTimings timing = timings.get();
+					  frame.pushTypeContext(granule.getCompUnit());
+					  int i = analyses.getOffset();
+					  for (final IIRAnalysis<Q> a : analyses) {
+						  final long start = System.nanoTime();
+						  a.doAnalysisOnGranule(env, granule);
+						  final long end = System.nanoTime();
+						  final long time = end - start;
+						  recordTime(granule, a, time);
+						  timing.times[i] += time;
+						  i++;	
 					  }
-				  }				  
-			  }
+
+				  } catch (RuntimeException e) {
+					  System.err.println("Error while processing " + granule.getLabel());
+					  throw e;
+				  } finally {
+					  frame.popTypeContext();
+				  }
+			  }				  			  
 		  };
 	  }
 	  
@@ -1063,7 +1068,6 @@ public class Util {
 	  }
 	  
 	  private void analyzeAProject(final JavacProject project, IAnalysisGroup<Q> analyses, final AllTimings timing) {		  
-		  final ParallelArray<Q> granules = getGranules(project);
 		  int i = analyses.getOffset();
 		  for (final IIRAnalysis<Q> a : analyses) {
 			  //System.out.println(a.name()+" analyzing "+(a.analyzeAll() ? "all CUs" : "source CUs"));
@@ -1082,14 +1086,10 @@ public class Util {
 				  i++;
 			  }
 		  }
-
-		  final Procedure<Q> proc = getProcedure(project, analyses, timing.timings); 
-		  if (singleThreaded) {
-			  for (final Q granule : granules) {
-				  proc.op(granule);
-			  }
-		  } else {			  			  
-			  granules.apply(proc);
+		  // Analyze granules
+		  final Collection<Q> fromProj = granules.get(project.getTypeEnv());
+		  if (fromProj != null) {
+			  analyzeGranules(fromProj, analyses, timing);
 		  }
 		  
 		  // Finishing up loose ends (if any)
@@ -1102,7 +1102,7 @@ public class Util {
 			  i++;	
 		  }
 		  
-		  // All analysis is done
+		  // All analysis is done for the project
 		  i = analyses.getOffset();
 		  for (final IIRAnalysis<Q> a : analyses) {
 			  final long start = System.nanoTime();
@@ -1112,16 +1112,19 @@ public class Util {
 			  i++;	
 			  endSubTask(monitor);
 		  }
-		  
-		  // Finish
-		  i = analyses.getOffset();
-		  for (final IIRAnalysis<Q> a : analyses) {
-			  final long start = System.nanoTime();
-			  a.finish(env);
-			  final long end = System.nanoTime();
-			  timing.times[i] += end - start;
-			  i++;
-		  }
+	  }
+	  
+	  private void analyzeGranules(final Collection<Q> toAnalyze, IAnalysisGroup<Q> analyses, final AllTimings timing) {		  
+		  final ParallelArray<Q> granules = prepGranules(toAnalyze);
+
+		  final Procedure<Q> proc = getProcedure(analyses, timing.timings); 
+		  if (singleThreaded) {
+			  for (final Q granule : granules) {
+				  proc.op(granule);
+			  }
+		  } else {			  			  
+			  granules.apply(proc);
+		  }		  
 	  }
   }
 	  
