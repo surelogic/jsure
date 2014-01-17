@@ -11,6 +11,7 @@ import com.surelogic.analysis.*;
 import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Sea;
+import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.javac.PromiseMatcher;
 import com.surelogic.javac.Util;
 import com.surelogic.jsure.core.listeners.NotificationHub;
@@ -19,7 +20,7 @@ import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.util.*;
 
-public class AnalysisDriver extends AbstractAnalysisModule<Unused> {
+public class AnalysisDriver extends AbstractAnalysisModule<CUDrop /* unused */> {
 	public static final String ID = "com.surelogic.jsure.client.eclipse.AnalysisDriver";
 	
 	private IProject project;
