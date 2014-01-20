@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.metrics.mediators;
+package com.surelogic.jsure.client.eclipse.views.metrics.scantime;
 
 import java.util.ArrayList;
 

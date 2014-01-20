@@ -17,7 +17,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
-public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalysis,Unused> {
+public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalysis,TypeAndMethod> {
   public NewBenchmarkingUAM() {
 		super(false, null, "UniqueAnalysis (NEW)");
 	}

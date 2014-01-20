@@ -2,11 +2,7 @@ package com.surelogic.analysis.concurrency.detector;
 
 import java.util.Iterator;
 
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.*;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
@@ -25,14 +21,14 @@ import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 
-public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDetector.FastVisitor, Unused> {
-  private void reportInference(IRNode loc, int catNumber, int resNumber, Object... args) {
+public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDetector.FastVisitor, TopLevelType> {
+  void reportInference(IRNode loc, int catNumber, int resNumber, Object... args) {
     HintDrop id = HintDrop.newInformation(loc);
     id.setMessage(resNumber, args);
     id.setCategorizingMessage(catNumber);
   }
 
-  private static IJavaDeclaredType findNamedType(final ITypeEnvironment tEnv, String qname) {
+  static IJavaDeclaredType findNamedType(final ITypeEnvironment tEnv, String qname) {
     final IRNode t = tEnv.findNamedType(qname);
     return (IJavaDeclaredType) JavaTypeFactory.convertNodeTypeToIJavaType(t, tEnv.getBinder());
   }

@@ -1,9 +1,6 @@
 package com.surelogic.analysis.testing;
 
-import com.surelogic.analysis.AbstractJavaAnalysisDriver;
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.*;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis;
 import com.surelogic.analysis.nullable.NonNullRawLattice.Element;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Base;
@@ -28,7 +25,7 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.util.Triple;
 
-public final class NonNullRawTypeModule extends AbstractWholeIRAnalysis<NonNullRawTypeAnalysis, Unused>{
+public final class NonNullRawTypeModule extends AbstractWholeIRAnalysis<NonNullRawTypeAnalysis, TopLevelType>{
   public NonNullRawTypeModule() {
     super("NonNull/Raw Types");
   }

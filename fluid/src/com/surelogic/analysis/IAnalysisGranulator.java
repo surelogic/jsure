@@ -13,5 +13,8 @@ public interface IAnalysisGranulator<T extends IAnalysisGranule> {
 	/**
 	 * @return the number of granules added
 	 */	
-	int extractGranules(List<T> granules, IRNode cu);
+	int extractGranules(IRNode cu);
+	List<T> getGranules();
+
+	Class<T> getType();
 }

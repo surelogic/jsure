@@ -30,12 +30,16 @@ import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.apache.commons.lang3.SystemUtils;
 
+import com.surelogic.analysis.Analyses;
+import com.surelogic.analysis.AnalysisGroup;
 import com.surelogic.analysis.ConcurrentAnalysis;
-import com.surelogic.analysis.GroupedAnalysis;
+import com.surelogic.analysis.IAnalysisGranulator;
 import com.surelogic.analysis.IAnalysisGranule;
+import com.surelogic.analysis.IAnalysisGroup;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
+import com.surelogic.analysis.IIRProject;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.ParseUtil;
 import com.surelogic.annotation.parse.SLAnnotationsLexer;
@@ -392,12 +396,12 @@ public class Util {
         //projects.getResultsFile() == null ? null : new FileOutputStream(projects.getResultsFile());
     final JavacAnalysisEnvironment env = new JavacAnalysisEnvironment(loader, results, projects.getMonitor());
 
-    final List<IIRAnalysis<CUDrop>> analyses = Javac.makeAnalyses();
-    for (IIRAnalysis<CUDrop> a : analyses) {
-      a.init(env);
-    }
-    env.finishedInit(); // To free up memory
-
+    final Analyses analyses = Javac.makeAnalyses();
+    for(IIRAnalysis<?> a : analyses) {
+		a.init(env);
+	}
+	env.finishedInit(); // To free up memory
+    
     final ParallelArray<CodeInfo> cus = perf.createArray(CodeInfo.class);
     endSubTask(projects.getMonitor());
 
@@ -753,7 +757,7 @@ public class Util {
     }
   }
 
-  private static long[] analyzeCUs(final IIRAnalysisEnvironment env, final Projects projects, final List<IIRAnalysis<CUDrop>> analyses,
+  private static long[] analyzeCUs(final IIRAnalysisEnvironment env, final Projects projects, final Analyses analyses,
       ParallelArray<SourceCUDrop> cus, ParallelArray<SourceCUDrop> allCus, JSurePerformance perf) {
     if (XUtil.recordScript() != null) {
       final File log = (File) projects.getArg(RECORD_ANALYSIS);
@@ -768,25 +772,54 @@ public class Util {
     System.out.println("Starting analyses");
     final AllTimings timings = new AllTimings(analyses);
     
-    if (false) { // TODO new analysis framework
+    if (false) {
     	System.out.println("Using new analysis framework");
-    	AnalysisInfo<CUDrop> ai = new AnalysisInfo<CUDrop>(CUDrop.class, env, perf, projects.getMonitor());
-    	// TODO replace with granulators
-    	ai.populate(allCus.asList());
+    	boolean first = true;
+    	    	
+    	final MultiMap<IAnalysisGranulator<?>,IAnalysisGranule> granules = new MultiHashMap<IAnalysisGranulator<?>, IAnalysisGranule>();
+    	for(AnalysisGroup<?> group : analyses.getGroups()) {
+    		System.out.println("Starting group: "+group.getLabel());
+    		if (group.getGranulator() == null) {
+    			final AnalysisGroup<CUDrop> cuGroup = (AnalysisGroup<CUDrop>) group;
+        		final AnalysisInfo<CUDrop> ai = new AnalysisInfo<CUDrop>(CUDrop.class, env, perf, projects.getMonitor());	
+        		ai.populate(allCus.asList());
+        		ai.analyzeProjects(projects, cuGroup, timings);
+    		} else {
+				final AnalysisInfo ai = new AnalysisInfo(group.getGranuleType(), env, perf, projects.getMonitor());
+        		ai.populate(granules.get(group.getGranulator()));        		
+        		ai.analyzeProjects(projects, group, timings);
+    		}
+    		if (first) {
+    			first = false;
+    			   
+        		// TODO do this with each group above?
+    			// TODO in parallel?
+        		for(CUDrop d : allCus) {
+        			for(IAnalysisGranulator<?> g : analyses.getGranulators()) {
+        				g.extractGranules(d.getCompilationUnitIRNode());
+        			}
+        		}
+     			for(IAnalysisGranulator<?> g : analyses.getGranulators()) {
+     				granules.putAll(g, g.getGranules());
+     			}
+    		}
+    	}
     	
-        for (final JavacProject project : projects) {
-            if (projects.getMonitor().isCanceled()) {
-              throw new CancellationException();
-            }
-            ai.analyzeAProject(project, analyses, timings);            
-        }
-        
+    	// Finish all analyses
+    	int i = 0;
+    	for (final IIRAnalysis<?> a : analyses) {
+    		final long start = System.nanoTime();
+    		a.finish(env);
+    		final long end = System.nanoTime();
+    		timings.times[i] += end - start;
+    		i++;
+    	}
         return timings.summarize();
     }
     System.out.println("Using old analysis framework");
     final long[] times = new long[analyses.size()];
     int i = 0;
-    for (final IIRAnalysis<CUDrop> a : analyses) {
+    for (final IIRAnalysis<IAnalysisGranule> a : analyses) {
       final long start = System.currentTimeMillis();
       final ParallelArray<SourceCUDrop> toAnalyze = a.analyzeAll() ? allCus : cus;
       //System.out.println(a.name()+" analyzing "+(a.analyzeAll() ? "all CUs" : "source CUs"));
@@ -859,7 +892,7 @@ public class Util {
           toAnalyze.apply(proc);
         }
         final long startNano = System.nanoTime();
-        GroupedAnalysis.handleAnalyzeEnd(a, env, project);
+        handleAnalyzeEnd(a, env, project);
 
         a.postAnalysis(project);
         final long endNano = System.nanoTime();
@@ -889,9 +922,23 @@ public class Util {
     }
     return times;
   }
+
+  static <Q extends IAnalysisGranule> 
+  void handleAnalyzeEnd(IIRAnalysis<Q> a, IIRAnalysisEnvironment env, IIRProject project) {
+	  boolean moreToAnalyze;
+	  do {
+		  moreToAnalyze = false;
+		  for(Q granule : a.analyzeEnd(env, project)) {
+			  moreToAnalyze = true;
+
+			  // TODO parallelize?
+			  a.doAnalysisOnGranule(env, granule);
+		  }
+	  } while (moreToAnalyze);
+  }
   
   static class AllTimings {
-	  final List<IIRAnalysis<CUDrop>> analyses;
+	  final Analyses analyses;
 	  final long[] times;
 	  
 	  final List<AnalysisTimings> allTimings = new CopyOnWriteArrayList<AnalysisTimings>();
@@ -904,7 +951,7 @@ public class Util {
 		  }
 	  };
 	  
-	  AllTimings(List<IIRAnalysis<CUDrop>> analyses) {
+	  AllTimings(Analyses analyses) {
 		  this.analyses = analyses;
 		  this.times = new long[analyses.size()];
 	  }
@@ -925,10 +972,10 @@ public class Util {
   }
   
   static class AnalysisTimings {
-	  final List<IIRAnalysis<CUDrop>> analyses;
+	  final Analyses analyses;
 	  final long[] times;
 	  
-	  AnalysisTimings(List<IIRAnalysis<CUDrop>> analyses) {
+	  AnalysisTimings(Analyses analyses) {
 		  this.analyses = analyses;
 		  times = new long[analyses.size()];
 	  }
@@ -948,23 +995,22 @@ public class Util {
 		  monitor = mon;
 	  }
   
-	  void populate(List<? extends Q> newGranules) {
+	  void populate(Collection<? extends Q> newGranules) {
+		  if (newGranules == null) {
+			  return;
+		  }
 		  for(Q granule : newGranules) {
 			  granules.put(granule.getTypeEnv(), granule);
 		  }
 	  }
 	  
-	  ParallelArray<Q> getGranules(final JavacProject project) {
+	  ParallelArray<Q> prepGranules(final Collection<Q> granules) {
 		  toAnalyze.asList().clear();
-		  
-		  final Collection<Q> fromProj = granules.get(project.getTypeEnv());
-		  if (fromProj != null) {
-			  toAnalyze.asList().addAll(fromProj);
-		  }
+		  toAnalyze.asList().addAll(granules);
 		  return toAnalyze;
 	  }
 	  
-	  private Procedure<Q> getProcedure(final JavacProject project, final List<IIRAnalysis<Q>> analyses, final ThreadLocal<AnalysisTimings> timings) {
+	  private Procedure<Q> getProcedure(final IAnalysisGroup<Q> analyses, final ThreadLocal<AnalysisTimings> timings) {
 		  final PromiseFramework frame = PromiseFramework.getInstance();	  
 		  return new Procedure<Q>() {	  
 			  @Override
@@ -976,30 +1022,28 @@ public class Util {
 				  if (monitor.isCanceled()) {
 					  throw new CancellationException();
 				  }				  
-				  if (project.getTypeEnv() == granule.getTypeEnv()) { // Same project!
-					  // System.out.println("Running "+a.name()+" on "+granule.javaOSFileName);
-					  try {
-						  final AnalysisTimings timing = timings.get();
-						  frame.pushTypeContext(granule.getCompUnit());
-						  int i = 0;
-						  for (final IIRAnalysis<Q> a : analyses) {
-							  final long start = System.nanoTime();
-							  a.doAnalysisOnGranule(env, granule);
-							  final long end = System.nanoTime();
-							  final long time = end - start;
-							  recordTime(granule, a, time);
-							  timing.times[i] += time;
-							  i++;	
-						  }
-
-					  } catch (RuntimeException e) {
-						  System.err.println("Error while processing " + granule.getLabel());
-						  throw e;
-					  } finally {
-						  frame.popTypeContext();
+				  // System.out.println("Running "+a.name()+" on "+granule.javaOSFileName);
+				  try {
+					  final AnalysisTimings timing = timings.get();
+					  frame.pushTypeContext(granule.getCompUnit());
+					  int i = analyses.getOffset();
+					  for (final IIRAnalysis<Q> a : analyses) {
+						  final long start = System.nanoTime();
+						  a.doAnalysisOnGranule(env, granule);
+						  final long end = System.nanoTime();
+						  final long time = end - start;
+						  recordTime(granule, a, time);
+						  timing.times[i] += time;
+						  i++;	
 					  }
-				  }				  
-			  }
+
+				  } catch (RuntimeException e) {
+					  System.err.println("Error while processing " + granule.getLabel());
+					  throw e;
+				  } finally {
+					  frame.popTypeContext();
+				  }
+			  }				  			  
 		  };
 	  }
 	  
@@ -1014,9 +1058,17 @@ public class Util {
 		  d.addOrReplaceMetricInfo(time);
 	  }
 
-	  void analyzeAProject(final JavacProject project, List<IIRAnalysis<Q>> analyses, final AllTimings timing) {		  
-		  final ParallelArray<Q> granules = getGranules(project);
-		  int i = 0;
+	  void analyzeProjects(final Projects projects, IAnalysisGroup<Q> analyses, final AllTimings timings) {
+  		for (final JavacProject project : projects) {
+			if (projects.getMonitor().isCanceled()) {
+				throw new CancellationException();
+			}
+			analyzeAProject(project, analyses, timings);            
+		}
+	  }
+	  
+	  private void analyzeAProject(final JavacProject project, IAnalysisGroup<Q> analyses, final AllTimings timing) {		  
+		  int i = analyses.getOffset();
 		  for (final IIRAnalysis<Q> a : analyses) {
 			  //System.out.println(a.name()+" analyzing "+(a.analyzeAll() ? "all CUs" : "source CUs"));
 	  
@@ -1034,28 +1086,24 @@ public class Util {
 				  i++;
 			  }
 		  }
-
-		  final Procedure<Q> proc = getProcedure(project, analyses, timing.timings); 
-		  if (singleThreaded) {
-			  for (final Q granule : granules) {
-				  proc.op(granule);
-			  }
-		  } else {			  			  
-			  granules.apply(proc);
+		  // Analyze granules
+		  final Collection<Q> fromProj = granules.get(project.getTypeEnv());
+		  if (fromProj != null) {
+			  analyzeGranules(fromProj, analyses, timing);
 		  }
 		  
 		  // Finishing up loose ends (if any)
-		  i = 0;
+		  i = analyses.getOffset();
 		  for (final IIRAnalysis<Q> a : analyses) {
 			  final long start = System.nanoTime();
-			  GroupedAnalysis.handleAnalyzeEnd(a, env, project);
+			  handleAnalyzeEnd(a, env, project);
 			  final long end = System.nanoTime();
 			  timing.times[i] += end - start;
 			  i++;	
 		  }
 		  
-		  // All analysis is done
-		  i = 0;
+		  // All analysis is done for the project
+		  i = analyses.getOffset();
 		  for (final IIRAnalysis<Q> a : analyses) {
 			  final long start = System.nanoTime();
 			  a.postAnalysis(project);
@@ -1064,16 +1112,19 @@ public class Util {
 			  i++;	
 			  endSubTask(monitor);
 		  }
-		  
-		  // Finish
-		  i = 0;
-		  for (final IIRAnalysis<Q> a : analyses) {
-			  final long start = System.nanoTime();
-			  a.finish(env);
-			  final long end = System.nanoTime();
-			  timing.times[i] += end - start;
-			  i++;
-		  }
+	  }
+	  
+	  private void analyzeGranules(final Collection<Q> toAnalyze, IAnalysisGroup<Q> analyses, final AllTimings timing) {		  
+		  final ParallelArray<Q> granules = prepGranules(toAnalyze);
+
+		  final Procedure<Q> proc = getProcedure(analyses, timing.timings); 
+		  if (singleThreaded) {
+			  for (final Q granule : granules) {
+				  proc.op(granule);
+			  }
+		  } else {			  			  
+			  granules.apply(proc);
+		  }		  
 	  }
   }
 	  

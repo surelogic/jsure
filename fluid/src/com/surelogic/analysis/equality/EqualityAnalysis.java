@@ -8,7 +8,7 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.ResultsBuilder;
-import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.TopLevelType;
 import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
@@ -38,7 +38,7 @@ import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
 
-public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnalysis.PerThreadInfo,Unused> {
+public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnalysis.PerThreadInfo,TopLevelType> {
   private static final int BAD_COMPARISON = 758;
   private static final int TO_STRING_GOOD = 759;
   private static final int TO_STRING_BAD = 760;

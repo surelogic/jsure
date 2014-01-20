@@ -7,7 +7,7 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.*;
 
-public class Module_IRAnalysis extends AbstractWholeIRAnalysis<ModuleAnalysisAndVisitor, Unused> {
+public class Module_IRAnalysis extends AbstractWholeIRAnalysis<ModuleAnalysisAndVisitor, CUDrop> {
 	public  Module_IRAnalysis() {
 		super("Module");
 	}

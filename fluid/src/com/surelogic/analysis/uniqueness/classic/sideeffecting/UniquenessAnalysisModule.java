@@ -20,15 +20,13 @@ import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop;
-import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
-import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
@@ -42,7 +40,7 @@ import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
 import extra166y.Ops.Procedure;
 
-public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, UniquenessAnalysis, Unused> {
+public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, UniquenessAnalysis, UniquenessAnalysisModule.MethodRecord> {
   private static final long NANO_SECONDS_PER_SECOND = 1000000000L;
 
   
@@ -117,7 +115,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
         runInParallel(MethodRecord.class, methods, new Procedure<MethodRecord>() {
           @Override
           public void op(MethodRecord mr) {
-            final String methodName = JavaNames.genRelativeFunctionName(mr.mdecl);
+            final String methodName = JavaNames.genRelativeFunctionName(mr.methodDecl);
             if (monitor != null) {
               monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
             }
@@ -129,7 +127,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       } else {
         // Analyze the given nodes
         for (MethodRecord mr : methods) {
-          final String methodName = JavaNames.genQualifiedMethodConstructorName(mr.mdecl);
+          final String methodName = JavaNames.genQualifiedMethodConstructorName(mr.methodDecl);
           if (monitor != null) {
             monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
           }
@@ -167,20 +165,20 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 //    }
 
 	  StoreLattice sl = null;
-    final String methodName = JavaNames.genQualifiedMethodConstructorName(mr.mdecl);
+    final String methodName = JavaNames.genQualifiedMethodConstructorName(mr.methodDecl);
     // Prepare for 'too long' warning
     final long tooLongDuration = IDE.getInstance().getIntPreference(
         IDEPreferences.TIMEOUT_WARNING_SEC) * NANO_SECONDS_PER_SECOND;
     final long startTime = System.nanoTime();
 	  try {
   	  // Get the analysis object, which triggers the control flow analysis
-      sl = getAnalysis().getAnalysis(mr.mdecl).getLattice();
+      sl = getAnalysis().getAnalysis(mr.methodDecl).getLattice();
       
       // Did we take too long?
       final long endTime = System.nanoTime();
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
-        sl.getCFDrop().addWarningHintWithCategory(mr.mdecl, Messages.DSC_UNIQUENESS_LONG_RUNNING,
+        sl.getCFDrop().addWarningHintWithCategory(mr.methodDecl, Messages.DSC_UNIQUENESS_LONG_RUNNING,
             Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
       }
@@ -196,7 +194,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
        * (2) Borrowed promises of the method's
        * parameters, and (3) Unique promise on the method's return node,
        */
-      final ResultDrop timeOutResult = new ResultDrop(mr.mdecl);
+      final ResultDrop timeOutResult = new ResultDrop(mr.methodDecl);
       timeOutResult.setTimeout();
       timeOutResult.setCategorizingMessage(Messages.DSC_UNIQUENESS_TIMEOUT);
       timeOutResult.setMessage(Messages.TIMEOUT,
@@ -206,20 +204,20 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       // (1)
       timeOutResult.addChecked(sl.getCFDrop());
       
-      if (!ClassInitDeclaration.prototype.includes(mr.mdecl)) {
-        final IRNode formals = SomeFunctionDeclaration.getParams(mr.mdecl);
+      if (!ClassInitDeclaration.prototype.includes(mr.methodDecl)) {
+        final IRNode formals = SomeFunctionDeclaration.getParams(mr.methodDecl);
         for (final IRNode p : Parameters.getFormalIterator(formals)) {
           final BorrowedPromiseDrop pd = UniquenessRules.getBorrowed(p);
           if (pd != null) timeOutResult.addChecked(pd);
         }
         
-        final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(mr.mdecl);
+        final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(mr.methodDecl);
         if (rcvr != null) {
           final BorrowedPromiseDrop pd = UniquenessRules.getBorrowed(rcvr);
           if (pd != null) timeOutResult.addChecked(pd);
         }      
         
-        final IRNode ret = JavaPromise.getReturnNodeOrNull(mr.mdecl);
+        final IRNode ret = JavaPromise.getReturnNodeOrNull(mr.methodDecl);
         if (ret != null) {
           /* Covers both Unique return from a method and Unique return as
            * borrowed receiver for a constructor. 
@@ -260,41 +258,16 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 	  return visitor.getResults();
 	}
 
-	private static class MethodRecord implements IAnalysisGranule {
-		public final IRNode mdecl;
+	static class MethodRecord extends TypeAndMethod {
 		public final Set<PromiseDrop<? extends IAASTRootNode>> usedUniqueFields;
 
 		public MethodRecord(final IRNode m) {
-			mdecl = m;
+			super(VisitUtil.getEnclosingType(m), m);			
 			usedUniqueFields = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 		}
 
 		public void addField(final PromiseDrop<? extends IAASTRootNode> uDrop) {
 			usedUniqueFields.add(uDrop);
-		}
-
-		@Override
-    public IRNode getCompUnit() {
-			return VisitUtil.getEnclosingCompilationUnit(mdecl);
-		}
-
-		public IRNode getNode() {
-			return mdecl;
-		}
-		
-		@Override
-		public ITypeEnvironment getTypeEnv() {
-			return Projects.getEnclosingProject(mdecl).getTypeEnv();
-		}
-
-		@Override
-		public String getLabel() {
-			return JavaNames.getFullName(mdecl);
-		}
-
-		@Override
-		public boolean isAsSource() {
-			return true;
 		}
 	}
 	

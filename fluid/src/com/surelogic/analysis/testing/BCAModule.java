@@ -15,7 +15,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 
-public final class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnalysis, Unused> {
+public final class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnalysis, TopLevelType> {
 	public BCAModule() {
 		super("BCACategory");
 	}

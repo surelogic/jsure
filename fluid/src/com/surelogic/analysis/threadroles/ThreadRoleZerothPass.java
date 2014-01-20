@@ -10,12 +10,12 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
-public class ThreadRoleZerothPass extends AbstractIRAnalysis<TRolesFirstPass,Unused> {
+public class ThreadRoleZerothPass extends AbstractIRAnalysis<TRolesFirstPass,CUDrop> {
 	private static final Logger LOG = SLLogger
       .getLogger("analysis.threadroles.managethreadroleannos");
 	
 	public ThreadRoleZerothPass() {
-		super(false, Unused.class);
+		super(false, CUDrop.class);
 	}
 
 	@Override

@@ -8,7 +8,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
-public class ThreadRoleAssurance extends AbstractWholeIRAnalysis<TRoleSecondPass,Unused>{	
+public class ThreadRoleAssurance extends AbstractWholeIRAnalysis<TRoleSecondPass,CUDrop>{	
 	private int cuCount = 0;
 	  
 	public ThreadRoleAssurance() {

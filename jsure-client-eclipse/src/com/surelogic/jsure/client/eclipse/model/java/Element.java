@@ -41,7 +41,7 @@ public abstract class Element implements IViewDiffState {
    * Gets the parent content of this content or {@code null} if this content is
    * at the root of the tree.
    * 
-   * @return
+   * @return the parent content of this content or {@code null}.
    */
   @Nullable
   public final Element getParent() {

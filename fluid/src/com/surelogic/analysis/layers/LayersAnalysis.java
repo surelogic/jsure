@@ -12,7 +12,7 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.TopLevelType;
 import com.surelogic.annotation.rules.LayerRules;
 import com.surelogic.common.Pair;
 import com.surelogic.common.util.*;
@@ -44,7 +44,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis.LayersInfo,Unused> {
+public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis.LayersInfo,TopLevelType> {
 	public LayersAnalysis() {
 		super("Layers");
 	}

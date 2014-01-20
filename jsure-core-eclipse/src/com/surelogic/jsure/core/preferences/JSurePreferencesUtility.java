@@ -117,6 +117,16 @@ public final class JSurePreferencesUtility {
 
       EclipseUtility.setDefaultBooleanPreference(VIEWS_SAVE_TREE_STATE, true);
 
+      EclipseUtility.setDefaultIntPreference(METRIC_SLOC_SASH_LHS_WEIGHT, 60);
+      EclipseUtility.setDefaultIntPreference(METRIC_SLOC_SASH_RHS_WEIGHT, 40);
+      EclipseUtility.setDefaultIntPreference(METRIC_SLOC_COL_TREE_WIDTH, 300);
+      EclipseUtility.setDefaultIntPreference(METRIC_SLOC_COL_BLANK_LINE_COUNT_WIDTH, 80);
+      EclipseUtility.setDefaultIntPreference(METRIC_SLOC_COL_CONTAINS_COMMENT_LINE_COUNT_WIDTH, 80);
+      EclipseUtility.setDefaultIntPreference(METRIC_SLOC_COL_JAVA_DECLARATION_COUNT_WIDTH, 80);
+      EclipseUtility.setDefaultIntPreference(METRIC_SLOC_COL_JAVA_STATEMENT_COUNT_WIDTH, 80);
+      EclipseUtility.setDefaultIntPreference(METRIC_SLOC_COL_LINE_COUNT_WIDTH, 80);
+      EclipseUtility.setDefaultIntPreference(METRIC_SLOC_COL_SEMICOLON_COUNT_WIDTH, 80);
+
       /*
        * We'll take the default-default for the other preferences.
        */
@@ -175,6 +185,17 @@ public final class JSurePreferencesUtility {
 
   public static final String METRIC_VIEW_TAB_SELECTION = PREFIX + "metric.view.tab.selection";
   public static final String METRIC_VIEW_SLOC_THRESHOLD = PREFIX + "metric.view.sloc.threshold";
+
+  public static final String METRIC_SLOC_SASH_LHS_WEIGHT = PREFIX + "metric.sloc.sash.lhs.weight";
+  public static final String METRIC_SLOC_SASH_RHS_WEIGHT = PREFIX + "metric.sloc.sash.rhs.weight";
+  public static final String METRIC_SLOC_COL_TREE_WIDTH = PREFIX + "metric.sloc.col.tree.width";
+  public static final String METRIC_SLOC_COL_BLANK_LINE_COUNT_WIDTH = PREFIX + "metric.sloc.col.blank-line-count.width";
+  public static final String METRIC_SLOC_COL_CONTAINS_COMMENT_LINE_COUNT_WIDTH = PREFIX
+      + "metric.sloc.col.contains-comment-line-count.width";
+  public static final String METRIC_SLOC_COL_JAVA_DECLARATION_COUNT_WIDTH = PREFIX + "metric.sloc.col.java-declaration-count.width";
+  public static final String METRIC_SLOC_COL_JAVA_STATEMENT_COUNT_WIDTH = PREFIX + "metric.sloc.col.java-statement-count.width";
+  public static final String METRIC_SLOC_COL_LINE_COUNT_WIDTH = PREFIX + "metric.sloc.col.line-count.width";
+  public static final String METRIC_SLOC_COL_SEMICOLON_COUNT_WIDTH = PREFIX + "metric.sloc.col.semicolon-count.width";
 
   /**
    * Gets the JSure data directory. This method ensures that the directory does

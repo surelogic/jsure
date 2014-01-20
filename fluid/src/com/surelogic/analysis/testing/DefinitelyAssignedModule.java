@@ -3,10 +3,7 @@ package com.surelogic.analysis.testing;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.surelogic.analysis.AbstractJavaAnalysisDriver;
-import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.*;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -18,7 +15,7 @@ import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 
-public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<DefinitelyAssignedAnalysis, Unused>{
+public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<DefinitelyAssignedAnalysis, TopLevelType>{
   public DefinitelyAssignedModule() {
     super("Definitely Assigned");
   }
