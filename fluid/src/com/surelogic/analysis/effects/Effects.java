@@ -708,7 +708,7 @@ public final class Effects implements IBinderClient {
      */
     public EffectsVisitor(final IBinder b, final IRNode flowUnit,
         final BindingContextAnalysis.Query query, final Effects.ElaborationErrorCallback cb) {
-      super(false, flowUnit);
+      super(false, true, flowUnit);
       this.callback = cb;
       this.binder = b;
       this.thisExprBinder = new EVThisExpressionBinder(b);
@@ -787,7 +787,7 @@ public final class Effects implements IBinderClient {
         private boolean passedOff = false;
         
         public Finder() {
-          super(false, context.enclosingMethod);
+          super(false, true, context.enclosingMethod);
         }
         
         public Set<IRNode> getCalls() {

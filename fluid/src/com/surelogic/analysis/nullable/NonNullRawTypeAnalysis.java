@@ -410,7 +410,7 @@ implements IBinderClient {
     private int depth;
     
     private QualifiedThisVisitor(final IRNode cdecl, final IBinder b) {
-      super(false, cdecl);
+      super(false, true, cdecl);
       binder = b;
       qualifyingTypeDecl = getEnclosingType(); // initialized in super constructor
       uses = new HashSet<IRNode>();

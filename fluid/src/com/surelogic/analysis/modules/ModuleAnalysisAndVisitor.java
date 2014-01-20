@@ -105,11 +105,11 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
   public class JavaSemanticsMAVisitor extends JavaSemanticsVisitor {
 
 	  protected JavaSemanticsMAVisitor(boolean goInside) {
-		  super(goInside);
+		  super(goInside, false);
 	  }
 
 	  protected JavaSemanticsMAVisitor(boolean goInside, IRNode flowUnit) {
-		  super(goInside, flowUnit);
+		  super(goInside, false, flowUnit);
 	  }
 
 	  public JavaSemanticsMAVisitor getInstance() {

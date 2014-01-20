@@ -45,7 +45,7 @@ public final class ConstantExpressionModule extends AbstractWholeIRAnalysis<IBin
 	  final ConstantExpressionVisitor ceVisitor;
 	  
 		public TestConstantExpressions() {
-			super(true);
+			super(true, false);
 			ceVisitor = new ConstantExpressionVisitor(getBinder());
 		}
 		

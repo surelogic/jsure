@@ -170,6 +170,16 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   private final boolean visitInsideTypes;
   
   /**
+   * Should we skip going inside of annotations?  Annotations do not have 
+   * flow graph components, so nodes inside of an annotation do not have
+   * data flow analysis results.  Usually we want to skip them because of
+   * that.  Used by {@link #visitNormalAnnotation(IRNode)},
+   * {@link #visitMarkerAnnotation(IRNode)}, and
+   * {@link #visitSingleElementAnnotation(IRNode)}.
+   */
+  private final boolean skipAnnotations;
+  
+  /**
    * The current type declaration we are inside of.
    */
   private IRNode enclosingType = null;
@@ -186,7 +196,8 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * are analyzing the InitDeclaration associated with the construction of
    * an anonymous class.
    */
-  private boolean insideConstructor = false;
+  // package-visible so that SubVisitor can access it
+  boolean insideConstructor = false;
 
   /**
    * Whether we are inside a field declaration.  This is set by 
@@ -210,9 +221,11 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * @param goInside
    *          <code>true</code> if the contents of nested types should be
    *          visited.
+   * @param skipAnnos
+   *          <code>true</code> if annotations should not be visited.          
    */
-  protected JavaSemanticsVisitor(final boolean goInside) {
-    this(goInside, null, null);
+  protected JavaSemanticsVisitor(final boolean goInside, final boolean skipAnnos) {
+    this(goInside, skipAnnos, null, null);
   }
 
   /**
@@ -221,7 +234,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * 
    * <p>
    * <em>Do not confuse this with the constructor
-   * {@link #JavaSemanticsVisitor(boolean, IRNode)}.</em>
+   * {@link #JavaSemanticsVisitor(boolean, boolean, IRNode)}.</em>
    * 
    * @param typeDecl
    *          The type declaration node that is the part of the ClassBody node
@@ -233,9 +246,12 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * @param goInside
    *          <code>true</code> if the contents of nested types should be
    *          visited.
+   * @param skipAnnos
+   *          <code>true</code> if annotations should not be visited.          
    */
-  protected JavaSemanticsVisitor(final IRNode typeDecl, final boolean goInside) {
-    this(goInside, typeDecl, null);
+  protected JavaSemanticsVisitor(final IRNode typeDecl,
+      final boolean goInside, final boolean skipAnnos) {
+    this(goInside, skipAnnos, typeDecl, null);
   }
   
   /**
@@ -251,14 +267,17 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * @param goInside
    *          <code>true</code> if the contents of nested types should be
    *          visited.
+   * @param skipAnnos
+   *          <code>true</code> if annotations should not be visited.          
    * @param flowUnit
    *          The nearest method/constructor declaration that surrounds the node
    *          at which the visitation will start. Must not be <code>null</code>.
    *          Must be one of MethodDeclaration, ConstructorDeclaration,
    *          InitDeclaration, or ClassInitDeclaration.
    */
-  protected JavaSemanticsVisitor(final boolean goInside, final IRNode flowUnit) {
-    this(goInside, getInitialEnclosingType(flowUnit), flowUnit);
+  protected JavaSemanticsVisitor(
+      final boolean goInside, final boolean skipAnnos, final IRNode flowUnit) {
+    this(goInside, skipAnnos, getInitialEnclosingType(flowUnit), flowUnit);
   }
   
   /**
@@ -267,6 +286,8 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * @param goInside
    *          <code>true</code> if the contents of nested types should be
    *          visited.
+   * @param skipAnnos
+   *          <code>true</code> if annotations should not be visited.          
    * @param eType
    *          The nearest type declaration that surrounds the node at which
    *          the visitation will start.
@@ -281,9 +302,11 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *          {@code JavaPromise.getPromisedFor(eDecl)} must be {@code eType}.
    */
   private JavaSemanticsVisitor(
-      final boolean goInside, final IRNode eType, final IRNode eDecl) {
+      final boolean goInside, final boolean skipAnnos,
+      final IRNode eType, final IRNode eDecl) {
     super();
     visitInsideTypes = goInside;
+    skipAnnotations = skipAnnos;
     enclosingType = eType;
     enclosingDecl = eDecl;
   }
@@ -439,8 +462,12 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *          either a MethodDeclaration, ConstructorDeclaration,
    *          ClassInitDeclaration, or InitDeclaration. This will never be
    *          <code>null</code>.
+   * @param returningToDecl
+   *          The IRNode of the declaration to which visitation is returning.
+   *          May be <code>null</code> if there is no outer declaration.
    */
-  protected void leavingEnclosingDecl(final IRNode leavingDecl) {
+  protected void leavingEnclosingDecl(
+      final IRNode leavingDecl, final IRNode returningToDecl) {
     // do nothing
   }
   
@@ -448,13 +475,15 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * If enteringDecl is an <init> method from an anonymous class declaration
    * then anonClassDecl refers to that anonymous class.  Otherwise it is null.
    */
-  private void enterEnclosingDecl(final IRNode enteringDecl, final IRNode anonClassDecl) {
+  // package-visible so that it can be called from SuperVisitor
+  final void enterEnclosingDecl(final IRNode enteringDecl, final IRNode anonClassDecl) {
     enclosingDecl = enteringDecl;
     enteringEnclosingDecl(enteringDecl, anonClassDecl);
   }
   
-  private void leaveEnclosingDecl(final IRNode returningToDecl) {
-    leavingEnclosingDecl(enclosingDecl);
+  // package-visible so that it can be called from SuperVisitor
+  final void leaveEnclosingDecl(final IRNode returningToDecl) {
+    leavingEnclosingDecl(enclosingDecl, returningToDecl);
     enclosingDecl = returningToDecl;
   }
   
@@ -1270,18 +1299,11 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     // (1) Deal with the static field declaration
     insideFieldDeclaration = true;
     isStaticField = true;
-//    // Set the enclosing declaration to the static initializer
-//    enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
-//    try {
-      // Handle the constant declaration, ignoring the class body
-      handleEnumConstantClassDeclaration(decl);
+    // Handle the constant declaration, ignoring the class body
+    handleEnumConstantClassDeclaration(decl);
       
-      // (2) Deal with the class body
-      processAnonClassExpression(decl, EnumConstantClassDeclaration.getBody(decl));
-//    } finally {
-//      // Reset the enclosing declaration
-//      leaveEnclosingDecl(null);
-//    }
+    // (2) Deal with the class body
+    processAnonClassExpression(decl, EnumConstantClassDeclaration.getBody(decl));
     isStaticField = false;
     insideFieldDeclaration = false;
   
@@ -1381,31 +1403,6 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
       insideFieldDeclaration = false;
     }    
     return null;
-
-//    final boolean isStatic = TypeUtil.isStatic(fieldDecl);
-//    
-//    /* Only visit the children if we are inside a constructor or if the
-//     * declaration is static.
-//     */
-//    if (insideConstructor || isStatic) {
-//      insideFieldDeclaration = true;
-//      isStaticField = isStatic;
-//      // If static, set the enclosing declaration to the static initializer
-//      if (isStatic) {
-//        enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);
-//      }
-//      try {
-//        handleFieldDeclaration(fieldDecl);
-//      } finally {
-//        // If static, reset the enclosing declaration
-//        if (isStatic) {
-//          leaveEnclosingDecl(null);
-//        }
-//        isStaticField = false;
-//        insideFieldDeclaration = false;
-//      }
-//    }    
-//    return null;
   }
   
   /**
@@ -1513,6 +1510,31 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     handleNonAnnotationTypeDeclaration(intDecl);
   }
   
+  /**
+   * Visit a marker annotation.  Does nothing if the visitor is skipping
+   * annotations.  Otherwise, calls {@link #handleMarkerAnnotation}.
+   */
+  @Override
+  public final Void visitMarkerAnnotation(final IRNode n) {
+    if (!skipAnnotations) {
+      handleMarkerAnnotation(n);
+    }
+    return null;
+  }
+  
+  /**
+   * Subclasses should override this method, not {@link #visitMarkerAnnotation}
+   * to handle marker annotations.  Only called when {@link #skipAnnotations}
+   * is <code>false</code>.
+   * 
+   * <p>
+   * The default implementation simply visits the children of node by 
+   * calling <code>doAcceptForChildren(n)</code>.
+   */
+  protected void handleMarkerAnnotation(final IRNode n) {
+    doAcceptForChildren(n);
+  }
+
   /**
    * Visit a method call.  Delegates to {@link #handleMethodCall}.
    */
@@ -1711,6 +1733,31 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     handleAsMethodCall(expr);
   }
   
+  /**
+   * Visit a marker annotation.  Does nothing if the visitor is skipping
+   * annotations.  Otherwise, calls {@link #handleNormalAnnotation}.
+   */
+  @Override
+  public final Void visitNormalAnnotation(final IRNode n) {
+    if (!skipAnnotations) {
+      handleNormalAnnotation(n);
+    }
+    return null;
+  }
+  
+  /**
+   * Subclasses should override this method, not {@link #visitNormalAnnotation}
+   * to handle marker annotations.  Only called when {@link #skipAnnotations}
+   * is <code>false</code>.
+   * 
+   * <p>
+   * The default implementation simply visits the children of node by 
+   * calling <code>doAcceptForChildren(n)</code>.
+   */
+  protected void handleNormalAnnotation(final IRNode n) {
+    doAcceptForChildren(n);
+  }
+
   @Override
   public final Void visitNormalEnumConstantDeclaration(final IRNode decl) {
     /* Like a static final field declaration whose initializer is a
@@ -1724,14 +1771,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
 
     insideFieldDeclaration = true;
     isStaticField = true;
-//    // Set the enclosing declaration to the static initializer
-//    enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
-//    try {
-      handleNormalEnumConstantDeclaration(decl);
-//    } finally {
-//      // Reset the enclosing declaration
-//      leaveEnclosingDecl(null);
-//    }
+    handleNormalEnumConstantDeclaration(decl);
     isStaticField = false;
     insideFieldDeclaration = false;
 
@@ -1776,14 +1816,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   
     insideFieldDeclaration = true;
     isStaticField = true;
-//    // Set the enclosing declaration to the static initializer
-//    enterEnclosingDecl(ClassInitDeclaration.getClassInitMethod(enclosingType), null);    
-//    try {
-      handleSimpleEnumConstantDeclaration(decl);
-//    } finally {
-//      // Reset the enclosing declaration
-//      leaveEnclosingDecl(null);
-//    }
+    handleSimpleEnumConstantDeclaration(decl);
     isStaticField = false;
     insideFieldDeclaration = false;
   
@@ -1834,6 +1867,31 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
       handleLocalVariableDeclaration(varDecl);
     }
     return null;
+  }
+
+  /**
+   * Visit a marker annotation.  Does nothing if the visitor is skipping
+   * annotations.  Otherwise, calls {@link #handleSingleElementAnnotation}.
+   */
+  @Override
+  public final Void visitSingleElementAnnotation(final IRNode n) {
+    if (!skipAnnotations) {
+      handleSingleElementAnnotation(n);
+    }
+    return null;
+  }
+  
+  /**
+   * Subclasses should override this method, not {@link #visitSingleElementAnnotation}
+   * to handle marker annotations.  Only called when {@link #skipAnnotations}
+   * is <code>false</code>.
+   * 
+   * <p>
+   * The default implementation simply visits the children of node by 
+   * calling <code>doAcceptForChildren(n)</code>.
+   */
+  protected void handleSingleElementAnnotation(final IRNode n) {
+    doAcceptForChildren(n);
   }
 
   /**

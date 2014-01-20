@@ -46,7 +46,7 @@ public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderC
 	
 	private final class LV_Visitor extends JavaSemanticsVisitor {
 		public LV_Visitor() {
-			super(true);
+			super(true, true);
 		}
 		
 		private void reportLocalVariables(final IRNode mdecl) {
@@ -75,7 +75,7 @@ public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderC
 
 
 		@Override 
-		protected void leavingEnclosingDecl(final IRNode mdecl) {
+		protected void leavingEnclosingDecl(final IRNode mdecl, final IRNode returningTo) {
 			System.out.println("--- Leaving method/constructor " + JavaNames.genMethodConstructorName(mdecl));
 		}
 

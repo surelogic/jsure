@@ -1085,7 +1085,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     
     
     public NewShouldAnalyzeVisitor(final IBinder binder) {
-      super(true);
+      super(true, false);
       this.binder = binder;
     }
 

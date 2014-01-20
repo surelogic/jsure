@@ -18,6 +18,7 @@ import com.surelogic.analysis.equality.EqualityAnalysis;
 import com.surelogic.analysis.jtb.TestFunctionalInterfacePseudoAnalysis;
 import com.surelogic.analysis.layers.LayersAnalysis;
 import com.surelogic.analysis.nullable.NullableModule;
+import com.surelogic.analysis.nullable.NullableModule2;
 import com.surelogic.analysis.singleton.SingletonAnalysis;
 import com.surelogic.analysis.structure.StructureAnalysis;
 import com.surelogic.analysis.testing.BCAModule;
@@ -114,6 +115,7 @@ public class Javac extends IDE {
     init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
     
     init(NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable", true, "Nullable");
+    init(NullableModule2.class, "com.surelogic.jsure.client.eclipse.Nullable2", false, "Nullable New");
 //    init(com.surelogic.analysis.nullable2.NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable2", true, "Nullable 2222");
     init(TestFunctionalInterfacePseudoAnalysis.class,"com.surelogic.jsure.client.eclipse.TestIsFunctional", false, "Functional (for tests only)");
     /*

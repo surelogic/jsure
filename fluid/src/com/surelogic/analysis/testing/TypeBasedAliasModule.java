@@ -48,7 +48,7 @@ public final class TypeBasedAliasModule extends AbstractWholeIRAnalysis<IBinderC
 	  final TypeBasedMayAlias alias;
 	  
 		public TestAliasesVisitor() {
-			super(true);
+			super(true, true);
 			alias = new TypeBasedMayAlias(getBinder());
 		}
 

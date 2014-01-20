@@ -1,23 +1,25 @@
 package com.surelogic.analysis.nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.ResultsBuilder;
+import com.surelogic.analysis.SuperVisitor;
 import com.surelogic.analysis.Unused;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Inferred;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.InferredQuery;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.InferredVarState;
-import com.surelogic.analysis.nullable.NullableModule.AnalysisBundle.QueryBundle;
+import com.surelogic.analysis.nullable.NullableModule2.AnalysisBundle.QueryBundle;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -43,7 +45,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
-public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule.AnalysisBundle, Unused>{
+public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModule2.AnalysisBundle, Unused>{
   private static final long NANO_SECONDS_PER_SECOND = 1000000000L;
 
   private static final int NON_NULL_LOCAL_CATEGORY = 900;
@@ -65,7 +67,7 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
   
   
   
-  public NullableModule() {
+  public NullableModule2() {
     super("Nullable");
   }
 
@@ -125,18 +127,49 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
   }
 
   protected void visitCompilationUnit(final IRNode compUnit) {
-    getAnalysis().typeCheck(compUnit);    
-
-    final Visitor v = new Visitor();
-    v.doAccept(compUnit);
-    
+    final Driver driver = new Driver();
+    driver.doAccept(compUnit);
     getAnalysis().clear();
   }
   
   
   
-  private final class Visitor extends AbstractJavaAnalysisDriver<QueryBundle> {
-    public Visitor() {
+  private final class Driver extends SuperVisitor {
+    public Driver() {
+      super(true);
+    }
+    
+    @Override
+    protected List<SubVisitor<?>> createSubVisitors() {
+      final List <SubVisitor<?>> subs = new ArrayList<SubVisitor<?>>(2);
+      subs.add(new NonNullTypeCheckerSlave(
+          getBinder(), getAnalysis().nonNullRawType, Collections.<IRNode>emptySet()));
+      subs.add(new DetailVisitor());
+      return Collections.unmodifiableList(subs);
+    }
+
+
+    
+    private JavaComponentFactory jcf = null;
+    
+    @Override
+    protected void enteringEnclosingDeclPrefix(
+        final IRNode newDecl, final IRNode anonClassDecl) {
+      jcf = JavaComponentFactory.startUse();
+    }
+    
+    @Override
+    protected final void leavingEnclosingDeclPostfix(
+        final IRNode oldDecl, final IRNode returningTo) {
+      JavaComponentFactory.finishUse(jcf);
+      jcf = null;
+    }
+  }
+  
+  
+  
+  private final class DetailVisitor extends SuperVisitor.SubVisitor<QueryBundle> {
+    public DetailVisitor() {
       super(true);
     }
     
@@ -163,8 +196,8 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
     @Override
     public Void visitMethodBody(final IRNode body) {
       doAcceptForChildren(body);
-      final long startTime = System.nanoTime();
-      try {
+//      final long startTime = System.nanoTime();
+//      try {
         final Inferred result = currentQuery().getInferred(body);
         for (final InferredVarState p : result) {
           /* 
@@ -180,23 +213,23 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
             hint.setMessage(LOCAL_NON_NULL, VariableDeclarator.getId(varDecl));
           }
         }
-      } catch (final AnalysisGaveUp e) {
-        final long endTime = System.nanoTime();
-        final long duration = endTime - startTime;
-        final String name = JavaNames.genQualifiedMethodConstructorName(JJNode.tree.getParent(body));
-        final ResultDrop rd = new ResultDrop(JJNode.tree.getParent(body));
-        rd.setTimeout();
-        rd.setCategorizingMessage(TIME_OUT_CATEGORY);
-        rd.setMessage(TIME_OUT, e.timeOut / NANO_SECONDS_PER_SECOND,
-            name, duration / NANO_SECONDS_PER_SECOND);
-        // XXX: Need to attach this result to some promises!!!
-        getAnalysis().addTimeOut(body);
-        
-        final HintDrop hd = HintDrop.newWarning(JJNode.tree.getParent(body));
-        hd.setCategorizingMessage(TIME_OUT_CATEGORY);
-        hd.setMessage(TIME_OUT, e.timeOut / NANO_SECONDS_PER_SECOND,
-            name, duration / NANO_SECONDS_PER_SECOND);
-      }
+//      } catch (final AnalysisGaveUp e) {
+//        final long endTime = System.nanoTime();
+//        final long duration = endTime - startTime;
+//        final String name = JavaNames.genQualifiedMethodConstructorName(JJNode.tree.getParent(body));
+//        final ResultDrop rd = new ResultDrop(JJNode.tree.getParent(body));
+//        rd.setTimeout();
+//        rd.setCategorizingMessage(TIME_OUT_CATEGORY);
+//        rd.setMessage(TIME_OUT, e.timeOut / NANO_SECONDS_PER_SECOND,
+//            name, duration / NANO_SECONDS_PER_SECOND);
+//        // XXX: Need to attach this result to some promises!!!
+//        getAnalysis().addTimeOut(body);
+//        
+//        final HintDrop hd = HintDrop.newWarning(JJNode.tree.getParent(body));
+//        hd.setCategorizingMessage(TIME_OUT_CATEGORY);
+//        hd.setMessage(TIME_OUT, e.timeOut / NANO_SECONDS_PER_SECOND,
+//            name, duration / NANO_SECONDS_PER_SECOND);
+//      }
       return null;
     }
 
@@ -228,22 +261,6 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
         }
       }
     }
-
-
-    
-    private JavaComponentFactory jcf = null;
-    
-    @Override
-    protected void enteringEnclosingDeclPrefix(
-        final IRNode newDecl, final IRNode anonClassDecl) {
-      jcf = JavaComponentFactory.startUse();
-    }
-    
-    @Override
-    protected final void leavingEnclosingDeclPostfix(final IRNode oldDecl, final IRNode returningTo) {
-      JavaComponentFactory.finishUse(jcf);
-      jcf = null;
-    }
   }
 
   @Override
@@ -266,12 +283,12 @@ public final class NullableModule extends AbstractWholeIRAnalysis<NullableModule
       definiteAssignment = new DefinitelyAssignedAnalysis(b, false);
       nonNullRawType = new NonNullRawTypeAnalysis(b);
     }
-    
-    public void typeCheck(final IRNode cu) {
-      final NonNullTypeChecker typeChecker =
-          new NonNullTypeChecker(binder, nonNullRawType, timedOutMethodBodies);
-      typeChecker.doAccept(cu);
-    }
+//    
+//    public void typeCheck(final IRNode cu) {
+//      final NonNullTypeChecker typeChecker =
+//          new NonNullTypeChecker(binder, nonNullRawType, timedOutMethodBodies);
+//      typeChecker.doAccept(cu);
+//    }
     
     @Override
     public IBinder getBinder() {

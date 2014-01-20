@@ -977,7 +977,7 @@ extends TripleLattice<Element<Integer>,
                     }
                   } else { // return
                     final Set<IRNode> srcs = new HashSet<IRNode>();
-                    new JavaSemanticsVisitor(false, JJNode.tree.getParent(srcOp)) {
+                    new JavaSemanticsVisitor(false, true, JJNode.tree.getParent(srcOp)) {
                       @Override
                       public Void visitReturnStatement(final IRNode s) {
                         srcs.addAll(bcaQuery.getResultFor(

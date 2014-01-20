@@ -1116,7 +1116,7 @@ public class UniquenessAnalysisAllModule extends AbstractWholeIRAnalysis<Uniquen
     
     
     public NewShouldAnalyzeVisitor() {
-      super(true);
+      super(true, false);
     }
 
     

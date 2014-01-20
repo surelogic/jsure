@@ -20,16 +20,6 @@ import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
  */
 public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor {
   /**
-   * Should we skip going inside of annotations?  Annotations do not have 
-   * flow graph components, so nodes inside of an annotation do not have
-   * data flow analysis results.  Usually we want to skip them because of
-   * that.  Used by {@link #visitNormalAnnotation(IRNode)},
-   * {@link #visitMarkerAnnotation(IRNode)}, and
-   * {@link #visitSingleElementAnnotation(IRNode)}.
-   */
-  private final boolean skipAnnotations;
-  
-  /**
    * The current query record.  Keep this private to that subclasses cannot change it.
    * use {@link #currentQuery()} to get the value.  
    */
@@ -39,25 +29,21 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
   
   
   protected AbstractJavaAnalysisDriver(final boolean skipA) {
-    super(true);
-    skipAnnotations = skipA;
+    super(true, skipA);
   }
   
   protected AbstractJavaAnalysisDriver(final boolean goInside, final boolean skipA) {
-    super(goInside);
-    skipAnnotations = skipA;
+    super(goInside, skipA);
   }
   
   protected AbstractJavaAnalysisDriver(
       final IRNode typeDecl, final boolean goInside, final boolean skipA) {
-    super(typeDecl, goInside);
-    skipAnnotations = skipA;
+    super(typeDecl, goInside, skipA);
   }
   
   protected AbstractJavaAnalysisDriver(
       final boolean goInside, final IRNode flowUnit, final boolean skipA) {
-    super(goInside, flowUnit);
-    skipAnnotations = skipA;
+    super(goInside, skipA, flowUnit);
   }
   
   
@@ -74,7 +60,7 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
   private void popQuery() {
     currentQuery = oldQueries.removeFirst();
   }
-
+  
   
   
   /**
@@ -151,23 +137,23 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
    * {@link #leavingEnclosingDeclPostfix} after restoring the query.
    */
   @Override
-  protected final void leavingEnclosingDecl(final IRNode oldDecl) {
-    leavingEnclosingDeclPrefix(oldDecl);
+  protected final void leavingEnclosingDecl(final IRNode oldDecl, final IRNode returningTo) {
+    leavingEnclosingDeclPrefix(oldDecl, returningTo);
     popQuery();
-    leavingEnclosingDeclPostfix(oldDecl);
+    leavingEnclosingDeclPostfix(oldDecl, returningTo);
   }
 
   /**
    * Not sure yet why you would want this, but being comprehensive.
    */
-  protected void leavingEnclosingDeclPrefix(final IRNode oldDecl) {
+  protected void leavingEnclosingDeclPrefix(final IRNode oldDecl, final IRNode returningTo) {
     // do nothing
   }
 
   /**
    * Really only intended to update labels and status messages.
    */
-  protected void leavingEnclosingDeclPostfix(final IRNode oldDecl) {
+  protected void leavingEnclosingDeclPostfix(final IRNode oldDecl, final IRNode returningTo) {
     // do nothing
   }
   
@@ -214,82 +200,5 @@ public abstract class AbstractJavaAnalysisDriver<Q> extends JavaSemanticsVisitor
    */
   protected InstanceInitAction getConstructorCallInitAction2(final IRNode ccall) {
     return InstanceInitAction.NULL_ACTION;
-  }
-  
-  
-  
-  /**
-   * Visit a marker annotation.  Does nothing if the visitor is skipping
-   * annotations.  Otherwise, calls {@link #handleMarkerAnnotation}.
-   */
-  @Override
-  public final Void visitMarkerAnnotation(final IRNode n) {
-    if (!skipAnnotations) {
-      handleMarkerAnnotation(n);
-    }
-    return null;
-  }
-  
-  /**
-   * Subclasses should override this method, not {@link #visitMarkerAnnotation}
-   * to handle marker annotations.  Only called when {@link #skipAnnotations}
-   * is <code>false</code>.
-   * 
-   * <p>
-   * The default implementation simply visits the children of node by 
-   * calling <code>doAcceptForChildren(n)</code>.
-   */
-  protected void handleMarkerAnnotation(final IRNode n) {
-    doAcceptForChildren(n);
-  }
-
-  /**
-   * Visit a marker annotation.  Does nothing if the visitor is skipping
-   * annotations.  Otherwise, calls {@link #handleNormalAnnotation}.
-   */
-  @Override
-  public final Void visitNormalAnnotation(final IRNode n) {
-    if (!skipAnnotations) {
-      handleNormalAnnotation(n);
-    }
-    return null;
-  }
-  
-  /**
-   * Subclasses should override this method, not {@link #visitNormalAnnotation}
-   * to handle marker annotations.  Only called when {@link #skipAnnotations}
-   * is <code>false</code>.
-   * 
-   * <p>
-   * The default implementation simply visits the children of node by 
-   * calling <code>doAcceptForChildren(n)</code>.
-   */
-  protected void handleNormalAnnotation(final IRNode n) {
-    doAcceptForChildren(n);
-  }
-
-  /**
-   * Visit a marker annotation.  Does nothing if the visitor is skipping
-   * annotations.  Otherwise, calls {@link #handleSingleElementAnnotation}.
-   */
-  @Override
-  public final Void visitSingleElementAnnotation(final IRNode n) {
-    if (!skipAnnotations) {
-      handleSingleElementAnnotation(n);
-    }
-    return null;
-  }
-  
-  /**
-   * Subclasses should override this method, not {@link #visitSingleElementAnnotation}
-   * to handle marker annotations.  Only called when {@link #skipAnnotations}
-   * is <code>false</code>.
-   * 
-   * <p>
-   * The default implementation simply visits the children of node by 
-   * calling <code>doAcceptForChildren(n)</code>.
-   */
-  protected void handleSingleElementAnnotation(final IRNode n) {
-    doAcceptForChildren(n);
   }
 }

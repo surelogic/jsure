@@ -21,7 +21,7 @@ import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Kind;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Source;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.StackQuery;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.StackQueryResult;
-import com.surelogic.analysis.type.checker.QualifiedTypeChecker;
+import com.surelogic.analysis.type.checker.QualifiedTypeCheckerSlave;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
@@ -38,7 +38,6 @@ import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.Arguments;
@@ -56,7 +55,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
-public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
+public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<StackQuery> {
   private static final int POSSIBLY_NULL = 915;
   private static final int POSSIBLY_NULL_UNBOX = 916;
   private static final int READ_FROM = 917;
@@ -77,7 +76,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
   
   
   
-  public NonNullTypeChecker(final IBinder b,
+  public NonNullTypeCheckerSlave(final IBinder b,
       final NonNullRawTypeAnalysis nonNullRaw,
       final Set<IRNode> badMethodBodies) {
     super(b);
@@ -102,7 +101,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     try {
 //      System.out.println("Type Checking " + JavaNames.genQualifiedMethodConstructorName(mdecl));
       receiverDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
-      super.handleMethodDeclaration(mdecl);
+      doAcceptForChildren(mdecl);
     } finally {
       receiverDecl = oldReceiverDecl;
     }
@@ -114,7 +113,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
     try {
 //      System.out.println("Type Checking " + JavaNames.genQualifiedMethodConstructorName(cdecl));
       receiverDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
-      super.handleConstructorDeclaration(cdecl);
+      doAcceptForChildren(cdecl);
     } finally {
       receiverDecl = oldReceiverDecl;
     }
@@ -544,21 +543,5 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
         checkAssignability(initExpr, vd, typeNode);
       }
     }
-  }
-
-  
-  
-  private JavaComponentFactory jcf = null;
-  
-  @Override
-  protected void enteringEnclosingDeclPrefix(
-      final IRNode newDecl, final IRNode anonClassDecl) {
-    jcf = JavaComponentFactory.startUse();
-  }
-  
-  @Override
-  protected final void leavingEnclosingDeclPostfix(final IRNode oldDecl, final IRNode returningTo) {
-    JavaComponentFactory.finishUse(jcf);
-    jcf = null;
   }
 }

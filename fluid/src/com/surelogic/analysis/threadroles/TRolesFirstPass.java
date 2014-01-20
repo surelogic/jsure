@@ -784,7 +784,7 @@ private static int cuCount = 0;
 
     
     TRoleStaticStructureBuilder() {
-    	super(true);
+    	super(true, false);
     }
     
     private void pushOld(final IRNode here) {
@@ -972,10 +972,10 @@ private static int cuCount = 0;
 	 * @see com.surelogic.analysis.JavaSemanticsVisitor#leavingEnclosingDecl(edu.cmu.cs.fluid.ir.IRNode)
 	 */
 	@Override
-	protected void leavingEnclosingDecl(IRNode leavingDecl) {
+	protected void leavingEnclosingDecl(IRNode leavingDecl, IRNode returningTo) {
 		popOld();
 
-		super.leavingEnclosingDecl(leavingDecl);
+		super.leavingEnclosingDecl(leavingDecl, returningTo);
 	}
     
     

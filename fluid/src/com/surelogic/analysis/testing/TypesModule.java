@@ -55,7 +55,7 @@ public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.Types
 //    private final TypesModule tm;
     
     public TypesVisitor(final IBinder b, final TypesModule tm) {
-      super(true);
+      super(true, false);
       this.binder = b;
 //      this.tm = tm;
     }
