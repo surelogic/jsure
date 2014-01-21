@@ -514,4 +514,12 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
       f_treeViewer.setSorter(f_slocSorter);
 
   }
+
+  @Override
+  public void takeActionUseFilter(boolean value) {
+    if (value)
+      f_treeViewer.addFilter(f_thresholdFilter);
+    else
+      f_treeViewer.removeFilter(f_thresholdFilter);
+  }
 }

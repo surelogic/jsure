@@ -88,6 +88,13 @@ public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.C
     f_actionAlphaSort.setChecked(alphaSort);
     setAlphaSort(alphaSort);
 
+    f_actionFilter.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_FILTER));
+    f_actionFilter.setText(I18N.msg("jsure.eclipse.metrics.filter"));
+    f_actionFilter.setToolTipText(I18N.msg("jsure.eclipse.metrics.filter.tip"));
+    boolean filter = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.METRIC_FILTER);
+    f_actionFilter.setChecked(filter);
+    setFilter(filter);
+
     contributeToActionBars();
 
     JSureDataDirHub.getInstance().addContentsChangeListener(this);
@@ -115,8 +122,14 @@ public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.C
   final Action f_actionAlphaSort = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
-      final boolean alphabetical = f_actionAlphaSort.isChecked();
-      setAlphaSort(alphabetical);
+      setAlphaSort(f_actionAlphaSort.isChecked());
+    }
+  };
+
+  final Action f_actionFilter = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      setFilter(f_actionFilter.isChecked());
     }
   };
 
@@ -126,6 +139,12 @@ public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.C
       mediator.takeActionUseAlphaSort(value);
   }
 
+  void setFilter(boolean value) {
+    EclipseUtility.setBooleanPreference(JSurePreferencesUtility.METRIC_FILTER, value);
+    for (IScanMetricMediator mediator : f_mediators)
+      mediator.takeActionUseFilter(value);
+  }
+
   private void contributeToActionBars() {
     final IActionBars bars = getViewSite().getActionBars();
 
@@ -133,11 +152,13 @@ public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.C
     pulldown.add(f_actionCollapseAll);
     pulldown.add(new Separator());
     pulldown.add(f_actionAlphaSort);
+    pulldown.add(f_actionFilter);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
     toolbar.add(f_actionCollapseAll);
     toolbar.add(new Separator());
     toolbar.add(f_actionAlphaSort);
+    toolbar.add(f_actionFilter);
   }
 
   @Override

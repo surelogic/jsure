@@ -117,6 +117,8 @@ public final class JSurePreferencesUtility {
 
       EclipseUtility.setDefaultBooleanPreference(VIEWS_SAVE_TREE_STATE, true);
 
+      EclipseUtility.setDefaultBooleanPreference(METRIC_ALPHA_SORT, true);
+
       EclipseUtility.setDefaultIntPreference(METRIC_VIEW_SLOC_THRESHOLD, 1000);
       EclipseUtility.setDefaultIntPreference(METRIC_SLOC_SASH_LHS_WEIGHT, 60);
       EclipseUtility.setDefaultIntPreference(METRIC_SLOC_SASH_RHS_WEIGHT, 40);
@@ -186,6 +188,8 @@ public final class JSurePreferencesUtility {
 
   public static final String METRIC_VIEW_TAB_SELECTION = PREFIX + "metric.view.tab.selection";
   public static final String METRIC_VIEW_SLOC_THRESHOLD = PREFIX + "metric.view.sloc.threshold";
+  public static final String METRIC_ALPHA_SORT = PREFIX + "metric.alpha.sort";
+  public static final String METRIC_FILTER = PREFIX + "metric.filter";
 
   public static final String METRIC_SLOC_SASH_LHS_WEIGHT = PREFIX + "metric.sloc.sash.lhs.weight";
   public static final String METRIC_SLOC_SASH_RHS_WEIGHT = PREFIX + "metric.sloc.sash.rhs.weight";
