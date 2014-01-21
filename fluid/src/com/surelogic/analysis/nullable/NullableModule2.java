@@ -13,7 +13,7 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.SuperVisitor;
-import com.surelogic.analysis.Unused;
+import com.surelogic.analysis.TypeAndMethod;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Inferred;
@@ -45,7 +45,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
-public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModule2.AnalysisBundle, Unused>{
+public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModule2.AnalysisBundle, TypeAndMethod>{
   private static final long NANO_SECONDS_PER_SECOND = 1000000000L;
 
   private static final int NON_NULL_LOCAL_CATEGORY = 900;
