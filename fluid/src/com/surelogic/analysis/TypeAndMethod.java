@@ -38,7 +38,9 @@ public class TypeAndMethod extends GranuleInType {
     public int hashCode() {
     	int result = 17;
     	result = 31 * result + typeDecl.hashCode();
-    	result = 31 * result + methodDecl.hashCode();
+    	if (methodDecl != null) {
+    		result = 31 * result + methodDecl.hashCode();
+    	}
     	return result;
     }
 }
