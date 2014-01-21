@@ -117,6 +117,7 @@ public final class JSurePreferencesUtility {
 
       EclipseUtility.setDefaultBooleanPreference(VIEWS_SAVE_TREE_STATE, true);
 
+      EclipseUtility.setDefaultIntPreference(METRIC_VIEW_SLOC_THRESHOLD, 1000);
       EclipseUtility.setDefaultIntPreference(METRIC_SLOC_SASH_LHS_WEIGHT, 60);
       EclipseUtility.setDefaultIntPreference(METRIC_SLOC_SASH_RHS_WEIGHT, 40);
       EclipseUtility.setDefaultIntPreference(METRIC_SLOC_COL_TREE_WIDTH, 300);
