@@ -1,5 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 
+import java.util.Comparator;
+
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
@@ -7,6 +9,23 @@ import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 
 public abstract class SlocElement {
+
+  /**
+   * Compares elements by their label.
+   */
+  public static final Comparator<SlocElement> ALPHA = new Comparator<SlocElement>() {
+    @Override
+    public int compare(SlocElement o1, SlocElement o2) {
+      if (o1 == null && o2 == null)
+        return 0;
+      if (o1 == null)
+        return -1;
+      if (o2 == null)
+        return 1;
+
+      return o1.getLabel().compareTo(o2.getLabel());
+    }
+  };
 
   protected SlocElement(@Nullable SlocElement parent, @NonNull String label) {
     if (label == null)

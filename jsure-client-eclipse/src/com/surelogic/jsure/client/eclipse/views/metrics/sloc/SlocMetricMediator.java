@@ -11,7 +11,9 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.FocusAdapter;
@@ -69,6 +71,17 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
   public SlocMetricMediator(TabFolder folder) {
     super(folder);
   }
+
+  final ViewerSorter f_alphaSorter = new ViewerSorter() {
+
+    @Override
+    public int compare(Viewer viewer, Object e1, Object e2) {
+      if (e1 instanceof SlocElement && e2 instanceof SlocElement) {
+        return SlocElement.ALPHA.compare((SlocElement) e1, (SlocElement) e2);
+      }
+      return super.compare(viewer, e1, e2);
+    }
+  };
 
   Composite f_panel = null;
 
@@ -157,7 +170,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
      */
     f_treeViewer = new TreeViewer(sash, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
     f_treeViewer.setContentProvider(f_contentProvider);
-    // f_treeViewer.setSorter(f_alphaLineSorter);
+    f_treeViewer.setSorter(f_alphaSorter);
     f_treeViewer.getTree().setHeaderVisible(true);
     f_treeViewer.getTree().setLinesVisible(true);
     f_treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
