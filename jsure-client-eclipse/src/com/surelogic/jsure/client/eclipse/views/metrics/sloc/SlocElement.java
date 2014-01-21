@@ -23,7 +23,7 @@ public abstract class SlocElement {
 
   public abstract SlocElement[] getChildren();
 
-  public final boolean hasChildren() {
+  public boolean hasChildren() {
     return getChildren().length > 0;
   }
 
@@ -60,6 +60,20 @@ public abstract class SlocElement {
    */
   @Nullable
   public abstract Image getImage();
+
+  /**
+   * Gets if this element should be highlighted as being above the passed SLOC
+   * threshold.
+   * <p>
+   * We do not consider rolled up values, so for "folders" the implementation
+   * should consider if any children are above the threshold.
+   * 
+   * @param slocThreshold
+   *          a SLOC threshold.
+   * @return {@code true} if this element should highlighted, {@code false}
+   *         otherwise.
+   */
+  public abstract boolean aboveSlocThreshold(int slocThreshold);
 
   /*
    * Counts should be set correctly by each implementation.

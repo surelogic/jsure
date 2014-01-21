@@ -2,6 +2,7 @@ package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 
 import java.util.ArrayList;
 
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -19,6 +20,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
@@ -37,10 +39,12 @@ import org.eclipse.ui.part.PageBook;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.ui.ColumnResizeListener;
 import com.surelogic.common.ui.EclipseColorUtility;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.DropSeaUtility;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
@@ -76,6 +80,9 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
   @NonNull
   SlocViewContentProvider f_contentProvider = new SlocViewContentProvider(this);
 
+  @NonNull
+  private final SlocOptions f_options = new SlocOptions();
+
   @Override
   protected Control initMetricDisplay(PageBook parent) {
     f_panel = new Composite(parent, SWT.NONE);
@@ -108,6 +115,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     if (savedThreshold > f_thresholdScale.getMaximum())
       savedThreshold = f_thresholdScale.getMaximum();
     f_thresholdScale.setSelection(savedThreshold);
+    f_options.setThreshold(savedThreshold);
 
     f_thresholdScale.addSelectionListener(new SelectionAdapter() {
       @Override
@@ -285,6 +293,8 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     int threshold = f_thresholdScale.getSelection();
     f_thresholdLabel.setText(SLUtility.toStringHumanWithCommas(threshold));
     EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD, threshold);
+    f_options.setThreshold(threshold);
+    f_treeViewer.refresh();
   }
 
   void updateTotal(long total) {
@@ -306,7 +316,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
   /**
    * Handles the tree portion of the metrics view
    */
-  static final CellLabelProvider TREE = new CellLabelProvider() {
+  final CellLabelProvider TREE = new CellLabelProvider() {
 
     @Override
     public void update(ViewerCell cell) {
@@ -315,15 +325,25 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         final SlocElement element = (SlocElement) cell.getElement();
         String label = element.getLabel();
         cell.setText(label);
-        cell.setImage(element.getImage());
+        Image image = element.getImage();
+        if (element.aboveSlocThreshold(f_options.getThreshold())) {
+          image = SLImages.getDecoratedImage(image, new ImageDescriptor[] {
+              SLImages.getImageDescriptor(CommonImages.DECR_ASTERISK), null, null, null, null });
+          if (element instanceof SlocElementLeaf) {
+            cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
+          }
+        } else {
+          cell.setBackground(null);
+        }
+        cell.setImage(image);
       }
     }
   };
 
   /**
-   * Handles all the counts colums of the metrics view
+   * Handles all the counts columns of the metrics view
    */
-  static abstract class MetricDataCellLabelProvider extends CellLabelProvider {
+  abstract class MetricDataCellLabelProvider extends CellLabelProvider {
 
     /**
      * Implementations should extract the proper data for the column based upon
@@ -343,6 +363,11 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         cell.setText(SLUtility.toStringHumanWithCommas(data));
         if (element instanceof SlocElementWithChildren)
           cell.setForeground(EclipseColorUtility.getSubtleTextColor());
+        else {
+          // only highlight leaf cells
+          cell.setBackground(element.aboveSlocThreshold(f_options.getThreshold()) ? EclipseColorUtility
+              .getDiffHighlightColorNewChanged() : null);
+        }
       }
     }
   };

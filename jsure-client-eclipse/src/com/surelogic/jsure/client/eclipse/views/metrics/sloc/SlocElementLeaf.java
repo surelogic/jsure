@@ -27,6 +27,11 @@ public final class SlocElementLeaf extends SlocElement {
   }
 
   @Override
+  public boolean aboveSlocThreshold(int slocThreshold) {
+    return f_lineCount >= slocThreshold;
+  }
+
+  @Override
   public Image getImage() {
     return SLImages.getImage(CommonImages.IMG_JAVA_COMP_UNIT);
   }
