@@ -48,7 +48,13 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
   }
 
   @Override
+  public void takeActionCollapseAll() {
+    // TODO Auto-generated method stub
+  }
+
+  @Override
   public void dispose() {
     // Nothing to do
   }
+
 }

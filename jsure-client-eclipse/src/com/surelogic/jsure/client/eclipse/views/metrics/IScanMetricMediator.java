@@ -20,4 +20,6 @@ public interface IScanMetricMediator extends ILifecycle {
    *          metric drops about a JSure scan.
    */
   void refreshScanContents(@Nullable JSureScanInfo scan, @Nullable ArrayList<IMetricDrop> drops);
+  
+  void takeActionCollapseAll();
 }

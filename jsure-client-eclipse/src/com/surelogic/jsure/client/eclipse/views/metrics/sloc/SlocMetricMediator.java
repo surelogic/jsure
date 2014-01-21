@@ -13,6 +13,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -83,6 +84,21 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     }
   };
 
+  final ViewerFilter f_thresholdFilter = new ViewerFilter() {
+
+    @Override
+    public boolean select(Viewer viewer, Object parentElement, Object element) {
+      // exception for scan
+      if (element instanceof SlocElementScan)
+        return true;
+
+      if (element instanceof SlocElement) {
+        return ((SlocElement) element).aboveSlocThreshold(f_options.getThreshold());
+      }
+      return false;
+    }
+  };
+
   Composite f_panel = null;
 
   Label f_totalSlocScanned = null;
@@ -122,8 +138,8 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     f_thresholdScale = new Scale(top, SWT.NONE);
     f_thresholdScale.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     f_thresholdScale.setMinimum(1);
-    f_thresholdScale.setMaximum(5000);
-    f_thresholdScale.setPageIncrement(100);
+    f_thresholdScale.setMaximum(2000);
+    f_thresholdScale.setPageIncrement(50);
     int savedThreshold = EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD);
     if (savedThreshold < f_thresholdScale.getMinimum())
       savedThreshold = f_thresholdScale.getMinimum();
@@ -171,6 +187,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     f_treeViewer = new TreeViewer(sash, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
     f_treeViewer.setContentProvider(f_contentProvider);
     f_treeViewer.setSorter(f_alphaSorter);
+    f_treeViewer.addFilter(f_thresholdFilter);
     f_treeViewer.getTree().setHeaderVisible(true);
     f_treeViewer.getTree().setLinesVisible(true);
     f_treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
@@ -470,5 +487,11 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
       }
 
     }
+  }
+
+  @Override
+  public void takeActionCollapseAll() {
+    f_treeViewer.collapseAll();
+    f_treeViewer.expandToLevel(3);
   }
 }
