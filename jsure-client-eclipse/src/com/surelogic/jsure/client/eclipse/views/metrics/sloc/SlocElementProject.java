@@ -6,8 +6,8 @@ import com.surelogic.common.ui.SLImages;
 
 public final class SlocElementProject extends SlocElementWithChildren {
 
-  protected SlocElementProject(String projectName) {
-    super(null, projectName);
+  protected SlocElementProject(SlocElement parent, String projectName) {
+    super(parent, projectName);
   }
 
   @Override

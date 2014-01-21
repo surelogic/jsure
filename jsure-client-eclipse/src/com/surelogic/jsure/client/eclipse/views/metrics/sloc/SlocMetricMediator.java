@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.CellLabelProvider;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -81,7 +83,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
   SlocViewContentProvider f_contentProvider = new SlocViewContentProvider(this);
 
   @NonNull
-  private final SlocOptions f_options = new SlocOptions();
+  final SlocOptions f_options = new SlocOptions();
 
   @Override
   protected Control initMetricDisplay(PageBook parent) {
@@ -161,6 +163,22 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     f_treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
       public void selectionChanged(SelectionChangedEvent event) {
         f_canvas.redraw();
+      }
+    });
+    f_treeViewer.addDoubleClickListener(new IDoubleClickListener() {
+      @Override
+      public void doubleClick(DoubleClickEvent event) {
+        final SlocElement element = getTreeViewerSelectionOrNull();
+        if (element != null) {
+          if (element instanceof SlocElementLeaf) {
+            ((SlocElementLeaf) element).tryToOpenInJavaEditor();
+          } else {
+            // open up the tree one more level
+            if (!f_treeViewer.getExpandedState(element)) {
+              f_treeViewer.expandToLevel(element, 1);
+            }
+          }
+        }
       }
     });
 
@@ -272,7 +290,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     return f_panel;
   }
 
-  private void updateThresholdFromTextIfSafe() {
+  void updateThresholdFromTextIfSafe() {
     String proposedThresholdString = f_thresholdLabel.getText();
     // remove all commas
     proposedThresholdString = proposedThresholdString.replaceFirst(",", "");
@@ -289,7 +307,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     updateThresholdScale();
   }
 
-  private void updateThresholdScale() {
+  void updateThresholdScale() {
     int threshold = f_thresholdScale.getSelection();
     f_thresholdLabel.setText(SLUtility.toStringHumanWithCommas(threshold));
     EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD, threshold);
@@ -372,16 +390,25 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     }
   };
 
+  @Nullable
+  SlocElement getTreeViewerSelectionOrNull() {
+    final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+    final Object o = s.getFirstElement();
+    if (o instanceof SlocElement) {
+      SlocElement element = (SlocElement) o;
+      return element;
+    }
+    return null;
+  }
+
   /**
    * Draws the metrics graph on the screen.
    */
-  private final class SlocCanvasEventHandler implements PaintListener {
+  final class SlocCanvasEventHandler implements PaintListener {
 
     public void paintControl(PaintEvent e) {
-      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
-      final Object o = s.getFirstElement();
-      if (o instanceof SlocElement) {
-        SlocElement element = (SlocElement) o;
+      final SlocElement element = getTreeViewerSelectionOrNull();
+      if (element != null) {
         final Rectangle clientArea = f_canvas.getClientArea();
         e.gc.setAntialias(SWT.ON);
 

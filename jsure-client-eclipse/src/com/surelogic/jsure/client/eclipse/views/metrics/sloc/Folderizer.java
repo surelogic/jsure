@@ -86,7 +86,7 @@ public final class Folderizer {
       }
     }
     if (project == null) { // need to create this project
-      project = new SlocElementProject(projectName);
+      project = new SlocElementProject(f_scan, projectName);
       f_scan.addChild(project);
     }
     /*
@@ -102,7 +102,7 @@ public final class Folderizer {
       }
     }
     // need to create this package in the project
-    final SlocElementPackage pkg = new SlocElementPackage(pkgName);
+    final SlocElementPackage pkg = new SlocElementPackage(project, pkgName);
     project.addChild(pkg);
     return pkg;
   }

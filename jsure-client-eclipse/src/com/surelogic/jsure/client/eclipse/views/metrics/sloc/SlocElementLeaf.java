@@ -3,6 +3,7 @@ package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 
 /**
@@ -34,5 +35,19 @@ public final class SlocElementLeaf extends SlocElement {
   @Override
   public Image getImage() {
     return SLImages.getImage(CommonImages.IMG_JAVA_COMP_UNIT);
+  }
+
+  public void tryToOpenInJavaEditor() {
+    /*
+     * This method makes a lot of assumptions about the tree. First the leaf is
+     * of the form "Foo.java" which is changed to "Foo" and assumed to be a type
+     * name. Second, the parent node is a package name. Third the parent node of
+     * the parent node is a project name.
+     */
+    String cu = getLabel();
+    cu = cu.substring(0, cu.length() - 5);
+    String pkg = getParent().getLabel();
+    String proj = getParent().getParent().getLabel();
+    JDTUIUtility.tryToOpenInEditor(proj, pkg, cu);
   }
 }
