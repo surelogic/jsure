@@ -72,18 +72,18 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       + VerificationStatusView.class.getSimpleName() + SLUtility.DOT_XML;
 
   @NonNull
-  private final File f_viewStateFile;
+  final File f_viewStateFile;
 
-  private PageBook f_viewerbook = null;
-  private Label f_noResultsToShowLabel = null;
-  private TreeViewer f_treeViewer;
+  PageBook f_viewerbook = null;
+  Label f_noResultsToShowLabel = null;
+  TreeViewer f_treeViewer;
   @NonNull
-  private final VerificationStatusViewContentProvider f_contentProvider = new VerificationStatusViewContentProvider();
-  private TreeViewerColumn f_showDiffTableColumn = null;
-  private boolean f_showHints;
-  private boolean f_highlightDifferences;
+  final VerificationStatusViewContentProvider f_contentProvider = new VerificationStatusViewContentProvider();
+  TreeViewerColumn f_showDiffTableColumn = null;
+  boolean f_showHints;
+  boolean f_highlightDifferences;
 
-  private final ViewerSorter f_alphaSorter = new ViewerSorter() {
+  final ViewerSorter f_alphaSorter = new ViewerSorter() {
 
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
@@ -94,7 +94,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final ViewerSorter f_javaSorter = new ViewerSorter() {
+  final ViewerSorter f_javaSorter = new ViewerSorter() {
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
       if (e1 instanceof Element && e2 instanceof Element) {
@@ -176,7 +176,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   }
 
-  private final Action f_actionAlphaSort = new Action("", IAction.AS_RADIO_BUTTON) {
+  final Action f_actionAlphaSort = new Action("", IAction.AS_RADIO_BUTTON) {
     @Override
     public void run() {
       final boolean alphabetical = f_actionAlphaSort.isChecked();
@@ -184,7 +184,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_actionJavaSort = new Action("", IAction.AS_RADIO_BUTTON) {
+  final Action f_actionJavaSort = new Action("", IAction.AS_RADIO_BUTTON) {
     @Override
     public void run() {
       final boolean java = f_actionJavaSort.isChecked();
@@ -192,7 +192,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_actionShowHints = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionShowHints = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionShowHints.isChecked();
@@ -204,7 +204,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_actionHighlightDifferences = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionHighlightDifferences = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionHighlightDifferences.isChecked();
@@ -217,7 +217,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_actionExpand = new Action() {
+  final Action f_actionExpand = new Action() {
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
@@ -230,7 +230,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_actionCollapse = new Action() {
+  final Action f_actionCollapse = new Action() {
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
@@ -243,14 +243,14 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_actionCollapseAll = new Action() {
+  final Action f_actionCollapseAll = new Action() {
     @Override
     public void run() {
       f_treeViewer.collapseAll();
     }
   };
 
-  private final Action f_selectIdenticalAncestor = new Action() {
+  final Action f_selectIdenticalAncestor = new Action() {
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
@@ -267,7 +267,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_actionCopy = new Action() {
+  final Action f_actionCopy = new Action() {
     @Override
     public void run() {
       final Clipboard clipboard = new Clipboard(getSite().getShell().getDisplay());
@@ -279,7 +279,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_actionAddPromiseToCode = new ProposedPromisesRefactoringAction() {
+  final Action f_actionAddPromiseToCode = new ProposedPromisesRefactoringAction() {
 
     @Override
     protected List<IProposedPromiseDrop> getProposedDrops() {
@@ -303,7 +303,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_actionShowQuickRef = new Action() {
+  final Action f_actionShowQuickRef = new Action() {
     @Override
     public void run() {
       final Image quickRefImage = SLImages.getImage(CommonImages.IMG_JSURE_QUICK_REF);
@@ -313,7 +313,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private final Action f_actionProblemsIndicator = new Action() {
+  final Action f_actionProblemsIndicator = new Action() {
     @Override
     public void run() {
       /*
@@ -323,7 +323,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  private void makeActions() {
+  void makeActions() {
     f_treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
       public void doubleClick(DoubleClickEvent event) {
@@ -474,7 +474,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   /**
    * Gets the text selected&mdash;used by the {@link #f_actionCopy} action.
    */
-  private String getSelectedText() {
+  String getSelectedText() {
     final IStructuredSelection selection = (IStructuredSelection) f_treeViewer.getSelection();
     final StringBuilder sb = new StringBuilder();
     for (final Object elt : selection.toList()) {
@@ -580,7 +580,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
    *          {@code true} for alphabetical sorting of the view, {@code false}
    *          for Java location sorting.
    */
-  private void setHowViewIsSorted(boolean alphabetical) {
+  void setHowViewIsSorted(boolean alphabetical) {
     f_actionAlphaSort.setChecked(alphabetical);
     f_actionJavaSort.setChecked(!alphabetical);
     f_treeViewer.setSorter(alphabetical ? f_alphaSorter : f_javaSorter);
@@ -615,7 +615,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       obsolete.deleteOnExit();
   }
 
-  private void setModelProblemIndicatorState(int problemCount) {
+  void setModelProblemIndicatorState(int problemCount) {
     final boolean problemsExist = problemCount > 0;
     final String id = problemsExist ? CommonImages.IMG_JSURE_MODEL_PROBLEMS_EXIST : CommonImages.IMG_JSURE_MODEL_PROBLEMS;
     f_actionProblemsIndicator.setImageDescriptor(SLImages.getImageDescriptor(id));

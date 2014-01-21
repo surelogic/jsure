@@ -19,7 +19,7 @@ import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 @Utility
 public final class ColumnLabelProviderUtility {
 
-  private static void highlightRowHelper(ViewerCell cell) {
+  static void highlightRowHelper(ViewerCell cell) {
     if (Element.f_highlightDifferences) {
       if (cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();
