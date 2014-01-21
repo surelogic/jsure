@@ -6,6 +6,7 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 
 public abstract class SlocElement {
@@ -24,6 +25,23 @@ public abstract class SlocElement {
         return 1;
 
       return o1.getLabel().compareTo(o2.getLabel());
+    }
+  };
+
+  /**
+   * Compares elements by their SLOC greatest to least.
+   */
+  public static final Comparator<SlocElement> SLOC = new Comparator<SlocElement>() {
+    @Override
+    public int compare(SlocElement o1, SlocElement o2) {
+      if (o1 == null && o2 == null)
+        return 0;
+      if (o1 == null)
+        return -1;
+      if (o2 == null)
+        return 1;
+
+      return SLUtility.safeLongToInt(o2.f_lineCount - o1.f_lineCount);
     }
   };
 

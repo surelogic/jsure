@@ -22,4 +22,6 @@ public interface IScanMetricMediator extends ILifecycle {
   void refreshScanContents(@Nullable JSureScanInfo scan, @Nullable ArrayList<IMetricDrop> drops);
   
   void takeActionCollapseAll();
+  
+  void takeActionUseAlphaSort(boolean value);
 }

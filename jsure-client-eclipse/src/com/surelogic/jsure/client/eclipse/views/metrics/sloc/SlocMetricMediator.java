@@ -84,6 +84,17 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     }
   };
 
+  final ViewerSorter f_slocSorter = new ViewerSorter() {
+
+    @Override
+    public int compare(Viewer viewer, Object e1, Object e2) {
+      if (e1 instanceof SlocElement && e2 instanceof SlocElement) {
+        return SlocElement.SLOC.compare((SlocElement) e1, (SlocElement) e2);
+      }
+      return super.compare(viewer, e1, e2);
+    }
+  };
+
   final ViewerFilter f_thresholdFilter = new ViewerFilter() {
 
     @Override
@@ -493,5 +504,14 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
   public void takeActionCollapseAll() {
     f_treeViewer.collapseAll();
     f_treeViewer.expandToLevel(3);
+  }
+
+  @Override
+  public void takeActionUseAlphaSort(boolean value) {
+    if (value)
+      f_treeViewer.setSorter(f_alphaSorter);
+    else
+      f_treeViewer.setSorter(f_slocSorter);
+
   }
 }

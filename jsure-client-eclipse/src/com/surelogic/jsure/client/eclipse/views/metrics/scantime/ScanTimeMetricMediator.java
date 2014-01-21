@@ -53,6 +53,12 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
   }
 
   @Override
+  public void takeActionUseAlphaSort(boolean value) {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
   public void dispose() {
     // Nothing to do
   }

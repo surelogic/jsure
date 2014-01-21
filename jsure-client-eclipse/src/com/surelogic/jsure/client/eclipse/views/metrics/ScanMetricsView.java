@@ -7,6 +7,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.Separator;
@@ -80,6 +81,13 @@ public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.C
     f_actionCollapseAll.setToolTipText(I18N.msg("jsure.eclipse.view.collapse_all.tip"));
     f_actionCollapseAll.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
 
+    f_actionAlphaSort.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ALPHA_SORT));
+    f_actionAlphaSort.setText(I18N.msg("jsure.eclipse.metrics.sort_alphabetically"));
+    f_actionAlphaSort.setToolTipText(I18N.msg("jsure.eclipse.metrics.sort_alphabetically.tip"));
+    boolean alphaSort = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.METRIC_ALPHA_SORT);
+    f_actionAlphaSort.setChecked(alphaSort);
+    setAlphaSort(alphaSort);
+
     contributeToActionBars();
 
     JSureDataDirHub.getInstance().addContentsChangeListener(this);
@@ -104,15 +112,32 @@ public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.C
     }
   };
 
+  final Action f_actionAlphaSort = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      final boolean alphabetical = f_actionAlphaSort.isChecked();
+      setAlphaSort(alphabetical);
+    }
+  };
+
+  void setAlphaSort(boolean value) {
+    EclipseUtility.setBooleanPreference(JSurePreferencesUtility.METRIC_ALPHA_SORT, value);
+    for (IScanMetricMediator mediator : f_mediators)
+      mediator.takeActionUseAlphaSort(value);
+  }
+
   private void contributeToActionBars() {
     final IActionBars bars = getViewSite().getActionBars();
 
     final IMenuManager pulldown = bars.getMenuManager();
     pulldown.add(f_actionCollapseAll);
     pulldown.add(new Separator());
+    pulldown.add(f_actionAlphaSort);
 
     final IToolBarManager toolbar = bars.getToolBarManager();
     toolbar.add(f_actionCollapseAll);
+    toolbar.add(new Separator());
+    toolbar.add(f_actionAlphaSort);
   }
 
   @Override
