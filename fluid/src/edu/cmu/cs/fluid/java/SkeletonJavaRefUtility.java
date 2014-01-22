@@ -16,6 +16,7 @@ import com.surelogic.javac.FileResource;
 import com.surelogic.javac.adapter.ClassResource;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
 
 @Utility
@@ -139,7 +140,11 @@ public final class SkeletonJavaRefUtility {
       */   	
       final Pair<IDecl, IJavaRef.Position> pair = f_factory.getDeclAndPosition(node);
       if (pair == null) {
-    	SLLogger.getLogger().warning(I18N.err(289, DebugUnparser.unparseCode(node), new Exception()));
+    	if (!CompilationUnit.prototype.includes(node)) {
+    		SLLogger.getLogger().warning(I18N.err(289, DebugUnparser.unparseCode(node), new Exception()));
+    	} else {
+    		SLLogger.getLogger().info(I18N.err(289, DebugUnparser.unparseCode(node), new Exception()));
+    	}
     	return null;
       }   
       return /*cache =*/ build(pair);
