@@ -205,8 +205,10 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
       public void widgetSelected(SelectionEvent e) {
         final int value = countCombo.getSelectionIndex();
         EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_COMBO_SELECTED_COLUMN, value);
-        if (f_options.setSelectedColumnTitleIndex(value))
+        if (f_options.setSelectedColumnTitleIndex(value)) {
+          fixSortingIndicatorOnTreeTable();
           f_treeViewer.refresh();
+        }
       }
     });
 
@@ -229,8 +231,10 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
       public void widgetSelected(SelectionEvent e) {
         boolean showAbove = aboveThresholdItem.getSelection();
         EclipseUtility.setBooleanPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD_SHOW_ABOVE, showAbove);
-        if (f_options.setThresholdShowAbove(showAbove))
+        if (f_options.setThresholdShowAbove(showAbove)) {
+          fixSortingIndicatorOnTreeTable();
           f_treeViewer.refresh();
+        }
       }
     };
     aboveThresholdItem.addSelectionListener(radioSelection);
@@ -393,6 +397,8 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_SEMICOLON_COUNT_WIDTH));
     columnSemicolonCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
+    fixSortingIndicatorOnTreeTable();
+
     /*
      * Right-hand-side shows graph
      */
@@ -452,6 +458,15 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
   void updateTotal(long total) {
     f_totalSlocScanned.setText(SLUtility.toStringHumanWithCommas(total) + " SLOC scanned");
+  }
+
+  void fixSortingIndicatorOnTreeTable() {
+    if (f_treeViewer.getSorter() == f_alphaSorter) {
+      f_treeViewer.getTree().setSortColumn(null);
+    } else {
+      f_treeViewer.getTree().setSortColumn(f_treeViewer.getTree().getColumn(f_options.getSelectedColumnTitleIndex() + 1));
+      f_treeViewer.getTree().setSortDirection(f_options.getThresholdShowAbove() ? SWT.UP : SWT.DOWN);
+    }
   }
 
   @Override
@@ -549,9 +564,9 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
         int fold = 0;
 
-        // e.gc.setFont(JFaceResources.getBannerFont());
         e.gc.setForeground(e.gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
 
+        // Draw the title
         String title = element.getLabel();
         Point titleExtent = e.gc.stringExtent(title);
         int xPos = (clientArea.width / 2) - (titleExtent.x / 2);
@@ -569,15 +584,18 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
         int chartDiameter = clientArea.width - 10;
 
-        e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
+        e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
+        e.gc.fillOval(5, fold + 5, chartDiameter, chartDiameter);
+
+        e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color2());
         e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, arcBlank);
-        e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_GREEN));
+        e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color0());
         e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, -arcCommented);
 
         String blankTxt = SLUtility.toStringHumanWithCommas(element.f_blankLineCount) + " blank";
         int blankTxtWidth = e.gc.stringExtent(blankTxt).x;
         String commentedTxt = SLUtility.toStringHumanWithCommas(element.f_containsCommentLineCount) + " commented";
-        String slocTxt = SLUtility.toStringHumanWithCommas(element.f_lineCount) + " SLOC";
+        String slocTxt = "Total: " + SLUtility.toStringHumanWithCommas(element.f_lineCount) + " SLOC";
         int slocTxtWidth = e.gc.stringExtent(slocTxt).x;
 
         e.gc.drawText(blankTxt, (chartDiameter / 2) - blankTxtWidth - 5, fold + (chartDiameter / 4), true);
@@ -589,6 +607,52 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         fold += chartDiameter + 10;
 
         // Bar chart at bottom
+
+        int top = fold;
+        int bottom = clientArea.height - 10;
+        int left = 5;
+        int right = clientArea.width - 5;
+        int pad = 5;
+        int barWidth = (right - left) / 4;
+        double pxlPerUnit = ((double) bottom - top) / ((double) element.f_lineCount);
+
+        e.gc.setForeground(e.gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
+
+        e.gc.drawLine(left, bottom, right, bottom);
+
+        // SLOC
+        int barX = left + pad;
+        int height = (int) (element.f_lineCount * pxlPerUnit);
+        e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
+        e.gc.fillRectangle(barX, bottom - height, barWidth - pad - pad, height);
+        e.gc.drawRectangle(barX, bottom - height, barWidth - pad - pad, height);
+
+        // Java Declarations
+        barX += barWidth;
+        height = (int) (element.f_javaDeclarationCount * pxlPerUnit);
+        e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color3());
+        e.gc.fillRectangle(barX, bottom - height, barWidth - pad - pad, height);
+        e.gc.drawRectangle(barX, bottom - height, barWidth - pad - pad, height);
+
+        // Java Statements
+        barX += barWidth;
+        height = (int) (element.f_javaStatementCount * pxlPerUnit);
+        e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color1());
+        e.gc.fillRectangle(barX, bottom - height, barWidth - pad - pad, height);
+        e.gc.drawRectangle(barX, bottom - height, barWidth - pad - pad, height);
+
+        // Semicolon Count
+        barX += barWidth;
+        height = (int) (element.f_semicolonCount * pxlPerUnit);
+        e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color4());
+        e.gc.fillRectangle(barX, bottom - height, barWidth - pad - pad, height);
+        e.gc.drawRectangle(barX, bottom - height, barWidth - pad - pad, height);
+
+        // Transform tr = new Transform(e.gc.getDevice());
+        // tr.rotate(-90);
+        // int labelX = left + pad + (barWidth / 2);
+        // e.gc.setTransform(tr);
+        // e.gc.drawText("SLOC", labelX, bottom + 10, true);
       }
 
     }
@@ -606,7 +670,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
       f_treeViewer.setSorter(f_alphaSorter);
     else
       f_treeViewer.setSorter(f_slocSorter);
-
+    fixSortingIndicatorOnTreeTable();
   }
 
   @Override
