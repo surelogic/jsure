@@ -28,8 +28,31 @@ public final class SlocElementLeaf extends SlocElement {
   }
 
   @Override
-  public boolean aboveSlocThreshold(int slocThreshold) {
-    return f_lineCount >= slocThreshold;
+  public boolean highlightDueToSlocThreshold(SlocOptions options) {
+    final long threshold = options.getThreshold();
+    final boolean showAbove = options.getThresholdShowAbove();
+    final long metricValue;
+    switch (options.getSelectedColumnTitleIndex()) {
+    case 1: // Blank Lines
+      metricValue = f_blankLineCount;
+      break;
+    case 2: // Commented Lines
+      metricValue = f_containsCommentLineCount;
+      break;
+    case 3: // Java Declarations
+      metricValue = f_javaDeclarationCount;
+      break;
+    case 4: // Java Statements
+      metricValue = f_javaStatementCount;
+      break;
+    case 5: // Semicolon Count
+      metricValue = f_semicolonCount;
+      break;
+    default: // SLOC (0 and default)
+      metricValue = f_lineCount;
+      break;
+    }
+    return showAbove ? metricValue >= threshold : metricValue <= threshold;
   }
 
   @Override

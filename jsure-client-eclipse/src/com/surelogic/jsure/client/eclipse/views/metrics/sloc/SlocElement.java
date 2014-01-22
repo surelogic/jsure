@@ -6,7 +6,6 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
-import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 
 public abstract class SlocElement {
@@ -25,23 +24,6 @@ public abstract class SlocElement {
         return 1;
 
       return o1.getLabel().compareTo(o2.getLabel());
-    }
-  };
-
-  /**
-   * Compares elements by their SLOC greatest to least.
-   */
-  public static final Comparator<SlocElement> SLOC = new Comparator<SlocElement>() {
-    @Override
-    public int compare(SlocElement o1, SlocElement o2) {
-      if (o1 == null && o2 == null)
-        return 0;
-      if (o1 == null)
-        return -1;
-      if (o2 == null)
-        return 1;
-
-      return SLUtility.safeLongToInt(o2.f_lineCount - o1.f_lineCount);
     }
   };
 
@@ -99,18 +81,19 @@ public abstract class SlocElement {
   public abstract Image getImage();
 
   /**
-   * Gets if this element should be highlighted as being above the passed SLOC
-   * threshold.
+   * Gets if this element should be highlighted due to the passed SLOC threshold
+   * options.
    * <p>
    * We do not consider rolled up values, so for "folders" the implementation
    * should consider if any children are above the threshold.
    * 
-   * @param slocThreshold
-   *          a SLOC threshold.
+   * @param options
+   *          the options configured about the threshold. This includes its
+   *          magnitude, its direction, and what metric to apply it to.
    * @return {@code true} if this element should highlighted, {@code false}
    *         otherwise.
    */
-  public abstract boolean aboveSlocThreshold(int slocThreshold);
+  public abstract boolean highlightDueToSlocThreshold(SlocOptions options);
 
   /*
    * Counts should be set correctly by each implementation.
