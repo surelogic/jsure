@@ -38,6 +38,8 @@ public final class SlocElementLeaf extends SlocElement {
   }
 
   public void tryToOpenInJavaEditor() {
+    if (getParent() == null || getParent().getParent() == null)
+      return; // can't figure out what to open
     /*
      * This method makes a lot of assumptions about the tree. First the leaf is
      * of the form "Foo.java" which is changed to "Foo" and assumed to be a type
@@ -45,9 +47,9 @@ public final class SlocElementLeaf extends SlocElement {
      * the parent node is a project name.
      */
     String cu = getLabel();
-    cu = cu.substring(0, cu.length() - 5);
-    String pkg = getParent().getLabel();
-    String proj = getParent().getParent().getLabel();
+    cu = cu.substring(0, cu.length() - 5); // take off ".java"
+    String pkg = getParent().getLabel(); // Java package name
+    String proj = getParent().getParent().getLabel(); // project name
     JDTUIUtility.tryToOpenInEditor(proj, pkg, cu);
   }
 }
