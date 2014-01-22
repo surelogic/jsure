@@ -13,7 +13,6 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.SuperVisitor;
-
 import com.surelogic.analysis.TypeAndMethod;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;

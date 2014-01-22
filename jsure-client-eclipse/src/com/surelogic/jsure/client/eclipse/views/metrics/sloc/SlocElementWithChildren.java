@@ -26,6 +26,19 @@ public abstract class SlocElementWithChildren extends SlocElement {
     return f_children.toArray(new SlocElement[f_children.size()]);
   }
 
+  @Override
+  public final boolean hasChildren() {
+    return !f_children.isEmpty();
+  }
+
+  @Override
+  public final boolean aboveSlocThreshold(int slocThreshold) {
+    boolean result = false;
+    for (SlocElement element : getChildrenAsListReference())
+      result |= element.aboveSlocThreshold(slocThreshold);
+    return result;
+  }
+
   @NonNull
   final List<SlocElement> getChildrenAsListReference() {
     return f_children;

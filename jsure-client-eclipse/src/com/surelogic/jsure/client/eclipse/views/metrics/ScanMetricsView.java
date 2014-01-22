@@ -6,16 +6,25 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.UIJob;
 
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureDataDir;
@@ -29,15 +38,21 @@ import com.surelogic.jsure.core.scans.JSureDataDirHub;
 public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.ContentsChangeListener,
     JSureDataDirHub.CurrentScanChangeListener {
 
-  private TabFolder f_metricFolder = null;
-  private final CopyOnWriteArrayList<IScanMetricMediator> f_mediators = new CopyOnWriteArrayList<IScanMetricMediator>();
+  TabFolder f_metricFolder = null;
+  final CopyOnWriteArrayList<IScanMetricMediator> f_mediators = new CopyOnWriteArrayList<IScanMetricMediator>();
 
   @Override
   public void createPartControl(Composite parent) {
     f_metricFolder = new TabFolder(parent, SWT.NONE);
 
     /*
-     * A D D   N E W   M E T R I C S   H E R E
+     * A D D
+     * 
+     * N E W
+     * 
+     * M E T R I C S
+     * 
+     * H E R E
      * 
      * Each new metric display needs a mediator implementation. Construct the
      * mediator and add it to the mediator list. The order of creation matches
@@ -62,6 +77,26 @@ public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.C
     // Restore the selected tab (or use 0 which is the int preference default)
     f_metricFolder.setSelection(EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_TAB_SELECTION));
 
+    f_actionCollapseAll.setText(I18N.msg("jsure.eclipse.view.collapse_all"));
+    f_actionCollapseAll.setToolTipText(I18N.msg("jsure.eclipse.view.collapse_all.tip"));
+    f_actionCollapseAll.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
+
+    f_actionAlphaSort.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_ALPHA_SORT));
+    f_actionAlphaSort.setText(I18N.msg("jsure.eclipse.metrics.sort_alphabetically"));
+    f_actionAlphaSort.setToolTipText(I18N.msg("jsure.eclipse.metrics.sort_alphabetically.tip"));
+    boolean alphaSort = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.METRIC_ALPHA_SORT);
+    f_actionAlphaSort.setChecked(alphaSort);
+    setAlphaSort(alphaSort);
+
+    f_actionFilter.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_FILTER));
+    f_actionFilter.setText(I18N.msg("jsure.eclipse.metrics.filter"));
+    f_actionFilter.setToolTipText(I18N.msg("jsure.eclipse.metrics.filter.tip"));
+    boolean filter = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.METRIC_FILTER);
+    f_actionFilter.setChecked(filter);
+    setFilter(filter);
+
+    contributeToActionBars();
+
     JSureDataDirHub.getInstance().addContentsChangeListener(this);
     JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
 
@@ -74,6 +109,56 @@ public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.C
       }
     };
     job.schedule();
+  }
+
+  final Action f_actionCollapseAll = new Action() {
+    @Override
+    public void run() {
+      for (IScanMetricMediator mediator : f_mediators)
+        mediator.takeActionCollapseAll();
+    }
+  };
+
+  final Action f_actionAlphaSort = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      setAlphaSort(f_actionAlphaSort.isChecked());
+    }
+  };
+
+  final Action f_actionFilter = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      setFilter(f_actionFilter.isChecked());
+    }
+  };
+
+  void setAlphaSort(boolean value) {
+    EclipseUtility.setBooleanPreference(JSurePreferencesUtility.METRIC_ALPHA_SORT, value);
+    for (IScanMetricMediator mediator : f_mediators)
+      mediator.takeActionUseAlphaSort(value);
+  }
+
+  void setFilter(boolean value) {
+    EclipseUtility.setBooleanPreference(JSurePreferencesUtility.METRIC_FILTER, value);
+    for (IScanMetricMediator mediator : f_mediators)
+      mediator.takeActionUseFilter(value);
+  }
+
+  private void contributeToActionBars() {
+    final IActionBars bars = getViewSite().getActionBars();
+
+    final IMenuManager pulldown = bars.getMenuManager();
+    pulldown.add(f_actionCollapseAll);
+    pulldown.add(new Separator());
+    pulldown.add(f_actionAlphaSort);
+    pulldown.add(f_actionFilter);
+
+    final IToolBarManager toolbar = bars.getToolBarManager();
+    toolbar.add(f_actionCollapseAll);
+    toolbar.add(new Separator());
+    toolbar.add(f_actionAlphaSort);
+    toolbar.add(f_actionFilter);
   }
 
   @Override

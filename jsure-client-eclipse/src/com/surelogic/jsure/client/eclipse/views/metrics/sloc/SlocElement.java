@@ -1,12 +1,49 @@
 package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 
+import java.util.Comparator;
+
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 
 public abstract class SlocElement {
+
+  /**
+   * Compares elements by their label.
+   */
+  public static final Comparator<SlocElement> ALPHA = new Comparator<SlocElement>() {
+    @Override
+    public int compare(SlocElement o1, SlocElement o2) {
+      if (o1 == null && o2 == null)
+        return 0;
+      if (o1 == null)
+        return -1;
+      if (o2 == null)
+        return 1;
+
+      return o1.getLabel().compareTo(o2.getLabel());
+    }
+  };
+
+  /**
+   * Compares elements by their SLOC greatest to least.
+   */
+  public static final Comparator<SlocElement> SLOC = new Comparator<SlocElement>() {
+    @Override
+    public int compare(SlocElement o1, SlocElement o2) {
+      if (o1 == null && o2 == null)
+        return 0;
+      if (o1 == null)
+        return -1;
+      if (o2 == null)
+        return 1;
+
+      return SLUtility.safeLongToInt(o2.f_lineCount - o1.f_lineCount);
+    }
+  };
 
   protected SlocElement(@Nullable SlocElement parent, @NonNull String label) {
     if (label == null)
@@ -23,7 +60,7 @@ public abstract class SlocElement {
 
   public abstract SlocElement[] getChildren();
 
-  public final boolean hasChildren() {
+  public boolean hasChildren() {
     return getChildren().length > 0;
   }
 
@@ -60,6 +97,20 @@ public abstract class SlocElement {
    */
   @Nullable
   public abstract Image getImage();
+
+  /**
+   * Gets if this element should be highlighted as being above the passed SLOC
+   * threshold.
+   * <p>
+   * We do not consider rolled up values, so for "folders" the implementation
+   * should consider if any children are above the threshold.
+   * 
+   * @param slocThreshold
+   *          a SLOC threshold.
+   * @return {@code true} if this element should highlighted, {@code false}
+   *         otherwise.
+   */
+  public abstract boolean aboveSlocThreshold(int slocThreshold);
 
   /*
    * Counts should be set correctly by each implementation.

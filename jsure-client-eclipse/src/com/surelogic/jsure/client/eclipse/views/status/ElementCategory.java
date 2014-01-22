@@ -219,12 +219,12 @@ final class ElementCategory extends Element {
     }
   }
 
-  private Element[] f_children;
+  Element[] f_children;
   private final String f_label;
   private final EnumSet<Flag> f_imageFlags;
   private final String f_imageName;
 
-  private ElementCategory(Element parent, String label, EnumSet<Flag> imageFlags, String imageName) {
+  ElementCategory(Element parent, String label, EnumSet<Flag> imageFlags, String imageName) {
     super(parent);
     f_label = label;
     f_imageFlags = imageFlags;

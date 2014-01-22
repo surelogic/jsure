@@ -71,20 +71,20 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       + VerificationExplorerView.class.getSimpleName() + SLUtility.DOT_XML;
 
   @NonNull
-  private final File f_viewStateFile;
+  final File f_viewStateFile;
 
-  private PageBook f_viewerbook = null;
-  private Label f_noResultsToShowLabel = null;
-  private TreeViewer f_treeViewer;
+  PageBook f_viewerbook = null;
+  Label f_noResultsToShowLabel = null;
+  TreeViewer f_treeViewer;
   @NonNull
-  private final VerificationExplorerViewContentProvider f_contentProvider = new VerificationExplorerViewContentProvider();
-  private TreeViewerColumn f_showDiffTableColumn = null;
-  private boolean f_highlightDifferences;
-  private boolean f_showOnlyDifferences;
-  private boolean f_showObsoleteDrops;
-  private boolean f_showOnlyDerivedFromSrc;
-  private boolean f_showAnalysisResults;
-  private boolean f_showHints;
+  final VerificationExplorerViewContentProvider f_contentProvider = new VerificationExplorerViewContentProvider();
+  TreeViewerColumn f_showDiffTableColumn = null;
+  boolean f_highlightDifferences;
+  boolean f_showOnlyDifferences;
+  boolean f_showObsoleteDrops;
+  boolean f_showOnlyDerivedFromSrc;
+  boolean f_showAnalysisResults;
+  boolean f_showHints;
 
   private final ViewerSorter f_alphaLineSorter = new ViewerSorter() {
 
@@ -180,7 +180,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   }
 
-  private final Action f_openProofContext = new Action() {
+  final Action f_openProofContext = new Action() {
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
@@ -197,7 +197,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
-  private final Action f_actionExpand = new Action() {
+  final Action f_actionExpand = new Action() {
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
@@ -210,7 +210,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
-  private final Action f_actionCollapse = new Action() {
+  final Action f_actionCollapse = new Action() {
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
@@ -223,14 +223,14 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
-  private final Action f_actionCollapseAll = new Action() {
+  final Action f_actionCollapseAll = new Action() {
     @Override
     public void run() {
       f_treeViewer.collapseAll();
     }
   };
 
-  private final Action f_actionShowQuickRef = new Action() {
+  final Action f_actionShowQuickRef = new Action() {
     @Override
     public void run() {
       final Image quickRefImage = SLImages.getImage(CommonImages.IMG_JSURE_QUICK_REF);
@@ -240,7 +240,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
-  private final Action f_actionProblemsIndicator = new Action() {
+  final Action f_actionProblemsIndicator = new Action() {
     @Override
     public void run() {
       /*
@@ -250,7 +250,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
-  private final Action f_actionHighlightDifferences = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionHighlightDifferences = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionHighlightDifferences.isChecked();
@@ -263,7 +263,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
-  private final Action f_actionShowOnlyDifferences = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionShowOnlyDifferences = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionShowOnlyDifferences.isChecked();
@@ -275,7 +275,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
-  private final Action f_actionShowObsoleteDrops = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionShowObsoleteDrops = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionShowObsoleteDrops.isChecked();
@@ -287,7 +287,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
-  private final Action f_actionShowOnlyDerivedFromSrc = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionShowOnlyDerivedFromSrc = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionShowOnlyDerivedFromSrc.isChecked();
@@ -299,7 +299,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
-  private final Action f_actionShowAnalysisResults = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionShowAnalysisResults = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionShowAnalysisResults.isChecked();
@@ -311,7 +311,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
-  private final Action f_actionShowHints = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionShowHints = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionShowHints.isChecked();
@@ -323,7 +323,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     }
   };
 
-  private final Action f_actionCopy = new Action() {
+  final Action f_actionCopy = new Action() {
     @Override
     public void run() {
       final Clipboard clipboard = new Clipboard(getSite().getShell().getDisplay());
@@ -487,7 +487,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
   /**
    * Gets the text selected&mdash;used by the {@link #f_actionCopy} action.
    */
-  private String getSelectedText() {
+  String getSelectedText() {
     final IStructuredSelection selection = (IStructuredSelection) f_treeViewer.getSelection();
     final StringBuilder sb = new StringBuilder();
     for (final Object elt : selection.toList()) {
@@ -579,7 +579,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       obsolete.deleteOnExit();
   }
 
-  private void setModelProblemIndicatorState(int problemCount) {
+  void setModelProblemIndicatorState(int problemCount) {
     final boolean problemsExist = problemCount > 0;
     final String id = problemsExist ? CommonImages.IMG_JSURE_MODEL_PROBLEMS_EXIST : CommonImages.IMG_JSURE_MODEL_PROBLEMS;
     f_actionProblemsIndicator.setImageDescriptor(SLImages.getImageDescriptor(id));

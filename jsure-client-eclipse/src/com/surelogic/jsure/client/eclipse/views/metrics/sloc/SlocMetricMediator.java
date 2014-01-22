@@ -2,13 +2,19 @@ package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 
 import java.util.ArrayList;
 
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.CellLabelProvider;
+import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.FocusAdapter;
@@ -19,12 +25,14 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
@@ -33,14 +41,19 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.part.PageBook;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.ColumnResizeListener;
 import com.surelogic.common.ui.EclipseColorUtility;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.DropSeaUtility;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
@@ -64,17 +77,60 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     super(folder);
   }
 
+  final ViewerSorter f_alphaSorter = new ViewerSorter() {
+
+    @Override
+    public int compare(Viewer viewer, Object e1, Object e2) {
+      if (e1 instanceof SlocElement && e2 instanceof SlocElement) {
+        return SlocElement.ALPHA.compare((SlocElement) e1, (SlocElement) e2);
+      }
+      return super.compare(viewer, e1, e2);
+    }
+  };
+
+  final ViewerSorter f_slocSorter = new ViewerSorter() {
+
+    @Override
+    public int compare(Viewer viewer, Object e1, Object e2) {
+      if (e1 instanceof SlocElement && e2 instanceof SlocElement) {
+        return SlocElement.SLOC.compare((SlocElement) e1, (SlocElement) e2);
+      }
+      return super.compare(viewer, e1, e2);
+    }
+  };
+
+  final ViewerFilter f_thresholdFilter = new ViewerFilter() {
+
+    @Override
+    public boolean select(Viewer viewer, Object parentElement, Object element) {
+      // exception for scan
+      if (element instanceof SlocElementScan)
+        return true;
+
+      if (element instanceof SlocElement) {
+        return ((SlocElement) element).aboveSlocThreshold(f_options.getThreshold());
+      }
+      return false;
+    }
+  };
+
   Composite f_panel = null;
 
   Label f_totalSlocScanned = null;
   Scale f_thresholdScale = null;
   Text f_thresholdLabel = null;
 
+  final String[] f_columnTitles = new String[] { "SLOC", "Blank Lines", "Commented Lines", "Java Declarations", "Java Statements",
+      "Semicolon Count" };
+
   TreeViewer f_treeViewer = null;
   Canvas f_canvas = null;
 
   @NonNull
   SlocViewContentProvider f_contentProvider = new SlocViewContentProvider(this);
+
+  @NonNull
+  final SlocOptions f_options = new SlocOptions();
 
   @Override
   protected Control initMetricDisplay(PageBook parent) {
@@ -86,21 +142,63 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
     Composite top = new Composite(f_panel, SWT.BORDER);
     top.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-    GridLayout topLayout = new GridLayout(4, false);
+    GridLayout topLayout = new GridLayout(6, false);
     top.setLayout(topLayout);
 
     f_totalSlocScanned = new Label(top, SWT.NONE);
     f_totalSlocScanned.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     f_totalSlocScanned.setForeground(f_totalSlocScanned.getDisplay().getSystemColor(SWT.COLOR_BLUE));
 
-    Label threshold = new Label(top, SWT.RIGHT);
-    threshold.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-    threshold.setText("Highlight Threshold (SLOC):");
+    final Combo countCombo = new Combo(top, SWT.READ_ONLY);
+    countCombo.setItems(f_columnTitles);
+    countCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+    int savedComboChoice = EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_COMBO_SELECTED_COLUMN);
+    if (savedComboChoice < 0 || savedComboChoice >= f_columnTitles.length)
+      savedComboChoice = 0; // if a bad value was saved
+    countCombo.select(savedComboChoice);
+    countCombo.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        final int value = countCombo.getSelectionIndex();
+        EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_COMBO_SELECTED_COLUMN, value);
+        // TODO Change stuff based upon this selection
+      }
+    });
+
+    // TODO CHANGES AND PERSISTENCE OF CHOICE
+
+    final ToolBar thresholdToolBar = new ToolBar(top, SWT.FLAT);
+    thresholdToolBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+    final ToolItem aboveThresholdItem = new ToolItem(thresholdToolBar, SWT.RADIO);
+    aboveThresholdItem.setImage(SLImages.getImage(CommonImages.IMG_THRESHOLD_ABOVE));
+    aboveThresholdItem.setToolTipText(I18N.msg("jsure.eclipse.metrics.threshold_above.tip"));
+    final ToolItem belowThresholdItem = new ToolItem(thresholdToolBar, SWT.RADIO);
+    belowThresholdItem.setImage(SLImages.getImage(CommonImages.IMG_THRESHOLD_BELOW));
+    belowThresholdItem.setToolTipText(I18N.msg("jsure.eclipse.metrics.threshold_below.tip"));
+    boolean showAbove = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD_SHOW_ABOVE);
+    if (showAbove)
+      aboveThresholdItem.setSelection(true);
+    else
+      belowThresholdItem.setSelection(true);
+    final SelectionAdapter radioSelection = new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        boolean showAbove = aboveThresholdItem.getSelection();
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD_SHOW_ABOVE, showAbove);
+        // TODO DO SOMETHING WITH THIS
+      }
+    };
+    aboveThresholdItem.addSelectionListener(radioSelection);
+    belowThresholdItem.addSelectionListener(radioSelection);
+
+    final Label threshold = new Label(top, SWT.RIGHT);
+    threshold.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+    threshold.setText("Highlight Threshold:");
 
     f_thresholdScale = new Scale(top, SWT.NONE);
     f_thresholdScale.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     f_thresholdScale.setMinimum(1);
-    f_thresholdScale.setMaximum(5000);
+    f_thresholdScale.setMaximum(3000);
     f_thresholdScale.setPageIncrement(100);
     int savedThreshold = EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD);
     if (savedThreshold < f_thresholdScale.getMinimum())
@@ -108,6 +206,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     if (savedThreshold > f_thresholdScale.getMaximum())
       savedThreshold = f_thresholdScale.getMaximum();
     f_thresholdScale.setSelection(savedThreshold);
+    f_options.setThreshold(savedThreshold);
 
     f_thresholdScale.addSelectionListener(new SelectionAdapter() {
       @Override
@@ -147,12 +246,29 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
      */
     f_treeViewer = new TreeViewer(sash, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
     f_treeViewer.setContentProvider(f_contentProvider);
-    // f_treeViewer.setSorter(f_alphaLineSorter);
+    f_treeViewer.setSorter(f_alphaSorter);
+    f_treeViewer.addFilter(f_thresholdFilter);
     f_treeViewer.getTree().setHeaderVisible(true);
     f_treeViewer.getTree().setLinesVisible(true);
     f_treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
       public void selectionChanged(SelectionChangedEvent event) {
         f_canvas.redraw();
+      }
+    });
+    f_treeViewer.addDoubleClickListener(new IDoubleClickListener() {
+      @Override
+      public void doubleClick(DoubleClickEvent event) {
+        final SlocElement element = getTreeViewerSelectionOrNull();
+        if (element != null) {
+          if (element instanceof SlocElementLeaf) {
+            ((SlocElementLeaf) element).tryToOpenInJavaEditor();
+          } else {
+            // open up the tree one more level
+            if (!f_treeViewer.getExpandedState(element)) {
+              f_treeViewer.expandToLevel(element, 1);
+            }
+          }
+        }
       }
     });
 
@@ -161,6 +277,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     columnTree.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_TREE_WIDTH));
     columnTree.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_TREE_WIDTH));
 
+    int tableColumnTitleIndex = 0;
     final TreeViewerColumn columnLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
       long getMetricValue(SlocElement metric) {
@@ -170,7 +287,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     columnLineCount.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_LINE_COUNT_WIDTH));
     columnLineCount.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_LINE_COUNT_WIDTH));
-    columnLineCount.getColumn().setText("SLOC");
+    columnLineCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
     final TreeViewerColumn columnBlankLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnBlankLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
@@ -182,7 +299,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_BLANK_LINE_COUNT_WIDTH));
     columnBlankLineCount.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_BLANK_LINE_COUNT_WIDTH));
-    columnBlankLineCount.getColumn().setText("Blank Lines");
+    columnBlankLineCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
     final TreeViewerColumn columnContainsCommentLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnContainsCommentLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
@@ -194,7 +311,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_CONTAINS_COMMENT_LINE_COUNT_WIDTH));
     columnContainsCommentLineCount.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_CONTAINS_COMMENT_LINE_COUNT_WIDTH));
-    columnContainsCommentLineCount.getColumn().setText("Commented Lines");
+    columnContainsCommentLineCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
     final TreeViewerColumn columnJavaDeclarationCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnJavaDeclarationCount.setLabelProvider(new MetricDataCellLabelProvider() {
@@ -206,7 +323,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_JAVA_DECLARATION_COUNT_WIDTH));
     columnJavaDeclarationCount.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_JAVA_DECLARATION_COUNT_WIDTH));
-    columnJavaDeclarationCount.getColumn().setText("Java Declarations");
+    columnJavaDeclarationCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
     final TreeViewerColumn columnJavaStatementCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnJavaStatementCount.setLabelProvider(new MetricDataCellLabelProvider() {
@@ -218,7 +335,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_JAVA_STATEMENT_COUNT_WIDTH));
     columnJavaStatementCount.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_JAVA_STATEMENT_COUNT_WIDTH));
-    columnJavaStatementCount.getColumn().setText("Java Statements");
+    columnJavaStatementCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
     final TreeViewerColumn columnSemicolonCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnSemicolonCount.setLabelProvider(new MetricDataCellLabelProvider() {
@@ -230,7 +347,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_SEMICOLON_COUNT_WIDTH));
     columnSemicolonCount.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_SEMICOLON_COUNT_WIDTH));
-    columnSemicolonCount.getColumn().setText("Semicolon Count");
+    columnSemicolonCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
     /*
      * Right-hand-side shows graph
@@ -264,7 +381,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     return f_panel;
   }
 
-  private void updateThresholdFromTextIfSafe() {
+  void updateThresholdFromTextIfSafe() {
     String proposedThresholdString = f_thresholdLabel.getText();
     // remove all commas
     proposedThresholdString = proposedThresholdString.replaceFirst(",", "");
@@ -281,10 +398,12 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     updateThresholdScale();
   }
 
-  private void updateThresholdScale() {
+  void updateThresholdScale() {
     int threshold = f_thresholdScale.getSelection();
     f_thresholdLabel.setText(SLUtility.toStringHumanWithCommas(threshold));
     EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD, threshold);
+    f_options.setThreshold(threshold);
+    f_treeViewer.refresh();
   }
 
   void updateTotal(long total) {
@@ -306,7 +425,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
   /**
    * Handles the tree portion of the metrics view
    */
-  static final CellLabelProvider TREE = new CellLabelProvider() {
+  final CellLabelProvider TREE = new CellLabelProvider() {
 
     @Override
     public void update(ViewerCell cell) {
@@ -315,15 +434,25 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         final SlocElement element = (SlocElement) cell.getElement();
         String label = element.getLabel();
         cell.setText(label);
-        cell.setImage(element.getImage());
+        Image image = element.getImage();
+        if (element.aboveSlocThreshold(f_options.getThreshold())) {
+          image = SLImages.getDecoratedImage(image, new ImageDescriptor[] {
+              SLImages.getImageDescriptor(CommonImages.DECR_ASTERISK), null, null, null, null });
+          if (element instanceof SlocElementLeaf) {
+            cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
+          }
+        } else {
+          cell.setBackground(null);
+        }
+        cell.setImage(image);
       }
     }
   };
 
   /**
-   * Handles all the counts colums of the metrics view
+   * Handles all the counts columns of the metrics view
    */
-  static abstract class MetricDataCellLabelProvider extends CellLabelProvider {
+  abstract class MetricDataCellLabelProvider extends CellLabelProvider {
 
     /**
      * Implementations should extract the proper data for the column based upon
@@ -343,20 +472,34 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         cell.setText(SLUtility.toStringHumanWithCommas(data));
         if (element instanceof SlocElementWithChildren)
           cell.setForeground(EclipseColorUtility.getSubtleTextColor());
+        else {
+          // only highlight leaf cells
+          cell.setBackground(element.aboveSlocThreshold(f_options.getThreshold()) ? EclipseColorUtility
+              .getDiffHighlightColorNewChanged() : null);
+        }
       }
     }
   };
 
+  @Nullable
+  SlocElement getTreeViewerSelectionOrNull() {
+    final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+    final Object o = s.getFirstElement();
+    if (o instanceof SlocElement) {
+      SlocElement element = (SlocElement) o;
+      return element;
+    }
+    return null;
+  }
+
   /**
    * Draws the metrics graph on the screen.
    */
-  private final class SlocCanvasEventHandler implements PaintListener {
+  final class SlocCanvasEventHandler implements PaintListener {
 
     public void paintControl(PaintEvent e) {
-      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
-      final Object o = s.getFirstElement();
-      if (o instanceof SlocElement) {
-        SlocElement element = (SlocElement) o;
+      final SlocElement element = getTreeViewerSelectionOrNull();
+      if (element != null) {
         final Rectangle clientArea = f_canvas.getClientArea();
         e.gc.setAntialias(SWT.ON);
 
@@ -405,5 +548,28 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
       }
 
     }
+  }
+
+  @Override
+  public void takeActionCollapseAll() {
+    f_treeViewer.collapseAll();
+    f_treeViewer.expandToLevel(3);
+  }
+
+  @Override
+  public void takeActionUseAlphaSort(boolean value) {
+    if (value)
+      f_treeViewer.setSorter(f_alphaSorter);
+    else
+      f_treeViewer.setSorter(f_slocSorter);
+
+  }
+
+  @Override
+  public void takeActionUseFilter(boolean value) {
+    if (value)
+      f_treeViewer.addFilter(f_thresholdFilter);
+    else
+      f_treeViewer.removeFilter(f_thresholdFilter);
   }
 }

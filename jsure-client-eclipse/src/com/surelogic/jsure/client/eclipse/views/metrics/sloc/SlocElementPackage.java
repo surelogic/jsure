@@ -9,8 +9,8 @@ import com.surelogic.common.ui.SLImages;
 
 public final class SlocElementPackage extends SlocElementWithChildren {
 
-  protected SlocElementPackage(@Nullable String packageName) {
-    super(null, packageName != null ? packageName : SLUtility.JAVA_DEFAULT_PACKAGE);
+  protected SlocElementPackage(SlocElement parent, @Nullable String packageName) {
+    super(parent, packageName != null ? packageName : SLUtility.JAVA_DEFAULT_PACKAGE);
   }
 
   @Override
