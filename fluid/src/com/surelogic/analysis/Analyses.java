@@ -32,6 +32,10 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 		return 0;
 	}
 	
+	public boolean runSingleThreaded() {
+		return true; // to be conservative
+	}
+	
 	public int size() {
 		int size = 0;
 		for(AnalysisGroup<?> g : groups) {

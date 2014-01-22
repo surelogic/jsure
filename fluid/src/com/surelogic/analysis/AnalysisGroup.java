@@ -28,6 +28,11 @@ public final class AnalysisGroup<Q extends IAnalysisGranule> extends ArrayList<I
 		return offset;
 	}
 	
+	public boolean runSingleThreaded() {
+		// internal or never
+		return get(0).runInParallel() != ConcurrencyType.EXTERNALLY;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public Class<Q> getGranuleType() {
 		if (granulator == null) {
