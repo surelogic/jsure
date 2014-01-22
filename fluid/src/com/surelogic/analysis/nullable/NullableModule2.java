@@ -142,9 +142,9 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     @Override
     protected List<SubVisitor<?>> createSubVisitors() {
       final List <SubVisitor<?>> subs = new ArrayList<SubVisitor<?>>(2);
-      subs.add(new NonNullTypeCheckerSlave(
-          getBinder(), getAnalysis().nonNullRawType, Collections.<IRNode>emptySet()));
       subs.add(new DetailVisitor());
+      subs.add(new NonNullTypeCheckerSlave(
+          getBinder(), getAnalysis().nonNullRawType, getAnalysis().getTimedOut()));
       return Collections.unmodifiableList(subs);
     }
 
@@ -196,8 +196,8 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     @Override
     public Void visitMethodBody(final IRNode body) {
       doAcceptForChildren(body);
-//      final long startTime = System.nanoTime();
-//      try {
+      final long startTime = System.nanoTime();
+      try {
         final Inferred result = currentQuery().getInferred(body);
         for (final InferredVarState p : result) {
           /* 
@@ -213,23 +213,23 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
             hint.setMessage(LOCAL_NON_NULL, VariableDeclarator.getId(varDecl));
           }
         }
-//      } catch (final AnalysisGaveUp e) {
-//        final long endTime = System.nanoTime();
-//        final long duration = endTime - startTime;
-//        final String name = JavaNames.genQualifiedMethodConstructorName(JJNode.tree.getParent(body));
+      } catch (final AnalysisGaveUp e) {
+        final long endTime = System.nanoTime();
+        final long duration = endTime - startTime;
+        final String name = JavaNames.genQualifiedMethodConstructorName(JJNode.tree.getParent(body));
 //        final ResultDrop rd = new ResultDrop(JJNode.tree.getParent(body));
 //        rd.setTimeout();
 //        rd.setCategorizingMessage(TIME_OUT_CATEGORY);
 //        rd.setMessage(TIME_OUT, e.timeOut / NANO_SECONDS_PER_SECOND,
 //            name, duration / NANO_SECONDS_PER_SECOND);
 //        // XXX: Need to attach this result to some promises!!!
-//        getAnalysis().addTimeOut(body);
-//        
-//        final HintDrop hd = HintDrop.newWarning(JJNode.tree.getParent(body));
-//        hd.setCategorizingMessage(TIME_OUT_CATEGORY);
-//        hd.setMessage(TIME_OUT, e.timeOut / NANO_SECONDS_PER_SECOND,
-//            name, duration / NANO_SECONDS_PER_SECOND);
-//      }
+        getAnalysis().addTimeOut(body);
+        
+        final HintDrop hd = HintDrop.newWarning(JJNode.tree.getParent(body));
+        hd.setCategorizingMessage(TIME_OUT_CATEGORY);
+        hd.setMessage(TIME_OUT, e.timeOut / NANO_SECONDS_PER_SECOND,
+            name, duration / NANO_SECONDS_PER_SECOND);
+      }
       return null;
     }
 
