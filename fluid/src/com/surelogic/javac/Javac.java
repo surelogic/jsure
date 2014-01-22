@@ -93,7 +93,6 @@ public class Javac extends IDE {
 				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceSE", false, "Uniqueness (Obsolete)");
 
     init(NonNullRawTypeModule.class, "com.surelogic.jsure.client.eclipse.NonNullRawTypes", false, "Combined NonNull & RawType (for reg tests only)");
-//    init(NonNullRawTypeModule2.class, "com.surelogic.jsure.client.eclipse.NonNullRawTypes2", false, "Combined NonNull & RawType (for reg tests only) 2222");
     init(DefinitelyAssignedModule.class, "com.surelogic.jsure.client.eclipse.DefinitelyAssigned", false, "Definitely Assigned (for reg tests only)");
 		
 		init(LocalVariablesModule.class,
@@ -115,8 +114,8 @@ public class Javac extends IDE {
 		init(ConstantExpressionModule.class, "com.surelogic.jsure.client.eclipse.ConstantExpr", false, "Constant Expressions (for reg tests only)");
 		init(BinderModule.class, "com.surelogic.jsure.client.eclipse.Binder", false, "Binder (for reg tests only)");
     
-    init(NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable", true, "Nullable");
-    init(NullableModule2.class, "com.surelogic.jsure.client.eclipse.Nullable2", false, "Nullable New");
+    init(NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable-old", false, "Nullable (old)");
+    init(NullableModule2.class, "com.surelogic.jsure.client.eclipse.Nullable", true, "Nullable");
 //    init(com.surelogic.analysis.nullable2.NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable2", true, "Nullable 2222");
     init(TestFunctionalInterfacePseudoAnalysis.class,"com.surelogic.jsure.client.eclipse.TestIsFunctional", false, "Functional (for tests only)");
     /*
@@ -461,6 +460,10 @@ public class Javac extends IDE {
 	private static void handleGroup(Analyses analyses, IAnalysisGranulator<?> g, List<IIRAnalysis<?>> grouped) {
 		if (grouped.isEmpty()) {
 			return; // Nothing to do
+		}
+		System.out.println("Group:");
+		for(IIRAnalysis<?> a : grouped) {
+			System.out.println("\t"+a.name());
 		}
 		analyses.add(new AnalysisGroup(g, analyses.size(), grouped.toArray(new IIRAnalysis<?>[grouped.size()])));
 		grouped.clear();
