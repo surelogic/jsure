@@ -32,10 +32,10 @@ public abstract class SlocElementWithChildren extends SlocElement {
   }
 
   @Override
-  public final boolean aboveSlocThreshold(int slocThreshold) {
+  public final boolean highlightDueToSlocThreshold(SlocOptions options) {
     boolean result = false;
     for (SlocElement element : getChildrenAsListReference())
-      result |= element.aboveSlocThreshold(slocThreshold);
+      result |= element.highlightDueToSlocThreshold(options);
     return result;
   }
 

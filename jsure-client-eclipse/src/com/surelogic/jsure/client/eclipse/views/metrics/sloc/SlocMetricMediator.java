@@ -1,6 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.CellLabelProvider;
@@ -88,12 +89,56 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     }
   };
 
+  /**
+   * Compares elements by their SLOC greatest to least.
+   */
+  public final Comparator<SlocElement> f_byMetricComparator = new Comparator<SlocElement>() {
+    @Override
+    public int compare(SlocElement o1, SlocElement o2) {
+      if (o1 == null && o2 == null)
+        return 0;
+      if (o1 == null)
+        return -1;
+      if (o2 == null)
+        return 1;
+
+      final long o1MetricValue;
+      final long o2MetricValue;
+      switch (f_options.getSelectedColumnTitleIndex()) {
+      case 1: // Blank Lines
+        o1MetricValue = o1.f_blankLineCount;
+        o2MetricValue = o2.f_blankLineCount;
+        break;
+      case 2: // Commented Lines
+        o1MetricValue = o1.f_containsCommentLineCount;
+        o2MetricValue = o2.f_containsCommentLineCount;
+        break;
+      case 3: // Java Declarations
+        o1MetricValue = o1.f_javaDeclarationCount;
+        o2MetricValue = o2.f_javaDeclarationCount;
+        break;
+      case 4: // Java Statements
+        o1MetricValue = o1.f_javaStatementCount;
+        o2MetricValue = o2.f_javaStatementCount;
+        break;
+      case 5: // Semicolon Count
+        o1MetricValue = o1.f_semicolonCount;
+        o2MetricValue = o2.f_semicolonCount;
+        break;
+      default: // SLOC (0 and default)
+        o1MetricValue = o1.f_lineCount;
+        o2MetricValue = o2.f_lineCount;
+        break;
+      }
+      return SLUtility.safeLongToInt(o2MetricValue - o1MetricValue);
+    }
+  };
   final ViewerSorter f_slocSorter = new ViewerSorter() {
 
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
       if (e1 instanceof SlocElement && e2 instanceof SlocElement) {
-        return SlocElement.SLOC.compare((SlocElement) e1, (SlocElement) e2);
+        return f_byMetricComparator.compare((SlocElement) e1, (SlocElement) e2);
       }
       return super.compare(viewer, e1, e2);
     }
@@ -108,13 +153,11 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         return true;
 
       if (element instanceof SlocElement) {
-        return ((SlocElement) element).aboveSlocThreshold(f_options.getThreshold());
+        return ((SlocElement) element).highlightDueToSlocThreshold(f_options);
       }
       return false;
     }
   };
-
-  Composite f_panel = null;
 
   Label f_totalSlocScanned = null;
   Scale f_thresholdScale = null;
@@ -134,13 +177,13 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
   @Override
   protected Control initMetricDisplay(PageBook parent) {
-    f_panel = new Composite(parent, SWT.NONE);
+    final Composite panel = new Composite(parent, SWT.NONE);
 
     GridLayout layout = new GridLayout();
     layout.marginHeight = layout.marginWidth = layout.horizontalSpacing = layout.verticalSpacing = 0;
-    f_panel.setLayout(layout);
+    panel.setLayout(layout);
 
-    Composite top = new Composite(f_panel, SWT.BORDER);
+    Composite top = new Composite(panel, SWT.BORDER);
     top.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     GridLayout topLayout = new GridLayout(6, false);
     top.setLayout(topLayout);
@@ -156,16 +199,16 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     if (savedComboChoice < 0 || savedComboChoice >= f_columnTitles.length)
       savedComboChoice = 0; // if a bad value was saved
     countCombo.select(savedComboChoice);
+    f_options.setSelectedColumnTitleIndex(savedComboChoice);
     countCombo.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
         final int value = countCombo.getSelectionIndex();
         EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_COMBO_SELECTED_COLUMN, value);
-        // TODO Change stuff based upon this selection
+        if (f_options.setSelectedColumnTitleIndex(value))
+          f_treeViewer.refresh();
       }
     });
-
-    // TODO CHANGES AND PERSISTENCE OF CHOICE
 
     final ToolBar thresholdToolBar = new ToolBar(top, SWT.FLAT);
     thresholdToolBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
@@ -180,12 +223,14 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
       aboveThresholdItem.setSelection(true);
     else
       belowThresholdItem.setSelection(true);
+    f_options.setThresholdShowAbove(showAbove);
     final SelectionAdapter radioSelection = new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
         boolean showAbove = aboveThresholdItem.getSelection();
         EclipseUtility.setBooleanPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD_SHOW_ABOVE, showAbove);
-        // TODO DO SOMETHING WITH THIS
+        if (f_options.setThresholdShowAbove(showAbove))
+          f_treeViewer.refresh();
       }
     };
     aboveThresholdItem.addSelectionListener(radioSelection);
@@ -207,7 +252,6 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
       savedThreshold = f_thresholdScale.getMaximum();
     f_thresholdScale.setSelection(savedThreshold);
     f_options.setThreshold(savedThreshold);
-
     f_thresholdScale.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
@@ -235,7 +279,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
       }
     });
 
-    final SashForm sash = new SashForm(f_panel, SWT.HORIZONTAL | SWT.SMOOTH);
+    final SashForm sash = new SashForm(panel, SWT.HORIZONTAL | SWT.SMOOTH);
     gd = new GridData(SWT.FILL, SWT.FILL, true, true);
     gd.verticalIndent = 5;
     sash.setLayoutData(gd);
@@ -378,7 +422,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
       }
     });
 
-    return f_panel;
+    return panel;
   }
 
   void updateThresholdFromTextIfSafe() {
@@ -402,8 +446,8 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     int threshold = f_thresholdScale.getSelection();
     f_thresholdLabel.setText(SLUtility.toStringHumanWithCommas(threshold));
     EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD, threshold);
-    f_options.setThreshold(threshold);
-    f_treeViewer.refresh();
+    if (f_options.setThreshold(threshold))
+      f_treeViewer.refresh();
   }
 
   void updateTotal(long total) {
@@ -435,7 +479,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         String label = element.getLabel();
         cell.setText(label);
         Image image = element.getImage();
-        if (element.aboveSlocThreshold(f_options.getThreshold())) {
+        if (element.highlightDueToSlocThreshold(f_options)) {
           image = SLImages.getDecoratedImage(image, new ImageDescriptor[] {
               SLImages.getImageDescriptor(CommonImages.DECR_ASTERISK), null, null, null, null });
           if (element instanceof SlocElementLeaf) {
@@ -474,8 +518,8 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
           cell.setForeground(EclipseColorUtility.getSubtleTextColor());
         else {
           // only highlight leaf cells
-          cell.setBackground(element.aboveSlocThreshold(f_options.getThreshold()) ? EclipseColorUtility
-              .getDiffHighlightColorNewChanged() : null);
+          cell.setBackground(element.highlightDueToSlocThreshold(f_options) ? EclipseColorUtility.getDiffHighlightColorNewChanged()
+              : null);
         }
       }
     }
