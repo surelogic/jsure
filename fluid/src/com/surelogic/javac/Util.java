@@ -32,6 +32,7 @@ import org.apache.commons.lang3.SystemUtils;
 
 import com.surelogic.analysis.Analyses;
 import com.surelogic.analysis.AnalysisGroup;
+import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.analysis.IAnalysisGranulator;
 import com.surelogic.analysis.IAnalysisGranule;
@@ -778,14 +779,15 @@ public class Util {
     	    	
     	final MultiMap<IAnalysisGranulator<?>,IAnalysisGranule> granules = new MultiHashMap<IAnalysisGranulator<?>, IAnalysisGranule>();
     	for(AnalysisGroup<?> group : analyses.getGroups()) {
+    		final boolean runOneThread = perf.singleThreaded || group.runSingleThreaded();    				
     		System.out.println("Starting group: "+group.getLabel());
     		if (group.getGranulator() == null) {
     			final AnalysisGroup<CUDrop> cuGroup = (AnalysisGroup<CUDrop>) group;
-        		final AnalysisInfo<CUDrop> ai = new AnalysisInfo<CUDrop>(CUDrop.class, env, perf, projects.getMonitor());	
+        		final AnalysisInfo<CUDrop> ai = new AnalysisInfo<CUDrop>(runOneThread, CUDrop.class, env, projects.getMonitor());	
         		ai.populate(allCus.asList());
         		ai.analyzeProjects(projects, cuGroup, timings);
     		} else {
-				final AnalysisInfo ai = new AnalysisInfo(group.getGranuleType(), env, perf, projects.getMonitor());
+				final AnalysisInfo ai = new AnalysisInfo(runOneThread, group.getGranuleType(), env, projects.getMonitor());
         		ai.populate(granules.get(group.getGranulator()));        		
         		ai.analyzeProjects(projects, group, timings);
     		}
@@ -981,17 +983,14 @@ public class Util {
 	  }
   }  
   
-  static class AnalysisInfo<Q extends IAnalysisGranule> {
+  static class AnalysisInfo<Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> {
 	  final IIRAnalysisEnvironment env;
 	  final MultiMap<ITypeEnvironment, Q> granules = new MultiHashMap<ITypeEnvironment, Q>();
-	  final ParallelArray<Q> toAnalyze;
-	  final boolean singleThreaded; // for the whole group of analyses
 	  final SLProgressMonitor monitor;
 	  
-	  AnalysisInfo(Class<Q> cls, IIRAnalysisEnvironment e, JSurePerformance perf, SLProgressMonitor mon) {
+	  AnalysisInfo(boolean runOneThread, Class<Q> cls, IIRAnalysisEnvironment e, SLProgressMonitor mon) {
+		  super(!runOneThread, cls);
 		  env = e;
-		  singleThreaded = perf.singleThreaded;
-		  toAnalyze = perf.createArray(cls);
 		  monitor = mon;
 	  }
   
@@ -1004,15 +1003,9 @@ public class Util {
 		  }
 	  }
 	  
-	  ParallelArray<Q> prepGranules(final Collection<Q> granules) {
-		  toAnalyze.asList().clear();
-		  toAnalyze.asList().addAll(granules);
-		  return toAnalyze;
-	  }
-	  
-	  private Procedure<Q> getProcedure(final IAnalysisGroup<Q> analyses, final ThreadLocal<AnalysisTimings> timings) {
+	  private Procedure<Q> setupProcedure(final IAnalysisGroup<Q> analyses, final ThreadLocal<AnalysisTimings> timings) {
 		  final PromiseFramework frame = PromiseFramework.getInstance();	  
-		  return new Procedure<Q>() {	  
+		  final Procedure<Q> rv = new Procedure<Q>() {	  
 			  @Override
 			  public void op(Q granule) {
 				  if (!granule.isAsSource()) {
@@ -1045,6 +1038,8 @@ public class Util {
 				  }
 			  }				  			  
 		  };
+		  setWorkProcedure(rv);
+		  return rv;
 	  }
 	  
 	  protected void recordTime(Q granule, IIRAnalysis<Q> a, long t_in_ns) {
@@ -1058,16 +1053,18 @@ public class Util {
 		  d.addOrReplaceMetricInfo(time);
 	  }
 
-	  void analyzeProjects(final Projects projects, IAnalysisGroup<Q> analyses, final AllTimings timings) {
+	  void analyzeProjects(final Projects projects, IAnalysisGroup<Q> analyses, final AllTimings timing) {
+		setupProcedure(analyses, timing.timings); 
   		for (final JavacProject project : projects) {
 			if (projects.getMonitor().isCanceled()) {
 				throw new CancellationException();
 			}
-			analyzeAProject(project, analyses, timings);            
+			analyzeAProject(project, analyses, timing);            
 		}
 	  }
 	  
 	  private void analyzeAProject(final JavacProject project, IAnalysisGroup<Q> analyses, final AllTimings timing) {		  
+		  final Collection<Q> fromProj = granules.get(project.getTypeEnv());
 		  int i = analyses.getOffset();
 		  for (final IIRAnalysis<Q> a : analyses) {
 			  //System.out.println(a.name()+" analyzing "+(a.analyzeAll() ? "all CUs" : "source CUs"));
@@ -1076,7 +1073,8 @@ public class Util {
 				  throw new CancellationException();
 			  }
 			  final String inParallel = singleThreaded ? "" : "parallel ";
-			  startSubTask(monitor, "Starting " + inParallel + a.name() + " [" + i + "]: " + granules.size() + " for " + project.getName());
+			  startSubTask(monitor, "Starting " + inParallel + a.name() + " [" + i + "]: " + (fromProj == null ? 0 : fromProj.size()) + 
+					                " for " + project.getName());
 			  final long start = System.nanoTime();
 			  try {
 				  a.analyzeBegin(env, project);
@@ -1087,9 +1085,9 @@ public class Util {
 			  }
 		  }
 		  // Analyze granules
-		  final Collection<Q> fromProj = granules.get(project.getTypeEnv());
 		  if (fromProj != null) {
-			  analyzeGranules(fromProj, analyses, timing);
+			  analyzeGranules(fromProj);
+			  flushWorkQueue();
 		  }
 		  
 		  // Finishing up loose ends (if any)
@@ -1114,16 +1112,14 @@ public class Util {
 		  }
 	  }
 	  
-	  private void analyzeGranules(final Collection<Q> toAnalyze, IAnalysisGroup<Q> analyses, final AllTimings timing) {		  
-		  final ParallelArray<Q> granules = prepGranules(toAnalyze);
-
-		  final Procedure<Q> proc = getProcedure(analyses, timing.timings); 
-		  if (singleThreaded) {
-			  for (final Q granule : granules) {
+	  private void analyzeGranules(final Collection<Q> toAnalyze) {
+		  if (runInParallel() == ConcurrencyType.EXTERNALLY) {
+			  final Procedure<Q> proc = getWorkProcedure();
+			  for (final Q granule : toAnalyze) {
 				  proc.op(granule);
 			  }
 		  } else {			  			  
-			  granules.apply(proc);
+			  queueWork(toAnalyze);
 		  }		  
 	  }
   }
