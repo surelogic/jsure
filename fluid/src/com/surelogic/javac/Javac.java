@@ -56,13 +56,8 @@ public class Javac extends IDE {
 				"com.surelogic.jsure.client.eclipse.IRConcurrencyDetector", true, "Concurrency detector");
 		init(ThreadEffectsModule.class,
 				"com.surelogic.jsure.client.eclipse.ThreadEffectAssurance2", true, "Thread effects");
-		init(LayersAnalysis.class,
-				"com.surelogic.jsure.client.eclipse.LayersAssurance", true, "Static structure");		
 		init(StructureAnalysis.class,
 				"com.surelogic.jsure.client.eclipse.StructureAssurance", true, "Structure analysis");
-		
-	    init(UtilityAnalysis.class, "com.surelogic.jsure.client.eclipse.Utility", true, "Utility class");
-	    init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
 		
 		/* Checking of @ThreadSafe, etc., which is run by the lock policy and 
 		 * equality analyses, depend on the results of annotation bounds checking.
@@ -74,14 +69,21 @@ public class Javac extends IDE {
 		
 	    init(EqualityAnalysis.class,
 	            "com.surelogic.jsure.client.eclipse.EqualityAssurance", true,
-	            "Reference equality", annoBoundsChecking);
-
+	            "Reference equality", annoBoundsChecking);		
+		
+	    init(UtilityAnalysis.class, "com.surelogic.jsure.client.eclipse.Utility", true, "Utility class");
+	    init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
+		
 	// Lock and EffectAssurance need to be declared together because they share use of BindingContextAnalysis
     init(LockAnalysis.class,
         "com.surelogic.jsure.client.eclipse.LockAssurance3", true, "Lock policy",
         annoBoundsChecking);
-	init(EffectsAnalysis.class,
+    
+    init(EffectsAnalysis.class,
 			"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects");
+
+	init(LayersAnalysis.class,
+			"com.surelogic.jsure.client.eclipse.LayersAssurance", true, "Static structure");	
     
     init(com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisModule.class,
         "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM", false, "Uniqueness + From");
