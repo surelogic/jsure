@@ -29,6 +29,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Transform;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -566,7 +567,9 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
         e.gc.setForeground(e.gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
 
-        // Draw the title
+        /*
+         * Title to point out what the graph is showing
+         */
         String title = element.getLabel();
         Point titleExtent = e.gc.stringExtent(title);
         int xPos = (clientArea.width / 2) - (titleExtent.x / 2);
@@ -577,39 +580,53 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
         fold += titleExtent.y + 20;
 
-        // Pie chart at top
+        /*
+         * Pie chart at the top
+         */
         double degPerLine = 1.0 / (((double) element.f_lineCount) / 360.0);
-        int arcBlank = (int) ((double) element.f_blankLineCount * degPerLine);
-        int arcCommented = (int) ((double) element.f_containsCommentLineCount * degPerLine);
 
         int chartDiameter = clientArea.width - 10;
 
+        // Total
         e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
         e.gc.fillOval(5, fold + 5, chartDiameter, chartDiameter);
-
-        e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color2());
-        e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, arcBlank);
-        e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color0());
-        e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, -arcCommented);
-
-        String blankTxt = SLUtility.toStringHumanWithCommas(element.f_blankLineCount) + " blank";
-        int blankTxtWidth = e.gc.stringExtent(blankTxt).x;
-        String commentedTxt = SLUtility.toStringHumanWithCommas(element.f_containsCommentLineCount) + " commented";
         String slocTxt = "Total: " + SLUtility.toStringHumanWithCommas(element.f_lineCount) + " SLOC";
         int slocTxtWidth = e.gc.stringExtent(slocTxt).x;
-
-        e.gc.drawText(blankTxt, (chartDiameter / 2) - blankTxtWidth - 5, fold + (chartDiameter / 4), true);
-        e.gc.drawText(commentedTxt, (chartDiameter / 2) + 10, fold + (chartDiameter / 4), true);
         e.gc.drawText(slocTxt, (chartDiameter / 2) + 5 - (slocTxtWidth / 2), fold + 3 * (chartDiameter / 4), true);
 
+        // Blank lines
+        if (element.f_blankLineCount > 0) {
+          int arcBlank = (int) ((double) element.f_blankLineCount * degPerLine);
+          e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color2());
+          e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, arcBlank);
+          String blankTxt = SLUtility.toStringHumanWithCommas(element.f_blankLineCount) + " blank";
+          int blankTxtWidth = e.gc.stringExtent(blankTxt).x;
+          e.gc.drawText(blankTxt, (chartDiameter / 2) - blankTxtWidth - 5, fold + (chartDiameter / 4), true);
+        }
+
+        if (element.f_containsCommentLineCount > 0) {
+          int arcCommented = (int) ((double) element.f_containsCommentLineCount * degPerLine);
+          e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color0());
+          e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, -arcCommented);
+          String commentedTxt = SLUtility.toStringHumanWithCommas(element.f_containsCommentLineCount) + " commented";
+          e.gc.drawText(commentedTxt, (chartDiameter / 2) + 10, fold + (chartDiameter / 4), true);
+        }
+
+        // Outline
         e.gc.drawOval(5, fold + 5, chartDiameter, chartDiameter);
 
         fold += chartDiameter + 10;
 
-        // Bar chart at bottom
-
+        /*
+         * Bar chart at the bottom
+         */
         int top = fold;
         int bottom = clientArea.height - 10;
+        /*
+         * Only do this if we have room
+         */
+        if (top >= bottom - 80)
+          return;
         int left = 5;
         int right = clientArea.width - 5;
         int pad = 5;
@@ -620,12 +637,38 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
         e.gc.drawLine(left, bottom, right, bottom);
 
+        // Declarations for bar chart labeling
+        String txt;
+        Point extent;
+        int x, y;
+        Transform tr;
+
         // SLOC
         int barX = left + pad;
         int height = (int) (element.f_lineCount * pxlPerUnit);
         e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
         e.gc.fillRectangle(barX, bottom - height, barWidth - pad - pad, height);
         e.gc.drawRectangle(barX, bottom - height, barWidth - pad - pad, height);
+
+        if (element.f_lineCount > 0) {
+          txt = "SLOC";
+          extent = e.gc.stringExtent(txt);
+          x = barX + ((barWidth - pad - pad) / 2) - (extent.y / 2);
+          y = (bottom - height / 2) + (extent.x / 2);
+          tr = new Transform(e.gc.getDevice());
+          tr.translate(x, y);
+          tr.rotate(-90);
+          e.gc.setTransform(tr);
+          e.gc.drawText(txt, 0, 0, true);
+          e.gc.setTransform(null);
+          tr.dispose();
+
+          txt = SLUtility.toStringHumanWithCommas(element.f_lineCount);
+          extent = e.gc.stringExtent(txt);
+          x = barX + ((barWidth - pad - pad) / 2) - (extent.x / 2);
+          y = bottom - height - extent.y;
+          e.gc.drawText(txt, x, y, true);
+        }
 
         // Java Declarations
         barX += barWidth;
@@ -634,12 +677,52 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         e.gc.fillRectangle(barX, bottom - height, barWidth - pad - pad, height);
         e.gc.drawRectangle(barX, bottom - height, barWidth - pad - pad, height);
 
+        if (element.f_javaDeclarationCount > 0) {
+          txt = "Decls";
+          extent = e.gc.stringExtent(txt);
+          x = barX + ((barWidth - pad - pad) / 2) - (extent.y / 2);
+          y = (bottom - height / 2) + (extent.x / 2);
+          tr = new Transform(e.gc.getDevice());
+          tr.translate(x, y);
+          tr.rotate(-90);
+          e.gc.setTransform(tr);
+          e.gc.drawText(txt, 0, 0, true);
+          e.gc.setTransform(null);
+          tr.dispose();
+
+          txt = SLUtility.toStringHumanWithCommas(element.f_javaDeclarationCount);
+          extent = e.gc.stringExtent(txt);
+          x = barX + ((barWidth - pad - pad) / 2) - (extent.x / 2);
+          y = bottom - height - extent.y;
+          e.gc.drawText(txt, x, y, true);
+        }
+
         // Java Statements
         barX += barWidth;
         height = (int) (element.f_javaStatementCount * pxlPerUnit);
         e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color1());
         e.gc.fillRectangle(barX, bottom - height, barWidth - pad - pad, height);
         e.gc.drawRectangle(barX, bottom - height, barWidth - pad - pad, height);
+
+        if (element.f_javaStatementCount > 0) {
+          txt = "Stmts";
+          extent = e.gc.stringExtent(txt);
+          x = barX + ((barWidth - pad - pad) / 2) - (extent.y / 2);
+          y = (bottom - height / 2) + (extent.x / 2);
+          tr = new Transform(e.gc.getDevice());
+          tr.translate(x, y);
+          tr.rotate(-90);
+          e.gc.setTransform(tr);
+          e.gc.drawText(txt, 0, 0, true);
+          e.gc.setTransform(null);
+          tr.dispose();
+
+          txt = SLUtility.toStringHumanWithCommas(element.f_javaStatementCount);
+          extent = e.gc.stringExtent(txt);
+          x = barX + ((barWidth - pad - pad) / 2) - (extent.x / 2);
+          y = bottom - height - extent.y;
+          e.gc.drawText(txt, x, y, true);
+        }
 
         // Semicolon Count
         barX += barWidth;
@@ -648,13 +731,26 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         e.gc.fillRectangle(barX, bottom - height, barWidth - pad - pad, height);
         e.gc.drawRectangle(barX, bottom - height, barWidth - pad - pad, height);
 
-        // Transform tr = new Transform(e.gc.getDevice());
-        // tr.rotate(-90);
-        // int labelX = left + pad + (barWidth / 2);
-        // e.gc.setTransform(tr);
-        // e.gc.drawText("SLOC", labelX, bottom + 10, true);
-      }
+        if (element.f_semicolonCount > 0) {
+          txt = ";";
+          extent = e.gc.stringExtent(txt);
+          x = barX + ((barWidth - pad - pad) / 2) - (extent.y / 2);
+          y = (bottom - height / 2) + (extent.x / 2);
+          tr = new Transform(e.gc.getDevice());
+          tr.translate(x, y);
+          tr.rotate(-90);
+          e.gc.setTransform(tr);
+          e.gc.drawText(txt, 0, 0, true);
+          e.gc.setTransform(null);
+          tr.dispose();
 
+          txt = SLUtility.toStringHumanWithCommas(element.f_semicolonCount);
+          extent = e.gc.stringExtent(txt);
+          x = barX + ((barWidth - pad - pad) / 2) - (extent.x / 2);
+          y = bottom - height - extent.y;
+          e.gc.drawText(txt, x, y, true);
+        }
+      }
     }
   }
 
