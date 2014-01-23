@@ -1048,7 +1048,7 @@ public class Util {
 	  protected void recordTime(Q granule, IIRAnalysis<Q> a, long t_in_ns) {
 		  final MetricDrop d = new MetricDrop(granule.getNode(), IMetricDrop.Metric.SCAN_TIME);
 		  
-		  final IKeyValue name = KeyValueUtility.getStringInstance(IMetricDrop.SCAN_TIME_ANALYSIS_NAME, a.name());
+		  final IKeyValue name = KeyValueUtility.getStringInstance(IMetricDrop.SCAN_TIME_ANALYSIS_NAME, Javac.getDefault().getLabel(a));
 		  d.addOrReplaceMetricInfo(name);
 		  
 		  final IKeyValue time = KeyValueUtility.getLongInstance(IMetricDrop.SCAN_TIME_DURATION_NS, t_in_ns);
