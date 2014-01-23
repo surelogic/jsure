@@ -64,6 +64,8 @@ public interface IIRAnalysis<Q extends IAnalysisGranule> {
 
 	/**
 	 * May be interleaved with other analyses in its analysis group
+	 * 
+	 * Assumptions and versioning is handled by the driver
 	 */
 	boolean doAnalysisOnGranule(IIRAnalysisEnvironment env, Q granule);
 	
