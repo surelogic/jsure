@@ -131,7 +131,10 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         o2MetricValue = o2.f_lineCount;
         break;
       }
-      return SLUtility.safeLongToInt(o2MetricValue - o1MetricValue);
+      if (f_options.f_thresholdShowAbove)
+        return SLUtility.safeLongToInt(o2MetricValue - o1MetricValue);
+      else
+        return SLUtility.safeLongToInt(o1MetricValue - o2MetricValue);
     }
   };
   final ViewerSorter f_slocSorter = new ViewerSorter() {
@@ -295,7 +298,6 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
      */
     f_treeViewer = new TreeViewer(sash, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
     f_treeViewer.setContentProvider(f_contentProvider);
-    f_treeViewer.setSorter(f_alphaSorter);
     f_treeViewer.addFilter(f_thresholdFilter);
     f_treeViewer.getTree().setHeaderVisible(true);
     f_treeViewer.getTree().setLinesVisible(true);
