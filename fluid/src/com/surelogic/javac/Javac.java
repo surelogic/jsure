@@ -275,6 +275,16 @@ public class Javac extends IDE {
 		return analysisList.toArray(new IAnalysisInfo[analysisList.size()]);
 	}
 	
+  public String getLabel(IIRAnalysis<?> a) {
+	  final Class<?> cls = a.getClass();
+	  for(IAnalysisInfo info : analysisList) {
+		  if (info.getClass() == cls) {
+			  return info.getLabel();
+		  }
+	  }
+	  return a.name();
+  }
+  
 	private static class AnalysisInfo implements IAnalysisInfo {
 		final Class<? extends IIRAnalysis> clazz;
 		final String id;
