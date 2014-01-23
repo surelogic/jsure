@@ -1,9 +1,6 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/WholeIRAnalysisTemplate.java,v 1.2 2008/09/08 17:43:38 chance Exp $*/
 package com.surelogic.analysis;
 
-import com.surelogic.dropsea.ir.drops.CUDrop;
-
-import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
 public class WholeIRAnalysisTemplate<T extends IBinderClient,Q extends IAnalysisGranule> extends AbstractWholeIRAnalysis<T,Q> {
@@ -30,9 +27,9 @@ public class WholeIRAnalysisTemplate<T extends IBinderClient,Q extends IAnalysis
 	protected void clearCaches() {
 		// TODO Auto-generated method stub
 	}
-	
+
 	@Override
-	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, IRNode cu) {
+	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, Q g) {
 		// TODO Auto-generated method stub
 		return true;
 	}

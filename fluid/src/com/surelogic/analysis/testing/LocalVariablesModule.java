@@ -13,7 +13,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
-public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderClient, TopLevelType> {
+public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderClient, CUDrop> {
 	public LocalVariablesModule() {
 		super("LVCategory");
 	}
@@ -25,12 +25,7 @@ public final class LocalVariablesModule extends AbstractWholeIRAnalysis<IBinderC
 
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
-		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
-			@Override
-      public void run() {
-				runOverFile(compUnit);
-			}
-		});
+		runOverFile(compUnit);
 		return true;
 	}
 

@@ -25,7 +25,7 @@ import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.util.Triple;
 
-public final class NonNullRawTypeModule extends AbstractWholeIRAnalysis<NonNullRawTypeAnalysis, TopLevelType>{
+public final class NonNullRawTypeModule extends AbstractWholeIRAnalysis<NonNullRawTypeAnalysis, CUDrop>{
   public NonNullRawTypeModule() {
     super("NonNull/Raw Types");
   }

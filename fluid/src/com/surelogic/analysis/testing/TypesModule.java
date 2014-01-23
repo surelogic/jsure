@@ -16,7 +16,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.IJavaWildcardType;
 
-public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.TypesVisitor, TopLevelType> {
+public final class TypesModule extends AbstractWholeIRAnalysis<TypesModule.TypesVisitor, CUDrop> {
 	public TypesModule() {
 		super("BCACategory");
 	}

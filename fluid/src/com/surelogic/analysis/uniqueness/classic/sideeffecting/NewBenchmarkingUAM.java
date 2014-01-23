@@ -18,7 +18,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
-public class NewBenchmarkingUAM extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, UniquenessAnalysis, TypeAndMethod> {
+public class NewBenchmarkingUAM extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, UniquenessAnalysis, CUDrop> {
   public NewBenchmarkingUAM() {
 		super(false, null, "Benchmark Side-effecting Uniqueness",
 		    BindingContextAnalysis.factory);

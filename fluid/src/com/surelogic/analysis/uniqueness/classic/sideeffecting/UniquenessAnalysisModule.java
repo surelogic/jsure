@@ -3,6 +3,7 @@ package com.surelogic.analysis.uniqueness.classic.sideeffecting;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -80,7 +81,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 	}
 
 	@Override
-	public Iterable<CUDrop> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+	public Iterable<MethodRecord> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
     /* Link control flow PROMISE drops to unique fields.  We do this here,
      * and not in StoreLattice.makeResultDrops() because we only want one
      * result drop between the unique promise drop and the control flow drops.
@@ -143,11 +144,28 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 		return false;
 	}
 
+	@Override
+	public IAnalysisGranulator<MethodRecord> getGranulator() {
+		// Doesn't matter that it's unique
+		return new AbstractGranulator<MethodRecord>(MethodRecord.class) {
+			@Override
+			protected void extractGranules(List<MethodRecord> granules,	ITypeEnvironment tEnv, IRNode cu) {
+				granules.addAll(shouldAnalyzeCompilationUnit(tEnv.getBinder(), cu));
+			}
+		};
+	}
+
+	@Override
+	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, MethodRecord mr) {
+		analzyePseudoMethodDeclaration(mr);
+		return true;
+	}
+	
 	/**
 	 * @param decl A constructor declaration, method declaration, init declaration,
 	 * or class init declaration node.
 	 */
-	private void analzyePseudoMethodDeclaration(final MethodRecord mr) {
+	void analzyePseudoMethodDeclaration(final MethodRecord mr) {
 	  /* Invoking getResultFor() on the query will kick off the control-flow
 	   * analysis of the method.  We use the results of the query later on
 	   * to link the control-flow result drop of this method to the 
@@ -252,8 +270,12 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
    *         InitDeclaration nodes in the case of anonymous class expressions
    *         and ClassInitDeclaration nodes in the case of static initializers.
    */
-	private Set<MethodRecord> shouldAnalyzeCompilationUnit(final IRNode compUnit) {
-    final NewShouldAnalyzeVisitor visitor = new NewShouldAnalyzeVisitor(getBinder());
+	Set<MethodRecord> shouldAnalyzeCompilationUnit(final IRNode compUnit) {
+		return shouldAnalyzeCompilationUnit(getBinder(), compUnit);
+	}
+	
+	Set<MethodRecord> shouldAnalyzeCompilationUnit(IBinder binder, final IRNode compUnit) {
+    final NewShouldAnalyzeVisitor visitor = new NewShouldAnalyzeVisitor(binder);
 	  visitor.doAccept(compUnit);
 	  return visitor.getResults();
 	}

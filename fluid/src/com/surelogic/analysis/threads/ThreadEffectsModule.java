@@ -11,7 +11,7 @@ import com.surelogic.persistence.*;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
-public class ThreadEffectsModule extends AbstractWholeIRAnalysis<ThreadEffectsAnalysis,TopLevelType> {	
+public class ThreadEffectsModule extends AbstractWholeIRAnalysis<ThreadEffectsAnalysis,CUDrop> {	
 	public ThreadEffectsModule() {
 		super("ThreadEffects");
 	}

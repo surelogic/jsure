@@ -15,7 +15,7 @@ import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 
-public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<DefinitelyAssignedAnalysis, TopLevelType>{
+public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<DefinitelyAssignedAnalysis, CUDrop>{
   public DefinitelyAssignedModule() {
     super("Definitely Assigned");
   }
@@ -28,12 +28,7 @@ public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<Defi
   @Override
   protected boolean doAnalysisOnAFile(final IIRAnalysisEnvironment env,
       final CUDrop cud, final IRNode compUnit) {
-    runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
-      @Override
-      public void run() {
-        checkDefinitelyAssignedsForFile(compUnit);
-      }
-    });
+	  checkDefinitelyAssignedsForFile(compUnit);
     return true;
   }
 

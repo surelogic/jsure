@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,6 +39,7 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
@@ -101,7 +103,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	}
 
 	@Override
-	public Iterable<CUDrop> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+	public Iterable<TypeAndMethod> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {		
     // Remove any control flow drops that aren't used for anything
     for (final ResultDrop cfDrop : controlFlowDrops) {
       //System.out.println("Looking at control flow drop: "+cfDrop);
@@ -168,6 +170,23 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		return false;
 	}
 
+	@Override
+	public IAnalysisGranulator<TypeAndMethod> getGranulator() {
+		// TODO factor out for reuse?
+		return new AbstractGranulator<TypeAndMethod>(TypeAndMethod.class) {
+			@Override
+			protected void extractGranules(List<TypeAndMethod> granules, ITypeEnvironment tEnv, IRNode cu) {
+				granules.addAll(shouldAnalyzeCompilationUnit(tEnv.getBinder(), cu));
+			}
+		};
+	}
+	
+	@Override
+	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TypeAndMethod node) {
+		analzyePseudoMethodDeclaration(node);
+		return true;
+	}
+	
 	/**
 	 * @param decl A constructor declaration, method declaration, init declaration,
 	 * or class init declaration node.
@@ -220,8 +239,12 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
    *         InitDeclaration nodes in the case of anonymous class expressions
    *         and ClassInitDeclaration nodes in the case of static initializers.
    */
-	private Set<TypeAndMethod> shouldAnalyzeCompilationUnit(final IRNode compUnit) {
-    final NewShouldAnalyzeVisitor visitor = new NewShouldAnalyzeVisitor(getBinder());
+	Set<TypeAndMethod> shouldAnalyzeCompilationUnit(final IRNode compUnit) {
+		return shouldAnalyzeCompilationUnit(getBinder(), compUnit);
+	}
+	
+	Set<TypeAndMethod> shouldAnalyzeCompilationUnit(IBinder binder, final IRNode compUnit) {
+    final NewShouldAnalyzeVisitor visitor = new NewShouldAnalyzeVisitor(binder);
 	  visitor.doAccept(compUnit);
 	  return visitor.getResults();
 	}

@@ -21,7 +21,7 @@ import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 
-public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDetector.FastVisitor, TopLevelType> {
+public class ConcurrencyDetector extends AbstractWholeIRAnalysis<ConcurrencyDetector.FastVisitor, CUDrop> {
   void reportInference(IRNode loc, int catNumber, int resNumber, Object... args) {
     HintDrop id = HintDrop.newInformation(loc);
     id.setMessage(resNumber, args);
