@@ -17,7 +17,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;
 
-public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> implements IIRAnalysis<CUDrop> {
+public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> implements IIRAnalysis<Q> {
 	//private IIRProject project;
 	private IBinder binder;
 	protected final ThreadLocalAnalyses analyses = new ThreadLocalAnalyses();
@@ -43,7 +43,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAna
 		return null;
 	}
 	
-	public IAnalysisGranulator<CUDrop> getGranulator() {
+	public IAnalysisGranulator<Q> getGranulator() {
 		return null;
 	}
 	
@@ -75,6 +75,9 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAna
 		final IBinder binder        = tEnv.getBinder(); 
 		//final IIRProject old        = project;
 		//project = p;		
+		if (binder == null) {
+			throw new IllegalStateException();
+		}
 		this.binder = binder;
 		
 		startAnalyzeBegin(p, binder);
@@ -129,26 +132,36 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAna
 	*/
 	
 	@Override
-  public final boolean doAnalysisOnGranule(final IIRAnalysisEnvironment env, final CUDrop cud) {
-		/*
-		T analysis = getAnalysis();
-		if (analysis == null) {
-			setupAnalysis();
-		}
-		*/
+  public final boolean doAnalysisOnGranule(final IIRAnalysisEnvironment env, final Q g) {
+		// TODO move this to Util
 		Object rv = runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
 			@Override
-      public void run() {
-				result = doAnalysisOnAFile(env, cud, cud.getCompilationUnitIRNode());
+			public void run() {
+				if (g instanceof CUDrop) {
+					final CUDrop cud = (CUDrop) g;				
+					result = doAnalysisOnAFile(env, cud, cud.getCompilationUnitIRNode());
+				} else {
+					result = doAnalysisOnGranule_wrapped(env, g);
+				}
 			}
 		});
 		return rv == Boolean.TRUE;
 	}
-	protected abstract boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, IRNode cu);
+	protected abstract boolean doAnalysisOnGranule_wrapped(final IIRAnalysisEnvironment env, final Q g);
+		
+	// Default implementation for CUDrop analyses
+	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, CUDrop cud) {
+		return doAnalysisOnAFile(env, cud, cud.getCompilationUnitIRNode());
+	}
+	
+	// Default implementation for non-CUDrop analyses
+	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, IRNode cu) {
+		return false;
+	}
 		
 	@Override
-  public Iterable<CUDrop> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
-		return new EmptyIterator<CUDrop>();
+  public Iterable<Q> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+		return new EmptyIterator<Q>();
 	}
 	
 	@Override

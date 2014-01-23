@@ -461,7 +461,10 @@ public class Javac extends IDE {
 		if (grouped.isEmpty()) {
 			return; // Nothing to do
 		}
-		System.out.println("Group:");
+		final IIRAnalysis<?> first = grouped.get(0);
+		System.out.println("Group: "+(g == null ? "" : g+", ")+
+				                     (first.getGroup() == null ? "" : first.getGroup()+", ")+
+				                     grouped.get(0).runInParallel());
 		for(IIRAnalysis<?> a : grouped) {
 			System.out.println("\t"+a.name());
 		}

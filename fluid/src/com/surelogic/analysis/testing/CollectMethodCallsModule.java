@@ -13,7 +13,7 @@ import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 
-public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<CollectMethodCalls, TopLevelType> {
+public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<CollectMethodCalls, CUDrop> {
 	public CollectMethodCallsModule() {
 		super("CMCategory");
 	}
@@ -26,12 +26,7 @@ public final class CollectMethodCallsModule extends AbstractWholeIRAnalysis<Coll
 
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
-		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
-			@Override
-      public void run() {
-				runOverFile(compUnit);
-			}
-		});
+		runOverFile(compUnit);
 		return true;
 	}
 

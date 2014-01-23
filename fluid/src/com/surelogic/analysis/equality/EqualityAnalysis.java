@@ -8,7 +8,6 @@ import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.ResultsBuilder;
-import com.surelogic.analysis.TopLevelType;
 import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
@@ -38,7 +37,7 @@ import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
 
-public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnalysis.PerThreadInfo,TopLevelType> {
+public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnalysis.PerThreadInfo,CUDrop> {
   private static final int BAD_COMPARISON = 758;
   private static final int TO_STRING_GOOD = 759;
   private static final int TO_STRING_BAD = 760;
@@ -82,7 +81,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 		return super.analyzeEnd(env, p);
 	}
 	
-	private ResultDrop createFailureDrop(IRNode n) {
+	ResultDrop createFailureDrop(IRNode n) {
 		ResultDrop rd = new ResultDrop(n);
 		rd.setCategorizingMessage(Messages.DSC_LAYERS_ISSUES);
 		rd.setInconsistent();
@@ -111,7 +110,7 @@ public final class EqualityAnalysis extends AbstractWholeIRAnalysis<EqualityAnal
 		}
 		
 		
-		private void initForCU(final IRNode cu) {
+		void initForCU(final IRNode cu) {
       final Target anything = DefaultTargetFactory.PROTOTYPE.createClassTarget(
           RegionModel.getAllRegion(cu), NoEvidence.INSTANCE);
       readsAnything = Effect.newRead(cu, anything);      

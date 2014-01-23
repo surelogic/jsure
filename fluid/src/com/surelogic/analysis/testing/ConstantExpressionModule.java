@@ -9,7 +9,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 
-public final class ConstantExpressionModule extends AbstractWholeIRAnalysis<IBinderClient, TopLevelType> {
+public final class ConstantExpressionModule extends AbstractWholeIRAnalysis<IBinderClient, CUDrop> {
 	public ConstantExpressionModule() {
 		super("ConstantExpressionModule");
 	}
@@ -22,12 +22,7 @@ public final class ConstantExpressionModule extends AbstractWholeIRAnalysis<IBin
 	@Override
 	protected boolean doAnalysisOnAFile(
 	    final IIRAnalysisEnvironment env, final CUDrop cud, final IRNode compUnit) {
-		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
-			@Override
-      public void run() {
-				runOverFile(compUnit);
-			}
-		});
+		runOverFile(compUnit);
 		return true;
 	}
 

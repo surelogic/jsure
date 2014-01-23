@@ -51,10 +51,12 @@ public abstract class CUDrop extends Drop implements IAnalysisGranule {
     return getNode();
   }
   
+  @Override
   public final IRNode getCompUnit() {
 	return getNode();
   }
   
+  @Override
   public final String getLabel() {
 	return f_javaOSFileName;
   }
@@ -84,6 +86,7 @@ public abstract class CUDrop extends Drop implements IAnalysisGranule {
    *         from source and we are treating as source, {@code false} we have
    *         the source code but we are treating it as a binary.
    */
+  @Override
   public final boolean isAsSource() {
     return f_isAsSource;
   }
@@ -151,6 +154,7 @@ public abstract class CUDrop extends Drop implements IAnalysisGranule {
     setMessageHelper(11, getClass().getSimpleName(), f_javaOSFileName);
   }
 
+  @Override
   public final ITypeEnvironment getTypeEnv() {
     if (f_codeInfo == null) {
       return null;

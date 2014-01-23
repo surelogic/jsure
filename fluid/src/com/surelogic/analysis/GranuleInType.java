@@ -13,15 +13,18 @@ public abstract class GranuleInType implements IAnalysisGranule {
 		typeDecl = type;
 	}
 	
-	public IRNode getCompUnit() {
+	@Override
+  public IRNode getCompUnit() {
 		return VisitUtil.getEnclosingCompilationUnit(typeDecl);
 	}
 
-	public ITypeEnvironment getTypeEnv() {
+	@Override
+  public ITypeEnvironment getTypeEnv() {
 		return Projects.getEnclosingProject(typeDecl).getTypeEnv();
 	}
 	
-	public boolean isAsSource() {
+	@Override
+  public boolean isAsSource() {
 		return true;
 	}
 }

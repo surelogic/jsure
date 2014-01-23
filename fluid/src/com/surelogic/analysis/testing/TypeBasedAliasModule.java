@@ -12,7 +12,7 @@ import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.parse.JJNode;
 
-public final class TypeBasedAliasModule extends AbstractWholeIRAnalysis<IBinderClient, TopLevelType> {
+public final class TypeBasedAliasModule extends AbstractWholeIRAnalysis<IBinderClient, CUDrop> {
 	public TypeBasedAliasModule() {
 		super("TypeBasedAliasCategory");
 	}

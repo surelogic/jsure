@@ -12,11 +12,13 @@ public class TypeAndMethod extends GranuleInType {
 		methodDecl = method;
 	}
 
-	public IRNode getNode() {
+	@Override
+  public IRNode getNode() {
 		return methodDecl;
 	}
 	
-	public String getLabel() {
+	@Override
+  public String getLabel() {
 		return JavaNames.getFullName(methodDecl);
 	}
 	

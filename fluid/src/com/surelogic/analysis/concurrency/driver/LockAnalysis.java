@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.analysis.AbstractAnalysisSharingAnalysis;
 import com.surelogic.analysis.ConcurrencyType;
+import com.surelogic.analysis.IAnalysisGranulator;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.TopLevelAnalysisVisitor;
@@ -242,7 +243,18 @@ public class LockAnalysis
 	}
 
 	@Override
-	public Iterable<CUDrop> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+	public IAnalysisGranulator<TypeBodyPair> getGranulator() {
+		return TopLevelAnalysisVisitor.granulator;
+	}
+	
+	@Override
+	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TypeBodyPair n) {
+		actuallyAnalyzeClassBody(getAnalysis(), n.typeDecl(), n.classBody());
+		return true; 
+	}
+	
+	@Override
+	public Iterable<TypeBodyPair> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
 		finishBuild();
 		return super.analyzeEnd(env, p);
 	}

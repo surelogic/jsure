@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 
 public abstract class AbstractGranulator<T extends IAnalysisGranule> implements IAnalysisGranulator<T> {
 	private final Class<T> type;
@@ -18,15 +19,19 @@ public abstract class AbstractGranulator<T extends IAnalysisGranule> implements 
 	}
 	
 	public final List<T> getGranules() {
-		return granules; // TODO clear?
+		try {
+			return new ArrayList<T>(granules); 
+		} finally {
+			granules.clear();
+		}
 	}
 
 	// TODO not thread-safe
-	public final int extractGranules(IRNode cu) {
+	public final int extractGranules(ITypeEnvironment tEnv, IRNode cu) {
 		final int orig = granules.size();
-		extractGranules(granules, cu);
+		extractGranules(granules, tEnv, cu);
 		return granules.size() - orig;
 	}
 	
-	protected abstract void extractGranules(List<T> granules, IRNode cu);
+	protected abstract void extractGranules(List<T> granules, ITypeEnvironment tEnv, IRNode cu);
 }

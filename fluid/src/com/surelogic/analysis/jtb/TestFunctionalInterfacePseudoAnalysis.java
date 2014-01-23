@@ -24,7 +24,7 @@ import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
  * @author boyland
  *
  */
-public class TestFunctionalInterfacePseudoAnalysis extends AbstractWholeIRAnalysis<TestFunctionalInterfacePseudoAnalysis.Visitor,TopLevelType> {
+public class TestFunctionalInterfacePseudoAnalysis extends AbstractWholeIRAnalysis<TestFunctionalInterfacePseudoAnalysis.Visitor,CUDrop> {
 
 	private static Logger LOG = SLLogger.getLogger("com.surelogic.test");
 	

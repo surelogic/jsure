@@ -15,7 +15,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 
-public final class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnalysis, TopLevelType> {
+public final class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnalysis, CUDrop> {
 	public BCAModule() {
 		super("BCACategory");
 	}
@@ -32,12 +32,7 @@ public final class BCAModule extends AbstractWholeIRAnalysis<BindingContextAnaly
 
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
-		runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
-			@Override
-      public void run() {
-				runOverFile(compUnit);
-			}
-		});
+		runOverFile(compUnit);
 		return true;
 	}
 

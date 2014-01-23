@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 
 import com.surelogic.RequiresLock;
 import com.surelogic.analysis.IIRProject;

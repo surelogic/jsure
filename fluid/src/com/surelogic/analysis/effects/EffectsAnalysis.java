@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.surelogic.analysis.AbstractAnalysisSharingAnalysis;
 import com.surelogic.analysis.ConcurrencyType;
+import com.surelogic.analysis.IAnalysisGranulator;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.TopLevelType;
@@ -118,7 +119,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	}
   
   @Override
-  public Iterable<CUDrop> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+  public Iterable<TopLevelType> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
     finishBuild();
     return super.analyzeEnd(env, p);
   }
@@ -135,7 +136,18 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
         return true;
 	}
 
-	private void checkEffectsForFile(final IRNode compUnit) {
+	@Override
+	public IAnalysisGranulator<TopLevelType> getGranulator() {
+		return TopLevelType.granulator;
+	}
+	
+	@Override
+	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TopLevelType n) {
+		checkEffectsForFile(n.typeDecl);
+		return true; 
+	}
+	
+	void checkEffectsForFile(final IRNode compUnit) {
 		/*
 		 * Run around the tree looking for method and constructor declarations. This
 		 * will catch declarations inside of inner classes and anonymous classes as

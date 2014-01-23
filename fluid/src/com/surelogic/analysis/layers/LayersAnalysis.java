@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
+import com.surelogic.analysis.IAnalysisGranulator;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
@@ -71,6 +72,17 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			analyzeType(cu, type);
 		}
 		return true;
+	}
+
+	@Override
+	public IAnalysisGranulator<TopLevelType> getGranulator() {
+		return TopLevelType.granulator;
+	}
+	
+	@Override
+	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TopLevelType n) {
+		analyzeType(n.getCompUnit(), n.typeDecl);
+		return true; 
 	}
 	
 	private void analyzeType(final IRNode cu, final IRNode type) {
@@ -164,7 +176,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return rd;
 	}
 	
-	private ResultDrop createFailureDrop(IRNode type) {
+	ResultDrop createFailureDrop(IRNode type) {
 		ResultDrop rd = new ResultDrop(type);
 		rd.setInconsistent();
 		return rd;
@@ -212,7 +224,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	 */
 	// TODO potentially slow, because of checking multiple types in layers
 	@Override
-	public Iterable<CUDrop> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+	public Iterable<TopLevelType> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
 		final Map<String,List<IRNode>> layers = new HashMap<String, List<IRNode>>();
 		final Map<String, Set<String>> layerRefs = new HashMap<String, Set<String>>();
 		final CycleDetector detector = new CycleDetector() {
