@@ -1,7 +1,14 @@
 package com.surelogic.analysis;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import com.surelogic.analysis.utility.UtilityAnalysis.UtilityVisitorFactory;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
@@ -220,4 +227,17 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
     doAcceptForChildren(node);
     return null;
   }
+  
+  public static final IAnalysisGranulator<TypeBodyPair> granulator = new AbstractGranulator<TypeBodyPair>(TypeBodyPair.class) {	  
+	  @Override
+	  protected void extractGranules(final List<TypeBodyPair> granules, ITypeEnvironment tEnv, IRNode cu) {
+		  SimpleClassProcessor collector = new SimpleClassProcessor() {
+			  @Override
+			  protected void visitTypeDecl(final IRNode typeDecl, final IRNode classBody) {
+				  granules.add(new TypeBodyPair(typeDecl, classBody));
+			  }
+		  };
+		  TopLevelAnalysisVisitor.processCompilationUnit(collector, cu);
+	  }
+  };
 }

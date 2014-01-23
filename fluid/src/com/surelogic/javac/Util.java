@@ -798,11 +798,14 @@ public class Util {
     			// TODO in parallel?
         		for(CUDrop d : allCus) {
         			for(IAnalysisGranulator<?> g : analyses.getGranulators()) {
-        				g.extractGranules(d.getCompilationUnitIRNode());
+        				// This may require some setup!
+        				g.extractGranules(d.getTypeEnv(), d.getCompilationUnitIRNode());
         			}
         		}
      			for(IAnalysisGranulator<?> g : analyses.getGranulators()) {
-     				granules.putAll(g, g.getGranules());
+     				Collection<? extends IAnalysisGranule> toAnalyze = g.getGranules();
+     				System.out.println(g+": "+toAnalyze.size());
+     				granules.putAll(g, toAnalyze);
      			}
     		}
     	}
