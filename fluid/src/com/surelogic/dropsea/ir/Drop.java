@@ -241,7 +241,7 @@ public abstract class Drop implements IDrop {
   public final String getMessage() {
     synchronized (f_seaLock) {
       if (f_message == null)
-        return getClass().getSimpleName() + " (EMPTY)";
+        return "(EMPTY)";
       else
         return f_message;
     }

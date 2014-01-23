@@ -3,14 +3,20 @@ package com.surelogic.analysis.concurrency.driver;
 import com.surelogic.analysis.concurrency.heldlocks.LockUtils;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.LockRules;
-import com.surelogic.dropsea.*;
+import com.surelogic.dropsea.IKeyValue;
+import com.surelogic.dropsea.IMetricDrop;
+import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.ir.MetricDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
+import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -30,7 +36,6 @@ public class ConcurrentStateMetrics {
 	
 	void summarizeFieldInfo(final IRNode typeDecl, final IRNode typeBody, LockUtils lockUtils) {
 		final MetricDrop d = new MetricDrop(typeDecl, IMetricDrop.Metric.STATE_WRT_CONCURRENCY);
-		d.setMessage(25, JavaNames.getFullTypeName(typeDecl));
 		
 		final FieldCounts counts = new FieldCounts(typeDecl, lockUtils);
 		for(final IRNode field : VisitUtil.getClassFieldDecls(typeDecl)) {
