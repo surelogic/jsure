@@ -17,7 +17,6 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.Entity;
