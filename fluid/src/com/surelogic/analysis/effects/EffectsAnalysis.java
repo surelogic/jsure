@@ -5,12 +5,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.surelogic.analysis.AbstractAnalysisSharingAnalysis;
-import com.surelogic.analysis.ConcurrencyType;
-import com.surelogic.analysis.IAnalysisGranulator;
-import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.TopLevelType;
+import com.surelogic.analysis.*;
+import com.surelogic.analysis.TopLevelAnalysisVisitor.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.AnonClassEvidence;
@@ -56,6 +52,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.IJavaWildcardType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
+import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -64,14 +61,13 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
-import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import extra166y.Ops.Procedure;
 
-public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis,Effects,TopLevelType> {	
+public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis,Effects,TypeBodyPair> {	
 	/** Should we try to run things in parallel */
 	private static boolean wantToRunInParallel = false;
 
@@ -86,13 +82,14 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
   private final Effects.ElaborationErrorCallback callback;
   
 	public EffectsAnalysis() {
-		super(willRunInParallel, TopLevelType.class, "EffectAssurance2", BindingContextAnalysis.factory);
+		super(willRunInParallel, TypeBodyPair.class, "EffectAssurance2", BindingContextAnalysis.factory);
 		callback = new ElaborationErrorReporter();
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
-			setWorkProcedure(new Procedure<TopLevelType>() {
+			setWorkProcedure(new Procedure<TypeBodyPair>() {
 				@Override
-        public void op(TopLevelType type) {
-					checkEffectsForFile(type.getNode());
+        public void op(TypeBodyPair type) {
+					doAnalysisOnClassBody(type.classBody());
+					//checkEffectsForFile(type.getNode());
 				}				
 			});
 		}
@@ -119,7 +116,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	}
   
   @Override
-  public Iterable<TopLevelType> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+  public Iterable<TypeBodyPair> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
     finishBuild();
     return super.analyzeEnd(env, p);
   }
@@ -127,9 +124,13 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
+			/*
 			for(IRNode t : VisitUtil.getTypeDecls(compUnit)) {
 				queueWork(new TopLevelType(t));
 			}
+			*/
+			TopLevelAnalysisVisitor.granulator.extractGranules(cud.getTypeEnv(), compUnit);
+			queueWork(TopLevelAnalysisVisitor.granulator.getGranules());
 		} else {
 			checkEffectsForFile(compUnit);
 		}
@@ -137,14 +138,25 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	}
 
 	@Override
-	public IAnalysisGranulator<TopLevelType> getGranulator() {
-		return TopLevelType.granulator;
+	public IAnalysisGranulator<TypeBodyPair> getGranulator() {
+		return TopLevelAnalysisVisitor.granulator;
+		//return TopLevelType.granulator;
 	}
 	
 	@Override
-	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TopLevelType n) {
-		checkEffectsForFile(n.typeDecl);
+	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TypeBodyPair n) {
+		//checkEffectsForFile(n.typeDecl);
+		doAnalysisOnClassBody(n.classBody());
 		return true; 
+	}
+
+	/** 
+	 * Meant to be called on every type decl in the program
+	 */
+	void doAnalysisOnClassBody(IRNode cbody) {
+		for(IRNode member : ClassBody.getDeclIterator(cbody)) {
+			checkEffectsOnNode(member);
+		}
 	}
 	
 	void checkEffectsForFile(final IRNode compUnit) {
@@ -156,76 +168,78 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 		final Iterator<IRNode> nodes = JJNode.tree.topDown(compUnit);
 		while (nodes.hasNext()) {
 			final IRNode member = nodes.next();
-			final Operator op = JJNode.tree.getOperator(member);
-			final boolean isConstructor =
-				ConstructorDeclaration.prototype.includes(op);
-			final boolean isMethod = MethodDeclaration.prototype.includes(op);
-      /*
-       * Compare the declared effects to the actual effects of the
-       * implementation. (First make sure the method is not abstract or
-       * native.)
-       */
-			if ((isConstructor || isMethod)
-			    && !JavaNode.getModifier(member, JavaNode.NATIVE)) {
-			  if (JavaNode.getModifier(member, JavaNode.ABSTRACT)) {
-			    /* Abstract methods with effects annotation trivially assure. */
-          final RegionEffectsPromiseDrop declaredEffectsDrop =
-              MethodEffectsRules.getRegionEffectsDrop(member);
-          if (declaredEffectsDrop != null) {
-            final ResultDrop rd = new ResultDrop(member);
-            rd.addChecked(declaredEffectsDrop);
-            rd.setConsistent();
-            rd.setMessage(Messages.EMPTY_EFFECTS);
-          }
-			  } else {
-	        // NULL if there are no declared effects
-	        final List<Effect> declFx =
-	          Effects.getDeclaredMethodEffects(member, member);
-	        final Set<Effect> implFx = getAnalysis().getImplementationEffects(
-	            member, getSharedAnalysis(), callback);
-	        // only assure if there is declared intent
-	        if (declFx != null) {
-	          final Set<Effect> maskedFx = getAnalysis().maskEffects(implFx);
-
-	          // This won't be null because we know we have declared effects
-	          final RegionEffectsPromiseDrop declaredEffectsDrop =
-	            MethodEffectsRules.getRegionEffectsDrop(member);
-
-	          if (maskedFx.isEmpty()) {
-              final ResultDrop rd = new ResultDrop(member);
-	            rd.addChecked(declaredEffectsDrop);
-	            rd.setConsistent();
-	            rd.setMessage(Messages.EMPTY_EFFECTS);
-	          } else {
-	            if (isConstructor) {
-	              checkConstructor(declaredEffectsDrop, member, declFx, maskedFx);
-	            } else {
-	              checkMethod(declaredEffectsDrop, member, declFx, maskedFx);
-	            }
-	          }
-	        } else {
-	          // Infer effects, if the user wants us to
-	          if (IDE.getInstance().getBooleanPreference(
-	              IDEPreferences.MAKE_NONABDUCTIVE_PROPOSALS)) {
-  	          final Set<Effect> inferredEffects = inferEffects(
-  	              isConstructor, member, implFx);
-  	          new ProposedPromiseDrop(
-  	              "RegionEffects",
-  	              Effects.unparseForPromise(inferredEffects), member,
-  	              member, Origin.CODE);
-	          }
-	        }
-			  }
-			} else if (TypeUtil.isTypeDecl(member)) {
-			  /* 2012-11-26: Why are we doing this?
-			   * Take this out for now.  
-			   */
-//			  reportClassInitializationEffects(member);
-			}			  
+			checkEffectsOnNode(member);
 		}
 	}
-
 	
+	private void checkEffectsOnNode(final IRNode member) {
+		final Operator op = JJNode.tree.getOperator(member);
+		final boolean isConstructor =
+				ConstructorDeclaration.prototype.includes(op);
+		final boolean isMethod = MethodDeclaration.prototype.includes(op);
+		/*
+		 * Compare the declared effects to the actual effects of the
+		 * implementation. (First make sure the method is not abstract or
+		 * native.)
+		 */
+		if ((isConstructor || isMethod)
+				&& !JavaNode.getModifier(member, JavaNode.NATIVE)) {
+			if (JavaNode.getModifier(member, JavaNode.ABSTRACT)) {
+				/* Abstract methods with effects annotation trivially assure. */
+				final RegionEffectsPromiseDrop declaredEffectsDrop =
+						MethodEffectsRules.getRegionEffectsDrop(member);
+				if (declaredEffectsDrop != null) {
+					final ResultDrop rd = new ResultDrop(member);
+					rd.addChecked(declaredEffectsDrop);
+					rd.setConsistent();
+					rd.setMessage(Messages.EMPTY_EFFECTS);
+				}
+			} else {
+				// NULL if there are no declared effects
+				final List<Effect> declFx =
+						Effects.getDeclaredMethodEffects(member, member);
+				final Set<Effect> implFx = getAnalysis().getImplementationEffects(
+						member, getSharedAnalysis(), callback);
+				// only assure if there is declared intent
+				if (declFx != null) {
+					final Set<Effect> maskedFx = getAnalysis().maskEffects(implFx);
+
+					// This won't be null because we know we have declared effects
+					final RegionEffectsPromiseDrop declaredEffectsDrop =
+							MethodEffectsRules.getRegionEffectsDrop(member);
+
+					if (maskedFx.isEmpty()) {
+						final ResultDrop rd = new ResultDrop(member);
+						rd.addChecked(declaredEffectsDrop);
+						rd.setConsistent();
+						rd.setMessage(Messages.EMPTY_EFFECTS);
+					} else {
+						if (isConstructor) {
+							checkConstructor(declaredEffectsDrop, member, declFx, maskedFx);
+						} else {
+							checkMethod(declaredEffectsDrop, member, declFx, maskedFx);
+						}
+					}
+				} else {
+					// Infer effects, if the user wants us to
+					if (IDE.getInstance().getBooleanPreference(
+							IDEPreferences.MAKE_NONABDUCTIVE_PROPOSALS)) {
+						final Set<Effect> inferredEffects = inferEffects(
+								isConstructor, member, implFx);
+						new ProposedPromiseDrop(
+								"RegionEffects",
+								Effects.unparseForPromise(inferredEffects), member,
+								member, Origin.CODE);
+					}
+				}
+			}			
+		//} else if (TypeUtil.isTypeDecl(member)) {
+			/* 2012-11-26: Why are we doing this?
+			 * Take this out for now.  
+			 */
+			//			  reportClassInitializationEffects(member);
+		}			  
+	}
 	
 	private Set<Effect> inferEffects(
 	    final boolean isConstructor, final IRNode member, 
