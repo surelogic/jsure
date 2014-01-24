@@ -1,10 +1,6 @@
 package com.surelogic.analysis;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-
-import com.surelogic.analysis.utility.UtilityAnalysis.UtilityVisitorFactory;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
