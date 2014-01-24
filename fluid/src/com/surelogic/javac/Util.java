@@ -130,6 +130,8 @@ import extra166y.ParallelArray;
 import extra166y.Ops.Procedure;
 
 public class Util {
+  public static final boolean useNewDriver = false;
+	
   public static final String EXPECT_ANALYSIS = "expectAnalysis";
   public static final String RECORD_ANALYSIS = "recordAnalysis";
 
@@ -773,7 +775,7 @@ public class Util {
     System.out.println("Starting analyses");
     final AllTimings timings = new AllTimings(analyses);
     
-    if (false) {
+    if (useNewDriver) {
     	System.out.println("Using new analysis framework");
     	boolean first = true;
     	    	
@@ -1024,6 +1026,9 @@ public class Util {
 					  frame.pushTypeContext(granule.getCompUnit());
 					  int i = analyses.getOffset();
 					  for (final IIRAnalysis<Q> a : analyses) {
+						  if (monitor != null) {
+							  monitor.subTask("Checking [ "+a.name()+" ] " + granule.getLabel());
+						  }
 						  final long start = System.nanoTime();
 						  a.doAnalysisOnGranule(env, granule);
 						  final long end = System.nanoTime();

@@ -462,7 +462,11 @@ public class Javac extends IDE {
 			return true;
 		}
 		IIRAnalysis<?> first = grouped.get(0);
-		return a.getGranulator() != first.getGranulator() || a.getGroup() != first.getGroup() || a.runInParallel() != first.runInParallel();
+		if (Util.useNewDriver) {
+			return a.getGranulator() != first.getGranulator() || a.runInParallel() != first.runInParallel();
+		} else {
+			return a.getGroup() != first.getGroup() || a.runInParallel() != first.runInParallel();
+		}
 	}
 
 	/**
