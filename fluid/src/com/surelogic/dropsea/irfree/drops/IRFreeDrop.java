@@ -87,7 +87,7 @@ public class IRFreeDrop implements IDrop {
     if (message != null)
       f_message = message;
     else
-      f_message = DeclUtil.aliasIfPossible(getClass().getSimpleName() + " (EMPTY)");
+      f_message = "(EMPTY)";
 
     f_messageCanonical = aliasMsg ? e.getAttributeByAliasIfPossible(MESSAGE_ATTR) : e.getAttribute(MESSAGE_ID);
 

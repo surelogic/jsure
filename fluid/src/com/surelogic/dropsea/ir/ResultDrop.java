@@ -8,7 +8,6 @@ import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.VOUCHED;
 import com.surelogic.InRegion;
 import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
-import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.IResultDrop;
 

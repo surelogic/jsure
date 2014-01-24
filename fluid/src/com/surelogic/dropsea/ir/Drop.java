@@ -169,7 +169,7 @@ public abstract class Drop implements IDrop {
    */
   public final void setMessage(int number, Object... args) {
     synchronized (f_seaLock) {
-    	setMessageHelper(number, args);
+      setMessageHelper(number, args);
     }
   }
 
@@ -177,16 +177,17 @@ public abstract class Drop implements IDrop {
    * Meant to be called from the drop constructor
    */
   protected final void setMessageHelper(int number, Object... args) {
-	  if (number < 1) {
-		  SLLogger.getLogger().warning(I18N.err(257, number));
-		  return;
-	  }
-	  //	        f_message = args.length == 0 ? I18N.res(number) : I18N.res(number, args);
-	  //	        f_messageCanonical = args.length == 0 ? I18N.resc(number) : I18N.resc(number, args);
-	  f_message = args.length == 0 ? resolveMessage(number) : resolveMessage(number, args);
-	  f_messageCanonical = args.length == 0 ? resolveMessageCanonical(number) : resolveMessageCanonical(number, args);	      
+    if (number < 1) {
+      SLLogger.getLogger().warning(I18N.err(257, number));
+      return;
+    }
+    // f_message = args.length == 0 ? I18N.res(number) : I18N.res(number, args);
+    // f_messageCanonical = args.length == 0 ? I18N.resc(number) :
+    // I18N.resc(number, args);
+    f_message = args.length == 0 ? resolveMessage(number) : resolveMessage(number, args);
+    f_messageCanonical = args.length == 0 ? resolveMessageCanonical(number) : resolveMessageCanonical(number, args);
   }
-  
+
   protected String resolveMessage(final int number) {
     return I18N.res(number);
   }
@@ -194,15 +195,15 @@ public abstract class Drop implements IDrop {
   protected String resolveMessage(final int number, final Object... args) {
     return I18N.res(number, args);
   }
-  
+
   protected String resolveMessageCanonical(final int number) {
     return I18N.resc(number);
   }
-  
+
   protected String resolveMessageCanonical(final int number, final Object... args) {
     return I18N.resc(number, args);
   }
-  
+
   /**
    * This method sets the message for this drop.
    * <p>
@@ -1122,7 +1123,8 @@ public abstract class Drop implements IDrop {
   @RequiresLock("SeaLock")
   @MustInvokeOnOverride
   public void snapshotAttrs(XmlCreator.Builder s) {
-    s.addAttribute(MESSAGE, getMessage());
+    if (f_message != null)
+      s.addAttribute(MESSAGE, getMessage());
     if (getMessageCanonical() != null)
       s.addAttribute(MESSAGE_ID, getMessageCanonical());
 
@@ -1135,10 +1137,10 @@ public abstract class Drop implements IDrop {
     /*
      * Compute diff information we want to pass along into the results
      */
-    final Pair<IJavaRef,IRNode> loc = getJavaRefAndCorrespondingNode();
+    final Pair<IJavaRef, IRNode> loc = getJavaRefAndCorrespondingNode();
     if (loc == null) {
-    	getJavaRefAndCorrespondingNode();
-    }    
+      getJavaRefAndCorrespondingNode();
+    }
     DiffHeuristics.computeDiffInfo(this, loc);
     addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_TREE_HASH, SeaSnapshot.computeHash(getNode())));
     addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_CONTEXT_HASH,
