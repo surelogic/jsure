@@ -45,7 +45,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis.LayersInfo,TopLevelType> {
+public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis.LayersInfo,CUDrop> {
 	public LayersAnalysis() {
 		super("Layers");
 	}
@@ -74,16 +74,18 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return true;
 	}
 
+	/*
 	@Override
 	public IAnalysisGranulator<TopLevelType> getGranulator() {
 		return TopLevelType.granulator;
-	}
+	}	
 	
 	@Override
 	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TopLevelType n) {
 		analyzeType(n.getCompUnit(), n.typeDecl);
 		return true; 
 	}
+	*/
 	
 	private void analyzeType(final IRNode cu, final IRNode type) {
 		final InLayerPromiseDrop inLayer = LayerRules.getInLayerDrop(type);
@@ -224,7 +226,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	 */
 	// TODO potentially slow, because of checking multiple types in layers
 	@Override
-	public Iterable<TopLevelType> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
+	public Iterable<CUDrop> analyzeEnd(IIRAnalysisEnvironment env, IIRProject p) {
 		final Map<String,List<IRNode>> layers = new HashMap<String, List<IRNode>>();
 		final Map<String, Set<String>> layerRefs = new HashMap<String, Set<String>>();
 		final CycleDetector detector = new CycleDetector() {
