@@ -65,7 +65,7 @@ public class Javac extends IDE {
 		final AnalysisInfo annoBoundsChecking = 
 		    init(ParameterizedTypeAnalysis.class,
 		        "com.surelogic.jsure.client.eclipse.ParameterizedType",
-		        true, "Annotation Bounds");
+		        true, "Annotation bounds");
 		
 	    init(EqualityAnalysis.class,
 	            "com.surelogic.jsure.client.eclipse.EqualityAssurance", true,
@@ -276,16 +276,6 @@ public class Javac extends IDE {
 	public IAnalysisInfo[] getAnalysisInfo() {		
 		return analysisList.toArray(new IAnalysisInfo[analysisList.size()]);
 	}
-	
-  public String getLabel(IIRAnalysis<?> a) {
-	  final Class<?> cls = a.getClass();
-	  for(IAnalysisInfo info : analysisList) {
-		  if (info.getClass() == cls) {
-			  return info.getLabel();
-		  }
-	  }
-	  return a.name();
-  }
   
 	private static class AnalysisInfo implements IAnalysisInfo {
 		final Class<? extends IIRAnalysis> clazz;
@@ -430,6 +420,7 @@ public class Javac extends IDE {
 		for (AnalysisInfo info : active) {
 			try {
 				IIRAnalysis<?> a = info.clazz.newInstance();
+				a.setLabel(info.getLabel());
 				System.out.println("Created " + info.clazz.getName());
 				/*
 				if (a.getGroup() == null) {

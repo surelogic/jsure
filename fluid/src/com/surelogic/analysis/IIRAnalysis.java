@@ -51,6 +51,17 @@ public interface IIRAnalysis<Q extends IAnalysisGranule> {
 	 * If null, CUDrops are used as is
 	 */
 	IAnalysisGranulator<Q> getGranulator();
+
+	/**
+	 * Get a label for UI purposes
+	 */
+	String label();
+
+	/**
+	 * Only to be called once when created
+	 * @param label
+	 */
+	void setLabel(String label);
 	
 	/**
 	 * Called when the analysis is created, and before any loading

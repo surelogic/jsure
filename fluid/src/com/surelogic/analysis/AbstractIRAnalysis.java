@@ -19,12 +19,28 @@ import edu.cmu.cs.fluid.util.AbstractRunner;
 
 public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> implements IIRAnalysis<Q> {
 	//private IIRProject project;
+	private String label;
 	private IBinder binder;
 	protected final ThreadLocalAnalyses analyses = new ThreadLocalAnalyses();
 	
 	protected AbstractIRAnalysis(boolean inParallel, Class<Q> type) {		
 		super(inParallel, type);
 	}
+
+	public String label() {
+		return label;
+	}
+	
+	public void setLabel(String l) {
+		if (l == null) {
+			throw new IllegalArgumentException();
+		}
+		if (label != null) {
+			throw new IllegalStateException();
+		}
+		label = l;
+	}
+			
 	
 	protected IBinder getBinder() {
 		return binder;
