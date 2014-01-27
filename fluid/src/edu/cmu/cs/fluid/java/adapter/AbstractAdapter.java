@@ -47,11 +47,6 @@ public class AbstractAdapter {
 	
 	protected static final SyntaxTreeInterface tree = JJNode.tree;
 	protected static final IRNode[] noNodes = JavaGlobals.noNodes;
-
-	/**
-	 * Creates IncompleteThrows for any default constructors it creates
-	 */
-	protected static final JavaRewrite rewrite = new JavaRewrite(null);
 	
 	/**
 	 * Logger for this class
@@ -229,6 +224,12 @@ public class AbstractAdapter {
 		}
 		
 		if (Util.useIntegratedRewrite) {
+			/**
+			 * Creates IncompleteThrows for any default constructors it creates
+			 * 
+			 * Needs new instance to protect it from other threads running concurrently
+			 */
+			final JavaRewrite rewrite = new JavaRewrite(null);
 			rewrite.ensureDefaultsExist(root);
 		}
 	}
