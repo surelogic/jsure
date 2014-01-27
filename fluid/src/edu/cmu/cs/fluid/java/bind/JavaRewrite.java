@@ -130,6 +130,7 @@ public class JavaRewrite implements JavaGlobals {
     return call;
   }
 
+  // Could be null
   protected final ITypeEnvironment te;
 
   public JavaRewrite(ITypeEnvironment te) {
@@ -528,6 +529,10 @@ public class JavaRewrite implements JavaGlobals {
   }
 
   protected boolean isSuper_JavaLangObject(IRNode decl, IJavaDeclaredType type) {
+    if (te == null) {
+      return false;
+    }
+
     Operator op = JJNode.tree.getOperator(decl);
     /*
      * return (op instanceof TypeDeclInterface) &&
@@ -622,6 +627,10 @@ public class JavaRewrite implements JavaGlobals {
   }
 
   IRNode[] makeDefaultThrows(IJavaDeclaredType type) {
+	if (te == null) {
+	  return null; 
+	}
+	  
     // assuming n is the enclosing type, find super's default constructor
     IJavaDeclaredType stype = te.getBinder().getSuperclass(type);
     if (stype != null) {
@@ -662,6 +671,10 @@ public class JavaRewrite implements JavaGlobals {
 
   // / copyTypeNodes (using its binding)
   IRNode copyTypeNodes(IRNode x) {
+	if (te == null) {
+	  throw new IllegalStateException("Should never be called with null type env");
+	}
+	
     JavaOperator op = (JavaOperator) JJNode.tree.getOperator(x);
     if (op instanceof NamedType || op instanceof NameType) {
       // Need to bind first, because this will be in a different CU
