@@ -589,33 +589,34 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
         int chartDiameter = clientArea.width - 10;
 
-        // Total
+        // Draw chart first
         e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
         e.gc.fillOval(5, fold + 5, chartDiameter, chartDiameter);
-        String slocTxt = "Total: " + SLUtility.toStringHumanWithCommas(element.f_lineCount) + " SLOC";
-        int slocTxtWidth = e.gc.stringExtent(slocTxt).x;
-        e.gc.drawText(slocTxt, (chartDiameter / 2) + 5 - (slocTxtWidth / 2), fold + 3 * (chartDiameter / 4), true);
-
-        // Blank lines
         if (element.f_blankLineCount > 0) {
           int arcBlank = (int) ((double) element.f_blankLineCount * degPerLine);
           e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color2());
           e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, arcBlank);
-          String blankTxt = SLUtility.toStringHumanWithCommas(element.f_blankLineCount) + " blank";
-          int blankTxtWidth = e.gc.stringExtent(blankTxt).x;
-          e.gc.drawText(blankTxt, (chartDiameter / 2) - blankTxtWidth - 5, fold + (chartDiameter / 4), true);
         }
-
         if (element.f_containsCommentLineCount > 0) {
           int arcCommented = (int) ((double) element.f_containsCommentLineCount * degPerLine);
           e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color0());
           e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, -arcCommented);
+        }
+        e.gc.drawOval(5, fold + 5, chartDiameter, chartDiameter);
+
+        // Draw text second
+        if (element.f_blankLineCount > 0) {
+          String blankTxt = SLUtility.toStringHumanWithCommas(element.f_blankLineCount) + " blank";
+          int blankTxtWidth = e.gc.stringExtent(blankTxt).x;
+          e.gc.drawText(blankTxt, (chartDiameter / 2) - blankTxtWidth - 5, fold + (chartDiameter / 4), true);
+        }
+        if (element.f_containsCommentLineCount > 0) {
           String commentedTxt = SLUtility.toStringHumanWithCommas(element.f_containsCommentLineCount) + " commented";
           e.gc.drawText(commentedTxt, (chartDiameter / 2) + 10, fold + (chartDiameter / 4), true);
         }
-
-        // Outline
-        e.gc.drawOval(5, fold + 5, chartDiameter, chartDiameter);
+        String slocTxt = "Total: " + SLUtility.toStringHumanWithCommas(element.f_lineCount) + " SLOC";
+        int slocTxtWidth = e.gc.stringExtent(slocTxt).x;
+        e.gc.drawText(slocTxt, (chartDiameter / 2) + 5 - (slocTxtWidth / 2), fold + 3 * (chartDiameter / 4), true);
 
         fold += chartDiameter + 10;
 
