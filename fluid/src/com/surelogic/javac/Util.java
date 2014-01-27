@@ -134,7 +134,7 @@ public class Util {
   /**
    * Splits and integrates the rewrite into the adapter/canonicalizer
    */
-  public static final boolean useIntegratedRewrite = false;
+  public static final boolean useIntegratedRewrite = true;
   
   public static final String EXPECT_ANALYSIS = "expectAnalysis";
   public static final String RECORD_ANALYSIS = "recordAnalysis";
