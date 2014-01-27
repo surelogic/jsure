@@ -5,6 +5,8 @@ package edu.cmu.cs.fluid.java.project;
 
 import java.io.PrintStream;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
@@ -411,7 +413,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    * A table from names to Entries. This table is is externally immutable
    */
   @UniqueInRegion("State")
-  private final HashMap<String,Entry> entries = new HashMap<String,Entry>();
+  //private final HashMap<String,Entry> entries = new HashMap<String,Entry>();
+  private final ConcurrentMap<String,Entry> entries = new ConcurrentHashMap<String,Entry>();
 
   /**
    * Get entry associated with the name.
@@ -420,7 +423,8 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    * @return entry associated with the given name in the table
    */
   protected Entry getEntry(String name) {
-    Entry entry;
+	/* CONCURRENT
+    Entry entry;    
     synchronized (entries) {
       entry = entries.get(name);
       if (entry == null) {
@@ -431,6 +435,18 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
         }
         entries.put(name, entry);
       }
+    }
+    */
+	// Thrown away if already present
+	Entry newEntry;
+    if (isVersioned) {
+    	newEntry = new VersionedEntry();
+    } else {
+    	newEntry = new UnversionedEntry();
+    }
+    Entry entry = entries.putIfAbsent(name, newEntry);
+    if (entry == null) {
+    	entry = newEntry;
     }
     return entry;
   }
@@ -719,29 +735,32 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    *@param binder binder to use on demand to look up super types.
    */
   @Override
-  public IJavaScope asScope(AbstractJavaBinder binder) {
-	  if (binder != cachedBinder) {
+  public synchronized IJavaScope asScope(AbstractJavaBinder binder) {
+	  if (binder != cachedFullBinder) {
         cachedFullScope = new IJavaScope.ExtendScope(asLocalScope(binder.getTypeEnvironment()),
-        		                                     new SuperScope(binder));
-        cachedBinder = binder;
+        		                                     asSuperScope(binder));
+        cachedFullBinder = binder;
 	  }
       return cachedFullScope;    
   }
  
   @Override
-  public IJavaScope asSuperScope(AbstractJavaBinder binder) {
-	  if (binder != cachedBinder) {
-        cachedFullScope = new SuperScope(binder);
-        cachedBinder = binder;
+  public synchronized IJavaScope asSuperScope(AbstractJavaBinder binder) {
+	  if (binder != cachedSuperBinder) {
+		cachedSuperScope = new SuperScope(binder);
+		cachedSuperBinder = binder;
 	  }
-      return cachedFullScope;    
+      return cachedSuperScope;    
   }
   
   /**
    * Only used in asScope() above
    */
-  private volatile IJavaScope cachedFullScope = null;
-  private volatile IBinder cachedBinder = null;
+  private IJavaScope cachedFullScope = null;
+  private IBinder cachedFullBinder = null;
+  
+  private IJavaScope cachedSuperScope = null;
+  private IBinder cachedSuperBinder = null;
   
   /**
    * Return a scope that only mimics the member table, not looking at superclasses.
@@ -772,6 +791,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     public SuperScope(AbstractJavaBinder b) {
       binder       = b;
       isTypeFormal = TypeFormal.prototype.includes(typeDeclaration);
+      populateSuperTypes();
     }
     
 	@Override
@@ -793,15 +813,21 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       return thisType.getSupertypes(binder.getTypeEnvironment());
     }
 
+    private void populateSuperTypes() {
+    	for(IJavaType st : getSuperTypes_internal()) {
+			superTypes.add(st);
+		}
+    }
+    
     /**
      * Added caching
      */
-    private synchronized Iteratable<IJavaType> getSuperTypes() {
+    private /*synchronized*/ Iteratable<IJavaType> getSuperTypes() {
+    	/*
     	if (superTypes.isEmpty()) {
-    		for(IJavaType st : getSuperTypes_internal()) {
-    			superTypes.add(st);
-    		}
+    		populateSuperTypes();
     	}
+    	*/
     	return new SimpleIteratable<IJavaType>(superTypes.iterator());
     }
     
@@ -998,6 +1024,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
       }
       final IRNode useSite = context.useSite;
       Iterator<IRNode> members = getDeclarationsFromUse(name,useSite);
+      /* CONCURRENT
       if (!JJNode.versioningIsOn && !members.hasNext()) {
     	  synchronized (entries) {
 			if (!repopulated) {
@@ -1012,9 +1039,13 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
 		    	  populateDeNovo();
 
 		    	  members = getDeclarationsFromUse(name,useSite);
+		    	  if (members.hasNext()) {
+		    		  throw new IllegalStateException();
+		    	  }
 			}
     	  }
       }
+      */
       tempMembers = copyIterator(members);
       if (!tempMembers.isEmpty()) {
           /*
