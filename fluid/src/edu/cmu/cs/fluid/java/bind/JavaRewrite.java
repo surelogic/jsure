@@ -592,13 +592,8 @@ public class JavaRewrite implements JavaGlobals {
     IRNode[] params = noNodes;
 
     // copy parent's throws clause
-    IRNode[] throwsC;
-    IJavaDeclaredType type = (IJavaDeclaredType) JavaTypeFactory.getMyThisType(decl);
-    if (!isSuper_JavaLangObject(decl, type)) {
-      throwsC = makeDefaultThrows(type);
-    } else {
-      throwsC = JavaGlobals.noNodes;
-    }
+    final IRNode[] throwsC = makeDefaultThrows(decl);
+
     final boolean isJavaLangObject;
     if ("Object".equals(cName)) {
       final String qname = JavaNames.getQualifiedTypeName(decl);
@@ -615,6 +610,15 @@ public class JavaRewrite implements JavaGlobals {
     return constructor;
   }
 
+  public IRNode[] makeDefaultThrows(IRNode decl) {
+	IJavaDeclaredType type = (IJavaDeclaredType) JavaTypeFactory.getMyThisType(decl);
+	if (!isSuper_JavaLangObject(decl, type)) {
+	  return makeDefaultThrows(type);
+	} else {
+	  return JavaGlobals.noNodes;
+	}
+  }
+  
   IRNode makeDefaultEnumConstructor(IRNode decl) {
     int mods = JavaNode.PRIVATE | JavaNode.IMPLICIT;
     String cName = JJNode.getInfo(decl);

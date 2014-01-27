@@ -150,6 +150,8 @@ public class JavaCanonicalizer {
 
   private final DoCanon doWork = new DoCanon();
 
+  private final JavaRewrite rewrite;
+  
   private final SyntaxTree tree = (SyntaxTree) JJNode.tree; // NB: must be
                                                             // mutable!
 
@@ -181,6 +183,7 @@ public class JavaCanonicalizer {
       bindCache = null;
     }
     tEnv = binder.getTypeEnvironment();
+    rewrite = new JavaRewrite(tEnv);
   }
 
   protected IBinder fixBinder(IBinder b) {
@@ -1351,6 +1354,14 @@ public class JavaCanonicalizer {
       return true;
     }
 
+    @Override
+    public Boolean visitIncompleteThrows(IRNode node) {
+      IRNode parent = tree.getParent(node);
+      IRNode enclosingType = VisitUtil.getEnclosingType(parent);
+      IRNode[] types = rewrite.makeDefaultThrows(enclosingType);
+      replaceSubtree(node, Throws.createNode(types));
+      return true;
+    }
     
     @Override
 	public Boolean visitLambdaExpression(IRNode node) {

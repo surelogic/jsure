@@ -131,7 +131,11 @@ import extra166y.Ops.Procedure;
 
 public class Util {
   public static final boolean useNewDriver = false;
-	
+  /**
+   * Splits and integrates the rewrite into the adapter/canonicalizer
+   */
+  public static final boolean useIntegratedRewrite = false;
+  
   public static final String EXPECT_ANALYSIS = "expectAnalysis";
   public static final String RECORD_ANALYSIS = "recordAnalysis";
 
@@ -422,17 +426,19 @@ public class Util {
 
     perf.markTimeFor("Parsing");
     // checkForDups(cus.asList());
-    rewriteCUs(projects, cus.asList(), projects.getMonitor(), loader);
-    // checkForDups(cus.asList());
-    // Really to check if we added type refs via default constructors
-//    loader.checkReferences(cus.asList());
-    
-    eliminateDups(cus.asList(), cus.asList());
-    // checkForDups(cus.asList());
-    clearCaches(projects); // To clear out old state invalidated by rewriting
-    //ClassSummarizer.printStats();
-    
-    perf.markTimeFor("Rewriting");
+    if (!useIntegratedRewrite) {
+    	rewriteCUs(projects, cus.asList(), projects.getMonitor(), loader);
+    	// checkForDups(cus.asList());
+    	// Really to check if we added type refs via default constructors
+    	//    loader.checkReferences(cus.asList());
+
+    	eliminateDups(cus.asList(), cus.asList());
+    	// checkForDups(cus.asList());
+    	clearCaches(projects); // To clear out old state invalidated by rewriting
+    	//ClassSummarizer.printStats();
+
+    	perf.markTimeFor("Rewriting");
+    }
     canonicalizeCUs(perf, cus, projects);
     // Checking if we added type refs by canonicalizing implicit refs
     loader.checkReferences(cus.asList());
@@ -812,6 +818,9 @@ public class Util {
     		}
     	}
     	
+    	// TODO how to focus all the analyses on a few CUs, while dealing with individual analyses that might take a long time
+    	// use fork-join for uniqueness and the like?
+    	
     	// Finish all analyses
     	int i = 0;
     	for (final IIRAnalysis<?> a : analyses) {
@@ -1027,7 +1036,7 @@ public class Util {
 					  int i = analyses.getOffset();
 					  for (final IIRAnalysis<Q> a : analyses) {
 						  if (monitor != null) {
-							  monitor.subTask("Checking [ "+a.name()+" ] " + granule.getLabel());
+							  monitor.subTask("Checking [ "+a.label()+" ] " + granule.getLabel());
 						  }
 						  final long start = System.nanoTime();
 						  a.doAnalysisOnGranule(env, granule);

@@ -6,9 +6,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.common.SLUtility;
+import com.surelogic.javac.Util;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.bind.JavaRewrite;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
 import edu.cmu.cs.fluid.java.operator.Annotations;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
@@ -45,6 +47,11 @@ public class AbstractAdapter {
 	
 	protected static final SyntaxTreeInterface tree = JJNode.tree;
 	protected static final IRNode[] noNodes = JavaGlobals.noNodes;
+
+	/**
+	 * Creates IncompleteThrows for any default constructors it creates
+	 */
+	protected static final JavaRewrite rewrite = new JavaRewrite(null);
 	
 	/**
 	 * Logger for this class
@@ -219,6 +226,10 @@ public class AbstractAdapter {
 				ReturnValueDeclaration.getReturnNode(n);
 				PromiseUtil.addReceiverDeclsToMethod(n);
 			}
+		}
+		
+		if (Util.useIntegratedRewrite) {
+			rewrite.ensureDefaultsExist(root);
 		}
 	}
 	
