@@ -71,10 +71,12 @@ public class Javac extends IDE {
 	            "com.surelogic.jsure.client.eclipse.EqualityAssurance", true,
 	            "Reference equality", annoBoundsChecking);		
 		
-	    init(UtilityAnalysis.class, "com.surelogic.jsure.client.eclipse.Utility", true, "Utility class");
-	    init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
 		init(LayersAnalysis.class,
 				"com.surelogic.jsure.client.eclipse.LayersAssurance", true, "Static structure");	
+	    
+		// Using TopLevelAnalysisVisitor
+	    init(UtilityAnalysis.class, "com.surelogic.jsure.client.eclipse.Utility", true, "Utility class");
+	    init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
 	    
 	// Lock and EffectAssurance need to be declared together because they share use of BindingContextAnalysis
     init(LockAnalysis.class,
@@ -83,6 +85,10 @@ public class Javac extends IDE {
     
     init(EffectsAnalysis.class,
 			"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects");
+    
+    init(NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable-old", false, "Nullable (old)");
+    init(NullableModule2.class, "com.surelogic.jsure.client.eclipse.Nullable", true, "Nullable");
+//    init(com.surelogic.analysis.nullable2.NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable2", true, "Nullable 2222");
     
     init(com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisModule.class,
         "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM", false, "Uniqueness + From");
@@ -115,9 +121,6 @@ public class Javac extends IDE {
 		init(ConstantExpressionModule.class, "com.surelogic.jsure.client.eclipse.ConstantExpr", false, "Constant Expressions (for reg tests only)");
 		init(BinderModule.class, "com.surelogic.jsure.client.eclipse.Binder", false, "Binder (for reg tests only)");
     
-    init(NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable-old", false, "Nullable (old)");
-    init(NullableModule2.class, "com.surelogic.jsure.client.eclipse.Nullable", true, "Nullable");
-//    init(com.surelogic.analysis.nullable2.NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable2", true, "Nullable 2222");
     init(TestFunctionalInterfacePseudoAnalysis.class,"com.surelogic.jsure.client.eclipse.TestIsFunctional", false, "Functional (for tests only)");
     /*
 		AnalysisInfo[] deps = new AnalysisInfo[3];
