@@ -281,8 +281,9 @@ public class CogenUtil implements JavaGlobals {
     return ConstructorDeclaration.createNode(Annotations.createNode(annos), mods, 
                TypeFormals.createNode(formals), 
                name, 
-					     Parameters.createNode(params),
-					     Throws.createNode(throwC), body);
+			   Parameters.createNode(params),
+			   throwC == null ? IncompleteThrows.prototype.jjtCreate() : Throws.createNode(throwC), 
+			   body);
   }
 
   /// makeAnonClass

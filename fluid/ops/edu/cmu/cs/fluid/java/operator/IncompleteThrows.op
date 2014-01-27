@@ -1,0 +1,8 @@
+/** 
+ * Marker for default constructors inserted by the parser
+ */
+public operator IncompleteThrows extends Throws implements IllegalCode {
+  properties {
+    logicallyInvisible=true 
+  }
+}
