@@ -735,32 +735,36 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    *@param binder binder to use on demand to look up super types.
    */
   @Override
-  public synchronized IJavaScope asScope(AbstractJavaBinder binder) {
-	  if (binder != cachedFullBinder) {
-        cachedFullScope = new IJavaScope.ExtendScope(asLocalScope(binder.getTypeEnvironment()),
-        		                                     asSuperScope(binder));
-        cachedFullBinder = binder;
+  public IJavaScope asScope(AbstractJavaBinder binder) {
+	  IJavaScope rv = cachedFullScopes.get(binder);  
+	  if (rv == null) {
+		rv = new IJavaScope.ExtendScope(asLocalScope(binder.getTypeEnvironment()),
+                                        asSuperScope(binder));
+		// Idempotent, so it doesn't matter if it's already there
+		cachedFullScopes.put(binder, rv);		
 	  }
-      return cachedFullScope;    
+      return rv;  
   }
  
   @Override
-  public synchronized IJavaScope asSuperScope(AbstractJavaBinder binder) {
-	  if (binder != cachedSuperBinder) {
-		cachedSuperScope = new SuperScope(binder);
-		cachedSuperBinder = binder;
+  public IJavaScope asSuperScope(AbstractJavaBinder binder) {
+	  IJavaScope rv = cachedSuperScopes.get(binder);  
+	  if (rv == null) {
+		rv = new SuperScope(binder);
+		
+		// Idempotent, so it doesn't matter if it's already there
+		cachedSuperScopes.put(binder, rv);		
 	  }
-      return cachedSuperScope;    
+      return rv;    
   }
   
   /**
    * Only used in asScope() above
    */
-  private IJavaScope cachedFullScope = null;
-  private IBinder cachedFullBinder = null;
-  
-  private IJavaScope cachedSuperScope = null;
-  private IBinder cachedSuperBinder = null;
+  private final ConcurrentMap<AbstractJavaBinder, IJavaScope> cachedFullScopes = 
+		  new ConcurrentHashMap<AbstractJavaBinder, IJavaScope>(8, 0.75f, 4);
+  private final ConcurrentMap<AbstractJavaBinder, IJavaScope> cachedSuperScopes = 
+		  new ConcurrentHashMap<AbstractJavaBinder, IJavaScope>(8, 0.75f, 4);
   
   /**
    * Return a scope that only mimics the member table, not looking at superclasses.
@@ -786,16 +790,18 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
     final AbstractJavaBinder binder;
 
     @UniqueInRegion("TypeInfo")
-    final List<IJavaType> superTypes = new ArrayList<IJavaType>();
+    //final List<IJavaType> superTypes = new ArrayList<IJavaType>();
+    volatile List<IJavaType> superTypes = null; 
     
     public SuperScope(AbstractJavaBinder b) {
       binder       = b;
       isTypeFormal = TypeFormal.prototype.includes(typeDeclaration);
-      populateSuperTypes();
+      //XXX: Can't populate ahead of time due to binding cycles
+      //populateSuperTypes();
     }
     
 	@Override
-  public boolean canContainPackages() {
+	public boolean canContainPackages() {
 		return false;
 	}    
     
@@ -819,15 +825,23 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
 		}
     }
     
+    private List<IJavaType> collectSuperTypes() {
+    	List<IJavaType> rv = new ArrayList<IJavaType>();
+     	for(IJavaType st : getSuperTypes_internal()) {
+			rv.add(st);
+		}
+     	return rv;
+    }
+    
     /**
      * Added caching
      */
-    private /*synchronized*/ Iteratable<IJavaType> getSuperTypes() {
-    	/*
-    	if (superTypes.isEmpty()) {
-    		populateSuperTypes();
-    	}
-    	*/
+    private /*synchronized*/ Iteratable<IJavaType> getSuperTypes() {    	
+    	if (superTypes == null) {
+    		//populateSuperTypes();
+    		// Should be the same if recomputed, so it's ok to replace
+    		superTypes = collectSuperTypes();    	
+    	}    		
     	return new SimpleIteratable<IJavaType>(superTypes.iterator());
     }
     
