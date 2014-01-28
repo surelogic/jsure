@@ -492,6 +492,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		if (t == null) {
     			bindings = deriveBindings(bindings, node);
     		} else {
+    			t.setName("BT: "+Thread.currentThread().getName());
     			t.start();
     			try {
     				t.join();
