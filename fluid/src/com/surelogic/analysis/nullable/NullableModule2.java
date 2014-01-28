@@ -152,13 +152,15 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     private JavaComponentFactory jcf = null;
     
     @Override
-    protected void enteringEnclosingDeclPrefix(
+//    protected void enteringEnclosingDeclPrefix(
+    protected void enteringEnclosingDecl(
         final IRNode newDecl, final IRNode anonClassDecl) {
       jcf = JavaComponentFactory.startUse();
     }
     
     @Override
-    protected final void leavingEnclosingDeclPostfix(
+//    protected final void leavingEnclosingDeclPostfix(
+    protected final void leavingEnclosingDecl(
         final IRNode oldDecl, final IRNode returningTo) {
       JavaComponentFactory.finishUse(jcf);
       jcf = null;

@@ -17,7 +17,6 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
-import edu.cmu.cs.fluid.util.*;
 
 // This is for code that is used to "visit" parts of a tree, given a root
 public class VisitUtil implements JavaGlobals {

@@ -196,8 +196,7 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * are analyzing the InitDeclaration associated with the construction of
    * an anonymous class.
    */
-  // package-visible so that SubVisitor can access it
-  boolean insideConstructor = false;
+  private boolean insideConstructor = false;
 
   /**
    * Whether we are inside a field declaration.  This is set by 
@@ -475,14 +474,12 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    * If enteringDecl is an <init> method from an anonymous class declaration
    * then anonClassDecl refers to that anonymous class.  Otherwise it is null.
    */
-  // package-visible so that it can be called from SuperVisitor
-  final void enterEnclosingDecl(final IRNode enteringDecl, final IRNode anonClassDecl) {
+  private final void enterEnclosingDecl(final IRNode enteringDecl, final IRNode anonClassDecl) {
     enclosingDecl = enteringDecl;
     enteringEnclosingDecl(enteringDecl, anonClassDecl);
   }
   
-  // package-visible so that it can be called from SuperVisitor
-  final void leaveEnclosingDecl(final IRNode returningToDecl) {
+  private final void leaveEnclosingDecl(final IRNode returningToDecl) {
     leavingEnclosingDecl(enclosingDecl, returningToDecl);
     enclosingDecl = returningToDecl;
   }
@@ -889,22 +886,9 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
    *   completeness.)
    *   <li>Visits each child of the ClassBody node that is <em>not</em> a 
    *   FieldDeclaration, ClassInitializer, or EnumConstantDeclaration.
-   *   <li>We simulate execution of the static initializer:
-   *     <ol>
-   *       <li>The enclosing method is set to the class initializer
-   *       <code>&lt;clinit&gt;</code> method as represented by the enclosing
-   *       type's ClassInitDeclaration node by calling
-   *       {@link #enteringEnclosingDecl(IRNode)}.
-   *       <li>We call {link {@link #handleClassInitDeclaration(IRNode)} with
-   *       the ClassInitDeclaration node.
-   *       <li>We visit each child of the ClassBody node that is an
-   *       EnumConstantDeclaration node, a static FieldDeclaration, or a 
-   *       static ClassInitializer.
-   *       <li>The {@link #leavingEnclosingDecl(IRNode)} method is called
-   *       and passed the ClassInitDeclaration node as the enclosing declaration
-   *       we are leaving.
-   *       <li>We restore the original enclosing method.
-   *     </ol>
+   *   <li>Visits the class initialization method for the type as 
+   *   represented by the ClassInitDeclaration node by calling
+   *   {@link #visitClassInitDeclaration(IRNode)}.
    * </ol>
    */
   @Override
@@ -921,23 +905,9 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
      */
     processClassBody(classBody, WhichMembers.DECLARATIVE);
     
-    /* Now handle class initialization by entering the context of <clinit>
-     * and visiting static field declarations, static class initializers,
-     * and enumeration constant declarations.
-     */
-    final IRNode prevEnclosingDecl = enclosingDecl;
+    /* Visit the class initializer */
     final IRNode classInit = JavaPromise.getClassInitOrNull(enclosingType);
-    enterEnclosingDecl(classInit, null);    
-    try {
-      /* Give subclass an opportunity to deal with the ClassInitDeclaration
-       * itself.
-       */
-      handleClassInitDeclaration(classBody, classInit);
-      /* Now visit all the static members of the class */
-      processClassBody(classBody, WhichMembers.STATIC);
-    } finally {
-      leaveEnclosingDecl(prevEnclosingDecl);
-    }
+    visitClassInitDeclaration(classInit);
 
     return null;
   }
@@ -998,40 +968,45 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
   /**
    * Visit the promise node representing the static initialization method
    * <code>clinit()</code>.  We only get here if the original node passed to
-   * {@link #visit(IRNode)} is a ClassInitDeclaration.   The order of operations is
-   * <ol>
-   *   <li>Call {@link #handleClassInitDeclaration(IRNode)}.
-   *   <li>Set the enclosing method to class init declaration.
-   *   <li>Call {@link #enteringEnclosingDecl(IRNode)} with the ClassInitDeclaration node as the enclosing declaration
-   *   we are entering.
-   *   <li>For each <code>static</code> initializer and <code>static</code>
-   *   field declaration in the class associated with the ClassInitDeclaration:
+   * {@link #visit(IRNode)} is a ClassInitDeclaration, and from 
+   * {@link #visitClassBody(IRNode)}.  We simulate execution of the static
+   * initializer:
    *   <ol>
-   *     <li>Recursively visit <em>the children</em> of the static ClassInitializer
-   *     and VariableDeclarator nodes.
+   *     <li>The enclosing method is set to the class initializer
+   *     <code>&lt;clinit&gt;</code> method represented by the node referenced
+   *     by <code>classInit</code> by calling
+   *     {@link #enteringEnclosingDecl(IRNode)}.
+   *     <li>We call {@link #handleClassInitDeclaration}.
+   *     <li>We visit each child of the ClassBody node of the type declaration
+   *     that is associated with the class initialization node that is an
+   *     EnumConstantDeclaration node, a static FieldDeclaration, or a 
+   *     static ClassInitializer.
+   *     <li>The {@link #leavingEnclosingDecl(IRNode)} method is called
+   *     and passed the ClassInitDeclaration node as the enclosing declaration
+   *     we are leaving.
+   *     <li>We restore the original enclosing method.
    *   </ol>
-   *   <li>Call {@link #leavingEnclosingDecl(IRNode)} with the ClassInitDeclaration node as the enclosing declaration
-   *   we are leaving.
-   *   <li>Reset the enclosing method declaration to <code>null</code>
-   * </ol>
-   * 
    */
   @Override
-  public final Void visitClassInitDeclaration(final IRNode node) {
-    /* Give subclass an opportunity to deal with the ClassInitDeclaration
-     * itself.
+  public final Void visitClassInitDeclaration(final IRNode classInit) {
+    /* Handle class initialization by entering the context of <clinit> and
+     * visiting static field declarations, static class initializers, and
+     * enumeration constant declarations.
      */
-    handleClassInitDeclaration(null, node);
-    
-    enterEnclosingDecl(node, null);
+    final IRNode prevEnclosingDecl = enclosingDecl;
+    enterEnclosingDecl(classInit, null);
     try {
-      /* Recursively find all the static initializer blocks and static field
-       * initializations in the class. 
+      /*
+       * Give subclass an opportunity to deal with the ClassInitDeclaration
+       * itself.
        */
-      final IRNode classDecl = JavaPromise.getPromisedFor(node);
-      processClassBody(VisitUtil.getClassBody(classDecl), WhichMembers.STATIC);
+      final IRNode classDecl = JavaPromise.getPromisedFor(classInit);
+      final IRNode classBody = VisitUtil.getClassBody(classDecl);
+      handleClassInitDeclaration(classBody, classInit);
+      /* Now visit all the static members of the class */
+      processClassBody(classBody, WhichMembers.STATIC);
     } finally {
-      leaveEnclosingDecl(null);
+      leaveEnclosingDecl(prevEnclosingDecl);
     }
     
     // Done
