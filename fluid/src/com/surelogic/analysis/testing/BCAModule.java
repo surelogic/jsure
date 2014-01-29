@@ -4,6 +4,7 @@ import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContext;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.bca.BindingContextAnalysis.Query;
+import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 

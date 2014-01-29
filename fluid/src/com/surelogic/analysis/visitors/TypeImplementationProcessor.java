@@ -1,4 +1,4 @@
-package com.surelogic.analysis;
+package com.surelogic.analysis.visitors;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;

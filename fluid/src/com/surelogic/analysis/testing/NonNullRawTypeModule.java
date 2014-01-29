@@ -8,6 +8,7 @@ import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.DebugQuery;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Lattice;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.QualifiedThisQuery;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Query;
+import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver;
 import com.surelogic.common.Pair;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;

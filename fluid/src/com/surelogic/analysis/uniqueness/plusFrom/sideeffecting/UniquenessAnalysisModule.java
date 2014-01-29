@@ -20,6 +20,7 @@ import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalys
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.IsInvalidQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.IsPositivelyAssuredQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.NormalErrorQuery;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;

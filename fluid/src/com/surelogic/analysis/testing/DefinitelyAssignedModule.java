@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
+import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 

@@ -10,12 +10,12 @@ import java.util.Set;
 
 import com.surelogic.analysis.AnalysisUtils;
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.InstanceInitAction;
-import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.nullable.NonNullRawLattice.ClassElement;
 import com.surelogic.analysis.nullable.NonNullRawLattice.Element;
+import com.surelogic.analysis.visitors.InstanceInitAction;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.Pair;
 import com.surelogic.common.ref.IJavaRef;

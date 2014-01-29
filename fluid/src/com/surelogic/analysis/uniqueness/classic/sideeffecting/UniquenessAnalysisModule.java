@@ -16,6 +16,7 @@ import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.TypeAndMethod;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.classic.sideeffecting.store.StoreLattice;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;

@@ -4,6 +4,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.surelogic.analysis.*;
+import com.surelogic.analysis.visitors.InstanceInitAction;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 

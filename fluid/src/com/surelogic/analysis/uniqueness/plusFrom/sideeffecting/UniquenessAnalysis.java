@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.AnalysisUtils;
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
@@ -25,6 +24,7 @@ import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.state.RealSideEf
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.State;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.StoreLattice;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;

@@ -1,8 +1,10 @@
 package com.surelogic.analysis.testing;
 
-import com.surelogic.analysis.TopLevelAnalysisVisitor.SimpleClassProcessor;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.testing.CollectMethodCalls.Query;
+import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver;
+import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor;
+import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor.SimpleClassProcessor;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;

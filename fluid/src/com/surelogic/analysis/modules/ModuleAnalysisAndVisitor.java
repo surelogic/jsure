@@ -17,8 +17,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.threadroles.TRolesFirstPass;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
