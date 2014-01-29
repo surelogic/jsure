@@ -32,6 +32,7 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VoidType;
+import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
@@ -284,6 +285,9 @@ public final class JavaNames {
 		} else if (ConstructorDeclaration.prototype.includes(op)) {
 			targetName = ConstructorDeclaration.getId(node);
 			args = ConstructorDeclaration.getParams(node);
+		} else if (ClassInitDeclaration.prototype.includes(op)) {
+			sb.append("<clinit>");
+			return;
 		} else {
 			sb.append("(" + op.name() + ")");
 			return;
