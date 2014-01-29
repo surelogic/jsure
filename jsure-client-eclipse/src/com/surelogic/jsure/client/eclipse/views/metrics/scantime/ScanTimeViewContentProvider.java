@@ -50,7 +50,7 @@ public class ScanTimeViewContentProvider implements ITreeContentProvider {
       for (IMetricDrop drop : in.f_drops) {
         tree.addToTree(drop);
       }
-      f_mediator.updateTotal(tree.computeTotalsOnScanProjectPackage());
+      f_mediator.updateTotal(/* TODO tree.computeTotalsOnScanProjectPackage() */ 340);
       f_root = tree.getRootElements();
     } else if (newInput == null) {
       f_root = ScanTimeElement.EMPTY;

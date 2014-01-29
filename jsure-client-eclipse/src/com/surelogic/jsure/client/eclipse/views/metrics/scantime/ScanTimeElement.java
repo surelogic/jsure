@@ -88,45 +88,29 @@ public abstract class ScanTimeElement {
    * should consider if any children are above the threshold.
    * 
    * @param options
-   *          the options configured about the threshold. This includes its
-   *          magnitude, its direction, and what metric to apply it to.
+   *          the options configured about this metric.
    * @return {@code true} if this element should highlighted, {@code false}
    *         otherwise.
    */
   public abstract boolean highlightDueToSlocThreshold(ScanTimeOptions options);
 
-  /*
-   * Counts should be set correctly by each implementation.
+  /**
+   * Gets the duration for this element in nanoseconds. This value may change
+   * based upon filtering and so on for non-leaf nodes.
+   * 
+   * @param options
+   *          the options configured about this metric.
+   * @return the duration for this element.
    */
+  public abstract long getDurationNs(ScanTimeOptions options);
 
-  long f_blankLineCount;
-  long f_containsCommentLineCount;
-  long f_javaDeclarationCount;
-  long f_javaStatementCount;
-  long f_lineCount;
-  long f_semicolonCount;
-
-  public final long getBlankLineCount() {
-    return f_blankLineCount;
-  }
-
-  public final long getContainsCommentLineCount() {
-    return f_containsCommentLineCount;
-  }
-
-  public final long getJavaDeclarationCount() {
-    return f_javaDeclarationCount;
-  }
-
-  public final long getJavaStatementCount() {
-    return f_javaStatementCount;
-  }
-
-  public final long getLineCount() {
-    return f_lineCount;
-  }
-
-  public final long getSemicolonCount() {
-    return f_semicolonCount;
-  }
+  /**
+   * Gets the duration for this element in a human readable form. This value may
+   * change based upon filtering and so on for non-leaf nodes.
+   * 
+   * @param options
+   *          the options configured about this metric.
+   * @return the duration for this element.
+   */
+  public abstract String getDurationAsHumanReadableString(ScanTimeOptions options);
 }

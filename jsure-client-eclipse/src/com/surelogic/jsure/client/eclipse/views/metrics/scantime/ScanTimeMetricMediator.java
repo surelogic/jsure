@@ -27,9 +27,7 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.Transform;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -92,7 +90,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
   };
 
   /**
-   * Compares elements by their SLOC greatest to least.
+   * Compares elements by their duration based upon the current options.
    */
   public final Comparator<ScanTimeElement> f_byMetricComparator = new Comparator<ScanTimeElement>() {
     @Override
@@ -104,41 +102,15 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
       if (o2 == null)
         return 1;
 
-      final long o1MetricValue;
-      final long o2MetricValue;
-      switch (f_options.getSelectedColumnTitleIndex()) {
-      case 1: // Blank Lines
-        o1MetricValue = o1.f_blankLineCount;
-        o2MetricValue = o2.f_blankLineCount;
-        break;
-      case 2: // Commented Lines
-        o1MetricValue = o1.f_containsCommentLineCount;
-        o2MetricValue = o2.f_containsCommentLineCount;
-        break;
-      case 3: // Java Declarations
-        o1MetricValue = o1.f_javaDeclarationCount;
-        o2MetricValue = o2.f_javaDeclarationCount;
-        break;
-      case 4: // Java Statements
-        o1MetricValue = o1.f_javaStatementCount;
-        o2MetricValue = o2.f_javaStatementCount;
-        break;
-      case 5: // Semicolon Count
-        o1MetricValue = o1.f_semicolonCount;
-        o2MetricValue = o2.f_semicolonCount;
-        break;
-      default: // SLOC (0 and default)
-        o1MetricValue = o1.f_lineCount;
-        o2MetricValue = o2.f_lineCount;
-        break;
-      }
+      final long o1MetricValue = o1.getDurationNs(f_options);
+      final long o2MetricValue = o2.getDurationNs(f_options);
       if (f_options.f_thresholdShowAbove)
         return SLUtility.safeLongToInt(o2MetricValue - o1MetricValue);
       else
         return SLUtility.safeLongToInt(o1MetricValue - o2MetricValue);
     }
   };
-  final ViewerSorter f_slocSorter = new ViewerSorter() {
+  final ViewerSorter f_metricSorter = new ViewerSorter() {
 
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
@@ -326,80 +298,16 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
 
     final TreeViewerColumn columnTree = new TreeViewerColumn(f_treeViewer, SWT.LEFT);
     columnTree.setLabelProvider(TREE);
-    columnTree.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_TREE_WIDTH));
-    columnTree.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_TREE_WIDTH));
+    columnTree.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SCAN_TIME_COL_TREE_WIDTH));
+    columnTree.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.METRIC_SCAN_TIME_COL_TREE_WIDTH));
 
-    int tableColumnTitleIndex = 0;
-    final TreeViewerColumn columnLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
-    columnLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
-      long getMetricValue(ScanTimeElement metric) {
-        return metric.getLineCount();
-      }
-    });
-    columnLineCount.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_LINE_COUNT_WIDTH));
-    columnLineCount.getColumn().addControlListener(
-        new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_LINE_COUNT_WIDTH));
-    columnLineCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
-
-    final TreeViewerColumn columnBlankLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
-    columnBlankLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
-      long getMetricValue(ScanTimeElement metric) {
-        return metric.getBlankLineCount();
-      }
-    });
-    columnBlankLineCount.getColumn().setWidth(
-        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_BLANK_LINE_COUNT_WIDTH));
-    columnBlankLineCount.getColumn().addControlListener(
-        new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_BLANK_LINE_COUNT_WIDTH));
-    columnBlankLineCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
-
-    final TreeViewerColumn columnContainsCommentLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
-    columnContainsCommentLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
-      long getMetricValue(ScanTimeElement metric) {
-        return metric.getContainsCommentLineCount();
-      }
-    });
-    columnContainsCommentLineCount.getColumn().setWidth(
-        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_CONTAINS_COMMENT_LINE_COUNT_WIDTH));
-    columnContainsCommentLineCount.getColumn().addControlListener(
-        new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_CONTAINS_COMMENT_LINE_COUNT_WIDTH));
-    columnContainsCommentLineCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
-
-    final TreeViewerColumn columnJavaDeclarationCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
-    columnJavaDeclarationCount.setLabelProvider(new MetricDataCellLabelProvider() {
-      long getMetricValue(ScanTimeElement metric) {
-        return metric.getJavaDeclarationCount();
-      }
-    });
-    columnJavaDeclarationCount.getColumn().setWidth(
-        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_JAVA_DECLARATION_COUNT_WIDTH));
-    columnJavaDeclarationCount.getColumn().addControlListener(
-        new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_JAVA_DECLARATION_COUNT_WIDTH));
-    columnJavaDeclarationCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
-
-    final TreeViewerColumn columnJavaStatementCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
-    columnJavaStatementCount.setLabelProvider(new MetricDataCellLabelProvider() {
-      long getMetricValue(ScanTimeElement metric) {
-        return metric.getJavaStatementCount();
-      }
-    });
-    columnJavaStatementCount.getColumn().setWidth(
-        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_JAVA_STATEMENT_COUNT_WIDTH));
-    columnJavaStatementCount.getColumn().addControlListener(
-        new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_JAVA_STATEMENT_COUNT_WIDTH));
-    columnJavaStatementCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
-
-    final TreeViewerColumn columnSemicolonCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
-    columnSemicolonCount.setLabelProvider(new MetricDataCellLabelProvider() {
-      long getMetricValue(ScanTimeElement metric) {
-        return metric.getSemicolonCount();
-      }
-    });
-    columnSemicolonCount.getColumn().setWidth(
-        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_COL_SEMICOLON_COUNT_WIDTH));
-    columnSemicolonCount.getColumn().addControlListener(
-        new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_SEMICOLON_COUNT_WIDTH));
-    columnSemicolonCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
+    final TreeViewerColumn columnDuration = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    columnDuration.setLabelProvider(DURATION);
+    columnDuration.getColumn().setWidth(
+        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SCAN_TIME_COL_DURATION_WIDTH));
+    columnDuration.getColumn().addControlListener(
+        new ColumnResizeListener(JSurePreferencesUtility.METRIC_SCAN_TIME_COL_DURATION_WIDTH));
+    columnDuration.getColumn().setText("Duration (ns)");
 
     fixSortingIndicatorOnTreeTable();
 
@@ -468,14 +376,14 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     if (f_treeViewer.getSorter() == f_alphaSorter) {
       f_treeViewer.getTree().setSortColumn(null);
     } else {
-      f_treeViewer.getTree().setSortColumn(f_treeViewer.getTree().getColumn(f_options.getSelectedColumnTitleIndex() + 1));
+      f_treeViewer.getTree().setSortColumn(f_treeViewer.getTree().getColumn(1));
       f_treeViewer.getTree().setSortDirection(f_options.getThresholdShowAbove() ? SWT.UP : SWT.DOWN);
     }
   }
 
   @Override
   protected void refreshMetricContentsFor(@Nullable JSureScanInfo scan, @Nullable ArrayList<IMetricDrop> drops) {
-    final ArrayList<IMetricDrop> metricDrops = DropSeaUtility.filterMetricsToOneType(IMetricDrop.Metric.SLOC, drops);
+    final ArrayList<IMetricDrop> metricDrops = DropSeaUtility.filterMetricsToOneType(IMetricDrop.Metric.SCAN_TIME, drops);
     f_treeViewer.setInput(new ScanTimeViewContentProvider.Input(scan, metricDrops));
     f_treeViewer.expandToLevel(3);
   }
@@ -513,33 +421,28 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
   };
 
   /**
-   * Handles all the counts columns of the metrics view
+   * Handles the duration column of the metrics view
    */
-  abstract class MetricDataCellLabelProvider extends CellLabelProvider {
-
-    /**
-     * Implementations should extract the proper data for the column based upon
-     * the passed metric.
-     * 
-     * @param metric
-     *          a data containing Sloc metric element.
-     * @return the metric data.
-     */
-    abstract long getMetricValue(ScanTimeElement metric);
+  final CellLabelProvider DURATION = new CellLabelProvider() {
 
     @Override
     public void update(ViewerCell cell) {
-      if (cell.getElement() instanceof ScanTimeElement) {
-        final ScanTimeElement element = (ScanTimeElement) cell.getElement();
-        final long data = getMetricValue(element);
-        cell.setText(SLUtility.toStringHumanWithCommas(data));
-        if (element instanceof ScanTimeElementWithChildren)
-          cell.setForeground(EclipseColorUtility.getSubtleTextColor());
-        else {
-          // only highlight leaf cells
-          cell.setBackground(element.highlightDueToSlocThreshold(f_options) ? EclipseColorUtility.getDiffHighlightColorNewChanged()
-              : null);
+
+      if (cell.getElement() instanceof ScanTimeElementLeaf) {
+        final ScanTimeElementLeaf element = (ScanTimeElementLeaf) cell.getElement();
+        String label = element.getDurationAsHumanReadableString(f_options);
+        cell.setText(label);
+        Image image = element.getImage();
+        if (element.highlightDueToSlocThreshold(f_options)) {
+          image = SLImages.getDecoratedImage(image, new ImageDescriptor[] {
+              SLImages.getImageDescriptor(CommonImages.DECR_ASTERISK), null, null, null, null });
+          if (element instanceof ScanTimeElementLeaf) {
+            cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
+          }
+        } else {
+          cell.setBackground(null);
         }
+        cell.setImage(image);
       }
     }
   };
@@ -570,190 +473,6 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
 
         e.gc.setForeground(e.gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
 
-        /*
-         * Title to point out what the graph is showing
-         */
-        String title = element.getLabel();
-        Point titleExtent = e.gc.stringExtent(title);
-        int xPos = (clientArea.width / 2) - (titleExtent.x / 2);
-        if (xPos < 20)
-          xPos = 20;
-        e.gc.drawImage(element.getImage(), xPos - 18, 10 + (titleExtent.y / 2) - 8);
-        e.gc.drawText(title, xPos, 10, true);
-
-        fold += titleExtent.y + 20;
-
-        /*
-         * Pie chart at the top
-         */
-        double degPerLine = 1.0 / (((double) element.f_lineCount) / 360.0);
-
-        int chartDiameter = clientArea.width - 10;
-
-        // Draw chart first
-        e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
-        e.gc.fillOval(5, fold + 5, chartDiameter, chartDiameter);
-        if (element.f_blankLineCount > 0) {
-          int arcBlank = (int) ((double) element.f_blankLineCount * degPerLine);
-          e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color2());
-          e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, arcBlank);
-        }
-        if (element.f_containsCommentLineCount > 0) {
-          int arcCommented = (int) ((double) element.f_containsCommentLineCount * degPerLine);
-          e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color0());
-          e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, -arcCommented);
-        }
-        e.gc.drawOval(5, fold + 5, chartDiameter, chartDiameter);
-
-        // Draw text second
-        if (element.f_blankLineCount > 0) {
-          String blankTxt = SLUtility.toStringHumanWithCommas(element.f_blankLineCount) + " blank";
-          int blankTxtWidth = e.gc.stringExtent(blankTxt).x;
-          e.gc.drawText(blankTxt, (chartDiameter / 2) - blankTxtWidth - 5, fold + (chartDiameter / 4), true);
-        }
-        if (element.f_containsCommentLineCount > 0) {
-          String commentedTxt = SLUtility.toStringHumanWithCommas(element.f_containsCommentLineCount) + " commented";
-          e.gc.drawText(commentedTxt, (chartDiameter / 2) + 10, fold + (chartDiameter / 4), true);
-        }
-        String slocTxt = "Total: " + SLUtility.toStringHumanWithCommas(element.f_lineCount) + " SLOC";
-        int slocTxtWidth = e.gc.stringExtent(slocTxt).x;
-        e.gc.drawText(slocTxt, (chartDiameter / 2) + 5 - (slocTxtWidth / 2), fold + 3 * (chartDiameter / 4), true);
-
-        fold += chartDiameter + 10;
-
-        /*
-         * Bar chart at the bottom
-         */
-        int top = fold;
-        int bottom = clientArea.height - 10;
-        /*
-         * Only do this if we have room
-         */
-        if (top >= bottom - 80)
-          return;
-        int left = 5;
-        int right = clientArea.width - 5;
-        int pad = 5;
-        int barWidth = (right - left) / 4;
-        double pxlPerUnit = ((double) bottom - top) / ((double) element.f_lineCount);
-
-        e.gc.setForeground(e.gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
-
-        e.gc.drawLine(left, bottom, right, bottom);
-
-        // Declarations for bar chart labeling
-        String txt;
-        Point extent;
-        int x, y;
-        Transform tr;
-
-        // SLOC
-        int barX = left + pad;
-        int height = (int) (element.f_lineCount * pxlPerUnit);
-        e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
-        e.gc.fillRectangle(barX, bottom - height, barWidth - pad - pad, height);
-        e.gc.drawRectangle(barX, bottom - height, barWidth - pad - pad, height);
-
-        if (element.f_lineCount > 0) {
-          txt = "SLOC";
-          extent = e.gc.stringExtent(txt);
-          x = barX + ((barWidth - pad - pad) / 2) - (extent.y / 2);
-          y = (bottom - height / 2) + (extent.x / 2);
-          tr = new Transform(e.gc.getDevice());
-          tr.translate(x, y);
-          tr.rotate(-90);
-          e.gc.setTransform(tr);
-          e.gc.drawText(txt, 0, 0, true);
-          e.gc.setTransform(null);
-          tr.dispose();
-
-          txt = SLUtility.toStringHumanWithCommas(element.f_lineCount);
-          extent = e.gc.stringExtent(txt);
-          x = barX + ((barWidth - pad - pad) / 2) - (extent.x / 2);
-          y = bottom - height - extent.y;
-          e.gc.drawText(txt, x, y, true);
-        }
-
-        // Java Declarations
-        barX += barWidth;
-        height = (int) (element.f_javaDeclarationCount * pxlPerUnit);
-        e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color3());
-        e.gc.fillRectangle(barX, bottom - height, barWidth - pad - pad, height);
-        e.gc.drawRectangle(barX, bottom - height, barWidth - pad - pad, height);
-
-        if (element.f_javaDeclarationCount > 0) {
-          txt = "Decls";
-          extent = e.gc.stringExtent(txt);
-          x = barX + ((barWidth - pad - pad) / 2) - (extent.y / 2);
-          y = (bottom - height / 2) + (extent.x / 2);
-          tr = new Transform(e.gc.getDevice());
-          tr.translate(x, y);
-          tr.rotate(-90);
-          e.gc.setTransform(tr);
-          e.gc.drawText(txt, 0, 0, true);
-          e.gc.setTransform(null);
-          tr.dispose();
-
-          txt = SLUtility.toStringHumanWithCommas(element.f_javaDeclarationCount);
-          extent = e.gc.stringExtent(txt);
-          x = barX + ((barWidth - pad - pad) / 2) - (extent.x / 2);
-          y = bottom - height - extent.y;
-          e.gc.drawText(txt, x, y, true);
-        }
-
-        // Java Statements
-        barX += barWidth;
-        height = (int) (element.f_javaStatementCount * pxlPerUnit);
-        e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color1());
-        e.gc.fillRectangle(barX, bottom - height, barWidth - pad - pad, height);
-        e.gc.drawRectangle(barX, bottom - height, barWidth - pad - pad, height);
-
-        if (element.f_javaStatementCount > 0) {
-          txt = "Stmts";
-          extent = e.gc.stringExtent(txt);
-          x = barX + ((barWidth - pad - pad) / 2) - (extent.y / 2);
-          y = (bottom - height / 2) + (extent.x / 2);
-          tr = new Transform(e.gc.getDevice());
-          tr.translate(x, y);
-          tr.rotate(-90);
-          e.gc.setTransform(tr);
-          e.gc.drawText(txt, 0, 0, true);
-          e.gc.setTransform(null);
-          tr.dispose();
-
-          txt = SLUtility.toStringHumanWithCommas(element.f_javaStatementCount);
-          extent = e.gc.stringExtent(txt);
-          x = barX + ((barWidth - pad - pad) / 2) - (extent.x / 2);
-          y = bottom - height - extent.y;
-          e.gc.drawText(txt, x, y, true);
-        }
-
-        // Semicolon Count
-        barX += barWidth;
-        height = (int) (element.f_semicolonCount * pxlPerUnit);
-        e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color4());
-        e.gc.fillRectangle(barX, bottom - height, barWidth - pad - pad, height);
-        e.gc.drawRectangle(barX, bottom - height, barWidth - pad - pad, height);
-
-        if (element.f_semicolonCount > 0) {
-          txt = ";";
-          extent = e.gc.stringExtent(txt);
-          x = barX + ((barWidth - pad - pad) / 2) - (extent.y / 2);
-          y = (bottom - height / 2) + (extent.x / 2);
-          tr = new Transform(e.gc.getDevice());
-          tr.translate(x, y);
-          tr.rotate(-90);
-          e.gc.setTransform(tr);
-          e.gc.drawText(txt, 0, 0, true);
-          e.gc.setTransform(null);
-          tr.dispose();
-
-          txt = SLUtility.toStringHumanWithCommas(element.f_semicolonCount);
-          extent = e.gc.stringExtent(txt);
-          x = barX + ((barWidth - pad - pad) / 2) - (extent.x / 2);
-          y = bottom - height - extent.y;
-          e.gc.drawText(txt, x, y, true);
-        }
       }
     }
   }
@@ -769,12 +488,13 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     if (value)
       f_treeViewer.setSorter(f_alphaSorter);
     else
-      f_treeViewer.setSorter(f_slocSorter);
+      f_treeViewer.setSorter(f_metricSorter);
     fixSortingIndicatorOnTreeTable();
   }
 
   @Override
   public void takeActionUseFilter(boolean value) {
+    f_options.setFilterResultsByThreshold(value);
     if (value)
       f_treeViewer.addFilter(f_thresholdFilter);
     else
