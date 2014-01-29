@@ -131,24 +131,37 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
   // ----------------------------------------------------------------------
 
   public final static class TypeBodyPair extends GranuleInType {
-	private final IRNode classBody;
+    private final IRNode classBody;
 	  
     public TypeBodyPair(final IRNode td, final IRNode cb) {
       super(td);
       classBody = cb;
     }
     
-    @Override
-    public IRNode getNode() {
-    	return typeDecl;
-    }
+    public IRNode getClassBody() { return classBody; }
     
-    public IRNode typeDecl() { return typeDecl; }
-    public IRNode classBody() { return classBody; }
+    @Override
+    public IRNode getNode() { return typeDecl; }
     
   	@Override
-    public String getLabel() {
-  		return JavaNames.getFullTypeName(typeDecl);
+    public String getLabel() { return JavaNames.getFullTypeName(typeDecl); }
+  	
+  	@Override
+  	public boolean equals(final Object other) {
+  	  if (other instanceof TypeBodyPair) {
+  	    final TypeBodyPair o = (TypeBodyPair) other;
+  	    return typeDecl.equals(o.typeDecl) && classBody.equals(o.classBody);
+  	  } else {
+  	    return false;
+  	  }
+  	}
+  	
+  	@Override
+  	public int hashCode() {
+  	  int result = 17;
+  	  result = 31 * result + typeDecl.hashCode();
+  	  result = 31 * result + classBody.hashCode();
+  	  return result;
   	}
   }
 

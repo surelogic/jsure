@@ -90,7 +90,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 			setWorkProcedure(new Procedure<TypeBodyPair>() {
 				@Override
         public void op(TypeBodyPair type) {
-					doAnalysisOnClassBody(type.classBody());
+					doAnalysisOnClassBody(type.getClassBody());
 					//checkEffectsForFile(type.getNode());
 				}				
 			});
@@ -148,7 +148,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	@Override
 	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TypeBodyPair n) {
 		//checkEffectsForFile(n.typeDecl);
-		doAnalysisOnClassBody(n.classBody());
+		doAnalysisOnClassBody(n.getClassBody());
 		return true; 
 	}
 

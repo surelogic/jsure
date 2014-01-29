@@ -86,11 +86,11 @@ public class LockAnalysis
 								new ClassProcessor(getAnalysis()),
 								// actually n.typeDecl is a CompilationUnit
 								// here!
-								n.typeDecl());
+								n.getType());
 					} else {
 						// System.out.println("Parallel Lock: "+JavaNames.getRelativeTypeName(n));
 						actuallyAnalyzeClassBody(getAnalysis(),
-								n.typeDecl(),	n.classBody());
+								n.getType(),	n.getClassBody());
 					}
 				}
 			});
@@ -249,7 +249,7 @@ public class LockAnalysis
 	
 	@Override
 	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TypeBodyPair n) {
-		actuallyAnalyzeClassBody(getAnalysis(), n.typeDecl(), n.classBody());
+		actuallyAnalyzeClassBody(getAnalysis(), n.getType(), n.getClassBody());
 		return true; 
 	}
 	

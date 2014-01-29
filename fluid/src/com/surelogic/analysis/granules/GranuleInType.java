@@ -7,24 +7,34 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public abstract class GranuleInType implements IAnalysisGranule {
-	public final IRNode typeDecl;
+	protected final IRNode typeDecl;
 	
-	protected GranuleInType(IRNode type) {
+	protected GranuleInType(final IRNode type) {
 		typeDecl = type;
 	}
 	
+	public final IRNode getType() {
+	  return typeDecl;
+	}
+	
+	/**
+	 * Purposely leave the node of the granule unspecified.
+	 */
 	@Override
-  public IRNode getCompUnit() {
+	public abstract IRNode getNode();
+	
+	@Override
+  public final IRNode getCompUnit() {
 		return VisitUtil.getEnclosingCompilationUnit(typeDecl);
 	}
 
 	@Override
-  public ITypeEnvironment getTypeEnv() {
+  public final ITypeEnvironment getTypeEnv() {
 		return Projects.getEnclosingProject(typeDecl).getTypeEnv();
 	}
 	
 	@Override
-  public boolean isAsSource() {
+  public final boolean isAsSource() {
 		return true;
 	}
 }

@@ -71,9 +71,9 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 					if (byCompUnit) {
 					  TopLevelAnalysisVisitor.processCompilationUnit(
 		            // actually n.typeDecl is a CompilationUnit here!
-					      new ClassProcessor(getAnalysis()), n.typeDecl());
+					      new ClassProcessor(getAnalysis()), n.getType());
 					} else {
-					  actuallyAnalyzeClassBody(getAnalysis(), n.typeDecl(), n.classBody());
+					  actuallyAnalyzeClassBody(getAnalysis(), n.getType(), n.getClassBody());
 					}
 				}
 			});
@@ -141,7 +141,7 @@ public final class UtilityAnalysis extends AbstractWholeIRAnalysis<UtilityAnalys
 	
 	@Override
 	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TypeBodyPair n) {
-		actuallyAnalyzeClassBody(getAnalysis(), n.typeDecl(), n.classBody());
+		actuallyAnalyzeClassBody(getAnalysis(), n.getType(), n.getClassBody());
 		return true; 
 	}
 	

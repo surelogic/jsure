@@ -134,7 +134,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         runInParallel(TypeAndMethod.class, methods, new Procedure<TypeAndMethod>() {
           @Override
           public void op(TypeAndMethod node) {
-            final String methodName = JavaNames.genRelativeFunctionName(node.methodDecl);
+            final String methodName = JavaNames.genRelativeFunctionName(node.getMethod());
             if (monitor != null) {
               monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
             }
@@ -157,7 +157,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         // Analyze the given nodes
         for (Iterator<TypeAndMethod> iter = methods.iterator(); iter.hasNext();) {
           final TypeAndMethod node = iter.next();
-          final String methodName = JavaNames.genQualifiedMethodConstructorName(node.methodDecl);
+          final String methodName = JavaNames.genQualifiedMethodConstructorName(node.getMethod());
           if (monitor != null) {
             monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
           }
@@ -197,7 +197,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	 */
 	private void analzyePseudoMethodDeclaration(final TypeAndMethod node) {
     final PromiseRecord pr = createPromiseRecordFor(node);
-    final Operator blockOp = JJNode.tree.getOperator(node.methodDecl);
+    final Operator blockOp = JJNode.tree.getOperator(node.getMethod());
     final boolean isInit = InitDeclaration.prototype.includes(blockOp);
     final boolean isClassInit = ClassInitDeclaration.prototype.includes(blockOp);
     final boolean isConstructorDecl = ConstructorDeclaration.prototype.includes(blockOp);
@@ -211,14 +211,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       for (final IRNode bodyDecl : ClassBody.getDeclIterator(node.getClassBody())) {
         if (FieldDeclaration.prototype.includes(bodyDecl) || ClassInitializer.prototype.includes(bodyDecl)) {
           if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
-            analyzeSubtree(node.methodDecl, pr, bodyDecl);
+            analyzeSubtree(node.getMethod(), pr, bodyDecl);
           }
         }
       }
     }
     
     if (isConstructorDecl || isMethodDecl) {
-      analyzeSubtree(node.methodDecl, pr, node.methodDecl);
+      analyzeSubtree(node.getMethod(), pr, node.getMethod());
     }
 	}
 
@@ -573,8 +573,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
    *          or class init declaration node.
    */
   private PromiseRecord createPromiseRecordFor(final TypeAndMethod block) {
-		final PromiseRecord pr = new PromiseRecord(block.methodDecl);
-		final Operator blockOp = JJNode.tree.getOperator(block.methodDecl);
+		final PromiseRecord pr = new PromiseRecord(block.getMethod());
+		final Operator blockOp = JJNode.tree.getOperator(block.getMethod());
     final boolean isInit = InitDeclaration.prototype.includes(blockOp);
     final boolean isClassInit = ClassInitDeclaration.prototype.includes(blockOp);
     final boolean isConstructorDecl = ConstructorDeclaration.prototype.includes(blockOp);
@@ -587,7 +587,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
     if (isConstructorDecl || isInit || isClassInit) {
       // If constructor or init, add the IFQR if it exists and is borrowed
       if (!isClassInit) {
-        final IRNode ifqr = JavaPromise.getQualifiedReceiverNodeOrNull(block.typeDecl);
+        final IRNode ifqr = JavaPromise.getQualifiedReceiverNodeOrNull(block.getType());
         if (UniquenessUtils.isFieldBorrowed(ifqr)) {
           pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(ifqr));
         }
@@ -627,7 +627,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		 */
     if (isConstructorDecl || isMethodDecl) {
       // don't care about my effects, use a throw-away set here
-      getPromisesFromMethodDecl(block.methodDecl,
+      getPromisesFromMethodDecl(block.getMethod(),
           pr.myUniqueReturn, pr.myImmutableReturn, pr.myReadOnlyReturn,
           pr.myBorrowedParams, new HashSet<BorrowedPromiseDrop>(),
           pr.myImmutableParams, pr.myReadOnlyParams,
@@ -639,7 +639,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 		 * field declarations and initializer blocks.
 		 */
     if (isConstructorDecl || isMethodDecl) {
-      populatePromiseRecord(pr, block.methodDecl);
+      populatePromiseRecord(pr, block.getMethod());
     }
     if (isInit || isClassInit || isConstructorDecl) {
       for (final IRNode bodyDecl : ClassBody.getDeclIterator(block.getClassBody())) {
