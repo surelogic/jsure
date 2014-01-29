@@ -6,6 +6,7 @@ import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 
 import com.surelogic.common.Pair;
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -617,7 +618,8 @@ public class TypeUtils {
 			}
 			else if (formal instanceof IJavaTypeVariable) {
 				// TODO check if this is one of the relevant type variables
-				if (map.subst.containsKey(formal)) {
+				if (MethodBinder.captureTypes || map.subst.containsKey(formal)) {
+				    // TODO is this right to handle any type variable?
 					// p.453: Otherwise, if F = Tj, then the constraint Tj :> A is implied.
 					IJavaTypeVariable f = (IJavaTypeVariable) formal;
 					IJavaReferenceType a = (IJavaReferenceType) actual;
@@ -627,6 +629,10 @@ public class TypeUtils {
 			else if (formal instanceof IJavaIntersectionType) {
 				// TODO
 				throw new UnsupportedOperationException();
+			}
+			else if (formal instanceof IJavaWildcardType) {
+				SLLogger.getLogger().info("Ignoring constraint: "+formal+" "+constraint+" "+actual);
+				return false;
 			}
 			else throw new IllegalStateException("Unexpected type: "+formal);
 			
@@ -984,7 +990,9 @@ public class TypeUtils {
 		Mapping(CallState call, IBinding method, Map<IJavaType, IJavaType> substMap) {
 			this.call = call;
 			this.method = method;
-			subst = new HashMap<IJavaType, IJavaType>(substMap);
+			subst = MethodBinder.captureTypes ?
+					new IdentityHashMap<IJavaType, IJavaType>(substMap) :
+					new HashMap<IJavaType, IJavaType>(substMap);
 		}
 
 		void markAsUnsatisfiable() {
@@ -1006,7 +1014,7 @@ public class TypeUtils {
 		 */
 		public boolean checkIfSatisfiesBounds() {
 			for(Map.Entry<IJavaType, IJavaType> e : subst.entrySet()) {
-				final IJavaTypeFormal r = (IJavaTypeFormal) e.getKey();
+				final IJavaTypeVariable r = (IJavaTypeVariable) e.getKey();
 				final IJavaType b = r.getSuperclass(tEnv);
 				final IJavaType a = e.getValue();
 				if (!tEnv.isSubType(a, substitute(b))) {
@@ -1182,6 +1190,16 @@ public class TypeUtils {
     		IJavaType newBase = substitute(map, baseT);
     		if (newBase != baseT) {
     			return JavaTypeFactory.getArrayType(newBase, at.getDimensions());
+    		}
+    	}
+    	else if (fty instanceof IJavaCaptureType) {
+    		IJavaCaptureType ct = (IJavaCaptureType) fty;
+    		IJavaType baseT   = ct.getWildcard();
+    		IJavaWildcardType newBase = (IJavaWildcardType) substitute(map, baseT);
+    		IJavaReferenceType newLower = (IJavaReferenceType) substitute(map, ct.getLowerBound());
+    		IJavaReferenceType newUpper = (IJavaReferenceType) substitute(map, ct.getUpperBound());
+    		if (newBase != baseT || newLower != ct.getLowerBound() || newUpper != ct.getUpperBound()) {
+    			return JavaTypeFactory.getCaptureType(newBase, newLower, newUpper);
     		}
     	}
     	return fty;

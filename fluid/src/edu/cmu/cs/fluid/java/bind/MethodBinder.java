@@ -18,6 +18,8 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 class MethodBinder {
+	public static final boolean captureTypes = false;
+	
 	private static final Logger LOG = AbstractJavaBinder.LOG;
 	
     private final HashMap<Pair<IJavaType,IJavaType>,Boolean> callCompatCache = 
@@ -298,6 +300,12 @@ class MethodBinder {
     		best = findMostSpecificApplicableMethod(state, true, false);
     		if (best == null) {
     			best = findMostSpecificApplicableMethod(state, true, true);
+
+    			// Debug code
+    			if (best == null) {
+    				findMostSpecificApplicableMethod(state, false, false);
+    				findMostSpecificApplicableMethod(state, true, true);
+    			}
     		}
     	}
     	return best;
@@ -308,7 +316,7 @@ class MethodBinder {
     	for(final IBinding mbind : s.methods) {
     		final IRNode mdecl = mbind.getNode();
     		if (debug) {
-    			LOG.finer("Considering method binding: " + mdecl + " : " + DebugUnparser.toString(mdecl)
+    			System.out.println("Considering method binding: " + mdecl + " : " + DebugUnparser.toString(mdecl)
     					+ binder.getInVersionString());
     		}
     		final MethodState m = isApplicable(s, allowBoxing, allowVarargs, mbind);
@@ -457,6 +465,7 @@ class MethodBinder {
      		s.utils.getEmptyConstraints(s.call, m.bind, m.substMap, allowBoxing, allowVarargs);    	
     	final Iterator<IRNode> fe = JJNode.tree.children(m.formals);
     	IJavaType varArgBase = null;
+    	boolean debug = false;
     	for (int i=0; i < s.argTypes.length; ++i) {
     		IJavaType fty;
     		if (!fe.hasNext()) {
@@ -479,7 +488,20 @@ class MethodBinder {
     			fty = binder.getTypeEnvironment().convertNodeTypeToIJavaType(ptype);
     			
     			fty = m.bind.convertType(binder, fty);
-    	
+    			if (captureTypes) {    		
+    				IJavaType temp = JavaTypeVisitor.captureWildcards(binder, fty);    			
+    				if (temp != fty) {
+    					String call = DebugUnparser.toString(s.call.call);
+    					if ("Maps.transformValues(<implicit>.delegate.rowMap, wrapper)".equals(call)) {
+    						System.out.println("Binding call "+call);
+    						System.out.println("Looking at "+JavaNames.getRelativeName(m.bind.getNode()));
+    						System.out.println("Captured wildcards for "+fty);
+    						debug = true;
+    					}
+    					fty = temp;
+    				}
+    			}
+    			
     			if (allowVarargs && ptype == varType) {
     				// Check if I need to use varargs
     				// 1. Last formal (varargs) is before the last argument

@@ -21,6 +21,7 @@ import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.KeyValueUtility;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 
 public final class MetricDrop extends Drop implements IMetricDrop {
 
@@ -32,8 +33,8 @@ public final class MetricDrop extends Drop implements IMetricDrop {
    * @param metric
    *          the metric this drop of information is about.
    */
-  public MetricDrop(IRNode node, Metric metric) {
-    super(node);
+  public MetricDrop(IRNode n, Metric metric) {
+    super(CompilationUnit.prototype.includes(n) ? CompilationUnit.getPkg(n) : n);
     if (metric == null)
       throw new IllegalArgumentException(I18N.err(44, "metric"));
     f_metric = metric;
