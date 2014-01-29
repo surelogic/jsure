@@ -1,5 +1,7 @@
 package com.surelogic.analysis;
 
+import com.surelogic.analysis.granules.IAnalysisGranule;
+
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
 public abstract class AbstractAnalysisSharingAnalysis<S, T extends IBinderClient, Q extends IAnalysisGranule> extends AbstractWholeIRAnalysis<T, Q> {

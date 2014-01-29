@@ -12,6 +12,9 @@ import java.util.logging.Level;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
+import com.surelogic.analysis.granules.AbstractGranulator;
+import com.surelogic.analysis.granules.IAnalysisGranulator;
+import com.surelogic.analysis.granules.TypeAndMethod;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.AbruptErrorQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysis.IsInvalidQuery;

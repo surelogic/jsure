@@ -1,6 +1,8 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/WholeIRAnalysisTemplate.java,v 1.2 2008/09/08 17:43:38 chance Exp $*/
 package com.surelogic.analysis;
 
+import com.surelogic.analysis.granules.IAnalysisGranule;
+
 import edu.cmu.cs.fluid.java.bind.IBinder;
 
 public class WholeIRAnalysisTemplate<T extends IBinderClient,Q extends IAnalysisGranule> extends AbstractWholeIRAnalysis<T,Q> {

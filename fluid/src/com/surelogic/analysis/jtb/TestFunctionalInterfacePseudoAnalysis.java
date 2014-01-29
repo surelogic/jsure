@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.TopLevelType;
+import com.surelogic.analysis.granules.TopLevelType;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 

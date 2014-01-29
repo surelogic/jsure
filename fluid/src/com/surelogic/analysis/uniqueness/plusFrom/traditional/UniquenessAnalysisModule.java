@@ -11,6 +11,7 @@ import java.util.logging.Level;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
+import com.surelogic.analysis.granules.TypeAndMethod;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysis.AbruptErrorQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysis.IsInvalidQuery;

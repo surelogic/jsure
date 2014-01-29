@@ -1,4 +1,4 @@
-package com.surelogic.analysis;
+package com.surelogic.analysis.granules;
 
 import java.util.List;
 

@@ -4,6 +4,7 @@ package com.surelogic.analysis;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.control.LabelList;

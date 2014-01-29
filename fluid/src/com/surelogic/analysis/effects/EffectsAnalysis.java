@@ -23,6 +23,7 @@ import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.QualifiedReceiverConversionEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.UnknownReferenceConversionEvidence;
+import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
