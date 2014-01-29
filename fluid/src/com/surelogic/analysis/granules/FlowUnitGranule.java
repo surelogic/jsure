@@ -1,6 +1,6 @@
 package com.surelogic.analysis.granules;
 
-import com.surelogic.analysis.visitors.SuperVisitor.SubVisitor;
+import com.surelogic.analysis.visitors.FlowUnitVisitor;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -9,24 +9,24 @@ public final class FlowUnitGranule extends GranuleInType {
   private enum Kind {
     METHOD {
       @Override
-      public void execute(final SubVisitor<?> visitor, final IRNode flowUnit) {
+      public void execute(final FlowUnitVisitor<?> visitor, final IRNode flowUnit) {
         visitor.visitMethodDeclaration(flowUnit);
       }
     },
     CONSTRUCTOR {
       @Override
-      public void execute(final SubVisitor<?> visitor, final IRNode flowUnit) {
+      public void execute(final FlowUnitVisitor<?> visitor, final IRNode flowUnit) {
         visitor.visitConstructorDeclaration(flowUnit);
       }
     },
     CLASS_INIT {
       @Override
-      public void execute(final SubVisitor<?> visitor, final IRNode flowUnit) {
+      public void execute(final FlowUnitVisitor<?> visitor, final IRNode flowUnit) {
         visitor.visitClassInitDeclaration(flowUnit);
       }
     };
     
-    public abstract void execute(SubVisitor<?> visitor, IRNode flowUnit);
+    public abstract void execute(FlowUnitVisitor<?> visitor, IRNode flowUnit);
   }
   
   
@@ -68,7 +68,7 @@ public final class FlowUnitGranule extends GranuleInType {
 
   
   
-  public void execute(final SubVisitor<?> visitor) {
+  public void execute(final FlowUnitVisitor<?> visitor) {
     kind.execute(visitor, flowUnit);
   }
   

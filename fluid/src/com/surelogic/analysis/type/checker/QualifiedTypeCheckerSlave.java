@@ -2,7 +2,7 @@ package com.surelogic.analysis.type.checker;
 
 import java.util.Iterator;
 
-import com.surelogic.analysis.visitors.SuperVisitor;
+import com.surelogic.analysis.visitors.FlowUnitVisitor;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -32,7 +32,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * based on those places where the JLS indicates a statement or expression
  * may generate a particular run-time exception.
  */
-public abstract class QualifiedTypeCheckerSlave<Q> extends SuperVisitor.SubVisitor<Q> {
+public abstract class QualifiedTypeCheckerSlave<Q> extends FlowUnitVisitor<Q> {
   protected final IBinder binder;
 
   

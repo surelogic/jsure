@@ -42,7 +42,7 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.granules.FlowUnitGranule;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
-import com.surelogic.analysis.visitors.SuperVisitor.SubVisitor;
+import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.ParseUtil;
 import com.surelogic.annotation.parse.SLAnnotationsLexer;
@@ -1145,10 +1145,10 @@ public class Util {
 		  }		  
 	  }
 	  		  
-	  private void execute(List<FlowUnitGranule> granules, List<SubVisitor<?>> subVisitors) {
+	  private void execute(List<FlowUnitGranule> granules, List<FlowUnitVisitor<?>> subVisitors) {
 		  for(FlowUnitGranule g : granules) {		  
 			  // TODO setup versioning, assumptions, component locking
-			  for(SubVisitor<?> sv : subVisitors) {
+			  for(FlowUnitVisitor<?> sv : subVisitors) {
 				  // TODO timing
 				  
 				  // a.doAnalysisOnGranule(env, granule) ->

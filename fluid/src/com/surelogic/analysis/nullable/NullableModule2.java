@@ -18,6 +18,7 @@ import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Inferred;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.InferredQuery;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.InferredVarState;
 import com.surelogic.analysis.nullable.NullableModule2.AnalysisBundle.QueryBundle;
+import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.analysis.visitors.SuperVisitor;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
@@ -139,8 +140,8 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     }
     
     @Override
-    protected List<SubVisitor<?>> createSubVisitors() {
-      final List <SubVisitor<?>> subs = new ArrayList<SubVisitor<?>>(2);
+    protected List<FlowUnitVisitor<?>> createSubVisitors() {
+      final List <FlowUnitVisitor<?>> subs = new ArrayList<FlowUnitVisitor<?>>(2);
       subs.add(new DetailVisitor());
       subs.add(new NonNullTypeCheckerSlave(
           getBinder(), getAnalysis().nonNullRawType, getAnalysis().getTimedOut()));
@@ -169,7 +170,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   
   
   
-  private final class DetailVisitor extends SuperVisitor.SubVisitor<QueryBundle> {
+  private final class DetailVisitor extends FlowUnitVisitor<QueryBundle> {
     public DetailVisitor() {
       super(true);
     }
