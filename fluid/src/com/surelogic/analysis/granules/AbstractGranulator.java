@@ -5,6 +5,7 @@ import java.util.List;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import extra166y.Ops.Procedure;
 
 public abstract class AbstractGranulator<T extends IAnalysisGranule> implements IAnalysisGranulator<T> {
 	private final Class<T> type;
@@ -37,4 +38,8 @@ public abstract class AbstractGranulator<T extends IAnalysisGranule> implements 
 	}
 	
 	protected abstract void extractGranules(List<T> granules, ITypeEnvironment tEnv, IRNode cu);
+	
+	public Procedure<T> wrapAnalysis(Procedure<T> proc) {
+		return proc;
+	}
 }

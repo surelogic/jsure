@@ -4,6 +4,7 @@ import java.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import extra166y.Ops.Procedure;
 
 /**
  * Extracts one or more IAnalysisGranules from a compilation unit
@@ -23,4 +24,12 @@ public interface IAnalysisGranulator<T extends IAnalysisGranule> {
 	List<T> getGranules();
 
 	Class<T> getType();
+
+	/**
+	 * An opportunity to wrap the operation 
+	 */
+	// TODO setup versioning, assumptions, component locking 
+	// TODO what if analysis starts another thread/task?
+	// TODO unlock component cache
+	Procedure<T> wrapAnalysis(Procedure<T> proc);
 }

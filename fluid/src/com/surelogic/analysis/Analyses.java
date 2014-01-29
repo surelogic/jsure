@@ -63,4 +63,8 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 		}
 		return rv;
 	}
+
+	public IAnalysisGranulator<IAnalysisGranule> getGranulator() {		
+		return null;
+	}
 }

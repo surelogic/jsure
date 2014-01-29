@@ -39,6 +39,7 @@ import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.granules.FlowUnitGranule;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.analysis.visitors.SuperVisitor.SubVisitor;
@@ -539,7 +540,7 @@ public class Util {
     System.out.println("Done in " + total + " ms.");
     if (analyze) {
       int i = 0;
-      for (IIRAnalysis a : analyses) {
+      for (final IIRAnalysis<IAnalysisGranule> a : analyses) {
         System.out.println(a.name() + "\t: " + times[i] + " ms");
         perf.setLongProperty("analysis."+a.name(), times[i]);
         i++;
@@ -923,7 +924,7 @@ public class Util {
     i = 0;
 
     // Finish
-    for (final IIRAnalysis a : analyses) {
+    for (final IIRAnalysis<IAnalysisGranule> a : analyses) {
       final long start = System.currentTimeMillis();
       a.finish(env);
       final long end = System.currentTimeMillis();
@@ -933,7 +934,7 @@ public class Util {
     i = 0;
     
     final long[] allTimesNano = timings.summarize();
-    for (final IIRAnalysis a : analyses) {
+    for (final IIRAnalysis<IAnalysisGranule> a : analyses) {
     	perf.setLongProperty("analysis.all.nano."+a.name(), allTimesNano[i]);
     	i++;
     }
@@ -1056,8 +1057,12 @@ public class Util {
 				  }
 			  }				  			  
 		  };
-		  setWorkProcedure(rv);
-		  return rv;
+		  if (analyses.getGranulator() != null) {
+			  setWorkProcedure(analyses.getGranulator().wrapAnalysis(rv));
+		  } else {
+			  setWorkProcedure(rv);
+		  }
+		  return getWorkProcedure();
 	  }
 	  
 	  protected void recordTime(Q granule, IIRAnalysis<Q> a, long t_in_ns) {
@@ -1139,17 +1144,16 @@ public class Util {
 			  queueWork(toAnalyze);
 		  }		  
 	  }
-  }
-	  
-  // Temp
-  interface Granule {
-	  void execute(SubVisitor<?> v);
-  }
-  
-  private static void execute(List<Granule> granules, List<SubVisitor<?>> subVisitors) {
-	  for(Granule g : granules) {
-		  for(SubVisitor<?> sv : subVisitors) {
-			  g.execute(sv);
+	  		  
+	  private void execute(List<FlowUnitGranule> granules, List<SubVisitor<?>> subVisitors) {
+		  for(FlowUnitGranule g : granules) {		  
+			  // TODO setup versioning, assumptions, component locking
+			  for(SubVisitor<?> sv : subVisitors) {
+				  // TODO timing
+				  
+				  // a.doAnalysisOnGranule(env, granule) ->
+				  g.execute(sv);
+			  }
 		  }
 	  }
   }
