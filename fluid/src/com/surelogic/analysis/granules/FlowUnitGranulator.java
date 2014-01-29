@@ -5,7 +5,9 @@ import java.util.List;
 import com.surelogic.analysis.visitors.FlowUnitFinder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import extra166y.Ops.Procedure;
 
 public final class FlowUnitGranulator extends AbstractGranulator<FlowUnitGranule> {
   public static final FlowUnitGranulator prototype = new FlowUnitGranulator();
@@ -56,5 +58,20 @@ public final class FlowUnitGranulator extends AbstractGranulator<FlowUnitGranule
         }
       };
     }
+  }
+  
+  @Override
+  public Procedure<FlowUnitGranule> wrapAnalysis(final Procedure<FlowUnitGranule> proc) {
+	  return new Procedure<FlowUnitGranule>() {
+		@Override
+		public void op(FlowUnitGranule g) {
+			final JavaComponentFactory jcf = JavaComponentFactory.startUse();
+		    try {
+		    	proc.op(g);		    
+		    } finally {
+		      JavaComponentFactory.finishUse(jcf);
+		    }
+		}
+	  };
   }
 }
