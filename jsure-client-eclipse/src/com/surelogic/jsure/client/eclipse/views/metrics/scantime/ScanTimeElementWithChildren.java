@@ -2,8 +2,10 @@ package com.surelogic.jsure.client.eclipse.views.metrics.scantime;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.surelogic.NonNull;
+import com.surelogic.common.SLUtility;
 
 public abstract class ScanTimeElementWithChildren extends ScanTimeElement {
 
@@ -37,6 +39,25 @@ public abstract class ScanTimeElementWithChildren extends ScanTimeElement {
     for (ScanTimeElement element : getChildrenAsListReference())
       result |= element.highlightDueToSlocThreshold(options);
     return result;
+  }
+
+  @Override
+  public final long getDurationNs(ScanTimeOptions options) {
+    final boolean filterResultsByThreshold = options.getFilterResultsByThreshold();
+    long result = 0;
+    for (ScanTimeElement element : getChildrenAsListReference()) {
+      // Take filtering into account if filtering is on
+      boolean includeChild = !filterResultsByThreshold
+          || (filterResultsByThreshold && element.highlightDueToSlocThreshold(options));
+      if (includeChild)
+        result += element.getDurationNs(options);
+    }
+    return result;
+  }
+
+  @Override
+  public final String getDurationAsHumanReadableString(ScanTimeOptions options) {
+    return SLUtility.toStringDurationNS(getDurationNs(options), TimeUnit.NANOSECONDS);
   }
 
   @NonNull

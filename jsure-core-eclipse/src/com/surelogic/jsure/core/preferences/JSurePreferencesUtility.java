@@ -132,6 +132,9 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultIntPreference(METRIC_VIEW_SLOC_COMBO_SELECTED_COLUMN, 0);
       EclipseUtility.setDefaultBooleanPreference(METRIC_VIEW_SLOC_THRESHOLD_SHOW_ABOVE, true);
 
+      EclipseUtility.setDefaultIntPreference(METRIC_SCAN_TIME_COL_TREE_WIDTH, 300);
+      EclipseUtility.setDefaultIntPreference(METRIC_SCAN_TIME_COL_DURATION_WIDTH, 80);
+
       /*
        * We'll take the default-default for the other preferences.
        */
@@ -205,6 +208,9 @@ public final class JSurePreferencesUtility {
   public static final String METRIC_SLOC_COL_SEMICOLON_COUNT_WIDTH = PREFIX + "metric.sloc.col.semicolon-count.width";
   public static final String METRIC_VIEW_SLOC_COMBO_SELECTED_COLUMN = PREFIX + "metric.sloc.combo_seleted_column";
   public static final String METRIC_VIEW_SLOC_THRESHOLD_SHOW_ABOVE = PREFIX + "metric.sloc.threshold_show_above";
+
+  public static final String METRIC_SCAN_TIME_COL_TREE_WIDTH = PREFIX + "metric.scan.time.col.tree.width";
+  public static final String METRIC_SCAN_TIME_COL_DURATION_WIDTH = PREFIX + "metric.scan.time.col.duration.width";
 
   /**
    * Gets the JSure data directory. This method ensures that the directory does

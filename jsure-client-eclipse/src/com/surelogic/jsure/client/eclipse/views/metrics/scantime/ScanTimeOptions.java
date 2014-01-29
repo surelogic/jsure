@@ -7,7 +7,7 @@ package com.surelogic.jsure.client.eclipse.views.metrics.scantime;
  */
 public final class ScanTimeOptions {
 
-  int f_threshold;
+  long f_threshold;
 
   /**
    * Sets the metric threshold value.
@@ -17,7 +17,7 @@ public final class ScanTimeOptions {
    * @return {@code true} if the value changed, {@code false} if it was already
    *         set to this value.
    */
-  public boolean setThreshold(int value) {
+  public boolean setThreshold(long value) {
     if (f_threshold != value) {
       f_threshold = value;
       return true;
@@ -30,9 +30,11 @@ public final class ScanTimeOptions {
    * 
    * @return the metric threshold value.
    */
-  public int getThreshold() {
+  public long getThreshold() {
     return f_threshold;
   }
+
+  // TODO DOES THIS MAKE SENSE FOR SCAN TIME???
 
   int f_selectedColumnTitleIndex = 0;
 
@@ -94,5 +96,19 @@ public final class ScanTimeOptions {
    */
   public boolean getThresholdShowAbove() {
     return f_thresholdShowAbove;
+  }
+
+  boolean f_filterResultsByThreshold = false;
+
+  public boolean setFilterResultsByThreshold(boolean value) {
+    if (f_filterResultsByThreshold != value) {
+      f_filterResultsByThreshold = value;
+      return true;
+    } else
+      return false;
+  }
+
+  public boolean getFilterResultsByThreshold() {
+    return f_filterResultsByThreshold;
   }
 }

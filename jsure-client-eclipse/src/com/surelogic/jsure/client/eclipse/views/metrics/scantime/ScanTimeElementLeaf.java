@@ -1,8 +1,11 @@
 package com.surelogic.jsure.client.eclipse.views.metrics.scantime;
 
+import java.util.concurrent.TimeUnit;
+
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
 
@@ -11,15 +14,13 @@ import com.surelogic.common.ui.SLImages;
  */
 public final class ScanTimeElementLeaf extends ScanTimeElement {
 
-  ScanTimeElementLeaf(ScanTimeElement parent, String label, int blankLineCount, int containsCommentLineCount, int javaDeclarationCount,
-      int javaStatementCount, int lineCount, int semicolonCount) {
-    super(parent, label);
-    f_blankLineCount = blankLineCount;
-    f_containsCommentLineCount = containsCommentLineCount;
-    f_javaDeclarationCount = javaDeclarationCount;
-    f_javaStatementCount = javaStatementCount;
-    f_lineCount = lineCount;
-    f_semicolonCount = semicolonCount;
+  final long f_durationNs;
+  final String f_durationLabel;
+
+  ScanTimeElementLeaf(ScanTimeElement parent, String analysisName, long durationNs) {
+    super(parent, analysisName);
+    f_durationNs = durationNs;
+    f_durationLabel = SLUtility.toStringDurationNS(durationNs, TimeUnit.NANOSECONDS);
   }
 
   @Override
@@ -31,37 +32,17 @@ public final class ScanTimeElementLeaf extends ScanTimeElement {
   public boolean highlightDueToSlocThreshold(ScanTimeOptions options) {
     final long threshold = options.getThreshold();
     final boolean showAbove = options.getThresholdShowAbove();
-    final long metricValue;
-    switch (options.getSelectedColumnTitleIndex()) {
-    case 1: // Blank Lines
-      metricValue = f_blankLineCount;
-      break;
-    case 2: // Commented Lines
-      metricValue = f_containsCommentLineCount;
-      break;
-    case 3: // Java Declarations
-      metricValue = f_javaDeclarationCount;
-      break;
-    case 4: // Java Statements
-      metricValue = f_javaStatementCount;
-      break;
-    case 5: // Semicolon Count
-      metricValue = f_semicolonCount;
-      break;
-    default: // SLOC (0 and default)
-      metricValue = f_lineCount;
-      break;
-    }
+    final long metricValue = f_durationNs;
     return showAbove ? metricValue >= threshold : metricValue <= threshold;
   }
 
   @Override
   public Image getImage() {
-    return SLImages.getImage(CommonImages.IMG_JAVA_COMP_UNIT);
+    return SLImages.getImage(CommonImages.IMG_JSURE_VERIFY);
   }
 
   public void tryToOpenInJavaEditor() {
-    if (getParent() == null || getParent().getParent() == null)
+    if (getParent() == null || getParent().getParent() == null || getParent().getParent() == null)
       return; // can't figure out what to open
     /*
      * This method makes a lot of assumptions about the tree. First the leaf is
@@ -69,10 +50,20 @@ public final class ScanTimeElementLeaf extends ScanTimeElement {
      * name. Second, the parent node is a package name. Third the parent node of
      * the parent node is a project name.
      */
-    String cu = getLabel();
+    String cu = getParent().getLabel();
     cu = cu.substring(0, cu.length() - 5); // take off ".java"
-    String pkg = getParent().getLabel(); // Java package name
-    String proj = getParent().getParent().getLabel(); // project name
+    String pkg = getParent().getParent().getLabel(); // package
+    String proj = getParent().getParent().getParent().getLabel(); // project
     JDTUIUtility.tryToOpenInEditor(proj, pkg, cu);
+  }
+
+  @Override
+  public long getDurationNs(ScanTimeOptions options) {
+    return f_durationNs;
+  }
+
+  @Override
+  public String getDurationAsHumanReadableString(ScanTimeOptions options) {
+    return f_durationLabel;
   }
 }
