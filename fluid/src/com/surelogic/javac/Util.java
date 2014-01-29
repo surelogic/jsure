@@ -34,13 +34,14 @@ import com.surelogic.analysis.Analyses;
 import com.surelogic.analysis.AnalysisGroup;
 import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.ConcurrentAnalysis;
-import com.surelogic.analysis.IAnalysisGranulator;
-import com.surelogic.analysis.IAnalysisGranule;
 import com.surelogic.analysis.IAnalysisGroup;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.analysis.granules.IAnalysisGranulator;
+import com.surelogic.analysis.granules.IAnalysisGranule;
+import com.surelogic.analysis.SuperVisitor.SubVisitor;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.ParseUtil;
 import com.surelogic.annotation.parse.SLAnnotationsLexer;
@@ -1140,6 +1141,19 @@ public class Util {
 	  }
   }
 	  
+  // Temp
+  interface Granule {
+	  void execute(SubVisitor<?> v);
+  }
+  
+  private static void execute(List<Granule> granules, List<SubVisitor<?>> subVisitors) {
+	  for(Granule g : granules) {
+		  for(SubVisitor<?> sv : subVisitors) {
+			  g.execute(sv);
+		  }
+	  }
+  }
+  
   private static void recordFilesAnalyzed(ParallelArray<SourceCUDrop> allCus, File log) {
     System.out.println("Recording which files actually got (re-)analyzed");
     try {
