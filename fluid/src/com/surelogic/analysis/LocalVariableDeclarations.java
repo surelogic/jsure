@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.surelogic.util.NullList;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;

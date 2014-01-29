@@ -1532,9 +1532,9 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   final IJavaReferenceType lowerBound;
   final IJavaReferenceType upperBound;
   
-  JavaCaptureType(JavaWildcardType wt, IJavaReferenceType glb, IJavaReferenceType upper) {
+  JavaCaptureType(JavaWildcardType wt, IJavaReferenceType lower, IJavaReferenceType upper) {
     wildcard = wt;
-    lowerBound = glb;
+    lowerBound = lower;
     upperBound = upper;
   }
   
@@ -1715,7 +1715,8 @@ class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
   
   @Override
   public IJavaType getSuperclass(ITypeEnvironment env) {
-    IRNode decl = env.findNamedType(SLUtility.JAVA_LANG_OBJECT);
+	IRNode decl = env.getArrayClassDeclaration();
+    //IRNode decl = env.findNamedType(SLUtility.JAVA_LANG_OBJECT);
     return JavaTypeFactory.getMyThisType(decl);
   }
   

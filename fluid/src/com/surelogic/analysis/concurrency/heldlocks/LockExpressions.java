@@ -7,14 +7,14 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
-import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
-import com.surelogic.analysis.InstanceInitAction;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.concurrency.heldlocks.LockUtils.HowToProcessLocks;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLockFactory;
+import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver;
+import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.ir.ResultDrop;

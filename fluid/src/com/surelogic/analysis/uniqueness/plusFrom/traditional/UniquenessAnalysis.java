@@ -7,7 +7,6 @@ import java.util.logging.Logger;
 
 import com.surelogic.analysis.AnalysisUtils;
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
@@ -19,6 +18,7 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.plusFrom.traditional.store.State;
 import com.surelogic.analysis.uniqueness.plusFrom.traditional.store.Store;
 import com.surelogic.analysis.uniqueness.plusFrom.traditional.store.StoreLattice;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.util.*;

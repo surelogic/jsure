@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.surelogic.analysis.granules.IAnalysisGranulator;
+import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;

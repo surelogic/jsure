@@ -2,6 +2,7 @@ package com.surelogic.analysis.testing;
 
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 

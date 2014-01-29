@@ -8,11 +8,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.analysis.AbstractAnalysisSharingAnalysis;
 import com.surelogic.analysis.ConcurrencyType;
-import com.surelogic.analysis.IAnalysisGranulator;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.TopLevelAnalysisVisitor;
-import com.surelogic.analysis.TopLevelAnalysisVisitor.TypeBodyPair;
 import com.surelogic.analysis.alias.TypeBasedMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks.GlobalLockModel;
@@ -22,6 +19,9 @@ import com.surelogic.analysis.concurrency.threadsafe.ContainableProcessor;
 import com.surelogic.analysis.concurrency.threadsafe.ImmutableProcessor;
 import com.surelogic.analysis.concurrency.threadsafe.ThreadSafeProcessor;
 import com.surelogic.analysis.effects.Effects;
+import com.surelogic.analysis.granules.IAnalysisGranulator;
+import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor;
+import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor.TypeBodyPair;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.Sea;
@@ -86,11 +86,11 @@ public class LockAnalysis
 								new ClassProcessor(getAnalysis()),
 								// actually n.typeDecl is a CompilationUnit
 								// here!
-								n.typeDecl());
+								n.getType());
 					} else {
 						// System.out.println("Parallel Lock: "+JavaNames.getRelativeTypeName(n));
 						actuallyAnalyzeClassBody(getAnalysis(),
-								n.typeDecl(),	n.classBody());
+								n.getType(),	n.getClassBody());
 					}
 				}
 			});
@@ -249,7 +249,7 @@ public class LockAnalysis
 	
 	@Override
 	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TypeBodyPair n) {
-		actuallyAnalyzeClassBody(getAnalysis(), n.typeDecl(), n.classBody());
+		actuallyAnalyzeClassBody(getAnalysis(), n.getType(), n.getClassBody());
 		return true; 
 	}
 	

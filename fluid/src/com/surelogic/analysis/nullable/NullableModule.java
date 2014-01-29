@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.surelogic.analysis.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.IBinderClient;
@@ -17,6 +16,7 @@ import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Inferred;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.InferredQuery;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.InferredVarState;
 import com.surelogic.analysis.nullable.NullableModule.AnalysisBundle.QueryBundle;
+import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.HintDrop;

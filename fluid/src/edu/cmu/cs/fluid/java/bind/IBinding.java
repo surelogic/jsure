@@ -87,45 +87,7 @@ public interface IBinding {
 	  }
 	  @Override
 	  public IJavaType convertType(IBinder binder, final IJavaType ty) {
-		  return ty; // TODO
-		  //return captureWildcards(binder, ty);
-	  }
-	  
-	  // TODO where should this be called?
-	  static IJavaType captureWildcards(IBinder binder, final IJavaType ty) {
-		  // Check if it's parameterized
-		  if (ty instanceof IJavaDeclaredType) {
-			  final IJavaDeclaredType jdt = (IJavaDeclaredType) ty;			  
-			  final List<IJavaType> oldTypes = jdt.getTypeParameters();
-			  if (!oldTypes.isEmpty()) {
-				  final List<IJavaType> newTypes = new ArrayList<IJavaType>(oldTypes.size());
-				  final IRNode formals = getTypes(jdt.getDeclaration());
-				  boolean different = false;
-				  int i = 0;
-				  for(final IRNode formal : TypeFormals.getTypeIterator(formals)) {
-					  final IJavaTypeFormal jtf = JavaTypeFactory.getTypeFormal(formal);
-					  final IJavaType old = oldTypes.get(i);
-					  IJavaType t = AbstractTypeSubstitution.captureWildcardType(binder, jtf, old);
-					  newTypes.add(t);
-					  i++;
-					  if (old != t) {
-						  different = true;
-					  }
-				  }
-				  if (different) {					 				  
-					  return JavaTypeFactory.getDeclaredType(jdt.getDeclaration(), newTypes, jdt.getOuterType());
-				  }
-			  }
-		  }
 		  return ty;
-	  }
-	  
-	  private static IRNode getTypes(IRNode tdecl) {
-		  if (ClassDeclaration.prototype.includes(tdecl)) {
-			  return ClassDeclaration.getTypes(tdecl);
-		  } else {
-			  return InterfaceDeclaration.getTypes(tdecl);
-		  }
 	  }
 	  
 	  @Override
@@ -223,6 +185,7 @@ public interface IBinding {
       if (n instanceof IBinding && ty == null) return (IBinding)n;
       if (recType != null && !recType.isSubtype(tEnv, ty)) {
     	  System.err.println("Receiver type "+recType+" isn't a subtype of the context type "+ty);
+    	  recType.isSubtype(tEnv, ty);
       }
       if (recType == null) {
     	  recType = ty;

@@ -163,7 +163,8 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     IRNode n = ArrayRefExpression.getArray( node );
     IJavaType type1 = doAccept( n );
     if( type1 instanceof IJavaArrayType ) {
-      return ((IJavaArrayType)type1).getElementType();
+      IJavaType ty = ((IJavaArrayType)type1).getElementType();
+      return captureWildcards(binder, ty);
     }else {
       return null;
     }
@@ -177,7 +178,8 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitAssignExpression(IRNode node) {
     IRNode lvalue = AssignExpression.getOp1( node );
-    return doAccept(lvalue);
+    IJavaType type = doAccept(lvalue);
+    return captureWildcards(binder, type);
   }
   
   @Override
@@ -216,8 +218,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitCastExpression(IRNode node) {
     IRNode decl = CastExpression.getType( node );
-    // TODO capture conversion
-    return doAccept( decl );
+    return captureWildcards(binder, doAccept( decl ));
   }
   
   @Override
@@ -420,7 +421,8 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitMethodCall(IRNode node) {
     IBinding b = binder.getIBinding( node );
-    return computeReturnType(b);    
+    IJavaType type = computeReturnType(b);    
+    return captureWildcards(binder, type);
   }
   
   public static IJavaType computeReturnType(IBinder binder, IBinding mb) {
@@ -1214,5 +1216,46 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     JavaTypeVisitor jtv = new JavaTypeVisitor();
     jtv.binder = b;
     return jtv;
+  }
+  
+  // On assignment, calls, casts
+  // Result type of method calls (15.12)
+  // Array access (15.13)
+  // Casts (15.16)
+  // Class fields (6.5)
+  public static IJavaType captureWildcards(IBinder binder, final IJavaType ty) {
+	  // Check if it's parameterized
+	  if (ty instanceof IJavaDeclaredType) {
+		  final IJavaDeclaredType jdt = (IJavaDeclaredType) ty;			  
+		  final List<IJavaType> oldTypes = jdt.getTypeParameters();
+		  if (!oldTypes.isEmpty()) {
+			  final List<IJavaType> newTypes = new ArrayList<IJavaType>(oldTypes.size());
+			  final IRNode formals = getTypes(jdt.getDeclaration());
+			  boolean different = false;
+			  int i = 0;
+			  for(final IRNode formal : TypeFormals.getTypeIterator(formals)) {
+				  final IJavaTypeFormal jtf = JavaTypeFactory.getTypeFormal(formal);
+				  final IJavaType old = oldTypes.get(i);
+				  IJavaType t = AbstractTypeSubstitution.captureWildcardType(binder, jtf, old);
+				  newTypes.add(t);
+				  i++;
+				  if (old != t) {
+					  different = true;
+				  }
+			  }
+			  if (different) {					 				  
+				  return JavaTypeFactory.getDeclaredType(jdt.getDeclaration(), newTypes, jdt.getOuterType());
+			  }
+		  }
+	  }
+	  return ty;
+  }
+  
+  private static IRNode getTypes(IRNode tdecl) {
+	  if (ClassDeclaration.prototype.includes(tdecl)) {
+		  return ClassDeclaration.getTypes(tdecl);
+	  } else {
+		  return InterfaceDeclaration.getTypes(tdecl);
+	  }
   }
 }

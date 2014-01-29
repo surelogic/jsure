@@ -2,6 +2,9 @@
  * /cvs/fluid/fluid/src/com/surelogic/analysis/IIRAnalysis.java,v 1.4 2008/08/14 20:31:20 chance Exp $*/
 package com.surelogic.analysis;
 
+import com.surelogic.analysis.granules.IAnalysisGranulator;
+import com.surelogic.analysis.granules.IAnalysisGranule;
+
 /**
  * The sequence of events for projects P,
  * analyses on comp units Ac, and

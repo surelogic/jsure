@@ -4,14 +4,14 @@ import java.util.*;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.ConcurrencyType;
-import com.surelogic.analysis.IAnalysisGranulator;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.ResultsBuilder;
-import com.surelogic.analysis.TopLevelAnalysisVisitor;
-import com.surelogic.analysis.TopLevelAnalysisVisitor.TypeBodyPair;
-import com.surelogic.analysis.TypeImplementationProcessor;
+import com.surelogic.analysis.granules.IAnalysisGranulator;
+import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor;
+import com.surelogic.analysis.visitors.TypeImplementationProcessor;
+import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor.TypeBodyPair;
 import com.surelogic.annotation.rules.UtilityRules;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.util.*;
@@ -73,9 +73,9 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
 					if (byCompUnit) {
 					  TopLevelAnalysisVisitor.processCompilationUnit(
 		            // actually n.typeDecl is a CompilationUnit here!
-					      new ClassProcessor(getAnalysis()), n.typeDecl());
+					      new ClassProcessor(getAnalysis()), n.getType());
 					} else {
-					  actuallyAnalyzeClassBody(getAnalysis(), n.typeDecl(), n.classBody());
+					  actuallyAnalyzeClassBody(getAnalysis(), n.getType(), n.getClassBody());
 					}
 				}
 			});
@@ -142,7 +142,7 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
 	
 	@Override
 	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TypeBodyPair n) {
-		actuallyAnalyzeClassBody(getAnalysis(), n.typeDecl(), n.classBody());
+		actuallyAnalyzeClassBody(getAnalysis(), n.getType(), n.getClassBody());
 		return true; 
 	}
 	

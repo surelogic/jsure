@@ -27,6 +27,7 @@ Export-Package:
  com.surelogic.analysis.concurrency.heldlocks.locks,
  com.surelogic.analysis.effects,
  com.surelogic.analysis.effects.targets,
+ com.surelogic.analysis.granules,
  com.surelogic.analysis.layers,
  com.surelogic.analysis.modules,
  com.surelogic.analysis.regions,

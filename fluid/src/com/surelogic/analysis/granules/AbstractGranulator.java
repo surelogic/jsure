@@ -1,4 +1,4 @@
-package com.surelogic.analysis;
+package com.surelogic.analysis.granules;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,11 +14,13 @@ public abstract class AbstractGranulator<T extends IAnalysisGranule> implements 
 		type = t;
 	}
 	
-	public Class<T> getType() {
+	@Override
+  public Class<T> getType() {
 		return type;
 	}
 	
-	public final List<T> getGranules() {
+	@Override
+  public final List<T> getGranules() {
 		try {
 			return new ArrayList<T>(granules); 
 		} finally {
@@ -27,7 +29,8 @@ public abstract class AbstractGranulator<T extends IAnalysisGranule> implements 
 	}
 
 	// TODO not thread-safe
-	public final int extractGranules(ITypeEnvironment tEnv, IRNode cu) {
+	@Override
+  public final int extractGranules(ITypeEnvironment tEnv, IRNode cu) {
 		final int orig = granules.size();
 		extractGranules(granules, tEnv, cu);
 		return granules.size() - orig;

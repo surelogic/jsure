@@ -96,11 +96,11 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
     	  if (wt.getLowerBound() != null) {      
     		  // If Ti is a wildcard type argument of the form ? super Bi, 
     		  // then Si is a fresh type variable whose upper bound is Ui[A1 := S1, ..., An := Sn] and whose lower bound is Bi.
-    		  return JavaTypeFactory.getCaptureType(wt, wt.getLowerBound(), formalBound);
+    		  return JavaTypeFactory.getCaptureType(wt, wt.getLowerBound(), formalBound); // TODO this doesn't match?
     	  } else {
     		  // If Ti is a wildcard type argument (�4.5.1) of the form ? 
     		  // then Si is a fresh type variable whose upper bound is Ui[A1 := S1, ..., An := Sn] and whose lower bound is the null type.
-    		  return JavaTypeFactory.getCaptureType(wt, JavaTypeFactory.nullType, formalBound);
+    		  return JavaTypeFactory.getCaptureType(wt, JavaTypeFactory.nullType, formalBound); // TODO this doesn't match?
     	  }
       }
     }

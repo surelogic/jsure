@@ -5,7 +5,7 @@ import java.util.Set;
 
 import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.RequiresLock;
-import com.surelogic.analysis.IAnalysisGranule;
+import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.irfree.NestedJSureXmlReader;

@@ -11,8 +11,12 @@ import java.util.logging.Level;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
+import com.surelogic.analysis.granules.AbstractGranulator;
+import com.surelogic.analysis.granules.GranuleInType;
+import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.classic.sideeffecting.store.StoreLattice;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -116,7 +120,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
         runInParallel(MethodRecord.class, methods, new Procedure<MethodRecord>() {
           @Override
           public void op(MethodRecord mr) {
-            final String methodName = JavaNames.genRelativeFunctionName(mr.methodDecl);
+            final String methodName = JavaNames.genRelativeFunctionName(mr.getMethod());
             if (monitor != null) {
               monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
             }
@@ -128,7 +132,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       } else {
         // Analyze the given nodes
         for (MethodRecord mr : methods) {
-          final String methodName = JavaNames.genQualifiedMethodConstructorName(mr.methodDecl);
+          final String methodName = JavaNames.genQualifiedMethodConstructorName(mr.getMethod());
           if (monitor != null) {
             monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
           }
@@ -183,20 +187,20 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 //    }
 
 	  StoreLattice sl = null;
-    final String methodName = JavaNames.genQualifiedMethodConstructorName(mr.methodDecl);
+    final String methodName = JavaNames.genQualifiedMethodConstructorName(mr.getMethod());
     // Prepare for 'too long' warning
     final long tooLongDuration = IDE.getInstance().getIntPreference(
         IDEPreferences.TIMEOUT_WARNING_SEC) * NANO_SECONDS_PER_SECOND;
     final long startTime = System.nanoTime();
 	  try {
   	  // Get the analysis object, which triggers the control flow analysis
-      sl = getAnalysis().getAnalysis(mr.methodDecl).getLattice();
+      sl = getAnalysis().getAnalysis(mr.getMethod()).getLattice();
       
       // Did we take too long?
       final long endTime = System.nanoTime();
       final long duration = endTime - startTime;
       if (duration > tooLongDuration) {
-        sl.getCFDrop().addWarningHintWithCategory(mr.methodDecl, Messages.DSC_UNIQUENESS_LONG_RUNNING,
+        sl.getCFDrop().addWarningHintWithCategory(mr.getMethod(), Messages.DSC_UNIQUENESS_LONG_RUNNING,
             Messages.TOO_LONG, tooLongDuration / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
       }
@@ -212,7 +216,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
        * (2) Borrowed promises of the method's
        * parameters, and (3) Unique promise on the method's return node,
        */
-      final ResultDrop timeOutResult = new ResultDrop(mr.methodDecl);
+      final ResultDrop timeOutResult = new ResultDrop(mr.getMethod());
       timeOutResult.setTimeout();
       timeOutResult.setCategorizingMessage(Messages.DSC_UNIQUENESS_TIMEOUT);
       timeOutResult.setMessage(Messages.TIMEOUT,
@@ -222,20 +226,20 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
       // (1)
       timeOutResult.addChecked(sl.getCFDrop());
       
-      if (!ClassInitDeclaration.prototype.includes(mr.methodDecl)) {
-        final IRNode formals = SomeFunctionDeclaration.getParams(mr.methodDecl);
+      if (!ClassInitDeclaration.prototype.includes(mr.getMethod())) {
+        final IRNode formals = SomeFunctionDeclaration.getParams(mr.getMethod());
         for (final IRNode p : Parameters.getFormalIterator(formals)) {
           final BorrowedPromiseDrop pd = UniquenessRules.getBorrowed(p);
           if (pd != null) timeOutResult.addChecked(pd);
         }
         
-        final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(mr.methodDecl);
+        final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(mr.getMethod());
         if (rcvr != null) {
           final BorrowedPromiseDrop pd = UniquenessRules.getBorrowed(rcvr);
           if (pd != null) timeOutResult.addChecked(pd);
         }      
         
-        final IRNode ret = JavaPromise.getReturnNodeOrNull(mr.methodDecl);
+        final IRNode ret = JavaPromise.getReturnNodeOrNull(mr.getMethod());
         if (ret != null) {
           /* Covers both Unique return from a method and Unique return as
            * borrowed receiver for a constructor. 
@@ -280,17 +284,57 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 	  return visitor.getResults();
 	}
 
-	static class MethodRecord extends TypeAndMethod {
+	static final class MethodRecord extends GranuleInType {
+	  private final IRNode methodDecl;
 		public final Set<PromiseDrop<? extends IAASTRootNode>> usedUniqueFields;
 
 		public MethodRecord(final IRNode m) {
-			super(VisitUtil.getEnclosingType(m), m);			
+			super(VisitUtil.getEnclosingType(m));
+			methodDecl = m;			
 			usedUniqueFields = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
 		}
 
 		public void addField(final PromiseDrop<? extends IAASTRootNode> uDrop) {
 			usedUniqueFields.add(uDrop);
 		}
+
+	  public IRNode getMethod() {
+	    return methodDecl;
+	  }
+	  
+	  @Override
+	  public IRNode getNode() {
+	    return methodDecl;
+	  }
+	  
+	  @Override
+	  public String getLabel() {
+	    return JavaNames.getFullName(methodDecl);
+	  }
+	  
+	  public IRNode getClassBody() {
+	    return VisitUtil.getClassBody(typeDecl);
+	  }
+
+	  @Override
+	  public boolean equals(final Object other) {
+	    if (other instanceof MethodRecord) {
+	      final MethodRecord tan = (MethodRecord) other;
+	      return typeDecl == tan.typeDecl && methodDecl == tan.methodDecl;
+	    } else {
+	      return false;
+	    }
+	  }
+
+	  @Override
+	  public int hashCode() {
+	    int result = 17;
+	    result = 31 * result + typeDecl.hashCode();
+	    if (methodDecl != null) {
+	      result = 31 * result + methodDecl.hashCode();
+	    }
+	    return result;
+	  }
 	}
 	
 	

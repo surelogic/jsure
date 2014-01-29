@@ -917,7 +917,10 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
       return new SingletonIterator<IJavaType>(javalangobjectType);
     }
     else if (ty instanceof IJavaArrayType) {
-      return new TripleIterator<IJavaType>(javalangobjectType, 
+      IJavaArrayType at = (IJavaArrayType) ty;
+      IRNode decl = getArrayClassDeclaration();
+      IJavaType arrayType = JavaTypeFactory.getDeclaredType(decl, Collections.singletonList(at.getElementType()), null);      
+      return new TripleIterator<IJavaType>(arrayType,//javalangobjectType, 
                                            findJavaTypeByName("java.lang.Cloneable"),
                                            findJavaTypeByName("java.io.Serializable"));      
     }
@@ -1215,15 +1218,17 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
      * Note from Edwin: added 1a and 2a to match apparently legal code
      */
     if (ss.isEqualTo(this, tt)) return true; // (3)
-    /*
-    // Hack to deal with capture types
+    
+    // Hack to deal with capture types as if they're type variables
     if (ss instanceof IJavaCaptureType) {
-    	ss = ((IJavaCaptureType) ss).getWildcard();
+    	IJavaCaptureType cs = (IJavaCaptureType) ss;
+    	return typeArgumentContained(cs.getUpperBound(), tt); // TODO what about lower bound?    	
     }
     if (tt instanceof IJavaCaptureType) {
-    	tt = ((IJavaCaptureType) tt).getWildcard();
-    }
-    */
+    	IJavaCaptureType ct = (IJavaCaptureType) tt;
+    	return isSubType(ss, ct.getLowerBound()) && typeArgumentContained(ss, ct.getUpperBound());
+    }        
+    
     if (ss instanceof IJavaWildcardType) {
       IJavaWildcardType sw = (IJavaWildcardType) ss;
       if (tt instanceof IJavaWildcardType) {

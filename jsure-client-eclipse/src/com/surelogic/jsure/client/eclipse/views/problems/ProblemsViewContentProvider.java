@@ -38,7 +38,7 @@ public class ProblemsViewContentProvider implements ITreeContentProvider, IViewD
     final ScanDifferences f_diff;
     final boolean f_showOnlyDifferences;
     final boolean f_showOnlyFromSrc;
-    final boolean f_showOnlyErrors = XUtil.useExperimental && false;
+    final boolean f_showOnlyErrors = XUtil.useExperimental && false;// true;
     
     Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showOnlyDifferences, boolean showOnlyFromSrc) {
       f_scan = scan;

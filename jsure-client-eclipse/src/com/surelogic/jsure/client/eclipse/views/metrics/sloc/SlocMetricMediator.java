@@ -91,7 +91,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
   };
 
   /**
-   * Compares elements by their SLOC greatest to least.
+   * Compares elements by their SLOC based upon the current options.
    */
   public final Comparator<SlocElement> f_byMetricComparator = new Comparator<SlocElement>() {
     @Override
@@ -137,7 +137,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         return SLUtility.safeLongToInt(o1MetricValue - o2MetricValue);
     }
   };
-  final ViewerSorter f_slocSorter = new ViewerSorter() {
+  final ViewerSorter f_metricSorter = new ViewerSorter() {
 
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
@@ -768,7 +768,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     if (value)
       f_treeViewer.setSorter(f_alphaSorter);
     else
-      f_treeViewer.setSorter(f_slocSorter);
+      f_treeViewer.setSorter(f_metricSorter);
     fixSortingIndicatorOnTreeTable();
   }
 

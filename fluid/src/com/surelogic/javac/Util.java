@@ -41,7 +41,7 @@ import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
-import com.surelogic.analysis.SuperVisitor.SubVisitor;
+import com.surelogic.analysis.visitors.SuperVisitor.SubVisitor;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.ParseUtil;
 import com.surelogic.annotation.parse.SLAnnotationsLexer;

@@ -13,7 +13,7 @@
 
 	<property name="promises-x-src" location="${basedir}/src" />
 	<!-- ENSURE THAT THIS REFERENCES THE 'promises' SVN CHECKED-OUT PROJECT ON YOUR DISK -->
-	<property name="production-promises" location="/home/nathan/workspace/promises" />
+	<property name="production-promises" location="/home/edwin/work/workspace-4.2.1/promises" />
 	<property name="production-promises-src" location="${production-promises}/src/main/java" />
 
 

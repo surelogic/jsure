@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.surelogic.analysis.*;
-import com.surelogic.analysis.TopLevelAnalysisVisitor.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.AnonClassEvidence;
@@ -23,7 +22,10 @@ import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.QualifiedReceiverConversionEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.UnknownReferenceConversionEvidence;
+import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor;
+import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor.*;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -88,7 +90,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 			setWorkProcedure(new Procedure<TypeBodyPair>() {
 				@Override
         public void op(TypeBodyPair type) {
-					doAnalysisOnClassBody(type.classBody());
+					doAnalysisOnClassBody(type.getClassBody());
 					//checkEffectsForFile(type.getNode());
 				}				
 			});
@@ -146,7 +148,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	@Override
 	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TypeBodyPair n) {
 		//checkEffectsForFile(n.typeDecl);
-		doAnalysisOnClassBody(n.classBody());
+		doAnalysisOnClassBody(n.getClassBody());
 		return true; 
 	}
 

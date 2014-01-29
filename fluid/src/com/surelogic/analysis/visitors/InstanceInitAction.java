@@ -1,4 +1,4 @@
-package com.surelogic.analysis;
+package com.surelogic.analysis.visitors;
 
 /**
  * Encapsulates activities that should occur immediately before/after the 

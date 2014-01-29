@@ -1,4 +1,4 @@
-package com.surelogic.analysis;
+package com.surelogic.analysis.granules;
 
 import java.util.List;
 
@@ -8,7 +8,7 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public final class TopLevelType extends GranuleInType {
-	public TopLevelType(IRNode type) {
+	public TopLevelType(final IRNode type) {
 		super(type);
 	}
 
@@ -20,6 +20,20 @@ public final class TopLevelType extends GranuleInType {
 	@Override
   public String getLabel() {
 		return JavaNames.getFullTypeName(typeDecl);
+	}
+	
+	@Override
+	public boolean equals(final Object other) {
+	  if (other instanceof TopLevelType) {
+	    return typeDecl.equals(((TopLevelType) other).typeDecl);
+	  } else {
+	    return false;
+	  }
+	}
+	
+	@Override
+	public int hashCode() {
+	  return 31 * 17 + typeDecl.hashCode();
 	}
 	
 	public static final IAnalysisGranulator<TopLevelType> granulator = new AbstractGranulator<TopLevelType>(TopLevelType.class) {
