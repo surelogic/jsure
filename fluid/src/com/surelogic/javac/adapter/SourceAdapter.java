@@ -181,7 +181,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   }
 
   private void computeMetrics(CodeInfo info, String src) {
-    final MetricDrop d = new MetricDrop(CompilationUnit.getPkg(info.getNode()), IMetricDrop.Metric.SLOC);
+    final MetricDrop d = new MetricDrop(info.getNode(), IMetricDrop.Metric.SLOC);
 
     final int semicolons = count(src, ';');
     addMetric(d, IMetricDrop.SLOC_SEMICOLON_COUNT, semicolons);
