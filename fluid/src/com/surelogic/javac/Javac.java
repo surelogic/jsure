@@ -8,7 +8,6 @@ import java.util.concurrent.*;
 
 import com.surelogic.analysis.Analyses;
 import com.surelogic.analysis.AnalysisGroup;
-import com.surelogic.analysis.IAnalysisGranulator;
 import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.IIRProject;
@@ -17,6 +16,7 @@ import com.surelogic.analysis.concurrency.detector.ConcurrencyDetector;
 import com.surelogic.analysis.concurrency.driver.LockAnalysis;
 import com.surelogic.analysis.effects.EffectsAnalysis;
 import com.surelogic.analysis.equality.EqualityAnalysis;
+import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.jtb.TestFunctionalInterfacePseudoAnalysis;
 import com.surelogic.analysis.layers.LayersAnalysis;
 import com.surelogic.analysis.nullable.NullableModule;

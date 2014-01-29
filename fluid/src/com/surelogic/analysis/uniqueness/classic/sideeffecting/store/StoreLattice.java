@@ -11,12 +11,12 @@ import java.util.logging.Level;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.analysis.JavaSemanticsVisitor;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.uniqueness.classic.sideeffecting.Messages;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.classic.sideeffecting.UniquenessAnalysis;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.util.*;

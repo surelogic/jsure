@@ -7,6 +7,8 @@ import jsr166y.*;
 
 import org.apache.commons.lang3.SystemUtils;
 
+import com.surelogic.analysis.granules.IAnalysisGranule;
+
 import edu.cmu.cs.fluid.ide.*;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import extra166y.*;

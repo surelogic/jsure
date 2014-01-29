@@ -2,11 +2,11 @@ package com.surelogic.analysis.concurrency.threadsafe;
 
 import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.ResultsBuilder;
-import com.surelogic.analysis.TypeImplementationProcessor;
 import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
 import com.surelogic.analysis.type.constraints.TypeAnnotationTester;
 import com.surelogic.analysis.type.constraints.TypeAnnotations;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
+import com.surelogic.analysis.visitors.TypeImplementationProcessor;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;

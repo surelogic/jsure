@@ -9,11 +9,11 @@ import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.analysis.IAnalysisGranulator;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.TopLevelType;
+import com.surelogic.analysis.granules.IAnalysisGranulator;
+import com.surelogic.analysis.granules.TopLevelType;
 import com.surelogic.annotation.rules.LayerRules;
 import com.surelogic.common.Pair;
 import com.surelogic.common.util.*;

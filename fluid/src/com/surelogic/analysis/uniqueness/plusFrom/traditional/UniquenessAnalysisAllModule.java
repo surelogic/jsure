@@ -11,11 +11,13 @@ import java.util.logging.Level;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.*;
+import com.surelogic.analysis.granules.TypeAndMethod;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysis.AbruptErrorQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysis.IsInvalidQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysis.IsPositivelyAssuredQuery;
 import com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysis.NormalErrorQuery;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.annotation.rules.UniquenessRules;

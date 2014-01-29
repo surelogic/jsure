@@ -2,6 +2,8 @@ package com.surelogic.analysis;
 
 import java.util.*;
 
+import com.surelogic.analysis.granules.IAnalysisGranulator;
+import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.common.util.AppendIterator;
 import com.surelogic.common.util.EmptyIterator;
 

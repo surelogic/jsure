@@ -1,6 +1,10 @@
-package com.surelogic.analysis;
+package com.surelogic.analysis.visitors;
 
 import java.util.List;
+
+import com.surelogic.analysis.granules.AbstractGranulator;
+import com.surelogic.analysis.granules.GranuleInType;
+import com.surelogic.analysis.granules.IAnalysisGranulator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;

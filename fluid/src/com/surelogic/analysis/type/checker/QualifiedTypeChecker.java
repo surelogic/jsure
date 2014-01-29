@@ -2,7 +2,7 @@ package com.surelogic.analysis.type.checker;
 
 import java.util.Iterator;
 
-import com.surelogic.analysis.AbstractJavaAnalysisDriver;
+import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;

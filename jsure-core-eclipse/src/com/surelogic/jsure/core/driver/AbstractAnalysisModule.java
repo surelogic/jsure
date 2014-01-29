@@ -8,6 +8,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import com.surelogic.analysis.*;
+import com.surelogic.analysis.granules.IAnalysisGranule;
 
 /**
  * A minimum analysis module, intended to be extended by other classes to create

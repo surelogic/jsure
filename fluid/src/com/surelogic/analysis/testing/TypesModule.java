@@ -1,6 +1,7 @@
 package com.surelogic.analysis.testing;
 
 import com.surelogic.analysis.*;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
