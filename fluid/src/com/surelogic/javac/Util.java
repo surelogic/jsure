@@ -133,6 +133,7 @@ import extra166y.Ops.Procedure;
 
 public class Util {
   public static final boolean useNewDriver = false;
+  public static final boolean runAllAnalysesOnOneGranuleAtATime = false;
   /**
    * Splits and integrates the rewrite into the adapter/canonicalizer
    */
@@ -783,11 +784,39 @@ public class Util {
     System.out.println("Starting analyses");
     final AllTimings timings = new AllTimings(analyses);
     
-    if (useNewDriver) {
-    	System.out.println("Using new analysis framework");
-    	boolean first = true;
+    if (useNewDriver && runAllAnalysesOnOneGranuleAtATime) {
+    	System.out.println("Using new analysis framework -- one granule");
     	    	
+    	// TODO how to focus all the analyses on a few CUs, while dealing with individual analyses that might take a long time
+    	// use fork-join for uniqueness and the like?
+    	
+    	// Setup
+    	final AnalysisInfo<?>[] infos = new AnalysisInfo<?>[analyses.numGroups()];
+    	int i = 0;
+      	for(AnalysisGroup<?> group : analyses.getGroups()) {
+    		final boolean runOneThread = perf.singleThreaded || group.runSingleThreaded();    				
+    		System.out.println("Initializing info for group: "+group.getLabel());
+    		infos[i] = new AnalysisInfo(runOneThread, group.getGranuleType(), env, projects.getMonitor());
+    		i++;
+      	}
+
+      	for(JavacProject p : projects) {
+      		// TODO start
+      		for(CUDrop d : allCus/*for the project*/) {
+      			for(AnalysisInfo<?> ai : infos) {
+      				//ai.analyzeGranules();
+      			}
+      		}
+      		// TODO end
+      		// TODO postAnalysis
+  		} 
+      	finishAllAnalyses(env, analyses, timings);
+        return timings.summarize();
+    } else if (useNewDriver) {
+    	System.out.println("Using new analysis framework -- groups");    	    	
     	final MultiMap<IAnalysisGranulator<?>,IAnalysisGranule> granules = new MultiHashMap<IAnalysisGranulator<?>, IAnalysisGranule>();
+    	boolean extracted = false;
+    	
     	for(AnalysisGroup<?> group : analyses.getGroups()) {
     		final boolean runOneThread = perf.singleThreaded || group.runSingleThreaded();    				
     		System.out.println("Starting group: "+group.getLabel());
@@ -797,41 +826,16 @@ public class Util {
         		ai.populate(allCus.asList());
         		ai.analyzeProjects(projects, cuGroup, timings);
     		} else {
+    			if (!extracted) {
+    				extractGranules(analyses, allCus, granules);
+    				extracted = true;
+    			}
 				final AnalysisInfo ai = new AnalysisInfo(runOneThread, group.getGranuleType(), env, projects.getMonitor());
         		ai.populate(granules.get(group.getGranulator()));        		
         		ai.analyzeProjects(projects, group, timings);
     		}
-    		if (first) {
-    			first = false;
-    			   
-        		// TODO do this with each group above?
-    			// TODO in parallel?
-        		for(CUDrop d : allCus) {
-        			for(IAnalysisGranulator<?> g : analyses.getGranulators()) {
-        				// This may require some setup!
-        				g.extractGranules(d.getTypeEnv(), d.getCompilationUnitIRNode());
-        			}
-        		}
-     			for(IAnalysisGranulator<?> g : analyses.getGranulators()) {
-     				Collection<? extends IAnalysisGranule> toAnalyze = g.getGranules();
-     				System.out.println(g+": "+toAnalyze.size());
-     				granules.putAll(g, toAnalyze);
-     			}
-    		}
     	}
-    	
-    	// TODO how to focus all the analyses on a few CUs, while dealing with individual analyses that might take a long time
-    	// use fork-join for uniqueness and the like?
-    	
-    	// Finish all analyses
-    	int i = 0;
-    	for (final IIRAnalysis<?> a : analyses) {
-    		final long start = System.nanoTime();
-    		a.finish(env);
-    		final long end = System.nanoTime();
-    		timings.times[i] += end - start;
-    		i++;
-    	}
+    	finishAllAnalyses(env, analyses, timings);
         return timings.summarize();
     }
     System.out.println("Using old analysis framework");
@@ -939,6 +943,35 @@ public class Util {
     	i++;
     }
     return times;
+  }
+
+  private static void extractGranules(final Analyses analyses,
+		  ParallelArray<SourceCUDrop> allCus,
+		  final MultiMap<IAnalysisGranulator<?>, IAnalysisGranule> granules) {
+	  // TODO do this with each group above?
+	  // TODO in parallel?
+	  for(CUDrop d : allCus) {
+		  for(IAnalysisGranulator<?> g : analyses.getGranulators()) {
+			  // This may require some setup!
+			  g.extractGranules(d.getTypeEnv(), d.getCompilationUnitIRNode());
+		  }
+	  }
+	  for(IAnalysisGranulator<?> g : analyses.getGranulators()) {
+		  Collection<? extends IAnalysisGranule> toAnalyze = g.getGranules();
+		  System.out.println(g+": "+toAnalyze.size());
+		  granules.putAll(g, toAnalyze);
+	  }
+  }
+
+  private static void finishAllAnalyses(IIRAnalysisEnvironment env, Analyses analyses, AllTimings timings) {
+  	int i = 0;
+  	for (final IIRAnalysis<?> a : analyses) {
+  		final long start = System.nanoTime();
+  		a.finish(env);
+  		final long end = System.nanoTime();
+  		timings.times[i] += end - start;
+  		i++;
+  	}	
   }
 
   static <Q extends IAnalysisGranule> 
