@@ -9,7 +9,6 @@ public class ScanTimeElementAnalysis extends ScanTimeElement {
 
   protected ScanTimeElementAnalysis(ScanTimeElementCu parent, String analysisName) {
     super(parent, analysisName);
-    parent.addChild(this);
   }
 
   @Override

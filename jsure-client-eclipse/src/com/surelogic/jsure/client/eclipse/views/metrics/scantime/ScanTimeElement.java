@@ -37,6 +37,8 @@ public abstract class ScanTimeElement {
       throw new IllegalStateException(I18N.err(44, "label"));
     f_label = label;
     f_parent = parent;
+    if (parent != null)
+      parent.addChild(this);
   }
 
   /**
