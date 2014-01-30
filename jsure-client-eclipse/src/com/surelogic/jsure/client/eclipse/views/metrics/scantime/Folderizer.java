@@ -19,7 +19,7 @@ public final class Folderizer {
    * @return the new element, or {@code null} if something went wrong.
    */
   @Nullable
-  public ScanTimeElementLeaf addToTree(@NonNull IMetricDrop scanTimeMetricDrop) {
+  public ScanTimeElement addToTree(@NonNull IMetricDrop scanTimeMetricDrop) {
     if (scanTimeMetricDrop == null)
       throw new IllegalArgumentException(I18N.err(44, "slocMetricDrop"));
     final ScanTimeElementCu cu = getParentOf(scanTimeMetricDrop);
@@ -37,7 +37,9 @@ public final class Folderizer {
       SLLogger.getLogger().log(Level.WARNING, I18N.err(312));
       analysisName = "(unknown analysis)";
     }
-    final ScanTimeElementLeaf leaf = new ScanTimeElementLeaf(cu, analysisName, durationNs);
+    // TODO
+    final ScanTimeElementAnalysis leaf = new ScanTimeElementAnalysis(cu, analysisName);
+    leaf.setDurationNs(durationNs);
     cu.addChild(leaf);
     return leaf;
   }

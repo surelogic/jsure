@@ -284,8 +284,8 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
       public void doubleClick(DoubleClickEvent event) {
         final ScanTimeElement element = getTreeViewerSelectionOrNull();
         if (element != null) {
-          if (element instanceof ScanTimeElementLeaf) {
-            ((ScanTimeElementLeaf) element).tryToOpenInJavaEditor();
+          if (element.isLeaf()) {
+            // TODO ((ScanTimeElementLeaf) element).tryToOpenInJavaEditor();
           } else {
             // open up the tree one more level
             if (!f_treeViewer.getExpandedState(element)) {
@@ -409,7 +409,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
         if (element.highlightDueToSlocThreshold(f_options)) {
           image = SLImages.getDecoratedImage(image, new ImageDescriptor[] {
               SLImages.getImageDescriptor(CommonImages.DECR_ASTERISK), null, null, null, null });
-          if (element instanceof ScanTimeElementLeaf) {
+          if (element.isLeaf()) {
             cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
           }
         } else {
@@ -427,13 +427,12 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
 
     @Override
     public void update(ViewerCell cell) {
-
-      if (cell.getElement() instanceof ScanTimeElementLeaf) {
-        final ScanTimeElementLeaf element = (ScanTimeElementLeaf) cell.getElement();
+      if (cell.getElement() instanceof ScanTimeElement) {
+        final ScanTimeElement element = (ScanTimeElement) cell.getElement();
         String label = element.getDurationAsHumanReadableString(f_options);
         cell.setText(label);
         if (element.highlightDueToSlocThreshold(f_options)) {
-          if (element instanceof ScanTimeElementLeaf) {
+          if (element.isLeaf()) {
             cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
           }
         } else {

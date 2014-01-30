@@ -1,11 +1,16 @@
 package com.surelogic.jsure.client.eclipse.views.metrics.scantime;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 
 public abstract class ScanTimeElement {
@@ -40,10 +45,66 @@ public abstract class ScanTimeElement {
    */
   public static final ScanTimeElement[] EMPTY = new ScanTimeElement[0];
 
-  public abstract ScanTimeElement[] getChildren();
+  /*
+   * The way the fields below work is that if there are no children then this is
+   * a leaf node and the <tt>durationNs</tt> field needs to be set by the
+   * implementation.
+   */
 
-  public boolean hasChildren() {
-    return getChildren().length > 0;
+  @NonNull
+  private ArrayList<ScanTimeElement> f_children = null;
+  private long f_durationNs;
+  private String f_durationNsCachedString; // avoid re-computing this a lot
+
+  final void setDurationNs(long value) {
+    if (value < 0)
+      throw new IllegalArgumentException(I18N.err(315, value));
+    if (f_children != null)
+      throw new IllegalArgumentException(I18N.err(314, this.toString()));
+    f_durationNs = value;
+    f_durationNsCachedString = SLUtility.toStringDurationNS(value, TimeUnit.NANOSECONDS);
+  }
+
+  final void addChild(ScanTimeElement child) {
+    if (child == null)
+      return;
+    if (f_children == null)
+      f_children = new ArrayList<ScanTimeElement>();
+    f_children.add(child);
+  }
+
+  @NonNull
+  public final ScanTimeElement[] getChildren() {
+    if (f_children == null)
+      return EMPTY;
+    else
+      return f_children.toArray(new ScanTimeElement[f_children.size()]);
+  }
+
+  /**
+   * Used for implementation efficiency in the tree. Do not mutate anything
+   * passed back. Never returns null, if there are no children an empty list is
+   * returned.
+   * 
+   * @return a reference to the child list, or an empty list if no children.
+   */
+  @NonNull
+  final List<ScanTimeElement> getChildrenAsListReference() {
+    if (f_children == null)
+      return Collections.emptyList();
+    else
+      return f_children;
+  }
+
+  public final boolean hasChildren() {
+    if (f_children == null)
+      return false;
+    else
+      return !f_children.isEmpty();
+  }
+
+  public final boolean isLeaf() {
+    return !hasChildren();
   }
 
   @Nullable
@@ -92,7 +153,19 @@ public abstract class ScanTimeElement {
    * @return {@code true} if this element should highlighted, {@code false}
    *         otherwise.
    */
-  public abstract boolean highlightDueToSlocThreshold(ScanTimeOptions options);
+  public final boolean highlightDueToSlocThreshold(ScanTimeOptions options) {
+    if (f_children == null) {
+      final long threshold = options.getThreshold();
+      final boolean showAbove = options.getThresholdShowAbove();
+      final long metricValue = f_durationNs;
+      return showAbove ? metricValue >= threshold : metricValue <= threshold;
+    } else {
+      boolean result = false;
+      for (ScanTimeElement element : f_children)
+        result |= element.highlightDueToSlocThreshold(options);
+      return result;
+    }
+  }
 
   /**
    * Gets the duration for this element in nanoseconds. This value may change
@@ -102,7 +175,22 @@ public abstract class ScanTimeElement {
    *          the options configured about this metric.
    * @return the duration for this element.
    */
-  public abstract long getDurationNs(ScanTimeOptions options);
+  public final long getDurationNs(ScanTimeOptions options) {
+    if (f_children == null)
+      return f_durationNs;
+    else {
+      final boolean filterResultsByThreshold = options.getFilterResultsByThreshold();
+      long result = 0;
+      for (ScanTimeElement element : f_children) {
+        // Take filtering into account if filtering is on
+        boolean includeChild = !filterResultsByThreshold
+            || (filterResultsByThreshold && element.highlightDueToSlocThreshold(options));
+        if (includeChild)
+          result += element.getDurationNs(options);
+      }
+      return result;
+    }
+  }
 
   /**
    * Gets the duration for this element in a human readable form. This value may
@@ -112,5 +200,11 @@ public abstract class ScanTimeElement {
    *          the options configured about this metric.
    * @return the duration for this element.
    */
-  public abstract String getDurationAsHumanReadableString(ScanTimeOptions options);
+  public final String getDurationAsHumanReadableString(ScanTimeOptions options) {
+    if (f_children == null)
+      return f_durationNsCachedString;
+    else {
+      return SLUtility.toStringDurationNS(getDurationNs(options), TimeUnit.NANOSECONDS);
+    }
+  }
 }

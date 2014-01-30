@@ -6,9 +6,9 @@ import com.surelogic.Nullable;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.ui.SLImages;
 
-public final class ScanTimeElementCu extends ScanTimeElementWithChildren {
+public final class ScanTimeElementCu extends ScanTimeElement {
 
-  protected ScanTimeElementCu(ScanTimeElement parent, @Nullable String javaFileName) {
+  protected ScanTimeElementCu(ScanTimeElementPackage parent, @Nullable String javaFileName) {
     super(parent, javaFileName);
   }
 

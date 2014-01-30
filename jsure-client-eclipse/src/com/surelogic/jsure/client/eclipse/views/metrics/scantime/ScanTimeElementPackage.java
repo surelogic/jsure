@@ -7,9 +7,9 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.ui.SLImages;
 
-public final class ScanTimeElementPackage extends ScanTimeElementWithChildren {
+public final class ScanTimeElementPackage extends ScanTimeElement {
 
-  protected ScanTimeElementPackage(ScanTimeElement parent, @Nullable String packageName) {
+  protected ScanTimeElementPackage(ScanTimeElementProject parent, @Nullable String packageName) {
     super(parent, packageName != null ? packageName : SLUtility.JAVA_DEFAULT_PACKAGE);
   }
 

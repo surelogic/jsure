@@ -4,9 +4,9 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.ui.SLImages;
 
-public final class ScanTimeElementProject extends ScanTimeElementWithChildren {
+public final class ScanTimeElementProject extends ScanTimeElement {
 
-  protected ScanTimeElementProject(ScanTimeElement parent, String projectName) {
+  protected ScanTimeElementProject(ScanTimeElementScan parent, String projectName) {
     super(parent, projectName);
   }
 
