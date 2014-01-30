@@ -8,12 +8,12 @@ import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ui.SLImages;
 
-public class ScanTimeElementJavaDeclWithinCu extends ScanTimeElement {
+public class ScanTimeElementJavaDecl extends ScanTimeElement {
 
   @NonNull
   final IDecl f_javaDecl;
 
-  protected ScanTimeElementJavaDeclWithinCu(ScanTimeElement parent, IDecl javaDecl) {
+  protected ScanTimeElementJavaDecl(ScanTimeElement parent, IDecl javaDecl) {
     super(parent, DeclUtil.getEclipseJavaOutlineLikeLabel(javaDecl));
     if (javaDecl == null)
       throw new IllegalArgumentException(I18N.err(44, "javaDecl"));
@@ -22,7 +22,7 @@ public class ScanTimeElementJavaDeclWithinCu extends ScanTimeElement {
   }
 
   @NonNull
-  public IDecl getJavaDecl() {
+  public IDecl getDeclaration() {
     return f_javaDecl;
   }
 

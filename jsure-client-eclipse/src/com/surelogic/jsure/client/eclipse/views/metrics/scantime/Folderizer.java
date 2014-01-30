@@ -6,6 +6,14 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.DeclVisitor;
+import com.surelogic.common.ref.IDecl;
+import com.surelogic.common.ref.IDeclField;
+import com.surelogic.common.ref.IDeclFunction;
+import com.surelogic.common.ref.IDeclPackage;
+import com.surelogic.common.ref.IDeclParameter;
+import com.surelogic.common.ref.IDeclType;
+import com.surelogic.common.ref.IDeclTypeParameter;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IMetricDrop;
 
@@ -22,11 +30,7 @@ public final class Folderizer {
   public ScanTimeElement addToTree(@NonNull IMetricDrop scanTimeMetricDrop) {
     if (scanTimeMetricDrop == null)
       throw new IllegalArgumentException(I18N.err(44, "slocMetricDrop"));
-    final ScanTimeElementCu cu = getParentOf(scanTimeMetricDrop);
-    if (cu == null) {
-      SLLogger.getLogger().log(Level.WARNING, I18N.err(313, scanTimeMetricDrop.toString()));
-      return null;
-    }
+
     int durationNs = scanTimeMetricDrop.getMetricInfoAsInt(IMetricDrop.SCAN_TIME_DURATION_NS, 0);
     if (durationNs < 0) {
       SLLogger.getLogger().log(Level.WARNING, I18N.err(311, durationNs));
@@ -37,10 +41,18 @@ public final class Folderizer {
       SLLogger.getLogger().log(Level.WARNING, I18N.err(312));
       analysisName = "(unknown analysis)";
     }
-    // TODO
-    final ScanTimeElementAnalysis leaf = new ScanTimeElementAnalysis(cu, analysisName);
+    final ScanTimeElement parent = getParentOf(scanTimeMetricDrop, analysisName);
+    if (parent == null) {
+      SLLogger.getLogger().log(Level.WARNING, I18N.err(313, scanTimeMetricDrop.toString()));
+      return null;
+    }
+    final ScanTimeElement leaf;
+    if (parent instanceof ScanTimeElementCu) {
+      leaf = new ScanTimeElementAnalysis((ScanTimeElementCu) parent, analysisName);
+    } else {
+      leaf = new ScanTimeElementJavaDecl(parent, scanTimeMetricDrop.getJavaRef().getDeclaration());
+    }
     leaf.setDurationNs(durationNs);
-    cu.addChild(leaf);
     return leaf;
   }
 
@@ -70,12 +82,13 @@ public final class Folderizer {
    *         the passed drop.
    */
   @Nullable
-  public ScanTimeElementCu getParentOf(IMetricDrop drop) {
-    if (drop == null)
-      return null;
+  ScanTimeElement getParentOf(@NonNull IMetricDrop drop, @NonNull String analysisName) {
     final IJavaRef javaRef = drop.getJavaRef();
-    if (javaRef == null)
-      return null;
+    if (javaRef == null) {
+      SLLogger.getLogger().log(Level.WARNING, I18N.err(316, drop));
+      return null; // can't deal with this
+    }
+    final IDecl decl = javaRef.getDeclaration();
     /*
      * Project
      */
@@ -92,7 +105,6 @@ public final class Folderizer {
     }
     if (project == null) { // need to create this project
       project = new ScanTimeElementProject(f_scan, projectName);
-      f_scan.addChild(project);
     }
     /*
      * Package
@@ -110,23 +122,148 @@ public final class Folderizer {
     }
     if (pkg == null) { // need to create this package in the project
       pkg = new ScanTimeElementPackage(project, pkgName);
-      project.addChild(pkg);
     }
     /*
      * Compilation Unit
      */
+    ScanTimeElementCu cu = null;
     String cuName = drop.getJavaRef().getSimpleFileName();
     for (ScanTimeElement e : pkg.getChildrenAsListReference()) {
       if (e instanceof ScanTimeElementCu) {
-        final ScanTimeElementCu cu = (ScanTimeElementCu) e;
-        if (cu.getLabel().equals(cuName)) {
-          return cu; // found
+        final ScanTimeElementCu item = (ScanTimeElementCu) e;
+        if (item.getLabel().equals(cuName)) {
+          cu = item;
+          break; // found
         }
       }
     }
-    // need to create this compilation unit in the package
-    final ScanTimeElementCu cu = new ScanTimeElementCu(pkg, cuName);
-    pkg.addChild(cu);
-    return cu;
+    if (cu == null) { // need to create this compilation unit in the package
+      cu = new ScanTimeElementCu(pkg, cuName);
+    }
+    // Are we done?
+    if (javaRef.getDeclaration().getKind() == IDecl.Kind.PACKAGE) {
+      /*
+       * If the declaration is a package then we are dealing with timing
+       * information reported about an analysis at the compilation unit level.
+       * Hence there is no lower structure. We return the compilation unit as
+       * the parent.
+       */
+      return cu;
+    }
+    /*
+     * Verifying Analysis
+     */
+    ScanTimeElementAnalysis va = null;
+    for (ScanTimeElement e : cu.getChildrenAsListReference()) {
+      if (e instanceof ScanTimeElementAnalysis) {
+        final ScanTimeElementAnalysis item = (ScanTimeElementAnalysis) e;
+        if (analysisName.equals(item.getLabel())) {
+          va = item;
+          break; // found
+        }
+      }
+    }
+    if (va == null) { // need to create this analysis in the cu
+      va = new ScanTimeElementAnalysis(cu, analysisName);
+    }
+
+    final class MatchFolder extends DeclVisitor {
+
+      MatchFolder(ScanTimeElementAnalysis va) {
+        f_at = va;
+      }
+
+      @NonNull
+      private ScanTimeElement f_at;
+
+      @NonNull
+      ScanTimeElementJavaDecl getResult() {
+        if (f_at instanceof ScanTimeElementJavaDecl)
+          return (ScanTimeElementJavaDecl) f_at;
+        else
+          throw new IllegalStateException(I18N.err(317, javaRef, f_at));
+      }
+
+      private void visitNodeHelper(IDecl node) {
+        for (ScanTimeElement element : f_at.getChildrenAsListReference()) {
+          if (element instanceof ScanTimeElementJavaDecl) {
+            final ScanTimeElementJavaDecl ejd = (ScanTimeElementJavaDecl) element;
+            if (ejd.getDeclaration().equals(node)) {
+              f_at = ejd;
+              return; // found
+            }
+          }
+        }
+        // need to create
+        final ScanTimeElementJavaDecl element = new ScanTimeElementJavaDecl(f_at, node);
+        f_at = element;
+        return;
+      }
+
+      @Override
+      public void visitPackage(IDeclPackage node) {
+        visitNodeHelper(node);
+      }
+
+      @Override
+      public boolean visitClass(IDeclType node) {
+        visitNodeHelper(node);
+        return false;
+      }
+
+      @Override
+      public boolean visitInterface(IDeclType node) {
+        visitNodeHelper(node);
+        return false;
+      }
+
+      @Override
+      public void visitAnnotation(IDeclType node) {
+        visitNodeHelper(node);
+      }
+
+      @Override
+      public void visitEnum(IDeclType node) {
+        visitNodeHelper(node);
+      }
+
+      @Override
+      public void visitField(IDeclField node) {
+        visitNodeHelper(node);
+      }
+
+      @Override
+      public void visitInitializer(IDecl node) {
+        visitNodeHelper(node);
+      }
+
+      @Override
+      public boolean visitMethod(IDeclFunction node) {
+        visitNodeHelper(node);
+        return false;
+      }
+
+      @Override
+      public boolean visitConstructor(IDeclFunction node) {
+        visitNodeHelper(node);
+        return false;
+      }
+
+      @Override
+      public void visitParameter(IDeclParameter node, boolean partOfDecl) {
+        if (partOfDecl)
+          visitNodeHelper(node);
+      }
+
+      @Override
+      public void visitTypeParameter(IDeclTypeParameter node, boolean partOfDecl) {
+        if (partOfDecl)
+          visitNodeHelper(node);
+      }
+    }
+
+    final MatchFolder matcher = new MatchFolder(va);
+    decl.acceptRootToThis(matcher);
+    return matcher.getResult();
   }
 }
