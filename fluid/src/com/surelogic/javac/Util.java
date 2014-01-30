@@ -31,6 +31,7 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.apache.commons.lang3.SystemUtils;
 
 import com.surelogic.analysis.Analyses;
+import com.surelogic.analysis.Analyses.AnalysisTimings;
 import com.surelogic.analysis.AnalysisGroup;
 import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.ConcurrentAnalysis;
@@ -781,9 +782,8 @@ public class Util {
         checkForExpectedSourceFiles(allCus, expected);
       }
     }
-    System.out.println("Starting analyses");
-    final AllTimings timings = new AllTimings(analyses);
-    
+    System.out.println("Starting analyses");    
+    analyses.startTiming();
     if (useNewDriver && runAllAnalysesOnOneGranuleAtATime) {
     	System.out.println("Using new analysis framework -- one granule");
     	    	
@@ -810,8 +810,8 @@ public class Util {
       		// TODO end
       		// TODO postAnalysis
   		} 
-      	finishAllAnalyses(env, analyses, timings);
-        return timings.summarize();
+      	finishAllAnalyses(env, analyses);
+        return analyses.summarizeTiming();
     } else if (useNewDriver) {
     	System.out.println("Using new analysis framework -- groups");    	    	
     	final MultiMap<IAnalysisGranulator<?>,IAnalysisGranule> granules = new MultiHashMap<IAnalysisGranulator<?>, IAnalysisGranule>();
@@ -824,7 +824,7 @@ public class Util {
     			final AnalysisGroup<CUDrop> cuGroup = (AnalysisGroup<CUDrop>) group;
         		final AnalysisInfo<CUDrop> ai = new AnalysisInfo<CUDrop>(runOneThread, CUDrop.class, env, projects.getMonitor());	
         		ai.populate(allCus.asList());
-        		ai.analyzeProjects(projects, cuGroup, timings);
+        		ai.analyzeProjects(projects, cuGroup, analyses);
     		} else {
     			if (!extracted) {
     				extractGranules(analyses, allCus, granules);
@@ -832,11 +832,11 @@ public class Util {
     			}
 				final AnalysisInfo ai = new AnalysisInfo(runOneThread, group.getGranuleType(), env, projects.getMonitor());
         		ai.populate(granules.get(group.getGranulator()));        		
-        		ai.analyzeProjects(projects, group, timings);
+        		ai.analyzeProjects(projects, group, analyses);
     		}
     	}
-    	finishAllAnalyses(env, analyses, timings);
-        return timings.summarize();
+    	finishAllAnalyses(env, analyses);
+        return analyses.summarizeTiming();
     }
     System.out.println("Using old analysis framework");
     final long[] times = new long[analyses.size()];
@@ -884,14 +884,14 @@ public class Util {
             if (project.getTypeEnv() == cud.getTypeEnv()) { // Same project!
               // System.out.println("Running "+a.name()+" on "+cud.javaOSFileName);
               try {
-            	final AnalysisTimings timing = timings.timings.get();
+            	final AnalysisTimings timing = analyses.threadLocal.get();
                 frame.pushTypeContext(cud.getCompilationUnitIRNode());
                 final long start = System.nanoTime();
                 try {
                   a.doAnalysisOnGranule(env, cud);
                 } finally {
                 	final long end = System.nanoTime();
-                	timing.times[which] += (end - start);
+                	timing.incrTime(which, end - start);
                 }
               } catch (RuntimeException e) {
                 System.err.println("Error while processing " + cud.getJavaOSFileName());
@@ -918,7 +918,7 @@ public class Util {
 
         a.postAnalysis(project);
         final long endNano = System.nanoTime();
-        timings.times[which] += (endNano - startNano);
+        analyses.incrTime(which, endNano - startNano);
         
         endSubTask(projects.getMonitor());
       }
@@ -937,7 +937,7 @@ public class Util {
     }
     i = 0;
     
-    final long[] allTimesNano = timings.summarize();
+    final long[] allTimesNano = analyses.summarizeTiming();
     for (final IIRAnalysis<IAnalysisGranule> a : analyses) {
     	perf.setLongProperty("analysis.all.nano."+a.name(), allTimesNano[i]);
     	i++;
@@ -963,13 +963,13 @@ public class Util {
 	  }
   }
 
-  private static void finishAllAnalyses(IIRAnalysisEnvironment env, Analyses analyses, AllTimings timings) {
+  private static void finishAllAnalyses(IIRAnalysisEnvironment env, Analyses analyses) {
   	int i = 0;
   	for (final IIRAnalysis<?> a : analyses) {
   		final long start = System.nanoTime();
   		a.finish(env);
   		final long end = System.nanoTime();
-  		timings.times[i] += end - start;
+  		analyses.incrTime(i, end - start);
   		i++;
   	}	
   }
@@ -987,50 +987,6 @@ public class Util {
 		  }
 	  } while (moreToAnalyze);
   }
-  
-  static class AllTimings {
-	  final Analyses analyses;
-	  final long[] times;
-	  
-	  final List<AnalysisTimings> allTimings = new CopyOnWriteArrayList<AnalysisTimings>();
-	  final ThreadLocal<AnalysisTimings> timings = new ThreadLocal<AnalysisTimings>() {
-		  @Override
-		  protected AnalysisTimings initialValue() {
-			  AnalysisTimings rv = new AnalysisTimings(analyses);
-			  allTimings.add(rv);
-			  return rv;
-		  }
-	  };
-	  
-	  AllTimings(Analyses analyses) {
-		  this.analyses = analyses;
-		  this.times = new long[analyses.size()];
-	  }
-
-	  long[] summarize() {
-		  for(AnalysisTimings t : allTimings) {
-			  for(int j=0; j<times.length; j++) {
-				  times[j] += t.times[j]; 
-			  }			  
-		  }
-		  
-		  // Postprocess times to normalize to millis
-		  for(int i = 0; i<times.length; i++) {
-			  times[i] = times[i] / 1000000;
-		  }
-		  return times;
-	  }	  
-  }
-  
-  static class AnalysisTimings {
-	  final Analyses analyses;
-	  final long[] times;
-	  
-	  AnalysisTimings(Analyses analyses) {
-		  this.analyses = analyses;
-		  times = new long[analyses.size()];
-	  }
-  }  
   
   static class AnalysisInfo<Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> {
 	  final IIRAnalysisEnvironment env;
@@ -1078,7 +1034,7 @@ public class Util {
 						  final long end = System.nanoTime();
 						  final long time = end - start;
 						  recordTime(granule, a, time);
-						  timing.times[i] += time;
+						  timing.incrTime(i, time);
 						  i++;	
 					  }
 
@@ -1108,17 +1064,17 @@ public class Util {
 		  d.addOrReplaceMetricInfo(time);
 	  }
 
-	  void analyzeProjects(final Projects projects, IAnalysisGroup<Q> analyses, final AllTimings timing) {
-		setupProcedure(analyses, timing.timings); 
+	  void analyzeProjects(final Projects projects, IAnalysisGroup<Q> analyses, final Analyses all) {
+		setupProcedure(analyses, all.threadLocal); 
   		for (final JavacProject project : projects) {
 			if (projects.getMonitor().isCanceled()) {
 				throw new CancellationException();
 			}
-			analyzeAProject(project, analyses, timing);            
+			analyzeAProject(project, analyses, all);            
 		}
 	  }
 	  
-	  private void analyzeAProject(final JavacProject project, IAnalysisGroup<Q> analyses, final AllTimings timing) {		  
+	  private void analyzeAProject(final JavacProject project, IAnalysisGroup<Q> analyses, Analyses all) {		  
 		  final Collection<Q> fromProj = granules.get(project.getTypeEnv());
 		  int i = analyses.getOffset();
 		  for (final IIRAnalysis<Q> a : analyses) {
@@ -1135,7 +1091,7 @@ public class Util {
 				  a.analyzeBegin(env, project);
 			  } finally {
 				  final long end = System.nanoTime();
-				  timing.times[i] += end - start;
+				  all.incrTime(i, end - start);
 				  i++;
 			  }
 		  }
@@ -1151,7 +1107,7 @@ public class Util {
 			  final long start = System.nanoTime();
 			  handleAnalyzeEnd(a, env, project);
 			  final long end = System.nanoTime();
-			  timing.times[i] += end - start;
+			  all.incrTime(i, end - start);
 			  i++;	
 		  }
 		  
@@ -1161,7 +1117,7 @@ public class Util {
 			  final long start = System.nanoTime();
 			  a.postAnalysis(project);
 			  final long end = System.nanoTime();
-			  timing.times[i] += end - start;
+			  all.incrTime(i, end - start);
 			  i++;	
 			  endSubTask(monitor);
 		  }
