@@ -46,6 +46,10 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 		return size;
 	}
 	
+	public int numGroups() {
+		return groups.size();
+	}
+	
 	public Iterable<AnalysisGroup<?>> getGroups() {
 		return groups;
 	}
