@@ -29,10 +29,12 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAna
 		super(inParallel, type);
 	}
 
-	public String label() {
+	@Override
+  public String label() {
 		return label;
 	}
 	
+  @Override
 	public void setLabel(String l) {
 		if (l == null) {
 			throw new IllegalArgumentException();
@@ -61,6 +63,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAna
 		return null;
 	}
 	
+  @Override
 	public IAnalysisGranulator<Q> getGranulator() {
 		return null;
 	}

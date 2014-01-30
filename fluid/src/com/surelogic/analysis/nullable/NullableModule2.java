@@ -12,6 +12,9 @@ import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.ResultsBuilder;
+import com.surelogic.analysis.granules.FlowUnitGranulator;
+import com.surelogic.analysis.granules.FlowUnitGranule;
+import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Inferred;
@@ -45,7 +48,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
-public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModule2.AnalysisBundle, CUDrop>{
+public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModule2.AnalysisBundle, FlowUnitGranule>{
   private static final long NANO_SECONDS_PER_SECOND = 1000000000L;
 
   private static final int NON_NULL_LOCAL_CATEGORY = 900;
@@ -131,6 +134,18 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     driver.doAccept(compUnit);
     getAnalysis().clear();
   }
+
+  @Override
+  public IAnalysisGranulator<FlowUnitGranule> getGranulator() {
+    return FlowUnitGranulator.prototype;
+  }
+  
+  @Override
+  protected boolean doAnalysisOnGranule_wrapped(
+      final IIRAnalysisEnvironment env, final FlowUnitGranule g) {
+    getAnalysis().execute(g);
+    return true; 
+  }
   
   
   
@@ -141,11 +156,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     
     @Override
     protected List<FlowUnitVisitor<?>> createSubVisitors() {
-      final List <FlowUnitVisitor<?>> subs = new ArrayList<FlowUnitVisitor<?>>(2);
-      subs.add(new DetailVisitor());
-      subs.add(new NonNullTypeCheckerSlave(
-          getBinder(), getAnalysis().nonNullRawType, getAnalysis().getTimedOut()));
-      return Collections.unmodifiableList(subs);
+      return getAnalysis().getVisitors();
     }
 
 
@@ -153,14 +164,12 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     private JavaComponentFactory jcf = null;
     
     @Override
-//    protected void enteringEnclosingDeclPrefix(
     protected void enteringEnclosingDecl(
         final IRNode newDecl, final IRNode anonClassDecl) {
       jcf = JavaComponentFactory.startUse();
     }
     
     @Override
-//    protected final void leavingEnclosingDeclPostfix(
     protected final void leavingEnclosingDecl(
         final IRNode oldDecl, final IRNode returningTo) {
       JavaComponentFactory.finishUse(jcf);
@@ -170,14 +179,17 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   
   
   
-  private final class DetailVisitor extends FlowUnitVisitor<QueryBundle> {
-    public DetailVisitor() {
+  private static final class DetailVisitor extends FlowUnitVisitor<QueryBundle> {
+    private final AnalysisBundle bundle;
+    
+    public DetailVisitor(final AnalysisBundle b) {
       super(true);
+      bundle = b;
     }
     
     @Override
     protected QueryBundle createNewQuery(final IRNode decl) {
-      return getAnalysis().new QueryBundle(decl);
+      return bundle. new QueryBundle(decl);
     }
 
     @Override
@@ -225,7 +237,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
 //        rd.setMessage(TIME_OUT, e.timeOut / NANO_SECONDS_PER_SECOND,
 //            name, duration / NANO_SECONDS_PER_SECOND);
 //        // XXX: Need to attach this result to some promises!!!
-        getAnalysis().addTimeOut(body);
+        bundle.addTimeOut(body);
         
         final HintDrop hd = HintDrop.newWarning(JJNode.tree.getParent(body));
         hd.setCategorizingMessage(TIME_OUT_CATEGORY);
@@ -278,19 +290,19 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     private final NonNullRawTypeAnalysis nonNullRawType;
     private final Set<IRNode> timedOutMethodBodies = new HashSet<IRNode>();
     
+    private final DetailVisitor details;
+    private final NonNullTypeCheckerSlave typeChecker;
+    
     
     
     private AnalysisBundle(final IBinder b) {
       binder = b;
       definiteAssignment = new DefinitelyAssignedAnalysis(b, false);
       nonNullRawType = new NonNullRawTypeAnalysis(b);
+      
+      details = new DetailVisitor(this);
+      typeChecker = new NonNullTypeCheckerSlave(b, nonNullRawType, timedOutMethodBodies);
     }
-//    
-//    public void typeCheck(final IRNode cu) {
-//      final NonNullTypeChecker typeChecker =
-//          new NonNullTypeChecker(binder, nonNullRawType, timedOutMethodBodies);
-//      typeChecker.doAccept(cu);
-//    }
     
     @Override
     public IBinder getBinder() {
@@ -315,6 +327,18 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     
     public Set<IRNode> getTimedOut() {
       return Collections.unmodifiableSet(timedOutMethodBodies);
+    }
+    
+    public List<FlowUnitVisitor<?>> getVisitors() {
+      final List <FlowUnitVisitor<?>> subs = new ArrayList<FlowUnitVisitor<?>>(2);
+      subs.add(details);
+      subs.add(typeChecker);
+      return Collections.unmodifiableList(subs);
+    }
+    
+    public void execute(final FlowUnitGranule granule) {
+      granule.execute(details);
+      granule.execute(typeChecker);
     }
     
     

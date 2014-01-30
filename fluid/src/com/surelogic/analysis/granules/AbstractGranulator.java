@@ -39,7 +39,8 @@ public abstract class AbstractGranulator<T extends IAnalysisGranule> implements 
 	
 	protected abstract void extractGranules(List<T> granules, ITypeEnvironment tEnv, IRNode cu);
 	
-	public Procedure<T> wrapAnalysis(Procedure<T> proc) {
+	@Override
+  public Procedure<T> wrapAnalysis(Procedure<T> proc) {
 		return proc;
 	}
 }
