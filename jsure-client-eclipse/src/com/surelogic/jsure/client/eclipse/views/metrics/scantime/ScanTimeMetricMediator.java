@@ -432,17 +432,13 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
         final ScanTimeElementLeaf element = (ScanTimeElementLeaf) cell.getElement();
         String label = element.getDurationAsHumanReadableString(f_options);
         cell.setText(label);
-        Image image = element.getImage();
         if (element.highlightDueToSlocThreshold(f_options)) {
-          image = SLImages.getDecoratedImage(image, new ImageDescriptor[] {
-              SLImages.getImageDescriptor(CommonImages.DECR_ASTERISK), null, null, null, null });
           if (element instanceof ScanTimeElementLeaf) {
             cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
           }
         } else {
           cell.setBackground(null);
         }
-        cell.setImage(image);
       }
     }
   };
