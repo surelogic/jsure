@@ -12,17 +12,24 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
  * @author edwin
  *
  */
-public final class AnalysisGroup<Q extends IAnalysisGranule> extends ArrayList<IIRAnalysis<Q>> implements IAnalysisGroup<Q> {
+public final class AnalysisGroup<Q extends IAnalysisGranule> /*extends ArrayList<IIRAnalysis<Q>>*/ 
+extends ConcurrentAnalysis<Q> implements IAnalysisGroup<Q> {
 	private static final long serialVersionUID = 1L;
 	
 	final IAnalysisGranulator<Q> granulator;
 	final int offset; // Into the linear ordering
+	final List<IIRAnalysis<Q>> analyses;
 	
+	@SuppressWarnings("unchecked")
 	public AnalysisGroup(IAnalysisGranulator<Q> g, int index, IIRAnalysis<Q>... analyses) {
+		// internal or never
+		super(analyses[0].runInParallel() != ConcurrencyType.EXTERNALLY, 
+			  g == null ? (Class<Q>) CUDrop.class : g.getType());
 		granulator = g;
 		offset = index;
+		this.analyses = new ArrayList<IIRAnalysis<Q>>(analyses.length);
 		for(IIRAnalysis<Q> a : analyses) {
-			this.add(a);
+			this.analyses.add(a);
 		}
 	}
 
@@ -31,8 +38,7 @@ public final class AnalysisGroup<Q extends IAnalysisGranule> extends ArrayList<I
 	}
 	
 	public boolean runSingleThreaded() {
-		// internal or never
-		return get(0).runInParallel() != ConcurrencyType.EXTERNALLY;
+		return runInParallel() != ConcurrencyType.EXTERNALLY;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -56,5 +62,17 @@ public final class AnalysisGroup<Q extends IAnalysisGranule> extends ArrayList<I
 			sb.append(a.name());
 		}
 		return sb.toString();
+	}
+	
+	int size() {
+		return analyses.size();
+	}
+	
+	boolean isEmpty() {
+		return analyses.isEmpty();
+	}
+	
+	public Iterator<IIRAnalysis<Q>> iterator() {
+		return analyses.iterator();
 	}
 }
