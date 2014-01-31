@@ -144,8 +144,7 @@ public final class ScanTimeMetricCompactProofHook extends AbstractSeaConsistency
     }
 
     for (Map.Entry<Key, Value> entry : cuToDrops.entrySet()) {
-      if (entry.getValue().totalDurationNs > f_thresholdNs) {
-        SLLogger.getLogger().info("Compacted SCAN_TIMEs for " + entry.getKey());
+      if (entry.getValue().totalDurationNs < f_thresholdNs) { // below threshold
         // make a new drop
         MetricDrop metricOnCu = new MetricDrop(entry.getValue().cu, entry.getValue().metric);
         metricOnCu.addOrReplaceMetricInfo(KeyValueUtility.getLongInstance(IMetricDrop.SCAN_TIME_DURATION_NS,
