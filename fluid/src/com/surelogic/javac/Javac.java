@@ -7,7 +7,6 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import com.surelogic.analysis.Analyses;
-import com.surelogic.analysis.AnalysisGroup;
 import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.IIRProject;
@@ -36,7 +35,6 @@ import com.surelogic.analysis.threads.ThreadEffectsModule;
 import com.surelogic.analysis.utility.UtilityAnalysis;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.util.*;
-import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 
 import edu.cmu.cs.fluid.ide.IClassPath;
@@ -402,9 +400,8 @@ public class Javac extends IDE {
 			if (b != null) {
 				switch (b) {
 				case UAM:
-					AnalysisGroup<CUDrop> g = new AnalysisGroup<CUDrop>(null, 0, 
+					analyses.addNewGroup(null,
 							new com.surelogic.analysis.uniqueness.plusFrom.traditional.NewBenchmarkingUAM());
-					analyses.add(g);
 					return analyses;
 				default:
 				}
@@ -477,7 +474,7 @@ public class Javac extends IDE {
 		for(IIRAnalysis<?> a : grouped) {
 			System.out.println("\t"+a.name());
 		}
-		analyses.add(new AnalysisGroup(g, analyses.size(), grouped.toArray(new IIRAnalysis<?>[grouped.size()])));
+		analyses.addNewGroup(g, grouped.toArray(new IIRAnalysis<?>[grouped.size()]));
 		grouped.clear();
 		return;
 	}

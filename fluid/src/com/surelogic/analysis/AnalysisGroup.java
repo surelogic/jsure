@@ -16,15 +16,17 @@ public final class AnalysisGroup<Q extends IAnalysisGranule> /*extends ArrayList
 extends ConcurrentAnalysis<Q> implements IAnalysisGroup<Q> {
 	private static final long serialVersionUID = 1L;
 	
+	final Analyses parent;
 	final IAnalysisGranulator<Q> granulator;
 	final int offset; // Into the linear ordering
 	final List<IIRAnalysis<Q>> analyses;
 	
 	@SuppressWarnings("unchecked")
-	public AnalysisGroup(IAnalysisGranulator<Q> g, int index, IIRAnalysis<Q>... analyses) {
+	public AnalysisGroup(Analyses parent, IAnalysisGranulator<Q> g, int index, IIRAnalysis<Q>... analyses) {
 		// internal or never
 		super(analyses[0].runInParallel() != ConcurrencyType.EXTERNALLY, 
 			  g == null ? (Class<Q>) CUDrop.class : g.getType());
+		this.parent = parent;
 		granulator = g;
 		offset = index;
 		this.analyses = new ArrayList<IIRAnalysis<Q>>(analyses.length);
@@ -47,6 +49,10 @@ extends ConcurrentAnalysis<Q> implements IAnalysisGroup<Q> {
 			return (Class<Q>) CUDrop.class;
 		}
 		return granulator.getType();
+	}
+	
+	public Analyses getParent() {
+		return parent;
 	}
 	
 	public IAnalysisGranulator<Q> getGranulator() {
@@ -74,5 +80,19 @@ extends ConcurrentAnalysis<Q> implements IAnalysisGroup<Q> {
 	
 	public Iterator<IIRAnalysis<Q>> iterator() {
 		return analyses.iterator();
+	}
+	
+	public static <Q extends IAnalysisGranule> 
+	void handleAnalyzeEnd(IIRAnalysis<Q> a, IIRAnalysisEnvironment env, IIRProject project) {
+		boolean moreToAnalyze;
+		do {
+			moreToAnalyze = false;
+			for(Q granule : a.analyzeEnd(env, project)) {
+				moreToAnalyze = true;
+
+				// TODO parallelize?
+				a.doAnalysisOnGranule(env, granule);
+			}
+		} while (moreToAnalyze);
 	}
 }

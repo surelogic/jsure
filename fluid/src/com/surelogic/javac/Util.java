@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -39,7 +38,6 @@ import com.surelogic.analysis.IAnalysisGroup;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.granules.FlowUnitGranule;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
@@ -793,10 +791,9 @@ public class Util {
     	// Setup
     	final AnalysisInfo<?>[] infos = new AnalysisInfo<?>[analyses.numGroups()];
     	int i = 0;
-      	for(AnalysisGroup<?> group : analyses.getGroups()) {
-    		final boolean runOneThread = perf.singleThreaded || group.runSingleThreaded();    				
+      	for(AnalysisGroup<?> group : analyses.getGroups()) {			
     		System.out.println("Initializing info for group: "+group.getLabel());
-    		infos[i] = new AnalysisInfo(runOneThread, group.getGranuleType(), env, projects.getMonitor());
+    		infos[i] = new AnalysisInfo(perf, group, env, projects.getMonitor());
     		i++;
       	}
 
@@ -817,22 +814,21 @@ public class Util {
     	final MultiMap<IAnalysisGranulator<?>,IAnalysisGranule> granules = new MultiHashMap<IAnalysisGranulator<?>, IAnalysisGranule>();
     	boolean extracted = false;
     	
-    	for(AnalysisGroup<?> group : analyses.getGroups()) {
-    		final boolean runOneThread = perf.singleThreaded || group.runSingleThreaded();    				
+    	for(AnalysisGroup<?> group : analyses.getGroups()) {			
     		System.out.println("Starting group: "+group.getLabel());
     		if (group.getGranulator() == null) {
     			final AnalysisGroup<CUDrop> cuGroup = (AnalysisGroup<CUDrop>) group;
-        		final AnalysisInfo<CUDrop> ai = new AnalysisInfo<CUDrop>(runOneThread, CUDrop.class, env, projects.getMonitor());	
+        		final AnalysisInfo<CUDrop> ai = new AnalysisInfo<CUDrop>(perf, cuGroup, env, projects.getMonitor());	
         		ai.populate(allCus.asList());
-        		ai.analyzeProjects(projects, cuGroup, analyses);
+        		ai.analyzeProjects(projects);
     		} else {
     			if (!extracted) {
     				extractGranules(analyses, allCus, granules);
     				extracted = true;
     			}
-				final AnalysisInfo ai = new AnalysisInfo(runOneThread, group.getGranuleType(), env, projects.getMonitor());
+				final AnalysisInfo ai = new AnalysisInfo(perf, group, env, projects.getMonitor());
         		ai.populate(granules.get(group.getGranulator()));        		
-        		ai.analyzeProjects(projects, group, analyses);
+        		ai.analyzeProjects(projects);
     		}
     	}
     	finishAllAnalyses(env, analyses);
@@ -914,7 +910,7 @@ public class Util {
           toAnalyze.apply(proc);
         }
         final long startNano = System.nanoTime();
-        handleAnalyzeEnd(a, env, project);
+        AnalysisGroup.handleAnalyzeEnd(a, env, project);
 
         a.postAnalysis(project);
         final long endNano = System.nanoTime();
@@ -973,30 +969,19 @@ public class Util {
   		i++;
   	}	
   }
-
-  static <Q extends IAnalysisGranule> 
-  void handleAnalyzeEnd(IIRAnalysis<Q> a, IIRAnalysisEnvironment env, IIRProject project) {
-	  boolean moreToAnalyze;
-	  do {
-		  moreToAnalyze = false;
-		  for(Q granule : a.analyzeEnd(env, project)) {
-			  moreToAnalyze = true;
-
-			  // TODO parallelize?
-			  a.doAnalysisOnGranule(env, granule);
-		  }
-	  } while (moreToAnalyze);
-  }
   
   static class AnalysisInfo<Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> {
+	  final IAnalysisGroup<Q> analyses;
 	  final IIRAnalysisEnvironment env;
 	  final MultiMap<ITypeEnvironment, Q> granules = new MultiHashMap<ITypeEnvironment, Q>();
 	  final SLProgressMonitor monitor;
 	  
-	  AnalysisInfo(boolean runOneThread, Class<Q> cls, IIRAnalysisEnvironment e, SLProgressMonitor mon) {
-		  super(!runOneThread, cls);
+	  AnalysisInfo(JSurePerformance perf, IAnalysisGroup<Q> g, IIRAnalysisEnvironment e, SLProgressMonitor mon) {
+		  super(!(perf.singleThreaded || g.runSingleThreaded()), g.getGranuleType());
+		  analyses = g;
 		  env = e;
 		  monitor = mon;
+		  setupProcedure(); 
 	  }
   
 	  void populate(Collection<? extends Q> newGranules) {
@@ -1008,7 +993,8 @@ public class Util {
 		  }
 	  }
 	  
-	  private Procedure<Q> setupProcedure(final IAnalysisGroup<Q> analyses, final ThreadLocal<AnalysisTimings> timings) {
+	  private Procedure<Q> setupProcedure() {
+		  final ThreadLocal<AnalysisTimings> timings = analyses.getParent().threadLocal;	  
 		  final PromiseFramework frame = PromiseFramework.getInstance();	  
 		  final Procedure<Q> rv = new Procedure<Q>() {	  
 			  @Override
@@ -1064,17 +1050,17 @@ public class Util {
 		  d.addOrReplaceMetricInfo(time);
 	  }
 
-	  void analyzeProjects(final Projects projects, IAnalysisGroup<Q> analyses, final Analyses all) {
-		setupProcedure(analyses, all.threadLocal); 
+	  void analyzeProjects(final Projects projects) {
   		for (final JavacProject project : projects) {
 			if (projects.getMonitor().isCanceled()) {
 				throw new CancellationException();
 			}
-			analyzeAProject(project, analyses, all);            
+			analyzeAProject(project);            
 		}
 	  }
 	  
-	  private void analyzeAProject(final JavacProject project, IAnalysisGroup<Q> analyses, Analyses all) {		  
+	  private void analyzeAProject(final JavacProject project) {		  
+		  final Analyses all = analyses.getParent();
 		  final Collection<Q> fromProj = granules.get(project.getTypeEnv());
 		  int i = analyses.getOffset();
 		  for (final IIRAnalysis<Q> a : analyses) {
@@ -1105,7 +1091,7 @@ public class Util {
 		  i = analyses.getOffset();
 		  for (final IIRAnalysis<Q> a : analyses) {
 			  final long start = System.nanoTime();
-			  handleAnalyzeEnd(a, env, project);
+			  AnalysisGroup.handleAnalyzeEnd(a, env, project);
 			  final long end = System.nanoTime();
 			  all.incrTime(i, end - start);
 			  i++;	
