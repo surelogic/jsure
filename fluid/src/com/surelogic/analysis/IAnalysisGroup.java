@@ -7,4 +7,6 @@ public interface IAnalysisGroup<Q extends IAnalysisGranule> extends Iterable<IIR
 	int getOffset();
 	boolean runSingleThreaded();
 	IAnalysisGranulator<Q> getGranulator();
+	Class<Q> getGranuleType();
+	Analyses getParent();
 }

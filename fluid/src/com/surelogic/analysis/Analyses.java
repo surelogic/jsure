@@ -7,6 +7,7 @@ import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.common.util.AppendIterator;
 import com.surelogic.common.util.EmptyIterator;
+import com.surelogic.dropsea.ir.drops.CUDrop;
 
 // Map groups to a linear ordering
 // Deal with granulators
@@ -90,13 +91,14 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 		return groups;
 	}
 
-	public void add(AnalysisGroup<?> g) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void addNewGroup(IAnalysisGranulator<?> g, IIRAnalysis<?>... analyses) {
 		if (times != null) {
 			throw new IllegalStateException("Can't add analyses after starting timing");
 		}
-		groups.add(g);
-	}
-
+		groups.add(new AnalysisGroup(this, g, size(), analyses));
+	}  
+	
 	public Set<IAnalysisGranulator<?>> getGranulators() {
 		Set<IAnalysisGranulator<?>> rv = new HashSet<IAnalysisGranulator<?>>();
 		for(AnalysisGroup<?> g : groups) {
@@ -112,7 +114,7 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 	}
 	
 	public static class AnalysisTimings {
-		private final long[] times;
+		final long[] times;
 		
 		AnalysisTimings(Analyses analyses) {
 			times = new long[analyses.size()];
@@ -125,5 +127,14 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 
 	public void incrTime(int i, long time) {
 		times[i] += time;		
-	}  
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public Class<IAnalysisGranule> getGranuleType() {
+		return ((Class<IAnalysisGranule>) ((Class)CUDrop.class));
+	}
+
+	public Analyses getParent() {
+		return this;
+	}
 }
