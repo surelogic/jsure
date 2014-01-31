@@ -49,6 +49,7 @@ import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VariableResource;
+import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -138,6 +139,11 @@ public class DeclFactory {
       }
       final IRNode field = VariableDeclarators.getVar(vdecls, 0);
       b =  buildNonTypeDecl(field, VariableDeclarator.prototype, parentB);
+    } else if (op instanceof ClassInitDeclaration) {
+      InitializerBuilder init = new InitializerBuilder();
+      init.setIsStatic(true);
+      init.setIsImplicit(true);
+      b = init;
     } else {
       return parentB;
     }
