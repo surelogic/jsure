@@ -434,8 +434,6 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_SLOC_COL_SEMICOLON_COUNT_WIDTH));
     columnSemicolonCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
-    fixSortingIndicatorOnTreeTable();
-
     f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
     f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
     f_actionExpand.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
@@ -529,7 +527,8 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
   void fixSortingIndicatorOnTreeTable() {
     if (f_treeViewer.getSorter() == f_alphaSorter) {
-      f_treeViewer.getTree().setSortColumn(null);
+      f_treeViewer.getTree().setSortColumn(f_treeViewer.getTree().getColumn(0));
+      f_treeViewer.getTree().setSortDirection(SWT.DOWN);
     } else {
       f_treeViewer.getTree().setSortColumn(f_treeViewer.getTree().getColumn(f_options.getSelectedColumnTitleIndex() + 1));
       f_treeViewer.getTree().setSortDirection(f_options.getThresholdShowAbove() ? SWT.UP : SWT.DOWN);

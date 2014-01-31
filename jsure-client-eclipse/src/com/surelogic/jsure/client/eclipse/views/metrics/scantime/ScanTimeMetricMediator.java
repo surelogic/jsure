@@ -144,7 +144,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     }
   };
 
-  Label f_totalSlocScanned = null;
+  Label f_totalScanDuration = null;
   Scale f_thresholdScale = null;
   Text f_thresholdLabel = null;
 
@@ -199,9 +199,9 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     GridLayout topLayout = new GridLayout(6, false);
     top.setLayout(topLayout);
 
-    f_totalSlocScanned = new Label(top, SWT.NONE);
-    f_totalSlocScanned.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-    f_totalSlocScanned.setForeground(f_totalSlocScanned.getDisplay().getSystemColor(SWT.COLOR_BLUE));
+    f_totalScanDuration = new Label(top, SWT.NONE);
+    f_totalScanDuration.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+    f_totalScanDuration.setForeground(f_totalScanDuration.getDisplay().getSystemColor(SWT.COLOR_BLUE));
 
     final Combo countCombo = new Combo(top, SWT.READ_ONLY);
     countCombo.setItems(f_columnTitles);
@@ -339,8 +339,6 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_SCAN_TIME_COL_DURATION_WIDTH));
     columnDuration.getColumn().setText("Duration (ns)");
 
-    fixSortingIndicatorOnTreeTable();
-
     f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
     f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
     f_actionExpand.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
@@ -428,13 +426,15 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
       f_treeViewer.refresh();
   }
 
-  void updateTotal(long total) {
-    f_totalSlocScanned.setText(SLUtility.toStringHumanWithCommas(total) + " SLOC scanned");
+  void updateTotal(ScanTimeElement root) {
+    final String total = root.getDurationAsHumanReadableString(f_options);
+    f_totalScanDuration.setText(total);
   }
 
   void fixSortingIndicatorOnTreeTable() {
     if (f_treeViewer.getSorter() == f_alphaSorter) {
-      f_treeViewer.getTree().setSortColumn(null);
+      f_treeViewer.getTree().setSortColumn(f_treeViewer.getTree().getColumn(0));
+      f_treeViewer.getTree().setSortDirection(SWT.DOWN);
     } else {
       f_treeViewer.getTree().setSortColumn(f_treeViewer.getTree().getColumn(1));
       f_treeViewer.getTree().setSortDirection(f_options.getThresholdShowAbove() ? SWT.UP : SWT.DOWN);

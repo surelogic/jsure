@@ -57,7 +57,6 @@ public class SlocViewContentProvider implements ITreeContentProvider {
     } else {
       SLLogger.getLogger().log(Level.SEVERE, I18N.err(301, this.getClass().getSimpleName(), newInput));
     }
-
   }
 
   private SlocElement[] f_root = null;
