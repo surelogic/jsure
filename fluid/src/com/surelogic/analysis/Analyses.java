@@ -4,6 +4,9 @@ import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.apache.commons.collections15.MultiMap;
+import org.apache.commons.collections15.multimap.MultiHashMap;
+
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.common.jobs.SLProgressMonitor;
@@ -11,7 +14,10 @@ import com.surelogic.common.util.AppendIterator;
 import com.surelogic.common.util.EmptyIterator;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.javac.JavacProject;
+import com.surelogic.javac.Projects;
 import com.surelogic.javac.Util;
+
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 
 // Map groups to a linear ordering
 // Deal with granulators
@@ -151,10 +157,27 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 		void process(Collection<P> fromProj);
 	}
 	
+	public <P extends IAnalysisGranule, Q extends IAnalysisGranule>
+	void analyzeProjects(final Projects projects, final Analyzer<P,Q> analyzer, Collection<? extends P> toAnalyze) {
+		if (toAnalyze == null) {
+			return;
+		}
+		final MultiMap<ITypeEnvironment, P> granules = new MultiHashMap<ITypeEnvironment, P>();
+		for (P granule : toAnalyze) {
+			granules.put(granule.getTypeEnv(), granule);
+		}
+		for (final JavacProject project : projects) {
+			if (projects.getMonitor().isCanceled()) {
+				throw new CancellationException();
+			}
+			analyzeAProject(analyzer, project, granules.get(project.getTypeEnv()));
+		}
+	}
+	
 	/**
 	 * Handles all the analyzeBegin/End call, while abstracting how the analyses are run on the project
 	 */
-	public <P, Q extends IAnalysisGranule>
+	public <P extends IAnalysisGranule, Q extends IAnalysisGranule>
 	void analyzeAProject(final Analyzer<P,Q> analyzer, final JavacProject project, Collection<P> fromProj) {		  
 		int i = analyzer.getAnalyses().getOffset();
 		for (final IIRAnalysis<Q> a : analyzer.getAnalyses()) {
