@@ -39,6 +39,11 @@ public final class ScanTimeMetricCompactProofHook extends AbstractSeaConsistency
     final String analysisName;
 
     @Override
+    public String toString() {
+      return project + ":" + pkg + "/" + cu + "[" + analysisName + "]";
+    }
+
+    @Override
     public int hashCode() {
       final int prime = 31;
       int result = 1;
@@ -100,6 +105,10 @@ public final class ScanTimeMetricCompactProofHook extends AbstractSeaConsistency
   public void postConsistencyProof(Sea sea) {
     HashMap<Key, Value> cuToDrops = new HashMap<Key, Value>();
     for (MetricDrop drop : sea.getDropsOfType(MetricDrop.class)) {
+      // Only consider scan timing information
+      if (drop.getMetric() != IMetricDrop.Metric.SCAN_TIME)
+        continue;
+
       int durationNs = drop.getMetricInfoAsInt(IMetricDrop.SCAN_TIME_DURATION_NS, 0);
       if (durationNs < 0) {
         SLLogger.getLogger().log(Level.WARNING, I18N.err(311, durationNs));
@@ -136,6 +145,7 @@ public final class ScanTimeMetricCompactProofHook extends AbstractSeaConsistency
 
     for (Map.Entry<Key, Value> entry : cuToDrops.entrySet()) {
       if (entry.getValue().totalDurationNs > f_thresholdNs) {
+        SLLogger.getLogger().info("Compacted SCAN_TIMEs for " + entry.getKey());
         // make a new drop
         MetricDrop metricOnCu = new MetricDrop(entry.getValue().cu, entry.getValue().metric);
         metricOnCu.addOrReplaceMetricInfo(KeyValueUtility.getLongInstance(IMetricDrop.SCAN_TIME_DURATION_NS,
