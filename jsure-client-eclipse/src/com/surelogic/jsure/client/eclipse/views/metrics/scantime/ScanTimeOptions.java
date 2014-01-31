@@ -1,5 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.metrics.scantime;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Cached for UI use.
  * <p>
@@ -13,13 +15,14 @@ public final class ScanTimeOptions {
    * Sets the metric threshold value.
    * 
    * @param value
-   *          a metric threshold value.
+   *          a metric threshold value in seconds.
    * @return {@code true} if the value changed, {@code false} if it was already
    *         set to this value.
    */
-  public boolean setThreshold(long value) {
-    if (f_threshold != value) {
-      f_threshold = value;
+  public boolean setThreshold(long valueInSeconds) {
+    final long valueNS = TimeUnit.SECONDS.toNanos(valueInSeconds);
+    if (f_threshold != valueNS) {
+      f_threshold = valueNS;
       return true;
     } else
       return false;

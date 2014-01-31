@@ -301,7 +301,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
       }
     });
 
-    f_thresholdLabel = new Text(top, SWT.SINGLE);
+    f_thresholdLabel = new Text(top, SWT.SINGLE | SWT.RIGHT);
     GridData gd = new GridData(SWT.FILL, SWT.CENTER, false, false);
     gd.widthHint = 80;
     f_thresholdLabel.setLayoutData(gd);

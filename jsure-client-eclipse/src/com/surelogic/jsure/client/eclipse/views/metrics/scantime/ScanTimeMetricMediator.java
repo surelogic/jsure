@@ -147,6 +147,9 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
   Label f_totalScanDuration = null;
   Scale f_thresholdScale = null;
   Text f_thresholdLabel = null;
+  Label f_thresholdUnit = null;
+  final String f_unitUnit = "second";
+  final String f_multipleUnit = "seconds";
 
   final String[] f_columnTitles = new String[] { "SLOC", "Blank Lines", "Commented Lines", "Java Declarations", "Java Statements",
       "Semicolon Count" };
@@ -196,7 +199,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
 
     Composite top = new Composite(panel, SWT.BORDER);
     top.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-    GridLayout topLayout = new GridLayout(6, false);
+    GridLayout topLayout = new GridLayout(7, false);
     top.setLayout(topLayout);
 
     f_totalScanDuration = new Label(top, SWT.NONE);
@@ -258,8 +261,8 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     f_thresholdScale = new Scale(top, SWT.NONE);
     f_thresholdScale.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     f_thresholdScale.setMinimum(1);
-    f_thresholdScale.setMaximum(3000);
-    f_thresholdScale.setPageIncrement(100);
+    f_thresholdScale.setMaximum(120);
+    f_thresholdScale.setPageIncrement(10);
     int savedThreshold = EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD);
     if (savedThreshold < f_thresholdScale.getMinimum())
       savedThreshold = f_thresholdScale.getMinimum();
@@ -274,7 +277,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
       }
     });
 
-    f_thresholdLabel = new Text(top, SWT.SINGLE);
+    f_thresholdLabel = new Text(top, SWT.SINGLE | SWT.RIGHT);
     GridData gd = new GridData(SWT.FILL, SWT.CENTER, false, false);
     gd.widthHint = 80;
     f_thresholdLabel.setLayoutData(gd);
@@ -293,6 +296,10 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
           updateThresholdFromTextIfSafe();
       }
     });
+
+    f_thresholdUnit = new Label(top, SWT.NONE);
+    f_thresholdUnit.setLayoutData(gd);
+    f_thresholdUnit.setText(savedThreshold > 1 ? f_multipleUnit : f_unitUnit);
 
     final SashForm sash = new SashForm(panel, SWT.HORIZONTAL | SWT.SMOOTH);
     gd = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -422,8 +429,10 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     int threshold = f_thresholdScale.getSelection();
     f_thresholdLabel.setText(SLUtility.toStringHumanWithCommas(threshold));
     EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD, threshold);
-    if (f_options.setThreshold(threshold))
+    if (f_options.setThreshold(threshold)) {
+      f_thresholdUnit.setText(threshold > 1 ? f_multipleUnit : f_unitUnit);
       f_treeViewer.refresh();
+    }
   }
 
   void updateTotal(ScanTimeElement root) {
