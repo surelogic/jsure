@@ -1119,18 +1119,6 @@ public class Util {
 			  queueWork(toAnalyze);
 		  }		  
 	  }
-	  		  
-	  private void execute(List<FlowUnitGranule> granules, List<FlowUnitVisitor<?>> subVisitors) {
-		  for(FlowUnitGranule g : granules) {		  
-			  // TODO setup versioning, assumptions, component locking
-			  for(FlowUnitVisitor<?> sv : subVisitors) {
-				  // TODO timing
-				  
-				  // a.doAnalysisOnGranule(env, granule) ->
-				  g.execute(sv);
-			  }
-		  }
-	  }
   }
   
   private static void recordFilesAnalyzed(ParallelArray<SourceCUDrop> allCus, File log) {
