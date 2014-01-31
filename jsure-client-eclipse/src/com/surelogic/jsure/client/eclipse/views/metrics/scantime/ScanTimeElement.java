@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import org.eclipse.swt.graphics.Image;
 
@@ -12,6 +13,7 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 
 public abstract class ScanTimeElement {
 
@@ -58,11 +60,11 @@ public abstract class ScanTimeElement {
   private long f_durationNs;
   private String f_durationNsCachedString; // avoid re-computing this a lot
 
-  final void setDurationNs(long value) {
+  final void setDurationNs(long value, String analysisName) {
     if (value < 0)
       throw new IllegalArgumentException(I18N.err(315, value));
     if (f_children != null)
-      throw new IllegalArgumentException(I18N.err(314, this.toString()));
+      SLLogger.getLogger().log(Level.WARNING, I18N.err(314, this.toString(), analysisName));
     f_durationNs = value;
     f_durationNsCachedString = SLUtility.toStringDurationNS(value, TimeUnit.NANOSECONDS);
   }
@@ -208,5 +210,10 @@ public abstract class ScanTimeElement {
     else {
       return SLUtility.toStringDurationNS(getDurationNs(options), TimeUnit.NANOSECONDS);
     }
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + " : " + getLabel();
   }
 }

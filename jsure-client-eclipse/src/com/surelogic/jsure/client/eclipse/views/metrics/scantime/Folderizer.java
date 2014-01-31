@@ -41,19 +41,8 @@ public final class Folderizer {
       SLLogger.getLogger().log(Level.WARNING, I18N.err(312));
       analysisName = "(unknown analysis)";
     }
-    final ScanTimeElement parent = getParentOf(scanTimeMetricDrop, analysisName);
-    if (parent == null) {
-      SLLogger.getLogger().log(Level.WARNING, I18N.err(313, scanTimeMetricDrop.toString()));
-      return null;
-    }
-    final ScanTimeElement leaf;
-    if (parent instanceof ScanTimeElementCu) {
-      leaf = new ScanTimeElementAnalysis((ScanTimeElementCu) parent, analysisName);
-    } else {
-      leaf = new ScanTimeElementJavaDecl(parent, scanTimeMetricDrop.getJavaRef().getDeclaration());
-    }
-    leaf.setDurationNs(durationNs);
-    return leaf;
+    final ScanTimeElement node = createNodeFor(scanTimeMetricDrop, analysisName, durationNs);
+    return node;
   }
 
   private final ScanTimeElementScan f_scan;
@@ -73,16 +62,21 @@ public final class Folderizer {
   }
 
   /**
-   * Gets a parent element for a drop.
+   * Creates an element for a drop.
    * 
    * @param drop
-   *          the metric drop to get a parent element representing its enclosing
+   *          the metric drop to create an element representing its enclosing
    *          Java declaration.
+   * @param analysisName
+   *          the name of the verifying analysis the timing information is
+   *          about.
+   * @param durationNs
+   *          the duration of the analysis in nanoseconds.
    * @return a parent element representing the enclosing Java declaration for
    *         the passed drop.
    */
   @Nullable
-  ScanTimeElement getParentOf(@NonNull IMetricDrop drop, @NonNull String analysisName) {
+  ScanTimeElement createNodeFor(@NonNull IMetricDrop drop, @NonNull String analysisName, long durationNs) {
     final IJavaRef javaRef = drop.getJavaRef();
     if (javaRef == null) {
       SLLogger.getLogger().log(Level.WARNING, I18N.err(316, drop));
@@ -148,7 +142,9 @@ public final class Folderizer {
        * Hence there is no lower structure. We return the compilation unit as
        * the parent.
        */
-      return cu;
+      ScanTimeElementAnalysis result = new ScanTimeElementAnalysis(cu, analysisName);
+      result.setDurationNs(durationNs, analysisName);
+      return result;
     }
     /*
      * Verifying Analysis
@@ -202,7 +198,7 @@ public final class Folderizer {
 
       @Override
       public void visitPackage(IDeclPackage node) {
-        visitNodeHelper(node);
+        // visitNodeHelper(node);
       }
 
       @Override
@@ -264,6 +260,8 @@ public final class Folderizer {
 
     final MatchFolder matcher = new MatchFolder(va);
     decl.acceptRootToThis(matcher);
-    return matcher.getResult();
+    final ScanTimeElementJavaDecl result = matcher.getResult();
+    result.setDurationNs(durationNs, analysisName);
+    return result;
   }
 }
