@@ -34,6 +34,7 @@ import com.surelogic.analysis.testing.TypesModule;
 import com.surelogic.analysis.threads.ThreadEffectsModule;
 import com.surelogic.analysis.utility.UtilityAnalysis;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.util.*;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 
@@ -392,8 +393,8 @@ public class Javac extends IDE {
 	 * dependencies
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static Analyses makeAnalyses() {
-		final Analyses analyses = new Analyses();
+	public static Analyses makeAnalyses(SLProgressMonitor monitor) {
+		final Analyses analyses = new Analyses(monitor);
 		String test = XUtil.runTest();
 		if (test != null) {
 			Benchmark b = Benchmark.valueOf(test);

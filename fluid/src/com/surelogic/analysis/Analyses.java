@@ -1,17 +1,22 @@
 package com.surelogic.analysis;
 
 import java.util.*;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
+import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.util.AppendIterator;
 import com.surelogic.common.util.EmptyIterator;
 import com.surelogic.dropsea.ir.drops.CUDrop;
+import com.surelogic.javac.JavacProject;
+import com.surelogic.javac.Util;
 
 // Map groups to a linear ordering
 // Deal with granulators
 public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
+	private final SLProgressMonitor monitor;
 	private final List<AnalysisGroup<?>> groups = new ArrayList<AnalysisGroup<?>>();
 	private long[] times;
 	  
@@ -24,6 +29,10 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 			return rv;
 		}
 	};
+
+	public Analyses(SLProgressMonitor mon) {
+		monitor = mon;
+	}
 
 	public void startTiming() {
 		if (times != null) {
@@ -136,5 +145,70 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 
 	public Analyses getParent() {
 		return this;
+	}
+	
+	public interface Analyzer<P extends IAnalysisGranule> {
+		IIRAnalysisEnvironment getEnv();
+		boolean isSingleThreaded(IIRAnalysis<?> analysis);
+		void process(Collection<P> fromProj);
+	}
+	
+	public <P extends IAnalysisGranule, Q extends IAnalysisGranule>
+	void analyzeAProject(final Analyzer<P> analyzer, final IAnalysisGroup<Q> analyses, final JavacProject project, Collection<P> fromProj) {		  
+		int i = analyses.getOffset();
+		for (final IIRAnalysis<Q> a : analyses) {
+			//System.out.println(a.name()+" analyzing "+(a.analyzeAll() ? "all CUs" : "source CUs"));
+
+			if (monitor.isCanceled()) {
+				throw new CancellationException();
+			}
+			final String inParallel = analyzer.isSingleThreaded(a) ? "" : "parallel ";
+			Util.startSubTask(monitor, "Starting " + inParallel + a.name() + " [" + i + "]: " + (fromProj == null ? 0 : fromProj.size()) + 
+					" for " + project.getName());
+			final long start = System.nanoTime();
+			try {
+				a.analyzeBegin(analyzer.getEnv(), project);
+			} finally {
+				final long end = System.nanoTime();
+				incrTime(i, end - start);
+				i++;
+			}
+		}
+		// Analyze granules
+		if (fromProj != null) {
+			analyzer.process(fromProj);
+		}		
+
+		// Finishing up loose ends (if any)
+		i = analyses.getOffset();
+		for (final IIRAnalysis<Q> a : analyses) {
+			final long start = System.nanoTime();
+			AnalysisGroup.handleAnalyzeEnd(a, analyzer.getEnv(), project);
+			final long end = System.nanoTime();
+			incrTime(i, end - start);
+			i++;	
+		}
+
+		// All analysis is done for the project
+		i = analyses.getOffset();
+		for (final IIRAnalysis<Q> a : analyses) {
+			final long start = System.nanoTime();
+			a.postAnalysis(project);
+			final long end = System.nanoTime();
+			incrTime(i, end - start);
+			i++;	
+			Util.endSubTask(monitor);
+		}
+	}
+	
+	public void finishAllAnalyses(IIRAnalysisEnvironment env) {
+		int i = 0;
+		for (final IIRAnalysis<?> a : this) {
+			final long start = System.nanoTime();
+			a.finish(env);
+			final long end = System.nanoTime();
+			incrTime(i, end - start);
+			i++;
+		}	
 	}
 }

@@ -148,15 +148,16 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 		return false;
 	}
 
+	final IAnalysisGranulator<MethodRecord> granulator = new AbstractGranulator<MethodRecord>(MethodRecord.class) {
+		@Override
+		protected void extractGranules(List<MethodRecord> granules,	ITypeEnvironment tEnv, IRNode cu) {
+			granules.addAll(shouldAnalyzeCompilationUnit(tEnv.getBinder(), cu));
+		}
+	};
+	
 	@Override
 	public IAnalysisGranulator<MethodRecord> getGranulator() {
-		// Doesn't matter that it's unique
-		return new AbstractGranulator<MethodRecord>(MethodRecord.class) {
-			@Override
-			protected void extractGranules(List<MethodRecord> granules,	ITypeEnvironment tEnv, IRNode cu) {
-				granules.addAll(shouldAnalyzeCompilationUnit(tEnv.getBinder(), cu));
-			}
-		};
+		return granulator;
 	}
 
 	@Override

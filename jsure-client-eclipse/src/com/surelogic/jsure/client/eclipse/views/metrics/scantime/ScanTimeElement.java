@@ -67,8 +67,6 @@ public abstract class ScanTimeElement {
   final void setDurationNs(long value, String analysisName) {
     if (value < 0)
       throw new IllegalArgumentException(I18N.err(315, value));
-    if (f_children != null)
-      SLLogger.getLogger().log(Level.WARNING, I18N.err(314, this.toString(), analysisName));
     f_durationNs = value;
     f_durationNsCachedString = SLUtility.toStringDurationNS(value, TimeUnit.NANOSECONDS);
   }
