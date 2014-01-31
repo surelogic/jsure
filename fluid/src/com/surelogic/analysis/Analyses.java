@@ -16,7 +16,6 @@ import com.surelogic.javac.Util;
 // Map groups to a linear ordering
 // Deal with granulators
 public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
-	private final SLProgressMonitor monitor;
 	private final List<AnalysisGroup<?>> groups = new ArrayList<AnalysisGroup<?>>();
 	private long[] times;
 	  
@@ -29,10 +28,6 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 			return rv;
 		}
 	};
-
-	public Analyses(SLProgressMonitor mon) {
-		monitor = mon;
-	}
 
 	public void startTiming() {
 		if (times != null) {
@@ -147,23 +142,29 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 		return this;
 	}
 	
-	public interface Analyzer<P extends IAnalysisGranule> {
+	
+	public interface Analyzer<P, Q extends IAnalysisGranule> {
 		IIRAnalysisEnvironment getEnv();
+		IAnalysisGroup<Q> getAnalyses();
+		SLProgressMonitor getMonitor();
 		boolean isSingleThreaded(IIRAnalysis<?> analysis);
 		void process(Collection<P> fromProj);
 	}
 	
-	public <P extends IAnalysisGranule, Q extends IAnalysisGranule>
-	void analyzeAProject(final Analyzer<P> analyzer, final IAnalysisGroup<Q> analyses, final JavacProject project, Collection<P> fromProj) {		  
-		int i = analyses.getOffset();
-		for (final IIRAnalysis<Q> a : analyses) {
+	/**
+	 * Handles all the analyzeBegin/End call, while abstracting how the analyses are run on the project
+	 */
+	public <P, Q extends IAnalysisGranule>
+	void analyzeAProject(final Analyzer<P,Q> analyzer, final JavacProject project, Collection<P> fromProj) {		  
+		int i = analyzer.getAnalyses().getOffset();
+		for (final IIRAnalysis<Q> a : analyzer.getAnalyses()) {
 			//System.out.println(a.name()+" analyzing "+(a.analyzeAll() ? "all CUs" : "source CUs"));
 
-			if (monitor.isCanceled()) {
+			if (analyzer.getMonitor().isCanceled()) {
 				throw new CancellationException();
 			}
 			final String inParallel = analyzer.isSingleThreaded(a) ? "" : "parallel ";
-			Util.startSubTask(monitor, "Starting " + inParallel + a.name() + " [" + i + "]: " + (fromProj == null ? 0 : fromProj.size()) + 
+			Util.startSubTask(analyzer.getMonitor(), "Starting " + inParallel + a.name() + " [" + i + "]: " + (fromProj == null ? 0 : fromProj.size()) + 
 					" for " + project.getName());
 			final long start = System.nanoTime();
 			try {
@@ -180,8 +181,8 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 		}		
 
 		// Finishing up loose ends (if any)
-		i = analyses.getOffset();
-		for (final IIRAnalysis<Q> a : analyses) {
+		i = analyzer.getAnalyses().getOffset();
+		for (final IIRAnalysis<Q> a : analyzer.getAnalyses()) {
 			final long start = System.nanoTime();
 			AnalysisGroup.handleAnalyzeEnd(a, analyzer.getEnv(), project);
 			final long end = System.nanoTime();
@@ -190,14 +191,14 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 		}
 
 		// All analysis is done for the project
-		i = analyses.getOffset();
-		for (final IIRAnalysis<Q> a : analyses) {
+		i = analyzer.getAnalyses().getOffset();
+		for (final IIRAnalysis<Q> a : analyzer.getAnalyses()) {
 			final long start = System.nanoTime();
 			a.postAnalysis(project);
 			final long end = System.nanoTime();
 			incrTime(i, end - start);
 			i++;	
-			Util.endSubTask(monitor);
+			Util.endSubTask(analyzer.getMonitor());
 		}
 	}
 	

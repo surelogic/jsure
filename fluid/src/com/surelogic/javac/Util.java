@@ -405,7 +405,7 @@ public class Util {
     // FileOutputStream(projects.getResultsFile());
     final JavacAnalysisEnvironment env = new JavacAnalysisEnvironment(loader, results, projects.getMonitor());
 
-    final Analyses analyses = Javac.makeAnalyses(projects.getMonitor());
+    final Analyses analyses = Javac.makeAnalyses();
     for (IIRAnalysis<?> a : analyses) {
       a.init(env);
     }
