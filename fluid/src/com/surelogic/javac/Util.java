@@ -38,10 +38,8 @@ import com.surelogic.analysis.IAnalysisGroup;
 import com.surelogic.analysis.IAnalysisMonitor;
 import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
-import com.surelogic.analysis.granules.FlowUnitGranule;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
-import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.ParseUtil;
 import com.surelogic.annotation.parse.SLAnnotationsLexer;
@@ -81,6 +79,7 @@ import com.surelogic.dropsea.ir.drops.ClearOutUnconnectedResultsProofHook;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.PromisePromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModelClearOutUnusedStaticProofHook;
+import com.surelogic.dropsea.ir.drops.ScanTimeMetricCompactProofHook;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 import com.surelogic.dropsea.ir.utility.Dependencies;
 import com.surelogic.javac.jobs.RemoteJSureRun;
@@ -137,7 +136,7 @@ public class Util {
    * Splits and integrates the rewrite into the adapter/canonicalizer
    */
   public static final boolean useIntegratedRewrite = true;
-  
+
   public static final String EXPECT_ANALYSIS = "expectAnalysis";
   public static final String RECORD_ANALYSIS = "recordAnalysis";
 
@@ -382,8 +381,8 @@ public class Util {
    * @return the location of the results
    */
   static File process(Projects projects, boolean analyze) throws Exception {
-	analyze = analyze && !profileMemoryAfterLoading;
-	
+    analyze = analyze && !profileMemoryAfterLoading;
+
     System.out.println("monitor = " + projects.getMonitor());
     clearCaches(projects);
     if (loadPartial) {
@@ -393,7 +392,7 @@ public class Util {
     final boolean singleThreaded = !wantToRunInParallel || ConcurrentAnalysis.singleThreaded;
     System.out.println("singleThread = " + singleThreaded);
     final JSurePerformance perf = new JSurePerformance(projects, singleThreaded);
-    
+
     ScopedPromisesLexer.init();
     SLAnnotationsLexer.init();
     SLThreadRoleAnnotationsLexer.init();
@@ -402,15 +401,16 @@ public class Util {
     // loader.ensureClassIsLoaded("java.util.concurrent.locks.ReadWriteLock");
     loader.ensureClassIsLoaded(SLUtility.JAVA_LANG_OBJECT);
     final OutputStream results = NullOutputStream.prototype;
-        //projects.getResultsFile() == null ? null : new FileOutputStream(projects.getResultsFile());
+    // projects.getResultsFile() == null ? null : new
+    // FileOutputStream(projects.getResultsFile());
     final JavacAnalysisEnvironment env = new JavacAnalysisEnvironment(loader, results, projects.getMonitor());
 
-    final Analyses analyses = Javac.makeAnalyses();
-    for(IIRAnalysis<?> a : analyses) {
-		a.init(env);
-	}
-	env.finishedInit(); // To free up memory
-    
+    final Analyses analyses = Javac.makeAnalyses(projects.getMonitor());
+    for (IIRAnalysis<?> a : analyses) {
+      a.init(env);
+    }
+    env.finishedInit(); // To free up memory
+
     final ParallelArray<CodeInfo> cus = perf.createArray(CodeInfo.class);
     endSubTask(projects.getMonitor());
 
@@ -422,24 +422,24 @@ public class Util {
     List<CodeInfo> temp = new ArrayList<CodeInfo>();
     loader.parse(temp);
     IDE.getInstance().setDefaultClassPath(projects.getFirstProjectOrNull());
-    
+
     eliminateDups(temp, cus.asList());
     temp = null; // To free up memory
 
     perf.markTimeFor("Parsing");
     // checkForDups(cus.asList());
     if (!useIntegratedRewrite) {
-    	rewriteCUs(projects, cus.asList(), projects.getMonitor(), loader);
-    	// checkForDups(cus.asList());
-    	// Really to check if we added type refs via default constructors
-    	//    loader.checkReferences(cus.asList());
+      rewriteCUs(projects, cus.asList(), projects.getMonitor(), loader);
+      // checkForDups(cus.asList());
+      // Really to check if we added type refs via default constructors
+      // loader.checkReferences(cus.asList());
 
-    	eliminateDups(cus.asList(), cus.asList());
-    	// checkForDups(cus.asList());
-    	clearCaches(projects); // To clear out old state invalidated by rewriting
-    	//ClassSummarizer.printStats();
+      eliminateDups(cus.asList(), cus.asList());
+      // checkForDups(cus.asList());
+      clearCaches(projects); // To clear out old state invalidated by rewriting
+      // ClassSummarizer.printStats();
 
-    	perf.markTimeFor("Rewriting");
+      perf.markTimeFor("Rewriting");
     }
     canonicalizeCUs(perf, cus, projects);
     // Checking if we added type refs by canonicalizing implicit refs
@@ -487,8 +487,8 @@ public class Util {
       // These are all the SourceCUDrops for this project
       final ParallelArray<SourceCUDrop> cuds = findSourceCUDrops(perf);
       final ParallelArray<SourceCUDrop> allCuds = cuds;// findSourceCUDrops(null,
-                                                        // singleThreaded,
-                                                        // pool);
+                                                       // singleThreaded,
+                                                       // pool);
       checkforCUs(cus, cuds);
       times = analyzeCUs(env, projects, analyses, cuds, allCuds, perf);
       env.done();
@@ -499,55 +499,58 @@ public class Util {
     }
     File tmpLocation;
     if (!profileMemoryAfterLoading) {
-    	System.out.println("Updating consistency proof");
-    	final SeaConsistencyProofHook vouchHook = new VouchProcessorConsistencyProofHook();
-    	final SeaConsistencyProofHook staticHook = new RegionModelClearOutUnusedStaticProofHook();
-    	final SeaConsistencyProofHook cuDropHook = new CUDropClearOutAfterAnalysisProofHook();
-    	final SeaConsistencyProofHook clearResultsHook = new ClearOutUnconnectedResultsProofHook();
-    	Sea.getDefault().addConsistencyProofHook(vouchHook);
-    	Sea.getDefault().addConsistencyProofHook(staticHook);
-    	Sea.getDefault().addConsistencyProofHook(cuDropHook);
-    	Sea.getDefault().addConsistencyProofHook(clearResultsHook);
-    	Sea.getDefault().updateConsistencyProof();
-    	Sea.getDefault().removeConsistencyProofHook(clearResultsHook);
-    	Sea.getDefault().removeConsistencyProofHook(cuDropHook);
-    	Sea.getDefault().removeConsistencyProofHook(staticHook);
-    	Sea.getDefault().removeConsistencyProofHook(vouchHook);
+      System.out.println("Updating consistency proof");
+      final SeaConsistencyProofHook vouchHook = new VouchProcessorConsistencyProofHook();
+      final SeaConsistencyProofHook staticHook = new RegionModelClearOutUnusedStaticProofHook();
+      final SeaConsistencyProofHook cuDropHook = new CUDropClearOutAfterAnalysisProofHook();
+      final SeaConsistencyProofHook clearResultsHook = new ClearOutUnconnectedResultsProofHook();
+      final SeaConsistencyProofHook scanTimeMetricCompactHook = new ScanTimeMetricCompactProofHook();
+      Sea.getDefault().addConsistencyProofHook(vouchHook);
+      Sea.getDefault().addConsistencyProofHook(staticHook);
+      Sea.getDefault().addConsistencyProofHook(cuDropHook);
+      Sea.getDefault().addConsistencyProofHook(clearResultsHook);
+      Sea.getDefault().addConsistencyProofHook(scanTimeMetricCompactHook);
+      Sea.getDefault().updateConsistencyProof();
+      Sea.getDefault().removeConsistencyProofHook(scanTimeMetricCompactHook);
+      Sea.getDefault().removeConsistencyProofHook(clearResultsHook);
+      Sea.getDefault().removeConsistencyProofHook(cuDropHook);
+      Sea.getDefault().removeConsistencyProofHook(staticHook);
+      Sea.getDefault().removeConsistencyProofHook(vouchHook);
 
-    	filterResultsBySureLogicToolsPropertiesFile(projects);
+      filterResultsBySureLogicToolsPropertiesFile(projects);
 
-    	perf.markTimeFor("Sea.update");
+      perf.markTimeFor("Sea.update");
 
-    	// This would clear things before I persist the info
-    	//
-    	// IDE.getInstance().clearCaches();
+      // This would clear things before I persist the info
+      //
+      // IDE.getInstance().clearCaches();
 
-    	/*
-    	 * if (false) { for(ProofDrop d :
-    	 * Sea.getDefault().getDropsOfType(ProofDrop.class)) { if
-    	 * (!d.provedConsistent()) { ISrcRef ref = d.getSrcRef(); if (ref != null) {
-    	 * System
-    	 * .out.print(ref.getCUName()+":"+ref.getLineNumber()+" - "+d.getMessage());
-    	 * } } } } else { writeOutput(projects); }
-    	 */
-    	tmpLocation = RemoteJSureRun.snapshot(System.out, projects.getLabel(), projects.getRunDir());
-    	perf.markTimeFor("Sea.export");
-    	testExperimentalFeatures(projects, cus);
+      /*
+       * if (false) { for(ProofDrop d :
+       * Sea.getDefault().getDropsOfType(ProofDrop.class)) { if
+       * (!d.provedConsistent()) { ISrcRef ref = d.getSrcRef(); if (ref != null)
+       * { System
+       * .out.print(ref.getCUName()+":"+ref.getLineNumber()+" - "+d.getMessage
+       * ()); } } } } else { writeOutput(projects); }
+       */
+      tmpLocation = RemoteJSureRun.snapshot(System.out, projects.getLabel(), projects.getRunDir());
+      perf.markTimeFor("Sea.export");
+      testExperimentalFeatures(projects, cus);
     } else {
-    	tmpLocation = null;
+      tmpLocation = null;
     }
-	final long total = perf.stopTiming("Total.JSure.time");
+    final long total = perf.stopTiming("Total.JSure.time");
     System.out.println("Done in " + total + " ms.");
     if (analyze) {
       int i = 0;
       for (final IIRAnalysis<IAnalysisGranule> a : analyses) {
         System.out.println(a.name() + "\t: " + times[i] + " ms");
-        perf.setLongProperty("analysis."+a.name(), times[i]);
+        perf.setLongProperty("analysis." + a.name(), times[i]);
         i++;
       }
     }
     perf.setIntProperty("Total.try.destroyed", destroyedNodes);
-    //perf.setIntProperty("Total.not.destroyed", diffNodes);
+    // perf.setIntProperty("Total.not.destroyed", diffNodes);
     perf.setIntProperty("Total.canonical", canonicalNodes);
     perf.setIntProperty("Total.decls", decls);
     perf.setIntProperty("Total.stmts", stmts);
@@ -564,28 +567,28 @@ public class Util {
   }
 
   private static void checkforCUs(ParallelArray<CodeInfo> cus, ParallelArray<SourceCUDrop> cuds) {
-	Map<IRNode, SourceCUDrop> drops = new HashMap<IRNode, SourceCUDrop>(cuds.size());
-	for(SourceCUDrop d : cuds) {
-		drops.put(d.getNode(), d);
-	}
-	for(CodeInfo info : cus) {
-		if (!info.isAsSource() || info.getFileName().endsWith("package-info.java")) {
-			continue;
-		}
-		if (drops.get(info.getNode()) == null) {
-			SLLogger.getLogger().log(Level.INFO, "Didn't find source drop for "+info.getFileName(), new Throwable());
-		}
-	}
+    Map<IRNode, SourceCUDrop> drops = new HashMap<IRNode, SourceCUDrop>(cuds.size());
+    for (SourceCUDrop d : cuds) {
+      drops.put(d.getNode(), d);
+    }
+    for (CodeInfo info : cus) {
+      if (!info.isAsSource() || info.getFileName().endsWith("package-info.java")) {
+        continue;
+      }
+      if (drops.get(info.getNode()) == null) {
+        SLLogger.getLogger().log(Level.INFO, "Didn't find source drop for " + info.getFileName(), new Throwable());
+      }
+    }
   }
-  
+
   private static int computeLOC() {
-	int loc = 0;
-	for(MetricDrop m : Sea.getDefault().getDropsOfExactType(MetricDrop.class)) {		
-		if (m.getMetric() == IMetricDrop.Metric.SLOC) {
-			loc += m.getMetricInfoAsInt(IMetricDrop.SLOC_LINE_COUNT, 0);		
-		}
-	}
-	return loc;
+    int loc = 0;
+    for (MetricDrop m : Sea.getDefault().getDropsOfExactType(MetricDrop.class)) {
+      if (m.getMetric() == IMetricDrop.Metric.SLOC) {
+        loc += m.getMetricInfoAsInt(IMetricDrop.SLOC_LINE_COUNT, 0);
+      }
+    }
+    return loc;
   }
 
   private static void filterResultsBySureLogicToolsPropertiesFile(Projects projects) {
@@ -606,8 +609,8 @@ public class Util {
             if (p.getName().equals(ref.getEclipseProjectNameOrNull())) {
               final String pkg = ref.getPackageName();
               if ("Object".equals(ref.getTypeNameOrNull()) && "java.lang".equals(pkg)) {
-            	  // Keep anything on java.lang.Object
-            	  continue;
+                // Keep anything on java.lang.Object
+                continue;
               }
               if (filter.matches(ref.getAbsolutePathOrNull(), pkg)) {
                 System.out.println("surelogic-tools.properties in project " + p.getName() + " filtered out drop about "
@@ -780,7 +783,7 @@ public class Util {
         checkForExpectedSourceFiles(allCus, expected);
       }
     }
-    System.out.println("Starting analyses");    
+    System.out.println("Starting analyses");
     analyses.startTiming();
     if (useNewDriver && runAllAnalysesOnOneGranuleAtATime) {
     	System.out.println("Using new analysis framework -- one granule");
@@ -789,26 +792,33 @@ public class Util {
     	// use fork-join for uniqueness and the like?
     	
     	// Setup
-    	final AnalysisInfo<?>[] infos = new AnalysisInfo<?>[analyses.numGroups()];
+    	final AnalysisInfo<CUDrop,?>[] infos = new AnalysisInfo[analyses.numGroups()];
     	int i = 0;
       	for(AnalysisGroup<?> group : analyses.getGroups()) {			
     		System.out.println("Initializing info for group: "+group.getLabel());
-    		infos[i] = new AnalysisInfo(perf, group, env, projects.getMonitor());
+    		infos[i] = new AnalysisInfo(perf, group, env, projects.getMonitor()) {
+				@Override
+				protected void analyzeGranules(Collection toAnalyze) {
+					// TODO Auto-generated method stub
+					
+				}
+    			
+    		};
     		i++;
       	}
 
-      	for(JavacProject p : projects) {
+      	for (JavacProject p : projects) {
       		// TODO start
-      		for(CUDrop d : allCus/*for the project*/) {
-      			for(AnalysisInfo<?> ai : infos) {
-      				//ai.analyzeGranules();
+      		for (CUDrop d : allCus/* for the project */) {
+      			for (AnalysisInfo<?,?> ai : infos) {
+      				// ai.analyzeGranules();
       			}
       		}
       		// TODO end
       		// TODO postAnalysis
-  		} 
-      	finishAllAnalyses(env, analyses);
-        return analyses.summarizeTiming();
+      	}
+      	analyses.finishAllAnalyses(env);
+      	return analyses.summarizeTiming();
     } else if (useNewDriver) {
     	System.out.println("Using new analysis framework -- groups");    	    	
     	final MultiMap<IAnalysisGranulator<?>,IAnalysisGranule> granules = new MultiHashMap<IAnalysisGranulator<?>, IAnalysisGranule>();
@@ -818,20 +828,28 @@ public class Util {
     		System.out.println("Starting group: "+group.getLabel());
     		if (group.getGranulator() == null) {
     			final AnalysisGroup<CUDrop> cuGroup = (AnalysisGroup<CUDrop>) group;
-        		final AnalysisInfo<CUDrop> ai = new AnalysisInfo<CUDrop>(perf, cuGroup, env, projects.getMonitor());	
-        		ai.populate(allCus.asList());
-        		ai.analyzeProjects(projects);
+        		final AnalysisInfo<CUDrop,CUDrop> ai = new AnalysisInfo<CUDrop,CUDrop>(perf, cuGroup, env, projects.getMonitor()) {
+					@Override
+					protected void analyzeGranules(Collection<CUDrop> toAnalyze) {
+						workOnGranules(toAnalyze);
+					}        			
+        		};
+        		ai.analyzeProjects(projects, allCus.asList());
     		} else {
     			if (!extracted) {
     				extractGranules(analyses, allCus, granules);
     				extracted = true;
     			}
-				final AnalysisInfo ai = new AnalysisInfo(perf, group, env, projects.getMonitor());
-        		ai.populate(granules.get(group.getGranulator()));        		
-        		ai.analyzeProjects(projects);
+				final AnalysisInfo ai = new AnalysisInfo(perf, group, env, projects.getMonitor()) {
+					@Override
+					protected void analyzeGranules(Collection toAnalyze) {
+						workOnGranules(toAnalyze);
+					}      					
+				};        		
+        		ai.analyzeProjects(projects, granules.get(group.getGranulator()));
     		}
     	}
-    	finishAllAnalyses(env, analyses);
+    	analyses.finishAllAnalyses(env);
         return analyses.summarizeTiming();
     }
     System.out.println("Using old analysis framework");
@@ -840,8 +858,9 @@ public class Util {
     for (final IIRAnalysis<IAnalysisGranule> a : analyses) {
       final long start = System.currentTimeMillis();
       final ParallelArray<SourceCUDrop> toAnalyze = a.analyzeAll() ? allCus : cus;
-      //System.out.println(a.name()+" analyzing "+(a.analyzeAll() ? "all CUs" : "source CUs"));
-      
+      // System.out.println(a.name()+" analyzing "+(a.analyzeAll() ? "all CUs" :
+      // "source CUs"));
+
       for (final JavacProject project : projects) {
         if (projects.getMonitor().isCanceled()) {
           throw new CancellationException();
@@ -880,20 +899,20 @@ public class Util {
             if (project.getTypeEnv() == cud.getTypeEnv()) { // Same project!
               // System.out.println("Running "+a.name()+" on "+cud.javaOSFileName);
               try {
-            	final AnalysisTimings timing = analyses.threadLocal.get();
+                final AnalysisTimings timing = analyses.threadLocal.get();
                 frame.pushTypeContext(cud.getCompilationUnitIRNode());
                 final long start = System.nanoTime();
                 try {
                   a.doAnalysisOnGranule(env, cud);
                 } finally {
-                	final long end = System.nanoTime();
-                	timing.incrTime(which, end - start);
+                  final long end = System.nanoTime();
+                  timing.incrTime(which, end - start);
                 }
               } catch (RuntimeException e) {
                 System.err.println("Error while processing " + cud.getJavaOSFileName());
                 throw e;
               } finally {
-                frame.popTypeContext();                
+                frame.popTypeContext();
               }
             }
           }
@@ -915,7 +934,7 @@ public class Util {
         a.postAnalysis(project);
         final long endNano = System.nanoTime();
         analyses.incrTime(which, endNano - startNano);
-        
+
         endSubTask(projects.getMonitor());
       }
       times[i] += System.currentTimeMillis() - start;
@@ -932,48 +951,37 @@ public class Util {
       i++;
     }
     i = 0;
-    
+
     final long[] allTimesNano = analyses.summarizeTiming();
     for (final IIRAnalysis<IAnalysisGranule> a : analyses) {
-    	perf.setLongProperty("analysis.all.nano."+a.name(), allTimesNano[i]);
-    	i++;
+      perf.setLongProperty("analysis.all.nano." + a.name(), allTimesNano[i]);
+      i++;
     }
     return times;
   }
 
-  private static void extractGranules(final Analyses analyses,
-		  ParallelArray<SourceCUDrop> allCus,
-		  final MultiMap<IAnalysisGranulator<?>, IAnalysisGranule> granules) {
-	  // TODO do this with each group above?
-	  // TODO in parallel?
-	  for(CUDrop d : allCus) {
-		  for(IAnalysisGranulator<?> g : analyses.getGranulators()) {
-			  // This may require some setup!
-			  g.extractGranules(d.getTypeEnv(), d.getCompilationUnitIRNode());
-		  }
-	  }
-	  for(IAnalysisGranulator<?> g : analyses.getGranulators()) {
-		  Collection<? extends IAnalysisGranule> toAnalyze = g.getGranules();
-		  System.out.println(g+": "+toAnalyze.size());
-		  granules.putAll(g, toAnalyze);
-	  }
+  private static void extractGranules(final Analyses analyses, ParallelArray<SourceCUDrop> allCus,
+      final MultiMap<IAnalysisGranulator<?>, IAnalysisGranule> granules) {
+    // TODO do this with each group above?
+    // TODO in parallel?
+    for (CUDrop d : allCus) {
+      for (IAnalysisGranulator<?> g : analyses.getGranulators()) {
+        // This may require some setup!
+        g.extractGranules(d.getTypeEnv(), d.getCompilationUnitIRNode());
+      }
+    }
+    for (IAnalysisGranulator<?> g : analyses.getGranulators()) {
+      Collection<? extends IAnalysisGranule> toAnalyze = g.getGranules();
+      System.out.println(g + ": " + toAnalyze.size());
+      granules.putAll(g, toAnalyze);
+    }
   }
 
-  private static void finishAllAnalyses(IIRAnalysisEnvironment env, Analyses analyses) {
-  	int i = 0;
-  	for (final IIRAnalysis<?> a : analyses) {
-  		final long start = System.nanoTime();
-  		a.finish(env);
-  		final long end = System.nanoTime();
-  		analyses.incrTime(i, end - start);
-  		i++;
-  	}	
-  }
-  
-  static class AnalysisInfo<Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> {
+  // Type parameters: the granule for projects, the granule for running (sometimes the same)
+  static abstract class AnalysisInfo<P extends IAnalysisGranule, Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> {
 	  final IAnalysisGroup<Q> analyses;
 	  final IIRAnalysisEnvironment env;
-	  final MultiMap<ITypeEnvironment, Q> granules = new MultiHashMap<ITypeEnvironment, Q>();
+
 	  final SLProgressMonitor monitor;
 	  
 	  AnalysisInfo(JSurePerformance perf, IAnalysisGroup<Q> g, IIRAnalysisEnvironment e, SLProgressMonitor mon) {
@@ -982,16 +990,7 @@ public class Util {
 		  env = e;
 		  monitor = mon;
 		  setupProcedure(); 
-	  }
-  
-	  void populate(Collection<? extends Q> newGranules) {
-		  if (newGranules == null) {
-			  return;
-		  }
-		  for(Q granule : newGranules) {
-			  granules.put(granule.getTypeEnv(), granule);
-		  }
-	  }
+	  }  
 	  
 	  private Procedure<Q> setupProcedure() {
 		  final ThreadLocal<AnalysisTimings> timings = analyses.getParent().threadLocal;	  
@@ -1030,7 +1029,7 @@ public class Util {
 				  } finally {
 					  frame.popTypeContext();
 				  }
-			  }				  			  
+			  }
 		  };
 		  if (analyses.getGranulator() != null) {
 			  setWorkProcedure(analyses.getGranulator().wrapAnalysis(rv));
@@ -1038,30 +1037,37 @@ public class Util {
 			  setWorkProcedure(rv);
 		  }
 		  return getWorkProcedure();
-	  }
-	  
+	  }					  
+
 	  protected void recordTime(Q granule, IIRAnalysis<Q> a, long t_in_ns) {
 		  final MetricDrop d = new MetricDrop(granule.getNode(), IMetricDrop.Metric.SCAN_TIME);
-		  
+
 		  final IKeyValue name = KeyValueUtility.getStringInstance(IMetricDrop.SCAN_TIME_ANALYSIS_NAME, a.label());
 		  d.addOrReplaceMetricInfo(name);
-		  
+
 		  final IKeyValue time = KeyValueUtility.getLongInstance(IMetricDrop.SCAN_TIME_DURATION_NS, t_in_ns);
 		  d.addOrReplaceMetricInfo(time);
 	  }
 
-	  void analyzeProjects(final Projects projects) {
-  		for (final JavacProject project : projects) {
+	  void analyzeProjects(final Projects projects, final Collection<? extends P> cus) {
+		  if (cus == null || cus.isEmpty()) {
+			  return;
+		  }
+		  final MultiMap<ITypeEnvironment, P> granules = new MultiHashMap<ITypeEnvironment, P>();
+		  for(P granule : cus) {
+			  granules.put(granule.getTypeEnv(), granule);		  
+		  }
+		  
+		  for (final JavacProject project : projects) {
 			if (projects.getMonitor().isCanceled()) {
 				throw new CancellationException();
 			}
-			analyzeAProject(project);            
+			analyzeAProject(project, granules.get(project.getTypeEnv()));            
 		}
 	  }
 	  
-	  private void analyzeAProject(final JavacProject project) {		  
+	  private void analyzeAProject(final JavacProject project, Collection<P> fromProj) {		  
 		  final Analyses all = analyses.getParent();
-		  final Collection<Q> fromProj = granules.get(project.getTypeEnv());
 		  int i = analyses.getOffset();
 		  for (final IIRAnalysis<Q> a : analyses) {
 			  //System.out.println(a.name()+" analyzing "+(a.analyzeAll() ? "all CUs" : "source CUs"));
@@ -1109,7 +1115,9 @@ public class Util {
 		  }
 	  }
 	  
-	  private void analyzeGranules(final Collection<Q> toAnalyze) {
+	  protected abstract void analyzeGranules(final Collection<P> toAnalyze);
+
+	  protected void workOnGranules(final Collection<Q> toAnalyze) {	 
 		  if (runInParallel() == ConcurrencyType.EXTERNALLY) {
 			  final Procedure<Q> proc = getWorkProcedure();
 			  for (final Q granule : toAnalyze) {
@@ -1120,7 +1128,7 @@ public class Util {
 		  }		  
 	  }
   }
-  
+
   private static void recordFilesAnalyzed(ParallelArray<SourceCUDrop> allCus, File log) {
     System.out.println("Recording which files actually got (re-)analyzed");
     try {
@@ -1160,10 +1168,11 @@ public class Util {
 
   /**
    * Adds default constructors, calls to super(), and implicit Enum methods
- * @param loader 
+   * 
+   * @param loader
    */
-  private static void rewriteCUs(Projects projects, final List<CodeInfo> cus, SLProgressMonitor monitor, final JavacClassParser loader) 
-  throws IOException {
+  private static void rewriteCUs(Projects projects, final List<CodeInfo> cus, SLProgressMonitor monitor,
+      final JavacClassParser loader) throws IOException {
     final Map<ITypeEnvironment, JavaRewrite> rewrites = new HashMap<ITypeEnvironment, JavaRewrite>();
     // int binaryRewrites = 0;
     startSubTask(monitor, "Rewriting CUs");
@@ -1178,32 +1187,33 @@ public class Util {
       binders.add((JavacTypeEnvironment.Binder) b);
     }
 
-    final Map<IRNode,CodeInfo> infoMap = new HashMap<IRNode,CodeInfo>(cus.size());
-    for(CodeInfo info : cus) {
-    	infoMap.put(info.getNode(), info);
+    final Map<IRNode, CodeInfo> infoMap = new HashMap<IRNode, CodeInfo>(cus.size());
+    for (CodeInfo info : cus) {
+      infoMap.put(info.getNode(), info);
     }
     final ICompUnitListener refHandler = new ICompUnitListener() {
-		public void astsChanged() {
-			try {
-				loader.checkReferences(cus);
-			} catch (IOException e) {
-				throw new IllegalStateException(e);
-			}
-		}		
-		public void astChanged(IRNode cu) {
-			try {
-				CodeInfo info = infoMap.get(cu);
-				if (info == null) {
-					throw new NullPointerException("Couldn't find "+cu);
-				}
-				loader.checkReferences(info);	
-			} catch (IOException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-	};
+      public void astsChanged() {
+        try {
+          loader.checkReferences(cus);
+        } catch (IOException e) {
+          throw new IllegalStateException(e);
+        }
+      }
+
+      public void astChanged(IRNode cu) {
+        try {
+          CodeInfo info = infoMap.get(cu);
+          if (info == null) {
+            throw new NullPointerException("Couldn't find " + cu);
+          }
+          loader.checkReferences(info);
+        } catch (IOException e) {
+          throw new IllegalStateException(e);
+        }
+      }
+    };
     IDE.getInstance().addCompUnitListener(refHandler);
-	
+
     for (CodeInfo info : cus) {
       if (monitor.isCanceled()) {
         throw new CancellationException();
@@ -1216,10 +1226,10 @@ public class Util {
       if (type == null) {
         // package-info.java?
         continue;
-      }      
+      }
       if (info.getFileName().endsWith("DrawApplet.java")) {
-    	  System.out.println("Found DrawApplet");
-      }      
+        System.out.println("Found DrawApplet");
+      }
       /*
        * if (JavaNode.getModifier(cu, JavaNode.AS_BINARY)) {
        * //System.out.println("Skipping  "+JavaNames.getFullTypeName(type));
@@ -1257,108 +1267,114 @@ public class Util {
   }
 
   static abstract class MonitoredProcedure<T> implements Procedure<T> {
-	  private SLProgressMonitor monitor;
-	  private Projects projects;
-	  void setMonitor(SLProgressMonitor mon) {
-		  monitor = mon;
-	  }	  
-	  void setProjects(Projects p) {
-		  projects = p;
-	  }
-	  Projects getProjects() {
-		  return projects;
-	  }
-	  public void op(T info) {
-		  if (monitor != null && monitor.isCanceled()) {
-			     throw new CancellationException();
-		  }
-		  process(info);
-	  }
-	  protected abstract void process(T info);
-  }
-  
-  static final ConcurrentMap<JavacTypeEnvironment, JavaCanonicalizer> canonicalizers = new ConcurrentHashMap<JavacTypeEnvironment, JavaCanonicalizer>();
-  static JavaCanonicalizer getCanonicalizer(CodeInfo info) {
-	  final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
-	  JavaCanonicalizer rv = canonicalizers.get(tEnv);
-	  if (rv == null) {	  
-		  final UnversionedJavaBinder b = tEnv.getBinder();
-		  final JavaCanonicalizer jcanon = new JavaCanonicalizer(b);
-		  rv = canonicalizers.putIfAbsent(tEnv, jcanon);
-		  if (rv == null) {
-			  rv = jcanon;
-		  }
-	  }
-	  return rv;
-  }
-  
-  static final MonitoredProcedure<CodeInfo> bindProc = new MonitoredProcedure<CodeInfo>() {
-	  @Override
-	  protected void process(CodeInfo info) {
-        if (!info.isAsSource()) {
-          /*
-           * IRNode type = VisitUtil.getPrimaryType(info.getNode()); String
-           * unparse = DebugUnparser.toString(type); if
-           * (unparse.contains("Deprecated")) {
-           * System.out.println("Deprecated in "+JavaNames.getFullName(type)); }
-           */
-          return; // Nothing to do on class files
-        }
-        if (batchAndCacheBindingsForCanon) {
-        	
-        }
-        final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
-        final UnversionedJavaBinder b = tEnv.getBinder();
-        b.bindCompUnit(info.getNode(), info.getFileName());
+    private SLProgressMonitor monitor;
+    private Projects projects;
+
+    void setMonitor(SLProgressMonitor mon) {
+      monitor = mon;
+    }
+
+    void setProjects(Projects p) {
+      projects = p;
+    }
+
+    Projects getProjects() {
+      return projects;
+    }
+
+    public void op(T info) {
+      if (monitor != null && monitor.isCanceled()) {
+        throw new CancellationException();
       }
+      process(info);
+    }
+
+    protected abstract void process(T info);
+  }
+
+  static final ConcurrentMap<JavacTypeEnvironment, JavaCanonicalizer> canonicalizers = new ConcurrentHashMap<JavacTypeEnvironment, JavaCanonicalizer>();
+
+  static JavaCanonicalizer getCanonicalizer(CodeInfo info) {
+    final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
+    JavaCanonicalizer rv = canonicalizers.get(tEnv);
+    if (rv == null) {
+      final UnversionedJavaBinder b = tEnv.getBinder();
+      final JavaCanonicalizer jcanon = new JavaCanonicalizer(b);
+      rv = canonicalizers.putIfAbsent(tEnv, jcanon);
+      if (rv == null) {
+        rv = jcanon;
+      }
+    }
+    return rv;
+  }
+
+  static final MonitoredProcedure<CodeInfo> bindProc = new MonitoredProcedure<CodeInfo>() {
+    @Override
+    protected void process(CodeInfo info) {
+      if (!info.isAsSource()) {
+        /*
+         * IRNode type = VisitUtil.getPrimaryType(info.getNode()); String
+         * unparse = DebugUnparser.toString(type); if
+         * (unparse.contains("Deprecated")) {
+         * System.out.println("Deprecated in "+JavaNames.getFullName(type)); }
+         */
+        return; // Nothing to do on class files
+      }
+      if (batchAndCacheBindingsForCanon) {
+
+      }
+      final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
+      final UnversionedJavaBinder b = tEnv.getBinder();
+      b.bindCompUnit(info.getNode(), info.getFileName());
+    }
   };
 
   static final MonitoredProcedure<CodeInfo> canonProc = new MonitoredProcedure<CodeInfo>() {
-	  @Override
-	  protected void process(CodeInfo info) {
-		  if (!info.isAsSource()) {
-			  return; // Nothing to do on class files
-		  }
-		  final IRNode cu = info.getNode();
-		  final IRNode type = VisitUtil.getPrimaryType(cu);
-		  final String typeName = info.getFileName();
-		  try {
-			  final long start = System.currentTimeMillis();
-			  final Nodes nodes = findNoncanonical(cu);
-			  final long find = System.currentTimeMillis();
-			  /*
-			   * Not quite right, since it will miss (un)boxing and the like if
-			   * (noncanonical.isEmpty()) { return; // Nothing to do }
-			   */
-			  final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
-			  final UnversionedJavaBinder b = tEnv.getBinder();
-			  // TODO needs to be shared, so I can preload the caches
-			  final JavaCanonicalizer jcanon = new JavaCanonicalizer(b);
-			  boolean changed = jcanon.canonicalize(cu);
-			  final long restart = System.currentTimeMillis();
-			  if (changed) {
-				  if (debug) {
-					  System.out.println("Canonicalized     " + typeName);
-				  }
-				  //b.astChanged(cu);
-				  // TODO will this work if run in parallel?
-				  for (JavacProject jp : getProjects()) {
-					  jp.getTypeEnv().getBinder().astChanged(cu);
-				  }
-			  } else if (debug) {
-				  System.out.println("NOT canonicalized " + typeName);
-			  }
-			  destroyNoncanonical(nodes);
+    @Override
+    protected void process(CodeInfo info) {
+      if (!info.isAsSource()) {
+        return; // Nothing to do on class files
+      }
+      final IRNode cu = info.getNode();
+      final IRNode type = VisitUtil.getPrimaryType(cu);
+      final String typeName = info.getFileName();
+      try {
+        final long start = System.currentTimeMillis();
+        final Nodes nodes = findNoncanonical(cu);
+        final long find = System.currentTimeMillis();
+        /*
+         * Not quite right, since it will miss (un)boxing and the like if
+         * (noncanonical.isEmpty()) { return; // Nothing to do }
+         */
+        final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
+        final UnversionedJavaBinder b = tEnv.getBinder();
+        // TODO needs to be shared, so I can preload the caches
+        final JavaCanonicalizer jcanon = new JavaCanonicalizer(b);
+        boolean changed = jcanon.canonicalize(cu);
+        final long restart = System.currentTimeMillis();
+        if (changed) {
+          if (debug) {
+            System.out.println("Canonicalized     " + typeName);
+          }
+          // b.astChanged(cu);
+          // TODO will this work if run in parallel?
+          for (JavacProject jp : getProjects()) {
+            jp.getTypeEnv().getBinder().astChanged(cu);
+          }
+        } else if (debug) {
+          System.out.println("NOT canonicalized " + typeName);
+        }
+        destroyNoncanonical(nodes);
 
-			  final long destroy = System.currentTimeMillis();
-			  findTime += (find-start);
-			  destroyTime += (destroy-restart);
-		  } catch (Throwable t) {
-			  LOG.log(Level.SEVERE, "Exception while processing " + type, t);
-		  }
-	  }
+        final long destroy = System.currentTimeMillis();
+        findTime += (find - start);
+        destroyTime += (destroy - restart);
+      } catch (Throwable t) {
+        LOG.log(Level.SEVERE, "Exception while processing " + type, t);
+      }
+    }
   };
-  
+
   private static void canonicalizeCUs(JSurePerformance perf, final ParallelArray<CodeInfo> cus, final Projects projects) {
     final SLProgressMonitor monitor = projects.getMonitor();
     if (monitor.isCanceled()) {
@@ -1366,74 +1382,75 @@ public class Util {
     }
     AbstractJavaBinder.printStats();
     startSubTask(monitor, "Canonicalizing ASTs");
-    
+
     // Init procedures
     bindProc.setMonitor(monitor);
     canonProc.setMonitor(monitor);
     canonProc.setProjects(projects);
     long bindingTime = 0;
     if (batchAndCacheBindingsForCanon) {
-    	final ParallelArray<CodeInfo> temp = perf.createArray(CodeInfo.class);    	
-    	for(CodeInfo i : cus) {
-    		temp.asList().add(i);
-    		if (temp.size() > 100) {
-    			bindingTime += doCanonicalize(temp, false);
-    			temp.asList().clear();
-    		}
-    	}
-    	if (!temp.isEmpty()) {
-    		bindingTime += doCanonicalize(temp, false);
-    	}
+      final ParallelArray<CodeInfo> temp = perf.createArray(CodeInfo.class);
+      for (CodeInfo i : cus) {
+        temp.asList().add(i);
+        if (temp.size() > 100) {
+          bindingTime += doCanonicalize(temp, false);
+          temp.asList().clear();
+        }
+      }
+      if (!temp.isEmpty()) {
+        bindingTime += doCanonicalize(temp, false);
+      }
     } else {
-    	bindingTime = doCanonicalize(cus, true);
+      bindingTime = doCanonicalize(cus, true);
     }
-	perf.setLongProperty("Binding.before.canon", bindingTime);
-	System.out.println("Binding = " + bindingTime + " ms");  	
+    perf.setLongProperty("Binding.before.canon", bindingTime);
+    System.out.println("Binding = " + bindingTime + " ms");
     SlotInfo.gc();
     endSubTask(monitor);
   }
 
   /**
    * Assumes that init is all done
+   * 
    * @return the time taken for binding
-   */  
+   */
   private static long doCanonicalize(ParallelArray<CodeInfo> cus, boolean printBinderStats) {
-	  // Precompute all the bindings first
-	  final long start = System.currentTimeMillis();
-	  cus.apply(bindProc);
-	  final long end = System.currentTimeMillis();
-	  if (printBinderStats) {
-		  AbstractJavaBinder.printStats();
-	  }
-	  // cus.apply(proc);
-	  for (final CodeInfo info : cus) {
-	      if (info.getFile().getRelativePath() != null) {
-	        System.out.println("Canonicalizing " + info.getFile().getRelativePath());
-	      }
-	      canonProc.op(info);
-	  }   
-	  return end-start;
+    // Precompute all the bindings first
+    final long start = System.currentTimeMillis();
+    cus.apply(bindProc);
+    final long end = System.currentTimeMillis();
+    if (printBinderStats) {
+      AbstractJavaBinder.printStats();
+    }
+    // cus.apply(proc);
+    for (final CodeInfo info : cus) {
+      if (info.getFile().getRelativePath() != null) {
+        System.out.println("Canonicalizing " + info.getFile().getRelativePath());
+      }
+      canonProc.op(info);
+    }
+    return end - start;
   }
-  
+
   static long destroyTime = 0, findTime = 0;
-  static int destroyedNodes = 0, canonicalNodes = 0;//, diffNodes = 0;
+  static int destroyedNodes = 0, canonicalNodes = 0;// , diffNodes = 0;
   static int decls = 0, stmts = 0, blocks = 0;
 
   static class Nodes {
-	  //final Set<IRNode> original = new HashSet<IRNode>();
-	  final List<IRNode> noncanonical = new ArrayList<IRNode>();
-	  final IRNode cu;
-	  
-	  Nodes(IRNode cu) {
-		this.cu = cu;
-	  }
+    // final Set<IRNode> original = new HashSet<IRNode>();
+    final List<IRNode> noncanonical = new ArrayList<IRNode>();
+    final IRNode cu;
+
+    Nodes(IRNode cu) {
+      this.cu = cu;
+    }
   }
-  
+
   private static Nodes findNoncanonical(IRNode cu) {
-	Nodes rv = new Nodes(cu);
+    Nodes rv = new Nodes(cu);
     for (IRNode n : JJNode.tree.topDown(cu)) {
-      //rv.original.add(n);
-      
+      // rv.original.add(n);
+
       Operator op = JJNode.tree.getOperator(n);
       if (op instanceof IllegalCode) {
         rv.noncanonical.add(n);
@@ -1455,23 +1472,20 @@ public class Util {
   }
 
   private static void destroyNoncanonical(Nodes nodes) {
-	/*
-	for (IRNode n : JJNode.tree.topDown(nodes.cu)) {
-		nodes.original.remove(n);
-	}
-	final int origSize = nodes.original.size();
-	*/
-	final int noncanonSize = nodes.noncanonical.size();
-	/*
-	if (origSize != noncanonSize) {
-		//System.out.println("Found "+origSize+" nodes vs. "+noncanonSize+" noncanonical");
-		diffNodes += (origSize - noncanonSize);
-	}
-	*/
+    /*
+     * for (IRNode n : JJNode.tree.topDown(nodes.cu)) {
+     * nodes.original.remove(n); } final int origSize = nodes.original.size();
+     */
+    final int noncanonSize = nodes.noncanonical.size();
+    /*
+     * if (origSize != noncanonSize) {
+     * //System.out.println("Found "+origSize+" nodes vs. "
+     * +noncanonSize+" noncanonical"); diffNodes += (origSize - noncanonSize); }
+     */
     destroyedNodes += noncanonSize;
 
     for (IRNode n : nodes.noncanonical) {
-      SkeletonJavaRefUtility.removeInfo(n);	
+      SkeletonJavaRefUtility.removeInfo(n);
       n.destroy();
     }
   }
@@ -1492,10 +1506,8 @@ public class Util {
     };
     cus.apply(proc);
     /*
-    for (final CodeInfo info : cus) {
-      proc.op(info);
-    }
-    */
+     * for (final CodeInfo info : cus) { proc.op(info); }
+     */
     endSubTask(monitor);
   }
 
@@ -1560,7 +1572,8 @@ public class Util {
           if (SLUtility.JAVA_LANG_OBJECT.equals(name)) {
             v.handleImplicitPromise(type, RegionRules.REGION, "public static All", Collections.<String, String> emptyMap());
           }
-          v.handleImplicitPromise(type, RegionRules.REGION, "public static Static extends All", Collections.<String, String> emptyMap());
+          v.handleImplicitPromise(type, RegionRules.REGION, "public static Static extends All",
+              Collections.<String, String> emptyMap());
         }
 
         // Process any pre-existing package-level scoped promises?
@@ -1660,7 +1673,7 @@ public class Util {
     return false;
   }
 
-  static void startSubTask(SLProgressMonitor monitor, String msg) {
+  public static void startSubTask(SLProgressMonitor monitor, String msg) {
     if (monitor == null) {
       System.out.println("null monitor");
       return;
@@ -1669,7 +1682,7 @@ public class Util {
     monitor.subTask(msg);
   }
 
-  static void endSubTask(SLProgressMonitor monitor) {
+  public static void endSubTask(SLProgressMonitor monitor) {
     monitor.subTaskDone();
     monitor.worked(1);
   }
@@ -1800,10 +1813,8 @@ public class Util {
     };
     cus.apply(proc);
     /*
-    for (final CodeInfo info : cus) {
-      proc.op(info);
-    }
-    */
+     * for (final CodeInfo info : cus) { proc.op(info); }
+     */
     endSubTask(monitor);
   }
 
@@ -1814,7 +1825,7 @@ public class Util {
       public int compare(CodeInfo o1, CodeInfo o2) {
         if (o1.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
           if (o2.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
-              return o1.getFileName().compareTo(o2.getFileName());
+            return o1.getFileName().compareTo(o2.getFileName());
           }
           return Integer.MIN_VALUE;
         }
