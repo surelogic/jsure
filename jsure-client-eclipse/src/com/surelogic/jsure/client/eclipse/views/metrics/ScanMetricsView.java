@@ -59,8 +59,8 @@ public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.C
      * the tab order in the user interface display.
      */
 
-    f_mediators.add(new SlocMetricMediator(f_metricFolder)); // SLOC
-    f_mediators.add(new ScanTimeMetricMediator(f_metricFolder)); // SCAN_TIME
+    f_mediators.add(new SlocMetricMediator(f_metricFolder, this)); // SLOC
+    f_mediators.add(new ScanTimeMetricMediator(f_metricFolder, this)); // SCAN_TIME
 
     // Finished adding new metrics, initialize all of them
     for (IScanMetricMediator mediator : f_mediators)

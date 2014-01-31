@@ -50,9 +50,13 @@ public abstract class ScanTimeElement {
   public static final ScanTimeElement[] EMPTY = new ScanTimeElement[0];
 
   /*
-   * The way the fields below work is that if there are no children then this is
-   * a leaf node and the <tt>durationNs</tt> field needs to be set by the
-   * implementation.
+   * The way the fields below work is that if there is a duration for this node
+   * then <tt>f_durationNsCachedString</tt> will be non-null. In this case the
+   * value in <tt>durationNs</tt> is meaningful.
+   * 
+   * if the duration is meaningful, this is most likely a leaf node. But this is
+   * not true in all cases. In particular the layout of nested classes and other
+   * complex nested declarations in the code base.
    */
 
   @NonNull
@@ -105,10 +109,6 @@ public abstract class ScanTimeElement {
       return false;
     else
       return !f_children.isEmpty();
-  }
-
-  public final boolean isLeaf() {
-    return !hasChildren();
   }
 
   @Nullable
@@ -172,6 +172,16 @@ public abstract class ScanTimeElement {
   }
 
   /**
+   * Gets if this element has a meaningful duration set for it, and is not just
+   * a summary node with totals.
+   * 
+   * @return {@code true} if this element has duration, {@code false} otherwise.
+   */
+  public final boolean hasDurationNs() {
+    return f_durationNsCachedString != null;
+  }
+
+  /**
    * Gets the duration for this element in nanoseconds. This value may change
    * based upon filtering and so on for non-leaf nodes.
    * 
@@ -180,11 +190,16 @@ public abstract class ScanTimeElement {
    * @return the duration for this element.
    */
   public final long getDurationNs(ScanTimeOptions options) {
-    if (f_children == null)
-      return f_durationNs;
-    else {
+    long result = 0;
+
+    // handle reported duration
+    if (hasDurationNs()) {
+      result += f_durationNs;
+    }
+
+    // handle children, if necessary
+    if (f_children != null) {
       final boolean filterResultsByThreshold = options.getFilterResultsByThreshold();
-      long result = 0;
       for (ScanTimeElement element : f_children) {
         // Take filtering into account if filtering is on
         boolean includeChild = !filterResultsByThreshold
@@ -192,8 +207,8 @@ public abstract class ScanTimeElement {
         if (includeChild)
           result += element.getDurationNs(options);
       }
-      return result;
     }
+    return result;
   }
 
   /**

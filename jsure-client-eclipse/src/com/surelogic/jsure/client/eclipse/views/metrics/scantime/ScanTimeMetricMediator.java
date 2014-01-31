@@ -3,6 +3,11 @@ package com.surelogic.jsure.client.eclipse.views.metrics.scantime;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -38,12 +43,15 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.part.PageBook;
+import org.eclipse.ui.part.ViewPart;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
@@ -74,8 +82,8 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     return "Performance";
   }
 
-  public ScanTimeMetricMediator(TabFolder folder) {
-    super(folder);
+  public ScanTimeMetricMediator(TabFolder folder, ViewPart view) {
+    super(folder, view);
   }
 
   final ViewerSorter f_alphaSorter = new ViewerSorter() {
@@ -152,8 +160,34 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
   @NonNull
   final ScanTimeOptions f_options = new ScanTimeOptions();
 
+  final Action f_actionExpand = new Action() {
+    @Override
+    public void run() {
+      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+      final Object o = s.getFirstElement();
+      if (o != null) {
+        f_treeViewer.getTree().setRedraw(false);
+        f_treeViewer.expandToLevel(o, 5);
+        f_treeViewer.getTree().setRedraw(true);
+      }
+    }
+  };
+
+  final Action f_actionCollapse = new Action() {
+    @Override
+    public void run() {
+      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+      final Object o = s.getFirstElement();
+      if (o != null) {
+        f_treeViewer.getTree().setRedraw(false);
+        f_treeViewer.collapseToLevel(o, 1);
+        f_treeViewer.getTree().setRedraw(true);
+      }
+    }
+  };
+
   @Override
-  protected Control initMetricDisplay(PageBook parent) {
+  protected Control initMetricDisplay(PageBook parent, ViewPart view) {
     final Composite panel = new Composite(parent, SWT.NONE);
 
     GridLayout layout = new GridLayout();
@@ -284,13 +318,9 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
       public void doubleClick(DoubleClickEvent event) {
         final ScanTimeElement element = getTreeViewerSelectionOrNull();
         if (element != null) {
-          if (element.isLeaf()) {
-            // TODO ((ScanTimeElementLeaf) element).tryToOpenInJavaEditor();
-          } else {
-            // open up the tree one more level
-            if (!f_treeViewer.getExpandedState(element)) {
-              f_treeViewer.expandToLevel(element, 1);
-            }
+          // open up the tree one more level
+          if (!f_treeViewer.getExpandedState(element)) {
+            f_treeViewer.expandToLevel(element, 1);
           }
         }
       }
@@ -310,6 +340,15 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     columnDuration.getColumn().setText("Duration (ns)");
 
     fixSortingIndicatorOnTreeTable();
+
+    f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
+    f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
+    f_actionExpand.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
+
+    f_actionCollapse.setText(I18N.msg("jsure.eclipse.view.collapse"));
+    f_actionCollapse.setToolTipText(I18N.msg("jsure.eclipse.view.collapse.tip"));
+    f_actionCollapse.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
+    hookContextMenu(view);
 
     /*
      * Right-hand-side shows graph
@@ -341,6 +380,27 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     });
 
     return panel;
+  }
+
+  private void hookContextMenu(ViewPart view) {
+    MenuManager menuMgr = new MenuManager("#PopupMenu");
+    menuMgr.setRemoveAllWhenShown(true);
+    menuMgr.addMenuListener(new IMenuListener() {
+      @Override
+      public void menuAboutToShow(final IMenuManager manager) {
+        final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+        if (!s.isEmpty()) {
+          manager.add(f_actionExpand);
+          manager.add(f_actionCollapse);
+        }
+        manager.add(new Separator());
+        // Other plug-ins can contribute there actions here
+        manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+      }
+    });
+    Menu menu = menuMgr.createContextMenu(f_treeViewer.getControl());
+    f_treeViewer.getControl().setMenu(menu);
+    view.getSite().registerContextMenu(menuMgr, f_treeViewer);
   }
 
   void updateThresholdFromTextIfSafe() {
@@ -407,11 +467,10 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
         cell.setText(label);
         Image image = element.getImage();
         if (element.highlightDueToSlocThreshold(f_options)) {
-          if (element.isLeaf()) {
+          image = SLImages.getDecoratedImage(image,
+              new ImageDescriptor[] { null, null, SLImages.getImageDescriptor(CommonImages.DECR_ASTERISK), null, null });
+          if (element.hasDurationNs()) {
             cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
-          } else {
-            image = SLImages.getDecoratedImage(image,
-                new ImageDescriptor[] { SLImages.getImageDescriptor(CommonImages.DECR_ASTERISK), null, null, null, null });
           }
         } else {
           cell.setBackground(null);
@@ -432,11 +491,12 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
         final ScanTimeElement element = (ScanTimeElement) cell.getElement();
         String label = element.getDurationAsHumanReadableString(f_options);
         cell.setText(label);
-        if (element.highlightDueToSlocThreshold(f_options)) {
-          if (element.isLeaf()) {
+        if (element.hasDurationNs()) {
+          if (element.highlightDueToSlocThreshold(f_options)) {
             cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
           }
         } else {
+          cell.setForeground(EclipseColorUtility.getSubtleTextColor());
           cell.setBackground(null);
         }
       }

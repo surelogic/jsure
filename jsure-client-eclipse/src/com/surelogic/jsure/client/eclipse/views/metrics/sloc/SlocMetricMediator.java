@@ -3,6 +3,11 @@ package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -40,12 +45,15 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.part.PageBook;
+import org.eclipse.ui.part.ViewPart;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
@@ -75,8 +83,8 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     return "Code Size";
   }
 
-  public SlocMetricMediator(TabFolder folder) {
-    super(folder);
+  public SlocMetricMediator(TabFolder folder, ViewPart view) {
+    super(folder, view);
   }
 
   final ViewerSorter f_alphaSorter = new ViewerSorter() {
@@ -179,8 +187,34 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
   @NonNull
   final SlocOptions f_options = new SlocOptions();
 
+  final Action f_actionExpand = new Action() {
+    @Override
+    public void run() {
+      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+      final Object o = s.getFirstElement();
+      if (o != null) {
+        f_treeViewer.getTree().setRedraw(false);
+        f_treeViewer.expandToLevel(o, 5);
+        f_treeViewer.getTree().setRedraw(true);
+      }
+    }
+  };
+
+  final Action f_actionCollapse = new Action() {
+    @Override
+    public void run() {
+      final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+      final Object o = s.getFirstElement();
+      if (o != null) {
+        f_treeViewer.getTree().setRedraw(false);
+        f_treeViewer.collapseToLevel(o, 1);
+        f_treeViewer.getTree().setRedraw(true);
+      }
+    }
+  };
+
   @Override
-  protected Control initMetricDisplay(PageBook parent) {
+  protected Control initMetricDisplay(PageBook parent, ViewPart view) {
     final Composite panel = new Composite(parent, SWT.NONE);
 
     GridLayout layout = new GridLayout();
@@ -402,6 +436,15 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
     fixSortingIndicatorOnTreeTable();
 
+    f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
+    f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
+    f_actionExpand.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
+
+    f_actionCollapse.setText(I18N.msg("jsure.eclipse.view.collapse"));
+    f_actionCollapse.setToolTipText(I18N.msg("jsure.eclipse.view.collapse.tip"));
+    f_actionCollapse.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
+    hookContextMenu(view);
+
     /*
      * Right-hand-side shows graph
      */
@@ -432,6 +475,27 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
     });
 
     return panel;
+  }
+
+  private void hookContextMenu(ViewPart view) {
+    MenuManager menuMgr = new MenuManager("#PopupMenu");
+    menuMgr.setRemoveAllWhenShown(true);
+    menuMgr.addMenuListener(new IMenuListener() {
+      @Override
+      public void menuAboutToShow(final IMenuManager manager) {
+        final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+        if (!s.isEmpty()) {
+          manager.add(f_actionExpand);
+          manager.add(f_actionCollapse);
+        }
+        manager.add(new Separator());
+        // Other plug-ins can contribute there actions here
+        manager.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
+      }
+    });
+    Menu menu = menuMgr.createContextMenu(f_treeViewer.getControl());
+    f_treeViewer.getControl().setMenu(menu);
+    view.getSite().registerContextMenu(menuMgr, f_treeViewer);
   }
 
   void updateThresholdFromTextIfSafe() {
@@ -498,8 +562,8 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         cell.setText(label);
         Image image = element.getImage();
         if (element.highlightDueToSlocThreshold(f_options)) {
-          image = SLImages.getDecoratedImage(image, new ImageDescriptor[] {
-              SLImages.getImageDescriptor(CommonImages.DECR_ASTERISK), null, null, null, null });
+          image = SLImages.getDecoratedImage(image,
+              new ImageDescriptor[] { null, null, SLImages.getImageDescriptor(CommonImages.DECR_ASTERISK), null, null });
           if (element instanceof SlocElementLeaf) {
             cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
           }

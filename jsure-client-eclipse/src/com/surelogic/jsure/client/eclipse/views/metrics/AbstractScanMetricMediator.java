@@ -11,6 +11,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.part.PageBook;
+import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.NonNull;
@@ -26,22 +27,26 @@ import com.surelogic.javac.persistence.JSureScanInfo;
 public abstract class AbstractScanMetricMediator implements IScanMetricMediator {
 
   final PageBook f_viewerbook;
+  final ViewPart f_view;
   final TabItem f_tab;
   final Label f_noResultsToShowLabel;
   Control f_control = null;
 
-  public AbstractScanMetricMediator(TabFolder folder) {
+  public AbstractScanMetricMediator(TabFolder folder, ViewPart view) {
     // Avoid invoking dispatching methods here, do them in init()
     f_tab = new TabItem(folder, SWT.NONE);
     f_viewerbook = new PageBook(folder, SWT.NONE);
     f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
     f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
+    if (view == null)
+      throw new IllegalArgumentException(I18N.err(44, "view"));
+    f_view = view;
   }
 
   public final void init() {
     f_tab.setText(getMetricLabel());
     f_tab.setControl(f_viewerbook);
-    f_control = initMetricDisplay(f_viewerbook);
+    f_control = initMetricDisplay(f_viewerbook, f_view);
   }
 
   /**
@@ -55,11 +60,13 @@ public abstract class AbstractScanMetricMediator implements IScanMetricMediator 
    * 
    * @param parent
    *          the parent of the metric display.
+   * @param view
+   *          a reference to the metric view object for registration purposes.
    * @return a single child the metric display is contained within. For example,
    *         a <tt>Composite</tt> or a <tt>Table</tt>.
    */
   @NonNull
-  protected abstract Control initMetricDisplay(PageBook parent);
+  protected abstract Control initMetricDisplay(PageBook parent, ViewPart view);
 
   @NonNull
   protected abstract String getMetricLabel();
