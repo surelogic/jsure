@@ -96,7 +96,7 @@ public class DeclFactory {
       return null;
     }
     final Operator op = JJNode.tree.getOperator(here);
-    if (Declaration.prototype.includes(op) || op instanceof TypeDeclInterface) {
+    if (Declaration.prototype.includes(op) || op instanceof TypeDeclInterface || op instanceof ClassInitDeclaration) {
       return new Pair<IDecl, IJavaRef.Position>(decl, IJavaRef.Position.IS_DECL);
     }
     else if (ReceiverDeclaration.prototype.includes(op)) {
