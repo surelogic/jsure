@@ -21,9 +21,9 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 public final class ScanTimeMetricCompactProofHook extends AbstractSeaConsistencyProofHook {
 
   /**
-   * Threshold is half a second.
+   * Threshold is one second.
    */
-  final long f_thresholdNs = TimeUnit.MILLISECONDS.toNanos(500);
+  final long f_thresholdNs = TimeUnit.SECONDS.toNanos(1);
 
   class Key {
     Key(String project, String pkg, String cu, String analysisName) {
