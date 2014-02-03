@@ -2,6 +2,8 @@ package com.surelogic.dropsea.ir.drops;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -19,6 +21,11 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public final class ScanTimeMetricCompactProofHook extends AbstractSeaConsistencyProofHook {
+
+  /**
+   * Threshold to even consider doing a compact.
+   */
+  final int f_thresholdSize = 2000;
 
   /**
    * Threshold is one second.
@@ -104,11 +111,19 @@ public final class ScanTimeMetricCompactProofHook extends AbstractSeaConsistency
   @Override
   public void postConsistencyProof(Sea sea) {
     HashMap<Key, Value> cuToDrops = new HashMap<Key, Value>();
-    for (MetricDrop drop : sea.getDropsOfType(MetricDrop.class)) {
-      // Only consider scan timing information
-      if (drop.getMetric() != IMetricDrop.Metric.SCAN_TIME)
-        continue;
+    List<MetricDrop> drops = sea.getDropsOfType(MetricDrop.class);
 
+    // limit to performance drops
+    for (Iterator<MetricDrop> iterator = drops.iterator(); iterator.hasNext();) {
+      final MetricDrop drop = iterator.next();
+      if (drop.getMetric() != IMetricDrop.Metric.SCAN_TIME)
+        iterator.remove();
+    }
+
+    if (drops.size() <= f_thresholdSize)
+      return; // don't compact -- too small
+
+    for (MetricDrop drop : drops) {
       int durationNs = drop.getMetricInfoAsInt(IMetricDrop.SCAN_TIME_DURATION_NS, 0);
       if (durationNs < 0) {
         SLLogger.getLogger().log(Level.WARNING, I18N.err(311, durationNs));
