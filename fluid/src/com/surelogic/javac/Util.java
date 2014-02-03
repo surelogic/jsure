@@ -794,6 +794,7 @@ public class Util {
       // use fork-join for uniqueness and the like?
 
       // Setup
+      final Analyzer<CUDrop, ?> analyzer = null;
       final AnalysisInfo<?>[] infos = new AnalysisInfo<?>[analyses.numGroups()];
       int i = 0;
       for (AnalysisGroup<?> group : analyses.getGroups()) {
@@ -802,6 +803,7 @@ public class Util {
         i++;
       }
 
+      analyses.analyzeProjects(projects, analyzer, allCus.asList());
       for (JavacProject p : projects) {
         // TODO start
         for (CUDrop d : allCus/* for the project */) {
@@ -972,7 +974,10 @@ public class Util {
       i++;
     }
   }
-
+  
+  /**
+   * Runs a group of analyses
+   */
   static class AnalysisInfo<Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> implements Analyzer<Q, Q>{
     final IAnalysisGroup<Q> analyses;
     final IIRAnalysisEnvironment env;
@@ -1067,8 +1072,7 @@ public class Util {
 	}
 
 	public boolean isSingleThreaded(IIRAnalysis<?> analysis) {
-		// TODO Auto-generated method stub
-		return false;
+		return runInParallel() == ConcurrencyType.NEVER || analysis.runInParallel() == ConcurrencyType.NEVER;
 	}
   }
 
