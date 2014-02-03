@@ -153,4 +153,31 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 	public ConcurrencyType runInParallel() {
 		return runInParallel ? ConcurrencyType.INTERNALLY : ConcurrencyType.EXTERNALLY;
 	}
+	
+	// Probably shouldn't be run on one granule 
+	protected <E extends IAnalysisGranule> void runAsTasks(final Collection<E> c,
+			final Procedure<E> proc) {
+		if (c.isEmpty()) {
+			return;
+		}
+		pool.invoke(new RecursiveAction() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void compute() {
+				RecursiveAction[] tasks = new RecursiveAction[c.size()];
+				int i = 0;
+				for(final E g : c) {
+					tasks[i] = new RecursiveAction() {
+						private static final long serialVersionUID = 1L;
+						@Override
+						protected void compute() {
+							proc.op(g);
+						}			
+					};
+					i++;
+				}
+			}			
+		});
+	}
 }
