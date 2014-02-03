@@ -4,6 +4,7 @@ package com.surelogic.analysis;
 
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
+import com.surelogic.dropsea.ir.drops.CUDrop;
 
 /**
  * The sequence of events for projects P,
@@ -82,6 +83,9 @@ public interface IIRAnalysis<Q extends IAnalysisGranule> {
 	 * Assumptions and versioning is handled by the driver
 	 */
 	boolean doAnalysisOnGranule(IIRAnalysisEnvironment env, Q granule);
+	
+	// Not needed long-term, but used for experiments/debugging
+	boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop granule);
 	
 	/**
 	 * Called when there is no more (known) work to do for this analysis

@@ -11,6 +11,7 @@ import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 
+import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -146,14 +147,8 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAna
 	 */
 	protected abstract T constructIRAnalysis(IBinder binder);
 	
-	/*
-	protected final void finishAnalyzeBegin(IIRProject p, IBinder binder) {
-		// Nothing to do yet
-	}
-	*/
-	
 	@Override
-  public final boolean doAnalysisOnGranule(final IIRAnalysisEnvironment env, final Q g) {
+	public final boolean doAnalysisOnGranule(final IIRAnalysisEnvironment env, final Q g) {
 		// TODO move this to Util
 		Object rv = runInVersion(new edu.cmu.cs.fluid.util.AbstractRunner() {
 			@Override
@@ -168,16 +163,22 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAna
 		});
 		return rv == Boolean.TRUE;
 	}
-	protected abstract boolean doAnalysisOnGranule_wrapped(final IIRAnalysisEnvironment env, final Q g);
-		
-	// Default implementation for CUDrop analyses
-	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, CUDrop cud) {
-		return doAnalysisOnAFile(env, cud, cud.getCompilationUnitIRNode());
+	
+	protected boolean doAnalysisOnGranule_wrapped(final IIRAnalysisEnvironment env, final Q g) {
+		throw new NotImplemented();
 	}
 	
+	public boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud) {
+		return doAnalysisOnAFile(env, cud, cud.getCompilationUnitIRNode());
+	}
+		
 	// Default implementation for non-CUDrop analyses
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, IRNode cu) {
-		return false;
+		getGranulator().extractGranules(cud.getTypeEnv(), cu);
+		for(Q granule : getGranulator().getGranules()) {
+			doAnalysisOnGranule(env, granule);
+		}
+		return true;
 	}
 		
 	@Override
