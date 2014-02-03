@@ -1056,6 +1056,7 @@ public class Util {
         }
       } else {
         queueWork(toAnalyze);
+        flushWorkQueue();
       }
     }
 
