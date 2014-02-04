@@ -20,6 +20,10 @@ public abstract class AbstractGranulator<T extends IAnalysisGranule> implements 
 		return type;
 	}
 	
+	public int getThresholdToForkTasks() {
+		return 2;
+	}
+	
 	@Override
   public final List<T> getGranules() {
 		try {

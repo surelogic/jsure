@@ -26,6 +26,12 @@ public interface IAnalysisGranulator<T extends IAnalysisGranule> {
 	Class<T> getType();
 
 	/**
+	 * If there are N or above, fork off tasks
+	 * Otherwise, run sequentially
+	 */
+	int getThresholdToForkTasks();
+	
+	/**
 	 * An opportunity to wrap the operation 
 	 */
 	// TODO setup versioning, assumptions, component locking 
