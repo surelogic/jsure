@@ -957,8 +957,8 @@ public class Util {
 	  final IIRAnalysisEnvironment env;
 	  final SLProgressMonitor monitor;
 
-	  AbstractAnalyzer(JSurePerformance perf, IAnalysisGroup<Q> g, IIRAnalysisEnvironment e, SLProgressMonitor mon) {
-		  super(!(perf.singleThreaded || g.runSingleThreaded()), g.getGranuleType());
+	  AbstractAnalyzer(boolean inParallel, Class<Q> cls, IIRAnalysisEnvironment e, SLProgressMonitor mon) {
+		  super(inParallel, cls);
 		  env = e;
 		  monitor = mon;
 	  }
@@ -993,7 +993,7 @@ public class Util {
 	final Procedure<IAnalysisGranule>[] procs;
 	
 	AnalysesRunner(JSurePerformance perf, Analyses g, IIRAnalysisEnvironment e, SLProgressMonitor mon) {
-		super(perf, g, e, mon);
+		super(!perf.singleThreaded, g.getGranuleType(), e, mon);
 		analyses = g;
 		procs = new Procedure[g.numGroups()];
 		setupProcedure();		
@@ -1003,7 +1003,7 @@ public class Util {
 	public Analyses getAnalyses() {
 		return analyses;
 	}
-
+	
 	@Override
 	public void process(Collection<CUDrop> toAnalyze) {
 		if (runInParallel() == ConcurrencyType.EXTERNALLY) {
@@ -1040,7 +1040,7 @@ public class Util {
 						if (granulator == null) { 
 							// Use the comp unit
 							final AnalysisTimings timing = timings.get();
-							int i = analyses.getOffset();
+							int i = g.getOffset();
 							for (final IIRAnalysis<?> a : g) {
 								if (monitor != null) {
 									monitor.subTask("Checking [ " + a.label() + " ] " + granule.getLabel());
@@ -1075,7 +1075,7 @@ public class Util {
 					try {
 						frame.pushTypeContext(granule.getCompUnit());
 						final AnalysisTimings timing = timings.get();
-						int i = analyses.getOffset();
+						int i = g.getOffset();
 						for (final IIRAnalysis a : g) {
 							if (monitor != null) {
 								monitor.subTask("Checking [ " + a.label() + " ] " + granule.getLabel());
@@ -1109,7 +1109,7 @@ public class Util {
     final IAnalysisGroup<Q> analyses;
 	  
     AnalysisInfo(JSurePerformance perf, IAnalysisGroup<Q> g, IIRAnalysisEnvironment e, SLProgressMonitor mon) {
-      super(perf, g, e, mon);
+      super(!(perf.singleThreaded || g.runSingleThreaded()), g.getGranuleType(), e, mon);
       analyses = g;
       setupProcedure();
     }
