@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 import org.eclipse.swt.graphics.Image;
 
@@ -13,7 +12,6 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.common.logging.SLLogger;
 
 public abstract class ScanTimeElement {
 

@@ -13,6 +13,6 @@ public class ScanTimeElementAnalysis extends ScanTimeElement {
 
   @Override
   public Image getImage() {
-    return SLImages.getImage(CommonImages.IMG_JSURE_VERIFY);
+    return SLImages.getImage(CommonImages.IMG_METHOD_PUBLIC);
   }
 }
