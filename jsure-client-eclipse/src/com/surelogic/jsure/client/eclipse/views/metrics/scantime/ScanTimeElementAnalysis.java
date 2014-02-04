@@ -15,4 +15,13 @@ public class ScanTimeElementAnalysis extends ScanTimeElement {
   public Image getImage() {
     return SLImages.getImage(CommonImages.IMG_METHOD_PUBLIC);
   }
+
+  @Override
+  public boolean includeBasedOnAnalysisToShow(ScanTimeOptions options) {
+    String analysisToShow = options.getAnalysisToShow();
+    if (analysisToShow == null)
+      return true;
+    else
+      return getLabel().equals(analysisToShow);
+  }
 }

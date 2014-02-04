@@ -150,6 +150,21 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     }
   };
 
+  final ViewerFilter f_analysisToShowFilter = new ViewerFilter() {
+
+    @Override
+    public boolean select(Viewer viewer, Object parentElement, Object element) {
+      // exception for scan
+      if (element instanceof ScanTimeElementScan)
+        return true;
+
+      if (element instanceof ScanTimeElement) {
+        return ((ScanTimeElement) element).includeBasedOnAnalysisToShow(f_options);
+      }
+      return false;
+    }
+  };
+
   Label f_totalScanDuration = null;
   Scale f_thresholdScale = null;
   Text f_thresholdLabel = null;
@@ -320,6 +335,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
      */
     f_treeViewer = new TreeViewer(sash, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
     f_treeViewer.setContentProvider(f_contentProvider);
+    f_treeViewer.addFilter(f_analysisToShowFilter);
     f_treeViewer.addFilter(f_thresholdFilter);
     f_treeViewer.getTree().setHeaderVisible(true);
     f_treeViewer.getTree().setLinesVisible(true);
