@@ -28,7 +28,7 @@ public class DropCounterMetricMediator extends AbstractScanMetricMediator {
 
   @Override
   protected String getMetricLabel() {
-    return "Counts";
+    return "Proof \"Drop\" Counts";
   }
 
   public DropCounterMetricMediator(TabFolder folder, ViewPart view) {
@@ -69,7 +69,7 @@ public class DropCounterMetricMediator extends AbstractScanMetricMediator {
     dropType.setLabelProvider(DROP);
     dropType.getColumn().setWidth(EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_DROP_COUNTER_COL_DROP_WIDTH));
     dropType.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.METRIC_DROP_COUNTER_COL_DROP_WIDTH));
-    dropType.getColumn().setText("Drop Type");
+    dropType.getColumn().setText("Proof \"Drop\" Type");
 
     TableViewerColumn count = new TableViewerColumn(f_tableViewer, SWT.RIGHT);
     count.setLabelProvider(COUNT);
