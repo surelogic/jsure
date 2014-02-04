@@ -155,11 +155,17 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 	}
 	
 	// Probably shouldn't be run on one granule 
-	protected <E extends IAnalysisGranule> void runAsTasks(final Collection<E> c,
+	protected <E extends IAnalysisGranule> void runAsTasks(final List<E> c,
 			final Procedure<E> proc) {
 		if (c.isEmpty()) {
 			return;
 		}
+		if (c.size() == 1) {
+			proc.op(c.get(0));
+			return;
+		}
+		// TODO what about other cases?
+		
 		pool.invoke(new RecursiveAction() {
 			private static final long serialVersionUID = 1L;
 
