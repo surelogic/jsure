@@ -79,7 +79,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
 
   @Override
   protected String getMetricLabel() {
-    return "Performance";
+    return "Analysis Performance";
   }
 
   public ScanTimeMetricMediator(TabFolder folder, ViewPart view) {
