@@ -169,8 +169,6 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
   Scale f_thresholdScale = null;
   Text f_thresholdLabel = null;
   Label f_thresholdUnit = null;
-  final String f_unitUnit = "second";
-  final String f_multipleUnit = "seconds";
 
   Combo f_analysisCombo = null;
   final String f_analysisComboAll = "All Analyses";
@@ -284,9 +282,9 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     f_thresholdScale = new Scale(top, SWT.NONE);
     f_thresholdScale.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     f_thresholdScale.setMinimum(1);
-    f_thresholdScale.setMaximum(120);
-    f_thresholdScale.setPageIncrement(10);
-    int savedThreshold = EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD);
+    f_thresholdScale.setMaximum(5000);
+    f_thresholdScale.setPageIncrement(500);
+    int savedThreshold = EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SCAN_TIME_THRESHOLD_MS);
     if (savedThreshold < f_thresholdScale.getMinimum())
       savedThreshold = f_thresholdScale.getMinimum();
     if (savedThreshold > f_thresholdScale.getMaximum())
@@ -322,7 +320,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
 
     f_thresholdUnit = new Label(top, SWT.NONE);
     f_thresholdUnit.setLayoutData(gd);
-    f_thresholdUnit.setText(savedThreshold > 1 ? f_multipleUnit : f_unitUnit);
+    f_thresholdUnit.setText("ms");
 
     final SashForm sash = new SashForm(panel, SWT.HORIZONTAL | SWT.SMOOTH);
     gd = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -452,9 +450,8 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
   void updateThresholdScale() {
     int threshold = f_thresholdScale.getSelection();
     f_thresholdLabel.setText(SLUtility.toStringHumanWithCommas(threshold));
-    EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD, threshold);
+    EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_SCAN_TIME_THRESHOLD_MS, threshold);
     if (f_options.setThreshold(threshold)) {
-      f_thresholdUnit.setText(threshold > 1 ? f_multipleUnit : f_unitUnit);
       f_treeViewer.refresh();
     }
   }
