@@ -218,23 +218,26 @@
 
 		<!-- Handle any OS-specific build problems here. -->
 		<!-- THE CODE BELOW MAY NEED TO BE UPDATED AS OS/ECLIPSE VERSIONS CHANGE -->
-		<condition property="is.mac">
+
+	  <!-- On Mac OS X with Java 6 for the automated regression tests we
+                 need to uncomment the below definition to place the lib/javac.jar
+                 file ahead of the bootclasspath. This project only needs the contents
+                 of classes.jar (on OS X). But if Java on OS X is updated then the
+                 absolute path below may need to be updated.-->
+    <!-- This is only needed when the os is mac and the java version is 6.
+         Java 7 on the Mac doesn't cause any problems here. -->               
+		<!--condition property="is.mac">
 			<os family="mac" />
 		</condition>
 		<if>
 			<equals arg1="${is.mac}" arg2="true" casesensitive="false" />
 			<then>
-				<!-- On Mac OS X with Java 6 for the automated regression tests we
-                     need to uncomment the below definition to place the lib/javac.jar
-                     file ahead of the bootclasspath. This project only needs the contents
-                     of classes.jar (on OS X). But if Java on OS X is updated then the
-                     absolute path below may need to be updated.-->
 				<propertyfile file="${sandbox.jsure.build.plugins.dir}${fs}fluid${fs}build.properties">
 					<entry key="bootClasspath" value="lib/runtime/javac.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar" />
 				</propertyfile>
 				<echo message="[OS X] fluid-javac bootClasspath changed..." />
 			</then>
-		</if>
+		</if-->
 
 		<!-- Copy template headless build.properties file and configure it for a headless build -->
 		<property name="jsure.build.properties" value="${sandbox.jsure.build.dir}${fs}build.properties" />
