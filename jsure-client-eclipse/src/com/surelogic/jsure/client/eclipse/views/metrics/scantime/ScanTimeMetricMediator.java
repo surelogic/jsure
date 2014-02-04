@@ -1,7 +1,12 @@
 package com.surelogic.jsure.client.eclipse.views.metrics.scantime;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.logging.Level;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
@@ -59,6 +64,7 @@ import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.ColumnResizeListener;
 import com.surelogic.common.ui.EclipseColorUtility;
 import com.surelogic.common.ui.SLImages;
@@ -144,6 +150,21 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     }
   };
 
+  final ViewerFilter f_analysisToShowFilter = new ViewerFilter() {
+
+    @Override
+    public boolean select(Viewer viewer, Object parentElement, Object element) {
+      // exception for scan
+      if (element instanceof ScanTimeElementScan)
+        return true;
+
+      if (element instanceof ScanTimeElement) {
+        return ((ScanTimeElement) element).includeBasedOnAnalysisToShow(f_options);
+      }
+      return false;
+    }
+  };
+
   Label f_totalScanDuration = null;
   Scale f_thresholdScale = null;
   Text f_thresholdLabel = null;
@@ -151,8 +172,9 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
   final String f_unitUnit = "second";
   final String f_multipleUnit = "seconds";
 
-  final String[] f_columnTitles = new String[] { "SLOC", "Blank Lines", "Commented Lines", "Java Declarations", "Java Statements",
-      "Semicolon Count" };
+  Combo f_analysisCombo = null;
+  final String f_analysisComboAll = "All Analyses";
+  boolean f_analysisComboFirstLoad = true;
 
   TreeViewer f_treeViewer = null;
   Canvas f_canvas = null;
@@ -199,28 +221,29 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
 
     Composite top = new Composite(panel, SWT.BORDER);
     top.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-    GridLayout topLayout = new GridLayout(7, false);
+    GridLayout topLayout = new GridLayout(8, false);
     top.setLayout(topLayout);
 
     f_totalScanDuration = new Label(top, SWT.NONE);
     f_totalScanDuration.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     f_totalScanDuration.setForeground(f_totalScanDuration.getDisplay().getSystemColor(SWT.COLOR_BLUE));
 
-    final Combo countCombo = new Combo(top, SWT.READ_ONLY);
-    countCombo.setItems(f_columnTitles);
-    countCombo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
-    int savedComboChoice = EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_COMBO_SELECTED_COLUMN);
-    if (savedComboChoice < 0 || savedComboChoice >= f_columnTitles.length)
-      savedComboChoice = 0; // if a bad value was saved
-    countCombo.select(savedComboChoice);
-    f_options.setSelectedColumnTitleIndex(savedComboChoice);
-    countCombo.addSelectionListener(new SelectionAdapter() {
+    final Label analysisFilter = new Label(top, SWT.RIGHT);
+    analysisFilter.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+    analysisFilter.setText("Show Times For:");
+
+    f_analysisCombo = new Combo(top, SWT.READ_ONLY);
+    GridData gd = new GridData(SWT.FILL, SWT.CENTER, false, false);
+    gd.widthHint = 140;
+    f_analysisCombo.setLayoutData(gd);
+    setupAnalysisComboFor(null);
+    f_analysisCombo.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
-        final int value = countCombo.getSelectionIndex();
-        EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_COMBO_SELECTED_COLUMN, value);
-        if (f_options.setSelectedColumnTitleIndex(value)) {
-          fixSortingIndicatorOnTreeTable();
+        String analysisToSelect = f_analysisCombo.getItem(f_analysisCombo.getSelectionIndex());
+        if (f_analysisComboAll.equals(analysisToSelect))
+          analysisToSelect = null;
+        if (f_options.setAnalysisToShow(analysisToSelect)) {
           f_treeViewer.refresh();
         }
       }
@@ -278,7 +301,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     });
 
     f_thresholdLabel = new Text(top, SWT.SINGLE | SWT.RIGHT);
-    GridData gd = new GridData(SWT.FILL, SWT.CENTER, false, false);
+    gd = new GridData(SWT.FILL, SWT.CENTER, false, false);
     gd.widthHint = 80;
     f_thresholdLabel.setLayoutData(gd);
     f_thresholdLabel.setText(SLUtility.toStringHumanWithCommas(savedThreshold));
@@ -312,6 +335,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
      */
     f_treeViewer = new TreeViewer(sash, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
     f_treeViewer.setContentProvider(f_contentProvider);
+    f_treeViewer.addFilter(f_analysisToShowFilter);
     f_treeViewer.addFilter(f_thresholdFilter);
     f_treeViewer.getTree().setHeaderVisible(true);
     f_treeViewer.getTree().setLinesVisible(true);
@@ -344,7 +368,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
         EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SCAN_TIME_COL_DURATION_WIDTH));
     columnDuration.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_SCAN_TIME_COL_DURATION_WIDTH));
-    columnDuration.getColumn().setText("Duration (ns)");
+    columnDuration.getColumn().setText("Duration");
 
     f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
     f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
@@ -450,10 +474,68 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     }
   }
 
+  void setupAnalysisComboFor(@Nullable ArrayList<IMetricDrop> drops) {
+    if (drops == null) {
+      /*
+       * No scan set to empty/all -- do not change the value in
+       * <tt>f_options</tt> we want that to try to restore it when a new scan is
+       * loaded.
+       */
+      f_analysisCombo.setItems(new String[] { f_analysisComboAll });
+      f_analysisCombo.select(0);
+    } else {
+      /*
+       * Save the selected analysis name to try to restore it after we load the
+       * new scan.
+       */
+      @Nullable
+      final String valueToTryToRestore;
+      if (f_analysisComboFirstLoad) {
+        f_analysisComboFirstLoad = false;
+        String persistedValue = EclipseUtility.getStringPreference(JSurePreferencesUtility.METRIC_SCAN_TIME_ANALYSIS_TO_SHOW);
+        // "" means null in persisted value -- so we translate here
+        valueToTryToRestore = "".equals(persistedValue) ? null : persistedValue;
+      } else {
+        valueToTryToRestore = f_options.getAnalysisToShow();
+      }
+      /*
+       * Determine the list of analysis names in this scan
+       */
+      final Set<String> analyses = new HashSet<String>();
+      for (IMetricDrop drop : drops) {
+        String analysisName = drop.getMetricInfoOrNull(IMetricDrop.SCAN_TIME_ANALYSIS_NAME);
+        if (analysisName == null) {
+          SLLogger.getLogger().log(Level.WARNING, I18N.err(312));
+          analysisName = "(unknown analysis)";
+        }
+        analyses.add(analysisName);
+      }
+      LinkedList<String> choices = new LinkedList<String>(analyses);
+      Collections.sort(choices);
+      choices.addFirst(f_analysisComboAll);
+      /*
+       * Try to restore the selection.
+       */
+      int indexToSelect = 0; // all -- a default value
+      if (valueToTryToRestore != null) {
+        int possibleIndex = choices.indexOf(valueToTryToRestore);
+        if (possibleIndex > 0)
+          indexToSelect = possibleIndex;
+      }
+      f_analysisCombo.setItems(choices.toArray(new String[choices.size()]));
+      f_analysisCombo.select(indexToSelect);
+      final String setAnalysisToShow = indexToSelect == 0 ? null : choices.get(indexToSelect);
+      System.out.println("setAnalysisToShow(" + setAnalysisToShow + ")");
+      f_options.setAnalysisToShow(setAnalysisToShow);
+    }
+
+  }
+
   @Override
   protected void refreshMetricContentsFor(@Nullable JSureScanInfo scan, @Nullable ArrayList<IMetricDrop> drops) {
     final ArrayList<IMetricDrop> metricDrops = DropSeaUtility.filterMetricsToOneType(IMetricDrop.Metric.SCAN_TIME, drops);
     f_treeViewer.setInput(new ScanTimeViewContentProvider.Input(scan, metricDrops));
+    setupAnalysisComboFor(metricDrops);
     f_treeViewer.expandToLevel(3);
   }
 

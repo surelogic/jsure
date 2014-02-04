@@ -168,6 +168,23 @@ public abstract class ScanTimeElement {
   }
 
   /**
+   * Gets if this element should be shown based upon the setting about what
+   * analysis timings should be shown.
+   * <p>
+   * The default implementation just returns {@code true}, the only
+   * implementation that should override is the element that represents an
+   * analysis, {@link ScanTimeElementAnalysis}.
+   * 
+   * @param options
+   *          the options configured about this metric.
+   * @return {@code true} if this result should be included in the display,
+   *         {@code false} otherwise.
+   */
+  public boolean includeBasedOnAnalysisToShow(ScanTimeOptions options) {
+    return true;
+  }
+
+  /**
    * Gets if this element has a meaningful duration set for it, and is not just
    * a summary node with totals.
    * 
@@ -197,9 +214,11 @@ public abstract class ScanTimeElement {
     if (f_children != null) {
       final boolean filterResultsByThreshold = options.getFilterResultsByThreshold();
       for (ScanTimeElement element : f_children) {
-        // Take filtering into account if filtering is on
-        boolean includeChild = !filterResultsByThreshold
+        // Take filtering into account if threshold filtering is on
+        boolean includeChildBasedOnThresholdFilter = !filterResultsByThreshold
             || (filterResultsByThreshold && element.highlightDueToSlocThreshold(options));
+        boolean includeChildBasedOnAnalysisToShow = element.includeBasedOnAnalysisToShow(options);
+        boolean includeChild = includeChildBasedOnAnalysisToShow && includeChildBasedOnThresholdFilter;
         if (includeChild)
           result += element.getDurationNs(options);
       }

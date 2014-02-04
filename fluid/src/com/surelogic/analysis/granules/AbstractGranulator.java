@@ -42,6 +42,12 @@ public abstract class AbstractGranulator<T extends IAnalysisGranule> implements 
 	}
 	
 	protected abstract void extractGranules(List<T> granules, ITypeEnvironment tEnv, IRNode cu);
+		
+	public final List<T> extractNewGranules(ITypeEnvironment tEnv, IRNode cu) {
+		final List<T> rv = new ArrayList<T>();
+		extractGranules(rv, tEnv, cu);
+		return rv;
+	}
 	
 	@Override
   public Procedure<T> wrapAnalysis(Procedure<T> proc) {

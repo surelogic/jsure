@@ -23,6 +23,9 @@ public interface IAnalysisGranulator<T extends IAnalysisGranule> {
 	 */
 	List<T> getGranules();
 
+	// Returned immediately
+	List<T> extractNewGranules(ITypeEnvironment tEnv, IRNode cu);
+	
 	Class<T> getType();
 
 	/**
