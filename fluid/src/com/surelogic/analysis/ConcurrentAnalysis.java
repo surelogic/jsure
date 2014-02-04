@@ -88,7 +88,7 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 		return false;
 	}
 
-	protected boolean queueWork(Iterable<Q> work) {
+	protected boolean queueWork(Iterable<? extends Q> work) {
 		if (workQueue != null) {
 			List<Q> l = workQueue.asList();
 			for (Q w : work) {
@@ -102,7 +102,7 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 		return false;
 	}
 
-	protected boolean queueWork(Collection<Q> work) {
+	protected boolean queueWork(Collection<? extends Q> work) {
 		if (workQueue != null) {
 			List<Q> l = workQueue.asList();
 			l.addAll(work);
@@ -126,7 +126,7 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 	/**
 	 * Used by various analyses to handle concurrency themselves
 	 */
-	protected <E extends IAnalysisGranule> void runInParallel(Class<E> type, Collection<E> c,
+	protected <E extends IAnalysisGranule> void runInParallel(Class<E> type, Collection<? extends E> c,
 			final Procedure<E> proc) {
 		if (c.isEmpty()) {
 			return;
@@ -155,7 +155,7 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 	}
 	
 	// Probably shouldn't be run on one granule 
-	protected <E extends IAnalysisGranule> void runAsTasks(final List<E> c,
+	protected <E extends IAnalysisGranule> void runAsTasks(final List<? extends E> c,
 			final Procedure<E> proc) {
 		if (c.isEmpty()) {
 			return;
