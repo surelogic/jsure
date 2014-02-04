@@ -110,6 +110,8 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 				flushWorkQueue();
 				return true;
 			}
+		} else {
+			throw new IllegalStateException();
 		}
 		return false;
 	}
