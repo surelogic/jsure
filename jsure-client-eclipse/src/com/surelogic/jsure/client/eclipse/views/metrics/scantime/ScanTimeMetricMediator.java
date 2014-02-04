@@ -507,7 +507,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
         if (element.highlightDueToThreshold(f_options)) {
           image = SLImages.getDecoratedImage(image,
               new ImageDescriptor[] { null, null, SLImages.getImageDescriptor(CommonImages.DECR_ASTERISK), null, null });
-          if (element.hasDurationNs()) {
+          if (element instanceof ScanTimeElementAnalysis || element instanceof ScanTimeElementJavaDecl) {
             cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
           }
         } else {
@@ -529,14 +529,19 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
         final ScanTimeElement element = (ScanTimeElement) cell.getElement();
         String label = element.getDurationAsHumanReadableString(f_options);
         cell.setText(label);
-        if (element.hasDurationNs()) {
-          if (element.highlightDueToThreshold(f_options)) {
-            cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
-          }
-        } else {
+        if (!element.hasDurationNs()) {
           cell.setForeground(EclipseColorUtility.getSubtleTextColor());
-          cell.setBackground(null);
         }
+
+        boolean highlighted = false;
+        if (element.highlightDueToThreshold(f_options)) {
+          if (element instanceof ScanTimeElementAnalysis || element instanceof ScanTimeElementJavaDecl) {
+            cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
+            highlighted = true;
+          }
+        }
+        if (!highlighted)
+          cell.setBackground(null);
       }
     }
   };

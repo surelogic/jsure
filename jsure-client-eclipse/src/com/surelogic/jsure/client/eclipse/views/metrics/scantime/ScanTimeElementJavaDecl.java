@@ -30,4 +30,19 @@ public class ScanTimeElementJavaDecl extends ScanTimeElement {
   public Image getImage() {
     return SLImages.getImageFor(f_javaDecl);
   }
+
+  @Override
+  public boolean includeBasedOnAnalysisToShow(ScanTimeOptions options) {
+    /*
+     * This uses the analysis element answer as the answer for this element.
+     * 
+     * There should always be an analysis element up the chain from this
+     * element.
+     */
+    ScanTimeElement analysis = this;
+    do {
+      analysis = analysis.getParent();
+    } while (!(analysis instanceof ScanTimeElementAnalysis));
+    return analysis.includeBasedOnAnalysisToShow(options);
+  }
 }

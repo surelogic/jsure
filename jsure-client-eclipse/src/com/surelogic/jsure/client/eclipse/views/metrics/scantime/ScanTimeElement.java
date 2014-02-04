@@ -171,9 +171,9 @@ public abstract class ScanTimeElement {
    * Gets if this element should be shown based upon the setting about what
    * analysis timings should be shown.
    * <p>
-   * The default implementation just returns {@code true}, the only
-   * implementation that should override is the element that represents an
-   * analysis, {@link ScanTimeElementAnalysis}.
+   * The default implementation {@code true} if any child should be shown.
+   * {@link ScanTimeElementAnalysis} and {@link ScanTimeElementJavaDecl} provide
+   * implementations to actually do the filter based on the passed options.
    * 
    * @param options
    *          the options configured about this metric.
@@ -181,7 +181,11 @@ public abstract class ScanTimeElement {
    *         {@code false} otherwise.
    */
   public boolean includeBasedOnAnalysisToShow(ScanTimeOptions options) {
-    return true;
+    for (ScanTimeElement element : f_children) {
+      if (element.includeBasedOnAnalysisToShow(options))
+        return true;
+    }
+    return false;
   }
 
   /**
