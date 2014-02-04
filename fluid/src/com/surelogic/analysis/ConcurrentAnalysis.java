@@ -183,6 +183,7 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 					};
 					i++;
 				}
+				invokeAll(tasks);
 			}			
 		});
 	}
