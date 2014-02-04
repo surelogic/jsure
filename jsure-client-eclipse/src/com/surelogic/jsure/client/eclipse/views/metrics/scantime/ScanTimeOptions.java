@@ -2,6 +2,10 @@ package com.surelogic.jsure.client.eclipse.views.metrics.scantime;
 
 import java.util.concurrent.TimeUnit;
 
+import com.surelogic.Nullable;
+import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
+
 /**
  * Cached for UI use.
  * <p>
@@ -37,35 +41,46 @@ public final class ScanTimeOptions {
     return f_threshold;
   }
 
-  // TODO DOES THIS MAKE SENSE FOR SCAN TIME???
-
-  int f_selectedColumnTitleIndex = 0;
+  /**
+   * The analysis name to filter the displayed timing result to where
+   * {@code null} indicates to show everything. For example,
+   * <tt>"Lock policy"</tt>.
+   */
+  String f_analysisToShow = null;
 
   /**
-   * Sets the column to sort and threshold filter on. This is an index into the
-   * {@link SlocMetricMediator#f_columnTitles} array.
+   * Sets the analysis name to filter the displayed timing result to where
+   * {@code null} indicates to show everything. For example,
+   * <tt>"Lock policy"</tt>.
+   * <p>
+   * This method persists the choice in Eclipse if it actually is different.
    * 
    * @param value
-   *          the column to sort and threshold filter on.
+   *          the analysis name to filter the displayed timing result to where
+   *          {@code null} indicates to show everything.
    * @return {@code true} if the value changed, {@code false} if it was already
    *         set to this value.
    */
-  public boolean setSelectedColumnTitleIndex(int value) {
-    if (f_selectedColumnTitleIndex != value) {
-      f_selectedColumnTitleIndex = value;
+  public boolean setAnalysisToShow(@Nullable String value) {
+    if (f_analysisToShow != value) {
+      f_analysisToShow = value;
+      EclipseUtility.setStringPreference(JSurePreferencesUtility.METRIC_SCAN_TIME_ANALYSIS_TO_SHOW, value == null ? "" : value);
       return true;
     } else
       return false;
   }
 
   /**
-   * Gets the column to sort and threshold filter on. This is an index into the
-   * {@link SlocMetricMediator#f_columnTitles} array.
+   * Gets the analysis name to filter the displayed timing result to where
+   * {@code null} indicates to show everything. For example,
+   * <tt>"Lock policy"</tt>.
    * 
-   * @return the column to sort and threshold filter on.
+   * @return the analysis to filter the displayed timing result to where
+   *         {@code null} indicates to show everything.
    */
-  public int getSelectedColumnTitleIndex() {
-    return f_selectedColumnTitleIndex;
+  @Nullable
+  public String getAnalysisToShow() {
+    return f_analysisToShow;
   }
 
   boolean f_thresholdShowAbove = true;
