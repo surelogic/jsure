@@ -126,7 +126,7 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 	/**
 	 * Used by various analyses to handle concurrency themselves
 	 */
-	protected <E extends IAnalysisGranule> void runInParallel(Class<E> type, Collection<? extends E> c,
+	public <E extends IAnalysisGranule> void runInParallel(Class<E> type, Collection<? extends E> c,
 			final Procedure<E> proc) {
 		if (c.isEmpty()) {
 			return;
@@ -155,7 +155,7 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 	}
 	
 	// Probably shouldn't be run on one granule 
-	protected <E extends IAnalysisGranule> void runAsTasks(final List<? extends E> c,
+	public <E extends IAnalysisGranule> void runAsTasks(final List<? extends E> c,
 			final Procedure<E> proc) {
 		if (c.isEmpty()) {
 			return;
