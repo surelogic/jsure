@@ -789,31 +789,9 @@ public class Util {
     if (useNewDriver && runAllAnalysesOnOneGranuleAtATime) {
       System.out.println("Using new analysis framework -- one granule");
 
-      // TODO how to focus all the analyses on a few CUs, while dealing with
-      // individual analyses that might take a long time
-      // use fork-join for uniqueness and the like?
-
-      // Setup
-      final Analyzer<CUDrop, ?> analyzer = null;
-      final AnalysisInfo<?>[] infos = new AnalysisInfo<?>[analyses.numGroups()];
-      int i = 0;
-      for (AnalysisGroup<?> group : analyses.getGroups()) {
-        System.out.println("Initializing info for group: " + group.getLabel());
-        infos[i] = new AnalysisInfo(perf, group, env, projects.getMonitor());
-        i++;
-      }
-
+      // TODO how to deal w/ seq analyses? (switch to the scheme below?)
+      AnalysesRunner analyzer = new AnalysesRunner(perf, analyses, env, projects.getMonitor());
       analyses.analyzeProjects(projects, analyzer, allCus.asList());
-      for (JavacProject p : projects) {
-        // TODO start
-        for (CUDrop d : allCus/* for the project */) {
-          for (AnalysisInfo<?> ai : infos) {
-            // ai.analyzeGranules();
-          }
-        }
-        // TODO end
-        // TODO postAnalysis
-      }
       finishAllAnalyses(env, analyses);
       return analyses.summarizeTiming();
     } else if (useNewDriver) {
