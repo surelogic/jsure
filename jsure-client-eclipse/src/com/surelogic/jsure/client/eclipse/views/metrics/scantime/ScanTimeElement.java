@@ -153,7 +153,7 @@ public abstract class ScanTimeElement {
    * @return {@code true} if this element should highlighted, {@code false}
    *         otherwise.
    */
-  public final boolean highlightDueToSlocThreshold(ScanTimeOptions options) {
+  public final boolean highlightDueToThreshold(ScanTimeOptions options) {
     if (f_children == null) {
       final long threshold = options.getThreshold();
       final boolean showAbove = options.getThresholdShowAbove();
@@ -162,7 +162,7 @@ public abstract class ScanTimeElement {
     } else {
       boolean result = false;
       for (ScanTimeElement element : f_children)
-        result |= element.highlightDueToSlocThreshold(options);
+        result |= element.highlightDueToThreshold(options);
       return result;
     }
   }
@@ -216,7 +216,7 @@ public abstract class ScanTimeElement {
       for (ScanTimeElement element : f_children) {
         // Take filtering into account if threshold filtering is on
         boolean includeChildBasedOnThresholdFilter = !filterResultsByThreshold
-            || (filterResultsByThreshold && element.highlightDueToSlocThreshold(options));
+            || (filterResultsByThreshold && element.highlightDueToThreshold(options));
         boolean includeChildBasedOnAnalysisToShow = element.includeBasedOnAnalysisToShow(options);
         boolean includeChild = includeChildBasedOnAnalysisToShow && includeChildBasedOnThresholdFilter;
         if (includeChild)

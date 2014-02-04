@@ -136,6 +136,7 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultIntPreference(METRIC_SCAN_TIME_COL_DURATION_WIDTH, 80);
       EclipseUtility.setDefaultStringPreference(METRIC_SCAN_TIME_ANALYSIS_TO_SHOW, "");
       EclipseUtility.setDefaultIntPreference(METRIC_SCAN_TIME_THRESHOLD_MS, 500);
+      EclipseUtility.setDefaultBooleanPreference(METRIC_SCAN_TIME_THRESHOLD_SHOW_ABOVE, true);
 
       EclipseUtility.setDefaultIntPreference(METRIC_DROP_COUNTER_COL_DROP_WIDTH, 300);
       EclipseUtility.setDefaultIntPreference(METRIC_DROP_COUNTER_COL_COUNT_WIDTH, 100);
@@ -218,6 +219,7 @@ public final class JSurePreferencesUtility {
   public static final String METRIC_SCAN_TIME_COL_DURATION_WIDTH = PREFIX + "metric.scan.time.col.duration.width";
   public static final String METRIC_SCAN_TIME_ANALYSIS_TO_SHOW = PREFIX + "metric.scan.time.analysis.to-show";
   public static final String METRIC_SCAN_TIME_THRESHOLD_MS = PREFIX + "metric.scan.time.threshold-ms";
+  public static final String METRIC_SCAN_TIME_THRESHOLD_SHOW_ABOVE = PREFIX + "metric.scan.time.threshold_show_above";
 
   public static final String METRIC_DROP_COUNTER_COL_DROP_WIDTH = PREFIX + "metric.drop.counter.col.drop.width";
   public static final String METRIC_DROP_COUNTER_COL_COUNT_WIDTH = PREFIX + "metric.drop.counter.col.count.width";

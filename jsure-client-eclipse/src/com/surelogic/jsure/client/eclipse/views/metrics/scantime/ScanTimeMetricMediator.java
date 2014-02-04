@@ -17,9 +17,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
@@ -27,27 +25,19 @@ import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Scale;
 import org.eclipse.swt.widgets.TabFolder;
@@ -144,7 +134,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
         return true;
 
       if (element instanceof ScanTimeElement) {
-        return ((ScanTimeElement) element).highlightDueToSlocThreshold(f_options);
+        return ((ScanTimeElement) element).highlightDueToThreshold(f_options);
       }
       return false;
     }
@@ -175,7 +165,6 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
   boolean f_analysisComboFirstLoad = true;
 
   TreeViewer f_treeViewer = null;
-  Canvas f_canvas = null;
 
   @NonNull
   ScanTimeViewContentProvider f_contentProvider = new ScanTimeViewContentProvider(this);
@@ -255,7 +244,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     final ToolItem belowThresholdItem = new ToolItem(thresholdToolBar, SWT.RADIO);
     belowThresholdItem.setImage(SLImages.getImage(CommonImages.IMG_THRESHOLD_BELOW));
     belowThresholdItem.setToolTipText(I18N.msg("jsure.eclipse.metrics.threshold_below.tip"));
-    boolean showAbove = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD_SHOW_ABOVE);
+    boolean showAbove = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.METRIC_SCAN_TIME_THRESHOLD_SHOW_ABOVE);
     if (showAbove)
       aboveThresholdItem.setSelection(true);
     else
@@ -265,7 +254,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
       @Override
       public void widgetSelected(SelectionEvent e) {
         boolean showAbove = aboveThresholdItem.getSelection();
-        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.METRIC_VIEW_SLOC_THRESHOLD_SHOW_ABOVE, showAbove);
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.METRIC_SCAN_TIME_THRESHOLD_SHOW_ABOVE, showAbove);
         if (f_options.setThresholdShowAbove(showAbove)) {
           fixSortingIndicatorOnTreeTable();
           f_treeViewer.refresh();
@@ -322,26 +311,16 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     f_thresholdUnit.setLayoutData(gd);
     f_thresholdUnit.setText("ms");
 
-    final SashForm sash = new SashForm(panel, SWT.HORIZONTAL | SWT.SMOOTH);
-    gd = new GridData(SWT.FILL, SWT.FILL, true, true);
-    gd.verticalIndent = 5;
-    sash.setLayoutData(gd);
-    sash.setLayout(new FillLayout());
-
     /*
      * Left-hand-side shows tree-table.
      */
-    f_treeViewer = new TreeViewer(sash, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+    f_treeViewer = new TreeViewer(panel, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+    f_treeViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
     f_treeViewer.setContentProvider(f_contentProvider);
     f_treeViewer.addFilter(f_analysisToShowFilter);
     f_treeViewer.addFilter(f_thresholdFilter);
     f_treeViewer.getTree().setHeaderVisible(true);
     f_treeViewer.getTree().setLinesVisible(true);
-    f_treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-      public void selectionChanged(SelectionChangedEvent event) {
-        f_canvas.redraw();
-      }
-    });
     f_treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
       public void doubleClick(DoubleClickEvent event) {
@@ -376,35 +355,6 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     f_actionCollapse.setToolTipText(I18N.msg("jsure.eclipse.view.collapse.tip"));
     f_actionCollapse.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_COLLAPSE_ALL));
     hookContextMenu(view);
-
-    /*
-     * Right-hand-side shows graph
-     */
-    final Composite rhs = new Composite(sash, SWT.BORDER);
-    rhs.setLayout(new FillLayout());
-
-    f_canvas = new Canvas(rhs, SWT.DOUBLE_BUFFERED);
-    final SlocCanvasEventHandler handler = new SlocCanvasEventHandler();
-    f_canvas.addPaintListener(handler);
-
-    sash.setWeights(new int[] { EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_LHS_WEIGHT),
-        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_RHS_WEIGHT) });
-
-    /*
-     * When the left-hand-side composite is resized we'll just guess that the
-     * sash is involved. Hopefully, this is conservative. This seems to be the
-     * only way to do this.
-     */
-    f_treeViewer.getControl().addListener(SWT.Resize, new Listener() {
-      @Override
-      public void handleEvent(final Event event) {
-        final int[] weights = sash.getWeights();
-        if (weights != null && weights.length == 2) {
-          EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_LHS_WEIGHT, weights[0]);
-          EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_RHS_WEIGHT, weights[1]);
-        }
-      }
-    });
 
     return panel;
   }
@@ -554,7 +504,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
         String label = element.getLabel();
         cell.setText(label);
         Image image = element.getImage();
-        if (element.highlightDueToSlocThreshold(f_options)) {
+        if (element.highlightDueToThreshold(f_options)) {
           image = SLImages.getDecoratedImage(image,
               new ImageDescriptor[] { null, null, SLImages.getImageDescriptor(CommonImages.DECR_ASTERISK), null, null });
           if (element.hasDurationNs()) {
@@ -580,7 +530,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
         String label = element.getDurationAsHumanReadableString(f_options);
         cell.setText(label);
         if (element.hasDurationNs()) {
-          if (element.highlightDueToSlocThreshold(f_options)) {
+          if (element.highlightDueToThreshold(f_options)) {
             cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
           }
         } else {
@@ -600,25 +550,6 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
       return element;
     }
     return null;
-  }
-
-  /**
-   * Draws the metrics graph on the screen.
-   */
-  final class SlocCanvasEventHandler implements PaintListener {
-
-    public void paintControl(PaintEvent e) {
-      final ScanTimeElement element = getTreeViewerSelectionOrNull();
-      if (element != null) {
-        final Rectangle clientArea = f_canvas.getClientArea();
-        e.gc.setAntialias(SWT.ON);
-
-        int fold = 0;
-
-        e.gc.setForeground(e.gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
-
-      }
-    }
   }
 
   @Override
