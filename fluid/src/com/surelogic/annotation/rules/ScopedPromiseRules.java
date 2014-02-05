@@ -71,6 +71,8 @@ import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.ReturnType;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
@@ -513,13 +515,22 @@ public class ScopedPromiseRules extends AnnotationRules {
         }
       }
 
+      final boolean applyToParams = callback.parseRule.declaredOnValidOp(ParameterDeclaration.prototype);
       for (IRNode decl : VisitUtil.getClassMethods(promisedFor)) {
-        Operator op = JJNode.tree.getOperator(decl);
+        SomeFunctionDeclaration op = (SomeFunctionDeclaration) JJNode.tree.getOperator(decl);
         if (callback.parseRule.declaredOnValidOp(op)) {
           if (callback.parseAndApplyPromise(decl, op) == Result.FAILURE) {
             success = false;
             break;
           }
+        }  
+        if (applyToParams) {
+        	for(IRNode param : Parameters.getFormalIterator(op.get_Params(decl))) {
+        		if (callback.parseAndApplyPromise(param, op) == Result.FAILURE) {
+        			success = false;
+        			break;
+        		}
+        	}
         }
       }
       if (success && callback.parseRule.declaredOnValidOp(FieldDeclaration.prototype)) {
