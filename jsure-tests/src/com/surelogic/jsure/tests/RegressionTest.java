@@ -112,7 +112,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
   private Properties loadProperties(File root, String name) {
     File f = new File(root, root.getName() + '/' + name);
     if (!f.isFile()) {
-      System.err.println("Couldn't find " + f);
+      System.out.println("Couldn't find " + f);
       f = new File(root, name);
     }
     if (f.isFile()) {
@@ -125,7 +125,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
         e.printStackTrace();
       }
     } else {
-      System.err.println("Couldn't find " + f);
+      System.out.println("Couldn't find " + f);
     }
     return null;
   }
