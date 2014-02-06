@@ -507,7 +507,7 @@ public class TaskManager extends ThreadPoolExecutor {
 	 * @throws SystemExecutingExeception
 	 *             If this change is attempted while tasks are being run.
 	 */
-	public void addDependencies(final String name, final String[] dependencies)
+	public void addDependencies(final String name, final String... dependencies)
 		throws IllegalStateException {
 		for (String dep : dependencies) {
 			addDependency(name, dep);
