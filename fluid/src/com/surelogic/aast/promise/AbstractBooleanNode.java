@@ -40,5 +40,10 @@ public abstract class AbstractBooleanNode extends AASTRootNode
   public boolean isSameAs(IAASTRootNode other) {
 	  return isSameClass(other);
   }
+  
+  @Override
+  public boolean needsConflictResolution() {
+	  return true;
+  }
 }
 
