@@ -207,13 +207,12 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 						RecursiveAction[] tasks = new RecursiveAction[c.size()-1];					
 						for(int i=1; i<size; i++) {
 							final E g = c.get(i);
-							tasks[i] = new RecursiveAction() {
+							tasks[i-1] = new RecursiveAction() {
 								@Override
 								protected void compute() {
 									proc.op(g);
 								}			
 							};
-							i++;
 						}
 						invokeAll(tasks);
 					}			
