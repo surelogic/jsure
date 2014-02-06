@@ -8,6 +8,7 @@ import junit.framework.TestCase;
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.Part;
+import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.*;
 import com.surelogic.annotation.*;
@@ -2389,7 +2390,7 @@ public class SLParseTest extends TestCase {
 		 * @param src
 		 */
 		protected TestContext(AnnotationSource src, Operator op) {
-			super(src);
+			super(src, AnnotationOrigin.DECL);
 			this.op = op;
 		}
 
