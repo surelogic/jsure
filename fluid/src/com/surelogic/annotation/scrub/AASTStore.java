@@ -280,7 +280,11 @@ public static synchronized <A extends IAASTRootNode>
 		@SuppressWarnings("unchecked")
 		@Override
 		public <T extends IAASTRootNode> Collection<T> getAASTs(Class<T> cls) {
-			return (Collection<T>) aastsByType.get(cls);
+			Collection<T> rv = (Collection<T>) aastsByType.get(cls);
+			if (rv == null) {
+				return Collections.emptyList();
+			}
+			return rv;
 		}
 
 		@Override
