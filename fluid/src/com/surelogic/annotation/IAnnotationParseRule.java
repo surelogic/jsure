@@ -5,6 +5,7 @@ import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.promise.IPromiseRule;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -43,4 +44,9 @@ extends IPromiseRule, PromiseConstants {
     * @return null if there's no associated scrubber
     */
    IAnnotationScrubber getScrubber();
+
+   /**
+    * A more detailed version of declaredOnValidOp
+    */
+   boolean appliesTo(IRNode decl, Operator op);
 }

@@ -4,6 +4,7 @@ package com.surelogic.annotation;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.promise.IPromiseDropStorage;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.promise.AbstractNamedPromiseRule;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -44,5 +45,10 @@ public class NullAnnotationParseRule extends AbstractNamedPromiseRule implements
   @Override
   public ParseResult parse(IAnnotationParsingContext context, String contents) {
 	  return ParseResult.IGNORE;
+  }
+  
+  @Override
+  public boolean appliesTo(IRNode decl, Operator op) {
+	  return true;
   }
 }

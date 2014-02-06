@@ -723,7 +723,7 @@ public class ScopedPromiseRules extends AnnotationRules {
        * System.out.println("Trying to apply scoped promise "+
        * scopedPromiseDrop.getMessage()+" to "+name); }
        */
-      if (target.matches(decl)) {
+      if (target.matches(decl) && parseRule.appliesTo(decl, op)) {
         final IJavaRef ref = JavaNode.getJavaRef(decl);
         int offset = -1;
         if (ref != null) {

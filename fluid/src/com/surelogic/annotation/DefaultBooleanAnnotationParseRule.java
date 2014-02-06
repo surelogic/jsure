@@ -12,7 +12,16 @@ import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.parse.SLParse;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.operator.Declaration;
+import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+import edu.cmu.cs.fluid.java.operator.ReferenceType;
+import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
+import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
@@ -131,4 +140,24 @@ extends AbstractAnnotationParseRule<A,P> {
    * @return the created tree 
    */
   protected abstract Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws Exception, RecognitionException;  
+  
+  @Override
+  public boolean appliesTo(final IRNode decl, final Operator op) {
+	//final Operator op = JJNode.tree.getOperator(decl);
+	if (ParameterDeclaration.prototype.includes(op)) {
+	    return ReferenceType.prototype.includes(ParameterDeclaration.getType(decl));
+	}	
+	else if (FieldDeclaration.prototype.includes(op)) {
+		if (!ReferenceType.prototype.includes(FieldDeclaration.getType(decl))) {
+			// Check if all arrays
+			for(IRNode vd : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(decl))) {
+				if (VariableDeclarator.getDims(vd) == 0) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	return true; // TODO is this right?
+  }
 }
