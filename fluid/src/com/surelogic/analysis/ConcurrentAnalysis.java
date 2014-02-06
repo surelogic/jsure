@@ -157,36 +157,70 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 	}
 	
 	// Probably shouldn't be run on one granule 
+	@SuppressWarnings("serial")
 	public <E extends IAnalysisGranule> void runAsTasks(final List<? extends E> c,
 			final Procedure<E> proc) {
 		if (c.isEmpty()) {
 			return;
 		}
-		if (c.size() == 1) {
+		final int size = c.size();
+		if (size == 1) {
 			proc.op(c.get(0));
 			return;
 		}
 		// TODO what about other cases?
 		
-		pool.invoke(new RecursiveAction() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void compute() {
-				RecursiveAction[] tasks = new RecursiveAction[c.size()];
-				int i = 0;
-				for(final E g : c) {
-					tasks[i] = new RecursiveAction() {
-						private static final long serialVersionUID = 1L;
-						@Override
-						protected void compute() {
-							proc.op(g);
-						}			
-					};
-					i++;
-				}
-				invokeAll(tasks);
-			}			
-		});
+		if (false) {
+			// Note: this thread blocks if called w/ invoke()
+			pool.invoke(new RecursiveAction() {
+				@Override
+				protected void compute() {
+					RecursiveAction[] tasks = new RecursiveAction[c.size()];
+					int i = 0;
+					for(final E g : c) {
+						tasks[i] = new RecursiveAction() {
+							@Override
+							protected void compute() {
+								proc.op(g);
+							}			
+						};
+						i++;
+					}
+					invokeAll(tasks);
+				}			
+			});
+		} else {
+			final E first = c.get(0);
+			final ForkJoinTask<Void> f;
+			if (size == 2) {
+				final E second = c.get(1);			
+				f = pool.submit(new RecursiveAction() {
+					@Override
+					protected void compute() {
+						proc.op(second);
+					}
+				});
+			} else { // should be n > 2
+				f = pool.submit(new RecursiveAction() {
+					@Override
+					protected void compute() {
+						RecursiveAction[] tasks = new RecursiveAction[c.size()-1];					
+						for(int i=1; i<size; i++) {
+							final E g = c.get(i);
+							tasks[i] = new RecursiveAction() {
+								@Override
+								protected void compute() {
+									proc.op(g);
+								}			
+							};
+							i++;
+						}
+						invokeAll(tasks);
+					}			
+				});
+			}
+			proc.op(first);
+			f.join();
+		}
 	}
 }
