@@ -336,6 +336,11 @@ public abstract class AnnotationRules {
 		}		
 	}
 	
+	public static final Comparator<IAASTRootNode> originComparator = new Comparator<IAASTRootNode>(){
+		public int compare(IAASTRootNode a, IAASTRootNode b) {				
+			return b.getOrigin().ordinal() - a.getOrigin().ordinal();
+		}
+	};
 	private static final ConflictResolver resolver = new ConflictResolver();
 	static {
 		try {
@@ -369,23 +374,27 @@ public abstract class AnnotationRules {
 					return;
 				}
 				List<T> sorted = new ArrayList<T>(aasts);
-				Collections.sort(sorted, new Comparator<T>(){
-					public int compare(T a, T b) {				
-						return b.getOrigin().ordinal() - a.getOrigin().ordinal();
-					}
-				});
-				// Assumes that the origins are sorted in descending order
-				AnnotationOrigin firstOrigin = null; 
-				for(T ast : sorted) {				
-					if (firstOrigin == null) {
-						firstOrigin = ast.getOrigin();
-					} 
-					else if (ast.getOrigin() != firstOrigin) { 
-						context.remove(ast);
-					}
-				}
+				removeLowOriginAASTs(context, sorted);
 			}
 		});
+	}
+	
+	/**
+	 * Only keep the AASTs with the "highest" origins (e.g. DECL vs SCOPED_ON_PKG)
+	 */
+	protected static <T extends IAASTRootNode> 
+	void removeLowOriginAASTs(IAnnotationConflictResolver.Context context, List<T> candidates) {
+		Collections.sort(candidates, originComparator);
+		// Assumes that the origins are sorted in descending order
+		AnnotationOrigin firstOrigin = null; 
+		for(T ast : candidates) {				
+			if (firstOrigin == null) {
+				firstOrigin = ast.getOrigin();
+			} 
+			else if (ast.getOrigin() != firstOrigin) { 
+				context.remove(ast);
+			}
+		}
 	}
 	
 	protected void registerConflictResolution(IAnnotationConflictResolver r) {

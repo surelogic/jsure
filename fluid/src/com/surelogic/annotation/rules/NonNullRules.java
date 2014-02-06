@@ -1,5 +1,8 @@
 package com.surelogic.annotation.rules;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.IAASTRootNode;
@@ -67,7 +70,8 @@ public class NonNullRules extends AnnotationRules {
 	private static final Nullable_ParseRule nullableRule = new Nullable_ParseRule();
 	private static final Raw_ParseRule rawRule = new Raw_ParseRule();
 	private static final NullableConsistencyChecker consistency = new NullableConsistencyChecker();
-
+	private static final ConflictResolver resolver = new ConflictResolver();
+	
 	public static IPromiseDropStorage<NullablePromiseDrop> getNullableStorage() {
 		return nullableRule.getStorage();
 	}
@@ -90,6 +94,7 @@ public class NonNullRules extends AnnotationRules {
 		registerParseRuleStorage(fw, nullableRule);
 		registerParseRuleStorage(fw, rawRule);
 		registerScrubber(fw, consistency);
+		registerConflictResolution(resolver);
 	} 
 
 	public static class Raw_ParseRule extends DefaultBooleanAnnotationParseRule<RawNode,RawPromiseDrop> {
@@ -612,5 +617,16 @@ public class NonNullRules extends AnnotationRules {
     public boolean lessEq(final Element v1, final Element v2) {
       return v1.lessEq(v2);
     }
+	}
+	
+	static class ConflictResolver implements IAnnotationConflictResolver {
+		@Override
+		public void resolve(Context context) {
+			List<IAASTRootNode> related = new ArrayList<IAASTRootNode>(); 
+			related.addAll(context.getAASTs(NonNullNode.class));
+			related.addAll(context.getAASTs(RawNode.class));
+			related.addAll(context.getAASTs(NullableNode.class));
+			removeLowOriginAASTs(context, related);
+		}		
 	}
 }
