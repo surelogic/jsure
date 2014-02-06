@@ -6,7 +6,9 @@ import com.surelogic.common.util.*;
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -21,10 +23,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.aast.AASTStatus;
+import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.DeclarationNode;
 import com.surelogic.aast.java.NamedTypeNode;
+import com.surelogic.aast.promise.NonNullNode;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.scrub.AASTStore;
@@ -311,6 +315,83 @@ public abstract class AnnotationRules {
 		return mgr;
 	}
 
+	private static final String CONFLICT_RESOLUTION = "Conflict Resolution";
+	
+	private static class ConflictResolver extends ArrayList<IAnnotationConflictResolver> implements Runnable {
+		ConflictResolver() {
+			// Nothing to do
+		}
+		
+		@Override
+		public void run() {
+			if (!isEmpty()) {
+				for(IRNode n : AASTStore.getPromisedForNodes()) {
+					//System.out.println("Resolving conflicts for "+JavaNames.getRelativeName(n));
+					final IAnnotationConflictResolver.Context context = AASTStore.getConflictResolutionContext(n);
+					for(IAnnotationConflictResolver r : this) {
+						r.resolve(context);
+					}
+				}
+			}
+		}		
+	}
+	
+	private static final ConflictResolver resolver = new ConflictResolver();
+	static {
+		try {
+			firstMgr.addTask(CONFLICT_RESOLUTION, resolver);
+			// Explicit strings to avoid dependency issues
+			firstMgr.addDependencies(CONFLICT_RESOLUTION, "Assume", "Promise");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		// Add code to make @Promise do defaults
+		resolver.add(new IAnnotationConflictResolver() {
+			@Override
+			public void resolve(Context context) {
+				for(Class<? extends IAASTRootNode> cls : context.getAASTTypes()) {					
+					handle(context, cls);
+				}
+			}
+
+			<T extends IAASTRootNode> void handle(Context context, Class<T> cls) {
+				Collection<T> aasts = context.getAASTs(cls);
+				/*
+				System.out.println("\t"+cls.getSimpleName()+": "+aasts.size());
+				if (cls == NonNullNode.class) {
+					System.out.println("Looking at NonNull for "+JavaNames.getRelativeName(context.getNode())+": "+aasts.size());
+				}
+				*/
+				if (aasts.size() <= 1) {
+					return;
+				}
+				if (!aasts.iterator().next().needsConflictResolution()) {
+					return;
+				}
+				List<T> sorted = new ArrayList<T>(aasts);
+				Collections.sort(sorted, new Comparator<T>(){
+					public int compare(T a, T b) {				
+						return b.getOrigin().ordinal() - a.getOrigin().ordinal();
+					}
+				});
+				// Assumes that the origins are sorted in descending order
+				AnnotationOrigin firstOrigin = null; 
+				for(T ast : sorted) {				
+					if (firstOrigin == null) {
+						firstOrigin = ast.getOrigin();
+					} 
+					else if (ast.getOrigin() != firstOrigin) { 
+						context.remove(ast);
+					}
+				}
+			}
+		});
+	}
+	
+	protected void registerConflictResolution(IAnnotationConflictResolver r) {
+		resolver.add(r);
+	}
+	
 	public static boolean ignoreNode(IAASTNode n) {
 		if (XUtil.useExperimental) {
 			return false;
@@ -449,7 +530,7 @@ public abstract class AnnotationRules {
 			LOG.log(Level.SEVERE, "Unable to register scrubber", e);
 		}
 	}
-
+	
 	/**
 	 * Executes all the scrubbers
 	 */

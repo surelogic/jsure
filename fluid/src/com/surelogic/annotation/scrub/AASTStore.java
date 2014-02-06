@@ -3,6 +3,7 @@ package com.surelogic.annotation.scrub;
 
 import com.surelogic.*;
 import com.surelogic.aast.*;
+import com.surelogic.annotation.rules.IAnnotationConflictResolver.Context;
 import com.surelogic.annotation.test.TestResult;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
@@ -11,6 +12,9 @@ import edu.cmu.cs.fluid.ir.IRNodeHashedMap;
 
 import java.util.*;
 import java.util.concurrent.*;
+
+import org.apache.commons.collections15.MultiMap;
+import org.apache.commons.collections15.multimap.MultiHashMap;
 
 /**
  * Stores the AASTs after parsing until they are scrubbed
@@ -261,5 +265,42 @@ public static synchronized <A extends IAASTRootNode>
   
   public static PromiseDrop<?> getPromiseSource(IAASTRootNode ast) {
 	  return promiseSource.get(ast);
+  }
+
+  public static synchronized Iterable<IRNode> getPromisedForNodes() {
+	  return byPromisedFor.keySet();
+  }
+
+  public static synchronized Context getConflictResolutionContext(final IRNode n) {
+	  final MultiMap<Class<? extends IAASTRootNode>, IAASTRootNode> aastsByType = new MultiHashMap<Class<? extends IAASTRootNode>, IAASTRootNode>();
+	  for(IAASTRootNode ast : byPromisedFor.get(n)) {
+		  aastsByType.put(ast.getClass(), ast);
+	  }
+	  return new Context() {		  
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T extends IAASTRootNode> Collection<T> getAASTs(Class<T> cls) {
+			return (Collection<T>) aastsByType.get(cls);
+		}
+
+		@Override
+		public void remove(IAASTRootNode ast) {
+			synchronized (AASTStore.class) {
+				aastsByType.remove(ast.getClass(), ast);
+				removeAST(ast);
+				// TODO anything else?
+			}
+		}
+
+		@Override
+		public Iterable<Class<? extends IAASTRootNode>> getAASTTypes() {
+			return aastsByType.keySet();
+		}
+
+		@Override
+		public IRNode getNode() {
+			return n;
+		}		  
+	  };
   }
 }
