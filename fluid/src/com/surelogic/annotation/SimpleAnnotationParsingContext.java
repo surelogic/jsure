@@ -9,6 +9,7 @@ import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.RewriteCardinalityException;
 
 import com.surelogic.aast.AASTRootNode;
+import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.test.TestResult;
@@ -48,9 +49,9 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
   /**
    * @param offset The offset in the source text to the location of the IRNode
    */
-  protected SimpleAnnotationParsingContext(AnnotationSource src, IRNode n, 
+  protected SimpleAnnotationParsingContext(AnnotationSource src, AnnotationOrigin origin, IRNode n, 
                                            IAnnotationParseRule<?,?> r, String text, IRNode ref) {    
-    super(src);
+    super(src, origin);
     annoNode = n;
     rule = r;
     contents = text;  
@@ -151,6 +152,8 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
         tr    = result == null ? null : result.cloneResult();
       }
       root.setSrcType(getSourceType());
+      root.setOrigin(getOrigin());
+      
       // CHANGED from pointing at the promise node
       // FIX drop.setNodeAndCompilationUnitDependency(declNode); 
       if (declNode == null) {

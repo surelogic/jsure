@@ -11,6 +11,7 @@ import java.util.Set;
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.AASTNode;
+import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.ExplicitBorrowedInRegionNode;
 import com.surelogic.aast.promise.FieldMappingsNode;
@@ -468,7 +469,7 @@ public class RegionRules extends AnnotationRules {
   	  }	  
       FieldRegion field = (FieldRegion) spec.resolveBinding().getRegion();
       InRegionNode mapInto = inRegionRule.makeRoot((RegionSpecificationNode)a.getTo().cloneTree());
-      mapInto.copyPromisedForContext(field.getNode(), a);
+      mapInto.copyPromisedForContext(field.getNode(), a, AnnotationOrigin.SCOPED_ON_TYPE);
       
       AASTStore.addDerived(mapInto, drop);
     }
@@ -717,7 +718,7 @@ public class RegionRules extends AnnotationRules {
           (RegionSpecificationNode) a.getSpec().cloneTree();
         final InRegionNode inRegion =
           new InRegionNode(a.getOffset(), regionSpec);
-        inRegion.copyPromisedForContext(promisedFor, a);
+        inRegion.copyPromisedForContext(promisedFor, a, AnnotationOrigin.GENERATED_FOR_DECL);
         AASTStore.addDerived(inRegion, drop);
       } else {
     	setupRegionModelForField(drop, destDecl);

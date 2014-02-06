@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
+import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.AbstractAnnotationParsingContext;
 import com.surelogic.annotation.AnnotationLocation;
@@ -232,7 +233,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		final IAnnotationParseRule<?, ?> rule = PromiseFramework.getInstance()
 				.getParseDropRule(promise);
 		final IAnnotationParsingContext context = new AbstractAnnotationParsingContext(
-				AnnotationSource.XML) {
+				AnnotationSource.XML, AnnotationOrigin.DECL) {
 			@Override
 			public int mapToSource(int offset) {
 				return UNKNOWN;

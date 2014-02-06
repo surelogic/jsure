@@ -8,18 +8,9 @@ import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.NonNull;
 import com.surelogic.aast.AASTRootNode;
+import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.aast.java.*;
 import com.surelogic.aast.promise.*;
-import com.surelogic.aast.promise.InRegionNode;
-import com.surelogic.aast.promise.ItselfNode;
-import com.surelogic.aast.promise.LockDeclarationNode;
-import com.surelogic.aast.promise.LockSpecificationNode;
-import com.surelogic.aast.promise.NewRegionDeclarationNode;
-import com.surelogic.aast.promise.QualifiedClassLockExpressionNode;
-import com.surelogic.aast.promise.RegionNameNode;
-import com.surelogic.aast.promise.RequiresLockNode;
-import com.surelogic.aast.promise.SimpleLockNameNode;
-import com.surelogic.aast.promise.UniqueInRegionNode;
 import com.surelogic.aast.visitor.DescendingVisitor;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
@@ -147,12 +138,12 @@ public class JcipRules extends AnnotationRules {
 
         	final NewRegionDeclarationNode regionDecl = 
         			new NewRegionDeclarationNode(0, extractAccessMods(v.targetMods), rv.newRegionId, null);
-        	regionDecl.copyPromisedForContext(v.enclosingTypeDecl, a);
+        	regionDecl.copyPromisedForContext(v.enclosingTypeDecl, a, AnnotationOrigin.SCOPED_ON_TYPE);
         	AASTStore.addDerived(regionDecl, d);
 
         	final LockDeclarationNode regionLockDecl =
         			new LockDeclarationNode(a.getOffset(), rv.lockId, rv.lockField, region);
-        	regionLockDecl.copyPromisedForContext(v.enclosingTypeDecl, a);
+        	regionLockDecl.copyPromisedForContext(v.enclosingTypeDecl, a, AnnotationOrigin.SCOPED_ON_TYPE);
         	AASTStore.addDerived(regionLockDecl, d);
         	declaredLocks.put(rv.lockNode, regionLockDecl);
         } else {
@@ -169,13 +160,13 @@ public class JcipRules extends AnnotationRules {
     	// Create a policy lock if there isn't already a lock decl
     	if (rv.lockField != null) {
     		final PolicyLockDeclarationNode lockDecl = new PolicyLockDeclarationNode(0, rv.lockId, rv.lockField);
-    		lockDecl.copyPromisedForContext(v.enclosingTypeDecl, a);
+    		lockDecl.copyPromisedForContext(v.enclosingTypeDecl, a, AnnotationOrigin.SCOPED_ON_TYPE);
         	AASTStore.addDerived(lockDecl, d);
     	}    	
     	/* Converts to a RequiresLock for a method */
     	final LockSpecificationNode spec = new SimpleLockNameNode(0, rv.lockId);  
     	final RequiresLockNode req = new RequiresLockNode(0, Collections.singletonList(spec));
-    	req.copyPromisedForContext(d.getPromisedFor(), a);
+    	req.copyPromisedForContext(d.getPromisedFor(), a, AnnotationOrigin.GENERATED_FOR_DECL);
     	AASTStore.addDerived(req, d);
     }
     return d;
@@ -350,7 +341,7 @@ public class JcipRules extends AnnotationRules {
 		} else {
 			root = new InRegionNode(0, name);
 		}
-		root.copyPromisedForContext(target, anno);
+		root.copyPromisedForContext(target, anno, AnnotationOrigin.GENERATED_FOR_DECL);
 		AASTStore.addDerived(root, drop);
 		return newRegionId;      
 	}

@@ -11,7 +11,7 @@ public class AnnotationParsingContextProxy extends AbstractAnnotationParsingCont
   protected final AbstractAnnotationParsingContext context;
   
   public AnnotationParsingContextProxy(AbstractAnnotationParsingContext context) {
-    super(context.getSourceType());
+    super(context.getSourceType(), context.getOrigin());
     this.context = context;
   }
 

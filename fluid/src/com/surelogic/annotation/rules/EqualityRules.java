@@ -2,6 +2,7 @@ package com.surelogic.annotation.rules;
 
 import java.util.Iterator;
 
+import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.aast.promise.RefObjectNode;
 import com.surelogic.aast.promise.ValueObjectNode;
 import com.surelogic.analysis.IIRProject;
@@ -116,7 +117,7 @@ public class EqualityRules extends AnnotationRules {
               final Operator subOp = JJNode.tree.getOperator(sub);
               if (AnonClassExpression.prototype.includes(subOp)) {
                 final ValueObjectNode derived = new ValueObjectNode();
-                derived.copyPromisedForContext(sub, a);
+                derived.copyPromisedForContext(sub, a, AnnotationOrigin.SCOPED_ON_TYPE);
                 cb.addDerived(derived, originalPromiseDrop);
               }
             }
@@ -224,7 +225,7 @@ public class EqualityRules extends AnnotationRules {
 	            final Operator subOp = JJNode.tree.getOperator(sub);
 	            if (AnonClassExpression.prototype.includes(subOp)) {
 	              final RefObjectNode derived = new RefObjectNode();
-	              derived.copyPromisedForContext(sub, a);
+	              derived.copyPromisedForContext(sub, a, AnnotationOrigin.SCOPED_ON_TYPE);
 	              cb.addDerived(derived, originalPromiseDrop);
 	            }
 			      }

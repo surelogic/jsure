@@ -4,6 +4,7 @@ package com.surelogic.annotation;
 
 import java.lang.annotation.Annotation;
 
+import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.test.*;
 import com.surelogic.common.i18n.I18N;
@@ -16,7 +17,6 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.*;
 
 /**
  * Contains code common to parsing contexts
@@ -25,11 +25,13 @@ import edu.cmu.cs.fluid.util.*;
 public abstract class AbstractAnnotationParsingContext implements
 ITestAnnotationParsingContext {
   private final AnnotationSource srcType;
+  private final AnnotationOrigin origin;
   protected boolean hadProblem = false;
   protected boolean createdAAST = false;
   
-  protected AbstractAnnotationParsingContext(AnnotationSource src) {
+  protected AbstractAnnotationParsingContext(AnnotationSource src, AnnotationOrigin o) {
     srcType = src;
+    origin = o;
   }
   
   @Override
@@ -50,6 +52,10 @@ ITestAnnotationParsingContext {
   @Override
   public final AnnotationSource getSourceType() {
     return srcType;
+  }
+    
+  public final AnnotationOrigin getOrigin() {
+    return origin;
   }
   
   public boolean createdAAST() {

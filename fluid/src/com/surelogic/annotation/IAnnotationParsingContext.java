@@ -44,6 +44,11 @@ public interface IAnnotationParsingContext {
   AnnotationSource getSourceType();
   
   /**
+   * @return The kind of declaration that the annotation is originally from
+   */
+  AnnotationOrigin getOrigin();
+  
+  /**
    * @return The type of node that we were called on
    */
   Operator getOp();
@@ -80,7 +85,7 @@ public interface IAnnotationParsingContext {
   ProposedPromiseDrop.Builder startProposal(Class<? extends Annotation> anno);
   
   IAnnotationParsingContext nullPrototype = 
-    new AbstractAnnotationParsingContext(AnnotationSource.JAVADOC) {
+    new AbstractAnnotationParsingContext(AnnotationSource.JAVADOC, AnnotationOrigin.DECL) {
     @Override
     public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
       System.out.println(msg);

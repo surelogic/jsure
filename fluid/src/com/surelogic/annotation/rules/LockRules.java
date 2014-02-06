@@ -12,6 +12,7 @@ import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.Part;
 import com.surelogic.aast.AASTStatus;
+import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.bind.ILockBinding;
 import com.surelogic.aast.bind.IRegionBinding;
@@ -1794,7 +1795,7 @@ public class LockRules extends AnnotationRules {
               // Add derived annotation
               final boolean verify = a.verify();
               final A derived = makeDerivedAnnotation(verify ? 0 : JavaNode.NO_VERIFY, a);
-              derived.copyPromisedForContext(sub, a);
+              derived.copyPromisedForContext(sub, a, AnnotationOrigin.SCOPED_ON_TYPE);
               cb.addDerived(derived, originalPromiseDrop);
             }
           }

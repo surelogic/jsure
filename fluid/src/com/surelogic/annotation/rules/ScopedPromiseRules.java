@@ -13,6 +13,7 @@ import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.AASTRootNode;
+import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.AssumeScopedPromiseNode;
 import com.surelogic.aast.promise.ConcreteTargetNode;
@@ -609,9 +610,9 @@ public class ScopedPromiseRules extends AnnotationRules {
     private static final String name = "ScopedAnnotationParsingContext";
     private final ScopedPromiseCallback callback;
 
-    public ScopedAnnotationParsingContext(ScopedPromiseCallback callback, AnnotationSource src, IRNode n,
+    public ScopedAnnotationParsingContext(ScopedPromiseCallback callback, AnnotationSource src, AnnotationOrigin origin, IRNode n,
         IAnnotationParseRule<?, ?> r, String text) {
-      super(src, n, r, text, n);
+      super(src, origin, n, r, text, n);
       this.callback = callback;
     }
 
@@ -728,8 +729,26 @@ public class ScopedPromiseRules extends AnnotationRules {
         if (ref != null) {
           offset = ref.getOffset();
         }
-        final AbstractAnnotationParsingContext context = new ScopedAnnotationParsingContext(this, scopedPromiseDrop.getAAST()
-            .getSrcType(), decl, parseRule, content);
+        final ScopedPromiseNode aast = scopedPromiseDrop.getAAST();
+        final AnnotationOrigin origin;
+        if (aast.getOrigin() != AnnotationOrigin.DECL) {
+        	origin = aast.getOrigin();
+        } else {
+        	if (NamedPackageDeclaration.prototype.includes(aast.getPromisedFor())) {
+        		final String name = NamedPackageDeclaration.getId(aast.getPromisedFor());
+        		PackageDrop pkg = PackageDrop.findPackage(name);
+        		if (pkg.getNode() == VisitUtil.findCompilationUnit(aast.getPromisedFor())) {
+        			origin = AnnotationOrigin.SCOPED_ON_PKG;
+        		} else {
+        			origin = AnnotationOrigin.SCOPED_ON_CU;
+        		}
+        	} else {
+        		origin = AnnotationOrigin.SCOPED_ON_TYPE;
+        	}
+        }        
+        final AbstractAnnotationParsingContext context = 
+        		new ScopedAnnotationParsingContext(this, aast.getSrcType(), 
+        		origin, decl, parseRule, content);
         ParseResult result = parseRule.parse(context, content);
         if (result == ParseResult.IGNORE) {
           return Result.NOT_APPLICABLE;
@@ -805,7 +824,7 @@ public class ScopedPromiseRules extends AnnotationRules {
         // create type-level @Promise
         final ScopedPromiseNode copy = new ScopedPromiseNode(orig.getOffset(), orig.getPromise(), (PromiseTargetNode) orig
             .getTargets().cloneTree());
-        copy.copyPromisedForContext(type, orig);
+        copy.copyPromisedForContext(type, orig, AnnotationOrigin.SCOPED_ON_PKG);
         AASTStore.addDerived(copy, d, new ValidatedDropCallback<PromisePromiseDrop>() {
 
           @Override

@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.AASTRootNode;
+import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.JavadocAnnotation;
@@ -43,14 +44,12 @@ import edu.cmu.cs.fluid.java.operator.ElementValueArrayInitializer;
 import edu.cmu.cs.fluid.java.operator.ElementValuePair;
 import edu.cmu.cs.fluid.java.operator.ElementValuePairs;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
-import edu.cmu.cs.fluid.java.operator.FalseExpression;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.Initializer;
 import edu.cmu.cs.fluid.java.operator.NormalAnnotation;
 import edu.cmu.cs.fluid.java.operator.SingleElementAnnotation;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.StringLiteral;
-import edu.cmu.cs.fluid.java.operator.TrueExpression;
 import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -217,7 +216,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
     	  if (r == null && source != AnnotationSource.JAVA_5) {
     	      SimpleAnnotationParsingContext.reportError(anno, "Javadoc @annotate '" + promise + "' is unknown -- is it misspelled?");    	      
     	  }
-    	  return new Context(source, anno, r, c, context, modifiers, properties);
+    	  return new Context(source, AnnotationOrigin.DECL, anno, r, c, context, modifiers, properties);
       }
 
 	public ContextBuilder setSrc(AnnotationSource src) {
@@ -239,9 +238,9 @@ public class AnnotationVisitor extends Visitor<Integer> {
     final int mods;
     final Map<String, String> properties;
 
-    Context(AnnotationSource src, IRNode n, IAnnotationParseRule<?, ?> r, String text, IRNode ref, int modifiers,
+    Context(AnnotationSource src, AnnotationOrigin origin, IRNode n, IAnnotationParseRule<?, ?> r, String text, IRNode ref, int modifiers,
         Map<String, String> props) {
-      super(src, n, r, text, ref);
+      super(src, origin, n, r, text, ref);
       mods = modifiers;
       properties = new HashMap<String, String>(props);
     }

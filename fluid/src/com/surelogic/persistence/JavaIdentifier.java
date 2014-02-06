@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.IIRProjects;
@@ -526,7 +527,7 @@ public final class JavaIdentifier {
 		final List<IAASTRootNode> created = new ArrayList<IAASTRootNode>(0);
 		
 		MinimalContext(IRNode n, String target) {
-			super(AnnotationSource.XML);
+			super(AnnotationSource.XML, AnnotationOrigin.DECL);
 			decl = n;
 			unparsedTarget = target;
 		}

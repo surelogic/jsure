@@ -18,6 +18,7 @@ public interface IAASTRootNode extends IAASTNode, IHasPromisedFor {
   IRNode getPromisedFor();
   AASTStatus getStatus();
   AnnotationSource getSrcType();
+  AnnotationOrigin getOrigin();
   void markAsBound();
   void markAsValid();
   void markAsUnbound();

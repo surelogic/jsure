@@ -25,6 +25,7 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
   
   private AASTStatus status = AASTStatus.UNPROCESSED;
   private AnnotationSource srcType;
+  private AnnotationOrigin origin;
   
   protected AASTRootNode(int offset) {
     super(offset);    
@@ -48,9 +49,10 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
 	  annoContext = null;
   }
   
-  public final void copyPromisedForContext(IRNode newPromisedFor, AASTRootNode copiedContext) {
+  public final void copyPromisedForContext(IRNode newPromisedFor, AASTRootNode copiedContext, AnnotationOrigin origin) {
 	  setPromisedFor(newPromisedFor, copiedContext.getAnnoContext());
       setSrcType(copiedContext.getSrcType());
+      setOrigin(origin);
   }
   
   @Override
@@ -61,6 +63,16 @@ public abstract class AASTRootNode extends AASTNode implements IAASTRootNode {
   public void setSrcType(AnnotationSource src) {
     checkArgument(srcType, src);
     srcType = src;
+  }
+  
+  public void setOrigin(AnnotationOrigin o) {
+	checkArgument(origin, o);
+	origin = o;
+  }
+  
+  @Override
+  public final AnnotationOrigin getOrigin() {
+	return origin;
   }
   
   @Override
