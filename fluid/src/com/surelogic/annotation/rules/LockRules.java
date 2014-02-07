@@ -2947,7 +2947,7 @@ public class LockRules extends AnnotationRules {
 		}
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-			return new NotThreadSafeNode();
+			return new ThreadConfinedNode();
 		}
 		@Override
 		protected IPromiseDropStorage<ThreadConfinedPromiseDrop> makeStorage() {
