@@ -75,8 +75,8 @@ import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
  * Displays information about verifying analysis performance during a JSure
  * scan.
  * <p>
- * The information is obtained from {@link IMetricDrop.Metric#SCAN_TIME} metric
- * drops.
+ * The information is obtained from
+ * {@link IMetricDrop.Metric#STATE_WRT_CONCURRENCY} metric drops.
  */
 public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
 
@@ -177,8 +177,8 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
   Scale f_thresholdScale = null;
   Text f_thresholdLabel = null;
 
-  final String[] f_columnTitles = new String[] { "Fields", "@Immutable Fields", "@ThreadSafe Fields", "@ThreadConfined Fields",
-      "Lock Protected Fields", "No Policy Fields" };
+  final String[] f_columnTitles = new String[] { "Declared Fields", "No Policy", "@Immutable", "@ThreadSafe", "@ThreadConfined",
+      "@RegionLock/@GuardedBy" };
 
   TreeViewer f_treeViewer = null;
   Canvas f_canvas = null;
@@ -377,6 +377,18 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_FIELD_COUNT_TOTAL_WIDTH));
     columnLineCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
+    final TreeViewerColumn columnSemicolonCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    columnSemicolonCount.setLabelProvider(new MetricDataCellLabelProvider() {
+      int getMetricValue(StateWrtElement metric) {
+        return metric.getOtherFieldCount();
+      }
+    });
+    columnSemicolonCount.getColumn().setWidth(
+        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_OTHER_FIELD_COUNT_WIDTH));
+    columnSemicolonCount.getColumn().addControlListener(
+        new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_OTHER_FIELD_COUNT_WIDTH));
+    columnSemicolonCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
+
     final TreeViewerColumn columnBlankLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnBlankLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
       int getMetricValue(StateWrtElement metric) {
@@ -424,18 +436,6 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
     columnJavaStatementCount.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_LOCK_PROTECTED_FIELD_COUNT_WIDTH));
     columnJavaStatementCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
-
-    final TreeViewerColumn columnSemicolonCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
-    columnSemicolonCount.setLabelProvider(new MetricDataCellLabelProvider() {
-      int getMetricValue(StateWrtElement metric) {
-        return metric.getOtherFieldCount();
-      }
-    });
-    columnSemicolonCount.getColumn().setWidth(
-        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_OTHER_FIELD_COUNT_WIDTH));
-    columnSemicolonCount.getColumn().addControlListener(
-        new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_OTHER_FIELD_COUNT_WIDTH));
-    columnSemicolonCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
     f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
     f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
