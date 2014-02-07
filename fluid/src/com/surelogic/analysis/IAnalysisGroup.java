@@ -9,4 +9,5 @@ public interface IAnalysisGroup<Q extends IAnalysisGranule> extends Iterable<IIR
 	IAnalysisGranulator<Q> getGranulator();
 	Class<Q> getGranuleType();
 	Analyses getParent();
+	int size();
 }
