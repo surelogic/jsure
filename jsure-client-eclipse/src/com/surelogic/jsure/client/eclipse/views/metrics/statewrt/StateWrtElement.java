@@ -138,11 +138,13 @@ public abstract class StateWrtElement {
    * Counts should be set correctly by each implementation.
    */
 
-  int f_immutableFieldCount;
-  int f_threadSafeFieldCount;
-  int f_lockProtectedFieldCount;
-  int f_threadConfinedFieldCount;
-  int f_otherFieldCount;
+  static final int UNSET = -1; // no counts
+
+  int f_immutableFieldCount = UNSET;
+  int f_threadSafeFieldCount = UNSET;
+  int f_lockProtectedFieldCount = UNSET;
+  int f_threadConfinedFieldCount = UNSET;
+  int f_otherFieldCount = UNSET;
 
   public final int getFieldCountTotal() {
     return f_immutableFieldCount + f_threadSafeFieldCount + f_lockProtectedFieldCount + f_threadConfinedFieldCount
@@ -167,5 +169,27 @@ public abstract class StateWrtElement {
 
   public final int getOtherFieldCount() {
     return f_otherFieldCount;
+  }
+
+  final void setupTotalsForChildren() {
+    // nothing to be done if we have counts
+    if (f_immutableFieldCount != UNSET)
+      return;
+
+    // We are not a leaf node -- so do a total
+    f_immutableFieldCount = 0;
+    f_threadSafeFieldCount = 0;
+    f_lockProtectedFieldCount = 0;
+    f_threadConfinedFieldCount = 0;
+    f_otherFieldCount = 0;
+
+    for (StateWrtElement child : getChildrenAsListReference()) {
+      child.setupTotalsForChildren();
+      f_immutableFieldCount += child.f_immutableFieldCount;
+      f_threadSafeFieldCount += child.f_threadSafeFieldCount;
+      f_lockProtectedFieldCount += child.f_lockProtectedFieldCount;
+      f_threadConfinedFieldCount += child.f_threadConfinedFieldCount;
+      f_otherFieldCount += child.f_otherFieldCount;
+    }
   }
 }
