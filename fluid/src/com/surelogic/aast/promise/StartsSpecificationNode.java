@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.surelogic.aast.*;
 
-public class StartsSpecificationNode extends AASTRootNode 
+public class StartsSpecificationNode extends AbstractNonSequenceNode 
 {  
   // Fields
 

@@ -10,7 +10,7 @@ import com.surelogic.annotation.rules.AnnotationRules.ParameterMap;
  * TODO Fill in purpose.
  * @author ethan
  */
-public class RegionEffectsNode extends AASTRootNode {
+public class RegionEffectsNode extends AbstractNonSequenceNode {
 	private List<EffectsSpecificationNode> effects;
 	
   public static final AbstractAASTNodeFactory factory =

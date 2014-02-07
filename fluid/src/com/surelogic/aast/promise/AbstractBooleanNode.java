@@ -2,7 +2,7 @@ package com.surelogic.aast.promise;
 
 import com.surelogic.aast.*;
 
-public abstract class AbstractBooleanNode extends AASTRootNode 
+public abstract class AbstractBooleanNode extends AbstractNonSequenceNode 
 { 
   // Constructors
   /**
@@ -39,11 +39,6 @@ public abstract class AbstractBooleanNode extends AASTRootNode
   @Override
   public boolean isSameAs(IAASTRootNode other) {
 	  return isSameClass(other);
-  }
-  
-  @Override
-  public boolean needsConflictResolution() {
-	  return true;
   }
 }
 
