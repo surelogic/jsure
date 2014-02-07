@@ -161,8 +161,12 @@ public abstract class ScanTimeElement {
       return showAbove ? metricValue >= threshold : metricValue <= threshold;
     } else {
       boolean result = false;
+      /*
+       * We include a guard on if the child should be displayed so we don't
+       * asterisk any parents that are not showing the highlighted row.
+       */
       for (ScanTimeElement element : f_children)
-        result |= element.highlightDueToThreshold(options);
+        result |= element.highlightDueToThreshold(options) && element.includeBasedOnAnalysisToShow(options);
       return result;
     }
   }
