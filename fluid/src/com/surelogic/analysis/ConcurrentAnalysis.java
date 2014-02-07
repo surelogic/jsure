@@ -170,7 +170,7 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 		}	
 		else if (size == 2) {
 			final E second = c.get(1);			
-			final ForkJoinTask<Void> f = new GranuleRunner<E>(proc, second);
+			final ForkJoinTask<Void> f = pool.submit(new GranuleRunner<E>(proc, second));
 			proc.op(first);
 			f.join();
 		} else { // should be n > 2
