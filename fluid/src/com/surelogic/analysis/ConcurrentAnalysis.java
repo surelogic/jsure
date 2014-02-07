@@ -190,36 +190,37 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 				}			
 			});
 		} else {
-			final E first = c.get(0);
-			final ForkJoinTask<Void> f;
+			final E first = c.get(0);			
 			if (size == 2) {
 				final E second = c.get(1);			
-				f = pool.submit(new RecursiveAction() {
+				final ForkJoinTask<Void> f = pool.submit(new RecursiveAction() {
 					@Override
 					protected void compute() {
 						proc.op(second);
 					}
 				});
+				proc.op(first);
+				f.join();
 			} else { // should be n > 2
-				f = pool.submit(new RecursiveAction() {
-					@Override
-					protected void compute() {
-						RecursiveAction[] tasks = new RecursiveAction[c.size()-1];					
-						for(int i=1; i<size; i++) {
-							final E g = c.get(i);
-							tasks[i-1] = new RecursiveAction() {
-								@Override
-								protected void compute() {
-									proc.op(g);
-								}			
-							};
-						}
-						invokeAll(tasks);
-					}			
-				});
+				final RecursiveAction[] tasks = new RecursiveAction[c.size()-1];					
+				for(int i=1; i<size; i++) {
+					final E g = c.get(i);
+					tasks[i-1] = new RecursiveAction() {
+						@Override
+						protected void compute() {
+							proc.op(g);
+						}			
+					};
+				}
+				for(RecursiveAction a : tasks) {
+					pool.submit(a);
+				}
+				proc.op(first);
+				
+				for(RecursiveAction a : tasks) {
+					a.join();
+				}
 			}
-			proc.op(first);
-			f.join();
 		}
 	}
 }
