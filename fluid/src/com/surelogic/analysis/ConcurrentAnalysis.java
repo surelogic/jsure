@@ -157,70 +157,52 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
 	}
 	
 	// Probably shouldn't be run on one granule 
-	@SuppressWarnings("serial")
 	public <E extends IAnalysisGranule> void runAsTasks(final List<? extends E> c,
 			final Procedure<E> proc) {
 		if (c.isEmpty()) {
 			return;
 		}
 		final int size = c.size();
+		final E first = c.get(0);
 		if (size == 1) {
-			proc.op(c.get(0));
+			proc.op(first);
 			return;
-		}
-		// TODO what about other cases?
-		
-		if (false) {
-			// Note: this thread blocks if called w/ invoke()
-			pool.invoke(new RecursiveAction() {
-				@Override
-				protected void compute() {
-					RecursiveAction[] tasks = new RecursiveAction[c.size()];
-					int i = 0;
-					for(final E g : c) {
-						tasks[i] = new RecursiveAction() {
-							@Override
-							protected void compute() {
-								proc.op(g);
-							}			
-						};
-						i++;
-					}
-					invokeAll(tasks);
-				}			
-			});
-		} else {
-			final E first = c.get(0);			
-			if (size == 2) {
-				final E second = c.get(1);			
-				final ForkJoinTask<Void> f = pool.submit(new RecursiveAction() {
-					@Override
-					protected void compute() {
-						proc.op(second);
-					}
-				});
-				proc.op(first);
-				f.join();
-			} else { // should be n > 2
-				final RecursiveAction[] tasks = new RecursiveAction[c.size()-1];					
-				for(int i=1; i<size; i++) {
-					final E g = c.get(i);
-					tasks[i-1] = new RecursiveAction() {
-						@Override
-						protected void compute() {
-							proc.op(g);
-						}			
-					};
-				}
-				for(RecursiveAction a : tasks) {
-					pool.submit(a);
-				}
-				proc.op(first);
-				
-				for(RecursiveAction a : tasks) {
-					a.join();
-				}
+		}	
+		else if (size == 2) {
+			final E second = c.get(1);			
+			final ForkJoinTask<Void> f = pool.submit(new GranuleRunner<E>(proc, second));
+			proc.op(first);
+			f.join();
+		} else { // should be n > 2
+			final RecursiveAction[] tasks = new RecursiveAction[c.size()-1];					
+			for(int i=1; i<size; i++) {
+				final E g = c.get(i);
+				tasks[i-1] = new GranuleRunner<E>(proc, g);
+			}
+			for(RecursiveAction a : tasks) {
+				pool.submit(a);
+			}
+			proc.op(first);
+
+			for(RecursiveAction a : tasks) {
+				a.join();
 			}
 		}
+	}
+	
+	@SuppressWarnings("serial")
+	private static class GranuleRunner<E extends IAnalysisGranule> extends RecursiveAction {
+		private Procedure<E> proc;
+		private E granule;
+
+		GranuleRunner(Procedure<E> p, E g) {
+			proc = p;
+			granule = g;
+		}
+
+		@Override
+		protected void compute() {
+			proc.op(granule);
+		}						
 	}
 }

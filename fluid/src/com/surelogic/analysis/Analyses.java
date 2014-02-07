@@ -12,6 +12,10 @@ import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.util.AppendIterator;
 import com.surelogic.common.util.EmptyIterator;
+import com.surelogic.dropsea.IKeyValue;
+import com.surelogic.dropsea.IMetricDrop;
+import com.surelogic.dropsea.KeyValueUtility;
+import com.surelogic.dropsea.ir.MetricDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.Projects;
@@ -46,10 +50,11 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 		if (times == null) {
 			throw new IllegalStateException("Timing not started yet");
 		}
-		for(AnalysisTimings t : allTimings) {
+		for(AnalysisTimings t : allTimings) {			
 			for(int j=0; j<times.length; j++) {
 				times[j] += t.times[j]; 
 			}			  
+			t.makeDrops();
 		}
 
 		// Postprocess times to normalize to millis
@@ -125,16 +130,46 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 	
 	public static class AnalysisTimings {
 		final long[] times;
+		final List<Timing> timings = new ArrayList<Timing>();
 		
 		AnalysisTimings(Analyses analyses) {
 			times = new long[analyses.size()];
 		}
 
-		public void incrTime(int which, long time) {
+		public void incrTime(int which, long time, IAnalysisGranule granule, IIRAnalysis<?> a) {
 			times[which] += time;
+			timings.add(new Timing(time, granule, a));
+		}
+		
+		void makeDrops() {
+			for(Timing t : timings) {
+				t.recordTime();
+			}
 		}
 	}
 
+	private static class Timing {
+		final long t_in_ns;
+		final IIRAnalysis<?> analysis;
+		final IAnalysisGranule granule;
+		
+		Timing(long t, IAnalysisGranule g, IIRAnalysis<?> a) {
+			t_in_ns = t;
+			granule = g;
+			analysis = a;
+		}		
+		
+		void recordTime() {
+			final MetricDrop d = new MetricDrop(granule.getNode(), IMetricDrop.Metric.SCAN_TIME);
+
+			final IKeyValue name = KeyValueUtility.getStringInstance(IMetricDrop.SCAN_TIME_ANALYSIS_NAME, analysis.label());
+			d.addOrReplaceMetricInfo(name);
+
+			final IKeyValue time = KeyValueUtility.getLongInstance(IMetricDrop.SCAN_TIME_DURATION_NS, t_in_ns);
+			d.addOrReplaceMetricInfo(time);
+		}
+	}
+	
 	public void incrTime(int i, long time) {
 		times[i] += time;		
 	}
