@@ -144,9 +144,6 @@ public abstract class ScanTimeElement {
   /**
    * Gets if this element should be highlighted due to the passed threshold
    * options.
-   * <p>
-   * We do not consider rolled up values, so for "folders" the implementation
-   * should consider if any children are above the threshold.
    * 
    * @param options
    *          the options configured about this metric.
