@@ -14,14 +14,12 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.operator.Declaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ReferenceType;
-import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
-import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
@@ -159,5 +157,9 @@ extends AbstractAnnotationParseRule<A,P> {
 		return true;
 	}
 	return true; // TODO is this right?
+  }
+    
+  protected static boolean isRefTypedMethod(IRNode n) {
+	  return ReferenceType.prototype.includes(MethodDeclaration.getReturnType(n));
   }
 }

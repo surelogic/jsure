@@ -144,6 +144,14 @@ public class NonNullRules extends AnnotationRules {
 		}
 		
 		@Override
+		public boolean appliesTo(final IRNode decl, final Operator op) {
+			if (MethodDeclaration.prototype.includes(op)) {
+				return isRefTypedMethod(decl);
+			}
+			return super.appliesTo(decl, op);
+		}
+		
+		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int mappedOffset, int modifiers, AASTAdaptor.Node node) {
 			final String upTo = context.getProperty(AnnotationVisitor.UPTO);
 			final NamedTypeNode upToType;
@@ -207,6 +215,13 @@ public class NonNullRules extends AnnotationRules {
 			return NonNullRules.parse(context, parser);
 		}
 		@Override
+		public boolean appliesTo(final IRNode decl, final Operator op) {
+			if (MethodDeclaration.prototype.includes(op)) {
+				return isRefTypedMethod(decl);
+			}
+			return super.appliesTo(decl, op);
+		}
+		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
 			return new NonNullNode(offset);
 		}
@@ -235,6 +250,13 @@ public class NonNullRules extends AnnotationRules {
 		@Override
 		protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
 			return NonNullRules.parse(context, parser);
+		}
+		@Override
+		public boolean appliesTo(final IRNode decl, final Operator op) {
+			if (MethodDeclaration.prototype.includes(op)) {
+				return isRefTypedMethod(decl);
+			}
+			return super.appliesTo(decl, op);
 		}
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
