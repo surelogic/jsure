@@ -8,6 +8,7 @@ import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.ir.MetricDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
+import com.surelogic.dropsea.ir.drops.VouchFieldIsPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -65,7 +66,7 @@ public class ConcurrentStateMetrics {
 		}
 
 		void incrForArray(IRNode field) {
-			handleEachDecl(field);
+			handleEachDecl(field, false);
 		}
 
 		void incrForRef(final IRNode field, final IJavaSourceRefType st) {
@@ -75,14 +76,14 @@ public class ConcurrentStateMetrics {
 			else if (LockRules.isThreadSafeType(st.getDeclaration())) {
 				threadSafe += numDecls(field);
 			}
-			else handleEachDecl(field);
+			else handleEachDecl(field, false);
 		}
 
 		void incrForPrim(final IRNode field) {
 			if (JavaNode.getModifier(field, JavaNode.FINAL)) {					
 				immutable += numDecls(field);
 			} else {
-				handleEachDecl(field);
+				handleEachDecl(field, true);
 			}
 		}			
 				
@@ -91,16 +92,25 @@ public class ConcurrentStateMetrics {
 			return JJNode.tree.numChildren(decls);
 		}
 		
-		private void handleEachDecl(final IRNode field) {
+		private void handleEachDecl(final IRNode field, final boolean isPrim) {
 			final IRNode decls = FieldDeclaration.getVars(field);
 			for(final IRNode vd : VariableDeclarators.getVarIterator(decls)) {
+				VouchFieldIsPromiseDrop vouch = LockRules.getVouchFieldIs(vd);
+				if (isPrim && vouch.isFinal() || vouch.isImmutable()) {
+					immutable++;
+					continue;
+				}
+				else if (vouch.isThreadSafe()) {
+					threadSafe++;
+					continue;
+				}
 				IRegion region = RegionModel.getInstance(vd);
 				if (lockUtils.getLockForRegion(clazz, region) != null) {
 					locked++;
 				}
 				else if (LockRules.getThreadConfinedDrop(vd) != null) {
 					threadConfined++;
-				}
+				}			
 				else {
 					other++;
 				}
