@@ -871,7 +871,7 @@ public class Util {
                   a.doAnalysisOnGranule(env, cud);
                 } finally {
                   final long end = System.nanoTime();
-                  timing.incrTime(which, end - start);
+                  timing.incrTime(which, end - start, cud, a);
                 }
               } catch (RuntimeException e) {
                 System.err.println("Error while processing " + cud.getJavaOSFileName());
@@ -974,17 +974,6 @@ public class Util {
 	  public boolean isSingleThreaded(IIRAnalysis<?> analysis) {
 		  return runInParallel() == ConcurrencyType.NEVER || analysis.runInParallel() == ConcurrencyType.NEVER;
 	  }
-	  
-	  protected <E extends IAnalysisGranule> 
-	  void recordTime(E granule, IIRAnalysis<?> a, long t_in_ns) {
-		  final MetricDrop d = new MetricDrop(granule.getNode(), IMetricDrop.Metric.SCAN_TIME);
-
-		  final IKeyValue name = KeyValueUtility.getStringInstance(IMetricDrop.SCAN_TIME_ANALYSIS_NAME, a.label());
-		  d.addOrReplaceMetricInfo(name);
-
-		  final IKeyValue time = KeyValueUtility.getLongInstance(IMetricDrop.SCAN_TIME_DURATION_NS, t_in_ns);
-		  d.addOrReplaceMetricInfo(time);
-	  }	  
   }
   
   // Run each CU over each of the analysis groups
@@ -1039,6 +1028,8 @@ public class Util {
 						final IAnalysisGranulator<?> granulator = g.getGranulator();
 						if (granulator == null) { 
 							// Use the comp unit
+							runAnalyses(timings, g, granule);
+							/*
 							final AnalysisTimings timing = timings.get();
 							int i = g.getOffset();
 							for (final IIRAnalysis<?> a : g) {
@@ -1053,6 +1044,7 @@ public class Util {
 								timing.incrTime(i, time);
 								i++;
 							}
+							*/
 						} else {
 							runAsTasks(granulator.extractNewGranules(cud.getTypeEnv(), cud.getCompUnit()), procs[j]); 
 						}
@@ -1074,32 +1066,37 @@ public class Util {
 				public void op(IAnalysisGranule granule) {
 					try {
 						frame.pushTypeContext(granule.getCompUnit());
-						final AnalysisTimings timing = timings.get();
-						int i = g.getOffset();
-						for (final IIRAnalysis a : g) {
-							if (monitor != null) {
-								monitor.subTask("Checking [ " + a.label() + " ] " + granule.getLabel());
-							}
-							final long start = System.nanoTime();
-							a.doAnalysisOnGranule(env, granule);
-							final long end = System.nanoTime();
-							final long time = end - start;
-							recordTime(granule, a, time);
-							timing.incrTime(i, time);
-							i++;
-						}						
+						runAnalyses(timings, g, granule);						
 					} catch (RuntimeException e) {
 						System.err.println("Error while processing " + granule.getLabel());
 						throw e;
 					} finally {
 						frame.popTypeContext();
 					}
-				}				
+				}			
 			};
 			j++;
 		}
 		return getWorkProcedure();
 	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	void runAnalyses(final ThreadLocal<AnalysisTimings> timings,
+			final IAnalysisGroup<?> g, IAnalysisGranule granule) {
+		final AnalysisTimings timing = timings.get();
+		int i = g.getOffset();
+		for (final IIRAnalysis a : g) {
+			if (monitor != null) {
+				monitor.subTask("Checking [ " + a.label() + " ] " + granule.getLabel());
+			}
+			final long start = System.nanoTime();
+			a.doAnalysisOnGranule(env, granule);
+			final long end = System.nanoTime();
+			final long time = end - start;
+			timing.incrTime(i, time, granule, a);
+			i++;
+		}
+	}	
   }
   
   /**
@@ -1144,8 +1141,7 @@ public class Util {
               a.doAnalysisOnGranule(env, granule);
               final long end = System.nanoTime();
               final long time = end - start;
-              recordTime(granule, a, time);
-              timing.incrTime(i, time);
+              timing.incrTime(i, time, granule, a);
               i++;
             }
 
