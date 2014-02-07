@@ -70,7 +70,7 @@ extends ConcurrentAnalysis<Q> implements IAnalysisGroup<Q> {
 		return sb.toString();
 	}
 	
-	int size() {
+	public int size() {
 		return analyses.size();
 	}
 	
