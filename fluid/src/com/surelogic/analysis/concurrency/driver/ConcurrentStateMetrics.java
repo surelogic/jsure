@@ -34,9 +34,7 @@ public class ConcurrentStateMetrics {
 		binder = b;
 	}
 	
-	void summarizeFieldInfo(final IRNode typeDecl, final IRNode typeBody, LockUtils lockUtils) {
-		final MetricDrop d = new MetricDrop(typeDecl, IMetricDrop.Metric.STATE_WRT_CONCURRENCY);
-		
+	void summarizeFieldInfo(final IRNode typeDecl, final IRNode typeBody, LockUtils lockUtils) {		
 		final FieldCounts counts = new FieldCounts(typeDecl, lockUtils);
 		for(final IRNode field : VisitUtil.getClassFieldDecls(typeDecl)) {
 			final IRNode type = FieldDeclaration.getType(field);			
@@ -53,7 +51,7 @@ public class ConcurrentStateMetrics {
 			}
 			else throw new IllegalStateException();
 		}
-		counts.record(d);
+		counts.recordAsDrop();
 	}
 
 	class FieldCounts {
@@ -109,7 +107,11 @@ public class ConcurrentStateMetrics {
 			}
 		}
 		
-		void record(MetricDrop d) {
+		void recordAsDrop() {
+			if (immutable + threadSafe + locked + threadConfined + other == 0) {
+				return;
+			}
+			final MetricDrop d = new MetricDrop(clazz.getDeclaration(), IMetricDrop.Metric.STATE_WRT_CONCURRENCY);			
 			if (immutable > 0) {
 				addMetric(d, IMetricDrop.CONCURR_IMMUTABLE_COUNT, immutable);
 			}
