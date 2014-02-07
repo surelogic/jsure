@@ -31,7 +31,7 @@ public final class Folderizer {
     if (scanTimeMetricDrop == null)
       throw new IllegalArgumentException(I18N.err(44, "scanTimeMetricDrop"));
 
-    int durationNs = scanTimeMetricDrop.getMetricInfoAsInt(IMetricDrop.SCAN_TIME_DURATION_NS, 0);
+    long durationNs = scanTimeMetricDrop.getMetricInfoAsLong(IMetricDrop.SCAN_TIME_DURATION_NS, 0);
     if (durationNs < 0) {
       SLLogger.getLogger().log(Level.WARNING, I18N.err(311, durationNs));
       durationNs = 0;
