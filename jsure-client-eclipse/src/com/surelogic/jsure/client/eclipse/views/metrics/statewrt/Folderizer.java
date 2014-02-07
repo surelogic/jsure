@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views.metrics.scantime;
+package com.surelogic.jsure.client.eclipse.views.metrics.statewrt;
 
 import java.util.logging.Level;
 
@@ -22,33 +22,35 @@ public final class Folderizer {
   /**
    * Adds the passed drop to the tree.
    * 
-   * @param scanTimeMetricDrop
+   * @param stateWrtMetricDrop
    *          the drop to add to the tree being built by this folderizer.
    * @return the new element, or {@code null} if something went wrong.
    */
   @Nullable
-  public ScanTimeElement addToTree(@NonNull IMetricDrop scanTimeMetricDrop) {
-    if (scanTimeMetricDrop == null)
-      throw new IllegalArgumentException(I18N.err(44, "scanTimeMetricDrop"));
+  public StateWrtElement addToTree(@NonNull IMetricDrop stateWrtMetricDrop) {
+    if (stateWrtMetricDrop == null)
+      throw new IllegalArgumentException(I18N.err(44, "stateWrtMetricDrop"));
 
-    long durationNs = scanTimeMetricDrop.getMetricInfoAsLong(IMetricDrop.SCAN_TIME_DURATION_NS, 0);
-    if (durationNs < 0) {
-      SLLogger.getLogger().log(Level.WARNING, I18N.err(311, durationNs));
-      durationNs = 0;
+    int immutableFieldCount = stateWrtMetricDrop.getMetricInfoAsInt(IMetricDrop.CONCURR_IMMUTABLE_COUNT, 0);
+    int threadSafeFieldCount = stateWrtMetricDrop.getMetricInfoAsInt(IMetricDrop.CONCURR_THREADSAFE_COUNT, 0);
+    int lockProtectedFieldCount = stateWrtMetricDrop.getMetricInfoAsInt(IMetricDrop.CONCURR_LOCK_PROTECTED_COUNT, 0);
+    int threadConfinedFieldCount = stateWrtMetricDrop.getMetricInfoAsInt(IMetricDrop.CONCURR_THREAD_CONFINED_COUNT, 0);
+    int otherFieldCount = stateWrtMetricDrop.getMetricInfoAsInt(IMetricDrop.CONCURR_OTHER_COUNT, 0);
+    final StateWrtElement node = createNodeFor(stateWrtMetricDrop);
+    if (node != null) {
+      node.f_immutableFieldCount = immutableFieldCount;
+      node.f_threadSafeFieldCount = threadSafeFieldCount;
+      node.f_lockProtectedFieldCount = lockProtectedFieldCount;
+      node.f_threadConfinedFieldCount = threadConfinedFieldCount;
+      node.f_otherFieldCount = otherFieldCount;
     }
-    String analysisName = scanTimeMetricDrop.getMetricInfoOrNull(IMetricDrop.SCAN_TIME_ANALYSIS_NAME);
-    if (analysisName == null) {
-      SLLogger.getLogger().log(Level.WARNING, I18N.err(312));
-      analysisName = "(unknown analysis)";
-    }
-    final ScanTimeElement node = createNodeFor(scanTimeMetricDrop, analysisName, durationNs);
     return node;
   }
 
-  private final ScanTimeElementScan f_scan;
+  private final StateWrtElementScan f_scan;
 
   public Folderizer(String scanLabel) {
-    f_scan = new ScanTimeElementScan(scanLabel);
+    f_scan = new StateWrtElementScan(scanLabel);
   }
 
   /**
@@ -57,8 +59,8 @@ public final class Folderizer {
    * @return a set of root elements.
    */
   @NonNull
-  public ScanTimeElement[] getRootElements() {
-    return new ScanTimeElement[] { f_scan };
+  public StateWrtElement[] getRootElements() {
+    return new StateWrtElement[] { f_scan };
   }
 
   /**
@@ -67,19 +69,14 @@ public final class Folderizer {
    * @param drop
    *          the metric drop to create an element representing its enclosing
    *          Java declaration.
-   * @param analysisName
-   *          the name of the verifying analysis the timing information is
-   *          about.
-   * @param durationNs
-   *          the duration of the analysis in nanoseconds.
    * @return a parent element representing the enclosing Java declaration for
    *         the passed drop.
    */
   @Nullable
-  ScanTimeElement createNodeFor(@NonNull IMetricDrop drop, @NonNull String analysisName, long durationNs) {
+  StateWrtElement createNodeFor(@NonNull IMetricDrop drop) {
     final IJavaRef javaRef = drop.getJavaRef();
     if (javaRef == null) {
-      SLLogger.getLogger().log(Level.WARNING, I18N.err(316, drop));
+      SLLogger.getLogger().log(Level.WARNING, I18N.err(313, drop));
       return null; // can't deal with this
     }
     final IDecl decl = javaRef.getDeclaration();
@@ -87,10 +84,10 @@ public final class Folderizer {
      * Project
      */
     final String projectName = javaRef.getEclipseProjectName();
-    ScanTimeElementProject project = null;
-    for (ScanTimeElement e : f_scan.getChildrenAsListReference()) {
-      if (e instanceof ScanTimeElementProject) {
-        final ScanTimeElementProject ep = (ScanTimeElementProject) e;
+    StateWrtElementProject project = null;
+    for (StateWrtElement e : f_scan.getChildrenAsListReference()) {
+      if (e instanceof StateWrtElementProject) {
+        final StateWrtElementProject ep = (StateWrtElementProject) e;
         if (projectName.equals(ep.getLabel())) {
           project = ep;
           break; // found
@@ -98,16 +95,16 @@ public final class Folderizer {
       }
     }
     if (project == null) { // need to create this project
-      project = new ScanTimeElementProject(f_scan, projectName);
+      project = new StateWrtElementProject(f_scan, projectName);
     }
     /*
      * Package
      */
-    ScanTimeElementPackage pkg = null;
+    StateWrtElementPackage pkg = null;
     final String pkgName = drop.getJavaRef().getPackageName();
-    for (ScanTimeElement e : project.getChildrenAsListReference()) {
-      if (e instanceof ScanTimeElementPackage) {
-        final ScanTimeElementPackage ep = (ScanTimeElementPackage) e;
+    for (StateWrtElement e : project.getChildrenAsListReference()) {
+      if (e instanceof StateWrtElementPackage) {
+        final StateWrtElementPackage ep = (StateWrtElementPackage) e;
         if (pkgName.equals(ep.getLabel())) {
           pkg = ep;
           break; // found
@@ -115,16 +112,16 @@ public final class Folderizer {
       }
     }
     if (pkg == null) { // need to create this package in the project
-      pkg = new ScanTimeElementPackage(project, pkgName);
+      pkg = new StateWrtElementPackage(project, pkgName);
     }
     /*
      * Compilation Unit
      */
-    ScanTimeElementCu cu = null;
+    StateWrtElementCu cu = null;
     String cuName = drop.getJavaRef().getSimpleFileName();
-    for (ScanTimeElement e : pkg.getChildrenAsListReference()) {
-      if (e instanceof ScanTimeElementCu) {
-        final ScanTimeElementCu item = (ScanTimeElementCu) e;
+    for (StateWrtElement e : pkg.getChildrenAsListReference()) {
+      if (e instanceof StateWrtElementCu) {
+        final StateWrtElementCu item = (StateWrtElementCu) e;
         if (item.getLabel().equals(cuName)) {
           cu = item;
           break; // found
@@ -132,58 +129,30 @@ public final class Folderizer {
       }
     }
     if (cu == null) { // need to create this compilation unit in the package
-      cu = new ScanTimeElementCu(pkg, cuName);
-    }
-    // Are we done?
-    if (javaRef.getDeclaration().getKind() == IDecl.Kind.PACKAGE) {
-      /*
-       * If the declaration is a package then we are dealing with timing
-       * information reported about an analysis at the compilation unit level.
-       * Hence there is no lower structure. We return the compilation unit as
-       * the parent.
-       */
-      ScanTimeElementAnalysis result = new ScanTimeElementAnalysis(cu, analysisName);
-      result.setDurationNs(durationNs, analysisName);
-      return result;
-    }
-    /*
-     * Verifying Analysis
-     */
-    ScanTimeElementAnalysis va = null;
-    for (ScanTimeElement e : cu.getChildrenAsListReference()) {
-      if (e instanceof ScanTimeElementAnalysis) {
-        final ScanTimeElementAnalysis item = (ScanTimeElementAnalysis) e;
-        if (analysisName.equals(item.getLabel())) {
-          va = item;
-          break; // found
-        }
-      }
-    }
-    if (va == null) { // need to create this analysis in the cu
-      va = new ScanTimeElementAnalysis(cu, analysisName);
+      cu = new StateWrtElementCu(pkg, cuName);
     }
 
     final class MatchFolder extends DeclVisitor {
 
-      MatchFolder(ScanTimeElementAnalysis va) {
-        f_at = va;
+      MatchFolder(@NonNull StateWrtElementCu cu) {
+        f_at = cu;
       }
 
       @NonNull
-      private ScanTimeElement f_at;
+      private StateWrtElement f_at;
 
       @NonNull
-      ScanTimeElementJavaDecl getResult() {
-        if (f_at instanceof ScanTimeElementJavaDecl)
-          return (ScanTimeElementJavaDecl) f_at;
+      StateWrtElementJavaDecl getResult() {
+        if (f_at instanceof StateWrtElementJavaDecl)
+          return (StateWrtElementJavaDecl) f_at;
         else
           throw new IllegalStateException(I18N.err(317, javaRef, f_at));
       }
 
       private void visitNodeHelper(IDecl node) {
-        for (ScanTimeElement element : f_at.getChildrenAsListReference()) {
-          if (element instanceof ScanTimeElementJavaDecl) {
-            final ScanTimeElementJavaDecl ejd = (ScanTimeElementJavaDecl) element;
+        for (StateWrtElement element : f_at.getChildrenAsListReference()) {
+          if (element instanceof StateWrtElementJavaDecl) {
+            final StateWrtElementJavaDecl ejd = (StateWrtElementJavaDecl) element;
             if (ejd.getDeclaration().equals(node)) {
               f_at = ejd;
               return; // found
@@ -191,7 +160,7 @@ public final class Folderizer {
           }
         }
         // need to create
-        final ScanTimeElementJavaDecl element = new ScanTimeElementJavaDecl(f_at, node);
+        final StateWrtElementJavaDecl element = new StateWrtElementJavaDecl(f_at, node);
         f_at = element;
         return;
       }
@@ -258,10 +227,9 @@ public final class Folderizer {
       }
     }
 
-    final MatchFolder matcher = new MatchFolder(va);
+    final MatchFolder matcher = new MatchFolder(cu);
     decl.acceptRootToThis(matcher);
-    final ScanTimeElementJavaDecl result = matcher.getResult();
-    result.setDurationNs(durationNs, analysisName);
+    final StateWrtElementJavaDecl result = matcher.getResult();
     return result;
   }
 }

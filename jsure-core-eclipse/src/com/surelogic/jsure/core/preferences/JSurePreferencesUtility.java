@@ -141,6 +141,17 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultIntPreference(METRIC_DROP_COUNTER_COL_DROP_WIDTH, 300);
       EclipseUtility.setDefaultIntPreference(METRIC_DROP_COUNTER_COL_COUNT_WIDTH, 100);
 
+      EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_COMBO_SELECTED_COLUMN, 0);
+      EclipseUtility.setDefaultBooleanPreference(METRIC_VIEW_STATEWRT_THRESHOLD_SHOW_ABOVE, true);
+      EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_THRESHOLD, 10);
+      EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_TREE_WIDTH, 300);
+      EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_FIELD_COUNT_TOTAL_WIDTH, 80);
+      EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_IMMUTABLE_FIELD_COUNT_WIDTH, 80);
+      EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_THREADSAFE_FIELD_COUNT_WIDTH, 80);
+      EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_LOCK_PROTECTED_FIELD_COUNT_WIDTH, 80);
+      EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_THREADCONFINED_FIELD_COUNT_WIDTH, 80);
+      EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_OTHER_FIELD_COUNT_WIDTH, 80);
+
       /*
        * We'll take the default-default for the other preferences.
        */
@@ -223,6 +234,21 @@ public final class JSurePreferencesUtility {
 
   public static final String METRIC_DROP_COUNTER_COL_DROP_WIDTH = PREFIX + "metric.drop.counter.col.drop.width";
   public static final String METRIC_DROP_COUNTER_COL_COUNT_WIDTH = PREFIX + "metric.drop.counter.col.count.width";
+
+  public static final String METRIC_VIEW_STATEWRT_COMBO_SELECTED_COLUMN = PREFIX + "metric.statewrt.combo_seleted_column";
+  public static final String METRIC_VIEW_STATEWRT_THRESHOLD_SHOW_ABOVE = PREFIX + "metric.statewrt.threshold_show_above";
+  public static final String METRIC_VIEW_STATEWRT_THRESHOLD = PREFIX + "metric.view.statewrt.threshold";
+  public static final String METRIC_VIEW_STATEWRT_TREE_WIDTH = PREFIX + "metric.view.statewrt.tree.width";
+  public static final String METRIC_VIEW_STATEWRT_FIELD_COUNT_TOTAL_WIDTH = PREFIX + "metric.view.statewrt.field-count-total.width";
+  public static final String METRIC_VIEW_STATEWRT_IMMUTABLE_FIELD_COUNT_WIDTH = PREFIX
+      + "metric.view.statewrt.immutable-field-count.width";
+  public static final String METRIC_VIEW_STATEWRT_THREADSAFE_FIELD_COUNT_WIDTH = PREFIX
+      + "metric.view.statewrt.threadsafe-field-count.width";
+  public static final String METRIC_VIEW_STATEWRT_LOCK_PROTECTED_FIELD_COUNT_WIDTH = PREFIX
+      + "metric.view.statewrt.lock-protected-field-count.width";
+  public static final String METRIC_VIEW_STATEWRT_THREADCONFINED_FIELD_COUNT_WIDTH = PREFIX
+      + "metric.view.statewrt.threadconfined-field-count.width";
+  public static final String METRIC_VIEW_STATEWRT_OTHER_FIELD_COUNT_WIDTH = PREFIX + "metric.view.statewrt.other-field-count.width";
 
   /**
    * Gets the JSure data directory. This method ensures that the directory does
