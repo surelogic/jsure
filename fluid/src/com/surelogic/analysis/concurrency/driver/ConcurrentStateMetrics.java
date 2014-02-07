@@ -96,13 +96,15 @@ public class ConcurrentStateMetrics {
 			final IRNode decls = FieldDeclaration.getVars(field);
 			for(final IRNode vd : VariableDeclarators.getVarIterator(decls)) {
 				VouchFieldIsPromiseDrop vouch = LockRules.getVouchFieldIs(vd);
-				if (isPrim && vouch.isFinal() || vouch.isImmutable()) {
-					immutable++;
-					continue;
-				}
-				else if (vouch.isThreadSafe()) {
-					threadSafe++;
-					continue;
+				if (vouch != null) {
+					if (isPrim && vouch.isFinal() || vouch.isImmutable()) {
+						immutable++;
+						continue;
+					}
+					else if (vouch.isThreadSafe()) {
+						threadSafe++;
+						continue;
+					}
 				}
 				IRegion region = RegionModel.getInstance(vd);
 				if (lockUtils.getLockForRegion(clazz, region) != null) {
