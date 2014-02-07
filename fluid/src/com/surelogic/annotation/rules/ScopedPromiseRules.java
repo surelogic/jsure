@@ -527,7 +527,7 @@ public class ScopedPromiseRules extends AnnotationRules {
         }  
         if (applyToParams) {
         	for(IRNode param : Parameters.getFormalIterator(op.get_Params(decl))) {
-        		if (callback.parseAndApplyPromise(param, op) == Result.FAILURE) {
+        		if (callback.parseAndApplyPromise(param, ParameterDeclaration.prototype) == Result.FAILURE) {
         			success = false;
         			break;
         		}
