@@ -33,6 +33,7 @@ import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.views.metrics.dropcounter.DropCounterMetricMediator;
 import com.surelogic.jsure.client.eclipse.views.metrics.scantime.ScanTimeMetricMediator;
 import com.surelogic.jsure.client.eclipse.views.metrics.sloc.SlocMetricMediator;
+import com.surelogic.jsure.client.eclipse.views.metrics.statewrt.StateWrtMetricMediator;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
@@ -60,6 +61,7 @@ public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.C
      * the tab order in the user interface display.
      */
 
+    f_mediators.add(new StateWrtMetricMediator(f_metricFolder, this)); // STATE_WRT_CONCURRENCY
     f_mediators.add(new SlocMetricMediator(f_metricFolder, this)); // SLOC
     f_mediators.add(new ScanTimeMetricMediator(f_metricFolder, this)); // SCAN_TIME
     f_mediators.add(new DropCounterMetricMediator(f_metricFolder, this));
