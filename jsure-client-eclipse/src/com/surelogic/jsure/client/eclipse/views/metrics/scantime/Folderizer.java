@@ -29,7 +29,7 @@ public final class Folderizer {
   @Nullable
   public ScanTimeElement addToTree(@NonNull IMetricDrop scanTimeMetricDrop) {
     if (scanTimeMetricDrop == null)
-      throw new IllegalArgumentException(I18N.err(44, "slocMetricDrop"));
+      throw new IllegalArgumentException(I18N.err(44, "scanTimeMetricDrop"));
 
     int durationNs = scanTimeMetricDrop.getMetricInfoAsInt(IMetricDrop.SCAN_TIME_DURATION_NS, 0);
     if (durationNs < 0) {
