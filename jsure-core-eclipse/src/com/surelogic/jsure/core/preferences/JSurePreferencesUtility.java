@@ -151,6 +151,8 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_LOCK_PROTECTED_FIELD_COUNT_WIDTH, 80);
       EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_THREADCONFINED_FIELD_COUNT_WIDTH, 80);
       EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_OTHER_FIELD_COUNT_WIDTH, 80);
+      EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_SASH_LHS_WEIGHT, 60);
+      EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_SASH_RHS_WEIGHT, 40);
 
       /*
        * We'll take the default-default for the other preferences.
@@ -249,6 +251,8 @@ public final class JSurePreferencesUtility {
   public static final String METRIC_VIEW_STATEWRT_THREADCONFINED_FIELD_COUNT_WIDTH = PREFIX
       + "metric.view.statewrt.threadconfined-field-count.width";
   public static final String METRIC_VIEW_STATEWRT_OTHER_FIELD_COUNT_WIDTH = PREFIX + "metric.view.statewrt.other-field-count.width";
+  public static final String METRIC_VIEW_STATEWRT_SASH_LHS_WEIGHT = PREFIX + "metric.view.statewrt.sash.lhs.weight";
+  public static final String METRIC_VIEW_STATEWRT_SASH_RHS_WEIGHT = PREFIX + "metric.view.statewrt.sash.rhs.weight";
 
   /**
    * Gets the JSure data directory. This method ensures that the directory does

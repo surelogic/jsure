@@ -130,21 +130,47 @@ public abstract class StateWrtElement {
    *         otherwise.
    */
   public final boolean highlightDueToThreshold(StateWrtOptions options) {
-    // TODO
-    return false;
+    final long threshold = options.getThreshold();
+    final boolean showAbove = options.getThresholdShowAbove();
+    final long metricValue;
+    switch (options.getSelectedColumnTitleIndex()) {
+    case 1: // Declared Fields
+      metricValue = getFieldCountTotal();
+      break;
+    case 2: // No Policy
+      metricValue = getOtherFieldCount();
+      break;
+    case 3: // @Immutable
+      metricValue = getImmutableFieldCount();
+      break;
+    case 4: // @ThreadSafe
+      metricValue = getThreadSafeFieldCount();
+      break;
+    case 5: // @ThreadConfined
+      metricValue = getThreadConfinedFieldCount();
+      break;
+    default: // @RegionLock/@GuardedBy
+      metricValue = getlockProtectedFieldCount();
+      break;
+    }
+    return showAbove ? metricValue >= threshold : metricValue <= threshold;
   }
+
+  /**
+   * {@code true} indicates that this result has values from a metric drop,
+   * {@code indicates} it shows aggregate data.
+   */
+  boolean f_hasDirectMetricData = false;
 
   /*
    * Counts should be set correctly by each implementation.
    */
 
-  static final int UNSET = -1; // no counts
-
-  int f_immutableFieldCount = UNSET;
-  int f_threadSafeFieldCount = UNSET;
-  int f_lockProtectedFieldCount = UNSET;
-  int f_threadConfinedFieldCount = UNSET;
-  int f_otherFieldCount = UNSET;
+  int f_immutableFieldCount = 0;
+  int f_threadSafeFieldCount = 0;
+  int f_lockProtectedFieldCount = 0;
+  int f_threadConfinedFieldCount = 0;
+  int f_otherFieldCount = 0;
 
   public final int getFieldCountTotal() {
     return f_immutableFieldCount + f_threadSafeFieldCount + f_lockProtectedFieldCount + f_threadConfinedFieldCount
@@ -172,24 +198,28 @@ public abstract class StateWrtElement {
   }
 
   final void setupTotalsForChildren() {
-    // nothing to be done if we have counts
-    if (f_immutableFieldCount != UNSET)
-      return;
+    if (f_hasDirectMetricData) {
+      for (StateWrtElement child : getChildrenAsListReference()) {
+        child.setupTotalsForChildren();
+      }
+    } else {
+      for (StateWrtElement child : getChildrenAsListReference()) {
+        setupTotalsHelper(this, child);
+        child.setupTotalsForChildren();
+      }
+    }
+  }
 
-    // We are not a leaf node -- so do a total
-    f_immutableFieldCount = 0;
-    f_threadSafeFieldCount = 0;
-    f_lockProtectedFieldCount = 0;
-    f_threadConfinedFieldCount = 0;
-    f_otherFieldCount = 0;
-
-    for (StateWrtElement child : getChildrenAsListReference()) {
-      child.setupTotalsForChildren();
-      f_immutableFieldCount += child.f_immutableFieldCount;
-      f_threadSafeFieldCount += child.f_threadSafeFieldCount;
-      f_lockProtectedFieldCount += child.f_lockProtectedFieldCount;
-      f_threadConfinedFieldCount += child.f_threadConfinedFieldCount;
-      f_otherFieldCount += child.f_otherFieldCount;
+  static void setupTotalsHelper(StateWrtElement on, StateWrtElement toAdd) {
+    if (toAdd.f_hasDirectMetricData) {
+      on.f_immutableFieldCount += toAdd.f_immutableFieldCount;
+      on.f_threadSafeFieldCount += toAdd.f_threadSafeFieldCount;
+      on.f_lockProtectedFieldCount += toAdd.f_lockProtectedFieldCount;
+      on.f_threadConfinedFieldCount += toAdd.f_threadConfinedFieldCount;
+      on.f_otherFieldCount += toAdd.f_otherFieldCount;
+    }
+    for (StateWrtElement child : toAdd.getChildrenAsListReference()) {
+      setupTotalsHelper(on, child);
     }
   }
 }

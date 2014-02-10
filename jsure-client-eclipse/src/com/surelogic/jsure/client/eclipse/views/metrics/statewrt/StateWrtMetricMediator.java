@@ -66,9 +66,6 @@ import com.surelogic.dropsea.DropSeaUtility;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.views.metrics.AbstractScanMetricMediator;
-import com.surelogic.jsure.client.eclipse.views.metrics.sloc.SlocElement;
-import com.surelogic.jsure.client.eclipse.views.metrics.sloc.SlocElementLeaf;
-import com.surelogic.jsure.client.eclipse.views.metrics.sloc.SlocElementScan;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 /**
@@ -93,15 +90,15 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
 
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
-      if (e1 instanceof SlocElement && e2 instanceof SlocElement) {
-        return SlocElement.ALPHA.compare((SlocElement) e1, (SlocElement) e2);
+      if (e1 instanceof StateWrtElement && e2 instanceof StateWrtElement) {
+        return StateWrtElement.ALPHA.compare((StateWrtElement) e1, (StateWrtElement) e2);
       }
       return super.compare(viewer, e1, e2);
     }
   };
 
   /**
-   * Compares elements by their SLOC based upon the current options.
+   * Compares elements by their based upon the current options.
    */
   public final Comparator<StateWrtElement> f_byMetricComparator = new Comparator<StateWrtElement>() {
     @Override
@@ -151,7 +148,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
 
     @Override
     public int compare(Viewer viewer, Object e1, Object e2) {
-      if (e1 instanceof SlocElement && e2 instanceof SlocElement) {
+      if (e1 instanceof StateWrtElement && e2 instanceof StateWrtElement) {
         return f_byMetricComparator.compare((StateWrtElement) e1, (StateWrtElement) e2);
       }
       return super.compare(viewer, e1, e2);
@@ -163,7 +160,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
     @Override
     public boolean select(Viewer viewer, Object parentElement, Object element) {
       // exception for scan
-      if (element instanceof SlocElementScan)
+      if (element instanceof StateWrtElement)
         return true;
 
       if (element instanceof StateWrtElement) {
@@ -173,7 +170,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
     }
   };
 
-  Label f_totalSlocScanned = null;
+  Label f_modelledStateTotal = null;
   Scale f_thresholdScale = null;
   Text f_thresholdLabel = null;
 
@@ -228,9 +225,9 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
     GridLayout topLayout = new GridLayout(6, false);
     top.setLayout(topLayout);
 
-    f_totalSlocScanned = new Label(top, SWT.NONE);
-    f_totalSlocScanned.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-    f_totalSlocScanned.setForeground(f_totalSlocScanned.getDisplay().getSystemColor(SWT.COLOR_BLUE));
+    f_modelledStateTotal = new Label(top, SWT.NONE);
+    f_modelledStateTotal.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+    f_modelledStateTotal.setForeground(f_modelledStateTotal.getDisplay().getSystemColor(SWT.COLOR_BLUE));
 
     final Combo countCombo = new Combo(top, SWT.READ_ONLY);
     countCombo.setItems(f_columnTitles);
@@ -345,15 +342,11 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
     f_treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
       public void doubleClick(DoubleClickEvent event) {
-        final SlocElement element = getTreeViewerSelectionOrNull();
+        final StateWrtElement element = getTreeViewerSelectionOrNull();
         if (element != null) {
-          if (element instanceof SlocElementLeaf) {
-            ((SlocElementLeaf) element).tryToOpenInJavaEditor();
-          } else {
-            // open up the tree one more level
-            if (!f_treeViewer.getExpandedState(element)) {
-              f_treeViewer.expandToLevel(element, 1);
-            }
+          // open up the tree one more level
+          if (!f_treeViewer.getExpandedState(element)) {
+            f_treeViewer.expandToLevel(element, 1);
           }
         }
       }
@@ -453,11 +446,11 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
     rhs.setLayout(new FillLayout());
 
     f_canvas = new Canvas(rhs, SWT.DOUBLE_BUFFERED);
-    final SlocCanvasEventHandler handler = new SlocCanvasEventHandler();
+    final StateWrtCanvasEventHandler handler = new StateWrtCanvasEventHandler();
     f_canvas.addPaintListener(handler);
 
-    sash.setWeights(new int[] { EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_LHS_WEIGHT),
-        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_RHS_WEIGHT) });
+    sash.setWeights(new int[] { EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_SASH_LHS_WEIGHT),
+        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_SASH_RHS_WEIGHT) });
 
     /*
      * When the left-hand-side composite is resized we'll just guess that the
@@ -469,8 +462,8 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
       public void handleEvent(final Event event) {
         final int[] weights = sash.getWeights();
         if (weights != null && weights.length == 2) {
-          EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_LHS_WEIGHT, weights[0]);
-          EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_SLOC_SASH_RHS_WEIGHT, weights[1]);
+          EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_SASH_LHS_WEIGHT, weights[0]);
+          EclipseUtility.setIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_SASH_RHS_WEIGHT, weights[1]);
         }
       }
     });
@@ -525,7 +518,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
   }
 
   void updateTotal(long total) {
-    f_totalSlocScanned.setText(SLUtility.toStringHumanWithCommas(total) + " SLOC scanned");
+    f_modelledStateTotal.setText(SLUtility.toStringHumanWithCommas(total) + " TODO scanned");
   }
 
   void fixSortingIndicatorOnTreeTable() {
@@ -567,7 +560,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         if (element.highlightDueToThreshold(f_options)) {
           image = SLImages.getDecoratedImage(image,
               new ImageDescriptor[] { null, null, SLImages.getImageDescriptor(CommonImages.DECR_ASTERISK), null, null });
-          if (element instanceof StateWrtElement) { // TODO WRONG
+          if (element.f_hasDirectMetricData) {
             cell.setBackground(EclipseColorUtility.getDiffHighlightColorNewChanged());
           }
         } else {
@@ -599,7 +592,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         final StateWrtElement element = (StateWrtElement) cell.getElement();
         final long data = getMetricValue(element);
         cell.setText(SLUtility.toStringHumanWithCommas(data));
-        if (element instanceof StateWrtElement) // TODO THIS IS WRONG
+        if (!element.f_hasDirectMetricData)
           cell.setForeground(EclipseColorUtility.getSubtleTextColor());
         else {
           // only highlight leaf cells
@@ -611,11 +604,11 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
   };
 
   @Nullable
-  SlocElement getTreeViewerSelectionOrNull() {
+  StateWrtElement getTreeViewerSelectionOrNull() {
     final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
     final Object o = s.getFirstElement();
-    if (o instanceof SlocElement) {
-      SlocElement element = (SlocElement) o;
+    if (o instanceof StateWrtElement) {
+      StateWrtElement element = (StateWrtElement) o;
       return element;
     }
     return null;
@@ -624,10 +617,10 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
   /**
    * Draws the metrics graph on the screen.
    */
-  final class SlocCanvasEventHandler implements PaintListener {
+  final class StateWrtCanvasEventHandler implements PaintListener {
 
     public void paintControl(PaintEvent e) {
-      final SlocElement element = getTreeViewerSelectionOrNull();
+      final StateWrtElement element = getTreeViewerSelectionOrNull();
       if (element != null) {
         final Rectangle clientArea = f_canvas.getClientArea();
         e.gc.setAntialias(SWT.ON);

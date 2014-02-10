@@ -43,6 +43,8 @@ public final class Folderizer {
       node.f_lockProtectedFieldCount = lockProtectedFieldCount;
       node.f_threadConfinedFieldCount = threadConfinedFieldCount;
       node.f_otherFieldCount = otherFieldCount;
+
+      node.f_hasDirectMetricData = true;
     }
     return node;
   }
