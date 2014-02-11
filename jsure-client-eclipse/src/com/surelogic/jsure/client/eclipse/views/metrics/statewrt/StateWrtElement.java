@@ -134,23 +134,23 @@ public abstract class StateWrtElement {
     final boolean showAbove = options.getThresholdShowAbove();
     final long metricValue;
     switch (options.getSelectedColumnTitleIndex()) {
-    case 1: // Declared Fields
-      metricValue = getFieldCountTotal();
-      break;
-    case 2: // No Policy
+    case 1: // No declared policy
       metricValue = getOtherFieldCount();
       break;
-    case 3: // @Immutable
+    case 2: // @Immutable
       metricValue = getImmutableFieldCount();
       break;
-    case 4: // @ThreadSafe
+    case 3: // @ThreadSafe
       metricValue = getThreadSafeFieldCount();
       break;
-    case 5: // @ThreadConfined
+    case 4: // @ThreadConfined
       metricValue = getThreadConfinedFieldCount();
       break;
-    default: // @RegionLock/@GuardedBy
-      metricValue = getlockProtectedFieldCount();
+    case 5: // Lock protected
+      metricValue = getLockProtectedFieldCount();
+      break;
+    default: // Total (0 and default)
+      metricValue = getFieldCountTotal();
       break;
     }
     return showAbove ? metricValue >= threshold : metricValue <= threshold;
@@ -185,7 +185,7 @@ public abstract class StateWrtElement {
     return f_threadSafeFieldCount;
   }
 
-  public final int getlockProtectedFieldCount() {
+  public final int getLockProtectedFieldCount() {
     return f_lockProtectedFieldCount;
   }
 

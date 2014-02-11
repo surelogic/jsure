@@ -113,25 +113,25 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
       final long o1MetricValue;
       final long o2MetricValue;
       switch (f_options.getSelectedColumnTitleIndex()) {
-      case 1: // @Immutable
-        o1MetricValue = o1.f_immutableFieldCount;
-        o2MetricValue = o2.f_immutableFieldCount;
+      case 1: // No declared policy
+        o1MetricValue = o1.getOtherFieldCount();
+        o2MetricValue = o2.getOtherFieldCount();
         break;
-      case 2: // @ThreadSafe
-        o1MetricValue = o1.f_threadSafeFieldCount;
-        o2MetricValue = o2.f_threadSafeFieldCount;
+      case 2: // @Immutable
+        o1MetricValue = o1.getImmutableFieldCount();
+        o2MetricValue = o2.getImmutableFieldCount();
         break;
-      case 3: // @ThreadConfined
-        o1MetricValue = o1.f_threadConfinedFieldCount;
-        o2MetricValue = o2.f_threadConfinedFieldCount;
+      case 3: // @ThreadSafe
+        o1MetricValue = o1.getThreadSafeFieldCount();
+        o2MetricValue = o2.getThreadSafeFieldCount();
         break;
-      case 4: // Lock protected
-        o1MetricValue = o1.f_lockProtectedFieldCount;
-        o2MetricValue = o2.f_lockProtectedFieldCount;
+      case 4: // @ThreadConfined
+        o1MetricValue = o1.getThreadConfinedFieldCount();
+        o2MetricValue = o2.getThreadConfinedFieldCount();
         break;
-      case 5: // No declared policy
-        o1MetricValue = o1.f_otherFieldCount;
-        o2MetricValue = o2.f_otherFieldCount;
+      case 5: // Lock protected
+        o1MetricValue = o1.getLockProtectedFieldCount();
+        o2MetricValue = o2.getLockProtectedFieldCount();
         break;
       default: // Total (0 and default)
         o1MetricValue = o1.getFieldCountTotal();
@@ -160,7 +160,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
     @Override
     public boolean select(Viewer viewer, Object parentElement, Object element) {
       // exception for scan
-      if (element instanceof StateWrtElement)
+      if (element instanceof StateWrtElementScan)
         return true;
 
       if (element instanceof StateWrtElement) {
@@ -421,7 +421,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
     final TreeViewerColumn columnJavaStatementCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnJavaStatementCount.setLabelProvider(new MetricDataCellLabelProvider() {
       int getMetricValue(StateWrtElement metric) {
-        return metric.getlockProtectedFieldCount();
+        return metric.getLockProtectedFieldCount();
       }
     });
     columnJavaStatementCount.getColumn().setWidth(
@@ -592,10 +592,9 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         final StateWrtElement element = (StateWrtElement) cell.getElement();
         final long data = getMetricValue(element);
         cell.setText(SLUtility.toStringHumanWithCommas(data));
-        if (!element.f_hasDirectMetricData)
+        if (!element.f_hasDirectMetricData) {
           cell.setForeground(EclipseColorUtility.getSubtleTextColor());
-        else {
-          // only highlight leaf cells
+        } else {
           cell.setBackground(element.highlightDueToThreshold(f_options) ? EclipseColorUtility.getDiffHighlightColorNewChanged()
               : null);
         }
@@ -650,5 +649,6 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
       f_treeViewer.addFilter(f_thresholdFilter);
     else
       f_treeViewer.removeFilter(f_thresholdFilter);
+    f_treeViewer.refresh();
   }
 }

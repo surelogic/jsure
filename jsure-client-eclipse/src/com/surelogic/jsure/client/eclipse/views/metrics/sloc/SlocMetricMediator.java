@@ -841,5 +841,6 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
       f_treeViewer.addFilter(f_thresholdFilter);
     else
       f_treeViewer.removeFilter(f_thresholdFilter);
+    f_treeViewer.refresh();
   }
 }
