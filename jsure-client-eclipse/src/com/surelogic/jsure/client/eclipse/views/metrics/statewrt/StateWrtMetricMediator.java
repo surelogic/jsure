@@ -31,7 +31,10 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Pattern;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -79,7 +82,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
 
   @Override
   protected String getMetricLabel() {
-    return "State w.r.t Concurrency";
+    return "Concurrency Policy";
   }
 
   public StateWrtMetricMediator(TabFolder folder, ViewPart view) {
@@ -125,13 +128,13 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         o1MetricValue = o1.getThreadSafeFieldCount();
         o2MetricValue = o2.getThreadSafeFieldCount();
         break;
-      case 4: // @ThreadConfined
-        o1MetricValue = o1.getThreadConfinedFieldCount();
-        o2MetricValue = o2.getThreadConfinedFieldCount();
-        break;
-      case 5: // Lock protected
+      case 4: // @RegionLock/@GuardedBy
         o1MetricValue = o1.getLockProtectedFieldCount();
         o2MetricValue = o2.getLockProtectedFieldCount();
+        break;
+      case 5: // @ThreadConfined
+        o1MetricValue = o1.getThreadConfinedFieldCount();
+        o2MetricValue = o2.getThreadConfinedFieldCount();
         break;
       default: // Total (0 and default)
         o1MetricValue = o1.getFieldCountTotal();
@@ -174,8 +177,8 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
   Scale f_thresholdScale = null;
   Text f_thresholdLabel = null;
 
-  final String[] f_columnTitles = new String[] { "Declared Fields", "No Policy", "@Immutable", "@ThreadSafe", "@ThreadConfined",
-      "@RegionLock/@GuardedBy" };
+  final String[] f_columnTitles = new String[] { "Declared Fields", "No Policy", "@Immutable", "@ThreadSafe",
+      "@RegionLock/@GuardedBy", "@ThreadConfined" };
 
   TreeViewer f_treeViewer = null;
   Canvas f_canvas = null;
@@ -284,8 +287,8 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
     f_thresholdScale = new Scale(top, SWT.NONE);
     f_thresholdScale.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     f_thresholdScale.setMinimum(1);
-    f_thresholdScale.setMaximum(3000);
-    f_thresholdScale.setPageIncrement(100);
+    f_thresholdScale.setMaximum(50);
+    f_thresholdScale.setPageIncrement(10);
     int savedThreshold = EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_THRESHOLD);
     if (savedThreshold < f_thresholdScale.getMinimum())
       savedThreshold = f_thresholdScale.getMinimum();
@@ -406,18 +409,6 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_THREADSAFE_FIELD_COUNT_WIDTH));
     columnContainsCommentLineCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
-    final TreeViewerColumn columnJavaDeclarationCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
-    columnJavaDeclarationCount.setLabelProvider(new MetricDataCellLabelProvider() {
-      int getMetricValue(StateWrtElement metric) {
-        return metric.getThreadConfinedFieldCount();
-      }
-    });
-    columnJavaDeclarationCount.getColumn().setWidth(
-        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_THREADCONFINED_FIELD_COUNT_WIDTH));
-    columnJavaDeclarationCount.getColumn().addControlListener(
-        new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_THREADCONFINED_FIELD_COUNT_WIDTH));
-    columnJavaDeclarationCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
-
     final TreeViewerColumn columnJavaStatementCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
     columnJavaStatementCount.setLabelProvider(new MetricDataCellLabelProvider() {
       int getMetricValue(StateWrtElement metric) {
@@ -429,6 +420,18 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
     columnJavaStatementCount.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_LOCK_PROTECTED_FIELD_COUNT_WIDTH));
     columnJavaStatementCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
+
+    final TreeViewerColumn columnJavaDeclarationCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    columnJavaDeclarationCount.setLabelProvider(new MetricDataCellLabelProvider() {
+      int getMetricValue(StateWrtElement metric) {
+        return metric.getThreadConfinedFieldCount();
+      }
+    });
+    columnJavaDeclarationCount.getColumn().setWidth(
+        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_THREADCONFINED_FIELD_COUNT_WIDTH));
+    columnJavaDeclarationCount.getColumn().addControlListener(
+        new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_THREADCONFINED_FIELD_COUNT_WIDTH));
+    columnJavaDeclarationCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
     f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
     f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
@@ -517,8 +520,9 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
       f_treeViewer.refresh();
   }
 
-  void updateTotal(long total) {
-    f_modelledStateTotal.setText(SLUtility.toStringHumanWithCommas(total) + " TODO scanned");
+  void updateTotal(long declared, long havePolicy) {
+    int prc = SLUtility.safeDoubleToInt(Math.round(((double) havePolicy / (double) declared) * 100.0));
+    f_modelledStateTotal.setText(prc + "% of fields declare a concurrency policy");
   }
 
   void fixSortingIndicatorOnTreeTable() {
@@ -624,6 +628,121 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         final Rectangle clientArea = f_canvas.getClientArea();
         e.gc.setAntialias(SWT.ON);
 
+        int fold = 0;
+
+        e.gc.setForeground(e.gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
+
+        /*
+         * Title to point out what the graph is showing
+         */
+        String title = element.getLabel();
+        Point titleExtent = e.gc.stringExtent(title);
+        int xPos = (clientArea.width / 2) - (titleExtent.x / 2);
+        if (xPos < 20)
+          xPos = 20;
+        e.gc.drawImage(element.getImage(), xPos - 18, 10 + (titleExtent.y / 2) - 8);
+        e.gc.drawText(title, xPos, 10, true);
+
+        fold += titleExtent.y + 20;
+
+        /*
+         * Pie chart at the top
+         */
+        double degPerLine = 1.0 / (((double) element.getFieldCountTotal()) / 360.0);
+
+        int chartDiameter = clientArea.width - 10;
+
+        final Color otherColor = e.gc.getDevice().getSystemColor(SWT.COLOR_RED);
+        final Color immutableColor = EclipseColorUtility.getCompoundScheme1Color1();
+        final Color threadSafeColor = EclipseColorUtility.getCompoundScheme1Color0();
+        final Color lockProtectedColor = EclipseColorUtility.getCompoundScheme1Color2();
+        final Color threadConfinedColor = e.gc.getDevice().getSystemColor(SWT.COLOR_WHITE);
+
+        // Draw chart first
+        e.gc.setBackground(threadConfinedColor);
+        e.gc.fillOval(5, fold + 5, chartDiameter, chartDiameter);
+
+        final Pattern p = new Pattern(e.gc.getDevice(), SLImages.getImage(CommonImages.FILL_DIAGONOAL));
+
+        int arcStart = 90;
+        if (element.getOtherFieldCount() > 0) {
+          final int arc = SLUtility.safeLongToInt(Math.round((double) element.getOtherFieldCount() * degPerLine));
+          e.gc.setBackground(otherColor);
+          e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, arcStart, arc);
+          e.gc.setBackgroundPattern(p);
+          e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, arcStart, arc);
+          e.gc.setBackgroundPattern(null);
+          arcStart += arc;
+        }
+        if (element.getImmutableFieldCount() > 0) {
+          final int arc = SLUtility.safeLongToInt(Math.round((double) element.getImmutableFieldCount() * degPerLine));
+          e.gc.setBackground(immutableColor);
+          e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, arcStart, arc);
+          arcStart += arc;
+        }
+        if (element.getThreadSafeFieldCount() > 0) {
+          final int arc = SLUtility.safeLongToInt(Math.round((double) element.getThreadSafeFieldCount() * degPerLine));
+          e.gc.setBackground(threadSafeColor);
+          e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, arcStart, arc);
+          arcStart += arc;
+        }
+        if (element.getLockProtectedFieldCount() > 0) {
+          final int arc = SLUtility.safeLongToInt(Math.round((double) element.getLockProtectedFieldCount() * degPerLine));
+          e.gc.setBackground(lockProtectedColor);
+          e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, arcStart, arc);
+          arcStart += arc;
+        }
+        e.gc.drawOval(5, fold + 5, chartDiameter, chartDiameter);
+
+        fold += chartDiameter + 10;
+        String s = SLUtility.toStringHumanWithCommas(element.getFieldCountTotal()) + " declared fields";
+        Point txtExtent = e.gc.stringExtent(s);
+        int slocTxtWidth = txtExtent.x;
+        e.gc.drawText(s, (chartDiameter / 2) + 5 - (slocTxtWidth / 2), fold, true);
+
+        fold += txtExtent.y + 5;
+        s = element.getOtherFieldCount() + " no policy";
+        txtExtent = e.gc.stringExtent(s);
+        e.gc.setBackground(otherColor);
+        e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
+        e.gc.setBackgroundPattern(p);
+        e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
+        e.gc.setBackgroundPattern(null);
+        p.dispose();
+        e.gc.drawRectangle(5, fold, txtExtent.y - 1, txtExtent.y - 1);
+        e.gc.drawText(s, 10 + txtExtent.y, fold, true);
+
+        fold += txtExtent.y + 5;
+        s = element.getImmutableFieldCount() + " @Immutable";
+        txtExtent = e.gc.stringExtent(s);
+        e.gc.setBackground(immutableColor);
+        e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
+        e.gc.drawRectangle(5, fold, txtExtent.y - 1, txtExtent.y - 1);
+        e.gc.drawText(s, 10 + txtExtent.y, fold, true);
+
+        fold += txtExtent.y + 5;
+        s = element.getThreadSafeFieldCount() + " @ThreadSafe";
+        txtExtent = e.gc.stringExtent(s);
+        e.gc.setBackground(threadSafeColor);
+        e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
+        e.gc.drawRectangle(5, fold, txtExtent.y - 1, txtExtent.y - 1);
+        e.gc.drawText(s, 10 + txtExtent.y, fold, true);
+
+        fold += txtExtent.y + 5;
+        s = element.getLockProtectedFieldCount() + " @RegionLock/@GuardedBy";
+        txtExtent = e.gc.stringExtent(s);
+        e.gc.setBackground(lockProtectedColor);
+        e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
+        e.gc.drawRectangle(5, fold, txtExtent.y - 1, txtExtent.y - 1);
+        e.gc.drawText(s, 10 + txtExtent.y, fold, true);
+
+        fold += txtExtent.y + 5;
+        s = element.getThreadConfinedFieldCount() + " @ThreadConfined";
+        txtExtent = e.gc.stringExtent(s);
+        e.gc.setBackground(threadConfinedColor);
+        e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
+        e.gc.drawRectangle(5, fold, txtExtent.y - 1, txtExtent.y - 1);
+        e.gc.drawText(s, 10 + txtExtent.y, fold, true);
       }
     }
   }

@@ -143,11 +143,11 @@ public abstract class StateWrtElement {
     case 3: // @ThreadSafe
       metricValue = getThreadSafeFieldCount();
       break;
-    case 4: // @ThreadConfined
-      metricValue = getThreadConfinedFieldCount();
-      break;
-    case 5: // Lock protected
+    case 4: // @RegionLock/@GuardedBy
       metricValue = getLockProtectedFieldCount();
+      break;
+    case 5: // @ThreadConfined
+      metricValue = getThreadConfinedFieldCount();
       break;
     default: // Total (0 and default)
       metricValue = getFieldCountTotal();

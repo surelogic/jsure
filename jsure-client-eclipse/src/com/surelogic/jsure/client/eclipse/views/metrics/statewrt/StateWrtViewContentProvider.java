@@ -53,7 +53,9 @@ public class StateWrtViewContentProvider implements ITreeContentProvider {
       f_root = tree.getRootElements();
       for (StateWrtElement root : f_root)
         root.setupTotalsForChildren();
-      f_mediator.updateTotal(64); // TODO WRONG
+      if (f_root.length > 0) {
+        f_mediator.updateTotal(f_root[0].getFieldCountTotal(), f_root[0].getFieldCountTotal() - f_root[0].getOtherFieldCount());
+      }
     } else if (newInput == null) {
       f_root = StateWrtElement.EMPTY;
     } else {
