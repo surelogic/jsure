@@ -446,15 +446,34 @@ public class JavaNode extends JJNode {
     if (node == null) {
       return null;
     }
-    if (node.valueExists(f_fluidJavaRefSlotInfo))
-      return node.getSlotValue(f_fluidJavaRefSlotInfo);
-    else {
-      final IJavaRef javaRef = SkeletonJavaRefUtility.buildOrNullOnFailure(node);
-      if (javaRef != null) {
-        node.setSlotValue(f_fluidJavaRefSlotInfo, javaRef);
-        return javaRef;
-      }
+	
+    // Can't sync against node because of potential deadlock while
+    // building the ref
+    if (node.valueExists(f_fluidJavaRefSlotInfo)) {
+    	return node.getSlotValue(f_fluidJavaRefSlotInfo);
+    }    
+    IJavaRef javaRef = SkeletonJavaRefUtility.buildOrNullOnFailure(node);
+    while  (javaRef == SkeletonJavaRefUtility.placeholderRef) {
+    	// It will eventually set the slot value, or clear the skeleton
+    	try {
+    		System.out.println("Waiting for ref for "+JavaNames.getRelativeName(node));
+    		Thread.sleep(1);
+    	} catch (InterruptedException e) {
+    		// Ignore
+    	}
+    	// Check if null
+    	javaRef = SkeletonJavaRefUtility.buildOrNullOnFailure(node);    	
+    	
+    	if (node.valueExists(f_fluidJavaRefSlotInfo)) {
+    		return node.getSlotValue(f_fluidJavaRefSlotInfo);
+    	}
     }
+    
+    if (javaRef != null) {
+	  node.setSlotValue(f_fluidJavaRefSlotInfo, javaRef);
+	  SkeletonJavaRefUtility.removeInfo(node);
+	  return javaRef;
+    }    
     return null;
   }
 

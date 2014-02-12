@@ -4,6 +4,7 @@ import java.util.concurrent.*;
 import java.util.Map;
 
 import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.Utility;
 import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
@@ -43,6 +44,133 @@ public final class SkeletonJavaRefUtility {
     nodeToSkeleton.put(node, b);
   }
 
+  // Placeholder for skeletons being built
+  private static final JavaRefSkeletonBuilder placeholder = new JavaRefSkeletonBuilder() {
+	  @Override
+	  public IJavaRef buildOrNullOnFailure(@NonNull IRNode node) {
+		  return null;
+	  }
+  };
+  public static final IJavaRef placeholderRef = new IJavaRef() {
+	@Override
+	public boolean isFromSource() {
+		return false;
+	}
+	@Override
+	@NonNull
+	public Within getWithin() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	@Nullable
+	public String getTypeNameOrNull() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	@NonNull
+	public String getTypeNameFullyQualified() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	@NonNull
+	public String getSimpleFileNameWithNoExtension() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	@NonNull
+	public String getSimpleFileName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	@Nullable
+	public String getRealEclipseProjectNameOrNull() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	@NonNull
+	public Position getPositionRelativeToDeclaration() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	@NonNull
+	public String getPackageName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public int getOffset() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	
+	@Override
+	public int getLineNumber() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	
+	@Override
+	public int getLength() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	
+	@Override
+	@Nullable
+	public String getJarRelativePathOrNull() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	@Nullable
+	public String getEclipseProjectNameOrNull() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	@NonNull
+	public String getEclipseProjectNameOrEmpty() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	@NonNull
+	public String getEclipseProjectName() {
+		return null;
+	}
+	@Override
+	@NonNull
+	public IDecl getDeclaration() {
+		return null;
+	}
+	@Override
+	@Nullable
+	public String getAbsolutePathOrNull() {
+		return null;
+	}
+	@Override
+	@NonNull
+	public String encodeForPersistence() {
+		return null;
+	}
+};
+  
   /**
    * Tries to build a valid Java code reference from the skeleton on the passed
    * node. If it fails some warnings may be logged and {@code null} is returned.
@@ -56,9 +184,16 @@ public final class SkeletonJavaRefUtility {
    *         constructed.
    */
   static IJavaRef buildOrNullOnFailure(IRNode node) {
-    final JavaRefSkeletonBuilder sb = nodeToSkeleton.remove(node);
+	//final JavaRefSkeletonBuilder sb = nodeToSkeleton.remove(node);
+    final JavaRefSkeletonBuilder sb = nodeToSkeleton.put(node, placeholder);
+    if (sb == placeholder) {
+    	return placeholderRef;
+    }
     if (sb != null) {
       return sb.buildOrNullOnFailure(node);
+    } else {
+      // It really should be null
+      nodeToSkeleton.remove(node);
     }
     return null;
   }
@@ -84,6 +219,7 @@ public final class SkeletonJavaRefUtility {
       nodeToSkeleton.put(to, s);
       return true;
     } else {
+    	
       /*
       String unparse = DebugUnparser.toString(from);
       if (unparse.length() != 0 && !unparse.contains("public class []")) {
