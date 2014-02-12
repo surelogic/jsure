@@ -49,6 +49,7 @@ import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.ReferenceType;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -56,6 +57,31 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
 public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<StackQuery> {
+  private enum LValue {
+    FIELD {
+      @Override
+      public String toString() { return "field"; }
+    },
+    VARIABLE {
+      @Override
+      public String toString() { return "variable"; }
+    },
+    RECEIVER {
+      @Override
+      public String toString() { return "receiver"; }
+    },
+    PARAMETER {
+      @Override
+      public String toString() { return "parameter"; }
+    },
+    RETURN {
+      @Override
+      public String toString() { return "return value"; }
+    };
+  }
+  
+  
+  
   private static final int POSSIBLY_NULL = 915;
   private static final int POSSIBLY_NULL_UNBOX = 916;
   private static final int READ_FROM = 917;
@@ -247,14 +273,14 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   }
   
   private void checkAssignability(
-      final IRNode expr, final IRNode decl, final IRNode declTypeNode) {
+      final IRNode expr, final IRNode decl, final LValue kind, final IRNode declTypeNode) {
     if (ReferenceType.prototype.includes(declTypeNode)) {
-      checkAssignability(expr, decl, false);
+      checkAssignability(expr, decl, kind, false);
     }
   }
   
   private void checkAssignability(
-      final IRNode expr, final IRNode decl, final boolean noAnnoIsNonNull) {
+      final IRNode expr, final IRNode decl, final LValue kind, final boolean noAnnoIsNonNull) {
     /*
      * Problem for results: if declPD is null, then we have something that is
      * @Nullable (or @NonNull) with no annotation. It is an error to pass a @Raw
@@ -271,7 +297,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
         final ResultsBuilder builder = new ResultsBuilder(declPD);
         ResultFolderDrop folder = builder.createRootAndFolder(
             expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
-            declState.getAnnotation());
+            declState.getAnnotation(), kind);
         buildNewChain(false, expr, folder, declState, queryResult.getSources());
       } else {
         /*
@@ -304,7 +330,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
           final ResultsBuilder builder = new ResultsBuilder(drop);
           ResultFolderDrop folder = builder.createRootAndFolder(
               expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
-              testAgainst.getAnnotation());
+              testAgainst.getAnnotation(), kind);
           buildNewChain(noAnnoIsNonNull, expr, folder, testAgainst, queryResult.getSources());
         }
       }
@@ -429,7 +455,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   @Override
   protected void checkFieldInitialization(
       final IRNode fieldDecl, final IRNode varDecl) {
-    checkAssignmentInitializer(varDecl);
+    checkAssignmentInitializer(varDecl, LValue.FIELD);
   }
   
   @Override
@@ -439,7 +465,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
     final IRNode methodDecl = VisitUtil.getEnclosingMethod(returnStmt);
     final IRNode returnTypeNode = MethodDeclaration.getReturnType(methodDecl);
     checkAssignability(
-        valueExpr, JavaPromise.getReturnNode(methodDecl), returnTypeNode);
+        valueExpr, JavaPromise.getReturnNode(methodDecl), LValue.RETURN, returnTypeNode);
   }
   
   @Override
@@ -470,7 +496,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
       final IRNode actualExpr = actualsIter.next();
       final IRNode formalDecl = formalsIter.next();
       final IRNode formalTypeNode = ParameterDeclaration.getType(formalDecl);
-      checkAssignability(actualExpr, formalDecl, formalTypeNode);
+      checkAssignability(actualExpr, formalDecl, LValue.PARAMETER, formalTypeNode);
     }    
   }
 
@@ -482,7 +508,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
     
     // (2) check the target against the receiver annotation
     final IRNode rcvrDecl = JavaPromise.getReceiverNode(methodDecl);
-    checkAssignability(target, rcvrDecl, true);
+    checkAssignability(target, rcvrDecl, LValue.RECEIVER, true);
   }
   
   @Override
@@ -511,7 +537,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
     if (FieldRef.prototype.includes(op)) {
       final IRNode varDecl = binder.getBinding(lhs);
       final IRNode typeNode = VariableDeclarator.getType(varDecl);
-      checkAssignability(rhs, varDecl, typeNode);
+      checkAssignability(rhs, varDecl, LValue.FIELD, typeNode);
     } else if (VariableUseExpression.prototype.includes(op)) {
       /* Only check the assignment if the lhs is local variable, NOT if it
        * is a parameter.  The annotations on the two mean different things.
@@ -521,7 +547,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
         // Only check if the local is explicitly annotated
         if (getAnnotation(varOrParamDecl) != null) {
           final IRNode typeNode = VariableDeclarator.getType(varOrParamDecl);
-          checkAssignability(rhs, varOrParamDecl, typeNode);
+          checkAssignability(rhs, varOrParamDecl, LValue.VARIABLE, typeNode);
         }
       }
     }
@@ -530,17 +556,17 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   @Override
   protected void checkVariableInitialization(
       final IRNode declStmt, final IRNode vd) {
-    checkAssignmentInitializer(vd);
+    checkAssignmentInitializer(vd, LValue.VARIABLE);
   }
 
-  private void checkAssignmentInitializer(final IRNode vd) {
+  private void checkAssignmentInitializer(final IRNode vd, final LValue kind) {
     final IRNode init = VariableDeclarator.getInit(vd);
     if (Initialization.prototype.includes(init)) {
       // Only check if the local is explicitly annotated
       if (getAnnotation(vd) != null) {
         final IRNode initExpr = Initialization.getValue(init);
         final IRNode typeNode = VariableDeclarator.getType(vd);
-        checkAssignability(initExpr, vd, typeNode);
+        checkAssignability(initExpr, vd, kind, typeNode);
       }
     }
   }
