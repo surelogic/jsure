@@ -99,6 +99,10 @@ public interface IJavaScope {
 		}
 		enclosingType = last;
 	  }
+	  
+	  /** 
+	   * Call before using
+	   */
 	  public LookupContext use(String name, IRNode node) {
 		  this.name = name;
 		  useSite = node;
