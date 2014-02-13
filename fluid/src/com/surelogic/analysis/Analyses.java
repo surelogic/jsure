@@ -7,6 +7,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 
+import com.surelogic.analysis.granules.GranuleInType;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.common.jobs.SLProgressMonitor;
@@ -17,11 +18,14 @@ import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.ir.MetricDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
+import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.Util;
 
+import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import extra166y.Ops.Procedure;
 
 // Map groups to a linear ordering
 // Deal with granulators
@@ -269,5 +273,55 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 			incrTime(i, end - start);
 			i++;
 		}	
+	}	
+	
+	public static void main(String... args) {
+		Javac.getDefault();
+		final ConcurrentAnalysis<TestGranule> a = new ConcurrentAnalysis<TestGranule>(true, TestGranule.class);
+		final Set<String> names = new HashSet<String>();
+		final List<TestGranule> c = new ArrayList<TestGranule>();
+		for(int i=0; i<40; i++) {
+			c.add(new TestGranule());
+		}
+		a.runAsTasks(c, new Procedure<TestGranule>() {
+			@Override
+			public void op(TestGranule g) {
+				List<TestGranule> c2 = new ArrayList<TestGranule>();
+				for(int i=0; i<40; i++) {
+					c2.add(new TestGranule());
+				}
+				final Thread here = Thread.currentThread();
+				names.add(here.getName());
+				
+				a.runAsTasks(c2, new Procedure<TestGranule>() {
+					@Override
+					public void op(TestGranule g) {
+						//System.out.println(here.getName()+" => "+Thread.currentThread().getName());
+						names.add(Thread.currentThread().getName());
+					}
+				});
+			}
+		});
+		int i=1;
+		for(String s : names) {
+			System.out.println(i+". "+s);
+			i++;
+		}
+	}
+	
+	private static class TestGranule extends GranuleInType {
+		protected TestGranule() {
+			super(null);
+		}
+
+		@Override
+		public String getLabel() {
+			return null;
+		}
+
+		@Override
+		public IRNode getNode() {
+			return null;
+		}
 	}
 }
