@@ -472,7 +472,6 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
       f_analysisCombo.setItems(choices.toArray(new String[choices.size()]));
       f_analysisCombo.select(indexToSelect);
       final String setAnalysisToShow = indexToSelect == 0 ? null : choices.get(indexToSelect);
-      System.out.println("setAnalysisToShow(" + setAnalysisToShow + ")");
       f_options.setAnalysisToShow(setAnalysisToShow);
     }
 
