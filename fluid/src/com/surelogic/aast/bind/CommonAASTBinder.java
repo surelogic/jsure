@@ -592,7 +592,7 @@ public class CommonAASTBinder extends AASTBinder {
       final String name = standardizeTypeName(t);
       IRNode td = resolveTypeName(t, name);
       if (td == null) {
-    	  throw new IllegalStateException();
+    	  return null;
       }
       return createISourceRefType(td);
     }
