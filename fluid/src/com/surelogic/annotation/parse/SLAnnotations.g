@@ -353,6 +353,7 @@ nonNullExpression
 rawMethod
     : thisExpr | returnValue 
     | STATIC '(' namedType ')' -> namedType
+    | nothing -> ^(ThisExpression THIS)
     ;
 
 rawConstructor
