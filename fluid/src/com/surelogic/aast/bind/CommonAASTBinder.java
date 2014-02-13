@@ -189,8 +189,12 @@ public class CommonAASTBinder extends AASTBinder {
     	final IJavaScope imports = UnversionedJavaImportTable.getImportTable(cu, (UnversionedJavaBinder) eb);
     	final LookupContext context = new LookupContext();
     	context.use(name, a.getPromisedFor());
-    	
-    	return imports.lookup(context, IJavaScope.Util.isTypeDecl).getNode();    	
+    
+    	edu.cmu.cs.fluid.java.bind.IBinding b = imports.lookup(context, IJavaScope.Util.isTypeDecl);
+    	if (b != null) {
+    		return b.getNode();
+    	}
+    	// Null otherwise
     }
     return t;
   }
