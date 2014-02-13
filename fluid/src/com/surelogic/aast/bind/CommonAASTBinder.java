@@ -58,10 +58,14 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
+import edu.cmu.cs.fluid.java.bind.IJavaScope;
+import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
+import edu.cmu.cs.fluid.java.bind.UnversionedJavaBinder;
+import edu.cmu.cs.fluid.java.bind.UnversionedJavaImportTable;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
@@ -180,6 +184,14 @@ public class CommonAASTBinder extends AASTBinder {
     if (t != null && NamedPackageDeclaration.prototype.includes(t)) {
     	return null;
     }
+    if (t == null) {
+    	final IRNode cu = VisitUtil.findCompilationUnit(a.getPromisedFor());
+    	final IJavaScope imports = UnversionedJavaImportTable.getImportTable(cu, (UnversionedJavaBinder) eb);
+    	final LookupContext context = new LookupContext();
+    	context.use(name, a.getPromisedFor());
+    	
+    	return imports.lookup(context, IJavaScope.Util.isTypeDecl).getNode();    	
+    }
     return t;
   }
   
@@ -254,6 +266,14 @@ public class CommonAASTBinder extends AASTBinder {
   }
   */
   
+  private static String standardizeTypeName(NamedTypeNode t) {
+      String name = t.getType();
+      if (name == null || name.length() == 0) {
+    	  return SLUtility.JAVA_LANG_OBJECT;
+      }
+      return name;
+  }
+  
   @Override
   public boolean isResolvableToType(AASTNode node) {
     if (node instanceof PrimitiveTypeNode) {
@@ -261,10 +281,7 @@ public class CommonAASTBinder extends AASTBinder {
     }
     if (node instanceof NamedTypeNode) {
       NamedTypeNode t = (NamedTypeNode) node;
-      String name = t.getType();
-      if (name == null || name.length() == 0) {
-    	  name = SLUtility.JAVA_LANG_OBJECT;
-      }
+      final String name = standardizeTypeName(t);
       return "*".equals(name) || resolveTypeName(t, name) != null;
     }
     else if (node instanceof ArrayTypeNode) {
@@ -568,14 +585,12 @@ public class CommonAASTBinder extends AASTBinder {
   public ISourceRefType resolveType(ClassTypeNode node) {
     if (node instanceof NamedTypeNode) {
       NamedTypeNode t = (NamedTypeNode) node;
-      String name = t.getType();
-      if (name == null || name.length() == 0) {
-    	  name = SLUtility.JAVA_LANG_OBJECT;
+      final String name = standardizeTypeName(t);
+      IRNode td = resolveTypeName(t, name);
+      if (td == null) {
+    	  throw new IllegalStateException();
       }
-      if ("T".equals(name)) {
-    	  System.out.println("Trying to resolve T");
-      }
-      return createISourceRefType(resolveTypeName(t, name));
+      return createISourceRefType(td);
     }
     throw new UnsupportedOperationException("Auto-generated method stub: "+node.getClass().getName()); // TODO
   }
