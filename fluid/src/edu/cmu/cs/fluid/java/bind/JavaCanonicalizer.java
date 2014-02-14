@@ -565,8 +565,6 @@ public class JavaCanonicalizer {
         JavaNode.setImplicit(thisExpr);
       }
       SkeletonJavaRefUtility.copyIfPossible(from, thisExpr);
-      SkeletonJavaRefUtility.copyIfPossible(from, thisExpr);
-
       return thisExpr;
     }
 
@@ -610,6 +608,7 @@ public class JavaCanonicalizer {
       } finally {
         if (rv != null) {
           SkeletonJavaRefUtility.copyIfPossible(name, rv);
+          SkeletonJavaRefUtility.removeInfo(name);
         }
       }
     }
@@ -629,6 +628,7 @@ public class JavaCanonicalizer {
       }
       IRNode namedType = createNamedType(nameNode, b);
       SkeletonJavaRefUtility.copyIfPossible(nameNode, namedType);
+      SkeletonJavaRefUtility.removeInfo(nameNode);
       return namedType;
     }
 
@@ -1145,6 +1145,7 @@ public class JavaCanonicalizer {
       
       IRNode whileLoop = makeEquivWhileLoop(stmt, cond, paramInit);
       IRNode result = BlockStatement.createNode(new IRNode[] { arrayDecl, iDecl, whileLoop });
+      SkeletonJavaRefUtility.removeInfo(stmt);
       return result;
     }
 
@@ -1330,6 +1331,7 @@ public class JavaCanonicalizer {
 
       IRNode whileLoop = makeEquivWhileLoop(stmt, cond, paramInit);
       IRNode result = BlockStatement.createNode(new IRNode[] { /* iterableDecl, */itDecl, whileLoop });
+      SkeletonJavaRefUtility.removeInfo(stmt);
       return result;
     }
 
