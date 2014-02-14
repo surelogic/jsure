@@ -271,10 +271,21 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
     f_replacedAttributeNameToValue = replacedAttributeNameToValue != null ? replacedAttributeNameToValue : Collections
         .<String, String> emptyMap();
 
-    if (value == null) {
-      setMessageHelper(18, annotation);
+    if (f_attributeNameToValue.isEmpty()) {
+    	if (value == null) {
+    	    setMessageHelper(18, annotation);
+    	} else {
+    		setMessageHelper(10, annotation, value);
+    	}
     } else {
-      setMessageHelper(10, annotation, value);
+    	StringBuilder sb = new StringBuilder();
+    	if (value != null) {
+    		sb.append("value=").append('"').append(value).append('"');
+    	}
+    	for(Map.Entry<String, String> e : f_attributeNameToValue.entrySet()) {
+    		sb.append(e.getKey()).append('=').append('"').append(e.getValue()).append('"');
+    	}
+    	setMessageHelper(10, annotation, sb);    	
     }
   }
 
