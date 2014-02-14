@@ -425,11 +425,9 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       // Needed effects are those that are declared plus those that are missing
       missing.addAll(declFx);
       final Set<Effect> inferred = inferEffects(true, constructor, missing);
-      final ProposedPromiseDrop proposed = 
-        new ProposedPromiseDrop("RegionEffects", 
-            Effects.unparseForPromise(inferred), 
-            getPromiseContents(declEffDrop), 
-            constructor, constructor, Origin.MODEL);
+      final ProposedPromiseDrop proposed = new Builder(RegionEffects.class, constructor, constructor)
+          .setValue(Effects.unparseForPromise(inferred)).replaceExisting(RegionEffects.class, getPromiseContents(declEffDrop))
+          .build();
       for (final ResultDrop r : badDrops) {
         r.addProposal(proposed);
       }
@@ -459,11 +457,9 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
       // Needed effects are those that are declared plus those that are missing
       missing.addAll(declFx);
       final Set<Effect> inferred = inferEffects(false, method, missing);
-      final ProposedPromiseDrop proposed = 
-        new ProposedPromiseDrop("RegionEffects", 
-            Effects.unparseForPromise(inferred), 
-            getPromiseContents(declEffDrop), 
-            method, method, Origin.MODEL);
+      final ProposedPromiseDrop proposed = new Builder(RegionEffects.class, method, method)
+          .setValue(Effects.unparseForPromise(inferred)).replaceExisting(RegionEffects.class, getPromiseContents(declEffDrop))
+          .build();
       for (final ResultDrop r : badDrops) {
         r.addProposal(proposed);
       }

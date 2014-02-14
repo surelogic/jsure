@@ -47,11 +47,6 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  */
 public final class ProposedPromiseDrop extends Drop implements IProposedPromiseDrop {
 
-  public ProposedPromiseDrop getNew(@NonNull String annotation, @Nullable String value, @NonNull IRNode at,
-      @NonNull final IRNode from, @NonNull Origin origin) {
-    return new Builder(annotation, at, from).setValue(value).setOrigin(origin).build();
-  }
-
   @NotThreadSafe
   public static final class Builder {
 
@@ -295,6 +290,8 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
   }
 
   /**
+   * <b>Do Not Invoke&mdash;Use the {@link Builder}</b>.
+   * <p>
    * Constructs a new proposed promise. Optionally this promise may replace an
    * existing promise.
    * 
@@ -327,7 +324,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
    * @param origin
    *          an indication of how this proposal was generated.
    */
-  public ProposedPromiseDrop(@NonNull String annotation, @Nullable String value, @NonNull Map<String, String> attributeNameToValue,
+  ProposedPromiseDrop(@NonNull String annotation, @Nullable String value, @NonNull Map<String, String> attributeNameToValue,
       @Nullable String replacedAnnotation, @Nullable String replacedValue,
       @NonNull Map<String, String> replacedAttributeNameToValue, @NonNull IRNode at, @NonNull IRNode from, @NonNull Origin origin) {
     super(at);
@@ -366,47 +363,6 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
       }
       setMessageHelper(10, annotation, sb);
     }
-  }
-
-  /**
-   * Constructs a new proposed promise to replace an existing promise that has
-   * the same annotation.
-   * 
-   * @param annotation
-   *          the Java annotation being proposed. For
-   *          <code>@Starts("nothing")</code> the value of this string would be
-   *          {@code "Starts"}.
-   * @param value
-   *          the value of the Java annotation being proposed. For
-   *          <code>@Starts("nothing")</code> the value of this string would be
-   *          {@code "nothing"}. For <code>@Borrowed</code>, which has no
-   *          contents, the value of this string would be {@code null}.
-   * @param replacedValue
-   *          the value of the Java annotation being replaced. For
-   *          <code>@Starts("nothing")</code> the value of this string would be
-   *          {@code "nothing"}. For <code>@Borrowed</code>, which has no
-   *          contents, the value of this string would be {@code null}. If this
-   *          is non-null <tt>annotation</tt> is assumed as the replaced
-   *          promise.
-   * @param at
-   *          the proposed location for the promise, a declaration.
-   * @param from
-   *          a node within the compilation unit where the analysis deems that
-   *          this proposed promise is needed. This is used to remove this
-   *          proposed promise if the compilation unit is reanalyzed.
-   * @param origin
-   *          an indication of how this proposal was generated.
-   */
-  public ProposedPromiseDrop(@NonNull String annotation, @Nullable String value, @Nullable String replacedValue,
-      @NonNull IRNode at, @NonNull IRNode from, @NonNull Origin origin) {
-    this(annotation, value, Collections.<String, String> emptyMap(), replacedValue != null ? annotation : null, replacedValue,
-        Collections.<String, String> emptyMap(), at, from, origin);
-  }
-
-  public ProposedPromiseDrop(@NonNull String annotation, @Nullable String value, @NonNull String replacedAnnotation,
-      @Nullable String replacedValue, @NonNull IRNode at, @NonNull IRNode from, @NonNull Origin origin) {
-    this(annotation, value, Collections.<String, String> emptyMap(), replacedAnnotation, replacedValue, Collections
-        .<String, String> emptyMap(), at, from, origin);
   }
 
   /**

@@ -390,10 +390,9 @@ public class MethodEffectsRules extends AnnotationRules {
                 allGood = false;
                 final RegionEffectsNode cloned =
                     overriddenFx.cloneForProposal(paramMap);
-                final ProposedPromiseDrop p = new ProposedPromiseDrop(
-                    REGIONEFFECTS, cloned.unparseForPromise(true),
-                    node.toString().substring("RegionEffects".length()).trim(),
-                    promisedFor, overriddenMethod, Origin.PROBLEM);
+                final ProposedPromiseDrop p = new Builder(RegionEffects.class, promisedFor, overriddenMethod)
+                    .setValue(cloned.unparseForPromise(true))
+                    .replaceExisting(RegionEffects.class, node.toString().substring("RegionEffects".length()).trim()).build();
                 scrubberContext.reportErrorAndProposal(p, 
                     "Cannot add effect {0} to the declared effects of {1}",
                     overridingSpec.standAloneUnparse(),
