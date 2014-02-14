@@ -248,7 +248,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
    * @param origin
    *          an indication of how this proposal was generated.
    */
-  private ProposedPromiseDrop(@NonNull String annotation, @Nullable String value,
+  public ProposedPromiseDrop(@NonNull String annotation, @Nullable String value,
       @NonNull Map<String, String> attributeNameToValue, @Nullable String replacedAnnotation, @Nullable String replacedValue,
       @NonNull Map<String, String> replacedAttributeNameToValue, @NonNull IRNode at, @NonNull IRNode from, @NonNull Origin origin) {
     super(at);
