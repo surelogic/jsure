@@ -1,6 +1,5 @@
 package com.surelogic.analysis.nullable;
 
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,6 +8,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.Initialized;
+import com.surelogic.NonNull;
 import com.surelogic.aast.*;
 import com.surelogic.aast.promise.NonNullNode;
 import com.surelogic.aast.promise.NullableNode;
@@ -27,13 +28,13 @@ import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
-import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.AnalysisResultDrop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
@@ -406,9 +407,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
             final IRNode decl = binder.getBinding(rhsExpr);
             if (ParameterDeclaration.prototype.includes(decl) &&
                 getAnnotation(decl) == null) {
-              result.addProposalNotProvedConsistent(
-                  new ProposedPromiseDrop(
-                      "NonNull", null, decl, rhsExpr, Origin.PROBLEM));
+              result.addProposalNotProvedConsistent(new Builder(NonNull.class, decl, rhsExpr).build());
             }
           }
           // TODO check if correct
@@ -458,12 +457,10 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   private ProposedPromiseDrop makeInitializedProposal(final Element srcState, IRNode use, IRNode decl) {
 	  ProposedPromiseDrop proposal;
 	  if (srcState == NonNullRawLattice.RAW) {
-		  proposal = new ProposedPromiseDrop(NonNullRules.RAW, null, decl, use, Origin.PROBLEM);
+      proposal = new Builder(Initialized.class, decl, use).build();
 	  } else {
 		  ClassElement ce = (ClassElement) srcState;
-		  proposal = new ProposedPromiseDrop(
-				  NonNullRules.RAW, null, Collections.singletonMap(AnnotationVisitor.THROUGH, ce.getType().getName()), 
-				  null, null, null, decl, use, Origin.PROBLEM);
+		  proposal = new Builder(Initialized.class, decl, use).addAttribute(AnnotationVisitor.THROUGH, ce.getType().getName()).build();
 	  }
 	  return proposal;
   }

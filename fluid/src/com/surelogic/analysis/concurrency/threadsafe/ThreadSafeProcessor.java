@@ -3,7 +3,11 @@ package com.surelogic.analysis.concurrency.threadsafe;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.Containable;
 import com.surelogic.Part;
+import com.surelogic.ThreadSafe;
+import com.surelogic.Unique;
+import com.surelogic.Vouch;
 import com.surelogic.aast.promise.AbstractModifiedBooleanNode;
 import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.ResultsBuilder;
@@ -16,10 +20,9 @@ import com.surelogic.analysis.type.constraints.TypeAnnotations;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.visitors.TypeImplementationProcessor;
 import com.surelogic.annotation.rules.LockRules;
-import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.ModifiedBooleanPromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.VouchFieldIsPromiseDrop;
@@ -268,8 +271,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
       }
       if (proposeThreadSafe) {
         for (final IRNode n : tsTester.getFailed()) {
-          tsResult.addProposal(new ProposedPromiseDrop(
-              "ThreadSafe", null, n, varDecl, Origin.MODEL));
+          tsResult.addProposal(new Builder(ThreadSafe.class, n, varDecl).build());
         }
       }
         
@@ -322,8 +324,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
 
           if (proposeContainable) {
             for (final IRNode n : tsTester.getFailed()) {
-              cResult.addProposal(new ProposedPromiseDrop(
-                  "Containable", null, n, varDecl, Origin.MODEL));
+              cResult.addProposal(new Builder(Containable.class, n, varDecl).build());
             }
           }
         }
@@ -334,8 +335,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
       if (uDrop == null) {
         final ResultDrop uResult =
             ResultsBuilder.createResult(false, containableFolder, varDecl, FIELD_IS_NOT_UNIQUE);
-        uResult.addProposal(new ProposedPromiseDrop(
-            "Unique", null, varDecl, varDecl,  Origin.MODEL));
+        uResult.addProposal(new Builder(Unique.class, varDecl, varDecl).build());
       } else {
         final ResultDrop uResult =
             ResultsBuilder.createResult(true, containableFolder, varDecl, FIELD_IS_UNIQUE);
@@ -360,8 +360,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
   
       if (!isPrimitive) {
         // Propose that the field be vouched threadsafe
-        folder.addProposalNotProvedConsistent(new ProposedPromiseDrop(
-            "Vouch", "ThreadSafe", varDecl, varDecl, Origin.MODEL));
+        folder.addProposalNotProvedConsistent(new Builder(Vouch.class, varDecl, varDecl).setValue("ThreadSafe").build());
       }
     }
   }

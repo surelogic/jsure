@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.antlr.runtime.RecognitionException;
 
+import com.surelogic.RegionEffects;
 import com.surelogic.aast.*;
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.java.*;
@@ -19,6 +20,7 @@ import com.surelogic.annotation.test.TestResult;
 import com.surelogic.annotation.test.TestResultType;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
 import com.surelogic.parse.AbstractNodeAdaptor;
@@ -157,10 +159,8 @@ public class MethodEffectsRules extends AnnotationRules {
               if (!good) {
                 final RegionEffectsNode cloned = overriddenFx.cloneForProposal(
                     new ParameterMap(overriddenMethod, decl));
-                final ProposedPromiseDrop p =
-                    new ProposedPromiseDrop(
-                        REGIONEFFECTS, cloned.unparseForPromise(true),
-                        decl, overriddenMethod, Origin.PROBLEM);
+                final ProposedPromiseDrop p = new Builder(RegionEffects.class, decl, overriddenMethod)
+                    .setValue(cloned.unparseForPromise(true)).setOrigin(Origin.PROBLEM).build();
                 getContext().reportWarningAndProposal(p,
                     "Cannot add effect writes java.lang.Object:All to the declared effects of {0}",
                     JavaNames.genRelativeFunctionName(overriddenMethod));

@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.NonNull;
 import com.surelogic.aast.*;
 import com.surelogic.aast.promise.NonNullNode;
 import com.surelogic.aast.promise.NullableNode;
@@ -29,9 +30,9 @@ import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.AnalysisResultDrop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
@@ -376,9 +377,7 @@ public final class NonNullTypeChecker extends QualifiedTypeChecker<StackQuery> {
             final IRNode decl = binder.getBinding(rhsExpr);
             if (ParameterDeclaration.prototype.includes(decl) &&
                 getAnnotation(decl) == null) {
-              result.addProposalNotProvedConsistent(
-                  new ProposedPromiseDrop(
-                      "NonNull", null, decl, rhsExpr, Origin.PROBLEM));
+              result.addProposalNotProvedConsistent(new Builder(NonNull.class, decl, rhsExpr).setOrigin(Origin.PROBLEM).build());
             }
           }
         }

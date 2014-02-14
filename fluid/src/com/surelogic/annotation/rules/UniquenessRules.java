@@ -24,6 +24,7 @@ import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.type.constraints.ImmutableRefPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.ReadOnlyPromiseDrop;
@@ -477,10 +478,9 @@ public class UniquenessRules extends AnnotationRules {
     protected ProposedPromiseDrop proposePromise(
         final State value, final String valueValue,
         final IRNode promisedFor, final IRNode parentMethod) {
-      return new ProposedPromiseDrop(value.getProposedPromiseName(), valueValue,
-          promisedFor, parentMethod, Origin.PROBLEM);
+      return new Builder(value.getProposedPromiseName(), promisedFor, parentMethod).setValue(valueValue).setOrigin(Origin.PROBLEM)
+          .build();
     }
-    
   }
   
   // For LockRules

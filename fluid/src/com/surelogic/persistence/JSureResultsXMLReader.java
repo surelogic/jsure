@@ -8,9 +8,9 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.Entity;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 import com.surelogic.dropsea.irfree.SeaSnapshot;
 
@@ -58,8 +58,7 @@ public class JSureResultsXMLReader extends AbstractJSureResultsXMLReader<ResultD
       IRNode location = findPromiseLocation(nested);
       d.setInconsistent();
       // TODO what is this for?
-      d.addProposal(new ProposedPromiseDrop(nested.getAttribute(PROMISE), nested.getAttribute(PROMISE_CONTENTS), location,
-          location, Origin.valueOf(nested.getAttribute(ORIGIN))));
+      d.addProposal(new Builder(nested.getAttribute(PROMISE), location, location).setValue(nested.getAttribute(PROMISE_CONTENTS)).setOrigin(Origin.valueOf(nested.getAttribute(ORIGIN))).build());
     } else {
       d.addTrusted(pd);
     }

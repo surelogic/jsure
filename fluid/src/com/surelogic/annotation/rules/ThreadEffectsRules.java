@@ -14,6 +14,7 @@ import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
@@ -97,7 +98,7 @@ public class ThreadEffectsRules extends AnnotationRules {
               // Ancestor is annotated
               good = false;
               getContext().reportWarningAndProposal(
-                  new ProposedPromiseDrop("Starts", "nothing", decl, parent, Origin.PROBLEM),
+                  new Builder(Starts.class, decl, parent).setValue("nothing").setOrigin(Origin.PROBLEM).build(),
                   "Method must be annotated @Starts(\"nothing\") because it overrides @Starts(\"nothing\") {0}",
                   JavaNames.genRelativeFunctionName(parent));
             }

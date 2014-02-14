@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import com.surelogic.RegionEffects;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.effects.targets.AggregationEvidence;
@@ -30,6 +31,7 @@ import com.surelogic.annotation.rules.MethodEffectsRules;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
@@ -228,10 +230,8 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 							IDEPreferences.MAKE_NONABDUCTIVE_PROPOSALS)) {
 						final Set<Effect> inferredEffects = inferEffects(
 								isConstructor, member, implFx);
-						new ProposedPromiseDrop(
-								"RegionEffects",
-								Effects.unparseForPromise(inferredEffects), member,
-								member, Origin.CODE);
+            new Builder(RegionEffects.class, member, member).setValue(Effects.unparseForPromise(inferredEffects))
+                .setOrigin(Origin.CODE).build();
 					}
 				}
 			}			

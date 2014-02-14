@@ -16,6 +16,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.surelogic.RequiresLock;
+import com.surelogic.Unique;
+import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.ExpressionNode;
 import com.surelogic.aast.java.VariableUseExpressionNode;
@@ -49,12 +52,11 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.IKeyValue;
-import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import com.surelogic.dropsea.ir.drops.locks.RequiresLockPromiseDrop;
@@ -1276,14 +1278,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 									// Propose the aggregate annotation
 									final String simpleRegionName = ((RegionLockRecord) lockRecord).region.getName();
 									if ("Instance".equals(simpleRegionName)) {
-										info.addProposal(new ProposedPromiseDrop(
-												"Unique", null, fieldDecl,
-												fieldRef, Origin.MODEL));
+										info.addProposal(new Builder(Unique.class, fieldDecl, fieldRef).build());
 									} else {
-										info.addProposal(new ProposedPromiseDrop(
-												"UniqueInRegion",
-												simpleRegionName, fieldDecl,
-												fieldRef, Origin.MODEL));
+										info.addProposal(new Builder(UniqueInRegion.class, fieldDecl, fieldRef).setValue(simpleRegionName).build());
 									}
 								}
 							}
@@ -1313,13 +1310,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						final IRNode fieldDecl = binder.getBinding(objExpr);
 						final String simpleRegionName = innerLock.region.getName();
 						if ("Instance".equals(simpleRegionName)) {
-							info.addProposal(new ProposedPromiseDrop(
-									"Unique", null, fieldDecl, fieldRef,
-									Origin.MODEL));
+							info.addProposal(new Builder(Unique.class, fieldDecl, fieldRef).build());
 						} else {
-							info.addProposal(new ProposedPromiseDrop(
-									"UniqueInRegion", simpleRegionName,
-									fieldDecl, fieldRef, Origin.MODEL));
+							info.addProposal(new Builder(UniqueInRegion.class, fieldDecl, fieldRef).setValue(simpleRegionName).build());
 						}
 					}
 				}
@@ -1677,9 +1670,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					if (ctxtSingleThreadedData != null
 							&& !ctxtSingleThreadedData.isSingleThreaded
 							&& ctxtInsideConstructor != null) {
-						resultDrop.addProposal(new ProposedPromiseDrop(
-								"Unique", "return", ctxtInsideConstructor,
-								useSite, Origin.MODEL));
+						resultDrop.addProposal(new Builder(Unique.class, ctxtInsideConstructor, useSite).setValue("return").build());
 					}
 
 					/*
@@ -1694,9 +1685,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 */
 						if (neededLockName != null
 								&& !"MUTEX".equals(neededLockName)) {
-							resultDrop.addProposal(new ProposedPromiseDrop(
-									"RequiresLock", neededLockName,
-									ctxtInsideMethod, useSite, Origin.MODEL));
+							resultDrop.addProposal(new Builder(RequiresLock.class, ctxtInsideMethod, useSite).setValue(neededLockName).build());
 						}
 					}
 				}

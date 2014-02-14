@@ -47,28 +47,70 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  */
 public final class ProposedPromiseDrop extends Drop implements IProposedPromiseDrop {
 
+  public ProposedPromiseDrop getNew(@NonNull String annotation, @Nullable String value, @NonNull IRNode at,
+      @NonNull final IRNode from, @NonNull Origin origin) {
+    return new Builder(annotation, at, from).setValue(value).setOrigin(origin).build();
+  }
+
   @NotThreadSafe
   public static final class Builder {
 
+    /**
+     * Where I want to create the annotation
+     */
     @NonNull
     private final IRNode f_at;
+
+    /**
+     * Where the request came from, in case we have to create an assume rather
+     * than an actual annotation.
+     */
     @NonNull
     private final IRNode f_from;
 
+    /**
+     * An indication of how this proposal was generated.
+     */
     @Nullable
     private Origin f_origin = null;
 
+    /**
+     * the annotation being proposed. For <code>@Starts("nothing")</code> the
+     * value of this string would be {@code "Starts"}.
+     */
     @NonNull
     private final String f_annotation;
+
+    /**
+     * The value of the annotation being proposed. For
+     * <code>@Starts("nothing")</code> the value of this string would be
+     * {@code "nothing"}. For <code>@Borrowed</code>, which has no contents, the
+     * value of this string would be {@code null}.
+     */
     @Nullable
     private String f_value = null;
+
+    /**
+     * The non-value attributes for the annotation being proposed.
+     */
     @NonNull
     private final Map<String, String> f_attributeNameToValue = new HashMap<String, String>();
 
+    /**
+     * The annotation being replaced, similar to {@link #f_annotation}.
+     */
     @Nullable
     private String f_replacedAnnotation = null;
+    /**
+     * The value being replaced, similar to {@link #f_value}.
+     */
     @Nullable
     private String f_replacedValue = null;
+
+    /**
+     * The non-value attributes for the annotation being replaced, similar to
+     * {@link #f_attributeNameToValue}.
+     */
     @NonNull
     private final Map<String, String> f_replacedAttributeNameToValue = new HashMap<String, String>();
 
@@ -83,6 +125,11 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
      * 
      * @param annotation
      *          an annotation in <tt>com.surelogic</tt>.
+     * @param at
+     *          where to put the proposal.
+     * @param from
+     *          where the request came from, in case we have to create an assume
+     *          rather than an actual annotation.
      * @throws IllegalArgumentException
      *           if any of the parameters is {@code null} or the passed
      *           annotation is not in the package <tt>com.surelogic</tt>.
@@ -97,6 +144,35 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
       if (!SLUtility.SURELOGIC_ANNOTATION_PACKAGE.equals(annotation.getPackage().getName()))
         throw new IllegalArgumentException(I18N.err(299, annotation.getName()));
       f_annotation = annotation.getSimpleName();
+      f_at = at;
+      f_from = from;
+    }
+
+    /**
+     * Constructs a builder to propose the passed annotation.
+     * <p>
+     * <b>If possible use {@link Builder#Builder(Class, IRNode, IRNode)} which
+     * has better error checking&mdash;this method should only be invoked by XML
+     * reading code and its ilk.</b>
+     * 
+     * @param annotation
+     *          the simple name of an annotation in <tt>com.surelogic</tt>.
+     * @param at
+     *          where to put the proposal.
+     * @param from
+     *          where the request came from, in case we have to create an assume
+     *          rather than an actual annotation.
+     * @throws IllegalArgumentException
+     *           if any of the parameters is {@code null}.
+     */
+    public Builder(@NonNull String annotation, @NonNull IRNode at, @NonNull IRNode from) {
+      if (annotation == null)
+        throw new IllegalArgumentException(I18N.err(44, "annotation"));
+      if (at == null)
+        throw new IllegalArgumentException(I18N.err(44, "at"));
+      if (from == null)
+        throw new IllegalArgumentException(I18N.err(44, "from"));
+      f_annotation = annotation;
       f_at = at;
       f_from = from;
     }
@@ -137,6 +213,9 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
       return this;
     }
 
+    /**
+     * An indication of how this proposal was generated.
+     */
     public Builder setOrigin(@Nullable Origin value) {
       f_origin = value;
       return this;
@@ -248,8 +327,8 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
    * @param origin
    *          an indication of how this proposal was generated.
    */
-  public ProposedPromiseDrop(@NonNull String annotation, @Nullable String value,
-      @NonNull Map<String, String> attributeNameToValue, @Nullable String replacedAnnotation, @Nullable String replacedValue,
+  public ProposedPromiseDrop(@NonNull String annotation, @Nullable String value, @NonNull Map<String, String> attributeNameToValue,
+      @Nullable String replacedAnnotation, @Nullable String replacedValue,
       @NonNull Map<String, String> replacedAttributeNameToValue, @NonNull IRNode at, @NonNull IRNode from, @NonNull Origin origin) {
     super(at);
     if (from == null)
@@ -272,20 +351,20 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
         .<String, String> emptyMap();
 
     if (f_attributeNameToValue.isEmpty()) {
-    	if (value == null) {
-    	    setMessageHelper(18, annotation);
-    	} else {
-    		setMessageHelper(10, annotation, value);
-    	}
+      if (value == null) {
+        setMessageHelper(18, annotation);
+      } else {
+        setMessageHelper(10, annotation, value);
+      }
     } else {
-    	StringBuilder sb = new StringBuilder();
-    	if (value != null) {
-    		sb.append("value=").append('"').append(value).append('"');
-    	}
-    	for(Map.Entry<String, String> e : f_attributeNameToValue.entrySet()) {
-    		sb.append(e.getKey()).append('=').append('"').append(e.getValue()).append('"');
-    	}
-    	setMessageHelper(10, annotation, sb);    	
+      StringBuilder sb = new StringBuilder();
+      if (value != null) {
+        sb.append("value=").append('"').append(value).append('"');
+      }
+      for (Map.Entry<String, String> e : f_attributeNameToValue.entrySet()) {
+        sb.append(e.getKey()).append('=').append('"').append(e.getValue()).append('"');
+      }
+      setMessageHelper(10, annotation, sb);
     }
   }
 
@@ -324,37 +403,10 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
         Collections.<String, String> emptyMap(), at, from, origin);
   }
 
-  public ProposedPromiseDrop(@NonNull String annotation, @Nullable String value, @NonNull String replacedAnnotation, @Nullable String replacedValue,
-      @NonNull IRNode at, @NonNull IRNode from, @NonNull Origin origin) {
-    this(annotation, value, Collections.<String, String> emptyMap(), replacedAnnotation, replacedValue,
-        Collections.<String, String> emptyMap(), at, from, origin);
-  }
-
-  /**
-   * Constructs a new proposed promise that does not replace an existing
-   * promise.
-   * 
-   * @param annotation
-   *          the Java annotation being proposed. For
-   *          <code>@Starts("nothing")</code> the value of this string would be
-   *          {@code "Starts"}.
-   * @param value
-   *          the value of the Java annotation being proposed. For
-   *          <code>@Starts("nothing")</code> the value of this string would be
-   *          {@code "nothing"}. For <code>@Borrowed</code>, which has no
-   *          contents, the value of this string would be {@code null}.
-   * @param at
-   *          the proposed location for the promise, a declaration.
-   * @param from
-   *          a node within the compilation unit where the analysis deems that
-   *          this proposed promise is needed. This is used to remove this
-   *          proposed promise if the compilation unit is reanalyzed.
-   * @param origin
-   *          an indication of how this proposal was generated.
-   */
-  public ProposedPromiseDrop(@NonNull String annotation, @Nullable String value, @NonNull IRNode at, @NonNull final IRNode from,
-      @NonNull Origin origin) {
-    this(annotation, value, null, at, from, origin);
+  public ProposedPromiseDrop(@NonNull String annotation, @Nullable String value, @NonNull String replacedAnnotation,
+      @Nullable String replacedValue, @NonNull IRNode at, @NonNull IRNode from, @NonNull Origin origin) {
+    this(annotation, value, Collections.<String, String> emptyMap(), replacedAnnotation, replacedValue, Collections
+        .<String, String> emptyMap(), at, from, origin);
   }
 
   /**

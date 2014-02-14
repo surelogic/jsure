@@ -1,6 +1,8 @@
 package com.surelogic.analysis.concurrency.threadsafe;
 
+import com.surelogic.Immutable;
 import com.surelogic.Part;
+import com.surelogic.Vouch;
 import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
@@ -9,10 +11,9 @@ import com.surelogic.analysis.type.constraints.TypeAnnotationTester;
 import com.surelogic.analysis.type.constraints.TypeAnnotations;
 import com.surelogic.analysis.visitors.TypeImplementationProcessor;
 import com.surelogic.annotation.rules.LockRules;
-import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.VouchFieldIsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ImmutablePromiseDrop;
 
@@ -164,8 +165,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
           fDrop.addTrusted(vouchFinal);
         }
       } else {
-        fDrop.addProposal(new ProposedPromiseDrop("Vouch",
-            "final", varDecl, varDecl, Origin.MODEL));
+        fDrop.addProposal(new Builder(Vouch.class, varDecl, varDecl).setValue("final").build());
       }
 
       /* (2) Check the immutability fo the field's type.  Four cases:
@@ -222,15 +222,12 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
       
       if (proposeImmutable) {
         for (final IRNode typeDecl : tester.getTested()) {
-          iResult.addProposal(new ProposedPromiseDrop(
-              "Immutable", null, typeDecl, varDecl,
-              Origin.MODEL));
+          iResult.addProposal(new Builder(Immutable.class, typeDecl, varDecl).build());
         }
       }        
 
       if (!isPrimitive) {
-        folder.addProposalNotProvedConsistent(new ProposedPromiseDrop("Vouch",
-            "Immutable", varDecl, varDecl, Origin.MODEL));
+        folder.addProposalNotProvedConsistent(new Builder(Vouch.class, varDecl, varDecl).setValue("Immutable").build());
       }
     }
   }

@@ -1,5 +1,9 @@
 package com.surelogic.analysis.concurrency.threadsafe;
 
+import com.surelogic.Borrowed;
+import com.surelogic.Containable;
+import com.surelogic.Unique;
+import com.surelogic.Vouch;
 import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
@@ -9,10 +13,9 @@ import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.visitors.TypeImplementationProcessor;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.UniquenessRules;
-import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.VouchFieldIsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
@@ -122,8 +125,7 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
 		} else {
 			final ResultDrop result = builder.createRootResult(
 			    false, cdecl, CONSTRUCTOR_BAD, id);
-			result.addProposal(new ProposedPromiseDrop(
-			    "Unique", "return", cdecl, cdecl, Origin.MODEL));
+			result.addProposal(new Builder(Unique.class, cdecl, cdecl).setValue("return").build());
 		}
 	}
 
@@ -139,8 +141,7 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
 			if (bpd == null) {
 				final ResultDrop result = builder.createRootResult(
 				    false, mdecl, METHOD_BAD, id);
-				result.addProposal(new ProposedPromiseDrop(
-				    "Borrowed",	"this", mdecl, mdecl, Origin.MODEL));
+				result.addProposal(new Builder(Borrowed.class, mdecl, mdecl).setValue("this").build());
 			} else {
 				final ResultDrop result = builder.createRootResult(
 				    true, mdecl, METHOD_BORROWED_RECEIVER, id);
@@ -190,8 +191,7 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
         if (uniqueDrop != null) {
           uResult.addTrusted(uniqueDrop.getDrop());
         } else {
-          uResult.addProposal(new ProposedPromiseDrop(
-              "Unique", null, varDecl, varDecl, Origin.MODEL));
+          uResult.addProposal(new Builder(Unique.class,varDecl, varDecl).build());
         }
 
         final ResultFolderDrop typeFolder = ResultsBuilder.createOrFolder(
@@ -234,13 +234,11 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
         
         if (proposeContainable) {
           for (final IRNode t : tester.getFailed()) {
-            cResult.addProposal(new ProposedPromiseDrop(
-                "Containable", null, t, varDecl, Origin.MODEL));
+            cResult.addProposal(new Builder(Containable.class, t, varDecl).build());
           }
         }
       
-        folder.addProposalNotProvedConsistent(new ProposedPromiseDrop(
-            "Vouch", "Containable", varDecl, varDecl, Origin.MODEL));
+        folder.addProposalNotProvedConsistent(new Builder(Vouch.class, varDecl, varDecl).setValue("Containable").build());
       }
     }
   }

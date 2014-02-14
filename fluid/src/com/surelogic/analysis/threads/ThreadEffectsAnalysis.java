@@ -6,12 +6,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 
+import com.surelogic.Starts;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
 import com.surelogic.persistence.AndAnalysisResult;
 import com.surelogic.persistence.IAnalysisResult;
@@ -291,7 +291,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       rd.addChecked(pd);
       rd.setInconsistent();
       rd.setMessage(Messages.CALLED_METHOD_DOES_NOT_PROMISE, DebugUnparser.toString(node));
-      rd.addProposal(new ProposedPromiseDrop("Starts", "nothing", declaration, node, Origin.MODEL));
+      rd.addProposal(new Builder(Starts.class, declaration, node).setValue("nothing").build());
       success = false;
     }
     final PromiseRef depend = new PromiseRef("Starts", "nothing", declaration);

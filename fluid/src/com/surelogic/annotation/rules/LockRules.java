@@ -75,8 +75,8 @@ import com.surelogic.common.util.*;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 import com.surelogic.dropsea.ir.drops.ModifiedBooleanPromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
@@ -1995,8 +1995,7 @@ public class LockRules extends AnnotationRules {
                     notName, name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               } else if (!isMoreSpecific && !zAnno.isAssumed()) {
-                context.reportWarningAndProposal(
-                    new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
+                context.reportWarningAndProposal(new Builder(name, typeDecl, zuperDecl).setOrigin(Origin.PROBLEM).build(),
                     "Interface must be annotated @{0} because it extends the @{0} interface {1}",
                     name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
@@ -2016,8 +2015,7 @@ public class LockRules extends AnnotationRules {
                     notName, name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               } else if (!isMoreSpecific && !anno.isAssumed()) {
-                context.reportWarningAndProposal(
-                    new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
+                context.reportWarningAndProposal(new Builder(name, typeDecl, zuperDecl).setOrigin(Origin.PROBLEM).build(),
                     "Class must be annotated @{0} because it implements a @{0} interface {1}",
                     name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
@@ -2029,8 +2027,7 @@ public class LockRules extends AnnotationRules {
                     notName, name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               } else if (!anno.isAssumed()) {
-                context.reportWarningAndProposal(
-                    new ProposedPromiseDrop(name, null, typeDecl, zuperDecl, Origin.PROBLEM),
+                context.reportWarningAndProposal(new Builder(name, typeDecl, zuperDecl).setOrigin(Origin.PROBLEM).build(),
                     "Class must be annotated @{0} because it extends a @{0} class {1}",
                     name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
