@@ -322,7 +322,7 @@ extends AbstractLattice<NonNullRawLattice.Element> {
     
     @Override
     public String getAnnotation() {
-      return "@Raw(upTo=\"" + type.toSourceText() + "\")";
+      return "@Initialized(through=\"" + type.toSourceText() + "\")";
     }
     
     @Override

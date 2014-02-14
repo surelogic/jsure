@@ -63,7 +63,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
   public static final String ALLOW_READ = "allowRead";
   
   /** Properties */
-  public static final String UPTO = "upTo";
+  public static final String THROUGH = "through";
   
   static final Logger LOG = SLLogger.getLogger("sl.annotation.parse");
 

@@ -38,7 +38,6 @@ import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -62,7 +61,7 @@ public class NonNullRules extends AnnotationRules {
   
 	public static final String NONNULL = "NonNull";
 	public static final String NULLABLE = "Nullable";
-	public static final String RAW = "Raw";
+	public static final String RAW = "Initialized";
 	public static final String CONSISTENCY = "NullableConsistency";
 	
 	private static final NonNullRules instance = new NonNullRules();
@@ -116,9 +115,11 @@ public class NonNullRules extends AnnotationRules {
 		  if (MethodDeclaration.prototype.includes(context.getOp())) {
 		    return parser.rawMethod().getTree();
 		  }
+		  /*
 		  else if (ConstructorDeclaration.prototype.includes(context.getOp())) { 
 			  return parser.rawConstructor().getTree();
 		  } 
+		  */
 		  else { // parameter, local var
 		    return parser.nothing().getTree();
 		  }
@@ -153,7 +154,7 @@ public class NonNullRules extends AnnotationRules {
 		
 		@Override
 		protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int mappedOffset, int modifiers, AASTAdaptor.Node node) {
-			final String upTo = context.getProperty(AnnotationVisitor.UPTO);
+			final String upTo = context.getProperty(AnnotationVisitor.THROUGH);
 			final NamedTypeNode upToType;
 			if (upTo == null) {
 				upToType = new NamedTypeNode(mappedOffset, "*");
@@ -576,7 +577,7 @@ public class NonNullRules extends AnnotationRules {
     
     @Override
     public String getAnnotation() {
-      return "@Raw(upTo=\"" + upTo.toSourceText()  + "\")";
+      return "@Initialized(through=\"" + upTo.toSourceText()  + "\")";
     }
   }
 	

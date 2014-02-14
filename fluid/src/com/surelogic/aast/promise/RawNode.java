@@ -2,6 +2,7 @@ package com.surelogic.aast.promise;
 
 import com.surelogic.aast.*;
 import com.surelogic.aast.java.NamedTypeNode;
+import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.rules.NonNullRules;
 
 public class RawNode extends AbstractBooleanNode 
@@ -22,7 +23,7 @@ public class RawNode extends AbstractBooleanNode
 	if ("*".equals(upTo)) {
 		return NonNullRules.RAW;
 	}	
-	return NonNullRules.RAW+"(upTo="+upTo+')';
+	return NonNullRules.RAW+"("+AnnotationVisitor.THROUGH+"="+upTo+')';
   }
 
   @Override
