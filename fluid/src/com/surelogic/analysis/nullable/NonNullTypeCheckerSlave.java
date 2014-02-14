@@ -1,5 +1,6 @@
 package com.surelogic.analysis.nullable;
 
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +23,7 @@ import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.StackQuery;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.StackQueryResult;
 import com.surelogic.analysis.type.checker.QualifiedTypeCheckerSlave;
 import com.surelogic.analysis.visitors.InstanceInitAction;
+import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
@@ -36,20 +38,23 @@ import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 
+import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.Arguments;
+import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.Initialization;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.ReferenceType;
+import edu.cmu.cs.fluid.java.operator.ThisExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
-import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -390,14 +395,14 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
           final PromiseDrop<?> pd = getAnnotation(k.getAnnotatedNode(binder, where));
           if (pd != null) result.addTrusted(pd);
           
-          if (declState == NonNullRawLattice.MAYBE_NULL &&
-              (srcState == NonNullRawLattice.RAW ||
-               srcState instanceof ClassElement)) {
+          final boolean rawSrc = srcState == NonNullRawLattice.RAW || srcState instanceof ClassElement;
+          final Operator op = JJNode.tree.getOperator(rhsExpr);
+          if (declState == NonNullRawLattice.MAYBE_NULL && rawSrc) {
             result.addInformationHint(where, RAW_INTO_NULLABLE);
           }
           
           if (declState == NonNullRawLattice.NOT_NULL && 
-              VariableUseExpression.prototype.includes(rhsExpr)) {
+              VariableUseExpression.prototype.includes(op)) {
             final IRNode decl = binder.getBinding(rhsExpr);
             if (ParameterDeclaration.prototype.includes(decl) &&
                 getAnnotation(decl) == null) {
@@ -406,9 +411,61 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
                       "NonNull", null, decl, rhsExpr, Origin.PROBLEM));
             }
           }
+          // TODO check if correct
+          if (declState == NonNullRawLattice.NOT_NULL && rawSrc && 
+        		  (ThisExpression.prototype.includes(op) || VariableUseExpression.prototype.includes(op))) {
+        	  for(Map.Entry<IRNode,AnalysisResultDrop> e : visitedUseSites.entrySet()) {        	
+        		  final IRNode eParent = JJNode.tree.getParentOrNull(e.getKey());
+                  final Operator pop = JJNode.tree.getOperator(eParent);
+                  ProposedPromiseDrop proposal;
+        		  // Look at where it's used
+        		  if (MethodCall.prototype.includes(pop)) { 
+        			  // This should be the receiver
+        			  IRNode mdecl = binder.getBinding(eParent);
+            		  proposal = makeInitializedProposal(srcState, e.getKey(), mdecl);
+        		  }
+        		  else if (Arguments.prototype.includes(pop)) {
+        			  // Figure out which parameter it is
+        			  final IRLocation loc = JJNode.tree.getLocation(e.getKey());
+        			  final int i = JJNode.tree.childLocationIndex(eParent, loc);
+        			  final IRNode gparent = JJNode.tree.getParentOrNull(eParent);        			  
+        			  final IRNode mdecl = binder.getBinding(gparent);
+        			  final Operator mop = JJNode.tree.getOperator(mdecl);
+        			  IRNode params;
+        			  if (MethodDeclaration.prototype.includes(mop)) {
+        				  params = MethodDeclaration.getParams(mdecl);
+        			  }
+        			  else if (ConstructorDeclaration.prototype.includes(mop)) {
+        				  params = ConstructorDeclaration.getParams(mdecl);
+        			  }
+        			  else {
+        				  throw new IllegalStateException("Unexpected "+mop);  
+        			  }
+        			  IRNode pdecl = Parameters.getFormal(params, i);
+        			  proposal = makeInitializedProposal(srcState, e.getKey(), pdecl); 
+        		  } 
+        		  else {
+        			  continue;
+        		  }        		  
+    			  result.addProposalNotProvedConsistent(proposal);
+        	  }
+          }
         }
       }
     }
+  }
+
+  private ProposedPromiseDrop makeInitializedProposal(final Element srcState, IRNode use, IRNode decl) {
+	  ProposedPromiseDrop proposal;
+	  if (srcState == NonNullRawLattice.RAW) {
+		  proposal = new ProposedPromiseDrop(NonNullRules.RAW, null, decl, use, Origin.PROBLEM);
+	  } else {
+		  ClassElement ce = (ClassElement) srcState;
+		  proposal = new ProposedPromiseDrop(
+				  NonNullRules.RAW, null, Collections.singletonMap(AnnotationVisitor.THROUGH, ce.getType().getName()), 
+				  null, null, null, decl, use, Origin.PROBLEM);
+	  }
+	  return proposal;
   }
 
   private boolean testChain(
