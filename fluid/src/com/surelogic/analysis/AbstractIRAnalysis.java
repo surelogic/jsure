@@ -19,6 +19,7 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.AbstractRunner;
+import edu.cmu.cs.fluid.util.IterableThreadLocal;
 
 public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> implements IIRAnalysis<Q> {
 	//private IIRProject project;
@@ -209,15 +210,12 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAna
 	}
 	
 	protected class ThreadLocalAnalyses {
-		private final List<AtomicReference<T>> analysisRefs = new Vector<AtomicReference<T>>();
-		private final ThreadLocal<AtomicReference<T>> analysis = new ThreadLocal<AtomicReference<T>>() {
+		private final IterableThreadLocal<AtomicReference<T>> analysis = new IterableThreadLocal<AtomicReference<T>>() {
 			@Override
-			protected AtomicReference<T> initialValue() {
+			protected AtomicReference<T> makeInitialValue() {
 				try {
 					T a = constructIRAnalysis(binder);
-					AtomicReference<T> ref = new AtomicReference<T>(a);				
-					analysisRefs.add(ref);
-					return ref;
+					return new AtomicReference<T>(a);				
 				} catch (Exception e) {
 					return null;
 				}
@@ -229,7 +227,7 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAna
 		}
 		
 		void updateAllAnalyses(IBinder binder) {
-			for(AtomicReference<T> ref : analysisRefs) {
+			for(AtomicReference<T> ref : analysis) {
 				T old = ref.get();
 				if (old.getBinder() != binder) {
 					ref.set(constructIRAnalysis(binder));
@@ -238,13 +236,13 @@ public abstract class AbstractIRAnalysis<T extends IBinderClient, Q extends IAna
 		}
 		
 		void resetAllAnalyses(IBinder binder) {
-			for(AtomicReference<T> ref : analysisRefs) {
+			for(AtomicReference<T> ref : analysis) {
 				ref.set(constructIRAnalysis(binder));
 			}
 		}
 		
 		public void clearCaches() {
-			for(AtomicReference<T> ref : analysisRefs) {
+			for(AtomicReference<T> ref : analysis) {
 				ref.get().clearCaches();
 			}
 		}
