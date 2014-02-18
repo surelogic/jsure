@@ -2,7 +2,6 @@ package com.surelogic.analysis;
 
 import java.util.*;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -25,6 +24,7 @@ import com.surelogic.javac.Util;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.util.IterableThreadLocal;
 import extra166y.Ops.Procedure;
 
 // Map groups to a linear ordering
@@ -33,13 +33,10 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 	private final List<AnalysisGroup<?>> groups = new ArrayList<AnalysisGroup<?>>();
 	private long[] times;
 	  
-	final List<AnalysisTimings> allTimings = new CopyOnWriteArrayList<AnalysisTimings>();
-	public final ThreadLocal<AnalysisTimings> threadLocal = new ThreadLocal<AnalysisTimings>() {
+	public final IterableThreadLocal<AnalysisTimings> threadLocal = new IterableThreadLocal<AnalysisTimings>() {
 		@Override
-		protected AnalysisTimings initialValue() {
-			AnalysisTimings rv = new AnalysisTimings(Analyses.this);
-			allTimings.add(rv);
-			return rv;
+		protected AnalysisTimings makeInitialValue() {
+			return new AnalysisTimings(Analyses.this);
 		}
 	};
 
@@ -54,7 +51,7 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 		if (times == null) {
 			throw new IllegalStateException("Timing not started yet");
 		}
-		for(AnalysisTimings t : allTimings) {			
+		for(AnalysisTimings t : threadLocal) {			
 			for(int j=0; j<times.length; j++) {
 				times[j] += t.times[j]; 
 			}			  
