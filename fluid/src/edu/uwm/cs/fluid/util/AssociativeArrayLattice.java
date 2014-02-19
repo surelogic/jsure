@@ -51,8 +51,10 @@ public abstract class AssociativeArrayLattice<K, L extends Lattice<T>, T> extend
    */
   public final int indexOf(final K key) {
     for (int i = 0; i < indices.length; i++) {
+      /*
       StringBuilder sb = new StringBuilder();
       indexToString(sb, i);
+      */
       if (indexEquals(key, indices[i])) return i;      
     }
     return -1;
