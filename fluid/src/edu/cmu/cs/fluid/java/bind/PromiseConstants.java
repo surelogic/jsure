@@ -57,7 +57,7 @@ public interface PromiseConstants {
     // AnonClassExpression.prototype,
     PackageDeclaration.prototype,
 	TypeDeclaration.prototype, 
-      MethodDeclaration.prototype,
+      SomeFunctionDeclaration.prototype,
       AnnotationElement.prototype,
       FieldDeclaration.prototype,
       };
