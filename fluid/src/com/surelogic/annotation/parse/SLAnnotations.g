@@ -333,8 +333,8 @@ uniqueConstructorExpression
     ;
     
 nonNullMethod
-    : returnValue EOF -> returnValue
-    | EOF -> ^(ReturnValueDeclaration RETURN)
+    : /*returnValue EOF -> returnValue
+    | */EOF -> ^(ReturnValueDeclaration RETURN)
     ; 
    
 nonNullList
