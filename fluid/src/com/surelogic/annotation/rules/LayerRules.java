@@ -29,6 +29,7 @@ import com.surelogic.annotation.scrub.IAnnotationTraversalCallback;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.layers.AllowsReferencesFromPromiseDrop;
 import com.surelogic.dropsea.ir.drops.layers.InLayerPromiseDrop;
@@ -404,6 +405,10 @@ public class LayerRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<AllowsReferencesFromNode> makePromiseDrop(AllowsReferencesFromNode a) {
 					AllowsReferencesFromPromiseDrop d = new AllowsReferencesFromPromiseDrop(a);
+					ResultDrop rd = new ResultDrop(a.getPromisedFor());
+					rd.addChecked(d);
+					rd.setConsistent();
+					rd.setMessage(356);
 					return storeDropIfNotNull(a, d);
 				}
 			};
