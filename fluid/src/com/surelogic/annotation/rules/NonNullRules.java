@@ -103,13 +103,6 @@ public class NonNullRules extends AnnotationRules {
 			    DeclStatement.prototype }, RawNode.class);
 		}
 
-		/**
-		 * @Raw(upTo="*") � on formal parameter of type T
-		 * @Raw(upTo="<type>") � on formal parameter of type T
-		 * @Raw(upTo="*|<type>", value="this") � On method of type T
-		 * @Raw(upTo="*|<type>", value="return") � On method with return type T
-		 * @Raw(upTo="*", value="static(<type>)") � On method/constructor
-		 */
 		@Override
 		protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
 		  if (MethodDeclaration.prototype.includes(context.getOp())) {
@@ -157,7 +150,8 @@ public class NonNullRules extends AnnotationRules {
 			final String upTo = context.getProperty(AnnotationVisitor.THROUGH);
 			final NamedTypeNode upToType;
 			if (upTo == null) {
-				upToType = new NamedTypeNode(mappedOffset, "*");
+				context.reportError(mappedOffset, "No value for '"+AnnotationVisitor.THROUGH+"'");
+				return null;
 			} else try {
 				// TODO workaround for namedType issues
 				String textToParse = upTo.contains("*") ? upTo : upTo+')';
@@ -170,10 +164,12 @@ public class NonNullRules extends AnnotationRules {
 				context.reportException(IAnnotationParsingContext.UNKNOWN, e);
 				return null;
 			}
+			/*
 			if (node.getType() == SLAnnotationsParser.NamedType) {
 				// TODO deal with static(<type>)
 				return new RawNode(mappedOffset, node.getText()+" -- "+upTo, upToType);
 			}
+			*/
 			return new RawNode(mappedOffset, upTo, upToType);
 		}
 		@Override

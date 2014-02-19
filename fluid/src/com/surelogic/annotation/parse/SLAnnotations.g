@@ -352,7 +352,6 @@ nonNullExpression
     
 rawMethod
     : thisExpr | returnValue 
-    | STATIC '(' namedType ')' -> namedType
     | nothing -> ^(ThisExpression THIS)
     ;
 
@@ -362,9 +361,7 @@ rawConstructor
     ;
 
 rawUpToExpression
-    : STAR EOF -> ^(NamedType STAR)
-//    | typeName -> ^(NamedType typeName)
-    | namedType 
+    : namedType 
     ;
     
     
