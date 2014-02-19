@@ -12,8 +12,6 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.granules.IAnalysisGranulator;
-import com.surelogic.analysis.granules.TopLevelType;
 import com.surelogic.annotation.rules.LayerRules;
 import com.surelogic.common.Pair;
 import com.surelogic.common.util.*;
@@ -37,9 +35,7 @@ import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IHasBinding;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
-import edu.cmu.cs.fluid.java.operator.ImportName;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
-import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.UnnamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -88,6 +84,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	*/
 	
 	private void analyzeType(final IRNode cu, final IRNode type) {
+		//System.out.println("Looking at "+JavaNames.getRelativeTypeName(type));
 		final InLayerPromiseDrop inLayer = LayerRules.getInLayerDrop(type);
 		final MayReferToPromiseDrop mayReferTo = LayerRules.getMayReferToDrop(type);	
 		
@@ -96,8 +93,9 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		boolean problemWithMayReferTo = mayReferTo == null;
 		for(IRNode n : JJNode.tree.topDown(type)) {
 			final Operator op = JJNode.tree.getOperator(n);
-			if (op instanceof IHasBinding && 
-				!(PackageDeclaration.prototype.includes(op) || ImportName.prototype.includes(op))) {
+			if (op instanceof IHasBinding 
+				/*	&& 
+				!(PackageDeclaration.prototype.includes(op) || ImportName.prototype.includes(op))*/) {
 				final IBinding b    = getAnalysis().getBinder().getIBinding(n);
 				if (b == null || b.getNode() == null) {
 					if (!ClassExpression.prototype.includes(n)) {
@@ -111,7 +109,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 					continue;
 				}
 				if ("java.lang".equals(VisitUtil.getPackageName(bindCu))) {
-					continue; // Always refer to java.lang?
+					continue; // Always refer to java.lang
 				}
 				IRNode bindT  = VisitUtil.getPrimaryType(bindCu);
 				if (bindT == null) {
