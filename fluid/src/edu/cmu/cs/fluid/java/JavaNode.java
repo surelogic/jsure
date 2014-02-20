@@ -425,7 +425,7 @@ public class JavaNode extends JJNode {
   /**
    * Fluid IR slot to hold Fluid Java code reference information.
    */
-  private static final SlotInfo<IJavaRef> f_fluidJavaRefSlotInfo = 
+  static final SlotInfo<IJavaRef> f_fluidJavaRefSlotInfo = 
 	  getVersionedSlotInfo(Consts.FLUID_JAVA_REF_SLOT_NAME,
 			  Consts.FLUID_JAVA_REF_SLOT_TYPE);
 
@@ -452,6 +452,9 @@ public class JavaNode extends JJNode {
     if (node.valueExists(f_fluidJavaRefSlotInfo)) {
     	return node.getSlotValue(f_fluidJavaRefSlotInfo);
     }    
+    if (SkeletonJavaRefUtility.useSkeletonsAsJavaRefPlaceholders) {
+    	return null;
+    }
     IJavaRef javaRef = SkeletonJavaRefUtility.buildOrNullOnFailure(node);
     while  (javaRef == SkeletonJavaRefUtility.placeholderRef) {
     	// It will eventually set the slot value, or clear the skeleton
@@ -509,6 +512,8 @@ public class JavaNode extends JJNode {
    * @return the code reference if the copy is successful, or {@code null} if
    *         the copy is unsuccessful.
    */
+  // TODO this doesn't really make sense 
+  // since the ref is specific to the IRNode
   static IJavaRef copyFluidJavaRef(IRNode src, IRNode target) {
     if (src == null) {
       throw new IllegalArgumentException();

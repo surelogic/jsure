@@ -11,21 +11,27 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.common.ref.IJavaRef.Within;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.javac.FileResource;
 import com.surelogic.javac.adapter.ClassResource;
+import com.surelogic.tree.SyntaxTreeNode;
 
+import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
 
 @Utility
 public final class SkeletonJavaRefUtility {
-
-  private static final Map<IRNode, JavaRefSkeletonBuilder> nodeToSkeleton = new ConcurrentHashMap<IRNode, JavaRefSkeletonBuilder>();
+  // e.g. storing these in the nodes themselves
+  public static boolean useSkeletonsAsJavaRefPlaceholders = true;
+  private static final Map<IRNode, JavaRefSkeletonBuilder> nodeToSkeleton = 
+		  useSkeletonsAsJavaRefPlaceholders ? null : new ConcurrentHashMap<IRNode, JavaRefSkeletonBuilder>();
 
   public static void removeInfo(IRNode key) {
+	  if (useSkeletonsAsJavaRefPlaceholders) {
+		  return;
+	  }
 	  nodeToSkeleton.remove(key);
   }
   
@@ -36,140 +42,35 @@ public final class SkeletonJavaRefUtility {
   public static void registerSourceLocation(DeclFactory factory, IRNode node, FileResource fileResource, int lineNumber,
       int offset, int length) {
     final JavaRefSourceBuilder b = new JavaRefSourceBuilder(factory, fileResource, lineNumber, offset, length);
-    nodeToSkeleton.put(node, b);
+    if (useSkeletonsAsJavaRefPlaceholders) {
+    	node.setSlotValue(JavaNode.f_fluidJavaRefSlotInfo, b);
+    } else {
+    	nodeToSkeleton.put(node, b);
+    }
   }
 
   public static void registerBinaryCode(DeclFactory factory, IRNode node, ClassResource resource, int lineNumber) {
     final JavaRefBinaryBuilder b = new JavaRefBinaryBuilder(factory, resource, lineNumber);
-    nodeToSkeleton.put(node, b);
+    if (useSkeletonsAsJavaRefPlaceholders) {
+    	node.setSlotValue(JavaNode.f_fluidJavaRefSlotInfo, b);
+    } else {
+    	nodeToSkeleton.put(node, b);
+    }
   }
 
   // Placeholder for skeletons being built
-  private static final JavaRefSkeletonBuilder placeholder = new JavaRefSkeletonBuilder() {
+  private static final JavaRefSkeletonBuilder placeholder = new AbstractBuilder(null, 0) {
 	  @Override
-	  public IJavaRef buildOrNullOnFailure(@NonNull IRNode node) {
+	  IJavaRef build(@NonNull Pair<IDecl, Position> pair) {
 		  return null;
 	  }
-  };
-  public static final IJavaRef placeholderRef = new IJavaRef() {
-	@Override
-	public boolean isFromSource() {
-		return false;
-	}
-	@Override
-	@NonNull
-	public Within getWithin() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	@Override
-	@Nullable
-	public String getTypeNameOrNull() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	@Override
-	@NonNull
-	public String getTypeNameFullyQualified() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	@Override
-	@NonNull
-	public String getSimpleFileNameWithNoExtension() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	@Override
-	@NonNull
-	public String getSimpleFileName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	@Override
-	@Nullable
-	public String getRealEclipseProjectNameOrNull() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	@Override
-	@NonNull
-	public Position getPositionRelativeToDeclaration() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	@Override
-	@NonNull
-	public String getPackageName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	@Override
-	public int getOffset() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-	
-	@Override
-	public int getLineNumber() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-	
-	@Override
-	public int getLength() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-	
-	@Override
-	@Nullable
-	public String getJarRelativePathOrNull() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	@Override
-	@Nullable
-	public String getEclipseProjectNameOrNull() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	@Override
-	@NonNull
-	public String getEclipseProjectNameOrEmpty() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	@Override
-	@NonNull
-	public String getEclipseProjectName() {
-		return null;
-	}
-	@Override
-	@NonNull
-	public IDecl getDeclaration() {
-		return null;
-	}
-	@Override
-	@Nullable
-	public String getAbsolutePathOrNull() {
-		return null;
-	}
-	@Override
-	@NonNull
-	public String encodeForPersistence() {
-		return null;
-	}
-};
+  };  
+  
+  /**
+   * A marker to note that we haven't yet built the real ref 
+   * Not intended to be used otherwise
+   */
+  public static final IJavaRef placeholderRef = new JavaRefPlaceholder();
   
   /**
    * Tries to build a valid Java code reference from the skeleton on the passed
@@ -184,6 +85,10 @@ public final class SkeletonJavaRefUtility {
    *         constructed.
    */
   static IJavaRef buildOrNullOnFailure(IRNode node) {
+	if (useSkeletonsAsJavaRefPlaceholders) {
+		return null;
+	}
+	
 	//final JavaRefSkeletonBuilder sb = nodeToSkeleton.remove(node);
     final JavaRefSkeletonBuilder sb = nodeToSkeleton.put(node, placeholder);
     if (sb == placeholder) {
@@ -210,27 +115,34 @@ public final class SkeletonJavaRefUtility {
    *          node to copy to.
    * @return {@code true} if the copy succeeded, {@code false} otherwise.
    */
-  public static boolean copyIfPossible(IRNode from, IRNode to) {
+  public static boolean copyIfPossible(IRNode from, IRNode to) {	  
     if (from == null || to == null)
       return false;
-    // skeleton builder
-    final JavaRefSkeletonBuilder s = nodeToSkeleton.get(from);
-    if (s != null) {
-      nodeToSkeleton.put(to, s);
-      return true;
-    } else {
-    	
-      /*
+    
+	if (useSkeletonsAsJavaRefPlaceholders) {
+		JavaRefSkeletonBuilder b = SyntaxTreeNode.getSkeletonBuilder(from);
+    	to.setSlotValue(JavaNode.f_fluidJavaRefSlotInfo, b);
+    	return b != null;
+	} else {
+		// skeleton builder
+		final JavaRefSkeletonBuilder s = nodeToSkeleton.get(from);
+		if (s != null) {
+			nodeToSkeleton.put(to, s);
+			return true;
+		} else {
+
+			/*
       String unparse = DebugUnparser.toString(from);
       if (unparse.length() != 0 && !unparse.contains("public class []")) {
     	  System.out.println("No ref info for "+unparse);
       }
-      */
-    }
-    if (JavaNode.copyFluidJavaRef(from, to) == null)
-      return false;
-    else
-      return true;
+			 */
+		}
+	    if (JavaNode.copyFluidJavaRef(from, to) == null)
+	        return false;
+	      else
+	        return true;		
+	}
   }
 
   /**
@@ -246,14 +158,17 @@ public final class SkeletonJavaRefUtility {
 	if (node == null) {
 		return false;
 	}
+	if (useSkeletonsAsJavaRefPlaceholders) {
+		return JavaNode.hasJavaRef(node);
+	}
     return nodeToSkeleton.containsKey(node) || JavaNode.hasJavaRef(node);
   }
 
-  interface JavaRefSkeletonBuilder {
+  public interface JavaRefSkeletonBuilder extends IJavaRef {
     IJavaRef buildOrNullOnFailure(@NonNull IRNode node);
   }
 
-  static abstract class AbstractBuilder implements JavaRefSkeletonBuilder {
+  static abstract class AbstractBuilder extends JavaRefPlaceholder implements JavaRefSkeletonBuilder {
 	private final DeclFactory f_factory; 
     final int f_lineNumber;
     /**
@@ -291,7 +206,7 @@ public final class SkeletonJavaRefUtility {
   static final class JavaRefBinaryBuilder extends AbstractBuilder {
     private final ClassResource f_resource;
 
-    private JavaRefBinaryBuilder(DeclFactory f, ClassResource resource, int lineNumber) {
+    JavaRefBinaryBuilder(DeclFactory f, ClassResource resource, int lineNumber) {
       super(f, lineNumber);
       f_resource = resource;
     }
@@ -315,7 +230,7 @@ public final class SkeletonJavaRefUtility {
     private final int f_length;
     private final FileResource f_fileResource;
 
-    private JavaRefSourceBuilder(DeclFactory f, FileResource fileResource, int lineNumber, int offset, int length) {
+    JavaRefSourceBuilder(DeclFactory f, FileResource fileResource, int lineNumber, int offset, int length) {
       super(f, lineNumber);
       f_fileResource = fileResource;
       f_offset = offset;
@@ -339,4 +254,110 @@ public final class SkeletonJavaRefUtility {
   private SkeletonJavaRefUtility() {
     // no instances
   }
+}
+
+class JavaRefPlaceholder implements IJavaRef {
+	@Override
+	public boolean isFromSource() {
+		throw new NotImplemented();
+	}
+	@Override
+	@NonNull
+	public Within getWithin() {
+		throw new NotImplemented();
+	}
+	
+	@Override
+	@Nullable
+	public String getTypeNameOrNull() {
+		throw new NotImplemented();
+	}
+	
+	@Override
+	@NonNull
+	public String getTypeNameFullyQualified() {
+		throw new NotImplemented();
+	}
+	
+	@Override
+	@NonNull
+	public String getSimpleFileNameWithNoExtension() {
+		throw new NotImplemented();
+	}
+	
+	@Override
+	@NonNull
+	public String getSimpleFileName() {
+		throw new NotImplemented();
+	}
+	
+	@Override
+	@Nullable
+	public String getRealEclipseProjectNameOrNull() {
+		throw new NotImplemented();
+	}
+	
+	@Override
+	@NonNull
+	public Position getPositionRelativeToDeclaration() {
+		throw new NotImplemented();
+	}
+	
+	@Override
+	@NonNull
+	public String getPackageName() {
+		throw new NotImplemented();
+	}
+	
+	@Override
+	public int getOffset() {
+		throw new NotImplemented();
+	}
+	
+	@Override
+	public int getLineNumber() {
+		throw new NotImplemented();
+	}
+	
+	@Override
+	public int getLength() {
+		throw new NotImplemented();
+	}
+	
+	@Override
+	@Nullable
+	public String getJarRelativePathOrNull() {
+		throw new NotImplemented();
+	}
+	
+	@Override
+	@Nullable
+	public String getEclipseProjectNameOrNull() {
+		throw new NotImplemented();
+	}
+	@Override
+	@NonNull
+	public String getEclipseProjectNameOrEmpty() {
+		throw new NotImplemented();
+	}
+	@Override
+	@NonNull
+	public String getEclipseProjectName() {
+		throw new NotImplemented();
+	}
+	@Override
+	@NonNull
+	public IDecl getDeclaration() {
+		throw new NotImplemented();
+	}
+	@Override
+	@Nullable
+	public String getAbsolutePathOrNull() {
+		throw new NotImplemented();
+	}
+	@Override
+	@NonNull
+	public String encodeForPersistence() {
+		throw new NotImplemented();
+	}
 }

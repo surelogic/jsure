@@ -137,9 +137,26 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
     		JavaNode.Consts.FLUID_JAVA_REF_SLOT_TYPE, srcRefStorage, defaultVal, backupSI) {
       @Override
       protected IJavaRef getSlot(SyntaxTreeNode n) {
+    	// Unable to build the ref here due to sync issues
         return n.srcRef;
       }
 
+      @Override
+      public IJavaRef getSlotValue(final IRNode node) throws SlotUndefinedException {
+    	  IJavaRef rv;
+    	  synchronized (node) {
+    		  rv = getSlotValue_unsync(node);
+    	  }
+    	  // Might be built twice, but should get the same value
+    	  if (SkeletonJavaRefUtility.useSkeletonsAsJavaRefPlaceholders && rv instanceof SkeletonJavaRefUtility.JavaRefSkeletonBuilder) {
+    		  rv = ((SkeletonJavaRefUtility.JavaRefSkeletonBuilder) rv).buildOrNullOnFailure(node);
+    		  synchronized (node) {
+    			  setSlotValue_unsync(node, rv);
+    		  }
+    	  }
+    	  return rv;
+      }
+      
       @Override
       protected void setSlot(SyntaxTreeNode n, IJavaRef slotState) {
         n.srcRef = slotState;

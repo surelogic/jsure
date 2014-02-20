@@ -5,6 +5,7 @@ import com.surelogic.common.ref.IJavaRef;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility.JavaRefSkeletonBuilder;
 import edu.cmu.cs.fluid.java.operator.IllegalCode;
 import edu.cmu.cs.fluid.tree.*;
 
@@ -133,4 +134,18 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
 	  super.finalize();
   }
   */
+  
+  public static JavaRefSkeletonBuilder getSkeletonBuilder(IRNode n) {
+	  if (n instanceof SyntaxTreeNode) {
+		  SyntaxTreeNode s = (SyntaxTreeNode) n;
+		  IJavaRef ref;
+		  synchronized (s) {
+			ref = s.srcRef;
+		  }
+		  if (ref instanceof JavaRefSkeletonBuilder) {
+			  return (JavaRefSkeletonBuilder) ref;
+		  }
+	  }
+	  return null;
+  }
 }
