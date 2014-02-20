@@ -433,6 +433,7 @@ public class NonNullRules extends AnnotationRules {
         return Elements.NULLABLE;
       } else if (a instanceof RawPromiseDrop) {
         final RawPromiseDrop pd = (RawPromiseDrop) a;
+        /*
         final String upTo = pd.getUpTo();
         if (upTo.equals(RAW_STAR)) {
           return Elements.RAW_STAR;
@@ -442,6 +443,11 @@ public class NonNullRules extends AnnotationRules {
           final IJavaType upToType = typeEnv.findJavaTypeByName(upTo);
           return new OverridingRawElement(upToType, typeEnv);
         }
+        */
+        final ITypeEnvironment typeEnv = getContext().getBinder(
+                pd.getPromisedFor()).getTypeEnvironment();
+        final IJavaType upToType = pd.getAAST().getUpToType().resolveType().getJavaType();
+        return new OverridingRawElement(upToType, typeEnv);
       } else {
         throw new IllegalArgumentException(
             "No nullable state for " + a.getClass().getName());
@@ -568,6 +574,9 @@ public class NonNullRules extends AnnotationRules {
     protected final IJavaType upTo;
     
     protected AbstractRawElement(final IJavaType u) {
+      if (u == null) {
+    	  throw new IllegalStateException();
+      }
       upTo = u;
     }
     
