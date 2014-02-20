@@ -62,6 +62,7 @@ import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.MarkerAnnotationParseRule;
+import com.surelogic.annotation.ParseResult;
 import com.surelogic.annotation.SimpleBooleanAnnotationParseRule;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AASTStore;
@@ -2890,6 +2891,8 @@ public class LockRules extends AnnotationRules {
     }
   } 
   
+  static final Object DEFAULT_TO_NORMAL_VOUCH = null;
+  
 	static class VouchFieldIs_ParseRule extends DefaultSLAnnotationParseRule<VouchFieldIsNode,VouchFieldIsPromiseDrop> {
 	  VouchFieldIs_ParseRule() {
 			super(VOUCH_FIELD_IS, varDeclOps, VouchFieldIsNode.class);
@@ -2901,19 +2904,32 @@ public class LockRules extends AnnotationRules {
 		throws Exception {
 			final String id = context.getAllText().trim();
 			final FieldKind kind;
-			if (context.getOp() instanceof ParameterDeclaration || context.getOp() instanceof DeclStatement) {
+			final Operator op = context.getOp();
+			if (op instanceof ParameterDeclaration) {
 				if (!ANNO_BOUNDS.equals(id)) {
-					return null;
+					context.reportError(0, "Illegal vouch for parameter: "+id);
+					return ParseResult.FAIL;
 				}
 				kind = FieldKind.AnnotationBounds;
+			} else if (op instanceof DeclStatement) {
+				// AnnoBounds, NonNull or Nullable
+				try {
+					kind = FieldKind.valueOf(id);				
+				} catch(IllegalArgumentException e) {					
+					context.reportError(0, "Unknown vouch for parameter: "+id);
+					return ParseResult.FAIL;
+				}
+				if (kind.ordinal() < FieldKind.AnnotationBounds.ordinal()) {
+					context.reportError(0, "Illegal vouch for parameter: "+id);
+					return ParseResult.FAIL;
+				}
 			} else if ("final".equals(id)) {
 				kind = FieldKind.Final;
 			} else {				
 				try {
 					kind = FieldKind.valueOf(id);				
 				} catch(IllegalArgumentException e) {					
-					// throw new ParseException("Invalid type of vouch: "+id);
-					return null;
+					return DEFAULT_TO_NORMAL_VOUCH;
 				}
 			}
 			return new VouchFieldIsNode(context.mapToSource(0), kind, context.getProperty(VouchFieldIsNode.REASON));
