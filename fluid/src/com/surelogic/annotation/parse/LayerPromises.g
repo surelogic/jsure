@@ -46,7 +46,7 @@ tokens {
   AllowsReferencesFrom;
   END_IMAGINARY;
   
-  NOTHING='nothing';
+  //NOTHING='nothing';
   // Needed for modifier clauses
   INSTANCE;
   MUTABLE;
@@ -146,7 +146,7 @@ public Object recoverFromMismatchedSet(IntStream input, RecognitionException e, 
  *************************************************************************************/	
 
 mayReferTo
-  : NOTHING EOF -> ^(MayReferTo ^(NoTarget))
+  : 'nothing' EOF -> ^(MayReferTo ^(NoTarget))
   | typeTarget EOF -> ^(MayReferTo typeTarget)
   ;
 
@@ -180,7 +180,7 @@ typeSet
   ;
 
 allowsReferencesFrom
-  : NOTHING EOF -> ^(AllowsReferencesFrom ^(NoTarget))  
+  : 'nothing' EOF -> ^(AllowsReferencesFrom ^(NoTarget))  
   | typeTarget EOF -> ^(AllowsReferencesFrom typeTarget)
   ;
 
