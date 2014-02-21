@@ -170,27 +170,27 @@ public class CommonAASTBinder extends AASTBinder {
 	  return resolve(node) != null;
   }
 
-  private IRNode resolveTypeName(final AASTNode a, final String name) {
+  private IRNode resolveTypeName(final IRNode context, final String name) {
 	IRNode t;
 	if (name.indexOf('.') < 0) {
-		t = findQualifiedType(a, name);  
+		t = findQualifiedType(context, name);  
 	} else {
-		t = findNamedType(name, a.getPromisedFor());    
+		t = findNamedType(name, context);    
 		if (t == null) {
 			// Try to find a package-qualified type
-			t = findQualifiedType(a, name); 
+			t = findQualifiedType(context, name); 
 		}
 	}
     if (t != null && NamedPackageDeclaration.prototype.includes(t)) {
     	return null;
     }
     if (t == null) {
-    	final IRNode cu = VisitUtil.findCompilationUnit(a.getPromisedFor());
+    	final IRNode cu = VisitUtil.findCompilationUnit(context);
     	final IJavaScope imports = UnversionedJavaImportTable.getImportTable(cu, (UnversionedJavaBinder) eb);
-    	final LookupContext context = new LookupContext();
-    	context.use(name, a.getPromisedFor());
+    	final LookupContext lookup = new LookupContext();
+    	lookup.use(name, context);
     
-    	edu.cmu.cs.fluid.java.bind.IBinding b = imports.lookup(context, IJavaScope.Util.isTypeDecl);
+    	edu.cmu.cs.fluid.java.bind.IBinding b = imports.lookup(lookup, IJavaScope.Util.isTypeDecl);
     	if (b != null) {
     		return b.getNode();
     	}
@@ -199,11 +199,10 @@ public class CommonAASTBinder extends AASTBinder {
     return t;
   }
   
-  private IRNode findQualifiedType(final AASTNode a, final String name) {
+  private IRNode findQualifiedType(final IRNode context, final String name) {
 	int lastDot = name.lastIndexOf('.');
 	IRNode t = null;
 	if (lastDot < 0) {
-		final IRNode context = a.getPromisedFor();
 		// Check if it's a type parameter for the method
 		final Operator cop = JJNode.tree.getOperator(context);
 		if (SomeFunctionDeclaration.prototype.includes(cop)) {
@@ -239,14 +238,14 @@ public class CommonAASTBinder extends AASTBinder {
 		}
 		// Check if it's a top-level type in same package
 		final String pkg = JavaNames.getPackageName(context);
-		t = findNamedType(pkg+'.'+name, a.getPromisedFor());			
+		t = findNamedType(pkg+'.'+name, context);			
 		if (t == null) {
 			// Check if it's in the default package
-			return findNamedType(name, a.getPromisedFor());
+			return findNamedType(name, context);
 		}
 		return t;
 	} else {
-		t = resolveTypeName(a, name.substring(0, lastDot));
+		t = resolveTypeName(context, name.substring(0, lastDot));
 		if (t != null && !NamedPackageDeclaration.prototype.includes(t)) {
 			return findNestedType(t, name.substring(lastDot+1));
 		}
@@ -286,7 +285,7 @@ public class CommonAASTBinder extends AASTBinder {
     if (node instanceof NamedTypeNode) {
       NamedTypeNode t = (NamedTypeNode) node;
       final String name = standardizeTypeName(t);
-      return "*".equals(name) || resolveTypeName(t, name) != null;
+      return "*".equals(name) || resolveTypeName(t.getPromisedFor(), name) != null;
     }
     else if (node instanceof ArrayTypeNode) {
     	ArrayTypeNode at = (ArrayTypeNode) node;
@@ -590,7 +589,7 @@ public class CommonAASTBinder extends AASTBinder {
     if (node instanceof NamedTypeNode) {
       NamedTypeNode t = (NamedTypeNode) node;
       final String name = standardizeTypeName(t);
-      IRNode td = resolveTypeName(t, name);
+      IRNode td = resolveTypeName(t.getPromisedFor(), name);
       if (td == null) {
     	  return null;
       }
@@ -736,7 +735,8 @@ public class CommonAASTBinder extends AASTBinder {
 		  //return null;
 		  return emptyPackageB;
 	  }
-	  final IRNode t = findNamedType(qname, context);
+	  //final IRNode t = findNamedType(qname, context);
+	  final IRNode t = resolveTypeName(context, qname);
 	  if (t != null && TypeDeclaration.prototype.includes(t)) {
 		  return new AbstractLayerBinding(LayerBindingKind.TYPE) {
 			  @Override public IRNode getType() {
