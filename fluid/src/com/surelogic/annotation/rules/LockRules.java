@@ -1237,6 +1237,12 @@ public class LockRules extends AnnotationRules {
       break;
     case AnnotationBounds:
       break;
+    case NonNull:
+    case Nullable:
+      if (javaType instanceof IJavaPrimitiveType) {
+      	  context.reportError(a, "Cannot be used on a field with primitive type");
+          return null;
+      }
     }
     return new VouchFieldIsPromiseDrop(a);
   }
