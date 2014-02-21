@@ -905,4 +905,8 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   public T visit(ThreadConfinedNode n) {
 	  return defaultValue;
   }
+
+  public T visit(NoTargetNode n) {
+	  return defaultValue;
+  }
 }

@@ -347,24 +347,36 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
     f_replacedAttributeNameToValue = replacedAttributeNameToValue != null ? replacedAttributeNameToValue : Collections
         .<String, String> emptyMap();
 
-    if (f_attributeNameToValue.isEmpty()) {
-      if (value == null) {
-        setMessageHelper(18, annotation);
-      } else {
-        setMessageHelper(10, annotation, value);
-      }
+    String contents = computeActualContents(value, f_attributeNameToValue, false);
+    if (contents == null) {
+    	setMessageHelper(18, annotation);
     } else {
-      StringBuilder sb = new StringBuilder();
-      if (value != null) {
-        sb.append("value=").append('"').append(value).append('"');
-      }
-      for (Map.Entry<String, String> e : f_attributeNameToValue.entrySet()) {
-        sb.append(e.getKey()).append('=').append('"').append(e.getValue()).append('"');
-      }
-      setMessageHelper(10, annotation, sb);
+    	setMessageHelper(10, annotation, contents);
     }
   }
 
+  private static String computeActualContents(String value, Map<String, String> attrs, boolean escape) {
+	  if (attrs.isEmpty()) {
+		  if (escape) {
+			  if (value == null) {
+				  return null;
+			  }
+			  return '"'+SLUtility.escapeJavaStringForQuoting(value)+'"';
+		  }
+		  return value;
+	  }
+      StringBuilder sb = new StringBuilder();
+      if (value != null) {
+      	String v = escape ? SLUtility.escapeJavaStringForQuoting(value) : value;
+        sb.append("value=").append('"').append(v).append('"');
+      }
+      for (Map.Entry<String, String> e : attrs.entrySet()) {
+    	String v = escape ? SLUtility.escapeJavaStringForQuoting(e.getValue()) : e.getValue();
+        sb.append(e.getKey()).append('=').append('"').append(v).append('"');
+      }
+      return sb.toString();
+  }
+  
   /**
    * An indication of how this proposal was generated.
    */
@@ -446,7 +458,8 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
 
   @NonNull
   public String getJavaAnnotationNoAtSign() {
-    return f_annotation + (f_value == null ? "" : "(\"" + getEscapedValue() + "\")");
+	String contents = computeActualContents(f_value, f_attributeNameToValue, true);
+    return f_annotation + (contents == null ? "" : "(" + contents + ")");
   }
 
   @Override

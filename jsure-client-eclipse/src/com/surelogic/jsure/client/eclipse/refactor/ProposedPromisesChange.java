@@ -174,13 +174,19 @@ public class ProposedPromisesChange {
     final IDecl assumptionTarget = from;
     final String annotation = drop.getAnnotation();
     final String contents = drop.getValue();
+    final AnnotationDescription.Builder b = new AnnotationDescription.Builder(annotation, contents, target);    
     IJavaRef srcRef = drop.getJavaRef();
     String fileName = DeclUtil.guessSimpleFileName(srcRef.getDeclaration(), srcRef.getWithin());
     final CU cu = new CU(srcRef.getRealEclipseProjectNameOrNull(), srcRef.getPackageName(), fileName);
+    b.setCU(cu);
     srcRef = drop.getAssumptionRef();
     fileName = DeclUtil.guessSimpleFileName(srcRef.getDeclaration(), srcRef.getWithin());
     final CU assumptionCU = new CU(srcRef.getRealEclipseProjectNameOrNull(), srcRef.getPackageName(), fileName);
-    return new AnnotationDescription(annotation, contents, drop.getReplacedValue(), target, assumptionTarget, cu, assumptionCU);
+    b.setAssumeInfo(assumptionTarget, assumptionCU);
+    b.setReplacedContents(drop.getReplacedValue());
+    b.setAttributes(drop.getAttributes());
+    b.setReplacedAttributes(drop.getReplacedAttributes());
+    return b.build();
   }
 
   public String getSelectedProjectNames() {
