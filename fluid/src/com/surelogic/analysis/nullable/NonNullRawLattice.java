@@ -164,7 +164,7 @@ extends AbstractLattice<NonNullRawLattice.Element> {
       
       @Override
       public String getAnnotation() {
-        return "@Raw";
+        return "@Initialized";
       }
       
       @Override
