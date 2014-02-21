@@ -156,4 +156,5 @@ public interface INodeVisitor<T> {
 	T visit(RefObjectNode n);
 	T visit(MustInvokeOnOverrideNode n);
 	T visit(ThreadConfinedNode n);
+	T visit(NoTargetNode n);
 }

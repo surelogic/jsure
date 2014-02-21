@@ -34,6 +34,7 @@ tokens {
   AnyTarget;
   AndTarget;
   OrTarget;
+  NoTarget;
   NotTarget;
   UnionTarget;
   UnidentifiedTarget;
@@ -45,6 +46,8 @@ tokens {
   AllowsReferencesFrom;
   END_IMAGINARY;
   
+  NOTHING='nothing';
+  // Needed for modifier clauses
   INSTANCE;
   MUTABLE;
 }
@@ -143,7 +146,8 @@ public Object recoverFromMismatchedSet(IntStream input, RecognitionException e, 
  *************************************************************************************/	
 
 mayReferTo
-  : typeTarget EOF -> ^(MayReferTo typeTarget)
+  : NOTHING EOF -> ^(MayReferTo ^(NoTarget))
+  | typeTarget EOF -> ^(MayReferTo typeTarget)
   ;
 
 layer
@@ -176,7 +180,8 @@ typeSet
   ;
 
 allowsReferencesFrom
-  : typeTarget EOF -> ^(AllowsReferencesFrom typeTarget)
+  : NOTHING EOF -> ^(AllowsReferencesFrom ^(NoTarget))  
+  | typeTarget EOF -> ^(AllowsReferencesFrom typeTarget)
   ;
 
 /*************************************************************************************
@@ -356,6 +361,7 @@ identifier
   | 'may' 
   | 'refer' 
   | 'to'
+  | 'nothing'
   ;
 
 /*************************************************************************************
