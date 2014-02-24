@@ -42,7 +42,7 @@ public class SLLayerParse extends AbstractParse<LayerPromisesParser> {
   protected LayerPromisesParser newParser(TokenStream tokens) {
 	  LayerPromisesParser parser = new LayerPromisesParser(tokens);
 
-	  SLThreadRoleAdaptor adaptor = new SLThreadRoleAdaptor();
+	  SLLayerAdaptor adaptor = new SLLayerAdaptor();
 
 	  parser.setTreeAdaptor(adaptor);
 	  return parser;
