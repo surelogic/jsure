@@ -126,6 +126,10 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				if (rd2 != null) {
 					problemWithMayReferTo = true;
 				}
+				else if (mayReferTo != null && rd2 == null) {
+					ResultDrop success = createSuccessDrop(type, mayReferTo);
+					success.setMessage(Messages.PERMITTED_REFERENCE_TO, JavaNames.getRelativeTypeName(type));
+				}
 
 				ResultDrop rd3 = null;
 				if (inLayer != null) {

@@ -13,4 +13,6 @@ public final class Messages {
   public static final int CYCLE = 353;
   public static final int TYPE_INVOLVED = 354;
   public static final int TYPESET_INVOLVED = 355;
+  public static final int DEFAULT_SITUATION = 356;
+  public static final int PERMITTED_REFERENCE_TO = 357;
 }
