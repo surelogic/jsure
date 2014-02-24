@@ -119,16 +119,17 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				final AllowsReferencesFromPromiseDrop allows = getAnalysis().allowRefs(b.getNode());
 				final ResultDrop rd = checkBinding(allows, b, type, n);
 				if (allows != null && rd == null) {					
-					ResultDrop success = createSuccessDrop(type, allows);
-					success.setMessage(Messages.PERMITTED_REFERENCE, JavaNames.getRelativeTypeName(type));
+					ResultDrop success = createSuccessDrop(n, allows);
+					IRNode decl = VisitUtil.getEnclosingClassBodyDecl(n);
+					success.setMessage(Messages.PERMITTED_REFERENCE, JavaNames.getFullName(decl));
 				}
 				final ResultDrop rd2 = checkBinding(mayReferTo, b, bindT, n);
 				if (rd2 != null) {
 					problemWithMayReferTo = true;
 				}
 				else if (mayReferTo != null && rd2 == null) {
-					ResultDrop success = createSuccessDrop(type, mayReferTo);
-					success.setMessage(Messages.PERMITTED_REFERENCE_TO, JavaNames.getRelativeTypeName(type));
+					ResultDrop success = createSuccessDrop(n, mayReferTo);
+					success.setMessage(Messages.PERMITTED_REFERENCE_TO, JavaNames.getFullName(b.getNode()));
 				}
 
 				ResultDrop rd3 = null;
@@ -173,15 +174,15 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return inSameLayer;
 	}
 	
-	private ResultDrop createSuccessDrop(IRNode type, PromiseDrop<?> checked) {
-		ResultDrop rd = new ResultDrop(type);
+	private ResultDrop createSuccessDrop(IRNode context, PromiseDrop<?> checked) {
+		ResultDrop rd = new ResultDrop(context);
 		rd.addChecked(checked);
 		rd.setConsistent();
 		return rd;
 	}
 	
-	ResultDrop createFailureDrop(IRNode type) {
-		ResultDrop rd = new ResultDrop(type);
+	ResultDrop createFailureDrop(IRNode context) {
+		ResultDrop rd = new ResultDrop(context);
 		rd.setInconsistent();
 		return rd;
 	}
