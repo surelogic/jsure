@@ -523,6 +523,8 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
               f_showOnlyFromSrc, f_showOnlyAbductive));
           if (state != null) {
             state.restoreViewState(f_treeViewer);
+          } else {
+            f_treeViewer.expandToLevel(3);
           }
           f_treeViewer.getTree().setRedraw(true);
           f_viewerbook.showPage(f_treeViewer.getControl());
