@@ -20,7 +20,7 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
   Operator op;
   Integer modifiers; // Added on x64, more to avoid lock contention
   IJavaRef srcRef; // Added for free on x86, due to rounding for cache line alignment
-  String info;               
+  //String info;               
   IRLocation loc; 
   
   public SyntaxTreeNode(Operator op, IRNode[] children) {
@@ -77,9 +77,11 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
     if (this.op == null) {
       this.op = Constants.undefinedOperator;
     }
+    /*
     if (this.info == null) {
         this.info = Constants.undefinedString;
     }
+    */
     if (this.modifiers == null) {
     	this.modifiers = Constants.undefinedInteger;
     }
@@ -94,7 +96,7 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
   public synchronized void destroy() {
 	  super.destroy();
 	  children = null;
-	  info = null;
+	  //info = null;
 	  loc = null;
 	  op = null;
 	  parent = null;
