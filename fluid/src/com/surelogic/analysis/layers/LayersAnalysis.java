@@ -2,6 +2,7 @@
 package com.surelogic.analysis.layers;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,7 +37,9 @@ import edu.cmu.cs.fluid.java.bind.IHasBinding;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
+import edu.cmu.cs.fluid.java.operator.TreeWalkVisitor;
 import edu.cmu.cs.fluid.java.operator.UnnamedPackageDeclaration;
+import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -82,16 +85,83 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return true; 
 	}
 	*/
-	
-	private void analyzeType(final IRNode cu, final IRNode type) {
-		//System.out.println("Looking at "+JavaNames.getRelativeTypeName(type));
-		final InLayerPromiseDrop inLayer = LayerRules.getInLayerDrop(type);
-		final MayReferToPromiseDrop mayReferTo = LayerRules.getMayReferToDrop(type);	
 		
-		// No way to shortcircuit, due to possible AllowsReferencesTo
-		boolean problemWithInLayer = inLayer == null;
-		boolean problemWithMayReferTo = mayReferTo == null;
-		for(IRNode n : JJNode.tree.topDown(type)) {
+	class MyVisitor extends Visitor<List<ResultDrop>> {
+		final IRNode cu, type;
+		final InLayerPromiseDrop inLayer;
+		final MayReferToPromiseDrop mayReferTo;
+		boolean problemWithInLayer;
+		boolean problemWithMayReferTo;
+		
+		MyVisitor(final IRNode cu, final IRNode type) {
+			this.cu = cu;
+			this.type = type;
+			inLayer = LayerRules.getInLayerDrop(type);
+			mayReferTo = LayerRules.getMayReferToDrop(type);
+		    problemWithInLayer = inLayer == null;
+			problemWithMayReferTo = mayReferTo == null;
+		}
+		
+		void startVisit(IRNode n) {
+			List<ResultDrop> l = visit(n);			
+			addChecked(l);
+		}
+
+		private void addChecked(List<ResultDrop> l) {
+			for(ResultDrop d : l) {
+				d.addChecked(mayReferTo);
+			}			
+		}	
+		
+		@Override
+		public final List<ResultDrop> visit(IRNode node) {
+			// Stop merging and add checked promise			
+			List<List<ResultDrop>> results = doAcceptForChildrenWithResults(node);
+			for(List<ResultDrop> l : results) {
+				addChecked(l);
+			}
+			return Collections.emptyList();
+		}
+		
+		@Override
+		public final List<ResultDrop> visitExpression(IRNode node) {
+			return mergeVisit(node);
+		}
+		
+		@Override
+		public final List<ResultDrop> visitType(IRNode node) {
+			return mergeVisit(node);
+		}
+		
+		private List<ResultDrop> mergeVisit(IRNode node) {
+			final ResultDrop rd = visitNode(node);
+			List<List<ResultDrop>> results = doAcceptForChildrenWithResults(node);
+			if (rd != null) {				
+				for(List<ResultDrop> l : results) {
+					for(ResultDrop d : l) {
+						rd.addTrusted(d);
+					}
+				}
+				return Collections.singletonList(rd);
+			} else {
+				// Coalesce into a single list
+				// (assuming that all the lists are unique/free to be modified)
+				List<ResultDrop> rv = Collections.emptyList();
+				for(List<ResultDrop> l : results) {
+					if (l.isEmpty()) {
+						continue;
+					}
+					if (rv.isEmpty()) {
+						rv = l;
+					} else {
+						rv.addAll(l);
+					}
+				}
+				return rv;
+			}
+		}
+	
+		private ResultDrop visitNode(IRNode n) {
 			final Operator op = JJNode.tree.getOperator(n);
 			if (op instanceof IHasBinding 
 				/*	&& 
@@ -101,15 +171,16 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 					if (!ClassExpression.prototype.includes(n)) {
 						System.out.println("No binding for "+DebugUnparser.toString(n));
 					}
-					continue;
+					return null;
 				}
 				final IRNode bindCu = VisitUtil.findCompilationUnit(b.getNode());
 				if (cu.equals(bindCu)) {
 					// You can always refer to yourself
-					continue;
+					return null;
 				}
 				if ("java.lang".equals(VisitUtil.getPackageName(bindCu))) {
-					continue; // Always refer to java.lang
+					// Always refer to java.lang
+					return null;
 				}
 				IRNode bindT  = VisitUtil.getPrimaryType(bindCu);
 				if (bindT == null) {
@@ -118,18 +189,9 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				// TODO fix to get this from the method
 				final AllowsReferencesFromPromiseDrop allows = getAnalysis().allowRefs(b.getNode());
 				final ResultDrop rd = checkBinding(allows, b, type, n);
-				if (allows != null && rd == null) {					
-					ResultDrop success = createSuccessDrop(n, allows);
-					//IRNode decl = VisitUtil.getEnclosingClassBodyDecl(n);
-					success.setMessage(Messages.PERMITTED_REFERENCE_TO, JavaNames.getFullName(b.getNode()));
-				}
 				final ResultDrop rd2 = checkBinding(mayReferTo, b, bindT, n);
 				if (rd2 != null) {
-					problemWithMayReferTo = true;
-				}
-				else if (mayReferTo != null && rd2 == null) {
-					ResultDrop success = createSuccessDrop(n, mayReferTo);
-					success.setMessage(Messages.PERMITTED_REFERENCE_TO, JavaNames.getFullName(b.getNode()));
+					problemWithMayReferTo |= !rd2.isConsistent();
 				}
 
 				ResultDrop rd3 = null;
@@ -146,14 +208,56 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 						}
 					}
 				}
+				return rd2; // TODO what about rd3?				
 			}
+			return null;
 		}
-		if (!problemWithInLayer) {
-			ResultDrop rd = createSuccessDrop(type, inLayer);	
+		
+		private ResultDrop checkBinding(AbstractReferenceCheckDrop<?> d, IBinding b, IRNode type, IRNode context) {
+			if (d != null) {
+				if (!d.check(type)) {
+					/*
+					final IRNode contextType = VisitUtil.getClosestType(context);
+
+					System.out.println("Found bad ref in "+JavaNames.getFullTypeName(contextType));
+					System.out.println("type = "+DebugUnparser.toString(type));
+					System.out.println("context = "+DebugUnparser.toString(context));
+					//inSameLayer(type, (LayerPromiseDrop) d);
+					d.check(type);
+					*/
+					// Create error
+					ResultDrop rd = createFailureDrop(context);			
+					rd.setMessage(d.getResultMessageKind(), 
+							            unparseArgs(d.getArgs(b.getNode(), type, context)));
+					/*
+					if (rd.getMessage().contains("Null")) {
+						System.out.println("Found "+rd.getMessage());
+					}
+					*/
+					if (!(d instanceof LayerPromiseDrop) && d != mayReferTo) {
+						rd.addChecked(d);
+					}
+					return rd;
+				} else {
+					ResultDrop success = createSuccessDrop(context, d != mayReferTo ? d : null);
+					success.setMessage(Messages.PERMITTED_REFERENCE_TO, JavaNames.getFullName(b.getNode()));
+				}
+			}
+			return null;
+		}
+	}
+	
+	private void analyzeType(final IRNode cu, final IRNode type) {
+		//System.out.println("Looking at "+JavaNames.getRelativeTypeName(type));
+		MyVisitor v = new MyVisitor(cu, type);
+		v.startVisit(type);
+
+		if (!v.problemWithInLayer) {
+			ResultDrop rd = createSuccessDrop(type, v.inLayer);	
 			rd.setMessage(Messages.ALL_TYPES_PERMITTED, JavaNames.getRelativeTypeName(type));
 		}	
-		if (!problemWithMayReferTo) {
-			ResultDrop rd = createSuccessDrop(type, mayReferTo);
+		if (!v.problemWithMayReferTo) {
+			ResultDrop rd = createSuccessDrop(type, v.mayReferTo);
 			rd.setMessage(Messages.ALL_TYPES_PERMITTED, JavaNames.getRelativeTypeName(type));
 		}	
 	}
@@ -176,7 +280,9 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	
 	private ResultDrop createSuccessDrop(IRNode context, PromiseDrop<?> checked) {
 		ResultDrop rd = new ResultDrop(context);
-		rd.addChecked(checked);
+		if (checked != null) {
+			rd.addChecked(checked);
+		}
 		rd.setConsistent();
 		return rd;
 	}
@@ -186,37 +292,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		rd.setInconsistent();
 		return rd;
 	}
-	
-	private ResultDrop checkBinding(AbstractReferenceCheckDrop<?> d, IBinding b, IRNode type, IRNode context) {
-		if (d != null) {
-			if (!d.check(type)) {
-				/*
-				final IRNode contextType = VisitUtil.getClosestType(context);
-
-				System.out.println("Found bad ref in "+JavaNames.getFullTypeName(contextType));
-				System.out.println("type = "+DebugUnparser.toString(type));
-				System.out.println("context = "+DebugUnparser.toString(context));
-				//inSameLayer(type, (LayerPromiseDrop) d);
-				d.check(type);
-				*/
-				// Create error
-				ResultDrop rd = createFailureDrop(context);			
-				rd.setMessage(d.getResultMessageKind(), 
-						            unparseArgs(d.getArgs(b.getNode(), type, context)));
-				/*
-				if (rd.getMessage().contains("Null")) {
-					System.out.println("Found "+rd.getMessage());
-				}
-				*/
-				if (!(d instanceof LayerPromiseDrop)) {
-					rd.addChecked(d);
-				}
-				return rd;
-			}
-		}
-		return null;
-	}
-	
+		
 	private Object[] unparseArgs(Object[] args) {
 		for(int i=0; i<args.length; i++) {
 			args[i] = JavaNames.getFullName((IRNode) args[i]);
