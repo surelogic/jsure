@@ -18,6 +18,7 @@ import edu.cmu.cs.fluid.tree.SyntaxTree;
 import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 import edu.cmu.cs.fluid.tree.Tree;
 import edu.cmu.cs.fluid.util.FileLocator;
+import edu.cmu.cs.fluid.util.IntegerTable;
 import edu.cmu.cs.fluid.util.QuickProperties;
 import edu.cmu.cs.fluid.util.UniqueID;
 import edu.cmu.cs.fluid.version.VersionedSlotFactory;
@@ -75,8 +76,27 @@ public class JJNode extends PlainIRNode implements Node {
 	 * 
 	 * Set to -1 when appendChild would have been false
 	 */
-  protected int nextChild = 0;
-
+  //protected int initNextChild(0;  
+  //
+  // Replaces the field below with this map that can be used on demand
+  // TODO not thread-safe
+  private static final IRNodeHashedMap<Integer> nextChildMap = new IRNodeHashedMap<Integer>();
+  private static boolean usingJJTree = false;
+  
+  public static void setUsingJJTree() {
+	  usingJJTree = true;
+  }
+  
+  private void setNextChild(int next) {
+	  if (usingJJTree) {
+		  nextChildMap.put(this, IntegerTable.newInteger(next));
+	  }
+  }
+  
+  private int getNextChild() {
+	  return nextChildMap.get(this);
+  }
+  
   public JJNode(Operator operator) {
     this(tree, operator);
   }
@@ -113,12 +133,12 @@ public class JJNode extends PlainIRNode implements Node {
     super();
     tree.initNode(this, operator);
     //appendChild = operator.numChildren() < 0;
-    nextChild = operator.numChildren() < 0 ? -1 : 0;
+    setNextChild(operator.numChildren() < 0 ? -1 : 0);
   }
 
   protected JJNode(SyntaxTreeInterface tree) {
 	super();
-	nextChild = -1;
+	setNextChild(-1);
   }
   
   /**
@@ -128,7 +148,7 @@ public class JJNode extends PlainIRNode implements Node {
     super();
     tree.initNode(this, operator, min);
     //appendChild = false;
-    nextChild = -1;
+    setNextChild(-1);
   }
 
   /** Constructor for bottom-up tree creation. */
@@ -139,14 +159,14 @@ public class JJNode extends PlainIRNode implements Node {
     super();
     tree.initNode(this, operator, children);
     //appendChild = false;
-    nextChild = -1;
+    setNextChild(-1);
   }
 
   public JJNode(IRRegion region, SyntaxTreeInterface tree, Operator operator) {
     super(region);
     tree.initNode(this, operator);
     //appendChild = operator.numChildren() < 0;
-    nextChild = operator.numChildren() < 0 ? -1 : 0;
+    setNextChild(operator.numChildren() < 0 ? -1 : 0);
   }
 
   /**
@@ -160,7 +180,7 @@ public class JJNode extends PlainIRNode implements Node {
     super(region);
     tree.initNode(this, operator, min);
     //appendChild = false;
-    nextChild = -1;
+    setNextChild(-1);
   }
 
   /** Constructor for bottom-up tree creation. */
@@ -172,7 +192,7 @@ public class JJNode extends PlainIRNode implements Node {
     super(region);
     tree.initNode(this, operator, children);
     //appendChild = false;
-    nextChild = -1;
+    setNextChild(-1);
   }
 
   // unused methods
@@ -189,14 +209,18 @@ public class JJNode extends PlainIRNode implements Node {
   @Override
   public void jjtAddChild(Node n) {
 	//if (appendChild)
+	final int nextChild = getNextChild();
 	if (nextChild < 0)
       tree.appendSubtree(this, (JJNode) n);
-    else
-      tree.setChild(this, nextChild++, (JJNode) n);
+    else {
+      tree.setChild(this, nextChild, (JJNode) n);
+      setNextChild(nextChild+1);
+    }
   }
   @Override
   public void jjtAddChild(Node n, int i) {
     //if (appendChild)
+	final int nextChild = getNextChild();
 	if (nextChild < 0)
       // assume reverse order
       // FIX insert nulls if necessary
