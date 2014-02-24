@@ -16,10 +16,9 @@ public class ParseUtil {
   }
   
   public static void clear() {
-	  /* Disabled for now, due to use by XML editor
+	  // TODO Disabled for now, due to use by XML editor
 	  ScopedPromisesLexer.clear();
 	  SLAnnotationsLexer.clear();
 	  SLThreadRoleAnnotationsLexer.clear();
-	  */
   }
 }
