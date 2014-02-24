@@ -120,8 +120,8 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				final ResultDrop rd = checkBinding(allows, b, type, n);
 				if (allows != null && rd == null) {					
 					ResultDrop success = createSuccessDrop(n, allows);
-					IRNode decl = VisitUtil.getEnclosingClassBodyDecl(n);
-					success.setMessage(Messages.PERMITTED_REFERENCE, JavaNames.getFullName(decl));
+					//IRNode decl = VisitUtil.getEnclosingClassBodyDecl(n);
+					success.setMessage(Messages.PERMITTED_REFERENCE_TO, JavaNames.getFullName(b.getNode()));
 				}
 				final ResultDrop rd2 = checkBinding(mayReferTo, b, bindT, n);
 				if (rd2 != null) {
