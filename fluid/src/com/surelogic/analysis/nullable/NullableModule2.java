@@ -318,6 +318,8 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     
     public void clear() {
       definiteAssignment.clear();
+      nonNullRawType.clear();
+      NonNullTypeChecker.clearCaches();
       timedOutMethodBodies.clear();
     }
     
