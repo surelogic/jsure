@@ -26,6 +26,7 @@ import com.surelogic.analysis.type.checker.QualifiedTypeCheckerSlave;
 import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.rules.AnnotationRules;
+import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.dropsea.ir.AnalysisResultDrop;
@@ -39,16 +40,13 @@ import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 
-import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.Arguments;
-import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.Initialization;
-import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
@@ -56,6 +54,7 @@ import edu.cmu.cs.fluid.java.operator.ReferenceType;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
+import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -250,7 +249,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
         buildWarningResults(isUnbox, expr, varValue.second(), chain);
         chain.removeLast();    
       } else if (k != Kind.NO_VALUE) {
-        final PromiseDrop<?> pd = getAnnotation(k.getAnnotatedNode(binder, where));
+        final PromiseDrop<?> pd = getAnnotationForProof(k.getAnnotatedNode(binder, where));
         /* Add a warning if the promise is a REAL @Nullable annotation,
          * but skip the warning if the @Nullable is a virtual one added by
          * checkAssignability for reporting problems with @Raw.
@@ -271,7 +270,13 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
     }
   }
   
-  private PromiseDrop<?> getAnnotation(final IRNode n) {
+  private PromiseDrop<?> getAnnotationForProof(final IRNode n) {
+    PromiseDrop<?> pd = getAnnotationToAssure(n);
+    if (pd == null) pd = LockRules.getVouchFieldIs(n);
+    return pd;
+  }
+  
+  private PromiseDrop<?> getAnnotationToAssure(final IRNode n) {
     PromiseDrop<?> pd = NonNullRules.getRaw(n);
     if (pd == null) pd = NonNullRules.getNonNull(n);
     if (pd == null) pd = NonNullRules.getNullable(n);
@@ -294,7 +299,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
      * on. So we have to add a virtual @Nullable or @NonNull annotation. See the
      * ELSE branch.
      */
-    final PromiseDrop<?> declPD = getAnnotation(decl);
+    final PromiseDrop<?> declPD = getAnnotationToAssure(decl);
     try {
       final StackQuery currentQuery = currentQuery();
       if (declPD != null && !createdVirtualAnnotations.contains(declPD)) { // Skip virtual @Nullables
@@ -304,7 +309,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
         ResultFolderDrop folder = builder.createRootAndFolder(
             expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
             declState.getAnnotation(), kind);
-        buildNewChain(false, expr, folder, declState, queryResult.getSources());
+        buildNewChain(false, expr, folder, decl, declState, queryResult.getSources());
       } else {
         /*
          * Like above, but we know the declared state is implicitly @Nullable or
@@ -337,7 +342,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
           ResultFolderDrop folder = builder.createRootAndFolder(
               expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
               testAgainst.getAnnotation(), kind);
-          buildNewChain(noAnnoIsNonNull, expr, folder, testAgainst, queryResult.getSources());
+          buildNewChain(noAnnoIsNonNull, expr, folder, decl, testAgainst, queryResult.getSources());
         }
       }
     } catch (AnalysisGaveUp e) {
@@ -360,14 +365,14 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
 
   private void buildNewChain(final boolean testRawOnly, 
       final IRNode rhsExpr, final AnalysisResultDrop parent,
-      final Element declState, final Set<Source> sources) {
-    buildNewChain(testRawOnly, rhsExpr, parent, declState, sources,
+      final IRNode lhsDecl, final Element declState, final Set<Source> sources) {
+    buildNewChain(testRawOnly, rhsExpr, parent, lhsDecl, declState, sources,
         new HashMap<IRNode, AnalysisResultDrop>());
   }
   
   private void buildNewChain(final boolean testRawOnly, 
       final IRNode rhsExpr, final AnalysisResultDrop parent,
-      final Element declState, final Set<Source> sources,
+      final IRNode lhsDecl, final Element declState, final Set<Source> sources,
       final Map<IRNode, AnalysisResultDrop> visitedUseSites) {
     for (final Source src : sources) {
       final Kind k = src.first();
@@ -384,70 +389,59 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
           final ResultFolderDrop f = ResultsBuilder.createAndFolder(
               parent, where, READ_FROM, READ_FROM, DebugUnparser.toString(where));
           visitedUseSites.put(where, f);
-          buildNewChain(testRawOnly, rhsExpr, f, declState, varValue.second(), visitedUseSites);
+          buildNewChain(testRawOnly, rhsExpr, f, lhsDecl, declState, varValue.second(), visitedUseSites);
         }
       } else if (k != Kind.NO_VALUE) {
         final Element srcState = src.third();
-        if (!testRawOnly || (srcState == NonNullRawLattice.RAW || srcState instanceof ClassElement)) {
+        final boolean rawSrc =
+            srcState == NonNullRawLattice.RAW || srcState instanceof ClassElement;
+        
+        if (!testRawOnly || rawSrc) {
           final ResultDrop result = ResultsBuilder.createResult(
               declState.isAssignableFrom(binder.getTypeEnvironment(), srcState),
               parent, where,
               k.getMessage(), srcState.getAnnotation(), k.unparse(where));
-          final PromiseDrop<?> pd = getAnnotation(k.getAnnotatedNode(binder, where));
+          final PromiseDrop<?> pd = getAnnotationForProof(k.getAnnotatedNode(binder, where));
           if (pd != null) result.addTrusted(pd);
           
-          final boolean rawSrc = srcState == NonNullRawLattice.RAW || srcState instanceof ClassElement;
           final Operator op = JJNode.tree.getOperator(rhsExpr);
           if (declState == NonNullRawLattice.MAYBE_NULL && rawSrc) {
             result.addInformationHint(where, RAW_INTO_NULLABLE);
           }
           
+          /*
+           * Propose @NonNull on a formal parameter if the formal is 
+           * unannotated and the formal is being assigned to a @NonNull
+           * field or actual.
+           */
           if (declState == NonNullRawLattice.NOT_NULL && 
               VariableUseExpression.prototype.includes(op)) {
             final IRNode decl = binder.getBinding(rhsExpr);
             if (ParameterDeclaration.prototype.includes(decl) &&
-                getAnnotation(decl) == null) {
+                getAnnotationForProof(decl) == null) {
               result.addProposalNotProvedConsistent(new Builder(NonNull.class, decl, rhsExpr).build());
             }
           }
-          // TODO check if correct
-          if (declState == NonNullRawLattice.NOT_NULL && rawSrc && 
-        		  (ThisExpression.prototype.includes(op) || VariableUseExpression.prototype.includes(op))) {
-        	  for(Map.Entry<IRNode,AnalysisResultDrop> e : visitedUseSites.entrySet()) {        	
-        		  final IRNode eParent = JJNode.tree.getParentOrNull(e.getKey());
-                  final Operator pop = JJNode.tree.getOperator(eParent);
-                  ProposedPromiseDrop proposal;
-        		  // Look at where it's used
-        		  if (MethodCall.prototype.includes(pop)) { 
-        			  // This should be the receiver
-        			  IRNode mdecl = binder.getBinding(eParent);
-            		  proposal = makeInitializedProposal(srcState, e.getKey(), mdecl);
-        		  }
-        		  else if (Arguments.prototype.includes(pop)) {
-        			  // Figure out which parameter it is
-        			  final IRLocation loc = JJNode.tree.getLocation(e.getKey());
-        			  final int i = JJNode.tree.childLocationIndex(eParent, loc);
-        			  final IRNode gparent = JJNode.tree.getParentOrNull(eParent);        			  
-        			  final IRNode mdecl = binder.getBinding(gparent);
-        			  final Operator mop = JJNode.tree.getOperator(mdecl);
-        			  IRNode params;
-        			  if (MethodDeclaration.prototype.includes(mop)) {
-        				  params = MethodDeclaration.getParams(mdecl);
-        			  }
-        			  else if (ConstructorDeclaration.prototype.includes(mop)) {
-        				  params = ConstructorDeclaration.getParams(mdecl);
-        			  }
-        			  else {
-        				  throw new IllegalStateException("Unexpected "+mop);  
-        			  }
-        			  IRNode pdecl = Parameters.getFormal(params, i);
-        			  proposal = makeInitializedProposal(srcState, e.getKey(), pdecl); 
-        		  } 
-        		  else {
-        			  continue;
-        		  }        		  
-    			  result.addProposalNotProvedConsistent(proposal);
-        	  }
+          
+          /*
+           * Propose @Initialized on a formal parameter or receiver
+           * if the formal/receiver is unannotated and assigned an @Initialized
+           * reference.
+           * 
+           * (NOTE: This is the reverse of what we do for @NonNull above)
+           */
+          final boolean notRawDecl =
+              declState == NonNullRawLattice.NOT_NULL || 
+              declState == NonNullRawLattice.MAYBE_NULL;
+          if (notRawDecl && rawSrc &&
+              ((ThisExpression.prototype.includes(op) ||
+                  VariableUseExpression.prototype.includes(op)))) {
+            final PromiseDrop<?> lhsPromise = getAnnotationForProof(lhsDecl);
+            if ((ParameterDeclaration.prototype.includes(lhsDecl) || ReceiverDeclaration.prototype.includes(lhsDecl)) &&
+                (lhsPromise == null || lhsPromise.isVirtual())) {
+              result.addProposalNotProvedConsistent(
+                  makeInitializedProposal(srcState, where, lhsDecl)); 
+            }
           }
         }
       }
@@ -599,7 +593,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
       final IRNode varOrParamDecl = binder.getBinding(lhs);
       if (VariableDeclarator.prototype.includes(varOrParamDecl)) {
         // Only check if the local is explicitly annotated
-        if (getAnnotation(varOrParamDecl) != null) {
+        if (getAnnotationToAssure(varOrParamDecl) != null) {
           final IRNode typeNode = VariableDeclarator.getType(varOrParamDecl);
           checkAssignability(rhs, varOrParamDecl, LValue.VARIABLE, typeNode);
         }
@@ -617,7 +611,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
     final IRNode init = VariableDeclarator.getInit(vd);
     if (Initialization.prototype.includes(init)) {
       // Only check if the local is explicitly annotated
-      if (getAnnotation(vd) != null) {
+      if (getAnnotationToAssure(vd) != null) {
         final IRNode initExpr = Initialization.getValue(init);
         final IRNode typeNode = VariableDeclarator.getType(vd);
         checkAssignability(initExpr, vd, kind, typeNode);

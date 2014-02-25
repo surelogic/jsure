@@ -16,11 +16,14 @@ import com.surelogic.analysis.nullable.NonNullRawLattice.ClassElement;
 import com.surelogic.analysis.nullable.NonNullRawLattice.Element;
 import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
+import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.annotation.rules.VouchRules;
 import com.surelogic.common.Pair;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.util.AbstractRemovelessIterator;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.VouchFieldIsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 import com.surelogic.util.IRNodeIndexedArrayLattice;
 import com.surelogic.util.IThunk;
@@ -560,6 +563,19 @@ implements IBinderClient {
     },
     STRING_LITERAL(962),
     VAR_ARGS(965),
+    VOUCH_NULLLABLE(967) {
+      @Override
+      public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
+        return binder.getBinding(where);
+      }
+    },
+    VOUCH_NONNULL(968) {
+      @Override
+      public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
+        return binder.getBinding(where);
+      }
+    },
+    
     NO_VALUE(966) {
       @Override
       public String unparse(final IRNode w) {
@@ -1624,6 +1640,16 @@ implements IBinderClient {
       final IRNode var = binder.getIBinding(use).getNode();
       final int idx = var == null ? -1 : lattice.indexOf(var);
       if (idx != -1) {
+        final VouchFieldIsPromiseDrop vouch = LockRules.getVouchFieldIs(var);
+        if (vouch != null) {
+          if (vouch.isNullable()) {
+            return lattice.push(val,
+                lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.VOUCH_NULLLABLE, use));
+          } else if (vouch.isNonNull()) {
+            return lattice.push(val,
+                lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.VOUCH_NONNULL, use));
+          }
+        }
         return lattice.push(val, 
             lattice.baseValue(lattice.getVar(val, idx).first(), Kind.VAR_USE, use));
       } else {
