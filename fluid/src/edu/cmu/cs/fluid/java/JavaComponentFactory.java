@@ -5,7 +5,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.surelogic.*;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -50,12 +49,6 @@ public final class JavaComponentFactory implements ComponentFactory {
   
   // TODO remove!
   
-  private static void clearAnalyses() {
-	  for(IntraproceduralAnalysis<?, ?, ?> a : analyses) {
-		  a.clear();
-	  }
-  }
-  
   public static void clearCache() {
 	  try {
 		  activeLock.writeLock().lock();
@@ -67,6 +60,11 @@ public final class JavaComponentFactory implements ComponentFactory {
   
   private static void clear() {
 	  components.clear();  
+	  
+	  // Otherwise, they'll hang onto the info
+	  for(IntraproceduralAnalysis<?, ?, ?> a : analyses) {
+		  a.clear();
+	  }
   }
 
   private static boolean isLowOnMemory() {
@@ -86,7 +84,6 @@ public final class JavaComponentFactory implements ComponentFactory {
 			  if (isLowOnMemory()) {
 			    System.out.println("~~~~~~ Clearing component cache ~~~~~~");
 				  clear();			  
-				  clearAnalyses(); // Otherwise, they'll hang onto the info
 			  }
 		  } finally {
 			  // This should unblock everyone		  
