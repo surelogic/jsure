@@ -2,6 +2,7 @@ package com.surelogic.analysis;
 
 import java.util.*;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -9,6 +10,7 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 import com.surelogic.analysis.granules.GranuleInType;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
+import com.surelogic.common.Pair;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.util.AppendIterator;
 import com.surelogic.common.util.EmptyIterator;
@@ -30,6 +32,18 @@ import extra166y.Ops.Procedure;
 // Map groups to a linear ordering
 // Deal with granulators
 public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
+	/**
+	 * Threshold to even consider doing a compact.
+	 */
+	static final int f_thresholdSize = 2000;	
+
+	/**
+	 * Threshold is one second.
+	 */
+	static final long f_thresholdNs = TimeUnit.SECONDS.toNanos(1);
+	
+	static final boolean compactBeforeCreation = false;
+	
 	private final List<AnalysisGroup<?>> groups = new ArrayList<AnalysisGroup<?>>();
 	private long[] times;
 	  
@@ -51,19 +65,69 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 		if (times == null) {
 			throw new IllegalStateException("Timing not started yet");
 		}
-		for(AnalysisTimings t : threadLocal) {			
+		final Map<Pair<IRNode,IIRAnalysis<?>>, CUTime> timingsByCU = compactBeforeCreation ? new HashMap<Pair<IRNode,IIRAnalysis<?>>, CUTime>() : null;
+		int numTimings = 0;
+		for(AnalysisTimings at : threadLocal) {			
 			for(int j=0; j<times.length; j++) {
-				times[j] += t.times[j]; 
+				times[j] += at.times[j]; 
 			}			  
-			t.makeDrops();
+			if (compactBeforeCreation) {
+				for(Timing t : at.getTimings()) {
+					final IRNode cu = t.granule.getCompUnit();
+					final Pair<IRNode,IIRAnalysis<?>> pair = new Pair<IRNode,IIRAnalysis<?>>(cu, t.analysis);
+					CUTime cut = timingsByCU.get(pair);
+					if (cut == null) {
+						cut = new CUTime(cu, t.analysis);
+						timingsByCU.put(pair, cut);
+					}
+					cut.add(t);
+					numTimings++;
+				}
+			} else {
+				at.makeDrops();
+			}
 		}
-
+		if (compactBeforeCreation) {
+			final boolean verbose = numTimings < f_thresholdSize;
+			for(CUTime t : timingsByCU.values()) {
+				t.makeDrops(verbose);
+			}
+		}
+		
 		// Postprocess times to normalize to millis
 		for(int i = 0; i<times.length; i++) {
 			times[i] = times[i] / 1000000;
 		}
 		return times;
 	}	  
+	
+	static class CUTime {
+	    final IRNode cu;
+	    final IIRAnalysis<?> analysis;
+		long totalTimeInNs;
+	    final List<Timing> timings = new ArrayList<Timing>();
+		
+		CUTime(IRNode cu, IIRAnalysis<?> a) {
+			this.cu = cu;
+			analysis = a;
+		}
+
+		void add(Timing t) {
+			totalTimeInNs += t.t_in_ns;
+			timings.add(t);
+		}
+		
+		void makeDrops(boolean verbose) {
+			if (!verbose && totalTimeInNs < f_thresholdNs) {
+				// Compact
+				recordTime(cu, analysis, totalTimeInNs);
+			} else {
+				for(Timing t : timings) {
+					t.recordTime();
+				}
+			}
+		}
+	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Iterator<IIRAnalysis<IAnalysisGranule>> iterator() {
@@ -137,6 +201,10 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 			times = new long[analyses.size()];
 		}
 
+	    Iterable<Timing> getTimings() {
+			return timings;
+		}
+
 		public void incrTime(int which, long time, IAnalysisGranule granule, IIRAnalysis<?> a) {
 			times[which] += time;
 			timings.add(new Timing(time, granule, a));
@@ -150,9 +218,9 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 	}
 
 	private static class Timing {
-		final long t_in_ns;
 		final IIRAnalysis<?> analysis;
 		final IAnalysisGranule granule;
+		final long t_in_ns;
 		
 		Timing(long t, IAnalysisGranule g, IIRAnalysis<?> a) {
 			t_in_ns = t;
@@ -161,14 +229,18 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 		}		
 		
 		void recordTime() {
-			final MetricDrop d = new MetricDrop(granule.getNode(), IMetricDrop.Metric.SCAN_TIME);
-
-			final IKeyValue name = KeyValueUtility.getStringInstance(IMetricDrop.SCAN_TIME_ANALYSIS_NAME, analysis.label());
-			d.addOrReplaceMetricInfo(name);
-
-			final IKeyValue time = KeyValueUtility.getLongInstance(IMetricDrop.SCAN_TIME_DURATION_NS, t_in_ns);
-			d.addOrReplaceMetricInfo(time);
+			Analyses.recordTime(granule.getNode(), analysis, t_in_ns);
 		}
+	}
+	
+	static void recordTime(IRNode n, IIRAnalysis<?> analysis, long t_in_ns) {
+		final MetricDrop d = new MetricDrop(n, IMetricDrop.Metric.SCAN_TIME);
+
+		final IKeyValue name = KeyValueUtility.getStringInstance(IMetricDrop.SCAN_TIME_ANALYSIS_NAME, analysis.label());
+		d.addOrReplaceMetricInfo(name);
+
+		final IKeyValue time = KeyValueUtility.getLongInstance(IMetricDrop.SCAN_TIME_DURATION_NS, t_in_ns);
+		d.addOrReplaceMetricInfo(time);
 	}
 	
 	public void incrTime(int i, long time) {
