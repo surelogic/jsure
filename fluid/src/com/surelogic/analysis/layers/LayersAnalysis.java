@@ -37,7 +37,6 @@ import edu.cmu.cs.fluid.java.bind.IHasBinding;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
-import edu.cmu.cs.fluid.java.operator.TreeWalkVisitor;
 import edu.cmu.cs.fluid.java.operator.UnnamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -85,8 +84,14 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return true; 
 	}
 	*/
+	static class MyResults {
+		List<ResultDrop> resultsForMayReferTo = Collections.emptyList();
+		List<ResultDrop> resultsForInLayer = Collections.emptyList();
+	}
 		
-	class MyVisitor extends Visitor<List<ResultDrop>> {
+	static final MyResults defaultResults = new MyResults();
+	
+	class MyVisitor extends Visitor<MyResults> {
 		final IRNode cu, type;
 		final InLayerPromiseDrop inLayer;
 		final MayReferToPromiseDrop mayReferTo;
@@ -99,65 +104,102 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		}
 		
 		void startVisit(IRNode n) {
-			List<ResultDrop> l = visit(n);			
-			addChecked(l);
+			MyResults rv = visit(n);			
+			addChecked(rv);
 		}
 
-		private void addChecked(List<ResultDrop> l) {
-			for(ResultDrop d : l) {
-				d.addChecked(mayReferTo);
+		private void addChecked(MyResults r) {
+			for(ResultDrop d : r.resultsForInLayer) {
+				d.addChecked(inLayer);
 			}			
+			for(ResultDrop d : r.resultsForMayReferTo) {
+				d.addChecked(mayReferTo);
+			}	
 		}	
 		
 		@Override
-		public final List<ResultDrop> visit(IRNode node) {
+		public final MyResults visit(IRNode node) {
 			// Stop merging and add checked promise			
-			List<List<ResultDrop>> results = doAcceptForChildrenWithResults(node);
-			for(List<ResultDrop> l : results) {
+			List<MyResults> results = doAcceptForChildrenWithResults(node);
+			for(MyResults l : results) {
 				addChecked(l);
 			}
-			return Collections.emptyList();
+			return defaultResults;
 		}
 		
 		@Override
-		public final List<ResultDrop> visitExpression(IRNode node) {
+		public final MyResults visitExpression(IRNode node) {
 			return mergeVisit(node);
 		}
 		
 		@Override
-		public final List<ResultDrop> visitType(IRNode node) {
+		public final MyResults visitType(IRNode node) {
 			return mergeVisit(node);
 		}
 		
-		private List<ResultDrop> mergeVisit(IRNode node) {
-			final ResultDrop rd = visitNode(node);
-			List<List<ResultDrop>> results = doAcceptForChildrenWithResults(node);
+		private MyResults mergeVisit(IRNode node) {
+			final Pair<ResultDrop,ResultDrop> rd = visitNode(node);
+			List<MyResults> results = doAcceptForChildrenWithResults(node);
+			MyResults rv = null;
+			// TODO inefficient to merge results first?
+			for(MyResults r : results) {
+				if (rv == null) {
+					rv = r;
+				} else {
+					rv = mergeResults(rv, r);
+				}
+			}
+			if (rv == null) {
+				rv = new MyResults();
+			}
+			rv.resultsForMayReferTo = combineResults(rv.resultsForMayReferTo, rd.first());
+			rv.resultsForInLayer = combineResults(rv.resultsForInLayer, rd.second());
+			return rv;
+		}
+		
+		private MyResults mergeResults(MyResults r1, MyResults r2) {
+			r1.resultsForMayReferTo = mergeResults(r1.resultsForMayReferTo, r2.resultsForMayReferTo);
+			r1.resultsForInLayer = mergeResults(r1.resultsForInLayer, r2.resultsForInLayer);
+			return r1;
+		}
+
+		private List<ResultDrop> mergeResults(List<ResultDrop> r1, List<ResultDrop> r2) {
+			switch (r1.size()) {
+			case 0:
+				return r2;
+			case 1:
+				switch (r2.size()) {
+				case 0: 
+					return r1;
+				case 1:
+					List<ResultDrop> rv = new ArrayList<ResultDrop>(2);
+					rv.addAll(r1);
+					rv.addAll(r2);
+					return rv;
+				default:
+					r2.addAll(r1);
+					return r2;
+				}
+			default:
+				if (!r2.isEmpty()) {
+					r1.addAll(r2);					
+				}
+				return r1;
+			}
+		}
+		
+		private List<ResultDrop> combineResults(List<ResultDrop> results, ResultDrop rd) {
 			if (rd != null) {				
-				for(List<ResultDrop> l : results) {
-					for(ResultDrop d : l) {
-						rd.addTrusted(d);
-					}
+				for(ResultDrop d : results) {
+					rd.addTrusted(d);
 				}
 				return Collections.singletonList(rd);
 			} else {
-				// Coalesce into a single list
-				// (assuming that all the lists are unique/free to be modified)
-				List<ResultDrop> rv = Collections.emptyList();
-				for(List<ResultDrop> l : results) {
-					if (l.isEmpty()) {
-						continue;
-					}
-					if (rv.isEmpty()) {
-						rv = l;
-					} else {
-						rv.addAll(l);
-					}
-				}
-				return rv;
+				return results;
 			}
 		}
 	
-		private ResultDrop visitNode(IRNode n) {
+		private Pair<ResultDrop,ResultDrop> visitNode(IRNode n) {
 			final Operator op = JJNode.tree.getOperator(n);
 			if (op instanceof IHasBinding 
 				/*	&& 
@@ -200,7 +242,9 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 						}
 					}
 				}
-				return rd2; // TODO what about rd3?				
+				if (rd2 != null || rd3 != null) {
+					return new Pair<ResultDrop,ResultDrop>(rd2, rd3);					
+				}			
 			}
 			return null;
 		}
