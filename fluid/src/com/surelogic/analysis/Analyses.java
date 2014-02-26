@@ -42,7 +42,7 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 	 */
 	static final long f_thresholdNs = TimeUnit.SECONDS.toNanos(1);
 	
-	static final boolean compactBeforeCreation = false;
+	static final boolean compactBeforeCreation = true;
 	
 	private final List<AnalysisGroup<?>> groups = new ArrayList<AnalysisGroup<?>>();
 	private long[] times;

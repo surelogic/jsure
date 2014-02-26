@@ -450,7 +450,8 @@ public class Util {
     perf.markTimeFor("Canonicalization");
     eliminateDups(cus.asList(), cus.asList());
     clearCaches(projects);
-
+    System.gc();
+    
     perf.markTimeFor("Cleanup");
     final boolean addRequired = false;
     if (addRequired) {
@@ -505,14 +506,14 @@ public class Util {
       final SeaConsistencyProofHook staticHook = new RegionModelClearOutUnusedStaticProofHook();
       final SeaConsistencyProofHook cuDropHook = new CUDropClearOutAfterAnalysisProofHook();
       final SeaConsistencyProofHook clearResultsHook = new ClearOutUnconnectedResultsProofHook();
-      final SeaConsistencyProofHook scanTimeMetricCompactHook = new ScanTimeMetricCompactProofHook();
+      //final SeaConsistencyProofHook scanTimeMetricCompactHook = new ScanTimeMetricCompactProofHook();
       Sea.getDefault().addConsistencyProofHook(vouchHook);
       Sea.getDefault().addConsistencyProofHook(staticHook);
       Sea.getDefault().addConsistencyProofHook(cuDropHook);
       Sea.getDefault().addConsistencyProofHook(clearResultsHook);
-      Sea.getDefault().addConsistencyProofHook(scanTimeMetricCompactHook);
+      //Sea.getDefault().addConsistencyProofHook(scanTimeMetricCompactHook);
       Sea.getDefault().updateConsistencyProof();
-      Sea.getDefault().removeConsistencyProofHook(scanTimeMetricCompactHook);
+      //Sea.getDefault().removeConsistencyProofHook(scanTimeMetricCompactHook);
       Sea.getDefault().removeConsistencyProofHook(clearResultsHook);
       Sea.getDefault().removeConsistencyProofHook(cuDropHook);
       Sea.getDefault().removeConsistencyProofHook(staticHook);
@@ -951,6 +952,7 @@ public class Util {
       analyses.incrTime(i, end - start);
       i++;
     }
+    System.gc();
   }
   
   static abstract class AbstractAnalyzer<P,Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> implements Analyzer<P, Q>{
