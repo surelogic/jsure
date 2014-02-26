@@ -241,6 +241,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				} else {
 					ResultDrop success = createSuccessDrop(context, d != mayReferTo ? d : null);
 					success.setMessage(Messages.PERMITTED_REFERENCE_TO, JavaNames.getFullName(b.getNode()));
+					return success;
 				}
 			}
 			return null;
