@@ -90,16 +90,12 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		final IRNode cu, type;
 		final InLayerPromiseDrop inLayer;
 		final MayReferToPromiseDrop mayReferTo;
-		boolean problemWithInLayer;
-		boolean problemWithMayReferTo;
 		
 		MyVisitor(final IRNode cu, final IRNode type) {
 			this.cu = cu;
 			this.type = type;
 			inLayer = LayerRules.getInLayerDrop(type);
 			mayReferTo = LayerRules.getMayReferToDrop(type);
-		    problemWithInLayer = inLayer == null;
-			problemWithMayReferTo = mayReferTo == null;
 		}
 		
 		void startVisit(IRNode n) {
@@ -190,9 +186,6 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 				final AllowsReferencesFromPromiseDrop allows = getAnalysis().allowRefs(b.getNode());
 				final ResultDrop rd = checkBinding(allows, b, type, n);
 				final ResultDrop rd2 = checkBinding(mayReferTo, b, bindT, n);
-				if (rd2 != null) {
-					problemWithMayReferTo |= !rd2.isConsistent();
-				}
 
 				ResultDrop rd3 = null;
 				if (inLayer != null) {
@@ -203,7 +196,6 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 							rd3 = checkBinding(layer, b, bindT, n);
 							if (rd3 != null) {
 								rd3.addChecked(inLayer);
-								problemWithInLayer = true;
 							}
 						}
 					}
@@ -251,16 +243,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	private void analyzeType(final IRNode cu, final IRNode type) {
 		//System.out.println("Looking at "+JavaNames.getRelativeTypeName(type));
 		MyVisitor v = new MyVisitor(cu, type);
-		v.startVisit(type);
-
-		if (!v.problemWithInLayer) {
-			ResultDrop rd = createSuccessDrop(type, v.inLayer);	
-			rd.setMessage(Messages.ALL_TYPES_PERMITTED, JavaNames.getRelativeTypeName(type));
-		}	
-		if (!v.problemWithMayReferTo) {
-			ResultDrop rd = createSuccessDrop(type, v.mayReferTo);
-			rd.setMessage(Messages.ALL_TYPES_PERMITTED, JavaNames.getRelativeTypeName(type));
-		}	
+		v.startVisit(type);	
 	}
 
 	private boolean inSameLayer(IRNode bindT, final LayerPromiseDrop layer) {

@@ -43,6 +43,7 @@ import com.surelogic.promise.SinglePromiseDropStorage;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -345,6 +346,9 @@ public class LayerRules extends AnnotationRules {
 					for(Drop l : layerDrops) {
 						l.addDependent(d);
 					}
+					if (TypeDeclaration.prototype.includes(a.getPromisedFor())) {
+						createDefaultResult(d);
+					}
 					return storeDropIfNotNull(a, d);
 				}
 			};
@@ -375,10 +379,18 @@ public class LayerRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<MayReferToNode> makePromiseDrop(MayReferToNode a) {
 					MayReferToPromiseDrop d = new MayReferToPromiseDrop(a);
+					createDefaultResult(d);
 					return storeDropIfNotNull(a, d);
 				}
 			};
 		}
+	}
+	
+	static void createDefaultResult(PromiseDrop<?> d) {
+		ResultDrop rd = new ResultDrop(d.getPromisedFor());
+		rd.addChecked(d);
+		rd.setConsistent();
+		rd.setMessage(356);
 	}
 	
 	static class AllowsReferencesFrom_ParseRule
@@ -405,10 +417,7 @@ public class LayerRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<AllowsReferencesFromNode> makePromiseDrop(AllowsReferencesFromNode a) {
 					AllowsReferencesFromPromiseDrop d = new AllowsReferencesFromPromiseDrop(a);
-					ResultDrop rd = new ResultDrop(a.getPromisedFor());
-					rd.addChecked(d);
-					rd.setConsistent();
-					rd.setMessage(356);
+					createDefaultResult(d);
 					return storeDropIfNotNull(a, d);
 				}
 			};
