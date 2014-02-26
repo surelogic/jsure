@@ -143,7 +143,12 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   @Override
   protected boolean doAnalysisOnGranule_wrapped(
       final IIRAnalysisEnvironment env, final FlowUnitGranule g) {
-    getAnalysis().execute(g);
+	AnalysisBundle a = getAnalysis();
+	try {
+		a.execute(g);
+	} finally {		
+		a.clear();
+	}
     return true; 
   }
   
@@ -279,10 +284,8 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
 
   @Override
   protected void clearCaches() {
-    // Nothing to do
+	  analyses.clearCaches();
   }
-  
-  
   
   static final class AnalysisBundle implements IBinderClient {
     private final IBinder binder;
@@ -314,13 +317,14 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
       definiteAssignment.clearCaches();
       nonNullRawType.clearCaches();
       NonNullTypeChecker.clearCaches();
+      timedOutMethodBodies.clear(); // TODO report these?
     }
     
     public void clear() {
       definiteAssignment.clear();
       nonNullRawType.clear();
       NonNullTypeChecker.clearCaches();
-      timedOutMethodBodies.clear();
+      timedOutMethodBodies.clear(); // TODO report these?
     }
     
     public void addTimeOut(final IRNode mBody) {
