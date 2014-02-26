@@ -37,6 +37,7 @@ import edu.cmu.cs.fluid.java.bind.IHasBinding;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
+import edu.cmu.cs.fluid.java.operator.ParameterizedType;
 import edu.cmu.cs.fluid.java.operator.UnnamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -204,7 +205,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	
 		private Pair<ResultDrop,ResultDrop> visitNode(IRNode n) {
 			final Operator op = JJNode.tree.getOperator(n);
-			if (op instanceof IHasBinding 
+			if (op instanceof IHasBinding && !ParameterizedType.prototype.includes(op)
 				/*	&& 
 				!(PackageDeclaration.prototype.includes(op) || ImportName.prototype.includes(op))*/) {
 				final IBinding b    = getAnalysis().getBinder().getIBinding(n);
