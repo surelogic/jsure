@@ -32,6 +32,7 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.layers.AllowsReferencesFromPromiseDrop;
+import com.surelogic.dropsea.ir.drops.layers.IReferenceCheckDrop;
 import com.surelogic.dropsea.ir.drops.layers.InLayerPromiseDrop;
 import com.surelogic.dropsea.ir.drops.layers.LayerPromiseDrop;
 import com.surelogic.dropsea.ir.drops.layers.MayReferToPromiseDrop;
@@ -291,6 +292,9 @@ public class LayerRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<LayerNode> makePromiseDrop(LayerNode a) {
 					LayerPromiseDrop d = new LayerPromiseDrop(a);
+					for(PromiseDrop<?> rd : d.getAAST().getReferences()) {
+						d.addDependent(rd);
+					}
 					return storeDropIfNotNull(a, d);
 				}
 			};
@@ -342,7 +346,7 @@ public class LayerRules extends AnnotationRules {
 						}
 						layerDrops.add(l);
 					}
-					InLayerPromiseDrop d = new InLayerPromiseDrop(a);
+					InLayerPromiseDrop d = new InLayerPromiseDrop(a);					
 					for(Drop l : layerDrops) {
 						l.addDependent(d);
 					}
@@ -378,6 +382,9 @@ public class LayerRules extends AnnotationRules {
 				protected PromiseDrop<MayReferToNode> makePromiseDrop(MayReferToNode a) {
 					MayReferToPromiseDrop d = new MayReferToPromiseDrop(a);
 					createDefaultResult(d);
+					for(PromiseDrop<?> rd : d.getAAST().getReferences()) {
+						d.addDependent(rd);
+					}
 					return storeDropIfNotNull(a, d);
 				}
 			};
@@ -416,6 +423,9 @@ public class LayerRules extends AnnotationRules {
 				protected PromiseDrop<AllowsReferencesFromNode> makePromiseDrop(AllowsReferencesFromNode a) {
 					AllowsReferencesFromPromiseDrop d = new AllowsReferencesFromPromiseDrop(a);
 					createDefaultResult(d);
+					for(PromiseDrop<?> rd : d.getAAST().getReferences()) {
+						d.addDependent(rd);
+					}
 					return storeDropIfNotNull(a, d);
 				}
 			};

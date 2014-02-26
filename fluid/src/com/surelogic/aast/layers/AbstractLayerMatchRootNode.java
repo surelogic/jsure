@@ -7,6 +7,7 @@ import com.surelogic.aast.bind.ILayerBinding;
 import com.surelogic.aast.promise.*;
 import com.surelogic.aast.visitor.DescendingVisitor;
 import com.surelogic.common.util.*;
+import com.surelogic.dropsea.ir.drops.layers.AbstractReferenceCheckDrop;
 import com.surelogic.dropsea.ir.drops.layers.LayerPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -62,27 +63,45 @@ public abstract class AbstractLayerMatchRootNode extends AASTRootNode {
 	  if (target == null) {
 		  return new EmptyIterator<LayerPromiseDrop>();
 	  }
-	  LayerRefVisitor v = new LayerRefVisitor();
+	  LayerRefVisitor<LayerPromiseDrop> v = new LayerRefVisitor<LayerPromiseDrop>(false);
 	  target.accept(v);
 	  return v.getRefs();
   }
   
-  class LayerRefVisitor extends DescendingVisitor<Void> {
-	  public LayerRefVisitor() {
+  public Iterable<AbstractReferenceCheckDrop<?>> getReferences() {
+	  if (target == null) {
+		  return new EmptyIterator<AbstractReferenceCheckDrop<?>>();
+	  }
+	  LayerRefVisitor<AbstractReferenceCheckDrop<?>> v = new LayerRefVisitor<AbstractReferenceCheckDrop<?>>(true);
+	  target.accept(v);
+	  return v.getRefs();
+  }
+  
+  class LayerRefVisitor<T extends AbstractReferenceCheckDrop<?>> extends DescendingVisitor<Void> {
+	private final boolean includeTypeSets;
+
+	public LayerRefVisitor(boolean includeTypeSets) {
 		  super(null);
+		  this.includeTypeSets = includeTypeSets;
 	  }
 
-	  final List<LayerPromiseDrop> layers = new ArrayList<LayerPromiseDrop>();
+	  final List<T> layers = new ArrayList<T>();
 
-	  public Iterable<LayerPromiseDrop> getRefs() {
+	  public Iterable<T> getRefs() {
 		  return layers;
 	  }
 
+	  @SuppressWarnings("unchecked")
 	  @Override
 	  public Void visit(UnidentifiedTargetNode n) {
 		  ILayerBinding b = n.resolveBinding();		  
-		  if (b != null && b.getKind() == LayerBindingKind.LAYER) {
-			  layers.add((LayerPromiseDrop) b.getOther());
+		  if (b != null) {
+			  if (b.getKind() == LayerBindingKind.LAYER) {		  
+				  layers.add((T) b.getOther());
+			  }
+			  else if (includeTypeSets && b.getKind() == LayerBindingKind.TYPESET) {
+				  layers.add((T) b.getOther());
+			  }
 		  }
 		  return null;  
 	  }
