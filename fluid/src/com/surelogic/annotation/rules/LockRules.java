@@ -1195,8 +1195,8 @@ public class LockRules extends AnnotationRules {
       if (TypeUtil.isInterface(VisitUtil.getEnclosingType(promisedFor))) {
         isAlreadyFinal = true; // declared in an interface
       } else {
-        isAlreadyFinal = JavaNode.getModifier(JJNode.tree.getParent(
-            JJNode.tree.getParent(promisedFor)), JavaNode.FINAL);
+        final IRNode gp = JJNode.tree.getParent(JJNode.tree.getParent(promisedFor));
+        isAlreadyFinal = JavaNode.getModifier(gp, JavaNode.FINAL);
       }
       if (isAlreadyFinal) {
         context.reportError("Field is already declared to be final; no need to vouch it", a);
@@ -1239,10 +1239,23 @@ public class LockRules extends AnnotationRules {
       break;
     case NonNull:
     case Nullable:
-      if (javaType instanceof IJavaPrimitiveType) {
-      	  context.reportError(a, "Cannot be used on a field with primitive type");
-          return null;
+      boolean isBad = false;
+      final IRNode gp = JJNode.tree.getParent(JJNode.tree.getParent(promisedFor));
+      if (!DeclStatement.prototype.includes(gp)) {
+        context.reportError(a, "May only be used on a local variable declaration");
+        isBad = true;
+      } else {
+        final boolean isFinal = JavaNode.getModifier(gp, JavaNode.FINAL);
+        if (!isFinal) {
+          context.reportError(a, "Variable must be declared to be final");
+          isBad = true;
+        }
+        if (javaType instanceof IJavaPrimitiveType) {
+          context.reportError(a, "Cannot be used on a variable with primitive type");
+          isBad = true;
+        }
       }
+      if (isBad) return null;
     }
     return new VouchFieldIsPromiseDrop(a);
   }

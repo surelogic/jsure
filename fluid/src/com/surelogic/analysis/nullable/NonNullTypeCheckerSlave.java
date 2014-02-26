@@ -28,6 +28,7 @@ import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.dropsea.ir.AnalysisResultDrop;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -454,7 +455,10 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
       proposal = new Builder(Initialized.class, decl, use).build();
 	  } else {
 		  ClassElement ce = (ClassElement) srcState;
-		  proposal = new Builder(Initialized.class, decl, use).addAttribute(AnnotationVisitor.THROUGH, ce.getType().getName()).build();
+		  proposal =
+		      new Builder(Initialized.class, decl, use).addAttribute(
+		          AnnotationVisitor.THROUGH,
+		          SLUtility.unqualifyTypeNameInJavaLang(ce.getType().getName())).build();
 	  }
 	  return proposal;
   }
