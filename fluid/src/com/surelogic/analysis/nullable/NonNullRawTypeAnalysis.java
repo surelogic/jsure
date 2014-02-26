@@ -18,7 +18,6 @@ import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.NonNullRules;
-import com.surelogic.annotation.rules.VouchRules;
 import com.surelogic.common.Pair;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.util.AbstractRemovelessIterator;
