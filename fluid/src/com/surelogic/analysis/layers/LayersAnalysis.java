@@ -152,6 +152,9 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			if (rv == null) {
 				rv = new MyResults();
 			}
+			if (rd == null) {
+				return rv;
+			}
 			rv.resultsForMayReferTo = combineResults(rv.resultsForMayReferTo, rd.first());
 			rv.resultsForInLayer = combineResults(rv.resultsForInLayer, rd.second());
 			return rv;
