@@ -466,6 +466,10 @@ public void clear()
                                            + " does not support clear()" );
   }
 
+  public static void cleanupCaches() {
+	  SortedArray.cleanupCaches();
+  }
+  
   public static String clearCaches() {	  
 	  SortedArray.clearCaches();
 	  return clearStats();
@@ -830,6 +834,11 @@ class SortedArray {
 	  }
   }; 
   
+  static void cleanupCaches() {
+	  Arrays.fill(lastArray.get(), null);
+	  tempList.remove();
+  }
+  
   static void clearCaches() {
 	  lastArray.remove();
 	  tempList.remove();
@@ -893,8 +902,7 @@ class SortedArray {
       lastArray = a;
     }
     */
-	//Arrays.fill(a, null);
-    lastArray.set(a);
+	lastArray.set(a);
   }  
   private static final int SHELL_INCREMENT = 4;
   
