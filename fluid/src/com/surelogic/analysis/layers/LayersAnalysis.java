@@ -239,9 +239,6 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 						boolean inSameLayer = inSameLayer(bindT, layer);
 						if (!inSameLayer) {							
 							rd3 = checkBinding(layer, b, bindT, n);
-							if (rd3 != null) {
-								rd3.addChecked(inLayer);
-							}
 						}
 					}
 				}
@@ -273,12 +270,12 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 						System.out.println("Found "+rd.getMessage());
 					}
 					*/
-					if (!(d instanceof LayerPromiseDrop) && d != mayReferTo) {
+					if (d instanceof AllowsReferencesFromPromiseDrop) {
 						rd.addChecked(d);
 					}
 					return rd;
 				} else {
-					ResultDrop success = createSuccessDrop(context, d != mayReferTo ? d : null);
+					ResultDrop success = createSuccessDrop(context, d instanceof AllowsReferencesFromPromiseDrop ? d : null);
 					success.setMessage(Messages.PERMITTED_REFERENCE_TO, JavaNames.getFullName(b.getNode()));
 					return success;
 				}
@@ -293,7 +290,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		v.startVisit(type);	
 	}
 
-	private boolean inSameLayer(IRNode bindT, final LayerPromiseDrop layer) {
+	boolean inSameLayer(IRNode bindT, final LayerPromiseDrop layer) {
 		boolean inSameLayer = false;					
 		if (bindT != null) {
 			final InLayerPromiseDrop bindInLayer = LayerRules.getInLayerDrop(bindT);
@@ -309,7 +306,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return inSameLayer;
 	}
 	
-	private ResultDrop createSuccessDrop(IRNode context, PromiseDrop<?> checked) {
+	ResultDrop createSuccessDrop(IRNode context, PromiseDrop<?> checked) {
 		ResultDrop rd = new ResultDrop(context);
 		if (checked != null) {
 			rd.addChecked(checked);
@@ -324,7 +321,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return rd;
 	}
 		
-	private Object[] unparseArgs(Object[] args) {
+	Object[] unparseArgs(Object[] args) {
 		for(int i=0; i<args.length; i++) {
 			args[i] = JavaNames.getFullName((IRNode) args[i]);
 		}
