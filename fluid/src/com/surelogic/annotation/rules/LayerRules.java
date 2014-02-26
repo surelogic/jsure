@@ -346,9 +346,7 @@ public class LayerRules extends AnnotationRules {
 					for(Drop l : layerDrops) {
 						l.addDependent(d);
 					}
-					if (TypeDeclaration.prototype.includes(a.getPromisedFor())) {
-						createDefaultResult(d);
-					}
+					createDefaultResult(d);
 					return storeDropIfNotNull(a, d);
 				}
 			};
