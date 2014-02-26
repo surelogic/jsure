@@ -32,7 +32,6 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.layers.AllowsReferencesFromPromiseDrop;
-import com.surelogic.dropsea.ir.drops.layers.IReferenceCheckDrop;
 import com.surelogic.dropsea.ir.drops.layers.InLayerPromiseDrop;
 import com.surelogic.dropsea.ir.drops.layers.LayerPromiseDrop;
 import com.surelogic.dropsea.ir.drops.layers.MayReferToPromiseDrop;
@@ -395,7 +394,7 @@ public class LayerRules extends AnnotationRules {
 		ResultDrop rd = new ResultDrop(d.getPromisedFor());
 		rd.addChecked(d);
 		rd.setConsistent();
-		rd.setMessage(356);
+		rd.setMessage(d instanceof AllowsReferencesFromPromiseDrop ? 356 : 358);
 	}
 	
 	static class AllowsReferencesFrom_ParseRule
