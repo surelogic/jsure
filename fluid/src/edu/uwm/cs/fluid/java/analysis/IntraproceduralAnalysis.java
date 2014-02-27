@@ -290,6 +290,9 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
 	  } else {
 		  cache = new IntraproceduralAnalysisCache<T, L, A>(null, null, null);
 	  }
+	  synchronized (gaveUpOn) {
+	      gaveUpOn.clear();
+	  }
   }
   
   /**
