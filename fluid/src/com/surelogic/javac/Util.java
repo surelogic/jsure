@@ -498,7 +498,9 @@ public class Util {
     }
     File tmpLocation;
     if (!profileMemoryAfterLoading) {
-      System.out.println("Updating consistency proof");
+      String msg = "Updating consistency proof";
+      System.out.println(msg);
+      projects.getMonitor().subTask(msg);
       final SeaConsistencyProofHook vouchHook = new VouchProcessorConsistencyProofHook();
       final SeaConsistencyProofHook staticHook = new RegionModelClearOutUnusedStaticProofHook();
       final SeaConsistencyProofHook cuDropHook = new CUDropClearOutAfterAnalysisProofHook();
@@ -532,6 +534,9 @@ public class Util {
        * .out.print(ref.getCUName()+":"+ref.getLineNumber()+" - "+d.getMessage
        * ()); } } } } else { writeOutput(projects); }
        */
+      msg = "Exporting results to "+projects.getRunDir().getName();
+      System.out.println(msg);
+      projects.getMonitor().subTask(msg);
       tmpLocation = RemoteJSureRun.snapshot(System.out, projects.getLabel(), projects.getRunDir());
       perf.markTimeFor("Sea.export");
       testExperimentalFeatures(projects, cus);
@@ -941,6 +946,7 @@ public class Util {
   }
 
   private static void finishAllAnalyses(IIRAnalysisEnvironment env, Analyses analyses) {
+	env.getMonitor().subTask("Cleaning up after analysis");
     int i = 0;
     for (final IIRAnalysis<?> a : analyses) {
       final long start = System.nanoTime();
