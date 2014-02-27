@@ -89,8 +89,6 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		List<ResultDrop> resultsForMayReferTo = Collections.emptyList();
 		List<ResultDrop> resultsForInLayer = Collections.emptyList();
 	}
-		
-	static final MyResults defaultResults = new MyResults();
 	
 	class MyVisitor extends Visitor<MyResults> {
 		final IRNode cu, type;
@@ -125,7 +123,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			for(MyResults l : results) {
 				addChecked(l);
 			}
-			return defaultResults;
+			return new MyResults();
 		}
 		
 		@Override
@@ -138,9 +136,34 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 			return mergeVisit(node);
 		}
 		
+		@Override
+		public final MyResults visitParameterizedType(IRNode node) {
+			// No need to visit the base type, since this will complain too
+			MyResults args = doAccept(ParameterizedType.getArgs(node));
+			return combine(node, args);
+		}
+		
 		private MyResults mergeVisit(IRNode node) {
-			final Pair<ResultDrop,ResultDrop> rd = visitNode(node);
 			List<MyResults> results = doAcceptForChildrenWithResults(node);
+			MyResults rv = mergeResults(results);
+			return combine(node, rv);
+		}
+		
+		private MyResults combine(IRNode node, MyResults fromChildren) {
+			MyResults rv = fromChildren;
+			if (rv == null) {
+				rv = new MyResults();
+			}
+		    final Pair<ResultDrop,ResultDrop> rd = visitNode(node);
+		    if (rd == null) {
+				return rv;
+			}
+			rv.resultsForMayReferTo = combineResults(rv.resultsForMayReferTo, rd.first());
+			rv.resultsForInLayer = combineResults(rv.resultsForInLayer, rd.second());
+			return rv;
+		}
+		
+		private MyResults mergeResults(List<MyResults> results) {
 			MyResults rv = null;
 			// TODO inefficient to merge results first?
 			for(MyResults r : results) {
@@ -150,14 +173,6 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 					rv = mergeResults(rv, r);
 				}
 			}
-			if (rv == null) {
-				rv = new MyResults();
-			}
-			if (rd == null) {
-				return rv;
-			}
-			rv.resultsForMayReferTo = combineResults(rv.resultsForMayReferTo, rd.first());
-			rv.resultsForInLayer = combineResults(rv.resultsForInLayer, rd.second());
 			return rv;
 		}
 		
@@ -205,7 +220,7 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 	
 		private Pair<ResultDrop,ResultDrop> visitNode(IRNode n) {
 			final Operator op = JJNode.tree.getOperator(n);
-			if (op instanceof IHasBinding && !ParameterizedType.prototype.includes(op)
+			if (op instanceof IHasBinding
 				/*	&& 
 				!(PackageDeclaration.prototype.includes(op) || ImportName.prototype.includes(op))*/) {
 				final IBinding b    = getAnalysis().getBinder().getIBinding(n);
