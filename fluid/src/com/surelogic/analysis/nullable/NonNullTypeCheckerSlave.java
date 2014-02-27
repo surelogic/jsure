@@ -63,38 +63,76 @@ import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
 public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<StackQuery> {
-  private enum LValue {
-    FIELD {
-      @Override
-      public String toString() { return "field"; }
-    },
-    VARIABLE {
-      @Override
-      public String toString() { return "variable"; }
-    },
-    RECEIVER {
-      @Override
-      public String toString() { return "receiver"; }
-    },
-    PARAMETER {
-      @Override
-      public String toString() { return "parameter"; }
-    },
-    RETURN {
-      @Override
-      public String toString() { return "return value"; }
-    };
-  }
-  
-  
-  
   private static final int POSSIBLY_NULL = 915;
   private static final int POSSIBLY_NULL_UNBOX = 916;
   private static final int READ_FROM = 917;
   
-  private static final int GOOD_ASSIGN_FOLDER = 930;
-  private static final int BAD_ASSIGN_FOLDER = 931;
+  private static final int ACCEPTABLE_FIELD = 920;
+  private static final int UNACCEPTABLE_FIELD = 921;
+  private static final int ACCEPTABLE_VARIABLE = 922;
+  private static final int UNACCEPTABLE_VARIABLE = 923;
+  private static final int ACCEPTABLE_PARAMETER = 924;
+  private static final int UNACCEPTABLE_PARAMETER = 925;
+  private static final int ACCEPTABLE_RETURN = 926;
+  private static final int UNACCEPTABLE_RETURN = 927;
+  private static final int ACCEPTABLE_RECEIVER = 928;
+  private static final int UNACCEPTABLE_RECEIVER = 929;
+  private static final int UNACCEPTABLE_RAW_RECEIVER = 930;
+  
+//  private static final int GOOD_ASSIGN_FOLDER = 930;
+//  private static final int BAD_ASSIGN_FOLDER = 931;
   private static final int RAW_INTO_NULLABLE = 932;
+  
+  
+
+  private enum LValue {
+    FIELD {
+      @Override
+      public String toString() { return "field"; }
+      @Override 
+      public int getAssuredMessage() { return ACCEPTABLE_FIELD; }
+      @Override
+      public int getFailedMessage() { return UNACCEPTABLE_FIELD; }
+    },
+    VARIABLE {
+      @Override
+      public String toString() { return "variable"; }
+      @Override 
+      public int getAssuredMessage() { return ACCEPTABLE_VARIABLE; }
+      @Override
+      public int getFailedMessage() { return UNACCEPTABLE_VARIABLE; }
+    },
+    PARAMETER {
+      @Override
+      public String toString() { return "parameter"; }
+      @Override 
+      public int getAssuredMessage() { return ACCEPTABLE_PARAMETER; }
+      @Override
+      public int getFailedMessage() { return UNACCEPTABLE_PARAMETER; }
+    },
+    RETURN {
+      @Override
+      public String toString() { return "return value"; }
+      @Override 
+      public int getAssuredMessage() { return ACCEPTABLE_RETURN; }
+      @Override
+      public int getFailedMessage() { return UNACCEPTABLE_RETURN; }
+    },
+    RECEIVER {
+      @Override
+      public String toString() { return "receiver"; }
+      @Override 
+      public int getAssuredMessage() { return ACCEPTABLE_RECEIVER; }
+      @Override
+      public int getFailedMessage() { return UNACCEPTABLE_RECEIVER; }
+    };
+    
+    
+    
+    public abstract int getAssuredMessage();
+    public abstract int getFailedMessage();
+  }
+  
   
   
   private final ThisExpressionBinder thisExprBinder;
@@ -308,9 +346,9 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
         final Element declState = queryResult.getLattice().injectPromiseDrop(declPD);        
         final ResultsBuilder builder = new ResultsBuilder(declPD);
         ResultFolderDrop folder = builder.createRootAndFolder(
-            expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
-            declState.getAnnotation(), kind);
-        buildNewChain(false, expr, folder, decl, declState, queryResult.getSources());
+            expr, kind.getAssuredMessage(), kind.getFailedMessage(),
+            declState.getAnnotation());
+        buildNewChain(false, expr, folder, folder, kind, decl, declState, queryResult.getSources());
       } else {
         /*
          * Like above, but we know the declared state is implicitly @Nullable or
@@ -341,9 +379,9 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
           
           final ResultsBuilder builder = new ResultsBuilder(drop);
           ResultFolderDrop folder = builder.createRootAndFolder(
-              expr, GOOD_ASSIGN_FOLDER, BAD_ASSIGN_FOLDER,
+              expr, kind.getAssuredMessage(), kind.getFailedMessage(),
               testAgainst.getAnnotation(), kind);
-          buildNewChain(noAnnoIsNonNull, expr, folder, decl, testAgainst, queryResult.getSources());
+          buildNewChain(noAnnoIsNonNull, expr, folder, folder, kind, decl, testAgainst, queryResult.getSources());
         }
       }
     } catch (AnalysisGaveUp e) {
@@ -365,15 +403,15 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   }
 
   private void buildNewChain(final boolean testRawOnly, 
-      final IRNode rhsExpr, final AnalysisResultDrop parent,
-      final IRNode lhsDecl, final Element declState, final Set<Source> sources) {
-    buildNewChain(testRawOnly, rhsExpr, parent, lhsDecl, declState, sources,
+      final IRNode rhsExpr, final ResultFolderDrop root, final AnalysisResultDrop parent,
+      final LValue lvalue, final IRNode lhsDecl, final Element declState, final Set<Source> sources) {
+    buildNewChain(testRawOnly, rhsExpr, root, parent, lvalue, lhsDecl, declState, sources,
         new HashMap<IRNode, AnalysisResultDrop>());
   }
   
   private void buildNewChain(final boolean testRawOnly, 
-      final IRNode rhsExpr, final AnalysisResultDrop parent,
-      final IRNode lhsDecl, final Element declState, final Set<Source> sources,
+      final IRNode rhsExpr, final ResultFolderDrop root, final AnalysisResultDrop parent,
+      final LValue lvalue, final IRNode lhsDecl, final Element declState, final Set<Source> sources,
       final Map<IRNode, AnalysisResultDrop> visitedUseSites) {
     for (final Source src : sources) {
       final Kind k = src.first();
@@ -390,7 +428,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
           final ResultFolderDrop f = ResultsBuilder.createAndFolder(
               parent, where, READ_FROM, READ_FROM, DebugUnparser.toString(where));
           visitedUseSites.put(where, f);
-          buildNewChain(testRawOnly, rhsExpr, f, lhsDecl, declState, varValue.second(), visitedUseSites);
+          buildNewChain(testRawOnly, rhsExpr, root, f, lvalue, lhsDecl, declState, varValue.second(), visitedUseSites);
         }
       } else if (k != Kind.NO_VALUE) {
         final Element srcState = src.third();
@@ -398,12 +436,24 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
             srcState == NonNullRawLattice.RAW || srcState instanceof ClassElement;
         
         if (!testRawOnly || rawSrc) {
+          final boolean isAssignableFrom =
+              declState.isAssignableFrom(binder.getTypeEnvironment(), srcState);
           final ResultDrop result = ResultsBuilder.createResult(
-              declState.isAssignableFrom(binder.getTypeEnvironment(), srcState),
-              parent, where,
+              isAssignableFrom, parent, where,
               k.getMessage(), srcState.getAnnotation(), k.unparse(where));
           final PromiseDrop<?> pd = getAnnotationForProof(k.getAnnotatedNode(binder, where));
           if (pd != null) result.addTrusted(pd);
+          
+          /*
+           * If the srcState is partially initialized and the lvalue is a 
+           * method receiver, and the assignment FAILES, then we have to switch
+           * the message on the root of the subchain so that the error message
+           * better reflects the situation. 
+           */
+          if (rawSrc && lvalue == LValue.RECEIVER && !isAssignableFrom) {
+            root.setMessageWhenNotProvedConsistent(
+                UNACCEPTABLE_RAW_RECEIVER, declState.getAnnotation());
+          }
           
           final Operator op = JJNode.tree.getOperator(rhsExpr);
           if (declState == NonNullRawLattice.MAYBE_NULL && rawSrc) {
