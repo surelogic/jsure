@@ -11,23 +11,10 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
+import edu.cmu.cs.fluid.java.xml.JSureAnalysisXMLConstants;
 
-public final class JSureAnalysisXMLReader {
+public final class JSureAnalysisXMLReader implements JSureAnalysisXMLConstants {
 	static final Logger LOG = SLLogger.getLogger();
-	
-	// //////////////////////////////////////////////////////////////////////
-	//
-	// XML ELEMENT CONSTANTS
-	//
-	// //////////////////////////////////////////////////////////////////////
-
-	static final String SF_PREFS = "preferences";
-
-	static final String SF_EXCLUDED_ANALYSIS_MODULES = "excluded-analysis-modules";
-
-	static final String SF_INCLUDED_ANALYSIS_MODULES = "included-analysis-modules";
-
-	static final String SF_ID = "id";
 	
 	/**
 	 * XML convenience routine that returns a list of strings found in the XML
