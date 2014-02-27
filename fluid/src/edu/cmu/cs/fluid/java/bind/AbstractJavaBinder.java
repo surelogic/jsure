@@ -95,6 +95,7 @@ import edu.cmu.cs.fluid.java.operator.StaticDemandName;
 import edu.cmu.cs.fluid.java.operator.StaticImport;
 import edu.cmu.cs.fluid.java.operator.SwitchStatement;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
+import edu.cmu.cs.fluid.java.operator.Throws;
 import edu.cmu.cs.fluid.java.operator.TryResource;
 import edu.cmu.cs.fluid.java.operator.Type;
 import edu.cmu.cs.fluid.java.operator.TypeActuals;
@@ -1124,7 +1125,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	final String unparse = DebugUnparser.toString(node);
     	if (isBinary(node)) {
     		if (!unparse.endsWith(" . 1")) {
-    			System.err.println("Cannot find a binding for " + unparse+" in "+typeEnvironment);
+    			System.err.println("Cannot find a binding for binary " + unparse+" in "+typeEnvironment);
     			/*
     			if (unparse.endsWith("ModuleType")) {
     				IRNode eType = VisitUtil.getEnclosingType(node);
@@ -1134,6 +1135,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		}
     	} else if (unparse.startsWith("super")) {
     		System.err.println("Cannot find a binding for " + unparse+" in "+typeEnvironment);
+    	} else if (NamedType.prototype.includes(node) && Throws.prototype.includes(JJNode.tree.getParentOrNull(node))) {
+      		System.err.println("Did not find a binding for throws " + unparse+" in "+typeEnvironment);
     	} else {
     		LOG.warning("Cannot find a binding for " + unparse+" in "+typeEnvironment);
     	}
