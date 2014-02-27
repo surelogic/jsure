@@ -25,9 +25,13 @@ import com.surelogic.common.util.EmptyIterator;
 import com.surelogic.common.util.Iteratable;
 import com.surelogic.common.util.IteratorUtil;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
+import com.surelogic.tree.SyntaxTreeSlotFactory;
 
-import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.IRNodeType;
+import edu.cmu.cs.fluid.ir.MarkedIRNode;
+import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
+import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -160,6 +164,7 @@ import edu.cmu.cs.fluid.version.Version;
 public abstract class AbstractJavaBinder extends AbstractBinder {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
   
+  private static final boolean cacheGranuleInfo = false;
   protected static final boolean storeNullBindings = true;
   protected boolean warnAboutPkgBindings = false;
 
@@ -326,6 +331,17 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   	return null;
   }
   
+  private static final IRNode noGranuleComputedYet = new MarkedIRNode("no granule");
+  private static final SlotInfo<IRNode> granuleSI = makeGranuleSI();
+
+  private static SlotInfo<IRNode> makeGranuleSI() {
+	try {
+		return JJNode.treeSlotFactory.newAttribute(SyntaxTreeSlotFactory.GRANULE, IRNodeType.prototype, noGranuleComputedYet);
+	} catch (SlotAlreadyRegisteredException e) {
+		return null;
+	}
+  }
+  
   /**
    * Return the granule of binding associated with this node, or throw
    * an exception if we don't find one (while going to the root).
@@ -333,6 +349,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
    * @return granule which this node is associated with
    */
   public IRNode getGranule(IRNode node) {
+	final IRNode orig = node;
+	if (cacheGranuleInfo) {
+		final IRNode rv = orig.getSlotValue(granuleSI);
+		if (rv != noGranuleComputedYet) {
+			return rv;
+		}
+	}
 	while (node != null) {
 		synchronized (node) {
 		    Operator op = JJNode.tree.getOperator(node);
@@ -369,6 +392,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       node = p;
     }
     */
+	if (cacheGranuleInfo) {
+		orig.setSlotValue(granuleSI, node);
+	}
     return node;
   }
   
