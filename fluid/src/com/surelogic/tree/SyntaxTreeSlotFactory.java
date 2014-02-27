@@ -129,6 +129,25 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
       }
     };
   }
+
+  public static final String GRANULE = "JavaBinder.granule";
+  
+  private SlotInfo<IRNode> makeGranuleSI(String name, IRNode defaultVal,
+		  StoredSlotInfo<IRNode,IRNode> backupSI) 
+				  throws SlotAlreadyRegisteredException {
+	  return new NodeStoredSlotInfo<IRNode>(GRANULE, name, IRNodeType.prototype, 
+			  nodeStorage, defaultVal, backupSI) { 
+		  @Override
+		  protected IRNode getSlot(SyntaxTreeNode n) {
+			  return n.granule;
+		  }
+
+		  @Override
+		  protected void setSlot(SyntaxTreeNode n, IRNode slotState) {
+			  n.granule = slotState;
+		  }
+	  };
+  }
   
   private SlotInfo<IJavaRef> makeSrcRefSI(String name, IJavaRef defaultVal,
 		                                 StoredSlotInfo<IJavaRef,IJavaRef> backupSI) 
@@ -231,6 +250,11 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
         IRNode def = undefined ? Constants.undefinedNode : (IRNode) defaultValue;
         backupSI = makeBackupSI(name, type, defaultValue, undefined);
         return (SlotInfo<T>) makeParentSI(name, def, (StoredSlotInfo<IRNode, IRNode>) backupSI);
+    }
+    else if (type == IRNodeType.prototype && name.endsWith(GRANULE)) {
+        IRNode def = undefined ? Constants.undefinedNode : (IRNode) defaultValue;
+        backupSI = makeBackupSI(name, type, defaultValue, undefined);
+        return (SlotInfo<T>) makeGranuleSI(name, def, (StoredSlotInfo<IRNode, IRNode>) backupSI);
       }
     else if (type instanceof IRSequenceType) {
       @SuppressWarnings("rawtypes")
