@@ -195,41 +195,45 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
 	 * @param decl A constructor declaration, method declaration, init declaration,
 	 * or class init declaration node.
 	 */
-	private void analzyePseudoMethodDeclaration(final TypeAndMethod node) {
-    final PromiseRecord pr = createPromiseRecordFor(node);
-    final Operator blockOp = JJNode.tree.getOperator(node.getMethod());
-    final boolean isInit = InitDeclaration.prototype.includes(blockOp);
-    final boolean isClassInit = ClassInitDeclaration.prototype.includes(blockOp);
-    final boolean isConstructorDecl = ConstructorDeclaration.prototype.includes(blockOp);
-    final boolean isMethodDecl = MethodDeclaration.prototype.includes(blockOp);
+	private void analzyePseudoMethodDeclaration(final TypeAndMethod node) {		
+		final PromiseRecord pr = createPromiseRecordFor(node);
+		final Operator blockOp = JJNode.tree.getOperator(node.getMethod());
+		final boolean isInit = InitDeclaration.prototype.includes(blockOp);
+		final boolean isClassInit = ClassInitDeclaration.prototype.includes(blockOp);
+		final boolean isConstructorDecl = ConstructorDeclaration.prototype.includes(blockOp);
+		final boolean isMethodDecl = MethodDeclaration.prototype.includes(blockOp);
 
-    /* if decl is a constructor declaration or initializer declaration, we need to
-     * scan the containing type and process the field declarations and
-     * initializer blocks.
-     */
-    if (isInit || isClassInit || isConstructorDecl) {
-      for (final IRNode bodyDecl : ClassBody.getDeclIterator(node.getClassBody())) {
-        if (FieldDeclaration.prototype.includes(bodyDecl) || ClassInitializer.prototype.includes(bodyDecl)) {
-          if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
-            analyzeSubtree(node.getMethod(), pr, bodyDecl);
-          }
-        }
-      }
-    }
-    
-    if (isConstructorDecl || isMethodDecl) {
-      analyzeSubtree(node.getMethod(), pr, node.getMethod());
-    }
+		try {
+			/* if decl is a constructor declaration or initializer declaration, we need to
+			 * scan the containing type and process the field declarations and
+			 * initializer blocks.
+			 */
+			if (isInit || isClassInit || isConstructorDecl) {
+				for (final IRNode bodyDecl : ClassBody.getDeclIterator(node.getClassBody())) {
+					if (FieldDeclaration.prototype.includes(bodyDecl) || ClassInitializer.prototype.includes(bodyDecl)) {
+						if (isClassInit == TypeUtil.isStatic(bodyDecl)) {
+							analyzeSubtree(node.getMethod(), pr, bodyDecl);
+						}
+					}
+				}
+			}
+
+			if (isConstructorDecl || isMethodDecl) {
+				analyzeSubtree(node.getMethod(), pr, node.getMethod());
+			}
+		} finally {
+			ImmutableHashOrderSet.cleanupCaches();
+		}
 	}
 
 	private void analyzeSubtree(
-	    final IRNode decl, final PromiseRecord pr, final IRNode root) {
-    final Iterator<IRNode> nodes = JJNode.tree.topDown(root);
-    while (nodes.hasNext()) {
-      final IRNode currentNode = nodes.next();
-      checkMethodCall(decl, currentNode, pr);
-      checkForError(decl, currentNode, pr);
-    }
+			final IRNode decl, final PromiseRecord pr, final IRNode root) {
+		final Iterator<IRNode> nodes = JJNode.tree.topDown(root);
+		while (nodes.hasNext()) {
+			final IRNode currentNode = nodes.next();
+			checkMethodCall(decl, currentNode, pr);
+			checkForError(decl, currentNode, pr);
+		}
 	}
 
   /**
