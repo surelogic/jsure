@@ -137,6 +137,11 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		}
 		
 		@Override
+		public final MyResults visitTypeActuals(IRNode node) {
+			return mergeVisit(node);
+		}
+		
+		@Override
 		public final MyResults visitParameterizedType(IRNode node) {
 			// No need to visit the base type, since this will complain too
 			MyResults args = doAccept(ParameterizedType.getArgs(node));
