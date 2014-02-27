@@ -15,13 +15,18 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
   /**
    * These will either be initialized by JavaNode, or null
    */
+  // Want an even number of 4-byte fields to fit in the 8-byte cache line
   IRSequence<IRNode> children; 
   IRNode parent; 
+  
   Operator op;
-  Integer modifiers; // Added on x64, more to avoid lock contention
-  IJavaRef srcRef; // Added for free on x86, due to rounding for cache line alignment
-  //String info;               
-  IRLocation loc; 
+  IRNode granule;
+  
+  Integer modifiers;
+  String info;
+  
+  IJavaRef srcRef;
+  IRLocation loc;
   
   public SyntaxTreeNode(Operator op, IRNode[] children) {
     super(tree, op, children);
@@ -77,13 +82,14 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
     if (this.op == null) {
       this.op = Constants.undefinedOperator;
     }
-    /*
     if (this.info == null) {
         this.info = Constants.undefinedString;
     }
-    */
     if (this.modifiers == null) {
     	this.modifiers = Constants.undefinedInteger;
+    }
+    if (this.granule == null) {
+    	this.parent = Constants.undefinedNode;
     }
   }
   
@@ -96,12 +102,13 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
   public synchronized void destroy() {
 	  super.destroy();
 	  children = null;
-	  //info = null;
+	  info = null;
 	  loc = null;
 	  op = null;
 	  parent = null;
 	  srcRef = null;
 	  modifiers = null;
+	  granule = null;
 	  //destroyed.add(this.toString());
   }
   /*

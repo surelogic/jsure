@@ -165,7 +165,7 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
   }
   
   private static final String infoName = "JJNode.info";
-  /*
+
   private SlotInfo<String> makeInfoSI(String name, String defaultVal, 
 		                              StoredSlotInfo<String,String> backupSI) 
   throws SlotAlreadyRegisteredException {
@@ -183,7 +183,6 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
 		  }
 	  };
   }
-  */
   
   @Override
   public <T> SlotInfo<T> newAttribute(String name, IRType<T> type) throws SlotAlreadyRegisteredException {
@@ -256,13 +255,11 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
     	backupSI = makeBackupSI(name, type, defaultValue, undefined);
     	return (SlotInfo<T>) makeSrcRefSI(name, def, (StoredSlotInfo<IJavaRef, IJavaRef>) backupSI);
     }
-    /*
     else if (type instanceof IRStringType && infoName.equals(name)) {
     	String def = undefined ? Constants.undefinedString : (String) defaultValue;
     	backupSI = makeBackupSI(name, type, defaultValue, undefined);
     	return (SlotInfo<T>) makeInfoSI(name, def, (StoredSlotInfo<String, String>) backupSI);
     }
-    */
     else if (type instanceof IRIntegerType && JavaNode.MODIFIERS_ID.equals(name)) {
      	Integer def = undefined ? Constants.undefinedInteger : (Integer) defaultValue;
     	backupSI = makeBackupSI(name, type, defaultValue, undefined);
