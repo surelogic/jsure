@@ -794,6 +794,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		clear();
 	}
 
+	public void clearAfterEachGranule() {
+		// What else can be cleared after each granule?
+		//bindingContextAnalysis.clear(); -- shared w/ Effects
+		mustRelease.clear();
+		mustHold.clear();
+		nonNullAnalylsis.clear();
+	}
+	
 	private void clear() {
 		ctxtTypeDecl = null;
 		ctxtJavaType = null;
