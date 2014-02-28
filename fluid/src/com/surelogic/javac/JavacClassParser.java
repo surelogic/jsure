@@ -340,6 +340,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 					//Scanning before adding these in
 					//scanForReferencedTypes(refs, cut);        	
 					cuts.asList().add(cut);
+					tEnv.getProgressMonitor().worked(1);
 				}
 				timeAnalysis(task);
 				

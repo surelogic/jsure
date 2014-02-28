@@ -5,4 +5,5 @@ public interface IAnalysisMonitor {
 	boolean isCanceled();
 	void subTask(String name, boolean log);	
 	void subTaskDone(int work);
+	void worked(int i);
 }

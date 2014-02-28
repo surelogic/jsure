@@ -291,6 +291,17 @@ public class Util {
     	}
       }
     }
+    
+    @Override
+    public void worked(int work) {
+      if (monitor != null) {
+    	synchronized (monitor) {    		
+    		if (work > 0) {
+    			monitor.worked(work);
+    		}
+    	}
+      }
+    }
 
 	@Override
 	public boolean isCanceled() {
@@ -340,9 +351,8 @@ public class Util {
   }
 
   static int estimateWork(Projects projects, Analyses analyses) {
-	// each file: parse, canonicalize, #analyses
-	// TODO Not reporting parse right now 
-    return 10 + projects.getNumSourceFiles() * (1/*2*/ + analyses.size());
+	// each file: parse, bind, canonicalize, #analyses
+    return 10 + projects.getNumSourceFiles() * (3 + analyses.size());
   }
 
   /**
@@ -454,7 +464,7 @@ public class Util {
 
       perf.markTimeFor("Rewriting");
     }
-    canonicalizeCUs(perf, cus, projects);
+    canonicalizeCUs(perf, env.getMonitor(), cus, projects);
     // Checking if we added type refs by canonicalizing implicit refs
     loader.checkReferences(cus.asList());
     loader = null; // To free up memory
@@ -1067,6 +1077,7 @@ public class Util {
 						} else {
 							runAsTasks(granulator.extractNewGranules(cud.getTypeEnv(), cud.getCompUnit()), procs[j]); 
 						}
+						getMonitor().worked(1);
 						j++;
 					}
 				} catch (RuntimeException e) {
@@ -1111,7 +1122,7 @@ public class Util {
 			final long end = System.nanoTime();
 			final long time = end - start;
 			timing.incrTime(i, time, granule, a);
-		    getMonitor().subTaskDone(granule instanceof CUDrop ? 1 : 0);
+		    getMonitor().subTaskDone(0);
 			i++;
 		}
 	}	
@@ -1329,10 +1340,10 @@ public class Util {
   }
 
   static abstract class MonitoredProcedure<T> implements Procedure<T> {
-    private SLProgressMonitor monitor;
+    protected IAnalysisMonitor monitor;
     private Projects projects;
 
-    void setMonitor(SLProgressMonitor mon) {
+    void setMonitor(IAnalysisMonitor mon) {
       monitor = mon;
     }
 
@@ -1388,6 +1399,9 @@ public class Util {
       final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
       final UnversionedJavaBinder b = tEnv.getBinder();
       b.bindCompUnit(info.getNode(), info.getFileName());
+      if (monitor != null) {
+    	  monitor.worked(1);
+      }
     }
   };
 
@@ -1437,7 +1451,7 @@ public class Util {
     }
   };
 
-  private static void canonicalizeCUs(JSurePerformance perf, final ParallelArray<CodeInfo> cus, final Projects projects) {
+  private static void canonicalizeCUs(JSurePerformance perf, IAnalysisMonitor mon, final ParallelArray<CodeInfo> cus, final Projects projects) {
     final SLProgressMonitor monitor = projects.getMonitor();
     if (monitor.isCanceled()) {
       throw new CancellationException();
@@ -1446,8 +1460,8 @@ public class Util {
     startSubTask(monitor, "Canonicalizing ASTs");
 
     // Init procedures
-    bindProc.setMonitor(monitor);
-    canonProc.setMonitor(monitor);
+    bindProc.setMonitor(mon);
+    canonProc.setMonitor(mon);
     canonProc.setProjects(projects);
     long bindingTime = 0;
     if (batchAndCacheBindingsForCanon) {
@@ -1488,11 +1502,11 @@ public class Util {
     for (final CodeInfo info : cus) {
       final boolean hasPath = info.getFile().getRelativePath() != null;
       if (hasPath) {
-    	startSubTask(mon, "Canonicalizing " + info.getFile().getRelativePath());
+    	System.out.println("Canonicalizing " + info.getFile().getRelativePath());
       }
       canonProc.op(info);
       if (hasPath) {
-    	endSubTask(mon);
+    	mon.worked(1);
       }
     }
     return end - start;
