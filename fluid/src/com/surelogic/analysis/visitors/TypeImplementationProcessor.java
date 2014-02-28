@@ -3,10 +3,12 @@ package com.surelogic.analysis.visitors;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
-import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -37,19 +39,26 @@ public abstract class TypeImplementationProcessor {
   public final void processType() {
     preProcess();
 
-    // First process the super type list
-    if (EnumConstantClassDeclaration.prototype.includes(typeDecl)) {
-      /*
-       * VisitUtil.getSupertypeNames() doesn't work
-       * EnumConstantClassDeclarations. We want the enumeration that contains
-       * the declaration to be the supertype.
-       */
-      processSuperType(typeDecl, JJNode.tree.getParent(JJNode.tree.getParent(typeDecl)));
-    } else {
-      for (final IRNode name : VisitUtil.getSupertypeNames(typeDecl)) {
-        processSuperType(name, binder.getBinding(name));
-      }
+    final ITypeEnvironment typeEnvironment = binder.getTypeEnvironment();
+    final IJavaType javaType =
+        typeEnvironment.convertNodeTypeToIJavaType(typeDecl);
+    for (final IJavaType parent: javaType.getSupertypes(typeEnvironment)) {
+      processSuperType(((IJavaDeclaredType) parent).getDeclaration());
     }
+    
+//    // First process the super type list
+//    if (EnumConstantClassDeclaration.prototype.includes(typeDecl)) {
+//      /*
+//       * VisitUtil.getSupertypeNames() doesn't work
+//       * EnumConstantClassDeclarations. We want the enumeration that contains
+//       * the declaration to be the supertype.
+//       */
+//      processSuperType(typeDecl, JJNode.tree.getParent(JJNode.tree.getParent(typeDecl)));
+//    } else {
+//      for (final IRNode name : VisitUtil.getSupertypeNames(typeDecl)) {
+//        processSuperType(name, binder.getBinding(name));
+//      }
+//    }
 
     // Then process the body elements
     for (final IRNode decl : ClassBody.getDeclIterator(typeBody)) {
@@ -78,7 +87,7 @@ public abstract class TypeImplementationProcessor {
     // Do nothing by default
   }
 
-  protected void processSuperType(final IRNode name, final IRNode decl) {
+  protected void processSuperType(/*final IRNode name, */ final IRNode decl) {
     // Do nothing by default
   }
 

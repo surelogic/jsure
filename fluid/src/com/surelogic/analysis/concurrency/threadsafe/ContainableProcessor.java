@@ -92,12 +92,12 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
   }
 
 	@Override
-	protected void processSuperType(final IRNode name, final IRNode tdecl) {
+	protected void processSuperType(/*final IRNode name,*/ final IRNode tdecl) {
 	  final ContainablePromiseDrop pDrop =
 		  LockRules.getContainableImplementation(tdecl);
 	  if (pDrop != null) {
   		final ResultDrop result = builder.createRootResult(
-  		    true, name, CONTAINABLE_SUPERTYPE,
+  		    true, tdecl, CONTAINABLE_SUPERTYPE,
   		    JavaNames.getQualifiedTypeName(tdecl));
   		result.addTrusted(pDrop);
 	  }

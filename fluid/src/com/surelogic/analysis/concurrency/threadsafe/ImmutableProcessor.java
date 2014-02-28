@@ -22,6 +22,8 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
@@ -29,6 +31,9 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 
 public final class ImmutableProcessor extends TypeImplementationProcessor {
+  private static final int CONSTANT_IS_IMMUTABLE = 475;
+  private static final int CONSTANT_IS_NOT_IMMUTABLE = 476;
+  private static final int IMPLICITLY_FINAL = 477;
   private static final int TRIVIALLY_IMMUTABLE_NO_STATIC = 478;
   private static final int TRIVIALLY_IMMUTABLE_STATIC_ONLY = 479;
   private static final int IMMUTABLE_SUPERTYPE = 480;
@@ -54,7 +59,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
   private final boolean verifyInstanceState;
   private final boolean verifyStaticState;
   private boolean hasStaticFields = false;
-
+  
   
   
   public ImmutableProcessor(final IBinder b,
@@ -70,14 +75,14 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
   }
 
   @Override
-  protected void processSuperType(final IRNode name, final IRNode tdecl) {
+  protected void processSuperType(/*final IRNode name,*/ final IRNode tdecl) {
     // Super type is only interesting if we care about instance state
     if (verifyInstanceState) {
       final ImmutablePromiseDrop pDrop =
           LockRules.getImmutableImplementation(tdecl);
       if (pDrop != null) {
         final ResultDrop result = builder.createRootResult(
-            true, name, IMMUTABLE_SUPERTYPE,
+            true, tdecl, IMMUTABLE_SUPERTYPE,
             JavaNames.getQualifiedTypeName(tdecl));
         result.addTrusted(pDrop);
       }
@@ -229,6 +234,37 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
       if (!isPrimitive) {
         folder.addProposalNotProvedConsistent(new Builder(Vouch.class, varDecl, varDecl).setValue("Immutable").build());
       }
+    }
+  }
+
+  @Override
+  protected void processEnumConstantDeclaration(final IRNode constDecl) {
+    /* 
+     * An enum constant declaration is a static final field.
+     */
+    hasStaticFields = true;
+    if (verifyStaticState) {
+      final String id = EnumConstantDeclaration.getId(constDecl);
+      
+      final ResultFolderDrop folder = builder.createRootAndFolder(
+          constDecl, CONSTANT_IS_IMMUTABLE, CONSTANT_IS_NOT_IMMUTABLE, id);
+      
+      // (1) The field is final
+      ResultsBuilder.createResult(true, folder, constDecl, IMPLICITLY_FINAL);
+  
+      /* Check the type for immutability.  Not guaranteed because we may be an
+       * EnumConstantClassDeclaration and the subclass might fail immutability.
+       */
+      final ResultFolderDrop typeFolder = ResultsBuilder.createOrFolder(
+          folder, constDecl, OBJECT_IS_IMMUTABLE, OBJECT_IS_NOT_IMMUTABLE);
+      final IRNode typeDeclNode =
+          EnumConstantClassDeclaration.prototype.includes(constDecl) ? constDecl : typeDecl;
+      final IJavaType constType =
+          binder.getTypeEnvironment().convertNodeTypeToIJavaType(typeDeclNode);
+      final ResultDrop iResult = ResultsBuilder.createResult(
+          typeFolder, typeDeclNode, true,
+          TYPE_IS_IMMUTABLE, TYPE_IS_NOT_IMMUTABLE, constType.toSourceText());  
+      iResult.addTrusted(LockRules.getImmutableImplementation(typeDeclNode));
     }
   }
 }

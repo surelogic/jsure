@@ -113,14 +113,14 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
   }
 
   @Override
-  protected void processSuperType(final IRNode name, final IRNode tdecl) {
+  protected void processSuperType(/*final IRNode name,*/ final IRNode tdecl) {
     // Super type is only interesting if we care about instance state
     if (verifyInstanceState) {
       final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> pDrop =
           LockRules.getThreadSafeImplPromise(tdecl);
       if (pDrop != null) {
         final ResultDrop result = builder.createRootResult(
-            true, name, THREAD_SAFE_SUPERTYPE, JavaNames.getQualifiedTypeName(tdecl));
+            true, tdecl, THREAD_SAFE_SUPERTYPE, JavaNames.getQualifiedTypeName(tdecl));
         result.addTrusted(pDrop);
       }
     }
