@@ -356,6 +356,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 			return rv;
 		}
 	}
+	// TODO this could compute the granule for all the nodes along the way
 	while (node != null) {
 		synchronized (node) {
 		    Operator op = JJNode.tree.getOperator(node);
