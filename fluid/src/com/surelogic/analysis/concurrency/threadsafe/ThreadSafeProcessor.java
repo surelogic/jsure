@@ -35,6 +35,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
@@ -76,7 +77,10 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
   private static final int TRIVIALLY_THREADSAFE_NO_STATIC = 431;
   private static final int TYPE_IS_VOUCHED_CONTAINABLE = 432;
   private static final int TYPE_IS_VOUCHED_CONTAINABLE_WITH_REASON = 433;
-  
+  private static final int IMPLICITLY_FINAL = 477;
+  private static final int CONSTANT_IS_THREADSAFE = 434;
+  private static final int CONSTANT_IS_NOT_THREADSAFE = 435;
+
   
   
   private final ResultsBuilder builder;
@@ -362,6 +366,36 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
         // Propose that the field be vouched threadsafe
         folder.addProposalNotProvedConsistent(new Builder(Vouch.class, varDecl, varDecl).setValue("ThreadSafe").build());
       }
+    }
+  }
+
+
+  @Override
+  protected void processEnumConstantDeclaration(final IRNode constDecl) {
+    /* 
+     * An enum constant declaration is a static final field.
+     */
+    hasStaticFields = true;
+    if (verifyStaticState) {
+      /*
+       * Declaration is always final, so it needs to be thread safe.
+       * The declared type is always E (for Enum<E>) and it is pointless to
+       * have a @Unique constant reference (makes it useless), so we have 
+       * to check if the declared type is declared ThreadSafe, which it will be,
+       * otherwise
+       * we wouldn't be checking this to begin with.  (Type may FAIL to be
+       * ThreadSafe if it declares additional instance fields.)
+       */
+      final String id = EnumConstantDeclaration.getId(constDecl);
+      final ResultFolderDrop folder = builder.createRootAndFolder(
+          constDecl, CONSTANT_IS_THREADSAFE, CONSTANT_IS_NOT_THREADSAFE, id);
+      ResultsBuilder.createResult(true, folder, constDecl, IMPLICITLY_FINAL);
+      final IJavaType constType =
+          binder.getTypeEnvironment().convertNodeTypeToIJavaType(typeDecl);
+      final ResultDrop iResult = ResultsBuilder.createResult(
+          folder, typeDecl, true, TYPE_IS_THREADSAFE, TYPE_IS_NOT_THREADSAFE,
+          constType.toSourceText());  
+      iResult.addTrusted(LockRules.getThreadSafeImplPromise(typeDecl));
     }
   }
 }

@@ -251,15 +251,13 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
       // (1) The field is final
       ResultsBuilder.createResult(true, folder, constDecl, IMPLICITLY_FINAL);
   
-      /* Check the type for immutability.  Not guaranteed because we may be an
-       * EnumConstantClassDeclaration and the subclass might fail immutability.
+      /* Check the type for immutability.  Might get a red-X here because we 
+       * have instance fields that not immutable.
        */
-      final ResultFolderDrop typeFolder = ResultsBuilder.createOrFolder(
-          folder, constDecl, OBJECT_IS_IMMUTABLE, OBJECT_IS_NOT_IMMUTABLE);
       final IJavaType constType =
           binder.getTypeEnvironment().convertNodeTypeToIJavaType(typeDecl);
       final ResultDrop iResult = ResultsBuilder.createResult(
-          typeFolder, typeDecl, true,
+          folder, typeDecl, true,
           TYPE_IS_IMMUTABLE, TYPE_IS_NOT_IMMUTABLE, constType.toSourceText());  
       iResult.addTrusted(LockRules.getImmutableImplementation(typeDecl));
     }
