@@ -240,7 +240,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
   @Override
   protected void processEnumConstantDeclaration(final IRNode constDecl) {
     /* 
-     * An enum constant declaration is a static final field.
+     * An enum constant declaration is a static final field of type E.
      */
     hasStaticFields = true;
     if (verifyStaticState) {
@@ -257,14 +257,12 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
        */
       final ResultFolderDrop typeFolder = ResultsBuilder.createOrFolder(
           folder, constDecl, OBJECT_IS_IMMUTABLE, OBJECT_IS_NOT_IMMUTABLE);
-      final IRNode typeDeclNode =
-          EnumConstantClassDeclaration.prototype.includes(constDecl) ? constDecl : typeDecl;
       final IJavaType constType =
-          binder.getTypeEnvironment().convertNodeTypeToIJavaType(typeDeclNode);
+          binder.getTypeEnvironment().convertNodeTypeToIJavaType(typeDecl);
       final ResultDrop iResult = ResultsBuilder.createResult(
-          typeFolder, typeDeclNode, true,
+          typeFolder, typeDecl, true,
           TYPE_IS_IMMUTABLE, TYPE_IS_NOT_IMMUTABLE, constType.toSourceText());  
-      iResult.addTrusted(LockRules.getImmutableImplementation(typeDeclNode));
+      iResult.addTrusted(LockRules.getImmutableImplementation(typeDecl));
     }
   }
 }

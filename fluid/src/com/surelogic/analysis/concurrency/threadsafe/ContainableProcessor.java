@@ -242,4 +242,12 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
       }
     }
   }
+
+  @Override
+  protected void processEnumConstantDeclaration(final IRNode constDecl) {
+    /* 
+     * An enum constant declaration is a static final field.
+     */
+    hasStaticFields = true;
+  }
 }
