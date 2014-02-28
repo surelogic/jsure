@@ -88,7 +88,7 @@ public class IRFreeDrop implements IDrop {
     else
       f_message = "(EMPTY)";
 
-    f_messageCanonical = aliasMsg ? e.getAttributeByAliasIfPossible(MESSAGE_ATTR) : e.getAttribute(MESSAGE_ID);
+    f_messageCanonical = aliasMsg ? e.getAttributeByAliasIfPossible(MESSAGE_ID) : e.getAttribute(MESSAGE_ID);
 
     String diffInfoString = e.getAttribute(DIFF_INFO);
     if (diffInfoString != null) {
