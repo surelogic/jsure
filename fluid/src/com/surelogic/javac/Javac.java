@@ -382,16 +382,11 @@ public class Javac extends IDE {
 
 		};
 	}
-
-	public static int numAnalyses() {
-		return analysisList.size();
-	}
 	
 	/**
 	 * Returns a filtered list of analyses, sorted properly to account for
 	 * dependencies
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static Analyses makeAnalyses() {
 		final Analyses analyses = new Analyses();
 		String test = XUtil.runTest();
@@ -462,7 +457,6 @@ public class Javac extends IDE {
 	/**
 	 * @param grouped will be empty afterwards
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private static void handleGroup(Analyses analyses, IAnalysisGranulator<?> g, List<IIRAnalysis<?>> grouped) {
 		if (grouped.isEmpty()) {
 			return; // Nothing to do
