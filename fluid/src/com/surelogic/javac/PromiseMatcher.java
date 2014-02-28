@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 import java.util.zip.*;
 
+import com.surelogic.analysis.Analyses;
 import com.surelogic.annotation.parse.*;
 import com.surelogic.common.AbstractJavaZip;
 import com.surelogic.common.SLUtility;
@@ -74,7 +75,8 @@ public class PromiseMatcher {
 			p.getConfig().addFile(jsf);
 			System.out.println(proj+": added "+jsf.relativePath);
 		}		
-		Util.process(projs, false);
+		final Analyses analyses = Javac.makeAnalyses();
+		Util.process(projs, analyses, false);
 		
 		JSureSubtypeInfo subTypeInfo = JSureSubtypeInfo.load(runDir);
 		if (subTypeInfo != null) {

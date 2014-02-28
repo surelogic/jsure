@@ -136,7 +136,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           public void op(TypeAndMethod node) {
             final String methodName = JavaNames.genRelativeFunctionName(node.getMethod());
             if (monitor != null) {
-              monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
+              monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName, false);
             }
             //System.out.println("Parallel: " + methodName);
             /*
@@ -149,6 +149,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
             final long end = System.currentTimeMillis();
             System.out.println("Parallel: " + methodName + " -- "+(end-start)+" ms");
             */
+            if (monitor != null) {
+                monitor.subTaskDone(0);
+            }
             ImmutableHashOrderSet.clearCaches();
           }
         });
@@ -159,11 +162,14 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           final TypeAndMethod node = iter.next();
           final String methodName = JavaNames.genQualifiedMethodConstructorName(node.getMethod());
           if (monitor != null) {
-            monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
+            monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName, false);
           }
           System.out.println("Sequential: " + methodName);
           System.out.flush();
           analzyePseudoMethodDeclaration(node);
+          if (monitor != null) {
+              monitor.subTaskDone(0);
+          }
         }
         ImmutableHashOrderSet.clearCaches();
         return !methods.isEmpty();

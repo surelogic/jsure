@@ -122,9 +122,12 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
           public void op(MethodRecord mr) {
             final String methodName = JavaNames.genRelativeFunctionName(mr.getMethod());
             if (monitor != null) {
-              monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
+              monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName, false);
             }
-            analzyePseudoMethodDeclaration(mr);
+            analzyePseudoMethodDeclaration(mr); 
+            if (monitor != null) {
+              monitor.subTaskDone(0);
+            }
             ImmutableHashOrderSet.clearCaches();
           }
         });
@@ -134,10 +137,13 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
         for (MethodRecord mr : methods) {
           final String methodName = JavaNames.genQualifiedMethodConstructorName(mr.getMethod());
           if (monitor != null) {
-            monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName);
+            monitor.subTask("Checking [ Uniqueness Assurance ] " + methodName, false);
           }
           System.out.println("Sequential: " + methodName);
           analzyePseudoMethodDeclaration(mr);
+          if (monitor != null) {
+              monitor.subTaskDone(0);
+          }
         }
         ImmutableHashOrderSet.clearCaches();
         return !methods.isEmpty();

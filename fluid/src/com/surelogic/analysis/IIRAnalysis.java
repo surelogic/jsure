@@ -45,7 +45,6 @@ public interface IIRAnalysis<Q extends IAnalysisGranule> {
 	String name();
 	boolean analyzeAll();
 	
-	@Deprecated
 	ConcurrencyType runInParallel();
 	
 	Class<?> getGroup();

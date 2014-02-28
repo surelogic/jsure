@@ -11,7 +11,6 @@ import com.surelogic.analysis.granules.GranuleInType;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.common.Pair;
-import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.util.AppendIterator;
 import com.surelogic.common.util.EmptyIterator;
 import com.surelogic.dropsea.IKeyValue;
@@ -22,7 +21,6 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.Projects;
-import com.surelogic.javac.Util;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
@@ -260,7 +258,7 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 	public interface Analyzer<P, Q extends IAnalysisGranule> {
 		IIRAnalysisEnvironment getEnv();
 		IAnalysisGroup<Q> getAnalyses();
-		SLProgressMonitor getMonitor();
+		IAnalysisMonitor getMonitor();
 		boolean isSingleThreaded(IIRAnalysis<?> analysis);
 		void process(Collection<P> fromProj);
 	}
@@ -295,8 +293,8 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 				throw new CancellationException();
 			}
 			final String inParallel = analyzer.isSingleThreaded(a) ? "" : "parallel ";
-			Util.startSubTask(analyzer.getMonitor(), "Starting " + inParallel + a.name() + " [" + i + "]: " + (fromProj == null ? 0 : fromProj.size()) + 
-					" for " + project.getName());
+			analyzer.getMonitor().subTask("Starting " + inParallel + a.name() + " [" + i + "]: " + (fromProj == null ? 0 : fromProj.size()) + 
+					" for " + project.getName(), true);
 			final long start = System.nanoTime();
 			try {
 				a.analyzeBegin(analyzer.getEnv(), project);
@@ -329,7 +327,7 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 			final long end = System.nanoTime();
 			incrTime(i, end - start);
 			i++;	
-			Util.endSubTask(analyzer.getMonitor());
+			analyzer.getMonitor().subTaskDone(1);
 		}
 	}
 	

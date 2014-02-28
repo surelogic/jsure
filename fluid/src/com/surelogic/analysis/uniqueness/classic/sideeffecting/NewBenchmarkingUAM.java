@@ -54,7 +54,7 @@ public class NewBenchmarkingUAM extends AbstractAnalysisSharingAnalysis<BindingC
 			if (MethodDeclaration.prototype.includes(op) || ConstructorDeclaration.prototype.includes(op)) {
 				String methodName = JavaNames.genQualifiedMethodConstructorName(node);
 				if (env.getMonitor() != null) {
-					env.getMonitor().subTask("Checking [ Uniqueness Assurance ] " + methodName);
+					env.getMonitor().subTask("Checking [ Uniqueness Assurance ] " + methodName, false);
 				}
 				methodName = methodName.replace(',', '_');
 
@@ -72,6 +72,9 @@ public class NewBenchmarkingUAM extends AbstractAnalysisSharingAnalysis<BindingC
 				}
 				System.out.print(msg);
 				System.out.println(ImmutableHashOrderSet.clearCaches());				
+				if (env.getMonitor() != null) {
+					env.getMonitor().subTaskDone(0);
+				}
 			}
 	  }
 	  return false;

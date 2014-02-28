@@ -2,6 +2,7 @@
 package com.surelogic.analysis;
 
 public interface IAnalysisMonitor {
-	void subTask(String name);
-	void worked();
+	boolean isCanceled();
+	void subTask(String name, boolean log);	
+	void subTaskDone(int work);
 }

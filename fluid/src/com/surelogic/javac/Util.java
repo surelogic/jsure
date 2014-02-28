@@ -43,9 +43,6 @@ import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.ParseUtil;
-import com.surelogic.annotation.parse.SLAnnotationsLexer;
-import com.surelogic.annotation.parse.SLThreadRoleAnnotationsLexer;
-import com.surelogic.annotation.parse.ScopedPromisesLexer;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.annotation.rules.ScopedPromiseRules;
@@ -270,18 +267,35 @@ public class Util {
     }
 
     @Override
-    public void subTask(String name) {
+    public void subTask(String name, boolean log) {
       if (monitor != null) {
-        monitor.subTask(name);
+    	// TODO only prevent concurrent issues
+    	// still popped out of order
+      	synchronized (monitor) {      		
+      		monitor.subTask(name);
+      	}
+      }
+      if (log) {
+    	System.out.println(name);
       }
     }
 
     @Override
-    public void worked() {
+    public void subTaskDone(int work) {
       if (monitor != null) {
-        monitor.worked(1);
+    	synchronized (monitor) {    		
+    		if (work > 0) {
+    			monitor.worked(work);
+    		}
+    		monitor.subTaskDone();
+    	}
       }
     }
+
+	@Override
+	public boolean isCanceled() {
+		return monitor.isCanceled();
+	}
   }
 
   private static void openFiles(Demo which, Config config) throws Exception {
@@ -325,8 +339,10 @@ public class Util {
     openFiles(projects, true);
   }
 
-  static int estimateWork(Projects projects) {
-    return 10 + projects.size() * (2 + Javac.numAnalyses());
+  static int estimateWork(Projects projects, Analyses analyses) {
+	// each file: parse, canonicalize, #analyses
+	// TODO Not reporting parse right now 
+    return 10 + projects.getNumSourceFiles() * (1/*2*/ + analyses.size());
   }
 
   /**
@@ -334,11 +350,12 @@ public class Util {
    *          Whether to analyze the loaded sources or not
    */
   public static File openFiles(Projects projects, boolean analyze) throws Exception {
-    projects.getMonitor().begin(estimateWork(projects));
+	final Analyses analyses = Javac.makeAnalyses();
+    projects.getMonitor().begin(estimateWork(projects, analyses));
     startSubTask(projects.getMonitor(), "Initializing ...");
     Javac.initialize();
 
-    File results = process(projects, analyze);
+    File results = process(projects, analyses, analyze);
     if (analyze && useResultsXML && projects.getResultsFile() != null && projects.getResultsFile().exists()) {
       PromiseMatcher.load(projects.getResultsFile().getParentFile());
     }
@@ -349,7 +366,8 @@ public class Util {
   }
 
   public static File openFiles(Projects oldProjects, final Projects projects, boolean analyze) throws Exception {
-    projects.getMonitor().begin(estimateWork(projects));
+	final Analyses analyses = Javac.makeAnalyses();
+    projects.getMonitor().begin(estimateWork(projects, analyses));
     startSubTask(projects.getMonitor(), "Initializing ...");
     Javac.initialize();
 
@@ -359,7 +377,7 @@ public class Util {
     } else {
       System.out.println("Detected a conflict between projects");
     }
-    File result = process(projects, analyze);
+    File result = process(projects, analyses, analyze);
     if (noConflict) {
       final Projects merged = projects.merge(oldProjects);
       // pd.setProjects(merged);
@@ -378,7 +396,7 @@ public class Util {
   /**
    * @return the location of the results
    */
-  static File process(Projects projects, boolean analyze) throws Exception {
+  static File process(Projects projects, Analyses analyses, boolean analyze) throws Exception {
     analyze = analyze && !profileMemoryAfterLoading;
 
     System.out.println("monitor = " + projects.getMonitor());
@@ -391,9 +409,7 @@ public class Util {
     System.out.println("singleThread = " + singleThreaded);
     final JSurePerformance perf = new JSurePerformance(projects, singleThreaded);
 
-    ScopedPromisesLexer.init();
-    SLAnnotationsLexer.init();
-    SLThreadRoleAnnotationsLexer.init();
+    ParseUtil.init();
     JavacClassParser loader = new JavacClassParser(perf.pool, projects);
 
     // loader.ensureClassIsLoaded("java.util.concurrent.locks.ReadWriteLock");
@@ -403,7 +419,6 @@ public class Util {
     // FileOutputStream(projects.getResultsFile());
     final JavacAnalysisEnvironment env = new JavacAnalysisEnvironment(loader, results, projects.getMonitor());
 
-    final Analyses analyses = Javac.makeAnalyses();
     for (IIRAnalysis<?> a : analyses) {
       a.init(env);
     }
@@ -793,7 +808,7 @@ public class Util {
       System.out.println("Using new analysis framework -- one granule");
 
       // TODO how to deal w/ seq analyses? (switch to the scheme below?)
-      AnalysesRunner analyzer = new AnalysesRunner(perf, analyses, env, projects.getMonitor());
+      AnalysesRunner analyzer = new AnalysesRunner(perf, analyses, env);
       analyses.analyzeProjects(projects, analyzer, allCus.asList());
       finishAllAnalyses(env, analyses);
       return analyses.summarizeTiming();
@@ -806,14 +821,14 @@ public class Util {
         System.out.println("Starting group: " + group.getLabel());
         if (group.getGranulator() == null) {
           final AnalysisGroup<CUDrop> cuGroup = (AnalysisGroup<CUDrop>) group;
-          final AnalysisInfo<CUDrop> ai = new AnalysisInfo<CUDrop>(perf, cuGroup, env, projects.getMonitor());
+          final AnalysisInfo<CUDrop> ai = new AnalysisInfo<CUDrop>(perf, cuGroup, env);
           analyses.analyzeProjects(projects, ai, allCus.asList());
         } else {
           if (!extracted) {
             extractGranules(analyses, allCus, granules);
             extracted = true;
           }
-          final AnalysisInfo ai = new AnalysisInfo(perf, group, env, projects.getMonitor());
+          final AnalysisInfo ai = new AnalysisInfo(perf, group, env);
           analyses.analyzeProjects(projects, ai, granules.get(group.getGranulator()));
         }
       }
@@ -946,7 +961,7 @@ public class Util {
   }
 
   private static void finishAllAnalyses(IIRAnalysisEnvironment env, Analyses analyses) {
-	env.getMonitor().subTask("Cleaning up after analysis");
+	env.getMonitor().subTask("Cleaning up after analysis", true);
     int i = 0;
     for (final IIRAnalysis<?> a : analyses) {
       final long start = System.nanoTime();
@@ -956,24 +971,23 @@ public class Util {
       i++;
     }
     System.gc();
+    env.getMonitor().subTaskDone(1);
   }
   
   static abstract class AbstractAnalyzer<P,Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> implements Analyzer<P, Q>{
 	  final IIRAnalysisEnvironment env;
-	  final SLProgressMonitor monitor;
 
-	  AbstractAnalyzer(boolean inParallel, Class<Q> cls, IIRAnalysisEnvironment e, SLProgressMonitor mon) {
+	  AbstractAnalyzer(boolean inParallel, Class<Q> cls, IIRAnalysisEnvironment e) {
 		  super(inParallel, cls);
 		  env = e;
-		  monitor = mon;
 	  }
 	  
 	  public IIRAnalysisEnvironment getEnv() {
 		  return env;
 	  }
 
-	  public SLProgressMonitor getMonitor() {
-		  return monitor;
+	  public IAnalysisMonitor getMonitor() {
+		  return env.getMonitor();
 	  }
 
 	  public boolean isSingleThreaded(IIRAnalysis<?> analysis) {
@@ -986,8 +1000,8 @@ public class Util {
 	final Analyses analyses;
 	final Procedure<IAnalysisGranule>[] procs;
 	
-	AnalysesRunner(JSurePerformance perf, Analyses g, IIRAnalysisEnvironment e, SLProgressMonitor mon) {
-		super(!perf.singleThreaded, g.getGranuleType(), e, mon);
+	AnalysesRunner(JSurePerformance perf, Analyses g, IIRAnalysisEnvironment e) {
+		super(!perf.singleThreaded, g.getGranuleType(), e);
 		analyses = g;
 		procs = new Procedure[g.numGroups()];
 		setupProcedure();		
@@ -1021,7 +1035,7 @@ public class Util {
 					// LOG.warning("No analysis on "+granule.javaOSFileName);
 					return;
 				}
-				if (monitor.isCanceled()) {
+				if (getMonitor().isCanceled()) {
 					throw new CancellationException();
 				}
 				// System.out.println("Running "+a.name()+" on "+granule.javaOSFileName);
@@ -1091,14 +1105,13 @@ public class Util {
 		final AnalysisTimings timing = timings.get();
 		int i = g.getOffset();
 		for (final IIRAnalysis a : g) {
-			if (monitor != null) {
-				monitor.subTask("Checking [ " + a.label() + " ] " + granule.getLabel());
-			}
+			getMonitor().subTask("Checking [ " + a.label() + " ] " + granule.getLabel(), false);			
 			final long start = System.nanoTime();
 			a.doAnalysisOnGranule(env, granule);
 			final long end = System.nanoTime();
 			final long time = end - start;
 			timing.incrTime(i, time, granule, a);
+		    getMonitor().subTaskDone(granule instanceof CUDrop ? 1 : 0);
 			i++;
 		}
 	}	
@@ -1110,8 +1123,8 @@ public class Util {
   static class AnalysisInfo<Q extends IAnalysisGranule> extends AbstractAnalyzer<Q,Q> {	  
     final IAnalysisGroup<Q> analyses;
 	  
-    AnalysisInfo(JSurePerformance perf, IAnalysisGroup<Q> g, IIRAnalysisEnvironment e, SLProgressMonitor mon) {
-      super(!(perf.singleThreaded || g.runSingleThreaded()), g.getGranuleType(), e, mon);
+    AnalysisInfo(JSurePerformance perf, IAnalysisGroup<Q> g, IIRAnalysisEnvironment e) {
+      super(!(perf.singleThreaded || g.runSingleThreaded()), g.getGranuleType(), e);
       analyses = g;
       setupProcedure();
     }
@@ -1130,7 +1143,7 @@ public class Util {
             // LOG.warning("No analysis on "+granule.javaOSFileName);
             return;
           }
-          if (monitor.isCanceled()) {
+          if (getMonitor().isCanceled()) {
             throw new CancellationException();
           }
           // System.out.println("Running "+a.name()+" on "+granule.javaOSFileName);
@@ -1139,14 +1152,13 @@ public class Util {
             frame.pushTypeContext(granule.getCompUnit());
             int i = analyses.getOffset();
             for (final IIRAnalysis<Q> a : analyses) {
-              if (monitor != null) {
-                monitor.subTask("Checking [ " + a.label() + " ] " + granule.getLabel());
-              }
+              getMonitor().subTask("Checking [ " + a.label() + " ] " + granule.getLabel(), false);
               final long start = System.nanoTime();
               a.doAnalysisOnGranule(env, granule);
               final long end = System.nanoTime();
               final long time = end - start;
               timing.incrTime(i, time, granule, a);
+              getMonitor().subTaskDone(granule instanceof CUDrop ? 1 : 0);
               i++;
             }
 
@@ -1443,15 +1455,15 @@ public class Util {
       for (CodeInfo i : cus) {
         temp.asList().add(i);
         if (temp.size() > 100) {
-          bindingTime += doCanonicalize(temp, false);
+          bindingTime += doCanonicalize(monitor, temp, false);
           temp.asList().clear();
         }
       }
       if (!temp.isEmpty()) {
-        bindingTime += doCanonicalize(temp, false);
+        bindingTime += doCanonicalize(monitor, temp, false);
       }
     } else {
-      bindingTime = doCanonicalize(cus, true);
+      bindingTime = doCanonicalize(monitor, cus, true);
     }
     perf.setLongProperty("Binding.before.canon", bindingTime);
     System.out.println("Binding = " + bindingTime + " ms");
@@ -1464,7 +1476,7 @@ public class Util {
    * 
    * @return the time taken for binding
    */
-  private static long doCanonicalize(ParallelArray<CodeInfo> cus, boolean printBinderStats) {
+  private static long doCanonicalize(SLProgressMonitor mon, ParallelArray<CodeInfo> cus, boolean printBinderStats) {
     // Precompute all the bindings first
     final long start = System.currentTimeMillis();
     cus.apply(bindProc);
@@ -1474,10 +1486,14 @@ public class Util {
     }
     // cus.apply(proc);
     for (final CodeInfo info : cus) {
-      if (info.getFile().getRelativePath() != null) {
-        System.out.println("Canonicalizing " + info.getFile().getRelativePath());
+      final boolean hasPath = info.getFile().getRelativePath() != null;
+      if (hasPath) {
+    	startSubTask(mon, "Canonicalizing " + info.getFile().getRelativePath());
       }
       canonProc.op(info);
+      if (hasPath) {
+    	endSubTask(mon);
+      }
     }
     return end - start;
   }
