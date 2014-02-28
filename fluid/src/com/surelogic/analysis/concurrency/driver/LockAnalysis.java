@@ -249,7 +249,12 @@ public class LockAnalysis
 	
 	@Override
 	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TypeBodyPair n) {
-		actuallyAnalyzeClassBody(getAnalysis(), n.getType(), n.getClassBody());
+		final LockVisitor v = getAnalysis();
+		try {			
+			actuallyAnalyzeClassBody(v, n.getType(), n.getClassBody());
+		} finally {
+			v.clearAfterEachGranule();
+		}
 		return true; 
 	}
 	
