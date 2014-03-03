@@ -89,7 +89,7 @@ public class SyntaxTreeNode extends JavaNode {// PlainIRNode {
     	this.modifiers = Constants.undefinedInteger;
     }
     if (this.granule == null) {
-    	this.parent = Constants.undefinedNode;
+    	this.granule = Constants.undefinedNode;
     }
   }
   
