@@ -78,7 +78,7 @@ abstract class NodeStoredSlotInfo<T> extends StoredSlotInfo<T,T> {
 		slot = adapter.getSlot(backupSI, node);
 	}
 	if (slot == undefinedValue) {
-		return storage.newSlot();
+		return storage.newSlot(defaultValue);
 	}
 	return slot;
   }
