@@ -276,7 +276,12 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		private IRNode getOuterClass(String qname) {
 			IRNode result = outerClasses.get(qname);
 			if (result == null) {
-				return packages.get(qname);
+				result = packages.get(qname);
+				if (result != null && result.identity() == IRNode.destroyedNode) {
+					LOG.info("Removed old package "+qname);
+					packages.remove(qname);
+					return null;
+				}
 			}
 			return result;
 		}

@@ -245,7 +245,13 @@ public class CommonAASTBinder extends AASTBinder {
 		}
 		return t;
 	} else {
-		t = resolveTypeName(context, name.substring(0, lastDot));
+		String prefix = name.substring(0, lastDot);
+		t = resolveTypeName(context, prefix);
+		/*
+		if (t != null && t.identity() == IRNode.destroyedNode) {
+			resolveTypeName(context, prefix); // For debugging
+		}
+		*/
 		if (t != null && !NamedPackageDeclaration.prototype.includes(t)) {
 			return findNestedType(t, name.substring(lastDot+1));
 		}
