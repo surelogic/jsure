@@ -14,6 +14,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.parse.ParseException;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -22,6 +23,9 @@ public abstract class AstGen extends JavaParser {
     super((Reader) null);
   }
 
+  static {
+	  JJNode.setUsingJJTree();
+  }
   private static final Reader empty = new StringReader(new String(""));
   public static final JavaParser parser = new JavaParser(empty);
 
