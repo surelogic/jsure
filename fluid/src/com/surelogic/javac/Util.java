@@ -9,7 +9,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -93,6 +92,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.ICodeFile;
+import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
 import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
@@ -1814,81 +1814,24 @@ public class Util {
       throw new CancellationException();
     }
     startSubTask(monitor, "Creating drops");
-    sortCodeInfos(cus);
+    // Required to make sure that we process package-info files first
+    for(CodeInfo info : cus.asList()) {
+    	if (isPackageInfo(info)) {
+    		createCUDrop(monitor, info);
+    	}
+    }
+    
     /*
      * for(SourceCUDrop cud :
      * Sea.getDefault().getDropsOfExactType(SourceCUDrop.class)) {
      * System.out.println("Source: "+cud.javaOSFileName); }
      */
-    Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
+    final Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
       @Override
       public void op(CodeInfo info) {
-        if (monitor.isCanceled()) {
-          throw new CancellationException();
-        }
-        if (info.getNode().identity() == IRNode.destroyedNode) {
-          LOG.info("WARNING Already destroyed: " + info.getFileName());
-          return;
-        }
-        // invalidate past results on this java file
-        final ICodeFile file = info.getFile();
-        CUDrop outOfDate = null;
-        switch (info.getType()) {
-        case SOURCE:
-        case INTERFACE:
-          if (info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
-            // System.out.println("Found package: "+info.getFileName());
-            outOfDate = PackageDrop.findPackage(file.getPackage());
-          } else {
-            // System.out.println("Found source:  "+info.getFileName());
-            outOfDate = SourceCUDrop.queryCU(file);
-          }
-          break;
-        case BINARY:
-          outOfDate = BinaryCUDrop.queryCU(file.getProjectName(), info.getFileName());
-        default:
-        }
-
-        if (outOfDate != null) {
-          if (outOfDate.getCompilationUnitIRNode().identity() != IRNode.destroyedNode
-              && outOfDate.getCompilationUnitIRNode().equals(info.getNode())) {
-            // Same IRNode, so keep this drop
-            System.out.println("Keeping the old drop for " + outOfDate.getJavaOSFileName());
-            return;
-          }
-          // if (AbstractWholeIRAnalysis.debugDependencies) {
-          // System.out.println("Invalidating "+outOfDate+": "+
-          // Projects.getProject(outOfDate.getCompilationUnitIRNode())+" -> "+
-          // Projects.getProject(info.getNode()));
-          // if (!(outOfDate instanceof PackageDrop)) {
-          // System.out.println("Found "+outOfDate);
-          // }
-          // }
-          // System.out.println("Destroying "+outOfDate.javaOSFileName);
-          AdapterUtil.destroyOldCU(outOfDate.getCompilationUnitIRNode());
-          outOfDate.invalidate();
-        } else {
-          // System.out.println("Couldn't find: "+info.getFile());
-        }
-        // System.out.println("Creating drop: "+info.getFileName());
-
-        if (info.getType().fromSourceFile()) {
-          if (info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
-            final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
-            tEnv.addPackage(info.getFile().getPackage(), info.getNode());
-            // PackageDrop.createPackage(info.getFile().getPackage(),
-            // info.getNode());
-          } else {
-            new SourceCUDrop(info);
-            System.out.println("Created source drop for " + info.getFileName());
-          }
-        } else {
-          new BinaryCUDrop(info);
-          System.out.println("Created binary drop for " + info.getFileName());
-        }
-        if (debug) {
-          System.out.println("Created drop for " + info.getFileName());
-        }
+    	if (!isPackageInfo(info)) {
+    		createCUDrop(monitor, info);
+    	}
       }
     };
     cus.apply(proc);
@@ -1898,26 +1841,79 @@ public class Util {
     endSubTask(monitor);
   }
 
-  private static void sortCodeInfos(ParallelArray<CodeInfo> cus) {
-    // Required to make sure that we process package-info files first
-    Collections.sort(cus.asList(), new Comparator<CodeInfo>() {
-      @Override
-      public int compare(CodeInfo o1, CodeInfo o2) {
-        if (o1.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
-          if (o2.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
-            return o1.getFileName().compareTo(o2.getFileName());
-          }
-          return Integer.MIN_VALUE;
-        }
-        if (o2.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
-          return Integer.MAX_VALUE;
-        }
-        return o1.getFileName().compareTo(o2.getFileName());
-      }
-    });
-    System.out.println("Done sorting CodeInfos");
+  static boolean isPackageInfo(CodeInfo info) {
+	  return info.getType() != IJavaFileLocator.Type.BINARY && info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA);
   }
+  
+  static void createCUDrop(final SLProgressMonitor monitor, CodeInfo info) {
+	if (monitor.isCanceled()) {
+	  throw new CancellationException();
+	}
+	if (info.getNode().identity() == IRNode.destroyedNode) {
+	  LOG.info("WARNING Already destroyed: " + info.getFileName());
+	  return;
+	}
+	// invalidate past results on this java file
+	final ICodeFile file = info.getFile();
+	CUDrop outOfDate = null;
+	switch (info.getType()) {
+	case SOURCE:
+	case INTERFACE:
+	  if (info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
+	    // System.out.println("Found package: "+info.getFileName());
+	    outOfDate = PackageDrop.findPackage(file.getPackage());
+	  } else {
+	    // System.out.println("Found source:  "+info.getFileName());
+	    outOfDate = SourceCUDrop.queryCU(file);
+	  }
+	  break;
+	case BINARY:
+	  outOfDate = BinaryCUDrop.queryCU(file.getProjectName(), info.getFileName());
+	default:
+	}
 
+	if (outOfDate != null) {
+	  if (outOfDate.getCompilationUnitIRNode().identity() != IRNode.destroyedNode
+	      && outOfDate.getCompilationUnitIRNode().equals(info.getNode())) {
+	    // Same IRNode, so keep this drop
+	    System.out.println("Keeping the old drop for " + outOfDate.getJavaOSFileName());
+	    return;
+	  }
+	  // if (AbstractWholeIRAnalysis.debugDependencies) {
+	  // System.out.println("Invalidating "+outOfDate+": "+
+	  // Projects.getProject(outOfDate.getCompilationUnitIRNode())+" -> "+
+	  // Projects.getProject(info.getNode()));
+	  // if (!(outOfDate instanceof PackageDrop)) {
+	  // System.out.println("Found "+outOfDate);
+	  // }
+	  // }
+	  System.out.println("Destroying "+outOfDate.getMessage());
+	  AdapterUtil.destroyOldCU(outOfDate.getCompilationUnitIRNode());
+	  outOfDate.invalidate();
+	} else {
+	  // System.out.println("Couldn't find: "+info.getFile());
+	}
+	// System.out.println("Creating drop: "+info.getFileName());
+
+	if (info.getType().fromSourceFile()) {
+	  if (info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
+	    final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
+	    tEnv.addPackage(info.getFile().getPackage(), info.getNode());
+	    // PackageDrop.createPackage(info.getFile().getPackage(),
+	    // info.getNode());
+	  } else {
+	    new SourceCUDrop(info);
+	    System.out.println("Created source drop for " + info.getFileName());
+	  }
+	} else {
+	  new BinaryCUDrop(info);
+	  System.out.println("Created binary drop for " + info.getFileName());
+	}
+	if (debug) {
+	  System.out.println("Created drop for " + info.getFileName());
+	}
+  }  
+  
   private static void scrubPromises(List<CodeInfo> cus, SLProgressMonitor monitor) {
     startSubTask(monitor, "Scrubbing promises");
     AnnotationRules.scrub();
