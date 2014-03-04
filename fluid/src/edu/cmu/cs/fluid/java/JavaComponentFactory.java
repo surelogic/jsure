@@ -1,5 +1,6 @@
 package edu.cmu.cs.fluid.java;
 
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
@@ -14,6 +15,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.parse.JJOperator;
 import edu.cmu.cs.fluid.tree.*;
+import edu.cmu.cs.fluid.util.IterableThreadLocal;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 
 public final class JavaComponentFactory implements ComponentFactory {
@@ -21,7 +23,7 @@ public final class JavaComponentFactory implements ComponentFactory {
 	 * Logger for this class
 	 */
   private static final Logger LOG = SLLogger.getLogger("FLUID.java.control");
-
+  
   /*
    * TODO Could this be split up into thread-local maps?
    * (if it doesn't matter that they use the same thing and they mostly don't overlap anyways)
@@ -149,4 +151,63 @@ public final class JavaComponentFactory implements ComponentFactory {
   public SyntaxTreeInterface tree() {
     return JJOperator.tree;
   }
+}
+
+final class ThreadLocalComponentFactory implements ComponentFactory {
+	/**
+	 * Logger for this class
+	 */
+	private static final Logger LOG = SLLogger.getLogger("FLUID.java.control");	
+	
+	private static final IterableThreadLocal<JavaComponentFactory> factories = new IterableThreadLocal<JavaComponentFactory>() {	
+		@Override
+		protected JavaComponentFactory makeInitialValue() {
+			return new JavaComponentFactory();
+		}
+	};	
+
+	// Thread-local components
+	private final Map<IRNode, Component> components = new HashMap<IRNode, Component>();
+
+	@Override
+	public Component getComponent(IRNode node) {
+		return getComponent(node, false);
+	}
+
+	public Component getComponent(IRNode node, boolean quiet) {
+		final Component comp = components.get(node);
+		if (comp == null)
+			return createComponent(node, quiet);
+		else
+			return comp;
+	}
+
+	// No sync needed due to thread-local hash map
+	private Component createComponent(final IRNode node, boolean quiet) {
+		JavaOperator op = (JavaOperator) JJNode.tree.getOperator(node);
+		Component comp = op.createComponent(node);
+		if (comp != null) {
+			if (LOG.isLoggable(Level.WARNING) && !comp.isValid()) {
+				LOG.warning("invalid component for");
+				JavaNode.dumpTree(System.out, node, 1);
+			}
+			comp.registerFactory(this);
+			components.put(node, comp);
+		} else if (!quiet) {
+			LOG.warning(
+					"Null control-flow component for " + DebugUnparser.toString(node) + " (OP = " + JJNode.tree.getOperator(node) + ")");
+			IRNode here = node;
+			while ((here = JJNode.tree.getParentOrNull(here)) != null) {
+				LOG.warning(
+						"  child of " + JJNode.tree.getOperator(here).name() + " node");
+			}
+			LOG.log(Level.WARNING, "Just want the trace", new FluidError("dummy"));
+		}
+		return comp;
+	}	
+	
+	@Override
+	public SyntaxTreeInterface tree() {
+		return JJOperator.tree;
+	}
 }
