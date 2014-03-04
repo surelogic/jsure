@@ -93,6 +93,7 @@ import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
+import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
 import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
@@ -121,6 +122,7 @@ import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import extra166y.ParallelArray;
 import extra166y.Ops.Procedure;
 
@@ -1094,6 +1096,7 @@ public class Util {
 		for (final IAnalysisGroup<?> g : analyses.getGroups()) {
 			procs[j] = new Procedure<IAnalysisGranule>() {
 				public void op(IAnalysisGranule granule) {
+					final JavaComponentFactory jcf = JavaComponentFactory.startUse();
 					try {
 						frame.pushTypeContext(granule.getCompUnit());
 						runAnalyses(timings, g, granule);						
@@ -1101,6 +1104,8 @@ public class Util {
 						System.err.println("Error while processing " + granule.getLabel());
 						throw e;
 					} finally {
+						JavaComponentFactory.finishUse(jcf);
+						ImmutableHashOrderSet.cleanupCaches();
 						frame.popTypeContext();
 					}
 				}			
@@ -1163,6 +1168,7 @@ public class Util {
             throw new CancellationException();
           }
           // System.out.println("Running "+a.name()+" on "+granule.javaOSFileName);
+          final JavaComponentFactory jcf = JavaComponentFactory.startUse();
           try {
             final AnalysisTimings timing = timings.get();
             frame.pushTypeContext(granule.getCompUnit());
@@ -1182,6 +1188,8 @@ public class Util {
             System.err.println("Error while processing " + granule.getLabel());
             throw e;
           } finally {
+        	JavaComponentFactory.finishUse(jcf);
+        	ImmutableHashOrderSet.cleanupCaches();
             frame.popTypeContext();
           }
         }

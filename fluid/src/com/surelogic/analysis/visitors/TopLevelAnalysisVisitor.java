@@ -257,22 +257,5 @@ public final class TopLevelAnalysisVisitor extends VoidTreeWalkVisitor {
 		  };
 		  TopLevelAnalysisVisitor.processCompilationUnit(collector, cu);
 	  }
-	  
-	  @Override
-	  public Procedure<TypeBodyPair> wrapAnalysis(final Procedure<TypeBodyPair> proc) {
-		  return new Procedure<TypeBodyPair>() {
-			@Override
-			public void op(TypeBodyPair g) {
-				// Copied from FlowUnitGranulator
-				final JavaComponentFactory jcf = JavaComponentFactory.startUse();
-			    try {
-			    	proc.op(g);		    
-			    } finally {
-			      JavaComponentFactory.finishUse(jcf);
-			      ImmutableHashOrderSet.cleanupCaches();
-			    }
-			}
-		  };
-	  }
   };
 }

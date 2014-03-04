@@ -60,20 +60,4 @@ public final class FlowUnitGranulator extends AbstractGranulator<FlowUnitGranule
       };
     }
   }
-  
-  @Override
-  public Procedure<FlowUnitGranule> wrapAnalysis(final Procedure<FlowUnitGranule> proc) {
-	  return new Procedure<FlowUnitGranule>() {
-		@Override
-		public void op(FlowUnitGranule g) {
-			final JavaComponentFactory jcf = JavaComponentFactory.startUse();
-		    try {
-		    	proc.op(g);		    
-		    } finally {
-		      JavaComponentFactory.finishUse(jcf);
-		      ImmutableHashOrderSet.cleanupCaches();
-		    }
-		}
-	  };
-  }
 }
