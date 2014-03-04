@@ -2263,11 +2263,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
           paramTypes.add(getJavaType(p));
         }      
         findOverrides(node,overrides,typeEnvironment.getSuperTypes(thisType),paramTypes);
-        Object oldOverrides = node.getSlotValue(bindings.getMethodOverridesAttr());
+        Object oldOverrides = bindings.getMethodOverrides(node);
         if (oldOverrides == null || !oldOverrides.equals(overrides)) {
           // we depend on the (semantically problematic) definition for equals:
           // that two lists are equal if they have the same elements.
-          node.setSlotValue(bindings.getMethodOverridesAttr(),overrides);
+          bindings.setMethodOverrides(node, overrides);
         }
       }
       return null;

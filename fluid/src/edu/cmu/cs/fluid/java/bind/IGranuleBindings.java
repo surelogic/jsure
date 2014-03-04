@@ -19,8 +19,11 @@ public interface IGranuleBindings extends IDerivedInformation {
    * Return the slot info for method override information.
    * @return the method override information.
    */
-  SlotInfo<List<IBinding>> getMethodOverridesAttr();
+  //SlotInfo<List<IBinding>> getMethodOverridesAttr();
+  List<IBinding> getMethodOverrides(IRNode n);
   
+  void setMethodOverrides(IRNode n, List<IBinding> overrides);
+	
   /**
    * Return the slot that stores the name to declaration binding information.
    * @return the binding override information

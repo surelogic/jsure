@@ -351,7 +351,7 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
       }
     }
 
-    @Override
+    //@Override
     public SlotInfo<List<IBinding>> getMethodOverridesAttr() {
       return methodOverridesAttr;
     }
@@ -389,6 +389,16 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
 	@Override
 	public int numBindings() {
 	  return useToDeclAttr.size();
+	}
+
+	@Override
+	public List<IBinding> getMethodOverrides(IRNode n) {
+		return n.getSlotValue(methodOverridesAttr);
+	}
+
+	@Override
+	public void setMethodOverrides(IRNode n, List<IBinding> overrides) {
+		n.setSlotValue(methodOverridesAttr, overrides);
 	}
   }
   

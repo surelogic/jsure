@@ -372,16 +372,17 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     /**
      * binding each method declaration to a set of methods that it overrides.
      */
-    final SlotInfo<List<IBinding>> methodOverridesAttr;
+    final Map<IRNode, List<IBinding>> methodOverridesAttr = new IRNodeHashedMap<List<IBinding>>();
+    //final SlotInfo<List<IBinding>> methodOverridesAttr;
     
     
     @Unique("return")
 	CompUnitBindings(IRNode cu, boolean needFullInfo) {
       unit = cu;
       hasFullInfo = needFullInfo;
-      SlotFactory f = SimpleSlotFactory.prototype;
+      //SlotFactory f = SimpleSlotFactory.prototype;
       //useToDeclAttr = f.newLabeledAttribute("CompUnitBindings.useToDecl");
-      methodOverridesAttr = f.newLabeledAttribute("CompUnitBindings.methodOverrides", null);
+      //methodOverridesAttr = f.newLabeledAttribute("CompUnitBindings.methodOverrides", null);
     }
 
     @Override
@@ -397,8 +398,9 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     @Override
     public synchronized void destroy() {    	
     	//useToDeclAttr.destroy();
+    	//methodOverridesAttr.destroy();
     	useToDeclAttr.clear();
-    	methodOverridesAttr.destroy();
+    	methodOverridesAttr.clear();
     	super.destroy();
     }
     
@@ -411,12 +413,12 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     	return rv;
     }
     
+    /*
     @Override
     public SlotInfo<List<IBinding>> getMethodOverridesAttr() {
       return methodOverridesAttr;
     }
 
-    /*
     @Override
     public SlotInfo<IBinding> getUseToDeclAttr() {
       return useToDeclAttr;
@@ -489,6 +491,16 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 	@Override
 	public int numBindings() {
 		return useToDeclAttr.size();
+	}
+
+	@Override
+	public List<IBinding> getMethodOverrides(IRNode n) {
+		return methodOverridesAttr.get(n);
+	}
+
+	@Override
+	public void setMethodOverrides(IRNode n, List<IBinding> overrides) {
+		methodOverridesAttr.put(n, overrides);
 	}
   }
   
