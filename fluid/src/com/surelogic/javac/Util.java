@@ -1105,6 +1105,11 @@ public class Util {
 					}
 				}			
 			};
+			if (g.getGranulator() != null) {
+				@SuppressWarnings("unchecked")
+				IAnalysisGranulator<IAnalysisGranule> gran = (IAnalysisGranulator<IAnalysisGranule>) g.getGranulator();
+				procs[j] = gran.wrapAnalysis(procs[j]);
+			}
 			j++;
 		}
 		return getWorkProcedure();
