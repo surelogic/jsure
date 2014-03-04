@@ -18,7 +18,6 @@ import com.surelogic.analysis.equality.EqualityAnalysis;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.jtb.TestFunctionalInterfacePseudoAnalysis;
 import com.surelogic.analysis.layers.LayersAnalysis;
-import com.surelogic.analysis.nullable.NullableModule;
 import com.surelogic.analysis.nullable.NullableModule2;
 import com.surelogic.analysis.singleton.SingletonAnalysis;
 import com.surelogic.analysis.structure.StructureAnalysis;
@@ -84,9 +83,7 @@ public class Javac extends IDE {
     init(EffectsAnalysis.class,
 			"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects");
     
-    init(NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable-old", false, "Nullable (old)");
     init(NullableModule2.class, "com.surelogic.jsure.client.eclipse.Nullable", true, "Nullable");
-//    init(com.surelogic.analysis.nullable2.NullableModule.class, "com.surelogic.jsure.client.eclipse.Nullable2", true, "Nullable 2222");
     
     init(com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisModule.class,
         "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM", false, "Uniqueness + From");
