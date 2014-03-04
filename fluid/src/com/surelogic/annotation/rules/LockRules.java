@@ -1070,8 +1070,9 @@ public class LockRules extends AnnotationRules {
           context.reportError(
               "Instance region \"" //$NON-NLS-1$
               + region
-              + "\" should be protected by an instance field; consider including "+region+
-              " in a static region", lockDecl); //$NON-NLS-1$
+              + "\" must be protected by an instance field, or \""
+              + region 
+              + "\" must be declared as static or contained in a static region (static regions may include instance state)", lockDecl);
           declIsGood = false;
         }
       }
