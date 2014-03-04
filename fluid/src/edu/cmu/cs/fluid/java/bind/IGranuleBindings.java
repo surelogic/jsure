@@ -25,7 +25,14 @@ public interface IGranuleBindings extends IDerivedInformation {
    * Return the slot that stores the name to declaration binding information.
    * @return the binding override information
    */
-  SlotInfo<IBinding> getUseToDeclAttr();
+  //SlotInfo<IBinding> getUseToDeclAttr();
+  boolean bindingExists(IRNode use);
+  
+  IBinding getUseForDecl(IRNode use);
+  
+  void setUseForDecl(IRNode use, IBinding decl);
+  
+  int numBindings();
   
   /**
    * A badly designed interface that will be removed as soon as I can do it safely.

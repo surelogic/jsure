@@ -183,6 +183,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 	  clearAll(true);
   }
 
+  // TODO rewrite to take advantage of granule field
   private static Iterable<IRNode> getGranules(final IRNode cu) {
 	  List<IRNode> rv = granules.get(cu);
 	  if (rv == null) {
@@ -364,18 +365,22 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     /**
      * binding each use of a name to the declaration that it refers to.
      */
-    final SlotInfo<IBinding> useToDeclAttr;
+    //final SlotInfo<IBinding> useToDeclAttr;
+    // TODO does this need to be sync'd?
+    final Map<IRNode, IBinding> useToDeclAttr = new IRNodeHashedMap<IBinding>();
+    
     /**
      * binding each method declaration to a set of methods that it overrides.
      */
     final SlotInfo<List<IBinding>> methodOverridesAttr;
+    
     
     @Unique("return")
 	CompUnitBindings(IRNode cu, boolean needFullInfo) {
       unit = cu;
       hasFullInfo = needFullInfo;
       SlotFactory f = SimpleSlotFactory.prototype;
-      useToDeclAttr = f.newLabeledAttribute("CompUnitBindings.useToDecl");
+      //useToDeclAttr = f.newLabeledAttribute("CompUnitBindings.useToDecl");
       methodOverridesAttr = f.newLabeledAttribute("CompUnitBindings.methodOverrides", null);
     }
 
@@ -391,7 +396,8 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     
     @Override
     public synchronized void destroy() {    	
-    	useToDeclAttr.destroy();
+    	//useToDeclAttr.destroy();
+    	useToDeclAttr.clear();
     	methodOverridesAttr.destroy();
     	super.destroy();
     }
@@ -410,10 +416,12 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
       return methodOverridesAttr;
     }
 
+    /*
     @Override
     public SlotInfo<IBinding> getUseToDeclAttr() {
       return useToDeclAttr;
     }
+    */
 
     @RequiresLock("StatusLock")
     @Override
@@ -436,7 +444,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 
     @Override
     public void ensureDerived(IRNode node) {
-      if (node.valueExists(useToDeclAttr)) {
+      if (bindingExists(node)) {
         return;
       }
       try {
@@ -462,6 +470,26 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     public boolean containsFullInfo() {
       return hasFullInfo;
     }
+
+	@Override
+	public boolean bindingExists(IRNode use) {
+		return useToDeclAttr.containsKey(use);
+	}
+
+	@Override
+	public IBinding getUseForDecl(IRNode use) {
+		return useToDeclAttr.get(use);
+	}
+
+	@Override
+	public void setUseForDecl(IRNode use, IBinding decl) {
+		useToDeclAttr.put(use, decl);
+	}
+
+	@Override
+	public int numBindings() {
+		return useToDeclAttr.size();
+	}
   }
   
   public static void printStats(JSurePerformance perf) {

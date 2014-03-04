@@ -356,11 +356,11 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
       return methodOverridesAttr;
     }
 
-    @Override
+    //@Override
     public SlotInfo<IBinding> getUseToDeclAttr() {
       return useToDeclAttr;
-    }
-
+    }    
+    
     @Override
     public void ensureDerived(IRNode node) {
       super.ensureDerived();
@@ -370,6 +370,26 @@ public class JavaIncrementalBinder extends AbstractJavaBinder {
     public boolean containsFullInfo() {
       return true;
     }
+
+	@Override
+	public boolean bindingExists(IRNode use) {
+	  return use.valueExists(useToDeclAttr);
+	}
+
+	@Override
+	public IBinding getUseForDecl(IRNode use) {
+	  return use.getSlotValue(useToDeclAttr);
+	}
+
+	@Override
+	public void setUseForDecl(IRNode use, IBinding decl) {
+	  use.setSlotValue(useToDeclAttr, decl);
+	}
+
+	@Override
+	public int numBindings() {
+	  return useToDeclAttr.size();
+	}
   }
   
   @Override

@@ -1668,7 +1668,9 @@ public class Util {
             }
           }
         }
-
+        // Recompute granules after canonicalization
+        AbstractJavaBinder.computeGranules(cu);        
+        
         // Visit the source, checking for annotations
         int num = v.doAccept(cu);
         final JavacProject p = Projects.getProject(cu);

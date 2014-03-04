@@ -49,15 +49,13 @@ import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
-import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.Call;
-import edu.cmu.cs.fluid.java.operator.CastExpression;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassType;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
-import edu.cmu.cs.fluid.java.operator.ConditionalExpression;
+
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.ConstructorReference;
@@ -87,7 +85,6 @@ import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.NormalEnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.OuterObjectSpecifier;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
-import edu.cmu.cs.fluid.java.operator.ParenExpression;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.QualifiedName;
 import edu.cmu.cs.fluid.java.operator.QualifiedSuperExpression;
@@ -343,6 +340,25 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   }
   
   /**
+   * Compute granules for all the nodes in this compilation unit
+   */
+  public static void computeGranules(IRNode cu) {
+	  if (cacheGranuleInfo) {
+		  computeGranules(cu, null);
+	  }
+  }
+  
+  private static void computeGranules(final IRNode node, final IRNode prevGranule) {
+	  final Operator op = JJNode.tree.getOperator(node);
+	  final IRNode granule = isGranule(node, op) ? node : prevGranule;	  
+      node.setSlotValue(granuleSI, granule);
+      
+      for(IRNode child : JJNode.tree.children(node)) {
+    	  computeGranules(child, granule);
+      }
+  }
+  
+  /**
    * Return the granule of binding associated with this node, or throw
    * an exception if we don't find one (while going to the root).
    * @param node node we wish binding information for
@@ -350,11 +366,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
    */
   public IRNode getGranule(IRNode node) {
 	final IRNode orig = node;
+	IRNode rv = null;
 	if (cacheGranuleInfo) {
-		final IRNode rv = orig.getSlotValue(granuleSI);
+		rv = orig.getSlotValue(granuleSI);
+		
 		if (rv != noGranuleComputedYet) {
 			return rv;
-		}
+		}		
 	}
 	// TODO this could compute the granule for all the nodes along the way
 	while (node != null) {
@@ -394,6 +412,29 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     }
     */
 	if (cacheGranuleInfo) {
+		/*
+		if (rv != null && rv != noGranuleComputedYet) {
+			if (rv != node) {
+				System.out.println("Granules differ: "+JJNode.tree.getOperator(node));
+			}
+		}		
+		Operator oop = JJNode.tree.getOperator(orig);
+		if (NewExpression.prototype.includes(oop)) {
+			System.out.println("Can't cache this in case we add an OOS");
+		} else {
+			// TODO can't cache if I'm inside a NewE?
+			Operator op = JJNode.tree.getOperator(node);
+			if (op instanceof IllegalCode) {
+				if (oop instanceof IllegalCode) {
+					orig.setSlotValue(granuleSI, node);
+				} else {
+					System.out.println("Cannot store this granule: "+op.name());
+				}
+			} else {
+				orig.setSlotValue(granuleSI, node);
+			}
+		}
+		*/
 		orig.setSlotValue(granuleSI, node);
 	}
     return node;
@@ -420,7 +461,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		if (bindings.isDestroyed()) {
     			return getIBinding(node);
     		} else {    		
-    			IBinding binding = node.getSlotValue(bindings.getUseToDeclAttr());
+    			IBinding binding = bindings.getUseForDecl(node);
     			if (binding != null && binding.getNode() != null && binding.getNode().identity() == IRNode.destroyedNode) {
     				System.out.println("Destroyed binding for "+DebugUnparser.toString(node));
     				bindings.destroy();
@@ -634,7 +675,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 
       long end = System.currentTimeMillis();
       fullTime += (end-start);
-      numFull  += bindings.getUseToDeclAttr().size();
+      numFull  += bindings.numBindings();
     } else {
       long start = System.currentTimeMillis();
 
@@ -643,7 +684,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 
       long end = System.currentTimeMillis();
       partialTime += (end-start);
-      numPartial += bindings.getUseToDeclAttr().size();
+      numPartial += bindings.numBindings();
     }
   }
   
@@ -1125,10 +1166,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     }
 
     private IBinding getLocalIBinding(IRNode node) {
-    	if (!node.valueExists(bindings.getUseToDeclAttr())) {
+    	if (!bindings.bindingExists(node)) {
     		return getIBinding(node);
     	}
-    	return node.getSlotValue(bindings.getUseToDeclAttr());
+    	return bindings.getUseForDecl(node);
     }
     
     /**
@@ -1168,7 +1209,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		LOG.warning("Cannot find a binding for " + unparse+" in "+typeEnvironment);
     	}
         if (storeNullBindings) {
-          node.setSlotValue(bindings.getUseToDeclAttr(), null);
+          bindings.setUseForDecl(node, null);
         }
         /*
         if (!SimpleName.prototype.includes(node) && 
@@ -1181,7 +1222,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         LOG.finer("Establishing binding for " + node + " = " + DebugUnparser.toString(node) + " to " + 
             DebugUnparser.toString(binding.getNode()) + getInVersionString());
       }
-      node.setSlotValue(bindings.getUseToDeclAttr(),binding);
+      bindings.setUseForDecl(node, binding);
       /*
       if (!node.valueExists(bindings.getUseToDeclAttr())) {
     	  System.out.println("Didn't successfully create binding");
@@ -2560,11 +2601,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (success && isACE) { 
     	  // bind NewE inside of ACE
     	  try {
-    		  IBinding b = alloc.getSlotValue(bindings.getUseToDeclAttr());
+    		  IBinding b = bindings.getUseForDecl(alloc);
         	  bind(AnonClassExpression.getAlloc(alloc), b);
     	  } catch (SlotUndefinedException e) {
         	  bindAllocation(state);
-    		  alloc.getSlotValue(bindings.getUseToDeclAttr());
+        	  bindings.getUseForDecl(alloc);
     	  }
       /*
       } else if (!success && isACE) {
