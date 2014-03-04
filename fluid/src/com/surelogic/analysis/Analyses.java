@@ -84,6 +84,7 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 			} else {
 				at.makeDrops();
 			}
+			at.clearTimings();
 		}
 		if (compactBeforeCreation) {
 			final boolean verbose = numTimings < f_thresholdSize;
@@ -212,6 +213,10 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 			for(Timing t : timings) {
 				t.recordTime();
 			}
+		}
+		
+	    void clearTimings() {
+	    	timings.clear();
 		}
 	}
 
