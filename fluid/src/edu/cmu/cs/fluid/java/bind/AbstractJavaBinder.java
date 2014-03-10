@@ -1351,6 +1351,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       */
       if (bestMethod == null) {
+    	  methodBinder.findBestMethod(sc, lookupContext, needMethod, from, state);
     	  return bind(state.call, (IBinding) null);
       }
       /*
@@ -2082,10 +2083,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IJavaScope toUse  = null;
       IJavaType recType = null;
       final String name = MethodCall.getMethod(node);  
-  
-      if ("foobarbaz".equals(name)) {
-      	System.out.println("getCurrentKey: "+DebugUnparser.toString(node));
-      }      
      
       if (JJNode.tree.getOperator(receiver) instanceof ImplicitReceiver) {
         toUse = scope;
