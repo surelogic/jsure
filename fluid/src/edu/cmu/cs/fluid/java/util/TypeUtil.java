@@ -186,7 +186,7 @@ public class TypeUtil implements JavaGlobals {
         return JavaNode.getModifier(node, JavaNode.STATIC);
     } else if (ClassDeclaration.prototype.includes(op)) {
       return false;
-    } else if (NestedInterfaceDeclaration.prototype.includes(op)) { // MUST test before InterfaceDeclaration
+    } else if (NestedInterfaceDeclaration.prototype.includes(op) || NestedEnumDeclaration.prototype.includes(op)) { // MUST test before Interface/EnumDeclaration
       return true; // Nested interfaces are always implicitly static
     } else if (InterfaceDeclaration.prototype.includes(op)) {
       return false;
