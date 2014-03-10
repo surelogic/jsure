@@ -141,18 +141,42 @@ public class TypeVisitor extends SignatureVisitor {
 		typeActuals.clear();
 	}
 
+    /**
+     * Visits an unbounded type argument of the last visited class or inner
+     * class type.
+     */
 	@Override
   public void visitTypeArgument() {
+		// TODO Should this be raw?
 		typeActuals.add(WildcardType.prototype.jjtCreate());
 	}
+
+    /**
+     * Visits a type argument of the last visited class or inner class type.
+     * 
+     * @param wildcard
+     *            '+', '-' or '='.
+     * @return a non null visitor to visit the signature of the type argument.
+     */
 	@Override
-  public SignatureVisitor visitTypeArgument(char boundType) {
+  public SignatureVisitor visitTypeArgument(final char wildcardType) {
 		final TypeVisitor outer = this;
 		return new TypeVisitor() {
 			@Override
       protected void finish() {
 				IRNode t = this.getType();
-				outer.typeActuals.add(t); // FIX what about the boundType?
+				switch (wildcardType) {
+				case EXTENDS:
+					t = WildcardExtendsType.createNode(t);
+					break;
+				case SUPER:
+					t = WildcardSuperType.createNode(t);
+					break;
+				case INSTANCEOF:
+//					System.out.println("What to do with "+DebugUnparser.toString(t));
+				default:
+				}
+				outer.typeActuals.add(t); // FIX what about the boundType?				
 			}
 		};
 	}
