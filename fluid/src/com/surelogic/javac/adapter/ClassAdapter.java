@@ -71,7 +71,6 @@ import edu.cmu.cs.fluid.java.operator.NestedInterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.NoDefaultValue;
 import edu.cmu.cs.fluid.java.operator.NoInitialization;
 import edu.cmu.cs.fluid.java.operator.NoMethodBody;
-import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
 import edu.cmu.cs.fluid.java.operator.ShortType;
