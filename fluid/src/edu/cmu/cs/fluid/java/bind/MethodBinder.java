@@ -48,14 +48,14 @@ class MethodBinder {
 		};
 	}
 	
-    private boolean isCallCompatible(IJavaType t1, IJavaType t2) {
-    	if (t1 == null || t2 == null) {    	
+    private boolean isCallCompatible(IJavaType param, IJavaType arg) {
+    	if (param == null || arg == null) {    	
     		return false;
     	}
-    	final Pair<IJavaType, IJavaType> key = Pair.getInstance(t1, t2);
+    	final Pair<IJavaType, IJavaType> key = Pair.getInstance(param, arg);
     	Boolean result = callCompatCache.get(key);
     	if (result == null) {
-    		result = typeEnvironment.isCallCompatible(t1, t2);
+    		result = typeEnvironment.isCallCompatible(param, arg);
     		callCompatCache.put(key, result);
     	}
     	return result;
@@ -286,7 +286,7 @@ class MethodBinder {
 	 * specified in section �15.12.2.5. See the following subsections for
 	 * details.
 	 */
-    BindingInfo findBestMethod(final IJavaScope scope, final LookupContext context, final boolean needMethod, IRNode from, CallState call) {
+    BindingInfo findBestMethod(final IJavaScope scope, final LookupContext context, final boolean needMethod, IRNode from, CallState call) {    	
         final IJavaScope.Selector isAccessible = makeAccessSelector(typeEnvironment, from);
         final Iterable<IBinding> methods = new Iterable<IBinding>() {
 //  			@Override
@@ -294,6 +294,11 @@ class MethodBinder {
   				return IJavaScope.Util.lookupCallable(scope, context, isAccessible, needMethod);
   			}
         };
+        /*
+    	if ("this.root(name, java.util.EnumSet.of(# . EOpt.ENDTAG))".equals(DebugUnparser.toString(call.call))) {
+    		System.out.println("Looking at problematic call");
+    	}
+    	*/
     	final SearchState state = new SearchState(methods, call);
     	BindingInfo best  = findMostSpecificApplicableMethod(state, false, false);
     	if (best == null) {
@@ -427,6 +432,11 @@ class MethodBinder {
     		m.match = null;
     		return m; 
     	}    	
+    	/*
+    	if ("java.util.EnumSet.of(testBinder.hadoop_yarn_common.HamletImpl . EOpt.ENDTAG)".equals(DebugUnparser.toString(s.call.call))) {
+    		System.out.println("Debugging bad subst");
+    	}
+    	*/
     	m.initSubstMap(binder);
     	
     	m.match = matchedParameters(s, allowBoxing, allowVarargs, m);    	
@@ -485,9 +495,15 @@ class MethodBinder {
     			fty = varArgBase;
     		} else {
     			IRNode ptype  = ParameterDeclaration.getType(fe.next());    		
-    			fty = binder.getTypeEnvironment().convertNodeTypeToIJavaType(ptype);
+    			IJavaType tempFty = binder.getTypeEnvironment().convertNodeTypeToIJavaType(ptype);
     			
-    			fty = m.bind.convertType(binder, fty);
+    			fty = m.bind.convertType(binder, tempFty);
+    			/*
+    			if (fty == null) {
+    				System.out.println("Null parameter type was "+tempFty);
+    				m.bind.convertType(binder, tempFty);
+    			}
+    			*/
     			if (captureTypes) {    		
     				IJavaType temp = JavaTypeVisitor.captureWildcards(binder, fty);    			
     				if (temp != fty) {
@@ -546,8 +562,11 @@ class MethodBinder {
     	final boolean isVarArgs = varType != null;
     	for (int i=0; i < s.argTypes.length; ++i) {       
     		IJavaType fty      = s.tmpTypes[i];
-    		IJavaType captured = m.substMap == null ? binder.getTypeEnvironment().computeErasure(fty) : 
-    			map.substitute(fty);          
+    		// TODO actually just need to replace the type variables for the method
+    		IJavaType captured = m.numTypeFormals > 0 && m.substMap.isEmpty() ? 
+    				constraints.substituteRawMapping(typeEnvironment, m.typeFormals, fty) :
+    				//binder.getTypeEnvironment().computeErasure(fty) :     			
+    				map.substitute(fty);
     		if (!isCallCompatible(captured,s.argTypes[i])) {        	
     			// Check if need (un)boxing
     			if (allowBoxing && onlyNeedsBoxing(captured, s.argTypes[i])) {

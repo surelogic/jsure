@@ -8,9 +8,6 @@ import com.surelogic.Nullable;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
-import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
-import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.parse.JJNode;
 
 /**
@@ -136,7 +133,22 @@ public interface IBinding {
    */
   public static class Util {
     //private static final Logger LOG = SLLogger.getLogger("fluid.java.bind");
-    
+	  
+	/**
+	 * A wrapper to handle null results at the outermost level
+	 */
+    public static IJavaType subst(IJavaType orig, IJavaTypeSubstitution subst) {
+    	IJavaType substituted = orig.subst(subst);
+    	if (substituted == null) {
+    		if (orig instanceof IJavaTypeFormal) {
+    			IJavaTypeFormal tf = (IJavaTypeFormal) orig;
+    			return tf.getExtendsBound(subst.getTypeEnv()).subst(subst);
+    		} 
+    		throw new IllegalStateException();
+    	}
+    	return substituted;
+    }
+	  
     public static IBinding makeMethodBinding(IBinding mbind, IJavaDeclaredType context, IJavaTypeSubstitution mSubst, IJavaType recType, ITypeEnvironment tEnv) {
       return makeBinding(mbind.getNode(), 
     		             context == null ? mbind.getContextType() : context, 
@@ -164,9 +176,9 @@ public interface IBinding {
     		public IJavaType convertType(IBinder binder, IJavaType type) {
     	          if (type == null) return null;
     	          if (mSubst != null) {
-    	            return type.subst(mSubst).subst(tSubst);
+    	    		return Util.subst(Util.subst(type, mSubst), tSubst);
     	          }
-    	          return type.subst(tSubst);    			
+                  return Util.subst(type, tSubst);
     		}
     	};
     }
@@ -205,7 +217,7 @@ public interface IBinding {
           	@Override
               public IJavaType convertType(IBinder binder, IJavaType type) {
                 if (type == null) return null;
-                return type.subst(subst);
+                return Util.subst(type, subst);
               }
             };  
       }
@@ -213,7 +225,7 @@ public interface IBinding {
     	@Override
         public IJavaType convertType(IBinder binder, IJavaType type) {
     		if (type == null) return null;
-    		return type.subst(mSubst).subst(subst);          
+    		return Util.subst(Util.subst(type, mSubst), subst);          
         }
       };
     }

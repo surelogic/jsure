@@ -54,7 +54,6 @@ import edu.cmu.cs.fluid.java.operator.ConditionalExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
-import edu.cmu.cs.fluid.java.operator.Dims;
 import edu.cmu.cs.fluid.java.operator.ElementValuePair;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
@@ -711,6 +710,7 @@ public class JavaCanonicalizer {
     }
 
     private boolean isNonstaticNestedClass(IRNode tdecl) {
+    	// TODO TypeUtil.isStatic()?
     	return NestedClassDeclaration.prototype.includes(tdecl) && !JavaNode.getModifier(tdecl, JavaNode.STATIC);
 	}
 
@@ -927,6 +927,11 @@ public class JavaCanonicalizer {
             if (tEnv.isCallCompatible(paramType, argType)) {
               // The last arg matches the var arg type, so no need to do
               // anything
+              return changed;
+            }
+            IJavaArrayType varargsType = (IJavaArrayType) paramType;
+            if (!tEnv.isCallCompatible(varargsType.getElementType(), argType)) {
+              // Can't be an element of the varargs 
               return changed;
             }
           }
@@ -1207,7 +1212,7 @@ public class JavaCanonicalizer {
           }
         }
         if (subst != null) {
-          return ty.subst(subst);
+          return Util.subst(ty, subst);
         }
         return ty;
       }

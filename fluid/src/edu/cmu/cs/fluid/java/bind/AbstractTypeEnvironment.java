@@ -38,7 +38,6 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
-import edu.cmu.cs.fluid.java.operator.ArithUnopExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayDeclaration;
 import edu.cmu.cs.fluid.java.operator.BooleanType;
 import edu.cmu.cs.fluid.java.operator.ByteType;
@@ -47,7 +46,6 @@ import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.FloatType;
-import edu.cmu.cs.fluid.java.operator.IntLiteral;
 import edu.cmu.cs.fluid.java.operator.IntType;
 import edu.cmu.cs.fluid.java.operator.IntegralType;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
@@ -63,7 +61,6 @@ import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.operator.TypeInterface;
-import edu.cmu.cs.fluid.java.operator.UnopExpression;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -264,7 +261,7 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
     return true;
   }
   
-  /**
+  /** JLS 3
    * Method invocation conversion is applied to each argument value in
    * a method or constructor invocation (�8.8.7.1, �15.9, �15.12): 
    * the type of the argument expression must be converted to the type 
@@ -300,20 +297,81 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
    * @see edu.cmu.cs.fluid.java.bind.ITypeEnvironment#isCallCompatible(edu.cmu.cs.fluid.java.bind.IJavaType, edu.cmu.cs.fluid.java.bind.IJavaType)
    */  
   @Override
-  public boolean isCallCompatible(IJavaType t1, IJavaType t2) {
-    if (t1.isEqualTo(this, t2)) return true; 
-    if (t2 == JavaTypeFactory.anyType) {
+  public boolean isCallCompatible(IJavaType param, IJavaType arg) {
+    if (param.isEqualTo(this, arg)) return true; 
+    if (arg == JavaTypeFactory.anyType) {
       return true;
     }
-    if (t1 instanceof IJavaPrimitiveType) {
-      if (!(t2 instanceof IJavaPrimitiveType)) return false;
-      return arePrimTypesCompatible((IJavaPrimitiveType) t1, (IJavaPrimitiveType) t2, null);
+    if (param instanceof IJavaPrimitiveType) {
+      if (!(arg instanceof IJavaPrimitiveType)) return false;
+      return arePrimTypesCompatible((IJavaPrimitiveType) param, (IJavaPrimitiveType) arg, null);
+    } else if (isSubType(arg, param)) {
+      return true;
+    } else if (isCallCompatibleIfRaw(param, arg)) {
+      // I can apply an unchecked conversion
+      return true;
     } else {
-      IJavaType erasure = computeErasure(t1);
-      return isSubType(t2, erasure);
+      // Check whether it would throw an exception
+      IJavaType erasure = computeErasure(param);
+      boolean oldRv = isSubType(arg, erasure);
+      // TODO unchecked conversion?
+      if (oldRv) {
+    	  System.err.println("Previously trying to convert "+arg+" to "+param);
+    	  isCallCompatibleIfRaw(param, arg);
+      }
+      return false;
     }
   }
   
+  private boolean isCallCompatibleIfRaw(IJavaType param, IJavaType arg) {
+	  if (param instanceof IJavaArrayType && arg instanceof IJavaArrayType) {
+		  IJavaArrayType paramA = (IJavaArrayType) param;
+		  IJavaArrayType argA = (IJavaArrayType) arg;
+		  return paramA.getDimensions() == argA.getDimensions() &&
+				 isCallCompatibleIfRaw(paramA.getBaseType(), argA.getBaseType());
+	  }
+	  /*
+      if (arg instanceof IJavaDeclaredType) {
+    	  IJavaDeclaredType argD = (IJavaDeclaredType) arg;
+    	  if (argD.isRawType(this) && isSubType(arg, param, true)) {
+    		  return true;
+    	  }
+      }
+      */
+      if (param instanceof IJavaDeclaredType) {
+    	  IJavaDeclaredType paramD = (IJavaDeclaredType) param;
+       	  if (paramD.isRawType(this) && isSubType(arg, param, true)) {
+    		  return true;
+    	  }
+       	  if (arg instanceof IJavaDeclaredType && paramD.getTypeParameters().size() > 0) {
+       		  IJavaDeclaredType argD = (IJavaDeclaredType) arg;
+       		  IJavaDeclaredType matchingSuper = matchSuper(paramD.getDeclaration(), argD);
+       		  if (matchingSuper != null && matchingSuper.isRawType(this)) {
+       			  return true;
+       		  }
+       	  }
+      }
+      return false;
+  }
+  
+  /**
+   * Find the supertype that matches the given declaration
+   */
+  private IJavaDeclaredType matchSuper(IRNode decl, IJavaDeclaredType t) {
+	if (t.getDeclaration().equals(decl)) {
+		return t;
+	}
+	for(IJavaType st : getSuperTypes(t)) {
+		if (st instanceof IJavaDeclaredType) {
+			IJavaDeclaredType result = matchSuper(decl, (IJavaDeclaredType) st);
+			if (result != null) {
+				return result;
+			}
+		} 
+	}
+	return null;
+  }
+
   private boolean arePrimTypesCompatible(IJavaPrimitiveType t1, IJavaPrimitiveType t2, IRNode n2) {
     PrimitiveType op1 = t1.getOp();
     PrimitiveType op2 = t2.getOp();
@@ -1241,7 +1299,9 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
           return isSubType(tw.getLowerBound(), sw.getLowerBound()); // (2)
         }
       } else {
-        return false;
+    	// return false;
+    	// Added to handle the case of "? extends T <: T?
+        return isSubType(sw.getUpperBound() != null ? sw.getUpperBound() : getObjectType(), tt);
       }
     } else {
       if (!(tt instanceof IJavaWildcardType)) return false;

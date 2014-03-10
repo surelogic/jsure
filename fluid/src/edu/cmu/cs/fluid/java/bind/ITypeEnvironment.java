@@ -184,7 +184,7 @@ public interface ITypeEnvironment {
    * @param t2 The type of the expression being assigned
    * @return true if compatible.
    */
-  boolean isCallCompatible(IJavaType t1, IJavaType t2);
+  boolean isCallCompatible(IJavaType param, IJavaType arg);
   
   boolean isCallCompatible(IJavaType[] types1, IJavaType[] types2);
   

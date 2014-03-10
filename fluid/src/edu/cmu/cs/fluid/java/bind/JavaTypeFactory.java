@@ -344,7 +344,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 	  return sum;
   }
   
-  private static class RootType extends JavaDeclaredType {
+  static class RootType extends JavaDeclaredType {
     @Override public String toString() { return ""; }
   };
 
@@ -1689,7 +1689,8 @@ class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
   @Override
   public IJavaType subst(IJavaTypeSubstitution s) {
     if (s == null) return this;
-    return JavaTypeFactory.getArrayType(elementType.subst(s),1);
+    IJavaType newElementType = IBinding.Util.subst(elementType, s);
+    return JavaTypeFactory.getArrayType(newElementType,1);
   }
 
   @Override
@@ -1765,7 +1766,21 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
     if (s == null) return this;
     List<IJavaType> newParams = s.substTypes(this, parameters);
     if (newParams == parameters) return this;
+    // Check if raw
+    if (allNull(newParams)) {
+    	newParams = Collections.emptyList();
+    }
+    // TODO what if some are null? (fill in with erasure?)
     return JavaTypeFactory.getDeclaredType(declaration,newParams,null);
+  }
+  
+  boolean allNull(List<IJavaType> params) {
+	for(IJavaType t : params) {
+		if (t != null) {
+			return false;
+		}
+	}
+	return true;
   }
   
   @Override
@@ -1896,6 +1911,16 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
     return 0;
   }
   
+  public boolean isRawType(ITypeEnvironment tEnv) {
+	  if (parameters.isEmpty()) {
+		  final IRNode typeParams = TypeUtils.getParametersForType(declaration);
+		  if (typeParams != null) {
+			  return JJNode.tree.numChildren(typeParams) > 0;
+		  }
+	  }
+	  return false;
+  }
+  
   /*******************************************************
    * Added to implement IDeclaredType
    *******************************************************/
@@ -1934,6 +1959,12 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
       List<IJavaType> newParams = s.substTypes(this, parameters);
       JavaDeclaredType newOuter = (JavaDeclaredType) getOuterType().subst(s);
       if (newParams == parameters && newOuter == getOuterType()) return this;
+      
+      // Check if raw
+      if (allNull(newParams)) {
+      	newParams = Collections.emptyList();
+      }
+      // TODO what if some are null?
       return JavaTypeFactory.getDeclaredType(declaration,newParams,newOuter);
     }
     
@@ -1958,6 +1989,11 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
     public String toFullyQualifiedText() {
     	return JavaDeclaredType.this.toFullyQualifiedText() + "." + 
     		super.toString(TextKind.UNQUALIFIED, ParamTextKind.QUALIFIED_TEXT);
+    }
+    
+    @Override
+    public boolean isRawType(ITypeEnvironment tEnv) {
+    	return super.isRawType(tEnv) || getOuterType().isRawType(tEnv);
     }
   }
   
@@ -2044,6 +2080,13 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
 class JavaAnonType extends JavaDeclaredType implements IJavaDeclaredType {
 	  JavaAnonType(IRNode ace) {
 		  super(ace);
+	  }
+	  
+	  @Override
+	  public boolean isRawType(ITypeEnvironment tEnv) {
+		  IRNode type = AnonClassExpression.getType(declaration);
+		  IJavaDeclaredType jt = (IJavaDeclaredType) tEnv.convertNodeTypeToIJavaType(type);
+		  return jt.isRawType(tEnv);
 	  }
 }
 

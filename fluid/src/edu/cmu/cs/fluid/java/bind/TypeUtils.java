@@ -30,7 +30,7 @@ public class TypeUtils {
 	
 	// Utility methods
 	//
-	IRNode getParametersForType(IRNode tdecl) {
+	public static IRNode getParametersForType(IRNode tdecl) {
 		final Operator op = JJNode.tree.getOperator(tdecl);
 		if (ClassDeclaration.prototype.includes(op)) {
 			return ClassDeclaration.getTypes(tdecl);
@@ -979,6 +979,15 @@ public class TypeUtils {
 				map.subst.put(fty, fty);
 			}
 		}
+
+		public IJavaType substituteRawMapping(ITypeEnvironment env, IRNode typeFormals, IJavaType fty) {
+			final Map<IJavaType,IJavaType> subst = new HashMap<IJavaType, IJavaType>();
+			for(IRNode f : TypeFormals.getTypeIterator(typeFormals)) {
+				IJavaTypeFormal jtf = (IJavaTypeFormal) env.convertNodeTypeToIJavaType(f);
+				subst.put(jtf, JavaTypeFactory.voidType);
+			}
+			return TypeUtils.this.substitute(subst, fty);
+		}
 	}
 	
 	public class Mapping {
@@ -1158,8 +1167,24 @@ public class TypeUtils {
     	}
     	if (fty instanceof IJavaTypeFormal) {
     		IJavaType rv = map.get(fty);  
-    		if (rv != null) {
+    		if (rv == fty) {
+    			return fty;
+    		}
+    		else if (rv == JavaTypeFactory.voidType) {
+    			return tEnv.computeErasure(fty);
+    		}
+    		else if (rv != null) {
+    			/*
+    			try {
+    			return substitute(map, rv);
+    			} catch(StackOverflowError e) {
+    				System.err.println("Stack overflow on "+rv);
+    				throw new IllegalStateException();
+    			}
+    			*/
     			return rv;
+    		} else {
+    			return fty; // No subst
     		}
     	}
     	else if (fty instanceof IJavaDeclaredType) {
@@ -1167,6 +1192,7 @@ public class TypeUtils {
     		// copied from captureDeclaredType
     		final int size   = dt.getTypeParameters().size(); 
     		boolean captured = false;
+    		boolean allNull = true;
     		List<IJavaType> params = new ArrayList<IJavaType>(size);
     		for(int i=0; i<size; i++) {
     			IJavaType oldT = dt.getTypeParameters().get(i);            
@@ -1174,9 +1200,16 @@ public class TypeUtils {
     			params.add(newT);
     			if (!oldT.equals(newT)) {
     				captured = true;                
+    				
+        			if (newT != null) {
+        				allNull = false;
+        			}
     			}
     		}
     		if (captured) {
+    			if (allNull) {
+    				params = Collections.emptyList();
+    			}
     			return JavaTypeFactory.getDeclaredType(dt.getDeclaration(), params, 
     					dt.getOuterType());
     		}
@@ -1435,10 +1468,12 @@ public class TypeUtils {
 		}
 		final Constraints constraints = getEmptyConstraints(map.call, map.method, map.subst, false, false);
 	    //    -- the constraint S' >> R', provided R is not void; and
-		final IJavaType s_prime = findAssignmentType(map.call.call);
-		final IJavaType r_prime = computeReturnType(map);
-		if (!(r_prime instanceof IJavaVoidType)) {
-			constraints.derive(r_prime, Constraint.CONVERTIBLE_TO, s_prime);
+		if (map.call.call != null) { // check in case we're just looking for overridden parents			
+ 		    final IJavaType s_prime = findAssignmentType(map.call.call);
+		    final IJavaType r_prime = computeReturnType(map);
+		    if (!(r_prime instanceof IJavaVoidType)) {
+			    constraints.derive(r_prime, Constraint.CONVERTIBLE_TO, s_prime);
+		    }
 		}
 		for(Map.Entry<IJavaType,IJavaType> e : map.subst.entrySet()) {			
 		    //    -- additional constraints Bi[T1=B(T1) ... Tn=B(Tn)] >> Ti, where Bi is the declared bound of Ti,
@@ -1446,7 +1481,7 @@ public class TypeUtils {
 			final IJavaType t_i = e.getKey();
 			final IJavaType b_i_subst = substitute(map.subst, t_i.getSuperclass(tEnv));
 			constraints.derive(t_i, Constraint.CONVERTIBLE_TO, b_i_subst); // flipped around
-			constraints.derive(e.getValue(), Constraint.CONVERTIBLE_TO, b_i_subst);
+			constraints.derive(b_i_subst, Constraint.CONVERTIBLE_FROM, e.getValue());
 		}
 	    //    -- for any constraint of the form V >> Ti generated in �15.12.2.7: a constraint V[T1=B(T1) ... Tn=B(Tn)] >> Ti.
 		for (TypeConstraint c : generated.inequalities.values()) {
@@ -1470,7 +1505,7 @@ public class TypeUtils {
 	private Set<IJavaType> findUnresolved(Map<IJavaType, IJavaType> subst) {
 		Set<IJavaType> rv = new HashSet<IJavaType>();
 		for(Map.Entry<IJavaType,IJavaType> e : subst.entrySet()) {
-			if (e.getKey().equals(e.getValue())) {
+			if (e.getValue().equals(e.getKey())) {
 				rv.add(e.getKey());
 			}
 		}	

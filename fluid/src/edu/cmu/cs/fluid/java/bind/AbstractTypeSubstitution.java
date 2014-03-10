@@ -20,14 +20,8 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
   
   abstract class Process<V> {
 	  abstract V process(IJavaTypeFormal jtf, IRNode decl, IJavaType jt);
+	  abstract V rawSubst();
   }
-  
-  protected final Process<Boolean> isApplicable = new Process<Boolean>() {
-	@Override
-	Boolean process(IJavaTypeFormal jtf, IRNode decl, IJavaType jt) {
-		return Boolean.TRUE;
-	}
-  };
   
   /**
    * Search for the substitution corresponding to the given type formal
@@ -35,18 +29,30 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
    */
   @Override
   public IJavaType get(IJavaTypeFormal jtf) {
-	  IJavaType rv = process(jtf, new Process<IJavaType>() {
-		@Override
-		IJavaType process(IJavaTypeFormal jtf, IRNode decl, IJavaType jt) {
-			return captureWildcardType(jtf, decl, jt);
-		}		  
-	  });
+	  final Process<IJavaType> processor =  new Process<IJavaType>() {
+		  @Override
+		  IJavaType process(IJavaTypeFormal jtf, IRNode decl, IJavaType jt) {
+			  return captureWildcardType(jtf, decl, jt);
+		  }
+
+		  @Override
+		  IJavaType rawSubst() {
+			  return JavaTypeFactory.voidType;
+		  }		  
+	  };
+	  IJavaType rv = process(jtf, processor);
+	  if (rv == processor.rawSubst()) {
+		  return null;
+	  }
 	  if (rv == null) {
 		  return jtf;
 	  }
 	  return rv;
   } 
   
+  /**
+   * @return null if meant to be raw
+   */
   protected abstract <V> V process(IJavaTypeFormal jtf, Process<V> processor);
   
   /**

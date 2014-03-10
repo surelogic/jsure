@@ -48,4 +48,9 @@ public interface IJavaDeclaredType extends IJavaSourceRefType, IDeclaredType {
    * @return the outer class (if any)
    */
   IJavaDeclaredType getOuterType();
+  
+  /**
+   * Returns whether this would be considered a raw type
+   */
+  boolean isRawType(ITypeEnvironment tEnv);
 }

@@ -9,7 +9,7 @@ import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -118,12 +118,17 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
       }      
       Iteratable<IRNode> it = TypeFormals.getTypeIterator(types);
       if (it.hasNext() && tEnv != null) {
+    	// Incorrect to add in the formals
+    	/*
         tactuals = new ArrayList<IJavaType>(1);
         for(IRNode formal : it) {
           IJavaTypeFormal tf = JavaTypeFactory.getTypeFormal(formal);
           //tactuals.add(tf.getSuperclass(tEnv));
           tactuals.add(tf);
         }
+        */
+        // This is a raw type
+    	return new JavaTypeSubstitution(tEnv.getBinder(), jt, null, nesting);
       } else {
         // Not generic, so nothing to substitute
         return nesting;
@@ -145,10 +150,12 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
    */
   private static JavaTypeSubstitution getNesting(ITypeEnvironment tEnv, IJavaDeclaredType jt) {
     if (jt instanceof IJavaNestedType) {
-      return createReal(tEnv, ((IJavaNestedType)jt).getOuterType());
-    } else {
-      return null;
+      IJavaNestedType nt = (IJavaNestedType) jt;
+      if (!TypeUtil.isStatic(nt.getDeclaration())) {
+    	  return createReal(tEnv, nt.getOuterType());
+      }
     }
+    return null;
   }
 
   public boolean isNull() {
@@ -157,7 +164,6 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
   
   @Override
   protected <V> V process(IJavaTypeFormal jtf, Process<V> processor) {
-	// Not right for generic methods/constructors
 	final IRNode decl = jtf.getDeclaration();
     final IRNode parent = JJNode.tree.getParent(decl);
     
@@ -166,7 +172,10 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
     if (TypeDeclaration.prototype.includes(enclosingDecl)) {
     	enclosingType = enclosingDecl;
     } else {
-    	enclosingType = VisitUtil.getEnclosingType(enclosingDecl);
+    	// enclosingType = VisitUtil.getEnclosingType(enclosingDecl);
+    	System.err.println("Skipping subst for "+jtf);
+    	// Not right for generic methods/constructors
+    	return null;
     }
     final IRNode typeFormals;
     Operator typeOp = JJNode.tree.getOperator(enclosingType);
@@ -182,6 +191,9 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
     }
     for (JavaTypeSubstitution s = this; s != null; s = s.context) {
       if (s.declaredType.getDeclaration().equals(enclosingType)) {
+    	if (s.actuals == null) {
+    		return processor.rawSubst();
+    	}
     	// Try to match up with the right formal/actual pair
         Iterator<IRNode> ch = JJNode.tree.children(typeFormals); 
         for (IJavaType jt : s.actuals) {
@@ -224,7 +236,7 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
     StringBuilder args = new StringBuilder();
     args.append('[');
     boolean first = true;
-    for (IJavaType t : actuals) {
+    if (actuals != null) for (IJavaType t : actuals) {
       if (first) {
         first = false; 
       } else {
