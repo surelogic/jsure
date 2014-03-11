@@ -93,6 +93,10 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
       public int getAssuredMessage() { return ACCEPTABLE_FIELD; }
       @Override
       public int getFailedMessage() { return UNACCEPTABLE_FIELD; }
+      @Override
+      public String getName(final IRNode expr) {
+        return VariableDeclarator.getId(expr);
+      }
     },
     VARIABLE {
       @Override
@@ -101,6 +105,10 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
       public int getAssuredMessage() { return ACCEPTABLE_VARIABLE; }
       @Override
       public int getFailedMessage() { return UNACCEPTABLE_VARIABLE; }
+      @Override
+      public String getName(final IRNode expr) {
+        return VariableDeclarator.getId(expr);
+      }
     },
     PARAMETER {
       @Override
@@ -109,6 +117,10 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
       public int getAssuredMessage() { return ACCEPTABLE_PARAMETER; }
       @Override
       public int getFailedMessage() { return UNACCEPTABLE_PARAMETER; }
+      @Override
+      public String getName(final IRNode expr) {
+        return ParameterDeclaration.getId(expr);
+      }
     },
     RETURN {
       @Override
@@ -117,6 +129,8 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
       public int getAssuredMessage() { return ACCEPTABLE_RETURN; }
       @Override
       public int getFailedMessage() { return UNACCEPTABLE_RETURN; }
+      @Override
+      public String getName(final IRNode expr) { return null; }
     },
     RECEIVER {
       @Override
@@ -125,12 +139,15 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
       public int getAssuredMessage() { return ACCEPTABLE_RECEIVER; }
       @Override
       public int getFailedMessage() { return UNACCEPTABLE_RECEIVER; }
+      @Override
+      public String getName(final IRNode expr) { return null; }
     };
     
     
     
     public abstract int getAssuredMessage();
     public abstract int getFailedMessage();
+    public abstract String getName(IRNode expr);
   }
   
   
@@ -345,9 +362,9 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
         final StackQueryResult queryResult = currentQuery.getResultFor(expr);
         final Element declState = queryResult.getLattice().injectPromiseDrop(declPD);        
         final ResultsBuilder builder = new ResultsBuilder(declPD);
-        ResultFolderDrop folder = builder.createRootAndFolder(
-            expr, kind.getAssuredMessage(), kind.getFailedMessage(),
-            declState.getAnnotation());
+        ResultFolderDrop folder = builder.createRootAndFolder(expr,
+            kind.getAssuredMessage(), kind.getFailedMessage(),
+            declState.getAnnotation(), kind.getName(decl));
         buildNewChain(false, expr, folder, folder, kind, decl, declState, queryResult.getSources());
       } else {
         /*
@@ -378,9 +395,9 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
           }
           
           final ResultsBuilder builder = new ResultsBuilder(drop);
-          ResultFolderDrop folder = builder.createRootAndFolder(
-              expr, kind.getAssuredMessage(), kind.getFailedMessage(),
-              testAgainst.getAnnotation(), kind);
+          ResultFolderDrop folder = builder.createRootAndFolder(expr,
+              kind.getAssuredMessage(), kind.getFailedMessage(),
+              testAgainst.getAnnotation(), kind.getName(decl));
           buildNewChain(noAnnoIsNonNull, expr, folder, folder, kind, decl, testAgainst, queryResult.getSources());
         }
       }
