@@ -1197,6 +1197,12 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 			return result;
 		}
 		
+		if (t instanceof IJavaCaptureType) {
+			IJavaCaptureType ct = (IJavaCaptureType) t;
+			result = isSubType(s, ct.getUpperBound()) && isSubType(ct.getLowerBound(), s);
+			return result;
+		}
+		
 		// need to handle wildcard type parameters:
 		// List<Integer> is NOT a subtype of List<Object>, but 
 		// List<Integer> is a subtype of List<? extends Object>
