@@ -1845,7 +1845,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		for (Map.Entry<IJavaFunctionType, IRNode> e : candidates.entrySet()) {
     			IJavaFunctionType cft = e.getKey();
     			Constraints cs = utils.new Constraints(IBinding.Util.makeBinding(cdecl),typeFormals,ikind);
-    			if (cs.deriveForParamaters(cft.getParameterTypes(), ft.getParameterTypes(), cft.isVariable()) &&
+    			if (cs.deriveForParameters(cft.getParameterTypes(), ft.getParameterTypes(), cft.isVariable()) &&
     					cs.getSubstitution() != null) {
     				applicableType = cft;
     				applicableKind = ikind;
@@ -1869,7 +1869,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 				new Constraints(IBinding.Util.makeBinding(cdecl),
 						typeFormals,
 						applicableKind);
-		if (!cs.deriveForParamaters(applicableType.getParameterTypes(), 
+		if (!cs.deriveForParameters(applicableType.getParameterTypes(), 
 				ft.getParameterTypes(), applicableType.isVariable())) {
 			LOG.severe("constraints fail the second time???");
 			return null;

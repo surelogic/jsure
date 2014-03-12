@@ -473,6 +473,11 @@ class MethodBinder {
     	// (expanding varargs to fill in what would be null)
      	final TypeUtils.Constraints constraints =
      		s.utils.getEmptyConstraints(s.call, m.bind, m.substMap, allowBoxing, allowVarargs);    	
+     	/*
+    	if ("<implicit>.newArrayList(elements.iterator)".equals(DebugUnparser.toString(s.call.call))) {
+    		System.out.println("Looking at <implicit>.newArrayList(elements.iterator): "+JavaNames.genRelativeFunctionName(m.bind.getNode()));
+    	}
+    	*/
     	final Iterator<IRNode> fe = JJNode.tree.children(m.formals);
     	IJavaType varArgBase = null;
     	boolean debug = false;
@@ -556,6 +561,11 @@ class MethodBinder {
     		final IJavaDeclaredType dt = (IJavaDeclaredType) s.call.receiverType;
     		constraints.addConstraintsForType(dt.getDeclaration());    		
     	}
+    	/*
+    	if ("ordering.reverse".equals(DebugUnparser.toString(s.call.call))) {
+    		System.out.println("Looking at ordering.reverse");
+    	}
+    	*/
     	final TypeUtils.Mapping map = constraints.computeTypeMapping();
     	
     	// Then, substitute and check if compatible
@@ -604,6 +614,9 @@ class MethodBinder {
     		}
     	}
     	map.export(m.substMap);
+    	if (map.hasUnresolvedVars()) {	    	
+	    	System.err.println(DebugUnparser.toString(map.call.call)+": has unresolved vars for "+JavaNames.genRelativeFunctionName(map.method.getNode()));
+    	}
 
     	final IJavaDeclaredType oldContext = m.bind.getContextType();
     	final IJavaDeclaredType context;

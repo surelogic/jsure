@@ -536,7 +536,7 @@ public class TypeUtils {
 		 * @param isVar the last formal is a var-arg formal
 		 * @return whether we can call this method with the given actual types.
 		 */
-		public boolean deriveForParamaters(List<? extends IJavaType> formals, List<? extends IJavaType> actuals, boolean isVar) {
+		public boolean deriveForParameters(List<? extends IJavaType> formals, List<? extends IJavaType> actuals, boolean isVar) {
 			int fsize = formals.size();
 			int asize = actuals.size();
 			boolean OK = true;
@@ -1032,6 +1032,10 @@ public class TypeUtils {
 			}
 			return true;
 		}
+		
+		boolean hasUnresolvedVars() {
+			return !findUnresolved(subst).isEmpty();
+		}
 	}
 	
     /**
@@ -1285,6 +1289,11 @@ public class TypeUtils {
 			}
 			return false;
 		}
+		
+		@Override
+		public String toString() {
+			return variable+" "+constraint+" "+bound;
+		}
 	}
 	
 	public enum Constraint {
@@ -1413,13 +1422,16 @@ public class TypeUtils {
 		 * as lub(U1 ... Uk), computed as follows: 
 		 */
 		for(Map.Entry<IJavaTypeVariable, Collection<TypeConstraint>> e : generated.inequalities.entrySet()) {
-			IJavaReferenceType[] inputs = new IJavaReferenceType[e.getValue().size()];
-			int i=0;
+			List<IJavaReferenceType> temp = new ArrayList<IJavaReferenceType>(e.getValue().size());
 			for(TypeConstraint c : e.getValue()) {
-				// TODO Check if the right kind?
-				inputs[i] = c.bound;
-				i++;
+				if (c.constraint == Constraint.SUPERTYPE_OF) {
+					temp.add(c.bound);
+				}				
 			}
+			if (temp.size() <= 0) {
+				continue; 
+			}
+			IJavaReferenceType[] inputs = temp.toArray(new IJavaReferenceType[temp.size()]);
 			IJavaReferenceType lub = getLowestUpperBound(inputs);
 			/*
 			if (inputs.length > 1) {
@@ -1471,7 +1483,7 @@ public class TypeUtils {
 		if (map.call.call != null) { // check in case we're just looking for overridden parents			
  		    final IJavaType s_prime = findAssignmentType(map.call.call);
 		    final IJavaType r_prime = computeReturnType(map);
-		    if (!(r_prime instanceof IJavaVoidType)) {
+		    if (s_prime != null && !(r_prime instanceof IJavaVoidType)) {
 			    constraints.derive(r_prime, Constraint.CONVERTIBLE_TO, s_prime);
 		    }
 		}
@@ -1495,14 +1507,17 @@ public class TypeUtils {
 	    }
 	    final Mapping newMap = constraints.map;
 	    inferTypeParameters(newMap, constraints.constraints);
+	    /*
 	    final Set<IJavaType> stillUnresolved = findUnresolved(newMap.subst);
 	    if (!stillUnresolved.isEmpty()) {
-	    	throw new IllegalStateException("Still have unresolved types: "+stillUnresolved);
+	    	System.err.println(DebugUnparser.toString(map.call.call)+" not fully resolved "+JavaNames.genRelativeFunctionName(map.method.getNode()));
+	    	SLLogger.getLogger().warning("Still has unresolved types: "+stillUnresolved);
 	    }
+	    */
 		return constraints;
 	}
 
-	private Set<IJavaType> findUnresolved(Map<IJavaType, IJavaType> subst) {
+	Set<IJavaType> findUnresolved(Map<IJavaType, IJavaType> subst) {
 		Set<IJavaType> rv = new HashSet<IJavaType>();
 		for(Map.Entry<IJavaType,IJavaType> e : subst.entrySet()) {
 			if (e.getValue().equals(e.getKey())) {
@@ -1540,7 +1555,7 @@ public class TypeUtils {
 		if (type != null) {
 			return boxIfNeeded(tEnv.getBinder().getJavaType(type));
 		}
-		return tEnv.getObjectType();
+		return null;
 	}
 
 	private IJavaType boxIfNeeded(IJavaType origType) {
