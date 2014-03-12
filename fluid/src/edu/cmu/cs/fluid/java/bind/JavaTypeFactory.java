@@ -34,6 +34,7 @@ import com.surelogic.common.util.AppendIterator;
 import com.surelogic.common.util.EmptyIterator;
 import com.surelogic.common.util.Iteratable;
 import com.surelogic.common.util.SingletonIterator;
+import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.NotImplemented;
@@ -78,6 +79,7 @@ import edu.cmu.cs.fluid.java.operator.ShortType;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
+import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.TypeRef;
 import edu.cmu.cs.fluid.java.operator.UnionType;
 import edu.cmu.cs.fluid.java.operator.VarArgsType;
@@ -374,18 +376,30 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     if (params == null || params.isEmpty()) {
       params = Collections.emptyList();
     }
+    List<IJavaType> updatedParams = new ArrayList<IJavaType>(params);
+    boolean allNull = true;
+    int i=0;
     for(IJavaType p : params) {
     	if (p == null) {
     		//throw new IllegalArgumentException();
-    		System.err.println("Got null type parameter");
-    		return null;
+    		final IRNode tparams = TypeUtils.getParametersForType(decl);
+    		final IRNode tparam = TypeFormals.getType(tparams, i);
+    		final IJavaTypeFormal tf = getTypeFormal(tparam);    
+    		// Hack to get type env
+    		final ITypeEnvironment te = Projects.getEnclosingProject(decl).getTypeEnv();
+    		final IJavaType bound = tf.getExtendsBound(te);
+    		System.err.println("Got null type parameter, replacing with "+bound);
+    		updatedParams.set(i, bound);
+    	} else {
+    		allNull = false;
     	}
+    	i++;
     }
     Operator op = JJNode.tree.getOperator(decl);
     if (TypeFormal.prototype.includes(op) || !(op instanceof TypeDeclInterface)) {
       throw new IllegalArgumentException();
     }
-    IJavaDeclaredType result = ((JavaDeclaredType)outer).getNestedType(decl,params);
+    IJavaDeclaredType result = ((JavaDeclaredType)outer).getNestedType(decl, allNull? Collections.<IJavaType>emptyList() : updatedParams);
 
     return result;
   }
@@ -1766,21 +1780,7 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
     if (s == null) return this;
     List<IJavaType> newParams = s.substTypes(this, parameters);
     if (newParams == parameters) return this;
-    // Check if raw
-    if (allNull(newParams)) {
-    	newParams = Collections.emptyList();
-    }
-    // TODO what if some are null? (fill in with erasure?)
     return JavaTypeFactory.getDeclaredType(declaration,newParams,null);
-  }
-  
-  boolean allNull(List<IJavaType> params) {
-	for(IJavaType t : params) {
-		if (t != null) {
-			return false;
-		}
-	}
-	return true;
   }
   
   @Override
@@ -1959,12 +1959,6 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
       List<IJavaType> newParams = s.substTypes(this, parameters);
       JavaDeclaredType newOuter = (JavaDeclaredType) getOuterType().subst(s);
       if (newParams == parameters && newOuter == getOuterType()) return this;
-      
-      // Check if raw
-      if (allNull(newParams)) {
-      	newParams = Collections.emptyList();
-      }
-      // TODO what if some are null?
       return JavaTypeFactory.getDeclaredType(declaration,newParams,newOuter);
     }
     
