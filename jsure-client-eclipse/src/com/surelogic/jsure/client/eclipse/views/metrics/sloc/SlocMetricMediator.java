@@ -31,6 +31,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -645,6 +646,9 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
 
         fold += titleExtent.y + 20;
 
+        final Color blankColor = EclipseColorUtility.getAnalogousScheme1Color2();
+        final Color commentedColor = EclipseColorUtility.getAnalogousScheme1Color0();
+        final Color nbncColor = e.gc.getDevice().getSystemColor(SWT.COLOR_WHITE);
         /*
          * Pie chart at the top
          */
@@ -653,35 +657,53 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         int chartDiameter = clientArea.width - 10;
 
         // Draw chart first
-        e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
+        e.gc.setBackground(nbncColor);
         e.gc.fillOval(5, fold + 5, chartDiameter, chartDiameter);
         if (element.f_blankLineCount > 0) {
           int arcBlank = (int) ((double) element.f_blankLineCount * degPerLine);
-          e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color2());
+          e.gc.setBackground(blankColor);
           e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, arcBlank);
         }
         if (element.f_containsCommentLineCount > 0) {
           int arcCommented = (int) ((double) element.f_containsCommentLineCount * degPerLine);
-          e.gc.setBackground(EclipseColorUtility.getAnalogousScheme1Color0());
+          e.gc.setBackground(commentedColor);
           e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, -arcCommented);
         }
         e.gc.drawOval(5, fold + 5, chartDiameter, chartDiameter);
-
-        // Draw text second
-        if (element.f_blankLineCount > 0) {
-          String blankTxt = SLUtility.toStringHumanWithCommas(element.f_blankLineCount) + " blank";
-          int blankTxtWidth = e.gc.stringExtent(blankTxt).x;
-          e.gc.drawText(blankTxt, (chartDiameter / 2) - blankTxtWidth - 5, fold + (chartDiameter / 4), true);
-        }
-        if (element.f_containsCommentLineCount > 0) {
-          String commentedTxt = SLUtility.toStringHumanWithCommas(element.f_containsCommentLineCount) + " commented";
-          e.gc.drawText(commentedTxt, (chartDiameter / 2) + 10, fold + (chartDiameter / 4), true);
-        }
-        String slocTxt = "Total: " + SLUtility.toStringHumanWithCommas(element.f_lineCount) + " SLOC";
-        int slocTxtWidth = e.gc.stringExtent(slocTxt).x;
-        e.gc.drawText(slocTxt, (chartDiameter / 2) + 5 - (slocTxtWidth / 2), fold + 3 * (chartDiameter / 4), true);
-
+        
         fold += chartDiameter + 10;
+        String s = SLUtility.toStringHumanWithCommas(element.f_lineCount) + " SLOC";
+        Point txtExtent = e.gc.stringExtent(s);
+        int slocTxtWidth = txtExtent.x;
+        e.gc.drawText(s, (chartDiameter / 2) + 5 - (slocTxtWidth / 2), fold, true);
+        
+        fold += txtExtent.y + 5;
+        s = SLUtility.toStringHumanWithCommas(element.f_blankLineCount) + " blank";
+        txtExtent = e.gc.stringExtent(s);
+        e.gc.setBackground(blankColor);
+        e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
+        e.gc.drawRectangle(5, fold, txtExtent.y - 1, txtExtent.y - 1);
+        e.gc.drawText(s, 10 + txtExtent.y, fold, true);
+
+        fold += txtExtent.y + 5;
+        s = SLUtility.toStringHumanWithCommas(element.f_containsCommentLineCount) + " commented";
+        txtExtent = e.gc.stringExtent(s);
+        e.gc.setBackground(commentedColor);
+        e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
+        e.gc.drawRectangle(5, fold, txtExtent.y - 1, txtExtent.y - 1);
+        e.gc.drawText(s, 10 + txtExtent.y, fold, true);
+        
+        fold += txtExtent.y + 5;
+        final long nonBlankNonCommentedLineCount = element.f_lineCount
+            - (element.f_blankLineCount + element.f_containsCommentLineCount);
+        s = SLUtility.toStringHumanWithCommas(nonBlankNonCommentedLineCount) + " non-blank/non-commented";
+        txtExtent = e.gc.stringExtent(s);
+        e.gc.setBackground(nbncColor);
+        e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
+        e.gc.drawRectangle(5, fold, txtExtent.y - 1, txtExtent.y - 1);
+        e.gc.drawText(s, 10 + txtExtent.y, fold, true);
+        
+        fold += txtExtent.y + 20;
 
         /*
          * Bar chart at the bottom
@@ -712,7 +734,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         // SLOC
         int barX = left + pad;
         int height = (int) (element.f_lineCount * pxlPerUnit);
-        e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
+        e.gc.setBackground(e.gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
         e.gc.fillRectangle(barX, bottom - height, barWidth - pad - pad, height);
         e.gc.drawRectangle(barX, bottom - height, barWidth - pad - pad, height);
 
