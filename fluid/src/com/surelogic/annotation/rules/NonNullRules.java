@@ -36,6 +36,7 @@ import com.surelogic.promise.IPromiseDropStorage;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
@@ -339,36 +340,41 @@ public class NonNullRules extends AnnotationRules {
       // TODO: Deal with Raw("static(...)") below
 
       // Cannot be on an array, etc.
+      boolean keepChecking = true;
       if (promisedForType instanceof IJavaDeclaredType) {
         // Cannot be an interface
         final IJavaDeclaredType dt = (IJavaDeclaredType) promisedForType;
         if (TypeUtil.isInterface(dt.getDeclaration())) {
           good = false;
+          keepChecking = false;
           context.reportError(n, BAD_RAW_TYPE);
-        } else {
-          // Named type must be an ancestor of the annotated type
-          final NamedTypeNode typeName = n.getUpToType();
-          final String upTo = typeName.getType();
-          //final String upTo = n.getUpTo();
-          //if (!upTo.equals(RAW_STAR)) {
-          if (!typeName.getType().equals(RAW_STAR)) {
-            final ITypeEnvironment typeEnv =
-                context.getBinder(n.getPromisedFor()).getTypeEnvironment();
-            //final IJavaType upToType = typeEnv.findJavaTypeByName(upTo);
-            final ISourceRefType type = typeName.resolveType();
-            final IJavaType upToType = type.getJavaType();            
-            if (upToType == null) {
-              good = false;
-              context.reportError(n, NO_SUCH_TYPE, upTo);
-            } else if (TypeUtil.isInterface(((IJavaDeclaredType) upToType).getDeclaration())) {
-              // upTo cannot name an interface
-              good = false;
-              context.reportError(n, NOT_A_SUPERCLASS, upTo, promisedForType.getName());
-            } else if (!typeEnv.isSubType(promisedForType, upToType)) {
-              // upTo must name a superclass 
-              good = false;
-              context.reportError(n, NOT_A_SUPERCLASS, upTo, promisedForType.getName());
-            }
+        }
+      }
+      if (keepChecking &&
+          (promisedForType instanceof IJavaDeclaredType ||
+              promisedForType instanceof IJavaTypeFormal)) {
+        // Named type must be an ancestor of the annotated type
+        final NamedTypeNode typeName = n.getUpToType();
+        final String upTo = typeName.getType();
+        //final String upTo = n.getUpTo();
+        //if (!upTo.equals(RAW_STAR)) {
+        if (!typeName.getType().equals(RAW_STAR)) {
+          final ITypeEnvironment typeEnv =
+              context.getBinder(n.getPromisedFor()).getTypeEnvironment();
+          //final IJavaType upToType = typeEnv.findJavaTypeByName(upTo);
+          final ISourceRefType type = typeName.resolveType();
+          final IJavaType upToType = type.getJavaType();            
+          if (upToType == null) {
+            good = false;
+            context.reportError(n, NO_SUCH_TYPE, upTo);
+          } else if (TypeUtil.isInterface(((IJavaDeclaredType) upToType).getDeclaration())) {
+            // upTo cannot name an interface
+            good = false;
+            context.reportError(n, NOT_A_SUPERCLASS, upTo, promisedForType.getName());
+          } else if (!typeEnv.isSubType(promisedForType, upToType)) {
+            // upTo must name a superclass 
+            good = false;
+            context.reportError(n, NOT_A_SUPERCLASS, upTo, promisedForType.getName());
           }
         }
       } else {
