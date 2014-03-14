@@ -627,8 +627,10 @@ public class TypeUtils {
 				}
 			}
 			else if (formal instanceof IJavaIntersectionType) {
-				// TODO
-				throw new UnsupportedOperationException();
+				// TODO where is this documented?
+				IJavaIntersectionType it = (IJavaIntersectionType) formal;
+				return derive(it.getPrimarySupertype(), constraint, actual) |
+					   derive(it.getSecondarySupertype(), constraint, actual);
 			}
 			else if (formal instanceof IJavaWildcardType) {
 				SLLogger.getLogger().info("Ignoring constraint: "+formal+" "+constraint+" "+actual);
@@ -949,10 +951,14 @@ public class TypeUtils {
 				}				
 				// Make sure that the variables are at worst the same as the original bound
 				for(Map.Entry<IJavaType,IJavaType> e : map.subst.entrySet()) {
+					final IJavaType orig = e.getKey();
+					final IJavaType inferred = e.getValue();
 					final IJavaType origBound = e.getKey().getSuperclass(tEnv);
 					final IJavaType origSubst = substitute(map.subst, origBound);
 					if (!tEnv.isSubType(e.getValue(), origSubst)) {						
-						e.setValue(origSubst);
+						//e.setValue(origSubst);
+						System.err.println(inferred+" is not a subtype of "+origSubst);
+						continue;
 					}
 				}
 			}
@@ -1422,7 +1428,7 @@ public class TypeUtils {
 		 * as lub(U1 ... Uk), computed as follows: 
 		 */
 		for(Map.Entry<IJavaTypeVariable, Collection<TypeConstraint>> e : generated.inequalities.entrySet()) {
-			List<IJavaReferenceType> temp = new ArrayList<IJavaReferenceType>(e.getValue().size());
+			Set<IJavaReferenceType> temp = new HashSet<IJavaReferenceType>(e.getValue().size());
 			for(TypeConstraint c : e.getValue()) {
 				if (c.constraint == Constraint.SUPERTYPE_OF) {
 					temp.add(c.bound);
@@ -1507,13 +1513,17 @@ public class TypeUtils {
 	    }
 	    final Mapping newMap = constraints.map;
 	    inferTypeParameters(newMap, constraints.constraints);
-	    /*
+	    
 	    final Set<IJavaType> stillUnresolved = findUnresolved(newMap.subst);
 	    if (!stillUnresolved.isEmpty()) {
-	    	System.err.println(DebugUnparser.toString(map.call.call)+" not fully resolved "+JavaNames.genRelativeFunctionName(map.method.getNode()));
-	    	SLLogger.getLogger().warning("Still has unresolved types: "+stillUnresolved);
-	    }
-	    */
+	    	//System.err.println(DebugUnparser.toString(map.call.call)+" not fully resolved "+JavaNames.genRelativeFunctionName(map.method.getNode()));
+	    	//SLLogger.getLogger().warning("Still has unresolved types: "+stillUnresolved);
+	    	
+	    	// Set any unresolved vars to their erasures
+	    	for(IJavaType tf : stillUnresolved) {
+	    		newMap.subst.put(tf, tEnv.computeErasure(tf));
+	    	}
+	    }	    
 		return constraints;
 	}
 
