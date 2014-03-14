@@ -316,8 +316,12 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
       boolean oldRv = isSubType(arg, erasure);
       // TODO unchecked conversion?
       if (oldRv) {
-    	  System.err.println("Previously trying to convert "+arg+" to "+param);
-    	  isCallCompatibleIfRaw(param, arg);
+    	  if (true) {
+    		  return true; // Old result for "compatibility"
+    	  } else {
+    		  System.err.println("Previously trying to convert "+arg+" to "+param);    	  
+    		  isCallCompatibleIfRaw(param, arg);
+    	  }
       }
       return false;
     }
@@ -349,6 +353,12 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
        		  if (matchingSuper != null && matchingSuper.isRawType(this)) {
        			  return true;
        		  }
+       	  }
+       	  if (arg instanceof IJavaTypeFormal) {
+       		IJavaTypeFormal jtf = (IJavaTypeFormal) arg;
+       		if (isCallCompatibleIfRaw(paramD, jtf.getExtendsBound(this))) {
+       			return true;
+       		}
        	  }
       }
       return false;
@@ -1199,7 +1209,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 		
 		if (t instanceof IJavaCaptureType) {
 			IJavaCaptureType ct = (IJavaCaptureType) t;
-			result = isSubType(s, ct.getUpperBound()) && isSubType(ct.getLowerBound(), s);
+			result = isSubType(s, ct.getUpperBound()) && isSubType(s, ct.getLowerBound());
 			return result;
 		}
 		
@@ -1301,7 +1311,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
           if (tw.getUpperBound() == null) return true; // was false; (1a)
           return isSubType(sw.getUpperBound(), tw.getUpperBound()); // (1)
         } else {
-          if (tw.getLowerBound() == null) return false; //(2a)
+          if (tw.getLowerBound() == null) return true; // was bfalse; //(2a)
           return isSubType(tw.getLowerBound(), sw.getLowerBound()); // (2)
         }
       } else {
@@ -1317,7 +1327,9 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
       } else if (tw.getLowerBound() != null) {        
         return isSubType(tw.getLowerBound(),ss); // (5)
       } else {
-        return (ss instanceof IJavaReferenceType); // Anything matches ?
+        // return (ss instanceof IJavaReferenceType); 
+        // Anything matches ?
+        return true; // Not just ref types, due to Class<?>
       }
     }
     //return false;
