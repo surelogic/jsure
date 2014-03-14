@@ -1351,7 +1351,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       }
       */
       if (bestMethod == null) {
-    	  methodBinder.findBestMethod(sc, lookupContext, needMethod, from, state);
+    	  bestMethod = methodBinder.findBestMethod(sc, lookupContext, needMethod, from, state);
+      }
+      if (bestMethod == null) {
     	  return bind(state.call, (IBinding) null);
       }
       /*
