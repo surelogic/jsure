@@ -474,10 +474,22 @@ class MethodBinder {
      	final TypeUtils.Constraints constraints =
      		s.utils.getEmptyConstraints(s.call, m.bind, m.substMap, allowBoxing, allowVarargs);    	
      	/*
-    	if ("<implicit>.newArrayList(elements.iterator)".equals(DebugUnparser.toString(s.call.call))) {
-    		System.out.println("Looking at <implicit>.newArrayList(elements.iterator): "+JavaNames.genRelativeFunctionName(m.bind.getNode()));
-    	}
-    	*/
+     	final String[] issues = {
+     			"EnumSet.of(anElement, otherElements)"     			
+     			//"new ExpirableCache <K, V> (cache)",
+     			//"new ImmutableEnumSet <E> (EnumSet.of(#, #))",
+     			//"new RegularImmutableSortedSet <E> (ImmutableList.of(#), Ordering.natural)",
+     			//"new ObjectStreamField (\"scope_id\", int . class)",
+     			//"<implicit>.hasSameComparator(comparator, elements)",     			
+     	};
+     	final String unparse = DebugUnparser.toString(s.call.call);
+     	for(String i : issues) {
+     		if (unparse.equals(i)) {
+     	 		System.out.println("Looking at "+unparse+": "+JavaNames.genRelativeFunctionName(m.bind.getNode()));
+     	 		break;
+     		}
+     	} 
+     	*/
     	final Iterator<IRNode> fe = JJNode.tree.children(m.formals);
     	IJavaType varArgBase = null;
     	boolean debug = false;
@@ -614,9 +626,11 @@ class MethodBinder {
     		}
     	}
     	map.export(m.substMap);
+    	/*
     	if (map.hasUnresolvedVars()) {	    	
 	    	System.err.println(DebugUnparser.toString(map.call.call)+": has unresolved vars for "+JavaNames.genRelativeFunctionName(map.method.getNode()));
     	}
+    	*/
 
     	final IJavaDeclaredType oldContext = m.bind.getContextType();
     	final IJavaDeclaredType context;
@@ -696,6 +710,15 @@ class MethodBinder {
     		IJavaPrimitiveType argP = (IJavaPrimitiveType) arg;
     		IJavaType boxed         = JavaTypeFactory.getCorrespondingDeclType(typeEnvironment, argP);
     		return boxed != null && isCallCompatible(formal, boxed); 
+    	}
+    	else if (formal instanceof IJavaDeclaredType && arg instanceof IJavaDeclaredType) {
+    		IJavaDeclaredType fdt = (IJavaDeclaredType) formal;
+    		IJavaDeclaredType adt = (IJavaDeclaredType) arg;    		
+    		// Hack since Class can take primitive types
+    		final IRNode cls = typeEnvironment.findNamedType("java.lang.Class");
+    		if (fdt.getDeclaration().equals(cls) && adt.getDeclaration().equals(cls)) {
+    			return onlyNeedsBoxing(fdt.getTypeParameters().get(0), adt.getTypeParameters().get(0));
+    		}
     	}
     	return false;
     }
