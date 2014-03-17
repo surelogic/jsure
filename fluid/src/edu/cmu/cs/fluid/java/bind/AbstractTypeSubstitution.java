@@ -67,10 +67,10 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
 	  if (decl != jtf.getDeclaration()) {
 		  throw new IllegalStateException("Type formal doesn't match decl");
 	  }
-	  return captureWildcardType(binder, jtf, jt);
+	  return captureWildcardType(binder, jtf, jt, this);
   }
   
-  public static final IJavaType captureWildcardType(IBinder binder, IJavaTypeFormal jtf, IJavaType jt) {
+  public static final IJavaType captureWildcardType(IBinder binder, IJavaTypeFormal jtf, IJavaType jt, IJavaTypeSubstitution subst) {
     if (jt instanceof IJavaWildcardType) {
       IJavaWildcardType wt = (IJavaWildcardType) jt;
  
@@ -95,18 +95,34 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
     	  
     	  // Note that the code below considers the type formals' bounds separately when computing the greatest lower bound
     	  IRNode irBounds        = TypeFormal.getBounds(jtf.getDeclaration());   
-    	  IJavaReferenceType glb = JavaTypeFactory.computeGreatestLowerBound(binder, wt.getUpperBound(), irBounds);
+    	  IJavaReferenceType glb = JavaTypeFactory.computeGreatestLowerBound(binder, wt.getUpperBound(), irBounds, subst); // TODO subst
     	  return JavaTypeFactory.getCaptureType(wt, JavaTypeFactory.nullType, glb); // 
       } else {
     	  IJavaReferenceType formalBound = (IJavaReferenceType) jtf.getSuperclass(binder.getTypeEnvironment());
+    	  IJavaReferenceType fBoundSubst = formalBound;
+    	  /*
+    	  if (formalBound.equals(jtf)) {
+    		  // This would otherwise cause an infinite loop
+    		  fBoundSubst = JavaTypeFactory.selfReference;
+    	  } else {
+    		  // TODO doesn't handle deeper cycles -- extend the substitution?
+    		  // How to get a ref to the eventual capture type?
+        	  try {
+        		  System.out.println("Trying to substitute "+formalBound+" after "+jtf+" -> "+jt);
+        		  fBoundSubst = (IJavaReferenceType) formalBound.subst(subst);
+        	  } catch(StackOverflowError e) {
+        		  throw e;
+        	  }
+    	  }
+    	  */
     	  if (wt.getLowerBound() != null) {      
     		  // If Ti is a wildcard type argument of the form ? super Bi, 
     		  // then Si is a fresh type variable whose upper bound is Ui[A1 := S1, ..., An := Sn] and whose lower bound is Bi.
-    		  return JavaTypeFactory.getCaptureType(wt, wt.getLowerBound(), formalBound); // TODO this doesn't match?
+    		  return JavaTypeFactory.getCaptureType(wt, wt.getLowerBound(), fBoundSubst); 
     	  } else {
     		  // If Ti is a wildcard type argument (�4.5.1) of the form ? 
     		  // then Si is a fresh type variable whose upper bound is Ui[A1 := S1, ..., An := Sn] and whose lower bound is the null type.
-    		  return JavaTypeFactory.getCaptureType(wt, JavaTypeFactory.nullType, formalBound); // TODO this doesn't match?
+    		  return JavaTypeFactory.getCaptureType(wt, JavaTypeFactory.nullType, fBoundSubst); // 
     	  }
       }
     }

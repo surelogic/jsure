@@ -647,14 +647,25 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   */
   @Override
-  public IJavaType visitQualifiedSuperExpression(IRNode node) {
-    IJavaDeclaredType dt = (IJavaDeclaredType) binder.getJavaType(QualifiedSuperExpression.getType( node ));
+  public IJavaType visitQualifiedSuperExpression(IRNode node) {	
+	IJavaDeclaredType dt = (IJavaDeclaredType) binder.getJavaType(QualifiedSuperExpression.getType( node ));
+	if (dt.isRawType(binder.getTypeEnvironment())) {
+		// See if I can get type args
+		IBinding b = binder.getIBinding(node);
+		dt = (IJavaDeclaredType) b.convertType(binder, doAccept(b.getNode()));
+	}
     return dt.getSuperclass(binder.getTypeEnvironment());
   }
   @Override
   public IJavaType visitQualifiedThisExpression(IRNode node) {
     IRNode n = QualifiedThisExpression.getType( node );
-    return doAccept( n );
+    IJavaDeclaredType rv = (IJavaDeclaredType) doAccept( n );
+	if (rv.isRawType(binder.getTypeEnvironment())) {
+		// See if I can get type args
+		IBinding b = binder.getIBinding(node);
+		rv = (IJavaDeclaredType) b.convertType(binder, doAccept(b.getNode()));
+	}
+	return rv;
   }
   
   @Override
@@ -1236,7 +1247,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 			  for(final IRNode formal : TypeFormals.getTypeIterator(formals)) {
 				  final IJavaTypeFormal jtf = JavaTypeFactory.getTypeFormal(formal);
 				  final IJavaType old = oldTypes.get(i);
-				  IJavaType t = AbstractTypeSubstitution.captureWildcardType(binder, jtf, old);
+				  IJavaType t = AbstractTypeSubstitution.captureWildcardType(binder, jtf, old, IJavaTypeSubstitution.NULL); // TODO	what should it use?	   
 				  newTypes.add(t);
 				  i++;
 				  if (old != t) {
