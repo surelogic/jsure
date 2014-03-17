@@ -87,6 +87,7 @@ import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.operator.WildcardExtendsType;
 import edu.cmu.cs.fluid.java.operator.WildcardSuperType;
 import edu.cmu.cs.fluid.java.operator.WildcardType;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -388,7 +389,9 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     		// Hack to get type env
     		final ITypeEnvironment te = Projects.getEnclosingProject(decl).getTypeEnv();
     		final IJavaType bound = tf.getExtendsBound(te);
-    		System.err.println("Got null type parameter, replacing with "+bound);
+    		if (!bound.equals(te.getObjectType())) {
+    			System.err.println("Got null type parameter, replacing with "+bound);
+    		}
     		updatedParams.set(i, bound);
     	} else {
     		allNull = false;
@@ -563,12 +566,12 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       IRNode decl = b.getNode();
       // We now let the IBinding do the work for us: 
       {
-          /*
+    	  /*
     	  String name = DebugUnparser.toString(nodeType);
-    	  if ("Context".equals(name)) {
-    		  System.out.println("Converting Context");
+    	  if (name.startsWith("CachedValue")) {
+    		  System.out.println("Converting CachedValue");
     	  }
-          */
+    	  */
     	  //return b.convertType(convertNodeTypeToIJavaType(decl, binder));
     	  return b.convertType(binder, getMyThisType(decl, true));
       }  
@@ -644,7 +647,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       IJavaType bt = convertNodeTypeToIJavaType(VarArgsType.getBase(nodeType),binder);
       return getArrayType(bt, 1);
     } else if (op instanceof MoreBounds) {
-      return computeGreatestLowerBound(binder, null, nodeType);
+      return computeGreatestLowerBound(binder, null, nodeType, IJavaTypeSubstitution.NULL); // TODO is this right?
     } else if (op instanceof UnionType) {
         final List<IJavaType> types = new ArrayList<IJavaType>();
         for(IRNode t : UnionType.getTypeIterator(nodeType)) {
@@ -657,7 +660,8 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     }
   }
 
-  public static IJavaReferenceType computeGreatestLowerBound(IBinder binder, IJavaReferenceType wildcardBound, IRNode moreBounds) {	  
+  // Meant to compute glb(Bi, Ui[A1 := S1, ..., An := Sn]) 
+  public static IJavaReferenceType computeGreatestLowerBound(IBinder binder, IJavaReferenceType wildcardBound, IRNode moreBounds, IJavaTypeSubstitution subst) {	  
       IJavaReferenceType result = null;
 	  /*
       for (IRLocation loc = JJNode.tree.lastChildLocation(moreBounds); loc != null; loc = JJNode.tree.prevChildLocation(moreBounds, loc)) {
@@ -676,7 +680,8 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     	  }
     	  for(IRNode b : MoreBounds.getBoundIterator(moreBounds)) {
     		  final IJavaReferenceType bt = (IJavaReferenceType) binder.getJavaType(b);
-    		  bounds.add(bt);
+    		  final IJavaReferenceType btSubst = bt;// TODO (IJavaReferenceType) bt.subst(subst);
+    		  bounds.add(btSubst);
     	  }
     	  return new TypeUtils(binder.getTypeEnvironment()).getGreatestLowerBound(bounds.toArray(new IJavaReferenceType[bounds.size()]));
       }
@@ -690,6 +695,14 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     
   public static IJavaSourceRefType getMyThisType(IRNode tdecl) {
 	  return getMyThisType(tdecl, false);
+  }
+  
+  private static IJavaDeclaredType computeRawType(IJavaDeclaredType dt) {
+	  IJavaDeclaredType outer = dt.getOuterType();
+	  if (outer != null && !outer.getTypeParameters().isEmpty() && TypeUtil.isStatic(dt.getDeclaration())) {
+		  outer = computeRawType(outer);
+	  }
+	  return getDeclaredType(dt.getDeclaration(), null, outer);
   }
   
   /**
@@ -709,6 +722,9 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       return JavaTypeFactory.getAnonType(tdecl);
     }
     IJavaDeclaredType outer = (IJavaDeclaredType) getThisType(tdecl);
+    if (outer != null && !outer.getTypeParameters().isEmpty() && TypeUtil.isStatic(tdecl)) {
+    	outer = computeRawType(outer);
+    }
     IRNode typeFormals = null;
     if (op instanceof ClassDeclaration) {
       typeFormals = ClassDeclaration.getTypes(tdecl);
