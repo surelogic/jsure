@@ -173,7 +173,8 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
     	enclosingType = enclosingDecl;
     } else {
     	// enclosingType = VisitUtil.getEnclosingType(enclosingDecl);
-    	System.err.println("Skipping subst for "+jtf);
+    	//System.err.println("Skipping subst for "+jtf);
+    	
     	// Not right for generic methods/constructors
     	return null;
     }
