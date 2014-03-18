@@ -11,6 +11,7 @@ import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
+import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.granules.FlowUnitGranulator;
 import com.surelogic.analysis.granules.FlowUnitGranule;
@@ -64,7 +65,8 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   private static final int TRIVIAL_METHOD_RETURN = 970;
   private static final int TRIVIAL_PARAMETER = 971;
   private static final int TRIVIAL_FIELD = 972;
-  private static final int TRIVIAL_UNKNOWN = 973;
+  private static final int TRIVIAL_NULLABLE_RETURN = 973;
+  private static final int TRIVIAL_UNKNOWN = 974;
   
   private static final int TIME_OUT = 980;
   
@@ -104,7 +106,8 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
         
         final Operator op = JJNode.tree.getOperator(p.getPromisedFor());
         if (ReturnValueDeclaration.prototype.includes(op)) {
-          r.setMessage(TRIVIAL_METHOD_RETURN);
+          r.setMessage(
+              p.isVirtual() ? TRIVIAL_NULLABLE_RETURN : TRIVIAL_METHOD_RETURN);
         } else if (ParameterDeclaration.prototype.includes(op) ||
             ReceiverDeclaration.prototype.includes(op)) {
           r.setMessage(TRIVIAL_PARAMETER);
@@ -287,6 +290,11 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
 	  analyses.clearCaches();
   }
   
+  @Override
+  public void postAnalysis(final IIRProject p) {
+    getAnalysis().clearGlobalCaches();
+  }
+
   static final class AnalysisBundle implements IBinderClient {
     private final IBinder binder;
     private final DefinitelyAssignedAnalysis definiteAssignment;
@@ -316,15 +324,17 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     public void clearCaches() {
       definiteAssignment.clearCaches();
       nonNullRawType.clearCaches();
-      NonNullTypeCheckerSlave.clearCaches();
       timedOutMethodBodies.clear(); // TODO report these?
     }
     
     public void clear() {
       definiteAssignment.clear();
       nonNullRawType.clear();
-      NonNullTypeCheckerSlave.clearCaches();
       timedOutMethodBodies.clear(); // TODO report these?
+    }
+    
+    public void clearGlobalCaches() {
+      NonNullTypeCheckerSlave.clearGlobalCaches();
     }
     
     public void addTimeOut(final IRNode mBody) {

@@ -36,7 +36,13 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public final class ThreadEffectsAnalysis implements IBinderClient {
+  private static final int NO_THREADS_STARTED = 1;
+  private static final int PROHIBITED = 2;
+  private static final int CALLED_METHOD_DOES_PROMISE = 3;
+  private static final int CALLED_METHOD_DOES_NOT_PROMISE = 4;
 
+  
+  
   private final IBinder binder;
 
   private static Operator getOperator(final IRNode n) {
@@ -157,7 +163,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       ResultDrop r = new ResultDrop(block);
       r.setConsistent();
       r.addChecked(pd);
-      r.setMessage(Messages.NO_THREADS_STARTED, JavaNames.genMethodConstructorName(block));
+      r.setMessage(NO_THREADS_STARTED, JavaNames.genMethodConstructorName(block));
 
 //      ResultFolderDrop f = ResultFolderDrop.newOrFolder(r.getNode());
 //      f.setMessage("A FOLDER OF OR RESULTS");
@@ -240,8 +246,8 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
               ResultDrop rd = new ResultDrop(node);
               rd.setInconsistent();
               rd.addChecked(pd);
-              rd.setMessage(Messages.PROHIBITED, DebugUnparser.toString(node));
-              return new Result(new SimpleAnalysisResult(pd, node, Messages.PROHIBITED, DebugUnparser.toString(node)), false);
+              rd.setMessage(PROHIBITED, DebugUnparser.toString(node));
+              return new Result(new SimpleAnalysisResult(pd, node, PROHIBITED, DebugUnparser.toString(node)), false);
             }
           }
         }
@@ -282,7 +288,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       ResultDrop rd = new ResultDrop(node);
       rd.addChecked(pd);
       rd.addTrusted(callp);
-      rd.setMessage(Messages.CALLED_METHOD_DOES_PROMISE, DebugUnparser.toString(node));
+      rd.setMessage(CALLED_METHOD_DOES_PROMISE, DebugUnparser.toString(node));
       rd.setConsistent();
       success = true;
     } else {
@@ -290,7 +296,7 @@ public final class ThreadEffectsAnalysis implements IBinderClient {
       ResultDrop rd = new ResultDrop(node);
       rd.addChecked(pd);
       rd.setInconsistent();
-      rd.setMessage(Messages.CALLED_METHOD_DOES_NOT_PROMISE, DebugUnparser.toString(node));
+      rd.setMessage(CALLED_METHOD_DOES_NOT_PROMISE, DebugUnparser.toString(node));
       rd.addProposal(new Builder(Starts.class, declaration, node).setValue("nothing").build());
       success = false;
     }

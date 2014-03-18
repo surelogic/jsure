@@ -79,8 +79,6 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   private static final int UNACCEPTABLE_RECEIVER = 929;
   private static final int UNACCEPTABLE_RAW_RECEIVER = 930;
   
-//  private static final int GOOD_ASSIGN_FOLDER = 930;
-//  private static final int BAD_ASSIGN_FOLDER = 931;
   private static final int RAW_INTO_NULLABLE = 932;
   
   
@@ -172,7 +170,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
     this.badMethodBodies = badMethodBodies;
   }
   
-  public static void clearCaches() {
+  public static void clearGlobalCaches() {
     createdVirtualAnnotations.clear();
   }
   
@@ -305,7 +303,8 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
         buildWarningResults(isUnbox, expr, varValue.second(), chain);
         chain.removeLast();    
       } else if (k != Kind.NO_VALUE) {
-        final PromiseDrop<?> pd = getAnnotationForProof(k.getAnnotatedNode(binder, where));
+        final IRNode annotatedNode = k.getAnnotatedNode(binder, where);
+        final PromiseDrop<?> pd = getAnnotationForProof(annotatedNode);
         /* Add a warning if the promise is a REAL @Nullable annotation,
          * but skip the warning if the @Nullable is a virtual one added by
          * checkAssignability for reporting problems with @Raw.
@@ -321,6 +320,21 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
           hd.addInformationHint(
               where, k.getMessage(),
               src.third().getAnnotation(), k.unparse(where));
+        }
+        
+        /* If the annotation is @Nullable or non-existent, and the kind is
+         * FORMAL_PARAMETER or METHOD_RETURN, we propose to make the
+         * parameter/return @NonNull.
+         */
+        if ((k == Kind.FORMAL_PARAMETER || k == Kind.METHOD_RETURN) &&
+            (pd == null || pd instanceof NullablePromiseDrop)) {
+          PromiseDrop<?> newPD = pd;
+          if (newPD == null) {
+            final NullableNode nn = new NullableNode(0);
+            nn.setPromisedFor(annotatedNode, null);
+            newPD = attachAsVirtual(NonNullRules.getNullableStorage(), new NullablePromiseDrop(nn));
+          }
+          newPD.addProposal(new Builder(NonNull.class, annotatedNode, expr).build());
         }
       }
     }
@@ -406,17 +420,18 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
     }
   }
 
-  private <A extends IAASTRootNode, T extends PromiseDrop<? super A>> T attachAsVirtual(IPromiseDropStorage<T> storage, T drop) {
-	  try {
-	     AnnotationRules.attachAsVirtual(storage, drop);
-         createdVirtualAnnotations.add(drop);
-         return drop;
-	  } catch(IllegalArgumentException e) {
-		 // Assumed to be already created
-		 drop.invalidate();
-		 return drop.getNode().getSlotValue(storage.getSlotInfo());
-		 //return storage.getDrops(drop.getNode()).iterator().next();
-	  }
+  private <A extends IAASTRootNode, T extends PromiseDrop<? super A>> T attachAsVirtual(
+      IPromiseDropStorage<T> storage, T drop) {
+    try {
+      AnnotationRules.attachAsVirtual(storage, drop);
+      createdVirtualAnnotations.add(drop);
+      return drop;
+    } catch (IllegalArgumentException e) {
+      // Assumed to be already created
+      drop.invalidate();
+      return drop.getNode().getSlotValue(storage.getSlotInfo());
+      // return storage.getDrops(drop.getNode()).iterator().next();
+    }
   }
 
   private void buildNewChain(final boolean testRawOnly, 
@@ -463,7 +478,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
           
           /*
            * If the srcState is partially initialized and the lvalue is a 
-           * method receiver, and the assignment FAILES, then we have to switch
+           * method receiver, and the assignment FAILS, then we have to switch
            * the message on the root of the subchain so that the error message
            * better reflects the situation. 
            */
