@@ -114,7 +114,7 @@ public abstract class CUDrop extends Drop implements IAnalysisGranule {
     }
     f_isAsSource = isAsSource;
     final String pkgName = VisitUtil.getPackageName(getNode());
-    final PackageDrop pd = PackageDrop.createPackage(null, pkgName, null, null);
+    final PackageDrop pd = PackageDrop.createPackage(null, pkgName, null, null, info.getType());
     pd.addDependent(this);
     finishInit();
   }

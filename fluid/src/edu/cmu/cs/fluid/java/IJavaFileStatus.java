@@ -2,7 +2,7 @@
 package edu.cmu.cs.fluid.java;
 
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
+import com.surelogic.common.java.Config.Type;
 
 public interface IJavaFileStatus<T> {
   long NO_TIME = 0;

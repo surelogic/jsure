@@ -7,6 +7,7 @@ import java.util.List;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.parse.JJNode;
+import com.surelogic.common.java.Config.Type;
 
 /**
  * Tracks all the Java files that have been processed by the system
@@ -17,32 +18,6 @@ import edu.cmu.cs.fluid.parse.JJNode;
 public interface IJavaFileLocator<T,P> extends Iterable<IJavaFileStatus<T>> {
   public static final boolean testIRPaging = false;
   public static final boolean useIRPaging = !JJNode.versioningIsOn && (testIRPaging || false);
-  
-  public enum Type {
-    /**
-     * Fully loaded from a .java file
-     */
-    SOURCE() {
-      @Override
-      public boolean fromSourceFile() { return true; }
-    }, 
-    /**
-     * Loading only the interface from a .java file
-     */
-    INTERFACE() {
-      @Override
-      public boolean fromSourceFile() { return true; }
-    }, 
-    /**
-     * Loaded from a .class file
-     */
-    BINARY,
-    UNKNOWN;
-
-    public boolean fromSourceFile() {
-      return false;
-    }
-  }
   
   /**
    * Registers the given resource 

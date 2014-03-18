@@ -6,7 +6,7 @@ import com.surelogic.common.xml.*;
 import com.surelogic.tree.SyntaxTreeRegion;
 
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
+import com.surelogic.common.java.Config.Type;
 import edu.cmu.cs.fluid.java.bind.*;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;

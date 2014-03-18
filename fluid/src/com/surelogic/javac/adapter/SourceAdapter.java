@@ -83,6 +83,7 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.surelogic.annotation.JavadocAnnotation;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.java.Config;
 import com.surelogic.common.java.JavaSourceFile;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IKeyValue;
@@ -97,7 +98,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
@@ -160,7 +160,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     }
     try {
       CodeInfo info = new CodeInfo(jp.getTypeEnv(), cuRef, result, null, cuRef.getURI().toString(), srcCode,
-          asBinary ? IJavaFileLocator.Type.INTERFACE : IJavaFileLocator.Type.SOURCE);
+          asBinary ? Config.Type.INTERFACE : Config.Type.SOURCE);
 	  /* TODO Base64
       if (srcFile.qname.endsWith("Base64")) {
     	  System.out.println("Parsing "+srcFile.qname+" from "+jp.getTypeEnv());
