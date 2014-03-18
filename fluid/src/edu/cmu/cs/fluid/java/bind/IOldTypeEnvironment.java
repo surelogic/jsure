@@ -175,9 +175,10 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       parsetree.clearParent(privateArrayType);
 
       IRNode pkg = NamedPackageDeclaration.createNode(Annotations.createNode(noNodes), "java.lang");
-      CompilationUnit.createNode(pkg, ImportDeclarations.createNode(noNodes), 
+      IRNode cu = CompilationUnit.createNode(pkg, ImportDeclarations.createNode(noNodes), 
           TypeDeclarations.createNode(new IRNode[] {privateArrayType}));
-
+      JavaNode.setModifiers(cu, JavaNode.AS_BINARY);
+      
       ReturnValueDeclaration.getReturnNode(privateCloneMethod);
       ReceiverDeclaration.makeReceiverNode(privateCloneMethod);
       ReceiverDeclaration.makeReceiverNode(privateArrayType);
