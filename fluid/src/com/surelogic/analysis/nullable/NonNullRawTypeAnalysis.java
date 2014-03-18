@@ -1639,6 +1639,7 @@ implements IBinderClient {
       final IRNode var = binder.getIBinding(use).getNode();
       final int idx = var == null ? -1 : lattice.indexOf(var);
       if (idx != -1) {
+    	/*
         final VouchFieldIsPromiseDrop vouch = LockRules.getVouchFieldIs(var);
         if (vouch != null) {
           if (vouch.isNullable()) {
@@ -1649,6 +1650,7 @@ implements IBinderClient {
                 lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.VOUCH_NONNULL, use));
           }
         }
+        */
         return lattice.push(val, 
             lattice.baseValue(lattice.getVar(val, idx).first(), Kind.VAR_USE, use));
       } else {
