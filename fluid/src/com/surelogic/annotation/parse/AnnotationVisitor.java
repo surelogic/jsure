@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import org.antlr.runtime.RecognitionException;
 
+import com.surelogic.NonNull;
 import com.surelogic.aast.AASTRootNode;
 import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.annotation.AnnotationSource;
@@ -126,9 +127,13 @@ public class AnnotationVisitor extends Visitor<Integer> {
     if (id.startsWith(PROMISE_PREFIX) || 
        (id.startsWith(JCIP_PREFIX) && (id.endsWith(".GuardedBy") || id.endsWith(".ThreadSafe") || id.endsWith(".Immutable"))) ||
        (id.startsWith(ANDROID_INTERNAL_PREFIX) && (id.endsWith(".GuardedBy") || id.endsWith(".Immutable"))) ||
-       (id.startsWith(JAVAX_PREFIX) && (id.endsWith(".GuardedBy") || id.endsWith(".Immutable")))) {
+       (id.startsWith(JAVAX_PREFIX) && (id.endsWith(".Nullable"))) ||
+       (id.startsWith(JAVAX_CONCURRENT_PREFIX) && (id.endsWith(".GuardedBy") || id.endsWith(".Immutable")))) {
       int lastDot = id.lastIndexOf('.');
       return id.substring(lastDot + 1);
+    }
+    else if (id.equals(JAVAX_NONNULL)) {
+      return NonNull.class.getSimpleName();
     }
     if (!id.equals("java.lang.Deprecated")) {
       // FIX currently ignoring other annotations
