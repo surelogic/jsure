@@ -125,10 +125,10 @@ public class AnnotationVisitor extends Visitor<Integer> {
       id = JavaNames.getQualifiedTypeName(type);
     }
     if (id.startsWith(PROMISE_PREFIX) || 
-       (id.startsWith(JCIP_PREFIX) && (id.endsWith(".GuardedBy") || id.endsWith(".ThreadSafe") || id.endsWith(".Immutable"))) ||
+       (id.startsWith(JCIP_PREFIX) && (id.endsWith(".GuardedBy") || id.endsWith(".ThreadSafe") || id.endsWith(".Immutable") || id.endsWith(".NotThreadSafe"))) ||
        (id.startsWith(ANDROID_INTERNAL_PREFIX) && (id.endsWith(".GuardedBy") || id.endsWith(".Immutable"))) ||
        (id.startsWith(JAVAX_PREFIX) && (id.endsWith(".Nullable"))) ||
-       (id.startsWith(JAVAX_CONCURRENT_PREFIX) && (id.endsWith(".GuardedBy") || id.endsWith(".Immutable")))) {
+       (id.startsWith(JAVAX_CONCURRENT_PREFIX) && (id.endsWith(".GuardedBy") || id.endsWith(".Immutable") || id.endsWith(".ThreadSafe") || id.endsWith(".NotThreadSafe")))) {
       int lastDot = id.lastIndexOf('.');
       return id.substring(lastDot + 1);
     }
