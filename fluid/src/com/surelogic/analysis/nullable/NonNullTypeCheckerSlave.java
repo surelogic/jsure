@@ -328,13 +328,18 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
          */
         if ((k == Kind.FORMAL_PARAMETER || k == Kind.METHOD_RETURN) &&
             (pd == null || pd instanceof NullablePromiseDrop)) {
-          PromiseDrop<?> newPD = pd;
-          if (newPD == null) {
-            final NullableNode nn = new NullableNode(0);
-            nn.setPromisedFor(annotatedNode, null);
-            newPD = attachAsVirtual(NonNullRules.getNullableStorage(), new NullablePromiseDrop(nn));
+          // Don't do it if the thing to be annotated is in a class file
+          if (!TypeUtil.isBinary(
+              k == Kind.METHOD_RETURN ?
+                  JavaPromise.getPromisedFor(annotatedNode) : annotatedNode)) {
+            PromiseDrop<?> newPD = pd;
+            if (newPD == null) {
+              final NullableNode nn = new NullableNode(0);
+              nn.setPromisedFor(annotatedNode, null);
+              newPD = attachAsVirtual(NonNullRules.getNullableStorage(), new NullablePromiseDrop(nn));
+            }
+            newPD.addProposal(new Builder(NonNull.class, annotatedNode, expr).build());
           }
-          newPD.addProposal(new Builder(NonNull.class, annotatedNode, expr).build());
         }
       }
     }
