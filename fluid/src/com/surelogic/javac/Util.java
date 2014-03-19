@@ -52,6 +52,7 @@ import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.java.*;
+import com.surelogic.common.java.Config.Type;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.logging.SLLogger;
@@ -95,7 +96,6 @@ import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
 import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
 import edu.cmu.cs.fluid.java.adapter.AdapterUtil;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
@@ -119,6 +119,7 @@ import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.project.JavaMemberTable;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -603,7 +604,7 @@ public class Util {
       drops.put(d.getNode(), d);
     }
     for (CodeInfo info : cus) {
-      if (!info.isAsSource() || info.getFileName().endsWith("package-info.java")) {
+      if (!info.isAsSource() || info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
         continue;
       }
       if (drops.get(info.getNode()) == null) {
@@ -1857,7 +1858,7 @@ public class Util {
   }
 
   static boolean isPackageInfo(CodeInfo info) {
-	  return info.getType() != IJavaFileLocator.Type.BINARY && info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA);
+	  return info.getType() != Type.BINARY && info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA);
   }
   
   static void createCUDrop(final SLProgressMonitor monitor, CodeInfo info) {

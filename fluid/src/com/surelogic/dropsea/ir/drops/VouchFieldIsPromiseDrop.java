@@ -32,7 +32,7 @@ public final class VouchFieldIsPromiseDrop extends PromiseDrop<VouchFieldIsNode>
   public boolean isAnnotationBounds() {
 	return getAAST().getKind() == FieldKind.AnnotationBounds;
   }
-  
+  /*
   public boolean isNonNull() {
 	return getAAST().getKind() == FieldKind.NonNull;
   }
@@ -40,7 +40,7 @@ public final class VouchFieldIsPromiseDrop extends PromiseDrop<VouchFieldIsNode>
   public boolean isNullable() {
 	return getAAST().getKind() == FieldKind.Nullable;
   }
-  
+  */
   public String getReason() {
     return getAAST().getReason();
   }

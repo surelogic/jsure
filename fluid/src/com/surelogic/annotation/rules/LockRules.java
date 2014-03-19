@@ -1238,6 +1238,7 @@ public class LockRules extends AnnotationRules {
       break;
     case AnnotationBounds:
       break;
+      /*
     case NonNull:
     case Nullable:
       boolean isBad = false;
@@ -1257,6 +1258,10 @@ public class LockRules extends AnnotationRules {
         }
       }
       if (isBad) return null;
+      */
+      default:
+    	context.reportError(a, "Unexpected kind of Vouch: "+a.getKind());
+    	return null;
     }
     return new VouchFieldIsPromiseDrop(a);
   }

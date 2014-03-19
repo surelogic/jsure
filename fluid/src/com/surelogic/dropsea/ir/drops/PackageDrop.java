@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import com.surelogic.InRegion;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.common.AnnotationConstants;
+import com.surelogic.common.java.Config;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicateFactory;
@@ -148,7 +149,7 @@ public final class PackageDrop extends CUDrop {
 
   private static final String DEFAULT_NAME = "(default)";
 
-  public static PackageDrop createPackage(IIRProject proj, String name, IRNode root, String id) {
+  public static PackageDrop createPackage(IIRProject proj, String name, IRNode root, String id, Config.Type type) {
     final PackageDrop pd = findPackage(name);
     if (root == null) {
       if (pd != null && pd.isValid()) {
@@ -168,6 +169,7 @@ public final class PackageDrop extends CUDrop {
       IRNode imports = ImportDeclarations.createNode(noNodes);
       IRNode types = TypeDeclarations.createNode(noNodes);
       root = edu.cmu.cs.fluid.java.operator.CompilationUnit.createNode(n, imports, types);
+      JavaNode.setModifiers(root, !type.fromSourceFile() ? JavaNode.AS_BINARY : JavaNode.ALL_FALSE);
       Projects.setProject(root, proj);
             
       JavaNode.makeFluidJavaRefForPackage(proj, n);
@@ -185,7 +187,7 @@ public final class PackageDrop extends CUDrop {
         } else {
           throw new IllegalArgumentException("name and AST don't match: " + name);
         }
-      }
+      }      
     }
     if (name.length() == 0) {
       name = DEFAULT_NAME;

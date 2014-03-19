@@ -339,7 +339,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		 * @return true if modified
 		 */
 		boolean addPackage(JavacProject proj, String name, IRNode root,
-				boolean replaceOnlyIfExists) {
+				boolean replaceOnlyIfExists, Config.Type type) {
 			if (proj == null) {
 				throw new IllegalStateException("Null project");
 			}
@@ -350,12 +350,12 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 				}
 				// System.out.println("Adding package: "+name);
 				PackageDrop pd = PackageDrop.createPackage(proj, name, null,
-						null);
+						null, type);
 				addPackage_private(name, pd);
 				// Something's here
 			} else if (root != null) {
 				PackageDrop pd = PackageDrop.createPackage(proj, name, root,
-						null);
+						null, type); 
 				addPackage_private(name, pd);
 			} else {
 				return false;
@@ -423,7 +423,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		if (addAlways || (pkgNode = classes.getPackage(pkg, cu)) != null) {
 			if (pkgNode == null || Projects.getProject(pkgNode) == newProj) {
 				final IRNode root = info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA) ? info.getNode() : null;
-				changed = classes.addPackage(project, pkg, root, !addAlways);
+				changed = classes.addPackage(project, pkg, root, !addAlways, info.getType());
 				if (root != null) {
 					infos.put(pkg+'.'+SLUtility.PACKAGE_INFO, info);
 				}
@@ -581,13 +581,13 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		return subs;
 	}
 
-	public void addPackage(String pkg) {
+	public void addPackage(String pkg, Config.Type type) {
 		// System.out.println("Added package: "+pkg);
-		classes.addPackage(project, pkg, null, false);
+		classes.addPackage(project, pkg, null, false, type);
 	}
 
 	public void addPackage(String pkg, IRNode root) {
-		classes.addPackage(project, pkg, root, false);
+		classes.addPackage(project, pkg, root, false, null);
 	}
 
 	// ---------------------------------------------------------------

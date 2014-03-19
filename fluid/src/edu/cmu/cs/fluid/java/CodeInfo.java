@@ -5,12 +5,12 @@
 package edu.cmu.cs.fluid.java;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.IJavaFileLocator.Type;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 
 import java.util.*;
 
 import com.surelogic.ast.java.operator.ICompilationUnitNode;
+import com.surelogic.common.java.Config.Type;
 
 /**
  * @author Edwin

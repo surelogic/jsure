@@ -27,7 +27,7 @@ public class JavacProject extends JavaProject implements IIRProject, IClassPathC
 	
 	private void initTEnv() {
 		for(String pkg : config.getPackages()) {
-        	tEnv.addPackage(pkg);
+        	tEnv.addPackage(pkg, isAsBinary() ? Config.Type.INTERFACE : Config.Type.SOURCE);
         }
 	}
 
@@ -93,8 +93,8 @@ public class JavacProject extends JavaProject implements IIRProject, IClassPathC
 	}
 	
 	@Override
-	public void addPackage(String pkgName) {
-		tEnv.addPackage(pkgName);
+	public void addPackage(String pkgName, Config.Type t) {
+		tEnv.addPackage(pkgName, t);
 	}
 	
 	@Override

@@ -32,6 +32,7 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
 import com.surelogic.common.concurrent.RecursiveIOAction;
 import com.surelogic.common.java.*;
+import com.surelogic.common.java.Config.Type;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.adapter.*;
 import com.surelogic.xml.PackageAccessor;
@@ -244,7 +245,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 				if (debug) {
 					System.out.println("Parsing "+cut.getSourceFile().getName());
 				}
-				tEnv.addPackage(SourceAdapter.getPackage(cut));        	   	
+				tEnv.addPackage(SourceAdapter.getPackage(cut), this.asBinary ? Config.Type.INTERFACE : Config.Type.SOURCE);        	   	
 				final AdaptTask task = new AdaptTask(t, cut);
 				pool.submit(task);
 				tasks.push(task);
@@ -335,7 +336,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 					if (debug) {
 						System.out.println("Parsing "+cut.getSourceFile().getName());
 					}
-					tEnv.addPackage(SourceAdapter.getPackage(cut));        	
+					tEnv.addPackage(SourceAdapter.getPackage(cut), this.asBinary ? Config.Type.INTERFACE : Config.Type.SOURCE);        	
 
 					//Scanning before adding these in
 					//scanForReferencedTypes(refs, cut);        	
@@ -803,7 +804,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 		//PlainIRNode.setCurrentRegion(new IRRegion());
 		try {
 			IRNode cu = p.getRoot(); 
-			CodeInfo info = new CodeInfo(srcEnv, file, cu, null, ref, null, IJavaFileLocator.Type.BINARY);
+			CodeInfo info = new CodeInfo(srcEnv, file, cu, null, ref, null, Type.BINARY);
 			srcEnv.addCompUnit(info, true);
 			cus.put(srcProject.getName(), info);
 			Projects.setProject(cu, srcProject);
