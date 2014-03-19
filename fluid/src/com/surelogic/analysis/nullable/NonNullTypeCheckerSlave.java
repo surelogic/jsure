@@ -480,6 +480,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
               k.getMessage(), srcState.getAnnotation(), k.unparse(where));
           final PromiseDrop<?> pd = getAnnotationForProof(k.getAnnotatedNode(binder, where));
           if (pd != null) result.addTrusted(pd);
+          k.toggleVouched(result);
           
           /*
            * If the srcState is partially initialized and the lvalue is a 
@@ -628,6 +629,11 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   @Override
   protected void checkActualsVsFormals(final IRNode call,
       final IRNode actuals, final IRNode formals) {
+    // Don't check the argument to the special cast methods
+    if (NonNullRawTypeAnalysis.isCastMethod(binder.getBinding(call))) {
+      return;
+    }
+    
     // Actuals must be assignable to the formals
     final Iterator<IRNode> actualsIter = Arguments.getArgIterator(actuals);
     final Iterator<IRNode> formalsIter = Parameters.getFormalIterator(formals);

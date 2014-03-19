@@ -16,13 +16,12 @@ import com.surelogic.analysis.nullable.NonNullRawLattice.ClassElement;
 import com.surelogic.analysis.nullable.NonNullRawLattice.Element;
 import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
-import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.Pair;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.util.AbstractRemovelessIterator;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.drops.VouchFieldIsPromiseDrop;
+import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 import com.surelogic.util.IRNodeIndexedArrayLattice;
 import com.surelogic.util.IThunk;
@@ -41,6 +40,7 @@ import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
+import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.CrementExpression;
@@ -53,9 +53,11 @@ import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NoInitialization;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
+import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
@@ -562,16 +564,16 @@ implements IBinderClient {
     },
     STRING_LITERAL(962),
     VAR_ARGS(965),
-    VOUCH_NULLLABLE(967) {
+    CAST_TO_NULLABLE(967) {
       @Override
-      public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
-        return binder.getBinding(where);
+      public void toggleVouched(final ResultDrop result) {
+        result.setVouched();
       }
     },
-    VOUCH_NONNULL(968) {
+    CAST_TO_NONNULL(968) {
       @Override
-      public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
-        return binder.getBinding(where);
+      public void toggleVouched(final ResultDrop result) {
+        result.setVouched();
       }
     },
     
@@ -613,6 +615,10 @@ implements IBinderClient {
     
     public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
       return null;
+    }
+    
+    public void toggleVouched(final ResultDrop result) {
+      // default is to not create vouched results
     }
   }
 
@@ -1112,21 +1118,29 @@ implements IBinderClient {
 
       return value;
     }
-
+    
     @Override
     protected Value pushMethodReturnValue(final IRNode node, final Value val) {
       // push the value based on the annotation of the method's return node
       final IRNode methodDecl = binder.getBinding(node);
       final IRNode returnNode = JavaPromise.getReturnNode(methodDecl);
       if (returnNode != null) {
-        // NB. Either @Raw or @NonNull but never both
-        if (NonNullRules.getNonNull(returnNode) != null) {
-          return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.METHOD_RETURN, node));
-        }
+        if (isCastMethod(methodDecl)) {
+          if (NonNullRules.getNonNull(returnNode) != null) {
+            return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.CAST_TO_NONNULL, node));
+          } else { // must be @Nullable
+            return push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.CAST_TO_NULLABLE, node));
+          }
+        } else {
+          // NB. Either @Raw or @NonNull but never both
+          if (NonNullRules.getNonNull(returnNode) != null) {
+            return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.METHOD_RETURN, node));
+          }
 
-        final RawPromiseDrop pd = NonNullRules.getRaw(returnNode);
-        if (pd != null) {
-          return push(val, lattice.baseValue(lattice.injectPromiseDrop(pd), Kind.METHOD_RETURN, node));
+          final RawPromiseDrop pd = NonNullRules.getRaw(returnNode);
+          if (pd != null) {
+            return push(val, lattice.baseValue(lattice.injectPromiseDrop(pd), Kind.METHOD_RETURN, node));
+          }
         }
       }
       // Void return or no annotatioN: not raw
@@ -1708,6 +1722,26 @@ implements IBinderClient {
   }
 
 
+
+  // default visibility so that it may be called from NonNullTypeChecker
+  static boolean isCastMethod(final IRNode mdecl) {
+    if (!MethodDeclaration.prototype.includes(mdecl)) {
+      return false;
+    }
+    
+    final String name = MethodDeclaration.getId(mdecl);
+    if (name.equals("toNonNull") || name.equals("toNullable")) {
+      final IRNode typeDecl = VisitUtil.getEnclosingType(mdecl);
+      if (TypeDeclaration.getId(typeDecl).equals("Cast")) {
+        final IRNode cuDecl = VisitUtil.getEnclosingCompilationUnit(typeDecl);
+        return PackageDeclaration.getId(
+            CompilationUnit.getPkg(cuDecl)).equals("com.surelogic");
+      }
+    }
+    return false;
+  }
+
+  
   
   public StackQuery getStackQuery(final IRNode flowUnit) {
     return new StackQuery(getAnalysisThunk(flowUnit));
