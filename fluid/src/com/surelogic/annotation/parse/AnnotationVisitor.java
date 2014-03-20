@@ -15,7 +15,6 @@ import com.surelogic.Cast;
 import com.surelogic.NonNull;
 import com.surelogic.aast.AASTRootNode;
 import com.surelogic.aast.AnnotationOrigin;
-import com.surelogic.aast.promise.CastNode.CastKind;
 import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.JavadocAnnotation;
@@ -59,7 +58,6 @@ import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import edu.cmu.cs.fluid.util.IntegerTable;
 
 public class AnnotationVisitor extends Visitor<Integer> {
   public static final String IMPLEMENTATION_ONLY = "implementationOnly";
@@ -338,7 +336,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
   }
 
   private static boolean isPlural(String promise) {
-	  return promise.endsWith("s");
+	  return promise.endsWith("s") && PromiseFramework.getInstance().getParseDropRule(promise) == null;
   }
   
   @Override
