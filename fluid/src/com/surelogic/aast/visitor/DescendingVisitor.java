@@ -909,4 +909,8 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   public T visit(NoTargetNode n) {
 	  return defaultValue;
   }
+
+  public T visit(CastNode n) {
+	  return defaultValue;
+  }
 }

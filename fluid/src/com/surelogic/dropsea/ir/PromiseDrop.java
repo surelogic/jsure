@@ -36,6 +36,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.operator.Expression;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
@@ -93,6 +94,9 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       }
       else if (ParameterDeclaration.prototype.includes(op)) {
         setMessage(22, a.unparseForPromise(), ParameterDeclaration.getId(decl), JavaNames.genRelativeFunctionName(altDecl));
+      } 
+      else if (Expression.prototype.includes(op)) {
+    	setMessage(26, a.unparseForPromise(), JavaNames.getRelativeName(altDecl));
       } else {
         setMessage(20, a.unparseForPromise(), JavaNames.getRelativeName(altDecl));
       }

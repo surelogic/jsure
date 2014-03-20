@@ -8,13 +8,17 @@ import org.antlr.runtime.RecognitionException;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.bind.ISourceRefType;
 import com.surelogic.aast.java.NamedTypeNode;
+import com.surelogic.aast.promise.CastNode.CastKind;
 import com.surelogic.aast.promise.NonNullNode;
 import com.surelogic.aast.promise.NullableNode;
 import com.surelogic.aast.promise.RawNode;
+import com.surelogic.aast.promise.CastNode;
 import com.surelogic.annotation.AnnotationLocation;
 import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.annotation.DefaultBooleanAnnotationParseRule;
+import com.surelogic.annotation.DefaultSLAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
+import com.surelogic.annotation.ParseResult;
 import com.surelogic.annotation.parse.AASTAdaptor;
 import com.surelogic.annotation.parse.AASTAdaptor.Node;
 import com.surelogic.annotation.parse.AnnotationVisitor;
@@ -27,11 +31,13 @@ import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
+import com.surelogic.dropsea.ir.drops.CastPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
+import com.surelogic.promise.SinglePromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
@@ -40,6 +46,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
+import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
@@ -63,12 +70,14 @@ public class NonNullRules extends AnnotationRules {
 	public static final String NONNULL = "NonNull";
 	public static final String NULLABLE = "Nullable";
 	public static final String RAW = "Initialized";
+	public static final String CAST = "Cast";
 	public static final String CONSISTENCY = "NullableConsistency";
 	
 	private static final NonNullRules instance = new NonNullRules();
 	private static final NonNull_ParseRule nonNullRule = new NonNull_ParseRule();
 	private static final Nullable_ParseRule nullableRule = new Nullable_ParseRule();
 	private static final Raw_ParseRule rawRule = new Raw_ParseRule();
+	private static final Cast_ParseRule castRule = new Cast_ParseRule();
 	private static final NullableConsistencyChecker consistency = new NullableConsistencyChecker();
 	private static final ConflictResolver resolver = new ConflictResolver();
 	
@@ -93,10 +102,48 @@ public class NonNullRules extends AnnotationRules {
 		registerParseRuleStorage(fw, nonNullRule);
 		registerParseRuleStorage(fw, nullableRule);
 		registerParseRuleStorage(fw, rawRule);
+		registerParseRuleStorage(fw, castRule);
 		registerScrubber(fw, consistency);
 		registerConflictResolution(resolver);
 	} 
 
+	static class Cast_ParseRule extends DefaultSLAnnotationParseRule<CastNode,CastPromiseDrop> {
+		Cast_ParseRule() {
+			super(CAST, new Operator[]{ MethodCall.prototype }, CastNode.class);
+		}
+
+		// Should only get called by the Vouch parse rule
+		@Override
+		public Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) 
+				throws Exception {
+			final String id = context.getAllText().trim();
+			final CastKind kind;
+			try {
+				kind = CastKind.valueOf(id);				
+			} catch(IllegalArgumentException e) {					
+				context.reportError(0, "Unknown kind of cast: "+id);
+				return ParseResult.FAIL;
+			}
+			return new CastNode(context.mapToSource(0), kind);
+		}
+
+		@Override
+		protected IPromiseDropStorage<CastPromiseDrop> makeStorage() {
+			return SinglePromiseDropStorage.create(name(), CastPromiseDrop.class);
+		}
+
+		@Override
+		protected IAnnotationScrubber makeScrubber() {
+			return new AbstractAASTScrubber<CastNode, CastPromiseDrop>(
+					this, ScrubberType.UNORDERED, NONNULL, NULLABLE) {
+				@Override
+				protected PromiseDrop<CastNode> makePromiseDrop(CastNode a) {
+					return storeDropIfNotNull(a, new CastPromiseDrop(a));
+				}
+			};
+		}
+	}
+	
 	public static class Raw_ParseRule extends DefaultBooleanAnnotationParseRule<RawNode,RawPromiseDrop> {
 		public Raw_ParseRule() {
 			super(RAW, new Operator[] { ClassInitDeclaration.prototype,
@@ -419,6 +466,9 @@ public class NonNullRules extends AnnotationRules {
 	  return getBooleanDrop(rawRule.getStorage(), decl);
 	}
 	
+	public static CastPromiseDrop getCast(final IRNode decl) {
+	  return getDrop(castRule.getStorage(), decl);
+	}
 	
   // ======================================================================
 	

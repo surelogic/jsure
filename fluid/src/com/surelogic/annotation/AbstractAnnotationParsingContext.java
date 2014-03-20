@@ -157,9 +157,12 @@ ITestAnnotationParsingContext {
       else if (VariableDeclList.prototype.includes(op)) {
         return node;
       }
+      else if (MethodCall.prototype.includes(op)) {
+    	return node; // Special case for Cast
+      }
       else if (BlockStatement.prototype.includes(op)) {
    	    return node;
-      }
+      }      
       node = JJNode.tree.getParentOrNull(node);
     }
     return start;

@@ -11,13 +11,16 @@ import java.util.logging.Logger;
 
 import org.antlr.runtime.RecognitionException;
 
+import com.surelogic.Cast;
 import com.surelogic.NonNull;
 import com.surelogic.aast.AASTRootNode;
 import com.surelogic.aast.AnnotationOrigin;
+import com.surelogic.aast.promise.CastNode.CastKind;
 import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.JavadocAnnotation;
 import com.surelogic.annotation.SimpleAnnotationParsingContext;
+import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.annotation.rules.StandardRules;
 import com.surelogic.annotation.rules.TestRules;
 import com.surelogic.annotation.test.TestResult;
@@ -47,6 +50,7 @@ import edu.cmu.cs.fluid.java.operator.ElementValuePairs;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.Initializer;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NormalAnnotation;
 import edu.cmu.cs.fluid.java.operator.SingleElementAnnotation;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
@@ -55,6 +59,7 @@ import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.IntegerTable;
 
 public class AnnotationVisitor extends Visitor<Integer> {
   public static final String IMPLEMENTATION_ONLY = "implementationOnly";
@@ -667,5 +672,15 @@ public class AnnotationVisitor extends Visitor<Integer> {
       }
     }
     return createPromise(new ContextBuilder(decl, tag, "").setSrc(AnnotationSource.JAVADOC));
+  }
+  
+  @Override
+  public Integer visitMethodCall(IRNode node) {
+	  // Special case for Cast
+	  final IBinding mb = tEnv.getBinder().getIBinding(node);
+	  if (mb.getContextType().getName().equals(Cast.class.getName())) {
+		  return handleJava5Promise(new ContextBuilder(node, NonNullRules.CAST, MethodDeclaration.getId(mb.getNode()))) ? 1 : 0;
+	  }
+	  return 0;
   }
 }
