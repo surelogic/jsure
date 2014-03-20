@@ -38,6 +38,9 @@ class AnnoBuilder extends AnnotationVisitor {
 	
 	static IRNode adaptValue(Object value) {
 		if (value instanceof String) {
+			if (SourceAdapter.includeQuotesInStringLiteral) {
+				return StringLiteral.createNode('"'+value.toString()+'"');
+			}
 			return StringLiteral.createNode(value.toString());
 		}
 		else if (value instanceof Number) {
