@@ -21,7 +21,6 @@ import com.surelogic.common.Pair;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.util.AbstractRemovelessIterator;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 import com.surelogic.util.IRNodeIndexedArrayLattice;
 import com.surelogic.util.IThunk;
@@ -566,14 +565,14 @@ implements IBinderClient {
     VAR_ARGS(965),
     CAST_TO_NULLABLE(967) {
       @Override
-      public void toggleVouched(final ResultDrop result) {
-        result.setVouched();
+      public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
+        return where;
       }
     },
     CAST_TO_NONNULL(968) {
       @Override
-      public void toggleVouched(final ResultDrop result) {
-        result.setVouched();
+      public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
+        return where;
       }
     },
     
@@ -615,10 +614,6 @@ implements IBinderClient {
     
     public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
       return null;
-    }
-    
-    public void toggleVouched(final ResultDrop result) {
-      // default is to not create vouched results
     }
   }
 

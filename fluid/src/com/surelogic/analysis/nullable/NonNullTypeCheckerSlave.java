@@ -26,7 +26,6 @@ import com.surelogic.analysis.type.checker.QualifiedTypeCheckerSlave;
 import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.rules.AnnotationRules;
-import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
@@ -347,7 +346,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   
   private PromiseDrop<?> getAnnotationForProof(final IRNode n) {
     PromiseDrop<?> pd = getAnnotationToAssure(n);
-    if (pd == null) pd = LockRules.getVouchFieldIs(n);
+    if (pd == null) pd = NonNullRules.getCast(n);
     return pd;
   }
   
@@ -480,7 +479,6 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
               k.getMessage(), srcState.getAnnotation(), k.unparse(where));
           final PromiseDrop<?> pd = getAnnotationForProof(k.getAnnotatedNode(binder, where));
           if (pd != null) result.addTrusted(pd);
-          k.toggleVouched(result);
           
           /*
            * If the srcState is partially initialized and the lvalue is a 
