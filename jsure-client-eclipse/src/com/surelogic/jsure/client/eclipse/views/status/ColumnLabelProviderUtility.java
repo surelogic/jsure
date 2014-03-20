@@ -61,6 +61,14 @@ public final class ColumnLabelProviderUtility {
 
         if (element instanceof ElementPromiseDrop) {
           int index = label.indexOf(" on ");
+          if (index == -1) {
+            /*
+             * If we don't find "on" then might be a cast or some other promise
+             * within control flow. In this case Edwin uses "in" instead of
+             * "on".
+             */
+            index = label.indexOf(" in ");
+          }
           if (index != -1) {
             StyleRange[] ranges = { new StyleRange(index, label.length() - index, EclipseColorUtility.getSubtleTextColor(), null) };
             cell.setStyleRanges(ranges);
