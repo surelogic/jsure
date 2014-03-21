@@ -506,7 +506,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   }
 
   protected static boolean needFullInfo(IRNode node, Operator op, IRNode gr) {
-      boolean needFullInfo = !JavaNode.getModifier(gr, JavaNode.AS_BINARY) || Call.prototype.includes(op);
+	  // Binaries can still have expressions in annotations that require binding
+      boolean needFullInfo = true;//!JavaNode.getModifier(gr, JavaNode.AS_BINARY) || Call.prototype.includes(op);
       if (needFullInfo && !JJNode.versioningIsOn) {
         IRNode here = node;
         while (here != null && Name.prototype.includes(op)) {
@@ -1919,13 +1920,17 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitElementValuePair(IRNode node) {
+      final String name = ElementValuePair.getId(node);
+      if ("when".equals(name)) {
+    	  System.out.println("Looking at when: "+DebugUnparser.toString(JJNode.tree.getParent(node)));
+      }
       // To visit children
       super.visitElementValuePair(node);
     	
       if (!isFullPass) {    	  
     	  return null;
       }
-      final String name = ElementValuePair.getId(node);
+      //final String name = ElementValuePair.getId(node);
       if (name == null) {
     	  bind(node, IBinding.NULL);
     	  return null;
