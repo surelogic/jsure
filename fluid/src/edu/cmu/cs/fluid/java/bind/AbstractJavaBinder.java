@@ -1920,17 +1920,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     
     @Override
     public Void visitElementValuePair(IRNode node) {
-      final String name = ElementValuePair.getId(node);
-      if ("when".equals(name)) {
-    	  System.out.println("Looking at when: "+DebugUnparser.toString(JJNode.tree.getParent(node)));
-      }
       // To visit children
       super.visitElementValuePair(node);
     	
       if (!isFullPass) {    	  
     	  return null;
       }
-      //final String name = ElementValuePair.getId(node);
+      final String name = ElementValuePair.getId(node);
       if (name == null) {
     	  bind(node, IBinding.NULL);
     	  return null;
