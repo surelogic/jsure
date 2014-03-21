@@ -135,9 +135,11 @@ public class AnnotationVisitor extends Visitor<Integer> {
       int lastDot = id.lastIndexOf('.');
       return id.substring(lastDot + 1);
     }
+    /* TODO Has 'when' attribute
     else if (id.equals(JAVAX_NONNULL)) {
       return NonNull.class.getSimpleName();
     }
+    */
     if (!id.equals("java.lang.Deprecated")) {
       // FIX currently ignoring other annotations
       // System.out.println("Ignoring "+id);
