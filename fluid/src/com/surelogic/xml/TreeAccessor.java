@@ -56,7 +56,7 @@ public final class TreeAccessor implements TestXMLParserConstants {
 				return m;
 			}
 		}
-		String desc = "Couldn't find class " + name + " in "
+		String desc = "TreeAccessor couldn't find class " + name + " in "
 				+ JavaNames.getFullTypeName(type);
 		//LOG.warning(desc);
 		System.err.println("WARNING: "+desc);
@@ -104,7 +104,7 @@ public final class TreeAccessor implements TestXMLParserConstants {
 				// "+JavaNode.getInfoOrNull(c));
 			}
 		}
-		String desc = "Couldn't find constructor with params (" + params
+		String desc = "TreeAccessor couldn't find constructor with params (" + params
 				+ ") in " + JavaNames.getFullTypeName(top);
 		//LOG.warning(desc);
 		System.err.println("WARNING: "+desc);
@@ -150,7 +150,7 @@ public final class TreeAccessor implements TestXMLParserConstants {
 				}
 			}
 		}
-		String desc = "Couldn't find field '" + name + "' in "
+		String desc = "TreeAccessor couldn't find field '" + name + "' in "
 				+ JavaNames.getFullTypeName(top);
 		LOG.warning(desc);
 		reportProblem(desc, top);
@@ -181,7 +181,7 @@ public final class TreeAccessor implements TestXMLParserConstants {
 				return BindUtil.findLV(top, name);
 			}
 		} catch (Exception e) {
-			String desc = "Couldn't find an arg "
+			String desc = "TreeAccessor couldn't find an arg "
 					+ ((index != null) ? index : name) + " in "
 					+ JavaNames.genQualifiedMethodConstructorName(top);
 			LOG.log(Level.WARNING, desc, e);
@@ -224,7 +224,7 @@ public final class TreeAccessor implements TestXMLParserConstants {
 						+ JJNode.getInfoOrNull(m));
 			}
 		}
-		String desc = "Couldn't find " + name + "(" + (params == null ? "" : params) + ") in "
+		String desc = "TreeAccessor couldn't find " + name + "(" + (params == null ? "" : params) + ") in "
 				+ JavaNames.getFullTypeName(root);
 		//LOG.warning(desc);
 		System.err.println("WARNING: "+desc);
