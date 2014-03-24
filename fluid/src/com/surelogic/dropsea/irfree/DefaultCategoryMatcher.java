@@ -12,14 +12,29 @@ public class DefaultCategoryMatcher extends CategoryMatcher {
   protected static final IDropMatcher matchDeclAndOffset = new AbstractDropMatcher("Decl   ", false, true) {
 	  @Override
     public boolean match(IDrop n, IDrop o) {
-		  return matchBasics(n, o) && matchIDecls(n.getJavaRef(), o.getJavaRef()) &&
-		         (matchIntDiffInfo(DiffHeuristics.DECL_RELATIVE_OFFSET, n, o) || 
-		    	  matchIntDiffInfo(DiffHeuristics.DECL_END_RELATIVE_OFFSET, n, o));
+		  if (matchBasics(n, o) && matchIDecls(n.getJavaRef(), o.getJavaRef())) {
+			  if (n instanceof IProposedPromiseDrop) {
+				  // Match assumption refs if proposals
+				  IProposedPromiseDrop np = (IProposedPromiseDrop) n;
+				  IProposedPromiseDrop op = (IProposedPromiseDrop) o;
+				  if (!matchIDecls(np.getAssumptionRef(), op.getAssumptionRef())) {
+					  return false;
+				  }
+			  }
+			  return (matchIntDiffInfo(DiffHeuristics.DECL_RELATIVE_OFFSET, n, o) || 
+					  matchIntDiffInfo(DiffHeuristics.DECL_END_RELATIVE_OFFSET, n, o));			  
+		  }
+		  return false;
 	  }
 	  
 	  @Override
 	  public int hash(IDrop d) {
-		  return hashBasics(d) + hashIDecl(d.getJavaRef());
+		  int rv = hashBasics(d) + hashIDecl(d.getJavaRef());
+		  if (d instanceof IProposedPromiseDrop) {
+			  IProposedPromiseDrop p = (IProposedPromiseDrop) d;
+			  rv += hashIDecl(p.getAssumptionRef());
+		  }
+		  return rv;
 	  }
   };
   
@@ -55,6 +70,7 @@ public class DefaultCategoryMatcher extends CategoryMatcher {
 	  }
   };
 
+  // Written so they only match if both have the same hints
   static class AlsoMatchHints extends AbstractDropMatcher {
 	  final IDropMatcher base;
 
@@ -65,13 +81,18 @@ public class DefaultCategoryMatcher extends CategoryMatcher {
 
 	  @Override
     public final boolean match(IDrop n, IDrop o) {
-		  return base.match(n, o) && matchAnalysisHint(getLabel(), n, o);// || matchSupportingInfo(n, o));
+		  return matchAnalysisHint(getLabel(), n, o) && base.match(n, o); // || matchSupportingInfo(n, o));
 	  }
 	  
 	  @Override
 	  public int hash(IDrop d) {
+		  if (!hasAnalysisHint(d)) {
+			  throw cantMatch;
+		  }
 		  return base.hash(d);// + hashAnalysisHint(d);
 	  }
+	  
+	  static final IllegalArgumentException cantMatch = new IllegalArgumentException();
   }
   
   protected DefaultCategoryMatcher() {

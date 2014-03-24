@@ -139,12 +139,19 @@ public abstract class CategoryMatcher {
 	  return 0;
   }
   
+  protected static boolean hasAnalysisHint(IDrop d) {
+	  return d.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT) != null;
+  }
+  
   protected static boolean matchAnalysisHint(String label, IDrop n, IDrop o) {
 	  return matchAnalysisHintOrNull(label, n, o) == Boolean.TRUE;
   }
   
   protected static Boolean matchAnalysisHintOrNull(String label, IDrop n, IDrop o) {
 	final String nh = n.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT);
+	if (nh == null) {
+		return false;
+	}
 	final String oh = o.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT);
 	/*
 	if (nh != null && oh != null) {

@@ -229,19 +229,34 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
   }
   
   private String matchUsingHashes(String title, PrintStream out, IDropMatcher m) {	  
-	  final long start = System.currentTimeMillis();
+	  /*
+	  if (getText().equals("<android.os/Parcel, com.surelogic.dropsea.ir.ProposedPromiseDrop>")) {
+		  System.out.println("Got proposals for Parcel");
+	  }
+	  */
+	  //final long start = System.currentTimeMillis();
+	  
 	  // Cache hashs 
 	  final MultiMap<Integer, DiffNode> older = new MultiHashMap<Integer, DiffNode>();
 	  for(DiffNode o : old) {
-		  o.cachedHash = m.hash(o.drop);
-		  older.put(o.cachedHash, o);
+		  try {
+			  o.cachedHash = m.hash(o.drop);
+			  older.put(o.cachedHash, o);
+		  } catch(IllegalArgumentException e) {
+			  // Can't match
+			  continue;
+		  }
 	  }	
 	  
 	  Iterator<DiffNode> it = newer.iterator();
 	  while (it.hasNext()) {
-		  final DiffNode n = it.next();
-		  n.cachedHash = m.hash(n.drop);
-		  
+		  final DiffNode n = it.next();	
+		  try {
+			  n.cachedHash = m.hash(n.drop);
+		  } catch(IllegalArgumentException e) {
+			  // Can't match
+			  continue;
+		  }
 		  Collection<DiffNode> hashedOld = older.get(n.cachedHash);
 		  if (hashedOld == null) {
 			  continue;
@@ -268,13 +283,15 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
 		          title = diffMatchingDrops(title, out, label, n, o);
 				  break;
 			  }
-		  }
+		  }	  
 	  }
+	  /*
 	  final long end = System.currentTimeMillis();
 	  final long time = end - start;
 	  if (time > 100) {
 		  System.out.println(getText()+" took "+time+" ms");
 	  }
+	  */
 	  return title;
   }
 
