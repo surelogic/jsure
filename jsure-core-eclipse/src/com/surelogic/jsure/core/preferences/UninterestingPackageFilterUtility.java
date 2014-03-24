@@ -1,9 +1,12 @@
 package com.surelogic.jsure.core.preferences;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.surelogic.Utility;
 import com.surelogic.common.core.EclipseUtility;
@@ -24,7 +27,7 @@ public final class UninterestingPackageFilterUtility {
   public static final List<String> DEFAULT = Arrays.asList("com\\.apple.*", "com\\.oracle.*", "com\\.sun.*", ".*\\.internal.*",
       "apple.*", "oracle.*", "org\\.junit.*", "junit\\.framework.*", "quicktime.*", "sun.*");
 
-  public static final AtomicReference<List<String>> CACHE = new AtomicReference<List<String>>();
+  public static final AtomicReference<List<Pattern>> CACHE = new AtomicReference<List<Pattern>>();
 
   public static void setPreference(final List<String> value, boolean notifyObservers) {
     if (value == null)
@@ -40,11 +43,16 @@ public final class UninterestingPackageFilterUtility {
   }
 
   private static void updateCache() {
-    CACHE.set(getPreference());
+	List<String> prefs = getPreference();
+	List<Pattern> patterns = new ArrayList<Pattern>();
+	for(String p : prefs) {
+		patterns.add(Pattern.compile(p));
+	}
+    CACHE.set(patterns);
   }
 
-  private static List<String> getCache() {
-    List<String> result = CACHE.get();
+  private static List<Pattern> getCache() {
+    List<Pattern> result = CACHE.get();
     if (result == null)
       updateCache();
     result = CACHE.get(); // try again
@@ -77,10 +85,13 @@ public final class UninterestingPackageFilterUtility {
     if (javaRef == null)
       return false;
     final String name = javaRef.getTypeNameFullyQualified();
-    List<String> filters = getCache();
-    for (String regex : filters) {
-      if (name.matches(regex))
+    List<Pattern> filters = getCache();
+    for (Pattern regex : filters) {
+      //if (name.matches(regex)
+      Matcher m = regex.matcher(name);
+      if (m.matches()) {
         return false; // filter this resource out
+      }
     }
     return true; // show this resource
   }
