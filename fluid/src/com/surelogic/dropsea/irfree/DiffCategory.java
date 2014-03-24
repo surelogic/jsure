@@ -209,18 +209,23 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
         	  // No need to diff the match, since we can ignore these
         	  break;
           }
-          DropDiff d = DropDiff.compute(title, out, label, n, o);
-          if (d != null) {
-        	title = null;
-            diffs.add(d);
-          } else {
-        	newMatchingOld.put(n.drop, o.drop);
-          }
+          title = diffMatchingDrops(title, out, label, n, o);
           break;
         }
       }
     }
     return title;
+  }
+  
+  private String diffMatchingDrops(String title, PrintStream out, String label, DiffNode n, DiffNode o) {
+      DropDiff d = DropDiff.compute(title, out, label, n, o);
+      if (d != null) {
+    	title = null;
+        diffs.add(d);
+      } else {
+    	newMatchingOld.put(n.drop, o.drop);
+      }
+      return title;
   }
   
   private String matchUsingHashes(String title, PrintStream out, IDropMatcher m) {	  
@@ -260,13 +265,7 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
 					  // No need to diff the match, since we can ignore these
 					  break;
 				  }
-				  DropDiff d = DropDiff.compute(title, out, label, n, o);
-				  if (d != null) {
-					  title = null;
-					  diffs.add(d);
-				  } else {
-					  newMatchingOld.put(n.drop, o.drop);
-				  }
+		          title = diffMatchingDrops(title, out, label, n, o);
 				  break;
 			  }
 		  }
