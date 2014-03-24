@@ -11,6 +11,7 @@ import com.surelogic.dropsea.*;
  */
 public class DiffNode extends AbstractDiffNode {
 	final IDrop drop;
+	int cachedHash; // To store for each pass
 	
 	DiffNode(IDrop d) {
 		if (d == null) {

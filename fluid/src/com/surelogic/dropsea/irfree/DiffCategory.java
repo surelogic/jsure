@@ -4,6 +4,9 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.*;
 
+import org.apache.commons.collections15.MultiMap;
+import org.apache.commons.collections15.multimap.MultiHashMap;
+
 import com.surelogic.common.IViewable;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.*;
@@ -182,6 +185,9 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
    * Print out the title (if non-null) and the diffs
    */
   private String match(String title, PrintStream out, IDropMatcher m) {
+	if (m.useHashing()) {
+		return matchUsingHashes(title, out, m);
+	}
     Iterator<DiffNode> it = newer.iterator();
     while (it.hasNext()) {
       DiffNode n = it.next();
@@ -215,6 +221,62 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
       }
     }
     return title;
+  }
+  
+  private String matchUsingHashes(String title, PrintStream out, IDropMatcher m) {	  
+	  final long start = System.currentTimeMillis();
+	  // Cache hashs 
+	  final MultiMap<Integer, DiffNode> older = new MultiHashMap<Integer, DiffNode>();
+	  for(DiffNode o : old) {
+		  o.cachedHash = m.hash(o.drop);
+		  older.put(o.cachedHash, o);
+	  }	
+	  
+	  Iterator<DiffNode> it = newer.iterator();
+	  while (it.hasNext()) {
+		  final DiffNode n = it.next();
+		  n.cachedHash = m.hash(n.drop);
+		  
+		  Collection<DiffNode> hashedOld = older.get(n.cachedHash);
+		  if (hashedOld == null) {
+			  continue;
+		  }
+		  for (final DiffNode o : hashedOld) {
+			  if (m.match(n.drop, o.drop)) {
+				  final String label = m.getLabel();
+				  if (m.warnIfMatched()) {
+					  if (title != null) {
+						  out.println(title);
+						  title = null;
+					  }
+					  out.println("\t" + label + ":+" + toString(n));
+					  out.println("\t" + label + ":-" + toString(o));
+				  }
+
+				  hashedOld.remove(o);
+				  old.remove(o);
+				  it.remove();
+				  if (isNotDerivedFromSrc(n.drop) && isNotDerivedFromSrc(o.drop)) {
+					  // No need to diff the match, since we can ignore these
+					  break;
+				  }
+				  DropDiff d = DropDiff.compute(title, out, label, n, o);
+				  if (d != null) {
+					  title = null;
+					  diffs.add(d);
+				  } else {
+					  newMatchingOld.put(n.drop, o.drop);
+				  }
+				  break;
+			  }
+		  }
+	  }
+	  final long end = System.currentTimeMillis();
+	  final long time = end - start;
+	  if (time > 100) {
+		  System.out.println(getText()+" took "+time+" ms");
+	  }
+	  return title;
   }
 
   public void write(PrintWriter w) {

@@ -32,6 +32,10 @@ public abstract class CategoryMatcher {
 	passes.add(m);  
   }
 
+  protected static int hashBasics(IDrop d) {
+	return hashMessage(d);
+  }
+  
   protected static boolean matchBasics(IDrop n, IDrop o) {
     return matchMessage(n, o);
   }
@@ -63,6 +67,14 @@ public abstract class CategoryMatcher {
     return null;
   }
 
+  protected static int hashMessage(IDrop d) {
+	String msg = d.getMessageCanonical();
+	if (msg != null) {
+		return msg.hashCode();
+	}
+	return 0;
+  }
+  
   protected static boolean matchMessage(IDrop n, IDrop o) {
     Boolean result;
     final String oCanon = o.getMessageCanonical();
@@ -73,6 +85,7 @@ public abstract class CategoryMatcher {
       // Otherwise, check the message
       return result;
     } 
+    // Needed for some of the really old tests
     else if (oCanon != null && oCanon.startsWith(oldPrefix)) {
     	if (oCanon.contains("this")) {
     		String mod = "(23,"+oCanon.substring(oldPrefix.length());
@@ -117,6 +130,14 @@ public abstract class CategoryMatcher {
 	  "Borrowed on parameter 'arg2' of ",
   };
   */
+  
+  protected static int hashAnalysisHint(IDrop d) {
+	  final String h = d.getDiffInfoOrNull(DiffHeuristics.ANALYSIS_DIFF_HINT);
+	  if (h != null) {
+		  return h.hashCode();
+	  }
+	  return 0;
+  }
   
   protected static boolean matchAnalysisHint(String label, IDrop n, IDrop o) {
 	  return matchAnalysisHintOrNull(label, n, o) == Boolean.TRUE;
@@ -199,6 +220,13 @@ public abstract class CategoryMatcher {
   }
   */
 
+  protected static int hashIDecl(IJavaRef r) {
+	  if (r == null) {
+		  return 0;
+	  }
+	  return r.getPositionRelativeToDeclaration().hashCode() + r.getDeclaration().simpleDeclarationHashCodeSloppy();
+  }
+  
   protected static boolean matchIDecls(IJavaRef nr, IJavaRef or) {
 	if (nr == null || or == null) {
 		return false;
