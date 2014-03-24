@@ -2,6 +2,7 @@ package com.surelogic.dropsea.irfree;
 
 import com.surelogic.dropsea.IDrop;
 
+// Used for the oracle diff view
 public class DiffMessage extends AbstractDiffNode {
 	private final String text;
 	
