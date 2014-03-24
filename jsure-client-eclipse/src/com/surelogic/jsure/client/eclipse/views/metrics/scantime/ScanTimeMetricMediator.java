@@ -314,7 +314,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
     /*
      * Left-hand-side shows tree-table.
      */
-    f_treeViewer = new TreeViewer(panel, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+    f_treeViewer = new TreeViewer(panel, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL);
     f_treeViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
     f_treeViewer.setContentProvider(f_contentProvider);
     f_treeViewer.addFilter(f_analysisToShowFilter);

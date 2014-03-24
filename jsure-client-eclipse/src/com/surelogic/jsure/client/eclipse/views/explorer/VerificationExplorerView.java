@@ -126,7 +126,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_viewerbook = new PageBook(parent, SWT.NONE);
     f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
     f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
-    f_treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+    f_treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.VIRTUAL);
     f_treeViewer.setContentProvider(f_contentProvider);
     f_treeViewer.setSorter(f_alphaLineSorter);
     f_treeViewer.getTree().setHeaderVisible(true);

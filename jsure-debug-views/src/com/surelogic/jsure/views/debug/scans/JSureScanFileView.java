@@ -13,8 +13,8 @@ import com.surelogic.common.jobs.remote.AbstractRemoteSLJob;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.javac.persistence.JSureScan;
 import com.surelogic.javac.persistence.ScanProperty;
-import com.surelogic.jsure.client.eclipse.views.AbstractJSureScanView;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
+import com.surelogic.jsure.views.debug.AbstractJSureScanView;
 
 /**
  * A tabbed view to show log files in the selected scan directory

@@ -23,9 +23,9 @@ import com.surelogic.dropsea.irfree.IDiffNode;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
 import com.surelogic.javac.persistence.JSureScanInfo;
-import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
+import com.surelogic.jsure.views.debug.IJSureTreeContentProvider;
 
 public class SnapshotDiffContentProvider implements IJSureTreeContentProvider {
   private static final Object[] noElements = SLUtility.EMPTY_OBJECT_ARRAY;

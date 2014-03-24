@@ -133,7 +133,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     f_viewerbook = new PageBook(parent, SWT.NONE);
     f_noResultsToShowLabel = new Label(f_viewerbook, SWT.NONE);
     f_noResultsToShowLabel.setText(I18N.msg("jsure.eclipse.view.no.scan.msg"));
-    f_treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.MULTI);
+    f_treeViewer = new TreeViewer(f_viewerbook, SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.MULTI | SWT.VIRTUAL);
     f_treeViewer.setContentProvider(f_contentProvider);
     f_treeViewer.setSorter(f_alphaLineSorter);
     f_treeViewer.getTree().setHeaderVisible(true);

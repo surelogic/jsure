@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views;
+package com.surelogic.jsure.views.debug;
 
 import com.surelogic.common.ui.views.ITableContentProvider;
 

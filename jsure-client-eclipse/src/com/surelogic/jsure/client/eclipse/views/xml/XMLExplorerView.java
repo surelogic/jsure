@@ -53,9 +53,9 @@ import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractSLView;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
+import com.surelogic.jsure.client.eclipse.editors.IJSureTreeContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
-import com.surelogic.jsure.client.eclipse.views.IJSureTreeContentProvider;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 import com.surelogic.jsure.core.xml.PromisesLibMerge;
@@ -164,7 +164,7 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
 
   @Override
   protected Control buildViewer(Composite parent) {
-    f_viewer = new TreeViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL);
+    f_viewer = new TreeViewer(parent, SWT.H_SCROLL | SWT.V_SCROLL | SWT.VIRTUAL);
 
     /*
      * We want a double-click to also expand the tree if necessary. This will

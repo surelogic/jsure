@@ -1,4 +1,4 @@
-package com.surelogic.jsure.client.eclipse.views;
+package com.surelogic.jsure.views.debug;
 
 public interface IJSureTableTreeContentProvider extends IResultsTableContentProvider, IJSureTreeContentProvider {
 	boolean showAsTree();
