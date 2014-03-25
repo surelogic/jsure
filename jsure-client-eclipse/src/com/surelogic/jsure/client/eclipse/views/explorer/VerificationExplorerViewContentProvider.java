@@ -2,8 +2,10 @@ package com.surelogic.jsure.client.eclipse.views.explorer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Set;
 import java.util.logging.Level;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -78,6 +80,8 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
         if (in.f_showObsoleteDrops && in.f_diff != null)
           drops.addAll(in.f_diff.getDropsOnlyInOldScan(in.f_oldScan));
 
+        // TODO Could be combined w/ the line above?
+        final Set<IDrop> oldDrops = new HashSet<IDrop>(in.f_oldScan.getDropInfo());
         for (IDrop pd : drops) {
           if (in.f_showOnlyDifferences && in.f_diff != null && in.f_diff.isSameInBothScans(pd))
             continue;
@@ -89,7 +93,7 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
             continue;
           if (pd instanceof IResultFolderDrop)
             continue;
-          ElementDrop.addToTree(tree, pd, in.f_oldScan == null ? false : in.f_oldScan.contains(pd));
+          ElementDrop.addToTree(tree, pd, in.f_oldScan == null ? false : oldDrops.contains(pd));//in.f_oldScan.contains(pd));
         }
       }
       f_root = tree.getRootElements();
