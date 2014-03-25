@@ -1,5 +1,8 @@
 package com.surelogic.jsure.client.eclipse.model.selection;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.Nullable;
@@ -44,23 +47,34 @@ public final class FilterAnnotation extends Filter implements IOnlyPromisesPorus
   @Override
   @Nullable
   public String getFilterValueFromDropOrNull(IProofDrop drop) {
-    final String suffix = "PromiseDrop";
+
     if (!(drop instanceof IPromiseDrop))
       return null;
 
     final String result = drop.getIRDropSeaClass().getSimpleName();
 
     // Special cases
-    if ("LockModel".equals(result))
-      return "RegionLock";
-    if ("RegionModel".equals(result))
-      return "Region";
-    if ("VouchFieldIsPromiseDrop".equals(result))
-      return "Vouch";
+    final String subst = substMap.get(result);
+    if (subst != null) {
+    	return subst;
+    }
     // General case XResultDrop where we return X
     if (!result.endsWith(suffix))
       return null;
 
     return result.substring(0, result.length() - suffix.length());
+  }
+  
+  private static final String suffix = "PromiseDrop";
+  
+  private static final Map<String,String> substMap = new HashMap<String, String>();
+  static {
+	  substMap.put("LockModel", "RegionLock");
+	  substMap.put("RegionModel", "Region");
+	  substMap.put("VouchFieldIsPromiseDrop", "Vouch");
+	  substMap.put("ExplicitBorrowedInRegionPromiseDrop", "BorrowedInRegion");
+	  substMap.put("ExplicitUniqueInRegionPromiseDrop", "UniqueInRegion");
+	  substMap.put("SimpleBorrowedInRegionPromiseDrop", "BorrowedInRegion");
+	  substMap.put("SimpleUniqueInRegionPromiseDrop", "UniqueInRegion");
   }
 }
