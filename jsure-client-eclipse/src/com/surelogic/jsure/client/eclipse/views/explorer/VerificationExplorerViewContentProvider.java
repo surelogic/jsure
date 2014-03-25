@@ -80,8 +80,7 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
         if (in.f_showObsoleteDrops && in.f_diff != null)
           drops.addAll(in.f_diff.getDropsOnlyInOldScan(in.f_oldScan));
 
-        // TODO Could be combined w/ the line above?
-        final Set<IDrop> oldDrops = new HashSet<IDrop>(in.f_oldScan.getDropInfo());
+        final Set<IDrop> oldDrops = in.f_oldScan == null ? null : new HashSet<IDrop>(in.f_oldScan.getDropInfo());
         for (IDrop pd : drops) {
           if (in.f_showOnlyDifferences && in.f_diff != null && in.f_diff.isSameInBothScans(pd))
             continue;
@@ -93,7 +92,7 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
             continue;
           if (pd instanceof IResultFolderDrop)
             continue;
-          ElementDrop.addToTree(tree, pd, in.f_oldScan == null ? false : oldDrops.contains(pd));//in.f_oldScan.contains(pd));
+          ElementDrop.addToTree(tree, pd, oldDrops == null ? false : oldDrops.contains(pd));
         }
       }
       f_root = tree.getRootElements();
