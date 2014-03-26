@@ -7,10 +7,12 @@
             <Starts>nothing</Starts>
             <parameter index="0">
                 <Borrowed/>
+                <NonNull/>
             </parameter>
 
             <parameter index="2">
                 <Borrowed/>
+                <NonNull/>
             </parameter>
         </method>
     </class>

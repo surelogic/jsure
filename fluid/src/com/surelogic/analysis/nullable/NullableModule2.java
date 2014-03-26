@@ -99,7 +99,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   private static <C extends PromiseDrop<?>> void addTrivialResults(
       final Sea sea, final Class<C> T) {
     for (final C p : sea.getDropsOfType(T)) {
-      if (p.getCheckedBy().isEmpty()) {
+      if (p.getCheckedBy().isEmpty() && !p.isAssumed()) {
         final ResultDrop r = new ResultDrop(p.getNode());
         r.setConsistent();
         r.addChecked(p);
