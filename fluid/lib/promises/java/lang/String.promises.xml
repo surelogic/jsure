@@ -300,6 +300,7 @@
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <NonNull/>
         </method>
 
         <method name="getBytes" params="int, int, byte[], int">
@@ -316,6 +317,7 @@
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <NonNull/>
             <parameter index="0">
                 <Borrowed/>
             </parameter>
@@ -326,6 +328,7 @@
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <NonNull/>
             <parameter index="0">
                 <Borrowed/>
             </parameter>
