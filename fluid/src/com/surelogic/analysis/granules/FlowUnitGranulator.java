@@ -5,10 +5,7 @@ import java.util.List;
 import com.surelogic.analysis.visitors.FlowUnitFinder;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
-import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
-import extra166y.Ops.Procedure;
 
 public final class FlowUnitGranulator extends AbstractGranulator<FlowUnitGranule> {
   public static final FlowUnitGranulator prototype = new FlowUnitGranulator();
