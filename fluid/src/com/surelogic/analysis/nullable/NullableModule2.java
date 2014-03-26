@@ -99,7 +99,13 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   private static <C extends PromiseDrop<?>> void addTrivialResults(
       final Sea sea, final Class<C> T) {
     for (final C p : sea.getDropsOfType(T)) {
-      if (p.getCheckedBy().isEmpty() && !p.isAssumed()) {
+      /*
+       * Only add trivial results to unsupported promises that aren't assumed
+       * or from binary files.  Drops that are assumed or from a binary file
+       * we WANT to be marked with a red dot.
+       */
+      if (p.getCheckedBy().isEmpty() && !p.isAssumed() &&
+          !TypeUtil.isBinary(p.getPromisedFor())) {
         final ResultDrop r = new ResultDrop(p.getNode());
         r.setConsistent();
         r.addChecked(p);
@@ -114,7 +120,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
         } else if (VariableDeclarator.prototype.includes(op)) {
           r.setMessage(TRIVIAL_FIELD);
         } else {
-          r.setMessage(TRIVIAL_UNKNOWN);
+          r.setMessage(TRIVIAL_UNKNOWN); // Shouldn't get here
         }
       }
     }
