@@ -152,6 +152,11 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   @Override
   protected boolean doAnalysisOnGranule_wrapped(
       final IIRAnalysisEnvironment env, final FlowUnitGranule g) {
+	/*
+	if (g.getLabel().startsWith("android.util.Base64")) {
+		System.out.println("Found Base64 granule: "+g.getLabel());
+	}
+	*/
 	AnalysisBundle a = getAnalysis();
 	try {
 		a.execute(g);
