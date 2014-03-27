@@ -307,7 +307,8 @@ public final class ScanManagerMediator implements ILifecycle {
     TableColumn dateColumn = addColumn("jsure.scan.view.table.col.date", SWT.LEFT);
     TableColumn sizeColumn = addColumn("jsure.scan.view.table.col.size", SWT.RIGHT);
     TableColumn projColumn = addColumn("jsure.scan.view.table.col.proj", SWT.LEFT);
-    TableColumn filterColumn = addColumn("jsure.scan.view.table.col.filter", SWT.LEFT);
+    TableColumn excludedColumn = addColumn("jsure.scan.view.table.col.excluded", SWT.LEFT);
+    TableColumn asBytecodeColumn = addColumn("jsure.scan.view.table.col.as-bytecode", SWT.LEFT);
 
     /*
      * Setup sorters
@@ -322,7 +323,8 @@ public final class ScanManagerMediator implements ILifecycle {
       }
     };
     new MyColumnViewerSorter(f_table, projColumn, columnIndex++);
-    new MyColumnViewerSorter(f_table, filterColumn, columnIndex++);
+    new MyColumnViewerSorter(f_table, excludedColumn, columnIndex++);
+    new MyColumnViewerSorter(f_table, asBytecodeColumn, columnIndex++);
 
     /*
      * Set the default sort to the date (newest on top)
@@ -453,6 +455,9 @@ public final class ScanManagerMediator implements ILifecycle {
           }
           if (columnIndex == FIRST_COLUMN_INDEX + 3) {
             return run.getProjects().getConciseExcludedFoldersAndPackages();
+          }
+          if (columnIndex == FIRST_COLUMN_INDEX + 4) {
+            return run.getProjects().getConciseSourceFoldersLoadedAsBytecode();
           }
         }
       } catch (Exception e) {
