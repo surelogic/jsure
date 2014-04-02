@@ -55,7 +55,7 @@ public class NewBenchmarkingUAM extends AbstractWholeIRAnalysis<UniquenessAnalys
 				}
 				methodName = methodName.replace(',', '_');
 
-				JavaComponentFactory.clearCache();
+				// JavaComponentFactory.clearCache();
 				final IJavaRef javaRef = JavaNode.getJavaRef(node);
 				final int length = javaRef == null ? -1 : javaRef.getLength();
 				final long start = System.currentTimeMillis();
