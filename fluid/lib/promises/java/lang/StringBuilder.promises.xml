@@ -265,6 +265,7 @@
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
+            <NonNull/>
         </method>
     </class>
 </package>

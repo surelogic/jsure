@@ -61,6 +61,12 @@
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
+        
+        <method name="clone">
+            <NonNull/>
+            <Starts>nothing</Starts>
+            <RegionEffects>none</RegionEffects> <!-- always throws exception -->
+        </method>
 
         <method name="countStackFrames">
             <Borrowed>this</Borrowed>

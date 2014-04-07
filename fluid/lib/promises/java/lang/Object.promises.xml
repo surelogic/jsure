@@ -49,5 +49,11 @@
             <RequiresLock>MUTEX</RequiresLock>
             <Starts>nothing</Starts>
         </method>
+        
+        <method name="clone">
+            <NonNull/>
+            <Starts>nothing</Starts>
+            <RegionEffects>reads All</RegionEffects>
+        </method>
     </class>
 </package>

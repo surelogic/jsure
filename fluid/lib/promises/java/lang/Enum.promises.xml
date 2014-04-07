@@ -22,5 +22,11 @@
         <method name="toString">
             <RegionEffects>reads this:Instance</RegionEffects>
         </method>
+        
+        <method name="clone">
+            <NonNull/>
+            <Starts>nothing</Starts>
+            <RegionEffects>none</RegionEffects> <!-- always throws exception -->
+        </method>
     </class>
 </package>

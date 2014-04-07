@@ -9,6 +9,12 @@
             <RegionEffects>writes Instance</RegionEffects>
             <Starts>nothing</Starts>
         </method>
+        
+        <method name="clone">
+            <NonNull/>
+            <Starts>nothing</Starts>
+            <RegionEffects>reads All</RegionEffects>
+        </method>
 
         <method name="containsKey" params="java.lang.Object">
             <Borrowed>this</Borrowed>

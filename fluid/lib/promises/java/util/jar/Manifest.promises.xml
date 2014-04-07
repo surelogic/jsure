@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.util.jar" release="3">
+    <class name="Manifest">
+        <method name="clone">
+            <NonNull/>
+            <Starts>nothing</Starts>
+            <RegionEffects>reads All</RegionEffects>
+        </method>
+    </class>
+</package>

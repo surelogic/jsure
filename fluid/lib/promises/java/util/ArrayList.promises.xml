@@ -66,6 +66,7 @@
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <NonNull/>
         </method>
 
         <method name="contains" params="java.lang.Object">
