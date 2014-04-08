@@ -15,8 +15,9 @@ public final class CastPromiseDrop extends PromiseDrop<CastNode> {
     setCategorizingMessage(JavaGlobals.VOUCH_CAT);
   }
 
+  @Override
   protected IRNode useAlternateDeclForUnparse() {
-	return VisitUtil.getEnclosingClassBodyDecl(getNode());
+    return VisitUtil.getEnclosingClassBodyDecl(getNode());
   }
   
   public boolean isToNonNull() {

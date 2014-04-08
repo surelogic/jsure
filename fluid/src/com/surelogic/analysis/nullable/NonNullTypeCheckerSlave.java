@@ -156,17 +156,22 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   
   private IRNode receiverDecl = null;
 
+  // TODO: Make this be controlled by and passed in by NullableModule2
   private static final Set<PromiseDrop<?>> createdVirtualAnnotations = new ConcurrentHashSet<PromiseDrop<?>>();
+  
+  private final Map<IRNode, Element> fieldInits;
   
   
   
   public NonNullTypeCheckerSlave(final IBinder b,
       final NonNullRawTypeAnalysis nonNullRaw,
-      final Set<IRNode> badMethodBodies) {
+      final Set<IRNode> badMethodBodies,
+      final Map<IRNode, Element> fields) {
     super(b);
     thisExprBinder = new ThisExpressionBinder(b);
     nonNullRawTypeAnalysis = nonNullRaw;
     this.badMethodBodies = badMethodBodies;
+    fieldInits = fields;
   }
   
   public static void clearGlobalCaches() {
@@ -593,7 +598,19 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   @Override
   protected void checkFieldInitialization(
       final IRNode fieldDecl, final IRNode varDecl) {
-    checkAssignmentInitializer(varDecl, LValue.FIELD);
+    final IRNode init = VariableDeclarator.getInit(varDecl);
+    if (Initialization.prototype.includes(init)) {
+      final IRNode initExpr = Initialization.getValue(init);
+      final IRNode typeNode = VariableDeclarator.getType(varDecl);
+      if (getAnnotationToAssure(varDecl) != null) {
+        // Only check if the local is explicitly annotated
+        checkAssignability(initExpr, varDecl, LValue.FIELD, typeNode);
+      } else { // try to propose @NonNUll
+        if (ReferenceType.prototype.includes(typeNode)) {
+          recordFieldAssignment(varDecl, initExpr);
+        }
+      }
+    }
   }
   
   @Override
@@ -681,6 +698,20 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
       final IRNode varDecl = binder.getBinding(lhs);
       final IRNode typeNode = VariableDeclarator.getType(varDecl);
       checkAssignability(rhs, varDecl, LValue.FIELD, typeNode);
+      
+      /* 
+       * Track the assignments of unannotated deferred final fields for
+       * annotation proposal purposes.
+       * 
+       * N.B. final fields may only be assigned to within a constructor, so we
+       * can, in fact, find all assignments to the field no matter what the 
+       * visiblity of the field.
+       */
+      if (//TypeUtil.isFinal(varDecl, false) &&
+          ReferenceType.prototype.includes(typeNode) &&
+          getAnnotationToAssure(varDecl) == null) {
+        recordFieldAssignment(varDecl, rhs);
+      }
     } else if (VariableUseExpression.prototype.includes(op)) {
       /* Only check the assignment if the lhs is local variable, NOT if it
        * is a parameter.  The annotations on the two mean different things.
@@ -696,20 +727,26 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
     }
   }
 
+  private void recordFieldAssignment(final IRNode varDecl, final IRNode rhs) {
+    Element state = fieldInits.get(varDecl);
+    Element rhsState = currentQuery().getResultFor(rhs).getValue();
+    if (state == null) {
+      fieldInits.put(varDecl, rhsState);
+    } else {
+      fieldInits.put(varDecl, state.join(rhsState));
+    }
+  }
+
   @Override
   protected void checkVariableInitialization(
       final IRNode declStmt, final IRNode vd) {
-    checkAssignmentInitializer(vd, LValue.VARIABLE);
-  }
-
-  private void checkAssignmentInitializer(final IRNode vd, final LValue kind) {
     final IRNode init = VariableDeclarator.getInit(vd);
     if (Initialization.prototype.includes(init)) {
       // Only check if the local is explicitly annotated
       if (getAnnotationToAssure(vd) != null) {
         final IRNode initExpr = Initialization.getValue(init);
         final IRNode typeNode = VariableDeclarator.getType(vd);
-        checkAssignability(initExpr, vd, kind, typeNode);
+        checkAssignability(initExpr, vd, LValue.VARIABLE, typeNode);
       }
     }
   }

@@ -21,6 +21,7 @@ import com.surelogic.common.Pair;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.util.AbstractRemovelessIterator;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
 import com.surelogic.util.IRNodeIndexedArrayLattice;
 import com.surelogic.util.IThunk;
@@ -35,6 +36,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.java.operator.AllocationExpression;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
@@ -48,6 +50,7 @@ import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.ImpliedEnumConstantInitialization;
+import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NoInitialization;
@@ -55,12 +58,15 @@ import edu.cmu.cs.fluid.java.operator.NullLiteral;
 import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
+import edu.cmu.cs.fluid.java.operator.ReferenceType;
+import edu.cmu.cs.fluid.java.operator.ReturnStatement;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
+import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -356,25 +362,34 @@ implements IBinderClient {
   protected JavaForwardAnalysis<Value, Lattice> createAnalysis(final IRNode flowUnit) {
     final LocalVariableDeclarations lvd = LocalVariableDeclarations.getDeclarationsFor(flowUnit);
     final List<IRNode> refVars = new ArrayList<IRNode>(
-        lvd.getLocal().size() + lvd.getExternal().size() + lvd.getReceivers().size());
+        lvd.getLocal().size() + lvd.getExternal().size() +
+        lvd.getReceivers().size());
 
     // Add the receivers
     refVars.addAll(lvd.getReceivers());
-
     // Add all reference-typed variables in scope
     LocalVariableDeclarations.separateDeclarations(
         binder, lvd.getLocal(), refVars, NullList.<IRNode>prototype());
     LocalVariableDeclarations.separateDeclarations(
         binder, lvd.getExternal(), refVars, NullList.<IRNode>prototype());
     
+    
     // Get the local variables that are annotated with @Raw or @NonNull
     // N.B. Non-ref types variables cannot be @Raw or @NonNull, so we don't have to test for them
-    final List<IRNode> varsToInfer = new ArrayList<IRNode>(lvd.getLocal().size());
+    final List<IRNode> varsToInfer = new ArrayList<IRNode>(lvd.getLocal().size() + 1);
     for (final IRNode v : lvd.getLocal()) {
       if (!ParameterDeclaration.prototype.includes(v)) {
         varsToInfer.add(v);
       }
     }
+    /* If the flow unit is a method with a return value, add the return value 
+     * node.  Only add if reference-type return value
+     */
+    if (MethodDeclaration.prototype.includes(flowUnit) &&
+      ReferenceType.prototype.includes(MethodDeclaration.getReturnType(flowUnit))) {
+      varsToInfer.add(JavaPromise.getReturnNode(flowUnit));
+    }
+
     
     /* If the flow unit is a constructor C(), get all the uses of the  
      * qualified receiver "C.this" that appear along the initialization control
@@ -575,6 +590,17 @@ implements IBinderClient {
         return where;
       }
     },
+    FINAL_INIT_FIELD(969) {
+      @Override
+      public IRNode getAnnotatedNode(final IBinder binder, final IRNode where) {
+        return binder.getBinding(where);
+      }
+      
+      @Override
+      public String unparse(final IRNode w) {
+        return FieldRef.getId(w);
+      }
+    },
     
     NO_VALUE(966) {
       @Override
@@ -693,6 +719,8 @@ implements IBinderClient {
       final Operator op = JJNode.tree.getOperator(index);
       if (ParameterDeclaration.prototype.includes(op)) {
         sb.append(ParameterDeclaration.getId(index));
+      } else if (ReturnValueDeclaration.prototype.includes(op)) {
+        sb.append("<return>");
       } else { // VariableDeclarator
         sb.append(VariableDeclarator.getId(index));
       }
@@ -1550,6 +1578,19 @@ implements IBinderClient {
     }
     
     @Override
+    protected Value transferReturn(final IRNode node, final Value val) {
+      if (!lattice.isNormal(val)) return val;
+
+      final int inferredIdx = lattice.indexOfInferred(JavaPromise.getReturnNode(flowUnit));
+      if (inferredIdx != -1) { // void methods and methods with primitive return types are not in the inferred list
+        final Base stackState = lattice.peek(val);
+        return lattice.inferVar(pop(val), inferredIdx, stackState.first(), ReturnStatement.getValue(node));
+      } else {
+        return pop(val);
+      }
+    }
+    
+    @Override
     protected Value transferUseField(final IRNode fref, Value val) {
       if (!lattice.isNormal(val)) return val;
       
@@ -1562,23 +1603,25 @@ implements IBinderClient {
       final Element refState = lattice.peek(val).first();
       val = pop(val);
 
-      final IRNode fieldDecl = binder.getBinding(fref);
+      final IRNode varDecl = binder.getBinding(fref);
+      final NonNullPromiseDrop nonNullPD = NonNullRules.getNonNull(varDecl);
+      
       /*
        * If the field is actually an enumeration constant then it is always
        * @NonNull.  We could instead use virtual @NonNull annotations on
        * EnumConstantDeclaration nodes, but Tim thinks that is overkill.
        */
-      if (EnumConstantDeclaration.prototype.includes(fieldDecl)) {
+      if (EnumConstantDeclaration.prototype.includes(varDecl)) {
         // Always @NonNull
-        val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.ENUM_CONSTANT, fieldDecl));
+        val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.ENUM_CONSTANT, varDecl));
       }
       /*
        * If the field is @NonNull, then we push NOT_NULL, unless the object
        * reference is RAW.  In that case, we have to check to see if the 
        * field is initialized yet.  If so, we push NOT_NULL, otherwise we must
-       * push MAYBE_NULL.  If the field is not annotated, we push MAYBE_NULL.
+       * push MAYBE_NULL. 
        */
-      else if (NonNullRules.getNonNull(fieldDecl) != null) {
+      else if (nonNullPD != null) {
         if (refState == NonNullRawLattice.RAW) {
           // No fields are initialized
           val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.RAW_FIELD_REF, fref));
@@ -1591,7 +1634,7 @@ implements IBinderClient {
            * in the RAW declaration, then the field is not yet initialized.
            */
           final ITypeEnvironment typeEnvironment = binder.getTypeEnvironment();
-          final IRNode fieldDeclaredIn = VisitUtil.getEnclosingType(fieldDecl);
+          final IRNode fieldDeclaredIn = VisitUtil.getEnclosingType(varDecl);
           final IJavaType fieldIsFrom = typeEnvironment.getMyThisType(fieldDeclaredIn);
           if (typeEnvironment.isSubType(fieldIsFrom, initializedThrough) &&
               !fieldIsFrom.equals(initializedThrough)) {
@@ -1602,8 +1645,21 @@ implements IBinderClient {
         } else {
           val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.FIELD_REF, fref));
         }
-      } else {
-        val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.FIELD_REF, fref));
+      }
+      /*
+       * The field is unannotated.  If the field is final and initialized in
+       * the field declaration to a new object, then the field is NOT_NULL.
+       * Otherwise it is MAYBE_NULL.
+       */
+      else {
+        final IRNode init = VariableDeclarator.getInit(varDecl);
+        if (TypeUtil.isFinal(varDecl) &&
+            Initialization.prototype.includes(init) &&
+            AllocationExpression.prototype.includes(Initialization.getValue(init))) {
+          val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.FINAL_INIT_FIELD, fref));
+        } else {
+          val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.FIELD_REF, fref));
+        }
       }
       return val;
     }

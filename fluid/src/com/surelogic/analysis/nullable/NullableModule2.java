@@ -2,11 +2,15 @@ package com.surelogic.analysis.nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import com.surelogic.NonNull;
+import com.surelogic.aast.promise.NullableNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.IBinderClient;
@@ -18,18 +22,23 @@ import com.surelogic.analysis.granules.FlowUnitGranule;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
 import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
+import com.surelogic.analysis.nullable.NonNullRawLattice.Element;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Inferred;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.InferredQuery;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.InferredVarState;
 import com.surelogic.analysis.nullable.NullableModule2.AnalysisBundle.QueryBundle;
 import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.analysis.visitors.SuperVisitor;
+import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.common.util.FilterIterator;
+import com.surelogic.common.util.IteratorUtil;
 import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
@@ -226,6 +235,27 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
           JavaNames.genSimpleMethodConstructorName(cdecl));
     }
     
+//    @Override
+//    protected void handleFieldInitialization(final IRNode varDecl, final boolean isStatic) {
+//      doAcceptForChildren(varDecl);
+//      
+//      /* If the field is final and intialized to a new object then we add 
+//       * a virtual @NonNull annotation.  This corresponds to the actions
+//       * in NonNullRawTypeAnalysis.Transfer.transferUseField().  Don't add
+//       * @NonNull proposal here because that will be added later in 
+//       * NullableModule2.postAnalysis().
+//       */
+//      final IRNode init = VariableDeclarator.getInit(varDecl);
+//      if (TypeUtil.isFinal(varDecl) &&
+//          Initialization.prototype.includes(init) &&
+//          AllocationExpression.prototype.includes(Initialization.getValue(init))) {
+//        final NonNullNode nnn = new NonNullNode(0);
+//        nnn.setPromisedFor(varDecl, null);
+//        final NonNullPromiseDrop pd = new NonNullPromiseDrop(nnn);
+//        AnnotationRules.attachAsVirtual(NonNullRules.getNonNullStorage(), pd);
+//      }
+//    }
+    
     @Override
     public Void visitMethodBody(final IRNode body) {
       doAcceptForChildren(body);
@@ -238,12 +268,31 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
            * use info drops instead.
            */
           final IRNode varDecl = p.getLocal();
-          if (p.getState() == NonNullRawLattice.NOT_NULL &&
-              NonNullRules.getNonNull(varDecl) == null) {
-            final IRNode where = JJNode.tree.getParent(JJNode.tree.getParent(varDecl));
-            final HintDrop hint = HintDrop.newInformation(where);
-            hint.setCategorizingMessage(NON_NULL_LOCAL_CATEGORY);
-            hint.setMessage(LOCAL_NON_NULL, VariableDeclarator.getId(varDecl));
+          final Element state = p.getState();
+          if (ReturnValueDeclaration.prototype.includes(varDecl)) { // method return value
+            if (state == NonNullRawLattice.NOT_NULL &&
+                NonNullRules.getNonNull(varDecl) == null &&
+                NonNullRules.getNullable(varDecl) == null) {
+              /* Return value is unannotated and known to be NOT_NULL.  Propose
+               * to annotate the node with @NonNull.
+               * 
+               * Need to make a virtual @Nullable annotation to attach the proposal to.
+               */
+              final NullableNode nn = new NullableNode(0);
+              nn.setPromisedFor(varDecl, null);
+              final NullablePromiseDrop pd = new NullablePromiseDrop(nn);
+              AnnotationRules.attachAsVirtual(NonNullRules.getNullableStorage(), pd);
+              pd.addProposal(new Builder(NonNull.class, varDecl, varDecl).build());
+              
+            }
+          } else { // local variable
+            if (state == NonNullRawLattice.NOT_NULL &&
+                NonNullRules.getNonNull(varDecl) == null) {
+              final IRNode where = JJNode.tree.getParent(JJNode.tree.getParent(varDecl));
+              final HintDrop hint = HintDrop.newInformation(where);
+              hint.setCategorizingMessage(NON_NULL_LOCAL_CATEGORY);
+              hint.setMessage(LOCAL_NON_NULL, VariableDeclarator.getId(varDecl));
+            }
           }
         }
       } catch (final AnalysisGaveUp e) {
@@ -303,6 +352,21 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   
   @Override
   public void postAnalysis(final IIRProject p) {
+    // Check deferred final fields for @NotNull status
+    for (final IRNode varDecl : getAnalysis().getNotNullFields()) {
+      /* 
+       * We have an unannotated deferred final field that is only ever 
+       * assigned NOT_NULL values.  Propose to make the field @NonNull
+       * 
+       * Need to make a virtual @Nullable annotation to attach the proposal to.
+       */
+      final NullableNode nn = new NullableNode(0);
+      nn.setPromisedFor(varDecl, null);
+      final NullablePromiseDrop pd = new NullablePromiseDrop(nn);
+      AnnotationRules.attachAsVirtual(NonNullRules.getNullableStorage(), pd);
+      pd.addProposal(new Builder(NonNull.class, varDecl, varDecl).build());
+    }
+    
     getAnalysis().clearGlobalCaches();
   }
 
@@ -311,7 +375,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     private final DefinitelyAssignedAnalysis definiteAssignment;
     private final NonNullRawTypeAnalysis nonNullRawType;
     private final Set<IRNode> timedOutMethodBodies = new HashSet<IRNode>();
-    
+    private final Map<IRNode, Element> fieldInits = new HashMap<IRNode, Element>();
     private final DetailVisitor details;
     private final NonNullTypeCheckerSlave typeChecker;
     
@@ -323,7 +387,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
       nonNullRawType = new NonNullRawTypeAnalysis(b);
       
       details = new DetailVisitor(this);
-      typeChecker = new NonNullTypeCheckerSlave(b, nonNullRawType, timedOutMethodBodies);
+      typeChecker = new NonNullTypeCheckerSlave(b, nonNullRawType, timedOutMethodBodies, fieldInits);
     }
     
     @Override
@@ -331,6 +395,16 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
       return binder;
     }
 
+    public Iterable<IRNode> getNotNullFields() {
+      return new FilterIterator<Map.Entry<IRNode, Element>, IRNode>(
+          fieldInits.entrySet().iterator()) {
+        @Override
+        protected Object select(final Entry<IRNode, Element> o) {
+          return o.getValue() == NonNullRawLattice.NOT_NULL ? o.getKey() : IteratorUtil.noElement;
+        }      
+      };
+    }
+    
     @Override
     public void clearCaches() {
       definiteAssignment.clearCaches();
@@ -346,6 +420,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     
     public void clearGlobalCaches() {
       NonNullTypeCheckerSlave.clearGlobalCaches();
+      fieldInits.clear();
     }
     
     public void addTimeOut(final IRNode mBody) {
