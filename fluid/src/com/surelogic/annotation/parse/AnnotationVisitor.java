@@ -58,6 +58,7 @@ import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.IntegerTable;
 
 public class AnnotationVisitor extends Visitor<Integer> {
   public static final String IMPLEMENTATION_ONLY = "implementationOnly";
@@ -676,11 +677,14 @@ public class AnnotationVisitor extends Visitor<Integer> {
   
   @Override
   public Integer visitMethodCall(IRNode node) {
+	  Integer count = super.visitMethodCall(node);
+
 	  // Special case for Cast
 	  final IBinding mb = tEnv.getBinder().getIBinding(node);
 	  if (mb.getContextType().getName().equals(Cast.class.getName())) {
-		  return handleJava5Promise(new ContextBuilder(node, NonNullRules.CAST, MethodDeclaration.getId(mb.getNode()))) ? 1 : 0;
+		  return handleJava5Promise(new ContextBuilder(node, NonNullRules.CAST, MethodDeclaration.getId(mb.getNode()))) ? 
+				 IntegerTable.incrInteger(count) : count;
 	  }
-	  return 0;
+	  return count;
   }
 }
