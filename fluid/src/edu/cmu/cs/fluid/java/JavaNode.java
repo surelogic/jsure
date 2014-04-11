@@ -14,9 +14,11 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.annotation.JavadocAnnotation;
+import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ref.IJavaRef.Position;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.tree.SyntaxTreeNode;
 
@@ -34,6 +36,7 @@ import edu.cmu.cs.fluid.ir.SimpleSlotFactory;
 import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
+import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -495,9 +498,22 @@ public class JavaNode extends JJNode {
   }
 
   public static void makeFluidJavaRefForPackage(IIRProject proj, IRNode pkg) {
-    DeclFactory f = new DeclFactory(proj.getTypeEnv().getBinder());
-    IDecl decl = f.getDeclAndPosition(pkg).first();
-    pkg.setSlotValue(f_fluidJavaRefSlotInfo, new JavaRef.Builder(decl).setEclipseProjectName(proj.getName()).build());
+	makeFluidJavaRefForNode(proj.getName(), proj.getTypeEnv(), pkg, false);
+  }
+  
+  public static void makeFluidJavaRefForNode(String proj, ITypeEnvironment tEnv, IRNode node, boolean includePosition) {
+	if (node.valueExists(f_fluidJavaRefSlotInfo)) {
+		return;
+	}
+    DeclFactory f = new DeclFactory(tEnv.getBinder());
+    Pair<IDecl, Position> pair = f.getDeclAndPosition(node);
+    JavaRef.Builder b = new JavaRef.Builder(pair.first());
+    if (includePosition) {
+    	b.setPositionRelativeToDeclaration(pair.second());
+    }
+    b.setOffset(0); // Unknown
+    b.setLength(1);
+    node.setSlotValue(f_fluidJavaRefSlotInfo, b.setEclipseProjectName(proj).build());
   }
 
   /**
