@@ -188,7 +188,6 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   protected void handleMethodDeclaration(final IRNode mdecl) {
     final IRNode oldReceiverDecl = receiverDecl;
     try {
-//      System.out.println("Type Checking " + JavaNames.genQualifiedMethodConstructorName(mdecl));
       receiverDecl = JavaPromise.getReceiverNodeOrNull(mdecl);
       doAcceptForChildren(mdecl);
     } finally {
@@ -200,7 +199,6 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   protected void handleConstructorDeclaration(final IRNode cdecl) {
     final IRNode oldReceiverDecl = receiverDecl;
     try {
-//      System.out.println("Type Checking " + JavaNames.genQualifiedMethodConstructorName(cdecl));
       receiverDecl = JavaPromise.getReceiverNodeOrNull(cdecl);
       doAcceptForChildren(cdecl);
     } finally {
@@ -645,7 +643,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   protected void checkActualsVsFormals(final IRNode call,
       final IRNode actuals, final IRNode formals) {
     // Don't check the argument to the special cast methods
-    if (NonNullRawTypeAnalysis.isCastMethod(binder.getBinding(call))) {
+    if (NullableUtils.isCastMethod(binder.getBinding(call)) != null) {
       return;
     }
     

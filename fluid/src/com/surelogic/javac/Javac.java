@@ -19,6 +19,7 @@ import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.jtb.TestFunctionalInterfacePseudoAnalysis;
 import com.surelogic.analysis.layers.LayersAnalysis;
 import com.surelogic.analysis.nullable.NullableModule2;
+import com.surelogic.analysis.nullable.NullablePreprocessorModule;
 import com.surelogic.analysis.singleton.SingletonAnalysis;
 import com.surelogic.analysis.structure.StructureAnalysis;
 import com.surelogic.analysis.testing.BCAModule;
@@ -83,8 +84,6 @@ public class Javac extends IDE {
     init(EffectsAnalysis.class,
 			"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects");
     
-    init(NullableModule2.class, "com.surelogic.jsure.client.eclipse.Nullable", true, "Nullable");
-    
     init(com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisModule.class,
         "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM", false, "Uniqueness + From");
     init(com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisAllModule.class,
@@ -110,11 +109,14 @@ public class Javac extends IDE {
 				"com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessSE", false, "Uniqueness Benchmarking (SE)");
 		init(TypeBasedAliasModule.class,
 		    "com.surelogic.jsure.cliend.eclipse.TypeBasedAlias", false, "Type-Based Alias Analysis (for reg tests only)");
-		
-		
+				
 		init(TypesModule.class, "com.surelogic.jsure.client.eclipse.Types", false, "Type Info (for reg tests only)");
 		init(ConstantExpressionModule.class, "com.surelogic.jsure.client.eclipse.ConstantExpr", false, "Constant Expressions (for reg tests only)");
 		init(BinderModule.class, "com.surelogic.jsure.client.eclipse.Binder", false, "Binder (for reg tests only)");
+    final AnalysisInfo nullablePreprocessor =
+        init(NullablePreprocessorModule.class, "com.surelogic.jsure.client.eclipse.NullablePreprocessor", true, "Nullable Preprocessor");
+    
+    init(NullableModule2.class, "com.surelogic.jsure.client.eclipse.Nullable", true, "Nullable", nullablePreprocessor);
     
     init(TestFunctionalInterfacePseudoAnalysis.class,"com.surelogic.jsure.client.eclipse.TestIsFunctional", false, "Functional (for tests only)");
     /*

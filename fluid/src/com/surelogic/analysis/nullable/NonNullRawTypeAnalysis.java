@@ -14,6 +14,7 @@ import com.surelogic.analysis.LocalVariableDeclarations;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.nullable.NonNullRawLattice.ClassElement;
 import com.surelogic.analysis.nullable.NonNullRawLattice.Element;
+import com.surelogic.analysis.nullable.NullableUtils.Method;
 import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.NonNullRules;
@@ -41,7 +42,6 @@ import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
-import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.CrementExpression;
@@ -55,13 +55,11 @@ import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NoInitialization;
 import edu.cmu.cs.fluid.java.operator.NullLiteral;
-import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.ReferenceType;
 import edu.cmu.cs.fluid.java.operator.ReturnStatement;
 import edu.cmu.cs.fluid.java.operator.SuperExpression;
-import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.InitDeclaration;
@@ -1148,8 +1146,9 @@ implements IBinderClient {
       final IRNode methodDecl = binder.getBinding(node);
       final IRNode returnNode = JavaPromise.getReturnNode(methodDecl);
       if (returnNode != null) {
-        if (isCastMethod(methodDecl)) {
-          if (NonNullRules.getNonNull(returnNode) != null) {
+        final Method whichCast = NullableUtils.isCastMethod(methodDecl);
+        if (whichCast != null) {
+          if (whichCast == Method.TO_NON_NULL) {
             return push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.CAST_TO_NONNULL, node));
           } else { // must be @Nullable
             return push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.CAST_TO_NULLABLE, node));
@@ -1621,7 +1620,7 @@ implements IBinderClient {
        * field is initialized yet.  If so, we push NOT_NULL, otherwise we must
        * push MAYBE_NULL. 
        */
-      else if (nonNullPD != null) {
+      else if (nonNullPD != null && !nonNullPD.isVirtual()) {
         if (refState == NonNullRawLattice.RAW) {
           // No fields are initialized
           val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.RAW_FIELD_REF, fref));
@@ -1773,27 +1772,7 @@ implements IBinderClient {
   }
 
 
-
-  // default visibility so that it may be called from NonNullTypeChecker
-  static boolean isCastMethod(final IRNode mdecl) {
-    if (!MethodDeclaration.prototype.includes(mdecl)) {
-      return false;
-    }
-    
-    final String name = MethodDeclaration.getId(mdecl);
-    if (name.equals("toNonNull") || name.equals("toNullable")) {
-      final IRNode typeDecl = VisitUtil.getEnclosingType(mdecl);
-      if (TypeDeclaration.getId(typeDecl).equals("Cast")) {
-        final IRNode cuDecl = VisitUtil.getEnclosingCompilationUnit(typeDecl);
-        return PackageDeclaration.getId(
-            CompilationUnit.getPkg(cuDecl)).equals("com.surelogic");
-      }
-    }
-    return false;
-  }
-
-  
-  
+ 
   public StackQuery getStackQuery(final IRNode flowUnit) {
     return new StackQuery(getAnalysisThunk(flowUnit));
   }

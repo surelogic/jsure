@@ -234,28 +234,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
           cdecl, DEFINITELY_ASSIGNED, NOT_DEFINITELY_ASSIGNED,
           JavaNames.genSimpleMethodConstructorName(cdecl));
     }
-    
-//    @Override
-//    protected void handleFieldInitialization(final IRNode varDecl, final boolean isStatic) {
-//      doAcceptForChildren(varDecl);
-//      
-//      /* If the field is final and intialized to a new object then we add 
-//       * a virtual @NonNull annotation.  This corresponds to the actions
-//       * in NonNullRawTypeAnalysis.Transfer.transferUseField().  Don't add
-//       * @NonNull proposal here because that will be added later in 
-//       * NullableModule2.postAnalysis().
-//       */
-//      final IRNode init = VariableDeclarator.getInit(varDecl);
-//      if (TypeUtil.isFinal(varDecl) &&
-//          Initialization.prototype.includes(init) &&
-//          AllocationExpression.prototype.includes(Initialization.getValue(init))) {
-//        final NonNullNode nnn = new NonNullNode(0);
-//        nnn.setPromisedFor(varDecl, null);
-//        final NonNullPromiseDrop pd = new NonNullPromiseDrop(nnn);
-//        AnnotationRules.attachAsVirtual(NonNullRules.getNonNullStorage(), pd);
-//      }
-//    }
-    
+
     @Override
     public Void visitMethodBody(final IRNode body) {
       doAcceptForChildren(body);
