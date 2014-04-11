@@ -469,6 +469,7 @@ public class NonNullRules extends AnnotationRules {
 	public static CastPromiseDrop getCast(final IRNode decl) {
 	  return getDrop(castRule.getStorage(), decl);
 	}
+	 
 	
   // ======================================================================
 	
@@ -489,29 +490,15 @@ public class NonNullRules extends AnnotationRules {
         return Elements.NULLABLE;
       } else if (a instanceof RawPromiseDrop) {
         final RawPromiseDrop pd = (RawPromiseDrop) a;
-        /*
-        final String upTo = pd.getUpTo();
-        if (upTo.equals(RAW_STAR)) {
-          return Elements.RAW_STAR;
-        } else {
-          final ITypeEnvironment typeEnv = getContext().getBinder(
-              pd.getPromisedFor()).getTypeEnvironment();
-          final IJavaType upToType = typeEnv.findJavaTypeByName(upTo);
-          return new OverridingRawElement(upToType, typeEnv);
-        }
-        */
-	    return makeElementForInitializedDrop(pd);
+        final ITypeEnvironment typeEnv =
+            getContext().getBinder(pd.getPromisedFor()).getTypeEnvironment();
+        final IJavaType upToType =
+            pd.getAAST().getUpToType().resolveType().getJavaType();
+        return new OverridingRawElement(upToType, typeEnv);
       } else {
         throw new IllegalArgumentException(
             "No nullable state for " + a.getClass().getName());
       }
-    }
-
-    private OverridingRawElement makeElementForInitializedDrop(RawPromiseDrop pd) {
-    	final ITypeEnvironment typeEnv = getContext().getBinder(
-    			pd.getPromisedFor()).getTypeEnvironment();
-    	final IJavaType upToType = pd.getAAST().getUpToType().resolveType().getJavaType();
-    	return new OverridingRawElement(upToType, typeEnv);
     }
     
     @Override
@@ -524,18 +511,9 @@ public class NonNullRules extends AnnotationRules {
       
       final RawPromiseDrop rawPD = getRaw(n);
       if (rawPD != null) {
-    	/*
-        final String upTo = rawPD.getUpTo();
-        if (upTo.equals(RAW_STAR)) {
-          return getValueImpl(Elements.RAW_STAR, rawPD);
-        } else {
-          final ITypeEnvironment typeEnv = getContext().getBinder(
-              rawPD.getPromisedFor()).getTypeEnvironment();
-          final IJavaType upToType = typeEnv.findJavaTypeByName(upTo);
-          return getValueImpl(new OverriddenRawElement(upToType), rawPD);
-        }
-        */
-    	return getValueImpl(makeElementForInitializedDrop(rawPD), rawPD);
+        final IJavaType upToType =
+            rawPD.getAAST().getUpToType().resolveType().getJavaType();
+        return getValueImpl(new OverriddenRawElement(upToType), rawPD);
       }
       
       /* Unannotated formal argument or return value is @Nullable.
