@@ -27,7 +27,7 @@ public interface PromiseConstants {
   public static final String REGION_INSTANCE_NAME = "Instance";
   public static final String ARRAY_CLASS_NAME = "[]";
   public static final String REGION_LENGTH_NAME = "length";
-  public static final String ARRAY_CLASS_QNAME = "java.lang.[]";
+  public static final String ARRAY_CLASS_QNAME = "java.lang."+ARRAY_CLASS_NAME;
   
   final Object logInit =
     SimpleApp.logInit(
