@@ -11,6 +11,7 @@ import java.util.*;
 import com.surelogic.aast.promise.*;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.dropsea.ir.drops.RegionModel;
+import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.JavaGlobals;
@@ -117,14 +118,20 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
     
     private static final Map<String,IRNode> types = new Hashtable<String, IRNode>();
     
-    public static IRNode createArrayType(String project, IIRProject p) {      
+    public static IRNode createArrayType(String project, IIRProject p, ITypeEnvironment tEnv) {      
       final IRNode rv = types.get(project+p.hashCode());
       if (rv != null) {
     	  return rv;
       }
       final IRNode[] noNodes = JavaGlobals.noNodes;
       final IRNode tArray = ArrayType.createNode(NamedType.createNode("T"), 1);
-      
+      /*
+      final IRNode[] clonesAnnos = new IRNode[] {    		  
+    		  SingleElementAnnotation.createNode("garbage", StringLiteral.createNode("return")),
+    		  SingleElementAnnotation.createNode("com.surelogic.NonNull", StringLiteral.createNode("return")),
+    		  SingleElementAnnotation.createNode("com.surelogic.Starts", StringLiteral.createNode("nothing")),
+      };
+      */
       final IRNode privateCloneMethod = 
       CogenUtil.makeMethodDecl(noNodes, JavaNode.PUBLIC | JavaNode.NATIVE, noNodes,
                                tArray, "clone", noNodes, noNodes, null);
@@ -154,7 +161,7 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
                               // FIX alpha for the type?
                               privateCloneMethod,
                               /*
-                              makeFieldDecl(CogenUtil.makeVarDecl("[]", null), 
+                              makeFieldDecl(CogenUtil.makeVarDecl(PromiseConstants.ARRAY_CLASS_NAME, null), 
                                             IntType.prototype.jjtCreate(), false ), 
                               */
                             });   
@@ -185,6 +192,7 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
       final IRNode init = InitDeclaration.getInitMethod(privateArrayType);
       ReceiverDeclaration.makeReceiverNode(init);
       
+      Projects.setProject(cu, p);
       types.put(project, privateArrayType);
       return privateArrayType;
     }

@@ -131,10 +131,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	
 	@RequiresLock("JTELock")
 	private IRNode initArrayClassDecl() {
-		final IRNode arrayType = DirtyTricksHelper.createArrayType(project.getName(), project);
+		final IRNode arrayType = DirtyTricksHelper.createArrayType(project.getName(), project, this);
 		classes.addOuterClass(PromiseConstants.ARRAY_CLASS_QNAME, arrayType);
-		Projects.setProject(
-				VisitUtil.getEnclosingCompilationUnit(arrayType), project);
 		return arrayType;
 	}
 	

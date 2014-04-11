@@ -96,6 +96,7 @@ import edu.cmu.cs.fluid.java.ICodeFile;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
 import edu.cmu.cs.fluid.java.adapter.AdapterUtil;
 import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
@@ -491,7 +492,7 @@ public class Util {
       clearCaches(projects);
     }
     perf.markTimeFor("Drop.creation");
-    parsePromises(cus, projects.getMonitor());
+    parsePromises(cus, projects);
     /*
      * for(CodeInfo i : cus.asList()) { if (i.getFileName().endsWith(".java")) {
      * System.out.println("Found: "+i.getFileName()); } }
@@ -1605,7 +1606,8 @@ public class Util {
     endSubTask(monitor);
   }
 
-  private static void parsePromises(ParallelArray<CodeInfo> cus, final SLProgressMonitor monitor) {
+  private static void parsePromises(ParallelArray<CodeInfo> cus, Projects projects) {
+	final SLProgressMonitor monitor = projects.getMonitor();
     ParseUtil.init();
 
     startSubTask(monitor, "Parsing promises");
@@ -1730,6 +1732,43 @@ public class Util {
         }
       }
     };
+    
+    // Parse promises for the array superclass
+    for(final JavacProject p : projects) {    	
+    	final ITypeEnvironment tEnv = p.getTypeEnv();
+    	final IRNode array = tEnv.getArrayClassDeclaration();
+    	final IRNode cu = VisitUtil.getEnclosingCompilationUnit(array);
+    	final JavacProject arrayP = Projects.getProject(cu);
+    	if (p == arrayP) {
+    		final ICodeFile cf = new ICodeFile() {		
+    			@Override
+    			public String getRelativePath() {
+    				return "[]";
+    			}
+
+    			@Override
+    			public String getProjectName() {
+    				return p.getName();
+    			}
+
+    			@Override
+    			public String getPackage() {
+    				return "java.lang";
+    			}
+
+    			@Override
+    			public Object getHostEnvResource() {
+    				return null;
+    			}
+    		};
+    		
+    		// Has to be done after loading
+    		for(IRNode n : VisitUtil.getClassBodyMembers(tEnv.getArrayClassDeclaration())) {
+    			JavaNode.makeFluidJavaRefForNode(p.getName(), tEnv, n, true);
+    		}    		
+    		proc.op(new CodeInfo(tEnv, cf, cu, null, "java.lang.[]", null, Type.BINARY));
+    	}
+    }
     cus.apply(proc);
     /*
      * for (final CodeInfo info : cus) { proc.op(info); }
