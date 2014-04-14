@@ -9,14 +9,21 @@ public class ParseUtil {
     return ParseHelper.getInstance().getStatus(context, prefix, id) != null;
   }
   
+  private static boolean initialized = false;
+  
   public static void init() {
+	  if (initialized) {
+		  return;
+	  }
 	  ScopedPromisesLexer.init();
 	  SLAnnotationsLexer.init();
 	  SLThreadRoleAnnotationsLexer.init();
+	  initialized = true;
   }
   
   public static void clear() {
 	  // TODO Disabled for now, due to use by XML editor
+	  initialized = false;
 	  ScopedPromisesLexer.clear();
 	  SLAnnotationsLexer.clear();
 	  SLThreadRoleAnnotationsLexer.clear();

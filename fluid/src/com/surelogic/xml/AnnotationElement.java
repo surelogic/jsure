@@ -15,6 +15,7 @@ import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.ParseResult;
 import com.surelogic.annotation.parse.AnnotationVisitor;
+import com.surelogic.annotation.parse.ParseUtil;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.AnnotationRules.Attribute;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
@@ -40,6 +41,9 @@ public final class AnnotationElement extends AbstractJavaElement implements
 	// Used to mark placeholder annotations that preserve the relative ordering
 	// when merging diffs
 	public static final String REF_SUFFIX = DASH + "ref";
+	static {
+		ParseUtil.init();
+	}
 
 	private final String uid;
 	private final String promise;
