@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.awt.geom" release="1">
+<package name="java.awt.geom" release="2">
     <class name="Area">
         <constructor>
             <RegionEffects>none</RegionEffects>
@@ -31,6 +31,7 @@
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <NonNull/>
         </method>
 
         <method name="contains" params="double, double">

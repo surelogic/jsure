@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="6">
+<package name="java.util.concurrent" release="7">
     <class name="CopyOnWriteArrayList">
         <ThreadSafe/>
         <AnnotationBounds threadSafe="E" referenceObject="E"/>
@@ -77,6 +77,7 @@
         </method>
 
         <method name="clone">
+            <NonNull/>            
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>

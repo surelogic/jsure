@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="javax.management.openmbean" release="4">
+<package name="javax.management.openmbean" release="5">
     <class name="TabularDataSupport">
         <constructor params="javax.management.openmbean.TabularType">
             <RegionEffects>reads arg0:Instance</RegionEffects>
@@ -34,6 +34,7 @@
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <NonNull/>            
         </method>
 
         <method name="containsKey" params="java.lang.Object">

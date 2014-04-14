@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.awt" release="2">
+<package name="java.awt" release="3">
     <class name="RenderingHints">
         <constructor params="java.awt.RenderingHints.Key, java.lang.Object">
             <RegionEffects>reads arg0:Instance</RegionEffects>
@@ -33,6 +33,7 @@
         </method>
 
         <method name="clone">
+            <NonNull/>            
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>

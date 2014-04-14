@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" release="5">
+<package name="java.util" release="6">
     <class name="EnumMap">
         <Containable allowReferenceObject="true"/>
         <NotThreadSafe/>
@@ -29,6 +29,7 @@
         </method>
 
         <method name="clone">
+            <NonNull/>            
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util" release="4">
+<package name="java.util" release="5">
     <class name="HashSet">
         <Containable allowReferenceObject="true"/>
         <NotThreadSafe/>
@@ -54,6 +54,7 @@
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
+            <NonNull/>
         </method>
 
         <method name="contains" params="java.lang.Object">

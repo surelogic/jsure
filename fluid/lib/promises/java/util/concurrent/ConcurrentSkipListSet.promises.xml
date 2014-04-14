@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.util.concurrent" release="4">
+<package name="java.util.concurrent" release="5">
     <class name="ConcurrentSkipListSet">
         <ThreadSafe/>
         <AnnotationBounds threadSafe="E" referenceObject="E"/>
@@ -62,6 +62,7 @@
         </method>
 
         <method name="clone">
+            <NonNull/>            
             <Borrowed>this</Borrowed>
             <RegionEffects>reads Instance</RegionEffects>
             <Starts>nothing</Starts>
