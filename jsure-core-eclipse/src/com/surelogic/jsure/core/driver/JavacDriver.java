@@ -665,7 +665,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
         }
         final File results = info.getJSureRun().getResultsFile();        
         final String name = prefix + 
-        		(results.getName().endsWith(".gz") ? RegressionUtility.JSURE_SNAPSHOT_SUFFIX+".gz" : RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
+        		(results.getName().endsWith(FileUtility.GZIP_SUFFIX) ? RegressionUtility.JSURE_GZ_SNAPSHOT_SUFFIX : RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
         final File location = new File(scriptResourcesDir, name);
         FileUtility.copy(results, location);
 
@@ -773,7 +773,8 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
   private static final FilenameFilter updateFilter = new FilenameFilter() {
     @Override
     public boolean accept(File dir, String name) {
-      return name.endsWith(RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
+      return name.endsWith(RegressionUtility.JSURE_GZ_SNAPSHOT_SUFFIX) ||
+    		 name.endsWith(RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
     }
   };
   private static final TempFileFilter deletedDirFilter = new TempFileFilter("deletedFromScript", ".dir");

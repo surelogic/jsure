@@ -48,7 +48,7 @@ public class ExportResults extends AbstractCommand {
 		final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
 		final File results = info.getJSureRun().getResultsFile();
 		boolean success;
-		if (results.getName().endsWith(FileUtility.GZIP_SUFFIX)) {
+		if (!location.getName().endsWith(FileUtility.GZIP_SUFFIX) && results.getName().endsWith(FileUtility.GZIP_SUFFIX)) {
 			success = FileUtility.uncompressToCopy(results, location);
 		} else {
 			success = FileUtility.copy(results, location);
