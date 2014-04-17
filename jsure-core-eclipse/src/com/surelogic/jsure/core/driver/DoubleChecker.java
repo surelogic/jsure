@@ -327,6 +327,10 @@ public class DoubleChecker implements IAnalysisContainer {
 			public Class<?> getAnalysisClass() {
 				return AnalysisDriver.class;
 			}
+			@Override
+			public boolean runsUniqueness() {
+				return false;
+			}
 		};
 		int i=1;
 		for(IAnalysisInfo ai : temp) {

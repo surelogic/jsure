@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
+import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.MemoryUtility;
 import com.surelogic.javac.Javac;
@@ -15,15 +16,29 @@ import edu.cmu.cs.fluid.ide.IDEPreferences;
 
 public class JavacEclipse extends Javac {
   static final JavacEclipse instance = new JavacEclipse();
-
-  public static void initialize() {
-	instance.setPreference(IDEPreferences.PHYS_MEMORY, MemoryUtility.computePhysMemorySizeInMb());
+  
+  @Override
+  public void initPrefs() {	  
+	  setPreference(IDEPreferences.PHYS_MEMORY, MemoryUtility.computePhysMemorySizeInMb());
+	  setPreference(IDEPreferences.ANALYSIS_THREAD_COUNT, EclipseUtility.getIntPreference(IDEPreferences.ANALYSIS_THREAD_COUNT));
+	  
+	  final boolean canRunUniqueness = EclipseUtility.getBooleanPreference(IDEPreferences.SCAN_MAY_RUN_UNIQUENESS);
+	  setPreference(IDEPreferences.SCAN_MAY_RUN_UNIQUENESS, canRunUniqueness);
+	  for (IAnalysisInfo analysis : getAnalysisInfo()) {
+		  final String key = IDEPreferences.ANALYSIS_ACTIVE_PREFIX+analysis.getUniqueIdentifier();
+		  boolean pref = EclipseUtility.getBooleanPreference(key) && (canRunUniqueness || !analysis.runsUniqueness());
+		  setPreference(key, pref); 
+	  }
   }
 
   public static JavacEclipse getDefault() {
     return instance;
   }
 
+  public static void initialize() {
+	  // instance.initPrefs()
+  }
+  
   public void synchronizeAnalysisPrefs() {
     for (String id : getAvailableAnalyses()) {
       boolean value = EclipseUtility.getBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id);

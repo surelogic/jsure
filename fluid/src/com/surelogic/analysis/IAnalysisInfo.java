@@ -5,6 +5,7 @@ public interface IAnalysisInfo {
 	String getUniqueIdentifier();
 	boolean isIncluded();
 	boolean isProduction();
+	boolean runsUniqueness();
 	String getCategory();
 	String[] getPrerequisiteIds();
 	Class<?> getAnalysisClass();

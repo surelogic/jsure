@@ -182,6 +182,10 @@ public class Javac extends IDE {
 	private final ConcurrentMap<String, Object> prefs = new ConcurrentHashMap<String, Object>();
 	{
 		setPreference(IDEPreferences.DEFAULT_JRE, "");
+		initPrefs();
+	}
+	
+	protected void initPrefs() {
 		setPreference(IDEPreferences.ANALYSIS_THREAD_COUNT, Runtime
 				.getRuntime().availableProcessors());
 		for (IAnalysisInfo analysis : getAnalysisInfo()) {
@@ -299,13 +303,17 @@ public class Javac extends IDE {
 			}
 		}
 
+		public boolean runsUniqueness() {
+			return id.contains(".UniquenessAssurance");
+		}
+		
 		boolean isActive(List<AnalysisInfo> activeAnalyses) {
 			boolean active = isIncluded();
 			if (active) {
 				// TODO use more principled way of identifying analyses
 				if (!XUtil.testing && // Only if we're not running the reg tests
 					!IDE.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_RUN_UNIQUENESS) &&
-					id.contains(".UniquenessAssurance")) {
+					runsUniqueness()) {
 					return false;
 				}
 				if (dependencies.size() == 0) {
