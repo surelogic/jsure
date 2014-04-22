@@ -195,6 +195,10 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
         // Refresh the workspace
         ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
 
+        final File analysisSettingsFile = new File(proj, ScriptCommands.ANALYSIS_SETTINGS);
+        if (analysisSettingsFile != null && analysisSettingsFile.isFile()) {
+        	useAnalysisSettingsFile(analysisSettingsFile);
+        }
         JavacEclipse.initialize();
         ((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
       } catch (Exception e) {
@@ -327,6 +331,20 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
     }
   }
 
+  public static void useAnalysisSettingsFile(File analysisSettingsFile) {
+      System.out.println("Found project-specific analysis settings.");
+      deactivateAllAnalyses();
+      
+      JSureAnalysisXMLReader.readStateFrom(analysisSettingsFile);
+      DoubleChecker.getDefault().initAnalyses();
+  }
+
+  static void deactivateAllAnalyses() {
+	  for(String id : Javac.getAvailableAnalyses()) {
+		  EclipseUtility.setBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id, false);
+	  }
+  }
+  
   private void loadFileCache(IJavaProject proj) {
     if (proj == null) {
       return;

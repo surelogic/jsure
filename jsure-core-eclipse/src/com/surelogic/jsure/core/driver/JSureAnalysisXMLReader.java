@@ -1,4 +1,4 @@
-package com.surelogic.jsure.tests;
+package com.surelogic.jsure.core.driver;
 
 import java.io.*;
 import java.util.*;

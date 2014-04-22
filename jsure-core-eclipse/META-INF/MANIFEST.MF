@@ -3,7 +3,8 @@ Bundle-ManifestVersion: 2
 Bundle-Name: JSure Non-User Interface Eclipse Code
 Bundle-SymbolicName: com.surelogic.jsure.core;singleton:=true
 Bundle-Version: 5.4.0.qualifier
-Bundle-ClassPath: .
+Bundle-ClassPath: .,
+ lib/jdom.jar
 Bundle-Activator: com.surelogic.jsure.core.Activator
 Bundle-Vendor: SureLogic, Inc.
 Export-Package: com.surelogic.jsure.core,
