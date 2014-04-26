@@ -9,13 +9,20 @@ package edu.cmu.cs.fluid.control;
  * @see ComponentSource
  */
 
-public class ComponentSink extends Sink implements ComponentNode {
+public class ComponentSink extends Sink implements ComponentNode, MutableComponentNode {
   Component comp;
   Object value;
   public ComponentSink(Component c, Object v) {
     comp = c;
     value = v;
+    c.registerComponentNode(this);
   }
+  
+  @Override
+  public void setComponent(Component c) {
+	comp = c;
+  }
+  
   @Override
   public Component getComponent() {
     return comp;

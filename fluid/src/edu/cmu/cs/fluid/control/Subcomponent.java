@@ -1,9 +1,12 @@
 package edu.cmu.cs.fluid.control;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import edu.cmu.cs.fluid.FluidRuntimeException;
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.tree.*;
+import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 
 /** A region of control nodes in the graph corresponding to the
  * child of a syntactic entity.  This structure serves as a wrapper
@@ -18,7 +21,7 @@ import edu.cmu.cs.fluid.tree.*;
  * @see VariableSubcomponent
  */
 
-public class Subcomponent {
+public class Subcomponent implements ISubcomponent {
   /** The component this subcomponent is nested in. */
   protected Component component;
 
@@ -30,7 +33,7 @@ public class Subcomponent {
   /** The three ports: one for entry, one for normal exit
    * and one for exceptions (abrupt exit).
    */
-  protected SubcomponentPort entryPort, normalExitPort, abruptExitPort;
+  protected Port entryPort, normalExitPort, abruptExitPort;
 
   /** The syntax tree for control-flow graph subcomponent nodes.
    * <b>This should be a parameter, not a constant.</b>
@@ -83,53 +86,80 @@ public class Subcomponent {
     abruptExitPort = abruptExit;
   }
 
-  /** Return the component context. */
-  public Component getComponent() {
+  /* (non-Javadoc)
+ * @see edu.cmu.cs.fluid.control.ISubcomponent#getComponent()
+ */
+  @Override
+public Component getComponent() {
     return component;
   }
 
-  /** Return the location of the child for this subcomponent */
-  public IRLocation getLocation() {
+  /* (non-Javadoc)
+ * @see edu.cmu.cs.fluid.control.ISubcomponent#getLocation()
+ */
+  @Override
+public IRLocation getLocation() {
     return location;
   }
 
-  /** Return the component which is the dual to this. */
-  public Component getComponentInChild() {
+  /* (non-Javadoc)
+ * @see edu.cmu.cs.fluid.control.ISubcomponent#getComponentInChild()
+ */
+  @Override
+public Component getComponentInChild() {
     IRNode child = getSyntax();
     if (child == null)
       return null;
     return component.getComponent(child);
   }
 
-  /** Return the node this subcomponent wraps. */
-  public IRNode getSyntax() {
+  /* (non-Javadoc)
+ * @see edu.cmu.cs.fluid.control.ISubcomponent#getSyntax()
+ */
+  @Override
+public IRNode getSyntax() {
     IRNode node = component.getSyntax();
     IRNode child = tree.getChild(node, location);
     return child;
   }
 
-  /** Return the start port. */
-  public SubcomponentPort getEntryPort() {
+  /* (non-Javadoc)
+ * @see edu.cmu.cs.fluid.control.ISubcomponent#getEntryPort()
+ */
+  @Override
+public Port getEntryPort() {
     return entryPort;
   }
 
-  /** Return the normal exit port. */
-  public SubcomponentPort getNormalExitPort() {
+  /* (non-Javadoc)
+ * @see edu.cmu.cs.fluid.control.ISubcomponent#getNormalExitPort()
+ */
+  @Override
+public Port getNormalExitPort() {
     return normalExitPort;
   }
 
-  /** Return the abrupt exit port */
-  public SubcomponentPort getAbruptExitPort() {
+  /* (non-Javadoc)
+ * @see edu.cmu.cs.fluid.control.ISubcomponent#getAbruptExitPort()
+ */
+  @Override
+public Port getAbruptExitPort() {
     return abruptExitPort;
   }
 
-  /** Return the entering or exiting variable edge for the following index.
-   * (Overridden in VariableSubcomponent.)
-   * @param isEntry
-   * If true, then return the entry edge for the index,
-   * otherwise return the exit edge for the index.
-   */
-  public VariableSubcomponentControlEdge getVariableEdge(
+  Collection<SubcomponentNode> nodes;
+  
+  @Override
+  public void registerSubcomponentNode(SubcomponentNode n) {
+	  if (nodes == null) nodes = new ArrayList<SubcomponentNode>();
+	  nodes.add(n);
+  }
+  
+  /* (non-Javadoc)
+ * @see edu.cmu.cs.fluid.control.ISubcomponent#getVariableEdge(int, boolean)
+ */
+  @Override
+public VariableSubcomponentControlEdge getVariableEdge(
     int index,
     boolean isEntry) {
     return null;

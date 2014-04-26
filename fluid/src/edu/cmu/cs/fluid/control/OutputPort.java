@@ -12,11 +12,17 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * @see SimpleOutputPort
  * @see DoubleOutputPort
  */
-public abstract class OutputPort extends AbstractProxyNode implements Port {
+abstract class OutputPort extends AbstractProxyNode implements Port, IOutputPort {
   @Override
   public IRNode getIRNode() {
     return getDual();
   }
+  
+  @Override 
+  public WhichPort which() {
+	  return getDual().which();
+  }
+  
   @Override
   public ControlEdgeIterator getOutputs() {
     Port dual = getDual();

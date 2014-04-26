@@ -5,7 +5,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 public class SubcomponentEntryPort extends SimpleOutputPort
     implements SubcomponentPort, EntryPort
 {
-  protected Subcomponent subcomponent;
+  protected ISubcomponent subcomponent;
   
   public SubcomponentEntryPort(Subcomponent subcomp) {
     subcomponent = subcomp;
@@ -13,7 +13,7 @@ public class SubcomponentEntryPort extends SimpleOutputPort
   }
 
   @Override
-  public Subcomponent getSubcomponent() {
+  public ISubcomponent getSubcomponent() {
     return subcomponent;
   }
 

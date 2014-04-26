@@ -8,11 +8,17 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * as well as an arbitrary value that may be used to distinguish
  * multiple control points within a component.
  */
-public class ComponentChoice extends Choice implements ComponentNode {
+public class ComponentChoice extends Choice implements ComponentNode, MutableComponentNode {
   Component comp;
   public ComponentChoice(Component c, Object v) {
     super(v);
     comp = c;
+    c.registerComponentNode(this);
+  }
+  
+  @Override
+  public void setComponent(Component c) {
+	comp = c;
   }
   @Override
   public Component getComponent() {

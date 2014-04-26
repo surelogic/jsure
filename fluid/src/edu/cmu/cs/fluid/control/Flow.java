@@ -12,7 +12,7 @@ package edu.cmu.cs.fluid.control;
  */
 
 public abstract class Flow extends Entity
-     implements ControlNode, OneInput, OneOutput
+     implements ControlNode, OneInput, OneOutput, MutableControlNode
 {
   protected ControlEdge input, output;
   @Override
@@ -41,4 +41,17 @@ public abstract class Flow extends Entity
   public ControlEdgeIterator getOutputs() {
     return new SingleControlEdgeIterator(output);
   }
+  
+  @Override
+  public void resetInput(ControlEdge e) {
+	 if (input == e) input = null;
+	 else throw new EdgeLinkageError("not an outgoing edge: " + e);
+  }
+  @Override
+  public void resetOutput(ControlEdge e) {
+	  if (output == e) output = null;
+	  else throw new EdgeLinkageError("not an incoming edge: " + e);
+  }
+
+  
 }

@@ -17,11 +17,11 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.util.IThunk;
 import com.surelogic.util.Thunk;
 
-import edu.cmu.cs.fluid.control.BlankInputPort;
 import edu.cmu.cs.fluid.control.Component;
-import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.control.ControlEdge;
 import edu.cmu.cs.fluid.control.ControlEdgeIterator;
+import edu.cmu.cs.fluid.control.NoOutput;
+import edu.cmu.cs.fluid.control.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -427,7 +427,7 @@ public abstract class IntraproceduralAnalysis<T, L extends Lattice<T>, A extends
 	final JavaComponentFactory factory = JavaComponentFactory.startUse();
 	try {
     Component cfgComp = factory.getComponent(node);
-    if (cfgComp.getEntryPort() instanceof BlankInputPort) return;
+    if (cfgComp.getEntryPort() instanceof NoOutput) return;
     System.out.println("\nNode: " + DebugUnparser.toString(node));
     //System.out.println(" Entry port and dual are " + cfgComp.getEntryPort() + " " + cfgComp.getEntryPort().getDual());
     printAnalysisResults(fa, cfgComp.getEntryPort().getInputs(), "Entry");

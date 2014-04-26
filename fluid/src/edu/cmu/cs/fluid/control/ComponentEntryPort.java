@@ -11,7 +11,7 @@ public class ComponentEntryPort extends SimpleInputPort
     component = comp;
     comp.registerEntryPort(this);
   }
-
+ 
   @Override
   public Component getComponent() {
     return component;
@@ -19,7 +19,7 @@ public class ComponentEntryPort extends SimpleInputPort
 
   @Override
   public Port getDual() {
-    Subcomponent sub = component.getSubcomponentInParent();
+    ISubcomponent sub = component.getSubcomponentInParent();
     if (sub == null) return null;
     return sub.getEntryPort();
   }
@@ -30,7 +30,7 @@ public class ComponentEntryPort extends SimpleInputPort
   }
 
   @Override
-  public Subcomponent getSubcomponent() {
+  public ISubcomponent getSubcomponent() {
     return component.getSubcomponentInParent();
   }
 }

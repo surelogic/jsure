@@ -10,26 +10,27 @@ import java.util.logging.Logger;
 
 import com.surelogic.RegionLock;
 import com.surelogic.RequiresLock;
+import com.surelogic.Unique;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.FluidInterruptedException;
-import edu.cmu.cs.fluid.control.BlankInputPort;
 import edu.cmu.cs.fluid.control.Component;
 import edu.cmu.cs.fluid.control.ComponentNode;
 import edu.cmu.cs.fluid.control.ControlEdge;
 import edu.cmu.cs.fluid.control.ControlEdgeIterator;
 import edu.cmu.cs.fluid.control.ControlNode;
 import edu.cmu.cs.fluid.control.Flow;
-import edu.cmu.cs.fluid.control.InputPort;
+import edu.cmu.cs.fluid.control.IInputPort;
+import edu.cmu.cs.fluid.control.IOutputPort;
 import edu.cmu.cs.fluid.control.Join;
 import edu.cmu.cs.fluid.control.LabelList;
-import edu.cmu.cs.fluid.control.OutputPort;
+import edu.cmu.cs.fluid.control.NoOutput;
 import edu.cmu.cs.fluid.control.Port;
 import edu.cmu.cs.fluid.control.Sink;
 import edu.cmu.cs.fluid.control.Source;
 import edu.cmu.cs.fluid.control.Split;
-import edu.cmu.cs.fluid.control.Component.WhichPort;
+import edu.cmu.cs.fluid.control.WhichPort;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -37,12 +38,11 @@ import edu.cmu.cs.fluid.ir.IRNodeViewer;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.uwm.cs.fluid.util.Lattice;
 import edu.uwm.cs.fluid.control.LabeledLattice.Combiner;
 import edu.uwm.cs.fluid.control.LabeledLattice.LabelOp;
 import edu.uwm.cs.fluid.control.LabeledLattice.LabeledValue;
 import edu.uwm.cs.fluid.control.LabeledLattice.UnaryOp;
-import com.surelogic.Unique;
+import edu.uwm.cs.fluid.util.Lattice;
 
 /** A class for performing flow analysis over a control-flow graph
  * <p>
@@ -60,7 +60,12 @@ import com.surelogic.Unique;
 public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable, IFlowAnalysis<T, L> {
   @SuppressWarnings("rawtypes")
   public static final class AnalysisGaveUp extends RuntimeException {
-    /** The flow analysis object that was being initialized when we gave up. */
+    /**
+	 * Keep Eclipse Happy
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/** The flow analysis object that was being initialized when we gave up. */
     public final FlowAnalysis fa;
     
     /** Timeout period in nanoseconds */
@@ -240,7 +245,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     }
     
     final ControlNode cn = port.getPort(comp);
-    if (cn instanceof BlankInputPort) {
+    if (cn instanceof NoOutput) {
       return null;
     }
     
@@ -422,10 +427,10 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     if (node instanceof Port) {
       Port port = (Port)node;
       Port dual = port.getDual();
-      if (port instanceof InputPort) {
-        transferPort((OutputPort)dual,(InputPort)port);
+      if (port instanceof IInputPort) {
+        transferPort((IOutputPort)dual,(IInputPort)port);
       } else {
-        transferPort((OutputPort)port,(InputPort)dual);
+        transferPort((IOutputPort)port,(IInputPort)dual);
       }
     } else if (node instanceof Flow) {
       transferFlow((Flow)node);
@@ -440,7 +445,7 @@ public abstract class FlowAnalysis<T, L extends Lattice<T>> implements Cloneable
     }
   }
   
-  protected abstract void transferPort(OutputPort p1, InputPort p2);
+  protected abstract void transferPort(IOutputPort p1, IInputPort p2);
   protected abstract void transferFlow(Flow n);
   protected abstract void transferSplit(Split n);
   protected abstract void transferJoin(Join n);

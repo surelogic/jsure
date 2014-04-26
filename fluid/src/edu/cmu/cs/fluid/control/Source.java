@@ -9,7 +9,7 @@ package edu.cmu.cs.fluid.control;
  */
 
 public abstract class Source extends Entity
-     implements ControlNode, NoInput, OneOutput
+     implements ControlNode, NoInput, OneOutput, MutableControlNode
 {
   protected ControlEdge output;
   @Override
@@ -28,5 +28,15 @@ public abstract class Source extends Entity
   @Override
   public ControlEdgeIterator getOutputs() {
     return new SingleControlEdgeIterator(output);
+  }
+  
+  @Override
+  public void resetInput(ControlEdge e) {
+	 throw new EdgeLinkageError("not an outgoing edge: " + e);
+  }
+  @Override
+  public void resetOutput(ControlEdge e) {
+	  if (output == e) output = null;
+	  else throw new EdgeLinkageError("not an incoming edge: " + e);
   }
 }

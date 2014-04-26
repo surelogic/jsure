@@ -13,13 +13,13 @@ public class ComponentBooleanEntryPort extends DoubleInputPort
 	}
 
 	@Override
-  public Component getComponent() {
+	public Component getComponent() {
 		return component;
 	}
 
 	@Override
   public Port getDual() {
-		Subcomponent sub = component.getSubcomponentInParent();
+		ISubcomponent sub = component.getSubcomponentInParent();
 		if (sub == null) return null;
 		return sub.getEntryPort();
 	}  
@@ -30,7 +30,7 @@ public class ComponentBooleanEntryPort extends DoubleInputPort
 	}
 
 	@Override
-  public Subcomponent getSubcomponent() {
+  public ISubcomponent getSubcomponent() {
 		return component.getSubcomponentInParent();
 	}
 

@@ -11,9 +11,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import edu.cmu.cs.fluid.FluidError;
-import edu.cmu.cs.fluid.control.BlankInputPort;
 import edu.cmu.cs.fluid.control.Component;
 import edu.cmu.cs.fluid.control.ControlEdge;
+import edu.cmu.cs.fluid.control.NoOutput;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRPersistent;
 import edu.cmu.cs.fluid.ir.PlainIRNode;
@@ -254,7 +254,7 @@ public abstract class TestFlowAnalysis<T, L extends Lattice<T>, A extends FlowAn
   
   protected void printAnalysisResults(A fa, IRNode node, JavaComponentFactory factory) {
 	Component cfgComp = factory.getComponent(node);
-    if (cfgComp.getEntryPort() instanceof BlankInputPort) return;
+    if (cfgComp.getEntryPort() instanceof NoOutput) return;
     System.out.println("\nNode: " + DebugUnparser.toString(node));
     System.out.print("  Entry:  ");
     printAnalysisResults(fa,(ControlEdge)cfgComp.getEntryPort().getInputs().next());

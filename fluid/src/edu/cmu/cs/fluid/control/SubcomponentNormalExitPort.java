@@ -5,7 +5,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 public class SubcomponentNormalExitPort extends SimpleInputPort
     implements SubcomponentPort, NormalExitPort
 {
-  protected Subcomponent subcomponent;
+  protected ISubcomponent subcomponent;
   
   public SubcomponentNormalExitPort(Subcomponent subcomp) {
     subcomponent = subcomp;
@@ -13,7 +13,7 @@ public class SubcomponentNormalExitPort extends SimpleInputPort
   }
 
   @Override
-  public Subcomponent getSubcomponent() {
+  public ISubcomponent getSubcomponent() {
     return subcomponent;
   }
 

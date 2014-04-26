@@ -8,7 +8,6 @@ import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.control.AddLabel;
-import edu.cmu.cs.fluid.control.BlankInputPort;
 import edu.cmu.cs.fluid.control.Choice;
 import edu.cmu.cs.fluid.control.ComponentChoice;
 import edu.cmu.cs.fluid.control.ComponentFlow;
@@ -17,30 +16,32 @@ import edu.cmu.cs.fluid.control.ComponentSource;
 import edu.cmu.cs.fluid.control.ControlEdge;
 import edu.cmu.cs.fluid.control.ControlLabel;
 import edu.cmu.cs.fluid.control.ControlNode;
-import edu.cmu.cs.fluid.control.DoubleInputPort;
-import edu.cmu.cs.fluid.control.DoubleOutputPort;
 import edu.cmu.cs.fluid.control.DynamicSplit;
 import edu.cmu.cs.fluid.control.Flow;
 import edu.cmu.cs.fluid.control.Fork;
-import edu.cmu.cs.fluid.control.InputPort;
+import edu.cmu.cs.fluid.control.IInputPort;
+import edu.cmu.cs.fluid.control.IOutputPort;
 import edu.cmu.cs.fluid.control.Join;
 import edu.cmu.cs.fluid.control.LabelList;
 import edu.cmu.cs.fluid.control.LabelTest;
 import edu.cmu.cs.fluid.control.LoopMerge;
 import edu.cmu.cs.fluid.control.Merge;
 import edu.cmu.cs.fluid.control.NoOperation;
-import edu.cmu.cs.fluid.control.OutputPort;
+import edu.cmu.cs.fluid.control.NoOutput;
+import edu.cmu.cs.fluid.control.OneInput;
+import edu.cmu.cs.fluid.control.OneOutput;
 import edu.cmu.cs.fluid.control.PendingLabelStrip;
-import edu.cmu.cs.fluid.control.SimpleInputPort;
-import edu.cmu.cs.fluid.control.SimpleOutputPort;
 import edu.cmu.cs.fluid.control.Sink;
 import edu.cmu.cs.fluid.control.Source;
 import edu.cmu.cs.fluid.control.Split;
 import edu.cmu.cs.fluid.control.SubcomponentChoice;
 import edu.cmu.cs.fluid.control.SubcomponentFlow;
+import edu.cmu.cs.fluid.control.SubcomponentNode;
 import edu.cmu.cs.fluid.control.TrackLabel;
 import edu.cmu.cs.fluid.control.TrackedDemerge;
 import edu.cmu.cs.fluid.control.TrackedMerge;
+import edu.cmu.cs.fluid.control.TwoInput;
+import edu.cmu.cs.fluid.control.TwoOutput;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeViewer;
 import edu.uwm.cs.fluid.util.Lattice;
@@ -318,7 +319,7 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
       } else if (node instanceof ComponentChoice) {
         doTransfer(in,out1,componentChoiceTrueTransfer,(ComponentChoice)node);
         doTransfer(in,out2,componentChoiceFalseTransfer,(ComponentChoice)node);
-      } else if (node instanceof SubcomponentChoice) {
+      } else if (node instanceof SubcomponentNode) {
         doTransfer(in,out1,subcomponentChoiceTrueTransfer,(SubcomponentChoice)node);
         doTransfer(in,out2,subcomponentChoiceFalseTransfer,(SubcomponentChoice)node);
       } else {
@@ -344,15 +345,15 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
   @Override
   @RequiresLock("ComputeLock")
   protected void transferPort(
-      OutputPort port,
-      InputPort dual) {
-    if (port instanceof SimpleOutputPort) {
-      ControlEdge in = ((SimpleOutputPort)port).getInput();
-      if (dual instanceof SimpleInputPort) {
-        doNOPtransfer(in,((SimpleInputPort)dual).getOutput());
-      } else if (dual instanceof DoubleInputPort) {
-        ControlEdge out1 = ((DoubleInputPort) dual).getOutput1();
-        ControlEdge out2 = ((DoubleInputPort) dual).getOutput2();
+      IOutputPort port,
+      IInputPort dual) {
+    if (port instanceof OneInput) {
+      ControlEdge in = ((OneInput)port).getInput();
+      if (dual instanceof OneOutput) {
+        doNOPtransfer(in,((OneOutput)dual).getOutput());
+      } else if (dual instanceof TwoOutput) {
+        ControlEdge out1 = ((TwoOutput) dual).getOutput1();
+        ControlEdge out2 = ((TwoOutput) dual).getOutput2();
         if (port instanceof ComponentPort) {
           IRNode node = ((ComponentPort) port).getComponent().getSyntax();
           doTransfer(in,out1,conditionalTrueTransfer,node);
@@ -363,22 +364,22 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
           doNOPtransfer(in,out1);
           doNOPtransfer(in,out2);
         }
-      } else if (dual instanceof BlankInputPort) {
+      } else if (dual instanceof NoOutput) {
         /* do nothing */
       } else {
         LOG.severe("unknown InputPort " + dual);
       }
-    } else if (port instanceof DoubleOutputPort) {
-      DoubleOutputPort dop = ((DoubleOutputPort)port);
+    } else if (port instanceof TwoInput) {
+      TwoInput dop = ((TwoInput)port);
       ControlEdge in1 = dop.getInput1();
       ControlEdge in2 = dop.getInput2();
-      if (dual instanceof SimpleInputPort) {
-        doTransfer(in1,in2,((SimpleInputPort)dual).getOutput(),infoLattice.joinCombiner,null);
-      } else if (dual instanceof DoubleInputPort) {
-        DoubleInputPort dip = ((DoubleInputPort)dual);
+      if (dual instanceof OneOutput) {
+        doTransfer(in1,in2,((OneOutput)dual).getOutput(),infoLattice.joinCombiner,null);
+      } else if (dual instanceof TwoOutput) {
+        TwoOutput dip = ((TwoOutput)dual);
         doNOPtransfer(in1,dip.getOutput1());
         doNOPtransfer(in2,dip.getOutput2());
-      } else if (dual instanceof BlankInputPort) {
+      } else if (dual instanceof NoOutput) {
         /* do nothing */
       } else {
         LOG.severe("unknown InputPort " + dual);

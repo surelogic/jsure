@@ -162,6 +162,23 @@ public abstract class ControlEdge extends Entity {
     }
   }
 
+  protected void detachSource() {
+	  MutableControlNode n = (MutableControlNode)getSource();
+	  n.resetOutput(this);
+	  setSource(null,false);
+  }
+  
+  protected void detachSink() {
+	  MutableControlNode n = (MutableControlNode)getSink();
+	  n.resetInput(this);
+	  setSink(null,false);
+  }
+  
+  protected void detach() {
+	  detachSource();
+	  detachSink();
+  }
+  
   /** A useful shortcut: connect two nodes
    * with a SimpleControlEdge (q.v.)
    * @see SimpleControlEdge
@@ -169,5 +186,6 @@ public abstract class ControlEdge extends Entity {
   public static void connect(ControlNode source, ControlNode sink) {
     new SimpleControlEdge(source,sink);
   }
+  
 }
 

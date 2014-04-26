@@ -7,9 +7,9 @@ package edu.cmu.cs.fluid.control;
  * The first input should be from the initial state.
  * @author boyland
  */
-public class LoopMerge extends Merge implements ComponentNode {
+public class LoopMerge extends Merge implements ComponentNode, MutableComponentNode {
 
-  private final Component component;
+  private Component component;
   
   /**
    * Create a loop merge node for the given loop.
@@ -18,6 +18,11 @@ public class LoopMerge extends Merge implements ComponentNode {
   public LoopMerge(Component comp) {
     super();
     component = comp;
+  }
+  
+  @Override
+  public void setComponent(Component c) {
+	component = c;
   }
 
   @Override

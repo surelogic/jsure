@@ -3,5 +3,5 @@ package edu.cmu.cs.fluid.control;
 
 public interface SubcomponentPort extends Port, ComponentNode {
   @Override
-  public abstract Subcomponent getSubcomponent();
+  public abstract ISubcomponent getSubcomponent();
 }

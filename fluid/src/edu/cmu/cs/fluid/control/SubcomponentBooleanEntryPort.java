@@ -5,7 +5,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 public class SubcomponentBooleanEntryPort extends DoubleOutputPort 
 	implements SubcomponentPort, EntryPort
 {
-	protected Subcomponent subcomponent;
+	protected ISubcomponent subcomponent;
 
 	public SubcomponentBooleanEntryPort(Subcomponent subcomp) {
 		subcomponent = subcomp;
@@ -13,7 +13,7 @@ public class SubcomponentBooleanEntryPort extends DoubleOutputPort
 	}
 
 	@Override
-  public Subcomponent getSubcomponent() {
+  public ISubcomponent getSubcomponent() {
 		return subcomponent;
 	}
 

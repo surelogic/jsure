@@ -35,8 +35,8 @@ public class ControlFlowGraph extends DigraphMixin
   }
   @Override
   public int numChildren(IRNode node) {
-    if (node instanceof OutputPort) {
-      node = ((OutputPort)node).getDual();
+    if (node instanceof IOutputPort) {
+      node = ((IOutputPort)node).getDual();
     }
     if (node instanceof OneOutput) {
       return 1;
@@ -48,8 +48,8 @@ public class ControlFlowGraph extends DigraphMixin
 
   @Override
   public IRLocation childLocation(IRNode node, int i) {
-    if (node instanceof OutputPort) {
-      node = ((OutputPort)node).getDual();
+    if (node instanceof IOutputPort) {
+      node = ((IOutputPort)node).getDual();
     }
     if (node instanceof OneOutput) {
       if (i == 0) return OneOutputLocation.prototype;
@@ -69,8 +69,8 @@ public class ControlFlowGraph extends DigraphMixin
   }
   @Override
   public IRLocation lastChildLocation(IRNode node) {
-    if (node instanceof OutputPort) {
-      node = ((OutputPort)node).getDual();
+    if (node instanceof IOutputPort) {
+      node = ((IOutputPort)node).getDual();
     }
     if (node instanceof OneOutput) {
       return OneOutputLocation.prototype;
@@ -124,8 +124,8 @@ public class ControlFlowGraph extends DigraphMixin
 
   @Override
   public Iteratable<IRNode> children(IRNode node) {
-    if (node instanceof OutputPort) {
-      node = ((OutputPort)node).getDual();
+    if (node instanceof IOutputPort) {
+      node = ((IOutputPort)node).getDual();
     }
     if (node instanceof OneOutput) {
       OneOutput node1 = (OneOutput)node;
@@ -149,8 +149,8 @@ public class ControlFlowGraph extends DigraphMixin
   }
   @Override
   public int numParents(IRNode node) {
-    if (node instanceof InputPort) {
-      node = ((InputPort)node).getDual();
+    if (node instanceof IInputPort) {
+      node = ((Port)node).getDual();
     }
     if (node instanceof OneInput) {
       return 1;
@@ -162,8 +162,8 @@ public class ControlFlowGraph extends DigraphMixin
 
   @Override
   public IRLocation parentLocation(IRNode node, int i) {
-    if (node instanceof InputPort) {
-      node = ((InputPort)node).getDual();
+    if (node instanceof IInputPort) {
+      node = ((Port)node).getDual();
     }
     if (node instanceof OneInput) {
       if (i == 0) return OneInputLocation.prototype;
@@ -183,7 +183,7 @@ public class ControlFlowGraph extends DigraphMixin
   }
   @Override
   public IRLocation lastParentLocation(IRNode node) {
-    if (node instanceof InputPort) {
+    if (node instanceof IInputPort) {
       node = ((InputPort)node).getDual();
     }
     if (node instanceof OneInput) {
@@ -219,7 +219,7 @@ public class ControlFlowGraph extends DigraphMixin
 
   @Override
   public Iteratable<IRNode> parents(IRNode node) {
-    if (node instanceof InputPort) {
+    if (node instanceof IInputPort) {
       node = ((InputPort)node).getDual();
     }
     if (node instanceof OneInput) {
@@ -304,7 +304,7 @@ class OneInputLocation extends ControlEdgeLocation {
   public static OneInputLocation prototype = new OneInputLocation();
   @Override
   public ControlEdge getControlEdge(IRNode node) {
-    if (node instanceof InputPort) node = ((InputPort)node).getDual();
+    if (node instanceof IInputPort) node = ((InputPort)node).getDual();
     if (node == null) throw new IRSequenceException("no such element");
     return ((OneInput)node).getInput();
   }
@@ -314,7 +314,7 @@ class OneOutputLocation extends ControlEdgeLocation {
   public static OneOutputLocation prototype = new OneOutputLocation();
   @Override
   public ControlEdge getControlEdge(IRNode node) {
-    if (node instanceof OutputPort) node = ((OutputPort)node).getDual();
+    if (node instanceof IOutputPort) node = ((IOutputPort)node).getDual();
     if (node == null) throw new IRSequenceException("no such element");
     return ((OneOutput)node).getOutput();
   }
@@ -324,7 +324,7 @@ class TwoInputFirstLocation extends ControlEdgeLocation {
   public static TwoInputFirstLocation prototype = new TwoInputFirstLocation();
   @Override
   public ControlEdge getControlEdge(IRNode node) {
-    if (node instanceof InputPort) node = ((InputPort)node).getDual();
+    if (node instanceof IInputPort) node = ((InputPort)node).getDual();
     if (node == null) throw new IRSequenceException("no such element");
     return ((TwoInput)node).getInput1();
   }
@@ -337,7 +337,7 @@ class TwoInputLastLocation extends ControlEdgeLocation {
   public static TwoInputLastLocation prototype = new TwoInputLastLocation();
   @Override
   public ControlEdge getControlEdge(IRNode node) {
-    if (node instanceof InputPort) node = ((InputPort)node).getDual();
+    if (node instanceof IInputPort) node = ((InputPort)node).getDual();
     if (node == null) throw new IRSequenceException("no such element");
     return ((TwoInput)node).getInput2();
   }
@@ -350,7 +350,7 @@ class TwoOutputFirstLocation extends ControlEdgeLocation {
     new TwoOutputFirstLocation();
   @Override
   public ControlEdge getControlEdge(IRNode node) {
-    if (node instanceof OutputPort) node = ((OutputPort)node).getDual();
+    if (node instanceof IOutputPort) node = ((IOutputPort)node).getDual();
     if (node == null) throw new IRSequenceException("no such element");
     return ((TwoOutput)node).getOutput1();
   }
@@ -363,7 +363,7 @@ class TwoOutputLastLocation extends ControlEdgeLocation {
   public static TwoOutputLastLocation prototype = new TwoOutputLastLocation();
   @Override
   public ControlEdge getControlEdge(IRNode node) {
-    if (node instanceof OutputPort) node = ((OutputPort)node).getDual();
+    if (node instanceof IOutputPort) node = ((IOutputPort)node).getDual();
     if (node == null) throw new IRSequenceException("no such element");
     return ((TwoOutput)node).getOutput2();
   }

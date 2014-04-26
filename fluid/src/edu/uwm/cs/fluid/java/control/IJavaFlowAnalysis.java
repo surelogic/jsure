@@ -2,7 +2,7 @@ package edu.uwm.cs.fluid.java.control;
 
 import edu.cmu.cs.fluid.control.ControlEdge;
 import edu.cmu.cs.fluid.control.LabelList;
-import edu.cmu.cs.fluid.control.Component.WhichPort;
+import edu.cmu.cs.fluid.control.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.uwm.cs.fluid.control.IFlowAnalysis;
 import edu.uwm.cs.fluid.util.Lattice;

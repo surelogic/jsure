@@ -20,7 +20,7 @@ public class ComponentBlankEntryPort extends BlankInputPort
 
   @Override
   public Port getDual() {
-    Subcomponent sub = component.getSubcomponentInParent();
+    ISubcomponent sub = component.getSubcomponentInParent();
     if (sub == null) return null;
     return sub.getEntryPort();
   }  
@@ -31,7 +31,7 @@ public class ComponentBlankEntryPort extends BlankInputPort
   }
 
   @Override
-  public Subcomponent getSubcomponent() {
+  public ISubcomponent getSubcomponent() {
     return component.getSubcomponentInParent();
   }
 }

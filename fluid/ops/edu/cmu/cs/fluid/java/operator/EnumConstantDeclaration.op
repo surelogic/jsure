@@ -48,7 +48,7 @@ class EnumConstantDeclarationComponent extends Component {
   }
   
   @Override
-  public Subcomponent getSubcomponent(final IRLocation loc) {
+  public ISubcomponent getSubcomponent(final IRLocation loc) {
     if (loc == EnumConstantDeclaration.initLocation) {
       return super.getSubcomponent(loc);
     } else {

@@ -9,7 +9,7 @@ package edu.cmu.cs.fluid.control;
  */
 
 public abstract class Join extends Entity
-     implements ControlNode, TwoInput, OneOutput
+     implements ControlNode, TwoInput, OneOutput, MutableControlNode
 {
   protected ControlEdge input1, input2, output;
   @Override
@@ -53,4 +53,15 @@ public abstract class Join extends Entity
     if (this.output != null) throw new EdgeLinkageError("output already set");
     this.output = output;
   }
-}
+  
+  @Override
+  public void resetInput(ControlEdge e) {
+	 if (input1 == e) input1 = null;
+	 else if (input2 == e) input2 = null;
+	 else throw new EdgeLinkageError("not an outgoing edge: " + e);
+  }
+  @Override
+  public void resetOutput(ControlEdge e) {
+	  if (output == e) output = null;
+	  else throw new EdgeLinkageError("not an incoming edge: " + e);
+  }}

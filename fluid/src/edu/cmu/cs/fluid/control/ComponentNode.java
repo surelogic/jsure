@@ -12,4 +12,5 @@ package edu.cmu.cs.fluid.control;
  */
 public interface ComponentNode {
   public abstract Component getComponent();
+
 }

@@ -69,7 +69,7 @@ public class VariableSubcomponentControlEdge extends ControlEdge {
   public VariableSubcomponentControlEdge getDual() {
     IRLocation loc = subcomponent.getLocation();
     Component comp = subcomponent.getComponent();
-    Subcomponent sub;
+    ISubcomponent sub;
     IRNode parent = comp.getSyntax();
     if (loc == null) { // get first/last if existing
       if (isEntry != isReverse) {

@@ -20,7 +20,7 @@ public class ComponentBlankNormalExitPort extends BlankOutputPort
 
   @Override
   public Port getDual() {
-    Subcomponent sub = component.getSubcomponentInParent();
+    ISubcomponent sub = component.getSubcomponentInParent();
     if (sub == null) return null;
     return sub.getNormalExitPort();
   }  
@@ -31,7 +31,7 @@ public class ComponentBlankNormalExitPort extends BlankOutputPort
   }
 
   @Override
-  public Subcomponent getSubcomponent() {
+  public ISubcomponent getSubcomponent() {
     return component.getSubcomponentInParent();
   }
 }

@@ -11,7 +11,7 @@ package edu.cmu.cs.fluid.control;
  */
 
 public abstract class Split extends Entity
-     implements ControlNode, OneInput, TwoOutput
+     implements ControlNode, OneInput, TwoOutput, MutableControlNode
 {
   protected ControlEdge input, output1, output2;
   @Override
@@ -55,5 +55,16 @@ public abstract class Split extends Entity
 	throw new EdgeLinkageError("output #2 already set");
     this.output2 = output2;
   }
-}
+  
+  @Override
+  public void resetInput(ControlEdge e) {
+	 if (input == e) input = null;
+	 else throw new EdgeLinkageError("not an outgoing edge: " + e);
+  }
+  @Override
+  public void resetOutput(ControlEdge e) {
+	  if (output1 == e) output1 = null;
+	  else if (output2 == e) output2 = null;
+	  else throw new EdgeLinkageError("not an incoming edge: " + e);
+  }}
 

@@ -41,12 +41,12 @@ public abstract class VariableComponent extends Component {
     variable = new VariableSubcomponent(this,null,numEdges);
   }
   @Override
-  public Subcomponent getVariableSubcomponent() {
+  public VariableSubcomponent getVariableSubcomponent() {
     return variable;
   }
   @Override
-  public Subcomponent getSubcomponent(IRLocation loc) {
-    Subcomponent sub = super.getSubcomponent(loc);
+  public ISubcomponent getSubcomponent(IRLocation loc) {
+    ISubcomponent sub = super.getSubcomponent(loc);
     if (sub == null)
       sub = createVariableSubcomponent(loc);
     return sub;

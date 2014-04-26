@@ -7,7 +7,6 @@ import com.surelogic.RequiresLock;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.control.AddLabel;
-import edu.cmu.cs.fluid.control.BlankOutputPort;
 import edu.cmu.cs.fluid.control.Choice;
 import edu.cmu.cs.fluid.control.ComponentChoice;
 import edu.cmu.cs.fluid.control.ComponentFlow;
@@ -15,29 +14,31 @@ import edu.cmu.cs.fluid.control.ComponentSink;
 import edu.cmu.cs.fluid.control.ControlEdge;
 import edu.cmu.cs.fluid.control.ControlLabel;
 import edu.cmu.cs.fluid.control.ControlNode;
-import edu.cmu.cs.fluid.control.DoubleInputPort;
-import edu.cmu.cs.fluid.control.DoubleOutputPort;
 import edu.cmu.cs.fluid.control.DynamicSplit;
 import edu.cmu.cs.fluid.control.Flow;
 import edu.cmu.cs.fluid.control.Fork;
-import edu.cmu.cs.fluid.control.InputPort;
+import edu.cmu.cs.fluid.control.IInputPort;
+import edu.cmu.cs.fluid.control.IOutputPort;
 import edu.cmu.cs.fluid.control.Join;
 import edu.cmu.cs.fluid.control.LabelList;
 import edu.cmu.cs.fluid.control.LabelTest;
 import edu.cmu.cs.fluid.control.Merge;
+import edu.cmu.cs.fluid.control.NoInput;
 import edu.cmu.cs.fluid.control.NoOperation;
-import edu.cmu.cs.fluid.control.OutputPort;
+import edu.cmu.cs.fluid.control.OneInput;
+import edu.cmu.cs.fluid.control.OneOutput;
 import edu.cmu.cs.fluid.control.PendingLabelStrip;
-import edu.cmu.cs.fluid.control.SimpleInputPort;
-import edu.cmu.cs.fluid.control.SimpleOutputPort;
 import edu.cmu.cs.fluid.control.Sink;
 import edu.cmu.cs.fluid.control.Source;
 import edu.cmu.cs.fluid.control.Split;
 import edu.cmu.cs.fluid.control.SubcomponentChoice;
 import edu.cmu.cs.fluid.control.SubcomponentFlow;
+import edu.cmu.cs.fluid.control.SubcomponentNode;
 import edu.cmu.cs.fluid.control.TrackLabel;
 import edu.cmu.cs.fluid.control.TrackedDemerge;
 import edu.cmu.cs.fluid.control.TrackedMerge;
+import edu.cmu.cs.fluid.control.TwoInput;
+import edu.cmu.cs.fluid.control.TwoOutput;
 import edu.cmu.cs.fluid.control.UnknownLabel;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IRNodeViewer;
@@ -127,29 +128,29 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
 
   @Override
   @RequiresLock("ComputeLock")
-  protected void transferPort(OutputPort dual, InputPort port) {
-    if (port instanceof SimpleInputPort) {
-      ControlEdge out = ((SimpleInputPort)port).getOutput();
-      if (dual instanceof SimpleOutputPort) {
-        doNOPtransfer(out,((SimpleOutputPort) dual).getInput());
-      } else if (dual instanceof DoubleOutputPort) {
-        doNOPtransfer(out,((DoubleOutputPort) dual).getInput1());
-        doNOPtransfer(out,((DoubleOutputPort) dual).getInput2());
-      } else if (dual instanceof BlankOutputPort) {
+  protected void transferPort(IOutputPort dual, IInputPort port) {
+    if (port instanceof OneOutput) {
+      ControlEdge out = ((OneOutput)port).getOutput();
+      if (dual instanceof OneInput) {
+        doNOPtransfer(out,((OneInput) dual).getInput());
+      } else if (dual instanceof TwoInput) {
+        doNOPtransfer(out,((TwoInput) dual).getInput1());
+        doNOPtransfer(out,((TwoInput) dual).getInput2());
+      } else if (dual instanceof NoInput) {
         /* do nothing */
       } else {
         LOG.severe("unknown OutputPort " + dual + ", dual of " + port + " for " + DebugUnparser.toString(port.getSyntax()));
       }
-    } else if (port instanceof DoubleInputPort) {
-      ControlEdge out1 = ((DoubleInputPort)port).getOutput1();
-      ControlEdge out2 = ((DoubleInputPort)port).getOutput2();
-      if (dual instanceof SimpleOutputPort) {
-        doTransfer(out1,out2,((SimpleOutputPort) dual).getInput(),
+    } else if (port instanceof TwoOutput) {
+      ControlEdge out1 = ((TwoOutput)port).getOutput1();
+      ControlEdge out2 = ((TwoOutput)port).getOutput2();
+      if (dual instanceof OneInput) {
+        doTransfer(out1,out2,((OneInput) dual).getInput(),
                    conditionalCombiner,dual.getSyntax());
-      } else if (dual instanceof DoubleOutputPort) {
-        doNOPtransfer(out1,((DoubleOutputPort) dual).getInput1());
-        doNOPtransfer(out2,((DoubleOutputPort) dual).getInput2());
-      } else if (dual instanceof BlankOutputPort) {
+      } else if (dual instanceof TwoInput) {
+        doNOPtransfer(out1,((TwoInput) dual).getInput1());
+        doNOPtransfer(out2,((TwoInput) dual).getInput2());
+      } else if (dual instanceof NoInput) {
         /* do nothing */
       } else {
         LOG.severe("unknown OutputPort " + dual);
@@ -432,7 +433,7 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
         doTransfer(out1,out2,in,addLabelOp,label,nopLabelOp,null);
       } else if (node instanceof ComponentChoice) {
         doTransfer(out1,out2,in,componentChoiceCombiner,(ComponentChoice)node);
-      } else if (node instanceof SubcomponentChoice) {
+      } else if (node instanceof SubcomponentNode) {
         doTransfer(out1, out2, in, subcomponentChoiceCombiner, (SubcomponentChoice) node);
       } else {
         LOG.severe("Unknown Choice " + node);

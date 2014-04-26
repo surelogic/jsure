@@ -26,20 +26,20 @@ public operator Condition implements FlowUnit {
 
   public Source getSource(IRNode node, JavaComponentFactory f) {
     Component comp = f.getComponent(node);
-    Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,0));
+    ISubcomponent sub = comp.getSubcomponent(tree.childLocation(node,0));
     ControlEdge e = ((SubcomponentEntryPort)sub.getEntryPort()).getInput();
     return (Source)e.getSource();
   }
   public Sink getNormalSink(IRNode node, JavaComponentFactory f) {
     Component comp = f.getComponent(node);
-    Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,3));
+    ISubcomponent sub = comp.getSubcomponent(tree.childLocation(node,3));
     ControlEdge e = ((SubcomponentBooleanExitPort)sub.getNormalExitPort()).getOutput1();
     Merge m = (Merge)(e.getSink());
     return (Sink)m.getOutput().getSink();
   }
   public Sink getAbruptSink(IRNode node, JavaComponentFactory f) {
     Component comp = f.getComponent(node);
-    Subcomponent sub = comp.getSubcomponent(tree.childLocation(node,3));
+    ISubcomponent sub = comp.getSubcomponent(tree.childLocation(node,3));
     ControlEdge e = ((SubcomponentAbruptExitPort)sub.getAbruptExitPort()).getOutput();
     return (Sink)(e.getSink());
   }

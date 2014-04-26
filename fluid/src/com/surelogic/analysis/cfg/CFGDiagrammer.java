@@ -19,51 +19,32 @@ import java.util.Stack;
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.control.Abort;
 import edu.cmu.cs.fluid.control.AddLabel;
-import edu.cmu.cs.fluid.control.BlankInputPort;
-import edu.cmu.cs.fluid.control.BlankOutputPort;
 import edu.cmu.cs.fluid.control.Choice;
 import edu.cmu.cs.fluid.control.Component;
-import edu.cmu.cs.fluid.control.ComponentAbruptExitPort;
-import edu.cmu.cs.fluid.control.ComponentBlankAbruptExitPort;
-import edu.cmu.cs.fluid.control.ComponentBlankEntryPort;
-import edu.cmu.cs.fluid.control.ComponentBlankNormalExitPort;
-import edu.cmu.cs.fluid.control.ComponentBooleanExitPort;
 import edu.cmu.cs.fluid.control.ComponentChoice;
-import edu.cmu.cs.fluid.control.ComponentEntryPort;
 import edu.cmu.cs.fluid.control.ComponentFlow;
-import edu.cmu.cs.fluid.control.ComponentNormalExitPort;
 import edu.cmu.cs.fluid.control.ComponentPort;
 import edu.cmu.cs.fluid.control.ComponentSink;
 import edu.cmu.cs.fluid.control.ComponentSource;
 import edu.cmu.cs.fluid.control.ControlEdgeIterator;
 import edu.cmu.cs.fluid.control.ControlNode;
-import edu.cmu.cs.fluid.control.DoubleInputPort;
-import edu.cmu.cs.fluid.control.DoubleOutputPort;
 import edu.cmu.cs.fluid.control.DynamicSplit;
 import edu.cmu.cs.fluid.control.EntryPort;
 import edu.cmu.cs.fluid.control.ExitPort;
 import edu.cmu.cs.fluid.control.Flow;
 import edu.cmu.cs.fluid.control.Fork;
-import edu.cmu.cs.fluid.control.InputPort;
+import edu.cmu.cs.fluid.control.ISubcomponent;
 import edu.cmu.cs.fluid.control.Join;
 import edu.cmu.cs.fluid.control.Merge;
 import edu.cmu.cs.fluid.control.Never;
 import edu.cmu.cs.fluid.control.NoOperation;
-import edu.cmu.cs.fluid.control.OutputPort;
 import edu.cmu.cs.fluid.control.PendingLabelStrip;
 import edu.cmu.cs.fluid.control.Port;
-import edu.cmu.cs.fluid.control.SimpleInputPort;
-import edu.cmu.cs.fluid.control.SimpleOutputPort;
 import edu.cmu.cs.fluid.control.Sink;
 import edu.cmu.cs.fluid.control.Source;
 import edu.cmu.cs.fluid.control.Split;
-import edu.cmu.cs.fluid.control.Subcomponent;
-import edu.cmu.cs.fluid.control.SubcomponentAbruptExitPort;
-import edu.cmu.cs.fluid.control.SubcomponentBooleanExitPort;
-import edu.cmu.cs.fluid.control.SubcomponentChoice;
-import edu.cmu.cs.fluid.control.SubcomponentEntryPort;
 import edu.cmu.cs.fluid.control.SubcomponentFlow;
-import edu.cmu.cs.fluid.control.SubcomponentNormalExitPort;
+import edu.cmu.cs.fluid.control.SubcomponentNode;
 import edu.cmu.cs.fluid.control.SubcomponentPort;
 import edu.cmu.cs.fluid.control.TrackedDemerge;
 import edu.cmu.cs.fluid.control.TrackedMerge;
@@ -781,7 +762,7 @@ public final class CFGDiagrammer {
       IRNode irn = comp.getSyntax();
       info += "\"" + getLabel(node, "ComponentFlow") + ":" + DebugUnparser.toString(irn) + "\"";
     } else if (node instanceof SubcomponentFlow) {
-      Subcomponent subcomp = ((SubcomponentFlow) node).getSubcomponent();
+      ISubcomponent subcomp = ((SubcomponentFlow) node).getSubcomponent();
       IRNode irn = subcomp.getSyntax();
       info += "\"" + getLabel(node, "SubcomponentFlow") + ":" + DebugUnparser.toString(irn) + "\"";
     } else if (node instanceof PendingLabelStrip) {
@@ -798,6 +779,8 @@ public final class CFGDiagrammer {
    */
   private String getCFGDiagramFromPort(ControlNode node) {
     String info = "";
+    info = "\"" + getLabel(node,"Port") + "\"";
+    /*
     if (node instanceof InputPort) {
       if (node instanceof BlankInputPort) {
         if (node instanceof ComponentBlankEntryPort) {
@@ -854,7 +837,7 @@ public final class CFGDiagrammer {
       }
     } else {
       throw new FluidError("unknown Port " + node);
-    }
+    }*/
     return info;
   }
 
@@ -870,8 +853,8 @@ public final class CFGDiagrammer {
         Component comp = ((ComponentChoice) node).getComponent();
         IRNode irn = comp.getSyntax();
         info += "\"" + getLabel(node, "ComponentChoice") + ":" + DebugUnparser.toString(irn) + "\"";
-      } else if (node instanceof SubcomponentChoice) {
-        Subcomponent subcomp = ((SubcomponentChoice) node).getSubcomponent();
+      } else if (node instanceof SubcomponentNode) {
+        ISubcomponent subcomp = ((SubcomponentNode) node).getSubcomponent();
         IRNode irn = subcomp.getSyntax();
         info += "\"" + getLabel(node, "SubcomponentChoice") + ":" + DebugUnparser.toString(irn)
             + "\"";

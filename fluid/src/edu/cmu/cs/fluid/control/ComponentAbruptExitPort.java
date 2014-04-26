@@ -11,7 +11,7 @@ public class ComponentAbruptExitPort extends SimpleOutputPort
     component = comp;
     comp.registerAbruptExitPort(this);
   }
-
+  
   @Override
   public Component getComponent() {
     return component;
@@ -19,7 +19,7 @@ public class ComponentAbruptExitPort extends SimpleOutputPort
 
   @Override
   public Port getDual() {
-    Subcomponent sub = component.getSubcomponentInParent();
+    ISubcomponent sub = component.getSubcomponentInParent();
     if (sub == null) return null;
     return sub.getAbruptExitPort();
   }  
@@ -30,7 +30,7 @@ public class ComponentAbruptExitPort extends SimpleOutputPort
   }
 
   @Override
-  public Subcomponent getSubcomponent() {
+  public ISubcomponent getSubcomponent() {
     return component.getSubcomponentInParent();
   }
 }

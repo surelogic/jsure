@@ -36,10 +36,10 @@ import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.control.AbruptExitPort;
-import edu.cmu.cs.fluid.control.Component.WhichPort;
 import edu.cmu.cs.fluid.control.EntryPort;
 import edu.cmu.cs.fluid.control.NormalExitPort;
 import edu.cmu.cs.fluid.control.Port;
+import edu.cmu.cs.fluid.control.WhichPort;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;

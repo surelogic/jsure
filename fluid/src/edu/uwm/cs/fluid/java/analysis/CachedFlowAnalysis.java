@@ -7,11 +7,11 @@ import java.util.logging.Logger;
 import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.FluidError;
-import edu.cmu.cs.fluid.control.BlankOutputPort;
 import edu.cmu.cs.fluid.control.Component;
 import edu.cmu.cs.fluid.control.ControlEdge;
 import edu.cmu.cs.fluid.control.ControlEdgeIterator;
 import edu.cmu.cs.fluid.control.ControlNode;
+import edu.cmu.cs.fluid.control.NoInput;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaComponentFactory;
@@ -145,7 +145,7 @@ public abstract class CachedFlowAnalysis<T, L extends Lattice<T>, R extends Cach
         default :
           throw new FluidError("unknown port designator: " + port);
       }
-      if (cn instanceof BlankOutputPort)
+      if (cn instanceof NoInput)
         return null;
       Lattice<T> lattice = analysis.getLattice();
       T val = null;

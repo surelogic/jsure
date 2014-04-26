@@ -1,8 +1,8 @@
 /* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/control/DoubleInputPort.java,v 1.6 2006/04/14 19:32:32 boyland Exp $ */
 package edu.cmu.cs.fluid.control;
 
-public abstract class DoubleInputPort extends InputPort
-    implements TwoOutput
+abstract class DoubleInputPort extends InputPort
+    implements TwoOutput, MutableControlNode
 {
   protected ControlEdge output1, output2;
   
@@ -35,4 +35,22 @@ public abstract class DoubleInputPort extends InputPort
   public ControlEdgeIterator getOutputs() {
     return new PairControlEdgeIterator(output1,output2);
   }
+
+  @Override
+  public void resetInput(ControlEdge e) {
+	  ((MutableControlNode)getDual()).resetInput(e);
+  }
+  
+  @Override
+  public void resetOutput(ControlEdge e) {
+	  if (output1 == e) {
+		  output1 = null;
+	  } else if (output2 == e) {
+		  output2 = e;
+	  } else {
+		  throw new EdgeLinkageError("Not an outgoing edge: " + e);
+	  }
+  }
+
+  
 }

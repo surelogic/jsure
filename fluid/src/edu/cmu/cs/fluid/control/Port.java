@@ -65,6 +65,12 @@ public interface Port extends ControlNode {
    * (If a port of a component, then get the subcomponent
    * from the parent.)
    */
-  public abstract Subcomponent getSubcomponent();    
+  public abstract ISubcomponent getSubcomponent();
+
+  /**
+   * Indicate what kind of port this is.
+   * @return what kind of port, null if not known.
+   */
+  public abstract WhichPort which();
 }
 

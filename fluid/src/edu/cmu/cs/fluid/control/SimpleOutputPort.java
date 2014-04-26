@@ -1,8 +1,8 @@
 /* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/control/SimpleOutputPort.java,v 1.5 2005/05/20 15:48:03 chance Exp $ */
 package edu.cmu.cs.fluid.control;
 
-public abstract class SimpleOutputPort extends OutputPort 
-    implements OneInput
+abstract class SimpleOutputPort extends OutputPort 
+    implements OneInput, MutableControlNode
 {
   protected ControlEdge input;
 
@@ -21,5 +21,17 @@ public abstract class SimpleOutputPort extends OutputPort
   public ControlEdgeIterator getInputs() {
     return new SingleControlEdgeIterator(input);
   }
+  @Override
+  public void resetOutput(ControlEdge e) {
+	  ((MutableControlNode)getDual()).resetOutput(e);
+  }
   
+  @Override
+  public void resetInput(ControlEdge e) {
+	  if (input == e) {
+		  input = null;
+	  } else {
+		  throw new EdgeLinkageError("Not an incoming edge: " + e);
+	  }
+  }
 }

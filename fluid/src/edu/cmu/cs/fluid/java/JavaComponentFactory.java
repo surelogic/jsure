@@ -1,7 +1,12 @@
 package edu.cmu.cs.fluid.java;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -14,7 +19,7 @@ import edu.cmu.cs.fluid.control.ComponentFactory;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.parse.JJOperator;
-import edu.cmu.cs.fluid.tree.*;
+import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 import edu.cmu.cs.fluid.util.IterableThreadLocal;
 import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 
@@ -51,9 +56,20 @@ public final class JavaComponentFactory implements ComponentFactory {
   
   // TODO remove!
   
+  /**
+   * Remove all CFGs created so far from the cache.
+   * <em>DANGEROUS</em>: it will invalidate all analysis objects.
+   * If the thread already holds onto read access on the internal information
+   * (CFGs) for this class, a deadlock would result.
+   * @throws IllegalStateException to avoid a deadlock 
+   */
   public static void clearCache() {
+	  if (activeLock.getReadHoldCount() > 0) {
+		  LOG.severe("Deadlock detected, and is being broken");
+		  throw new IllegalStateException("deadlock broken in clearCache()");
+	  }
+	  activeLock.writeLock().lock();
 	  try {
-		  activeLock.writeLock().lock();
 		  clear();			  
 	  } finally {
 		  activeLock.writeLock().unlock(); 
@@ -76,20 +92,22 @@ public final class JavaComponentFactory implements ComponentFactory {
   
   /**
    * Marks the beginning of a given thread's use of components,
-   * so we can't GC while there are outstanding use
+   * so we can't GC while there are outstanding use.
+   * If this method returns normally, it will have acquired a read lock
+   * on the internal structures of this class.  If the method returns abruptly
+   * then it isn't holding any lock unless some disastrous error 
+   * (e.g. OutOfMemoryError) prevents the unlock from working.
    */
   public static JavaComponentFactory startUse() {
 	  // Low and not already holding the read lock
-	  if (isLowOnMemory() && activeLock.getReadHoldCount() == 0) {		  		  
+	  if (isLowOnMemory() && activeLock.writeLock().tryLock()) {		  		  
 		  try {
-			  activeLock.writeLock().lock();
 			  if (isLowOnMemory()) {
-			    System.out.println("~~~~~~ Clearing component cache ~~~~~~");
-				  clear();			  
-			  }
-		  } finally {
-			  // This should unblock everyone		  
+			    LOG.info("~~~~~~ Clearing component cache ~~~~~~");
+				clear();			  
+			  }		  
 			  activeLock.readLock().lock();
+		  } finally {
 			  activeLock.writeLock().unlock(); // Unlock write, still hold read
 		  }		  
 	  } else {
@@ -100,7 +118,8 @@ public final class JavaComponentFactory implements ComponentFactory {
   
   /**
    * Marks the end of a given thread's use of components,
-   * specifically so they can be garbage collected
+   * specifically so they can be garbage collected.
+   * This releases the read lock acquired by {@link #startUse()}.
    */
   public static void finishUse(JavaComponentFactory factory) {	  
 	  activeLock.readLock().unlock();

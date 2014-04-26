@@ -2,7 +2,7 @@ package edu.cmu.cs.fluid.java.analysis;
 
 import com.surelogic.util.IThunk;
 
-import edu.cmu.cs.fluid.control.Component.WhichPort;
+import edu.cmu.cs.fluid.control.WhichPort;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.uwm.cs.fluid.java.control.IJavaFlowAnalysis;
 import edu.uwm.cs.fluid.util.Lattice;

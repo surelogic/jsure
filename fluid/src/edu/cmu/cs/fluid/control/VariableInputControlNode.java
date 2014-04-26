@@ -8,7 +8,11 @@ import edu.cmu.cs.fluid.ir.PlainIRNode;
 
 /**
  * @author Scott Wisniewski
- *
+ * XXX: JTB (2014/01/25): This class, its subclasses and related classes
+ * {@link GeneralControlEdgeIterator}
+ * {@link VariableInputControlEdgeIterator}
+ * {@link AdaptedVariableInputControlEdgeIterator}
+ * are unused and should not be used.
  */
 public abstract class VariableInputControlNode extends PlainIRNode implements ControlNode, VariableInput {
 	

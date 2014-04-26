@@ -17,33 +17,6 @@ import edu.cmu.cs.fluid.tree.*;
  */
 
 public class Component {
-  public static enum WhichPort {
-    ENTRY {
-      @Override
-      public ComponentPort getPort(final Component c) {
-        return c.getEntryPort();
-      }
-    },
-    
-    NORMAL_EXIT {
-      @Override
-      public ComponentPort getPort(final Component c) {
-        return c.getNormalExitPort();
-      }
-    },
-
-    ABRUPT_EXIT {
-      @Override
-      public ComponentPort getPort(final Component c) {
-        return c.getAbruptExitPort();
-      }
-    };
-    
-    public abstract ComponentPort getPort(Component c);
-  }
-  
-  
-  
   /** The syntax node for this component. */
   protected IRNode syntax;
 
@@ -115,11 +88,11 @@ public class Component {
   /** Subcomponents within the region.
    * Each subcomponent represents a wrapper.
    */
-  protected Hashtable<IRLocation,Subcomponent> subcomponents;
+  protected Hashtable<IRLocation,ISubcomponent> subcomponents;
 
-  void registerSubcomponent(IRLocation loc, Subcomponent sub) {
+  void registerSubcomponent(IRLocation loc, ISubcomponent sub) {
     if (subcomponents == null)
-      subcomponents = new Hashtable<IRLocation,Subcomponent>();
+      subcomponents = new Hashtable<IRLocation,ISubcomponent>();
     if (loc == null)
       return; // the variable subcomponent
     subcomponents.put(loc, sub);
@@ -131,25 +104,32 @@ public class Component {
    * @param loc
    * The location associated with this subcomponent.
    */
-  public Subcomponent getSubcomponent(IRLocation loc) {
+  public ISubcomponent getSubcomponent(IRLocation loc) {
     if (subcomponents == null) return null;
-    Subcomponent sub = subcomponents.get(loc);
+    ISubcomponent sub = subcomponents.get(loc);
     return sub;
   }
 
+  protected Collection<ComponentNode> componentNodes;
+  
+  void registerComponentNode(ComponentNode node) {
+	  if (componentNodes == null) componentNodes = new ArrayList<ComponentNode>();
+	  componentNodes.add(node);
+  }
+  
   /** Return the subcomponent associated with the start
    * and end of the sequence in a variable-arity node.
    * (Override in language specific, node specific component classes.)
    */
-  public Subcomponent getVariableSubcomponent() {
+  public VariableSubcomponent getVariableSubcomponent() {
     return null;
   }
 
   /** Return the subcomponent in the component of our parent. */
-  public Subcomponent getSubcomponentInParent() {
+  public ISubcomponent getSubcomponentInParent() {
 	final IRNode parent;
 	final IRLocation loc;	
-	synchronized (syntax) {
+	synchronized (syntax) { //: JTB I don't understand why locking is needed 
 		parent = tree.getParent(syntax);
 		if (parent == null) {
 			return null;
@@ -208,7 +188,7 @@ public class Component {
       }
         
       visited.put(node, node);
-      if (!(node instanceof InputPort)) {
+      if (!(node instanceof IInputPort)) {
         ControlEdgeIterator more = node.getInputs();
         while (more.hasNext()) {
           ControlEdge e = more.nextControlEdge();
@@ -217,7 +197,7 @@ public class Component {
           s.push(e.getSource());
         }
       }
-      if (!(node instanceof OutputPort)) {
+      if (!(node instanceof IOutputPort)) {
         ControlEdgeIterator more = node.getOutputs();
         while (more.hasNext()) {
           ControlEdge e = more.nextControlEdge();

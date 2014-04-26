@@ -4,6 +4,10 @@ package edu.cmu.cs.fluid.control;
 import edu.cmu.cs.fluid.FluidError;
 
 public class EdgeLinkageError extends FluidError {
-  public EdgeLinkageError() { super(); }
-  public EdgeLinkageError(String s) { super(s); }
+	/**
+	 * Keep Eclipse Happy
+	 */
+	private static final long serialVersionUID = 1L;
+	public EdgeLinkageError() { super(); }
+	public EdgeLinkageError(String s) { super(s); }
 }

@@ -7,14 +7,21 @@ package edu.cmu.cs.fluid.control;
  * @see ComponentChoice
  */
 
-public class ComponentFlow extends Flow implements ComponentNode {
+public class ComponentFlow extends Flow implements ComponentNode, MutableComponentNode {
   Component comp;
   Object value;
   public ComponentFlow(Component c, Object v) {
     comp = c;
     value = v;
+    if (c != null) c.registerComponentNode(this);
   }
+  
   @Override
+  public void setComponent(Component c) {
+	comp = c;
+  }
+
+@Override
   public Component getComponent() {
     return comp;
   }

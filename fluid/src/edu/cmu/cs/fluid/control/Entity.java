@@ -31,4 +31,15 @@ class Entity extends AbstractIRNode {
 	  }
 	  return null;
   }
+  
+  /** Default implementation of {@link Port#which()}
+   * @return kind of port using interface implementation.
+   */
+  public WhichPort which() {
+	  if (this instanceof EntryPort) return WhichPort.ENTRY;
+	  if (this instanceof AbruptExitPort) return WhichPort.ABRUPT_EXIT;
+	  if (this instanceof ExitPort) return WhichPort.NORMAL_EXIT;
+	  return null;
+  }
+
 }
