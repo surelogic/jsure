@@ -381,7 +381,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     boolean allNull = true;
     int i=0;
     for(IJavaType p : params) {
-    	if (p == null) {
+    	if (p == null || p instanceof IJavaWildcardType) {
     		//throw new IllegalArgumentException();
     		final IRNode tparams = TypeUtils.getParametersForType(decl);
     		final IRNode tparam = TypeFormals.getType(tparams, i);
@@ -389,10 +389,38 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     		// Hack to get type env
     		final ITypeEnvironment te = Projects.getEnclosingProject(decl).getTypeEnv();
     		final IJavaType bound = tf.getExtendsBound(te);
-    		if (!bound.equals(te.getObjectType())) {
-    			System.err.println("Got null type parameter, replacing with "+bound);
+    		if (p == null) {
+    			/*
+    		    if (!bound.equals(te.getObjectType())) {
+    			    System.err.println("Got null type parameter, replacing with "+bound);
+    		    }
+    			*/
+    			updatedParams.set(i, bound);    			
+    		} else if (!bound.equals(te.getObjectType())) {
+    			allNull = false;
+    			
+    			// Non-trivial bound, so check if we can combine wildcard bounds w/ type parameter bounds
+    			final IJavaWildcardType wildcard = (IJavaWildcardType) p;
+    			final IJavaReferenceType wUpper = wildcard.getUpperBound();    			
+    			final IJavaReferenceType fBound = (IJavaReferenceType) bound;
+    			final IJavaReferenceType updatedUpper;
+    			if (wUpper == null) {
+    				updatedUpper = fBound;
+    			}
+    			else if (wUpper.isSubtype(te, bound)) {
+    				continue; // Already contained
+    			}
+    			else if (bound.isSubtype(te, wUpper)) {
+    				updatedUpper = fBound;
+    			} 
+    			else {
+    				updatedUpper = JavaTypeFactory.getIntersectionType(wUpper, fBound);
+    			}
+    			updatedParams.set(i, JavaTypeFactory.getWildcardType(updatedUpper, wildcard.getLowerBound()));
+    		} else { 
+    			// Param is ? extends Object, so not null
+    			allNull = false;
     		}
-    		updatedParams.set(i, bound);
     	} else {
     		allNull = false;
     	}
@@ -680,7 +708,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     	  }
     	  for(IRNode b : MoreBounds.getBoundIterator(moreBounds)) {
     		  final IJavaReferenceType bt = (IJavaReferenceType) binder.getJavaType(b);
-    		  final IJavaReferenceType btSubst = bt;// TODO (IJavaReferenceType) bt.subst(subst);
+    		  final IJavaReferenceType btSubst = bt;//TODO (IJavaReferenceType) bt.subst(subst);
     		  bounds.add(btSubst);
     	  }
     	  return new TypeUtils(binder.getTypeEnvironment()).getGreatestLowerBound(bounds.toArray(new IJavaReferenceType[bounds.size()]));
