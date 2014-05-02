@@ -64,6 +64,10 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
    * @param jt   The corresponding actual type
    */
   protected final IJavaType captureWildcardType(IJavaTypeFormal jtf, IRNode decl, IJavaType jt) {
+	  if (true) {
+		  // This is only called from substitutions -- shouldn't be recursive
+		  return jt;
+	  }
 	  if (decl != jtf.getDeclaration()) {
 		  throw new IllegalStateException("Type formal doesn't match decl");
 	  }
@@ -85,7 +89,7 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
 
       Capture conversion on any type other than a parameterized type (�4.5) acts as an identity conversion (�5.1.1). Capture conversions never require a special action at run time and therefore never throw an exception at run time.
 
-      Capture conversion is not applied recursively.
+      Capture conversion is NOT applied recursively.
       */
       if (wt.getUpperBound() != null) {
     	  // If Ti is a wildcard type argument of the form ? extends Bi, 
@@ -103,7 +107,7 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
     	  /*
     	  if (formalBound.equals(jtf)) {
     		  // This would otherwise cause an infinite loop
-    		  fBoundSubst = JavaTypeFactory.selfReference;
+    		  //fBoundSubst = JavaTypeFactory.selfReference;
     	  } else {
     		  // TODO doesn't handle deeper cycles -- extend the substitution?
     		  // How to get a ref to the eventual capture type?
