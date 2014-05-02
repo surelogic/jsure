@@ -33,6 +33,7 @@ import com.surelogic.analysis.testing.TypeBasedAliasModule;
 import com.surelogic.analysis.testing.TypesModule;
 import com.surelogic.analysis.threads.ThreadEffectsModule;
 import com.surelogic.analysis.utility.UtilityAnalysis;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.util.*;
 import com.surelogic.javac.jobs.RemoteJSureRun;
@@ -45,6 +46,9 @@ import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.util.IntegerTable;
 
 public class Javac extends IDE {
+	private static final String NULLABLE = "com.surelogic.jsure.client.eclipse.Nullable";
+	private static final String NULLABLE_PREP = "com.surelogic.jsure.client.eclipse.NullablePreprocessor";
+	
 	// Needs to be initialized before the Javac instance
 	static final List<AnalysisInfo> analysisList = new ArrayList<AnalysisInfo>();
 	
@@ -114,9 +118,9 @@ public class Javac extends IDE {
 		init(ConstantExpressionModule.class, "com.surelogic.jsure.client.eclipse.ConstantExpr", false, "Constant Expressions (for reg tests only)");
 		init(BinderModule.class, "com.surelogic.jsure.client.eclipse.Binder", false, "Binder (for reg tests only)");
     final AnalysisInfo nullablePreprocessor =
-        init(NullablePreprocessorModule.class, "com.surelogic.jsure.client.eclipse.NullablePreprocessor", true, "Nullable Preprocessor");
+        init(NullablePreprocessorModule.class, NULLABLE_PREP, true, "Nullable Preprocessor");
     
-    init(NullableModule2.class, "com.surelogic.jsure.client.eclipse.Nullable", true, "Nullable", nullablePreprocessor);
+    init(NullableModule2.class, NULLABLE, true, "Nullable", nullablePreprocessor);
     
     init(TestFunctionalInterfacePseudoAnalysis.class,"com.surelogic.jsure.client.eclipse.TestIsFunctional", false, "Functional (for tests only)");
     /*
@@ -478,5 +482,12 @@ public class Javac extends IDE {
 		analyses.addNewGroup(g, grouped.toArray(new IIRAnalysis<?>[grouped.size()]));
 		grouped.clear();
 		return;
+	}
+	
+	public static String[] getOtherAnalysesToActivate(String id) {
+		if (NULLABLE.equals(id)) {
+			return new String[] { NULLABLE_PREP };
+		}
+		return SLUtility.EMPTY_STRING_ARRAY;
 	}
 }
