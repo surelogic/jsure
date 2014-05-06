@@ -10,9 +10,6 @@ import java.util.Set;
 
 import com.surelogic.Initialized;
 import com.surelogic.NonNull;
-import com.surelogic.aast.*;
-import com.surelogic.aast.promise.NonNullNode;
-import com.surelogic.aast.promise.NullableNode;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.nullable.NonNullRawLattice.ClassElement;
@@ -25,10 +22,8 @@ import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.StackQueryResult;
 import com.surelogic.analysis.type.checker.QualifiedTypeCheckerSlave;
 import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.annotation.parse.AnnotationVisitor;
-import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.SLUtility;
-import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.dropsea.ir.AnalysisResultDrop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
@@ -36,9 +31,7 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
-import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
-import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -157,7 +150,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   private IRNode receiverDecl = null;
 
   // TODO: Make this be controlled by and passed in by NullableModule2
-  private static final Set<PromiseDrop<?>> createdVirtualAnnotations = new ConcurrentHashSet<PromiseDrop<?>>();
+  private final Set<PromiseDrop<?>> createdVirtualAnnotations;
   
   private final Map<IRNode, Element> fieldInits;
   
@@ -166,16 +159,14 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   public NonNullTypeCheckerSlave(final IBinder b,
       final NonNullRawTypeAnalysis nonNullRaw,
       final Set<IRNode> badMethodBodies,
-      final Map<IRNode, Element> fields) {
+      final Map<IRNode, Element> fields,
+      final Set<PromiseDrop<?>> cva) {
     super(b);
     thisExprBinder = new ThisExpressionBinder(b);
     nonNullRawTypeAnalysis = nonNullRaw;
     this.badMethodBodies = badMethodBodies;
     fieldInits = fields;
-  }
-  
-  public static void clearGlobalCaches() {
-    createdVirtualAnnotations.clear();
+    createdVirtualAnnotations = cva;
   }
   
   
@@ -336,9 +327,8 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
                   JavaPromise.getPromisedFor(annotatedNode) : annotatedNode)) {
             PromiseDrop<?> newPD = pd;
             if (newPD == null) {
-              final NullableNode nn = new NullableNode(0);
-              nn.setPromisedFor(annotatedNode, null);
-              newPD = attachAsVirtual(NonNullRules.getNullableStorage(), new NullablePromiseDrop(nn));
+              newPD = NullableUtils.attachVirtualNullable(
+                  annotatedNode, createdVirtualAnnotations);
             }
             newPD.addProposal(new Builder(NonNull.class, annotatedNode, expr).build());
           }
@@ -403,13 +393,9 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
           final PromiseDrop<?> drop;
           if (declPD == null) {
             if (noAnnoIsNonNull) {
-              final NonNullNode nn = new NonNullNode(0);
-              nn.setPromisedFor(decl, null);
-              drop = attachAsVirtual(NonNullRules.getNonNullStorage(), new NonNullPromiseDrop(nn));
+              drop = NullableUtils.attachVirtualNonNull(decl, createdVirtualAnnotations);
             } else {
-              final NullableNode nn = new NullableNode(0);
-              nn.setPromisedFor(decl, null);
-              drop = attachAsVirtual(NonNullRules.getNullableStorage(), new NullablePromiseDrop(nn));
+              drop = NullableUtils.attachVirtualNullable(decl, createdVirtualAnnotations);
             }
           } else {
             drop = declPD;
@@ -424,20 +410,6 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
       }
     } catch (AnalysisGaveUp e) {
       // do nothing
-    }
-  }
-
-  private <A extends IAASTRootNode, T extends PromiseDrop<? super A>> T attachAsVirtual(
-      IPromiseDropStorage<T> storage, T drop) {
-    try {
-      AnnotationRules.attachAsVirtual(storage, drop);
-      createdVirtualAnnotations.add(drop);
-      return drop;
-    } catch (IllegalArgumentException e) {
-      // Assumed to be already created
-      drop.invalidate();
-      return drop.getNode().getSlotValue(storage.getSlotInfo());
-      // return storage.getDrops(drop.getNode()).iterator().next();
     }
   }
 

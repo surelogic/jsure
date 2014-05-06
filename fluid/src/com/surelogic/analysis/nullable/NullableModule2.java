@@ -10,7 +10,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.surelogic.NonNull;
-import com.surelogic.aast.promise.NullableNode;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.IBinderClient;
@@ -29,8 +28,8 @@ import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.InferredVarState;
 import com.surelogic.analysis.nullable.NullableModule2.AnalysisBundle.QueryBundle;
 import com.surelogic.analysis.visitors.FlowUnitVisitor;
 import com.surelogic.analysis.visitors.SuperVisitor;
-import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.common.util.FilterIterator;
 import com.surelogic.common.util.IteratorUtil;
 import com.surelogic.dropsea.ir.AbstractSeaConsistencyProofHook;
@@ -79,6 +78,10 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   
   private static final int TIME_OUT = 980;
   
+  
+  
+  private static final Set<PromiseDrop<?>> createdVirtualAnnotations = 
+      new ConcurrentHashSet<PromiseDrop<?>>();
   
   
   public NullableModule2() {
@@ -257,10 +260,8 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
                * 
                * Need to make a virtual @Nullable annotation to attach the proposal to.
                */
-              final NullableNode nn = new NullableNode(0);
-              nn.setPromisedFor(varDecl, null);
-              final NullablePromiseDrop pd = new NullablePromiseDrop(nn);
-              AnnotationRules.attachAsVirtual(NonNullRules.getNullableStorage(), pd);
+              final NullablePromiseDrop pd =
+                  NullableUtils.attachVirtualNullable(varDecl, createdVirtualAnnotations);
               pd.addProposal(new Builder(NonNull.class, varDecl, varDecl).build());
               
             }
@@ -339,10 +340,8 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
        * 
        * Need to make a virtual @Nullable annotation to attach the proposal to.
        */
-      final NullableNode nn = new NullableNode(0);
-      nn.setPromisedFor(varDecl, null);
-      final NullablePromiseDrop pd = new NullablePromiseDrop(nn);
-      AnnotationRules.attachAsVirtual(NonNullRules.getNullableStorage(), pd);
+      final NullablePromiseDrop pd = 
+          NullableUtils.attachVirtualNullable(varDecl, createdVirtualAnnotations);
       pd.addProposal(new Builder(NonNull.class, varDecl, varDecl).build());
     }
     
@@ -366,7 +365,8 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
       nonNullRawType = new NonNullRawTypeAnalysis(b);
       
       details = new DetailVisitor(this);
-      typeChecker = new NonNullTypeCheckerSlave(b, nonNullRawType, timedOutMethodBodies, fieldInits);
+      typeChecker = new NonNullTypeCheckerSlave(b, nonNullRawType,
+          timedOutMethodBodies, fieldInits, createdVirtualAnnotations);
     }
     
     @Override
@@ -398,7 +398,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     }
     
     public void clearGlobalCaches() {
-      NonNullTypeCheckerSlave.clearGlobalCaches();
+      createdVirtualAnnotations.clear();
       fieldInits.clear();
     }
     

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<package name="java.text" release="3">
+    <class name="DateFormatSymbols">
+        <method name="clone">
+            <NonNull/>
+            <Starts>nothing</Starts>
+            <RegionEffects>reads All</RegionEffects>
+        </method>
+    </class>
+</package>
