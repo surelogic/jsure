@@ -268,7 +268,9 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
   public static final IJavaWildcardType wildcardType = new JavaWildcardType(null,null);
   private static CleanableMap<IJavaType,JavaWildcardType> upperBounded = new JavaTypeCache<IJavaType,JavaWildcardType>();
   private static CleanableMap<IJavaType,JavaWildcardType> lowerBounded = new JavaTypeCache<IJavaType,JavaWildcardType>();
-
+  private static JavaTypeCache2<IJavaReferenceType,IJavaReferenceType,JavaWildcardType> dualBounded =
+	      new JavaTypeCache2<IJavaReferenceType,IJavaReferenceType,JavaWildcardType>();
+  
   public static synchronized IJavaWildcardType getWildcardType(IJavaReferenceType upper, IJavaReferenceType lower) {
     JavaWildcardType res;
     if (upper == null) {
@@ -288,7 +290,12 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
         upperBounded.put(upper,res);
       }
     } else {
-      throw new FluidError("cannot create wildcard with upper AND lower bounds");
+      //throw new FluidError("cannot create wildcard with upper AND lower bounds");
+      res = dualBounded.get(upper, lower);
+      if (res == null) {
+    	res = new JavaWildcardType((JavaReferenceType) upper, (JavaReferenceType)lower);
+    	dualBounded.put(upper,lower,res);
+      }
     }
     return res;
   }
