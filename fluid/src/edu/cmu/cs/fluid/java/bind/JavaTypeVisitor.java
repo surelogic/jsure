@@ -179,7 +179,9 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   public IJavaType visitAssignExpression(IRNode node) {
     IRNode lvalue = AssignExpression.getOp1( node );
     IJavaType type = doAccept(lvalue);
-    return captureWildcards(binder, type);
+    //Not for the lvalue
+    //return captureWildcards(binder, type);
+    return type;
   }
   
   @Override
@@ -310,7 +312,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     IJavaType type2 = doAccept( node2 );
     
     IJavaType type = typeInference3( type1, node1, type2, node2 );
-    return type;
+    return captureWildcards(binder, type);
   }
   @Override
   public IJavaType visitConditionalOrExpression(IRNode node) {
@@ -422,7 +424,8 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   public IJavaType visitMethodCall(IRNode node) {
     IBinding b = binder.getIBinding( node );
     IJavaType type = computeReturnType(b);    
-    return captureWildcards(binder, type);
+    //return captureWildcards(binder, type);
+    return type;
   }
   
   public static IJavaType computeReturnType(IBinder binder, IBinding mb) {

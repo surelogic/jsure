@@ -118,6 +118,20 @@ class MethodBinder {
           IJavaType[] argTypes = new IJavaType[args.length];     
           for (int i= 0; i < args.length; ++i) {
             argTypes[i] = binder.getJavaType(args[i]);
+            
+			if (captureTypes) {    		
+				IJavaType temp = JavaTypeVisitor.captureWildcards(binder, argTypes[i]);    			
+				if (temp != argTypes[i]) {
+					String call = DebugUnparser.toString(this.call);
+					if ("Maps.transformValues(<implicit>.delegate.rowMap, wrapper)".equals(call)) {
+						System.out.println("Binding call "+call);
+						//System.out.println("Looking at "+JavaNames.getRelativeName(m.bind.getNode()));
+						System.out.println("Captured wildcards for "+argTypes[i]);
+						//debug = true;
+					}
+					argTypes[i] = temp;
+				}
+			}
           }
           return argTypes;
         }
@@ -521,19 +535,6 @@ class MethodBinder {
     				m.bind.convertType(binder, tempFty);
     			}
     			*/
-    			if (captureTypes) {    		
-    				IJavaType temp = JavaTypeVisitor.captureWildcards(binder, fty);    			
-    				if (temp != fty) {
-    					String call = DebugUnparser.toString(s.call.call);
-    					if ("Maps.transformValues(<implicit>.delegate.rowMap, wrapper)".equals(call)) {
-    						System.out.println("Binding call "+call);
-    						System.out.println("Looking at "+JavaNames.getRelativeName(m.bind.getNode()));
-    						System.out.println("Captured wildcards for "+fty);
-    						debug = true;
-    					}
-    					fty = temp;
-    				}
-    			}
     			
     			if (allowVarargs && ptype == varType) {
     				// Check if I need to use varargs
