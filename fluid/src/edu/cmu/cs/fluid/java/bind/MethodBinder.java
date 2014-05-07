@@ -18,7 +18,8 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 class MethodBinder {
-	public static final boolean captureTypes = false;
+	public static final boolean captureTypes = true;
+	public static final boolean captureTypes2 = false;
 	
 	private static final Logger LOG = AbstractJavaBinder.LOG;
 	

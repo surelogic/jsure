@@ -601,10 +601,15 @@ public class TypeUtils {
 			else if (formal instanceof IJavaDeclaredType) {
 				IJavaDeclaredType f = (IJavaDeclaredType) formal;
 				if (constraint == Constraint.CONVERTIBLE_TO) {
-					// TODO is this right?
 					if (actual instanceof IJavaIntersectionType) {
+						// TODO is this right?
 						IJavaIntersectionType it = (IJavaIntersectionType) actual;											
 						return derive(formal, constraint, it.getPrimarySupertype()) | derive(formal, constraint, it.getSecondarySupertype());
+					}
+					else if (actual instanceof IJavaCaptureType) {
+						// TODO is this right?
+						IJavaCaptureType ct = (IJavaCaptureType) actual;
+						return derive(formal, constraint, ct.getLowerBound());
 					}
 					// This turns out to be pretty different from the cases below					
 					return deriveForDeclaredType_to(f, (IJavaDeclaredType) actual);
@@ -618,7 +623,7 @@ public class TypeUtils {
 			}
 			else if (formal instanceof IJavaTypeVariable) {
 				// TODO check if this is one of the relevant type variables
-				if (MethodBinder.captureTypes || map.subst.containsKey(formal)) {
+				if (MethodBinder.captureTypes2 || map.subst.containsKey(formal)) {
 				    // TODO is this right to handle any type variable?
 					// p.453: Otherwise, if F = Tj, then the constraint Tj :> A is implied.
 					IJavaTypeVariable f = (IJavaTypeVariable) formal;
@@ -1005,7 +1010,7 @@ public class TypeUtils {
 		Mapping(CallState call, IBinding method, Map<IJavaType, IJavaType> substMap) {
 			this.call = call;
 			this.method = method;
-			subst = MethodBinder.captureTypes ?
+			subst = MethodBinder.captureTypes2 ?
 					new IdentityHashMap<IJavaType, IJavaType>(substMap) :
 					new HashMap<IJavaType, IJavaType>(substMap);
 		}
