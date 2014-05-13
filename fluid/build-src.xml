@@ -33,8 +33,8 @@
 			<mkdir dir="@{outputdir}" />
 			<antlr3 target="@{target}" outputdirectory="@{outputdir}" libdirectory="@{outputdir}">
 				<classpath>
-					<pathelement location="${antlr-lib}/antlr-3.1.jar" />
-					<pathelement location="${antlr-lib2}/antlr-3.1.jar" />
+					<pathelement location="${antlr-lib}/antlr-3.5.2-complete-no-st3.jar" />
+					<pathelement location="${antlr-lib2}/antlr-3.5.2-complete-no-st3.jar" />
 				</classpath>
 				<jvmarg value="-Xmx1024m" />
 			</antlr3>

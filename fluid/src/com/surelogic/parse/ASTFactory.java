@@ -29,13 +29,6 @@ public class ASTFactory extends AbstractASTFactory<AASTNode> {
 		MoreFactoryRefs.register(prototype);
 		ThreadRoleFactoryRefs.register(prototype);
 		LayerFactoryRefs.register(prototype);
-
-		// These two lines are added so that opgen doesn't have to be modified
-		// for these exceptions
-		ReadsNode.factory.register(prototype);
-		WritesNode.factory.register(prototype);
-		RegionEffectsNode.factory.register(prototype);
-		FieldMappingsNode.factory.register(prototype);
 	}
 
 	@Override

@@ -43,6 +43,7 @@ public class AntlrLexerTokens {
   }
 
   public Iterable<Map.Entry<Integer,String>> tokens() {
-    return map.subMap(start+1, end).entrySet();
+	//return map.subMap(start+1, end).entrySet();
+	return map.entrySet(); 
   }
 }

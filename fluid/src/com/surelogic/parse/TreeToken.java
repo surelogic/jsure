@@ -1,6 +1,8 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/parse/TreeToken.java,v 1.6 2008/09/09 21:17:20 chance Exp $*/
 package com.surelogic.parse;
 
+import java.util.List;
+
 import org.antlr.runtime.CharStream;
 import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.tree.Tree;
@@ -140,5 +142,23 @@ public class TreeToken extends CommonToken implements Tree, Cloneable {
   @Override
   public void setParent(Tree tree) {
 	  parent = tree;
+  }
+
+  @Override
+  public Tree getAncestor(int arg0) {
+	// TODO Auto-generated method stub
+	throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public List<?> getAncestors() {
+	// TODO Auto-generated method stub
+	throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean hasAncestor(int arg0) {
+	// TODO Auto-generated method stub
+	throw new UnsupportedOperationException();
   }
 }

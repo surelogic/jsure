@@ -1,6 +1,8 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/parse/ParseUtil.java,v 1.1 2007/08/14 15:15:24 chance Exp $*/
 package com.surelogic.annotation.parse;
 
+import com.surelogic.parse.ASTFactory;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 
 public class ParseUtil {
@@ -15,6 +17,7 @@ public class ParseUtil {
 	  if (initialized) {
 		  return;
 	  }
+	  ASTFactory.getInstance();
 	  ScopedPromisesLexer.init();
 	  SLAnnotationsLexer.init();
 	  SLThreadRoleAnnotationsLexer.init();

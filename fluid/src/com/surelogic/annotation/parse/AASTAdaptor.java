@@ -16,8 +16,7 @@ public class AASTAdaptor extends AbstractNodeAdaptor {
   @Override
   protected boolean isRealToken(Token t) { 
     int type = t.getType();
-    return type < SLAnnotationsParser.START_IMAGINARY ||
-           type > SLAnnotationsParser.END_IMAGINARY;
+    return !FactoryRefs.registered.get(type);
   }
 
   public class Node extends AbstractNodeAdaptor.Node {

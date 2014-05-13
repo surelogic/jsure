@@ -15,8 +15,7 @@ public class SLThreadRoleAdaptor extends AbstractNodeAdaptor {
   @Override
   protected boolean isRealToken(Token t) {
     int type = t.getType();
-    return type < SLThreadRoleAnnotationsParser.START_IMAGINARY
-        || type > SLThreadRoleAnnotationsParser.END_IMAGINARY;
+    return !ThreadRoleFactoryRefs.registered.get(type);
   }
 
   public class Node extends AbstractNodeAdaptor.Node {
