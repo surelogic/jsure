@@ -43,7 +43,7 @@ public class TreeToken extends CommonToken implements Tree, Cloneable {
 
   @Override
   public void addChild(Tree t) {
-    throw new UnsupportedOperationException("Can't add children to "+this.text);
+    throw new UnsupportedOperationException("Can't add children to "+this.text+": "+t.getText()+" "+t.getType());
   }
 
   @Override
