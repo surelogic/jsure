@@ -21,6 +21,7 @@ public class ParseUtil {
 	  ScopedPromisesLexer.init();
 	  SLAnnotationsLexer.init();
 	  SLThreadRoleAnnotationsLexer.init();
+	  LayerPromisesLexer.init();
 	  initialized = true;
   }
   
@@ -30,5 +31,6 @@ public class ParseUtil {
 	  ScopedPromisesLexer.clear();
 	  SLAnnotationsLexer.clear();
 	  SLThreadRoleAnnotationsLexer.clear();
+	  LayerPromisesLexer.clear();
   }
 }
