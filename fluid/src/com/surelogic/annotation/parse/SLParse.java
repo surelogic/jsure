@@ -3,8 +3,6 @@ package com.surelogic.annotation.parse;
 
 import org.antlr.runtime.*;
 
-import com.surelogic.parse.*;
-
 public class SLParse extends AbstractParse<SLAnnotationsParser> {
   public static final SLParse prototype = new SLParse();
 	
@@ -13,12 +11,7 @@ public class SLParse extends AbstractParse<SLAnnotationsParser> {
   }
   
   private void test() throws Exception {
-    for(int i=SLAnnotationsParser.START_IMAGINARY+1; i<SLAnnotationsParser.END_IMAGINARY; i++) {
-      final String token = SLAnnotationsParser.tokenNames[i];
-      if (!ASTFactory.getInstance().handles(token)) {
-        System.out.println("WARNING: No factory for "+token);
-      }
-    }  
+	ParseUtil.init();
     try {
     	printAST(initParser("foo.bar.baz.blarf)").rawUpToExpression().tree);
     	printAST(initParser("java.lang.Object)").rawUpToExpression().tree); // not ending with *
@@ -28,7 +21,6 @@ public class SLParse extends AbstractParse<SLAnnotationsParser> {
 	printAST(initParser("java.lang.Object").rawUpToExpression().tree);
 	
 	printAST(initParser("Object)").rawUpToExpression().tree);
-   	printAST(initParser("*").rawUpToExpression().tree);
    	printAST(initParser("static(Object)").rawConstructor().tree);
     printAST(initParser("any()").anyInstanceExpression().tree);
     printAST(initParser("implementationOnly=false").annoParameters().tree);

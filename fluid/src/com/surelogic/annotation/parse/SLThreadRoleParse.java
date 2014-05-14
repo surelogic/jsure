@@ -3,8 +3,6 @@ package com.surelogic.annotation.parse;
 
 import org.antlr.runtime.*;
 
-import com.surelogic.parse.*;
-
 public class SLThreadRoleParse extends AbstractParse<SLThreadRoleAnnotationsParser> {
   public static final SLThreadRoleParse prototype = new SLThreadRoleParse();
 
@@ -13,12 +11,7 @@ public class SLThreadRoleParse extends AbstractParse<SLThreadRoleAnnotationsPars
   }
 	  
   private void test() throws Exception {
-    for(int i=SLThreadRoleAnnotationsParser.START_IMAGINARY+1; i<SLThreadRoleAnnotationsParser.END_IMAGINARY; i++) {
-      final String token = SLThreadRoleAnnotationsParser.tokenNames[i];
-      if (!ASTFactory.getInstance().handles(token)) {
-        System.out.println("WARNING: No factory for "+token);
-      }
-    }
+	ParseUtil.init();
 
     printAST(initParser(" foo ").name().tree, false);
     printAST(initParser("  foo, bar  ").threadRole().tree);

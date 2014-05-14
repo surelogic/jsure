@@ -3,8 +3,6 @@ package com.surelogic.annotation.parse;
 
 import org.antlr.runtime.*;
 
-import com.surelogic.parse.*;
-
 public class SLLayerParse extends AbstractParse<LayerPromisesParser> {
   public static final SLLayerParse prototype = new SLLayerParse();
 
@@ -13,12 +11,7 @@ public class SLLayerParse extends AbstractParse<LayerPromisesParser> {
   }
 	  
   private void test() throws Exception {
-    for(int i=LayerPromisesParser.START_IMAGINARY+1; i<LayerPromisesParser.END_IMAGINARY; i++) {
-      final String token = LayerPromisesParser.tokenNames[i];
-      if (!ASTFactory.getInstance().handles(token)) {
-        System.out.println("WARNING: No factory for "+token);
-      }
-    }
+    ParseUtil.init();
     printAST(initParser("java.util").mayReferTo().tree, true);
     printAST(initParser("edu.afit.smallworld.{model,persistence} | java.io.File").mayReferTo().tree, true);
     printAST(initParser("edu.afit.smallworld.model | org.jdom+ | java.{io,net,util}").mayReferTo().tree, true);

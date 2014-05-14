@@ -3,8 +3,6 @@ package com.surelogic.annotation.parse;
 
 import org.antlr.runtime.*;
 
-import com.surelogic.parse.*;
-
 public class ScopedPromiseParse extends AbstractParse<ScopedPromisesParser> {
   public static final ScopedPromiseParse prototype = new ScopedPromiseParse();
 
@@ -13,12 +11,7 @@ public class ScopedPromiseParse extends AbstractParse<ScopedPromisesParser> {
   }
 
   private void test() throws Exception {
-    for(int i=ScopedPromisesParser.START_IMAGINARY+1; i<ScopedPromisesParser.END_IMAGINARY; i++) {
-      final String token = ScopedPromisesParser.tokenNames[i];
-      if (!ASTFactory.getInstance().handles(token)) {
-        System.out.println("WARNING: No factory for "+token);
-      }
-    }  
+	ParseUtil.init();
     printAST(initParser("public new(**)").promiseTarget().tree);
     printAST(initParser("public static *(**)").promiseTarget().tree);
     printAST(initParser("public !static *(**)").promiseTarget().tree);
