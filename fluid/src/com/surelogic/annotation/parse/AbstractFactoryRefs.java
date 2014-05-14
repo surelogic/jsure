@@ -10,6 +10,7 @@ public class AbstractFactoryRefs {
 	private static String[] packages = {
 		"com.surelogic.aast.java",
 		"com.surelogic.aast.promise",
+		"com.surelogic.aast.layers"
 	};
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -28,7 +29,7 @@ public class AbstractFactoryRefs {
 					}
 				}
 			}
-			else if (name.equals("Nothing") || name.endsWith("s")) {
+			else if (name.equals("Nothing") || name.endsWith("s") || name.equals("TestResult")) {
 				registered.set(id); // Not a real token
 			}
 		}
