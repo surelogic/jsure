@@ -97,12 +97,8 @@ implements ISingleAnnotationParseRule<A,P> {
 		  }
 	  } else {
 		  proposal = proposeOnRecognitionException(context, contents, null);
-		  if (proposal != null) {
-			  context.reportErrorAndProposal(IAnnotationParsingContext.UNKNOWN, 
-					  "Unable to parse: @"+name()+' '+contents, proposal);
-		  } else {
-			  context.reportException(IAnnotationParsingContext.UNKNOWN, e);
-		  }
+		  context.reportErrorAndProposal(IAnnotationParsingContext.UNKNOWN, 
+				                         "Unable to parse: @"+name()+' '+contents, proposal);
 	  }
   }
 
