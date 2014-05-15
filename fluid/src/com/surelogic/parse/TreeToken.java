@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.antlr.runtime.CharStream;
 import org.antlr.runtime.CommonToken;
+import org.antlr.runtime.Token;
 import org.antlr.runtime.tree.Tree;
 
 /**
@@ -17,7 +18,11 @@ public class TreeToken extends CommonToken implements Tree, Cloneable {
 	
   int childIndex;
   Tree parent;
-	
+
+  public TreeToken(Token t) {
+	super(t);
+  }
+  
   public TreeToken(int type, String text) {
     super(type, convertText(type, text));
     start = Integer.MAX_VALUE;
