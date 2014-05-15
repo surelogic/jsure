@@ -161,7 +161,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
       }
     } catch (Exception e) {
       if (e instanceof RecognitionException) {
-        System.err.println(e.getMessage());
+        System.err.println("RecognitionException: "+e.getMessage());
       } else {
         LOG.log(Level.WARNING, "Unable to create promise", e);
       }

@@ -165,35 +165,36 @@ import com.surelogic.parse.*;
 
 /* Disables the default error handling so we can get the error immediately */
 @members{
-/*
-@Override
-protected void mismatch(IntStream input, int ttype, BitSet follow)
-	throws RecognitionException{
-	throw new MismatchedTokenException(ttype, input);
-}
-*/
+  RecognitionException re;
 
+  public void reportError(RecognitionException e) {
+    super.reportError(e);
+    re = e;
+  }
+  
   /**
    * Don't try to recover from mismatch errors.
    * Need this to undo a new feature of ANTLR 3.1.
    */
-  /*
-  @Override
+	@Override
   protected Object recoverFromMismatchedToken(IntStream input, int ttype, BitSet follow)
-		throws RecognitionException
-	{
-	  mismatch(input, ttype, follow);
-	  // won't get here, mismatch always throws an exception
-	  return null;
-	}
-	*/
+    throws RecognitionException
+  {
+    try {
+      re = null;
+      super.recoverFromMismatchedToken(input, ttype, follow);
+      throw re;
+    } finally {
+      re = null;
+    }
+  }
 
-@Override
-public Object recoverFromMismatchedSet(IntStream input, RecognitionException e, BitSet follow)
+  @Override
+  public Object recoverFromMismatchedSet(IntStream input, RecognitionException e, BitSet follow)
 	throws RecognitionException{
-	reportError(e);
-	throw e;
-}
+	  reportError(e);
+	  throw e;
+  }
 
   IRNode context;
   
@@ -355,17 +356,18 @@ nonNullExpression
     ;
     
 rawMethod
-    : thisExpr | returnValue 
-    | nothing -> ^(ThisExpression THIS)
+    : thisExpr EOF
+    | returnValue EOF
+    | nothing EOF-> ^(ThisExpression THIS)
     ;
 
 rawConstructor
-    : STATIC '(' namedType ')' -> namedType
-    | nothing
+    : STATIC '(' namedType ')' EOF -> namedType
+    | nothing EOF
     ;
 
 rawUpToExpression
-    : namedType 
+    : namedType EOF
     ;
     
     
@@ -394,12 +396,12 @@ lock
 	;
 
 requiresLock
-	: lockSpecifications -> ^(RequiresLock lockSpecifications)
+	: lockSpecifications EOF -> ^(RequiresLock lockSpecifications)
 	| -> ^(RequiresLock)
 	;
 	
 prohibitsLock
-	: lockSpecifications -> ^(ProhibitsLock lockSpecifications)
+	: lockSpecifications EOF -> ^(ProhibitsLock lockSpecifications)
 	| -> ^(ProhibitsLock)
 	;
 	
@@ -491,8 +493,8 @@ simpleLockExpression
 
     	
 region
-	: fullRegionDecl -> fullRegionDecl
-	| regionDecl -> regionDecl
+	: fullRegionDecl EOF -> fullRegionDecl
+	| regionDecl EOF -> regionDecl
 	;
 	
 regionDecl

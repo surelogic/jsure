@@ -126,19 +126,36 @@ import com.surelogic.parse.*;
 
 /* Disables the default error handling so we can get the error immediately */
 @members{
-/*
-@Override
-protected void mismatch(IntStream input, int ttype, BitSet follow)
-	throws RecognitionException{
-	throw new MismatchedTokenException(ttype, input);
-}
-*/
-@Override
-public Object recoverFromMismatchedSet(IntStream input, RecognitionException e, BitSet follow)
-	throws RecognitionException{
-	reportError(e);
-	throw e;
-}
+  RecognitionException re;
+
+  public void reportError(RecognitionException e) {
+    super.reportError(e);
+    re = e;
+  }
+  
+  /**
+   * Don't try to recover from mismatch errors.
+   * Need this to undo a new feature of ANTLR 3.1.
+   */
+  @Override
+  protected Object recoverFromMismatchedToken(IntStream input, int ttype, BitSet follow)
+    throws RecognitionException
+  {
+    try {
+      re = null;
+      super.recoverFromMismatchedToken(input, ttype, follow);
+      throw re;
+    } finally {
+      re = null;
+    }
+  }
+
+  @Override
+  public Object recoverFromMismatchedSet(IntStream input, RecognitionException e, BitSet follow)
+  throws RecognitionException{
+    reportError(e);
+    throw e;
+  }
 
   IRNode context;
   
