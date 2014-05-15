@@ -17,7 +17,7 @@ public class ScopedPromiseAdaptor extends AbstractNodeAdaptor {
   @Override
   protected boolean isRealToken(Token t) { 
     int type = t.getType();
-    return !MoreFactoryRefs.registered.get(type);
+    return type < 0 || !MoreFactoryRefs.registered.get(type);
   }
 
   public class Node extends AbstractNodeAdaptor.Node {

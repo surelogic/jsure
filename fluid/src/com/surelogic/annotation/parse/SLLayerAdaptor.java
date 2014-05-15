@@ -15,7 +15,7 @@ public class SLLayerAdaptor extends AbstractNodeAdaptor {
   @Override
   protected boolean isRealToken(Token t) {
     int type = t.getType();
-    return !LayerFactoryRefs.registered.get(type);
+    return type < 0 || !LayerFactoryRefs.registered.get(type);
   }
 
   public class Node extends AbstractNodeAdaptor.Node {

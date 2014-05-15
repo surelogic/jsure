@@ -358,7 +358,7 @@ nonNullExpression
 rawMethod
     : thisExpr EOF
     | returnValue EOF
-    | nothing EOF-> ^(ThisExpression THIS)
+    | nothing -> ^(ThisExpression THIS)
     ;
 
 rawConstructor
@@ -367,7 +367,7 @@ rawConstructor
     ;
 
 rawUpToExpression
-    : namedType EOF
+    : namedType EOF -> namedType
     ;
     
     
