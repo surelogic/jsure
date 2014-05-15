@@ -202,11 +202,11 @@ public class NonNullRules extends AnnotationRules {
 				return null;
 			} else try {
 				// TODO workaround for namedType issues
-				String textToParse = upTo.contains("*") ? upTo : upTo+')';
+				String textToParse = upTo; //upTo.contains("*") ? upTo : upTo+')';
 				AASTAdaptor.Node upToE = (Node) SLParse.prototype.initParser(textToParse).rawUpToExpression().getTree();			
 				upToType = (NamedTypeNode) upToE.finalizeAST(context);
 			} catch (RecognitionException e) {
-				handleRecognitionException(context, upTo, e);				
+				handleRecognitionException(context, "through="+upTo, e);				
 				return null;
 			} catch (Exception e) {
 				context.reportException(IAnnotationParsingContext.UNKNOWN, e);
