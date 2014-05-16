@@ -356,18 +356,18 @@ nonNullExpression
     ;
     
 rawMethod
-    : thisExpr EOF
-    | returnValue EOF
+    : thisExpr EOF -> thisExpr
+    | returnValue EOF -> returnValue
     | nothing -> ^(ThisExpression THIS)
     ;
 
 rawConstructor
     : STATIC '(' namedType ')' EOF -> namedType
-    | nothing EOF
+    | nothing
     ;
 
 rawUpToExpression
-    : namedType EOF -> namedType
+    : namedType /*EOF -> namedType*/
     ;
     
     
@@ -674,8 +674,16 @@ staticFieldRef
   ;
 
 namedType
-  	: simpleNamedType
-  	| qualifiedNamedType  	 	
+  	/*
+  	: qualifiedNamedType  	 	
+  	| simpleNamedType  	
+  	*/
+//: typeName  	
+  	: optname -> ^(NamedType optname)
+  	;
+  	
+optname	
+    : identifier ('.' identifier)* 
   	;
   	
 qualifiedNamedType
@@ -740,7 +748,8 @@ accessModifiers
  *************************************************************************************/	
 
 qualifiedName
-	: identifier ( options {greedy=false;} : ('.' identifier))+ 
+	: identifier ( options {greedy=false;} : ('.' identifier))+
+//  : identifier ('.' identifier)+
 	;
 	
 simpleName

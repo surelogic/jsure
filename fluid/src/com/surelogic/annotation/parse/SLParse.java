@@ -12,9 +12,12 @@ public class SLParse extends AbstractParse<SLAnnotationsParser> {
   
   private void test() throws Exception {
 	ParseUtil.init();
+	printAST(initParser("java.util.concurrent.AtomicReference.garbage").namedType().tree);
+	printAST(initParser("java.lang.Object.garbage").namedType().tree);
+	printAST(initParser("foo.Object.garbage").namedType().tree);
     try {
-    	printAST(initParser("foo.bar.baz.blarf)").rawUpToExpression().tree);
-    	printAST(initParser("java.lang.Object)").rawUpToExpression().tree); // not ending with *
+    	printAST(initParser("foo.bar.baz.blarf").rawUpToExpression().tree);
+    	printAST(initParser("java.lang.Object").rawUpToExpression().tree); // not ending with *
     } catch(Throwable e) {
     	e.printStackTrace();    	
     }
