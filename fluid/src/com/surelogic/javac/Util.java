@@ -41,6 +41,7 @@ import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.annotation.parse.AnnotationVisitor;
+import com.surelogic.annotation.parse.ParseHelper;
 import com.surelogic.annotation.parse.ParseUtil;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.RegionRules;
@@ -1609,7 +1610,9 @@ public class Util {
   private static void parsePromises(ParallelArray<CodeInfo> cus, Projects projects) {
 	final SLProgressMonitor monitor = projects.getMonitor();
     ParseUtil.init();
-
+    for(JavacProject p : projects) {
+    	ParseHelper.getInstance().initialize(p.getTypeEnv().getClassTable());
+    }
     startSubTask(monitor, "Parsing promises");
     // final File root = new
     // File(IDE.getInstance().getStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY));

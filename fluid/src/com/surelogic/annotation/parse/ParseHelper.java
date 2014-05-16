@@ -45,6 +45,10 @@ public class ParseHelper {
         i = name.indexOf('.', i+1);
       }
       //System.out.println(name);
+      int lastDot = name.lastIndexOf('.');
+      if (lastDot > 0) {
+    	  cache.put(name.substring(lastDot+1), ParseStatus.TYPE);
+      }
       cache.put(name, ParseStatus.TYPE);
     }
   }
@@ -53,7 +57,7 @@ public class ParseHelper {
     if (uninitialized ) {
       return ParseStatus.TYPE;
     }
-    String key    = prefix+'.'+id;
+    String key    = prefix.length() == 0 ? id : prefix+'.'+id;
     ParseStatus s = cache.get(key);   
     return s;
   }
