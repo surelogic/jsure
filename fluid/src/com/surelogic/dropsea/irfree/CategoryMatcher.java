@@ -9,6 +9,7 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
+import com.surelogic.dropsea.IModelingProblemDrop;
 
 public abstract class CategoryMatcher {
   private final List<IDropMatcher> passes = new ArrayList<IDropMatcher>();
@@ -114,6 +115,12 @@ public abstract class CategoryMatcher {
     	}    	
     }
     */
+    if (o instanceof IModelingProblemDrop && o.getMessage().startsWith("Unable to parse")) {
+    	final int at = o.getMessage().indexOf('@');
+    	final int spaceAfterAnno = o.getMessage().indexOf(' ', at);
+    	final String reconstructed = o.getMessage().substring(0, spaceAfterAnno) +'('+ o.getMessage().substring(spaceAfterAnno+1) +')';
+		result = matchStrings(n.getMessage(), reconstructed, true);
+    }
     return result != null ? result : false;
   }
   

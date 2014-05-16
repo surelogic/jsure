@@ -81,7 +81,13 @@ implements ISingleAnnotationParseRule<A,P> {
   }
 
   protected final void handleRecognitionException(IAnnotationParsingContext context, String contents,
+	      RecognitionException e) {
+	  handleRecognitionException(context, null, contents, e);
+  }
+  
+  protected final void handleRecognitionException(IAnnotationParsingContext context, String attr, String contents,
       RecognitionException e) {
+
 	  final ProposedPromiseDrop.Builder proposal;
 	  if (e.charPositionInLine < contents.length()) {
 		  if (e.charPositionInLine > 0) {
@@ -89,16 +95,18 @@ implements ISingleAnnotationParseRule<A,P> {
 			  String bad = contents.substring(e.charPositionInLine);
 			  proposal = proposeOnRecognitionException(context, contents, ok);
 			  context.reportErrorAndProposal(e.charPositionInLine, 
-					  "Unable to parse past @"+name()+' '+ok+" ___ "+bad,
+					  "Unable to parse past @"+name()+'('+(attr == null ? "" : attr+'=')+ok+" ___ "+bad+')',
 					  proposal); 
 		  } else {
+			  final String printContents = attr == null ? contents : attr+"='"+contents+"'";
 			  proposal = proposeOnRecognitionException(context, contents, null);
-			  context.reportErrorAndProposal(0, "Unable to parse: @"+name()+' '+contents, proposal); 
+			  context.reportErrorAndProposal(0, "Unable to parse: @"+name()+'('+printContents+')', proposal); 
 		  }
 	  } else {
+		  final String printContents = attr == null ? contents : attr+"='"+contents+"'";
 		  proposal = proposeOnRecognitionException(context, contents, null);
 		  context.reportErrorAndProposal(IAnnotationParsingContext.UNKNOWN, 
-				                         "Unable to parse: @"+name()+' '+contents, proposal);
+				                         "Unable to parse: @"+name()+'('+printContents+')', proposal);
 	  }
   }
 
