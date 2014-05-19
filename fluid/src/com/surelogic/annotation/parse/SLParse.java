@@ -12,6 +12,8 @@ public class SLParse extends AbstractParse<SLAnnotationsParser> {
   
   private void test() throws Exception {
 	ParseUtil.init();
+	// This seems to be enough
+	printAST(initParser("java.util.concurrent.AtomicReference.").namedType().tree);
 	printAST(initParser("java.util.concurrent.AtomicReference.garbage").namedType().tree);
 	printAST(initParser("java.lang.Object.garbage").namedType().tree);
 	printAST(initParser("foo.Object.garbage").namedType().tree);
