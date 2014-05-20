@@ -388,8 +388,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     boolean allNull = true;
     int i=0;
     for(IJavaType p : params) {
-    	if (p == null || p instanceof IJavaWildcardType) {
-    		//throw new IllegalArgumentException();
+    	if (p == null/* || p instanceof IJavaWildcardType*/) {
     		final IRNode tparams = TypeUtils.getParametersForType(decl);
     		final IRNode tparam = TypeFormals.getType(tparams, i);
     		final IJavaTypeFormal tf = getTypeFormal(tparam);    
@@ -403,7 +402,9 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     		    }
     			*/
     			updatedParams.set(i, bound);    			
-    		} else if (!bound.equals(te.getObjectType())) {
+    		}
+    		/*
+    		else if (!bound.equals(te.getObjectType())) {
     			allNull = false;
     			
     			// Non-trivial bound, so check if we can combine wildcard bounds w/ type parameter bounds
@@ -428,6 +429,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     			// Param is ? extends Object, so not null
     			allNull = false;
     		}
+    		*/
     	} else {
     		allNull = false;
     	}
