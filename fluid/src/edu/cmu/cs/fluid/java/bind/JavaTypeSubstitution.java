@@ -87,7 +87,7 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
       public ITypeEnvironment getTypeEnv() {
 			  ensureSubst();
 			  if (realSubst == null) {
-				  return null;
+				  return tEnv;
 			  }
 			  return realSubst.getTypeEnv();
 		  }
@@ -95,6 +95,8 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
   }
   
   private static JavaTypeSubstitution createReal(ITypeEnvironment tEnv, IJavaDeclaredType jt) {
+    jt = (IJavaDeclaredType) JavaTypeVisitor.captureWildcards(tEnv.getBinder(), jt);
+    		
     List<IJavaType> tactuals     = jt.getTypeParameters();
     JavaTypeSubstitution nesting = getNesting(tEnv, jt);
     /*
