@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.java.bind;
 
 import java.util.*;
 
+import com.surelogic.common.util.EmptyIterator;
 import com.surelogic.common.util.Iteratable;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -53,10 +54,16 @@ public class MethodBinder8 {
     }
 
 	private static int numChildren(IRNode n) {
+		if (n == null) {
+			return 0;
+		}
     	return JJNode.tree.numChildren(n);
     }
     
     private Iteratable<IRNode> children(IRNode n) {
+    	if (n == null) {
+    		return EmptyIterator.prototype();
+    	}
     	return JJNode.tree.children(n);
     }
     
