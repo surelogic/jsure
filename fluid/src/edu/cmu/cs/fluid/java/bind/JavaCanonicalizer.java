@@ -1489,8 +1489,10 @@ public class JavaCanonicalizer {
        */
       generateBoxUnbox(node); // generate boxing as needed
       IRNode name = NameExpression.getName(node);
-      if (binder.getIBinding(node).getNode() == null)
+      IBinding b = binder.getIBinding(name);
+      if (b.getNode() == null) {
         return false;
+      }
       IRNode replacement = nameToExpr(name);
       replaceSubtree(node, replacement);
       return true;
