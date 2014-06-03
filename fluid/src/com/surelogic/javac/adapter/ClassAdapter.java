@@ -342,7 +342,7 @@ public class ClassAdapter extends AbstractAdapter {
     if ((access & Opcodes.ACC_PRIVATE) != 0) {
       return null;
     }
-    return new FieldVisitor(Opcodes.ASM4) {
+    return new FieldVisitor(Opcodes.ASM5) {
       final List<IRNode> annoList = new ArrayList<IRNode>();
 
       @Override
@@ -580,7 +580,7 @@ public class ClassAdapter extends AbstractAdapter {
      * System.out.println("signature and desc not the same: "+desc); }
      */
     // Handles line numbers and annotations
-    return new MethodVisitor(Opcodes.ASM4) {
+    return new MethodVisitor(Opcodes.ASM5) {
     	int line = Integer.MAX_VALUE;
     	final List<IRNode> annoList = new ArrayList<IRNode>();
     	final MultiMap<Integer, IRNode> paramAnnos = new MultiHashMap<Integer, IRNode>();
@@ -911,7 +911,7 @@ public class ClassAdapter extends AbstractAdapter {
 
   class Visitor extends ClassVisitor {
     Visitor() {
-      super(Opcodes.ASM4);
+      super(Opcodes.ASM5);
     }
 
     @Override

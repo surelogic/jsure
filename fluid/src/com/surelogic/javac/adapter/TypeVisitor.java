@@ -21,7 +21,7 @@ public class TypeVisitor extends SignatureVisitor {
 		this(false);
 	}
 	TypeVisitor(boolean varargs) {
-		super(Opcodes.ASM4);
+		super(Opcodes.ASM5);
 		this.varargs = varargs;
 	}
 	

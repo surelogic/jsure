@@ -22,7 +22,7 @@ class AnnoBuilder extends AnnotationVisitor {
 	IRNode result;
 	
 	AnnoBuilder(String desc) {
-		super(Opcodes.ASM4);
+		super(Opcodes.ASM5);
 		if (desc == null) {
 			type = null;
 		} else {

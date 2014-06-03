@@ -11,7 +11,7 @@ public class TraceSignatureVisitor extends SignatureVisitor
     private final String m_indent;
     
     public TraceSignatureVisitor(String indent) {
-    	super(Opcodes.ASM4);
+    	super(Opcodes.ASM5);
         m_indent = indent;
     }
 
