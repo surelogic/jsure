@@ -186,7 +186,7 @@ public interface IOldTypeEnvironment extends ITypeEnvironment {
           TypeDeclarations.createNode(new IRNode[] {privateArrayType}));
       JavaNode.setModifiers(cu, JavaNode.AS_BINARY);
       
-      ReturnValueDeclaration.getReturnNode(privateCloneMethod);
+      ReturnValueDeclaration.makeReturnNode(privateCloneMethod);
       ReceiverDeclaration.makeReceiverNode(privateCloneMethod);
       ReceiverDeclaration.makeReceiverNode(privateArrayType);
       final IRNode init = InitDeclaration.getInitMethod(privateArrayType);
