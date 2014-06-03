@@ -120,7 +120,7 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
   private SourcePositions source;
   private LineMap lines;
   //private Map<JCTree, String> javadoc;
-  private DocCommentTable javadoc;
+  //private DocCommentTable javadoc;
   private CompilationUnitTree root;
   private FileResource cuRef;
   private String srcCode;
@@ -140,7 +140,7 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
     source = t.getSourcePositions();
     root = cut;
     lines = cut.getLineMap();
-    javadoc = cut.docComments;
+    //javadoc = cut.docComments;
     cuRef = new FileResource(projects, srcFile, getPackage(cut), jp.getName());
     if (!srcFile.qname.startsWith(cuRef.getPackage())) {
     	throw new IllegalStateException(srcFile.qname+" doesn't match "+cuRef.getPackage());
@@ -176,7 +176,7 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
       source = null;
       root = null;
       lines = null;
-      javadoc = null;
+      //javadoc = null;
       cuRef = null;
       srcCode = null;
     }
@@ -393,7 +393,8 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
     }
     long line = lines.getLineNumber(start);
     //String comment = javadoc == null ? null : javadoc.get(t);
-    String comment = javadoc.getCommentText((JCTree) t);
+    //String comment = javadoc.getCommentText((JCTree) t);
+    String comment = null;
     if (comment != null && AnnotationVisitor.allowJavadoc(jp.getTypeEnv())) {
       JavaNode.setComment(result, comment);
       List<JavadocAnnotation> elmt = getJavadocAnnotations(comment);
