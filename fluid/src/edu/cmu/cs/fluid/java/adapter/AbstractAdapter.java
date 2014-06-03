@@ -45,8 +45,8 @@ public class AbstractAdapter {
 		public abstract IRNode call(T t, CodeContext context);
 	}
 	
-	protected static final SyntaxTreeInterface tree = JJNode.tree;
-	protected static final IRNode[] noNodes = JavaGlobals.noNodes;
+	public static final SyntaxTreeInterface tree = JJNode.tree;
+	public static final IRNode[] noNodes = JavaGlobals.noNodes;
 	
 	/**
 	 * Logger for this class
@@ -134,7 +134,7 @@ public class AbstractAdapter {
 		createRequiredMethodNodes(false, result);
 	}
 	
-	protected void createRequiredMethodNodes(boolean isStatic, IRNode result) {
+	protected static void createRequiredMethodNodes(boolean isStatic, IRNode result) {
 		IRNode rv = ReturnValueDeclaration.makeReturnNode(result);
 		SkeletonJavaRefUtility.copyIfPossible(result, rv);
 		if (!isStatic) {
@@ -143,18 +143,18 @@ public class AbstractAdapter {
 		}
 	}
 
-	protected void createRequiredClassNodes(IRNode result) {
+	public static void createRequiredClassNodes(IRNode result) {
 		createRequiredTypeNodes(result);
 		createRequiredAnonClassNodes(result);
 	}
 
-	protected void createRequiredAnonClassNodes(IRNode result) {
+	protected static void createRequiredAnonClassNodes(IRNode result) {
 		IRNode init = InitDeclaration.getInitMethod(result);
 		ReceiverDeclarationInInit.makeReceiverNodeForInit(init);
 		ReceiverDeclaration.makeReceiverNode(result);
 	}
 
-	protected void createRequiredTypeNodes(IRNode result) {
+	protected static void createRequiredTypeNodes(IRNode result) {
 		IRNode clinit = ClassInitDeclaration.getClassInitMethod(result);
 		SkeletonJavaRefUtility.copyIfPossible(result, clinit);
 	}
