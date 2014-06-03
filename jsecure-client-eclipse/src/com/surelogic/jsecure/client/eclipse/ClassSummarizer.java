@@ -114,7 +114,7 @@ public class ClassSummarizer extends ClassVisitor {
 		final Set<String> dependencies = new HashSet<String>();
 		
 		Clazz(String id) {
-			super(Opcodes.ASM4);
+			super(Opcodes.ASM5);
 			name = id;
 		}
 
@@ -203,7 +203,7 @@ public class ClassSummarizer extends ClassVisitor {
 	boolean fromSource;
 	
 	public ClassSummarizer(final File runDir, JavaClassPath<JavaProjectSet<JavaProject>> classes) {
-		super(Opcodes.ASM4);
+		super(Opcodes.ASM5);
 		classPath = classes;
 		
 		File dbLoc = new File(runDir, DB_PATH);
@@ -364,7 +364,7 @@ public class ClassSummarizer extends ClassVisitor {
 		//return super.visitMethod(access, name, desc, signature, exceptions);
 		result.processDescriptor(desc);
 		result.processSignature(signature);
-        MethodVisitor oriMv= new MethodVisitor(Opcodes.ASM4) {
+        MethodVisitor oriMv= new MethodVisitor(Opcodes.ASM5) {
         	int lastLine = -1;
         	        
         	@Override
