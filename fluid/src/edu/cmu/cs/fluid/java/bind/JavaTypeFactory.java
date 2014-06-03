@@ -76,6 +76,7 @@ import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.ShortType;
+import edu.cmu.cs.fluid.java.operator.Type;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
@@ -691,6 +692,8 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       	  types.add(convertNodeTypeToIJavaType(t, binder));
         }
         return JavaTypeFactory.getUnionType(types);      
+    } else if (op instanceof Type) {
+      return JavaTypeVisitor.getJavaType(nodeType, binder);
     } else {
       LOG.severe("Cannot convert type " + op);
       return null;

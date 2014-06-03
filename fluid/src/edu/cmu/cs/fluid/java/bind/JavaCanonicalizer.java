@@ -31,6 +31,7 @@ import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
 import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
+import edu.cmu.cs.fluid.java.adapter.AbstractAdapter;
 import edu.cmu.cs.fluid.java.operator.AddExpression;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
 import edu.cmu.cs.fluid.java.operator.AnnotationElement;
@@ -81,11 +82,13 @@ import edu.cmu.cs.fluid.java.operator.NestedEnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedTypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.NewExpression;
 import edu.cmu.cs.fluid.java.operator.NonPolymorphicMethodCall;
+import edu.cmu.cs.fluid.java.operator.NonPolymorphicNewExpression;
 import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
 import edu.cmu.cs.fluid.java.operator.OuterObjectSpecifier;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
 import edu.cmu.cs.fluid.java.operator.Parameters;
+import edu.cmu.cs.fluid.java.operator.PolymorphicNewExpression;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.QualifiedName;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
@@ -97,6 +100,7 @@ import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.StringLiteral;
 import edu.cmu.cs.fluid.java.operator.ThisExpression;
 import edu.cmu.cs.fluid.java.operator.Throws;
+import edu.cmu.cs.fluid.java.operator.Type;
 import edu.cmu.cs.fluid.java.operator.TypeActuals;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
 import edu.cmu.cs.fluid.java.operator.TypeExpression;
@@ -113,6 +117,7 @@ import edu.cmu.cs.fluid.java.operator.Visitor;
 import edu.cmu.cs.fluid.java.operator.WildcardExtendsType;
 import edu.cmu.cs.fluid.java.operator.WildcardSuperType;
 import edu.cmu.cs.fluid.java.operator.WildcardType;
+import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.CogenUtil;
@@ -1422,11 +1427,9 @@ public class JavaCanonicalizer {
     	Iterator<IJavaType> rqdit = fty.getParameterTypes().iterator();
     	for (IRNode formal : JJNode.tree.children(LambdaExpression.getParams(node))) {
     		IRNode ftype = ParameterDeclaration.getType(formal);
-    		// we need to come up with the convention for how
-    		// to handle an inferred parameter type
-    		if (NamedType.prototype.includes(ftype) && JJNode.getInfo(ftype).equals("")) {
+    		if (JJNode.tree.getOperator(ftype) == Type.prototype) {
     			IRNode ptype = createType(rqdit.next());
-    			IRNode annos = Annotations.createNode(none);
+    			IRNode annos = Annotations.createNode(none); 
     			IRNode newParam = ParameterDeclaration.createNode(annos, JavaNode.ALL_FALSE, ptype, JJNode.getInfo(formal));
     			newParamList.add(newParam);
     		} else {
@@ -1456,13 +1459,19 @@ public class JavaCanonicalizer {
 		for (IJavaType t : base.getTypeParameters()) {
 			typeArgList.add(createType(t));
 		}
-		IRNode typeArgs = TypeActuals.createNode(typeArgList.toArray(none));
-		IRNode classType = createNamedType(base.getDeclaration(),null);
-		IRNode nexp = NewExpression.createNode(typeArgs, classType, Arguments.createNode(none));
+		final IRNode classType = createNamedType(null, IBinding.Util.makeBinding(base.getDeclaration()));
+		final IRNode nexp;
+		if (typeArgList.isEmpty()) {
+			nexp = NonPolymorphicNewExpression.createNode(classType, Arguments.createNode(none));
+		} else {
+			IRNode typeArgs = TypeActuals.createNode(typeArgList.toArray(none));
+			nexp = PolymorphicNewExpression.createNode(typeArgs, classType, Arguments.createNode(none));
+		}
 		IRNode ace = AnonClassExpression.createNode(JavaNode.IMPLICIT, nexp, cbody);
 		
 		replaceSubtree(node,ace);
-		
+		ReceiverDeclaration.makeReceiverNode(mdecl);
+		AbstractAdapter.createRequiredClassNodes(ace);
 		return true;
 	}
 
@@ -1853,6 +1862,11 @@ public class JavaCanonicalizer {
       return REFERENCE_CONTEXT;
     }
 
+    @Override
+    public Integer visitLambdaExpression(IRNode node) {
+      return REFERENCE_CONTEXT;   
+    }
+    
     @Override
     public Integer visitMethodCall(IRNode node) {
       return REFERENCE_CONTEXT;

@@ -52,7 +52,7 @@ public class MethodBinder8 {
         return null;
     }
 
-	private int numChildren(IRNode n) {
+	private static int numChildren(IRNode n) {
     	return JJNode.tree.numChildren(n);
     }
     
@@ -387,6 +387,68 @@ public class MethodBinder8 {
     	return false;
     }
 
+    /**
+     * An conservative approximation of JLS 15.2 for the purposes of determining granule boundaries
+     */
+    public static boolean couldBePolyExpression(IRNode e) {
+    	final Operator op = JJNode.tree.getOperator(e);
+    	if (MethodCall.prototype.includes(op)) {
+    		//  A method invocation expression is a poly expression if all of the following are true:
+
+    		// The invocation appears in an assignment context (5.2) or an invocation context (5.3).
+    	    // The invocation elides NonWildTypeArguments.
+    	    // Per the following sections, the method to be invoked is a generic method (8.4.4).
+    	    // The return type of the method to be invoked mentions at least one of the method's type parameters. 
+
+    		// Otherwise, the method invocation expression is a standalone expression.    		
+    		if (isInAssignmentOrInvocationContext(e) &&
+    			numChildren(MethodCall.getTypeArgs(e)) == 0) {
+    			return true;
+    			/*
+    			final IBinding mb = binder.getIBinding(e);
+    			IRNode typeParams = MethodDeclaration.getTypes(mb.getNode());
+    			if (numChildren(typeParams) > 0) {
+    				return refersToTypeParams(MethodDeclaration.getReturnType(mb.getNode()), typeParams);
+    			}
+    			*/
+    		}    		
+    	}
+    	else if (ParenExpression.prototype.includes(op)) {
+    		return couldBePolyExpression(ParenExpression.getOp(e));
+    	}
+    	else if (NewExpression.prototype.includes(op)) {
+    		// A class instance creation expression is a poly expression (15.2) 
+    		// if i) it uses a diamond '<>' in place of type arguments, and 
+    		// ii) it appears in an assignment context (5.2) or an invocation context (5.3). 
+    		// Otherwise, it is a standalone expression.  		
+    		IRNode typeArgs = NewExpression.getTypeArgs(e);    		
+    		return typeArgs != null && numChildren(typeArgs) == 0 && isInAssignmentOrInvocationContext(e);
+    	}
+    	else if (ConditionalExpression.prototype.includes(op)) {
+    		// 15.25.1 Boolean Conditional Expressions [New]
+    		//
+    		//   Boolean conditional expressions are standalone expressions (15.2).
+    		//
+    		// 15.25.2 Numeric Conditional Expressions [New]
+    		//
+    		//   Numeric conditional expressions are standalone expressions (15.2).
+    		// 
+    		// 15.25.3 Reference Conditional Expressions [New]
+    		// 
+    		//   A reference conditional expression is a poly expression if it appears in an 
+    		//   assignment context (5.2) or an invocation context (5.3). Otherwise, it is a standalone expression.
+    		if (true) { //classifyCondExpr(e) == ExpressionKind.REF) {
+    			return isInAssignmentOrInvocationContext(e);
+    		}
+    	}
+    	else if (LambdaExpression.prototype.includes(op) || 
+    			 MethodReference.prototype.includes(op) ||
+    			 ConstructorReference.prototype.includes(op)) {
+    		return true;
+    	}    	
+    	return false;    	
+    }
+    
 	enum ExpressionKind {
     	BOOLEAN, NUMERIC, REF 
     }
@@ -467,7 +529,7 @@ public class MethodBinder8 {
     /**
      * @return true if type refers to one of the type parameters
      */
-    private boolean refersToTypeParams(IRNode type, IRNode typeParams) {
+    private static boolean refersToTypeParams(IRNode type, IRNode typeParams) {
     	//final IJavaType t = binder.getJavaType(type);
     	//HACK to lookup the names myself?
     	final Set<String> formals = new HashSet<String>();
@@ -491,7 +553,7 @@ public class MethodBinder8 {
     }
     
     // JLS 5
-    private ConversionContextKind getConversionContext(IRNode e) {
+    private static ConversionContextKind getConversionContext(IRNode e) {
 		final IRNode parent = JJNode.tree.getParent(e);
 		final Operator pop = JJNode.tree.getOperator(parent);
 		if (Arguments.prototype.includes(pop)) {
@@ -513,7 +575,7 @@ public class MethodBinder8 {
     	return ConversionContextKind.UNKNOWN;
     }
         
-    private boolean isInAssignmentOrInvocationContext(IRNode e) {    	
+    private static boolean isInAssignmentOrInvocationContext(IRNode e) {    	
     	return getConversionContext(e).ordinal() <= ConversionContextKind.INVOCATION.ordinal();
     }    
         

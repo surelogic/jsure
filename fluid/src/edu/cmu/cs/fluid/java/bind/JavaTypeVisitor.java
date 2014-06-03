@@ -401,9 +401,9 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   
   @Override
-  public IJavaType visitLambdaExpression(IRNode node) {
-	// TODO do we have to redo this whole thing?
-	return null;
+  public IJavaType visitLambdaExpression(final IRNode node) {
+	  TypeUtils utils = new TypeUtils(binder.getTypeEnvironment());
+	  return utils.getPolyExpressionTargetType(node);	    
   }
   
   @Override
@@ -732,6 +732,33 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitThisExpression(IRNode node) {
     return JavaTypeFactory.getThisType(node);
+  }
+  
+  @Override
+  public IJavaType visitType(final IRNode here) {
+	// This should only appear in param decls for lambdas
+	final IRNode parent = JJNode.tree.getParent(here);
+	IRNode node = parent;
+	if (ParameterDeclaration.prototype.includes(parent)) {
+		node = JJNode.tree.getParent(parent);
+    	// Figure out which parameter this is
+		final int pIndex = JJNode.tree.childLocationIndex(node, JJNode.tree.getLocation(parent));
+		
+		node = JJNode.tree.getParent(node);
+		if (LambdaExpression.prototype.includes(node)) {
+			// Match up the param with the method in the interface
+			IJavaDeclaredType targetType = (IJavaDeclaredType) visitLambdaExpression(node);
+	    	IJavaTypeSubstitution subst = JavaTypeSubstitution.create(binder.getTypeEnvironment(), targetType);
+	    	for(IRNode m : VisitUtil.getClassMethodsOnly(targetType.getDeclaration())) {
+		    	// TODO filter out abstract methods originally from Object
+	    		IRNode params = MethodDeclaration.getParams(m);
+	    		IRNode param = Parameters.getFormal(params, pIndex);
+	    		IJavaType type = visitParameterDeclaration(param);
+	    		return type.subst(subst);
+	    	}
+		}
+	}
+	throw new IllegalStateException("Type not in a lambda: "+DebugUnparser.toString(node));
   }
   
   @Override

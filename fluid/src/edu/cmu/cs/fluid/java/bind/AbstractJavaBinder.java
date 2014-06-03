@@ -54,7 +54,6 @@ import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassType;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
-
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.ConstructorReference;
@@ -282,14 +281,16 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     else if (op instanceof Implements || op instanceof Extensions) {
     	return true;
     }
-    else if (op instanceof NewExpression) {
-    	// This is necessary because the type of the NewE may depend on binding the OOS
-        return getOOSParent(node) != null;
-    }
     else if (op instanceof OuterObjectSpecifier) {
     	return true;
     }
     else if (op instanceof Expression) {    	    	
+        if (op instanceof NewExpression) {
+        	// This is necessary because the type of the NewE may depend on binding the OOS
+        	if (getOOSParent(node) != null) {
+        		return true;
+        	}
+        }
     	// Check if it's the top-level Expression and contains an OOS 
     	IRNode parent = JJNode.tree.getParent(node);
     	if (Statement.prototype.includes(parent)) {
@@ -310,6 +311,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		}
     		JavaNode.setModifiers(node, JavaNode.setModifier(mods, JavaNode.NOT_GRANULE, true));
     		return false;
+    	}
+    	else if (MethodBinder8.couldBePolyExpression(node)) {
+    		return !MethodBinder8.couldBePolyExpression(parent);
     	}
     	return false;
     }
