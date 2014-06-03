@@ -50,7 +50,13 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 		// All unpacked
 		util.addPluginAndJarsToPath(COMMON_PLUGIN_ID, "lib/runtime");
 		util.addPluginAndJarsToPath(JSureConstants.FLUID_PLUGIN_ID, "lib/runtime");
-		final boolean isMac = SystemUtils.IS_OS_MAC_OSX;
+		if (SystemUtils.IS_JAVA_1_8) {
+			util.addPluginAndJarsToPath(JSureConstants.FLUID_PLUGIN_ID, "lib/runtime8");
+		} else {
+			util.addPluginAndJarsToPath(JSureConstants.FLUID_PLUGIN_ID, "lib/runtime7");
+		}
+		
+		final boolean isMac = System.getProperty("sun.boot.class.path") != null || SystemUtils.IS_OS_MAC_OSX;
 		if (XUtil.testing) {
 			util.addPluginAndJarsToPath(JSureConstants.JSURE_TESTS_PLUGIN_ID, "lib");
 			util.addPluginJarsToPath(JSureConstants.JUNIT_PLUGIN_ID, "junit.jar");
@@ -63,8 +69,11 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 		if (isMac) {
 			// Add lib/javac.jar to the bootpath
 			util.clear();
-			util.addPluginJarsToPath(JSureConstants.FLUID_PLUGIN_ID, "lib/runtime/javac.jar");
-			
+			if (SystemUtils.IS_JAVA_1_8) {
+				util.addPluginJarsToPath(JSureConstants.FLUID_PLUGIN_ID, "lib/runtime8/javac_8.jar");
+			} else {
+				util.addPluginJarsToPath(JSureConstants.FLUID_PLUGIN_ID, "lib/runtime7/javac.jar");
+			}
 			final Path bootpath = cmdj.createBootclasspath(proj);		
 			for(File jar : util.getPath()) {
 				addToPath(proj, bootpath, jar, true);

@@ -10,7 +10,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.zip.ZipEntry;
@@ -46,6 +45,7 @@ import com.sun.source.tree.IdentifierTree;
 import com.sun.source.tree.IfTree;
 import com.sun.source.tree.ImportTree;
 import com.sun.source.tree.InstanceOfTree;
+import com.sun.source.tree.IntersectionTypeTree;
 import com.sun.source.tree.LabeledStatementTree;
 import com.sun.source.tree.LambdaExpressionTree;
 import com.sun.source.tree.LineMap;
@@ -78,6 +78,7 @@ import com.sun.source.tree.WhileLoopTree;
 import com.sun.source.tree.WildcardTree;
 import com.sun.source.util.SourcePositions;
 import com.sun.source.util.Trees;
+import com.sun.tools.javac.tree.DocCommentTable;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.surelogic.annotation.JavadocAnnotation;
@@ -109,7 +110,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.IllegalChildException;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode, CodeContext> {
+public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode, CodeContext> {
   public static final boolean includeQuotesInStringLiteral = true;
 
   enum TypeKind {
@@ -118,11 +119,12 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 
   private SourcePositions source;
   private LineMap lines;
-  private Map<JCTree, String> javadoc;
+  //private Map<JCTree, String> javadoc;
+  private DocCommentTable javadoc;
   private CompilationUnitTree root;
   private FileResource cuRef;
   private String srcCode;
-  private boolean asBinary;
+  boolean asBinary;
   final Projects projects;
   final JavacProject jp;
   final DeclFactory declFactory;
@@ -302,7 +304,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     }
   }
 
-  private IRNode acceptNode(Tree t, CodeContext context) {
+  IRNode acceptNode(Tree t, CodeContext context) {
     if (t == null) {
       return null;
     }
@@ -377,7 +379,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     // Otherwise, no comment
   }
 
-  private void addJavaRefAndCheckForJavadocAnnotations(Tree t, IRNode result) {
+  void addJavaRefAndCheckForJavadocAnnotations(Tree t, IRNode result) {
 	if (result == null) {
 		return;
 	}
@@ -390,7 +392,8 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
       start = end;
     }
     long line = lines.getLineNumber(start);
-    String comment = javadoc == null ? null : javadoc.get(t);
+    //String comment = javadoc == null ? null : javadoc.get(t);
+    String comment = javadoc.getCommentText((JCTree) t);
     if (comment != null && AnnotationVisitor.allowJavadoc(jp.getTypeEnv())) {
       JavaNode.setComment(result, comment);
       List<JavadocAnnotation> elmt = getJavadocAnnotations(comment);
@@ -477,7 +480,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     }
   };
 
-  private IRNode adaptType(Tree t, CodeContext context) {
+  IRNode adaptType(Tree t, CodeContext context) {
     if (t == null) {
       return null;
     }
@@ -519,21 +522,31 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 
   private final Function<Tree> adaptParameters = new Function<Tree>() {
     public IRNode call(Tree t, CodeContext context, int i, int n) {
-      return adaptParameter(t, context, false);
+      return adaptParameter(t, context, false, false);
     }
   };
   private final Function<Tree> adaptVarargsParameters = new Function<Tree>() {
     public IRNode call(Tree t, CodeContext context, int i, int n) {
-      return adaptParameter(t, context, i == n - 1);
+      return adaptParameter(t, context, i == n - 1, false);
     }
   };
+  private final Function<Tree> adaptLambdaParameters = new Function<Tree>() {
+	public IRNode call(Tree t, CodeContext context, int i, int n) {
+	  return adaptParameter(t, context, false, true);
+	}
+  };
 
-  private IRNode adaptParameter(Tree t, CodeContext context, boolean varargs) {
+  
+  
+  IRNode adaptParameter(Tree t, CodeContext context, final boolean varargs, final boolean untyped) {
     VariableTree v = (VariableTree) t;
     int mods = adaptModifiers(v.getModifiers());
     IRNode annos = adaptAnnotations(v.getModifiers(), context);
     IRNode type;
-    if (varargs) {
+    if (untyped) {
+      type = Type.prototype.jjtCreate(); 
+    }
+    else if (varargs) {
       ArrayTypeTree at = (ArrayTypeTree) v.getType();
       type = VarArgsType.createNode(adaptType(at.getType(), context));
     } else {
@@ -552,7 +565,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     }
   };
 
-  private IRNode adaptStatement(Tree t, CodeContext context) {
+  IRNode adaptStatement(Tree t, CodeContext context) {
     if (t instanceof VariableTree) {
       VariableTree node = (VariableTree) t;
       int mods = adaptModifiers(node.getModifiers());
@@ -625,7 +638,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     }
   };
 
-  private IRNode adaptExpr(Tree t, CodeContext context) {
+  IRNode adaptExpr(Tree t, CodeContext context) {
     if (t == null) {
       return null;
     }
@@ -858,7 +871,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   }
 
   public IRNode visitCatch(CatchTree node, CodeContext context) {
-    IRNode v = adaptParameter(node.getParameter(), context, false);
+    IRNode v = adaptParameter(node.getParameter(), context, false, false);
     IRNode b = acceptNode(node.getBlock(), context);
     return CatchClause.createNode(v, b);
   }
@@ -871,7 +884,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
     OUTER, INNER, LOCAL
   }
 
-  private IRNode adaptClass(ClassTree node, final CodeContext context, ClassType ctype) {
+  IRNode adaptClass(ClassTree node, final CodeContext context, ClassType ctype) {
     String mod = node.getModifiers().toString();
     String id = node.getSimpleName().toString();
     String src = node.toString().substring(mod.length() + 1);
@@ -1090,7 +1103,7 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
   }
 
   public IRNode visitEnhancedForLoop(EnhancedForLoopTree node, CodeContext context) {
-    IRNode v = adaptParameter(node.getVariable(), context, false);
+    IRNode v = adaptParameter(node.getVariable(), context, false, false);
     IRNode e = adaptExpr(node.getExpression(), context);
     IRNode s = acceptNode(node.getStatement(), context);
     return ForEachStatement.createNode(v, e, s);
@@ -1408,18 +1421,26 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
    */
   public IRNode[] adaptParameterList(List<? extends VariableTree> params, CodeContext context) {
 	  final boolean varargs;
+	  final boolean untypedLambda;
 	  if (params.size() > 0) {
 		  VariableTree v = params.get(params.size() - 1);
 		  String last = v.toString();
-		  varargs = v.getType().getKind() == Tree.Kind.ARRAY_TYPE && last.contains("...");
+		  if (v.getType() == null) {
+			untypedLambda = true;
+			varargs = false;  
+		  } else {
+			untypedLambda = false;
+		    varargs = v.getType().getKind() == Tree.Kind.ARRAY_TYPE && last.contains("...");
 		  /*
 		   * TODO is this the best way to figure this out? if (varargs) {
 		   * System.out.println("Found varargs: "+node); }
 		   */
+		  }
 	  } else {
 		  varargs = false;
+		  untypedLambda = false;
 	  }
-	  IRNode[] fmls = map(varargs ? adaptVarargsParameters : adaptParameters, params, context);
+	  IRNode[] fmls = map(untypedLambda ? adaptLambdaParameters : varargs ? adaptVarargsParameters : adaptParameters, params, context);
 	  return fmls;
   }
 
@@ -1796,7 +1817,12 @@ public class SourceAdapter extends AbstractAdapter implements TreeVisitor<IRNode
 	// TODO: implement this new node
     throw new UnsupportedOperationException();
   }
-
+  
+  public IRNode visitIntersectionType(IntersectionTypeTree arg0, CodeContext arg1) {
+	// TODO Auto-generated method stub
+	return null;
+  }
+  
   public IRNode visitLambdaExpression(LambdaExpressionTree arg0, CodeContext c) {
 	  final IRNode[] fmls = adaptParameterList(arg0.getParameters(),c);
 	  final IRNode body;

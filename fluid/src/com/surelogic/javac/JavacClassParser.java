@@ -165,7 +165,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 					String path = p.file.toString();
 					if (path.startsWith("jar:")) {
 						final int bang    = path.indexOf('!');
-						final String zip  = path.substring(5, bang);
+						final String zip  = path.substring(path.startsWith("jar://") ? 5 : 4, bang);
 						// To make it look like a qualified class name
 						final String src  = path.substring(bang+1, path.length()-5).replace('\\', '.'); 
 						Location location = StandardLocation.locationFor(zip);
