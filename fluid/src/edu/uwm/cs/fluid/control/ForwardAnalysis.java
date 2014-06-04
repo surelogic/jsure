@@ -16,7 +16,7 @@ import edu.cmu.cs.fluid.control.ComponentSource;
 import edu.cmu.cs.fluid.control.ControlEdge;
 import edu.cmu.cs.fluid.control.ControlLabel;
 import edu.cmu.cs.fluid.control.ControlNode;
-import edu.cmu.cs.fluid.control.DynamicSplit;
+import edu.cmu.cs.fluid.control.SubcomponentSplit;
 import edu.cmu.cs.fluid.control.Flow;
 import edu.cmu.cs.fluid.control.Fork;
 import edu.cmu.cs.fluid.control.IInputPort;
@@ -325,8 +325,8 @@ public class ForwardAnalysis<T, L extends Lattice<T>, XFER extends ForwardTransf
       } else {
         LOG.severe("Unknown Choice node " + node);
       }
-    } else if (node instanceof DynamicSplit) {
-      DynamicSplit ds = (DynamicSplit) node;
+    } else if (node instanceof SubcomponentSplit) {
+      SubcomponentSplit ds = (SubcomponentSplit) node;
       // control could go both ways!
       if (ds.test(true)) {
         doNOPtransfer(in,out1);

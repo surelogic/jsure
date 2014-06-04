@@ -17,4 +17,10 @@ public interface BiComponentFactory extends ComponentFactory {
 	 * This action is drastic.
 	 */
 	public void clear();
+	
+	/**
+	 * During optimization, we removed this object from the CFG.
+	 * @param x Object removed
+	 */
+	public void noteRemoval(Object x);
 }

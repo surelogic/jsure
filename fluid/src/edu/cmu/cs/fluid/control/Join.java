@@ -56,12 +56,12 @@ public abstract class Join extends Entity
   
   @Override
   public void resetInput(ControlEdge e) {
-	 if (input1 == e) input1 = null;
-	 else if (input2 == e) input2 = null;
+	 if (input1 != null && input1.equals(e)) input1 = null;
+	 else if (input2 != null && input2.equals(e)) input2 = null;
 	 else throw new EdgeLinkageError("not an outgoing edge: " + e);
   }
   @Override
   public void resetOutput(ControlEdge e) {
-	  if (output == e) output = null;
+	  if (output != null && output.equals(e)) output = null;
 	  else throw new EdgeLinkageError("not an incoming edge: " + e);
   }}

@@ -26,7 +26,12 @@ class Entity extends AbstractIRNode {
   
   protected String infoToString() {
 	  if (this instanceof ComponentNode) {
-		  IRNode syntax = ((ComponentNode)this).getComponent().getSyntax();
+		  IRNode syntax;
+		  if (this instanceof SubcomponentNode) {
+			  syntax = ((SubcomponentNode)this).getSubcomponent().getSyntax();
+		  } else {
+			  syntax = ((ComponentNode)this).getComponent().getSyntax();
+		  }
 		  return "for " + DebugUnparser.toString(syntax);
 	  }
 	  return null;

@@ -28,10 +28,10 @@ abstract class SimpleOutputPort extends OutputPort
   
   @Override
   public void resetInput(ControlEdge e) {
-	  if (input == e) {
+	  if (input.equals(e)) {
 		  input = null;
 	  } else {
-		  throw new EdgeLinkageError("Not an incoming edge: " + e);
+		  throw new EdgeLinkageError("Not an incoming edge: " + e + ", input was " + input);
 	  }
   }
 }

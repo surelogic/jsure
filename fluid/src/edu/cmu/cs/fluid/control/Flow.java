@@ -44,12 +44,12 @@ public abstract class Flow extends Entity
   
   @Override
   public void resetInput(ControlEdge e) {
-	 if (input == e) input = null;
+	 if (input != null && input.equals(e)) input = null;
 	 else throw new EdgeLinkageError("not an outgoing edge: " + e);
   }
   @Override
   public void resetOutput(ControlEdge e) {
-	  if (output == e) output = null;
+	  if (output != null && output.equals(e)) output = null;
 	  else throw new EdgeLinkageError("not an incoming edge: " + e);
   }
 

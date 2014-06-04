@@ -14,7 +14,7 @@ import edu.cmu.cs.fluid.control.ComponentSink;
 import edu.cmu.cs.fluid.control.ControlEdge;
 import edu.cmu.cs.fluid.control.ControlLabel;
 import edu.cmu.cs.fluid.control.ControlNode;
-import edu.cmu.cs.fluid.control.DynamicSplit;
+import edu.cmu.cs.fluid.control.SubcomponentSplit;
 import edu.cmu.cs.fluid.control.Flow;
 import edu.cmu.cs.fluid.control.Fork;
 import edu.cmu.cs.fluid.control.IInputPort;
@@ -349,41 +349,41 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
    * 
    * was:
    * 
-   *  LabeledLattice.Combiner<T, DynamicSplit> dynamicSplitCombiner = new LabeledLattice.AbstractCombiner<T,DynamicSplit>() {
-   *      public T combine(T x, T y, DynamicSplit arg) {
+   *  LabeledLattice.Combiner<T, SubcomponentSplit> dynamicSplitCombiner = new LabeledLattice.AbstractCombiner<T,SubcomponentSplit>() {
+   *      public T combine(T x, T y, SubcomponentSplit arg) {
    *        if (!arg.test(true)) x= lattice.bottom();
    *        if (!arg.test(false)) y = lattice.bottom();
    *        return lattice.join(x,y);
    *      }
    *  };
    */
-  final LabeledLattice.Combiner<T, DynamicSplit> dynamicSplitCombiner = new LabeledLattice.Combiner<T, DynamicSplit>() {
-    public final UnaryOp<T, DynamicSplit> leftBottom = new UnaryOp<T, DynamicSplit>() {
+  final LabeledLattice.Combiner<T, SubcomponentSplit> dynamicSplitCombiner = new LabeledLattice.Combiner<T, SubcomponentSplit>() {
+    public final UnaryOp<T, SubcomponentSplit> leftBottom = new UnaryOp<T, SubcomponentSplit>() {
       @Override
-      public T operate(T x, DynamicSplit arg) {
+      public T operate(T x, SubcomponentSplit arg) {
         return combine(lattice.bottom(), x, arg);
       }
     };
 
-    public final UnaryOp<T, DynamicSplit> rightBottom = new UnaryOp<T, DynamicSplit>() {
+    public final UnaryOp<T, SubcomponentSplit> rightBottom = new UnaryOp<T, SubcomponentSplit>() {
       @Override
-      public T operate(T x, DynamicSplit arg) {
+      public T operate(T x, SubcomponentSplit arg) {
         return combine(x, lattice.bottom(), arg);
       }
     };
 
     @Override
-    public UnaryOp<T, DynamicSplit> bindLeftBottom() {
+    public UnaryOp<T, SubcomponentSplit> bindLeftBottom() {
       return leftBottom;
     }
 
     @Override
-    public UnaryOp<T, DynamicSplit> bindRightBottom() {
+    public UnaryOp<T, SubcomponentSplit> bindRightBottom() {
       return rightBottom;
     }
 
     @Override
-    public T combine(T x, T y, DynamicSplit arg) {
+    public T combine(T x, T y, SubcomponentSplit arg) {
       if (!arg.test(true))
         x = lattice.bottom();
       if (!arg.test(false))
@@ -392,8 +392,8 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
     }
   };
 
-//  LabeledLattice.Combiner<T, DynamicSplit> dynamicSplitCombiner = new LabeledLattice.AbstractCombiner<T,DynamicSplit>() {
-//      public T combine(T x, T y, DynamicSplit arg) {
+//  LabeledLattice.Combiner<T, SubcomponentSplit> dynamicSplitCombiner = new LabeledLattice.AbstractCombiner<T,SubcomponentSplit>() {
+//      public T combine(T x, T y, SubcomponentSplit arg) {
 //        if (!arg.test(true)) x= lattice.bottom();
 //        if (!arg.test(false)) y = lattice.bottom();
 //        return lattice.join(x,y);
@@ -438,8 +438,8 @@ public class BackwardAnalysis<T, L extends Lattice<T>, XFER extends BackwardTran
       } else {
         LOG.severe("Unknown Choice " + node);
       }
-    } else if (node instanceof DynamicSplit) {
-      doTransfer(out1,out2,in,dynamicSplitCombiner,(DynamicSplit)node);
+    } else if (node instanceof SubcomponentSplit) {
+      doTransfer(out1,out2,in,dynamicSplitCombiner,(SubcomponentSplit)node);
     } else if (node instanceof TrackedDemerge) {
       doTransfer(out1,out2,in,addLabelOp,TrackLabel.trueTrack,addLabelOp,TrackLabel.falseTrack);
     } else {

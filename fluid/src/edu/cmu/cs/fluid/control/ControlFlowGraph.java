@@ -220,7 +220,7 @@ public class ControlFlowGraph extends DigraphMixin
   @Override
   public Iteratable<IRNode> parents(IRNode node) {
     if (node instanceof IInputPort) {
-      node = ((InputPort)node).getDual();
+      node = ((IInputPort)node).getDual();
     }
     if (node instanceof OneInput) {
       OneInput node1 = (OneInput)node;
@@ -304,7 +304,7 @@ class OneInputLocation extends ControlEdgeLocation {
   public static OneInputLocation prototype = new OneInputLocation();
   @Override
   public ControlEdge getControlEdge(IRNode node) {
-    if (node instanceof IInputPort) node = ((InputPort)node).getDual();
+    if (node instanceof IInputPort) node = ((IInputPort)node).getDual();
     if (node == null) throw new IRSequenceException("no such element");
     return ((OneInput)node).getInput();
   }

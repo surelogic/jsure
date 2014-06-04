@@ -32,7 +32,7 @@ public abstract class Sink extends Entity
   
   @Override
   public void resetInput(ControlEdge e) {
-	 if (input == e) input = null;
+	 if (input != null && input.equals(e)) input = null;
 	 else throw new EdgeLinkageError("not an outgoing edge: " + e);
   }
   @Override

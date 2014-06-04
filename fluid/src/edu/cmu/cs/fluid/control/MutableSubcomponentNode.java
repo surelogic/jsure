@@ -6,7 +6,7 @@ package edu.cmu.cs.fluid.control;
  * or used for analysis.  Afterwards, analysis results will be confused.
  * @author boyland
  */
-interface MutableSubcomponentNode {
+interface MutableSubcomponentNode extends SubcomponentNode {
 	/**
 	 * Change the subcomponent that this node is assigned to.
 	 * This operation is dangerous.

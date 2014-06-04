@@ -36,12 +36,14 @@ public class DepthFirstSearch extends AbstractRemovelessIterator<IRNode> {
     digraph = dig;
     bottomUp = false;
     visit(root);
+    mark(root);
   }
 
   public DepthFirstSearch(DigraphInterface dig, IRNode root, boolean bu) {
     digraph = dig;
     bottomUp = bu;
     visit(root);
+    mark(root);
   }
 
   @Override
@@ -141,7 +143,7 @@ public class DepthFirstSearch extends AbstractRemovelessIterator<IRNode> {
     //node.setSlotValue(markInfo,Boolean.TRUE);
     
     Boolean old = markInfo.put(node, Boolean.TRUE);
-    return old != null;
+    return old == null;
   }
 
   /** Handle additional children.

@@ -58,13 +58,13 @@ public abstract class Split extends Entity
   
   @Override
   public void resetInput(ControlEdge e) {
-	 if (input == e) input = null;
+	 if (input != null && input.equals(e)) input = null;
 	 else throw new EdgeLinkageError("not an outgoing edge: " + e);
   }
   @Override
   public void resetOutput(ControlEdge e) {
-	  if (output1 == e) output1 = null;
-	  else if (output2 == e) output2 = null;
+	  if (output1 != null && output1.equals(e)) output1 = null;
+	  else if (output2 != null && output2.equals(e)) output2 = null;
 	  else throw new EdgeLinkageError("not an incoming edge: " + e);
   }}
 

@@ -28,7 +28,7 @@ import edu.cmu.cs.fluid.control.ComponentSink;
 import edu.cmu.cs.fluid.control.ComponentSource;
 import edu.cmu.cs.fluid.control.ControlEdgeIterator;
 import edu.cmu.cs.fluid.control.ControlNode;
-import edu.cmu.cs.fluid.control.DynamicSplit;
+import edu.cmu.cs.fluid.control.SubcomponentSplit;
 import edu.cmu.cs.fluid.control.EntryPort;
 import edu.cmu.cs.fluid.control.ExitPort;
 import edu.cmu.cs.fluid.control.Flow;
@@ -861,8 +861,8 @@ public final class CFGDiagrammer {
       } else {
         throw new FluidError("unknown Split " + node);
       }
-    } else if (node instanceof DynamicSplit) {
-      info += "\"" + getLabel(node, "DynamicSplit") + "\"";
+    } else if (node instanceof SubcomponentSplit) {
+      info += "\"" + getLabel(node, "SubcomponentSplit") + "\"";
     } else if (node instanceof TrackedDemerge) {
       info += "\"" + getLabel(node, "TrackedDemerge") + "\"";
     } else {

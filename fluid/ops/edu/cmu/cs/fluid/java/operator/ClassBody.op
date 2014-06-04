@@ -142,13 +142,11 @@ class ClassSubcomponent extends VariableSubcomponent {
 }
 
 @SuppressWarnings("all")
-class CheckStatic extends DynamicSplit {
-  private final Subcomponent subcomponent;
+class CheckStatic extends SubcomponentSplit {
   public CheckStatic(Subcomponent sub) {
-    subcomponent = sub;
+    super(sub);
   }
   public boolean test(boolean flag) {
-    return flag == JavaNode.getModifier(subcomponent.getSyntax(),
-					JavaNode.STATIC);
+    return flag == JavaNode.getModifier(getSyntax(), JavaNode.STATIC);
   }
 }

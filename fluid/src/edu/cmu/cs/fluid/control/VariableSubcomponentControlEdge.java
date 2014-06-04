@@ -38,6 +38,7 @@ public class VariableSubcomponentControlEdge extends ControlEdge {
   public VariableSubcomponentControlEdge
   (VariableSubcomponent vs, int i, boolean entryp, ControlNode local, boolean rev)
   {
+	  if (local == null) throw new IllegalArgumentException("VSE local node must not be null");
 	  isReverse = rev;
 	  subcomponent = vs;
 	  index = i;
@@ -179,7 +180,7 @@ public class VariableSubcomponentControlEdge extends ControlEdge {
       throws EdgeLinkageError
   {
     if (isEntry) {
-      throw new EdgeLinkageError("no source explicit");
+      getDual().setSource(source, second); // throw new EdgeLinkageError("no source explicit");
     } else {
       local = source;
       isSecondary = second;
@@ -194,7 +195,11 @@ public class VariableSubcomponentControlEdge extends ControlEdge {
       local = sink;
       isSecondary = second;
     } else {
-      throw new EdgeLinkageError("no sink explicit");
+      getDual().setSink(sink, second); // throw new EdgeLinkageError("no sink explicit");
     }
+  }
+  
+  @Override public String toString() {
+	  return super.toString() + (isEntry ? "/entry/" : "/exit/") + index;
   }
 }

@@ -10,11 +10,12 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * This node is treated as a ComponentChoice during control flow analysis.
  * @see ComponentChoice
  */
-public class SubcomponentChoice extends Choice implements SubcomponentNode {
+public class SubcomponentChoice extends Choice implements MutableSubcomponentNode {
 	ISubcomponent sub;
 	public SubcomponentChoice(ISubcomponent s, Object v) {
 		super(v);
 		sub = s;
+		sub.registerSubcomponentNode(this);
 	}
 	/* (non-Javadoc)
 	 * @see edu.cmu.cs.fluid.control.SubcomponentNode#getSubcomponent()
@@ -23,6 +24,12 @@ public class SubcomponentChoice extends Choice implements SubcomponentNode {
 	public ISubcomponent getSubcomponent() {
 		return sub;
 	}
+	
+	@Override
+	public void setSubcomponent(ISubcomponent s) {
+		sub = s;
+	}
+	
 	@Override
 	public IRNode getSyntax() {
 		return sub.getComponent().getSyntax();

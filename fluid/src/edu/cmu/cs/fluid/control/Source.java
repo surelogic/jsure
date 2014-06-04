@@ -36,7 +36,7 @@ public abstract class Source extends Entity
   }
   @Override
   public void resetOutput(ControlEdge e) {
-	  if (output == e) output = null;
+	  if (output != null && output.equals(e)) output = null;
 	  else throw new EdgeLinkageError("not an incoming edge: " + e);
   }
 }

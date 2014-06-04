@@ -71,14 +71,14 @@ class SwitchSubcomponent extends VariableSubcomponent {
     normalExitPort = new SubcomponentNormalExitPort(this);
     abruptExitPort = new SubcomponentAbruptExitPort(this);
     
-    ControlNode checkConstant = new DynamicSplit() {
+    ControlNode checkConstant = new SubcomponentSplit(this) {
       public boolean test(boolean flag) {
 	IRNode label = SwitchElement.getLabel(getSyntax());
 	return flag == (JJNode.tree.getOperator(label) == ConstantLabel.prototype);
       }
     };
 
-    ControlNode checkDefault = new DynamicSplit() {
+    ControlNode checkDefault = new SubcomponentSplit(this) {
       public boolean test(boolean flag) {
 	IRNode label = SwitchElement.getLabel(getSyntax());
 	return flag == (JJNode.tree.getOperator(label) == DefaultLabel.prototype);

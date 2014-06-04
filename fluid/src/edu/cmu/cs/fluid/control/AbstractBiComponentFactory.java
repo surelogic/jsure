@@ -20,6 +20,8 @@ public abstract class AbstractBiComponentFactory implements BiComponentFactory {
 	 */
 	private static final Logger LOG = SLLogger.getLogger("FLUID.control");
 
+	public static boolean OPTIMIZE = true;
+	
 	public AbstractBiComponentFactory() {
 		// TODO Auto-generated constructor stub
 	}
@@ -42,6 +44,9 @@ public abstract class AbstractBiComponentFactory implements BiComponentFactory {
 	
 	@Override
 	public BiComponent getBiComponent(IRNode node, boolean quiet) {
+		//XXX: If we create it twice, we get an error, sow e have to
+		// do things more carefully than this.
+		if (registry.containsKey(node)) return registry.get(node);
 		Component comp = this.getUnregisteredComponent(node, quiet);
 		if (comp == null) return null;
 		if (comp.factory != null) {
@@ -49,6 +54,7 @@ public abstract class AbstractBiComponentFactory implements BiComponentFactory {
 		}
 		BiComponent bic = new BiComponent(this,node);
 		bic.assumeIdentity(comp,quiet);
+		if (OPTIMIZE) bic.optimize();
 		return registerBiComponent(node,bic);
 	}
 
@@ -86,4 +92,7 @@ public abstract class AbstractBiComponentFactory implements BiComponentFactory {
 	public void clear() {
 		registry.clear();
 	}
+	
+	@Override
+	public void noteRemoval(Object x) {}
 }

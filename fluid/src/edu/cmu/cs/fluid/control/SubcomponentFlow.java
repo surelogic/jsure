@@ -10,19 +10,26 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * This node is treated as a ComponentFlow during control flow analysis.
  * @see ComponentFlow
  */
-public class SubcomponentFlow extends Flow implements SubcomponentNode {
+public class SubcomponentFlow extends Flow implements MutableSubcomponentNode {
   ISubcomponent sub;
   Object value;
   public SubcomponentFlow(ISubcomponent s, Object v) {
     super();
     sub = s;
     value = v;
+    sub.registerSubcomponentNode(this);
   }
   public ISubcomponent getSubcomponent() {
-    return sub;
+	  return sub;
   }
+
+  @Override
+  public void setSubcomponent(ISubcomponent s) {
+	  sub = s;
+  }
+  
   public IRNode getSyntax() {
-    return sub.getComponent().getSyntax();
+	  return sub.getComponent().getSyntax();
   }
   public Object getValue() {
     return value;

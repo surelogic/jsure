@@ -35,6 +35,6 @@ abstract class OutputPort extends AbstractProxyNode implements Port, IOutputPort
   
   @Override 
   public String toString() {
-	  return getClass().getSimpleName() + "(" + getIRNode() + ")";
+	  return getClass().getSimpleName() ; // + "(" + getIRNode() + ")";
   }
 }

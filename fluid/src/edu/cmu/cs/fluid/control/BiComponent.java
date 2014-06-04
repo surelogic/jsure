@@ -11,6 +11,7 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.FluidRuntimeException;
 import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 
 /**
  * A component that also serves as a subcomponent in its parent.
@@ -66,24 +67,24 @@ public class BiComponent extends Component implements ISubcomponent {
 	 * @param c
 	 */
 	void assumeIdentity(Component c, boolean quiet) {
-		entryPort = augmentPort((BiPort)entryPort,c.getEntryPort());
-		normalExitPort = augmentPort((BiPort)normalExitPort,c.getNormalExitPort());
-		abruptExitPort = augmentPort((BiPort)abruptExitPort,c.getAbruptExitPort());
+		System.out.println("Assuming identity of comp for " + DebugUnparser.toString(syntax, 3));
 		BiComponentFactory fact = (BiComponentFactory)factory;
 		// make sure all variable subcomponents are created
 		if (c instanceof VariableComponent) {
+			System.out.println("1. Fixing variable subcomponent edges");
 			replaceVariableSubcomponentEdges(c.getVariableSubcomponent());
 			for (IRLocation loc = tree.firstChildLocation(syntax); loc != null; loc = tree.nextChildLocation(syntax, loc)) {
-				c.getSubcomponent(loc);
+				ISubcomponent subcomponent = c.getSubcomponent(loc);
+				replaceVariableSubcomponentEdges((VariableSubcomponent) subcomponent);
 			}
+		} else {
+			System.out.println("1. (irrelevant for this node)");
 		}
-		// now grab all subcomponents
-		for (Map.Entry<IRLocation,ISubcomponent> e : c.subcomponents.entrySet()) {
-			if (e.getKey() == null) continue; // no BiComponent should be created for it
-			BiComponent sub = fact.getBiComponent(e.getValue().getSyntax(), quiet);
-			sub.assumeIdentity(e.getValue());
-			registerSubcomponent(e.getKey(),sub);
-		}
+		System.out.println("2. taking over ports");
+		entryPort = augmentPort((BiPort)entryPort,c.getEntryPort());
+		normalExitPort = augmentPort((BiPort)normalExitPort,c.getNormalExitPort());
+		abruptExitPort = augmentPort((BiPort)abruptExitPort,c.getAbruptExitPort());
+		System.out.println("3. Taking over any component nodes");
 		if (c.componentNodes != null) {
 			for (ComponentNode n : c.componentNodes) {
 				if (n instanceof MutableComponentNode) {
@@ -95,6 +96,23 @@ public class BiComponent extends Component implements ISubcomponent {
 			}
 			c.componentNodes = null;
 		}
+		System.out.println("4. taking over subcomponents");
+		if (c.subcomponents != null) {
+			for (Map.Entry<IRLocation,ISubcomponent> e : c.subcomponents.entrySet()) {
+				if (e.getKey() == null) continue; // no BiComponent should be created for it
+				BiComponent sub = fact.getBiComponent(e.getValue().getSyntax(), quiet);
+				sub.assumeIdentity(e.getValue());
+				registerSubcomponent(e.getKey(),sub);
+				if (sub.nodes != null) {
+					for (SubcomponentNode n : sub.nodes) {
+						if (n instanceof SubcomponentSplit) {
+							addRedundant((ControlNode)n);
+						}
+					}
+				}
+			}
+		}
+		System.out.println("5. Done for " + DebugUnparser.toString(syntax, 3));
 	}
 	
 	/**
@@ -102,6 +120,7 @@ public class BiComponent extends Component implements ISubcomponent {
 	 * @param s
 	 */
 	void assumeIdentity(ISubcomponent s) {
+		System.out.println("Assuming identity of subcomp for " + DebugUnparser.toString(syntax, 3));
 		entryPort = augmentPort((BiPort)entryPort,s.getEntryPort());
 		normalExitPort = augmentPort((BiPort)normalExitPort,s.getNormalExitPort());
 		abruptExitPort = augmentPort((BiPort)abruptExitPort,s.getAbruptExitPort());
@@ -119,13 +138,12 @@ public class BiComponent extends Component implements ISubcomponent {
 				}
 				oldSub.nodes = null;
 			}
-			if (oldSub instanceof VariableSubcomponent) {
-				replaceVariableSubcomponentEdges((VariableSubcomponent)oldSub);
-			}
 		} else {
 			LOG.warning("What sort of subcomponent is this? " + s);
 		}
 	}
+	
+	private Collection<ControlNode> redundant;
 	
 	/**
 	 * Find all VariableSubcomponentControlEdge instances for this VSC
@@ -134,15 +152,154 @@ public class BiComponent extends Component implements ISubcomponent {
 	 */
 	protected void replaceVariableSubcomponentEdges(VariableSubcomponent vsc) {
 		int n = vsc.getNumEdges();
-		for (boolean b=false; ;b = true) {
+		{ boolean b = false;
 			for (int i=0; i < n; ++i) {
 				ControlEdge vce = vsc.getVariableEdge(i, b);
 				ControlNode source = vce.getSource();
+				if (source instanceof Never || source instanceof NoOperation) {
+					addRedundant(source);
+				}
 				ControlNode sink = vce.getSink();
 				vce.detach();
 				ControlEdge.connect(source, sink);
 			}
-			if (b) break;
+		}
+	}
+
+	protected void addRedundant(ControlNode node) {
+		if (redundant == null) redundant = new ArrayList<ControlNode>();
+		redundant.add(node);
+	}
+	
+	protected void unregisterComponentNode(ComponentNode cn) {
+		super.componentNodes.remove(cn);
+	}
+	
+	protected void unregisterSubcomponentNode(SubcomponentNode subn) {
+		nodes.remove(subn);
+	}
+	
+	/**
+	 * Perform simple peephole optimization after construction, but before we
+	 * can look at parent.
+	 */
+	protected void optimize() {
+		System.out.println("Optizimizing BIC for " + DebugUnparser.toString(syntax, 3));
+		if (redundant != null) {
+			for (ControlNode n : redundant) {
+				System.out.println("Redundant " + n);
+				((BiComponentFactory)factory).noteRemoval(n);
+				if (n instanceof Never) {
+					removeDeadEdge(((Never)n).output);
+				} else if (n instanceof NoOperation) {
+					NoOperation nop = (NoOperation)n;
+					ControlNode source = nop.getInput().getSource();
+					ControlNode sink = nop.getOutput().getSink();
+					nop.getInput().detach();
+					nop.getOutput().detach();
+					ControlEdge.connect(source, sink);
+				} else if (n instanceof SubcomponentSplit) {
+					SubcomponentSplit ds = (SubcomponentSplit)n;
+					((BiComponent)ds.getSubcomponent()).unregisterSubcomponentNode(ds);
+					ControlEdge liveEdge;
+					ControlEdge deadEdge;
+					if (ds.test(true) && !ds.test(false)) {
+						liveEdge = ds.output1;
+						deadEdge = ds.output2;
+					} else if (!ds.test(true) && ds.test(false)) {
+						liveEdge = ds.output2;
+						deadEdge = ds.output1;
+					} else {
+						System.out.println("SubcomponentSplit weird: " + n);
+						continue;
+					}
+					ControlNode source = ds.input.getSource();
+					ds.input.detach();
+					liveEdge.detachSource();
+					liveEdge.attachSource(source);
+					removeDeadEdge(deadEdge);
+				} else {
+					System.out.println("How is this node redundant? "+n);
+				}
+			}
+			redundant = null;
+		}
+		if (subcomponents == null) return;
+		for (ISubcomponent sub : this.subcomponents.values()) {
+			BiComponent bic = (BiComponent)sub;
+			BiPort bip;
+			bip = (BiPort)bic.getEntryPort();
+			if (bip instanceof NoInput) {
+				System.out.println("  !! Found an entire dead subcomponent! " + sub);
+				// TODO: remove it if this actually happens.
+			}
+			bip = (BiPort)bic.getAbruptExitPort();
+			if (bip instanceof NoInput && bip instanceof OneOutput) {
+				System.out.println("  downgrading aep of sub for " + DebugUnparser.toString(sub.getSyntax(),3));
+				ControlEdge e = bip.getOutput();
+				removeDeadEdge(e);
+				bic.abruptExitPort = new Port00(WhichPort.ABRUPT_EXIT); 
+			}
+			bip = (BiPort)bic.getNormalExitPort();
+			if (bip instanceof NoInput && bip instanceof OneOutput) {
+				System.out.println("  downgrading nep of sub for " + DebugUnparser.toString(sub.getSyntax(),3));
+				ControlEdge e = bip.getOutput();
+				removeDeadEdge(e);
+				bic.normalExitPort = new Port00(WhichPort.NORMAL_EXIT); 
+			}			
+		}
+	}
+	
+	private void removeDeadEdge(ControlEdge e) {
+		ControlNode n = e.getSink();
+		e.detach();
+		System.out.println("  following dead flow to " + n);
+		if (n instanceof BiPort) {
+			System.out.println("  downgrading port");
+			BiPort bip = (BiPort)n;
+			BiPort repl = createPort(bip.which(),0,bip.getNumOutput());
+			repl.stealEdges(bip);
+			switch (bip.which()) {
+			case ABRUPT_EXIT:
+				bip.getComponent().abruptExitPort = repl;
+				break;
+			case ENTRY:
+				bip.getComponent().entryPort = repl;
+				break;
+			case NORMAL_EXIT:
+				bip.getComponent().normalExitPort = repl;
+				break;
+			default:
+				LOG.severe("which is undefined ?" + bip.which());
+				break;			
+			}
+		} else if (n instanceof OneInput) {
+			((BiComponentFactory)factory).noteRemoval(n);
+			for (ControlEdgeIterator it = n.getOutputs(); it.hasNext();) {
+				removeDeadEdge(it.nextControlEdge());
+			}
+			if (n instanceof SubcomponentNode) {
+				SubcomponentNode subn = (SubcomponentNode)n;
+				((BiComponent)subn.getSubcomponent()).unregisterSubcomponentNode(subn);
+			}
+			if (n instanceof ComponentNode) {
+				ComponentNode cn = (ComponentNode)n;
+				((BiComponent)cn.getComponent()).unregisterComponentNode(cn);
+			}
+		} else if (n instanceof Merge) {
+			((BiComponentFactory)factory).noteRemoval(n);
+			Merge m = (Merge)n;
+			ControlEdge remaining = m.input1;
+			if (remaining == null) remaining = m.input2;
+			if (remaining != null && m.output != null) {
+				ControlNode pre = remaining.getSource();
+				ControlNode post = m.output.getSink();
+				remaining.detach();
+				m.output.detach();
+				ControlEdge.connect(pre, post);
+			}
+		} else {
+			System.out.println("Not sure what to do with this node with a dead input: " + n);
 		}
 	}
 	
@@ -177,6 +334,15 @@ public class BiComponent extends Component implements ISubcomponent {
 			numOutput = out;
 			edges = new ControlEdge[in+out];
 		}
+		
+		public int getNumInput() {
+			return numInput;
+		}
+		
+		public int getNumOutput() {
+			return numOutput;
+		}
+		
 		@Override
 		public edu.cmu.cs.fluid.control.Port getDual() {
 			return this;
@@ -205,6 +371,11 @@ public class BiComponent extends Component implements ISubcomponent {
 		@Override
 		public WhichPort which() {
 			return kind;
+		}
+		
+		@Override
+		public String toString() {
+			return "Bi" + kind + "(" + numInput + "," + numOutput + ")@" + System.identityHashCode(this) + " for " + DebugUnparser.toString(syntax, 3);
 		}
 
 		
@@ -326,29 +497,42 @@ public class BiComponent extends Component implements ISubcomponent {
 		 * @param p port to take from, must not be null.
 		 */
 		public void stealEdges(Port p) {
+			// System.out.println(this + ": Stealing edges from " + p.getClass().getName());
 			if (p instanceof OneInput) {
 				ControlEdge e = ((OneInput)p).getInput();
-				e.detachSink();
-				e.attachSink(this);
+				if (e != null) {
+					e.detachSink();
+					e.attachSink(this);
+				}
 			} else if (p instanceof TwoInput) {
 				ControlEdge e1 = ((TwoInput)p).getInput1();
 				ControlEdge e2 = ((TwoInput)p).getInput2();
-				e1.detachSink();
-				e2.detachSink();
-				e1.attachSink(this);
-				e2.attachSink(this);				
+				if (e1 != null) {
+					e1.detachSink();
+					e1.attachSink(this);
+				}
+				if (e2 != null) {
+					e2.detachSink();
+					e2.attachSink(this);
+				}
 			}
 			if (p instanceof OneOutput) {
 				ControlEdge e = ((OneOutput)p).getOutput();
-				e.detachSource();
-				e.attachSource(this);				
+				if (e != null) {
+					e.detachSource();
+					e.attachSource(this);	
+				}
 			} else if (p instanceof TwoOutput) {
 				ControlEdge e1 = ((TwoOutput)p).getOutput1();
 				ControlEdge e2 = ((TwoOutput)p).getOutput2();
-				e1.detachSource();
-				e2.detachSource();
-				e1.attachSource(this);
-				e2.attachSource(this);			
+				if (e1 != null) {
+					e1.detachSource();
+					e1.attachSource(this);
+				}
+				if (e2 != null) {
+					e2.detachSource();
+					e2.attachSource(this);	
+				}
 			}
 		}
     }
