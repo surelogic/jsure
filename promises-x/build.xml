@@ -4,7 +4,7 @@
 	<!-- Note that you must have the 'promises' project checked out from /svn/public -->
 
 	<!-- ENSURE THAT THIS MATCHES 'pom.xml' in the 'promises' project -->
-	<property name="promises-version" value="5.1.0" />
+	<property name="promises-version" value="5.2.0" />
 
 	<!-- Production promises go into '/build' -->
 	<property name="build" location="${basedir}/build" />
@@ -13,7 +13,7 @@
 
 	<property name="promises-x-src" location="${basedir}/src" />
 	<!-- ENSURE THAT THIS REFERENCES THE 'promises' SVN CHECKED-OUT PROJECT ON YOUR DISK -->
-	<property name="production-promises" location="/home/edwin/work/workspace-4.2.1/promises" />
+	<property name="production-promises" location="C:/Users/Tim/Source/eclipse-work/work/promises" />
 	<property name="production-promises-src" location="${production-promises}/src/main/java" />
 
 
@@ -50,7 +50,11 @@
 	</target>
 
 	<target name="javadoc" depends="src">
-		<javadoc access="public" destdir="${build}/javadoc" source="1.5" sourcepath="${production-promises-src}" notree="true" nodeprecatedlist="true" />
+		<javadoc access="public" destdir="${build}/javadoc" source="1.5"
+			sourcepath="${production-promises-src}" notree="true"
+			nodeprecatedlist="true">
+			<arg line="-Xdoclint:none" />
+		</javadoc>
 	</target>
 
 	<!-- Experimental and production promises go into '/build-x' -->
@@ -67,7 +71,7 @@
 				<exclude name="bin/**,**/.svn/**" />
 			</fileset>
 		</copy>
-		<javac srcdir="${build-x}/src" destdir="${build-x}/bin" classpath="." debug="on" source="1.5" target="1.5" includeantruntime="false" />
+		<javac srcdir="${build-x}/src" destdir="${build-x}/bin" classpath="." debug="on" source="1.6" target="1.6" includeantruntime="false" />
 		<jar destfile="${promises-x-jar}">
 			<fileset dir="${build-x}/bin" />
 			<manifest />
@@ -84,7 +88,11 @@
 	</target>
 
 	<target name="javadoc-x" depends="src-x">
-		<javadoc access="public" destdir="${build-x}/javadoc" source="1.5" sourcepath="${promises-x-src}:${production-promises-src}" notree="true" nodeprecatedlist="true" />
+		<javadoc access="public" destdir="${build-x}/javadoc" source="1.6"
+			sourcepath="${promises-x-src}:${production-promises-src}" notree="true"
+			nodeprecatedlist="true">
+			<arg line="-Xdoclint:none" />
+		</javadoc>
 	</target>
 
 	<target name="fresh-everything" depends="clean, src, javadoc, src-x, javadoc-x" />
