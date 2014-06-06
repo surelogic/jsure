@@ -70,10 +70,12 @@ interface IMethodBinder {
           }
           IJavaType[] argTypes = new IJavaType[args.length];     
           for (int i= 0; i < args.length; ++i) {
+        	/* TODO
         	if (MethodBinder8.couldBePolyExpression(args[i])) {
         		argTypes[i] = null;
         		continue;
         	}
+        	*/
             argTypes[i] = binder.getJavaType(args[i]);
             
 			if (MethodBinder.captureTypes) {    		
