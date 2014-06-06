@@ -788,7 +788,7 @@ public class MethodBinder8 implements IMethodBinder {
      * • A conditional expression (§15.25) whose second or third operand is not pertinent
      *   to applicability
      */
-    private boolean isPertinentToApplicability(final IBinding m, /*boolean hasTypeArgs,*/ final IRNode arg) {
+    private boolean isPertinentToApplicability(final MethodBinding m, boolean callHasTypeArgs, final IRNode arg) {
     	Operator op = JJNode.tree.getOperator(arg);
     	if (LambdaExpression.prototype.includes(op)) {
     		if (isImplicitlyTypedLambda(arg)) {
@@ -798,21 +798,20 @@ public class MethodBinder8 implements IMethodBinder {
     		// TODO check if generic
     		IRNode body = LambdaExpression.getBody(arg);
     		if (Expression.prototype.includes(body)) {
-    			return isPertinentToApplicability(m, body);
+    			return isPertinentToApplicability(m, callHasTypeArgs, body);
     		} else {
     			throw new NotImplemented(); // TODO check return exprs
     		}
     	}
-    	else if (MethodReference.prototype.includes(op)) {
-    		// TODO
-			throw new NotImplemented();
+    	else if (MethodReference.prototype.includes(op) || ConstructorReference.prototype.includes(op)) {
+    		return isExactMethodReference(arg) && (!m.isGeneric() || callHasTypeArgs || !m.hasTypeParameterAsReturnType());
     	}
     	else if (ParenExpression.prototype.includes(op)) {
-    		return isPertinentToApplicability(m, ParenExpression.getOp(arg));
+    		return isPertinentToApplicability(m, callHasTypeArgs, ParenExpression.getOp(arg));
     	}
     	else if (ConditionalExpression.prototype.includes(op)) {
-    		return isPertinentToApplicability(m, ConditionalExpression.getIftrue(arg)) &&
-    			   isPertinentToApplicability(m, ConditionalExpression.getIffalse(arg));
+    		return isPertinentToApplicability(m, callHasTypeArgs, ConditionalExpression.getIftrue(arg)) &&
+    			   isPertinentToApplicability(m, callHasTypeArgs, ConditionalExpression.getIffalse(arg));
     	}
     	return true;
     }

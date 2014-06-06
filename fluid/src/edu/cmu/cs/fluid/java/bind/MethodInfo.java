@@ -1,5 +1,6 @@
 package edu.cmu.cs.fluid.java.bind;
 
+import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -30,7 +31,7 @@ class MethodInfo {
     	numTypeFormals = AbstractJavaBinder.numChildrenOrZero(typeFormals);
 	}
 	
-	IRNode getVarargsType() {
+	final IRNode getVarargsType() {
 		IRNode varType;
     	IRLocation lastLoc = JJNode.tree.lastChildLocation(formals);
     	if (lastLoc != null) {
@@ -52,11 +53,16 @@ class MethodInfo {
     	return varType;
 	}
 	
-    boolean isVariableArity() {
+	final boolean isVariableArity() {
 		return getVarargsType() != null;
     }
     
-    boolean isGeneric() {
+    final boolean isGeneric() {
     	return numTypeFormals > 0;
     }
+    
+    boolean hasTypeParameterAsReturnType() {
+		// TODO Auto-generated method stub
+		throw new NotImplemented();
+	}
 }

@@ -132,7 +132,7 @@ class MethodBinder implements IMethodBinder {
 			 *    Bl[R1 = A1, ..., Rp = Ap], .
 			 */
 		 	final IJavaType[] sArgs;
-			if (bestState.numTypeFormals > 0) {
+			if (bestState.isGeneric()) {
 				sArgs = computeEquivalentArgs(match);
 				if (sArgs == null) {
 					return false;
@@ -256,17 +256,15 @@ class MethodBinder implements IMethodBinder {
         return s.bestMethod;
 	}
     
-    private class MethodState extends MethodInfo {
+    private class MethodState extends MethodBinding {
     	final SearchState search;
-    	final IBinding bind;
     	final IJavaTypeSubstitution methodTypeSubst;
     	final Map<IJavaType,IJavaType> substMap;
     	BindingInfo match;
     	
     	MethodState(SearchState s, IBinding m) {
-    		super(m.getNode());
+    		super(m);
     		search = s;
-    		bind = m;
         	
         	// Compute a type substitution if needed
         	IJavaTypeSubstitution subst = IJavaTypeSubstitution.NULL;
@@ -278,7 +276,7 @@ class MethodBinder implements IMethodBinder {
         	} 
         	methodTypeSubst = subst;
         	
-        	if (numTypeFormals != 0 || search.usesDiamondOp) {
+        	if (isGeneric() || search.usesDiamondOp) {
         		substMap = new HashMap<IJavaType,IJavaType>();
         	} else {
         		substMap = Collections.emptyMap();
@@ -286,7 +284,7 @@ class MethodBinder implements IMethodBinder {
     	}
 
 		void initSubstMap(IBinder binder) { 	
-	    	if (numTypeFormals != 0) {
+	    	if (isGeneric()) {
 	    		int i = 0;
 	    		for(IRNode tf : JJNode.tree.children(typeFormals)) {
 	    			IJavaTypeFormal jtf = JavaTypeFactory.getTypeFormal(tf);
@@ -434,7 +432,7 @@ class MethodBinder implements IMethodBinder {
     			}
     		}
     		s.tmpTypes[i] = fty;    		
-    		if (m.numTypeFormals > 0 && s.numTypeArgs == 0) {
+    		if (m.isGeneric() && s.numTypeArgs == 0) {
     			// Need to infer the types
     			constraints.addConstraints(fty, s.argTypes[i]);
     		}
@@ -456,7 +454,7 @@ class MethodBinder implements IMethodBinder {
     	for (int i=0; i < s.argTypes.length; ++i) {       
     		IJavaType fty      = s.tmpTypes[i];
     		// TODO actually just need to replace the type variables for the method
-    		IJavaType captured = m.numTypeFormals > 0 && m.substMap.isEmpty() ? 
+    		IJavaType captured = m.isGeneric() && m.substMap.isEmpty() ? 
     				constraints.substituteRawMapping(typeEnvironment, m.typeFormals, fty) :
     				//binder.getTypeEnvironment().computeErasure(fty) :     			
     				map.substitute(fty);
