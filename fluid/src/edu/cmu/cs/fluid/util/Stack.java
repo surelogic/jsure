@@ -3,7 +3,7 @@ package edu.cmu.cs.fluid.util;
 
 import java.util.*;
 
-public class Stack<T> {
+public class Stack<T> implements Iterable<T> {
   Vector<T> contents = new Vector<T>();
   public Stack() {
 	  // Nothing to do
@@ -31,6 +31,10 @@ public class Stack<T> {
 	  Vector<T> temp = contents; 
 	  contents = new Vector<T>();
 	  return temp;
+  }
+
+  public Iterator<T> iterator() {
+	return contents.iterator();
   }
 }
 
