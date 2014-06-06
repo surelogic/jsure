@@ -897,7 +897,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     protected boolean isBatch = true; // by default we have a batch binder
     protected boolean isFullPass = false; // by default we start in the preliminary pass
     protected final boolean debug = LOG.isLoggable(Level.FINER);        
-    private final IMethodBinder methodBinder = true ? new MethodBinder8(AbstractJavaBinder.this, debug) : new MethodBinder(AbstractJavaBinder.this, debug);    
+    private final IMethodBinder methodBinder = false ? new MethodBinder8(AbstractJavaBinder.this, debug) : new MethodBinder(AbstractJavaBinder.this, debug);    
     private final IJavaScope.LookupContext lookupContext = new IJavaScope.LookupContext();
     
     /**
