@@ -5,9 +5,9 @@ import java.util.*;
 import com.surelogic.common.util.EmptyIterator;
 import com.surelogic.common.util.Iteratable;
 
+import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
-import edu.cmu.cs.fluid.java.bind.MethodBinder.CallState;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -18,7 +18,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * 
  * @author edwin
  */
-public class MethodBinder8 {
+public class MethodBinder8 implements IMethodBinder {
 	private final boolean debug;
 	private final AbstractJavaBinder binder;
 	private final ITypeEnvironment typeEnvironment;
@@ -28,8 +28,8 @@ public class MethodBinder8 {
 		typeEnvironment = b.getTypeEnvironment();
 		this.debug = debug;
 	}	
-
-    BindingInfo findBestMethod(final IJavaScope scope, final LookupContext context, final boolean needMethod, final IRNode from, final CallState call) {
+	
+    public BindingInfo findBestMethod(final IJavaScope scope, final LookupContext context, final boolean needMethod, final IRNode from, final CallState call) {
         final IJavaScope.Selector isAccessible = MethodBinder.makeAccessSelector(typeEnvironment, from);
         final Iterable<IBinding> methods = new Iterable<IBinding>() {
   			public Iterator<IBinding> iterator() {
@@ -44,13 +44,13 @@ public class MethodBinder8 {
         }
         IBinding rv = findMostSpecific(call, applicable, STRICT_INVOCATION);
         if (rv == null) {
-        	rv = findMostSpecific(call, methods, LOOSE_INVOCATION);
+        	rv = findMostSpecific(call, applicable, LOOSE_INVOCATION);
         	if (rv == null) {
-        		rv = findMostSpecific(call, methods, VARIABLE_ARITY_INVOCATION);
+        		rv = findMostSpecific(call, applicable, VARIABLE_ARITY_INVOCATION);
         	}
         }
-        // TODO
-        return null;
+        // TODO is this right?
+        return new BindingInfo(rv, 0, false);
     }
 
 	private static int numChildren(IRNode n) {
@@ -103,7 +103,7 @@ public class MethodBinder8 {
     	final IRNode params;
 		final IRNode typeParams;
     	// Check name -- probably redundant
-    	if (call.constructorType != null) {
+    	if (call.constructorType != null || ConstructorCall.prototype.includes(call.call)) {
     		if (!ConstructorDeclaration.prototype.includes(mb.getNode())) {
     			return false;
     		}
@@ -186,7 +186,7 @@ public class MethodBinder8 {
     		}
     	}
 		
-    	return false;
+    	return (i >= limit);
 	}
 
     /**
@@ -251,14 +251,14 @@ public class MethodBinder8 {
     			return declaresTypeParam(MethodDeclaration.getTypes(mb.getNode()), (IJavaTypeFormal) t);
     		}
     		// TODO how to figure out if there are decls?
-    		return false;
+			throw new NotImplemented();
     	}
     	else if (ConstructorReference.prototype.includes(op)) {
     		if (t instanceof IJavaTypeFormal) {
     			return declaresTypeParam(ConstructorDeclaration.getTypes(mb.getNode()), (IJavaTypeFormal) t);
     		}
     		// TODO how to figure out if there are decls?  		
-    		return false;
+			throw new NotImplemented();
     	}  
     	else if (ParenExpression.prototype.includes(op)) {
     		return isPotentiallyCompatible(mb, ParenExpression.getOp(e), t);
@@ -408,17 +408,18 @@ public class MethodBinder8 {
     	    // The return type of the method to be invoked mentions at least one of the method's type parameters. 
 
     		// Otherwise, the method invocation expression is a standalone expression.    		
+    		/*
     		if (isInAssignmentOrInvocationContext(e) &&
     			numChildren(MethodCall.getTypeArgs(e)) == 0) {
-    			return true;
-    			/*
+    			
     			final IBinding mb = binder.getIBinding(e);
     			IRNode typeParams = MethodDeclaration.getTypes(mb.getNode());
     			if (numChildren(typeParams) > 0) {
     				return refersToTypeParams(MethodDeclaration.getReturnType(mb.getNode()), typeParams);
-    			}
-    			*/
+    			}    			
     		}    		
+    		*/
+    		return false; // Not relevant to lambda purposes
     	}
     	else if (ParenExpression.prototype.includes(op)) {
     		return couldBePolyExpression(ParenExpression.getOp(e));
@@ -427,9 +428,12 @@ public class MethodBinder8 {
     		// A class instance creation expression is a poly expression (15.2) 
     		// if i) it uses a diamond '<>' in place of type arguments, and 
     		// ii) it appears in an assignment context (5.2) or an invocation context (5.3). 
-    		// Otherwise, it is a standalone expression.  		
+    		// Otherwise, it is a standalone expression.  	
+    		/*
     		IRNode typeArgs = NewExpression.getTypeArgs(e);    		
     		return typeArgs != null && numChildren(typeArgs) == 0 && isInAssignmentOrInvocationContext(e);
+    		*/
+    		return false; // Not relevant to lambda purposes
     	}
     	else if (ConditionalExpression.prototype.includes(op)) {
     		// 15.25.1 Boolean Conditional Expressions [New]
@@ -614,7 +618,7 @@ public class MethodBinder8 {
     private final ApplicableMethodFilter STRICT_INVOCATION = new ApplicableMethodFilter() {
 		public boolean isApplicable(CallState call, IBinding mb) {
 			// TODO Auto-generated method stub
-			return false;
+			throw new NotImplemented();
 		}
 	};
     
@@ -624,7 +628,7 @@ public class MethodBinder8 {
 	private final ApplicableMethodFilter LOOSE_INVOCATION = new ApplicableMethodFilter() {
 		public boolean isApplicable(CallState call, IBinding mb) {
 			// TODO Auto-generated method stub
-			return false;
+			throw new NotImplemented();
 		}
 	};
 
@@ -660,7 +664,7 @@ public class MethodBinder8 {
 	private final ApplicableMethodFilter VARIABLE_ARITY_INVOCATION = new ApplicableMethodFilter() {
 		public boolean isApplicable(CallState call, IBinding mb) {
 			// TODO Auto-generated method stub
-			return false;
+			throw new NotImplemented();
 		}
 	};
 	
@@ -751,13 +755,111 @@ public class MethodBinder8 {
     	}
     	else if (LambdaExpression.prototype.includes(op)) {
     		// TODO
+			throw new NotImplemented();
     	}
     	else if (MethodReference.prototype.includes(op)) {
     		// TODO
+			throw new NotImplemented();
     	}
     	else if (ConstructorReference.prototype.includes(op)) {
     		// TODO
+			throw new NotImplemented();
     	}
     	return false;
+    }
+    
+    /**
+     * From JLS 15.12.2.2 
+
+     * An argument expression is considered pertinent to applicability for a potentially
+     * applicable method m unless it has one of the following forms:
+     * • An implicitly typed lambda expression (§15.27.1).
+     * • An inexact method reference expression (§15.13.1).
+     * • If m is a generic method and the method invocation does not provide explicit type
+     *   arguments, an explicitly typed lambda expression or an exact method reference
+     *   expression for which the corresponding target type (as derived from the signature
+     *   of m ) is a type parameter of m .
+     * • An explicitly typed lambda expression whose body is an expression that is not
+     *   pertinent to applicability.
+     * • An explicitly typed lambda expression whose body is a block, where at least one
+     *   result expression is not pertinent to applicability.
+     * • A parenthesized expression (§15.8.5) whose contained expression is not
+     *   pertinent to applicability.
+     * • A conditional expression (§15.25) whose second or third operand is not pertinent
+     *   to applicability
+     */
+    private boolean isPertinentToApplicability(final IBinding m, /*boolean hasTypeArgs,*/ final IRNode arg) {
+    	Operator op = JJNode.tree.getOperator(arg);
+    	if (LambdaExpression.prototype.includes(op)) {
+    		if (isImplicitlyTypedLambda(arg)) {
+    			return true;
+    		} 
+    		// Explicitly typed
+    		// TODO check if generic
+    		IRNode body = LambdaExpression.getBody(arg);
+    		if (Expression.prototype.includes(body)) {
+    			return isPertinentToApplicability(m, body);
+    		} else {
+    			throw new NotImplemented(); // TODO check return exprs
+    		}
+    	}
+    	else if (MethodReference.prototype.includes(op)) {
+    		// TODO
+			throw new NotImplemented();
+    	}
+    	else if (ParenExpression.prototype.includes(op)) {
+    		return isPertinentToApplicability(m, ParenExpression.getOp(arg));
+    	}
+    	else if (ConditionalExpression.prototype.includes(op)) {
+    		return isPertinentToApplicability(m, ConditionalExpression.getIftrue(arg)) &&
+    			   isPertinentToApplicability(m, ConditionalExpression.getIffalse(arg));
+    	}
+    	return true;
+    }
+    
+    private static boolean isImplicitlyTypedLambda(IRNode lambda) {
+    	IRNode params = LambdaExpression.getParams(lambda);
+    	for(IRNode param : Parameters.getFormalIterator(params)) {
+    		IRNode type = ParameterDeclaration.getType(param);
+    		return Type.prototype == JJNode.tree.getOperator(type);
+    	}
+    	return false;
+    }
+    
+    /**
+     * From JLS 15.13.1.
+     * 
+     * A method reference expression ending with Identifier is exact if it satisfies all of
+     * the following:
+     * • If the method reference expression has the form ReferenceType ::
+     *   [TypeArguments] Identifier, then ReferenceType does not denote a raw type.
+     * • The type to search has exactly one member method with the name Identifier that
+     *   is accessible to the class or interface in which the method reference expression
+     *   appears.
+     * • This method is not variable arity (§8.4.1).
+     * • If this method is generic (§8.4.4), then the method reference expression provides TypeArguments.
+     * 
+     * A method reference expression of the form ClassType :: [TypeArguments] new is
+     * exact if it satisfies all of the following:
+     * • The type denoted by ClassType is not raw, or is a non- static member type of a raw type.
+     * • The type denoted by ClassType has exactly one constructor that is accessible to
+     *   the class or interface in which the method reference expression appears.
+     * • This constructor is not variable arity.
+     * • If this constructor is generic, then the method reference expression provides TypeArguments.
+     * 
+     * A method reference expression of the form ArrayType :: new is always exact.
+     */
+    private boolean isExactMethodReference(IRNode ref) {
+    	Operator op = JJNode.tree.getOperator(ref);
+    	if (MethodReference.prototype.includes(op)) {
+    		throw new NotImplemented(); // TODO
+    	} else {
+    		IRNode recv = ConstructorReference.getReceiver(ref);
+    		IRNode type = TypeExpression.getType(recv);
+    		if (ArrayType.prototype.includes(type)) {
+    			return true;
+    		}
+    		throw new NotImplemented(); // TODO
+    	}
     }
 }

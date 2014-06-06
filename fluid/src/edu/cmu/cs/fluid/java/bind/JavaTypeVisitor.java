@@ -240,6 +240,12 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   
   @Override
+  public IJavaType visitConstructorReference(IRNode node) {
+	  TypeUtils utils = new TypeUtils(binder.getTypeEnvironment());
+	  return utils.getPolyExpressionTargetType(node);	    
+  }
+  
+  @Override
   public IJavaType visitElementValuePair(IRNode node) {
 	IBinding b = binder.getIBinding(node);
 	return visitAnnotationElement(b.getNode());
@@ -508,6 +514,12 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   
   @Override
+  public IJavaType visitMethodReference(IRNode node) {
+	  TypeUtils utils = new TypeUtils(binder.getTypeEnvironment());
+	  return utils.getPolyExpressionTargetType(node);	    
+  }
+  
+  @Override
   public IJavaType visitMinusExpression(IRNode node) {
     IRNode n             = MinusExpression.getOp( node );
     IJavaPrimitiveType t = convertToPrim(doAccept( n ));    
@@ -656,6 +668,10 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 		// See if I can get type args
 		IBinding b = binder.getIBinding(node);
 		dt = (IJavaDeclaredType) b.convertType(binder, doAccept(b.getNode()));
+	}
+	if (InterfaceDeclaration.prototype.includes(dt.getDeclaration())) {
+		// Special case to handle diamond inheritance of default methods?
+		return dt;
 	}
     return dt.getSuperclass(binder.getTypeEnvironment());
   }

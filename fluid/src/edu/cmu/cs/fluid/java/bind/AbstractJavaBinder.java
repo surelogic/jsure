@@ -40,7 +40,7 @@ import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.Selector;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment.InvocationKind;
-import edu.cmu.cs.fluid.java.bind.MethodBinder.CallState;
+import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
 import edu.cmu.cs.fluid.java.bind.TypeUtils.Constraint;
 import edu.cmu.cs.fluid.java.bind.TypeUtils.Constraints;
 import edu.cmu.cs.fluid.java.operator.Annotation;
@@ -534,6 +534,29 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 	         TypeActuals.prototype.includes(op) || Annotation.prototype.includes(op);
   }
   
+  private static String printBindings(IGranuleBindings gb) {
+	String unparse = DebugUnparser.toString(gb.getNode());    			 
+	if (unparse.length() > 50) {
+	  unparse = unparse.substring(0, 50);
+	}
+	return (gb.containsFullInfo() ? "full    " : "partial ")+unparse;
+  }
+  
+  static class BindingCall {
+	  final IGranuleBindings bindings;
+	  final IRNode needed;
+	  
+	  BindingCall(IGranuleBindings b, IRNode n) {
+		  bindings = b;
+		  needed = n;
+	  }
+	  
+	  @Override
+	  public String toString() {
+		  return printBindings(bindings) +" - "+ DebugUnparser.toString(needed)+" - "+JJNode.tree.getOperator(needed);
+	  }
+  }
+  
   protected IGranuleBindings ensureBindingsOK(final IRNode node) {    
     final IRNode gr            = getGranule(node);
     final Operator op          = JJNode.tree.getOperator(node); 
@@ -547,6 +570,16 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     	granuleBindings.put(gr,bindings);    	
     }
   
+    /*
+    final Stack<BindingCall> stack = bindingStack.get();
+    BindingCall c = new BindingCall(bindings, node);
+    System.out.println("Pushing "+c);
+    stack.push(c);    
+    String unparse = DebugUnparser.toString(node);
+    if(unparse.contains("::") || unparse.contains("->")) {
+    	System.out.println("Binding for "+unparse);
+    }
+    */
     final Stack<IGranuleBindings> stack = bindingStack.get();
     stack.push(bindings);    
 
@@ -554,9 +587,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     try {
     	try {
     		BindingsThread t = null;
-    		//if (size > 10) {
     		//System.out.println("Binding stack for "+JJNode.getInfoOrNull(node)+": "+size);
+    		//TODO this can cause a deadlock if the BindingsThread ends up waiting for something locked by the original thread
     		if (size > 50) {
+    			/*
+    			System.out.println("Binding stack:");
+    			for(BindingCall gb : bindingStack.get()) { 
+    			  System.out.println("\t"+gb);
+    			}
+    			*/
     			// Finish derivation in a separate thread to avoid StackOverflowError
     			//System.out.println("Over 50");
     			t = new BindingsThread(bindings, node);
@@ -583,7 +622,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		throw e;
     	}
     } finally {
-    	stack.pop();
+    	//System.out.println("Popping "+c);
+        stack.pop();
     }
     return bindings;
   }
@@ -857,7 +897,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     protected boolean isBatch = true; // by default we have a batch binder
     protected boolean isFullPass = false; // by default we start in the preliminary pass
     protected final boolean debug = LOG.isLoggable(Level.FINER);        
-    private final MethodBinder methodBinder = new MethodBinder(AbstractJavaBinder.this, debug);    
+    private final IMethodBinder methodBinder = true ? new MethodBinder8(AbstractJavaBinder.this, debug) : new MethodBinder(AbstractJavaBinder.this, debug);    
     private final IJavaScope.LookupContext lookupContext = new IJavaScope.LookupContext();
     
     /**
@@ -1552,7 +1592,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         try {
           scope = sc;
           //System.out.println("Trying to bind ACE: "+DebugUnparser.toString(node));
-          final CallState state = methodBinder.new CallState(node, targs, args, type);
+          final CallState state = new CallState(AbstractJavaBinder.this, node, targs, args, type);
           boolean success = bindAllocation(state);
           if (!success && pathToTarget == null) {
         	  System.out.println("Couldn't bind "+DebugUnparser.toString(node));
@@ -1747,7 +1787,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         IRNode tdecl = ((IJavaDeclaredType)ty).getDeclaration(); 
         IRNode targs = call.get_TypeArgs(node);
         String tname = JJNode.getInfo(tdecl);
-        final CallState state = methodBinder.new CallState(node, targs, call.get_Args(node), ty);
+        final CallState state = new CallState(AbstractJavaBinder.this, node, targs, call.get_Args(node), ty);
         boolean success = bindCall(state, tname, ty);
         if (!success) {
         	bindCall(state, tname, ty);
@@ -1989,7 +2029,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         if (!isFullPass || pathToTarget != null) return null;
     	
     	IRNode tdecl = VisitUtil.getEnclosingType(node);
-        final CallState state = methodBinder.new CallState(node, null, args, tdecl);
+        final CallState state = new CallState(AbstractJavaBinder.this, node, null, args, tdecl);
         boolean success = bindCall(state, JJNode.getInfo(tdecl), state.receiverType);
         if (!success) {
             bindCall(state, JJNode.getInfo(tdecl), state.receiverType);
@@ -2089,7 +2129,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IJavaScope toUse  = null;
       IJavaType recType = null;
       final String name = MethodCall.getMethod(node);  
-     
+      /*
+      if ("go".equals(name)) {
+    	  System.out.println("Calling "+DebugUnparser.toString(node));
+      }
+      */      
       if (JJNode.tree.getOperator(receiver) instanceof ImplicitReceiver) {
         toUse = scope;
       } else {
@@ -2127,7 +2171,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
             // Process as normal method call
           }
         }
-        final CallState state = methodBinder.new CallState(node, targs, args, recType);
+        final CallState state = new CallState(AbstractJavaBinder.this, node, targs, args, recType);
         boolean success = bindCall(state,name, toUse);
         if (!success) {
           // FIX hack to get things to bind for receivers of raw type       
@@ -2515,7 +2559,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       doAccept(args);
       if (isFullPass && pathToTarget == null) {
         //System.out.println(DebugUnparser.toString(node));    	
-    	final CallState state = methodBinder.new CallState(node, targs, args, type);
+    	final CallState state = new CallState(AbstractJavaBinder.this, node, targs, args, type);
         boolean success = bindAllocation(state);
         if (!success) {
         	bindAllocation(state);
@@ -2599,7 +2643,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       doAccept(args);
 
       IRNode typeDecl = getLocalIBinding(type).getNode();
-      final CallState state = methodBinder.new CallState(alloc, null, args, typeDecl);
+      final CallState state = new CallState(AbstractJavaBinder.this, alloc, null, args, typeDecl);
       boolean success = bindAllocation(state);
       if (success && isACE) { 
     	  // bind NewE inside of ACE
@@ -2707,7 +2751,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         return visit(node);
       }
       // super is bound to the same thing as this
-      IRNode result = handleThisExpr(node, QualifiedSuperExpression.getType(node));
+      IRNode result = handleThisExpr(node, QualifiedSuperExpression.getType(node), true);
       bind(node, result);
       return null;
     }
@@ -2735,7 +2779,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
         result = JavaPromise.getQualifiedReceiverNodeByName(initD, td);
       }
       */
-      IRNode result = handleThisExpr(node, QualifiedThisExpression.getType(node));
+      IRNode result = handleThisExpr(node, QualifiedThisExpression.getType(node), false);
       bind(node, result);
 
       /*
@@ -2784,7 +2828,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       return false;
     }    
     
-    private IRNode handleThisExpr(final IRNode n, final IRNode contextType) {
+    private IRNode handleThisExpr(final IRNode n, final IRNode contextType, final boolean useSuper) {
       IRNode contextTypeB = null;
       if (contextType != null) {
         contextTypeB = getBinding(contextType);
@@ -2834,8 +2878,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       //decl = JavaPromise.getInitMethodOrNull(type);
       
       if (contextTypeB != null && contextTypeB != enclosingType) {
-    	// Use the type's IFQR
-        rv = JavaPromise.getQualifiedReceiverNodeByName(enclosingType, contextTypeB);
+        if (useSuper) {
+          // Assume that contextTypeB is a supertype of enclosingType
+          rv = JavaPromise.getReceiverNodeOrNull(contextTypeB);
+        } else {
+          // Use the type's IFQR
+          rv = JavaPromise.getQualifiedReceiverNodeByName(enclosingType, contextTypeB);
+        }
       } else {
         rv = JavaPromise.getReceiverNodeOrNull(enclosingType);
       }
@@ -3279,7 +3328,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 		  System.out.println("Found duplicates");
 	  }	  
 	  */
-	  final CallState call = mb.new CallState(null, null, null, t) {
+	  final CallState call = new CallState(AbstractJavaBinder.this, null, null, null, t) {
 		  @Override
 		  public IJavaType[] getArgTypes() {
 			  return mb.getFormalTypes(t, mth);
