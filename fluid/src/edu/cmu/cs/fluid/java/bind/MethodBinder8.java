@@ -36,10 +36,10 @@ public class MethodBinder8 implements IMethodBinder {
   				return IJavaScope.Util.lookupCallable(scope, context, isAccessible, needMethod);
   			}
         };
-        final Set<IBinding> applicable = new HashSet<IBinding>();
+        final Set<MethodBinding> applicable = new HashSet<MethodBinding>();
         for(IBinding mb : methods) {
         	if (isPotentiallyApplicable(call, from, mb)) {
-        		applicable.add(mb);
+        		applicable.add(new MethodBinding(mb));
         	}
         }
         IBinding rv = findMostSpecific(call, applicable, STRICT_INVOCATION);
@@ -591,82 +591,211 @@ public class MethodBinder8 implements IMethodBinder {
     }    
         
     interface ApplicableMethodFilter {
-    	boolean isApplicable(CallState call, IBinding mb);
+    	boolean isApplicable(CallState call, MethodBinding mb);
     }
+    
+    interface ArgCompatibilityContext {
+    	boolean isCompatible(IRNode param, IJavaType pType, IRNode arg, IJavaType argType);
+    }
+	
+    private final ArgCompatibilityContext STRICT_INVOCATION_CONTEXT = new ArgCompatibilityContext() {
+    	public boolean isCompatible(IRNode param, IJavaType pType, IRNode arg, IJavaType argType) {
+    		// TODO
+    		return typeEnvironment.isCallCompatible(pType, argType);
+    	}
+	}; 
+	
+    private final ArgCompatibilityContext LOOSE_INVOCATION_CONTEXT = new ArgCompatibilityContext() {
+    	public boolean isCompatible(IRNode param, IJavaType pType, IRNode arg, IJavaType argType) {
+    		// TODO handle boxing and unboxing
+    		return typeEnvironment.isCallCompatible(pType, argType);
+    	}
+	}; 
+    
     /*
-     *  15.12.2.2 Phase 1: Identify Matching Arity Methods Applicable by Strict Invocation [Modified]
+     *  15.12.2.2 Phase 1: Identify Matching Arity Methods Applicable by Strict Invocation 
      *  
-     *  Let m be a potentially applicable method (15.12.2.1), let e1, ..., en be the actual argument expressions of 
-     *  the method invocation, and let F1, ..., Fn be the types of the formal parameters of m. Then:
-     *  
-     *  - If m is a generic method and the method invocation does not provide explicit type arguments, then the 
-     *    applicability of the method is inferred as described in 18.5.1.
-     *  
-     *  - Otherwise, if m is a generic method, then let R1, ..., Rp (p ≥ 1) be the type parameters of m, 
-     *    let Bl be the declared bound of Rl (1 ≤ l ≤ p), and let U1, ..., Up be the explicit type arguments given in the method invocation. 
-     *    Then m is applicable by strict invocation if:
-     *  
-     *      For 1 ≤ i ≤ n, ei is compatible in a strict invocation context with Fi[R1:=U1, ..., Rp:=Up].
-     *      For 1 ≤ l ≤ p, Ul <: Bl[R1:=U1, ..., Rp:=Up]. 
-     *    
-     *  - Otherwise, m is applicable by strict invocation if, for 1 ≤ i ≤ n, ei is compatible in a strict invocation context with Fi. 
+     * Let m be a potentially applicable method (§15.12.2.1) with arity n and formal
+     * parameter types F 1 ... F n , and let e 1 , ..., e n be the actual argument expressions of
+     * the method invocation. Then:
+     * • If m is a generic method and the method invocation does not provide explicit type
+     *   arguments, then the applicability of the method is inferred as specified in §18.5.1.
+     *   
+     * • If m is a generic method and the method invocation provides explicit type
+     *   arguments, then let R 1 ... R p (p ≥ 1) be the type parameters of m , let B l be the
+     *   declared bound of R l (1 ≤ l ≤ p), and let U 1 , ..., U p be the explicit type arguments
+     *   given in the method invocation. Then m is applicable by strict invocation if both
+     *   of the following are true:
+     *   – For 1 ≤ i ≤ n, if e i is pertinent to applicability then e i is compatible in a strict
+     *     invocation context with F i [R 1 := U 1 , ..., R p := U p ] .
+     *   – For 1 ≤ l ≤ p, U l <: B l [R 1 := U 1 , ..., R p := U p ] .
+     *   
+     * • If m is not a generic method, then m is applicable by strict invocation if, for 1 ≤
+     *   i ≤ n, either e i is compatible in a strict invocation context with F i or e i is not
+     *   pertinent to applicability.
      *  
      *  If no method applicable by strict invocation is found, the search for applicable methods continues with phase 2 (15.12.2.3).
      *  
      *  Otherwise, the most specific method (15.12.2.5) is chosen among the methods that are applicable by strict invocation.
      */    
-    private final ApplicableMethodFilter STRICT_INVOCATION = new ApplicableMethodFilter() {
-		public boolean isApplicable(CallState call, IBinding mb) {
-			// TODO Auto-generated method stub
-			throw new NotImplemented();
+    class InvocationFilter implements ApplicableMethodFilter {
+    	final ArgCompatibilityContext context;
+    	
+    	InvocationFilter(ArgCompatibilityContext c) {
+    		context = c;
+    	}
+    	
+		public boolean isApplicable(CallState call, MethodBinding m) {
+			if (call.args.length != m.getNumFormals()) {
+				return false;
+			}
+			if (m.isGeneric()) {
+				if (call.getNumTypeArgs() == 0) {				
+					throw new NotImplemented("JLS 18.5.1"); // TODO
+				} else {							
+					if (call.getNumTypeArgs() != m.numTypeFormals) {
+						return false;
+					}
+					final IJavaTypeSubstitution methodTypeSubst = FunctionParameterSubstitution.create(binder, m.bind, call.targs);
+					if (!isApplicableAndCompatible(call, m, methodTypeSubst, context)) {
+						return false;
+					}
+					int i=0;
+					for(IRNode tf : TypeFormals.getTypeIterator(m.typeFormals)) {
+						IJavaType u_l = binder.getJavaType(call.targs[i]);
+						IJavaType b_l = JavaTypeFactory.getTypeFormal(tf).getExtendsBound(typeEnvironment);
+						IJavaType b_subst = b_l.subst(methodTypeSubst);
+						if (!typeEnvironment.isSubType(u_l, b_subst)) {
+							return false;
+						}
+						i++;
+					}
+					return true;
+				}
+			}
+			return isApplicableAndCompatible(call, m, IJavaTypeSubstitution.NULL, context);
 		}
-	};
+    }
     
+    // Assumes that #formals == #args
+	// Check each arg for applicability / compatibility
+	boolean isApplicableAndCompatible(CallState call, MethodBinding m, IJavaTypeSubstitution substForParams, ArgCompatibilityContext context) {
+		final IJavaType[] argTypes = call.getArgTypes(); // TODO factor out?
+		int i=0;			
+		for(IRNode param : Parameters.getFormalIterator(m.formals)) {
+			final IRNode arg = call.args[i];
+			final IJavaType argType = argTypes[i];
+			i++;
+			if (!isPertinentToApplicability(m, call.getNumTypeArgs() > 0, arg)) {
+				continue; // Ignore this one
+			}
+	    	IJavaType pType = binder.getJavaType(ParameterDeclaration.getType(param));
+	    	IJavaType substType = pType.subst(substForParams);
+			if (!context.isCompatible(param, substType, arg, argType)) {
+				return false;										
+			}
+		}	
+		return true;
+	}
+    
+    private final ApplicableMethodFilter STRICT_INVOCATION = new InvocationFilter(STRICT_INVOCATION_CONTEXT);
+	
 	/*
 	 * As above, but applicable by loose invocation
+	 * 
+	 * 15.12.2.3 Phase 2: Identify Matching Arity Methods Applicable by Loose Invocation
+	 * 
+	 * Let m be a potentially applicable method (§15.12.2.1) with arity n and formal
+	 * parameter types F 1 , ..., F n , and let e 1 , ..., e n be the actual argument expressions of
+	 * the method invocation. Then:
+	 * 
+	 * • If m is a generic method and the method invocation does not provide explicit type
+	 *   arguments, then the applicability of the method is inferred as specified in §18.5.1.
+	 *   
+	 * • If m is a generic method and the method invocation provides explicit type
+	 *   arguments, then let R 1 ... R p (p ≥ 1) be the type parameters of m , let B l be the
+	 *   declared bound of R l (1 ≤ l ≤ p), and let U 1 ... U p be the explicit type arguments]
+	 *   given in the method invocation. Then m is applicable by loose invocation if both
+	 *   of the following are true:
+	 *   – For 1 ≤ i ≤ n, if e i is pertinent to applicability (§15.12.2.2) then e i is compatible
+	 *     in a loose invocation context with F i [R 1 := U 1 , ..., R p := U p ] .
+	 *   – For 1 ≤ l ≤ p, U l <: B l [R 1 := U 1 , ..., R p := U p ] .
+	 *   
+	 * • If m is not a generic method, then m is applicable by loose invocation if, for 1 ≤
+	 *   i ≤ n, either e i is compatible in a loose invocation context with F i or e i is not
+	 *   pertinent to applicability.
 	 */
-	private final ApplicableMethodFilter LOOSE_INVOCATION = new ApplicableMethodFilter() {
-		public boolean isApplicable(CallState call, IBinding mb) {
-			// TODO Auto-generated method stub
-			throw new NotImplemented();
-		}
-	};
+	private final ApplicableMethodFilter LOOSE_INVOCATION = new InvocationFilter(LOOSE_INVOCATION_CONTEXT);
 
 	/*
-	 * 15.12.2.4 Phase 3: Identify Methods Applicable by Variable Arity Invocation [Modified]
+	 * 15.12.2.4 Phase 3: Identify Methods Applicable by Variable Arity Invocation
 	 * 
 	 * Where a variable-arity method has formal parameter types F1, ..., Fn-1, Fn[], 
-	 * define the ith variable-arity parameter type of the method as follows:
+	 * let the ith variable-arity parameter type of the method as follows:
 	 * 
 	 *   For i ≤ n-1, the ith variable-arity parameter type is Fi.
 	 *   For i ≥ n, the ith variable-arity parameter type is Fn. 
 	 *   
-	 * Let m be a potentially applicable method (15.12.2.1) with variable arity, let e1, ..., ek be 
-	 * the actual argument expressions of the method invocation and let T1, ..., Tk be first k 
-	 * variable-arity parameter types of m. Then:
+	 * Let m be a potentially applicable method (§15.12.2.1) with variable arity, let T 1 , ...,
+	 * T k be the first k variable arity parameter types of m , and let e 1 , ..., e k be the actual
+	 * argument expressions of the method invocation. Then:
 	 * 
-	 * - If m is a generic method and the method invocation does not provide explicit type arguments, 
-	 *   then the applicability of the method is inferred as described in 18.5.1.
+	 * • If m is a generic method and the method invocation does not provide explicit type
+	 *   arguments, then the applicability of the method is inferred as specified in §18.5.1.
 	 *   
-	 * - Otherwise, if m is a generic method, then let R1, ..., Rp (p ≥ 1) be the type parameters of m, 
-	 *   let Bl be the declared bound of Rl (1 ≤ l ≤ p), and let U1, ..., Up be the explicit type arguments given in the method invocation. 
-	 *   Then m is an applicable variable-arity method if:
-	 *     For 1 ≤ i ≤ k, ei is compatible in a loose invocation context with Ti[R1:=U1, ..., Rp:=Up].
-	 *     Where the last formal parameter type of m is Fn[], the type which is the erasure of Fn[R1:=U1, ..., Rp:=Up] is accessible at the point of invocation.
-	 *     For 1 ≤ l ≤ p, Ul <: Bl[R1:=U1, ..., Rp:=Up]. 
+	 * • If m is a generic method and the method invocation provides explicit type
+	 *   arguments, then let R 1 ... R p (p ≥ 1) be the type parameters of m , let B l be the
+	 *   declared bound of R l (1 ≤ l ≤ p), and let U 1 ... U p be the explicit type arguments
+	 *   given in the method invocation. Then m is applicable by variable arity invocation
+	 *   if:
+	 *   
+	 *   – For 1 ≤ i ≤ k, if e i is pertinent to applicability (§15.12.2.2) then e i is compatible
+	 *     in a loose invocation context with T i [R 1 := U 1 , ..., R p := U p ] .
 	 *     
-     * - Otherwise, m is applicable by variable-arity invocation if:
-     *     For 1 ≤ i ≤ k, ei is compatible in a loose invocation context with Ti.
-     *     Where the last formal parameter type of m is Fn[], the type which is the erasure of Fn is accessible at the point of invocation. 
-     *     
-     * ...
+	 *   – For 1 ≤ l ≤ p, U l <: B l [R 1 := U 1 , ..., R p := U p ] .
+	 *   
+	 * • If m is not a generic method, then m is applicable by variable arity invocation if,
+	 *   for 1 ≤ i ≤ k, either e i is compatible in a loose invocation context with T i or e i
+     *   is not pertinent to applicability (§15.12.2.2).
 	 */
 	private final ApplicableMethodFilter VARIABLE_ARITY_INVOCATION = new ApplicableMethodFilter() {
-		public boolean isApplicable(CallState call, IBinding mb) {
-			// TODO Auto-generated method stub
+		public boolean isApplicable(CallState call, MethodBinding m) {
+    		// TODO
 			throw new NotImplemented();
+			/*
+			if (!mb.isVariableArity()) {
+				return false; // Ignore fixed arity methods
+			}
+			if (m.isGeneric()) {
+				if (call.getNumTypeArgs() == 0) {				
+					throw new NotImplemented("JLS 18.5.1"); // TODO
+				} else {							
+					if (call.getNumTypeArgs() != m.numTypeFormals) {
+						return false;
+					}
+					final IJavaTypeSubstitution methodTypeSubst = FunctionParameterSubstitution.create(binder, m.bind, call.targs);
+					if (!isApplicableAndCompatible(call, m, methodTypeSubst, context)) {
+						return false;
+					}
+					int i=0;
+					for(IRNode tf : TypeFormals.getTypeIterator(m.typeFormals)) {
+						IJavaType u_l = binder.getJavaType(call.targs[i]);
+						IJavaType b_l = JavaTypeFactory.getTypeFormal(tf).getExtendsBound(typeEnvironment);
+						IJavaType b_subst = b_l.subst(methodTypeSubst);
+						if (!typeEnvironment.isSubType(u_l, b_subst)) {
+							return false;
+						}
+						i++;
+					}
+					return true;
+				}
+			}
+			return isApplicableAndCompatible(call, m, IJavaTypeSubstitution.NULL, context);
+			*/
 		}
 	};
+   
+	
 	
 	/*
 	 * 15.12.2.5 Choosing the Most Specific Method [Modified]
@@ -690,9 +819,9 @@ public class MethodBinder8 implements IMethodBinder {
      *     
      * The above conditions are the only circumstances under which one method may be more specific than another.
 	 */
-    private IBinding findMostSpecific(final CallState call, Iterable<IBinding> methods, ApplicableMethodFilter filter) {
-    	final Set<IBinding> applicable = new HashSet<IBinding>();
-    	for(IBinding mb : methods) {
+    private IBinding findMostSpecific(final CallState call, Iterable<MethodBinding> methods, ApplicableMethodFilter filter) {
+    	final Set<MethodBinding> applicable = new HashSet<MethodBinding>();
+    	for(MethodBinding mb : methods) {
     		if (filter.isApplicable(call, mb)) {
     			applicable.add(mb);
     		}
@@ -700,11 +829,13 @@ public class MethodBinder8 implements IMethodBinder {
     	if (applicable.isEmpty()) {
     		return null;
     	}
-    	IBinding rv = null;    	
-		return rv;
+    	if (applicable.size() == 1) {
+    		return applicable.iterator().next().bind;
+    	}
+		throw new NotImplemented(); // TODO
 	}
-    
-    /*
+
+	/*
      * A type T is more specific than a type S for an expression exp according to the following rules:
      *  
      * - T is more specific than S for any expression if T <: S.
@@ -795,7 +926,9 @@ public class MethodBinder8 implements IMethodBinder {
     			return true;
     		} 
     		// Explicitly typed
-    		// TODO check if generic
+    		if (m.isGeneric() && !callHasTypeArgs && m.hasTypeParameterAsReturnType(binder)) {
+    			return false;
+    		}    		
     		IRNode body = LambdaExpression.getBody(arg);
     		if (Expression.prototype.includes(body)) {
     			return isPertinentToApplicability(m, callHasTypeArgs, body);
@@ -804,7 +937,7 @@ public class MethodBinder8 implements IMethodBinder {
     		}
     	}
     	else if (MethodReference.prototype.includes(op) || ConstructorReference.prototype.includes(op)) {
-    		return isExactMethodReference(arg) && (!m.isGeneric() || callHasTypeArgs || !m.hasTypeParameterAsReturnType());
+    		return isExactMethodReference(arg) && (!m.isGeneric() || callHasTypeArgs || !m.hasTypeParameterAsReturnType(binder));
     	}
     	else if (ParenExpression.prototype.includes(op)) {
     		return isPertinentToApplicability(m, callHasTypeArgs, ParenExpression.getOp(arg));
