@@ -2,7 +2,9 @@ package edu.cmu.cs.fluid.java.bind;
 
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -11,6 +13,8 @@ class MethodInfo {
 	final IRNode formals;
 	final IRNode typeFormals;
 	final int numTypeFormals;
+	final boolean isConstructor;
+	final int numFormals;
 	
 	MethodInfo(IRNode m) {
 		mdecl = m;
@@ -24,11 +28,18 @@ class MethodInfo {
 	        	System.out.println();
 	        }
     		 */
+    		isConstructor = false;
     	} else {
     		formals = ConstructorDeclaration.getParams(mdecl);
     		typeFormals = ConstructorDeclaration.getTypes(mdecl);
+    		isConstructor = true;
     	}
     	numTypeFormals = AbstractJavaBinder.numChildrenOrZero(typeFormals);
+    	numFormals = AbstractJavaBinder.numChildrenOrZero(formals);
+	}
+	
+	int getNumFormals() {
+		return numFormals;
 	}
 	
 	final IRNode getVarargsType() {
@@ -61,8 +72,28 @@ class MethodInfo {
     	return numTypeFormals > 0;
     }
     
-    boolean hasTypeParameterAsReturnType() {
-		// TODO Auto-generated method stub
-		throw new NotImplemented();
+    /**
+     * @return true if the return type T is a type parameter for the method
+     */
+    boolean hasTypeParameterAsReturnType(IBinder b) {
+    	if (isConstructor) {
+    		return false;
+    	}
+    	IRNode rtype = MethodDeclaration.getReturnType(mdecl);
+    	if (VoidType.prototype.includes(rtype)) {
+    		return false;
+    	}
+    	IJavaType rt = b.getJavaType(rtype);
+    	if (rt instanceof IJavaTypeFormal) {
+    		IJavaTypeFormal tf = (IJavaTypeFormal) rt;
+    		IRNode enclosingDecl = VisitUtil.getEnclosingClassBodyDecl(tf.getDeclaration());
+    		return mdecl.equals(enclosingDecl);
+    	}
+		return false;
 	}
+    
+    @Override
+    public String toString() {
+    	return JavaNames.genQualifiedMethodConstructorName(mdecl);
+    }
 }
