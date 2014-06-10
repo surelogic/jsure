@@ -42,6 +42,24 @@ class MethodInfo {
 		return numFormals;
 	}
 	
+    IJavaType[] getParamTypes(IBinder b, int callArgs, boolean varArity) {
+    	IJavaType[] rv = new IJavaType[callArgs];
+    	int i=0;
+		for(IRNode f : Parameters.getFormalIterator(formals)) {
+			rv[i] = b.getJavaType(f);
+			i++;
+		}
+    	if (varArity && callArgs >= numFormals) {
+    		// Fill-in the rest of the types needed
+    		IJavaArrayType origType = (IJavaArrayType) rv[numFormals-1];
+    		IJavaType varargsType = origType.getElementType();
+    		for(i=numFormals-1; i<callArgs; i++) {
+    			rv[i] = varargsType;
+    		}
+    	}
+		return rv;
+	}
+	
 	final IRNode getVarargsType() {
 		IRNode varType;
     	IRLocation lastLoc = JJNode.tree.lastChildLocation(formals);
