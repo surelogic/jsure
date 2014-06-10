@@ -155,7 +155,7 @@ public class MethodBinder8 implements IMethodBinder {
     	// Check type arguments (if any)
     	final int numTypeArgs = call.getNumTypeArgs();
     	final int numTypeParams = numChildren(typeParams);
-    	if (numTypeArgs != numTypeParams) {
+    	if (numTypeArgs != numTypeParams && numTypeArgs > 0) {
     		return false;
     	}    	
     	return true;
@@ -171,6 +171,9 @@ public class MethodBinder8 implements IMethodBinder {
      * check the first N parameters/arguments
      */
     private boolean arePotentiallyCompatible(IBinding mb, final int limit, final Iterable<IRNode> params, final IRNode[] args) {
+    	if (limit == 0) {
+    		return true;
+    	}
     	int i = 0;
     	for(IRNode param : params) {
     		if (i >= args.length) {
