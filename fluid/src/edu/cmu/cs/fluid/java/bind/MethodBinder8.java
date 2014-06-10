@@ -592,6 +592,7 @@ public class MethodBinder8 implements IMethodBinder {
         
     interface ApplicableMethodFilter {
     	boolean isApplicable(CallState call, MethodBinding mb);
+    	boolean usesVarargs();
     }
     
     interface ArgCompatibilityContext {
@@ -643,6 +644,10 @@ public class MethodBinder8 implements IMethodBinder {
     	
     	InvocationFilter(ArgCompatibilityContext c) {
     		context = c;
+    	}
+    	
+    	public boolean usesVarargs() {
+    		return false;
     	}
     	
 		public boolean isApplicable(CallState call, MethodBinding m) {
@@ -759,6 +764,10 @@ public class MethodBinder8 implements IMethodBinder {
      *   is not pertinent to applicability (§15.12.2.2).
 	 */
 	private final ApplicableMethodFilter VARIABLE_ARITY_INVOCATION = new ApplicableMethodFilter() {
+    	public boolean usesVarargs() {
+    		return true;
+    	}
+    	
 		public boolean isApplicable(CallState call, MethodBinding m) {
     		// TODO
 			throw new NotImplemented();
@@ -798,26 +807,48 @@ public class MethodBinder8 implements IMethodBinder {
 	
 	
 	/*
-	 * 15.12.2.5 Choosing the Most Specific Method [Modified]
+	 * 15.12.2.5 Choosing the Most Specific Method
+	 * 
+	 * If more than one member method is both accessible and applicable to a method
+	 * invocation, it is necessary to choose one to provide the descriptor for the run-
+	 * time method dispatch. The Java programming language uses the rule that the most
+	 * specific method is chosen.
 	 * 
 	 * The informal intuition is that one method is more specific than another if any invocation handled by the first method
 	 * could be passed on to the other one without a compile-time error. In cases such as a lambda expression argument (15.27) 
 	 * or a variable-arity invocation (15.12.2.4), some flexibility is allowed to adapt one signature to the other. 
 	 * 
-	 * One applicable method m1 is more specific than another applicable method m2, for an invocation with argument 
-	 * expressions exp1, ..., expk, if both of the following are true:
+	 * (see below)
 	 * 
-	 * - If the invocation does not provide type arguments, it is not the case that either m1 or m2 is generic and was 
-	 *   determined to be only provisionally applicable by 18.5.1.
-	 * - Either:
-     *   - m2 is generic and m1 is inferred to be more specific than m2 for argument expressions exp1, ..., expk by 18.5.4.
-     *   - m2 is not generic, m1 and m2 are applicable by strict or loose invocation, and where m1 has parameter types T1, ..., Tn 
-     *     and m2 has parameter types S1, ..., Sn, for all i (1 ≤ i ≤ n), the type Ti is more specific than Si for argument expi.
-     *   - m2 is not generic, m1 and m2 are applicable by variable arity invocation, and where the first k variable-arity parameter
-     *     types of m1 are T1, ..., Tk and the first k variable-arity parameter types of m2 are S1, ..., Sk, for all i (1 ≤ i ≤ k), 
-     *     the type Ti is more specific than Si for argument expi. 
-     *     
-     * The above conditions are the only circumstances under which one method may be more specific than another.
+	 * A method m 1 is strictly more specific than another method m 2 if and only if m 1 is
+	 * more specific than m 2 and m 2 is not more specific than m 1 .
+	 * 
+	 * A method is said to be maximally specific for a method invocation if it is accessible
+	 * and applicable and there is no other method that is applicable and accessible that
+	 * is strictly more specific.
+	 * 
+	 * If there is exactly one maximally specific method, then that method is in fact
+	 * the most specific method; it is necessarily more specific than any other accessible
+	 * method that is applicable. It is then subjected to some further compile-time checks
+	 * as specified in §15.12.3.
+	 * 
+	 * It is possible that no method is the most specific, because there are two or more
+	 * methods that are maximally specific. In this case:
+	 * • If all the maximally specific methods have override-equivalent signatures
+	 * (§8.4.2), then:
+	 *   – If exactly one of the maximally specific methods is concrete (that is, non-
+	 *     abstract or default), it is the most specific method.
+	 *  
+	 *   – Otherwise, if all the maximally specific methods are abstract or default, and
+	 *     the signatures of all of the maximally specific methods have the same erasure
+	 *     (§4.6), then the most specific method is chosen arbitrarily among the subset
+	 *     of the maximally specific methods that have the most specific return type.
+	 *     In this case, the most specific method is considered to be abstract . Also, the
+	 *     most specific method is considered to throw a checked exception if and only
+	 *     if that exception or its erasure is declared in the throws clauses of each of the
+	 *     maximally specific methods.
+	 * 
+	 * • Otherwise, the method invocation is ambiguous, and a compile-time error occurs.
 	 */
     private IBinding findMostSpecific(final CallState call, Iterable<MethodBinding> methods, ApplicableMethodFilter filter) {
     	final Set<MethodBinding> applicable = new HashSet<MethodBinding>();
@@ -829,13 +860,101 @@ public class MethodBinder8 implements IMethodBinder {
     	if (applicable.isEmpty()) {
     		return null;
     	}
-    	if (applicable.size() == 1) {
-    		return applicable.iterator().next().bind;
+    	MethodBinding rv = null;
+    	for(MethodBinding mb : applicable) {
+    		if (rv == null) {
+    			rv = mb;
+    		} 
+    		// TODO is this transitive?
+    		else if (isMoreSpecific(call, mb, rv, filter.usesVarargs())) {
+    			rv = mb;
+    		}
     	}
-		throw new NotImplemented(); // TODO
+    	return rv == null ? null : rv.bind;
 	}
 
+    /**
+	 * One applicable method m1 is more specific than another applicable method m2, for an invocation with argument expressions 
+	 * e 1 , ..., e k , if any of the following are true:
+	 * 
+	 * • m 2 is generic and m 1 is inferred to be more specific than m 2 for argument
+	 *   expressions e 1 , ..., e k by §18.5.4.
+	 *   
+	 * • m 2 is not generic, m 1 and m 2 are applicable by strict or loose invocation, and where
+	 *   m 1 has formal parameter types S 1 , ..., S n and m 2 has formal parameter types T 1 , ...,
+	 *   T n , the type S i is more specific than T i for argument e i for all i (1 ≤ i ≤ n, n = k).
+	 *   
+	 * • m 2 is not generic, m 1 and m 2 are applicable by variable arity invocation, and where
+	 *   the first k variable arity parameter types of m 1 are S 1 , ..., S k and the first k variable
+	 *   arity parameter types of m 2 are T 1 , ..., T k , the type S i is more specific than T i for
+	 *   argument e i for all i (1 ≤ i ≤ k). Additionally, if m 2 has k+1 parameters, then the
+	 *   k+1'th variable arity parameter type of m 1 is a subtype of the k+1'th variable arity
+	 *   parameter type of m 2 .
+     *     
+     * The above conditions are the only circumstances under which one method may be more specific than another.
+     */
+    private boolean isMoreSpecific(final CallState call, MethodBinding m1, MethodBinding m2, boolean varArity) {
+    	if (m2.isGeneric()) {
+    		// Case 1
+    		throw new NotImplemented(); // TODO JLS 18.5.4
+    	}    	
+    	final int k = call.getArgTypes().length;
+    	IJavaType[] m1Types = m1.getParamTypes(binder, k+1, varArity);
+    	IJavaType[] m2Types = m2.getParamTypes(binder, k+1, varArity);
+		// Case 2 + 3
+		for(int i=0; i<k; i++) {
+			if (!isMoreSpecific(m1Types[i], m2Types[i], call.args[i])) {
+				return false;
+			}
+		}    	
+    	if (varArity && m2.getNumFormals() == k+1) {
+    		// Case 3
+    		return m1Types[k].isSubtype(typeEnvironment, m2Types[k]);
+    	}
+    	return true;
+    }
+    
 	/*
+	 * A type S is more specific than a type T for any expression if S <: T (§4.10).
+	 * 
+	 * A functional interface type S is more specific than a functional interface type T for
+	 * an expression e if T is not a subtype of S and one of the following is true (where
+	 * U 1 ... U k and R 1 are the parameter types and return type of the function type of the
+	 * capture of S , and V 1 ... V k and R 2 are the parameter types and return type of the
+	 * function type of T ):
+	 * 
+	 * • If e is an explicitly typed lambda expression (§15.27.1), then one of the following
+	 *   is true:
+	 *   – R 2 is void .
+	 *   – R 1 <: R 2 .
+	 *   – R 1 and R 2 are functional interface types, and R 1 is more specific than R 2 for
+	 *     each result expression of e .
+	 *     
+	 *     The result expression of a lambda expression with a block body is defined
+	 *     in §15.27.2; the result expression of a lambda expression with an expression
+	 *     body is simply the body itself.
+	 *    
+	 *   – R 1 is a primitive type, R 2 is a reference type, and each result expression of e is
+	 *     a standalone expression (§15.2) of a primitive type.
+	 *   – R 1 is a reference type, R 2 is a primitive type, and each result expression of e is
+	 *     either a standalone expression of a reference type or a poly expression.
+	 *  
+	 *  • If e is an exact method reference expression (§15.13.1), then i) for all i (1 ≤ i ≤
+	 *  k), U i is the same as V i , and ii) one of the following is true:
+	 *  
+	 *    – R 2 is void .
+	 *    – R 1 <: R 2 .
+	 *    – R 1 is a primitive type, R 2 is a reference type, and the compile-time declaration
+	 *      for the method reference has a return type which is a primitive type.
+	 *    – R 1 is a reference type, R 2 is a primitive type, and the compile-time declaration
+	 *      for the method reference has a return type which is a reference type.
+	 *      
+	 *  • If e is a parenthesized expression, then one of these conditions applies recursively
+	 *    to the contained expression.
+	 *  • If e is a conditional expression, then for each of the second and third operands,
+	 *    one of these conditions applies recursively.
+	 *******************************************************************************************
+	 * 
      * A type T is more specific than a type S for an expression exp according to the following rules:
      *  
      * - T is more specific than S for any expression if T <: S.
