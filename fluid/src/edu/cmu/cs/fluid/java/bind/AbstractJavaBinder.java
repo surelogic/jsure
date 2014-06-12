@@ -2879,8 +2879,22 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       
       if (contextTypeB != null && contextTypeB != enclosingType) {
         if (useSuper) {
-          // Assume that contextTypeB is a supertype of enclosingType
-          rv = JavaPromise.getReceiverNodeOrNull(contextTypeB);
+          if (InterfaceDeclaration.prototype.includes(contextTypeB)) {
+        	  // Special case to handle diamond inheritance of default methods?
+        	  rv = JavaPromise.getReceiverNodeOrNull(contextTypeB);
+          } else {
+        	  // Assume that contextTypeB is a supertype of enclosingType
+        	  /*
+        	  IJavaType contextT = typeEnvironment.convertNodeTypeToIJavaType(contextTypeB);
+        	  IJavaDeclaredType superT = (IJavaDeclaredType) contextT.getSuperclass(typeEnvironment);
+        	  rv = JavaPromise.getReceiverNodeOrNull(superT.getDeclaration());
+        	  */
+        	  // TODO why does this work for C.super?
+        	  // do I bind method differently?
+        	  //
+        	  // Use the type's IFQR
+              rv = JavaPromise.getQualifiedReceiverNodeByName(enclosingType, contextTypeB);
+          }
         } else {
           // Use the type's IFQR
           rv = JavaPromise.getQualifiedReceiverNodeByName(enclosingType, contextTypeB);
