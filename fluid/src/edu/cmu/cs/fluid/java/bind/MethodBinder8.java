@@ -21,16 +21,18 @@ import edu.cmu.cs.fluid.tree.Operator;
 public class MethodBinder8 implements IMethodBinder {
 	private final boolean debug;
 	private final AbstractJavaBinder binder;
-	private final ITypeEnvironment typeEnvironment;
+	final ITypeEnvironment tEnv;
+	final TypeInference8 typeInfer;
 	
 	MethodBinder8(AbstractJavaBinder b, boolean debug) {
+		tEnv = b.getTypeEnvironment();
 		binder = b;
-		typeEnvironment = b.getTypeEnvironment();
 		this.debug = debug;
+		typeInfer = new TypeInference8(this);
 	}	
 	
     public BindingInfo findBestMethod(final IJavaScope scope, final LookupContext context, final boolean needMethod, final IRNode from, final CallState call) {
-        final IJavaScope.Selector isAccessible = MethodBinder.makeAccessSelector(typeEnvironment, from);
+        final IJavaScope.Selector isAccessible = MethodBinder.makeAccessSelector(tEnv, from);
         final Iterable<IBinding> methods = new Iterable<IBinding>() {
   			public Iterator<IBinding> iterator() {
   				return IJavaScope.Util.lookupCallable(scope, context, isAccessible, needMethod);
@@ -119,7 +121,7 @@ public class MethodBinder8 implements IMethodBinder {
     		typeParams = MethodDeclaration.getTypes(mb.getNode());
     	}
     	// Check accessibility -- probably redundant
-    	if (!BindUtil.isAccessible(typeEnvironment, mb.getNode(), from)) {
+    	if (!BindUtil.isAccessible(tEnv, mb.getNode(), from)) {
     		return false;
     	}
     	// Check varargs/arity -> parameters
@@ -596,23 +598,24 @@ public class MethodBinder8 implements IMethodBinder {
     interface ApplicableMethodFilter {
     	boolean isApplicable(CallState call, MethodBinding mb);
     	boolean usesVarargs();
+    	InvocationKind getKind();
     }
     
     interface ArgCompatibilityContext {
     	boolean isCompatible(IRNode param, IJavaType pType, IRNode arg, IJavaType argType);
     }
 	
-    private final ArgCompatibilityContext STRICT_INVOCATION_CONTEXT = new ArgCompatibilityContext() {
+    final ArgCompatibilityContext STRICT_INVOCATION_CONTEXT = new ArgCompatibilityContext() {
     	public boolean isCompatible(IRNode param, IJavaType pType, IRNode arg, IJavaType argType) {
     		// TODO
-    		return typeEnvironment.isCallCompatible(pType, argType);
+    		return tEnv.isCallCompatible(pType, argType);
     	}
 	}; 
 	
-    private final ArgCompatibilityContext LOOSE_INVOCATION_CONTEXT = new ArgCompatibilityContext() {
+    final ArgCompatibilityContext LOOSE_INVOCATION_CONTEXT = new ArgCompatibilityContext() {
     	public boolean isCompatible(IRNode param, IJavaType pType, IRNode arg, IJavaType argType) {
     		// TODO handle boxing and unboxing
-    		return typeEnvironment.isCallCompatible(pType, argType);
+    		return tEnv.isCallCompatible(pType, argType);
     	}
 	}; 
     
@@ -643,14 +646,20 @@ public class MethodBinder8 implements IMethodBinder {
      *  Otherwise, the most specific method (15.12.2.5) is chosen among the methods that are applicable by strict invocation.
      */    
     class InvocationFilter implements ApplicableMethodFilter {
+    	final InvocationKind kind;
     	final ArgCompatibilityContext context;
     	
-    	InvocationFilter(ArgCompatibilityContext c) {
+    	InvocationFilter(InvocationKind k, ArgCompatibilityContext c) {
+    		kind = k;
     		context = c;
     	}
     	
-    	public boolean usesVarargs() {
-    		return false;
+    	public final InvocationKind getKind() {
+    		return kind;
+    	}
+    	
+    	public final boolean usesVarargs() {
+    		return getKind() == InvocationKind.VARARGS;
     	}
     	
 		public boolean isApplicable(CallState call, MethodBinding m) {
@@ -659,21 +668,21 @@ public class MethodBinder8 implements IMethodBinder {
 			}
 			if (m.isGeneric()) {
 				if (call.getNumTypeArgs() == 0) {				
-					throw new NotImplemented("JLS 18.5.1"); // TODO
+					return typeInfer.inferForInvocationApplicability(call, m, getKind());
 				} else {							
 					if (call.getNumTypeArgs() != m.numTypeFormals) {
 						return false;
 					}
 					final IJavaTypeSubstitution methodTypeSubst = FunctionParameterSubstitution.create(binder, m.bind, call.targs);
-					if (!isApplicableAndCompatible(call, m, methodTypeSubst, context)) {
+					if (!isApplicableAndCompatible(call, m, methodTypeSubst, context, usesVarargs())) {
 						return false;
 					}
 					int i=0;
 					for(IRNode tf : TypeFormals.getTypeIterator(m.typeFormals)) {
 						IJavaType u_l = binder.getJavaType(call.targs[i]);
-						IJavaType b_l = JavaTypeFactory.getTypeFormal(tf).getExtendsBound(typeEnvironment);
+						IJavaType b_l = JavaTypeFactory.getTypeFormal(tf).getExtendsBound(tEnv);
 						IJavaType b_subst = b_l.subst(methodTypeSubst);
-						if (!typeEnvironment.isSubType(u_l, b_subst)) {
+						if (!tEnv.isSubType(u_l, b_subst)) {
 							return false;
 						}
 						i++;
@@ -681,32 +690,33 @@ public class MethodBinder8 implements IMethodBinder {
 					return true;
 				}
 			}
-			return isApplicableAndCompatible(call, m, IJavaTypeSubstitution.NULL, context);
+			return isApplicableAndCompatible(call, m, IJavaTypeSubstitution.NULL, context, usesVarargs());
 		}
     }
     
     // Assumes that #formals == #args
 	// Check each arg for applicability / compatibility
-	boolean isApplicableAndCompatible(CallState call, MethodBinding m, IJavaTypeSubstitution substForParams, ArgCompatibilityContext context) {
+	boolean isApplicableAndCompatible(CallState call, MethodBinding m, IJavaTypeSubstitution substForParams, ArgCompatibilityContext context, boolean varArity) {
 		final IJavaType[] argTypes = call.getArgTypes(); // TODO factor out?
 		int i=0;			
-		for(IRNode param : Parameters.getFormalIterator(m.formals)) {
+		//for(IRNode param : Parameters.getFormalIterator(m.formals)) {
+		for(IJavaType pType : m.getParamTypes(binder, argTypes.length, varArity)) {//Parameters.getFormalIterator(m.formals)) {
 			final IRNode arg = call.args[i];
 			final IJavaType argType = argTypes[i];
 			i++;
 			if (!isPertinentToApplicability(m, call.getNumTypeArgs() > 0, arg)) {
 				continue; // Ignore this one
 			}
-	    	IJavaType pType = binder.getJavaType(ParameterDeclaration.getType(param));
+			//IJavaType pType = binder.getJavaType(ParameterDeclaration.getType(param));
 	    	IJavaType substType = pType.subst(substForParams);
-			if (!context.isCompatible(param, substType, arg, argType)) {
+			if (!context.isCompatible(null, substType, arg, argType)) {
 				return false;										
 			}
 		}	
 		return true;
 	}
     
-    private final ApplicableMethodFilter STRICT_INVOCATION = new InvocationFilter(STRICT_INVOCATION_CONTEXT);
+    private final ApplicableMethodFilter STRICT_INVOCATION = new InvocationFilter(InvocationKind.STRICT, STRICT_INVOCATION_CONTEXT);
 	
 	/*
 	 * As above, but applicable by loose invocation
@@ -733,7 +743,7 @@ public class MethodBinder8 implements IMethodBinder {
 	 *   i ≤ n, either e i is compatible in a loose invocation context with F i or e i is not
 	 *   pertinent to applicability.
 	 */
-	private final ApplicableMethodFilter LOOSE_INVOCATION = new InvocationFilter(LOOSE_INVOCATION_CONTEXT);
+	private final ApplicableMethodFilter LOOSE_INVOCATION = new InvocationFilter(InvocationKind.LOOSE, LOOSE_INVOCATION_CONTEXT);
 
 	/*
 	 * 15.12.2.4 Phase 3: Identify Methods Applicable by Variable Arity Invocation
@@ -766,48 +776,15 @@ public class MethodBinder8 implements IMethodBinder {
 	 *   for 1 ≤ i ≤ k, either e i is compatible in a loose invocation context with T i or e i
      *   is not pertinent to applicability (§15.12.2.2).
 	 */
-	private final ApplicableMethodFilter VARIABLE_ARITY_INVOCATION = new ApplicableMethodFilter() {
-    	public boolean usesVarargs() {
-    		return true;
-    	}
-    	
+	private final ApplicableMethodFilter VARIABLE_ARITY_INVOCATION = new InvocationFilter(InvocationKind.VARARGS, LOOSE_INVOCATION_CONTEXT) {
+    	@Override
 		public boolean isApplicable(CallState call, MethodBinding m) {
-    		// TODO
-			throw new NotImplemented();
-			/*
-			if (!mb.isVariableArity()) {
-				return false; // Ignore fixed arity methods
-			}
-			if (m.isGeneric()) {
-				if (call.getNumTypeArgs() == 0) {				
-					throw new NotImplemented("JLS 18.5.1"); // TODO
-				} else {							
-					if (call.getNumTypeArgs() != m.numTypeFormals) {
-						return false;
-					}
-					final IJavaTypeSubstitution methodTypeSubst = FunctionParameterSubstitution.create(binder, m.bind, call.targs);
-					if (!isApplicableAndCompatible(call, m, methodTypeSubst, context)) {
-						return false;
-					}
-					int i=0;
-					for(IRNode tf : TypeFormals.getTypeIterator(m.typeFormals)) {
-						IJavaType u_l = binder.getJavaType(call.targs[i]);
-						IJavaType b_l = JavaTypeFactory.getTypeFormal(tf).getExtendsBound(typeEnvironment);
-						IJavaType b_subst = b_l.subst(methodTypeSubst);
-						if (!typeEnvironment.isSubType(u_l, b_subst)) {
-							return false;
-						}
-						i++;
-					}
-					return true;
-				}
-			}
-			return isApplicableAndCompatible(call, m, IJavaTypeSubstitution.NULL, context);
-			*/
-		}
-	};
-   
-	
+    		if (!m.isVariableArity()) {
+    			return false;
+    		}
+    		return super.isApplicable(call, m);
+    	}
+    };
 	
 	/*
 	 * 15.12.2.5 Choosing the Most Specific Method
@@ -912,7 +889,7 @@ public class MethodBinder8 implements IMethodBinder {
 		}    	
     	if (varArity && m2.getNumFormals() == k+1) {
     		// Case 3
-    		return m1Types[k].isSubtype(typeEnvironment, m2Types[k]);
+    		return m1Types[k].isSubtype(tEnv, m2Types[k]);
     	}
     	return true;
     }
@@ -985,7 +962,7 @@ public class MethodBinder8 implements IMethodBinder {
      *   if T is a reference type and S is a primitive type.
      */
     private boolean isMoreSpecific(IJavaType t, IJavaType s, IRNode contextExpr) {
-    	if (t.isSubtype(typeEnvironment, s)) {
+    	if (t.isSubtype(tEnv, s)) {
     		return true;
     	}
     	if (!isPolyExpression(contextExpr)) {
