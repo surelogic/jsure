@@ -3,6 +3,9 @@ package edu.cmu.cs.fluid.java.bind;
 import static edu.cmu.cs.fluid.java.bind.IMethodBinder.*;
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 public class TypeInference8 {
 	final MethodBinder8 mb;
@@ -207,6 +210,11 @@ public class TypeInference8 {
 		}		
 	}
 	
+	
+	private boolean isStandaloneExpr(IRNode e) {
+		throw new NotImplemented(); // TODO
+	}
+	
 	boolean isProperType(IJavaType t) {
 		throw new NotImplemented(); // TODO
 	}
@@ -243,7 +251,7 @@ public class TypeInference8 {
 		switch (f.constraint) {
 		case IS_COMPATIBLE:
 			if (f.expr != null) {
-				reduceExpressionCompatibilityConstraints(bounds, f);
+				reduceExpressionCompatibilityConstraints(bounds, f.expr, f.type);
 			} else {
 				reduceTypeCompatibilityConstraints(bounds, f.stype, f.type);
 			}
@@ -252,16 +260,16 @@ public class TypeInference8 {
 			reduceSubtypingConstraints(bounds, f.stype, f.type);
 			break;
 		case IS_CONTAINED_BY_TYPE_ARG:
-			reduceTypeArgContainmentConstraints(bounds, f);
+			reduceTypeArgContainmentConstraints(bounds, f.stype, f.type);
 			break;
 		case IS_SAME:
-			reduceTypeEqualityConstraints(bounds, f);
+			reduceTypeEqualityConstraints(bounds, f.stype, f.type);
 			break;
 		case THROWS:
-			reduceCheckedExceptionConstraints(bounds, f);
+			reduceCheckedExceptionConstraints(bounds, f.expr, f.type);
 			break;
 		default:
-			throw new UnsupportedOperationException();
+			throw new IllegalStateException();
 		}
 	}
 
@@ -297,10 +305,40 @@ public class TypeInference8 {
 	 *     result is specified below.
 	 * @param bounds 
 	 */
-	void reduceExpressionCompatibilityConstraints(BoundSet bounds, ConstraintFormula f) {
-		throw new NotImplemented(); // TODO
+	void reduceExpressionCompatibilityConstraints(BoundSet bounds, IRNode e, IJavaType t) {
+		if (isProperType(t)) {
+			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(e, null, null, t)) {
+				bounds.addTrue();
+			} else {
+				bounds.addFalse();
+			}
+		}
+		else if (isStandaloneExpr(e)) {
+			IJavaType s = tEnv.getBinder().getJavaType(e);
+			reduceTypeCompatibilityConstraints(bounds, s, t);
+		} else {
+			Operator op = JJNode.tree.getOperator(e);
+			if (ParenExpression.prototype.includes(op)) {
+				reduceExpressionCompatibilityConstraints(bounds, ParenExpression.getOp(e), t);
+			}
+			else if (NewExpression.prototype.includes(op) || MethodCall.prototype.includes(op)) {
+				throw new NotImplemented(); // TODO
+			}
+			else if (ConditionalExpression.prototype.includes(op)) {
+				reduceExpressionCompatibilityConstraints(bounds, ConditionalExpression.getIffalse(e), t);
+				reduceExpressionCompatibilityConstraints(bounds, ConditionalExpression.getIftrue(e), t);
+			}
+			else if (LambdaExpression.prototype.includes(op)) {
+				reduceLambdaCompatibilityConstraints(bounds, e, t);
+			}
+			else if (MethodReference.prototype.includes(op) || ConstructorReference.prototype.includes(op)) {
+				reduceMethodReferenceCompatibilityConstraints(bounds, e, t);
+			} else {
+				throw new IllegalStateException();
+			}
+		}		
 	}
-	
+
 	/**
 	 * A constraint formula of the form ‹LambdaExpression → T ›, where T mentions at
 	 * least one inference variable, is reduced as follows:
@@ -348,7 +386,7 @@ public class TypeInference8 {
 	 *           body is a block with result expressions e 1 , ..., e m , for all i (1 ≤ i ≤ m),
 	 *           ‹ e i → R ›.
 	 */
-	void reduceLambdaCompatibilityConstraints(BoundSet bounds, ConstraintFormula f) {
+	void reduceLambdaCompatibilityConstraints(BoundSet bounds, IRNode e, IJavaType t) {
 		throw new NotImplemented(); // TODO
 	}
 	
@@ -404,7 +442,7 @@ public class TypeInference8 {
 	 *       type (§15.12.2.6) of the compile-time declaration. If R ' is void , the constraint
 	 *       reduces to false; otherwise, the constraint reduces to ‹ R ' → R ›.
 	*/
-	void reduceMethodReferenceCompatibilityConstraints(BoundSet bounds, ConstraintFormula f) {
+	void reduceMethodReferenceCompatibilityConstraints(BoundSet bounds, IRNode e, IJavaType t) {
 		throw new NotImplemented(); // TODO
 	}
 	
@@ -530,13 +568,13 @@ public class TypeInference8 {
 	 *   – If S is a wildcard of the form ? super S' , the constraint reduces to ‹ T' <: S' ›.
 	 *   – Otherwise, the constraint reduces to false.
 	 */
-	private void reduceTypeArgContainmentConstraints(BoundSet bounds, ConstraintFormula f) {
-		if (f.type instanceof IJavaWildcardType) {
-			IJavaWildcardType wt = (IJavaWildcardType) f.type;
+	private void reduceTypeArgContainmentConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
+		if (t instanceof IJavaWildcardType) {
+			IJavaWildcardType wt = (IJavaWildcardType) t;
 			if (wt.getUpperBound() != null) { 
 				// Case 3: ? extends X
-				if (f.stype instanceof IJavaWildcardType) {
-					IJavaWildcardType ws = (IJavaWildcardType) f.stype;
+				if (s instanceof IJavaWildcardType) {
+					IJavaWildcardType ws = (IJavaWildcardType) s;
 					if (ws.getUpperBound() != null) {
 						bounds.addSubtypeBound(ws.getUpperBound(), wt.getUpperBound());
 					}
@@ -546,31 +584,31 @@ public class TypeInference8 {
 						bounds.addSubtypeBound(tEnv.getObjectType(), wt.getUpperBound());
 					}
 				} else {
-					bounds.addSubtypeBound(f.stype, wt.getUpperBound());
+					bounds.addSubtypeBound(s, wt.getUpperBound());
 				}
 			}
 			else if (wt.getLowerBound() != null) { 
 				// Case 4: ? super X
-				if (f.stype instanceof IJavaWildcardType) {
-					IJavaWildcardType ws = (IJavaWildcardType) f.stype;
+				if (s instanceof IJavaWildcardType) {
+					IJavaWildcardType ws = (IJavaWildcardType) s;
 					if (ws.getLowerBound() != null) {
 						bounds.addSubtypeBound(wt.getLowerBound(), ws.getLowerBound());
 					} else {
 						bounds.addFalse();
 					}
 				} else {
-					bounds.addSubtypeBound(wt.getLowerBound(), f.stype);
+					bounds.addSubtypeBound(wt.getLowerBound(), s);
 				}
 			}
 			// Case 2: ?
  			bounds.addTrue();
 		}
 		// Case 1
-		else if (f.stype instanceof IJavaWildcardType) {
+		else if (s instanceof IJavaWildcardType) {
 			bounds.addFalse();
 		} 
 		else {
-			bounds.addEqualityBound(f.stype, f.type);
+			bounds.addEqualityBound(s, t);
 		}
 	}
 	
@@ -610,7 +648,7 @@ public class TypeInference8 {
 	 * • Otherwise, the constraint reduces to false.
 	 * @param bounds 
 	 */
-	private void reduceTypeEqualityConstraints(BoundSet bounds, ConstraintFormula f) {
+	private void reduceTypeEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
 		throw new NotImplemented(); // TODO
 	}
 
@@ -680,7 +718,7 @@ public class TypeInference8 {
 	 *     constraints include, for all j (1 ≤ j ≤ n), ‹ X i <: E j ›. In addition, for all j (1 ≤ j
 	 *     ≤ n), the constraint reduces to the bound throws E j .
 	 */
-	private void reduceCheckedExceptionConstraints(BoundSet bounds, ConstraintFormula f) {
+	private void reduceCheckedExceptionConstraints(BoundSet bounds, IRNode e, IJavaType t) {
 		throw new NotImplemented(); // TODO
 	}
 }
