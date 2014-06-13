@@ -11,6 +11,10 @@ import edu.cmu.cs.fluid.parse.JJNode;
 interface IMethodBinder {
 	BindingInfo findBestMethod(final IJavaScope scope, final LookupContext context, final boolean needMethod, final IRNode from, final CallState call);
 	
+	enum InvocationKind {
+		STRICT, LOOSE, VARARGS
+	}
+	
 	class CallState {
     	final IBinder binder;
     	final IRNode call;
