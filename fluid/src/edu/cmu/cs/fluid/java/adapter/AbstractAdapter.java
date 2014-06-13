@@ -186,6 +186,7 @@ public class AbstractAdapter {
 				PromiseUtil.addReceiverDeclsToConstructor(n);
 			} else if (InterfaceDeclaration.prototype.includes(op)) {
 				createRequiredTypeNodes(n);    
+				ReceiverDeclaration.getReceiverNode(n); // Only for Java 8
 			} else if (AnnotationDeclaration.prototype.includes(op)) {
 				createRequiredTypeNodes(n);
 				/*
