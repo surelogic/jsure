@@ -1,6 +1,9 @@
 package edu.cmu.cs.fluid.java.bind;
 
 import static edu.cmu.cs.fluid.java.bind.IMethodBinder.*;
+
+import java.util.*;
+
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -219,6 +222,15 @@ public class TypeInference8 {
 		throw new NotImplemented(); // TODO
 	}
  	
+	boolean isInferenceVariable(IJavaType t) {
+		throw new NotImplemented(); // TODO
+	}
+	
+	// (§9.8)
+	private boolean isFunctionalInterfaceType(IJavaType t) {
+		throw new NotImplemented(); // TODO
+	}
+	
 	IJavaReferenceType box(IJavaType t) {
 		throw new NotImplemented(); // TODO
 	}
@@ -252,6 +264,7 @@ public class TypeInference8 {
 		case IS_COMPATIBLE:
 			if (f.expr != null) {
 				reduceExpressionCompatibilityConstraints(bounds, f.expr, f.type);
+	
 			} else {
 				reduceTypeCompatibilityConstraints(bounds, f.stype, f.type);
 			}
@@ -266,7 +279,11 @@ public class TypeInference8 {
 			reduceTypeEqualityConstraints(bounds, f.stype, f.type);
 			break;
 		case THROWS:
-			reduceCheckedExceptionConstraints(bounds, f.expr, f.type);
+			if (LambdaExpression.prototype.includes(f.expr)) {
+				reduceLambdaCheckedExceptionConstraints(bounds, f.expr, f.type);
+			} else {
+				reduceMethodRefCheckedExceptionConstraints(bounds, f.expr, f.type);
+			}
 			break;
 		default:
 			throw new IllegalStateException();
@@ -545,7 +562,50 @@ public class TypeInference8 {
 	 *     new constraints: for all i (1 ≤ i ≤ n), ‹ S <: I i ›.
 	 */
 	private void reduceSubtypingConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
-		throw new NotImplemented(); // TODO
+		if (isProperType(s) && isProperType(t)) {
+			if (tEnv.isSubType(s, t)) {
+				bounds.addTrue();
+			} else {
+				bounds.addFalse();
+			}
+		}
+		else if (s instanceof IJavaNullType) {
+			bounds.addTrue();
+		}
+		else if (t instanceof IJavaNullType) {
+			bounds.addFalse();
+		}
+		else if (isInferenceVariable(s) || isInferenceVariable(t)) {
+			bounds.addSubtypeBound(s, t);
+		}
+		
+		if (t instanceof IJavaDeclaredType) {
+			// TODO subcase 1
+			if (tEnv.isSubType(s, t)) {
+				bounds.addTrue();
+			} else {
+				bounds.addFalse();
+			}
+		}
+		else if (t instanceof IJavaArrayType) {
+			throw new NotImplemented(); // TODO
+		}
+		else if (t instanceof IJavaTypeVariable) {
+			IJavaTypeVariable tv = (IJavaTypeVariable) t;
+			// TODO intersection
+			if (tv.getLowerBound() != null) {
+				reduceSubtypingConstraints(bounds, s, tv.getLowerBound());
+			} else {
+				bounds.addFalse();
+			}
+		}
+		else if (t instanceof IJavaIntersectionType) {
+			IJavaIntersectionType it = (IJavaIntersectionType) t;
+			reduceSubtypingConstraints(bounds, s, it.getPrimarySupertype());
+			reduceSubtypingConstraints(bounds, s, it.getSecondarySupertype());
+		} else {
+			throw new NotImplemented(); // TODO
+		}
 	}
 	
 	/**
@@ -598,6 +658,7 @@ public class TypeInference8 {
 					}
 				} else {
 					bounds.addSubtypeBound(wt.getLowerBound(), s);
+					
 				}
 			}
 			// Case 2: ?
@@ -630,7 +691,43 @@ public class TypeInference8 {
 	 *   
 	 * • Otherwise, if S and T are array types, S'[] and T'[] , the constraint reduces to ‹ S' = T' ›.
 	 * • Otherwise, the constraint reduces to false.
-	 * 
+	 */
+	private void reduceTypeEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
+		if (isProperType(s) && isProperType(t)) {
+			if (s.equals(t)) {
+				bounds.addTrue();
+			} else {
+				bounds.addFalse();
+			}
+		}
+		if (isInferenceVariable(s) || isInferenceVariable(t)) {
+			bounds.addEqualityBound(s, t);
+		}
+		if (s instanceof IJavaDeclaredType && t instanceof IJavaDeclaredType) {
+			IJavaDeclaredType sd = (IJavaDeclaredType) s;
+			IJavaDeclaredType td = (IJavaDeclaredType) t;			
+			if (sd.getDeclaration().equals(td.getDeclaration()) && sd.getTypeParameters().size() == td.getTypeParameters().size()) {
+				int i=0;
+				for(IJavaType sp : sd.getTypeParameters()) {
+					IJavaType tp = td.getTypeParameters().get(i);
+					reduceTypeArgumentEqualityConstraints(bounds, sp, tp);
+					i++;
+				}
+			} else {
+				bounds.addFalse(); // TODO
+			}
+		}
+		if (s instanceof IJavaArrayType && t instanceof IJavaArrayType) {
+			IJavaArrayType sa = (IJavaArrayType) s;
+			IJavaArrayType ta = (IJavaArrayType) t;
+			reduceTypeEqualityConstraints(bounds, sa.getElementType(), ta.getElementType());
+		}
+		else {
+			bounds.addFalse();
+		}
+	}
+	
+	/**
 	 * A constraint formula of the form ‹ S = T ›, where S and T are type arguments (§4.5.1),
 	 * is reduced as follows:
 	 * 
@@ -648,8 +745,45 @@ public class TypeInference8 {
 	 * • Otherwise, the constraint reduces to false.
 	 * @param bounds 
 	 */
-	private void reduceTypeEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
-		throw new NotImplemented(); // TODO
+	private void reduceTypeArgumentEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
+		// TODO case 1
+		if (s instanceof IJavaWildcardType && s instanceof IJavaWildcardType) {
+			IJavaWildcardType sw = (IJavaWildcardType) s;
+			IJavaWildcardType tw = (IJavaWildcardType) t;
+			if (sw.getUpperBound() != null) {
+				if (tw.getUpperBound() != null) {
+					// Case 5
+					reduceTypeEqualityConstraints(bounds, sw.getUpperBound(), tw.getUpperBound());
+				} 
+				else if (tw.getLowerBound() == null) {
+					// Case 4 
+					reduceTypeEqualityConstraints(bounds, sw.getUpperBound(), tEnv.getObjectType());
+				} else {
+					bounds.addFalse();
+				}
+			} 
+			else if (sw.getLowerBound() != null) {
+				// case 6
+				if (tw.getLowerBound() != null) {
+					reduceTypeEqualityConstraints(bounds, sw.getLowerBound(), tw.getLowerBound());
+				} else {
+					bounds.addFalse();
+				}
+			} else {
+				if (tw.getUpperBound() != null) {
+					// Case 3
+					reduceTypeEqualityConstraints(bounds, tEnv.getObjectType(), tw.getUpperBound());
+				}
+				else if (tw.getLowerBound() == null) {									
+					// Case 2
+					bounds.addTrue();
+				} else {
+					bounds.addFalse();
+				}				
+			}
+		} else {
+			bounds.addFalse();
+		}
 	}
 
 	/**
@@ -687,7 +821,42 @@ public class TypeInference8 {
 	 *     i ≤ m), if X i is not a subtype of any proper type in the throws clause, then the
 	 *     constraints include, for all j (1 ≤ j ≤ n), ‹ X i <: E j ›. In addition, for all j (1 ≤ j
 	 *     ≤ n), the constraint reduces to the bound throws E j .
-	 * 
+	 */
+	private void reduceLambdaCheckedExceptionConstraints(BoundSet bounds, IRNode lambda, IJavaType t) {
+		if (!isFunctionalInterfaceType(t)) {
+			bounds.addFalse();
+			return;
+		}
+		TypeUtils utils = new TypeUtils(tEnv);
+    	IJavaType targetType = utils.getPolyExpressionTargetType(lambda);
+    	IJavaFunctionType targetFuncType = tEnv.isFunctionalType(targetType);
+    	if (targetFuncType == null) {
+    		bounds.addFalse();
+    		return;
+    	}
+    	if (MethodBinder8.isImplicitlyTypedLambda(lambda)) {
+    		for(IJavaType pt : targetFuncType.getParameterTypes()) {
+    			if (!isProperType(pt)) {
+    				bounds.addFalse();
+    	    		return;
+    			}
+    		}
+    	}
+    	if (!(targetFuncType.getReturnType() instanceof IJavaVoidType) || 
+    		!isProperType(targetFuncType.getReturnType())) {
+			bounds.addFalse();
+    		return;
+    	}
+    	final List<IJavaType> improperThrows = new ArrayList<IJavaType>();
+    	for(IJavaType ex : targetFuncType.getExceptions()) {
+    		if (!isProperType(ex)) {
+    			improperThrows.add(ex);
+    		}
+    	}
+		throw new NotImplemented(); // TODO
+	}
+
+	/**
 	 * A constraint formula of the form ‹MethodReference → throws T › is reduced as
 	 * follows:
 	 * 
@@ -718,7 +887,20 @@ public class TypeInference8 {
 	 *     constraints include, for all j (1 ≤ j ≤ n), ‹ X i <: E j ›. In addition, for all j (1 ≤ j
 	 *     ≤ n), the constraint reduces to the bound throws E j .
 	 */
-	private void reduceCheckedExceptionConstraints(BoundSet bounds, IRNode e, IJavaType t) {
+	private void reduceMethodRefCheckedExceptionConstraints(BoundSet bounds, IRNode ref, IJavaType t) {
+		IJavaFunctionType targetFuncType = tEnv.isFunctionalType(t);
+		if (targetFuncType == null) {
+			bounds.addFalse();
+			return;
+		}
+		if (!mb.isExactMethodReference(ref)) {
+			for(IJavaType pt : targetFuncType.getParameterTypes()) {
+    			if (!isProperType(pt)) {
+    				bounds.addFalse();
+    	    		return;
+    			}
+    		}
+		}
 		throw new NotImplemented(); // TODO
 	}
 }

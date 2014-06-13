@@ -20,7 +20,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  */
 public class MethodBinder8 implements IMethodBinder {
 	private final boolean debug;
-	private final AbstractJavaBinder binder;
+	final AbstractJavaBinder binder;
 	final ITypeEnvironment tEnv;
 	final TypeInference8 typeInfer;
 	
@@ -1048,7 +1048,7 @@ public class MethodBinder8 implements IMethodBinder {
     	return true;
     }
     
-    private static boolean isImplicitlyTypedLambda(IRNode lambda) {
+    static boolean isImplicitlyTypedLambda(IRNode lambda) {
     	IRNode params = LambdaExpression.getParams(lambda);
     	for(IRNode param : Parameters.getFormalIterator(params)) {
     		IRNode type = ParameterDeclaration.getType(param);
@@ -1080,7 +1080,7 @@ public class MethodBinder8 implements IMethodBinder {
      * 
      * A method reference expression of the form ArrayType :: new is always exact.
      */
-    private boolean isExactMethodReference(IRNode ref) {
+    boolean isExactMethodReference(IRNode ref) {
     	Operator op = JJNode.tree.getOperator(ref);
     	if (MethodReference.prototype.includes(op)) {
     		throw new NotImplemented(); // TODO
