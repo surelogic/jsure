@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
+import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -61,6 +62,7 @@ import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.jobs.remote.*;
+import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
@@ -889,6 +891,27 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
     return super.doExplicitBuild(args, ignoreNature);
   }
 
+  @Override
+  protected boolean projectIsOk(IErrorListener l, IJavaProject p) {
+	  // Check if JRE and src level match
+	  if (SystemUtils.IS_JAVA_1_5 || SystemUtils.IS_JAVA_1_6 || SystemUtils.IS_JAVA_1_7) {
+		  int version = JDTUtility.getMajorJavaSourceVersion(p);  
+		  if (version >= 8) {
+			  l.reportError("JVM cannot handle Java 8", 
+					        "JSure requires a Java 8+ VM to process Java 8 sources");
+			  return false;
+		  } else {
+			  return true;
+		  }
+	  }
+	  else if (SystemUtils.IS_JAVA_1_8) {
+		  return true;
+	  }
+	  l.reportError("JSure running in unexpected JVM", 
+			        "JSure is unexpectedly running in a "+SystemUtils.JAVA_VERSION+" vm");
+	  return false;
+  }
+  
   @Override
   public Projects configureBuild(File location, boolean isAuto /* IProject p */, boolean ignoreNature) {
     // System.out.println("Finished 'build' for "+p);
