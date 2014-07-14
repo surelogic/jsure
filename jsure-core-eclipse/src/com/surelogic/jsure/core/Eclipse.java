@@ -29,7 +29,6 @@ import com.surelogic.common.ref.IJavaRef;
 import edu.cmu.cs.fluid.ide.IClassPath;
 import edu.cmu.cs.fluid.ide.IClassPathContext;
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -364,10 +363,12 @@ public final class Eclipse extends IDE {
 
   @Override
   public boolean getBooleanPreference(String key) {
+	/*
     if (testing && IDEPreferences.ALLOW_JAVADOC_ANNOS.equals(key)) {
       // Enable, so we can test it!
       return true;
     }
+    */
     return EclipseUtility.getBooleanPreference(key);
   }
 

@@ -12,15 +12,12 @@ import java.util.logging.Logger;
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.Cast;
-import com.surelogic.NonNull;
 import com.surelogic.aast.AASTRootNode;
 import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.annotation.IAnnotationParseRule;
-import com.surelogic.annotation.JavadocAnnotation;
 import com.surelogic.annotation.SimpleAnnotationParsingContext;
 import com.surelogic.annotation.rules.NonNullRules;
-import com.surelogic.annotation.rules.StandardRules;
 import com.surelogic.annotation.rules.TestRules;
 import com.surelogic.annotation.test.TestResult;
 import com.surelogic.common.logging.SLLogger;
@@ -28,7 +25,6 @@ import com.surelogic.common.util.*;
 import com.surelogic.javac.adapter.SourceAdapter;
 
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -77,23 +73,24 @@ public class AnnotationVisitor extends Visitor<Integer> {
   final String name;
   TestResult nextResult = null;
   boolean clearResult = true;
-  private final boolean allowJavadoc;
+  //private final boolean allowJavadoc;
   private final ConstantExpressionVisitor constExprVisitor;
   
   public AnnotationVisitor(ITypeEnvironment te, String label) {
     tEnv = te;
     name = label;
-    allowJavadoc = allowJavadoc(te);
+    //allowJavadoc = allowJavadoc(te);
     constExprVisitor = new ConstantExpressionVisitor(te.getBinder());
   }
 
+  /*
   public static boolean allowJavadoc(ITypeEnvironment te) {
     final IDE ide = IDE.getInstance();
-    /*
-     * Check if project is Java 1.4 or below
-     */
+    
+    // Check if project is Java 1.4 or below    
     return ide.getBooleanPreference(IDEPreferences.ALLOW_JAVADOC_ANNOS) || te.getMajorJavaVersion() < 5;
   }
+  */
 
   public ITypeEnvironment getTypeEnv() {
     return tEnv;
@@ -551,16 +548,17 @@ public class AnnotationVisitor extends Visitor<Integer> {
 
   @Override
   public Integer visitFieldDeclaration(IRNode node) {
-    final int num = checkForJavadoc(node);
+	final int num = 0;//checkForJavadoc(node);
     return num + super.visitVariableDeclList(node);
   }
 
   @Override
   public Integer visitDeclaration(IRNode node) {
-    final int num = checkForJavadoc(node);
+    final int num = 0;//checkForJavadoc(node);
     return num + super.visitDeclaration(node);
   }
 
+  /*
   private int checkForJavadoc(IRNode node) {
     if (!allowJavadoc) {
       return 0;
@@ -572,6 +570,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
     }
     return num;
   }
+  */
 
   public static String capitalize(String tag) {
     if (tag.length() <= 0) {
@@ -621,6 +620,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
                               .setSrc(AnnotationSource.XML).setProps(finalMods, props));
   }
 
+  /*
   private boolean handleJavadocPromise(IRNode decl, JavadocAnnotation javadocAnnotation) {
     if (!javadocAnnotation.isValid()) {
       SimpleAnnotationParsingContext.reportError(decl, "Javadoc @annotate matches no known JSure promise: "
@@ -640,12 +640,14 @@ public class AnnotationVisitor extends Visitor<Integer> {
     return createPromise(new ContextBuilder(decl, annotation, argument.substring(1, argument.length() - 1))
     		.setSrc(AnnotationSource.JAVADOC));
   }
+  */
 
   /**
    * Assumes that text looks like Foo (e.g. no parameters)
    * 
    * TODO this code doesn't match the Javadoc
    */
+  /*
   private boolean handleSimpleJavadocPromise(IRNode decl, String text) {
     String tag = text.trim();
     if (tag.startsWith("@")) {
@@ -674,6 +676,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
     }
     return createPromise(new ContextBuilder(decl, tag, "").setSrc(AnnotationSource.JAVADOC));
   }
+  */
   
   @Override
   public Integer visitMethodCall(IRNode node) {

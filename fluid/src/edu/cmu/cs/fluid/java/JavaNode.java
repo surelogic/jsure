@@ -3,17 +3,13 @@ package edu.cmu.cs.fluid.java;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.annotation.JavadocAnnotation;
 import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IDecl;
@@ -545,17 +541,21 @@ public class JavaNode extends JJNode {
    * Fluid IR slot to hold Javadoc annotations, via the
    * <code>&#064;annotate</code> tag.
    */
+  /*
   private static final SlotInfo<List<JavadocAnnotation>> f_javadocAnnosSlotInfo = getVersionedSlotInfo(
       JavadocAnnotation.JAVADOC_REF_SLOT_NAME, JavadocAnnotation.FLUID_JAVADOC_REF_SLOT_TYPE);
+  */
 
   /**
    * Returns the SlotInfo to access the Javadoc annotations information within
    * Java IR nodes.
    */
+  /*
   private static SlotInfo<List<JavadocAnnotation>> getJavadocAnnosSlotInfo() {
     return f_javadocAnnosSlotInfo;
   }
-
+  */
+  
   /**
    * Sets the ordered list of Javadoc annotations information on the passed
    * IRNode.
@@ -565,12 +565,14 @@ public class JavaNode extends JJNode {
    * @param ref
    *          the Javadoc annotations.
    */
+  /*
   public static void setJavadocAnnotations(IRNode node, List<JavadocAnnotation> ref) {
     if (ref == null) {
       return;
     }
     node.setSlotValue(getJavadocAnnosSlotInfo(), ref);
   }
+  */
 
   /**
    * Given an IRNode from a Java AST, this method returns an ordered, possibly
@@ -580,6 +582,7 @@ public class JavaNode extends JJNode {
    *          an IRNode which should have binding information.
    * @return an ordered, possibly empty, list of the node's Javadoc annotations.
    */
+  /*
   @NonNull
   public static List<JavadocAnnotation> getJavadocAnnotations(IRNode node) {
     if (node == null) {
@@ -595,6 +598,7 @@ public class JavaNode extends JJNode {
     else
       return result;
   }
+  */
 
   // Copied from JavaPromise formatting
   private static Glue commentIndent = new Glue(2);

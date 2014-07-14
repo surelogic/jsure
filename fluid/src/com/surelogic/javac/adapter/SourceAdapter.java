@@ -10,7 +10,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -78,11 +77,7 @@ import com.sun.source.tree.WhileLoopTree;
 import com.sun.source.tree.WildcardTree;
 import com.sun.source.util.SourcePositions;
 import com.sun.source.util.Trees;
-import com.sun.tools.javac.tree.DocCommentTable;
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import com.surelogic.annotation.JavadocAnnotation;
-import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.java.Config;
 import com.surelogic.common.java.JavaSourceFile;
@@ -394,6 +389,7 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
     long line = lines.getLineNumber(start);
     //String comment = javadoc == null ? null : javadoc.get(t);
     //String comment = javadoc.getCommentText((JCTree) t);
+    /*
     String comment = null;
     if (comment != null && AnnotationVisitor.allowJavadoc(jp.getTypeEnv())) {
       JavaNode.setComment(result, comment);
@@ -401,12 +397,15 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
       if (elmt != null)
         JavaNode.setJavadocAnnotations(result, elmt);
     }
+    */
+    
     /*
      * save skeleton JavaRef
      */
     SkeletonJavaRefUtility.registerSourceLocation(declFactory, result, cuRef, (int) line, (int) start, (int) (end - start));
   }
 
+  /*
   private List<JavadocAnnotation> getJavadocAnnotations(final String declarationComment) {
     if (declarationComment == null)
       return null;
@@ -433,10 +432,8 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
           line = line.substring(spaceIndex + 1);
         }
         System.out.println("found tag: " + tag);
-        if (SLUtility.JAVADOC_ANNOTATE_TAG.equals(tag)) {
-          /*
-           * Found an "annotate" tag
-           */
+        if (SLUtility.JAVADOC_ANNOTATE_TAG.equals(tag)) {          
+          // Found an "annotate" tag
           sb.setLength(0); // clear
           sb.append(line.trim()); // add rest of line - no tag
         } else {
@@ -458,7 +455,8 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
     else
       return javadocAnnotations;
   }
-
+  */
+  
   protected abstract class AbstractSourceFunction<T extends Tree> extends AbstractFunction<T> {
     public final IRNode call(T t, CodeContext context) {
       IRNode result = callFunc(t, context);

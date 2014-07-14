@@ -129,11 +129,13 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
         I18N.msg("jsure.eclipse.preference.page.viewsSaveTreeState"), diGroup);
     setupEditor(diGroup, f_viewsSaveTreeState);
 
+    /*
     final Group annoGroup = createGroup(panel, "preference.page.group.annos");
     f_allowJavadocAnnos = new BooleanFieldEditor(IDEPreferences.ALLOW_JAVADOC_ANNOS,
         I18N.msg("jsure.eclipse.preference.page.allowJavadocAnnos"), annoGroup);
     setupEditor(annoGroup, f_allowJavadocAnnos);
-
+    */
+    
     final Group analysisSettingsGroup = createGroup(panel, "preference.page.group.analysis");
     final Label description = new Label(analysisSettingsGroup, SWT.NONE);
     description.setText(I18N.msg("jsure.eclipse.preference.page.analysis.desc"));

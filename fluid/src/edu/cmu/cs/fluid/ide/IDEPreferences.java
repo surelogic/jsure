@@ -3,7 +3,7 @@ package edu.cmu.cs.fluid.ide;
 public interface IDEPreferences {
   String PREFIX = "edu.cmu.cs.fluid.";
   String TOOL_MEMORY_MB = PREFIX + "tool-memory-mb";
-  String ALLOW_JAVADOC_ANNOS = PREFIX + "allow.javadoc.annos";
+  //String ALLOW_JAVADOC_ANNOS = PREFIX + "allow.javadoc.annos";
   String ANALYSIS_THREAD_COUNT = PREFIX + "analysis.thread.count";
   String JSURE_DATA_DIRECTORY = PREFIX + "data.directory";
   String DEFAULT_JRE = PREFIX + "default.JRE";
@@ -22,7 +22,7 @@ public interface IDEPreferences {
 
   String PHYS_MEMORY = PREFIX + "physMemoryInMB";
   
-  String[] BOOL_PREFS_TO_SYNC = { ALLOW_JAVADOC_ANNOS, LOAD_ALL_CLASSES, SCAN_MAY_USE_COMPRESSION, SCAN_MAY_RUN_UNIQUENESS,
+  String[] BOOL_PREFS_TO_SYNC = { /*ALLOW_JAVADOC_ANNOS,*/ LOAD_ALL_CLASSES, SCAN_MAY_USE_COMPRESSION, SCAN_MAY_RUN_UNIQUENESS,
       TIMEOUT_FLAG, MAKE_NONABDUCTIVE_PROPOSALS, TREAT_AS_JAVA_8 };
 
   String[] INT_PREFS_TO_SYNC = { TOOL_MEMORY_MB, ANALYSIS_THREAD_COUNT, TIMEOUT_WARNING_SEC, TIMEOUT_SEC, };
