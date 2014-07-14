@@ -158,7 +158,8 @@ import edu.cmu.cs.fluid.version.Version;
 @ThreadSafe
 public abstract class AbstractJavaBinder extends AbstractBinder {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
-  
+
+  public static final boolean processJava8 = false;
   private static final boolean cacheGranuleInfo = false;
   protected static final boolean storeNullBindings = true;
   protected boolean warnAboutPkgBindings = false;
@@ -897,7 +898,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     protected boolean isBatch = true; // by default we have a batch binder
     protected boolean isFullPass = false; // by default we start in the preliminary pass
     protected final boolean debug = LOG.isLoggable(Level.FINER);        
-    private final IMethodBinder methodBinder = false ? new MethodBinder8(AbstractJavaBinder.this, debug) : new MethodBinder(AbstractJavaBinder.this, debug);    
+    private final IMethodBinder methodBinder = processJava8 ? new MethodBinder8(AbstractJavaBinder.this, debug) : new MethodBinder(AbstractJavaBinder.this, debug);    
     private final IJavaScope.LookupContext lookupContext = new IJavaScope.LookupContext();
     
     /**

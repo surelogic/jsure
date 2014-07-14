@@ -95,6 +95,7 @@ import difflib.DiffUtils;
 import difflib.Patch;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
+import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 
 public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> implements IResourceChangeListener, CurrentScanChangeListener {
   private static final String SCRIPT_TEMP = "scriptTemp";
@@ -893,9 +894,16 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
 
   @Override
   protected boolean projectIsOk(IErrorListener l, IJavaProject p) {
+	  // Temporary check until we get JSure to handle Java 8
+	  final int version = JDTUtility.getMajorJavaSourceVersion(p);  
+	  if (!AbstractJavaBinder.processJava8 && version >= 8) {
+		  l.reportError("JSure currently cannot process Java 8", 
+			            "JSure is being upgraded to process Java 8 sources.  Please wait for the next release");
+		  return false;
+	  }
+	  
 	  // Check if JRE and src level match
 	  if (SystemUtils.IS_JAVA_1_5 || SystemUtils.IS_JAVA_1_6 || SystemUtils.IS_JAVA_1_7) {
-		  int version = JDTUtility.getMajorJavaSourceVersion(p);  
 		  if (version >= 8) {
 			  l.reportError("JVM cannot handle Java 8", 
 					        "JSure requires a Java 8+ VM to process Java 8 sources");
