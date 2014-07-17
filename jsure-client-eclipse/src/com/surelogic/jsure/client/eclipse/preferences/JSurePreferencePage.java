@@ -43,7 +43,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
   private BooleanFieldEditor f_selectProjectsToUpdateJar;
   private BooleanFieldEditor f_autoSaveDirtyEditorsBeforeVerify;
   private BooleanFieldEditor f_viewsSaveTreeState;
-  private BooleanFieldEditor f_allowJavadocAnnos;
+  //private BooleanFieldEditor f_allowJavadocAnnos;
   private ScaleFieldEditor f_analysisThreadCount;
   private ScaleFieldEditor f_toolMemoryMB;
   private ScaleFieldEditor f_timeoutWarningSec;
@@ -243,7 +243,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_selectProjectsToUpdateJar.loadDefault();
     f_autoSaveDirtyEditorsBeforeVerify.loadDefault();
     f_viewsSaveTreeState.loadDefault();
-    f_allowJavadocAnnos.loadDefault();
+    //f_allowJavadocAnnos.loadDefault();
     f_analysisThreadCount.loadDefault();
     f_toolMemoryMB.loadDefault();
     f_timeoutWarningSec.loadDefault();
@@ -266,7 +266,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_selectProjectsToUpdateJar.store();
     f_autoSaveDirtyEditorsBeforeVerify.store();
     f_viewsSaveTreeState.store();
-    f_allowJavadocAnnos.store();
+    //f_allowJavadocAnnos.store();
     f_analysisThreadCount.store();
     f_toolMemoryMB.store();
     f_timeoutWarningSec.store();
