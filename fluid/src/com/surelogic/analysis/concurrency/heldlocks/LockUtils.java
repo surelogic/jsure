@@ -970,9 +970,23 @@ public final class LockUtils {
       final IRNode lockExpr, final HeldLockFactory heldLockFactory, final IRNode enclosingDecl, 
       final ILock.Type type, final IRNode src, final Set<HeldLock> lockSet) {
     final Operator op = JJNode.tree.getOperator(lockExpr);
-    
-    /* For method calls that return the declared lock, if any */
-    if (MethodCall.prototype.includes(op)) {
+        
+    if (VariableUseExpression.prototype.includes(op)) {
+      /* Final variables  can be initialized to lock fields or read-write lock
+       * components:
+       * 
+       *   final Object = this.lock;
+       *   final Lock lock = rwLock.readLock();
+       */
+      final IRNode varDecl = binder.getBinding(lockExpr);
+      if (TypeUtil.isFinal(varDecl)) {
+        final IRNode init = VariableDeclarator.getInit(varDecl);
+        if (Initialization.prototype.includes(init)) { // a real, non-empty init
+          final IRNode initExpr = Initialization.getValue(init);
+          convertLockExpr(howTo, initExpr, heldLockFactory, enclosingDecl, type, src, lockSet);
+        }
+      }
+    } else if (MethodCall.prototype.includes(op)) { /* For method calls that return the declared lock, if any */
       /* We need to see if the method is a call to readLock or writeLock, and
        * handle it accordingly.
        */
