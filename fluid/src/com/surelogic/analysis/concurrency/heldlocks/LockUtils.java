@@ -971,6 +971,7 @@ public final class LockUtils {
       final ILock.Type type, final IRNode src, final Set<HeldLock> lockSet) {
     final Operator op = JJNode.tree.getOperator(lockExpr);
         
+    boolean handled = false;
     if (VariableUseExpression.prototype.includes(op)) {
       /* Final variables  can be initialized to lock fields or read-write lock
        * components:
@@ -979,14 +980,37 @@ public final class LockUtils {
        *   final Lock lock = rwLock.readLock();
        */
       final IRNode varDecl = binder.getBinding(lockExpr);
-      if (TypeUtil.isFinal(varDecl)) {
+      if (VariableDeclarator.prototype.includes(varDecl) && TypeUtil.isFinal(varDecl)) { // Parameters don't have inits
         final IRNode init = VariableDeclarator.getInit(varDecl);
         if (Initialization.prototype.includes(init)) { // a real, non-empty init
           final IRNode initExpr = Initialization.getValue(init);
-          convertLockExpr(howTo, initExpr, heldLockFactory, enclosingDecl, type, src, lockSet);
+          if (MethodCall.prototype.includes(initExpr)) {
+            // copied from below, with a few modifications to track whether the lock was converted or not
+            final ReadWriteLockMethods whichMethod = whichReadWriteLockMethod(initExpr);
+            if (whichMethod == ReadWriteLockMethods.READLOCK ||
+                whichMethod == ReadWriteLockMethods.WRITELOCK) {
+              // Dealing with a read-write lock
+              final ILock.Type newType = ILock.Type.getRW(whichMethod == ReadWriteLockMethods.WRITELOCK);
+              final MethodCall mcall = (MethodCall) JJNode.tree.getOperator(initExpr);
+              convertLockExpr(howTo, mcall.get_Object(initExpr), heldLockFactory, enclosingDecl, newType, src, lockSet);
+              handled = true;
+            } else {
+              // Try to see if we have a lock-getter method
+              final HeldLock returnedLock =
+                convertReturnedLock(initExpr, heldLockFactory, enclosingDecl, type, src);
+              if (returnedLock != null) {
+                lockSet.add(returnedLock);
+                handled = true;
+              } else {
+                // method doesn't return a known lock, so nothing to do.
+              }
+            }
+          }
         }
       }
-    } else if (MethodCall.prototype.includes(op)) { /* For method calls that return the declared lock, if any */
+    } 
+    
+    if (MethodCall.prototype.includes(op)) { /* For method calls that return the declared lock, if any */
       /* We need to see if the method is a call to readLock or writeLock, and
        * handle it accordingly.
        */
@@ -1008,7 +1032,7 @@ public final class LockUtils {
         }
       }
     } else {
-      if (howTo == HowToProcessLocks.INTRINSIC) {
+      if (!handled && howTo == HowToProcessLocks.INTRINSIC) {
         /* First see if the expression itself results in an object that uses
          * itself as a lock. ThisExpressions and VariableUseExpressions are
          * trivially handled here. We do not do this for method calls because the
