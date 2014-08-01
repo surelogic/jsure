@@ -310,6 +310,8 @@ public abstract class JavaSemanticsVisitor extends VoidTreeWalkVisitor {
     enclosingDecl = eDecl;
   }
   
+  
+  
   private static IRNode getInitialEnclosingType(final IRNode flowUnit) {
     final Operator op = JJNode.tree.getOperator(flowUnit);
     if (InitDeclaration.prototype.includes(op) ||

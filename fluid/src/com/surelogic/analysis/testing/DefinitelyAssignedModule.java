@@ -4,8 +4,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.surelogic.analysis.*;
-import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
-import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
+import com.surelogic.analysis.nullable.DefinitelyAssignedFieldAnalysis;
+import com.surelogic.analysis.nullable.DefinitelyAssignedFieldAnalysis.AllResultsQuery;
 import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
@@ -16,14 +16,14 @@ import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 
-public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<DefinitelyAssignedAnalysis, CUDrop>{
+public final class DefinitelyAssignedModule extends AbstractWholeIRAnalysis<DefinitelyAssignedFieldAnalysis, CUDrop>{
   public DefinitelyAssignedModule() {
     super("Definitely Assigned");
   }
 
   @Override
-  protected DefinitelyAssignedAnalysis constructIRAnalysis(final IBinder binder) {
-    return new DefinitelyAssignedAnalysis(binder, true);
+  protected DefinitelyAssignedFieldAnalysis constructIRAnalysis(final IBinder binder) {
+    return new DefinitelyAssignedFieldAnalysis(binder, true);
   }
 
   @Override

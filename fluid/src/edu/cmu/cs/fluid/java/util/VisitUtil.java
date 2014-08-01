@@ -219,6 +219,10 @@ public class VisitUtil implements JavaGlobals {
   public static IRNode getEnclosingStatement(final IRNode here) {
     return OpSearch.stmtSearch.findEnclosing(here);
   }
+  
+  public static IRNode getEnclosingBlockStatement(final IRNode here) {
+    return OpSearch.blockStmtSearch.findEnclosing(here);
+  }
 
   // / getEnclosingClassBodyDecl - for any node
   public static IRNode getEnclosingClassBodyDecl(IRNode here) {

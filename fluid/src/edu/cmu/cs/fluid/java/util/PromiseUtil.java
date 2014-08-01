@@ -341,12 +341,10 @@ public final class PromiseUtil {
         return current;
       } else if (FieldDeclaration.prototype.includes(op)
           || ClassInitializer.prototype.includes(op)) {
+        final IRNode type = VisitUtil.getEnclosingType(current);
         if (TypeUtil.isStatic(current)) {
-          // Static contexts don't have a method
-          return null;
+          return JavaPromise.getClassInitOrNull(type);
         } else {
-          // Get the class's initialization receiver
-          final IRNode type = VisitUtil.getEnclosingType(current);
           return JavaPromise.getInitMethodOrNull(type);
         }
       }

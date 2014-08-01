@@ -4,10 +4,8 @@ package com.surelogic.analysis.nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.util.IThunk;
@@ -37,40 +35,40 @@ import edu.uwm.cs.fluid.java.analysis.IntraproceduralAnalysis;
 /**
  * Determines if a field is definitely assigned by the constructor.
  */
-public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<Assigned[], AssignedVars, JavaForwardAnalysis<Assigned[], AssignedVars>> implements IBinderClient {
+public final class DefinitelyAssignedFieldAnalysis extends IntraproceduralAnalysis<Assigned[], AssignedVars, JavaForwardAnalysis<Assigned[], AssignedVars>> implements IBinderClient {
   private final boolean includeFinalFields;
   
   
-  // XXX: Not sure how useful this one is going to be, may delete in future
-  public final class NotDefinitelyAssignedQuery extends SimplifiedJavaFlowAnalysisQuery<NotDefinitelyAssignedQuery, Set<IRNode>, Assigned[], AssignedVars> {
-    public NotDefinitelyAssignedQuery(final IThunk<? extends IJavaFlowAnalysis<Assigned[], AssignedVars>> thunk) {
-      super(thunk);
-    }
-    
-    private NotDefinitelyAssignedQuery(final Delegate<NotDefinitelyAssignedQuery, Set<IRNode>, Assigned[], AssignedVars> d) {
-      super(d);
-    }
-    
-    @Override
-    protected RawResultFactory getRawResultFactory() {
-      return RawResultFactory.NORMAL_EXIT;
-    }
-
-    @Override
-    protected Set<IRNode> processRawResult(
-        final IRNode expr, final AssignedVars lattice, final Assigned[] rawResult) {
-      final Set<IRNode> result = new HashSet<IRNode>();
-      for (int i = 0; i < rawResult.length - 1; i++) {
-        if (rawResult[i] == Assigned.UNASSIGNED) result.add(lattice.getKey(i));
-      }
-      return result;
-    }
-
-    @Override
-    protected NotDefinitelyAssignedQuery newSubAnalysisQuery(final Delegate<NotDefinitelyAssignedQuery, Set<IRNode>, Assigned[], AssignedVars> d) {
-      return new NotDefinitelyAssignedQuery(d);
-    }
-  }
+//  // XXX: Not sure how useful this one is going to be, may delete in future
+//  public final class NotDefinitelyAssignedQuery extends SimplifiedJavaFlowAnalysisQuery<NotDefinitelyAssignedQuery, Set<IRNode>, Assigned[], AssignedVars> {
+//    public NotDefinitelyAssignedQuery(final IThunk<? extends IJavaFlowAnalysis<Assigned[], AssignedVars>> thunk) {
+//      super(thunk);
+//    }
+//    
+//    private NotDefinitelyAssignedQuery(final Delegate<NotDefinitelyAssignedQuery, Set<IRNode>, Assigned[], AssignedVars> d) {
+//      super(d);
+//    }
+//    
+//    @Override
+//    protected RawResultFactory getRawResultFactory() {
+//      return RawResultFactory.NORMAL_EXIT;
+//    }
+//
+//    @Override
+//    protected Set<IRNode> processRawResult(
+//        final IRNode expr, final AssignedVars lattice, final Assigned[] rawResult) {
+//      final Set<IRNode> result = new HashSet<IRNode>();
+//      for (int i = 0; i < rawResult.length - 1; i++) {
+//        if (rawResult[i] == Assigned.UNASSIGNED) result.add(lattice.getKey(i));
+//      }
+//      return result;
+//    }
+//
+//    @Override
+//    protected NotDefinitelyAssignedQuery newSubAnalysisQuery(final Delegate<NotDefinitelyAssignedQuery, Set<IRNode>, Assigned[], AssignedVars> d) {
+//      return new NotDefinitelyAssignedQuery(d);
+//    }
+//  }
   
   
   /* May want to create a new Map implementation that wraps around the 
@@ -107,7 +105,7 @@ public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<As
   }
   
   
-  public DefinitelyAssignedAnalysis(final IBinder b, final boolean includeFinal) {
+  public DefinitelyAssignedFieldAnalysis(final IBinder b, final boolean includeFinal) {
     super(b);
     includeFinalFields = includeFinal;
   }
@@ -242,9 +240,9 @@ public final class DefinitelyAssignedAnalysis extends IntraproceduralAnalysis<As
 
 
 
-  public NotDefinitelyAssignedQuery getNotDefinitelyAssignedQuery(final IRNode flowUnit) {
-    return new NotDefinitelyAssignedQuery(getAnalysisThunk(flowUnit));
-  }
+//  public NotDefinitelyAssignedQuery getNotDefinitelyAssignedQuery(final IRNode flowUnit) {
+//    return new NotDefinitelyAssignedQuery(getAnalysisThunk(flowUnit));
+//  }
   
   public AllResultsQuery getAllResultsQuery(final IRNode flowUnit) {
     return new AllResultsQuery(getAnalysisThunk(flowUnit));

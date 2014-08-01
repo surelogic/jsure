@@ -4,6 +4,8 @@ package edu.cmu.cs.fluid.java.util;
 
 import java.util.logging.Logger;
 
+import com.surelogic.analysis.assigned.DefiniteAssignment.ProvablyUnassignedQuery;
+import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.*;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
@@ -253,6 +255,190 @@ public class TypeUtil implements JavaGlobals {
     return false;
   }
 
+  
+  /**
+   * Is the local variable effectively final as described in JLS8 &sect;4.12.4?
+   * We don't check that the variable isn't declared <code>final</code> because
+   * we assume this method is only called when we already know the field is
+   * non-<code>final</code>. 
+   * 
+   * @param varDecl A VariableDeclarator or ParameterDeclaration node
+   */
+  public static boolean isEffectivelyFinal(final IRNode varDecl, final IBinder binder, final ProvablyUnassignedQuery query) {
+    abstract class Visitor extends JavaSemanticsVisitor {
+      private boolean isEffectivelyFinal = true;
+
+      public Visitor(final IRNode blockStmt) {
+        super(false, false, PromiseUtil.getEnclosingMethod(blockStmt));
+      }
+      
+      @Override
+      public final Void visitCrementExpression(final IRNode expr) {
+        @SuppressWarnings("static-access") // Index getOp by CrementExpression for clarity
+        final IRNode operand = CrementExpression.getOp(expr);
+        if (VariableUseExpression.prototype.includes(operand)) {
+          final IRNode bindsTo = binder.getBinding(operand);
+          if (bindsTo.equals(varDecl)) isEffectivelyFinal &= false;
+        }
+        return null;
+      }
+      
+      @Override
+      public final Void visitAssignmentExpression(final IRNode expr) {
+        final IRNode lhs = AssignmentExpression.getOp1(expr);
+        if (VariableUseExpression.prototype.includes(lhs)) {
+          final IRNode bindsTo = binder.getBinding(lhs);
+          if (bindsTo.equals(varDecl)) {
+            final boolean f = processAssignment(expr);
+            isEffectivelyFinal &= f;
+          }
+        }
+        return null;
+      }
+      
+      protected abstract boolean processAssignment(IRNode assignExpr);
+      
+      public final boolean isEffectivelyFinal() {
+        return isEffectivelyFinal;
+      }
+    }
+
+    
+    
+    final class InitializedVisitor extends Visitor {
+      public InitializedVisitor(final IRNode blockStmt) {
+        super(blockStmt);
+      }
+
+      @Override
+      protected boolean processAssignment(final IRNode assignExpr) {
+        return false;
+      }
+    }
+
+    final class UninitializedVisitor extends Visitor {
+      public UninitializedVisitor(final IRNode blockStmt) {
+        super(blockStmt);
+      }
+
+      @Override
+      protected boolean processAssignment(final IRNode assignExpr) {
+        /* Assignment is allowed as long as the variable is provably
+         * unassigned.
+         */
+        final IRNode rhs = AssignmentExpression.getOp2(assignExpr);
+        return query.getResultFor(rhs).isProvableUnassigned(varDecl); 
+      }
+    }
+
+    
+    if (JavaNode.getModifier(varDecl, JavaNode.FINAL)) {
+      /* Variables that are explicitly final are not effectively final
+       */
+      return false;
+    } else {
+      final IRNode blockStmt;
+      final Visitor v;
+      if (VariableDeclarator.prototype.includes(varDecl)) {
+        blockStmt = VisitUtil.getEnclosingBlockStatement(varDecl);
+        if (NoInitialization.prototype.includes(VariableDeclarator.getInit(varDecl))) {
+          v = new UninitializedVisitor(blockStmt);
+        } else {
+          v = new InitializedVisitor(blockStmt);
+        }
+      } else { // ParameterDeclaration
+        final IRNode parent = JJNode.tree.getParent(varDecl);
+        if (CatchClause.prototype.includes(parent)) {
+          blockStmt = CatchClause.getBody(parent);
+          v = new InitializedVisitor(blockStmt);
+        } else { // Method or Constructor parameter
+          final IRNode body = 
+              SomeFunctionDeclaration.getBody(JJNode.tree.getParent(parent));
+          if (MethodBody.prototype.includes(body)) {
+            blockStmt = MethodBody.getBlock(body);
+            v = new InitializedVisitor(blockStmt);
+          } else { // Method/Constructor has no body, so parameter is not modified!
+            return true;
+          }
+        }
+      }
+//      final InitializedVisitor v = new InitializedVisitor(blockStmt);
+      v.doAccept(blockStmt);
+      return v.isEffectivelyFinal();
+    }
+  }
+  
+  /**
+   * Is the field or variable final according to the Java semantics, or
+   * because we have a <code>@Vouch("final")</code> annotation on the field?
+   * The fields/variables this is true for are a superset of those for which
+   * {@link #isJavaFinal} is <code>true</code>.
+   * 
+   * @param node A FieldDeclaration, VariableDeclarato,r or ParameterDeclaration node
+   */
+  public static boolean isJSureFinal(final IRNode node) {
+    if (isJavaFinal(node)) {
+      return true;
+    } else {
+      final VouchFieldIsPromiseDrop vouchFinal = LockRules.getVouchFieldIs(node);
+      return vouchFinal != null && vouchFinal.isFinal();
+    }
+  }
+  
+  /**
+   * Is a field or variable implicitly or explicitly <code>final</code>, as
+   * described in JLS8 &sect;4.14.4? A field or variable is final if it is
+   * declared to be <code>final</code>. &ldquo;Three kinds of variable are
+   * implicitly declared <code>final</code>: a field of an interface
+   * (&sect;9.3), a local variable which is a resource of a <code>try</code>
+   * -with-resources statement (&sect;14.20.3), and an exception parameter of a
+   * multi-<code>catch</code> clause (&sect;14.20)
+   * 
+   * @param node A FieldDeclaration, VariableDeclarato,r or ParameterDeclaration node
+   */  
+  public static boolean isJavaFinal(final IRNode node) {
+    final Operator op = JJNode.tree.getOperator(node);
+    if (VariableDeclarator.prototype.includes(op)) {
+      final IRNode parent  = JJNode.tree.getParent(node);
+      if (VariableResource.prototype.includes(JJNode.tree.getOperator(parent))) {
+        return true; // RESOURCES ARE ALWAYS IMPLICITLY FINAL
+      }
+      final IRNode gparent = JJNode.tree.getParent(parent);
+      if (DeclStatement.prototype.includes(JJNode.tree.getOperator(gparent))) {
+        return JavaNode.getModifier(gparent, JavaNode.FINAL);
+      } else {
+        return isFieldDeclarationFinal(gparent);
+      }
+    } else if (FieldDeclaration.prototype.includes(op)) {
+      return isFieldDeclarationFinal(node);
+    } else if (ParameterDeclaration.prototype.includes(op)) {
+      final IRNode parent  = JJNode.tree.getParent(node);
+      if (CatchClause.prototype.includes(JJNode.tree.getOperator(parent))) {
+        final IRNode typeNode = ParameterDeclaration.getType(node);
+        if (UnionType.prototype.includes(typeNode)) {
+          return true; // MULTI-CATCH CLAUSE IS ALWAYS FINAL
+        }
+      }
+      return JavaNode.getModifier(node, JavaNode.FINAL);
+    }
+    return false;
+  }
+  
+  /**
+   * A Field Declarations declares final fields if the declaration
+   * is explicitly <code>final</code> or if the field declaration is part
+   * of an interface.
+   */
+  private static boolean isFieldDeclarationFinal(final IRNode node) {
+    if (TypeUtil.isInterface(VisitUtil.getEnclosingType(node))) {
+      return true; // IMPLICITLY FINAL
+    } else {
+      return JavaNode.getModifier(node, JavaNode.FINAL);
+    }
+  }
+ 
+  
+  
   /**
    * Is the given VariableDeclarator volatile?
    */

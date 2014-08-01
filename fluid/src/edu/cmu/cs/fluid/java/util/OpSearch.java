@@ -133,6 +133,13 @@ public class OpSearch implements JavaGlobals {
     }
   };  
 
+  public static final OpSearch blockStmtSearch = new OpSearch() {
+    @Override
+    protected boolean found(final Operator op) {
+      return op instanceof BlockStatement;
+    }
+  };
+  
   /**
    * Searches for method/constructor declarations.
    */  

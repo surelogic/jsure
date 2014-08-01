@@ -11,7 +11,6 @@ import java.util.Set;
 
 import com.surelogic.NonNull;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
-import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
 import com.surelogic.analysis.IIRProject;
@@ -19,8 +18,8 @@ import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.granules.FlowUnitGranulator;
 import com.surelogic.analysis.granules.FlowUnitGranule;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
-import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis;
-import com.surelogic.analysis.nullable.DefinitelyAssignedAnalysis.AllResultsQuery;
+import com.surelogic.analysis.nullable.DefinitelyAssignedFieldAnalysis;
+import com.surelogic.analysis.nullable.DefinitelyAssignedFieldAnalysis.AllResultsQuery;
 import com.surelogic.analysis.nullable.NonNullRawLattice.Element;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Inferred;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.InferredQuery;
@@ -86,11 +85,6 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   
   public NullableModule2() {
     super("Nullable");
-  }
-
-  @Override
-  public ConcurrencyType runInParallel() {
-    return ConcurrencyType.NEVER;
   }
 
   @Override
@@ -350,7 +344,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
 
   static final class AnalysisBundle implements IBinderClient {
     private final IBinder binder;
-    private final DefinitelyAssignedAnalysis definiteAssignment;
+    private final DefinitelyAssignedFieldAnalysis definiteAssignment;
     private final NonNullRawTypeAnalysis nonNullRawType;
     private final Set<IRNode> timedOutMethodBodies = new HashSet<IRNode>();
     private final Map<IRNode, Element> fieldInits = new HashMap<IRNode, Element>();
@@ -361,7 +355,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     
     private AnalysisBundle(final IBinder b) {
       binder = b;
-      definiteAssignment = new DefinitelyAssignedAnalysis(b, false);
+      definiteAssignment = new DefinitelyAssignedFieldAnalysis(b, false);
       nonNullRawType = new NonNullRawTypeAnalysis(b);
       
       details = new DetailVisitor(this);
