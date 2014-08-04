@@ -70,10 +70,20 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		}
 
 		@Override
-    public <T> T findClassBodyMembers(IRNode type,
+		public <T> T findClassBodyMembers(IRNode type,
 				ISuperTypeSearchStrategy<T> tvs, boolean throwIfNotFound) {
 			return getTypeEnv_cached(type).binder.findClassBodyMembers_javac(type,
 					tvs, throwIfNotFound);
+		}
+		
+		private IJavaScope getImportTable_javac(IRNode node) {
+		    return super.getImportTable(node);
+		}
+		
+		@Override
+		public IJavaScope getImportTable(IRNode node) {
+			JavacTypeEnvironment tEnv = getTypeEnv_cached(node);
+			return tEnv.binder.getImportTable_javac(node);
 		}
 		
 		@Override
@@ -83,8 +93,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	}
 
 	private static final boolean debug = Util.debug;
-	private final ClassTable classes = new ClassTable();
-	private final Binder binder = new Binder(this);
+	final ClassTable classes = new ClassTable();
+	final Binder binder = new Binder(this);
 	@InRegion("JTEState")
 	private SLProgressMonitor monitor;
 	@InRegion("JTEState")
@@ -217,7 +227,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		return classes;
 	}
 	@ThreadSafe
-	private class ClassTable extends AbstractJavaClassTable {
+	class ClassTable extends AbstractJavaClassTable {
 		private final ConcurrentMap<String, IRNode> packages = new ConcurrentHashMap<String, IRNode>();
 		private final ConcurrentMap<String, IRNode> outerClasses = new ConcurrentHashMap<String, IRNode>();
 
@@ -604,7 +614,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	}
 	*/
 	
-	private JavacTypeEnvironment getTypeEnv_cached(IRNode here) {
+	JavacTypeEnvironment getTypeEnv_cached(IRNode here) {
 		if (here == null) {
 			return null;
 		}
