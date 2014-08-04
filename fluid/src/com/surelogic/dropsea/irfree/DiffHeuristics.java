@@ -99,6 +99,14 @@ public class DiffHeuristics {
       SLLogger.getLogger().warning("Diff info not computed due to no closest decl: " + drop.getMessage());
       return;
     }
+    /*
+    if (drop.getMessage().startsWith("BOGUS->NOT_SURE")) {
+    	String unparse = DebugUnparser.toString(drop.getNode());
+    	if (unparse.equals("{ int a = #; a += 5; int b = #; int c = #; ++ c; }")) {
+    		System.out.println("Found issue");
+    	}
+    }
+    */
     computeDeclRelativeOffset(new Computation(DECL_RELATIVE_OFFSET, drop), loc, closestDecl, closestRef);
     computeDeclEndRelativeOffset(new Computation(DECL_END_RELATIVE_OFFSET, drop), loc.first(), closestRef);
   }
@@ -115,6 +123,7 @@ public class DiffHeuristics {
         || here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RECEIVER
         || here.getPositionRelativeToDeclaration() == IJavaRef.Position.ON_RETURN_VALUE
         || ClassInitDeclaration.prototype.includes(loc.second())
+        || (BlockStatement.prototype.includes(loc.second()) && ClassInitializer.prototype.includes(closestDecl))
         || AnonClassExpression.prototype.includes(closestDecl);
     final IRNode start = useDecl ? closestDecl : computeFirstInterestingNodeInDecl(closestDecl);
     final IJavaRef startRef = useDecl ? closestRef : JavaNode.getJavaRef(start);
