@@ -78,9 +78,11 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   private static final int TIME_OUT = 980;
   
   
-  
+  // XXX: Should this really be static?
   private static final Set<PromiseDrop<?>> createdVirtualAnnotations = 
       new ConcurrentHashSet<PromiseDrop<?>>();
+  private final Map<IRNode, Element> fieldInits = new HashMap<IRNode, Element>();
+
   
   
   public NullableModule2() {
@@ -134,7 +136,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   
   @Override
   protected AnalysisBundle constructIRAnalysis(final IBinder binder) {
-    return new AnalysisBundle(binder);
+    return new AnalysisBundle(binder, fieldInits);
   }
 
   @Override
@@ -327,7 +329,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   @Override
   public void postAnalysis(final IIRProject p) {
     // Check deferred final fields for @NotNull status
-    for (final IRNode varDecl : getAnalysis().getNotNullFields()) {
+    for (final IRNode varDecl : getNotNullFields()) {
       /* 
        * We have an unannotated deferred final field that is only ever 
        * assigned NOT_NULL values.  Propose to make the field @NonNull
@@ -339,7 +341,19 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
       pd.addProposal(new Builder(NonNull.class, varDecl, varDecl).build());
     }
     
-    getAnalysis().clearGlobalCaches();
+    createdVirtualAnnotations.clear();
+    fieldInits.clear();
+  }
+
+
+  private Iterable<IRNode> getNotNullFields() {
+    return new FilterIterator<Map.Entry<IRNode, Element>, IRNode>(
+        fieldInits.entrySet().iterator()) {
+      @Override
+      protected Object select(final Entry<IRNode, Element> o) {
+        return o.getValue() == NonNullRawLattice.NOT_NULL ? o.getKey() : IteratorUtil.noElement;
+      }      
+    };
   }
 
   static final class AnalysisBundle implements IBinderClient {
@@ -347,13 +361,12 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     private final DefinitelyAssignedFieldAnalysis definiteAssignment;
     private final NonNullRawTypeAnalysis nonNullRawType;
     private final Set<IRNode> timedOutMethodBodies = new HashSet<IRNode>();
-    private final Map<IRNode, Element> fieldInits = new HashMap<IRNode, Element>();
     private final DetailVisitor details;
     private final NonNullTypeCheckerSlave typeChecker;
     
     
     
-    private AnalysisBundle(final IBinder b) {
+    private AnalysisBundle(final IBinder b, final Map<IRNode, Element> fieldInits) {
       binder = b;
       definiteAssignment = new DefinitelyAssignedFieldAnalysis(b, false);
       nonNullRawType = new NonNullRawTypeAnalysis(b);
@@ -367,16 +380,6 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
     public IBinder getBinder() {
       return binder;
     }
-
-    public Iterable<IRNode> getNotNullFields() {
-      return new FilterIterator<Map.Entry<IRNode, Element>, IRNode>(
-          fieldInits.entrySet().iterator()) {
-        @Override
-        protected Object select(final Entry<IRNode, Element> o) {
-          return o.getValue() == NonNullRawLattice.NOT_NULL ? o.getKey() : IteratorUtil.noElement;
-        }      
-      };
-    }
     
     @Override
     public void clearCaches() {
@@ -389,11 +392,6 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
       definiteAssignment.clear();
       nonNullRawType.clear();
       timedOutMethodBodies.clear(); // TODO report these?
-    }
-    
-    public void clearGlobalCaches() {
-      createdVirtualAnnotations.clear();
-      fieldInits.clear();
     }
     
     public void addTimeOut(final IRNode mBody) {
