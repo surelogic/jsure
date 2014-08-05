@@ -269,6 +269,18 @@ public class ConstantExpressionVisitor extends Visitor<Object> {
   }
   
   @Override
+  public Object visitQualifiedName(final IRNode e) {
+	final IRNode objectExpr = QualifiedName.getBase(e);
+	final IBinding b = binder.getIBinding(objectExpr);
+	
+	// Is it a qualified name TypeName . Identifier 
+	if (TypeDeclaration.prototype.includes(b.getNode())) {
+		return checkForConstantField(e);
+	}	
+	return NO_CONST_VALUE;
+  }
+  
+  @Override
   public Object visitRemExpression(final IRNode e) {
 	Number op1 = (Number) doAccept(RemExpression.getOp1(e));
 	Number op2 = (Number) doAccept(RemExpression.getOp2(e));
@@ -304,6 +316,11 @@ public class ConstantExpressionVisitor extends Visitor<Object> {
 		return op1.longValue() + op2.longValue();
 	}
 	return op1.intValue() + op2.intValue();
+  }
+  
+  @Override
+  public Object visitSimpleName(final IRNode e) {
+	  return checkForConstantField(e);
   }
   
   @Override
@@ -652,27 +669,30 @@ public class ConstantExpressionVisitor extends Visitor<Object> {
     if ((ThisExpression.prototype.includes(objectExpr) && 
         JavaNode.wasImplicit(objectExpr)) ||
         TypeExpression.prototype.includes(objectExpr)) {
-      // Check the field declaration
-      final IRNode fdecl = binder.getBinding(e);
-      if (EnumConstantDeclaration.prototype.includes(fdecl)) {
-    	// TODO actually considered a const, but how to get the actual value?
-        return EnumConstantDeclaration.getId(fdecl);
-      }
-      if (TypeUtil.isFinal(fdecl, false)) {
-        // final, now check the initializer
-        final IRNode init = VariableDeclarator.getInit(fdecl);
-        if (Initialization.prototype.includes(init)) {
-          // (1) Check the type of the field: must be primitive or String
-          // (2) check if the initializer is constant
-          return isPrimitiveTypeOrString(VariableDeclarator.getType(fdecl)) ?
-              doAccept(Initialization.getValue(init)) : NO_CONST_VALUE;
-        }
-      }
+    	return checkForConstantField(e);
     }
     return NO_CONST_VALUE;
   }
-  
-  
+    
+  private Object checkForConstantField(final IRNode e) {
+	// Check the field declaration
+	final IRNode fdecl = binder.getBinding(e);
+	if (EnumConstantDeclaration.prototype.includes(fdecl)) {
+		// TODO actually considered a const, but how to get the actual value?
+		return EnumConstantDeclaration.getId(fdecl);
+	}
+	if (TypeUtil.isFinal(fdecl, false)) {
+		// final, now check the initializer
+		final IRNode init = VariableDeclarator.getInit(fdecl);
+		if (Initialization.prototype.includes(init)) {
+			// (1) Check the type of the field: must be primitive or String
+			// (2) check if the initializer is constant
+			return isPrimitiveTypeOrString(VariableDeclarator.getType(fdecl)) ?
+					doAccept(Initialization.getValue(init)) : NO_CONST_VALUE;
+		}
+	}
+    return NO_CONST_VALUE;
+  }  
   
   /*
    * Box and Unbox expressions do not exist in the Java syntax, they are
@@ -693,6 +713,10 @@ public class ConstantExpressionVisitor extends Visitor<Object> {
     return doAccept(UnboxExpression.getOp(e));
   }
   
+  @Override
+  public Object visitNameExpression(final IRNode e) {
+	return doAccept(NameExpression.getName(e));
+  }
   
   
   /*
