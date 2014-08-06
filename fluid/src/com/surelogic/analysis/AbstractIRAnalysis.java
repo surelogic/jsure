@@ -1,8 +1,6 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/AbstractIRAnalysis.java,v 1.4 2008/09/08 17:43:38 chance Exp $*/
 package com.surelogic.analysis;
 
-import java.util.List;
-import java.util.Vector;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.surelogic.analysis.granules.IAnalysisGranulator;
