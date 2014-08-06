@@ -872,6 +872,11 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 			}
 			*/
 			for (String prefix : demandImports) {
+				/*
+				if ("com.surelogic.common.ref.Decl".equals(prefix) && id.endsWith("Builder")) {
+					System.out.println("Looking at "+id);
+				}
+				*/
 				String qname = prefix+'.'+id;
 				String key   = couldBeUnknownType(jp, qname);
 				if (key != null) {
@@ -973,10 +978,14 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 			FASTScanner s = new FASTScanner(jp, r, debug);	
 			IRNode t = VisitUtil.getPrimaryType(cu);
 			String qname = JavaNames.getFullTypeName(t);
+			/*
 			if (qname.endsWith("DefaultSynthStyle")) {
 				System.out.println("FAST Scanning "+qname);
 			}
+			*/
 			s.doAccept(cu);
+			s.finish();
+			
 			synchronized (refs) {
 				refs.put(cu, r);
 			}
@@ -1060,6 +1069,15 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 			demandImports = new ImportHandler(p);
 		}
 
+		void finish() {
+			// In case any of the imports are of outer types
+			for(String demand : demandImports.demandImports) {
+				if (jp.getTypeEnv().findPackage(demand, null) == null) {
+					refs.add(demand);
+				}
+			}
+		}
+		
 		@Override
 		public Void visit(IRNode node) { 
 			super.doAcceptForChildren(node);
