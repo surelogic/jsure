@@ -253,8 +253,16 @@ public final class Sea {
     if (drops == null)
       throw new IllegalArgumentException(I18N.err(44, "drops"));
 
+    /*
     final ArrayList<T> result = new ArrayList<T>(drops);
     filterDropsMatchingMutate(pred, result);
+    */
+    final ArrayList<T> result = new ArrayList<T>(drops.size());
+    for(final T drop : drops) {
+      if (pred.match(drop)) {
+    	result.add(drop);
+      }
+    }
     return result;
   }
 
