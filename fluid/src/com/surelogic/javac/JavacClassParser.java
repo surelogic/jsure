@@ -1072,7 +1072,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 		void finish() {
 			// In case any of the imports are of outer types
 			for(String demand : demandImports.demandImports) {
-				if (jp.getTypeEnv().findPackage(demand, null) == null) {
+				if (jp.getTypeEnv().findPackage(demand, null) == null && jp.getTypeEnv().findNamedType(demand) == null) {
 					refs.add(demand);
 				}
 			}
