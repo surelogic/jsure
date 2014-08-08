@@ -1,7 +1,5 @@
 package edu.cmu.cs.fluid.java;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -87,7 +85,48 @@ public final class JavaComponentFactory implements ComponentFactory {
 
   private static boolean isLowOnMemory() {
 	  // TODO
-	  return components.size() > 100000;
+	  return components.size() > 200000;
+  }
+  
+  private static final boolean gcInSeparateThread = true;
+  
+  static class GcThread extends Thread {
+	  @Override
+	  public void run() {
+		  while (true) {
+			try {
+				sleep(1000);
+			} catch (InterruptedException e) {
+	            // ignore
+			}
+			gcComponents();
+		  }
+	  }
+  }
+  
+  static {
+	  if (gcInSeparateThread) {
+		new GcThread().start();  
+	  }
+  }
+  
+  static void gcComponents() {
+	  // Low and not already holding the read lock
+	  if (isLowOnMemory() && activeLock.getReadHoldCount() == 0) {
+		  // TODO potentially many threads could be waiting to try to do the clear
+		  activeLock.writeLock().lock();
+		  try {
+			  if (isLowOnMemory()) {
+				  System.err.println("~~~~~~ Clearing component cache : "+components.size()+" ~~~~~~");
+				  clear();			  
+			  }	else {
+				  System.out.println("No longer any need to clear the component cache");
+			  }
+			  // Too complicated to downgrade lock safely, since I need to keep the read lock after the call
+		  } finally {
+			  activeLock.writeLock().unlock();
+		  }  	
+	  } 
   }
   
   /**
@@ -99,20 +138,10 @@ public final class JavaComponentFactory implements ComponentFactory {
    * (e.g. OutOfMemoryError) prevents the unlock from working.
    */
   public static JavaComponentFactory startUse() {
-	  // Low and not already holding the read lock
-	  if (isLowOnMemory() && activeLock.writeLock().tryLock()) {		  		  
-		  try {
-			  if (isLowOnMemory()) {
-			    LOG.info("~~~~~~ Clearing component cache ~~~~~~");
-				clear();			  
-			  }		  
-			  activeLock.readLock().lock();
-		  } finally {
-			  activeLock.writeLock().unlock(); // Unlock write, still hold read
-		  }		  
-	  } else {
-		  activeLock.readLock().lock();
+	  if (!gcInSeparateThread) {
+		  gcComponents();
 	  }
+	  activeLock.readLock().lock();	  
 	  return prototype;
   }
   
