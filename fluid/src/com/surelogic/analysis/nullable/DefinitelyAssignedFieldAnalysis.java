@@ -113,7 +113,7 @@ public final class DefinitelyAssignedFieldAnalysis extends IntraproceduralAnalys
   
 
   private boolean includesField(final IRNode fdecl) {
-    return includeFinalFields || !TypeUtil.isFinal(fdecl);
+    return includeFinalFields || !TypeUtil.isJSureFinal(fdecl);
   }
 
   

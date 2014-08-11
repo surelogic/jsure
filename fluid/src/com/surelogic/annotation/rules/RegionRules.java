@@ -355,7 +355,7 @@ public class RegionRules extends AnnotationRules {
        * us because it can generate derived InRegion annotations.
        */
       
-      if (TypeUtil.isFinal(promisedFor)) {
+      if (TypeUtil.isJSureFinal(promisedFor)) {
         context.reportError(a, "Field \"{0}\" is final: it cannot be given a super region because it is not a region",
             VariableDeclarator.getId(promisedFor));
         annotationIsGood = false;
@@ -546,7 +546,7 @@ public class RegionRules extends AnnotationRules {
     final IRNode promisedFor = a.getPromisedFor();
     final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
     if (VariableDeclarator.prototype.includes(promisedForOp)) {
-      if (!TypeUtil.isFinal(promisedFor)) {
+      if (!TypeUtil.isJSureFinal(promisedFor)) {
         context.reportError(a, "@BorrowedInRegion fields must be final");
         good = false;
       }
@@ -713,7 +713,7 @@ public class RegionRules extends AnnotationRules {
         new SimpleUniqueInRegionPromiseDrop(a);
 
       // If field is not final then add an @InRegion annotation
-      if (!TypeUtil.isFinal(promisedFor)) {
+      if (!TypeUtil.isJSureFinal(promisedFor)) {
         final RegionSpecificationNode regionSpec =
           (RegionSpecificationNode) a.getSpec().cloneTree();
         final InRegionNode inRegion =
@@ -831,7 +831,7 @@ public class RegionRules extends AnnotationRules {
     }
     
     // Field must be final
-    if (!TypeUtil.isFinal(promisedFor)) {
+    if (!TypeUtil.isJSureFinal(promisedFor)) {
       context.reportError(a, "Annotated field must be final");
       isGood = false;
     }
@@ -1029,7 +1029,7 @@ public class RegionRules extends AnnotationRules {
 
     final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
     if (VariableDeclarator.prototype.includes(promisedForOp)) {
-      if (!TypeUtil.isFinal(promisedFor)) {
+      if (!TypeUtil.isJSureFinal(promisedFor)) {
         context.reportError(a, "@BorrowedInRegion fields must be final");
         good = false;
       }

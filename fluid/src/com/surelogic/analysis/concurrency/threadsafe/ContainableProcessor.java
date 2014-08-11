@@ -208,7 +208,7 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
         cResult.addTrusted(tester.getTrusts());
         
         boolean proposeContainable = !isContainable;
-        if (TypeUtil.isFinal(varDecl) && !isContainable) {
+        if (TypeUtil.isJSureFinal(varDecl) && !isContainable) {
           /*
            * If the type is not containable, we can check to see
            * if the implementation assigned to the field is containable,

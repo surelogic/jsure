@@ -395,7 +395,7 @@ public class UniquenessRules extends AnnotationRules {
       final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
       if (VariableDeclarator.prototype.includes(promisedForOp)) {
         fromField = true;
-        if (!TypeUtil.isFinal(promisedFor)) {
+        if (!TypeUtil.isJSureFinal(promisedFor)) {
           context.reportError(a, "@Borrowed fields must be final");
           good = false;
         }
@@ -404,7 +404,7 @@ public class UniquenessRules extends AnnotationRules {
           good = false;
         }
       } else if (ParameterDeclaration.prototype.includes(promisedForOp)) {
-        if (a.allowReturn() && !TypeUtil.isFinal(promisedFor)) {
+        if (a.allowReturn() && !TypeUtil.isJSureFinal(promisedFor)) {
           context.reportError(a, "@Borrowed(allowReturn=true) parameters must be final");
           good = false;
         }

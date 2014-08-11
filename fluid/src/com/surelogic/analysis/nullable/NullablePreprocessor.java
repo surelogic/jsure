@@ -36,7 +36,7 @@ final class NullablePreprocessor extends JavaSemanticsVisitor {
     if (NonNullRules.getNonNull(varDecl) == null &&
         NonNullRules.getNullable(varDecl) == null) {
       final IRNode init = VariableDeclarator.getInit(varDecl);
-      if (TypeUtil.isFinal(varDecl) &&
+      if (TypeUtil.isJSureFinal(varDecl) &&
           Initialization.prototype.includes(init) &&
           AllocationExpression.prototype.includes(Initialization.getValue(init))) {
         final NonNullNode nnn = new NonNullNode(0);

@@ -1350,7 +1350,7 @@ public class LockRules extends AnnotationRules {
 				lockFieldNode = varBinding.getNode();
 				
         final int mods = VariableDeclarator.getMods(lockFieldNode);
-				if (!TypeUtil.isFinal(lockFieldNode)) {
+				if (!TypeUtil.isJSureFinal(lockFieldNode)) {
 					context.reportError("Field \"" + field //$NON-NLS-1$
 							+ "\" is not final", lockDecl); //$NON-NLS-1$
 					declIsGood = false;
@@ -1649,7 +1649,7 @@ public class LockRules extends AnnotationRules {
               report.reportError("Field cannot be static", base);
               isBad = true;
             }
-            if (!TypeUtil.isFinal(n) ) {
+            if (!TypeUtil.isJSureFinal(n) ) {
               report.reportError("Field must be final", base);
               isBad = true;
             }

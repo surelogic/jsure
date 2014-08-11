@@ -289,7 +289,7 @@ public final class MustHoldAnalysis extends
         final Operator operator = JJNode.tree.getOperator(node);
         if (FieldRef.prototype.includes(operator)) {
           final IRNode varDecl = binder.getBinding(node);
-          if (TypeUtil.isFinal(varDecl)) { // Final field, check initialization
+          if (TypeUtil.isJSureFinal(varDecl)) { // Final field, check initialization
             final IRNode init = VariableDeclarator.getInit(varDecl);
             if (Initialization.prototype.includes(init)) {
               final IRNode initValue = Initialization.getValue(init);

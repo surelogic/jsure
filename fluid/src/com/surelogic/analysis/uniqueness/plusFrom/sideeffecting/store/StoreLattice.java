@@ -732,7 +732,7 @@ extends TripleLattice<Element<Integer>,
     s = undefineFromNodes(s, srcOp, getUnderTop(s), Messages.MADE_UNDEFINED_BY_FROM_WRITE);
     if (!s.isValid()) return s;
     // avoid checking assignment of final fields in "Immutable" constructors:
-    if (!TypeUtil.isFinal(fieldDecl)) s = opCheckMutable(s,getUnderTop(s));
+    if (!TypeUtil.isJSureFinal(fieldDecl)) s = opCheckMutable(s,getUnderTop(s));
     if (!s.isValid()) return s;
 
     final State declStatus = declStatus(fieldDecl);

@@ -60,7 +60,7 @@ public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> impl
      * Instance into Static if the field is final and static.
      */
     final RegionModel instanceRegion = RegionModel.getInstanceRegion(fieldDecl);
-    if (TypeUtil.isFinal(fieldDecl)) {
+    if (TypeUtil.isJSureFinal(fieldDecl)) {
       if (TypeUtil.isStatic(fieldDecl)) {
         return Collections.<IRegion, IRegion> singletonMap(
             instanceRegion,

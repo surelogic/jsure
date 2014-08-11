@@ -223,10 +223,12 @@ public class TypeUtil implements JavaGlobals {
    * @param node
    *          A VariableDeclarator, ParameterDeclaration, or FieldDeclaration
    */
+  @Deprecated
   public static boolean isFinal(final IRNode node) {
     return isFinal(node, true);
   }
 
+  @Deprecated
   public static boolean isFinal(final IRNode node, final boolean useVouch) {
     final Operator op = JJNode.tree.getOperator(node);
     if (VariableDeclarator.prototype.includes(op)) {

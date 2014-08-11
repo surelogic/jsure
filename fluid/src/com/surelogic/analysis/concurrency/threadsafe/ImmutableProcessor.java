@@ -159,7 +159,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
           varDecl, FIELD_IS_IMMUTABLE, FIELD_IS_NOT_IMMUTABLE, id);
       
       // (1) Check finality of the field
-      final boolean isFinal = TypeUtil.isFinal(varDecl);
+      final boolean isFinal = TypeUtil.isJSureFinal(varDecl);
       final ResultDrop fDrop = ResultsBuilder.createResult(folder, varDecl,
           isFinal, FIELD_IS_FINAL, FIELD_IS_NOT_FINAL);
       if (isFinal) {

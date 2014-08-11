@@ -372,7 +372,7 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
         TypeExpression.prototype.includes(objectExpr)) {
       // Check the field declaration
       final IRNode fdecl = binder.getBinding(e);
-      if (TypeUtil.isFinal(fdecl, false)) {
+      if (TypeUtil.isJavaFinal(fdecl)) {
         // final, now check the initializer
         final IRNode init = VariableDeclarator.getInit(fdecl);
         if (Initialization.prototype.includes(init)) {

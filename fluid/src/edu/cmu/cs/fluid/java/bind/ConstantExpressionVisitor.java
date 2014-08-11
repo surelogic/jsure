@@ -681,7 +681,7 @@ public class ConstantExpressionVisitor extends Visitor<Object> {
 		// TODO actually considered a const, but how to get the actual value?
 		return EnumConstantDeclaration.getId(fdecl);
 	}
-	if (TypeUtil.isFinal(fdecl, false)) {
+	if (TypeUtil.isJavaFinal(fdecl)) {
 		// final, now check the initializer
 		final IRNode init = VariableDeclarator.getInit(fdecl);
 		if (Initialization.prototype.includes(init)) {

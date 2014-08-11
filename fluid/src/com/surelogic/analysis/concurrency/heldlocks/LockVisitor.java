@@ -1368,7 +1368,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	 */
 	private boolean isFinalOrVolatile(final IRNode fieldRef) {
 		final IRNode fieldDecl = binder.getBinding(fieldRef);
-		return TypeUtil.isFinal(fieldDecl) || TypeUtil.isVolatile(fieldDecl);
+		return TypeUtil.isJSureFinal(fieldDecl) || TypeUtil.isVolatile(fieldDecl);
 	}
 
 	/**
@@ -2246,7 +2246,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 		// Only non-final fields need to be protected
 		final IRNode id = binder.getBinding(fieldRef);
-		if (!TypeUtil.isFinal(id)) {
+		if (!TypeUtil.isJSureFinal(id)) {
 			final IRegion fieldAsRegion = RegionModel.getInstance(id);
 			final Target target;
 			if (fieldAsRegion.isStatic()) {

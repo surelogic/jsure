@@ -714,7 +714,7 @@ extends TripleLattice<Element<Integer>,
     s = undefineFromNodes(s,getUnderTop(s));
     if (!s.isValid()) return s;
     // avoid checking assignment of final fields in "Immutable" constructors:
-    if (!TypeUtil.isFinal(fieldDecl)) s = opCheckMutable(s,getUnderTop(s));
+    if (!TypeUtil.isJSureFinal(fieldDecl)) s = opCheckMutable(s,getUnderTop(s));
     if (!s.isValid()) return s;
     final Store temp;
     if (UniquenessUtils.isUnique(fieldDecl)) {

@@ -41,7 +41,7 @@ public class FieldRegion extends AbstractRegion {
   
   @Override
   public boolean isFinal() {
-    return TypeUtil.isFinal(field);
+    return TypeUtil.isJSureFinal(field);
   }
   
   @Override

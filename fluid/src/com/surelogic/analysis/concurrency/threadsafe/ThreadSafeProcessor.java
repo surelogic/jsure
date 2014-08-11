@@ -210,7 +210,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
       final ResultFolderDrop part1Folder = ResultsBuilder.createOrFolder(
           folder, varDecl, FIELD_DECL_IS_SAFE, FIELD_DECL_IS_NOT_SAFE);
       
-      final boolean isFinal = TypeUtil.isFinal(varDecl);
+      final boolean isFinal = TypeUtil.isJSureFinal(varDecl);
       ResultsBuilder.createResult(part1Folder, varDecl, isFinal,
           FIELD_IS_FINAL, FIELD_IS_NOT_FINAL);
   
@@ -296,7 +296,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
         final boolean isContainable = cTester.testFieldDeclarationType(fieldTypeNode);
         boolean haveInitializerResult = false;
         boolean proposeContainable = !isContainable;
-        if (TypeUtil.isFinal(varDecl) && !isContainable) {
+        if (TypeUtil.isJSureFinal(varDecl) && !isContainable) {
           /*
            * If the type is not containable, we can check to see
            * if the implementation assigned to the field is containable,

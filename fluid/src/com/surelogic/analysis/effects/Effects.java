@@ -1040,7 +1040,7 @@ public final class Effects implements IBinderClient {
     public Void visitFieldRef(final IRNode expr) {
       final boolean isRead = context.isRead();    
       final IRNode id = binder.getBinding(expr);
-      if (!TypeUtil.isFinal(id)) {
+      if (!TypeUtil.isJSureFinal(id)) {
         if (TypeUtil.isStatic(id)) {
           context.addEffect(Effect.newEffect(expr, isRead,
               targetFactory.createClassTarget(RegionModel.getInstance(id), NoEvidence.INSTANCE)));
@@ -1164,7 +1164,7 @@ public final class Effects implements IBinderClient {
     @Override
     protected void handleFieldInitialization(
         final IRNode varDecl, final boolean isStatic) {
-      if (!TypeUtil.isFinal(varDecl)) {
+      if (!TypeUtil.isJSureFinal(varDecl)) {
         if (isStatic) {
           context.addEffect(Effect.newWrite(varDecl, 
               targetFactory.createClassTarget(
