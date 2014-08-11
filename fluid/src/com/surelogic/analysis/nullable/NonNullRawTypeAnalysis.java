@@ -1652,7 +1652,7 @@ implements IBinderClient {
        */
       else {
         final IRNode init = VariableDeclarator.getInit(varDecl);
-        if (TypeUtil.isFinal(varDecl) &&
+        if (TypeUtil.isJSureFinal(varDecl) &&
             Initialization.prototype.includes(init) &&
             AllocationExpression.prototype.includes(Initialization.getValue(init))) {
           val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.FINAL_INIT_FIELD, fref));
@@ -1754,7 +1754,8 @@ implements IBinderClient {
         final Lattice lattice,
         final Value initialValue,
         final boolean terminationNormal) {
-      final Transfer t = new Transfer(flowUnit, binder, lattice, 0);
+      final int floorSize = initialValue.first().size();
+      final Transfer t = new Transfer(flowUnit, binder, lattice, floorSize);
       return new JavaForwardAnalysis<Value, Lattice>("sub analysis", lattice, t, DebugUnparser.viewer, true);
     }
   }
