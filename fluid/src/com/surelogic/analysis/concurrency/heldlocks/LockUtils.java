@@ -24,6 +24,7 @@ import com.surelogic.aast.promise.SimpleLockNameNode;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.alias.IMayAlias;
+import com.surelogic.analysis.assigned.DefiniteAssignment.ProvablyUnassignedQuery;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLockFactory;
@@ -334,6 +335,7 @@ public final class LockUtils {
    */
   public FinalExpressionChecker getFinalExpressionChecker(
       final BindingContextAnalysis.Query bcaQuery,
+      final ProvablyUnassignedQuery unassignedQuery,
       final IRNode flowUnit, final IRNode block) {
     /*
      * TODO Need to modify this method to produce
@@ -379,7 +381,7 @@ public final class LockUtils {
            * within the synchronized block
            */
           final IRNode id = binder.getBinding(expr);
-          if (TypeUtil.isFinal(id)) {
+          if (TypeUtil.isFinalOrEffectivelyFinal(id, binder, unassignedQuery)) {
             return true;
           } else {
             return !isLockExpressionChangedBySyncBlock(fxQuery, conflicter, expr, block);
@@ -395,7 +397,7 @@ public final class LockUtils {
           if (TypeUtil.isStatic(id)
               || isFinal(FieldRef.getObject(expr))) {
             // Check if the field is final
-            if (TypeUtil.isFinal(id)) {
+            if (TypeUtil.isJSureFinal(id)) {
               return true;
             } else {
               /* Check if the field is protected by a lock and is not modified by
@@ -926,9 +928,10 @@ public final class LockUtils {
   // ========================================================================
 
   public void convertLockExpr(final HowToProcessLocks howTo,
+      final ProvablyUnassignedQuery query,
       final IRNode lockExpr, final HeldLockFactory heldLockFactory, final IRNode enclosingDecl, final IRNode src,
       final Set<HeldLock> lockSet) {
-    convertLockExpr(howTo, lockExpr, heldLockFactory, enclosingDecl, Type.MONOTLITHIC, src, lockSet);
+    convertLockExpr(howTo, query, lockExpr, heldLockFactory, enclosingDecl, Type.MONOTLITHIC, src, lockSet);
   }
   
   /**
@@ -937,12 +940,13 @@ public final class LockUtils {
    * or java.util.concurrent lock.
    */
   public void convertIntrinsicLockExpr(
+      final ProvablyUnassignedQuery query,
       final IRNode lockExpr, final HeldLockFactory heldLockFactory, final IRNode enclosingDecl, final IRNode src,
       final Set<HeldLock> lockSet) {
     /* We start by assuming we will be creating a monolithic lock object, and not a
      * read-write lock; thus, we set isWrite to true and isRW to false.
      */
-    convertLockExpr(HowToProcessLocks.INTRINSIC, lockExpr, heldLockFactory, enclosingDecl, src, lockSet);
+    convertLockExpr(HowToProcessLocks.INTRINSIC, query, lockExpr, heldLockFactory, enclosingDecl, src, lockSet);
   }
 
   /**
@@ -956,10 +960,11 @@ public final class LockUtils {
    * @return
    */
   public void convertJUCLockExpr(
+      final ProvablyUnassignedQuery query,
       final IRNode lockExpr, final HeldLockFactory heldLockFactory, final IRNode enclosingDecl, final IRNode src, final Set<HeldLock> lockSet) {
     /* We start by assuming we will be creating a monolithic lock object
      */
-    convertLockExpr(HowToProcessLocks.JUC, lockExpr, heldLockFactory, enclosingDecl, src, lockSet);
+    convertLockExpr(HowToProcessLocks.JUC, query, lockExpr, heldLockFactory, enclosingDecl, src, lockSet);
   }
 
   /**
@@ -967,6 +972,7 @@ public final class LockUtils {
    * 
    */
   private void convertLockExpr(final HowToProcessLocks howTo,
+      final ProvablyUnassignedQuery query,
       final IRNode lockExpr, final HeldLockFactory heldLockFactory, final IRNode enclosingDecl, 
       final ILock.Type type, final IRNode src, final Set<HeldLock> lockSet) {
     final Operator op = JJNode.tree.getOperator(lockExpr);
@@ -980,7 +986,7 @@ public final class LockUtils {
        *   final Lock lock = rwLock.readLock();
        */
       final IRNode varDecl = binder.getBinding(lockExpr);
-      if (VariableDeclarator.prototype.includes(varDecl) && TypeUtil.isFinal(varDecl)) { // Parameters don't have inits
+      if (VariableDeclarator.prototype.includes(varDecl) && TypeUtil.isFinalOrEffectivelyFinal(varDecl, binder, query)) { // Parameters don't have inits
         final IRNode init = VariableDeclarator.getInit(varDecl);
         if (Initialization.prototype.includes(init)) { // a real, non-empty init
           final IRNode initExpr = Initialization.getValue(init);
@@ -992,7 +998,7 @@ public final class LockUtils {
               // Dealing with a read-write lock
               final ILock.Type newType = ILock.Type.getRW(whichMethod == ReadWriteLockMethods.WRITELOCK);
               final MethodCall mcall = (MethodCall) JJNode.tree.getOperator(initExpr);
-              convertLockExpr(howTo, mcall.get_Object(initExpr), heldLockFactory, enclosingDecl, newType, src, lockSet);
+              convertLockExpr(howTo, query, mcall.get_Object(initExpr), heldLockFactory, enclosingDecl, newType, src, lockSet);
               handled = true;
             } else {
               // Try to see if we have a lock-getter method
@@ -1020,7 +1026,7 @@ public final class LockUtils {
         // Dealing with a read-write lock
         final ILock.Type newType = ILock.Type.getRW(whichMethod == ReadWriteLockMethods.WRITELOCK);
         final MethodCall mcall = (MethodCall) op;
-        convertLockExpr(howTo, mcall.get_Object(lockExpr), heldLockFactory, enclosingDecl, newType, src, lockSet);
+        convertLockExpr(howTo, query, mcall.get_Object(lockExpr), heldLockFactory, enclosingDecl, newType, src, lockSet);
       } else {
         // Dealing with a normal lock
         final HeldLock returnedLock =
@@ -1109,7 +1115,7 @@ public final class LockUtils {
            * where 'g' is a final static field declared in class C, and 'f' is
            * also declared in class C.
            */
-          if (TypeUtil.isFinal(potentialLockImpl)) { // Final field, check initialization
+          if (TypeUtil.isJSureFinal(potentialLockImpl)) { // Final field, check initialization
             final IRNode init = VariableDeclarator.getInit(potentialLockImpl);
             if (Initialization.prototype.includes(init)) {
               final IRNode initValue = Initialization.getValue(init);
@@ -1126,7 +1132,7 @@ public final class LockUtils {
                     // We have 'f = e.g.readLock()' or 'f = e.g.writeLock()'
                     final IRNode mcBoundField = binder.getBinding(mcObject);
                     // Field 'g' must be final
-                    if (TypeUtil.isFinal(mcBoundField)) {
+                    if (TypeUtil.isJSureFinal(mcBoundField)) {
                       if (TypeUtil.isStatic(mcBoundField)) {
                         // Check that 'f' and 'g' are both declared in the same class
                         if (TypeUtil.isStatic(potentialLockImpl)) {

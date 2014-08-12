@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.surelogic.analysis.AbstractThisExpressionBinder;
+import com.surelogic.analysis.assigned.DefiniteAssignment;
+import com.surelogic.analysis.assigned.DefiniteAssignment.ProvablyUnassignedQuery;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.driver.Messages;
 import com.surelogic.analysis.concurrency.heldlocks.LockUtils.HowToProcessLocks;
@@ -15,6 +17,7 @@ import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLockFactory;
 import com.surelogic.analysis.visitors.AbstractJavaAnalysisDriver;
 import com.surelogic.analysis.visitors.InstanceInitAction;
+import com.surelogic.common.Pair;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -221,10 +224,10 @@ final class LockExpressions {
    * AnonClassExpression or InitDeclaration.
    */
   public LockExpressions(final IRNode mdecl, final LockUtils lu, final IBinder b,
-      final BindingContextAnalysis bca) {
+      final BindingContextAnalysis bca, final DefiniteAssignment da) {
     enclosingMethodDecl = mdecl;
     final LockExpressionVisitor visitor =
-      new LockExpressionVisitor(mdecl, lu, b, bca);
+      new LockExpressionVisitor(mdecl, lu, b, bca, da);
     visitor.doAccept(mdecl);
     singleThreadedData = visitor.getSingleThreadedData();
   }
@@ -317,8 +320,9 @@ final class LockExpressions {
    * occurrences of syntactically unique final lock expressions. 
    * @author Aaron Greenhouse
    */
-  private final class LockExpressionVisitor extends AbstractJavaAnalysisDriver<BindingContextAnalysis.Query> {
+  private final class LockExpressionVisitor extends AbstractJavaAnalysisDriver<Pair<BindingContextAnalysis.Query, ProvablyUnassignedQuery>> {
     private final BindingContextAnalysis bca;
+    private final DefiniteAssignment definiteAssignment;
     private final LockUtils lockUtils;
     private final HeldLockFactory heldLockFactory;
     private final TEB teb;
@@ -328,9 +332,10 @@ final class LockExpressions {
     
     
     public LockExpressionVisitor(final IRNode mdecl, final LockUtils lu,
-        final IBinder b, final BindingContextAnalysis bca) {
+        final IBinder b, final BindingContextAnalysis bca, final DefiniteAssignment da) {
       super(false, mdecl, true);
       this.bca = bca;
+      definiteAssignment = da;
       lockUtils = lu;
       teb = new TEB(b, mdecl);
       heldLockFactory = new HeldLockFactory(teb);
@@ -341,14 +346,19 @@ final class LockExpressions {
     }
 
     @Override
-    protected BindingContextAnalysis.Query createNewQuery(final IRNode decl) {
+    protected Pair<BindingContextAnalysis.Query, ProvablyUnassignedQuery> createNewQuery(final IRNode decl) {
       // SHould only get here for the original method we are called with
-      return bca.getExpressionObjectsQuery(decl);
+      return new Pair<BindingContextAnalysis.Query, ProvablyUnassignedQuery>(
+          bca.getExpressionObjectsQuery(decl),
+          definiteAssignment.getProvablyUnassignedQuery(decl));
     }
 
     @Override
-    protected BindingContextAnalysis.Query createSubQuery(final IRNode caller) {
-      return currentQuery().getSubAnalysisQuery(caller);
+    protected Pair<BindingContextAnalysis.Query, ProvablyUnassignedQuery> createSubQuery(final IRNode caller) {
+      final Pair<BindingContextAnalysis.Query, ProvablyUnassignedQuery> current = currentQuery();
+      return new Pair<BindingContextAnalysis.Query, ProvablyUnassignedQuery>(
+          current.first().getSubAnalysisQuery(caller),
+          current.second().getSubAnalysisQuery(caller));
     }
 
     
@@ -457,11 +467,11 @@ final class LockExpressions {
     
     private Set<HeldLock> processLockExpression(final HowToProcessLocks howTo,
         final IRNode lockExpr, final IRNode syncBlock) {
-      if (lockUtils.getFinalExpressionChecker(currentQuery(), teb.enclosingFlowUnit, syncBlock).isFinal(lockExpr)) {
+      if (lockUtils.getFinalExpressionChecker(currentQuery().first(), currentQuery().second(), teb.enclosingFlowUnit, syncBlock).isFinal(lockExpr)) {
         // Get the locks for the lock expression
         final Set<HeldLock> lockSet = new HashSet<HeldLock>();
         lockUtils.convertLockExpr(
-            howTo, lockExpr, heldLockFactory, LockExpressions.this.enclosingMethodDecl, syncBlock, lockSet);
+            howTo, currentQuery().second(), lockExpr, heldLockFactory, LockExpressions.this.enclosingMethodDecl, syncBlock, lockSet);
         if (lockSet.isEmpty() && howTo == HowToProcessLocks.JUC) {
           lockSet.add(heldLockFactory.createBogusLock(lockExpr));
         }

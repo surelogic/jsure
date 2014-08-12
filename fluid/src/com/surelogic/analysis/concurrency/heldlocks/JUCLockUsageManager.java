@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.surelogic.analysis.assigned.DefiniteAssignment;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
 
@@ -26,20 +27,21 @@ final class JUCLockUsageManager {
   private final LockUtils lockUtils;
   private final IBinder binder;
   private final BindingContextAnalysis bca;
-  
+  private final DefiniteAssignment da;
   
   
   public JUCLockUsageManager(
-      final LockUtils lu, final IBinder b, final BindingContextAnalysis bca) {
+      final LockUtils lu, final IBinder b, final BindingContextAnalysis bca, final DefiniteAssignment da) {
     this.lockUtils = lu;
     this.binder = b;
     this.bca = bca;
+    this.da = da;
   }
   
   public LockExpressions getLockExpressionsFor(final IRNode mdecl) {
     LockExpressions lockExprs = lockExpressions.get(mdecl);
     if (lockExprs == null) {
-      lockExprs = new LockExpressions(mdecl, lockUtils, binder, bca);
+      lockExprs = new LockExpressions(mdecl, lockUtils, binder, bca, da);
       lockExpressions.put(mdecl, lockExprs);
     }
     return lockExprs;

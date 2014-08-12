@@ -276,7 +276,7 @@ public final class LocalVariableDeclarations {
     
     @Override
     public Void visitParameterDeclaration(final IRNode node) {
-      if (TypeUtil.isFinal(node)) {
+      if (TypeUtil.isJSureFinal(node)) { // TODO: Really replace with isEffectivelyFinal()
         declarations.add(node);
       }
       return null;
@@ -284,7 +284,7 @@ public final class LocalVariableDeclarations {
     
     @Override
     public Void visitVariableDeclarator(final IRNode node) {
-      if (addDeclaration && TypeUtil.isFinal(node)) {
+      if (addDeclaration && TypeUtil.isJSureFinal(node)) { // TODO: Really replace with isEffectivelyFinal()
         declarations.add(node);
       }
       return null;

@@ -214,55 +214,30 @@ public class TypeUtil implements JavaGlobals {
         "Can't test if " + op.name() + " is static.");
     }
   }
-
+  
   /**
-   * Is the field declaration a final field. Returns true if the field has a
-   * final modifier, or a assumeFinal promise, or if the field is declared in an *
-   * interface.
+   * Is the local variable final or effectively final as descrived in
+   * JLS8 &sect;4.12.4?
    * 
-   * @param node
-   *          A VariableDeclarator, ParameterDeclaration, or FieldDeclaration
+   * <p>N.B. There is no point in using this method if you know the 
+   * VariableDeclarator is from a FieldDeclaration.
+   * 
+   * @param varDecl A VariableDeclarator or ParameterDeclaration node
    */
-  @Deprecated
-  public static boolean isFinal(final IRNode node) {
-    return isFinal(node, true);
+  public static boolean isFinalOrEffectivelyFinal(
+      final IRNode varDecl, final IBinder binder,
+      final ProvablyUnassignedQuery query) {
+    return isJSureFinal(varDecl) || isEffectivelyFinal(varDecl, binder, query);
   }
-
-  @Deprecated
-  public static boolean isFinal(final IRNode node, final boolean useVouch) {
-    final Operator op = JJNode.tree.getOperator(node);
-    if (VariableDeclarator.prototype.includes(op)) {
-      if (TypeUtil.isInterface(VisitUtil.getEnclosingType(node))) {
-        return true; // declared in an interface
-      } else if (JavaNode.getModifier(JJNode.tree.getParent(JJNode.tree
-          .getParent(node)), JavaNode.FINAL)) {
-        return true; // declared final
-      } else if (useVouch) { // Check for @Vouch("final")
-        final VouchFieldIsPromiseDrop vouchFinal = LockRules.getVouchFieldIs(node);
-        if (vouchFinal != null && vouchFinal.isFinal()) {
-          // We have an @Vouch("final")
-          return true;
-        }
-      }      
-      return false;
-    } else if (FieldDeclaration.prototype.includes(op)) {
-      if (TypeUtil.isInterface(VisitUtil.getEnclosingType(node))) {
-        return true; // declared in an interface
-      } else {
-        return JavaNode.getModifier(node, JavaNode.FINAL);
-      }
-    } else if (ParameterDeclaration.prototype.includes(op)) {
-      return JavaNode.getModifier(node, JavaNode.FINAL);
-    }
-    return false;
-  }
-
   
   /**
    * Is the local variable effectively final as described in JLS8 &sect;4.12.4?
    * We don't check that the variable isn't declared <code>final</code> because
    * we assume this method is only called when we already know the field is
    * non-<code>final</code>. 
+   * 
+   * <p>N.B. There is no point in using this method if you know the 
+   * VariableDeclarator is from a FieldDeclaration.
    * 
    * @param varDecl A VariableDeclarator or ParameterDeclaration node
    */
@@ -364,7 +339,6 @@ public class TypeUtil implements JavaGlobals {
           }
         }
       }
-//      final InitializedVisitor v = new InitializedVisitor(blockStmt);
       v.doAccept(blockStmt);
       return v.isEffectivelyFinal();
     }

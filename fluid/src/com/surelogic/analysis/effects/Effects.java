@@ -1182,7 +1182,7 @@ public final class Effects implements IBinderClient {
     @Override
     protected void handleLocalVariableDeclaration(final IRNode varDecl) {
       // Don't worry about initialization of final variables
-      if (!TypeUtil.isFinal(varDecl)) {
+      if (!TypeUtil.isJSureFinal(varDecl)) { // TODO: Really replace with isEffectivelyFinal()
         /* LOCAL VARIABLE: 'varDecl' is already the declaration of the variable,
          * so we don't have to bind it.
          */
