@@ -21,6 +21,7 @@ public class ImportTutorialProjectsHandler extends AbstractHandler {
 						loader.getResource("/lib/JSureTutorial_ThreadSafeAndImmutable.zip"),
 						loader.getResource("/lib/JSureTutorial_BoundedFIFO.zip"),
 						loader.getResource("/lib/JSureTutorial_PlanetBaron.zip"),
+						loader.getResource("/lib/JSureTutorial_java.util.logging.zip"),
 						loader.getResource("/lib/JSureTutorial_util.concurrent.SynchronizedVariable.zip"),
 						loader.getResource("/lib/JSureTutorial_EffectiveEffects.zip"));
 		return null;
