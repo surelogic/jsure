@@ -2686,19 +2686,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						 */
 						final List<IRNode> lockFields = getJUCLockFields(lockExpr);
 						if (!lockFields.isEmpty()) {
-							// (1)
-							makeWarningDrop(
-									Messages.DSC_MIXED_PARADIGM,
-									lockExpr,
-									lockFields.size() > 1 ? Messages.LockAnalysis_ds_JUCLockFields
-											: Messages.LockAnalysis_ds_JUCLockFields,
-									DebugUnparser.toString(lockExpr),
-									fieldsToString(lockFields));
-
 							/*
-							 * Now (2) --- we already know from (1) there are
-							 * JUC lock fields in the class.
+							 * See if there are any formal lock models declared
+							 * using the JUC lock fields of the class.  If so, put the 
+							 * warnings under the lock model for the JUC lock.
 							 */
+							boolean warned = false;
 							if (typeOfLockExpr instanceof IJavaDeclaredType) {
 								final GlobalLockModel sysLockModel = sysLockModelHandle
 										.get();
@@ -2716,8 +2709,23 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 														.getId(lockRecord.lockImpl),
 												lockRecord.name);
 										lockRecord.lockDecl.addDependent(warning);
+										warned = true;
 									}
 								}
+							}
+							
+							/* 
+							 * If we didn't find any explicit lock models for the JUC fields,
+							 * output a generic warning at the top level.
+							 */
+							if (!warned) {
+	              makeWarningDrop(
+	                  Messages.DSC_MIXED_PARADIGM,
+	                  lockExpr,
+	                  lockFields.size() > 1 ? Messages.LockAnalysis_ds_JUCLockFields2
+	                      : Messages.LockAnalysis_ds_JUCLockFields,
+	                  DebugUnparser.toString(lockExpr),
+	                  fieldsToString(lockFields));
 							}
 						} else {
 							makeWarningDrop(
