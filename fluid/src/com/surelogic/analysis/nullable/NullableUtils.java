@@ -20,6 +20,7 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
 
 final class NullableUtils {
   private NullableUtils() {
@@ -57,7 +58,7 @@ final class NullableUtils {
 
     final IRNode typeDecl = VisitUtil.getEnclosingType(mdecl);
     if (!AnonClassExpression.prototype.includes(typeDecl) &&
-        TypeDeclaration.getId(typeDecl).equals("Cast")) {
+        JJNode.getInfo(typeDecl).equals("Cast")) {
       final IRNode cuDecl = VisitUtil.getEnclosingCompilationUnit(typeDecl);
       if (PackageDeclaration.getId(
           CompilationUnit.getPkg(cuDecl)).equals("com.surelogic")) {

@@ -204,7 +204,7 @@ public interface IBinding {
       }
       
       final IJavaTypeSubstitution subst;
-      if (ty != null) {
+      if (ty != null && tEnv.getMajorJavaVersion() >= 5) {
         subst = JavaTypeSubstitution.create(tEnv, ty);
       } else {
         subst = null;
