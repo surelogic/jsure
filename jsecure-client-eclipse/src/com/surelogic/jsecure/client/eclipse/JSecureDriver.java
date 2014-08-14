@@ -121,6 +121,11 @@ public class JSecureDriver extends AbstractJavaScanner<JavaProjectSet<JavaProjec
 			protected void finish(SLProgressMonitor monitor) {
 				System.out.println("JSecure completed successfully.");			
 			}
+
+			@Override
+			protected void handleCancel(SLStatus e) {
+				System.out.println("JSecure was cancelled: "+e.getException().getMessage());
+			}
 		};
 	}
 }

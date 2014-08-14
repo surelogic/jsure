@@ -95,7 +95,6 @@ import difflib.DiffUtils;
 import difflib.Patch;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
-import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 
 public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> implements IResourceChangeListener, CurrentScanChangeListener {
   private static final String SCRIPT_TEMP = "scriptTemp";
@@ -896,12 +895,13 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
   protected boolean projectIsOk(IErrorListener l, IJavaProject p) {
 	  // Temporary check until we get JSure to handle Java 8
 	  final int version = JDTUtility.getMajorJavaSourceVersion(p);  
+	  /*
 	  if (!AbstractJavaBinder.processJava8 && version >= 8) {
 		  l.reportError("JSure currently cannot process Java 8", 
 			            "The source level of "+p.getElementName()+" is set to Java 8, but JSure is still being upgraded to process Java 8 sources.  Please wait for the next release");
 		  return false;
 	  }
-	  
+	  */
 	  // Check if JRE and src level match
 	  if (SystemUtils.IS_JAVA_1_5 || SystemUtils.IS_JAVA_1_6 || SystemUtils.IS_JAVA_1_7) {
 		  if (version >= 8) {
@@ -1173,6 +1173,13 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
 		  status.logTo(SLLogger.getLogger());
 	  }
 
+	  @Override
+	  protected void handleCancel(SLStatus s) {
+		if (s.getException() != null) {
+		  JSureScanCrashReport.getInstance().getReporter().reportScanCancellation(s.getException().getMessage());
+		}
+	  }
+	  
     protected void endAnalysis(SLProgressMonitor monitor) {
     	if (lastMonitor == monitor) {
 			lastMonitor = null;

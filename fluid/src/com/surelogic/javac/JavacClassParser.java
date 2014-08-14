@@ -221,6 +221,11 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 					parseBatch(batch, results, asBinary);
 				}
 			}
+			for(CodeInfo cu : results) {
+				if (usesUnsupportedJava8Features(cu.getNode())) {
+					throw new CancellationException(cu.getFile().getRelativePath()+" uses unsupported Java 8 features");
+				}
+			}
 		}
 
 		void mapSource(JavaFileObject w, JavaSourceFile p) {
