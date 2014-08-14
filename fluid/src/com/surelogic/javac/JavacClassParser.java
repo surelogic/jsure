@@ -44,6 +44,8 @@ import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.*;
 import extra166y.ParallelArray;
 import extra166y.Ops.Procedure;
@@ -1307,5 +1309,15 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 				parse(results);
 			}
 		});
+	}
+	
+	boolean usesUnsupportedJava8Features(IRNode cu) {
+		for(IRNode n : JJNode.tree.topDown(cu)) {
+			Operator op = JJNode.tree.getOperator(n);
+			if (op instanceof UnsupportedJava8Feature) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
