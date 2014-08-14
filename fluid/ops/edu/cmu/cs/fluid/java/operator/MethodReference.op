@@ -2,7 +2,7 @@
  * Temporary syntax for Java 8's method reference.
  * The receiver could be a type expression,  
  */
-public operator MethodReference extends PrimaryExpression implements IllegalCode
+public operator MethodReference extends PrimaryExpression implements IllegalCode, UnsupportedJava8Feature
 {
   syntax { receiver:Expression <> "::" @typeArgs:TypeActuals? $method:Info }
   properties {

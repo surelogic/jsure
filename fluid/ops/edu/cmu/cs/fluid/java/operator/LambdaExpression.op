@@ -9,7 +9,7 @@
  * Ideally, one might wish to declare a new interface to capture
  * these two situations.
  */
-public operator LambdaExpression extends PrimaryExpression implements IllegalCode
+public operator LambdaExpression extends PrimaryExpression implements IllegalCode, UnsupportedJava8Feature
 {
   syntax { params:Parameters "->" body:Operator }
   properties {
