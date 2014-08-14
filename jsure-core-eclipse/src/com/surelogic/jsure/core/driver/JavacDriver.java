@@ -898,7 +898,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
 	  final int version = JDTUtility.getMajorJavaSourceVersion(p);  
 	  if (!AbstractJavaBinder.processJava8 && version >= 8) {
 		  l.reportError("JSure currently cannot process Java 8", 
-			            "JSure is being upgraded to process Java 8 sources.  Please wait for the next release");
+			            "The source level of "+p.getElementName()+" is set to Java 8, but JSure is still being upgraded to process Java 8 sources.  Please wait for the next release");
 		  return false;
 	  }
 	  
