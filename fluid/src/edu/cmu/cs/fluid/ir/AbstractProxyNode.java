@@ -23,7 +23,7 @@ public abstract class AbstractProxyNode implements IRNode {
   }
 
   @Override
-  public final int hashCode() {
+  public /*final*/ int hashCode() {
     return getIRNode().hashCode();
   }
 

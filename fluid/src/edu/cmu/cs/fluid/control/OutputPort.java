@@ -13,6 +13,9 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * @see DoubleOutputPort
  */
 abstract class OutputPort extends AbstractProxyNode implements Port, IOutputPort {
+  int hashcode = Integer.MAX_VALUE;
+  Object identity;
+	
   @Override
   public IRNode getIRNode() {
     return getDual();
@@ -37,4 +40,35 @@ abstract class OutputPort extends AbstractProxyNode implements Port, IOutputPort
   public String toString() {
 	  return getClass().getSimpleName() ; // + "(" + getIRNode() + ")";
   }
+  
+  @Override
+  public final int hashCode() {
+	//return super.hashCode();	
+	if (hashcode == Integer.MAX_VALUE) {
+		hashcode = super.hashCode();
+	}
+	return hashcode;	
+	//return identity().hashCode();
+  }
+  
+  @Override
+  public Object identity() {
+	if (identity == null) {
+	  identity = super.identity();
+	}
+	return identity;
+  }
+  
+  /*
+  @Override
+  public final boolean equals(Object o) {
+	if (o instanceof OutputPort) {
+	  OutputPort op = (OutputPort) o;
+	  if (hashCode() != op.hashCode()) {
+		return false;
+	  }	  
+	}
+	return super.equals(o);
+  }
+  */
 }
