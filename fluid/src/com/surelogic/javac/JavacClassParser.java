@@ -31,6 +31,7 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
 import com.surelogic.common.concurrent.RecursiveIOAction;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.java.*;
 import com.surelogic.common.java.Config.Type;
 import com.surelogic.common.logging.SLLogger;
@@ -223,7 +224,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 			}
 			for(CodeInfo cu : results) {
 				if (usesUnsupportedJava8Features(cu.getNode())) {
-					throw new CancellationException(cu.getFile().getRelativePath()+" uses unsupported Java 8 features");
+					throw new CancellationException(I18N.msg("jsure.temp.java8.dialog", cu.getFile().getRelativePath()));
 				}
 			}
 		}
