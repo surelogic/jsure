@@ -2,12 +2,12 @@ package com.surelogic.analysis.nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.surelogic.NonNull;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
@@ -81,7 +81,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
   // XXX: Should this really be static?
   private static final Set<PromiseDrop<?>> createdVirtualAnnotations = 
       new ConcurrentHashSet<PromiseDrop<?>>();
-  private final Map<IRNode, Element> fieldInits = new HashMap<IRNode, Element>();
+  private final Map<IRNode, Element> fieldInits = new ConcurrentHashMap<IRNode, Element>();
 
   
   

@@ -18,7 +18,6 @@ import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
-import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 
@@ -94,7 +93,11 @@ final class NullableUtils {
    * is added to the collection of virtual annotations.  If the annotation
    * already exists, the existing one is returned.
    */
-  private static <A extends IAASTRootNode, T extends PromiseDrop<? super A>> T
+  /* Synchronized to prevent generation of duplicate virtual promises during
+   * concurrent execution.  The synchronization is really protecting the call
+   * to AnnotationRules.attachAsVirtual.
+   */
+  private synchronized static <A extends IAASTRootNode, T extends PromiseDrop<? super A>> T
   attachAsVirtual(final IPromiseDropStorage<T> storage, final T drop,
       Set<PromiseDrop<?>> created) {
     try {
