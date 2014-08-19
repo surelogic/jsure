@@ -94,6 +94,12 @@ public abstract class AbstractBinder implements IBinder {
     return typeVisitor.getJavaType(n);
   }
 
+  @Override
+  public IJavaType getInferredJavaType(IRNode n) {
+	// TODO for now, it does the same as above
+	return typeVisitor.getJavaType(n);
+  }
+  
   /* (non-Javadoc)
    * @see edu.cmu.cs.fluid.java.bind.IBinder#getTypeEnvironment()
    */
