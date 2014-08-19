@@ -13,6 +13,7 @@ import com.surelogic.ThreadSafe;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.license.SLLicenseProduct;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.serviceability.scan.IScanCrashReporter;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
@@ -62,6 +63,7 @@ public final class EclipseScanCrashReporter implements IScanCrashReporter {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
 				MessageDialog.openInformation(EclipseUIUtility.getShell(), "JSure Scan was Cancelled", msg);
+				SLLogger.getLogger().info(msg);
 				return Status.OK_STATUS;
 			}
 		};
