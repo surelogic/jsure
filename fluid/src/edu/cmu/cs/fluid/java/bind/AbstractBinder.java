@@ -19,6 +19,7 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.IFromInitializer;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
+import edu.cmu.cs.fluid.java.util.OpSearch;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -96,8 +97,117 @@ public abstract class AbstractBinder implements IBinder {
 
   @Override
   public IJavaType getInferredJavaType(IRNode n) {
-	// TODO for now, it does the same as above
+	// TODO not right for Java 8
+	Operator op = JJNode.tree.getOperator(n);
+	if (ParameterizedType.prototype.includes(op)) {
+		return inferForDiamond(n);
+	}
+	else if (NewExpression.prototype.includes(op)) {
+		IRNode type = NewExpression.getType(n);
+		return getInferredJavaType(type);
+	}
 	return typeVisitor.getJavaType(n);
+  }
+  
+  private IJavaDeclaredType inferForDiamond(IRNode paramdType) {
+	  final IJavaDeclaredType type = (IJavaDeclaredType) typeVisitor.getJavaType(paramdType);
+	  IRNode actuals = ParameterizedType.getArgs(paramdType);
+	  if (JJNode.tree.numChildren(actuals) == 0) {
+		  // Found diamond operator
+		  final IJavaDeclaredType targetType = findTargetType(paramdType);
+		  return matchTarget(targetType, type);
+	  }
+	  // Otherwise, fallback on the usual
+	  return type;
+  }
+
+  private IJavaDeclaredType findTargetType(IRNode pType) {
+	  IRNode context = nonExpr.findEnclosing(pType);
+	  Operator contextOp = JJNode.tree.getOperator(context);
+	  if (Initialization.prototype.includes(contextOp)) {
+		  IRNode varDecl = JJNode.tree.getParent(context);
+		  return (IJavaDeclaredType) getJavaType(varDecl);
+	  }
+	  else if (AssignExpression.prototype.includes(contextOp)) {
+		  IRNode leftSide = AssignExpression.getOp1(context);
+		  return (IJavaDeclaredType) getJavaType(leftSide);
+	  }	  
+	  return null;
+  }
+
+
+  private final OpSearch nonExpr = new OpSearch() {
+	  @Override
+	  protected boolean found(Operator op) { 
+		  return op instanceof AssignExpression || op instanceof Arguments || !(op instanceof Expression); 
+	  }
+  };
+   
+  private IJavaDeclaredType matchTarget(IJavaDeclaredType targetType, IJavaDeclaredType newType) {
+	//System.out.println("Target: "+targetType);
+	if (targetType.isRawType(getTypeEnvironment())) {
+	  return (IJavaDeclaredType) getTypeEnvironment().computeErasure(newType);
+	}
+	/*
+	  final TypeUtils utils = new TypeUtils(getTypeEnvironment());
+	  final Constraints constraints = utils.new Constraints(null, null, InvocationKind.STRICT);
+	  constraints.addConstraints(targetType, type);
+	  constraints.computeTypeMapping();
+	 */	  
+	IJavaDeclaredType genType = makeGeneric(newType);
+	IJavaDeclaredType targetedST = matchDeclToSuperType(targetType.getDeclaration(), genType);
+	IJavaDeclaredType rv = matchupParameters(targetType, genType, targetedST);
+	if (rv == null) {
+		return newType; // Unable to infer right now
+	}
+	return rv;
+  }
+  
+  private IJavaDeclaredType makeGeneric(IJavaDeclaredType t) {
+	IRNode types = TypeUtils.getParametersForType(t.getDeclaration());
+	List<IJavaType> params = new ArrayList<IJavaType>();
+	for(IRNode tf : TypeFormals.getTypeIterator(types)) {
+		params.add(JavaTypeFactory.getTypeFormal(tf));
+	}
+	// TODO is the outer type right?
+	return JavaTypeFactory.getDeclaredType(t.getDeclaration(), params, t.getOuterType());
+  }
+  
+  private IJavaDeclaredType matchDeclToSuperType(final IRNode decl, IJavaDeclaredType t) {
+	  if (decl.equals(t.getDeclaration())) {
+		  return t;
+	  }
+	  for(IJavaType st : t.getSupertypes(getTypeEnvironment())) {
+		  IJavaDeclaredType rv = matchDeclToSuperType(decl, (IJavaDeclaredType) st);
+		  if (rv != null) {
+			  return rv;
+		  }
+	  }
+	  return null;
+  }
+  
+  private IJavaDeclaredType matchupParameters(IJavaDeclaredType targetType, IJavaDeclaredType generic, IJavaDeclaredType match) {	  
+	  // Compute substitution
+	  Map<IJavaType,IJavaType> map = new HashMap<IJavaType, IJavaType>();
+	  int i=0;
+	  for(IJavaType t : match.getTypeParameters()) {
+		  if (t instanceof IJavaTypeFormal) {
+			  map.put(t, targetType.getTypeParameters().get(i));
+		  } else {
+			  return null;
+		  }
+	  }
+	  // Substitute
+	  List<IJavaType> params = new ArrayList<IJavaType>();
+	  for(IJavaType t : generic.getTypeParameters()) {
+		  IJavaType subst = map.get(t);
+		  if (subst == null) {
+			  return null;
+		  }
+		  params.add(subst);
+	  }
+	  // TODO is the outer type right?
+	  return JavaTypeFactory.getDeclaredType(generic.getDeclaration(), params, generic.getOuterType());
   }
   
   /* (non-Javadoc)
