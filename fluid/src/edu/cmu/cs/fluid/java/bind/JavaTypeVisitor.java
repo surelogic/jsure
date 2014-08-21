@@ -246,6 +246,15 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   
   @Override
+  public IJavaType visitElementValueArrayInitializer(IRNode node) {
+	  if (!JJNode.tree.hasChildren(node)) {
+		  return JavaTypeFactory.getArrayType(JavaTypeFactory.anyType, 1);
+	  }
+	  IRNode first = ElementValueArrayInitializer.getValue(node, 0);
+	  return JavaTypeFactory.getArrayType(doAccept(first), 1);
+  }
+  
+  @Override
   public IJavaType visitElementValuePair(IRNode node) {
 	IBinding b = binder.getIBinding(node);
 	return visitAnnotationElement(b.getNode());
