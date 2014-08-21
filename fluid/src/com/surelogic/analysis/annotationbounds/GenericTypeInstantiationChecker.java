@@ -283,19 +283,25 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
        * parameterization.  Should always get an IJavaDeclaredType.
        */
       final IJavaDeclaredType jTypeOfParameterizedType =
-          (IJavaDeclaredType) binder.getJavaType(pType);
+          (IJavaDeclaredType) binder.getInferredJavaType(pType);
 
-      final List<Pair<IRNode, Set<AnnotationBounds>>> bounds =
-          getBounds(baseTypeDecl, boundsDrop, containableDrop, true);
-      if (bounds != null) {
-        ResultFolderDrop folder =
-            checkActualsAgainstBounds(pType, jTypeOfParameterizedType, bounds);
-        /* Don't add the folder to the top-level if the only bounds come
-         * implicitly from @Containable
-         */
-        if (boundsDrop != null) folder.addChecked(boundsDrop);
-            
-        folders.put(pType, folder);
+      /* If the Parameterized type uses the diamond operator, e.g., T<>, then
+       * the inferred type may be raw (not parameterized), so we must stop
+       * checking the paramters.
+       */
+      if (jTypeOfParameterizedType.getTypeParameters().size() > 0) {
+        final List<Pair<IRNode, Set<AnnotationBounds>>> bounds =
+            getBounds(baseTypeDecl, boundsDrop, containableDrop, true);
+        if (bounds != null) {
+          ResultFolderDrop folder =
+              checkActualsAgainstBounds(pType, jTypeOfParameterizedType, bounds);
+          /* Don't add the folder to the top-level if the only bounds come
+           * implicitly from @Containable
+           */
+          if (boundsDrop != null) folder.addChecked(boundsDrop);
+              
+          folders.put(pType, folder);
+        }
       }
     }
     return null;
@@ -461,7 +467,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       result.addTrusted(vouchDrop);
     } else {
       for (int i = 0; i < boundsList.size(); i++) {
-        final IRNode typeActual = TypeActuals.getType(typeActuals, i);
+        final IRNode typeActual = JJNode.tree.numChildren(typeActuals) == 0 ? typeActuals : TypeActuals.getType(typeActuals, i);
         final IRNode formalDecl = boundsList.get(i).first();
         final String nameOfTypeFormal = TypeFormal.getId(formalDecl);
         final Set<AnnotationBounds> bounds = boundsList.get(i).second();
