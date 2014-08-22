@@ -484,10 +484,6 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
     final int column = getColumnIndex();
     if (column != -1)
       getCascadingList().emptyFrom(column);
-
-    /*
-     * if (lineFactory != null) { lineFactory.dispose(); }
-     */
   }
 
   @Override
