@@ -149,7 +149,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     }
   };
 
-  final Listener f_doubleClick = new Listener() {
+  final Listener f_selection = new Listener() {
     @Override
     public void handleEvent(final Event event) {
       final IProofDrop info = getSelectedItem();
@@ -169,10 +169,10 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     @Override
     public Composite createContents(final Composite panel) {
       f_table = new Table(panel, SWT.FULL_SELECTION);
-      // add one column so pack works rigth on all operating systems
+      // add one column so pack works right on all operating systems
       new TableColumn(f_table, SWT.NONE);
       f_table.setLinesVisible(true);
-      f_table.addListener(SWT.MouseDoubleClick, f_doubleClick);
+      f_table.addListener(SWT.Selection, f_selection);
       f_table.addKeyListener(f_keyListener);
       f_table.setItemCount(0);
 
