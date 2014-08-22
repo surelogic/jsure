@@ -43,7 +43,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
   /**
    * The table used to display the results.
    */
-  private Table f_table = null;
+  Table f_table = null;
 
   MListOfResultsColumn(final CascadingList cascadingList, final Selection selection, final MColumn previousColumn) {
     super(cascadingList, selection, previousColumn);
@@ -121,7 +121,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     job.schedule();
   }
 
-  private final KeyListener f_keyListener = new KeyListener() {
+  final KeyListener f_keyListener = new KeyListener() {
     @Override
     public void keyPressed(final KeyEvent e) {
       if (e.character == 0x01 && f_table != null) {
@@ -136,7 +136,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     }
   };
 
-  private final Action f_openProofContext = new Action() {
+  final Action f_openProofContext = new Action() {
     @Override
     public void run() {
       final IProofDrop info = getSelectedItem();
@@ -149,7 +149,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     }
   };
 
-  private final Listener f_doubleClick = new Listener() {
+  final Listener f_doubleClick = new Listener() {
     @Override
     public void handleEvent(final Event event) {
       final IProofDrop info = getSelectedItem();
@@ -165,7 +165,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     }
   };
 
-  private final IColumn f_iColumn = new IColumn() {
+  final IColumn f_iColumn = new IColumn() {
     @Override
     public Composite createContents(final Composite panel) {
       f_table = new Table(panel, SWT.FULL_SELECTION);
@@ -223,7 +223,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     }
   };
 
-  private void updateTableContents() {
+  void updateTableContents() {
     if (f_table.isDisposed()) {
       return;
     }
@@ -274,13 +274,13 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     job.schedule();
   }
 
-  private void selectItem(int i, IProofDrop data) {
+  void selectItem(int i, IProofDrop data) {
     if (i != -1) {
       f_table.select(i);
     }
   }
 
-  private IProofDrop getSelectedItem() {
+  IProofDrop getSelectedItem() {
     final TableItem[] selected = f_table.getSelection();
     if (selected.length > 0) {
       final Object data = selected[0].getData();
@@ -290,7 +290,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     return null;
   }
 
-  private void refreshDisplay() {
+  void refreshDisplay() {
     if (f_table == null) {
       final int addAfterColumn = getPreviousColumn().getColumnIndex();
       // create the display table
@@ -301,7 +301,7 @@ public final class MListOfResultsColumn extends MColumn implements ISelectionObs
     }
   }
 
-  private void setTableItemInfo(TableItem item, IProofDrop data) {
+  void setTableItemInfo(TableItem item, IProofDrop data) {
     final Image image = JSureDecoratedImageUtility.getImageForDrop(data, false);
     item.setText(data.getMessage());
     item.setImage(image);

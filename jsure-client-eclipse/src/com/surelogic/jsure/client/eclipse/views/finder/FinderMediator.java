@@ -23,20 +23,20 @@ import com.surelogic.jsure.client.eclipse.model.selection.SelectionManager;
 
 public final class FinderMediator implements ILifecycle, CascadingList.ICascadingListObserver, ISelectionManagerObserver {
 
-  private final Composite f_parent;
-  private final CascadingList f_finder;
-  private final Link f_breadcrumbs;
-  private final ToolItem f_clearSelectionItem;
-  private final ToolItem f_openSearchItem;
-  private final ToolItem f_saveSearchAsItem;
-  private final ToolItem f_deleteSearchItem;
-  private final Link f_savedSelections;
+  final Composite f_parent;
+  final CascadingList f_finder;
+  final Link f_breadcrumbs;
+  final ToolItem f_clearSelectionItem;
+  final ToolItem f_openSearchItem;
+  final ToolItem f_saveSearchAsItem;
+  final ToolItem f_deleteSearchItem;
+  final Link f_savedSelections;
 
-  private final SelectionManager f_manager = SelectionManager.getInstance();
+  final SelectionManager f_manager = SelectionManager.getInstance();
 
-  private Selection f_workingSelection = null;
+  Selection f_workingSelection = null;
 
-  private MColumn f_first = null;
+  MColumn f_first = null;
 
   FinderMediator(Composite parent, CascadingList finder, Link breadcrumbs, ToolItem clearSelectionItem, ToolItem openSearchItem,
       ToolItem saveSearchAsItem, ToolItem deleteSearchItem, Link savedSelections) {
@@ -171,7 +171,7 @@ public final class FinderMediator implements ILifecycle, CascadingList.ICascadin
     }
   }
 
-  private void clearToNewWorkingSelection() {
+  void clearToNewWorkingSelection() {
     disposeWorkingSelection();
     f_workingSelection = f_manager.construct();
     f_workingSelection.initAndSyncToSea();
@@ -180,7 +180,7 @@ public final class FinderMediator implements ILifecycle, CascadingList.ICascadin
     f_first.init();
   }
 
-  private void openSelection(final Selection newSelection) {
+  void openSelection(final Selection newSelection) {
     disposeWorkingSelection();
     f_workingSelection = newSelection;
     f_workingSelection.initAndSyncToSea();
@@ -224,7 +224,7 @@ public final class FinderMediator implements ILifecycle, CascadingList.ICascadin
     updateSavedSelections();
   }
 
-  private void updateBreadcrumbs() {
+  void updateBreadcrumbs() {
     final StringBuilder b = new StringBuilder();
     int column = 0;
     boolean first = true;
@@ -255,7 +255,7 @@ public final class FinderMediator implements ILifecycle, CascadingList.ICascadin
     f_parent.layout();
   }
 
-  private void updateSavedSelections() {
+  void updateSavedSelections() {
     StringBuilder b = new StringBuilder();
     final boolean saveable = f_workingSelection != null && f_workingSelection.getFilterCount() > 0;
     f_saveSearchAsItem.setEnabled(saveable);

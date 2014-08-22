@@ -33,13 +33,17 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.ui.progress.UIJob;
 
+import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.CascadingList;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.ISearchBoxObserver;
+import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.SearchBox;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.jsure.client.eclipse.model.selection.Filter;
@@ -48,34 +52,34 @@ import com.surelogic.jsure.client.eclipse.model.selection.Selection;
 
 public final class MFilterSelectionColumn extends MColumn implements IFilterObserver {
 
-  private final Filter f_filter;
+  final Filter f_filter;
 
   Filter getFilter() {
     return f_filter;
   }
 
-  private Composite f_panel = null;
-  private Table f_reportContents = null;
-  private Label f_totalCount = null;
-  private Composite f_bottomSection = null;
-  private SearchBox f_searchBox = null;
-  private Label f_porousCount = null;
-  private Group f_reportGroup = null;
-  private TableColumn f_valueColumn = null;
-  private TableColumn f_graphColumn = null;
-  private Color f_barColorDark = null;
-  private Color f_barColorLight = null;
+  Composite f_panel = null;
+  Table f_reportContents = null;
+  Label f_totalCount = null;
+  Composite f_bottomSection = null;
+  SearchBox f_searchBox = null;
+  Label f_porousCount = null;
+  Group f_reportGroup = null;
+  TableColumn f_valueColumn = null;
+  TableColumn f_graphColumn = null;
+  Color f_barColorDark = null;
+  Color f_barColorLight = null;
 
-  private Menu f_menu = null;
-  private MenuItem f_selectAllMenuItem = null;
-  private MenuItem f_deselectAllMenuItem = null;
-  private MenuItem f_sortByCountMenuItem = null;
-  private List<String> valueList;
-  private String f_mouseOverLine = "";
+  Menu f_menu = null;
+  MenuItem f_selectAllMenuItem = null;
+  MenuItem f_deselectAllMenuItem = null;
+  MenuItem f_sortByCountMenuItem = null;
+  List<String> valueList;
+  String f_mouseOverLine = "";
 
-  private boolean f_sortByCount = false;
+  boolean f_sortByCount = false;
 
-  private static final int GRAPH_WIDTH = 75;
+  static final int GRAPH_WIDTH = 75;
 
   MFilterSelectionColumn(CascadingList cascadingList, Selection selection, MColumn previousColumn, Filter filter) {
     super(cascadingList, selection, previousColumn);
@@ -98,8 +102,33 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
         gridLayout.marginHeight = gridLayout.marginWidth = 0;
         f_reportGroup.setLayout(gridLayout);
 
-        f_totalCount = new Label(f_reportGroup, SWT.RIGHT);
-        f_totalCount.setLayoutData(new GridData(SWT.FILL, SWT.DEFAULT, true, false));
+        final Composite topPanel = new Composite(f_reportGroup, SWT.NONE);
+        gridLayout = new GridLayout();
+        gridLayout.marginHeight = gridLayout.marginWidth = 0;
+        gridLayout.numColumns = 2;
+        topPanel.setLayout(gridLayout);
+        topPanel.setLayoutData(new GridData(SWT.FILL, SWT.DEFAULT, true, false));
+
+        f_totalCount = new Label(topPanel, SWT.RIGHT);
+        f_totalCount.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false));
+
+        final ToolBar clearSelectionBar = new ToolBar(topPanel, SWT.HORIZONTAL | SWT.FLAT);
+        clearSelectionBar.setLayoutData(new GridData(SWT.DEFAULT, SWT.CENTER, false, false));
+
+        final ToolItem clearSelectionItem = new ToolItem(clearSelectionBar, SWT.PUSH);
+        clearSelectionItem.setImage(SLImages.getImage(CommonImages.IMG_GRAY_X));
+        clearSelectionItem.setToolTipText("Remove This Filter");
+        clearSelectionItem.addListener(SWT.Selection, new Listener() {
+          @Override
+          public void handleEvent(Event event) {
+            MColumn c = getPreviousColumn();
+            if (c instanceof MRadioMenuColumn) {
+              ((MRadioMenuColumn) c).clearSelection();
+            }
+            getSelection().emptyFrom(getFilter());
+            MFilterSelectionColumn.this.dispose();
+          }
+        });
 
         f_reportContents = new Table(f_reportGroup, SWT.VIRTUAL | SWT.CHECK | SWT.FULL_SELECTION | SWT.V_SCROLL);
         GridData data = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -497,7 +526,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
   /**
    * Must be called from the UI thread.
    */
-  private void updateReport() {
+  void updateReport() {
     if (f_panel.isDisposed())
       return;
 
@@ -653,7 +682,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
     getCascadingList().show(index);
   }
 
-  private void focusOnColumn(MColumn column) {
+  void focusOnColumn(MColumn column) {
     if (column != null) {
       column.forceFocus();
     }
@@ -668,7 +697,7 @@ public final class MFilterSelectionColumn extends MColumn implements IFilterObse
     }
   }
 
-  private void selectAllItems() {
+  void selectAllItems() {
     f_filter.setPorousAll();
     for (TableItem item : f_reportContents.getItems()) {
       item.setChecked(true);

@@ -222,7 +222,7 @@ public final class Selection implements JSureDataDirHub.CurrentScanChangeListene
    *          a filter within this selection, may be <code>null</code> in which
    *          case the selection is not modified.
    */
-  public void emptyAfter(Filter filter) {
+  public void emptyFrom(Filter filter) {
     if (filter == null)
       return;
     final List<Filter> disposeList = new ArrayList<Filter>();
