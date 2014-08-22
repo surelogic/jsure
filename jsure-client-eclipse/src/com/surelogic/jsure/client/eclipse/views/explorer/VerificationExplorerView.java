@@ -16,7 +16,9 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
@@ -336,21 +338,27 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
   };
 
   private void makeActions() {
+    f_treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+      @Override
+      public void selectionChanged(SelectionChangedEvent event) {
+        final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
+        if (!s.isEmpty()) {
+          final Object first = s.getFirstElement();
+          if (first instanceof ElementDrop) {
+            // Try to open an editor at the point this item references
+            final IJavaRef ref = ((ElementDrop) first).getDrop().getJavaRef();
+            if (ref != null)
+              Activator.highlightLineInJavaEditor(ref);
+          }
+        }
+      }
+    });
     f_treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
       public void doubleClick(DoubleClickEvent event) {
         final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
         if (!s.isEmpty()) {
           final Object first = s.getFirstElement();
-          if (first instanceof ElementDrop) {
-            /*
-             * Try to open an editor at the point this item references in the
-             * code
-             */
-            final IJavaRef ref = ((ElementDrop) first).getDrop().getJavaRef();
-            if (ref != null)
-              Activator.highlightLineInJavaEditor(ref);
-          }
           // open up the tree one more level
           if (!f_treeViewer.getExpandedState(first)) {
             f_treeViewer.expandToLevel(first, 1);
