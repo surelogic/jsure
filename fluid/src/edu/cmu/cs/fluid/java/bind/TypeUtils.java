@@ -611,8 +611,10 @@ public class TypeUtils {
 						IJavaCaptureType ct = (IJavaCaptureType) actual;
 						return derive(formal, constraint, ct.getLowerBound());
 					}
-					// This turns out to be pretty different from the cases below					
-					return deriveForDeclaredType_to(f, (IJavaDeclaredType) actual);
+					// This turns out to be pretty different from the cases below
+					else if (actual instanceof IJavaDeclaredType) {
+						return deriveForDeclaredType_to(f, (IJavaDeclaredType) actual);
+					}
 				}
 				if (actual == JavaTypeFactory.anyType) {
 					// No constraint
@@ -629,6 +631,7 @@ public class TypeUtils {
 					IJavaTypeVariable f = (IJavaTypeVariable) formal;
 					IJavaReferenceType a = (IJavaReferenceType) actual;
 					constraints.add(new TypeConstraint(f, constraint.simplify(), a));
+					return true;
 				}
 			}
 			else if (formal instanceof IJavaIntersectionType) {
@@ -804,10 +807,18 @@ public class TypeUtils {
 				return false;
 			}
 			// A generic type of some kind ...
-			// 
-			// If A is an invocation of a generic type declaration H, 
-			// where H is either G or superclass or superinterface of G, then:
+			//
+			// If F has the form G< ..., Y k-1 , U , Y k+1 , ... > , 
+			// where U is a type expression that involves T_j , then:
+			//			
+			//   If A is an invocation of a generic type declaration H, 
+			//   where H is either G or superclass or superinterface of G, then:
+			/*
+			IJavaDeclaredType h = findLowestCommonAncestor_raw(f, a);			
+			if (h != null) {
+			*/
 			if (tEnv.isRawSubType(f, a)) {
+				// TODO need to compensate for the difference in types
 				if (a.getTypeParameters().size() == 0) {
 					// TODO The actual is raw, so there's nothing else to do?
 					return false;
@@ -856,7 +867,8 @@ public class TypeUtils {
 						// V << A
 						return derive(v, Constraint.CONVERTIBLE_TO, a);
 					}
-				}		
+				}	
+				return false;
 			} 
 			// A is of the form G<...>
 			final IJavaType aParam = a.getTypeParameters().get(i);
@@ -1526,7 +1538,7 @@ public class TypeUtils {
 	    	
 	    	// Set any unresolved vars to their erasures
 	    	for(IJavaType tf : stillUnresolved) {
-	    		newMap.subst.put(tf, tEnv.computeErasure(tf));
+	    		newMap.subst.put(tf, tf.getSuperclass(tEnv));
 	    	}
 	    }	    
 		return constraints;
@@ -1647,4 +1659,29 @@ public class TypeUtils {
 		  //LOG.warning("poly expression has bad context: " + op);
 		  return null;
 	  }
+	
+
+	/**
+	 * Find H, where A is the invocation of a generic type declaration H, 
+	 * where H is either G or superclass or superinterface of G
+	 * where G is the generic type of F
+	 */
+	public IJavaDeclaredType findLowestCommonAncestor_raw(IJavaDeclaredType f, IJavaDeclaredType a) {
+		IJavaDeclaredType g = (IJavaDeclaredType) tEnv.computeErasure(f);		
+		return findLowestCommonAncestor_private(g, a);
+	}
+	
+	public IJavaDeclaredType findLowestCommonAncestor_private(final IJavaDeclaredType g, IJavaDeclaredType a) {		
+		if (g.getDeclaration().equals(a.getDeclaration())) {
+			return a;
+		}
+		for(IJavaType g_st : g.getSupertypes(tEnv)) {
+			IJavaDeclaredType temp = findLowestCommonAncestor_private((IJavaDeclaredType) g_st, a);
+			if (temp != null) {
+				return temp;
+			}
+			// TODO what if more than one match?
+		}
+		return null;
+	}
 }

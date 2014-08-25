@@ -311,18 +311,21 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
       // I can apply an unchecked conversion
       return true;
     } else {
+      /*
       // Check whether it would throw an exception
       IJavaType erasure = computeErasure(param);
       boolean oldRv = isSubType(arg, erasure);
       // TODO unchecked conversion?
       if (oldRv) {
-    	  if (true) {
+    	  if (true) { // TODO
     		  return true; // Old result for "compatibility"
     	  } else {
-    		  System.err.println("Previously trying to convert "+arg+" to "+param);    	  
+    		  System.err.println("Previously trying to convert "+arg+" to "+param);   
+    		  isSubType(arg, param);
     		  isCallCompatibleIfRaw(param, arg);
     	  }
       }
+      */
       return false;
     }
   }
@@ -948,6 +951,8 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
    */
   @Override
   public Iteratable<IJavaType> getSuperTypes(IJavaType ty) {
+	ty = JavaTypeVisitor.captureWildcards(getBinder(), ty);
+	
     //IBinder binder               = getBinder();
     final IJavaType javalangobjectType = getObjectType();
     if (ty == javalangobjectType || !(ty instanceof IJavaReferenceType) || ty instanceof IJavaNullType) {
@@ -1073,6 +1078,8 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
   
   @Override
   public IJavaDeclaredType getSuperclass(IJavaDeclaredType dt) {
+	  dt = (IJavaDeclaredType) JavaTypeVisitor.captureWildcards(getBinder(), dt);
+	  
 	  final IRNode declaration = dt.getDeclaration();
 	  final Operator op = JJNode.tree.getOperator(declaration);
 	  if (this == getObjectType())
@@ -1143,7 +1150,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 	  return isSubType(s, t, true);
   }
   
-  protected boolean isSubType(IJavaType s, IJavaType t, final boolean ignoreGenerics) {
+  protected boolean isSubType(final IJavaType s, final IJavaType t, final boolean ignoreGenerics) {
 	if (!ignoreGenerics) {
 		//total++;
 		Boolean result = subTypeCache.get(Pair.getInstance(s, t));
@@ -1164,7 +1171,11 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 	if (!(s instanceof IJavaReferenceType) || !(t instanceof IJavaReferenceType)) {
 		return false;
 	}
-	if (s instanceof IJavaNullType || t == getObjectType()) { 
+	// From JLS 4.10.2
+	if (s instanceof IJavaNullType) {
+		return !(t instanceof IJavaNullType);
+	}
+	if (t == getObjectType()) { 
 		return true;
 	}
 	
@@ -1208,8 +1219,9 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 		}
 		
 		if (t instanceof IJavaCaptureType) {
+			// JLS 4.10.2 -- A type variable is a direct supertype of its lower bound
 			IJavaCaptureType ct = (IJavaCaptureType) t;
-			result = isSubType(s, ct.getUpperBound()) && isSubType(s, ct.getLowerBound());
+			result = /*isSubType(s, ct.getUpperBound()) &&*/ isSubType(s, ct.getLowerBound());
 			return result;
 		}
 		
@@ -1226,7 +1238,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 				// we will return true or false.
 				List<IJavaType> sl = sd.getTypeParameters();
 				List<IJavaType> tl = td.getTypeParameters();
-				if (tl.isEmpty()) return result = true; // raw types
+				if (tl.isEmpty()) return result = true; // raw types (from JLS 4.10.2)
 				if (sl.isEmpty()) return result = false; // raw is NOT a subtype
 				Iterator<IJavaType> sli = sl.iterator();
 				Iterator<IJavaType> tli = tl.iterator();
@@ -1248,7 +1260,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 		return result = false;
 	} finally {
 		if (!ignoreGenerics) {
-			subTypeCache.put(Pair.getInstance(s, t), result);			
+			//subTypeCache.put(Pair.getInstance(s, t), result);			
 		}
 	}
   }
@@ -1290,17 +1302,31 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
      * have made a mistake here.)
      * 
      * Note from Edwin: added 1a and 2a to match apparently legal code
+     * 
+     * (from JLS 8)
+     * (1) ? extends T <= ? extends S if T <: S
+     * (1a) ? extends T <= ?
+     * (2) ? super T <= ? super S if S <: T
+     * (2a) ? super T <= ?
+     * (2b) ? super T <= ? extends Object
+     * (3) T <= T
+     * T <= ? extends T
+     * T <= ? super T
      */
     if (ss.isEqualTo(this, tt)) return true; // (3)
     
     // Hack to deal with capture types as if they're type variables
     if (ss instanceof IJavaCaptureType) {
     	IJavaCaptureType cs = (IJavaCaptureType) ss;
-    	return typeArgumentContained(cs.getUpperBound(), tt); // TODO what about lower bound?    	
+	    if (typeArgumentContained(cs.getUpperBound(), tt)) {
+	    	return true; // TODO what about lower bound?    	
+	    }
     }
     if (tt instanceof IJavaCaptureType) {
     	IJavaCaptureType ct = (IJavaCaptureType) tt;
-    	return isSubType(ss, ct.getLowerBound()) && typeArgumentContained(ss, ct.getUpperBound());
+    	if (isSubType(ss, ct.getLowerBound()) && typeArgumentContained(ss, ct.getUpperBound())) {
+    		return true;
+    	}
     }        
     
     if (ss instanceof IJavaWildcardType) {
@@ -1308,14 +1334,23 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
       if (tt instanceof IJavaWildcardType) {
         IJavaWildcardType tw = (IJavaWildcardType) tt;
         if (sw.getUpperBound() != null) {
-          if (tw.getUpperBound() == null) return true; // was false; (1a)
+          if (tw.getUpperBound() == null) {
+        	  return tw.getLowerBound() == null; // (1a)
+          }
           return isSubType(sw.getUpperBound(), tw.getUpperBound()); // (1)
-        } else {
-          if (tw.getLowerBound() == null) return true; // was bfalse; //(2a)
+        } 
+        else if (sw.getLowerBound() != null) {
+          if (tw.getLowerBound() == null) return true; //(2a)
+          if (tw.getLowerBound() == getObjectType()) return true; //(2b)          
           return isSubType(tw.getLowerBound(), sw.getLowerBound()); // (2)
+        } else { // ? <= nothing
+        	return false;
         }
       } else {
-    	// return false;
+    	if (true) {
+            // TODO the below doesn't seem right
+    		return false;
+    	}
     	// Added to handle the case of "? extends T <: T?
         return isSubType(sw.getUpperBound() != null ? sw.getUpperBound() : getObjectType(), tt);
       }

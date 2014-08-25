@@ -52,7 +52,7 @@ public class MethodBinder8 implements IMethodBinder {
         	}
         }
         // TODO is this right?
-        return new BindingInfo(rv, 0, false);
+        return new BindingInfo(rv, 0, false, 0);
     }
 
 	private static int numChildren(IRNode n) {

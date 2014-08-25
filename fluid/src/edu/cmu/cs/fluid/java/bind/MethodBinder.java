@@ -24,6 +24,9 @@ class MethodBinder implements IMethodBinder {
 	
     private final HashMap<Pair<IJavaType,IJavaType>,Boolean> callCompatCache = 
     	new HashMap<Pair<IJavaType,IJavaType>, Boolean>();
+    
+    private final HashMap<Pair<IJavaType,IJavaType>,Boolean> callCompatCache_erasure = 
+        	new HashMap<Pair<IJavaType,IJavaType>, Boolean>();
 	
 	private final boolean debug;
 	private final AbstractJavaBinder binder;
@@ -48,15 +51,23 @@ class MethodBinder implements IMethodBinder {
 		};
 	}
 	
-    private boolean isCallCompatible(IJavaType param, IJavaType arg) {
+    private boolean isCallCompatible(IJavaType param, IJavaType arg, final boolean tryErasure) {
     	if (param == null || arg == null) {    	
     		return false;
-    	}
+    	}    	
+    	final HashMap<Pair<IJavaType,IJavaType>,Boolean> cache = 
+    	    tryErasure ? callCompatCache_erasure : callCompatCache;
     	final Pair<IJavaType, IJavaType> key = Pair.getInstance(param, arg);
-    	Boolean result = callCompatCache.get(key);
+    	Boolean result = cache.get(key);
     	if (result == null) {
     		result = typeEnvironment.isCallCompatible(param, arg);
-    		callCompatCache.put(key, result);
+    		if (!result && tryErasure) {
+    		  // TODO hack
+    	      IJavaType erasure = typeEnvironment.computeErasure(param);
+    	      boolean oldRv = typeEnvironment.isSubType(arg, erasure);
+    	      result = oldRv;
+    		}
+    		cache.put(key, result);
     	}
     	return result;
     }
@@ -115,7 +126,15 @@ class MethodBinder implements IMethodBinder {
 			// Handle simple cases of shadowing/overriding
 			if (areEqual(bestArgs,tmpTypes)) {
 				return typeEnvironment.isSubType(tmpClass,bestClass);
-			}
+			}						
+			// TODO hack
+			if (match.match.numUsingErasure == 0 && bestMethod.numUsingErasure > 0) {				
+				return true;
+			}						
+			if (match.match.numUsingErasure > 0 && bestMethod.numUsingErasure == 0) {				
+				return false;
+			}		
+			
 			/* 
 			 * One fixed-arity member method named m is more specific than another member
 			 * method of the same name and arity if all of the following conditions hold:
@@ -217,12 +236,11 @@ class MethodBinder implements IMethodBinder {
   			public Iterator<IBinding> iterator() {
   				return IJavaScope.Util.lookupCallable(scope, context, isAccessible, needMethod);
   			}
-        };
-        /*
-    	if ("this.root(name, java.util.EnumSet.of(# . EOpt.ENDTAG))".equals(DebugUnparser.toString(call.call))) {
+        };        
+        //if ("this.root(name, java.util.EnumSet.of(# . EOpt.ENDTAG))".equals(DebugUnparser.toString(call.call))) {
+        if (DebugUnparser.toString(call.call).contains("capture")) {
     		System.out.println("Looking at problematic call");
-    	}
-    	*/
+    	}    	
     	final SearchState state = new SearchState(methods, call);
     	BindingInfo best  = findMostSpecificApplicableMethod(state, false, false);
     	if (best == null) {
@@ -410,7 +428,7 @@ class MethodBinder implements IMethodBinder {
     				//	  f(Object, Object...) vs f(a, b1, b2) 
     				// 2. Last formal matches up with the last argument, and is not call compatible
     				if (i < s.argTypes.length-1 || 
-    					(i==s.argTypes.length-1 && !isCallCompatible(fty, s.argTypes[i]))) {
+    					(i==s.argTypes.length-1 && !isCallCompatible(fty, s.argTypes[i], false))) {
     					// was !(s.argTypes[i] instanceof IJavaArrayType))) {
     			
     					// Convert the varargs type to get the element type
@@ -448,6 +466,7 @@ class MethodBinder implements IMethodBinder {
     	}
     	*/
     	final TypeUtils.Mapping map = constraints.computeTypeMapping();
+    	int numUsingErasure = 0;
     	
     	// Then, substitute and check if compatible
     	final boolean isVarArgs = varType != null;
@@ -458,7 +477,11 @@ class MethodBinder implements IMethodBinder {
     				constraints.substituteRawMapping(typeEnvironment, m.typeFormals, fty) :
     				//binder.getTypeEnvironment().computeErasure(fty) :     			
     				map.substitute(fty);
-    		if (!isCallCompatible(captured,s.argTypes[i])) {        	
+    		if (!isCallCompatible(captured,s.argTypes[i], false)) {        	
+    			if (isCallCompatible(captured,s.argTypes[i], true)) {
+    				numUsingErasure++;
+    				continue;
+    			}
     			// Check if need (un)boxing
     			if (allowBoxing && onlyNeedsBoxing(captured, s.argTypes[i])) {
     				numBoxed++;
@@ -475,7 +498,7 @@ class MethodBinder implements IMethodBinder {
     						inner:
     							for(IRNode arg : VarArgsExpression.getArgIterator(varArg)) {
     								final IJavaType argType = binder.getJavaType(arg);
-    								if (!isCallCompatible(eltType, argType)) {        	
+    								if (!isCallCompatible(eltType, argType, false)) {        	
     									// Check if need (un)boxing
     									if (onlyNeedsBoxing(eltType, argType)) {
     										numBoxed++;
@@ -528,7 +551,7 @@ class MethodBinder implements IMethodBinder {
     	} else {
     		newB = IBinding.Util.addReceiverType(m.bind, s.call.receiverType, typeEnvironment);
     	}
-    	return new BindingInfo(newB, numBoxed, isVarArgs);
+    	return new BindingInfo(newB, numBoxed, isVarArgs, numUsingErasure);
 	}
     
 	
@@ -560,25 +583,29 @@ class MethodBinder implements IMethodBinder {
 		return argTypes;
 	}
 
+    /*
+    TODO fix calls to isCallCompatible
+    Math.min(...)
+    */
 	private boolean onlyNeedsBoxing(IJavaType formal, IJavaType arg) {
     	if (formal instanceof IJavaPrimitiveType) {
        		// Could unbox arg?
     		if (arg instanceof IJavaDeclaredType) {        	
     			IJavaDeclaredType argD = (IJavaDeclaredType) arg;
     			IJavaType unboxed = JavaTypeFactory.getCorrespondingPrimType(argD);
-    			return unboxed != null && isCallCompatible(formal, unboxed);  
+    			return unboxed != null && isCallCompatible(formal, unboxed, false);  
     		} 
     		else if (arg instanceof IJavaReferenceType) {
     			IJavaPrimitiveType formalP = (IJavaPrimitiveType) formal;
     			IJavaType boxedEquivalent = JavaTypeFactory.getCorrespondingDeclType(typeEnvironment, formalP);
-    			return boxedEquivalent != null && isCallCompatible(boxedEquivalent, arg);
+    			return boxedEquivalent != null && isCallCompatible(boxedEquivalent, arg, false);
     		}
     	}
     	else if (formal instanceof IJavaReferenceType && arg instanceof IJavaPrimitiveType) {
     		// Could box arg?
     		IJavaPrimitiveType argP = (IJavaPrimitiveType) arg;
     		IJavaType boxed         = JavaTypeFactory.getCorrespondingDeclType(typeEnvironment, argP);
-    		return boxed != null && isCallCompatible(formal, boxed); 
+    		return boxed != null && isCallCompatible(formal, boxed, false); 
     	}
     	else if (formal instanceof IJavaDeclaredType && arg instanceof IJavaDeclaredType) {
     		IJavaDeclaredType fdt = (IJavaDeclaredType) formal;
@@ -625,11 +652,13 @@ class MethodBinder implements IMethodBinder {
 class BindingInfo {
 	final IBinding method;
 	final int numBoxed;
+	final int numUsingErasure;
 	final boolean usedVarArgs;
 
-	BindingInfo(IBinding m, int boxed, boolean var) {
+	BindingInfo(IBinding m, int boxed, boolean var, int erasure) {
 		method = m;
 		numBoxed = boxed;
+		numUsingErasure = erasure;
 		usedVarArgs = var;
 	}
 }
