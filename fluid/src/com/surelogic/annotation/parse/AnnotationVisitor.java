@@ -684,7 +684,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 
 	  // Special case for Cast
 	  final IBinding mb = tEnv.getBinder().getIBinding(node);
-	  if (mb.getContextType().getName().equals(Cast.class.getName())) {
+	  if (mb != null && mb.getContextType().getName().equals(Cast.class.getName())) {
 		  return handleJava5Promise(new ContextBuilder(node, NonNullRules.CAST, MethodDeclaration.getId(mb.getNode()))) ? 
 				 IntegerTable.incrInteger(count) : count;
 	  }
