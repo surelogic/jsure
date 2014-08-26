@@ -113,17 +113,17 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
   /**
    * Only used for scripting
    */
-  private final File tempDir;
-  private final File scriptResourcesDir;
-  private final PrintStream script;
-  private final ZipInfo info;
-  private boolean ignoreNextCleanup = true;
+  final File tempDir;
+  final File scriptResourcesDir;
+  final PrintStream script;
+  final ZipInfo info;
+  boolean ignoreNextCleanup = true;
   /*
    * Only used for updating a script
    */
-  private final SLJob updateScriptJob;
-  private final Map<String, Long> deleted;
-  private final File deletedDir;
+  final SLJob updateScriptJob;
+  final Map<String, Long> deleted;
+  final File deletedDir;
 
   private JavacDriver() {
 	super(Projects.javaFactory);
@@ -378,7 +378,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
     }
   }
 
-  private static List<IJavaProject> findProjects(final File proj) {
+  static List<IJavaProject> findProjects(final File proj) {
     File dotProject = new File(proj, EclipseUtility.DOT_PROJECT);
     if (dotProject.exists()) {
       return Collections.singletonList(JDTUtility.getJavaProject(proj.getName()));

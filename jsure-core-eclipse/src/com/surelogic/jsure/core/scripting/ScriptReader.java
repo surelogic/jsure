@@ -390,7 +390,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	  // Nothing to do yet
   }
   
-  private Projects build() throws CoreException {	  
+  Projects build() throws CoreException {	  
 	  //build(IncrementalProjectBuilder.CLEAN_BUILD); //OK
 	  //build(IncrementalProjectBuilder.FULL_BUILD); //NO
 	  return build(IncrementalProjectBuilder.INCREMENTAL_BUILD); //NO
