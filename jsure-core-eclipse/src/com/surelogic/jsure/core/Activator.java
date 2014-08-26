@@ -37,7 +37,6 @@ public class Activator extends Plugin {
 		plugin = this;
 	}
 
-	@SuppressWarnings("unused")
 	@Override
 	public void start(BundleContext context) throws Exception {
 		super.start(context);

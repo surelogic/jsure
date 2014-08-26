@@ -114,7 +114,6 @@ public final class Eclipse extends IDE {
    * @param testInit
    *          Run just after the Eclipse object is created
    */
-  @SuppressWarnings("deprecation")
   public static synchronized void initialize(IWorkspaceRoot root, Runnable testInit) {
     // Ensure log4j and other properties items are loaded
     // QuickProperties.getInstance();
