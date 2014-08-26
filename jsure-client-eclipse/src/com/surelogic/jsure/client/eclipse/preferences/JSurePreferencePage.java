@@ -153,10 +153,10 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
         I18N.msg("jsure.eclipse.preference.page.makeNonabductiveProposals"), analysisSettingsGroup);
     setupEditor(analysisSettingsGroup, f_makeNonabductiveProposals);
 
+    f_loadAllClassesFlag = new BooleanFieldEditor(IDEPreferences.LOAD_ALL_CLASSES,
+        I18N.msg("jsure.eclipse.preference.page.loadAllClasses"), analysisSettingsGroup);
+    setupEditor(analysisSettingsGroup, f_loadAllClassesFlag);
     if (XUtil.useExperimental) {
-      f_loadAllClassesFlag = new BooleanFieldEditor(IDEPreferences.LOAD_ALL_CLASSES,
-          I18N.msg("jsure.eclipse.preference.page.loadAllClasses"), analysisSettingsGroup);
-      setupEditor(analysisSettingsGroup, f_loadAllClassesFlag);
       f_treatAsJava8Flag = new BooleanFieldEditor(IDEPreferences.TREAT_AS_JAVA_8,
           I18N.msg("jsure.eclipse.preference.page.treatAsJava8"), analysisSettingsGroup);
       setupEditor(analysisSettingsGroup, f_treatAsJava8Flag);
@@ -257,8 +257,8 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_timeoutSec.loadDefault();
     f_scanMayUseCompression.loadDefault();
     f_makeNonabductiveProposals.loadDefault();
+    f_loadAllClassesFlag.loadDefault();
     if (XUtil.useExperimental) {
-      f_loadAllClassesFlag.loadDefault();
       f_treatAsJava8Flag.loadDefault();
     }
     super.performDefaults();
@@ -280,8 +280,8 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_timeoutSec.store();
     f_scanMayUseCompression.store();
     f_makeNonabductiveProposals.store();
+    f_loadAllClassesFlag.store();
     if (XUtil.useExperimental) {
-      f_loadAllClassesFlag.store();
       f_treatAsJava8Flag.store();
     }
     return super.performOk();
