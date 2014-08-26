@@ -1010,7 +1010,13 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
       //If both are ArrayType
       return compareIJavaArrayType( type1, type2 );
     //}else if( ( type1 instanceof IJavaDeclaredType ) && ( type2 instanceof IJavaDeclaredType ) ) {
-    }else {
+    } else {
+      if (type1.isSubtype(binder.getTypeEnvironment(), type2)) {
+    	  return type2;
+      }
+      if (type2.isSubtype(binder.getTypeEnvironment(), type1)) {
+    	  return type1;
+      }
       //final IJavaType lub1 = getLowestUpperBound(type1, type2);
       TypeUtils helper = new TypeUtils(binder.getTypeEnvironment());
       IJavaReferenceType lub2 = helper.getLowestUpperBound((IJavaReferenceType) type1, (IJavaReferenceType) type2);
