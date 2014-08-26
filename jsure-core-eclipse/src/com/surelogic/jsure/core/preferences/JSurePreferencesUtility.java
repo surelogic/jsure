@@ -54,7 +54,6 @@ public final class JSurePreferencesUtility {
       }
       EclipseUtility.setDefaultIntPreference(IDEPreferences.TOOL_MEMORY_MB, mem);
       EclipseUtility.setDefaultBooleanPreference(IDEPreferences.LOAD_ALL_CLASSES, false);
-      EclipseUtility.setDefaultBooleanPreference(IDEPreferences.TREAT_AS_JAVA_8, false);
 
       EclipseUtility.setDefaultStringListPreference(IDEPreferences.UNINTERESTING_PACKAGE_FILTERS,
           UninterestingPackageFilterUtility.DEFAULT);

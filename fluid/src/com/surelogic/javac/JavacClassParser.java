@@ -309,20 +309,15 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 			//Iterable <? extends JavaFileObject> toCompile = fileman.getJavaFileObjectsFromFiles(files);  
 	        // FIX what do the arguments do?        
 	        List<String> options = new ArrayList<String>();
-	        if (IDE.getInstance().getBooleanPreference(IDEPreferences.TREAT_AS_JAVA_8)) {
-	        	// Omit -source option
-	        	System.out.println("Treating as Java 8: "+jp.getName());
-	        } else {
-	        	options.add("-source");	        
-	        	final int level = tEnv.getProject().getConfig().getIntOption(Config.SOURCE_LEVEL);
-	        	//System.out.println("Parsing files from "+jp.getName()+" at level "+level);
-	        	if (level < sourceLevels.length) {
-	        		options.add(sourceLevels[level]);
-	        	} else {
-	        		throw new IllegalArgumentException("Unknown source level: "+level);
-	        	}
-	        	//System.out.println(tEnv.getProject().getName()+" is set to source level "+sourceLevels[level]+" -- "+level);
-	        }
+        	options.add("-source");	        
+	       	final int level = tEnv.getProject().getConfig().getIntOption(Config.SOURCE_LEVEL);
+	       	//System.out.println("Parsing files from "+jp.getName()+" at level "+level);
+	       	if (level < sourceLevels.length) {
+	       		options.add(sourceLevels[level]);
+	       	} else {
+	       		throw new IllegalArgumentException("Unknown source level: "+level);
+	       	}
+	       	//System.out.println(tEnv.getProject().getName()+" is set to source level "+sourceLevels[level]+" -- "+level);
 	        options.add("-printsource");
 	        final JavacTask task = (JavacTask) JavacTool.create().getTask(null, // Output to System.err
 	                fileman, nullListener, options,

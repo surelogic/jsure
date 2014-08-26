@@ -19,7 +19,6 @@ import org.eclipse.swt.widgets.Listener;
 
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.SLUtility;
-import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.MemoryUtility;
 import com.surelogic.common.i18n.I18N;
@@ -52,7 +51,6 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
   private BooleanFieldEditor f_scanMayUseCompression;
   private BooleanFieldEditor f_makeNonabductiveProposals;
   private BooleanFieldEditor f_loadAllClassesFlag;
-  private BooleanFieldEditor f_treatAsJava8Flag;
 
   public JSurePreferencePage() {
     super("jsure.eclipse.", JSurePreferencesUtility.getSwitchPreferences());
@@ -156,11 +154,6 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_loadAllClassesFlag = new BooleanFieldEditor(IDEPreferences.LOAD_ALL_CLASSES,
         I18N.msg("jsure.eclipse.preference.page.loadAllClasses"), analysisSettingsGroup);
     setupEditor(analysisSettingsGroup, f_loadAllClassesFlag);
-    if (XUtil.useExperimental) {
-      f_treatAsJava8Flag = new BooleanFieldEditor(IDEPreferences.TREAT_AS_JAVA_8,
-          I18N.msg("jsure.eclipse.preference.page.treatAsJava8"), analysisSettingsGroup);
-      setupEditor(analysisSettingsGroup, f_treatAsJava8Flag);
-    }
     return panel;
   }
 
@@ -258,9 +251,6 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_scanMayUseCompression.loadDefault();
     f_makeNonabductiveProposals.loadDefault();
     f_loadAllClassesFlag.loadDefault();
-    if (XUtil.useExperimental) {
-      f_treatAsJava8Flag.loadDefault();
-    }
     super.performDefaults();
   }
 
@@ -281,9 +271,6 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_scanMayUseCompression.store();
     f_makeNonabductiveProposals.store();
     f_loadAllClassesFlag.store();
-    if (XUtil.useExperimental) {
-      f_treatAsJava8Flag.store();
-    }
     return super.performOk();
   }
 }
