@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.MemoryUtility;
@@ -37,13 +38,12 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
   static private final String TIMEOUT_WARNING_LABEL = "jsure.eclipse.preference.page.timeoutWarning";
   static private final String TIMEOUT_LABEL = "jsure.eclipse.preference.page.timeout";
 
-  private PathPreferenceEditor f_xmlDiffDir;
+  PathPreferenceEditor f_xmlDiffDir;
   private BooleanFieldEditor f_balloonFlag;
   private BooleanFieldEditor f_selectProjectsToScan;
   private BooleanFieldEditor f_selectProjectsToUpdateJar;
   private BooleanFieldEditor f_autoSaveDirtyEditorsBeforeVerify;
   private BooleanFieldEditor f_viewsSaveTreeState;
-  //private BooleanFieldEditor f_allowJavadocAnnos;
   private ScaleFieldEditor f_analysisThreadCount;
   private ScaleFieldEditor f_toolMemoryMB;
   private ScaleFieldEditor f_timeoutWarningSec;
@@ -129,19 +129,18 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
         I18N.msg("jsure.eclipse.preference.page.viewsSaveTreeState"), diGroup);
     setupEditor(diGroup, f_viewsSaveTreeState);
 
-    /*
-    final Group annoGroup = createGroup(panel, "preference.page.group.annos");
-    f_allowJavadocAnnos = new BooleanFieldEditor(IDEPreferences.ALLOW_JAVADOC_ANNOS,
-        I18N.msg("jsure.eclipse.preference.page.allowJavadocAnnos"), annoGroup);
-    setupEditor(annoGroup, f_allowJavadocAnnos);
-    */
-    
     final Group analysisSettingsGroup = createGroup(panel, "preference.page.group.analysis");
     final Label description = new Label(analysisSettingsGroup, SWT.NONE);
     description.setText(I18N.msg("jsure.eclipse.preference.page.analysis.desc"));
     description.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, true, 2, 1));
     setupThreadCount(analysisSettingsGroup);
-    setupMemorySize(analysisSettingsGroup);
+    final int estimatedMax = MemoryUtility.computeMaxMemorySizeInMb();
+    setupMemorySize(analysisSettingsGroup, estimatedMax);
+
+    final Label max = new Label(analysisSettingsGroup, SWT.NONE);
+    max.setText(I18N.msg("jsure.eclipse.preference.page.computedMaxToolMemoryLabel",
+        SLUtility.toStringHumanWithCommas(estimatedMax)));
+
     setupTimeoutWarning(analysisSettingsGroup);
     f_timeoutFlag = new BooleanFieldEditor(IDEPreferences.TIMEOUT_FLAG, I18N.msg("jsure.eclipse.preference.page.timeoutFlag"),
         analysisSettingsGroup);
@@ -155,17 +154,22 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     setupEditor(analysisSettingsGroup, f_makeNonabductiveProposals);
 
     if (XUtil.useExperimental) {
-    	f_loadAllClassesFlag = new BooleanFieldEditor(IDEPreferences.LOAD_ALL_CLASSES,
-    			I18N.msg("jsure.eclipse.preference.page.loadAllClasses"), analysisSettingsGroup);
-    	setupEditor(analysisSettingsGroup, f_loadAllClassesFlag);
-    	f_treatAsJava8Flag = new BooleanFieldEditor(IDEPreferences.TREAT_AS_JAVA_8,
-    			I18N.msg("jsure.eclipse.preference.page.treatAsJava8"), analysisSettingsGroup);
-    	setupEditor(analysisSettingsGroup, f_treatAsJava8Flag);
+      f_loadAllClassesFlag = new BooleanFieldEditor(IDEPreferences.LOAD_ALL_CLASSES,
+          I18N.msg("jsure.eclipse.preference.page.loadAllClasses"), analysisSettingsGroup);
+      setupEditor(analysisSettingsGroup, f_loadAllClassesFlag);
+      f_treatAsJava8Flag = new BooleanFieldEditor(IDEPreferences.TREAT_AS_JAVA_8,
+          I18N.msg("jsure.eclipse.preference.page.treatAsJava8"), analysisSettingsGroup);
+      setupEditor(analysisSettingsGroup, f_treatAsJava8Flag);
     }
     return panel;
   }
 
   private void setupScaleEditor(Group group, final ScaleFieldEditor editor, int min, int max, int incr, final String label) {
+    setupScaleEditor(group, editor, min, max, incr, label, false);
+  }
+
+  private void setupScaleEditor(Group group, final ScaleFieldEditor editor, int min, int max, int incr, final String label,
+      final boolean useCommas) {
     editor.fillIntoGrid(group, 2);
     editor.setMinimum(min);
     editor.setMaximum(max);
@@ -176,14 +180,17 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     editor.getScaleControl().addListener(SWT.Selection, new Listener() {
       @Override
       public void handleEvent(final Event event) {
-        updateScaleLabel(editor, label);
+        updateScaleLabel(editor, label, useCommas);
       }
     });
   }
 
-  private void updateScaleLabel(ScaleFieldEditor editor, String msg) {
+  void updateScaleLabel(ScaleFieldEditor editor, String msg, boolean useCommas) {
     final int param = editor.getScaleControl().getSelection();
-    editor.setLabelText(I18N.msg(msg, param));
+    if (useCommas)
+      editor.setLabelText(I18N.msg(msg, SLUtility.toStringHumanWithCommas(param)));
+    else
+      editor.setLabelText(I18N.msg(msg, param));
   }
 
   private void setupThreadCount(Group group) {
@@ -193,16 +200,15 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     setupScaleEditor(group, f_analysisThreadCount, 1, max, 1, THREADS_LABEL);
   }
 
-  private void setupMemorySize(Group group) {
-    final int estimatedMax = MemoryUtility.computeMaxMemorySizeInMb();
+  private void setupMemorySize(Group group, final int estimatedMax) {
     int mb = EclipseUtility.getIntPreference(IDEPreferences.TOOL_MEMORY_MB);
     if (mb > estimatedMax) {
       mb = estimatedMax;
       EclipseUtility.setIntPreference(IDEPreferences.TOOL_MEMORY_MB, mb);
     }
-    final String label = I18N.msg(TOOL_MB_LABEL, mb);
+    final String label = I18N.msg(TOOL_MB_LABEL, SLUtility.toStringHumanWithCommas(mb));
     f_toolMemoryMB = new ScaleFieldEditor(IDEPreferences.TOOL_MEMORY_MB, label + "     ", group);
-    setupScaleEditor(group, f_toolMemoryMB, 256, estimatedMax, 256, TOOL_MB_LABEL);
+    setupScaleEditor(group, f_toolMemoryMB, 256, estimatedMax, 256, TOOL_MB_LABEL, true);
   }
 
   private void setupTimeoutWarning(Group group) {
@@ -243,7 +249,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_selectProjectsToUpdateJar.loadDefault();
     f_autoSaveDirtyEditorsBeforeVerify.loadDefault();
     f_viewsSaveTreeState.loadDefault();
-    //f_allowJavadocAnnos.loadDefault();
+    // f_allowJavadocAnnos.loadDefault();
     f_analysisThreadCount.loadDefault();
     f_toolMemoryMB.loadDefault();
     f_timeoutWarningSec.loadDefault();
@@ -252,8 +258,8 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_scanMayUseCompression.loadDefault();
     f_makeNonabductiveProposals.loadDefault();
     if (XUtil.useExperimental) {
-    	f_loadAllClassesFlag.loadDefault();
-    	f_treatAsJava8Flag.loadDefault();
+      f_loadAllClassesFlag.loadDefault();
+      f_treatAsJava8Flag.loadDefault();
     }
     super.performDefaults();
   }
@@ -266,7 +272,7 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_selectProjectsToUpdateJar.store();
     f_autoSaveDirtyEditorsBeforeVerify.store();
     f_viewsSaveTreeState.store();
-    //f_allowJavadocAnnos.store();
+    // f_allowJavadocAnnos.store();
     f_analysisThreadCount.store();
     f_toolMemoryMB.store();
     f_timeoutWarningSec.store();
@@ -275,8 +281,8 @@ public class JSurePreferencePage extends AbstractCommonPreferencePage {
     f_scanMayUseCompression.store();
     f_makeNonabductiveProposals.store();
     if (XUtil.useExperimental) {
-    	f_loadAllClassesFlag.store();
-    	f_treatAsJava8Flag.store();
+      f_loadAllClassesFlag.store();
+      f_treatAsJava8Flag.store();
     }
     return super.performOk();
   }
