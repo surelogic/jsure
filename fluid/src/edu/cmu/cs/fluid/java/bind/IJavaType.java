@@ -5,6 +5,7 @@
 package edu.cmu.cs.fluid.java.bind;
 
 import java.io.PrintStream;
+import java.util.*;
 
 import com.surelogic.ast.IType;
 import com.surelogic.common.util.*;
@@ -67,4 +68,14 @@ public interface IJavaType extends IType {
   public boolean isValid();
   public void printStructure(PrintStream out, int indent);
   public boolean isEqualTo(ITypeEnvironment env, IJavaType t2);
+  
+  /**
+   * e.g. does not contain any references to inference variables
+   */
+  public boolean isProperType();
+  
+  /**
+   * Add any referenced variables to vars
+   */
+  public void getReferencedInferenceVariables(Collection<TypeInference8.InferenceVariable> vars);
 }

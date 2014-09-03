@@ -10,6 +10,7 @@ import java.util.AbstractList;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.*;
 import java.util.logging.Logger;
 
 import com.surelogic.ast.IType;
@@ -53,6 +55,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
+import edu.cmu.cs.fluid.java.bind.TypeInference8.InferenceVariable;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayDeclaration;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
@@ -152,6 +155,15 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       return new EmptyIterator<IJavaType>();
     }    
 
+    public boolean isProperType() {
+      return true;
+    }
+    
+    @Override
+    public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
+      // Nothing to do 
+    }	      
+    
     /*******************************************************
      * Added to implement IType
      *******************************************************/
@@ -208,14 +220,20 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     return nullType;
   }
 
-  private static IRNodeHashedMap<IJavaTypeFormal> typeFormals = 
-    new IRNodeHashedMap<IJavaTypeFormal>();
   
-  public static synchronized IJavaTypeFormal getTypeFormal(IRNode tf) {
+  //private static final IRNodeHashedMap<IJavaTypeFormal> typeFormals = 
+    //new IRNodeHashedMap<IJavaTypeFormal>();
+  private static final ConcurrentMap<IRNode,IJavaTypeFormal> typeFormals =
+	new ConcurrentHashMap<IRNode, IJavaTypeFormal>();
+  
+  public static /*synchronized*/ IJavaTypeFormal getTypeFormal(IRNode tf) {
     IJavaTypeFormal res = typeFormals.get(tf);
     if (res == null) {
       res = new JavaTypeFormal(tf);
-      typeFormals.put(tf,res);
+      IJavaTypeFormal other = typeFormals.putIfAbsent(tf,res);
+      if (other != null) {
+    	  res = other;
+      }
     }
     return res;
   }
@@ -720,7 +738,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     	  }
     	  for(IRNode b : MoreBounds.getBoundIterator(moreBounds)) {
     		  final IJavaReferenceType bt = (IJavaReferenceType) binder.getJavaType(b);
-    		  final IJavaReferenceType btSubst = bt;//TODO (IJavaReferenceType) bt.subst(subst);
+    		  final IJavaReferenceType btSubst = bt;// TODO (IJavaReferenceType) bt.subst(subst);
     		  bounds.add(btSubst);
     	  }
     	  return new TypeUtils(binder.getTypeEnvironment()).getGreatestLowerBound(bounds.toArray(new IJavaReferenceType[bounds.size()]));
@@ -969,6 +987,14 @@ abstract class JavaType extends JavaTypeCleanable implements IJavaType {
 		  return tf.isEqualTo(env, this);
 	  }
 	  return false;
+  }
+
+  public boolean isProperType() {
+	  return true;
+  }
+  
+  public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
+	  // Nothing to do
   }
   
   /*******************************************************
@@ -1380,6 +1406,22 @@ class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectio
 	  }
 	  return false;
   }
+  
+  @Override
+  public boolean isProperType() {
+	return (primaryBound == null || primaryBound.isProperType()) &&
+		   (secondaryBound == null || secondaryBound.isProperType());
+  }
+  
+  @Override
+  public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
+	if (primaryBound != null) {
+		primaryBound.getReferencedInferenceVariables(vars);
+	}
+	if (secondaryBound != null) {
+		secondaryBound.getReferencedInferenceVariables(vars);
+	}
+  }	    
 }
 
 class JavaUnionType extends JavaReferenceType implements IJavaUnionType {
@@ -1462,6 +1504,22 @@ class JavaUnionType extends JavaReferenceType implements IJavaUnionType {
 		  }
 		  return false;
 	  }
+	  
+	  @Override
+	  public boolean isProperType() {
+		  return (primaryBound == null || primaryBound.isProperType()) &&
+				 (secondaryBound == null || secondaryBound.isProperType());
+	  }
+	  
+	  @Override
+	  public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
+		if (primaryBound != null) {
+			primaryBound.getReferencedInferenceVariables(vars);
+		}
+		if (secondaryBound != null) {
+			secondaryBound.getReferencedInferenceVariables(vars);
+		}
+	  }	  
 	}
 
 class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
@@ -1594,6 +1652,22 @@ class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
 		  return true;
 	  }
 	  return false;
+  }
+  
+  @Override
+  public boolean isProperType() {
+	return (upperBound == null || upperBound.isProperType()) &&
+		   (lowerBound == null || lowerBound.isProperType());
+  }
+  
+  @Override
+  public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
+	if (upperBound != null) {
+		upperBound.getReferencedInferenceVariables(vars);
+	}
+	if (lowerBound != null) {
+		lowerBound.getReferencedInferenceVariables(vars);
+	}
   }
 }
 
@@ -1728,6 +1802,23 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   public IJavaReferenceType getUpperBound(ITypeEnvironment te) {
 	  return getUpperBound();
   }
+  
+  @Override
+  public boolean isProperType() {
+	// TODO need to check the wildcard?
+	return (upperBound == null || upperBound.isProperType()) &&
+		   (lowerBound == null || lowerBound.isProperType());
+  }
+  
+  @Override
+  public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
+	if (upperBound != null) {
+		upperBound.getReferencedInferenceVariables(vars);
+	}
+	if (lowerBound != null) {
+		lowerBound.getReferencedInferenceVariables(vars);
+	}
+  }  
 }
 
 class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
@@ -1813,6 +1904,16 @@ class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
 				  getBaseType().isEqualTo(env, other.getBaseType());
 	  }
 	  return false;
+  }
+  
+  @Override
+  public boolean isProperType() {
+	return elementType.isProperType();
+  }
+
+  @Override
+  public void getReferencedInferenceVariables(Collection<TypeInference8.InferenceVariable> vars) {
+	elementType.getReferencedInferenceVariables(vars);
   }
 }
 
@@ -1977,6 +2078,23 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
 	  return false;
   }
   
+  @Override
+  public boolean isProperType() {
+	for(IJavaType p : parameters) {
+		if (!p.isProperType()) {
+			return false;
+		}
+	}
+	return true;
+  }
+  
+  @Override
+  public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
+	for(IJavaType p : parameters) {
+		p.getReferencedInferenceVariables(vars);
+	}
+  }
+  
   /*******************************************************
    * Added to implement IDeclaredType
    *******************************************************/
@@ -2044,6 +2162,17 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
     @Override
     public boolean isRawType(ITypeEnvironment tEnv) {
     	return super.isRawType(tEnv) || getOuterType().isRawType(tEnv);
+    }
+
+    @Override
+    public boolean isProperType() {
+    	return super.isProperType() && getOuterType().isProperType();
+    }
+    
+    @Override
+    public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
+    	super.getReferencedInferenceVariables(vars);
+    	getOuterType().getReferencedInferenceVariables(vars);
     }
   }
   

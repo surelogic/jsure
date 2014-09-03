@@ -2,10 +2,12 @@ package edu.cmu.cs.fluid.java.bind;
 
 import static edu.cmu.cs.fluid.java.bind.IMethodBinder.*;
 
+import java.io.IOException;
 import java.util.*;
 
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.IROutput;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -19,6 +21,31 @@ public class TypeInference8 {
 		tEnv = mb.tEnv;
 	}
 
+	// TODO how to distinguish from each other
+	// TODO how to keep from polluting the normal caches?
+	static class InferenceVariable extends JavaReferenceType {
+		final IRNode formal;
+		
+		public InferenceVariable(IRNode tf) {
+			formal = tf;
+		}
+
+		@Override
+		public boolean isProperType() {
+			return false;
+		}
+		
+		@Override
+		public void getReferencedInferenceVariables(Collection<TypeInference8.InferenceVariable> vars) {
+			vars.add(this);
+		}
+		
+		@Override
+		void writeValue(IROutput out) throws IOException {
+			throw new UnsupportedOperationException();
+		}		
+	}
+	
 	/**
 	 * 18.5.1 Invocation Applicability Inference
 	 * 
@@ -69,7 +96,7 @@ public class TypeInference8 {
      *     resolution of all the inference variables in B 2 succeeds (§18.4).
 	 */
 	boolean inferForInvocationApplicability(CallState call, MethodBinding m, InvocationKind kind) {
-		BoundSet b_0 = BoundSet.constructInitialSet(m.typeFormals);
+		BoundSet b_0 = constructInitialSet(m.typeFormals);
 		// TODO b_1 -- check if type params appear in throws clause
 		switch (kind) {
 		case STRICT:
@@ -170,28 +197,130 @@ public class TypeInference8 {
 	 * optimize the instantiation of α so that, if possible, it is not a checked exception type.
 	 */
 	static class Bound {
-		// TODO
+		final IJavaReferenceType s, t;
+		
+		Bound(IJavaReferenceType s, IJavaReferenceType t) {
+			this.s = s;
+			this.t = t;
+			
+			if (s instanceof InferenceVariable || t instanceof InferenceVariable) {
+				// Nothing to do
+			} else {
+				throw new IllegalStateException();
+			}
+		}
+		
+		@Override
+		public int hashCode() {
+			return s.hashCode() + t.hashCode();
+		}
+		
+		@Override
+		public boolean equals(Object o) {
+			if (o instanceof Bound) {
+				Bound other = (Bound) o;
+				return s.equals(other.s) && t.equals(other.t);
+			}
+			return false;
+		}
+	}
+	
+	static class EqualityBound extends Bound {
+		EqualityBound(IJavaReferenceType s, IJavaReferenceType t) {
+			super(s, t);
+		}
+	}
+	
+	static class SubtypeBound extends Bound {
+		SubtypeBound(IJavaReferenceType s, IJavaReferenceType t) {
+			super(s, t);
+		}
+	}
+	
+	static class CaptureBound {
+		final IJavaDeclaredType g_vars;
+		final IJavaDeclaredType g_needCapture;
+		
+		CaptureBound(IJavaDeclaredType vars, IJavaDeclaredType needCapture) {
+			g_vars = vars;
+			g_needCapture = needCapture;
+		}
+		
+		@Override
+		public int hashCode() {
+			return g_vars.hashCode() + g_needCapture.hashCode();
+		}
+		
+		@Override
+		public boolean equals(Object o) {
+			if (o instanceof CaptureBound) {
+				CaptureBound other = (CaptureBound) o;
+				return g_vars.equals(other.g_vars) && g_needCapture.equals(other.g_needCapture);
+			}
+			return false;
+		}
 	}
 	
 	/**
-	 * An important intermediate result of inference is a bound set. It is sometimes
-	 * convenient to refer to an empty bound set with the symbol true; this is merely out
-	 * of convenience, and the two are interchangeable
-	 * 
 	 * When inference begins, a bound set is typically generated from a list of type
 	 * parameter declarations P 1 , ..., P p and associated inference variables α 1 , ..., α p . Such
 	 * a bound set is constructed as follows. For each l (1 ≤ l ≤ p):
 	 * 
 	 * • If P l has no TypeBound, the bound α l <: Object appears in the set.
 	 * 
-	 * • Otherwise, for each type T delimited by & in the TypeBound, the bound α l <:
-	 * 
-	 * T[P 1 :=α 1 , ..., P p :=α p ] appears in the set; if this results in no proper upper bounds
-	 * for α l (only dependencies), then the bound α l <: Object also appears in the set.
+	 * • Otherwise, for each type T delimited by & in the TypeBound, 
+	 *   the bound α l <: T[P 1 :=α 1 , ..., P p :=α p ] appears in the set; 
+	 *   if this results in no proper upper bounds for α l (only dependencies), 
+	 *   then the bound α l <: Object also appears in the set.
+	 */
+	BoundSet constructInitialSet(IRNode typeFormals) {
+		// Setup inference variables
+		final int numFormals = JJNode.tree.numChildren(typeFormals);
+		final InferenceVariable[] vars = new InferenceVariable[numFormals];
+		int i=0;
+		for(IRNode tf : TypeFormals.getTypeIterator(typeFormals)) {
+			vars[i] = new InferenceVariable(tf);
+			i++;
+		}
+		final BoundSet set = new BoundSet();
+		i=0;
+		for(IRNode tf : TypeFormals.getTypeIterator(typeFormals)) {
+			IRNode bounds = TypeFormal.getBounds(tf);
+			boolean noBounds = true;
+			boolean gotProperBound = false;
+			for(IRNode bound : MoreBounds.getBoundIterator(bounds)) {
+				final IJavaType t = tEnv.getBinder().getJavaType(bound);
+				final IJavaType t_subst = t.subst(null); //TODO subst vars
+				noBounds = false;
+				set.addSubtypeBound(vars[i], t_subst);
+				if (t_subst.isProperType()) {
+					gotProperBound = true;
+				}
+			}
+			if (noBounds || !gotProperBound) {
+				set.addSubtypeBound(vars[i], tEnv.getObjectType());
+			}
+			i++;
+		}
+		throw new NotImplemented(); // TODO
+	}
+	
+	/**
+	 * An important intermediate result of inference is a bound set. It is sometimes
+	 * convenient to refer to an empty bound set with the symbol true; this is merely out
+	 * of convenience, and the two are interchangeable
 	 */
 	static class BoundSet {
 		private boolean isFalse = false;
+		private Set<InferenceVariable> thrownSet = new HashSet<InferenceVariable>();
+		private Set<EqualityBound> equalities = new HashSet<EqualityBound>();
+		private Set<SubtypeBound> subtypeBounds = new HashSet<SubtypeBound>();
+		private Set<CaptureBound> captures = new HashSet<CaptureBound>();
 		
+		BoundSet() {
+			// Only called above
+		}
+
 		void addFalse() {
 			isFalse = true;
 		}
@@ -200,30 +329,112 @@ public class TypeInference8 {
 			// TODO what is there to do?
 		}
 		
-		static BoundSet constructInitialSet(IRNode typeFormals) {
-			throw new NotImplemented(); // TODO
-		}
-
 		void addEqualityBound(IJavaType s, IJavaType t) {
-			throw new NotImplemented(); // TODO
+			equalities.add(new EqualityBound((IJavaReferenceType) s, (IJavaReferenceType) t));
 		}
 
 		void addSubtypeBound(IJavaType s, IJavaType t) {
-			throw new NotImplemented(); // TODO
-		}		
+			subtypeBounds.add(new SubtypeBound((IJavaReferenceType) s, (IJavaReferenceType) t));
+		}	
+		
+		void addCaptureBound(IJavaType s, IJavaType t) {
+			captures.add(new CaptureBound((IJavaDeclaredType) s, (IJavaDeclaredType) t));
+		}
+		
+		void addThrown(InferenceVariable v) {
+			thrownSet.add(v);
+		}
+		
+		/**
+		 * 18.4 Resolution
+		 * 
+		 * Given a bound set that does not contain the bound false, a subset of the inference variables mentioned by the 
+		 * bound set may be resolved. This means that a satisfactory instantiation may be added to the set for each 
+		 * inference variable, until all the requested variables have instantiations.
+		 * 
+		 * Dependencies in the bound set may require that the variables be resolved in a particular order, or that 
+		 * additional variables be resolved. Dependencies are specified as follows:
+		 * 
+		 * • Given a bound of one of the following forms, where T is either an inference variable β or a type that mentions β:
+		 *   – α = T
+		 *   – α <: T
+		 *   – T = α
+		 *   – T <: α
+		 * 
+		 *   If α appears on the left-hand side of another bound of the form G< ..., α, ... > =
+		 *   capture( G< ... > ), then β depends on the resolution of α. Otherwise, α depends on the resolution of β.
+		 * 
+		 * • An inference variable α appearing on the left-hand side of a bound of the form
+		 *   G< ..., α, ... > = capture( G< ... > ) depends on the resolution of every other inference
+		 *   variable mentioned in this bound (on both sides of the = sign).
+		 * 
+		 * • An inference variable α depends on the resolution of an inference variable β if
+		 *   there exists an inference variable γ such that α depends on the resolution of γ and
+		 *   γ depends on the resolution of β.
+		 * 
+		 * • An inference variable α depends on the resolution of itself.
+		 * 
+		 * Given a set of inference variables to resolve, let V be the union of this set and all
+		 * variables upon which the resolution of at least one variable in this set depends.
+		 * 
+		 * If every variable in V has an instantiation, then resolution succeeds and this procedure terminates.
+		 * 
+		 * Otherwise, let { α 1 , ..., α n } be a non-empty subset of uninstantiated variables in
+		 * V such that i) for all i (1 ≤ i ≤ n), if α i depends on the resolution of a variable β,
+		 * then either β has an instantiation or there is some j such that β = α j ; and ii) there
+		 * exists no non-empty proper subset of { α 1 , ..., α n } with this property. Resolution
+		 * proceeds by generating an instantiation for each of α 1 , ..., α n based on the bounds in the bound set:
+		 * 
+		 * • If the bound set does not contain a bound of the form G< ..., α i , ... > =
+		 *   capture( G< ... > ) for all i (1 ≤ i ≤ n), then a candidate instantiation T i is defined for each α i :
+		 * 
+		 *   – If α i has one or more proper lower bounds, L 1 , ..., L k , then T i = lub( L 1 , ..., L k ) (§4.10.4).
+		 *   
+		 *   – Otherwise, if the bound set contains throws α i , and the proper upper
+		 *     bounds of α i are, at most, Exception , Throwable , and Object , then T i = RuntimeException .
+		 *   
+		 *   – Otherwise, where α i has proper upper bounds U 1 , ..., U k , T i = glb( U 1 , ..., U k ) (§5.1.10).
+		 *  
+		 *   The bounds α 1 = T 1 , ..., α n = T n are incorporated with the current bound set.
+		 * 
+		 *   If the result does not contain the bound false, then the result becomes the new bound set, and 
+		 *   resolution proceeds by selecting a new set of variables to instantiate (if necessary), as described above.
+		 * 
+		 *   Otherwise, the result contains the bound false, so a second attempt is made to
+		 *   instantiate { α 1 , ..., α n } by performing the step below.
+		 * 
+		 * • If the bound set contains a bound of the form G< ..., α i , ... > = capture( G< ... > ) for some i (1 ≤ i ≤ n), or;
+		 *   
+		 *   If the bound set produced in the step above contains the bound false;
+		 *   then let Y 1 , ..., Y n be fresh type variables whose bounds are as follows:
+		 *   
+		 *   – For all i (1 ≤ i ≤ n), if α i has one or more proper lower bounds L 1 , ..., L k , then
+		 *     let the lower bound of Y i be lub( L 1 , ..., L k ); if not, then Y i has no lower bound.
+		 *   
+		 *   – For all i (1 ≤ i ≤ n), where α i has upper bounds U 1 , ..., U k , let the upper bound
+		 *     of Y i be glb( U 1 θ, ..., U k θ), where θ is the substitution [ α 1 := Y 1 , ..., α n := Y n ] .
+		 *   
+		 *   If the type variables Y 1 , ..., Y n do not have well-formed bounds (that is, a lower
+		 *   bound is not a subtype of an upper bound, or an intersection type is inconsistent), then resolution fails.
+		 *  
+		 *   Otherwise, for all i (1 ≤ i ≤ n), all bounds of the form G< ..., α i , ... > =
+		 *   capture( G< ... > ) are removed from the current bound set, and the bounds α 1 = Y 1 , ..., α n = Y n are incorporated.
+		 *   
+		 *   If the result does not contain the bound false, then the result becomes the
+		 *   new bound set, and resolution proceeds by selecting a new set of variables to
+		 *   instantiate (if necessary), as described above.
+		 * 
+		 *   Otherwise, the result contains the bound false, and resolution fails.
+		 */
 	}
 	
 	
 	private boolean isStandaloneExpr(IRNode e) {
 		throw new NotImplemented(); // TODO
 	}
-	
-	boolean isProperType(IJavaType t) {
-		throw new NotImplemented(); // TODO
-	}
  	
-	boolean isInferenceVariable(IJavaType t) {
-		throw new NotImplemented(); // TODO
+	static boolean isInferenceVariable(IJavaType t) {
+		return t instanceof InferenceVariable;
 	}
 	
 	// (§9.8)
@@ -241,6 +452,7 @@ public class TypeInference8 {
 	 * of S
 	 */
 	boolean hasRawSuperTypeOf(IJavaType s, IJavaType t) {
+		//tEnv.isRawSubType(s, t);
 		throw new NotImplemented(); // TODO
 	}
 	
@@ -323,7 +535,7 @@ public class TypeInference8 {
 	 * @param bounds 
 	 */
 	void reduceExpressionCompatibilityConstraints(BoundSet bounds, IRNode e, IJavaType t) {
-		if (isProperType(t)) {
+		if (t.isProperType()) {
 			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(e, null, null, t)) {
 				bounds.addTrue();
 			} else {
@@ -494,7 +706,7 @@ public class TypeInference8 {
 	 */
 	void reduceTypeCompatibilityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
 		// Case 1
-		if (isProperType(s) && isProperType(t)) {
+		if (s.isProperType() && t.isProperType()) {
 			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, s, null, t)) {
 				bounds.addTrue();
 			} else {
@@ -562,7 +774,7 @@ public class TypeInference8 {
 	 *     new constraints: for all i (1 ≤ i ≤ n), ‹ S <: I i ›.
 	 */
 	private void reduceSubtypingConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
-		if (isProperType(s) && isProperType(t)) {
+		if (s.isProperType() && t.isProperType()) {
 			if (tEnv.isSubType(s, t)) {
 				bounds.addTrue();
 			} else {
@@ -693,7 +905,7 @@ public class TypeInference8 {
 	 * • Otherwise, the constraint reduces to false.
 	 */
 	private void reduceTypeEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
-		if (isProperType(s) && isProperType(t)) {
+		if (s.isProperType() && t.isProperType()) {
 			if (s.equals(t)) {
 				bounds.addTrue();
 			} else {
@@ -836,20 +1048,20 @@ public class TypeInference8 {
     	}
     	if (MethodBinder8.isImplicitlyTypedLambda(lambda)) {
     		for(IJavaType pt : targetFuncType.getParameterTypes()) {
-    			if (!isProperType(pt)) {
+    			if (!pt.isProperType()) {
     				bounds.addFalse();
     	    		return;
     			}
     		}
     	}
     	if (!(targetFuncType.getReturnType() instanceof IJavaVoidType) || 
-    		!isProperType(targetFuncType.getReturnType())) {
+    		!targetFuncType.getReturnType().isProperType()) {
 			bounds.addFalse();
     		return;
     	}
     	final List<IJavaType> improperThrows = new ArrayList<IJavaType>();
     	for(IJavaType ex : targetFuncType.getExceptions()) {
-    		if (!isProperType(ex)) {
+    		if (!ex.isProperType()) {
     			improperThrows.add(ex);
     		}
     	}
@@ -895,7 +1107,7 @@ public class TypeInference8 {
 		}
 		if (!mb.isExactMethodReference(ref)) {
 			for(IJavaType pt : targetFuncType.getParameterTypes()) {
-    			if (!isProperType(pt)) {
+    			if (!pt.isProperType()) {
     				bounds.addFalse();
     	    		return;
     			}
