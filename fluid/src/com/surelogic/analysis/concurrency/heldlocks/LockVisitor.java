@@ -85,10 +85,12 @@ import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
+import edu.cmu.cs.fluid.java.operator.CompiledMethodBody;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
+import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NoInitialization;
 import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -3209,18 +3211,23 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
   		 * Check to see if the synchronization was used for anything. This
   		 * needs to be done last because it queries isNeeded(), which is a
   		 * side-effect of calling containsLock() on the lock stack frame.
+  		 * 
+  		 * Don't check this if the method body is compiled, because it means
+  		 * we haven't actually looked at the method body.
   		 */
-  		if (syncLockIsIdentifiable && !syncLockIsPolicyLock
-  				&& !syncFrame.isNeeded()) {
-  			final HintDrop info = makeWarningDrop(
-  					Messages.DSC_SYNCHRONIZED_UNUSED_WARNING, mdecl,
-  					Messages.LockAnalysis_ds_SynchronizationUnused,
-  					syncFrame);
-  			for (final StackLock stackLock : syncFrame) {
-  				stackLock.lock.getLockPromise().addDependent(info);
-  			}
+  		if (!CompiledMethodBody.prototype.includes(MethodDeclaration.getBody(mdecl))) {
+    		if (syncLockIsIdentifiable && !syncLockIsPolicyLock
+    				&& !syncFrame.isNeeded()) {
+    			final HintDrop info = makeWarningDrop(
+    					Messages.DSC_SYNCHRONIZED_UNUSED_WARNING, mdecl,
+    					Messages.LockAnalysis_ds_SynchronizationUnused,
+    					syncFrame);
+    			for (final StackLock stackLock : syncFrame) {
+    				stackLock.lock.getLockPromise().addDependent(info);
+    			}
+    		}
   		}
-  
+  		
   		// TODO: Check to see if the lock preconditions were needed
   	} finally {
   		// Cleanup the state used for checking returns
