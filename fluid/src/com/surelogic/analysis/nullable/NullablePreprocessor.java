@@ -11,6 +11,8 @@ import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.AllocationExpression;
 import edu.cmu.cs.fluid.java.operator.Initialization;
+import edu.cmu.cs.fluid.java.operator.StringConcat;
+import edu.cmu.cs.fluid.java.operator.StringLiteral;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 
@@ -26,7 +28,7 @@ final class NullablePreprocessor extends JavaSemanticsVisitor {
     doAcceptForChildren(varDecl);
     
     /*
-     * If the field is UNANNOTATED, final, and initialized to a new object then
+     * If the field is UNANNOTATED, final, and initialized to a new object or a String literal then
      * we add a virtual @NonNull annotation. This corresponds to the actions in
      * NonNullRawTypeAnalysis.Transfer.transferUseField(). Don't add
      * 
@@ -38,7 +40,9 @@ final class NullablePreprocessor extends JavaSemanticsVisitor {
       final IRNode init = VariableDeclarator.getInit(varDecl);
       if (TypeUtil.isJSureFinal(varDecl) &&
           Initialization.prototype.includes(init) &&
-          AllocationExpression.prototype.includes(Initialization.getValue(init))) {
+          (AllocationExpression.prototype.includes(Initialization.getValue(init)) ||
+              StringLiteral.prototype.includes(Initialization.getValue(init)) ||
+              StringConcat.prototype.includes(Initialization.getValue(init)))) {
         final NonNullNode nnn = new NonNullNode(0);
         nnn.setPromisedFor(varDecl, null);
         final NonNullPromiseDrop pd = new NonNullPromiseDrop(nnn);

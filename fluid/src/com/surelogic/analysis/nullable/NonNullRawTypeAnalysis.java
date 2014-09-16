@@ -37,7 +37,6 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
-import edu.cmu.cs.fluid.java.operator.AllocationExpression;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.AssignmentInterface;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
@@ -50,7 +49,6 @@ import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.ImpliedEnumConstantInitialization;
-import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NoInitialization;
@@ -1620,7 +1618,7 @@ implements IBinderClient {
        * field is initialized yet.  If so, we push NOT_NULL, otherwise we must
        * push MAYBE_NULL. 
        */
-      else if (nonNullPD != null && !nonNullPD.isVirtual()) {
+      else if (nonNullPD != null) {
         if (refState == NonNullRawLattice.RAW) {
           // No fields are initialized
           val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.RAW_FIELD_REF, fref));
@@ -1643,21 +1641,6 @@ implements IBinderClient {
           }
         } else {
           val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.FIELD_REF, fref));
-        }
-      }
-      /*
-       * The field is unannotated.  If the field is final and initialized in
-       * the field declaration to a new object, then the field is NOT_NULL.
-       * Otherwise it is MAYBE_NULL.
-       */
-      else {
-        final IRNode init = VariableDeclarator.getInit(varDecl);
-        if (TypeUtil.isJSureFinal(varDecl) &&
-            Initialization.prototype.includes(init) &&
-            AllocationExpression.prototype.includes(Initialization.getValue(init))) {
-          val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.FINAL_INIT_FIELD, fref));
-        } else {
-          val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.FIELD_REF, fref));
         }
       }
       return val;
