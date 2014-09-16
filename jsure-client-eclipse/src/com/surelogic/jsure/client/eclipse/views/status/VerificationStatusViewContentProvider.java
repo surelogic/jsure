@@ -32,6 +32,10 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
     final ScanDifferences f_diff;
     final boolean f_showHints;
     final List<Element> f_root = new ArrayList<Element>();
+    
+    Element[] getRootAsArray() {
+      return f_root.toArray(new Element[f_root.size()]);
+    }
 
     /**
      * Should never be invoked from the UI thread!
@@ -51,7 +55,6 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
       /*
        * Go ahead a calculate the model for the view
        */
-      final List<Element> root = new ArrayList<Element>();
       Element.f_showHints = f_showHints;
       Element.f_diff = f_diff;
       final ElementCategory.Categorizer pc = new ElementCategory.Categorizer(null);
@@ -62,7 +65,7 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
           }
         }
       }
-      root.addAll(pc.getAllElements());
+      f_root.addAll(pc.getAllElements());
 
       if (f_showHints) {
         /*
@@ -79,7 +82,7 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
           sw.setLabel(ElementCategory.SPECIAL_HINT_FOLDER_NAME);
           sw.setImageName(CommonImages.IMG_INFO);
           sw.addCategories(hc.getBuilders());
-          root.add(sw.build());
+          f_root.add(sw.build());
         }
       }
       for (Element e : f_root)
@@ -96,38 +99,7 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
     if (newInput instanceof Input) {
       final Input in = (Input) newInput;
-      final List<Element> root = new ArrayList<Element>();
-      Element.f_showHints = in.f_showHints;
-      Element.f_diff = in.f_diff;
-      final ElementCategory.Categorizer pc = new ElementCategory.Categorizer(null);
-      for (IPromiseDrop promise : in.f_scan.getPromiseDrops()) {
-        if (promise.isFromSrc() || promise.derivedFromSrc()) {
-          if (showAtTopLevel(promise)) {
-            pc.add(promise);
-          }
-        }
-      }
-      root.addAll(pc.getAllElements());
-
-      if (in.f_showHints) {
-        /*
-         * If the hint is uncategorized we don't show it in this section (it
-         * shows up under the drop it is attached to).
-         */
-        final ElementCategory.Categorizer hc = new ElementCategory.Categorizer(null);
-        for (IHintDrop hint : in.f_scan.getHintDrops()) {
-          if (hint.getCategorizingMessage() != null)
-            hc.add(hint);
-        }
-        if (!hc.isEmpty()) {
-          final ElementCategory.Builder sw = new ElementCategory.Builder(null);
-          sw.setLabel(ElementCategory.SPECIAL_HINT_FOLDER_NAME);
-          sw.setImageName(CommonImages.IMG_INFO);
-          sw.addCategories(hc.getBuilders());
-          root.add(sw.build());
-        }
-      }
-      f_root = root.toArray(new Element[root.size()]);
+      f_root = in.getRootAsArray();
     } else if (newInput == null) {
       f_root = Element.EMPTY;
     } else {
