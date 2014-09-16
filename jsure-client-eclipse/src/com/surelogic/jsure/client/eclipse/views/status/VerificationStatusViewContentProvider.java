@@ -80,6 +80,8 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
         }
       }
       f_root = root.toArray(new Element[root.size()]);
+      for (Element e : f_root)
+        Element.updateFlagsDeepHelper(e);
     } else if (newInput == null) {
       f_root = Element.EMPTY;
     } else {

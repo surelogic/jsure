@@ -119,7 +119,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     }
   };
 
-  void updateOnlyDifferencesFilter() {
+  void updateShowOnlyDifferencesFilter() {
     if (f_showOnlyDifferences) {
       f_treeViewer.addFilter(f_showOnlyDifferencesFilter);
     } else {
@@ -247,7 +247,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       if (f_showOnlyDifferences != buttonChecked) {
         f_showOnlyDifferences = buttonChecked;
         EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_ONLY_DIFFERENCES, f_showOnlyDifferences);
-        updateOnlyDifferencesFilter();
+        updateShowOnlyDifferencesFilter();
       }
     }
   };
@@ -414,7 +414,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_actionShowOnlyDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.show_only_diffs.tip"));
     f_showOnlyDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_ONLY_DIFFERENCES);
     f_actionShowOnlyDifferences.setChecked(f_showOnlyDifferences);
-    updateOnlyDifferencesFilter();
+    updateShowOnlyDifferencesFilter();
 
     f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
     f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
