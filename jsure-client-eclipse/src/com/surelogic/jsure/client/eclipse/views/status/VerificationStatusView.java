@@ -26,6 +26,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
@@ -106,6 +107,25 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       return super.compare(viewer, e1, e2);
     }
   };
+
+  final ViewerFilter f_showOnlyDifferencesFilter = new ViewerFilter() {
+    @Override
+    public boolean select(Viewer viewer, Object parent, Object e) {
+      if (e instanceof Element) {
+        final Element check = (Element) e;
+        return check.descendantHasDifference();
+      }
+      return false;
+    }
+  };
+
+  void updateOnlyDifferencesFilter() {
+    if (f_showOnlyDifferences) {
+      f_treeViewer.addFilter(f_showOnlyDifferencesFilter);
+    } else {
+      f_treeViewer.removeFilter(f_showOnlyDifferencesFilter);
+    }
+  }
 
   public VerificationStatusView() {
     final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
@@ -227,7 +247,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
       if (f_showOnlyDifferences != buttonChecked) {
         f_showOnlyDifferences = buttonChecked;
         EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_ONLY_DIFFERENCES, f_showOnlyDifferences);
-        currentScanChanged(null);
+        updateOnlyDifferencesFilter();
       }
     }
   };
@@ -394,6 +414,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_actionShowOnlyDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.show_only_diffs.tip"));
     f_showOnlyDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_ONLY_DIFFERENCES);
     f_actionShowOnlyDifferences.setChecked(f_showOnlyDifferences);
+    updateOnlyDifferencesFilter();
 
     f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
     f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
