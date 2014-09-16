@@ -84,6 +84,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   TreeViewerColumn f_showDiffTableColumn = null;
   boolean f_showHints;
   boolean f_highlightDifferences;
+  boolean f_showOnlyDifferences;
 
   final ViewerSorter f_alphaSorter = new ViewerSorter() {
 
@@ -215,6 +216,18 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
         EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_HIGHLIGHT_DIFFERENCES, f_highlightDifferences);
         f_contentProvider.setHighlightDifferences(f_highlightDifferences);
         f_treeViewer.refresh();
+      }
+    }
+  };
+
+  final Action f_actionShowOnlyDifferences = new Action("", IAction.AS_CHECK_BOX) {
+    @Override
+    public void run() {
+      final boolean buttonChecked = f_actionShowOnlyDifferences.isChecked();
+      if (f_showOnlyDifferences != buttonChecked) {
+        f_showOnlyDifferences = buttonChecked;
+        EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_ONLY_DIFFERENCES, f_showOnlyDifferences);
+        currentScanChanged(null);
       }
     }
   };
@@ -376,6 +389,12 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     f_showHints = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_HINTS);
     f_actionShowHints.setChecked(f_showHints);
 
+    f_actionShowOnlyDifferences.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG_ONLY));
+    f_actionShowOnlyDifferences.setText(I18N.msg("jsure.eclipse.view.show_only_diffs"));
+    f_actionShowOnlyDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.show_only_diffs.tip"));
+    f_showOnlyDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VSTATUS_SHOW_ONLY_DIFFERENCES);
+    f_actionShowOnlyDifferences.setChecked(f_showOnlyDifferences);
+
     f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
     f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));
     f_actionExpand.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_EXPAND_ALL));
@@ -461,6 +480,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     pulldown.add(f_actionAlphaSort);
     pulldown.add(new Separator());
     pulldown.add(f_actionHighlightDifferences);
+    pulldown.add(f_actionShowOnlyDifferences);
     pulldown.add(new Separator());
     pulldown.add(f_actionShowHints);
 
@@ -475,7 +495,8 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     toolbar.add(f_actionAlphaSort);
     toolbar.add(new Separator());
     toolbar.add(f_actionHighlightDifferences);
-    pulldown.add(new Separator());
+    toolbar.add(f_actionShowOnlyDifferences);
+    toolbar.add(new Separator());
     toolbar.add(f_actionShowHints);
   }
 
