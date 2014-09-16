@@ -10,11 +10,12 @@ import java.lang.annotation.Target;
  * {@link ThreadRoleImport} annotation.
  */
 @Documented
-@Target( { ElementType.PACKAGE, ElementType.TYPE })
+@Target({ ElementType.PACKAGE, ElementType.TYPE })
 public @interface ThreadRoleImports {
-	/**
-	 * The {@link ThreadRoleImport} annotations to apply to the class.
-	 */
-	ThreadRoleImport[] value();
-
+  /**
+   * The {@link ThreadRoleImport} annotations to apply to the class.
+   * 
+   * @return the {@link ThreadRoleImport} annotations to apply to the class.
+   */
+  ThreadRoleImport[] value();
 }
