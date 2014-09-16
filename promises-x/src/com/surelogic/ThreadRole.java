@@ -5,37 +5,38 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * @author dfsuther 
  * When applied to a method or constructor: Establishes a constraint on the
- * roles of threads that may execute the annotated method. At analysis
- * time the "Thread Role" analysis will enforce the constraint that
- * the calling thread must always have a set of associated ThreadRole
- * bindings that satisfy the boolean expression.
+ * roles of threads that may execute the annotated method. At analysis time the
+ * "Thread Role" analysis will enforce the constraint that the calling thread
+ * must always have a set of associated ThreadRole bindings that satisfy the
+ * boolean expression.
  * <p>
- * Note that {@code ThreadRole true} is equivalent to the {@code ThreadRoleTransparent}
- * annotation.
+ * Note that {@code ThreadRole true} is equivalent to the
+ * {@code ThreadRoleTransparent} annotation.
  * 
  * See also {@link ThreadRoleTransparent}
  * <p>
- * When applied to a type, or when placed in a package.java file or a module-scoped location:
- * Declares a non-empty list of Thread roles. The declared roles can be referred to in other
- * thread role annotations using the qualified name of the declared role, or using their
- * short name (if it is visible in scope). Use the {@code ThreadRoleImport}
- * annotation to import these declarations into a scope.
+ * When applied to a type, or when placed in a package.java file or a
+ * module-scoped location: Declares a non-empty list of Thread roles. The
+ * declared roles can be referred to in other thread role annotations using the
+ * qualified name of the declared role, or using their short name (if it is
+ * visible in scope). Use the {@code ThreadRoleImport} annotation to import
+ * these declarations into a scope.
  * 
  * See also {@link ThreadRoleImport}
  * 
  */
 @Documented
-@Target({ElementType.PACKAGE, ElementType.TYPE, ElementType.METHOD, ElementType.CONSTRUCTOR})
+@Target({ ElementType.PACKAGE, ElementType.TYPE, ElementType.METHOD, ElementType.CONSTRUCTOR })
 public @interface ThreadRole {
   /**
-   * On methods and constructors: A Boolean expression over thread role names, in Disjunctive Normal Form. The
-   * expression establishes the maximum acceptable role environment for the annotated
-   * method or constructor. 
-   * The value of this attribute must conform to the following grammar (in <a
+   * On methods and constructors: A Boolean expression over thread role names,
+   * in Disjunctive Normal Form. The expression establishes the maximum
+   * acceptable role environment for the annotated method or constructor. The
+   * value of this attribute must conform to the following grammar (in <a
    * href="http://www.ietf.org/rfc/rfc4234.txt">Augmented Backus&ndash;Naur
    * Form</a>):
+   * 
    * <pre>
    * value = roleExpr / roleNameList
    * 
@@ -47,7 +48,7 @@ public @interface ThreadRole {
    * 
    * roleOrElem = roleAndElem / roleAndParen
    * 
-   * roleAndExpr = roleAndElem "&" roleAndElem
+   * roleAndExpr = roleAndElem "&amp;" roleAndElem
    * 
    * roleAndElem = roleName / roleNotExpr
    * 
@@ -67,12 +68,8 @@ public @interface ThreadRole {
    * </pre>
    * 
    * On types and packages, this is a simple list of role names.
+   * 
+   * @return a value following the syntax described above.
    */
   String value();
-  
-  /**
-   * When {@code true}, indicates that this annotation has priority over any
-   * annotations that apply to the same node that originate from scoped promises.
-   */
-  boolean override() default true;
 }

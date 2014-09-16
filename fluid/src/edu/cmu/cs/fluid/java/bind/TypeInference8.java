@@ -5,6 +5,9 @@ import static edu.cmu.cs.fluid.java.bind.IMethodBinder.*;
 import java.io.IOException;
 import java.util.*;
 
+import org.apache.commons.collections15.MultiMap;
+import org.apache.commons.collections15.multimap.MultiHashMap;
+
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IROutput;
@@ -15,16 +18,20 @@ import edu.cmu.cs.fluid.tree.Operator;
 public class TypeInference8 {
 	final MethodBinder8 mb;
 	final ITypeEnvironment tEnv;
-
+	final TypeUtils utils;
+	
 	TypeInference8(MethodBinder8 b) {
 		mb = b;
 		tEnv = mb.tEnv;
+		utils = new TypeUtils(tEnv);
 	}
 
 	// TODO how to distinguish from each other
 	// TODO how to keep from polluting the normal caches?
 	static class InferenceVariable extends JavaReferenceType {
 		final IRNode formal;
+		int index;
+		int lowlink;
 		
 		public InferenceVariable(IRNode tf) {
 			formal = tf;
@@ -196,10 +203,10 @@ public class TypeInference8 {
 	 * A bound of the form throws α is purely informational: it directs resolution to
 	 * optimize the instantiation of α so that, if possible, it is not a checked exception type.
 	 */
-	static class Bound {
-		final IJavaReferenceType s, t;
+	static class Bound<T extends IJavaReferenceType> {
+		final T s, t;
 		
-		Bound(IJavaReferenceType s, IJavaReferenceType t) {
+		Bound(T s, T t) {
 			this.s = s;
 			this.t = t;
 			
@@ -218,44 +225,35 @@ public class TypeInference8 {
 		@Override
 		public boolean equals(Object o) {
 			if (o instanceof Bound) {
-				Bound other = (Bound) o;
+				Bound<?> other = (Bound<?>) o;
 				return s.equals(other.s) && t.equals(other.t);
 			}
 			return false;
 		}
 	}
 	
-	static class EqualityBound extends Bound {
+	static class EqualityBound extends Bound<IJavaReferenceType> {
 		EqualityBound(IJavaReferenceType s, IJavaReferenceType t) {
 			super(s, t);
 		}
 	}
 	
-	static class SubtypeBound extends Bound {
+	static class SubtypeBound extends Bound<IJavaReferenceType> {
 		SubtypeBound(IJavaReferenceType s, IJavaReferenceType t) {
 			super(s, t);
 		}
 	}
 	
-	static class CaptureBound {
-		final IJavaDeclaredType g_vars;
-		final IJavaDeclaredType g_needCapture;
-		
+	static class CaptureBound extends Bound<IJavaDeclaredType>{
 		CaptureBound(IJavaDeclaredType vars, IJavaDeclaredType needCapture) {
-			g_vars = vars;
-			g_needCapture = needCapture;
+			super(vars, needCapture);
 		}
 		
-		@Override
-		public int hashCode() {
-			return g_vars.hashCode() + g_needCapture.hashCode();
-		}
-		
-		@Override
-		public boolean equals(Object o) {
-			if (o instanceof CaptureBound) {
-				CaptureBound other = (CaptureBound) o;
-				return g_vars.equals(other.g_vars) && g_needCapture.equals(other.g_needCapture);
+		boolean refersTo(final Set<InferenceVariable> vars) {
+			for(IJavaType param : s.getTypeParameters()) {
+				if (vars.contains(param)) {
+					return true;
+				}
 			}
 			return false;
 		}
@@ -310,17 +308,36 @@ public class TypeInference8 {
 	 * convenient to refer to an empty bound set with the symbol true; this is merely out
 	 * of convenience, and the two are interchangeable
 	 */
-	static class BoundSet {
+	class BoundSet {
 		private boolean isFalse = false;
 		private Set<InferenceVariable> thrownSet = new HashSet<InferenceVariable>();
 		private Set<EqualityBound> equalities = new HashSet<EqualityBound>();
 		private Set<SubtypeBound> subtypeBounds = new HashSet<SubtypeBound>();
 		private Set<CaptureBound> captures = new HashSet<CaptureBound>();
 		
+		/**
+		 * The original bound that eventually created this one
+		 */
+		private BoundSet original;
+		/**
+		 * The result of resolution
+		 */
+		private final Map<InferenceVariable, IJavaType> instantiations = new HashMap<InferenceVariable, IJavaType>();
+		
 		BoundSet() {
-			// Only called above
+			original = null;
 		}
 
+		BoundSet(BoundSet orig) {
+			original = orig.original == null ? orig : orig.original;
+			isFalse = orig.isFalse;
+			thrownSet.addAll(orig.thrownSet);
+			equalities.addAll(orig.equalities);
+			subtypeBounds.addAll(orig.subtypeBounds);
+			captures.addAll(orig.captures);
+			instantiations.putAll(orig.instantiations);
+		}
+		
 		void addFalse() {
 			isFalse = true;
 		}
@@ -330,9 +347,13 @@ public class TypeInference8 {
 		}
 		
 		void addEqualityBound(IJavaType s, IJavaType t) {
+			if (t == null) {
+				throw new NullPointerException("No type for equality bound");
+			}
 			equalities.add(new EqualityBound((IJavaReferenceType) s, (IJavaReferenceType) t));
 		}
 
+		// s <: t
 		void addSubtypeBound(IJavaType s, IJavaType t) {
 			subtypeBounds.add(new SubtypeBound((IJavaReferenceType) s, (IJavaReferenceType) t));
 		}	
@@ -345,6 +366,307 @@ public class TypeInference8 {
 			thrownSet.add(v);
 		}
 		
+		void addInstantiation(InferenceVariable v, IJavaType t) {
+			if (v == null || t == null) {
+				throw new NullPointerException("Bad instantiation: "+v+" = "+t);
+			}
+			instantiations.put(v, t);
+			addEqualityBound(v, t);
+		}
+		
+		private void collectVariablesFromBounds(Set<InferenceVariable> vars, Set<? extends Bound<?>> bounds) {
+			for(Bound<?> b : bounds) {
+				b.s.getReferencedInferenceVariables(vars);
+				b.t.getReferencedInferenceVariables(vars);
+			}
+		}
+		
+		Set<InferenceVariable> collectVariables() {
+			Set<InferenceVariable> vars = new HashSet<InferenceVariable>(thrownSet);
+			collectVariablesFromBounds(vars, equalities);
+			collectVariablesFromBounds(vars, subtypeBounds);
+			collectVariablesFromBounds(vars, captures);
+			return vars;
+		}
+		
+		Set<InferenceVariable> chooseUninstantiated() {
+			final Set<InferenceVariable> vars = collectVariables();
+			final Set<InferenceVariable> uninstantiated = new HashSet<InferenceVariable>(vars);
+			uninstantiated.removeAll(instantiations.keySet());
+						
+			VarDependencies deps = computeVarDependencies();
+			return deps.chooseUninstantiated(uninstantiated);
+		}
+		
+		private VarDependencies computeVarDependencies() {
+			VarDependencies deps = new VarDependencies();
+			deps.recordDependencies(equalities);
+			deps.recordDependencies(subtypeBounds);
+			for(CaptureBound b : captures) {
+				deps.recordDepsForCapture(b);
+			}
+			return deps;
+		}
+		
+		/**
+		 * Find bounds where a = b
+		 * @return
+		 */
+		private MultiMap<InferenceVariable,InferenceVariable> collectIdentities() {
+			MultiMap<InferenceVariable,InferenceVariable> rv = new MultiHashMap<InferenceVariable,InferenceVariable> ();
+			for(Bound<?> bound : equalities) {
+				if (bound.s instanceof InferenceVariable && bound.t instanceof InferenceVariable) {
+					InferenceVariable a = (InferenceVariable) bound.s;
+					InferenceVariable b = (InferenceVariable) bound.t;
+					rv.put(a, b);
+					rv.put(b, a);
+				}
+			}
+			return rv;
+		}
+		
+		boolean hasNoCaptureBoundInvolvingVars(Set<InferenceVariable> vars) {
+			for(CaptureBound b : captures) {
+				if (b.refersTo(vars)) {
+					return false;
+				}
+			}
+			return true;
+		}	
+		
+		private void removeAssociatedCaptureBounds(Set<InferenceVariable> vars) {
+			Iterator<CaptureBound> it = captures.iterator();
+			while (it.hasNext()) {
+				CaptureBound b = it.next();
+				if (b.refersTo(vars)) {
+					it.remove();
+				}
+			}
+		}
+		
+		/**
+		 *   – If α i has one or more proper lower bounds, L 1 , ..., L k , then T i = lub( L 1 , ..., L k ) (§4.10.4).
+		 *   
+		 *   – Otherwise, if the bound set contains throws α i , and the proper upper
+		 *     bounds of α i are, at most, Exception , Throwable , and Object , then T i = RuntimeException .
+		 *   
+		 *   – Otherwise, where α i has proper upper bounds U 1 , ..., U k , T i = glb( U 1 , ..., U k ) (§5.1.10).
+		 *  
+		 *   The bounds α 1 = T 1 , ..., α n = T n are incorporated with the current bound set.
+		 * 
+		 *   If the result does not contain the bound false, then the result becomes the new bound set, and 
+		 *   resolution proceeds by selecting a new set of variables to instantiate (if necessary), as described above.
+		 * 
+		 *   Otherwise, the result contains the bound false, so a second attempt is made to
+		 *   instantiate { α 1 , ..., α n } by performing the step below.
+		 * @param subset 
+		 */
+		BoundSet instantiateFromBounds(Set<InferenceVariable> subset) {
+			final ProperBounds bounds = collectProperBounds();
+			final BoundSet rv = new BoundSet(this);
+			for(InferenceVariable a_i : subset) {
+				Collection<IJavaType> lower = bounds.lowerBounds.get(a_i);
+				if (lower != null && !lower.isEmpty()) {
+					rv.addInstantiation(a_i, utils.getLowestUpperBound(toArray(lower)));
+					continue;
+				}
+				Collection<IJavaType> upper = bounds.upperBounds.get(a_i);
+				if (thrownSet.contains(a_i) && qualifiesAsRuntimeException(upper)) {
+					rv.addInstantiation(a_i, tEnv.findJavaTypeByName("java.lang.RuntimeException"));
+					continue;
+				}			
+				if (upper != null && !upper.isEmpty()) {
+					rv.addInstantiation(a_i, utils.getGreatestLowerBound(toArray(upper)));
+				} else {
+					throw new IllegalStateException("what do I do otherwise?"); // TODO
+				}
+			}
+			return rv;
+		}
+
+		private boolean qualifiesAsRuntimeException(Collection<IJavaType> upper) {
+			if (upper.isEmpty()) {
+				return true;
+			}
+			IJavaType exception = tEnv.findJavaTypeByName("java.lang.Exception");
+			IJavaType throwable = tEnv.findJavaTypeByName("java.lang.Throwable");
+			IJavaType object = tEnv.getObjectType();
+			Set<IJavaType> temp = new HashSet<IJavaType>(upper);
+			temp.remove(exception);
+			temp.remove(throwable);
+			temp.remove(object);
+			return temp.isEmpty();
+		}
+
+		private IJavaReferenceType[] toArray(Collection<IJavaType> types) {
+			IJavaReferenceType[] rv = new IJavaReferenceType[types.size()];
+			int i=0;
+			for(IJavaType t : types) {
+				rv[i] = (IJavaReferenceType) t;
+				i++;
+			}
+			return rv;
+		}
+
+		private ProperBounds collectProperBounds() {
+			final ProperBounds bounds = new ProperBounds();
+			for(SubtypeBound b : subtypeBounds) {
+				if (b.s instanceof InferenceVariable) {
+					if (b.t.isProperType()) {
+						bounds.upperBounds.put((InferenceVariable) b.s, b.t);
+					}
+				}
+				else if (b.t instanceof InferenceVariable) {
+					if (b.s.isProperType()) {
+						bounds.lowerBounds.put((InferenceVariable) b.t, b.s);
+					}
+				}
+			}
+			return bounds;
+		}
+		
+		// TODO What about duplicates?
+		class ProperBounds {
+			MultiMap<InferenceVariable,IJavaType> lowerBounds = new MultiHashMap<InferenceVariable,IJavaType>();
+			MultiMap<InferenceVariable,IJavaType> upperBounds = new MultiHashMap<InferenceVariable,IJavaType>();
+		}
+		
+		/**
+		 *  then let Y 1 , ..., Y n be fresh type variables whose bounds are as follows:
+		 *  
+		 *   – For all i (1 ≤ i ≤ n), if α i has one or more proper lower bounds L 1 , ..., L k , then
+		 *     let the lower bound of Y i be lub( L 1 , ..., L k ); if not, then Y i has no lower bound.
+		 *   
+		 *   – For all i (1 ≤ i ≤ n), where α i has upper bounds U 1 , ..., U k , let the upper bound
+		 *     of Y i be glb( U 1 θ, ..., U k θ), where θ is the substitution [ α 1 := Y 1 , ..., α n := Y n ] .
+		 *   
+		 *   If the type variables Y 1 , ..., Y n do not have well-formed bounds (that is, a lower
+		 *   bound is not a subtype of an upper bound, or an intersection type is inconsistent), then resolution fails.
+		 *  
+		 *   Otherwise, for all i (1 ≤ i ≤ n), all bounds of the form G< ..., α i , ... > =
+		 *   capture( G< ... > ) are removed from the current bound set, and the bounds α 1 = Y 1 , ..., α n = Y n are incorporated.
+		 *   
+		 *   If the result does not contain the bound false, then the result becomes the
+		 *   new bound set, and resolution proceeds by selecting a new set of variables to
+		 *   instantiate (if necessary), as described above.
+		 * 
+		 *   Otherwise, the result contains the bound false, and resolution fails.
+		 *   
+		 * @return the new bound set to try to resolve
+		 */
+		BoundSet instantiateViaFreshVars(Set<InferenceVariable> subset) {
+			final ProperBounds bounds = collectProperBounds();
+			Map<InferenceVariable,InferenceVariable> y_subst = new HashMap<InferenceVariable,InferenceVariable>(subset.size());
+			for(InferenceVariable a_i : subset) {
+				final InferenceVariable y_i = new InferenceVariable(a_i.formal); // TODO unique?
+				y_subst.put(a_i, y_i);
+			}
+			final BoundSet rv = new BoundSet(this);
+			rv.removeAssociatedCaptureBounds(subset);			
+			for(InferenceVariable a_i : subset) {
+				final InferenceVariable y_i = y_subst.get(a_i);
+				Collection<IJavaType> lower = bounds.lowerBounds.get(a_i);
+				IJavaType l_i = null;
+				if (lower != null && !lower.isEmpty()) {
+					l_i = utils.getLowestUpperBound(toArray(lower));
+				}
+				Collection<IJavaType> upper = bounds.upperBounds.get(a_i);
+				IJavaType u_i = null;
+				if (upper != null && !upper.isEmpty()) {
+					u_i = utils.getGreatestLowerBound(toArray(upper)); // TODO subst for y_i
+				}
+				// Check if the bounds are well-formed
+				if (l_i != null && u_i != null && !l_i.isSubtype(tEnv, u_i)) {
+					throw new IllegalStateException("resolution failed");
+				}
+				// TODO how to check for intersection type?
+				
+				// add new bounds
+				if (l_i != null) {
+					rv.addSubtypeBound(l_i, y_i);
+				}
+				if (u_i != null) {
+					rv.addSubtypeBound(y_i, u_i);
+				}
+				rv.addEqualityBound(a_i, y_i);
+			}		
+			return rv;
+		}
+	}
+	
+	/** 
+	 * 18.4 Resolution
+	 * 
+	 * Given a set of inference variables to resolve, let V be the union of this set and all
+	 * variables upon which the resolution of at least one variable in this set depends.
+	 * 
+	 * If every variable in V has an instantiation, then resolution succeeds and this procedure terminates.
+	 * 
+	 * Otherwise, let { α 1 , ..., α n } be a non-empty subset of uninstantiated variables in
+	 * V such that i) for all i (1 ≤ i ≤ n), if α i depends on the resolution of a variable β,
+	 * then either β has an instantiation or there is some j such that β = α j ; and ii) there
+	 * exists no non-empty proper subset of { α 1 , ..., α n } with this property. Resolution
+	 * proceeds by generating an instantiation for each of α 1 , ..., α n based on the bounds in the bound set:
+	 * 
+	 * • If the bound set does not contain a bound of the form G< ..., α i , ... > =
+	 *   capture( G< ... > ) for all i (1 ≤ i ≤ n), then a candidate instantiation T i is defined for each α i :
+	 * 
+	 *   ...
+	 * 
+	 * • If the bound set contains a bound of the form G< ..., α i , ... > = capture( G< ... > ) for some i (1 ≤ i ≤ n), or;
+	 *   
+	 *   If the bound set produced in the step above contains the bound false;
+	 *   
+	 *   ...
+	 *   
+	 * (keep trying if there are uninstantiated variables)
+	 */
+	static BoundSet resolve(final BoundSet bounds) {
+		if (bounds == null || bounds.isFalse) {
+			return null;
+		}
+		final Set<InferenceVariable> subset = bounds.chooseUninstantiated();
+		if (bounds.hasNoCaptureBoundInvolvingVars(subset)) {
+			BoundSet fresh = bounds.instantiateFromBounds(subset);
+			BoundSet rv = resolve(fresh);
+			if (rv != null) {					
+				return rv;
+			}
+			// Otherwise, try below
+		}
+		BoundSet fresh = bounds.instantiateViaFreshVars(subset);
+		return resolve(fresh);		
+	}
+	
+	class VarDependencies {
+		final MultiMap<InferenceVariable,InferenceVariable> dependsOn = new MultiHashMap<InferenceVariable,InferenceVariable>();
+
+		private void markDependsOn(InferenceVariable alpha, InferenceVariable beta) {
+			dependsOn.put(alpha, beta);
+		}	
+		
+		public Set<InferenceVariable> chooseUninstantiated(final Set<InferenceVariable> uninstantiated) {
+			computeStronglyConnectedComponents();
+			
+			final List<InferenceVariable> ordering = computeTopologicalSort();
+			final Set<InferenceVariable> rv = new HashSet<InferenceVariable>();
+			boolean foundComponent = false;
+			for(final InferenceVariable v : ordering) {
+				final Collection<InferenceVariable> vars = components.get(v); 
+				for(final InferenceVariable w : ordering) {
+					if (uninstantiated.contains(w)) {
+						rv.add(w);
+						foundComponent = true;
+					}					
+					// TODO do i need to check that all the variables in a component are uninstantiated?
+				}
+				if (foundComponent) {
+					return rv;
+				}
+			}
+			return Collections.emptySet();
+		}
+
 		/**
 		 * 18.4 Resolution
 		 * 
@@ -373,61 +695,185 @@ public class TypeInference8 {
 		 *   γ depends on the resolution of β.
 		 * 
 		 * • An inference variable α depends on the resolution of itself.
-		 * 
-		 * Given a set of inference variables to resolve, let V be the union of this set and all
-		 * variables upon which the resolution of at least one variable in this set depends.
-		 * 
-		 * If every variable in V has an instantiation, then resolution succeeds and this procedure terminates.
-		 * 
-		 * Otherwise, let { α 1 , ..., α n } be a non-empty subset of uninstantiated variables in
-		 * V such that i) for all i (1 ≤ i ≤ n), if α i depends on the resolution of a variable β,
-		 * then either β has an instantiation or there is some j such that β = α j ; and ii) there
-		 * exists no non-empty proper subset of { α 1 , ..., α n } with this property. Resolution
-		 * proceeds by generating an instantiation for each of α 1 , ..., α n based on the bounds in the bound set:
-		 * 
-		 * • If the bound set does not contain a bound of the form G< ..., α i , ... > =
-		 *   capture( G< ... > ) for all i (1 ≤ i ≤ n), then a candidate instantiation T i is defined for each α i :
-		 * 
-		 *   – If α i has one or more proper lower bounds, L 1 , ..., L k , then T i = lub( L 1 , ..., L k ) (§4.10.4).
-		 *   
-		 *   – Otherwise, if the bound set contains throws α i , and the proper upper
-		 *     bounds of α i are, at most, Exception , Throwable , and Object , then T i = RuntimeException .
-		 *   
-		 *   – Otherwise, where α i has proper upper bounds U 1 , ..., U k , T i = glb( U 1 , ..., U k ) (§5.1.10).
-		 *  
-		 *   The bounds α 1 = T 1 , ..., α n = T n are incorporated with the current bound set.
-		 * 
-		 *   If the result does not contain the bound false, then the result becomes the new bound set, and 
-		 *   resolution proceeds by selecting a new set of variables to instantiate (if necessary), as described above.
-		 * 
-		 *   Otherwise, the result contains the bound false, so a second attempt is made to
-		 *   instantiate { α 1 , ..., α n } by performing the step below.
-		 * 
-		 * • If the bound set contains a bound of the form G< ..., α i , ... > = capture( G< ... > ) for some i (1 ≤ i ≤ n), or;
-		 *   
-		 *   If the bound set produced in the step above contains the bound false;
-		 *   then let Y 1 , ..., Y n be fresh type variables whose bounds are as follows:
-		 *   
-		 *   – For all i (1 ≤ i ≤ n), if α i has one or more proper lower bounds L 1 , ..., L k , then
-		 *     let the lower bound of Y i be lub( L 1 , ..., L k ); if not, then Y i has no lower bound.
-		 *   
-		 *   – For all i (1 ≤ i ≤ n), where α i has upper bounds U 1 , ..., U k , let the upper bound
-		 *     of Y i be glb( U 1 θ, ..., U k θ), where θ is the substitution [ α 1 := Y 1 , ..., α n := Y n ] .
-		 *   
-		 *   If the type variables Y 1 , ..., Y n do not have well-formed bounds (that is, a lower
-		 *   bound is not a subtype of an upper bound, or an intersection type is inconsistent), then resolution fails.
-		 *  
-		 *   Otherwise, for all i (1 ≤ i ≤ n), all bounds of the form G< ..., α i , ... > =
-		 *   capture( G< ... > ) are removed from the current bound set, and the bounds α 1 = Y 1 , ..., α n = Y n are incorporated.
-		 *   
-		 *   If the result does not contain the bound false, then the result becomes the
-		 *   new bound set, and resolution proceeds by selecting a new set of variables to
-		 *   instantiate (if necessary), as described above.
-		 * 
-		 *   Otherwise, the result contains the bound false, and resolution fails.
-		 */
+		 */				
+		void recordDependencies(Set<? extends Bound<?>> bounds) {
+			final Set<InferenceVariable> temp = new HashSet<InferenceVariable>();
+			for(Bound<?> b : bounds) {
+				if (b.s instanceof InferenceVariable) {
+					InferenceVariable alpha = (InferenceVariable) b.s;
+					b.t.getReferencedInferenceVariables(temp);
+					for(InferenceVariable beta : temp) {
+						markDependsOn(alpha, beta);
+					}
+				}
+				else if (b.t instanceof InferenceVariable) {
+					InferenceVariable alpha = (InferenceVariable) b.t;
+					b.s.getReferencedInferenceVariables(temp);
+					for(InferenceVariable beta : temp) {
+						markDependsOn(alpha, beta);
+					}
+				}
+				temp.clear(); 
+			}
+		}		
+		
+		void recordDepsForCapture(CaptureBound b) {
+			final Set<InferenceVariable> vars = new HashSet<InferenceVariable>();
+			b.s.getReferencedInferenceVariables(vars);
+			b.t.getReferencedInferenceVariables(vars);
+			
+			// For each parameter on the left-hand side
+			for(IJavaType param : b.s.getTypeParameters()) {
+				if (param instanceof InferenceVariable) {
+					InferenceVariable alpha = (InferenceVariable) param;
+					for(InferenceVariable beta : vars) {
+						markDependsOn(alpha, beta);
+					}
+				}
+			}
+		}	
+		
+		int index = 0;
+		final Stack<InferenceVariable> s = new Stack<InferenceVariable>();
+		final MultiMap<InferenceVariable,InferenceVariable> components = new MultiHashMap<InferenceVariable,InferenceVariable>();
+		
+		// http://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
+		private void computeStronglyConnectedComponents() {
+		  // Reset info
+		  for(InferenceVariable v : dependsOn.keySet()) {
+			  v.index = -1;
+			  v.lowlink = Integer.MAX_VALUE;
+		  }
+		  /*
+		   * algorithm tarjan is
+		   * input: graph G = (V, E)
+		   * output: set of strongly connected components (sets of vertices)
+		   * 
+		   * index := 0
+		   * S := empty
+		   * for each v in V do
+		   *   if (v.index is undefined) then
+		   *     strongconnect(v)
+		   *   end if
+		   * end for
+		   */
+		  index = 0;
+		  s.clear();
+		  components.clear();
+		  
+		   for(InferenceVariable v : dependsOn.keySet()) {
+			   if (v.index < 0) {
+				   strongConnect(v);
+			   }
+		   }
+		}		  
+		
+		private void strongConnect(final InferenceVariable v) {
+		  /*		
+		  function strongconnect(v)
+		    // Set the depth index for v to the smallest unused index
+		    v.index := index
+		    v.lowlink := index
+		    index := index + 1
+		    S.push(v)
+		    */
+			v.index = index;
+			v.lowlink = index;
+			index++;
+			s.push(v);
+			
+		    /* Consider successors of v
+		    for each (v, w) in E do
+		      if (w.index is undefined) then
+		        // Successor w has not yet been visited; recurse on it
+		        strongconnect(w)
+		        v.lowlink  := min(v.lowlink, w.lowlink)
+		      else if (w is in S) then
+		        // Successor w is in stack S and hence in the current SCC
+		        v.lowlink  := min(v.lowlink, w.index)
+		      end if
+		    end for
+		    */
+			for(InferenceVariable w : dependsOn.get(v)) {
+				if (w.index < 0) {
+					strongConnect(w);
+					v.lowlink = Math.min(v.lowlink, w.lowlink);
+				}
+				else if (s.contains(w)) {
+					v.lowlink = Math.min(v.lowlink, w.index);
+				}
+			}
+
+		    /* If v is a root node, pop the stack and generate an SCC
+		    if (v.lowlink = v.index) then
+		      start a new strongly connected component
+		      repeat
+		        w := S.pop()
+		        add w to current strongly connected component
+		      until (w = v)
+		      output the current strongly connected component
+		    end if
+		    */
+			if (v.lowlink == v.index) {
+				InferenceVariable w = null;
+				do {
+					w = s.pop();
+					components.put(v, w);
+				} 
+				while (v != w);
+			}
+		  //end function		  
+		}
+		
+		// http://en.wikipedia.org/wiki/Topological_sorting
+		private List<InferenceVariable> computeTopologicalSort() {
+			/*
+			L ← Empty list that will contain the sorted nodes
+			while there are unmarked nodes do
+			    select an unmarked node n
+			    visit(n) 
+			*/
+			final List<InferenceVariable> l = new LinkedList<InferenceVariable>();
+			for(InferenceVariable v : components.keySet()) {
+				v.index = -1;
+			}
+			final Set<InferenceVariable> toVisit = new HashSet<InferenceVariable>(components.keySet());
+			
+			while (!toVisit.isEmpty()) {
+				InferenceVariable n = toVisit.iterator().next();
+				visitForSort(l, toVisit, n);
+			}
+			return l;
+		}
+		
+		private void visitForSort(final List<InferenceVariable> l, final Set<InferenceVariable> toVisit, final InferenceVariable n) {
+			/*
+			function visit(node n)
+			    if n has a temporary mark then stop (not a DAG)
+			    if n is not marked (i.e. has not been visited yet) then
+			        mark n temporarily
+			        for each node m with an edge from n to m do
+			            visit(m)
+			        mark n permanently
+			        unmark n temporarily
+			        add n to head of L
+			 */
+			if (n.index == 0) {
+				throw new IllegalStateException("Not a DAG");
+			}
+			if (n.index < 0) {
+				toVisit.remove(n);
+				n.index = 0;
+				for(InferenceVariable m : dependsOn.get(n)) {
+					if (components.containsKey(m)) { // filter to the component roots
+						visitForSort(l, toVisit, m);
+					}
+				}
+				n.index = 100;
+				l.add(0, n);
+			}
+		}
 	}
-	
 	
 	private boolean isStandaloneExpr(IRNode e) {
 		throw new NotImplemented(); // TODO

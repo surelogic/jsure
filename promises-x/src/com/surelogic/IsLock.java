@@ -22,28 +22,23 @@ import java.lang.annotation.Target;
 @Documented
 @Target(ElementType.PARAMETER)
 public @interface IsLock {
-	/**
-	 * The name of the lock represented by the parameter. The value of this
-	 * attribute must conform to the following grammar (in <a
-	 * href="http://www.ietf.org/rfc/rfc4234.txt">Augmented Backus&ndash;Naur
-	 * Form</a>):
-	 * 
-	 * <pre>
-	 * value = simpleLockSpecification
-	 * 
-	 * simpleLockSpecification = simpleLockName [&quot;.&quot; (&quot;readLock&quot; / &quot;writeLock&quot;)]
-	 * 
-	 * simpleLockName = IDENTIFIER  ; Lock from the receiver (same as &quot;this:IDENTIFIER&quot;)
-	 * 
-	 * IDENTIFIER = Legal Java Identifier
-	 * </pre>
-	 */
-	String value();
-
-	/**
-	 * When {@code true}, indicates that this annotation has priority over any
-	 * annotations that apply to the same node that originate from scoped
-	 * promises.
-	 */
-	boolean override() default true;
+  /**
+   * The name of the lock represented by the parameter. The value of this
+   * attribute must conform to the following grammar (in <a
+   * href="http://www.ietf.org/rfc/rfc4234.txt">Augmented Backus&ndash;Naur
+   * Form</a>):
+   * 
+   * <pre>
+   * value = simpleLockSpecification
+   * 
+   * simpleLockSpecification = simpleLockName [&quot;.&quot; (&quot;readLock&quot; / &quot;writeLock&quot;)]
+   * 
+   * simpleLockName = IDENTIFIER  ; Lock from the receiver (same as &quot;this:IDENTIFIER&quot;)
+   * 
+   * IDENTIFIER = Legal Java Identifier
+   * </pre>
+   * 
+   * @return a value following the syntax described above.
+   */
+  String value();
 }

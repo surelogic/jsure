@@ -73,7 +73,7 @@ public class TypeUtils {
 	 * callsite of this method.
 	 */
 	private IJavaWildcardType getWildcardType(IJavaReferenceType lower, IJavaReferenceType upper) {
-		if (upper == null && tEnv.getObjectType().equals(lower)) {
+		if (lower == null && tEnv.getObjectType().equals(upper)) {
 			// Simplify
 			return JavaTypeFactory.wildcardType;
 		}
@@ -187,6 +187,8 @@ public class TypeUtils {
 	//  For any element G of MEC that is a generic type declaration, define the relevant
 	//  invocations of G, Inv(G) to be:
 	//  Inv(G) = { V | 1<=i<=k, V in ST(Ui), V = G<...>}
+	//
+	//  a.k.a Relevant(G) 
 	private Iterable<IJavaDeclaredType> getInv(Iterable<IJavaDeclaredType> st, IJavaDeclaredType g) {
 		if (!isGeneric(g)) {
 			throw new IllegalArgumentException("Not generic: "+g);
@@ -208,14 +210,21 @@ public class TypeUtils {
 	
 	//  lci(S) = lci(e1, ..., en) where ei in S,
 	//  lci(e1, ..., en) = lci(lci(e1, e2), e3, ..., en)
-	private IJavaDeclaredType getLCI(Iterable<IJavaDeclaredType> invocations) {
+	//
+	//  a.k.a. lcp()
+	private IJavaDeclaredType getLCI(Iterable<IJavaDeclaredType> invocations) {	
 		IJavaDeclaredType result = null;
+		int num = 0;
 		for(IJavaDeclaredType t : invocations) {
 			if (result != null) {
 				result = getLCI(result, t);
 			} else {
 				result = t;
 			}
+			num++;
+		}
+		if (num == 1) {
+			return getLCP(result);
 		}
 		return result;
 	}
@@ -241,8 +250,29 @@ public class TypeUtils {
 		return JavaTypeFactory.getDeclaredType(t1.getDeclaration(), params, t1.getOuterType());
 	}
 
+	// lcp( G<X 1 , ..., X n > ) = G< lcta( X 1 ), ..., lcta( X n ) >
+	private IJavaDeclaredType getLCP(IJavaDeclaredType g) {
+		List<IJavaType> params = new ArrayList<IJavaType>();
+		for(int i=0; i<g.getTypeParameters().size();i++) {
+			params.add(getLCTA(g.getTypeParameters().get(i)));
+		}
+		// TODO is the outer type correct?
+		return JavaTypeFactory.getDeclaredType(g.getDeclaration(), params, g.getOuterType());
+	}
+	
+	// lcta( U ) = ? if U 's upper bound is Object , otherwise ? extends lub( U , Object )
+	private IJavaType getLCTA(IJavaType u) {
+		boolean upperBoundIsObject = false;
+		
+		if (upperBoundIsObject) {
+			return JavaTypeFactory.wildcardType;
+		}
+		return getWildcardType(null, this.getLowestUpperBound((IJavaReferenceType) u, tEnv.getObjectType()));
+	}
+	
 	//  where lcta() is the the least containing type argument function defined
 	//  (assuming U and V are type expressions) as:
+	//
 	//  lcta(U, V) = U if U = V, ? extends lub(U, V) otherwise
 	//
 	//  Note that this could result in an infinite type due to the call to lub()
@@ -355,6 +385,8 @@ public class TypeUtils {
 		return JJNode.tree.hasChildren(typeParams);
 	}
 	
+	// JLS 8 sec 4.10.4
+	//
 	//  Then the inferred type for Tj is
 	//  lub(U1 ... Uk) = Candidate(W1) & ... & Candidate(Wr) where Wi, , are
 	//  the elements of MEC.

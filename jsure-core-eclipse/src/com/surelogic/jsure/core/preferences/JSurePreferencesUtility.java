@@ -184,6 +184,7 @@ public final class JSurePreferencesUtility {
 
   public static final String VSTATUS_ALPHA_SORT = PREFIX + "verification.status.alpha.sort";
   public static final String VSTATUS_SHOW_HINTS = PREFIX + "verification.status.show.hints";
+  public static final String VSTATUS_SHOW_ONLY_DIFFERENCES = PREFIX + "verification.status.only.differences";
   public static final String VSTATUS_HIGHLIGHT_DIFFERENCES = PREFIX + "verification.status.highlight.differences";
   public static final String VSTATUS_TREE_WIDTH = PREFIX + "verification.status.tree.width";
   public static final String VSTATUS_PROJECT_WIDTH = PREFIX + "verification.status.project.width";
