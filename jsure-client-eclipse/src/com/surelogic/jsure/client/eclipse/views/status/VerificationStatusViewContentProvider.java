@@ -31,11 +31,59 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
     @Nullable
     final ScanDifferences f_diff;
     final boolean f_showHints;
+    final List<Element> f_root = new ArrayList<Element>();
 
+    /**
+     * Should never be invoked from the UI thread!
+     * 
+     * @param scan
+     *          new scan.
+     * @param diff
+     *          differences if any.
+     * @param showHints
+     *          {@code true} if hints should be displayed, {@code false} if not.
+     */
     Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showHints) {
       f_scan = scan;
       f_diff = diff;
       f_showHints = showHints;
+
+      /*
+       * Go ahead a calculate the model for the view
+       */
+      final List<Element> root = new ArrayList<Element>();
+      Element.f_showHints = f_showHints;
+      Element.f_diff = f_diff;
+      final ElementCategory.Categorizer pc = new ElementCategory.Categorizer(null);
+      for (IPromiseDrop promise : f_scan.getPromiseDrops()) {
+        if (promise.isFromSrc() || promise.derivedFromSrc()) {
+          if (showAtTopLevel(promise)) {
+            pc.add(promise);
+          }
+        }
+      }
+      root.addAll(pc.getAllElements());
+
+      if (f_showHints) {
+        /*
+         * If the hint is uncategorized we don't show it in this section (it
+         * shows up under the drop it is attached to).
+         */
+        final ElementCategory.Categorizer hc = new ElementCategory.Categorizer(null);
+        for (IHintDrop hint : f_scan.getHintDrops()) {
+          if (hint.getCategorizingMessage() != null)
+            hc.add(hint);
+        }
+        if (!hc.isEmpty()) {
+          final ElementCategory.Builder sw = new ElementCategory.Builder(null);
+          sw.setLabel(ElementCategory.SPECIAL_HINT_FOLDER_NAME);
+          sw.setImageName(CommonImages.IMG_INFO);
+          sw.addCategories(hc.getBuilders());
+          root.add(sw.build());
+        }
+      }
+      for (Element e : f_root)
+        Element.updateFlagsDeepHelper(e);
     }
   }
 
@@ -80,8 +128,6 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
         }
       }
       f_root = root.toArray(new Element[root.size()]);
-      for (Element e : f_root)
-        Element.updateFlagsDeepHelper(e);
     } else if (newInput == null) {
       f_root = Element.EMPTY;
     } else {
@@ -146,7 +192,7 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
    * @return {@code true} if the promise should appear at the root level,
    *         {@code false} otherwise.
    */
-  private static boolean showAtTopLevel(IPromiseDrop promise) {
+  static boolean showAtTopLevel(IPromiseDrop promise) {
     if (promise == null)
       return false;
     if (promise.instanceOfIRDropSea(UiShowAtTopLevel.class))
