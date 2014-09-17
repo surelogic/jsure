@@ -1,5 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.problems;
 
+import static com.surelogic.dropsea.IModelingProblemDrop.SEVERITY_HINT;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -16,17 +18,15 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
+import com.surelogic.dropsea.IModelingProblemDrop.Severity;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
-import com.surelogic.jsure.client.eclipse.model.java.IViewDiffState;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 
-import static com.surelogic.dropsea.IModelingProblemDrop.*;
-
-public class ProblemsViewContentProvider implements ITreeContentProvider, IViewDiffState {
+public class ProblemsViewContentProvider implements ITreeContentProvider {
 
   /**
    * Represents input for this content provider.
@@ -39,7 +39,7 @@ public class ProblemsViewContentProvider implements ITreeContentProvider, IViewD
     final boolean f_showOnlyDifferences;
     final boolean f_showOnlyFromSrc;
     final boolean f_showOnlyErrors = XUtil.useExperimental && false;// true;
-    
+
     Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showOnlyDifferences, boolean showOnlyFromSrc) {
       f_scan = scan;
       f_diff = diff;
@@ -57,8 +57,8 @@ public class ProblemsViewContentProvider implements ITreeContentProvider, IViewD
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
     if (newInput instanceof Input) {
       final Input in = (Input) newInput;
-      f_scanDifferences = in.f_diff;
-      final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer(this);
+      Element.f_diff = in.f_diff;
+      final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer();
 
       final ArrayList<IModelingProblemDrop> drops = in.f_scan.getModelingProblemDrops();
       for (IModelingProblemDrop ppd : drops) {
@@ -78,7 +78,7 @@ public class ProblemsViewContentProvider implements ITreeContentProvider, IViewD
       f_root = tree.getRootElements();
     } else if (newInput == null) {
       f_root = Element.EMPTY;
-      f_scanDifferences = null;
+      Element.f_diff = null;
     } else {
       SLLogger.getLogger().log(Level.SEVERE, I18N.err(301, this.getClass().getSimpleName(), newInput));
     }
@@ -159,23 +159,7 @@ public class ProblemsViewContentProvider implements ITreeContentProvider, IViewD
     return null;
   }
 
-  @Nullable
-  private ScanDifferences f_scanDifferences;
-
-  @Override
-  @Nullable
-  public ScanDifferences getScanDifferences() {
-    return f_scanDifferences;
-  }
-
-  private boolean f_highlightDifferences;
-
-  @Override
-  public boolean highlightDifferences() {
-    return f_highlightDifferences;
-  }
-
   void setHighlightDifferences(boolean value) {
-    f_highlightDifferences = value;
+    Element.f_highlightDifferences = value;
   }
 }

@@ -75,28 +75,28 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
       + ProposedAnnotationView.class.getSimpleName() + SLUtility.DOT_XML;
 
   @NonNull
-  private final File f_viewStateFile;
+  final File f_viewStateFile;
 
-  private PageBook f_viewerbook = null;
-  private Label f_noResultsToShowLabel = null;
-  private TreeViewer f_treeViewer;
+  PageBook f_viewerbook = null;
+  Label f_noResultsToShowLabel = null;
+  TreeViewer f_treeViewer;
   @NonNull
-  private final ProposedAnnotationViewContentProvider f_contentProvider = new ProposedAnnotationViewContentProvider();
-  private boolean f_highlightDifferences;
+  final ProposedAnnotationViewContentProvider f_contentProvider = new ProposedAnnotationViewContentProvider();
+  boolean f_highlightDifferences;
 
-  private boolean f_showOnlyAbductive;
+  boolean f_showOnlyAbductive;
 
   public boolean getShowOnlyAbductive() {
     return f_showOnlyAbductive;
   }
 
-  private boolean f_showOnlyDifferences;
+  boolean f_showOnlyDifferences;
 
   public boolean getShowOnlyDifferences() {
     return f_showOnlyDifferences;
   }
 
-  private boolean f_showOnlyFromSrc;
+  boolean f_showOnlyFromSrc;
 
   public boolean getShowOnlyFromSrc() {
     return f_showOnlyFromSrc;
@@ -197,7 +197,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     }
   }
 
-  private final Action f_actionHighlightDifferences = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionHighlightDifferences = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionHighlightDifferences.isChecked();
@@ -210,7 +210,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     }
   };
 
-  private final Action f_actionShowOnlyDifferences = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionShowOnlyDifferences = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionShowOnlyDifferences.isChecked();
@@ -222,7 +222,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     }
   };
 
-  private final Action f_actionShowOnlyFromSrc = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionShowOnlyFromSrc = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionShowOnlyFromSrc.isChecked();
@@ -234,7 +234,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     }
   };
 
-  private final Action f_openProofContext = new Action() {
+  final Action f_openProofContext = new Action() {
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
@@ -251,7 +251,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     }
   };
 
-  private final Action f_actionExpand = new Action() {
+  final Action f_actionExpand = new Action() {
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
@@ -264,7 +264,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     }
   };
 
-  private final Action f_actionCollapse = new Action() {
+  final Action f_actionCollapse = new Action() {
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
@@ -277,14 +277,14 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     }
   };
 
-  private final Action f_actionCollapseAll = new Action() {
+  final Action f_actionCollapseAll = new Action() {
     @Override
     public void run() {
       f_treeViewer.collapseAll();
     }
   };
 
-  private final Action f_actionAnnotateCode = new ProposedPromisesRefactoringAction() {
+  final Action f_actionAnnotateCode = new ProposedPromisesRefactoringAction() {
     @Override
     protected List<IProposedPromiseDrop> getProposedDrops() {
       return getSelectedProposals();
@@ -296,7 +296,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     }
   };
 
-  private final Action f_actionShowOnlyAbductive = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionShowOnlyAbductive = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionShowOnlyAbductive.isChecked();
@@ -308,7 +308,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     }
   };
 
-  private final Action f_actionCopy = new Action() {
+  final Action f_actionCopy = new Action() {
     @Override
     public void run() {
       final Clipboard clipboard = new Clipboard(getSite().getShell().getDisplay());
@@ -450,12 +450,12 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     toolbar.add(f_actionShowOnlyAbductive);
   }
 
-  private void selectionChangedHelper() {
+  void selectionChangedHelper() {
     final boolean proposalsSelected = !getSelectedProposals().isEmpty();
     f_actionAnnotateCode.setEnabled(proposalsSelected);
   }
 
-  private List<IProposedPromiseDrop> getSelectedProposals() {
+  List<IProposedPromiseDrop> getSelectedProposals() {
     final List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
     final IStructuredSelection selection = (IStructuredSelection) f_treeViewer.getSelection();
     for (final Object elt : selection.toList()) {
@@ -480,7 +480,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
   /**
    * Gets the text selected&mdash;used by the {@link #f_actionCopy} action.
    */
-  private String getSelectedText() {
+  String getSelectedText() {
     final IStructuredSelection selection = (IStructuredSelection) f_treeViewer.getSelection();
     final StringBuilder sb = new StringBuilder();
     for (final Object elt : selection.toList()) {
@@ -559,11 +559,6 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     if (deleteOnExit && f_viewStateFile.exists()) {
       f_viewStateFile.deleteOnExit();
     }
-
-    // obsolete file cleanup 4.4 release TODO remove next release
-    final File obsolete = new File(JSurePreferencesUtility.getJSureDataDirectory(), "ProposedAnnotationView_TreeViewerUIState.xml");
-    if (obsolete.exists())
-      obsolete.deleteOnExit();
   }
 
   @Override
