@@ -153,13 +153,13 @@ public final class ElementDrop extends Element {
 
   @Override
   @Nullable
-  public Image getElementImage() {
+  public final Image getElementImage() {
     return JSureDecoratedImageUtility.getImageForDrop(f_drop, true, null, isOld());
   }
 
   @Override
   @Nullable
-  public Image getImage() {
+  public final Image getImage() {
     final Image baseImage = getElementImage();
     return baseImage;
   }

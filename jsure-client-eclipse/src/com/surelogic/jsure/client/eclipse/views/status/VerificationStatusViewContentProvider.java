@@ -95,7 +95,7 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
         }
       }
       for (Element e : f_root)
-        Element.updateFlagsDeepHelper(e);
+        Element.updateFlagsDeep(e);
     }
   }
 

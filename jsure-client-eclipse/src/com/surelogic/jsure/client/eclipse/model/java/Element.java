@@ -1,13 +1,19 @@
 package com.surelogic.jsure.client.eclipse.model.java;
 
 import java.util.Comparator;
+import java.util.EnumSet;
 
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.dropsea.IAnalysisResultDrop;
+import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IHintDrop;
+import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.ScanDifferences;
+import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 public abstract class Element {
 
@@ -139,6 +145,139 @@ public abstract class Element {
    */
   @Nullable
   public abstract Image getImage();
+
+  /**
+   * {@code true} if this element has a descendant with a difference from the
+   * old scan, {@code false} otherwise.
+   * <p>
+   * Set via {@link #updateFlagsDeep(Element)}
+   */
+  private boolean f_descendantHasDifference;
+
+  /**
+   * Checks if this element has a descendant with a difference from the old
+   * scan. This is used by the UI to highlight a path to the difference, if the
+   * user desires it.
+   * 
+   * @return {@code true} if this element has a descendant with a difference
+   *         from the old scan, {@code false} otherwise.
+   */
+  final boolean descendantHasDifference() {
+    return f_descendantHasDifference;
+  }
+
+  /**
+   * This method helps do a deep descent into the tree after construction to set
+   * flags that are used by the viewer.
+   * <p>
+   * If any new flags are added they should get set here so the whole-tree
+   * traversal is just once, not many times.
+   * 
+   * @param on
+   *          the element to examine along with its children.
+   */
+  static final EnumSet<Flag> updateFlagsDeep(Element on) {
+    boolean descendantHasDifference = false;
+    if (on instanceof ElementDrop) {
+      final boolean isSame = ((ElementDrop) on).isSame();
+      if (!isSame)
+        descendantHasDifference = true;
+    }
+
+    final EnumSet<Flag> result = EnumSet.noneOf(Flag.class);
+    if (on instanceof ElementDrop) {
+      final ElementDrop ed = (ElementDrop) on;
+      if (!ed.isSame())
+        result.add(Flag.DELTA);
+
+      final IDrop drop = ed.getDrop();
+      if (drop instanceof IProofDrop) {
+        final IProofDrop pd = (IProofDrop) drop;
+        if (pd.provedConsistent())
+          result.add(Flag.CONSISTENT);
+        else
+          result.add(Flag.INCONSISTENT);
+        if (pd.proofUsesRedDot())
+          result.add(Flag.REDDOT);
+        if (pd instanceof IAnalysisResultDrop) {
+          final IAnalysisResultDrop ard = (IAnalysisResultDrop) pd;
+          if (!ard.usedByProof()) {
+            result.add(ard.provedConsistent() ? Flag.UNUSED_CONSISTENT : Flag.UNUSED_INCONSISTENT);
+            result.remove(Flag.CONSISTENT);
+            result.remove(Flag.INCONSISTENT);
+          }
+        }
+      } else if (drop instanceof IHintDrop) {
+        final IHintDrop hd = (IHintDrop) drop;
+        if (hd.getHintType() == IHintDrop.HintType.WARNING)
+          result.add(Flag.HINT_WARNING);
+      }
+    }
+
+    for (Element c : on.getChildren()) {
+      result.addAll(updateFlagsDeep(c));
+
+      if (!descendantHasDifference && c.f_descendantHasDifference)
+        descendantHasDifference = true;
+    }
+
+    /*
+     * Fix up verification proof results in the flags (+ and X are in an X proof
+     * most of the time, and so on)
+     */
+    if (result.contains(Flag.INCONSISTENT)) {
+      result.remove(Flag.CONSISTENT);
+      result.remove(Flag.UNUSED_CONSISTENT);
+      result.remove(Flag.UNUSED_INCONSISTENT);
+    }
+    if (result.contains(Flag.CONSISTENT)) {
+      result.remove(Flag.UNUSED_CONSISTENT);
+      result.remove(Flag.UNUSED_INCONSISTENT);
+    }
+
+    // mutate flags
+    on.f_descendantHasDifference = descendantHasDifference;
+    if (on instanceof ElementWithChildren) {
+      final ElementWithChildren ewc = (ElementWithChildren) on;
+      ewc.f_descendantDecoratorFlags.clear();
+      ewc.f_descendantDecoratorFlags.addAll(result);
+    }
+
+    return result;
+  }
+
+  static final EnumSet<Flag> getDecoratorFlagsFor(Element e) {
+    EnumSet<Flag> result = EnumSet.noneOf(Flag.class);
+    if (e instanceof ElementDrop) {
+      final ElementDrop ed = (ElementDrop) e;
+      if (!ed.isSame())
+        result.add(Flag.DELTA);
+
+      final IDrop drop = ed.getDrop();
+      if (drop instanceof IProofDrop) {
+        final IProofDrop pd = (IProofDrop) drop;
+        if (pd.provedConsistent())
+          result.add(Flag.CONSISTENT);
+        else
+          result.add(Flag.INCONSISTENT);
+        if (pd.proofUsesRedDot())
+          result.add(Flag.REDDOT);
+        if (pd instanceof IAnalysisResultDrop) {
+          final IAnalysisResultDrop ard = (IAnalysisResultDrop) pd;
+          if (!ard.usedByProof()) {
+            result.add(ard.provedConsistent() ? Flag.UNUSED_CONSISTENT : Flag.UNUSED_INCONSISTENT);
+            result.remove(Flag.CONSISTENT);
+            result.remove(Flag.INCONSISTENT);
+          }
+        }
+      } else if (drop instanceof IHintDrop) {
+        final IHintDrop hd = (IHintDrop) drop;
+        if (hd.getHintType() == IHintDrop.HintType.WARNING)
+          result.add(Flag.HINT_WARNING);
+      }
+    }
+    return result;
+  }
 
   @Override
   public String toString() {

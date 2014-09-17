@@ -213,7 +213,7 @@ abstract class Element {
    * {@code true} if this element has a descendant with a warning hint about it,
    * {@code false} otherwise. *
    * <p>
-   * Set via {@link #updateFlagsDeepHelper(Element)}
+   * Set via {@link #updateFlagsDeep(Element)}
    */
   private boolean f_descendantHasWarningHint;
 
@@ -233,7 +233,7 @@ abstract class Element {
    * {@code true} if this element has a descendant with a difference from the
    * old scan, {@code false} otherwise.
    * <p>
-   * Set via {@link #updateFlagsDeepHelper(Element)}
+   * Set via {@link #updateFlagsDeep(Element)}
    */
   private boolean f_descendantHasDifference;
 
@@ -256,35 +256,35 @@ abstract class Element {
    * If any new flags are added they should get set here so the whole-tree
    * traversal is just once, not many times.
    * 
-   * @param e
+   * @param on
    *          the element to examine along with its children.
    */
-  static final void updateFlagsDeepHelper(Element e) {
+  static final void updateFlagsDeep(Element on) {
     boolean descendantHasDifference = false;
-    if (e instanceof ElementDrop) {
-      final boolean isSame = ((ElementDrop) e).isSame();
+    if (on instanceof ElementDrop) {
+      final boolean isSame = ((ElementDrop) on).isSame();
       if (!isSame)
         descendantHasDifference = true;
     }
 
     boolean descendantHasWarningHint = false;
     boolean warningHintDone = false;
-    if (e instanceof ElementHintDrop) {
-      if (((ElementHintDrop) e).getDrop().getHintType() == IHintDrop.HintType.WARNING) {
+    if (on instanceof ElementHintDrop) {
+      if (((ElementHintDrop) on).getDrop().getHintType() == IHintDrop.HintType.WARNING) {
         warningHintDone = descendantHasWarningHint = true;
       }
-    } else if (e instanceof ElementProofDrop) {
+    } else if (on instanceof ElementProofDrop) {
       /*
        * Stop looking here because the proof drops provide a "deep" answer. We
        * do not want to examine children in this case because this could cause
        * more of the viewer model to be built out than we need.
        */
-      descendantHasWarningHint = ((ElementProofDrop) e).getDrop().derivedFromWarningHint();
+      descendantHasWarningHint = ((ElementProofDrop) on).getDrop().derivedFromWarningHint();
       warningHintDone = true;
     }
 
-    for (Element c : e.getChildren()) {
-      updateFlagsDeepHelper(c);
+    for (Element c : on.getChildren()) {
+      updateFlagsDeep(c);
 
       if (!descendantHasDifference && c.f_descendantHasDifference)
         descendantHasDifference = true;
@@ -294,8 +294,8 @@ abstract class Element {
       }
     }
     // mutate flags
-    e.f_descendantHasDifference = descendantHasDifference;
-    e.f_descendantHasWarningHint = descendantHasWarningHint;
+    on.f_descendantHasDifference = descendantHasDifference;
+    on.f_descendantHasWarningHint = descendantHasWarningHint;
   }
 
   /**
