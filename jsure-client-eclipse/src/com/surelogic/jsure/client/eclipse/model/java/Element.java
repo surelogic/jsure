@@ -162,7 +162,7 @@ public abstract class Element {
    * @return {@code true} if this element has a descendant with a difference
    *         from the old scan, {@code false} otherwise.
    */
-  final boolean descendantHasDifference() {
+  public final boolean descendantHasDifference() {
     return f_descendantHasDifference;
   }
 

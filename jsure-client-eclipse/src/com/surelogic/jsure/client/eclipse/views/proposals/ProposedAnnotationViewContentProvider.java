@@ -41,14 +41,11 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
     @NonNull
     final ElementJavaDecl.Folderizer f_tree = new ElementJavaDecl.Folderizer();
 
-    Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showOnlyDifferences, boolean showOnlyFromSrc,
-        boolean showOnlyAbductive) {
+    Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showOnlyFromSrc, boolean showOnlyAbductive) {
       f_diff = diff;
 
       final ArrayList<IProposedPromiseDrop> drops = filterOutDuplicates(scan.getProposedPromiseDrops());
       for (IProposedPromiseDrop ppd : drops) {
-        if (showOnlyDifferences && f_diff != null && f_diff.isSameInBothScans(ppd))
-          continue;
         if (showOnlyAbductive && !ppd.isAbductivelyInferred())
           continue;
         if (showOnlyFromSrc && !ppd.isFromSrc())

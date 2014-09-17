@@ -39,33 +39,27 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
     final ElementJavaDecl.Folderizer f_tree = new ElementJavaDecl.Folderizer();
 
     Input(@NonNull final JSureScanInfo scan, @Nullable JSureScanInfo oldScan, @Nullable final ScanDifferences diff,
-        boolean showOnlyDifferences, boolean showObsoleteDrops, boolean showOnlyDerivedFromSrc, boolean showAnalysisResults,
-        boolean showHints) {
+        boolean showObsoleteDrops, boolean showOnlyDerivedFromSrc, boolean showAnalysisResults, boolean showHints) {
       f_diff = diff;
 
-      boolean noDiffAndOnlyShowingDiff = f_diff == null && showOnlyDifferences;
-      if (!noDiffAndOnlyShowingDiff) {
-        final ArrayList<IDrop> drops = new ArrayList<IDrop>();
-        drops.addAll(scan.getProofDrops());
-        if (showHints)
-          drops.addAll(scan.getHintDrops());
-        if (showObsoleteDrops && f_diff != null)
-          drops.addAll(f_diff.getDropsOnlyInOldScan(oldScan));
+      final ArrayList<IDrop> drops = new ArrayList<IDrop>();
+      drops.addAll(scan.getProofDrops());
+      if (showHints)
+        drops.addAll(scan.getHintDrops());
+      if (showObsoleteDrops && f_diff != null)
+        drops.addAll(f_diff.getDropsOnlyInOldScan(oldScan));
 
-        final Set<IDrop> oldDrops = oldScan == null ? null : new HashSet<IDrop>(oldScan.getDropInfo());
-        for (IDrop pd : drops) {
-          if (showOnlyDifferences && f_diff != null && f_diff.isSameInBothScans(pd))
-            continue;
-          if (!(pd instanceof IProofDrop || pd instanceof IHintDrop))
-            continue;
-          if (showOnlyDerivedFromSrc && pd instanceof IProofDrop && !((IProofDrop) pd).derivedFromSrc())
-            continue;
-          if (!showAnalysisResults && pd instanceof IAnalysisResultDrop)
-            continue;
-          if (pd instanceof IResultFolderDrop)
-            continue;
-          ElementDrop.addToTree(f_tree, pd, oldDrops == null ? false : oldDrops.contains(pd));
-        }
+      final Set<IDrop> oldDrops = oldScan == null ? null : new HashSet<IDrop>(oldScan.getDropInfo());
+      for (IDrop pd : drops) {
+        if (!(pd instanceof IProofDrop || pd instanceof IHintDrop))
+          continue;
+        if (showOnlyDerivedFromSrc && pd instanceof IProofDrop && !((IProofDrop) pd).derivedFromSrc())
+          continue;
+        if (!showAnalysisResults && pd instanceof IAnalysisResultDrop)
+          continue;
+        if (pd instanceof IResultFolderDrop)
+          continue;
+        ElementDrop.addToTree(f_tree, pd, oldDrops == null ? false : oldDrops.contains(pd));
       }
       f_tree.updateFlagsDeep();
     }

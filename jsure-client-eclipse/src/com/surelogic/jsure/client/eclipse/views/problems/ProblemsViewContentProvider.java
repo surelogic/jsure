@@ -34,13 +34,11 @@ public class ProblemsViewContentProvider implements ITreeContentProvider {
     @NonNull
     final ElementJavaDecl.Folderizer f_tree = new ElementJavaDecl.Folderizer();
 
-    Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showOnlyDifferences, boolean showOnlyFromSrc) {
+    Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showOnlyFromSrc) {
       f_diff = diff;
 
       final ArrayList<IModelingProblemDrop> drops = scan.getModelingProblemDrops();
       for (IModelingProblemDrop ppd : drops) {
-        if (showOnlyDifferences && f_diff != null && f_diff.isSameInBothScans(ppd))
-          continue;
         if (showOnlyFromSrc && !ppd.isFromSrc())
           continue;
         /*

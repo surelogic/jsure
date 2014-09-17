@@ -24,6 +24,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
@@ -132,6 +133,25 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     }
   };
 
+  final ViewerFilter f_showOnlyDifferencesFilter = new ViewerFilter() {
+    @Override
+    public boolean select(Viewer viewer, Object parent, Object e) {
+      if (e instanceof Element) {
+        final Element check = (Element) e;
+        return check.descendantHasDifference();
+      }
+      return false;
+    }
+  };
+
+  void updateShowOnlyDifferencesFilter() {
+    if (f_showOnlyDifferences) {
+      f_treeViewer.addFilter(f_showOnlyDifferencesFilter);
+    } else {
+      f_treeViewer.removeFilter(f_showOnlyDifferencesFilter);
+    }
+  }
+
   public ProposedAnnotationView() {
     final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
     f_viewStateFile = new File(jsureData, VIEW_STATE_FILENAME);
@@ -217,7 +237,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
       if (f_showOnlyDifferences != buttonChecked) {
         f_showOnlyDifferences = buttonChecked;
         EclipseUtility.setBooleanPreference(JSurePreferencesUtility.PROPOSED_ANNO_SHOW_ONLY_DIFFERENCES, f_showOnlyDifferences);
-        currentScanChanged(null);
+        updateShowOnlyDifferencesFilter();
       }
     }
   };
@@ -385,6 +405,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     f_actionShowOnlyDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.show_only_diffs.tip"));
     f_showOnlyDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.PROPOSED_ANNO_SHOW_ONLY_DIFFERENCES);
     f_actionShowOnlyDifferences.setChecked(f_showOnlyDifferences);
+    updateShowOnlyDifferencesFilter();
 
     f_actionShowOnlyFromSrc.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_JAVA_COMP_UNIT));
     f_actionShowOnlyFromSrc.setText(I18N.msg("jsure.eclipse.proposed.promises.showOnlyFromSrc"));
@@ -519,8 +540,8 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
               state = new TreeViewerUIState(f_treeViewer);
             }
           }
-          f_treeViewer.setInput(new ProposedAnnotationViewContentProvider.Input(scan, diff, f_showOnlyDifferences,
-              f_showOnlyFromSrc, f_showOnlyAbductive));
+          f_treeViewer
+              .setInput(new ProposedAnnotationViewContentProvider.Input(scan, diff, f_showOnlyFromSrc, f_showOnlyAbductive));
           if (state != null) {
             state.restoreViewState(f_treeViewer);
           } else {

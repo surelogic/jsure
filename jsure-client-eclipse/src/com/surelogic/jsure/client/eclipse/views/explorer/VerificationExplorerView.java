@@ -22,6 +22,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
@@ -117,6 +118,25 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       return super.compare(viewer, e1, e2);
     }
   };
+
+  final ViewerFilter f_showOnlyDifferencesFilter = new ViewerFilter() {
+    @Override
+    public boolean select(Viewer viewer, Object parent, Object e) {
+      if (e instanceof Element) {
+        final Element check = (Element) e;
+        return check.descendantHasDifference();
+      }
+      return false;
+    }
+  };
+
+  void updateShowOnlyDifferencesFilter() {
+    if (f_showOnlyDifferences) {
+      f_treeViewer.addFilter(f_showOnlyDifferencesFilter);
+    } else {
+      f_treeViewer.removeFilter(f_showOnlyDifferencesFilter);
+    }
+  }
 
   public VerificationExplorerView() {
     final File jsureData = JSurePreferencesUtility.getJSureDataDirectory();
@@ -272,7 +292,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
       if (f_showOnlyDifferences != buttonChecked) {
         f_showOnlyDifferences = buttonChecked;
         EclipseUtility.setBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_DIFFERENCES, f_showOnlyDifferences);
-        currentScanChanged(null);
+        updateShowOnlyDifferencesFilter();
       }
     }
   };
@@ -390,6 +410,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
     f_actionShowOnlyDifferences.setToolTipText(I18N.msg("jsure.eclipse.view.show_only_diffs.tip"));
     f_showOnlyDifferences = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VEXPLORER_SHOW_ONLY_DIFFERENCES);
     f_actionShowOnlyDifferences.setChecked(f_showOnlyDifferences);
+    updateShowOnlyDifferencesFilter();
 
     f_actionShowObsoleteDrops.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_CHANGELOG_OLD_SCAN_ONLY));
     f_actionShowObsoleteDrops.setText(I18N.msg("jsure.eclipse.explorer.showObsoleteDiffs"));
@@ -540,8 +561,8 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
               state = new TreeViewerUIState(f_treeViewer);
             }
           }
-          f_treeViewer.setInput(new VerificationExplorerViewContentProvider.Input(scan, oldScan, diff, f_showOnlyDifferences,
-              f_showObsoleteDrops, f_showOnlyDerivedFromSrc, f_showAnalysisResults, f_showHints));
+          f_treeViewer.setInput(new VerificationExplorerViewContentProvider.Input(scan, oldScan, diff, f_showObsoleteDrops,
+              f_showOnlyDerivedFromSrc, f_showAnalysisResults, f_showHints));
           setModelProblemIndicatorState(JSureUtility.getInterestingModelingProblemCount(scan));
           if (state != null) {
             state.restoreViewState(f_treeViewer);
