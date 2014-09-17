@@ -35,14 +35,11 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
    * Represents input for this content provider.
    */
   static class Input {
-    @Nullable
-    final ScanDifferences f_diff;
-
     @NonNull
-    final ElementJavaDecl.Folderizer f_tree = new ElementJavaDecl.Folderizer();
+    final ElementJavaDecl.Folderizer f_tree;
 
     Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showOnlyFromSrc, boolean showOnlyAbductive) {
-      f_diff = diff;
+      f_tree = new ElementJavaDecl.Folderizer(diff);
 
       final ArrayList<IProposedPromiseDrop> drops = filterOutDuplicates(scan.getProposedPromiseDrops());
       for (IProposedPromiseDrop ppd : drops) {
@@ -70,11 +67,9 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
     if (newInput instanceof Input) {
       final Input in = (Input) newInput;
-      Element.f_diff = in.f_diff;
       f_root = in.f_tree.getRootElements();
     } else if (newInput == null) {
       f_root = Element.EMPTY;
-      Element.f_diff = null;
     } else {
       SLLogger.getLogger().log(Level.SEVERE, I18N.err(301, this.getClass().getSimpleName(), newInput));
     }

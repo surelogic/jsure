@@ -12,7 +12,6 @@ import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProofDrop;
-import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 public abstract class Element {
@@ -53,16 +52,6 @@ public abstract class Element {
   public final Element getParent() {
     return f_parent;
   }
-
-  /**
-   * Provides scan differences to all elements, {@code null} if none no scan
-   * difference information is available.
-   * <p>
-   * <i>Implementation Note:</i> This field should <b>only</b> be set by the
-   * content provider when it constructs a model of elements for a scan. It
-   * cannot be changed without rebuilding the model.
-   */
-  public static ScanDifferences f_diff;
 
   /**
    * {@code true} if scan differences should be highlighted in the tree,

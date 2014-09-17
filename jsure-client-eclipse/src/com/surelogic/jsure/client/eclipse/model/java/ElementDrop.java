@@ -38,7 +38,7 @@ public final class ElementDrop extends Element {
       throw new IllegalArgumentException(I18N.err(44, "drop"));
     final ElementJavaDecl parent = tree.getParentOf(drop, fromOldScan);
     if (parent != null) {
-      final ElementDrop result = new ElementDrop(parent, drop, fromOldScan);
+      final ElementDrop result = new ElementDrop(parent, drop, tree.getDiff(), fromOldScan);
       parent.addChild(result);
       return result;
     }
@@ -97,7 +97,7 @@ public final class ElementDrop extends Element {
     cell.setBackground(null);
   }
 
-  private ElementDrop(@NonNull Element parent, @NonNull IDrop drop, boolean fromOldScan) {
+  private ElementDrop(@NonNull Element parent, @NonNull IDrop drop, @Nullable ScanDifferences diff, boolean fromOldScan) {
     super(parent);
     if (drop == null)
       throw new IllegalArgumentException(I18N.err(44, "drop"));
@@ -106,7 +106,6 @@ public final class ElementDrop extends Element {
     if (fromOldScan) {
       f_diffDrop = f_drop;
     } else {
-      final ScanDifferences diff = f_diff;
       if (diff == null) {
         f_diffDrop = null;
       } else {

@@ -20,6 +20,7 @@ import com.surelogic.common.ref.IDeclTypeParameter;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.ScanDifferences;
 
 public final class ElementJavaDecl extends ElementWithChildren {
 
@@ -29,10 +30,24 @@ public final class ElementJavaDecl extends ElementWithChildren {
      * Constructs a new instance with a provider for difference information and
      * preferences.
      * 
-     * @param viewDiffState
+     * @param diff
      *          difference information and preferences.
      */
-    public Folderizer() {
+    public Folderizer(@Nullable ScanDifferences diff) {
+      f_diff = diff;
+    }
+
+    @Nullable
+    private final ScanDifferences f_diff;
+
+    /**
+     * Gets the scan differences for this folderizer.
+     * 
+     * @return the scan differences for this folderizer.
+     */
+    @Nullable
+    public ScanDifferences getDiff() {
+      return f_diff;
     }
 
     @NonNull

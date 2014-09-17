@@ -32,22 +32,19 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
    * Represents input for this content provider.
    */
   static class Input {
-    @Nullable
-    final ScanDifferences f_diff;
-
     @NonNull
-    final ElementJavaDecl.Folderizer f_tree = new ElementJavaDecl.Folderizer();
+    final ElementJavaDecl.Folderizer f_tree;
 
     Input(@NonNull final JSureScanInfo scan, @Nullable JSureScanInfo oldScan, @Nullable final ScanDifferences diff,
         boolean showObsoleteDrops, boolean showOnlyDerivedFromSrc, boolean showAnalysisResults, boolean showHints) {
-      f_diff = diff;
+      f_tree = new ElementJavaDecl.Folderizer(diff);
 
       final ArrayList<IDrop> drops = new ArrayList<IDrop>();
       drops.addAll(scan.getProofDrops());
       if (showHints)
         drops.addAll(scan.getHintDrops());
-      if (showObsoleteDrops && f_diff != null)
-        drops.addAll(f_diff.getDropsOnlyInOldScan(oldScan));
+      if (showObsoleteDrops && diff != null)
+        drops.addAll(diff.getDropsOnlyInOldScan(oldScan));
 
       final Set<IDrop> oldDrops = oldScan == null ? null : new HashSet<IDrop>(oldScan.getDropInfo());
       for (IDrop pd : drops) {
@@ -74,11 +71,9 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
     if (newInput instanceof Input) {
       final Input in = (Input) newInput;
-      Element.f_diff = in.f_diff;
       f_root = in.f_tree.getRootElements();
     } else if (newInput == null) {
       f_root = Element.EMPTY;
-      Element.f_diff = null;
     } else {
       SLLogger.getLogger().log(Level.SEVERE, I18N.err(301, this.getClass().getSimpleName(), newInput));
     }
