@@ -32,12 +32,8 @@ public final class ElementJavaDecl extends ElementWithChildren {
      * @param viewDiffState
      *          difference information and preferences.
      */
-    public Folderizer(@Nullable IViewDiffState viewDiffState) {
-      f_viewDiffState = viewDiffState;
+    public Folderizer() {
     }
-
-    @Nullable
-    private final IViewDiffState f_viewDiffState;
 
     @NonNull
     private final List<ElementProject> f_projects = new ArrayList<ElementProject>();
@@ -84,7 +80,7 @@ public final class ElementJavaDecl extends ElementWithChildren {
         }
       }
       if (project == null) { // need to create
-        project = new ElementProject(f_viewDiffState, projectName, grayscale);
+        project = new ElementProject(projectName, grayscale);
         f_projects.add(project);
       }
 
@@ -190,7 +186,7 @@ public final class ElementJavaDecl extends ElementWithChildren {
   }
 
   protected ElementJavaDecl(@NonNull Element parent, IDecl javaDecl, boolean grayscale) {
-    super(parent, parent);
+    super(parent);
     f_javaDecl = javaDecl;
     if (parent != null)
       parent.addChild(this);

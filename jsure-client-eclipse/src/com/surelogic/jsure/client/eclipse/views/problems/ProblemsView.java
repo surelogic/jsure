@@ -81,17 +81,17 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
       + SLUtility.DOT_XML;
 
   @NonNull
-  private final File f_viewStateFile;
+  final File f_viewStateFile;
 
-  private PageBook f_viewerbook = null;
-  private Label f_noResultsToShowLabel = null;
-  private TreeViewer f_treeViewer;
-  private TreeViewerColumn f_columnTree;
+  PageBook f_viewerbook = null;
+  Label f_noResultsToShowLabel = null;
+  TreeViewer f_treeViewer;
+  TreeViewerColumn f_columnTree;
   @NonNull
-  private final ProblemsViewContentProvider f_contentProvider = new ProblemsViewContentProvider();
-  private boolean f_highlightDifferences;
-  private boolean f_showOnlyDifferences;
-  private boolean f_showOnlyFromSrc;
+  final ProblemsViewContentProvider f_contentProvider = new ProblemsViewContentProvider();
+  boolean f_highlightDifferences;
+  boolean f_showOnlyDifferences;
+  boolean f_showOnlyFromSrc;
 
   private final ViewerSorter f_alphaLineSorter = new ViewerSorter() {
 
@@ -185,7 +185,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     }
   }
 
-  private final Action f_actionHighlightDifferences = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionHighlightDifferences = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionHighlightDifferences.isChecked();
@@ -198,7 +198,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     }
   };
 
-  private final Action f_actionShowOnlyDifferences = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionShowOnlyDifferences = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionShowOnlyDifferences.isChecked();
@@ -210,7 +210,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     }
   };
 
-  private final Action f_actionShowOnlyFromSrc = new Action("", IAction.AS_CHECK_BOX) {
+  final Action f_actionShowOnlyFromSrc = new Action("", IAction.AS_CHECK_BOX) {
     @Override
     public void run() {
       final boolean buttonChecked = f_actionShowOnlyFromSrc.isChecked();
@@ -222,7 +222,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     }
   };
 
-  private final Action f_actionExpand = new Action() {
+  final Action f_actionExpand = new Action() {
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
@@ -235,7 +235,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     }
   };
 
-  private final Action f_actionCollapse = new Action() {
+  final Action f_actionCollapse = new Action() {
     @Override
     public void run() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
@@ -248,14 +248,14 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     }
   };
 
-  private final Action f_actionCollapseAll = new Action() {
+  final Action f_actionCollapseAll = new Action() {
     @Override
     public void run() {
       f_treeViewer.collapseAll();
     }
   };
 
-  private final Action f_preferences = new Action() {
+  final Action f_preferences = new Action() {
     @Override
     public void run() {
       final String[] FILTER = new String[] { UninterestingPackageFilterPreferencePage.class.getName() };
@@ -275,7 +275,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     }
   };
 
-  private final Action f_actionCopy = new Action() {
+  final Action f_actionCopy = new Action() {
     @Override
     public void run() {
       final Clipboard clipboard = new Clipboard(getSite().getShell().getDisplay());
@@ -287,14 +287,14 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     }
   };
 
-  private final Action f_actionOpenInEditor = new Action() {
+  final Action f_actionOpenInEditor = new Action() {
     @Override
     public void run() {
       openInEditor();
     }
   };
 
-  private final Action f_actionOpenXmlEditor = new Action() {
+  final Action f_actionOpenXmlEditor = new Action() {
     @Override
     public void run() {
       final IDecl decl = getDeclarationOfFirstSelected();
@@ -303,7 +303,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     }
   };
 
-  private void makeActions() {
+  void makeActions() {
     f_treeViewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
       public void doubleClick(DoubleClickEvent event) {
@@ -416,7 +416,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     toolbar.add(f_preferences);
   }
 
-  private void updateInterestingModelingProblemCount(final JSureScanInfo scan) {
+  void updateInterestingModelingProblemCount(final JSureScanInfo scan) {
     final int issueCt = JSureUtility.getInterestingModelingProblemCount(scan);
     final String label;
     if (issueCt > 0) {
@@ -429,7 +429,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     f_columnTree.getColumn().setText(label);
   }
 
-  private void openInEditor() {
+  void openInEditor() {
     final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
     if (!s.isEmpty()) {
       final Object first = s.getFirstElement();
@@ -440,10 +440,9 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
         final IJavaRef ref = ((ElementDrop) first).getDrop().getJavaRef();
         if (ref != null)
           Activator.highlightLineInJavaEditor(ref);
-      }
-      else if (first instanceof ElementJavaDecl) {
-    	  final ElementJavaDecl ejd = (ElementJavaDecl) first;
-    	  Activator.highlightLineInJavaEditor(ejd.getDeclaration());
+      } else if (first instanceof ElementJavaDecl) {
+        final ElementJavaDecl ejd = (ElementJavaDecl) first;
+        Activator.highlightLineInJavaEditor(ejd.getDeclaration());
       }
       // open up the tree one more level
       if (!f_treeViewer.getExpandedState(first)) {
@@ -452,14 +451,14 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     }
   }
 
-  private void selectionChangedHelper() {
+  void selectionChangedHelper() {
     final boolean proposalsSelected = !getSelectedProposals().isEmpty();
     f_actionAnnotateCode.setEnabled(proposalsSelected);
     f_actionOpenXmlEditor.setEnabled(getIfFirstSelectedShouldOpenXmlEditor());
   }
 
   @Nullable
-  private IDecl getDeclarationOfFirstSelected() {
+  IDecl getDeclarationOfFirstSelected() {
     final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
     if (!s.isEmpty()) {
       final Object first = s.getFirstElement();
@@ -467,9 +466,8 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
         final IJavaRef ref = ((ElementDrop) first).getDrop().getJavaRef();
         if (ref != null)
           return ref.getDeclaration();
-      }
-      else if (first instanceof ElementJavaDecl) {
-    	  return ((ElementJavaDecl) first).getDeclaration();
+      } else if (first instanceof ElementJavaDecl) {
+        return ((ElementJavaDecl) first).getDeclaration();
       }
     }
     return null;
@@ -481,19 +479,18 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
       final Object first = s.getFirstElement();
       if (first instanceof ElementDrop) {
         final IDrop drop = ((ElementDrop) first).getDrop();
-        //if (drop.isFromSrc())
-        //  return false;
+        // if (drop.isFromSrc())
+        // return false;
         final IJavaRef ref = drop.getJavaRef();
         return ref != null;
-      }
-      else if (first instanceof ElementJavaDecl) {
-    	return true;  
+      } else if (first instanceof ElementJavaDecl) {
+        return true;
       }
     }
     return false;
   }
 
-  private List<IProposedPromiseDrop> getSelectedProposals() {
+  List<IProposedPromiseDrop> getSelectedProposals() {
     final List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
     final IStructuredSelection selection = (IStructuredSelection) f_treeViewer.getSelection();
     for (final Object elt : selection.toList()) {
@@ -503,7 +500,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     return result;
   }
 
-  private void getSelectedProposalsHelper(Element e, List<IProposedPromiseDrop> mutableResult) {
+  void getSelectedProposalsHelper(Element e, List<IProposedPromiseDrop> mutableResult) {
     if (e instanceof ElementDrop) {
       final IDrop drop = ((ElementDrop) e).getDrop();
       if (drop instanceof IModelingProblemDrop) {
@@ -518,7 +515,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
   /**
    * Gets the text selected&mdash;used by the {@link #f_actionCopy} action.
    */
-  private String getSelectedText() {
+  String getSelectedText() {
     final IStructuredSelection selection = (IStructuredSelection) f_treeViewer.getSelection();
     final StringBuilder sb = new StringBuilder();
     for (final Object elt : selection.toList()) {

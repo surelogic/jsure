@@ -79,7 +79,7 @@ public final class ElementDrop extends Element {
   public static void highlightRowHelper(ViewerCell cell, Color colorNewChanged, Color colorObsolete) {
     if (cell.getElement() instanceof ElementDrop) {
       final ElementDrop element = (ElementDrop) cell.getElement();
-      if (element.highlightDifferences()) {
+      if (f_highlightDifferences) {
         if (element.isNew() || element.isChanged()) {
           if (colorNewChanged == null)
             colorNewChanged = EclipseColorUtility.getDiffHighlightColorNewChanged();
@@ -98,7 +98,7 @@ public final class ElementDrop extends Element {
   }
 
   private ElementDrop(@NonNull Element parent, @NonNull IDrop drop, boolean fromOldScan) {
-    super(parent, parent);
+    super(parent);
     if (drop == null)
       throw new IllegalArgumentException(I18N.err(44, "drop"));
     f_drop = drop;
@@ -106,7 +106,7 @@ public final class ElementDrop extends Element {
     if (fromOldScan) {
       f_diffDrop = f_drop;
     } else {
-      final ScanDifferences diff = getScanDifferences();
+      final ScanDifferences diff = f_diff;
       if (diff == null) {
         f_diffDrop = null;
       } else {

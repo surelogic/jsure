@@ -89,7 +89,7 @@ abstract class Element {
    * <p>
    * <i>Implementation Note:</i> This field should <b>only</b> be set by
    * {@link VerificationStatusViewContentProvider} when it constructs a model of
-   * elements for a scan.
+   * elements for a scan. It cannot be changed without rebuilding the model.
    */
   static boolean f_showHints;
 
@@ -99,7 +99,7 @@ abstract class Element {
    * <p>
    * <i>Implementation Note:</i> This field should <b>only</b> be set by
    * {@link VerificationStatusViewContentProvider} when it constructs a model of
-   * elements for a scan.
+   * elements for a scan. It cannot be changed without rebuilding the model.
    */
   static ScanDifferences f_diff;
 
@@ -110,8 +110,8 @@ abstract class Element {
    * This may be toggled on an existing model to change the display.
    * <p>
    * <i>Implementation Note:</i> This field should <b>only</b> be set by
-   * {@link VerificationStatusViewContentProvider} when it constructs a model of
-   * elements for a scan.
+   * {@link VerificationStatusViewContentProvider#setHighlightDifferences(boolean)}
+   * and then followed by a view refresh.
    */
   static volatile boolean f_highlightDifferences;
 
