@@ -26,13 +26,24 @@ import com.surelogic.javac.persistence.JSureScanInfo;
 public final class VerificationStatusViewContentProvider implements ITreeContentProvider {
 
   static class Input {
-    @NonNull
-    final JSureScanInfo f_scan;
-    @Nullable
-    final ScanDifferences f_diff;
+    /**
+     * {@code true} if the built model should contain hints, {@code false} if it
+     * should not.
+     */
     final boolean f_showHints;
+
+    /**
+     * The model.
+     */
     final List<Element> f_root = new ArrayList<Element>();
-    
+
+    /**
+     * Gets the model associated with this input as an array so it can be easily
+     * passed to the viewer.
+     * 
+     * @return the model associated with this input as an array so it can be
+     *         easily passed to the viewer.
+     */
     Element[] getRootAsArray() {
       return f_root.toArray(new Element[f_root.size()]);
     }
@@ -47,18 +58,16 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
      * @param showHints
      *          {@code true} if hints should be displayed, {@code false} if not.
      */
-    Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showHints) {
-      f_scan = scan;
-      f_diff = diff;
+    Input(@NonNull final JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showHints) {
       f_showHints = showHints;
 
       /*
        * Go ahead a calculate the model for the view
        */
       Element.f_showHints = f_showHints;
-      Element.f_diff = f_diff;
+      Element.f_diff = diff;
       final ElementCategory.Categorizer pc = new ElementCategory.Categorizer(null);
-      for (IPromiseDrop promise : f_scan.getPromiseDrops()) {
+      for (IPromiseDrop promise : scan.getPromiseDrops()) {
         if (promise.isFromSrc() || promise.derivedFromSrc()) {
           if (showAtTopLevel(promise)) {
             pc.add(promise);
@@ -73,7 +82,7 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
          * shows up under the drop it is attached to).
          */
         final ElementCategory.Categorizer hc = new ElementCategory.Categorizer(null);
-        for (IHintDrop hint : f_scan.getHintDrops()) {
+        for (IHintDrop hint : scan.getHintDrops()) {
           if (hint.getCategorizingMessage() != null)
             hc.add(hint);
         }

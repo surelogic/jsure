@@ -9,7 +9,7 @@ import com.surelogic.Nullable;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ScanDifferences;
 
-public abstract class Element implements IViewDiffState {
+public abstract class Element {
 
   /**
    * Compares elements by their label.
@@ -48,23 +48,30 @@ public abstract class Element implements IViewDiffState {
     return f_parent;
   }
 
-  @Nullable
-  private final IViewDiffState f_viewDiffState;
+  /**
+   * Provides scan differences to all elements, {@code null} if none no scan
+   * difference information is available.
+   * <p>
+   * <i>Implementation Note:</i> This field should <b>only</b> be set by the
+   * content provider when it constructs a model of elements for a scan. It
+   * cannot be changed without rebuilding the model.
+   */
+  public static ScanDifferences f_diff;
 
-  @Override
-  @Nullable
-  public final ScanDifferences getScanDifferences() {
-    return f_viewDiffState == null ? null : f_viewDiffState.getScanDifferences();
-  }
+  /**
+   * {@code true} if scan differences should be highlighted in the tree,
+   * {@code false} if not.
+   * <p>
+   * This may be toggled on an existing model to change the display.
+   * <p>
+   * <i>Implementation Note:</i> This field should <b>only</b> be set by the
+   * content provider's <code>setHighlightDifferences(boolean)</code> method and
+   * then followed by a view refresh.
+   */
+  public static volatile boolean f_highlightDifferences;
 
-  @Override
-  public boolean highlightDifferences() {
-    return f_viewDiffState == null ? false : f_viewDiffState.highlightDifferences();
-  }
-
-  protected Element(@Nullable Element parent, @Nullable IViewDiffState viewDiffState) {
+  protected Element(@Nullable Element parent) {
     f_parent = parent;
-    f_viewDiffState = viewDiffState;
   }
 
   abstract void addChild(Element child);

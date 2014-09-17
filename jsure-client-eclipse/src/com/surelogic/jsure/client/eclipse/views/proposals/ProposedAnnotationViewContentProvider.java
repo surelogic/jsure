@@ -27,10 +27,9 @@ import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
-import com.surelogic.jsure.client.eclipse.model.java.IViewDiffState;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 
-public class ProposedAnnotationViewContentProvider implements ITreeContentProvider, IViewDiffState {
+public class ProposedAnnotationViewContentProvider implements ITreeContentProvider {
 
   /**
    * Represents input for this content provider.
@@ -63,8 +62,8 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
     if (newInput instanceof Input) {
       final Input in = (Input) newInput;
-      f_scanDifferences = in.f_diff;
-      final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer(this);
+      Element.f_diff = in.f_diff;
+      final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer();
 
       final ArrayList<IProposedPromiseDrop> drops = filterOutDuplicates(in.f_scan.getProposedPromiseDrops());
       for (IProposedPromiseDrop ppd : drops) {
@@ -84,7 +83,7 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
       f_root = tree.getRootElements();
     } else if (newInput == null) {
       f_root = Element.EMPTY;
-      f_scanDifferences = null;
+      Element.f_diff = null;
     } else {
       SLLogger.getLogger().log(Level.SEVERE, I18N.err(301, this.getClass().getSimpleName(), newInput));
     }
@@ -227,23 +226,7 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
     return result;
   }
 
-  @Nullable
-  private ScanDifferences f_scanDifferences;
-
-  @Override
-  @Nullable
-  public ScanDifferences getScanDifferences() {
-    return f_scanDifferences;
-  }
-
-  private boolean f_highlightDifferences;
-
-  @Override
-  public boolean highlightDifferences() {
-    return f_highlightDifferences;
-  }
-
   void setHighlightDifferences(boolean value) {
-    f_highlightDifferences = value;
+    Element.f_highlightDifferences = value;
   }
 }

@@ -85,7 +85,7 @@ public final class ColumnLabelProviderUtility {
 
       if (cell.getElement() instanceof ElementDrop) {
         final ElementDrop element = (ElementDrop) cell.getElement();
-        if (element.getScanDifferences() != null) {
+        if (Element.f_diff != null) {
           String cellText = null;
           Image cellImage = null;
           if (element.isNew()) {
