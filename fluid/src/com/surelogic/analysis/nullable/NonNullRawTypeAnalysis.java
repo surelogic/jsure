@@ -1643,6 +1643,12 @@ implements IBinderClient {
           val = push(val, lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.FIELD_REF, fref));
         }
       }
+      /*
+       * The field is unannotated, and thus might be null.
+       */
+      else {
+        val = push(val, lattice.baseValue(NonNullRawLattice.MAYBE_NULL, Kind.FIELD_REF, fref));
+      }
       return val;
     }
     
