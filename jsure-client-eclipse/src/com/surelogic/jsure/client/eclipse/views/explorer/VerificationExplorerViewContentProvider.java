@@ -32,29 +32,42 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
    * Represents input for this content provider.
    */
   static class Input {
-    @NonNull
-    final JSureScanInfo f_scan;
-    @Nullable
-    final JSureScanInfo f_oldScan;
     @Nullable
     final ScanDifferences f_diff;
-    final boolean f_showOnlyDifferences;
-    final boolean f_showObsoleteDrops;
-    final boolean f_showOnlyDerivedFromSrc;
-    final boolean f_showAnalysisResults;
-    final boolean f_showHints;
+
+    @NonNull
+    final ElementJavaDecl.Folderizer f_tree = new ElementJavaDecl.Folderizer();
 
     Input(@NonNull final JSureScanInfo scan, @Nullable JSureScanInfo oldScan, @Nullable final ScanDifferences diff,
         boolean showOnlyDifferences, boolean showObsoleteDrops, boolean showOnlyDerivedFromSrc, boolean showAnalysisResults,
         boolean showHints) {
-      f_scan = scan;
-      f_oldScan = oldScan;
       f_diff = diff;
-      f_showOnlyDifferences = showOnlyDifferences;
-      f_showObsoleteDrops = showObsoleteDrops;
-      f_showOnlyDerivedFromSrc = showOnlyDerivedFromSrc;
-      f_showAnalysisResults = showAnalysisResults;
-      f_showHints = showHints;
+
+      boolean noDiffAndOnlyShowingDiff = f_diff == null && showOnlyDifferences;
+      if (!noDiffAndOnlyShowingDiff) {
+        final ArrayList<IDrop> drops = new ArrayList<IDrop>();
+        drops.addAll(scan.getProofDrops());
+        if (showHints)
+          drops.addAll(scan.getHintDrops());
+        if (showObsoleteDrops && f_diff != null)
+          drops.addAll(f_diff.getDropsOnlyInOldScan(oldScan));
+
+        final Set<IDrop> oldDrops = oldScan == null ? null : new HashSet<IDrop>(oldScan.getDropInfo());
+        for (IDrop pd : drops) {
+          if (showOnlyDifferences && f_diff != null && f_diff.isSameInBothScans(pd))
+            continue;
+          if (!(pd instanceof IProofDrop || pd instanceof IHintDrop))
+            continue;
+          if (showOnlyDerivedFromSrc && pd instanceof IProofDrop && !((IProofDrop) pd).derivedFromSrc())
+            continue;
+          if (!showAnalysisResults && pd instanceof IAnalysisResultDrop)
+            continue;
+          if (pd instanceof IResultFolderDrop)
+            continue;
+          ElementDrop.addToTree(f_tree, pd, oldDrops == null ? false : oldDrops.contains(pd));
+        }
+      }
+      f_tree.updateFlagsDeep();
     }
   }
 
@@ -68,33 +81,7 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
     if (newInput instanceof Input) {
       final Input in = (Input) newInput;
       Element.f_diff = in.f_diff;
-      final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer();
-
-      boolean noDiffAndOnlyShowingDiff = in.f_diff == null && in.f_showOnlyDifferences;
-      if (!noDiffAndOnlyShowingDiff) {
-        final ArrayList<IDrop> drops = new ArrayList<IDrop>();
-        drops.addAll(in.f_scan.getProofDrops());
-        if (in.f_showHints)
-          drops.addAll(in.f_scan.getHintDrops());
-        if (in.f_showObsoleteDrops && in.f_diff != null)
-          drops.addAll(in.f_diff.getDropsOnlyInOldScan(in.f_oldScan));
-
-        final Set<IDrop> oldDrops = in.f_oldScan == null ? null : new HashSet<IDrop>(in.f_oldScan.getDropInfo());
-        for (IDrop pd : drops) {
-          if (in.f_showOnlyDifferences && in.f_diff != null && in.f_diff.isSameInBothScans(pd))
-            continue;
-          if (!(pd instanceof IProofDrop || pd instanceof IHintDrop))
-            continue;
-          if (in.f_showOnlyDerivedFromSrc && pd instanceof IProofDrop && !((IProofDrop) pd).derivedFromSrc())
-            continue;
-          if (!in.f_showAnalysisResults && pd instanceof IAnalysisResultDrop)
-            continue;
-          if (pd instanceof IResultFolderDrop)
-            continue;
-          ElementDrop.addToTree(tree, pd, oldDrops == null ? false : oldDrops.contains(pd));
-        }
-      }
-      f_root = tree.getRootElements();
+      f_root = in.f_tree.getRootElements();
     } else if (newInput == null) {
       f_root = Element.EMPTY;
       Element.f_diff = null;

@@ -40,12 +40,28 @@ public final class ElementJavaDecl extends ElementWithChildren {
 
     /**
      * Gets the set of root elements constructed by this, so far.
+     * <p>
+     * Be sure to call {@link #updateFlagsDeep()} before using this method to
+     * fill the viewer.
      * 
      * @return a set of root elements.
      */
     @NonNull
     public ElementProject[] getRootElements() {
       return f_projects.toArray(new ElementProject[f_projects.size()]);
+    }
+
+    /**
+     * This method helps do a deep descent into the tree after construction to
+     * set flags that are used by the viewer.
+     * <p>
+     * This method should be invoked prior to using the results obtained from
+     * {@link #getRootElements()}.
+     */
+    public void updateFlagsDeep() {
+      for (ElementProject p : f_projects) {
+        Element.updateFlagsDeep(p);
+      }
     }
 
     /**
