@@ -13,8 +13,8 @@ import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 public abstract class ElementWithChildren extends Element {
 
-  protected ElementWithChildren(@Nullable Element parent) {
-    super(parent);
+  protected ElementWithChildren(@Nullable Element parent, @NonNull HighlightDifferencesSource source) {
+    super(parent, source);
   }
 
   @NonNull
@@ -50,7 +50,7 @@ public abstract class ElementWithChildren extends Element {
     if (baseImage == null)
       return null;
     final EnumSet<Flag> flags = f_descendantDecoratorFlags;
-    if (f_highlightDifferences) {
+    if (getHighlightDifferences()) {
       if (descendantHasDifference())
         flags.add(Flag.DELTA);
     } else {

@@ -561,8 +561,8 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
               state = new TreeViewerUIState(f_treeViewer);
             }
           }
-          f_treeViewer.setInput(new VerificationExplorerViewContentProvider.Input(scan, oldScan, diff, f_showObsoleteDrops,
-              f_showOnlyDerivedFromSrc, f_showAnalysisResults, f_showHints));
+          f_treeViewer.setInput(new VerificationExplorerViewContentProvider.Input(scan, oldScan, diff, f_contentProvider,
+              f_showObsoleteDrops, f_showOnlyDerivedFromSrc, f_showAnalysisResults, f_showHints));
           setModelProblemIndicatorState(JSureUtility.getInterestingModelingProblemCount(scan));
           if (state != null) {
             state.restoreViewState(f_treeViewer);

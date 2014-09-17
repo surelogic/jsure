@@ -7,6 +7,7 @@ import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IDrop;
@@ -15,6 +16,21 @@ import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
 public abstract class Element {
+
+  /**
+   * Implemented to provide the highlight differences flag, and have it be
+   * unique, from the various view implementations that use elements.
+   */
+  public interface HighlightDifferencesSource {
+
+    /**
+     * Gets if differences should be highlighted.
+     * 
+     * @return {@code true} if differences should be highlighted, {@code false}
+     *         otherwise.
+     */
+    boolean getHighlightDifferences();
+  }
 
   /**
    * Compares elements by their label.
@@ -54,19 +70,36 @@ public abstract class Element {
   }
 
   /**
-   * {@code true} if scan differences should be highlighted in the tree,
-   * {@code false} if not.
-   * <p>
-   * This may be toggled on an existing model to change the display.
-   * <p>
-   * <i>Implementation Note:</i> This field should <b>only</b> be set by the
-   * content provider's <code>setHighlightDifferences(boolean)</code> method and
-   * then followed by a view refresh.
+   * The source for determining if differences should be highlighted.
    */
-  public static volatile boolean f_highlightDifferences;
+  @NonNull
+  private final HighlightDifferencesSource f_source;
 
-  protected Element(@Nullable Element parent) {
+  /**
+   * Gets the source for determining if differences should be highlighted.
+   * 
+   * @return the source for determining if differences should be highlighted.
+   */
+  @NonNull
+  public HighlightDifferencesSource getSource() {
+    return f_source;
+  }
+
+  /**
+   * Gets if differences should be highlighted.
+   * 
+   * @return {@code true} if differences should be highlighted, {@code false}
+   *         otherwise.
+   */
+  public boolean getHighlightDifferences() {
+    return f_source.getHighlightDifferences();
+  }
+
+  protected Element(@Nullable Element parent, @NonNull HighlightDifferencesSource source) {
     f_parent = parent;
+    if (source == null)
+      throw new IllegalArgumentException(I18N.err(44, "source"));
+    f_source = source;
   }
 
   abstract void addChild(Element child);

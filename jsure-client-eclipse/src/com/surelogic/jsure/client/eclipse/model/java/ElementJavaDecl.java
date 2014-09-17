@@ -33,12 +33,18 @@ public final class ElementJavaDecl extends ElementWithChildren {
      * @param diff
      *          difference information and preferences.
      */
-    public Folderizer(@Nullable ScanDifferences diff) {
+    public Folderizer(@Nullable ScanDifferences diff, @NonNull HighlightDifferencesSource source) {
       f_diff = diff;
+      if (source == null)
+        throw new IllegalArgumentException(I18N.err(44, "source"));
+      f_source = source;
     }
 
     @Nullable
     private final ScanDifferences f_diff;
+
+    @NonNull
+    private final HighlightDifferencesSource f_source;
 
     /**
      * Gets the scan differences for this folderizer.
@@ -111,7 +117,7 @@ public final class ElementJavaDecl extends ElementWithChildren {
         }
       }
       if (project == null) { // need to create
-        project = new ElementProject(projectName, grayscale);
+        project = new ElementProject(f_source, projectName, grayscale);
         f_projects.add(project);
       }
 
@@ -217,7 +223,7 @@ public final class ElementJavaDecl extends ElementWithChildren {
   }
 
   protected ElementJavaDecl(@NonNull Element parent, IDecl javaDecl, boolean grayscale) {
-    super(parent);
+    super(parent, parent.getSource());
     f_javaDecl = javaDecl;
     if (parent != null)
       parent.addChild(this);

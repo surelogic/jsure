@@ -25,8 +25,9 @@ import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
+import com.surelogic.jsure.client.eclipse.model.java.Element.HighlightDifferencesSource;
 
-public final class VerificationExplorerViewContentProvider implements ITreeContentProvider {
+public final class VerificationExplorerViewContentProvider implements ITreeContentProvider, Element.HighlightDifferencesSource {
 
   /**
    * Represents input for this content provider.
@@ -36,8 +37,9 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
     final ElementJavaDecl.Folderizer f_tree;
 
     Input(@NonNull final JSureScanInfo scan, @Nullable JSureScanInfo oldScan, @Nullable final ScanDifferences diff,
-        boolean showObsoleteDrops, boolean showOnlyDerivedFromSrc, boolean showAnalysisResults, boolean showHints) {
-      f_tree = new ElementJavaDecl.Folderizer(diff);
+        @NonNull HighlightDifferencesSource source, boolean showObsoleteDrops, boolean showOnlyDerivedFromSrc,
+        boolean showAnalysisResults, boolean showHints) {
+      f_tree = new ElementJavaDecl.Folderizer(diff, source);
 
       final ArrayList<IDrop> drops = new ArrayList<IDrop>();
       drops.addAll(scan.getProofDrops());
@@ -154,7 +156,14 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
     return null;
   }
 
+  private boolean f_highlightDifferences;
+
   void setHighlightDifferences(boolean value) {
-    Element.f_highlightDifferences = value;
+    f_highlightDifferences = value;
+  }
+
+  @Override
+  public boolean getHighlightDifferences() {
+    return f_highlightDifferences;
   }
 }

@@ -575,7 +575,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
               state = new TreeViewerUIState(f_treeViewer);
             }
           }
-          f_treeViewer.setInput(new ProblemsViewContentProvider.Input(scan, diff, f_showOnlyFromSrc));
+          f_treeViewer.setInput(new ProblemsViewContentProvider.Input(scan, diff, f_contentProvider, f_showOnlyFromSrc));
           if (state != null) {
             state.restoreViewState(f_treeViewer);
           }

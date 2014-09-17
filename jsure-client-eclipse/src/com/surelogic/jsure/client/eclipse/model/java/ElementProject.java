@@ -9,8 +9,8 @@ import com.surelogic.common.ui.SLImages;
 
 public final class ElementProject extends ElementWithChildren {
 
-  protected ElementProject(@NonNull final String projectLabel, boolean grayscale) {
-    super(null);
+  protected ElementProject(@NonNull HighlightDifferencesSource source, @NonNull final String projectLabel, boolean grayscale) {
+    super(null, source);
     if (projectLabel == null)
       throw new IllegalArgumentException(I18N.err(44, "projectLabel"));
     f_projectLabel = projectLabel;

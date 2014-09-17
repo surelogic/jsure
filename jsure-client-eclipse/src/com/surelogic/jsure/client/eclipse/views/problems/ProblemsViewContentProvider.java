@@ -18,11 +18,12 @@ import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
+import com.surelogic.jsure.client.eclipse.model.java.Element.HighlightDifferencesSource;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 
-public class ProblemsViewContentProvider implements ITreeContentProvider {
+public class ProblemsViewContentProvider implements ITreeContentProvider, Element.HighlightDifferencesSource {
 
   /**
    * Represents input for this content provider.
@@ -31,8 +32,9 @@ public class ProblemsViewContentProvider implements ITreeContentProvider {
     @NonNull
     final ElementJavaDecl.Folderizer f_tree;
 
-    Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showOnlyFromSrc) {
-      f_tree = new ElementJavaDecl.Folderizer(diff);
+    Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, @NonNull HighlightDifferencesSource source,
+        boolean showOnlyFromSrc) {
+      f_tree = new ElementJavaDecl.Folderizer(diff, source);
 
       final ArrayList<IModelingProblemDrop> drops = scan.getModelingProblemDrops();
       for (IModelingProblemDrop ppd : drops) {
@@ -140,7 +142,14 @@ public class ProblemsViewContentProvider implements ITreeContentProvider {
     return null;
   }
 
+  private boolean f_highlightDifferences;
+
   void setHighlightDifferences(boolean value) {
-    Element.f_highlightDifferences = value;
+    f_highlightDifferences = value;
+  }
+
+  @Override
+  public boolean getHighlightDifferences() {
+    return f_highlightDifferences;
   }
 }

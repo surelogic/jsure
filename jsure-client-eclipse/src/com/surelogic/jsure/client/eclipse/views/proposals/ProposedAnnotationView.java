@@ -540,8 +540,8 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
               state = new TreeViewerUIState(f_treeViewer);
             }
           }
-          f_treeViewer
-              .setInput(new ProposedAnnotationViewContentProvider.Input(scan, diff, f_showOnlyFromSrc, f_showOnlyAbductive));
+          f_treeViewer.setInput(new ProposedAnnotationViewContentProvider.Input(scan, diff, f_contentProvider, f_showOnlyFromSrc,
+              f_showOnlyAbductive));
           if (state != null) {
             state.restoreViewState(f_treeViewer);
           } else {
