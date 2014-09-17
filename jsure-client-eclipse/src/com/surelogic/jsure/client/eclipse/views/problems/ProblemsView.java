@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuListener;
@@ -437,7 +438,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
     toolbar.add(f_preferences);
   }
 
-  void updateInterestingModelingProblemCount(final JSureScanInfo scan) {
+  void updateInterestingModelingProblemCount(@Nullable final JSureScanInfo scan) {
     final int issueCt = JSureUtility.getInterestingModelingProblemCount(scan);
     final String label;
     if (issueCt > 0) {
@@ -557,39 +558,61 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
 
   @Override
   public void currentScanChanged(JSureScan doNotUseInThisMethod) {
-    final UIJob job = new SLUIJob() {
+    final Job bkJob = new Job("Updating Modeling Problems to display selected scan") {
       @Override
-      public IStatus runInUIThread(IProgressMonitor monitor) {
+      protected IStatus run(IProgressMonitor monitor) {
+        monitor.beginTask("Setting up view contents", 2);
         final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
+        monitor.worked(1);
+        final UIJob job;
         if (scan != null) {
           final ScanDifferences diff = JSureDataDirHub.getInstance().getDifferencesBetweenCurrentScanAndLastCompatibleScanOrNull();
-          f_treeViewer.getTree().setRedraw(false);
-          final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
-          TreeViewerUIState state = null;
-          if (viewsSaveTreeState) {
-            if (f_contentProvider.isEmpty()) {
-              if (f_viewStateFile.exists()) {
-                state = TreeViewerUIState.loadFromFile(f_viewStateFile);
+          final ProblemsViewContentProvider.Input newInput = new ProblemsViewContentProvider.Input(scan, diff, f_contentProvider,
+              f_showOnlyFromSrc);
+          monitor.worked(1);
+          job = new SLUIJob() {
+            @Override
+            public IStatus runInUIThread(IProgressMonitor monitor) {
+              f_treeViewer.getTree().setRedraw(false);
+              final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
+              TreeViewerUIState state = null;
+              if (viewsSaveTreeState) {
+                if (f_contentProvider.isEmpty()) {
+                  if (f_viewStateFile.exists()) {
+                    state = TreeViewerUIState.loadFromFile(f_viewStateFile);
+                  }
+                } else {
+                  state = new TreeViewerUIState(f_treeViewer);
+                }
               }
-            } else {
-              state = new TreeViewerUIState(f_treeViewer);
+              f_treeViewer.setInput(newInput);
+              if (state != null) {
+                state.restoreViewState(f_treeViewer);
+              }
+              f_treeViewer.getTree().setRedraw(true);
+              f_viewerbook.showPage(f_treeViewer.getControl());
+              updateInterestingModelingProblemCount(scan);
+              return Status.OK_STATUS;
             }
-          }
-          f_treeViewer.setInput(new ProblemsViewContentProvider.Input(scan, diff, f_contentProvider, f_showOnlyFromSrc));
-          if (state != null) {
-            state.restoreViewState(f_treeViewer);
-          }
-          f_treeViewer.getTree().setRedraw(true);
-          f_viewerbook.showPage(f_treeViewer.getControl());
+          };
         } else {
-          // Show no results
-          f_viewerbook.showPage(f_noResultsToShowLabel);
+          monitor.worked(1);
+          job = new SLUIJob() {
+            @Override
+            public IStatus runInUIThread(IProgressMonitor monitor) {
+              // Show no results
+              f_viewerbook.showPage(f_noResultsToShowLabel);
+              updateInterestingModelingProblemCount(null);
+              return Status.OK_STATUS;
+            }
+          };
         }
-        updateInterestingModelingProblemCount(scan);
+        job.schedule();
+        monitor.done();
         return Status.OK_STATUS;
       }
     };
-    job.schedule();
+    bkJob.schedule();
   }
 
   @Override

@@ -582,10 +582,10 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
 
   @Override
   public void currentScanChanged(JSureScan doNotUseInThisMethod) {
-    final Job bkJob = new Job("Updating Verification Status view to display selected scan") {
+    final Job bkJob = new Job("Updating Verification Status to display selected scan") {
       @Override
       protected IStatus run(IProgressMonitor monitor) {
-        monitor.beginTask("Construction Verification Status view input", 3);
+        monitor.beginTask("Setting up view contents", 3);
         final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
         monitor.worked(1);
         final JSureScanInfo oldScan = JSureDataDirHub.getInstance().getLastMatchingScanInfo();
@@ -627,7 +627,6 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
               return Status.OK_STATUS;
             }
           };
-          job.schedule();
         } else {
           monitor.worked(1);
           job = new SLUIJob() {

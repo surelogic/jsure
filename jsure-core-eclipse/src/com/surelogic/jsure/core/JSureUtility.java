@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.Nullable;
 import com.surelogic.RegionLock;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.LibResources;
@@ -43,7 +44,7 @@ public final class JSureUtility {
    *          a JSure scan that may have modeling problems.
    * @return the number of interesting modeling problems.
    */
-  public static int getInterestingModelingProblemCount(final JSureScanInfo scan) {
+  public static int getInterestingModelingProblemCount(@Nullable final JSureScanInfo scan) {
     int result = 0;
     if (scan != null) {
       for (IModelingProblemDrop problem : scan.getModelingProblemDrops()) {
