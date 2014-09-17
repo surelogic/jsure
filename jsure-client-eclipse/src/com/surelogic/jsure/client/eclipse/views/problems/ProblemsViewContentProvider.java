@@ -1,7 +1,5 @@
 package com.surelogic.jsure.client.eclipse.views.problems;
 
-import static com.surelogic.dropsea.IModelingProblemDrop.SEVERITY_HINT;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -13,12 +11,10 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
-import com.surelogic.common.XUtil;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
-import com.surelogic.dropsea.IModelingProblemDrop.Severity;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
@@ -32,19 +28,28 @@ public class ProblemsViewContentProvider implements ITreeContentProvider {
    * Represents input for this content provider.
    */
   static class Input {
-    @NonNull
-    final JSureScanInfo f_scan;
     @Nullable
     final ScanDifferences f_diff;
-    final boolean f_showOnlyDifferences;
-    final boolean f_showOnlyFromSrc;
-    final boolean f_showOnlyErrors = XUtil.useExperimental && false;// true;
+
+    @NonNull
+    final ElementJavaDecl.Folderizer f_tree = new ElementJavaDecl.Folderizer();
 
     Input(@NonNull JSureScanInfo scan, @Nullable ScanDifferences diff, boolean showOnlyDifferences, boolean showOnlyFromSrc) {
-      f_scan = scan;
       f_diff = diff;
-      f_showOnlyDifferences = showOnlyDifferences;
-      f_showOnlyFromSrc = showOnlyFromSrc;
+
+      final ArrayList<IModelingProblemDrop> drops = scan.getModelingProblemDrops();
+      for (IModelingProblemDrop ppd : drops) {
+        if (showOnlyDifferences && f_diff != null && f_diff.isSameInBothScans(ppd))
+          continue;
+        if (showOnlyFromSrc && !ppd.isFromSrc())
+          continue;
+        /*
+         * We filter results based upon the code location.
+         */
+        if (UninterestingPackageFilterUtility.keep(ppd))
+          ElementDrop.addToTree(f_tree, ppd, false);
+      }
+      f_tree.updateFlagsDeep();
     }
   }
 
@@ -58,24 +63,7 @@ public class ProblemsViewContentProvider implements ITreeContentProvider {
     if (newInput instanceof Input) {
       final Input in = (Input) newInput;
       Element.f_diff = in.f_diff;
-      final ElementJavaDecl.Folderizer tree = new ElementJavaDecl.Folderizer();
-
-      final ArrayList<IModelingProblemDrop> drops = in.f_scan.getModelingProblemDrops();
-      for (IModelingProblemDrop ppd : drops) {
-        if (in.f_showOnlyDifferences && in.f_diff != null && in.f_diff.isSameInBothScans(ppd))
-          continue;
-        if (in.f_showOnlyFromSrc && !ppd.isFromSrc())
-          continue;
-        if (in.f_showOnlyErrors && ppd.getDiffInfoAsEnum(SEVERITY_HINT, Severity.ERROR, Severity.class) != Severity.ERROR) {
-          continue;
-        }
-        /*
-         * We filter results based upon the code location.
-         */
-        if (UninterestingPackageFilterUtility.keep(ppd))
-          ElementDrop.addToTree(tree, ppd, false);
-      }
-      f_root = tree.getRootElements();
+      f_root = in.f_tree.getRootElements();
     } else if (newInput == null) {
       f_root = Element.EMPTY;
       Element.f_diff = null;
