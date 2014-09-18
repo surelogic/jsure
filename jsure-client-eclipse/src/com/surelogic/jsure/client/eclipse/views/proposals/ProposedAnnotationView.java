@@ -134,14 +134,19 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
     }
   };
 
+  boolean f_scanHasDiff;
+
   final ViewerFilter f_showOnlyDifferencesFilter = new ViewerFilter() {
     @Override
     public boolean select(Viewer viewer, Object parent, Object e) {
-      if (e instanceof Element) {
-        final Element check = (Element) e;
-        return check.descendantHasDifference();
-      }
-      return false;
+      if (f_scanHasDiff) {
+        if (e instanceof Element) {
+          final Element check = (Element) e;
+          return check.descendantHasDifference();
+        } else
+          return false;
+      } else
+        return true;
     }
   };
 
@@ -538,6 +543,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
           job = new SLUIJob() {
             @Override
             public IStatus runInUIThread(IProgressMonitor monitor) {
+              f_scanHasDiff = diff != null;
               f_treeViewer.getTree().setRedraw(false);
               final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
               TreeViewerUIState state = null;
@@ -568,6 +574,7 @@ public class ProposedAnnotationView extends ViewPart implements JSureDataDirHub.
             public IStatus runInUIThread(IProgressMonitor monitor) {
               // Show no results
               f_viewerbook.showPage(f_noResultsToShowLabel);
+              f_scanHasDiff = false;
               return Status.OK_STATUS;
             }
           };
