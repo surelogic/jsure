@@ -1261,7 +1261,7 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
   }
 
   public IJavaReferenceType getUpperBound(ITypeEnvironment te) {
-	  return getExtendsBound();
+	  return getExtendsBound(te);
   }
   
   public IJavaReferenceType getLowerBound() {
