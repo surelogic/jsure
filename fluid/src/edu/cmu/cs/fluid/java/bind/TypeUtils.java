@@ -204,6 +204,8 @@ public class TypeUtils {
 	
 	//  and let CandidateInvocation(G) = lci(Inv(G)) where lci, the least containing
 	//  invocation is defined
+	//
+	//  a.k.a. Candidate()
 	private IJavaReferenceType getCandidateInvocation(Iterable<IJavaDeclaredType> st, IJavaDeclaredType g) {
 		return getLCI(getInv(st, g));
 	}
@@ -263,6 +265,16 @@ public class TypeUtils {
 	// lcta( U ) = ? if U 's upper bound is Object , otherwise ? extends lub( U , Object )
 	private IJavaType getLCTA(IJavaType u) {
 		boolean upperBoundIsObject = false;
+		if (u instanceof IJavaTypeVariable) {
+			IJavaTypeVariable v = (IJavaTypeVariable) u;
+			IJavaReferenceType upper = v.getUpperBound(tEnv);
+			upperBoundIsObject = upper == null || upper.equals(tEnv.getObjectType());
+		}
+		else if (u instanceof IJavaWildcardType) {
+			IJavaWildcardType v = (IJavaWildcardType) u;
+			IJavaReferenceType upper = v.getUpperBound();
+			upperBoundIsObject = upper == null || upper.equals(tEnv.getObjectType());
+		}		
 		
 		if (upperBoundIsObject) {
 			return JavaTypeFactory.wildcardType;
@@ -299,6 +311,7 @@ public class TypeUtils {
 			}
 			return getLCTA((IJavaReferenceType) u, (IJavaWildcardType) v);			
 		}
+		
 		if (u.equals(v)) {
 			return u;
 		} 
@@ -336,13 +349,13 @@ public class TypeUtils {
 			return getLCTA_super(v.getLowerBound(), u);
 		}
 		// Case 1
-		IJavaReferenceType ub = getLowerBound(u);		
-		IJavaReferenceType vb = getLowerBound(v);
+		IJavaReferenceType ub = getUpperBound(u);		
+		IJavaReferenceType vb = getUpperBound(v);
 		return getWildcardType(null, getLowestUpperBound(ub, vb));
 	}
 	
-	private IJavaReferenceType getLowerBound(IJavaWildcardType t) {
-		IJavaReferenceType rv = t.getLowerBound();
+	private IJavaReferenceType getUpperBound(IJavaWildcardType t) {
+		IJavaReferenceType rv = t.getUpperBound();
 		if (rv == null) {
 			return tEnv.getObjectType();
 		}
@@ -350,22 +363,24 @@ public class TypeUtils {
 	}
 	
 	/**
-	 * At least one bound is the upper bound
+	 * At least one bound is the lower bound
 	 */
-	private IJavaType getLCTA_super(IJavaReferenceType upper, IJavaWildcardType t) {
+	private IJavaType getLCTA_super(IJavaReferenceType lower, IJavaWildcardType t) {
 		if (t.getLowerBound() != null) {
 			// Case 3
-			return getWildcardType(getGreatestLowerBound(t.getLowerBound(), upper), null); 
+			return getWildcardType(getGreatestLowerBound(t.getLowerBound(), lower), null); 
 		} 
 		if (t.getUpperBound() != null) {
 			// Case 2
-			return t.getUpperBound().equals(upper) ? t.getUpperBound() : JavaTypeFactory.wildcardType;
+			return t.getUpperBound().equals(lower) ? t.getUpperBound() : JavaTypeFactory.wildcardType;
 		}
 		// FIX case 2?
-		return tEnv.getObjectType().equals(upper) ? tEnv.getObjectType() : JavaTypeFactory.wildcardType;
+		return tEnv.getObjectType().equals(lower) ? tEnv.getObjectType() : JavaTypeFactory.wildcardType;
 	}
 
 	//  Then, define Candidate(W) = CandidateInvocation(W) if W is generic, W otherwise.
+	//
+	//  a.k.a. Best()
 	private IJavaReferenceType getCandidate(Iterable<IJavaDeclaredType> allSupers, IJavaReferenceType t) {
 		if (t instanceof IJavaDeclaredType) {
 			IJavaDeclaredType d = (IJavaDeclaredType) t;
