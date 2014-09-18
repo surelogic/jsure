@@ -89,6 +89,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
   boolean f_showOnlyDerivedFromSrc;
   boolean f_showAnalysisResults;
   boolean f_showHints;
+  boolean f_scanHasDiff;
 
   private final ViewerSorter f_alphaLineSorter = new ViewerSorter() {
 
@@ -123,11 +124,14 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
   final ViewerFilter f_showOnlyDifferencesFilter = new ViewerFilter() {
     @Override
     public boolean select(Viewer viewer, Object parent, Object e) {
-      if (e instanceof Element) {
-        final Element check = (Element) e;
-        return check.descendantHasDifference();
-      }
-      return false;
+      if (f_scanHasDiff) {
+        if (e instanceof Element) {
+          final Element check = (Element) e;
+          return check.descendantHasDifference();
+        } else
+          return false;
+      } else
+        return true;
     }
   };
 
@@ -555,6 +559,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
           job = new SLUIJob() {
             @Override
             public IStatus runInUIThread(IProgressMonitor monitor) {
+              f_scanHasDiff = oldScan != null;
               if (f_showDiffTableColumn != null) {
                 final String label = oldScan == null ? "No Prior Scan" : "Differences from scan of "
                     + oldScan.getProjects().getLabel() + " at " + SLUtility.toStringDayHMS(oldScan.getProjects().getDate());
@@ -589,6 +594,7 @@ public final class VerificationExplorerView extends ViewPart implements JSureDat
             public IStatus runInUIThread(IProgressMonitor monitor) {
               // Show no results
               f_viewerbook.showPage(f_noResultsToShowLabel);
+              f_scanHasDiff = false;
               return Status.OK_STATUS;
             }
           };

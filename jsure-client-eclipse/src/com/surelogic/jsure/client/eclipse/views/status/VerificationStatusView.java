@@ -87,6 +87,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   boolean f_showHints;
   boolean f_highlightDifferences;
   boolean f_showOnlyDifferences;
+  boolean f_scanHasDiff;
 
   final ViewerSorter f_alphaSorter = new ViewerSorter() {
 
@@ -112,11 +113,14 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
   final ViewerFilter f_showOnlyDifferencesFilter = new ViewerFilter() {
     @Override
     public boolean select(Viewer viewer, Object parent, Object e) {
-      if (e instanceof Element) {
-        final Element check = (Element) e;
-        return check.descendantHasDifference();
-      }
-      return false;
+      if (f_scanHasDiff) {
+        if (e instanceof Element) {
+          final Element check = (Element) e;
+          return check.descendantHasDifference();
+        } else
+          return false;
+      } else
+        return true;
     }
   };
 
@@ -599,6 +603,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
           job = new SLUIJob() {
             @Override
             public IStatus runInUIThread(IProgressMonitor monitor) {
+              f_scanHasDiff = oldScan != null;
               // Show results in a tree table
               if (f_showDiffTableColumn != null) {
                 final String label = oldScan == null ? "No Prior Scan" : "Differences from scan of "
@@ -634,6 +639,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
             public IStatus runInUIThread(IProgressMonitor monitor) {
               // Show no results
               f_viewerbook.showPage(f_noResultsToShowLabel);
+              f_scanHasDiff = false;
               return Status.OK_STATUS;
             }
           };

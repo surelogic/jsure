@@ -94,6 +94,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
   boolean f_highlightDifferences;
   boolean f_showOnlyDifferences;
   boolean f_showOnlyFromSrc;
+  boolean f_scanHasDiff;
 
   private final ViewerSorter f_alphaLineSorter = new ViewerSorter() {
 
@@ -128,11 +129,14 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
   final ViewerFilter f_showOnlyDifferencesFilter = new ViewerFilter() {
     @Override
     public boolean select(Viewer viewer, Object parent, Object e) {
-      if (e instanceof Element) {
-        final Element check = (Element) e;
-        return check.descendantHasDifference();
-      }
-      return false;
+      if (f_scanHasDiff) {
+        if (e instanceof Element) {
+          final Element check = (Element) e;
+          return check.descendantHasDifference();
+        } else
+          return false;
+      } else
+        return true;
     }
   };
 
@@ -573,6 +577,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
           job = new SLUIJob() {
             @Override
             public IStatus runInUIThread(IProgressMonitor monitor) {
+              f_scanHasDiff = diff != null;
               f_treeViewer.getTree().setRedraw(false);
               final boolean viewsSaveTreeState = EclipseUtility.getBooleanPreference(JSurePreferencesUtility.VIEWS_SAVE_TREE_STATE);
               TreeViewerUIState state = null;
@@ -603,6 +608,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
               // Show no results
               f_viewerbook.showPage(f_noResultsToShowLabel);
               updateInterestingModelingProblemCount(null);
+              f_scanHasDiff = false;
               return Status.OK_STATUS;
             }
           };
