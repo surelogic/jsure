@@ -325,12 +325,8 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
           if (!TypeUtil.isBinary(
               k == Kind.METHOD_RETURN ?
                   JavaPromise.getPromisedFor(annotatedNode) : annotatedNode)) {
-            PromiseDrop<?> newPD = pd;
-            if (newPD == null) {
-              newPD = NullableUtils.attachVirtualNullable(
-                  annotatedNode, createdVirtualAnnotations);
-            }
-            newPD.addProposal(new Builder(NonNull.class, annotatedNode, expr).build());
+            NullableUtils.createCodeProposal(
+                new Builder(NonNull.class, annotatedNode, expr));
           }
         }
       }

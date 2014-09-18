@@ -8,11 +8,15 @@ import com.surelogic.aast.promise.NonNullNode;
 import com.surelogic.aast.promise.NullableNode;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.NonNullRules;
+import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
 
+import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
@@ -112,4 +116,18 @@ final class NullableUtils {
     }
   }
 
+  
+  
+  /**
+   * Create a code-based annotation, that is, one that is not derived from any
+   * existing models, but solely from the source code as it is.  Such proposals
+   * may be suppressed based on a user-setting in the JSure preferences pane.
+   */
+  public static void createCodeProposal(final Builder proposalBuilder) {
+    if (IDE.getInstance().getBooleanPreference(
+        IDEPreferences.MAKE_NONABDUCTIVE_PROPOSALS)) {
+      proposalBuilder.setOrigin(Origin.CODE);
+      proposalBuilder.build();
+    }
+  }
 }

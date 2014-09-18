@@ -48,8 +48,9 @@ final class NullablePreprocessor extends JavaSemanticsVisitor {
         final NonNullPromiseDrop pd = new NonNullPromiseDrop(nnn);
         AnnotationRules.attachAsVirtual(NonNullRules.getNonNullStorage(), pd);
         
-        // immediately propose that a read @NonNull be placed here
-        pd.addProposal(new Builder(NonNull.class, varDecl, varDecl).build());
+        // immediately propose that a real @NonNull be placed here
+        NullableUtils.createCodeProposal(
+            new Builder(NonNull.class, varDecl, varDecl));
       }
     }
   }

@@ -256,10 +256,8 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
                * 
                * Need to make a virtual @Nullable annotation to attach the proposal to.
                */
-              final NullablePromiseDrop pd =
-                  NullableUtils.attachVirtualNullable(varDecl, createdVirtualAnnotations);
-              pd.addProposal(new Builder(NonNull.class, varDecl, varDecl).build());
-              
+              NullableUtils.createCodeProposal(
+                  new Builder(NonNull.class, varDecl, varDecl));
             }
           } else { // local variable
             if (state == NonNullRawLattice.NOT_NULL &&
@@ -336,9 +334,8 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
        * 
        * Need to make a virtual @Nullable annotation to attach the proposal to.
        */
-      final NullablePromiseDrop pd = 
-          NullableUtils.attachVirtualNullable(varDecl, createdVirtualAnnotations);
-      pd.addProposal(new Builder(NonNull.class, varDecl, varDecl).build());
+      NullableUtils.createCodeProposal(
+          new Builder(NonNull.class, varDecl, varDecl));
     }
     
     createdVirtualAnnotations.clear();

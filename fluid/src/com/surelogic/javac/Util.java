@@ -73,6 +73,7 @@ import com.surelogic.dropsea.ir.drops.BinaryCUDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.CUDropClearOutAfterAnalysisProofHook;
 import com.surelogic.dropsea.ir.drops.ClearOutUnconnectedResultsProofHook;
+import com.surelogic.dropsea.ir.drops.NonNullModelClearOutUnusedVirtualProofHook;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.dropsea.ir.drops.PromisePromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModelClearOutUnusedStaticProofHook;
@@ -533,11 +534,13 @@ public class Util {
       projects.getMonitor().subTask(msg);
       final SeaConsistencyProofHook vouchHook = new VouchProcessorConsistencyProofHook();
       final SeaConsistencyProofHook staticHook = new RegionModelClearOutUnusedStaticProofHook();
+      final SeaConsistencyProofHook nonNullHook = new NonNullModelClearOutUnusedVirtualProofHook();
       final SeaConsistencyProofHook cuDropHook = new CUDropClearOutAfterAnalysisProofHook();
       final SeaConsistencyProofHook clearResultsHook = new ClearOutUnconnectedResultsProofHook();
       //final SeaConsistencyProofHook scanTimeMetricCompactHook = new ScanTimeMetricCompactProofHook();
       Sea.getDefault().addConsistencyProofHook(vouchHook);
       Sea.getDefault().addConsistencyProofHook(staticHook);
+      Sea.getDefault().addConsistencyProofHook(nonNullHook);
       Sea.getDefault().addConsistencyProofHook(cuDropHook);
       Sea.getDefault().addConsistencyProofHook(clearResultsHook);
       //Sea.getDefault().addConsistencyProofHook(scanTimeMetricCompactHook);
@@ -545,6 +548,7 @@ public class Util {
       //Sea.getDefault().removeConsistencyProofHook(scanTimeMetricCompactHook);
       Sea.getDefault().removeConsistencyProofHook(clearResultsHook);
       Sea.getDefault().removeConsistencyProofHook(cuDropHook);
+      Sea.getDefault().removeConsistencyProofHook(nonNullHook);
       Sea.getDefault().removeConsistencyProofHook(staticHook);
       Sea.getDefault().removeConsistencyProofHook(vouchHook);
 
