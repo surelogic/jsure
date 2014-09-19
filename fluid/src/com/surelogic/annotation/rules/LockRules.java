@@ -2483,7 +2483,11 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new NotThreadSafeNode();
+      Part part = computeAppliesTo(context, offset);
+      if (part == null) {
+    	  return null;
+      }    	
+      return new NotThreadSafeNode(part);
     }
     @Override
     protected IPromiseDropStorage<NotThreadSafePromiseDrop> makeStorage() {
