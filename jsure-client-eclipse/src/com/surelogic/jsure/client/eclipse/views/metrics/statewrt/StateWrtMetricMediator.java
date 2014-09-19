@@ -672,10 +672,11 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         final Color immutableColor = EclipseColorUtility.getCompoundScheme1Color1();
         final Color threadSafeColor = EclipseColorUtility.getCompoundScheme1Color0();
         final Color lockProtectedColor = EclipseColorUtility.getCompoundScheme1Color2();
-        final Color threadConfinedColor = e.gc.getDevice().getSystemColor(SWT.COLOR_WHITE);
+        final Color threadConfinedColor = EclipseColorUtility.getCompoundScheme1Color3();
+        final Color notThreadSafeColor = e.gc.getDevice().getSystemColor(SWT.COLOR_WHITE);
 
         // Draw chart first
-        e.gc.setBackground(threadConfinedColor);
+        e.gc.setBackground(notThreadSafeColor);
         e.gc.fillOval(5, fold + 5, chartDiameter, chartDiameter);
 
         final Pattern p = new Pattern(e.gc.getDevice(), SLImages.getImage(CommonImages.FILL_DIAGONOAL));
@@ -705,6 +706,12 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         if (element.getLockProtectedFieldCount() > 0) {
           final int arc = SLUtility.safeLongToInt(Math.round((double) element.getLockProtectedFieldCount() * degPerLine));
           e.gc.setBackground(lockProtectedColor);
+          e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, arcStart, arc);
+          arcStart += arc;
+        }
+        if (element.getThreadConfinedFieldCount() > 0) {
+          final int arc = SLUtility.safeLongToInt(Math.round((double) element.getThreadConfinedFieldCount() * degPerLine));
+          e.gc.setBackground(threadConfinedColor);
           e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, arcStart, arc);
           arcStart += arc;
         }
@@ -756,6 +763,14 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         s = element.getThreadConfinedFieldCount() + " @ThreadConfined";
         txtExtent = e.gc.stringExtent(s);
         e.gc.setBackground(threadConfinedColor);
+        e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
+        e.gc.drawRectangle(5, fold, txtExtent.y - 1, txtExtent.y - 1);
+        e.gc.drawText(s, 10 + txtExtent.y, fold, true);
+
+        fold += txtExtent.y + 5;
+        s = element.getNotThreadSafeFieldCount() + " @NotThreadSafe";
+        txtExtent = e.gc.stringExtent(s);
+        e.gc.setBackground(notThreadSafeColor);
         e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
         e.gc.drawRectangle(5, fold, txtExtent.y - 1, txtExtent.y - 1);
         e.gc.drawText(s, 10 + txtExtent.y, fold, true);
