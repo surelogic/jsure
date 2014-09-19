@@ -72,37 +72,43 @@ public class ConcurrentStateMetrics {
 			// Figure out what annotations are on the type decl
 			PartStatus iPart = PartStatus.NO_POLICY, sPart = PartStatus.NO_POLICY;
 			final ImmutablePromiseDrop immutable = LockRules.getImmutableType(t);
-			switch (immutable.getAppliesTo()) {
-			case InstanceAndStatic:
-				sPart = PartStatus.IMMUTABLE;				
-			case Instance:
-				iPart = PartStatus.IMMUTABLE;
-				break;
-			case Static:
-				sPart = PartStatus.IMMUTABLE;
-				break;
+			if (immutable != null) {
+				switch (immutable.getAppliesTo()) {
+				case InstanceAndStatic:
+					sPart = PartStatus.IMMUTABLE;				
+				case Instance:
+					iPart = PartStatus.IMMUTABLE;
+					break;
+				case Static:
+					sPart = PartStatus.IMMUTABLE;
+					break;
+				}
 			}
 			final ThreadSafePromiseDrop threadSafe = LockRules.getThreadSafeType(t);
-			switch (threadSafe.getAppliesTo()) {
-			case InstanceAndStatic:
-				sPart = PartStatus.THREADSAFE;				
-			case Instance:
-				iPart = PartStatus.THREADSAFE;
-				break;
-			case Static:
-				sPart = PartStatus.THREADSAFE;
-				break;
+			if (threadSafe != null) {
+				switch (threadSafe.getAppliesTo()) {
+				case InstanceAndStatic:
+					sPart = PartStatus.THREADSAFE;				
+				case Instance:
+					iPart = PartStatus.THREADSAFE;
+					break;
+				case Static:
+					sPart = PartStatus.THREADSAFE;
+					break;
+				}
 			}
 			NotThreadSafePromiseDrop notThreadSafe = LockRules.getNotThreadSafe(t);
-			switch (notThreadSafe.getAppliesTo()) {
-			case InstanceAndStatic:
-				sPart = PartStatus.NOT_THREADSAFE;				
-			case Instance:
-				iPart = PartStatus.NOT_THREADSAFE;
-				break;
-			case Static:
-				sPart = PartStatus.NOT_THREADSAFE;
-				break;
+			if (notThreadSafe != null) {
+				switch (notThreadSafe.getAppliesTo()) {
+				case InstanceAndStatic:
+					sPart = PartStatus.NOT_THREADSAFE;				
+				case Instance:
+					iPart = PartStatus.NOT_THREADSAFE;
+					break;
+				case Static:
+					sPart = PartStatus.NOT_THREADSAFE;
+					break;
+				}
 			}
 			instancePart = iPart;
 			staticPart = sPart;
