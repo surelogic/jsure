@@ -136,6 +136,10 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         o1MetricValue = o1.getThreadConfinedFieldCount();
         o2MetricValue = o2.getThreadConfinedFieldCount();
         break;
+      case 6: // @NotThreadSafe
+        o1MetricValue = o1.getNotThreadSafeFieldCount();
+        o2MetricValue = o2.getNotThreadSafeFieldCount();
+        break;
       default: // Total (0 and default)
         o1MetricValue = o1.getFieldCountTotal();
         o2MetricValue = o2.getFieldCountTotal();
@@ -178,7 +182,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
   Text f_thresholdLabel = null;
 
   final String[] f_columnTitles = new String[] { "Declared Fields", "No Policy", "@Immutable", "@ThreadSafe",
-      "@RegionLock/@GuardedBy", "@ThreadConfined" };
+      "@RegionLock/@GuardedBy", "@ThreadConfined", "@NotThreadSafe" };
 
   TreeViewer f_treeViewer = null;
   Canvas f_canvas = null;
@@ -361,77 +365,89 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
     columnTree.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_TREE_WIDTH));
 
     int tableColumnTitleIndex = 0;
-    final TreeViewerColumn columnLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
-    columnLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
+    final TreeViewerColumn fieldCountTotal = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    fieldCountTotal.setLabelProvider(new MetricDataCellLabelProvider() {
       int getMetricValue(StateWrtElement metric) {
         return metric.getFieldCountTotal();
       }
     });
-    columnLineCount.getColumn().setWidth(
+    fieldCountTotal.getColumn().setWidth(
         EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_FIELD_COUNT_TOTAL_WIDTH));
-    columnLineCount.getColumn().addControlListener(
+    fieldCountTotal.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_FIELD_COUNT_TOTAL_WIDTH));
-    columnLineCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
+    fieldCountTotal.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
-    final TreeViewerColumn columnSemicolonCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
-    columnSemicolonCount.setLabelProvider(new MetricDataCellLabelProvider() {
+    final TreeViewerColumn noPolicyFieldCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    noPolicyFieldCount.setLabelProvider(new MetricDataCellLabelProvider() {
       int getMetricValue(StateWrtElement metric) {
         return metric.getOtherFieldCount();
       }
     });
-    columnSemicolonCount.getColumn().setWidth(
+    noPolicyFieldCount.getColumn().setWidth(
         EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_OTHER_FIELD_COUNT_WIDTH));
-    columnSemicolonCount.getColumn().addControlListener(
+    noPolicyFieldCount.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_OTHER_FIELD_COUNT_WIDTH));
-    columnSemicolonCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
+    noPolicyFieldCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
-    final TreeViewerColumn columnBlankLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
-    columnBlankLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
+    final TreeViewerColumn immutableFieldCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    immutableFieldCount.setLabelProvider(new MetricDataCellLabelProvider() {
       int getMetricValue(StateWrtElement metric) {
         return metric.getImmutableFieldCount();
       }
     });
-    columnBlankLineCount.getColumn().setWidth(
+    immutableFieldCount.getColumn().setWidth(
         EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_IMMUTABLE_FIELD_COUNT_WIDTH));
-    columnBlankLineCount.getColumn().addControlListener(
+    immutableFieldCount.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_IMMUTABLE_FIELD_COUNT_WIDTH));
-    columnBlankLineCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
+    immutableFieldCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
-    final TreeViewerColumn columnContainsCommentLineCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
-    columnContainsCommentLineCount.setLabelProvider(new MetricDataCellLabelProvider() {
+    final TreeViewerColumn threadSafeFieldCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    threadSafeFieldCount.setLabelProvider(new MetricDataCellLabelProvider() {
       int getMetricValue(StateWrtElement metric) {
         return metric.getThreadSafeFieldCount();
       }
     });
-    columnContainsCommentLineCount.getColumn().setWidth(
+    threadSafeFieldCount.getColumn().setWidth(
         EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_THREADSAFE_FIELD_COUNT_WIDTH));
-    columnContainsCommentLineCount.getColumn().addControlListener(
+    threadSafeFieldCount.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_THREADSAFE_FIELD_COUNT_WIDTH));
-    columnContainsCommentLineCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
+    threadSafeFieldCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
-    final TreeViewerColumn columnJavaStatementCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
-    columnJavaStatementCount.setLabelProvider(new MetricDataCellLabelProvider() {
+    final TreeViewerColumn lockProtectedFieldCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    lockProtectedFieldCount.setLabelProvider(new MetricDataCellLabelProvider() {
       int getMetricValue(StateWrtElement metric) {
         return metric.getLockProtectedFieldCount();
       }
     });
-    columnJavaStatementCount.getColumn().setWidth(
+    lockProtectedFieldCount.getColumn().setWidth(
         EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_LOCK_PROTECTED_FIELD_COUNT_WIDTH));
-    columnJavaStatementCount.getColumn().addControlListener(
+    lockProtectedFieldCount.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_LOCK_PROTECTED_FIELD_COUNT_WIDTH));
-    columnJavaStatementCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
+    lockProtectedFieldCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
-    final TreeViewerColumn columnJavaDeclarationCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
-    columnJavaDeclarationCount.setLabelProvider(new MetricDataCellLabelProvider() {
+    final TreeViewerColumn threadConfinedFieldCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    threadConfinedFieldCount.setLabelProvider(new MetricDataCellLabelProvider() {
       int getMetricValue(StateWrtElement metric) {
         return metric.getThreadConfinedFieldCount();
       }
     });
-    columnJavaDeclarationCount.getColumn().setWidth(
+    threadConfinedFieldCount.getColumn().setWidth(
         EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_THREADCONFINED_FIELD_COUNT_WIDTH));
-    columnJavaDeclarationCount.getColumn().addControlListener(
+    threadConfinedFieldCount.getColumn().addControlListener(
         new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_THREADCONFINED_FIELD_COUNT_WIDTH));
-    columnJavaDeclarationCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
+    threadConfinedFieldCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
+
+    final TreeViewerColumn notThreadSafeFieldCount = new TreeViewerColumn(f_treeViewer, SWT.RIGHT);
+    notThreadSafeFieldCount.setLabelProvider(new MetricDataCellLabelProvider() {
+      int getMetricValue(StateWrtElement metric) {
+        return metric.getNotThreadSafeFieldCount();
+      }
+    });
+    notThreadSafeFieldCount.getColumn().setWidth(
+        EclipseUtility.getIntPreference(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_NOTTHREADSAFE_FIELD_COUNT_WIDTH));
+    notThreadSafeFieldCount.getColumn().addControlListener(
+        new ColumnResizeListener(JSurePreferencesUtility.METRIC_VIEW_STATEWRT_NOTTHREADSAFE_FIELD_COUNT_WIDTH));
+    notThreadSafeFieldCount.getColumn().setText(f_columnTitles[tableColumnTitleIndex++]);
 
     f_actionExpand.setText(I18N.msg("jsure.eclipse.view.expand"));
     f_actionExpand.setToolTipText(I18N.msg("jsure.eclipse.view.expand.tip"));

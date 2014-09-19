@@ -149,6 +149,9 @@ public abstract class StateWrtElement {
     case 5: // @ThreadConfined
       metricValue = getThreadConfinedFieldCount();
       break;
+    case 6: // @NotThreadSafe
+      metricValue = getNotThreadSafeFieldCount();
+      break;
     default: // Total (0 and default)
       metricValue = getFieldCountTotal();
       break;
@@ -168,13 +171,14 @@ public abstract class StateWrtElement {
 
   int f_immutableFieldCount = 0;
   int f_threadSafeFieldCount = 0;
+  int f_notThreadSafeFieldCount = 0;
   int f_lockProtectedFieldCount = 0;
   int f_threadConfinedFieldCount = 0;
   int f_otherFieldCount = 0;
 
   public final int getFieldCountTotal() {
-    return f_immutableFieldCount + f_threadSafeFieldCount + f_lockProtectedFieldCount + f_threadConfinedFieldCount
-        + f_otherFieldCount;
+    return f_immutableFieldCount + f_threadSafeFieldCount + f_notThreadSafeFieldCount + f_lockProtectedFieldCount
+        + f_threadConfinedFieldCount + f_otherFieldCount;
   }
 
   public final int getImmutableFieldCount() {
@@ -183,6 +187,10 @@ public abstract class StateWrtElement {
 
   public final int getThreadSafeFieldCount() {
     return f_threadSafeFieldCount;
+  }
+
+  public final int getNotThreadSafeFieldCount() {
+    return f_notThreadSafeFieldCount;
   }
 
   public final int getLockProtectedFieldCount() {
@@ -214,6 +222,7 @@ public abstract class StateWrtElement {
     if (toAdd.f_hasDirectMetricData) {
       on.f_immutableFieldCount += toAdd.f_immutableFieldCount;
       on.f_threadSafeFieldCount += toAdd.f_threadSafeFieldCount;
+      on.f_notThreadSafeFieldCount += toAdd.f_notThreadSafeFieldCount;
       on.f_lockProtectedFieldCount += toAdd.f_lockProtectedFieldCount;
       on.f_threadConfinedFieldCount += toAdd.f_threadConfinedFieldCount;
       on.f_otherFieldCount += toAdd.f_otherFieldCount;

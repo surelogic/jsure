@@ -147,6 +147,7 @@ public final class JSurePreferencesUtility {
       EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_FIELD_COUNT_TOTAL_WIDTH, 80);
       EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_IMMUTABLE_FIELD_COUNT_WIDTH, 80);
       EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_THREADSAFE_FIELD_COUNT_WIDTH, 80);
+      EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_NOTTHREADSAFE_FIELD_COUNT_WIDTH, 80);
       EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_LOCK_PROTECTED_FIELD_COUNT_WIDTH, 80);
       EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_THREADCONFINED_FIELD_COUNT_WIDTH, 80);
       EclipseUtility.setDefaultIntPreference(METRIC_VIEW_STATEWRT_OTHER_FIELD_COUNT_WIDTH, 80);
@@ -246,6 +247,8 @@ public final class JSurePreferencesUtility {
       + "metric.view.statewrt.immutable-field-count.width";
   public static final String METRIC_VIEW_STATEWRT_THREADSAFE_FIELD_COUNT_WIDTH = PREFIX
       + "metric.view.statewrt.threadsafe-field-count.width";
+  public static final String METRIC_VIEW_STATEWRT_NOTTHREADSAFE_FIELD_COUNT_WIDTH = PREFIX
+      + "metric.view.statewrt.notthreadsafe-field-count.width";
   public static final String METRIC_VIEW_STATEWRT_LOCK_PROTECTED_FIELD_COUNT_WIDTH = PREFIX
       + "metric.view.statewrt.lock-protected-field-count.width";
   public static final String METRIC_VIEW_STATEWRT_THREADCONFINED_FIELD_COUNT_WIDTH = PREFIX
