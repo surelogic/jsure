@@ -172,7 +172,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
         fDrop.addProposal(new Builder(Vouch.class, varDecl, varDecl).setValue("final").build());
       }
 
-      /* (2) Check the immutability fo the field's type.  Four cases:
+      /* (2) Check the immutability of the field's type.  Four cases:
        *   1. The type is primitive (GOOD)
        *   2. The type is @Immutable (GOOD)
        *   3. The field is final and the field initializer is of a type

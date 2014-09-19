@@ -275,8 +275,13 @@ public class LockRules extends AnnotationRules {
 
   
   
+  /**
+   * A type is containable if it is annotated as containable, and containability
+   * applies to the instance part of the type.
+   */
   public static boolean isContainableType(final IRNode cdecl) {
-    return getContainableType(cdecl) != null;
+    final ContainablePromiseDrop containableType = getContainableType(cdecl);
+    return containableType != null && containableType.getAppliesTo() != Part.Static;
   }
   
   /**
@@ -303,10 +308,15 @@ public class LockRules extends AnnotationRules {
   
   
   
+  /**
+   * A type is threadsafe if it is annotated as threadsafe, and threadsafety
+   * applies to the instance part of the type.
+   */
   public static boolean isThreadSafeType(final IRNode cdecl) {
-    return getThreadSafeType(cdecl) != null;
+    final ThreadSafePromiseDrop threadSafeType = getThreadSafeType(cdecl);
+    return threadSafeType != null && threadSafeType.getAppliesTo() != Part.Static;
   }
-  
+
   /**
    * Return whether the type is thread safe.  Only returns the promise drop if
    * the drop is not implementation only.
@@ -331,8 +341,13 @@ public class LockRules extends AnnotationRules {
 
   
   
+  /**
+   * A type is immutable if it is annotated as immutable, and immutability
+   * applies to the instance part of the type.
+   */
   public static boolean isImmutableType(final IRNode cdecl) {
-    return getImmutableType(cdecl) != null;
+    final ImmutablePromiseDrop immutableType = getImmutableType(cdecl);
+    return immutableType != null && immutableType.getAppliesTo() != Part.Static;
   }
   
   /**
