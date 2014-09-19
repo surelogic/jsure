@@ -1,6 +1,7 @@
 package com.surelogic.jsure.client.eclipse.views.metrics.dropcounter;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.Viewer;
@@ -9,14 +10,26 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.javac.persistence.JSureScanInfo;
 
-public class DropCounterViewContentProvided implements IStructuredContentProvider {
+public class DropCounterViewContentProvider implements IStructuredContentProvider {
+
+  interface IDropTotalCountUpdater {
+    void updateTotalLabel(long value);
+  }
+
+  final IDropTotalCountUpdater f_provider;
+
+  public DropCounterViewContentProvider(IDropTotalCountUpdater provider) {
+    f_provider = provider;
+  }
 
   @Override
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
     if (newInput instanceof JSureScanInfo) {
       final JSureScanInfo scanInfo = (JSureScanInfo) newInput;
       final HashMap<String, DropCounterElement> counts = new HashMap<String, DropCounterElement>();
-      for (IDrop drop : scanInfo.getDropInfo()) {
+      final List<IDrop> drops = scanInfo.getDropInfo();
+      f_provider.updateTotalLabel(drops.size());
+      for (IDrop drop : drops) {
         final String dropTypeName;
         if (drop instanceof IMetricDrop) {
           final String metricType = ((IMetricDrop) drop).getMetric().toString();

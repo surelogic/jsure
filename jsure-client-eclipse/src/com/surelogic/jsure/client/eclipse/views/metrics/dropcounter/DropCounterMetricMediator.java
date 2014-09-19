@@ -9,7 +9,11 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerSorter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.ui.part.PageBook;
 import org.eclipse.ui.part.ViewPart;
@@ -24,7 +28,8 @@ import com.surelogic.javac.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.views.metrics.AbstractScanMetricMediator;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
-public class DropCounterMetricMediator extends AbstractScanMetricMediator {
+public class DropCounterMetricMediator extends AbstractScanMetricMediator implements
+    DropCounterViewContentProvider.IDropTotalCountUpdater {
 
   @Override
   protected String getMetricLabel() {
@@ -57,13 +62,24 @@ public class DropCounterMetricMediator extends AbstractScanMetricMediator {
   };
 
   TableViewer f_tableViewer;
+  Label f_totalLabel;
 
   @Override
   protected Control initMetricDisplay(PageBook parent, ViewPart view) {
-    f_tableViewer = new TableViewer(parent, SWT.FULL_SELECTION);
-    f_tableViewer.setContentProvider(new DropCounterViewContentProvided());
+
+    final Composite panel = new Composite(parent, SWT.NONE);
+
+    GridLayout layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    layout.verticalSpacing = 0;
+    panel.setLayout(layout);
+
+    f_tableViewer = new TableViewer(panel, SWT.FULL_SELECTION);
+    f_tableViewer.setContentProvider(new DropCounterViewContentProvider(this));
     f_tableViewer.getTable().setHeaderVisible(true);
     f_tableViewer.getTable().setLinesVisible(true);
+    f_tableViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
     TableViewerColumn dropType = new TableViewerColumn(f_tableViewer, SWT.LEFT);
     dropType.setLabelProvider(DROP);
@@ -77,12 +93,20 @@ public class DropCounterMetricMediator extends AbstractScanMetricMediator {
     count.getColumn().addControlListener(new ColumnResizeListener(JSurePreferencesUtility.METRIC_DROP_COUNTER_COL_COUNT_WIDTH));
     count.getColumn().setText("Instances");
 
-    return f_tableViewer.getControl();
+    f_totalLabel = new Label(panel, SWT.NONE);
+    updateTotalLabel(0);
+    f_totalLabel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+
+    return panel;
   }
 
   @Override
   protected void refreshMetricContentsFor(JSureScanInfo scan, ArrayList<IMetricDrop> drops) {
     f_tableViewer.setInput(scan);
+  }
+
+  public void updateTotalLabel(long value) {
+    f_totalLabel.setText(SLUtility.toStringHumanWithCommas(value) + " total proof \"drop\" instances");
   }
 
   void fixSortingIndicatorOnTreeTable() {
