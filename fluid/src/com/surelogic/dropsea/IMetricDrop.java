@@ -81,6 +81,10 @@ public interface IMetricDrop extends IDrop, ISnapshotDrop {
    */
   final String CONCURR_THREADSAFE_COUNT = "concurr-threadsafe-count";
   /**
+   * A count of @NotThreadSafe-typed fields in the type
+   */
+  final String CONCURR_NOTTHREADSAFE_COUNT = "concurr-notthreadsafe-count";
+  /**
    * A count of lock-protected fields in the type
    */
   final String CONCURR_LOCK_PROTECTED_COUNT = "concurr-lock-protected-count";

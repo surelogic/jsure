@@ -1,18 +1,16 @@
 
 package com.surelogic.aast.promise;
 
+import com.surelogic.Part;
 import com.surelogic.aast.*;
 
-public class NotThreadSafeNode extends AbstractBooleanNode 
+import edu.cmu.cs.fluid.java.JavaNode;
+
+public class NotThreadSafeNode extends AbstractModifiedBooleanNode 
 { 
   // Constructors
-  public NotThreadSafeNode() {
-    super();
-  }
-
-  @Override
-  public String unparse(boolean debug, int indent) {
-    return unparse(debug, indent, "NotThreadSafe");
+  public NotThreadSafeNode(Part state) {
+    super("NotThreadSafe", JavaNode.ALL_FALSE, state);
   }
 
   @Override
@@ -22,7 +20,7 @@ public class NotThreadSafeNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new NotThreadSafeNode();
+  	return new NotThreadSafeNode(appliesTo);
   }
 }
 

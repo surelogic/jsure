@@ -33,6 +33,7 @@ public final class Folderizer {
 
     int immutableFieldCount = stateWrtMetricDrop.getMetricInfoAsInt(IMetricDrop.CONCURR_IMMUTABLE_COUNT, 0);
     int threadSafeFieldCount = stateWrtMetricDrop.getMetricInfoAsInt(IMetricDrop.CONCURR_THREADSAFE_COUNT, 0);
+    int notThreadSafeFieldCount = stateWrtMetricDrop.getMetricInfoAsInt(IMetricDrop.CONCURR_NOTTHREADSAFE_COUNT, 0);
     int lockProtectedFieldCount = stateWrtMetricDrop.getMetricInfoAsInt(IMetricDrop.CONCURR_LOCK_PROTECTED_COUNT, 0);
     int threadConfinedFieldCount = stateWrtMetricDrop.getMetricInfoAsInt(IMetricDrop.CONCURR_THREAD_CONFINED_COUNT, 0);
     int otherFieldCount = stateWrtMetricDrop.getMetricInfoAsInt(IMetricDrop.CONCURR_OTHER_COUNT, 0);
@@ -40,6 +41,7 @@ public final class Folderizer {
     if (node != null) {
       node.f_immutableFieldCount = immutableFieldCount;
       node.f_threadSafeFieldCount = threadSafeFieldCount;
+      node.f_notThreadSafeFieldCount = notThreadSafeFieldCount;
       node.f_lockProtectedFieldCount = lockProtectedFieldCount;
       node.f_threadConfinedFieldCount = threadConfinedFieldCount;
       node.f_otherFieldCount = otherFieldCount;

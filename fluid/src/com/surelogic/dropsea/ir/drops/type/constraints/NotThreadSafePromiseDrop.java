@@ -1,5 +1,6 @@
 package com.surelogic.dropsea.ir.drops.type.constraints;
 
+import com.surelogic.Part;
 import com.surelogic.aast.promise.NotThreadSafeNode;
 import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
 
@@ -21,5 +22,9 @@ public final class NotThreadSafePromiseDrop extends BooleanPromiseDrop<NotThread
   @Override
   public boolean isIntendedToBeCheckedByAnalysis() {
     return false;
+  }
+  
+  public final Part getAppliesTo() {
+	return getAAST().getAppliesTo();
   }
 }
