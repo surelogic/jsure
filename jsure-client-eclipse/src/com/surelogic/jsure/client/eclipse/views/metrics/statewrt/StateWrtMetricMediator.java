@@ -724,7 +724,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         e.gc.drawText(s, (chartDiameter / 2) + 5 - (slocTxtWidth / 2), fold, true);
 
         fold += txtExtent.y + 5;
-        s = element.getOtherFieldCount() + " no policy";
+        s = SLUtility.toStringHumanWithCommas(element.getOtherFieldCount()) + " no policy";
         txtExtent = e.gc.stringExtent(s);
         e.gc.setBackground(otherColor);
         e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
@@ -736,7 +736,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         e.gc.drawText(s, 10 + txtExtent.y, fold, true);
 
         fold += txtExtent.y + 5;
-        s = element.getImmutableFieldCount() + " @Immutable";
+        s = SLUtility.toStringHumanWithCommas(element.getImmutableFieldCount()) + " @Immutable";
         txtExtent = e.gc.stringExtent(s);
         e.gc.setBackground(immutableColor);
         e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
@@ -744,7 +744,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         e.gc.drawText(s, 10 + txtExtent.y, fold, true);
 
         fold += txtExtent.y + 5;
-        s = element.getThreadSafeFieldCount() + " @ThreadSafe";
+        s = SLUtility.toStringHumanWithCommas(element.getThreadSafeFieldCount()) + " @ThreadSafe";
         txtExtent = e.gc.stringExtent(s);
         e.gc.setBackground(threadSafeColor);
         e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
@@ -752,7 +752,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         e.gc.drawText(s, 10 + txtExtent.y, fold, true);
 
         fold += txtExtent.y + 5;
-        s = element.getLockProtectedFieldCount() + " @RegionLock/@GuardedBy";
+        s = SLUtility.toStringHumanWithCommas(element.getLockProtectedFieldCount()) + " @RegionLock/@GuardedBy";
         txtExtent = e.gc.stringExtent(s);
         e.gc.setBackground(lockProtectedColor);
         e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
@@ -760,7 +760,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         e.gc.drawText(s, 10 + txtExtent.y, fold, true);
 
         fold += txtExtent.y + 5;
-        s = element.getThreadConfinedFieldCount() + " @ThreadConfined";
+        s = SLUtility.toStringHumanWithCommas(element.getThreadConfinedFieldCount()) + " @ThreadConfined";
         txtExtent = e.gc.stringExtent(s);
         e.gc.setBackground(threadConfinedColor);
         e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
@@ -768,7 +768,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
         e.gc.drawText(s, 10 + txtExtent.y, fold, true);
 
         fold += txtExtent.y + 5;
-        s = element.getNotThreadSafeFieldCount() + " @NotThreadSafe";
+        s = SLUtility.toStringHumanWithCommas(element.getNotThreadSafeFieldCount()) + " @NotThreadSafe";
         txtExtent = e.gc.stringExtent(s);
         e.gc.setBackground(notThreadSafeColor);
         e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
