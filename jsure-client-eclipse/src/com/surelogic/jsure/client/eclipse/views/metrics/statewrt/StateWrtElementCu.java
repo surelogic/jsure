@@ -32,7 +32,6 @@ public final class StateWrtElementCu extends StateWrtElement {
     cu = cu.substring(0, cu.length() - 5); // take off ".java"
     String pkg = getParent().getLabel(); // Java package name
     String proj = getParent().getParent().getLabel(); // project name
-    System.out.println("tryToOpenInEditor(" + proj + ", " + pkg + ", " + cu);
     Activator.tryToOpenInEditor(proj, pkg, cu);
   }
 }
