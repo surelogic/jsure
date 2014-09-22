@@ -346,13 +346,10 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
       public void doubleClick(DoubleClickEvent event) {
         final SlocElement element = getTreeViewerSelectionOrNull();
         if (element != null) {
-          if (element instanceof SlocElementLeaf) {
-            ((SlocElementLeaf) element).tryToOpenInJavaEditor();
-          } else {
-            // open up the tree one more level
-            if (!f_treeViewer.getExpandedState(element)) {
-              f_treeViewer.expandToLevel(element, 1);
-            }
+          element.tryToOpenInJavaEditor();
+          // open up the tree one more level
+          if (!f_treeViewer.getExpandedState(element)) {
+            f_treeViewer.expandToLevel(element, 1);
           }
         }
       }
@@ -670,13 +667,13 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
           e.gc.fillArc(5, fold + 5, chartDiameter, chartDiameter, 90, -arcCommented);
         }
         e.gc.drawOval(5, fold + 5, chartDiameter, chartDiameter);
-        
+
         fold += chartDiameter + 10;
         String s = SLUtility.toStringHumanWithCommas(element.f_lineCount) + " SLOC";
         Point txtExtent = e.gc.stringExtent(s);
         int slocTxtWidth = txtExtent.x;
         e.gc.drawText(s, (chartDiameter / 2) + 5 - (slocTxtWidth / 2), fold, true);
-        
+
         fold += txtExtent.y + 5;
         s = SLUtility.toStringHumanWithCommas(element.f_blankLineCount) + " blank";
         txtExtent = e.gc.stringExtent(s);
@@ -692,7 +689,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
         e.gc.drawRectangle(5, fold, txtExtent.y - 1, txtExtent.y - 1);
         e.gc.drawText(s, 10 + txtExtent.y, fold, true);
-        
+
         fold += txtExtent.y + 5;
         final long nonBlankNonCommentedLineCount = element.f_lineCount
             - (element.f_blankLineCount + element.f_containsCommentLineCount);
@@ -702,7 +699,7 @@ public final class SlocMetricMediator extends AbstractScanMetricMediator {
         e.gc.fillRectangle(5, fold, txtExtent.y, txtExtent.y);
         e.gc.drawRectangle(5, fold, txtExtent.y - 1, txtExtent.y - 1);
         e.gc.drawText(s, 10 + txtExtent.y, fold, true);
-        
+
         fold += txtExtent.y + 20;
 
         /*

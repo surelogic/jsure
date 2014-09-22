@@ -95,6 +95,16 @@ public abstract class SlocElement {
    */
   public abstract boolean highlightDueToSlocThreshold(SlocOptions options);
 
+  /**
+   * Makes a best attempt to open this node in the Java editor and the
+   * Historical source view.
+   * <p>
+   * The default implementation does nothing, subtypes should override.
+   */
+  public void tryToOpenInJavaEditor() {
+    // by default do nothing, subtypes should override
+  }
+
   /*
    * Counts should be set correctly by each implementation.
    */

@@ -7,6 +7,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.jsure.client.eclipse.Activator;
 
 public class StateWrtElementJavaDecl extends StateWrtElement {
 
@@ -29,5 +30,10 @@ public class StateWrtElementJavaDecl extends StateWrtElement {
   @Override
   public Image getImage() {
     return SLImages.getImageFor(f_javaDecl);
+  }
+
+  @Override
+  public void tryToOpenInJavaEditor() {
+    Activator.highlightLineInJavaEditor(this.getDeclaration());
   }
 }

@@ -351,6 +351,7 @@ public final class StateWrtMetricMediator extends AbstractScanMetricMediator {
       public void doubleClick(DoubleClickEvent event) {
         final StateWrtElement element = getTreeViewerSelectionOrNull();
         if (element != null) {
+          element.tryToOpenInJavaEditor();
           // open up the tree one more level
           if (!f_treeViewer.getExpandedState(element)) {
             f_treeViewer.expandToLevel(element, 1);

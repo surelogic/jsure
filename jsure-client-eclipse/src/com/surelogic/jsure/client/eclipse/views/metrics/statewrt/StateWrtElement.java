@@ -121,6 +121,16 @@ public abstract class StateWrtElement {
   public abstract Image getImage();
 
   /**
+   * Makes a best attempt to open this node in the Java editor and the
+   * Historical source view.
+   * <p>
+   * The default implementation does nothing, subtypes should override.
+   */
+  public void tryToOpenInJavaEditor() {
+    // by default do nothing, subtypes should override
+  }
+
+  /**
    * Gets if this element should be highlighted due to the passed threshold
    * options.
    * 

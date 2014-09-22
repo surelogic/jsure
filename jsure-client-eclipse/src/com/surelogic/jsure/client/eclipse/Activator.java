@@ -14,6 +14,7 @@ import org.osgi.framework.BundleContext;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.license.SLLicenseProduct;
+import com.surelogic.common.ref.Decl;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
@@ -129,9 +130,9 @@ public class Activator extends AbstractUIPlugin implements IRunnableWithProgress
    *          a location in Java code.
    */
   public static void highlightLineInJavaEditor(final IJavaRef javaRef) {
-	  highlightLineInJavaEditor(javaRef, false);
+    highlightLineInJavaEditor(javaRef, false);
   }
-  
+
   public static void highlightLineInJavaEditor(final IJavaRef javaRef, final boolean tryToUseOld) {
     if (javaRef == null)
       return;
@@ -141,7 +142,13 @@ public class Activator extends AbstractUIPlugin implements IRunnableWithProgress
   }
 
   public static void highlightLineInJavaEditor(IDecl decl) {
-	  JDTUIUtility.tryToOpenInEditor(decl);
-	  HistoricalSourceView.tryToOpenInEditor(decl, false);	  
+    JDTUIUtility.tryToOpenInEditor(decl);
+    HistoricalSourceView.tryToOpenInEditor(decl, false);
+  }
+
+  public static void tryToOpenInEditor(String proj, String pkg, String cu) {
+    JDTUIUtility.tryToOpenInEditor(proj, pkg, cu);
+    IDecl p = new Decl.ClassBuilder(cu).setParent(new Decl.PackageBuilder(pkg)).build();
+    HistoricalSourceView.tryToOpenInEditor(p, false);
   }
 }

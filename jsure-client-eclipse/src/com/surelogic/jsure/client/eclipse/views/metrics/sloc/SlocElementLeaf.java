@@ -3,8 +3,8 @@ package com.surelogic.jsure.client.eclipse.views.metrics.sloc;
 import org.eclipse.swt.graphics.Image;
 
 import com.surelogic.common.CommonImages;
-import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.common.ui.SLImages;
+import com.surelogic.jsure.client.eclipse.Activator;
 
 /**
  * Represents SLOC metric information for a Java compilation unit.
@@ -60,6 +60,7 @@ public final class SlocElementLeaf extends SlocElement {
     return SLImages.getImage(CommonImages.IMG_JAVA_COMP_UNIT);
   }
 
+  @Override
   public void tryToOpenInJavaEditor() {
     if (getParent() == null || getParent().getParent() == null)
       return; // can't figure out what to open
@@ -73,6 +74,6 @@ public final class SlocElementLeaf extends SlocElement {
     cu = cu.substring(0, cu.length() - 5); // take off ".java"
     String pkg = getParent().getLabel(); // Java package name
     String proj = getParent().getParent().getLabel(); // project name
-    JDTUIUtility.tryToOpenInEditor(proj, pkg, cu);
+    Activator.tryToOpenInEditor(proj, pkg, cu);
   }
 }
