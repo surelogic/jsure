@@ -132,9 +132,24 @@ public abstract class AbstractBinder implements IBinder {
 		  IRNode leftSide = AssignExpression.getOp1(context);
 		  return (IJavaDeclaredType) getJavaType(leftSide);
 	  }	  
+	  else if (ArrayInitializer.prototype.includes(contextOp)) {
+		  // Only appearing in Initialization or ArrayCreationExpression
+		  IRNode parent = JJNode.tree.getParent(context);
+		  Operator parentOp = JJNode.tree.getOperator(parent);
+		  IJavaArrayType at;
+		  if (Initialization.prototype.includes(parentOp)) {
+			  IRNode varDecl = JJNode.tree.getParent(context);
+			  at = (IJavaArrayType) getJavaType(varDecl);
+		  }
+		  else if (ArrayCreationExpression.prototype.includes(parentOp)) {
+			  at = (IJavaArrayType) getJavaType(parent);
+		  } else {
+			  return null;
+		  }
+		  return (IJavaDeclaredType) at.getElementType();
+	  }
 	  return null;
   }
-
 
   private final OpSearch nonExpr = new OpSearch() {
 	  @Override
@@ -146,6 +161,9 @@ public abstract class AbstractBinder implements IBinder {
   private IJavaDeclaredType matchTarget(IJavaDeclaredType targetType, IJavaDeclaredType newType) {
 	//System.out.println("Target: "+targetType);
 	if (targetType.isRawType(getTypeEnvironment())) {
+	  return (IJavaDeclaredType) getTypeEnvironment().computeErasure(newType);
+	}
+	if (targetType == getTypeEnvironment().getObjectType()) {
 	  return (IJavaDeclaredType) getTypeEnvironment().computeErasure(newType);
 	}
 	/*
