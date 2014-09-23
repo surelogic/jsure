@@ -1,7 +1,6 @@
 package com.surelogic.jsure.client.eclipse.views.source;
 
 import java.io.File;
-import java.util.Collections;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -93,21 +92,21 @@ public class HistoricalSourceView extends AbstractHistoricalSourceView implement
     return zips;
   }
 
-  public static void tryToOpenInEditor(final IJavaRef javaRef, final boolean tryToUseOld) {
+  public static void tryToOpenInEditor(final IJavaRef javaRef, final boolean tryToUseOldScan) {
     if (javaRef == null)
       return;
     tryToOpenInEditor(javaRef.getPackageName(), DeclUtil.getTypeNameDollarSignOrNull(javaRef.getDeclaration()),
-        javaRef.getLineNumber(), tryToUseOld);
+        javaRef.getLineNumber(), javaRef.getRealEclipseProjectNameOrNull(), tryToUseOldScan);
   }
 
-  public static void tryToOpenInEditor(final IDecl decl, final boolean tryToUseOld) {
+  public static void tryToOpenInEditor(final IDecl decl, final boolean tryToUseOldScan) {
     if (decl == null)
       return;
-    tryToOpenInEditor(DeclUtil.getPackageNameOrEmpty(decl), DeclUtil.getTypeNameDollarSignOrNull(decl), 1, tryToUseOld);
+    tryToOpenInEditor(DeclUtil.getPackageNameOrEmpty(decl), DeclUtil.getTypeNameDollarSignOrNull(decl), 1, null, tryToUseOldScan);
   }
 
-  private static void tryToOpenInEditor(final String pkg, final String type, int lineNumber, final boolean tryToUseOld) {
-    tryToOpenInEditor(HistoricalSourceView.class, tryToUseOld ? OLD : null, pkg, type == null ? SLUtility.PACKAGE_INFO : type,
-        lineNumber);
+  private static void tryToOpenInEditor(final String pkg, final String type, int lineNumber, String proj, final boolean tryToUseOldScan) {
+    tryToOpenInEditor(HistoricalSourceView.class, tryToUseOldScan ? OLD : null, pkg, type == null ? SLUtility.PACKAGE_INFO : type,
+        lineNumber, proj);
   }
 }
