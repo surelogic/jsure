@@ -67,12 +67,7 @@ public class HistoricalSourceView extends AbstractHistoricalSourceView implement
         .getInstance().getCurrentScanInfo();
     final ISourceZipFileHandles zips;
     if (info == null) {
-      zips = new ISourceZipFileHandles() {
-        @Override
-        public Iterable<File> getSourceZips() {
-          return Collections.emptyList();
-        }
-      };
+      zips = ISourceZipFileHandles.EMPTY;
     } else {
       setSourceSnapshotTime(info.getJSureRun().getTimeOfScan());
       zips = new ISourceZipFileHandles() {
@@ -80,6 +75,19 @@ public class HistoricalSourceView extends AbstractHistoricalSourceView implement
         public Iterable<File> getSourceZips() {
           return info.getJSureRun().getSourceZips();
         }
+
+        public File getSourceZipForProject(String proj) {
+          if (proj == null) {
+        	return null;
+          }
+          final String name = proj + ".zip";
+          for(File z : getSourceZips()) {
+        	if (name.equals(z.getName())) {
+        	  return z;
+        	}
+          }
+          return null;
+        }        
       };
     }
     return zips;
