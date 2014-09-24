@@ -1,6 +1,6 @@
 package com.surelogic.javac.persistence;
 
-import jsr166y.ForkJoinPool;
+import java.util.concurrent.*;
 
 import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.common.PerformanceProperties;
