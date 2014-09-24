@@ -37,7 +37,7 @@ Require-Bundle: com.surelogic.common,
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: com.surelogic.jsure.client.eclipse,
  com.surelogic.jsure.client.eclipse.editors,
  com.surelogic.jsure.client.eclipse.refactor,
