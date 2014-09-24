@@ -6,7 +6,7 @@ import org.antlr.runtime.RecognitionException;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.parse.SLThreadRoleAnnotationsParser;
 import com.surelogic.annotation.parse.SLThreadRoleParse;
-import com.surelogic.annotation.rules.ThreadRoleRules;
+//import com.surelogic.annotation.rules.ThreadRoleRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.tree.Operator;
@@ -31,9 +31,11 @@ extends AbstractAntlrParseRule<A, P, SLThreadRoleAnnotationsParser>  {
     @Override
     protected final Object parse(IAnnotationParsingContext context,
             SLThreadRoleAnnotationsParser parser) throws Exception, RecognitionException {
+    	/*
     	if (!ThreadRoleRules.useThreadRoles) {
     		return ParseResult.IGNORE;
     	}
+    	*/
     	return parseTRoleAnno(context, parser);
     }
     
