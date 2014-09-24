@@ -14,7 +14,6 @@ import com.surelogic.test.ITest;
 import com.surelogic.test.ITestOutput;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.util.*;
 
 public class XMLLogDiff {
   public static final String FLUID_COUNT = "fluid.count";
