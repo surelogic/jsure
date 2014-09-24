@@ -299,8 +299,8 @@ public class TestDecl extends TestCase {
     assertEquals("com.surelogic.t", p.getParent().getParent().getName());
     assertNull(p.getParent().getParent().getParent());
 
-    p = new Decl.FieldBuilder("f_field2").setIsFinal(true).setIsStatic(true).setIsVolatile(true).setParent(parent).setTypeOf(TypeRef.JAVA_LANG_OBJECT)
-        .build();
+    p = new Decl.FieldBuilder("f_field2").setIsFinal(true).setIsStatic(true).setIsVolatile(true).setParent(parent)
+        .setTypeOf(TypeRef.JAVA_LANG_OBJECT).build();
     assertTrue(p.isFinal());
     assertTrue(p.isStatic());
     assertTrue(p.isVolatile());
@@ -584,6 +584,71 @@ public class TestDecl extends TestCase {
     } catch (IllegalArgumentException expected) {
       // good
     }
+  }
+
+  public void testLambdaBuilder() {
+    TypeRef string = new TypeRef("java.lang.String", "String");
+    TypeRef runnable = new TypeRef("java.lang.Runnable", "Runnable");
+
+    Decl.ClassBuilder parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
+
+    Decl.MethodBuilder m = new Decl.MethodBuilder("processSomething");
+    // parameters: (Object, Object, String)
+    m.addParameter(new Decl.ParameterBuilder(0).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
+    m.addParameter(new Decl.ParameterBuilder(1).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
+    m.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
+    m.setParent(parent);
+
+    Decl.LambdaBuilder b = new Decl.LambdaBuilder();
+    // parameters: (Object, String, Object)
+    b.addParameter(new Decl.ParameterBuilder(0, "a").setTypeOf(TypeRef.JAVA_LANG_OBJECT));
+    b.addParameter(new Decl.ParameterBuilder(1).setTypeOf(string));
+    b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
+    b.setParent(m);
+
+    IDecl p = b.build();
+    IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
+    assertSame(IDecl.Kind.LAMBDA, p.getKind());
+    assertEquals("", p.getName());
+    assertTrue(p.getTypeParameters().isEmpty());
+    assertEquals(3, p.getParameters().size());
+    assertEquals(p.getParameters(), pEncode.getParameters());
+    assertEquals(runnable, p.getTypeOf());
+    assertEquals("processSomething", p.getParent().getName());
+    assertEquals("MyType", p.getParent().getParent().getName());
+    assertEquals("com.surelogic.t", p.getParent().getParent().getParent().getName());
+    assertNull(p.getParent().getParent().getParent().getParent());
+
+    b = new Decl.LambdaBuilder();
+    b.setParent(m);
+    b.setFunctionalInterfaceTypeOf(string);
+    b.setDeclPosition(5);
+    p = b.build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
+    assertSame(IDecl.Kind.LAMBDA, p.getKind());
+    assertEquals("", p.getName());
+    assertTrue(p.getTypeParameters().isEmpty());
+    assertEquals(0, p.getParameters().size());
+    assertEquals(string, p.getTypeOf());
+    assertEquals(5, p.getPosition());
   }
 
   public void testMethodBuilder() {
