@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: JSecure Eclipse Client
 Bundle-SymbolicName: com.surelogic.jsecure.client.eclipse;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Vendor: SureLogic, Inc.
 Require-Bundle: com.surelogic.common;bundle-version="4.5.0",
  com.surelogic.common.core;bundle-version="4.5.0",
