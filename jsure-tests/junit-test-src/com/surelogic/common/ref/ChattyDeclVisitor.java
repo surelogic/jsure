@@ -13,6 +13,7 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   public boolean visitTypesReturn = true;
   public boolean visitClassReturn = true;
   public boolean visitInterfaceReturn = true;
+  public boolean visitLambdaReturn = true;
   public boolean visitMethodReturn = true;
   public boolean visitConstructorReturn = true;
   public boolean visitParametersReturn = true;
@@ -82,6 +83,13 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   }
 
   @Override
+  public boolean visitLambda(IDeclLambda node) {
+    b.append("visitLambda(").append(node.getTypeOf().getFullyQualified());
+    b.append(") -> ");
+    return visitLambdaReturn;
+  }
+
+  @Override
   public boolean visitMethod(IDeclFunction node) {
     b.append("visitMethod(").append(node.getName());
     b.append(") -> ");
@@ -142,6 +150,12 @@ public final class ChattyDeclVisitor extends DeclVisitor {
   @Override
   public void endVisitInterface(IDeclType node) {
     b.append("endVisitInterface(").append(node.getName());
+    b.append(") -> ");
+  }
+
+  @Override
+  public void endVisitLambda(IDeclLambda node) {
+    b.append("endVisitLambda(").append(node.getTypeOf().getFullyQualified());
     b.append(") -> ");
   }
 
