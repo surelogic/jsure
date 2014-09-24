@@ -181,15 +181,6 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   }
   
   @Override
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  public T visit(ThreadRoleAndNode n) {
-    T rv = defaultValue;
-    for(AASTNode c : (List<AASTNode>) (List) n.getAndElemsList()) {
-      rv = combineResults(rv, doAccept(c));
-    }
-    return rv;
-  }
-  @Override
   public T visit(EnclosingModuleNode n) {
     T rv = defaultValue;
     for(AASTNode c : n.getModulesList()) {
@@ -246,14 +237,6 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   }
 
   @Override
-  public T visit(ThreadRoleIncompatibleNode n) {
-    T rv = defaultValue;
-    for(AASTNode c : n.getThreadRoleList()) {
-      rv = combineResults(rv, doAccept(c));
-    }
-    return rv;
-  }
-  @Override
   public T visit(AnyInstanceExpressionNode n) {
     T rv = defaultValue;
     rv = combineResults(rv, doAccept(n.getType()));
@@ -265,11 +248,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     rv = combineResults(rv, doAccept(n.getBase()));
     return rv;
   }
-  @Override
-  public T visit(ThreadRoleNameNode n) {
-    T rv = defaultValue;
-    return rv;
-  }
+
   @Override
   public T visit(RegionMappingNode n) {
     T rv = defaultValue;
@@ -333,13 +312,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     rv = combineResults(rv, doAccept(n.getField()));
     return rv;
   }
-  @Override
-  public T visit(ThreadRoleRenameNode n) {
-    T rv = defaultValue;
-    rv = combineResults(rv, doAccept(n.getThreadRole()));
-    rv = combineResults(rv, doAccept(n.getTRExpr()));
-    return rv;
-  }
+
   @Override
   public T visit(ConstructorDeclPatternNode n) {
     T rv = defaultValue;
@@ -410,41 +383,13 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     }
     return rv;
   }
-  @Override
-  public T visit(ThreadRoleCardSpecNode n) {
-    T rv = defaultValue;
-    rv = combineResults(rv, doAccept(n.getTRole()));
-    rv = combineResults(rv, doAccept(n.getCard()));
-    return rv;
-  }
+
   @Override
   public T visit(ThreadRoleTransparentNode n) {
     T rv = defaultValue;
     return rv;
   }
-  @Override
-  public T visit(ThreadRoleRequireNode n) {
-    T rv = defaultValue;
-    rv = combineResults(rv, doAccept(n.getTRExpr()));
-    return rv;
-  }
-  @Override
-  public T visit(ThreadRoleRevokeNode n) {
-    T rv = defaultValue;
-    for(AASTNode c : n.getThreadRoleList()) {
-      rv = combineResults(rv, doAccept(c));
-    }
-    return rv;
-  }
-  @Override
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  public T visit(ThreadRoleOrNode n) {
-    T rv = defaultValue;
-    for(AASTNode c : (List<AASTNode>) (List) n.getOrElemsList()) {
-      rv = combineResults(rv, doAccept(c));
-    }
-    return rv;
-  }
+
   @Override
   public T visit(ScopedModuleNode n) {
     T rv = defaultValue;
@@ -463,12 +408,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     rv = combineResults(rv, doAccept(n.getTarget2()));
     return rv;
   }
-  @Override
-  public T visit(ThreadRoleNotNode n) {
-    T rv = defaultValue;
-    rv = combineResults(rv, doAccept(n.getTarget()));
-    return rv;
-  }
+
   @Override
   public T visit(ImplicitClassLockExpressionNode n) {
     T rv = defaultValue;
@@ -489,15 +429,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     T rv = defaultValue;
     return rv;
   }
-  @Override
-  public T visit(ThreadRoleCRNode n) {
-    T rv = defaultValue;
-    rv = combineResults(rv, doAccept(n.getTRExpr()));
-    for(AASTNode c : n.getTRRegionsList()) {
-      rv = combineResults(rv, doAccept(c));
-    }
-    return rv;
-  }
+
   @Override
   public T visit(AndTargetNode n) {
     T rv = defaultValue;
@@ -517,14 +449,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     rv = combineResults(rv, doAccept(n.getField()));
     return rv;
   }
-  @Override
-  public T visit(ThreadRoleDeclarationNode n) {
-    T rv = defaultValue;
-    for(AASTNode c : n.getThreadRoleList()) {
-      rv = combineResults(rv, doAccept(c));
-    }
-    return rv;
-  }
+
   @Override
   public T visit(NewRegionDeclarationNode n) {
     T rv = defaultValue;
@@ -567,19 +492,7 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     T rv = defaultValue;
     return rv;
   }
-  @Override
-  public T visit(ThreadRoleGrantNode n) {
-    T rv = defaultValue;
-    for(AASTNode c : n.getThreadRoleList()) {
-      rv = combineResults(rv, doAccept(c));
-    }
-    return rv;
-  }
-  @Override
-  public T visit(ThreadRoleExprNode n) {
-    T rv = defaultValue;
-    return rv;
-  }
+
   @Override
   public T visit(ThreadRoleCard1Node n) {
     T rv = defaultValue;
@@ -791,12 +704,6 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
     }
     return rv;
 	}
-
-  public T visit(ThreadRoleExprPromiseNode n) {
-    T rv = defaultValue;
-    rv = combineResults(rv, doAccept(n.getTheExprNode()));
-    return rv;
-  }  
 
   public T visit(VouchSpecificationNode n) {
 	  return defaultValue;

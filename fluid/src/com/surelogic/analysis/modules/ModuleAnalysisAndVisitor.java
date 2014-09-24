@@ -17,7 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.threadroles.TRolesFirstPass;
+//import com.surelogic.analysis.threadroles.TRolesFirstPass;
 import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
@@ -28,7 +28,7 @@ import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.modules.ModuleModel;
 import com.surelogic.dropsea.ir.drops.modules.ModulePromiseDrop;
 import com.surelogic.dropsea.ir.drops.modules.VisibilityDrop;
-import com.surelogic.dropsea.ir.drops.threadroles.SimpleCallGraphDrop;
+//import com.surelogic.dropsea.ir.drops.threadroles.SimpleCallGraphDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -273,7 +273,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
       
       if (javaEntityStats) {
         // only check fields that are in CUs whose source is loaded...
-        final CUDrop cud = TRolesFirstPass.getCUDropOf(field);
+        final CUDrop cud = null;//TRolesFirstPass.getCUDropOf(field);
         if (cud.isAsSource()) {
           final IRNode declStmt =
             JJNode.tree.getParent(JJNode.tree.getParent(field));
@@ -292,9 +292,11 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
 	 */
 	@Override
 	public Void visitMethodBody(IRNode node) {
+		/*
 		SimpleCallGraphDrop cgDrop = SimpleCallGraphDrop.getCGDropFor(getEnclosingDecl());
 		cgDrop.setTheBody(node);
 		cgDrop.setFoundABody(true);
+		*/
 		return super.visitMethodBody(node);
 	}
 	
@@ -725,14 +727,15 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
 //  }
 
   private void cgBuildOne(final IRNode caller, final IRNode callee) {
+	/*
     final SimpleCallGraphDrop callerDrop = SimpleCallGraphDrop
         .getCGDropFor(caller);
     final SimpleCallGraphDrop calleeDrop = SimpleCallGraphDrop
         .getCGDropFor(callee);
-
+        
     callerDrop.getCallees().add(callee);
     calleeDrop.getCallers().add(caller);
-
+    */
   }
 
   /**
@@ -750,6 +753,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
   private void cgBuild(final IRNode caller, final IRNode callee,
       final IJavaType receiverType) {
     cgBuildOne(caller, callee);
+    /*
     final SimpleCallGraphDrop calleeDrop = 
       SimpleCallGraphDrop.getCGDropFor(callee);
 
@@ -782,6 +786,7 @@ public class ModuleAnalysisAndVisitor implements IBinderClient {
         calleeDrop.numOverridingMethods += 1;
       }
     }
+    */
   }
   
   
