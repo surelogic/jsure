@@ -132,5 +132,5 @@ Export-Package:
  edu.uwm.cs.fluid.tree,
  edu.uwm.cs.fluid.util
 Require-Bundle: com.surelogic.common
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 

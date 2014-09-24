@@ -2,8 +2,7 @@ package com.surelogic.analysis;
 
 import java.util.Collection;
 import java.util.List;
-
-import jsr166y.*;
+import java.util.concurrent.*;
 
 import org.apache.commons.lang3.SystemUtils;
 

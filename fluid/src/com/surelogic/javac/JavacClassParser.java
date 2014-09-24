@@ -14,9 +14,6 @@ import javax.tools.*;
 import javax.tools.JavaFileManager.Location;
 import javax.tools.JavaFileObject.Kind;
 
-import jsr166y.ForkJoinPool;
-import jsr166y.RecursiveTask;
-
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 

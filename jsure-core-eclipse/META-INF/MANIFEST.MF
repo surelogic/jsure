@@ -26,4 +26,4 @@ Require-Bundle: com.surelogic.common,
  org.eclipse.debug.core
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
