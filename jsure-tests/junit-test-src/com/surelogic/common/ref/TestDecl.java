@@ -10,6 +10,17 @@ import com.surelogic.common.ref.IDecl.Visibility;
 
 public class TestDecl extends TestCase {
 
+  public void testBadDoubleCallToBuild() {
+    Decl.DeclBuilder b = new Decl.PackageBuilder();
+    b.build();
+    try {
+      b.build();
+      fail("build invoked twice with no IllegalStateException thrown");
+    } catch (IllegalStateException expected) {
+      // good
+    }
+  }
+
   public void testClassBuilder() {
     IDecl p = new Decl.ClassBuilder("Foo").setParent(new Decl.PackageBuilder()).build();
     assertSame(IDecl.Kind.CLASS, p.getKind());
@@ -269,9 +280,7 @@ public class TestDecl extends TestCase {
     Decl.FieldBuilder b = new Decl.FieldBuilder("f_field");
     b.setTypeOf(TypeRef.JAVA_LANG_OBJECT);
 
-    Decl.ClassBuilder parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
-
-    b.setParent(parent);
+    b.setParent(new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t")));
     b.setVisibility(Visibility.PRIVATE);
     IDecl p = b.build();
     IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
@@ -299,7 +308,8 @@ public class TestDecl extends TestCase {
     assertEquals("com.surelogic.t", p.getParent().getParent().getName());
     assertNull(p.getParent().getParent().getParent());
 
-    p = new Decl.FieldBuilder("f_field2").setIsFinal(true).setIsStatic(true).setIsVolatile(true).setParent(parent)
+    p = new Decl.FieldBuilder("f_field2").setIsFinal(true).setIsStatic(true).setIsVolatile(true)
+        .setParent(new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t")))
         .setTypeOf(TypeRef.JAVA_LANG_OBJECT).build();
     assertTrue(p.isFinal());
     assertTrue(p.isStatic());
@@ -309,13 +319,16 @@ public class TestDecl extends TestCase {
     assertEquals(p.hashCode(), pEncode.hashCode());
 
     try {
-      p = new Decl.FieldBuilder("111").setParent(parent).setTypeOf(TypeRef.JAVA_LANG_OBJECT).build();
+      p = new Decl.FieldBuilder("111")
+          .setParent(new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t")))
+          .setTypeOf(TypeRef.JAVA_LANG_OBJECT).build();
       fail("111 was a legal field name");
     } catch (IllegalArgumentException expected) {
       // good
     }
     try {
-      p = new Decl.FieldBuilder("foo").setParent(parent).build();
+      p = new Decl.FieldBuilder("foo").setParent(
+          new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"))).build();
       fail("typeOf allowed to be null");
     } catch (IllegalArgumentException expected) {
       // good
@@ -329,10 +342,9 @@ public class TestDecl extends TestCase {
   }
 
   public void testInitializerBuilder() {
-    Decl.ClassBuilder parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
 
     Decl.InitializerBuilder b = new Decl.InitializerBuilder();
-    b.setParent(parent);
+    b.setParent(new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t")));
     IDecl p = b.build();
     IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
@@ -359,7 +371,8 @@ public class TestDecl extends TestCase {
     assertEquals("com.surelogic.t", p.getParent().getParent().getName());
     assertNull(p.getParent().getParent().getParent());
 
-    p = new Decl.InitializerBuilder().setParent(parent).setIsStatic(true).build();
+    p = new Decl.InitializerBuilder()
+        .setParent(new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"))).setIsStatic(true).build();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
@@ -590,17 +603,13 @@ public class TestDecl extends TestCase {
     TypeRef string = new TypeRef("java.lang.String", "String");
     TypeRef runnable = new TypeRef("java.lang.Runnable", "Runnable");
 
-    Decl.ClassBuilder parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
-
     Decl.MethodBuilder m = new Decl.MethodBuilder("processSomething");
-    // parameters: (Object, Object, String)
     m.addParameter(new Decl.ParameterBuilder(0).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
     m.addParameter(new Decl.ParameterBuilder(1).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
     m.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
-    m.setParent(parent);
+    m.setParent(new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t")));
 
     Decl.LambdaBuilder b = new Decl.LambdaBuilder();
-    // parameters: (Object, String, Object)
     b.addParameter(new Decl.ParameterBuilder(0, "a").setTypeOf(TypeRef.JAVA_LANG_OBJECT));
     b.addParameter(new Decl.ParameterBuilder(1).setTypeOf(string));
     b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
@@ -629,6 +638,11 @@ public class TestDecl extends TestCase {
     assertNull(p.getParent().getParent().getParent().getParent());
 
     b = new Decl.LambdaBuilder();
+    m = new Decl.MethodBuilder("processSomething");
+    m.addParameter(new Decl.ParameterBuilder(0).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
+    m.addParameter(new Decl.ParameterBuilder(1).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
+    m.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
+    m.setParent(new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t")));
     b.setParent(m);
     b.setFunctionalInterfaceTypeOf(string);
     b.setDeclPosition(5);
@@ -654,14 +668,15 @@ public class TestDecl extends TestCase {
   public void testMethodBuilder() {
     TypeRef string = new TypeRef("java.lang.String", "String");
 
-    Decl.ClassBuilder parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
+    Decl.ClassBuilder classParent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
+    Decl.InterfaceBuilder interfaceParent = new Decl.InterfaceBuilder("MyInt")
+        .setParent(new Decl.PackageBuilder("com.surelogic.t"));
 
     Decl.MethodBuilder b = new Decl.MethodBuilder("processSomething");
-    // parameters: (Object, Object, String)
     b.addParameter(new Decl.ParameterBuilder(0).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
     b.addParameter(new Decl.ParameterBuilder(1).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
     b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
-    b.setParent(parent);
+    b.setParent(classParent);
     IDecl p = b.build();
     IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
@@ -681,6 +696,7 @@ public class TestDecl extends TestCase {
     assertFalse(p.isFinal());
     assertFalse(p.isImplicit());
     assertFalse(p.isVolatile());
+    assertFalse(p.isDefault());
     assertEquals(0, p.getTypeParameters().size());
     List<IDeclParameter> parameters = p.getParameters();
     assertEquals(3, parameters.size());
@@ -692,9 +708,43 @@ public class TestDecl extends TestCase {
     assertEquals("com.surelogic.t", p.getParent().getParent().getName());
     assertNull(p.getParent().getParent().getParent());
 
-    parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
+    b = new Decl.MethodBuilder("defaultSomething");
+    b.addParameter(new Decl.ParameterBuilder(0).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
+    b.addParameter(new Decl.ParameterBuilder(1).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
+    b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
+    b.setParent(interfaceParent);
+    b.setIsDefault(true);
+    b.setReturnTypeOf(TypeRef.JAVA_LANG_RUNNABLE);
+    p = b.build();
+    pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
+    assertTrue(p.hasSameAttributesAs(pEncode));
+    assertTrue(p.isSameSimpleDeclarationAs(pEncode));
+    assertTrue(p.isSameDeclarationAs(pEncode));
+    assertTrue(p.equals(pEncode));
+    assertEquals(p.hashCode(), pEncode.hashCode());
+    assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
+    assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
+    assertSame(p.getKind(), pEncode.getKind());
+    assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
+    assertSame(IDecl.Kind.METHOD, p.getKind());
+    assertEquals("defaultSomething", p.getName());
+    assertSame(Visibility.PUBLIC, p.getVisibility());
+    assertFalse(p.isAbstract());
+    assertFalse(p.isStatic());
+    assertFalse(p.isFinal());
+    assertFalse(p.isImplicit());
+    assertFalse(p.isVolatile());
+    assertTrue(p.isDefault());
+    assertEquals(0, p.getTypeParameters().size());
+    assertEquals(3, p.getParameters().size());
+    assertEquals(TypeRef.JAVA_LANG_RUNNABLE, p.getTypeOf());
+    assertEquals("MyInt", p.getParent().getName());
+    assertEquals("com.surelogic.t", p.getParent().getParent().getName());
+    assertNull(p.getParent().getParent().getParent());
+
+    classParent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
     Decl.MethodBuilder foo = new Decl.MethodBuilder("testParamType");
-    foo.setParent(parent);
+    foo.setParent(classParent);
     Decl.TypeParameterBuilder tpb = new Decl.TypeParameterBuilder(0, "E");
     foo.addTypeParameter(tpb);
     Decl.TypeParameterBuilder tpb0 = foo.getTypeParameterBuilderAt(0);
@@ -723,15 +773,25 @@ public class TestDecl extends TestCase {
     }
 
     try {
-      p = new Decl.MethodBuilder("111").setParent(parent).build();
+      classParent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
+      new Decl.MethodBuilder("111").setParent(classParent).build();
       fail("111 was a legal method name");
+    } catch (IllegalArgumentException e1) {
+      // good
+    }
+
+    try {
+      classParent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
+      new Decl.MethodBuilder("Foo").setParent(classParent).setIsAbstract(true).setIsFinal(true).build();
+      fail("Foo was allowed to be both abstract and final");
     } catch (IllegalArgumentException expected) {
       // good
     }
 
     try {
-      p = new Decl.MethodBuilder("Foo").setParent(parent).setIsAbstract(true).setIsFinal(true).build();
-      fail("Foo was allowed to be both abstract and final");
+      classParent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
+      new Decl.MethodBuilder("Foo").setParent(classParent).setIsDefault(true).build();
+      fail("Foo was allowed to be default within a class");
     } catch (IllegalArgumentException expected) {
       // good
     }
@@ -875,20 +935,16 @@ public class TestDecl extends TestCase {
   }
 
   public void testParameterBuilder() {
-    // java.lang.String
     TypeRef string = new TypeRef("java.lang.String", "String");
 
-    Decl.ClassBuilder parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
-
     Decl.MethodBuilder b = new Decl.MethodBuilder("processSomething");
-    // parameters: (Object, Object, String)
     Decl.ParameterBuilder p0 = new Decl.ParameterBuilder(0).setTypeOf(TypeRef.JAVA_LANG_OBJECT);
     Decl.ParameterBuilder p1 = new Decl.ParameterBuilder(1).setTypeOf(TypeRef.JAVA_LANG_OBJECT);
     Decl.ParameterBuilder p2 = new Decl.ParameterBuilder(2).setTypeOf(string);
     b.addParameter(p0);
     b.addParameter(p1);
     b.addParameter(p2);
-    b.setParent(parent);
+    b.setParent(new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t")));
     Decl.ParameterBuilder p3 = new Decl.ParameterBuilder(3, "foo");
     p3.setTypeOf(TypeRef.JAVA_LANG_OBJECT);
     p3.setParent(b);
@@ -923,6 +979,21 @@ public class TestDecl extends TestCase {
     assertEquals("com.surelogic.t", p.getParent().getParent().getParent().getName());
     assertNull(p.getParent().getParent().getParent().getParent());
 
+    b = new Decl.MethodBuilder("processSomething");
+    p0 = new Decl.ParameterBuilder(0).setTypeOf(TypeRef.JAVA_LANG_OBJECT);
+    p1 = new Decl.ParameterBuilder(1).setTypeOf(TypeRef.JAVA_LANG_OBJECT);
+    p2 = new Decl.ParameterBuilder(2).setTypeOf(string);
+    b.addParameter(p0);
+    b.addParameter(p1);
+    b.addParameter(p2);
+    b.setParent(new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t")));
+    p3 = new Decl.ParameterBuilder(3, "foo");
+    p3.setTypeOf(TypeRef.JAVA_LANG_OBJECT);
+    p3.setParent(b);
+    assertSame(p0, b.getParameterBuilderAt(0));
+    assertSame(p1, b.getParameterBuilderAt(1));
+    assertSame(p2, b.getParameterBuilderAt(2));
+    assertSame(p3, b.getParameterBuilderAt(3));
     p = new Decl.ParameterBuilder(4).setParent(b).setTypeOf(TypeRef.JAVA_LANG_OBJECT).setIsFinal(true).build();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertSame(p.getKind(), pEncode.getKind());
@@ -1080,7 +1151,6 @@ public class TestDecl extends TestCase {
 
     parent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
     b = new Decl.MethodBuilder("processSomething");
-    // parameters: (Object, Object, String)
     b.addParameter(new Decl.ParameterBuilder(0).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
     b.addParameter(new Decl.ParameterBuilder(1).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
     b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
@@ -1109,7 +1179,7 @@ public class TestDecl extends TestCase {
     Decl.TypeParameterBuilder tparam = new Decl.TypeParameterBuilder(0, "E").setParent(parent);
 
     Decl.MethodBuilder b = new Decl.MethodBuilder("processSomething");
-    // parameters: (Object, Object, String)
+    // parameters: (Object, String)
     b.addParameter(new Decl.ParameterBuilder(0).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
     Decl.ParameterBuilder arg1 = new Decl.ParameterBuilder(1).setTypeOf(string);
     b.addParameter(arg1);
@@ -1148,6 +1218,9 @@ public class TestDecl extends TestCase {
     oracle = "START visitPackage(com.surelogic.t) -> visitTypes(count=2) -> endVisitTypes(count=2) -> visitMethod(processSomething) -> endVisitMethod(processSomething) -> END";
     assertEquals(oracle, v.getResult());
 
+    parent = new Decl.ClassBuilder("Inner").setParent(new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder(
+        "com.surelogic.t")));
+    tparam = new Decl.TypeParameterBuilder(0, "E").setParent(parent);
     IDecl tp = tparam.build();
 
     v = new ChattyDeclVisitor();
@@ -1166,6 +1239,19 @@ public class TestDecl extends TestCase {
     tp.acceptRootToThis(v);
     oracle = "START visitPackage(com.surelogic.t) -> visitTypes(count=2) -> visitClass(MyType) -> visitTypeParameters(count=0) -> endVisitTypeParameters(count=0) -> endVisitClass(MyType) -> visitClass(Inner) -> visitTypeParameters(count=1) -> visitTypeParameter(E, partOfDecl=false) -> endVisitTypeParameters(count=1) -> endVisitClass(Inner) -> endVisitTypes(count=2) -> visitTypeParameter(E, partOfDecl=true) -> END";
     assertEquals(oracle, v.getResult());
+
+    parent = new Decl.ClassBuilder("Inner").setParent(new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder(
+        "com.surelogic.t")));
+    tparam = new Decl.TypeParameterBuilder(0, "E").setParent(parent);
+
+    b = new Decl.MethodBuilder("processSomething");
+    // parameters: (Object, String)
+    b.addParameter(new Decl.ParameterBuilder(0).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
+    arg1 = new Decl.ParameterBuilder(1).setTypeOf(string);
+    b.addParameter(arg1);
+    b.setVisibility(Visibility.DEFAULT);
+    b.setIsStatic(true);
+    b.setParent(parent);
 
     IDecl arg1decl = arg1.build();
 
