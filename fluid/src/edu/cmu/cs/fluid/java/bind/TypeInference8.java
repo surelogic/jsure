@@ -65,55 +65,92 @@ public class TypeInference8 {
 	 * 
 	 * • An initial bound set, B 0 , is constructed from the declared bounds of P 1 , ..., P p , as
 	 *   described in §18.1.3.
-	 * 
-	 * • For all i (1 ≤ i ≤ p), if P i appears in the throws clause of m , then the bound throws
-	 *   α i is implied. These bounds, if any, are incorporated with B 0 to produce a new
-	 *   bound set, B 1 .
 	 *   
-	 * • A set of constraint formulas, C , is constructed as follows.
-	 * 
-	 *   Let F 1 , ..., F n be the formal parameter types of m , and let e 1 , ..., e k be the actual
-	 *   argument expressions of the invocation. Then:
-	 *   
-	 *   – To test for applicability by strict invocation:
-	 *   
-	 *     If k ≠ n, or if there exists an i (1 ≤ i ≤ n) such that e i is pertinent to applicability
-	 *     (§15.12.2.2) and either i) e i is a standalone expression of a primitive type but
-	 *     F i is a reference type, or ii) F i is a primitive type but e i is not a standalone
-	 *     expression of a primitive type; then the method is not applicable and there is
-	 *     no need to proceed with inference.
-	 *     
-	 *     Otherwise, C includes, for all i (1 ≤ i ≤ k) where e i is pertinent to applicability,
-	 *     ‹ e i → F i θ›.
-	 *     
-	 *   – To test for applicability by loose invocation:
-	 *   
-	 *     If k ≠ n, the method is not applicable and there is no need to proceed with inference.
-	 *     Otherwise, C includes, for all i (1 ≤ i ≤ k) where e i is pertinent to applicability,
-	 *     ‹ e i → F i θ›.
-	 * 
-	 *   – To test for applicability by variable arity invocation:
-	 *   
-	 *     Let F' 1 , ..., F' k be the first k variable arity parameter types of m (§15.12.2.4). C
-	 *     includes, for all i (1 ≤ i ≤ k) where e i is pertinent to applicability, ‹ e i → F' i θ›.
-	 *     • C is reduced (§18.2) and the resulting bounds are incorporated with B 1 to produce
-	 *     a new bound set, B 2 .
-	 *     
-	 *     Finally, the method m is applicable if B 2 does not contain the bound false and
-     *     resolution of all the inference variables in B 2 succeeds (§18.4).
-	 */
+	 *   ... see below
+	 */   
 	boolean inferForInvocationApplicability(CallState call, MethodBinding m, InvocationKind kind) {
-		BoundSet b_0 = constructInitialSet(m.typeFormals);
-		// TODO b_1 -- check if type params appear in throws clause
-		switch (kind) {
-		case STRICT:
-			break;
-		case LOOSE:
-			break;
-		case VARARGS:
-			break;
+		final BoundSet b_0 = constructInitialSet(m.typeFormals);
+		/*
+		 *  check if type params appear in throws clause						
+		 *  
+	     * • For all i (1 ≤ i ≤ p), if P i appears in the throws clause of m , then the bound throws
+	     *   α i is implied. These bounds, if any, are incorporated with B 0 to produce a new
+	     *   bound set, B 1 .
+		 */		
+		BoundSet b_1 = null;
+		for(IJavaType thrown : m.getThrownExceptions(tEnv.getBinder())) {
+			if (b_0.variableMap.keySet().contains(thrown)) {
+				if (b_1 == null) {
+					b_1 = new BoundSet(b_0);
+				}
+				b_1.addThrown((InferenceVariable) thrown);				 
+			}
 		}
-		throw new NotImplemented(); // TODO
+		if (b_1 == null) {
+			b_1 = b_0;
+		}
+		
+		/*
+		 * • A set of constraint formulas, C , is constructed as follows.
+		 * 
+		 *   Let F 1 , ..., F n be the formal parameter types of m , and let e 1 , ..., e k be the actual
+		 *   argument expressions of the invocation. Then:
+		 *   
+		 *   – To test for applicability by strict invocation:
+		 *   
+		 *     If k ≠ n, or if there exists an i (1 ≤ i ≤ n) such that e i is pertinent to applicability
+		 *     (§15.12.2.2) and either i) e i is a standalone expression of a primitive type but
+		 *     F i is a reference type, or ii) F i is a primitive type but e i is not a standalone
+		 *     expression of a primitive type; then the method is not applicable and there is
+		 *     no need to proceed with inference.
+		 *     
+		 *     Otherwise, C includes, for all i (1 ≤ i ≤ k) where e i is pertinent to applicability,
+		 *     ‹ e i → F i θ›.
+		 *     
+		 *   – To test for applicability by loose invocation: 
+		 *   
+		 *     If k ≠ n, the method is not applicable and there is no need to proceed with inference.
+		 *     Otherwise, C includes, for all i (1 ≤ i ≤ k) where e i is pertinent to applicability,
+		 *     ‹ e i → F i θ›.
+		 *   
+		 *   – To test for applicability by variable arity invocation:
+		 *   
+		 *     Let F' 1 , ..., F' k be the first k variable arity parameter types of m (§15.12.2.4). C
+		 *     includes, for all i (1 ≤ i ≤ k) where e i is pertinent to applicability, ‹ e i → F' i θ›.
+		 */		 
+		if (kind != InvocationKind.VARARGS && m.numFormals != call.args.length) {
+			return false;
+		}		
+		final BoundSet b_2 = new BoundSet(b_1);
+		IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.args.length, false);
+		for(int i=0; i<call.args.length; i++) {
+			final IRNode e_i = call.args[i];
+			if (mb.isPertinentToApplicability(m, call.getNumTypeArgs() > 0, e_i)) {
+				if (kind == InvocationKind.STRICT) {
+					final boolean isPoly = mb.isPolyExpression(e_i);
+					final IJavaType e_i_Type = tEnv.getBinder().getJavaType(e_i);
+					if (!isPoly && e_i_Type instanceof IJavaPrimitiveType &&
+							formalTypes[i] instanceof IJavaReferenceType) {
+						return false;
+					}
+					if (formalTypes[i] instanceof IJavaPrimitiveType && 
+							(isPoly || e_i_Type instanceof IJavaReferenceType)) {
+						return false;
+					}
+				}
+				// TODO substitution!?!
+				reduceConstraintFormula(b_2, new ConstraintFormula(e_i, FormulaConstraint.IS_COMPATIBLE, formalTypes[i]));
+			}
+		}
+		/*   • C is reduced (§18.2) and the resulting bounds are incorporated with B 1 to produce
+		 *     a new bound set, B 2 .
+		 *     
+		 *     Finally, the method m is applicable if B 2 does not contain the bound false and
+		 *     resolution of all the inference variables in B 2 succeeds (§18.4).
+		 */
+		final BoundSet result = resolve(b_2);
+		return result != null && !result.isFalse && 
+			   result.instantiations.keySet().contains(result.variableMap.values()); 
 	}
 	
 	/**
