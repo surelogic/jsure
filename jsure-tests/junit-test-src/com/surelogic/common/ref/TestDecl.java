@@ -2,6 +2,8 @@ package com.surelogic.common.ref;
 
 import java.util.List;
 
+import org.apache.derby.tools.sysinfo;
+
 import junit.framework.TestCase;
 
 import com.surelogic.common.SLUtility;
@@ -614,6 +616,7 @@ public class TestDecl extends TestCase {
     b.addParameter(new Decl.ParameterBuilder(1).setTypeOf(string));
     b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
     b.setParent(m);
+    b.setFunctionalInterfaceTypeOf(runnable);
 
     IDecl p = b.build();
     IDecl pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
@@ -631,7 +634,8 @@ public class TestDecl extends TestCase {
     assertTrue(p.getTypeParameters().isEmpty());
     assertEquals(3, p.getParameters().size());
     assertEquals(p.getParameters(), pEncode.getParameters());
-    assertEquals(runnable, p.getTypeOf());
+    assertEquals(runnable, p.getLambdaFunctionalInterfaceTypeOf());
+    assertNull(p.getTypeOf());
     assertEquals("processSomething", p.getParent().getName());
     assertEquals("MyType", p.getParent().getParent().getName());
     assertEquals("com.surelogic.t", p.getParent().getParent().getParent().getName());
@@ -644,6 +648,7 @@ public class TestDecl extends TestCase {
     m.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
     m.setParent(new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t")));
     b.setParent(m);
+    b.setReturnTypeOf(string);
     b.setFunctionalInterfaceTypeOf(string);
     b.setDeclPosition(5);
     p = b.build();
@@ -662,11 +667,13 @@ public class TestDecl extends TestCase {
     assertTrue(p.getTypeParameters().isEmpty());
     assertEquals(0, p.getParameters().size());
     assertEquals(string, p.getTypeOf());
+    assertEquals(string, p.getLambdaFunctionalInterfaceTypeOf());
     assertEquals(5, p.getPosition());
   }
 
   public void testMethodBuilder() {
     TypeRef string = new TypeRef("java.lang.String", "String");
+    TypeRef runnable = new TypeRef("java.lang.Runnable", "Runnable");
 
     Decl.ClassBuilder classParent = new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t"));
     Decl.InterfaceBuilder interfaceParent = new Decl.InterfaceBuilder("MyInt")
@@ -714,7 +721,7 @@ public class TestDecl extends TestCase {
     b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
     b.setParent(interfaceParent);
     b.setIsDefault(true);
-    b.setReturnTypeOf(TypeRef.JAVA_LANG_RUNNABLE);
+    b.setReturnTypeOf(runnable);
     p = b.build();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
@@ -737,7 +744,7 @@ public class TestDecl extends TestCase {
     assertTrue(p.isDefault());
     assertEquals(0, p.getTypeParameters().size());
     assertEquals(3, p.getParameters().size());
-    assertEquals(TypeRef.JAVA_LANG_RUNNABLE, p.getTypeOf());
+    assertEquals(runnable, p.getTypeOf());
     assertEquals("MyInt", p.getParent().getName());
     assertEquals("com.surelogic.t", p.getParent().getParent().getName());
     assertNull(p.getParent().getParent().getParent());
