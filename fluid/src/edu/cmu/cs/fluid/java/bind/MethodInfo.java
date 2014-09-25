@@ -1,6 +1,7 @@
 package edu.cmu.cs.fluid.java.bind;
 
-import edu.cmu.cs.fluid.NotImplemented;
+import com.surelogic.common.util.FilterIterator;
+
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -114,4 +115,20 @@ class MethodInfo {
     public String toString() {
     	return JavaNames.genQualifiedMethodConstructorName(mdecl);
     }
+    
+    Iterable<IJavaType> getThrownExceptions(final IBinder b) {
+		IRNode thrown;
+		if (isConstructor) {
+			thrown = ConstructorDeclaration.getExceptions(mdecl);
+		} else {
+			thrown = MethodDeclaration.getExceptions(mdecl);
+		}
+		return new FilterIterator<IRNode,IJavaType>(Throws.getTypeIterator(thrown)) {
+			@Override
+			protected Object select(IRNode o) {				
+				return b.getJavaType(o);
+			}
+			
+		};
+	}
 }
