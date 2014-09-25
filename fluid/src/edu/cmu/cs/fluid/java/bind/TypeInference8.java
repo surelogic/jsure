@@ -33,7 +33,7 @@ public class TypeInference8 {
 		int index;
 		int lowlink;
 		
-		public InferenceVariable(IRNode tf) {
+		InferenceVariable(IRNode tf) {
 			formal = tf;
 		}
 
@@ -65,55 +65,230 @@ public class TypeInference8 {
 	 * 
 	 * • An initial bound set, B 0 , is constructed from the declared bounds of P 1 , ..., P p , as
 	 *   described in §18.1.3.
-	 * 
-	 * • For all i (1 ≤ i ≤ p), if P i appears in the throws clause of m , then the bound throws
-	 *   α i is implied. These bounds, if any, are incorporated with B 0 to produce a new
-	 *   bound set, B 1 .
 	 *   
-	 * • A set of constraint formulas, C , is constructed as follows.
-	 * 
-	 *   Let F 1 , ..., F n be the formal parameter types of m , and let e 1 , ..., e k be the actual
-	 *   argument expressions of the invocation. Then:
-	 *   
-	 *   – To test for applicability by strict invocation:
-	 *   
-	 *     If k ≠ n, or if there exists an i (1 ≤ i ≤ n) such that e i is pertinent to applicability
-	 *     (§15.12.2.2) and either i) e i is a standalone expression of a primitive type but
-	 *     F i is a reference type, or ii) F i is a primitive type but e i is not a standalone
-	 *     expression of a primitive type; then the method is not applicable and there is
-	 *     no need to proceed with inference.
-	 *     
-	 *     Otherwise, C includes, for all i (1 ≤ i ≤ k) where e i is pertinent to applicability,
-	 *     ‹ e i → F i θ›.
-	 *     
-	 *   – To test for applicability by loose invocation:
-	 *   
-	 *     If k ≠ n, the method is not applicable and there is no need to proceed with inference.
-	 *     Otherwise, C includes, for all i (1 ≤ i ≤ k) where e i is pertinent to applicability,
-	 *     ‹ e i → F i θ›.
-	 * 
-	 *   – To test for applicability by variable arity invocation:
-	 *   
-	 *     Let F' 1 , ..., F' k be the first k variable arity parameter types of m (§15.12.2.4). C
-	 *     includes, for all i (1 ≤ i ≤ k) where e i is pertinent to applicability, ‹ e i → F' i θ›.
-	 *     • C is reduced (§18.2) and the resulting bounds are incorporated with B 1 to produce
-	 *     a new bound set, B 2 .
-	 *     
-	 *     Finally, the method m is applicable if B 2 does not contain the bound false and
-     *     resolution of all the inference variables in B 2 succeeds (§18.4).
-	 */
+	 *   ... see below
+	 */   
 	boolean inferForInvocationApplicability(CallState call, MethodBinding m, InvocationKind kind) {
-		BoundSet b_0 = constructInitialSet(m.typeFormals);
-		// TODO b_1 -- check if type params appear in throws clause
-		switch (kind) {
-		case STRICT:
-			break;
-		case LOOSE:
-			break;
-		case VARARGS:
-			break;
+		final BoundSet b_0 = constructInitialSet(m.typeFormals);
+		/*
+		 *  check if type params appear in throws clause						
+		 *  
+	     * • For all i (1 ≤ i ≤ p), if P i appears in the throws clause of m , then the bound throws
+	     *   α i is implied. These bounds, if any, are incorporated with B 0 to produce a new
+	     *   bound set, B 1 .
+		 */		
+		BoundSet b_1 = null;
+		for(IJavaType thrown : m.getThrownExceptions(tEnv.getBinder())) {
+			if (b_0.variableMap.keySet().contains(thrown)) {
+				if (b_1 == null) {
+					b_1 = new BoundSet(b_0);
+				}
+				b_1.addThrown((InferenceVariable) thrown);				 
+			}
 		}
-		throw new NotImplemented(); // TODO
+		if (b_1 == null) {
+			b_1 = b_0;
+		}
+		
+		/*
+		 * • A set of constraint formulas, C , is constructed as follows.
+		 * 
+		 *   Let F 1 , ..., F n be the formal parameter types of m , and let e 1 , ..., e k be the actual
+		 *   argument expressions of the invocation. Then:
+		 *   
+		 *   – To test for applicability by strict invocation:
+		 *   
+		 *     If k ≠ n, or if there exists an i (1 ≤ i ≤ n) such that e i is pertinent to applicability
+		 *     (§15.12.2.2) and either i) e i is a standalone expression of a primitive type but
+		 *     F i is a reference type, or ii) F i is a primitive type but e i is not a standalone
+		 *     expression of a primitive type; then the method is not applicable and there is
+		 *     no need to proceed with inference.
+		 *     
+		 *     Otherwise, C includes, for all i (1 ≤ i ≤ k) where e i is pertinent to applicability,
+		 *     ‹ e i → F i θ›.
+		 *     
+		 *   – To test for applicability by loose invocation: 
+		 *   
+		 *     If k ≠ n, the method is not applicable and there is no need to proceed with inference.
+		 *     Otherwise, C includes, for all i (1 ≤ i ≤ k) where e i is pertinent to applicability,
+		 *     ‹ e i → F i θ›.
+		 *   
+		 *   – To test for applicability by variable arity invocation:
+		 *   
+		 *     Let F' 1 , ..., F' k be the first k variable arity parameter types of m (§15.12.2.4). C
+		 *     includes, for all i (1 ≤ i ≤ k) where e i is pertinent to applicability, ‹ e i → F' i θ›.
+		 */		 
+		if (kind != InvocationKind.VARARGS && m.numFormals != call.args.length) {
+			return false;
+		}		
+		final BoundSet b_2 = new BoundSet(b_1);
+		IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.args.length, false);
+		for(int i=0; i<call.args.length; i++) {
+			final IRNode e_i = call.args[i];
+			if (mb.isPertinentToApplicability(m, call.getNumTypeArgs() > 0, e_i)) {
+				if (kind == InvocationKind.STRICT) {
+					final boolean isPoly = mb.isPolyExpression(e_i);
+					final IJavaType e_i_Type = tEnv.getBinder().getJavaType(e_i);
+					if (!isPoly && e_i_Type instanceof IJavaPrimitiveType &&
+							formalTypes[i] instanceof IJavaReferenceType) {
+						return false;
+					}
+					if (formalTypes[i] instanceof IJavaPrimitiveType && 
+							(isPoly || e_i_Type instanceof IJavaReferenceType)) {
+						return false;
+					}
+				}
+				// TODO substitution!?!
+				reduceConstraintFormula(b_2, new ConstraintFormula(e_i, FormulaConstraint.IS_COMPATIBLE, formalTypes[i]));
+			}
+		}
+		/*   • C is reduced (§18.2) and the resulting bounds are incorporated with B 1 to produce
+		 *     a new bound set, B 2 .
+		 *     
+		 *     Finally, the method m is applicable if B 2 does not contain the bound false and
+		 *     resolution of all the inference variables in B 2 succeeds (§18.4).
+		 */
+		final BoundSet result = resolve(b_2);
+		return result != null && !result.isFalse && 
+			   result.instantiations.keySet().contains(result.variableMap.values()); 
+	}
+	
+	/**
+	 * 18.5.2 Invocation Type Inference
+	 * 
+     * Given a method invocation that provides no explicit type arguments, and a
+     * corresponding most specific applicable generic method m , the process to infer the
+     * invocation type (§15.12.2.6) of the chosen method is as follows:
+     * 
+     * ...
+	 */
+	void inferForInvocationType() {
+		
+	}
+	
+	/**
+	 * 18.5.3 Functional Interface Parameterization Inference
+	 * 
+     * Where a lambda expression with explicit parameter types P 1 , ..., P n targets a
+     * functional interface type F<A 1 , ..., A m > with at least one wildcard type argument,
+     * then a parameterization of F may be derived as the ground target type of the lambda
+     * expression as follows.
+     * 
+     * Let Q 1 , ..., Q k be the parameter types of the function type of the type F< α 1 , ..., α m > ,
+     * where α 1 , ..., α m are fresh inference variables.
+     * 
+     * If n ≠ k, no valid parameterization exists. Otherwise, a set of constraint formulas is
+     * formed with, for all i (1 ≤ i ≤ n), ‹ P i = Q i ›. This constraint formula set is reduced
+     * to form the bound set B .
+     * 
+     * If B contains the bound false, no valid parameterization exists. Otherwise, a new
+     * parameterization of the functional interface type, F<A' 1 , ..., A' m > , is constructed as
+     * follows, for 1 ≤ i ≤ m:
+     * 
+     * • If B contains an instantiation for α i , T , then A' i = T .
+     * • Otherwise, A' i = A i .
+     * 
+     * If F<A' 1 , ..., A' m > is not a well-formed type (that is, the type arguments are
+     * not within their bounds), or if F<A' 1 , ..., A' m > is not a subtype of F<A 1 , ..., A m >, 
+     * no valid parameterization exists. Otherwise, the inferred parameterization is either 
+     * F<A' 1 , ..., A' m > , if all the type arguments are types, or the non-wildcard parameterization 
+     * (§9.8) of F<A' 1 , ..., A' m > , if one or more type arguments are still wildcards.
+	 */
+	void inferForFunctionalInterfaceParameterization() {
+		
+	}
+	
+	/**
+	 * 18.5.4 More Specific Method Inference
+	 * 
+     * When testing that one applicable method is more specific than another (§15.12.2.5),
+     * where the second method is generic, it is necessary to test whether some
+     * instantiation of the second method's type parameters can be inferred to make the
+     * first method more specific than the second.
+     * 
+     * Let m 1 be the first method and m 2 be the second method. Where m 2 has type
+     * parameters P 1 , ..., P p , let α 1 , ..., α p be inference variables, and let θ be the
+     * substitution [P 1 :=α 1 , ..., P p :=α p ] .
+     * 
+     * Let e 1 , ..., e k be the argument expressions of the corresponding invocation. Then:
+     * 
+     * • If m 1 and m 2 are applicable by strict or loose invocation (§15.12.2.2, §15.12.2.3),
+     *   then let S 1 , ..., S k be the formal parameter types of m 1 , and let T 1 , ..., T k be the
+     *   result of θ applied to the formal parameter types of m 2 .
+     * 
+     * • If m 1 and m 2 are applicable by variable arity invocation (§15.12.2.4), then let S 1 , ...,
+     *   S k be the first k variable arity parameter types of m 1 , and let T 1 , ..., T k be the result
+     *   of θ applied to the first k variable arity parameter types of m 2 .
+     * 
+     *     Note that no substitution is applied to S 1 , ..., S k ; even if m 1 is generic, the type parameters
+     *     of m 1 are treated as type variables, not inference variables.
+     * 
+     * The process to determine if m 1 is more specific than m 2 is as follows:
+     * 
+     * • First, an initial bound set, B , is constructed from the declared bounds of P 1 , ...,
+     *   P p , as specified in §18.1.3.
+     * 
+     * • Second, for all i (1 ≤ i ≤ k), a set of constraint formulas or bounds is generated.
+     *   
+     *   If T i is a proper type, the result is true if S i is more specific than T i for e i
+     *   (§15.12.2.5), and false otherwise. (Note that S i is always a proper type.)
+     *   
+     *   Otherwise, if T i is not a functional interface type, the constraint formula ‹ S i <:
+     *   T i › is generated.
+     * 
+     *   Otherwise, T i is a parameterization of a functional interface, I . It must be
+     *   determined whether S i satisfies the following five constraints:
+     *   
+     *   – S i is a functional interface type.
+     *   – S i is not a superinterface of I , nor a parameterization of a superinterface of I .
+     *   – S i is not a subinterface of I , nor a parameterization of a subinterface of I .
+     *   – If S i is an intersection type, at least one element of the intersection is not a
+     *   superinterface of I , nor a parameterization of a superinterface of I .
+     *   – If S i is an intersection type, no element of the intersection is a subinterface of
+     *   I , nor a parameterization of a subinterface of I .
+     *   If all of the above are true, then the following constraint formulas or bounds are
+     *   generated (where U 1 ... U k and R 1 are the parameter types and return type of the
+     *   function type of the capture of S i , and V 1 ... V k and R 2 are the parameter types and
+     *   return type of the function type of T i ):
+     *   – If e i is an explicitly typed lambda expression:
+     *   › If R 2 is void , true.
+     *   › Otherwise, if R 1 and R 2 are functional interface types, and neither interface
+     *   is a subinterface of the other, then these rules are applied recursively to R 1
+     *   and R 2 , for each result expression in e i .
+     *   › Otherwise, if R 1 is a primitive type and R 2 is not, and each result expression
+     *   of e i is a standalone expression (§15.2) of a primitive type, true.
+     *   › Otherwise, if R 2 is a primitive type and R 1 is not, and each result expression of
+     *   e i is either a standalone expression of a reference type or a poly expression,
+     *   true.
+     *   › Otherwise, ‹ R 1 <: R 2 ›.
+     *   – If e i is an exact method reference:
+     *   › For all j (1 ≤ j ≤ k), ‹ U j = V j ›.
+     *   › If R 2 is void , true.
+     *   › Otherwise, if R 1 is a primitive type and R 2 is not, and the compile-time
+     *   declaration for e i has a primitive return type, true.
+     *   › Otherwise if R 2 is a primitive type and R 1 is not, and the compile-time
+     *   declaration for e i has a reference return type, true.
+     *   › Otherwise, ‹ R 1 <: R 2 ›.
+     *   – If e i is a parenthesized expression, these rules are applied recursively to the
+     *   contained expression.
+     *   
+     *   – If e i is a conditional expression, these rules are applied recursively to each of
+     *   the second and third operands.
+     *   – Otherwise, false.
+     *   If the five constraints on S i are not satisfied, the constraint formula ‹ S i <: T i ›
+     *   is generated instead.
+     *   • Third, if m 2 is applicable by variable arity invocation and has k+1 parameters,
+     *   then where S k+1 is the k+1'th variable arity parameter type of m 1 and T k+1 is the
+     *   result of θ applied to the k+1'th variable arity parameter type of m 2 , the constraint
+     *   ‹ S k+1 <: T k+1 › is generated.
+     *   • Fourth, the generated bounds and constraint formulas are reduced and
+     *   incorporated with B to produce a bound set B' .
+     *   If B' does not contain the bound false, and resolution of all the inference variables
+     *   in B' succeeds, then m 1 is more specific than m 2 .
+     *   Otherwise, m 1 is not more specific than m 2 .
+	 */
+	void inferForMoreSpecificMethod() {
+		
 	}
 	
 	/**
@@ -260,6 +435,8 @@ public class TypeInference8 {
 	}
 	
 	/**
+	 * From §18.1.3:
+	 * 
 	 * When inference begins, a bound set is typically generated from a list of type
 	 * parameter declarations P 1 , ..., P p and associated inference variables α 1 , ..., α p . Such
 	 * a bound set is constructed as follows. For each l (1 ≤ l ≤ p):
@@ -280,7 +457,7 @@ public class TypeInference8 {
 			vars[i] = new InferenceVariable(tf);
 			i++;
 		}
-		final BoundSet set = new BoundSet();
+		final BoundSet set = new BoundSet(typeFormals, vars);
 		i=0;
 		for(IRNode tf : TypeFormals.getTypeIterator(typeFormals)) {
 			IRNode bounds = TypeFormal.getBounds(tf);
@@ -310,22 +487,34 @@ public class TypeInference8 {
 	 */
 	class BoundSet {
 		private boolean isFalse = false;
-		private Set<InferenceVariable> thrownSet = new HashSet<InferenceVariable>();
-		private Set<EqualityBound> equalities = new HashSet<EqualityBound>();
-		private Set<SubtypeBound> subtypeBounds = new HashSet<SubtypeBound>();
-		private Set<CaptureBound> captures = new HashSet<CaptureBound>();
+		private final Set<InferenceVariable> thrownSet = new HashSet<InferenceVariable>();
+		private final Set<EqualityBound> equalities = new HashSet<EqualityBound>();
+		private final Set<SubtypeBound> subtypeBounds = new HashSet<SubtypeBound>();
+		private final Set<CaptureBound> captures = new HashSet<CaptureBound>();
 		
 		/**
 		 * The original bound that eventually created this one
 		 */
-		private BoundSet original;
+		private final BoundSet original;
+		
+		/**
+		 * Mapping from the original type variables to the corresponding inference variables
+		 */
+		private final Map<IJavaReferenceType,InferenceVariable> variableMap = new HashMap<IJavaReferenceType,InferenceVariable>();
+		
 		/**
 		 * The result of resolution
 		 */
 		private final Map<InferenceVariable, IJavaType> instantiations = new HashMap<InferenceVariable, IJavaType>();
 		
-		BoundSet() {
+		BoundSet(final IRNode typeFormals, final InferenceVariable[] vars) {
 			original = null;
+			
+			int i=0;
+			for(IRNode tf : TypeFormals.getTypeIterator(typeFormals)) {
+				variableMap.put(JavaTypeFactory.getTypeFormal(tf), vars[i]);
+				i++;
+			}
 		}
 
 		BoundSet(BoundSet orig) {
@@ -336,6 +525,11 @@ public class TypeInference8 {
 			subtypeBounds.addAll(orig.subtypeBounds);
 			captures.addAll(orig.captures);
 			instantiations.putAll(orig.instantiations);
+			variableMap.putAll(orig.variableMap);
+		}
+		
+		private void addInferenceVariables(Map<InferenceVariable, InferenceVariable> newMappings) {
+			variableMap.putAll(newMappings);
 		}
 		
 		void addFalse() {
@@ -563,6 +757,7 @@ public class TypeInference8 {
 			}
 			final BoundSet rv = new BoundSet(this);
 			rv.removeAssociatedCaptureBounds(subset);			
+			rv.addInferenceVariables(y_subst);
 			for(InferenceVariable a_i : subset) {
 				final InferenceVariable y_i = y_subst.get(a_i);
 				Collection<IJavaType> lower = bounds.lowerBounds.get(a_i);

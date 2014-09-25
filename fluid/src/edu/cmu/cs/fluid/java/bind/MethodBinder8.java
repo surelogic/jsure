@@ -343,7 +343,7 @@ public class MethodBinder8 implements IMethodBinder {
        Lambda expressions (15.27)
        Method references (15.28)
      */
-    private boolean isPolyExpression(final IRNode e) {
+    boolean isPolyExpression(final IRNode e) {
     	final Operator op = JJNode.tree.getOperator(e);
     	if (MethodCall.prototype.includes(op)) {
     		//  A method invocation expression is a poly expression if all of the following are true:
@@ -1018,7 +1018,7 @@ public class MethodBinder8 implements IMethodBinder {
      * • A conditional expression (§15.25) whose second or third operand is not pertinent
      *   to applicability
      */
-    private boolean isPertinentToApplicability(final MethodBinding m, boolean callHasTypeArgs, final IRNode arg) {
+    boolean isPertinentToApplicability(final MethodBinding m, boolean callHasTypeArgs, final IRNode arg) {
     	Operator op = JJNode.tree.getOperator(arg);
     	if (LambdaExpression.prototype.includes(op)) {
     		if (isImplicitlyTypedLambda(arg)) {
