@@ -13,6 +13,7 @@ import com.surelogic.common.ref.DeclVisitor;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IDeclField;
 import com.surelogic.common.ref.IDeclFunction;
+import com.surelogic.common.ref.IDeclLambda;
 import com.surelogic.common.ref.IDeclPackage;
 import com.surelogic.common.ref.IDeclParameter;
 import com.surelogic.common.ref.IDeclType;
@@ -193,6 +194,12 @@ public final class ElementJavaDecl extends ElementWithChildren {
 
         @Override
         public boolean visitMethod(IDeclFunction node) {
+          visitNodeHelper(node);
+          return false;
+        }
+
+        @Override
+        public boolean visitLambda(IDeclLambda node) {
           visitNodeHelper(node);
           return false;
         }
