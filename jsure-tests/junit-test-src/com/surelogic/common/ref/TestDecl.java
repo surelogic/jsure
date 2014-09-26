@@ -114,6 +114,7 @@ public class TestDecl extends TestCase {
     anon.setVisibility(Visibility.ANONYMOUS);
     anon.setParent(new Decl.ClassBuilder("Outer").setParent(new Decl.PackageBuilder()));
     anon.setAnonymousDeclPosition(2);
+    anon.setTypeOfAnonymousDecl(new TypeRef("java.lang.Runnable", "Runnable"));
     p = anon.build();
     assertSame(Visibility.ANONYMOUS, p.getVisibility());
     assertEquals(2, p.getPosition());
@@ -122,6 +123,7 @@ public class TestDecl extends TestCase {
     assertTrue(p.isSameSimpleDeclarationAs(pEncode));
     assertTrue(p.isSameDeclarationAs(pEncode));
     assertTrue(p.equals(pEncode));
+    assertEquals("Runnable$2", p.getName());
     assertEquals(p.hashCode(), pEncode.hashCode());
     assertTrue(SloppyWrapper.getInstance(p).equals(SloppyWrapper.getInstance(pEncode)));
     assertEquals(SloppyWrapper.getInstance(p).hashCode(), SloppyWrapper.getInstance(pEncode).hashCode());
@@ -628,7 +630,7 @@ public class TestDecl extends TestCase {
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.LAMBDA, p.getKind());
-    assertEquals("", p.getName());
+    assertEquals("lambda$0", p.getName());
     assertTrue(p.getTypeParameters().isEmpty());
     assertEquals(3, p.getParameters().size());
     assertEquals(p.getParameters(), pEncode.getParameters());
@@ -664,7 +666,7 @@ public class TestDecl extends TestCase {
     assertSame(p.getKind(), pEncode.getKind());
     assertEquals(Decl.encodeForPersistence(p), Decl.encodeForPersistence(pEncode));
     assertSame(IDecl.Kind.LAMBDA, p.getKind());
-    assertEquals("", p.getName());
+    assertEquals("lambda$5", p.getName());
     assertTrue(p.getTypeParameters().isEmpty());
     assertEquals(3, p.getParameters().size());
     assertEquals(string, p.getTypeOf());
