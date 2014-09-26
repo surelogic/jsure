@@ -2,8 +2,6 @@ package com.surelogic.common.ref;
 
 import java.util.List;
 
-import org.apache.derby.tools.sysinfo;
-
 import junit.framework.TestCase;
 
 import com.surelogic.common.SLUtility;
@@ -649,8 +647,11 @@ public class TestDecl extends TestCase {
     m.setParent(new Decl.ClassBuilder("MyType").setParent(new Decl.PackageBuilder("com.surelogic.t")));
     b.setParent(m);
     b.setReturnTypeOf(string);
-    b.setFunctionalInterfaceTypeOf(string);
+    b.setFunctionalInterfaceTypeOf(runnable);
     b.setDeclPosition(5);
+    b.addParameter(new Decl.ParameterBuilder(0).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
+    b.addParameter(new Decl.ParameterBuilder(1).setTypeOf(TypeRef.JAVA_LANG_OBJECT));
+    b.addParameter(new Decl.ParameterBuilder(2).setTypeOf(string));
     p = b.build();
     pEncode = Decl.parseEncodedForPersistence(Decl.encodeForPersistence(p));
     assertTrue(p.hasSameAttributesAs(pEncode));
@@ -665,10 +666,12 @@ public class TestDecl extends TestCase {
     assertSame(IDecl.Kind.LAMBDA, p.getKind());
     assertEquals("", p.getName());
     assertTrue(p.getTypeParameters().isEmpty());
-    assertEquals(0, p.getParameters().size());
+    assertEquals(3, p.getParameters().size());
     assertEquals(string, p.getTypeOf());
-    assertEquals(string, p.getLambdaFunctionalInterfaceTypeOf());
+    assertEquals(runnable, p.getLambdaFunctionalInterfaceTypeOf());
     assertEquals(5, p.getPosition());
+
+    System.out.println(Decl.encodeForPersistence(p));
   }
 
   public void testMethodBuilder() {
