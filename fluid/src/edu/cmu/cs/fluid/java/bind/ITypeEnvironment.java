@@ -209,6 +209,8 @@ public interface ITypeEnvironment {
    * @param t reference type to consider
    * @return function type if it is indeed a "functional type",
    * or null otherwise
+   * 
+   * (§9.8)
    */
   IJavaFunctionType isFunctionalType(IJavaType t);
   
