@@ -668,7 +668,7 @@ public class MethodBinder8 implements IMethodBinder {
 			}
 			if (m.isGeneric()) {
 				if (call.getNumTypeArgs() == 0) {				
-					return typeInfer.inferForInvocationApplicability(call, m, getKind());
+					return typeInfer.inferForInvocationApplicability(call, m, getKind()) != null;
 				} else {							
 					if (call.getNumTypeArgs() != m.numTypeFormals) {
 						return false;

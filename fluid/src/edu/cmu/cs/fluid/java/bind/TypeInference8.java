@@ -11,6 +11,8 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IROutput;
+import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
+import edu.cmu.cs.fluid.java.bind.IMethodBinder.MethodBinding;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -67,8 +69,10 @@ public class TypeInference8 {
 	 *   described in §18.1.3.
 	 *   
 	 *   ... see below
+	 *   
+	 * @return the bound set B 2 if the method is applicable
 	 */   
-	boolean inferForInvocationApplicability(CallState call, MethodBinding m, InvocationKind kind) {
+	BoundSet inferForInvocationApplicability(CallState call, MethodBinding m, InvocationKind kind) {
 		final BoundSet b_0 = constructInitialSet(m.typeFormals);
 		/*
 		 *  check if type params appear in throws clause						
@@ -119,7 +123,7 @@ public class TypeInference8 {
 		 *     includes, for all i (1 ≤ i ≤ k) where e i is pertinent to applicability, ‹ e i → F' i θ›.
 		 */		 
 		if (kind != InvocationKind.VARARGS && m.numFormals != call.args.length) {
-			return false;
+			return null;
 		}		
 		final BoundSet b_2 = new BoundSet(b_1);
 		IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.args.length, false);
@@ -131,11 +135,11 @@ public class TypeInference8 {
 					final IJavaType e_i_Type = tEnv.getBinder().getJavaType(e_i);
 					if (!isPoly && e_i_Type instanceof IJavaPrimitiveType &&
 							formalTypes[i] instanceof IJavaReferenceType) {
-						return false;
+						return null;
 					}
 					if (formalTypes[i] instanceof IJavaPrimitiveType && 
 							(isPoly || e_i_Type instanceof IJavaReferenceType)) {
-						return false;
+						return null;
 					}
 				}
 				// TODO substitution!?!
@@ -149,8 +153,11 @@ public class TypeInference8 {
 		 *     resolution of all the inference variables in B 2 succeeds (§18.4).
 		 */
 		final BoundSet result = resolve(b_2);
-		return result != null && !result.isFalse && 
-			   result.instantiations.keySet().contains(result.variableMap.values()); 
+		if (result != null && !result.isFalse && 
+			result.instantiations.keySet().contains(result.variableMap.values())) {
+			return b_2;
+		}
+		return null;
 	}
 	
 	/**
@@ -160,10 +167,474 @@ public class TypeInference8 {
      * corresponding most specific applicable generic method m , the process to infer the
      * invocation type (§15.12.2.6) of the chosen method is as follows:
      * 
-     * ...
+     * • Let θ be the substitution [P 1 :=α 1 , ..., P p :=α p ] defined in §18.5.1 to replace the
+     *   type parameters of m with inference variables.
+     * • Let B 2 be the bound set produced by reduction in order to demonstrate that m is
+     *   applicable in §18.5.1. (While it was necessary in §18.5.1 to demonstrate that the
+     *   inference variables in B 2 could be resolved, in order to establish applicability, the
+     *   instantiations produced by this resolution step are not considered part of B 2 .)
+     *   
+     * ... see computeB_3
+     * ... 
+     * • A set of constraint formulas, C , is constructed as follows ...
+     * 
+     * • While C is not empty, the following process is repeated, starting with the bound
+     *   set B 3 and accumulating new bounds into a "current" bound set, ultimately
+     *   producing a new bound set, B 4 :
+     *   
+     *   1. A subset of constraints is selected in C , satisfying the property that, for each
+     *      constraint, no input variable depends on the resolution (§18.4) of an output
+     *      variable of another constraint in C . (input variable and output variable are
+     *      defined below.)
+     *      
+     *      If this subset is empty, then there is a cycle (or cycles) in the graph of
+     *      dependencies between constraints. In this case, all constraints are considered
+     *      that participate in a dependency cycle (or cycles) and do not depend on any
+     *      constraints outside of the cycle (or cycles). A single constraint is selected
+     *      from the considered constraints, as follows:
+     *      
+     *      – If any of the considered constraints have the form ‹Expression → T ›,
+     *        then the selected constraint is the considered constraint of this form that
+     *        contains the expression to the left (§3.5) of the expression of every other
+     *        considered constraint of this form.
+     * 
+     *      – If no considered constraint has the form ‹Expression → T ›, then the
+     *        selected constraint is the considered constraint that contains the expression
+     *        to the left of the expression of every other considered constraint.
+     * 
+     *   2. The selected constraint(s) are removed from C .
+     *   
+     *   3. The input variables α 1 , ..., α m of all the selected constraint(s) are resolved.
+     *   
+     *   4. Where T 1 , ..., T m are the instantiations of α 1 , ..., α m , the substitution
+     *      [ α 1 := T 1 , ..., α m := T m ] is applied to every constraint.
+     *      
+     *   5. The constraint(s) resulting from substitution are reduced and incorporated
+     *      with the current bound set.
+     * 
+     * • Finally, if B 4 does not contain the bound false, the inference variables in B 4 are resolved.
+     * 
+     *   If resolution succeeds with instantiations T 1 , ..., T p for inference variables α 1 , ...,
+     *   α p , let θ' be the substitution [P 1 := T 1 , ..., P p := T p ] . Then:
+     *   
+     *   – If unchecked conversion was necessary for the method to be applicable during
+     *     constraint set reduction in §18.5.1, then the parameter types of the invocation
+     *     type of m are obtained by applying θ' to the parameter types of m 's type, and
+     *     the return type and thrown types of the invocation type of m are given by the
+     *     erasure of the return type and thrown types of m 's type.
+     *     
+     *   – If unchecked conversion was not necessary for the method to be applicable,
+     *     then the invocation type of m is obtained by applying θ' to the type of m .
+     * 
+     *   If B 4 contains the bound false, or if resolution fails, then a compile-time error occurs.
+*/
+	void inferForInvocationType(CallState call, MethodBinding m, BoundSet b_2, boolean usedUncheckedConv) {
+		BoundSet b_3 = computeB_3(call, m, b_2, usedUncheckedConv);
+		Set<ConstraintFormula> c = createInitialConstraints(call, m);
+		computeInputOutput(null, null); // TODO
+	}
+
+	/**
+	 * From 18.5.2 Invocation Type Inference
 	 */
-	void inferForInvocationType() {
-		
+	private BoundSet computeB_3(CallState call, MethodBinding m, BoundSet b_2, boolean usedUncheckedConv) {
+		 /* 
+	     * • If the invocation is not a poly expression, let the bound set B 3 be the same as B 2 .
+	     */
+		if (!mb.isPolyExpression(call.call)) {
+			return b_2;
+		}
+	    /*   If the invocation is a poly expression, let the bound set B 3 be derived from B 2
+	     *   as follows. Let R be the return type of m , let T be the invocation's target type,
+	     *   and then:
+	     *   
+	     *   – If unchecked conversion was necessary for the method to be applicable during
+	     *     constraint set reduction in §18.5.1, the constraint formula ‹| R | → T › is reduced
+	     *     and incorporated with B 2 .
+	     */
+		final IJavaType t = utils.getPolyExpressionTargetType(call.call);
+		final IJavaType r = m.getReturnType(tEnv);
+		final BoundSet b_3 = new BoundSet(b_2);
+		if (usedUncheckedConv) {
+			reduceConstraintFormula(b_3, new ConstraintFormula(tEnv.computeErasure(r), FormulaConstraint.IS_COMPATIBLE, t));
+			return b_3;
+		}
+	    /*   – Otherwise, if R θ is a parameterized type, G<A 1 , ..., A n > , and one of A 1 , ..., A n is
+	     *     a wildcard, then, for fresh inference variables β 1 , ..., β n , the constraint formula
+	     *     ‹ G< β 1 , ..., β n > → T › is reduced and incorporated, along with the bound 
+	     *     G< β 1 , ..., β n > = capture( G<A 1 , ..., A n > ), with B 2 .
+	     */
+		final IJavaType r_subst = r; // TODO
+		final IJavaDeclaredType g = isWildcardParameterizedType(r_subst);
+		if (g != null) {
+			final int n = g.getTypeParameters().size();
+			final List<IJavaType> newVars = new ArrayList<IJavaType>(n);
+			for(int i=0; i<n; i++) {
+				newVars.add(new InferenceVariable(null)); // TODO 
+			}
+			// TODO subst?
+			final IJavaType g_beta = JavaTypeFactory.getDeclaredType(g.getDeclaration(), newVars, g.getOuterType());
+			reduceConstraintFormula(b_3, new ConstraintFormula(g_beta, FormulaConstraint.IS_COMPATIBLE, t));
+			b_3.addCaptureBound(g_beta, g);
+			b_3.addInferenceVariables(null); // TODO
+			return b_3;
+		}
+	    /*   – Otherwise, if R θ is an inference variable α, and one of the following is true:
+	     *     
+	     *     ... see below
+	     *       
+	     *     then α is resolved in B 2 , and where the capture of the resulting instantiation of
+	     *     α is U , the constraint formula ‹ U → T › is reduced and incorporated with B 2 .
+	     */
+		if (r_subst instanceof InferenceVariable) {
+			final InferenceVariable alpha = (InferenceVariable) r_subst;			
+			final BoundSubset bounds = b_3.findAssociatedBounds(alpha);
+			final IJavaDeclaredType g2;
+			BoundCondition cond = null;
+			
+			if (t instanceof IJavaReferenceType && isWildcardParameterizedType(t) == null) {
+				/*
+			     *     › T is a reference type, but is not a wildcard-parameterized type, and either
+			     *       i) B 2 contains a bound of one of the forms α = S or S <: α, where S is a
+			     *       wildcard-parameterized type, or ii) B 2 contains two bounds of the forms S 1
+			     *       <: α and S 2 <: α, where S 1 and S 2 have supertypes that are two different
+			     *       parameterizations of the same generic class or interface.     
+			     */
+				cond = new BoundCondition() {
+					public boolean examineEquality(IJavaType s, IJavaType t) {
+						return isWildcardParameterizedType(s) != null || isWildcardParameterizedType(t) != null;
+					}
+					public boolean examineLowerBound(IJavaType t) {
+						return false;
+					}
+					public boolean examineUpperBound(IJavaType t) {
+						return isWildcardParameterizedType(t) != null;
+						// TODO check for diff parameterizations?
+					}					
+				};				
+			}
+			else if ((g2 = isParameterizedType(t)) != null) {
+				/*       
+			     *     › T is a parameterization of a generic class or interface, G , and B 2 contains a
+			     *       bound of one of the forms α = S or S <: α, where there exists no type of the
+			     *       form G< ... > that is a supertype of S , but the raw type | G< ... > | is a supertype of S .
+			     */				
+				cond = new BoundCondition() {
+					public boolean examineEquality(IJavaType s, IJavaType t) {
+						return (s != alpha && onlyHasRawG_asSuperType(g2.getDeclaration(), s) == Boolean.TRUE) || 
+							   (t != alpha && onlyHasRawG_asSuperType(g2.getDeclaration(), t) == Boolean.TRUE);
+					}
+					public boolean examineLowerBound(IJavaType t) {
+						return false;
+					}
+					public boolean examineUpperBound(IJavaType t) {
+						return onlyHasRawG_asSuperType(g2.getDeclaration(), t) == Boolean.TRUE;
+					}				
+				};	
+			}
+			else if (t instanceof IJavaPrimitiveType) {
+				/*
+				 *     › T is a primitive type, and one of the primitive wrapper classes mentioned in				 
+			     *       §5.1.7 is an instantiation, upper bound, or lower bound for α in B 2 .
+			     */
+				final IJavaPrimitiveType pt = (IJavaPrimitiveType) t;
+				final IJavaDeclaredType wrapper = JavaTypeFactory.getCorrespondingDeclType(tEnv, pt);				
+				cond = new BoundCondition() {
+					public boolean examineEquality(IJavaType s, IJavaType t) {
+						return s == wrapper || t == wrapper;
+					}
+					public boolean examineLowerBound(IJavaType t) {
+						return t == wrapper;
+					}
+					public boolean examineUpperBound(IJavaType t) {
+						return t == wrapper;
+					}					
+				};
+			}
+			if (cond != null && bounds.examine(cond)) {
+				IJavaType u = null;// TODO
+				reduceConstraintFormula(b_3, new ConstraintFormula(u, FormulaConstraint.IS_COMPATIBLE, t));
+				return b_3;
+			}
+		}
+		/*
+	     *   – Otherwise, the constraint formula ‹ R θ → T › is reduced and incorporated with B 2 .	 
+		 */
+		reduceConstraintFormula(b_3, new ConstraintFormula(r_subst, FormulaConstraint.IS_COMPATIBLE, t));
+		return b_3;
+	}
+
+	/**
+	 * From 18.5.2 Invocation Type Inference:
+	 * 
+     * Let e 1 , ..., e k be the actual argument expressions of the invocation. If m is
+     * applicable by strict or loose invocation, let F 1 , ..., F k be the formal parameter
+     * types of m ; if m is applicable by variable arity invocation, let F 1 , ..., F k the first k
+     * variable arity parameter types of m (§15.12.2.4). Then:
+     * 
+     * – For all i (1 ≤ i ≤ k), if e i is not pertinent to applicability, C contains ‹ e i → F i θ›.
+     */
+	private Set<ConstraintFormula> createInitialConstraints(CallState call, MethodBinding m) {
+		final Set<ConstraintFormula> rv = new HashSet<ConstraintFormula>();
+		final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.args.length, false);
+		for(int i=0; i<call.args.length; i++) {
+			final IRNode e_i = call.args[i];
+			final IJavaType f_subst = formalTypes[i]; // TODO subst
+			if (!mb.isPertinentToApplicability(m, call.getNumTypeArgs() > 0, e_i)) {
+				rv.add(new ConstraintFormula(e_i, FormulaConstraint.IS_COMPATIBLE, f_subst));
+			}
+			createAdditionalConstraints(rv, f_subst, e_i);
+		}
+		return rv;
+	}
+	
+	/**
+	 * – For all i (1 ≤ i ≤ k), additional constraints may be included, depending on the
+	 *   form of e i :
+	 *   
+	 *   › If e i is a LambdaExpression, C contains ‹LambdaExpression → throws F i θ›.
+	 *   
+	 *   › If e i is a MethodReference, C contains ‹MethodReference → throws F i θ›.
+	 *   
+	 *   › If e i is a poly class instance creation expression (§15.9) or a poly method
+	 *     invocation expression (§15.12), C contains all the constraint formulas that
+	 *     would appear in the set C generated by §18.5.2 when inferring the poly
+	 *     expression's invocation type.
+	 *     
+	 *   › If e i is a parenthesized expression, these rules are applied recursively to the
+	 *     contained expression.
+	 *     
+	 *   › If e i is a conditional expression, these rules are applied recursively to the
+	 *     second and third operands.
+	 */
+	private void createAdditionalConstraints(Set<ConstraintFormula> c,	IJavaType f_subst, IRNode e_i) {
+		final Operator op = JJNode.tree.getOperator(e_i);
+		if (LambdaExpression.prototype.includes(op)) {
+			c.add(new ConstraintFormula(e_i, FormulaConstraint.THROWS, f_subst));
+		}
+		else if (MethodReference.prototype.includes(op) || ConstructorReference.prototype.includes(op)) {
+			c.add(new ConstraintFormula(e_i, FormulaConstraint.THROWS, f_subst));
+		}
+		else if (MethodCall.prototype.includes(op) || NewExpression.prototype.includes(op)) {
+			if (mb.isPolyExpression(e_i)) {
+				// TODO 
+				throw new UnsupportedOperationException();
+			}
+		}
+		else if (ParenExpression.prototype.includes(op)) {
+			createAdditionalConstraints(c, f_subst, ParenExpression.getOp(e_i));
+		}
+		else if (ConditionalExpression.prototype.includes(op)) {
+			createAdditionalConstraints(c, f_subst, ConditionalExpression.getIftrue(e_i));
+			createAdditionalConstraints(c, f_subst, ConditionalExpression.getIffalse(e_i));
+		}
+	}
+
+	/*
+	* @return true if there exists no type of the form G< ... > that is a supertype of S , 
+	*         but the raw type | G< ... > | is a supertype of S .
+	*/
+	boolean onlyHasRawG_asSuperType(IRNode g_decl, IJavaType t) {
+		return onlyHasRawG_asSuperType(g_decl, false, t);
+	}
+	
+	private Boolean onlyHasRawG_asSuperType(IRNode g_decl, boolean foundRawG, IJavaType t) {
+		if (t instanceof IJavaDeclaredType) {
+			IJavaDeclaredType dt = (IJavaDeclaredType) t;
+			if (g_decl.equals(dt.getDeclaration())) {
+				if (dt.isRawType(tEnv)) {
+					foundRawG = true;
+				} else {
+					return Boolean.FALSE;
+				}
+			}			
+		}
+		Boolean result = null;
+		for(IJavaType st : t.getSupertypes(tEnv)) {
+			Boolean temp = onlyHasRawG_asSuperType(g_decl, foundRawG, st);
+			if (temp == Boolean.FALSE) {
+				return Boolean.FALSE; // Immediate fail
+			}
+			if (result == null) {
+				result = temp;
+			}
+			// otherwise result is TRUE, and temp is null or TRUE
+		}
+		if (result == null && foundRawG) {
+			return Boolean.TRUE;
+		}
+		return result;
+	}	
+	
+	private IJavaDeclaredType isParameterizedType(IJavaType t) {
+		if (t instanceof IJavaDeclaredType) {
+			final IJavaDeclaredType g = (IJavaDeclaredType) t;
+			if (!g.getTypeParameters().isEmpty()) {
+				return g;
+			}
+		}
+		return null;
+	}
+	
+	private IJavaDeclaredType isWildcardParameterizedType(IJavaType t) {
+		final IJavaDeclaredType g = isParameterizedType(t);
+		if (g != null) {
+			for(IJavaType p : g.getTypeParameters()) {
+				if (p instanceof IJavaWildcardType) {
+					return g;
+				}
+			}			
+		}
+		return null;
+	}
+	
+	static class InputOutputVars {
+		Set<InferenceVariable> input;
+		Set<InferenceVariable> output;
+	}
+	
+	/**
+	 * Invocation type inference may require carefully sequencing the reduction of
+	 * constraint formulas of the forms ‹Expression → T ›, ‹LambdaExpression → throws T ›,
+	 * and ‹MethodReference → throws T ›. To facilitate this sequencing, the input variables
+	 * of these constraints are defined as follows:
+	 * 
+	 * • For ‹LambdaExpression → T ›:
+	 *   – If T is an inference variable, it is the (only) input variable.
+	 *   
+	 *   – If T is a functional interface type, and a function type can be derived from
+	 *     T (§15.27.3), then the input variables include i) if the lambda expression
+	 *     is implicitly typed, the inference variables mentioned by the function type's
+	 *     parameter types; and ii) if the function type's return type, R , is not void , then
+	 *     for each result expression e in the lambda body (or for the body itself if it is
+	 *     an expression), the input variables of ‹ e → R ›.
+	 * 
+	 *   – Otherwise, there are no input variables.
+	 *   
+	 * • For ‹MethodReference → T ›:
+	 *   – If T is an inference variable, it is the (only) input variable.
+	 *   – If T is a functional interface type with a function type, and if the method
+	 *     reference is inexact (§15.13.1), the input variables are the inference variables
+	 *     mentioned by the function type's parameter types.
+	 *   – Otherwise, there are no input variables.
+	 * 
+	 * • For ‹Expression → T ›, if Expression is a parenthesized expression:
+	 *   Where the contained expression of Expression is Expression', the input variables
+	 *   are the input variables of ‹Expression' → T ›.
+	 * 
+	 * • For ‹ConditionalExpression → T ›:
+	 *   Where the conditional expression has the form e 1 ? e 2 : e 3 , the input variables
+	 *   are the input variables of ‹ e 2 → T › and ‹ e 3 → T ›.
+	 * 
+	 * • For all other constraint formulas, there are no input variables.
+	 * 
+	 * The output variables of these constraints are all inference variables mentioned by
+	 * the type on the right-hand side of the constraint, T , that are not input variables.
+	 */
+	void computeInputOutput(InputOutputVars vars, ConstraintFormula f) {
+		f.type.getReferencedInferenceVariables(vars.output);
+		computeInputVars(vars.input, f);
+		vars.output.removeAll(vars.input);
+	}
+	
+	private void computeInputVars(Set<InferenceVariable> vars, ConstraintFormula f) {
+		switch (f.constraint) {
+		case IS_COMPATIBLE:
+			if (f.expr != null) {
+				final Operator op = JJNode.tree.getOperator(f.expr);
+				if (LambdaExpression.prototype.includes(op)) {
+					if (f.type instanceof InferenceVariable) {
+						vars.add((InferenceVariable) f.type);
+					}
+					final IJavaFunctionType funcType = tEnv.isFunctionalType(f.type);
+					if (funcType != null) {
+						if (MethodBinder8.isImplicitlyTypedLambda(f.expr)) {		
+							for(IJavaType pt : funcType.getParameterTypes()) {
+								pt.getReferencedInferenceVariables(vars);
+							}
+						}	
+						if (funcType.getReturnType() != JavaTypeFactory.voidType) {
+							for(IRNode e : findResultExprs(f.expr)) {
+								computeInputVars(vars, new ConstraintFormula(e, FormulaConstraint.IS_COMPATIBLE, f.type));
+							}
+						}
+					}
+				}
+				else if (MethodReference.prototype.includes(op) || ConstructorReference.prototype.includes(op)) {
+					if (f.type instanceof InferenceVariable) {
+						vars.add((InferenceVariable) f.type);
+					}
+					final IJavaFunctionType funcType = tEnv.isFunctionalType(f.type);
+					if (funcType != null) {		
+						if (!isExactMethodReference(f.expr)) {			
+							for(IJavaType pt : funcType.getParameterTypes()) {
+								pt.getReferencedInferenceVariables(vars);
+							}
+						}
+					}
+				}
+				else if (ParenExpression.prototype.includes(op)) {
+					computeInputVars(vars, new ConstraintFormula(ParenExpression.getOp(f.expr), FormulaConstraint.IS_COMPATIBLE, f.type));
+				}
+				else if (ConditionalExpression.prototype.includes(op)) {
+					computeInputVars(vars, new ConstraintFormula(ConditionalExpression.getIftrue(f.expr), FormulaConstraint.IS_COMPATIBLE, f.type));
+					computeInputVars(vars, new ConstraintFormula(ConditionalExpression.getIffalse(f.expr), FormulaConstraint.IS_COMPATIBLE, f.type));
+				}
+			}
+			break;
+		case THROWS:
+			/*
+			 * • For ‹LambdaExpression → throws T ›:
+			 *   – If T is an inference variable, it is the (only) input variable.
+			 *   – If T is a functional interface type, and a function type can be derived, as
+			 *     described in §15.27.3, the input variables include i) if the lambda expression
+			 *     is implicitly typed, the inference variables mentioned by the function type's
+			 *     parameter types; and ii) the inference variables mentioned by the function
+			 *     type's return type.
+			 *   – Otherwise, there are no input variables.			 
+			 *   
+			 * • For ‹MethodReference → throws T ›:
+			 *   – If T is an inference variable, it is the (only) input variable.
+			 *   – If T is a functional interface type with a function type, and if the method
+			 *     reference is inexact (§15.13.1), the input variables are the inference variables
+			 *     mentioned by the function type's parameter types and the function type's return type.
+			 *   – Otherwise, there are no input variables.
+			 *
+			 */
+			if (f.type instanceof InferenceVariable) {
+				vars.add((InferenceVariable) f.type);
+			}
+			final IJavaFunctionType funcType = tEnv.isFunctionalType(f.type);
+			if (funcType != null) {
+				final Operator op = JJNode.tree.getOperator(f.expr);				
+				if (LambdaExpression.prototype.includes(op)) {
+					if (MethodBinder8.isImplicitlyTypedLambda(f.expr)) {
+						for(IJavaType pt : funcType.getParameterTypes()) {
+							pt.getReferencedInferenceVariables(vars);
+						}
+					}
+					funcType.getReturnType().getReferencedInferenceVariables(vars);
+				}
+				else if (!isExactMethodReference(f.expr)) {							
+					funcType.getReturnType().getReferencedInferenceVariables(vars);
+					for(IJavaType pt : funcType.getParameterTypes()) {
+						pt.getReferencedInferenceVariables(vars);
+					}
+				}
+			}
+		default:
+		}
+	}
+	
+	private Iterable<IRNode> findResultExprs(IRNode expr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	// TODO (§15.13.1)
+	static boolean isExactMethodReference(IRNode n) {
+		// TODO
+		return false;
 	}
 	
 	/**
@@ -480,6 +951,37 @@ public class TypeInference8 {
 		throw new NotImplemented(); // TODO
 	}
 	
+	static class BoundSubset {
+		private final Set<EqualityBound> equalities = new HashSet<EqualityBound>();
+		private final Set<SubtypeBound> upperBounds = new HashSet<SubtypeBound>();
+		private final Set<SubtypeBound> lowerBounds = new HashSet<SubtypeBound>();
+		
+		boolean examine(BoundCondition cond) {
+			for(SubtypeBound b : upperBounds) {
+				if (cond.examineUpperBound(b.s)) {
+					return true;
+				}
+			}
+			for(SubtypeBound b : lowerBounds) {
+				if (cond.examineLowerBound(b.t)) {
+					return true;
+				}
+			}
+			for(EqualityBound b : equalities) {
+				if (cond.examineEquality(b.s, b.t)) {
+					return true;
+				}
+			}
+			return false;
+		}		
+	}
+	
+	interface BoundCondition {
+		boolean examineEquality(IJavaType s, IJavaType t);
+		boolean examineLowerBound(IJavaType t);
+		boolean examineUpperBound(IJavaType t);
+	}
+	
 	/**
 	 * An important intermediate result of inference is a bound set. It is sometimes
 	 * convenient to refer to an empty bound set with the symbol true; this is merely out
@@ -552,6 +1054,7 @@ public class TypeInference8 {
 			subtypeBounds.add(new SubtypeBound((IJavaReferenceType) s, (IJavaReferenceType) t));
 		}	
 		
+		// G< α 1 , ..., α n > = capture( G<A 1 , ..., A n > )
 		void addCaptureBound(IJavaType s, IJavaType t) {
 			captures.add(new CaptureBound((IJavaDeclaredType) s, (IJavaDeclaredType) t));
 		}
@@ -785,6 +1288,25 @@ public class TypeInference8 {
 				}
 				rv.addEqualityBound(a_i, y_i);
 			}		
+			return rv;
+		}
+		
+		// a = T, T = a, a <: T, T <: a
+		BoundSubset findAssociatedBounds(InferenceVariable a) {
+			BoundSubset rv = new BoundSubset();
+			for(EqualityBound bound : equalities) {
+				if (bound.s == a || bound.t == a) {
+					rv.equalities.add(bound);
+				}
+			}
+			for(SubtypeBound b : subtypeBounds) {
+				if (b.s == a) {
+					rv.lowerBounds.add(b);
+				}
+				else if (b.t == a) {
+					rv.upperBounds.add(b);
+				}
+			}
 			return rv;
 		}
 	}
@@ -1076,11 +1598,6 @@ public class TypeInference8 {
  	
 	static boolean isInferenceVariable(IJavaType t) {
 		return t instanceof InferenceVariable;
-	}
-	
-	// (§9.8)
-	private boolean isFunctionalInterfaceType(IJavaType t) {
-		throw new NotImplemented(); // TODO
 	}
 	
 	IJavaReferenceType box(IJavaType t) {
@@ -1676,7 +2193,7 @@ public class TypeInference8 {
 	 *     ≤ n), the constraint reduces to the bound throws E j .
 	 */
 	private void reduceLambdaCheckedExceptionConstraints(BoundSet bounds, IRNode lambda, IJavaType t) {
-		if (!isFunctionalInterfaceType(t)) {
+		if (tEnv.isFunctionalType(t) == null) {
 			bounds.addFalse();
 			return;
 		}
