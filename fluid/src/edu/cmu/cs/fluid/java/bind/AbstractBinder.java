@@ -148,7 +148,7 @@ public abstract class AbstractBinder implements IBinder {
 		  }
 		  return (IJavaDeclaredType) at.getElementType();
 	  }
-	  return null;
+	  throw new BindingException(context, true);
   }
 
   private final OpSearch nonExpr = new OpSearch() {
