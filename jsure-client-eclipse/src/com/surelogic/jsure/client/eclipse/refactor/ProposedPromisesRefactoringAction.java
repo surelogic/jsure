@@ -97,9 +97,13 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
 		switch (elt.getElementType()) {
 		case IJavaElement.COMPILATION_UNIT:
 			return true;
+		case IJavaElement.FIELD:
+		case IJavaElement.METHOD:
+		case IJavaElement.TYPE:			
+			return true;
 		case IJavaElement.CLASS_FILE:
 			IJavaElement srcElt = JDTUtility.findJavaElementOrNull(p.getAssumptionRef());
-			return srcElt != null && srcElt.getElementType() == IJavaElement.COMPILATION_UNIT;
+			return srcElt != null && srcElt.getElementType() == IJavaElement.COMPILATION_UNIT;			
 		default:
 			throw new IllegalStateException("Unexpected Java element: "+elt);
 		}
