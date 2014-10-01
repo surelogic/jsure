@@ -691,7 +691,7 @@ public class TypeInference8 {
 			IJavaType t = b.instantiations.get(f_alpha.getTypeParameters().get(i));
 			a_prime.add(t != null ? t : f.getTypeParameters().get(i));
 		}
-		IJavaType f_prime = JavaTypeFactory.getDeclaredType(f.getDeclaration(), a_prime, f.getOuterType());
+		IJavaDeclaredType f_prime = JavaTypeFactory.getDeclaredType(f.getDeclaration(), a_prime, f.getOuterType());
 		// TODO check if well formed
 		if (!f_prime.isSubtype(tEnv, f)) {
 			return null; // No valid parameterization
@@ -702,9 +702,58 @@ public class TypeInference8 {
 		return f_prime;
 	}
 	
-	private IJavaType computeNonWildcardParameterization(IJavaType f_prime) {
+	/**
+	 * JLS 8 sec 9.9
+	 * 
+	 * • The function type of a parameterized functional interface type I<A1...An>, where one or more of A1...An is a wildcard, 
+	 *   is the function type of the non- wildcard parameterization of I, I<T1...Tn>. The non-wildcard parameterization is 
+	 *   determined as follows.
+	 * 
+	 *   Let P1...Pn be the type parameters of I with corresponding bounds B1...Bn. For all i (1 ≤ i ≤ n), Ti is derived 
+	 *   according to the form of Ai:
+	 * 
+	 *   – If Ai is a type, then Ti = Ai.
+	 *   – If Ai is a wildcard, and the corresponding type parameter's bound, Bi, mentions one of P1...Pn, then Ti is undefined
+	 *     and there is no function type.
+	 *   – Otherwise:
+	 *     › If Ai is an unbound wildcard ?, then Ti = Bi.
+	 *     › If Ai is a upper-bounded wildcard ? extends Ui, then Ti = glb(Ui, Bi) (§5.1.10).
+	 *     › If Ai is a lower-bounded wildcard ? super Li, then Ti = Li.
+	 */
+	private IJavaType computeNonWildcardParameterization(IJavaDeclaredType iface) {
+		final int n = iface.getTypeParameters().size();
+		final List<IJavaType> t = new ArrayList<IJavaType>(n);
+		final Set<IJavaTypeFormal> params = null;
+		for(int i=0; i<n; i++) {
+			final IJavaTypeFormal p_i = null;
+			final IJavaReferenceType b_i = null;
+			final IJavaType a_i = iface.getTypeParameters().get(i);
+			final IJavaType t_i;
+			if (a_i instanceof IJavaWildcardType) {
+				if (refersTo(b_i, params)) {
+					return null;
+				}
+				final IJavaWildcardType wt = (IJavaWildcardType) a_i;
+				if (wt.getUpperBound() != null) {
+					return utils.getGreatestLowerBound(b_i, wt.getUpperBound());
+				}
+				else if (wt.getLowerBound() != null) {
+					return wt.getLowerBound();
+				}
+				else {
+					return b_i;
+				}
+			} else {
+				t_i = a_i;
+			}
+			t.add(t_i);
+		}
+		return JavaTypeFactory.getDeclaredType(iface.getDeclaration(), t, iface.getOuterType());
+	}
+
+	private boolean refersTo(IJavaReferenceType b_i, Set<IJavaTypeFormal> params) {
 		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+		return false;
 	}
 
 	/**
