@@ -148,6 +148,10 @@ public abstract class AbstractBinder implements IBinder {
 		  }
 		  return (IJavaDeclaredType) at.getElementType();
 	  }
+	  IJavaType type = new TypeUtils(getTypeEnvironment()).getPolyExpressionTargetType(context);
+	  if (type != null) {
+		  return (IJavaDeclaredType) type;
+	  }
 	  throw new BindingException(context, true);
   }
 
