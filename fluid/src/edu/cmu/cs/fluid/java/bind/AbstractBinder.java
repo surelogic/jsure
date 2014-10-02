@@ -231,11 +231,11 @@ public abstract class AbstractBinder implements IBinder {
 	  Map<IJavaType,IJavaType> map = new HashMap<IJavaType, IJavaType>();
 	  int i=0;
 	  for(IJavaType t : match.getTypeParameters()) {
-		  if (t instanceof IJavaTypeFormal) {
-			  map.put(t, targetType.getTypeParameters().get(i));
-		  } else {
+		  IJavaType tt = targetType.getTypeParameters().get(i);
+		  if (!createMapping(map, t, tt)) {
 			  return null;
 		  }
+		  i++;
 	  }
 	  // Substitute
 	  List<IJavaType> params = new ArrayList<IJavaType>();
@@ -248,6 +248,34 @@ public abstract class AbstractBinder implements IBinder {
 	  }
 	  // TODO is the outer type right?
 	  return JavaTypeFactory.getDeclaredType(generic.getDeclaration(), params, generic.getOuterType());
+  }
+  
+  private boolean createMapping(Map<IJavaType, IJavaType> map, IJavaType t, IJavaType tt) {	  
+	  if (t instanceof IJavaTypeFormal) {
+		  map.put(t, tt);
+	  } 
+	  else if (t instanceof IJavaDeclaredType) {
+		  IJavaDeclaredType dt = (IJavaDeclaredType) t;
+		  if (tt instanceof IJavaDeclaredType) {
+			  // Check if the same
+			  IJavaDeclaredType dtt = (IJavaDeclaredType) tt;
+			  if (dt.getDeclaration().equals(dtt.getDeclaration())) {
+				  int i=0;
+				  for(IJavaType t2 : dt.getTypeParameters()) {
+					  IJavaType tt2 = dtt.getTypeParameters().get(i);
+					  if (!createMapping(map, t2, tt2)) {
+						  return false;
+					  }
+					  i++;
+				  }
+			  } else {
+				  return false;
+			  }
+		  }
+	  } else {
+		  return false;
+	  }
+	  return true;
   }
   
   /* (non-Javadoc)
