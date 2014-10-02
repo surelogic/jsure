@@ -14,7 +14,7 @@ public class BindingException extends RuntimeException {
 	private static final long serialVersionUID = -2323274122832014430L;
 
 	public BindingException(IRNode context, boolean showParents) {
-		List<StackTraceElement> trace = new ArrayList<>();
+		List<StackTraceElement> trace = new ArrayList<StackTraceElement>();
 		if (showParents) {
 			for(IRNode ancestor : VisitUtil.rootWalk(context)) {
 				String name = JJNode.tree.getOperator(ancestor).name();
