@@ -114,14 +114,15 @@ public abstract class AbstractBinder implements IBinder {
 	  IRNode actuals = ParameterizedType.getArgs(paramdType);
 	  if (JJNode.tree.numChildren(actuals) == 0) {
 		  // Found diamond operator
-		  final IJavaDeclaredType targetType = findTargetType(paramdType);
+		  final IJavaDeclaredType targetType = findTargetTypeForInstantiation(paramdType);
 		  return matchTarget(targetType, type);
 	  }
 	  // Otherwise, fallback on the usual
 	  return type;
   }
 
-  private IJavaDeclaredType findTargetType(IRNode pType) {
+  // Specialized for finding the target type for "new ArrayList<>()"
+  private IJavaDeclaredType findTargetTypeForInstantiation(IRNode pType) {
 	  IRNode context = nonExpr.findEnclosing(pType);
 	  Operator contextOp = JJNode.tree.getOperator(context);
 	  if (Initialization.prototype.includes(contextOp)) {
