@@ -1700,7 +1700,26 @@ public class TypeUtils {
 					  return bi.convertType(tEnv.getBinder(), tEnv.getBinder().getJavaType(JJNode.tree.getChild(formals, i)));
 				  }
 			  }
-		  } 
+		  }
+		  else if (ArrayInitializer.prototype.includes(op)) {
+			  // Only appearing in Initialization or ArrayCreationExpression
+			  IRNode parent = JJNode.tree.getParent(p);
+			  Operator parentOp = JJNode.tree.getOperator(parent);
+			  IJavaArrayType at;
+			  if (Initialization.prototype.includes(parentOp)) {
+				  IRNode varDecl = JJNode.tree.getParent(p);
+				  at = (IJavaArrayType) tEnv.getBinder().getJavaType(varDecl);
+			  }
+			  else if (ArrayCreationExpression.prototype.includes(parentOp)) {
+				  at = (IJavaArrayType) tEnv.getBinder().getJavaType(parent);
+			  } else {
+				  return null;
+			  }
+			  return (IJavaDeclaredType) at.getElementType();
+		  }
+		  else if (ReturnStatement.prototype.includes(op)) {
+			  return tEnv.getBinder().getJavaType(p);
+		  }
 		  // We make wish to make this a "fine" warning if all method call invocations
 		  // are treated as something that could learn from the target type.
 		  //LOG.warning("poly expression has bad context: " + op);
