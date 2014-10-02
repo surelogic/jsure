@@ -702,6 +702,12 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
 
   @Override
+  public IJavaType visitReturnStatement(IRNode node) {
+	IRNode m = VisitUtil.getEnclosingMethod(node);
+	return getJavaType(MethodDeclaration.getReturnType(m));
+  }
+  
+  @Override
   public IJavaType visitReturnValueDeclaration(IRNode rvd) {
 	  IRNode n = JavaPromise.getPromisedForOrNull(rvd);
 	  Operator op = JJNode.tree.getOperator(n);
