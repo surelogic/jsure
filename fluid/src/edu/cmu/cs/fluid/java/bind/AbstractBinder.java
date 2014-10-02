@@ -123,7 +123,12 @@ public abstract class AbstractBinder implements IBinder {
 
   // Specialized for finding the target type for "new ArrayList<>()"
   private IJavaDeclaredType findTargetTypeForInstantiation(IRNode pType) {
-	  IRNode context = nonExpr.findEnclosing(pType);
+	  final IRNode newE = newExpr.findEnclosing(pType);
+	  IRNode polyE = JJNode.tree.getParent(newE);
+	  if (!OuterObjectSpecifier.prototype.includes(polyE)) {
+		  polyE = newE;
+	  }
+	  /*
 	  Operator contextOp = JJNode.tree.getOperator(context);
 	  if (Initialization.prototype.includes(contextOp)) {
 		  IRNode varDecl = JJNode.tree.getParent(context);
@@ -149,17 +154,18 @@ public abstract class AbstractBinder implements IBinder {
 		  }
 		  return (IJavaDeclaredType) at.getElementType();
 	  }
-	  IJavaType type = new TypeUtils(getTypeEnvironment()).getPolyExpressionTargetType(context);
+	  */
+	  final IJavaType type = new TypeUtils(getTypeEnvironment()).getPolyExpressionTargetType(polyE);
 	  if (type != null) {
 		  return (IJavaDeclaredType) type;
 	  }
-	  throw new BindingException(context, true);
+	  throw new BindingException(newE, true);
   }
 
-  private final OpSearch nonExpr = new OpSearch() {
+  private final OpSearch newExpr = new OpSearch() {
 	  @Override
 	  protected boolean found(Operator op) { 
-		  return op instanceof AssignExpression || op instanceof Arguments || !(op instanceof Expression); 
+		  return op instanceof NewExpression; 
 	  }
   };
    
