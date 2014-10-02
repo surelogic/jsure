@@ -17,7 +17,10 @@ public class BindingException extends RuntimeException {
 	private static final long serialVersionUID = -2323274122832014430L;
 
 	public BindingException(IRNode context, boolean showParents) {
-		super(JJNode.tree.getOperator(context).name()+" - "+findEnclosingType(context));
+		this(context, showParents, JJNode.tree.getOperator(context).name()+" - "+findEnclosingType(context), null);
+	}
+	public BindingException(IRNode context, boolean showParents, String msg, RuntimeException cause) {
+		super(msg, cause);
 		
 		List<StackTraceElement> trace = new ArrayList<StackTraceElement>();
 		if (showParents) {

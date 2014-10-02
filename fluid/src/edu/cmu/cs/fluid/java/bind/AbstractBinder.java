@@ -114,8 +114,19 @@ public abstract class AbstractBinder implements IBinder {
 	  IRNode actuals = ParameterizedType.getArgs(paramdType);
 	  if (JJNode.tree.numChildren(actuals) == 0) {
 		  // Found diamond operator
-		  final IJavaDeclaredType targetType = findTargetTypeForInstantiation(paramdType);
-		  return matchTarget(targetType, type);
+		  IJavaDeclaredType targetType = null;
+		  try {
+			  targetType = findTargetTypeForInstantiation(paramdType);			  
+			  return matchTarget(targetType, type);
+		  } catch(BindingException e) {
+			  throw e;
+		  } catch(RuntimeException e) {	
+			  String msg = targetType+" => "+type;
+			  if (e.getMessage() != null) {
+				  msg = msg+" : "+e.getMessage();
+			  }
+			  throw new BindingException(paramdType, true, msg, e);
+		  }
 	  }
 	  // Otherwise, fallback on the usual
 	  return type;
@@ -172,10 +183,10 @@ public abstract class AbstractBinder implements IBinder {
   private IJavaDeclaredType matchTarget(IJavaDeclaredType targetType, IJavaDeclaredType newType) {
 	//System.out.println("Target: "+targetType);
 	if (targetType.isRawType(getTypeEnvironment())) {
-	  return (IJavaDeclaredType) getTypeEnvironment().computeErasure(newType);
+		return (IJavaDeclaredType) getTypeEnvironment().computeErasure(newType);
 	}
 	if (targetType == getTypeEnvironment().getObjectType()) {
-	  return (IJavaDeclaredType) getTypeEnvironment().computeErasure(newType);
+		return (IJavaDeclaredType) getTypeEnvironment().computeErasure(newType);
 	}
 	/*
 	  final TypeUtils utils = new TypeUtils(getTypeEnvironment());
