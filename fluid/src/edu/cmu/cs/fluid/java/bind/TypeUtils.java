@@ -1664,9 +1664,10 @@ public class TypeUtils {
 		  IRNode p = JJNode.tree.getParent(pe);
 		  IRLocation loc = JJNode.tree.getLocation(pe);
 		  Operator op = JJNode.tree.getOperator(p);
+		  //System.out.println("getPolyExpressionTargetType: "+op.name());
 		  if (AssignExpression.prototype.includes(op)) {
 			  if (loc.equals(AssignExpression.op2Location)) {
-				  return tEnv.getBinder().getJavaType(AssignExpression.getOp1(pe));
+				  return tEnv.getBinder().getJavaType(AssignExpression.getOp1(p));
 			  }
 		  } else if (Initialization.prototype.includes(op)) {
 			  IRNode gp = JJNode.tree.getParent(p);
