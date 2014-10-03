@@ -83,8 +83,8 @@ public class TypeInference8 {
 	 * to determine whether a potentially applicable generic method m is applicable is as
 	 * follows:
 	 * 
-	 * - Where P 1 , ..., P p (p â‰¥ 1) are the type parameters of m , let Î± 1 , ..., Î± p be inference
-	 *   variables, and let θ be the substitution [P 1 :=Î± 1 , ..., P p :=Î± p ] .
+	 * - Where P 1 , ..., P p (p >= 1) are the type parameters of m , let α 1 , ..., α p be inference
+	 *   variables, and let θ be the substitution [P 1 :=α 1 , ..., P p :=α p ] .
 	 * 
 	 * - An initial bound set, B 0 , is constructed from the declared bounds of P 1 , ..., P p , as
 	 *   described in Â§18.1.3.
@@ -99,7 +99,7 @@ public class TypeInference8 {
 		 *  check if type params appear in throws clause						
 		 *  
 	     * - For all i (1 <= i <= p), if P i appears in the throws clause of m , then the bound throws
-	     *   Î± i is implied. These bounds, if any, are incorporated with B 0 to produce a new
+	     *   α i is implied. These bounds, if any, are incorporated with B 0 to produce a new
 	     *   bound set, B 1 .
 		 */		
 		BoundSet b_1 = null;
@@ -123,25 +123,25 @@ public class TypeInference8 {
 		 *   
 		 *   - To test for applicability by strict invocation:
 		 *   
-		 *     If k â‰  n, or if there exists an i (1 <= i <= n) such that e i is pertinent to applicability
+		 *     If k !=  n, or if there exists an i (1 <= i <= n) such that e i is pertinent to applicability
 		 *     (Â§15.12.2.2) and either i) e i is a standalone expression of a primitive type but
 		 *     F i is a reference type, or ii) F i is a primitive type but e i is not a standalone
 		 *     expression of a primitive type; then the method is not applicable and there is
 		 *     no need to proceed with inference.
 		 *     
 		 *     Otherwise, C includes, for all i (1 <= i <= k) where e i is pertinent to applicability,
-		 *     â€¹ e i â†’ F i θâ€º.
+		 *     < e i -> F i θ>.
 		 *     
 		 *   - To test for applicability by loose invocation: 
 		 *   
-		 *     If k â‰  n, the method is not applicable and there is no need to proceed with inference.
+		 *     If k !=  n, the method is not applicable and there is no need to proceed with inference.
 		 *     Otherwise, C includes, for all i (1 <= i <= k) where e i is pertinent to applicability,
-		 *     â€¹ e i â†’ F i θâ€º.
+		 *     < e i -> F i θ>.
 		 *   
 		 *   - To test for applicability by variable arity invocation:
 		 *   
 		 *     Let F' 1 , ..., F' k be the first k variable arity parameter types of m (Â§15.12.2.4). C
-		 *     includes, for all i (1 <= i <= k) where e i is pertinent to applicability, â€¹ e i â†’ F' i θâ€º.
+		 *     includes, for all i (1 <= i <= k) where e i is pertinent to applicability, < e i -> F' i θ>.
 		 */		 
 		if (kind != InvocationKind.VARARGS && m.numFormals != call.args.length) {
 			return null;
@@ -188,7 +188,7 @@ public class TypeInference8 {
      * corresponding most specific applicable generic method m , the process to infer the
      * invocation type (Â§15.12.2.6) of the chosen method is as follows:
      * 
-     * - Let θ be the substitution [P 1 :=Î± 1 , ..., P p :=Î± p ] defined in Â§18.5.1 to replace the
+     * - Let θ be the substitution [P 1 :=α 1 , ..., P p :=α p ] defined in Â§18.5.1 to replace the
      *   type parameters of m with inference variables.
      * - Let B 2 be the bound set produced by reduction in order to demonstrate that m is
      *   applicable in Â§18.5.1. (While it was necessary in Â§18.5.1 to demonstrate that the
@@ -214,29 +214,29 @@ public class TypeInference8 {
      *      constraints outside of the cycle (or cycles). A single constraint is selected
      *      from the considered constraints, as follows:
      *      
-     *      - If any of the considered constraints have the form â€¹Expression â†’ T â€º,
+     *      - If any of the considered constraints have the form <Expression -> T >,
      *        then the selected constraint is the considered constraint of this form that
      *        contains the expression to the left (Â§3.5) of the expression of every other
      *        considered constraint of this form.
      * 
-     *      - If no considered constraint has the form â€¹Expression â†’ T â€º, then the
+     *      - If no considered constraint has the form <Expression -> T >, then the
      *        selected constraint is the considered constraint that contains the expression
      *        to the left of the expression of every other considered constraint.
      * 
      *   2. The selected constraint(s) are removed from C .
      *   
-     *   3. The input variables Î± 1 , ..., Î± m of all the selected constraint(s) are resolved.
+     *   3. The input variables α 1 , ..., α m of all the selected constraint(s) are resolved.
      *   
-     *   4. Where T 1 , ..., T m are the instantiations of Î± 1 , ..., Î± m , the substitution
-     *      [ Î± 1 := T 1 , ..., Î± m := T m ] is applied to every constraint.
+     *   4. Where T 1 , ..., T m are the instantiations of α 1 , ..., α m , the substitution
+     *      [ α 1 := T 1 , ..., α m := T m ] is applied to every constraint.
      *      
      *   5. The constraint(s) resulting from substitution are reduced and incorporated
      *      with the current bound set.
      * 
      * - Finally, if B 4 does not contain the bound false, the inference variables in B 4 are resolved.
      * 
-     *   If resolution succeeds with instantiations T 1 , ..., T p for inference variables Î± 1 , ...,
-     *   Î± p , let θ' be the substitution [P 1 := T 1 , ..., P p := T p ] . Then:
+     *   If resolution succeeds with instantiations T 1 , ..., T p for inference variables α 1 , ...,
+     *   α p , let θ' be the substitution [P 1 := T 1 , ..., P p := T p ] . Then:
      *   
      *   - If unchecked conversion was necessary for the method to be applicable during
      *     constraint set reduction in Â§18.5.1, then the parameter types of the invocation
@@ -270,7 +270,7 @@ public class TypeInference8 {
 	     *   and then:
 	     *   
 	     *   - If unchecked conversion was necessary for the method to be applicable during
-	     *     constraint set reduction in Â§18.5.1, the constraint formula â€¹| R | â†’ T â€º is reduced
+	     *     constraint set reduction in Â§18.5.1, the constraint formula <| R | -> T > is reduced
 	     *     and incorporated with B 2 .
 	     */
 		final IJavaType t = utils.getPolyExpressionTargetType(call.call);
@@ -282,7 +282,7 @@ public class TypeInference8 {
 		}
 	    /*   - Otherwise, if R θ is a parameterized type, G<A 1 , ..., A n > , and one of A 1 , ..., A n is
 	     *     a wildcard, then, for fresh inference variables Î² 1 , ..., Î² n , the constraint formula
-	     *     â€¹ G< Î² 1 , ..., Î² n > â†’ T â€º is reduced and incorporated, along with the bound 
+	     *     < G< Î² 1 , ..., Î² n > -> T > is reduced and incorporated, along with the bound 
 	     *     G< Î² 1 , ..., Î² n > = capture( G<A 1 , ..., A n > ), with B 2 .
 	     */
 		final IJavaType r_subst = r; // TODO
@@ -300,12 +300,12 @@ public class TypeInference8 {
 			b_3.addInferenceVariables(null); // TODO
 			return b_3;
 		}
-	    /*   - Otherwise, if R θ is an inference variable Î±, and one of the following is true:
+	    /*   - Otherwise, if R θ is an inference variable α, and one of the following is true:
 	     *     
 	     *     ... see below
 	     *       
-	     *     then Î± is resolved in B 2 , and where the capture of the resulting instantiation of
-	     *     Î± is U , the constraint formula â€¹ U â†’ T â€º is reduced and incorporated with B 2 .
+	     *     then α is resolved in B 2 , and where the capture of the resulting instantiation of
+	     *     α is U , the constraint formula < U -> T > is reduced and incorporated with B 2 .
 	     */
 		if (r_subst instanceof InferenceVariable) {
 			final InferenceVariable alpha = (InferenceVariable) r_subst;			
@@ -315,10 +315,10 @@ public class TypeInference8 {
 			
 			if (t instanceof IJavaReferenceType && isWildcardParameterizedType(t) == null) {
 				/*
-			     *     â€º T is a reference type, but is not a wildcard-parameterized type, and either
-			     *       i) B 2 contains a bound of one of the forms Î± = S or S <: Î±, where S is a
+			     *     > T is a reference type, but is not a wildcard-parameterized type, and either
+			     *       i) B 2 contains a bound of one of the forms α = S or S <: α, where S is a
 			     *       wildcard-parameterized type, or ii) B 2 contains two bounds of the forms S 1
-			     *       <: Î± and S 2 <: Î±, where S 1 and S 2 have supertypes that are two different
+			     *       <: α and S 2 <: α, where S 1 and S 2 have supertypes that are two different
 			     *       parameterizations of the same generic class or interface.     
 			     */
 				cond = new BoundCondition() {
@@ -336,8 +336,8 @@ public class TypeInference8 {
 			}
 			else if ((g2 = isParameterizedType(t)) != null) {
 				/*       
-			     *     â€º T is a parameterization of a generic class or interface, G , and B 2 contains a
-			     *       bound of one of the forms Î± = S or S <: Î±, where there exists no type of the
+			     *     > T is a parameterization of a generic class or interface, G , and B 2 contains a
+			     *       bound of one of the forms α = S or S <: α, where there exists no type of the
 			     *       form G< ... > that is a supertype of S , but the raw type | G< ... > | is a supertype of S .
 			     */				
 				cond = new BoundCondition() {
@@ -355,8 +355,8 @@ public class TypeInference8 {
 			}
 			else if (t instanceof IJavaPrimitiveType) {
 				/*
-				 *     â€º T is a primitive type, and one of the primitive wrapper classes mentioned in				 
-			     *       Â§5.1.7 is an instantiation, upper bound, or lower bound for Î± in B 2 .
+				 *     > T is a primitive type, and one of the primitive wrapper classes mentioned in				 
+			     *       Â§5.1.7 is an instantiation, upper bound, or lower bound for α in B 2 .
 			     */
 				final IJavaPrimitiveType pt = (IJavaPrimitiveType) t;
 				final IJavaDeclaredType wrapper = JavaTypeFactory.getCorrespondingDeclType(tEnv, pt);				
@@ -379,7 +379,7 @@ public class TypeInference8 {
 			}
 		}
 		/*
-	     *   - Otherwise, the constraint formula â€¹ R θ â†’ T â€º is reduced and incorporated with B 2 .	 
+	     *   - Otherwise, the constraint formula < R θ -> T > is reduced and incorporated with B 2 .	 
 		 */
 		reduceConstraintFormula(b_3, new ConstraintFormula(r_subst, FormulaConstraint.IS_COMPATIBLE, t));
 		return b_3;
@@ -393,7 +393,7 @@ public class TypeInference8 {
      * types of m ; if m is applicable by variable arity invocation, let F 1 , ..., F k the first k
      * variable arity parameter types of m (Â§15.12.2.4). Then:
      * 
-     * - For all i (1 <= i <= k), if e i is not pertinent to applicability, C contains â€¹ e i â†’ F i θâ€º.
+     * - For all i (1 <= i <= k), if e i is not pertinent to applicability, C contains < e i -> F i θ>.
      */
 	private Set<ConstraintFormula> createInitialConstraints(CallState call, MethodBinding m) {
 		final Set<ConstraintFormula> rv = new HashSet<ConstraintFormula>();
@@ -413,19 +413,19 @@ public class TypeInference8 {
 	 * - For all i (1 <= i <= k), additional constraints may be included, depending on the
 	 *   form of e i :
 	 *   
-	 *   â€º If e i is a LambdaExpression, C contains â€¹LambdaExpression â†’ throws F i θâ€º.
+	 *   > If e i is a LambdaExpression, C contains <LambdaExpression -> throws F i θ>.
 	 *   
-	 *   â€º If e i is a MethodReference, C contains â€¹MethodReference â†’ throws F i θâ€º.
+	 *   > If e i is a MethodReference, C contains <MethodReference -> throws F i θ>.
 	 *   
-	 *   â€º If e i is a poly class instance creation expression (Â§15.9) or a poly method
+	 *   > If e i is a poly class instance creation expression (Â§15.9) or a poly method
 	 *     invocation expression (Â§15.12), C contains all the constraint formulas that
 	 *     would appear in the set C generated by Â§18.5.2 when inferring the poly
 	 *     expression's invocation type.
 	 *     
-	 *   â€º If e i is a parenthesized expression, these rules are applied recursively to the
+	 *   > If e i is a parenthesized expression, these rules are applied recursively to the
 	 *     contained expression.
 	 *     
-	 *   â€º If e i is a conditional expression, these rules are applied recursively to the
+	 *   > If e i is a conditional expression, these rules are applied recursively to the
 	 *     second and third operands.
 	 */
 	private void createAdditionalConstraints(Set<ConstraintFormula> c,	IJavaType f_subst, IRNode e_i) {
@@ -516,11 +516,11 @@ public class TypeInference8 {
 	
 	/**
 	 * Invocation type inference may require carefully sequencing the reduction of
-	 * constraint formulas of the forms â€¹Expression â†’ T â€º, â€¹LambdaExpression â†’ throws T â€º,
-	 * and â€¹MethodReference â†’ throws T â€º. To facilitate this sequencing, the input variables
+	 * constraint formulas of the forms <Expression -> T >, <LambdaExpression -> throws T >,
+	 * and <MethodReference -> throws T >. To facilitate this sequencing, the input variables
 	 * of these constraints are defined as follows:
 	 * 
-	 * - For â€¹LambdaExpression â†’ T â€º:
+	 * - For <LambdaExpression -> T >:
 	 *   - If T is an inference variable, it is the (only) input variable.
 	 *   
 	 *   - If T is a functional interface type, and a function type can be derived from
@@ -528,24 +528,24 @@ public class TypeInference8 {
 	 *     is implicitly typed, the inference variables mentioned by the function type's
 	 *     parameter types; and ii) if the function type's return type, R , is not void , then
 	 *     for each result expression e in the lambda body (or for the body itself if it is
-	 *     an expression), the input variables of â€¹ e â†’ R â€º.
+	 *     an expression), the input variables of < e -> R >.
 	 * 
 	 *   - Otherwise, there are no input variables.
 	 *   
-	 * - For â€¹MethodReference â†’ T â€º:
+	 * - For <MethodReference -> T >:
 	 *   - If T is an inference variable, it is the (only) input variable.
 	 *   - If T is a functional interface type with a function type, and if the method
 	 *     reference is inexact (Â§15.13.1), the input variables are the inference variables
 	 *     mentioned by the function type's parameter types.
 	 *   - Otherwise, there are no input variables.
 	 * 
-	 * - For â€¹Expression â†’ T â€º, if Expression is a parenthesized expression:
+	 * - For <Expression -> T >, if Expression is a parenthesized expression:
 	 *   Where the contained expression of Expression is Expression', the input variables
-	 *   are the input variables of â€¹Expression' â†’ T â€º.
+	 *   are the input variables of <Expression' -> T >.
 	 * 
-	 * - For â€¹ConditionalExpression â†’ T â€º:
+	 * - For <ConditionalExpression -> T >:
 	 *   Where the conditional expression has the form e 1 ? e 2 : e 3 , the input variables
-	 *   are the input variables of â€¹ e 2 â†’ T â€º and â€¹ e 3 â†’ T â€º.
+	 *   are the input variables of < e 2 -> T > and < e 3 -> T >.
 	 * 
 	 * - For all other constraint formulas, there are no input variables.
 	 * 
@@ -605,7 +605,7 @@ public class TypeInference8 {
 			break;
 		case THROWS:
 			/*
-			 * - For â€¹LambdaExpression â†’ throws T â€º:
+			 * - For <LambdaExpression -> throws T >:
 			 *   - If T is an inference variable, it is the (only) input variable.
 			 *   - If T is a functional interface type, and a function type can be derived, as
 			 *     described in Â§15.27.3, the input variables include i) if the lambda expression
@@ -614,7 +614,7 @@ public class TypeInference8 {
 			 *     type's return type.
 			 *   - Otherwise, there are no input variables.			 
 			 *   
-			 * - For â€¹MethodReference â†’ throws T â€º:
+			 * - For <MethodReference -> throws T >:
 			 *   - If T is an inference variable, it is the (only) input variable.
 			 *   - If T is a functional interface type with a function type, and if the method
 			 *     reference is inexact (Â§15.13.1), the input variables are the inference variables
@@ -666,18 +666,18 @@ public class TypeInference8 {
      * then a parameterization of F may be derived as the ground target type of the lambda
      * expression as follows.
      * 
-     * Let Q 1 , ..., Q k be the parameter types of the function type of the type F< Î± 1 , ..., Î± m > ,
-     * where Î± 1 , ..., Î± m are fresh inference variables.
+     * Let Q 1 , ..., Q k be the parameter types of the function type of the type F< α 1 , ..., α m > ,
+     * where α 1 , ..., α m are fresh inference variables.
      * 
-     * If n â‰  k, no valid parameterization exists. Otherwise, a set of constraint formulas is
-     * formed with, for all i (1 <= i <= n), â€¹ P i = Q i â€º. This constraint formula set is reduced
+     * If n !=  k, no valid parameterization exists. Otherwise, a set of constraint formulas is
+     * formed with, for all i (1 <= i <= n), < P i = Q i >. This constraint formula set is reduced
      * to form the bound set B .
      * 
      * If B contains the bound false, no valid parameterization exists. Otherwise, a new
      * parameterization of the functional interface type, F<A' 1 , ..., A' m > , is constructed as
      * follows, for 1 <= i <= m:
      * 
-     * - If B contains an instantiation for Î± i , T , then A' i = T .
+     * - If B contains an instantiation for α i , T , then A' i = T .
      * - Otherwise, A' i = A i .
      * 
      * If F<A' 1 , ..., A' m > is not a well-formed type (that is, the type arguments are
@@ -901,23 +901,23 @@ public class TypeInference8 {
 	 * Constraint formulas are assertions of compatibility or subtyping that may involve
 	 * inference variables. The formulas may take one of the following forms:
 	 * 
-	 * - â€¹Expression â†’ T â€º: An expression is compatible in a loose invocation context
+	 * - <Expression -> T >: An expression is compatible in a loose invocation context
 	 *   with type T (Â§5.3).
 	 *   
-	 * - â€¹ S â†’ T â€º: A type S is compatible in a loose invocation context with type T (Â§5.3).
+	 * - < S -> T >: A type S is compatible in a loose invocation context with type T (Â§5.3).
 	 * 
-	 * - â€¹ S <: T â€º: A reference type S is a subtype of a reference type T (Â§4.10).
+	 * - < S <: T >: A reference type S is a subtype of a reference type T (Â§4.10).
 	 * 
-	 * - â€¹ S <= T â€º: A type argument S is contained by a type argument T (Â§4.5.1).
+	 * - < S <= T >: A type argument S is contained by a type argument T (Â§4.5.1).
 	 * 
-	 * - â€¹ S = T â€º: A reference type S is the same as a reference type T (Â§4.3.4), or a type
+	 * - < S = T >: A reference type S is the same as a reference type T (Â§4.3.4), or a type
 	 *   argument S is the same as type argument T .
 	 * 
-	 * - â€¹LambdaExpression â†’ throws T â€º: The checked exceptions thrown by the body of
+	 * - <LambdaExpression -> throws T >: The checked exceptions thrown by the body of
 	 *   the LambdaExpression are declared by the throws clause of the function type
 	 *   derived from T .
 	 *   
-	 * - â€¹MethodReference â†’ throws T â€º: The checked exceptions thrown by the referenced
+	 * - <MethodReference -> throws T >: The checked exceptions thrown by the referenced
 	 *   method are declared by the throws clause of the function type derived from T .
 	 */
 	static class ConstraintFormula {
@@ -956,31 +956,31 @@ public class TypeInference8 {
 	 * 
 	 * - false: No valid choice of inference variables exists.
 	 * 
-	 * - G< Î± 1 , ..., Î± n > = capture( G<A 1 , ..., A n > ): The variables Î± 1 , ..., Î± n represent the result
+	 * - G< α 1 , ..., α n > = capture( G<A 1 , ..., A n > ): The variables α 1 , ..., α n represent the result
 	 *   of capture conversion (Â§5.1.10) applied to G<A 1 , ..., A n > (where A 1 , ..., A n may be
 	 *   types or wildcards and may mention inference variables).
 	 *   
-	 * - throws Î±: The inference variable Î± appears in a throws clause.
+	 * - throws α: The inference variable α appears in a throws clause.
 	 * 
 	 * A bound is satisfied by an inference variable substitution if, after applying the
 	 * substitution, the assertion is true. The bound false can never be satisfied.
 	 * 
 	 * Some bounds relate an inference variable to a proper type. Let T be a proper type.
-	 * Given a bound of the form Î± = T or T = Î±, we say T is an instantiation of Î±. Similarly,
-	 * given a bound of the form Î± <: T , we say T is a proper upper bound of Î±, and given
-	 * a bound of the form T <: Î±, we say T is a proper lower bound of Î±.
+	 * Given a bound of the form α = T or T = α, we say T is an instantiation of α. Similarly,
+	 * given a bound of the form α <: T , we say T is a proper upper bound of α, and given
+	 * a bound of the form T <: α, we say T is a proper lower bound of α.
 	 * 
 	 * Other bounds relate two inference variables, or an inference variable to a type that
 	 * contains inference variables. Such bounds, of the form S = T or S <: T , are called
 	 * dependencies.
 	 * 
-	 * A bound of the form G< Î± 1 , ..., Î± n > = capture( G<A 1 , ..., A n > ) indicates that Î± 1 , ..., Î± n
+	 * A bound of the form G< α 1 , ..., α n > = capture( G<A 1 , ..., A n > ) indicates that α 1 , ..., α n
 	 * are placeholders for the results of capture conversion. This is necessary because
 	 * capture conversion can only be performed on a proper type, and the inference
 	 * variables in A 1 , ..., A n may not yet be resolved.
 	 * 
-	 * A bound of the form throws Î± is purely informational: it directs resolution to
-	 * optimize the instantiation of Î± so that, if possible, it is not a checked exception type.
+	 * A bound of the form throws α is purely informational: it directs resolution to
+	 * optimize the instantiation of α so that, if possible, it is not a checked exception type.
 	 */
 	static class Bound<T extends IJavaReferenceType> {
 		final T s, t;
@@ -1042,15 +1042,15 @@ public class TypeInference8 {
 	 * From Â§18.1.3:
 	 * 
 	 * When inference begins, a bound set is typically generated from a list of type
-	 * parameter declarations P 1 , ..., P p and associated inference variables Î± 1 , ..., Î± p . Such
+	 * parameter declarations P 1 , ..., P p and associated inference variables α 1 , ..., α p . Such
 	 * a bound set is constructed as follows. For each l (1 <= l <= p):
 	 * 
-	 * - If P l has no TypeBound, the bound Î± l <: Object appears in the set.
+	 * - If P l has no TypeBound, the bound α l <: Object appears in the set.
 	 * 
 	 * - Otherwise, for each type T delimited by & in the TypeBound, 
-	 *   the bound Î± l <: T[P 1 :=Î± 1 , ..., P p :=Î± p ] appears in the set; 
-	 *   if this results in no proper upper bounds for Î± l (only dependencies), 
-	 *   then the bound Î± l <: Object also appears in the set.
+	 *   the bound α l <: T[P 1 :=α 1 , ..., P p :=α p ] appears in the set; 
+	 *   if this results in no proper upper bounds for α l (only dependencies), 
+	 *   then the bound α l <: Object also appears in the set.
 	 */
 	BoundSet constructInitialSet(IRNode typeFormals) {
 		// Setup inference variables
@@ -1187,7 +1187,7 @@ public class TypeInference8 {
 			subtypeBounds.add(new SubtypeBound((IJavaReferenceType) s, (IJavaReferenceType) t));
 		}	
 		
-		// G< Î± 1 , ..., Î± n > = capture( G<A 1 , ..., A n > )
+		// G< α 1 , ..., α n > = capture( G<A 1 , ..., A n > )
 		void addCaptureBound(IJavaType s, IJavaType t) {
 			captures.add(new CaptureBound((IJavaDeclaredType) s, (IJavaDeclaredType) t));
 		}
@@ -1275,20 +1275,20 @@ public class TypeInference8 {
 		}
 		
 		/**
-		 *   - If Î± i has one or more proper lower bounds, L 1 , ..., L k , then T i = lub( L 1 , ..., L k ) (Â§4.10.4).
+		 *   - If α i has one or more proper lower bounds, L 1 , ..., L k , then T i = lub( L 1 , ..., L k ) (Â§4.10.4).
 		 *   
-		 *   - Otherwise, if the bound set contains throws Î± i , and the proper upper
-		 *     bounds of Î± i are, at most, Exception , Throwable , and Object , then T i = RuntimeException .
+		 *   - Otherwise, if the bound set contains throws α i , and the proper upper
+		 *     bounds of α i are, at most, Exception , Throwable , and Object , then T i = RuntimeException .
 		 *   
-		 *   - Otherwise, where Î± i has proper upper bounds U 1 , ..., U k , T i = glb( U 1 , ..., U k ) (Â§5.1.10).
+		 *   - Otherwise, where α i has proper upper bounds U 1 , ..., U k , T i = glb( U 1 , ..., U k ) (Â§5.1.10).
 		 *  
-		 *   The bounds Î± 1 = T 1 , ..., Î± n = T n are incorporated with the current bound set.
+		 *   The bounds α 1 = T 1 , ..., α n = T n are incorporated with the current bound set.
 		 * 
 		 *   If the result does not contain the bound false, then the result becomes the new bound set, and 
 		 *   resolution proceeds by selecting a new set of variables to instantiate (if necessary), as described above.
 		 * 
 		 *   Otherwise, the result contains the bound false, so a second attempt is made to
-		 *   instantiate { Î± 1 , ..., Î± n } by performing the step below.
+		 *   instantiate { α 1 , ..., α n } by performing the step below.
 		 * @param subset 
 		 */
 		BoundSet instantiateFromBounds(Set<InferenceVariable> subset) {
@@ -1364,17 +1364,17 @@ public class TypeInference8 {
 		/**
 		 *  then let Y 1 , ..., Y n be fresh type variables whose bounds are as follows:
 		 *  
-		 *   - For all i (1 <= i <= n), if Î± i has one or more proper lower bounds L 1 , ..., L k , then
+		 *   - For all i (1 <= i <= n), if α i has one or more proper lower bounds L 1 , ..., L k , then
 		 *     let the lower bound of Y i be lub( L 1 , ..., L k ); if not, then Y i has no lower bound.
 		 *   
-		 *   - For all i (1 <= i <= n), where Î± i has upper bounds U 1 , ..., U k , let the upper bound
-		 *     of Y i be glb( U 1 θ, ..., U k θ), where θ is the substitution [ Î± 1 := Y 1 , ..., Î± n := Y n ] .
+		 *   - For all i (1 <= i <= n), where α i has upper bounds U 1 , ..., U k , let the upper bound
+		 *     of Y i be glb( U 1 θ, ..., U k θ), where θ is the substitution [ α 1 := Y 1 , ..., α n := Y n ] .
 		 *   
 		 *   If the type variables Y 1 , ..., Y n do not have well-formed bounds (that is, a lower
 		 *   bound is not a subtype of an upper bound, or an intersection type is inconsistent), then resolution fails.
 		 *  
-		 *   Otherwise, for all i (1 <= i <= n), all bounds of the form G< ..., Î± i , ... > =
-		 *   capture( G< ... > ) are removed from the current bound set, and the bounds Î± 1 = Y 1 , ..., Î± n = Y n are incorporated.
+		 *   Otherwise, for all i (1 <= i <= n), all bounds of the form G< ..., α i , ... > =
+		 *   capture( G< ... > ) are removed from the current bound set, and the bounds α 1 = Y 1 , ..., α n = Y n are incorporated.
 		 *   
 		 *   If the result does not contain the bound false, then the result becomes the
 		 *   new bound set, and resolution proceeds by selecting a new set of variables to
@@ -1452,18 +1452,18 @@ public class TypeInference8 {
 	 * 
 	 * If every variable in V has an instantiation, then resolution succeeds and this procedure terminates.
 	 * 
-	 * Otherwise, let { Î± 1 , ..., Î± n } be a non-empty subset of uninstantiated variables in
-	 * V such that i) for all i (1 <= i <= n), if Î± i depends on the resolution of a variable Î²,
-	 * then either Î² has an instantiation or there is some j such that Î² = Î± j ; and ii) there
-	 * exists no non-empty proper subset of { Î± 1 , ..., Î± n } with this property. Resolution
-	 * proceeds by generating an instantiation for each of Î± 1 , ..., Î± n based on the bounds in the bound set:
+	 * Otherwise, let { α 1 , ..., α n } be a non-empty subset of uninstantiated variables in
+	 * V such that i) for all i (1 <= i <= n), if α i depends on the resolution of a variable Î²,
+	 * then either Î² has an instantiation or there is some j such that Î² = α j ; and ii) there
+	 * exists no non-empty proper subset of { α 1 , ..., α n } with this property. Resolution
+	 * proceeds by generating an instantiation for each of α 1 , ..., α n based on the bounds in the bound set:
 	 * 
-	 * - If the bound set does not contain a bound of the form G< ..., Î± i , ... > =
-	 *   capture( G< ... > ) for all i (1 <= i <= n), then a candidate instantiation T i is defined for each Î± i :
+	 * - If the bound set does not contain a bound of the form G< ..., α i , ... > =
+	 *   capture( G< ... > ) for all i (1 <= i <= n), then a candidate instantiation T i is defined for each α i :
 	 * 
 	 *   ...
 	 * 
-	 * - If the bound set contains a bound of the form G< ..., Î± i , ... > = capture( G< ... > ) for some i (1 <= i <= n), or;
+	 * - If the bound set contains a bound of the form G< ..., α i , ... > = capture( G< ... > ) for some i (1 <= i <= n), or;
 	 *   
 	 *   If the bound set produced in the step above contains the bound false;
 	 *   
@@ -1528,23 +1528,23 @@ public class TypeInference8 {
 		 * additional variables be resolved. Dependencies are specified as follows:
 		 * 
 		 * - Given a bound of one of the following forms, where T is either an inference variable Î² or a type that mentions Î²:
-		 *   - Î± = T
-		 *   - Î± <: T
-		 *   - T = Î±
-		 *   - T <: Î±
+		 *   - α = T
+		 *   - α <: T
+		 *   - T = α
+		 *   - T <: α
 		 * 
-		 *   If Î± appears on the left-hand side of another bound of the form G< ..., Î±, ... > =
-		 *   capture( G< ... > ), then Î² depends on the resolution of Î±. Otherwise, Î± depends on the resolution of Î².
+		 *   If α appears on the left-hand side of another bound of the form G< ..., α, ... > =
+		 *   capture( G< ... > ), then Î² depends on the resolution of α. Otherwise, α depends on the resolution of Î².
 		 * 
-		 * - An inference variable Î± appearing on the left-hand side of a bound of the form
-		 *   G< ..., Î±, ... > = capture( G< ... > ) depends on the resolution of every other inference
+		 * - An inference variable α appearing on the left-hand side of a bound of the form
+		 *   G< ..., α, ... > = capture( G< ... > ) depends on the resolution of every other inference
 		 *   variable mentioned in this bound (on both sides of the = sign).
 		 * 
-		 * - An inference variable Î± depends on the resolution of an inference variable Î² if
-		 *   there exists an inference variable Î³ such that Î± depends on the resolution of Î³ and
+		 * - An inference variable α depends on the resolution of an inference variable Î² if
+		 *   there exists an inference variable Î³ such that α depends on the resolution of Î³ and
 		 *   Î³ depends on the resolution of Î².
 		 * 
-		 * - An inference variable Î± depends on the resolution of itself.
+		 * - An inference variable α depends on the resolution of itself.
 		 */				
 		void recordDependencies(Set<? extends Bound<?>> bounds) {
 			final Set<InferenceVariable> temp = new HashSet<InferenceVariable>();
@@ -1796,19 +1796,19 @@ public class TypeInference8 {
 	/**
 	 * 18.2.1 Expression Compatibility Constraints
 	 * 
-	 * A constraint formula of the form â€¹Expression â†’ T â€º is reduced as follows:
+	 * A constraint formula of the form <Expression -> T > is reduced as follows:
 	 * 
 	 * - If T is a proper type, the constraint reduces to true if the expression is compatible
 	 *   in a loose invocation context with T (Â§5.3), and false otherwise.
 	 *   
 	 * - Otherwise, if the expression is a standalone expression (Â§15.2) of type S , the
-	 *   constraint reduces to â€¹ S â†’ T â€º.
+	 *   constraint reduces to < S -> T >.
 	 *   
 	 * - Otherwise, the expression is a poly expression (Â§15.2). The result depends on
 	 *   the form of the expression:
 	 * 
 	 *   - If the expression is a parenthesized expression of the form ( Expression' ) , the
-	 *     constraint reduces to â€¹Expression' â†’ T â€º.
+	 *     constraint reduces to <Expression' -> T >.
 	 *     
 	 *   - If the expression is a class instance creation expression or a method invocation
 	 *     expression, the constraint reduces to the bound set B 3 which would be used
@@ -1819,7 +1819,7 @@ public class TypeInference8 {
 	 *     between these new variables and the inference variables in T .
 	 *     
 	 *   - If the expression is a conditional expression of the form e 1 ? e 2 : e 3 , the
-	 *     constraint reduces to two constraint formulas, â€¹ e 2 â†’ T â€º and â€¹ e 3 â†’ T â€º.
+	 *     constraint reduces to two constraint formulas, < e 2 -> T > and < e 3 -> T >.
 	 *     
 	 *   - If the expression is a lambda expression or a method reference expression, the
 	 *     result is specified below.
@@ -1860,7 +1860,7 @@ public class TypeInference8 {
 	}
 
 	/**
-	 * A constraint formula of the form â€¹LambdaExpression â†’ T â€º, where T mentions at
+	 * A constraint formula of the form <LambdaExpression -> T >, where T mentions at
 	 * least one inference variable, is reduced as follows:
 	 * 
 	 * - If T is not a functional interface type (Â§9.8), the constraint reduces to false.
@@ -1875,23 +1875,23 @@ public class TypeInference8 {
 	 *   - Otherwise, the congruence of LambdaExpression with the target function type
 	 *     is asserted as follows:
 	 *     
-	 *     â€º If the number of lambda parameters differs from the number of parameter
+	 *     > If the number of lambda parameters differs from the number of parameter
 	 *       types of the function type, the constraint reduces to false.
 	 *       
-	 *     â€º If the lambda expression is implicitly typed and one or more of the function
+	 *     > If the lambda expression is implicitly typed and one or more of the function
 	 *       type's parameter types is not a proper type, the constraint reduces to false.
 	 *       
-	 *     â€º If the function type's result is void and the lambda body is neither a
+	 *     > If the function type's result is void and the lambda body is neither a
 	 *       statement expression nor a void-compatible block, the constraint reduces to false.
 	 *       
-	 *     â€º If the function type's result is not void and the lambda body is a block that
+	 *     > If the function type's result is not void and the lambda body is a block that
 	 *       is not value-compatible, the constraint reduces to false.
 	 *       
-	 *     â€º Otherwise, the constraint reduces to all of the following constraint formulas:
+	 *     > Otherwise, the constraint reduces to all of the following constraint formulas:
 	 *     
 	 *       Â» If the lambda parameters have explicitly declared types F 1 , ..., F n and the
 	 *         function type has parameter types G 1 , ..., G n , then i) for all i (1 <= i <= n),
-	 *         â€¹ F i = G i â€º, and ii) â€¹ T' <: T â€º.
+	 *         < F i = G i >, and ii) < T' <: T >.
 	 *         
 	 *       Â» If the function type's return type is a (non- void ) type R , assume the
 	 *         lambda's parameter types are the same as the function type's parameter
@@ -1902,16 +1902,16 @@ public class TypeInference8 {
 	 *           then false.
 	 *           
 	 *         - Otherwise, if R is not a proper type, then where the lambda body has the
-	 *           form Expression, the constraint â€¹Expression â†’ R â€º; or where the lambda
+	 *           form Expression, the constraint <Expression -> R >; or where the lambda
 	 *           body is a block with result expressions e 1 , ..., e m , for all i (1 <= i <= m),
-	 *           â€¹ e i â†’ R â€º.
+	 *           < e i -> R >.
 	 */
 	void reduceLambdaCompatibilityConstraints(BoundSet bounds, IRNode e, IJavaType t) {
 		throw new NotImplemented(); // TODO
 	}
 	
 	/** 
-	 * A constraint formula of the form â€¹MethodReference â†’ T â€º, where T mentions at	 
+	 * A constraint formula of the form <MethodReference -> T >, where T mentions at	 
 	 * least one inference variable, is reduced as follows:
 	 * 
 	 * - If T is not a functional interface type, or if T is a functional interface type that
@@ -1928,13 +1928,13 @@ public class TypeInference8 {
 	 *   - In the special case where n = k+1, the parameter of type P 1 is to act as the target
 	 *     reference of the invocation. The method reference expression necessarily
 	 *     has the form ReferenceType :: [TypeArguments] Identifier. The constraint
-	 *     reduces to â€¹ P 1 <: ReferenceTypeâ€º and, for all i (2 <= i <= n), â€¹ P i â†’ F i-1 â€º.
+	 *     reduces to < P 1 <: ReferenceType> and, for all i (2 <= i <= n), < P i -> F i-1 >.
 	 *     In all other cases, n = k, and the constraint reduces to, for all i (1 <= i <= n),
-	 *     â€¹ P i â†’ F i â€º.
+	 *     < P i -> F i >.
 	 *     
 	 *   - If the function type's result is not void , let R be its return type. Then, if the result
 	 *     of the potentially applicable compile-time declaration is void , the constraint
-	 *     reduces to false. Otherwise, the constraint reduces to â€¹ R ' â†’ R â€º, where R ' is
+	 *     reduces to false. Otherwise, the constraint reduces to < R ' -> R >, where R ' is
 	 *     the result of applying capture conversion (Â§5.1.10) to the return type of the
 	 *     potentially applicable compile-time declaration.
 	 *     
@@ -1946,9 +1946,9 @@ public class TypeInference8 {
 	 *     in Â§15.13.1. If there is no compile-time declaration for the method reference,
 	 *     the constraint reduces to false. Otherwise, there is a compile-time declaration,
 	 *     and:
-	 *     â€º If the result of the function type is void , the constraint reduces to true.
+	 *     > If the result of the function type is void , the constraint reduces to true.
 	 *     
-	 *     â€º Otherwise, if the method reference expression elides TypeArguments, and
+	 *     > Otherwise, if the method reference expression elides TypeArguments, and
 	 *       the compile-time declaration is a generic method, and the return type of
 	 *       the compile-time declaration mentions at least one of the method's type
 	 *       parameters, then the constraint reduces to the bound set B 3 which would be
@@ -1957,10 +1957,10 @@ public class TypeInference8 {
 	 *       inference variables, as well as dependencies between these new variables
 	 *       and the inference variables in T .
 	 *     
-	 *     â€º Otherwise, let R be the return type of the function type, and let R ' be the result
+	 *     > Otherwise, let R be the return type of the function type, and let R ' be the result
 	 *       of applying capture conversion (Â§5.1.10) to the return type of the invocation
 	 *       type (Â§15.12.2.6) of the compile-time declaration. If R ' is void , the constraint
-	 *       reduces to false; otherwise, the constraint reduces to â€¹ R ' â†’ R â€º.
+	 *       reduces to false; otherwise, the constraint reduces to < R ' -> R >.
 	*/
 	void reduceMethodReferenceCompatibilityConstraints(BoundSet bounds, IRNode e, IJavaType t) {
 		throw new NotImplemented(); // TODO
@@ -1969,16 +1969,16 @@ public class TypeInference8 {
 	/**
 	 * 18.2.2 Type Compatibility Constraints
 	 * 
-	 * A constraint formula of the form â€¹ S â†’ T â€º is reduced as follows:
+	 * A constraint formula of the form < S -> T > is reduced as follows:
 	 * 
 	 * - If S and T are proper types, the constraint reduces to true if S is compatible in a
 	 *   loose invocation context with T (Â§5.3), and false otherwise.
 	 * 
 	 * - Otherwise, if S is a primitive type, let S' be the result of applying boxing
-	 *   conversion (Â§5.1.7) to S . Then the constraint reduces to â€¹ S' â†’ T â€º.
+	 *   conversion (Â§5.1.7) to S . Then the constraint reduces to < S' -> T >.
 	 * 
 	 * - Otherwise, if T is a primitive type, let T' be the result of applying boxing
-	 *   conversion (Â§5.1.7) to T . Then the constraint reduces to â€¹ S = T' â€º.
+	 *   conversion (Â§5.1.7) to T . Then the constraint reduces to < S = T' >.
 	 * 
 	 * - Otherwise, if T is a parameterized type of the form G<T 1 , ..., T n > , and there exists
 	 *   no type of the form G< ... > that is a supertype of S , but the raw type G is a supertype
@@ -1989,7 +1989,7 @@ public class TypeInference8 {
 	 *   supertype of S , then the constraint reduces to true. (The notation [] k indicates
 	 *   an array type of k dimensions.)
 	 *   
-	 * - Otherwise, the constraint reduces to â€¹ S <: T â€º.
+	 * - Otherwise, the constraint reduces to < S <: T >.
 	 *   The fourth and fifth cases are implicit uses of unchecked conversion (Â§5.1.9).
 	 *   These, along with any use of unchecked conversion in the first case, may result in
 	 *   compile-time unchecked warnings, and may influence a method's invocation type
@@ -2029,13 +2029,13 @@ public class TypeInference8 {
 	/**
 	 * 18.2.3 Subtyping Constraints
 	 * 
-	 * A constraint formula of the form â€¹ S <: T â€º is reduced as follows:
+	 * A constraint formula of the form < S <: T > is reduced as follows:
 	 * - If S and T are proper types, the constraint reduces to true if S is a subtype of T
 	 *   (Â§4.10), and false otherwise.
 	 * - Otherwise, if S is the null type, the constraint reduces to true.
 	 * - Otherwise, if T is the null type, the constraint reduces to false.
-	 * - Otherwise, if S is an inference variable, Î±, the constraint reduces to the bound Î± <: T .
-	 * - Otherwise, if T is an inference variable, Î±, the constraint reduces to the bound S <: Î±.
+	 * - Otherwise, if S is an inference variable, α, the constraint reduces to the bound α <: T .
+	 * - Otherwise, if T is an inference variable, α, the constraint reduces to the bound S <: α.
 	 * - Otherwise, the constraint is reduced according to the form of T :
 	 * 
 	 *   - If T is a parameterized class or interface type, or an inner class type of a
@@ -2043,7 +2043,7 @@ public class TypeInference8 {
 	 *     the type arguments of T . Among the supertypes of S , a corresponding class
 	 *     or interface type is identified, with type arguments B 1 , ..., B n . If no such type
 	 *     exists, the constraint reduces to false. Otherwise, the constraint reduces to the
-	 *     following new constraints: for all i (1 <= i <= n), â€¹ B i <= A i â€º.
+	 *     following new constraints: for all i (1 <= i <= n), < B i <= A i >.
 	 *     
 	 *   - If T is any other class or interface type, then the constraint reduces to true if T
 	 *     is among the supertypes of S , and false otherwise.
@@ -2052,17 +2052,17 @@ public class TypeInference8 {
 	 *     a most specific type is identified, S'[] (this may be S itself). If no such array
 	 *     type exists, the constraint reduces to false. Otherwise:
 	 *     
-	 *     â€º If neither S' nor T' is a primitive type, the constraint reduces to â€¹ S' <: T' â€º.
-	 *     â€º Otherwise, the constraint reduces to true if S' and T' are the same primitive
+	 *     > If neither S' nor T' is a primitive type, the constraint reduces to < S' <: T' >.
+	 *     > Otherwise, the constraint reduces to true if S' and T' are the same primitive
 	 *       type, and false otherwise.
 	 *     
 	 *   - If T is a type variable, there are three cases:
-	 *     â€º If S is an intersection type of which T is an element, the constraint reduces to true.
-	 *     â€º Otherwise, if T has a lower bound, B , the constraint reduces to â€¹ S <: B â€º.
-	 *     â€º Otherwise, the constraint reduces to false.
+	 *     > If S is an intersection type of which T is an element, the constraint reduces to true.
+	 *     > Otherwise, if T has a lower bound, B , the constraint reduces to < S <: B >.
+	 *     > Otherwise, the constraint reduces to false.
 	 *     
 	 *   - If T is an intersection type, I 1 & ... & I n , the constraint reduces to the following
-	 *     new constraints: for all i (1 <= i <= n), â€¹ S <: I i â€º.
+	 *     new constraints: for all i (1 <= i <= n), < S <: I i >.
 	 */
 	private void reduceSubtypingConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
 		if (s.isProperType() && t.isProperType()) {
@@ -2112,23 +2112,23 @@ public class TypeInference8 {
 	}
 	
 	/**
-	 * A constraint formula of the form â€¹ S <= T â€º, where S and T are type arguments
+	 * A constraint formula of the form < S <= T >, where S and T are type arguments
 	 * (Â§4.5.1), is reduced as follows:
 	 * - If T is a type:
-	 *   - If S is a type, the constraint reduces to â€¹ S = T â€º.
+	 *   - If S is a type, the constraint reduces to < S = T >.
 	 *   - If S is a wildcard, the constraint reduces to false.
 	 *   
 	 * - If T is a wildcard of the form ? , the constraint reduces to true.
 	 * 
 	 * - If T is a wildcard of the form ? extends T' :
-	 *   - If S is a type, the constraint reduces to â€¹ S <: T' â€º.
-	 *   - If S is a wildcard of the form ? , the constraint reduces to â€¹ Object <: T' â€º.
-	 *   - If S is a wildcard of the form ? extends S' , the constraint reduces to â€¹ S' <: T' â€º.
-	 *   - If S is a wildcard of the form ? super S' , the constraint reduces to â€¹ Object = T' â€º.
+	 *   - If S is a type, the constraint reduces to < S <: T' >.
+	 *   - If S is a wildcard of the form ? , the constraint reduces to < Object <: T' >.
+	 *   - If S is a wildcard of the form ? extends S' , the constraint reduces to < S' <: T' >.
+	 *   - If S is a wildcard of the form ? super S' , the constraint reduces to < Object = T' >.
 	 *   
 	 * - If T is a wildcard of the form ? super T' :
-	 *   - If S is a type, the constraint reduces to â€¹ T' <: S â€º.
-	 *   - If S is a wildcard of the form ? super S' , the constraint reduces to â€¹ T' <: S' â€º.
+	 *   - If S is a type, the constraint reduces to < T' <: S >.
+	 *   - If S is a wildcard of the form ? super S' , the constraint reduces to < T' <: S' >.
 	 *   - Otherwise, the constraint reduces to false.
 	 */
 	private void reduceTypeArgContainmentConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
@@ -2179,20 +2179,20 @@ public class TypeInference8 {
 	/**
 	 * 18.2.4 Type Equality Constraints
 	 * 
-	 * A constraint formula of the form â€¹ S = T â€º, where S and T are types, is reduced as
+	 * A constraint formula of the form < S = T >, where S and T are types, is reduced as
 	 * follows:
 	 * 
 	 * - If S and T are proper types, the constraint reduces to true if S is the same as T
 	 *   (Â§4.3.4), and false otherwise.
 	 *   
-	 * - Otherwise, if S is an inference variable, Î±, the constraint reduces to the bound Î± = T .
-	 * - Otherwise, if T is an inference variable, Î±, the constraint reduces to the bound S = Î±.
+	 * - Otherwise, if S is an inference variable, α, the constraint reduces to the bound α = T .
+	 * - Otherwise, if T is an inference variable, α, the constraint reduces to the bound S = α.
 	 * 
 	 * - Otherwise, if S and T are class or interface types with the same erasure, where S
 	 *   has type arguments B 1 , ..., B n and T has type arguments A 1 , ..., A n , the constraint
-	 *   reduces to the following new constraints: for all i (1 <= i <= n), â€¹ B i = A i â€º.
+	 *   reduces to the following new constraints: for all i (1 <= i <= n), < B i = A i >.
 	 *   
-	 * - Otherwise, if S and T are array types, S'[] and T'[] , the constraint reduces to â€¹ S' = T' â€º.
+	 * - Otherwise, if S and T are array types, S'[] and T'[] , the constraint reduces to < S' = T' >.
 	 * - Otherwise, the constraint reduces to false.
 	 */
 	private void reduceTypeEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
@@ -2231,19 +2231,19 @@ public class TypeInference8 {
 	}
 	
 	/**
-	 * A constraint formula of the form â€¹ S = T â€º, where S and T are type arguments (Â§4.5.1),
+	 * A constraint formula of the form < S = T >, where S and T are type arguments (Â§4.5.1),
 	 * is reduced as follows:
 	 * 
 	 * - If S and T are types, the constraint is reduced as described above.
 	 * - If S has the form ? and T has the form ? , the constraint reduces to true.
-	 * - If S has the form ? and T has the form ? extends T' , the constraint reduces to â€¹ Object = T' â€º.
-	 * - If S has the form ? extends S' and T has the form ? , the constraint reduces to â€¹ S' = Object â€º.
+	 * - If S has the form ? and T has the form ? extends T' , the constraint reduces to < Object = T' >.
+	 * - If S has the form ? extends S' and T has the form ? , the constraint reduces to < S' = Object >.
 	 * 
 	 * - If S has the form ? extends S' and T has the form ? extends T' , the constraint
-	 *   reduces to â€¹ S' = T' â€º.
+	 *   reduces to < S' = T' >.
 	 *   
 	 * - If S has the form ? super S' and T has the form ? super T' , the constraint reduces
-	 *   to â€¹ S' = T' â€º.
+	 *   to < S' = T' >.
 	 *   
 	 * - Otherwise, the constraint reduces to false.
 	 * @param bounds 
@@ -2292,7 +2292,7 @@ public class TypeInference8 {
 	/**
 	 * 18.2.5 Checked Exception Constraints
 	 * 
-	 * A constraint formula of the form â€¹LambdaExpression â†’ throws T â€º is reduced as
+	 * A constraint formula of the form <LambdaExpression -> throws T > is reduced as
 	 * follows:
 	 * 
 	 * - If T is not a functional interface type (Â§9.8), the constraint reduces to false.
@@ -2322,7 +2322,7 @@ public class TypeInference8 {
 	 *     
 	 *   - If n > 0 , the constraint reduces to a set of subtyping constraints: for all i (1 <=
 	 *     i <= m), if X i is not a subtype of any proper type in the throws clause, then the
-	 *     constraints include, for all j (1 <= j <= n), â€¹ X i <: E j â€º. In addition, for all j (1 <= j
+	 *     constraints include, for all j (1 <= j <= n), < X i <: E j >. In addition, for all j (1 <= j
 	 *     <= n), the constraint reduces to the bound throws E j .
 	 */
 	private void reduceLambdaCheckedExceptionConstraints(BoundSet bounds, IRNode lambda, IJavaType t) {
@@ -2360,7 +2360,7 @@ public class TypeInference8 {
 	}
 
 	/**
-	 * A constraint formula of the form â€¹MethodReference â†’ throws T â€º is reduced as
+	 * A constraint formula of the form <MethodReference -> throws T > is reduced as
 	 * follows:
 	 * 
 	 * - If T is not a functional interface type, or if T is a functional interface type but
@@ -2387,7 +2387,7 @@ public class TypeInference8 {
 	 *     
 	 *   - If n > 0 , the constraint reduces to a set of subtyping constraints: for all i (1 <=
 	 *     i <= m), if X i is not a subtype of any proper type in the throws clause, then the
-	 *     constraints include, for all j (1 <= j <= n), â€¹ X i <: E j â€º. In addition, for all j (1 <= j
+	 *     constraints include, for all j (1 <= j <= n), < X i <: E j >. In addition, for all j (1 <= j
 	 *     <= n), the constraint reduces to the bound throws E j .
 	 */
 	private void reduceMethodRefCheckedExceptionConstraints(BoundSet bounds, IRNode ref, IJavaType t) {
