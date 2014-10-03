@@ -8,6 +8,8 @@ import java.util.*;
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 
+import com.surelogic.ast.java.operator.ITypeFormalNode;
+
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IROutput;
@@ -30,7 +32,7 @@ public class TypeInference8 {
 
 	// TODO how to distinguish from each other
 	// TODO how to keep from polluting the normal caches?
-	static class InferenceVariable extends JavaReferenceType {
+	static class InferenceVariable extends JavaReferenceType implements IJavaTypeFormal {
 		final IRNode formal;
 		int index;
 		int lowlink;
@@ -52,6 +54,25 @@ public class TypeInference8 {
 		@Override
 		void writeValue(IROutput out) throws IOException {
 			throw new UnsupportedOperationException();
+		}
+
+		public IJavaReferenceType getLowerBound() {
+			return null;
+		}
+		public IJavaReferenceType getUpperBound(ITypeEnvironment te) {
+			return null;
+		}
+		public ITypeFormalNode getNode() {
+			throw new UnsupportedOperationException();
+		}
+		public IRNode getDeclaration() {
+			return null;
+		}
+		public IJavaReferenceType getExtendsBound(ITypeEnvironment te) {
+			return null;
+		}
+		public IJavaReferenceType getExtendsBound() {
+			throw new UnsupportedOperationException();
 		}		
 	}
 	
@@ -63,7 +84,7 @@ public class TypeInference8 {
 	 * follows:
 	 * 
 	 * â€¢ Where P 1 , ..., P p (p â‰¥ 1) are the type parameters of m , let Î± 1 , ..., Î± p be inference
-	 *   variables, and let Î¸ be the substitution [P 1 :=Î± 1 , ..., P p :=Î± p ] .
+	 *   variables, and let θ be the substitution [P 1 :=Î± 1 , ..., P p :=Î± p ] .
 	 * 
 	 * â€¢ An initial bound set, B 0 , is constructed from the declared bounds of P 1 , ..., P p , as
 	 *   described in Â§18.1.3.
@@ -109,18 +130,18 @@ public class TypeInference8 {
 		 *     no need to proceed with inference.
 		 *     
 		 *     Otherwise, C includes, for all i (1 â‰¤ i â‰¤ k) where e i is pertinent to applicability,
-		 *     â€¹ e i â†’ F i Î¸â€º.
+		 *     â€¹ e i â†’ F i θâ€º.
 		 *     
 		 *   â€“ To test for applicability by loose invocation: 
 		 *   
 		 *     If k â‰  n, the method is not applicable and there is no need to proceed with inference.
 		 *     Otherwise, C includes, for all i (1 â‰¤ i â‰¤ k) where e i is pertinent to applicability,
-		 *     â€¹ e i â†’ F i Î¸â€º.
+		 *     â€¹ e i â†’ F i θâ€º.
 		 *   
 		 *   â€“ To test for applicability by variable arity invocation:
 		 *   
 		 *     Let F' 1 , ..., F' k be the first k variable arity parameter types of m (Â§15.12.2.4). C
-		 *     includes, for all i (1 â‰¤ i â‰¤ k) where e i is pertinent to applicability, â€¹ e i â†’ F' i Î¸â€º.
+		 *     includes, for all i (1 â‰¤ i â‰¤ k) where e i is pertinent to applicability, â€¹ e i â†’ F' i θâ€º.
 		 */		 
 		if (kind != InvocationKind.VARARGS && m.numFormals != call.args.length) {
 			return null;
@@ -167,7 +188,7 @@ public class TypeInference8 {
      * corresponding most specific applicable generic method m , the process to infer the
      * invocation type (Â§15.12.2.6) of the chosen method is as follows:
      * 
-     * â€¢ Let Î¸ be the substitution [P 1 :=Î± 1 , ..., P p :=Î± p ] defined in Â§18.5.1 to replace the
+     * â€¢ Let θ be the substitution [P 1 :=Î± 1 , ..., P p :=Î± p ] defined in Â§18.5.1 to replace the
      *   type parameters of m with inference variables.
      * â€¢ Let B 2 be the bound set produced by reduction in order to demonstrate that m is
      *   applicable in Â§18.5.1. (While it was necessary in Â§18.5.1 to demonstrate that the
@@ -215,16 +236,16 @@ public class TypeInference8 {
      * â€¢ Finally, if B 4 does not contain the bound false, the inference variables in B 4 are resolved.
      * 
      *   If resolution succeeds with instantiations T 1 , ..., T p for inference variables Î± 1 , ...,
-     *   Î± p , let Î¸' be the substitution [P 1 := T 1 , ..., P p := T p ] . Then:
+     *   Î± p , let θ' be the substitution [P 1 := T 1 , ..., P p := T p ] . Then:
      *   
      *   â€“ If unchecked conversion was necessary for the method to be applicable during
      *     constraint set reduction in Â§18.5.1, then the parameter types of the invocation
-     *     type of m are obtained by applying Î¸' to the parameter types of m 's type, and
+     *     type of m are obtained by applying θ' to the parameter types of m 's type, and
      *     the return type and thrown types of the invocation type of m are given by the
      *     erasure of the return type and thrown types of m 's type.
      *     
      *   â€“ If unchecked conversion was not necessary for the method to be applicable,
-     *     then the invocation type of m is obtained by applying Î¸' to the type of m .
+     *     then the invocation type of m is obtained by applying θ' to the type of m .
      * 
      *   If B 4 contains the bound false, or if resolution fails, then a compile-time error occurs.
 */
@@ -259,7 +280,7 @@ public class TypeInference8 {
 			reduceConstraintFormula(b_3, new ConstraintFormula(tEnv.computeErasure(r), FormulaConstraint.IS_COMPATIBLE, t));
 			return b_3;
 		}
-	    /*   â€“ Otherwise, if R Î¸ is a parameterized type, G<A 1 , ..., A n > , and one of A 1 , ..., A n is
+	    /*   â€“ Otherwise, if R θ is a parameterized type, G<A 1 , ..., A n > , and one of A 1 , ..., A n is
 	     *     a wildcard, then, for fresh inference variables Î² 1 , ..., Î² n , the constraint formula
 	     *     â€¹ G< Î² 1 , ..., Î² n > â†’ T â€º is reduced and incorporated, along with the bound 
 	     *     G< Î² 1 , ..., Î² n > = capture( G<A 1 , ..., A n > ), with B 2 .
@@ -279,7 +300,7 @@ public class TypeInference8 {
 			b_3.addInferenceVariables(null); // TODO
 			return b_3;
 		}
-	    /*   â€“ Otherwise, if R Î¸ is an inference variable Î±, and one of the following is true:
+	    /*   â€“ Otherwise, if R θ is an inference variable Î±, and one of the following is true:
 	     *     
 	     *     ... see below
 	     *       
@@ -358,7 +379,7 @@ public class TypeInference8 {
 			}
 		}
 		/*
-	     *   â€“ Otherwise, the constraint formula â€¹ R Î¸ â†’ T â€º is reduced and incorporated with B 2 .	 
+	     *   â€“ Otherwise, the constraint formula â€¹ R θ â†’ T â€º is reduced and incorporated with B 2 .	 
 		 */
 		reduceConstraintFormula(b_3, new ConstraintFormula(r_subst, FormulaConstraint.IS_COMPATIBLE, t));
 		return b_3;
@@ -372,7 +393,7 @@ public class TypeInference8 {
      * types of m ; if m is applicable by variable arity invocation, let F 1 , ..., F k the first k
      * variable arity parameter types of m (Â§15.12.2.4). Then:
      * 
-     * â€“ For all i (1 â‰¤ i â‰¤ k), if e i is not pertinent to applicability, C contains â€¹ e i â†’ F i Î¸â€º.
+     * â€“ For all i (1 â‰¤ i â‰¤ k), if e i is not pertinent to applicability, C contains â€¹ e i â†’ F i θâ€º.
      */
 	private Set<ConstraintFormula> createInitialConstraints(CallState call, MethodBinding m) {
 		final Set<ConstraintFormula> rv = new HashSet<ConstraintFormula>();
@@ -392,9 +413,9 @@ public class TypeInference8 {
 	 * â€“ For all i (1 â‰¤ i â‰¤ k), additional constraints may be included, depending on the
 	 *   form of e i :
 	 *   
-	 *   â€º If e i is a LambdaExpression, C contains â€¹LambdaExpression â†’ throws F i Î¸â€º.
+	 *   â€º If e i is a LambdaExpression, C contains â€¹LambdaExpression â†’ throws F i θâ€º.
 	 *   
-	 *   â€º If e i is a MethodReference, C contains â€¹MethodReference â†’ throws F i Î¸â€º.
+	 *   â€º If e i is a MethodReference, C contains â€¹MethodReference â†’ throws F i θâ€º.
 	 *   
 	 *   â€º If e i is a poly class instance creation expression (Â§15.9) or a poly method
 	 *     invocation expression (Â§15.12), C contains all the constraint formulas that
@@ -685,10 +706,11 @@ public class TypeInference8 {
 		}
 		if (b.isFalse) {
 			return null; // No valid parameterization
-		}
+		}		
+		final BoundSet result = resolve(b);		
 		List<IJavaType> a_prime = new ArrayList<IJavaType>(f.getTypeParameters().size());
 		for(i=0; i<f.getTypeParameters().size(); i++) {
-			IJavaType t = b.instantiations.get(f_alpha.getTypeParameters().get(i));
+			IJavaType t = result.instantiations.get(f_alpha.getTypeParameters().get(i));
 			a_prime.add(t != null ? t : f.getTypeParameters().get(i));
 		}
 		IJavaDeclaredType f_prime = JavaTypeFactory.getDeclaredType(f.getDeclaration(), a_prime, f.getOuterType());
@@ -765,88 +787,112 @@ public class TypeInference8 {
      * first method more specific than the second.
      * 
      * Let m 1 be the first method and m 2 be the second method. Where m 2 has type
-     * parameters P 1 , ..., P p , let Î± 1 , ..., Î± p be inference variables, and let Î¸ be the
-     * substitution [P 1 :=Î± 1 , ..., P p :=Î± p ] .
+     * parameters P 1 , ..., P p , let α 1 , ..., α p be inference variables, and let θ be the
+     * substitution [P 1 :=α 1 , ..., P p :=α p ] .
      * 
      * Let e 1 , ..., e k be the argument expressions of the corresponding invocation. Then:
      * 
-     * â€¢ If m 1 and m 2 are applicable by strict or loose invocation (Â§15.12.2.2, Â§15.12.2.3),
+     * • If m 1 and m 2 are applicable by strict or loose invocation (§15.12.2.2, §15.12.2.3),
      *   then let S 1 , ..., S k be the formal parameter types of m 1 , and let T 1 , ..., T k be the
-     *   result of Î¸ applied to the formal parameter types of m 2 .
+     *   result of θ applied to the formal parameter types of m 2 .
      * 
-     * â€¢ If m 1 and m 2 are applicable by variable arity invocation (Â§15.12.2.4), then let S 1 , ...,
+     * • If m 1 and m 2 are applicable by variable arity invocation (§15.12.2.4), then let S 1 , ...,
      *   S k be the first k variable arity parameter types of m 1 , and let T 1 , ..., T k be the result
-     *   of Î¸ applied to the first k variable arity parameter types of m 2 .
+     *   of θ applied to the first k variable arity parameter types of m 2 .
      * 
-     *     Note that no substitution is applied to S 1 , ..., S k ; even if m 1 is generic, the type parameters
-     *     of m 1 are treated as type variables, not inference variables.
+     *   Note that no substitution is applied to S 1 , ..., S k ; even if m 1 is generic, the type parameters
+     *   of m 1 are treated as type variables, not inference variables.
      * 
      * The process to determine if m 1 is more specific than m 2 is as follows:
      * 
-     * â€¢ First, an initial bound set, B , is constructed from the declared bounds of P 1 , ...,
-     *   P p , as specified in Â§18.1.3.
+     * • First, an initial bound set, B , is constructed from the declared bounds of P 1 , ...,
+     *   P p , as specified in §18.1.3.
      * 
-     * â€¢ Second, for all i (1 â‰¤ i â‰¤ k), a set of constraint formulas or bounds is generated.
-     *   
+     * • Second, for all i (1 ≤ i ≤ k), a set of constraint formulas or bounds is generated.
      *   If T i is a proper type, the result is true if S i is more specific than T i for e i
-     *   (Â§15.12.2.5), and false otherwise. (Note that S i is always a proper type.)
-     *   
-     *   Otherwise, if T i is not a functional interface type, the constraint formula â€¹ S i <:
-     *   T i â€º is generated.
+     *   (§15.12.2.5), and false otherwise. (Note that S i is always a proper type.)
+     * 
+     *   Otherwise, if T i is not a functional interface type, the constraint formula ‹ S i <:
+     *   T i › is generated.
      * 
      *   Otherwise, T i is a parameterization of a functional interface, I . It must be
      *   determined whether S i satisfies the following five constraints:
+     * 
+     *   – S i is a functional interface type.
      *   
-     *   â€“ S i is a functional interface type.
-     *   â€“ S i is not a superinterface of I , nor a parameterization of a superinterface of I .
-     *   â€“ S i is not a subinterface of I , nor a parameterization of a subinterface of I .
-     *   â€“ If S i is an intersection type, at least one element of the intersection is not a
-     *   superinterface of I , nor a parameterization of a superinterface of I .
-     *   â€“ If S i is an intersection type, no element of the intersection is a subinterface of
-     *   I , nor a parameterization of a subinterface of I .
+     *   – S i is not a superinterface of I , nor a parameterization of a superinterface of I .
+     *   
+     *   – S i is not a subinterface of I , nor a parameterization of a subinterface of I .
+     *   
+     *   – If S i is an intersection type, at least one element of the intersection is not a
+     *     superinterface of I , nor a parameterization of a superinterface of I .
+     *     
+     *   – If S i is an intersection type, no element of the intersection is a subinterface of
+     *     I , nor a parameterization of a subinterface of I .
+     *     
      *   If all of the above are true, then the following constraint formulas or bounds are
      *   generated (where U 1 ... U k and R 1 are the parameter types and return type of the
      *   function type of the capture of S i , and V 1 ... V k and R 2 are the parameter types and
      *   return type of the function type of T i ):
-     *   â€“ If e i is an explicitly typed lambda expression:
-     *   â€º If R 2 is void , true.
-     *   â€º Otherwise, if R 1 and R 2 are functional interface types, and neither interface
-     *   is a subinterface of the other, then these rules are applied recursively to R 1
-     *   and R 2 , for each result expression in e i .
-     *   â€º Otherwise, if R 1 is a primitive type and R 2 is not, and each result expression
-     *   of e i is a standalone expression (Â§15.2) of a primitive type, true.
-     *   â€º Otherwise, if R 2 is a primitive type and R 1 is not, and each result expression of
-     *   e i is either a standalone expression of a reference type or a poly expression,
-     *   true.
-     *   â€º Otherwise, â€¹ R 1 <: R 2 â€º.
-     *   â€“ If e i is an exact method reference:
-     *   â€º For all j (1 â‰¤ j â‰¤ k), â€¹ U j = V j â€º.
-     *   â€º If R 2 is void , true.
-     *   â€º Otherwise, if R 1 is a primitive type and R 2 is not, and the compile-time
-     *   declaration for e i has a primitive return type, true.
-     *   â€º Otherwise if R 2 is a primitive type and R 1 is not, and the compile-time
-     *   declaration for e i has a reference return type, true.
-     *   â€º Otherwise, â€¹ R 1 <: R 2 â€º.
-     *   â€“ If e i is a parenthesized expression, these rules are applied recursively to the
-     *   contained expression.
      *   
-     *   â€“ If e i is a conditional expression, these rules are applied recursively to each of
-     *   the second and third operands.
-     *   â€“ Otherwise, false.
-     *   If the five constraints on S i are not satisfied, the constraint formula â€¹ S i <: T i â€º
+     *   – If e i is an explicitly typed lambda expression:
+     *   
+     *     › If R 2 is void , true.
+     *     
+     *     › Otherwise, if R 1 and R 2 are functional interface types, and neither interface
+     *       is a subinterface of the other, then these rules are applied recursively to R 1
+     *       and R 2 , for each result expression in e i .
+     *       
+     *     › Otherwise, if R 1 is a primitive type and R 2 is not, and each result expression
+     *       of e i is a standalone expression (§15.2) of a primitive type, true.
+     *
+     *     › Otherwise, if R 2 is a primitive type and R 1 is not, and each result expression of
+     *       e i is either a standalone expression of a reference type or a poly expression, true.
+     *       
+     *     › Otherwise, ‹ R 1 <: R 2 ›.
+     *     
+     *   – If e i is an exact method reference:
+     *     
+     *     › For all j (1 ≤ j ≤ k), ‹ U j = V j ›.
+     * 
+     *     › If R 2 is void , true.
+     *     
+     *     › Otherwise, if R 1 is a primitive type and R 2 is not, and the compile-time
+     *       declaration for e i has a primitive return type, true.
+     *       
+     *     › Otherwise if R 2 is a primitive type and R 1 is not, and the compile-time
+     *       declaration for e i has a reference return type, true.
+     *       
+     *     › Otherwise, ‹ R 1 <: R 2 ›.
+     *     
+     *   – If e i is a parenthesized expression, these rules are applied recursively to the
+     *     contained expression.
+     *     
+     *   – If e i is a conditional expression, these rules are applied recursively to each of
+     *     the second and third operands.
+     *     
+     *   – Otherwise, false.
+     * 
+     *   If the five constraints on S i are not satisfied, the constraint formula ‹ S i <: T i ›
      *   is generated instead.
-     *   â€¢ Third, if m 2 is applicable by variable arity invocation and has k+1 parameters,
+     *   
+     * • Third, if m 2 is applicable by variable arity invocation and has k+1 parameters,
      *   then where S k+1 is the k+1'th variable arity parameter type of m 1 and T k+1 is the
-     *   result of Î¸ applied to the k+1'th variable arity parameter type of m 2 , the constraint
-     *   â€¹ S k+1 <: T k+1 â€º is generated.
-     *   â€¢ Fourth, the generated bounds and constraint formulas are reduced and
+     *   result of θ applied to the k+1'th variable arity parameter type of m 2 , the constraint
+     *   ‹ S k+1 <: T k+1 › is generated.
+     *   
+     * • Fourth, the generated bounds and constraint formulas are reduced and
      *   incorporated with B to produce a bound set B' .
+     * 
      *   If B' does not contain the bound false, and resolution of all the inference variables
      *   in B' succeeds, then m 1 is more specific than m 2 .
+     *   
      *   Otherwise, m 1 is not more specific than m 2 .
 	 */
-	void inferForMoreSpecificMethod() {
-		
+	void inferForMoreSpecificMethod(CallState call, MethodBinding m_1, InvocationKind kind, MethodBinding m_2) {
+		if (m_2.numTypeFormals <= 0) {
+			return;
+		}
 	}
 	
 	/**
@@ -1322,7 +1368,7 @@ public class TypeInference8 {
 		 *     let the lower bound of Y i be lub( L 1 , ..., L k ); if not, then Y i has no lower bound.
 		 *   
 		 *   â€“ For all i (1 â‰¤ i â‰¤ n), where Î± i has upper bounds U 1 , ..., U k , let the upper bound
-		 *     of Y i be glb( U 1 Î¸, ..., U k Î¸), where Î¸ is the substitution [ Î± 1 := Y 1 , ..., Î± n := Y n ] .
+		 *     of Y i be glb( U 1 θ, ..., U k θ), where θ is the substitution [ Î± 1 := Y 1 , ..., Î± n := Y n ] .
 		 *   
 		 *   If the type variables Y 1 , ..., Y n do not have well-formed bounds (that is, a lower
 		 *   bound is not a subtype of an upper bound, or an intersection type is inconsistent), then resolution fails.
@@ -2359,5 +2405,23 @@ public class TypeInference8 {
     		}
 		}
 		throw new NotImplemented(); // TODO
+	}
+	
+	static class TypeSubstitution extends AbstractTypeSubstitution {
+		final Map<IJavaTypeFormal, ? extends IJavaType> subst;
+		
+		<T extends IJavaType> TypeSubstitution(IBinder b, Map<IJavaTypeFormal, T> s) {
+			super(b);
+			subst = s;
+		}
+		
+		@Override
+		public IJavaType get(IJavaTypeFormal jtf) {
+			return subst.get(jtf);
+		}
+		@Override
+		protected <V> V process(IJavaTypeFormal jtf, Process<V> processor) {
+			throw new UnsupportedOperationException();
+		}		
 	}
 }
