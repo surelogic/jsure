@@ -252,13 +252,30 @@ public abstract class AbstractBinder implements IBinder {
   
   private boolean createMapping(Map<IJavaType, IJavaType> map, IJavaType t, IJavaType tt) {	  
 	  if (t instanceof IJavaTypeFormal) {
-		  map.put(t, tt);
+		  if (tt instanceof IJavaWildcardType) {
+			  IJavaTypeFormal tf = (IJavaTypeFormal) t;
+			  IJavaReferenceType tBound = tf.getExtendsBound(getTypeEnvironment());
+			  IJavaWildcardType wtt = (IJavaWildcardType) tt;
+			  
+			  if (wtt.getUpperBound() != null) {
+				  map.put(t, new TypeUtils(getTypeEnvironment()).getLowestUpperBound(wtt.getUpperBound(), tBound));
+			  }
+			  else if (wtt.getLowerBound() != null) {
+				  // TODO is this right?
+				  map.put(t, new TypeUtils(getTypeEnvironment()).getGreatestLowerBound(wtt.getLowerBound(), tBound));
+			  }
+			  else {
+				  map.put(t, tBound);
+			  }
+		  } else {
+			  map.put(t, tt); // Assume that it matches tBound
+		  }
 	  } 
-	  else if (t instanceof IJavaDeclaredType) {
-		  IJavaDeclaredType dt = (IJavaDeclaredType) t;
-		  if (tt instanceof IJavaDeclaredType) {
+	  else if (tt instanceof IJavaDeclaredType) {
+		  IJavaDeclaredType dtt = (IJavaDeclaredType) tt;
+		  if (t instanceof IJavaDeclaredType) {
 			  // Check if the same
-			  IJavaDeclaredType dtt = (IJavaDeclaredType) tt;
+			  IJavaDeclaredType dt = (IJavaDeclaredType) t;
 			  if (dt.getDeclaration().equals(dtt.getDeclaration())) {
 				  int i=0;
 				  for(IJavaType t2 : dt.getTypeParameters()) {
@@ -271,8 +288,39 @@ public abstract class AbstractBinder implements IBinder {
 			  } else {
 				  return false;
 			  }
+		  } else {
+			  return false;
 		  }
-	  } else {
+	  } else if (tt instanceof IJavaWildcardType) {
+		  final IJavaWildcardType wtt = (IJavaWildcardType) tt;
+		  if (!(t instanceof IJavaDeclaredType)) {
+			  return false; // TODO What is this?
+		  }
+		  IJavaDeclaredType dt = (IJavaDeclaredType) t;
+		  if (wtt.getUpperBound() != null) {
+			  if (dt.isSubtype(getTypeEnvironment(), wtt.getUpperBound())) {				  
+				  for(IJavaType t2 : dt.getTypeParameters()) {
+					  createMapping(map, t2, JavaTypeFactory.wildcardType);
+				  }
+			  } else {
+				  return false; // TODO
+			  }
+		  }
+		  else if (wtt.getLowerBound() != null) {
+			  if (wtt.getLowerBound().isSubtype(getTypeEnvironment(), dt)) {
+				  for(IJavaType t2 : dt.getTypeParameters()) {
+					  createMapping(map, t2, JavaTypeFactory.wildcardType);
+				  }
+			  } else {
+				  return false; // TODO
+			  }
+		  }  
+		  else { // Unbounded			 
+			  for(IJavaType t2 : dt.getTypeParameters()) {
+				  createMapping(map, t2, tt);
+			  }
+		  }		  
+ 	  } else {
 		  return false;
 	  }
 	  return true;
