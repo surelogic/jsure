@@ -1,8 +1,6 @@
 package edu.cmu.cs.fluid.java.bind;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class SimpleTypeSubstitution extends AbstractTypeSubstitution {
 
@@ -46,4 +44,12 @@ public class SimpleTypeSubstitution extends AbstractTypeSubstitution {
 		return null;
 	}
 
+	public static <T extends IJavaType> SimpleTypeSubstitution create(IBinder b, Map<IJavaTypeFormal, T> subst) {
+		List<IJavaTypeFormal> keys = new ArrayList<IJavaTypeFormal>(subst.keySet());
+		List<T> actuals = new ArrayList<>();
+		for(IJavaTypeFormal k : keys) {
+			actuals.add(subst.get(k));
+		}
+		return new SimpleTypeSubstitution(b, keys, actuals);
+	}
 }
