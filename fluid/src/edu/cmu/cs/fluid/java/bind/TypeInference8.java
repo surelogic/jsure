@@ -1734,10 +1734,6 @@ public class TypeInference8 {
 			}
 		}
 	}
-	
-	private boolean isStandaloneExpr(IRNode e) {
-		throw new NotImplemented(); // TODO
-	}
  	
 	static boolean isInferenceVariable(IJavaType t) {
 		return t instanceof InferenceVariable;
@@ -1753,8 +1749,29 @@ public class TypeInference8 {
 	 * of S
 	 */
 	boolean hasRawSuperTypeOf(IJavaType s, IJavaType t) {
-		//tEnv.isRawSubType(s, t);
-		throw new NotImplemented(); // TODO
+		if (t instanceof IJavaDeclaredType) {
+			IJavaDeclaredType g = (IJavaDeclaredType) t;
+			if (g.getTypeParameters().size() > 0) { 
+				// g is parameterized
+				return onlyHasRawSuperTypeOf(s, g.getDeclaration());
+			}
+		}
+		return false;
+	}
+	
+	boolean onlyHasRawSuperTypeOf(IJavaType s, IRNode g) {
+		if (s instanceof IJavaDeclaredType) {
+			IJavaDeclaredType gs = (IJavaDeclaredType) s;
+			if (gs.getDeclaration().equals(g) && gs.isRawType(tEnv)) {
+				return true;
+			}
+		}
+		for(IJavaType st : s.getSupertypes(tEnv)) {
+			if (onlyHasRawSuperTypeOf(st, g)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -1843,7 +1860,7 @@ public class TypeInference8 {
 				bounds.addFalse();
 			}
 		}
-		else if (isStandaloneExpr(e)) {
+		else if (!mb.isPolyExpression(e)) {
 			IJavaType s = tEnv.getBinder().getJavaType(e);
 			reduceTypeCompatibilityConstraints(bounds, s, t);
 		} else {
@@ -2101,7 +2118,21 @@ public class TypeInference8 {
 			}
 		}
 		else if (t instanceof IJavaArrayType) {
-			throw new NotImplemented(); // TODO
+			final IJavaArrayType s_primeArray = findMostSpecificArraySuperType(s);
+			if (s_primeArray == null) {
+				bounds.addFalse();
+			} else {
+				final IJavaArrayType t_primeArray = (IJavaArrayType) t;
+				final IJavaType s_prime = s_primeArray.getElementType();
+				final IJavaType t_prime = t_primeArray.getElementType();
+				if (s_prime instanceof IJavaPrimitiveType || t_prime instanceof IJavaPrimitiveType) {
+					if (!s_prime.equals(t_prime)) {
+						bounds.addFalse();
+					}
+				} else {
+					reduceSubtypingConstraints(bounds, s_prime, t_prime);	
+				}
+			}
 		}
 		else if (t instanceof IJavaTypeVariable) {
 			IJavaTypeVariable tv = (IJavaTypeVariable) t;
@@ -2121,6 +2152,14 @@ public class TypeInference8 {
 		}
 	}
 	
+	private IJavaArrayType findMostSpecificArraySuperType(IJavaType s) {
+		if (s instanceof IJavaArrayType) {
+			return (IJavaArrayType) s;
+		}
+		// What other cases are there?
+		throw new NotImplemented(); // TODO
+	}
+
 	/**
 	 * A constraint formula of the form < S <= T >, where S and T are type arguments
 	 * (Â§4.5.1), is reduced as follows:
