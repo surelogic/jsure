@@ -39,6 +39,7 @@ import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -1310,6 +1311,9 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 	}
 	
 	boolean usesUnsupportedJava8Features(IRNode cu) {
+		if (AbstractJavaBinder.processJava8) {
+			return false;
+		}
 		for(IRNode n : JJNode.tree.topDown(cu)) {
 			Operator op = JJNode.tree.getOperator(n);
 			if (op instanceof UnsupportedJava8Feature) {
