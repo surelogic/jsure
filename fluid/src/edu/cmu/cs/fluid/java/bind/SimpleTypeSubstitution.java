@@ -46,7 +46,7 @@ public class SimpleTypeSubstitution extends AbstractTypeSubstitution {
 
 	public static <T extends IJavaType> SimpleTypeSubstitution create(IBinder b, Map<IJavaTypeFormal, T> subst) {
 		List<IJavaTypeFormal> keys = new ArrayList<IJavaTypeFormal>(subst.keySet());
-		List<T> actuals = new ArrayList<>();
+		List<T> actuals = new ArrayList<T>();
 		for(IJavaTypeFormal k : keys) {
 			actuals.add(subst.get(k));
 		}
