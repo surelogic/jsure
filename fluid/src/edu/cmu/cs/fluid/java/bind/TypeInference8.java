@@ -147,7 +147,8 @@ public class TypeInference8 {
 			return null;
 		}		
 		final BoundSet b_2 = new BoundSet(b_1);
-		IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.args.length, false);
+		final IJavaTypeSubstitution theta = b_2.getInitialVarSubst();
+		final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.args.length, false);
 		for(int i=0; i<call.args.length; i++) {
 			final IRNode e_i = call.args[i];
 			if (mb.isPertinentToApplicability(m, call.getNumTypeArgs() > 0, e_i)) {
@@ -163,8 +164,7 @@ public class TypeInference8 {
 						return null;
 					}
 				}
-				// TODO substitution!?!
-				reduceConstraintFormula(b_2, new ConstraintFormula(e_i, FormulaConstraint.IS_COMPATIBLE, formalTypes[i]));
+				reduceConstraintFormula(b_2, new ConstraintFormula(e_i, FormulaConstraint.IS_COMPATIBLE, formalTypes[i].subst(theta)));
 			}
 		}
 		/*   - C is reduced (Â§18.2) and the resulting bounds are incorporated with B 1 to produce
@@ -250,8 +250,9 @@ public class TypeInference8 {
      *   If B 4 contains the bound false, or if resolution fails, then a compile-time error occurs.
 */
 	void inferForInvocationType(CallState call, MethodBinding m, BoundSet b_2, boolean usedUncheckedConv) {
-		BoundSet b_3 = computeB_3(call, m, b_2, usedUncheckedConv);
-		Set<ConstraintFormula> c = createInitialConstraints(call, m);
+		final BoundSet b_3 = computeB_3(call, m, b_2, usedUncheckedConv);
+		final IJavaTypeSubstitution theta = b_3.getInitialVarSubst();
+		Set<ConstraintFormula> c = createInitialConstraints(call, m, theta);
 		computeInputOutput(null, null); // TODO
 	}
 
@@ -276,6 +277,7 @@ public class TypeInference8 {
 		final IJavaType t = utils.getPolyExpressionTargetType(call.call);
 		final IJavaType r = m.getReturnType(tEnv);
 		final BoundSet b_3 = new BoundSet(b_2);
+		final IJavaTypeSubstitution theta = b_3.getInitialVarSubst();
 		if (usedUncheckedConv) {
 			reduceConstraintFormula(b_3, new ConstraintFormula(tEnv.computeErasure(r), FormulaConstraint.IS_COMPATIBLE, t));
 			return b_3;
@@ -285,7 +287,7 @@ public class TypeInference8 {
 	     *     < G< Î² 1 , ..., Î² n > -> T > is reduced and incorporated, along with the bound 
 	     *     G< Î² 1 , ..., Î² n > = capture( G<A 1 , ..., A n > ), with B 2 .
 	     */
-		final IJavaType r_subst = r; // TODO
+		final IJavaType r_subst = r.subst(theta); 
 		final IJavaDeclaredType g = isWildcardParameterizedType(r_subst);
 		if (g != null) {
 			final int n = g.getTypeParameters().size();
@@ -395,12 +397,12 @@ public class TypeInference8 {
      * 
      * - For all i (1 <= i <= k), if e i is not pertinent to applicability, C contains < e i -> F i θ>.
      */
-	private Set<ConstraintFormula> createInitialConstraints(CallState call, MethodBinding m) {
+	private Set<ConstraintFormula> createInitialConstraints(CallState call, MethodBinding m, IJavaTypeSubstitution theta) {
 		final Set<ConstraintFormula> rv = new HashSet<ConstraintFormula>();
 		final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.args.length, false);
 		for(int i=0; i<call.args.length; i++) {
 			final IRNode e_i = call.args[i];
-			final IJavaType f_subst = formalTypes[i]; // TODO subst
+			final IJavaType f_subst = formalTypes[i].subst(theta); 
 			if (!mb.isPertinentToApplicability(m, call.getNumTypeArgs() > 0, e_i)) {
 				rv.add(new ConstraintFormula(e_i, FormulaConstraint.IS_COMPATIBLE, f_subst));
 			}
@@ -1062,6 +1064,7 @@ public class TypeInference8 {
 			i++;
 		}
 		final BoundSet set = new BoundSet(typeFormals, vars);
+		final IJavaTypeSubstitution theta = set.getInitialVarSubst();
 		i=0;
 		for(IRNode tf : TypeFormals.getTypeIterator(typeFormals)) {
 			IRNode bounds = TypeFormal.getBounds(tf);
@@ -1069,7 +1072,7 @@ public class TypeInference8 {
 			boolean gotProperBound = false;
 			for(IRNode bound : MoreBounds.getBoundIterator(bounds)) {
 				final IJavaType t = tEnv.getBinder().getJavaType(bound);
-				final IJavaType t_subst = t.subst(null); //TODO subst vars
+				final IJavaType t_subst = t.subst(theta);
 				noBounds = false;
 				set.addSubtypeBound(vars[i], t_subst);
 				if (t_subst.isProperType()) {
@@ -1081,7 +1084,8 @@ public class TypeInference8 {
 			}
 			i++;
 		}
-		throw new NotImplemented(); // TODO
+		// TODO is there anything else to do?
+		return set;
 	}
 	
 	static class BoundSubset {
@@ -1161,6 +1165,10 @@ public class TypeInference8 {
 			captures.addAll(orig.captures);
 			instantiations.putAll(orig.instantiations);
 			variableMap.putAll(orig.variableMap);
+		}
+		
+		IJavaTypeSubstitution getInitialVarSubst() {
+			return new TypeSubstitution(tEnv.getBinder(), variableMap);
 		}
 		
 		private void addInferenceVariables(Map<InferenceVariable, InferenceVariable> newMappings) {
@@ -1386,11 +1394,13 @@ public class TypeInference8 {
 		 */
 		BoundSet instantiateViaFreshVars(Set<InferenceVariable> subset) {
 			final ProperBounds bounds = collectProperBounds();
-			Map<InferenceVariable,InferenceVariable> y_subst = new HashMap<InferenceVariable,InferenceVariable>(subset.size());
+			final Map<InferenceVariable,InferenceVariable> y_subst = new HashMap<InferenceVariable,InferenceVariable>(subset.size());
 			for(InferenceVariable a_i : subset) {
 				final InferenceVariable y_i = new InferenceVariable(a_i.formal); // TODO unique?
 				y_subst.put(a_i, y_i);
 			}
+			final TypeSubstitution theta = new TypeSubstitution(tEnv.getBinder(), y_subst);
+			
 			final BoundSet rv = new BoundSet(this);
 			rv.removeAssociatedCaptureBounds(subset);			
 			rv.addInferenceVariables(y_subst);
@@ -1401,10 +1411,10 @@ public class TypeInference8 {
 				if (lower != null && !lower.isEmpty()) {
 					l_i = utils.getLowestUpperBound(toArray(lower));
 				}
-				Collection<IJavaType> upper = bounds.upperBounds.get(a_i);
+				List<IJavaType> upper = new ArrayList<IJavaType>(bounds.upperBounds.get(a_i));
 				IJavaType u_i = null;
 				if (upper != null && !upper.isEmpty()) {
-					u_i = utils.getGreatestLowerBound(toArray(upper)); // TODO subst for y_i
+					u_i = utils.getGreatestLowerBound(toArray(theta.substTypes(null, upper))); 
 				}
 				// Check if the bounds are well-formed
 				if (l_i != null && u_i != null && !l_i.isSubtype(tEnv, u_i)) {
@@ -2408,9 +2418,9 @@ public class TypeInference8 {
 	}
 	
 	static class TypeSubstitution extends AbstractTypeSubstitution {
-		final Map<IJavaTypeFormal, ? extends IJavaType> subst;
+		final Map<? extends IJavaTypeFormal, ? extends IJavaType> subst;
 		
-		<T extends IJavaType> TypeSubstitution(IBinder b, Map<IJavaTypeFormal, T> s) {
+		<T extends IJavaType> TypeSubstitution(IBinder b, Map<? extends IJavaTypeFormal, T> s) {
 			super(b);
 			subst = s;
 		}
