@@ -186,7 +186,8 @@ public class TypeInference8 {
 		 *     resolution of all the inference variables in B 2 succeeds (Â§18.4).
 		 */
 		final BoundSet result = resolve(b_2);
-		if (result.instantiations.isEmpty()) {
+		// debug
+		if (result != null && result.instantiations.isEmpty()) {
 			resolve(b_2);
 		}
 		if (result != null && !result.isFalse && 
@@ -1170,12 +1171,12 @@ public class TypeInference8 {
 		/**
 		 * Mapping from the original type variables to the corresponding inference variables
 		 */
-		private final Map<IJavaTypeFormal,InferenceVariable> variableMap = new HashMap<IJavaTypeFormal,InferenceVariable>();
+		final Map<IJavaTypeFormal,InferenceVariable> variableMap = new HashMap<IJavaTypeFormal,InferenceVariable>();
 		
 		/**
 		 * The result of resolution
 		 */
-		private final Map<InferenceVariable, IJavaType> instantiations = new HashMap<InferenceVariable, IJavaType>();
+		final Map<InferenceVariable, IJavaType> instantiations = new HashMap<InferenceVariable, IJavaType>();
 		
 		BoundSet(final IRNode typeFormals, final InferenceVariable[] vars) {
 			original = null;
@@ -1892,7 +1893,7 @@ public class TypeInference8 {
 	 */
 	void reduceExpressionCompatibilityConstraints(BoundSet bounds, IRNode e, IJavaType t) {
 		if (t.isProperType()) {
-			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(e, null, null, t)) {
+			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(e, tEnv.getBinder().getJavaType(e), null, t)) {
 				bounds.addTrue();
 			} else {
 				bounds.addFalse();
