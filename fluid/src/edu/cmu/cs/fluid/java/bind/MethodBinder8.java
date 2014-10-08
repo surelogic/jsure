@@ -614,11 +614,57 @@ public class MethodBinder8 implements IMethodBinder {
 	
     final ArgCompatibilityContext LOOSE_INVOCATION_CONTEXT = new ArgCompatibilityContext() {
     	public boolean isCompatible(IRNode param, IJavaType pType, IRNode arg, IJavaType argType) {
-    		// TODO handle boxing and unboxing
-    		return tEnv.isCallCompatible(pType, argType);
+    		if (pType == null) {
+    			return false;
+    		}
+    		if (tEnv.isCallCompatible(pType, argType)) {
+    			return true;
+    		}
+    		return onlyNeedsBoxing(pType, argType); // TODO anything else to do?
     	}
 	}; 
     
+	private boolean isCallCompatible(IJavaType param, IJavaType arg, final boolean tryErasure) {
+		// TODO cache? 
+		return tEnv.isCallCompatible(param, arg);
+	}
+	
+    /*
+    TODO fix calls to isCallCompatible
+    Math.min(...)
+    */
+	private boolean onlyNeedsBoxing(IJavaType formal, IJavaType arg) {
+    	if (formal instanceof IJavaPrimitiveType) {
+       		// Could unbox arg?
+    		if (arg instanceof IJavaDeclaredType) {        	
+    			IJavaDeclaredType argD = (IJavaDeclaredType) arg;
+    			IJavaType unboxed = JavaTypeFactory.getCorrespondingPrimType(argD);
+    			return unboxed != null && isCallCompatible(formal, unboxed, false);  
+    		} 
+    		else if (arg instanceof IJavaReferenceType) {
+    			IJavaPrimitiveType formalP = (IJavaPrimitiveType) formal;
+    			IJavaType boxedEquivalent = JavaTypeFactory.getCorrespondingDeclType(tEnv, formalP);
+    			return boxedEquivalent != null && isCallCompatible(boxedEquivalent, arg, false);
+    		}
+    	}
+    	else if (formal instanceof IJavaReferenceType && arg instanceof IJavaPrimitiveType) {
+    		// Could box arg?
+    		IJavaPrimitiveType argP = (IJavaPrimitiveType) arg;
+    		IJavaType boxed         = JavaTypeFactory.getCorrespondingDeclType(tEnv, argP);
+    		return boxed != null && isCallCompatible(formal, boxed, false); 
+    	}
+    	else if (formal instanceof IJavaDeclaredType && arg instanceof IJavaDeclaredType) {
+    		IJavaDeclaredType fdt = (IJavaDeclaredType) formal;
+    		IJavaDeclaredType adt = (IJavaDeclaredType) arg;    		
+    		// Hack since Class can take primitive types
+    		final IRNode cls = tEnv.findNamedType("java.lang.Class");
+    		if (fdt.getDeclaration().equals(cls) && adt.getDeclaration().equals(cls)) {
+    			return onlyNeedsBoxing(fdt.getTypeParameters().get(0), adt.getTypeParameters().get(0));
+    		}
+    	}
+    	return false;
+    }
+	
     /*
      *  15.12.2.2 Phase 1: Identify Matching Arity Methods Applicable by Strict Invocation 
      *  
@@ -663,7 +709,7 @@ public class MethodBinder8 implements IMethodBinder {
     	}
     	
 		public boolean isApplicable(CallState call, MethodBinding m) {
-			if (call.args.length != m.getNumFormals()) {
+			if (kind != InvocationKind.VARARGS && call.args.length != m.getNumFormals()) {
 				return false;
 			}
 			if (m.isGeneric()) {
@@ -782,6 +828,7 @@ public class MethodBinder8 implements IMethodBinder {
     		if (!m.isVariableArity()) {
     			return false;
     		}
+    		// TODO what else to do?
     		return super.isApplicable(call, m);
     	}
     };
