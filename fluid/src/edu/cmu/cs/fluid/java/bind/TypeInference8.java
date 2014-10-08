@@ -56,6 +56,13 @@ public class TypeInference8 {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
+		public String toString() {
+			String rv = super.toString();
+			int last = rv.lastIndexOf('$');
+			return rv.substring(last+1);
+		}
+		
 		public IJavaReferenceType getLowerBound() {
 			return null;
 		}
@@ -73,7 +80,7 @@ public class TypeInference8 {
 		}
 		public IJavaReferenceType getExtendsBound() {
 			throw new UnsupportedOperationException();
-		}		
+		}				
 	}
 	
 	/**
@@ -94,6 +101,9 @@ public class TypeInference8 {
 	 * @return the bound set B 2 if the method is applicable
 	 */   
 	BoundSet inferForInvocationApplicability(CallState call, MethodBinding m, InvocationKind kind) {
+		if ("test.TestMethodOverloading.foo(T,T2)".equals(m.toString())) {
+			System.out.println("Found foo(T,T2)");
+		}
 		final BoundSet b_0 = constructInitialSet(m.typeFormals);
 		/*
 		 *  check if type params appear in throws clause						
@@ -174,8 +184,11 @@ public class TypeInference8 {
 		 *     resolution of all the inference variables in B 2 succeeds (Â§18.4).
 		 */
 		final BoundSet result = resolve(b_2);
+		if (result.instantiations.isEmpty()) {
+			resolve(b_2);
+		}
 		if (result != null && !result.isFalse && 
-			result.instantiations.keySet().contains(result.variableMap.values())) {
+			result.instantiations.keySet().containsAll(result.variableMap.values())) {
 			return b_2;
 		}
 		return null;
@@ -984,7 +997,7 @@ public class TypeInference8 {
 	 * A bound of the form throws α is purely informational: it directs resolution to
 	 * optimize the instantiation of α so that, if possible, it is not a checked exception type.
 	 */
-	static class Bound<T extends IJavaReferenceType> {
+	static abstract class Bound<T extends IJavaReferenceType> {
 		final T s, t;
 		
 		Bound(T s, T t) {
@@ -1011,17 +1024,29 @@ public class TypeInference8 {
 			}
 			return false;
 		}
+		
+		@Override
+		public abstract String toString();
 	}
 	
 	static class EqualityBound extends Bound<IJavaReferenceType> {
 		EqualityBound(IJavaReferenceType s, IJavaReferenceType t) {
 			super(s, t);
 		}
+		@Override
+		public String toString() {
+			return s+" = "+t;
+		}
 	}
 	
+	// S is a subtype of T
 	static class SubtypeBound extends Bound<IJavaReferenceType> {
 		SubtypeBound(IJavaReferenceType s, IJavaReferenceType t) {
 			super(s, t);
+		}
+		@Override
+		public String toString() {
+			return s+" <: "+t;
 		}
 	}
 	
@@ -1037,6 +1062,10 @@ public class TypeInference8 {
 				}
 			}
 			return false;
+		}
+		@Override
+		public String toString() {
+			return s+" = capture("+t+")";
 		}
 	}
 	
@@ -1190,7 +1219,7 @@ public class TypeInference8 {
 			equalities.add(new EqualityBound((IJavaReferenceType) s, (IJavaReferenceType) t));
 		}
 
-		// s <: t
+		// s <: (is a subtype of) t
 		void addSubtypeBound(IJavaType s, IJavaType t) {
 			subtypeBounds.add(new SubtypeBound((IJavaReferenceType) s, (IJavaReferenceType) t));
 		}	
@@ -1231,7 +1260,9 @@ public class TypeInference8 {
 			final Set<InferenceVariable> vars = collectVariables();
 			final Set<InferenceVariable> uninstantiated = new HashSet<InferenceVariable>(vars);
 			uninstantiated.removeAll(instantiations.keySet());
-						
+			if (uninstantiated.size() == 1) {
+				return uninstantiated;
+			}
 			VarDependencies deps = computeVarDependencies();
 			return deps.chooseUninstantiated(uninstantiated);
 		}
@@ -1444,10 +1475,10 @@ public class TypeInference8 {
 			}
 			for(SubtypeBound b : subtypeBounds) {
 				if (b.s == a) {
-					rv.lowerBounds.add(b);
+					rv.upperBounds.add(b);
 				}
 				else if (b.t == a) {
-					rv.upperBounds.add(b);
+					rv.lowerBounds.add(b);
 				}
 			}
 			return rv;
@@ -1486,6 +1517,9 @@ public class TypeInference8 {
 			return null;
 		}
 		final Set<InferenceVariable> subset = bounds.chooseUninstantiated();
+		if (subset.isEmpty()) {
+			return bounds; // All instantiated
+		}
 		if (bounds.hasNoCaptureBoundInvolvingVars(subset)) {
 			BoundSet fresh = bounds.instantiateFromBounds(subset);
 			BoundSet rv = resolve(fresh);
@@ -1565,6 +1599,7 @@ public class TypeInference8 {
 					for(InferenceVariable beta : temp) {
 						markDependsOn(alpha, beta);
 					}
+					markDependsOn(alpha, alpha);
 				}
 				else if (b.t instanceof InferenceVariable) {
 					InferenceVariable alpha = (InferenceVariable) b.t;
@@ -1572,6 +1607,7 @@ public class TypeInference8 {
 					for(InferenceVariable beta : temp) {
 						markDependsOn(alpha, beta);
 					}
+					markDependsOn(alpha, alpha);
 				}
 				temp.clear(); 
 			}
@@ -1725,7 +1761,7 @@ public class TypeInference8 {
 				toVisit.remove(n);
 				n.index = 0;
 				for(InferenceVariable m : dependsOn.get(n)) {
-					if (components.containsKey(m)) { // filter to the component roots
+					if (m != n && components.containsKey(m)) { // filter to the component roots
 						visitForSort(l, toVisit, m);
 					}
 				}
@@ -2109,7 +2145,7 @@ public class TypeInference8 {
 			bounds.addSubtypeBound(s, t);
 		}
 		
-		if (t instanceof IJavaDeclaredType) {
+		else if (t instanceof IJavaDeclaredType) {
 			// TODO subcase 1
 			if (tEnv.isSubType(s, t)) {
 				bounds.addTrue();
