@@ -43,11 +43,15 @@ class MethodInfo {
 		return numFormals;
 	}
 	
+	IJavaType getJavaType(IBinder b, IRNode f) {
+		return b.getJavaType(f);
+	}
+	
     IJavaType[] getParamTypes(IBinder b, int callArgs, boolean varArity) {
     	IJavaType[] rv = new IJavaType[callArgs];
     	int i=0;
 		for(IRNode f : Parameters.getFormalIterator(formals)) {
-			rv[i] = b.getJavaType(f);
+			rv[i] = getJavaType(b, f);
 			i++;
 		}
     	if (varArity && callArgs >= numFormals) {

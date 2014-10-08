@@ -130,7 +130,11 @@ interface IMethodBinder {
         	return super.toString()+" from "+mb.getContextType();
         }
         */
-    	
+    	@Override
+    	IJavaType getJavaType(IBinder b, IRNode formal) {
+    		return bind.convertType(b, super.getJavaType(b, formal));
+    	}
+    	    	
         IJavaType getReturnType(ITypeEnvironment tEnv) {
     		IJavaType base = JavaTypeVisitor.getJavaType(mdecl, tEnv.getBinder());
     		return bind.convertType(tEnv.getBinder(), base);
