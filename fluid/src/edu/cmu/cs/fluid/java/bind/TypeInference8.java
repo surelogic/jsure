@@ -101,9 +101,11 @@ public class TypeInference8 {
 	 * @return the bound set B 2 if the method is applicable
 	 */   
 	BoundSet inferForInvocationApplicability(CallState call, MethodBinding m, InvocationKind kind) {
+		/*
 		if ("test.TestMethodOverloading.foo(T,T2)".equals(m.toString())) {
 			System.out.println("Found foo(T,T2)");
 		}
+		*/
 		final BoundSet b_0 = constructInitialSet(m.typeFormals);
 		/*
 		 *  check if type params appear in throws clause						
