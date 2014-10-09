@@ -13,6 +13,7 @@ import com.surelogic.ast.java.operator.ITypeFormalNode;
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IROutput;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.MethodBinding;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -187,7 +188,7 @@ public class TypeInference8 {
 		 */
 		final BoundSet result = resolve(b_2);
 		// debug
-		if (result != null && result.instantiations.isEmpty()) {
+		if (result == null || result.instantiations.isEmpty()) {
 			resolve(b_2);
 		}
 		if (result != null && !result.isFalse && 
@@ -956,6 +957,15 @@ public class TypeInference8 {
 			stype = null;
 			constraint = c;
 			type = t;
+		}
+		
+		@Override
+		public String toString() {
+			if (expr == null) {
+				return stype+" "+constraint+' '+type;
+			} else {
+				return DebugUnparser.toString(expr)+' '+constraint+' '+type;
+			}
 		}
 	}
 	
@@ -2149,8 +2159,22 @@ public class TypeInference8 {
 		}
 		
 		else if (t instanceof IJavaDeclaredType) {
+			final IJavaDeclaredType dt = (IJavaDeclaredType) t;
 			// TODO subcase 1
-			if (tEnv.isSubType(s, t)) {
+			if (dt.getTypeParameters().size() > 0/* TODO || dt.getOuterType().getTypeParameters().size() > 0*/) {
+				final IJavaDeclaredType ds = findCorrespondingSuperType(dt.getDeclaration(), s);
+				if (ds != null && ds.getTypeParameters().size() > 0) {
+					final int n = dt.getTypeParameters().size();
+					for(int i=0; i<n; i++) {
+						final IJavaType a_i = dt.getTypeParameters().get(i);
+						final IJavaType b_i = ds.getTypeParameters().get(i);
+						reduceTypeArgContainmentConstraints(bounds, b_i, a_i);
+					}
+				} else {
+					bounds.addFalse();
+				}
+			}
+			else if (tEnv.isSubType(s, t)) {
 				bounds.addTrue();
 			} else {
 				bounds.addFalse();
@@ -2191,6 +2215,22 @@ public class TypeInference8 {
 		}
 	}
 	
+	private IJavaDeclaredType findCorrespondingSuperType(final IRNode decl, IJavaType s) {
+		if (s instanceof IJavaDeclaredType) {
+			IJavaDeclaredType ds = (IJavaDeclaredType) s;
+			if (ds.getDeclaration().equals(decl)) {
+				return ds;
+			}
+		}
+		for(IJavaType st : s.getSupertypes(tEnv)) {
+			IJavaDeclaredType rv = findCorrespondingSuperType(decl, st);
+			if (rv != null) {
+				return rv;
+			}
+		}
+		return null;
+	}
+
 	private IJavaArrayType findMostSpecificArraySuperType(IJavaType s) {
 		if (s instanceof IJavaArrayType) {
 			return (IJavaArrayType) s;
