@@ -17,6 +17,7 @@ import edu.cmu.cs.fluid.ir.IROutput;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.MethodBinding;
+import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodState;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -912,10 +913,12 @@ public class TypeInference8 {
      *   
      *   Otherwise, m 1 is not more specific than m 2 .
 	 */
-	void inferForMoreSpecificMethod(CallState call, MethodBinding m_1, InvocationKind kind, MethodBinding m_2) {
-		if (m_2.numTypeFormals <= 0) {
-			return;
+	boolean inferToBeMoreSpecificMethod(CallState call, MethodState m_1, InvocationKind kind, MethodState m_2) {
+		if (m_2.bind.numTypeFormals <= 0) {
+			return true;
 		}
+		// TODO
+		return false;
 	}
 	
 	/**
