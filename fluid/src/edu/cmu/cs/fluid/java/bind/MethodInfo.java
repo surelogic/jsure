@@ -47,10 +47,17 @@ class MethodInfo {
 		return b.getJavaType(f);
 	}
 	
+	/**
+	 * @return the parameter types that should match the call arguments;
+	 */
     IJavaType[] getParamTypes(IBinder b, int callArgs, boolean varArity) {
-    	IJavaType[] rv = new IJavaType[callArgs > numFormals ? callArgs : numFormals];
+    	IJavaType[] rv = new IJavaType[callArgs];
     	int i=0;
 		for(IRNode f : Parameters.getFormalIterator(formals)) {
+			if (varArity && i == callArgs) {
+				// Empty varargs
+				break; 
+			}
 			rv[i] = getJavaType(b, f);
 			i++;
 		}

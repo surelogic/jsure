@@ -601,7 +601,6 @@ public class MethodBinder8 implements IMethodBinder {
     	 * @return non-null if applicable
     	 */
     	MethodState isApplicable(CallState call, MethodBinding mb);
-    	boolean usesVarargs();
     	InvocationKind getKind();
     }
     
@@ -753,8 +752,7 @@ public class MethodBinder8 implements IMethodBinder {
 	boolean isApplicableAndCompatible(CallState call, MethodBinding m, IJavaTypeSubstitution substForParams, ArgCompatibilityContext context, boolean varArity) {
 		final IJavaType[] argTypes = call.getArgTypes(); // TODO factor out?
 		int i=0;			
-		//for(IRNode param : Parameters.getFormalIterator(m.formals)) {
-		for(IJavaType pType : m.getParamTypes(binder, argTypes.length, varArity)) {//Parameters.getFormalIterator(m.formals)) {
+		for(IJavaType pType : m.getParamTypes(binder, argTypes.length, varArity)) {
 			final IRNode arg = call.args[i];
 			final IJavaType argType = argTypes[i];
 			i++;
@@ -902,7 +900,7 @@ public class MethodBinder8 implements IMethodBinder {
     			rv = mb;
     		} 
     		// TODO is this transitive?
-    		else if (isMoreSpecific(call, mb, rv, filter.usesVarargs())) {
+    		else if (isMoreSpecific(call, mb, rv, filter.getKind())) {
     			rv = mb;
     		}
     	}
@@ -944,6 +942,7 @@ public class MethodBinder8 implements IMethodBinder {
 		IBinding getFinalResult() {
     		BoundSet result = null;
     		//typeInfer.inferForInvocationType(call, bind, bounds, false/*TODO usedUncheckedConv*/);
+    		// TODO meant to be called after binding to a particular method?
     		
     		if (result == null) {
     			// TODO not really
@@ -975,13 +974,14 @@ public class MethodBinder8 implements IMethodBinder {
      *     
      * The above conditions are the only circumstances under which one method may be more specific than another.
      */
-    private boolean isMoreSpecific(final CallState call, MethodState m1, MethodState m2, boolean varArity) {
+    private boolean isMoreSpecific(final CallState call, MethodState m1, MethodState m2, InvocationKind kind) {
+    	final boolean varArity = kind == InvocationKind.VARARGS;
     	if (m2.bind.isGeneric()) {
     		// Case 1
-    		throw new NotImplemented(); // TODO JLS 18.5.4
+    		return typeInfer.inferToBeMoreSpecificMethod(call, m1, kind, m2);
     	}    	
     	final int k = call.getArgTypes().length;
-    	IJavaType[] m1Types = m1.bind.getParamTypes(binder, k+1, varArity);
+    	IJavaType[] m1Types = m1.bind.getParamTypes(binder, k+1, varArity); // TODO is this right?
     	IJavaType[] m2Types = m2.bind.getParamTypes(binder, k+1, varArity);
 		// Case 2 + 3
 		for(int i=0; i<k; i++) {
