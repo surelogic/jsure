@@ -8,6 +8,7 @@ import com.surelogic.common.util.Iteratable;
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
+import edu.cmu.cs.fluid.java.bind.TypeInference8.BoundSet;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -596,7 +597,10 @@ public class MethodBinder8 implements IMethodBinder {
     }    
         
     interface ApplicableMethodFilter {
-    	boolean isApplicable(CallState call, MethodBinding mb);
+    	/**
+    	 * @return non-null if applicable
+    	 */
+    	MethodState isApplicable(CallState call, MethodBinding mb);
     	boolean usesVarargs();
     	InvocationKind getKind();
     }
@@ -708,20 +712,21 @@ public class MethodBinder8 implements IMethodBinder {
     		return getKind() == InvocationKind.VARARGS;
     	}
     	
-		public boolean isApplicable(CallState call, MethodBinding m) {
+		public MethodState isApplicable(CallState call, MethodBinding m) {
 			if (kind != InvocationKind.VARARGS && call.args.length != m.getNumFormals()) {
-				return false;
+				return null;
 			}
 			if (m.isGeneric()) {
 				if (call.getNumTypeArgs() == 0) {				
-					return typeInfer.inferForInvocationApplicability(call, m, getKind()) != null;
+					BoundSet bounds = typeInfer.inferForInvocationApplicability(call, m, getKind());
+					return bounds == null ? null : new MethodStateWithBoundSet(call, m, tEnv, bounds);
 				} else {							
 					if (call.getNumTypeArgs() != m.numTypeFormals) {
-						return false;
+						return null;
 					}
 					final IJavaTypeSubstitution methodTypeSubst = FunctionParameterSubstitution.create(binder, m.bind, call.targs);
 					if (!isApplicableAndCompatible(call, m, methodTypeSubst, context, usesVarargs())) {
-						return false;
+						return null;
 					}
 					int i=0;
 					for(IRNode tf : TypeFormals.getTypeIterator(m.typeFormals)) {
@@ -729,14 +734,17 @@ public class MethodBinder8 implements IMethodBinder {
 						IJavaType b_l = JavaTypeFactory.getTypeFormal(tf).getExtendsBound(tEnv);
 						IJavaType b_subst = b_l.subst(methodTypeSubst);
 						if (!tEnv.isSubType(u_l, b_subst)) {
-							return false;
+							return null;
 						}
 						i++;
 					}
-					return true;
+					return MethodState.create(call, m, tEnv, methodTypeSubst);
 				}
 			}
-			return isApplicableAndCompatible(call, m, IJavaTypeSubstitution.NULL, context, usesVarargs());
+			if (isApplicableAndCompatible(call, m, IJavaTypeSubstitution.NULL, context, usesVarargs())) {
+				return new MethodState(m);
+			}
+			return null;
 		}
     }
     
@@ -824,9 +832,9 @@ public class MethodBinder8 implements IMethodBinder {
 	 */
 	private final ApplicableMethodFilter VARIABLE_ARITY_INVOCATION = new InvocationFilter(InvocationKind.VARARGS, LOOSE_INVOCATION_CONTEXT) {
     	@Override
-		public boolean isApplicable(CallState call, MethodBinding m) {
+		public MethodState isApplicable(CallState call, MethodBinding m) {
     		if (!m.isVariableArity()) {
-    			return false;
+    			return null;
     		}
     		// TODO what else to do?
     		return super.isApplicable(call, m);
@@ -878,17 +886,18 @@ public class MethodBinder8 implements IMethodBinder {
 	 * • Otherwise, the method invocation is ambiguous, and a compile-time error occurs.
 	 */
     private IBinding findMostSpecific(final CallState call, Iterable<MethodBinding> methods, ApplicableMethodFilter filter) {
-    	final Set<MethodBinding> applicable = new HashSet<MethodBinding>();
+    	final Set<MethodState> applicable = new HashSet<MethodState>();
     	for(MethodBinding mb : methods) {
-    		if (filter.isApplicable(call, mb)) {
-    			applicable.add(mb);
+    		MethodState result = filter.isApplicable(call, mb);
+    		if (result != null) {
+    			applicable.add(result);
     		}
     	}
     	if (applicable.isEmpty()) {
     		return null;
     	}
-    	MethodBinding rv = null;
-    	for(MethodBinding mb : applicable) {
+    	MethodState rv = null;
+    	for(MethodState mb : applicable) {
     		if (rv == null) {
     			rv = mb;
     		} 
@@ -897,9 +906,49 @@ public class MethodBinder8 implements IMethodBinder {
     			rv = mb;
     		}
     	}
-    	return rv == null ? null : rv.bind;
+    	return rv == null ? null : rv.getFinalResult();
 	}
 
+    static class MethodState {
+    	final MethodBinding bind;
+    	
+    	MethodState(MethodBinding b) {
+    		bind = b;
+    	}
+    	
+    	static MethodState create(CallState call, MethodBinding m, ITypeEnvironment tEnv, IJavaTypeSubstitution methodTypeSubst) {
+    		IBinding newB = IBinding.Util.makeMethodBinding(m.bind, m.bind.getContextType(), // TODO is this right? (for diamond op)?
+    				                                        methodTypeSubst, call.receiverType, tEnv);
+    		return new MethodState(new MethodBinding(newB)); // TODO no reuse?    
+		}
+
+		IBinding getFinalResult() {
+    		return bind.bind;
+    	}
+    }
+    
+    class MethodStateWithBoundSet extends MethodState {
+    	final BoundSet bounds;
+    	CallState call;
+    	final ITypeEnvironment tEnv;
+    	
+    	MethodStateWithBoundSet(CallState c, MethodBinding m, ITypeEnvironment te, BoundSet b) {
+    		super(m);
+    		call = c;
+    		tEnv = te;
+    		bounds = b;
+    	}
+    	
+    	//TODO need to return the BoundSet and the instantiation to produce a substitution
+    	@Override
+		IBinding getFinalResult() {
+    		BoundSet result = typeInfer.inferForInvocationType(call, bind, bounds, false/*TODO usedUncheckedConv*/);
+    		IBinding newB = IBinding.Util.makeMethodBinding(bind.bind, bind.bind.getContextType(), // TODO is this right? (for diamond op)?
+    				                                        result.getFinalTypeSubst(), call.receiverType, tEnv);
+    		return newB;
+    	}
+	}
+	
     /**
 	 * One applicable method m1 is more specific than another applicable method m2, for an invocation with argument expressions 
 	 * e 1 , ..., e k , if any of the following are true:
@@ -920,21 +969,21 @@ public class MethodBinder8 implements IMethodBinder {
      *     
      * The above conditions are the only circumstances under which one method may be more specific than another.
      */
-    private boolean isMoreSpecific(final CallState call, MethodBinding m1, MethodBinding m2, boolean varArity) {
-    	if (m2.isGeneric()) {
+    private boolean isMoreSpecific(final CallState call, MethodState m1, MethodState m2, boolean varArity) {
+    	if (m2.bind.isGeneric()) {
     		// Case 1
     		throw new NotImplemented(); // TODO JLS 18.5.4
     	}    	
     	final int k = call.getArgTypes().length;
-    	IJavaType[] m1Types = m1.getParamTypes(binder, k+1, varArity);
-    	IJavaType[] m2Types = m2.getParamTypes(binder, k+1, varArity);
+    	IJavaType[] m1Types = m1.bind.getParamTypes(binder, k+1, varArity);
+    	IJavaType[] m2Types = m2.bind.getParamTypes(binder, k+1, varArity);
 		// Case 2 + 3
 		for(int i=0; i<k; i++) {
 			if (!isMoreSpecific(m1Types[i], m2Types[i], call.args[i])) {
 				return false;
 			}
 		}    	
-    	if (varArity && m2.getNumFormals() == k+1) {
+    	if (varArity && m2.bind.getNumFormals() == k+1) {
     		// Case 3
     		return m1Types[k].isSubtype(tEnv, m2Types[k]);
     	}
