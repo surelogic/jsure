@@ -4,6 +4,7 @@ import static edu.cmu.cs.fluid.java.bind.IMethodBinder.*;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.Map.Entry;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
@@ -266,11 +267,14 @@ public class TypeInference8 {
      * 
      *   If B 4 contains the bound false, or if resolution fails, then a compile-time error occurs.
 */
-	void inferForInvocationType(CallState call, MethodBinding m, BoundSet b_2, boolean usedUncheckedConv) {
+	BoundSet inferForInvocationType(CallState call, MethodBinding m, BoundSet b_2, boolean usedUncheckedConv) {
 		final BoundSet b_3 = computeB_3(call, m, b_2, usedUncheckedConv);
 		final IJavaTypeSubstitution theta = b_3.getInitialVarSubst();
 		Set<ConstraintFormula> c = createInitialConstraints(call, m, theta);
 		computeInputOutput(null, null); // TODO
+		
+		BoundSet rv = b_3; // TODO
+		return rv;
 	}
 
 	/**
@@ -1211,6 +1215,18 @@ public class TypeInference8 {
 		
 		IJavaTypeSubstitution getInitialVarSubst() {
 			return new TypeSubstitution(tEnv.getBinder(), variableMap);
+		}
+
+		IJavaTypeSubstitution getFinalTypeSubst() {
+			final Map<IJavaTypeFormal,IJavaType> subst = new HashMap<IJavaTypeFormal,IJavaType>();
+			for(Entry<IJavaTypeFormal, InferenceVariable> e : variableMap.entrySet()) {
+				final IJavaType t = instantiations.get(e.getValue());
+				if (t == null) {
+					throw new IllegalStateException("No instantiation for "+e.getKey());
+				}
+				subst.put(e.getKey(), t);
+			}
+			return new TypeSubstitution(tEnv.getBinder(), subst);
 		}
 		
 		private void addInferenceVariables(Map<InferenceVariable, InferenceVariable> newMappings) {
@@ -2235,6 +2251,9 @@ public class TypeInference8 {
 		if (s instanceof IJavaArrayType) {
 			return (IJavaArrayType) s;
 		}
+		else if (s instanceof IJavaDeclaredType) {
+			return null; // TODO right?
+		}
 		// What other cases are there?
 		throw new NotImplemented(); // TODO
 	}
@@ -2267,15 +2286,15 @@ public class TypeInference8 {
 				if (s instanceof IJavaWildcardType) {
 					IJavaWildcardType ws = (IJavaWildcardType) s;
 					if (ws.getUpperBound() != null) {
-						bounds.addSubtypeBound(ws.getUpperBound(), wt.getUpperBound());
+						reduceSubtypingConstraints(bounds, ws.getUpperBound(), wt.getUpperBound());
 					}
 					else if (ws.getLowerBound() != null) {
-						bounds.addEqualityBound(tEnv.getObjectType(), wt.getUpperBound());
+						reduceTypeEqualityConstraints(bounds, tEnv.getObjectType(), wt.getUpperBound());
 					} else {
-						bounds.addSubtypeBound(tEnv.getObjectType(), wt.getUpperBound());
+						reduceSubtypingConstraints(bounds, tEnv.getObjectType(), wt.getUpperBound());
 					}
 				} else {
-					bounds.addSubtypeBound(s, wt.getUpperBound());
+					reduceSubtypingConstraints(bounds, s, wt.getUpperBound());
 				}
 			}
 			else if (wt.getLowerBound() != null) { 
@@ -2283,12 +2302,12 @@ public class TypeInference8 {
 				if (s instanceof IJavaWildcardType) {
 					IJavaWildcardType ws = (IJavaWildcardType) s;
 					if (ws.getLowerBound() != null) {
-						bounds.addSubtypeBound(wt.getLowerBound(), ws.getLowerBound());
+						reduceSubtypingConstraints(bounds, wt.getLowerBound(), ws.getLowerBound());
 					} else {
 						bounds.addFalse();
 					}
 				} else {
-					bounds.addSubtypeBound(wt.getLowerBound(), s);
+					reduceSubtypingConstraints(bounds, wt.getLowerBound(), s);
 					
 				}
 			}
@@ -2300,7 +2319,7 @@ public class TypeInference8 {
 			bounds.addFalse();
 		} 
 		else {
-			bounds.addEqualityBound(s, t);
+			reduceTypeEqualityConstraints(bounds, s, t);
 		}
 	}
 	
@@ -2331,10 +2350,10 @@ public class TypeInference8 {
 				bounds.addFalse();
 			}
 		}
-		if (isInferenceVariable(s) || isInferenceVariable(t)) {
+		else if (isInferenceVariable(s) || isInferenceVariable(t)) {
 			bounds.addEqualityBound(s, t);
 		}
-		if (s instanceof IJavaDeclaredType && t instanceof IJavaDeclaredType) {
+		else if (s instanceof IJavaDeclaredType && t instanceof IJavaDeclaredType) {
 			IJavaDeclaredType sd = (IJavaDeclaredType) s;
 			IJavaDeclaredType td = (IJavaDeclaredType) t;			
 			if (sd.getDeclaration().equals(td.getDeclaration()) && sd.getTypeParameters().size() == td.getTypeParameters().size()) {
@@ -2348,7 +2367,7 @@ public class TypeInference8 {
 				bounds.addFalse(); // TODO
 			}
 		}
-		if (s instanceof IJavaArrayType && t instanceof IJavaArrayType) {
+		else if (s instanceof IJavaArrayType && t instanceof IJavaArrayType) {
 			IJavaArrayType sa = (IJavaArrayType) s;
 			IJavaArrayType ta = (IJavaArrayType) t;
 			reduceTypeEqualityConstraints(bounds, sa.getElementType(), ta.getElementType());
