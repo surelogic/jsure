@@ -942,7 +942,13 @@ public class MethodBinder8 implements IMethodBinder {
     	//TODO need to return the BoundSet and the instantiation to produce a substitution
     	@Override
 		IBinding getFinalResult() {
-    		BoundSet result = typeInfer.inferForInvocationType(call, bind, bounds, false/*TODO usedUncheckedConv*/);
+    		BoundSet result = null;
+    		//typeInfer.inferForInvocationType(call, bind, bounds, false/*TODO usedUncheckedConv*/);
+    		
+    		if (result == null) {
+    			// TODO not really
+    			result = TypeInference8.resolve(bounds);
+    		}
     		IBinding newB = IBinding.Util.makeMethodBinding(bind.bind, bind.bind.getContextType(), // TODO is this right? (for diamond op)?
     				                                        result.getFinalTypeSubst(), call.receiverType, tEnv);
     		return newB;
