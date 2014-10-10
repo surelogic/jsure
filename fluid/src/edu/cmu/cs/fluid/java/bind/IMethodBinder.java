@@ -53,7 +53,7 @@ interface IMethodBinder {
     	
     	private IRNode[] getNodes(IRNode n) {
     		if (n == null) {
-    			return null;
+    			return JavaGlobals.noNodes;
     		}
             final int num = JJNode.tree.numChildren(n);
             final IRNode[] rv = new IRNode[num];
