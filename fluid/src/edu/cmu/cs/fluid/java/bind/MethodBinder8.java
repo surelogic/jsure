@@ -7,6 +7,7 @@ import com.surelogic.common.util.Iteratable;
 
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.BoundSet;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -894,17 +895,52 @@ public class MethodBinder8 implements IMethodBinder {
     	if (applicable.isEmpty()) {
     		return null;
     	}
-    	MethodState rv = null;
+    	else if (applicable.size() == 1) {
+    		return applicable.iterator().next().getFinalResult();
+    	}
+    	// Kept as more specific to each other
+    	final Set<MethodState> maxSpecific = new HashSet<MethodState>();
     	for(MethodState mb : applicable) {
-    		if (rv == null) {
-    			rv = mb;
+    		if (maxSpecific.isEmpty()) {
+    			maxSpecific.add(mb);
+    			continue;
     		} 
-    		// TODO is this transitive?
-    		else if (isMoreSpecific(call, mb, rv, filter.getKind())) {
-    			rv = mb;
+    		final MethodState first = maxSpecific.iterator().next();
+    		if (isMoreSpecific(call, mb, first, filter.getKind())) {
+    			if (!isMoreSpecific(call, first, mb, filter.getKind())) {
+    				// A new most specific so far
+    				maxSpecific.clear(); 
+    			}
+    			maxSpecific.add(mb);
     		}
     	}
-    	return rv == null ? null : rv.getFinalResult();
+    	if (maxSpecific.isEmpty()) {
+    		return null;
+    	}
+    	else if (maxSpecific.size() == 1) {
+    		return maxSpecific.iterator().next().getFinalResult();
+    	}
+    	MethodState concrete = null;    	
+    	for(MethodState mb : maxSpecific) {
+    		if (mb.isConcrete()) {
+    			if (concrete == null) {
+    				concrete = mb;
+    			}
+    			// TODO is this in the right place?
+    			else if (mb.bind.bind.getContextType().isSubtype(tEnv, concrete.bind.bind.getContextType())) {
+    				concrete = mb;
+    			}
+    			else if (!concrete.bind.bind.getContextType().isSubtype(tEnv, mb.bind.bind.getContextType())) {
+    				throw new IllegalStateException("Ambiguous call to "+mb+" or "+concrete);
+    			}
+    		}
+    		// Otherwise abstract or default
+    	}
+    	if (concrete != null) {
+        	return concrete.getFinalResult();	
+    	}
+    	// Return one arbitrarily
+    	return maxSpecific.iterator().next().getFinalResult();
 	}
 
     static class MethodState {
@@ -914,7 +950,12 @@ public class MethodBinder8 implements IMethodBinder {
     		bind = b;
     	}
     	
-    	static MethodState create(CallState call, MethodBinding m, ITypeEnvironment tEnv, IJavaTypeSubstitution methodTypeSubst) {
+    	public boolean isConcrete() {
+			final int mods = JavaNode.getModifiers(bind.mdecl);
+			return !JavaNode.isSet(mods, JavaNode.ABSTRACT | JavaNode.DEFAULT);
+		}
+
+		static MethodState create(CallState call, MethodBinding m, ITypeEnvironment tEnv, IJavaTypeSubstitution methodTypeSubst) {
     		IBinding newB = IBinding.Util.makeMethodBinding(m.bind, m.bind.getContextType(), // TODO is this right? (for diamond op)?
     				                                        methodTypeSubst, call.receiverType, tEnv);
     		return new MethodState(new MethodBinding(newB)); // TODO no reuse?    
@@ -923,6 +964,11 @@ public class MethodBinder8 implements IMethodBinder {
 		IBinding getFinalResult() {
     		return bind.bind;
     	}
+		
+		@Override
+		public String toString() {
+			return bind.toString();
+		}
     }
     
     class MethodStateWithBoundSet extends MethodState {
