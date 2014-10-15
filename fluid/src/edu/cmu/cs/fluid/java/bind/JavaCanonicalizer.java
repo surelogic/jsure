@@ -1246,6 +1246,11 @@ public class JavaCanonicalizer {
               public IRNode getNode() {
                 return m;
               }
+              
+              @Override
+              public String toString() {
+            	return DebugUnparser.toString(m);
+              }
             };
           }
         }
