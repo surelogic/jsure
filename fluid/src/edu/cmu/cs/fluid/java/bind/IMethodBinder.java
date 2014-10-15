@@ -124,6 +124,19 @@ interface IMethodBinder {
     		bind = mb;
     	}
     	
+    	@Override
+    	public int hashCode() {
+    		return mdecl.hashCode() + bind.getContextType().hashCode();
+    	}
+    	
+    	@Override 
+    	public boolean equals(Object o) {
+    		if (o instanceof MethodBinding) {
+    			final MethodBinding mo = (MethodBinding) o;
+    			return mdecl.equals(mo.mdecl) && bind.getContextType().equals(mo.bind.getContextType());
+    		}
+    		return false;
+    	}
     	/*
         @Override
         public String toString() {
