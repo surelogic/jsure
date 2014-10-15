@@ -273,6 +273,11 @@ public interface IBinding {
 		public final IRNode getNode() { 
 			return n; 
 		}
+		
+        @Override
+        public String toString() {
+      	  return DebugUnparser.toString(n);
+        }
 	}
 	
     public static String debugString(IBinding binding) {
