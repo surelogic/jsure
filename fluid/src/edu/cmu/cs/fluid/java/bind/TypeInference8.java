@@ -19,6 +19,7 @@ import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.MethodBinding;
 import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodState;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.operator.CallInterface.NoArgs;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -163,7 +164,7 @@ public class TypeInference8 {
 		}		
 		final BoundSet b_2 = new BoundSet(b_1);
 		final IJavaTypeSubstitution theta = b_2.getInitialVarSubst();
-		final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.args.length, false);
+		final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.args.length, kind == InvocationKind.VARARGS);
 		for(int i=0; i<call.args.length; i++) {
 			final IRNode e_i = call.args[i];
 			if (mb.isPertinentToApplicability(m, call.getNumTypeArgs() > 0, e_i)) {
@@ -288,6 +289,15 @@ public class TypeInference8 {
 		if (!mb.isPolyExpression(call.call)) {
 			return b_2;
 		}
+
+		final IJavaType t = utils.getPolyExpressionTargetType(call.call);
+		return computeB_3(call, m, b_2, usedUncheckedConv, t);
+	}
+	
+	/**
+	 * @param t the target type
+	 */
+	private BoundSet computeB_3(CallState call, MethodBinding m, BoundSet b_2, boolean usedUncheckedConv, IJavaType t) {
 	    /*   If the invocation is a poly expression, let the bound set B 3 be derived from B 2
 	     *   as follows. Let R be the return type of m , let T be the invocation's target type,
 	     *   and then:
@@ -296,7 +306,6 @@ public class TypeInference8 {
 	     *     constraint set reduction in Â§18.5.1, the constraint formula <| R | -> T > is reduced
 	     *     and incorporated with B 2 .
 	     */
-		final IJavaType t = utils.getPolyExpressionTargetType(call.call);
 		final IJavaType r = m.getReturnType(tEnv);
 		final BoundSet b_3 = new BoundSet(b_2);
 		final IJavaTypeSubstitution theta = b_3.getInitialVarSubst();
@@ -1216,6 +1225,16 @@ public class TypeInference8 {
 			variableMap.putAll(orig.variableMap);
 		}
 		
+		void merge(BoundSet other) {
+			isFalse = other.isFalse;
+			thrownSet.addAll(other.thrownSet);
+			equalities.addAll(other.equalities);
+			subtypeBounds.addAll(other.subtypeBounds);
+			captures.addAll(other.captures);
+			instantiations.putAll(other.instantiations);
+			variableMap.putAll(other.variableMap);
+		}
+		
 		IJavaTypeSubstitution getInitialVarSubst() {
 			return new TypeSubstitution(tEnv.getBinder(), variableMap);
 		}
@@ -1807,8 +1826,9 @@ public class TypeInference8 {
 		return t instanceof InferenceVariable;
 	}
 	
-	IJavaReferenceType box(IJavaType t) {
-		throw new NotImplemented(); // TODO
+	IJavaReferenceType box(IJavaPrimitiveType formalP) {
+		IJavaDeclaredType boxedEquivalent = JavaTypeFactory.getCorrespondingDeclType(tEnv, formalP);
+		return boxedEquivalent;
 	}
 	
 	/**
@@ -1922,9 +1942,10 @@ public class TypeInference8 {
 	 */
 	void reduceExpressionCompatibilityConstraints(BoundSet bounds, IRNode e, IJavaType t) {
 		if (t.isProperType()) {
-			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(e, tEnv.getBinder().getJavaType(e), null, t)) {
+			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, e, tEnv.getBinder().getJavaType(e))) {
 				bounds.addTrue();
 			} else {
+				mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, e, tEnv.getBinder().getJavaType(e));				
 				bounds.addFalse();
 			}
 		}
@@ -1937,7 +1958,11 @@ public class TypeInference8 {
 				reduceExpressionCompatibilityConstraints(bounds, ParenExpression.getOp(e), t);
 			}
 			else if (NewExpression.prototype.includes(op) || MethodCall.prototype.includes(op)) {
-				throw new NotImplemented(); // TODO
+				try {
+					bounds.merge(computeInvocationBounds((CallInterface) op, e, t));
+				} catch (NoArgs e1) {
+					throw new IllegalStateException("No arguments for "+DebugUnparser.toString(e));
+				}
 			}
 			else if (ConditionalExpression.prototype.includes(op)) {
 				reduceExpressionCompatibilityConstraints(bounds, ConditionalExpression.getIffalse(e), t);
@@ -1952,6 +1977,13 @@ public class TypeInference8 {
 				throw new IllegalStateException();
 			}
 		}		
+	}
+
+	private BoundSet computeInvocationBounds(CallInterface c, final IRNode e, final IJavaType t) throws NoArgs {
+		final MethodBinding m = new MethodBinding(tEnv.getBinder().getIBinding(e));
+        final CallState call = new CallState(tEnv.getBinder(), e, c.get_TypeArgs(e), c.get_Args(e), m.bind.getReceiverType());
+		final BoundSet b_2 = inferForInvocationApplicability(call, m, null);
+		return computeB_3(call, m, b_2, false, t); // TODO
 	}
 
 	/**
@@ -2100,10 +2132,10 @@ public class TypeInference8 {
 			}
 		}
 		else if (s instanceof IJavaPrimitiveType) {
-			reduceTypeCompatibilityConstraints(bounds, box(s), t);
+			reduceTypeCompatibilityConstraints(bounds, box((IJavaPrimitiveType) s), t);
 		}
 		else if (t instanceof IJavaPrimitiveType) {
-			reduceTypeCompatibilityConstraints(bounds, s, box(t));
+			reduceTypeCompatibilityConstraints(bounds, s, box((IJavaPrimitiveType) t));
 		}
 		else if (hasRawSuperTypeOf(s, t)) {
 			bounds.addTrue();
