@@ -1403,10 +1403,7 @@ public class TypeInference8 {
 		 * 5• α = U and S = T imply ‹S[α:=U] = T[α:=U]›
 		 * 6• α = U and S <: T imply ‹S[α:=U] <: T[α:=U]›
 		 * 
-		 * When a bound set contains a pair of bounds α <: S and α <: T, and there exists a supertype of S
-		 * of the form G<S1, ..., Sn> and a supertype of T of the form G<T1, ..., Tn> (for some generic class
-		 * or interface, G), then for all i (1 ≤ i ≤ n), if Si and Ti are types (not wildcards), 
-		 * the constraint formula ‹Si = Ti› is implied.
+		 * ... see below
 		 */ 
 		private void incorporateSubtypeBound(SubtypeBound sb) {
 			if (sb.s instanceof InferenceVariable) {
@@ -1421,6 +1418,15 @@ public class TypeInference8 {
 					if (b.t instanceof InferenceVariable) {
 						// case 4a
 						reduceSubtypingConstraints(this, b.s, sb.t);
+					}
+					if (b.s instanceof InferenceVariable) {
+						/*
+						 * When a bound set contains a pair of bounds α <: S and α <: T, and there exists a supertype of S
+						 * of the form G<S1, ..., Sn> and a supertype of T of the form G<T1, ..., Tn> (for some generic class
+						 * or interface, G), then for all i (1 ≤ i ≤ n), if Si and Ti are types (not wildcards), 
+						 * the constraint formula ‹Si = Ti› is implied.
+						 */
+						// TODO handle supertype case
 					}
 				}
 			}
@@ -1449,6 +1455,37 @@ public class TypeInference8 {
 			}
 		}
 
+		/**
+		 * 18.3.2 Bounds Involving Capture Conversion
+		 * 
+		 * When a bound set contains a bound of the form G<α1, ..., αn> = capture(G<A1, ..., An>), 
+		 * new bounds are implied and new constraint formulas may be implied, as follows.
+		 * 
+		 * Let P1, ..., Pn represent the type parameters of G and let B1, ..., Bn represent the bounds
+		 * of these type parameters. Let θ represent the substitution [P1:=α1, ..., Pn:=αn]. 
+		 * Let R be a type that is not an inference variable (but is not necessarily a proper type).
+		 * 
+		 * A set of bounds on α1, ..., αn is implied, constructed from the declared bounds of P1, ..., Pn as specified in §18.1.3.
+		 * In addition, for all i (1 ≤ i ≤ n):
+		 * 
+		 * • If Ai is not a wildcard, then the bound αi = Ai is implied.
+		 * 
+		 * • If Ai is a wildcard of the form ?:
+		 *   – αi = R implies the bound false
+		 *   – αi <: R implies the constraint formula ‹Bi θ <: R›
+		 *   – R <: αi implies the bound false
+		 * 
+		 * • If Ai is a wildcard of the form ? extends T:
+		 *   – αi = R implies the bound false
+		 *   – If Bi is Object, then αi <: R implies the constraint formula ‹T <: R›
+		 *   – If T is Object, then αi <: R implies the constraint formula ‹Bi θ <: R›
+		 *   – R <: αi implies the bound false
+		 *   
+		 * • If Ai is a wildcard of the form ? super T:
+		 *   – αi = R implies the bound false
+		 *   – αi <: R implies the constraint formula ‹Bi θ <: R›
+		 *   – R <: αi implies the constraint formula ‹R <: T›
+		 */
 		private void incorporateCaptureBound(CaptureBound cb) {
 			// TODO Auto-generated method stub
 			
