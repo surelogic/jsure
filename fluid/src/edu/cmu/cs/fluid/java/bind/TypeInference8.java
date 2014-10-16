@@ -1190,6 +1190,11 @@ public class TypeInference8 {
 		private final Set<CaptureBound> captures = new HashSet<CaptureBound>();
 		
 		/**
+		 * Queue for bounds that haven't been incorporated yet
+		 */
+		private final Queue<Bound<?>> unincorporated = new LinkedList<Bound<?>>();
+		
+		/**
 		 * The original bound that eventually created this one
 		 */
 		private final BoundSet original;
@@ -1226,13 +1231,13 @@ public class TypeInference8 {
 		}
 		
 		void merge(BoundSet other) {
-			isFalse = other.isFalse;
+			isFalse |= other.isFalse;
 			thrownSet.addAll(other.thrownSet);
-			equalities.addAll(other.equalities);
-			subtypeBounds.addAll(other.subtypeBounds);
-			captures.addAll(other.captures);
-			instantiations.putAll(other.instantiations);
 			variableMap.putAll(other.variableMap);
+			unincorporated.addAll(other.equalities);
+			unincorporated.addAll(other.subtypeBounds);
+			unincorporated.addAll(other.captures);
+			incorporate();
 		}
 		
 		IJavaTypeSubstitution getInitialVarSubst() {
@@ -1267,29 +1272,186 @@ public class TypeInference8 {
 			if (t == null) {
 				throw new NullPointerException("No type for equality bound");
 			}
-			equalities.add(new EqualityBound((IJavaReferenceType) s, (IJavaReferenceType) t));
+			if (t instanceof InferenceVariable) {
+				boolean swap = !(s instanceof InferenceVariable) || s.hashCode() > t.hashCode();					
+				if (swap) {
+					IJavaType temp = s;
+					s = t;
+					t = temp;
+				}
+			}
+			incorporate(new EqualityBound((IJavaReferenceType) s, (IJavaReferenceType) t));		
 		}
 
 		// s <: (is a subtype of) t
 		void addSubtypeBound(IJavaType s, IJavaType t) {
-			subtypeBounds.add(new SubtypeBound((IJavaReferenceType) s, (IJavaReferenceType) t));
+			incorporate(new SubtypeBound((IJavaReferenceType) s, (IJavaReferenceType) t));
 		}	
 		
 		// G< α 1 , ..., α n > = capture( G<A 1 , ..., A n > )
 		void addCaptureBound(IJavaType s, IJavaType t) {
-			captures.add(new CaptureBound((IJavaDeclaredType) s, (IJavaDeclaredType) t));
+			incorporate(new CaptureBound((IJavaDeclaredType) s, (IJavaDeclaredType) t));
 		}
 		
 		void addThrown(InferenceVariable v) {
-			thrownSet.add(v);
+			thrownSet.add(v);			
 		}
 		
 		void addInstantiation(InferenceVariable v, IJavaType t) {
 			if (v == null || t == null) {
 				throw new NullPointerException("Bad instantiation: "+v+" = "+t);
 			}
-			instantiations.put(v, t);
+			instantiations.put(v, t); // TODO
 			addEqualityBound(v, t);
+		}
+		
+		/**
+		 * 18.3 Incorporation
+		 * 
+		 * As bound sets are constructed and grown during inference, it is possible that new bounds can be inferred 
+		 * based on the assertions of the original bounds. The process of incorporation identifies these new bounds 
+		 * and adds them to the bound set.
+		 * 
+		 * Incorporation can happen in two scenarios. One scenario is that the bound set contains complementary pairs 
+		 * of bounds; this implies new constraint formulas, as specified in §18.3.1. The other scenario is that the 
+		 * bound set contains a bound involving capture conversion; this implies new bounds and may imply new constraint
+		 * formulas, as specified in §18.3.2. In both scenarios, any new constraint formulas are reduced, and any new 
+		 * bounds are added to the bound set. This may trigger further incorporation; ultimately, the set will reach a 
+		 * fixed point and no further bounds can be inferred.
+		 * 
+		 * If incorporation of a bound set has reached a fixed point, and the set does not contain the bound false, 
+		 * then the bound set has the following properties:
+		 * 
+		 * • For each combination of a proper lower bound L and a proper upper bound U of an inference variable, L <: U.
+		 * • If every inference variable mentioned by a bound has an instantiation, the bound is satisfied by the 
+		 *   corresponding substitution.
+		 * • Given a dependency α = β, every bound of α matches a bound of β, and vice versa.
+		 * • Given a dependency α <: β, every lower bound of α is a lower bound of β, and every upper bound of β is an upper bound of α.
+		 */
+		private void incorporate(Bound<?>... newBounds) {
+			for(Bound<?> b : newBounds) {
+				unincorporated.add(b);
+			}
+			while (!unincorporated.isEmpty()) {
+				Bound<?> b = unincorporated.remove();
+				
+				// Check for combos and reduce the resulting constraints
+				if (b instanceof SubtypeBound) {
+					SubtypeBound sb = (SubtypeBound) b;
+					subtypeBounds.add(sb);
+					incorporateSubtypeBound(sb);
+				}
+				else if (b instanceof EqualityBound) {
+					EqualityBound eb = (EqualityBound) b;
+					equalities.add(eb);
+					incorporateEqualityBound(eb);
+				}
+				else {
+					CaptureBound cb = (CaptureBound) b;
+					captures.add(cb);
+					incorporateCaptureBound(cb);
+				}
+			}
+		}
+
+		// See incorporateSubtypeBound() for details
+		private void incorporateEqualityBound(EqualityBound eb) {
+			if (eb.s instanceof InferenceVariable) {
+				final InferenceVariable alpha = (InferenceVariable) eb.s;
+				final IJavaTypeSubstitution s = eb.s.isProperType() ? 
+						new TypeSubstitution(tEnv.getBinder(), Collections.singletonMap(alpha, eb.s)) : null;
+				for(EqualityBound b : equalities) {
+					// case 1
+					if (alpha == b.s) {
+						reduceTypeEqualityConstraints(this, eb.s, b.t);
+					}
+					// case 5
+					if (s != null) {
+						reduceTypeEqualityConstraints(this, b.s.subst(s), b.t.subst(s)); // TODO check if the same?
+					}
+				}
+				for(SubtypeBound b : subtypeBounds) {
+					// case 2
+					if (alpha == b.s) {
+						reduceSubtypingConstraints(this, eb.s, b.t);
+					}
+					// case 3
+					else if (alpha == b.t) {
+						IJavaType t = b.s;
+						reduceSubtypingConstraints(this, t, eb.s);
+					}
+					// case 6
+					if (s != null) {
+						reduceSubtypingConstraints(this, b.s.subst(s), b.t.subst(s)); // TODO check if the same?
+					}
+				}
+			}
+		}
+
+		/**
+		 * 18.3.1 Complementary Pairs of Bounds
+		 *
+		 * (In this section, S and T are inference variables or types, and U is a proper type. 
+		 * For conciseness, a bound of the form α = T may also match a bound of the form T = α.)
+		 * 
+		 * When a bound set contains a pair of bounds that match one of the following rules, a new constraint formula is implied:
+		 * 
+		 * 1• α = S and α = T imply ‹S = T›
+		 * 2• α = S and α <: T imply ‹S <: T›
+		 * 3• α = S and T <: α imply ‹T <: S›
+		 * 4• S <: α and α <: T imply ‹S <: T›
+		 * 5• α = U and S = T imply ‹S[α:=U] = T[α:=U]›
+		 * 6• α = U and S <: T imply ‹S[α:=U] <: T[α:=U]›
+		 * 
+		 * When a bound set contains a pair of bounds α <: S and α <: T, and there exists a supertype of S
+		 * of the form G<S1, ..., Sn> and a supertype of T of the form G<T1, ..., Tn> (for some generic class
+		 * or interface, G), then for all i (1 ≤ i ≤ n), if Si and Ti are types (not wildcards), 
+		 * the constraint formula ‹Si = Ti› is implied.
+		 */ 
+		private void incorporateSubtypeBound(SubtypeBound sb) {
+			if (sb.s instanceof InferenceVariable) {
+				final InferenceVariable alpha = (InferenceVariable) sb.s;
+				for(EqualityBound b : equalities) {
+					// case 2
+					if (alpha == b.s) {
+						reduceSubtypingConstraints(this, b.t, sb.t);
+					}
+				}
+				for(SubtypeBound b : subtypeBounds) {
+					if (b.t instanceof InferenceVariable) {
+						// case 4a
+						reduceSubtypingConstraints(this, b.s, sb.t);
+					}
+				}
+			}
+			if (sb.t instanceof InferenceVariable) {
+				final InferenceVariable alpha = (InferenceVariable) sb.t;
+				for(EqualityBound b : equalities) {
+					// case 3
+					if (alpha == b.s) {
+						reduceSubtypingConstraints(this, sb.s, b.t);
+					}
+				}	
+				for(SubtypeBound b : subtypeBounds) {
+					// case 4b
+					if (alpha == b.s) {
+						reduceSubtypingConstraints(this, sb.s, b.t);
+					}
+				}
+			}
+			for(EqualityBound b : equalities) {
+				if (b.s instanceof InferenceVariable && b.t.isProperType()) {
+					// case 6
+					final InferenceVariable alpha = (InferenceVariable) b.s;
+					final IJavaTypeSubstitution s = new TypeSubstitution(tEnv.getBinder(), Collections.singletonMap(alpha, b.t));
+					reduceSubtypingConstraints(this, sb.s.subst(s), sb.t.subst(s)); // TODO check if the same?
+				}				
+			}
+		}
+
+		private void incorporateCaptureBound(CaptureBound cb) {
+			// TODO Auto-generated method stub
+			
 		}
 		
 		private void collectVariablesFromBounds(Set<InferenceVariable> vars, Set<? extends Bound<?>> bounds) {
