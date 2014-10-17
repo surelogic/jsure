@@ -1049,7 +1049,7 @@ public class TypeInference8 {
 		public boolean equals(Object o) {
 			if (o instanceof Bound) {
 				Bound<?> other = (Bound<?>) o;
-				return s.equals(other.s) && t.equals(other.t);
+				return o.getClass().equals(other.getClass()) && s.equals(other.s) && t.equals(other.t);
 			}
 			return false;
 		}
@@ -1301,6 +1301,9 @@ public class TypeInference8 {
 			if (v == null || t == null) {
 				throw new NullPointerException("Bad instantiation: "+v+" = "+t);
 			}
+			if (!t.isProperType()) {
+				throw new IllegalStateException("Not a proper type: "+t);				
+			}
 			instantiations.put(v, t); // TODO
 			addEqualityBound(v, t);
 		}
@@ -1338,16 +1341,35 @@ public class TypeInference8 {
 				// Check for combos and reduce the resulting constraints
 				if (b instanceof SubtypeBound) {
 					SubtypeBound sb = (SubtypeBound) b;
+					if (subtypeBounds.contains(sb)) {
+						continue;
+					} 
 					subtypeBounds.add(sb);
 					incorporateSubtypeBound(sb);
 				}
 				else if (b instanceof EqualityBound) {
 					EqualityBound eb = (EqualityBound) b;
+					if (equalities.contains(eb)) {
+						continue;
+					} 
 					equalities.add(eb);
+					
+					if (eb.s instanceof InferenceVariable && eb.t.isProperType()) {
+						IJavaType instantiation = instantiations.get(eb.s);
+						if (instantiation == null) {
+							instantiations.put((InferenceVariable) eb.s, eb.t);
+						}
+						else if (!instantiation.equals(eb.t)) {
+							throw new IllegalStateException("Duplicate instantiation?");
+						} 						
+					}
 					incorporateEqualityBound(eb);
 				}
 				else {
 					CaptureBound cb = (CaptureBound) b;
+					if (captures.contains(cb)) {
+						continue;
+					}
 					captures.add(cb);
 					incorporateCaptureBound(cb);
 				}
@@ -1488,7 +1510,30 @@ public class TypeInference8 {
 		 */
 		private void incorporateCaptureBound(CaptureBound cb) {
 			// TODO Auto-generated method stub
+			constructInitialSet(null);
 			
+			int i=0;
+			for(IJavaType a_i : cb.t.getTypeParameters()) {
+				if (a_i instanceof IJavaWildcardType) {
+					IJavaWildcardType wt = (IJavaWildcardType) a_i;
+					if (wt.getUpperBound() != null) {
+						// case 3
+						throw new NotImplemented();
+					}
+					else if (wt.getLowerBound() != null) {
+						// case 4
+						throw new NotImplemented();
+					}
+					else {
+						// case 2
+						throw new NotImplemented();
+					}
+				} else {
+					// case 1
+					addEqualityBound(cb.s.getTypeParameters().get(i), a_i);
+				}
+				i++;
+			}
 		}
 		
 		private void collectVariablesFromBounds(Set<InferenceVariable> vars, Set<? extends Bound<?>> bounds) {
@@ -2390,7 +2435,7 @@ public class TypeInference8 {
 	 *   - If T is an intersection type, I 1 & ... & I n , the constraint reduces to the following
 	 *     new constraints: for all i (1 <= i <= n), < S <: I i >.
 	 */
-	private void reduceSubtypingConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
+	void reduceSubtypingConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
 		if (s.isProperType() && t.isProperType()) {
 			if (tEnv.isSubType(s, t)) {
 				bounds.addTrue();
@@ -2576,7 +2621,7 @@ public class TypeInference8 {
 	 * - Otherwise, if S and T are array types, S'[] and T'[] , the constraint reduces to < S' = T' >.
 	 * - Otherwise, the constraint reduces to false.
 	 */
-	private void reduceTypeEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
+	void reduceTypeEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
 		if (s.isProperType() && t.isProperType()) {
 			if (s.equals(t)) {
 				bounds.addTrue();
