@@ -21,6 +21,7 @@ import com.surelogic.Borrowed;
 import com.surelogic.Immutable;
 import com.surelogic.RegionEffects;
 import com.surelogic.ThreadSafe;
+import com.surelogic.ast.IPrimitiveType;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
@@ -1167,10 +1168,21 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 	if (s.isEqualTo(this, t) || s == JavaTypeFactory.anyType) {
 		return true;
 	}
+	if (s instanceof IJavaPrimitiveType) {
+		if (t instanceof IJavaPrimitiveType) {
+			return isPrimSubType((IJavaPrimitiveType) s, (IJavaPrimitiveType) t);
+		}
+		return false;
+	}
+	else if (t instanceof IJavaPrimitiveType) {
+		return false; // Only one is a prim
+	}
+	/*
 	// subtyping is only true for reference types.
 	if (!(s instanceof IJavaReferenceType) || !(t instanceof IJavaReferenceType)) {
 		return false;
 	}
+	*/
 	// From JLS 4.10.2
 	if (s instanceof IJavaNullType) {
 		return !(t instanceof IJavaNullType);
@@ -1218,6 +1230,15 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 			return result;
 		}
 		
+		if (t instanceof IJavaWildcardType) {
+			// JLS 4.10.2 -- A type variable is a direct supertype of its lower bound
+			IJavaWildcardType wt = (IJavaWildcardType) t;
+			if (wt.getLowerBound() != null) {
+				result = isSubType(s, wt.getLowerBound());
+				return result;
+			}
+		}
+		
 		if (t instanceof IJavaCaptureType) {
 			// JLS 4.10.2 -- A type variable is a direct supertype of its lower bound
 			IJavaCaptureType ct = (IJavaCaptureType) t;
@@ -1263,6 +1284,29 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 			//subTypeCache.put(Pair.getInstance(s, t), result);			
 		}
 	}
+  }
+
+  /**
+   * • double >1 float
+   * • float >1 long
+   * • long >1 int
+   * • int >1 char
+   * • int >1 short
+   * • short >1 byte
+   */
+  private boolean isPrimSubType(IJavaPrimitiveType s, IJavaPrimitiveType t) {
+	final IPrimitiveType.Kind sKind = s.getKind();
+	final IPrimitiveType.Kind tKind = t.getKind();
+	if (sKind == tKind) {
+		return true;
+	}
+	if (sKind.rank() < 0 || tKind.rank() < 0) {
+		return false; 
+	}
+	if (tKind == IPrimitiveType.Kind.CHAR) {
+		return false;		
+	}
+	return sKind.rank() < tKind.rank();
   }
 
   /**
