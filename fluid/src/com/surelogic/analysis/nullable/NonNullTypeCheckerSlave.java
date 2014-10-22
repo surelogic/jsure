@@ -25,12 +25,14 @@ import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.SLUtility;
 import com.surelogic.dropsea.ir.AnalysisResultDrop;
+import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
+import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -311,6 +313,26 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
           }
           
           hd.addInformationHint(
+              where, k.getMessage(),
+              src.third().getAnnotation(), k.unparse(where));
+        } 
+        
+        else if (pd instanceof NonNullPromiseDrop) {
+          /* We get here when we have the use of a @NonNull field
+           * being referenced through an @Initialized reference.  So here
+           * we have the case of a @NonNull field being possibly null.  This 
+           * is a very dangerous situation, so we report an error. 
+           */
+          final ResultDrop rd = ResultsBuilder.createResult(
+              false, pd, expr, isUnbox ? POSSIBLY_NULL_UNBOX : POSSIBLY_NULL);
+          
+          Drop d = rd;
+          for (final IRNode readFrom : chain) {
+            d = d.addInformationHint(
+                readFrom, READ_FROM, DebugUnparser.toString(readFrom));
+          }
+
+          d.addInformationHint(
               where, k.getMessage(),
               src.third().getAnnotation(), k.unparse(where));
         }
