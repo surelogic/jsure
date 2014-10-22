@@ -10,11 +10,13 @@ import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 
 import com.surelogic.ast.java.operator.ITypeFormalNode;
+import com.surelogic.common.logging.SLLogger;
 
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IROutput;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.MethodBinding;
 import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodState;
@@ -63,8 +65,12 @@ public class TypeInference8 {
 		@Override
 		public String toString() {
 			String rv = super.toString();
-			int last = rv.lastIndexOf('$');
-			return rv.substring(last+1);
+			if (formal == null) {
+				int last = rv.lastIndexOf('$');
+				return rv.substring(last+1);
+			}
+			int last = rv.lastIndexOf('@');			
+			return JavaNames.getRelativeTypeName(formal)+rv.substring(last);
 		}
 		
 		public IJavaReferenceType getLowerBound() {
@@ -269,8 +275,8 @@ public class TypeInference8 {
      * 
      *   If B 4 contains the bound false, or if resolution fails, then a compile-time error occurs.
 */
-	BoundSet inferForInvocationType(CallState call, MethodBinding m, BoundSet b_2, boolean usedUncheckedConv) {
-		final BoundSet b_3 = computeB_3(call, m, b_2, usedUncheckedConv);
+	BoundSet inferForInvocationType(CallState call, MethodBinding m, BoundSet b_2) {
+		final BoundSet b_3 = computeB_3(call, m, b_2);
 		final IJavaTypeSubstitution theta = b_3.getInitialVarSubst();
 		Set<ConstraintFormula> c = createInitialConstraints(call, m, theta);
 		computeInputOutput(null, null); // TODO
@@ -282,7 +288,7 @@ public class TypeInference8 {
 	/**
 	 * From 18.5.2 Invocation Type Inference
 	 */
-	private BoundSet computeB_3(CallState call, MethodBinding m, BoundSet b_2, boolean usedUncheckedConv) {
+	private BoundSet computeB_3(CallState call, MethodBinding m, BoundSet b_2) {
 		 /* 
 	     * - If the invocation is not a poly expression, let the bound set B 3 be the same as B 2 .
 	     */
@@ -291,13 +297,13 @@ public class TypeInference8 {
 		}
 
 		final IJavaType t = utils.getPolyExpressionTargetType(call.call);
-		return computeB_3(call, m, b_2, usedUncheckedConv, t);
+		return computeB_3(call, m, b_2, t);
 	}
 	
 	/**
 	 * @param t the target type
 	 */
-	private BoundSet computeB_3(CallState call, MethodBinding m, BoundSet b_2, boolean usedUncheckedConv, IJavaType t) {
+	private BoundSet computeB_3(CallState call, MethodBinding m, BoundSet b_2, IJavaType t) {
 	    /*   If the invocation is a poly expression, let the bound set B 3 be derived from B 2
 	     *   as follows. Let R be the return type of m , let T be the invocation's target type,
 	     *   and then:
@@ -309,7 +315,7 @@ public class TypeInference8 {
 		final IJavaType r = m.getReturnType(tEnv);
 		final BoundSet b_3 = new BoundSet(b_2);
 		final IJavaTypeSubstitution theta = b_3.getInitialVarSubst();
-		if (usedUncheckedConv) {
+		if (b_3.usedUncheckedConversion) {
 			reduceConstraintFormula(b_3, new ConstraintFormula(tEnv.computeErasure(r), FormulaConstraint.IS_COMPATIBLE, t));
 			return b_3;
 		}
@@ -1030,6 +1036,9 @@ public class TypeInference8 {
 		final T s, t;
 		
 		Bound(T s, T t) {
+			if (s == null || t == null) {
+				throw new IllegalArgumentException();
+			}
 			this.s = s;
 			this.t = t;
 			
@@ -1184,6 +1193,7 @@ public class TypeInference8 {
 	 */
 	class BoundSet {
 		private boolean isFalse = false;
+		private boolean usedUncheckedConversion = false;
 		private final Set<InferenceVariable> thrownSet = new HashSet<InferenceVariable>();
 		private final Set<EqualityBound> equalities = new HashSet<EqualityBound>();
 		private final Set<SubtypeBound> subtypeBounds = new HashSet<SubtypeBound>();
@@ -1209,6 +1219,10 @@ public class TypeInference8 {
 		 */
 		final Map<InferenceVariable, IJavaType> instantiations = new HashMap<InferenceVariable, IJavaType>();
 		
+		private BoundSet() {
+			original = null;
+		}
+		
 		BoundSet(final IRNode typeFormals, final InferenceVariable[] vars) {
 			original = null;
 			
@@ -1222,6 +1236,7 @@ public class TypeInference8 {
 		BoundSet(BoundSet orig) {
 			original = orig.original == null ? orig : orig.original;
 			isFalse = orig.isFalse;
+			usedUncheckedConversion = orig.usedUncheckedConversion;
 			thrownSet.addAll(orig.thrownSet);
 			equalities.addAll(orig.equalities);
 			subtypeBounds.addAll(orig.subtypeBounds);
@@ -1232,6 +1247,7 @@ public class TypeInference8 {
 		
 		void merge(BoundSet other) {
 			isFalse |= other.isFalse;
+			usedUncheckedConversion |= other.usedUncheckedConversion;
 			thrownSet.addAll(other.thrownSet);
 			variableMap.putAll(other.variableMap);
 			unincorporated.addAll(other.equalities);
@@ -1334,24 +1350,27 @@ public class TypeInference8 {
 		private void incorporate(Bound<?>... newBounds) {
 			for(Bound<?> b : newBounds) {
 				unincorporated.add(b);
+				//System.out.println("Added "+b);
 			}
 			while (!unincorporated.isEmpty()) {
 				Bound<?> b = unincorporated.remove();
 				
 				// Check for combos and reduce the resulting constraints
+				BoundSet temp = new BoundSet();
 				if (b instanceof SubtypeBound) {
 					SubtypeBound sb = (SubtypeBound) b;
 					if (subtypeBounds.contains(sb)) {
 						continue;
 					} 
+					incorporateSubtypeBound(temp, sb);
 					subtypeBounds.add(sb);
-					incorporateSubtypeBound(sb);
 				}
 				else if (b instanceof EqualityBound) {
 					EqualityBound eb = (EqualityBound) b;
 					if (equalities.contains(eb)) {
 						continue;
 					} 
+					incorporateEqualityBound(temp, eb);
 					equalities.add(eb);
 					
 					if (eb.s instanceof InferenceVariable && eb.t.isProperType()) {
@@ -1359,25 +1378,61 @@ public class TypeInference8 {
 						if (instantiation == null) {
 							instantiations.put((InferenceVariable) eb.s, eb.t);
 						}
-						else if (!instantiation.equals(eb.t)) {
-							throw new IllegalStateException("Duplicate instantiation?");
+						else if (!instantiation.isEqualTo(tEnv, eb.t)) {
+							SLLogger.getLogger().warning("Duplicate instantiation for "+eb.s+": "+instantiation+" vs "+eb.t);
+							//throw new IllegalStateException("Duplicate instantiation?");
 						} 						
 					}
-					incorporateEqualityBound(eb);
 				}
 				else {
 					CaptureBound cb = (CaptureBound) b;
 					if (captures.contains(cb)) {
 						continue;
 					}
+					incorporateCaptureBound(temp, cb);
 					captures.add(cb);
-					incorporateCaptureBound(cb);
 				}
+				merge(temp);
 			}
 		}
 
 		// See incorporateSubtypeBound() for details
-		private void incorporateEqualityBound(EqualityBound eb) {
+		private void incorporateEqualityBound(BoundSet bounds, EqualityBound eb) {
+			if (eb.s instanceof InferenceVariable) {
+				final InferenceVariable alpha = (InferenceVariable) eb.s;
+				final IJavaTypeSubstitution s = eb.s.isProperType() ? 
+						new TypeSubstitution(tEnv.getBinder(), Collections.singletonMap(alpha, eb.s)) : null;
+				for(EqualityBound b : equalities) {
+					// case 1: α = S and α = T imply ‹S = T›
+					if (alpha == b.s) {
+						reduceTypeEqualityConstraints(bounds, eb.t, b.t);
+					}
+					// case 5: α = U and S = T imply ‹S[α:=U] = T[α:=U]›
+					if (s != null) {
+						reduceTypeEqualityConstraints(bounds, b.s.subst(s), b.t.subst(s)); // TODO check if the same?
+					}
+				}
+				for(SubtypeBound b : subtypeBounds) {
+					// case 2: α = S and α <: T imply ‹S <: T›
+					if (alpha == b.s) {
+						reduceSubtypingConstraints(bounds, eb.t, b.t);
+					}
+					// case 3: α = S and T <: α imply ‹T <: S›
+					else if (alpha == b.t) {
+						IJavaType t = b.s;
+						reduceSubtypingConstraints(bounds, t, eb.s);
+					}
+					// case 6: α = U and S <: T imply ‹S[α:=U] <: T[α:=U]›
+					if (s != null) {
+						reduceSubtypingConstraints(bounds, b.s.subst(s), b.t.subst(s)); // TODO check if the same?
+					}
+				}
+			}
+		}
+
+		/*
+		// See incorporateSubtypeBound() for details
+		private void incorporateEqualityBound2(BoundSet bounds, EqualityBound eb) {
 			if (eb.s instanceof InferenceVariable) {
 				final InferenceVariable alpha = (InferenceVariable) eb.s;
 				final IJavaTypeSubstitution s = eb.s.isProperType() ? 
@@ -1385,30 +1440,31 @@ public class TypeInference8 {
 				for(EqualityBound b : equalities) {
 					// case 1
 					if (alpha == b.s) {
-						reduceTypeEqualityConstraints(this, eb.s, b.t);
+						reduceTypeEqualityConstraints(bounds, eb.s, b.t);
 					}
 					// case 5
 					if (s != null) {
-						reduceTypeEqualityConstraints(this, b.s.subst(s), b.t.subst(s)); // TODO check if the same?
+						reduceTypeEqualityConstraints(bounds, b.s.subst(s), b.t.subst(s)); // TODO check if the same?
 					}
 				}
 				for(SubtypeBound b : subtypeBounds) {
 					// case 2
 					if (alpha == b.s) {
-						reduceSubtypingConstraints(this, eb.s, b.t);
+						reduceSubtypingConstraints(bounds, eb.s, b.t);
 					}
 					// case 3
 					else if (alpha == b.t) {
 						IJavaType t = b.s;
-						reduceSubtypingConstraints(this, t, eb.s);
+						reduceSubtypingConstraints(bounds, t, eb.s);
 					}
 					// case 6
 					if (s != null) {
-						reduceSubtypingConstraints(this, b.s.subst(s), b.t.subst(s)); // TODO check if the same?
+						reduceSubtypingConstraints(bounds, b.s.subst(s), b.t.subst(s)); // TODO check if the same?
 					}
 				}
 			}
 		}
+		*/
 
 		/**
 		 * 18.3.1 Complementary Pairs of Bounds
@@ -1427,19 +1483,19 @@ public class TypeInference8 {
 		 * 
 		 * ... see below
 		 */ 
-		private void incorporateSubtypeBound(SubtypeBound sb) {
+		private void incorporateSubtypeBound(BoundSet bounds, SubtypeBound sb) {
 			if (sb.s instanceof InferenceVariable) {
 				final InferenceVariable alpha = (InferenceVariable) sb.s;
 				for(EqualityBound b : equalities) {
 					// case 2
 					if (alpha == b.s) {
-						reduceSubtypingConstraints(this, b.t, sb.t);
+						reduceSubtypingConstraints(bounds, b.t, sb.t);
 					}
 				}
 				for(SubtypeBound b : subtypeBounds) {
 					if (b.t instanceof InferenceVariable) {
-						// case 4a
-						reduceSubtypingConstraints(this, b.s, sb.t);
+						// case 4a: S <: α and α <: T imply ‹S <: T›
+						reduceSubtypingConstraints(bounds, b.s, sb.t);
 					}
 					if (b.s instanceof InferenceVariable) {
 						/*
@@ -1457,13 +1513,13 @@ public class TypeInference8 {
 				for(EqualityBound b : equalities) {
 					// case 3
 					if (alpha == b.s) {
-						reduceSubtypingConstraints(this, sb.s, b.t);
+						reduceSubtypingConstraints(bounds, sb.s, b.t);
 					}
 				}	
 				for(SubtypeBound b : subtypeBounds) {
 					// case 4b
 					if (alpha == b.s) {
-						reduceSubtypingConstraints(this, sb.s, b.t);
+						reduceSubtypingConstraints(bounds, sb.s, b.t);
 					}
 				}
 			}
@@ -1472,7 +1528,10 @@ public class TypeInference8 {
 					// case 6
 					final InferenceVariable alpha = (InferenceVariable) b.s;
 					final IJavaTypeSubstitution s = new TypeSubstitution(tEnv.getBinder(), Collections.singletonMap(alpha, b.t));
-					reduceSubtypingConstraints(this, sb.s.subst(s), sb.t.subst(s)); // TODO check if the same?
+					if (sb.t.subst(s) == null) {
+						sb.t.subst(s);
+					}
+					reduceSubtypingConstraints(bounds, sb.s.subst(s), sb.t.subst(s)); // TODO check if the same?
 				}				
 			}
 		}
@@ -1508,7 +1567,7 @@ public class TypeInference8 {
 		 *   – αi <: R implies the constraint formula ‹Bi θ <: R›
 		 *   – R <: αi implies the constraint formula ‹R <: T›
 		 */
-		private void incorporateCaptureBound(CaptureBound cb) {
+		private void incorporateCaptureBound(BoundSet bounds, CaptureBound cb) {
 			// TODO Auto-generated method stub
 			constructInitialSet(null);
 			
@@ -1722,7 +1781,7 @@ public class TypeInference8 {
 			final ProperBounds bounds = collectProperBounds();
 			final Map<InferenceVariable,InferenceVariable> y_subst = new HashMap<InferenceVariable,InferenceVariable>(subset.size());
 			for(InferenceVariable a_i : subset) {
-				final InferenceVariable y_i = new InferenceVariable(a_i.formal); // TODO unique?
+				final InferenceVariable y_i = new InferenceVariable(null); // TODO unique?
 				y_subst.put(a_i, y_i);
 			}
 			final TypeSubstitution theta = new TypeSubstitution(tEnv.getBinder(), y_subst);
@@ -1777,6 +1836,10 @@ public class TypeInference8 {
 				}
 			}
 			return rv;
+		}
+
+		void usedUncheckedConversion() {
+			usedUncheckedConversion = true;
 		}
 	}
 	
@@ -2189,7 +2252,7 @@ public class TypeInference8 {
 			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, e, tEnv.getBinder().getJavaType(e))) {
 				bounds.addTrue();
 			} else {
-				mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, e, tEnv.getBinder().getJavaType(e));				
+				//mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, e, tEnv.getBinder().getJavaType(e));				
 				bounds.addFalse();
 			}
 		}
@@ -2227,7 +2290,7 @@ public class TypeInference8 {
 		final MethodBinding m = new MethodBinding(tEnv.getBinder().getIBinding(e));
         final CallState call = new CallState(tEnv.getBinder(), e, c.get_TypeArgs(e), c.get_Args(e), m.bind.getReceiverType());
 		final BoundSet b_2 = inferForInvocationApplicability(call, m, null);
-		return computeB_3(call, m, b_2, false, t); // TODO
+		return computeB_3(call, m, b_2, t); // TODO
 	}
 
 	/**
@@ -2383,12 +2446,14 @@ public class TypeInference8 {
 		}
 		else if (hasRawSuperTypeOf(s, t)) {
 			bounds.addTrue();
+			bounds.usedUncheckedConversion();
 		}
 		else if (t instanceof IJavaArrayType && s instanceof IJavaArrayType) {
 			IJavaArrayType ta = (IJavaArrayType) t;
 			IJavaArrayType sa = (IJavaArrayType) s;
 			if (ta.getDimensions() == sa.getDimensions() && hasRawSuperTypeOf(sa.getBaseType(), ta.getBaseType())) {
 				bounds.addTrue();
+				bounds.usedUncheckedConversion();
 			} else {
 				reduceSubtypingConstraints(bounds, s, t);
 			}
@@ -2440,6 +2505,7 @@ public class TypeInference8 {
 			if (tEnv.isSubType(s, t)) {
 				bounds.addTrue();
 			} else {
+				tEnv.isSubType(s, t);
 				bounds.addFalse();
 			}
 		}
@@ -2590,8 +2656,27 @@ public class TypeInference8 {
 					
 				}
 			}
-			// Case 2: ?
- 			bounds.addTrue();
+			else {
+				// Case 2: ?			
+				bounds.addTrue();
+			}
+		}
+		else if (t instanceof InferenceVariable) {
+			// TODO HACK?
+			if (s instanceof IJavaWildcardType) {
+				// ? <= ?
+				// ? extends U <= ? extends (? super U)
+				// ? super U <= ? super (? extends U)
+				/*
+				IJavaWildcardType ws = (IJavaWildcardType) s;
+				if (ws.getLowerBound() != null) {
+					
+				}
+				*/
+				reduceTypeEqualityConstraints(bounds, s, t);
+			} else {
+				reduceTypeEqualityConstraints(bounds, s, t);
+			}
 		}
 		// Case 1
 		else if (s instanceof IJavaWildcardType) {
@@ -2675,8 +2760,10 @@ public class TypeInference8 {
 	 * @param bounds 
 	 */
 	private void reduceTypeArgumentEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
-		// TODO case 1
-		if (s instanceof IJavaWildcardType && s instanceof IJavaWildcardType) {
+		if (!(s instanceof IJavaWildcardType) && !(t instanceof IJavaWildcardType)) {
+			reduceTypeEqualityConstraints(bounds, s, t);
+		}
+		else if (s instanceof IJavaWildcardType && t instanceof IJavaWildcardType) {
 			IJavaWildcardType sw = (IJavaWildcardType) s;
 			IJavaWildcardType tw = (IJavaWildcardType) t;
 			if (sw.getUpperBound() != null) {
@@ -2843,7 +2930,11 @@ public class TypeInference8 {
 		
 		@Override
 		public IJavaType get(IJavaTypeFormal jtf) {
-			return subst.get(jtf);
+			IJavaType rv = subst.get(jtf);
+			if (rv != null) {
+				return rv;
+			}
+			return jtf;
 		}
 		@Override
 		protected <V> V process(IJavaTypeFormal jtf, Process<V> processor) {
