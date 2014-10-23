@@ -18,12 +18,13 @@ public class ImportTutorialProjectsHandler extends AbstractHandler {
 				.open(EclipseUIUtility.getShell(),
 						CommonImages.IMG_JSURE_LOGO,
 						"/com.surelogic.jsure.client.help/ch01s03.html",
-						loader.getResource("/lib/JSureTutorial_ThreadSafeAndImmutable.zip"),
 						loader.getResource("/lib/JSureTutorial_BoundedFIFO.zip"),
-						loader.getResource("/lib/JSureTutorial_PlanetBaron.zip"),
+						loader.getResource("/lib/JSureTutorial_EffectiveEffects.zip"),
 						loader.getResource("/lib/JSureTutorial_java.util.logging.zip"),
-						loader.getResource("/lib/JSureTutorial_util.concurrent.SynchronizedVariable.zip"),
-						loader.getResource("/lib/JSureTutorial_EffectiveEffects.zip"));
+						loader.getResource("/lib/JSureTutorial_NonNull.zip"),
+						loader.getResource("/lib/JSureTutorial_PlanetBaron.zip"),
+						loader.getResource("/lib/JSureTutorial_ThreadSafeAndImmutable.zip"),
+						loader.getResource("/lib/JSureTutorial_util.concurrent.SynchronizedVariable.zip"));
 		return null;
 	}
 }
