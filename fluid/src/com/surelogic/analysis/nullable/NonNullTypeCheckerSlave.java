@@ -317,7 +317,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
               src.third().getAnnotation(), k.unparse(where));
         } 
         
-        else if (pd instanceof NonNullPromiseDrop) {
+        else if (pd instanceof NonNullPromiseDrop && k == Kind.RAW_FIELD_REF) {
           /* We get here when we have the use of a @NonNull field
            * being referenced through an @Initialized reference.  So here
            * we have the case of a @NonNull field being possibly null.  This 
