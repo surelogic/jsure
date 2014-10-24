@@ -1614,7 +1614,7 @@ public class TypeInference8 {
 			final Set<InferenceVariable> vars = collectVariables();
 			final Set<InferenceVariable> uninstantiated = new HashSet<InferenceVariable>(vars);
 			uninstantiated.removeAll(instantiations.keySet());
-			if (uninstantiated.size() == 1) {
+			if (uninstantiated.size() < 1) {
 				return uninstantiated;
 			}
 			VarDependencies deps = computeVarDependencies();
