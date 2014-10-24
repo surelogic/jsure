@@ -436,7 +436,7 @@ public class TypeInference8 {
      */
 	private Set<ConstraintFormula> createInitialConstraints(CallState call, MethodBinding m, IJavaTypeSubstitution theta) {
 		final Set<ConstraintFormula> rv = new HashSet<ConstraintFormula>();
-		final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.args.length, false);
+		final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.args.length, false/*kind == InvocationKind.VARARGS*/);
 		for(int i=0; i<call.args.length; i++) {
 			final IRNode e_i = call.args[i];
 			final IJavaType f_subst = formalTypes[i].subst(theta); 
