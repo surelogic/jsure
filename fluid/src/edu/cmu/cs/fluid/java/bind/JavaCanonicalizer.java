@@ -1210,12 +1210,16 @@ public class JavaCanonicalizer {
 
       @Override
       public IJavaType convertType(IBinder binder, IJavaType ty) {
+        IJavaDeclaredType ct = getContextType();    	  
         if (subst == null) {
-          IJavaDeclaredType ct = getContextType();
           if (ct != null) {
             subst = JavaTypeSubstitution.create(tEnv, ct);
           }
         }
+        if (ct != null && ct.isRawType(tEnv)) {
+        	ty = tEnv.computeErasure(ty);
+        }
+        
         if (subst != null) {
           return Util.subst(ty, subst);
         }

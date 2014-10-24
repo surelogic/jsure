@@ -171,10 +171,12 @@ public interface IBinding {
     		tFormals.add(JavaTypeFactory.getTypeFormal(tf));
     	}
     	final IJavaTypeSubstitution tSubst = new SimpleTypeSubstitution(tenv.getBinder(),tFormals,recType.getTypeParameters());
-    	return new PartialBinding(mdecl,recType,recType) {
+    	return new PartialBinding(mdecl,recType,recType,tenv) {
     		@Override
     		public IJavaType convertType(IBinder binder, IJavaType type) {
     	          if (type == null) return null;
+    	          
+    	          type = super.convertType(binder, type);
     	          if (mSubst != null) {
     	    		return Util.subst(Util.subst(type, mSubst), tSubst);
     	          }
@@ -213,19 +215,19 @@ public interface IBinding {
 //        System.out.println("Null");
 //      }
       if (mSubst == null) {
-          return new PartialBinding(n, ty, recType) {
+          return new PartialBinding(n, ty, recType, tEnv) {
           	@Override
               public IJavaType convertType(IBinder binder, IJavaType type) {
                 if (type == null) return null;
-                return Util.subst(type, subst);
+                return Util.subst(super.convertType(binder, type), subst);
               }
             };  
       }
-      return new PartialBinding(n, ty, recType) {
+      return new PartialBinding(n, ty, recType, tEnv) {
     	@Override
         public IJavaType convertType(IBinder binder, IJavaType type) {
     		if (type == null) return null;
-    		return Util.subst(Util.subst(type, mSubst), subst);          
+    		return Util.subst(Util.subst(super.convertType(binder, type), mSubst), subst);          
         }
       };
     }
@@ -233,12 +235,14 @@ public interface IBinding {
     public static class PartialBinding extends NodeBinding {
 		private final IJavaDeclaredType contextType;
 		private final IJavaReferenceType recType;
+		private final ITypeEnvironment tEnv;
 		
 		PartialBinding(IRNode n, IJavaDeclaredType context,
-				       IJavaReferenceType receiver) {
+				       IJavaReferenceType receiver, ITypeEnvironment te) {
 			super(n);
 			contextType = context;
 			recType = receiver;
+			tEnv = te;
 		}
         @Override
     	public final IJavaDeclaredType getContextType() {
@@ -248,6 +252,13 @@ public interface IBinding {
     	public final IJavaReferenceType getReceiverType() {
     		return recType;
     	}
+        @Override
+        public IJavaType convertType(IBinder binder, final IJavaType ty) {
+        	if (contextType.isRawType(tEnv)) {
+        		return tEnv.computeErasure(ty);
+        	}
+        	return ty;
+        }
     }
     
 	public static IBinding makeBinding(final IRNode binding, final IJavaDeclaredType context,

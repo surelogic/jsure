@@ -354,8 +354,26 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
        	  if (arg instanceof IJavaDeclaredType && paramD.getTypeParameters().size() > 0) {
        		  IJavaDeclaredType argD = (IJavaDeclaredType) arg;
        		  IJavaDeclaredType matchingSuper = matchSuper(paramD.getDeclaration(), argD);
-       		  if (matchingSuper != null && matchingSuper.isRawType(this)) {
-       			  return true;
+       		  if (matchingSuper != null) {
+       			  if (matchingSuper.isRawType(this)) {
+       				  return true;
+       			  }       			  
+       			  else if (matchingSuper.getTypeParameters().size() == paramD.getTypeParameters().size()) {
+       				// Look at type args
+      				List<IJavaType> sl = matchingSuper.getTypeParameters();
+    				List<IJavaType> tl = paramD.getTypeParameters();
+    				if (tl.isEmpty()) return true; // raw types (from JLS 4.10.2)
+    				if (sl.isEmpty()) return false; // raw is NOT a subtype
+    				Iterator<IJavaType> sli = sl.iterator();
+    				Iterator<IJavaType> tli = tl.iterator();
+    				// if we find any non-matches, we fail
+    				while (sli.hasNext() && tli.hasNext()) {
+    					IJavaType ss = sli.next();
+    					IJavaType tt = tli.next();
+    					if (!typeArgumentContained(ss,tt,true)) return false;
+    				}
+    				return true;
+       			  }
        		  }
        	  }
        	  if (arg instanceof IJavaTypeFormal) {
@@ -892,17 +910,15 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
 
 
 class SupertypesIterator extends SimpleIterator<IJavaType> {
-    Iterator<IRNode> nodes;
-    IJavaTypeSubstitution subst;
-    
-    SupertypesIterator(Iterator<IRNode> nodes, IJavaTypeSubstitution subst) {
-      this.nodes = nodes;
-      this.subst = subst;
-    }
-    SupertypesIterator(IJavaType first, Iterator<IRNode> nodes, IJavaTypeSubstitution s) {
+	final Iterator<IRNode> nodes;
+    final IJavaTypeSubstitution subst;
+    final boolean needsErasure;
+
+    SupertypesIterator(IJavaType first, Iterator<IRNode> nodes, IJavaTypeSubstitution s, boolean needsErasure) {
       super(first);
       this.nodes = nodes;
       this.subst = s;
+      this.needsErasure = needsErasure;
     }
     
     @Override
@@ -912,7 +928,15 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
       }
       IJavaType type = convertNodeTypeToIJavaType(nodes.next());
       if (type == null) return computeNext(); // skip this one
-      return type.subst(subst);
+      type = type.subst(subst);
+  	
+      if (needsErasure) {
+    	  // JLS 4.8
+    	  // The superclasses (respectively, superinterfaces) of a raw type are the erasures 
+    	  // of the superclasses (superinterfaces) of any of the parameterizations of the generic type.
+    	  type = JavaTypeVisitor.computeErasure((IJavaDeclaredType) type);
+      }
+      return type;
     }
     
     @Override
@@ -1011,7 +1035,8 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
     IJavaType superclass;
     IRNode superinterfaces;
     Operator op = JJNode.tree.getOperator(tdecl);
-    IJavaTypeSubstitution subst = JavaTypeSubstitution.create(this, dt);
+    final IJavaTypeSubstitution subst = JavaTypeSubstitution.create(this, dt);
+    final boolean needsErasure = dt.isRawType(this);
     if (op instanceof ClassDeclaration) {
       superclass = convertNodeTypeToIJavaType(ClassDeclaration.getExtension(tdecl));
       if (superclass == null) {
@@ -1074,7 +1099,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
       return new EmptyIterator<IJavaType>();
     }
     Iterator<IRNode> ch = JJNode.tree.children(superinterfaces);
-    return new SupertypesIterator(superclass,ch,subst);
+    return new SupertypesIterator(superclass,ch,subst,needsErasure);
   }
   
   @Override
@@ -1095,6 +1120,12 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 		  // A: The type factory should correctly insert type actuals
 		  // for the nesting (if any).  Actually maybe the canonicalizer should.
 		  if (t != null) {
+			  if (dt.isRawType(this)) {
+				  // JLS 4.8
+				  // The superclasses (respectively, superinterfaces) of a raw type are the erasures 
+				  // of the superclasses (superinterfaces) of any of the parameterizations of the generic type.
+				  return JavaTypeVisitor.computeErasure((IJavaDeclaredType) t);
+			  }
 			  t = t.subst(JavaTypeSubstitution.create(this, dt));
 		  } else {
 			  // Default to j.l.O
@@ -1267,7 +1298,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 				while (sli.hasNext() && tli.hasNext()) {
 					IJavaType ss = sli.next();
 					IJavaType tt = tli.next();
-					if (!typeArgumentContained(ss,tt)) return result = false;
+					if (!typeArgumentContained(ss,tt,ignoreGenerics)) return result = false;
 				}
 				return result = true;
 			}
@@ -1332,8 +1363,10 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
    * @param ss a type argument
    * @param tt another type argument
    * @return whether ss <= tt
+   * @param ignoreGenerics an argument to isSubType() if needed
+   * TODO really should be "allow unchecked conversion"
    */
-  protected boolean typeArgumentContained(IJavaType ss, IJavaType tt) {
+  protected boolean typeArgumentContained(IJavaType ss, IJavaType tt, boolean ignoreGenerics) {
     /*
      * See JLS 4.5.1.1: Type argument containment
      * (1) ? extends S <= ? extends T if S <: T
@@ -1362,13 +1395,13 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
     // Hack to deal with capture types as if they're type variables
     if (ss instanceof IJavaCaptureType) {
     	IJavaCaptureType cs = (IJavaCaptureType) ss;
-	    if (typeArgumentContained(cs.getUpperBound(), tt)) {
+	    if (typeArgumentContained(cs.getUpperBound(), tt, ignoreGenerics)) {
 	    	return true; // TODO what about lower bound?    	
 	    }
     }
     if (tt instanceof IJavaCaptureType) {
     	IJavaCaptureType ct = (IJavaCaptureType) tt;
-    	if (isSubType(ss, ct.getLowerBound()) && typeArgumentContained(ss, ct.getUpperBound())) {
+    	if (isSubType(ss, ct.getLowerBound(), ignoreGenerics) && typeArgumentContained(ss, ct.getUpperBound(), ignoreGenerics)) {
     		return true;
     	}
     }        
@@ -1381,12 +1414,12 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
           if (tw.getUpperBound() == null) {
         	  return tw.getLowerBound() == null; // (1a)
           }
-          return isSubType(sw.getUpperBound(), tw.getUpperBound()); // (1)
+          return isSubType(sw.getUpperBound(), tw.getUpperBound(), ignoreGenerics); // (1)
         } 
         else if (sw.getLowerBound() != null) {
           if (tw.getLowerBound() == null) return true; //(2a)
           if (tw.getLowerBound() == getObjectType()) return true; //(2b)          
-          return isSubType(tw.getLowerBound(), sw.getLowerBound()); // (2)
+          return isSubType(tw.getLowerBound(), sw.getLowerBound(), ignoreGenerics); // (2)
         } else { // ? <= nothing
         	return false;
         }
@@ -1396,15 +1429,15 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
     		return false;
     	}
     	// Added to handle the case of "? extends T <: T?
-        return isSubType(sw.getUpperBound() != null ? sw.getUpperBound() : getObjectType(), tt);
+        return isSubType(sw.getUpperBound() != null ? sw.getUpperBound() : getObjectType(), tt, ignoreGenerics);
       }
     } else {
       if (!(tt instanceof IJavaWildcardType)) return false;
       IJavaWildcardType tw = (IJavaWildcardType)tt;
       if (tw.getUpperBound() != null) {
-        return isSubType(ss,tw.getUpperBound()); // (4)
+        return isSubType(ss,tw.getUpperBound(), ignoreGenerics); // (4)
       } else if (tw.getLowerBound() != null) {        
-        return isSubType(tw.getLowerBound(),ss); // (5)
+        return isSubType(tw.getLowerBound(),ss, ignoreGenerics); // (5)
       } else {
         // return (ss instanceof IJavaReferenceType); 
         // Anything matches ?
