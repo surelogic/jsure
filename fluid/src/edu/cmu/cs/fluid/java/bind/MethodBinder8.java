@@ -885,6 +885,9 @@ public class MethodBinder8 implements IMethodBinder {
 	 * • Otherwise, the method invocation is ambiguous, and a compile-time error occurs.
 	 */
     private IBinding findMostSpecific(final CallState call, Iterable<MethodBinding> methods, ApplicableMethodFilter filter) {
+    	if (false && "getLowerBound".equals(JJNode.getInfoOrNull(call.call))) {
+    		System.out.println("Trying to find method for allOf");
+    	}
     	final Set<MethodState> applicable = new HashSet<MethodState>();
     	for(MethodBinding mb : methods) {
     		MethodState result = filter.isApplicable(call, mb);
@@ -940,7 +943,24 @@ public class MethodBinder8 implements IMethodBinder {
         	return concrete.getFinalResult();	
     	}
     	// Return one arbitrarily
-    	return maxSpecific.iterator().next().getFinalResult();
+    	//return maxSpecific.iterator().next().getFinalResult();
+    	//
+    	// Deal with possible overrides 
+      	MethodState rv = null;   
+    	for(MethodState mb : maxSpecific) {
+			if (rv == null) {
+				rv = mb;
+			}
+			// TODO is this in the right place?
+			// TODO check if they have the same signature?
+			else if (mb.bind.bind.getContextType().isSubtype(tEnv, rv.bind.bind.getContextType())) {
+				rv = mb;
+			}
+			else if (!rv.bind.bind.getContextType().isSubtype(tEnv, mb.bind.bind.getContextType())) {
+				throw new IllegalStateException("Ambiguous call to "+mb+" or "+concrete);
+			}
+    	}
+    	return rv.getFinalResult();
 	}
 
     static class MethodState {
