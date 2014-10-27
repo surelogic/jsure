@@ -946,6 +946,7 @@ public class MethodBinder8 implements IMethodBinder {
     	//return maxSpecific.iterator().next().getFinalResult();
     	//
     	// Deal with possible overrides 
+
       	MethodState rv = null;   
     	for(MethodState mb : maxSpecific) {
 			if (rv == null) {
@@ -956,9 +957,12 @@ public class MethodBinder8 implements IMethodBinder {
 			else if (tEnv.isRawSubType(mb.bind.bind.getContextType(), rv.bind.bind.getContextType())) {
 				rv = mb;
 			}
+			/* Just use the first one, since they're all abstract (concrete ones are handled above)
+			 * 
 			else if (!tEnv.isRawSubType(rv.bind.bind.getContextType(), mb.bind.bind.getContextType())) {
 				throw new IllegalStateException("Ambiguous call to "+mb+" or "+concrete);
 			}
+			*/
     	}
     	return rv.getFinalResult();
 	}
