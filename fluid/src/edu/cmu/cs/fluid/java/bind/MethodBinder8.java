@@ -953,10 +953,10 @@ public class MethodBinder8 implements IMethodBinder {
 			}
 			// TODO is this in the right place?
 			// TODO check if they have the same signature?
-			else if (mb.bind.bind.getContextType().isSubtype(tEnv, rv.bind.bind.getContextType())) {
+			else if (tEnv.isRawSubType(mb.bind.bind.getContextType(), rv.bind.bind.getContextType())) {
 				rv = mb;
 			}
-			else if (!rv.bind.bind.getContextType().isSubtype(tEnv, mb.bind.bind.getContextType())) {
+			else if (!tEnv.isRawSubType(rv.bind.bind.getContextType(), mb.bind.bind.getContextType())) {
 				throw new IllegalStateException("Ambiguous call to "+mb+" or "+concrete);
 			}
     	}
