@@ -2159,9 +2159,25 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
     		super.toString(TextKind.UNQUALIFIED, ParamTextKind.QUALIFIED_TEXT);
     }
     
+    /**
+     * JLS 4.8
+     * 
+     * More precisely, a raw type is defined to be one of:
+     * • The reference type that is formed by taking the name of a generic type declaration
+     *   without an accompanying type argument list.
+     * • An array type whose element type is a raw type.
+     * • A non- static member type of a raw type R that is not inherited from a superclass
+     *   or superinterface of R .
+     */
     @Override
     public boolean isRawType(ITypeEnvironment tEnv) {
-    	return super.isRawType(tEnv) || getOuterType().isRawType(tEnv);
+    	if (super.isRawType(tEnv)) {
+    		return true;
+    	}
+    	if (TypeUtil.isStatic(declaration)) {
+    		return false;
+    	}
+    	return getOuterType().isRawType(tEnv);
     }
 
     @Override
