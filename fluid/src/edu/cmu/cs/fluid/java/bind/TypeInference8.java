@@ -2258,7 +2258,8 @@ public class TypeInference8 {
 		}
 		else if (!mb.isPolyExpression(e)) {
 			IJavaType s = tEnv.getBinder().getJavaType(e);
-			reduceTypeCompatibilityConstraints(bounds, s, t);
+			IJavaType captured = JavaTypeVisitor.captureWildcards(tEnv.getBinder(), s);
+			reduceTypeCompatibilityConstraints(bounds, captured, t);
 		} else {
 			Operator op = JJNode.tree.getOperator(e);
 			if (ParenExpression.prototype.includes(op)) {
@@ -2660,24 +2661,26 @@ public class TypeInference8 {
 				// Case 2: ?			
 				bounds.addTrue();
 			}
-		}
-		else if (t instanceof InferenceVariable) {
-			// TODO HACK?
-			if (s instanceof IJavaWildcardType) {
-				// ? <= ?
-				// ? extends U <= ? extends (? super U)
-				// ? super U <= ? super (? extends U)
-				/*
-				IJavaWildcardType ws = (IJavaWildcardType) s;
-				if (ws.getLowerBound() != null) {
-					
-				}
-				*/
-				reduceTypeEqualityConstraints(bounds, s, t);
-			} else {
-				reduceTypeEqualityConstraints(bounds, s, t);
-			}
-		}
+		}		
+//      NOT needed, due to capture conversion of arguments
+//		
+//		else if (t instanceof InferenceVariable) {
+//			// TODO HACK?
+//			if (s instanceof IJavaWildcardType) {
+//				// ? <= ?
+//				// ? extends U <= ? extends (? super U)
+//				// ? super U <= ? super (? extends U)
+//				/*
+//				IJavaWildcardType ws = (IJavaWildcardType) s;
+//				if (ws.getLowerBound() != null) {
+//					
+//				}
+//				*/
+//				reduceTypeEqualityConstraints(bounds, s, t);
+//			} else {
+//				reduceTypeEqualityConstraints(bounds, s, t);
+//			}
+//		}        
 		// Case 1
 		else if (s instanceof IJavaWildcardType) {
 			bounds.addFalse();
