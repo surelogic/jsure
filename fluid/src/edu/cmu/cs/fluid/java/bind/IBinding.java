@@ -154,7 +154,11 @@ public interface IBinding {
     }
 	  
     public static IBinding makeMethodBinding(IBinding mbind, IJavaDeclaredType context, IJavaTypeSubstitution mSubst, IJavaType recType, ITypeEnvironment tEnv) {
-      if (recType != null && mbind.getReceiverType() != null && mbind.getContextType() != mbind.getReceiverType()) {
+      if (context == null && mSubst == null && (recType == null || recType == mbind.getReceiverType())) {
+    	  // No need to create a new binding
+    	  return mbind;
+      }
+      if (recType != null && mbind.getReceiverType() != null && mbind.getContextType() != mbind.getReceiverType()) {    	  
     	  System.out.println("Replacing "+mbind.getReceiverType()+" with "+recType);
       }
       return makeBinding(mbind.getNode(), 
