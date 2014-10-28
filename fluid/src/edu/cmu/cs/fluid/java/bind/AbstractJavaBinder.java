@@ -1406,7 +1406,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       	System.out.println("Context type for getCurrentKey() = "+bestMethod.method.getContextType());
       }
       */
-      return bind(state.call, bestMethod.method);
+      return bind(state.call, IBinding.Util.makeMethodBinding(bestMethod.method, null, null/*mSubst*/, state.receiverType, getTypeEnvironment()));
     }
 
     private StringBuilder buildStringOfArgTypes(IJavaType[] argTypes) {
