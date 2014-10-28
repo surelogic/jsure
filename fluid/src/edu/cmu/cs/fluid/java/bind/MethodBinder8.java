@@ -53,6 +53,9 @@ public class MethodBinder8 implements IMethodBinder {
         		rv = findMostSpecific(call, applicable, VARIABLE_ARITY_INVOCATION);
         	}
         }
+        if (rv == null) {
+        	return null;
+        }
         // TODO is this right?
         return new BindingInfo(rv, 0, false, 0);
     }
@@ -946,7 +949,6 @@ public class MethodBinder8 implements IMethodBinder {
     	//return maxSpecific.iterator().next().getFinalResult();
     	//
     	// Deal with possible overrides 
-
       	MethodState rv = null;   
     	for(MethodState mb : maxSpecific) {
 			if (rv == null) {
