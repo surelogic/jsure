@@ -265,11 +265,6 @@ public class JavaTypeInfoVisitor extends Visitor<JavaTypeInfoVisitor.TypeInfo> {
   }
   
   @Override
-  public TypeInfo visitCaptureType(IRNode node) {
-    return new TypeInfo(JavaTypeFactory.convertNodeTypeToIJavaType( node, binder ));
-  }
-  
-  @Override
   public TypeInfo visitCastExpression(IRNode node) {
     IRNode decl = CastExpression.getType( node );
     return doAccept( decl );

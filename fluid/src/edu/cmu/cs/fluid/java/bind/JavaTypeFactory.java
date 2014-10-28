@@ -61,7 +61,6 @@ import edu.cmu.cs.fluid.java.operator.ArrayDeclaration;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
 import edu.cmu.cs.fluid.java.operator.BooleanType;
 import edu.cmu.cs.fluid.java.operator.ByteType;
-import edu.cmu.cs.fluid.java.operator.CaptureType;
 import edu.cmu.cs.fluid.java.operator.CharType;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
@@ -694,11 +693,6 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       return getWildcardType(st,null);
     } else if (op instanceof WildcardType) {   
       return getWildcardType(null,null);
-    } else if (op instanceof CaptureType) {
-      IJavaReferenceType lower = (IJavaReferenceType) convertNodeTypeToIJavaType(CaptureType.getLower(nodeType),binder);
-      IJavaReferenceType upper = (IJavaReferenceType) convertNodeTypeToIJavaType(CaptureType.getUpper(nodeType),binder);
-      // TODO broken
-      return getCaptureType(null, lower, upper);
     } else if (op instanceof VarArgsType) {
       IJavaType bt = convertNodeTypeToIJavaType(VarArgsType.getBase(nodeType),binder);
       return getArrayType(bt, 1);

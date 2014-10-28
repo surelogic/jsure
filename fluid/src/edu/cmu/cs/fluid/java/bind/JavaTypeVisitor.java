@@ -213,11 +213,6 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   }
   
   @Override
-  public IJavaType visitCaptureType(IRNode node) {
-    return JavaTypeFactory.convertNodeTypeToIJavaType( node, binder );
-  }
-  
-  @Override
   public IJavaType visitCastExpression(IRNode node) {
     IRNode decl = CastExpression.getType( node );
     return captureWildcards(binder, doAccept( decl ));

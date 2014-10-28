@@ -1,7 +1,0 @@
-# $Header: /cvs/fluid/fluid/ops/edu/cmu/cs/fluid/java/operator/CaptureType.op,v 1.1 2007/10/29 16:01:22 chance Exp $
-public operator CaptureType extends ReferenceType
-{
-  syntax {
-    "capture-of-?" "extends" lower:Type "super" upper:Type
-  }
-}
