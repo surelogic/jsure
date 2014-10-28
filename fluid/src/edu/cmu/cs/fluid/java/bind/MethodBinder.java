@@ -656,6 +656,9 @@ class BindingInfo {
 	final boolean usedVarArgs;
 
 	BindingInfo(IBinding m, int boxed, boolean var, int erasure) {
+		if (m == null) {
+			throw new IllegalArgumentException();
+		}
 		method = m;
 		numBoxed = boxed;
 		numUsingErasure = erasure;

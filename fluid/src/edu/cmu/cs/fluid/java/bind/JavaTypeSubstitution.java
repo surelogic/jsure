@@ -76,6 +76,9 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 
 		  @Override
       public IJavaTypeSubstitution combine(IJavaTypeSubstitution other) {
+			  if (other == null) {
+				  return this;
+			  }
 			  ensureSubst();
 			  if (realSubst == null) {
 				  return NULL.combine(other);
