@@ -1182,17 +1182,25 @@ public class JavaCanonicalizer {
       return rv;
     }
 
-    private abstract class MethodBinding implements IBinding {
-      IJavaSourceRefType recType;
+    /**
+     * Used to help canonicalize for-each loops and the like
+     * @author edwin
+     */
+    private final class MethodBinding implements IBinding {
+      IJavaDeclaredType recType;
       IJavaTypeSubstitution subst;
       final ITypeEnvironment tEnv;
+      final IRNode decl;
+      final IJavaDeclaredType contextType;
       
-      public MethodBinding(ITypeEnvironment te, IJavaSourceRefType t) {
+      public MethodBinding(ITypeEnvironment te, IJavaDeclaredType t, IRNode n) {
       	if (t == null) {
     		throw new NullPointerException();
     	}    	  
       	tEnv = te;
         recType = t;
+        decl = n;
+        contextType = t;
       }
 
       @Override
@@ -1200,7 +1208,7 @@ public class JavaCanonicalizer {
         return recType;
       }
 
-      public void updateRecType(IJavaSourceRefType t) {
+      public void updateRecType(IJavaDeclaredType t) {
         // FIX check t;
     	if (t == null) {
     		throw new NullPointerException();
@@ -1209,21 +1217,42 @@ public class JavaCanonicalizer {
       }
 
       @Override
+      public IJavaTypeSubstitution getSubst() {
+    	IJavaDeclaredType ct = getContextType();   
+    	if (subst == null) {
+    	  if (ct != null) {
+    		  subst = JavaTypeSubstitution.create(tEnv, ct);
+    	  }
+    	}
+  		return subst;
+      }
+      
+      @Override
       public IJavaType convertType(IBinder binder, IJavaType ty) {
         IJavaDeclaredType ct = getContextType();    	  
-        if (subst == null) {
-          if (ct != null) {
-            subst = JavaTypeSubstitution.create(tEnv, ct);
-          }
-        }
         if (ct != null && ct.isRawType(tEnv)) {
         	ty = tEnv.computeErasure(ty);
         }
-        
+        IJavaTypeSubstitution subst = getSubst();
         if (subst != null) {
           return Util.subst(ty, subst);
         }
         return ty;
+      }
+      
+      @Override
+      public IJavaDeclaredType getContextType() {
+        return contextType;
+      }
+
+      @Override
+      public IRNode getNode() {
+        return decl;
+      }
+      
+      @Override
+      public String toString() {
+    	return DebugUnparser.toString(decl);
       }
     }
 
@@ -1240,22 +1269,7 @@ public class JavaCanonicalizer {
             numParams = JJNode.tree.numChildren(MethodDeclaration.getParams(m));
           }
           if (numParams == 0) {
-            return new MethodBinding(binder.getTypeEnvironment(), type) {
-              @Override
-              public IJavaDeclaredType getContextType() {
-                return type;
-              }
-
-              @Override
-              public IRNode getNode() {
-                return m;
-              }
-              
-              @Override
-              public String toString() {
-            	return DebugUnparser.toString(m);
-              }
-            };
+            return new MethodBinding(binder.getTypeEnvironment(), type, m);
           }
         }
       }

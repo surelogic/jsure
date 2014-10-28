@@ -79,8 +79,11 @@ public interface IBinding {
    */
   public IJavaType convertType(IBinder binder, IJavaType ty);
   
+  public IJavaTypeSubstitution getSubst();
+  
   public static class Null implements IBinding {
-	  IJavaTypeSubstitution getSubst() {
+	  @Override
+	  public IJavaTypeSubstitution getSubst() {
 		  return null;
 	  }
 	  @Override
@@ -151,14 +154,20 @@ public interface IBinding {
     }
 	  
     public static IBinding makeMethodBinding(IBinding mbind, IJavaDeclaredType context, IJavaTypeSubstitution mSubst, IJavaType recType, ITypeEnvironment tEnv) {
+      if (recType != null && mbind.getReceiverType() != null && mbind.getContextType() != mbind.getReceiverType()) {
+    	  System.out.println("Replacing "+mbind.getReceiverType()+" with "+recType);
+      }
       return makeBinding(mbind.getNode(), 
     		             context == null ? mbind.getContextType() : context, 
     		             tEnv,
-                         recType == null ? mbind.getReceiverType() : (IJavaReferenceType) recType, mSubst);
+                         recType == null ? mbind.getReceiverType() : (IJavaReferenceType) recType, 
+                         mSubst == null ? mbind.getSubst() : mSubst);
     }
     
     /**
      * Generate a binding where the recType and the context type are the same.
+     * (e.g. for constructors)
+     * 
      * @param tenv type environment
      * @param mdecl method declaration
      * @param recType receiver type
@@ -168,21 +177,23 @@ public interface IBinding {
     public static IBinding makeMethodBinding(final ITypeEnvironment tenv, final IRNode mdecl, final IJavaDeclaredType recType, final IJavaTypeSubstitution mSubst) {
     	IRNode tdecl = recType.getDeclaration();
     	List<IJavaTypeFormal> tFormals = new ArrayList<IJavaTypeFormal>();
-    	for (IRNode tf : JJNode.tree.children(new TypeUtils(tenv).getParametersForType(tdecl))) {
+    	for (IRNode tf : JJNode.tree.children(TypeUtils.getParametersForType(tdecl))) {
     		tFormals.add(JavaTypeFactory.getTypeFormal(tf));
     	}
-    	final IJavaTypeSubstitution tSubst = new SimpleTypeSubstitution(tenv.getBinder(),tFormals,recType.getTypeParameters());
+    	final IJavaTypeSubstitution tSubst = new SimpleTypeSubstitution(tenv.getBinder(),tFormals,recType.getTypeParameters());    	
+    	final IJavaTypeSubstitution subst = tSubst.combine(mSubst);
     	return new PartialBinding(mdecl,recType,recType,tenv) {
     		@Override
     		public IJavaType convertType(IBinder binder, IJavaType type) {
     	          if (type == null) return null;
     	          
     	          type = super.convertType(binder, type);
-    	          if (mSubst != null) {
-    	    		return Util.subst(Util.subst(type, mSubst), tSubst);
-    	          }
-                  return Util.subst(type, tSubst);
+                  return Util.subst(type, subst);
     		}
+			@Override
+			public IJavaTypeSubstitution getSubst() {
+				return subst;
+			}
     	};
     }
     
@@ -208,32 +219,29 @@ public interface IBinding {
       
       final IJavaTypeSubstitution subst;
       if (ty != null && tEnv.getMajorJavaVersion() >= 5) {
-        subst = JavaTypeSubstitution.create(tEnv, ty);
+        subst = JavaTypeSubstitution.create(tEnv, ty).combine(mSubst);
       } else {
-        subst = null;
+        subst = mSubst;
       }
 //      if (n == null) {
 //        System.out.println("Null");
 //      }
-      if (mSubst == null) {
-          return new PartialBinding(n, ty, recType, tEnv) {
-          	@Override
-              public IJavaType convertType(IBinder binder, IJavaType type) {
-                if (type == null) return null;
-                return Util.subst(super.convertType(binder, type), subst);
-              }
-            };  
-      }
+
       return new PartialBinding(n, ty, recType, tEnv) {
-    	@Override
-        public IJavaType convertType(IBinder binder, IJavaType type) {
-    		if (type == null) return null;
-    		return Util.subst(Util.subst(super.convertType(binder, type), mSubst), subst);          
-        }
-      };
+    	  @Override
+    	  public IJavaType convertType(IBinder binder, IJavaType type) {
+    		  if (type == null) return null;
+    		  return Util.subst(super.convertType(binder, type), subst);
+    	  }
+
+    	  @Override
+    	  public IJavaTypeSubstitution getSubst() {
+    		  return subst;
+    	  }
+      };  
     }
     
-    public static class PartialBinding extends NodeBinding {
+    public static abstract class PartialBinding extends NodeBinding {
 		private final IJavaDeclaredType contextType;
 		private final IJavaReferenceType recType;
 		private final ITypeEnvironment tEnv;
@@ -260,6 +268,8 @@ public interface IBinding {
         	}
         	return ty;
         }
+        @Override
+        public abstract IJavaTypeSubstitution getSubst();
     }
     
 	public static IBinding makeBinding(final IRNode binding, final IJavaDeclaredType context,
