@@ -12,6 +12,7 @@ import com.surelogic.Initialized;
 import com.surelogic.NonNull;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.ResultsBuilder;
+import com.surelogic.analysis.nullable.DefinitelyAssignedFieldAnalysis.AllResultsQuery;
 import com.surelogic.analysis.nullable.NonNullRawLattice.ClassElement;
 import com.surelogic.analysis.nullable.NonNullRawLattice.Element;
 import com.surelogic.analysis.nullable.NonNullRawTypeAnalysis.Base;
@@ -56,7 +57,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
-public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<StackQuery> {
+public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<NonNullTypeCheckerSlave.Queries> {
   private static final int POSSIBLY_NULL = 915;
   private static final int POSSIBLY_NULL_UNBOX = 916;
   private static final int READ_FROM = 917;
@@ -144,9 +145,41 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   
   
   
+  final class Queries {
+    private final StackQuery stackQuery;
+    private final AllResultsQuery allResultsQuery;
+    
+    public Queries(final IRNode flowUnit) {
+      stackQuery = nonNullRawTypeAnalysis.getStackQuery(flowUnit);
+      allResultsQuery = definitelyAssignedAnalysis.getAllResultsQuery(flowUnit);
+    }
+    
+    private Queries(final Queries q, final IRNode caller) {
+      stackQuery = q.stackQuery.getSubAnalysisQuery(caller);
+      allResultsQuery = q.allResultsQuery.getSubAnalysisQuery(caller);
+    }
+    
+    public Queries getSubAnalysisQuery(final IRNode caller) {
+      return new Queries(this, caller);
+    }
+    
+    public StackQueryResult getStackResult(final IRNode where) {
+      return stackQuery.getResultFor(where);
+    }
+    
+    public boolean isNotDefinitelyAssigned(final IRNode where, final IRNode fdecl) {
+      final Map<IRNode, Boolean> fieldMap = allResultsQuery.getResultFor(where);
+      final Boolean boolean1 = fieldMap.get(fdecl);
+      return boolean1 != null && !boolean1;
+    }
+  }
+  
+  
+  
   private final ThisExpressionBinder thisExprBinder;
   private final NonNullRawTypeAnalysis nonNullRawTypeAnalysis;
-
+  private final DefinitelyAssignedFieldAnalysis definitelyAssignedAnalysis;
+  
   private final Set<IRNode> badMethodBodies;
   
   private IRNode receiverDecl = null;
@@ -160,12 +193,14 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   
   public NonNullTypeCheckerSlave(final IBinder b,
       final NonNullRawTypeAnalysis nonNullRaw,
+      final DefinitelyAssignedFieldAnalysis defAssign,
       final Set<IRNode> badMethodBodies,
       final Map<IRNode, Element> fields,
       final Set<PromiseDrop<?>> cva) {
     super(b);
     thisExprBinder = new ThisExpressionBinder(b);
     nonNullRawTypeAnalysis = nonNullRaw;
+    definitelyAssignedAnalysis = defAssign;
     this.badMethodBodies = badMethodBodies;
     fieldInits = fields;
     createdVirtualAnnotations = cva;
@@ -251,14 +286,24 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   
   
   @Override
-  protected StackQuery createNewQuery(final IRNode decl) {
-    return nonNullRawTypeAnalysis.getStackQuery(decl);
+  protected Queries createNewQuery(final IRNode decl) {
+    return new Queries(decl);
   }
 
   @Override
-  protected StackQuery createSubQuery(final IRNode caller) {
+  protected Queries createSubQuery(final IRNode caller) {
     return currentQuery().getSubAnalysisQuery(caller);
   }
+
+//  @Override
+//  protected StackQuery createNewQuery(final IRNode decl) {
+//    return nonNullRawTypeAnalysis.getStackQuery(decl);
+//  }
+//
+//  @Override
+//  protected StackQuery createSubQuery(final IRNode caller) {
+//    return currentQuery().getSubAnalysisQuery(caller);
+//  }
 
 
 
@@ -268,7 +313,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
   
   private void checkForNull(final IRNode expr, final boolean isUnbox) {
     try {
-      final StackQueryResult queryResult = currentQuery().getResultFor(expr);
+      final StackQueryResult queryResult = currentQuery().getStackResult(expr);
       final Element state = queryResult.getValue();    
       if (state == NonNullRawLattice.MAYBE_NULL || state == NonNullRawLattice.NULL) {
         // Hunt for any @Nullable annotations 
@@ -292,7 +337,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
       
       if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
         final IRNode vd = k.bind(where, binder, thisExprBinder);
-        final StackQueryResult newQuery = currentQuery().getResultFor(where);
+        final StackQueryResult newQuery = currentQuery().getStackResult(where);
         final Base varValue = newQuery.lookupVar(vd);
         chain.addLast(where);
         buildWarningResults(isUnbox, expr, varValue.second(), chain);
@@ -321,20 +366,27 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
           /* We get here when we have the use of a @NonNull field
            * being referenced through an @Initialized reference.  So here
            * we have the case of a @NonNull field being possibly null.  This 
-           * is a very dangerous situation, so we report an error. 
+           * is a very dangerous situation, so we report an error.
+           * 
+           * But if we are inside a constructor, things are trickier because all
+           * the fields declared in the class are going to trigger this error
+           * because the receiver is RAW.  We only report the error if the 
+           * field is not definitely assigned.   
            */
-          final ResultDrop rd = ResultsBuilder.createResult(
-              false, pd, expr, isUnbox ? POSSIBLY_NULL_UNBOX : POSSIBLY_NULL);
-          
-          Drop d = rd;
-          for (final IRNode readFrom : chain) {
-            d = d.addInformationHint(
-                readFrom, READ_FROM, DebugUnparser.toString(readFrom));
+          if (!isInsideConstructor() || currentQuery().isNotDefinitelyAssigned(where, annotatedNode)) {
+            final ResultDrop rd = ResultsBuilder.createResult(
+                false, pd, expr, isUnbox ? POSSIBLY_NULL_UNBOX : POSSIBLY_NULL);
+            
+            Drop d = rd;
+            for (final IRNode readFrom : chain) {
+              d = d.addInformationHint(
+                  readFrom, READ_FROM, DebugUnparser.toString(readFrom));
+            }
+  
+            d.addInformationHint(
+                where, k.getMessage(),
+                src.third().getAnnotation(), k.unparse(where));
           }
-
-          d.addInformationHint(
-              where, k.getMessage(),
-              src.third().getAnnotation(), k.unparse(where));
         }
         
         /* If the annotation is @Nullable or non-existent, and the kind is
@@ -386,9 +438,8 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
      */
     final PromiseDrop<?> declPD = getAnnotationToAssure(decl);
     try {
-      final StackQuery currentQuery = currentQuery();
       if (declPD != null && !createdVirtualAnnotations.contains(declPD)) { // Skip virtual @Nullables
-        final StackQueryResult queryResult = currentQuery.getResultFor(expr);
+        final StackQueryResult queryResult = currentQuery().getStackResult(expr);
         final Element declState = queryResult.getLattice().injectPromiseDrop(declPD);        
         final ResultsBuilder builder = new ResultsBuilder(declPD);
         ResultFolderDrop folder = builder.createRootAndFolder(expr,
@@ -402,7 +453,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
          * determine if there are any negative results. If there are, we first
          * introduce a new NullablePromiseDrop or NonNullPromiseDrop.
          */
-        final StackQueryResult queryResult = currentQuery.getResultFor(expr);
+        final StackQueryResult queryResult = currentQuery().getStackResult(expr);
         final Element testAgainst = noAnnoIsNonNull ?
             NonNullRawLattice.NOT_NULL : NonNullRawLattice.MAYBE_NULL;
         final boolean hasNegativeResult = testChain(noAnnoIsNonNull, testAgainst, queryResult.getSources());
@@ -452,7 +503,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
           parent.addTrusted(x);
         } else {
           final IRNode vd = k.bind(where, binder, thisExprBinder);
-          final StackQueryResult newQuery = currentQuery().getResultFor(where);
+          final StackQueryResult newQuery = currentQuery().getStackResult(where);
           final Base varValue = newQuery.lookupVar(vd);
           final ResultFolderDrop f = ResultsBuilder.createAndFolder(
               parent, where, READ_FROM, READ_FROM, DebugUnparser.toString(where));
@@ -561,7 +612,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
         if (!visitedUseSites.contains(where)) {
           visitedUseSites.add(where);
           final IRNode vd = k.bind(where, binder, thisExprBinder);
-          final StackQueryResult newQuery = currentQuery().getResultFor(where);
+          final StackQueryResult newQuery = currentQuery().getStackResult(where);
           final Base varValue = newQuery.lookupVar(vd);
           hasNegative |= testChain(testRawOnly, declState, varValue.second(), visitedUseSites);
         }
@@ -717,7 +768,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Sta
 
   private void recordFieldAssignment(final IRNode varDecl, final IRNode rhs) {
     Element state = fieldInits.get(varDecl);
-    Element rhsState = currentQuery().getResultFor(rhs).getValue();
+    Element rhsState = currentQuery().getStackResult(rhs).getValue();
     if (state == null) {
       fieldInits.put(varDecl, rhsState);
     } else {
