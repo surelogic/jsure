@@ -125,12 +125,13 @@ public class TypeInference8 {
 	     *   bound set, B 1 .
 		 */		
 		BoundSet b_1 = null;
-		for(IJavaType thrown : m.getThrownExceptions(tEnv.getBinder())) {
-			if (b_0.variableMap.keySet().contains(thrown)) {
+		for(final IJavaType thrown : m.getThrownExceptions(tEnv.getBinder())) {
+			final InferenceVariable var = b_0.variableMap.get(thrown);
+			if (var != null) {
 				if (b_1 == null) {
 					b_1 = new BoundSet(b_0);
-				}
-				b_1.addThrown((InferenceVariable) thrown);				 
+				}			
+				b_1.addThrown(var);				 
 			}
 		}
 		if (b_1 == null) {
