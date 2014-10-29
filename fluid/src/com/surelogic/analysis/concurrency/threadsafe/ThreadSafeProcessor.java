@@ -339,7 +339,9 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
       if (uDrop == null) {
         final ResultDrop uResult =
             ResultsBuilder.createResult(false, containableFolder, varDecl, FIELD_IS_NOT_UNIQUE);
-        uResult.addProposal(new Builder(Unique.class, varDecl, varDecl).build());
+        if (!isPrimitive) {
+          uResult.addProposal(new Builder(Unique.class, varDecl, varDecl).build());
+        }
       } else {
         final ResultDrop uResult =
             ResultsBuilder.createResult(true, containableFolder, varDecl, FIELD_IS_UNIQUE);
@@ -361,7 +363,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
           }
         }
       }
-  
+      
       if (!isPrimitive) {
         // Propose that the field be vouched threadsafe
         folder.addProposalNotProvedConsistent(new Builder(Vouch.class, varDecl, varDecl).setValue("ThreadSafe").build());
