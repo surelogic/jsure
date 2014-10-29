@@ -369,7 +369,7 @@ public final class NullableModule2 extends AbstractWholeIRAnalysis<NullableModul
       nonNullRawType = new NonNullRawTypeAnalysis(b);
       
       details = new DetailVisitor(this);
-      typeChecker = new NonNullTypeCheckerSlave(b, nonNullRawType,
+      typeChecker = new NonNullTypeCheckerSlave(b, nonNullRawType, definiteAssignment,
           timedOutMethodBodies, fieldInits, createdVirtualAnnotations);
     }
     
