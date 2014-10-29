@@ -957,7 +957,9 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 
     @Override
     protected IJavaType select(IRNode n) {      
-      return binder.getJavaType(n);
+      IJavaType bound = binder.getJavaType(n);
+      IJavaType rv = JavaTypeVisitor.captureWildcards(binder, bound);
+      return rv;
     }
   }
   
@@ -1318,12 +1320,12 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
   }
 
   /**
-   * • double >1 float
-   * • float >1 long
-   * • long >1 int
-   * • int >1 char
-   * • int >1 short
-   * • short >1 byte
+   * ï¿½ double >1 float
+   * ï¿½ float >1 long
+   * ï¿½ long >1 int
+   * ï¿½ int >1 char
+   * ï¿½ int >1 short
+   * ï¿½ short >1 byte
    */
   private boolean isPrimSubType(IJavaPrimitiveType s, IJavaPrimitiveType t) {
 	final IPrimitiveType.Kind sKind = s.getKind();
