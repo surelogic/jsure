@@ -238,9 +238,11 @@ class MethodBinder implements IMethodBinder {
   			}
         };        
         //if ("this.root(name, java.util.EnumSet.of(# . EOpt.ENDTAG))".equals(DebugUnparser.toString(call.call))) {
-        if (DebugUnparser.toString(call.call).contains("capture")) {
+        /*
+        if (DebugUnparser.toString(call.call).contains("versionChanges.getValue")) {
     		System.out.println("Looking at problematic call");
-    	}    	
+    	} 
+    	*/   	
     	final SearchState state = new SearchState(methods, call);
     	BindingInfo best  = findMostSpecificApplicableMethod(state, false, false);
     	if (best == null) {
