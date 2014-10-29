@@ -9,6 +9,7 @@ import com.surelogic.Nullable;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 
 /**
@@ -267,7 +268,7 @@ public interface IBinding {
     	}
         @Override
         public IJavaType convertType(IBinder binder, final IJavaType ty) {
-        	if (!JavaNode.getModifier(getNode(), JavaNode.STATIC) && contextType.isRawType(tEnv)) {
+        	if (!TypeUtil.isStatic(getNode()) && contextType.isRawType(tEnv)) {
         		return tEnv.computeErasure(ty);
         	}
         	return ty;
