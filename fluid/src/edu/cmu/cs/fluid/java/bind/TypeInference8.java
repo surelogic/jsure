@@ -2817,7 +2817,7 @@ public class TypeInference8 {
 	 */
 	void reduceTypeEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
 		if (s.isProperType() && t.isProperType()) {
-			if (s.equals(t)) {
+			if (s.isEqualTo(tEnv, t)) {
 				bounds.addTrue();
 			} else {
 				bounds.addFalse();
