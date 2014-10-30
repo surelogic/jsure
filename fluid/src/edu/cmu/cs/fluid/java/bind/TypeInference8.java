@@ -849,6 +849,50 @@ public class TypeInference8 {
      *   P p , as specified in §18.1.3.
      * 
      * • Second, for all i (1 ≤ i ≤ k), a set of constraint formulas or bounds is generated.
+     * 
+     *   ...
+     *   
+     * • Third, if m 2 is applicable by variable arity invocation and has k+1 parameters,
+     *   then where S k+1 is the k+1'th variable arity parameter type of m 1 and T k+1 is the
+     *   result of θ applied to the k+1'th variable arity parameter type of m 2 , the constraint
+     *   ‹ S k+1 <: T k+1 › is generated.
+     *   
+     * • Fourth, the generated bounds and constraint formulas are reduced and
+     *   incorporated with B to produce a bound set B' .
+     * 
+     *   If B' does not contain the bound false, and resolution of all the inference variables
+     *   in B' succeeds, then m 1 is more specific than m 2 .
+     *   
+     *   Otherwise, m 1 is not more specific than m 2 .
+	 */
+	boolean inferToBeMoreSpecificMethod(CallState call, MethodState m_1, InvocationKind kind, MethodState m_2) {
+		if (m_2.bind.numTypeFormals <= 0) {
+			return true;
+		}
+		final int k = call.args.length;
+		final IJavaType[] s = m_1.bind.getParamTypes(tEnv.getBinder(), k, kind == InvocationKind.VARARGS);
+		final IJavaType[] t = m_2.bind.getParamTypes(tEnv.getBinder(), k, kind == InvocationKind.VARARGS);
+		
+		final BoundSet b = constructInitialSet(m_2.bind.typeFormals);
+		final IJavaTypeSubstitution theta = b.getInitialVarSubst();
+		for(int i=0; i<k; i++) {
+			t[i] = t[i].subst(theta);
+		}
+		final BoundSet b_prime = b;
+		for(int i=0; i<k; i++) {
+			generateConstraintsFromParameterTypes(b, call.args[i], s[i], t[i]);
+		}
+		
+		if (kind == InvocationKind.VARARGS && t.length == k+1) {
+			reduceSubtypingConstraints(b_prime, s[k], t[k]);
+		}
+		
+		return /*!b_prime.isFalse && */resolve(b_prime) != null;
+	}
+	
+	/**
+	 *  Originally from JLS 18.5.4
+	 * 
      *   If T i is a proper type, the result is true if S i is more specific than T i for e i
      *   (§15.12.2.5), and false otherwise. (Note that S i is always a proper type.)
      * 
@@ -857,18 +901,8 @@ public class TypeInference8 {
      * 
      *   Otherwise, T i is a parameterization of a functional interface, I . It must be
      *   determined whether S i satisfies the following five constraints:
-     * 
-     *   – S i is a functional interface type.
      *   
-     *   – S i is not a superinterface of I , nor a parameterization of a superinterface of I .
-     *   
-     *   – S i is not a subinterface of I , nor a parameterization of a subinterface of I .
-     *   
-     *   – If S i is an intersection type, at least one element of the intersection is not a
-     *     superinterface of I , nor a parameterization of a superinterface of I .
-     *     
-     *   – If S i is an intersection type, no element of the intersection is a subinterface of
-     *     I , nor a parameterization of a subinterface of I .
+     *   ...
      *     
      *   If all of the above are true, then the following constraint formulas or bounds are
      *   generated (where U 1 ... U k and R 1 are the parameter types and return type of the
@@ -915,26 +949,97 @@ public class TypeInference8 {
      * 
      *   If the five constraints on S i are not satisfied, the constraint formula ‹ S i <: T i ›
      *   is generated instead.
-     *   
-     * • Third, if m 2 is applicable by variable arity invocation and has k+1 parameters,
-     *   then where S k+1 is the k+1'th variable arity parameter type of m 1 and T k+1 is the
-     *   result of θ applied to the k+1'th variable arity parameter type of m 2 , the constraint
-     *   ‹ S k+1 <: T k+1 › is generated.
-     *   
-     * • Fourth, the generated bounds and constraint formulas are reduced and
-     *   incorporated with B to produce a bound set B' .
-     * 
-     *   If B' does not contain the bound false, and resolution of all the inference variables
-     *   in B' succeeds, then m 1 is more specific than m 2 .
-     *   
-     *   Otherwise, m 1 is not more specific than m 2 .
 	 */
-	boolean inferToBeMoreSpecificMethod(CallState call, MethodState m_1, InvocationKind kind, MethodState m_2) {
-		if (m_2.bind.numTypeFormals <= 0) {
-			return true;
+	private void generateConstraintsFromParameterTypes(BoundSet b, IRNode e_i, IJavaType s_i, IJavaType t_i) {
+		if (t_i.isProperType()) { 
+			if (mb.isMoreSpecific(s_i, t_i, e_i)) {
+				b.addTrue();
+			} else {
+				b.addFalse();
+			}
+			return;
 		}
-		// TODO
-		return false;
+		if (tEnv.isFunctionalType(t_i) == null) {
+			reduceSubtypingConstraints(b, s_i, t_i);
+			return;
+		}
+		final IJavaDeclaredType dt_i = (IJavaDeclaredType) t_i;
+		final IRNode i = dt_i.getDeclaration();
+		if (satisfiesFiveConstraints(s_i, i)) {
+			throw new NotImplemented();
+		} else {
+			reduceSubtypingConstraints(b, s_i, t_i);
+		}
+	}
+
+	/**
+	 *  Originally from JLS 18.5.4
+	 *  
+     *   – S i is a functional interface type.
+     *   
+     *   – S i is not a superinterface of I , nor a parameterization of a superinterface of I .
+     *   
+     *   – S i is not a subinterface of I , nor a parameterization of a subinterface of I .
+     *   
+     *   – If S i is an intersection type, at least one element of the intersection is not a
+     *     superinterface of I , nor a parameterization of a superinterface of I .
+     *     
+     *   – If S i is an intersection type, no element of the intersection is a subinterface of
+     *     I , nor a parameterization of a subinterface of I .
+	 */
+	private boolean satisfiesFiveConstraints(IJavaType s_i, IRNode i) {
+		if (tEnv.isFunctionalType(s_i) == null) {
+			return false;
+		}
+		final IJavaType iType = tEnv.convertNodeTypeToIJavaType(i);
+		if (tEnv.isRawSubType(iType, s_i) || tEnv.isRawSubType(s_i, iType)) {
+			return false;
+		}
+		if (s_i instanceof IJavaIntersectionType) {
+			final IntersectionOperator atLeastOneNonSuperTypeOfI = new IntersectionOperator() {
+				public boolean evaluate(IJavaType t) {
+					return !tEnv.isRawSubType(iType, t);
+				}
+				public boolean combine(boolean e1, boolean e2) {
+					return e1 | e2;
+				}		
+			};
+			final IntersectionOperator noSubTypeOfI = new IntersectionOperator() {
+				public boolean evaluate(IJavaType t) {
+					return !tEnv.isRawSubType(t, iType);
+				}
+				public boolean combine(boolean e1, boolean e2) {
+					return e1 & e2;
+				}		
+			};
+			final IJavaIntersectionType it = (IJavaIntersectionType) s_i;
+			if (!flattenIntersectionType(atLeastOneNonSuperTypeOfI, it) || 
+				!flattenIntersectionType(noSubTypeOfI, it)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	interface IntersectionOperator {
+		boolean evaluate(IJavaType t);
+		boolean combine(boolean e1, boolean e2);
+	}
+	
+
+	
+	// Needs to be recursive since we only handle the first two elements
+	private boolean flattenIntersectionType(IntersectionOperator op, IJavaIntersectionType it) {
+		boolean rv1 = handleIntersectionComponentType(op, it.getPrimarySupertype());
+		boolean rv2 = handleIntersectionComponentType(op, it.getSecondarySupertype());
+		return op.combine(rv1, rv2);
+	}
+	
+	private boolean handleIntersectionComponentType(IntersectionOperator op, IJavaType t) {
+		if (t instanceof IJavaIntersectionType) {
+			return flattenIntersectionType(op, (IJavaIntersectionType) t);
+		}
+		return op.evaluate(t);
 	}
 	
 	/**
