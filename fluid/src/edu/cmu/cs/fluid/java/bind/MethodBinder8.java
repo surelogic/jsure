@@ -40,6 +40,11 @@ public class MethodBinder8 implements IMethodBinder {
   				return IJavaScope.Util.lookupCallable(scope, context, isAccessible, needMethod);
   			}
         };
+        /*
+    	if ("second".equals(JJNode.getInfoOrNull(call.call))) {
+    		System.out.println("Trying to find method for second()");
+    	}
+    	*/
         final Set<MethodBinding> applicable = new HashSet<MethodBinding>();
         for(IBinding mb : methods) {
         	if (isPotentiallyApplicable(call, from, mb)) {

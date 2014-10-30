@@ -2396,7 +2396,10 @@ public class TypeInference8 {
 	private BoundSet computeInvocationBounds(CallInterface c, final IRNode e, final IJavaType t) throws NoArgs {
 		final MethodBinding m = new MethodBinding(tEnv.getBinder().getIBinding(e));
         final CallState call = new CallState(tEnv.getBinder(), e, c.get_TypeArgs(e), c.get_Args(e), m.bind.getReceiverType());
-		final BoundSet b_2 = inferForInvocationApplicability(call, m, null);
+		final BoundSet b_2 = inferForInvocationApplicability(call, m, null); // TODO is this right?
+		if (b_2 == null) {
+			inferForInvocationApplicability(call, m, null);
+		}
 		return computeB_3(call, m, b_2, t); // TODO
 	}
 
