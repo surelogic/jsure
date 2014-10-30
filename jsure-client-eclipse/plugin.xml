@@ -160,7 +160,7 @@
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_finder.gif">
 		</view>
 
-		<view name="JSure Historical Source" allowMultiple="false"
+		<view name="JSure Historical Source Snapshot" allowMultiple="false"
 			category="com.surelogic.jsure"
 			class="com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView"
 			icon="platform:/plugin/com.surelogic.common/lib/images/jsure_comp_unit.gif"
