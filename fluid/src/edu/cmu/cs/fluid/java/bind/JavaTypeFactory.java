@@ -681,7 +681,8 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
     	  }
       }
       IBinding baseB = binder.getIBinding(baseNode);
-      if (baseB != null) {
+      if (baseB != null && !TypeUtil.isStatic(baseB.getNode())) {
+    	  // Adjust for outer class parameters only if non-static
     	  return baseB.convertType(binder, rv);
       }
       return rv;
@@ -964,6 +965,9 @@ abstract class JavaType extends JavaTypeCleanable implements IJavaType {
   }
 
   public Iteratable<IJavaType> getSupertypes(ITypeEnvironment env) {
+	if (toString().equals("R extends #.EvalPair <#, #> in test2.EvaluationStackLattice")) {
+		System.out.println("Looking at R");
+	}
     return env.getSuperTypes(this);
   }
   
