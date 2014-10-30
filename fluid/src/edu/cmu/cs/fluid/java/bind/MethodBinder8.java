@@ -1135,7 +1135,7 @@ public class MethodBinder8 implements IMethodBinder {
      * - T is more specific than S for a poly method invocation expression (15.12) or a poly class instance creation expression (15.9) 
      *   if T is a reference type and S is a primitive type.
      */
-    private boolean isMoreSpecific(IJavaType t, IJavaType s, IRNode contextExpr) {
+    boolean isMoreSpecific(IJavaType t, IJavaType s, IRNode contextExpr) {
     	if (t.isSubtype(tEnv, s)) {
     		return true;
     	}
