@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.java.bind;
 import java.util.Iterator;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
@@ -49,6 +50,11 @@ interface IMethodBinder {
 			this.args = getNodes(args);
 			constructorType = type;			
 	    	receiverType = type == null ? null : b.getTypeEnvironment().convertNodeTypeToIJavaType(type);
+    	}
+    	
+    	@Override
+    	public String toString() {
+    		return DebugUnparser.toString(call);
     	}
     	
     	private IRNode[] getNodes(IRNode n) {
