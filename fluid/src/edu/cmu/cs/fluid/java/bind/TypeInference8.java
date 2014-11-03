@@ -1554,11 +1554,12 @@ public class TypeInference8 {
 				// Don't do anything, since it'll be incorporated when merged
 				return;
 			}			
+			final BoundSet temp = new BoundSet();
 			while (!unincorporated.isEmpty()) {
 				Bound<?> b = unincorporated.remove();
 				
 				// Check for combos and reduce the resulting constraints
-				BoundSet temp = new BoundSet();
+
 				if (b instanceof SubtypeBound) {
 					SubtypeBound sb = (SubtypeBound) b;
 					if (subtypeBounds.contains(sb)) {
@@ -1594,10 +1595,10 @@ public class TypeInference8 {
 					incorporateCaptureBound(temp, cb);
 					captures.add(cb);
 				}
-				if (!temp.isEmpty()) {
-					System.out.println("Merging "+temp);
-					merge(temp);
-				}
+			}
+			if (!temp.isEmpty()) {
+				System.out.println("Merging "+temp);
+				merge(temp);
 			}
 		}
 
@@ -1698,11 +1699,11 @@ public class TypeInference8 {
 					}
 				}
 				for(SubtypeBound b : subtypeBounds) {
-					if (b.t instanceof InferenceVariable) {
+					if (b.t == alpha) {
 						// case 4a: S <: α and α <: T imply ‹S <: T›
 						reduceSubtypingConstraints(bounds, b.s, sb.t);
 					}
-					if (b.s instanceof InferenceVariable) {
+					if (b.s == alpha) {
 						/*
 						 * When a bound set contains a pair of bounds α <: S and α <: T, and there exists a supertype of S
 						 * of the form G<S1, ..., Sn> and a supertype of T of the form G<T1, ..., Tn> (for some generic class
@@ -2498,7 +2499,7 @@ public class TypeInference8 {
 			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, e, tEnv.getBinder().getJavaType(e))) {
 				bounds.addTrue();
 			} else {
-				//mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, e, tEnv.getBinder().getJavaType(e));				
+				mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, e, tEnv.getBinder().getJavaType(e));				
 				bounds.addFalse();
 			}
 		}
