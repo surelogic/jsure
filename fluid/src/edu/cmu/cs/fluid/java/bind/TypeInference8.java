@@ -1138,7 +1138,7 @@ public class TypeInference8 {
 	 * A bound of the form throws α is purely informational: it directs resolution to
 	 * optimize the instantiation of α so that, if possible, it is not a checked exception type.
 	 */
-	static abstract class Bound<T extends IJavaReferenceType> {
+	abstract class Bound<T extends IJavaReferenceType> {
 		final T s, t;
 		
 		Bound(T s, T t) {
@@ -1164,16 +1164,18 @@ public class TypeInference8 {
 		public boolean equals(Object o) {
 			if (o instanceof Bound) {
 				Bound<?> other = (Bound<?>) o;
-				return o.getClass().equals(other.getClass()) && s.equals(other.s) && t.equals(other.t);
+				return o.getClass().equals(other.getClass()) && s.isEqualTo(tEnv, other.s) && t.isEqualTo(tEnv, other.t);
 			}
 			return false;
 		}
 		
 		@Override
 		public abstract String toString();
+		
+		abstract Bound<T> subst(IJavaTypeSubstitution subst);
 	}
 	
-	static class EqualityBound extends Bound<IJavaReferenceType> {
+	class EqualityBound extends Bound<IJavaReferenceType> {
 		EqualityBound(IJavaReferenceType s, IJavaReferenceType t) {
 			super(s, t);
 		}
@@ -1181,10 +1183,16 @@ public class TypeInference8 {
 		public String toString() {
 			return s+" = "+t;
 		}
+		
+		@Override
+		EqualityBound subst(IJavaTypeSubstitution subst) {			
+			return new EqualityBound((IJavaReferenceType) s.subst(subst), 
+					                 (IJavaReferenceType) t.subst(subst));
+		}
 	}
 	
 	// S is a subtype of T
-	static class SubtypeBound extends Bound<IJavaReferenceType> {
+	class SubtypeBound extends Bound<IJavaReferenceType> {
 		SubtypeBound(IJavaReferenceType s, IJavaReferenceType t) {
 			super(s, t);
 		}
@@ -1192,9 +1200,15 @@ public class TypeInference8 {
 		public String toString() {
 			return s+" <: "+t;
 		}
+		
+		@Override
+		SubtypeBound subst(IJavaTypeSubstitution subst) {			
+			return new SubtypeBound((IJavaReferenceType) s.subst(subst), 
+					                (IJavaReferenceType) t.subst(subst));
+		}
 	}
 	
-	static class CaptureBound extends Bound<IJavaDeclaredType>{
+	class CaptureBound extends Bound<IJavaDeclaredType>{
 		CaptureBound(IJavaDeclaredType vars, IJavaDeclaredType needCapture) {
 			super(vars, needCapture);
 		}
@@ -1210,6 +1224,12 @@ public class TypeInference8 {
 		@Override
 		public String toString() {
 			return s+" = capture("+t+")";
+		}
+		
+		@Override
+		CaptureBound subst(IJavaTypeSubstitution subst) {			
+			return new CaptureBound((IJavaDeclaredType) s.subst(subst), 
+					                (IJavaDeclaredType) t.subst(subst));
 		}
 	}
 	
@@ -1298,6 +1318,10 @@ public class TypeInference8 {
 	 * of convenience, and the two are interchangeable
 	 */
 	class BoundSet {
+		/**
+		 * Controls whether bounds are actually incorporated or not
+		 */
+		private final boolean isTemp;
 		private boolean isFalse = false;
 		private boolean usedUncheckedConversion = false;
 		private final Set<InferenceVariable> thrownSet = new HashSet<InferenceVariable>();
@@ -1326,11 +1350,13 @@ public class TypeInference8 {
 		final Map<InferenceVariable, IJavaType> instantiations = new HashMap<InferenceVariable, IJavaType>();
 		
 		private BoundSet() {
+			isTemp = true;
 			original = null;
 		}
 		
-		BoundSet(final IRNode typeFormals, final InferenceVariable[] vars) {
+		BoundSet(final IRNode typeFormals, final InferenceVariable[] vars) {			
 			original = null;
+			isTemp = false;
 			
 			int i=0;
 			for(IRNode tf : TypeFormals.getTypeIterator(typeFormals)) {
@@ -1340,6 +1366,10 @@ public class TypeInference8 {
 		}
 
 		BoundSet(BoundSet orig) {
+			if (orig.isTemp) {
+				throw new IllegalStateException();
+			}
+			isTemp = false;
 			original = orig.original == null ? orig : orig.original;
 			isFalse = orig.isFalse;
 			usedUncheckedConversion = orig.usedUncheckedConversion;
@@ -1352,6 +1382,9 @@ public class TypeInference8 {
 		}
 		
 		void merge(BoundSet other) {
+			if (isTemp || !other.isTemp) {
+				throw new IllegalStateException();
+			}
 			isFalse |= other.isFalse;
 			usedUncheckedConversion |= other.usedUncheckedConversion;
 			thrownSet.addAll(other.thrownSet);
@@ -1359,7 +1392,67 @@ public class TypeInference8 {
 			unincorporated.addAll(other.equalities);
 			unincorporated.addAll(other.subtypeBounds);
 			unincorporated.addAll(other.captures);
+			unincorporated.addAll(other.unincorporated);
 			incorporate();
+		}
+		
+		void mergeWithSubst(BoundSet other, IJavaTypeSubstitution subst) {
+			isFalse |= other.isFalse;
+			usedUncheckedConversion |= other.usedUncheckedConversion;			
+			// TODO no need to subst?
+			thrownSet.addAll(other.thrownSet);
+			variableMap.putAll(other.variableMap);
+			
+			for(EqualityBound b : other.equalities) {
+				unincorporated.add(b.subst(subst));
+			}
+			for(SubtypeBound b : other.subtypeBounds) {
+				unincorporated.add(b.subst(subst));
+			}
+			for(CaptureBound b : other.captures) {
+				unincorporated.add(b.subst(subst));
+			}
+			for(Bound<?> b : other.unincorporated) {
+				unincorporated.add(b.subst(subst));
+			}
+			incorporate();
+		}
+		
+		private boolean isEmpty() {
+			return !isFalse && !usedUncheckedConversion &&
+					unincorporated.isEmpty() && 
+					thrownSet.isEmpty() && equalities.isEmpty() && subtypeBounds.isEmpty() && captures.isEmpty();
+		}
+		
+		@Override
+		public String toString() {
+			StringBuilder b = new StringBuilder();
+			if (isFalse) {
+				b.append("FALSE, ");
+			}
+			if (usedUncheckedConversion) {
+				b.append("unchecked,");
+			}
+			if (!thrownSet.isEmpty()) {
+				b.append("throws ");
+				for(InferenceVariable v : thrownSet) {
+					b.append(v).append(", ");
+				}
+				b.append('\n');
+			}
+			for(Bound<?> bound : equalities) {
+				b.append(bound).append(", \n");
+			}
+			for(Bound<?> bound : subtypeBounds) {
+				b.append(bound).append(", \n");
+			}
+			for(Bound<?> bound : captures) {
+				b.append(bound).append(", \n");
+			}
+			for(Bound<?> bound : unincorporated) {
+				b.append(bound).append(", \n");
+			}
+			return b.toString();
 		}
 		
 		IJavaTypeSubstitution getInitialVarSubst() {
@@ -1402,6 +1495,7 @@ public class TypeInference8 {
 					t = temp;
 				}
 			}
+			
 			incorporate(new EqualityBound((IJavaReferenceType) s, (IJavaReferenceType) t));		
 		}
 
@@ -1457,7 +1551,11 @@ public class TypeInference8 {
 			for(Bound<?> b : newBounds) {
 				unincorporated.add(b);
 				//System.out.println("Added "+b);
-			}
+			}			
+			if (isTemp) {
+				// Don't do anything, since it'll be incorporated when merged
+				return;
+			}			
 			while (!unincorporated.isEmpty()) {
 				Bound<?> b = unincorporated.remove();
 				
@@ -1498,7 +1596,10 @@ public class TypeInference8 {
 					incorporateCaptureBound(temp, cb);
 					captures.add(cb);
 				}
-				merge(temp);
+				if (!temp.isEmpty()) {
+					System.out.println("Merging "+temp);
+					merge(temp);
+				}
 			}
 		}
 
@@ -2373,7 +2474,9 @@ public class TypeInference8 {
 			}
 			else if (NewExpression.prototype.includes(op) || MethodCall.prototype.includes(op)) {
 				try {
-					bounds.merge(computeInvocationBounds((CallInterface) op, e, t));
+					// Need to substitute for inference variables used here
+					final BoundSet b_3 = computeInvocationBounds((CallInterface) op, e, t);
+					bounds.mergeWithSubst(b_3, bounds.getInitialVarSubst());
 				} catch (NoArgs e1) {
 					throw new IllegalStateException("No arguments for "+DebugUnparser.toString(e));
 				}
@@ -2394,9 +2497,20 @@ public class TypeInference8 {
 	}
 
 	private BoundSet computeInvocationBounds(CallInterface c, final IRNode e, final IJavaType t) throws NoArgs {
-		final MethodBinding m = new MethodBinding(tEnv.getBinder().getIBinding(e));
+		// Need to restore the binding to how it looked before I added the type substitution for the method's parameters
+		final IBinding b = tEnv.getBinder().getIBinding(e);
+		final IBinding newB = IBinding.Util.makeMethodBinding(b, null, JavaTypeSubstitution.create(tEnv, b.getContextType()), null, tEnv);
+		final MethodBinding m = new MethodBinding(newB);
         final CallState call = new CallState(tEnv.getBinder(), e, c.get_TypeArgs(e), c.get_Args(e), m.bind.getReceiverType());
-		final BoundSet b_2 = inferForInvocationApplicability(call, m, null); // TODO is this right?
+		BoundSet b_2 = null;
+		// TODO record how the method was matched
+		for(InvocationKind kind : InvocationKind.values()) {
+			b_2 = inferForInvocationApplicability(call, m, kind); // TODO is this right?
+			
+			if (b_2 != null) {
+				break;
+			}
+		}		
 		if (b_2 == null) {
 			inferForInvocationApplicability(call, m, null);
 		}
