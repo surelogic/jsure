@@ -369,7 +369,7 @@ public class MethodBinder8 implements IMethodBinder {
     			final IBinding mb = binder.getIBinding(e);
     			IRNode typeParams = MethodDeclaration.getTypes(mb.getNode());
     			if (numChildren(typeParams) > 0) {
-    				return refersToTypeParams(MethodDeclaration.getReturnType(mb.getNode()), typeParams);
+    				return refersToTypeParams(binder, MethodDeclaration.getReturnType(mb.getNode()), typeParams);
     			}
     		}    		
     	}
@@ -555,18 +555,16 @@ public class MethodBinder8 implements IMethodBinder {
     /**
      * @return true if type refers to one of the type parameters
      */
-    private static boolean refersToTypeParams(IRNode type, IRNode typeParams) {
-    	//final IJavaType t = binder.getJavaType(type);
-    	//HACK to lookup the names myself?
-    	final Set<String> formals = new HashSet<String>();
+    private static boolean refersToTypeParams(IBinder b, IRNode type, IRNode typeParams) {
+    	final Set<IRNode> formals = new HashSet<IRNode>();
     	for(final IRNode f : TypeFormals.getTypeIterator(typeParams)) {
-    		formals.add(TypeFormal.getId(f));
+    		formals.add(f);
     	}
     	for(final IRNode n : JJNode.tree.bottomUp(type)) {
     		final Operator op = JJNode.tree.getOperator(n);
     		if (NamedType.prototype.includes(op) || NameType.prototype.includes(op)) {
-    			final String name = JJNode.getInfo(n);
-    			if (formals.contains(name)) {
+    			final IBinding tb = b.getIBinding(n);
+    			if (formals.contains(tb.getNode())) {
     				return true;
     			}
     		}
