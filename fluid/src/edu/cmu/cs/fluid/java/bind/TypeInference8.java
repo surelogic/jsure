@@ -283,7 +283,7 @@ public class TypeInference8 {
 		computeInputOutput(null, null); // TODO
 		
 		BoundSet rv = b_3; // TODO
-		return rv;
+		throw new NotImplemented();
 	}
 
 	/**
@@ -415,7 +415,8 @@ public class TypeInference8 {
 			if (cond != null && bounds.examine(cond)) {
 				IJavaType u = null;// TODO
 				reduceConstraintFormula(b_3, new ConstraintFormula(u, FormulaConstraint.IS_COMPATIBLE, t));
-				return b_3;
+				//return b_3;
+				throw new NotImplemented();
 			}
 		}
 		/*
@@ -537,7 +538,7 @@ public class TypeInference8 {
 		return null;
 	}
 	
-	private IJavaDeclaredType isWildcardParameterizedType(IJavaType t) {
+	IJavaDeclaredType isWildcardParameterizedType(IJavaType t) {
 		final IJavaDeclaredType g = isParameterizedType(t);
 		if (g != null) {
 			for(IJavaType p : g.getTypeParameters()) {
@@ -688,14 +689,12 @@ public class TypeInference8 {
 	}
 	
 	private Iterable<IRNode> findResultExprs(IRNode expr) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new NotImplemented();
 	}
 
 	// TODO (Â§15.13.1)
 	static boolean isExactMethodReference(IRNode n) {
-		// TODO
-		return false;
+		throw new NotImplemented();
 	}
 	
 	/**
@@ -814,8 +813,7 @@ public class TypeInference8 {
 	}
 
 	private boolean refersTo(IJavaReferenceType b_i, Set<IJavaTypeFormal> params) {
-		// TODO Auto-generated method stub
-		return false;
+		throw new NotImplemented();
 	}
 
 	/**
@@ -1711,7 +1709,23 @@ public class TypeInference8 {
 						 * or interface, G), then for all i (1 ≤ i ≤ n), if Si and Ti are types (not wildcards), 
 						 * the constraint formula ‹Si = Ti› is implied.
 						 */
-						// TODO handle supertype case
+						final Map<IRNode,IJavaDeclaredType> sStypes = collectSuperTypes(tEnv, sb.t);
+						final Map<IRNode,IJavaDeclaredType> tStypes = collectSuperTypes(tEnv, b.t);
+						final Set<IRNode> common = new HashSet<IRNode>(sStypes.keySet());
+						common.retainAll(tStypes.keySet());
+						
+						for(IRNode n : common) {
+							final IJavaDeclaredType g_s = sStypes.get(n);
+							final IJavaDeclaredType g_t = tStypes.get(n);
+							final List<IJavaType> g_s_params = g_s.getTypeParameters();
+							final List<IJavaType> g_t_params = g_t.getTypeParameters(); 
+							final int num = g_s_params.size();
+							if (num > 0 && !g_t_params.isEmpty()) { // Both generic
+								for(int i=0; i<num; i++) {
+									reduceTypeArgumentEqualityConstraints(bounds, g_s_params.get(i), g_t_params.get(i));	
+								}
+							}
+						}
 					}
 				}
 			}
@@ -1741,6 +1755,31 @@ public class TypeInference8 {
 					reduceSubtypingConstraints(bounds, sb.s.subst(s), sb.t.subst(s)); // TODO check if the same?
 				}				
 			}
+		}
+
+		private Map<IRNode, IJavaDeclaredType> collectSuperTypes(ITypeEnvironment tEnv, IJavaReferenceType t) {
+			Map<IRNode, IJavaDeclaredType> stypes = new HashMap<IRNode, IJavaDeclaredType>();
+			for(IJavaType st : getSupertypes(tEnv, t)) {
+				collectSuperTypes(stypes, tEnv, st);
+			}
+			return stypes;
+		}
+
+		private void collectSuperTypes(Map<IRNode, IJavaDeclaredType> stypes, ITypeEnvironment tEnv, IJavaType t) {
+			if (t instanceof IJavaDeclaredType) {
+				IJavaDeclaredType d = (IJavaDeclaredType) t;
+				stypes.put(d.getDeclaration(), d);
+			}
+			for(IJavaType st : getSupertypes(tEnv, t)) {
+				collectSuperTypes(stypes, tEnv, st);
+			}
+		}
+		
+		private Iterable<IJavaType> getSupertypes(ITypeEnvironment tEnv, IJavaType t) {
+			if (t instanceof InferenceVariable) {
+				return Collections.emptyList(); // TODO is this right?
+			}
+			return t.getSupertypes(tEnv);
 		}
 
 		/**
@@ -1775,7 +1814,6 @@ public class TypeInference8 {
 		 *   – R <: αi implies the constraint formula ‹R <: T›
 		 */
 		private void incorporateCaptureBound(BoundSet bounds, CaptureBound cb) {
-			// TODO Auto-generated method stub
 			constructInitialSet(null);
 			
 			int i=0;
@@ -1800,6 +1838,7 @@ public class TypeInference8 {
 				}
 				i++;
 			}
+			throw new NotImplemented();
 		}
 		
 		private void collectVariablesFromBounds(Set<InferenceVariable> vars, Set<? extends Bound<?>> bounds) {
@@ -2985,7 +3024,7 @@ public class TypeInference8 {
 	 * - Otherwise, the constraint reduces to false.
 	 * @param bounds 
 	 */
-	private void reduceTypeArgumentEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
+	void reduceTypeArgumentEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
 		if (!(s instanceof IJavaWildcardType) && !(t instanceof IJavaWildcardType)) {
 			reduceTypeEqualityConstraints(bounds, s, t);
 		}
