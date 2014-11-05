@@ -1,7 +1,5 @@
 package edu.cmu.cs.fluid.java.bind;
 
-import edu.cmu.cs.fluid.ir.IRNode;
-
 /**
  * An interface to unify type formals and capture types
  * 
