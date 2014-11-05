@@ -980,7 +980,7 @@ abstract class JavaType extends JavaTypeCleanable implements IJavaType {
 	  if (this == t2) {
 		  return true;
 	  }
-	  if (t2 instanceof IJavaTypeFormal) {
+	  if (t2 instanceof IJavaTypeFormal && this instanceof IJavaTypeFormal) {
 		  IJavaTypeFormal tf = (IJavaTypeFormal) t2;
 		  return tf.isEqualTo(env, this);
 	  }
