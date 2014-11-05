@@ -40,7 +40,7 @@ public class TypeInference8 {
 
 	// TODO how to distinguish from each other
 	// TODO how to keep from polluting the normal caches?
-	static class InferenceVariable extends JavaReferenceType implements IJavaTypeFormal {
+	static class InferenceVariable extends JavaReferenceType implements IJavaTypeFormal, Comparable<InferenceVariable> {
 		final IRNode formal;
 		int index;
 		int lowlink;
@@ -102,6 +102,17 @@ public class TypeInference8 {
 		@Override
 		public Iteratable<IJavaType> getSupertypes(ITypeEnvironment env) {
 			return new SingletonIterator<IJavaType>(env.getObjectType());
+		}
+
+		@Override
+		public int compareTo(InferenceVariable o) {
+			if (o.formal == null) {
+				return 1;
+			}
+			if (formal == null) {
+				return -1;
+			}
+			return formal.toString().compareTo(o.formal.toString());
 		}
 	}
 	
@@ -1215,10 +1226,38 @@ public class TypeInference8 {
 		abstract Bound<T> subst(IJavaTypeSubstitution subst);
 	}
 	
+	EqualityBound newEqualityBound(IJavaType s, IJavaType t) {
+		if (t == null) {
+			throw new NullPointerException("No type for equality bound");
+		}
+		if (t instanceof InferenceVariable) {
+			final boolean swap;
+			if (s instanceof InferenceVariable) {		
+				if (t instanceof InferenceVariable) {
+					InferenceVariable is = (InferenceVariable) s;
+					InferenceVariable it = (InferenceVariable) t;
+					swap = is.compareTo(it) < 0;
+				} else {
+					// Otherwise, already a = T
+					swap = false;
+				}
+			} else {
+				swap = t instanceof InferenceVariable || s.toString().compareTo(t.toString()) < 0;
+			}								
+			if (swap) { 
+				IJavaType temp = s;
+				s = t;
+				t = temp;
+			}
+		}
+		return new EqualityBound((IJavaReferenceType) s, (IJavaReferenceType) t);
+	}
+	
 	class EqualityBound extends Bound<IJavaReferenceType> {
 		EqualityBound(IJavaReferenceType s, IJavaReferenceType t) {
 			super(s, t);
 		}
+		
 		@Override
 		public String toString() {
 			return s+" = "+t;
@@ -1226,8 +1265,7 @@ public class TypeInference8 {
 		
 		@Override
 		EqualityBound subst(IJavaTypeSubstitution subst) {			
-			return new EqualityBound((IJavaReferenceType) s.subst(subst), 
-					                 (IJavaReferenceType) t.subst(subst));
+			return newEqualityBound(s.subst(subst), t.subst(subst));
 		}
 	}
 	
@@ -1523,20 +1561,8 @@ public class TypeInference8 {
 			// TODO what is there to do?
 		}
 		
-		void addEqualityBound(IJavaType s, IJavaType t) {
-			if (t == null) {
-				throw new NullPointerException("No type for equality bound");
-			}
-			if (t instanceof InferenceVariable) {
-				boolean swap = !(s instanceof InferenceVariable) || s.hashCode() > t.hashCode();					
-				if (swap) {
-					IJavaType temp = s;
-					s = t;
-					t = temp;
-				}
-			}
-			
-			incorporate(new EqualityBound((IJavaReferenceType) s, (IJavaReferenceType) t));		
+		void addEqualityBound(IJavaType s, IJavaType t) {			
+			incorporate(newEqualityBound(s, t));		
 		}
 
 		// s <: (is a subtype of) t
