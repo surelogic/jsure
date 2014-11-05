@@ -100,6 +100,7 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
 		case IJavaElement.FIELD:
 		case IJavaElement.METHOD:
 		case IJavaElement.TYPE:			
+		case IJavaElement.LOCAL_VARIABLE:
 			return true;
 		case IJavaElement.CLASS_FILE:
 			IJavaElement srcElt = JDTUtility.findJavaElementOrNull(p.getAssumptionRef());
