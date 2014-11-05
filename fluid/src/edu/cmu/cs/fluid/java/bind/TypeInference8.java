@@ -1712,6 +1712,9 @@ public class TypeInference8 {
 					if (alpha == b.s) {
 						reduceSubtypingConstraints(bounds, b.t, sb.t);
 					}
+					if (alpha == b.t) {
+						reduceSubtypingConstraints(bounds, b.s, sb.t);
+					}
 				}
 				for(SubtypeBound b : subtypeBounds) {
 					if (b.t == alpha) {
@@ -1751,6 +1754,9 @@ public class TypeInference8 {
 					// case 3
 					if (alpha == b.s) {
 						reduceSubtypingConstraints(bounds, sb.s, b.t);
+					}
+					if (alpha == b.t) {
+						reduceSubtypingConstraints(bounds, sb.s, b.s);
 					}
 				}	
 				for(SubtypeBound b : subtypeBounds) {
