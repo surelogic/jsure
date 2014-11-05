@@ -1307,7 +1307,7 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 		}
 
 		// now we do the easy, and slow, thing:
-		for (Iterator<IJavaType> it = getSuperTypes(s); it.hasNext(); ) {
+		for (Iterator<IJavaType> it = s.getSupertypes(this); it.hasNext(); ) {
 			IJavaType supertype = it.next();
 			if (isSubType(supertype,t,ignoreGenerics)) return result = true;
 		}
