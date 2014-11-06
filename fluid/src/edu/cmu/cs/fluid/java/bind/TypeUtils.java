@@ -225,9 +225,11 @@ public class TypeUtils {
 			}
 			num++;
 		}
+		/* TODO how does this ever help?
 		if (num == 1) {
 			return getLCP(result);
 		}
+		*/
 		return result;
 	}
 	
