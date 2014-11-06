@@ -80,17 +80,17 @@ interface IMethodBinder {
           }
           IJavaType[] argTypes = new IJavaType[args.length];     
           for (int i= 0; i < args.length; ++i) {
-        	/* TODO
-        	if (MethodBinder8.couldBePolyExpression(args[i])) {
-        		argTypes[i] = null;
-        		continue;
-        	}
-        	*/
-            argTypes[i] = binder.getJavaType(args[i]);
+        	  argTypes[i] = computeArgType(args[i]);
+          }
+          return argTypes;
+        }
+
+    	IJavaType computeArgType(IRNode arg) {
+        	IJavaType rv = binder.getJavaType(arg);
             
 			if (MethodBinder.captureTypes) {    		
-				IJavaType temp = JavaTypeVisitor.captureWildcards(binder, argTypes[i]);    			
-				if (temp != argTypes[i]) {
+				IJavaType temp = JavaTypeVisitor.captureWildcards(binder, rv);    			
+				if (temp != rv) {
 					/*
 					String call = DebugUnparser.toString(this.call);					
 					if ("Maps.transformValues(<implicit>.delegate.rowMap, wrapper)".equals(call)) {
@@ -100,13 +100,12 @@ interface IMethodBinder {
 						//debug = true;
 					}
 					*/
-					argTypes[i] = temp;
+					rv = temp;
 				}
 			}
-          }
-          return argTypes;
-        }
-
+			return rv;
+    	}
+    	
 		boolean usesDiamondOp() {
 			if (constructorType != null && ParameterizedType.prototype.includes(constructorType)) { 
 				IRNode typeArgs = ParameterizedType.getArgs(constructorType);

@@ -249,8 +249,8 @@ public class MethodBinder8 implements IMethodBinder {
     		if (t instanceof IJavaTypeFormal) {
     			return declaresTypeParam(MethodDeclaration.getTypes(mb.getNode()), (IJavaTypeFormal) t);
     		}
-    		else if (t instanceof IJavaFunctionType) {
-    			final IJavaFunctionType ft = (IJavaFunctionType) t;
+    		IJavaFunctionType ft = tEnv.isFunctionalType(t);
+    		if (ft != null) {
     			if (ft.getParameterTypes().size() == numChildren(LambdaExpression.getParams(e))) {
     				if (ft.getReturnType() == JavaTypeFactory.voidType) {
     					return isVoidCompatible(LambdaExpression.getBody(e));
@@ -757,17 +757,16 @@ public class MethodBinder8 implements IMethodBinder {
     // Assumes that #formals == #args
 	// Check each arg for applicability / compatibility
 	boolean isApplicableAndCompatible(CallState call, MethodBinding m, IJavaTypeSubstitution substForParams, ArgCompatibilityContext context, boolean varArity) {
-		final IJavaType[] argTypes = call.getArgTypes(); // TODO factor out?
 		int i=0;			
-		for(IJavaType pType : m.getParamTypes(binder, argTypes.length, varArity)) {
+		for(IJavaType pType : m.getParamTypes(binder, call.args.length, varArity)) {
 			final IRNode arg = call.args[i];
-			final IJavaType argType = argTypes[i];
 			i++;
 			if (!isPertinentToApplicability(m, call.getNumTypeArgs() > 0, arg)) {
 				continue; // Ignore this one
 			}
 			//IJavaType pType = binder.getJavaType(ParameterDeclaration.getType(param));
-	    	IJavaType substType = pType.subst(substForParams);
+			final IJavaType substType = pType.subst(substForParams);
+			final IJavaType argType = call.computeArgType(arg);
 			if (!context.isCompatible(null, substType, arg, argType)) {
 				return false;										
 			}
@@ -1055,7 +1054,7 @@ public class MethodBinder8 implements IMethodBinder {
     		// Case 1
     		return typeInfer.inferToBeMoreSpecificMethod(call, m1, kind, m2);
     	}    	
-    	final int k = call.getArgTypes().length;
+    	final int k = call.args.length;
     	IJavaType[] m1Types = m1.bind.getParamTypes(binder, k+1, varArity); // TODO is this right?
     	IJavaType[] m2Types = m2.bind.getParamTypes(binder, k+1, varArity);
 		// Case 2 + 3
@@ -1199,7 +1198,7 @@ public class MethodBinder8 implements IMethodBinder {
     	Operator op = JJNode.tree.getOperator(arg);
     	if (LambdaExpression.prototype.includes(op)) {
     		if (isImplicitlyTypedLambda(arg)) {
-    			return true;
+    			return false;
     		} 
     		// Explicitly typed
     		if (m.isGeneric() && !callHasTypeArgs && m.hasTypeParameterAsReturnType(binder)) {
@@ -1207,7 +1206,7 @@ public class MethodBinder8 implements IMethodBinder {
     		}    		
     		IRNode body = LambdaExpression.getBody(arg);
     		if (Expression.prototype.includes(body)) {
-    			return isPertinentToApplicability(m, callHasTypeArgs, body);
+    			return isPertinentToApplicability(m, callHasTypeArgs, body); 
     		} else {
     			throw new NotImplemented(); // TODO check return exprs
     		}
