@@ -1679,7 +1679,7 @@ public class TypeInference8 {
 				incorporateEqualityBound(bounds, (InferenceVariable) eb.s, eb.t);
 			}
 			if (eb.t instanceof InferenceVariable) {
-				incorporateEqualityBound(bounds, (InferenceVariable) eb.s, eb.t);
+				incorporateEqualityBound(bounds, (InferenceVariable) eb.t, eb.s);
 			}
 		}
 		
@@ -1692,7 +1692,7 @@ public class TypeInference8 {
 					reduceTypeEqualityConstraints(bounds, s, b.t);
 				}
 				// case 5: α = U and S = T imply ‹S[α:=U] = T[α:=U]›
-				if (s != null) {
+				if (subst != null) {
 					reduceTypeEqualityConstraints(bounds, b.s.subst(subst), b.t.subst(subst)); // TODO check if the same?
 				}
 			}
@@ -1707,7 +1707,7 @@ public class TypeInference8 {
 					reduceSubtypingConstraints(bounds, t, s);
 				}
 				// case 6: α = U and S <: T imply ‹S[α:=U] <: T[α:=U]›
-				if (s != null) {
+				if (subst != null) {
 					reduceSubtypingConstraints(bounds, b.s.subst(subst), b.t.subst(subst)); // TODO check if the same?
 				}
 			}
