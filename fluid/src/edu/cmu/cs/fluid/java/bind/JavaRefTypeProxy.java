@@ -19,9 +19,23 @@ import edu.cmu.cs.fluid.java.bind.TypeInference8.InferenceVariable;
  * @author Edwin
  */
 public class JavaRefTypeProxy extends JavaReferenceType implements IJavaReferenceType {
+	private final IJavaReferenceType first, second;
 	private IJavaReferenceType type;
 	private Boolean complete;
 	private String unparse;
+	
+	JavaRefTypeProxy(IJavaReferenceType u, IJavaReferenceType v) {
+		first = u;
+		second = v;
+	}
+	
+	IJavaReferenceType first() {
+		return first;
+	}
+	
+	IJavaReferenceType second() {
+		return second;
+	}
 	
 	Boolean isComplete() {
 		return complete;
@@ -131,11 +145,13 @@ public class JavaRefTypeProxy extends JavaReferenceType implements IJavaReferenc
 	
 	@Override
 	public boolean isProperType() {
-		return type.isProperType();
+		// It's valid as long as the rest is valid
+		return type != null;
+		//return type.isProperType();
 	}
 	
 	@Override
-	public void getReferencedInferenceVariables(Collection<InferenceVariable> found) {
-		type.getReferencedInferenceVariables(found);
+	public void getReferencedInferenceVariables(Collection<InferenceVariable> found) {		
+		//type.getReferencedInferenceVariables(found);
 	}
 }
