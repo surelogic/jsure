@@ -60,7 +60,7 @@ public class TypeUtils {
 		Pair<IJavaReferenceType, IJavaReferenceType> key = Pair.getInstance(u, v);
 		JavaRefTypeProxy p = proxyCache.get(key);
 		if (p == null) {
-			p = new JavaRefTypeProxy();
+			p = new JavaRefTypeProxy(u, v);
 			proxyCache.put(key, p);
 		}
 		return p;		
