@@ -1306,6 +1306,11 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 			}
 		}
 
+		if (t instanceof JavaRefTypeProxy) {
+			JavaRefTypeProxy p = (JavaRefTypeProxy) t;
+			return isSubType(s, p.first()) || isSubType(s, p.second());
+		}
+		
 		// now we do the easy, and slow, thing:
 		for (Iterator<IJavaType> it = s.getSupertypes(this); it.hasNext(); ) {
 			IJavaType supertype = it.next();
