@@ -320,6 +320,8 @@ public class JavaRewrite implements JavaGlobals {
         // nothing to do?
       } else if (NestedAnnotationDeclaration.prototype.includes(op)) {
         // nothing to do?
+      } else if (LambdaExpression.prototype.includes(op)) {
+    	// nothing to do?
       } else {
         LOG.severe("Ignoring nested " + op.name() + ": " + JJNode.getInfo(y));
       }
