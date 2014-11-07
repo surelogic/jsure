@@ -657,7 +657,14 @@ public class ClassAdapter extends AbstractAdapter {
     	};
 		
     	private Triple<IRNode,IRNode,Boolean> makeFunction(IRNode annos) {
-    		final int mods = adaptModifiers(access);
+    		final int mods;
+    		if ((ClassAdapter.this.access & Opcodes.ACC_INTERFACE) != 0 &&
+    			(access & Opcodes.ACC_ABSTRACT) == 0) {
+    			// In an interface, but not marked as abstract method
+    			mods = adaptModifiers(access) | JavaNode.DEFAULT;
+    		} else {
+    			mods = adaptModifiers(access);
+    		}
     		final IRNode body = CompiledMethodBody.createNode("no body");
     		final String className = ClassAdapter.this.name;
 
