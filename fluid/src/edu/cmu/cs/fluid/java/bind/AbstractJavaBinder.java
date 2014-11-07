@@ -1372,11 +1372,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       if (name.equals("toArray")) {
     	  System.out.println("Binding call: "+DebugUnparser.toString(call));
       }
-      */
       if (debug) {
-          StringBuilder sb = buildStringOfArgTypes(state.getArgTypes());
+          StringBuilder sb = buildStringOfArgTypes(state.getArgTypes(methodBinder));
           LOG.finer("Looking for method: " + name + sb + getInVersionString());
       }
+      */
       final IRNode from;
       final Operator callOp = JJNode.tree.getOperator(state.call);
       final boolean needMethod;
