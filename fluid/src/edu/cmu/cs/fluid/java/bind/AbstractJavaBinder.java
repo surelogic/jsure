@@ -2287,8 +2287,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IRNode returnNode = JavaPromise.getReturnNodeOrNull(node);
       if (returnNode != null) {
         sc.put("return", returnNode);
-      } else {
-    	System.out.println("No return node");
       }
       IRNode tformals = isConstructor? 
           ConstructorDeclaration.getTypes(node) : MethodDeclaration.getTypes(node);
