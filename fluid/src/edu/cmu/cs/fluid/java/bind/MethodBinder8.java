@@ -146,7 +146,7 @@ public class MethodBinder8 implements IMethodBinder {
     		}
     		// check the varargs
     		if (numArgs >= numParams) {
-    			final IJavaArrayType at = (IJavaArrayType) getParamType(lastParam);
+    			final IJavaArrayType at = (IJavaArrayType) getParamType(mb, lastParam);
     			final IJavaType t = at.getElementType();
     			if (numArgs == numParams) {
     				final IRNode e = call.args[numParams-1];
@@ -173,10 +173,9 @@ public class MethodBinder8 implements IMethodBinder {
     	return true;
     }
     
-    private IJavaType getParamType(IRNode param) {
-		final IRNode type = ParameterDeclaration.getType(param);
-		final IJavaType t = binder.getJavaType(type);
-		return t;
+    private IJavaType getParamType(IBinding mb, IRNode param) {
+    	IJavaType rv = binder.getJavaType(param);    	
+    	return mb.convertType(binder, rv);
     }
     
     /**
@@ -191,7 +190,7 @@ public class MethodBinder8 implements IMethodBinder {
     		if (i >= args.length) {
     			return false;
     		}
-    		final IJavaType t = getParamType(param);
+    		final IJavaType t = getParamType(mb, param);
     		if (!isPotentiallyCompatible(mb, args[i], t)) {
     			return false;
     		}
