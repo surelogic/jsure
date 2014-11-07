@@ -5,9 +5,7 @@
  */
 public operator ReturnValueDeclaration implements IOnlyAttachedToFunction {
   syntax { "?" "return" }
-  public static IRNode getType(IRNode node) {
-    return MethodDeclaration.getReturnType(JavaPromise.getPromisedFor(node));
-  }
+
   public static IRNode getReturnNode(IRNode methodNode) {
     Operator mop =  tree.getOperator(methodNode);
     for (Operator op = mop;

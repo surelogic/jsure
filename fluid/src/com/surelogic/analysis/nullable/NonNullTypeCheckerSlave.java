@@ -43,6 +43,7 @@ import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.Initialization;
+import edu.cmu.cs.fluid.java.operator.LambdaExpression;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.Parameters;
@@ -654,6 +655,9 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
   protected void checkReturnStatement(
       final IRNode returnStmt, final IRNode valueExpr) {
     // N.B. Must be a MethodDeclaration because constructors cannot return values
+	if (LambdaExpression.prototype.includes(returnStmt)) {
+		throw new UnsupportedOperationException();
+	}
     final IRNode methodDecl = VisitUtil.getEnclosingMethod(returnStmt);
     final IRNode returnTypeNode = MethodDeclaration.getReturnType(methodDecl);
     checkAssignability(

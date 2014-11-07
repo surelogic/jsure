@@ -121,6 +121,7 @@ import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.CogenUtil;
+import edu.cmu.cs.fluid.java.util.PromiseUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -1429,22 +1430,20 @@ public class JavaCanonicalizer {
     	IRNode origBody = LambdaExpression.getBody(node);
     	doAccept(origBody);
     	origBody = LambdaExpression.getBody(node);
+		JJNode.tree.removeSubtree(origBody);
+		
     	IRNode newBody;
-    	if (fty.getReturnType() == JavaTypeFactory.voidType) {
-    		if (Expression.prototype.includes(origBody)) {
-    			newBody = ExprStatement.createNode(origBody);
-    		} else {
-    			newBody = origBody;
-    		}
-    	} else {
-    		if (Expression.prototype.includes(origBody)) {
-    			JJNode.tree.removeSubtree(origBody);
-    			newBody = ReturnStatement.createNode(origBody);
-    		} else {
-    			newBody = origBody;
-    		}
+		if (Expression.prototype.includes(origBody)) {
+			IRNode newStmt;
+			if (fty.getReturnType() == JavaTypeFactory.voidType) {
+				newStmt = ExprStatement.createNode(origBody);
+			} else {
+				newStmt = ReturnStatement.createNode(origBody);
+			}
+			newBody = MethodBody.createNode(BlockStatement.createNode(new IRNode[]{newStmt}));
+		} else {
+			newBody = origBody;
     	}
-    	IRNode mbody = MethodBody.createNode(BlockStatement.createNode(new IRNode[]{newBody}));
     	
     	List<IRNode> newParamList = new ArrayList<IRNode>();
     	Iterator<IJavaType> rqdit = fty.getParameterTypes().iterator();
@@ -1475,7 +1474,7 @@ public class JavaCanonicalizer {
     	int modifiers = JavaNode.ALL_FALSE|JavaNode.PUBLIC;
 		IRNode rtype = createType(fty.getReturnType());
 		
-		IRNode mdecl = MethodDeclaration.createNode(annos,modifiers, types, rtype, methodName, newParams, 0, exceptions, mbody);
+		IRNode mdecl = MethodDeclaration.createNode(annos,modifiers, types, rtype, methodName, newParams, 0, exceptions, newBody);
 		IRNode cbody = ClassBody.createNode(new IRNode[]{mdecl});
 		
 		List<IRNode> typeArgList = new ArrayList<IRNode>();
@@ -1493,8 +1492,12 @@ public class JavaCanonicalizer {
 		IRNode ace = AnonClassExpression.createNode(JavaNode.IMPLICIT, nexp, cbody);
 		
 		replaceSubtree(node,ace);
+		if (!(fty.getReturnType() instanceof IJavaVoidType)) {
+			ReturnValueDeclaration.makeReturnNode(mdecl);
+		}
 		ReceiverDeclaration.makeReceiverNode(mdecl);
 		AbstractAdapter.createRequiredClassNodes(ace);
+		PromiseUtil.addReceiverDeclsToType(ace);
 		return true;
 	}
 
@@ -1937,10 +1940,8 @@ public class JavaCanonicalizer {
 
     @Override
     public Integer visitReturnStatement(IRNode node) {
-      IRNode rdecl = binder.getBinding(node);
-      IRNode rtype = ReturnValueDeclaration.getType(rdecl);
-      Operator top = tree.getOperator(rtype);
-      return top instanceof PrimitiveType ? PRIMITIVE_CONTEXT : REFERENCE_CONTEXT;
+      IJavaType rtype = binder.getJavaType(node);
+      return rtype instanceof IJavaPrimitiveType ? PRIMITIVE_CONTEXT : REFERENCE_CONTEXT;
     }
 
     @Override

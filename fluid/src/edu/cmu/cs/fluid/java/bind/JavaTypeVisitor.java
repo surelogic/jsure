@@ -698,8 +698,13 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 
   @Override
   public IJavaType visitReturnStatement(IRNode node) {
-	IRNode m = VisitUtil.getEnclosingMethod(node);
-	return getJavaType(MethodDeclaration.getReturnType(m));
+	IRNode rnode = binder.getBinding(node);
+	IRNode decl = JavaPromise.getPromisedFor(rnode);
+	if (MethodDeclaration.prototype.includes(decl)) {
+	  return getJavaType(MethodDeclaration.getReturnType(decl));
+	}
+	// Assumed to be in a lambda
+	return new TypeUtils(binder.getTypeEnvironment()).getPolyExpressionTargetType(decl);
   }
   
   @Override

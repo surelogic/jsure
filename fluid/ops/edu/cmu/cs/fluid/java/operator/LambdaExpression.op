@@ -9,10 +9,22 @@
  * Ideally, one might wish to declare a new interface to capture
  * these two situations.
  */
-public operator LambdaExpression extends PrimaryExpression implements IllegalCode, UnsupportedJava8Feature
+public operator LambdaExpression extends PrimaryExpression implements IllegalCode, UnsupportedJava8Feature, NestedTypeDeclInterface
 {
   syntax { params:Parameters "->" body:Operator }
   properties {
     noncanonical=true 
+  }
+  
+  public com.surelogic.common.ref.IDecl.Kind getKind() {
+	  return com.surelogic.common.ref.IDecl.Kind.LAMBDA;
+  }
+
+  public IRNode get_Annos(IRNode n) {
+	  return null;
+  }
+
+  public IRNode get_Types(IRNode n) {
+	  return null;
   } 
 }

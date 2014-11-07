@@ -71,6 +71,7 @@ import edu.cmu.cs.fluid.java.operator.IllegalCode;
 import edu.cmu.cs.fluid.java.operator.Implements;
 import edu.cmu.cs.fluid.java.operator.ImplicitReceiver;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.LambdaExpression;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodReference;
@@ -2120,6 +2121,20 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     }
     
     @Override
+    public Void visitLambdaExpression(IRNode node) {
+      IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
+      IRNode returnNode = JavaPromise.getReturnNodeOrNull(node);
+      if (returnNode != null) {
+    	  sc.put("return", returnNode);
+      }
+      IRNode formals = LambdaExpression.getParams(node);
+      addDeclsToScope(formals, sc);
+      
+      doAcceptForChildren(node,sc);
+      return null;
+    }
+    
+    @Override
     public Void visitMethodCall(IRNode node) {
       visit(node); // bind the arguments etc
       if (!isFullPass || pathToTarget != null) return null;
@@ -2272,6 +2287,8 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
       IRNode returnNode = JavaPromise.getReturnNodeOrNull(node);
       if (returnNode != null) {
         sc.put("return", returnNode);
+      } else {
+    	System.out.println("No return node");
       }
       IRNode tformals = isConstructor? 
           ConstructorDeclaration.getTypes(node) : MethodDeclaration.getTypes(node);
@@ -2960,7 +2977,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     @Override
     public Void visitReturnStatement(IRNode node) {
       visit(node); // bind expression
-      bind(node,IJavaScope.Util.isReturnValue,"return");
+      boolean success = bind(node,IJavaScope.Util.isReturnValue,"return");
+      if (!success) {
+    	  bind(node,IJavaScope.Util.isReturnValue,"return");
+      }
       return null;
     }
 

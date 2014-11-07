@@ -100,6 +100,7 @@ import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
 import edu.cmu.cs.fluid.java.adapter.AbstractAdapter;
 import edu.cmu.cs.fluid.java.adapter.CodeContext;
 import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.IllegalChildException;
@@ -1835,7 +1836,9 @@ public final class SourceAdapter extends AbstractAdapter implements TreeVisitor<
 	  default:
 		  throw new AssertionError("should not be possible");
 	  }
-	  return LambdaExpression.createNode(Parameters.createNode(fmls), body);  
+	  IRNode rv = LambdaExpression.createNode(Parameters.createNode(fmls), body);  
+	  ReturnValueDeclaration.makeReturnNode(rv);
+	  return rv;
   }
 
   public IRNode visitMemberReference(MemberReferenceTree arg0, CodeContext c) {
