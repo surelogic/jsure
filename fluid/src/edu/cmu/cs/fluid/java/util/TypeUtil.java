@@ -209,6 +209,8 @@ public class TypeUtil implements JavaGlobals {
       return false;
     } else if (EnumDeclaration.prototype.includes(op)) {
       return false;
+    } else if (LambdaExpression.prototype.includes(op)) {
+      return false; // Just like ACEs
     } else {
       throw new IllegalArgumentException(
         "Can't test if " + op.name() + " is static.");
