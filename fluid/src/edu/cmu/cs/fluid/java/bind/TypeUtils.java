@@ -24,7 +24,7 @@ public class TypeUtils {
 	private final HashMap<Pair<IJavaReferenceType, IJavaReferenceType>, JavaRefTypeProxy> proxyCache = 
 		new HashMap<Pair<IJavaReferenceType,IJavaReferenceType>, JavaRefTypeProxy>();
 	
-	TypeUtils(ITypeEnvironment te) {
+	public TypeUtils(ITypeEnvironment te) {
 		tEnv = te;
 	}
 	
