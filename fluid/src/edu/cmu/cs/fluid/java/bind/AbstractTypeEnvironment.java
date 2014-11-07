@@ -50,6 +50,7 @@ import edu.cmu.cs.fluid.java.operator.FloatType;
 import edu.cmu.cs.fluid.java.operator.IntType;
 import edu.cmu.cs.fluid.java.operator.IntegralType;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.LambdaExpression;
 import edu.cmu.cs.fluid.java.operator.LongType;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.MoreBounds;
@@ -1096,6 +1097,8 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
       IRNode enumD    = VisitUtil.getEnclosingType(tdecl);
       IJavaType enumT = convertNodeTypeToIJavaType(enumD);
       return new SingletonIterator<IJavaType>(enumT);
+    } else if (op instanceof LambdaExpression) {
+      return new SingletonIterator<IJavaType>(javalangobjectType);
     } else {
       LOG.severe("Unknown type declaration node " + op);
       return new EmptyIterator<IJavaType>();
