@@ -1,18 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<package name="java.lang" release="2">
+<package name="java.lang" release="3">
     <class name="Object">
         <Containable implementationOnly="true"/>
         <Immutable implementationOnly="true"/>
         <Region uid="a2b4b727-4a78-47f0-8cf4-3fb341abd825">public Instance extends All</Region>
         <Region uid="463eb068-86c4-48eb-97e5-ae306fe4f509">public WaitQueue</Region>
         <RegionLock uid="88cca40d-18b8-43f2-b7f6-64ec7eb3934f">MUTEX is this protects WaitQueue</RegionLock>
-        <ThreadSafe implementationOnly="true"/>
         <constructor>
             <RegionEffects>none</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </constructor>
+
+        <method name="clone">
+            <NonNull/>
+            <RegionEffects>reads All</RegionEffects>
+            <Starts>nothing</Starts>
+        </method>
 
         <method name="getClass">
             <Borrowed>this</Borrowed>
@@ -48,12 +53,6 @@
             <RegionEffects>none</RegionEffects>
             <RequiresLock>MUTEX</RequiresLock>
             <Starts>nothing</Starts>
-        </method>
-        
-        <method name="clone">
-            <NonNull/>
-            <Starts>nothing</Starts>
-            <RegionEffects>reads All</RegionEffects>
         </method>
     </class>
 </package>
