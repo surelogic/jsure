@@ -114,10 +114,10 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.operator.Visitor;
+import edu.cmu.cs.fluid.java.operator.VoidType;
 import edu.cmu.cs.fluid.java.operator.WildcardExtendsType;
 import edu.cmu.cs.fluid.java.operator.WildcardSuperType;
 import edu.cmu.cs.fluid.java.operator.WildcardType;
-import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.CogenUtil;
@@ -760,6 +760,9 @@ public class JavaCanonicalizer {
         IJavaCaptureType c = (IJavaCaptureType) t;
         // TODO what to do about the capture bounds?
         return createType(c.getWildcard());
+      }
+      if (t instanceof IJavaVoidType) {
+    	return VoidType.prototype.jjtCreate();
       }
       throw new IllegalStateException("Unexpected type: " + t);
     }
@@ -1486,8 +1489,9 @@ public class JavaCanonicalizer {
 		if (typeArgList.isEmpty()) {
 			nexp = NonPolymorphicNewExpression.createNode(classType, Arguments.createNode(none));
 		} else {
-			IRNode typeArgs = TypeActuals.createNode(typeArgList.toArray(none));
-			nexp = PolymorphicNewExpression.createNode(typeArgs, classType, Arguments.createNode(none));
+			final IRNode typeArgs = TypeActuals.createNode(typeArgList.toArray(none));		
+			final IRNode paramdType = ParameterizedType.createNode(classType, typeArgs);
+			nexp = NonPolymorphicNewExpression.createNode(paramdType, Arguments.createNode(none));
 		}
 		IRNode ace = AnonClassExpression.createNode(JavaNode.IMPLICIT, nexp, cbody);
 		
