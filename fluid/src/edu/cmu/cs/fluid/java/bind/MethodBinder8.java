@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.BoundSet;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -34,12 +35,7 @@ public class MethodBinder8 implements IMethodBinder {
 	}	
 	
     public BindingInfo findBestMethod(final IJavaScope scope, final LookupContext context, final boolean needMethod, final IRNode from, final CallState call) {
-        final IJavaScope.Selector isAccessible = MethodBinder.makeAccessSelector(tEnv, from);
-        final Iterable<IBinding> methods = new Iterable<IBinding>() {
-  			public Iterator<IBinding> iterator() {
-  				return IJavaScope.Util.lookupCallable(scope, context, isAccessible, needMethod);
-  			}
-        };
+        final Iterable<IBinding> methods = findMethods(scope, context, needMethod, from);
         /*
     	if ("second".equals(JJNode.getInfoOrNull(call.call))) {
     		System.out.println("Trying to find method for second()");
@@ -64,6 +60,16 @@ public class MethodBinder8 implements IMethodBinder {
         // TODO is this right?
         return new BindingInfo(rv, 0, false, 0);
     }
+
+	private Iterable<IBinding> findMethods(final IJavaScope scope, final LookupContext context, final boolean needMethod, final IRNode from) {
+		final IJavaScope.Selector isAccessible = MethodBinder.makeAccessSelector(tEnv, from);
+        final Iterable<IBinding> methods = new Iterable<IBinding>() {
+  			public Iterator<IBinding> iterator() {
+  				return IJavaScope.Util.lookupCallable(scope, context, isAccessible, needMethod);
+  			}
+        };
+		return methods;
+	}
 
 	private static int numChildren(IRNode n) {
 		if (n == null) {
@@ -219,28 +225,32 @@ public class MethodBinder8 implements IMethodBinder {
 		return true;
 	}
     
-	/*
-      An expression is potentially compatible with a target type according to the following rules:
-
-    * A lambda expression (15.27) is potentially compatible with a function type (9.8) if all of the following are true:
-      - The arity of the targeted functional interface's function descriptor is the same as the arity of the lambda expression.
-      - If the functional interface's function descriptor has a void return, then the lambda body is either a statement expression (14.8) 
-        or a void-compatible block (15.27.2).
-      - If the functional interface's function descriptor has a (non-void) return type, then the lambda body is either an expression 
-        or a value-compatible block (15.27.2). 
-        
-    * A method reference (15.28) is potentially compatible with a function type if, based on the method searches described in 15.28.1, 
-      there exists at least one potentially-applicable compile-time declaration for the method reference.
-
-    Where the method reference has the form ReferenceType :: NonWildTypeArgumentsopt Identifier and the target functional interface 
-    has one or more parameters, two searches are performed, regardless of the type of the first parameter.
-
-    * A lambda expression or a method reference is potentially compatible with a type variable if the type variable is a type parameter of the candidate method.
-    * A parenthesized expression (15.8.5) is potentially compatible with a type if its contained expression is potentially compatible with that type.
-    * A poly conditional expression (15.25.3) is potentially compatible with a type if each of its second and third operand expressions 
-      are potentially compatible with that type.
-    * A class instance creation expression (15.9), a method invocation expression, or an expression of a standalone form (15.2) is 
-      potentially compatible with any type. 
+	/**
+     * An expression is potentially compatible with a target type according to the following rules:
+     *   
+     * • A lambda expression (§15.27) is potentially compatible with a functional interface type (§9.8) 
+     *   if all of the following are true:
+     * 
+     *   – The arity of the target type's function type is the same as the arity of the lambda expression.
+     *   – If the target type's function type has a void return, then the lambda body is
+     *     either a statement expression (§14.8) or a void-compatible block (§15.27.2).
+     *   – If the target type's function type has a (non- void ) return type, then the lambda
+     *     body is either an expression or a value-compatible block (§15.27.2).
+     *     
+     * • A method reference expression (§15.13) is potentially compatible with a
+     *   functional interface type if ... (see below)
+     *      
+     * • A lambda expression or a method reference expression is potentially compatible
+     *   with a type variable if the type variable is a type parameter of the candidate method.
+     *   
+     * • A parenthesized expression (§15.8.5) is potentially compatible with a type if its
+     *   contained expression is potentially compatible with that type.
+     * 
+     * • A conditional expression (§15.25) is potentially compatible with a type if each
+     *   of its second and third operand expressions are potentially compatible with that type.
+     *   
+     * • A class instance creation expression, a method invocation expression, or an
+     *   expression of a standalone form (§15.2) is potentially compatible with any type.
      */
     private boolean isPotentiallyCompatible(IBinding mb, IRNode e, IJavaType t) {
     	final Operator op = JJNode.tree.getOperator(e);
@@ -264,15 +274,13 @@ public class MethodBinder8 implements IMethodBinder {
     		if (t instanceof IJavaTypeFormal) {
     			return declaresTypeParam(MethodDeclaration.getTypes(mb.getNode()), (IJavaTypeFormal) t);
     		}
-    		// TODO how to figure out if there are decls?
-			throw new NotImplemented();
+    		return methodRefHasPotentiallyApplicableMethods(mb, e, t, MethodReference.getReceiver(e), MethodReference.getMethod(e));
     	}
     	else if (ConstructorReference.prototype.includes(op)) {
     		if (t instanceof IJavaTypeFormal) {
     			return declaresTypeParam(ConstructorDeclaration.getTypes(mb.getNode()), (IJavaTypeFormal) t);
     		}
-    		// TODO how to figure out if there are decls?  		
-			throw new NotImplemented();
+    		return methodRefHasPotentiallyApplicableMethods(mb, e, t, ConstructorReference.getReceiver(e), "new");
     	}  
     	else if (ParenExpression.prototype.includes(op)) {
     		return isPotentiallyCompatible(mb, ParenExpression.getOp(e), t);
@@ -291,6 +299,182 @@ public class MethodBinder8 implements IMethodBinder {
     	return !isPolyExpression(e);
     }    
 
+    /**
+     * • A method reference expression (§15.13) is potentially compatible with a
+     *   functional interface type if, where the type's function type arity is n, there exists
+     *   at least one potentially applicable method for the method reference expression
+     *   with arity n (§15.13.1), and one of the following is true:
+     *   
+     *   – The method reference expression has the form ReferenceType :: [TypeArguments] Identifier 
+     *     and at least one potentially applicable method is
+     *     i) static and supports arity n, or ii) not static and supports arity n-1.
+     *     
+     *   – The method reference expression has some other form and at least one
+     *     potentially applicable method is not static .
+     */
+    private boolean methodRefHasPotentiallyApplicableMethods(IBinding mb, IRNode e, IJavaType t, IRNode base, String name) {
+    	final IJavaFunctionType ft = tEnv.isFunctionalType(t);
+    	if (ft != null) {    	
+    		final int n = ft.getParameterTypes().size();
+    		final boolean isConstructor = "new".equals(name);
+    		if (!isConstructor && TypeExpression.prototype.includes(base)) {
+    			for(IBinding m : findPotentiallyApplicableForMethodRef(base, name, n, -1)) {
+    				if (TypeUtil.isStatic(m.getNode())) {
+    					if (getArity(m.getNode(), isConstructor) == n) {
+    						return true;
+    					}
+    				} else {
+    					if (getArity(m.getNode(), isConstructor) == n-1) {
+    						return true;
+    					}
+    				}
+    			}
+    		} else {
+      			for(IBinding m : findPotentiallyApplicableForMethodRef(base, name, n, -1)) {
+      				if (!TypeUtil.isStatic(m.getNode())) {
+      					return true;
+      				}
+      			}
+    		}
+    	}
+    	return false;
+    }
+    
+	private int getArity(IRNode node, boolean isConstructor) {
+		IRNode params;
+		if (isConstructor) {
+			params = ConstructorDeclaration.getParams(node);
+		} else {
+			params = MethodDeclaration.getParams(node);
+		}
+		return JJNode.tree.numChildren(params);
+	}
+	
+	private int getNumTypeParams(IRNode node, boolean isConstructor) {
+		IRNode params;
+		if (isConstructor) {
+			params = ConstructorDeclaration.getTypes(node);
+		} else {
+			params = MethodDeclaration.getTypes(node);
+		}
+		return JJNode.tree.numChildren(params);
+	}
+
+	/**
+     * From 15.13.1 Compile-Time Declaration of a Method Reference
+     * 
+     * • First, a type to search is determined:
+     * 
+     * – If the method reference expression has the form ExpressionName :: [TypeArguments] Identifier
+     *   or Primary :: [TypeArguments] Identifier, the type to search is the type of the expression 
+     *   preceding the :: token.
+     *   
+     * – If the method reference expression has the form ReferenceType :: [TypeArguments] Identifier, 
+     *   the type to search is the result of capture conversion (§5.1.10) applied to ReferenceType.
+     *   
+     * – If the method reference expression has the form super :: [TypeArguments] Identifier, 
+     *   the type to search is the superclass type of the class whose declaration contains the 
+     *   method reference.
+     *   
+     * – If the method reference expression has the form TypeName . super :: [TypeArguments] Identifier, 
+     *   then if TypeName denotes a class, the type to search is the superclass type of the named class; 
+     *   otherwise, TypeName denotes an interface, and the corresponding superinterface type of the 
+     *   class or interface whose declaration contains the method reference is the type to search.
+     *   
+     * – For the two other forms (involving :: new ), the referenced method is notional 
+     *   and there is no type to search.
+     */
+    IJavaType findTypeToSearchForMethodRef(IRNode receiver, boolean isConstructor) {
+    	final Operator op = JJNode.tree.getOperator(receiver);
+    	if (!isConstructor && TypeExpression.prototype.includes(op)) {
+    		IJavaType t = binder.getJavaType(receiver); 
+    		return JavaTypeVisitor.captureWildcards(binder, t);
+    	}
+    	return binder.getJavaType(receiver);    	
+    }
+        
+    /**
+     * From 15.13.1 Compile-Time Declaration of a Method Reference
+     * 
+     * • Second, given a targeted function type with n parameters, a set of potentially
+     *   applicable methods is identified:
+     *   
+     *   – If the method reference expression has the form ReferenceType :: [TypeArguments] Identifier, 
+     *     the potentially applicable methods are the member methods of the type to search that have an
+     *     appropriate name (given by Identifier), accessibility, arity (n or n-1), and type argument 
+     *     arity (derived from [TypeArguments]), as specified in §15.12.2.1.
+     *     
+     *       Two different arities, n and n-1, are considered, to account for the possibility that this
+     *       form refers to either a static method or an instance method.
+     *       
+     *   – If the method reference expression has the form ClassType :: [TypeArguments] new , the 
+     *     potentially applicable methods are a set of notional methods corresponding to the 
+     *     constructors of ClassType.
+     *     
+     *     If ClassType is a raw type, but is not a non- static member type of a raw type,
+     *     the candidate notional member methods are those specified in §15.9.3 for a
+     *     class instance creation expression that uses <> to elide the type arguments to a class.
+     *     
+     *     Otherwise, the candidate notional member methods are the constructors of ClassType, 
+     *     treated as if they were methods with return type ClassType. Among these candidates, 
+     *     the methods with appropriate accessibility, arity (n), and type argument arity 
+     *     (derived from [TypeArguments]) are selected, as specified in §15.12.2.1.
+     *     
+     *   – If the method reference expression has the form ArrayType :: new , a single notional method
+     *     is considered. The method has a single parameter of type int, returns the ArrayType, and has 
+     *     no throws clause. If n = 1, this is the only potentially applicable method; otherwise, there 
+     *     are no potentially applicable methods.
+     *   
+     *   – For all other forms, the potentially applicable methods are the member methods of the type
+     *     to search that have an appropriate name (given by Identifier), accessibility, arity (n), and 
+     *     type argument arity (derived from [TypeArguments]), as specified in §15.12.2.1.
+     */
+    Set<IBinding> findPotentiallyApplicableForMethodRef(IRNode base, String name, int numParams, int numTypeArgs) {
+		final boolean isConstructor = "new".equals(name);
+		final boolean isArrayNew = isConstructor && ArrayType.prototype.includes(TypeExpression.getType(base));
+		if (isArrayNew) {
+			if (numParams != 1 || numTypeArgs > 0) {
+				// This can't match an array
+				return Collections.emptySet();
+			}
+		}
+		
+		final IJavaType t = findTypeToSearchForMethodRef(base, isConstructor);
+    	final LookupContext context = new LookupContext();
+    	context.use(name, base);
+    	
+    	final IJavaScope scope;
+    	final boolean isRefType;
+    	if (isConstructor || TypeExpression.prototype.includes(base)) {
+    		// Only needs to look at the specified type
+    		IJavaSourceRefType tdecl = (IJavaSourceRefType) t;
+    		scope = binder.typeMemberTable(tdecl).asLocalScope(tEnv);
+    		isRefType = !isConstructor;
+    	} else {
+    		scope = binder.typeScope(t);
+    		isRefType = false;
+    	}
+    	
+    	final Set<IBinding> rv = new HashSet<IBinding>();
+    	for(IBinding m : findMethods(scope, context, !isConstructor, base)) {
+    		// Check num parameters/type args
+    		final int p = getArity(m.getNode(), isConstructor);
+    		if (p != numParams) {
+    			if (!isRefType || p != numParams-1) {
+    				continue;
+    			}
+    		}
+    		if (numTypeArgs >= 0) {
+    			int numTypes = getNumTypeParams(m.getNode(), isConstructor);    			
+    			if (numTypes != numTypeArgs) {
+    				continue;
+    			}
+    		}
+    		rv.add(m);    		
+    	}
+    	return rv;
+	}
+    
 	/**
      * Assumes that the code compiles
      */
@@ -335,6 +519,7 @@ public class MethodBinder8 implements IMethodBinder {
 		for(IRNode f : children(types)) {
 			if (f.equals(t.getDeclaration())) {
 				return true;
+				
 			}
 		}
 		return false;
@@ -1256,16 +1441,47 @@ public class MethodBinder8 implements IMethodBinder {
      * A method reference expression of the form ArrayType :: new is always exact.
      */
     boolean isExactMethodReference(IRNode ref) {
-    	Operator op = JJNode.tree.getOperator(ref);
+    	final Operator op = JJNode.tree.getOperator(ref);
+    	final IRNode recv;
+    	final boolean isMethod;
     	if (MethodReference.prototype.includes(op)) {
-    		throw new NotImplemented(); // TODO
+       		recv = MethodReference.getReceiver(ref);
+       		if (!TypeExpression.prototype.includes(recv)) {
+       			return false;
+       		}
+    		isMethod = true;
     	} else {
-    		IRNode recv = ConstructorReference.getReceiver(ref);
+    		recv = ConstructorReference.getReceiver(ref);
     		IRNode type = TypeExpression.getType(recv);
     		if (ArrayType.prototype.includes(type)) {
     			return true;
     		}
-    		throw new NotImplemented(); // TODO
+    		isMethod = false;
     	}
+       	final IJavaDeclaredType t = (IJavaDeclaredType) findTypeToSearchForMethodRef(recv, !isMethod);
+		if (t.isRawType(tEnv)) {
+			return false;
+		}
+	  	final LookupContext context = new LookupContext();
+    	context.use(JJNode.getInfoOrNull(ref), ref);
+	
+    	final IJavaScope scope = binder.typeMemberTable(t).asLocalScope(tEnv);
+    	IBinding result = null;
+    	for(IBinding m : findMethods(scope, context, isMethod, ref)) {
+    		if (result == null) {
+    			result = m;
+    		} else {
+    			return false; // More than one
+    		}
+    	}
+    	if (result == null) {
+    		return false;
+    	}
+    	// Check if varargs, generic w/o type args
+    	MethodBinding mb = new MethodBinding(result);
+    	if (mb.isVariableArity()) {
+    		return false;
+    	}
+    	return !mb.isGeneric() || getNumTypeParams(ref, !isMethod) > 0;
     }
 }
