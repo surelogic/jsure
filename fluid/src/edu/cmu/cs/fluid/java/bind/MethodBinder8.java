@@ -317,7 +317,7 @@ public class MethodBinder8 implements IMethodBinder {
     	if (ft != null) {    	
     		final int n = ft.getParameterTypes().size();
     		final boolean isConstructor = "new".equals(name);
-    		if (!isConstructor && TypeExpression.prototype.includes(base)) {
+    		if (!isConstructor && identifyReceiverKind(base) == ReceiverKind.REF_TYPE) {
     			for(IBinding m : findPotentiallyApplicableForMethodRef(base, name, n, -1)) {
     				if (TypeUtil.isStatic(m.getNode())) {
     					if (getArity(m.getNode(), isConstructor) == n) {
@@ -338,6 +338,31 @@ public class MethodBinder8 implements IMethodBinder {
     		}
     	}
     	return false;
+    }
+    
+    enum ReceiverKind {
+    	REF_TYPE, ARRAY_TYPE, EXPR
+    }
+    
+    private ReceiverKind identifyReceiverKind(IRNode receiver) {
+    	final Operator op = JJNode.tree.getOperator(receiver);
+    	if (TypeExpression.prototype.includes(op)) {
+    		IRNode t = TypeExpression.getType(receiver);
+    		Operator top =  JJNode.tree.getOperator(t);    		
+    		if (ArrayType.prototype.includes(top)) {
+    			return ReceiverKind.ARRAY_TYPE;
+    		}    		
+    		return ReceiverKind.REF_TYPE;
+    	}
+    	else if (NameExpression.prototype.includes(op)) {
+    		// Arrays should show up above
+    		IRNode name = NameExpression.getName(receiver);
+    		IBinding b = binder.getIBinding(name);
+    		if (TypeDeclaration.prototype.includes(b.getNode())) {
+    			return ReceiverKind.REF_TYPE;
+    		}
+    	}
+    	return ReceiverKind.EXPR;
     }
     
 	private int getArity(IRNode node, boolean isConstructor) {
@@ -385,8 +410,7 @@ public class MethodBinder8 implements IMethodBinder {
      *   and there is no type to search.
      */
     IJavaType findTypeToSearchForMethodRef(IRNode receiver, boolean isConstructor) {
-    	final Operator op = JJNode.tree.getOperator(receiver);
-    	if (!isConstructor && TypeExpression.prototype.includes(op)) {
+    	if (!isConstructor && identifyReceiverKind(receiver) == ReceiverKind.REF_TYPE) {
     		IJavaType t = binder.getJavaType(receiver); 
     		return JavaTypeVisitor.captureWildcards(binder, t);
     	}
@@ -431,8 +455,8 @@ public class MethodBinder8 implements IMethodBinder {
      */
     Set<IBinding> findPotentiallyApplicableForMethodRef(IRNode base, String name, int numParams, int numTypeArgs) {
 		final boolean isConstructor = "new".equals(name);
-		final boolean isArrayNew = isConstructor && ArrayType.prototype.includes(TypeExpression.getType(base));
-		if (isArrayNew) {
+		final ReceiverKind kind = identifyReceiverKind(base);
+		if (isConstructor && kind == ReceiverKind.ARRAY_TYPE) {
 			if (numParams != 1 || numTypeArgs > 0) {
 				// This can't match an array
 				return Collections.emptySet();
@@ -445,7 +469,7 @@ public class MethodBinder8 implements IMethodBinder {
     	
     	final IJavaScope scope;
     	final boolean isRefType;
-    	if (isConstructor || TypeExpression.prototype.includes(base)) {
+    	if (isConstructor || kind == ReceiverKind.REF_TYPE) {
     		// Only needs to look at the specified type
     		IJavaSourceRefType tdecl = (IJavaSourceRefType) t;
     		scope = binder.typeMemberTable(tdecl).asLocalScope(tEnv);
