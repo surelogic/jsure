@@ -53,6 +53,10 @@ public abstract class AbstractJavaClassTable implements IJavaClassTable {
       this.prefix = prefix;
     }
 
+    @Override
+    public String toString() {
+    	return "PackageScope: "+prefix;
+    }
 	@Override
   public boolean canContainPackages() {
 		return true;
