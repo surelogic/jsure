@@ -834,13 +834,17 @@ public class TypeInference8 {
 	 *     › If Ai is a upper-bounded wildcard ? extends Ui, then Ti = glb(Ui, Bi) (§5.1.10).
 	 *     › If Ai is a lower-bounded wildcard ? super Li, then Ti = Li.
 	 */
-	private IJavaType computeNonWildcardParameterization(IJavaDeclaredType iface) {
+	IJavaType computeNonWildcardParameterization(IJavaDeclaredType iface) {
 		final int n = iface.getTypeParameters().size();
 		final List<IJavaType> t = new ArrayList<IJavaType>(n);
-		final Set<IJavaTypeFormal> params = null;
+		final List<IJavaTypeFormal> params = new ArrayList<IJavaTypeFormal>(n);
+		for (IRNode tf : JJNode.tree.children(InterfaceDeclaration.getTypes(iface.getDeclaration()))) {
+			params.add(JavaTypeFactory.getTypeFormal(tf));
+		}
+		
 		for(int i=0; i<n; i++) {
-			final IJavaTypeFormal p_i = null;
-			final IJavaReferenceType b_i = null;
+			final IJavaTypeFormal p_i = params.get(i);
+			final IJavaReferenceType b_i = p_i.getExtendsBound(tEnv);
 			final IJavaType a_i = iface.getTypeParameters().get(i);
 			final IJavaType t_i;
 			if (a_i instanceof IJavaWildcardType) {
@@ -862,10 +866,10 @@ public class TypeInference8 {
 			}
 			t.add(t_i);
 		}
-		return JavaTypeFactory.getDeclaredType(iface.getDeclaration(), t, iface.getOuterType());
+		return JavaTypeFactory.getDeclaredType(iface.getDeclaration(), t, iface.getOuterType()); // TODO is this right?
 	}
 
-	private boolean refersTo(IJavaReferenceType b_i, Set<IJavaTypeFormal> params) {
+	private boolean refersTo(IJavaReferenceType b_i, Collection<IJavaTypeFormal> params) {
 		throw new NotImplemented();
 	}
 
@@ -1198,12 +1202,13 @@ public class TypeInference8 {
 			}
 			this.s = s;
 			this.t = t;
-			
+			/*
 			if (s instanceof InferenceVariable || t instanceof InferenceVariable) {
 				// Nothing to do
 			} else {
 				throw new IllegalStateException();
 			}
+			*/
 		}
 		
 		@Override

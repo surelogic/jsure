@@ -413,7 +413,8 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitLambdaExpression(final IRNode node) {
 	  TypeUtils utils = new TypeUtils(binder.getTypeEnvironment());
-	  return utils.getPolyExpressionTargetType(node);	    
+	  IJavaType targetType = utils.getPolyExpressionTargetType(node);
+	  return new MethodBinder8((AbstractJavaBinder) binder, false).computeGroundTargetType(node, targetType);
   }
   
   @Override

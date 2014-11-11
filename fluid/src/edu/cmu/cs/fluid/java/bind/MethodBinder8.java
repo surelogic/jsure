@@ -1508,4 +1508,25 @@ public class MethodBinder8 implements IMethodBinder {
     	}
     	return !mb.isGeneric() || getNumTypeParams(ref, !isMethod) > 0;
     }
+    
+	/**
+	 * The ground target type is derived from T as follows:
+	 * • If T is a wildcard-parameterized functional interface type and the lambda expression 
+	 *   is explicitly typed, then the ground target type is inferred as described in §18.5.3.
+	 *   
+	 * • If T is a wildcard-parameterized functional interface type and the lambda expression 
+	 *   is implicitly typed, then the ground target type is the non-wildcard parameterization (§9.9) of T.
+     * • Otherwise, the ground target type is T.
+	 */
+	public IJavaType computeGroundTargetType(IRNode lambda, IJavaType t) {
+		IJavaDeclaredType wpt = typeInfer.isWildcardParameterizedType(t);
+		if (wpt != null) {
+			if (isImplicitlyTypedLambda(lambda)) {
+				return typeInfer.computeNonWildcardParameterization(wpt);
+			} else {
+				return typeInfer.inferForFunctionalInterfaceParameterization(t, lambda);
+			}
+		}
+		return t;
+	}
 }
