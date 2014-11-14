@@ -274,13 +274,13 @@ public class MethodBinder8 implements IMethodBinder {
     		if (t instanceof IJavaTypeFormal) {
     			return declaresTypeParam(MethodDeclaration.getTypes(mb.getNode()), (IJavaTypeFormal) t);
     		}
-    		return methodRefHasPotentiallyApplicableMethods(mb, e, t, MethodReference.getReceiver(e), MethodReference.getMethod(e));
+    		return methodRefHasPotentiallyApplicableMethods(t, MethodReference.getReceiver(e), MethodReference.getMethod(e)) != null;
     	}
     	else if (ConstructorReference.prototype.includes(op)) {
     		if (t instanceof IJavaTypeFormal) {
     			return declaresTypeParam(ConstructorDeclaration.getTypes(mb.getNode()), (IJavaTypeFormal) t);
     		}
-    		return methodRefHasPotentiallyApplicableMethods(mb, e, t, ConstructorReference.getReceiver(e), "new");
+    		return methodRefHasPotentiallyApplicableMethods(t, ConstructorReference.getReceiver(e), "new") != null;
     	}  
     	else if (ParenExpression.prototype.includes(op)) {
     		return isPotentiallyCompatible(mb, ParenExpression.getOp(e), t);
@@ -312,8 +312,17 @@ public class MethodBinder8 implements IMethodBinder {
      *   â€“ The method reference expression has some other form and at least one
      *     potentially applicable method is not static .
      */
-    private boolean methodRefHasPotentiallyApplicableMethods(IBinding mb, IRNode e, IJavaType t, IRNode base, String name) {
-    	final IJavaFunctionType ft = tEnv.isFunctionalType(t);
+    IJavaFunctionType methodRefHasPotentiallyApplicableMethods(IJavaType t, IRNode base, String name) {
+    	final IJavaType ct = computeGroundTargetTypeForMethodRef(t);
+    	//JavaTypeVisitor.captureWildcards(binder, t);
+    	final IJavaFunctionType ft = tEnv.isFunctionalType(ct);
+    	if (methodRefHasPotentiallyApplicableMethods(ft, base, name)) {
+    		return ft;
+    	}
+    	return null;
+    }
+    
+    boolean methodRefHasPotentiallyApplicableMethods(IJavaFunctionType ft, IRNode base, String name) {    
     	if (ft != null) {    	
     		final int n = ft.getParameterTypes().size();
     		final boolean isConstructor = "new".equals(name);
@@ -409,8 +418,8 @@ public class MethodBinder8 implements IMethodBinder {
      * â€“ For the two other forms (involving :: new ), the referenced method is notional 
      *   and there is no type to search.
      */
-    IJavaType findTypeToSearchForMethodRef(IRNode receiver, boolean isConstructor) {
-    	if (!isConstructor && identifyReceiverKind(receiver) == ReceiverKind.REF_TYPE) {
+    IJavaType findTypeToSearchForMethodRef(IRNode receiver, ReceiverKind kind, boolean isConstructor) {
+    	if (!isConstructor && kind == ReceiverKind.REF_TYPE) {
     		IJavaType t = binder.getJavaType(receiver); 
     		return JavaTypeVisitor.captureWildcards(binder, t);
     	}
@@ -463,7 +472,7 @@ public class MethodBinder8 implements IMethodBinder {
 			}
 		}
 		
-		final IJavaType t = findTypeToSearchForMethodRef(base, isConstructor);
+		final IJavaType t = findTypeToSearchForMethodRef(base, kind, isConstructor);
     	final LookupContext context = new LookupContext();
     	context.use(name, base);
     	
@@ -1098,9 +1107,10 @@ public class MethodBinder8 implements IMethodBinder {
 	 * â€¢ Otherwise, the method invocation is ambiguous, and a compile-time error occurs.
 	 */
     private IBinding findMostSpecific(final CallState call, Iterable<MethodBinding> methods, ApplicableMethodFilter filter) {
-    	if (false && "getLowerBound".equals(JJNode.getInfoOrNull(call.call))) {
+    	if ("collect".equals(JJNode.getInfoOrNull(call.call))) {
     		System.out.println("Trying to find method for allOf");
     	}
+    	// Arrays.stream(#.readLine#.split(#)).map(String:: <> trim)
     	final Set<MethodState> applicable = new HashSet<MethodState>();
     	for(MethodBinding mb : methods) {
     		MethodState result = filter.isApplicable(call, mb);
@@ -1465,26 +1475,26 @@ public class MethodBinder8 implements IMethodBinder {
      * A method reference expression of the form ArrayType :: new is always exact.
      */
     boolean isExactMethodReference(IRNode ref) {
+    	return getExactMethodReference(ref) != null;
+    }
+    
+    MethodBinding getExactMethodReference(IRNode ref) {
     	final Operator op = JJNode.tree.getOperator(ref);
     	final IRNode recv;
     	final boolean isMethod;
     	if (MethodReference.prototype.includes(op)) {
        		recv = MethodReference.getReceiver(ref);
-       		if (!TypeExpression.prototype.includes(recv)) {
-       			return false;
-       		}
     		isMethod = true;
     	} else {
     		recv = ConstructorReference.getReceiver(ref);
-    		IRNode type = TypeExpression.getType(recv);
-    		if (ArrayType.prototype.includes(type)) {
-    			return true;
-    		}
     		isMethod = false;
     	}
-       	final IJavaDeclaredType t = (IJavaDeclaredType) findTypeToSearchForMethodRef(recv, !isMethod);
-		if (t.isRawType(tEnv)) {
-			return false;
+    	final ReceiverKind kind = identifyReceiverKind(recv);
+       	final IJavaDeclaredType t = (IJavaDeclaredType) findTypeToSearchForMethodRef(recv, kind, !isMethod);
+		if (!isMethod || kind == ReceiverKind.REF_TYPE) {
+			if (t.isRawType(tEnv)) {
+				return null;
+			}
 		}
 	  	final LookupContext context = new LookupContext();
     	context.use(JJNode.getInfoOrNull(ref), ref);
@@ -1495,18 +1505,21 @@ public class MethodBinder8 implements IMethodBinder {
     		if (result == null) {
     			result = m;
     		} else {
-    			return false; // More than one
+    			return null; // More than one
     		}
     	}
     	if (result == null) {
-    		return false;
+    		return null;
     	}
     	// Check if varargs, generic w/o type args
     	MethodBinding mb = new MethodBinding(result);
     	if (mb.isVariableArity()) {
-    		return false;
+    		return null;
     	}
-    	return !mb.isGeneric() || getNumTypeParams(ref, !isMethod) > 0;
+    	if (!mb.isGeneric() || getNumTypeParams(ref, !isMethod) > 0) {
+    		return mb;
+    	}
+    	return null;
     }
     
 	/**
@@ -1526,6 +1539,26 @@ public class MethodBinder8 implements IMethodBinder {
 			} else {
 				return typeInfer.inferForFunctionalInterfaceParameterization(t, lambda);
 			}
+		}
+		return t;
+	}
+	
+	/**
+	 * 15.13.2 Type of a Method Reference
+	 * 
+	 * A method reference expression is compatible in an assignment context, invocation context, 
+	 * or casting context with a target type T if T is a functional interface type (§9.8) and the
+	 * expression is congruent with the function type of the ground target type derived from T.
+	 * 
+	 * The ground target type is derived from T as follows:
+	 * • If T is a wildcard-parameterized functional interface type, then the ground target type 
+	 *   is the non-wildcard parameterization (§9.9) of T.
+	 * • Otherwise, the ground target type is T
+	 */
+	public IJavaType computeGroundTargetTypeForMethodRef(IJavaType t) {
+		IJavaDeclaredType wpt = typeInfer.isWildcardParameterizedType(t);
+		if (wpt != null) {			
+			return typeInfer.computeNonWildcardParameterization(wpt);
 		}
 		return t;
 	}

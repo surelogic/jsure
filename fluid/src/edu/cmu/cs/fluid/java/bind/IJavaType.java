@@ -5,7 +5,6 @@
 package edu.cmu.cs.fluid.java.bind;
 
 import java.io.PrintStream;
-import java.util.*;
 
 import com.surelogic.ast.IType;
 import com.surelogic.common.util.*;
@@ -62,20 +61,25 @@ public interface IJavaType extends IType {
   
   public Iteratable<IJavaType> getSupertypes(ITypeEnvironment env);
   
-  /**
-   * @return true if it and all the types it depends on are valid
-   */
-  public boolean isValid();
   public void printStructure(PrintStream out, int indent);
   public boolean isEqualTo(ITypeEnvironment env, IJavaType t2);
   
   /**
-   * e.g. does not contain any references to inference variables
+   * Intended to traverse the entire structure of the type
    */
-  public boolean isProperType();
+  public void visit(Visitor v);
   
   /**
-   * Add any referenced variables to vars
+   * Contains state of whatever results will be returned
    */
-  public void getReferencedInferenceVariables(Collection<TypeInference8.InferenceVariable> vars);
+  interface Visitor {
+	  void accept(IJavaType t);
+  }
+  abstract class BooleanVisitor implements Visitor {
+	  public boolean result;
+	  
+	  public BooleanVisitor(boolean initial) {
+		  result = initial;
+	  }
+  }
 }

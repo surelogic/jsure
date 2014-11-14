@@ -10,7 +10,6 @@ import java.util.AbstractList;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -55,7 +54,6 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
-import edu.cmu.cs.fluid.java.bind.TypeInference8.InferenceVariable;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayDeclaration;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
@@ -154,14 +152,10 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
       return new EmptyIterator<IJavaType>();
     }    
 
-    public boolean isProperType() {
-      return true;
-    }
-    
     @Override
-    public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
-      // Nothing to do 
-    }	      
+    public void visit(Visitor v) {
+    	v.accept(this);
+    }
     
     /*******************************************************
      * Added to implement IType
@@ -385,7 +379,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
    * @param outer the context type.
    */
   public static IJavaDeclaredType getDeclaredType(IRNode decl,
-						  /* @immutable */ List<IJavaType> params,
+						  /* @immutable */ List<? extends IJavaType> params,
 						  IJavaDeclaredType outer) 
   {
     if (decl == null) {
@@ -987,12 +981,8 @@ abstract class JavaType extends JavaTypeCleanable implements IJavaType {
 	  return false;
   }
 
-  public boolean isProperType() {
-	  return true;
-  }
-  
-  public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
-	  // Nothing to do
+  public void visit(Visitor v) {
+	  v.accept(this);
   }
   
   /*******************************************************
@@ -1406,18 +1396,14 @@ class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectio
   }
   
   @Override
-  public boolean isProperType() {
-	return (primaryBound == null || primaryBound.isProperType()) &&
-		   (secondaryBound == null || secondaryBound.isProperType());
-  }
-  
-  @Override
-  public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
+  public void visit(Visitor v) {
+	super.visit(v);
+	  
 	if (primaryBound != null) {
-		primaryBound.getReferencedInferenceVariables(vars);
+		primaryBound.visit(v);
 	}
 	if (secondaryBound != null) {
-		secondaryBound.getReferencedInferenceVariables(vars);
+		secondaryBound.visit(v);
 	}
   }	    
 }
@@ -1504,18 +1490,14 @@ class JavaUnionType extends JavaReferenceType implements IJavaUnionType {
 	  }
 	  
 	  @Override
-	  public boolean isProperType() {
-		  return (primaryBound == null || primaryBound.isProperType()) &&
-				 (secondaryBound == null || secondaryBound.isProperType());
-	  }
-	  
-	  @Override
-	  public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
+	  public void visit(Visitor v) {
+		super.visit(v);
+		  
 		if (primaryBound != null) {
-			primaryBound.getReferencedInferenceVariables(vars);
+			primaryBound.visit(v);
 		}
 		if (secondaryBound != null) {
-			secondaryBound.getReferencedInferenceVariables(vars);
+			secondaryBound.visit(v);
 		}
 	  }	  
 	}
@@ -1653,20 +1635,16 @@ class JavaWildcardType extends JavaReferenceType implements IJavaWildcardType {
   }
   
   @Override
-  public boolean isProperType() {
-	return (upperBound == null || upperBound.isProperType()) &&
-		   (lowerBound == null || lowerBound.isProperType());
-  }
-  
-  @Override
-  public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
+  public void visit(Visitor v) {
+	super.visit(v);
+	  
 	if (upperBound != null) {
-		upperBound.getReferencedInferenceVariables(vars);
+		upperBound.visit(v);
 	}
 	if (lowerBound != null) {
-		lowerBound.getReferencedInferenceVariables(vars);
+		lowerBound.visit(v);
 	}
-  }
+  }	 
 }
 
 class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
@@ -1748,14 +1726,6 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   public String toFullyQualifiedText() {
 	  return wildcard.toFullyQualifiedText(); // TODO
   }
-  
-  @Override
-  public boolean isValid() {
-    if (!wildcard.isValid()) return false;
-    if (lowerBound != null && !lowerBound.isValid()) return false;    
-    if (upperBound != null && !upperBound.isValid()) return false;    
-    return true;
-  }
 
   @Override
   public void printStructure(PrintStream out, int indent) {
@@ -1802,21 +1772,16 @@ class JavaCaptureType extends JavaReferenceType implements IJavaCaptureType {
   }
   
   @Override
-  public boolean isProperType() {
-	// TODO need to check the wildcard?
-	return (upperBound == null || upperBound.isProperType()) &&
-		   (lowerBound == null || lowerBound.isProperType());
-  }
-  
-  @Override
-  public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
+  public void visit(Visitor v) {
+	super.visit(v);
+	  
 	if (upperBound != null) {
-		upperBound.getReferencedInferenceVariables(vars);
+		upperBound.visit(v);
 	}
 	if (lowerBound != null) {
-		lowerBound.getReferencedInferenceVariables(vars);
+		lowerBound.visit(v);
 	}
-  }  
+  }	 
 }
 
 class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
@@ -1905,13 +1870,9 @@ class JavaArrayType extends JavaReferenceType implements IJavaArrayType {
   }
   
   @Override
-  public boolean isProperType() {
-	return elementType.isProperType();
-  }
-
-  @Override
-  public void getReferencedInferenceVariables(Collection<TypeInference8.InferenceVariable> vars) {
-	elementType.getReferencedInferenceVariables(vars);
+  public void visit(Visitor v) {
+	  super.visit(v);
+	  elementType.visit(v);
   }
 }
 
@@ -2077,19 +2038,11 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
   }
   
   @Override
-  public boolean isProperType() {
+  public void visit(Visitor v) {
+	super.visit(v);
+	  
 	for(IJavaType p : parameters) {
-		if (!p.isProperType()) {
-			return false;
-		}
-	}
-	return true;
-  }
-  
-  @Override
-  public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
-	for(IJavaType p : parameters) {
-		p.getReferencedInferenceVariables(vars);
+		p.visit(v);
 	}
   }
   
@@ -2179,14 +2132,9 @@ class JavaDeclaredType extends JavaReferenceType implements IJavaDeclaredType {
     }
 
     @Override
-    public boolean isProperType() {
-    	return super.isProperType() && getOuterType().isProperType();
-    }
-    
-    @Override
-    public void getReferencedInferenceVariables(Collection<InferenceVariable> vars) {
-    	super.getReferencedInferenceVariables(vars);
-    	getOuterType().getReferencedInferenceVariables(vars);
+    public void visit(Visitor v) {
+    	super.visit(v);
+    	getOuterType().visit(v);
     }
   }
   
@@ -2527,20 +2475,6 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 			}
 		}
 		return result;
-	}
-
-	@Override
-	public boolean isValid() {
-		for (IJavaTypeFormal t : typeFormals) {
-			if (!t.isValid()) return false;
-		}
-		for (IJavaType t : pieces) {
-			if (!t.isValid()) return false;
-		}
-		for (IJavaType t : exceptions) {
-			if (!t.isValid()) return false;
-		}
-		return true;
 	}
 
 	@Override

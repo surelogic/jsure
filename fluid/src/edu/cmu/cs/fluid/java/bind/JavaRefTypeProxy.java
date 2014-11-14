@@ -2,7 +2,6 @@ package edu.cmu.cs.fluid.java.bind;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Collection;
 
 import com.surelogic.ast.IType;
 import com.surelogic.ast.java.operator.IDeclarationNode;
@@ -10,7 +9,6 @@ import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IROutput;
-import edu.cmu.cs.fluid.java.bind.TypeInference8.InferenceVariable;
 
 /**
  * Used to represent infinite types, 
@@ -144,14 +142,7 @@ public class JavaRefTypeProxy extends JavaReferenceType implements IJavaReferenc
 	}
 	
 	@Override
-	public boolean isProperType() {
-		// It's valid as long as the rest is valid
-		return type != null;
-		//return type.isProperType();
-	}
-	
-	@Override
-	public void getReferencedInferenceVariables(Collection<InferenceVariable> found) {		
-		//type.getReferencedInferenceVariables(found);
+	public void visit(Visitor v) {
+		// Nothing to do, since it's cyclic
 	}
 }

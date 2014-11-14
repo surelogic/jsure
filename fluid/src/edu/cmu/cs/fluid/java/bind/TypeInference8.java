@@ -19,6 +19,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IROutput;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.bind.IJavaType.BooleanVisitor;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.MethodBinding;
 import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodState;
@@ -38,25 +39,20 @@ public class TypeInference8 {
 		utils = new TypeUtils(tEnv);
 	}
 
+	static String hexToAlpha(String hex) {
+		int n = Integer.parseInt(hex, 16);
+		return Integer.toString(n, Character.MAX_RADIX);
+	}
+	
 	// TODO how to distinguish from each other
 	// TODO how to keep from polluting the normal caches?
-	static class InferenceVariable extends JavaReferenceType implements IJavaTypeFormal, Comparable<InferenceVariable> {
+	static final class InferenceVariable extends JavaReferenceType implements IJavaTypeFormal, Comparable<InferenceVariable> {
 		final IRNode formal;
 		int index;
 		int lowlink;
 		
 		InferenceVariable(IRNode tf) {
 			formal = tf;
-		}
-
-		@Override
-		public boolean isProperType() {
-			return false;
-		}
-		
-		@Override
-		public void getReferencedInferenceVariables(Collection<TypeInference8.InferenceVariable> vars) {
-			vars.add(this);
 		}
 		
 		@Override
@@ -67,12 +63,12 @@ public class TypeInference8 {
 		@Override
 		public String toString() {
 			String rv = super.toString();
+			int last = rv.lastIndexOf('@');	
+			String alpha = hexToAlpha(rv.substring(last+1));
 			if (formal == null) {
-				int last = rv.lastIndexOf('$');
-				return rv.substring(last+1);
-			}
-			int last = rv.lastIndexOf('@');			
-			return JavaNames.getRelativeTypeName(formal)+rv.substring(last);
+				return '@'+alpha;
+			}		
+			return alpha+"@ "+JavaNames.getRelativeTypeName(formal).replaceAll(" extends java.lang.Object", "");
 		}
 		
 		public IJavaReferenceType getLowerBound() {
@@ -116,14 +112,36 @@ public class TypeInference8 {
 		}
 	}
 	
-	static class TypeVariable extends JavaReferenceType implements IJavaTypeVariable {
+	static boolean isProperType(IJavaType t) {
+		BooleanVisitor v = new BooleanVisitor(true) {
+			public void accept(IJavaType t) {
+				if (t instanceof InferenceVariable) {
+					result = false;
+				}
+			}	
+		};
+		t.visit(v);
+		return v.result;
+	}
+	
+	static void getReferencedInferenceVariables(final Collection<InferenceVariable> vars, IJavaType t) {
+		t.visit(new IJavaType.Visitor() {
+			public void accept(IJavaType t) {
+				if (t instanceof InferenceVariable) {
+					vars.add((InferenceVariable) t);
+				}
+			}			
+		});
+	}
+		
+	class TypeVariable extends JavaReferenceType implements IJavaTypeVariable {
 		IJavaReferenceType lowerBound, upperBound;
 		
 		public IJavaReferenceType getLowerBound() {
-			return null;
+			return lowerBound;
 		}
 		public IJavaReferenceType getUpperBound(ITypeEnvironment te) {
-			return null;
+			return upperBound;
 		}
 		
 		void setLowerBound(IJavaReferenceType l) {
@@ -143,6 +161,37 @@ public class TypeInference8 {
 		@Override
 		void writeValue(IROutput out) throws IOException {
 			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public String toString() {
+			String rv = super.toString();
+			int last = rv.lastIndexOf('@');	
+			String alpha = hexToAlpha(rv.substring(last+1));
+			return '&'+alpha;
+		}
+		
+		@Override
+		public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
+			if (t2 instanceof TypeVariable) {
+				TypeVariable v2 = (TypeVariable) t2;
+				return checkBound(lowerBound, v2.lowerBound, JavaTypeFactory.nullType) && 
+					   checkBound(upperBound, v2.upperBound, tEnv.getObjectType());
+			}
+			return false;
+		}
+		
+		private boolean checkBound(IJavaReferenceType b1, IJavaReferenceType b2, IJavaReferenceType ifNull) {
+			if (b1 == b2) {
+				return true;
+			}
+			if (b1 == null && b2 == ifNull) {
+				return true;
+			}
+			if (b2 == null && b1 == ifNull) {
+				return true;
+			}
+			return b1.isEqualTo(tEnv, b2);
 		}
 	}
 	
@@ -230,7 +279,7 @@ public class TypeInference8 {
 			if (mb.isPertinentToApplicability(m, call.getNumTypeArgs() > 0, e_i)) {
 				if (kind == InvocationKind.STRICT) {
 					final boolean isPoly = mb.isPolyExpression(e_i);
-					final IJavaType e_i_Type = tEnv.getBinder().getJavaType(e_i);
+					final IJavaType e_i_Type = isPoly ? null : tEnv.getBinder().getJavaType(e_i);
 					if (!isPoly && e_i_Type instanceof IJavaPrimitiveType &&
 							formalTypes[i] instanceof IJavaReferenceType) {
 						return null;
@@ -382,7 +431,7 @@ public class TypeInference8 {
 		final IJavaDeclaredType g = isWildcardParameterizedType(r_subst);
 		if (g != null) {
 			final int n = g.getTypeParameters().size();
-			final List<IJavaType> newVars = new ArrayList<IJavaType>(n);
+			final List<InferenceVariable> newVars = new ArrayList<InferenceVariable>(n);
 			for(int i=0; i<n; i++) {
 				newVars.add(new InferenceVariable(null)); // TODO 
 			}
@@ -390,7 +439,7 @@ public class TypeInference8 {
 			final IJavaType g_beta = JavaTypeFactory.getDeclaredType(g.getDeclaration(), newVars, g.getOuterType());
 			reduceConstraintFormula(b_3, new ConstraintFormula(g_beta, FormulaConstraint.IS_COMPATIBLE, t));
 			b_3.addCaptureBound(g_beta, g);
-			b_3.addInferenceVariables(null); // TODO
+			b_3.addInferenceVariables(newVars); 
 			return b_3;
 		}
 	    /*   - Otherwise, if R θ is an inference variable α, and one of the following is true:
@@ -647,7 +696,7 @@ public class TypeInference8 {
 	 * the type on the right-hand side of the constraint, T , that are not input variables.
 	 */
 	void computeInputOutput(InputOutputVars vars, ConstraintFormula f) {
-		f.type.getReferencedInferenceVariables(vars.output);
+		getReferencedInferenceVariables(vars.output, f.type);
 		computeInputVars(vars.input, f);
 		vars.output.removeAll(vars.input);
 	}
@@ -665,7 +714,7 @@ public class TypeInference8 {
 					if (funcType != null) {
 						if (MethodBinder8.isImplicitlyTypedLambda(f.expr)) {		
 							for(IJavaType pt : funcType.getParameterTypes()) {
-								pt.getReferencedInferenceVariables(vars);
+								getReferencedInferenceVariables(vars, pt);
 							}
 						}	
 						if (funcType.getReturnType() != JavaTypeFactory.voidType) {
@@ -681,9 +730,9 @@ public class TypeInference8 {
 					}
 					final IJavaFunctionType funcType = tEnv.isFunctionalType(f.type);
 					if (funcType != null) {		
-						if (!isExactMethodReference(f.expr)) {			
+						if (!mb.isExactMethodReference(f.expr)) {			
 							for(IJavaType pt : funcType.getParameterTypes()) {
-								pt.getReferencedInferenceVariables(vars);
+								getReferencedInferenceVariables(vars, pt);
 							}
 						}
 					}
@@ -725,15 +774,15 @@ public class TypeInference8 {
 				if (LambdaExpression.prototype.includes(op)) {
 					if (MethodBinder8.isImplicitlyTypedLambda(f.expr)) {
 						for(IJavaType pt : funcType.getParameterTypes()) {
-							pt.getReferencedInferenceVariables(vars);
+							getReferencedInferenceVariables(vars, pt);
 						}
 					}
-					funcType.getReturnType().getReferencedInferenceVariables(vars);
+					getReferencedInferenceVariables(vars, funcType.getReturnType());
 				}
-				else if (!isExactMethodReference(f.expr)) {							
-					funcType.getReturnType().getReferencedInferenceVariables(vars);
+				else if (!mb.isExactMethodReference(f.expr)) {							
+					getReferencedInferenceVariables(vars, funcType.getReturnType());
 					for(IJavaType pt : funcType.getParameterTypes()) {
-						pt.getReferencedInferenceVariables(vars);
+						getReferencedInferenceVariables(vars, pt);
 					}
 				}
 			}
@@ -742,11 +791,6 @@ public class TypeInference8 {
 	}
 	
 	private Iterable<IRNode> findResultExprs(IRNode expr) {
-		throw new NotImplemented();
-	}
-
-	// TODO (Â§15.13.1)
-	static boolean isExactMethodReference(IRNode n) {
 		throw new NotImplemented();
 	}
 	
@@ -853,13 +897,13 @@ public class TypeInference8 {
 				}
 				final IJavaWildcardType wt = (IJavaWildcardType) a_i;
 				if (wt.getUpperBound() != null) {
-					return utils.getGreatestLowerBound(b_i, wt.getUpperBound());
+					t_i = utils.getGreatestLowerBound(b_i, wt.getUpperBound());
 				}
 				else if (wt.getLowerBound() != null) {
-					return wt.getLowerBound();
+					t_i = wt.getLowerBound();
 				}
 				else {
-					return b_i;
+					t_i = b_i;
 				}
 			} else {
 				t_i = a_i;
@@ -869,10 +913,18 @@ public class TypeInference8 {
 		return JavaTypeFactory.getDeclaredType(iface.getDeclaration(), t, iface.getOuterType()); // TODO is this right?
 	}
 
-	private boolean refersTo(IJavaReferenceType b_i, Collection<IJavaTypeFormal> params) {
-		throw new NotImplemented();
+	private boolean refersTo(IJavaReferenceType t, final Collection<IJavaTypeFormal> params) {
+		BooleanVisitor v = new BooleanVisitor(false) {
+			public void accept(IJavaType t) {
+				if (params.contains(t)) {
+					result = true;
+				}
+			}	
+		};
+		t.visit(v);
+		return v.result;
 	}
-
+	
 	/**
 	 * 18.5.4 More Specific Method Inference
 	 * 
@@ -1006,7 +1058,7 @@ public class TypeInference8 {
      *   is generated instead.
 	 */
 	private void generateConstraintsFromParameterTypes(BoundSet b, IRNode e_i, IJavaType s_i, IJavaType t_i) {
-		if (t_i.isProperType()) { 
+		if (isProperType(t_i)) { 
 			if (mb.isMoreSpecific(s_i, t_i, e_i)) {
 				b.addTrue();
 			} else {
@@ -1330,13 +1382,13 @@ public class TypeInference8 {
 	 *   if this results in no proper upper bounds for α l (only dependencies), 
 	 *   then the bound α l <: Object also appears in the set.
 	 */
-	BoundSet constructInitialSet(IRNode typeFormals) {
+	BoundSet constructInitialSet(IRNode typeFormals, IJavaType... createdVars) {
 		// Setup inference variables
 		final int numFormals = JJNode.tree.numChildren(typeFormals);
 		final InferenceVariable[] vars = new InferenceVariable[numFormals];
 		int i=0;
 		for(IRNode tf : TypeFormals.getTypeIterator(typeFormals)) {
-			vars[i] = new InferenceVariable(tf);
+			vars[i] = createdVars.length > 0 ? (InferenceVariable) createdVars[i] : new InferenceVariable(tf);
 			i++;
 		}
 		final BoundSet set = new BoundSet(typeFormals, vars);
@@ -1351,7 +1403,7 @@ public class TypeInference8 {
 				final IJavaType t_subst = t.subst(theta);
 				noBounds = false;
 				set.addSubtypeBound(vars[i], t_subst);
-				if (t_subst.isProperType()) {
+				if (isProperType(t_subst)) {
 					gotProperBound = true;
 				}
 			}
@@ -1465,7 +1517,7 @@ public class TypeInference8 {
 		}
 		
 		void merge(BoundSet other) {
-			if (isTemp || !other.isTemp) {
+			if (isTemp/* || !other.isTemp*/) {
 				throw new IllegalStateException();
 			}
 			isFalse |= other.isFalse;
@@ -1554,8 +1606,9 @@ public class TypeInference8 {
 			return new TypeSubstitution(tEnv.getBinder(), subst);
 		}
 		
-		private void addInferenceVariables(Map<InferenceVariable, InferenceVariable> newMappings) {
-			variableMap.putAll(newMappings);
+		private void addInferenceVariables(Collection<InferenceVariable> newVars) {
+			// resolution doesn't require us to do anything here			
+			//variableMap.putAll(newMappings);
 		}
 		
 		void addFalse() {
@@ -1588,7 +1641,7 @@ public class TypeInference8 {
 			if (v == null || t == null) {
 				throw new NullPointerException("Bad instantiation: "+v+" = "+t);
 			}
-			if (!t.isProperType()) {
+			if (!isProperType(t)) {
 				throw new IllegalStateException("Not a proper type: "+t);				
 			}
 			instantiations.put(v, t); // TODO
@@ -1650,7 +1703,7 @@ public class TypeInference8 {
 					incorporateEqualityBound(temp, eb);
 					equalities.add(eb);
 					
-					if (eb.s instanceof InferenceVariable && eb.t.isProperType()) {
+					if (eb.s instanceof InferenceVariable && isProperType(eb.t)) {
 						IJavaType instantiation = instantiations.get(eb.s);
 						if (instantiation == null) {
 							instantiations.put((InferenceVariable) eb.s, eb.t);
@@ -1689,7 +1742,7 @@ public class TypeInference8 {
 		}
 		
 		private void incorporateEqualityBound(BoundSet bounds, final InferenceVariable alpha, IJavaReferenceType s) {
-			final IJavaTypeSubstitution subst = s.isProperType() ? 
+			final IJavaTypeSubstitution subst = isProperType(s) ? 
 					new TypeSubstitution(tEnv.getBinder(), Collections.singletonMap(alpha, s)) : null;
 			for(EqualityBound b : equalities) {
 				// case 1: α = S and α = T imply ‹S = T›
@@ -1698,7 +1751,11 @@ public class TypeInference8 {
 				}
 				// case 5: α = U and S = T imply ‹S[α:=U] = T[α:=U]›
 				if (subst != null) {
-					reduceTypeEqualityConstraints(bounds, b.s.subst(subst), b.t.subst(subst)); // TODO check if the same?
+					IJavaType b_s_subst = b.s.subst(subst);
+					IJavaType b_t_subst = b.t.subst(subst);
+					if (b_s_subst != b.s || b_t_subst != b.t) {
+						reduceTypeEqualityConstraints(bounds, b_s_subst, b_t_subst); 
+					}
 				}
 			}
 			for(SubtypeBound b : subtypeBounds) {
@@ -1713,7 +1770,11 @@ public class TypeInference8 {
 				}
 				// case 6: α = U and S <: T imply ‹S[α:=U] <: T[α:=U]›
 				if (subst != null) {
-					reduceSubtypingConstraints(bounds, b.s.subst(subst), b.t.subst(subst)); // TODO check if the same?
+					IJavaType b_s_subst = b.s.subst(subst);
+					IJavaType b_t_subst = b.t.subst(subst);
+					if (b_s_subst != b.s || b_t_subst != b.t) {
+						reduceSubtypingConstraints(bounds, b_s_subst, b_t_subst); 
+					}
 				}
 			}
 		}	
@@ -1798,14 +1859,18 @@ public class TypeInference8 {
 				}
 			}
 			for(EqualityBound b : equalities) {
-				if (b.s instanceof InferenceVariable && b.t.isProperType()) {
+				if (b.s instanceof InferenceVariable && isProperType(b.t)) {
 					// case 6
 					final InferenceVariable alpha = (InferenceVariable) b.s;
 					final IJavaTypeSubstitution s = new TypeSubstitution(tEnv.getBinder(), Collections.singletonMap(alpha, b.t));
 					if (sb.t.subst(s) == null) {
 						sb.t.subst(s);
 					}
-					reduceSubtypingConstraints(bounds, sb.s.subst(s), sb.t.subst(s)); // TODO check if the same?
+					IJavaType sb_s_subst = sb.s.subst(s);
+					IJavaType sb_t_subst = sb.t.subst(s);
+					if (sb_s_subst != sb.s || sb_t_subst != sb.t) {
+						reduceSubtypingConstraints(bounds, sb_s_subst, sb_s_subst);
+					}
 				}				
 			}
 		}
@@ -1838,59 +1903,121 @@ public class TypeInference8 {
 		 * of these type parameters. Let θ represent the substitution [P1:=α1, ..., Pn:=αn]. 
 		 * Let R be a type that is not an inference variable (but is not necessarily a proper type).
 		 * 
-		 * A set of bounds on α1, ..., αn is implied, constructed from the declared bounds of P1, ..., Pn as specified in §18.1.3.
-		 * In addition, for all i (1 ≤ i ≤ n):
-		 * 
-		 * • If Ai is not a wildcard, then the bound αi = Ai is implied.
-		 * 
-		 * • If Ai is a wildcard of the form ?:
-		 *   – αi = R implies the bound false
-		 *   – αi <: R implies the constraint formula ‹Bi θ <: R›
-		 *   – R <: αi implies the bound false
-		 * 
-		 * • If Ai is a wildcard of the form ? extends T:
-		 *   – αi = R implies the bound false
-		 *   – If Bi is Object, then αi <: R implies the constraint formula ‹T <: R›
-		 *   – If T is Object, then αi <: R implies the constraint formula ‹Bi θ <: R›
-		 *   – R <: αi implies the bound false
-		 *   
-		 * • If Ai is a wildcard of the form ? super T:
-		 *   – αi = R implies the bound false
-		 *   – αi <: R implies the constraint formula ‹Bi θ <: R›
-		 *   – R <: αi implies the constraint formula ‹R <: T›
+		 * ...
 		 */
 		private void incorporateCaptureBound(BoundSet bounds, CaptureBound cb) {
-			constructInitialSet(null);
-			
+			/*
+			 * A set of bounds on α1, ..., αn is implied, constructed from the declared bounds of P1, ..., Pn as specified in §18.1.3.
+			 */ 
+			final IRNode g = cb.s.getDeclaration();
+			final IRNode formals;
+			if (ClassDeclaration.prototype.includes(g)) {
+				formals = ClassDeclaration.getTypes(g);
+			} else {
+				formals = InterfaceDeclaration.getTypes(g);
+			}
+			final List<IJavaType> vars = cb.s.getTypeParameters();
+			final IJavaType[] varArray = vars.toArray(new IJavaType[vars.size()]);
+			final IJavaType[] fBounds = new IJavaType[vars.size()];
 			int i=0;
-			for(IJavaType a_i : cb.t.getTypeParameters()) {
-				if (a_i instanceof IJavaWildcardType) {
-					IJavaWildcardType wt = (IJavaWildcardType) a_i;
-					if (wt.getUpperBound() != null) {
-						// case 3
-						throw new NotImplemented();
-					}
-					else if (wt.getLowerBound() != null) {
-						// case 4
-						throw new NotImplemented();
-					}
-					else {
-						// case 2
-						throw new NotImplemented();
-					}
-				} else {
-					// case 1
-					addEqualityBound(cb.s.getTypeParameters().get(i), a_i);
-				}
+			for(IRNode f : JJNode.tree.children(formals)) {
+				IJavaTypeFormal tf = JavaTypeFactory.getTypeFormal(f);
+				fBounds[i] = tf.getExtendsBound(tEnv);
 				i++;
 			}
-			throw new NotImplemented();
+			
+			BoundSet newBounds = constructInitialSet(formals, varArray);
+			IJavaTypeSubstitution theta = newBounds.getInitialVarSubst();			
+			merge(newBounds);
+			
+			i=0;
+			for(final IJavaType a_i : cb.t.getTypeParameters()) {
+				final IJavaType alpha_i = varArray[i];
+				final IJavaType b_i = fBounds[i];
+				
+				if (a_i instanceof IJavaWildcardType) {
+					final IJavaWildcardType wt = (IJavaWildcardType) a_i;
+					
+					// Handled together
+					for(EqualityBound eb : equalities) {
+						if (alpha_i == eb.s && !(eb.t instanceof InferenceVariable)) {
+							bounds.addFalse();
+						}
+						if (alpha_i == eb.t && !(eb.s instanceof InferenceVariable)) {						
+							bounds.addFalse();
+						}
+					}
+					
+					if (wt.getUpperBound() != null) {
+						/*
+						 * case 3
+						 * • If Ai is a wildcard of the form ? extends T:
+						 *   – αi = R implies the bound false
+						 *   – If Bi is Object, then αi <: R implies the constraint formula ‹T <: R›
+						 *   – If T is Object, then αi <: R implies the constraint formula ‹Bi θ <: R›
+						 *   – R <: αi implies the bound false
+						 */						
+	
+						for(SubtypeBound sb : subtypeBounds) {
+							if (alpha_i == sb.s && !(sb.t instanceof InferenceVariable)) {
+								if (b_i == tEnv.getObjectType()) {
+									reduceSubtypingConstraints(bounds, wt.getUpperBound(), sb.t);
+								}
+								if (wt.getUpperBound() == tEnv.getObjectType()) {
+									reduceSubtypingConstraints(bounds, b_i.subst(theta), sb.t);
+								}
+							}
+							if (alpha_i == sb.t && !(sb.s instanceof InferenceVariable)) {
+								bounds.addFalse();
+							}
+						}
+					}
+					else if (wt.getLowerBound() != null) {
+						/*
+						 * case 4
+						 * • If Ai is a wildcard of the form ? super T:
+						 *   – αi = R implies the bound false
+						 *   – αi <: R implies the constraint formula ‹Bi θ <: R›
+						 *   – R <: αi implies the constraint formula ‹R <: T›
+						 */
+						for(SubtypeBound sb : subtypeBounds) {
+							if (alpha_i == sb.s && !(sb.t instanceof InferenceVariable)) {
+								reduceSubtypingConstraints(bounds, b_i.subst(theta), sb.t);
+							}
+							else if (alpha_i == sb.t && !(sb.s instanceof InferenceVariable)) {
+								reduceSubtypingConstraints(bounds, sb.s, wt.getLowerBound());
+							}
+						}
+					}
+					else {
+						/*
+						 * case 2
+						 * • If Ai is a wildcard of the form ?:
+						 *   – αi = R implies the bound false
+						 *   – αi <: R implies the constraint formula ‹Bi θ <: R›
+						 *   – R <: αi implies the bound false
+						 */
+						for(SubtypeBound sb : subtypeBounds) {
+							if (alpha_i == sb.s && !(sb.t instanceof InferenceVariable)) {
+								reduceSubtypingConstraints(bounds, b_i.subst(theta), sb.t);
+							}
+							else if (alpha_i == sb.t && !(sb.s instanceof InferenceVariable)) {
+								bounds.addFalse();
+							}
+						}					
+					}
+				} else {
+					// case 1:  If Ai is not a wildcard, then the bound αi = Ai is implied.
+					bounds.addEqualityBound(alpha_i, a_i);
+				}
+				i++;
+			}			
 		}
 		
 		private void collectVariablesFromBounds(Set<InferenceVariable> vars, Set<? extends Bound<?>> bounds) {
 			for(Bound<?> b : bounds) {
-				b.s.getReferencedInferenceVariables(vars);
-				b.t.getReferencedInferenceVariables(vars);
+				getReferencedInferenceVariables(vars, b.s);
+				getReferencedInferenceVariables(vars, b.t);
 			}
 		}
 		
@@ -1915,11 +2042,13 @@ public class TypeInference8 {
 		
 		private VarDependencies computeVarDependencies() {
 			VarDependencies deps = new VarDependencies();
-			deps.recordDependencies(equalities);
-			deps.recordDependencies(subtypeBounds);
+			Set<IJavaType> lhsInCapture = new HashSet<IJavaType>();
 			for(CaptureBound b : captures) {
+				lhsInCapture.addAll(b.s.getTypeParameters());
 				deps.recordDepsForCapture(b);
 			}
+			deps.recordDependencies(lhsInCapture, equalities);
+			deps.recordDependencies(lhsInCapture, subtypeBounds);
 			return deps;
 		}
 		
@@ -2027,12 +2156,12 @@ public class TypeInference8 {
 			final ProperBounds bounds = new ProperBounds();
 			for(SubtypeBound b : subtypeBounds) {
 				if (b.s instanceof InferenceVariable) {
-					if (onlyProperForLower || b.t.isProperType()) {
+					if (onlyProperForLower || isProperType(b.t)) {
 						bounds.upperBounds.put((InferenceVariable) b.s, b.t);
 					}
 				}
 				else if (b.t instanceof InferenceVariable) {
-					if (b.s.isProperType()) {
+					if (isProperType(b.s)) {
 						bounds.lowerBounds.put((InferenceVariable) b.t, b.s);
 					}
 				}
@@ -2077,8 +2206,10 @@ public class TypeInference8 {
 				y_subst.put(a_i, y_i);
 			}
 			final TypeSubstitution theta = new TypeSubstitution(tEnv.getBinder(), y_subst);
-			
+
+			final EqualityBound[] newBounds = new EqualityBound[subset.size()];
 			final BoundSet rv = new BoundSet(this);
+			int i = 0;
 			rv.removeAssociatedCaptureBounds(subset);			
 			//rv.addInferenceVariables(y_subst);
 			for(InferenceVariable a_i : subset) {
@@ -2108,8 +2239,11 @@ public class TypeInference8 {
 					y_i.setUpperBound((IJavaReferenceType) u_i);
 					//rv.addSubtypeBound(y_i, u_i);
 				}
-				rv.addEqualityBound(a_i, y_i);
+				//rv.addEqualityBound(a_i, y_i);
+				newBounds[i] = newEqualityBound(a_i, y_i);
+				i++;
 			}		
+			rv.incorporate(newBounds);
 			return rv;
 		}
 		
@@ -2242,34 +2376,39 @@ public class TypeInference8 {
 		 *   Î³ depends on the resolution of Î².
 		 * 
 		 * - An inference variable α depends on the resolution of itself.
+		 * @param lhsInCapture 
 		 */				
-		void recordDependencies(Set<? extends Bound<?>> bounds) {
+		void recordDependencies(Set<IJavaType> lhsInCapture, Set<? extends Bound<?>> bounds) {
 			final Set<InferenceVariable> temp = new HashSet<InferenceVariable>();
 			for(Bound<?> b : bounds) {
 				if (b.s instanceof InferenceVariable) {
-					InferenceVariable alpha = (InferenceVariable) b.s;
-					b.t.getReferencedInferenceVariables(temp);
-					for(InferenceVariable beta : temp) {
-						markDependsOn(alpha, beta);
-					}
-					markDependsOn(alpha, alpha);
+					recordDepsForBound(lhsInCapture, temp, (InferenceVariable) b.s, b.t);
 				}
 				else if (b.t instanceof InferenceVariable) {
-					InferenceVariable alpha = (InferenceVariable) b.t;
-					b.s.getReferencedInferenceVariables(temp);
-					for(InferenceVariable beta : temp) {
-						markDependsOn(alpha, beta);
-					}
-					markDependsOn(alpha, alpha);
+					recordDepsForBound(lhsInCapture, temp, (InferenceVariable) b.t, b.s);
 				}
 				temp.clear(); 
 			}
 		}		
+
+		private void recordDepsForBound(Set<IJavaType> lhsInCapture, Set<InferenceVariable> temp, InferenceVariable alpha, IJavaReferenceType t) {
+			getReferencedInferenceVariables(temp, t);
+			if (lhsInCapture.contains(alpha)) {
+				for(InferenceVariable beta : temp) {
+					markDependsOn(alpha, beta);
+				}
+			} else {
+				for(InferenceVariable beta : temp) {
+					markDependsOn(beta, alpha);
+				}	
+			}
+			markDependsOn(alpha, alpha);	
+		}
 		
 		void recordDepsForCapture(CaptureBound b) {
 			final Set<InferenceVariable> vars = new HashSet<InferenceVariable>();
-			b.s.getReferencedInferenceVariables(vars);
-			b.t.getReferencedInferenceVariables(vars);
+			getReferencedInferenceVariables(vars, b.s);
+			getReferencedInferenceVariables(vars, b.t);
 			
 			// For each parameter on the left-hand side
 			for(IJavaType param : b.s.getTypeParameters()) {
@@ -2543,7 +2682,7 @@ public class TypeInference8 {
 	 * @param bounds 
 	 */
 	void reduceExpressionCompatibilityConstraints(BoundSet bounds, IRNode e, IJavaType t) {
-		if (t.isProperType()) {
+		if (isProperType(t)) {
 			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, e, tEnv.getBinder().getJavaType(e))) {
 				bounds.addTrue();
 			} else {
@@ -2671,45 +2810,97 @@ public class TypeInference8 {
 	 *   types of the potentially applicable method. The constraint reduces to a new set
 	 *   of constraints, as follows:
 	 * 	
-	 *   - In the special case where n = k+1, the parameter of type P 1 is to act as the target
-	 *     reference of the invocation. The method reference expression necessarily
-	 *     has the form ReferenceType :: [TypeArguments] Identifier. The constraint
-	 *     reduces to < P 1 <: ReferenceType> and, for all i (2 <= i <= n), < P i -> F i-1 >.
-	 *     In all other cases, n = k, and the constraint reduces to, for all i (1 <= i <= n),
-	 *     < P i -> F i >.
+	 *   (see below)
 	 *     
-	 *   - If the function type's result is not void , let R be its return type. Then, if the result
-	 *     of the potentially applicable compile-time declaration is void , the constraint
-	 *     reduces to false. Otherwise, the constraint reduces to < R ' -> R >, where R ' is
-	 *     the result of applying capture conversion (Â§5.1.10) to the return type of the
-	 *     potentially applicable compile-time declaration.
-	 *     
-	 * - Otherwise, the method reference is inexact, and:
-	 *   - If one or more of the function type's parameter types is not a proper type, the
-	 *     constraint reduces to false.
-	 *     
-	 *   - Otherwise, a search for a compile-time declaration is performed, as specified
-	 *     in Â§15.13.1. If there is no compile-time declaration for the method reference,
-	 *     the constraint reduces to false. Otherwise, there is a compile-time declaration,
-	 *     and:
-	 *     > If the result of the function type is void , the constraint reduces to true.
-	 *     
-	 *     > Otherwise, if the method reference expression elides TypeArguments, and
-	 *       the compile-time declaration is a generic method, and the return type of
-	 *       the compile-time declaration mentions at least one of the method's type
-	 *       parameters, then the constraint reduces to the bound set B 3 which would be
-	 *       used to determine the method reference's invocation type when targeting the
-	 *       return type of the function type, as defined in Â§18.5.2. B 3 may contain new
-	 *       inference variables, as well as dependencies between these new variables
-	 *       and the inference variables in T .
-	 *     
-	 *     > Otherwise, let R be the return type of the function type, and let R ' be the result
-	 *       of applying capture conversion (Â§5.1.10) to the return type of the invocation
-	 *       type (Â§15.12.2.6) of the compile-time declaration. If R ' is void , the constraint
-	 *       reduces to false; otherwise, the constraint reduces to < R ' -> R >.
+	 * - Otherwise, the method reference is inexact, and: (see below)
 	*/
 	void reduceMethodReferenceCompatibilityConstraints(BoundSet bounds, IRNode e, IJavaType t) {
-		throw new NotImplemented(); // TODO
+		final IRNode recv;
+		final String name;
+		if (MethodReference.prototype.includes(e)) {
+			recv = MethodReference.getReceiver(e);
+			name = MethodReference.getMethod(e);
+		} else {
+			recv = ConstructorReference.getReceiver(e);
+			name = "new";
+		}		
+		final IJavaFunctionType ft = mb.methodRefHasPotentiallyApplicableMethods(t, recv, name);
+		if (ft == null) {
+			bounds.addFalse();
+			return;
+		}
+		final MethodBinding b = mb.getExactMethodReference(e);
+		final List<IJavaType> p = ft.getParameterTypes();
+		if (b != null) {
+			/*
+			 *   - In the special case where n = k+1, the parameter of type P 1 is to act as the target
+			 *     reference of the invocation. The method reference expression necessarily
+			 *     has the form ReferenceType :: [TypeArguments] Identifier. The constraint
+			 *     reduces to < P 1 <: ReferenceType> and, for all i (2 <= i <= n), < P i -> F i-1 >.
+			 *     In all other cases, n = k, and the constraint reduces to, for all i (1 <= i <= n),
+			 *     < P i -> F i >.
+			 */
+			int i;
+			if (p.size() == b.numFormals+1) {
+				reduceSubtypingConstraints(bounds, p.get(0), tEnv.getBinder().getJavaType(recv));
+				i = 1;
+			} else {
+				i = 0;
+			}
+			for(IJavaType f_i : b.getParamTypes(tEnv.getBinder(), b.numFormals, false)) {
+				reduceTypeCompatibilityConstraints(bounds, p.get(i), f_i);
+				i++;
+			}
+			/*     
+			 *   - If the function type's result is not void , let R be its return type. Then, if the result
+			 *     of the potentially applicable compile-time declaration is void , the constraint
+			 *     reduces to false. Otherwise, the constraint reduces to < R ' -> R >, where R ' is
+			 *     the result of applying capture conversion (Â§5.1.10) to the return type of the
+			 *     potentially applicable compile-time declaration.			 
+			 */
+			final IJavaType r = ft.getReturnType();
+			if (!(r instanceof IJavaVoidType)) {
+				final IJavaType r_prime = JavaTypeVisitor.captureWildcards(tEnv.getBinder(), b.getReturnType(tEnv));
+				if (r_prime instanceof IJavaVoidType) {
+					bounds.addFalse();
+				} else {
+					reduceTypeCompatibilityConstraints(bounds, r_prime, r);
+				}
+			}
+		} else {
+			/*
+			 *   - If one or more of the function type's parameter types is not a proper type, the
+			 *     constraint reduces to false.
+			 */
+			for(IJavaType pt : ft.getParameterTypes()) {
+				if (!isProperType(pt)) {
+					bounds.addFalse();
+					return;
+				}
+			}
+			/*     
+			 *   - Otherwise, a search for a compile-time declaration is performed, as specified
+			 *     in Â§15.13.1. If there is no compile-time declaration for the method reference,
+			 *     the constraint reduces to false. Otherwise, there is a compile-time declaration,
+			 *     and:
+			 *     > If the result of the function type is void , the constraint reduces to true.
+			 *     
+			 *     > Otherwise, if the method reference expression elides TypeArguments, and
+			 *       the compile-time declaration is a generic method, and the return type of
+			 *       the compile-time declaration mentions at least one of the method's type
+			 *       parameters, then the constraint reduces to the bound set B 3 which would be
+			 *       used to determine the method reference's invocation type when targeting the
+			 *       return type of the function type, as defined in Â§18.5.2. B 3 may contain new
+			 *       inference variables, as well as dependencies between these new variables
+			 *       and the inference variables in T .
+			 *     
+			 *     > Otherwise, let R be the return type of the function type, and let R ' be the result
+			 *       of applying capture conversion (Â§5.1.10) to the return type of the invocation
+			 *       type (Â§15.12.2.6) of the compile-time declaration. If R ' is void , the constraint
+			 *       reduces to false; otherwise, the constraint reduces to < R ' -> R >.			 
+			 */
+			throw new NotImplemented();
+		}
 	}
 	
 	/**
@@ -2743,7 +2934,7 @@ public class TypeInference8 {
 	 */
 	void reduceTypeCompatibilityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
 		// Case 1
-		if (s.isProperType() && t.isProperType()) {
+		if (isProperType(s) && isProperType(t)) {
 			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, s, null, t)) {
 				bounds.addTrue();
 			} else {
@@ -2813,11 +3004,12 @@ public class TypeInference8 {
 	 *     new constraints: for all i (1 <= i <= n), < S <: I i >.
 	 */
 	void reduceSubtypingConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
-		if (s.isProperType() && t.isProperType()) {
+		if (isProperType(s) && isProperType(t)) {
 			if (tEnv.isSubType(s, t)) {
 				bounds.addTrue();
 			} else {
 				tEnv.isSubType(s, t);
+				
 				bounds.addFalse();
 			}
 		}
@@ -3021,7 +3213,7 @@ public class TypeInference8 {
 	 * - Otherwise, the constraint reduces to false.
 	 */
 	void reduceTypeEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
-		if (s.isProperType() && t.isProperType()) {
+		if (isProperType(s) && isProperType(t)) {
 			if (s.isEqualTo(tEnv, t)) {
 				bounds.addTrue();
 			} else {
@@ -3166,20 +3358,20 @@ public class TypeInference8 {
     	}
     	if (MethodBinder8.isImplicitlyTypedLambda(lambda)) {
     		for(IJavaType pt : targetFuncType.getParameterTypes()) {
-    			if (!pt.isProperType()) {
+    			if (!isProperType(pt)) {
     				bounds.addFalse();
     	    		return;
     			}
     		}
     	}
     	if (!(targetFuncType.getReturnType() instanceof IJavaVoidType) || 
-    		!targetFuncType.getReturnType().isProperType()) {
+    		!isProperType(targetFuncType.getReturnType())) {
 			bounds.addFalse();
     		return;
     	}
     	final List<IJavaType> improperThrows = new ArrayList<IJavaType>();
     	for(IJavaType ex : targetFuncType.getExceptions()) {
-    		if (!ex.isProperType()) {
+    		if (!isProperType(ex)) {
     			improperThrows.add(ex);
     		}
     	}
@@ -3225,7 +3417,7 @@ public class TypeInference8 {
 		}
 		if (!mb.isExactMethodReference(ref)) {
 			for(IJavaType pt : targetFuncType.getParameterTypes()) {
-    			if (!pt.isProperType()) {
+    			if (!isProperType(pt)) {
     				bounds.addFalse();
     	    		return;
     			}
