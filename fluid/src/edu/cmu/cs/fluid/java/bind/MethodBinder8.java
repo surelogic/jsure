@@ -474,7 +474,12 @@ public class MethodBinder8 implements IMethodBinder {
 		
 		final IJavaType t = findTypeToSearchForMethodRef(base, kind, isConstructor);
     	final LookupContext context = new LookupContext();
-    	context.use(name, base);
+    	if (!isConstructor) {
+    		context.use(name, base);
+    	} else {
+    		IJavaDeclaredType dt = (IJavaDeclaredType) t;
+    		context.use(JJNode.getInfo(dt.getDeclaration()), base);
+    	}
     	
     	final IJavaScope scope;
     	final boolean isRefType;
@@ -1497,7 +1502,11 @@ public class MethodBinder8 implements IMethodBinder {
 			}
 		}
 	  	final LookupContext context = new LookupContext();
-    	context.use(JJNode.getInfoOrNull(ref), ref);
+	  	if (isMethod) {
+	  		context.use(JJNode.getInfoOrNull(ref), ref);
+	  	} else {	  		
+	  		context.use(JJNode.getInfoOrNull(t.getDeclaration()), ref);	
+	  	}
 	
     	final IJavaScope scope = binder.typeMemberTable(t).asLocalScope(tEnv);
     	IBinding result = null;
