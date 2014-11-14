@@ -166,30 +166,28 @@ public class ConcurrentStateMetrics {
 				if (fieldIsFinal) {
 					if (isPrim || annoForField == PartStatus.IMMUTABLE) {
 						finalFields++;
+						continue;
 					}
 					else if (annoForField == PartStatus.THREADSAFE) {
 						threadSafe++;
+						continue;
 					}
-					else {
-						other++;
-					}
-				} else {
-					// annoForField is ignored if it's not final
-					switch (annoOnEnclosingType) {
-					case IMMUTABLE:
-						immutable++;
-						break;
-					case THREADSAFE:
-						threadSafe++;
-						break;
-					case NOT_THREADSAFE:
-						notThreadSafe++;
-						break;
-					case NO_POLICY:
-					default:
-						other++;
-					}				
 				}
+				// annoForField is ignored if it's not final
+				switch (annoOnEnclosingType) {
+				case IMMUTABLE:
+					immutable++;
+					break;
+				case THREADSAFE:
+					threadSafe++;
+					break;
+				case NOT_THREADSAFE:
+					notThreadSafe++;
+					break;
+				case NO_POLICY:
+				default:
+					other++;
+				}				
 			}
 		}
 		
