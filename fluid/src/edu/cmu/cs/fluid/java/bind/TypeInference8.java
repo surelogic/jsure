@@ -3029,7 +3029,10 @@ public class TypeInference8 {
 		else if (t instanceof IJavaDeclaredType) {
 			final IJavaDeclaredType dt = (IJavaDeclaredType) t;
 			// TODO subcase 1
-			if (dt.getTypeParameters().size() > 0/* TODO || dt.getOuterType().getTypeParameters().size() > 0*/) {
+			if (s instanceof TypeVariable) {
+				// ignore temporarily until fully instantiated
+			}
+			else if (dt.getTypeParameters().size() > 0/* TODO || dt.getOuterType().getTypeParameters().size() > 0*/) {
 				final IJavaDeclaredType ds = findCorrespondingSuperType(dt.getDeclaration(), s);
 				if (ds != null && ds.getTypeParameters().size() > 0) {
 					final int n = dt.getTypeParameters().size();
