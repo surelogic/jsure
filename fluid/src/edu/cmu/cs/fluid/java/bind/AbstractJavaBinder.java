@@ -2995,9 +2995,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		Operator pop  = JJNode.tree.getOperator(parent);
     		
     		if (checkNext) {
-    			if (MethodCall.prototype.includes(pop) || FieldRef.prototype.includes(pop)) {
+    			if (MethodCall.prototype.includes(pop) || FieldRef.prototype.includes(pop) || MethodReference.prototype.includes(pop)) {
     				return NameContext.EITHER;
     			}    				
+    			if (ConstructorReference.prototype.includes(pop)) {
+    				return NameContext.TYPE;
+    			}
     			return NameContext.NOT_TYPE;
     		}
     		if (NameType.prototype.includes(pop)) {
