@@ -239,6 +239,19 @@
 			</then>
 		</if-->
 
+        <condition property="is.windows">
+			<os family="windows" />
+		</condition>
+		<if>
+			<equals arg1="${is.windows}" arg2="true" casesensitive="false" />
+			<then>
+				<propertyfile file="${sandbox.jsure.build.plugins.dir}${fs}fluid${fs}build.properties">
+					<entry key="bootClasspath" value="lib/runtime8/javac_8.jar;c:/Program Files/Java/jre7/lib/rt.jar" />
+				</propertyfile>
+				<echo message="[Win] fluid-javac bootClasspath changed..." />
+			</then>
+		</if>
+
 		<!-- Copy template headless build.properties file and configure it for a headless build -->
 		<property name="jsure.build.properties" value="${sandbox.jsure.build.dir}${fs}build.properties" />
 		<copy file="${eclipse.pde.plugin.dir}${fs}templates${fs}headless-build${fs}build.properties" toFile="${jsure.build.properties}" />
