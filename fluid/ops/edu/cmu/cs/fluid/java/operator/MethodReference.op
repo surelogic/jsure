@@ -4,7 +4,7 @@
  */
 public operator MethodReference extends PrimaryExpression implements IllegalCode, UnsupportedJava8Feature
 {
-  syntax { receiver:Expression <> "::" @typeArgs:TypeActuals? $method:Info }
+  syntax { receiver:Expression <> "::" typeArgs:TypeActuals? $method:Info }
   properties {
     bindsTo=Method
     noncanonical=true 

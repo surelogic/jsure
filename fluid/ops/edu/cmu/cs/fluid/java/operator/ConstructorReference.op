@@ -4,7 +4,7 @@
  */
 public operator ConstructorReference extends PrimaryExpression implements IllegalCode, UnsupportedJava8Feature
 {
-  syntax { receiver:Expression <> "::" @typeArgs:TypeActuals? "new" }
+  syntax { receiver:Expression <> "::" typeArgs:TypeActuals? "new" }
   properties {
     bindsTo=Constructor
     noncanonical=true 
