@@ -103,6 +103,9 @@ public class TypeInference8 {
 		@Override
 		public int compareTo(InferenceVariable o) {
 			if (o.formal == null) {
+				if (formal == null) {
+					return toString().compareTo(o.toString());
+				}
 				return 1;
 			}
 			if (formal == null) {
@@ -1287,25 +1290,25 @@ public class TypeInference8 {
 		if (t == null) {
 			throw new NullPointerException("No type for equality bound");
 		}
-		if (t instanceof InferenceVariable) {
-			final boolean swap;
-			if (s instanceof InferenceVariable) {		
-				if (t instanceof InferenceVariable) {
-					InferenceVariable is = (InferenceVariable) s;
-					InferenceVariable it = (InferenceVariable) t;
-					swap = is.compareTo(it) < 0;
-				} else {
-					// Otherwise, already a = T
-					swap = false;
-				}
+		final boolean swap;
+		if (t instanceof InferenceVariable) {	
+			if (s instanceof InferenceVariable) {
+				InferenceVariable is = (InferenceVariable) s;
+				InferenceVariable it = (InferenceVariable) t;
+				swap = is.compareTo(it) < 0;
 			} else {
-				swap = t instanceof InferenceVariable || s.toString().compareTo(t.toString()) < 0;
-			}								
-			if (swap) { 
-				IJavaType temp = s;
-				s = t;
-				t = temp;
+				// T = a
+				swap = true;
 			}
+		} else if (s instanceof InferenceVariable) {
+			swap = false;
+		} else {
+			swap = s.toString().compareTo(t.toString()) < 0;
+		}
+		if (swap) { 
+			IJavaType temp = s;
+			s = t;
+			t = temp;
 		}
 		return new EqualityBound((IJavaReferenceType) s, (IJavaReferenceType) t);
 	}
@@ -3104,7 +3107,7 @@ public class TypeInference8 {
 			return null; // TODO right?
 		}
 		// What other cases are there?
-		throw new NotImplemented(); // TODO
+		return null;
 	}
 
 	/**
@@ -3241,6 +3244,11 @@ public class TypeInference8 {
 			IJavaArrayType sa = (IJavaArrayType) s;
 			IJavaArrayType ta = (IJavaArrayType) t;
 			reduceTypeEqualityConstraints(bounds, sa.getElementType(), ta.getElementType());
+		}
+		// HACK to deal with the lack of simultaneous incorporation
+		else if (s instanceof TypeVariable || t instanceof TypeVariable) {
+			// the other type is not a proper type, since that case is handled above
+			// so ignore for now until we handle the rest of the substitution
 		}
 		else {
 			bounds.addFalse();
