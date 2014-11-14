@@ -54,6 +54,7 @@ import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConditionalExpression;
 import edu.cmu.cs.fluid.java.operator.ConstructorCall;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+import edu.cmu.cs.fluid.java.operator.ConstructorReference;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.ElementValuePair;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
@@ -72,6 +73,7 @@ import edu.cmu.cs.fluid.java.operator.LambdaExpression;
 import edu.cmu.cs.fluid.java.operator.LessThanExpression;
 import edu.cmu.cs.fluid.java.operator.MethodBody;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+import edu.cmu.cs.fluid.java.operator.MethodReference;
 import edu.cmu.cs.fluid.java.operator.NameExpression;
 import edu.cmu.cs.fluid.java.operator.NameType;
 import edu.cmu.cs.fluid.java.operator.NamedType;
@@ -88,7 +90,6 @@ import edu.cmu.cs.fluid.java.operator.OuterObjectSpecifier;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
 import edu.cmu.cs.fluid.java.operator.Parameters;
-import edu.cmu.cs.fluid.java.operator.PolymorphicNewExpression;
 import edu.cmu.cs.fluid.java.operator.PrimitiveType;
 import edu.cmu.cs.fluid.java.operator.QualifiedName;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
@@ -1091,6 +1092,11 @@ public class JavaCanonicalizer {
     }
 
     @Override
+    public Boolean visitConstructorReference(IRNode node) {
+    	return handleMethodReference(node, ConstructorReference.getReceiver(node), "new", ConstructorReference.getTypeArgs(node));
+    }
+    
+    @Override
     public Boolean visitForEachStatement(IRNode stmt) {
       IRNode expr = ForEachStatement.getCollection(stmt);
       IJavaType t = binder.getJavaType(expr);
@@ -1408,7 +1414,7 @@ public class JavaCanonicalizer {
     	// have been correctly bound / or will be correctly bound.
     	//XXX: What about marker interfaces in the interface type?
     	// Let's make sure that a marked ACE is not checked too strictly...
-    	IJavaType ty = new TypeUtils(binder.getTypeEnvironment()).getPolyExpressionTargetType(node);
+    	IJavaType ty = binder.getJavaType(node);
     	IJavaFunctionType fty = binder.getTypeEnvironment().isFunctionalType(ty);
     	// XXX: we should actually be making something that
     	// is an instance of of *all* these. 
@@ -1509,7 +1515,19 @@ public class JavaCanonicalizer {
     public Boolean visitMethodDeclaration(IRNode node) {
       return super.visitMethodDeclaration(node);
     }
+	
+    @Override
+    public Boolean visitMethodReference(IRNode node) {
+    	return handleMethodReference(node, MethodReference.getReceiver(node), MethodReference.getMethod(node), MethodReference.getTypeArgs(node));
+    }
 
+    boolean handleMethodReference(IRNode node, IRNode recv, String name, IRNode tArgs) {
+    	boolean result = doAccept(recv);
+    	result |= doAccept(tArgs);
+    	// TODO
+    	return result;
+    }
+    
     @Override
     public Boolean visitNameExpression(IRNode node) {
       /*
