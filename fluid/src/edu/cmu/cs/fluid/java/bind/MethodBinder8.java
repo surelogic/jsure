@@ -1107,7 +1107,7 @@ public class MethodBinder8 implements IMethodBinder {
 	 * • Otherwise, the method invocation is ambiguous, and a compile-time error occurs.
 	 */
     private IBinding findMostSpecific(final CallState call, Iterable<MethodBinding> methods, ApplicableMethodFilter filter) {
-    	if ("collect".equals(JJNode.getInfoOrNull(call.call))) {
+    	if (false && "collect".equals(JJNode.getInfoOrNull(call.call))) {
     		System.out.println("Trying to find method for allOf");
     	}
     	// Arrays.stream(#.readLine#.split(#)).map(String:: <> trim)
