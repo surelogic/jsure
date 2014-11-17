@@ -328,12 +328,21 @@ public class MethodBinder8 implements IMethodBinder {
     		final boolean isConstructor = "new".equals(name);
     		if (!isConstructor && identifyReceiverKind(base) == ReceiverKind.REF_TYPE) {
     			for(IBinding m : findPotentiallyApplicableForMethodRef(base, name, n, -1)) {
+    				final int p = getArity(m.getNode(), isConstructor);
     				if (TypeUtil.isStatic(m.getNode())) {
-    					if (getArity(m.getNode(), isConstructor) == n) {
+    					if (p == n) {
+    						return true;
+    					}
+    					MethodBinding mb = new MethodBinding(m);
+    					if (mb.isVariableArity() && p-1 == n) {
     						return true;
     					}
     				} else {
-    					if (getArity(m.getNode(), isConstructor) == n-1) {
+    					if (p == n-1) {
+    						return true;
+    					}
+    					MethodBinding mb = new MethodBinding(m);
+    					if (mb.isVariableArity() && p == n) {
     						return true;
     					}
     				}
@@ -483,14 +492,14 @@ public class MethodBinder8 implements IMethodBinder {
     	
     	final IJavaScope scope;
     	final boolean isRefType;
-    	if (isConstructor || kind == ReceiverKind.REF_TYPE) {
+    	if (isConstructor) {
     		// Only needs to look at the specified type
     		IJavaSourceRefType tdecl = (IJavaSourceRefType) t;
     		scope = binder.typeMemberTable(tdecl).asLocalScope(tEnv);
     		isRefType = !isConstructor;
     	} else {
     		scope = binder.typeScope(t);
-    		isRefType = false;
+    		isRefType = (kind == ReceiverKind.REF_TYPE);
     	}
     	
     	final Set<IBinding> rv = new HashSet<IBinding>();
@@ -498,7 +507,15 @@ public class MethodBinder8 implements IMethodBinder {
     		// Check num parameters/type args
     		final int p = getArity(m.getNode(), isConstructor);
     		if (p != numParams) {
-    			if (!isRefType || p != numParams-1) {
+    			// Check for receiver/varargs
+    			if (p-1 == numParams) {
+    				// could be varargs
+    				final MethodBinding mb = new MethodBinding(m);
+    				if (!mb.isVariableArity()) {
+    					continue;
+    				} 
+    			}
+    			else if (!isRefType || p != numParams-1) {
     				continue;
     			}
     		}
@@ -1508,7 +1525,7 @@ public class MethodBinder8 implements IMethodBinder {
 	  		context.use(JJNode.getInfoOrNull(t.getDeclaration()), ref);	
 	  	}
 	
-    	final IJavaScope scope = binder.typeMemberTable(t).asLocalScope(tEnv);
+    	final IJavaScope scope = isMethod ? binder.typeMemberTable(t).asScope(binder) : binder.typeMemberTable(t).asLocalScope(tEnv);
     	IBinding result = null;
     	for(IBinding m : findMethods(scope, context, isMethod, ref)) {
     		if (result == null) {
