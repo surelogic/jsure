@@ -111,16 +111,17 @@ import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
 import edu.cmu.cs.fluid.java.operator.ClassBodyDeclaration;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
+import edu.cmu.cs.fluid.java.operator.ConstructorReference;
 import edu.cmu.cs.fluid.java.operator.Declaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.IllegalCode;
+import edu.cmu.cs.fluid.java.operator.MethodReference;
 import edu.cmu.cs.fluid.java.operator.NestedDeclInterface;
 import edu.cmu.cs.fluid.java.operator.Statement;
 import edu.cmu.cs.fluid.java.operator.TypeFormal;
 import edu.cmu.cs.fluid.java.project.JavaMemberTable;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
 import edu.cmu.cs.fluid.java.util.PromiseUtil;
-import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -1551,6 +1552,9 @@ public class Util {
 
       Operator op = JJNode.tree.getOperator(n);
       if (op instanceof IllegalCode) {
+    	if (op instanceof MethodReference || op instanceof ConstructorReference) {
+    		continue;
+    	}
         rv.noncanonical.add(n);
       } else {
         // FIX these aren't all of them
