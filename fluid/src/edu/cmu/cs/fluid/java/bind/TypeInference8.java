@@ -138,7 +138,12 @@ public class TypeInference8 {
 	}
 		
 	class TypeVariable extends JavaReferenceType implements IJavaTypeVariable {
+		final InferenceVariable var;
 		IJavaReferenceType lowerBound, upperBound;
+		
+		TypeVariable(InferenceVariable v) {
+			var = v;
+		}
 		
 		public IJavaReferenceType getLowerBound() {
 			return lowerBound;
@@ -728,7 +733,8 @@ public class TypeInference8 {
 							}
 						}	
 						if (funcType.getReturnType() != JavaTypeFactory.voidType) {
-							for(IRNode e : findResultExprs(f.expr)) {
+							IRNode body = LambdaExpression.getBody(f.expr);						
+							for(IRNode e : findResultExprs(body)) {
 								computeInputVars(vars, new ConstraintFormula(e, FormulaConstraint.IS_COMPATIBLE, f.type));
 							}
 						}
@@ -800,8 +806,17 @@ public class TypeInference8 {
 		}
 	}
 	
-	private Iterable<IRNode> findResultExprs(IRNode expr) {
-		throw new NotImplemented();
+	private Iterable<IRNode> findResultExprs(IRNode lambdaBody) {
+		if (Expression.prototype.includes(lambdaBody)) {
+			return new SingletonIterator<IRNode>(lambdaBody);
+		}
+		List<IRNode> rv = new ArrayList<IRNode>();
+		for(IRNode n : JJNode.tree.topDown(lambdaBody)) {
+			if (ReturnStatement.prototype.includes(n)) {
+				rv.add(ReturnStatement.getValue(n));
+			}
+		}
+		return rv;
 	}
 	
 	/**
@@ -2218,7 +2233,7 @@ public class TypeInference8 {
 			final ProperBounds bounds = collectProperBounds(true);
 			final Map<InferenceVariable,TypeVariable> y_subst = new HashMap<InferenceVariable,TypeVariable>(subset.size());
 			for(InferenceVariable a_i : subset) {
-				final TypeVariable y_i = new TypeVariable();// new InferenceVariable(null); // TODO unique?
+				final TypeVariable y_i = new TypeVariable(a_i);// new InferenceVariable(null); // TODO unique?
 				y_subst.put(a_i, y_i);
 			}
 			final TypeSubstitution theta = new TypeSubstitution(tEnv.getBinder(), y_subst);
@@ -2884,8 +2899,11 @@ public class TypeInference8 {
 	}
 	
 	private Iterable<IJavaType> getLambdaParamTypes(IRNode params) {
-		// TODO Auto-generated method stub
-		return null;
+		List<IJavaType> rv = new ArrayList<IJavaType>();
+		for(IRNode pd : Parameters.getFormalIterator(params)) {
+			rv.add(tEnv.getBinder().getJavaType(pd));
+		}
+		return rv;
 	}
 
 	/** 
