@@ -171,7 +171,14 @@ public class TypeInference8 {
 			String rv = super.toString();
 			int last = rv.lastIndexOf('@');	
 			String alpha = hexToAlpha(rv.substring(last+1));
-			return '&'+alpha;
+			StringBuilder sb = new StringBuilder("&");
+			sb.append(alpha);
+			sb.append('[');
+			sb.append(lowerBound);
+			sb.append(", ");
+			sb.append(upperBound);
+			sb.append(']');
+			return sb.toString();
 		}
 		
 		@Override
