@@ -837,13 +837,19 @@ public class TypeInference8 {
 		if (f == null) {
 			return targetType; // Nothing to infer
 		}
-		IJavaDeclaredType f_alpha = f; // TODO
+		final int n = f.getTypeParameters().size();
+		final List<InferenceVariable> newVars = new ArrayList<InferenceVariable>(n);
+		for(int i=0; i<n; i++) {
+			newVars.add(new InferenceVariable(null)); // TODO 
+		}
+		// TODO subst?
+		final IJavaDeclaredType f_alpha = JavaTypeFactory.getDeclaredType(f.getDeclaration(), newVars, f.getOuterType());
 		IJavaFunctionType funcType = tEnv.isFunctionalType(f_alpha);
 		IRNode lambdaParams = LambdaExpression.getParams(lambda);
 		if (funcType.getParameterTypes().size() != JJNode.tree.numChildren(lambdaParams)) {
 			return null; // No valid parameterization
 		}
-		final BoundSet b = new BoundSet(null, null); // TODO
+		final BoundSet b = new BoundSet(InterfaceDeclaration.getTypes(f.getDeclaration()), newVars.toArray(new InferenceVariable[newVars.size()]));
 		int i=0;
 		for(IRNode paramD : Parameters.getFormalIterator(lambdaParams)) {
 			IJavaType paramT = tEnv.getBinder().getJavaType(ParameterDeclaration.getType(paramD));
@@ -923,7 +929,7 @@ public class TypeInference8 {
 		return JavaTypeFactory.getDeclaredType(iface.getDeclaration(), t, iface.getOuterType()); // TODO is this right?
 	}
 
-	private boolean refersTo(IJavaReferenceType t, final Collection<IJavaTypeFormal> params) {
+	private boolean refersTo(IJavaReferenceType t, final Collection<? extends IJavaTypeFormal> params) {
 		BooleanVisitor v = new BooleanVisitor(false) {
 			public void accept(IJavaType t) {
 				if (params.contains(t)) {
@@ -2767,44 +2773,121 @@ public class TypeInference8 {
 	 *   target function type for the lambda expression be the function type of T' . Then:
 	 *   
 	 *   - If no valid function type can be found, the constraint reduces to false.
-	 *   - Otherwise, the congruence of LambdaExpression with the target function type
-	 *     is asserted as follows:
-	 *     
-	 *     > If the number of lambda parameters differs from the number of parameter
-	 *       types of the function type, the constraint reduces to false.
-	 *       
-	 *     > If the lambda expression is implicitly typed and one or more of the function
-	 *       type's parameter types is not a proper type, the constraint reduces to false.
-	 *       
-	 *     > If the function type's result is void and the lambda body is neither a
-	 *       statement expression nor a void-compatible block, the constraint reduces to false.
-	 *       
-	 *     > If the function type's result is not void and the lambda body is a block that
-	 *       is not value-compatible, the constraint reduces to false.
-	 *       
-	 *     > Otherwise, the constraint reduces to all of the following constraint formulas:
-	 *     
-	 *       Â» If the lambda parameters have explicitly declared types F 1 , ..., F n and the
-	 *         function type has parameter types G 1 , ..., G n , then i) for all i (1 <= i <= n),
-	 *         < F i = G i >, and ii) < T' <: T >.
-	 *         
-	 *       Â» If the function type's return type is a (non- void ) type R , assume the
-	 *         lambda's parameter types are the same as the function type's parameter
-	 *         types. Then:
-	 *         
-	 *         - If R is a proper type, and if the lambda body or some result expression
-	 *           in the lambda body is not compatible in an assignment context with R ,
-	 *           then false.
-	 *           
-	 *         - Otherwise, if R is not a proper type, then where the lambda body has the
-	 *           form Expression, the constraint <Expression -> R >; or where the lambda
-	 *           body is a block with result expressions e 1 , ..., e m , for all i (1 <= i <= m),
-	 *           < e i -> R >.
+	 *   
+	 *   (see below)
 	 */
 	void reduceLambdaCompatibilityConstraints(BoundSet bounds, IRNode e, IJavaType t) {
-		throw new NotImplemented(); // TODO
+		final Set<InferenceVariable> vars = bounds.collectVariables();
+		if (!refersTo((IJavaReferenceType) t, vars)) {
+			return; // TODO is this right?
+		}
+		IJavaFunctionType ft = tEnv.isFunctionalType(t);
+		if (ft == null) {
+			bounds.addFalse();
+			return;
+		}
+		final IJavaType t_prime = mb.computeGroundTargetType(e, t);
+		/**
+		 * TODO
+		 * 
+		 * If Â§18.5.3 is used to derive a functional interface type which is parameterized, 
+		 * then the test that F<A' 1 , ..., A' m > is a subtype of F<A 1 , ..., A m > is
+		 * not performed (instead, it is asserted with a constraint formula below).
+		 */
+		final IJavaFunctionType ft_prime = tEnv.isFunctionalType(t_prime);
+		if (ft_prime == null) {
+			bounds.addFalse();
+			return;
+		}
+		/*   - Otherwise, the congruence of LambdaExpression with the target function type
+		 *     is asserted as follows:
+		 *     
+		 *     > If the number of lambda parameters differs from the number of parameter
+		 *       types of the function type, the constraint reduces to false.
+		 *       
+		 *     > If the lambda expression is implicitly typed and one or more of the function
+		 *       type's parameter types is not a proper type, the constraint reduces to false.
+		 *       
+		 *     > If the function type's result is void and the lambda body is neither a
+		 *       statement expression nor a void-compatible block, the constraint reduces to false.
+		 *       
+		 *     > If the function type's result is not void and the lambda body is a block that
+		 *       is not value-compatible, the constraint reduces to false.
+		 */       
+		final IRNode params = LambdaExpression.getParams(e);
+		final int numParams = JJNode.tree.numChildren(params);
+		if (numParams != ft_prime.getParameterTypes().size()) {
+			bounds.addFalse();
+			return;
+		}
+		final boolean isImplicit = MethodBinder8.isImplicitlyTypedLambda(e);
+		if (isImplicit) {	
+			for(IJavaType pt : ft_prime.getParameterTypes()) {
+				if (!isProperType(pt)) {
+					bounds.addFalse();
+					return;
+				}
+			}
+		}
+		final IRNode body = LambdaExpression.getBody(e);
+		if (ft_prime.getReturnType() instanceof IJavaVoidType) {
+			if (!mb.isVoidCompatible(body)) {
+				bounds.addFalse();
+				return;
+			}
+		}
+		else {
+			if (!mb.isReturnCompatible(body)) {
+				bounds.addFalse();
+				return;
+			}
+		}		
+		
+		/*     > Otherwise, the constraint reduces to all of the following constraint formulas:
+		 *     
+		 *       Â» If the lambda parameters have explicitly declared types F 1 , ..., F n and the
+		 *         function type has parameter types G 1 , ..., G n , then i) for all i (1 <= i <= n),
+		 *         < F i = G i >, and ii) < T' <: T >.
+		 *         
+		 *       Â» If the function type's return type is a (non- void ) type R , assume the
+		 *         lambda's parameter types are the same as the function type's parameter
+		 *         types. Then:
+		 *         
+		 *         - If R is a proper type, and if the lambda body or some result expression
+		 *           in the lambda body is not compatible in an assignment context with R ,
+		 *           then false.
+		 *           
+		 *         - Otherwise, if R is not a proper type, then where the lambda body has the
+		 *           form Expression, the constraint <Expression -> R >; or where the lambda
+		 *           body is a block with result expressions e 1 , ..., e m , for all i (1 <= i <= m),
+		 *           < e i -> R >.
+		 */
+		if (!isImplicit) {	
+			int i=0;
+			for(final IJavaType f_i : getLambdaParamTypes(params)) {
+				final IJavaType g_i = ft.getParameterTypes().get(i);
+				reduceTypeEqualityConstraints(bounds, f_i, g_i);			
+				i++;
+			}
+			reduceSubtypingConstraints(bounds, t_prime, t);
+		}
+		final IJavaType r = ft_prime.getReturnType();
+		if (!(r instanceof IJavaVoidType)) {
+			if (isProperType(r)) {
+				throw new NotImplemented();
+			} else {
+				for(IRNode re : findResultExprs(body)) {
+					reduceExpressionCompatibilityConstraints(bounds, re, r);
+				}
+			}
+		} 		
 	}
 	
+	private Iterable<IJavaType> getLambdaParamTypes(IRNode params) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	/** 
 	 * A constraint formula of the form <MethodReference -> T >, where T mentions at	 
 	 * least one inference variable, is reduced as follows:
