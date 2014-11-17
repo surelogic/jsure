@@ -533,7 +533,7 @@ public class MethodBinder8 implements IMethodBinder {
 	/**
      * Assumes that the code compiles
      */
-    private boolean isVoidCompatible(IRNode lambdaBody) {
+    boolean isVoidCompatible(IRNode lambdaBody) {
     	if (StatementExpression.prototype.includes(lambdaBody)) {
     		return true;
     	}
@@ -553,7 +553,7 @@ public class MethodBinder8 implements IMethodBinder {
 	/**
      * Assumes that the code compiles
      */
-    private boolean isReturnCompatible(IRNode lambdaBody) {
+    boolean isReturnCompatible(IRNode lambdaBody) {
     	if (Expression.prototype.includes(lambdaBody)) {
     		return true;
     	}
@@ -1550,12 +1550,12 @@ public class MethodBinder8 implements IMethodBinder {
     
 	/**
 	 * The ground target type is derived from T as follows:
-	 * • If T is a wildcard-parameterized functional interface type and the lambda expression 
-	 *   is explicitly typed, then the ground target type is inferred as described in §18.5.3.
+	 * ï¿½ If T is a wildcard-parameterized functional interface type and the lambda expression 
+	 *   is explicitly typed, then the ground target type is inferred as described in ï¿½18.5.3.
 	 *   
-	 * • If T is a wildcard-parameterized functional interface type and the lambda expression 
-	 *   is implicitly typed, then the ground target type is the non-wildcard parameterization (§9.9) of T.
-     * • Otherwise, the ground target type is T.
+	 * ï¿½ If T is a wildcard-parameterized functional interface type and the lambda expression 
+	 *   is implicitly typed, then the ground target type is the non-wildcard parameterization (ï¿½9.9) of T.
+     * ï¿½ Otherwise, the ground target type is T.
 	 */
 	public IJavaType computeGroundTargetType(IRNode lambda, IJavaType t) {
 		IJavaDeclaredType wpt = typeInfer.isWildcardParameterizedType(t);
@@ -1573,13 +1573,13 @@ public class MethodBinder8 implements IMethodBinder {
 	 * 15.13.2 Type of a Method Reference
 	 * 
 	 * A method reference expression is compatible in an assignment context, invocation context, 
-	 * or casting context with a target type T if T is a functional interface type (§9.8) and the
+	 * or casting context with a target type T if T is a functional interface type (ï¿½9.8) and the
 	 * expression is congruent with the function type of the ground target type derived from T.
 	 * 
 	 * The ground target type is derived from T as follows:
-	 * • If T is a wildcard-parameterized functional interface type, then the ground target type 
-	 *   is the non-wildcard parameterization (§9.9) of T.
-	 * • Otherwise, the ground target type is T
+	 * ï¿½ If T is a wildcard-parameterized functional interface type, then the ground target type 
+	 *   is the non-wildcard parameterization (ï¿½9.9) of T.
+	 * ï¿½ Otherwise, the ground target type is T
 	 */
 	public IJavaType computeGroundTargetTypeForMethodRef(IJavaType t) {
 		IJavaDeclaredType wpt = typeInfer.isWildcardParameterizedType(t);
