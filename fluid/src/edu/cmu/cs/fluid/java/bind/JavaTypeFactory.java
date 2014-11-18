@@ -335,7 +335,7 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 	  return types.get(0);
   }
   
-  private static IJavaType getUnionType(JavaReferenceType b1, JavaReferenceType b2) {
+  static IJavaUnionType getUnionType(JavaReferenceType b1, JavaReferenceType b2) {
 	  JavaUnionType t = unionTypes.get(b1, b2);
 	  if (t == null) {
 		  t = new JavaUnionType(b1, b2);
@@ -1406,6 +1406,16 @@ class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectio
 		secondaryBound.visit(v);
 	}
   }	    
+  
+  @Override
+  public IJavaIntersectionType subst(IJavaTypeSubstitution s) {
+	JavaReferenceType newB1 = (JavaReferenceType) primaryBound.subst(s);
+	JavaReferenceType newB2 = (JavaReferenceType) secondaryBound.subst(s);
+	if (newB1 != primaryBound || newB2 != secondaryBound) {
+		return JavaTypeFactory.getIntersectionType(newB1, newB2);
+	}
+	return this;
+  }
 }
 
 class JavaUnionType extends JavaReferenceType implements IJavaUnionType {
@@ -1499,6 +1509,16 @@ class JavaUnionType extends JavaReferenceType implements IJavaUnionType {
 		if (secondaryBound != null) {
 			secondaryBound.visit(v);
 		}
+	  }	  
+	  
+	  @Override
+	  public IJavaUnionType subst(IJavaTypeSubstitution s) {
+		JavaReferenceType newB1 = (JavaReferenceType) primaryBound.subst(s);
+		JavaReferenceType newB2 = (JavaReferenceType) secondaryBound.subst(s);
+		if (newB1 != primaryBound || newB2 != secondaryBound) {
+			return JavaTypeFactory.getUnionType(newB1, newB2);
+		}
+		return this;
 	  }	  
 	}
 
