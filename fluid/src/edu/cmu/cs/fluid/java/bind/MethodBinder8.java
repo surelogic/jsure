@@ -1558,12 +1558,16 @@ public class MethodBinder8 implements IMethodBinder {
      * � Otherwise, the ground target type is T.
 	 */
 	public IJavaType computeGroundTargetType(IRNode lambda, IJavaType t) {
+		return computeGroundTargetType(lambda, t, true);
+	}
+		
+	public IJavaType computeGroundTargetType(IRNode lambda, IJavaType t, boolean checkForSubtype) {
 		IJavaDeclaredType wpt = typeInfer.isWildcardParameterizedType(t);
 		if (wpt != null) {
 			if (isImplicitlyTypedLambda(lambda)) {
 				return typeInfer.computeNonWildcardParameterization(wpt);
 			} else {
-				return typeInfer.inferForFunctionalInterfaceParameterization(t, lambda);
+				return typeInfer.inferForFunctionalInterfaceParameterization(t, lambda, checkForSubtype);
 			}
 		}
 		return t;

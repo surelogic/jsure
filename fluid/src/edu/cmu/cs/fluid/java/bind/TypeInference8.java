@@ -113,6 +113,16 @@ public class TypeInference8 {
 			}
 			return formal.toString().compareTo(o.formal.toString());
 		}
+		
+		@Override
+		public IJavaType subst(final IJavaTypeSubstitution s) {
+		    if (s == null) return this;
+		    IJavaType rv = s.get(this);
+		    if (rv != this) {
+		    	return rv;
+		    }
+		    return this;
+		}
 	}
 	
 	static boolean isProperType(IJavaType t) {
@@ -166,6 +176,27 @@ public class TypeInference8 {
 			upperBound = l;
 		}
 		
+		public IJavaType subst(IJavaTypeSubstitution s) {
+			IJavaType newLower = lowerBound == null ? null : lowerBound.subst(s);
+			IJavaType newUpper = upperBound == null ? null : upperBound.subst(s);
+			if (newLower != lowerBound || newUpper != upperBound) {
+				return this;
+			}
+			return this;
+		}
+		
+		@Override
+		public void visit(Visitor v) {
+			super.visit(v);
+
+			if (upperBound != null) {
+				upperBound.visit(v);
+			}
+			if (lowerBound != null) {
+				lowerBound.visit(v);
+			}
+		}	 
+		
 		@Override
 		void writeValue(IROutput out) throws IOException {
 			throw new UnsupportedOperationException();
@@ -207,6 +238,13 @@ public class TypeInference8 {
 				return true;
 			}
 			return b1.isEqualTo(tEnv, b2);
+		}
+		
+		public Iteratable<IJavaType> getSupertypes(ITypeEnvironment env) {
+			if (upperBound != null) {
+				return new SingletonIterator<IJavaType>(upperBound);
+			}
+			return new SingletonIterator<IJavaType>(tEnv.getObjectType());
 		}
 	}
 	
@@ -847,21 +885,24 @@ public class TypeInference8 {
      * F<A' 1 , ..., A' m > , if all the type arguments are types, or the non-wildcard parameterization 
      * (Â§9.9) of F<A' 1 , ..., A' m > , if one or more type arguments are still wildcards.
 	 */
-	IJavaType inferForFunctionalInterfaceParameterization(IJavaType targetType, IRNode lambda) {
-		IJavaDeclaredType f = isWildcardParameterizedType(targetType);
+	IJavaType inferForFunctionalInterfaceParameterization(IJavaType targetType, IRNode lambda, boolean checkForSubtype) {
+		final IJavaDeclaredType f = isWildcardParameterizedType(targetType);
 		if (f == null) {
 			return targetType; // Nothing to infer
 		}
-		final int n = f.getTypeParameters().size();
-		final List<InferenceVariable> newVars = new ArrayList<InferenceVariable>(n);
-		for(int i=0; i<n; i++) {
+		final IJavaFunctionType fType = tEnv.isFunctionalType(f);
+		final int k = fType.getParameterTypes().size();
+		final int m = f.getTypeParameters().size();
+		final List<InferenceVariable> newVars = new ArrayList<InferenceVariable>(m);
+		for(int i=0; i<m; i++) {
 			newVars.add(new InferenceVariable(null)); // TODO 
 		}
 		// TODO subst?
 		final IJavaDeclaredType f_alpha = JavaTypeFactory.getDeclaredType(f.getDeclaration(), newVars, f.getOuterType());
 		IJavaFunctionType funcType = tEnv.isFunctionalType(f_alpha);
 		IRNode lambdaParams = LambdaExpression.getParams(lambda);
-		if (funcType.getParameterTypes().size() != JJNode.tree.numChildren(lambdaParams)) {
+		final int n = JJNode.tree.numChildren(lambdaParams);
+		if (funcType.getParameterTypes().size() != n) {
 			return null; // No valid parameterization
 		}
 		final BoundSet b = new BoundSet(InterfaceDeclaration.getTypes(f.getDeclaration()), newVars.toArray(new InferenceVariable[newVars.size()]));
@@ -882,7 +923,8 @@ public class TypeInference8 {
 		}
 		IJavaDeclaredType f_prime = JavaTypeFactory.getDeclaredType(f.getDeclaration(), a_prime, f.getOuterType());
 		// TODO check if well formed
-		if (!f_prime.isSubtype(tEnv, f)) {
+		if (checkForSubtype && !f_prime.isSubtype(tEnv, f)) {
+			//f_prime.isSubtype(tEnv, f);
 			return null; // No valid parameterization
 		}
 		if (isWildcardParameterizedType(f_prime) != null) {
@@ -1704,6 +1746,10 @@ public class TypeInference8 {
 		 */
 		private void incorporate(Bound<?>... newBounds) {
 			for(Bound<?> b : newBounds) {
+				if (b.s == b.t) {
+					// Ignoring these meaningless bounds
+					continue;
+				}
 				unincorporated.add(b);
 				//System.out.println("Added "+b);
 			}			
@@ -2064,6 +2110,13 @@ public class TypeInference8 {
 			final Set<InferenceVariable> vars = collectVariables();
 			final Set<InferenceVariable> uninstantiated = new HashSet<InferenceVariable>(vars);
 			uninstantiated.removeAll(instantiations.keySet());
+			if (!uninstantiated.isEmpty()) {
+				for(EqualityBound eb : equalities) {
+					if (eb.s instanceof InferenceVariable && isProperType(eb.t)) {
+						uninstantiated.remove(eb.s);
+					}
+				}
+			}
 			if (uninstantiated.size() < 1) {
 				return uninstantiated;
 			}
@@ -2257,7 +2310,7 @@ public class TypeInference8 {
 				}
 				// Check if the bounds are well-formed
 				if (l_i != null && u_i != null && !l_i.isSubtype(tEnv, u_i)) {
-					throw new IllegalStateException("resolution failed");
+					return null;
 				}
 				// TODO how to check for intersection type?
 				
@@ -2801,14 +2854,15 @@ public class TypeInference8 {
 			bounds.addFalse();
 			return;
 		}
-		final IJavaType t_prime = mb.computeGroundTargetType(e, t);
 		/**
-		 * TODO
-		 * 
 		 * If Â§18.5.3 is used to derive a functional interface type which is parameterized, 
 		 * then the test that F<A' 1 , ..., A' m > is a subtype of F<A 1 , ..., A m > is
 		 * not performed (instead, it is asserted with a constraint formula below).
 		 */
+		final IJavaType t_prime = mb.computeGroundTargetType(e, t, false);
+		if (t_prime == null) {
+			mb.computeGroundTargetType(e, t, false);
+		}
 		final IJavaFunctionType ft_prime = tEnv.isFunctionalType(t_prime);
 		if (ft_prime == null) {
 			bounds.addFalse();
@@ -2880,7 +2934,7 @@ public class TypeInference8 {
 		if (!isImplicit) {	
 			int i=0;
 			for(final IJavaType f_i : getLambdaParamTypes(params)) {
-				final IJavaType g_i = ft.getParameterTypes().get(i);
+				final IJavaType g_i = ft_prime.getParameterTypes().get(i);
 				reduceTypeEqualityConstraints(bounds, f_i, g_i);			
 				i++;
 			}
@@ -3176,10 +3230,29 @@ public class TypeInference8 {
 				}
 			}
 		}
+		// HACK to deal with the lack of simultaneous incorporation
+		else if (s instanceof TypeVariable || t instanceof TypeVariable) {
+			// the other type is not a proper type, since that case is handled above
+			// so ignore for now until we handle the rest of the substitution
+		}
 		else if (t instanceof IJavaTypeVariable) {
-			IJavaTypeVariable tv = (IJavaTypeVariable) t;
-			// TODO intersection
-			if (tv.getLowerBound() != null) {
+			final IJavaTypeVariable tv = (IJavaTypeVariable) t;
+			IntersectionOperator hasT = new IntersectionOperator() {
+				@Override
+				public boolean evaluate(IJavaType t) {
+					return t == tv;
+				}
+
+				@Override
+				public boolean combine(boolean e1, boolean e2) {
+					return e1 || e2;					
+				}
+				
+			};
+			if (s instanceof IJavaIntersectionType && flattenIntersectionType(hasT, (IJavaIntersectionType) s)) {
+				bounds.addTrue();
+			}			
+			else if (tv.getLowerBound() != null) {
 				reduceSubtypingConstraints(bounds, s, tv.getLowerBound());
 			} else {
 				bounds.addFalse();
