@@ -160,11 +160,11 @@ import edu.cmu.cs.fluid.version.Version;
 public abstract class AbstractJavaBinder extends AbstractBinder {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
 
-  public static final boolean processJava8 = false;
   private static final boolean cacheGranuleInfo = false;
   protected static final boolean storeNullBindings = true;
   protected boolean warnAboutPkgBindings = false;
-
+  final boolean processJava8;
+  
   public static final ThreadLocal<Stack<IGranuleBindings>> bindingStack = new ThreadLocal<Stack<IGranuleBindings>>() {
 	  @Override
 	  protected Stack<IGranuleBindings> initialValue() {
@@ -197,11 +197,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
   protected AbstractJavaBinder(IJavaClassTable table) {
     classTable      = table;
     typeEnvironment = new TypeEnv();
+    processJava8 = false;
   }
   
-  protected AbstractJavaBinder(ITypeEnvironment tEnv) {
+  protected AbstractJavaBinder(ITypeEnvironment tEnv, boolean processJ8) {
     typeEnvironment = tEnv;
     classTable      = tEnv.getClassTable();
+    processJava8 = processJ8;
   }
 
   protected static Operator getOperator(IRNode node) {

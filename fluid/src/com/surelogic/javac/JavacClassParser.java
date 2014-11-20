@@ -39,7 +39,6 @@ import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
-import edu.cmu.cs.fluid.java.bind.AbstractJavaBinder;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -122,6 +121,8 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 		// Use default charset	
 	    final StandardJavaFileManager fileman = 
 	    	JavacTool.create().getStandardFileManager(nullListener, null, null);   
+	    
+	    final boolean processJava8;
         
 		public BatchParser(final JavacProject jp, int max, boolean asBinary) throws IOException {
 			this.jp = jp;
@@ -141,6 +142,8 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 			fileman.setLocation(StandardLocation.CLASS_OUTPUT, tmpDir);		
 			fileman.setLocation(StandardLocation.CLASS_PATH, collectClasses(jp));
 			// TODO What about other projects?
+			final int level = jp.getConfig().getIntOption(Config.SOURCE_LEVEL);
+			processJava8 = level >= 8;
 		}
 		
 		Iterable<File> collectClasses(JavacProject jp) {
@@ -227,6 +230,19 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 			}
 		}
 
+		boolean usesUnsupportedJava8Features(IRNode cu) {
+			if (processJava8) {
+				return false;
+			}
+			for(IRNode n : JJNode.tree.topDown(cu)) {
+				Operator op = JJNode.tree.getOperator(n);
+				if (op instanceof UnsupportedJava8Feature) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
 		void mapSource(JavaFileObject w, JavaSourceFile p) {
 			sources.put(w, p);
 		}
@@ -1308,18 +1324,5 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 				parse(results);
 			}
 		});
-	}
-	
-	boolean usesUnsupportedJava8Features(IRNode cu) {
-		if (AbstractJavaBinder.processJava8) {
-			return false;
-		}
-		for(IRNode n : JJNode.tree.topDown(cu)) {
-			Operator op = JJNode.tree.getOperator(n);
-			if (op instanceof UnsupportedJava8Feature) {
-				return true;
-			}
-		}
-		return false;
 	}
 }

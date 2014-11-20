@@ -66,8 +66,8 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
    */
   private static final ConcurrentMap<IRNode, List<IRNode>> granules = new ConcurrentHashMap<IRNode, List<IRNode>>();
   
-  public UnversionedJavaBinder(final ITypeEnvironment tEnv) {
-    super(tEnv);
+  public UnversionedJavaBinder(final ITypeEnvironment tEnv, boolean processJava8) {
+    super(tEnv, processJava8);
     warnAboutPkgBindings = false;
     IDE.getInstance().addCompUnitListener(this);
   }

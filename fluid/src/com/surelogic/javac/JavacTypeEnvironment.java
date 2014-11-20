@@ -33,7 +33,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	@ThreadSafe
 	class Binder extends UnversionedJavaBinder {
 		Binder(JavacTypeEnvironment te) {
-			super(te);
+			super(te, te.getMajorJavaVersion() >= 8);
 		}
 
 		@Override
