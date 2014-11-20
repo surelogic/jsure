@@ -10,7 +10,6 @@ import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 
 import com.surelogic.ast.java.operator.ITypeFormalNode;
-import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.util.AppendIterator;
 import com.surelogic.common.util.Iteratable;
 import com.surelogic.common.util.PairIterator;
@@ -355,11 +354,11 @@ public class TypeInference8 {
 		 */
 		final BoundSet result = resolve(b_2);
 		// debug
-		if (result == null || result.instantiations.isEmpty()) {
+		if (result == null || result.getInstantiations().isEmpty()) {
 			resolve(b_2);
 		}
 		if (result != null && !result.isFalse && 
-			result.instantiations.keySet().containsAll(result.variableMap.values())) {
+			result.getInstantiations().keySet().containsAll(result.variableMap.values())) {
 			return b_2;
 		}
 		return null;
@@ -931,7 +930,7 @@ public class TypeInference8 {
 		final BoundSet result = resolve(b);		
 		List<IJavaType> a_prime = new ArrayList<IJavaType>(f.getTypeParameters().size());
 		for(i=0; i<f.getTypeParameters().size(); i++) {
-			IJavaType t = result.instantiations.get(f_alpha.getTypeParameters().get(i));
+			IJavaType t = result.getInstantiations().get(f_alpha.getTypeParameters().get(i));
 			a_prime.add(t != null ? t : f.getTypeParameters().get(i));
 		}
 		IJavaDeclaredType f_prime = JavaTypeFactory.getDeclaredType(f.getDeclaration(), a_prime, f.getOuterType());
@@ -1608,6 +1607,7 @@ public class TypeInference8 {
 		}
 
 		void add(EqualityBound eb) {
+			System.out.println("Adding equality: "+eb);
 			Equality e1 = find(eb.s);
 			Equality e2 = find(eb.t);
 			if (e1 != null) {
@@ -1810,16 +1810,11 @@ public class TypeInference8 {
 		 */
 		final Map<IJavaTypeFormal,InferenceVariable> variableMap = new HashMap<IJavaTypeFormal,InferenceVariable>();
 		
-		/**
-		 * The result of resolution
-		 */
-		final Map<InferenceVariable, IJavaType> instantiations = new HashMap<InferenceVariable, IJavaType>();
-		
 		private BoundSet() {
 			isTemp = true;
 			original = null;
 		}
-		
+
 		BoundSet(final IRNode typeFormals, final InferenceVariable[] vars) {			
 			original = null;
 			isTemp = false;
@@ -1843,7 +1838,6 @@ public class TypeInference8 {
 			equalities.addAll(orig.equalities);
 			subtypeBounds.addAll(orig.subtypeBounds);
 			captures.addAll(orig.captures);
-			instantiations.putAll(orig.instantiations);
 			variableMap.putAll(orig.variableMap);
 		}
 		
@@ -1927,9 +1921,52 @@ public class TypeInference8 {
 		IJavaTypeSubstitution getInitialVarSubst() {
 			return new TypeSubstitution(tEnv.getBinder(), variableMap);
 		}
+		
+		public Map<InferenceVariable,IJavaType> getInstantiations() {
+			final Map<InferenceVariable,IJavaType> instantiations = new HashMap<InferenceVariable,IJavaType>();
+			for(IEquality e : equalities) {
+				if (!e.vars().isEmpty()) {
+					IJavaType value = null;
+					for (IJavaType t : e.values()) {
+						if (isProperType(t)) {
+							if (value == null || valueisEquivalent(t, value)) {
+								value = t;
+							} else if (valueisEquivalent(value, t)) {
+								// Nothing to do
+							} else {
+								throw new IllegalStateException("Which value to use? "+value+" vs "+t);
+							}
+						}
+					}
+					if (value == null) {
+						continue;
+					}
+					for(InferenceVariable v : e.vars()) {
+						instantiations.put(v, value);
+					}
+				}
+			}
+			return instantiations;
+		}
+		
+		private boolean valueisEquivalent(IJavaType v, IJavaType t) {
+			if (v instanceof TypeVariable && !(t instanceof TypeVariable)) {
+				TypeVariable tv = (TypeVariable) v;
+				if (tv.getLowerBound() != null && !tv.getLowerBound().isSubtype(tEnv, t)) {
+					return false;
+				}
+				IJavaType upper = tv.getUpperBound(tEnv);
+				if (upper != null && !t.isSubtype(tEnv, upper)) {
+					return false;
+				}					
+				return true;
+			}
+			return false;
+		}
 
 		IJavaTypeSubstitution getFinalTypeSubst() {
 			final Map<IJavaTypeFormal,IJavaType> subst = new HashMap<IJavaTypeFormal,IJavaType>();
+			final Map<InferenceVariable,IJavaType> instantiations = getInstantiations();
 			for(Entry<IJavaTypeFormal, InferenceVariable> e : variableMap.entrySet()) {
 				final IJavaType t = instantiations.get(e.getValue());
 				if (t == null) {
@@ -1969,17 +2006,6 @@ public class TypeInference8 {
 		
 		void addThrown(InferenceVariable v) {
 			thrownSet.add(v);			
-		}
-		
-		void addInstantiation(InferenceVariable v, IJavaType t) {
-			if (v == null || t == null) {
-				throw new NullPointerException("Bad instantiation: "+v+" = "+t);
-			}
-			if (!isProperType(t)) {
-				throw new IllegalStateException("Not a proper type: "+t);				
-			}
-			instantiations.put(v, t); // TODO
-			addEqualityBound(v, t);
 		}
 		
 		/**
@@ -2040,19 +2066,6 @@ public class TypeInference8 {
 					} 
 					incorporateEqualityBound(temp, eb);
 					equalities.add(eb);
-					
-					if (eb.s instanceof InferenceVariable && isProperType(eb.t)) {
-						IJavaType instantiation = instantiations.get(eb.s);
-						if (instantiation == null) {
-							instantiations.put((InferenceVariable) eb.s, eb.t);
-						}
-						else if (!instantiation.isEqualTo(tEnv, eb.t)) {
-							if (!temp.isFalse) {															
-								SLLogger.getLogger().warning("Duplicate instantiation for "+eb.s+": "+instantiation+" vs "+eb.t);
-							//throw new IllegalStateException("Duplicate instantiation?");
-							}
-						} 						
-					}
 				}
 				else {
 					CaptureBound cb = (CaptureBound) b;
@@ -2394,20 +2407,8 @@ public class TypeInference8 {
 		Set<InferenceVariable> chooseUninstantiated() {
 			final Set<InferenceVariable> vars = collectVariables();
 			final Set<InferenceVariable> uninstantiated = new HashSet<InferenceVariable>(vars);
-			uninstantiated.removeAll(instantiations.keySet());
-			if (!uninstantiated.isEmpty()) {
-				eq:
-				for(IEquality e : equalities) {
-					if (!e.vars().isEmpty()) {
-						for (IJavaType t : e.values()) {
-							if (isProperType(t)) {
-								uninstantiated.removeAll(e.vars());
-								continue eq;
-							}
-						}
-					}
-				}
-			}
+			uninstantiated.removeAll(getInstantiations().keySet());
+			
 			if (uninstantiated.size() < 1) {
 				return uninstantiated;
 			}
@@ -2488,16 +2489,16 @@ public class TypeInference8 {
 			for(InferenceVariable a_i : subset) {
 				Collection<IJavaType> lower = bounds.lowerBounds.get(a_i);
 				if (lower != null && !lower.isEmpty()) {
-					rv.addInstantiation(a_i, utils.getLowestUpperBound(toArray(lower)));
+					rv.addEqualityBound(a_i, utils.getLowestUpperBound(toArray(lower)));
 					continue;
 				}
 				Collection<IJavaType> upper = bounds.upperBounds.get(a_i);
 				if (thrownSet.contains(a_i) && qualifiesAsRuntimeException(upper)) {
-					rv.addInstantiation(a_i, tEnv.findJavaTypeByName("java.lang.RuntimeException"));
+					rv.addEqualityBound(a_i, tEnv.findJavaTypeByName("java.lang.RuntimeException"));
 					continue;
 				}			
 				if (upper != null && !upper.isEmpty()) {
-					rv.addInstantiation(a_i, utils.getGreatestLowerBound(toArray(upper)));
+					rv.addEqualityBound(a_i, utils.getGreatestLowerBound(toArray(upper)));
 				} else {
 					throw new IllegalStateException("what do I do otherwise?"); // TODO
 				}
