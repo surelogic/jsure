@@ -1464,6 +1464,7 @@ public class JavaCanonicalizer {
     			IRNode newParam = ParameterDeclaration.createNode(annos, JavaNode.ALL_FALSE, ptype, JJNode.getInfo(formal));
     			newParamList.add(newParam);
     		} else {
+    			doAccept(formal);
     			JJNode.tree.removeSubtree(formal);
     			newParamList.add(formal);
     		}
