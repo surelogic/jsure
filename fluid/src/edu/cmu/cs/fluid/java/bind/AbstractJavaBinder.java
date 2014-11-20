@@ -1839,10 +1839,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     		return null;
     	}
     	IJavaDeclaredType owner = (IJavaDeclaredType)ownerT;
+    	/*
     	if (owner.getTypeParameters().size() > 0) {
     		LOG.warning("constructor reference takes type parameters explicitly, not before ::");
     		return null;
     	}
+    	*/
     	IRNode cdecl = owner.getDeclaration();
 		if (!ClassDeclaration.prototype.includes(JJNode.tree.getOperator(cdecl))) {
     		LOG.warning("constructor reference must name a class, not an interface: "
@@ -1873,7 +1875,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
     			typeFormals == null ? null : new ArrayList<IJavaType>(typeFormals), 
     			owner.getOuterType());
     	Map<IJavaFunctionType,IRNode> candidates = new HashMap<IJavaFunctionType,IRNode>();
-    	for (IRNode member : JJNode.tree.children(ClassDeclaration.getBody(node))) {
+    	for (IRNode member : JJNode.tree.children(ClassDeclaration.getBody(cdecl))) {
     		if (ConstructorDeclaration.prototype.includes(JJNode.tree.getOperator(member))) {
     			if (BindUtil.isAccessible(getTypeEnvironment(),member,node)) {
     				candidates.put(JavaTypeFactory.getMemberFunctionType(member, rType, AbstractJavaBinder.this), member);
@@ -1923,29 +1925,33 @@ public abstract class AbstractJavaBinder extends AbstractBinder {
 			return null;
 		}
 		
+		/* TODO
     	// check return type
     	if (!cs.derive(applicableType.getReturnType(), 
     			Constraint.CONVERTIBLE_TO, ft.getReturnType())) {
     		LOG.warning("Only applicable canditate had bad return type");
+    		cs.derive(applicableType.getReturnType(), 
+        			Constraint.CONVERTIBLE_TO, ft.getReturnType());
     		return null;
     	}
+    	*/
     	IJavaTypeSubstitution sub = cs.getSubstitution();
     	if (sub == null) {
     		LOG.warning("Only applicable candidate constraints cannot be satisfied");
     		return null;
     	}
-    	
-    	IJavaType rte = JavaTypeFactory.getDeclaredType(typeEnvironment.findNamedType("java.lang.RuntimeException"), null, null);
+    	IRNode re = typeEnvironment.findNamedType("java.lang.RuntimeException");
+    	// If re is null, that means that it's not referenced by anything
+    	IJavaType rte = re == null ? null : JavaTypeFactory.getDeclaredType(re, null, null);
     	// check throws
     	checkThrow: for (IJavaType ttype : applicableType.subst(sub).getExceptions()) {
-    		if (typeEnvironment.isSubType(ttype, rte)) continue checkThrow;
+    		if (rte != null && typeEnvironment.isSubType(ttype, rte)) continue checkThrow;
     		for (IJavaType atype : ft.getExceptions()) {
     			if (typeEnvironment.isSubType(ttype, atype)) continue checkThrow;
     		}
     		LOG.warning("only applicable candidate has incomplete throw: " + ttype);
     		return null;
-    	}
-    	
+    	}    		
     	bind(node,IBinding.Util.makeMethodBinding(typeEnvironment, cdecl, owner, sub));
     	return null;
     }
