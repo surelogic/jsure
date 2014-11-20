@@ -148,6 +148,21 @@ public class TypeInference8 {
 		});
 	}
 		
+	private boolean valueisEquivalent(IJavaType v, IJavaType t) {
+		if (v instanceof TypeVariable && !(t instanceof TypeVariable)) {
+			TypeVariable tv = (TypeVariable) v;
+			if (tv.getLowerBound() != null && !tv.getLowerBound().isSubtype(tEnv, t)) {
+				return false;
+			}
+			IJavaType upper = tv.getUpperBound(tEnv);
+			if (upper != null && !t.isSubtype(tEnv, upper)) {
+				return false;
+			}					
+			return true;
+		}
+		return false;
+	}
+	
 	class TypeVariable extends JavaReferenceType implements IJavaTypeVariable {
 		final InferenceVariable var;
 		IJavaReferenceType lowerBound, upperBound;
@@ -225,6 +240,15 @@ public class TypeInference8 {
 				return checkBound(lowerBound, v2.lowerBound, JavaTypeFactory.nullType) && 
 					   checkBound(upperBound, v2.upperBound, tEnv.getObjectType());
 			}
+			/*
+			if (lowerBound != null && !lowerBound.isSubtype(tEnv, t2)) {
+				return false;
+			}
+			if (upperBound != null) {
+				return t2.isSubtype(tEnv, upperBound)) {
+			}			
+			return true;
+			*/
 			return false;
 		}
 		
@@ -1587,8 +1611,9 @@ public class TypeInference8 {
 					}
 				}
 				// Not already present
+				final Equality clone = oe.clone();
 				for(InferenceVariable v : oe.vars) {
-					finder.put(v, oe);
+					finder.put(v, clone);
 				}
 			}
 		}
@@ -1680,6 +1705,15 @@ public class TypeInference8 {
 			} else {
 				values.add(t);
 			}
+		}
+		
+		Equality(Equality orig) {
+			merge(orig);
+		}
+		
+		@Override
+		public Equality clone() {
+			return new Equality(this);
 		}
 		
 		public Collection<InferenceVariable> vars() {
@@ -1947,21 +1981,6 @@ public class TypeInference8 {
 				}
 			}
 			return instantiations;
-		}
-		
-		private boolean valueisEquivalent(IJavaType v, IJavaType t) {
-			if (v instanceof TypeVariable && !(t instanceof TypeVariable)) {
-				TypeVariable tv = (TypeVariable) v;
-				if (tv.getLowerBound() != null && !tv.getLowerBound().isSubtype(tEnv, t)) {
-					return false;
-				}
-				IJavaType upper = tv.getUpperBound(tEnv);
-				if (upper != null && !t.isSubtype(tEnv, upper)) {
-					return false;
-				}					
-				return true;
-			}
-			return false;
 		}
 
 		IJavaTypeSubstitution getFinalTypeSubst() {
