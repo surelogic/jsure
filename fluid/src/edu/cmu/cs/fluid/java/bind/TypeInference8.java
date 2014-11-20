@@ -11,6 +11,7 @@ import org.apache.commons.collections15.multimap.MultiHashMap;
 
 import com.surelogic.ast.java.operator.ITypeFormalNode;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.util.AppendIterator;
 import com.surelogic.common.util.Iteratable;
 import com.surelogic.common.util.SingletonIterator;
 
@@ -517,8 +518,13 @@ public class TypeInference8 {
 			     *       parameterizations of the same generic class or interface.     
 			     */
 				cond = new BoundCondition() {
-					public boolean examineEquality(IJavaType s, IJavaType t) {
-						return isWildcardParameterizedType(s) != null || isWildcardParameterizedType(t) != null;
+					public boolean examineEquality(Equality e) {
+						for(IJavaType t : e.values) {
+							if (isWildcardParameterizedType(t) != null) {
+								return true;
+							}
+						}
+						return false;
 					}
 					public boolean examineLowerBound(IJavaType t) {
 						return false;
@@ -536,15 +542,21 @@ public class TypeInference8 {
 			     *       form G< ... > that is a supertype of S , but the raw type | G< ... > | is a supertype of S .
 			     */				
 				cond = new BoundCondition() {
-					public boolean examineEquality(IJavaType s, IJavaType t) {
-						return (s != alpha && onlyHasRawG_asSuperType(g2.getDeclaration(), s) == Boolean.TRUE) || 
-							   (t != alpha && onlyHasRawG_asSuperType(g2.getDeclaration(), t) == Boolean.TRUE);
+					public boolean examineEquality(Equality e) {
+						if (e.vars.contains(alpha)) {
+							for(IJavaType t : e.values) {
+								if (onlyHasRawG_asSuperType(g2.getDeclaration(), t)) {
+									return true;
+								}
+							}
+						}
+						return false;
 					}
 					public boolean examineLowerBound(IJavaType t) {
 						return false;
 					}
 					public boolean examineUpperBound(IJavaType t) {
-						return onlyHasRawG_asSuperType(g2.getDeclaration(), t) == Boolean.TRUE;
+						return onlyHasRawG_asSuperType(g2.getDeclaration(), t);
 					}				
 				};	
 			}
@@ -556,8 +568,8 @@ public class TypeInference8 {
 				final IJavaPrimitiveType pt = (IJavaPrimitiveType) t;
 				final IJavaDeclaredType wrapper = JavaTypeFactory.getCorrespondingDeclType(tEnv, pt);				
 				cond = new BoundCondition() {
-					public boolean examineEquality(IJavaType s, IJavaType t) {
-						return s == wrapper || t == wrapper;
+					public boolean examineEquality(Equality e) {
+						return e.values.contains(wrapper);
 					}
 					public boolean examineLowerBound(IJavaType t) {
 						return t == wrapper;
@@ -1490,7 +1502,7 @@ public class TypeInference8 {
 	}
 	
 	static class BoundSubset {
-		private final Set<EqualityBound> equalities = new HashSet<EqualityBound>();
+		private final Set<Equality> equalities = new HashSet<Equality>();
 		private final Set<SubtypeBound> upperBounds = new HashSet<SubtypeBound>();
 		private final Set<SubtypeBound> lowerBounds = new HashSet<SubtypeBound>();
 		
@@ -1505,8 +1517,8 @@ public class TypeInference8 {
 					return true;
 				}
 			}
-			for(EqualityBound b : equalities) {
-				if (cond.examineEquality(b.s, b.t)) {
+			for(Equality e : equalities) {
+				if (cond.examineEquality(e)) {
 					return true;
 				}
 			}
@@ -1515,9 +1527,184 @@ public class TypeInference8 {
 	}
 	
 	interface BoundCondition {
-		boolean examineEquality(IJavaType s, IJavaType t);
+		boolean examineEquality(Equality e);
 		boolean examineLowerBound(IJavaType t);
 		boolean examineUpperBound(IJavaType t);
+	}
+	
+
+	class Equalities implements Iterable<Equality> {
+		// used to find its identity
+		final Map<IJavaType, Equality> finder = new HashMap<IJavaType, Equality>();
+
+		Equality find(IJavaReferenceType t) {
+			Equality e = finder.get(t);
+			if (t == null) {
+				e = new Equality(t);
+				finder.put(t, e);
+			}
+			return e;
+		}
+
+		@Override
+		public Iterator<Equality> iterator() {
+			return new HashSet<Equality>(finder.values()).iterator();
+		}
+		
+		void addAll(Equalities o) {
+			finder.putAll(o.finder);
+		}
+
+		boolean contains(EqualityBound eb) {
+			Equality e1 = find(eb.s);
+			Equality e2 = find(eb.t);
+			return e1 == e2; // Already mapped?
+		}
+
+		void add(EqualityBound eb) {
+			Equality e1 = find(eb.s);
+			Equality e2 = find(eb.t);
+			e1.merge(e2);
+			
+			for(IJavaType t : e2) {
+				finder.put(t, e1);
+			}
+		}
+
+		boolean isEmpty() {
+			if (finder.isEmpty()) {
+				return true; 
+			}
+			for(Equality e : finder.values()) {
+				if (!e.isTrivial()) {
+					return false;
+				}
+			}
+			return true;
+		}
+		
+		Collection<EqualityBound> getBounds() {
+			if (isEmpty()) {
+				return Collections.emptyList();
+			}
+			List<EqualityBound> bounds = new ArrayList<EqualityBound>();
+			for(Equality e : this) {
+				if (e.isTrivial()) {
+					continue;
+				}
+				for(IJavaType s : e) {
+					for(IJavaType t : e) {
+						if (s != t) {
+							bounds.add(newEqualityBound(s, t));
+						}
+					}
+				}
+			}
+			return bounds;
+		}
+	}
+	
+	class Equality implements Iterable<IJavaReferenceType> {
+		final Set<InferenceVariable> vars = new HashSet<InferenceVariable>();
+		final Set<IJavaReferenceType> values = new HashSet<IJavaReferenceType>();
+		
+		Equality(IJavaReferenceType t) {
+			if (t == null) {
+				throw new IllegalStateException();
+			}
+			else if (t instanceof InferenceVariable) {
+				vars.add((InferenceVariable) t);
+			} else {
+				values.add(t);
+			}
+		}
+		
+		boolean isTrivial() {
+			return vars.size() + values.size() <= 1;
+		}
+
+		void merge(Equality o) {
+			vars.addAll(o.vars);
+			values.addAll(o.values);			
+		}
+
+		@Override
+		public String toString() {
+			if (vars.isEmpty()) {
+				return toString(values);
+			}
+			if (values.isEmpty()) {
+				return toString(vars);
+			}
+			StringBuilder sb = new StringBuilder();
+			unparseSet(sb, vars);
+			sb.append(" = ");
+			unparseSet(sb, values);
+			return sb.toString();
+		}
+
+		
+		private void unparseSet(StringBuilder sb, Set<? extends IJavaReferenceType> types) {
+			if (types.size() == 1) {
+				sb.append(types.iterator().next());
+			} else {
+				sb.append('{');
+				boolean first = true;
+				for(IJavaType t : types) {
+					if (first) {
+						first = false;
+					} else {
+						sb.append(", ");
+					}
+					sb.append(t);
+				}
+				sb.append('}');
+			}
+		}
+
+		private String toString(Set<? extends IJavaReferenceType> types) {
+			final int n = types.size();
+			switch (n) {
+			case 0:
+				return "? = ?";
+			case 1:
+				return types.iterator().next()+" = ?";
+			default:
+				StringBuilder sb = new StringBuilder();				
+				int i=0;
+				for(IJavaType t : types) {
+					if (sb.length() == 0) {
+						sb.append(t);
+						if (n == 2) {
+							sb.append(" = ");
+						} else {
+							sb.append(" = {");
+						}
+					} else {
+						if (i >= 2) {
+							sb.append(", ");
+						}
+						sb.append(t);
+					}
+					i++;
+				}
+				if (n > 2) {
+					sb.append('}');
+				}
+				return sb.toString();
+			}			
+		}
+
+		@Override
+		public Iterator<IJavaReferenceType> iterator() {
+			if (vars.isEmpty()) {
+				return values.iterator();
+			}
+			if (values.isEmpty()) {
+				return new ArrayList<IJavaReferenceType>(vars).iterator();
+			}
+			return new AppendIterator<IJavaReferenceType>(vars.iterator(), values.iterator());
+		}
 	}
 	
 	/**
@@ -1533,7 +1720,8 @@ public class TypeInference8 {
 		private boolean isFalse = false;
 		private boolean usedUncheckedConversion = false;
 		private final Set<InferenceVariable> thrownSet = new HashSet<InferenceVariable>();
-		private final Set<EqualityBound> equalities = new HashSet<EqualityBound>();
+		//private final Set<EqualityBound> equalities = new HashSet<EqualityBound>();
+		private final Equalities equalities = new Equalities();
 		private final Set<SubtypeBound> subtypeBounds = new HashSet<SubtypeBound>();
 		private final Set<CaptureBound> captures = new HashSet<CaptureBound>();
 		
@@ -1597,7 +1785,7 @@ public class TypeInference8 {
 			usedUncheckedConversion |= other.usedUncheckedConversion;
 			thrownSet.addAll(other.thrownSet);
 			variableMap.putAll(other.variableMap);
-			unincorporated.addAll(other.equalities);
+			unincorporated.addAll(other.equalities.getBounds());
 			unincorporated.addAll(other.subtypeBounds);
 			unincorporated.addAll(other.captures);
 			unincorporated.addAll(other.unincorporated);
@@ -1611,7 +1799,7 @@ public class TypeInference8 {
 			thrownSet.addAll(other.thrownSet);
 			variableMap.putAll(other.variableMap);
 			
-			for(EqualityBound b : other.equalities) {
+			for(EqualityBound b : other.equalities.getBounds()) {
 				unincorporated.add(b.subst(subst));
 			}
 			for(SubtypeBound b : other.subtypeBounds) {
@@ -1648,8 +1836,11 @@ public class TypeInference8 {
 				}
 				b.append('\n');
 			}
-			for(Bound<?> bound : equalities) {
-				b.append(bound).append(", \n");
+			for(Equality e : equalities) {
+				if (e.isTrivial()) {
+					continue;
+				}
+				b.append(e).append(", \n");
 			}
 			for(Bound<?> bound : subtypeBounds) {
 				b.append(bound).append(", \n");
@@ -1821,17 +2012,32 @@ public class TypeInference8 {
 		private void incorporateEqualityBound(BoundSet bounds, final InferenceVariable alpha, IJavaReferenceType s) {
 			final IJavaTypeSubstitution subst = isProperType(s) ? 
 					new TypeSubstitution(tEnv.getBinder(), Collections.singletonMap(alpha, s)) : null;
-			for(EqualityBound b : equalities) {
+			for(Equality e : equalities) {
 				// case 1: α = S and α = T imply ‹S = T›
-				if (alpha == b.s) {
-					reduceTypeEqualityConstraints(bounds, s, b.t);
+				if (e.vars.contains(alpha)) {
+					for(IJavaType t : e.values) {
+						reduceTypeEqualityConstraints(bounds, s, t);
+					}
 				}
 				// case 5: α = U and S = T imply ‹S[α:=U] = T[α:=U]›
 				if (subst != null) {
-					IJavaType b_s_subst = b.s.subst(subst);
-					IJavaType b_t_subst = b.t.subst(subst);
-					if (b_s_subst != b.s || b_t_subst != b.t) {
-						reduceTypeEqualityConstraints(bounds, b_s_subst, b_t_subst); 
+					if (!e.vars.isEmpty()) {
+						InferenceVariable beta = e.vars.iterator().next(); // No subst to do
+						for(IJavaType t : e.values) {
+							IJavaType t_subst = t.subst(subst);
+							if (t_subst != t) {
+								reduceTypeEqualityConstraints(bounds, beta, t_subst); 
+							}
+						}
+					}
+					for(IJavaType s1 : e.values) {
+						for(IJavaType t : e.values) {
+							IJavaType s_subst = s1.subst(subst);
+							IJavaType t_subst = t.subst(subst);
+							if (s_subst != s1 || t_subst != t) {
+								reduceTypeEqualityConstraints(bounds, s_subst, t_subst); 
+							}
+						}
 					}
 				}
 			}
@@ -1876,13 +2082,12 @@ public class TypeInference8 {
 		private void incorporateSubtypeBound(BoundSet bounds, SubtypeBound sb) {
 			if (sb.s instanceof InferenceVariable) {
 				final InferenceVariable alpha = (InferenceVariable) sb.s;
-				for(EqualityBound b : equalities) {
-					// case 2
-					if (alpha == b.s) {
-						reduceSubtypingConstraints(bounds, b.t, sb.t);
-					}
-					if (alpha == b.t) {
-						reduceSubtypingConstraints(bounds, b.s, sb.t);
+				for(Equality e : equalities) {
+					// case 2: α = S and α <: T imply ‹S <: T›
+					if (e.vars.contains(alpha)) {
+						for(IJavaType s : e.values) {
+							reduceSubtypingConstraints(bounds, s, sb.t);
+						}
 					}
 				}
 				for(SubtypeBound b : subtypeBounds) {
@@ -1919,13 +2124,12 @@ public class TypeInference8 {
 			}
 			if (sb.t instanceof InferenceVariable) {
 				final InferenceVariable alpha = (InferenceVariable) sb.t;
-				for(EqualityBound b : equalities) {
-					// case 3
-					if (alpha == b.s) {
-						reduceSubtypingConstraints(bounds, sb.s, b.t);
-					}
-					if (alpha == b.t) {
-						reduceSubtypingConstraints(bounds, sb.s, b.s);
+				for(Equality e : equalities) {					
+					// case 3: α = S and T <: α imply ‹T <: S›
+					if (e.vars.contains(alpha)) {
+						for(IJavaType s : e.values) {
+							reduceSubtypingConstraints(bounds, sb.s, s);
+						}						
 					}
 				}	
 				for(SubtypeBound b : subtypeBounds) {
@@ -1935,18 +2139,24 @@ public class TypeInference8 {
 					}
 				}
 			}
-			for(EqualityBound b : equalities) {
-				if (b.s instanceof InferenceVariable && isProperType(b.t)) {
-					// case 6
-					final InferenceVariable alpha = (InferenceVariable) b.s;
-					final IJavaTypeSubstitution s = new TypeSubstitution(tEnv.getBinder(), Collections.singletonMap(alpha, b.t));
-					if (sb.t.subst(s) == null) {
-						sb.t.subst(s);
-					}
-					IJavaType sb_s_subst = sb.s.subst(s);
-					IJavaType sb_t_subst = sb.t.subst(s);
-					if (sb_s_subst != sb.s || sb_t_subst != sb.t) {
-						reduceSubtypingConstraints(bounds, sb_s_subst, sb_s_subst);
+			// case 6: α = U and S <: T imply ‹S[α:=U] <: T[α:=U]›
+			for(Equality e : equalities) {			
+				if (e.vars.isEmpty()) {
+					continue;
+				}
+				for(IJavaType u : e.values) {
+					if (isProperType(u)) {
+						// Do the subst for all the equivalent type vars
+						Map<InferenceVariable,IJavaType> map = new HashMap<InferenceVariable,IJavaType>(e.vars.size());
+						for(InferenceVariable alpha : e.vars) {
+							map.put(alpha, u);
+						}
+						final IJavaTypeSubstitution s = new TypeSubstitution(tEnv.getBinder(), map);
+						IJavaType sb_s_subst = sb.s.subst(s);
+						IJavaType sb_t_subst = sb.t.subst(s);
+						if (sb_s_subst != sb.s || sb_t_subst != sb.t) {
+							reduceSubtypingConstraints(bounds, sb_s_subst, sb_s_subst);
+						}
 					}
 				}				
 			}
@@ -2015,12 +2225,9 @@ public class TypeInference8 {
 				if (a_i instanceof IJavaWildcardType) {
 					final IJavaWildcardType wt = (IJavaWildcardType) a_i;
 					
-					// Handled together
-					for(EqualityBound eb : equalities) {
-						if (alpha_i == eb.s && !(eb.t instanceof InferenceVariable)) {
-							bounds.addFalse();
-						}
-						if (alpha_i == eb.t && !(eb.s instanceof InferenceVariable)) {						
+					// Handled together for all 3 cases below
+					for(Equality e : equalities) {
+						if (e.vars.contains(alpha_i) && !e.values.isEmpty()) {
 							bounds.addFalse();
 						}
 					}
@@ -2098,6 +2305,14 @@ public class TypeInference8 {
 			}
 		}
 		
+		private void collectVariablesFromBounds(Set<InferenceVariable> vars, Iterable<? extends Iterable<IJavaReferenceType>> i) {
+			for(Iterable<IJavaReferenceType> it : i) {
+				for(IJavaReferenceType t : it) {
+					getReferencedInferenceVariables(vars, t);
+				}
+			}
+		}
+		
 		Set<InferenceVariable> collectVariables() {
 			Set<InferenceVariable> vars = new HashSet<InferenceVariable>(thrownSet);
 			collectVariablesFromBounds(vars, equalities);
@@ -2111,9 +2326,15 @@ public class TypeInference8 {
 			final Set<InferenceVariable> uninstantiated = new HashSet<InferenceVariable>(vars);
 			uninstantiated.removeAll(instantiations.keySet());
 			if (!uninstantiated.isEmpty()) {
-				for(EqualityBound eb : equalities) {
-					if (eb.s instanceof InferenceVariable && isProperType(eb.t)) {
-						uninstantiated.remove(eb.s);
+				eq:
+				for(Equality e : equalities) {
+					if (!e.vars.isEmpty()) {
+						for (IJavaType t : e.values) {
+							if (isProperType(t)) {
+								uninstantiated.removeAll(e.vars);
+								continue eq;
+							}
+						}
 					}
 				}
 			}
@@ -2131,7 +2352,7 @@ public class TypeInference8 {
 				lhsInCapture.addAll(b.s.getTypeParameters());
 				deps.recordDepsForCapture(b);
 			}
-			deps.recordDependencies(lhsInCapture, equalities);
+			deps.recordDepsForEquality(lhsInCapture, equalities);
 			deps.recordDependencies(lhsInCapture, subtypeBounds);
 			return deps;
 		}
@@ -2140,6 +2361,7 @@ public class TypeInference8 {
 		 * Find bounds where a = b
 		 * @return
 		 */
+		/*
 		private MultiMap<InferenceVariable,InferenceVariable> collectIdentities() {
 			MultiMap<InferenceVariable,InferenceVariable> rv = new MultiHashMap<InferenceVariable,InferenceVariable> ();
 			for(Bound<?> bound : equalities) {
@@ -2152,6 +2374,7 @@ public class TypeInference8 {
 			}
 			return rv;
 		}
+		*/
 		
 		boolean hasNoCaptureBoundInvolvingVars(Set<InferenceVariable> vars) {
 			for(CaptureBound b : captures) {
@@ -2334,10 +2557,9 @@ public class TypeInference8 {
 		// a = T, T = a, a <: T, T <: a
 		BoundSubset findAssociatedBounds(InferenceVariable a) {
 			BoundSubset rv = new BoundSubset();
-			for(EqualityBound bound : equalities) {
-				if (bound.s == a || bound.t == a) {
-					rv.equalities.add(bound);
-				}
+			Equality e = equalities.find(a);
+			if (e != null) {
+				rv.equalities.add(e);
 			}
 			for(SubtypeBound b : subtypeBounds) {
 				if (b.s == a) {
@@ -2409,7 +2631,7 @@ public class TypeInference8 {
 		private void markDependsOn(InferenceVariable alpha, InferenceVariable beta) {
 			dependsOn.put(alpha, beta);
 		}	
-		
+
 		public Set<InferenceVariable> chooseUninstantiated(final Set<InferenceVariable> uninstantiated) {
 			computeStronglyConnectedComponents();
 			
@@ -2487,6 +2709,24 @@ public class TypeInference8 {
 				}	
 			}
 			markDependsOn(alpha, alpha);	
+		}
+
+		public void recordDepsForEquality(Set<IJavaType> lhsInCapture, Equalities equalities) {
+			for(Equality e : equalities) {
+				if (e.isTrivial()) {
+					continue;
+				}
+				for(InferenceVariable v : e.vars) {
+					for(InferenceVariable v2 : e.vars) {
+						markDependsOn(v, v2);
+					}		
+					final Set<InferenceVariable> temp = new HashSet<InferenceVariable>();
+					for(IJavaReferenceType t : e.values) {
+						recordDepsForBound(lhsInCapture, temp, (InferenceVariable) v, t);
+						temp.clear();
+					}
+				}
+			}			
 		}
 		
 		void recordDepsForCapture(CaptureBound b) {
