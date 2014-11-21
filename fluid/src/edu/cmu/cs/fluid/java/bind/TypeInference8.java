@@ -148,9 +148,12 @@ public class TypeInference8 {
 		});
 	}
 		
-	private boolean valueisEquivalent(IJavaType v, IJavaType t) {
-		if (v instanceof TypeVariable && !(t instanceof TypeVariable)) {
+	boolean valueisEquivalent(IJavaType v, IJavaType t) {
+		if (v instanceof TypeVariable) {
 			TypeVariable tv = (TypeVariable) v;
+			if (t instanceof TypeVariable) {
+				return tv.isEqualTo(tEnv, t);
+			}	
 			if (tv.getLowerBound() != null && !tv.getLowerBound().isSubtype(tEnv, t)) {
 				return false;
 			}
@@ -196,7 +199,10 @@ public class TypeInference8 {
 			IJavaType newLower = lowerBound == null ? null : lowerBound.subst(s);
 			IJavaType newUpper = upperBound == null ? null : upperBound.subst(s);
 			if (newLower != lowerBound || newUpper != upperBound) {
-				return this;
+				TypeVariable v = new TypeVariable(var);
+				v.lowerBound = (IJavaReferenceType) newLower;
+				v.upperBound = (IJavaReferenceType) newUpper;
+				return v;
 			}
 			return this;
 		}
@@ -237,6 +243,13 @@ public class TypeInference8 {
 		public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
 			if (t2 instanceof TypeVariable) {
 				TypeVariable v2 = (TypeVariable) t2;
+				// HACK
+				if (lowerBound == null && upperBound == tEnv.getObjectType()) {
+					return true;
+				}
+				if (v2.lowerBound == null && v2.upperBound == tEnv.getObjectType()) {
+					return true;
+				}
 				return checkBound(lowerBound, v2.lowerBound, JavaTypeFactory.nullType) && 
 					   checkBound(upperBound, v2.upperBound, tEnv.getObjectType());
 			}
@@ -1968,6 +1981,8 @@ public class TypeInference8 {
 							} else if (valueisEquivalent(value, t)) {
 								// Nothing to do
 							} else {
+								valueisEquivalent(t, value);
+								valueisEquivalent(value, t);
 								throw new IllegalStateException("Which value to use? "+value+" vs "+t);
 							}
 						}
@@ -2317,7 +2332,7 @@ public class TypeInference8 {
 			
 			BoundSet newBounds = constructInitialSet(formals, varArray);
 			IJavaTypeSubstitution theta = newBounds.getInitialVarSubst();			
-			merge(newBounds);
+			/*bounds.*/merge(newBounds);
 			
 			i=0;
 			for(final IJavaType a_i : cb.t.getTypeParameters()) {
@@ -2602,7 +2617,10 @@ public class TypeInference8 {
 				final TypeVariable y_i = new TypeVariable(a_i);// new InferenceVariable(null); // TODO unique?
 				y_subst.put(a_i, y_i);
 			}
-			final TypeSubstitution theta = new TypeSubstitution(tEnv.getBinder(), y_subst);
+			// HACK to handle unresolved variables
+			final Map<InferenceVariable,IJavaType> combinedSubst = new HashMap<InferenceVariable,IJavaType>(y_subst);
+			combinedSubst.putAll(getInstantiations());
+			final TypeSubstitution theta = new TypeSubstitution(tEnv.getBinder(), combinedSubst);
 
 			final EqualityBound[] newBounds = new EqualityBound[subset.size()];
 			final BoundSet rv = new BoundSet(this);
@@ -2728,9 +2746,10 @@ public class TypeInference8 {
 			final List<InferenceVariable> ordering = computeTopologicalSort();
 			final Set<InferenceVariable> rv = new HashSet<InferenceVariable>();
 			boolean foundComponent = false;
+			// Find the first component with uninstantiated vars
 			for(final InferenceVariable v : ordering) {
 				final Collection<InferenceVariable> vars = components.get(v); 
-				for(final InferenceVariable w : ordering) {
+				for(final InferenceVariable w : vars) {
 					if (uninstantiated.contains(w)) {
 						rv.add(w);
 						foundComponent = true;
@@ -2802,6 +2821,7 @@ public class TypeInference8 {
 		}
 
 		public void recordDepsForEquality(Set<IJavaType> lhsInCapture, Equalities equalities) {
+			final Set<InferenceVariable> temp = new HashSet<InferenceVariable>();
 			for(IEquality e : equalities) {
 				if (e.isTrivial()) {
 					continue;
@@ -2810,7 +2830,6 @@ public class TypeInference8 {
 					for(InferenceVariable v2 : e.vars()) {
 						markDependsOn(v, v2);
 					}		
-					final Set<InferenceVariable> temp = new HashSet<InferenceVariable>();
 					for(IJavaReferenceType t : e.values()) {
 						recordDepsForBound(lhsInCapture, temp, (InferenceVariable) v, t);
 						temp.clear();
