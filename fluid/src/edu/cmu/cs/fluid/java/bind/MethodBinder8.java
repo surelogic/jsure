@@ -1592,4 +1592,48 @@ public class MethodBinder8 implements IMethodBinder {
 		}
 		return t;
 	}
+	
+	/**
+	 * 15.12.2.6 Method Invocation Type
+	 * 
+	 * The invocation type of a most specific accessible and applicable method is a method
+	 * type (§8.2) expressing the target types of the invocation arguments, the result
+	 * (return type or void ) of the invocation, and the exception types of the invocation.
+	 * 
+	 * It is determined as follows:
+	 * 
+	 * • If the chosen method is generic and the method invocation does not provide
+	 *   explicit type arguments, the invocation type is inferred as specified in §18.5.2.
+	 *   
+	 * • If the chosen method is generic and the method invocation provides explicit type
+	 *   arguments, let P i be the type parameters of the method and let T i be the explicit
+	 *   type arguments provided for the method invocation (1 ≤ i ≤ p). Then:
+	 *   
+	 *   – If unchecked conversion was necessary for the method to be applicable, then
+	 *     the invocation type's parameter types are obtained by applying the substitution
+	 *     [P 1 := T 1 , ..., P p := T p ] to the parameter types of the method's type, and the
+	 *     invocation type's return type and thrown types are given by the erasure of the
+	 *     return type and thrown types of the method's type.
+	 *     
+	 *   – If unchecked conversion was not necessary for the method to be applicable,
+	 *     then the invocation type is obtained by applying the substitution 
+	 *     [P 1 := T 1 , ..., P p := T p ] to the method's type.
+	 * 
+	 * • If the chosen method is not generic, then:
+	 * 
+	 *   – If unchecked conversion was necessary for the method to be applicable, the
+	 *     parameter types of the invocation type are the parameter types of the method's
+	 *     type, and the return type and thrown types are given by the erasures of the
+	 *     return type and thrown types of the method's type.
+	 *     
+	 *   – Otherwise, if the chosen method is the getClass method of the class Object
+	 *     (§4.3.2), the invocation type is the same as the method's type, except that the
+	 *     [return type is Class<? extends T> , where T is the type that was searched, as
+	 *     determined by §15.12.1.
+	 *   
+	 *   – Otherwise, the invocation type is the same as the method's type.
+	 */
+	public void computeInvocationType() {
+		
+	}
 }
