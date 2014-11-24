@@ -269,11 +269,11 @@ public class TypeInference8 {
 			if (b1 == b2) {
 				return true;
 			}
-			if (b1 == null && b2 == ifNull) {
-				return true;
+			if (b1 == null) {
+				return b2 == ifNull;
 			}
-			if (b2 == null && b1 == ifNull) {
-				return true;
+			if (b2 == null) {
+				return b1 == ifNull;
 			}
 			return b1.isEqualTo(tEnv, b2);
 		}
@@ -283,6 +283,10 @@ public class TypeInference8 {
 				return new SingletonIterator<IJavaType>(upperBound);
 			}
 			return new SingletonIterator<IJavaType>(tEnv.getObjectType());
+		}
+
+		boolean isBound() {
+			return upperBound != null;
 		}
 	}
 	
@@ -2610,24 +2614,52 @@ public class TypeInference8 {
 		 *   
 		 * @return the new bound set to try to resolve
 		 */
-		BoundSet instantiateViaFreshVars(Set<InferenceVariable> subset) {
-			final ProperBounds bounds = collectProperBounds(true);
-			final Map<InferenceVariable,TypeVariable> y_subst = new HashMap<InferenceVariable,TypeVariable>(subset.size());
-			for(InferenceVariable a_i : subset) {
+		BoundSet instantiateViaFreshVars(final Set<InferenceVariable> origSubset) {
+			// HACK use the same type variable for equalities:
+			//   Remove "duplicate" variables from origSubset
+			//   Take advantage of incorporation to set the "duplicates" to the same type variable
+			final Set<InferenceVariable> toInstantiate = new HashSet<InferenceVariable>(origSubset);
+			final MultiMap<InferenceVariable,InferenceVariable> equal = new MultiHashMap<InferenceVariable, InferenceVariable>();
+			for(IEquality e : equalities) {
+				if (e.vars().size() > 1) {
+					Set<InferenceVariable> matched = new HashSet<InferenceVariable>(e.vars());
+					matched.retainAll(toInstantiate);
+					if (matched.size() > 1) {
+						// Keep only one of the equivalent variables
+						final InferenceVariable v = matched.iterator().next();
+						toInstantiate.removeAll(matched);						
+						toInstantiate.add(v);
+						equal.putAll(v, e.vars()); // TODO matched?
+					}
+				}
+			}
+			
+			final ProperBounds bounds = collectProperBounds(true);	
+			final Map<InferenceVariable,TypeVariable> y_subst = new HashMap<InferenceVariable,TypeVariable>(toInstantiate.size());
+			for(InferenceVariable a_i : toInstantiate) {
 				final TypeVariable y_i = new TypeVariable(a_i);// new InferenceVariable(null); // TODO unique?
 				y_subst.put(a_i, y_i);
+				
+				// HACK also set equivalent variables to the same type variable for substitution
+				Collection<InferenceVariable> others = equal.get(a_i);
+				if (others != null) {
+					for(InferenceVariable v : others) {
+						y_subst.put(v, y_i);
+					}
+				}
 			}
 			// HACK to handle unresolved variables
 			final Map<InferenceVariable,IJavaType> combinedSubst = new HashMap<InferenceVariable,IJavaType>(y_subst);
 			combinedSubst.putAll(getInstantiations());
 			final TypeSubstitution theta = new TypeSubstitution(tEnv.getBinder(), combinedSubst);
 
-			final EqualityBound[] newBounds = new EqualityBound[subset.size()];
+			final EqualityBound[] newBounds = new EqualityBound[toInstantiate.size()];
 			final BoundSet rv = new BoundSet(this);
 			int i = 0;
-			rv.removeAssociatedCaptureBounds(subset);			
+			rv.removeAssociatedCaptureBounds(origSubset);			
 			//rv.addInferenceVariables(y_subst);
-			for(InferenceVariable a_i : subset) {
+			
+			for(InferenceVariable a_i : toInstantiate) {
 				final TypeVariable y_i = y_subst.get(a_i);
 				Collection<IJavaType> lower = bounds.lowerBounds.get(a_i);
 				IJavaType l_i = null;
@@ -2639,11 +2671,6 @@ public class TypeInference8 {
 				if (upper != null && !upper.isEmpty()) {
 					u_i = utils.getGreatestLowerBound(toArray(theta.substTypes(null, upper))); 
 				}
-				// Check if the bounds are well-formed
-				if (l_i != null && u_i != null && !l_i.isSubtype(tEnv, u_i)) {
-					return null;
-				}
-				// TODO how to check for intersection type?
 				
 				// add new bounds
 				if (l_i != null) {
@@ -2657,7 +2684,22 @@ public class TypeInference8 {
 				//rv.addEqualityBound(a_i, y_i);
 				newBounds[i] = newEqualityBound(a_i, y_i);
 				i++;
-			}		
+			}	
+			for(TypeVariable v : y_subst.values()) {
+				if (!v.isBound()) {
+					throw new IllegalStateException();
+				}
+				
+				// Check if the bounds are well-formed
+				IJavaType l_i = v.getLowerBound();
+				IJavaType u_i = v.getUpperBound(tEnv);
+				if (l_i != null && u_i != null && !l_i.isSubtype(tEnv, u_i)) {
+					return null;
+				}
+				// TODO how to check for intersection type?
+				
+
+			}
 			rv.incorporate(newBounds);
 			return rv;
 		}
@@ -2799,7 +2841,7 @@ public class TypeInference8 {
 				if (b.s instanceof InferenceVariable) {
 					recordDepsForBound(lhsInCapture, temp, (InferenceVariable) b.s, b.t);
 				}
-				else if (b.t instanceof InferenceVariable) {
+				if (b.t instanceof InferenceVariable) {
 					recordDepsForBound(lhsInCapture, temp, (InferenceVariable) b.t, b.s);
 				}
 				temp.clear(); 
@@ -3518,6 +3560,12 @@ public class TypeInference8 {
 	 *     new constraints: for all i (1 <= i <= n), < S <: I i >.
 	 */
 	void reduceSubtypingConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
+		/*
+		if (s instanceof TypeVariable || t instanceof TypeVariable) {
+			// HACK ignore for now?
+			return;
+		}
+		*/
 		if (isProperType(s) && isProperType(t)) {
 			if (tEnv.isSubType(s, t)) {
 				bounds.addTrue();
@@ -3749,6 +3797,12 @@ public class TypeInference8 {
 	 * - Otherwise, the constraint reduces to false.
 	 */
 	void reduceTypeEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
+		/*
+		if (s instanceof TypeVariable || t instanceof TypeVariable) {
+			// HACK ignore for now?
+			return;
+		}
+		*/
 		if (isProperType(s) && isProperType(t)) {
 			if (s.isEqualTo(tEnv, t)) {
 				bounds.addTrue();
