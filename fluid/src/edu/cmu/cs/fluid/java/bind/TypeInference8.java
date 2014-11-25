@@ -2722,8 +2722,12 @@ public class TypeInference8 {
 			return rv;
 		}
 
-		void usedUncheckedConversion() {
+		void useUncheckedConversion() {
 			usedUncheckedConversion = true;
+		}
+		
+		boolean usedUncheckedConversion() {
+			return usedUncheckedConversion;
 		}
 	}
 	
