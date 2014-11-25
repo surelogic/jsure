@@ -695,6 +695,49 @@ public class TypeInference8 {
 	 *      variable of another constraint in C . (input variable and output variable are
 	 *      defined below.)
 	 *      
+	 *      (see below)
+	 * 
+	 *   2. The selected constraint(s) are removed from C .
+	 *   
+	 *   3. The input variables α 1 , ..., α m of all the selected constraint(s) are resolved.
+	 *   
+	 *   4. Where T 1 , ..., T m are the instantiations of α 1 , ..., α m , the substitution
+	 *      [ α 1 := T 1 , ..., α m := T m ] is applied to every constraint.
+	 *      
+	 *   5. The constraint(s) resulting from substitution are reduced and incorporated
+	 *      with the current bound set.
+	 */
+	private BoundSet computeB_4(final BoundSet b_3, final Set<ConstraintFormula> c) {
+		BoundSet current = b_3;
+		while (!c.isEmpty()) {			
+			// Step 2
+			final Set<ConstraintFormula> selected = selectConstraints(c);
+			c.removeAll(selected);
+			
+			// Step 3: resolve
+			final Set<InferenceVariable> toResolve = collectInputVars(selected);
+
+			// Step 4: apply instantiations
+			final Set<ConstraintFormula> substituted = null; // TODO
+			
+			// Step 5: reduce and incorporate into current
+			for(ConstraintFormula f : substituted) {
+				reduceConstraintFormula(current, f);
+			}
+		}
+		return current;
+	}
+	
+	private Set<InferenceVariable> collectInputVars(Set<ConstraintFormula> selected) {
+		throw new NotImplemented();
+	}
+
+	/**
+	 *   1. A subset of constraints is selected in C , satisfying the property that, for each
+	 *      constraint, no input variable depends on the resolution (Â§18.4) of an output
+	 *      variable of another constraint in C . (input variable and output variable are
+	 *      defined below.)
+	 *      
 	 *      If this subset is empty, then there is a cycle (or cycles) in the graph of
 	 *      dependencies between constraints. In this case, all constraints are considered
 	 *      that participate in a dependency cycle (or cycles) and do not depend on any
@@ -709,25 +752,14 @@ public class TypeInference8 {
 	 *      - If no considered constraint has the form <Expression -> T >, then the
 	 *        selected constraint is the considered constraint that contains the expression
 	 *        to the left of the expression of every other considered constraint.
-	 * 
-	 *   2. The selected constraint(s) are removed from C .
-	 *   
-	 *   3. The input variables α 1 , ..., α m of all the selected constraint(s) are resolved.
-	 *   
-	 *   4. Where T 1 , ..., T m are the instantiations of α 1 , ..., α m , the substitution
-	 *      [ α 1 := T 1 , ..., α m := T m ] is applied to every constraint.
-	 *      
-	 *   5. The constraint(s) resulting from substitution are reduced and incorporated
-	 *      with the current bound set.
 	 */
-	private BoundSet computeB_4(BoundSet b_3, Set<ConstraintFormula> c) {
+	private Set<ConstraintFormula> selectConstraints(Set<ConstraintFormula> c) {
+		// TODO Auto-generated method stub
 		InputOutputVars io = new InputOutputVars();
 		computeInputOutput(io, null); // TODO
-		
-		BoundSet rv = b_3; // TODO
 		throw new NotImplemented();
 	}
-	
+
 	/*
 	* @return true if there exists no type of the form G< ... > that is a supertype of S , 
 	*         but the raw type | G< ... > | is a supertype of S .
