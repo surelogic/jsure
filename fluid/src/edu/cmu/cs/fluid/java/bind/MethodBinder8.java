@@ -2,6 +2,7 @@ package edu.cmu.cs.fluid.java.bind;
 
 import java.util.*;
 
+import com.surelogic.common.Pair;
 import com.surelogic.common.util.EmptyIterator;
 import com.surelogic.common.util.Iteratable;
 
@@ -1605,8 +1606,10 @@ public class MethodBinder8 implements IMethodBinder {
 	 * (see below)
 	 */
 	public IJavaFunctionType computeInvocationType(final CallState call, final IBinding b) {
-		final MethodBinding mb = new MethodBinding(b);
-		final BoundSet b_2 = null;
+		Pair<MethodBinding,BoundSet> result = typeInfer.recomputeB_2(call, b);
+		final MethodBinding mb = result.first();
+		final BoundSet b_2 = result.second();
+
 		if (mb.isGeneric()) {
 			/*
 			 * • If the chosen method is generic and the method invocation does not provide

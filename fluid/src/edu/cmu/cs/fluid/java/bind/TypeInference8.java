@@ -10,6 +10,7 @@ import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 
 import com.surelogic.ast.java.operator.ITypeFormalNode;
+import com.surelogic.common.Pair;
 import com.surelogic.common.util.AppendIterator;
 import com.surelogic.common.util.Iteratable;
 import com.surelogic.common.util.PairIterator;
@@ -28,6 +29,7 @@ import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.operator.CallInterface.NoArgs;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
+import edu.cmu.cs.fluid.util.Triple;
 
 public class TypeInference8 {
 	final MethodBinder8 mb;
@@ -472,7 +474,7 @@ public class TypeInference8 {
      *     then the invocation type of m is obtained by applying θ' to the type of m .
      * 
      *   If B 4 contains the bound false, or if resolution fails, then a compile-time error occurs.
-*/
+     */
 	BoundSet inferForInvocationType(CallState call, MethodBinding m, BoundSet b_2) {
 		final BoundSet b_3 = computeB_3(call, m, b_2);
 		final IJavaTypeSubstitution theta = b_3.getInitialVarSubst();
@@ -482,7 +484,7 @@ public class TypeInference8 {
 		BoundSet rv = b_3; // TODO
 		throw new NotImplemented();
 	}
-
+	
 	/**
 	 * From 18.5.2 Invocation Type Inference
 	 */
@@ -686,9 +688,16 @@ public class TypeInference8 {
 			c.add(new ConstraintFormula(e_i, FormulaConstraint.THROWS, f_subst));
 		}
 		else if (MethodCall.prototype.includes(op) || NewExpression.prototype.includes(op)) {
-			if (mb.isPolyExpression(e_i)) {
-				// TODO 
-				throw new UnsupportedOperationException();
+			if (mb.isPolyExpression(e_i)) {			
+				try {
+					Triple<CallState,MethodBinding,BoundSet> result = computeInvocationBounds((CallInterface) op, e_i, f_subst);
+					final BoundSet b_3 = result.third();
+					// TODO do I need to do any substitution?					
+					final IJavaTypeSubstitution theta = b_3.getInitialVarSubst();
+					c.addAll(createInitialConstraints(result.first(), result.second(), theta));
+				} catch (NoArgs e1) {
+					throw new IllegalStateException("No arguments for "+DebugUnparser.toString(e_i));
+				}
 			}
 		}
 		else if (ParenExpression.prototype.includes(op)) {
@@ -3181,7 +3190,7 @@ public class TypeInference8 {
 			else if (NewExpression.prototype.includes(op) || MethodCall.prototype.includes(op)) {
 				try {
 					// Need to substitute for inference variables used here
-					final BoundSet b_3 = computeInvocationBounds((CallInterface) op, e, t);
+					final BoundSet b_3 = computeInvocationBounds((CallInterface) op, e, t).third();
 					bounds.mergeWithSubst(b_3, bounds.getInitialVarSubst());
 				} catch (NoArgs e1) {
 					throw new IllegalStateException("No arguments for "+DebugUnparser.toString(e));
@@ -3202,12 +3211,19 @@ public class TypeInference8 {
 		}		
 	}
 
-	private BoundSet computeInvocationBounds(CallInterface c, final IRNode e, final IJavaType t) throws NoArgs {
+	private Triple<CallState,MethodBinding,BoundSet> computeInvocationBounds(CallInterface c, final IRNode e, final IJavaType t) throws NoArgs {
 		// Need to restore the binding to how it looked before I added the type substitution for the method's parameters
 		final IBinding b = tEnv.getBinder().getIBinding(e);
+		final CallState call = new CallState(tEnv.getBinder(), e, c.get_TypeArgs(e), c.get_Args(e), b.getReceiverType());
+		Pair<MethodBinding,BoundSet> pair = recomputeB_2(call, b);
+		BoundSet b_3 = computeB_3(call, pair.first(), pair.second(), t); 
+		return new Triple<CallState,MethodBinding,BoundSet>(call, pair.first(), b_3);
+	}
+	
+	public Pair<MethodBinding,BoundSet> recomputeB_2(CallState call, IBinding b) {
 		final IBinding newB = IBinding.Util.makeMethodBinding(b, null, JavaTypeSubstitution.create(tEnv, b.getContextType()), null, tEnv);
 		final MethodBinding m = new MethodBinding(newB);
-        final CallState call = new CallState(tEnv.getBinder(), e, c.get_TypeArgs(e), c.get_Args(e), m.bind.getReceiverType());
+  
 		BoundSet b_2 = null;
 		// TODO record how the method was matched
 		for(InvocationKind kind : InvocationKind.values()) {
@@ -3220,9 +3236,9 @@ public class TypeInference8 {
 		if (b_2 == null) {
 			inferForInvocationApplicability(call, m, null);
 		}
-		return computeB_3(call, m, b_2, t); // TODO
+		return new Pair<MethodBinding,BoundSet>(m, b_2);
 	}
-
+	
 	/**
 	 * A constraint formula of the form <LambdaExpression -> T >, where T mentions at
 	 * least one inference variable, is reduced as follows:
