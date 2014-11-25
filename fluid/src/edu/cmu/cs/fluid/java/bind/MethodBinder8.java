@@ -1602,38 +1602,109 @@ public class MethodBinder8 implements IMethodBinder {
 	 * 
 	 * It is determined as follows:
 	 * 
-	 * • If the chosen method is generic and the method invocation does not provide
-	 *   explicit type arguments, the invocation type is inferred as specified in §18.5.2.
-	 *   
-	 * • If the chosen method is generic and the method invocation provides explicit type
-	 *   arguments, let P i be the type parameters of the method and let T i be the explicit
-	 *   type arguments provided for the method invocation (1 ≤ i ≤ p). Then:
-	 *   
-	 *   – If unchecked conversion was necessary for the method to be applicable, then
-	 *     the invocation type's parameter types are obtained by applying the substitution
-	 *     [P 1 := T 1 , ..., P p := T p ] to the parameter types of the method's type, and the
-	 *     invocation type's return type and thrown types are given by the erasure of the
-	 *     return type and thrown types of the method's type.
-	 *     
-	 *   – If unchecked conversion was not necessary for the method to be applicable,
-	 *     then the invocation type is obtained by applying the substitution 
-	 *     [P 1 := T 1 , ..., P p := T p ] to the method's type.
-	 * 
-	 * • If the chosen method is not generic, then:
-	 * 
-	 *   – If unchecked conversion was necessary for the method to be applicable, the
-	 *     parameter types of the invocation type are the parameter types of the method's
-	 *     type, and the return type and thrown types are given by the erasures of the
-	 *     return type and thrown types of the method's type.
-	 *     
-	 *   – Otherwise, if the chosen method is the getClass method of the class Object
-	 *     (§4.3.2), the invocation type is the same as the method's type, except that the
-	 *     [return type is Class<? extends T> , where T is the type that was searched, as
-	 *     determined by §15.12.1.
-	 *   
-	 *   – Otherwise, the invocation type is the same as the method's type.
+	 * (see below)
 	 */
-	public void computeInvocationType() {
-		
+	public IJavaFunctionType computeInvocationType(final CallState call, final IBinding b) {
+		final MethodBinding mb = new MethodBinding(b);
+		final BoundSet b_2 = null;
+		if (mb.isGeneric()) {
+			/*
+			 * • If the chosen method is generic and the method invocation does not provide
+			 *   explicit type arguments, the invocation type is inferred as specified in §18.5.2.
+			 */
+			if (call.getNumTypeArgs() == 0) {
+				BoundSet bounds = typeInfer.inferForInvocationType(call, mb, b_2);
+				throw new NotImplemented();
+			} else {
+				/*
+				 * • If the chosen method is generic and the method invocation provides explicit type
+				 *   arguments, let P i be the type parameters of the method and let T i be the explicit
+				 *   type arguments provided for the method invocation (1 ≤ i ≤ p). Then:
+				 *   
+				 *   – If unchecked conversion was necessary for the method to be applicable, then
+				 *     the invocation type's parameter types are obtained by applying the substitution
+				 *     [P 1 := T 1 , ..., P p := T p ] to the parameter types of the method's type, and the
+				 *     invocation type's return type and thrown types are given by the erasure of the
+				 *     return type and thrown types of the method's type.
+				 *     
+				 *   – If unchecked conversion was not necessary for the method to be applicable,
+				 *     then the invocation type is obtained by applying the substitution 
+				 *     [P 1 := T 1 , ..., P p := T p ] to the method's type.
+				 */
+				final Map<IJavaTypeFormal, IJavaType> map = new HashMap<IJavaTypeFormal, IJavaType>(mb.numTypeFormals);				
+				int i=0;
+				for(IRNode tf : JJNode.tree.children(mb.typeFormals)) {
+					IJavaTypeFormal p_i = JavaTypeFactory.getTypeFormal(tf);
+					IJavaType t_i = tEnv.getBinder().getJavaType(call.targs[i]);
+					map.put(p_i, t_i);
+					i++;
+				}
+				IJavaTypeSubstitution subst = new TypeInference8.TypeSubstitution(tEnv.getBinder(), map);
+				IJavaFunctionType mtype = computeMethodType(mb);
+				
+				if (b_2.usedUncheckedConversion()) {
+					return substParams_eraseReturn(mtype, subst);
+				} else {
+					return mtype.subst(subst);
+				}
+			}
+		} else {
+			/*
+			 * • If the chosen method is not generic, then:
+			 * 
+			 *   – If unchecked conversion was necessary for the method to be applicable, the
+			 *     parameter types of the invocation type are the parameter types of the method's
+			 *     type, and the return type and thrown types are given by the erasures of the
+			 *     return type and thrown types of the method's type.
+			 *     
+			 *   – Otherwise, if the chosen method is the getClass method of the class Object
+			 *     (§4.3.2), the invocation type is the same as the method's type, except that the
+			 *     [return type is Class<? extends T> , where T is the type that was searched, as
+			 *     determined by §15.12.1.
+			 *   
+			 *   – Otherwise, the invocation type is the same as the method's type.
+			 */
+			IJavaFunctionType mtype = computeMethodType(mb);
+			if (b_2.usedUncheckedConversion()) {
+				return substParams_eraseReturn(mtype, null);
+			} 
+			if ("getClass".equals(JJNode.getInfo(b.getNode())) &&
+				tEnv.getObjectType().equals(b.getContextType())) {
+				return replaceReturn(mtype, JavaTypeFactory.getWildcardType(b.getReceiverType(), null));
+			}			
+			return mtype;
+		}
+	}
+
+	private IJavaFunctionType computeMethodType(MethodBinding m) {
+		// TODO is it right to omit the context type?
+		return JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), null, tEnv.getBinder());
+	}
+	
+	private IJavaFunctionType replaceReturn(IJavaFunctionType orig, IJavaType newReturn) {
+		return JavaTypeFactory.getFunctionType(orig.getTypeFormals(), newReturn, orig.getParameterTypes(), orig.isVariable(), orig.getExceptions());
+	}
+	
+	private IJavaFunctionType substParams_eraseReturn(IJavaFunctionType orig, IJavaTypeSubstitution subst) {
+		final List<IJavaType> paramTypes;
+		if (subst != null) {
+			paramTypes = new ArrayList<IJavaType>();
+			for(IJavaType pt : orig.getParameterTypes()) {
+				paramTypes.add(pt.subst(subst));
+			}
+		} else {
+			paramTypes = orig.getParameterTypes();
+		}
+		final IJavaType returnType = tEnv.computeErasure(orig.getReturnType());
+		final Set<IJavaType> throwTypes;
+		if (orig.getExceptions().isEmpty()) {
+			throwTypes = Collections.emptySet();
+		} else {
+			throwTypes = new HashSet<IJavaType>();
+			for(IJavaType e : orig.getExceptions()) {
+				throwTypes.add(tEnv.computeErasure(e));
+			}
+		}		
+		return JavaTypeFactory.getFunctionType(orig.getTypeFormals(), returnType, paramTypes, orig.isVariable(), throwTypes);
 	}
 }
