@@ -4,6 +4,7 @@ import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.java.*;
+import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.*;
@@ -434,12 +435,15 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   @Override
   public IJavaType visitMethodCall(IRNode node) {
     IBinding b = binder.getIBinding( node );
-    IJavaType type = computeReturnType(b);    
+    IRNode targs = MethodCall.getTypeArgs(node);
+	IRNode args = MethodCall.getArgs(node);
+	CallState call = new CallState(binder, node, targs, args , b.getReceiverType());
+    IJavaType type = computeReturnType(call, b);    
     //return captureWildcards(binder, type);
     return type;
   }
   
-  public static IJavaType computeReturnType(IBinder binder, IBinding mb) {
+  public static IJavaType computeReturnType(IBinder binder, IBinding mb, CallState call) {
 	  if (ConstructorDeclaration.prototype.includes(mb.getNode())) {
 		  if (mb.getContextType() == null) {
 			  throw new IllegalStateException();
@@ -449,20 +453,24 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 	  JavaTypeVisitor jtv = JavaTypeVisitor.prototype;
 	  synchronized ( jtv ) {
 		  final IBinder preBinder = jtv.binder;
-		  jtv.binder = binder;
+		  jtv.setBinder(binder);
 		  try {
-			  return jtv.computeReturnType(mb);
+			  return jtv.computeReturnType(call, mb);
 		  } finally {
-			  jtv.binder = preBinder;
+			  jtv.setBinder(preBinder);
 		  }
 	  }
   }
   
-  private IJavaType computeReturnType(IBinding b) {
+  private IJavaType computeReturnType(CallState call, IBinding b) {
     if (b == null) return null;
     IRNode n = b.getNode();
     Operator op = JJNode.tree.getOperator( n );
     if( op instanceof MethodDeclaration ) {
+      if (processJava8) {
+    	 MethodBinder8 mb = new MethodBinder8((AbstractJavaBinder) binder, false);
+    	 return mb.computeInvocationType(call, b).getReturnType();
+      }
     	
       // Check if Object.getClass()
       final IJavaDeclaredType objectT = binder.getTypeEnvironment().getObjectType();
@@ -1219,7 +1227,25 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     }
   }
 
-  protected IBinder binder;
+  private IBinder binder;
+  private boolean processJava8;
+  
+  protected IBinder getBinder() {
+	  return binder;
+  }
+  
+  protected void setBinder(IBinder b) {
+	  if (b == null) {
+		  throw new NullPointerException();
+	  }
+	  binder = b;
+	  if (b instanceof AbstractJavaBinder) {
+		  AbstractJavaBinder ajb = (AbstractJavaBinder) b;
+		  processJava8 = ajb.processJava8;
+	  } else {
+		  processJava8 = false;
+	  }
+  }
   
   /**
    * Return the type of a node using a binder.
@@ -1293,7 +1319,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
    */
   static public JavaTypeVisitor getTypeVisitor(IBinder b) {
     JavaTypeVisitor jtv = new JavaTypeVisitor();
-    jtv.binder = b;
+    jtv.setBinder(b);
     return jtv;
   }
   

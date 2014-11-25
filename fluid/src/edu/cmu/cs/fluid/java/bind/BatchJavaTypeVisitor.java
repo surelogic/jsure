@@ -28,8 +28,8 @@ public class BatchJavaTypeVisitor extends JavaTypeVisitor {
 			                       Map<IRNode, IJavaType> tMap, IBinder binder, IRNode root) {
 		BatchJavaTypeVisitor jtv = BatchJavaTypeVisitor.prototype;
 		synchronized ( jtv ) {
-			final IBinder preBinder = jtv.binder;
-			jtv.binder  = binder;
+			final IBinder preBinder = jtv.getBinder();
+			jtv.setBinder(binder);
 			jtv.typeMap = tMap;
 			try {
 				for(IRNode node : JJNode.tree.topDown(root)) {
@@ -52,11 +52,11 @@ public class BatchJavaTypeVisitor extends JavaTypeVisitor {
 				}
 			} finally {
 				jtv.typeMap = null;
-				jtv.binder  = preBinder;
+				jtv.setBinder(preBinder);
 			}
 		}
 	}
-	
+
 	public IJavaType doAccept(IRNode node, Operator op) {
 		IJavaType t = ((IAcceptor) op).accept(node, this);
 		if (t != null) {

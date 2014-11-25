@@ -1642,7 +1642,7 @@ public class TypeUtils {
 	}
 	
 	private IJavaType computeReturnType(Mapping map) {
-		IJavaType rt = JavaTypeVisitor.computeReturnType(tEnv.getBinder(), map.method);
+		IJavaType rt = JavaTypeVisitor.computeReturnType(tEnv.getBinder(), map.method, map.call);
 		if (rt instanceof IJavaVoidType) {
 			return rt;
 		}
@@ -1685,22 +1685,30 @@ public class TypeUtils {
 		  } else if (ParenExpression.prototype.includes(op)) {
 			  return getPolyExpressionTargetType(p);
 		  } else if (Arguments.prototype.includes(op)) {
-			  IBinding bi = tEnv.getBinder().getIBinding(JJNode.tree.getParent(p));
+			  IRNode call = JJNode.tree.getParent(p);
+			  IBinding bi = tEnv.getBinder().getIBinding(call);
 			  int i = JJNode.tree.childLocationIndex(p, loc);
 			  if (bi != null) {
-				  IRNode decl = tEnv.getBinder().getBinding(JJNode.tree.getParent(p));
+				  IRNode decl = bi.getNode();
 				  if (decl != null) {
-					  final IRNode formals;
+					  final IRNode formals, targs;
 					  Operator dop = JJNode.tree.getOperator(decl);
 					  if (MethodDeclaration.prototype.includes(dop)) {
 						  formals = MethodDeclaration.getParams(decl);
+						  targs = MethodCall.getTypeArgs(call);						
 					  } else if (ConstructorDeclaration.prototype.includes(dop)) {
 						  formals = ConstructorDeclaration.getParams(decl);
+						  // TODO what about ConstructorCall/ACE?
+						  targs = NewExpression.getTypeArgs(call);
 					  } else {
 						  //LOG.warning("what could a call be bound to? " + dop);
 						  return null;
 					  }
-					  return bi.convertType(tEnv.getBinder(), tEnv.getBinder().getJavaType(JJNode.tree.getChild(formals, i)));
+					  //return bi.convertType(tEnv.getBinder(), tEnv.getBinder().getJavaType(JJNode.tree.getChild(formals, i)));
+					  MethodBinder8 mb = new MethodBinder8((AbstractJavaBinder) tEnv.getBinder(), false);
+					  CallState state = new CallState(tEnv.getBinder(), call, targs, p, bi.getReceiverType());
+					  IJavaFunctionType ftype = mb.computeInvocationType(state, bi);
+					  return ftype.getReturnType();
 				  }
 			  }
 		  }
