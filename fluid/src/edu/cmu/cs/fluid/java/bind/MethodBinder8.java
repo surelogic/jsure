@@ -1616,8 +1616,7 @@ public class MethodBinder8 implements IMethodBinder {
 			 *   explicit type arguments, the invocation type is inferred as specified in §18.5.2.
 			 */
 			if (call.getNumTypeArgs() == 0) {
-				BoundSet bounds = typeInfer.inferForInvocationType(call, mb, b_2);
-				throw new NotImplemented();
+				return typeInfer.inferForInvocationType(call, mb, b_2);
 			} else {
 				/*
 				 * • If the chosen method is generic and the method invocation provides explicit type
@@ -1679,7 +1678,7 @@ public class MethodBinder8 implements IMethodBinder {
 		}
 	}
 
-	private IJavaFunctionType computeMethodType(MethodBinding m) {
+	IJavaFunctionType computeMethodType(MethodBinding m) {
 		// TODO is it right to omit the context type?
 		return JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), null, tEnv.getBinder());
 	}
@@ -1688,7 +1687,7 @@ public class MethodBinder8 implements IMethodBinder {
 		return JavaTypeFactory.getFunctionType(orig.getTypeFormals(), newReturn, orig.getParameterTypes(), orig.isVariable(), orig.getExceptions());
 	}
 	
-	private IJavaFunctionType substParams_eraseReturn(IJavaFunctionType orig, IJavaTypeSubstitution subst) {
+	IJavaFunctionType substParams_eraseReturn(IJavaFunctionType orig, IJavaTypeSubstitution subst) {
 		final List<IJavaType> paramTypes;
 		if (subst != null) {
 			paramTypes = new ArrayList<IJavaType>();
