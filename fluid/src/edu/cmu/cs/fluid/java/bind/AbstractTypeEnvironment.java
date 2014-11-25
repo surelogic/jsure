@@ -1271,7 +1271,9 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 			IJavaWildcardType wt = (IJavaWildcardType) t;
 			if (wt.getLowerBound() != null) {
 				result = isSubType(s, wt.getLowerBound());
-				return result;
+				if (result) {
+					return result;
+				}
 			}
 		}
 		
@@ -1279,7 +1281,9 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 			// JLS 4.10.2 -- A type variable is a direct supertype of its lower bound
 			IJavaTypeVariable ct = (IJavaTypeVariable) t;
 			result = /*isSubType(s, ct.getUpperBound()) &&*/ isSubType(s, ct.getLowerBound());
-			return result;
+			if (result) {
+				return result;
+			}
 		}
 		
 		// need to handle wildcard type parameters:
