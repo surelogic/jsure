@@ -328,7 +328,7 @@ public class MethodBinder8 implements IMethodBinder {
     		final int n = ft.getParameterTypes().size();
     		final boolean isConstructor = "new".equals(name);
     		if (!isConstructor && identifyReceiverKind(base) == ReceiverKind.REF_TYPE) {
-    			for(IBinding m : findPotentiallyApplicableForMethodRef(base, name, n, -1)) {
+    			for(IBinding m : findPotentiallyApplicableForMethodRef(base, name, n, ft.getTypeFormals().size())) {
     				final int p = getArity(m.getNode(), isConstructor);
     				if (TypeUtil.isStatic(m.getNode())) {
     					if (p == n) {
@@ -349,7 +349,7 @@ public class MethodBinder8 implements IMethodBinder {
     				}
     			}
     		} else {
-      			for(IBinding m : findPotentiallyApplicableForMethodRef(base, name, n, -1)) {
+      			for(IBinding m : findPotentiallyApplicableForMethodRef(base, name, n, ft.getTypeFormals().size())) {
       				if (!TypeUtil.isStatic(m.getNode())) {
       					return true;
       				}
@@ -1708,5 +1708,82 @@ public class MethodBinder8 implements IMethodBinder {
 			}
 		}		
 		return JavaTypeFactory.getFunctionType(orig.getTypeFormals(), returnType, paramTypes, orig.isVariable(), throwTypes);
+	}
+	
+	/**
+	 * 15.13.1 Compile-Time Declaration of a Method Reference
+	 * 
+	 * The compile-time declaration of a method reference is the method to which the expression refers. 
+	 * In special cases, the compile-time declaration does not actually exist, but is a notional method 
+	 * that represents a class instance creation or an array creation. The choice of compile-time declaration 
+	 * depends on a function type targeted by the expression, just as the compile-time declaration of a method
+	 * invocation depends on the invocation's arguments (§15.12).
+	 * 
+	 * The search for a compile-time declaration mirrors the process for method invocations in §15.12.1 and 
+	 * §15.12.2, as follows:
+	 * 
+	 * • First, a type to search is determined ...
+	 * • Second, given a targeted function type with n parameters, a set of potentially applicable methods 
+	 *   is identified ...
+	 *   
+	 *   (see findPotentiallyApplicableForMethodRef)
+	 *   
+	 * • Finally, if there are no potentially applicable methods, then there is no compile- time declaration.
+	 * 
+	 *   Otherwise, given a targeted function type with parameter types P1, ..., Pn and a set of potentially 
+	 *   applicable methods, the compile-time declaration is selected as follows:
+	 *   
+	 *   – If the method reference expression has the form ReferenceType :: [TypeArguments] Identifier, then 
+	 *     two searches for a most specific applicable method are performed. Each search is as specified in 
+	 *     §15.12.2.2 through §15.12.2.5, with the clarifications below. Each search may produce a method or, 
+	 *     in the case of an error as specified in §15.12.2.2 through §15.12.2.5, no result.
+	 *     
+	 *     In the first search, the method reference is treated as if it were an invocation with argument 
+	 *     expressions of types P1, ..., Pn; the type arguments, if any, are given by the method reference 
+	 *     expression.
+	 *     
+	 *     In the second search, if P1, ..., Pn is not empty and P1 is a subtype of ReferenceType, then the 
+	 *     method reference expression is treated as if it were a method invocation expression with 
+	 *     argument expressions of types P2, ..., Pn. If ReferenceType is a raw type, and there exists a 
+	 *     parameterization of this type, G<...>, that is a supertype of P1, the type to search is the 
+	 *     result of capture conversion (§5.1.10) applied to G<...>; otherwise, the type to search is the 
+	 *     same as the type of the first search. Again, the type arguments, if any, are given by the 
+	 *     method reference expression.
+	 *     
+	 *     If the first search produces a static method, and no non-static method is applicable by §15.12.2.2, 
+	 *     §15.12.2.3, or §15.12.2.4 during the second search, then the compile-time declaration is the result 
+	 *     of the first search.
+	 *     
+	 *     Otherwise, if no static method is applicable by §15.12.2.2, §15.12.2.3, or §15.12.2.4 during the 
+	 *     first search, and the second search produces a non- static method, then the compile-time declaration
+	 *     is the result of the second search.
+	 *     
+	 *     Otherwise, there is no compile-time declaration.
+	 *     
+	 *   – For all other forms of method reference expression, one search for a most specific applicable method
+	 *     is performed. The search is as specified in §15.12.2.2 through §15.12.2.5, with the clarifications below
+	 *     
+	 *     The method reference is treated as if it were an invocation with argument expressions of types 
+	 *     P1, ..., Pn; the type arguments, if any, are given by the method reference expression.
+	 *     
+	 *     If the search results in an error as specified in §15.12.2.2 through §15.12.2.5, or if the 
+	 *     most specific applicable method is static, there is no compile-time declaration.
+	 *     
+	 *     Otherwise, the compile-time declaration is the most specific applicable method
+	 */
+	IBinding findCompileTimeDeclForRef(IJavaFunctionType ft, IRNode ref) {
+		final IRNode base;
+		final String name;
+		if (MethodReference.prototype.includes(ref)) {
+			base = MethodReference.getReceiver(ref);
+			name = MethodReference.getMethod(ref);
+		} else {
+			base = ConstructorReference.getReceiver(ref);
+			name = "new";
+		}
+		for(IBinding m : findPotentiallyApplicableForMethodRef(base, name, ft.getParameterTypes().size(), ft.getTypeFormals().size())) {
+			throw new NotImplemented();
+		}
+		throw new NotImplemented();
 	}
 }

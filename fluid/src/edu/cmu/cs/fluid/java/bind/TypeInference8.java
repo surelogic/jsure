@@ -5,12 +5,14 @@ import static edu.cmu.cs.fluid.java.bind.IMethodBinder.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 
 import com.surelogic.ast.java.operator.ITypeFormalNode;
 import com.surelogic.common.Pair;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.util.AppendIterator;
 import com.surelogic.common.util.Iteratable;
 import com.surelogic.common.util.PairIterator;
@@ -21,6 +23,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IROutput;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IJavaType.BooleanVisitor;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.MethodBinding;
@@ -34,7 +37,8 @@ import edu.cmu.cs.fluid.util.Triple;
 public class TypeInference8 {
 	final MethodBinder8 mb;
 	final ITypeEnvironment tEnv;
-	final TypeUtils utils;
+	final TypeUtils utils;	
+	final Map<IRNode,BoundSet> b_2Cache = new ConcurrentHashMap<IRNode,BoundSet>();
 	
 	TypeInference8(MethodBinder8 b) {
 		mb = b;
@@ -429,6 +433,7 @@ public class TypeInference8 {
 		}
 		if (result != null && !result.isFalse && 
 			result.getInstantiations().keySet().containsAll(result.variableMap.values())) {
+			b_2Cache.put(call.call, b_2);			
 			return b_2;
 		}
 		return null;
@@ -739,18 +744,26 @@ public class TypeInference8 {
 		BoundSet current = b_3;
 		while (!c.isEmpty()) {			
 			// Step 2
-			final Set<ConstraintFormula> selected = selectConstraints(c, io);
+			ConstraintDependencies deps = new ConstraintDependencies();
+			deps.populate(c, io);
+			
+			final Set<ConstraintFormula> selected = deps.chooseUninstantiated(c);
 			c.removeAll(selected);
 			
 			// Step 3: resolve
-			final Set<InferenceVariable> toResolve = collectInputVars(io, selected);
-
-			// Step 4: apply instantiations
-			final Set<ConstraintFormula> substituted = null; // TODO
+			final Set<InferenceVariable> toResolve = collectInputVars(io, selected);			
+			BoundSet next = resolve(current, toResolve);
+			if (next == null) {
+				resolve(current, toResolve);
+				throw new IllegalStateException();
+			}
 			
+			// Step 4: apply instantiations
 			// Step 5: reduce and incorporate into current
-			for(ConstraintFormula f : substituted) {
-				reduceConstraintFormula(current, f);
+			TypeSubstitution subst = new TypeSubstitution(tEnv.getBinder(), next.getInstantiations());
+			for(ConstraintFormula f : selected) {
+				ConstraintFormula f_prime = f.subst(subst);
+				reduceConstraintFormula(current, f_prime);
 			}
 		}
 		return current;
@@ -759,8 +772,9 @@ public class TypeInference8 {
 	private Map<ConstraintFormula, InputOutputVars> precomputeIO(Set<ConstraintFormula> c) {
 		Map<ConstraintFormula, InputOutputVars> rv = new HashMap<ConstraintFormula, InputOutputVars>(c.size());
 		for(ConstraintFormula f : c) {
-			InputOutputVars io = new InputOutputVars();
+			InputOutputVars io = new InputOutputVars(f);
 			computeInputOutput(io, f);
+			rv.put(f, io);
 		}
 		return rv;
 	}
@@ -786,22 +800,79 @@ public class TypeInference8 {
 	 *      constraints outside of the cycle (or cycles). A single constraint is selected
 	 *      from the considered constraints, as follows:
 	 *      
-	 *      - If any of the considered constraints have the form <Expression -> T >,
-	 *        then the selected constraint is the considered constraint of this form that
-	 *        contains the expression to the left (Â§3.5) of the expression of every other
-	 *        considered constraint of this form.
-	 * 
-	 *      - If no considered constraint has the form <Expression -> T >, then the
-	 *        selected constraint is the considered constraint that contains the expression
-	 *        to the left of the expression of every other considered constraint.
-	 * @param io 
+	 *      (see below)
 	 */
-	private Set<ConstraintFormula> selectConstraints(Set<ConstraintFormula> c, Map<ConstraintFormula, InputOutputVars> io) {
-		// TODO Auto-generated method stub
+	class ConstraintDependencies extends Dependencies<ConstraintFormula> {
+		void populate(Set<ConstraintFormula> c,	Map<ConstraintFormula, InputOutputVars> io) {
+			// Precompute output mappings
+			MultiMap<InferenceVariable,ConstraintFormula> outputForFormulas = new MultiHashMap<InferenceVariable, ConstraintFormula>();
+			for(ConstraintFormula f : c) {
+				InputOutputVars vars = io.get(f);				
+				for(InferenceVariable v : vars.output) {
+					outputForFormulas.put(v, f);
+				}
+			}			
+			// Create dependencies
+			for(ConstraintFormula f : c) {
+				InputOutputVars vars = io.get(f);
+				for(InferenceVariable v : vars.input) {
+					Collection<ConstraintFormula> formulas = outputForFormulas.get(v);
+					if (formulas != null) {
+						for(ConstraintFormula fo : formulas) {
+							markDependsOn(f, fo);
+						}
+					}
+				}
+			}
+		}
+		
+		/**
+		 *      - If any of the considered constraints have the form <Expression -> T >,
+		 *        then the selected constraint is the considered constraint of this form that
+		 *        contains the expression to the left (Â§3.5) of the expression of every other
+		 *        considered constraint of this form.
+		 * 
+		 *      - If no considered constraint has the form <Expression -> T >, then the
+		 *        selected constraint is the considered constraint that contains the expression
+		 *        to the left of the expression of every other considered constraint.
+		 */
+		@Override
+		public Set<ConstraintFormula> chooseUninstantiated(final Set<ConstraintFormula> remaining) {
+			Set<ConstraintFormula> considered = super.chooseUninstantiated(remaining);
+			if (considered.size() <= 1) {
+				return considered;
+			}
+			// Otherwise, there's a cycle of dependencies? TODO
+			ConstraintFormula expression_T = null;
+			for(ConstraintFormula f : considered) {
+				if (f.expr != null && f.constraint == FormulaConstraint.IS_COMPATIBLE) {
+					if (expression_T == null) {
+						expression_T = f;
+					}
+					else if (isToTheLeftOf(f.expr, expression_T.expr)) {
+						expression_T = f;
+					}
+				}
+			}
+			// TODO is this right?
+			return considered;
+		}
 
-		throw new NotImplemented();
+		private boolean isToTheLeftOf(IRNode e1, IRNode e2) {
+			IJavaRef r1 = JavaNode.getJavaRef(e1);
+			IJavaRef r2 = JavaNode.getJavaRef(e2);
+			if (r1.getOffset() < r2.getOffset()) {
+				// TODO what if r1 contains r2?
+				return true;
+			}
+			if (r1.getOffset() == r2.getOffset()) {
+				return r1.getLength() < r2.getLength();
+			}
+			return false;
+		}
+
 	}
-
+	
 	/*
 	* @return true if there exists no type of the form G< ... > that is a supertype of S , 
 	*         but the raw type | G< ... > | is a supertype of S .
@@ -861,8 +932,13 @@ public class TypeInference8 {
 	}
 	
 	static class InputOutputVars {
+		final ConstraintFormula f;
 		final Set<InferenceVariable> input = new HashSet<InferenceVariable>();
 		final Set<InferenceVariable> output = new HashSet<InferenceVariable>();
+		
+		InputOutputVars(ConstraintFormula f) {
+			this.f = f;
+		}
 	}
 	
 	/**
@@ -1402,24 +1478,33 @@ public class TypeInference8 {
 	 * - <MethodReference -> throws T >: The checked exceptions thrown by the referenced
 	 *   method are declared by the throws clause of the function type derived from T .
 	 */
-	static class ConstraintFormula {
+	static class ConstraintFormula implements Dependable {
 		final IRNode expr;	
 		final IJavaType stype;		
 		final FormulaConstraint constraint;
 		final IJavaType type;
-	
+		private int index;
+		private int lowlink;
+		
 		ConstraintFormula(IJavaType s, FormulaConstraint c, IJavaType t) {
 			expr = null;
 			stype = s;
 			constraint = c;
 			type = t;
 		}
-			
+
 		ConstraintFormula(IRNode e, FormulaConstraint c, IJavaType t) {
 			expr = e;
 			stype = null;
 			constraint = c;
 			type = t;
+		}
+			
+		ConstraintFormula subst(IJavaTypeSubstitution subst) {		
+			if (expr != null) {
+				return new ConstraintFormula(expr, constraint, type.subst(subst));
+			}
+			return new ConstraintFormula(stype.subst(subst), constraint, type.subst(subst));
 		}
 		
 		@Override
@@ -1429,6 +1514,26 @@ public class TypeInference8 {
 			} else {
 				return DebugUnparser.toString(expr)+' '+constraint+' '+type;
 			}
+		}
+		
+		@Override
+		public int getIndex() {
+			return index;
+		}
+
+		@Override
+		public void setIndex(int i) {
+			index = i;
+		}
+
+		@Override
+		public int getLowLink() {
+			return lowlink;
+		}
+
+		@Override
+		public void setLowLink(int i) {
+			lowlink = i;
 		}
 	}
 	
@@ -2865,6 +2970,10 @@ public class TypeInference8 {
 			return null;
 		}
 		final Set<InferenceVariable> subset = bounds.chooseUninstantiated();
+		return resolve(bounds, subset);
+	}
+	
+	static BoundSet resolve(final BoundSet bounds, final Set<InferenceVariable> subset) {
 		if (subset.isEmpty()) {
 			return bounds; // All instantiated
 		}
@@ -3321,15 +3430,17 @@ public class TypeInference8 {
 		final IBinding newB = IBinding.Util.makeMethodBinding(b, null, JavaTypeSubstitution.create(tEnv, b.getContextType()), null, tEnv);
 		final MethodBinding m = new MethodBinding(newB);
   
-		BoundSet b_2 = null;
-		// TODO record how the method was matched
-		for(InvocationKind kind : InvocationKind.values()) {
-			b_2 = inferForInvocationApplicability(call, m, kind); // TODO is this right?
-			
-			if (b_2 != null) {
-				break;
-			}
-		}		
+		BoundSet b_2 = b_2Cache.get(call.call);
+		if (b_2 == null) {
+			// TODO record how the method was matched
+			for(InvocationKind kind : InvocationKind.values()) {
+				b_2 = inferForInvocationApplicability(call, m, kind); // TODO is this right?
+
+				if (b_2 != null) {
+					break;
+				}
+			}		
+		}
 		if (b_2 == null) {
 			inferForInvocationApplicability(call, m, null);
 		}
@@ -4105,21 +4216,7 @@ public class TypeInference8 {
 	 * - Otherwise, if the method reference is inexact and the function type's result is
 	 *   neither void nor a proper type, the constraint reduces to false.
 	 * 
-	 * - Otherwise, let E 1 , ..., E n be the types in the function type's throws clause that
-	 *   are not proper types. Let X 1 , ..., X m be the checked exceptions in the throws
-	 *   clause of the invocation type of the method reference's compile-time declaration
-	 *   (Â§15.13.2) (as derived from the function type's parameter types and return type).
-	 *   Then there are two cases:
-	 *   
-	 *   - If n = 0 (the function type's throws clause consists only of proper types), then
-	 *     if there exists some i (1 <= i <= m) such that X i is not a subtype of any proper type
-	 *     in the throws clause, the constraint reduces to false; otherwise, the constraint
-	 *     reduces to true.
-	 *     
-	 *   - If n > 0 , the constraint reduces to a set of subtyping constraints: for all i (1 <=
-	 *     i <= m), if X i is not a subtype of any proper type in the throws clause, then the
-	 *     constraints include, for all j (1 <= j <= n), < X i <: E j >. In addition, for all j (1 <= j
-	 *     <= n), the constraint reduces to the bound throws E j .
+	 * (see below)
 	 */
 	private void reduceMethodRefCheckedExceptionConstraints(BoundSet bounds, IRNode ref, IJavaType t) {
 		IJavaFunctionType targetFuncType = tEnv.isFunctionalType(t);
@@ -4134,10 +4231,58 @@ public class TypeInference8 {
     	    		return;
     			}
     		}
+			if (!(targetFuncType.getReturnType() instanceof IJavaVoidType) &&
+				!isProperType(targetFuncType.getReturnType())) {
+				bounds.addFalse();
+	    		return;
+			}
 		}
-		throw new NotImplemented(); // TODO
+		/**
+		 * - Otherwise, let E 1 , ..., E n be the types in the function type's throws clause that
+		 *   are not proper types. Let X 1 , ..., X m be the checked exceptions in the throws
+		 *   clause of the invocation type of the method reference's compile-time declaration
+		 *   (Â§15.13.2) (as derived from the function type's parameter types and return type).
+		 *   Then there are two cases:
+		 */
+		final Set<IJavaType> e = new HashSet<IJavaType>();
+		for(IJavaType ex : targetFuncType.getExceptions()) {
+			if (!isProperType(ex)) {
+				e.add(ex);
+			}
+		}
+		final IJavaFunctionType invocationType = computeInvocationTypeForRef(targetFuncType, ref);
+		/*
+		 *   - If n = 0 (the function type's throws clause consists only of proper types), then
+		 *     if there exists some i (1 <= i <= m) such that X i is not a subtype of any proper type
+		 *     in the throws clause, the constraint reduces to false; otherwise, the constraint
+		 *     reduces to true.
+		 */
+
+		if (e.size() == 0) {
+			for(IJavaType x_i : invocationType.getExceptions()) {
+				for(IJavaType ex : targetFuncType.getExceptions()) {
+					if (!x_i.isSubtype(tEnv, ex)) {
+						bounds.addFalse();
+						return;
+					}
+				}
+			}
+		} else {
+			/*
+			 *   - If n > 0 , the constraint reduces to a set of subtyping constraints: for all i (1 <=
+			 *     i <= m), if X i is not a subtype of any proper type in the throws clause, then the
+			 *     constraints include, for all j (1 <= j <= n), < X i <: E j >. In addition, for all j (1 <= j
+			 *     <= n), the constraint reduces to the bound throws E j .
+			 */		
+			throw new NotImplemented();
+		}
 	}
 	
+	private IJavaFunctionType computeInvocationTypeForRef(IJavaFunctionType targetFuncType, IRNode ref) {
+		IBinding b = mb.findCompileTimeDeclForRef(targetFuncType, ref);
+		return mb.computeInvocationType(null, b); // TODO
+	}
+
 	static class TypeSubstitution extends AbstractTypeSubstitution {
 		final Map<? extends IJavaTypeFormal, ? extends IJavaType> subst;
 		
