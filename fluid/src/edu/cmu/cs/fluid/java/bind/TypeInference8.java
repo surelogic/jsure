@@ -47,12 +47,19 @@ public class TypeInference8 {
 		return Integer.toString(n, Character.MAX_RADIX);
 	}
 	
+	interface Dependable {
+		int getIndex();
+		void setIndex(int i);
+		int getLowLink();
+		void setLowLink(int i);
+	}
+	
 	// TODO how to distinguish from each other
 	// TODO how to keep from polluting the normal caches?
-	static final class InferenceVariable extends JavaReferenceType implements IJavaTypeFormal, Comparable<InferenceVariable> {
+	static final class InferenceVariable extends JavaReferenceType implements IJavaTypeFormal, Comparable<InferenceVariable>, Dependable {
 		final IRNode formal;
-		int index;
-		int lowlink;
+		private int index;
+		private int lowlink;
 		
 		InferenceVariable(IRNode tf) {
 			formal = tf;
@@ -125,6 +132,26 @@ public class TypeInference8 {
 		    	return rv;
 		    }
 		    return this;
+		}
+
+		@Override
+		public int getIndex() {
+			return index;
+		}
+
+		@Override
+		public void setIndex(int i) {
+			index = i;
+		}
+
+		@Override
+		public int getLowLink() {
+			return lowlink;
+		}
+
+		@Override
+		public void setLowLink(int i) {
+			lowlink = i;
 		}
 	}
 	
@@ -708,14 +735,15 @@ public class TypeInference8 {
 	 *      with the current bound set.
 	 */
 	private BoundSet computeB_4(final BoundSet b_3, final Set<ConstraintFormula> c) {
+		Map<ConstraintFormula,InputOutputVars> io = precomputeIO(c);
 		BoundSet current = b_3;
 		while (!c.isEmpty()) {			
 			// Step 2
-			final Set<ConstraintFormula> selected = selectConstraints(c);
+			final Set<ConstraintFormula> selected = selectConstraints(c, io);
 			c.removeAll(selected);
 			
 			// Step 3: resolve
-			final Set<InferenceVariable> toResolve = collectInputVars(selected);
+			final Set<InferenceVariable> toResolve = collectInputVars(io, selected);
 
 			// Step 4: apply instantiations
 			final Set<ConstraintFormula> substituted = null; // TODO
@@ -728,8 +756,22 @@ public class TypeInference8 {
 		return current;
 	}
 	
-	private Set<InferenceVariable> collectInputVars(Set<ConstraintFormula> selected) {
-		throw new NotImplemented();
+	private Map<ConstraintFormula, InputOutputVars> precomputeIO(Set<ConstraintFormula> c) {
+		Map<ConstraintFormula, InputOutputVars> rv = new HashMap<ConstraintFormula, InputOutputVars>(c.size());
+		for(ConstraintFormula f : c) {
+			InputOutputVars io = new InputOutputVars();
+			computeInputOutput(io, f);
+		}
+		return rv;
+	}
+
+	private Set<InferenceVariable> collectInputVars(Map<ConstraintFormula, InputOutputVars> io, Set<ConstraintFormula> selected) {
+		Set<InferenceVariable> inputs = new HashSet<InferenceVariable>();
+		for(ConstraintFormula f : selected) {
+			InputOutputVars vars = io.get(f);
+			inputs.addAll(vars.input);
+		}
+		return inputs;
 	}
 
 	/**
@@ -752,11 +794,11 @@ public class TypeInference8 {
 	 *      - If no considered constraint has the form <Expression -> T >, then the
 	 *        selected constraint is the considered constraint that contains the expression
 	 *        to the left of the expression of every other considered constraint.
+	 * @param io 
 	 */
-	private Set<ConstraintFormula> selectConstraints(Set<ConstraintFormula> c) {
+	private Set<ConstraintFormula> selectConstraints(Set<ConstraintFormula> c, Map<ConstraintFormula, InputOutputVars> io) {
 		// TODO Auto-generated method stub
-		InputOutputVars io = new InputOutputVars();
-		computeInputOutput(io, null); // TODO
+
 		throw new NotImplemented();
 	}
 
@@ -819,8 +861,8 @@ public class TypeInference8 {
 	}
 	
 	static class InputOutputVars {
-		Set<InferenceVariable> input;
-		Set<InferenceVariable> output;
+		final Set<InferenceVariable> input = new HashSet<InferenceVariable>();
+		final Set<InferenceVariable> output = new HashSet<InferenceVariable>();
 	}
 	
 	/**
@@ -2839,23 +2881,23 @@ public class TypeInference8 {
 		return resolve(fresh);		
 	}
 	
-	class VarDependencies {
-		final MultiMap<InferenceVariable,InferenceVariable> dependsOn = new MultiHashMap<InferenceVariable,InferenceVariable>();
+	static class Dependencies<T extends Dependable> {
+		final MultiMap<T,T> dependsOn = new MultiHashMap<T,T>();
 
-		private void markDependsOn(InferenceVariable alpha, InferenceVariable beta) {
+		protected void markDependsOn(T alpha, T beta) {
 			dependsOn.put(alpha, beta);
 		}	
 
-		public Set<InferenceVariable> chooseUninstantiated(final Set<InferenceVariable> uninstantiated) {
+		public Set<T> chooseUninstantiated(final Set<T> uninstantiated) {
 			computeStronglyConnectedComponents();
 			
-			final List<InferenceVariable> ordering = computeTopologicalSort();
-			final Set<InferenceVariable> rv = new HashSet<InferenceVariable>();
+			final List<T> ordering = computeTopologicalSort();
+			final Set<T> rv = new HashSet<T>();
 			boolean foundComponent = false;
 			// Find the first component with uninstantiated vars
-			for(final InferenceVariable v : ordering) {
-				final Collection<InferenceVariable> vars = components.get(v); 
-				for(final InferenceVariable w : vars) {
+			for(final T v : ordering) {
+				final Collection<T> vars = components.get(v); 
+				for(final T w : vars) {
 					if (uninstantiated.contains(w)) {
 						rv.add(w);
 						foundComponent = true;
@@ -2869,6 +2911,151 @@ public class TypeInference8 {
 			return Collections.emptySet();
 		}
 
+
+		
+		int index = 0;
+		final Stack<T> s = new Stack<T>();
+		final MultiMap<T,T> components = new MultiHashMap<T,T>();
+		
+		// http://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
+		private void computeStronglyConnectedComponents() {
+		  // Reset info
+		  for(T v : dependsOn.keySet()) {
+			  v.setIndex(-1);
+			  v.setLowLink(Integer.MAX_VALUE);
+		  }
+		  /*
+		   * algorithm tarjan is
+		   * input: graph G = (V, E)
+		   * output: set of strongly connected components (sets of vertices)
+		   * 
+		   * index := 0
+		   * S := empty
+		   * for each v in V do
+		   *   if (v.index is undefined) then
+		   *     strongconnect(v)
+		   *   end if
+		   * end for
+		   */
+		  index = 0;
+		  s.clear();
+		  components.clear();
+		  
+		   for(T v : dependsOn.keySet()) {
+			   if (v.getIndex() < 0) {
+				   strongConnect(v);
+			   }
+		   }
+		}		  
+		
+		private void strongConnect(final T v) {
+		  /*		
+		  function strongconnect(v)
+		    // Set the depth index for v to the smallest unused index
+		    v.index := index
+		    v.lowlink := index
+		    index := index + 1
+		    S.push(v)
+		    */
+			v.setIndex(index);
+			v.setLowLink(index);
+			index++;
+			s.push(v);
+			
+		    /* Consider successors of v
+		    for each (v, w) in E do
+		      if (w.index is undefined) then
+		        // Successor w has not yet been visited; recurse on it
+		        strongconnect(w)
+		        v.lowlink  := min(v.lowlink, w.lowlink)
+		      else if (w is in S) then
+		        // Successor w is in stack S and hence in the current SCC
+		        v.lowlink  := min(v.lowlink, w.index)
+		      end if
+		    end for
+		    */
+			for(T w : dependsOn.get(v)) {
+				if (w.getIndex() < 0) {
+					strongConnect(w);
+					v.setLowLink(Math.min(v.getLowLink(), w.getLowLink()));
+				}
+				else if (s.contains(w)) {
+					v.setLowLink(Math.min(v.getLowLink(), w.getIndex()));
+				}
+			}
+
+		    /* If v is a root node, pop the stack and generate an SCC
+		    if (v.lowlink = v.index) then
+		      start a new strongly connected component
+		      repeat
+		        w := S.pop()
+		        add w to current strongly connected component
+		      until (w = v)
+		      output the current strongly connected component
+		    end if
+		    */
+			if (v.getLowLink() == v.getIndex()) {
+				T w = null;
+				do {
+					w = s.pop();
+					components.put(v, w);
+				} 
+				while (v != w);
+			}
+		  //end function		  
+		}
+		
+		// http://en.wikipedia.org/wiki/Topological_sorting
+		private List<T> computeTopologicalSort() {
+			/*
+			L â†� Empty list that will contain the sorted nodes
+			while there are unmarked nodes do
+			    select an unmarked node n
+			    visit(n) 
+			*/
+			final List<T> l = new LinkedList<T>();
+			for(T v : components.keySet()) {
+				v.setIndex(-1);
+			}
+			final Set<T> toVisit = new HashSet<T>(components.keySet());
+			
+			while (!toVisit.isEmpty()) {
+				T n = toVisit.iterator().next();
+				visitForSort(l, toVisit, n);
+			}
+			return l;
+		}
+		
+		private void visitForSort(final List<T> l, final Set<T> toVisit, final T n) {
+			/*
+			function visit(node n)
+			    if n has a temporary mark then stop (not a DAG)
+			    if n is not marked (i.e. has not been visited yet) then
+			        mark n temporarily
+			        for each node m with an edge from n to m do
+			            visit(m)
+			        mark n permanently
+			        unmark n temporarily
+			        add n to head of L
+			 */
+			if (n.getIndex() == 0) {
+				throw new IllegalStateException("Not a DAG");
+			}
+			if (n.getIndex() < 0) {
+				toVisit.remove(n);
+				n.setIndex(0);
+				for(T m : dependsOn.get(n)) {
+					if (m != n && components.containsKey(m)) { // filter to the component roots
+						visitForSort(l, toVisit, m);
+					}
+				}
+				n.setIndex(100);
+				l.add(0, n);
+			}
+		}
+	}
+ 	
+	class VarDependencies extends Dependencies<InferenceVariable> {
 		/**
 		 * 18.4 Resolution
 		 * 
@@ -2958,150 +3145,9 @@ public class TypeInference8 {
 					}
 				}
 			}
-		}	
-		
-		int index = 0;
-		final Stack<InferenceVariable> s = new Stack<InferenceVariable>();
-		final MultiMap<InferenceVariable,InferenceVariable> components = new MultiHashMap<InferenceVariable,InferenceVariable>();
-		
-		// http://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
-		private void computeStronglyConnectedComponents() {
-		  // Reset info
-		  for(InferenceVariable v : dependsOn.keySet()) {
-			  v.index = -1;
-			  v.lowlink = Integer.MAX_VALUE;
-		  }
-		  /*
-		   * algorithm tarjan is
-		   * input: graph G = (V, E)
-		   * output: set of strongly connected components (sets of vertices)
-		   * 
-		   * index := 0
-		   * S := empty
-		   * for each v in V do
-		   *   if (v.index is undefined) then
-		   *     strongconnect(v)
-		   *   end if
-		   * end for
-		   */
-		  index = 0;
-		  s.clear();
-		  components.clear();
-		  
-		   for(InferenceVariable v : dependsOn.keySet()) {
-			   if (v.index < 0) {
-				   strongConnect(v);
-			   }
-		   }
-		}		  
-		
-		private void strongConnect(final InferenceVariable v) {
-		  /*		
-		  function strongconnect(v)
-		    // Set the depth index for v to the smallest unused index
-		    v.index := index
-		    v.lowlink := index
-		    index := index + 1
-		    S.push(v)
-		    */
-			v.index = index;
-			v.lowlink = index;
-			index++;
-			s.push(v);
-			
-		    /* Consider successors of v
-		    for each (v, w) in E do
-		      if (w.index is undefined) then
-		        // Successor w has not yet been visited; recurse on it
-		        strongconnect(w)
-		        v.lowlink  := min(v.lowlink, w.lowlink)
-		      else if (w is in S) then
-		        // Successor w is in stack S and hence in the current SCC
-		        v.lowlink  := min(v.lowlink, w.index)
-		      end if
-		    end for
-		    */
-			for(InferenceVariable w : dependsOn.get(v)) {
-				if (w.index < 0) {
-					strongConnect(w);
-					v.lowlink = Math.min(v.lowlink, w.lowlink);
-				}
-				else if (s.contains(w)) {
-					v.lowlink = Math.min(v.lowlink, w.index);
-				}
-			}
-
-		    /* If v is a root node, pop the stack and generate an SCC
-		    if (v.lowlink = v.index) then
-		      start a new strongly connected component
-		      repeat
-		        w := S.pop()
-		        add w to current strongly connected component
-		      until (w = v)
-		      output the current strongly connected component
-		    end if
-		    */
-			if (v.lowlink == v.index) {
-				InferenceVariable w = null;
-				do {
-					w = s.pop();
-					components.put(v, w);
-				} 
-				while (v != w);
-			}
-		  //end function		  
-		}
-		
-		// http://en.wikipedia.org/wiki/Topological_sorting
-		private List<InferenceVariable> computeTopologicalSort() {
-			/*
-			L â†� Empty list that will contain the sorted nodes
-			while there are unmarked nodes do
-			    select an unmarked node n
-			    visit(n) 
-			*/
-			final List<InferenceVariable> l = new LinkedList<InferenceVariable>();
-			for(InferenceVariable v : components.keySet()) {
-				v.index = -1;
-			}
-			final Set<InferenceVariable> toVisit = new HashSet<InferenceVariable>(components.keySet());
-			
-			while (!toVisit.isEmpty()) {
-				InferenceVariable n = toVisit.iterator().next();
-				visitForSort(l, toVisit, n);
-			}
-			return l;
-		}
-		
-		private void visitForSort(final List<InferenceVariable> l, final Set<InferenceVariable> toVisit, final InferenceVariable n) {
-			/*
-			function visit(node n)
-			    if n has a temporary mark then stop (not a DAG)
-			    if n is not marked (i.e. has not been visited yet) then
-			        mark n temporarily
-			        for each node m with an edge from n to m do
-			            visit(m)
-			        mark n permanently
-			        unmark n temporarily
-			        add n to head of L
-			 */
-			if (n.index == 0) {
-				throw new IllegalStateException("Not a DAG");
-			}
-			if (n.index < 0) {
-				toVisit.remove(n);
-				n.index = 0;
-				for(InferenceVariable m : dependsOn.get(n)) {
-					if (m != n && components.containsKey(m)) { // filter to the component roots
-						visitForSort(l, toVisit, m);
-					}
-				}
-				n.index = 100;
-				l.add(0, n);
-			}
-		}
+		}			
 	}
- 	
+	
 	static boolean isInferenceVariable(IJavaType t) {
 		return t instanceof InferenceVariable;
 	}
