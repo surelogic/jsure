@@ -559,7 +559,9 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
 	  } else if (ConstructorDeclaration.prototype.includes(op)) {
 		  tformals = ConstructorDeclaration.getTypes(memDecl);
 		  formals = ConstructorDeclaration.getParams(memDecl);
-		  if (receiverType == null) throw new IllegalArgumentException("constructors need non-null receiver types");
+		  if (receiverType == null) {
+			  throw new IllegalArgumentException("constructors need non-null receiver types");
+		  }
 		  returnType = receiverType;
 		  throwsNode = ConstructorDeclaration.getExceptions(memDecl);
 	  } else {
