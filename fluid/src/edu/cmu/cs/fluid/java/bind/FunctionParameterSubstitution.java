@@ -54,6 +54,10 @@ public class FunctionParameterSubstitution extends AbstractTypeSubstitution {
     return new FunctionParameterSubstitution(b, md, actuals);
   }
 
+  public static IJavaTypeSubstitution create(IBinder b, IBinding mbind, IJavaType[] targs) {
+	  return new FunctionParameterSubstitution(b, mbind.getNode(), Arrays.asList(targs));
+  }
+  
   public static IJavaTypeSubstitution create(IBinder b, IBinding mbind, IRNode[] targs) {
 	  List<IJavaType> actuals = new ArrayList<IJavaType>(targs.length);
 	  for(IRNode actual : targs) {
