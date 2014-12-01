@@ -16,7 +16,21 @@ interface IMethodBinder {
 		STRICT, LOOSE, VARARGS
 	}
 	
-	class CallState {
+	interface ICallState {
+		IRNode getNode();	
+		
+		int numArgs();
+		IRNode getArgOrNull(int i);
+		IJavaType getArgType(int i);
+		
+		int getNumTypeArgs();
+		IJavaType getTypeArg(int i);
+		IJavaType[] getTypeArgs();
+		
+		IJavaType getReceiverType();
+	}
+	
+	class CallState implements ICallState {
     	final IBinder binder;
     	final IRNode call;
     	final IRNode[] targs;		
@@ -85,7 +99,7 @@ interface IMethodBinder {
           return argTypes;
         }
 
-    	IJavaType computeArgType(IRNode arg) {
+    	private IJavaType computeArgType(IRNode arg) {
         	IJavaType rv = binder.getJavaType(arg);
             
 			if (MethodBinder.captureTypes) {    		
@@ -118,6 +132,41 @@ interface IMethodBinder {
 
 		public int getNumTypeArgs() {
 			return targs == null ? 0 : targs.length;
+		}
+    	
+    	public IRNode getNode() {
+    		return call;
+    	}
+		
+		public int numArgs() {
+			return args == null ? 0 : args.length;
+		}
+
+		public IRNode getArgOrNull(int i) {
+			return args == null ? null : args[i];
+		}
+
+		public IJavaType getArgType(int i) {
+			return computeArgType(args[i]);
+		}
+
+		public IJavaType getTypeArg(int i) {
+			return binder.getJavaType(targs[i]);
+		}
+
+		public IJavaType[] getTypeArgs() {
+			if (targs == null || targs.length == 0) {
+				return JavaGlobals.noTypes;
+			}
+			IJavaType[] rv = new IJavaType[targs.length];
+			for(int i=0; i<targs.length; i++) {
+				rv[i] = getTypeArg(i);
+			}
+			return rv;
+		}
+
+		public IJavaType getReceiverType() {
+			return receiverType;
 		}
     }	
 	

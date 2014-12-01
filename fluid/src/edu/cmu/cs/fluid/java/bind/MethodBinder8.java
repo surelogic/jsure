@@ -8,6 +8,7 @@ import com.surelogic.common.util.Iteratable;
 
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.BoundSet;
@@ -48,13 +49,7 @@ public class MethodBinder8 implements IMethodBinder {
         		applicable.add(new MethodBinding(mb));
         	}
         }
-        IBinding rv = findMostSpecific(call, applicable, STRICT_INVOCATION);
-        if (rv == null) {
-        	rv = findMostSpecific(call, applicable, LOOSE_INVOCATION);
-        	if (rv == null) {
-        		rv = findMostSpecific(call, applicable, VARIABLE_ARITY_INVOCATION);
-        	}
-        }
+        IBinding rv = tryToFindMostSpecific(call, applicable);
         if (rv == null) {
         	return null;
         }
@@ -62,6 +57,17 @@ public class MethodBinder8 implements IMethodBinder {
         return new BindingInfo(rv, 0, false, 0);
     }
 
+	private IBinding tryToFindMostSpecific(final ICallState call, final Set<MethodBinding> applicable) {
+		IBinding rv = findMostSpecific(call, applicable, STRICT_INVOCATION);
+        if (rv == null) {
+        	rv = findMostSpecific(call, applicable, LOOSE_INVOCATION);
+        	if (rv == null) {
+        		rv = findMostSpecific(call, applicable, VARIABLE_ARITY_INVOCATION);
+        	}
+        }
+		return rv;
+	}    
+    
 	private Iterable<IBinding> findMethods(final IJavaScope scope, final LookupContext context, final boolean needMethod, final IRNode from) {
 		final IJavaScope.Selector isAccessible = MethodBinder.makeAccessSelector(tEnv, from);
         final Iterable<IBinding> methods = new Iterable<IBinding>() {
@@ -594,6 +600,9 @@ public class MethodBinder8 implements IMethodBinder {
        Method references (15.28)
      */
     boolean isPolyExpression(final IRNode e) {
+    	if (e == null) {
+    		return false;
+    	}
     	final Operator op = JJNode.tree.getOperator(e);
     	if (MethodCall.prototype.includes(op)) {
     		//  A method invocation expression is a poly expression if all of the following are true:
@@ -847,7 +856,7 @@ public class MethodBinder8 implements IMethodBinder {
     	/**
     	 * @return non-null if applicable
     	 */
-    	MethodState isApplicable(CallState call, MethodBinding mb);
+    	MethodState isApplicable(ICallState call, MethodBinding mb);
     	InvocationKind getKind();
     }
     
@@ -958,8 +967,8 @@ public class MethodBinder8 implements IMethodBinder {
     		return getKind() == InvocationKind.VARARGS;
     	}
     	
-		public MethodState isApplicable(CallState call, MethodBinding m) {
-			if (kind != InvocationKind.VARARGS && call.args.length != m.getNumFormals()) {
+		public MethodState isApplicable(ICallState call, MethodBinding m) {
+			if (kind != InvocationKind.VARARGS && call.numArgs() != m.getNumFormals()) {
 				return null;
 			}
 			if (m.isGeneric()) {
@@ -970,13 +979,13 @@ public class MethodBinder8 implements IMethodBinder {
 					if (call.getNumTypeArgs() != m.numTypeFormals) {
 						return null;
 					}
-					final IJavaTypeSubstitution methodTypeSubst = FunctionParameterSubstitution.create(binder, m.bind, call.targs);
+					final IJavaTypeSubstitution methodTypeSubst = FunctionParameterSubstitution.create(binder, m.bind, call.getTypeArgs());
 					if (!isApplicableAndCompatible(call, m, methodTypeSubst, context, usesVarargs())) {
 						return null;
 					}
 					int i=0;
 					for(IRNode tf : TypeFormals.getTypeIterator(m.typeFormals)) {
-						IJavaType u_l = binder.getJavaType(call.targs[i]);
+						IJavaType u_l = call.getTypeArg(i);
 						IJavaType b_l = JavaTypeFactory.getTypeFormal(tf).getExtendsBound(tEnv);
 						IJavaType b_subst = b_l.subst(methodTypeSubst);
 						if (!tEnv.isSubType(u_l, b_subst)) {
@@ -996,20 +1005,21 @@ public class MethodBinder8 implements IMethodBinder {
     
     // Assumes that #formals == #args
 	// Check each arg for applicability / compatibility
-	boolean isApplicableAndCompatible(CallState call, MethodBinding m, IJavaTypeSubstitution substForParams, ArgCompatibilityContext context, boolean varArity) {
+	boolean isApplicableAndCompatible(ICallState call, MethodBinding m, IJavaTypeSubstitution substForParams, ArgCompatibilityContext context, boolean varArity) {
 		int i=0;			
-		for(IJavaType pType : m.getParamTypes(binder, call.args.length, varArity)) {
-			final IRNode arg = call.args[i];
-			i++;
+		for(IJavaType pType : m.getParamTypes(binder, call.numArgs(), varArity)) {
+			final IRNode arg = call.getArgOrNull(i);		
 			if (!isPertinentToApplicability(m, call.getNumTypeArgs() > 0, arg)) {
+				i++;
 				continue; // Ignore this one
 			}
 			//IJavaType pType = binder.getJavaType(ParameterDeclaration.getType(param));
 			final IJavaType substType = pType.subst(substForParams);
-			final IJavaType argType = call.computeArgType(arg);
+			final IJavaType argType = call.getArgType(i);
 			if (!context.isCompatible(null, substType, arg, argType)) {
 				return false;										
 			}
+			i++;
 		}	
 		return true;
 	}
@@ -1076,7 +1086,7 @@ public class MethodBinder8 implements IMethodBinder {
 	 */
 	private final ApplicableMethodFilter VARIABLE_ARITY_INVOCATION = new InvocationFilter(InvocationKind.VARARGS, LOOSE_INVOCATION_CONTEXT) {
     	@Override
-		public MethodState isApplicable(CallState call, MethodBinding m) {
+		public MethodState isApplicable(ICallState call, MethodBinding m) {
     		if (!m.isVariableArity()) {
     			return null;
     		}
@@ -1129,8 +1139,8 @@ public class MethodBinder8 implements IMethodBinder {
 	 * 
 	 * â€¢ Otherwise, the method invocation is ambiguous, and a compile-time error occurs.
 	 */
-    private IBinding findMostSpecific(final CallState call, Iterable<MethodBinding> methods, ApplicableMethodFilter filter) {
-    	if (false && "collect".equals(JJNode.getInfoOrNull(call.call))) {
+    private IBinding findMostSpecific(final ICallState call, Iterable<MethodBinding> methods, ApplicableMethodFilter filter) {
+    	if (false && "collect".equals(JJNode.getInfoOrNull(call.getNode()))) {
     		System.out.println("Trying to find method for allOf");
     	}
     	// Arrays.stream(#.readLine#.split(#)).map(String:: <> trim)
@@ -1224,9 +1234,9 @@ public class MethodBinder8 implements IMethodBinder {
 			return !JavaNode.isSet(mods, JavaNode.ABSTRACT | JavaNode.DEFAULT);
 		}
 
-		static MethodState create(CallState call, MethodBinding m, ITypeEnvironment tEnv, IJavaTypeSubstitution methodTypeSubst) {
+		static MethodState create(ICallState call, MethodBinding m, ITypeEnvironment tEnv, IJavaTypeSubstitution methodTypeSubst) {
     		IBinding newB = IBinding.Util.makeMethodBinding(m.bind, m.bind.getContextType(), // TODO is this right? (for diamond op)?
-    				                                        methodTypeSubst, call.receiverType, tEnv);
+    				                                        methodTypeSubst, call.getReceiverType(), tEnv);
     		return new MethodState(new MethodBinding(newB)); // TODO no reuse?    
 		}
 
@@ -1242,10 +1252,10 @@ public class MethodBinder8 implements IMethodBinder {
     
     class MethodStateWithBoundSet extends MethodState {
     	final BoundSet bounds;
-    	CallState call;
+    	ICallState call;
     	final ITypeEnvironment tEnv;
     	
-    	MethodStateWithBoundSet(CallState c, MethodBinding m, ITypeEnvironment te, BoundSet b) {
+    	MethodStateWithBoundSet(ICallState c, MethodBinding m, ITypeEnvironment te, BoundSet b) {
     		super(m);
     		call = c;
     		tEnv = te;
@@ -1264,7 +1274,7 @@ public class MethodBinder8 implements IMethodBinder {
     			result = TypeInference8.resolve(bounds);
     		}
     		IBinding newB = IBinding.Util.makeMethodBinding(bind.bind, bind.bind.getContextType(), // TODO is this right? (for diamond op)?
-    				                                        result.getFinalTypeSubst(), call.receiverType, tEnv);
+    				                                        result.getFinalTypeSubst(), call.getReceiverType(), tEnv);
     		return newB;
     	}
 	}
@@ -1289,18 +1299,18 @@ public class MethodBinder8 implements IMethodBinder {
      *     
      * The above conditions are the only circumstances under which one method may be more specific than another.
      */
-    private boolean isMoreSpecific(final CallState call, MethodState m1, MethodState m2, InvocationKind kind) {
+    private boolean isMoreSpecific(final ICallState call, MethodState m1, MethodState m2, InvocationKind kind) {
     	final boolean varArity = kind == InvocationKind.VARARGS;
     	if (m2.bind.isGeneric()) {
     		// Case 1
     		return typeInfer.inferToBeMoreSpecificMethod(call, m1, kind, m2);
     	}    	
-    	final int k = call.args.length;
+    	final int k = call.numArgs();
     	IJavaType[] m1Types = m1.bind.getParamTypes(binder, k+1, varArity); // TODO is this right?
     	IJavaType[] m2Types = m2.bind.getParamTypes(binder, k+1, varArity);
 		// Case 2 + 3
 		for(int i=0; i<k; i++) {
-			if (!isMoreSpecific(m1Types[i], m2Types[i], call.args[i])) {
+			if (!isMoreSpecific(m1Types[i], m2Types[i], call.getArgOrNull(i))) {
 				return false;
 			}
 		}    	
@@ -1436,6 +1446,9 @@ public class MethodBinder8 implements IMethodBinder {
      *   to applicability
      */
     boolean isPertinentToApplicability(final MethodBinding m, boolean callHasTypeArgs, final IRNode arg) {
+    	if (arg == null) {
+    		return true; // Type is already computed
+    	}
     	Operator op = JJNode.tree.getOperator(arg);
     	if (LambdaExpression.prototype.includes(op)) {
     		if (isImplicitlyTypedLambda(arg)) {
@@ -1605,7 +1618,7 @@ public class MethodBinder8 implements IMethodBinder {
 	 * 
 	 * (see below)
 	 */
-	public IJavaFunctionType computeInvocationType(final CallState call, final IBinding b) {
+	public IJavaFunctionType computeInvocationType(final ICallState call, final IBinding b) {
 		Pair<MethodBinding,BoundSet> result = typeInfer.recomputeB_2(call, b);
 		final MethodBinding mb = result.first();
 		final BoundSet b_2 = result.second();
@@ -1637,7 +1650,7 @@ public class MethodBinder8 implements IMethodBinder {
 				int i=0;
 				for(IRNode tf : JJNode.tree.children(mb.typeFormals)) {
 					IJavaTypeFormal p_i = JavaTypeFactory.getTypeFormal(tf);
-					IJavaType t_i = tEnv.getBinder().getJavaType(call.targs[i]);
+					IJavaType t_i = call.getTypeArg(i);
 					map.put(p_i, t_i);
 					i++;
 				}
@@ -1678,9 +1691,8 @@ public class MethodBinder8 implements IMethodBinder {
 		}
 	}
 
-	IJavaFunctionType computeMethodType(MethodBinding m) {
-		// TODO is it right to omit the context type?
-		return JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), null, tEnv.getBinder());
+	IJavaFunctionType computeMethodType(MethodBinding m) {		
+		return JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), m.bind.getReceiverType(), tEnv.getBinder());
 	}
 	
 	private IJavaFunctionType replaceReturn(IJavaFunctionType orig, IJavaType newReturn) {
@@ -1717,73 +1729,223 @@ public class MethodBinder8 implements IMethodBinder {
 	 * In special cases, the compile-time declaration does not actually exist, but is a notional method 
 	 * that represents a class instance creation or an array creation. The choice of compile-time declaration 
 	 * depends on a function type targeted by the expression, just as the compile-time declaration of a method
-	 * invocation depends on the invocation's arguments (§15.12).
+	 * invocation depends on the invocation's arguments (ï¿½15.12).
 	 * 
-	 * The search for a compile-time declaration mirrors the process for method invocations in §15.12.1 and 
-	 * §15.12.2, as follows:
+	 * The search for a compile-time declaration mirrors the process for method invocations in ï¿½15.12.1 and 
+	 * ï¿½15.12.2, as follows:
 	 * 
-	 * • First, a type to search is determined ...
-	 * • Second, given a targeted function type with n parameters, a set of potentially applicable methods 
+	 * ï¿½ First, a type to search is determined ...
+	 * ï¿½ Second, given a targeted function type with n parameters, a set of potentially applicable methods 
 	 *   is identified ...
 	 *   
 	 *   (see findPotentiallyApplicableForMethodRef)
 	 *   
-	 * • Finally, if there are no potentially applicable methods, then there is no compile- time declaration.
+	 * ï¿½ Finally, if there are no potentially applicable methods, then there is no compile- time declaration.
 	 * 
 	 *   Otherwise, given a targeted function type with parameter types P1, ..., Pn and a set of potentially 
 	 *   applicable methods, the compile-time declaration is selected as follows:
 	 *   
-	 *   – If the method reference expression has the form ReferenceType :: [TypeArguments] Identifier, then 
-	 *     two searches for a most specific applicable method are performed. Each search is as specified in 
-	 *     §15.12.2.2 through §15.12.2.5, with the clarifications below. Each search may produce a method or, 
-	 *     in the case of an error as specified in §15.12.2.2 through §15.12.2.5, no result.
-	 *     
-	 *     In the first search, the method reference is treated as if it were an invocation with argument 
-	 *     expressions of types P1, ..., Pn; the type arguments, if any, are given by the method reference 
-	 *     expression.
-	 *     
-	 *     In the second search, if P1, ..., Pn is not empty and P1 is a subtype of ReferenceType, then the 
-	 *     method reference expression is treated as if it were a method invocation expression with 
-	 *     argument expressions of types P2, ..., Pn. If ReferenceType is a raw type, and there exists a 
-	 *     parameterization of this type, G<...>, that is a supertype of P1, the type to search is the 
-	 *     result of capture conversion (§5.1.10) applied to G<...>; otherwise, the type to search is the 
-	 *     same as the type of the first search. Again, the type arguments, if any, are given by the 
-	 *     method reference expression.
-	 *     
-	 *     If the first search produces a static method, and no non-static method is applicable by §15.12.2.2, 
-	 *     §15.12.2.3, or §15.12.2.4 during the second search, then the compile-time declaration is the result 
-	 *     of the first search.
-	 *     
-	 *     Otherwise, if no static method is applicable by §15.12.2.2, §15.12.2.3, or §15.12.2.4 during the 
-	 *     first search, and the second search produces a non- static method, then the compile-time declaration
-	 *     is the result of the second search.
-	 *     
-	 *     Otherwise, there is no compile-time declaration.
-	 *     
-	 *   – For all other forms of method reference expression, one search for a most specific applicable method
-	 *     is performed. The search is as specified in §15.12.2.2 through §15.12.2.5, with the clarifications below
-	 *     
-	 *     The method reference is treated as if it were an invocation with argument expressions of types 
-	 *     P1, ..., Pn; the type arguments, if any, are given by the method reference expression.
-	 *     
-	 *     If the search results in an error as specified in §15.12.2.2 through §15.12.2.5, or if the 
-	 *     most specific applicable method is static, there is no compile-time declaration.
-	 *     
-	 *     Otherwise, the compile-time declaration is the most specific applicable method
-	 */
-	IBinding findCompileTimeDeclForRef(IJavaFunctionType ft, IRNode ref) {
+	 *   (see below)
+	 */	
+	IBinding findCompileTimeDeclForRef(IJavaFunctionType ft, RefState ref) {
+		final List<IJavaType> p = ft.getParameterTypes();
+		final Set<IBinding> potentiallyApplicable = findPotentiallyApplicableForMethodRef(ref.base, ref.name, p.size(), ft.getTypeFormals().size());
+		if (potentiallyApplicable.isEmpty()) {
+			return null;
+		}
+	
+		final Set<MethodBinding> methods = new HashSet<MethodBinding>();
+		for(IBinding b : potentiallyApplicable) {
+			methods.add(new MethodBinding(b));
+		}
+		final IBinding rv;
+		if (ref.name != "new" && identifyReceiverKind(ref.base) == ReceiverKind.REF_TYPE) {
+			/*   ï¿½ If the method reference expression has the form ReferenceType :: [TypeArguments] Identifier, then 
+			 *     two searches for a most specific applicable method are performed. Each search is as specified in 
+			 *     ï¿½15.12.2.2 through ï¿½15.12.2.5, with the clarifications below. Each search may produce a method or, 
+			 *     in the case of an error as specified in ï¿½15.12.2.2 through ï¿½15.12.2.5, no result.
+			 *     
+			 *     In the first search, the method reference is treated as if it were an invocation with argument 
+			 *     expressions of types P1, ..., Pn; the type arguments, if any, are given by the method reference 
+			 *     expression.
+			 *     
+			 *     In the second search, if P1, ..., Pn is not empty and P1 is a subtype of ReferenceType, then the 
+			 *     method reference expression is treated as if it were a method invocation expression with 
+			 *     argument expressions of types P2, ..., Pn. If ReferenceType is a raw type, and there exists a 
+			 *     parameterization of this type, G<...>, that is a supertype of P1, the type to search is the 
+			 *     result of capture conversion (ï¿½5.1.10) applied to G<...>; otherwise, the type to search is the 
+			 *     same as the type of the first search. Again, the type arguments, if any, are given by the 
+			 *     method reference expression.
+			 *     
+			 *     If the first search produces a static method, and no non-static method is applicable by ï¿½15.12.2.2, 
+			 *     ï¿½15.12.2.3, or ï¿½15.12.2.4 during the second search, then the compile-time declaration is the result 
+			 *     of the first search.
+			 *     
+			 *     Otherwise, if no static method is applicable by ï¿½15.12.2.2, ï¿½15.12.2.3, or ï¿½15.12.2.4 during the 
+			 *     first search, and the second search produces a non- static method, then the compile-time declaration
+			 *     is the result of the second search.
+			 *     
+			 *     Otherwise, there is no compile-time declaration.
+			 */
+			final IBinding first = tryToFindMostSpecific(ref, methods);
+			final IBinding second;
+			if (ft.getParameterTypes().isEmpty()) {
+				second = null;
+			} else {
+				ref.prepForSecond();			
+				second = tryToFindMostSpecific(ref, methods);
+			}
+			boolean firstWorks = first != null && TypeUtil.isStatic(first.getNode());
+			boolean secondWorks = second != null && !TypeUtil.isStatic(second.getNode());
+			if (firstWorks && !secondWorks) {
+				return first;
+			}
+			else if (!firstWorks && secondWorks) {
+				return second;
+			}
+			rv = null;
+		} else {
+			/*   ï¿½ For all other forms of method reference expression, one search for a most specific applicable method
+			 *     is performed. The search is as specified in ï¿½15.12.2.2 through ï¿½15.12.2.5, with the clarifications below
+			 *     
+			 *     The method reference is treated as if it were an invocation with argument expressions of types 
+			 *     P1, ..., Pn; the type arguments, if any, are given by the method reference expression.
+			 *     
+			 *     If the search results in an error as specified in ï¿½15.12.2.2 through ï¿½15.12.2.5, or if the 
+			 *     most specific applicable method is static, there is no compile-time declaration.
+			 *     
+			 *     Otherwise, the compile-time declaration is the most specific applicable method
+			 */
+			rv = tryToFindMostSpecific(ref, methods);
+
+			if (TypeUtil.isStatic(rv.getNode())) {
+				return null;
+			}
+		}
+		return rv;
+	}
+	
+	public class RefState implements ICallState {
+		final IJavaFunctionType type;
+		final IRNode ref;
 		final IRNode base;
 		final String name;
-		if (MethodReference.prototype.includes(ref)) {
-			base = MethodReference.getReceiver(ref);
-			name = MethodReference.getMethod(ref);
-		} else {
-			base = ConstructorReference.getReceiver(ref);
-			name = "new";
+		private boolean doSecond = false;
+		private IJavaType[] secondArgTypes;
+		private IJavaType secondReceiver;
+		
+		public RefState(IJavaFunctionType ft, IRNode r) {
+			type = ft;
+			ref = r;
+			
+			if (MethodReference.prototype.includes(ref)) {
+				base = MethodReference.getReceiver(ref);
+				name = MethodReference.getMethod(ref);
+			} else {
+				base = ConstructorReference.getReceiver(ref);
+				name = "new";
+			}
 		}
-		for(IBinding m : findPotentiallyApplicableForMethodRef(base, name, ft.getParameterTypes().size(), ft.getTypeFormals().size())) {
-			throw new NotImplemented();
+
+		public IRNode getNode() {
+			return ref;
 		}
-		throw new NotImplemented();
+
+		public int numArgs() {
+			if (doSecond) {
+				return type.getParameterTypes().size() - 1; 
+			}
+			return type.getParameterTypes().size();
+		}
+
+		public IRNode getArgOrNull(int i) {
+			return null;
+		}
+
+		public IJavaType getArgType(int i) {
+			if (doSecond) {
+				return secondArgTypes[i];
+			}
+			return type.getParameterTypes().get(i);
+		}
+
+		public int getNumTypeArgs() {
+			return type.getTypeFormals().size();
+		}
+
+		public IJavaType getTypeArg(int i) {
+			return type.getTypeFormals().get(i);
+		}
+
+		public IJavaType[] getTypeArgs() {
+			return type.getTypeFormals().toArray(JavaGlobals.noTypes);
+		}
+
+		public IJavaType getReceiverType() {
+			if (doSecond) {
+				return secondReceiver;
+			}
+			return binder.getJavaType(base);
+		}		
+		
+		/**
+		 *     In the second search, if P1, ..., Pn is not empty and P1 is a subtype of ReferenceType, then the 
+		 *     method reference expression is treated as if it were a method invocation expression with 
+		 *     argument expressions of types P2, ..., Pn. If ReferenceType is a raw type, and there exists a 
+		 *     parameterization of this type, G<...>, that is a supertype of P1, the type to search is the 
+		 *     result of capture conversion (ï¿½5.1.10) applied to G<...>; otherwise, the type to search is the 
+		 *     same as the type of the first search. Again, the type arguments, if any, are given by the 
+		 *     method reference expression.
+		 */
+		void prepForSecond() {
+			if (doSecond) {
+				doSecond = false;
+			}
+			final IJavaType refType = getReceiverType();
+			doSecond = true;
+			
+			List<IJavaType> ptypes = type.getParameterTypes();
+			if (ptypes.isEmpty()) {
+				throw new IllegalStateException(); // TODO what to do?
+			}
+			final IJavaType p_1 = ptypes.get(0);
+			if (p_1.isSubtype(tEnv, refType)) {
+				secondArgTypes = new IJavaType[ptypes.size()-1];
+				for(int i=1; i<ptypes.size(); i++) {
+					secondArgTypes[i-1] = ptypes.get(i);
+				}
+			} else {
+				throw new IllegalStateException();
+			}
+			secondReceiver = refType;
+			if (refType instanceof IJavaDeclaredType) {
+				IJavaDeclaredType refDType = (IJavaDeclaredType) refType;
+				if (refDType.isRawType(tEnv)) {
+					IJavaType paramd_g = findParameterizedTypeAsSuperTypeOf(refDType.getDeclaration(), p_1);
+					if (paramd_g != null) {
+						secondReceiver = JavaTypeVisitor.captureWildcards(binder, paramd_g);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * @return nonnull if there exists a parameterization of this type, G<...>, that is a supertype of P1
+	 */
+	public IJavaType findParameterizedTypeAsSuperTypeOf(final IRNode decl, IJavaType t) {
+		if (t instanceof IJavaDeclaredType) {
+			IJavaDeclaredType dt = (IJavaDeclaredType) t;
+			if (decl.equals(dt.getDeclaration())) {
+				return dt;
+			}
+		}
+		for(IJavaType st : t.getSupertypes(tEnv)) {
+			IJavaType rv = findParameterizedTypeAsSuperTypeOf(decl, st);
+			if (rv != null) {
+				return rv;
+			}
+		}
+		return null;
 	}
 }

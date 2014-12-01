@@ -25,9 +25,10 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IJavaType.BooleanVisitor;
-import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
+import edu.cmu.cs.fluid.java.bind.IMethodBinder.ICallState;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.MethodBinding;
 import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodState;
+import edu.cmu.cs.fluid.java.bind.MethodBinder8.RefState;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.operator.CallInterface.NoArgs;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -340,7 +341,7 @@ public class TypeInference8 {
 	 *   
 	 * @return the bound set B 2 if the method is applicable
 	 */   
-	BoundSet inferForInvocationApplicability(CallState call, MethodBinding m, InvocationKind kind) {
+	BoundSet inferForInvocationApplicability(ICallState call, MethodBinding m, InvocationKind kind) {
 		/*
 		if ("test.TestMethodOverloading.foo(T,T2)".equals(m.toString())) {
 			System.out.println("Found foo(T,T2)");
@@ -396,14 +397,14 @@ public class TypeInference8 {
 		 *     Let F' 1 , ..., F' k be the first k variable arity parameter types of m (Â§15.12.2.4). C
 		 *     includes, for all i (1 <= i <= k) where e i is pertinent to applicability, < e i -> F' i θ>.
 		 */		 
-		if (kind != InvocationKind.VARARGS && m.numFormals != call.args.length) {
+		if (kind != InvocationKind.VARARGS && m.numFormals != call.numArgs()) {
 			return null;
 		}		
 		final BoundSet b_2 = new BoundSet(b_1);
 		final IJavaTypeSubstitution theta = b_2.getInitialVarSubst();
-		final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.args.length, kind == InvocationKind.VARARGS);
-		for(int i=0; i<call.args.length; i++) {
-			final IRNode e_i = call.args[i];
+		final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.numArgs(), kind == InvocationKind.VARARGS);
+		for(int i=0; i<call.numArgs(); i++) {
+			final IRNode e_i = call.getArgOrNull(i);
 			if (mb.isPertinentToApplicability(m, call.getNumTypeArgs() > 0, e_i)) {
 				if (kind == InvocationKind.STRICT) {
 					final boolean isPoly = mb.isPolyExpression(e_i);
@@ -433,7 +434,7 @@ public class TypeInference8 {
 		}
 		if (result != null && !result.isFalse && 
 			result.getInstantiations().keySet().containsAll(result.variableMap.values())) {
-			b_2Cache.put(call.call, b_2);			
+			b_2Cache.put(call.getNode(), b_2);			
 			return b_2;
 		}
 		return null;
@@ -479,7 +480,7 @@ public class TypeInference8 {
      * 
      *   If B 4 contains the bound false, or if resolution fails, then a compile-time error occurs.
      */
-	IJavaFunctionType inferForInvocationType(CallState call, MethodBinding m, BoundSet b_2) {
+	IJavaFunctionType inferForInvocationType(ICallState call, MethodBinding m, BoundSet b_2) {
 		final BoundSet b_3 = computeB_3(call, m, b_2);
 		final IJavaTypeSubstitution theta = b_3.getInitialVarSubst();
 		Set<ConstraintFormula> c = createInitialConstraints(call, m, theta);
@@ -496,22 +497,22 @@ public class TypeInference8 {
 	/**
 	 * From 18.5.2 Invocation Type Inference
 	 */
-	private BoundSet computeB_3(CallState call, MethodBinding m, BoundSet b_2) {
+	private BoundSet computeB_3(ICallState call, MethodBinding m, BoundSet b_2) {
 		 /* 
 	     * - If the invocation is not a poly expression, let the bound set B 3 be the same as B 2 .
 	     */
-		if (!mb.isPolyExpression(call.call)) {
+		if (!mb.isPolyExpression(call.getNode())) {
 			return b_2;
 		}
 
-		final IJavaType t = utils.getPolyExpressionTargetType(call.call);
+		final IJavaType t = utils.getPolyExpressionTargetType(call.getNode());
 		return computeB_3(call, m, b_2, t);
 	}
 	
 	/**
 	 * @param t the target type
 	 */
-	private BoundSet computeB_3(CallState call, MethodBinding m, BoundSet b_2, IJavaType t) {
+	private BoundSet computeB_3(ICallState call, MethodBinding m, BoundSet b_2, IJavaType t) {
 	    /*   If the invocation is a poly expression, let the bound set B 3 be derived from B 2
 	     *   as follows. Let R be the return type of m , let T be the invocation's target type,
 	     *   and then:
@@ -654,11 +655,11 @@ public class TypeInference8 {
      * 
      * - For all i (1 <= i <= k), if e i is not pertinent to applicability, C contains < e i -> F i θ>.
      */
-	private Set<ConstraintFormula> createInitialConstraints(CallState call, MethodBinding m, IJavaTypeSubstitution theta) {
+	private Set<ConstraintFormula> createInitialConstraints(ICallState call, MethodBinding m, IJavaTypeSubstitution theta) {
 		final Set<ConstraintFormula> rv = new HashSet<ConstraintFormula>();
-		final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.args.length, false/*kind == InvocationKind.VARARGS*/);
-		for(int i=0; i<call.args.length; i++) {
-			final IRNode e_i = call.args[i];
+		final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.numArgs(), false/*kind == InvocationKind.VARARGS*/);
+		for(int i=0; i<call.numArgs(); i++) {
+			final IRNode e_i = call.getArgOrNull(i);
 			final IJavaType f_subst = formalTypes[i].subst(theta); 
 			if (!mb.isPertinentToApplicability(m, call.getNumTypeArgs() > 0, e_i)) {
 				rv.add(new ConstraintFormula(e_i, FormulaConstraint.IS_COMPATIBLE, f_subst));
@@ -1121,8 +1122,8 @@ public class TypeInference8 {
 		if (f == null) {
 			return targetType; // Nothing to infer
 		}
-		final IJavaFunctionType fType = tEnv.isFunctionalType(f);
-		final int k = fType.getParameterTypes().size();
+		//final IJavaFunctionType fType = tEnv.isFunctionalType(f);
+		//final int k = fType.getParameterTypes().size();
 		final int m = f.getTypeParameters().size();
 		final List<InferenceVariable> newVars = new ArrayList<InferenceVariable>(m);
 		for(int i=0; i<m; i++) {
@@ -1276,11 +1277,11 @@ public class TypeInference8 {
      *   
      *   Otherwise, m 1 is not more specific than m 2 .
 	 */
-	boolean inferToBeMoreSpecificMethod(CallState call, MethodState m_1, InvocationKind kind, MethodState m_2) {
+	boolean inferToBeMoreSpecificMethod(ICallState call, MethodState m_1, InvocationKind kind, MethodState m_2) {
 		if (m_2.bind.numTypeFormals <= 0) {
 			return true;
 		}
-		final int k = call.args.length;
+		final int k = call.numArgs();
 		final IJavaType[] s = m_1.bind.getParamTypes(tEnv.getBinder(), k, kind == InvocationKind.VARARGS);
 		final IJavaType[] t = m_2.bind.getParamTypes(tEnv.getBinder(), k, kind == InvocationKind.VARARGS);
 		
@@ -1291,7 +1292,7 @@ public class TypeInference8 {
 		}
 		final BoundSet b_prime = b;
 		for(int i=0; i<k; i++) {
-			generateConstraintsFromParameterTypes(b, call.args[i], s[i], t[i]);
+			generateConstraintsFromParameterTypes(b, call.getArgOrNull(i), s[i], t[i]);
 		}
 		
 		if (kind == InvocationKind.VARARGS && t.length == k+1) {
@@ -3426,11 +3427,11 @@ public class TypeInference8 {
 		return new Triple<CallState,MethodBinding,BoundSet>(call, pair.first(), b_3);
 	}
 	
-	public Pair<MethodBinding,BoundSet> recomputeB_2(CallState call, IBinding b) {
+	public Pair<MethodBinding,BoundSet> recomputeB_2(ICallState call, IBinding b) {
 		final IBinding newB = IBinding.Util.makeMethodBinding(b, null, JavaTypeSubstitution.create(tEnv, b.getContextType()), null, tEnv);
 		final MethodBinding m = new MethodBinding(newB);
   
-		BoundSet b_2 = b_2Cache.get(call.call);
+		BoundSet b_2 = b_2Cache.get(call.getNode());
 		if (b_2 == null) {
 			// TODO record how the method was matched
 			for(InvocationKind kind : InvocationKind.values()) {
@@ -4279,8 +4280,9 @@ public class TypeInference8 {
 	}
 	
 	private IJavaFunctionType computeInvocationTypeForRef(IJavaFunctionType targetFuncType, IRNode ref) {
-		IBinding b = mb.findCompileTimeDeclForRef(targetFuncType, ref);
-		return mb.computeInvocationType(null, b); // TODO
+		final RefState state = mb.new RefState(targetFuncType, ref);	
+		IBinding b = mb.findCompileTimeDeclForRef(targetFuncType, state);
+		return mb.computeInvocationType(state, b); 
 	}
 
 	static class TypeSubstitution extends AbstractTypeSubstitution {
