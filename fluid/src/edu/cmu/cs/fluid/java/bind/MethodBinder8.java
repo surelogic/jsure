@@ -829,7 +829,7 @@ public class MethodBinder8 implements IMethodBinder {
     private static ConversionContextKind getConversionContext(IRNode e) {
 		final IRNode parent = JJNode.tree.getParent(e);
 		final Operator pop = JJNode.tree.getOperator(parent);
-		if (Arguments.prototype.includes(pop)) {
+		if (Arguments.prototype.includes(pop) || MethodCall.prototype.includes(pop)) {
 			return ConversionContextKind.INVOCATION;
 		}
 		else if (AssignmentExpression.prototype.includes(pop)) {
@@ -1909,7 +1909,8 @@ public class MethodBinder8 implements IMethodBinder {
 				throw new IllegalStateException(); // TODO what to do?
 			}
 			final IJavaType p_1 = ptypes.get(0);
-			if (p_1.isSubtype(tEnv, refType)) {
+			//if (p_1.isSubtype(tEnv, refType)) {
+			if (refType.isSubtype(tEnv, p_1)) { // HACK?
 				secondArgTypes = new IJavaType[ptypes.size()-1];
 				for(int i=1; i<ptypes.size(); i++) {
 					secondArgTypes[i-1] = ptypes.get(i);
