@@ -486,11 +486,12 @@ public class TypeInference8 {
 		Set<ConstraintFormula> c = createInitialConstraints(call, m, theta);
 		final BoundSet b_4 = computeB_4(b_3, c);
 		final IJavaFunctionType origType = mb.computeMethodType(m);
-		final IJavaTypeSubstitution theta_prime = b_4.getFinalTypeSubst();
+		final BoundSet result = resolve(b_4);
+		final IJavaTypeSubstitution theta_prime = result/*b_4*/.getFinalTypeSubst();
 		if (b_4.usedUncheckedConversion()) {
 			return mb.substParams_eraseReturn(origType, theta_prime);			
 		} else {
-			return origType.subst(theta_prime);
+			return origType.instantiate(origType.getTypeFormals(), theta_prime);
 		}
 	}
 	
@@ -506,6 +507,9 @@ public class TypeInference8 {
 		}
 
 		final IJavaType t = utils.getPolyExpressionTargetType(call.getNode());
+		if (t == null) {
+			utils.getPolyExpressionTargetType(call.getNode());
+		}
 		return computeB_3(call, m, b_2, t);
 	}
 	
@@ -749,6 +753,11 @@ public class TypeInference8 {
 			deps.populate(c, io);
 			
 			final Set<ConstraintFormula> selected = deps.chooseUninstantiated(c);
+			if (selected.isEmpty()) {
+				deps.populate(c, io);
+				deps.chooseUninstantiated(c);
+				throw new IllegalStateException();
+			}
 			c.removeAll(selected);
 			
 			// Step 3: resolve
@@ -824,6 +833,7 @@ public class TypeInference8 {
 						}
 					}
 				}
+				markDependsOn(f, f);
 			}
 		}
 		
@@ -2216,6 +2226,7 @@ public class TypeInference8 {
 			for(Entry<IJavaTypeFormal, InferenceVariable> e : variableMap.entrySet()) {
 				final IJavaType t = instantiations.get(e.getValue());
 				if (t == null) {
+					getInstantiations();
 					throw new IllegalStateException("No instantiation for "+e.getKey());
 				}
 				subst.put(e.getKey(), t);
