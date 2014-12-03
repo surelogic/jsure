@@ -32,8 +32,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		IOldTypeEnvironment {
 	@ThreadSafe
 	class Binder extends UnversionedJavaBinder {
-		Binder(JavacTypeEnvironment te) {
-			super(te, te.getMajorJavaVersion() >= 8);
+		Binder(JavacTypeEnvironment te, boolean processJ8) {
+			super(te, processJ8);
 		}
 
 		@Override
@@ -94,7 +94,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 
 	private static final boolean debug = Util.debug;
 	final ClassTable classes = new ClassTable();
-	final Binder binder = new Binder(this);
+	final Binder binder;
 	@InRegion("JTEState")
 	private SLProgressMonitor monitor;
 	@InRegion("JTEState")
@@ -105,6 +105,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	@Unique("return")
 	public JavacTypeEnvironment(Projects projs, JavacProject p,
 			SLProgressMonitor monitor) {
+		binder = new Binder(this, p.processJava8());
 		project = p;
 		//System.out.println("Creating "+this);
 		
@@ -131,9 +132,9 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	}
 
 	// Only used by copy()
-	private JavacTypeEnvironment() {
-		// Nothing to do here
+	private JavacTypeEnvironment(boolean processJ8) {		
 		//System.out.println("Making copy()");
+		binder = new Binder(this, processJ8);
 	}
 
 	@InRegion("JTEState")
@@ -159,7 +160,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	}
 	
 	public synchronized JavacTypeEnvironment copy(JavacProject p) {
-		JavacTypeEnvironment copy = new JavacTypeEnvironment();
+		JavacTypeEnvironment copy = new JavacTypeEnvironment(p.processJava8());
 		copy.project = p;
 		copy.infos.putAll(this.infos);
 		copy.classes.copy(this.classes);

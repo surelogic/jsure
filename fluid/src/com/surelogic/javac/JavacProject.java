@@ -102,4 +102,9 @@ public class JavacProject extends JavaProject implements IIRProject, IClassPathC
 	    IDE.getInstance().removeCompUnitListener(tEnv.getBinder());
 		super.clear();
 	}
+
+	public boolean processJava8() {
+		final int level = getConfig().getIntOption(Config.SOURCE_LEVEL);
+		return level >= 8;
+	}
 }
