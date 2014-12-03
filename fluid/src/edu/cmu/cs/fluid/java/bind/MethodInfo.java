@@ -1,5 +1,7 @@
 package edu.cmu.cs.fluid.java.bind;
 
+import java.util.*;
+
 import com.surelogic.common.util.FilterIterator;
 
 import edu.cmu.cs.fluid.ir.*;
@@ -141,5 +143,13 @@ class MethodInfo {
 			}
 			
 		};
+	}
+    
+    List<IJavaTypeFormal> getTypeFormals() {
+    	List<IJavaTypeFormal> rv = new ArrayList<IJavaTypeFormal>(numFormals);
+    	for(IRNode tf : JJNode.tree.children(typeFormals)) {
+    		rv.add(JavaTypeFactory.getTypeFormal(tf));
+    	}
+		return rv;
 	}
 }
