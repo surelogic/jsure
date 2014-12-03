@@ -1236,7 +1236,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   
   protected void setBinder(IBinder b) {
 	  if (b == null) {
-		  throw new NullPointerException();
+		  return;
 	  }
 	  binder = b;
 	  if (b instanceof AbstractJavaBinder) {

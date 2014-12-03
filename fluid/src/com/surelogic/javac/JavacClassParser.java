@@ -142,8 +142,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 			fileman.setLocation(StandardLocation.CLASS_OUTPUT, tmpDir);		
 			fileman.setLocation(StandardLocation.CLASS_PATH, collectClasses(jp));
 			// TODO What about other projects?
-			final int level = jp.getConfig().getIntOption(Config.SOURCE_LEVEL);
-			processJava8 = level >= 8;
+			processJava8 = jp.processJava8();
 		}
 		
 		Iterable<File> collectClasses(JavacProject jp) {
