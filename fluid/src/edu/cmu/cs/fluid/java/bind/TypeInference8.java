@@ -31,6 +31,8 @@ import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodState;
 import edu.cmu.cs.fluid.java.bind.MethodBinder8.RefState;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.operator.CallInterface.NoArgs;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Triple;
@@ -230,26 +232,42 @@ public class TypeInference8 {
 		}
 		
 		public IJavaType subst(IJavaTypeSubstitution s) {
-			IJavaType newLower = lowerBound == null ? null : lowerBound.subst(s);
-			IJavaType newUpper = upperBound == null ? null : upperBound.subst(s);
-			if (newLower != lowerBound || newUpper != upperBound) {
-				TypeVariable v = new TypeVariable(var);
-				v.lowerBound = (IJavaReferenceType) newLower;
-				v.upperBound = (IJavaReferenceType) newUpper;
-				return v;
+			if (previouslyVisited) {
+				return this; // TODO is this right?
 			}
-			return this;
+			previouslyVisited = true; 
+			try {
+				IJavaType newLower = lowerBound == null ? null : lowerBound.subst(s);
+				IJavaType newUpper = upperBound == null ? null : upperBound.subst(s);
+				if (newLower != lowerBound || newUpper != upperBound) {
+					TypeVariable v = new TypeVariable(var);
+					v.lowerBound = (IJavaReferenceType) newLower;
+					v.upperBound = (IJavaReferenceType) newUpper;
+					return v;
+				}
+				return this;
+			} finally {
+				previouslyVisited = false;
+			}
 		}
 		
 		@Override
 		public void visit(Visitor v) {
-			super.visit(v);
-
-			if (upperBound != null) {
-				upperBound.visit(v);
+			if (previouslyVisited) {
+				return;
 			}
-			if (lowerBound != null) {
-				lowerBound.visit(v);
+			previouslyVisited = true; 
+			try {
+				super.visit(v);
+
+				if (upperBound != null) {
+					upperBound.visit(v);
+				}
+				if (lowerBound != null) {
+					lowerBound.visit(v);
+				}
+			} finally {
+				previouslyVisited = false;
 			}
 		}	 
 		
@@ -260,17 +278,31 @@ public class TypeInference8 {
 		
 		@Override
 		public String toString() {
+			if (previouslyVisited) {
+				return "&"+computeAlpha()+"[...]";
+			}
+			previouslyVisited = true; 
+			try {
+				StringBuilder sb = new StringBuilder("&");
+				sb.append(computeAlpha());
+				sb.append('[');
+				sb.append(lowerBound);
+				sb.append(", ");
+				sb.append(upperBound);
+				sb.append(']');
+				return sb.toString();
+			} finally {
+				previouslyVisited = false;
+			}
+		}
+				
+		private boolean previouslyVisited = false;
+		
+		private String computeAlpha() {
 			String rv = super.toString();
 			int last = rv.lastIndexOf('@');	
 			String alpha = hexToAlpha(rv.substring(last+1));
-			StringBuilder sb = new StringBuilder("&");
-			sb.append(alpha);
-			sb.append('[');
-			sb.append(lowerBound);
-			sb.append(", ");
-			sb.append(upperBound);
-			sb.append(']');
-			return sb.toString();
+			return alpha;
 		}
 		
 		@Override
@@ -347,7 +379,13 @@ public class TypeInference8 {
 			System.out.println("Found foo(T,T2)");
 		}
 		*/
-		final BoundSet b_0 = constructInitialSet(m.typeFormals);
+		final BoundSet b_0;
+		if (ConstructorReference.prototype.includes(call.getNode())) {
+			// Special case to handle filling the type's variables, if any
+			b_0 = constructInitialSet(getTypeFormalsForRef(m));
+		} else {
+			b_0 = constructInitialSet(m.typeFormals);
+		}
 		/*
 		 *  check if type params appear in throws clause						
 		 *  
@@ -434,7 +472,7 @@ public class TypeInference8 {
 		}
 		if (result != null && !result.isFalse && 
 			result.getInstantiations().keySet().containsAll(result.variableMap.values())) {
-			b_2Cache.put(call.getNode(), b_2);			
+			b_2Cache.put(call.getNode(), b_2);
 			return b_2;
 		}
 		return null;
@@ -482,6 +520,9 @@ public class TypeInference8 {
      */
 	IJavaFunctionType inferForInvocationType(ICallState call, MethodBinding m, BoundSet b_2) {
 		final BoundSet b_3 = computeB_3(call, m, b_2);
+		if (b_3.isFalse) {
+			computeB_3(call, m, b_2);
+		}
 		final IJavaTypeSubstitution theta = b_3.getInitialVarSubst();
 		Set<ConstraintFormula> c = createInitialConstraints(call, m, theta);
 		final BoundSet b_4 = computeB_4(b_3, c);
@@ -510,13 +551,18 @@ public class TypeInference8 {
 		if (t == null) {
 			utils.getPolyExpressionTargetType(call.getNode());
 		}
-		return computeB_3(call, m, b_2, t);
+		final IJavaType r = m.getReturnType(tEnv);
+		if (t.toString().startsWith("java.util.function.Function") && r.toString().startsWith("java.util.stream.Collector")) {
+			System.out.println("Found type mismatch");
+			utils.getPolyExpressionTargetType(call.getNode());
+		}
+		return computeB_3(call, r, b_2, t);
 	}
 	
 	/**
 	 * @param t the target type
 	 */
-	private BoundSet computeB_3(ICallState call, MethodBinding m, BoundSet b_2, IJavaType t) {
+	private BoundSet computeB_3(ICallState call, final IJavaType r, BoundSet b_2, IJavaType t) {
 	    /*   If the invocation is a poly expression, let the bound set B 3 be derived from B 2
 	     *   as follows. Let R be the return type of m , let T be the invocation's target type,
 	     *   and then:
@@ -525,7 +571,6 @@ public class TypeInference8 {
 	     *     constraint set reduction in Â§18.5.1, the constraint formula <| R | -> T > is reduced
 	     *     and incorporated with B 2 .
 	     */
-		final IJavaType r = m.getReturnType(tEnv);
 		final BoundSet b_3 = new BoundSet(b_2);
 		final IJavaTypeSubstitution theta = b_3.getInitialVarSubst();
 		if (b_3.usedUncheckedConversion) {
@@ -745,38 +790,53 @@ public class TypeInference8 {
 	 *      with the current bound set.
 	 */
 	private BoundSet computeB_4(final BoundSet b_3, final Set<ConstraintFormula> c) {
-		Map<ConstraintFormula,InputOutputVars> io = precomputeIO(c);
-		BoundSet current = b_3;
+		final Map<ConstraintFormula,InputOutputVars> io = precomputeIO(c);
+		BoundSet current = new BoundSet(b_3);
+		BoundSet last = null;
 		while (!c.isEmpty()) {			
-			// Step 2
-			ConstraintDependencies deps = new ConstraintDependencies();
-			deps.populate(c, io);
-			
-			final Set<ConstraintFormula> selected = deps.chooseUninstantiated(c);
-			if (selected.isEmpty()) {
-				deps.populate(c, io);
-				deps.chooseUninstantiated(c);
-				throw new IllegalStateException();
+			final Set<ConstraintFormula> selected = doComputeB_4(c, io, current);
+			if (current.isFalse) {
+				BoundSet temp = new BoundSet(last == null ? b_3 : last);
+				doComputeB_4(c, io, temp);
+				return null;
 			}
 			c.removeAll(selected);
-			
-			// Step 3: resolve
-			final Set<InferenceVariable> toResolve = collectInputVars(io, selected);			
-			BoundSet next = resolve(current, toResolve);
-			if (next == null) {
-				resolve(current, toResolve);
-				throw new IllegalStateException();
-			}
-			
-			// Step 4: apply instantiations
-			// Step 5: reduce and incorporate into current
-			TypeSubstitution subst = new TypeSubstitution(tEnv.getBinder(), next.getInstantiations());
-			for(ConstraintFormula f : selected) {
-				ConstraintFormula f_prime = f.subst(subst);
-				reduceConstraintFormula(current, f_prime);
-			}
+			last = current;
+			current = new BoundSet(current);
 		}
 		return current;
+	}
+
+	private Set<ConstraintFormula> doComputeB_4(final Set<ConstraintFormula> c, final Map<ConstraintFormula, InputOutputVars> io, BoundSet current) {
+		// Step 2
+		ConstraintDependencies deps = new ConstraintDependencies();
+		deps.populate(c, io);
+		
+		final Set<ConstraintFormula> selected = deps.chooseUninstantiated(c);
+		if (selected.isEmpty()) {
+			deps.populate(c, io);
+			deps.chooseUninstantiated(c);
+			throw new IllegalStateException();
+		}
+		//Hoisted out to computeB_4
+		//c.removeAll(selected);
+		
+		// Step 3: resolve
+		final Set<InferenceVariable> toResolve = collectInputVars(io, selected);			
+		BoundSet next = resolve(current, toResolve);
+		if (next == null) {
+			next = resolve(current, toResolve);
+			throw new IllegalStateException();
+		}
+		
+		// Step 4: apply instantiations
+		// Step 5: reduce and incorporate into current
+		TypeSubstitution subst = new TypeSubstitution(tEnv.getBinder(), next.getInstantiations());
+		for(ConstraintFormula f : selected) {
+			ConstraintFormula f_prime = f.subst(subst);
+			reduceConstraintFormula(current, f_prime);
+		}
+		return selected;
 	}
 	
 	private Map<ConstraintFormula, InputOutputVars> precomputeIO(Set<ConstraintFormula> c) {
@@ -1086,7 +1146,7 @@ public class TypeInference8 {
 		}
 	}
 	
-	private Iterable<IRNode> findResultExprs(IRNode lambdaBody) {
+	static Iterable<IRNode> findResultExprs(IRNode lambdaBody) {
 		if (Expression.prototype.includes(lambdaBody)) {
 			return new SingletonIterator<IRNode>(lambdaBody);
 		}
@@ -1147,7 +1207,8 @@ public class TypeInference8 {
 		if (funcType.getParameterTypes().size() != n) {
 			return null; // No valid parameterization
 		}
-		final BoundSet b = new BoundSet(InterfaceDeclaration.getTypes(f.getDeclaration()), newVars.toArray(new InferenceVariable[newVars.size()]));
+		final BoundSet b = new BoundSet(getTypeFormalList(InterfaceDeclaration.getTypes(f.getDeclaration())), 
+				                        newVars.toArray(new InferenceVariable[newVars.size()]));
 		int i=0;
 		for(IRNode paramD : Parameters.getFormalIterator(lambdaParams)) {
 			IJavaType paramT = tEnv.getBinder().getJavaType(ParameterDeclaration.getType(paramD));
@@ -1175,6 +1236,18 @@ public class TypeInference8 {
 		return f_prime;
 	}
 	
+	private List<IJavaTypeFormal> getTypeFormalList(IRNode types) {
+		final int n = JJNode.tree.numChildren(types);
+		if (n == 0) {
+			return Collections.emptyList();
+		}
+		List<IJavaTypeFormal> rv = new ArrayList<IJavaTypeFormal>(n);
+		for(IRNode tf : TypeFormals.getTypeIterator(types)) {
+			rv.add(JavaTypeFactory.getTypeFormal(tf));
+		}
+		return rv;
+	}
+
 	/**
 	 * JLS 8 sec 9.9
 	 * 
@@ -1687,6 +1760,13 @@ public class TypeInference8 {
 			rv.add(t);
 			return rv;
 		}
+
+		public InferenceVariable getRep() {
+			if (s instanceof InferenceVariable) {
+				return (InferenceVariable) s;
+			}
+			return null;
+		}
 	}
 	
 	// S is a subtype of T
@@ -1746,19 +1826,23 @@ public class TypeInference8 {
 	 *   then the bound α l <: Object also appears in the set.
 	 */
 	BoundSet constructInitialSet(IRNode typeFormals, IJavaType... createdVars) {
+		return constructInitialSet(getTypeFormalList(typeFormals), createdVars);
+	}
+	
+	BoundSet constructInitialSet(List<IJavaTypeFormal> typeFormals, IJavaType... createdVars) {
 		// Setup inference variables
-		final int numFormals = JJNode.tree.numChildren(typeFormals);
+		final int numFormals = typeFormals.size();
 		final InferenceVariable[] vars = new InferenceVariable[numFormals];
 		int i=0;
-		for(IRNode tf : TypeFormals.getTypeIterator(typeFormals)) {
-			vars[i] = createdVars.length > 0 ? (InferenceVariable) createdVars[i] : new InferenceVariable(tf);
+		for(IJavaTypeFormal f : typeFormals) {
+			vars[i] = createdVars.length > 0 ? (InferenceVariable) createdVars[i] : new InferenceVariable(f.getDeclaration());
 			i++;
 		}
 		final BoundSet set = new BoundSet(typeFormals, vars);
 		final IJavaTypeSubstitution theta = set.getInitialVarSubst();
 		i=0;
-		for(IRNode tf : TypeFormals.getTypeIterator(typeFormals)) {
-			IRNode bounds = TypeFormal.getBounds(tf);
+		for(IJavaTypeFormal tf : typeFormals) {
+			IRNode bounds = TypeFormal.getBounds(tf.getDeclaration());
 			boolean noBounds = true;
 			boolean gotProperBound = false;
 			for(IRNode bound : MoreBounds.getBoundIterator(bounds)) {
@@ -1919,24 +2003,45 @@ public class TypeInference8 {
 			}
 			return bounds;
 		}
+		
+		@Override
+		public String toString() {
+			if (isEmpty()) {
+				return "";
+			}			
+			StringBuilder b = new StringBuilder();
+			for(IEquality e : this) {
+				if (e.isTrivial()) {
+					continue;
+				}
+				b.append(e).append(", \n");
+			}
+			return b.toString();
+		}
 	}
 	
 	interface IEquality extends Iterable<IJavaReferenceType> {
 		Collection<InferenceVariable> vars();
 		Collection<IJavaReferenceType> values();
-		boolean isTrivial();		
+		boolean isTrivial();
+		InferenceVariable getRep();		
 	}
 	
 	class Equality implements IEquality {
 		final Set<InferenceVariable> vars = new HashSet<InferenceVariable>();
 		final Set<IJavaReferenceType> values = new HashSet<IJavaReferenceType>();
+		InferenceVariable rep;
 		
 		Equality(IJavaReferenceType t) {
 			if (t == null) {
 				throw new IllegalStateException();
 			}
 			else if (t instanceof InferenceVariable) {
-				vars.add((InferenceVariable) t);
+				InferenceVariable v = (InferenceVariable) t;
+				if (v.formal != null) {
+					rep = v;
+				}
+				vars.add(v);
 			} else {
 				values.add(t);
 			}
@@ -1964,16 +2069,37 @@ public class TypeInference8 {
 
 		void merge(Equality o) {
 			vars.addAll(o.vars);
-			values.addAll(o.values);			
+			findRep(o.vars);
+			values.addAll(o.values);
 		}
 
+		private InferenceVariable findRep(Set<InferenceVariable> vars) {
+			if (rep == null) {
+				for(InferenceVariable v : vars) {
+					if (v.formal != null) {
+						rep = v;
+						break;
+					}
+				}
+			}
+			return rep;
+		}
+		
+		public InferenceVariable getRep() {
+			if (rep == null && !vars.isEmpty()) {
+				// Just pick one for now
+				return vars.iterator().next();
+			}
+			return rep;
+		}
+		
 		@Override
 		public String toString() {
 			if (vars.isEmpty()) {
-				return toString(values);
+				return toString(values, null);
 			}
 			if (values.isEmpty()) {
-				return toString(vars);
+				return toString(vars, getRep());
 			}
 			StringBuilder sb = new StringBuilder();
 			unparseSet(sb, vars);
@@ -2001,7 +2127,7 @@ public class TypeInference8 {
 			}
 		}
 
-		private String toString(Set<? extends IJavaReferenceType> types) {
+		private String toString(Set<? extends IJavaReferenceType> types, IJavaType startWith) {
 			final int n = types.size();
 			switch (n) {
 			case 0:
@@ -2010,8 +2136,19 @@ public class TypeInference8 {
 				return types.iterator().next()+" = ?";
 			default:
 				StringBuilder sb = new StringBuilder();				
+				if (startWith != null) {
+					sb.append(startWith);
+					if (n == 2) {
+						sb.append(" = ");
+					} else {
+						sb.append(" = {");
+					}
+				}
 				int i=0;
 				for(IJavaType t : types) {
+					if (t == startWith) {
+						continue; // Already handled
+					}
 					if (sb.length() == 0) {
 						sb.append(t);
 						if (n == 2) {
@@ -2084,13 +2221,13 @@ public class TypeInference8 {
 			original = null;
 		}
 
-		BoundSet(final IRNode typeFormals, final InferenceVariable[] vars) {			
+		BoundSet(final List<IJavaTypeFormal> typeFormals, final InferenceVariable[] vars) {			
 			original = null;
 			isTemp = false;
 			
 			int i=0;
-			for(IRNode tf : TypeFormals.getTypeIterator(typeFormals)) {
-				variableMap.put(JavaTypeFactory.getTypeFormal(tf), vars[i]);
+			for(IJavaTypeFormal f : typeFormals) {
+				variableMap.put(f, vars[i]);
 				i++;
 			}
 		}
@@ -2261,8 +2398,15 @@ public class TypeInference8 {
 			incorporate(new CaptureBound((IJavaDeclaredType) s, (IJavaDeclaredType) t));
 		}
 		
-		void addThrown(InferenceVariable v) {
-			thrownSet.add(v);			
+		void addThrown(IJavaType t) {
+			if (t instanceof InferenceVariable) {
+				InferenceVariable v = (InferenceVariable) t;
+				thrownSet.add(v);			
+			} else {
+				Set<InferenceVariable> vars = new HashSet<InferenceVariable>();
+				getReferencedInferenceVariables(vars, t);
+				thrownSet.addAll(vars);
+			}
 		}
 		
 		/**
@@ -2362,7 +2506,7 @@ public class TypeInference8 {
 				// case 5: α = U and S = T imply ‹S[α:=U] = T[α:=U]›
 				if (subst != null) {
 					if (!e.vars().isEmpty()) {
-						InferenceVariable beta = e.vars().iterator().next(); // No subst to do
+						InferenceVariable beta = e.getRep(); // No subst to do
 						for(IJavaType t : e.values()) {
 							IJavaType t_subst = t.subst(subst);
 							if (t_subst != t) {
@@ -2845,7 +2989,10 @@ public class TypeInference8 {
 					matched.retainAll(toInstantiate);
 					if (matched.size() > 1) {
 						// Keep only one of the equivalent variables
-						final InferenceVariable v = matched.iterator().next();
+						final InferenceVariable v = e.getRep();//matched.iterator().next();
+						if (!matched.contains(v)) {
+							throw new IllegalStateException(); // Not in the same cycle?
+						}
 						toInstantiate.removeAll(matched);						
 						toInstantiate.add(v);
 						equal.putAll(v, e.vars()); // TODO matched?
@@ -2870,6 +3017,19 @@ public class TypeInference8 {
 			// HACK to handle unresolved variables
 			final Map<InferenceVariable,IJavaType> combinedSubst = new HashMap<InferenceVariable,IJavaType>(y_subst);
 			combinedSubst.putAll(getInstantiations());
+			// Include equalities to canonicalize them?
+			for(IEquality e : equalities) {
+				InferenceVariable rep;
+				if (e.vars().size() > 1 && !combinedSubst.containsKey(rep = e.getRep())) {
+					for(InferenceVariable v : e.vars()) {
+						if (v == rep) {
+							continue;
+						}
+						combinedSubst.put(v, rep);
+					}
+				}
+			}
+			
 			final TypeSubstitution theta = new TypeSubstitution(tEnv.getBinder(), combinedSubst);
 
 			final EqualityBound[] newBounds = new EqualityBound[toInstantiate.size()];
@@ -3389,10 +3549,10 @@ public class TypeInference8 {
 	 */
 	void reduceExpressionCompatibilityConstraints(BoundSet bounds, IRNode e, IJavaType t) {
 		if (isProperType(t)) {
-			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, e, tEnv.getBinder().getJavaType(e))) {
+			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, e, null/*tEnv.getBinder().getJavaType(e)*/)) {
 				bounds.addTrue();
 			} else {
-				//mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, e, tEnv.getBinder().getJavaType(e));				
+				mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, e, null/*tEnv.getBinder().getJavaType(e)*/);			
 				bounds.addFalse();
 			}
 		}
@@ -3434,8 +3594,9 @@ public class TypeInference8 {
 		final IBinding b = tEnv.getBinder().getIBinding(e);
 		final CallState call = new CallState(tEnv.getBinder(), e, c.get_TypeArgs(e), c.get_Args(e), b.getReceiverType());
 		Pair<MethodBinding,BoundSet> pair = recomputeB_2(call, b);
-		BoundSet b_3 = computeB_3(call, pair.first(), pair.second(), t); 
-		return new Triple<CallState,MethodBinding,BoundSet>(call, pair.first(), b_3);
+		MethodBinding m = pair.first();
+		BoundSet b_3 = computeB_3(call, m.getReturnType(tEnv), pair.second(), t); 
+		return new Triple<CallState,MethodBinding,BoundSet>(call, m, b_3);
 	}
 	
 	public Pair<MethodBinding,BoundSet> recomputeB_2(ICallState call, IBinding b) {
@@ -3574,7 +3735,12 @@ public class TypeInference8 {
 		final IJavaType r = ft_prime.getReturnType();
 		if (!(r instanceof IJavaVoidType)) {
 			if (isProperType(r)) {
-				throw new NotImplemented();
+				for(IRNode re : findResultExprs(body)) {
+					if (!mb.isAssignCompatible(r, re)) {
+						bounds.addFalse();
+						break;
+					}
+				}
 			} else {
 				for(IRNode re : findResultExprs(body)) {
 					reduceExpressionCompatibilityConstraints(bounds, re, r);
@@ -3613,12 +3779,15 @@ public class TypeInference8 {
 	void reduceMethodReferenceCompatibilityConstraints(BoundSet bounds, IRNode e, IJavaType t) {
 		final IRNode recv;
 		final String name;
+		final IRNode targs;
 		if (MethodReference.prototype.includes(e)) {
 			recv = MethodReference.getReceiver(e);
 			name = MethodReference.getMethod(e);
+			targs = MethodReference.getTypeArgs(e);
 		} else {
 			recv = ConstructorReference.getReceiver(e);
 			name = "new";
+			targs = ConstructorReference.getTypeArgs(e);
 		}		
 		final IJavaFunctionType ft = mb.methodRefHasPotentiallyApplicableMethods(t, recv, name);
 		if (ft == null) {
@@ -3679,8 +3848,19 @@ public class TypeInference8 {
 			 *     in Â§15.13.1. If there is no compile-time declaration for the method reference,
 			 *     the constraint reduces to false. Otherwise, there is a compile-time declaration,
 			 *     and:
-			 *     > If the result of the function type is void , the constraint reduces to true.
-			 *     
+			 */
+			final RefState ref = mb.new RefState(ft, e);
+			final IBinding ctd = mb.findCompileTimeDeclForRef(ft, ref);
+			if (ctd == null) {
+				bounds.addFalse();
+				return;
+			}
+			//     > If the result of the function type is void , the constraint reduces to true.
+			if (ft.getReturnType() instanceof IJavaVoidType) {
+				bounds.addTrue();
+				return;
+			}
+			/*     
 			 *     > Otherwise, if the method reference expression elides TypeArguments, and
 			 *       the compile-time declaration is a generic method, and the return type of
 			 *       the compile-time declaration mentions at least one of the method's type
@@ -3689,16 +3869,61 @@ public class TypeInference8 {
 			 *       return type of the function type, as defined in Â§18.5.2. B 3 may contain new
 			 *       inference variables, as well as dependencies between these new variables
 			 *       and the inference variables in T .
-			 *     
-			 *     > Otherwise, let R be the return type of the function type, and let R ' be the result
+			 */
+			final MethodBinding mb = new MethodBinding(ctd);
+			final IJavaType rtype = mb.getReturnType(tEnv);			
+			if (!JJNode.tree.hasChildren(targs) && 
+			    isGenericMethodRef(mb) &&
+				rtype instanceof IJavaReferenceType && 
+				refersTo((IJavaReferenceType) rtype, getTypeFormalsForRef(mb))) {
+				final Pair<MethodBinding,BoundSet> pair = recomputeB_2(ref, ctd);
+				final BoundSet b_2 = pair.second();
+				final BoundSet b_3 = computeB_3(ref, rtype, b_2, ft.getReturnType()); 
+				bounds.mergeWithSubst(b_3, bounds.getInitialVarSubst());
+			}
+			/*     > Otherwise, let R be the return type of the function type, and let R ' be the result
 			 *       of applying capture conversion (Â§5.1.10) to the return type of the invocation
 			 *       type (Â§15.12.2.6) of the compile-time declaration. If R ' is void , the constraint
 			 *       reduces to false; otherwise, the constraint reduces to < R ' -> R >.			 
 			 */
-			throw new NotImplemented();
+			else {
+				final IJavaType r = ft.getReturnType();
+				final IJavaFunctionType itype = this.mb.computeInvocationType(ref, ctd);
+				final IJavaType r_prime = JavaTypeVisitor.captureWildcards(tEnv.getBinder(), itype.getReturnType());
+				if (r_prime instanceof IJavaVoidType) {
+					bounds.addFalse();
+				} else {
+					reduceTypeCompatibilityConstraints(bounds, r_prime, r);
+				}
+			}
 		}
 	}
+
+	// Compensates for the fact that constructors for generic types might not have the usual type parameters
+    boolean isGenericMethodRef(MethodBinding mb) {
+    	if (mb.isGeneric()) {
+    		return true; 
+    	}
+    	if (mb.isConstructor && mb.bind.getContextType().getTypeParameters().size() > 0) {
+    		final IRNode g = mb.bind.getContextType().getDeclaration();
+    		final IJavaType g_formal = tEnv.convertNodeTypeToIJavaType(g);
+    		return g_formal.equals(mb.bind.getContextType());
+    	}
+    	return false;
+    }
 	
+    List<IJavaTypeFormal> getTypeFormalsForRef(MethodBinding mb) {
+    	if (!mb.isConstructor) {
+    		return mb.getTypeFormals();
+    	}
+    	List<IJavaTypeFormal> rv = mb.getTypeFormals();
+    	// HACK to get formals
+    	for(IJavaType t : mb.bind.getContextType().getTypeParameters()) {
+    		rv.add((IJavaTypeFormal) t);
+    	}
+    	return rv;    	
+    }    
+    
 	/**
 	 * 18.2.2 Type Compatibility Constraints
 	 * 
@@ -3799,13 +4024,11 @@ public class TypeInference8 {
 	 *   - If T is an intersection type, I 1 & ... & I n , the constraint reduces to the following
 	 *     new constraints: for all i (1 <= i <= n), < S <: I i >.
 	 */
-	void reduceSubtypingConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
-		/*
+	void reduceSubtypingConstraints(BoundSet bounds, IJavaType s, IJavaType t) {		
 		if (s instanceof TypeVariable || t instanceof TypeVariable) {
 			// HACK ignore for now?
 			return;
-		}
-		*/
+		}	
 		if (isProperType(s) && isProperType(t)) {
 			if (tEnv.isSubType(s, t)) {
 				bounds.addTrue();
@@ -4036,13 +4259,11 @@ public class TypeInference8 {
 	 * - Otherwise, if S and T are array types, S'[] and T'[] , the constraint reduces to < S' = T' >.
 	 * - Otherwise, the constraint reduces to false.
 	 */
-	void reduceTypeEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
-		/*
+	void reduceTypeEqualityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {		
 		if (s instanceof TypeVariable || t instanceof TypeVariable) {
 			// HACK ignore for now?
 			return;
 		}
-		*/
 		if (isProperType(s) && isProperType(t)) {
 			if (s.isEqualTo(tEnv, t)) {
 				bounds.addTrue();
@@ -4149,49 +4370,32 @@ public class TypeInference8 {
 	 * A constraint formula of the form <LambdaExpression -> throws T > is reduced as
 	 * follows:
 	 * 
-	 * - If T is not a functional interface type (Â§9.8), the constraint reduces to false.
-	 * 
-	 * - Otherwise, let the target function type for the lambda expression be determined
-	 *   as specified in Â§15.27.3. If no valid function type can be found, the constraint
-	 *   reduces to false.
-	 *   
-	 * - Otherwise, if the lambda expression is implicitly typed, and one or more of the
-	 *   function type's parameter types is not a proper type, the constraint reduces to
-	 *   false.
-	 *   
-	 * - Otherwise, if the function type's return type is neither void nor a proper type,
-	 *   the constraint reduces to false.
-	 * 
-	 * - Otherwise, let E 1 , ..., E n be the types in the function type's throws clause that are
-	 *   not proper types. If the lambda expression is implicitly typed, let its parameter
-	 *   types be the function type's parameter types. If the lambda body is a poly
-	 *   expression or a block containing a poly result expression, let the targeted return
-	 *   type be the function type's return type. Let X 1 , ..., X m be the checked exception
-	 *   types that the lambda body can throw (Â§11.2). Then there are two cases:
-	 *   
-	 *   - If n = 0 (the function type's throws clause consists only of proper types), then
-	 *     if there exists some i (1 <= i <= m) such that X i is not a subtype of any proper type
-	 *     in the throws clause, the constraint reduces to false; otherwise, the constraint
-	 *     reduces to true.
-	 *     
-	 *   - If n > 0 , the constraint reduces to a set of subtyping constraints: for all i (1 <=
-	 *     i <= m), if X i is not a subtype of any proper type in the throws clause, then the
-	 *     constraints include, for all j (1 <= j <= n), < X i <: E j >. In addition, for all j (1 <= j
-	 *     <= n), the constraint reduces to the bound throws E j .
+	 * (see below)
 	 */
 	private void reduceLambdaCheckedExceptionConstraints(BoundSet bounds, IRNode lambda, IJavaType t) {
+		// - If T is not a functional interface type (Â§9.8), the constraint reduces to false.
 		if (tEnv.isFunctionalType(t) == null) {
 			bounds.addFalse();
 			return;
 		}
-		TypeUtils utils = new TypeUtils(tEnv);
-    	IJavaType targetType = utils.getPolyExpressionTargetType(lambda);
+		/*
+		 * - Otherwise, let the target function type for the lambda expression be determined
+		 *   as specified in Â§15.27.3. If no valid function type can be found, the constraint
+		 *   reduces to false.
+		 */
+    	IJavaType targetType = mb.computeGroundTargetType(lambda, t, false);
     	IJavaFunctionType targetFuncType = tEnv.isFunctionalType(targetType);
     	if (targetFuncType == null) {
     		bounds.addFalse();
     		return;
     	}
-    	if (MethodBinder8.isImplicitlyTypedLambda(lambda)) {
+    	/*
+    	 * - Otherwise, if the lambda expression is implicitly typed, and one or more of the
+    	 *   function type's parameter types is not a proper type, the constraint reduces to
+    	 *   false.
+    	 */
+    	final boolean isImplicitLambda = MethodBinder8.isImplicitlyTypedLambda(lambda);
+    	if (isImplicitLambda) {
     		for(IJavaType pt : targetFuncType.getParameterTypes()) {
     			if (!isProperType(pt)) {
     				bounds.addFalse();
@@ -4199,20 +4403,366 @@ public class TypeInference8 {
     			}
     		}
     	}
-    	if (!(targetFuncType.getReturnType() instanceof IJavaVoidType) || 
+    	/*
+    	 * - Otherwise, if the function type's return type is neither void nor a proper type,
+    	 *   the constraint reduces to false.
+    	 */
+    	if (!(targetFuncType.getReturnType() instanceof IJavaVoidType) &&
     		!isProperType(targetFuncType.getReturnType())) {
 			bounds.addFalse();
     		return;
     	}
-    	final List<IJavaType> improperThrows = new ArrayList<IJavaType>();
+    	/* - Otherwise, let E 1 , ..., E n be the types in the function type's throws clause that are
+    	 *   not proper types. If the lambda expression is implicitly typed, let its parameter
+    	 *   types be the function type's parameter types. If the lambda body is a poly
+    	 *   expression or a block containing a poly result expression, let the targeted return
+    	 *   type be the function type's return type. Let X 1 , ..., X m be the checked exception
+    	 *   types that the lambda body can throw (Â§11.2). Then there are two cases:
+    	 */
+    	final List<IJavaType> improperThrows = new ArrayList<IJavaType>(); // a.k.a E
     	for(IJavaType ex : targetFuncType.getExceptions()) {
     		if (!isProperType(ex)) {
     			improperThrows.add(ex);
     		}
     	}
-		throw new NotImplemented(); // TODO
+    	final Set<IJavaType> x = computeCheckedExceptionsThrownByLambda(lambda, t, targetFuncType); 
+    	if (improperThrows.isEmpty()) {
+    		/*
+    		 *   - If n = 0 (the function type's throws clause consists only of proper types), then
+    		 *     if there exists some i (1 <= i <= m) such that X i is not a subtype of any proper type
+    		 *     in the throws clause, the constraint reduces to false; otherwise, the constraint
+    		 *     reduces to true.
+    		 *     
+    		 */
+    		for(IJavaType x_i : x) {
+    			if (!isSubTypeOfSomeTypeInList(targetFuncType.getExceptions(), x_i)) {
+    				bounds.addFalse();
+    				break;
+    			} else {
+    				bounds.addTrue();
+    			}
+    		}
+    	} else {
+    		/*
+    		 *   - If n > 0 , the constraint reduces to a set of subtyping constraints: for all i (1 <=
+    		 *     i <= m), if X i is not a subtype of any proper type in the throws clause, then the
+    		 *     constraints include, for all j (1 <= j <= n), < X i <: E j >. In addition, for all j (1 <= j
+    		 *     <= n), the constraint reduces to the bound throws E j .
+    		 */
+    		for(IJavaType x_i : x) {
+    			if (!isSubTypeOfSomeTypeInList(targetFuncType.getExceptions(), x_i)) {
+    				for(IJavaType e_j : improperThrows) {
+    					reduceSubtypingConstraints(bounds, x_i, e_j);
+    				}
+    			}
+    		}
+    		for(IJavaType e_j : improperThrows) {
+    			bounds.addThrown(e_j);
+    		}
+    	}
 	}
 
+	private boolean isSubTypeOfSomeTypeInList(Set<IJavaType> types, IJavaType s) {
+		for(IJavaType t : types) {
+			if (s.isSubtype(tEnv, t)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+     *   If the lambda expression is implicitly typed, let its parameter
+	 *   types be the function type's parameter types. If the lambda body is a poly
+	 *   expression or a block containing a poly result expression, let the targeted return
+	 *   type be the function type's return type. Let X 1 , ..., X m be the checked exception
+	 *   types that the lambda body can throw (Â§11.2).
+	 * @param t 
+	 */
+	private Set<IJavaType> computeCheckedExceptionsThrownByLambda(IRNode lambda, IJavaType t, IJavaFunctionType targetFuncType) {		
+		final UnversionedJavaBinder ujb;
+		if (tEnv.getBinder() instanceof UnversionedJavaBinder) {
+			ujb = (UnversionedJavaBinder) tEnv.getBinder();
+		} else {
+			throw new NotImplemented();
+		}
+		ujb.setBinderCache(new LambdaCache(lambda, t, targetFuncType));
+		
+		try {
+			final ExceptionCollector c = new ExceptionCollector(ujb);
+			c.doAccept(LambdaExpression.getBody(lambda));
+			return c.exceptions;
+		} finally {
+			ujb.setBinderCache(null);
+		}
+	}
+
+	static class LambdaCache implements JavaCanonicalizer.IBinderCache {
+		final Map<IRNode, IJavaType> map = new HashMap<IRNode, IJavaType>();
+		
+		LambdaCache(IRNode lambda, IJavaType t, IJavaFunctionType targetFuncType) {			
+			int i=0;
+			for(IRNode param : Parameters.getFormalIterator(LambdaExpression.getParams(lambda))) {
+				map.put(ParameterDeclaration.getType(param), targetFuncType.getParameterTypes().get(i));
+				i++;
+			}
+			map.put(JJNode.tree.getParent(lambda), targetFuncType.getReturnType());
+			map.put(lambda, t);
+		}
+
+		public void init(IRNode tree) {
+			throw new NotImplemented();
+		}
+
+		public IBinding checkForBinding(IRNode node) {
+			return null;
+		}
+
+		public IJavaType checkForType(IRNode node) {
+			return map.get(node);
+		}
+
+		public void map(IRNode old, IRNode now) {
+			throw new NotImplemented();
+		}
+
+		public void addBinding(IRNode node, IBinding b) {
+			throw new NotImplemented();
+		}
+
+		public void finish(IRNode tree) {
+			throw new NotImplemented();
+		}
+	}
+	
+	static class ExceptionCollector extends VoidTreeWalkVisitor {
+		final Set<IJavaType> exceptions = new HashSet<IJavaType>();
+		final IPrivateBinder binder;
+		final MethodBinder8 mb;
+		
+		ExceptionCollector(IPrivateBinder b) {
+			binder = b;
+			mb = new MethodBinder8(b, false);
+		}
+		
+		Void collectForCall(IRNode call, IRNode receiver, IRNode args, IRNode targs) {
+			// TODO can't bind? (causes cycle)
+			final IBinding b = binder.getIBinding(call);
+			final CallState state = new CallState(binder, call, args, targs, binder.getJavaType(receiver));
+			final IJavaFunctionType itype = mb.computeInvocationType(state, b);
+			exceptions.addAll(itype.getExceptions());
+			return null;
+		}
+		/**
+		 * 11.2.1 Exception Analysis of Expressions
+		 * 
+		 * A class instance creation expression (§15.9) can throw an exception class E iff either:
+		 * 
+		 * • The expression is a qualified class instance creation expression and the
+		 *   qualifying expression can throw E ; or
+		 * • Some expression of the argument list can throw E ; or
+		 * • E is one of the exception types of the invocation type of the chosen constructor (§15.12.2.6); or
+		 * • The class instance creation expression includes a ClassBody, and some instance
+		 *   initializer or instance variable initializer in the ClassBody can throw E .
+		 */
+		@Override
+		public Void visitNewExpression(IRNode e) {
+			doAcceptForChildren(e);
+			return collectForCall(e, NewExpression.getType(e), NewExpression.getArgs(e), NewExpression.getTypeArgs(e));
+		}
+		
+		@Override
+		public Void visitAnonClassExpression(IRNode ace) {
+			doAccept(AnonClassExpression.getAlloc(ace));
+			for(IRNode m : VisitUtil.getClassBodyMembers(ace)) {
+				final Operator op = JJNode.tree.getOperator(m);
+				if (!TypeUtil.isStatic(m)) {
+					continue;
+				}
+				if (FieldDeclaration.prototype.includes(op)) {
+					doAccept(FieldDeclaration.getVars(m));
+				}
+				else if (ClassInitializer.prototype.includes(op)) {
+					doAccept(ClassInitializer.getBlock(m));
+				}
+				// Otherwise, ignore it
+			}			
+			return null;
+		}
+		/**
+		 * A method invocation expression (§15.12) can throw an exception class E iff either:
+		 * 
+		 * • The method invocation expression is of the form Primary . [TypeArguments]
+		 *    Identifier and the Primary expression can throw E ; or
+		 * • Some expression of the argument list can throw E ; or
+		 * • E is one of the exception types of the invocation type of the chosen method (§15.12.2.6).
+		 */ 
+		@Override
+		public Void visitMethodCall(IRNode call) {
+			// Handle receiver and args
+			doAcceptForChildren(call);
+			return collectForCall(call, MethodCall.getObject(call), MethodCall.getArgs(call), MethodCall.getTypeArgs(call));
+		}
+		/**
+		 *  A lambda expression (§15.27) can throw no exception classes.
+		 */
+		@Override
+		public Void visitLambdaExpression(IRNode e) {
+			return null;
+		}
+		/* 
+		 * For every other kind of expression, the expression can throw an exception class E
+		 * iff one of its immediate subexpressions can throw E
+		 */
+		
+		/**
+		 * 11.2.2 Exception Analysis of Statements
+		 * 
+		 * A throw statement (§14.18) whose thrown expression has static type E and is not
+		 * a final or effectively final exception parameter can throw E or any exception class
+		 * that the thrown expression can throw.
+		 * 
+		 * A throw statement whose thrown expression is a final or effectively final exception
+		 * parameter of a catch clause C can throw an exception class E iff:
+		 * 
+		 * (see below)
+		 */
+		@Override
+		public Void visitThrowStatement(IRNode s) {
+			final IRNode v = ThrowStatement.getValue(s);
+			final Operator op = JJNode.tree.getOperator(v);
+			final IJavaType e = binder.getJavaType(v);
+			if (op instanceof IHasBinding) {
+				// Check if it's a final exception parameter
+				final IBinding b = binder.getIBinding(v);
+				// TODO effectively final?
+				if (ParameterDeclaration.prototype.includes(b.getNode()) && TypeUtil.isJavaFinal(b.getNode())) {
+					final IRNode p = JJNode.tree.getParent(b.getNode());
+					if (CatchClause.prototype.includes(p)) {
+						/*
+						 * • E is an exception class that the try block of the try statement which declares
+						 *   C can throw; and
+						 */
+						final IRNode gp = JJNode.tree.getParent(p);
+						final ExceptionCollector c = new ExceptionCollector(binder);
+						c.doAccept(TryStatement.getBlock(gp));
+						
+						if (c.exceptions.contains(e) && isAssignmentCompatibleWithCatchClause(e, p)) {
+							/* 
+							 * • E is assignment compatible with any of C 's catchable exception classes; and
+							 * • E is not assignment compatible with any of the catchable exception classes of the
+							 *   catch clauses declared to the left of C in the same try statement.
+							 */
+							boolean addE = true;
+							for(IRNode cc : CatchClauses.getCatchClauseIterator(TryStatement.getCatchPart(gp))) {
+								if (cc == p) {
+									break;
+								}
+								if (isAssignmentCompatibleWithCatchClause(e, cc)) {
+									addE = false;
+									break;
+								}
+							}
+							if (addE) {
+								exceptions.add(e);
+							}
+						}
+						return null;
+					}					
+				}
+			} 
+			exceptions.add(e);
+			return doAccept(v);
+		}
+		
+		boolean isAssignmentCompatibleWithCatchClause(IJavaType e, IRNode cc) {
+			IRNode param = CatchClause.getParam(cc);
+			IJavaType ptype = binder.getJavaType(ParameterDeclaration.getType(param));
+			return binder.getTypeEnvironment().isAssignmentCompatible(e, ptype, null);
+		}
+		
+		/**
+		 * A try statement (§14.20) can throw an exception class E iff either:
+		 * • The try block can throw E , or an expression used to initialize a resource (in a
+		 *   try -with-resources statement) can throw E , or the automatic invocation of the
+		 *   close() method of a resource (in a try -with-resources statement) can throw E ,
+		 *   and E is not assignment compatible with any catchable exception class of any
+		 *   catch clause of the try statement, and either no finally block is present or the
+		 *   finally block can complete normally; or
+		 * • Some catch block of the try statement can throw E and either no finally block
+		 *   is present or the finally block can complete normally; or
+		 * • A finally block is present and can throw E .
+		 */
+		@Override
+		public Void visitTryStatement(IRNode t) {
+			final ExceptionCollector c = new ExceptionCollector(binder);
+			c.doAccept(TryStatement.getBlock(t));
+			return handleTry(c.exceptions, TryStatement.getCatchPart(t), TryStatement.getFinallyPart(t));
+		}
+		
+		private Void handleTry(final Set<IJavaType> fromBody, final IRNode catches, final IRNode finallyC) {
+			// Remove exceptions handled by the catch clauses, 
+			final ExceptionCollector c2 = new ExceptionCollector(binder);
+			for(final IRNode cc : CatchClauses.getCatchClauseIterator(catches)) {
+				Iterator<IJavaType> it = fromBody.iterator();
+				while (it.hasNext()) {
+					final IJavaType e = it.next();				
+					if (isAssignmentCompatibleWithCatchClause(e, cc)) {
+						it.remove();
+					}
+					c2.doAccept(CatchClause.getBody(cc));
+				}
+			}
+			if (NoFinally.prototype.includes(finallyC)) {
+				exceptions.addAll(fromBody); 
+				exceptions.addAll(c2.exceptions);
+			} else {
+				if (!fromBody.isEmpty() || !c2.exceptions.isEmpty()) {
+					// TODO how to complete normally?
+					exceptions.addAll(fromBody); 
+					exceptions.addAll(c2.exceptions);
+				}
+				final ExceptionCollector c3 = new ExceptionCollector(binder);
+				c3.doAccept(finallyC);
+				exceptions.addAll(c3.exceptions);
+			}			
+			return null;
+		}
+		
+		@Override
+		public Void visitTryResource(IRNode t) {			
+			final ExceptionCollector c = new ExceptionCollector(binder);
+			c.doAccept(TryResource.getBlock(t));
+			c.doAccept(TryResource.getResources(t));
+			// TODO what about the close?
+			return handleTry(c.exceptions, TryResource.getCatchPart(t), TryResource.getFinallyPart(t));
+		}
+		
+		/**
+		 * An explicit constructor invocation statement (§8.8.7.1) can throw an exception
+		 * class E iff either:
+		 * • Some expression of the constructor invocation's parameter list can throw E ; or
+		 * • E is determined to be an exception class of the throws clause of the constructor
+		 *   that is invoked (§15.12.2.6).
+		 */
+		@Override
+		public Void visitConstructorCall(IRNode e) {
+			doAcceptForChildren(e);
+			return collectForCall(e, ConstructorCall.getObject(e), ConstructorCall.getArgs(e), ConstructorCall.getTypeArgs(e));
+		}
+		
+		/*
+		 * Any other statement S can throw an exception class E iff an expression or statement
+		 * immediately contained in S can throw E .
+		 */
+		
+		@Override
+		public Void visitType(IRNode t) {
+			// No statements or expressions inside
+			return null;
+		}
+	}
+	
 	/**
 	 * A constraint formula of the form <MethodReference -> throws T > is reduced as
 	 * follows:

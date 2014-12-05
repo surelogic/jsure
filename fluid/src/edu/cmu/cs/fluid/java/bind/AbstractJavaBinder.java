@@ -157,7 +157,7 @@ import edu.cmu.cs.fluid.version.Version;
  * @author John Boyland
  */
 @ThreadSafe
-public abstract class AbstractJavaBinder extends AbstractBinder {
+public abstract class AbstractJavaBinder extends AbstractBinder implements IPrivateBinder {
   protected static final Logger LOG = SLLogger.getLogger("FLUID.java.bind");
 
   private static final boolean cacheGranuleInfo = false;

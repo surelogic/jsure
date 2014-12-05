@@ -411,11 +411,17 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     return JavaTypeFactory.getMyThisType( node );
   }
   
+  /**
+   *  From 15.27.3 Type of a Lambda Expression
+   *  
+   *  If a lambda expression is compatible with a target type T , then the type of the
+   *  expression, U , is the ground target type derived from T .
+   */
   @Override
   public IJavaType visitLambdaExpression(final IRNode node) {
 	  TypeUtils utils = new TypeUtils(binder.getTypeEnvironment());
 	  IJavaType targetType = utils.getPolyExpressionTargetType(node);
-	  return new MethodBinder8((AbstractJavaBinder) binder, false).computeGroundTargetType(node, targetType);
+	  return new MethodBinder8((IPrivateBinder) binder, false).computeGroundTargetType(node, targetType);
   }
   
   @Override
@@ -468,7 +474,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     Operator op = JJNode.tree.getOperator( n );
     if( op instanceof MethodDeclaration ) {
       if (processJava8) {
-    	 MethodBinder8 mb = new MethodBinder8((AbstractJavaBinder) binder, false);
+    	 MethodBinder8 mb = new MethodBinder8((IPrivateBinder) binder, false);
     	 return mb.computeInvocationType(call, b).getReturnType();
       }
     	

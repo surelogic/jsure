@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.BoundSet;
+import edu.cmu.cs.fluid.java.bind.TypeInference8.TypeVariable;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.BindUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -25,11 +26,11 @@ import edu.cmu.cs.fluid.tree.Operator;
  */
 public class MethodBinder8 implements IMethodBinder {
 	private final boolean debug;
-	final AbstractJavaBinder binder;
+	final IPrivateBinder binder;
 	final ITypeEnvironment tEnv;
 	final TypeInference8 typeInfer;
 	
-	MethodBinder8(AbstractJavaBinder b, boolean debug) {
+	MethodBinder8(IPrivateBinder b, boolean debug) {
 		tEnv = b.getTypeEnvironment();
 		binder = b;
 		this.debug = debug;
@@ -865,9 +866,9 @@ public class MethodBinder8 implements IMethodBinder {
     }
 	
     final ArgCompatibilityContext STRICT_INVOCATION_CONTEXT = new ArgCompatibilityContext() {
-    	public boolean isCompatible(IRNode param, IJavaType pType, IRNode arg, IJavaType argType) {
-    		// TODO
-    		return tEnv.isCallCompatible(pType, argType);
+    	public boolean isCompatible(IRNode param, IJavaType pType, IRNode arg, IJavaType argType) {    		 
+    		argType = getArgTypeIfPossible(arg, argType);
+    		return isCallCompatible(pType, arg, argType);
     	}
 	}; 
 	
@@ -876,41 +877,143 @@ public class MethodBinder8 implements IMethodBinder {
     		if (pType == null) {
     			return false;
     		}
-    		if (tEnv.isCallCompatible(pType, argType)) {
+    		argType = getArgTypeIfPossible(arg, argType);
+    		
+    		if (isCallCompatible(pType, arg, argType)) {
     			return true;
     		}
-    		return onlyNeedsBoxing(pType, argType); // TODO anything else to do?
+    		return onlyNeedsBoxing(pType, arg, argType); // TODO anything else to do?
     	}
 	}; 
     
-	private boolean isCallCompatible(IJavaType param, IJavaType arg, final boolean tryErasure) {
+	protected IJavaType getArgTypeIfPossible(IRNode arg, IJavaType argType) {
+		if (argType == null && arg != null && !isPolyExpression(arg)) {
+			argType = tEnv.getBinder().getJavaType(arg);
+		}
+		return argType;
+	}
+	
+	protected boolean isCallCompatible(IJavaType pType, IRNode arg, IJavaType argType) {  
+		if (argType == null) {			
+			final Operator op = JJNode.tree.getOperator(arg);				
+			if (LambdaExpression.prototype.includes(op)) {
+				/*
+				 * 15.27.3 Type of a Lambda Expression
+				 * 
+				 * A lambda expression is compatible in an assignment context, invocation context,
+				 * or casting context with a target type T if T is a functional interface type (§9.8) and
+				 * the expression is congruent with the function type of the ground target type derived from T .
+				 */
+				if (tEnv.isFunctionalType(pType) == null) {
+					return false;
+				}
+				IJavaType groundTargetType = computeGroundTargetType(arg, pType);
+				IJavaFunctionType ft = tEnv.isFunctionalType(groundTargetType);
+				return isLambdaCongruentWith(arg, ft);
+			}
+			throw new NotImplemented();
+		}
+		return tEnv.isCallCompatible(pType, argType);
+	}
+
+	/**
+	 * A lambda expression is congruent with a function type if all of the following are true:
+	 * 
+	 * • The function type has no type parameters.
+	 * 
+	 * • The number of lambda parameters is the same as the number of parameter types of the function type.
+	 * 
+	 * • If the lambda expression is explicitly typed, its formal parameter types are the
+	 *   same as the parameter types of the function type.
+	 * 
+	 */
+	private boolean isLambdaCongruentWith(IRNode lambda, IJavaFunctionType ft) {
+		if (!ft.getTypeFormals().isEmpty()) {
+			return false;
+		}
+		IRNode params = LambdaExpression.getParams(lambda);
+		if (JJNode.tree.numChildren(params) != ft.getParameterTypes().size()) {
+			return false;
+		}
+		if (isImplicitlyTypedLambda(lambda)) {
+			/*
+			 *  • If the lambda parameters are assumed to have the same types as the function
+			 *    type's parameter types, then:
+			 *   
+			 *    – If the function type's result is void , the lambda body is either a statement
+			 *      expression or a void -compatible block.
+			 *   
+			 *    – If the function type's result is a (non- void ) type R , then either 
+			 *   
+			 *      i)  the lambda body is an expression that is compatible with R in an assignment context, or
+			 *      ii) the lambda body is a value-compatible block, and each result expression
+			 *          (§15.27.2) is compatible with R in an assignment context.
+			 */
+			final IRNode body = LambdaExpression.getBody(lambda);
+			final IJavaType r = ft.getReturnType();
+			if (r instanceof IJavaVoidType) {
+				return isVoidCompatible(body);
+			}
+			for(IRNode expr : TypeInference8.findResultExprs(body)) {
+				if (!isAssignCompatible(r, expr)) {
+					return false;
+				}
+			}			
+			return true;
+		} else {
+			int i=0;
+			for(final IRNode pd : Parameters.getFormalIterator(params)) {
+				final IJavaType fpt = ft.getParameterTypes().get(i);
+				final IJavaType lt = tEnv.getBinder().getJavaType(ParameterDeclaration.getType(pd));
+				if (!fpt.isEqualTo(tEnv, lt)) {
+					return false;
+				}
+				i++;
+			}
+			return true;
+		}
+	}
+
+	boolean isAssignCompatible(IJavaType varType, IRNode expr) {
+		IJavaType type = getArgTypeIfPossible(expr, null);
+		// TODO what should this be?
+		if (varType instanceof TypeVariable) {
+			TypeVariable v = (TypeVariable) varType;
+			return type.isSubtype(tEnv, v.getUpperBound(tEnv)); // TODO HACK
+		}
+		return isCallCompatible(varType, expr, type);
+	}
+
+	private boolean isCallCompatible(IJavaType param, IRNode arg, IJavaType argT, final boolean tryErasure) {
 		// TODO cache? 
-		return tEnv.isCallCompatible(param, arg);
+		return isCallCompatible(param, arg, argT);
 	}
 	
     /*
     TODO fix calls to isCallCompatible
     Math.min(...)
+    
+    TODO what about poly expressions?
     */
-	private boolean onlyNeedsBoxing(IJavaType formal, IJavaType arg) {
+	private boolean onlyNeedsBoxing(IJavaType formal, IRNode a, IJavaType arg) {
     	if (formal instanceof IJavaPrimitiveType) {
        		// Could unbox arg?
     		if (arg instanceof IJavaDeclaredType) {        	
     			IJavaDeclaredType argD = (IJavaDeclaredType) arg;
     			IJavaType unboxed = JavaTypeFactory.getCorrespondingPrimType(argD);
-    			return unboxed != null && isCallCompatible(formal, unboxed, false);  
+    			return unboxed != null && isCallCompatible(formal, a, unboxed, false);  
     		} 
     		else if (arg instanceof IJavaReferenceType) {
     			IJavaPrimitiveType formalP = (IJavaPrimitiveType) formal;
     			IJavaType boxedEquivalent = JavaTypeFactory.getCorrespondingDeclType(tEnv, formalP);
-    			return boxedEquivalent != null && isCallCompatible(boxedEquivalent, arg, false);
+    			return boxedEquivalent != null && isCallCompatible(boxedEquivalent, a, arg, false);
     		}
     	}
     	else if (formal instanceof IJavaReferenceType && arg instanceof IJavaPrimitiveType) {
     		// Could box arg?
     		IJavaPrimitiveType argP = (IJavaPrimitiveType) arg;
     		IJavaType boxed         = JavaTypeFactory.getCorrespondingDeclType(tEnv, argP);
-    		return boxed != null && isCallCompatible(formal, boxed, false); 
+    		return boxed != null && isCallCompatible(formal, a, boxed, false); 
     	}
     	else if (formal instanceof IJavaDeclaredType && arg instanceof IJavaDeclaredType) {
     		IJavaDeclaredType fdt = (IJavaDeclaredType) formal;
@@ -918,7 +1021,7 @@ public class MethodBinder8 implements IMethodBinder {
     		// Hack since Class can take primitive types
     		final IRNode cls = tEnv.findNamedType("java.lang.Class");
     		if (fdt.getDeclaration().equals(cls) && adt.getDeclaration().equals(cls)) {
-    			return onlyNeedsBoxing(fdt.getTypeParameters().get(0), adt.getTypeParameters().get(0));
+    			return onlyNeedsBoxing(fdt.getTypeParameters().get(0), a, adt.getTypeParameters().get(0));
     		}
     	}
     	return false;
@@ -1629,6 +1732,10 @@ public class MethodBinder8 implements IMethodBinder {
 			 *   explicit type arguments, the invocation type is inferred as specified in §18.5.2.
 			 */
 			if (call.getNumTypeArgs() == 0) {
+				System.out.println("Inferring invocation type for "+call);
+				if (call.toString().equals("br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))")) {
+					System.out.println("Got br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))");
+				}
 				return typeInfer.inferForInvocationType(call, mb, b_2);
 			} else {
 				/*
@@ -1692,7 +1799,8 @@ public class MethodBinder8 implements IMethodBinder {
 	}
 
 	IJavaFunctionType computeMethodType(MethodBinding m) {		
-		return JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), m.bind.getReceiverType(), tEnv.getBinder());
+		return JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), 
+				TypeUtil.isStatic(m.bind.getNode()) ? null : m.bind.getReceiverType(), tEnv.getBinder());
 	}
 	
 	private IJavaFunctionType replaceReturn(IJavaFunctionType orig, IJavaType newReturn) {

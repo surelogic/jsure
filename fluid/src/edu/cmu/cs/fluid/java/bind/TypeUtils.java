@@ -1775,7 +1775,7 @@ public class TypeUtils {
 					//LOG.warning("what could a call be bound to? " + dop);
 					return null;
 				}			
-				MethodBinder8 mb = new MethodBinder8((AbstractJavaBinder) tEnv.getBinder(), false);
+				MethodBinder8 mb = new MethodBinder8((IPrivateBinder) tEnv.getBinder(), false);
 				CallState state = new CallState(tEnv.getBinder(), call, targs, args, bi.getReceiverType());
 				IJavaFunctionType ftype = mb.computeInvocationType(state, bi);
 				return ftype.instantiate(ftype.getTypeFormals(), bi.getSubst());

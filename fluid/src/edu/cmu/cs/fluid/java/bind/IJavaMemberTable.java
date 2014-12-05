@@ -8,10 +8,10 @@ import edu.cmu.cs.fluid.ir.IRNode;
 public interface IJavaMemberTable {
   Iterator<IRNode> getDeclarationsFromUse(String info, IRNode overrider);
   
-  IJavaScope asScope(AbstractJavaBinder binder);
+  IJavaScope asScope(IPrivateBinder binder);
   /**
    * Ignores the members here, but only looks at inherited members
    */
-  IJavaScope asSuperScope(AbstractJavaBinder binder);
+  IJavaScope asSuperScope(IPrivateBinder binder);
   IJavaScope asLocalScope(ITypeEnvironment tEnv);
 }

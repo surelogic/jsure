@@ -702,7 +702,8 @@ public class JavaTypeFactory implements IRType<IJavaType>, Cleanable {
         }
         return JavaTypeFactory.getUnionType(types);      
     } else if (op instanceof Type) {
-      return JavaTypeVisitor.getJavaType(nodeType, binder);
+      return binder.getJavaType(nodeType);
+      //return JavaTypeVisitor.getJavaType(nodeType, binder);
     } else {
       LOG.severe("Cannot convert type " + op);
       return null;

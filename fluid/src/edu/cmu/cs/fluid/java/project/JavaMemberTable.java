@@ -735,7 +735,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
    *@param binder binder to use on demand to look up super types.
    */
   @Override
-  public IJavaScope asScope(AbstractJavaBinder binder) {
+  public IJavaScope asScope(IPrivateBinder binder) {
 	  IJavaScope rv = cachedFullScopes.get(binder);  
 	  if (rv == null) {
 		rv = new IJavaScope.ExtendScope(asLocalScope(binder.getTypeEnvironment()),
@@ -747,7 +747,7 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   }
  
   @Override
-  public IJavaScope asSuperScope(AbstractJavaBinder binder) {
+  public IJavaScope asSuperScope(IPrivateBinder binder) {
 	  IJavaScope rv = cachedSuperScopes.get(binder);  
 	  if (rv == null) {
 		rv = new SuperScope(binder);
@@ -761,10 +761,10 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   /**
    * Only used in asScope() above
    */
-  private final ConcurrentMap<AbstractJavaBinder, IJavaScope> cachedFullScopes = 
-		  new ConcurrentHashMap<AbstractJavaBinder, IJavaScope>(8, 0.75f, 4);
-  private final ConcurrentMap<AbstractJavaBinder, IJavaScope> cachedSuperScopes = 
-		  new ConcurrentHashMap<AbstractJavaBinder, IJavaScope>(8, 0.75f, 4);
+  private final ConcurrentMap<IPrivateBinder, IJavaScope> cachedFullScopes = 
+		  new ConcurrentHashMap<IPrivateBinder, IJavaScope>(8, 0.75f, 4);
+  private final ConcurrentMap<IPrivateBinder, IJavaScope> cachedSuperScopes = 
+		  new ConcurrentHashMap<IPrivateBinder, IJavaScope>(8, 0.75f, 4);
   
   /**
    * Return a scope that only mimics the member table, not looking at superclasses.
@@ -787,13 +787,13 @@ public class JavaMemberTable extends VersionedDerivedInformation implements IJav
   @RegionLock("TypesLock is this protects TypeInfo")
   private class SuperScope implements IJavaScope {
     final boolean isTypeFormal;
-    final AbstractJavaBinder binder;
+    final IPrivateBinder binder;
 
     @UniqueInRegion("TypeInfo")
     //final List<IJavaType> superTypes = new ArrayList<IJavaType>();
     volatile List<IJavaType> superTypes = null; 
     
-    public SuperScope(AbstractJavaBinder b) {
+    public SuperScope(IPrivateBinder b) {
       binder       = b;
       isTypeFormal = TypeFormal.prototype.includes(typeDeclaration);
       //XXX: Can't populate ahead of time due to binding cycles
