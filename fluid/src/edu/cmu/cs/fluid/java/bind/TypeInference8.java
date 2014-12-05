@@ -552,10 +552,6 @@ public class TypeInference8 {
 			utils.getPolyExpressionTargetType(call.getNode());
 		}
 		final IJavaType r = m.getReturnType(tEnv);
-		if (t.toString().startsWith("java.util.function.Function") && r.toString().startsWith("java.util.stream.Collector")) {
-			System.out.println("Found type mismatch");
-			utils.getPolyExpressionTargetType(call.getNode());
-		}
 		return computeB_3(call, r, b_2, t);
 	}
 	
@@ -1951,7 +1947,7 @@ public class TypeInference8 {
 		}
 
 		void add(EqualityBound eb) {
-			System.out.println("Adding equality: "+eb);
+			//System.out.println("Adding equality: "+eb);
 			Equality e1 = find(eb.s);
 			Equality e2 = find(eb.t);
 			if (e1 != null) {
@@ -2336,6 +2332,8 @@ public class TypeInference8 {
 					for (IJavaType t : e.values()) {
 						if (isProperType(t)) {
 							if (value == null || valueisEquivalent(t, value)) {
+								value = t;
+							} else if (value instanceof TypeVariable) {
 								value = t;
 							} else if (valueisEquivalent(value, t)) {
 								// Nothing to do
