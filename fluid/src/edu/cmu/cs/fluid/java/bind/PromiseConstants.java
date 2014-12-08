@@ -59,7 +59,7 @@ public interface PromiseConstants {
 	TypeDeclaration.prototype, 
       SomeFunctionDeclaration.prototype,
       AnnotationElement.prototype,
-      FieldDeclaration.prototype,
+      VariableDeclaration.prototype,
       };
   
   public static final Operator[] declOrConstructorOps = {
