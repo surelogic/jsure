@@ -27,7 +27,7 @@ import edu.cmu.cs.fluid.util.AbstractRunner;
  * 
  * @author Edwin
  */
-public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> extends AbstractScrubber {
+public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> extends AbstractScrubber {	
 	final ScrubberType scrubberType;
 	
 	public AbstractHierarchyScrubber(ScrubberType type, String[] before, String name, ScrubberOrder order, String[] deps) {
@@ -35,6 +35,22 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		scrubberType = type;
 	}
 
+	/**
+	 * Designed to either preprocess annotations or scrub them
+	 */
+	public interface AnnotationHandler<A extends IHasPromisedFor> {
+		/**
+		 * Process AASTs for a type
+		 */
+		void processAASTs(IAnnotationTraversalCallback<A> cb, IRNode decl, List<A> l);
+	}
+	
+	private final AnnotationHandler<A> scrubHandler = new AnnotationHandler<A>() {
+		public void processAASTs(IAnnotationTraversalCallback<A> cb, IRNode decl, List<A> l) {
+			processAASTsForType(cb, decl, l);
+		}		
+	};
+	
 	// Things to override
 	protected abstract Iterable<A> getRelevantAnnotations();			
 	protected abstract IAnnotationTraversalCallback<A> getNullCallback();
@@ -78,11 +94,23 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		// Nothing to do right now
 	}
 	
+	protected AnnotationHandler<A> getPreprocessor() {
+		return null;
+	}
+	
 	@Override
-  public void run() {
+	public void run() {
+		runHandler(getPreprocessor());
+		runHandler(scrubHandler);
+	}
+	
+	private void runHandler(final AnnotationHandler<A> handler) {
+		if (handler == null) {
+			return;
+		}
 		IDE.runAtMarker(new AbstractRunner() {
 			@Override
-      public void run() {
+			public void run() {
 				try {
 					if (SLLogger.getLogger().isLoggable(Level.FINER)) {
 						SLLogger.getLogger().finer(
@@ -97,12 +125,12 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 					return;
 						 */
 					case BY_TYPE:
-						scrubByPromisedFor_Type();
+						scrubByPromisedFor_Type(handler);
 						return;
 					case BY_HIERARCHY:
 					case INCLUDE_SUBTYPES_BY_HIERARCHY:
 					case INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY:
-						scrubByPromisedFor_Hierarchy();
+						scrubByPromisedFor_Hierarchy(handler);
 						return;
 					case DIY:
 						scrubAll(getNullCallback(), getRelevantAnnotations());
@@ -125,7 +153,12 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		final Map<IRNode, List<A>> byType = new HashMap<IRNode, List<A>>();
 		final Map<IRNode, List<IRNode>> methodRelatedDeclsToCheck = new HashMap<IRNode, List<IRNode>>();
 		final Set<IRNode> done = new HashSet<IRNode>();
-		
+		final AnnotationHandler<A> handler;
+
+		TypeHierarchyVisitor(AnnotationHandler<A> h) {
+			handler = h;
+		}
+
 		void init() {
 			organizeByType(byType);
 			switch (scrubberType) {
@@ -295,7 +328,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 				walkHierarchy((IJavaDeclaredType) st);
 			}
 
-			boolean cannotSkip = !isPrivateFinalType(p, dt.getDeclaration());
+			boolean cannotSkip = handler == scrubHandler && !isPrivateFinalType(p, dt.getDeclaration());
 			// process this type
 			/*
 			final String name = dt.getName();
@@ -316,7 +349,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 				}
 				*/
 				if (l != null && !l.isEmpty()) {							
-					processAASTsForType(this, dt.getDeclaration(), l);
+					handler.processAASTs(this, dt.getDeclaration(), l);
 					if (cannotSkip && scrubberType == ScrubberType.INCLUDE_OVERRIDDEN_METHODS_BY_HIERARCHY) {
 						processUnannotatedDeclsForType(dt, otherDeclsToCheck);
 					}					
@@ -494,7 +527,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		}
 	}
 	
-	private void scrubByPromisedFor_Type() {
+	private void scrubByPromisedFor_Type(AnnotationHandler<A> handler) {
 		final Map<IRNode, List<A>> byType = new HashMap<IRNode, List<A>>();
 		organizeByType(byType);
 		
@@ -504,7 +537,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 				final IRNode decl = e.getKey();
 				startScrubbingType_internal(decl);
 				try {
-					processAASTsForType(getNullCallback(), decl, l);
+					handler.processAASTs(getNullCallback(), decl, l);
 				} finally {
 					finishScrubbingType_internal(decl);
 				}
@@ -515,9 +548,10 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 	/**
 	 * Scrub the bindings of the specified kind in order of the position of
 	 * their promisedFor (assumed to be a type decl) in the type hierarchy
+	 * @param handler 
 	 */
-	private void scrubByPromisedFor_Hierarchy() {
-		TypeHierarchyVisitor walk = new TypeHierarchyVisitor();
+	private void scrubByPromisedFor_Hierarchy(AnnotationHandler<A> handler) {
+		TypeHierarchyVisitor walk = new TypeHierarchyVisitor(handler);
 		walk.init();
 		do {
 			walk.walkHierarchy();
