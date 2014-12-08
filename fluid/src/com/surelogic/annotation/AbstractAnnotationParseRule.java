@@ -87,29 +87,31 @@ implements ISingleAnnotationParseRule<A,P> {
   
   protected final void handleRecognitionException(IAnnotationParsingContext context, String attr, String contents,
       RecognitionException e) {
-
-	  final ProposedPromiseDrop.Builder proposal;
+	  String ok = null;
+	  final int offset;
 	  if (e.charPositionInLine < contents.length()) {
 		  if (e.charPositionInLine > 0) {
-			  String ok  = contents.substring(0, e.charPositionInLine);
-			  String bad = contents.substring(e.charPositionInLine);
-			  proposal = proposeOnRecognitionException(context, contents, ok);
-			  context.reportErrorAndProposal(e.charPositionInLine, 
-					  "Unable to parse past @"+name()+'('+(attr == null ? "" : attr+'=')+ok+" ___ "+bad+')',
-					  proposal); 
+			  ok  = contents.substring(0, e.charPositionInLine);
+			  offset = e.charPositionInLine;
 		  } else {
-			  final String printContents = attr == null ? contents : attr+"='"+contents+"'";
-			  proposal = proposeOnRecognitionException(context, contents, null);
-			  context.reportErrorAndProposal(0, "Unable to parse: @"+name()+'('+printContents+')', proposal); 
+			  offset = 0;
 		  }
 	  } else {
-		  final String printContents = attr == null ? contents : attr+"='"+contents+"'";
-		  proposal = proposeOnRecognitionException(context, contents, null);
-		  context.reportErrorAndProposal(IAnnotationParsingContext.UNKNOWN, 
-				                         "Unable to parse: @"+name()+'('+printContents+')', proposal);
+		  offset = IAnnotationParsingContext.UNKNOWN;
 	  }
+	  final ProposedPromiseDrop.Builder proposal = proposeOnRecognitionException(context, contents, ok);
+	  context.reportErrorAndProposal(offset, getErrorText(context, attr, contents, ok), proposal);
+  }  
+  
+  protected String getErrorText(IAnnotationParsingContext context, String attr, String badContents, String okPrefix) {
+	if (okPrefix != null) {
+		  String bad = badContents.substring(okPrefix.length());
+		return "Unable to parse past @"+name()+'('+(attr == null ? "" : attr+'=')+okPrefix+" ___ "+bad+')'; 
+	}	  
+	final String printContents = attr == null ? badContents : attr+"='"+badContents+"'";
+	return "Unable to parse: @"+name()+'('+printContents+')'; 
   }
-
+  
   /**
    * Check if there's a proposal to replace a bad annotation
    * 
