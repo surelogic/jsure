@@ -73,6 +73,21 @@ public final class LayersAnalysis extends AbstractWholeIRAnalysis<LayersAnalysis
 		return true;
 	}
 
+	@Override
+	public void finish(IIRAnalysisEnvironment env) {
+		super.finish(env);
+		
+		for (final PackageDrop p : PackageDrop.getKnownPackageDrops()) {
+			final IRNode pkg = CompilationUnit.getPkg(p.getCompilationUnitIRNode());
+			for (LayerPromiseDrop layer : LayerRules.getLayers(pkg)) {
+				if (!layer.hasDependents()) {
+					ResultDrop r = createSuccessDrop(pkg, layer);
+					r.setMessage(359);
+				}
+			}
+		}
+	}
+	
 	/*
 	@Override
 	public IAnalysisGranulator<TopLevelType> getGranulator() {
