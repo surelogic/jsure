@@ -591,7 +591,7 @@ public class ScopedPromiseRules extends AnnotationRules {
     }
     
     @Override
-    public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
+    public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal, String... moreInfo) {
     	hadProblem = true;
     }
     

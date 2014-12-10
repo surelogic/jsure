@@ -239,7 +239,7 @@ public class UniquenessRules extends AnnotationRules {
     }
    
     @Override
-    protected String getErrorText(IAnnotationParsingContext context, String attr, String badContents, String okPrefix) {
+    protected String getErrorText(IAnnotationParsingContext context, RecognitionException e, String attr, String badContents, String okPrefix) {
     	if (ConstructorDeclaration.prototype.includes(context.getOp())) {
     		return "Constructors may only be annotated @Unique(\"return\") indicating that "+
     				"the newly constructed object is not aliased during object construction";
@@ -250,7 +250,7 @@ public class UniquenessRules extends AnnotationRules {
     	else if (VariableDeclaration.prototype.includes(context.getOp())) {
     		return "Fields may only be annotated @Unique";
     	}
-    	return super.getErrorText(context, attr, badContents, okPrefix);    	
+    	return super.getErrorText(context, e, attr, badContents, okPrefix);    	
     }
     
     @Override

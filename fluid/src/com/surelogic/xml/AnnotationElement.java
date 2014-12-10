@@ -274,7 +274,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 			}
 
 			@Override
-      public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
+      public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal, String... info) {
 				// l.reportError("Problem parsing annotation", msg);
 			}
 

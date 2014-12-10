@@ -71,7 +71,7 @@ public interface IAnnotationParsingContext {
    */
   void reportError(int offset, String msg);
   
-  void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal);
+  void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal, String... addlInfo);
   
   void reportError(int offset, int number, Object... args);
 
@@ -87,7 +87,7 @@ public interface IAnnotationParsingContext {
   IAnnotationParsingContext nullPrototype = 
     new AbstractAnnotationParsingContext(AnnotationSource.JAVADOC, AnnotationOrigin.DECL) {
     @Override
-    public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
+    public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal, String... moreInfo) {
       System.out.println(msg);
     }
     @Override

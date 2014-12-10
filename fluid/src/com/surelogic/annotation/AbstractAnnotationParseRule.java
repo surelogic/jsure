@@ -1,10 +1,11 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/AbstractAnnotationParseRule.java,v 1.15 2007/09/27 15:07:34 chance Exp $*/
 package com.surelogic.annotation;
 
-import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.*;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
+import com.surelogic.common.SLUtility;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
@@ -100,16 +101,37 @@ implements ISingleAnnotationParseRule<A,P> {
 		  offset = IAnnotationParsingContext.UNKNOWN;
 	  }
 	  final ProposedPromiseDrop.Builder proposal = proposeOnRecognitionException(context, contents, ok);
-	  context.reportErrorAndProposal(offset, getErrorText(context, attr, contents, ok), proposal);
+	  context.reportErrorAndProposal(offset, getErrorText(context, e, attr, contents, ok), proposal);
   }  
   
-  protected String getErrorText(IAnnotationParsingContext context, String attr, String badContents, String okPrefix) {
+  protected String getErrorText(IAnnotationParsingContext context, RecognitionException e, String attr, String badContents, String okPrefix) {	  
+	final String reason;
+	if (e instanceof MissingTokenException) {
+		//MissingTokenException mte = (MissingTokenException) e;
+		reason = null;
+	}	  
+	else if (e instanceof UnwantedTokenException) {
+		UnwantedTokenException ute = (UnwantedTokenException) e;
+		reason = "extraneous '"+ute.getUnexpectedToken().getText()+'\'';
+	}	  
+	else if (e instanceof MismatchedTokenException){
+		MismatchedTokenException mte = (MismatchedTokenException) e;
+		String text = mte.token.getText();
+		if (text.equals("<EOF>")) {
+			reason = "unexpected EOF";
+		} else {
+			reason = "unexpected '"+text+'\'';
+		}
+	}
+	else {
+		reason = null;
+	}
 	if (okPrefix != null) {
 		  String bad = badContents.substring(okPrefix.length());
-		return "Unable to parse past @"+name()+'('+(attr == null ? "" : attr+'=')+okPrefix+" ___ "+bad+')'; 
+		return "Unable to parse past @"+name()+'('+(attr == null ? "" : attr+'=')+okPrefix+" ___ "+bad+')'+(reason == null ? "" : " : "+reason); 
 	}	  
 	final String printContents = attr == null ? badContents : attr+"='"+badContents+"'";
-	return "Unable to parse: @"+name()+'('+printContents+')'; 
+	return "Unable to parse @"+name()+'('+printContents+')'+(reason == null ? "" : " : "+reason); 
   }
   
   /**

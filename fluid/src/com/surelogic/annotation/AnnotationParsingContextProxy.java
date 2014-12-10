@@ -42,8 +42,8 @@ public class AnnotationParsingContextProxy extends AbstractAnnotationParsingCont
   }
 
   @Override
-  public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
-    context.reportErrorAndProposal(offset, msg, proposal);
+  public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal, String... moreInfo) {
+    context.reportErrorAndProposal(offset, msg, proposal, moreInfo);
   }
 
   @Override

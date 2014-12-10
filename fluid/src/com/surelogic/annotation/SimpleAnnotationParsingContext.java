@@ -271,7 +271,7 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
   }
 
   @Override
-  public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
+  public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal, String... moreInfo) {
 	  final ModelingProblemDrop error = reportError(offset);
 	  if (error != null) {
 		  error.setMessage(msg);
@@ -279,6 +279,9 @@ public abstract class SimpleAnnotationParsingContext extends AbstractAnnotationP
 			  proposal.forDrop(error);
 			  proposal.setOrigin(Origin.PROBLEM);
 			  proposal.build();
+		  }
+		  for(String i : moreInfo) {
+			  error.addInformationHint(null, i);
 		  }
 	  }
   }
