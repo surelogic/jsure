@@ -240,15 +240,19 @@ public class UniquenessRules extends AnnotationRules {
    
     @Override
     protected String getErrorText(IAnnotationParsingContext context, RecognitionException e, String attr, String badContents, String okPrefix) {
-    	if (ConstructorDeclaration.prototype.includes(context.getOp())) {
+    	final Operator op = context.getOp();
+    	if (ConstructorDeclaration.prototype.includes(op)) {
     		return "Constructors may only be annotated @Unique(\"return\") indicating that "+
     				"the newly constructed object is not aliased during object construction";
     	}
-    	else if (ConstructorDeclaration.prototype.includes(context.getOp())) {
+    	else if (MethodDeclaration.prototype.includes(op)) {
     		return "Methods may only be annotated @Unique(\"return\"), @Unique(\"this\"), or @Unique(\"return, this\")";	
     	}
-    	else if (VariableDeclaration.prototype.includes(context.getOp())) {
+    	else if (FieldDeclaration.prototype.includes(op)) {
     		return "Fields may only be annotated @Unique";
+    	}
+    	else if (VariableDeclaration.prototype.includes(op)) {
+    		return "Locals may only be annotated @Unique";
     	}
     	return super.getErrorText(context, e, attr, badContents, okPrefix);    	
     }
