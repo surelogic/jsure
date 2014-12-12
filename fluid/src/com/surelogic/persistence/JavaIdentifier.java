@@ -545,7 +545,7 @@ public final class JavaIdentifier {
 			created.add(ast);
 		}
 		@Override
-    public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
+    public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal, String... moreInfo) {
 			throw new IllegalStateException("While matching: "+msg);
 		}
 		@Override

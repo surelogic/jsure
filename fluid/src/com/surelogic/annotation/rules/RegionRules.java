@@ -35,6 +35,7 @@ import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
+import com.surelogic.annotation.scrub.IAnnotationTraversalCallback;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.annotation.scrub.SimpleScrubber;
 import com.surelogic.dropsea.ir.PromiseDrop;
@@ -329,6 +330,15 @@ public class RegionRules extends AnnotationRules {
       return new AbstractAASTScrubber<InRegionNode, InRegionPromiseDrop>(
           this, ScrubberType.BY_HIERARCHY, REGION,
           SIMPLE_UNIQUE_IN_REGION, SIMPLE_BORROWED_IN_REGION) {
+    	@Override
+    	protected AnnotationHandler<InRegionNode> getPreprocessor() {
+    	  return new AnnotationHandler<InRegionNode>() {
+			public void processAASTs(IAnnotationTraversalCallback<InRegionNode> cb, IRNode decl, List<InRegionNode> l) {
+				System.out.println("Preprocessing @InRegion: "+l.size());
+				// TODO
+			}    		  
+    	  };
+    	}
         @Override
         protected PromiseDrop<InRegionNode> makePromiseDrop(InRegionNode a) {
           return storeDropIfNotNull(a, scrubInRegion(getContext(), a));          

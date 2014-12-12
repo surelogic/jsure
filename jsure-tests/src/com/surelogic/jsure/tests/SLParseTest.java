@@ -2444,7 +2444,8 @@ public class SLParseTest extends TestCase {
 		 * com.surelogic.annotation.IAnnotationParsingContext#reportError(int,
 		 * java.lang.String)
 		 */
-    public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal) {
+		@Override
+    public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal, String... moreInfo) {
 			errorOffset = offset;
 			errorMsg = msg;
 		}

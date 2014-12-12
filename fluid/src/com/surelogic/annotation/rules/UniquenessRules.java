@@ -42,6 +42,7 @@ import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedTypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
+import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
@@ -237,6 +238,35 @@ public class UniquenessRules extends AnnotationRules {
       super(UNIQUE, fieldFuncParamDeclOps, UniqueNode.class);
     }
    
+    @Override
+    protected String getErrorText(IAnnotationParsingContext context, RecognitionException e, String attr, String badContents, String okPrefix) {
+    	if (ConstructorDeclaration.prototype.includes(context.getOp())) {
+    		return "Constructors may only be annotated @Unique(\"return\") indicating that "+
+    				"the newly constructed object is not aliased during object construction";
+    	}
+    	else if (ConstructorDeclaration.prototype.includes(context.getOp())) {
+    		return "Methods may only be annotated @Unique(\"return\"), @Unique(\"this\"), or @Unique(\"return, this\")";	
+    	}
+    	else if (VariableDeclaration.prototype.includes(context.getOp())) {
+    		return "Fields may only be annotated @Unique";
+    	}
+    	return super.getErrorText(context, e, attr, badContents, okPrefix);    	
+    }
+    
+    @Override
+    protected ProposedPromiseDrop.Builder proposeOnRecognitionException(IAnnotationParsingContext context, String badContents, String okPrefix) {
+    	final boolean emptyContents = badContents == null || badContents.length() == 0;
+    	final boolean onSomeFunc = SomeFunctionDeclaration.prototype.includes(context.getOp());
+    	if (onSomeFunc ^ emptyContents) {
+    	  return null;
+    	}    	
+        ProposedPromiseDrop.Builder p = context.startProposal(Unique.class);
+        if (p == null) {
+      	  return null;
+        }
+        return p.setValue(onSomeFunc ? "return" : "").replaceSameExisting(badContents);
+    }
+    
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       return new UniqueNode(offset,JavaNode.isSet(mods, JavaNode.ALLOW_READ));
