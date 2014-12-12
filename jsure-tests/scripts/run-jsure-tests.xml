@@ -251,6 +251,19 @@
 				<echo message="[Win] fluid-javac bootClasspath changed..." />
 			</then>
 		</if>
+		
+		<condition property="is.unix">
+			<os family="unix" />
+		</condition>
+		<if>
+			<equals arg1="${is.unix}" arg2="true" casesensitive="false" />
+			<then>
+				<propertyfile file="${sandbox.jsure.build.plugins.dir}${fs}fluid${fs}build.properties">
+					<entry key="bootClasspath" value="lib/runtime8/javac_8.jar:/home/edwin/work/jdk1.7.0_10/jre/lib/rt.jar" />
+				</propertyfile>
+				<echo message="[Unix] fluid-javac bootClasspath changed..." />
+			</then>
+		</if>
 
 		<!-- Copy template headless build.properties file and configure it for a headless build -->
 		<property name="jsure.build.properties" value="${sandbox.jsure.build.dir}${fs}build.properties" />
