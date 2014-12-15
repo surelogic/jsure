@@ -131,7 +131,7 @@ implements ISingleAnnotationParseRule<A,P> {
 		return "Unable to parse past @"+name()+'('+(attr == null ? "" : attr+'=')+okPrefix+" ___ "+bad+')'+(reason == null ? "" : " : "+reason); 
 	}	  
 	final String printContents = attr == null ? badContents : attr+"='"+badContents+"'";
-	return "Unable to parse @"+name()+'('+printContents+')'+(reason == null ? "" : " : "+reason); 
+	return "Unable to parse @"+name()+(printContents.length()==0 ? "" : '('+printContents+')')+(reason == null ? "" : " : "+reason); 
   }
   
   /**
