@@ -41,7 +41,6 @@ import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.Selector;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment.InvocationKind;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
-import edu.cmu.cs.fluid.java.bind.TypeUtils.Constraint;
 import edu.cmu.cs.fluid.java.bind.TypeUtils.Constraints;
 import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
@@ -1408,8 +1407,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       if ("getCurrentKey".equals(name)) {      	
       	System.out.println("Context type for getCurrentKey() = "+bestMethod.method.getContextType());
       }
-      */
-      return bind(state.call, IBinding.Util.makeMethodBinding(bestMethod.method, null, null/*mSubst*/, state.receiverType, getTypeEnvironment()));
+      */      
+      //return bind(state.call, Binding.Util.makeMethodBinding(bestMethod.method, null, null/*mSubst*/, state.receiverType, getTypeEnvironment()));
+      if (state.receiverType != null && state.receiverType != bestMethod.method.getReceiverType()) {
+    	  throw new IllegalStateException();
+      }
+      return bind(state.call, bestMethod.method);
     }
 
     private StringBuilder buildStringOfArgTypes(IJavaType[] argTypes) {
