@@ -41,7 +41,6 @@ import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.Selector;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment.InvocationKind;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
-import edu.cmu.cs.fluid.java.bind.TypeUtils.Constraint;
 import edu.cmu.cs.fluid.java.bind.TypeUtils.Constraints;
 import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.java.operator.AnnotationDeclaration;
@@ -49,6 +48,7 @@ import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
+import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.ClassExpression;
@@ -163,7 +163,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
   private static final boolean cacheGranuleInfo = false;
   protected static final boolean storeNullBindings = true;
   protected boolean warnAboutPkgBindings = false;
-  final boolean processJava8;
   
   public static final ThreadLocal<Stack<IGranuleBindings>> bindingStack = new ThreadLocal<Stack<IGranuleBindings>>() {
 	  @Override
@@ -195,15 +194,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     new ConcurrentHashMap<IRNode,IGranuleBindings>();
   
   protected AbstractJavaBinder(IJavaClassTable table) {
+	super(false);
     classTable      = table;
     typeEnvironment = new TypeEnv();
-    processJava8 = false;
   }
   
   protected AbstractJavaBinder(ITypeEnvironment tEnv, boolean processJ8) {
+	super(processJ8);
     typeEnvironment = tEnv;
     classTable      = tEnv.getClassTable();
-    processJava8 = processJ8;
   }
 
   protected static Operator getOperator(IRNode node) {
@@ -1408,8 +1407,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       if ("getCurrentKey".equals(name)) {      	
       	System.out.println("Context type for getCurrentKey() = "+bestMethod.method.getContextType());
       }
-      */
-      return bind(state.call, IBinding.Util.makeMethodBinding(bestMethod.method, null, null/*mSubst*/, state.receiverType, getTypeEnvironment()));
+      */      
+      //return bind(state.call, Binding.Util.makeMethodBinding(bestMethod.method, null, null/*mSubst*/, state.receiverType, getTypeEnvironment()));
+      if (state.receiverType != null && state.receiverType != bestMethod.method.getReceiverType()) {
+    	  throw new IllegalStateException();
+      }
+      return bind(state.call, bestMethod.method);
     }
 
     private StringBuilder buildStringOfArgTypes(IJavaType[] argTypes) {
@@ -2153,15 +2156,16 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       IJavaScope toUse  = null;
       IJavaType recType = null;
       final String name = MethodCall.getMethod(node);  
-      /*
-      if ("go".equals(name)) {
+     
+      if ("forEach".equals(name)) {
     	  System.out.println("Calling "+DebugUnparser.toString(node));
       }
-      */      
-      if (JJNode.tree.getOperator(receiver) instanceof ImplicitReceiver) {
+  
+      final Operator rop = JJNode.tree.getOperator(receiver);
+      if (rop instanceof ImplicitReceiver) {
         toUse = scope;
       } else {
-        recType = getJavaType(receiver);
+    	recType = getApproxJavaType(receiver, rop);
 //        if (recType instanceof IJavaDeclaredType) {
 //          System.out.println(DebugUnparser.toString(((IJavaDeclaredType) recType).getDeclaration()));
 //        }
@@ -3422,5 +3426,34 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
 		  return false;
 	  }
 	  return t1.equals(t2);
+  }
+ 
+  IJavaType getApproxJavaType(IRNode n, Operator op) {
+  	if (processJava8) {
+  		final MethodBinder8 mb = new MethodBinder8(this, false);
+		if (mb.isPolyExpression(n, op)) {
+		  	if (op instanceof CallInterface) {
+		  		final IBinding b = getIBinding(n);
+		  		/*
+		  		// Copied from JavaTypeVisitor.computeReturnType()
+		  		// Check if Object.getClass()
+		  		final IJavaDeclaredType objectT = getTypeEnvironment().getObjectType();
+		  		if (b.getContextType() != null &&
+			    	  b.getContextType().equals(objectT) && 
+			          MethodDeclaration.getId(n).equals("getClass") &&
+			          JJNode.tree.numChildren(MethodDeclaration.getParams(n)) == 0) {
+			        IJavaReferenceType upper         = (IJavaReferenceType) getTypeEnvironment().computeErasure(b.getReceiverType());
+			        IRNode classDecl                 = getTypeEnvironment().findNamedType("java.lang.Class");
+			        List<? extends IJavaType> params = Collections.singletonList(JavaTypeFactory.getWildcardType(upper, null));
+			        return JavaTypeFactory.getDeclaredType(classDecl, params, null);
+		  		} 
+		  		*/ 
+		  		IJavaType t = typeVisitor.getJavaType(b.getNode());
+		  		return b.convertType(this, t);		  		
+		  	}
+		}
+		// Any other cases that need special handling?
+  	}
+	return getJavaType(n);
   }
 }
