@@ -1813,6 +1813,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     @Override
     public Void visitConstructorReference(IRNode node) {
     	visit(node);
+    	// TODO bind?
+    	// skip binding for now to avoid cycle
+    	if (true) {
+    		return null;
+    	}
+    	    	
     	if (!isFullPass || pathToTarget != null) return null;
     	TypeUtils utils = new TypeUtils(getTypeEnvironment());
     	IJavaType targetType = utils.getPolyExpressionTargetType(node);
@@ -2133,6 +2139,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     
     @Override
     public Void visitLambdaExpression(IRNode node) {
+      if (pathToTarget != null) {
+    	  return null;
+      }
       IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
       IRNode returnNode = JavaPromise.getReturnNodeOrNull(node);
       if (returnNode != null) {
@@ -2156,11 +2165,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       IJavaScope toUse  = null;
       IJavaType recType = null;
       final String name = MethodCall.getMethod(node);  
-     
-      if ("forEach".equals(name)) {
+      /*
+      if ("go".equals(name)) {
     	  System.out.println("Calling "+DebugUnparser.toString(node));
       }
-  
+      */      
       final Operator rop = JJNode.tree.getOperator(receiver);
       if (rop instanceof ImplicitReceiver) {
         toUse = scope;
