@@ -117,9 +117,11 @@ public abstract class CategoryMatcher {
     */
     if (o instanceof IModelingProblemDrop && o.getMessage().startsWith("Unable to parse")) {
     	final int at = o.getMessage().indexOf('@');
-    	final int spaceAfterAnno = o.getMessage().indexOf(' ', at);
-    	final String reconstructed = o.getMessage().substring(0, spaceAfterAnno) +'('+ o.getMessage().substring(spaceAfterAnno+1) +')';
-		result = matchStrings(n.getMessage(), reconstructed, true);
+    	if (at > 0) {
+    		final int spaceAfterAnno = o.getMessage().indexOf(' ', at);
+    		final String reconstructed = o.getMessage().substring(0, spaceAfterAnno) +'('+ o.getMessage().substring(spaceAfterAnno+1) +')';
+    		result = matchStrings(n.getMessage(), reconstructed, true);
+    	}
     }
     return result != null ? result : false;
   }
