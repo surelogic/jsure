@@ -226,6 +226,19 @@ public static synchronized <A extends IAASTRootNode>
 	  cloneTestResult(pd.getAAST(), clone);
   }
   
+  /**
+   * A convenience method for rules that infer the presence of declarations, like @Region from the use of @InRegion
+   */
+  @SuppressWarnings({ "rawtypes" })
+  public static synchronized void linkAsInferred(final IAASTRootNode source, final PromiseDrop<?> inferred) {
+	  triggerWhenValidated(source, new ValidatedDropCallback() {
+		@Override
+		public void validated(PromiseDrop fromSource) {
+			fromSource.addDependent(inferred);
+		}		  
+	  });
+  }
+  
   public static synchronized void associateTestResult(IAASTRootNode root, TestResult result) {
     if (result == null) {
       return;
