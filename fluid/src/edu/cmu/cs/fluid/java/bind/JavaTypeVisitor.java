@@ -5,6 +5,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.java.*;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
+import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodBinding8;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.*;
@@ -419,6 +420,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
    */
   @Override
   public IJavaType visitLambdaExpression(final IRNode node) {
+	  //String unparse = DebugUnparser.toString(node);
 	  TypeUtils utils = new TypeUtils(binder.getTypeEnvironment());
 	  IJavaType targetType = utils.getPolyExpressionTargetType(node);
 	  return new MethodBinder8((IPrivateBinder) binder, false).computeGroundTargetType(node, targetType);
@@ -475,7 +477,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     if( op instanceof MethodDeclaration ) {
       if (processJava8) {
     	 MethodBinder8 mb = new MethodBinder8((IPrivateBinder) binder, false);
-    	 return mb.computeInvocationType(call, b).getReturnType();
+    	 return mb.computeInvocationType(call, (MethodBinding8) b).getReturnType();
       }
     	
       // Check if Object.getClass()
@@ -1245,8 +1247,8 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 		  return;
 	  }
 	  binder = b;
-	  if (b instanceof AbstractJavaBinder) {
-		  AbstractJavaBinder ajb = (AbstractJavaBinder) b;
+	  if (b instanceof AbstractBinder) {
+		  AbstractBinder ajb = (AbstractBinder) b;
 		  processJava8 = ajb.processJava8;
 	  } else {
 		  processJava8 = false;

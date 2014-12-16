@@ -12,6 +12,7 @@ import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment.InvocationKind;
 import edu.cmu.cs.fluid.java.bind.IMethodBinder.CallState;
+import edu.cmu.cs.fluid.java.bind.MethodBinder8.MethodBinding8;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -1688,7 +1689,7 @@ public class TypeUtils {
 		  } else if (Arguments.prototype.includes(op)) {
 			  IRNode call = JJNode.tree.getParent(p);
 			  int i = JJNode.tree.childLocationIndex(p, loc);
-			  IBinding bi = tEnv.getBinder().getIBinding(call);
+			  MethodBinding8 bi = (MethodBinding8) tEnv.getBinder().getIBinding(call);
 			  /*
 			  if (bi != null) {
 				  IRNode decl = bi.getNode();
@@ -1754,29 +1755,16 @@ public class TypeUtils {
 	  }
 	
 	private IJavaFunctionType computeInvocationTypeForCall(IRNode call, IRNode args) {
-		IBinding bi = tEnv.getBinder().getIBinding(call);
+		MethodBinding8 bi = (MethodBinding8) tEnv.getBinder().getIBinding(call);
 		return computeInvocationTypeForCall(call, args, bi);
 	}
 	
-	private IJavaFunctionType computeInvocationTypeForCall(IRNode call, IRNode args, IBinding bi) {
+	private IJavaFunctionType computeInvocationTypeForCall(IRNode call, IRNode args, MethodBinding8 bi) {
 		if (bi != null) {
 			IRNode decl = bi.getNode();
 			if (decl != null) {
-				final IRNode formals, targs;
-				Operator dop = JJNode.tree.getOperator(decl);
-				if (MethodDeclaration.prototype.includes(dop)) {
-					formals = MethodDeclaration.getParams(decl);
-					targs = MethodCall.getTypeArgs(call);						
-				} else if (ConstructorDeclaration.prototype.includes(dop)) {
-					formals = ConstructorDeclaration.getParams(decl);
-					// TODO what about ConstructorCall/ACE?
-					targs = NewExpression.getTypeArgs(call);
-				} else {
-					//LOG.warning("what could a call be bound to? " + dop);
-					return null;
-				}			
 				MethodBinder8 mb = new MethodBinder8((IPrivateBinder) tEnv.getBinder(), false);
-				CallState state = new CallState(tEnv.getBinder(), call, targs, args, bi.getReceiverType());
+				CallState state = mb.getCallState(call, bi);
 				IJavaFunctionType ftype = mb.computeInvocationType(state, bi);
 				return ftype.instantiate(ftype.getTypeFormals(), bi.getSubst());
 				// IJavaType ptype = ftype.getParameterTypes().get(TypeUtil.isStatic(bi.getNode()) ? i : i+1);			 
