@@ -75,8 +75,10 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   // TODO not threadsafe
   private JavaCanonicalizer.IBinderCache cache = null;
   
-  void setBinderCache(JavaCanonicalizer.IBinderCache c) {
+  JavaCanonicalizer.IBinderCache setBinderCache(JavaCanonicalizer.IBinderCache c) {
+	  JavaCanonicalizer.IBinderCache old = cache;
 	  cache = c;
+	  return old;
   }
   
   @Override
@@ -342,7 +344,13 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   
   @Override
   public IGranuleBindings ensureBindingsOK(final IRNode node) {    
-	  return super.ensureBindingsOK(node);
+	  //final JavaCanonicalizer.IBinderCache old = setBinderCache(null);
+	  try {
+		  return super.ensureBindingsOK(node);
+	  }
+	  finally {
+		  //setBinderCache(old);
+	  }
   }
   
   @Override
