@@ -5,7 +5,6 @@ import java.util.*;
 import com.surelogic.common.util.FilterIterator;
 
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -46,14 +45,18 @@ class MethodInfo {
 		return numFormals;
 	}
 	
-	IJavaType getJavaType(IBinder b, IRNode f) {
+	IJavaType getJavaType(IBinder b, IRNode f, boolean withSubst) {
 		return b.getJavaType(f);
 	}
 	
 	/**
 	 * @return the parameter types that should match the call arguments;
 	 */
-    IJavaType[] getParamTypes(IBinder b, int callArgs, boolean varArity) {
+	IJavaType[] getParamTypes(IBinder b, int callArgs, boolean varArity) {
+		return getParamTypes(b, callArgs, varArity, true);
+	}
+	
+    IJavaType[] getParamTypes(IBinder b, int callArgs, boolean varArity, boolean withSubst) {
     	IJavaType[] rv = new IJavaType[callArgs];
     	int i=0;
 		for(IRNode f : Parameters.getFormalIterator(formals)) {
@@ -61,7 +64,7 @@ class MethodInfo {
 				// Empty varargs
 				break; 
 			}
-			rv[i] = getJavaType(b, f);
+			rv[i] = getJavaType(b, f, withSubst);
 			i++;
 		}
     	if (varArity && callArgs >/*=*/ numFormals) {

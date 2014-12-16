@@ -208,8 +208,12 @@ interface IMethodBinder {
         }
         */
     	@Override
-    	IJavaType getJavaType(IBinder b, IRNode formal) {
-    		return bind.convertType(b, super.getJavaType(b, formal));
+    	IJavaType getJavaType(IBinder b, IRNode f, boolean withSubst) {
+    		IJavaType t = super.getJavaType(b, f, withSubst);
+    		if (withSubst) {
+    			return bind.convertType(b, t);
+    		}
+    		return t;
     	}
     	    	
         IJavaType getReturnType(ITypeEnvironment tEnv) {

@@ -1506,21 +1506,31 @@ declared return type, Object .
     
     static class MethodBinding8WithBoundSet extends MethodBinding8 {
     	final BoundSet bounds;
-    	
-    	private MethodBinding8WithBoundSet(ICallState call, IBinding m, BoundSet b, InvocationKind kind) {
+    	final IJavaTypeSubstitution contextSubst;
+    	private MethodBinding8WithBoundSet(ITypeEnvironment tEnv, ICallState call, IBinding m, BoundSet b, InvocationKind kind) {
     		super(call, m, kind);
     		bounds = b;
+    		contextSubst = JavaTypeSubstitution.create(tEnv, m.getContextType());
     	}
     	
     	static MethodBinding8 create(ICallState c, MethodBinding m, ITypeEnvironment te, BoundSet b, InvocationKind kind) {
     		final BoundSet result = TypeInference8.resolve(b);    		
     		IBinding newB = reworkBinding(c, m.bind, te, result.getFinalTypeSubst());
-    		return new MethodBinding8WithBoundSet(c, newB, b, kind);
+    		return new MethodBinding8WithBoundSet(te, c, newB, b, kind);
     	}
     	
 		@Override
 		public BoundSet getInitialBoundSet() {
 			return bounds;
+		}
+		
+		@Override
+    	IJavaType getJavaType(IBinder b, IRNode formal, boolean withSubst) {
+			// TODO Need to use the right subst!
+			if (withSubst) {			
+				return super.getJavaType(b, formal, withSubst);
+			} 
+			return super.getJavaType(b, formal, withSubst).subst(contextSubst);
 		}
 	}
 	
