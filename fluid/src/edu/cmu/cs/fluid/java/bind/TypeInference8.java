@@ -389,11 +389,9 @@ public class TypeInference8 {
 	 * @return the bound set B 2 if the method is applicable
 	 */   
 	BoundSet inferForInvocationApplicability(ICallState call, MethodBinding m, InvocationKind kind) {
-		/*
-		if ("test.TestMethodOverloading.foo(T,T2)".equals(m.toString())) {
-			System.out.println("Found foo(T,T2)");
+		if (call.toString().equals("br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))")) {
+			System.out.println("Got br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))");
 		}
-		*/
 		final BoundSet b_0;
 		if (ConstructorReference.prototype.includes(call.getNode())) {
 			// Special case to handle filling the type's variables, if any
@@ -3629,7 +3627,8 @@ public class TypeInference8 {
 		final CallState call = new CallState(tEnv.getBinder(), e, c.get_TypeArgs(e), c.get_Args(e), b.getReceiverType());
 		Pair<MethodBinding,BoundSet> pair = recomputeB_2(call, b);
 		MethodBinding m = pair.first();
-		BoundSet b_3 = computeB_3(call, m.getReturnType(tEnv), pair.second(), t); 
+		IJavaType r = m.getReturnType(tEnv, false);
+		BoundSet b_3 = computeB_3(call, r, pair.second(), t); 
 		return new Triple<CallState,MethodBinding8,BoundSet>(call, b, b_3);
 	}
 	

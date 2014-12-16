@@ -216,9 +216,16 @@ interface IMethodBinder {
     		return t;
     	}
     	    	
-        IJavaType getReturnType(ITypeEnvironment tEnv) {
+        final IJavaType getReturnType(ITypeEnvironment tEnv) {
+        	return getReturnType(tEnv, true);
+        }
+        
+        IJavaType getReturnType(ITypeEnvironment tEnv, boolean withSubst) {
     		IJavaType base = JavaTypeVisitor.getJavaType(mdecl, tEnv.getBinder());
-    		return bind.convertType(tEnv.getBinder(), base);
+    		if (withSubst) {
+    			return bind.convertType(tEnv.getBinder(), base);
+    		}
+    		return base;
     	}
 
 		@Override
