@@ -720,7 +720,7 @@ public class TypeInference8 {
      */
 	private Set<ConstraintFormula> createInitialConstraints(ICallState call, MethodBinding8 m, IJavaTypeSubstitution theta) {
 		final Set<ConstraintFormula> rv = new HashSet<ConstraintFormula>();
-		final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.numArgs(), m.getInvocationKind() == InvocationKind.VARARGS);
+		final IJavaType[] formalTypes = m.getParamTypes(tEnv.getBinder(), call.numArgs(), m.getInvocationKind() == InvocationKind.VARARGS, false);
 		for(int i=0; i<call.numArgs(); i++) {
 			final IRNode e_i = call.getArgOrNull(i);
 			final IJavaType f_subst = formalTypes[i].subst(theta); 
@@ -781,28 +781,11 @@ public class TypeInference8 {
 		}
 	}
 
-	/* 
+	/** 
 	 * - While C is not empty, the following process is repeated, starting with the bound
 	 *   set B 3 and accumulating new bounds into a "current" bound set, ultimately
 	 *   producing a new bound set, B 4 :
-	 *   
-	 *   1. A subset of constraints is selected in C , satisfying the property that, for each
-	 *      constraint, no input variable depends on the resolution (Â§18.4) of an output
-	 *      variable of another constraint in C . (input variable and output variable are
-	 *      defined below.)
-	 *      
-	 *      (see below)
-	 * 
-	 *   2. The selected constraint(s) are removed from C .
-	 *   
-	 *   3. The input variables α 1 , ..., α m of all the selected constraint(s) are resolved.
-	 *   
-	 *   4. Where T 1 , ..., T m are the instantiations of α 1 , ..., α m , the substitution
-	 *      [ α 1 := T 1 , ..., α m := T m ] is applied to every constraint.
-	 *      
-	 *   5. The constraint(s) resulting from substitution are reduced and incorporated
-	 *      with the current bound set.
-	 */
+	 */   
 	private BoundSet computeB_4(final BoundSet b_3, final Set<ConstraintFormula> c) {
 		final Map<ConstraintFormula,InputOutputVars> io = precomputeIO(c);
 		BoundSet current = new BoundSet(b_3);
@@ -821,6 +804,24 @@ public class TypeInference8 {
 		return current;
 	}
 
+	/**
+	 *   1. A subset of constraints is selected in C , satisfying the property that, for each
+	 *      constraint, no input variable depends on the resolution (Â§18.4) of an output
+	 *      variable of another constraint in C . (input variable and output variable are
+	 *      defined below.)
+	 *      
+	 *      (see below)
+	 * 
+	 *   2. The selected constraint(s) are removed from C .
+	 *   
+	 *   3. The input variables α 1 , ..., α m of all the selected constraint(s) are resolved.
+	 *   
+	 *   4. Where T 1 , ..., T m are the instantiations of α 1 , ..., α m , the substitution
+	 *      [ α 1 := T 1 , ..., α m := T m ] is applied to every constraint.
+	 *      
+	 *   5. The constraint(s) resulting from substitution are reduced and incorporated
+	 *      with the current bound set.
+	 */
 	private Set<ConstraintFormula> doComputeB_4(final Set<ConstraintFormula> c, final Map<ConstraintFormula, InputOutputVars> io, BoundSet current) {
 		// Step 2
 		ConstraintDependencies deps = new ConstraintDependencies();
@@ -837,6 +838,9 @@ public class TypeInference8 {
 		
 		// Step 3: resolve
 		final Set<InferenceVariable> toResolve = collectInputVars(io, selected);			
+		if (toResolve.size() == 0) {
+			throw new IllegalStateException();
+		}
 		BoundSet next = resolve(current, toResolve);
 		if (next == null) {
 			next = resolve(current, toResolve);
@@ -845,7 +849,12 @@ public class TypeInference8 {
 		
 		// Step 4: apply instantiations
 		// Step 5: reduce and incorporate into current
-		TypeSubstitution subst = new TypeSubstitution(tEnv.getBinder(), next.getInstantiations());
+		final Map<InferenceVariable,IJavaType> allInstantiations = next.getInstantiations();
+		final Map<InferenceVariable,IJavaType> selectedInstantiations = new HashMap<InferenceVariable,IJavaType>(toResolve.size());
+		for(InferenceVariable v : toResolve) {
+			selectedInstantiations.put(v, allInstantiations.get(v));
+		}
+		final TypeSubstitution subst = new TypeSubstitution(tEnv.getBinder(), selectedInstantiations);
 		for(ConstraintFormula f : selected) {
 			ConstraintFormula f_prime = f.subst(subst);
 			reduceConstraintFormula(current, f_prime);
