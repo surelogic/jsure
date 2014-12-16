@@ -21,6 +21,7 @@ public class CachingBinder extends AbstractBinder implements JavaCanonicalizer.I
 	private final Set<IRNode> activeCUs           = new HashSet<IRNode>();
 	
 	private CachingBinder(IBinder b) {
+		super(b);
 		orig = b;
 	}
 

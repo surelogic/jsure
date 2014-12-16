@@ -29,6 +29,7 @@ public class FakeBinder extends AbstractBinder {
   private final Map<IRNode,IBinding> bindings = new HashMap<IRNode,IBinding>();
 
   public FakeBinder(IRNode aNode) {
+	super(false);
     // f_defaultRoot = JJNode.tree.getRoot(aNode);
     declOpSet.add(ClassDeclaration.prototype);
     declOpSet.add(ConstructorDeclaration.prototype);

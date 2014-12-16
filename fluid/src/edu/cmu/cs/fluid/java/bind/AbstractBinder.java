@@ -34,9 +34,19 @@ public abstract class AbstractBinder implements IBinder {
   private static final Logger LOG = SLLogger.getLogger("FLUID.bind");
   
   private final ClassMemberSearch search = new ClassMemberSearch(this);  
-  private final JavaTypeVisitor typeVisitor = JavaTypeVisitor.getTypeVisitor(this);
+  final JavaTypeVisitor typeVisitor;
   
   private volatile boolean allowWarnings;
+  final boolean processJava8;
+  
+  public AbstractBinder(boolean processJ8) {
+	  processJava8 = processJ8;
+	  typeVisitor = JavaTypeVisitor.getTypeVisitor(this);
+  }
+  
+  public AbstractBinder(IBinder b) {
+	  this(b instanceof AbstractBinder && ((AbstractBinder)b).processJava8);
+  }
   
   @Override
   public void enableWarnings() {

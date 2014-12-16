@@ -27,6 +27,7 @@ public class VersionFixedBinder extends AbstractBinder {
   }
   
   public VersionFixedBinder(IBinder b, Version v) {
+	super(b);
     fixed = b;
     atVersion = v;
     tEnv = new VersionFixedTypeEnvironment(b.getTypeEnvironment(),v,this);
@@ -37,6 +38,7 @@ public class VersionFixedBinder extends AbstractBinder {
   }
   
   VersionFixedBinder(IBinder b, Version v, VersionFixedTypeEnvironment e) {
+	super(b);
     fixed = b;
     atVersion = v;
     tEnv = e;

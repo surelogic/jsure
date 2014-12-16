@@ -216,6 +216,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     public final IBinder binder;
 
     public FixBinder(IBinder b) {
+      super(b);
       binder = b;
     }
 
