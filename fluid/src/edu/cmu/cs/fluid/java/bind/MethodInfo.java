@@ -5,6 +5,7 @@ import java.util.*;
 import com.surelogic.common.util.FilterIterator;
 
 import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
@@ -69,6 +70,18 @@ class MethodInfo {
     		IJavaType varargsType = origType.getElementType();
     		for(i=numFormals-1; i<callArgs; i++) {
     			rv[i] = varargsType;
+    		}
+    	}
+    	// Check for nulls
+    	if (false) {
+    		int numNulls = 0;    	
+    		for(IJavaType t : rv) {
+    			if (t == null) {
+    				numNulls++;
+    			}
+    		}
+    		if (numNulls > 1) {
+    			throw new IllegalStateException();    		
     		}
     	}
 		return rv;
