@@ -7,6 +7,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.operator.ParameterizedType;
+import edu.cmu.cs.fluid.java.operator.VarArgsExpression;
 import edu.cmu.cs.fluid.parse.JJNode;
 
 interface IMethodBinder {
@@ -28,6 +29,7 @@ interface IMethodBinder {
 		IJavaType[] getTypeArgs();
 		
 		IJavaType getReceiverType();
+		boolean needsVarArgs();
 	}
 	
 	class CallState implements ICallState {
@@ -168,9 +170,17 @@ interface IMethodBinder {
 		public IJavaType getReceiverType() {
 			return receiverType;
 		}
+
+		public boolean needsVarArgs() {
+			if (args.length == 0) {
+				return false;
+			}
+			IRNode lastArg = args[args.length-1];			
+			return VarArgsExpression.prototype.includes(lastArg);
+		}
     }	
 	
-	class MethodBinding extends MethodInfo {
+	class MethodBinding extends MethodInfo implements IBinding {
     	final IBinding bind;
     	
     	MethodBinding(IBinding mb) {
@@ -206,5 +216,30 @@ interface IMethodBinder {
     		IJavaType base = JavaTypeVisitor.getJavaType(mdecl, tEnv.getBinder());
     		return bind.convertType(tEnv.getBinder(), base);
     	}
+
+		@Override
+		public IRNode getNode() {
+			return bind.getNode();
+		}
+
+		@Override
+		public IJavaDeclaredType getContextType() {
+			return bind.getContextType();
+		}
+
+		@Override
+		public IJavaReferenceType getReceiverType() {
+			return bind.getReceiverType();
+		}
+
+		@Override
+		public IJavaType convertType(IBinder binder, IJavaType ty) {
+			return bind.convertType(binder, ty);
+		}
+
+		@Override
+		public IJavaTypeSubstitution getSubst() {
+			return bind.getSubst();
+		}
 	}
 }
