@@ -19,9 +19,13 @@ import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaPrimitiveType;
 import edu.cmu.cs.fluid.java.bind.IJavaSourceRefType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * Scans classes to compute metrics about what kinds of fields we have in each class
@@ -38,21 +42,33 @@ public class ConcurrentStateMetrics {
 	void summarizeFieldInfo(final IRNode typeDecl, final IRNode typeBody, LockUtils lockUtils) {		
 		final FieldCounts counts = new FieldCounts(typeDecl, lockUtils);
 		for(final IRNode field : VisitUtil.getClassFieldDecls(typeDecl)) {
-			final IRNode type = FieldDeclaration.getType(field);			
-			final IJavaType jt = binder.getJavaType(type);
-			if (jt instanceof IJavaSourceRefType) {				
-				final IJavaSourceRefType st = (IJavaSourceRefType) jt;
-				counts.incrForRef(field, st);
-			} 
-			else if (jt instanceof IJavaPrimitiveType) {
-				counts.incrForPrim(field);
+			summarizeField(counts, field);
+		}
+		// For enums
+		final PartStatus clazz = counts.summarizeStatusSoFar();
+		for(final IRNode m : VisitUtil.getClassBodyMembers(typeDecl)) {
+			final Operator op = JJNode.tree.getOperator(m);
+			if (EnumConstantDeclaration.prototype.includes(op)) {
+				counts.handleEnumConstant(clazz, m, op);
 			}
-			else if (jt instanceof IJavaArrayType) {
-				counts.incrForArray(field);
-			}
-			else throw new IllegalStateException();
 		}
 		counts.recordAsDrop();
+	}
+
+	private void summarizeField(final FieldCounts counts, final IRNode field) {
+		final IRNode type = FieldDeclaration.getType(field);			
+		final IJavaType jt = binder.getJavaType(type);
+		if (jt instanceof IJavaSourceRefType) {				
+			final IJavaSourceRefType st = (IJavaSourceRefType) jt;
+			counts.incrForRef(field, st);
+		} 
+		else if (jt instanceof IJavaPrimitiveType) {
+			counts.incrForPrim(field);
+		}
+		else if (jt instanceof IJavaArrayType) {
+			counts.incrForArray(field);
+		}
+		else throw new IllegalStateException();
 	}
 
 	enum PartStatus { NO_POLICY, NOT_THREADSAFE, THREADSAFE, IMMUTABLE }
@@ -113,7 +129,20 @@ public class ConcurrentStateMetrics {
 			instancePart = iPart;
 			staticPart = sPart;
 		}	
-		
+
+		public PartStatus summarizeStatusSoFar() {
+			if (other > 0) {
+				return PartStatus.NO_POLICY;				
+			}
+			if (notThreadSafe > 0) {
+				return PartStatus.NOT_THREADSAFE;				
+			}
+			if (locked + threadSafe + threadConfined > 0) {
+				return PartStatus.THREADSAFE;				
+			}
+			return PartStatus.IMMUTABLE;
+		}
+
 		void incrForArray(IRNode field) {
 			handleEachDecl(field, false, PartStatus.NO_POLICY);
 		}
@@ -174,21 +203,32 @@ public class ConcurrentStateMetrics {
 					}
 				}
 				// annoForField is ignored if it's not final
-				switch (annoOnEnclosingType) {
-				case IMMUTABLE:
-					immutable++;
-					break;
-				case THREADSAFE:
-					threadSafe++;
-					break;
-				case NOT_THREADSAFE:
-					notThreadSafe++;
-					break;
-				case NO_POLICY:
-				default:
-					other++;
-				}				
+				count(annoOnEnclosingType);			
 			}
+		}
+		
+		void count(PartStatus s) {
+			switch (s) {
+			case IMMUTABLE:
+				immutable++;
+				break;
+			case THREADSAFE:
+				threadSafe++;
+				break;
+			case NOT_THREADSAFE:
+				notThreadSafe++;
+				break;
+			case NO_POLICY:
+			default:
+				other++;
+			}	
+		}
+		
+		void handleEnumConstant(PartStatus classStatus, IRNode constant, Operator op) {
+			if (EnumConstantClassDeclaration.prototype.includes(op)) {
+				// TODO
+			}
+			count(classStatus);
 		}
 		
 		void recordAsDrop() {
