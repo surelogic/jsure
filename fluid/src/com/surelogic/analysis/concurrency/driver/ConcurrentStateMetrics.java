@@ -41,9 +41,8 @@ public class ConcurrentStateMetrics {
 	
 	void summarizeFieldInfo(final IRNode typeDecl, final IRNode typeBody, LockUtils lockUtils) {		
 		final FieldCounts counts = new FieldCounts(typeDecl, lockUtils);
-		for(final IRNode field : VisitUtil.getClassFieldDecls(typeDecl)) {
-			summarizeField(counts, field);
-		}
+		counts.summarizeFields();
+
 		// For enums
 		final PartStatus clazz = counts.summarizeStatusSoFar();
 		for(final IRNode m : VisitUtil.getClassBodyMembers(typeDecl)) {
@@ -53,22 +52,6 @@ public class ConcurrentStateMetrics {
 			}
 		}
 		counts.recordAsDrop();
-	}
-
-	private void summarizeField(final FieldCounts counts, final IRNode field) {
-		final IRNode type = FieldDeclaration.getType(field);			
-		final IJavaType jt = binder.getJavaType(type);
-		if (jt instanceof IJavaSourceRefType) {				
-			final IJavaSourceRefType st = (IJavaSourceRefType) jt;
-			counts.incrForRef(field, st);
-		} 
-		else if (jt instanceof IJavaPrimitiveType) {
-			counts.incrForPrim(field);
-		}
-		else if (jt instanceof IJavaArrayType) {
-			counts.incrForArray(field);
-		}
-		else throw new IllegalStateException();
 	}
 
 	enum PartStatus { NO_POLICY, NOT_THREADSAFE, THREADSAFE, IMMUTABLE }
@@ -130,7 +113,29 @@ public class ConcurrentStateMetrics {
 			staticPart = sPart;
 		}	
 
-		public PartStatus summarizeStatusSoFar() {
+		void summarizeFields() {
+			for(final IRNode field : VisitUtil.getClassFieldDecls(clazz.getDeclaration())) {
+				summarizeField(field);
+			}
+		}
+
+		private void summarizeField(final IRNode field) {
+			final IRNode type = FieldDeclaration.getType(field);			
+			final IJavaType jt = binder.getJavaType(type);
+			if (jt instanceof IJavaSourceRefType) {				
+				final IJavaSourceRefType st = (IJavaSourceRefType) jt;
+				incrForRef(field, st);
+			} 
+			else if (jt instanceof IJavaPrimitiveType) {
+				incrForPrim(field);
+			}
+			else if (jt instanceof IJavaArrayType) {
+				incrForArray(field);
+			}
+			else throw new IllegalStateException();
+		}
+		
+		PartStatus summarizeStatusSoFar() {
 			if (other > 0) {
 				return PartStatus.NO_POLICY;				
 			}
@@ -226,9 +231,12 @@ public class ConcurrentStateMetrics {
 		
 		void handleEnumConstant(PartStatus classStatus, IRNode constant, Operator op) {
 			if (EnumConstantClassDeclaration.prototype.includes(op)) {
-				// TODO
-			}
-			count(classStatus);
+				// Look at its fields to determine its status
+				final FieldCounts temp = new FieldCounts(constant, lockUtils);
+				temp.summarizeFields();
+				count(temp.summarizeStatusSoFar());
+			} 
+			else count(classStatus);
 		}
 		
 		void recordAsDrop() {
