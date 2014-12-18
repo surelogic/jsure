@@ -391,10 +391,12 @@ public class RegionRules extends AnnotationRules {
       
       final RegionModel regionModel =
           RegionModel.create(regionDecl, computeQualifiedName(regionDecl));
+      System.out.println("Creating region: "+regionModel.getMessage()+" on "+JavaNames.getFullTypeName(regionModel.getPromisedFor()));
       final RegionModel parentModel = isStatic ?
         RegionModel.getStaticRegionForClass(classDecl) :
         RegionModel.getInstanceRegion(classDecl);
       regionModel.addDependent(parentModel);
+      regionRule.getStorage().add(classDecl, regionModel);
 
       AASTStore.linkAsInferred(comesFrom, regionModel);
     }
