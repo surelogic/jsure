@@ -331,8 +331,9 @@ public class RegionRules extends AnnotationRules {
       return new AbstractAASTScrubber<InRegionNode, InRegionPromiseDrop>(
           this, ScrubberType.BY_HIERARCHY, REGION,
           SIMPLE_UNIQUE_IN_REGION, SIMPLE_BORROWED_IN_REGION) {
-        private final ImplicitRegions neededRegions = new ImplicitRegions();
-        
+        private final Set<InRegionNode> specialInRegions =
+            new HashSet<InRegionNode>();
+
       	@Override
       	protected AnnotationHandler<InRegionNode> getPreprocessor() {
       	  return new AnnotationHandler<InRegionNode>() {
@@ -341,7 +342,7 @@ public class RegionRules extends AnnotationRules {
                 final IAnnotationTraversalCallback<InRegionNode> cb,
                 final IRNode decl, final List<InRegionNode> l) {
               // System.out.println("Preprocessing @InRegion: "+l.size());
-              preprocessInRegion(neededRegions, decl, l);
+              preprocessInRegion(specialInRegions, decl, l);
             }
           };
         }
@@ -349,7 +350,7 @@ public class RegionRules extends AnnotationRules {
         @Override
         protected PromiseDrop<InRegionNode> makePromiseDrop(InRegionNode a) {
           return storeDropIfNotNull(
-              a, scrubInRegion(getContext(), a, neededRegions));          
+              a, scrubInRegion(getContext(), a, specialInRegions));          
         }
       };
     }
@@ -359,39 +360,50 @@ public class RegionRules extends AnnotationRules {
   private static class ImplicitRegionInfo {
     private final InRegionNode comesFrom;
     private boolean isStatic;
-    private int visibility;
+    private Visibility visibility;
     
     public ImplicitRegionInfo(
-        final IRNode varDecl, final InRegionNode InRegionNode) {
+        final IRNode fieldDecl, final InRegionNode InRegionNode) {
       comesFrom = InRegionNode;
-      final int mods = getModifiers(varDecl);
+      final int mods =JavaNode.getModifiers(fieldDecl);
       isStatic = JavaNode.getModifier(mods, JavaNode.STATIC);
-      visibility = mods & (JavaNode.PUBLIC | JavaNode.PRIVATE | JavaNode.PRIVATE);
+      visibility = Visibility.getVisibilityOf(fieldDecl);
+//      visibility = mods & (JavaNode.PUBLIC | JavaNode.PROTECTED | JavaNode.PRIVATE);
     }
     
-    public void update(final IRNode varDecl) {
-      final int mods = getModifiers(varDecl);
+    public void update(final IRNode fieldDecl) {
+      final int mods = JavaNode.getModifiers(fieldDecl);
       isStatic |= JavaNode.getModifier(mods, JavaNode.STATIC);
-      final int fieldViz = mods & (JavaNode.PUBLIC | JavaNode.PRIVATE | JavaNode.PRIVATE);
-      if (fieldViz > visibility) {
+      final Visibility fieldViz = Visibility.getVisibilityOf(fieldDecl);
+      if (fieldViz.atLeastAsVisibleAs(visibility)) {
         visibility = fieldViz;
       }
+      
+//      final int fieldViz = mods & (JavaNode.PUBLIC | JavaNode.PROTECTED | JavaNode.PRIVATE);
+//      if (fieldViz == 0) { // default viz
+//        if (visibility == JavaNode.PRIVATE) visibility = 0;
+//      } else { // new field is NOT default
+//        if (visibility == 0) {
+//          if (fieldViz != JavaNode.PRIVATE) visibility = fieldViz;
+//        } else {
+//          if (fieldViz > visibility) visibility = fieldViz;
+//        }
+//      }
     }
     
-    private static int getModifiers(final IRNode varDecl) {
-      return JavaNode.getModifiers(
-          JJNode.tree.getParent(JJNode.tree.getParent(varDecl)));
-    }
+//    private static int getModifiers(final IRNode varDecl) {
+//      return JavaNode.getModifiers(
+//          JJNode.tree.getParent(JJNode.tree.getParent(varDecl)));
+//    }
     
     public void createRegion(final IRNode classDecl, final String name) {
-      final int mods = (isStatic ? JavaNode.STATIC : 0) | visibility;
+      final int mods = (isStatic ? JavaNode.STATIC : 0) | visibility.getModifier();
       final NewRegionDeclarationNode regionDecl = 
           new NewRegionDeclarationNode(0, mods, name, null);
       regionDecl.setPromisedFor(classDecl, null);
       
       final RegionModel regionModel =
           RegionModel.create(regionDecl, computeQualifiedName(regionDecl));
-      System.out.println("Creating region: "+regionModel.getMessage()+" on "+JavaNames.getFullTypeName(regionModel.getPromisedFor()));
       final RegionModel parentModel = isStatic ?
         RegionModel.getStaticRegionForClass(classDecl) :
         RegionModel.getInstanceRegion(classDecl);
@@ -405,24 +417,23 @@ public class RegionRules extends AnnotationRules {
   private static class ImplicitRegions {
     private final Map<String, ImplicitRegionInfo> nameToInfo =
         new HashMap<String, ImplicitRegionInfo>();
-    private final Map<InRegionNode, ImplicitRegionInfo> regionToInfo =
-        new HashMap<InRegionNode, ImplicitRegionInfo>();
+    private final Set<InRegionNode> specialInRegions;
+    
+    public ImplicitRegions(final Set<InRegionNode> specials) {
+      specialInRegions = specials;
+    }
     
     public void addOrUpdateRegion(
         final String name, final IRNode varDecl, final InRegionNode inRegion) {
+      final IRNode fieldDecl = JJNode.tree.getParent(JJNode.tree.getParent(varDecl));
       ImplicitRegionInfo regionInfo = nameToInfo.get(name);
       if (regionInfo == null) {
-        regionInfo = new ImplicitRegionInfo(varDecl, inRegion);
+        regionInfo = new ImplicitRegionInfo(fieldDecl, inRegion);
         nameToInfo.put(name, regionInfo);
-        regionToInfo.put(inRegion, regionInfo);
       } else {
-        regionInfo.update(varDecl);
-        regionToInfo.put(inRegion, regionInfo);
+        regionInfo.update(fieldDecl);
       }
-    }
-    
-    public boolean hasImplicitRegion(final InRegionNode inRegion) {
-      return regionToInfo.get(inRegion) != null;
+      specialInRegions.add(inRegion);
     }
     
     public void createRegionDeclarations(final IRNode classDecl) {
@@ -433,12 +444,12 @@ public class RegionRules extends AnnotationRules {
   }
   
   private static void preprocessInRegion(
-      final ImplicitRegions neededRegions,
+      final Set<InRegionNode> specialInRegions,
       final IRNode classDecl, final List<InRegionNode> annos) {
     /* 
      * Look at each InRegion and see if the named region actually exists
      */
-    
+    final ImplicitRegions neededRegions = new ImplicitRegions(specialInRegions);
     for (final InRegionNode inRegion : annos) {
       final RegionSpecificationNode parent = inRegion.getSpec();
       if (parent.resolveBinding() == null) {
@@ -459,14 +470,14 @@ public class RegionRules extends AnnotationRules {
   
   private static InRegionPromiseDrop scrubInRegion(
       final IAnnotationScrubberContext context, final InRegionNode a,
-      final ImplicitRegions implicitRegions) {
+      final Set<InRegionNode> specialInRegions) {
     /* The name of a region must be unique. There is nothing to check here in
      * practice because the Java compiler makes sure that a class does not
      * declare two fields with the same name, and we already checking that
      * regions declared using @Region do not have the same name as a field.
      */
   
-    if (implicitRegions.hasImplicitRegion(a)) {
+    if (specialInRegions.contains(a)) {
       /* Create the InRegionPromiseDrop first so that the derived region
        * gets processed correctly: it is waiting to be linked to the InRegion
        * annotation that causes it be exist.

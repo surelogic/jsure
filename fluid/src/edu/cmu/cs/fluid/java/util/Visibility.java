@@ -14,12 +14,22 @@ public enum Visibility {
     public String getSourceText() {
       return "private";
     }
+    
+    @Override
+    public int getModifier() {
+      return JavaNode.PRIVATE;
+    }
   },
   
   DEFAULT {
     @Override
     public String getSourceText() {
       return " ";  // should be "", but use space to prevent disruption of oracles
+    }
+    
+    @Override
+    public int getModifier() {
+      return 0;
     }
   },
   
@@ -28,6 +38,11 @@ public enum Visibility {
     public String getSourceText() {
       return "protected";
     }
+    
+    @Override
+    public int getModifier() {
+      return JavaNode.PROTECTED;
+    }
   },
   
   PUBLIC {
@@ -35,12 +50,22 @@ public enum Visibility {
     public String getSourceText() {
       return "public";
     }
+    
+    @Override
+    public int getModifier() {
+      return JavaNode.PUBLIC;
+    }
   };
 
   /**
    * Get the modifier string associated with the visibility.
    */
   public abstract String getSourceText();
+  
+  /**
+   * Get the modifier bit.
+   */
+  public abstract int getModifier();
   
   /**
    * Get the name of the element, but all lower case.
