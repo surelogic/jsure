@@ -1,5 +1,7 @@
 package com.surelogic.analysis.visitors;
 
+import com.surelogic.annotation.rules.UtilityRules;
+
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -10,6 +12,7 @@ import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
@@ -34,6 +37,18 @@ public abstract class TypeImplementationProcessor {
     this(b, td, VisitUtil.getClassBody(td));
   }
 
+  
+  
+  protected static boolean isSingletonType(final IJavaType type) {
+    if (type instanceof IJavaDeclaredType) {
+      final IRNode decl = ((IJavaDeclaredType) type).getDeclaration();
+      return EnumDeclaration.prototype.includes(decl) ||
+          UtilityRules.getSingletonDrop(decl) != null;
+    } else {
+      return false;
+    }
+  }
+  
   
   
   public final void processType() {

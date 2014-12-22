@@ -162,8 +162,8 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
 
 	private void assureFieldIsContainable(
 	    final IRNode fieldDecl, final IRNode varDecl) {
-	    final String id = VariableDeclarator.getId(varDecl);
-	    final IJavaType type = binder.getJavaType(varDecl);
+    final String id = VariableDeclarator.getId(varDecl);
+    final IJavaType type = binder.getJavaType(varDecl);
     if (type instanceof IJavaPrimitiveType) {
       builder.createRootResult(
           true, varDecl, FIELD_CONTAINED_PRIMITIVE, id);
@@ -188,10 +188,16 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
         final ResultDrop uResult = ResultsBuilder.createResult(
             folder, varDecl, uniqueDrop != null,
             FIELD_IS_UNIQUE, FIELD_IS_NOT_UNIQUE);
+        final boolean fieldTypeIsNotSingleton = !isSingletonType(type);
         if (uniqueDrop != null) {
           uResult.addTrusted(uniqueDrop.getDrop());
         } else {
-          uResult.addProposal(new Builder(Unique.class,varDecl, varDecl).build());
+          /* Doesn't make sense to propose unique if the field's type is an
+           * enumeration or other @Singleton type.
+           */
+          if (fieldTypeIsNotSingleton) {
+            uResult.addProposal(new Builder(Unique.class,varDecl, varDecl).build());
+          }
         }
 
         final ResultFolderDrop typeFolder = ResultsBuilder.createOrFolder(
@@ -232,7 +238,7 @@ public final class ContainableProcessor extends TypeImplementationProcessor {
           }
         }
         
-        if (proposeContainable) {
+        if (proposeContainable && fieldTypeIsNotSingleton) {
           for (final IRNode t : tester.getFailed()) {
             cResult.addProposal(new Builder(Containable.class, t, varDecl).build());
           }

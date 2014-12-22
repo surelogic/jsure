@@ -284,6 +284,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
       final TypeAnnotationTester cTester =
           new TypeAnnotationTester(TypeAnnotations.CONTAINABLE, binder,
               ParameterizedTypeAnalysis.getFolders());
+      final boolean fieldTypeIsNotSingleton = !isSingletonType(binder.getJavaType(varDecl));
       
       if (vouchDrop != null && vouchDrop.isContainable()) {
         final String reason = vouchDrop.getReason();
@@ -326,7 +327,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
               TYPE_IS_CONTAINABLE, TYPE_IS_NOT_CONTAINABLE, type.toSourceText());
           cResult.addTrusted(cTester.getTrusts());
 
-          if (proposeContainable) {
+          if (proposeContainable && fieldTypeIsNotSingleton) {
             for (final IRNode n : tsTester.getFailed()) {
               cResult.addProposal(new Builder(Containable.class, n, varDecl).build());
             }
@@ -339,7 +340,7 @@ public final class ThreadSafeProcessor extends TypeImplementationProcessor {
       if (uDrop == null) {
         final ResultDrop uResult =
             ResultsBuilder.createResult(false, containableFolder, varDecl, FIELD_IS_NOT_UNIQUE);
-        if (!isPrimitive) {
+        if (!isPrimitive && fieldTypeIsNotSingleton) {
           uResult.addProposal(new Builder(Unique.class, varDecl, varDecl).build());
         }
       } else {
