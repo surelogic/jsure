@@ -408,6 +408,8 @@ public class RegionRules extends AnnotationRules {
         RegionModel.getStaticRegionForClass(classDecl) :
         RegionModel.getInstanceRegion(classDecl);
       regionModel.addDependent(parentModel);
+      regionModel.setVirtual(true);
+      
       regionRule.getStorage().add(classDecl, regionModel);
 
       AASTStore.linkAsInferred(comesFrom, regionModel);
