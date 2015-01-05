@@ -487,9 +487,15 @@ public class TypeUtils {
 			// Remove supertypes of other types in the set
 			final Set<IJavaReferenceType> reduced = new HashSet<IJavaReferenceType>(bounds.length);
 			for (IJavaReferenceType bt : bounds) {
+				if (bt == null) {
+					continue;
+				}
 				reduced.add(bt);
 			}
 			for (IJavaReferenceType bt : bounds) {
+				if (bt == null) {
+					continue;
+				}
 				for(IJavaReferenceType possibleSub : reduced) {
 					if (!bt.equals(possibleSub) && possibleSub.isSubtype(tEnv, bt)) {
 						// Since this is a greatest lower bound, possibleSub subsumes bt
