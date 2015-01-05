@@ -29,7 +29,6 @@ import com.surelogic.dropsea.ir.AnalysisResultDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
@@ -40,6 +39,8 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.Initialization;
@@ -76,6 +77,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
   private static final int UNACCEPTABLE_RAW_RECEIVER = 930;
   
   private static final int RAW_INTO_NULLABLE = 932;
+  private static final int USE_CAST_NULLABLE = 933;
   
   
 
@@ -295,16 +297,6 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
   protected Queries createSubQuery(final IRNode caller) {
     return currentQuery().getSubAnalysisQuery(caller);
   }
-
-//  @Override
-//  protected StackQuery createNewQuery(final IRNode decl) {
-//    return nonNullRawTypeAnalysis.getStackQuery(decl);
-//  }
-//
-//  @Override
-//  protected StackQuery createSubQuery(final IRNode caller) {
-//    return currentQuery().getSubAnalysisQuery(caller);
-//  }
 
 
 
@@ -569,8 +561,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
             final PromiseDrop<?> lhsPromise = getAnnotationForProof(lhsDecl);
             if ((ParameterDeclaration.prototype.includes(lhsDecl) || ReceiverDeclaration.prototype.includes(lhsDecl)) &&
                 (lhsPromise == null || lhsPromise.isVirtual())) {
-              result.addProposalNotProvedConsistent(
-                  makeInitializedProposal(srcState, where, lhsDecl)); 
+              makeInitializedProposal(result, parent, srcState, where, lhsDecl); 
             }
           }
         }
@@ -578,18 +569,35 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
     }
   }
 
-  private ProposedPromiseDrop makeInitializedProposal(final Element srcState, IRNode use, IRNode decl) {
-	  ProposedPromiseDrop proposal;
+  private void makeInitializedProposal(
+      final ResultDrop result, AnalysisResultDrop parent,
+      final Element srcState, IRNode use, IRNode decl) {
 	  if (srcState == NonNullRawLattice.RAW) {
-      proposal = new Builder(Initialized.class, decl, use).build();
+	    result.addProposalNotProvedConsistent(
+	        new Builder(Initialized.class, decl, use).build());
 	  } else {
 		  ClassElement ce = (ClassElement) srcState;
-		  proposal =
-		      new Builder(Initialized.class, decl, use).addAttribute(
-		          AnnotationVisitor.THROUGH,
-		          SLUtility.unqualifyTypeNameInJavaLang(ce.getType().getName())).build();
+		  final IJavaDeclaredType through = ce.getType();
+		  final IJavaType declaredType = binder.getJavaType(decl);
+		  
+		  /* It is possible to have a situation where the system needs to the type
+		   * to be initialized through class T, but the declared type of the
+		   * variable is S, where S is a supertype of T.  In this case, proposing
+		   * that the variable to initialized through T is erroneous.  Also, the
+		   * best way of dealing with this in the code is to use the special
+		   * java.surelogic.Cast methods.
+		   */
+		  if (binder.getTypeEnvironment().isSubType(through, declaredType)) {
+		    final IRNode exprToCast = parent.getNode();
+        parent.addInformationHint(
+            exprToCast, USE_CAST_NULLABLE, DebugUnparser.toString(exprToCast));
+		  } else {
+	      result.addProposalNotProvedConsistent(
+  		      new Builder(Initialized.class, decl, use).addAttribute(
+  		          AnnotationVisitor.THROUGH,
+  		          SLUtility.unqualifyTypeNameInJavaLang(through.getName())).build());
+		  }
 	  }
-	  return proposal;
   }
 
   private boolean testChain(
