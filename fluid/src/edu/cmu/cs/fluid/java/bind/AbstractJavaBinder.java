@@ -2166,10 +2166,13 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       IJavaType recType = null;
       final String name = MethodCall.getMethod(node);  
       /*
-      if ("go".equals(name)) {
-    	  System.out.println("Calling "+DebugUnparser.toString(node));
+      if ("flatMap".equals(name)) {
+    	  String unparse = DebugUnparser.toString(node);
+    	  if ("Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)".equals(unparse)) {
+    		  System.out.println("Calling "+unparse);
+    	  }
       }
-      */      
+      */    
       final Operator rop = JJNode.tree.getOperator(receiver);
       if (rop instanceof ImplicitReceiver) {
         toUse = scope;
@@ -2420,6 +2423,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     @Override
 	public Void visitMethodReference(IRNode node) {
     	super.visitMethodReference(node);
+    	
+    	// skip binding for now to avoid cycle
+    	if (true) {
+    		return null;
+    	}
     	if (!isFullPass) return null;
     	TypeUtils utils = new TypeUtils(getTypeEnvironment());
     	IJavaType targetType = utils.getPolyExpressionTargetType(node);
