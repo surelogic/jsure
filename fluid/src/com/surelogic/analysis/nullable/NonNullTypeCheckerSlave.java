@@ -187,7 +187,6 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
   
   private IRNode receiverDecl = null;
 
-  // TODO: Make this be controlled by and passed in by NullableModule2
   private final Set<PromiseDrop<?>> createdVirtualAnnotations;
   
   private final Map<IRNode, Element> fieldInits;

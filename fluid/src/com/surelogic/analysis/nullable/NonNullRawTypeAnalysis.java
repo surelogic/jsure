@@ -1252,6 +1252,17 @@ implements IBinderClient {
       return newValue;
     }
 
+    // XXX: Not sure where to put this.
+    private static boolean containsNonNullFields(final IRNode classDecl) {
+      for (final IRNode varDecl : VisitUtil.getClassFieldDeclarators(classDecl)) {
+        if (NonNullRules.getNonNull(varDecl) != null) {
+          return true;
+        }
+      }
+      
+      return false;
+    }
+    
     @Override
     protected Value transferConstructorCall(
         final IRNode node, final boolean flag, final Value value) {
@@ -1265,13 +1276,26 @@ implements IBinderClient {
             /* Initialized up to the superclass type.  ConstructorCall expressions
              * can only appear inside of a constructor declaration, which in turn
              * can only appear in a class declaration.
+             * 
+             * If the class is final and doesn't declare any @NonNull fields,
+             * then we can consider the receiver to be @NonNull instead of
+             * partially initialized: The class doesn't have fields that can be
+             * seen to be inappropriately null, and it cannot have subclasses, 
+             * so we don't have to worry about subtypes.  Thus the object 
+             * might as well be treated as fully initialized.
              */
             final IRNode classDecl = VisitUtil.getEnclosingType(node);
-            final Element rcvrState = lattice.injectClass(
-                typeEnv.getSuperclass(
-                    (IJavaDeclaredType) typeEnv.getMyThisType(classDecl)));
-            return lattice.setThis(value, rcvrDecl, 
-                lattice.baseValue(rcvrState, Kind.RECEIVER_CONSTRUCTOR_CALL, node));
+            if (JavaNode.getModifier(classDecl, JavaNode.FINAL) &&
+                !containsNonNullFields(classDecl)) {
+              return lattice.setThis(value, rcvrDecl,
+                  lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.RECEIVER_CONSTRUCTOR_CALL, node));
+            } else {
+              final Element rcvrState = lattice.injectClass(
+                  typeEnv.getSuperclass(
+                      (IJavaDeclaredType) typeEnv.getMyThisType(classDecl)));
+              return lattice.setThis(value, rcvrDecl, 
+                  lattice.baseValue(rcvrState, Kind.RECEIVER_CONSTRUCTOR_CALL, node));
+            }
           } else { // ThisExpression
             return lattice.setThis(value, rcvrDecl,
                 lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.RECEIVER_CONSTRUCTOR_CALL, node));
