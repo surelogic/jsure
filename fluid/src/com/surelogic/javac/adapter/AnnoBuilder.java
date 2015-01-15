@@ -1,5 +1,6 @@
 package com.surelogic.javac.adapter;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 import org.objectweb.asm.AnnotationVisitor;
@@ -37,6 +38,9 @@ class AnnoBuilder extends AnnotationVisitor {
 	}
 	
 	static IRNode adaptValue(Object value) {
+		if (value == null) {
+			return null;
+		}
 		if (value instanceof String) {
 			if (SourceAdapter.includeQuotesInStringLiteral) {
 				return StringLiteral.createNode('"'+value.toString()+'"');
@@ -78,7 +82,39 @@ class AnnoBuilder extends AnnotationVisitor {
 			IRNode type = ClassAdapter.adaptTypeDescriptor(t.getDescriptor());
 			return ClassExpression.createNode(type);
 		}
+		else if (value.getClass().isArray()) {		
+			return adaptArrayValues(value);
+		}
 		throw new IllegalStateException("Unexpected value: "+value);
+	}
+	
+	static IRNode adaptArrayValues(Object array) {
+		final int len = Array.getLength(array);
+		IRNode[] values = new IRNode[len];
+		if (array instanceof long[]) {
+			final long[] a = (long[]) array;
+			for(int i=0; i<a.length; i++) {
+				values[i] = adaptValue(a[i]);
+			}
+		}		
+		else if (array instanceof boolean[]) {
+			final boolean[] a = (boolean[]) array;
+			for(int i=0; i<a.length; i++) {
+				values[i] = adaptValue(a[i]);
+			}
+		}
+		else if (array instanceof double[]) {
+			final double[] a = (double[]) array;
+			for(int i=0; i<a.length; i++) {
+				values[i] = adaptValue(a[i]);
+			}
+		}
+		else {		
+			for(int i=0; i<len; i++) {
+				values[i] = adaptValue(Array.get(array, i));
+			}
+		}
+		return ArrayInitializer.createNode(values);
 	}
 	
 	void add(String name, IRNode n) {
