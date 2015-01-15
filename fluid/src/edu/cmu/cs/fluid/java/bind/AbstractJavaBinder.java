@@ -21,6 +21,7 @@ import com.surelogic.ThreadSafe;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.*;
 import com.surelogic.common.util.EmptyIterator;
 import com.surelogic.common.util.Iteratable;
 import com.surelogic.common.util.IteratorUtil;
@@ -1238,9 +1239,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         	return false;
         }
     	final String unparse = DebugUnparser.toString(node);
+    	final IJavaRef ref = JavaNode.getJavaRef(node);
     	if (isBinary(node)) {
     		if (!unparse.endsWith(" . 1")) {
-    			System.err.println("Cannot find a binding for binary " + unparse+" in "+typeEnvironment);
+    			System.err.println("Cannot find a binding for binary " + unparse+" in "+typeEnvironment+": "+ref);
     			/*
     			if (unparse.endsWith("ModuleType")) {
     				IRNode eType = VisitUtil.getEnclosingType(node);
@@ -1249,11 +1251,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
                 */
     		}
     	} else if (unparse.startsWith("super")) {
-    		System.err.println("Cannot find a binding for " + unparse+" in "+typeEnvironment);
+    		System.err.println("Cannot find a binding for " + unparse+" in "+typeEnvironment+": "+ref);
     	} else if (NamedType.prototype.includes(node) && Throws.prototype.includes(JJNode.tree.getParentOrNull(node))) {
-      		System.err.println("Did not find a binding for throws " + unparse+" in "+typeEnvironment);
+      		System.err.println("Did not find a binding for throws " + unparse+" in "+typeEnvironment+": "+ref);
     	} else {
-    		LOG.warning("Cannot find a binding for " + unparse+" in "+typeEnvironment);
+    		LOG.warning("Cannot find a binding for " + unparse+" in "+typeEnvironment+": "+ref);
     	}
         if (storeNullBindings) {
           bindings.setUseForDecl(node, null);
