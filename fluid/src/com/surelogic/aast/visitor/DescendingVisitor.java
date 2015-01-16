@@ -1,8 +1,6 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/aast/visitor/DescendingVisitor.java,v 1.21 2007/10/30 20:02:58 chance Exp $*/
 package com.surelogic.aast.visitor;
 
-import java.util.List;
-
 import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.INodeVisitor;
 import com.surelogic.aast.java.*;
@@ -818,6 +816,10 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
   }
 
   public T visit(CastNode n) {
+	  return defaultValue;
+  }
+
+  public T visit(TrackPartiallyInitializedNode n) {
 	  return defaultValue;
   }
 }

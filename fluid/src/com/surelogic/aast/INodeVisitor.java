@@ -144,4 +144,5 @@ public interface INodeVisitor<T> {
 	T visit(ThreadConfinedNode n);
 	T visit(NoTargetNode n);
 	T visit(CastNode n);
+	T visit(TrackPartiallyInitializedNode n);
 }

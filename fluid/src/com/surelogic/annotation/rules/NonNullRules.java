@@ -13,12 +13,14 @@ import com.surelogic.aast.promise.NonNullNode;
 import com.surelogic.aast.promise.NullableNode;
 import com.surelogic.aast.promise.RawNode;
 import com.surelogic.aast.promise.CastNode;
+import com.surelogic.aast.promise.TrackPartiallyInitializedNode;
 import com.surelogic.annotation.AnnotationLocation;
 import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.annotation.DefaultBooleanAnnotationParseRule;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.ParseResult;
+import com.surelogic.annotation.SimpleBooleanAnnotationParseRule;
 import com.surelogic.annotation.parse.AASTAdaptor;
 import com.surelogic.annotation.parse.AASTAdaptor.Node;
 import com.surelogic.annotation.parse.AnnotationVisitor;
@@ -35,6 +37,7 @@ import com.surelogic.dropsea.ir.drops.CastPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.RawPromiseDrop;
+import com.surelogic.dropsea.ir.drops.nullable.TrackPartiallyInitializedPromiseDrop;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.SinglePromiseDropStorage;
@@ -45,6 +48,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -72,6 +76,7 @@ public class NonNullRules extends AnnotationRules {
 	public static final String RAW = "Initialized";
 	public static final String CAST = "Cast";
 	public static final String CONSISTENCY = "NullableConsistency";
+	public static final String TRACK_PARTIALLY_INITIALIZED = "TrackPartiallyInitialized";	
 	
 	private static final NonNullRules instance = new NonNullRules();
 	private static final NonNull_ParseRule nonNullRule = new NonNull_ParseRule();
@@ -80,6 +85,7 @@ public class NonNullRules extends AnnotationRules {
 	private static final Cast_ParseRule castRule = new Cast_ParseRule();
 	private static final NullableConsistencyChecker consistency = new NullableConsistencyChecker();
 	private static final ConflictResolver resolver = new ConflictResolver();
+	private static final TrackPartiallyInitialized_ParseRule trackPartiallyInitializedRule = new TrackPartiallyInitialized_ParseRule();
 	
 	public static IPromiseDropStorage<NullablePromiseDrop> getNullableStorage() {
 		return nullableRule.getStorage();
@@ -139,6 +145,34 @@ public class NonNullRules extends AnnotationRules {
 				@Override
 				protected PromiseDrop<CastNode> makePromiseDrop(CastNode a) {
 					return storeDropIfNotNull(a, new CastPromiseDrop(a));
+				}
+			};
+		}
+	}
+	
+	public static class TrackPartiallyInitialized_ParseRule extends SimpleBooleanAnnotationParseRule<TrackPartiallyInitializedNode,TrackPartiallyInitializedPromiseDrop> {
+		public TrackPartiallyInitialized_ParseRule() {
+			super(TRACK_PARTIALLY_INITIALIZED, new Operator[] { ClassDeclaration.prototype }, TrackPartiallyInitializedNode.class);
+		}		
+
+	    @Override
+	    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
+	    	String verify = context.getProperty(TrackPartiallyInitializedNode.VERIFY_PARENT);
+	    	return new TrackPartiallyInitializedNode(offset, verify == null || "true".equals(verify));
+	    }
+		
+		@Override
+		protected IPromiseDropStorage<TrackPartiallyInitializedPromiseDrop> makeStorage() {
+			return SinglePromiseDropStorage.create(name(), TrackPartiallyInitializedPromiseDrop.class);
+		}
+
+		@Override
+		protected IAnnotationScrubber makeScrubber() {
+			return new AbstractAASTScrubber<TrackPartiallyInitializedNode, TrackPartiallyInitializedPromiseDrop>(
+					this, ScrubberType.UNORDERED, NONNULL, NULLABLE) { // TODO
+				@Override
+				protected PromiseDrop<TrackPartiallyInitializedNode> makePromiseDrop(TrackPartiallyInitializedNode a) {
+					return storeDropIfNotNull(a, new TrackPartiallyInitializedPromiseDrop(a));
 				}
 			};
 		}
