@@ -31,12 +31,7 @@ public class TrackPartiallyInitializedNode extends AbstractBooleanNode
 
   @Override
   public String unparseForPromise() {
-	  final IRNode node = getPromisedFor();
-	  if (VariableDeclaration.prototype.includes(node)) {
-		  return "TrackPartiallyInitialized"+(verifyParent ? "" : "(verifyParent=false)");
-	  }
-	  return "TrackPartiallyInitialized(\""+JavaNames.getFieldDecl(getPromisedFor())+"\""+
-		     (verifyParent ? ")" : ", verifyParent=false)");
+	return "TrackPartiallyInitialized"+(verifyParent ? "" : "(verifyParent=false)");
   }
 
   @Override

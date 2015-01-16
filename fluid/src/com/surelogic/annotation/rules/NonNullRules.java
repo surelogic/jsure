@@ -109,6 +109,7 @@ public class NonNullRules extends AnnotationRules {
 		registerParseRuleStorage(fw, nullableRule);
 		registerParseRuleStorage(fw, rawRule);
 		registerParseRuleStorage(fw, castRule);
+		registerParseRuleStorage(fw, trackPartiallyInitializedRule);
 		registerScrubber(fw, consistency);
 		registerConflictResolution(resolver);
 	} 
