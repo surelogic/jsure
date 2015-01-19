@@ -210,9 +210,17 @@ extends AbstractHierarchyScrubber<A> {
 			System.out.println("No AST to scrub");
 			return false;
 		}
+		if (!needToScrubBindings(a)) {
+			return true;
+		}
+		
 		boolean result = visitor.doAccept((AASTNode) a);
 		current = null;
 		return result;
+	}
+	
+	protected boolean needToScrubBindings(A a) {
+		return true;
 	}
 
 	/***************************************************************************

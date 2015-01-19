@@ -637,6 +637,11 @@ public class RegionRules extends AnnotationRules {
     protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<UniqueInRegionNode, SimpleUniqueInRegionPromiseDrop>(
           this, ScrubberType.UNORDERED, REGION, UniquenessRules.UNIQUE) {
+    	@Override
+    	protected boolean needToScrubBindings(UniqueInRegionNode a) {
+    		IRNode promisedFor = a.getPromisedFor();
+    		return TypeUtil.isJSureFinal(promisedFor);
+    	}
         @Override
         protected SimpleUniqueInRegionPromiseDrop makePromiseDrop(UniqueInRegionNode a) {
           return storeDropIfNotNull(a, scrubSimpleUniqueInRegion(getContext(), a));          
