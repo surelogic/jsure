@@ -1359,7 +1359,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
      * @return true if bound
      */
     protected boolean bindCall(CallState call, String name, IJavaType recType) {
-      return bindCall(call, name, typeScope(recType));
+      boolean success = bindCall(call, name, typeScope(recType));
+      if (!success) {
+    	  DebugUtil.dumpTypeHierarchy(getTypeEnvironment(), recType);
+      }
+      return success;
     }
     
     /**
@@ -2096,6 +2100,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         IJavaType ty = getJavaType(FieldRef.getObject(node));
         boolean success = bind(node, typeScope(ty), IJavaScope.Util.isValueDecl);
         if (!success) {
+          DebugUtil.dumpTypeHierarchy(getTypeEnvironment(), ty);
           bind(node, typeScope(ty), IJavaScope.Util.isValueDecl);
         }
       }
@@ -2227,6 +2232,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
               success = bindCall(state,name, newType2);
             }
             if (!success && pathToTarget == null) {
+              if (recType != null) {
+            	  DebugUtil.dumpTypeHierarchy(getTypeEnvironment(), recType);
+              } else {
+            	  DebugUtil.dumpTypeHierarchy(getTypeEnvironment(), VisitUtil.getEnclosingType(node));
+              }
               System.out.println("Receiver: "+DebugUnparser.toString(receiver));
               System.out.println("Args:     "+DebugUnparser.toString(args));
               IJavaType temp = getJavaType(receiver);
@@ -3108,6 +3118,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       }
       */
       if (!success) {
+    	  DebugUtil.dumpTypeHierarchy(getTypeEnvironment(), node);
     	  if (context.couldBeVariable()) {
     		  bind(node, IJavaScope.Util.combineSelectors(isAccessible, IJavaScope.Util.couldBeNonTypeName));
     	  }

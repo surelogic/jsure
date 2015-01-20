@@ -3,6 +3,7 @@ package edu.cmu.cs.fluid.java.bind;
 import java.io.*;
 import java.util.*;
 
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.concurrent.*;
 
 import edu.cmu.cs.fluid.ir.*;
@@ -37,7 +38,7 @@ public class DebugUtil {
 		if (!dumped.add(tdecl)) {
 			return;
 		}
-		//System.err.println(unparser.unparseString(tdecl));
+		System.err.println("TYPE "+JavaNames.getFullTypeName(tdecl));		
 		final String unparse = unparser.unparseString(tdecl).replace(" = #;", "\n\t").replace(";", "\n\t").replace(" #", "\n\t");
 		final StringReader r = new StringReader(unparse);
 		final BufferedReader br = new BufferedReader(r);
@@ -53,5 +54,24 @@ public class DebugUtil {
 	
 	public static void dumpClosestType(IRNode n) {
 		dumpType(VisitUtil.getClosestType(n));
+	}
+	
+	public static void dumpTypeHierarchy(ITypeEnvironment tEnv, IRNode tdecl) {		
+		final IJavaType t = tEnv.convertNodeTypeToIJavaType(tdecl);
+		dumpTypeHierarchy(tEnv, t);
+	}
+	
+	public static void dumpTypeHierarchy(ITypeEnvironment tEnv, IJavaType t) {
+		if (t == null || t.getName().equals(SLUtility.JAVA_LANG_OBJECT)) {
+			return;
+		}
+		if (t instanceof IJavaDeclaredType) {
+			final IJavaDeclaredType dt = (IJavaDeclaredType) t;
+			dumpType(dt.getDeclaration());
+		}
+		
+		for(IJavaType s : t.getSupertypes(tEnv)) {
+			dumpTypeHierarchy(tEnv, s);
+		}
 	}
 }
