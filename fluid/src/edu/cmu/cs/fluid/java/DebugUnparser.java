@@ -15,7 +15,7 @@ import edu.cmu.cs.fluid.unparse.Token;
 
 public class DebugUnparser extends SimpleTokenStream implements JavaUnparser {
   private static final Logger LOG = SLLogger.getLogger("FLUID.java");
-  private static final Token deepToken = new Keyword("#");
+  protected static final Token deepToken = new Keyword("#");
   private static final Token nullToken = new Keyword("@NULL@");
   private final int maxLevel;
   private final SyntaxTreeInterface tree;
