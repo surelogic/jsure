@@ -1,14 +1,14 @@
 package edu.cmu.cs.fluid.java.bind;
 
+import java.io.*;
 import java.util.*;
 
 import com.surelogic.common.concurrent.*;
 
 import edu.cmu.cs.fluid.ir.*;
 import edu.cmu.cs.fluid.java.*;
-import edu.cmu.cs.fluid.java.operator.Initializer;
-import edu.cmu.cs.fluid.java.operator.Statement;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
+import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.util.*;
 import edu.cmu.cs.fluid.tree.*;
 import edu.cmu.cs.fluid.parse.JJNode;
 
@@ -37,7 +37,18 @@ public class DebugUtil {
 		if (!dumped.add(tdecl)) {
 			return;
 		}
-		System.err.println(unparser.unparseString(tdecl));
+		//System.err.println(unparser.unparseString(tdecl));
+		final String unparse = unparser.unparseString(tdecl).replace(" = #;", "\n\t").replace(";", "\n\t").replace(" #", "\n\t");
+		final StringReader r = new StringReader(unparse);
+		final BufferedReader br = new BufferedReader(r);
+		String line;
+		try {
+			while ((line = br.readLine()) != null) {
+				System.err.println(line);
+			}
+		} catch (IOException e) {
+			throw new IllegalStateException();
+		}
 	}
 	
 	public static void dumpClosestType(IRNode n) {
