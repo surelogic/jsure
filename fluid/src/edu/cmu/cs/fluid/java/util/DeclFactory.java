@@ -80,14 +80,14 @@ public class DeclFactory {
    * @return a pair with non-{@code} null entries, or {@code null} to indicate
    *         something went wrong.
    */
-  public Pair<IDecl, IJavaRef.Position> getDeclAndPosition(IRNode here) {
+  public Pair<IDecl, IJavaRef.Position> getDeclAndPosition(IRNode here, boolean useBinder) {
     if (here == null || here.identity() == IRNode.destroyedNode) {
       return null;
     }
-    DeclBuilder b = buildDecl(here);
+    DeclBuilder b = buildDecl(here, useBinder);
     if (b == null) {
       if (Declaration.prototype.includes(here) || AnonClassExpression.prototype.includes(here)) {
-        buildDecl(here);
+        buildDecl(here, useBinder);
       }
       return null;
     }
@@ -108,21 +108,21 @@ public class DeclFactory {
     return new Pair<IDecl, IJavaRef.Position>(decl, IJavaRef.Position.WITHIN_DECL);
   }
   
-  private DeclBuilder buildDecl(IRNode here) {
+  private DeclBuilder buildDecl(IRNode here, boolean useBinder) {
     if (here == null) {
       return null;
     }
     final IRNode parent = JavaPromise.getParentOrPromisedFor(here);
-    DeclBuilder parentB = buildDecl(parent);
+    DeclBuilder parentB = buildDecl(parent, useBinder);
     final Operator op = JJNode.tree.getOperator(here);
     final DeclBuilder b;
     if (op instanceof TypeDeclInterface) {
-      b = buildTypeDecl(here, (TypeDeclInterface) op, parentB);
+      b = buildTypeDecl(here, (TypeDeclInterface) op, parentB, useBinder);
 
       if (parentB == null) {
         IRNode cu = VisitUtil.getEnclosingCompilationUnit(here);
         IRNode pd = CompilationUnit.getPkg(cu);
-        parentB = buildNonTypeDecl(pd, (Declaration) JJNode.tree.getOperator(pd), null);
+        parentB = buildNonTypeDecl(pd, (Declaration) JJNode.tree.getOperator(pd), null, useBinder);
       }
     } else if (op instanceof Declaration) {
       Declaration d = (Declaration) op;
@@ -130,7 +130,7 @@ public class DeclFactory {
         // Ignore this parameter
         return parentB;
       }
-      b = buildNonTypeDecl(here, d, parentB);
+      b = buildNonTypeDecl(here, d, parentB, useBinder);
     } else if (handleFieldsSpecially && op instanceof FieldDeclaration) {
       // Special case to handle refs to other details of the field
       final IRNode vdecls = FieldDeclaration.getVars(here);
@@ -138,7 +138,7 @@ public class DeclFactory {
     	  throw new IllegalStateException("More than one field");
       }
       final IRNode field = VariableDeclarators.getVar(vdecls, 0);
-      b =  buildNonTypeDecl(field, VariableDeclarator.prototype, parentB);
+      b =  buildNonTypeDecl(field, VariableDeclarator.prototype, parentB, useBinder);
     } else if (op instanceof ClassInitDeclaration) {
       InitializerBuilder init = new InitializerBuilder();
       init.setIsStatic(true);
@@ -225,7 +225,7 @@ public class DeclFactory {
     return IDecl.Visibility.DEFAULT;
   }
 
-  private DeclBuilder buildTypeDecl(IRNode decl, TypeDeclInterface t, DeclBuilder parent) {
+  private DeclBuilder buildTypeDecl(IRNode decl, TypeDeclInterface t, DeclBuilder parent, boolean useBinder) {
     final String name = JJNode.getInfoOrNull(decl);
     switch (t.getKind()) {
     case CLASS:
@@ -234,7 +234,7 @@ public class DeclFactory {
         IRNode types = ClassDeclaration.getTypes(decl);
         int i = 0;
         for (IRNode typeParam : TypeFormals.getTypeIterator(types)) {
-          TypeParameterBuilder tpb = buildTypeParameter(i, typeParam);
+          TypeParameterBuilder tpb = buildTypeParameter(i, typeParam, useBinder);
           c.addTypeParameter(tpb);
           i++;
         }
@@ -246,7 +246,7 @@ public class DeclFactory {
       } else {
         c.setVisibility(IDecl.Visibility.ANONYMOUS);
         c.setAnonymousDeclPosition(computePositionWithinEnclosingDecl(decl));
-        c.setTypeOfAnonymousDecl(computeTypeRef(AnonClassExpression.getType(decl)));
+        c.setTypeOfAnonymousDecl(computeTypeRef(AnonClassExpression.getType(decl), useBinder));
       }
       return c;
     case ENUM:
@@ -262,7 +262,7 @@ public class DeclFactory {
       IRNode types = InterfaceDeclaration.getTypes(decl);
       int i = 0;
       for (IRNode typeParam : TypeFormals.getTypeIterator(types)) {
-    	  TypeParameterBuilder tpb = buildTypeParameter(i, typeParam);
+    	  TypeParameterBuilder tpb = buildTypeParameter(i, typeParam, useBinder);
     	  ib.addTypeParameter(tpb);
     	  i++;
       }
@@ -273,23 +273,23 @@ public class DeclFactory {
       // return buildTypeParameter(num, decl);
       return parent.getTypeParameterBuilderAt(num);
     case FIELD: // EnumConstantClassDecl
-      return buildNonTypeDecl(decl, (Declaration) t, parent);
+      return buildNonTypeDecl(decl, (Declaration) t, parent, useBinder);
     default:
     }
     return null;
   }
 
-  private TypeParameterBuilder buildTypeParameter(int i, IRNode t) {
+  private TypeParameterBuilder buildTypeParameter(int i, IRNode t, boolean useBinder) {
     final String name = TypeFormal.getId(t);
     final TypeParameterBuilder b = new TypeParameterBuilder(i, name);
     final IRNode bounds = TypeFormal.getBounds(t);
     for (IRNode bound : MoreBounds.getBoundIterator(bounds)) {
-      b.addBounds(computeTypeRef(bound));
+      b.addBounds(computeTypeRef(bound, useBinder));
     }
     return b;
   }
 
-  private DeclBuilder buildNonTypeDecl(IRNode decl, Declaration d, DeclBuilder parent) {
+  private DeclBuilder buildNonTypeDecl(IRNode decl, Declaration d, DeclBuilder parent, boolean useBinder) {
     final String name = JJNode.getInfoOrNull(decl);
     IRNode params, types, type;
     int i = 0;
@@ -303,14 +303,14 @@ public class DeclFactory {
       }
       params = ConstructorDeclaration.getParams(decl);
       for (IRNode param : Parameters.getFormalIterator(params)) {
-        ParameterBuilder pb = buildParameter(param, i);
+        ParameterBuilder pb = buildParameter(param, i, useBinder);
         c.addParameter(pb);
         i++;
       }
       types = ConstructorDeclaration.getTypes(decl);
       i = 0;
       for (IRNode typeParam : TypeFormals.getTypeIterator(types)) {
-        TypeParameterBuilder tpb = buildTypeParameter(i, typeParam);
+        TypeParameterBuilder tpb = buildTypeParameter(i, typeParam, useBinder);
         c.addTypeParameter(tpb);
         i++;
       }
@@ -330,7 +330,7 @@ public class DeclFactory {
         f.setVisibility(getVisibility(mods));
         type = VariableDeclarator.getType(decl);
       }
-      f.setTypeOf(computeTypeRef(type));
+      f.setTypeOf(computeTypeRef(type, useBinder));
       return f;
     case INITIALIZER:
       InitializerBuilder init = new InitializerBuilder();
@@ -353,14 +353,14 @@ public class DeclFactory {
 
         params = MethodDeclaration.getParams(decl);
         for (IRNode param : Parameters.getFormalIterator(params)) {
-          ParameterBuilder pb = buildParameter(param, i);
+          ParameterBuilder pb = buildParameter(param, i, useBinder);
           m.addParameter(pb);
           i++;
         }
         types = MethodDeclaration.getTypes(decl);
         i = 0;
         for (IRNode typeParam : TypeFormals.getTypeIterator(types)) {
-          TypeParameterBuilder tpb = buildTypeParameter(i, typeParam);
+          TypeParameterBuilder tpb = buildTypeParameter(i, typeParam, useBinder);
           m.addTypeParameter(tpb);
           i++;
         }
@@ -372,7 +372,7 @@ public class DeclFactory {
         m.setIsStatic(false);
         type = AnnotationElement.getType(decl);
       }
-      m.setReturnTypeOf(computeTypeRef(type));
+      m.setReturnTypeOf(computeTypeRef(type, useBinder));
       return m;
     case PACKAGE:
       return new PackageBuilder(name);
@@ -385,17 +385,17 @@ public class DeclFactory {
     return null;
   }
 
-  private ParameterBuilder buildParameter(IRNode decl, int num, String name) {
+  private ParameterBuilder buildParameter(IRNode decl, int num, String name, boolean useBinder) {
     ParameterBuilder param = new ParameterBuilder(num, name);
     param.setIsFinal(JavaNode.getModifier(decl, JavaNode.FINAL));
 
     IRNode type = ParameterDeclaration.getType(decl);
-    param.setTypeOf(computeTypeRef(type));
+    param.setTypeOf(computeTypeRef(type, useBinder));
     return param;
   }
 
-  private ParameterBuilder buildParameter(IRNode param, int i) {
-    return buildParameter(param, i, JJNode.getInfoOrNull(param));
+  private ParameterBuilder buildParameter(IRNode param, int i, boolean useBinder) {
+    return buildParameter(param, i, JJNode.getInfoOrNull(param), useBinder);
   }
 
   private int computePosition(IRNode child) {
@@ -407,8 +407,8 @@ public class DeclFactory {
     return JJNode.tree.childLocationIndex(parent, loc);
   }
 
-  private TypeRef computeTypeRef(IRNode ref) {
-    IJavaType t = binder.getJavaType(ref);
+  private TypeRef computeTypeRef(IRNode ref, boolean useBinder) {
+    IJavaType t = useBinder ? binder.getJavaType(ref) : null;
     if (t == null) {
       String unparse = DebugUnparser.toString(ref);
       return new TypeRef(unparse, unparse);

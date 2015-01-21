@@ -419,6 +419,7 @@ public class JavaNode extends JJNode {
   public interface Consts {
 	  public static final IRObjectType<IJavaRef> FLUID_JAVA_REF_SLOT_TYPE = new IRObjectType<IJavaRef>();
 	  public static final String FLUID_JAVA_REF_SLOT_NAME = "JavaNode.IJavaRef";
+	  public static final String TEMP_JAVA_REF_SLOT_NAME = "JavaNode.tempIJavaRef";
   }
   
   /**
@@ -428,6 +429,24 @@ public class JavaNode extends JJNode {
 	  getVersionedSlotInfo(Consts.FLUID_JAVA_REF_SLOT_NAME,
 			  Consts.FLUID_JAVA_REF_SLOT_TYPE);
 
+  static final SlotInfo<IJavaRef> f_tempJavaRefSlotInfo = 
+	  getVersionedSlotInfo(Consts.TEMP_JAVA_REF_SLOT_NAME,
+				  Consts.FLUID_JAVA_REF_SLOT_TYPE);
+
+  /**
+   * Tries to get an IJavaRef without using a binder
+   */
+  @Nullable
+  public static IJavaRef getTempJavaRef(IRNode node) {
+	  if (node == null) {
+		  return null;
+	  }
+	  if (node.valueExists(f_tempJavaRefSlotInfo)) {
+		  return node.getSlotValue(f_tempJavaRefSlotInfo);
+	  } 
+	  return null;
+  }
+  
   /**
    * Given an IRNode from a Java AST, this method returns the node's Java code
    * reference information, or {@code null} if none exists.
@@ -478,7 +497,7 @@ public class JavaNode extends JJNode {
     }    
     return null;
   }
-
+ 
   /**
    * Gets if the passed node has a Java code reference information.
    * 
@@ -502,7 +521,7 @@ public class JavaNode extends JJNode {
 		return;
 	}
     DeclFactory f = new DeclFactory(tEnv.getBinder());
-    Pair<IDecl, Position> pair = f.getDeclAndPosition(node);
+    Pair<IDecl, Position> pair = f.getDeclAndPosition(node, true);
     JavaRef.Builder b = new JavaRef.Builder(pair.first());
     if (includePosition) {
     	b.setPositionRelativeToDeclaration(pair.second());

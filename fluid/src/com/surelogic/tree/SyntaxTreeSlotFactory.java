@@ -150,9 +150,9 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
   }
   
   private SlotInfo<IJavaRef> makeSrcRefSI(String name, IJavaRef defaultVal,
-		                                 StoredSlotInfo<IJavaRef,IJavaRef> backupSI) 
+		                                 StoredSlotInfo<IJavaRef,IJavaRef> backupSI, final boolean useBinderAndReplace) 
       throws SlotAlreadyRegisteredException {
-    return new NodeStoredSlotInfo<IJavaRef>(JavaNode.Consts.FLUID_JAVA_REF_SLOT_NAME, name, 
+    return new NodeStoredSlotInfo<IJavaRef>(name, name, 
     		JavaNode.Consts.FLUID_JAVA_REF_SLOT_TYPE, srcRefStorage, defaultVal, backupSI) {
       @Override
       protected IJavaRef getSlot(SyntaxTreeNode n) {
@@ -168,9 +168,13 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
     	  }
     	  // Might be built twice, but should get the same value
     	  if (SkeletonJavaRefUtility.useSkeletonsAsJavaRefPlaceholders && rv instanceof SkeletonJavaRefUtility.JavaRefSkeletonBuilder) {
-    		  rv = ((SkeletonJavaRefUtility.JavaRefSkeletonBuilder) rv).buildOrNullOnFailure(node);
-    		  synchronized (node) {
-    			  setSlotValue_unsync(node, rv);
+    		  if (useBinderAndReplace) {
+    			  rv = ((SkeletonJavaRefUtility.JavaRefSkeletonBuilder) rv).buildOrNullOnFailure(node, true);
+    			  synchronized (node) {
+    				  setSlotValue_unsync(node, rv);
+    			  }
+    		  } else {
+    			  rv = ((SkeletonJavaRefUtility.JavaRefSkeletonBuilder) rv).buildOrNullOnFailure(node, false);
     		  }
     	  }
     	  return rv;
@@ -274,10 +278,12 @@ public final class SyntaxTreeSlotFactory extends SimpleSlotFactory {
         */
       }
     }
-    else if (type == JavaNode.Consts.FLUID_JAVA_REF_SLOT_TYPE && JavaNode.Consts.FLUID_JAVA_REF_SLOT_NAME.equals(name)) {
+    else if (type == JavaNode.Consts.FLUID_JAVA_REF_SLOT_TYPE && 
+    	(JavaNode.Consts.FLUID_JAVA_REF_SLOT_NAME.equals(name) || JavaNode.Consts.TEMP_JAVA_REF_SLOT_NAME.equals(name))) {
     	IJavaRef def = undefined ? Constants.undefinedSrcRef : (IJavaRef) defaultValue;
     	backupSI = makeBackupSI(name, type, defaultValue, undefined);
-    	return (SlotInfo<T>) makeSrcRefSI(name, def, (StoredSlotInfo<IJavaRef, IJavaRef>) backupSI);
+    	return (SlotInfo<T>) makeSrcRefSI(name, def, (StoredSlotInfo<IJavaRef, IJavaRef>) backupSI, 
+    			                          JavaNode.Consts.FLUID_JAVA_REF_SLOT_NAME.equals(name));
     }
     else if (type instanceof IRStringType && infoName.equals(name)) {
     	String def = undefined ? Constants.undefinedString : (String) defaultValue;

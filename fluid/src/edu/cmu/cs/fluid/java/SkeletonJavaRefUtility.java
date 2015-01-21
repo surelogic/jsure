@@ -95,7 +95,7 @@ public final class SkeletonJavaRefUtility {
     	return placeholderRef;
     }
     if (sb != null) {
-      return sb.buildOrNullOnFailure(node);
+      return sb.buildOrNullOnFailure(node, true);
     } else {
       // It really should be null
       nodeToSkeleton.remove(node);
@@ -165,7 +165,7 @@ public final class SkeletonJavaRefUtility {
   }
 
   public interface JavaRefSkeletonBuilder extends IJavaRef {
-    IJavaRef buildOrNullOnFailure(@NonNull IRNode node);
+    IJavaRef buildOrNullOnFailure(@NonNull IRNode node, boolean useBinder);
   }
 
   static abstract class AbstractBuilder extends JavaRefPlaceholder implements JavaRefSkeletonBuilder {
@@ -183,13 +183,13 @@ public final class SkeletonJavaRefUtility {
     }
     
     @Override
-    public final IJavaRef buildOrNullOnFailure(@NonNull IRNode node) {
+    public final IJavaRef buildOrNullOnFailure(@NonNull IRNode node, final boolean useBinder) {
       /*
       if (cache != null) {
     	return cache;
       }
       */   	
-      final Pair<IDecl, IJavaRef.Position> pair = f_factory.getDeclAndPosition(node);
+      final Pair<IDecl, IJavaRef.Position> pair = f_factory.getDeclAndPosition(node, useBinder);
       if (pair == null) {
     	if (!CompilationUnit.prototype.includes(node)) {
     		SLLogger.getLogger().warning(I18N.err(289, DebugUnparser.unparseCode(node), new Exception()));

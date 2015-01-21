@@ -1790,7 +1790,7 @@ public class Util {
     for (IRNode n : JJNode.tree.topDown(info.getNode())) { // what about
                                                            // receivers/return
                                                            // values?
-      Pair<IDecl, IJavaRef.Position> p = factory.getDeclAndPosition(n);
+      Pair<IDecl, IJavaRef.Position> p = factory.getDeclAndPosition(n, true);
       if (p == null) {
         continue;
       }

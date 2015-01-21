@@ -1239,7 +1239,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         	return false;
         }
     	final String unparse = DebugUnparser.toString(node);
-    	final IJavaRef ref = JavaNode.getJavaRef(node);
+    	final IJavaRef ref = JavaNode.getTempJavaRef(node);
     	if (isBinary(node)) {
     		if (!unparse.endsWith(" . 1")) {
     			System.err.println("Cannot find a binding for binary " + unparse+" in "+typeEnvironment+": "+ref);
