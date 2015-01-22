@@ -705,12 +705,15 @@ public class RegionRules extends AnnotationRules {
       good = false;
     }
     
-    // Named region must exist
+    /* If the region exists, we need to check that it is compatible with the 
+     * the field being aggregated.  If the field doesn't exist we pass it through
+     * so that @InRegion can infer a new @Region annotation.
+     */
     final String name = a.getSpec().getId();
     final IRegionBinding destDecl = a.getSpec().resolveBinding();
     if (destDecl == null) {
-      context.reportError(a, "Destination region \"{0}\" does not exist", name);
-      good = false;
+//      context.reportError(a, "Destination region \"{0}\" does not exist", name);
+//      good = false;
     } else {
       // Named region cannot be final
       final RegionModel destRegion = destDecl.getModel();
@@ -815,12 +818,15 @@ public class RegionRules extends AnnotationRules {
       isGood = false;
     }
     
-    // Named region must exist
+    /* If the region exists, we need to check that it is compatible with the 
+     * the field being aggregated.  If the field doesn't exist we pass it through
+     * so that @InRegion can infer a new @Region annotation.
+     */
     final String name = a.getSpec().getId();
     final IRegionBinding destDecl = a.getSpec().resolveBinding();
     if (destDecl == null) {
-      context.reportError(a, "Destination region \"{0}\" does not exist", name);
-      isGood = false;
+//      context.reportError(a, "Destination region \"{0}\" does not exist", name);
+//      isGood = false;
     } else {
       // Named region cannot be final
       final RegionModel destRegion = destDecl.getModel();
@@ -864,7 +870,7 @@ public class RegionRules extends AnnotationRules {
         inRegion.copyPromisedForContext(promisedFor, a, AnnotationOrigin.GENERATED_FOR_DECL);
         AASTStore.addDerived(inRegion, drop);
       } else {
-    	setupRegionModelForField((PromiseDrop<?>) drop, destDecl, (drop).getPromisedFor());
+        setupRegionModelForField((PromiseDrop<?>) drop, destDecl, (drop).getPromisedFor());
       }
       
       return drop;
