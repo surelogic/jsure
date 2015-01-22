@@ -1544,13 +1544,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
    		final String qname = name.substring(0, lastDot);
 		final String id = name.substring(lastDot+1);
 		IRNode decl = classTable.getOuterClass(qname, node);
-		if (decl != null && !AnnotationDeclaration.prototype.includes(decl)) {
+		if (decl != null && !TypeDeclaration.prototype.includes(decl)) {
 			// Not a type decl
 			decl = null;
 		}
-		IBinding b = null;
+
 		if (decl == null) {
-			b = scope.lookup(lookupContext.use(qname, node), IJavaScope.Util.isTypeDecl);    
+			// Didn't find the type as a fully qualified name
+			IBinding b = scope.lookup(lookupContext.use(qname, node), IJavaScope.Util.isTypeDecl);    
 			if (b == null) {
 				// Check for more nesting
 				lastDot = qname.lastIndexOf('.');
@@ -1558,11 +1559,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
 					b = checkForNestedAnnotation(node, qname, lastDot);
 				}
 			}
-		}
-		if (b != null) {
-			decl = b.getNode();
+			if (b != null) {
+				decl = b.getNode();
+			}
 		}
 		if (decl != null) {
+			// Use the decl we found for 'qname' to lookup 'id'
 			IJavaScope scope = typeScope(getTypeEnvironment().convertNodeTypeToIJavaType(decl));
 			return scope.lookup(lookupContext.use(id, node), IJavaScope.Util.isTypeDecl);    
 		}

@@ -1256,8 +1256,26 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 			if (qname.contains("root.Root")) {
 				System.out.println("Checking TR: "+qname);
 			}
-*/
-			String key  = couldBeUnknownType(jp, qname);
+*/			
+			// Check for substrings of the name
+			String name = qname;
+			while (name != null) {
+				boolean rv = checkTypeReference_internal(name);
+				if (rv) {
+					return true;
+				}
+				int lastDot = name.lastIndexOf('.');
+				if (lastDot < 0) {
+					name = null;
+				} else {
+					name = name.substring(0, lastDot);
+				}
+			}
+			return false;
+		}
+		
+		private boolean checkTypeReference_internal(String qname) {
+			String key = couldBeUnknownType(jp, qname);
 			if (key != null) {
 				/*
 				String name = key.substring(0, key.length()-6).replace('/', '.');
