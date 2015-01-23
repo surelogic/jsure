@@ -3,18 +3,7 @@ package edu.cmu.cs.fluid.java.util;
 import java.util.*;
 
 import com.surelogic.common.Pair;
-import com.surelogic.common.ref.Decl.AnnotationBuilder;
-import com.surelogic.common.ref.Decl.ClassBuilder;
-import com.surelogic.common.ref.Decl.ConstructorBuilder;
-import com.surelogic.common.ref.Decl.DeclBuilder;
-import com.surelogic.common.ref.Decl.EnumBuilder;
-import com.surelogic.common.ref.Decl.FieldBuilder;
-import com.surelogic.common.ref.Decl.InitializerBuilder;
-import com.surelogic.common.ref.Decl.InterfaceBuilder;
-import com.surelogic.common.ref.Decl.MethodBuilder;
-import com.surelogic.common.ref.Decl.PackageBuilder;
-import com.surelogic.common.ref.Decl.ParameterBuilder;
-import com.surelogic.common.ref.Decl.TypeParameterBuilder;
+import com.surelogic.common.ref.Decl.*;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.TypeRef;
@@ -37,6 +26,7 @@ import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.ForEachStatement;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
+import edu.cmu.cs.fluid.java.operator.LambdaExpression;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.MoreBounds;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -62,6 +52,8 @@ import edu.cmu.cs.fluid.tree.Operator;
  */
 public class DeclFactory {
   private static final boolean handleFieldsSpecially = true;
+  private static final TypeRef UNBOUND = new TypeRef("<unbound>", "<unbound>");
+  
   private final IBinder binder;
   
   public DeclFactory(IBinder b) {
@@ -274,6 +266,22 @@ public class DeclFactory {
       return parent.getTypeParameterBuilderAt(num);
     case FIELD: // EnumConstantClassDecl
       return buildNonTypeDecl(decl, (Declaration) t, parent, useBinder);
+    case LAMBDA:
+      final LambdaBuilder lambda = new LambdaBuilder();
+      if (useBinder) {
+    	  IJavaType lt = binder.getInferredJavaType(decl);  
+    	  lambda.setFunctionalInterfaceTypeOf(new TypeRef(lt.toFullyQualifiedText(), lt.toSourceText()));
+      } else {
+    	  lambda.setFunctionalInterfaceTypeOf(UNBOUND);
+      }
+      IRNode params = LambdaExpression.getParams(decl);
+      i = 0;
+      for (IRNode param : Parameters.getFormalIterator(params)) {
+    	  ParameterBuilder pb = buildParameter(param, i, useBinder);
+    	  lambda.addParameter(pb);
+    	  i++;
+      }
+      return lambda;    	
     default:
     }
     return null;
