@@ -67,7 +67,8 @@ class MethodInfo {
 			rv[i] = getJavaType(b, f, withSubst);
 			i++;
 		}
-    	if (varArity && callArgs >/*=*/ numFormals) {
+		// TODO not quite right below if equal ... due to canonicalization?
+    	if (varArity && callArgs >= numFormals) {
     		// Fill-in the rest of the types needed
     		IJavaArrayType origType = (IJavaArrayType) rv[numFormals-1];
     		IJavaType varargsType = origType.getElementType();

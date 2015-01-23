@@ -8,9 +8,11 @@ import com.surelogic.common.util.Iteratable;
 
 import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
+import edu.cmu.cs.fluid.java.bind.IJavaType.BooleanVisitor;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.BoundSet;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.TypeVariable;
 import edu.cmu.cs.fluid.java.operator.*;
@@ -873,7 +875,7 @@ public class MethodBinder8 implements IMethodBinder {
     final ArgCompatibilityContext STRICT_INVOCATION_CONTEXT = new ArgCompatibilityContext() {
     	public boolean isCompatible(IRNode param, IJavaType pType, IRNode arg, IJavaType argType) {    		 
     		argType = getArgTypeIfPossible(arg, argType);
-    		return isCallCompatible(pType, arg, argType);
+     		return isCallCompatible(pType, arg, argType);
     	}
 	}; 
 	
@@ -1199,7 +1201,7 @@ declared return type, Object .
     	
 		public MethodBinding8 isApplicable(ICallState call, MethodBinding m) {			
 			if (kind != InvocationKind.VARARGS && 
-				(call.numArgs() != m.getNumFormals() || call.needsVarArgs())) {
+				(call.numArgs() != m.getNumFormals() ||	call.needsVarArgs() && !m.isVariableArity())) {
 				return null;
 			}
 			if (m.isGeneric()) {
@@ -1246,8 +1248,9 @@ declared return type, Object .
 			}
 			//IJavaType pType = binder.getJavaType(ParameterDeclaration.getType(param));
 			final IJavaType substType = pType.subst(substForParams);
-			//final IJavaType argType = call.getArgType(i);
-			if (!context.isCompatible(null, substType, arg, null/*argType*/)) {
+			// Try to get the arg type if the arg is null
+			final IJavaType argType = arg != null ? null : call.getArgType(i);
+			if (!context.isCompatible(null, substType, arg, argType)) {
 				return false;										
 			}
 			i++;
@@ -1370,10 +1373,19 @@ declared return type, Object .
 	 * 
 	 * • Otherwise, the method invocation is ambiguous, and a compile-time error occurs.
 	 */
-    private MethodBinding8 findMostSpecific(final ICallState call, Iterable<MethodBinding> methods, ApplicableMethodFilter filter) {
+    private MethodBinding8 findMostSpecific(final ICallState call, Collection<MethodBinding> methods, ApplicableMethodFilter filter) {
     	if ("of".equals(JJNode.getInfoOrNull(call.getNode()))) {
     		System.out.println("Trying to find method for allOf");
     	}
+    	if (call instanceof RefState && methods.size() == 1) {
+    		// HACK
+    		MethodBinding temp = methods.iterator().next();
+    		if (temp instanceof MethodBinding8) {
+    			return (MethodBinding8) temp;
+    		}
+    		return MethodBinding8.create(call, temp, tEnv, null, filter.getKind());
+    	}
+    	
     	// Arrays.stream(#.readLine#.split(#)).map(String:: <> trim)
     	final Set<MethodBinding8> applicable = new HashSet<MethodBinding8>();
     	for(MethodBinding mb : methods) {
@@ -1456,11 +1468,15 @@ declared return type, Object .
     static class MethodBinding8 extends MethodBinding implements IMethodBinding8 {
     	final InvocationKind kind;
     	
-    	MethodBinding8(ICallState call, IBinding b, InvocationKind invocationKind) {
+    	MethodBinding8(ITypeEnvironment tEnv, ICallState call, IBinding b, InvocationKind invocationKind) {
     		super(b);
     		
     		if (call.getReceiverType() != null && call.getReceiverType() != b.getReceiverType()) {
-    			throw new IllegalStateException();
+    			if (call.getReceiverType().isSubtype(tEnv, b.getReceiverType())) {
+    				// TODO Update the binding? (too late!)
+    			} else {
+    				throw new IllegalStateException();
+    			}
     		}
     		kind = invocationKind;
     	}
@@ -1474,10 +1490,13 @@ declared return type, Object .
 				                  IJavaTypeSubstitution newTypeSubst, InvocationKind kind) {
 			final IBinding newB = reworkBinding(call, m.bind, tEnv, newTypeSubst);
 			// TODO check for same binding?
-    		return new MethodBinding8(call, newB, kind); 
+    		return new MethodBinding8(tEnv, call, newB, kind); 
 		}
 		
 		static IBinding reworkBinding(ICallState call, IBinding b, ITypeEnvironment tEnv, IJavaTypeSubstitution newTypeSubst) {
+			if ("Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)".equals(call.toString())) {
+				System.out.println("Reworking binding for Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)");
+			}
 			System.out.println("Receiver for "+call+" : "+call.getReceiverType());
 			final boolean sameReceiver = call.getReceiverType() == b.getReceiverType();
 			final boolean sameSubst = newTypeSubst == null || b.getSubst() == newTypeSubst;
@@ -1508,14 +1527,18 @@ declared return type, Object .
     	final BoundSet bounds;
     	final IJavaTypeSubstitution contextSubst;
     	private MethodBinding8WithBoundSet(ITypeEnvironment tEnv, ICallState call, IBinding m, BoundSet b, InvocationKind kind) {
-    		super(call, m, kind);
+    		super(tEnv, call, m, kind);
     		bounds = b;
     		contextSubst = JavaTypeSubstitution.create(tEnv, m.getContextType());
     	}
     	
     	static MethodBinding8 create(ICallState c, MethodBinding m, ITypeEnvironment te, BoundSet b, InvocationKind kind) {
-    		final BoundSet result = TypeInference8.resolve(b);    		
-    		IBinding newB = reworkBinding(c, m.bind, te, result.getFinalTypeSubst());
+    		if ("Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)".equals(c.toString())) {
+    		//if ("Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(c.toString())) {    		
+    			System.out.println("Creating boundset");
+    		}
+    		final BoundSet result = TypeInference8.resolve(b, null);    		
+    		IBinding newB = reworkBinding(c, m.bind, te, result.getFinalTypeSubst(false));
     		return new MethodBinding8WithBoundSet(te, c, newB, b, kind);
     	}
     	
@@ -1526,11 +1549,13 @@ declared return type, Object .
 		
 		@Override
     	IJavaType getJavaType(IBinder b, IRNode formal, boolean withSubst) {
+			IJavaType t = super.getJavaType(b, formal, withSubst);
 			// TODO Need to use the right subst!
-			if (withSubst) {			
-				return super.getJavaType(b, formal, withSubst);
-			} 
-			return super.getJavaType(b, formal, withSubst).subst(contextSubst);
+			if (!withSubst) {			
+				// Using alternate substitution?
+				return t.subst(contextSubst);
+			}
+			return t;
 		}
 	}
 	
@@ -1816,6 +1841,29 @@ declared return type, Object .
     	}
     	return null;
     }
+
+    boolean containsTypeVariables(IJavaType t) {
+    	BooleanVisitor v = new BooleanVisitor(false) {
+			@Override
+			public void accept(IJavaType t) {
+				result |= t instanceof TypeVariable;
+			}    		
+    	};
+    	t.visit(v);
+    	return v.result;
+    }
+    
+    boolean containsTypeVariables(IJavaFunctionType ft) {
+    	if (containsTypeVariables(ft.getReturnType())) {
+    		return true;
+    	}
+    	for(IJavaType p : ft.getParameterTypes()) {
+    		if (containsTypeVariables(p)) {
+    			return true;
+    		}
+    	}
+    	return false;
+    }
     
 	/**
 	 * The ground target type is derived from T as follows:
@@ -1827,9 +1875,14 @@ declared return type, Object .
      * � Otherwise, the ground target type is T.
 	 */
 	public IJavaType computeGroundTargetType(IRNode lambda, IJavaType t) {
-		return computeGroundTargetType(lambda, t, true);
+		IJavaType rv = computeGroundTargetType(lambda, t, true);
+		if (containsTypeVariables(rv)) {
+			System.out.println("Found type variable");
+			computeGroundTargetType(lambda, t, true);
+		}
+		return rv;
 	}
-		
+
 	public IJavaType computeGroundTargetType(IRNode lambda, IJavaType t, boolean checkForSubtype) {
 		IJavaDeclaredType wpt = typeInfer.isWildcardParameterizedType(t);
 		if (wpt != null) {
@@ -1881,7 +1934,7 @@ declared return type, Object .
 		Pair<MethodBinding,BoundSet> result = typeInfer.recomputeB_2(call, b);
 		final MethodBinding mb = result.first();
 		final BoundSet b_2 = result.second();
-
+		
 		if (typeInfer.isGenericMethodRef(mb)) {
 			/*
 			 * • If the chosen method is generic and the method invocation does not provide
@@ -1889,10 +1942,16 @@ declared return type, Object .
 			 */
 			if (call.getNumTypeArgs() == 0) {
 				System.out.println("Inferring invocation type for "+call);
-				if (call.toString().equals("br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))")) {
+				if (call.toString().equals("Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)")) {
 					System.out.println("Got br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))");
+					BoundSet temp = TypeInference8.resolve(b_2, null);
+					temp.getFinalTypeSubst(true);
 				}
-				return typeInfer.inferForInvocationType(call, b, b_2, targetType);
+				IJavaFunctionType rv = typeInfer.inferForInvocationType(call, (MethodBinding8) mb, b_2, targetType);
+				if (containsTypeVariables(rv)) {
+					typeInfer.inferForInvocationType(call, (MethodBinding8) mb, b_2, targetType);
+				}
+				return rv;
 			} else {
 				/*
 				 * • If the chosen method is generic and the method invocation provides explicit type
@@ -1942,8 +2001,9 @@ declared return type, Object .
 			 *   
 			 *   – Otherwise, the invocation type is the same as the method's type.
 			 */
-			IJavaFunctionType mtype = computeMethodType(mb);
-			if (b_2.usedUncheckedConversion()) {
+			IJavaFunctionType mtype = computeMethodType(/*m*/b);
+			// TODO any other way to know unchecked conversion was used?
+			if (b_2 != null && b_2.usedUncheckedConversion()) {
 				return substParams_eraseReturn(mtype, null);
 			} 
 			if ("getClass".equals(JJNode.getInfo(b.getNode())) &&
@@ -1959,7 +2019,7 @@ declared return type, Object .
 	IJavaFunctionType computeMethodType(MethodBinding m) {		
 		IJavaFunctionType t = JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), 
 				TypeUtil.isStatic(m.bind.getNode()) ? null : m.bind.getReceiverType(), tEnv.getBinder());
-		return t.instantiate(t.getTypeFormals(), JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) m.bind.getReceiverType()));
+		return t.instantiate(t.getTypeFormals(), JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) m.bind.getContextType()));
 	}
 	
 	private IJavaFunctionType replaceReturn(IJavaFunctionType orig, IJavaType newReturn) {
@@ -2059,8 +2119,11 @@ declared return type, Object .
 			if (ft.getParameterTypes().isEmpty()) {
 				second = null;
 			} else {
-				ref.prepForSecond();			
-				second = tryToFindMostSpecific(ref, methods);
+				if (ref.prepForSecond()) {	
+					second = tryToFindMostSpecific(ref, methods);					
+				} else {
+					second = null;
+				}
 			}
 			boolean firstWorks = first != null && TypeUtil.isStatic(first.getNode());
 			boolean secondWorks = second != null && !TypeUtil.isStatic(second.getNode());
@@ -2164,7 +2227,7 @@ declared return type, Object .
 		 *     same as the type of the first search. Again, the type arguments, if any, are given by the 
 		 *     method reference expression.
 		 */
-		void prepForSecond() {
+		boolean prepForSecond() {
 			if (doSecond) {
 				doSecond = false;
 			}
@@ -2173,7 +2236,7 @@ declared return type, Object .
 			
 			List<IJavaType> ptypes = type.getParameterTypes();
 			if (ptypes.isEmpty()) {
-				throw new IllegalStateException(); // TODO what to do?
+				return false;
 			}
 			final IJavaType p_1 = ptypes.get(0);
 			//if (p_1.isSubtype(tEnv, refType)) {
@@ -2183,7 +2246,7 @@ declared return type, Object .
 					secondArgTypes[i-1] = ptypes.get(i);
 				}
 			} else {
-				throw new IllegalStateException();
+				return false;
 			}
 			secondReceiver = refType;
 			if (refType instanceof IJavaDeclaredType) {
@@ -2195,12 +2258,22 @@ declared return type, Object .
 					}
 				}
 			}
+			return true; // Ok to do second search
 		}
 
 		@Override
 		public boolean needsVarArgs() {
 			// TODO is this ever true?
 			return false;
+		}
+		
+		@Override
+		public String toString() {
+			return DebugUnparser.toString(ref)+" ("+type+")";
+		}
+
+		void reset() {
+			doSecond = false;
 		}
 	}
 

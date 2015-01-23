@@ -1285,6 +1285,12 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 				return result;
 			}
 		}
+		if (s instanceof TypeInference8.TypeVariable) {
+			TypeInference8.TypeVariable v = (TypeInference8.TypeVariable) s;
+			if (t.isSubtype(this, v.getUpperBound(this)) && v.getLowerBound().isSubtype(this, t)) {
+				return true; // HACK since otherwise not resolved
+			}
+		}
 		
 		// need to handle wildcard type parameters:
 		// List<Integer> is NOT a subtype of List<Object>, but 

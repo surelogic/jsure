@@ -16,6 +16,7 @@ import java.util.logging.Level;
 
 import com.surelogic.ThreadSafe;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.common.ref.*;
 
 /**
  * Class for computing the type of an AST node.
@@ -423,7 +424,11 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 	  //String unparse = DebugUnparser.toString(node);
 	  TypeUtils utils = new TypeUtils(binder.getTypeEnvironment());
 	  IJavaType targetType = utils.getPolyExpressionTargetType(node);
-	  return new MethodBinder8((IPrivateBinder) binder, false).computeGroundTargetType(node, targetType);
+	  MethodBinder8 mb = new MethodBinder8((IPrivateBinder) binder, false);
+	  if (mb.containsTypeVariables(targetType)) {
+		  utils.getPolyExpressionTargetType(node);
+	  }
+	  return mb.computeGroundTargetType(node, targetType);
   }
   
   @Override
@@ -1285,12 +1290,13 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
 	  IJavaType result = doAccept(node);  
 	  if (result == null) {
 		  final String unparse = DebugUnparser.toString(node);
+		  final IJavaRef ref = JavaNode.getTempJavaRef(node);
 		  if (AbstractJavaBinder.isBinary(node)) {
 			  if (!unparse.contains(" . 1")) {
-				  System.err.println("Cannot get type for " + unparse+" in "+binder.getTypeEnvironment());
+				  System.err.println("Cannot get type for " + unparse+" in "+binder.getTypeEnvironment()+" : "+ref);
 			  }
 		  } else {
-			  LOG.log( Level.WARNING, "Cannot get type for " + unparse+" in "+binder.getTypeEnvironment());
+			  LOG.log( Level.WARNING, "Cannot get type for " + unparse+" in "+binder.getTypeEnvironment()+" : "+ref);
 		  }
 		  result = doAccept(node);  
 	  /*

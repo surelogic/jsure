@@ -478,10 +478,10 @@ public class TypeInference8 {
 		 *     Finally, the method m is applicable if B 2 does not contain the bound false and
 		 *     resolution of all the inference variables in B 2 succeeds (Â§18.4).
 		 */
-		final BoundSet result = resolve(b_2);
+		final BoundSet result = resolve(b_2, null);
 		// debug
 		if (result == null || result.getInstantiations().isEmpty()) {
-			resolve(b_2);
+			resolve(b_2, null);
 		}
 		if (result != null && !result.isFalse && 
 			result.getInstantiations().keySet().containsAll(result.variableMap.values())) {
@@ -532,7 +532,7 @@ public class TypeInference8 {
      *   If B 4 contains the bound false, or if resolution fails, then a compile-time error occurs.
      */
 	IJavaFunctionType inferForInvocationType(ICallState call, MethodBinding8 m, BoundSet b_2, IJavaType targetType) {
-		final BoundSet b_3;
+		BoundSet b_3;
 		 /* 
 	     * - If the invocation is not a poly expression, let the bound set B 3 be the same as B 2 .
 	     */
@@ -550,19 +550,22 @@ public class TypeInference8 {
 					targetType = utils.getPolyExpressionTargetType(call.getNode());
 				}
 			}
-			final IJavaType r = m.getReturnType(tEnv);
+			final IJavaType r = m.getReturnType(tEnv, false);
 			b_3 = computeB_3(call, r, b_2, targetType);
 		
 			if (b_3.isFalse) {
-				computeB_3(call, r, b_2, targetType);
+				b_3 = computeB_3(call, r, b_2, targetType);
 			}
 		}
 		final IJavaTypeSubstitution theta = b_3.getInitialVarSubst();
+		if (call.toString().endsWith(".flatMap(Grep:: <> getPathStream)")) {
+			System.out.println("About to create constraints");
+		}
 		Set<ConstraintFormula> c = createInitialConstraints(call, m, theta);
 		final BoundSet b_4 = computeB_4(b_3, c);
 		final IJavaFunctionType origType = mb.computeMethodType(m);
-		final BoundSet result = resolve(b_4);
-		final IJavaTypeSubstitution theta_prime = result/*b_4*/.getFinalTypeSubst();
+		final BoundSet result = resolve(b_4, null);
+		final IJavaTypeSubstitution theta_prime = result/*b_4*/.getFinalTypeSubst(true);
 		if (b_4.usedUncheckedConversion()) {
 			return mb.substParams_eraseReturn(origType, theta_prime);			
 		} else {
@@ -787,9 +790,12 @@ public class TypeInference8 {
 	private BoundSet computeB_4(final BoundSet b_3, final Set<ConstraintFormula> c) {
 		final Map<ConstraintFormula,InputOutputVars> io = precomputeIO(c);
 		BoundSet current = new BoundSet(b_3);
-		BoundSet last = null;
+		BoundSet last = b_3;
 		while (!c.isEmpty()) {			
 			final Set<ConstraintFormula> selected = doComputeB_4(c, io, current);
+			if (!current.contains(last)) {
+				throw new IllegalStateException();
+			}
 			if (current.isFalse) {
 				BoundSet temp = new BoundSet(last == null ? b_3 : last);
 				doComputeB_4(c, io, temp);
@@ -836,9 +842,6 @@ public class TypeInference8 {
 		
 		// Step 3: resolve
 		final Set<InferenceVariable> toResolve = collectInputVars(io, selected);			
-		if (toResolve.size() == 0) {
-			throw new IllegalStateException();
-		}
 		BoundSet next = resolve(current, toResolve);
 		if (next == null) {
 			next = resolve(current, toResolve);
@@ -1239,7 +1242,7 @@ public class TypeInference8 {
 		if (b.isFalse) {
 			return null; // No valid parameterization
 		}		
-		final BoundSet result = resolve(b);		
+		final BoundSet result = resolve(b, null);		
 		List<IJavaType> a_prime = new ArrayList<IJavaType>(f.getTypeParameters().size());
 		for(i=0; i<f.getTypeParameters().size(); i++) {
 			IJavaType t = result.getInstantiations().get(f_alpha.getTypeParameters().get(i));
@@ -1403,7 +1406,7 @@ public class TypeInference8 {
 			reduceSubtypingConstraints(b_prime, s[k], t[k]);
 		}
 		
-		return /*!b_prime.isFalse && */resolve(b_prime) != null;
+		return /*!b_prime.isFalse && */resolve(b_prime, null) != null;
 	}
 	
 	/**
@@ -2039,6 +2042,19 @@ public class TypeInference8 {
 			}
 			return b.toString();
 		}
+
+		boolean containsAll(Equalities sub) {
+			if (!bounds.containsAll(sub.bounds)) {
+				return false;
+			}
+			for(Map.Entry<InferenceVariable, Equality> e : sub.finder.entrySet()) {
+				Equality eq = finder.get(e.getKey());
+				if (eq == null || !eq.containsAll(e.getValue())) {
+					return false;
+				}
+			}
+			return true;
+		}
 	}
 	
 	interface IEquality extends Iterable<IJavaReferenceType> {
@@ -2068,6 +2084,10 @@ public class TypeInference8 {
 			}
 		}
 		
+		boolean containsAll(Equality sub) {
+			return vars.containsAll(sub.vars) && values.containsAll(sub.values);
+		}
+
 		Equality(Equality orig) {
 			merge(orig);
 		}
@@ -2268,6 +2288,13 @@ public class TypeInference8 {
 			variableMap.putAll(orig.variableMap);
 		}
 		
+		boolean contains(BoundSet sub) {
+			return thrownSet.containsAll(sub.thrownSet) &&
+				   subtypeBounds.containsAll(sub.subtypeBounds) &&
+				   captures.containsAll(sub.captures) &&
+				   equalities.containsAll(sub.equalities);
+		}
+		
 		void merge(BoundSet other) {
 			if (isTemp/* || !other.isTemp*/) {
 				throw new IllegalStateException();
@@ -2380,9 +2407,18 @@ public class TypeInference8 {
 			return instantiations;
 		}
 
-		IJavaTypeSubstitution getFinalTypeSubst() {
+		IJavaTypeSubstitution getFinalTypeSubst(boolean eliminateTypeVariables) {
 			final Map<IJavaTypeFormal,IJavaType> subst = new HashMap<IJavaTypeFormal,IJavaType>();
 			final Map<InferenceVariable,IJavaType> instantiations = getInstantiations();
+			if (eliminateTypeVariables) {
+				System.out.println("Eliminating type variables");
+				for(Entry<InferenceVariable,IJavaType> e : instantiations.entrySet()) {
+					IJavaType elim = eliminateTypeVariables(e.getValue());
+					if (elim != e.getValue()) {
+						e.setValue(elim);
+					}
+				}
+			}
 			for(Entry<IJavaTypeFormal, InferenceVariable> e : variableMap.entrySet()) {
 				final IJavaType t = instantiations.get(e.getValue());
 				if (t == null) {
@@ -2394,6 +2430,37 @@ public class TypeInference8 {
 			return new TypeSubstitution(tEnv.getBinder(), subst);
 		}
 		
+		@SuppressWarnings("unchecked")
+		private <T extends IJavaType> T eliminateTypeVariables(T t) {
+			if (t == null) {
+				return null;
+			}
+			if (t instanceof TypeVariable) {
+				TypeVariable v = (TypeVariable) t;
+				IJavaReferenceType lb = eliminateTypeVariables(v.getLowerBound());
+				IJavaReferenceType ub = eliminateTypeVariables(v.getUpperBound(tEnv));
+				return (T) utils.getGreatestLowerBound(lb, ub);
+				//IJavaType lub = utils.getLowestUpperBound(v.getLowerBound(), v.getUpperBound(tEnv));
+			}
+			if (t instanceof IJavaDeclaredType) {
+				final IJavaDeclaredType dt = (IJavaDeclaredType) t;
+				final int num = dt.getTypeParameters().size();
+				if (num == 0) {
+					return t;
+				}
+				List<IJavaType> params = new ArrayList<IJavaType>(num);
+				for(IJavaType p : dt.getTypeParameters()) {
+					params.add(eliminateTypeVariables(p));
+				}
+				if (params.equals(dt.getTypeParameters())) {
+					return t;
+				}
+				return (T) JavaTypeFactory.getDeclaredType(dt.getDeclaration(), params, dt.getOuterType());
+			}
+			// TODO how do I do this?			
+			return t;
+		}
+
 		private void addInferenceVariables(Collection<InferenceVariable> newVars) {
 			// resolution doesn't require us to do anything here			
 			//variableMap.putAll(newMappings);
@@ -2837,13 +2904,20 @@ public class TypeInference8 {
 			return vars;
 		}
 		
-		Set<InferenceVariable> chooseUninstantiated() {
+		Set<InferenceVariable> chooseUninstantiated(final Set<InferenceVariable> toResolve) {
 			final Set<InferenceVariable> vars = collectVariables();
 			final Set<InferenceVariable> uninstantiated = new HashSet<InferenceVariable>(vars);
 			uninstantiated.removeAll(getInstantiations().keySet());
-			
 			if (uninstantiated.size() < 1) {
 				return uninstantiated;
+			}
+			if (toResolve != null) {
+				final Set<InferenceVariable> uninstantiatedAndToResolve = new HashSet<InferenceVariable>(uninstantiated);
+				uninstantiatedAndToResolve.retainAll(toResolve);
+				if (uninstantiatedAndToResolve.isEmpty()) {
+					// toResolve are all resolved already
+					return Collections.emptySet();
+				}
 			}
 			VarDependencies deps = computeVarDependencies();
 			return deps.chooseUninstantiated(uninstantiated);
@@ -3166,32 +3240,47 @@ public class TypeInference8 {
 	 *   If the bound set produced in the step above contains the bound false;
 	 *   
 	 *   ...
-	 *   
-	 * (keep trying if there are uninstantiated variables)
+	 * 
+	 * Resolve the specified variables, as well as any others that they are dependent on
+	 * If 'toResolve' is null, keep trying if there are uninstantiated variables 
 	 */
-	static BoundSet resolve(final BoundSet bounds) {
+	static BoundSet resolve(final BoundSet bounds, final Set<InferenceVariable> toResolve) {
 		if (bounds == null || bounds.isFalse) {
 			return null;
 		}
-		final Set<InferenceVariable> subset = bounds.chooseUninstantiated();
-		return resolve(bounds, subset);
+		Set<InferenceVariable> subset = bounds.chooseUninstantiated(toResolve);
+		BoundSet current = bounds, last = bounds;
+		while (!subset.isEmpty()) {
+			BoundSet next = resolveVariables(current, subset);
+			if (next == null || next.isFalse) {
+				return null;
+			}
+			last = current;
+			current = next;
+			subset = next.chooseUninstantiated(toResolve);
+		}
+		return current;
 	}
 	
-	static BoundSet resolve(final BoundSet bounds, final Set<InferenceVariable> subset) {
+	/**
+	 * Try to resolve the specific subset of variables.
+	 */
+	static BoundSet resolveVariables(final BoundSet bounds, final Set<InferenceVariable> subset) {
 		if (subset.isEmpty()) {
 			return bounds; // All instantiated
 		}
 		if (bounds.hasNoCaptureBoundInvolvingVars(subset)) {
 			BoundSet fresh = bounds.instantiateFromBounds(subset);
-			BoundSet rv = resolve(fresh);
-			if (rv != null) {					
-				return rv;
+			//BoundSet rv = resolve(fresh);
+			if (fresh != null && !fresh.isFalse) {					
+				return fresh;
 			}
 			// Otherwise, try below
 			System.out.println("Couldn't resolve from bounds");
 		}
 		BoundSet fresh = bounds.instantiateViaFreshVars(subset);
-		return resolve(fresh);		
+		//return resolve(fresh);		
+		return fresh;
 	}
 	
 	static class Dependencies<T extends Dependable> {
@@ -4809,8 +4898,10 @@ public class TypeInference8 {
 	 * 
 	 * (see below)
 	 */
-	private void reduceMethodRefCheckedExceptionConstraints(BoundSet bounds, IRNode ref, IJavaType t) {
-		IJavaFunctionType targetFuncType = tEnv.isFunctionalType(t);
+	private void reduceMethodRefCheckedExceptionConstraints(BoundSet bounds, IRNode ref, final IJavaType t) {
+		final IJavaType gt = mb.computeGroundTargetTypeForMethodRef(t);
+		final IJavaFunctionType targetFuncType = tEnv.isFunctionalType(gt);
+	
 		if (targetFuncType == null) {
 			bounds.addFalse();
 			return;
@@ -4871,7 +4962,14 @@ public class TypeInference8 {
 	
 	private IJavaFunctionType computeInvocationTypeForRef(IJavaFunctionType targetFuncType, IRNode ref) {
 		final RefState state = mb.new RefState(targetFuncType, ref);	
+		if (state.toString().startsWith("Grep:: <> getPathStream")) {
+			System.out.println("Computing type for Grep:: <> getPathStream");
+		}
 		MethodBinding8 b = mb.findCompileTimeDeclForRef(targetFuncType, state);
+		if (b == null) {
+			state.reset();
+			mb.findCompileTimeDeclForRef(targetFuncType, state);
+		}
 		return mb.computeInvocationType(state, b, targetFuncType.getReturnType()); 
 	}
 
