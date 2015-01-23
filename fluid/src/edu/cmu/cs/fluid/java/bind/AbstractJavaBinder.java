@@ -563,6 +563,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
   
   protected IGranuleBindings ensureBindingsOK(final IRNode node) {    
     final IRNode gr            = getGranule(node);
+    /*
+    String unparse = DebugUnparser.toString(gr);
+    if ("(y) -> y".equals(unparse)) {
+    	System.out.println("Got granule for (y) -> y");
+    }
+    */
     final Operator op          = JJNode.tree.getOperator(node); 
     final boolean needFullInfo = needFullInfo(node, op, gr);
     final Map<IRNode,IGranuleBindings> granuleBindings =
@@ -2148,9 +2154,16 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     
     @Override
     public Void visitLambdaExpression(IRNode node) {
+      /* 
+       * We don't need this since there might be other granules inside
+       * (e.g. other lambdas)
+       *
       if (pathToTarget != null) {
     	  return null;
       }
+      */
+      //String unparse = DebugUnparser.toString(node);
+      //System.out.println("Binding lambda: "+unparse);
       IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
       IRNode returnNode = JavaPromise.getReturnNodeOrNull(node);
       if (returnNode != null) {
