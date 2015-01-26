@@ -5,10 +5,6 @@ package com.surelogic.aast.promise;
 import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.INodeVisitor;
 
-import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
-
 public class TrackPartiallyInitializedNode extends AbstractBooleanNode 
 { 
 	public static final String VERIFY_PARENT = "verifyParent";

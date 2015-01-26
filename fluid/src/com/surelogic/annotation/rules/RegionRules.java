@@ -12,6 +12,7 @@ import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.AnnotationOrigin;
+import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.bind.IRegionBinding;
 import com.surelogic.aast.promise.ExplicitBorrowedInRegionNode;
 import com.surelogic.aast.promise.FieldMappingsNode;
@@ -86,6 +87,9 @@ public class RegionRules extends AnnotationRules {
   private static final AnnotationRules instance = new RegionRules();  
 
   private static final IGlobalRegionState globalRegionState = new GlobalRegionState();
+//  private static final Map<IRNode, ImplicitRegions> implicitRegionMap =
+//      new ConcurrentHashMap<IRNode, ImplicitRegions>();
+  
   private static final InitGlobalRegionState initState     = new InitGlobalRegionState(globalRegionState);
   private static final Region_ParseRule regionRule         = new Region_ParseRule(globalRegionState);
   private static final InRegion_ParseRule inRegionRule     = new InRegion_ParseRule();
@@ -358,17 +362,16 @@ public class RegionRules extends AnnotationRules {
 
   
   private static class ImplicitRegionInfo {
-    private final InRegionNode comesFrom;
+    private final IAASTRootNode comesFrom;
     private boolean isStatic;
     private Visibility visibility;
     
     public ImplicitRegionInfo(
-        final IRNode fieldDecl, final InRegionNode InRegionNode) {
+        final IRNode fieldDecl, final IAASTRootNode InRegionNode) {
       comesFrom = InRegionNode;
       final int mods =JavaNode.getModifiers(fieldDecl);
       isStatic = JavaNode.getModifier(mods, JavaNode.STATIC);
       visibility = Visibility.getVisibilityOf(fieldDecl);
-//      visibility = mods & (JavaNode.PUBLIC | JavaNode.PROTECTED | JavaNode.PRIVATE);
     }
     
     public void update(final IRNode fieldDecl) {
@@ -378,23 +381,7 @@ public class RegionRules extends AnnotationRules {
       if (fieldViz.atLeastAsVisibleAs(visibility)) {
         visibility = fieldViz;
       }
-      
-//      final int fieldViz = mods & (JavaNode.PUBLIC | JavaNode.PROTECTED | JavaNode.PRIVATE);
-//      if (fieldViz == 0) { // default viz
-//        if (visibility == JavaNode.PRIVATE) visibility = 0;
-//      } else { // new field is NOT default
-//        if (visibility == 0) {
-//          if (fieldViz != JavaNode.PRIVATE) visibility = fieldViz;
-//        } else {
-//          if (fieldViz > visibility) visibility = fieldViz;
-//        }
-//      }
     }
-    
-//    private static int getModifiers(final IRNode varDecl) {
-//      return JavaNode.getModifiers(
-//          JJNode.tree.getParent(JJNode.tree.getParent(varDecl)));
-//    }
     
     public void createRegion(final IRNode classDecl, final String name) {
       final int mods = (isStatic ? JavaNode.STATIC : 0) | visibility.getModifier();
@@ -480,9 +467,9 @@ public class RegionRules extends AnnotationRules {
      */
   
     if (specialInRegions.contains(a)) {
-      /* Create the InRegionPromiseDrop first so that the derived region
-       * gets processed correctly: it is waiting to be linked to the InRegion
-       * annotation that causes it be exist.
+      /* Nothing to check because we have inferred the properties of the 
+       * region so that they are correct.  Just create the promise drop and
+       * return.
        */
       final InRegionPromiseDrop mip = new InRegionPromiseDrop(a);
       setupRegionModelForField(mip, a.getSpec().resolveBinding(), mip.getPromisedFor());

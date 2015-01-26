@@ -50,6 +50,7 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
+import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -70,6 +71,7 @@ public class NonNullRules extends AnnotationRules {
   private static final int BAD_RAW_TYPE = 901;
   private static final int NOT_A_SUPERCLASS = 902;
   private static final int NO_SUCH_TYPE  = 903;
+  private static final int TPI_CLASS_ONLY = 904;
   
 	public static final String NONNULL = "NonNull";
 	public static final String NULLABLE = "Nullable";
@@ -173,7 +175,7 @@ public class NonNullRules extends AnnotationRules {
 					this, ScrubberType.UNORDERED, NONNULL, NULLABLE) { // TODO
 				@Override
 				protected PromiseDrop<TrackPartiallyInitializedNode> makePromiseDrop(TrackPartiallyInitializedNode a) {
-					return storeDropIfNotNull(a, new TrackPartiallyInitializedPromiseDrop(a));
+					return storeDropIfNotNull(a, scrubTrackPartiallyInitialized(getContext(), a));
 				}
 			};
 		}
@@ -361,6 +363,20 @@ public class NonNullRules extends AnnotationRules {
 	
 	
 	
+	private static TrackPartiallyInitializedPromiseDrop
+	scrubTrackPartiallyInitialized(
+	    final IAnnotationScrubberContext context,
+	    final TrackPartiallyInitializedNode tpi) {
+	  final IRNode decl = tpi.getPromisedFor();
+	  if (InterfaceDeclaration.prototype.includes(decl)) {
+	    context.reportError(tpi, TPI_CLASS_ONLY);
+	    return null;
+	  } else {
+	    return new TrackPartiallyInitializedPromiseDrop(tpi);
+	  }
+	}
+	
+	
   private static NonNullPromiseDrop scrubNonNull(
       final IAnnotationScrubberContext context,
       final NonNullNode n) {
@@ -488,6 +504,10 @@ public class NonNullRules extends AnnotationRules {
         ReturnValueDeclaration.prototype.includes(op)) {
       consistency.addRelevantDrop(anno);
     }
+  }
+  
+  public static TrackPartiallyInitializedPromiseDrop getTrackPartiallyInitialized(final IRNode cdecl) {
+    return getDrop(trackPartiallyInitializedRule.getStorage(), cdecl);
   }
   
 	public static NonNullPromiseDrop getNonNull(final IRNode decl) {

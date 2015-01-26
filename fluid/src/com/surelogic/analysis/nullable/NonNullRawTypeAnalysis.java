@@ -1283,18 +1283,25 @@ implements IBinderClient {
              * seen to be inappropriately null, and it cannot have subclasses, 
              * so we don't have to worry about subtypes.  Thus the object 
              * might as well be treated as fully initialized.
+             * 
+             * Otherwise, we check to see if the @TrackPartiallyIntialized
+             * annotation is on the class.  We only use partially initialized
+             * references if the annotation is present.
              */
             final IRNode classDecl = VisitUtil.getEnclosingType(node);
             if (JavaNode.getModifier(classDecl, JavaNode.FINAL) &&
                 !containsNonNullFields(classDecl)) {
               return lattice.setThis(value, rcvrDecl,
                   lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.RECEIVER_CONSTRUCTOR_CALL, node));
-            } else {
+            } else if (NonNullRules.getTrackPartiallyInitialized(classDecl) != null) {
               final Element rcvrState = lattice.injectClass(
                   typeEnv.getSuperclass(
                       (IJavaDeclaredType) typeEnv.getMyThisType(classDecl)));
               return lattice.setThis(value, rcvrDecl, 
                   lattice.baseValue(rcvrState, Kind.RECEIVER_CONSTRUCTOR_CALL, node));
+            } else {
+              return lattice.setThis(value, rcvrDecl,
+                  lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.RECEIVER_CONSTRUCTOR_CALL, node));
             }
           } else { // ThisExpression
             return lattice.setThis(value, rcvrDecl,
