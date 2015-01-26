@@ -185,6 +185,9 @@ public class DeclFactory {
       pop = JJNode.tree.getOperator(parent);
       return ForEachStatement.prototype.includes(pop) || CatchClause.prototype.includes(pop);
     case FIELD:
+      if (d instanceof EnumConstantDeclaration) {
+    	  return false;
+      }
       if (handleFieldsSpecially) {
     	  return true;
       }
