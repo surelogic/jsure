@@ -15,6 +15,7 @@ import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.Declaration;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantDeclaration;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
 import edu.cmu.cs.fluid.java.operator.IOnlyAttachedToFunction;
@@ -93,9 +94,11 @@ public final class JavaNames {
 					return first;
 				}
 				return sb.toString();
+			} else if (EnumConstantDeclaration.prototype.includes(op)) {
+				return EnumConstantDeclaration.getId(field);
 			} else if (QualifiedReceiverDeclaration.prototype.includes(op)) {
 				result = DebugUnparser.toString(field);
-			}
+			} 
 		}
 		return result;
 	}
