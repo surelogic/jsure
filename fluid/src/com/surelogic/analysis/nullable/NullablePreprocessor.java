@@ -2,30 +2,99 @@ package com.surelogic.analysis.nullable;
 
 import com.surelogic.NonNull;
 import com.surelogic.aast.promise.NonNullNode;
+import com.surelogic.analysis.IBinderClient;
+import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
+import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
+import com.surelogic.dropsea.ir.drops.nullable.TrackPartiallyInitializedPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AllocationExpression;
+import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.StringLiteral;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 
-final class NullablePreprocessor extends JavaSemanticsVisitor {
-  public NullablePreprocessor() {
+final class NullablePreprocessor extends JavaSemanticsVisitor implements IBinderClient {
+  private static final String JAVA_LANG_OBJECT = "java.lang.Object";
+  
+  private static final int TPI_TRACKED = 985;
+  private static final int TPI_NOT_TRACKED = 986;
+  private static final int SUPER_IS_TPI = 987;
+  private static final int SUPER_NOT_TPI = 988;
+  private static final int SUPER_IS_OBJECT = 989;
+  private static final int SUPER_NOT_OBJECT = 990;
+  
+  
+  
+  private final IBinder binder;
+  
+  public NullablePreprocessor(final IBinder b) {
     super(true, true);
+    binder = b;
   }
 
   
   
   @Override
-  protected void handleFieldInitialization(final IRNode varDecl, final boolean isStatic) {
+  public IBinder getBinder() {
+    return binder;
+  }
+
+  @Override
+  public void clearCaches() {
+    // nothing to do yet
+  }
+  
+  
+  
+  @Override
+  protected void handleClassDeclaration(final IRNode classDecl) {
+    /* If the class has a @TrackPartiallyInitalized annotation, then the
+     * super class needs to have one too, or be java.lang.Object.
+     */
+    final TrackPartiallyInitializedPromiseDrop tpi = 
+        NonNullRules.getTrackPartiallyInitialized(classDecl);
+    if (tpi != null) {
+      if (tpi.verifyParent()) {
+        final IRNode superClass = binder.getBinding(ClassDeclaration.getExtension(classDecl));
+        final TrackPartiallyInitializedPromiseDrop superTPI = NonNullRules.getTrackPartiallyInitialized(superClass);
+        final boolean superIsObject = JavaNames.getFullTypeName(superClass).equals(JAVA_LANG_OBJECT);
+        
+        final ResultsBuilder builder = new ResultsBuilder(tpi);
+        final ResultFolderDrop folder = builder.createRootOrFolder(
+            classDecl, TPI_TRACKED, TPI_NOT_TRACKED);
+        final ResultDrop tpiResult = ResultsBuilder.createResult(
+            folder, superClass, superTPI != null, SUPER_IS_TPI, SUPER_NOT_TPI);
+        if (superTPI != null) {
+          tpiResult.addTrusted(superTPI);
+        }
+        ResultsBuilder.createResult(
+            folder, superClass, superIsObject, SUPER_IS_OBJECT, SUPER_NOT_OBJECT);
+      }
+    }
+    
+    super.handleClassDeclaration(classDecl);
+  }
+  
+  
+  @Override
+  protected void handleFieldInitialization(
+      final IRNode varDecl, final boolean isStatic) {
     doAcceptForChildren(varDecl);
+    
+    /* This section is the original reason for the NullablePreprocessor.  We
+     * add some virtual annotations that we need for the type checking pass.
+     */
     
     /*
      * If the field is UNANNOTATED, final, and initialized to a new object or a String literal then
@@ -35,7 +104,8 @@ final class NullablePreprocessor extends JavaSemanticsVisitor {
      * @NonNull proposal here because that will be added later in
      * NullableModule2.postAnalysis().
      */
-    if (NonNullRules.getNonNull(varDecl) == null &&
+    final NonNullPromiseDrop nonNull = NonNullRules.getNonNull(varDecl);
+    if (nonNull == null &&
         NonNullRules.getNullable(varDecl) == null) {
       final IRNode init = VariableDeclarator.getInit(varDecl);
       if (TypeUtil.isJSureFinal(varDecl) &&
@@ -51,6 +121,18 @@ final class NullablePreprocessor extends JavaSemanticsVisitor {
         // immediately propose that a real @NonNull be placed here
         NullableUtils.createCodeProposal(
             new Builder(NonNull.class, varDecl, varDecl));
+      }
+    }
+    
+    // ==== Set up the proof tree ====
+    
+    if (!isStatic && nonNull != null) {
+      final TrackPartiallyInitializedPromiseDrop tpi =
+          NonNullRules.getTrackPartiallyInitialized(getEnclosingType());
+      final ResultDrop result = ResultsBuilder.createResult(
+          varDecl, nonNull, tpi != null, TPI_TRACKED, TPI_NOT_TRACKED);
+      if (tpi != null) {
+        result.addTrusted(tpi);
       }
     }
   }
