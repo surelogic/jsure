@@ -1671,6 +1671,10 @@ public class TypeUtils {
 	 * @return type this expression is expected to be
 	 */
 	public IJavaType getPolyExpressionTargetType(IRNode pe) {
+		return getPolyExpressionTargetType(pe, false);
+	}
+	
+	public IJavaType getPolyExpressionTargetType(IRNode pe, boolean eliminateTypeVars) {
 		  IRNode p = JJNode.tree.getParent(pe);
 		  IRLocation loc = JJNode.tree.getLocation(pe);
 		  Operator op = JJNode.tree.getOperator(p);
@@ -1688,10 +1692,10 @@ public class TypeUtils {
 			  if (loc.equals(ConditionalExpression.condLoc)) {
 				  return JavaTypeFactory.booleanType;
 			  } else {
-				  return getPolyExpressionTargetType(p);
+				  return getPolyExpressionTargetType(p, eliminateTypeVars);
 			  }
 		  } else if (ParenExpression.prototype.includes(op)) {
-			  return getPolyExpressionTargetType(p);
+			  return getPolyExpressionTargetType(p, eliminateTypeVars);
 		  } else if (Arguments.prototype.includes(op)) {
 			  IRNode call = JJNode.tree.getParent(p);
 			  int i = JJNode.tree.childLocationIndex(p, loc);
@@ -1723,14 +1727,14 @@ public class TypeUtils {
 				  }
 			  }
 			  */
-			  IJavaFunctionType ftype = computeInvocationTypeForCall(call, p, bi);
+			  IJavaFunctionType ftype = computeInvocationTypeForCall(call, p, eliminateTypeVars, bi);
 			  if (ftype == null) {
 				  throw new IllegalStateException();
 			  }
 			  return ftype.getParameterTypes().get(TypeUtil.isStatic(bi.getNode()) ? i : i+1);
 		  } else if (MethodCall.prototype.includes(op)) { // As receiver
 			  MethodCall call = (MethodCall) op;
-			  IJavaFunctionType ftype = computeInvocationTypeForCall(p, call.get_Args(p));
+			  IJavaFunctionType ftype = computeInvocationTypeForCall(p, call.get_Args(p), eliminateTypeVars);
 			  if (ftype == null) {
 				  throw new IllegalStateException();
 			  }
@@ -1760,18 +1764,18 @@ public class TypeUtils {
 		  return null;
 	  }
 	
-	private IJavaFunctionType computeInvocationTypeForCall(IRNode call, IRNode args) {
+	private IJavaFunctionType computeInvocationTypeForCall(IRNode call, IRNode args, boolean eliminateTypeVars) {
 		MethodBinding8 bi = (MethodBinding8) tEnv.getBinder().getIBinding(call);
-		return computeInvocationTypeForCall(call, args, bi);
+		return computeInvocationTypeForCall(call, args, eliminateTypeVars, bi);
 	}
 	
-	private IJavaFunctionType computeInvocationTypeForCall(IRNode call, IRNode args, MethodBinding8 bi) {
+	private IJavaFunctionType computeInvocationTypeForCall(IRNode call, IRNode args, boolean eliminateTypeVars, MethodBinding8 bi) {
 		if (bi != null) {
 			IRNode decl = bi.getNode();
 			if (decl != null) {
 				MethodBinder8 mb = new MethodBinder8((IPrivateBinder) tEnv.getBinder(), false);
 				CallState state = mb.getCallState(call, bi);
-				IJavaFunctionType ftype = mb.computeInvocationType(state, bi);
+				IJavaFunctionType ftype = mb.computeInvocationType(state, bi, eliminateTypeVars);
 				return ftype.instantiate(ftype.getTypeFormals(), bi.getSubst());
 				// IJavaType ptype = ftype.getParameterTypes().get(TypeUtil.isStatic(bi.getNode()) ? i : i+1);			 
 				//return bi.convertType(tEnv.getBinder(), ptype);

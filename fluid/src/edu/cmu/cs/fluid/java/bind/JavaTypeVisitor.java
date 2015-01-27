@@ -423,7 +423,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
   public IJavaType visitLambdaExpression(final IRNode node) {
 	  //String unparse = DebugUnparser.toString(node);
 	  TypeUtils utils = new TypeUtils(binder.getTypeEnvironment());
-	  IJavaType targetType = utils.getPolyExpressionTargetType(node);
+	  IJavaType targetType = utils.getPolyExpressionTargetType(node, true);
 	  MethodBinder8 mb = new MethodBinder8((IPrivateBinder) binder, false);
 	  if (mb.containsTypeVariables(targetType)) {
 		  utils.getPolyExpressionTargetType(node);
@@ -482,7 +482,7 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     if( op instanceof MethodDeclaration ) {
       if (processJava8) {
     	 MethodBinder8 mb = new MethodBinder8((IPrivateBinder) binder, false);
-    	 return mb.computeInvocationType(call, (MethodBinding8) b).getReturnType();
+    	 return mb.computeInvocationType(call, (MethodBinding8) b, false).getReturnType();
       }
     	
       // Check if Object.getClass()

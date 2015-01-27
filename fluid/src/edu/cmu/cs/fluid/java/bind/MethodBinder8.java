@@ -931,7 +931,7 @@ public class MethodBinder8 implements IMethodBinder {
 			else if (MethodCall.prototype.includes(op)) {
 				MethodBinding8 b = (MethodBinding8) binder.getIBinding(arg);
 				CallState call = getCallState(arg, b);
-				IJavaFunctionType ftype = computeInvocationType(call, b, pType);
+				IJavaFunctionType ftype = computeInvocationType(call, b, false, pType);
 				return tEnv.isCallCompatible(pType, ftype.getReturnType());
 			}
 			else if (MethodReference.prototype.includes(op) || ConstructorReference.prototype.includes(op)) {
@@ -979,7 +979,7 @@ public class MethodBinder8 implements IMethodBinder {
 		if (r instanceof IJavaVoidType) {
 			return true;
 		}
-		final IJavaFunctionType itype = computeInvocationType(state, mb, r);
+		final IJavaFunctionType itype = computeInvocationType(state, mb, false, r);
 		final IJavaType r_prime = JavaTypeVisitor.captureWildcards(binder, itype.getReturnType());
 		if (r_prime instanceof IJavaVoidType) {
 			return false;
@@ -1842,7 +1842,7 @@ declared return type, Object .
     	return null;
     }
 
-    boolean containsTypeVariables(IJavaType t) {
+    public static boolean containsTypeVariables(IJavaType t) {
     	BooleanVisitor v = new BooleanVisitor(false) {
 			@Override
 			public void accept(IJavaType t) {
@@ -1853,7 +1853,7 @@ declared return type, Object .
     	return v.result;
     }
     
-    boolean containsTypeVariables(IJavaFunctionType ft) {
+    public static boolean containsTypeVariables(IJavaFunctionType ft) {
     	if (containsTypeVariables(ft.getReturnType())) {
     		return true;
     	}
@@ -1926,11 +1926,11 @@ declared return type, Object .
 	 * 
 	 * (see below)
 	 */	
-	public IJavaFunctionType computeInvocationType(final ICallState call, final MethodBinding8 b) {
-		return computeInvocationType(call, b, null);
+	public IJavaFunctionType computeInvocationType(final ICallState call, final MethodBinding8 b, boolean eliminateTypeVars) {
+		return computeInvocationType(call, b, eliminateTypeVars, null);
 	}
 	
-	public IJavaFunctionType computeInvocationType(final ICallState call, final MethodBinding8 b, IJavaType targetType) {
+	public IJavaFunctionType computeInvocationType(final ICallState call, final MethodBinding8 b, boolean eliminateTypeVars, IJavaType targetType) {
 		Pair<MethodBinding,BoundSet> result = typeInfer.recomputeB_2(call, b);
 		final MethodBinding mb = result.first();
 		final BoundSet b_2 = result.second();
@@ -1942,14 +1942,14 @@ declared return type, Object .
 			 */
 			if (call.getNumTypeArgs() == 0) {
 				System.out.println("Inferring invocation type for "+call);
-				if (call.toString().equals("Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)")) {
+				if (call.toString().equals("ss.collect(<implicit>.toList)")) {//"Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)")) {
 					System.out.println("Got br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))");
 					BoundSet temp = TypeInference8.resolve(b_2, null);
-					temp.getFinalTypeSubst(true);
+					temp.getFinalTypeSubst(eliminateTypeVars); 
 				}
-				IJavaFunctionType rv = typeInfer.inferForInvocationType(call, (MethodBinding8) mb, b_2, targetType);
+				IJavaFunctionType rv = typeInfer.inferForInvocationType(call, (MethodBinding8) mb, b_2, eliminateTypeVars, targetType);
 				if (containsTypeVariables(rv)) {
-					typeInfer.inferForInvocationType(call, (MethodBinding8) mb, b_2, targetType);
+					typeInfer.inferForInvocationType(call, (MethodBinding8) mb, b_2, eliminateTypeVars, targetType);
 				}
 				return rv;
 			} else {

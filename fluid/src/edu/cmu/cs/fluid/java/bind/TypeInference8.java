@@ -531,7 +531,7 @@ public class TypeInference8 {
      * 
      *   If B 4 contains the bound false, or if resolution fails, then a compile-time error occurs.
      */
-	IJavaFunctionType inferForInvocationType(ICallState call, MethodBinding8 m, BoundSet b_2, IJavaType targetType) {
+	IJavaFunctionType inferForInvocationType(ICallState call, MethodBinding8 m, BoundSet b_2, boolean eliminateTypeVars, IJavaType targetType) {
 		BoundSet b_3;
 		 /* 
 	     * - If the invocation is not a poly expression, let the bound set B 3 be the same as B 2 .
@@ -545,15 +545,16 @@ public class TypeInference8 {
 			}
 			*/
 			if (targetType == null) {
-				targetType = utils.getPolyExpressionTargetType(call.getNode());
+				targetType = utils.getPolyExpressionTargetType(call.getNode(), eliminateTypeVars);
 				if (targetType == null) {
-					targetType = utils.getPolyExpressionTargetType(call.getNode());
+					targetType = utils.getPolyExpressionTargetType(call.getNode(), eliminateTypeVars);
 				}
 			}
 			final IJavaType r = m.getReturnType(tEnv, false);
 			b_3 = computeB_3(call, r, b_2, targetType);
 		
 			if (b_3.isFalse) {
+				utils.getPolyExpressionTargetType(call.getNode());
 				b_3 = computeB_3(call, r, b_2, targetType);
 			}
 		}
@@ -565,7 +566,7 @@ public class TypeInference8 {
 		final BoundSet b_4 = computeB_4(b_3, c);
 		final IJavaFunctionType origType = mb.computeMethodType(m);
 		final BoundSet result = resolve(b_4, null);
-		final IJavaTypeSubstitution theta_prime = result/*b_4*/.getFinalTypeSubst(true);
+		final IJavaTypeSubstitution theta_prime = result/*b_4*/.getFinalTypeSubst(eliminateTypeVars);
 		if (b_4.usedUncheckedConversion()) {
 			return mb.substParams_eraseReturn(origType, theta_prime);			
 		} else {
@@ -3726,7 +3727,8 @@ public class TypeInference8 {
 			return new Pair<MethodBinding,BoundSet>(b, b.getInitialBoundSet());
 		}
 		final IBinding newB = IBinding.Util.makeMethodBinding(b, null, JavaTypeSubstitution.create(tEnv, b.getContextType()), null, tEnv);
-		final MethodBinding m = new MethodBinding(newB);
+		final MethodBinding temp = new MethodBinding(newB);
+		final MethodBinding8 m = MethodBinding8.create(call, temp, tEnv, null, b.kind);
   
 		BoundSet b_2 = b_2Cache.get(new Pair<IRNode,IRNode>(call.getNode(), m.bind.getNode()));
 		if (b_2 == null) {
@@ -4003,7 +4005,7 @@ public class TypeInference8 {
 			 */
 			else {
 				final IJavaType r = ft.getReturnType();
-				final IJavaFunctionType itype = this.mb.computeInvocationType(ref, ctd, t);
+				final IJavaFunctionType itype = this.mb.computeInvocationType(ref, ctd, false, t);
 				final IJavaType r_prime = JavaTypeVisitor.captureWildcards(tEnv.getBinder(), itype.getReturnType());
 				if (r_prime instanceof IJavaVoidType) {
 					bounds.addFalse();
@@ -4667,7 +4669,7 @@ public class TypeInference8 {
 			// TODO can't bind? (causes cycle)
 			final MethodBinding8 b = (MethodBinding8) binder.getIBinding(call);
 			final CallState state = new CallState(binder, call, args, targs, binder.getJavaType(receiver));
-			final IJavaFunctionType itype = mb.computeInvocationType(state, b);
+			final IJavaFunctionType itype = mb.computeInvocationType(state, b, false);
 			exceptions.addAll(itype.getExceptions());
 			return null;
 		}
@@ -4970,7 +4972,7 @@ public class TypeInference8 {
 			state.reset();
 			mb.findCompileTimeDeclForRef(targetFuncType, state);
 		}
-		return mb.computeInvocationType(state, b, targetFuncType.getReturnType()); 
+		return mb.computeInvocationType(state, b, false, targetFuncType.getReturnType()); 
 	}
 
 	static class TypeSubstitution extends AbstractTypeSubstitution {
