@@ -169,6 +169,13 @@ public class VisitUtil implements JavaGlobals {
     final IRNode start = JavaPromise.getParentOrPromisedFor(here);
     for (final IRNode n : rootWalk(start)) {
       Operator op = jtree.getOperator(n);
+      /*
+       * Causing problems when canonicalizing?
+      if (op instanceof LambdaExpression) {
+    	  // Considered to be part of the enclosing type instead
+    	  continue;
+      }
+      */
       if (op instanceof TypeDeclInterface) {
         return checkForAnonClass(n, here);
       }
