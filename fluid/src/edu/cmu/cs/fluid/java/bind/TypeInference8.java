@@ -545,9 +545,9 @@ public class TypeInference8 {
 			}
 			*/
 			if (targetType == null) {
-				targetType = utils.getPolyExpressionTargetType(call.getNode(), eliminateTypeVars);
+				targetType = utils.getPolyExpressionTargetType(call.getNode(), false);
 				if (targetType == null) {
-					targetType = utils.getPolyExpressionTargetType(call.getNode(), eliminateTypeVars);
+					targetType = utils.getPolyExpressionTargetType(call.getNode(), false);
 				}
 			}
 			final IJavaType r = m.getReturnType(tEnv, false);
