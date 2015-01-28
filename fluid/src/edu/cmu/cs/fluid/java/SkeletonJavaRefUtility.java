@@ -20,6 +20,7 @@ import edu.cmu.cs.fluid.NotImplemented;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
 import edu.cmu.cs.fluid.java.util.DeclFactory;
+import edu.cmu.cs.fluid.parse.JJNode;
 
 @Utility
 public final class SkeletonJavaRefUtility {
@@ -145,6 +146,22 @@ public final class SkeletonJavaRefUtility {
 	}
   }
 
+  public static boolean copyToTreeIfPossible(IRNode from, IRNode to) {	  
+	  if (from == null || to == null)
+		  return false;
+	      
+	  if (!useSkeletonsAsJavaRefPlaceholders) {
+		  throw new IllegalStateException();
+	  }
+	  JavaRefSkeletonBuilder b = SyntaxTreeNode.getSkeletonBuilder(from);
+	  if (b != null) {
+		 for(IRNode n : JJNode.tree.bottomUp(to)) {	  
+			 n.setSlotValue(JavaNode.f_fluidJavaRefSlotInfo, b);
+		 }
+	  }
+	  return b != null;
+  }
+  
   /**
    * Checks if the passed node has a skeleton builder or an actual code
    * reference on it.
