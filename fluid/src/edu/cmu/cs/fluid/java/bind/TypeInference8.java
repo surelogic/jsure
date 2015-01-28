@@ -459,7 +459,8 @@ public class TypeInference8 {
 			if (mb.isPertinentToApplicability(m, call.getNumTypeArgs() > 0, e_i)) {
 				if (kind == InvocationKind.STRICT) {
 					final boolean isPoly = mb.isPolyExpression(e_i);
-					final IJavaType e_i_Type = isPoly ? null : tEnv.getBinder().getJavaType(e_i);
+					final IJavaType e_i_Type = isPoly ? null : 
+						                       (e_i == null ? call.getArgType(i) : tEnv.getBinder().getJavaType(e_i));
 					if (!isPoly && e_i_Type instanceof IJavaPrimitiveType &&
 							formalTypes[i] instanceof IJavaReferenceType) {
 						return null;
@@ -469,7 +470,12 @@ public class TypeInference8 {
 						return null;
 					}
 				}
-				reduceConstraintFormula(b_2, new ConstraintFormula(e_i, FormulaConstraint.IS_COMPATIBLE, formalTypes[i].subst(theta)));
+				IJavaType formal_subst = formalTypes[i].subst(theta);
+				if (e_i == null) {
+					reduceTypeCompatibilityConstraints(b_2, call.getArgType(i), formal_subst);
+				} else {
+					reduceConstraintFormula(b_2, new ConstraintFormula(e_i, FormulaConstraint.IS_COMPATIBLE, formal_subst));
+				}
 			}
 		}
 		/*   - C is reduced (Â§18.2) and the resulting bounds are incorporated with B 1 to produce
