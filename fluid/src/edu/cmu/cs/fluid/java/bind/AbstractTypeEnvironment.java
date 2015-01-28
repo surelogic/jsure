@@ -1287,8 +1287,14 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
 		}
 		if (s instanceof TypeInference8.TypeVariable) {
 			TypeInference8.TypeVariable v = (TypeInference8.TypeVariable) s;
-			if (t.isSubtype(this, v.getUpperBound(this)) && v.getLowerBound().isSubtype(this, t)) {
-				return true; // HACK since otherwise not resolved
+			if (t.isSubtype(this, v.getUpperBound(this))) {
+				if (v.getLowerBound() != null) {
+					if (v.getLowerBound().isSubtype(this, t)) {
+						return true; // HACK since otherwise not resolved
+					}
+				} else if (t == getObjectType()) {
+					return true; // HACK since otherwise not resolved
+				}
 			}
 		}
 		
