@@ -928,7 +928,7 @@ public class MethodBinder8 implements IMethodBinder {
 				IJavaFunctionType ft = tEnv.isFunctionalType(groundTargetType);
 				return isLambdaCongruentWith(arg, ft);
 			}
-			else if (MethodCall.prototype.includes(op)) {
+			else if (MethodCall.prototype.includes(op) || NonPolymorphicNewExpression.prototype.includes(op)) {
 				MethodBinding8 b = (MethodBinding8) binder.getIBinding(arg);
 				CallState call = getCallState(arg, b);
 				IJavaFunctionType ftype = computeInvocationType(call, b, false, pType);
@@ -937,7 +937,17 @@ public class MethodBinder8 implements IMethodBinder {
 			else if (MethodReference.prototype.includes(op) || ConstructorReference.prototype.includes(op)) {
 				return isCompatibleWithRef(pType, arg);
 			} 
-			else throw new NotImplemented("Need code for "+op.name());		
+			else if (ConditionalExpression.prototype.includes(op)) {
+				return isCallCompatible(pType, ConditionalExpression.getIftrue(arg), argType) && 
+					   isCallCompatible(pType, ConditionalExpression.getIffalse(arg), argType);
+			}
+			else if (ParenExpression.prototype.includes(op)) {
+				return isCallCompatible(pType, ParenExpression.getOp(arg), argType);
+			}
+ 			else {
+ 				String msg = "Need code for "+op.name()+" : "+DebugUnparser.toString(arg);
+ 				throw new NotImplemented(msg);		
+ 			}
 		}
 		return tEnv.isCallCompatible(pType, argType);
 	}
@@ -1538,7 +1548,7 @@ declared return type, Object .
     			System.out.println("Creating boundset");
     		}
     		final BoundSet result = TypeInference8.resolve(b, null);    		
-    		IBinding newB = reworkBinding(c, m.bind, te, result.getFinalTypeSubst(false));
+    		IBinding newB = reworkBinding(c, m.bind, te, result.getFinalTypeSubst(true));
     		return new MethodBinding8WithBoundSet(te, c, newB, b, kind);
     	}
     	
