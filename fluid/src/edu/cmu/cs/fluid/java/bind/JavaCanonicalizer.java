@@ -104,6 +104,7 @@ import edu.cmu.cs.fluid.java.operator.Throws;
 import edu.cmu.cs.fluid.java.operator.Type;
 import edu.cmu.cs.fluid.java.operator.TypeActuals;
 import edu.cmu.cs.fluid.java.operator.TypeDeclInterface;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.operator.TypeExpression;
 import edu.cmu.cs.fluid.java.operator.TypeFormals;
 import edu.cmu.cs.fluid.java.operator.TypeRef;
@@ -570,7 +571,8 @@ public class JavaCanonicalizer {
       } else {
         JavaNode.setImplicit(thisExpr);
       }
-      SkeletonJavaRefUtility.copyIfPossible(from, thisExpr);
+      // Need to copy to whole AST
+      SkeletonJavaRefUtility.copyToTreeIfPossible(from, thisExpr);
       return thisExpr;
     }
 
@@ -587,7 +589,7 @@ public class JavaCanonicalizer {
         IRNode decl = binder.getBinding(name);
         Operator op = tree.getOperator(decl);
         if (op instanceof TypeDeclInterface && !(op instanceof EnumConstantClassDeclaration)) {
-          return rv = TypeExpression.createNode(nameToType(name));
+          return rv = TypeExpression.createNode(nameToType(name, true));
         }
         String string = VariableDeclaration.getId(decl);
         if (op instanceof EnumConstantDeclaration) {
@@ -626,23 +628,47 @@ public class JavaCanonicalizer {
      *          a simple or qualified name AST node
      * @return a type AST node
      */
-    protected IRNode nameToType(IRNode nameNode) {
-      IBinding b = binder.getIBinding(nameNode);
-      if (b == null) {
-        LOG.severe("Found no binding for " + DebugUnparser.toString(nameNode));
-        return createNamedType(DebugUnparser.toString(nameNode));
+    protected IRNode nameToType(IRNode nameNode, boolean forceCreate) {
+      IRNode result = null;
+      if (QualifiedName.prototype.includes(nameNode)) {
+    	  // TODO?
+    	  IRNode base = nameToType(QualifiedName.getBase(nameNode), false);
+    	  if (base != null) {
+    		  String ref = QualifiedName.getId(nameNode);
+    		  if ("ShortcutIconResource".equals(ref)) {
+    			  System.out.println("Found ShortcutIconResource");
+    		  }
+    		  result = TypeRef.createNode(base, ref);
+    	  }
+    	  // Otherwise, this is the first one that should have a binding
       }
-      IRNode namedType = createNamedType(nameNode, b);
-      SkeletonJavaRefUtility.copyIfPossible(nameNode, namedType);
-      SkeletonJavaRefUtility.removeInfo(nameNode);
-      return namedType;
+      if (result == null) {
+    	  IBinding b = binder.getIBinding(nameNode);
+    	  if (b == null) {
+    		  if (forceCreate) {
+    			  LOG.severe("Found no binding for " + DebugUnparser.toString(nameNode));
+    			  result = createNamedType(DebugUnparser.toString(nameNode));
+    		  }
+    	  } 
+    	  else if (TypeDeclaration.prototype.includes(b.getNode())) {
+    		  result = createNamedType(nameNode, b);
+    	  }
+      }
+      if (result == null) {
+    	  return null;
+      }
+      if (!SkeletonJavaRefUtility.copyIfPossible(nameNode, result)) {
+    	  LOG.warning("No java ref for "+DebugUnparser.toString(nameNode));
+      }
+      SkeletonJavaRefUtility.removeInfo(nameNode);      
+      return result;
     }
 
     private IRNode createNamedType(String name) {
-      /*
-       * if ("javax.swing.WindowConstants".equals(name)) {
-       * System.out.println("Making type for javax.swing.WindowConstants"); }
-       */
+      
+      if ("android.widget.TextView".equals(name)) {
+    	  System.out.println("Making type for javax.swing.WindowConstants"); 
+      }       
       return NamedType.createNode(name);
     }
 
@@ -1556,7 +1582,7 @@ public class JavaCanonicalizer {
        * out.println("Visiting NameType: org.junit.runners.Parameterized.Parameters"
        * ); }
        */
-      replaceSubtree(node, nameToType(NameType.getName(node)));
+      replaceSubtree(node, nameToType(NameType.getName(node), true));
       return true;
     }
 
