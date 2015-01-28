@@ -37,6 +37,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.MarkedIRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
+import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 public class SeaSnapshot extends XmlCreator {
   /**
@@ -130,7 +131,7 @@ public class SeaSnapshot extends XmlCreator {
       final String encodedJavaRef = javaRef.encodeForPersistence();
       db.addAttribute(JAVA_REF, encodedJavaRef);
     } else {
-      System.out.println("No java ref for "+d.getMessage());
+      System.out.println("No java ref for "+d.getMessage()+" : "+DebugUnparser.toString(d.getNode())+" in "+JavaNames.getFullTypeName(VisitUtil.getEnclosingType(d.getNode())));
     }
     synchronized (d.getSeaLock()) {
     	d.snapshotAttrs(db);
