@@ -635,9 +635,6 @@ public class JavaCanonicalizer {
     	  IRNode base = nameToType(QualifiedName.getBase(nameNode), false);
     	  if (base != null) {
     		  String ref = QualifiedName.getId(nameNode);
-    		  if ("ShortcutIconResource".equals(ref)) {
-    			  System.out.println("Found ShortcutIconResource");
-    		  }
     		  result = TypeRef.createNode(base, ref);
     	  }
     	  // Otherwise, this is the first one that should have a binding
@@ -664,11 +661,7 @@ public class JavaCanonicalizer {
       return result;
     }
 
-    private IRNode createNamedType(String name) {
-      
-      if ("android.widget.TextView".equals(name)) {
-    	  System.out.println("Making type for javax.swing.WindowConstants"); 
-      }       
+    private IRNode createNamedType(String name) {     
       return NamedType.createNode(name);
     }
 
