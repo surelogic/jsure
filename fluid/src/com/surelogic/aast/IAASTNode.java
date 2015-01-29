@@ -24,6 +24,7 @@ public interface IAASTNode {
   public <T> T accept(INodeVisitor<T> visitor);
   
   public IRNode getPromisedFor();
+  public IRNode getAnnoContext();
   
   public IAASTNode cloneTree();
 }
