@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.antlr.runtime.RecognitionException;
 
@@ -87,8 +88,8 @@ public class RegionRules extends AnnotationRules {
   private static final AnnotationRules instance = new RegionRules();  
 
   private static final IGlobalRegionState globalRegionState = new GlobalRegionState();
-//  private static final Map<IRNode, ImplicitRegions> implicitRegionMap =
-//      new ConcurrentHashMap<IRNode, ImplicitRegions>();
+  private static final Map<IRNode, ImplicitRegions> implicitRegionMap =
+      new ConcurrentHashMap<IRNode, ImplicitRegions>();
   
   private static final InitGlobalRegionState initState     = new InitGlobalRegionState(globalRegionState);
   private static final Region_ParseRule regionRule         = new Region_ParseRule(globalRegionState);
@@ -335,9 +336,6 @@ public class RegionRules extends AnnotationRules {
       return new AbstractAASTScrubber<InRegionNode, InRegionPromiseDrop>(
           this, ScrubberType.BY_HIERARCHY, REGION,
           SIMPLE_UNIQUE_IN_REGION, SIMPLE_BORROWED_IN_REGION) {
-        private final Set<InRegionNode> specialInRegions =
-            new HashSet<InRegionNode>();
-
       	@Override
       	protected AnnotationHandler<InRegionNode> getPreprocessor() {
       	  return new AnnotationHandler<InRegionNode>() {
@@ -345,16 +343,14 @@ public class RegionRules extends AnnotationRules {
             public void processAASTs(
                 final IAnnotationTraversalCallback<InRegionNode> cb,
                 final IRNode decl, final List<InRegionNode> l) {
-              // System.out.println("Preprocessing @InRegion: "+l.size());
-              preprocessInRegion(specialInRegions, decl, l);
+              preprocessInRegion(decl, l);
             }
           };
         }
 
         @Override
         protected PromiseDrop<InRegionNode> makePromiseDrop(InRegionNode a) {
-          return storeDropIfNotNull(
-              a, scrubInRegion(getContext(), a, specialInRegions));          
+          return storeDropIfNotNull(a, scrubInRegion(getContext(), a));          
         }
       };
     }
@@ -406,14 +402,9 @@ public class RegionRules extends AnnotationRules {
   private static class ImplicitRegions {
     private final Map<String, ImplicitRegionInfo> nameToInfo =
         new HashMap<String, ImplicitRegionInfo>();
-    private final Set<InRegionNode> specialInRegions;
-    
-    public ImplicitRegions(final Set<InRegionNode> specials) {
-      specialInRegions = specials;
-    }
     
     public void addOrUpdateRegion(
-        final String name, final IRNode varDecl, final InRegionNode inRegion) {
+        final String name, final IRNode varDecl, final IAASTRootNode inRegion) {
       final IRNode fieldDecl = JJNode.tree.getParent(JJNode.tree.getParent(varDecl));
       ImplicitRegionInfo regionInfo = nameToInfo.get(name);
       if (regionInfo == null) {
@@ -422,7 +413,6 @@ public class RegionRules extends AnnotationRules {
       } else {
         regionInfo.update(fieldDecl);
       }
-      specialInRegions.add(inRegion);
     }
     
     public void createRegionDeclarations(final IRNode classDecl) {
@@ -432,13 +422,36 @@ public class RegionRules extends AnnotationRules {
     }
   }
   
+  private static void preprocessUniqueInRegion(
+      final IRNode classDecl, final List<UniqueInRegionNode> annos) {
+    /*
+     * Look at each UniqueInRegion on a final field and see if the named region
+     * actually exists. If not we add it to a list of regions to be created.
+     * This list is shared with InRegion. We only care about final fields
+     * because non-final fields will have @InRegion annotations generated for
+     * them, and the preprocessor for InRegion will handle them.
+     */
+    final ImplicitRegions neededRegions = new ImplicitRegions();
+    implicitRegionMap.put(classDecl, neededRegions); // save so that InRegions can get it later
+    for (final UniqueInRegionNode uniqueInRegion : annos) {
+      final IRNode promisedFor = uniqueInRegion.getPromisedFor();
+      if (TypeUtil.isJavaFinal(promisedFor)) {
+        final RegionSpecificationNode parent = uniqueInRegion.getSpec();
+        if (parent.resolveBinding() == null) {
+          neededRegions.addOrUpdateRegion(
+              parent.getId(), promisedFor, uniqueInRegion);
+        }
+      }
+    }
+  }
+  
   private static void preprocessInRegion(
-      final Set<InRegionNode> specialInRegions,
       final IRNode classDecl, final List<InRegionNode> annos) {
     /* 
      * Look at each InRegion and see if the named region actually exists
      */
-    final ImplicitRegions neededRegions = new ImplicitRegions(specialInRegions);
+    ImplicitRegions neededRegions = implicitRegionMap.get(classDecl); // See if UniqueInRegion left us a map 
+    if (neededRegions == null) neededRegions = new ImplicitRegions();
     for (final InRegionNode inRegion : annos) {
       final RegionSpecificationNode parent = inRegion.getSpec();
       if (parent.resolveBinding() == null) {
@@ -453,28 +466,20 @@ public class RegionRules extends AnnotationRules {
       }
     }
     neededRegions.createRegionDeclarations(classDecl);
+    implicitRegionMap.remove(classDecl); // clean up 
   }
   
   
   
   private static InRegionPromiseDrop scrubInRegion(
-      final IAnnotationScrubberContext context, final InRegionNode a,
-      final Set<InRegionNode> specialInRegions) {
+      final IAnnotationScrubberContext context, final InRegionNode a) {
     /* The name of a region must be unique. There is nothing to check here in
      * practice because the Java compiler makes sure that a class does not
      * declare two fields with the same name, and we already checking that
      * regions declared using @Region do not have the same name as a field.
      */
   
-    if (specialInRegions.contains(a)) {
-      /* Nothing to check because we have inferred the properties of the 
-       * region so that they are correct.  Just create the promise drop and
-       * return.
-       */
-      final InRegionPromiseDrop mip = new InRegionPromiseDrop(a);
-      setupRegionModelForField(mip, a.getSpec().resolveBinding(), mip.getPromisedFor());
-      return mip;
-    } else if (a != null) {
+    if (a != null) {
       final IRNode promisedFor = a.getPromisedFor();
       final String parentName = a.getSpec().getId();
       boolean annotationIsGood = true;
@@ -624,11 +629,23 @@ public class RegionRules extends AnnotationRules {
     protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<UniqueInRegionNode, SimpleUniqueInRegionPromiseDrop>(
           this, ScrubberType.UNORDERED, REGION, UniquenessRules.UNIQUE) {
-    	@Override
-    	protected boolean needToScrubBindings(UniqueInRegionNode a) {
-    		IRNode promisedFor = a.getPromisedFor();
-    		return TypeUtil.isJSureFinal(promisedFor);
-    	}
+      	@Override
+      	protected boolean needToScrubBindings(UniqueInRegionNode a) {
+    	    return false;
+     	  }
+      	
+        @Override
+        protected AnnotationHandler<UniqueInRegionNode> getPreprocessor() {
+          return new AnnotationHandler<UniqueInRegionNode>() {
+            @Override
+            public void processAASTs(
+                final IAnnotationTraversalCallback<UniqueInRegionNode> cb,
+                final IRNode decl, final List<UniqueInRegionNode> l) {
+              preprocessUniqueInRegion(decl, l);
+            }
+          };
+        }
+
         @Override
         protected SimpleUniqueInRegionPromiseDrop makePromiseDrop(UniqueInRegionNode a) {
           return storeDropIfNotNull(a, scrubSimpleUniqueInRegion(getContext(), a));          
@@ -857,7 +874,7 @@ public class RegionRules extends AnnotationRules {
         inRegion.copyPromisedForContext(promisedFor, a, AnnotationOrigin.GENERATED_FOR_DECL);
         AASTStore.addDerived(inRegion, drop);
       } else {
-        setupRegionModelForField((PromiseDrop<?>) drop, destDecl, (drop).getPromisedFor());
+//      setupRegionModelForField((PromiseDrop<?>) drop, destDecl, (drop).getPromisedFor());
       }
       
       return drop;
