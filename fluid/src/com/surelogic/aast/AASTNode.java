@@ -101,6 +101,18 @@ public abstract class AASTNode implements IAASTNode {
     return root.getPromisedFor(); 
   }
   
+  @Override
+  public IRNode getAnnoContext() {
+    AASTNode n    = this;
+    AASTNode last = n;
+    while (n != null) {
+      last = n;
+      n = n.getParent();
+    }
+    IAASTRootNode root = (IAASTRootNode) last;
+    return root.getAnnoContext(); 
+  }
+  
   public Operator getOp() {
     throw new UnsupportedOperationException();
   }

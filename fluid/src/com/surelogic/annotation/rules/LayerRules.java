@@ -336,11 +336,17 @@ public class LayerRules extends AnnotationRules {
 						final String name  = qname.substring(lastDot+1);
 						PackageDrop pd     = PackageDrop.findPackage(pkg);
 						if (pd == null) {
-							LOG.severe("Couldn't find "+pkg+" for "+a);
+							if (lastDot < 0) {
+								LOG.severe("Couldn't find "+pkg+" for "+a);
+								throw new IllegalStateException();
+							} else {
+								getContext().reportError(a, 351, pkg, qname);
+							}
 							return null;
 						}
 						LayerPromiseDrop l = LayerRules.findLayer(pd.getPackageDeclarationNode(), name);
 						if (l == null) {
+							getContext().reportError(a, 350, name, pkg);
 							return null;
 						}
 						layerDrops.add(l);

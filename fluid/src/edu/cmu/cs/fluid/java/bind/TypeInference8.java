@@ -4079,9 +4079,10 @@ public class TypeInference8 {
 	void reduceTypeCompatibilityConstraints(BoundSet bounds, IJavaType s, IJavaType t) {
 		// Case 1
 		if (isProperType(s) && isProperType(t)) {
-			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, s, null, t)) {
+			if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, null, s)) {
 				bounds.addTrue();
 			} else {
+				mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, null, s);
 				bounds.addFalse();
 			}
 		}

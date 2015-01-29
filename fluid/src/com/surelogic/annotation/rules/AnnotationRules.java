@@ -415,7 +415,7 @@ public abstract class AnnotationRules {
 			if (ignoreNode(n)) {
 				return null;
 			}
-			final ModelingProblemDrop d = makeProblemDrop(n.getPromisedFor(), n.getOffset());
+			final ModelingProblemDrop d = makeProblemDrop(n.getAnnoContext() != null ? n.getAnnoContext() : n.getPromisedFor(), n.getOffset());
 			d.setMessage(number, args);
 			return d;
 		}
