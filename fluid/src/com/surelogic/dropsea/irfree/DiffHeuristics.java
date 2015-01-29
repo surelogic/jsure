@@ -165,7 +165,7 @@ public class DiffHeuristics {
     case ENUM:
       return getFirstChild(decl, EnumDeclaration.getBody(decl));
     case FIELD:
-      if (EnumConstantClassDeclaration.prototype.includes(op)) {
+      if (EnumConstantDeclaration.prototype.includes(op)) {
         return decl;
       }
       return getFirstChild(decl, VariableDeclarator.getInit(decl));
