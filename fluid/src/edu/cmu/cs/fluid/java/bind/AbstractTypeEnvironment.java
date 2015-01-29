@@ -247,8 +247,20 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
       return true;
     }
     if (t1 instanceof IJavaPrimitiveType) {
-      if (!(t2 instanceof IJavaPrimitiveType)) return false;
+      if (!(t2 instanceof IJavaPrimitiveType)) {
+    	  // check if we can unbox t2
+    	  if (t2 instanceof IJavaDeclaredType) {
+    		  IJavaPrimitiveType pt2 = JavaTypeFactory.getCorrespondingPrimType((IJavaDeclaredType) t2);
+    		  return arePrimTypesCompatible((IJavaPrimitiveType) t1, pt2, n2);
+    	  } else {
+    		  return false;
+    	  }
+      }
       return arePrimTypesCompatible((IJavaPrimitiveType) t1, (IJavaPrimitiveType) t2, n2);
+    } else if (t2 instanceof IJavaPrimitiveType) {
+      // check if we can box t2
+      IJavaType dt2 = JavaTypeFactory.getCorrespondingDeclType(this, (IJavaPrimitiveType) t2);
+      return isSubType(dt2, t1);
     } else {
       return isSubType(t2,t1);
     }
