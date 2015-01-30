@@ -1,6 +1,7 @@
 package com.surelogic.analysis.nullable;
 
 import com.surelogic.NonNull;
+import com.surelogic.TrackPartiallyInitialized;
 import com.surelogic.aast.promise.NonNullNode;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.ResultsBuilder;
@@ -77,6 +78,9 @@ final class NullablePreprocessor extends JavaSemanticsVisitor implements IBinder
             folder, superClass, superTPI != null, SUPER_IS_TPI, SUPER_NOT_TPI);
         if (superTPI != null) {
           tpiResult.addTrusted(superTPI);
+        } else {
+          tpiResult.addProposal(
+              new Builder(TrackPartiallyInitialized.class, superClass, classDecl).build());
         }
         ResultsBuilder.createResult(
             folder, superClass, superIsObject, SUPER_IS_OBJECT, SUPER_NOT_OBJECT);
@@ -127,12 +131,16 @@ final class NullablePreprocessor extends JavaSemanticsVisitor implements IBinder
     // ==== Set up the proof tree ====
     
     if (!isStatic && nonNull != null) {
+      final IRNode enclosingType = getEnclosingType();
       final TrackPartiallyInitializedPromiseDrop tpi =
-          NonNullRules.getTrackPartiallyInitialized(getEnclosingType());
+          NonNullRules.getTrackPartiallyInitialized(enclosingType);
       final ResultDrop result = ResultsBuilder.createResult(
           varDecl, nonNull, tpi != null, TPI_TRACKED, TPI_NOT_TRACKED);
       if (tpi != null) {
         result.addTrusted(tpi);
+      } else {
+        result.addProposal(
+            new Builder(TrackPartiallyInitialized.class, enclosingType, varDecl).build());
       }
     }
   }
