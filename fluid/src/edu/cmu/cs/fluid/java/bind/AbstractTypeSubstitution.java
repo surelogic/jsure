@@ -171,6 +171,11 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
 			// TODO Auto-generated method stub
 			return null;
 		}
+		
+		@Override
+		public String toString() {
+			return me.toString()+" + "+other.toString();
+		}
 	  };
   }
 }
