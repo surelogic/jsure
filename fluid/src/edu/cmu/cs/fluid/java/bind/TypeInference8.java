@@ -3524,10 +3524,22 @@ public class TypeInference8 {
 				if (b.t instanceof InferenceVariable) {
 					recordDepsForBound(lhsInCapture, temp, (InferenceVariable) b.t, b.s);
 				}
-				temp.clear(); 
 			}
 		}		
 
+		/**
+		 * • Given a bound of one of the following forms, where T is either an inference
+		 *   variable β or a type that mentions β:
+         *
+		 *   – α = T
+		 *   – α <: T
+		 *   – T = α
+		 *   – T <: α
+         *
+		 *   If α appears on the left-hand side of another bound of the form G< ..., α, ... > =
+		 *   capture( G< ... > ), then β depends on the resolution of α. Otherwise, α depends on
+		 *   the resolution of β.
+		 */
 		private void recordDepsForBound(Set<IJavaType> lhsInCapture, Set<InferenceVariable> temp, InferenceVariable alpha, IJavaReferenceType t) {
 			getReferencedInferenceVariables(temp, t);
 			if (lhsInCapture.contains(alpha)) {
@@ -3540,8 +3552,12 @@ public class TypeInference8 {
 				}	
 			}
 			markDependsOn(alpha, alpha);	
+			temp.clear();
 		}
 
+		/**
+		 * Handles expanding the various equalities encoded
+		 */
 		public void recordDepsForEquality(Set<IJavaType> lhsInCapture, Equalities equalities) {
 			final Set<InferenceVariable> temp = new HashSet<InferenceVariable>();
 			for(IEquality e : equalities) {
@@ -3549,12 +3565,12 @@ public class TypeInference8 {
 					continue;
 				}
 				for(InferenceVariable v : e.vars()) {
+					// Mark the interdependence between the different variables
 					for(InferenceVariable v2 : e.vars()) {
 						markDependsOn(v, v2);
 					}		
 					for(IJavaReferenceType t : e.values()) {
 						recordDepsForBound(lhsInCapture, temp, (InferenceVariable) v, t);
-						temp.clear();
 					}
 				}
 			}			
