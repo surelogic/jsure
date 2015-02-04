@@ -484,9 +484,6 @@ public class TypeInference8 {
 		 *     Finally, the method m is applicable if B 2 does not contain the bound false and
 		 *     resolution of all the inference variables in B 2 succeeds (Â§18.4).
 		 */
-		if ("<implicit>.toCollection(TreeSet:: <> new)".equals(call.toString())) {
-			System.out.println("Resolving <implicit>.toCollection(TreeSet:: <> new)");
-		}
 		final BoundSet result = resolve(b_2, null);
 		// debug
 		if (result == null || result.getInstantiations().isEmpty()) {
@@ -1696,7 +1693,7 @@ public class TypeInference8 {
 	 * A bound of the form throws α is purely informational: it directs resolution to
 	 * optimize the instantiation of α so that, if possible, it is not a checked exception type.
 	 */
-	abstract class Bound<T extends IJavaReferenceType> implements Iterable<T> {
+	abstract class Bound<T extends IJavaReferenceType> implements Iterable<T>, Comparable<Bound<T>> {
 		final T s, t;
 		
 		Bound(T s, T t) {
@@ -1737,6 +1734,13 @@ public class TypeInference8 {
 			return new PairIterator<T>(s, t);
 		}
 		
+		public int compareTo(Bound<T> other) {
+			if (other instanceof EqualityBound) {
+				// This should go before all equalities
+				return -1;
+			}
+			return this.hashCode() - other.hashCode();
+		}
 	}
 	
 	EqualityBound newEqualityBound(IJavaType s, IJavaType t) {
@@ -1800,6 +1804,24 @@ public class TypeInference8 {
 				return (InferenceVariable) s;
 			}
 			return null;
+		}
+		
+		@Override
+		public final int compareTo(Bound<IJavaReferenceType> other) {
+			if (other instanceof EqualityBound) {
+				if (t instanceof TypeVariable) {
+					if (other.t instanceof TypeVariable) {
+						return this.hashCode() - other.hashCode();
+					} else {
+						return 1;
+					}
+				} 
+				else if (other.t instanceof TypeVariable) {
+					return -1;
+				}
+				else return this.hashCode() - other.hashCode();
+			}
+			return 1; // The other bound should be first
 		}
 	}
 	
@@ -2255,7 +2277,7 @@ public class TypeInference8 {
 		/**
 		 * Queue for bounds that haven't been incorporated yet
 		 */
-		private final Deque<Bound<?>> unincorporated = new LinkedList<Bound<?>>();
+		private final PriorityQueue<Bound<?>> unincorporated = new PriorityQueue<Bound<?>>();
 		
 		/**
 		 * The original bound that eventually created this one
@@ -2331,10 +2353,13 @@ public class TypeInference8 {
 			incorporate();
 		}
 		
-		private void addAllBefore(Iterable<? extends Bound<?>> it) {
+		private void addAllBefore(Collection<? extends Bound<?>> it) {
+			/*
 			for(Bound<?> b : it) {
 				unincorporated.addFirst(b);
 			}
+			*/
+			unincorporated.addAll(it);
 		}		
 		
 		void mergeWithSubst(BoundSet other, IJavaTypeSubstitution subst) {
@@ -2556,7 +2581,7 @@ public class TypeInference8 {
 					continue;
 				}
 				unincorporated.add(b);
-				//System.out.println("Added "+b);
+				System.out.println("Added as unincorporated: "+b);
 			}			
 			if (isTemp) {
 				// Don't do anything, since it'll be incorporated when merged
@@ -2566,7 +2591,13 @@ public class TypeInference8 {
 			// Stop if temp gets false
 			while (!temp.isFalse && !unincorporated.isEmpty()) {
 				Bound<?> b = unincorporated.remove();
-				
+				String bound = b.toString();
+				System.out.println("Incorporating "+bound);
+				/*
+				if (bound.contains("@ Collectors.K =") || bound.contains("@ Collectors.D =")) {
+					System.out.println("\tFound equality for type variable");
+				}
+				*/
 				// Check for combos and reduce the resulting constraints
 
 				if (b instanceof SubtypeBound) {
