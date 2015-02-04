@@ -3560,6 +3560,11 @@ public class TypeInference8 {
 			}			
 		}
 		
+		/**
+		 * • An inference variable α appearing on the left-hand side of a bound of the form
+		 *   G< ..., α, ... > = capture( G< ... > ) depends on the resolution of every other inference
+		 *   variable mentioned in this bound (on both sides of the = sign).
+		 */
 		void recordDepsForCapture(CaptureBound b) {
 			final Set<InferenceVariable> vars = new HashSet<InferenceVariable>();
 			getReferencedInferenceVariables(vars, b.s);
@@ -5022,5 +5027,10 @@ public class TypeInference8 {
 		protected <V> V process(IJavaTypeFormal jtf, Process<V> processor) {
 			throw new UnsupportedOperationException();
 		}		
+		
+		@Override
+		public String toString() {
+			return subst.toString();
+		}	
 	}
 }
