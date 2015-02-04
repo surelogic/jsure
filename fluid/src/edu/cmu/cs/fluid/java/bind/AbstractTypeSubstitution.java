@@ -157,6 +157,9 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
   
   @Override
   public IJavaTypeSubstitution combine(final IJavaTypeSubstitution other) {
+	  if (other == null) {
+		  return this;
+	  }
 	  final IJavaTypeSubstitution me = this;
 	  return new AbstractTypeSubstitution(binder) {
 		@Override
@@ -168,8 +171,12 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
 
 		@Override
 		protected <V> V process(IJavaTypeFormal jtf, Process<V> processor) {
-			// TODO Auto-generated method stub
 			return null;
+		}
+		
+		@Override
+		public String toString() {
+			return me.toString()+" + "+other.toString();
 		}
 	  };
   }
