@@ -484,6 +484,9 @@ public class TypeInference8 {
 		 *     Finally, the method m is applicable if B 2 does not contain the bound false and
 		 *     resolution of all the inference variables in B 2 succeeds (Â§18.4).
 		 */
+		if ("<implicit>.toCollection(TreeSet:: <> new)".equals(call.toString())) {
+			System.out.println("Resolving <implicit>.toCollection(TreeSet:: <> new)");
+		}
 		final BoundSet result = resolve(b_2, null);
 		// debug
 		if (result == null || result.getInstantiations().isEmpty()) {
@@ -2252,7 +2255,7 @@ public class TypeInference8 {
 		/**
 		 * Queue for bounds that haven't been incorporated yet
 		 */
-		private final Queue<Bound<?>> unincorporated = new LinkedList<Bound<?>>();
+		private final Deque<Bound<?>> unincorporated = new LinkedList<Bound<?>>();
 		
 		/**
 		 * The original bound that eventually created this one
@@ -2303,6 +2306,10 @@ public class TypeInference8 {
 		}
 		
 		void merge(BoundSet other) {
+			merge(other, false);
+		}
+		
+		void merge(BoundSet other, boolean addBefore) {
 			if (isTemp/* || !other.isTemp*/) {
 				throw new IllegalStateException();
 			}
@@ -2310,12 +2317,25 @@ public class TypeInference8 {
 			usedUncheckedConversion |= other.usedUncheckedConversion;
 			thrownSet.addAll(other.thrownSet);
 			variableMap.putAll(other.variableMap);
-			unincorporated.addAll(other.equalities.getBounds());
-			unincorporated.addAll(other.subtypeBounds);
-			unincorporated.addAll(other.captures);
-			unincorporated.addAll(other.unincorporated);
+			if (addBefore) {
+				addAllBefore(other.equalities.getBounds());
+				addAllBefore(other.subtypeBounds);
+				addAllBefore(other.captures);
+				addAllBefore(other.unincorporated);
+			} else {
+				unincorporated.addAll(other.equalities.getBounds());
+				unincorporated.addAll(other.subtypeBounds);
+				unincorporated.addAll(other.captures);
+				unincorporated.addAll(other.unincorporated);
+			}
 			incorporate();
 		}
+		
+		private void addAllBefore(Iterable<? extends Bound<?>> it) {
+			for(Bound<?> b : it) {
+				unincorporated.addFirst(b);
+			}
+		}		
 		
 		void mergeWithSubst(BoundSet other, IJavaTypeSubstitution subst) {
 			isFalse |= other.isFalse;
