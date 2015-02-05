@@ -2,6 +2,7 @@
 
 <package name="java.lang" release="3">
     <class name="Object">
+        <TrackPartiallyInitialized/>
         <Containable implementationOnly="true"/>
         <Immutable implementationOnly="true"/>
         <Region uid="a2b4b727-4a78-47f0-8cf4-3fb341abd825">public Instance extends All</Region>

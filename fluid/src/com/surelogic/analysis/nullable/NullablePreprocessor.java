@@ -10,12 +10,10 @@ import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.TrackPartiallyInitializedPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AllocationExpression;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
@@ -26,14 +24,10 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 
 final class NullablePreprocessor extends JavaSemanticsVisitor implements IBinderClient {
-  private static final String JAVA_LANG_OBJECT = "java.lang.Object";
-  
   private static final int TPI_TRACKED = 985;
   private static final int TPI_NOT_TRACKED = 986;
   private static final int SUPER_IS_TPI = 987;
   private static final int SUPER_NOT_TPI = 988;
-  private static final int SUPER_IS_OBJECT = 989;
-  private static final int SUPER_NOT_OBJECT = 990;
   
   
   
@@ -69,21 +63,16 @@ final class NullablePreprocessor extends JavaSemanticsVisitor implements IBinder
       if (tpi.verifyParent()) {
         final IRNode superClass = binder.getBinding(ClassDeclaration.getExtension(classDecl));
         final TrackPartiallyInitializedPromiseDrop superTPI = NonNullRules.getTrackPartiallyInitialized(superClass);
-        final boolean superIsObject = JavaNames.getFullTypeName(superClass).equals(JAVA_LANG_OBJECT);
         
         final ResultsBuilder builder = new ResultsBuilder(tpi);
-        final ResultFolderDrop folder = builder.createRootOrFolder(
-            classDecl, TPI_TRACKED, TPI_NOT_TRACKED);
-        final ResultDrop tpiResult = ResultsBuilder.createResult(
-            folder, superClass, superTPI != null, SUPER_IS_TPI, SUPER_NOT_TPI);
+        final ResultDrop tpiResult = builder.createRootResult(
+            superClass, superTPI != null, SUPER_IS_TPI, SUPER_NOT_TPI);
         if (superTPI != null) {
           tpiResult.addTrusted(superTPI);
         } else {
           tpiResult.addProposal(
               new Builder(TrackPartiallyInitialized.class, superClass, classDecl).build());
         }
-        ResultsBuilder.createResult(
-            folder, superClass, superIsObject, SUPER_IS_OBJECT, SUPER_NOT_OBJECT);
       }
     }
     
