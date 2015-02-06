@@ -50,6 +50,7 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
+import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.InterfaceDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -95,6 +96,11 @@ public class NonNullRules extends AnnotationRules {
 
   public static IPromiseDropStorage<NonNullPromiseDrop> getNonNullStorage() {
     return nonNullRule.getStorage();
+  }
+  
+  public static IPromiseDropStorage<TrackPartiallyInitializedPromiseDrop>
+  getTrackPartiallyInitalizedStorage() {
+    return trackPartiallyInitializedRule.getStorage();
   }
   
 	private NonNullRules() {
@@ -155,7 +161,7 @@ public class NonNullRules extends AnnotationRules {
 	
 	public static class TrackPartiallyInitialized_ParseRule extends SimpleBooleanAnnotationParseRule<TrackPartiallyInitializedNode,TrackPartiallyInitializedPromiseDrop> {
 		public TrackPartiallyInitialized_ParseRule() {
-			super(TRACK_PARTIALLY_INITIALIZED, new Operator[] { ClassDeclaration.prototype }, TrackPartiallyInitializedNode.class);
+			super(TRACK_PARTIALLY_INITIALIZED, new Operator[] { ClassDeclaration.prototype, EnumDeclaration.prototype }, TrackPartiallyInitializedNode.class);
 		}		
 
 	    @Override

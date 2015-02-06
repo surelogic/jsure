@@ -1310,10 +1310,15 @@ implements IBinderClient {
         } else if (AnonClassExpression.prototype.includes(node)) {
           final IRNode superClassDecl =
               binder.getBinding(AnonClassExpression.getType(node));
-          final Element rcvrState = lattice.injectClass(
-              (IJavaDeclaredType) typeEnv.getMyThisType(superClassDecl));
           final IRNode rcvrDecl =
               JavaPromise.getReceiverNode(JavaPromise.getInitMethod(node));
+          final Element rcvrState;
+          if (NonNullRules.getTrackPartiallyInitialized(node) != null) {
+            rcvrState = lattice.injectClass(
+                (IJavaDeclaredType) typeEnv.getMyThisType(superClassDecl));
+          } else {
+            rcvrState = NonNullRawLattice.NOT_NULL;
+          }
           return lattice.setThis(value, rcvrDecl, 
               lattice.baseValue(rcvrState, Kind.RECEIVER_ANON_CLASS, node));
         } else if (ImpliedEnumConstantInitialization.prototype.includes(node)
@@ -1323,11 +1328,16 @@ implements IBinderClient {
            */
           final IRNode superClassDecl =
               VisitUtil.getEnclosingType(VisitUtil.getEnclosingType(node));
-          final Element rcvrState = lattice.injectClass(
-              (IJavaDeclaredType) typeEnv.getMyThisType(superClassDecl));
           final IRNode rcvrDecl =
               JavaPromise.getReceiverNode(JavaPromise.getInitMethod(
-                  tree.getParent(node)));
+                  tree.getParent(node)));          
+          final Element rcvrState;
+          if (NonNullRules.getTrackPartiallyInitialized(tree.getParent(node)) != null) {
+            rcvrState = lattice.injectClass(
+                (IJavaDeclaredType) typeEnv.getMyThisType(superClassDecl));
+          } else {
+            rcvrState = NonNullRawLattice.NOT_NULL;
+          }
           return lattice.setThis(value, rcvrDecl,
               lattice.baseValue(rcvrState, Kind.RECEIVER_ANON_CLASS, tree.getParent(node)));
         } else { // Not sure why it should ever get here

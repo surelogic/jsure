@@ -3,6 +3,7 @@ package com.surelogic.analysis.nullable;
 import com.surelogic.NonNull;
 import com.surelogic.TrackPartiallyInitialized;
 import com.surelogic.aast.promise.NonNullNode;
+import com.surelogic.aast.promise.TrackPartiallyInitializedNode;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
@@ -16,14 +17,20 @@ import com.surelogic.dropsea.ir.drops.nullable.TrackPartiallyInitializedPromiseD
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AllocationExpression;
+import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
+import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.StringConcat;
 import edu.cmu.cs.fluid.java.operator.StringLiteral;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
+import edu.cmu.cs.fluid.parse.JJNode;
+import edu.cmu.cs.fluid.tree.Operator;
 
 final class NullablePreprocessor extends JavaSemanticsVisitor implements IBinderClient {
+  private static final String JAVA_LANG_ENUM = "java.lang.Enum";
+  
   private static final int TPI_TRACKED = 985;
   private static final int TPI_NOT_TRACKED = 986;
   private static final int SUPER_IS_TPI = 987;
@@ -32,10 +39,14 @@ final class NullablePreprocessor extends JavaSemanticsVisitor implements IBinder
   
   
   private final IBinder binder;
+  private final IRNode javaLangEnum;
+  
+  
   
   public NullablePreprocessor(final IBinder b) {
     super(true, true);
     binder = b;
+    javaLangEnum = b.getTypeEnvironment().findNamedType(JAVA_LANG_ENUM);
   }
 
   
@@ -55,29 +66,36 @@ final class NullablePreprocessor extends JavaSemanticsVisitor implements IBinder
   @Override
   protected void handleClassDeclaration(final IRNode classDecl) {
     /* If the class has a @TrackPartiallyInitalized annotation, then the
-     * super class needs to have one too, or be java.lang.Object.
+     * super class needs to have one too.
      */
     final TrackPartiallyInitializedPromiseDrop tpi = 
         NonNullRules.getTrackPartiallyInitialized(classDecl);
     if (tpi != null) {
       if (tpi.verifyParent()) {
         final IRNode superClass = binder.getBinding(ClassDeclaration.getExtension(classDecl));
-        final TrackPartiallyInitializedPromiseDrop superTPI = NonNullRules.getTrackPartiallyInitialized(superClass);
-        
-        final ResultsBuilder builder = new ResultsBuilder(tpi);
-        final ResultDrop tpiResult = builder.createRootResult(
-            superClass, superTPI != null, SUPER_IS_TPI, SUPER_NOT_TPI);
-        if (superTPI != null) {
-          tpiResult.addTrusted(superTPI);
-        } else {
-          tpiResult.addProposal(
-              new Builder(TrackPartiallyInitialized.class, superClass, classDecl).build());
-        }
+        assureTrackPartiallyInitialized(tpi, classDecl, superClass);
       }
     }
     
     super.handleClassDeclaration(classDecl);
   }
+  
+  @Override
+  protected void handleEnumDeclaration(final IRNode enumDecl) {
+    /* If the enum has a @TrackPartiallyInitalized annotation, then the
+     * super class needs to have one too.
+     */
+    final TrackPartiallyInitializedPromiseDrop tpi = 
+        NonNullRules.getTrackPartiallyInitialized(enumDecl);
+    if (tpi != null) {
+      if (tpi.verifyParent()) {
+        assureTrackPartiallyInitialized(tpi, enumDecl, javaLangEnum);
+      }
+    }
+    
+    super.handleEnumDeclaration(enumDecl);
+  }
+
   
   
   @Override
@@ -121,6 +139,22 @@ final class NullablePreprocessor extends JavaSemanticsVisitor implements IBinder
     
     if (!isStatic && nonNull != null) {
       final IRNode enclosingType = getEnclosingType();
+      final Operator op = JJNode.tree.getOperator(enclosingType);
+      if (AnonClassExpression.prototype.includes(op) ||
+          EnumConstantClassDeclaration.prototype.includes(op)) {
+        // Put a virtual @TPI on the class
+        final TrackPartiallyInitializedNode tpin = new TrackPartiallyInitializedNode(0, true);
+        tpin.setPromisedFor(enclosingType, null);
+        final TrackPartiallyInitializedPromiseDrop tpipd = new TrackPartiallyInitializedPromiseDrop(tpin);
+        AnnotationRules.attachAsVirtual(NonNullRules.getTrackPartiallyInitalizedStorage(), tpipd);
+        final IRNode superClass = 
+            AnonClassExpression.prototype.includes(op) ?
+                binder.getBinding(AnonClassExpression.getType(enclosingType)) :
+                  JJNode.tree.getParent(JJNode.tree.getParent(enclosingType));
+        assureTrackPartiallyInitialized(
+            tpipd, enclosingType, superClass);
+      }
+      
       final TrackPartiallyInitializedPromiseDrop tpi =
           NonNullRules.getTrackPartiallyInitialized(enclosingType);
       final ResultDrop result = ResultsBuilder.createResult(
@@ -131,6 +165,24 @@ final class NullablePreprocessor extends JavaSemanticsVisitor implements IBinder
         result.addProposal(
             new Builder(TrackPartiallyInitialized.class, enclosingType, varDecl).build());
       }
+    }
+  }
+
+
+
+  private void assureTrackPartiallyInitialized(
+      final TrackPartiallyInitializedPromiseDrop tpi,
+      final IRNode classDecl, final IRNode superClass) {
+    final TrackPartiallyInitializedPromiseDrop superTPI = NonNullRules.getTrackPartiallyInitialized(superClass);
+    
+    final ResultsBuilder builder = new ResultsBuilder(tpi);
+    final ResultDrop tpiResult = builder.createRootResult(
+        superClass, superTPI != null, SUPER_IS_TPI, SUPER_NOT_TPI);
+    if (superTPI != null) {
+      tpiResult.addTrusted(superTPI);
+    } else {
+      tpiResult.addProposal(
+          new Builder(TrackPartiallyInitialized.class, superClass, classDecl).build());
     }
   }
 }
