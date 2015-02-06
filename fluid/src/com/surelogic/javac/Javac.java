@@ -98,7 +98,7 @@ public class Javac extends IDE {
 		init(com.surelogic.analysis.uniqueness.classic.sideeffecting.UniquenessAnalysisModule.class,
 				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceSE", false, "Uniqueness (Obsolete)");
 
-    init(NonNullRawTypeModule.class, "com.surelogic.jsure.client.eclipse.NonNullRawTypes", false, "Combined NonNull & RawType (for reg tests only)");
+//    init(NonNullRawTypeModule.class, "com.surelogic.jsure.client.eclipse.NonNullRawTypes", false, "Combined NonNull & RawType (for reg tests only)");
     init(DefinitelyAssignedModule.class, "com.surelogic.jsure.client.eclipse.DefinitelyAssigned", false, "Definitely Assigned (for reg tests only)");
 		
 		init(LocalVariablesModule.class,
@@ -122,6 +122,7 @@ public class Javac extends IDE {
         init(NullablePreprocessorModule.class, NULLABLE_PREP, true, "Nullable Preprocessor");
     
     init(NullableModule2.class, NULLABLE, true, "Nullable", nullablePreprocessor);
+    init(NonNullRawTypeModule.class, "com.surelogic.jsure.client.eclipse.NonNullRawTypes", false, "Combined NonNull & RawType (for reg tests only)", nullablePreprocessor);
     init(FinalModule.class, "com.surelogic.jsure.client.eclipse.Final", false, "Final Declarations (for reg tests only)");
     
     init(TestFunctionalInterfacePseudoAnalysis.class,"com.surelogic.jsure.client.eclipse.TestIsFunctional", false, "Functional (for tests only)");
