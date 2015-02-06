@@ -1,18 +1,14 @@
 
 package com.surelogic.aast.promise;
 
+import com.surelogic.Part;
 import com.surelogic.aast.*;
 
-public class MutableNode extends AbstractBooleanNode 
+public class MutableNode extends AbstractModifiedBooleanNode 
 { 
   // Constructors
-  public MutableNode() {
-    super();
-  }
-
-  @Override
-  public String unparse(boolean debug, int indent) {
-    return unparse(debug, indent, "Mutable");
+  public MutableNode(int mods, Part state) {
+	super("Mutable", mods, state);
   }
 
   @Override
@@ -22,7 +18,7 @@ public class MutableNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new MutableNode();
+  	return new MutableNode(mods, appliesTo);
   }
 }
 

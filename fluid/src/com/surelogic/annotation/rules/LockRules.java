@@ -2543,7 +2543,11 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new MutableNode();
+      Part part = computeAppliesTo(context, offset);
+      if (part == null) {
+    	  return null;
+      }
+      return new MutableNode(mods, part);
     }
     @Override
     protected IPromiseDropStorage<MutablePromiseDrop> makeStorage() {
