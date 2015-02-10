@@ -34,6 +34,7 @@ import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
+import com.surelogic.dropsea.ir.drops.nullable.TrackPartiallyInitializedPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -419,6 +420,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
   
   private void checkAssignability(
       final IRNode expr, final IRNode decl, final LValue kind, final boolean noAnnoIsNonNull) {
+    
     /*
      * Problem for results: if declPD is null, then we have something that is
      * @Nullable (or @NonNull) with no annotation. It is an error to pass a @Raw
@@ -545,6 +547,19 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
           }
           
           /*
+           * If the formal/receiver is unannotated and assigned an @Initialized
+           * reference then we do a few special things:
+           * 
+           * (1) Propose an @Initialized annotation on it
+           * 
+           * (2) If the use is inside a constructor (but not a method),
+           *     and the source is from the receiver, we add the 
+           *     LHS promise under the classe's TrackPartiallyInitialized
+           *     annotation (there must be one or else we would not have
+           *     initialized references for the receiver).
+           */
+          
+          /*
            * Propose @Initialized on a formal parameter or receiver
            * if the formal/receiver is unannotated and assigned an @Initialized
            * reference.
@@ -563,6 +578,17 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
               makeInitializedProposal(result, parent, srcState, where, lhsDecl); 
             }
           }
+          
+          if (rawSrc && k == Kind.RECEIVER_CONSTRUCTOR_CALL) {
+            final PromiseDrop<?> lhsPromise = getAnnotationForProof(lhsDecl);
+            if ((ParameterDeclaration.prototype.includes(lhsDecl) || ReceiverDeclaration.prototype.includes(lhsDecl)) &&
+                lhsPromise != null) {
+              final TrackPartiallyInitializedPromiseDrop tpi = 
+                  NonNullRules.getTrackPartiallyInitialized(VisitUtil.getEnclosingType(getEnclosingDecl()));
+              tpi.addDependent(lhsPromise);
+            }
+          }
+              
         }
       }
     }
