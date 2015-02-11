@@ -68,6 +68,8 @@ public interface ITypeEnvironment {
    */
   public IJavaType findJavaTypeByName(final String type);
   
+  public IJavaType findJavaTypeByName(final String type, IRNode useSite);
+  
   /**
    * Return the root of the type hierarchy: Object.
    * Convenience method (that probably should be cached).
