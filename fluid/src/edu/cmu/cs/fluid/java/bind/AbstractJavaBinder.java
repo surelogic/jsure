@@ -677,7 +677,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
 			  bindings = toDerive;
 		  }
       } catch (StackOverflowError e) {
-    	  System.out.println("StackOverflow: "+DebugUnparser.toString(node)+" for "+this);
+    	  System.out.println(Thread.currentThread()+" StackOverflow: "+DebugUnparser.toString(node)+" for "+this);
     	  e.printStackTrace();
     	  throw e;    	  
       }
@@ -2234,6 +2234,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
           }
         }
         final CallState state = new CallState(AbstractJavaBinder.this, node, targs, args, recType);
+        /*
+        if ("br.lines.collect(#.groupingBy(#, #)).forEach((# # str, # # set) -> { # # })".equals(state.toString())) {
+        	System.out.println("recType = "+recType);
+        	getApproxJavaType(receiver, rop);
+        }
+        */
         boolean success = bindCall(state,name, toUse);
         if (!success) {
           // FIX hack to get things to bind for receivers of raw type       
