@@ -1,7 +1,7 @@
 package com.surelogic.dropsea.ir.drops.type.constraints;
 
-import com.surelogic.aast.promise.*;
-import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
+import com.surelogic.aast.promise.MutableNode;
+import com.surelogic.dropsea.ir.drops.ModifiedBooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 
@@ -11,7 +11,7 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
  * @see edu.cmu.com.surelogic.analysis.locks.held.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
-public final class MutablePromiseDrop extends BooleanPromiseDrop<MutableNode> {
+public final class MutablePromiseDrop extends ModifiedBooleanPromiseDrop<MutableNode> {
 
   public MutablePromiseDrop(MutableNode a) {
     super(a);

@@ -1,8 +1,7 @@
 package com.surelogic.dropsea.ir.drops.type.constraints;
 
-import com.surelogic.Part;
 import com.surelogic.aast.promise.NotThreadSafeNode;
-import com.surelogic.dropsea.ir.drops.BooleanPromiseDrop;
+import com.surelogic.dropsea.ir.drops.ModifiedBooleanPromiseDrop;
 
 import edu.cmu.cs.fluid.java.JavaGlobals;
 
@@ -12,7 +11,7 @@ import edu.cmu.cs.fluid.java.JavaGlobals;
  * @see edu.cmu.com.surelogic.analysis.locks.held.LockVisitor
  * @see edu.cmu.cs.fluid.java.bind.LockAnnotation
  */
-public final class NotThreadSafePromiseDrop extends BooleanPromiseDrop<NotThreadSafeNode> {
+public final class NotThreadSafePromiseDrop extends ModifiedBooleanPromiseDrop<NotThreadSafeNode> {
 
   public NotThreadSafePromiseDrop(NotThreadSafeNode a) {
     super(a);
@@ -22,9 +21,5 @@ public final class NotThreadSafePromiseDrop extends BooleanPromiseDrop<NotThread
   @Override
   public boolean isIntendedToBeCheckedByAnalysis() {
     return false;
-  }
-  
-  public final Part getAppliesTo() {
-	return getAAST().getAppliesTo();
   }
 }

@@ -1804,8 +1804,8 @@ public class LockRules extends AnnotationRules {
 	    P extends ModifiedBooleanPromiseDrop<A>,
 	    NP extends BooleanPromiseDrop<? extends AbstractBooleanNode>>
 	extends AbstractAASTScrubber<A, P> {
-    private final String name;
-    private final String notName;
+    protected final String name;
+    protected final String notName;
 	  private final boolean allowAnnotationDeclarations;
 	  
 	  public TypeAnnotationScrubber(
@@ -1898,6 +1898,11 @@ public class LockRules extends AnnotationRules {
           bad = true;
           context.reportError(node, "An Interface may not be @{0}(implementationOnly=true)", name);
         }
+        // Applies to can not be exclusively "instance"
+        if (node.getAppliesTo() == Part.Instance) {
+          bad = true;
+          context.reportError(node, "Annotations never have any instance state");
+        }
 	    } else { // class
 	      final IRNode superDecl;
 	      final Iterable<IRNode> interfaces;
@@ -1989,14 +1994,11 @@ public class LockRules extends AnnotationRules {
 	    }
 	    
 	    // Cannot be both T and not T
-	    final NP notDrop = getNotAnnotation(promisedFor);
-      if (notDrop != null && !node.isImplementationOnly()) {
-        notDrop.invalidate();
-        context.reportError(
-            node, "Cannot be both @{0} and @{1}", name, notName);
-        bad = true;
-      }
-      
+      final NP notDrop = getNotAnnotation(promisedFor);
+	    if (isTandNotT(node, notDrop, context)) {
+	      bad = true;
+	    }
+	          
 	    if (bad) {
 	      return null;
 	    } else {
@@ -2004,6 +2006,17 @@ public class LockRules extends AnnotationRules {
 	    }
 	  }
 
+	  protected boolean isTandNotT(
+	      final A node, final NP notDrop, final IAnnotationScrubberContext context) {
+      if (notDrop != null && !node.isImplementationOnly()) {
+        notDrop.invalidate();
+        context.reportError(
+            node, "Cannot be both @{0} and @{1}", name, notName);
+        return true;
+      }
+      return false;
+	  }
+	  
     protected boolean moreChecks(A node, IRNode promisedFor) {
 	    return true;
 	  }
@@ -2129,6 +2142,58 @@ public class LockRules extends AnnotationRules {
 	  
 	  protected abstract A makeDerivedAnnotation(int mods, A orig);
 	}
+  
+  private static abstract class TypeAnnotationWithAppliesToScrubber<
+      A extends AbstractModifiedBooleanNode,
+      P extends ModifiedBooleanPromiseDrop<A>,
+      NP extends ModifiedBooleanPromiseDrop<? extends AbstractBooleanNode>>
+  extends TypeAnnotationScrubber<A, P, NP> {
+    public TypeAnnotationWithAppliesToScrubber(
+        final SimpleBooleanAnnotationParseRule<A, P> rule,
+        final boolean allowAD,
+        final String n, final String notN, final String... deps) {
+      super(rule, allowAD, n, notN, deps);
+    }
+
+    @Override
+    protected boolean isTandNotT(
+        final A node, final NP notDrop, final IAnnotationScrubberContext context) {
+      /*
+	     * Cannot be both T and not T unless they apply to different parts of 
+	     * the class.  Specifically, one must apply to only the instance part
+	     * and the other must apply to only the static part.
+	     */
+      if (notDrop != null) {
+        if (!node.isImplementationOnly()) {
+          final Part appliesTo = node.getAppliesTo();
+          final Part notAppliesTo = notDrop.getAppliesTo();
+          
+          /* Ideally we would have a comparison method in the Part enumeration,
+           * but because the enumeration is part of the annotation language,
+           * I don't want to put executable code into it.
+           */
+          boolean okay = true;
+          if (appliesTo == Part.InstanceAndStatic) {
+            okay = false;
+          } else if (appliesTo == Part.Instance) {
+            okay = notAppliesTo == Part.Static;
+          } else if (appliesTo == Part.Static) {
+            okay = notAppliesTo == Part.Instance;
+          }
+          
+          if (!okay) {
+            notDrop.invalidate();
+            context.reportError(node,
+                "Cannot apply opposite annotations to the same part of a class: @{0}(appliesTo=Part.{1}) and @{2}(appliesTo=Part.{3})",
+                name, appliesTo.name(), notName, notAppliesTo.name());
+            return true;
+          }
+        }
+      }
+      
+      return false;
+    }
+  }
   
 	public static class AnnotationBounds_ParseRule
 	extends SimpleBooleanAnnotationParseRule<AnnotationBoundsNode,AnnotationBoundsPromiseDrop> {
@@ -2328,7 +2393,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber makeScrubber() {
-      return new TypeAnnotationScrubber<ThreadSafeNode, ThreadSafePromiseDrop, NotThreadSafePromiseDrop>(this, true, "ThreadSafe", "NotThreadSafe", IMMUTABLE, NOT_THREAD_SAFE) {
+      return new TypeAnnotationWithAppliesToScrubber<ThreadSafeNode, ThreadSafePromiseDrop, NotThreadSafePromiseDrop>(this, true, "ThreadSafe", "NotThreadSafe", IMMUTABLE, NOT_THREAD_SAFE) {
         @Override
         protected ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> getAnnotation(final IRNode superDecl) {
           return getThreadSafeImplementation(superDecl);
@@ -2491,29 +2556,74 @@ public class LockRules extends AnnotationRules {
     }    
   }
   
-  public static class NotThreadSafe_ParseRule 
-  extends MarkerAnnotationParseRule<NotThreadSafeNode,NotThreadSafePromiseDrop> {
+//  public static class NotThreadSafe_ParseRule 
+//  extends MarkerAnnotationParseRule<NotThreadSafeNode,NotThreadSafePromiseDrop> {
+//    public NotThreadSafe_ParseRule() {
+//      super(NOT_THREAD_SAFE, typeDeclOps, NotThreadSafeNode.class);
+//    }
+//    @Override
+//    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
+//      Part part = computeAppliesTo(context, offset);
+//      if (part == null) {
+//    	  return null;
+//      }    	
+//      return new NotThreadSafeNode(part);
+//    }
+//    @Override
+//    protected IPromiseDropStorage<NotThreadSafePromiseDrop> makeStorage() {
+//      return BooleanPromiseDropStorage.create(name(), NotThreadSafePromiseDrop.class);
+//    }
+//	@Override
+//	protected NotThreadSafePromiseDrop createDrop(NotThreadSafeNode a) {
+//		return new NotThreadSafePromiseDrop(a);
+//	}    
+//  }
+
+  public static class NotThreadSafe_ParseRule
+  extends SimpleBooleanAnnotationParseRule<NotThreadSafeNode, NotThreadSafePromiseDrop> {
     public NotThreadSafe_ParseRule() {
       super(NOT_THREAD_SAFE, typeDeclOps, NotThreadSafeNode.class);
     }
+    
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       Part part = computeAppliesTo(context, offset);
       if (part == null) {
-    	  return null;
-      }    	
+        return null;
+      }
       return new NotThreadSafeNode(part);
     }
+    
     @Override
     protected IPromiseDropStorage<NotThreadSafePromiseDrop> makeStorage() {
       return BooleanPromiseDropStorage.create(name(), NotThreadSafePromiseDrop.class);
     }
-	@Override
-	protected NotThreadSafePromiseDrop createDrop(NotThreadSafeNode a) {
-		return new NotThreadSafePromiseDrop(a);
-	}    
+
+    @Override
+    protected IAnnotationScrubber makeScrubber() {
+      return new AbstractAASTScrubber<NotThreadSafeNode, NotThreadSafePromiseDrop>(this) {
+        @Override
+        protected PromiseDrop<NotThreadSafeNode> makePromiseDrop(
+            NotThreadSafeNode a, boolean isAssumption) {
+          return storeDropIfNotNull(a, scrubNotThreadSafe(getContext(), a));
+        }
+        
+        private NotThreadSafePromiseDrop scrubNotThreadSafe(
+            final IAnnotationScrubberContext context, final NotThreadSafeNode a) {
+          final IRNode promisedFor = a.getPromisedFor();
+          if (AnnotationDeclaration.prototype.includes(promisedFor)) {
+            // Applies to can not be exclusively "instance"
+            if (a.getAppliesTo() == Part.Instance) {
+              context.reportError(a, "Annotations never have any instance state");
+              return null;
+            }
+          }
+          return new NotThreadSafePromiseDrop(a);
+        }
+      };
+    }
   }
-  
+
   public static class NotContainable_ParseRule 
   extends MarkerAnnotationParseRule<NotContainableNode,NotContainablePromiseDrop> {
     public NotContainable_ParseRule() {
@@ -2536,27 +2646,72 @@ public class LockRules extends AnnotationRules {
   	}    
   }
   
-  public static class Mutable_ParseRule 
-  extends MarkerAnnotationParseRule<MutableNode,MutablePromiseDrop> {
+//  public static class Mutable_ParseRule 
+//  extends MarkerAnnotationParseRule<MutableNode,MutablePromiseDrop> {
+//    public Mutable_ParseRule() {
+//      super(MUTABLE, typeDeclOps, MutableNode.class);
+//    }
+//    @Override
+//    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
+//      Part part = computeAppliesTo(context, offset);
+//      if (part == null) {
+//    	  return null;
+//      }
+//      return new MutableNode(mods, part);
+//    }
+//    @Override
+//    protected IPromiseDropStorage<MutablePromiseDrop> makeStorage() {
+//      return BooleanPromiseDropStorage.create(name(), MutablePromiseDrop.class);
+//    }
+//	@Override
+//	protected MutablePromiseDrop createDrop(MutableNode a) {
+//		return new MutablePromiseDrop(a);
+//	}    
+//  }
+
+  public static class Mutable_ParseRule
+  extends SimpleBooleanAnnotationParseRule<MutableNode, MutablePromiseDrop> {
     public Mutable_ParseRule() {
       super(MUTABLE, typeDeclOps, MutableNode.class);
     }
+    
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
       Part part = computeAppliesTo(context, offset);
       if (part == null) {
-    	  return null;
+        return null;
       }
       return new MutableNode(mods, part);
     }
+    
     @Override
     protected IPromiseDropStorage<MutablePromiseDrop> makeStorage() {
       return BooleanPromiseDropStorage.create(name(), MutablePromiseDrop.class);
     }
-	@Override
-	protected MutablePromiseDrop createDrop(MutableNode a) {
-		return new MutablePromiseDrop(a);
-	}    
+
+    @Override
+    protected IAnnotationScrubber makeScrubber() {
+      return new AbstractAASTScrubber<MutableNode, MutablePromiseDrop>(this) {
+        @Override
+        protected PromiseDrop<MutableNode> makePromiseDrop(
+            MutableNode a, boolean isAssumption) {
+          return storeDropIfNotNull(a, scrubMutable(getContext(), a));
+        }
+        
+        private MutablePromiseDrop scrubMutable(
+            final IAnnotationScrubberContext context, final MutableNode a) {
+          final IRNode promisedFor = a.getPromisedFor();
+          if (AnnotationDeclaration.prototype.includes(promisedFor)) {
+            // Applies to can not be exclusively "instance"
+            if (a.getAppliesTo() == Part.Instance) {
+              context.reportError(a, "Annotations never have any instance state");
+              return null;
+            }
+          }
+          return new MutablePromiseDrop(a);
+        }
+      };
+    }
   }
   
   public static class ImmutableParseRule 
@@ -2606,7 +2761,7 @@ public class LockRules extends AnnotationRules {
     }
     @Override
     protected IAnnotationScrubber makeScrubber() {
-      return new TypeAnnotationScrubber<ImmutableNode,ImmutablePromiseDrop, MutablePromiseDrop>(this, true, "Immutable", "Mutable", MUTABLE, NOT_THREAD_SAFE) {
+      return new TypeAnnotationWithAppliesToScrubber<ImmutableNode,ImmutablePromiseDrop, MutablePromiseDrop>(this, true, "Immutable", "Mutable", MUTABLE, NOT_THREAD_SAFE) {
         @Override
         protected ImmutablePromiseDrop getAnnotation(final IRNode superDecl) {
           return getImmutableImplementation(superDecl);
@@ -2714,6 +2869,7 @@ public class LockRules extends AnnotationRules {
             getContext().reportError(p, "Cannot be @Immutable and @NotThreadSafe");
             return false;
           }
+          
           return true;
         }
       };
