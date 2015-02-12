@@ -436,6 +436,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
     @RequiresLock("StatusLock")
     @Override
     protected boolean derive() {
+      //System.err.println(Thread.currentThread()+" deriving "+DebugUnparser.toString(unit));
       deriveInfo(this, unit);
       
       // Check if this should have been destroyed

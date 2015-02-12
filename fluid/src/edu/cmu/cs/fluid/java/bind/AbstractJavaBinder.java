@@ -677,7 +677,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
 			  bindings = toDerive;
 		  }
       } catch (StackOverflowError e) {
-    	  System.out.println("StackOverflow: "+DebugUnparser.toString(node)+" for "+this);
+    	  System.out.println(Thread.currentThread()+" StackOverflow: "+DebugUnparser.toString(node)+" for "+this);
     	  e.printStackTrace();
     	  throw e;    	  
       }
@@ -2188,9 +2188,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       IJavaType recType = null;
       final String name = MethodCall.getMethod(node);  
       /*
-      if ("flatMap".equals(name)) {
+      if ("flatMap".equals(name) || "map".equals(name)) {
     	  String unparse = DebugUnparser.toString(node);
-    	  if ("Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)".equals(unparse)) {
+    	  if ("Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)".equals(unparse) ||
+    			  "Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(unparse)) {
     		  System.out.println("Calling "+unparse);
     	  }
       }
@@ -2234,6 +2235,12 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
           }
         }
         final CallState state = new CallState(AbstractJavaBinder.this, node, targs, args, recType);
+        /*
+        if ("br.lines.collect(#.groupingBy(#, #)).forEach((# # str, # # set) -> { # # })".equals(state.toString())) {
+        	System.out.println("recType = "+recType);
+        	getApproxJavaType(receiver, rop);
+        }
+        */
         boolean success = bindCall(state,name, toUse);
         if (!success) {
           // FIX hack to get things to bind for receivers of raw type       
@@ -2254,7 +2261,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
               }
               System.out.println("Receiver: "+DebugUnparser.toString(receiver));
               System.out.println("Args:     "+DebugUnparser.toString(args));
-              IJavaType temp = getJavaType(receiver);
+              IJavaType temp = getApproxJavaType(receiver, rop);
               typeScope(temp);
               bindCall(state,name, toUse);
             }

@@ -1524,6 +1524,11 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
   
   @Override
   public IJavaType findJavaTypeByName(final String name) {	  
+	return findJavaTypeByName(name, null);
+  }
+  
+  @Override
+  public IJavaType findJavaTypeByName(final String name, IRNode useSite) {
 	// Check for array dimensions
     int dims = 0;    
     int possibleArray = name.length() - 2;
@@ -1536,17 +1541,17 @@ class SupertypesIterator extends SimpleIterator<IJavaType> {
     // FIX what about generics
     
     if (dims > 0) {
-    	IJavaType base = findJavaTypeByName_internal(name.substring(0, possibleArray));
+    	IJavaType base = findJavaTypeByName_internal(name.substring(0, possibleArray), useSite);
     	return JavaTypeFactory.getArrayType(base, dims);
     }
-    return findJavaTypeByName_internal(name);
+    return findJavaTypeByName_internal(name, useSite);
   }
   
   /**
    * Arrays should already be processed
    */
-  protected IJavaType findJavaTypeByName_internal(final String name) {
-	IRNode t = findNamedType(name);
+  protected IJavaType findJavaTypeByName_internal(final String name, IRNode useSite) {
+	IRNode t = findNamedType(name, useSite);
 	if (t != null) {
 	  if (TypeDeclaration.prototype.includes(t)) {
 		  return convertNodeTypeToIJavaType(t);
