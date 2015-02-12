@@ -2188,9 +2188,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       IJavaType recType = null;
       final String name = MethodCall.getMethod(node);  
       /*
-      if ("flatMap".equals(name)) {
+      if ("flatMap".equals(name) || "map".equals(name)) {
     	  String unparse = DebugUnparser.toString(node);
-    	  if ("Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)".equals(unparse)) {
+    	  if ("Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)".equals(unparse) ||
+    			  "Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(unparse)) {
     		  System.out.println("Calling "+unparse);
     	  }
       }
@@ -2260,7 +2261,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
               }
               System.out.println("Receiver: "+DebugUnparser.toString(receiver));
               System.out.println("Args:     "+DebugUnparser.toString(args));
-              IJavaType temp = getJavaType(receiver);
+              IJavaType temp = getApproxJavaType(receiver, rop);
               typeScope(temp);
               bindCall(state,name, toUse);
             }
