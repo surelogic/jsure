@@ -3,6 +3,7 @@
 <package name="java.lang" release="2">
     <class name="Enum">
         <TrackPartiallyInitialized/>
+        <Containable implementationOnly="true"/>
         <Immutable implementationOnly="true"/>
         <ThreadSafe implementationOnly="true"/>
         <constructor params="java.lang.String, int">
