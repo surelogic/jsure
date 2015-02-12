@@ -1736,6 +1736,7 @@ public class TypeUtils {
 			  MethodCall call = (MethodCall) op;
 			  IJavaFunctionType ftype = computeInvocationTypeForCall(p, call.get_Args(p), eliminateTypeVars);
 			  if (ftype == null) {
+				  computeInvocationTypeForCall(p, call.get_Args(p), eliminateTypeVars);
 				  throw new IllegalStateException();
 			  }
 			  return ftype.getParameterTypes().get(0);
