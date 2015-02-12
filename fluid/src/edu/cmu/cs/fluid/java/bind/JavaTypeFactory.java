@@ -1301,6 +1301,15 @@ class BoundedTypeFormal extends JavaTypeFormal {
 	public boolean equals(Object o) {
 		return source.equals(o);
 	}
+	
+	@Override
+	public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
+		if (t2 instanceof BoundedTypeFormal) {
+			BoundedTypeFormal o = (BoundedTypeFormal) t2;
+			return source.isEqualTo(env, t2) && subst.equals(o.subst);
+		}
+		return false;
+	}
 }
 
 class JavaIntersectionType extends JavaReferenceType implements IJavaIntersectionType {
