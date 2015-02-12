@@ -201,7 +201,7 @@ public class TypeInference8 {
 			return true;
 			*/
 		}
-		return false;
+		return v.isEqualTo(tEnv, t);
 	}
 	
 	class TypeVariable extends JavaReferenceType implements IJavaTypeVariable {
@@ -2652,7 +2652,7 @@ public class TypeInference8 {
 					if (equalities.contains(eb)) {
 						continue;
 					} 
-					//System.out.println("Incorporating equalB "+bound);
+					//System.out.println("Incorporating equalB "+b);
 					equalities.add(eb);
 					incorporateEqualityBound(temp, eb);
 				}
@@ -2702,6 +2702,9 @@ public class TypeInference8 {
 				}
 				// case 5: α = U and S = T imply ‹S[α:=U] = T[α:=U]›
 				if (subst != null) {
+					if (e.vars().contains(alpha)) {
+						continue; // Skip this equality since it already contains this variable?
+					}
 					if (!e.vars().isEmpty()) {
 						InferenceVariable beta = e.getRep(); // No subst to do
 						for(IJavaType t : copy(e.values())) {
