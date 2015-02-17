@@ -37,8 +37,7 @@ Export-Package: com.surelogic.annotation.rules,
  edu.cmu.cs.fluid.tree,
  edu.cmu.cs.fluid.version
 Bundle-ClassPath: .,
- lib/ant.jar,
- lib/ant-junit.jar
+ lib/ant-junit-1.9.4.jar
 Bundle-Activator: com.surelogic.jsure.tests.Activator
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy

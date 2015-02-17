@@ -6,7 +6,7 @@
 	<property name="lib" value="${basedir}/lib" />
 	<property name="classes" value="${basedir}/bin" />
 
-	<property name="ant.jar" value="${lib}/ant.jar" />
+	<property name="ant.jar" value="../../common/common/lib/runtime/ant-1.9.4.jar" />
 	<property name="tasks.jar" value="${basedir}/jsure-tests-ant-tasks.jar" />
 
 
