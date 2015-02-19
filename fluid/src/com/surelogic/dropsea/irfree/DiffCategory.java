@@ -7,6 +7,7 @@ import java.util.*;
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 
+import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.IViewable;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.*;
@@ -129,11 +130,32 @@ public final class DiffCategory<K extends Comparable<K>> implements IViewable, C
    		  newer.remove(o);
    	  } else {
     	  title = printTitle(out, title);
-   		  out.println("\tNewer  : " + toString(o));
+    	  
+   		  String altMsg = checkForAltMessage(o.drop);
+   		  if (altMsg != null) {
+     		out.println("\tNewer  : " + altMsg);
+   		  } else {
+   		  	out.println("\tNewer  : " + toString(o));
+   		  }
    	  }
     }
   }
 
+  private String checkForAltMessage(IDrop o) {
+	  /*
+	  if (o instanceof IProposedPromiseDrop) {
+		  IProposedPromiseDrop p = (IProposedPromiseDrop) o;
+		  if (NonNullRules.NONNULL.equals(p.getAnnotation())) {
+			  return p.getJavaAnnotation();
+		  }
+	  }
+	  else if (o.getMessage().contains(NonNullRules.NONNULL) || o.getMessage().contains(NonNullRules.NULLABLE)) {
+		  return o.getMessageCanonical();
+	  }
+	  */
+	  return null;
+  } 
+  
   private String printTitle(final PrintStream out, String title) {
 	  if (title != null) {
 		  out.println(title);
