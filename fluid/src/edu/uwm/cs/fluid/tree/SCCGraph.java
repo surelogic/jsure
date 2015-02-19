@@ -21,7 +21,7 @@ import edu.cmu.cs.fluid.tree.SymmetricDigraphInterface;
  * @author boyland
  */
 public class SCCGraph implements Iterable<SCCGraph.SCC> {
-  private final Map<IRNode,Integer> nodeIndex = new HashMap<IRNode,Integer>();
+  private final Map<IRNode,Integer> nodeIndex = new HashMap<IRNode,Integer>(); // TODO
   private final List<SCC> sccForNodeIndex = new ArrayList<SCC>();
   private final List<SCC> allSCCs = new ArrayList<SCC>();
   // if this structure is too space-inefficient, we can redefine SCC
@@ -137,9 +137,9 @@ public class SCCGraph implements Iterable<SCCGraph.SCC> {
   private static class Creator {
 	  final boolean reverse;
     final SymmetricDigraphInterface graph;
-    final HashSet<IRNode> visited = new HashSet<IRNode>();
+    final HashSet<IRNode> visited = new HashSet<IRNode>();  //TODO
     final List<IRNode> finished = new ArrayList<IRNode>();
-    final HashSet<IRNode> visited2 = new HashSet<IRNode>();
+    final HashSet<IRNode> visited2 = new HashSet<IRNode>(); //TODO
     final List<List<IRNode>> sccs = new ArrayList<List<IRNode>>();
     List<IRNode> scc = null;
     
