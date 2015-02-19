@@ -1,0 +1,47 @@
+java.lang.reflect.InvocationHandler, Object	invoke(Object proxy, Method method, Object[] args)
+java.lang.invoke.MethodHandle
+(these might be used legitimately by some programs)
+
+MethodHandles...
+Java Beans
+
+Classes involved in Known Vulnerabilities
+=========================================
+com.sun.org.glassfish.external.statistics.impl.AverageRangeStatisticImpl
+com.sun.org.glassfish.external.statistics.impl.BoundaryStatisticImpl 
+com.sun.org.glassfish.external.statistics.impl.BoundedRangeStatisticImpl
+com.sun.org.glassfish.external.statistics.impl.CountStatisticImpl
+com.sun.org.glassfish.external.statistics.impl.RangeStatisticImpl 
+com.sun.org.glassfish.external.statistics.impl.StringStatisticImpl
+com.sun.org.glassfish.external.statistics.impl.TimeStatisticImpl
+javax.management.remote.rmi.RMIConnectionImpl
+com.sun.beans.finder.ClassFinder
+java.lang.invoke.MethodHandles.Lookup 
+com.sun.jmx.mbeanserver.GetPropertyAction
+java.util.logging.LogManager
+com.sun.beans.finder.MethodFinder
+com.sun.beans.finder.ConstructorFinder
+com.sun.org.glassfish.gmbal.util.GenericConstructor
+com.sun.org.glassfish.gmbal.ManagedObjectManagerFactory
+com.sun.beans.decoder.MethodElementHandler
+java.lang.invoke.MethodHandles
+javax.management.modelmbean.DescriptorSupport
+javax.media.jai.OperationRegistry
+javax.swing.text.DefaultFormatter
+java.lang.invoke.MethodHandles.Lookup
+sun.plugin2.applet.JNLP2ClassLoader
+com.sun.beans.finder.FieldFinder
+com.sun.corba.se.impl.orbutil.GetPropertyAction 
+java.lang.invoke.MethodHandle
+com.ibm.rmi.util.ProxyUtil
+com.ibm.xtq.xslt.runtime.extensions.JavaExtensionUtils 
+com.ibm.xylem.instructions.StaticMethodInvocationInstruction
+com.ibm.xylem.instructions.JavaMethodInvocationInstruction
+com.ibm.rmi.io.ObjectStreamClass
+com.ibm.lang.management.ManagementUtils 
+com.ibm.xylem.interpreter.InterpreterUtilities
+com.ibm.rmi.corba.DynamicAny.DynValueCommonImpl
+com.ibm.xtq.xslt.runtime.JavaMethodResolver 
+com.ibm.rmi.util.ClassCache 
+com.ibm.xtq.xslt.translator.XSLTCHelper
+com.ibm.xtq.xslt.jaxp.compiler.TransformerFactoryImpl
