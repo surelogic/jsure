@@ -48,6 +48,9 @@ public class MethodBinder8 implements IMethodBinder {
     		System.out.println("Trying to find method for second()");
     	}
     	*/
+		if (call.toString().startsWith("Collections.synchronizedList(new # <#>)")) {
+			System.out.println("Trying to find best method for syncList()");
+		}
         final Set<MethodBinding> applicable = new HashSet<MethodBinding>();
         for(IBinding mb : methods) {
         	if (isPotentiallyApplicable(call, from, mb)) {
@@ -1566,12 +1569,10 @@ declared return type, Object .
     	}
     	
     	static MethodBinding8 create(ICallState c, MethodBinding m, ITypeEnvironment te, BoundSet b, InvocationKind kind) {
-    		/*
-    		if ("br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))".equals(c.toString())) {
+    		if (c.toString().startsWith("Collections.synchronizedList(new # <#>)")) {
     		//if ("Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(c.toString())) {    		
     			System.out.println("Creating boundset");
     		}
-    		*/
     		final BoundSet result = TypeInference8.resolve(b, null);    		
     		/*
     		if ("br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))".equals(c.toString())) {
@@ -1591,7 +1592,7 @@ declared return type, Object .
     			}
     		}
     		*/
-    		IBinding newB = reworkBinding(c, m.bind, te, result.getFinalTypeSubst(true));
+    		IBinding newB = reworkBinding(c, m.bind, te, result.getFinalTypeSubst(true, true));
     		return new MethodBinding8WithBoundSet(te, c, newB, b, kind);
     	}
     	
@@ -1998,7 +1999,7 @@ declared return type, Object .
 				if (call.toString().equals("ss.collect(<implicit>.toList)")) {//"Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)")) {
 					System.out.println("Got br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))");
 					BoundSet temp = TypeInference8.resolve(b_2, null);
-					temp.getFinalTypeSubst(eliminateTypeVars); 
+					temp.getFinalTypeSubst(eliminateTypeVars, false); 
 				}
 				IJavaFunctionType rv = typeInfer.inferForInvocationType(call, (MethodBinding8) mb, b_2, eliminateTypeVars, targetType);
 				if (rv == null) {

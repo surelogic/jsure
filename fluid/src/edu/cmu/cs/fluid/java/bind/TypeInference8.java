@@ -391,9 +391,28 @@ public class TypeInference8 {
 	 * @return the bound set B 2 if the method is applicable
 	 */   
 	BoundSet inferForInvocationApplicability(ICallState call, MethodBinding m, InvocationKind kind) {
-		if (call.toString().equals("br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))")) {
+		if (call.toString().equals("Collections.synchronizedList(new # <#>)")) {
 			System.out.println("Got br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))");
 		}
+
+		// HACK to deal with type variables in the receiver?
+		BoundSet hack = null;
+		if (!m.isConstructor) {
+			final TypeFormalCollector v = new TypeFormalCollector();
+			m.getReceiverType().visit(v);
+
+			if (!v.formals.isEmpty()) {
+				hack = constructInitialSet(v.formals);
+				call = new CallState((CallState) call, call.getReceiverType().subst(hack.getInitialVarSubst()));
+				
+				IBinding b = 
+						IBinding.Util.makeMethodBinding(m.bind, m.getContextType().subst(hack.getInitialVarSubst()),
+                                                        null, // TODO what should this be? 
+                                                        call.getReceiverType(), tEnv);
+				m = new MethodBinding(b);
+			}
+		}
+		
 		final BoundSet b_0;
 		if (ConstructorReference.prototype.includes(call.getNode())) {
 			// Special case to handle filling the type's variables, if any
@@ -401,6 +420,11 @@ public class TypeInference8 {
 		} else {
 			b_0 = constructInitialSet(m.typeFormals);
 		}
+
+		if (hack != null) {
+			b_0.merge(hack);
+		}
+		
 		/*
 		 *  check if type params appear in throws clause						
 		 *  
@@ -499,6 +523,72 @@ public class TypeInference8 {
 		return null;
 	}
 	
+	static class TypeFormalCollector implements IJavaType.Visitor {
+		final Set<IJavaTypeFormal> formals = new HashSet<IJavaTypeFormal>();
+		
+		public void accept(IJavaType t) {
+			if (t instanceof ReboundedTypeFormal) {
+				formals.add((ReboundedTypeFormal) t);
+			}
+		}	
+	}
+	
+	static class ReboundedTypeFormal extends JavaTypeFormal {
+		final IJavaTypeFormal source;
+		final IJavaReferenceType bound;
+		final ITypeEnvironment tEnv;
+		ReboundedTypeFormal(ITypeEnvironment te, IJavaTypeFormal src, IJavaType b) {
+			super(src.getDeclaration());		
+			/*
+			String unparse = src.toString();
+			if (unparse.contains("in java.util.List.toArray")) {
+				System.out.println("Creating bound for "+unparse);
+			}
+			*/
+			tEnv = te;
+			bound = (IJavaReferenceType) b;
+			source = src;
+		}
+		
+		@Override
+		public IJavaReferenceType getExtendsBound(ITypeEnvironment tEnv) {
+			return bound;
+		}
+		
+		@Override
+		public String toString() {
+		    IRNode decl = VisitUtil.getEnclosingDecl(declaration);
+			return JavaNames.getTypeName(declaration)+" (extends "+bound+") in "+JavaNames.getFullName(decl);
+		}
+		
+		/**
+		 * FIX Is this right?
+		 * Set to compare properly in maps for capture
+		 */
+		@Override
+		public int hashCode() {
+			return source.hashCode() + bound.hashCode();
+		}
+		
+		@Override
+		public boolean equals(Object o) {
+			if (o instanceof IJavaTypeFormal) {	
+				IJavaTypeFormal of = (IJavaTypeFormal) o;
+				return source.getDeclaration().equals(of.getDeclaration()) && bound.equals(of.getExtendsBound(tEnv));
+			}
+			return false;
+		}
+		
+		@Override
+		public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
+			if (t2 instanceof ReboundedTypeFormal) {
+				ReboundedTypeFormal o = (ReboundedTypeFormal) t2;
+				return source.isEqualTo(env, t2) && bound.equals(o.bound);
+			}
+			return false;
+		}
+	}
+	
 	/**
 	 * 18.5.2 Invocation Type Inference
 	 * 
@@ -578,7 +668,7 @@ public class TypeInference8 {
 		final BoundSet b_4 = computeB_4(b_3, c);
 		final IJavaFunctionType origType = mb.computeMethodType(m);
 		final BoundSet result = resolve(b_4, null);
-		final IJavaTypeSubstitution theta_prime = result/*b_4*/.getFinalTypeSubst(eliminateTypeVars);
+		final IJavaTypeSubstitution theta_prime = result/*b_4*/.getFinalTypeSubst(eliminateTypeVars, false);
 		if (b_4.usedUncheckedConversion()) {
 			return mb.substParams_eraseReturn(origType, theta_prime);			
 		} else {
@@ -1896,7 +1986,7 @@ public class TypeInference8 {
 		return constructInitialSet(getTypeFormalList(typeFormals), createdVars);
 	}
 	
-	BoundSet constructInitialSet(List<IJavaTypeFormal> typeFormals, IJavaType... createdVars) {
+	BoundSet constructInitialSet(Collection<IJavaTypeFormal> typeFormals, IJavaType... createdVars) {
 		// Setup inference variables
 		final int numFormals = typeFormals.size();
 		final InferenceVariable[] vars = new InferenceVariable[numFormals];
@@ -2322,7 +2412,7 @@ public class TypeInference8 {
 			original = null;
 		}
 
-		BoundSet(final List<IJavaTypeFormal> typeFormals, final InferenceVariable[] vars) {			
+		BoundSet(final Collection<IJavaTypeFormal> typeFormals, final InferenceVariable[] vars) {			
 			original = null;
 			isTemp = false;
 			
@@ -2490,12 +2580,12 @@ public class TypeInference8 {
 			return instantiations;
 		}
 
-		IJavaTypeSubstitution getFinalTypeSubst(boolean eliminateTypeVariables) {
-			Map<IJavaTypeFormal,IJavaType> subst = computeTypeSubst(eliminateTypeVariables);
+		IJavaTypeSubstitution getFinalTypeSubst(boolean eliminateTypeVariables, boolean useSubstAsBounds) {
+			Map<IJavaTypeFormal,IJavaType> subst = computeTypeSubst(eliminateTypeVariables, useSubstAsBounds);
 			return new TypeSubstitution(tEnv.getBinder(), subst);
 		}
 		
-		Map<IJavaTypeFormal,IJavaType> computeTypeSubst(boolean eliminateTypeVariables) {
+		Map<IJavaTypeFormal,IJavaType> computeTypeSubst(boolean eliminateTypeVariables, boolean useSubstAsBounds) {
 			final Map<IJavaTypeFormal,IJavaType> subst = new HashMap<IJavaTypeFormal,IJavaType>();
 			final Map<InferenceVariable,IJavaType> instantiations = getInstantiations();
 			if (eliminateTypeVariables) {
@@ -2513,7 +2603,17 @@ public class TypeInference8 {
 					getInstantiations();
 					throw new IllegalStateException("No instantiation for "+e.getKey());
 				}
-				subst.put(e.getKey(), t);
+				if (useSubstAsBounds && t.getName().equals("java.lang.Object")) {
+					/*
+					System.out.println("Rebounded: "+e.getKey());
+					if ("R extends java.lang.Object in java.util.stream.Stream.map(java.util.function.Function <? super T, ? extends R>)".equals(e.getKey().toString())) {
+						System.out.println("Found Stream.R");
+					}
+					*/
+					subst.put(e.getKey(), new ReboundedTypeFormal(tEnv, e.getKey(), t));
+				} else {
+					subst.put(e.getKey(), t);
+				}
 			}
 			return subst;
 		}
@@ -3851,7 +3951,7 @@ public class TypeInference8 {
 		final CallState call = new CallState(tEnv.getBinder(), e, c.get_TypeArgs(e), c.get_Args(e), b.getReceiverType());
 		Pair<MethodBinding,BoundSet> pair = recomputeB_2(call, b);
 		MethodBinding m = pair.first();
-		IJavaType r = m.getReturnType(tEnv, false);
+		IJavaType r = m.getReturnType(tEnv, false); // TODO why no subst?
 		BoundSet b_3 = computeB_3(call, r, pair.second(), t); 
 		return new Triple<CallState,MethodBinding8,BoundSet>(call, b, b_3);
 	}
