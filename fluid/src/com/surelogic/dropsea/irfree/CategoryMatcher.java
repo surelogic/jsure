@@ -119,8 +119,10 @@ public abstract class CategoryMatcher {
     	final int at = o.getMessage().indexOf('@');
     	if (at > 0) {
     		final int spaceAfterAnno = o.getMessage().indexOf(' ', at);
-    		final String reconstructed = o.getMessage().substring(0, spaceAfterAnno) +'('+ o.getMessage().substring(spaceAfterAnno+1) +')';
-    		result = matchStrings(n.getMessage(), reconstructed, true);
+    		if (spaceAfterAnno > 0) {
+    			final String reconstructed = o.getMessage().substring(0, spaceAfterAnno) +'('+ o.getMessage().substring(spaceAfterAnno+1) +')';
+    			result = matchStrings(n.getMessage(), reconstructed, true);
+    		}
     	}
     }
     return result != null ? result : false;
