@@ -54,7 +54,7 @@ public class OperatorGen extends AbstractASTGenerator {
   }
 
   public OperatorGen() {
-    super(STD_PREFIX);
+    super(STD_PKG_PREFIX);
   }
   
   /*
@@ -70,7 +70,7 @@ public class OperatorGen extends AbstractASTGenerator {
   */
   
   public static void main(String[] args) {
-    OperatorGen m = new OperatorGen(STD_PREFIX, STD_SUFFIX);
+    OperatorGen m = new OperatorGen(STD_PKG_PREFIX, STD_SUFFIX);
     if (args.length == 0) {
       m.generate(new String[] { "-out", "out", "ops"});
     } else {
@@ -1117,12 +1117,12 @@ public class OperatorGen extends AbstractASTGenerator {
     }
   }
   
-  public static final String STD_PREFIX = "edu.cmu.cs.fluid";
+  public static final String STD_PKG_PREFIX = "edu.cmu.cs.fluid";
   private final String stdPackage = makePackageName(pkgPrefix, STD_SUFFIX);
   
   @Override
   protected void generateForAll() {
-    String outPath = computePath(outDir, STD_PREFIX);
+    String outPath = computePath(outDir, STD_PKG_PREFIX);
     String stdPath = computePath(outPath, STD_SUFFIX);
     
     openPrintStream(stdPath + File.separator + "ILogicallyInvisible.java");

@@ -167,8 +167,6 @@ public class Javac extends IDE {
 
 	@Override
 	public URL getResourceRoot() {
-		// return Resources.findRoot("edu.cmu.cs.fluid");
-	
 		// Use a manually-set workspace
 		try {
 			String fluidLocation = System.getProperty(RemoteJSureRun.FLUID_DIRECTORY_URL);

@@ -134,7 +134,7 @@ public class OperatorNodeGen extends AbstractOperatorNodeGen {
     printJava("import edu.cmu.cs.fluid.java.*;\n");
     printJava("import edu.cmu.cs.fluid.tree.*;\n");
     for (String p : packagesAppearing()) {
-      printJava("import "+OperatorGen.STD_PREFIX+"."+p+".*;\n");
+      printJava("import "+OperatorGen.STD_PKG_PREFIX+"."+p+".*;\n");
       printJava("import "+pkgPrefix+p+".*;\n");
     }
     printJava("\n");

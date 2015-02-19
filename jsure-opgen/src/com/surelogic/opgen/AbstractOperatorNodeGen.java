@@ -32,9 +32,9 @@ public abstract class AbstractOperatorNodeGen extends AbstractASTImplGenerator {
   @Override
   protected final Set<String> getPackagesUsed(OpSyntax s) {
     Set<String> ss = super.getPackagesUsed(s);
-    ss.add(makePackageName(OperatorGen.STD_PREFIX+".", s.packageName));
+    ss.add(makePackageName(OperatorGen.STD_PKG_PREFIX+".", s.packageName));
     if (getLogicalParentStatus(s.name) == ParentSubstitutionType.SOME) {
-      ss.add(makePackageName(OperatorGen.STD_PREFIX+".", STD_SUFFIX));
+      ss.add(makePackageName(OperatorGen.STD_PKG_PREFIX+".", STD_SUFFIX));
     }
 //    switch (getLogicalParentStatus(s.name)) {
 //    case SOME:

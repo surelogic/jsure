@@ -43,7 +43,7 @@ public abstract class AbstractOperatorProxyNodeGen extends AbstractOperatorNodeG
     printJava("import edu.cmu.cs.fluid.java.*;\n");
     printJava("import edu.cmu.cs.fluid.tree.*;\n");
     for (String p : packagesAppearing()) {
-      printJava("import "+OperatorGen.STD_PREFIX+"."+p+".*;\n");
+      printJava("import "+OperatorGen.STD_PKG_PREFIX+"."+p+".*;\n");
       printJava("import "+astPrefix+p+".*;\n");
       printJava("import "+pkgPrefix+p+".*;\n");
     }

@@ -11,6 +11,7 @@ import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.MemoryUtility;
 import com.surelogic.javac.Javac;
+import com.surelogic.javac.jobs.JSureConstants;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
@@ -95,7 +96,7 @@ public class JavacEclipse extends Javac {
   @Override
   public URL getResourceRoot() {
     try {
-      File f = new File(EclipseUtility.getDirectoryOf("edu.cmu.cs.fluid"));
+      File f = new File(EclipseUtility.getDirectoryOf(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID));
       return f.toURI().toURL();
     } catch (Throwable e) {
       // Try to use this plugin to find fluid
