@@ -123,7 +123,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 				File home = new File(scan.getHome());
 				if (AbstractLocalSLJob.COMMON_PLUGIN_ID.equals(id)) {
 					return new File(home, "lib/common").getAbsolutePath();
-				} else if (JSureConstants.FLUID_PLUGIN_ID.equals(id)) {
+				} else if (JSureConstants.JSURE_ANALYSIS_PLUGIN_ID.equals(id)) {
 					return new File(home, "lib/fluid").getAbsolutePath();
 				}
 				throw new IllegalStateException("Unknown plugin id requested: "

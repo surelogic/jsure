@@ -17,7 +17,7 @@ Export-Package: com.surelogic.jsure.core,
  com.surelogic.jsure.core.xml
 Require-Bundle: com.surelogic.common,
  com.surelogic.common.core,
- edu.cmu.cs.fluid,
+ com.surelogic.jsure.analysis,
  org.eclipse.core.resources,
  org.eclipse.core.runtime,
  org.eclipse.jdt.core,

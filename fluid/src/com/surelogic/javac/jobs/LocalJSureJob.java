@@ -49,11 +49,11 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 	protected void setupClassPath(final ConfigHelper util, CommandlineJava cmdj, Project proj, Path path) {
 		// All unpacked
 		util.addPluginAndJarsToPath(COMMON_PLUGIN_ID, "lib/runtime");
-		util.addPluginAndJarsToPath(JSureConstants.FLUID_PLUGIN_ID, "lib/runtime");
+		util.addPluginAndJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime");
 		if (SystemUtils.IS_JAVA_1_8) {
-			util.addPluginAndJarsToPath(JSureConstants.FLUID_PLUGIN_ID, "lib/runtime8");
+			util.addPluginAndJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime8");
 		} else {
-			util.addPluginAndJarsToPath(JSureConstants.FLUID_PLUGIN_ID, "lib/runtime7");
+			util.addPluginAndJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime7");
 		}
 		
 		final boolean isMac = System.getProperty("sun.boot.class.path") != null || SystemUtils.IS_OS_MAC_OSX;
@@ -70,9 +70,9 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 			// Add lib/javac.jar to the bootpath
 			util.clear();
 			if (SystemUtils.IS_JAVA_1_8) {
-				util.addPluginJarsToPath(JSureConstants.FLUID_PLUGIN_ID, "lib/runtime8/javac_8.jar");
+				util.addPluginJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime8/javac_8.jar");
 			} else {
-				util.addPluginJarsToPath(JSureConstants.FLUID_PLUGIN_ID, "lib/runtime7/javac.jar");
+				util.addPluginJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime7/javac.jar");
 			}
 			final Path bootpath = cmdj.createBootclasspath(proj);		
 			for(File jar : util.getPath()) {
@@ -115,7 +115,7 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 		}
 		
 		final ConfigHelper util = new ConfigHelper(debug, config);
-		String location = util.getPluginDir(JSureConstants.FLUID_PLUGIN_ID, true);
+		String location = util.getPluginDir(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, true);
 		try {
 			cmdj.createVmArgument().setValue("-D"+RemoteJSureRun.FLUID_DIRECTORY_URL+"="+new File(location).toURI().toURL());
 		} catch (MalformedURLException e) {

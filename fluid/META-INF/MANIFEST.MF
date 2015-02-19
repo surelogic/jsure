@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: JSure/Fluid Analysis/Transformation Core
-Bundle-SymbolicName: edu.cmu.cs.fluid
+Bundle-Name: JSure Analysis/Transformation Core
+Bundle-SymbolicName: com.surelogic.jsure.analysis
 Bundle-Version: 5.6.0.qualifier
 Bundle-ClassPath: .,
  lib/runtime/log4j-xml-1.3alpha-8.jar,
