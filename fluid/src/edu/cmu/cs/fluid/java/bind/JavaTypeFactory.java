@@ -2488,9 +2488,16 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 				throw new IllegalArgumentException("instantiation didn't handle " + f);
 			}
 		}
+		IJavaType rt = getReturnType();
+		IJavaType rt_subst = rt.subst(s);
+		if (rt_subst == null && rt instanceof IJavaTypeFormal) {
+			// Handle raw types
+			IJavaTypeFormal f = (IJavaTypeFormal) rt;
+			rt_subst = f.getExtendsBound(s.getTypeEnv());
+		}
 		return JavaTypeFactory.getFunctionType(
 				newFormals,
-				getReturnType().subst(s), 
+				rt_subst, 
 				Arrays.asList(subst(paramTypes.toArray(JavaTypeFactory.emptyTypes),s)), 
 				isVariable, 
 				new HashSet<IJavaType>(Arrays.asList(subst(exceptions,s))));		
