@@ -170,6 +170,9 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
   @Override
   protected <V> V process(IJavaTypeFormal jtf, Process<V> processor) {
 	final IRNode decl = jtf.getDeclaration();
+	if (decl == null) {
+		return null;
+	}
     final IRNode parent = JJNode.tree.getParent(decl);
     
     final IRNode enclosingDecl = JJNode.tree.getParent(parent);
