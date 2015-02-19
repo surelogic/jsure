@@ -482,7 +482,11 @@ public class JavaTypeVisitor extends Visitor<IJavaType> {
     if( op instanceof MethodDeclaration ) {
       if (processJava8) {
     	 MethodBinder8 mb = new MethodBinder8((IPrivateBinder) binder, false);
-    	 return mb.computeInvocationType(call, (MethodBinding8) b, false).getReturnType();
+    	 IJavaFunctionType ft = mb.computeInvocationType(call, (MethodBinding8) b, false);
+    	 if (ft == null) {
+    		 mb.computeInvocationType(call, (MethodBinding8) b, false);
+    	 }
+    	 return ft.getReturnType();
       }
     	
       // Check if Object.getClass()
