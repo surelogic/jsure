@@ -25,6 +25,7 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.javac.jobs.JSureConstants;
 
 import edu.cmu.cs.fluid.ide.IClassPath;
 import edu.cmu.cs.fluid.ide.IClassPathContext;
@@ -349,7 +350,7 @@ public final class Eclipse extends IDE {
 
   @Override
   public URL getResourceRoot() {
-    File f = new File(EclipseUtility.getDirectoryOf("edu.cmu.cs.fluid"));
+    File f = new File(EclipseUtility.getDirectoryOf(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID));
     try {
       return f.toURI().toURL();
     } catch (MalformedURLException e) {
