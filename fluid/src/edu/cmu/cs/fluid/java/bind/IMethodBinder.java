@@ -68,7 +68,16 @@ interface IMethodBinder {
 	    	receiverType = type == null ? null : b.getTypeEnvironment().convertNodeTypeToIJavaType(type);
     	}
     	
-    	@Override
+    	CallState(CallState o, IJavaType recType) {
+    		binder = o.binder;
+      		call = o.call;
+      		targs = o.targs;
+      		args = o.args;
+      		receiverType = recType;
+      		constructorType = null;
+		}
+
+		@Override
     	public String toString() {
     		return DebugUnparser.toString(call);
     	}
