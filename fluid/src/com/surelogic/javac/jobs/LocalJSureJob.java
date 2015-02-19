@@ -78,16 +78,33 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 			for(File jar : util.getPath()) {
 				addToPath(proj, bootpath, jar, true);
 			}
-			String defaultPath = System.getProperty("sun.boot.class.path");
-			for(String p : defaultPath.split(File.pathSeparator)) {
-				addToPath(proj, bootpath, new File(p), false);
-			}
+            if (usePrivateJRE) {
+            	final File jre = new File(JRE_HOME);
+             	for(String p : JRE_PATH) {
+            		addToPath(proj, bootpath, new File(jre, p), false);
+            	}
+            } else {
+            	String defaultPath = System.getProperty("sun.boot.class.path");
+            	for(String p : defaultPath.split(File.pathSeparator)) {
+            		addToPath(proj, bootpath, new File(p), false);
+            	}
+            }
 			
 			for(String s : bootpath.list()) {
 				println("Boot classpath: "+s);
 			}		
 		}
 	}
+
+	private static final String[] JRE_PATH = {
+		"lib/resources.jar",
+		"lib/rt.jar",
+		//"lib/sunrsasign.jar",
+		"lib/jsse.jar",
+		"lib/jce.jar",
+		"lib/charsets.jar",
+		//"lib/jfr.jar",
+	};
 	
 	@Override
 	protected void finishSetupJVM(boolean debug, CommandlineJava cmdj, Project proj) {			
