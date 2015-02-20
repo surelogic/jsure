@@ -8,21 +8,13 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 
 import com.surelogic.analysis.*;
-import com.surelogic.analysis.granules.IAnalysisGranule;
 
 /**
  * A minimum analysis module, intended to be extended by other classes to create
  * new analysis modules. Analysis modules are singleton classes that implement
  * the {@link IAnalysis}interface.
  */
-public class AbstractAnalysisModule<Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> implements IAnalysis {
-  public AbstractAnalysisModule() {
-	  super(false, null);
-  }
-  public AbstractAnalysisModule(boolean inParallel, Class<Q> type) {
-	  super(inParallel, type);
-  }
-	
+public class AbstractAnalysisModule implements IAnalysis {	
   /**
    * The label from the plugin.xml that defined this analysis module. It is
    * passed in via {@link #setLabel(String)}by {@link Majordomo}and retrieved
