@@ -45,9 +45,10 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
       drops.addAll(scan.getProofDrops());
       if (showHints)
         drops.addAll(scan.getHintDrops());
-      if (showObsoleteDrops && diff != null)
-        drops.addAll(diff.getDropsOnlyInOldScan(oldScan));
-
+      if (showObsoleteDrops && diff != null) {
+        //drops.addAll(diff.getDropsOnlyInOldScan(oldScan));
+    	throw new UnsupportedOperationException("Temporarily disabled while reorganizing fluid");
+      }
       final Set<IDrop> oldDrops = oldScan == null ? null : new HashSet<IDrop>(oldScan.getDropInfo());
       for (IDrop pd : drops) {
         if (!(pd instanceof IProofDrop || pd instanceof IHintDrop))

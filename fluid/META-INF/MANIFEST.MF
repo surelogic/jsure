@@ -50,7 +50,6 @@ Export-Package:
  com.surelogic.ast.fluid,
  com.surelogic.ast.java.operator,
  com.surelogic.ast.java.promise,
- com.surelogic.dropsea,
  com.surelogic.dropsea.ir,
  com.surelogic.dropsea.ir.drops,
  com.surelogic.dropsea.ir.utility,
