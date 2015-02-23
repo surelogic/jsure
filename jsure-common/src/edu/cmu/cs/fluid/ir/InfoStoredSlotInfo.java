@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 //import edu.cmu.cs.fluid.java.*;
-import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 
@@ -118,7 +117,7 @@ public class InfoStoredSlotInfo<S,T> extends StoredSlotInfo<S,T> {
           nodes.add(e.getKey());
         }
       }
-      return new ImmutableHashOrderSet<IRNode>(nodes.toArray(JavaGlobals.noNodes),!normal);
+      return new ImmutableHashOrderSet<IRNode>(nodes.toArray(IRGlobals.noNodes),!normal);
     } else return null;
   }
 

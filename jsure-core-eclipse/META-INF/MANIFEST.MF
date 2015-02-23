@@ -23,7 +23,8 @@ Require-Bundle: com.surelogic.common,
  org.eclipse.jdt.core,
  org.eclipse.compare,
  org.eclipse.jdt.launching,
- org.eclipse.debug.core
+ org.eclipse.debug.core,
+ com.surelogic.jsure.common
 Eclipse-LazyStart: true
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7

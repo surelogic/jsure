@@ -1,9 +1,10 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/test/WarningDropOutput.java,v 1.13 2008/05/15 16:24:11 aarong Exp $*/
-package com.surelogic.test;
+package com.surelogic.dropsea.ir;
 
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
+import com.surelogic.test.*;
 
 public class WarningDropOutput extends AbstractTestOutput {
   private final String category;

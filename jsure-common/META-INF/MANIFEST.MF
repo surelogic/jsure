@@ -6,3 +6,8 @@ Bundle-Version: 5.6.0.qualifier
 Bundle-Vendor: SureLogic, Inc.
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Require-Bundle: com.surelogic.common
+Export-Package: com.surelogic.dropsea,
+ com.surelogic.test,
+ edu.cmu.cs.fluid,
+ edu.cmu.cs.fluid.ir,
+ edu.cmu.cs.fluid.util
