@@ -21,8 +21,6 @@ package edu.cmu.cs.fluid.util;
 import org.apache.commons.collections15.KeyValue;
 import org.apache.commons.collections15.MapIterator;
 
-import edu.cmu.cs.fluid.ir.*;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -1359,6 +1357,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 		map.put("hi", "bye");
 		System.out.println(map.get("hi"));
 
+		/*
 		IRNode foo = new MarkedIRNode("foo");
 		map.put(foo, "bar");
 		System.out.println(map.get(foo));
@@ -1372,6 +1371,7 @@ public class CustomizableHashCodeMap<K, V> extends AbstractHashMap<K, V> {
 		for (IRNode n : nodes) {
 			System.out.println(map.get(n));
 		}
+		*/
 		System.out.println(map);
 	}
 }
