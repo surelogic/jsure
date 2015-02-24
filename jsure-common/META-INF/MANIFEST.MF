@@ -9,5 +9,4 @@ Require-Bundle: com.surelogic.common
 Export-Package: com.surelogic.dropsea,
  com.surelogic.test,
  edu.cmu.cs.fluid,
- edu.cmu.cs.fluid.ir,
  edu.cmu.cs.fluid.util
