@@ -11,8 +11,8 @@ import org.eclipse.swt.widgets.*;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.jobs.remote.AbstractRemoteSLJob;
 import com.surelogic.common.ui.EclipseUIUtility;
-import com.surelogic.javac.persistence.JSureScan;
-import com.surelogic.javac.persistence.ScanProperty;
+import com.surelogic.java.persistence.JSureScan;
+import com.surelogic.java.persistence.ScanProperty;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.views.debug.AbstractJSureScanView;
 

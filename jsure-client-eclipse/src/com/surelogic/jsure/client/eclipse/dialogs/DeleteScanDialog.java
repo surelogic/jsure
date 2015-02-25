@@ -11,7 +11,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
-import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.java.persistence.JSureScan;
 
 /**
  * Prompts to ensure that the use really wants to delete a JSure scan.

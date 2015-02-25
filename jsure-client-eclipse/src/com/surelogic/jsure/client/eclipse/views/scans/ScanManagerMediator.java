@@ -36,6 +36,7 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.java.JavaProject;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
@@ -44,9 +45,8 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.ColumnViewerSorter;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TableUtility;
-import com.surelogic.javac.JavacProject;
-import com.surelogic.javac.persistence.JSureDataDir;
-import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.java.persistence.JSureDataDir;
+import com.surelogic.java.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.dialogs.DeleteScanDialog;
 import com.surelogic.jsure.client.eclipse.handlers.VerifyProjectHandler;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
@@ -115,7 +115,7 @@ public final class ScanManagerMediator implements ILifecycle {
           try {
             // Collect the projects together
             final List<IJavaProject> selectedProjects = new ArrayList<IJavaProject>();
-            for (final JavacProject p : current.getProjects()) {
+            for (final JavaProject p : current.getProjects()) {
               if (!p.isAsBinary()) {
                 final IJavaProject jp = JDTUtility.getJavaProject(p.getName());
                 if (jp == null) {
@@ -271,7 +271,7 @@ public final class ScanManagerMediator implements ILifecycle {
       }
       oneScanSelectedWithProjectsInWorkspace = true;
       try {
-        for (JavacProject p : selectedScan.getProjects()) {
+        for (JavaProject p : selectedScan.getProjects()) {
           if (p.shouldExistAsIProject()) {
             if (JDTUtility.getJavaProject(p.getName()) == null) {
               oneScanSelectedWithProjectsInWorkspace = false;

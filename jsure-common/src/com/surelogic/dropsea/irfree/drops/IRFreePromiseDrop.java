@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.surelogic.NonNull;
 import com.surelogic.common.xml.Entity;
+import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.IAnalysisResultDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 
@@ -36,14 +37,18 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
     f_deponentPromises.add(p);
   }
 
-  IRFreePromiseDrop(Entity e, Class<?> irClass) {
-    super(e, irClass);
+  IRFreePromiseDrop(Entity e) {
+    super(e);
     f_isAssumed = "true".equals(e.getAttribute(ASSUMED));
     f_isCheckedByAnalysis = "true".equals(e.getAttribute(CHECKED_BY_ANALYSIS));
     f_isIntendedToBeCheckedByAnalysis = "true".equals(e.getAttribute(TO_BE_CHECKED_BY_ANALYSIS));
     f_isVirtual = "true".equals(e.getAttribute(VIRTUAL));
   }
 
+  public DropType getDropType() {
+	return DropType.PROMISE;
+  }
+  
   @Override
   @NonNull
   public Collection<? extends IAnalysisResultDrop> getCheckedBy() {
@@ -81,4 +86,16 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
   public boolean isVirtual() {
     return f_isVirtual;
   }
+
+@Override
+public boolean showAtTopLevel() {
+	// TODO Auto-generated method stub
+	return false;
+}
+
+@Override
+public boolean placeInASubFolder() {
+	// TODO Auto-generated method stub
+	return false;
+}
 }

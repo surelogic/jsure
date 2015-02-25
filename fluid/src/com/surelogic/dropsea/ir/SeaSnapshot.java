@@ -1,4 +1,4 @@
-package com.surelogic.dropsea.irfree;
+package com.surelogic.dropsea.ir;
 
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FLAVOR_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FULL_TYPE_ATTR;
@@ -9,6 +9,7 @@ import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROPERTIES;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ROOT;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TYPE_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.UID_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DROP_TYPE_ATTR;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -30,8 +31,7 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISnapshotDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.Sea;
-import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
-import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReaderListener;
+import com.surelogic.dropsea.irfree.drops.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.MarkedIRNode;
@@ -125,6 +125,7 @@ public class SeaSnapshot extends XmlCreator {
     final Class<?> c = d.getClass();
     db.addAttribute(TYPE_ATTR, c.getSimpleName());
     db.addAttribute(FULL_TYPE_ATTR, c.getName());
+    db.addAttribute(DROP_TYPE_ATTR, d.getDropType().name());
     db.addAttribute(ID_ATTR, id);
     final IJavaRef javaRef = d.getJavaRef();
     if (javaRef != null) {
@@ -164,22 +165,6 @@ public class SeaSnapshot extends XmlCreator {
       pb.addAttribute(e.getKey(), e.getValue());
     }
     pb.end();
-  }
-
-  public static List<IDrop> loadSnapshot(File location) throws Exception {
-    return loadSnapshot(null, location);
-  }
-
-  public static List<IDrop> loadSnapshot(SeaSnapshot s, File location) throws Exception {
-    DeclUtil.setStringCache(new StringCache());
-    final SeaSnapshotXMLReaderListener l;
-    try {
-      l = new SeaSnapshotXMLReaderListener(s);
-      new SeaSnapshotXMLReader(l).read(location);
-    } finally {
-      DeclUtil.setStringCache(null);
-    }
-    return l.getDrops();
   }
 
   public static long computeHash(IRNode node) {

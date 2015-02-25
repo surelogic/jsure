@@ -35,7 +35,7 @@ import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.javac.Projects;
-import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.java.persistence.JSureScan;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 

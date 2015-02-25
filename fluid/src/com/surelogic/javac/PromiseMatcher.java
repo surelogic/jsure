@@ -10,6 +10,7 @@ import com.surelogic.common.AbstractJavaZip;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.java.*;
 import com.surelogic.common.java.PersistenceConstants;
+import com.surelogic.java.persistence.*;
 import com.surelogic.javac.persistence.*;
 import com.surelogic.persistence.*;
 
@@ -34,7 +35,7 @@ public class PromiseMatcher {
 	
 	public static boolean load(File runDir) throws Exception {
 		final JSureScan run = JSureDataDirScanner.findRunDirectory(runDir);
-		final Projects projs = run.getProjects();
+		final Projects projs = (Projects) run.getProjects();
 		
 		// Get source info
 		File zips = new File(runDir, PersistenceConstants.ZIPS_DIR);
@@ -71,7 +72,7 @@ public class PromiseMatcher {
 		for(JavaSourceFile jsf : scanner.selectByFilePath(path2JSF)) {
 			int firstSlash = jsf.relativePath.indexOf('/');
 			String proj = firstSlash < 0 ? jsf.relativePath : jsf.relativePath.substring(0, firstSlash);
-			JavacProject p = projs.get(proj);
+			JavaProject p = projs.get(proj);
 			p.getConfig().addFile(jsf);
 			System.out.println(proj+": added "+jsf.relativePath);
 		}		

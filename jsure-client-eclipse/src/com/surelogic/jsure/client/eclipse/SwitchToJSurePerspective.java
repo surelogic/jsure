@@ -3,7 +3,7 @@ package com.surelogic.jsure.client.eclipse;
 import org.eclipse.ui.progress.UIJob;
 
 import com.surelogic.common.ILifecycle;
-import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.java.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.jobs.SwitchToJSurePerspectiveJob;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 

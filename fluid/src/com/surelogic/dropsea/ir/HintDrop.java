@@ -7,6 +7,7 @@ import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.common.xml.XmlCreator;
+import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.IHintDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -46,6 +47,10 @@ public final class HintDrop extends Drop implements IHintDrop {
 
   private final HintType f_type;
 
+  public final DropType getDropType() {
+	return DropType.HINT;
+  }
+  
   @Override
   @NonNull
   public HintType getHintType() {

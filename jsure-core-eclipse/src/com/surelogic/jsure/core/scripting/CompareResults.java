@@ -7,7 +7,7 @@ import java.io.*;
 
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 

@@ -11,7 +11,7 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IMetricDrop;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 
 public class StateWrtViewContentProvider implements ITreeContentProvider {

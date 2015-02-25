@@ -6,19 +6,20 @@ import java.util.logging.Level;
 import org.eclipse.core.resources.IProject;
 
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.java.JavaProject;
+import com.surelogic.common.java.JavaProjectSet;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
-import com.surelogic.javac.*;
-import com.surelogic.javac.persistence.*;
+import com.surelogic.java.persistence.*;
 
 public class OracleUtility {
 	public static JSureScan findOracle(final JSureScan scan) {
 		File sharedParent = null;
 		boolean setParent = false;
 		try {
-			final Projects projects = scan.getProjects();
+			final JavaProjectSet<? extends JavaProject> projects = scan.getProjects();
 			final boolean hasMultipleProjects = projects.size() > 2;
-			for(final JavacProject jp : projects) {
+			for(final JavaProject jp : projects) {
 				final IProject p = EclipseUtility.getProject(jp.getName());
 				if (p == null || !p.exists()) {
 					continue;

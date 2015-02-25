@@ -21,7 +21,7 @@ import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;

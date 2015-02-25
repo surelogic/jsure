@@ -7,7 +7,6 @@ import java.util.*;
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 
-import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.IViewable;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.*;

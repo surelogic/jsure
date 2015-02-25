@@ -85,4 +85,8 @@ public interface IPromiseDrop extends IProofDrop {
    */
   @NonNull
   Collection<? extends IPromiseDrop> getDeponentPromises();
+  
+  boolean showAtTopLevel();
+  
+  boolean placeInASubFolder();
 }

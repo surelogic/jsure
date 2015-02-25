@@ -19,7 +19,7 @@ import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.dropsea.IMetricDrop;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 
 /**
  * This class handles showing that no scan is selected for each metric mediator.

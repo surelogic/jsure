@@ -10,16 +10,17 @@ import org.eclipse.ui.IViewPart;
 
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.java.*;
+import com.surelogic.common.java.JavaProject;
+import com.surelogic.common.java.JavaProjectSet;
 import com.surelogic.common.ui.BalloonUtility;
-import com.surelogic.javac.*;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public class RunJSecure implements IViewActionDelegate {
 	public void run(IAction action) {		
 		try {
-			Projects projects = JSureDataDirHub.getInstance().getCurrentScan().getProjects();
+			JavaProjectSet<? extends JavaProject> projects = JSureDataDirHub.getInstance().getCurrentScan().getProjects();
 			List<IJavaProject> selectedProjects = new ArrayList<IJavaProject>();
-			for(JavacProject o : projects) {
+			for(JavaProject o : projects) {
 				IJavaProject jp = JDTUtility.getJavaProject(o.getName());
 				if (jp != null) {
 					selectedProjects.add(jp);

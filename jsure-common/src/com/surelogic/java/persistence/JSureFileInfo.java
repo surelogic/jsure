@@ -1,4 +1,4 @@
-package com.surelogic.javac.persistence;
+package com.surelogic.java.persistence;
 
 import java.io.File;
 

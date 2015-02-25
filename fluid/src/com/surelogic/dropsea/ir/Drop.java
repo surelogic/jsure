@@ -39,7 +39,7 @@ import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.irfree.DiffHeuristics;
-import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.ir.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -98,17 +98,27 @@ public abstract class Drop implements IDrop {
     f_mySea.notify(this, DropEvent.Created);
   }
 
-  @Override
+  //@Override
   @NonNull
   public Class<?> getIRDropSeaClass() {
     return getClass();
   }
 
-  @Override
+  //@Override
   public boolean instanceOfIRDropSea(Class<?> type) {
     return type.isInstance(this);
   }
 
+  @NonNull
+  public final String getSimpleClassName() {
+	  return getClass().getSimpleName();
+  }
+  
+  @NonNull
+  public final String getFullClassName() {
+	  return getClass().getName();
+  }
+  
   /**
    * Gets the sea that this drop is part of.
    * 
@@ -1141,7 +1151,7 @@ public abstract class Drop implements IDrop {
     if (loc == null) {
       getJavaRefAndCorrespondingNode();
     }
-    DiffHeuristics.computeDiffInfo(this, loc);
+    DiffHeuristicsComputation.computeDiffInfo(this, loc);
     addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_TREE_HASH, SeaSnapshot.computeHash(getNode())));
     addOrReplaceDiffInfo(KeyValueUtility.getLongInstance(DiffHeuristics.FAST_CONTEXT_HASH,
         SeaSnapshot.computeContextHash(getNode())));

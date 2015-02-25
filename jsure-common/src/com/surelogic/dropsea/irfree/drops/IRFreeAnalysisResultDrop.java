@@ -27,8 +27,8 @@ public abstract class IRFreeAnalysisResultDrop extends IRFreeProofDrop implement
     f_trusted.add(info);
   }
 
-  IRFreeAnalysisResultDrop(Entity e, Class<?> irClass) {
-    super(e, irClass);
+  IRFreeAnalysisResultDrop(Entity e) {
+    super(e);
 
     f_usedByProof = "true".equals(e.getAttribute(USED_BY_PROOF));
   }

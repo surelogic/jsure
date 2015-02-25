@@ -13,7 +13,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.views.AbstractSLView;
-import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.java.persistence.JSureScan;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 /**

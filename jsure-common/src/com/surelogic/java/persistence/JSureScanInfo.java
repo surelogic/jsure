@@ -1,4 +1,4 @@
-package com.surelogic.javac.persistence;
+package com.surelogic.java.persistence;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -18,8 +19,11 @@ import com.surelogic.common.NullOutputStream;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.SourceZipLookup.Lines;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.java.JavaProject;
+import com.surelogic.common.java.JavaProjectSet;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IDecl;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.IDecl.Kind;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
@@ -29,14 +33,11 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
-import com.surelogic.dropsea.ir.drops.RegionModel;
-import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import com.surelogic.dropsea.irfree.CategoryMatcher;
 import com.surelogic.dropsea.irfree.DefaultCategoryMatcher;
 import com.surelogic.dropsea.irfree.IDropFilter;
-import com.surelogic.dropsea.irfree.SeaSnapshot;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
-import com.surelogic.javac.Projects;
+import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
 
 import edu.cmu.cs.fluid.util.CPair;
 import edu.cmu.cs.fluid.util.IntegerTable;
@@ -54,24 +55,24 @@ public class JSureScanInfo {
   private List<IDrop> f_dropInfo = null;
 
   private final JSureScan f_run; // non-null
-  private final SeaSnapshot f_loader;
+  private final ConcurrentMap<String, IJavaRef> f_loader;
 
   public JSureScanInfo(JSureScan run) {
     this(run, null);
   }
 
-  public JSureScanInfo(JSureScan run, SeaSnapshot s) {
+  public JSureScanInfo(JSureScan run, ConcurrentMap<String, IJavaRef> cache) {
     if (run == null)
       throw new IllegalArgumentException(I18N.err(44, "run"));
     f_run = run;
-    f_loader = s;
+    f_loader = cache;
   }
 
   public synchronized JSureScan getJSureRun() {
     return f_run;
   }
 
-  public synchronized Projects getProjects() {
+  public synchronized JavaProjectSet<? extends JavaProject> getProjects() {
     try {
       if (f_run == null) {
         return null;
@@ -94,7 +95,7 @@ public class JSureScanInfo {
       if (skipLoading) {
         throw new Exception("Skipping loading");
       }
-      f_dropInfo = SeaSnapshot.loadSnapshot(f_loader, f_run.getResultsFile());      
+      f_dropInfo = SeaSnapshotXMLReader.loadSnapshot(f_loader, f_run.getResultsFile());      
       final long end = System.currentTimeMillis();
       System.out.println(" (in " + SLUtility.toStringDurationMS(end - start, TimeUnit.MILLISECONDS) + ")");
             
@@ -134,12 +135,12 @@ public class JSureScanInfo {
   }
 
   @NonNull
-  public <T extends IDrop> Set<IDrop> getDropsOfType(Class<? extends T> dropType) {
+  public <T extends IDrop> Set<IDrop> getDropsWithSimpleName(String simpleName) {
     List<IDrop> info = loadOrGetDropInfo();
     if (!info.isEmpty()) {
       final Set<IDrop> result = new HashSet<IDrop>();
       for (IDrop i : info) {
-        if (i.instanceOfIRDropSea(dropType)) {
+        if (i.getSimpleClassName().equals(simpleName)) {
           final IDrop i1 = i;
           result.add(i1);
         }
@@ -234,8 +235,8 @@ public class JSureScanInfo {
   }
 
   public synchronized String findProjectsLabel() {
-    final Projects p = getProjects();
-    return p != null ? getProjects().getLabel() : null;
+    final JavaProjectSet<? extends JavaProject> p = getProjects();
+    return p != null ? p.getLabel() : null;
   }
 
   public SeaSnapshotDiff<CPair<String, String>> diff(JSureScanInfo older, IDropFilter f) {
@@ -271,7 +272,7 @@ public class JSureScanInfo {
 		Map<String,Object> type2number = new HashMap<String, Object>();
 		type2number.put(key, "computed");
 		for(IDrop d : s.getDropInfo()) {
-			final String type = "drop."+d.getIRDropSeaClass().getSimpleName();
+			final String type = "drop."+d.getSimpleClassName();
 			Object value = type2number.get(type);
 			if (value == null) {
 				type2number.put(type, IntegerTable.newInteger(1));
@@ -300,7 +301,7 @@ public class JSureScanInfo {
 	  
 	  BadLockInfo() {
 		  IPromiseDrop instance = null;
-		  for(IDrop d : getDropsOfType(RegionModel.class)) {
+		  for(IDrop d : getDropsWithSimpleName("RegionModel")) {
 			  final IPromiseDrop reg = (IPromiseDrop) d;
 			  regionModels.add(reg);
 			  //if ("Region(\"public Instance extends All\") on Object".equals(reg.getMessage())) {
@@ -318,7 +319,7 @@ public class JSureScanInfo {
 	  
 	  void print() {
 		  final List<IPromiseDrop> models = new ArrayList<IPromiseDrop>();
-		  for(final IDrop d : getDropsOfType(LockModel.class)) {		  		  
+		  for(final IDrop d : getDropsWithSimpleName("LockModel")) {		  		  
 			  final IPromiseDrop lm = (IPromiseDrop) d;
 			  models.add(lm);
 		  }		  
@@ -447,7 +448,7 @@ public class JSureScanInfo {
 
 	  private IPromiseDrop findDependentRegionModel(IPromiseDrop lm) {
 		  for(IPromiseDrop dep : lm.getDependentPromises()) {
-			  if (dep.instanceOfIRDropSea(RegionModel.class)) {
+			  if (dep.getFullClassName().equals("com.surelogic.dropsea.ir.drops.RegionModel")) {
 				  return dep;
 			  }
 		  }

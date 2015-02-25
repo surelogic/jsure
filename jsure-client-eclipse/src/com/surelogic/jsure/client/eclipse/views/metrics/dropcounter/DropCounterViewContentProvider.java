@@ -8,7 +8,7 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IMetricDrop;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 
 public class DropCounterViewContentProvider implements IStructuredContentProvider {
 
@@ -33,9 +33,9 @@ public class DropCounterViewContentProvider implements IStructuredContentProvide
         final String dropTypeName;
         if (drop instanceof IMetricDrop) {
           final String metricType = ((IMetricDrop) drop).getMetric().toString();
-          dropTypeName = drop.getIRDropSeaClass().getSimpleName() + " : " + metricType;
+          dropTypeName = drop.getSimpleClassName() + " : " + metricType;
         } else {
-          dropTypeName = drop.getIRDropSeaClass().getSimpleName();
+          dropTypeName = drop.getSimpleClassName();
         }
         DropCounterElement element = counts.get(dropTypeName);
         if (element == null) {

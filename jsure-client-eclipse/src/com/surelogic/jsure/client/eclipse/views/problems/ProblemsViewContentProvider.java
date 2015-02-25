@@ -16,7 +16,7 @@ import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
 import com.surelogic.dropsea.ScanDifferences;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
 import com.surelogic.jsure.client.eclipse.model.java.Element.HighlightDifferencesSource;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;

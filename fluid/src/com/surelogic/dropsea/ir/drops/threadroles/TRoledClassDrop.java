@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import com.surelogic.RequiresLock;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.ir.Drop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -35,6 +36,10 @@ public class TRoledClassDrop extends Drop implements IThreadRoleDrop {
   private TRoledClassDrop(IRNode cu) {
     super(cu);
     allTRCDs.put(cu, this);
+  }
+  
+  public final DropType getDropType() {
+	return DropType.OTHER;  
   }
   
   public static TRoledClassDrop getTRoleClassDrop(IRNode node) {

@@ -7,6 +7,7 @@ import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.RequiresLock;
 import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.common.xml.XmlCreator;
+import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.irfree.NestedJSureXmlReader;
 
@@ -40,6 +41,10 @@ public abstract class CUDrop extends Drop implements IAnalysisGranule {
     return f_javaOSFileName;
   }
 
+  public final DropType getDropType() {
+	return DropType.OTHER;  
+  }
+  
   /**
    * Gets the {@link IRNode} with operator {@link CompilationUnit} for the
    * compilation unit represented by this drop.

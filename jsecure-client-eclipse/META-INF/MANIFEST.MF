@@ -13,7 +13,8 @@ Require-Bundle: com.surelogic.common,
  com.surelogic.jsure.core,
  org.eclipse.core.resources,
  org.eclipse.core.runtime,
- com.surelogic.jsure.analysis
+ com.surelogic.jsure.analysis,
+ com.surelogic.jsure.common
 Bundle-ClassPath: .,
  lib/blueprints-core-2.4.0-SNAPSHOT.jar,
  lib/blueprints-orient-graph-2.4.0-SNAPSHOT.jar,

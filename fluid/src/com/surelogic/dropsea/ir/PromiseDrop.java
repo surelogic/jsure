@@ -28,9 +28,12 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.IJavaRef.Position;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.xml.XmlCreator;
+import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.ICustomizedPromiseDrop;
 import com.surelogic.dropsea.IPromiseDrop;
-import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.UiPlaceInASubFolder;
+import com.surelogic.dropsea.UiShowAtTopLevel;
+import com.surelogic.dropsea.ir.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
@@ -116,6 +119,10 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     return null;
   }
 
+  public DropType getDropType() {
+	return DropType.PROMISE;
+  }
+  
   @Override
   public final IRNode getPromisedFor() {
     return getNode();
@@ -615,5 +622,13 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     for (Drop c : getDeponentPromises()) {
       s.refDrop(db, DEPONENT_PROMISES, c);
     }
+  }
+  
+  public final boolean showAtTopLevel() {
+	  return this instanceof UiShowAtTopLevel;
+  }
+  
+  public final boolean placeInASubFolder() {
+	  return this instanceof UiPlaceInASubFolder;
   }
 }

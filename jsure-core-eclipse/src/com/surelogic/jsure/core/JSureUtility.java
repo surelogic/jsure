@@ -27,7 +27,7 @@ import com.surelogic.common.core.logging.SLEclipseStatusUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IModelingProblemDrop;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 
 /**

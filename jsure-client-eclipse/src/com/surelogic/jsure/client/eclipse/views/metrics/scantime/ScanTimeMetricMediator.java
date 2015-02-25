@@ -60,7 +60,7 @@ import com.surelogic.common.ui.EclipseColorUtility;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.DropSeaUtility;
 import com.surelogic.dropsea.IMetricDrop;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.views.metrics.AbstractScanMetricMediator;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 

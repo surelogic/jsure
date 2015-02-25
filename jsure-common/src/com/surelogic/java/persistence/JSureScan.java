@@ -1,4 +1,4 @@
-package com.surelogic.javac.persistence;
+package com.surelogic.java.persistence;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,16 +17,19 @@ import com.surelogic.common.FileUtility;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.java.Config;
-
+import com.surelogic.common.java.IJavaFactory;
+import com.surelogic.common.java.JavaProject;
+import com.surelogic.common.java.JavaProjectSet;
+import com.surelogic.common.java.JavaProjectsXMLReader;
 import com.surelogic.common.java.PersistenceConstants;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.regression.RegressionUtility;
-import com.surelogic.javac.Projects;
-import com.surelogic.javac.jobs.RemoteJSureRun;
 
 public class JSureScan implements Comparable<JSureScan> {
   private static final String OLD_RESULTS_FILE = "results.sea.xml";
   private static final String OLD_ZIPS_DIR = "zips";  
+  public static final String RESULTS_XML  = "sea_snapshot.xml";
+  public static final String COMPRESSED_RESULTS_XML = RESULTS_XML+FileUtility.GZIP_SUFFIX;
 
   /**
    * As a double
@@ -112,7 +115,7 @@ public class JSureScan implements Comparable<JSureScan> {
    * Used to find the already created results in a scan dir
    */
   public static File findResultsXML(File scanDir) {
-    File results = RemoteJSureRun.findResultsXML(scanDir);
+    File results = findResultsXML_private(scanDir);
     if (results.isFile()) {
       return results;
     }
@@ -146,7 +149,7 @@ public class JSureScan implements Comparable<JSureScan> {
 
   private final Date f_timeOfScan; // non-null
   private final File f_scanDir; // non-null
-  private Projects f_projectsScanned;
+  private JavaProjectSet<? extends JavaProject> f_projectsScanned;
   private JSureScan f_lastPartialScan;
   private final double f_sizeInMB; // non-null
 
@@ -196,13 +199,13 @@ public class JSureScan implements Comparable<JSureScan> {
     return f_sizeInMB;
   }
 
-  public synchronized final Projects getProjects() throws Exception {
+  public synchronized final JavaProjectSet<? extends JavaProject> getProjects() throws Exception {
     if (f_projectsScanned != null) {
       return f_projectsScanned;
     }
     // Get info about projects
-    JSureProjectsXMLReader reader = new JSureProjectsXMLReader();
-    f_projectsScanned = (Projects) reader.readProjectsXML(f_scanDir);
+    Reader reader = new Reader();
+    f_projectsScanned = reader.readProjectsXML(f_scanDir);
     if (f_projectsScanned != null) {
     	f_projectsScanned.setMonitor(new NullSLProgressMonitor());
     	f_projectsScanned.setScanDir(f_scanDir);
@@ -213,6 +216,21 @@ public class JSureScan implements Comparable<JSureScan> {
     return f_projectsScanned;
   }
 
+  static class Reader extends JavaProjectsXMLReader<JavaProject> {
+	  public Reader() {
+		  super(IJavaFactory.prototype);
+	  }
+
+	  @Override
+	  protected void setupDefaultJRE(String projectName) {
+		  if (projectName.startsWith(Config.JRE_NAME)) {
+			  // TODO what if this should be JavacEclipse?
+			  
+			  //Javac.getDefault().setPreference(IDEPreferences.DEFAULT_JRE, projectName);
+		  }
+	  }
+  }
+  
   public void setLastPartialScan(JSureScan last) {
     if (f_lastPartialScan != null && f_lastPartialScan != last || last == null) {
       throw new IllegalArgumentException();
@@ -322,5 +340,16 @@ public class JSureScan implements Comparable<JSureScan> {
 
   void clear() {
 	  f_projectsScanned.clear();
+  }
+  
+  /**
+   * Used to find existing results
+   */
+  private static File findResultsXML_private(File scanDir) {		
+	  File rv = new File(scanDir, RESULTS_XML);
+	  if (rv.isFile()) {
+		  return rv;
+	  }
+	  return new File(scanDir, COMPRESSED_RESULTS_XML);
   }
 }

@@ -16,8 +16,9 @@ import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 import com.surelogic.dropsea.ScanDifferences;
-import com.surelogic.javac.persistence.JSureScan;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.dropsea.irfree.drops.SeaSnapshotXMLReader;
+import com.surelogic.java.persistence.JSureScan;
+import com.surelogic.java.persistence.JSureScanInfo;
 
 import edu.cmu.cs.fluid.util.CPair;
 
@@ -245,16 +246,16 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 
   public static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, File old, File newer) throws Exception {
 	Collection<IDrop> newerResults = newer.isDirectory() ? new JSureScanInfo(new JSureScan(newer)).getDropInfo() :
-		SeaSnapshot.loadSnapshot(newer);
+		SeaSnapshotXMLReader.loadSnapshot(newer);
 	Collection<IDrop> oldResults = old.isDirectory() ? new JSureScanInfo(new JSureScan(old)).getDropInfo() :
-		SeaSnapshot.loadSnapshot(old);
+		SeaSnapshotXMLReader.loadSnapshot(old);
     return diff(f, oldResults, newerResults);
   }
 
   public static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, File old, JSureScanInfo newer)
       throws Exception {
     Collection<IDrop> oldResults = old.isDirectory() ? new JSureScanInfo(new JSureScan(old)).getDropInfo() :
-    		SeaSnapshot.loadSnapshot(old);
+    	SeaSnapshotXMLReader.loadSnapshot(old);
     return diff(f, oldResults, newer.getDropInfo());
   }
 	  
@@ -281,7 +282,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 	  // @Override
 	  @Override
     public CPair<String, String> makeKey(IDrop d) {
-		  final Class<?> type = d.getIRDropSeaClass();
+		  final String type = d.getFullClassName();
 		  if (type == null) {
 			  return null;
 		  }
@@ -295,7 +296,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 		   * DeclUtil.getTypeNameFullyQualifiedOutermostTypeNameOnly(decl); } if
 		   * (f == null) { f = ref.getTypeNameFullyQualified(); } }
 		   */
-		  return new CPair<String, String>(f, type.getName());
+		  return new CPair<String, String>(f, type);
 	  }
   };
 

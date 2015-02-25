@@ -29,8 +29,9 @@ import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.IJavaRef.Position;
 import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.xml.XmlCreator;
+import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.ir.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -389,6 +390,10 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
     return f_origin;
   }
 
+  public final DropType getDropType() {
+	return DropType.PROPOSAL;
+  }
+  
   @Override
   public boolean isAbductivelyInferred() {
     /*

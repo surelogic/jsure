@@ -36,10 +36,11 @@ public final class DropPredicateFactory {
       if (result == null) {
         result = new DropPredicate() {
           @Override
-          public boolean match(IDrop d) {
+          public boolean match(IDrop id) {
             /*
              * This comparison has to work for all IDropInfo instances.
              */
+        	Drop d = (Drop) id;
             return d != null ? d.instanceOfIRDropSea(dropClass) : false;
           }
         };
@@ -76,7 +77,7 @@ public final class DropPredicateFactory {
             /*
              * This comparison has to work for all IDropInfo instances.
              */
-            return d != null ? d.getIRDropSeaClass().equals(dropClass) : false;
+            return d != null ? d.getFullClassName().equals(dropClass.getName()) : false;
           }
         };
         f_exactType.put(dropClass, result);

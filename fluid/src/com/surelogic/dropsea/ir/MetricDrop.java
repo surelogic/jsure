@@ -16,6 +16,7 @@ import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.Entities;
 import com.surelogic.common.xml.XmlCreator;
+import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.IMetricDrop;
 import com.surelogic.dropsea.KeyValueUtility;
@@ -40,6 +41,10 @@ public final class MetricDrop extends Drop implements IMetricDrop {
     f_metric = metric;
   }
 
+  public final DropType getDropType() {
+	return DropType.METRIC;
+  }
+  
   /**
    * Flags if this result indicates consistency with code.
    */

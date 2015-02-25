@@ -7,6 +7,9 @@ Bundle-Vendor: SureLogic, Inc.
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Require-Bundle: com.surelogic.common
 Export-Package: com.surelogic.dropsea,
+ com.surelogic.dropsea.irfree,
+ com.surelogic.dropsea.irfree.drops,
+ com.surelogic.java.persistence,
  com.surelogic.test,
  edu.cmu.cs.fluid,
  edu.cmu.cs.fluid.util

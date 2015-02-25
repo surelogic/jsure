@@ -13,6 +13,7 @@ import java.util.zip.ZipOutputStream;
 
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.IDrop;
+import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IResultDrop;
 import com.surelogic.dropsea.ir.drops.AssumePromiseDrop;
 import com.surelogic.dropsea.ir.drops.VouchPromiseDrop;
@@ -123,13 +124,13 @@ public final class SeaStats {
       if (sr == null || sr.getWithin() != IJavaRef.Within.JAVA_FILE) {
         return null; // Not from source
       }
-      String l = labelMap.get(d.getIRDropSeaClass().getName());
+      String l = labelMap.get(d.getFullClassName());
       if (l != null) {
         return l;
       }
-      if (d.instanceOfIRDropSea(PromiseDrop.class)) {
+      if (d instanceof IPromiseDrop) {
         return PROMISES;
-      } else if (d.instanceOfIRDropSea(ResultDrop.class)) {
+      } else if (d instanceof IResultDrop) {
         IResultDrop pd = (IResultDrop) d;
         return pd.isConsistent() ? CONSISTENT : INCONSISTENT;
       }

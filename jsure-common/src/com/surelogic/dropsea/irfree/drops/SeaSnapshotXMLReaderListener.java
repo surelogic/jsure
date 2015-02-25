@@ -7,6 +7,7 @@ import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DEPENDENT_PROMIS
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DEPONENT;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DEPONENT_PROMISES;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FLAVOR_ATTR;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DROP_TYPE_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FULL_TYPE_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.HINT_ABOUT;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.JAVA_DECL_INFO;
@@ -24,27 +25,19 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.AbstractXmlResultListener;
 import com.surelogic.common.xml.Entity;
+import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.IDrop;
-import com.surelogic.dropsea.IHintDrop;
-import com.surelogic.dropsea.ir.HintDrop;
-import com.surelogic.dropsea.ir.MetricDrop;
-import com.surelogic.dropsea.ir.ModelingProblemDrop;
-import com.surelogic.dropsea.ir.PromiseDrop;
-import com.surelogic.dropsea.ir.ProposedPromiseDrop;
-import com.surelogic.dropsea.ir.ResultDrop;
-import com.surelogic.dropsea.ir.ResultFolderDrop;
-import com.surelogic.dropsea.ir.drops.ScopedPromiseDrop;
+import com.surelogic.dropsea.*;
 import com.surelogic.dropsea.irfree.DropTypeUtility;
-import com.surelogic.dropsea.irfree.SeaSnapshot;
 
 public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListener {
   private final ConcurrentMap<String, IJavaRef> refCache;
 
   // private int refsReused = 0;
 
-  public SeaSnapshotXMLReaderListener(SeaSnapshot s) {
-    if (s != null)
-      refCache = s.getRefCache();
+  public SeaSnapshotXMLReaderListener(ConcurrentMap<String, IJavaRef> cache) {
+    if (cache != null)
+      refCache = cache;
     else
       refCache = null;
   }
@@ -142,16 +135,63 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListene
 
     final SeaEntity entity = new SeaEntity(name, a);
     final String type = Entity.getValue(a, FULL_TYPE_ATTR);
-    if (type != null) {
+    final String dropTypeName = Entity.getValue(a, DROP_TYPE_ATTR);
+    final DropType dropType;
+    if (dropTypeName != null) {
+    	dropType = DropType.valueOf(dropTypeName);
+    } else {
+    	dropType = DropTypeUtility.computeDropType(type);
+    }
+    if (dropType != null) {
+    	switch (dropType) {
+    	case HINT:
+            /*
+             * The old scheme used WarningDrop as a subtype of InfoDrop. The new
+             * scheme just has AnalysisHintDrop with an attribute, hint type. We
+             * need to set the hint type attribute correctly if we are dealing
+             * with an old scan. No extra work for InfoDrop (default is
+             * SUGGESTION), but we need to explicitly set the hint type to WARNING
+             * if an old WarningDrop.
+             */
+            if (type.endsWith("WarningDrop"))
+              entity.setDrop(new IRFreeHintDrop(entity, IHintDrop.HintType.WARNING));
+            else
+              entity.setDrop(new IRFreeHintDrop(entity));
+    		break;
+    	case METRIC:
+            entity.setDrop(new IRFreeMetricDrop(entity));
+    		break;
+    	case MODELING_PROBLEM:
+            entity.setDrop(new IRFreeModelingProblemDrop(entity));
+    		break;
+    	case PROMISE:
+            entity.setDrop(new IRFreePromiseDrop(entity));
+    		break;
+    	case PROPOSAL:
+    		entity.setDrop(new IRFreeProposedPromiseDrop(entity));
+    		break;
+    	case RESULT: 
+            entity.setDrop(new IRFreeResultDrop(entity));
+    		break;
+    	case RESULT_FOLDER:
+            entity.setDrop(new IRFreeResultFolderDrop(entity));
+    		break;
+    	case SCOPED_PROMISE:
+    		entity.setDrop(new IRFreeScopedPromiseDrop(entity));
+    		break;
+    	default:
+    	}
+    }
+    else if (type != null) {
       final Class<?> thisType = DropTypeUtility.findType(type);
       if (thisType != null) {
-        if (ProposedPromiseDrop.class.isAssignableFrom(thisType)) {
-          entity.setDrop(new IRFreeProposedPromiseDrop(entity, thisType));
-        } else if (ScopedPromiseDrop.class.isAssignableFrom(thisType)) {
-          entity.setDrop(new IRFreeScopedPromiseDrop(entity, thisType));
-        } else if (PromiseDrop.class.isAssignableFrom(thisType)) {
-          entity.setDrop(new IRFreePromiseDrop(entity, thisType));
-        } else if (HintDrop.class.isAssignableFrom(thisType)) {
+        if (IProposedPromiseDrop.class.isAssignableFrom(thisType)) {
+          entity.setDrop(new IRFreeProposedPromiseDrop(entity));
+        } else if (IScopedPromiseDrop.class.isAssignableFrom(thisType)) {
+          entity.setDrop(new IRFreeScopedPromiseDrop(entity));
+        } else if (IPromiseDrop.class.isAssignableFrom(thisType)) {
+          entity.setDrop(new IRFreePromiseDrop(entity));
+        } else if (IHintDrop.class.isAssignableFrom(thisType)) {
           /*
            * The old scheme used WarningDrop as a subtype of InfoDrop. The new
            * scheme just has AnalysisHintDrop with an attribute, hint type. We
@@ -161,17 +201,17 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListene
            * if an old WarningDrop.
            */
           if (type.endsWith("WarningDrop"))
-            entity.setDrop(new IRFreeHintDrop(entity, thisType, IHintDrop.HintType.WARNING));
+            entity.setDrop(new IRFreeHintDrop(entity, IHintDrop.HintType.WARNING));
           else
-            entity.setDrop(new IRFreeHintDrop(entity, thisType));
-        } else if (ResultDrop.class.isAssignableFrom(thisType)) {
-          entity.setDrop(new IRFreeResultDrop(entity, thisType));
-        } else if (ResultFolderDrop.class.isAssignableFrom(thisType)) {
-          entity.setDrop(new IRFreeResultFolderDrop(entity, thisType));
-        } else if (MetricDrop.class.isAssignableFrom(thisType)) {
-          entity.setDrop(new IRFreeMetricDrop(entity, thisType));
-        } else if (ModelingProblemDrop.class.isAssignableFrom(thisType)) {
-          entity.setDrop(new IRFreeModelingProblemDrop(entity, thisType));
+            entity.setDrop(new IRFreeHintDrop(entity));
+        } else if (IResultDrop.class.isAssignableFrom(thisType)) {
+          entity.setDrop(new IRFreeResultDrop(entity));
+        } else if (IResultFolderDrop.class.isAssignableFrom(thisType)) {
+          entity.setDrop(new IRFreeResultFolderDrop(entity));
+        } else if (IMetricDrop.class.isAssignableFrom(thisType)) {
+          entity.setDrop(new IRFreeMetricDrop(entity));
+        } else if (IModelingProblemDrop.class.isAssignableFrom(thisType)) {
+          entity.setDrop(new IRFreeModelingProblemDrop(entity));
         }
       }
     }

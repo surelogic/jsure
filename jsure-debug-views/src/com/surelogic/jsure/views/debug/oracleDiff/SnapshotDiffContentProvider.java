@@ -22,7 +22,7 @@ import com.surelogic.dropsea.irfree.DiffMessage;
 import com.surelogic.dropsea.irfree.IDiffNode;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.views.debug.IJSureTreeContentProvider;

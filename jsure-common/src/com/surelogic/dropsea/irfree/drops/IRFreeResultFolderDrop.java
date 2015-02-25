@@ -4,14 +4,15 @@ import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FOLDER_LOGIC_OPE
 
 import com.surelogic.NonNull;
 import com.surelogic.common.xml.Entity;
+import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.IResultFolderDrop;
 
 public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop implements IResultFolderDrop {
 
   private final LogicOperator f_operator;
 
-  IRFreeResultFolderDrop(Entity e, Class<?> irClass) {
-    super(e, irClass);
+  IRFreeResultFolderDrop(Entity e) {
+    super(e);
 
     final String operatorString = e.getAttribute(FOLDER_LOGIC_OPERATOR);
     LogicOperator operator = LogicOperator.AND;
@@ -25,6 +26,10 @@ public final class IRFreeResultFolderDrop extends IRFreeAnalysisResultDrop imple
     f_operator = operator;
   }
 
+  public final DropType getDropType() {
+	return DropType.RESULT_FOLDER;
+  }
+  
   @Override
   @NonNull
   public LogicOperator getLogicOperator() {

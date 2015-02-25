@@ -9,6 +9,7 @@ import com.surelogic.InRegion;
 import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.common.xml.XmlCreator;
+import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.IResultDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -45,6 +46,10 @@ public final class ResultDrop extends AnalysisResultDrop implements IResultDrop 
   @InRegion("DropState")
   private boolean f_consistent = false;
 
+  public final DropType getDropType() {
+	return DropType.RESULT;
+  }
+  
   @Override
   public boolean isConsistent() {
     synchronized (f_seaLock) {

@@ -6,7 +6,7 @@ import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
 
 import com.surelogic.common.FileUtility;
-import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.java.persistence.JSureScan;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.xml.PromisesLibMerge;

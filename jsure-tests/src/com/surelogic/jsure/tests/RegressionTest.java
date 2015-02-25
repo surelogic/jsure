@@ -37,7 +37,7 @@ import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
-import com.surelogic.javac.persistence.JSureScan;
+import com.surelogic.java.persistence.JSureScan;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.driver.ConsistencyListener;
 import com.surelogic.jsure.core.driver.DoubleChecker;

@@ -23,6 +23,7 @@ import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.ir.Drop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -56,6 +57,10 @@ public class WholeModuleFXDrop extends Drop {
     fixedPointFX = new ArrayList<Effect>();
   }
 
+  public final DropType getDropType() {
+	return DropType.OTHER;  
+  }
+  
   public static WholeModuleFXDrop getMethodFX(final IRNode mDecl) {
     WholeModuleFXDrop res;
     synchronized (WholeModuleFXDrop.class) {

@@ -24,7 +24,7 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.ui.ColumnResizeListener;
 import com.surelogic.common.ui.SLImages;
 import com.surelogic.dropsea.IMetricDrop;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.views.metrics.AbstractScanMetricMediator;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 

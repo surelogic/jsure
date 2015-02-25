@@ -26,13 +26,13 @@ import org.eclipse.ui.IViewPart;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.java.JavaProject;
+import com.surelogic.common.java.JavaProjectSet;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.javac.Javac;
-import com.surelogic.javac.JavacProject;
-import com.surelogic.javac.Projects;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scripting.ScriptCommands;
 
@@ -64,8 +64,8 @@ public class ExportToSnapshot implements IViewActionDelegate {
     final JSureScanInfo scan = JSureDataDirHub.getInstance().getCurrentScanInfo();
     if (scan != null) {
       try {
-        Projects projs = scan.getProjects();
-        outer: for (final JavacProject current : projs) {
+        JavaProjectSet<? extends JavaProject> projs = scan.getProjects();
+        outer: for (final JavaProject current : projs) {
         	if (!current.isAsBinary()) {
         		IProject p = EclipseUtility.getProject(current.getName());
         		if (p != null && p.isOpen()) {

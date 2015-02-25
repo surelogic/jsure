@@ -34,6 +34,7 @@ public abstract class NestedJSureXmlReader extends XmlReader {
   public static final String MESSAGE_ID = "message-id";
 
   public static final String MESSAGE_ID_ATTR = "message-id";
+  public static final String DROP_TYPE_ATTR = "drop-type";
   public static final String TYPE_ATTR = "type";
   public static final String FULL_TYPE_ATTR = "full-type";
   public static final String CATEGORY_ATTR = "category";

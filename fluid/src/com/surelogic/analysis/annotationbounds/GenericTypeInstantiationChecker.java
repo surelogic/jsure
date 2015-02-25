@@ -24,6 +24,7 @@ import com.surelogic.common.Pair;
 import com.surelogic.common.concurrent.ConcurrentHashSet;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.KeyValueUtility;
+import com.surelogic.dropsea.ir.DiffHeuristicsComputation;
 import com.surelogic.dropsea.ir.ProofDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
@@ -497,7 +498,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
           final IRNode link = jTypeOfActual instanceof IJavaSourceRefType ?
               ((IJavaSourceRefType) jTypeOfActual).getDeclaration() : typeActual;
           final IKeyValue diffInfo = KeyValueUtility.getStringInstance(
-          		DiffHeuristics.ANALYSIS_DIFF_HINT, DiffHeuristics.computeTypeLocator(typeActual));
+          		DiffHeuristics.ANALYSIS_DIFF_HINT, DiffHeuristicsComputation.computeTypeLocator(typeActual));
           if (actualAnnos.isEmpty()) {
             final ResultDrop r = ResultsBuilder.createResult(
                 false, actualFolder, link, parameterizedType, ACTUAL_UNBOUNDED);

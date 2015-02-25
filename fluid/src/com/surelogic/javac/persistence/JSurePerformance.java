@@ -4,6 +4,7 @@ import java.util.concurrent.*;
 
 import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.common.PerformanceProperties;
+import com.surelogic.java.persistence.ScanProperty;
 import com.surelogic.javac.Projects;
 
 import extra166y.ParallelArray;

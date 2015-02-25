@@ -16,8 +16,8 @@ import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractHistoricalSourceView;
-import com.surelogic.javac.persistence.JSureScan;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScan;
+import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public class HistoricalSourceView extends AbstractHistoricalSourceView implements JSureDataDirHub.CurrentScanChangeListener {

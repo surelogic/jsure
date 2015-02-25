@@ -16,7 +16,17 @@ import com.surelogic.common.ref.IJavaRef;
  * snapshots using the IR-free drop-sea.
  */
 public interface IDrop {
+  /**
+   * Get the general type of this drop (as an enum)
+   */
+  DropType getDropType();
 
+  @NonNull
+  String getSimpleClassName();
+  
+  @NonNull
+  String getFullClassName();
+  
   /**
    * Gets the IR drop-sea type, descended from {@link Drop}, even if this is an
    * IR-free drop, descended from {@link IRFreeDrop}.
@@ -28,8 +38,8 @@ public interface IDrop {
    * 
    * @return the IR drop-sea type, descended from {@link Drop}.
    */
-  @NonNull
-  Class<?> getIRDropSeaClass();
+  //@NonNull
+  //Class<?> getIRDropSeaClass();
 
   /**
    * Checks if this drop, in the IR drop-sea, is an instance of the passed
@@ -47,7 +57,7 @@ public interface IDrop {
    * @return {@code true} if this drop, in the IR drop-sea, is an instance of
    *         the passed type, {@code false} otherwise.
    */
-  boolean instanceOfIRDropSea(Class<?> type);
+  //boolean instanceOfIRDropSea(Class<?> type);
 
   /**
    * Gets this drop's message. If no message has been set then the output will

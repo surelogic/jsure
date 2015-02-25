@@ -15,8 +15,8 @@ public abstract class IRFreeProofDrop extends IRFreeDrop implements IProofDrop {
   private final boolean f_derivedFromSrc;
   private final boolean f_derivedFromWarningHint;
 
-  IRFreeProofDrop(Entity e, Class<?> irClass) {
-    super(e, irClass);
+  IRFreeProofDrop(Entity e) {
+    super(e);
     f_proofUsesRedDot = "true".equals(e.getAttribute(USES_RED_DOT_ATTR));
     f_provedConsistent = "true".equals(e.getAttribute(PROVED_ATTR));
     f_derivedFromSrc = "true".equals(e.getAttribute(DERIVED_FROM_SRC_ATTR));

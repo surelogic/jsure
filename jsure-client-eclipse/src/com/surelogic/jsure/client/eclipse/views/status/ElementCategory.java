@@ -65,7 +65,8 @@ final class ElementCategory extends Element {
        * drop type implements UiPlaceInASubFolder.
        */
       if (drop instanceof IPromiseDrop && f_parent != null) {
-        return !drop.instanceOfIRDropSea(UiPlaceInASubFolder.class);
+    	IPromiseDrop pd = (IPromiseDrop) drop;
+    	return !pd.placeInASubFolder();
       } else
         return false;
     }

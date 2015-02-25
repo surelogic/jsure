@@ -7,6 +7,7 @@ import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.ref.JavaRef;
+import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.IModelingProblemDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -33,7 +34,9 @@ public final class ModelingProblemDrop extends Drop implements IModelingProblemD
     this(node, -1);
   }
 
-  
+  public final DropType getDropType() {
+	return DropType.MODELING_PROBLEM;
+  }
 
   @Override
   protected String resolveMessage(final int number) {

@@ -96,7 +96,7 @@ import com.surelogic.dropsea.ir.drops.type.constraints.NotContainablePromiseDrop
 import com.surelogic.dropsea.ir.drops.type.constraints.NotThreadSafePromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ThreadSafePromiseDrop;
 import com.surelogic.javac.Projects;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.PromiseDropSeqStorage;

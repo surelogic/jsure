@@ -1,6 +1,7 @@
 package com.surelogic.dropsea.ir.drops;
 
 import com.surelogic.aast.promise.ScopedPromiseNode;
+import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.IScopedPromiseDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
@@ -31,5 +32,9 @@ public abstract class ScopedPromiseDrop extends PromiseDrop<ScopedPromiseNode> i
   @Override
   public void validated(PromiseDrop<ScopedPromiseNode> pd) {
     throw new UnsupportedOperationException();
+  }
+  
+  public final DropType getDropType() {
+	return DropType.SCOPED_PROMISE;
   }
 }

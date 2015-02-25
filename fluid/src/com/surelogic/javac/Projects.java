@@ -125,6 +125,7 @@ public class Projects extends JavaProjectSet<JavacProject> implements IIRProject
 	 super(javaFactory, cfg, monitor);
   }
 
+  @Override
   public void setMonitor(SLProgressMonitor m) {
     for (JavacProject p : projects.values()) {
       p.getTypeEnv().setProgressMonitor(m);

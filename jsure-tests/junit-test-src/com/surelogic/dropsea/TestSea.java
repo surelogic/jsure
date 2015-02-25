@@ -20,6 +20,12 @@ public class TestSea extends TestCase {
     protected ADrop() {
       super(new PlainIRNode());
     }
+
+	@Override
+	public DropType getDropType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
   }
 
   class MyDrop extends ADrop {

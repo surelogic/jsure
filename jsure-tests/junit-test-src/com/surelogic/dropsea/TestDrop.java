@@ -22,6 +22,12 @@ public class TestDrop extends TestCase {
       super(new PlainIRNode());
     }
     // Nothing to add
+
+	@Override
+	public DropType getDropType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
   }
 
   private MyDrop d1, d2, d3, d4, d5, d6, d7;

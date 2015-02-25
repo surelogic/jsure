@@ -9,7 +9,7 @@ import org.eclipse.core.resources.*;
 
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.regression.RegressionUtility;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 /**

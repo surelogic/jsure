@@ -21,7 +21,7 @@ import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IScopedPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.dropsea.UiShowAtTopLevel;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 
 public final class VerificationStatusViewContentProvider implements ITreeContentProvider {
 
@@ -176,7 +176,7 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
   static boolean showAtTopLevel(IPromiseDrop promise) {
     if (promise == null)
       return false;
-    if (promise.instanceOfIRDropSea(UiShowAtTopLevel.class))
+    if (promise.showAtTopLevel()) 
       return true;
     /*
      * If we have a deponent promise that is not a scoped promise we do not want

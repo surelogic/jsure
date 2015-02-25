@@ -1,0 +1,5 @@
+package com.surelogic.dropsea;
+
+public enum DropType {
+	HINT, METRIC, MODELING_PROBLEM, PROMISE, PROPOSAL, RESULT, RESULT_FOLDER, SCOPED_PROMISE, OTHER
+}

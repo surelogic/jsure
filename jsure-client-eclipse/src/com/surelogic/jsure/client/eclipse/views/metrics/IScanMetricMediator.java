@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import com.surelogic.Nullable;
 import com.surelogic.common.ILifecycle;
 import com.surelogic.dropsea.IMetricDrop;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.java.persistence.JSureScanInfo;
 
 public interface IScanMetricMediator extends ILifecycle {
   /**

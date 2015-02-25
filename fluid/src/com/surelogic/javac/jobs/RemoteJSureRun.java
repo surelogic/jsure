@@ -11,7 +11,8 @@ import com.surelogic.common.java.*;
 import com.surelogic.common.jobs.*;
 import com.surelogic.common.jobs.remote.*;
 import com.surelogic.dropsea.ir.Sea;
-import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.ir.SeaSnapshot;
+import com.surelogic.java.persistence.JSureScan;
 import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.Projects;
@@ -22,10 +23,8 @@ import edu.cmu.cs.fluid.ide.IDEPreferences;
 
 public class RemoteJSureRun extends RemoteScanJob<Projects,JavacProject> {
 	public static final String FLUID_DIRECTORY_URL = "fluid.directory.url";
-	private static final String RESULTS_XML  = "sea_snapshot.xml";
-	private static final String COMPRESSED_RESULTS_XML = RESULTS_XML+FileUtility.GZIP_SUFFIX;
-	private static final String TEMP_RESULTS_XML  = TEMP_PREFIX+RESULTS_XML;
-	private static final String COMPRESSED_TEMP_RESULTS_XML = TEMP_PREFIX+RESULTS_XML+FileUtility.GZIP_SUFFIX;
+	private static final String TEMP_RESULTS_XML  = TEMP_PREFIX+JSureScan.RESULTS_XML;
+	private static final String COMPRESSED_TEMP_RESULTS_XML = TEMP_PREFIX+JSureScan.RESULTS_XML+FileUtility.GZIP_SUFFIX;
 	
 	public RemoteJSureRun() {
 		super(Projects.javaFactory);
@@ -64,20 +63,9 @@ public class RemoteJSureRun extends RemoteScanJob<Projects,JavacProject> {
 			return;
 		}
  		final boolean compress = tmpLocation.getName().endsWith(FileUtility.GZIP_SUFFIX);
-		final File location = new File(scanDir, compress ? COMPRESSED_RESULTS_XML : RESULTS_XML);
+		final File location = new File(scanDir, compress ? JSureScan.COMPRESSED_RESULTS_XML : JSureScan.RESULTS_XML);
 		System.out.println("Renaming snapshot: "+location);
 		tmpLocation.renameTo(location);
-	}
-	
-	/**
-	 * Used to find existing results
-	 */
-	public static File findResultsXML(File scanDir) {		
-		File rv = new File(scanDir, RESULTS_XML);
-		if (rv.isFile()) {
-			return rv;
-		}
-		return new File(scanDir, COMPRESSED_RESULTS_XML);
 	}
 	
 	@Override

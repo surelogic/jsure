@@ -18,11 +18,11 @@ import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.dropsea.irfree.ISeaDiff;
-import com.surelogic.dropsea.irfree.SeaSnapshot;
-import com.surelogic.javac.persistence.JSureDataDir;
-import com.surelogic.javac.persistence.JSureDataDirScanner;
-import com.surelogic.javac.persistence.JSureScan;
-import com.surelogic.javac.persistence.JSureScanInfo;
+import com.surelogic.dropsea.ir.SeaSnapshot;
+import com.surelogic.java.persistence.JSureDataDir;
+import com.surelogic.java.persistence.JSureDataDirScanner;
+import com.surelogic.java.persistence.JSureScan;
+import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 
@@ -385,7 +385,7 @@ public final class JSureDataDirHub {
             ScanDifferences scanDiff = null;
             monitor.worked(1);
             if (jsureScan != null) {
-              currentScanInfo = new JSureScanInfo(jsureScan, loader);
+              currentScanInfo = new JSureScanInfo(jsureScan, loader.getRefCache());
               currentScanInfo.getDropInfo(); // force loading
 
               JSureScan last = null;
@@ -401,7 +401,7 @@ public final class JSureDataDirHub {
                 return SLStatus.CANCEL_STATUS;
               }
               if (last != null) {
-                lastMatchingScanInfo = new JSureScanInfo(last, loader);
+                lastMatchingScanInfo = new JSureScanInfo(last, loader.getRefCache());
                 lastMatchingScanInfo.getDropInfo(); // force loading
                 loader.clear(); // here because of forced loading
                 monitor.worked(1);

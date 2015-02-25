@@ -1,11 +1,6 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CATEGORY_ATTR;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DIFF_INFO;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FROM_SRC;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.JAVA_REF;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.MESSAGE_ATTR;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.MESSAGE_ID;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,10 +20,14 @@ import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.irfree.DiffHeuristics;
 
-public class IRFreeDrop implements IDrop {
+public abstract class IRFreeDrop implements IDrop {
 
   @NonNull
-  private final Class<?> f_irDropSeaClass;
+  private final String f_simpleName;
+  
+  @NonNull
+  private final String f_fullName;
+ 
   /**
    * This collection is {@code null} until some exist&mdash;most drops have no
    * proposed promises.
@@ -72,12 +71,19 @@ public class IRFreeDrop implements IDrop {
     f_analysisHints.add(hint);
   }
 
-  IRFreeDrop(Entity e, Class<?> irClass) {
+  IRFreeDrop(Entity e) {
     if (e == null)
       throw new IllegalArgumentException(I18N.err(44, "e"));
-    if (irClass == null)
-      throw new IllegalArgumentException(I18N.err(44, "irClass"));
-    f_irDropSeaClass = irClass;
+    
+    final String type = e.getAttributeByAliasIfPossible(TYPE_ATTR);
+    if (type == null)
+      throw new IllegalArgumentException(I18N.err(44, "simpleName"));
+    f_simpleName = type;
+    
+    final String fullType = e.getAttributeByAliasIfPossible(FULL_TYPE_ATTR);
+    if (fullType == null)
+      throw new IllegalArgumentException(I18N.err(44, "fullName"));
+    f_fullName = fullType;
 
     f_categorizingMessage = e.getAttributeByAliasIfPossible(CATEGORY_ATTR);
 
@@ -164,20 +170,30 @@ public class IRFreeDrop implements IDrop {
     return f_isFromSrc;
   }
 
-  @Override
+//  @Override
+//  @NonNull
+//  public Class<?> getIRDropSeaClass() {
+//    return f_irDropSeaClass;
+//  }
+//
+//  @Override
+//  public final boolean instanceOfIRDropSea(Class<?> type) {
+//    if (type == null)
+//      return false;
+//
+//    return type.isAssignableFrom(f_irDropSeaClass);
+//  }
+
   @NonNull
-  public Class<?> getIRDropSeaClass() {
-    return f_irDropSeaClass;
+  public String getSimpleClassName() {
+	  return f_simpleName;
   }
-
-  @Override
-  public final boolean instanceOfIRDropSea(Class<?> type) {
-    if (type == null)
-      return false;
-
-    return type.isAssignableFrom(f_irDropSeaClass);
+  
+  @NonNull
+  public String getFullClassName() {
+	  return f_fullName;
   }
-
+	  
   @Override
   @NonNull
   public Collection<IRFreeProposedPromiseDrop> getProposals() {

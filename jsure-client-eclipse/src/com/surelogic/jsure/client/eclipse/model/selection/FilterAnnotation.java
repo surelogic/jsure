@@ -51,7 +51,7 @@ public final class FilterAnnotation extends Filter implements IOnlyPromisesPorus
     if (!(drop instanceof IPromiseDrop))
       return null;
 
-    final String result = drop.getIRDropSeaClass().getSimpleName();
+    final String result = drop.getSimpleClassName();
 
     // Special cases
     final String subst = substMap.get(result);

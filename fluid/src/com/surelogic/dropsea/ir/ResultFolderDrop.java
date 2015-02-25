@@ -8,6 +8,7 @@ import com.surelogic.MustInvokeOnOverride;
 import com.surelogic.NonNull;
 import com.surelogic.RequiresLock;
 import com.surelogic.common.xml.XmlCreator;
+import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.IProofDrop;
 import com.surelogic.dropsea.IResultFolderDrop;
 
@@ -60,6 +61,10 @@ public final class ResultFolderDrop extends AnalysisResultDrop implements IResul
     f_operator = operator == null ? LogicOperator.AND : operator;
   }
 
+  public final DropType getDropType() {
+	return DropType.RESULT_FOLDER;
+  }
+  
   @Override
   @NonNull
   public LogicOperator getLogicOperator() {

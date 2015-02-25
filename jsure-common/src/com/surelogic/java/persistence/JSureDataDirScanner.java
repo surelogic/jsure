@@ -1,4 +1,4 @@
-package com.surelogic.javac.persistence;
+package com.surelogic.java.persistence;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -15,11 +15,11 @@ import java.util.zip.ZipFile;
 
 import com.surelogic.common.StringCache;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.java.JavaProject;
+import com.surelogic.common.java.JavaProjectSet;
 import com.surelogic.common.java.PersistenceConstants;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.DeclUtil;
-import com.surelogic.javac.JavacProject;
-import com.surelogic.javac.Projects;
 
 /**
  * Scans and organizes the scan directories in the JSure data directory.
@@ -71,7 +71,7 @@ public class JSureDataDirScanner {
 		final Set<JSureScan> roots = new HashSet<JSureScan>(scans);
 		for (JSureScan scan : scans) {
 			try {
-				final Projects p = scan.getProjects();
+				final JavaProjectSet<? extends JavaProject> p = scan.getProjects();
 				final String lastName = p.getPreviousPartialScan();
 				if (lastName != null) {
 					// This one is a partial scan and depends on the last one
@@ -115,8 +115,8 @@ public class JSureDataDirScanner {
 		final Map<String, JSureScan> projectToScan = new HashMap<String, JSureScan>();
 		for (Map.Entry<JSureScan, JSureScan> e : fullToPartial.entrySet()) {
 			try {
-				final Projects projs = e.getKey().getProjects();
-				for (JavacProject p : projs) {
+				final JavaProjectSet<? extends JavaProject> projs = e.getKey().getProjects();
+				for (JavaProject p : projs) {
 					projectToScan.put(p.getName(), e.getValue());
 				}
 			} catch (Exception ex) {

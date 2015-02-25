@@ -12,7 +12,7 @@ import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
-import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.ir.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNode;

@@ -16,7 +16,7 @@ import com.surelogic.UniqueInRegion;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.IAnalysisResultDrop;
-import com.surelogic.dropsea.irfree.SeaSnapshot;
+import com.surelogic.dropsea.ir.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 
