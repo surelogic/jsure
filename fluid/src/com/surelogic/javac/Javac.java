@@ -94,9 +94,9 @@ public class Javac extends IDE {
     init(com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisAllModule.class,
         "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM_ALL", false, "Uniqueness + From (All methods)");
     init(com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysisModule.class,
-        "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM_SE", true, "Uniqueness + From (Side-effecting)");
+        "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM_SE", false, "Uniqueness + From (Side-effecting)");
 		init(com.surelogic.analysis.uniqueness.classic.sideeffecting.UniquenessAnalysisModule.class,
-				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceSE", false, "Uniqueness (Obsolete)");
+				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceSE", true, "Uniqueness");
 
 //    init(NonNullRawTypeModule.class, "com.surelogic.jsure.client.eclipse.NonNullRawTypes", false, "Combined NonNull & RawType (for reg tests only)");
     init(DefinitelyAssignedModule.class, "com.surelogic.jsure.client.eclipse.DefinitelyAssigned", false, "Definitely Assigned (for reg tests only)");
