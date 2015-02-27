@@ -50,5 +50,10 @@
         class="com.surelogic.jsure.views.debug.oracleDiff.ToggleBaseline">
       </action>
     </viewContribution>
+  </extension>
+  <extension
+        point="com.surelogic.jsure.core.jsureDriver">
+        <driver 
+        class="com.surelogic.jsure.debug.DebugDriver"/>
   </extension>   
 </plugin>
