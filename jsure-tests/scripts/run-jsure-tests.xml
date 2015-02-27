@@ -194,7 +194,7 @@
 
 		<!-- THE LISTS BELOW SHOULD BE UPDATED IF THE PLUG-INs/FEATUREs COMPRISING JSURE CHANGE -->
 		<property name="common.plugin.projects" value="common, common-core-eclipse" />
-		<property name="jsure.plugin.projects" value="fluid, jsure-core-eclipse, jsure-tests" />
+		<property name="jsure.plugin.projects" value="jsure-common, fluid, jsure-core-eclipse, jsure-tests" />
 		<property name="jsure.feature.id" value="com.surelogic.feature.jsure.tests" />
 
 		<!-- Copy JSure plug-in projects for headless build -->
