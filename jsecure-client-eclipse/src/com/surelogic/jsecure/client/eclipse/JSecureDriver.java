@@ -82,7 +82,7 @@ public class JSecureDriver extends AbstractJavaScanner<JavaProjectSet<JavaProjec
 			}
 			
 			@Override
-			protected boolean analyzeInVM() throws Exception {
+			protected boolean analyzeInVM(SLProgressMonitor monitor) throws Exception {
 				System.out.println("JSecure running in same VM");
 				System.setProperty(RemoteScanJob.RUN_DIR_PROP, projects.getRunDir().getAbsolutePath());
 				RemoteJSecureJob.main();

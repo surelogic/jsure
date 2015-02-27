@@ -49,7 +49,7 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 	protected void setupClassPath(final ConfigHelper util, CommandlineJava cmdj, Project proj, Path path) {
 		// All unpacked
 		util.addPluginAndJarsToPath(COMMON_PLUGIN_ID, "lib/runtime");
-		util.addPluginToPath(JSureConstants.JSURE_COMMON_PLUGIN_ID/*, "lib/runtime"*/);
+		util.addPluginAndJarsToPath(JSureConstants.JSURE_COMMON_PLUGIN_ID, "lib/runtime");
 		util.addPluginAndJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime");
 		if (SystemUtils.IS_JAVA_1_8) {
 			util.addPluginAndJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime8");

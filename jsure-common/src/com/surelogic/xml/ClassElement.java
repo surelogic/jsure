@@ -3,18 +3,11 @@ package com.surelogic.xml;
 import java.util.*;
 import java.util.Map.Entry;
 
-import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.Pair;
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.util.*;
 
-import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaPromise;
-import edu.cmu.cs.fluid.java.operator.ClassDeclaration;
-import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
-import edu.cmu.cs.fluid.java.util.VisitUtil;
-import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.tree.Operator;
 
 public class ClassElement extends AnnotatedJavaElement {
 	private final Map<String,NestedClassElement> classes = new HashMap<String,NestedClassElement>(0);
@@ -27,15 +20,19 @@ public class ClassElement extends AnnotatedJavaElement {
 		super(confirmed, id, access);
 	}
 	
+	public final IDecl.Kind getKind() {
+		return IDecl.Kind.CLASS;
+	}
+	
 	@Override
   public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
 	}
 	
-	@Override
-	public Operator getOperator() {
-		return ClassDeclaration.prototype;
-	}
+//	@Override
+//	public Operator getOperator() {
+//		return ClassDeclaration.prototype;
+//	}
 	
 	@Override
   public final String getImageKey() {
@@ -109,11 +106,11 @@ public class ClassElement extends AnnotatedJavaElement {
 		classes.remove(n.getName());
 	}
 	
-	ClassInitElement getClassInit() {
+	public ClassInitElement getClassInit() {
 		return clinit;
 	}
 	
-	Iteratable<NestedClassElement> getNestedClasses() {
+	public Iteratable<NestedClassElement> getNestedClasses() {
 		return PromisesXMLWriter.getSortedValues(classes);
 	}
 
@@ -121,7 +118,7 @@ public class ClassElement extends AnnotatedJavaElement {
 		return PromisesXMLWriter.getSortedValues(constructors);
 	}
 	
-	Iteratable<FieldElement> getFields() {
+	public Iteratable<FieldElement> getFields() {
 		return PromisesXMLWriter.getSortedValues(fields);
 	}
 	
@@ -357,54 +354,5 @@ public class ClassElement extends AnnotatedJavaElement {
 		for(NestedClassElement n : classes.values()) {
 			clone.addMember(n.copyIfDirty());
 		}
-	}
-	
-	/**
-	 * @return The number of annotations added
-	 */
-	@Override
-	int applyPromises(final AnnotationVisitor v, final IRNode cuOrType) {
-		if (cuOrType == null) {
-			return 0;
-		}
-		final IRNode t = findType(cuOrType, getName());
-		if (t == null) {			
-			return 0;
-		}
-		int added = super.applyPromises(v, t);
-		if (clinit != null) {
-			added += clinit.applyPromises(v, JavaPromise.getClassInitOrNull(t));
-		}
-		for(FieldElement f : fields.values()) {
-			added += f.applyPromises(v, TreeAccessor.findField(f.getName(), t));
-		}
-		for(ConstructorElement c : constructors.values()) {
-			added += c.applyPromises(v, TreeAccessor.findConstructor(c.getParams(), t, v.getTypeEnv()));
-		}
-		for(MethodElement m : methods.values()) {
-			added += m.applyPromises(v, TreeAccessor.findMethod(t, m.getName(), m.getParams(), v.getTypeEnv()));
-		}
-		for(NestedClassElement n : classes.values()) {
-			added += n.applyPromises(v, TreeAccessor.findNestedClass(n.getName(), t));
-		}
-		return added;
-	}
-
-	private static IRNode findType(final IRNode cuOrType, final String name) {
-		final Operator op = JJNode.tree.getOperator(cuOrType);
-		if (TypeDeclaration.prototype.includes(op)) {
-			final String tName = JJNode.getInfo(cuOrType);
-			if (!tName.equals(name)) {
-				throw new IllegalStateException("Got a type with different name: "+tName+" vs "+name);
-			}
-			return cuOrType;
-		} else {
-			for(IRNode t : VisitUtil.getTypeDecls(cuOrType)) {
-				if (JJNode.getInfo(t).equals(name)) {
-					return t;
-				}
-			}
-		}
-		return null;
 	}
 }

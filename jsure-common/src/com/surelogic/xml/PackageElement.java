@@ -2,14 +2,10 @@ package com.surelogic.xml;
 
 import java.util.List;
 
-import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.i18n.I18N;
+import com.surelogic.common.ref.IDecl;
 
-import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.operator.CompilationUnit;
-import edu.cmu.cs.fluid.java.operator.PackageDeclaration;
-import edu.cmu.cs.fluid.tree.Operator;
 
 public class PackageElement extends AnnotatedJavaElement {
 	private final ClassElement clazz;
@@ -25,6 +21,10 @@ public class PackageElement extends AnnotatedJavaElement {
 		}
 	}
 
+	public final IDecl.Kind getKind() {
+		return IDecl.Kind.PACKAGE;
+	}
+	
 	@Override
   public <T> T visit(IJavaElementVisitor<T> v) {
 		return v.visit(this);
@@ -45,10 +45,10 @@ public class PackageElement extends AnnotatedJavaElement {
 		f_releaseVersion = value;
 	}
 
-	@Override
-	public Operator getOperator() {
-		return PackageDeclaration.prototype;
-	}
+//	@Override
+//	public Operator getOperator() {
+//		return PackageDeclaration.prototype;
+//	}
 
 	@Override
   public final String getImageKey() {
@@ -161,18 +161,5 @@ public class PackageElement extends AnnotatedJavaElement {
 			return p;
 		}
 		return null;
-	}
-
-	/**
-	 * @return The number of annotations added
-	 */
-	@Override
-	int applyPromises(AnnotationVisitor v, final IRNode cu) {
-		final IRNode pkg = CompilationUnit.getPkg(cu);
-		int added = super.applyPromises(v, pkg);
-		if (clazz != null) {
-			added += clazz.applyPromises(v, cu);
-		}
-		return added;
 	}
 }

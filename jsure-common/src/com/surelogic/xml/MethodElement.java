@@ -1,9 +1,10 @@
 package com.surelogic.xml;
 
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.xml.Entity;
 
-import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
-import edu.cmu.cs.fluid.tree.Operator;
+//import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
+//import edu.cmu.cs.fluid.tree.Operator;
 
 public class MethodElement extends AbstractFunctionElement {
 	public MethodElement(boolean confirmed, String id, Access access, boolean isStatic, String params) {
@@ -13,15 +14,19 @@ public class MethodElement extends AbstractFunctionElement {
 		super(id, e);
 	}
 
+	public final IDecl.Kind getKind() {
+		return IDecl.Kind.METHOD;
+	}
+	
 	@Override
   public String getLabel() {
 		return getName()+"("+getParams()+")";
 	}
 	
-	@Override
-	public Operator getOperator() {
-		return MethodDeclaration.prototype;
-	}
+//	@Override
+//	public Operator getOperator() {
+//		return MethodDeclaration.prototype;
+//	}
 	
 	@Override
 	MethodElement cloneMe(IJavaElement parent) {

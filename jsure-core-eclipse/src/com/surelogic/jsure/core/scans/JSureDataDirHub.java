@@ -2,6 +2,8 @@ package com.surelogic.jsure.core.scans;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.surelogic.Nullable;
@@ -16,9 +18,9 @@ import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
+import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.dropsea.irfree.ISeaDiff;
-import com.surelogic.dropsea.ir.SeaSnapshot;
 import com.surelogic.java.persistence.JSureDataDir;
 import com.surelogic.java.persistence.JSureDataDirScanner;
 import com.surelogic.java.persistence.JSureScan;
@@ -379,13 +381,13 @@ public final class JSureDataDirHub {
                 return SLStatus.createErrorStatus(code, I18N.err(code, jsureScan, f_dataDir.getDir().getAbsoluteFile()));
               }
             }
-            final SeaSnapshot loader = SeaSnapshot.create();
+            final ConcurrentMap<String, IJavaRef> cache = new ConcurrentHashMap<String, IJavaRef>();
             JSureScanInfo currentScanInfo = null;
             JSureScanInfo lastMatchingScanInfo = null;
             ScanDifferences scanDiff = null;
             monitor.worked(1);
             if (jsureScan != null) {
-              currentScanInfo = new JSureScanInfo(jsureScan, loader.getRefCache());
+              currentScanInfo = new JSureScanInfo(jsureScan, cache);
               currentScanInfo.getDropInfo(); // force loading
 
               JSureScan last = null;
@@ -397,13 +399,13 @@ public final class JSureDataDirHub {
               }
               monitor.worked(1);
               if (monitor.isCanceled()) {
-                loader.clear();
+            	cache.clear();
                 return SLStatus.CANCEL_STATUS;
               }
               if (last != null) {
-                lastMatchingScanInfo = new JSureScanInfo(last, loader.getRefCache());
+                lastMatchingScanInfo = new JSureScanInfo(last, cache);
                 lastMatchingScanInfo.getDropInfo(); // force loading
-                loader.clear(); // here because of forced loading
+                cache.clear(); // here because of forced loading
                 monitor.worked(1);
                 if (monitor.isCanceled()) {
                   // loader.clear();

@@ -1,9 +1,10 @@
 package com.surelogic.xml;
 
+import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.xml.Entity;
 
-import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
-import edu.cmu.cs.fluid.tree.Operator;
+//import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
+//import edu.cmu.cs.fluid.tree.Operator;
 
 public class ConstructorElement extends AbstractFunctionElement {
 	public ConstructorElement(boolean confirmed, Access access, boolean isStatic, String params) {
@@ -14,15 +15,19 @@ public class ConstructorElement extends AbstractFunctionElement {
 		super("new", e);
 	}
 
+	public final IDecl.Kind getKind() {
+		return IDecl.Kind.CONSTRUCTOR;
+	}
+	
 	@Override
   public String getLabel() {
 		return "Constructor("+getParams()+")";
 	}
 	
-	@Override
-	public Operator getOperator() {
-		return ConstructorDeclaration.prototype;
-	}
+//	@Override
+//	public Operator getOperator() {
+//		return ConstructorDeclaration.prototype;
+//	}
 
 	@Override
 	ConstructorElement cloneMe(IJavaElement parent) {

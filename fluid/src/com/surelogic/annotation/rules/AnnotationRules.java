@@ -28,8 +28,8 @@ import com.surelogic.aast.IAASTNode;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.java.DeclarationNode;
 import com.surelogic.aast.java.NamedTypeNode;
-import com.surelogic.aast.promise.NonNullNode;
 import com.surelogic.analysis.IIRProject;
+import com.surelogic.annotation.Attribute;
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
@@ -37,7 +37,6 @@ import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.IKeyValue;
 import com.surelogic.dropsea.IModelingProblemDrop;
@@ -112,53 +111,6 @@ public abstract class AnnotationRules {
 			"hashCode", "annotationType", };
 
 	private static final ConcurrentMap<String, Map<String, Attribute>> attrsByPromise = new ConcurrentHashMap<String, Map<String, Attribute>>();
-
-	public static final class Attribute implements Comparable<Attribute> {
-		private final String f_name;
-		private final Class<?> f_type;
-		/**
-		 * May be null.
-		 */
-		private final String f_defaultValue;
-
-		public String getName() {
-			return f_name;
-		}
-
-		public Class<?> getType() {
-			return f_type;
-		}
-		
-		public boolean isTypeString() {
-			return String.class.equals(f_type);
-		}
-
-		public String getDefaultValueOrNull() {
-			return f_defaultValue;
-		}
-
-		private Attribute(String name, Class<?> type, String defaultValue) {
-			if (name == null)
-				throw new IllegalArgumentException(I18N.err(44, "name"));
-			if (type == null)
-				throw new IllegalArgumentException(I18N.err(44, "type"));
-
-			f_name = name;
-			f_type = type;
-			f_defaultValue = defaultValue;
-		}
-
-		@Override
-    public int compareTo(Attribute o) {
-			return f_name.compareTo(o.f_name);
-		}
-
-		@Override
-		public String toString() {
-			return "[Attribute " + f_name + " : " + f_type.getName() + " def "
-					+ f_defaultValue + "]";
-		}
-	}
 
 	/**
 	 * @return a map of attributes and default values

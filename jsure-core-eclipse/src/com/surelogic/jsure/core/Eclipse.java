@@ -92,7 +92,7 @@ public final class Eclipse extends IDE {
    * Constructor / initializer
    */
   private Eclipse(IWorkspaceRoot root) {
-    prototype = this; // in IDE
+	IDE.initInstance(this);
 
     workspaceRoot = root;
     /*

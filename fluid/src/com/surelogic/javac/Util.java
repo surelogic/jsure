@@ -84,7 +84,7 @@ import com.surelogic.javac.persistence.JSureSubtypeInfo;
 import com.surelogic.persistence.JSureResultsXMLReader;
 import com.surelogic.persistence.JSureResultsXMLRefScanner;
 import com.surelogic.persistence.JavaIdentifier;
-import com.surelogic.xml.PromisesXMLParser;
+import com.surelogic.xml.PromisesXMLAnnotator;
 import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.ide.IDE;
@@ -1709,7 +1709,7 @@ public class Util {
          * handleException(name, e); } }
          */
         try {
-          fromXML = PromisesXMLParser.process(p.getTypeEnv(), cu, name.replace('.', '/') + TestXMLParserConstants.SUFFIX);
+          fromXML = PromisesXMLAnnotator.process(p.getTypeEnv(), cu, name.replace('.', '/') + TestXMLParserConstants.SUFFIX);
         } catch (Exception e) {
           handleException(name, e);
         }

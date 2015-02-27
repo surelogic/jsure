@@ -36,7 +36,6 @@ import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.ParseResult;
 import com.surelogic.annotation.SimpleAnnotationParsingContext;
-import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.ScopedPromiseAdaptor;
 import com.surelogic.annotation.parse.ScopedPromiseParse;
 import com.surelogic.annotation.parse.ScopedPromisesParser;
@@ -57,6 +56,7 @@ import com.surelogic.dropsea.ir.drops.ScopedPromiseDrop;
 import com.surelogic.parse.AbstractNodeAdaptor;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.PromiseDropSeqStorage;
+import com.surelogic.xml.AnnotationElement;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -661,7 +661,7 @@ public class ScopedPromiseRules extends AnnotationRules {
       }
       if (promise != null) {
         promise = promise.trim();
-        promise = AnnotationVisitor.capitalize(promise);
+        promise = AnnotationElement.capitalize(promise);
 
         // Check for enclosing "..."
         contents = contents.trim();

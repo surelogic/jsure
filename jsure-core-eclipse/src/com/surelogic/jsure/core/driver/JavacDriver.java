@@ -71,7 +71,6 @@ import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
 import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacProject;
-import com.surelogic.javac.Projects;
 import com.surelogic.javac.Util;
 import com.surelogic.javac.jobs.LocalJSureJob;
 import com.surelogic.javac.jobs.RemoteJSureRun;
@@ -96,7 +95,7 @@ import difflib.Patch;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
-public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> implements IResourceChangeListener, CurrentScanChangeListener {
+public class JavacDriver<T extends JavaProject> extends AbstractJavaScanner<JavaProjectSet<T>, T> implements IResourceChangeListener, CurrentScanChangeListener {
   private static final String SCRIPT_TEMP = "scriptTemp";
   private static final String CRASH_FILES = "crash.log.txt";
 
@@ -124,9 +123,10 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
   final SLJob updateScriptJob;
   final Map<String, Long> deleted;
   final File deletedDir;
-
-  private JavacDriver() {
-	super(Projects.javaFactory);
+	
+  protected JavacDriver(IJavaFactory<T> factory) {
+	super(factory);
+	
     PeriodicUtility.addHandler(new Runnable() {
       @Override
       public void run() {
@@ -330,6 +330,16 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
       tempDir = null;
       info = null;
       updateScriptJob = null;
+    }
+    
+    if (updateScriptJob != null) {
+        updateScript();
+    }
+    if (script != null) {
+    	ResourcesPlugin.getWorkspace().addResourceChangeListener(prototype, IResourceChangeEvent.POST_CHANGE);
+    	// This only worked in the old world, when I waited for a build
+    	// IResourceChangeEvent.PRE_BUILD);
+    	// IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE
     }
   }
 
@@ -799,26 +809,23 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
   };
   private static final TempFileFilter deletedDirFilter = new TempFileFilter("deletedFromScript", ".dir");
 
-  private static final JavacDriver prototype = new JavacDriver();
-  static {
-    if (prototype.updateScriptJob != null) {
-      prototype.updateScript();
-    }
-    if (prototype.script != null) {
-      ResourcesPlugin.getWorkspace().addResourceChangeListener(prototype, IResourceChangeEvent.POST_CHANGE);
-      // This only worked in the old world, when I waited for a build
-      // IResourceChangeEvent.PRE_BUILD);
-      // IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE
-    }
-  }
+  private static JavacDriver<? extends JavaProject> prototype;
 
-  public static JavacDriver getInstance() {
+  public static JavacDriver<? extends JavaProject> getInstance() {
     return prototype;
+  }
+  
+  public static synchronized void initInstance(JavacDriver<? extends JavaProject> driver) {
+	  if (driver == null) {
+		  prototype = new JavacDriver<JavaProject>(IJavaFactory.prototype); 
+	  } else {
+		  prototype = driver;
+	  }
   }
 
   volatile SLProgressMonitor lastMonitor = null;
 
-  class JavacProjectInfo extends ProjectInfo<JavacProject> {
+  class JavacProjectInfo extends ProjectInfo<T> {
 
 	JavacProjectInfo(IProject project, List<ICompilationUnit> cus) {
 		super(project, cus);
@@ -834,7 +841,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
 	}
 
 	@Override
-	protected ProjectInfo<JavacProject> getProjectInfo(IProject proj) {
+	protected ProjectInfo<T> getProjectInfo(IProject proj) {
 		return JavacDriver.this.getProjectInfo(proj);
 	}
 
@@ -879,7 +886,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
 
   @Override
   @SuppressWarnings({ "rawtypes" })
-  public Projects doExplicitBuild(Map args, boolean ignoreNature) {
+  public JavaProjectSet<T> doExplicitBuild(Map args, boolean ignoreNature) {
     JavacEclipse.initialize();
     if (script != null) {
       StringBuilder sb = new StringBuilder(ScriptCommands.RUN_JSURE);
@@ -921,7 +928,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
   }
   
   @Override
-  public Projects configureBuild(File location, boolean isAuto /* IProject p */, boolean ignoreNature) {
+  public JavaProjectSet<T> configureBuild(File location, boolean isAuto /* IProject p */, boolean ignoreNature) {
     // System.out.println("Finished 'build' for "+p);
     /*
      * //ProjectDrop.ensureDrop(p.getName(), p); final ProjectInfo info =
@@ -943,7 +950,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
   }
 
   @Override
-  protected File prepForScan(Projects newProjects, SLProgressMonitor monitor, boolean useSeparateJVM) throws Exception {
+  protected File prepForScan(JavaProjectSet<T> newProjects, SLProgressMonitor monitor, boolean useSeparateJVM) throws Exception {
 	  if (!XUtil.testing) {
 		  System.out.println("Configuring analyses for doBuild");
 		  ((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
@@ -962,8 +969,8 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
   }
   
   @Override
-  protected AnalysisJob makeAnalysisJob(Projects newProjects, File target, File zips, boolean useSeparateJVM) {
-	  Projects oldProjects = null; // See code in prepForScan()
+  protected AnalysisJob makeAnalysisJob(JavaProjectSet<T> newProjects, File target, File zips, boolean useSeparateJVM) {
+	  JavaProjectSet<T> oldProjects = null; // See code in prepForScan()
       /*
        * TODO JSureHistoricalSourceView.setLastRun(newProjects, new
        * ISourceZipFileHandles() { public Iterable<File> getSourceZips() {
@@ -979,7 +986,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
   }
   
   @Override 
-  protected void scheduleScanForExecution(Projects newProjects, SLJob copy) throws Exception {
+  protected void scheduleScanForExecution(JavaProjectSet<T> newProjects, SLJob copy) throws Exception {
 	  if (ScriptCommands.USE_EXPECT && script != null) {
 		  recordFilesToBuild(newProjects);
 	  }
@@ -994,10 +1001,10 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
 	  }
   }
 
-  private void findModifiedFiles(final Projects newProjects, Projects oldProjects) {
+  private void findModifiedFiles(final JavaProjectSet<T> newProjects, JavaProjectSet<T> oldProjects) {
     // System.out.println("Checking for files modified after "+oldProjects.getDate());
     final Map<IJavaProject, Date> times = new HashMap<IJavaProject, Date>();
-    for (JavacProject jp : newProjects) {
+    for (JavaProject jp : newProjects) {
       // Check if we used it last time
       if (oldProjects.get(jp.getName()) != null) {
         // System.out.println("Checking for "+jp.getName());
@@ -1019,7 +1026,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
       byProj.put(icu.getJavaProject().getElementName(), icu);
     }
     for (IJavaProject ijp : times.keySet()) {
-      final JavacProject jp = newProjects.get(ijp.getElementName());
+      final JavaProject jp = newProjects.get(ijp.getElementName());
       if (jp != null) {
         final Collection<ICompilationUnit> cus = byProj.get(ijp.getElementName());
         final Config c = jp.getConfig();
@@ -1046,10 +1053,10 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
     waitForBuild(false);
   }
 
-  class AnalysisJob extends AbstractAnalysisJob<Projects> {
-	  private final Projects oldProjects;
+  protected class AnalysisJob extends AbstractAnalysisJob<JavaProjectSet<T>> {
+	  protected final JavaProjectSet<T> oldProjects;
 	  
-	  AnalysisJob(Projects oldProjects, Projects projects, File target, File zips, boolean useSeparateJVM) {
+	  protected AnalysisJob(JavaProjectSet<T> oldProjects, JavaProjectSet<T> projects, File target, File zips, boolean useSeparateJVM) {
 		  super(projects, target, zips, useSeparateJVM);
 		  if (useSeparateJVM) {
 			  this.oldProjects = null;
@@ -1084,12 +1091,15 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
 		  // Normally done by Javac, but needs to be repeated locally
 		  final boolean noConflict;
 		  if (oldProjects != null) {
+			  /*
 			  noConflict = !projects.conflictsWith(oldProjects);
 			  if (noConflict) {
 				  projects.init(oldProjects);
 			  } else {
 				  System.out.println("Detected a conflict between projects");
 			  }
+			  */
+			  throw new UnsupportedOperationException("Can't support delta runs");
 		  } else {
 			  noConflict = true;
 		  }
@@ -1101,32 +1111,8 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
 	  }
 
 	  @Override
-	  protected boolean analyzeInVM() throws Exception {
-		  File tmpLocation;
-		  if (clearBeforeAnalysis || oldProjects == null) {
-			  // ClearProjectListener.clearJSureState();
-
-			  tmpLocation = Util.openFiles(projects, true);
-		  } else {
-			  tmpLocation = Util.openFiles(oldProjects, projects, true);
-		  }
-		  boolean ok = tmpLocation != null;
-		  // Persist the Sea
-		  //final File tmpLocation = RemoteJSureRun.snapshot(System.out, projects.getLabel(), projects.getRunDir());
-		  /*
-    SeaStats.createSummaryZip(new File(projects.getRunDir(), RemoteJSureRun.SUMMARIES_ZIP), Sea.getDefault().getDrops(),
-        SeaStats.splitByProject, SeaStats.STANDARD_COUNTERS);
-    System.out.println("Finished " + RemoteJSureRun.SUMMARIES_ZIP);
-		   */
-
-		  // Create empty files
-		  /*
-    final File log = new File(projects.getRunDir(), RemoteJSureRun.LOG_NAME);
-    log.createNewFile();
-		   */
-		  ClearStateUtility.clearAllState();
-		  RemoteJSureRun.renameToFinalName(System.out, projects.getRunDir(), tmpLocation);
-		  return ok;
+	  protected boolean analyzeInVM(SLProgressMonitor monitor) throws Exception {
+		  return runAsLocalJob(monitor);
 	  }
 	    
 	  @Override
@@ -1196,7 +1182,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
     }
   }
 
-  private static File collectCrashFiles(Projects projects) {
+  private static <T extends JavaProject> File collectCrashFiles(JavaProjectSet<T> projects) {
     final File crash = new File(projects.getRunDir(), CRASH_FILES);
     try {
       PromisesXMLArchiver out = new PromisesXMLArchiver(crash);
@@ -1262,7 +1248,7 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
     return rv;
   }
 
-  private void recordFilesToBuild(Projects p) throws FileNotFoundException {
+  private void recordFilesToBuild(JavaProjectSet<T> p) throws FileNotFoundException {
     final String name = "expectedBuild" + getId() + ".txt";
     final File file = new File(scriptResourcesDir, name);
 
@@ -1278,14 +1264,14 @@ public class JavacDriver extends AbstractJavaScanner<Projects,JavacProject> impl
     recordFilesToAnalyze(p);
   }
 
-  private void recordFilesToAnalyze(Projects p) throws FileNotFoundException {
+  private void recordFilesToAnalyze(JavaProjectSet<T> p) throws FileNotFoundException {
     final String name = "expectedAnalysis" + getId() + ".txt";
     final File file = new File(scriptResourcesDir, name);
     p.setArg(Util.RECORD_ANALYSIS, file);
     printToScript(ScriptCommands.EXPECT_ANALYSIS_FIRST + ' ' + computePrefix() + '/' + name);
   }
 
-  private void checkForExpectedSourceFiles(Projects p, File expected) throws IOException {
+  private void checkForExpectedSourceFiles(JavaProjectSet<T> p, File expected) throws IOException {
     System.out.println("Checking source files expected for build");
     final Set<String> cus = RegressionUtility.readLinesAsSet(expected);
     boolean somethingToBuild = false;

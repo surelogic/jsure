@@ -2,11 +2,6 @@ package com.surelogic.xml;
 
 import java.util.*;
 
-import com.surelogic.annotation.parse.AnnotationVisitor;
-
-import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.tree.Operator;
-
 public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 	public enum Access {
 		PUBLIC, PROTECTED, DEFAULT;
@@ -29,8 +24,8 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 		this.access = access;
 	}
 
-	@Override
-  public abstract Operator getOperator();
+	//@Override
+    //public abstract Operator getOperator();
 
 	void confirm() {
 		confirmed = true;
@@ -300,23 +295,6 @@ public abstract class AnnotatedJavaElement extends AbstractJavaElement {
 					+ o2);
 		}
 		return i1 - i2;
-	}
-
-	/**
-	 * @return The number of annotations added
-	 */
-	int applyPromises(final AnnotationVisitor v, final IRNode here) {
-		if (here == null) {
-			return 0;
-		}
-		int count = 0;
-		for (Map.Entry<String, List<AnnotationElement>> e : order.entrySet()) {
-			// Reconstituted in the same order in the clone
-			for (AnnotationElement a : e.getValue()) {
-				count += a.applyPromise(v, here);
-			}
-		}
-		return count;
 	}
 	
 	public static class Confirmer extends AbstractJavaElementVisitor<Boolean> {

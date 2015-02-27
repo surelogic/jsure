@@ -144,7 +144,7 @@ public class Javac extends IDE {
 	static final Javac instance = new Javac();
 	{
 		// Needs to be initialized before the locator
-		IDE.prototype = this;
+		IDE.initInstance(this);
 	}
 	private final JavacFileLocator locator = JavacFileLocator.makeLocator();
 

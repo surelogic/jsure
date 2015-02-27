@@ -6,7 +6,6 @@ Bundle-Version: 5.6.0.qualifier
 Bundle-ClassPath: .,
  lib/runtime/log4j-xml-1.3alpha-8.jar,
  lib/runtime/log4j-1.3alpha-8.jar,
- lib/runtime/java-diff-utils-1.2.jar,
  lib/runtime8/javac_8.jar
 Bundle-Vendor: SureLogic, Inc.
 Export-Package: 
@@ -64,7 +63,6 @@ Export-Package:
  com.surelogic.tree,
  com.surelogic.util,
  com.surelogic.xml,
- difflib,
  edu.cmu.cs.crystal.java.operator,
  edu.cmu.cs.crystal.java.promise,
  edu.cmu.cs.fluid.control,

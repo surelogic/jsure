@@ -1,13 +1,19 @@
 package com.surelogic.xml;
 
-import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
-import edu.cmu.cs.fluid.tree.Operator;
+import com.surelogic.common.ref.IDecl;
+
+//import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
+//import edu.cmu.cs.fluid.tree.Operator;
 
 public final class ClassInitElement extends AnnotatedJavaElement implements IClassMember {
 	public ClassInitElement() {
 		super(false, "classinit", Access.DEFAULT);
 	}
 
+	public final IDecl.Kind getKind() {
+		return IDecl.Kind.INITIALIZER; // TODO is this right?
+	}
+	
 	@Override
   public String getLabel() {
 		return "<clinit>";
@@ -18,10 +24,10 @@ public final class ClassInitElement extends AnnotatedJavaElement implements ICla
 		return null; // TODO
 	}
 	
-	@Override
-	public Operator getOperator() {
-		return ClassInitDeclaration.prototype;
-	}
+//	@Override
+//	public Operator getOperator() {
+//		return ClassInitDeclaration.prototype;
+//	}
 
 	boolean merge(ClassInitElement clinit, MergeType type) {
 		if (clinit != null) {

@@ -1,22 +1,27 @@
 package com.surelogic.xml;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.ref.IDecl;
 
-import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
-import edu.cmu.cs.fluid.tree.Operator;
+//import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+//import edu.cmu.cs.fluid.tree.Operator;
 
 public class FieldElement extends AnnotatedJavaElement implements IClassMember {
 	FieldElement(boolean confirmed, String id, Access access) {
 		super(confirmed, id, access);
 	}
 
+	public final IDecl.Kind getKind() {
+		return IDecl.Kind.FIELD;
+	}
+	
 	@Override
-  public String getLabel() {
+	public String getLabel() {
 		return "Field "+getName();
 	}
 	
 	@Override
-  public final String getImageKey() {
+	public final String getImageKey() {
 		switch (getAccessibility()) {
 		case PROTECTED:
 			return CommonImages.IMG_FIELD_PROTECTED;
@@ -28,10 +33,10 @@ public class FieldElement extends AnnotatedJavaElement implements IClassMember {
 		}
 	}
 	
-	@Override
-	public Operator getOperator() {
-		return FieldDeclaration.prototype;
-	}
+//	@Override
+//	public Operator getOperator() {
+//		return FieldDeclaration.prototype;
+//	}
 
 	@Override
 	FieldElement cloneMe(IJavaElement parent) {

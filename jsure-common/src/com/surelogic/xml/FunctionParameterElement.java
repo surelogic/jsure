@@ -1,7 +1,9 @@
 package com.surelogic.xml;
 
-import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
-import edu.cmu.cs.fluid.tree.Operator;
+import com.surelogic.common.ref.IDecl;
+
+//import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
+//import edu.cmu.cs.fluid.tree.Operator;
 
 public class FunctionParameterElement extends AnnotatedJavaElement {
 	public static String PREFIX = "arg";
@@ -12,7 +14,11 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 		index = i;
 	}
 	
-	final int getIndex() {
+	public final IDecl.Kind getKind() {
+		return IDecl.Kind.PARAMETER;
+	}
+	
+	public final int getIndex() {
 		return index;
 	}
 
@@ -39,10 +45,10 @@ public class FunctionParameterElement extends AnnotatedJavaElement {
 		return null; // TODO
 	}
 	
-	@Override
-	public Operator getOperator() {
-		return ParameterDeclaration.prototype;
-	}
+//	@Override
+//	public Operator getOperator() {
+//		return ParameterDeclaration.prototype;
+//	}
 
 	@Override
 	FunctionParameterElement cloneMe(IJavaElement parent) {

@@ -1,8 +1,9 @@
 package com.surelogic.xml;
 
 import com.surelogic.common.CommonImages;
+import com.surelogic.common.ref.IDecl;
 
-import edu.cmu.cs.fluid.tree.Operator;
+//import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * Mostly for use by a Content/LabelProvider
@@ -16,6 +17,8 @@ public interface IJavaElement {
    * @return the simple name for this element
    */
   String getName();
+  
+  IDecl.Kind getKind();
   
   /**
    * Sets the parent of this in the XML tree. An exception will be thrown if the
@@ -116,7 +119,7 @@ public interface IJavaElement {
    * 
    * @return the IR operator (like method declaration) for this.
    */
-  Operator getOperator();
+  //Operator getOperator();
 
   /**
    * Gets the release version of this Type/CU. This is stored on the

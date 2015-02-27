@@ -48,7 +48,7 @@ import edu.cmu.cs.fluid.version.VersionedRegion;
 /**
  * @author Edwin
  */
-public abstract class IDE {
+public abstract class IDE extends IDERoot {
 	public static final boolean useJavac = true;
 	public static final boolean debugTypedASTs = false;
 	public static final boolean testReloadMemoryLeak = false;
@@ -78,8 +78,18 @@ public abstract class IDE {
 
 	public static final boolean allowMultipleProjects = allowMultipleProjects();
 
-	protected static IDE prototype;
+	private static IDE prototype;
 
+	protected static void initInstance(IDE i) {
+		synchronized (IDE.class) {
+			if (/*prototype != null ||*/ i == null) {
+				throw new IllegalArgumentException();
+			}
+			prototype = i;
+		}
+		IDERoot.initInstance(i);
+	}
+	
 	public static synchronized boolean hasInstance() {
 		return prototype != null;
 	}

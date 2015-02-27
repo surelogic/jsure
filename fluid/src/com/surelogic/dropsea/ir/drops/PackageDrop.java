@@ -18,7 +18,7 @@ import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.javac.Projects;
-import com.surelogic.xml.PromisesXMLParser;
+import com.surelogic.xml.PromisesXMLAnnotator;
 import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -64,7 +64,7 @@ public final class PackageDrop extends CUDrop {
     // Look for XML annotations
     final String xmlName = computeXMLPath(pkgName);
     try {
-      int added = PromisesXMLParser.process(tEnv, root, xmlName);
+      int added = PromisesXMLAnnotator.process(tEnv, root, xmlName);
       // System.out.println("Added XML annos: "+added);
       if (added > 0) {
         System.out.println("Found promises for pkg " + pkgName + ": " + added);

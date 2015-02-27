@@ -23,6 +23,7 @@ import com.surelogic.annotation.test.TestResult;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.util.*;
 import com.surelogic.javac.adapter.SourceAdapter;
+import com.surelogic.xml.AnnotationElement;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -572,17 +573,6 @@ public class AnnotationVisitor extends Visitor<Integer> {
   }
   */
 
-  public static String capitalize(String tag) {
-    if (tag.length() <= 0) {
-      return tag;
-    }
-    char first = tag.charAt(0);
-    if (Character.isLowerCase(first)) {
-      return Character.toUpperCase(first) + tag.substring(1);
-    }
-    return tag;
-  }
-
   private boolean handleJava5Promise(IRNode n, String promise) {
 	  return handleJava5Promise(new ContextBuilder(n, promise, ""));
   }
@@ -616,7 +606,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
 	final boolean allowReferenceObject   = "true".equals(props.get(AnnotationVisitor.ALLOW_REF_OBJECT));		
 	final int finalMods       = mods | 
 	                            convertToModifiers(implOnly, verify, allowReturn, allowRead, allowReferenceObject);
-    return createPromise(new ContextBuilder(node, capitalize(promise), c) 
+    return createPromise(new ContextBuilder(node, AnnotationElement.capitalize(promise), c) 
                               .setSrc(AnnotationSource.XML).setProps(finalMods, props));
   }
 

@@ -4,15 +4,12 @@ import java.io.File;
 import java.net.URI;
 import java.net.URL;
 
-import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
-import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
+import edu.cmu.cs.fluid.ide.IDERoot;
 
 /**
  * Does the same thing as TestXMLParser, but uses the Java XML model to apply
@@ -33,7 +30,7 @@ public final class PromisesXMLParser {
 	 */
 	public static File getFluidXMLDir() {
 		File fluidDir = null;
-		final URL url = IDE.getInstance().getResourceRoot();
+		final URL url = IDERoot.getInstance().getResourceRoot();
 		try {
 			final URI uri = url.toURI();
 			fluidDir = new File(uri);
@@ -61,7 +58,7 @@ public final class PromisesXMLParser {
 	 *         {@code null}.
 	 */
 	public static File getLocalXMLDirOrNull() {
-		final String XmlDiffPath = IDE.getInstance().getStringPreference(
+		final String XmlDiffPath = IDERoot.getInstance().getStringPreference(
 				IDEPreferences.JSURE_XML_DIFF_DIRECTORY);
 		if (XmlDiffPath != null) {
 			final File result = new File(XmlDiffPath);
@@ -107,29 +104,5 @@ public final class PromisesXMLParser {
 		PackageElement p = PromisesXMLReader.load(xmlPath, f.first(),
 				ignoreDiffs ? null : f.second());
 		return p;
-	}
-
-	/**
-	 * @param root
-	 *            A CompilationUnit
-	 * @param xml
-	 *            The name of the promises.xml file to parse in
-	 * @return The number of annotations added
-	 */
-	public static int process(ITypeEnvironment tEnv, IRNode root, String xmlPath) {
-		/*
-		 * if (xmlPath.startsWith("java/lang/Object")) {
-		 * System.out.println("Looking up "+xmlPath); }
-		 */
-		if (root == null) {
-			return 0;
-		}
-		PackageElement p = load(xmlPath);
-		if (p == null) {
-			return 0;
-		}
-		AnnotationVisitor v = new AnnotationVisitor(tEnv, "XML Parser for "
-				+ xmlPath);
-		return p.applyPromises(v, root);
 	}
 }

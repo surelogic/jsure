@@ -30,11 +30,11 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.java.JavaBuild;
+import com.surelogic.common.java.JavaProjectSet;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.logging.IErrorListener;
-import com.surelogic.javac.Projects;
 import com.surelogic.java.persistence.JSureScan;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
@@ -124,7 +124,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
     commands.put(ScriptCommands.RUN_JSURE, new AbstractCommand() {
         @Override
         public boolean execute(ICommandContext context, String... contents) throws Exception {
-        	final Projects p;
+        	final JavaProjectSet<?> p;
         	if (contents.length > 1) {
         		// Lookup projects
         		List<IJavaProject> projs = new ArrayList<IJavaProject>(contents.length);
@@ -390,7 +390,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	  // Nothing to do yet
   }
   
-  Projects build() throws CoreException {	  
+  JavaProjectSet<?> build() throws CoreException {	  
 	  //build(IncrementalProjectBuilder.CLEAN_BUILD); //OK
 	  //build(IncrementalProjectBuilder.FULL_BUILD); //NO
 	  return build(IncrementalProjectBuilder.INCREMENTAL_BUILD); //NO
@@ -406,7 +406,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	  */
   }
   
-  private Projects build(int kind) throws CoreException {
+  private JavaProjectSet<?> build(int kind) throws CoreException {
 	if (projects != null && !active.isEmpty()) {
 		try {
 			System.out.println("Sleeping to let the file system sync ...");
@@ -418,7 +418,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 
 		
 		System.out.println("Analyzing.");
-		Projects projs = JavaBuild.analyze(JavacDriver.getInstance(), new ArrayList<IJavaProject>(active), IErrorListener.throwListener);
+		JavaProjectSet<?> projs = JavaBuild.analyze(JavacDriver.getInstance(), new ArrayList<IJavaProject>(active), IErrorListener.throwListener);
 		System.out.println("FINISHED build for: ");
 		for(IJavaProject p : active) {
 			System.out.println("\t"+p.getElementName());

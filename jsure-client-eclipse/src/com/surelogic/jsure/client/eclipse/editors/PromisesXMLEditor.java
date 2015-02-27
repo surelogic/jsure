@@ -64,7 +64,7 @@ import org.eclipse.ui.part.MultiPageEditorPart;
 
 import com.surelogic.annotation.IAnnotationParseRule;
 import com.surelogic.annotation.NullAnnotationParseRule;
-import com.surelogic.annotation.rules.AnnotationRules.Attribute;
+import com.surelogic.annotation.Attribute;
 import com.surelogic.annotation.rules.ScopedPromiseRules;
 import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.AnnotationConstants;
@@ -110,6 +110,8 @@ import com.surelogic.xml.PromisesXMLWriter;
 import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
 import edu.cmu.cs.fluid.tree.Operator;
 
 public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXMLReader.Listener {
@@ -696,6 +698,14 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     return rv;
   }
 
+  private Set<String> findApplicableAnnos(final IDecl.Kind kind) {
+	final Operator op = kindMap.get(kind);
+	if (op == null) {
+	  return Collections.emptySet();
+	}
+	return findApplicableAnnos(op);
+  }
+	
   private Set<String> findApplicableAnnos(final Operator op) {
     final Set<String> annos = new HashSet<String>();
     // Get valid/applicable annos
@@ -709,6 +719,22 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     return annos;
   }
 
+  private static Map<IDecl.Kind, Operator> kindMap = new HashMap<IDecl.Kind, Operator>();
+  private static Declaration[] declOps = {
+	  PackageDeclaration.prototype,
+	  ClassDeclaration.prototype,
+	  MethodDeclaration.prototype,
+	  ConstructorDeclaration.prototype,
+	  ParameterDeclaration.prototype,
+  };
+  static {
+	for(Declaration op : declOps) {
+	  kindMap.put(op.getKind(), op);
+	}
+	kindMap.put(IDecl.Kind.FIELD, FieldDeclaration.prototype);
+	kindMap.put(IDecl.Kind.INITIALIZER, ClassInitDeclaration.prototype);
+  }
+  
   private Set<String> remove(final Set<String> s, final String elt) {
     s.remove(elt);
     return s;
@@ -718,7 +744,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     if (j == null) {
       return Collections.emptyList();
     }
-    final Set<String> annos = findApplicableAnnos(j.getOperator());
+    final Set<String> annos = findApplicableAnnos(j.getKind());
 
     // Remove clashes
     for (AnnotationElement a : j.getPromises()) {
