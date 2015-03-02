@@ -1,5 +1,5 @@
 /*$Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/CommonStrings.java,v 1.5 2008/09/05 15:57:43 chance Exp $*/
-package edu.cmu.cs.fluid.java;
+package edu.cmu.cs.fluid;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

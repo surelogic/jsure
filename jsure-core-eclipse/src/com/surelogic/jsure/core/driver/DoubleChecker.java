@@ -22,7 +22,7 @@ import com.surelogic.jsure.core.Activator;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
-import edu.cmu.cs.fluid.java.CommonStrings;
+import edu.cmu.cs.fluid.CommonStrings;
 
 /**
  * The Eclipse plugin class for double-checker. This plugin drives the Eclipse

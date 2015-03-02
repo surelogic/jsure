@@ -1,6 +1,7 @@
 /* $Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/JavaPredicates.java,v 1.4 2003/07/02 20:19:58 thallora Exp $ */
 package edu.cmu.cs.fluid.java;
 
+import edu.cmu.cs.fluid.CommonStrings;
 
 public class JavaPredicates
 {

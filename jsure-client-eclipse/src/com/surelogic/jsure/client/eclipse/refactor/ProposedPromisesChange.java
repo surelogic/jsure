@@ -29,8 +29,7 @@ import com.surelogic.common.refactor.AnnotationDescription;
 import com.surelogic.common.refactor.AnnotationDescription.CU;
 import com.surelogic.common.ui.refactor.PromisesAnnotationRewriter;
 import com.surelogic.dropsea.IProposedPromiseDrop;
-
-import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+import com.surelogic.xml.AnnotationElement;
 
 public class ProposedPromisesChange {
   private final List<? extends IProposedPromiseDrop> drops;
@@ -92,7 +91,7 @@ public class ProposedPromisesChange {
     }
     final Map<CU, Set<AnnotationDescription>> promiseMap = new HashMap<CU, Set<AnnotationDescription>>();
     final Map<CU, Set<AnnotationDescription>> assumeMap = new HashMap<CU, Set<AnnotationDescription>>();
-    final PromisesAnnotationRewriter rewrite = new PromisesAnnotationRewriter(PromiseFramework.getInstance()
+    final PromisesAnnotationRewriter rewrite = new PromisesAnnotationRewriter(AnnotationElement
         .getAllowsMultipleAnnosSet());
     try {
       for (final String proj : projects) {

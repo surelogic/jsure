@@ -13,7 +13,7 @@ import com.surelogic.dropsea.ir.drops.VouchFieldIsPromiseDrop;
 
 import edu.cmu.cs.fluid.FluidError;
 import edu.cmu.cs.fluid.ir.*;
-import edu.cmu.cs.fluid.java.CommonStrings;
+import edu.cmu.cs.fluid.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;

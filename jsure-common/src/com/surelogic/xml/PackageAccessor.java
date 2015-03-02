@@ -9,11 +9,12 @@ import java.util.zip.ZipFile;
 
 import org.xml.sax.InputSource;
 
+import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.util.*;
 
-import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
+import edu.cmu.cs.fluid.ide.IDERoot;
 import edu.cmu.cs.fluid.util.*;
 
 public class PackageAccessor implements TestXMLParserConstants {
@@ -160,11 +161,11 @@ public class PackageAccessor implements TestXMLParserConstants {
 
 	public static Iterable<String> findPromiseXMLs() {
 		try {
-			final String localPath = IDE.getInstance().getStringPreference(
+			final String localPath = IDERoot.getInstance().getStringPreference(
 					IDEPreferences.JSURE_XML_DIFF_DIRECTORY);
 			final File local = new File(localPath);
 
-			final URI uri = IDE.getInstance().getResourceRoot().toURI();
+			final URI uri = IDERoot.getInstance().getResourceRoot().toURI();
 			final File root = new File(uri);
 			if (root.exists() && root.isDirectory()) {
 				final boolean localExists = local.isDirectory();
@@ -248,5 +249,9 @@ public class PackageAccessor implements TestXMLParserConstants {
     public void addType(String pkg, String name) {
 			results.add(computeName(pkg, name));
 		}
+	}
+	
+	public static String computeXMLPath(String pkgName) {
+		return pkgName.replace('.', '/') + '/' + AnnotationConstants.PACKAGE_INFO + TestXMLParserConstants.SUFFIX;
 	}
 }

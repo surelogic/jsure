@@ -1,7 +1,7 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/analysis/locks/ReadWriteLockMethods.java,v 1.4 2007/09/11 20:32:40 aarong Exp $*/
 package com.surelogic.analysis.concurrency.heldlocks;
 
-import edu.cmu.cs.fluid.java.CommonStrings;
+import edu.cmu.cs.fluid.CommonStrings;
 
 /**
  * Enumeration that describes the different methods in 

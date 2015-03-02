@@ -67,7 +67,7 @@ import com.surelogic.dropsea.irfree.DiffHeuristics;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotAlreadyRegisteredException;
-import edu.cmu.cs.fluid.java.CommonStrings;
+import edu.cmu.cs.fluid.CommonStrings;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;

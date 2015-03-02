@@ -52,14 +52,13 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.common.ui.TreeViewerUIState;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.views.AbstractSLView;
-import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.jsure.client.eclipse.editors.IJSureTreeContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLContentProvider;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 import com.surelogic.jsure.core.xml.PromisesLibMerge;
-import com.surelogic.xml.IJavaElement;
+import com.surelogic.xml.*;
 import com.surelogic.xml.MethodElement;
 import com.surelogic.xml.PackageElement;
 import com.surelogic.xml.PromisesXMLParser;
@@ -659,7 +658,7 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
 
     @Override
     public String getPath() {
-      return PackageDrop.computeXMLPath(name);
+      return PackageAccessor.computeXMLPath(name);
     }
 
     @Override

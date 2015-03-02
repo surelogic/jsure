@@ -1,22 +1,21 @@
 package com.surelogic.jsure.client.eclipse.editors;
 
-import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.tree.Operator;
+import com.surelogic.common.ref.IDecl.Kind;
 
 public enum ScopedTargetType {
-	METHOD("Methods", MethodDeclaration.prototype, "*(**)"),
-	CONSTRUCTOR("Constructors", ConstructorDeclaration.prototype, "new(**)"),
-	FUNC("Methods/Constructors", SomeFunctionDeclaration.prototype, "**(**)"),
-	TYPE("Types", TypeDeclaration.prototype, "*"),
-	FIELD("Fields", FieldDeclaration.prototype, "* *");
+	METHOD("Methods", Kind.METHOD, "*(**)"),
+	CONSTRUCTOR("Constructors", Kind.CONSTRUCTOR, "new(**)"),
+	//FUNC("Methods/Constructors", null, "**(**)"),
+	TYPE("Types", Kind.CLASS, "*"),
+	FIELD("Fields", Kind.FIELD, "* *");
 	
 	final String label;
-	final Operator op;
+	final Kind kind;
 	final String target;
 	
-	private ScopedTargetType(String l, Operator o, String t) {
+	private ScopedTargetType(String l, Kind o, String t) {
 		label = l;
-		op = o;
+		kind = o;
 		target = t;
 	}
 }

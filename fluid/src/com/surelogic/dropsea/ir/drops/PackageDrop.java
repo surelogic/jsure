@@ -11,18 +11,17 @@ import java.util.logging.Level;
 
 import com.surelogic.InRegion;
 import com.surelogic.analysis.IIRProject;
-import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.java.Config;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.javac.Projects;
+import com.surelogic.xml.PackageAccessor;
 import com.surelogic.xml.PromisesXMLAnnotator;
-import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.CommonStrings;
+import edu.cmu.cs.fluid.CommonStrings;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.Annotations;
@@ -62,7 +61,7 @@ public final class PackageDrop extends CUDrop {
     // System.out.println("Creating pkg: "+pkgName);
 
     // Look for XML annotations
-    final String xmlName = computeXMLPath(pkgName);
+    final String xmlName = PackageAccessor.computeXMLPath(pkgName);
     try {
       int added = PromisesXMLAnnotator.process(tEnv, root, xmlName);
       // System.out.println("Added XML annos: "+added);
@@ -82,10 +81,6 @@ public final class PackageDrop extends CUDrop {
       }
     }
     Projects.setProject(root, tEnv.getProject());
-  }
-
-  public static String computeXMLPath(String pkgName) {
-    return pkgName.replace('.', '/') + '/' + AnnotationConstants.PACKAGE_INFO + TestXMLParserConstants.SUFFIX;
   }
 
   private PackageDrop(ITypeEnvironment tEnv, String pkgName, IRNode root, IRNode n) {

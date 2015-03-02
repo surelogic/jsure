@@ -29,7 +29,7 @@ import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.Util;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.CommonStrings;
+import edu.cmu.cs.fluid.CommonStrings;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.SkeletonJavaRefUtility;
 import edu.cmu.cs.fluid.java.adapter.*;

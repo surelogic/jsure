@@ -62,11 +62,12 @@ import org.eclipse.ui.dialogs.ListSelectionDialog;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.part.MultiPageEditorPart;
 
-import com.surelogic.annotation.IAnnotationParseRule;
-import com.surelogic.annotation.NullAnnotationParseRule;
+
+//import com.surelogic.annotation.IAnnotationParseRule;
+//import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.Attribute;
-import com.surelogic.annotation.rules.ScopedPromiseRules;
-import com.surelogic.annotation.rules.ThreadEffectsRules;
+//import com.surelogic.annotation.rules.ScopedPromiseRules;
+//import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.CommonImages;
 import com.surelogic.common.Pair;
@@ -102,6 +103,7 @@ import com.surelogic.xml.IXmlProcessor;
 import com.surelogic.xml.MethodElement;
 import com.surelogic.xml.NestedClassElement;
 import com.surelogic.xml.PackageAccessor;
+//import com.surelogic.xml.PackageAccessor;
 import com.surelogic.xml.PackageElement;
 import com.surelogic.xml.PromisesXMLMerge;
 import com.surelogic.xml.PromisesXMLParser;
@@ -109,10 +111,10 @@ import com.surelogic.xml.PromisesXMLReader;
 import com.surelogic.xml.PromisesXMLWriter;
 import com.surelogic.xml.TestXMLParserConstants;
 
-import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import edu.cmu.cs.fluid.java.operator.*;
-import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
-import edu.cmu.cs.fluid.tree.Operator;
+//import edu.cmu.cs.fluid.java.bind.PromiseFramework;
+//import edu.cmu.cs.fluid.java.operator.*;
+//import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
+//import edu.cmu.cs.fluid.tree.Operator;
 
 public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXMLReader.Listener {
   enum FileStatus {
@@ -653,7 +655,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
           final AnnotationElement a;
           final Map<String, String> attrs = Collections.<String, String> emptyMap();
           if (makeScopedPromise) {
-            a = new AnnotationElement(j, null, ScopedPromiseRules.PROMISE, "@" + tag + contents + " for " + target.target, attrs);
+            a = new AnnotationElement(j, null, PROMISE, "@" + tag + contents + " for " + target.target, attrs);
           } else {
             a = new AnnotationElement(j, null, tag, contents, attrs);
           }
@@ -675,7 +677,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     }
 
     private String getDefaultContents(final String tag, final boolean isScopedPromise) {
-      if (ThreadEffectsRules.STARTS.equals(tag)) {
+      if ("Starts"/*ThreadEffectsRules.STARTS*/.equals(tag)) {
         return isScopedPromise ? "(nothing)" : "nothing";
       }
       return "";
@@ -687,7 +689,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     if (!makeScopedPromise) {
       annos = findMissingAnnos(j);
     } else {
-      annos = sortSet(remove(findApplicableAnnos(target.op), ScopedPromiseRules.PROMISE));
+      annos = sortSet(remove(findApplicableAnnos(target.kind), PROMISE));
     }
     return annos;
   }
@@ -699,13 +701,17 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
   }
 
   private Set<String> findApplicableAnnos(final IDecl.Kind kind) {
+	return Collections.emptySet();
+	/*
 	final Operator op = kindMap.get(kind);
 	if (op == null) {
 	  return Collections.emptySet();
 	}
 	return findApplicableAnnos(op);
+	*/
   }
-	
+
+  /*
   private Set<String> findApplicableAnnos(final Operator op) {
     final Set<String> annos = new HashSet<String>();
     // Get valid/applicable annos
@@ -718,7 +724,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     annos.remove(ScopedPromiseRules.ASSUME);
     return annos;
   }
-
+  
   private static Map<IDecl.Kind, Operator> kindMap = new HashMap<IDecl.Kind, Operator>();
   private static Declaration[] declOps = {
 	  PackageDeclaration.prototype,
@@ -734,6 +740,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 	kindMap.put(IDecl.Kind.FIELD, FieldDeclaration.prototype);
 	kindMap.put(IDecl.Kind.INITIALIZER, ClassInitDeclaration.prototype);
   }
+  */
   
   private Set<String> remove(final Set<String> s, final String elt) {
     s.remove(elt);
@@ -1360,14 +1367,15 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     return changed;
   }
 
-  private static final List<String> ONLY_PROMISE = Collections.singletonList(ScopedPromiseRules.PROMISE);
+  private static final String PROMISE = "Promise";//ScopedPromiseRules.PROMISE
+  private static final List<String> ONLY_PROMISE = Collections.singletonList(PROMISE);
 
   private List<String> computePastableAnnos(AnnotatedJavaElement target) {
     final List<String> couldBeNewAnnos = computePossibleAnnos(target, null, false);
     if (couldBeNewAnnos.isEmpty()) {
       return ONLY_PROMISE;
     } else {
-      couldBeNewAnnos.add(ScopedPromiseRules.PROMISE);
+      couldBeNewAnnos.add(PROMISE);
     }
     return couldBeNewAnnos;
   }

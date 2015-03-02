@@ -42,7 +42,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		isReference = dash >= 0;
 
 		final String name = capitalize(isReference ? tag.substring(0, dash) : tag);
-		if (!couldBeSequence(name)) {
+		if (!allowsMultipleAnnos(name)) {
 			if (id != null && !name.equals(id)) {
 				System.err.println("Ignoring id for non-seq annotation: " + id);
 			}
@@ -74,7 +74,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		isBad = !parses(promise, contents);
 	}
 
-	private static boolean couldBeSequence(String name) {
+	public static boolean allowsMultipleAnnos(String name) {
 		/*
 		final IPromiseDropStorage<?> storage = PromiseFramework.getInstance()
 				.findStorage(name);
@@ -85,6 +85,10 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		return storage.type() == StorageType.SEQ;
 		*/
 		return seqAnnos.contains(name);
+	}
+	
+	public static Set<String> getAllowsMultipleAnnosSet() {
+		return Collections.unmodifiableSet(seqAnnos);
 	}
 	
 	static final Set<String> seqAnnos = new HashSet<String>();

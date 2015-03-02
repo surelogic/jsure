@@ -37,7 +37,7 @@ import com.surelogic.common.ui.SLImages;
 import com.surelogic.jsure.core.driver.DoubleChecker;
 import com.surelogic.jsure.core.driver.IAnalysisContainer;
 
-import edu.cmu.cs.fluid.java.CommonStrings;
+import edu.cmu.cs.fluid.CommonStrings;
 
 /**
  * Preference page to set preferences for the verifying analyses that are run by
