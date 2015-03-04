@@ -109,7 +109,7 @@ public final class JSureAnalysisXMLReader implements JSureAnalysisXMLConstants {
 	 * 
 	 * @see #writeStateTo(File)
 	 */
-	static void readStateFrom(File target) {
+	public static void readStateFrom(File target) {
 		if (LOG.isLoggable(Level.FINE)) {
 			LOG.fine("Read state from the file " + target.getAbsolutePath());
 		}
