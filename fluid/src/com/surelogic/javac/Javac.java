@@ -21,7 +21,7 @@ import edu.cmu.cs.fluid.java.IJavaFileLocator;
  *
  */
 public class Javac extends IDE {	
-	static final Javac instance = new Javac();
+	private static Javac instance;
 	{
 		// Needs to be initialized before the locator
 		IDE.initInstance(this);
@@ -32,12 +32,16 @@ public class Javac extends IDE {
 		// Nothing to do now
 	}
 
-	public static Javac getDefault() {
+	public static synchronized Javac getDefault() {
+		if (instance == null) {
+			instance = new Javac();
+		}
 		return instance;
 	}
 
 	public static void initialize() {
 		// Nothing to do right now, besides create the instance above
+		getDefault();
 	}
 
 	@Override
