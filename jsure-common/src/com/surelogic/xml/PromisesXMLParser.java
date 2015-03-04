@@ -45,6 +45,7 @@ public final class PromisesXMLParser {
 		final File fLibDir = new File(fluidDir,
 				TestXMLParserConstants.PROMISES_XML_REL_PATH);
 		if (!fLibDir.isDirectory()) {
+			System.out.println("Unable to find fluid libs via "+IDERoot.getInstance());
 			throw new IllegalStateException(I18N.err(252, fLibDir));
 		}
 		return fLibDir;
