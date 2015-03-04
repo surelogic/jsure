@@ -20,11 +20,11 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
-import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.javac.Javac;
 import com.surelogic.javac.jobs.JSureConstants;
 
 import edu.cmu.cs.fluid.ide.IClassPath;
@@ -44,7 +44,7 @@ import edu.cmu.cs.fluid.util.AbstractRunner;
  * The top level interface to the Fluid plug-in adaption capabilities within the
  * Eclipse integrated development environment.
  */
-public final class Eclipse extends IDE {
+public final class Eclipse extends Javac {
 
   /**
    * Logger for this class
@@ -385,11 +385,6 @@ public final class Eclipse extends IDE {
   @Override
   @SuppressWarnings("rawtypes")
   public IJavaFileLocator getJavaFileLocator() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public IAnalysisInfo[] getAnalysisInfo() {
     throw new UnsupportedOperationException();
   }
 }

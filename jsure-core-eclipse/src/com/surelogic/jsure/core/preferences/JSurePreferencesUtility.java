@@ -4,12 +4,11 @@ import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.surelogic.NonNull;
-import com.surelogic.analysis.IAnalysisInfo;
+import com.surelogic.analysis.*;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.MemoryUtility;
 import com.surelogic.common.core.preferences.AutoPerspectiveSwitchPreferences;
-import com.surelogic.javac.Javac;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
@@ -75,7 +74,7 @@ public final class JSurePreferencesUtility {
       File xmlDiffDir = new File(jsureDataDir, FileUtility.JSURE_XML_DIFF_PATH_FRAGMENT);
       EclipseUtility.setDefaultStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY, xmlDiffDir.getAbsolutePath());
 
-      for (IAnalysisInfo a : Javac.getDefault().getAnalysisInfo()) {
+      for (IAnalysisInfo a : AnalysisDefaults.getDefault().getAnalysisInfo()) {
         // System.out.println("Defaulting "+a.getUniqueIdentifier()+" to "+a.isProduction());
         EclipseUtility.setDefaultBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + a.getUniqueIdentifier(),
             a.isProduction());

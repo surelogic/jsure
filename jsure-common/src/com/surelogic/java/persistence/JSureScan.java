@@ -23,14 +23,20 @@ import com.surelogic.common.java.JavaProjectSet;
 import com.surelogic.common.java.JavaProjectsXMLReader;
 import com.surelogic.common.java.PersistenceConstants;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
+import com.surelogic.common.jobs.remote.RemoteScanJob;
 import com.surelogic.common.regression.RegressionUtility;
+
+import edu.cmu.cs.fluid.ide.IDEPreferences;
+import edu.cmu.cs.fluid.ide.IDERoot;
 
 public class JSureScan implements Comparable<JSureScan> {
   private static final String OLD_RESULTS_FILE = "results.sea.xml";
   private static final String OLD_ZIPS_DIR = "zips";  
   public static final String RESULTS_XML  = "sea_snapshot.xml";
   public static final String COMPRESSED_RESULTS_XML = RESULTS_XML+FileUtility.GZIP_SUFFIX;
-
+  private static final String TEMP_RESULTS_XML  = RemoteScanJob.TEMP_PREFIX+RESULTS_XML;
+  private static final String COMPRESSED_TEMP_RESULTS_XML = RemoteScanJob.TEMP_PREFIX+RESULTS_XML+FileUtility.GZIP_SUFFIX;
+  
   /**
    * As a double
    */
@@ -351,5 +357,21 @@ public class JSureScan implements Comparable<JSureScan> {
 		  return rv;
 	  }
 	  return new File(scanDir, COMPRESSED_RESULTS_XML);
+  }
+
+  public static File getResultsFile(File scanDir) {
+	  final boolean compress =
+			  IDERoot.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_USE_COMPRESSION);
+	  final File location =  new File(scanDir, compress ? COMPRESSED_TEMP_RESULTS_XML : TEMP_RESULTS_XML);
+	  return location;
+  }
+
+  public static void markAsRunning(File scanDir) {
+	  final File location = getResultsFile(scanDir);
+	  try {
+		  location.createNewFile();
+	  } catch (IOException e) {
+		  // Ignore
+	  }
   }
 }

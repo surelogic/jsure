@@ -10,13 +10,15 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import com.surelogic.analysis.*;
 import com.surelogic.common.Pair;
 import com.surelogic.common.logging.SLLogger;
+/*OBSOLETE? 
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.javac.PromiseMatcher;
 import com.surelogic.javac.Util;
+*/
 import com.surelogic.jsure.core.listeners.NotificationHub;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
-import edu.cmu.cs.fluid.ide.IDE;
+//OBSOLETE? import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.util.*;
 
 public class AnalysisDriver extends AbstractAnalysisModule {
@@ -35,7 +37,7 @@ public class AnalysisDriver extends AbstractAnalysisModule {
 	@Override
 	public void preBuild(IProject p) {
 		project = p;
-		JavacDriver.getInstance().preBuild(p);
+		//OBSOLETE? JavacDriver.getInstance().preBuild(p);
 	}
 	
 	/**
@@ -95,11 +97,12 @@ public class AnalysisDriver extends AbstractAnalysisModule {
 			throw new IllegalStateException("Project doesn't match");
 		}
 		System.out.println("AnalysisDriver: "+p.getName()+" with "+cus.size()+" CUs");
-		JavacDriver.getInstance().registerBuild(project, args, resources, cus);
+		//OBSOLETE? JavacDriver.getInstance().registerBuild(project, args, resources, cus);
 		project = null;
 		resources.clear();
 		cus.clear();
 		
+		/*OBSOLETE? 
 		if (IDE.useJavac) {						
 			JavacEclipse.initialize();
 			SLLogger.getLogger().fine("Configuring build");
@@ -118,6 +121,7 @@ public class AnalysisDriver extends AbstractAnalysisModule {
     		}    		
 			JavacDriver.getInstance().configureBuild(args, false);
 		}
+		*/
 		args = null;
 	}
 }

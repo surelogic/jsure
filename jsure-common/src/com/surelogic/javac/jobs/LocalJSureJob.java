@@ -8,14 +8,14 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.types.*;
 
-import com.surelogic.annotation.rules.AnnotationRules;
+import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.jobs.remote.*;
 
-import edu.cmu.cs.fluid.parse.JJNode;
-
 public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
-	@SuppressWarnings("unused")
+  public static final String FLUID_DIRECTORY_URL = "fluid.directory.url";	
+	
+  @SuppressWarnings("unused")
   public static final int DEFAULT_PORT = true ? 0 : 20111;
 	public static final AbstractLocalHandlerFactory<LocalJSureJob,ILocalConfig> factory = 
 		new AbstractLocalHandlerFactory<LocalJSureJob,ILocalConfig>("jsure-console", LocalJSureJob.DEFAULT_PORT) {
@@ -37,12 +37,12 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 		if (XUtil.testing) {
 			return "com.surelogic.jsure.tests.RemoteJSureRunTest";
 		}
-		return super.getRemoteClassName();
+		return "com.surelogic.javac.jobs.RemoteJSureRun";
 	}
 	
 	@Override
 	protected Class<? extends AbstractRemoteSLJob> getRemoteClass() {
-		return RemoteJSureRun.class;
+		throw new IllegalStateException();
 	}
 
 	@Override
@@ -109,16 +109,16 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 	
 	@Override
 	protected void finishSetupJVM(boolean debug, CommandlineJava cmdj, Project proj) {			
-		cmdj.createVmArgument().setValue("-Dfluid.ir.versioning=Versioning."+(JJNode.versioningIsOn ? "On" : "Off"));
+		cmdj.createVmArgument().setValue("-Dfluid.ir.versioning=Versioning."+(JSureConstants.versioningIsOn ? "On" : "Off"));
 		if (XUtil.testing) {
-			cmdj.createVmArgument().setValue("-D"+AnnotationRules.XML_LOG_PROP+"=RemoteJSureRun.AnnotationRules");
+			cmdj.createVmArgument().setValue("-D"+AnnotationConstants.XML_LOG_PROP+"=RemoteJSureRun.AnnotationRules");
 			cmdj.createVmArgument().setValue("-D"+XUtil.testingProp+"="+XUtil.testing);
 		}
 		
 		final ConfigHelper util = new ConfigHelper(debug, config);
 		String location = util.getPluginDir(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, true);
 		try {
-			cmdj.createVmArgument().setValue("-D"+RemoteJSureRun.FLUID_DIRECTORY_URL+"="+new File(location).toURI().toURL());
+			cmdj.createVmArgument().setValue("-D"+FLUID_DIRECTORY_URL+"="+new File(location).toURI().toURL());
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}

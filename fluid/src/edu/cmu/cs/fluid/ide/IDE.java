@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 
 import com.surelogic.aast.bind.AASTBinder;
 import com.surelogic.aast.bind.CommonAASTBinder;
-import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.analysis.IAnalysisReporter;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.logging.SLLogger;
@@ -49,7 +48,6 @@ import edu.cmu.cs.fluid.version.VersionedRegion;
  * @author Edwin
  */
 public abstract class IDE extends IDERoot {
-	public static final boolean useJavac = true;
 	public static final boolean debugTypedASTs = false;
 	public static final boolean testReloadMemoryLeak = false;
 
@@ -82,6 +80,9 @@ public abstract class IDE extends IDERoot {
 
 	protected static void initInstance(IDE i) {
 		synchronized (IDE.class) {
+			if (prototype != null) {
+				System.err.println("Warning: overriding "+prototype+" with "+i);
+			}
 			if (/*prototype != null ||*/ i == null) {
 				throw new IllegalArgumentException();
 			}
@@ -235,22 +236,6 @@ public abstract class IDE extends IDERoot {
 	public Properties getProperties() {
 		return props;
 	}
-
-	public static final String AS_NEEDED = "asNeeded";
-	public static final String REQUIRED = "required";
-	public static final String AS_SOURCE = "asSource";
-	public static final String AS_CLASS = "asClass";
-	public static final String MODULE_PREFIX = "Module.";
-	public static final String MODULE_DECL_PREFIX = "ModuleDecl.";
-
-	public static final String MODULE_AS_NEEDED = MODULE_PREFIX + AS_NEEDED;
-	public static final String MODULE_REQUIRED = MODULE_PREFIX + REQUIRED;
-	public static final String MODULE_AS_SOURCE = MODULE_PREFIX + AS_SOURCE;
-	public static final String MODULE_AS_CLASS = MODULE_PREFIX + AS_CLASS;
-	public static final String MODULE_DEFAULTS = MODULE_PREFIX + "defaults";
-
-	public static final String LIB_PREFIX = "Library.";
-	public static final String LIB_EXCLUDES = LIB_PREFIX + "excludes";
 
 	/*************************************************************
 	 * FIX Hack to support Fluid binder
@@ -609,33 +594,4 @@ public abstract class IDE extends IDERoot {
 		}
 		clearCaches_internal();
 	}
-
-	/**
-	 * Looks up a boolean preference.
-	 * 
-	 * @param key
-	 *            the key for the desired preference.
-	 * @return the value.
-	 */
-	public abstract boolean getBooleanPreference(String key);
-
-	/**
-	 * Looks up a int preference.
-	 * 
-	 * @param key
-	 *            the key for the desired preference.
-	 * @return the value.
-	 */
-	public abstract int getIntPreference(String key);
-
-	/**
-	 * Looks up a string preference.
-	 * 
-	 * @param key
-	 *            the key for the desired preference.
-	 * @return the value.
-	 */
-	public abstract String getStringPreference(String key);
-
-	public abstract IAnalysisInfo[] getAnalysisInfo();
 }

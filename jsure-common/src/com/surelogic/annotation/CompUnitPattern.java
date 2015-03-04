@@ -2,7 +2,7 @@
  * Created on Jun 24, 2004
  *
  */
-package com.surelogic.annotation.rules;
+package com.surelogic.annotation;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

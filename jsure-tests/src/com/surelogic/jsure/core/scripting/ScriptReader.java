@@ -36,7 +36,7 @@ import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.java.persistence.JSureScan;
-import com.surelogic.jsure.core.driver.JavacDriver;
+import com.surelogic.jsure.core.driver.JSureDriver;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 /**
@@ -141,7 +141,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
         			}
         			projs.add(proj);
         		}
-        		p = JavaBuild.analyze(JavacDriver.getInstance(), projs, IErrorListener.throwListener);        		   
+        		p = JavaBuild.analyze(JSureDriver.getInstance(), projs, IErrorListener.throwListener);        		   
         	} else {
         		p = build();
         	}
@@ -418,7 +418,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 
 		
 		System.out.println("Analyzing.");
-		JavaProjectSet<?> projs = JavaBuild.analyze(JavacDriver.getInstance(), new ArrayList<IJavaProject>(active), IErrorListener.throwListener);
+		JavaProjectSet<?> projs = JavaBuild.analyze(JSureDriver.getInstance(), new ArrayList<IJavaProject>(active), IErrorListener.throwListener);
 		System.out.println("FINISHED build for: ");
 		for(IJavaProject p : active) {
 			System.out.println("\t"+p.getElementName());

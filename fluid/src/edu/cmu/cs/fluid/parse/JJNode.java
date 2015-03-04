@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 
 import com.surelogic.common.logging.SLLogger;
+import com.surelogic.javac.jobs.JSureConstants;
 import com.surelogic.tree.SyntaxTreeSlotFactory;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -336,10 +337,6 @@ class JJNodeBoot {
 	 * Logger for this class
 	 */
   private static final Logger LOG = SLLogger.getLogger("FLUID.parse");
-
-  public static final QuickProperties.Flag versioningFlag = 
-    new QuickProperties.Flag(LOG, "fluid.ir.versioning", "Versioning",
-                             false, true);
   
   public static final QuickProperties.Flag specializeFlag = 
     new QuickProperties.Flag(LOG, "fluid.specializeForSyntaxTree", "Tree",
@@ -369,11 +366,7 @@ class JJNodeBoot {
 	 */
   public static final AbstractChangeRecord treeChanged;
 
-  public static boolean versioningIsOn = versioningIsOn();
-
-  public static boolean versioningIsOn() {
-    return QuickProperties.checkFlag(versioningFlag);
-  }
+  public static boolean versioningIsOn = JSureConstants.versioningIsOn;
   
   static final boolean specializeForSyntaxTree = QuickProperties.checkFlag(specializeFlag);
 

@@ -25,7 +25,7 @@ import com.surelogic.common.ui.dialogs.JavaProjectSelectionDialog;
 import com.surelogic.common.ui.dialogs.SaveDirtyFilesUtility;
 import com.surelogic.common.ui.dialogs.SaveDirtyFilesUtility.Config;
 import com.surelogic.common.ui.handlers.AbstractProjectSelectedMenuHandler;
-import com.surelogic.jsure.core.driver.JavacDriver;
+import com.surelogic.jsure.core.driver.*;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 public final class VerifyProjectHandler extends
@@ -50,10 +50,10 @@ public final class VerifyProjectHandler extends
 		final SLJob job = new AbstractSLJob("Checking for builds in progress") {
 			@Override
 			public SLStatus run(SLProgressMonitor monitor) {
-				JavacDriver.waitForBuild();
+				JSureDriver.waitForBuild();
 
 				final boolean okay = 
-						JavaBuild.analyze(JavacDriver.getInstance(), selectedProjects, BalloonUtility.errorListener) != null;
+						JavaBuild.analyze(JSureDriver.getInstance(), selectedProjects, BalloonUtility.errorListener) != null;
 				if (okay) {
 					showStartBalloon();
 				}

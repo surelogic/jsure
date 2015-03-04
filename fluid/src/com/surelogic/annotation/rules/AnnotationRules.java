@@ -78,12 +78,9 @@ import edu.cmu.cs.fluid.tree.SyntaxTreeInterface;
 public abstract class AnnotationRules {
 	protected static final Logger LOG = SLLogger.getLogger("annotation.rules");
 
-	public static final String XML_LOG_NAME = "AnnotationRules";
-	public static final String XML_LOG_PROP = XML_LOG_NAME + ".label";
-
 	public static final ITestOutput XML_LOG = !IDE.hasInstance() ? null : IDE
 			.getInstance().makeLog(
-					System.getProperty(XML_LOG_PROP, XML_LOG_NAME));
+					System.getProperty(AnnotationConstants.XML_LOG_PROP, AnnotationConstants.XML_LOG_NAME));
 
 	/* *************************************************
 	 * Constants ************************************************

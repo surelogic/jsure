@@ -23,7 +23,6 @@ import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.JDTUIUtility;
 import com.surelogic.jsure.client.eclipse.model.selection.SelectionManager;
 import com.surelogic.jsure.client.eclipse.views.source.HistoricalSourceView;
-import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 
 /**
@@ -94,7 +93,6 @@ public class Activator extends AbstractUIPlugin implements IRunnableWithProgress
     try {
       SelectionManager.getInstance().save(getSelectionSaveFile());
       SwitchToJSurePerspective.getInstance().dispose();
-      JavacDriver.getInstance().stopScripting();
     } finally {
       plugin = null;
       super.stop(context);

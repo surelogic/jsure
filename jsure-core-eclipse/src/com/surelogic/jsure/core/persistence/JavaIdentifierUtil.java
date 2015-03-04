@@ -3,7 +3,7 @@ package com.surelogic.jsure.core.persistence;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.dom.*;
 
-import com.surelogic.persistence.JavaIdentifier;
+import com.surelogic.java.persistence.JavaIdentifierConstants;
 
 /**
  * Contains code to help decode and find JDT structures using JavaIdentifiers
@@ -17,8 +17,8 @@ public class JavaIdentifierUtil {
 	public static String encodeBinding(IMethodBinding mb) {		
 		final StringBuilder sb = new StringBuilder();
 		encodeTypeBinding(sb, mb.getDeclaringClass());
-		sb.append(JavaIdentifier.SEPARATOR).append(mb.getName());
-		sb.append(JavaIdentifier.SEPARATOR).append('(');
+		sb.append(JavaIdentifierConstants.SEPARATOR).append(mb.getName());
+		sb.append(JavaIdentifierConstants.SEPARATOR).append('(');
 		
 		boolean first = true;
 		for(ITypeBinding t : mb.getParameterTypes()) {
@@ -50,8 +50,8 @@ public class JavaIdentifierUtil {
 					throw new IllegalStateException("Couldn't find a project for "+tb);
 				}
 				sb.append(e.getJavaProject().getElementName());
-				sb.append(JavaIdentifier.SEPARATOR).append(tb.getPackage().getName());
-				sb.append(JavaIdentifier.SEPARATOR).append(tb.getErasure().getName());
+				sb.append(JavaIdentifierConstants.SEPARATOR).append(tb.getPackage().getName());
+				sb.append(JavaIdentifierConstants.SEPARATOR).append(tb.getErasure().getName());
 			}
 		}
 	}

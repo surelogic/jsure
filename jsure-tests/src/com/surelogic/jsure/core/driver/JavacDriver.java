@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.collections15.MultiMap;
@@ -34,51 +33,37 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.surelogic.analysis.AnalysisConstants;
+import com.surelogic.analysis.AnalysisDefaults;
 import com.surelogic.analysis.JSureProperties;
-import com.surelogic.annotation.rules.ModuleRules;
-import com.surelogic.common.AbstractJavaZip;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.FileUtility.TempFileFilter;
 import com.surelogic.common.Pair;
 import com.surelogic.common.PeriodicUtility;
-import com.surelogic.common.TextArchiver;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.ZipInfo;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.java.*;
-import com.surelogic.common.core.jobs.EclipseLocalConfig;
 import com.surelogic.common.java.*;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
-import com.surelogic.common.jobs.remote.*;
 import com.surelogic.common.logging.IErrorListener;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
-import com.surelogic.common.serviceability.scan.JSureScanCrashReport;
-import com.surelogic.dropsea.ir.utility.ClearStateUtility;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
-import com.surelogic.javac.Javac;
-import com.surelogic.javac.JavacProject;
-import com.surelogic.javac.Util;
-import com.surelogic.javac.jobs.LocalJSureJob;
-import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.java.persistence.JSureScan;
 import com.surelogic.java.persistence.JSureScanInfo;
-import com.surelogic.java.persistence.ScanProperty;
-import com.surelogic.jsure.core.listeners.NotificationHub;
-import com.surelogic.jsure.core.preferences.JSurePreferencesUtility;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureDataDirHub.CurrentScanChangeListener;
@@ -87,7 +72,6 @@ import com.surelogic.jsure.core.scripting.ICommandContext;
 import com.surelogic.jsure.core.scripting.NullCommand;
 import com.surelogic.jsure.core.scripting.ScriptCommands;
 import com.surelogic.jsure.core.scripting.ScriptReader;
-import com.surelogic.xml.TestXMLParserConstants;
 
 import difflib.Delta;
 import difflib.DiffUtils;
@@ -95,9 +79,8 @@ import difflib.Patch;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
-public class JavacDriver<T extends JavaProject> extends AbstractJavaScanner<JavaProjectSet<T>, T> implements IResourceChangeListener, CurrentScanChangeListener {
+public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implements IResourceChangeListener, CurrentScanChangeListener {
   private static final String SCRIPT_TEMP = "scriptTemp";
-  private static final String CRASH_FILES = "crash.log.txt";
 
   // private static final Logger LOG =
   // SLLogger.getLogger("analysis.JavacDriver");
@@ -202,7 +185,7 @@ public class JavacDriver<T extends JavaProject> extends AbstractJavaScanner<Java
         	useAnalysisSettingsFile(analysisSettingsFile);
         }
         JavacEclipse.initialize();
-        ((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
+        JavacEclipse.getDefault().synchronizeAnalysisPrefs();
       } catch (Exception e) {
         throw new IllegalStateException("Could not create/import project", e);
       }
@@ -336,7 +319,7 @@ public class JavacDriver<T extends JavaProject> extends AbstractJavaScanner<Java
         updateScript();
     }
     if (script != null) {
-    	ResourcesPlugin.getWorkspace().addResourceChangeListener(prototype, IResourceChangeEvent.POST_CHANGE);
+    	ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
     	// This only worked in the old world, when I waited for a build
     	// IResourceChangeEvent.PRE_BUILD);
     	// IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE
@@ -352,7 +335,7 @@ public class JavacDriver<T extends JavaProject> extends AbstractJavaScanner<Java
   }
 
   static void deactivateAllAnalyses() {
-	  for(String id : Javac.getAvailableAnalyses()) {
+	  for(String id : AnalysisDefaults.getAvailableAnalyses()) {
 		  EclipseUtility.setBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id, false);
 	  }
   }
@@ -755,7 +738,7 @@ public class JavacDriver<T extends JavaProject> extends AbstractJavaScanner<Java
         }
         final File settings = new File(projDir, ScriptCommands.ANALYSIS_SETTINGS);
         if (!settings.exists()) {
-          ((JavacEclipse) IDE.getInstance()).writePrefsToXML(settings);
+          JavacEclipse.getDefault().writePrefsToXML(settings);
           //DoubleChecker.getDefault().writePrefsToXML(settings);
           info.zipFile(baseDir, settings);
         }
@@ -808,48 +791,6 @@ public class JavacDriver<T extends JavaProject> extends AbstractJavaScanner<Java
     }
   };
   private static final TempFileFilter deletedDirFilter = new TempFileFilter("deletedFromScript", ".dir");
-
-  private static JavacDriver<? extends JavaProject> prototype;
-
-  public static JavacDriver<? extends JavaProject> getInstance() {
-    return prototype;
-  }
-  
-  public static synchronized void initInstance(JavacDriver<? extends JavaProject> driver) {
-	  if (driver == null) {
-		  prototype = new JavacDriver<JavaProject>(IJavaFactory.prototype); 
-	  } else {
-		  prototype = driver;
-	  }
-  }
-
-  volatile SLProgressMonitor lastMonitor = null;
-
-  class JavacProjectInfo extends ProjectInfo<T> {
-
-	JavacProjectInfo(IProject project, List<ICompilationUnit> cus) {
-		super(project, cus);
-	}
-	 
-	@Override
-	protected void setProjectSpecificProperties(Config config) {
-		// TODO obsolete?
-		Properties props2 = JSureProperties.read(config.getLocation());
-		if (props2 != null) {
-			JSureProperties.handle(config.getProject(), props2);
-		}
-	}
-
-	@Override
-	protected ProjectInfo<T> getProjectInfo(IProject proj) {
-		return JavacDriver.this.getProjectInfo(proj);
-	}
-
-	@Override
-	protected void setDefaultJRE(String name) {
-		JavacEclipse.getDefault().setPreference(IDEPreferences.DEFAULT_JRE, name);
-	}
-  }
   
   public void preBuild(final IProject p) {
     System.out.println("Pre-build for " + p);
@@ -862,11 +803,11 @@ public class JavacDriver<T extends JavaProject> extends AbstractJavaScanner<Java
   }
 
   @Override
-  protected JavacProjectInfo finishRegisteringFullBuild(IProject project, List<Pair<IResource, Integer>> resources, List<ICompilationUnit> cus) {
+  protected JSureProjectInfo finishRegisteringFullBuild(IProject project, List<Pair<IResource, Integer>> resources, List<ICompilationUnit> cus) {
 	  if (script != null) {
 		  cacheCompUnits(cus);
 	  }
-	  return new JavacProjectInfo(project, cus);
+	  return new JSureProjectInfo(project, cus);
   }
 
   @Override
@@ -879,9 +820,9 @@ public class JavacDriver<T extends JavaProject> extends AbstractJavaScanner<Java
   @Override
   public void clearProjectInfo() {
 	super.clearProjectInfo();
-    ModuleRules.clearSettings();
-    ModuleRules.clearAsSourcePatterns();
-    ModuleRules.clearAsNeededPatterns();
+	JSureProperties.clearSettings();
+    JSureProperties.clearAsSourcePatterns();
+    JSureProperties.clearAsNeededPatterns();
   }
 
   @Override
@@ -925,47 +866,6 @@ public class JavacDriver<T extends JavaProject> extends AbstractJavaScanner<Java
 	  l.reportError("JSure running in unexpected JVM", 
 			        "JSure is unexpectedly running in a "+SystemUtils.JAVA_VERSION+" vm");
 	  return false;
-  }
-  
-  @Override
-  public JavaProjectSet<T> configureBuild(File location, boolean isAuto /* IProject p */, boolean ignoreNature) {
-    // System.out.println("Finished 'build' for "+p);
-    /*
-     * //ProjectDrop.ensureDrop(p.getName(), p); final ProjectInfo info =
-     * projects.get(p); if (info == null) { return; // No info! }
-     */
-    /*
-     * // Check if any projects are still building building.remove(p); if
-     * (!building.isEmpty()) {
-     * System.out.println("Still waiting for "+building); return; }
-     */
-
-    // TODO this needs to be run after ALL the info is collected
-    JavacEclipse.initialize();
-    if (!XUtil.testing) {
-      SLLogger.getLogger().fine("Configuring analyses for build");
-      ((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
-    }
-    return super.configureBuild(location, isAuto, ignoreNature);
-  }
-
-  @Override
-  protected File prepForScan(JavaProjectSet<T> newProjects, SLProgressMonitor monitor, boolean useSeparateJVM) throws Exception {
-	  if (!XUtil.testing) {
-		  System.out.println("Configuring analyses for doBuild");
-		  ((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
-	  }
-	  return super.prepForScan(newProjects, monitor, useSeparateJVM);
-  }
-  
-  @Override
-  protected File getDataDirectory() {
-	  return JSurePreferencesUtility.getJSureDataDirectory();
-  }
-  
-  @Override
-  protected void markAsRunning(File runDir) {
-      RemoteJSureRun.markAsRunning(runDir);
   }
   
   @Override
@@ -1045,199 +945,20 @@ public class JavacDriver<T extends JavaProject> extends AbstractJavaScanner<Java
     }
   }
 
-  /**
-   * Wait for a normal Eclipse build
-   */
-  public static void waitForBuild() {
-    waitForBuild(true);
-    waitForBuild(false);
-  }
-
-  protected class AnalysisJob extends AbstractAnalysisJob<JavaProjectSet<T>> {
-	  protected final JavaProjectSet<T> oldProjects;
-	  
+  protected class AnalysisJob extends JSureDriver<T>.AnalysisJob {
 	  protected AnalysisJob(JavaProjectSet<T> oldProjects, JavaProjectSet<T> projects, File target, File zips, boolean useSeparateJVM) {
-		  super(projects, target, zips, useSeparateJVM);
-		  if (useSeparateJVM) {
-			  this.oldProjects = null;
-		  } else {
-			  this.oldProjects = oldProjects;
-		  }
-	  }
-
-	  @Override
-	  public SLStatus run(SLProgressMonitor monitor) {
-		  lastMonitor = monitor;
-		  projects.setMonitor(monitor);
-		  /*
-		   * if (XUtil.testingWorkspace) {
-		   * System.out.println("Clearing state before running analysis");
-		   * ClearProjectListener.clearJSureState(); }
-		   */
-		  return super.run(monitor);
-	  }
-		  
-	  @Override
-	  protected void init(SLProgressMonitor monitor) throws IOException {
-		  JavacEclipse.initialize();
-		  System.out.println("JSure data dir  = " + IDE.getInstance().getStringPreference(IDEPreferences.JSURE_DATA_DIRECTORY));
-		  System.out.println("XML diff dir    = " + IDE.getInstance().getStringPreference(IDEPreferences.JSURE_XML_DIFF_DIRECTORY));
-		  NotificationHub.notifyAnalysisStarting();
-		  JavacEclipse.getDefault().savePreferences(projects.getRunDir());
+		  super(oldProjects, projects, target, zips, useSeparateJVM);
 	  }
 	  
 	  @Override
-	  protected LocalJSureJob makeLocalJob() throws Exception {
-		  // Normally done by Javac, but needs to be repeated locally
-		  final boolean noConflict;
-		  if (oldProjects != null) {
-			  /*
-			  noConflict = !projects.conflictsWith(oldProjects);
-			  if (noConflict) {
-				  projects.init(oldProjects);
-			  } else {
-				  System.out.println("Detected a conflict between projects");
-			  }
-			  */
-			  throw new UnsupportedOperationException("Can't support delta runs");
-		  } else {
-			  noConflict = true;
-		  }
-		  
-		  System.out.println("run = " + projects.getRun());
-		  final String msg = "Running JSure for " + projects.getLabel();
-		  ILocalConfig cfg = new EclipseLocalConfig(JSurePreferencesUtility.getMaxMemorySize(), projects.getRunDir());
-		  return LocalJSureJob.factory.newJob(msg, 100, cfg);
-	  }
-
-	  @Override
-	  protected boolean analyzeInVM(SLProgressMonitor monitor) throws Exception {
-		  return runAsLocalJob(monitor);
-	  }
-	    
-	  @Override
-	  protected void handleSuccess() {
-		  final File runDir = projects.getRunDir();
-		  // Unneeded after running the scan
-		  FileUtility.recursiveDelete(new File(runDir, PersistenceConstants.SRCS_DIR), false);
-
-		  JSureDataDirHub.getInstance().scanDirectoryAdded(projects.getRunDir());
-	  }
-
-	  @Override 
-	  protected void handleFailure() {
-		  NotificationHub.notifyAnalysisPostponed();
-	  }
-
-	  @Override
-	  protected void handleCrash(SLProgressMonitor monitor, SLStatus status) {
-		  if (monitor.isCanceled()) {				
-			  return; // Ignore this 
-		  }
-		  if (XUtil.testing && status.getException() != null) { 			  
-			  throw new RuntimeException(status.getException());
-		  }
-		  /*
-		   * Collect information and report this scan crash to SureLogic.
-		   */
-		  final File rollup = collectCrashFiles(projects);
-		  if (XUtil.testing) {
-			  if (status.getException() != null) {
-				  status.getException().printStackTrace();
-				  throw new RuntimeException(status.getException());
-			  } else {
-				  System.err.println("CRASH: " + status.getMessage());
-				  throw new RuntimeException(status.getMessage());
-			  }
-		  } else {
-			  JSureScanCrashReport.getInstance().getReporter().reportScanCrash(status, rollup);
-		  }
-		  /*
-		   * Because we already opened a dialog above about the crash, log it and
-		   * bail out of the job.
-		   */
-		  status.logTo(SLLogger.getLogger());
-	  }
-
-	  @Override
-	  protected void handleCancel(SLStatus s) {
-		if (s.getException() != null) {
-		  JSureScanCrashReport.getInstance().getReporter().reportScanCancellation(s.getException().getMessage());
-		}
-	  }
-	  
-    protected void endAnalysis(SLProgressMonitor monitor) {
-    	if (lastMonitor == monitor) {
-			lastMonitor = null;
-		}
-    }
-    
-    protected void finish(SLProgressMonitor monitor) {
-		NotificationHub.notifyAnalysisCompleted();
+	  protected void finish(SLProgressMonitor monitor) {
+		super.finish(monitor);
 		// recordViewUpdate();
 
 		// Cleared here after notifications are processed
 		// to prevent redoing some (binder) work
 		IDE.getInstance().clearCaches();
-    }
-  }
-
-  private static <T extends JavaProject> File collectCrashFiles(JavaProjectSet<T> projects) {
-    final File crash = new File(projects.getRunDir(), CRASH_FILES);
-    try {
-      PromisesXMLArchiver out = new PromisesXMLArchiver(crash);
-      try {
-        out.archive(ScanProperty.SCAN_PROPERTIES, 
-        		    new File(projects.getRunDir(), ScanProperty.SCAN_PROPERTIES));
-    	out.archive(Javac.JAVAC_PROPS, new File(projects.getRunDir(), Javac.JAVAC_PROPS));
-    	  
-        // Get project-specific config
-        for (String name : projects.getProjectNames()) {
-          IProject proj = EclipseUtility.getProject(name);
-          if (proj == null) {
-            out.outputWarning("Project does not exist: " + name);
-            continue;
-          }
-          IPath projLocation = proj.getLocation();
-          if (projLocation != null) {
-            File projFile = projLocation.toFile();
-            if (projFile != null && projFile.isDirectory()) {
-              for (String config : AbstractJavaZip.CONFIG_FILES) {
-                out.archive(projFile.getName() + '/' + config, new File(projFile, config));
-              }
-            } else {
-              out.outputWarning("File could not be created for project location: " + projLocation);
-              continue;
-            }
-          } else {
-            out.outputWarning("Project location could not be retrieved: " + name);
-            continue;
-          }
-        }
-        out.archive(PersistenceConstants.PROJECTS_XML, new File(projects.getRunDir(), PersistenceConstants.PROJECTS_XML));
-        out.archive(AbstractRemoteSLJob.LOG_NAME, new File(projects.getRunDir(), AbstractRemoteSLJob.LOG_NAME));
-
-        final File libDir = JSurePreferencesUtility.getJSureXMLDirectory();
-        FileUtility.recursiveIterate(out, libDir);
-      } finally {
-        out.close();
-      }
-    } catch (IOException e) {
-      // Couldn't create the new file for some reason
-      return new File(projects.getRunDir(), AbstractRemoteSLJob.LOG_NAME);
-    }
-    return crash;
-  }
-
-  private static class PromisesXMLArchiver extends TextArchiver {
-    public PromisesXMLArchiver(File target) throws IOException {
-      super(target);
-    }
-
-    @Override
-    public boolean accept(File pathname) {
-      return TestXMLParserConstants.XML_FILTER.accept(pathname);
-    }
+	  }
   }
 
   int id = 0;
@@ -1267,7 +988,7 @@ public class JavacDriver<T extends JavaProject> extends AbstractJavaScanner<Java
   private void recordFilesToAnalyze(JavaProjectSet<T> p) throws FileNotFoundException {
     final String name = "expectedAnalysis" + getId() + ".txt";
     final File file = new File(scriptResourcesDir, name);
-    p.setArg(Util.RECORD_ANALYSIS, file);
+    p.setArg(AnalysisConstants.RECORD_ANALYSIS, file);
     printToScript(ScriptCommands.EXPECT_ANALYSIS_FIRST + ' ' + computePrefix() + '/' + name);
   }
 

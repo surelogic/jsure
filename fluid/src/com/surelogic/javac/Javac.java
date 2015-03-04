@@ -4,143 +4,23 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.*;
 
-import com.surelogic.analysis.Analyses;
-import com.surelogic.analysis.IAnalysisInfo;
-import com.surelogic.analysis.IIRAnalysis;
-import com.surelogic.analysis.IIRProject;
-import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
-import com.surelogic.analysis.concurrency.detector.ConcurrencyDetector;
-import com.surelogic.analysis.concurrency.driver.LockAnalysis;
-import com.surelogic.analysis.effects.EffectsAnalysis;
-import com.surelogic.analysis.equality.EqualityAnalysis;
+import com.surelogic.analysis.*;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
-import com.surelogic.analysis.jtb.TestFunctionalInterfacePseudoAnalysis;
-import com.surelogic.analysis.layers.LayersAnalysis;
-import com.surelogic.analysis.nullable.NullableModule2;
-import com.surelogic.analysis.nullable.NullablePreprocessorModule;
-import com.surelogic.analysis.singleton.SingletonAnalysis;
-import com.surelogic.analysis.structure.StructureAnalysis;
-import com.surelogic.analysis.testing.BCAModule;
-import com.surelogic.analysis.testing.BinderModule;
-import com.surelogic.analysis.testing.CollectMethodCallsModule;
-import com.surelogic.analysis.testing.ConstantExpressionModule;
-import com.surelogic.analysis.testing.DefinitelyAssignedModule;
-import com.surelogic.analysis.testing.FinalModule;
-import com.surelogic.analysis.testing.LocalVariablesModule;
-import com.surelogic.analysis.testing.NonNullRawTypeModule;
-import com.surelogic.analysis.testing.TypeBasedAliasModule;
-import com.surelogic.analysis.testing.TypesModule;
-import com.surelogic.analysis.threads.ThreadEffectsModule;
-import com.surelogic.analysis.utility.UtilityAnalysis;
-import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.util.*;
-import com.surelogic.javac.jobs.RemoteJSureRun;
+import com.surelogic.javac.jobs.*;
 
 import edu.cmu.cs.fluid.ide.IClassPath;
 import edu.cmu.cs.fluid.ide.IClassPathContext;
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.java.IJavaFileLocator;
-import edu.cmu.cs.fluid.util.IntegerTable;
 
-public class Javac extends IDE {
-	private static final String NULLABLE = "com.surelogic.jsure.client.eclipse.Nullable";
-	private static final String NULLABLE_PREP = "com.surelogic.jsure.client.eclipse.NullablePreprocessor";
-	
-	// Needs to be initialized before the Javac instance
-	static final List<AnalysisInfo> analysisList = new ArrayList<AnalysisInfo>();
-	
-	static { 
-		// Assumed to be added in dependency order
-		init(ConcurrencyDetector.class,
-				"com.surelogic.jsure.client.eclipse.IRConcurrencyDetector", true, "Concurrency detector");
-		init(ThreadEffectsModule.class,
-				"com.surelogic.jsure.client.eclipse.ThreadEffectAssurance2", true, "Thread effects");
-		init(StructureAnalysis.class,
-				"com.surelogic.jsure.client.eclipse.StructureAssurance", true, "Structure analysis");
-		
-		/* Checking of @ThreadSafe, etc., which is run by the lock policy and 
-		 * equality analyses, depend on the results of annotation bounds checking.
-		 */
-		final AnalysisInfo annoBoundsChecking = 
-		    init(ParameterizedTypeAnalysis.class,
-		        "com.surelogic.jsure.client.eclipse.ParameterizedType",
-		        true, "Annotation bounds");
-		
-	    init(EqualityAnalysis.class,
-	            "com.surelogic.jsure.client.eclipse.EqualityAssurance", true,
-	            "Reference equality", annoBoundsChecking);		
-		
-		init(LayersAnalysis.class,
-				"com.surelogic.jsure.client.eclipse.LayersAssurance", true, "Static structure");	
-	    
-		// Using TopLevelAnalysisVisitor
-	    init(UtilityAnalysis.class, "com.surelogic.jsure.client.eclipse.Utility", true, "Utility class");
-	    init(SingletonAnalysis.class, "com.surelogic.jsure.client.eclipse.Singleton", true, "Singleton class");
-	    
-	// Lock and EffectAssurance need to be declared together because they share use of BindingContextAnalysis
-    init(LockAnalysis.class,
-        "com.surelogic.jsure.client.eclipse.LockAssurance3", true, "Lock policy",
-        annoBoundsChecking);
-    
-    init(EffectsAnalysis.class,
-			"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects");
-    
-    init(com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisModule.class,
-        "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM", false, "Uniqueness + From");
-    init(com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisAllModule.class,
-        "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM_ALL", false, "Uniqueness + From (All methods)");
-    init(com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysisModule.class,
-        "com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM_SE", false, "Uniqueness + From (Side-effecting)");
-		init(com.surelogic.analysis.uniqueness.classic.sideeffecting.UniquenessAnalysisModule.class,
-				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceSE", true, "Uniqueness");
-
-//    init(NonNullRawTypeModule.class, "com.surelogic.jsure.client.eclipse.NonNullRawTypes", false, "Combined NonNull & RawType (for reg tests only)");
-    init(DefinitelyAssignedModule.class, "com.surelogic.jsure.client.eclipse.DefinitelyAssigned", false, "Definitely Assigned (for reg tests only)");
-		
-		init(LocalVariablesModule.class,
-				"com.surelogic.jsure.client.eclipse.LV", false, "Local Variables (for reg tests only)");
-		init(BCAModule.class, "com.surelogic.jsure.client.eclipse.BCA", false, "BCA (for reg tests only)");
-		init(CollectMethodCallsModule.class,
-				"com.surelogic.jsure.client.eclipse.CALLS", false, "Method Calls (for reg tests only)");
-    init(com.surelogic.analysis.uniqueness.plusFrom.traditional.NewBenchmarkingUAM.class,
-        "com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessNew", false, "Uniqueness Benchmarking (U+F)");
-    init(com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.NewBenchmarkingUAM.class,
-        "com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessNew_SE", false, "Uniqueness Benchmarking (U+F SE)");
-		init(com.surelogic.analysis.uniqueness.classic.sideeffecting.NewBenchmarkingUAM.class,
-				"com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessSE", false, "Uniqueness Benchmarking (SE)");
-		init(TypeBasedAliasModule.class,
-		    "com.surelogic.jsure.cliend.eclipse.TypeBasedAlias", false, "Type-Based Alias Analysis (for reg tests only)");
-				
-		init(TypesModule.class, "com.surelogic.jsure.client.eclipse.Types", false, "Type Info (for reg tests only)");
-    init(ConstantExpressionModule.class, "com.surelogic.jsure.client.eclipse.ConstantExpr", false, "Constant Expressions (for reg tests only)");
-		init(BinderModule.class, "com.surelogic.jsure.client.eclipse.Binder", false, "Binder (for reg tests only)");
-    final AnalysisInfo nullablePreprocessor =
-        init(NullablePreprocessorModule.class, NULLABLE_PREP, true, "Nullable Preprocessor");
-    
-    init(NullableModule2.class, NULLABLE, true, "Nullable", nullablePreprocessor);
-    init(NonNullRawTypeModule.class, "com.surelogic.jsure.client.eclipse.NonNullRawTypes", false, "Combined NonNull & RawType (for reg tests only)", nullablePreprocessor);
-    init(FinalModule.class, "com.surelogic.jsure.client.eclipse.Final", false, "Final Declarations (for reg tests only)");
-    
-    init(TestFunctionalInterfacePseudoAnalysis.class,"com.surelogic.jsure.client.eclipse.TestIsFunctional", false, "Functional (for tests only)");
-    /*
-		AnalysisInfo[] deps = new AnalysisInfo[3];
-		deps[0] = init(Module_IRAnalysis.class, 
-				"com.surelogic.jsure.client.eclipse.ModuleAnalysis2", false, "");
-		deps[1] = init(ThreadRoleZerothPass.class,
-				"com.surelogic.jsure.client.eclipse.ThreadRoleZerothPass1", false, "", 
-				deps[0]);
-		deps[2] = init(ManageThreadRoleAnnos.class,
-				"com.surelogic.jsure.client.eclipse.ManageThreadRoleAnnos1", false, "", 
-				deps[0], deps[1]);
-		init(ThreadRoleAssurance.class,
-				"com.surelogic.jsure.client.eclipse.ThreadRoleAssurance1", false, "", deps);
-				*/
-	}
-	
+/**
+ * Note: analyses now specified in AnalysisDefaults
+ * @author edwin
+ *
+ */
+public class Javac extends IDE {	
 	static final Javac instance = new Javac();
 	{
 		// Needs to be initialized before the locator
@@ -169,7 +49,7 @@ public class Javac extends IDE {
 	public URL getResourceRoot() {
 		// Use a manually-set workspace
 		try {
-			String fluidLocation = System.getProperty(RemoteJSureRun.FLUID_DIRECTORY_URL);
+			String fluidLocation = System.getProperty(LocalJSureJob.FLUID_DIRECTORY_URL);
 			if (fluidLocation != null) {
 				return new URL(fluidLocation);
 			}	
@@ -182,217 +62,6 @@ public class Javac extends IDE {
 	@Override
 	protected IClassPathContext newContext(IClassPath path) {
 		return (JavacProject) path;
-	}
-
-	private final ConcurrentMap<String, Object> prefs = new ConcurrentHashMap<String, Object>();
-	{
-		setPreference(IDEPreferences.DEFAULT_JRE, "");
-		initPrefs();
-	}
-	
-	protected void initPrefs() {
-		setPreference(IDEPreferences.ANALYSIS_THREAD_COUNT, Runtime
-				.getRuntime().availableProcessors());
-		for (IAnalysisInfo analysis : getAnalysisInfo()) {
-			setPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX+analysis.getUniqueIdentifier(), 
-					analysis.isProduction());
-		}
-	}
-
-	@Override
-  public boolean getBooleanPreference(String key) {
-		final Boolean val = (Boolean) prefs.get(key);
-		return val == null ? false : val;
-	}
-
-  @Override
-	public int getIntPreference(String key) {
-		final Integer val = (Integer) prefs.get(key);
-		return val == null ? 0 : val;
-	}
-
-  @Override
-	public String getStringPreference(String key) {
-		return (String) prefs.get(key);
-	}
-
-	public void setPreference(String key, boolean value) {
-		// System.out.println("Setting "+key+" to "+value);
-		if (XUtil.testing) {
-			System.out.println(this.getClass().getSimpleName() + " set " + key
-					+ " to " + (value ? "true" : "false"));
-		}
-		prefs.put(key, value);
-	}
-
-	public void setPreference(String key, Object value) {
-		if (XUtil.testing) {
-			System.out.println(this.getClass().getSimpleName() + " set " + key
-					+ " to " + value);
-		}
-		prefs.put(key, value);
-	}
-
-	public static final String JAVAC_PROPS = "javac.properties";
-
-	public synchronized void savePreferences(File runDir) throws IOException {
-		final PrintWriter pw = new PrintWriter(new File(runDir, JAVAC_PROPS));
-		try {
-			for (Map.Entry<String, Object> e : prefs.entrySet()) {
-				pw.println(e.getKey() + "=" + e.getValue().toString().replace("\\", "\\\\"));
-			}
-		} finally {
-			pw.close();
-		}
-	}
-
-	public synchronized void loadPreferences(File runDir) throws IOException {
-		File f = new File(runDir, JAVAC_PROPS);
-		if (!f.isFile()) {
-			return; // No file to read
-		}
-		Properties p = new Properties();
-		Reader r = new FileReader(f);
-		try {
-			p.load(r);
-			prefs.clear();
-			for (Map.Entry<Object, Object> e : p.entrySet()) {
-				String key = e.getKey().toString();
-				String val = e.getValue().toString();
-				System.out.println("Loading "+key+" = "+val);
-				
-				// Check if boolean
-				if ("true".equals(val) || "false".equals(val)) {
-					prefs.put(key, Boolean.parseBoolean(val));
-				} else {
-					// Check if integer
-					try {
-						int i = Integer.parseInt(val);
-						prefs.put(key, IntegerTable.newInteger(i));
-					} catch (NumberFormatException ex) {
-						// Otherwise use as String
-						prefs.put(key, val);
-					}
-				}
-			}
-		} finally {
-			r.close();
-		}
-	}
-	
-  @Override
-	public IAnalysisInfo[] getAnalysisInfo() {		
-		return analysisList.toArray(new IAnalysisInfo[analysisList.size()]);
-	}
-  
-	private static class AnalysisInfo implements IAnalysisInfo {
-		final Class<? extends IIRAnalysis> clazz;
-		final String id;
-		final List<AnalysisInfo> dependencies;
-		final boolean isProduction;
-		final String label;
-
-		AnalysisInfo(Class<? extends IIRAnalysis> clazz, String id, boolean production, String label,
-				AnalysisInfo... deps) {
-			this.clazz = clazz;
-			this.id = id;
-			this.label = label;
-			isProduction = production;
-			if (deps.length == 0) {
-				dependencies = Collections.emptyList();
-			} else {
-				dependencies = new ArrayList<AnalysisInfo>(deps.length);
-				for (AnalysisInfo info : deps) {
-					dependencies.add(info);
-				}
-			}
-		}
-
-		public boolean runsUniqueness() {
-			return id.contains(".UniquenessAssurance");
-		}
-		
-		boolean isActive(List<AnalysisInfo> activeAnalyses) {
-			boolean active = isIncluded();
-			if (active) {
-				// TODO use more principled way of identifying analyses
-				if (!XUtil.testing && // Only if we're not running the reg tests
-					!IDE.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_RUN_UNIQUENESS) &&
-					runsUniqueness()) {
-					return false;
-				}
-				if (dependencies.size() == 0) {
-					return true;
-				}
-				return activeAnalyses.containsAll(dependencies);
-			}
-			return false;
-		}
-
-		@Override
-    public Class<? extends IIRAnalysis> getAnalysisClass() {
-			return clazz;
-		}
-
-    @Override
-		public String getCategory() {
-			return null; // nothing's "required"
-		}
-
-    @Override
-		public String getLabel() {
-			return label;
-		}
-
-    @Override
-		public String[] getPrerequisiteIds() {
-			String[] result = new String[dependencies.size()];
-			int i=0;
-			for(AnalysisInfo ai : dependencies) {
-				result[i] = ai.id;
-			}
-			return result;
-		}
-
-    @Override
-		public String getUniqueIdentifier() {
-			return id;
-		}
-
-    @Override
-		public boolean isIncluded() {
-			return IDE.getInstance().getBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX+id);
-		}
-
-    @Override
-		public boolean isProduction() {
-			return isProduction;
-		}
-	}
-
-
-
-	static AnalysisInfo init(Class<? extends IIRAnalysis> clazz, String id, 
-			boolean isProduction, String label,
-			AnalysisInfo... deps) {
-		final AnalysisInfo info = new AnalysisInfo(clazz, id, isProduction, label, deps);
-		// analysisMap.put(id, info);
-		analysisList.add(info);
-		return info;
-	}
-
-	/**
-	 * Used to initialize Javac/JavacEclipse
-	 */
-	public static Iterable<String> getAvailableAnalyses() {
-		// return analysisMap.keySet();
-		return new FilterIterator<AnalysisInfo, String>(analysisList.iterator()) {
-			@Override
-			protected Object select(AnalysisInfo info) {
-				return info.id;
-			}
-
-		};
 	}
 	
 	/**
@@ -414,20 +83,20 @@ public class Javac extends IDE {
 				}
 			}
 		}
-		List<AnalysisInfo> active = new ArrayList<AnalysisInfo>();
+		List<IAnalysisInfo> active = new ArrayList<IAnalysisInfo>();
 		// for(AnalysisInfo info : analysisMap.values()) {
-		for (AnalysisInfo info : analysisList) {
+		for (IAnalysisInfo info : AnalysisDefaults.getDefault().getAnalysisInfo()) {
 			if (info.isActive(active)) {
 				active.add(info);
 			}
 		}
 		List<IIRAnalysis<?>> grouped = new ArrayList<IIRAnalysis<?>>();
 		IAnalysisGranulator<?> granulator = null;
-		for (AnalysisInfo info : active) {
+		for (IAnalysisInfo info : active) {
 			try {
-				IIRAnalysis<?> a = info.clazz.newInstance();
+				IIRAnalysis<?> a = (IIRAnalysis<?>) Class.forName(info.getAnalysisClassName()).newInstance();
 				a.setLabel(info.getLabel());
-				System.out.println("Created " + info.clazz.getName());
+				System.out.println("Created " + info.getAnalysisClassName());
 				/*
 				if (a.getGroup() == null) {
 					// Independent analysis
@@ -447,6 +116,8 @@ public class Javac extends IDE {
 			} catch (InstantiationException e) {
 				e.printStackTrace();
 			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			}
 		}
@@ -483,12 +154,5 @@ public class Javac extends IDE {
 		analyses.addNewGroup(g, grouped.toArray(new IIRAnalysis<?>[grouped.size()]));
 		grouped.clear();
 		return;
-	}
-	
-	public static String[] getOtherAnalysesToActivate(String id) {
-		if (NULLABLE.equals(id)) {
-			return new String[] { NULLABLE_PREP };
-		}
-		return SLUtility.EMPTY_STRING_ARRAY;
 	}
 }

@@ -1,5 +1,7 @@
 package com.surelogic.analysis;
 
+import java.util.List;
+
 public interface IAnalysisInfo {
 	String getLabel();
 	String getUniqueIdentifier();
@@ -8,5 +10,6 @@ public interface IAnalysisInfo {
 	boolean runsUniqueness();
 	String getCategory();
 	String[] getPrerequisiteIds();
-	Class<?> getAnalysisClass();
+	String getAnalysisClassName(); 
+	boolean isActive(List<IAnalysisInfo> activeAnalyses);
 }

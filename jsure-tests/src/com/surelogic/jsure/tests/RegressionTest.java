@@ -41,6 +41,7 @@ import com.surelogic.java.persistence.JSureScan;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.driver.ConsistencyListener;
 import com.surelogic.jsure.core.driver.DoubleChecker;
+import com.surelogic.jsure.core.driver.JSureDriver;
 import com.surelogic.jsure.core.driver.JavacDriver;
 import com.surelogic.jsure.core.driver.JavacEclipse;
 import com.surelogic.jsure.core.listeners.IAnalysisListener;
@@ -55,6 +56,7 @@ import com.surelogic.test.ITestOutput;
 import com.surelogic.test.xml.JUnitXMLOutput;
 
 import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDERoot;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.logging.XMLLogDiff;
 
@@ -70,7 +72,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     if (f_initNeeded) {
       f_initNeeded = true;
       Eclipse.getDefault().addTestOutputFactory(JUnitXMLOutput.factory);
-      JavacEclipse.getDefault().addTestOutputFactory(JUnitXMLOutput.factory);
+      //JavacEclipse.getDefault().addTestOutputFactory(JUnitXMLOutput.factory);
       System.out.println("Added JUnitXMLOutput.factory");
 
       final String testModulePath = System.getProperty("test.module");
@@ -239,10 +241,10 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
     if (analysisSettingsFile != null && analysisSettingsFile.exists() && analysisSettingsFile.isFile()) {
       JavacDriver.useAnalysisSettingsFile(analysisSettingsFile);
 
-      if (IDE.useJavac) {
+      if (IDERoot.useJavac) {
         System.out.println("Configuring analyses from project-specific settings in " + analysisSettingsFile.getAbsolutePath());
         JavacEclipse.getDefault().initPrefs();
-        ((JavacEclipse) IDE.getInstance()).synchronizeAnalysisPrefs();
+        JavacEclipse.getDefault().synchronizeAnalysisPrefs();
       }
     } else {
       System.out.println("No project-specific analysis settings.");
@@ -460,7 +462,7 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
 				System.out.println("Couldn't get java project for "+p);
 			}
 		}
-		JavaBuild.analyze(JavacDriver.getInstance(), jprojects, IErrorListener.throwListener);
+		JavaBuild.analyze(JSureDriver.getInstance(), jprojects, IErrorListener.throwListener);
 		end("Done running JSure analysis...");
 
 		final String projectName = project.getName();

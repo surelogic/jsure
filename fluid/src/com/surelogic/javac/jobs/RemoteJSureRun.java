@@ -21,11 +21,7 @@ import com.surelogic.javac.Util;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
-public class RemoteJSureRun extends RemoteScanJob<Projects,JavacProject> {
-	public static final String FLUID_DIRECTORY_URL = "fluid.directory.url";
-	private static final String TEMP_RESULTS_XML  = TEMP_PREFIX+JSureScan.RESULTS_XML;
-	private static final String COMPRESSED_TEMP_RESULTS_XML = TEMP_PREFIX+JSureScan.RESULTS_XML+FileUtility.GZIP_SUFFIX;
-	
+public class RemoteJSureRun extends RemoteScanJob<Projects,JavacProject> {	
 	public RemoteJSureRun() {
 		super(Projects.javaFactory);
 	}
@@ -35,24 +31,8 @@ public class RemoteJSureRun extends RemoteScanJob<Projects,JavacProject> {
 		job.run();
 	}
 	
-	private static File getResultsFile(File scanDir) {
-		final boolean compress =
-			IDE.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_USE_COMPRESSION);
-		final File location =  new File(scanDir, compress ? COMPRESSED_TEMP_RESULTS_XML : TEMP_RESULTS_XML);
-		return location;
-	}
-	
-	public static void markAsRunning(File scanDir) {
-		final File location = getResultsFile(scanDir);
-		try {
-			location.createNewFile();
-		} catch (IOException e) {
-			// Ignore
-		}
-	}
-	
 	public static File snapshot(PrintStream out, String label, File scanDir) throws IOException {
-		final File location = getResultsFile(scanDir);
+		final File location = JSureScan.getResultsFile(scanDir);
 		System.out.println("Creating snapshot: "+location);
 		new SeaSnapshot(location).snapshot(label, Sea.getDefault());
 		return location;

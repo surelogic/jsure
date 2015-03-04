@@ -11,6 +11,9 @@ import com.surelogic.javac.Util;
 import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.jsure.core.driver.JavacDriver;
 
+import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDERoot;
+
 public class DebugDriver extends JavacDriver<JavacProject> {
 	public DebugDriver() {
 		super(Projects.javaFactory);
@@ -34,6 +37,7 @@ public class DebugDriver extends JavacDriver<JavacProject> {
 				if (oldProjects != null) {
 					throw new IllegalStateException("Can't delta off another scan");
 				}
+				IDE.getInstance().loadPreferences(projects.getRunDir());
 				tmpLocation = Util.openFiles((Projects) projects, true);
 				boolean ok = tmpLocation != null;
 				// Persist the Sea

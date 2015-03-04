@@ -7,15 +7,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
+import com.surelogic.analysis.AnalysisDefaults;
 import com.surelogic.analysis.IAnalysisInfo;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.MemoryUtility;
-import com.surelogic.javac.Javac;
 import com.surelogic.javac.jobs.JSureConstants;
 
-import edu.cmu.cs.fluid.ide.IDEPreferences;
+import edu.cmu.cs.fluid.ide.*;
 
-public class JavacEclipse extends Javac {
+public class JavacEclipse extends IDERoot {
   static final JavacEclipse instance = new JavacEclipse();
   
   @Override
@@ -25,7 +25,7 @@ public class JavacEclipse extends Javac {
 	  
 	  final boolean canRunUniqueness = EclipseUtility.getBooleanPreference(IDEPreferences.SCAN_MAY_RUN_UNIQUENESS);
 	  setPreference(IDEPreferences.SCAN_MAY_RUN_UNIQUENESS, canRunUniqueness);
-	  for (IAnalysisInfo analysis : getAnalysisInfo()) {
+	  for (IAnalysisInfo analysis : AnalysisDefaults.getDefault().getAnalysisInfo()) {
 		  final String key = IDEPreferences.ANALYSIS_ACTIVE_PREFIX+analysis.getUniqueIdentifier();
 		  boolean pref = EclipseUtility.getBooleanPreference(key) && (canRunUniqueness || !analysis.runsUniqueness());
 		  setPreference(key, pref); 
@@ -38,10 +38,13 @@ public class JavacEclipse extends Javac {
 
   public static void initialize() {
 	  // instance.initPrefs()
+	  if (IDERoot.getInstance() == null) {
+		  initInstance(instance);
+	  }
   }
   
   public void synchronizeAnalysisPrefs() {
-    for (String id : getAvailableAnalyses()) {
+    for (String id : AnalysisDefaults.getAvailableAnalyses()) {
       boolean value = EclipseUtility.getBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id);
       setPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id, value);
     }
@@ -67,7 +70,7 @@ public class JavacEclipse extends Javac {
   public void writePrefsToXML(File settings) throws FileNotFoundException {
 	  final List<String> m_includedExtensions = new ArrayList<String>();
 	  final List<String> m_nonProductionAnalysisExtensions = new ArrayList<String>();
-	  for (String id : getAvailableAnalyses()) {
+	  for (String id : AnalysisDefaults.getAvailableAnalyses()) {
 	      boolean value = EclipseUtility.getBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id);
 	      if (value) {
 	    	  m_includedExtensions.add(id);

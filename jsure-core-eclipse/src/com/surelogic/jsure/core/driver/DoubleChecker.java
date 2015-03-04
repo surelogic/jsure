@@ -11,17 +11,16 @@ import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 import org.osgi.framework.BundleContext;
 
+import com.surelogic.analysis.AnalysisDefaults;
 import com.surelogic.analysis.IAnalysisInfo;
-import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.javac.Javac;
 import com.surelogic.jsure.core.Activator;
 
-import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
+import edu.cmu.cs.fluid.ide.IDERoot;
 import edu.cmu.cs.fluid.CommonStrings;
 
 /**
@@ -38,12 +37,6 @@ public class DoubleChecker implements IAnalysisContainer {
 	// PLUGIN FIELDS AND CONSTANTS
 	//
 	// //////////////////////////////////////////////////////////////////////
-
-	/**
-	 * The double-checker plugin identifier <i>must</i> match the plugin
-	 * manifest.
-	 */
-	public static final String DOUBLE_CHECKER_PLUGIN_ID = "com.surelogic.jsure.client.eclipse";
 
 	/**
 	 * The double-checker analysis module extension point identifier <i>must</i>
@@ -98,14 +91,6 @@ public class DoubleChecker implements IAnalysisContainer {
 	 * at each level. This List is built by {@link #initializeAnalysisLevels}.
 	 */
 	final List<Set<IAnalysisInfo>> m_analysisExtensionSets = new ArrayList<Set<IAnalysisInfo>>();
-
-	/**
-	 * Cache managed by {@link #getAnalysisModule}to ensure that obtaining the
-	 * {@link IAnalysis}object defined by the analysis module extension point is
-	 * only done a single time (i.e., the analysis modules are managed as
-	 * singleton objects).
-	 */
-	Map<IAnalysisInfo, IAnalysis> m_analysisModuleCache = new HashMap<IAnalysisInfo, IAnalysis>();
 
 	/**
 	 * Returns the shared double-checker plugin instance to invoke plugin
@@ -296,8 +281,8 @@ public class DoubleChecker implements IAnalysisContainer {
 				Plugin.ANALYSIS_MODULE_EXTENSION_POINT_ID);
 		allAnalysisExtensions = extensionPoint.getExtensions();
 		*/
-		IAnalysisInfo[] temp = Javac.getDefault().getAnalysisInfo();
-		allAnalysisExtensions = new IAnalysisInfo[temp.length+1];
+		Collection<? extends IAnalysisInfo> temp = AnalysisDefaults.getDefault().getAnalysisInfo();
+		allAnalysisExtensions = new IAnalysisInfo[temp.size()+1];
 		allAnalysisExtensions[0] = new IAnalysisInfo() {			
 			@Override
 			public boolean isProduction() {
@@ -324,11 +309,15 @@ public class DoubleChecker implements IAnalysisContainer {
 				return null;
 			}			
 			@Override
-			public Class<?> getAnalysisClass() {
-				return AnalysisDriver.class;
+			public String getAnalysisClassName() {
+				return AnalysisDriver.class.getName();
 			}
 			@Override
 			public boolean runsUniqueness() {
+				return false;
+			}
+			@Override
+			public boolean isActive(List<IAnalysisInfo> activeAnalyses) {
 				return false;
 			}
 		};
@@ -485,7 +474,7 @@ public class DoubleChecker implements IAnalysisContainer {
 	private void initializeAnalysisLevels() {
 		m_analysisExtensionSets.clear(); // start with an empty list
 
-		if (IDE.useJavac) {
+		if (IDERoot.useJavac) {
 			// Just run AnalysisDriver
 			for (IAnalysisInfo ext : allAnalysisExtensions) {
 				if (AnalysisDriver.ID.equals(ext.getUniqueIdentifier())) {
@@ -569,48 +558,6 @@ public class DoubleChecker implements IAnalysisContainer {
 		Set<String> result = new HashSet<String>();
 		for(String prereq : analysisExtension.getPrerequisiteIds()) {
 			result.add(prereq);
-		}
-		return result;
-	}
-
-	/**
-	 * Attaches to the actual class that implements an analysis module defined
-	 * by an analysis module extension point an returns an {@link IAnalysis}
-	 * representing the analysis module.
-	 * 
-	 * @param analysisExtension
-	 *            the analysis module extension point to attach to
-	 * @return the analysis module, or <code>null</code> if attachment failed
-	 */
-	IAnalysis getAnalysisModule(IAnalysisInfo analysisExtension) {
-		// is it in the cache?
-		IAnalysis result = m_analysisModuleCache.get(analysisExtension);
-		if (result == null) { // was not in the cache
-			try {
-				Object temp = analysisExtension.getAnalysisClass().newInstance();
-				if (temp instanceof IIRAnalysis) {
-					throw new UnsupportedOperationException();
-				} else {
-					result = (IAnalysis) temp;
-				}
-				/*
-				 * note that "createExecutableExtension()" *ALWAYS*
-				 * creates a new object instance -- we want analysis
-				 * modules to be singletons so we need to cache the
-				 * result in the field "analysisModuleCache"
-				 */
-				m_analysisModuleCache.put(analysisExtension, result); // add to cache
-			} catch (Exception e) {
-				String logMessage = "Unable to create class "
-					+ analysisExtension.getAnalysisClass().getName()
-					+ " for analysis module "
-					+ analysisExtension.getLabel();
-				/* TODO this used to put up a dialog
-				String title = "Analysis Module Class Missing";
-				String dialogMessage = logMessage;
-				*/
-				SLLogger.getLogger().severe(logMessage);
-			}
 		}
 		return result;
 	}

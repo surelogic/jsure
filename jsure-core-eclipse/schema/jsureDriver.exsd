@@ -45,7 +45,7 @@
                   Replacement for the default driver
                </documentation>
                <appinfo>
-                  <meta.attribute kind="java" basedOn="com.surelogic.jsure.core.driver.JavacDriver:"/>
+                  <meta.attribute kind="java" basedOn="com.surelogic.jsure.core.driver.JSureDriver:"/>
                </appinfo>
             </annotation>
          </attribute>

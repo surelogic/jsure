@@ -26,7 +26,6 @@ import org.eclipse.ui.IStorageEditorInput;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.jsure.client.eclipse.editors.PromisesXMLEditor;
 import com.surelogic.jsure.core.persistence.JavaIdentifierUtil;
-import com.surelogic.xml.TestXMLParserConstants;
 
 public class ShowAnnotationsAction implements IEditorActionDelegate {
   private final ASTParser f_parser;

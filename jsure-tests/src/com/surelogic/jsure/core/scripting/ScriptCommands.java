@@ -1,6 +1,6 @@
 package com.surelogic.jsure.core.scripting;
 
-import com.surelogic.javac.Util;
+import com.surelogic.analysis.AnalysisConstants;
 
 public interface ScriptCommands {
 	String NAME = "test.script.txt";
@@ -16,8 +16,8 @@ public interface ScriptCommands {
 	
 	String EXPECT_BUILD = "expectBuild";
 	String EXPECT_BUILD_FIRST = "!"+EXPECT_BUILD;
-	String EXPECT_ANALYSIS = Util.EXPECT_ANALYSIS;
-	String EXPECT_ANALYSIS_FIRST = "!"+Util.EXPECT_ANALYSIS;
+	String EXPECT_ANALYSIS = AnalysisConstants.EXPECT_ANALYSIS;
+	String EXPECT_ANALYSIS_FIRST = "!"+AnalysisConstants.EXPECT_ANALYSIS;
 	
 	String IMPORT = "import";
 	String TOUCH_FILE = "touchFile";

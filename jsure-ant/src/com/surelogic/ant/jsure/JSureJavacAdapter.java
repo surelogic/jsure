@@ -56,7 +56,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 			
 			/*
 			 * TODO: This is BROKEN because it points the user's DIFF directory to the release directory
-			 * This needs to set -D RemoteJSureRun.FLUID_DIRECTORY_URL to the right place
+			 * This needs to set -D LocalJSureJob.FLUID_DIRECTORY_URL to the right place
 			 * See LocalJSureJob class (I think)
 			 * 
 			 * BROKEN BROKEN TODO TODO BROKEN BROKEN

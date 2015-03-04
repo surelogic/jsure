@@ -7,9 +7,9 @@ import java.util.logging.*;
 import org.jdom.*;
 import org.jdom.input.SAXBuilder;
 
+import com.surelogic.analysis.AnalysisDefaults;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.logging.SLLogger;
-import com.surelogic.javac.Javac;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.java.xml.JSureAnalysisXMLConstants;
@@ -125,7 +125,7 @@ public final class JSureAnalysisXMLReader implements JSureAnalysisXMLConstants {
 			for (String id : includedAnalysisModules) {
 				//System.out.println("'Included' : "+id);
 				EclipseUtility.setBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id, true);
-				for(String more : Javac.getOtherAnalysesToActivate(id)) {
+				for(String more : AnalysisDefaults.getOtherAnalysesToActivate(id)) {
 					EclipseUtility.setBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + more, true);
 				}				
 			}

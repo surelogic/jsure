@@ -29,6 +29,7 @@ import org.apache.commons.lang3.SystemUtils;
 import com.surelogic.analysis.Analyses;
 import com.surelogic.analysis.Analyses.AnalysisTimings;
 import com.surelogic.analysis.Analyses.Analyzer;
+import com.surelogic.analysis.AnalysisConstants;
 import com.surelogic.analysis.AnalysisGroup;
 import com.surelogic.analysis.ConcurrencyType;
 import com.surelogic.analysis.ConcurrentAnalysis;
@@ -128,16 +129,13 @@ import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import extra166y.ParallelArray;
 import extra166y.Ops.Procedure;
 
-public class Util {
+public class Util implements AnalysisConstants {
   public static final boolean useNewDriver = true;
   public static final boolean runAllAnalysesOnOneGranuleAtATime = false;
   /**
    * Splits and integrates the rewrite into the adapter/canonicalizer
    */
   public static final boolean useIntegratedRewrite = true;
-
-  public static final String EXPECT_ANALYSIS = "expectAnalysis";
-  public static final String RECORD_ANALYSIS = "recordAnalysis";
 
   /** Should we try to run things in parallel */
   private static boolean wantToRunInParallel = true;// false;

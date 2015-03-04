@@ -19,6 +19,7 @@ import com.surelogic.annotation.rules.ThreadEffectsRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.StartsPromiseDrop;
+import com.surelogic.java.persistence.JavaIdentifierConstants;
 import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -44,9 +45,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
-public final class JavaIdentifier {
-	public static final String SEPARATOR = ":";
-	
+public final class JavaIdentifier implements JavaIdentifierConstants {
 	public static void testFindEncoding(IIRProjects projs, final IIRProject proj, IRNode cu) {
 		for(IRNode tt : VisitUtil.getTypeDecls(cu)) {
 			testFindEncodingType(projs, proj, tt);
