@@ -40,7 +40,9 @@ public class Activator extends Plugin {
 	public void stop(BundleContext context) throws Exception {
 		try {
 			IDE.getInstance().getMemoryPolicy().shutdown();
-			((JavacDriver<?>) JSureDriver.getInstance()).stopScripting();
+			if (JSureDriver.getInstance() instanceof JavacDriver) {
+				((JavacDriver<?>) JSureDriver.getInstance()).stopScripting();
+			}
 		} finally {
 			plugin = null;
 			super.stop(context);
