@@ -39,7 +39,7 @@ public abstract class IDERoot {
 		if (/*instance != null ||*/ i == null) {
 			throw new IllegalArgumentException();
 		} else {
-			new Throwable("Initialing IDERoot to "+i).printStackTrace();
+			//new Throwable("Initialing IDERoot to "+i).printStackTrace();
 		}
 		instance = i;
 	}
@@ -109,7 +109,7 @@ public abstract class IDERoot {
 		if (XUtil.testing) {
 			System.out.println(this.getClass().getSimpleName() + " set " + key
 					+ " to " + value);
-			new Throwable().printStackTrace();
+			//new Throwable().printStackTrace();
 		}
 		prefs.put(key, value);
 	}
