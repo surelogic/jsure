@@ -3,7 +3,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/common"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/fluid"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/jsure-analysis"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/jsure-common"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
