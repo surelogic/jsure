@@ -2610,6 +2610,11 @@ public class TypeInference8 {
 						System.out.println("Found Stream.R");
 					}
 					*/
+					final IJavaTypeFormal f = e.getKey();
+					if (t.equals(f.getExtendsBound(tEnv))) {
+						// TODO Skip substitution?
+						continue;
+					}
 					subst.put(e.getKey(), new ReboundedTypeFormal(tEnv, e.getKey(), t));
 				} else {
 					subst.put(e.getKey(), t);
@@ -3951,7 +3956,7 @@ public class TypeInference8 {
 		final CallState call = new CallState(tEnv.getBinder(), e, c.get_TypeArgs(e), c.get_Args(e), b.getReceiverType());
 		Pair<MethodBinding,BoundSet> pair = recomputeB_2(call, b);
 		MethodBinding m = pair.first();
-		IJavaType r = m.getReturnType(tEnv, false); // TODO why no subst?
+		IJavaType r = m.getReturnType(tEnv, false);//true); // TODO why no subst?
 		BoundSet b_3 = computeB_3(call, r, pair.second(), t); 
 		return new Triple<CallState,MethodBinding8,BoundSet>(call, b, b_3);
 	}
