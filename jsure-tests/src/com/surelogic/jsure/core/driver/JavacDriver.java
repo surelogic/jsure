@@ -895,10 +895,8 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
 		  if (expected != null && expected.exists()) {
 			  checkForExpectedSourceFiles(newProjects, expected);
 		  }
-		  copy.run(new NullSLProgressMonitor());
-	  } else {
-		  super.scheduleScanForExecution(newProjects, copy);
 	  }
+	  super.scheduleScanForExecution(newProjects, copy);	  
   }
 
   private void findModifiedFiles(final JavaProjectSet<T> newProjects, JavaProjectSet<T> oldProjects) {

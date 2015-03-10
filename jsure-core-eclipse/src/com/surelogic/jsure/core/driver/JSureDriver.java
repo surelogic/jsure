@@ -22,6 +22,8 @@ import com.surelogic.common.core.java.AbstractJavaScanner;
 import com.surelogic.common.core.java.ProjectInfo;
 import com.surelogic.common.core.jobs.EclipseLocalConfig;
 import com.surelogic.common.java.*;
+import com.surelogic.common.jobs.NullSLProgressMonitor;
+import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.jobs.remote.AbstractRemoteSLJob;
@@ -117,6 +119,15 @@ public class JSureDriver<T extends JavaProject> extends AbstractJavaScanner<Java
 	     return new AnalysisJob(null, newProjects, target, zips, useSeparateJVM);
 	}
 
+	@Override 
+	protected void scheduleScanForExecution(JavaProjectSet<T> newProjects, SLJob copy) throws Exception {
+		if (XUtil.testing) {
+			copy.run(new NullSLProgressMonitor());
+		} else {
+			super.scheduleScanForExecution(newProjects, copy);
+		}
+	}
+	
 	@Override
 	protected ProjectInfo<T> finishRegisteringFullBuild(IProject project,
 			List<Pair<IResource, Integer>> resources, List<ICompilationUnit> cus) {
