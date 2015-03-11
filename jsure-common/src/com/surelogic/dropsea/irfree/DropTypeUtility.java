@@ -236,6 +236,7 @@ public final class DropTypeUtility {
 	  NAME_TO_TYPE.put(RESULT_FOLDER, DropType.RESULT_FOLDER);
 	  NAME_TO_TYPE.put(ASSUME, DropType.SCOPED_PROMISE);
 	  NAME_TO_TYPE.put(SCOPED_PROMISE, DropType.SCOPED_PROMISE);
+	  NAME_TO_TYPE.put("com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop", DropType.PROMISE); 
   }
   
   private static DropType cacheTypeMapping(String origName, DropType result) {
