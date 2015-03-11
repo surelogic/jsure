@@ -194,7 +194,7 @@
 
 		<!-- THE LISTS BELOW SHOULD BE UPDATED IF THE PLUG-INs/FEATUREs COMPRISING JSURE CHANGE -->
 		<property name="common.plugin.projects" value="common, common-core-eclipse" />
-		<property name="jsure.plugin.projects" value="jsure-common, fluid, jsure-core-eclipse, jsure-tests" />
+		<property name="jsure.plugin.projects" value="jsure-common, jsure-analysis, jsure-core-eclipse, jsure-tests" />
 		<property name="jsure.feature.id" value="com.surelogic.feature.jsure.tests" />
 
 		<!-- Copy JSure plug-in projects for headless build -->
@@ -214,7 +214,7 @@
 
 		<!-- Build necessary source code in common and fluid plug-in projects -->
 		<ant antfile="build-src.xml" dir="${sandbox.jsure.build.plugins.dir}${fs}common" />
-		<ant antfile="build-src.xml" dir="${sandbox.jsure.build.plugins.dir}${fs}fluid" />
+		<ant antfile="build-src.xml" dir="${sandbox.jsure.build.plugins.dir}${fs}jsure-analysis" />
 
 		<!-- Handle any OS-specific build problems here. -->
 		<!-- THE CODE BELOW MAY NEED TO BE UPDATED AS OS/ECLIPSE VERSIONS CHANGE -->
@@ -232,7 +232,7 @@
 		<if>
 			<equals arg1="${is.mac}" arg2="true" casesensitive="false" />
 			<then>
-				<propertyfile file="${sandbox.jsure.build.plugins.dir}${fs}fluid${fs}build.properties">
+				<propertyfile file="${sandbox.jsure.build.plugins.dir}${fs}jsure-analysis${fs}build.properties">
 					<entry key="bootClasspath" value="lib/runtime/javac.jar:/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar" />
 				</propertyfile>
 				<echo message="[OS X] fluid-javac bootClasspath changed..." />
@@ -245,7 +245,7 @@
 		<if>
 			<equals arg1="${is.windows}" arg2="true" casesensitive="false" />
 			<then>
-				<propertyfile file="${sandbox.jsure.build.plugins.dir}${fs}fluid${fs}build.properties">
+				<propertyfile file="${sandbox.jsure.build.plugins.dir}${fs}jsure-analysis${fs}build.properties">
 					<entry key="bootClasspath" value="lib/runtime8/javac_8.jar;c:/Program Files/Java/jre7/lib/rt.jar" />
 				</propertyfile>
 				<echo message="[Win] fluid-javac bootClasspath changed..." />
@@ -258,7 +258,7 @@
 				<if>
 					<equals arg1="${is.unix}" arg2="true" casesensitive="false" />
 					<then>
-						<propertyfile file="${sandbox.jsure.build.plugins.dir}${fs}fluid${fs}build.properties">
+						<propertyfile file="${sandbox.jsure.build.plugins.dir}${fs}jsure-analysis${fs}build.properties">
 							<entry key="bootClasspath" value="lib/runtime8/javac_8.jar;${java.home}/lib/rt.jar" />
 						</propertyfile>
 						<echo message="[Unix] fluid-javac bootClasspath changed to ${bootClasspath}" />
