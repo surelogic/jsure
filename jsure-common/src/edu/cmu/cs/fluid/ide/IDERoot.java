@@ -32,7 +32,7 @@ public abstract class IDERoot {
 	}
 
 	protected static synchronized void initInstance(IDERoot i) {
-		if (instance != null) {
+		if (instance != null && instance != i) {
 			System.err.println("Warning: ignoring "+i);
 			return;
 		}

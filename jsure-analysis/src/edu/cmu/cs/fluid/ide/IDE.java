@@ -80,7 +80,7 @@ public abstract class IDE extends IDERoot {
 
 	protected static void initInstance(IDE i) {
 		synchronized (IDE.class) {
-			if (prototype != null) {
+			if (prototype != null && prototype != i) {
 				System.err.println("Warning: overriding "+prototype+" with "+i);
 			}
 			if (/*prototype != null ||*/ i == null) {
