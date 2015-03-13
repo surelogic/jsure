@@ -91,7 +91,7 @@ public final class AnalysisDefaults {
 
 		init("com.surelogic.analysis.nullable.NullableModule2", NULLABLE, true, "Nullable", nullablePreprocessor);
 		init("com.surelogic.analysis.testing.NonNullRawTypeModule", "com.surelogic.jsure.client.eclipse.NonNullRawTypes", false, "Combined NonNull & RawType (for reg tests only)", nullablePreprocessor);
-		init(" com.surelogic.analysis.testing.FinalModule", "com.surelogic.jsure.client.eclipse.Final", false, "Final Declarations (for reg tests only)");
+		init("com.surelogic.analysis.testing.FinalModule", "com.surelogic.jsure.client.eclipse.Final", false, "Final Declarations (for reg tests only)");
 
 		init("com.surelogic.analysis.jtb.TestFunctionalInterfacePseudoAnalysis","com.surelogic.jsure.client.eclipse.TestIsFunctional", false, "Functional (for tests only)");
 		/*
