@@ -75,8 +75,9 @@
         </method>
 
         <method name="elements">
-            <Borrowed allowReturn="true">this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </method>
@@ -124,8 +125,9 @@
         </method>
 
         <method name="keys">
-            <Borrowed allowReturn="true">this</Borrowed>
-            <RegionEffects>reads Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </method>

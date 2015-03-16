@@ -68,8 +68,9 @@
         </method>
 
         <method name="iterator">
-            <Borrowed allowReturn="true">this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </method>
@@ -84,15 +85,17 @@
         </method>
 
         <method name="listIterator">
-            <Borrowed allowReturn="true">this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </method>
 
         <method name="listIterator" params="int">
-            <Borrowed allowReturn="true">this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </method>
