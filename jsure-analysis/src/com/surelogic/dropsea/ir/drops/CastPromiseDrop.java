@@ -27,4 +27,8 @@ public final class CastPromiseDrop extends PromiseDrop<CastNode> {
   public boolean isToNullable() {
 	return getAAST().getKind() == CastKind.toNullable;
   }
+  
+  public boolean isToUniqueReference() {
+	return getAAST().getKind() == CastKind.toUniqueReference;
+  }
 }

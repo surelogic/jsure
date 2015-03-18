@@ -11,7 +11,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
 
 public final class CastNode extends AASTRootNode { 
   public enum CastKind {
-	  toNonNull, toNullable
+	  toNonNull, toNullable, toUniqueReference
   }
 	
   // Fields

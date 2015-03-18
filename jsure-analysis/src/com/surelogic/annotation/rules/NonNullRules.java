@@ -26,6 +26,7 @@ import com.surelogic.annotation.parse.AASTAdaptor.Node;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.parse.SLParse;
+import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.AbstractPosetConsistencyChecker;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
@@ -150,7 +151,7 @@ public class NonNullRules extends AnnotationRules {
 		@Override
 		protected IAnnotationScrubber makeScrubber() {
 			return new AbstractAASTScrubber<CastNode, CastPromiseDrop>(
-					this, ScrubberType.UNORDERED, NONNULL, NULLABLE) {
+					this, ScrubberType.UNORDERED, NONNULL, NULLABLE, UniquenessRules.UNIQUE) {
 				@Override
 				protected PromiseDrop<CastNode> makePromiseDrop(CastNode a) {
 					return storeDropIfNotNull(a, new CastPromiseDrop(a));
