@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.surelogic.annotation.AnnotationUtil;
 import com.surelogic.annotation.Attribute;
 import com.surelogic.common.AnnotationConstants;
 import com.surelogic.common.CommonImages;
@@ -57,7 +58,7 @@ public final class AnnotationElement extends AbstractJavaElement implements
 		promise = name;
 		contents = text == null ? "" : text.trim();
 
-		attrDefaults = Collections.emptyMap();//AnnotationRules.getAttributes(promise);
+		attrDefaults = AnnotationUtil.getAttributes(promise);
 		/*
 		 * Handle "dirty" for backwards compatibility.
 		 */
