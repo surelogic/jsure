@@ -119,4 +119,25 @@ public class JavacEclipse extends IDERoot {
     }
     return null;
   }
+  
+  @Override
+  public boolean getBooleanPreference(String key) {
+	/*
+    if (testing && IDEPreferences.ALLOW_JAVADOC_ANNOS.equals(key)) {
+      // Enable, so we can test it!
+      return true;
+    }
+    */
+    return EclipseUtility.getBooleanPreference(key);
+  }
+
+  @Override
+  public int getIntPreference(String key) {
+    return EclipseUtility.getIntPreference(key);
+  }
+
+  @Override
+  public String getStringPreference(String key) {
+    return EclipseUtility.getStringPreference(key);
+  }
 }
