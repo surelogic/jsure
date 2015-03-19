@@ -44,6 +44,7 @@ public class Activator extends Plugin {
 		super.start(context);
 
 		JSurePreferencesUtility.initializeDefaultScope();
+		JSurePreferencesUtility.getJSureXMLDirectory();
 
 		if (doubleChecker == null) {
 			doubleChecker = new com.surelogic.jsure.core.driver.DoubleChecker();
