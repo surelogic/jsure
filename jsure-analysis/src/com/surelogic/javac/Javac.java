@@ -8,6 +8,7 @@ import java.util.*;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.jobs.*;
 
 import edu.cmu.cs.fluid.ide.IClassPath;
@@ -158,5 +159,15 @@ public class Javac extends IDE {
 		analyses.addNewGroup(g, grouped.toArray(new IIRAnalysis<?>[grouped.size()]));
 		grouped.clear();
 		return;
+	}
+
+	public static void checkAnalysisInfo() {
+		for (IAnalysisInfo info : AnalysisDefaults.getDefault().getAnalysisInfo()) {
+			try {
+				Class.forName(info.getAnalysisClassName());
+			} catch (ClassNotFoundException e) {
+				SLLogger.getLogger().severe("Unable to find class for "+info.getLabel()+" : "+info.getAnalysisClassName());
+			}
+		}
 	}
 }

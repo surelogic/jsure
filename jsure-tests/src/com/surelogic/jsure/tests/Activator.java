@@ -4,6 +4,7 @@ import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
 
+import com.surelogic.javac.Javac;
 import com.surelogic.jsure.core.Eclipse;
 import com.surelogic.jsure.core.driver.JSureDriver;
 import com.surelogic.jsure.core.driver.JavacDriver;
@@ -34,6 +35,7 @@ public class Activator extends Plugin {
 		
 		// TODO reload persistent data
 		Eclipse.initialize();
+		Javac.checkAnalysisInfo();
 	}
 
 	@Override
