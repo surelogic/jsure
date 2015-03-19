@@ -63,6 +63,8 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.part.MultiPageEditorPart;
 
 
+
+import com.surelogic.annotation.AnnotationUtil;
 //import com.surelogic.annotation.IAnnotationParseRule;
 //import com.surelogic.annotation.NullAnnotationParseRule;
 import com.surelogic.annotation.Attribute;
@@ -701,46 +703,18 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
   }
 
   private Set<String> findApplicableAnnos(final IDecl.Kind kind) {
-	return Collections.emptySet();
-	/*
-	final Operator op = kindMap.get(kind);
-	if (op == null) {
-	  return Collections.emptySet();
-	}
-	return findApplicableAnnos(op);
-	*/
-  }
-
-  /*
-  private Set<String> findApplicableAnnos(final Operator op) {
     final Set<String> annos = new HashSet<String>();
     // Get valid/applicable annos
-    for (IAnnotationParseRule<?, ?> rule : PromiseFramework.getInstance().getParseDropRules()) {
-      if (!(rule instanceof NullAnnotationParseRule) && rule.declaredOnValidOp(op) && AnnotationElement.isIdentifier(rule.name())) {
-        annos.add(rule.name());
+    for (Class<?> rule : AnnotationUtil.getApplicableAnnos(kind)) {
+      final String name = rule.getSimpleName();
+      if (/*!(rule instanceof NullAnnotationParseRule) &&*/AnnotationElement.isIdentifier(name)) {
+        annos.add(name);
       }
     }
     // These should never appear in XML files
-    annos.remove(ScopedPromiseRules.ASSUME);
+    annos.remove("Assume"/*ScopedPromiseRules.ASSUME*/);
     return annos;
   }
-  
-  private static Map<IDecl.Kind, Operator> kindMap = new HashMap<IDecl.Kind, Operator>();
-  private static Declaration[] declOps = {
-	  PackageDeclaration.prototype,
-	  ClassDeclaration.prototype,
-	  MethodDeclaration.prototype,
-	  ConstructorDeclaration.prototype,
-	  ParameterDeclaration.prototype,
-  };
-  static {
-	for(Declaration op : declOps) {
-	  kindMap.put(op.getKind(), op);
-	}
-	kindMap.put(IDecl.Kind.FIELD, FieldDeclaration.prototype);
-	kindMap.put(IDecl.Kind.INITIALIZER, ClassInitDeclaration.prototype);
-  }
-  */
   
   private Set<String> remove(final Set<String> s, final String elt) {
     s.remove(elt);

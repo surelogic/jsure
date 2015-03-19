@@ -1,13 +1,75 @@
 package com.surelogic.annotation;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 
 import com.surelogic.common.AnnotationConstants;
+import com.surelogic.common.LibResources;
+import com.surelogic.common.ref.IDecl.Kind;
 public final class AnnotationUtil {
+	public static Iterable<Class<?>> getApplicableAnnos(Kind kind) {
+		final List<Class<?>> result = new ArrayList<Class<?>>();
+		final ElementType type = mapToElementType(kind);
+		if (type == null) {
+			return Collections.emptyList();
+		}
+		for(Class<?> c : LibResources.getPromiseClassesWithoutMultipleAnnotationPromises()) {
+			if (includesElementType(c, type)) {
+				result.add(c);
+			}
+		}
+		return result;
+	}
+	
+	private static boolean includesElementType(final Class<?> c, final ElementType type) {
+		final Target target = c.getAnnotation(Target.class);
+		if (target == null) {
+			return false;
+		}
+		for(final ElementType elt : target.value()) {
+			if (elt == type) {
+				return true;
+			}
+			if (elt == ElementType.TYPE && type == ElementType.ANNOTATION_TYPE) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static ElementType mapToElementType(Kind kind) {
+		switch (kind) {
+		case ANNOTATION:
+			return ElementType.ANNOTATION_TYPE; // Also a TYPE
+		case CLASS:
+			return ElementType.TYPE;
+		case CONSTRUCTOR:
+			return ElementType.CONSTRUCTOR;
+		case ENUM:
+			return ElementType.TYPE;
+		case FIELD:
+			return ElementType.FIELD;
+		case INTERFACE:
+			return ElementType.TYPE;
+		case METHOD:
+			return ElementType.METHOD;
+		case PACKAGE:
+			return ElementType.PACKAGE;
+		case PARAMETER:
+			return ElementType.PARAMETER;
+		case INITIALIZER:
+		case LAMBDA:
+		case TYPE_PARAMETER:			
+			return null; // Nothing maps to this?
+		default:
+			throw new IllegalStateException("Unknown kind: "+kind);
+		}
+	}
+	
 	private static final String[] noArgMethods = new String[] { "toString",
 		"hashCode", "annotationType", };
 
@@ -79,5 +141,5 @@ public final class AnnotationUtil {
 			}
 			return b.toString();
 		}
-	}	
+	}
 }
