@@ -105,6 +105,7 @@ public abstract class AbstractJSureResultsXMLReader<T> extends NestedJSureXmlRea
       read(in);
       finishedZipEntry(ze);
     }
+    f.close();
   }
 
   protected void finishedZipEntry(ZipEntry ze) {
