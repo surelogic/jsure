@@ -500,7 +500,8 @@ public class TypeInference8 {
 				if (e_i == null) {
 					reduceTypeCompatibilityConstraints(b_2, call.getArgType(i), formal_subst);
 				} else {
-					reduceConstraintFormula(b_2, new ConstraintFormula(e_i, FormulaConstraint.IS_COMPATIBLE, formal_subst));
+					final ConstraintFormula f = new ConstraintFormula(e_i, FormulaConstraint.IS_COMPATIBLE, formal_subst);
+					reduceConstraintFormula(b_2, f);
 				}
 			}
 		}
@@ -3956,7 +3957,7 @@ public class TypeInference8 {
 		final CallState call = new CallState(tEnv.getBinder(), e, c.get_TypeArgs(e), c.get_Args(e), b.getReceiverType());
 		Pair<MethodBinding,BoundSet> pair = recomputeB_2(call, b);
 		MethodBinding m = pair.first();
-		IJavaType r = m.getReturnType(tEnv, false);//true); // TODO why no subst?
+		IJavaType r = m.getReturnType(tEnv, m.isConstructor);//true); // TODO why no subst?
 		BoundSet b_3 = computeB_3(call, r, pair.second(), t); 
 		return new Triple<CallState,MethodBinding8,BoundSet>(call, b, b_3);
 	}
