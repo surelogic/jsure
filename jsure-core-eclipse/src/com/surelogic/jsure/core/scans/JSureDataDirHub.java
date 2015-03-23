@@ -19,6 +19,7 @@ import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.tool.IResultsHub;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.java.persistence.JSureDataDir;
@@ -37,7 +38,7 @@ import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
  */
 @ThreadSafe
 @RegionLock("StateLock is f_lock protects f_dataDir")
-public final class JSureDataDirHub {
+public final class JSureDataDirHub implements IResultsHub {
 
   /**
    * Listens for changes to the set of scans within a JSure data directory.
@@ -475,5 +476,9 @@ public final class JSureDataDirHub {
       value = current.getDir().getPath();
     }
     EclipseUtility.setStringPreference(JSurePreferencesUtility.CURRENT_SCAN, value);
+  }
+
+  public JSureScan getCurrentResults() {
+	  return getCurrentScan();
   }
 }

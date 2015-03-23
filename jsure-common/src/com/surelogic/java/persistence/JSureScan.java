@@ -25,11 +25,12 @@ import com.surelogic.common.java.PersistenceConstants;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.remote.RemoteScanJob;
 import com.surelogic.common.regression.RegressionUtility;
+import com.surelogic.common.tool.IResults;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ide.IDERoot;
 
-public class JSureScan implements Comparable<JSureScan> {
+public class JSureScan implements Comparable<JSureScan>, IResults {
   private static final String OLD_RESULTS_FILE = "results.sea.xml";
   private static final String OLD_ZIPS_DIR = "zips";  
   public static final String RESULTS_XML  = "sea_snapshot.xml";
@@ -373,5 +374,9 @@ public class JSureScan implements Comparable<JSureScan> {
 	  } catch (IOException e) {
 		  // Ignore
 	  }
+  }
+  
+  public String getLabel() {
+    return getDir().getName();
   }
 }
