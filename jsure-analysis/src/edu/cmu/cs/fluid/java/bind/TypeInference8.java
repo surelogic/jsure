@@ -391,7 +391,7 @@ public class TypeInference8 {
 	 * @return the bound set B 2 if the method is applicable
 	 */   
 	BoundSet inferForInvocationApplicability(ICallState call, MethodBinding m, InvocationKind kind) {
-		if (call.toString().equals("Collections.synchronizedList(new # <#>)")) {
+		if (false && call.toString().equals("Collections.synchronizedList(new # <#>)")) {
 			System.out.println("Got br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))");
 		}
 
@@ -2612,10 +2612,15 @@ public class TypeInference8 {
 					}
 					*/
 					final IJavaTypeFormal f = e.getKey();
+					/*
+					 * Putting this check in prevents later use of type variables 
+					 * to allow context to determine the right substitution
+					 *  
 					if (t.equals(f.getExtendsBound(tEnv))) {
 						// TODO Skip substitution?
 						continue;
 					}
+					*/
 					subst.put(e.getKey(), new ReboundedTypeFormal(tEnv, e.getKey(), t));
 				} else {
 					subst.put(e.getKey(), t);
