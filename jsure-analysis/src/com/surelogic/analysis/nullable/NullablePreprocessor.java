@@ -15,6 +15,7 @@ import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.TrackPartiallyInitializedPromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.AllocationExpression;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
@@ -158,7 +159,7 @@ final class NullablePreprocessor extends JavaSemanticsVisitor implements IBinder
       final TrackPartiallyInitializedPromiseDrop tpi =
           NonNullRules.getTrackPartiallyInitialized(enclosingType);
       final ResultDrop result = ResultsBuilder.createResult(
-          varDecl, nonNull, tpi != null, TPI_TRACKED, TPI_NOT_TRACKED);
+          varDecl, nonNull, tpi != null, TPI_TRACKED, TPI_NOT_TRACKED, JavaNames.genSimpleMethodConstructorName(getEnclosingDecl()));
       if (tpi != null) {
         result.addTrusted(tpi);
       } else {

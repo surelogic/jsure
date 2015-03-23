@@ -775,7 +775,6 @@ implements IBinderClient {
     
     public Base getEmpty() {
       return new Base(NonNullRawLattice.MAYBE_NULL, Kind.NO_VALUE, null);
-//      return new Base(NonNullRawLattice.MAYBE_NULL, lattice2.bottom());
     }
 
     public NonNullRawLattice getElementLattice() { 

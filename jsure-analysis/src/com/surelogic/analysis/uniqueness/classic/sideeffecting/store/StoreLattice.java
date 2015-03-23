@@ -85,7 +85,7 @@ extends TripleLattice<Element<Integer>,
   
   /**
    * Should we create drops at all.  This is set by the analysis using
-   * the lattice.  That is, are we at the side-effecing stage yet.
+   * the lattice.  That is, are we at the side-effecting stage yet.
    */
   private boolean produceSideEffects = false;
     

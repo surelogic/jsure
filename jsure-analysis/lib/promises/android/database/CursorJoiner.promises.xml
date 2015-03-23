@@ -8,8 +8,9 @@
         </method>
 
         <method name="iterator">
-            <Borrowed allowReturn="true">this</Borrowed>
-            <RegionEffects>writes this:Instance</RegionEffects>
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
             <Unique>return</Unique>
         </method>
 
