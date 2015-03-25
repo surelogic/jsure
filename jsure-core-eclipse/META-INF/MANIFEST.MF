@@ -16,11 +16,8 @@ Export-Package: com.surelogic.jsure.core,
  com.surelogic.jsure.core.xml
 Require-Bundle: com.surelogic.common,
  com.surelogic.common.core,
- org.eclipse.core.resources,
  org.eclipse.core.runtime,
  org.eclipse.jdt.core,
- org.eclipse.compare,
- org.eclipse.jdt.launching,
  org.eclipse.debug.core,
  com.surelogic.jsure.common
 Eclipse-LazyStart: true
