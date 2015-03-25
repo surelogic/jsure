@@ -1,9 +1,0 @@
-bin
-doc
-build.xml
-temp.folder
-dc.jar
-.fbwarnings
-javaCompiler.dc.jar.args
-.fbprefs
-.checkstyle

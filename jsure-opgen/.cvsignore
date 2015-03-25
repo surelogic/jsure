@@ -1,8 +1,0 @@
-bin
-dist
-build.xml
-temp.folder
-.fbprefs
-@dot
-javaCompiler.*.args
-opgen.jar
