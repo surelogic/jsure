@@ -33,7 +33,7 @@ public abstract class IDERoot {
 
 	protected static synchronized void initInstance(IDERoot i) {
 		if (instance != null && instance != i) {
-			System.err.println("Warning: ignoring "+i);
+			//System.err.println("Warning: ignoring "+i);
 			return;
 		}
 		if (/*instance != null ||*/ i == null) {
