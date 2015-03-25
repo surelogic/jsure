@@ -20,11 +20,11 @@ import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
-import com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
@@ -50,8 +50,8 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 
   
   
-  private final Map<PromiseDrop<? extends IAASTRootNode>, Set<UniquenessControlFlowDrop>> uniqueDropsToUses = 
-    new HashMap<PromiseDrop<? extends IAASTRootNode>, Set<UniquenessControlFlowDrop>>();
+  private final Map<PromiseDrop<? extends IAASTRootNode>, Set<ResultFolderDrop>> uniqueDropsToUses = 
+    new HashMap<PromiseDrop<? extends IAASTRootNode>, Set<ResultFolderDrop>>();
   
   
   
@@ -92,12 +92,12 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
      * If we did it in the lattice, we would have to make one result drop for 
      * each control flow drop, and that would be dumb.
      */
-    for (final Map.Entry<PromiseDrop<? extends IAASTRootNode>, Set<UniquenessControlFlowDrop>> entry : uniqueDropsToUses.entrySet()) {
+    for (final Map.Entry<PromiseDrop<? extends IAASTRootNode>, Set<ResultFolderDrop>> entry : uniqueDropsToUses.entrySet()) {
       final ResultDrop middleDrop = new ResultDrop(entry.getKey().getNode());
       middleDrop.addChecked(entry.getKey());
       middleDrop.setConsistent();
       middleDrop.setMessage(Messages.CONTROL_FLOW_ROOT, p.getName());
-      for (final UniquenessControlFlowDrop cfDrop : entry.getValue()) {
+      for (final ResultFolderDrop cfDrop : entry.getValue()) {
         middleDrop.addTrusted(cfDrop);
       }
     }
@@ -231,7 +231,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
           methodName, duration / NANO_SECONDS_PER_SECOND);
       
       // (1)
-      timeOutResult.addChecked(sl.getCFDrop());
+      sl.getCFDrop().addTrusted(timeOutResult);
       
       if (!ClassInitDeclaration.prototype.includes(mr.getMethod())) {
         final IRNode formals = SomeFunctionDeclaration.getParams(mr.getMethod());
@@ -261,9 +261,9 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 	   * accessed in the method.
 	   */
     for (final PromiseDrop<? extends IAASTRootNode> pd : mr.usedUniqueFields) {
-      Set<UniquenessControlFlowDrop> value = uniqueDropsToUses.get(pd);
+      Set<ResultFolderDrop> value = uniqueDropsToUses.get(pd);
       if (value == null) {
-        value = new HashSet<UniquenessControlFlowDrop>();
+        value = new HashSet<ResultFolderDrop>();
         uniqueDropsToUses.put(pd, value);
       }
       value.add(sl.getCFDrop());

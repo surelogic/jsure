@@ -1098,7 +1098,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 
   public static final String NOT_AN_ERROR = "Usage is correct.";
 
-  private static final boolean isBadState(final StoreLattice sl, final Store s) {
+  static final boolean isBadState(final StoreLattice sl, final Store s) {
     return s != null && !sl.equals(s, sl.bottom()) && !s.isValid();
   }
   

@@ -21,12 +21,13 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProofDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
-import com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -204,7 +205,7 @@ extends TripleLattice<Element<Integer>,
    * parameter. Built by {@link #opUndefine(Store, IRNode)}. Used when handling
    * "undefined" errors to out why the stack position is undefined.
    */
-  private final Map<Integer, Set<IRNode>> stackUndefinedAt =
+  final Map<Integer, Set<IRNode>> stackUndefinedAt =
     new HashMap<Integer, Set<IRNode>>();
 
   /**
@@ -214,7 +215,7 @@ extends TripleLattice<Element<Integer>,
    * {@link #opLoad(Store, IRNode)}.  Used when handling "undefined" errors
    * to out why the stack position is undefined.
    */
-  private final Map<Integer, Set<IRNode>> stackBuriedAt =
+  final Map<Integer, Set<IRNode>> stackBuriedAt =
     new HashMap<Integer, Set<IRNode>>();
 
   /**
@@ -224,7 +225,7 @@ extends TripleLattice<Element<Integer>,
    * {@link #opLoadReachable(Store, IRNode)}.  Used when handling "undefined" errors
    * to out why the stack position is undefined.
    */
-  private final Map<Integer, Set<Triple<Set<IRNode>, IRNode, RegionEffectsPromiseDrop>>> stackIndirectlyBuriedAt =
+  final Map<Integer, Set<Triple<Set<IRNode>, IRNode, RegionEffectsPromiseDrop>>> stackIndirectlyBuriedAt =
     new HashMap<Integer, Set<Triple<Set<IRNode>, IRNode, RegionEffectsPromiseDrop>>>();
   
   /**
@@ -236,7 +237,7 @@ extends TripleLattice<Element<Integer>,
    * Method control flow drops.  Map from method/constructor declaration
    * nodes to drops.
    */
-  private final UniquenessControlFlowDrop controlFlowDrop;
+  private final ResultFolderDrop controlFlowDrop;
   
   /**
    * Whether any results were added to the control flow drop.   Checked in
@@ -275,7 +276,8 @@ extends TripleLattice<Element<Integer>,
     this.locals = locals;
     this.binder = binder;
     this.analysis = analysis;
-    this.controlFlowDrop = UniquenessControlFlowDrop.create(flowUnit);
+    this.controlFlowDrop = ResultFolderDrop.newAndFolder(flowUnit);
+    this.controlFlowDrop.setMessage(edu.cmu.cs.fluid.java.bind.Messages.ControlFlow, JavaNames.genRelativeFunctionName(flowUnit));
   }
   
   public int getNumLocals() {
@@ -1416,7 +1418,7 @@ extends TripleLattice<Element<Integer>,
   // -- Good Values
   // ------------------------------------------------------------------
   
-  public UniquenessControlFlowDrop getCFDrop() {
+  public ResultFolderDrop getCFDrop() {
     return controlFlowDrop;
   }
   
@@ -1440,7 +1442,7 @@ extends TripleLattice<Element<Integer>,
   
   // XXX: Method is poorly named
   private void recordBadUnique(final IRNode srcOp,
-      final PromiseDrop<? extends IAASTRootNode> uDrop, final int msg,
+      final ProofDrop uDrop, final int msg,
       final InfoAdder infoAdder) {
     xNotY.add(new XNotY(uDrop, srcOp, abruptDrops, msg, infoAdder));
   }
@@ -1571,7 +1573,7 @@ extends TripleLattice<Element<Integer>,
   }
 
   private void recordUndefinedNotX(
-      final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> uDrop,
+      final IRNode srcOp, final ProofDrop uDrop,
       final Integer topOfStack) {
     if (shouldRecordResult()) {
       recordBadUnique(srcOp, uDrop, Messages.ACTUAL_IS_UNDEFINED,
@@ -1645,20 +1647,26 @@ extends TripleLattice<Element<Integer>,
   private ResultDrop createResultDrop(
       final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
       final boolean abruptDrops, final boolean addToControlFlow,
-      final PromiseDrop<? extends IAASTRootNode> promiseDrop,
+      final ProofDrop proofDrop,
       final IRNode node, final boolean isConsistent, 
       final int msg, final Object... args) {
-    final Object[] newArgs = new Object[args.length+1];
+    final Object[] newArgs = new Object[args.length + 1];
     System.arraycopy(args, 0, newArgs, 0, args.length);
-    newArgs[args.length] =
-      abruptDrops ? Messages.ABRUPT_EXIT : Messages.NORMAL_EXIT;
-    
+    newArgs[args.length] = abruptDrops ? Messages.ABRUPT_EXIT : Messages.NORMAL_EXIT;
+
+    final PromiseDrop<?> promiseDrop;
+    if (proofDrop instanceof PromiseDrop<?>) {
+      promiseDrop = (PromiseDrop<?>) proofDrop;
+    } else {
+      promiseDrop = null;
+    }
     final ResultDrop result = new ResultDrop(node);
     drops.add(result);
-    result.addChecked(promiseDrop);
-    if (promiseDrop != controlFlowDrop) {
+    if (promiseDrop != null)
+      result.addChecked(promiseDrop);
+    if (proofDrop != controlFlowDrop) {
       if (addToControlFlow) {
-        result.addChecked(controlFlowDrop);
+        controlFlowDrop.addTrusted(result);
         hasControlFlowResults = true;
       }
     } else {
@@ -1669,14 +1677,14 @@ extends TripleLattice<Element<Integer>,
     return result;
   }
 
-  private ResultDrop createResultDrop(
+  ResultDrop createResultDrop(
       final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
       final boolean abruptDrops,
-      final PromiseDrop<? extends IAASTRootNode> promiseDrop,
+      final ProofDrop proofDrop,
       final IRNode node, final boolean isConsistent, 
       final int msg, final Object... args) {
     return createResultDrop(analysis, abruptDrops, true,
-        promiseDrop, node, isConsistent, msg, args);
+        proofDrop, node, isConsistent, msg, args);
   }
   
   private void crossReferenceKilledFields(
@@ -1825,7 +1833,7 @@ extends TripleLattice<Element<Integer>,
   }
   
   private abstract class AbstractResult {
-    private final PromiseDrop<? extends IAASTRootNode> promiseDrop;
+    private final ProofDrop proofDrop;
     private final IRNode srcOp;
     private final boolean isAbrupt;
     private final int msg;
@@ -1835,10 +1843,10 @@ extends TripleLattice<Element<Integer>,
     // will be needed at least once.
     private final int hashCode;
     
-    public AbstractResult(final PromiseDrop<? extends IAASTRootNode> pd,
+    public AbstractResult(final ProofDrop pd,
         final IRNode srcOp, final boolean isAbrupt,
         final int msg, final InfoAdder adder) {
-      this.promiseDrop = pd;
+      this.proofDrop = pd;
       this.srcOp = srcOp;
       this.isAbrupt = isAbrupt;
       this.msg = msg;
@@ -1859,7 +1867,7 @@ extends TripleLattice<Element<Integer>,
          * to check for equality of the msg..
          */
         final AbstractResult o2 = (AbstractResult) other;
-        return promiseDrop.equals(o2.promiseDrop)
+        return proofDrop.equals(o2.proofDrop)
             && srcOp.equals(o2.srcOp)
             && isAbrupt == o2.isAbrupt
             && msg == o2.msg;
@@ -1876,7 +1884,7 @@ extends TripleLattice<Element<Integer>,
         final AbstractWholeIRAnalysis<UniquenessAnalysis,?> analysis,
         final IBinder binder) {
       final ResultDrop result = createResultDrop(
-          analysis, isAbrupt, promiseDrop, srcOp, isGood(), msg);
+          analysis, isAbrupt, proofDrop, srcOp, isGood(), msg);
       if (adder != null) {
         adder.addSupportingInformation(analysis, binder, result);
       }
@@ -1887,7 +1895,7 @@ extends TripleLattice<Element<Integer>,
   }
   
   private final class XNotY extends AbstractResult {
-    public XNotY(final PromiseDrop<? extends IAASTRootNode> pd,
+    public XNotY(final ProofDrop pd,
         final IRNode srcOp, final boolean isAbrupt,
         final int msg, final InfoAdder adder) {
       super(pd, srcOp, isAbrupt, msg, adder);
