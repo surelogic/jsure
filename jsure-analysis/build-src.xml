@@ -48,7 +48,6 @@
 			<echo message="Starting @{classname}" />
 			<java classname="@{classname}" output="${gensrc}/@{classname}.log.txt">
 				<classpath>
-					<pathelement path="${src}/../../jsure-opgen/bin" />
 					<pathelement path="${build-jars-home}/opgen.jar" />
 					<pathelement path="${java.class.path}" />
 				</classpath>
