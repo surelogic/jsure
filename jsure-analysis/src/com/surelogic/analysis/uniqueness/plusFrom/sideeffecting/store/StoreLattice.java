@@ -1466,17 +1466,4 @@ extends TripleLattice<Element<Integer>,
     return ((ImmutableHashOrderSet) s).addElements(i);
   }
   
-  
-  
-//  // ==================================================================
-//  // == Manage side effects
-//  // ==================================================================
-//
-//  public UniquenessControlFlowDrop getCFDrop() {
-//    return sideEffects.getCFDrop();
-//  }
-//  
-//  public void cancelResults() {
-//    sideEffects.cancelResults();
-//  }
 }

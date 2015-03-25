@@ -15,10 +15,11 @@ import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.State;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.Store;
 import com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.store.StoreLattice;
 import com.surelogic.dropsea.ir.PromiseDrop;
+import com.surelogic.dropsea.ir.ProofDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
-import com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
@@ -48,7 +49,7 @@ public final class RealSideEffects implements ISideEffects {
    * Method control flow drops.  Map from method/constructor declaration
    * nodes to drops.
    */
-  private final UniquenessControlFlowDrop controlFlowDrop;
+  private final ResultFolderDrop controlFlowDrop;
   
   /**
    * Whether any results were added to the control flow drop.   Checked in
@@ -201,7 +202,7 @@ public final class RealSideEffects implements ISideEffects {
   // === Constructor 
   // ==================================================================
 
-  public RealSideEffects(final UniquenessControlFlowDrop cfd,
+  public RealSideEffects(final ResultFolderDrop cfd,
       final AbstractWholeIRAnalysis<UniquenessAnalysis, ?> a) {
     controlFlowDrop = cfd;
     analysis = a;
@@ -419,7 +420,7 @@ public final class RealSideEffects implements ISideEffects {
 
   private ResultDrop createResultDrop(
       final boolean abruptDrops, final boolean addToControlFlow,
-      final PromiseDrop<? extends IAASTRootNode> promiseDrop,
+      final ProofDrop proofDrop,
       final IRNode node, final boolean isConsistent, 
       final int msg, final Object... args) {
     final Object[] newArgs = new Object[args.length+1];
@@ -427,12 +428,20 @@ public final class RealSideEffects implements ISideEffects {
     newArgs[args.length] =
       abruptDrops ? Messages.ABRUPT_EXIT : Messages.NORMAL_EXIT;
     
+    final PromiseDrop<?> promiseDrop;
+    if (proofDrop instanceof PromiseDrop<?>) {
+      promiseDrop = (PromiseDrop<?>) proofDrop;
+    } else {
+      promiseDrop = null;
+    }
     final ResultDrop result = new ResultDrop(node);
     drops.add(result);
     result.addChecked(promiseDrop);
-    if (promiseDrop != controlFlowDrop) {
+    if (promiseDrop != null)
+      result.addChecked(promiseDrop);
+    if (proofDrop != controlFlowDrop) {
       if (addToControlFlow) {
-        result.addChecked(controlFlowDrop);
+        controlFlowDrop.addTrusted(result);
         hasControlFlowResults = true;
       }
     } else {
@@ -445,11 +454,11 @@ public final class RealSideEffects implements ISideEffects {
 
   private ResultDrop createResultDrop(
       final boolean abruptDrops,
-      final PromiseDrop<? extends IAASTRootNode> promiseDrop,
+      final ProofDrop proofDrop,
       final IRNode node, final boolean isConsistent, 
       final int msg, final Object... args) {
     return createResultDrop(
-        abruptDrops, true, promiseDrop, node, isConsistent, msg, args);
+        abruptDrops, true, proofDrop, node, isConsistent, msg, args);
   }
   
   private void crossReferenceKilledFields(

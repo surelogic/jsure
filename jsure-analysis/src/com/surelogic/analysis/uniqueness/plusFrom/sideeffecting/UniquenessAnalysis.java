@@ -30,8 +30,8 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.ResultDrop;
+import com.surelogic.dropsea.ir.ResultFolderDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
-import com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop;
 import com.surelogic.util.IThunk;
 
 import edu.cmu.cs.fluid.FluidError;
@@ -296,8 +296,8 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     public void performAnalysis() {
       final String methodName =
           JavaNames.genQualifiedMethodConstructorName(flowUnit);
-      final UniquenessControlFlowDrop controlFlowDrop =
-          UniquenessControlFlowDrop.create(flowUnit);
+      final ResultFolderDrop controlFlowDrop = ResultFolderDrop.newAndFolder(flowUnit);
+      controlFlowDrop.setMessage(edu.cmu.cs.fluid.java.bind.Messages.ControlFlow, JavaNames.genRelativeFunctionName(flowUnit));
       
       final long tooLongDuration = IDE.getInstance().getIntPreference(
           IDEPreferences.TIMEOUT_WARNING_SEC) * NANO_SECONDS_PER_SECOND;
@@ -328,7 +328,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         timeOutResult.setMessage(Messages.TIMEOUT,
             e.timeOut / NANO_SECONDS_PER_SECOND,
             methodName, duration / NANO_SECONDS_PER_SECOND);
-        timeOutResult.addChecked(controlFlowDrop);
+        controlFlowDrop.addTrusted(timeOutResult);
           
         /* TODO: Add "time out" result to
          * (2) Borrowed promises of the method's

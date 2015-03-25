@@ -182,17 +182,6 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
 	   * to link the control-flow result drop of this method to the 
 	   * unique fields read by the method body.
 	   */
-//    final Pair<UniquenessControlFlowDrop, Set<PromiseDrop<? extends IAASTRootNode>>> links =
-//      getAnalysis().getUsedUnique(mr.mdecl).getResultFor(mr.mdecl);
-//    for (final PromiseDrop<? extends IAASTRootNode> pd : links.second()) {
-//      Set<UniquenessControlFlowDrop> value = uniqueDropsToUses.get(pd);
-//      if (value == null) {
-//        value = new HashSet<UniquenessControlFlowDrop>();
-//        uniqueDropsToUses.put(pd, value);
-//      }
-//      value.add(links.first());
-//    }
-
 	  StoreLattice sl = null;
     final String methodName = JavaNames.genQualifiedMethodConstructorName(mr.getMethod());
     // Prepare for 'too long' warning

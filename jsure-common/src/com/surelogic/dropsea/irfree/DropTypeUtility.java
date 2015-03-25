@@ -13,8 +13,9 @@ import com.surelogic.dropsea.DropType;
 @Utility
 public final class DropTypeUtility {
   private DropTypeUtility() {
-	  // To prevent instantiation
+    // To prevent instantiation
   }
+
   /**
    * Used to lookup types in the IR drop-sea. If the type moved or has changed
    * this method trys to map the name to the new type in the code. This method
@@ -91,19 +92,19 @@ public final class DropTypeUtility {
    * Root package where all drops exist.
    */
   private static String ROOT_DROP_PACKAGE = "com.surelogic.dropsea.ir.";
-  
-  private static final String DROP =  ROOT_DROP_PACKAGE+"Drop";
-  private static final String HINT = ROOT_DROP_PACKAGE+"HintDrop";
-  private static final String PROBLEM = ROOT_DROP_PACKAGE+"ModelingProblemDrop";
-  private static final String METRIC = ROOT_DROP_PACKAGE+"MetricDrop";
-  private static final String PROPOSAL = ROOT_DROP_PACKAGE+"ProposedPromiseDrop";
-  private static final String RESULT = ROOT_DROP_PACKAGE+"ResultDrop";
-  private static final String RESULT_FOLDER = ROOT_DROP_PACKAGE+"ResultFolderDrop";
-  private static final String ASSUME = "com.surelogic.dropsea.ir.drops.AssumePromiseDrop";
-  private static final String SCOPED_PROMISE = "com.surelogic.dropsea.ir.drops.PromisePromiseDrop";
+
+  private static final String DROP = ROOT_DROP_PACKAGE + "Drop";
+  private static final String HINT = ROOT_DROP_PACKAGE + "HintDrop";
+  private static final String PROBLEM = ROOT_DROP_PACKAGE + "ModelingProblemDrop";
+  private static final String METRIC = ROOT_DROP_PACKAGE + "MetricDrop";
+  private static final String PROPOSAL = ROOT_DROP_PACKAGE + "ProposedPromiseDrop";
+  private static final String RESULT = ROOT_DROP_PACKAGE + "ResultDrop";
+  private static final String RESULT_FOLDER = ROOT_DROP_PACKAGE + "ResultFolderDrop";
+  private static final String ASSUME = ROOT_DROP_PACKAGE + "drops.AssumePromiseDrop";
+  private static final String SCOPED_PROMISE = ROOT_DROP_PACKAGE + "drops.PromisePromiseDrop";
   private static final String PROMISE = "PromiseDrop";
   private static final String MODEL = "Model";
-  
+
   /**
    * List of how of drop type names have changed. For backwards scan
    * compatibility.
@@ -111,13 +112,9 @@ public final class DropTypeUtility {
    * The string is matched at the end of the fully qualified type and then the
    * class name replaces
    */
-  private static final String[][] OLDSUFFIX_TO_NEWNAME = { 
-	  { "PromiseWarningDrop", PROBLEM },
-      { "InfoDrop", HINT }, 
-      { "WarningDrop", HINT },
-      { "AnalysisHintDrop", HINT },
-      { "ProjectsDrop", DROP }};
-  
+  private static final String[][] OLDSUFFIX_TO_NEWNAME = { { "PromiseWarningDrop", PROBLEM }, { "InfoDrop", HINT },
+      { "WarningDrop", HINT }, { "AnalysisHintDrop", HINT }, { "ProjectsDrop", DROP } };
+
   /**
    * A list of types that use to be in drop-sea and are in persisted scans, but
    * no longer are used. This just helps to avoid lots of warnings. For
@@ -173,74 +170,72 @@ public final class DropTypeUtility {
     }
     return null;
   }
-  
+
   public static DropType computeDropType(String className) {
-	  if (className == null)
-		  return null;
+    if (className == null)
+      return null;
 
-	  final String origName = className;
-	  /*
-	   * Try to find the full type name in our cache
-	   */
-	  DropType result = NAME_TO_TYPE.get(className);
-	  if (result != null)
-		  return result;
+    final String origName = className;
+    /*
+     * Try to find the full type name in our cache
+     */
+    DropType result = NAME_TO_TYPE.get(className);
+    if (result != null)
+      return result;
 
-	  final String simpleName = getSimpleName(className);
-	  if (className.startsWith(ROOT_DROP_PACKAGE) && 
-		  (simpleName.endsWith(PROMISE) || simpleName.endsWith(MODEL))) {		  
-		  return cacheTypeMapping(origName, DropType.PROMISE);
-	  }
-	  
-	  /*
-	   * Handle classes we changed the names of
-	   */
-	  for (String[] old2new : OLDSUFFIX_TO_NEWNAME) {
-		  final String oldSuffix = old2new[0];
-		  final String newTypeName = old2new[1];
-		  if (className.endsWith(oldSuffix)) {
-			  className = newTypeName;
-			  // try lookup now
-			  result = NAME_TO_TYPE.get(className);
-			  if (result != null)
-				  return cacheTypeMapping(origName, result);
-		  }
-	  }
+    final String simpleName = getSimpleName(className);
+    if (className.startsWith(ROOT_DROP_PACKAGE) && (simpleName.endsWith(PROMISE) || simpleName.endsWith(MODEL))) {
+      return cacheTypeMapping(origName, DropType.PROMISE);
+    }
 
-	  /*
-	   * Check known packages using the simple name of the type.
-	   */
-	  for (String possibleClassName : getPossibleClassNames(simpleName)) {
-		  result = NAME_TO_TYPE.get(possibleClassName);
-		  if (result != null)
-			  return cacheTypeMapping(origName, result);
-	  }
+    /*
+     * Handle classes we changed the names of
+     */
+    for (String[] old2new : OLDSUFFIX_TO_NEWNAME) {
+      final String oldSuffix = old2new[0];
+      final String newTypeName = old2new[1];
+      if (className.endsWith(oldSuffix)) {
+        className = newTypeName;
+        // try lookup now
+        result = NAME_TO_TYPE.get(className);
+        if (result != null)
+          return cacheTypeMapping(origName, result);
+      }
+    }
 
-	  /*
-	   * Check if we know this type is no longer in the system.
-	   */
-	  if (!Arrays.asList(obsoleteTypes).contains(className)) {
-		  SLLogger.getLogger().warning("  Unknown class type: " + className);
-	  }
-	  return null;
+    /*
+     * Check known packages using the simple name of the type.
+     */
+    for (String possibleClassName : getPossibleClassNames(simpleName)) {
+      result = NAME_TO_TYPE.get(possibleClassName);
+      if (result != null)
+        return cacheTypeMapping(origName, result);
+    }
+
+    /*
+     * Check if we know this type is no longer in the system.
+     */
+    if (!Arrays.asList(obsoleteTypes).contains(className)) {
+      SLLogger.getLogger().warning("  Unknown class type: " + className);
+    }
+    return null;
   }
 
-  private static final Map<String,DropType> NAME_TO_TYPE = new HashMap<String,DropType>();
+  private static final Map<String, DropType> NAME_TO_TYPE = new HashMap<String, DropType>();
   static {
-	  NAME_TO_TYPE.put(DROP, DropType.OTHER);
-	  NAME_TO_TYPE.put(HINT, DropType.HINT);
-	  NAME_TO_TYPE.put(METRIC, DropType.METRIC);
-	  NAME_TO_TYPE.put(PROBLEM, DropType.MODELING_PROBLEM);
-	  NAME_TO_TYPE.put(PROPOSAL, DropType.PROPOSAL);
-	  NAME_TO_TYPE.put(RESULT, DropType.RESULT);
-	  NAME_TO_TYPE.put(RESULT_FOLDER, DropType.RESULT_FOLDER);
-	  NAME_TO_TYPE.put(ASSUME, DropType.SCOPED_PROMISE);
-	  NAME_TO_TYPE.put(SCOPED_PROMISE, DropType.SCOPED_PROMISE);
-	  NAME_TO_TYPE.put("com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop", DropType.PROMISE); 
+    NAME_TO_TYPE.put(DROP, DropType.OTHER);
+    NAME_TO_TYPE.put(HINT, DropType.HINT);
+    NAME_TO_TYPE.put(METRIC, DropType.METRIC);
+    NAME_TO_TYPE.put(PROBLEM, DropType.MODELING_PROBLEM);
+    NAME_TO_TYPE.put(PROPOSAL, DropType.PROPOSAL);
+    NAME_TO_TYPE.put(RESULT, DropType.RESULT);
+    NAME_TO_TYPE.put(RESULT_FOLDER, DropType.RESULT_FOLDER);
+    NAME_TO_TYPE.put(ASSUME, DropType.SCOPED_PROMISE);
+    NAME_TO_TYPE.put(SCOPED_PROMISE, DropType.SCOPED_PROMISE);
   }
-  
+
   private static DropType cacheTypeMapping(String origName, DropType result) {
-	  NAME_TO_TYPE.put(origName, result);
-	  return result;
+    NAME_TO_TYPE.put(origName, result);
+    return result;
   }
 }
