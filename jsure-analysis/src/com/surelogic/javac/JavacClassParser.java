@@ -366,7 +366,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 				System.out.println("Adapting "+cuts.asList().size()+" CUTs");
 				Procedure<CompilationUnitTree> proc = new Procedure<CompilationUnitTree>() {
 					@Override
-          public void op(CompilationUnitTree cut) {	
+					public void op(CompilationUnitTree cut) {	
 						CodeInfo info = adaptCompUnit(t, cut);
 						cus.add(info);
 					}
@@ -382,6 +382,9 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 				tEnv.addCompUnits(cus, true);
 				results.addAll(cus);	        
 				cus.clear();
+			} catch(Error e) {
+				e.printStackTrace(System.out);
+				throw e;
 			} finally {
 				//task.finish();
 			}
