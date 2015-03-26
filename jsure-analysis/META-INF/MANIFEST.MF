@@ -6,7 +6,7 @@ Bundle-Version: 5.6.0.qualifier
 Bundle-ClassPath: .,
  lib/runtime/log4j-xml-1.3alpha-8.jar,
  lib/runtime/log4j-1.3alpha-8.jar,
- lib/runtime8/javac_8.jar
+ lib/runtime/renamedJavac.jar
 Bundle-Vendor: SureLogic, Inc.
 Export-Package: 
  com.surelogic.aast,

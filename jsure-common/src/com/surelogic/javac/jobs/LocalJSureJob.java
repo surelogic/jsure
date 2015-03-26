@@ -51,12 +51,13 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 		util.addPluginAndJarsToPath(COMMON_PLUGIN_ID, "lib/runtime");
 		util.addPluginAndJarsToPath(JSureConstants.JSURE_COMMON_PLUGIN_ID, "lib/runtime");
 		util.addPluginAndJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime");
+		/*
 		if (SystemUtils.IS_JAVA_1_7) {
 			util.addPluginAndJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime8");
 		} else {
 			util.addPluginAndJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime7");
 		}
-		
+		*/
 		final boolean isMac = System.getProperty("sun.boot.class.path") != null || SystemUtils.IS_OS_MAC_OSX;
 		if (XUtil.testing) {
 			util.addPluginAndJarsToPath(JSureConstants.JSURE_TESTS_PLUGIN_ID, "lib");
@@ -66,7 +67,7 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 		for(File jar : util.getPath()) {
 			addToPath(proj, path, jar, true);
 		}
-
+		/*
 		if (isMac) {
 			// Add lib/javac.jar to the bootpath
 			util.clear();
@@ -95,6 +96,7 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 				println("Boot classpath: "+s);
 			}		
 		}
+		*/
 	}
 
 	private static final String[] JRE_PATH = {

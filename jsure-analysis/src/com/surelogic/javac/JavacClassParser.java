@@ -9,18 +9,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.*;
 
-import javax.lang.model.element.Element;
-import javax.tools.*;
-import javax.tools.JavaFileManager.Location;
-import javax.tools.JavaFileObject.Kind;
+import com.surelogic.javax.lang.model.element.Element;
+import com.surelogic.javax.tools.*;
+import com.surelogic.javax.tools.JavaFileManager.Location;
+import com.surelogic.javax.tools.JavaFileObject.Kind;
 
 import org.apache.commons.collections15.MultiMap;
 import org.apache.commons.collections15.multimap.MultiHashMap;
 
-import com.sun.source.tree.*;
-import com.sun.source.util.*;
-import com.sun.tools.javac.api.JavacTool;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.surelogic.com.sun.source.tree.*;
+import com.surelogic.com.sun.source.util.*;
+import com.surelogic.com.sun.tools.javac.api.JavacTool;
+import com.surelogic.com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.surelogic.*;
 import com.surelogic.analysis.*;
 import com.surelogic.common.Pair;
