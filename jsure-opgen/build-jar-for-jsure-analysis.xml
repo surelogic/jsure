@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="fresh-everything">
+
+	<property name="build" location="${basedir}/build" />
+
+	<property name="ant-jar" location="${basedir}/../../common/common/lib/runtime/ant-1.9.4.jar" />
+	<property name="opgen-src" location="${basedir}/src" />
+
+	<property name="opgen-jar" location="${build}/opgen.jar" />
+	<property name="opgen-jar-dest" location="${basedir}/../jsure-analysis/lib/build/opgen.jar" />
+
+	<target name="clean">
+		<delete quiet="true" dir="${build}" />
+	</target>
+
+	<target name="setup">
+		<mkdir dir="${build}/bin" />
+	</target>
+
+	<target name="build" depends="setup">
+		<mkdir dir="${build}/src" />
+		<copy todir="${build}/src" overwrite="true">
+			<fileset dir="${opgen-src}">
+				<exclude name="bin/**,**/.svn/**" />
+			</fileset>
+		</copy>
+		<javac srcdir="${build}/src" destdir="${build}/bin" classpath=".:${ant-jar}" debug="on" source="1.6" target="1.6" includeantruntime="false" />
+		<jar destfile="${opgen-jar}">
+			<fileset dir="${build}/bin" />
+			<manifest />
+		</jar>
+	</target>
+
+	<target name="copy" depends="build">
+		<copy file="${opgen-jar}" tofile="${opgen-jar-dest}" />
+	</target>
+
+	<target name="fresh-everything" depends="clean, copy" />
+
+</project>
