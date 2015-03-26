@@ -51,7 +51,7 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 		util.addPluginAndJarsToPath(COMMON_PLUGIN_ID, "lib/runtime");
 		util.addPluginAndJarsToPath(JSureConstants.JSURE_COMMON_PLUGIN_ID, "lib/runtime");
 		util.addPluginAndJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime");
-		if (SystemUtils.IS_JAVA_1_8) {
+		if (SystemUtils.IS_JAVA_1_7) {
 			util.addPluginAndJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime8");
 		} else {
 			util.addPluginAndJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime7");
@@ -70,7 +70,7 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
 		if (isMac) {
 			// Add lib/javac.jar to the bootpath
 			util.clear();
-			if (SystemUtils.IS_JAVA_1_8) {
+			if (SystemUtils.IS_JAVA_1_7) {
 				util.addPluginJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime8/javac_8.jar");
 			} else {
 				util.addPluginJarsToPath(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, "lib/runtime7/javac.jar");
