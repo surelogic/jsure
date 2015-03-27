@@ -282,7 +282,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 	  // @Override
 	  @Override
     public CPair<String, String> makeKey(IDrop d) {
-		  final String type = d.getFullClassName();
+		  final String type = DropTypeUtility.mapFullName(d.getFullClassName());
 		  if (type == null) {
 			  return null;
 		  }

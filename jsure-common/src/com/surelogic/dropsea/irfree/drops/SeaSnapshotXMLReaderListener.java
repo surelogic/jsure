@@ -15,8 +15,7 @@ import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROPERTIES;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROPOSED_PROMISE;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TRUSTED_PROOF_DROP;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
 import org.xml.sax.Attributes;
@@ -25,8 +24,6 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.AbstractXmlResultListener;
 import com.surelogic.common.xml.Entity;
-import com.surelogic.dropsea.DropType;
-import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.*;
 import com.surelogic.dropsea.irfree.DropTypeUtility;
 
@@ -102,17 +99,66 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListene
 
   public List<IDrop> getDrops() {
     // System.out.println("Reused "+refsReused+" out of "+refCache.size());
+	final Set<? extends IDrop> toFilter = computeDropsToBeFiltered();
     final ArrayList<IDrop> result = new ArrayList<IDrop>();
     for (Entity se : entities) {
       if (se instanceof SeaEntity) {
         IRFreeDrop drop = ((SeaEntity) se).getDrop();
-        if (drop != null)
+        if (drop != null && !toFilter.contains(drop)) 
           result.add(drop);
       }
     }
     return result;
   }
 
+  private Set<IDrop> computeDropsToBeFiltered() {
+	final List<IPromiseDrop> promises = new ArrayList<IPromiseDrop>();
+	final Set<IDrop> filtered = new HashSet<IDrop>();
+	// Currently written to emulate ClearOutUnconnectedResultsProofHook
+    for (Entity se : entities) {
+    	if (se instanceof SeaEntity) {
+    		IRFreeDrop drop = ((SeaEntity) se).getDrop();
+    		if (drop instanceof IPromiseDrop) {
+    			promises.add((IPromiseDrop) drop);
+    		} 
+    		else if (drop instanceof IAnalysisResultDrop) {
+    			filtered.add(drop);
+    		}
+    	}
+    }
+    // Repeatedly add to connectedToAPromise until no more new drops are connected
+    final Set<IProofDrop> connectedToAPromise = new HashSet<IProofDrop>();
+    for(IProofDrop root : promises) {
+        findConnectedResults(connectedToAPromise, filtered, root);
+    }
+	return filtered;
+  }
+
+  private void findConnectedResults(final Set<IProofDrop> connectedToAPromise, final Set<IDrop> filtered, IProofDrop d) {
+	  if (filtered.isEmpty()) {
+		  return; // Nothing to do now
+	  }
+	  if (connectedToAPromise.contains(d)) {
+		  return; // Already handled
+	  }
+	  connectedToAPromise.add(d);
+	  
+	  if (d instanceof IPromiseDrop) {
+		  IPromiseDrop pd = (IPromiseDrop) d;
+		  for(IAnalysisResultDrop rd : pd.getCheckedBy()) {
+			  findConnectedResults(connectedToAPromise, filtered, rd);
+		  }
+	  }
+	  else if (d instanceof IAnalysisResultDrop) {
+		  IAnalysisResultDrop rd = (IAnalysisResultDrop) d;
+		  filtered.remove(d);
+		  for(IProofDrop pd : rd.getTrusted()) {
+			  findConnectedResults(connectedToAPromise, filtered, pd);
+		  }
+	  }	  
+	  else throw new IllegalStateException("Unexpected proof drop: "+d);
+  }
+  
   private void add(int id, Entity info) {
     if (id >= entities.size()) {
       // Need to expand the elements in the list
@@ -343,7 +389,33 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListene
        */
       if (DEPONENT.equals(refType))
         return;
-
+      
+      // Hack to deal with old control flow drops
+      if (fromE instanceof IRFreeResultFolderDrop) {
+    	  if (fromE.getMessage().startsWith("Control flow of")) {
+    	      if (toE instanceof IRFreeResultDrop) {
+    	    	  //System.out.println("Ignoring ref from control flow drop: "+refType);
+    	    	  final IRFreeResultFolderDrop fromFD = (IRFreeResultFolderDrop) fromE;
+    	    	  final IRFreeResultDrop toRD = (IRFreeResultDrop) toE;
+    	    	  fromFD.addTrusted(toRD);
+    	    	  return;
+    	      }
+    	  }
+      }
+      if (toE instanceof IRFreeResultFolderDrop) {
+    	  if (toE.getMessage().startsWith("Control flow of")) {
+    	      if (fromE instanceof IRFreeResultDrop) {
+    	    	  System.out.println("Ignoring ref to control flow drop: "+refType);
+    	    	  /*
+    	    	  final IRFreeResultFolderDrop toFD = (IRFreeResultFolderDrop) toE;
+    	    	  final IRFreeResultDrop fromRD = (IRFreeResultDrop) fromE;
+    	    	  fromRD.addTrusted(toFD);    	    	   
+    	    	   */
+    	    	  return;
+    	      }
+    	  }
+      }
+      
       /*
        * The reference not handled if we got to here.
        */
