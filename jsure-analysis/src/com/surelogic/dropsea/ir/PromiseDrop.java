@@ -1,13 +1,6 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ASSUMED;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CHECKED_BY_ANALYSIS;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CHECKED_BY_RESULTS;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DEPENDENT_PROMISES;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DEPONENT_PROMISES;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROMISE_DROP;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TO_BE_CHECKED_BY_ANALYSIS;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.VIRTUAL;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.*;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -607,6 +600,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     s.addAttribute(CHECKED_BY_ANALYSIS, isCheckedByAnalysis());
     s.addAttribute(VIRTUAL, isVirtual());
     s.addAttribute(TO_BE_CHECKED_BY_ANALYSIS, isIntendedToBeCheckedByAnalysis());
+    s.addAttribute(SHOW_AT_TOP_LEVEL, showAtTopLevel());
+    s.addAttribute(PLACE_IN_SUBFOLDER, placeInASubFolder());
   }
 
   @Override

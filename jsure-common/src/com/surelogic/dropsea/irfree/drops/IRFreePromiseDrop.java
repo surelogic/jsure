@@ -1,9 +1,6 @@
 package com.surelogic.dropsea.irfree.drops;
 
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ASSUMED;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CHECKED_BY_ANALYSIS;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TO_BE_CHECKED_BY_ANALYSIS;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.VIRTUAL;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,7 +21,9 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
   private final boolean f_isCheckedByAnalysis;
   private final boolean f_isIntendedToBeCheckedByAnalysis;
   private final boolean f_isVirtual;
-
+  private final boolean f_showAtTopLevel;
+  private final boolean f_placeInASubFolder;
+  
   void addCheckedByResult(IRFreeAnalysisResultDrop info) {
     f_checkedByResults.add(info);
   }
@@ -43,6 +42,8 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
     f_isCheckedByAnalysis = "true".equals(e.getAttribute(CHECKED_BY_ANALYSIS));
     f_isIntendedToBeCheckedByAnalysis = "true".equals(e.getAttribute(TO_BE_CHECKED_BY_ANALYSIS));
     f_isVirtual = "true".equals(e.getAttribute(VIRTUAL));
+    f_showAtTopLevel = "true".equals(e.getAttribute(SHOW_AT_TOP_LEVEL));
+    f_placeInASubFolder = "true".equals(e.getAttribute(PLACE_IN_SUBFOLDER));
   }
 
   public DropType getDropType() {
@@ -87,15 +88,13 @@ public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
     return f_isVirtual;
   }
 
-@Override
-public boolean showAtTopLevel() {
-	// TODO Auto-generated method stub
-	return false;
-}
+  @Override
+  public boolean showAtTopLevel() {
+	return f_showAtTopLevel;
+  }
 
-@Override
-public boolean placeInASubFolder() {
-	// TODO Auto-generated method stub
-	return false;
-}
+  @Override
+  public boolean placeInASubFolder() {
+	return f_placeInASubFolder;
+  }
 }
