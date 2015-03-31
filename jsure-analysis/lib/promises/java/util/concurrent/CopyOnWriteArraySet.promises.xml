@@ -75,7 +75,8 @@
 
         <method name="iterator">
             <Borrowed>this</Borrowed>
-            <RegionEffects>writes Instance</RegionEffects>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
             <Starts>nothing</Starts>
             <Unique>return</Unique>
         </method>
