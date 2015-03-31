@@ -16,7 +16,6 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.IProofDrop;
-import com.surelogic.dropsea.UiPlaceInASubFolder;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility.Flag;
 
