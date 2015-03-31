@@ -113,6 +113,7 @@ public final class DropTypeUtility {
    * class name replaces
    */
   private static final String[][] OLDSUFFIX_TO_NEWNAME = { { "PromiseWarningDrop", PROBLEM }, { "InfoDrop", HINT },
+	  { "UniquenessControlFlowDrop", RESULT_FOLDER },
       { "WarningDrop", HINT }, { "AnalysisHintDrop", HINT }, { "ProjectsDrop", DROP } };
 
   /**
@@ -120,7 +121,10 @@ public final class DropTypeUtility {
    * no longer are used. This just helps to avoid lots of warnings. For
    * backwards scan compatibility.
    */
-  private static String[] obsoleteTypes = { "com.surelogic.analysis.AbstractWholeIRAnalysis$ResultsDepDrop" };
+  private static String[] obsoleteTypes = { 
+	  //"com.surelogic.dropsea.ir.drops.uniqueness.UniquenessControlFlowDrop",
+	  "com.surelogic.analysis.AbstractWholeIRAnalysis$ResultsDepDrop",
+  };
 
   /**
    * Sub-packages (appeneded to {@link #ROOT_DROP_PACKAGE} to form a package
@@ -237,5 +241,30 @@ public final class DropTypeUtility {
   private static DropType cacheTypeMapping(String origName, DropType result) {
     NAME_TO_TYPE.put(origName, result);
     return result;
+  }
+  
+  private static final Map<String, String> NAME_TO_NAME = new HashMap<String, String>();
+  
+  public static String mapFullName(final String className) {
+	  String rv = NAME_TO_NAME.get(className);
+	  if (rv != null) {
+		  return rv;
+	  }
+	  // Couldn't find a mapping cached	  
+	  /*
+	   * Handle classes we changed the names of
+	   */
+	  for (String[] old2new : OLDSUFFIX_TO_NEWNAME) {
+		  final String oldSuffix = old2new[0];
+		  final String newTypeName = old2new[1];
+		  if (className.endsWith(oldSuffix)) {
+			  rv = newTypeName;
+		  }
+	  }
+	  if (rv == null) {
+		  rv = className;
+	  }
+	  NAME_TO_NAME.put(className, rv);
+	  return rv;
   }
 }

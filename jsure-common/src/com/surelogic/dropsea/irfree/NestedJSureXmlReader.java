@@ -67,6 +67,8 @@ public abstract class NestedJSureXmlReader extends XmlReader {
   public static final String CHECKED_BY_RESULTS = "checked-by-result";
   public static final String DEPENDENT_PROMISES = "dependent-promise";
   public static final String DEPONENT_PROMISES = "deponent-promise";
+  public static final String SHOW_AT_TOP_LEVEL = "show-at-top-level";
+  public static final String PLACE_IN_SUBFOLDER = "place-in-subfolder";
 
   public static final String HINT_ABOUT = "hint-about";
 
