@@ -338,12 +338,17 @@ public class RegionRules extends AnnotationRules {
           SIMPLE_UNIQUE_IN_REGION, SIMPLE_BORROWED_IN_REGION) {
       	@Override
       	protected AnnotationHandler<InRegionNode> getPreprocessor() {
-      	  return new AnnotationHandler<InRegionNode>() {
+      	  return new SimpleHandler<InRegionNode>() {
             @Override
             public void processAASTs(
                 final IAnnotationTraversalCallback<InRegionNode> cb,
                 final IRNode decl, final List<InRegionNode> l) {
               preprocessInRegion(decl, l);
+            }
+            @Override
+        	public void finishProcessing() {
+              generateNeededRegions();
+              super.finishProcessing();
             }
           };
         }
@@ -451,7 +456,11 @@ public class RegionRules extends AnnotationRules {
      * Look at each InRegion and see if the named region actually exists
      */
     ImplicitRegions neededRegions = implicitRegionMap.get(classDecl); // See if UniqueInRegion left us a map 
-    if (neededRegions == null) neededRegions = new ImplicitRegions();
+    if (neededRegions == null) {
+    	neededRegions = new ImplicitRegions();
+    } else {
+    	System.out.println("Got ImplicitRegions for "+JavaNames.getTypeName(classDecl));
+    }
     for (final InRegionNode inRegion : annos) {
       final RegionSpecificationNode parent = inRegion.getSpec();
       if (parent.resolveBinding() == null) {
@@ -469,7 +478,16 @@ public class RegionRules extends AnnotationRules {
     implicitRegionMap.remove(classDecl); // clean up 
   }
   
-  
+  private static void generateNeededRegions() {
+	// Should supplement the code above in preprocessInRegion(),
+	// but could actually replace the last two lines
+	for(Map.Entry<IRNode, ImplicitRegions> e : implicitRegionMap.entrySet()) {
+		ImplicitRegions neededRegions = e.getValue();
+		IRNode classDecl = e.getKey();
+	    neededRegions.createRegionDeclarations(classDecl);
+	}
+	implicitRegionMap.clear();
+  }
   
   private static InRegionPromiseDrop scrubInRegion(
       final IAnnotationScrubberContext context, final InRegionNode a) {
@@ -636,7 +654,7 @@ public class RegionRules extends AnnotationRules {
       	
         @Override
         protected AnnotationHandler<UniqueInRegionNode> getPreprocessor() {
-          return new AnnotationHandler<UniqueInRegionNode>() {
+          return new SimpleHandler<UniqueInRegionNode>() {
             @Override
             public void processAASTs(
                 final IAnnotationTraversalCallback<UniqueInRegionNode> cb,

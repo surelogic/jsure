@@ -43,9 +43,20 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 		 * Process AASTs for a type
 		 */
 		void processAASTs(IAnnotationTraversalCallback<A> cb, IRNode decl, List<A> l);
+		
+		/**
+		 * Called before finishRun()
+		 */
+		void finishProcessing();
 	}
 	
-	private final AnnotationHandler<A> scrubHandler = new AnnotationHandler<A>() {
+	public static abstract class SimpleHandler<A extends IHasPromisedFor> implements AnnotationHandler<A> {
+		public void finishProcessing() {
+			// Nothing to do
+		}
+	}
+	
+	private final AnnotationHandler<A> scrubHandler = new SimpleHandler<A>() {
 		public void processAASTs(IAnnotationTraversalCallback<A> cb, IRNode decl, List<A> l) {
 			processAASTsForType(cb, decl, l);
 		}		
@@ -139,6 +150,7 @@ public abstract class AbstractHierarchyScrubber<A extends IHasPromisedFor> exten
 						throw new UnsupportedOperationException();
 					}
 				} finally {
+					handler.finishProcessing();
 					finishRun();
 				}
 			}
