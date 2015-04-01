@@ -103,6 +103,21 @@ public abstract class CategoryMatcher {
     		}
     	}     	
     }
+    else if (oCanon != null && oCanon.equals(OLD_UNIQ_EFFECTS_PROPOSAL)) {
+    	String mod = "(10,RegionEffects,reads this:Instance)"; 
+   		result = matchStrings(nCanon, mod, false);
+		if (result != null && result.booleanValue()) {
+			return result;
+		}
+    }
+    else if (oCanon != null && oCanon.equals(OLD_UNIQ_EFFECTS_PROPOSAL)) {
+    	String mod = "(10,RegionEffects,reads this:Instance)"; 
+   		result = matchStrings(nCanon, mod, false);
+		if (result != null && result.booleanValue()) {
+			return result;
+		}
+    }
+    
     // }    
     result = matchStrings(n.getMessage(), o.getMessage(), true);
     /*
@@ -128,6 +143,18 @@ public abstract class CategoryMatcher {
     return result != null ? result : false;
   }
   
+  /*For the promise files, I basically looked for all occurrences of
+
+            <Borrowed allowReturn=“true">this</Borrowed>
+            <RegionEffects>writes this:Instance</RegionEffects>
+
+and replaced it with
+
+            <Borrowed>this</Borrowed>
+            <!-- not really true -->
+            <RegionEffects>reads this:Instance</RegionEffects>
+            */
+  private static final String OLD_UNIQ_EFFECTS_PROPOSAL = "(10,RegionEffects,writes Instance)";
   private static final String oldPrefix = "(20,";  
   /*
   private static final String[] oldPrefix = {
