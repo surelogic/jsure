@@ -8,32 +8,25 @@
 
 	<!-- Production promises go into '/build' -->
 	<property name="build" location="${basedir}/build" />
-	<!-- Experimental and production promises go into '/build-x' -->
-	<property name="build-x" location="${basedir}/build-x" />
 
 	<property name="promises-x-src" location="${basedir}/src" />
-	<!-- ENSURE THAT THIS REFERENCES THE 'promises' SVN CHECKED-OUT PROJECT ON YOUR DISK -->
-	<property name="production-promises" location="C:\Users\Tim\Source\eclipse-work\work\promises" />
-	<property name="production-promises-src" location="${production-promises}/src/main/java" />
-
 
 	<property name="promises-jar" location="${build}/promises-${promises-version}.jar" />
-	<property name="promises-x-jar" location="${build-x}/promises-x-${promises-version}.jar" />
 
 	<target name="clean">
 		<delete quiet="true" dir="${build}" />
-		<delete quiet="true" dir="${build-x}" />
+		<!-- obsolete -->
+		<delete quiet="true" dir="${basedir}/build-x" />
 	</target>
 
 	<target name="setup">
 		<mkdir dir="${build}/bin" />
-		<mkdir dir="${build-x}/bin" />
 	</target>
 
 	<!-- Production promises go into '/build' -->
 
 	<target name="build" depends="setup">
-		<javac srcdir="${production-promises-src}" destdir="${build}/bin" classpath="." debug="on" source="1.6" target="1.6" includeantruntime="false" />
+		<javac srcdir="${promises-x-src}" destdir="${build}/bin" classpath="." debug="on" source="1.6" target="1.6" includeantruntime="false" />
 		<jar destfile="${promises-jar}">
 			<fileset dir="${build}/bin" />
 			<manifest />
@@ -42,7 +35,7 @@
 
 	<target name="src" depends="build">
 		<jar destfile="${promises-jar}" update="true">
-			<fileset dir="${production-promises-src}">
+			<fileset dir="${promises-x-src}">
 				<filename name="**/*.java" />
 			</fileset>
 			<manifest />
@@ -50,49 +43,10 @@
 	</target>
 
 	<target name="javadoc" depends="src">
-		<javadoc access="public" destdir="${build}/javadoc" source="1.6"
-			sourcepath="${production-promises-src}" notree="true"
-			nodeprecatedlist="true">
+		<javadoc access="public" destdir="${build}/javadoc" source="1.6" sourcepath="${promises-x-src}" notree="true" nodeprecatedlist="true">
 		</javadoc>
 	</target>
 
-	<!-- Experimental and production promises go into '/build-x' -->
-
-	<target name="build-x" depends="setup">
-		<mkdir dir="${build-x}/src" />
-		<copy todir="${build-x}/src">
-			<fileset dir="${production-promises-src}">
-				<exclude name="bin/**,**/.svn/**" />
-			</fileset>
-		</copy>
-		<copy todir="${build-x}/src" overwrite="true">
-			<fileset dir="${promises-x-src}">
-				<exclude name="bin/**,**/.svn/**" />
-			</fileset>
-		</copy>
-		<javac srcdir="${build-x}/src" destdir="${build-x}/bin" classpath="." debug="on" source="1.6" target="1.6" includeantruntime="false" />
-		<jar destfile="${promises-x-jar}">
-			<fileset dir="${build-x}/bin" />
-			<manifest />
-		</jar>
-	</target>
-
-	<target name="src-x" depends="build-x">
-		<jar destfile="${promises-x-jar}" update="true">
-			<fileset dir="${build-x}/src">
-				<filename name="**/*.java" />
-			</fileset>
-			<manifest />
-		</jar>
-	</target>
-
-	<target name="javadoc-x" depends="src-x">
-		<javadoc access="public" destdir="${build-x}/javadoc" source="1.6"
-			sourcepath="${promises-x-src}:${production-promises-src}" notree="true"
-			nodeprecatedlist="true">
-		</javadoc>
-	</target>
-
-	<target name="fresh-everything" depends="clean, src, javadoc, src-x, javadoc-x" />
+	<target name="fresh-everything" depends="clean, src, javadoc" />
 
 </project>
