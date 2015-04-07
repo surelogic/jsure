@@ -1662,8 +1662,11 @@ extends TripleLattice<Element<Integer>,
     }
     final ResultDrop result = new ResultDrop(node);
     drops.add(result);
-    if (promiseDrop != null)
+    if (promiseDrop != null) {
       result.addChecked(promiseDrop);
+    } else { // ResultFolderDrop
+      ((ResultFolderDrop) proofDrop).addTrusted(result);
+    }
     if (proofDrop != controlFlowDrop) {
       if (addToControlFlow) {
         controlFlowDrop.addTrusted(result);
