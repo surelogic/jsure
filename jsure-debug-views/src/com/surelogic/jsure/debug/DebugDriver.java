@@ -5,6 +5,7 @@ import java.io.File;
 import com.surelogic.common.java.JavaProjectSet;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.dropsea.ir.utility.ClearStateUtility;
+import com.surelogic.javac.Javac;
 import com.surelogic.javac.JavacProject;
 import com.surelogic.javac.Projects;
 import com.surelogic.javac.Util;
@@ -12,7 +13,6 @@ import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.jsure.core.driver.JavacDriver;
 
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.ide.IDERoot;
 
 public class DebugDriver extends JavacDriver<JavacProject> {
 	public DebugDriver() {
@@ -37,6 +37,7 @@ public class DebugDriver extends JavacDriver<JavacProject> {
 				if (oldProjects != null) {
 					throw new IllegalStateException("Can't delta off another scan");
 				}
+				Javac.initialize();
 				IDE.getInstance().loadPreferences(projects.getRunDir());
 				tmpLocation = Util.openFiles((Projects) projects, true);
 				boolean ok = tmpLocation != null;
