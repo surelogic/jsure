@@ -130,7 +130,7 @@ public abstract class CategoryMatcher {
     	}    	
     }
     */
-    if (o instanceof IModelingProblemDrop && o.getMessage().startsWith("Unable to parse")) {
+    if (result == Boolean.FALSE && o instanceof IModelingProblemDrop && o.getMessage().startsWith("Unable to parse")) {
     	final int at = o.getMessage().indexOf('@');
     	if (at > 0) {
     		final int spaceAfterAnno = o.getMessage().indexOf(' ', at);
