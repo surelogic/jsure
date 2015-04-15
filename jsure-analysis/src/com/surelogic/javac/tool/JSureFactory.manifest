@@ -1,5 +1,5 @@
 Sierra-Id: JSure
 Bundle-Version: 1.1
-Sierra-Website: www.surelogic.com
+Sierra-Website: surelogic.com
 Sierra-Description: A tool to help provide analysis-based verification of critical attributes
   of Java code, focusing on safe concurrency, architecture, and framework usage.
