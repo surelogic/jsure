@@ -1,19 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- This assumes that the build file is in the same directory as the project -->
 <project name="test-ant" default="scan" basedir=".">
+  <property name="project" value="SmallWorld"/>
+    
+  <!-- Definitions needed to set up the jsure-scan task  ---------------------------------- -->
+      
   <!-- 1. These are the definitions needed to run JSure.
   
-          You need to change sl.home to match where you've 
+  	      The following values assume that jsure-ant is unzipped next to your workspace:
+  	      
+  	        <dir>
+  	          jsure-ant
+  	          workspace
+  	            .jsure-data
+  	            SmallWorld
+  	              test-build.xml
+  
+          If this is not true, you need to change sl.home to match where you've 
           unzipped jsure-ant.zip
     -->
-  <property name="sl.home" value="../.." />
-  <property name="sl.lib" value="${sl.home}/lib" />
-  <property name="project" value="SmallWorld"/>
+  <property name="sl.home" value="../../jsure-ant" />
   
-  <!-- 2. Assumes that jsure-ant is unzipped in an Eclipse workspace 
+  <!-- 2. This assumes that SmallWorld is copied into your workspace (see above), 
+          and that the JSure data directory is in the usual place in your workspace
+          
           Change this if it is not
   -->
-  <property name="datadir" value="${sl.home}/../.jsure-data"/>
+  <property name="datadir" value="../.jsure-data"/>
+  
+  <property name="sl.lib" value="${sl.home}/lib" />  
   
   <path id="sl.classpath">
       <fileset dir="${sl.lib}" includes="**/*.jar"/>
@@ -22,6 +37,8 @@
   <taskdef resource="com/surelogic/ant/jsure/ant.properties">
       <classpath refid="sl.classpath"/>
   </taskdef>
+  
+  <!-- ------------------------------------------------------------------------------------ -->
   
   <!-- 3. These are jars used to compile (and thus scan) SmallWorld 
       

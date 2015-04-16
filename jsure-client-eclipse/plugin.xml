@@ -271,6 +271,10 @@
 			name="Run JSure Tutorials">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.SaveAntTask"
+			name="Save Ant Task">
+		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.ManageLicenses" name="Manage SureLogic Licenses">
 		</command>
 	</extension>
@@ -326,6 +330,10 @@
 				</command>
 				<command
 					commandId="com.surelogic.jsure.client.eclipse.command.ImportTutorialProjects"
+					style="push">
+				</command>
+				<command
+					commandId="com.surelogic.jsure.client.eclipse.command.SaveAntTask"
 					style="push">
 				</command>
 				<separator name="com.surelogic.jsure.separator.main2"
@@ -420,6 +428,10 @@
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.ImportTutorialProjectsHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.ImportTutorialProjects">
+		</handler>
+		<handler
+			class="com.surelogic.jsure.client.eclipse.handlers.SaveAntTaskHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.SaveAntTask">
 		</handler>
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.ManageLicensesHandler"

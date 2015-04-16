@@ -53,6 +53,13 @@
 	</target>
 	
 	<target name="install">
+	  <delete dir="../jsure-client-eclipse/lib/jsure-ant.zip"/>
+      <copy todir="../jsure-client-eclipse/lib">
+        <file file="./jsure-ant.zip"/>          
+      </copy>    
+	</target>
+	
+	<target name="install-test">
 	  <delete dir="/home/edwin/work/jsure-test-4.3.2-workspace/jsure-ant"/>
       <unzip src="./jsure-ant.zip" dest="/home/edwin/work/jsure-test-4.3.2-workspace" />
 	</target>
