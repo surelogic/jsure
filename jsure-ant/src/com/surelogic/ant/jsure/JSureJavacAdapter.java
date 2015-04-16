@@ -12,6 +12,7 @@ import org.apache.tools.ant.taskdefs.compilers.DefaultCompilerAdapter;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.util.StringUtils;
 
+import com.surelogic.common.CommonJVMPrefs;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.remote.*;
 import com.surelogic.common.java.*;
@@ -21,7 +22,6 @@ import com.surelogic.javac.Projects;
 import com.surelogic.javac.Util;
 import com.surelogic.javac.jobs.JSureConstants;
 import com.surelogic.javac.jobs.LocalJSureJob;
-import com.surelogic.xml.TestXMLParserConstants;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
@@ -54,17 +54,8 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 			Javac.getDefault().setPreference(
 					IDEPreferences.JSURE_DATA_DIRECTORY, scan.getDataDir());
 			
-			/*
-			 * TODO: This is BROKEN because it points the user's DIFF directory to the release directory
-			 * This needs to set -D LocalJSureJob.FLUID_DIRECTORY_URL to the right place
-			 * See LocalJSureJob class (I think)
-			 * 
-			 * BROKEN BROKEN TODO TODO BROKEN BROKEN
-			 */
-			Javac.getDefault().setPreference(
-					IDEPreferences.JSURE_XML_DIFF_DIRECTORY,
-					scan.getHome() + "/lib/fluid/"
-							+ TestXMLParserConstants.PROMISES_XML_REL_PATH);
+			System.setProperty(LocalJSureJob.FLUID_DIRECTORY_URL, new File(scan.getHome(), "lib/jsure-analysis").toURI().toURL().toString());
+			System.setProperty(CommonJVMPrefs.PROP, new File(scan.getHome(), "lib/common"+CommonJVMPrefs.PATH).toURI().toURL().toString());
 
 			Config config = createConfig();
 			System.out.println("config = " + config.getProject());
@@ -123,8 +114,10 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 				File home = new File(scan.getHome());
 				if (AbstractLocalSLJob.COMMON_PLUGIN_ID.equals(id)) {
 					return new File(home, "lib/common").getAbsolutePath();
+				} else if (JSureConstants.JSURE_COMMON_PLUGIN_ID.equals(id)) {
+					return new File(home, "lib/jsure-common").getAbsolutePath();
 				} else if (JSureConstants.JSURE_ANALYSIS_PLUGIN_ID.equals(id)) {
-					return new File(home, "lib/fluid").getAbsolutePath();
+					return new File(home, "lib/jsure-analysis").getAbsolutePath();
 				}
 				throw new IllegalStateException("Unknown plugin id requested: "
 						+ id);

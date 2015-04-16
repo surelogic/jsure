@@ -6,10 +6,14 @@
           You need to change sl.home to match where you've 
           unzipped jsure-ant.zip
     -->
-  <property name="sl.home" value="c:/work/workspace-3.5.1/jsure-ant" />
+  <property name="sl.home" value="../.." />
   <property name="sl.lib" value="${sl.home}/lib" />
   <property name="project" value="SmallWorld"/>
-  <property name="datadir" value="${sl.home}/../../jsure-test2-workspace/.jsure-data"/>
+  
+  <!-- 2. Assumes that jsure-ant is unzipped in an Eclipse workspace 
+          Change this if it is not
+  -->
+  <property name="datadir" value="${sl.home}/../.jsure-data"/>
   
   <path id="sl.classpath">
       <fileset dir="${sl.lib}" includes="**/*.jar"/>
@@ -19,7 +23,7 @@
       <classpath refid="sl.classpath"/>
   </taskdef>
   
-  <!-- 2. These are jars used to compile (and thus scan) SmallWorld 
+  <!-- 3. These are jars used to compile (and thus scan) SmallWorld 
       
           They are defined here to simplify the classpath property
           for the jsure-scan task below
@@ -31,7 +35,7 @@
   
 	<target name="scan">	  	  	
 	  
-	  <!-- 3. Change the properties for the jsure-scan task to match your
+	  <!-- 4. Change the properties for the jsure-scan task to match your
 	          Java project, in particular, srcdir, destdir, and classpath.
 	  
 	          Since jsure-scan uses many of the same properties as the javac task,
