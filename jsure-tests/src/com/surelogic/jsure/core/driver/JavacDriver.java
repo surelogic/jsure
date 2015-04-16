@@ -51,14 +51,13 @@ import com.surelogic.common.ZipInfo;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.java.*;
+import com.surelogic.common.core.scripting.*;
 import com.surelogic.common.java.*;
 import com.surelogic.common.jobs.AbstractSLJob;
-import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.jobs.SLStatus;
 import com.surelogic.common.logging.IErrorListener;
-import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.regression.RegressionUtility;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
@@ -68,9 +67,6 @@ import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 import com.surelogic.jsure.core.scans.JSureDataDirHub.CurrentScanChangeListener;
 import com.surelogic.jsure.core.scripting.ExportResults;
-import com.surelogic.jsure.core.scripting.ICommandContext;
-import com.surelogic.jsure.core.scripting.NullCommand;
-import com.surelogic.jsure.core.scripting.ScriptCommands;
 import com.surelogic.jsure.core.scripting.ScriptReader;
 
 import difflib.Delta;
@@ -413,7 +409,7 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
       super(findProjects(proj), false);
       // These should be the ops that we auto-inserted
       commands.put(ScriptCommands.EXPECT_BUILD, NullCommand.prototype);
-      commands.put(ScriptCommands.EXPECT_ANALYSIS, NullCommand.prototype);
+      commands.put(AnalysisConstants.EXPECT_ANALYSIS, NullCommand.prototype);
       commands.put(ScriptCommands.COMPARE_RESULTS, new ExportResults() {
         @Override
         public boolean execute(ICommandContext context, String... contents) throws Exception {
@@ -987,7 +983,7 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
     final String name = "expectedAnalysis" + getId() + ".txt";
     final File file = new File(scriptResourcesDir, name);
     p.setArg(AnalysisConstants.RECORD_ANALYSIS, file);
-    printToScript(ScriptCommands.EXPECT_ANALYSIS_FIRST + ' ' + computePrefix() + '/' + name);
+    printToScript(AnalysisConstants.EXPECT_ANALYSIS_FIRST + ' ' + computePrefix() + '/' + name);
   }
 
   private void checkForExpectedSourceFiles(JavaProjectSet<T> p, File expected) throws IOException {

@@ -26,10 +26,12 @@ import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IJavaProject;
 
+import com.surelogic.analysis.AnalysisConstants;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
 import com.surelogic.common.core.java.JavaBuild;
+import com.surelogic.common.core.scripting.*;
 import com.surelogic.common.java.JavaProjectSet;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
@@ -67,6 +69,9 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
 	projects = p;
 	runAsynchronously = async;
 	findActiveProjects(p);
+
+    commands.put(ScriptCommands.EXPORT_RESULTS, new ExportResults());
+    commands.put(ScriptCommands.COMPARE_RESULTS, new CompareResults());
 	
 	// Commands used for compatibility with old JSure model
 	commands.put("addNature", new AbstractProjectCommand() {		
@@ -160,7 +165,7 @@ public class ScriptReader extends AbstractSLJob implements ICommandContext {
         }        
     });
 	commands.put(ScriptCommands.EXPECT_BUILD, new SetFileArg(ScriptCommands.EXPECT_BUILD));
-	commands.put(ScriptCommands.EXPECT_ANALYSIS, new SetFileArg(ScriptCommands.EXPECT_ANALYSIS));
+	commands.put(AnalysisConstants.EXPECT_ANALYSIS, new SetFileArg(AnalysisConstants.EXPECT_ANALYSIS));
   }
   
   private void findActiveProjects(List<IJavaProject> p) {

@@ -5,6 +5,7 @@ package com.surelogic.jsure.core.scripting;
 
 import java.io.*;
 
+import com.surelogic.common.core.scripting.*;
 import com.surelogic.dropsea.irfree.ISeaDiff;
 import com.surelogic.dropsea.irfree.SeaSnapshotDiff;
 import com.surelogic.java.persistence.JSureScanInfo;

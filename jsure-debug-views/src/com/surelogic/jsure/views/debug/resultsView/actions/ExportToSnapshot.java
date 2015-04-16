@@ -26,6 +26,7 @@ import org.eclipse.ui.IViewPart;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.core.EclipseUtility;
+import com.surelogic.common.core.scripting.ScriptCommands;
 import com.surelogic.common.java.JavaProject;
 import com.surelogic.common.java.JavaProjectSet;
 import com.surelogic.common.logging.SLLogger;
@@ -34,7 +35,6 @@ import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.javac.Javac;
 import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
-import com.surelogic.jsure.core.scripting.ScriptCommands;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.java.xml.JSureAnalysisXMLConstants;
