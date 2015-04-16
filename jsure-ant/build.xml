@@ -21,9 +21,7 @@
 	  <copy todir="./lib/common/lib/runtime">
 	    <fileset dir="../../common/common/lib/runtime"/>
 	  </copy>
-	  <copy todir="./lib/common/lib">
-	    <file file="../../common/common/lib/scan_vm.properties"/>
-	  </copy>
+	  <copy file="../../common/common/lib/scan_vm.properties" todir="./lib/common/lib"/>
 	  
 	  <mkdir dir="./lib/jsure-common"/>
 	  <jar destfile="./lib/jsure-common/jsure-common.jar" basedir="../jsure-common/bin" />
@@ -53,10 +51,8 @@
 	</target>
 	
 	<target name="install">
-	  <delete dir="../jsure-client-eclipse/lib/jsure-ant.zip"/>
-      <copy todir="../jsure-client-eclipse/lib">
-        <file file="./jsure-ant.zip"/>          
-      </copy>    
+	  <delete file="../jsure-client-eclipse/lib/jsure-ant.zip"/>
+      <copy file="./jsure-ant.zip" todir="../jsure-client-eclipse/lib" verbose="true"/>
 	</target>
 	
 	<target name="install-test">
