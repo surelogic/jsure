@@ -3,7 +3,7 @@
 <project name="test-ant" default="scan" basedir=".">
   <property name="project" value="SmallWorld"/>
     
-  <!-- Definitions needed to set up the jsure-scan task  ---------------------------------- -->
+  <!-- Definitions needed to set up the jsure-scan task ================================= -->
       
   <!-- 1. These are the definitions needed to run JSure.
   
@@ -38,7 +38,7 @@
       <classpath refid="sl.classpath"/>
   </taskdef>
   
-  <!-- ------------------------------------------------------------------------------------ -->
+  <!-- =================================================================================================== -->
   
   <!-- 3. These are jars used to compile (and thus scan) SmallWorld 
       
