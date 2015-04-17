@@ -40,7 +40,7 @@ public final class FindXMLForTypeHandler extends AbstractHandler {
 		return null;
 	}
 
-	private static void promptAndOpenEditor(final IWorkbenchWindow window) {
+	static void promptAndOpenEditor(final IWorkbenchWindow window) {
 		try {
 			final SelectionDialog dialog = JavaUI.createTypeDialog(
 					EclipseUIUtility.getShell(), window,
@@ -93,14 +93,14 @@ public final class FindXMLForTypeHandler extends AbstractHandler {
 		};
 	}
 
-	private static class Extension extends TypeSelectionExtension {
+	static class Extension extends TypeSelectionExtension {
 		@Override
 		public ITypeInfoFilterExtension getFilterExtension() {
 			return new FilterExtension();
 		}
 	}
 
-	private static class FilterExtension implements ITypeInfoFilterExtension {
+	static class FilterExtension implements ITypeInfoFilterExtension {
 		@Override
 		public boolean select(ITypeInfoRequestor req) {
 			// TODO no way to keep only binaries?

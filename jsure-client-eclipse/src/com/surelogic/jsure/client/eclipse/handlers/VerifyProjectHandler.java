@@ -102,7 +102,7 @@ public final class VerifyProjectHandler extends
 				JSurePreferencesUtility.LAST_TIME_PROJECTS_TO_SCAN);
 	}
 
-	private static void showStartBalloon() {
+	static void showStartBalloon() {
 		if (EclipseUtility
 				.getBooleanPreference(JSurePreferencesUtility.SHOW_BALLOON_NOTIFICATIONS)) {
 			BalloonUtility.showMessage(
