@@ -61,6 +61,7 @@
             Note that the scan document is created in the current directory, 
             i.e. ${basedir}     
 	  -->
+	  <mkdir dir="${basedir}/bin"/>
 	  <jsure-scan 
 	       srcdir="${basedir}/src"
          destdir="${basedir}/bin"
