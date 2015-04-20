@@ -1,63 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="build-ant-task" default="all">
-	<description>Build for SL Ant tasks</description>
+  <description>Build for SL Ant tasks</description>
 
-  <target name="all" depends="clean,build,zip,install"/>
-  
-  <target name="clean-build" depends="clean,build"/>
-  
+  <target name="all" depends="clean,build,zip,install" />
+
+  <target name="clean-build" depends="clean,build" />
+
   <target name="clean">
-    <delete dir="./lib"/>
+    <delete dir="./lib" />
   </target>
 
-  <!-- Assumes that all the git repositories are in the same directory, 
-       and all the projects are built before running this script -->
-	<target name="build">
-	  <mkdir dir="./lib"/>
- 
-	  <mkdir dir="./lib/common"/>
-	  <jar destfile="./lib/common/common.jar" basedir="../../common/common/bin" />
-	  <mkdir dir="./lib/common/lib/runtime"/>
-	  <copy todir="./lib/common/lib/runtime">
-	    <fileset dir="../../common/common/lib/runtime"/>
-	  </copy>
-	  <copy file="../../common/common/lib/scan_vm.properties" todir="./lib/common/lib"/>
-	  
-	  <mkdir dir="./lib/jsure-common"/>
-	  <jar destfile="./lib/jsure-common/jsure-common.jar" basedir="../jsure-common/bin" />
-	  <mkdir dir="./lib/jsure-common/lib/runtime"/>
-	  <copy todir="./lib/jsure-common/lib/runtime">
-	    <fileset dir="../jsure-common/lib/runtime"/>
-	  </copy>
-		
-	  <mkdir dir="./lib/jsure-analysis"/>
-	  <jar destfile="./lib/jsure-analysis/jsure-analysis.jar" basedir="../jsure-analysis/bin" />
-	  <mkdir dir="./lib/jsure-analysis/lib/runtime"/>
-	  <copy todir="./lib/jsure-analysis/lib/runtime">
-	    <fileset dir="../jsure-analysis/lib/runtime"/>
-	  </copy>	
-	  <mkdir dir="./lib/jsure-analysis/lib/promises"/>
-	  <copy todir="./lib/jsure-analysis/lib/promises">
-		<fileset dir="../jsure-analysis/lib/promises"/>
-	  </copy>		
-	  
-	  <jar destfile="./lib/jsure-ant.jar" basedir="../jsure-ant/bin" />
-	  
-	</target>
-	  
-	<target name="zip">
-	  <zip destfile="./jsure-ant.zip" basedir=".."
-	       includes="jsure-ant/lib/**, jsure-ant/README.txt, jsure-ant/examples/SmallWorld/**"/>
-	</target>
-	
-	<target name="install">
-	  <delete file="../jsure-client-eclipse/lib/jsure-ant.zip"/>
-      <copy file="./jsure-ant.zip" todir="../jsure-client-eclipse/lib" verbose="true"/>
-	</target>
-	
-	<target name="install-test">
-	  <delete dir="/home/edwin/work/jsure-test-4.3.2-workspace/jsure-ant"/>
-      <unzip src="./jsure-ant.zip" dest="/home/edwin/work/jsure-test-4.3.2-workspace" />
-	</target>
+  <!-- Assumes that all the git repositories are in the same directory, and 
+    all the projects are built before running this script -->
+  <target name="build">
+    <mkdir dir="./lib" />
+
+    <mkdir dir="./lib/common" />
+    <jar destfile="./lib/common/common.jar" basedir="../../common/common/bin" />
+    <mkdir dir="./lib/common/lib/runtime" />
+    <copy todir="./lib/common/lib/runtime">
+      <fileset dir="../../common/common/lib/runtime" />
+    </copy>
+    <copy file="../../common/common/lib/scan_vm.properties" todir="./lib/common/lib" />
+
+    <mkdir dir="./lib/jsure-common" />
+    <jar destfile="./lib/jsure-common/jsure-common.jar" basedir="../jsure-common/bin" />
+    <mkdir dir="./lib/jsure-common/lib/runtime" />
+    <copy todir="./lib/jsure-common/lib/runtime">
+      <fileset dir="../jsure-common/lib/runtime" />
+    </copy>
+
+    <mkdir dir="./lib/jsure-analysis" />
+    <jar destfile="./lib/jsure-analysis/jsure-analysis.jar" basedir="../jsure-analysis/bin" />
+    <mkdir dir="./lib/jsure-analysis/lib/runtime" />
+    <copy todir="./lib/jsure-analysis/lib/runtime">
+      <fileset dir="../jsure-analysis/lib/runtime" />
+    </copy>
+    <mkdir dir="./lib/jsure-analysis/lib/promises" />
+    <copy todir="./lib/jsure-analysis/lib/promises">
+      <fileset dir="../jsure-analysis/lib/promises" />
+    </copy>
+
+    <jar destfile="./lib/jsure-ant.jar" basedir="../jsure-ant/bin" />
+
+  </target>
+
+  <target name="zip">
+    <zip destfile="./jsure-ant.zip" basedir=".."
+      includes="jsure-ant/lib/**, jsure-ant/README.txt, jsure-ant/examples/SmallWorld/**" />
+  </target>
+
+  <target name="install">
+    <delete file="../jsure-client-eclipse/lib/jsure-ant.zip" />
+    <copy file="./jsure-ant.zip" todir="../jsure-client-eclipse/lib"
+      verbose="true" />
+  </target>
+
+  <target name="install-test">
+    <delete dir="/home/edwin/work/jsure-test-4.3.2-workspace/jsure-ant" />
+    <unzip src="./jsure-ant.zip" dest="/home/edwin/work/jsure-test-4.3.2-workspace" />
+  </target>
 </project>
 	  
