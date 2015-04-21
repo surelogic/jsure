@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JSure Analysis/Transformation Core
 Bundle-SymbolicName: com.surelogic.jsure.analysis
-Bundle-Version: 5.6.0.qualifier
+Bundle-Version: 5.6.1.qualifier
 Bundle-ClassPath: .,
  lib/runtime/log4j-xml-1.3alpha-8.jar,
  lib/runtime/log4j-1.3alpha-8.jar,
