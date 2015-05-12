@@ -14,7 +14,7 @@ public final class LibResources {
    * The name of the archive that contains the JSure HTML documentation Zip.
    * <p>
    * Within this Zip is all the JSure on-line documents in separate directories
-   * so that users can examine them in a browser (which is often perferred to
+   * so that users can examine them in a browser (which is often preferred to
    * Eclipse on-line help)..
    */
   public static final String HTML_DOCS_ZIP = "jsure-html-docs.zip";
