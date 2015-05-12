@@ -11,11 +11,25 @@ public final class LibResources {
   public static final String PATH = "/lib/";
 
   /**
+   * The name of the archive that contains the JSure HTML documentation Zip.
+   * <p>
+   * Within this Zip is all the JSure on-line documents in separate directories
+   * so that users can examine them in a browser (which is often perferred to
+   * Eclipse on-line help)..
+   */
+  public static final String HTML_DOCS_ZIP = "jsure-html-docs.zip";
+
+  /**
+   * Full path to the JSure HTML documentation Zip within this Eclipse plugin.
+   */
+  public static final String HTML_DOCS_ZIP_PATHNAME = PATH + HTML_DOCS_ZIP;
+
+  /**
    * The name of the archive that contains the JSure Ant tasks.
    * <p>
-   * Within this Zip should be a single directory of the form
-   * <tt>jsure-ant</tt>. The name of the Zip file is versioned when it is saved
-   * to the disk, e.g., <tt>jsure-ant-5.6.0.zip</tt>.
+   * Within this Zip should be a single directory of the form <tt>jsure-ant</tt>
+   * . The name of the Zip file is versioned when it is saved to the disk, e.g.,
+   * <tt>jsure-ant-5.6.0.zip</tt>.
    */
   public static final String ANT_TASK_ZIP = "jsure-ant.zip";
 
