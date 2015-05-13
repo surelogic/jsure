@@ -5,10 +5,9 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.SlotInfo;
 
-public interface IBooleanPromiseDropStorage<D extends PromiseDrop> 
-extends IPromiseDropStorage<D> 
-{
+public interface IBooleanPromiseDropStorage<D extends PromiseDrop<?>> extends IPromiseDropStorage<D> {
   void init(SlotInfo<D> si);
+
   @Override
   SlotInfo<D> getSlotInfo();
 }

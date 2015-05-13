@@ -18,5 +18,5 @@ public interface INodePromiseHandler extends IPromiseHandler {
    * @param info Info on how the promise is stored
    * @param sub The IRNode representation of the promise
    */
-  void processNodePromise(IRNode n, TokenInfo info, IRNode sub);
+  void processNodePromise(IRNode n, TokenInfo<?> info, IRNode sub);
 }

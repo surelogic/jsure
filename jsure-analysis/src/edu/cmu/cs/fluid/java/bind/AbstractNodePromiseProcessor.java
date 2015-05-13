@@ -7,7 +7,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.promise.IPromiseStorage.TokenInfo;
 
 /**
- * Calls process() on each IRNode promise hanging off the node 
+ * Calls process() on each IRNode promise hanging off the node
  * 
  * @author Edwin.Chan
  */
@@ -30,22 +30,22 @@ public abstract class AbstractNodePromiseProcessor extends AbstractPromiseProces
   }
 
   @Override
-  public void processNodePromise(IRNode n, TokenInfo info, IRNode sub) {
+  public void processNodePromise(IRNode n, TokenInfo<?> info, IRNode sub) {
     process(n, sub);
   }
 
   @Override
-  public void processSequencePromise(IRNode n, TokenInfo info, Iteratable<IRNode> e) {
-    for(IRNode sub : e) {
+  public void processSequencePromise(IRNode n, TokenInfo<?> info, Iteratable<IRNode> e) {
+    for (IRNode sub : e) {
       if (sub != null) {
         process(n, sub);
       }
     }
   }
-  
+
   protected void process(IRNode promisedFor, IRNode n) {
     process(n);
   }
-  
+
   protected abstract void process(IRNode n);
 }

@@ -22,15 +22,14 @@ public abstract class AbstractPromiseProcessor implements IPromiseProcessor {
   }
 
   @Override
-  public void processBooleanPromise(IRNode n, TokenInfo info) {
+  public void processBooleanPromise(IRNode n, TokenInfo<?> info) {
   }
 
   @Override
-  public void processNodePromise(IRNode n, TokenInfo info, IRNode sub) {
+  public void processNodePromise(IRNode n, TokenInfo<?> info, IRNode sub) {
   }
 
   @Override
-  public void processSequencePromise(IRNode n, TokenInfo info,
-      Iteratable<IRNode> e) {
+  public void processSequencePromise(IRNode n, TokenInfo<?> info, Iteratable<IRNode> e) {
   }
 }

@@ -44,6 +44,15 @@
 			<fileset dir="${jsure-common}/lib/runtime" />
 			<fileset dir="${jsure-analysis}/lib/runtime" />
 		</copy>
+
+		<echo>Creating non-Java resources that get used by JSure</echo>
+		<mkdir dir="${build.lib}/common/lib" />
+		<copy file="${common}/lib/scan_vm.properties" todir="${build.lib}/common/lib" />
+		<mkdir dir="${build.lib}/jsure-analysis/lib/promises" />
+		<copy todir="${build.lib}/jsure-analysis/lib/promises">
+			<fileset dir="../jsure-analysis/lib/promises" />
+		</copy>
+
 		<echo>Creating generated source code and compiling 'common' project...</echo>
 		<ant antfile="build-src.xml" dir="${common}" inheritAll="false" />
 		<path id="compile.class.path">
@@ -59,7 +68,7 @@
 				<exclude name="**/.gitignore" />
 			</fileset>
 		</copy>
-		<copy file="${common}/lib/scan_vm.properties" todir="${build.lib}" />
+
 
 		<echo>Creating generated source code and compiling 'jsure-common' project...</echo>
 		<javac srcdir="${jsure-common}/src" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
@@ -72,7 +81,10 @@
 
 		<echo>Creating generated source code and compiling 'jsure-analysis' project...</echo>
 		<ant antfile="build-src.xml" dir="${jsure-analysis}" inheritAll="false" />
-		<javac srcdir="${jsure-analysis}/src" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
+		<javac srcdir="${jsure-analysis}/src" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false">
+			<src path="${jsure-analysis}/src" />
+			<src path="${jsure-analysis}/gensrc" />
+		</javac>
 		<copy todir="${build.bin}">
 			<fileset dir="${jsure-analysis}/src">
 				<exclude name="**/*.java" />
@@ -84,54 +96,8 @@
 		<jar destfile="${build.lib}/jsure.jar" basedir="${build.bin}" />
 
 		<echo>Creating jsure-ant-${release-version}.jar...</echo>
-		<zip destfile="${build}/jsure-ant${release-version}.zip" basedir=".." includes="${build.lib}/**, jsure-ant/README.txt, jsure-ant/examples/SmallWorld/**" />
+		<zip destfile="${build}/jsure-ant-${release-version}.zip" basedir=".." includes="${build.lib}/**, jsure-ant/README.txt, jsure-ant/examples/SmallWorld/**" />
 
 	</target>
 
-	<target name="oldstuff">
-
-		<mkdir dir="./lib" />
-
-		<mkdir dir="./lib/common" />
-		<mkdir dir="./lib/common/lib/runtime" />
-		<copy todir="./lib/common/lib/runtime">
-			<fileset dir="../../common/common/lib/runtime" />
-		</copy>
-		<copy file="../../common/common/lib/scan_vm.properties" todir="./lib/common/lib" />
-
-		<mkdir dir="./lib/jsure-common" />
-		<jar destfile="./lib/jsure-common/jsure-common.jar" basedir="../jsure-common/bin" />
-		<mkdir dir="./lib/jsure-common/lib/runtime" />
-		<copy todir="./lib/jsure-common/lib/runtime">
-			<fileset dir="../jsure-common/lib/runtime" />
-		</copy>
-
-		<mkdir dir="./lib/jsure-analysis" />
-		<jar destfile="./lib/jsure-analysis/jsure-analysis.jar" basedir="../jsure-analysis/bin" />
-		<mkdir dir="./lib/jsure-analysis/lib/runtime" />
-		<copy todir="./lib/jsure-analysis/lib/runtime">
-			<fileset dir="../jsure-analysis/lib/runtime" />
-		</copy>
-		<mkdir dir="./lib/jsure-analysis/lib/promises" />
-		<copy todir="./lib/jsure-analysis/lib/promises">
-			<fileset dir="../jsure-analysis/lib/promises" />
-		</copy>
-
-		<jar destfile="./lib/jsure-ant.jar" basedir="../jsure-ant/bin" />
-
-	</target>
-
-	<target name="zip">
-		<zip destfile="./jsure-ant.zip" basedir=".." includes="jsure-ant/lib/**, jsure-ant/README.txt, jsure-ant/examples/SmallWorld/**" />
-	</target>
-
-	<target name="install">
-		<delete file="../jsure-client-eclipse/lib/jsure-ant.zip" />
-		<copy file="./jsure-ant.zip" todir="../jsure-client-eclipse/lib" verbose="true" />
-	</target>
-
-	<target name="install-test">
-		<delete dir="/home/edwin/work/jsure-test-4.3.2-workspace/jsure-ant" />
-		<unzip src="./jsure-ant.zip" dest="/home/edwin/work/jsure-test-4.3.2-workspace" />
-	</target>
 </project>

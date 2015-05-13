@@ -7,38 +7,36 @@ import com.surelogic.common.util.*;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 
-public final class SinglePromiseDropStorage<D extends PromiseDrop<?>> 
-extends AbstractPromiseDropStorage<D>
-implements ISinglePromiseDropStorage<D> {
+public final class SinglePromiseDropStorage<D extends PromiseDrop<?>> extends AbstractPromiseDropStorage<D> implements
+    ISinglePromiseDropStorage<D> {
   private SlotInfo<D> si;
-  
+
   protected SinglePromiseDropStorage(String name, Class<D> base) {
     super(name, base);
   }
-  
-  public static <P extends PromiseDrop<?>>
-  SinglePromiseDropStorage<P> create(String name, Class<P> base) {
-	  SinglePromiseDropStorage<P> s = new SinglePromiseDropStorage<P>(name, base);
-	  PromiseDropStorage.register(s);
-	  return s;
+
+  public static <P extends PromiseDrop<?>> SinglePromiseDropStorage<P> create(String name, Class<P> base) {
+    SinglePromiseDropStorage<P> s = new SinglePromiseDropStorage<P>(name, base);
+    PromiseDropStorage.register(s);
+    return s;
   }
 
   @Override
   public StorageType type() {
     return StorageType.NODE;
   }
-  
+
   @Override
   public SlotInfo<D> getSlotInfo() {
     return si;
   }
-  
+
   @Override
   public void init(SlotInfo<D> si) {
     checkSlotInfo(this.si, si);
     this.si = si;
   }
-  
+
   @Override
   public D add(IRNode n, D d) {
     checkArguments(n, d);
@@ -61,23 +59,23 @@ implements ISinglePromiseDropStorage<D> {
     }
     n.setSlotValue(si, null);
   }
-  
+
   @Override
   public boolean isDefined(IRNode n) {
     checkArgument(n);
     D old = n.getSlotValue(si);
     return old != null;
-  } 
-  
+  }
+
   @Override
   public Iterable<D> getDrops(IRNode n) {
-	  if (n == null) {
-		  return new EmptyIterator<D>();
-	  }
-	  D d = n.getSlotValue(si);
-	  if (d == null || !d.isValid()) {
-		  return new EmptyIterator<D>();
-	  }
-	  return new SingletonIterator<D>(d);
+    if (n == null) {
+      return new EmptyIterator<D>();
+    }
+    D d = n.getSlotValue(si);
+    if (d == null || !d.isValid()) {
+      return new EmptyIterator<D>();
+    }
+    return new SingletonIterator<D>(d);
   }
 }

@@ -21,5 +21,5 @@ public interface ISequencePromiseHandler extends IPromiseHandler {
    * @param info Info on how the promise is stored
    * @param e An enumeration based off of the original IRSequence
    */
-  void processSequencePromise(IRNode n, TokenInfo info, Iteratable<IRNode> e);
+  void processSequencePromise(IRNode n, TokenInfo<?> info, Iteratable<IRNode> e);
 }

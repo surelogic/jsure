@@ -10,23 +10,22 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.SlotInfo;
 
-public abstract class AbstractPromiseDropStorage<D extends PromiseDrop> 
-implements IPromiseDropStorage<D> {
+public abstract class AbstractPromiseDropStorage<D extends PromiseDrop<?>> implements IPromiseDropStorage<D> {
   protected Logger LOG = SLLogger.getLogger("fluid");
-	
+
   private final String name;
   private final Class<D> base;
-  
+
   protected AbstractPromiseDropStorage(String name, Class<D> base) {
     this.name = name;
     this.base = base;
   }
-  
+
   @Override
   public final String name() {
     return name;
   }
-  
+
   @Override
   public final Class<D> baseDropType() {
     return base;
@@ -41,8 +40,8 @@ implements IPromiseDropStorage<D> {
   public SlotInfo<D> getSlotInfo() {
     throw new UnsupportedOperationException();
   }
-  
-  protected final void checkSlotInfo(SlotInfo oldSI, SlotInfo si) {
+
+  protected final void checkSlotInfo(SlotInfo<?> oldSI, SlotInfo<?> si) {
     if (si == null) {
       throw new IllegalArgumentException("null SlotInfo");
     }
@@ -56,7 +55,7 @@ implements IPromiseDropStorage<D> {
       throw new IllegalArgumentException();
     }
   }
-  
+
   protected void checkArgument(IRNode n) {
     if (n == null) {
       throw new IllegalArgumentException();
