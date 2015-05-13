@@ -465,13 +465,8 @@ public class RegionRules extends AnnotationRules {
       final RegionSpecificationNode parent = inRegion.getSpec();
       if (parent.resolveBinding() == null) {
         final IRNode promisedFor = parent.getPromisedFor();
-        /* final fields cannot be put in a region, so we do not want to
-         * infer a region based on an error.
-         */
-        if (!TypeUtil.isJSureFinal(promisedFor)) {
-          neededRegions.addOrUpdateRegion(
-              parent.getId(), promisedFor, inRegion);
-        }
+        neededRegions.addOrUpdateRegion(
+        		parent.getId(), promisedFor, inRegion);
       }
     }
     neededRegions.createRegionDeclarations(classDecl);
