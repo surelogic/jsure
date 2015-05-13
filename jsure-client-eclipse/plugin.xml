@@ -242,6 +242,14 @@
 			id="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs"
 			name="Save Promises Library As...">
 		</command>
+	    <command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.SaveAntTask"
+			name="Save Ant Task As...">
+		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.SaveHtmlDocs"
+			name="Save Documentation As...">
+		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.FindXMLForType" name="Open Library Annotations...">
 		</command>
@@ -271,10 +279,6 @@
 			name="Run JSure Tutorials">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
-			id="com.surelogic.jsure.client.eclipse.command.SaveAntTask"
-			name="Save Ant Task">
-		</command>
-		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.ManageLicenses" name="Manage SureLogic Licenses">
 		</command>
 	</extension>
@@ -299,6 +303,16 @@
 					commandId="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs"
 					icon="platform:/plugin/com.surelogic.common/lib/images/jar_saveas.gif"
 					mnemonic="S" style="push">
+				</command>
+				<command
+					commandId="com.surelogic.jsure.client.eclipse.command.SaveAntTask"
+					icon="platform:/plugin/com.surelogic.common/lib/images/jar_saveas.gif"
+					style="push">
+				</command>
+				<command
+					commandId="com.surelogic.jsure.client.eclipse.command.SaveHtmlDocs"
+					icon="platform:/plugin/com.surelogic.common/lib/images/file.gif"
+					style="push">
 				</command>
 				<command commandId="com.surelogic.jsure.client.eclipse.command.FindXMLForType"
 					icon="platform:/plugin/com.surelogic.common/lib/images/open_xml_type.gif"
@@ -330,10 +344,6 @@
 				</command>
 				<command
 					commandId="com.surelogic.jsure.client.eclipse.command.ImportTutorialProjects"
-					style="push">
-				</command>
-				<command
-					commandId="com.surelogic.jsure.client.eclipse.command.SaveAntTask"
 					style="push">
 				</command>
 				<separator name="com.surelogic.jsure.separator.main2"
@@ -403,6 +413,14 @@
 			commandId="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs">
 		</handler>
 		<handler
+			class="com.surelogic.jsure.client.eclipse.handlers.SaveAntTaskHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.SaveAntTask">
+		</handler>
+	    <handler
+			class="com.surelogic.jsure.client.eclipse.handlers.SaveHtmlDocsHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.SaveHtmlDocs">
+		</handler>
+		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.FindXMLForTypeHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.FindXMLForType">
 		</handler>
@@ -428,10 +446,6 @@
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.ImportTutorialProjectsHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.ImportTutorialProjects">
-		</handler>
-		<handler
-			class="com.surelogic.jsure.client.eclipse.handlers.SaveAntTaskHandler"
-			commandId="com.surelogic.jsure.client.eclipse.command.SaveAntTask">
 		</handler>
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.ManageLicensesHandler"
