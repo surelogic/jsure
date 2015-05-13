@@ -164,7 +164,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §4.2 Primitive types and values
+  // == JLS 4.2 Primitive types and values
   // ======================================================================
   
   protected final boolean isSameType(final IType type1, final IType type2) {
@@ -223,7 +223,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   /**
-   * Is the type an integral type as defined in §4.2?
+   * Is the type an integral type as defined in JLS 4.2?
    */
   protected final boolean isIntegralType(final IType type) {
     return isByteType(type) ||
@@ -234,21 +234,21 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   /**
-   * Is the type a floating-point type as defined in §4.2?
+   * Is the type a floating-point type as defined in JLS 4.2?
    */
   protected final boolean isFloatingPointType(final IType type) {
     return isFloatType(type) || isDoubleType(type);
   }
   
   /**
-   * Is the type a numeric type as defined in §4.2?
+   * Is the type a numeric type as defined in JLS 4.2?
    */
   protected final boolean isNumericType(final IType type) {
     return isIntegralType(type) || isFloatingPointType(type);
   }
 
   /**
-   * Is the type a primitive type as defined in §4.2?
+   * Is the type a primitive type as defined in JLS 4.2?
    */
   protected final boolean isPrimitiveType(final IType type) {
     return isBooleanType(type) || isNumericType(type);
@@ -257,11 +257,11 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §4.3 Reference types and values
+  // == JLS 4.3 Reference types and values
   // ======================================================================
     
   /**
-   * Is the type a reference type as defined in §4.3?
+   * Is the type a reference type as defined in JLS 4.3?
    */
   protected final boolean isReferenceType(final IType type) {
     // TODO: May be there will be a cheaper way to test this
@@ -274,7 +274,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
 
   /**
-   * Is the type an array type as defined in §4.3?
+   * Is the type an array type as defined in JLS 4.3?
    */
   protected final boolean isArrayType(final IType type) {
     // TODO: Make this real when I flesh out the ITypes
@@ -284,7 +284,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   /**
-   * Is the type reifiable as defined in §4.7?
+   * Is the type reifiable as defined in JLS 4.7?
    */
   protected final boolean isReifiable(final IType type) {
     // TODO: Make this real
@@ -294,12 +294,12 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §5.1 Conversions
+  // == JLS 5.1 Conversions
   // ======================================================================
 
   /**
    * Widen the given primitive type to the given primitive type according to
-   * §5.1.2.  Includes identity conversion.
+   * JLS 5.1.2.  Includes identity conversion.
    */
   protected final IType widenPrimitive(final IType type, final IPrimitiveType widenTo) {
     if (!widenTo.canWiden(type)) {
@@ -311,7 +311,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   /**
-   * Box the given type according to §5.1.7.
+   * Box the given type according to JLS 5.1.7.
    */
   protected final IType box(final IType type) {
     if (isBooleanType(type)) {
@@ -339,7 +339,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   /**
-   * Unbox the given type according to §5.1.8.
+   * Unbox the given type according to JLS 5.1.8.
    */
   protected final IType unbox(final IType type) {
     /*
@@ -382,7 +382,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   /**
-   * Is the type "convertible to a numeric type" as defined in §5.1.8.
+   * Is the type "convertible to a numeric type" as defined in JLS 5.1.8.
    */
   protected final boolean isConvertibleToNumericType(final IType type) {
     return isNumericType(type) ||
@@ -396,7 +396,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   /**
-   * Is the type "convertible to a integral type" as defined in §5.1.8.
+   * Is the type "convertible to a integral type" as defined in JLS 5.1.8.
    */
   protected final boolean isConvertibleToIntegralType(final IType type) {
     return isIntegralType(type) ||
@@ -408,7 +408,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   /**
-   * Perform a capture conversion as defined in §5.1.10.
+   * Perform a capture conversion as defined in JLS 5.1.10.
    */
   protected final IType capture(final IType type) {
     // TODO: Make this real
@@ -416,7 +416,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   /**
-   * Perform a string conversion as defined in §5.1.11.
+   * Perform a string conversion as defined in JLS 5.1.11.
    */
   protected final IType string(final IRNode expr, final IType type) {
     // XXX: Probably want a preprocess method here
@@ -433,7 +433,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     return false;
   }
   
-  /* §5.5 Casting conversion */
+  /* JLS 5.5 Casting conversion */
 
   protected final boolean isCastable(final IType from, final IType to) {
     // TODO: make this real
@@ -454,7 +454,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   // ======================================================================
 
   /**
-   * Compute the least upper bound of type types as defined in §15.12.2.7.
+   * Compute the least upper bound of type types as defined in JLS 15.12.2.7.
    */
   protected final IType lub(final IType type1, final IType type2) {
     // TODO: Make this real
@@ -464,7 +464,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §5.6 Numeric Promotions
+  // == JLS 5.6 Numeric Promotions
   // ======================================================================
 
   /* Here we always assume that the promotion is possible: that is, that a 
@@ -477,7 +477,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   /**
    * Promote the given type using unary numeric promotion as defined 
-   * in §5.6.1.
+   * in JLS 5.6.1.
    */
   protected final IType unaryNumericPromotion(final IType type) {
     if (isNamedType(type, JAVA_LANG_BYTE) ||
@@ -500,7 +500,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   /**
    * Promote the given types using binary numeric promotion as defined
-   * in §5.6.2.
+   * in JLS 5.6.2.
    */
   protected final IType binaryNumericPromotion(
       IType type1, IType type2) {
@@ -532,9 +532,9 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
    */
   
   /**
-   * First checks if type is convertible to an integral type (§5.1.8), and if 
+   * First checks if type is convertible to an integral type (JLS 5.1.8), and if 
    * so, tests if the type is <code>int</code> after unary numeric promotion
-   * (§5.6.1).
+   * (JLS 5.6.1).
    */
   protected final void unaryNumericPromotionToIntIfConvertible(
       final IRNode expr, IType type)
@@ -547,8 +547,8 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   /**
-   * First checks if type is convertible to a numeric type (§5.1.8), and if 
-   * so, performs unary numeric promotion (§5.6.1).
+   * First checks if type is convertible to a numeric type (JLS 5.1.8), and if 
+   * so, performs unary numeric promotion (JLS 5.6.1).
    */
   protected final IType unaryNumericPromotionIfConvertibleToNumeric(
       final IRNode expr, final IType type)
@@ -559,8 +559,8 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   }
   
   /**
-   * First checks if type is convertible to an integral type (§5.1.8), and if 
-   * so, performs unary numeric promotion (§5.6.1).
+   * First checks if type is convertible to an integral type (JLS 5.1.8), and if 
+   * so, performs unary numeric promotion (JLS 5.6.1).
    */
   protected final IType unaryNumericPromotionIfConvertibleToIntegral(
       final IRNode expr, final IType type)
@@ -648,7 +648,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §6.5.6 Expression Names
+  // == JLS 6.5.6 Expression Names
   // ======================================================================
 
   /*
@@ -667,7 +667,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * assignment conversion or method invocation conversion or casting
      * conversion, then the type of the expression name is the declared type of
      * the field, local variable, or parameter after capture conversion
-     * (§5.1.10).
+     * (JLS 5.1.10).
      * 
      * That is, if the expression name appears "on the right hand side", its
      * type is subject to capture conversion. If the expression name is a
@@ -706,7 +706,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §8.3 Field Declarations
+  // == JLS 8.3 Field Declarations
   // ======================================================================
   
   // TODO
@@ -714,7 +714,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §9.3 Field (Constant) Declarations
+  // == JLS 9.3 Field (Constant) Declarations
   // ======================================================================
   
   // TODO
@@ -722,11 +722,11 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §10.6 Array Initializers
+  // == JLS 10.6 Array Initializers
   // ======================================================================
   
   /*
-   * Each variable initializer must be assignment-compatible (§5.2) with the
+   * Each variable initializer must be assignment-compatible (JLS 5.2) with the
    * array's component type, or a compile-time error occurs.
    */
   
@@ -741,7 +741,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.2 Blocks
+  // == JLS 14.2 Blocks
   // ======================================================================
 
   @Override
@@ -759,7 +759,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.3 Local Class Declarations
+  // == JLS 14.3 Local Class Declarations
   // ======================================================================
 
   @Override
@@ -776,7 +776,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.4 Local Variable Declaration Statements
+  // == JLS 14.4 Local Variable Declaration Statements
   // ======================================================================
   
   // TODO
@@ -785,7 +785,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.6 Empty Statement
+  // == JLS 14.6 Empty Statement
   // ======================================================================
 
   @Override
@@ -796,7 +796,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.7 Labeled Statement
+  // == JLS 14.7 Labeled Statement
   // ======================================================================
 
   @Override
@@ -812,7 +812,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.8 Expression Statement
+  // == JLS 14.8 Expression Statement
   // ======================================================================
 
   @Override
@@ -828,7 +828,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.9 The if Statement
+  // == JLS 14.9 The if Statement
   // ======================================================================
 
   @Override
@@ -838,7 +838,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * occurs.
      * 
      * If the result is of type Boolean, it is subject to unboxing conversion
-     * (§5.1.8).
+     * (JLS 5.1.8).
      */
     
     // Eat exceptions: result type is always void
@@ -861,7 +861,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.10 The assert Statement
+  // == JLS 14.10 The assert Statement
   // ======================================================================
 
   @Override
@@ -871,7 +871,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * Boolean.
      * 
      * If the result is of type Boolean, it is subject to unboxing conversion
-     * (§5.1.8).
+     * (JLS 5.1.8).
      */
     // Can eat the any failture because the return type is always void
     processCondition(AssertStatement.getAssertion(assertStmt));
@@ -887,10 +887,10 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * Boolean.
      * 
      * If the result is of type Boolean, it is subject to unboxing conversion
-     * (§5.1.8).
+     * (JLS 5.1.8).
      * 
      * In the second form of the assert statement, it is a compile-time error if
-     * Expression2 is void (§15.1).
+     * Expression2 is void (JLS 15.1).
      */
     // Can eat the any failture because the return type is always void
     processCondition(AssertMessageStatement.getAssertion(assertStmt));
@@ -911,7 +911,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.11 The switch Statement
+  // == JLS 14.11 The switch Statement
   // ======================================================================
 
   // TODO
@@ -919,7 +919,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.11 The while Statement
+  // == JLS 14.11 The while Statement
   // ======================================================================
 
   @Override
@@ -929,7 +929,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * occurs.
      * 
      * If the result is of type Boolean, it is subject to unboxing conversion
-     * (§5.1.8).
+     * (JLS 5.1.8).
      */
     // Eat the exception: Return type is always void
     processCondition(WhileStatement.getCond(whileStmt));
@@ -946,7 +946,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.13 The do Statement
+  // == JLS 14.13 The do Statement
   // ======================================================================
 
   @Override
@@ -956,7 +956,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * occurs.
      * 
      * If the result is of type Boolean, it is subject to unboxing conversion
-     * (§5.1.8).
+     * (JLS 5.1.8).
      */
     // Eat the exception: Return type is always void
     processCondition(DoStatement.getCond(doStmt));
@@ -973,7 +973,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.14 The for Statement
+  // == JLS 14.14 The for Statement
   // ======================================================================
 
   // TODO
@@ -981,7 +981,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.15 The break Statement
+  // == JLS 14.15 The break Statement
   // ======================================================================
 
   @Override
@@ -999,7 +999,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.16 The continue Statement
+  // == JLS 14.16 The continue Statement
   // ======================================================================
 
   @Override
@@ -1017,7 +1017,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.17 The return Statement
+  // == JLS 14.17 The return Statement
   // ======================================================================
 
   // TODO
@@ -1025,7 +1025,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.18 The throw Statement
+  // == JLS 14.18 The throw Statement
   // ======================================================================
 
   // TODO
@@ -1033,7 +1033,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.19 The synchronized Statement
+  // == JLS 14.19 The synchronized Statement
   // ======================================================================
 
   @Override
@@ -1069,7 +1069,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §14.20 The try Statement
+  // == JLS 14.20 The try Statement
   // ======================================================================
 
   @Override
@@ -1143,7 +1143,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.8.1 Lexical Literals
+  // == JLS 15.8.1 Lexical Literals
   // ======================================================================
 
   /**
@@ -1171,8 +1171,8 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   @Override
   public final IType visitIntLiteral(final IRNode intLiteral) {
     /*
-     * The type of an integer literal (§3.10.1) that ends with L or l is long
-     * (§4.2.1). The type of any other integer literal is int (§4.2.1).
+     * The type of an integer literal (JLS 3.10.1) that ends with L or l is long
+     * (JLS 4.2.1). The type of any other integer literal is int (JLS 4.2.1).
      */
     final IType type = getTypeBasedOnEndTag(
         IntLiteral.getToken(intLiteral), 'L', 
@@ -1187,10 +1187,10 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   @Override
   public final IType visitFloatLiteral(final IRNode floatLiteral) {
     /*
-     * The type of a floating-point literal (§3.10.2) that ends with F or f is
-     * float and its value must be an element of the float value set (§4.2.3).
+     * The type of a floating-point literal (JLS 3.10.2) that ends with F or f is
+     * float and its value must be an element of the float value set (JLS 4.2.3).
      * The type of any other floating-point literal is double and its value must
-     * be an element of the double value set (§4.2.3).
+     * be an element of the double value set (JLS 4.2.3).
      */
     final IType type = getTypeBasedOnEndTag(
         FloatLiteral.getToken(floatLiteral), 'F', 
@@ -1205,7 +1205,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   @Override
   public final IType visitBooleanLiteral(final IRNode booleanLiteral) {
     /*
-     * The type of a boolean literal (§3.10.3) is boolean (§4.2.5).
+     * The type of a boolean literal (JLS 3.10.3) is boolean (JLS 4.2.5).
      */
     return postProcessBooleanLiteral(
         booleanLiteral, typeFactory.getBooleanType());
@@ -1218,7 +1218,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   @Override
   public final IType visitCharLiteral(final IRNode charLiteral) {
     /*
-     * The type of a character literal (§3.10.4) is char (§4.2.1).
+     * The type of a character literal (JLS 3.10.4) is char (JLS 4.2.1).
      */
     return postProcessCharLiteral(charLiteral, typeFactory.getCharType());
   }
@@ -1230,7 +1230,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   @Override
   public final IType visitStringLiteral(final IRNode stringLiteral) {
     /*
-     * The type of a string literal (§3.10.5) is String (§4.3.3).
+     * The type of a string literal (JLS 3.10.5) is String (JLS 4.3.3).
      */
     return postProcessStringLiteral(stringLiteral, typeFactory.getStringType());
   }
@@ -1243,7 +1243,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   @Override
   public final IType visitNullLiteral(final IRNode nullLiteral) {
     /*
-     * The type of the null literal null (§3.10.7) is the null type (§4.1); its
+     * The type of the null literal null (JLS 3.10.7) is the null type (JLS 4.1); its
      * value is the null reference.
      */
     return postProcessNullLiteral(nullLiteral, typeFactory.getNullType());
@@ -1256,7 +1256,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.8.2 Class Literals
+  // == JLS 15.8.2 Class Literals
   // ======================================================================
 
   @Override
@@ -1264,13 +1264,13 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   public final IType visitClassExpression(final IRNode classExpr) {
     /*
      * The type of C.class, where C is the name of a class, interface, or array
-     * type (§4.3), is Class<C>.
+     * type (JLS 4.3), is Class<C>.
      * 
-     * The type of p.class, where p is the name of a primitive type (§4.2), is
+     * The type of p.class, where p is the name of a primitive type (JLS 4.2), is
      * Class<B>, where B is the type of an expression of type p after boxing
-     * conversion (§5.1.7).
+     * conversion (JLS 5.1.7).
      * 
-     * The type of void.class (§8.4.5) is Class<Void>.
+     * The type of void.class (JLS 8.4.5) is Class<Void>.
      */
     final IRNode typeExpr = ClassExpression.getType(classExpr);
     final Operator typeExprOp = JJNode.tree.getOperator(typeExpr);
@@ -1300,7 +1300,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.8.3 this
+  // == JLS 15.8.3 this
   // ======================================================================
   
   @Override
@@ -1322,7 +1322,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.8.4 Qualified this
+  // == JLS 15.8.4 Qualified this
   // ======================================================================
   
   @Override
@@ -1350,7 +1350,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.8.5 Parenthesized Expressions
+  // == JLS 15.8.5 Parenthesized Expressions
   // ======================================================================
   
   @Override
@@ -1372,7 +1372,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.9 Class Instance Creation Expressions
+  // == JLS 15.9 Class Instance Creation Expressions
   // ======================================================================
 
   // TODO
@@ -1380,17 +1380,17 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.10 Array Creation Expressions
+  // == JLS 15.10 Array Creation Expressions
   // ======================================================================
   
   @Override
   public final IType visitArrayCreationExpression(final IRNode arrayExpr) {
     /*
      * The type of each dimension expression within a DimExpr must be a type
-     * that is convertible (§5.1.8) to an integral type, or a compile-time error
+     * that is convertible (JLS 5.1.8) to an integral type, or a compile-time error
      * occurs.
      * 
-     * Each dimension expression undergoes unary numeric promotion (§5.6.1). The
+     * Each dimension expression undergoes unary numeric promotion (JLS 5.6.1). The
      * promoted type must be int, or a compile-time error occurs.
      */
     final IRNode dimExprs = ArrayCreationExpression.getAllocated(arrayExpr);
@@ -1451,7 +1451,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.11 Field Access Expressions
+  // == JLS 15.11 Field Access Expressions
   // ======================================================================
   
   @Override
@@ -1461,9 +1461,9 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * This rule technically only applies when the object expression is a
      * Primary, "super", or "ClassName.super" expression: The type of the field
      * access expression is the type of the member field after capture
-     * conversion (§5.1.10).
+     * conversion (JLS 5.1.10).
      * 
-     * But the rules in §6.5.6 for expression names, also say to use the
+     * But the rules in JLS 6.5.6 for expression names, also say to use the
      * type of the field after capture conversion, except in the case where we
      * have a simple expression name "f" that refers to a non-final instance 
      * field.  In that case, we are only supposed to use capture conversion
@@ -1491,7 +1491,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * of the accessed field, or the EnumConstantDeclaration of the accessed
      * enumeration constant.
      * 
-     * N.B. Per §8.9.2 the type of an enumeration constant is the enumeration
+     * N.B. Per JLS 8.9.2 the type of an enumeration constant is the enumeration
      * type E that contains the constant declaration.
      */
     final IRNode varDecl = getBinding(fieldRefExpr);
@@ -1528,7 +1528,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.12 Method Invocation Expressions
+  // == JLS 15.12 Method Invocation Expressions
   // ======================================================================
   
   // TODO
@@ -1536,7 +1536,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.13 Array Access Expressions
+  // == JLS 15.13 Array Access Expressions
   // ======================================================================
  
   @Override
@@ -1546,11 +1546,11 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * The type of the array reference expression must be an array type (call it
      * T[], an array whose components are of type T).
      * 
-     * The index expression undergoes unary numeric promotion (§5.6.1). The
+     * The index expression undergoes unary numeric promotion (JLS 5.6.1). The
      * promoted type must be int, or a compile-time error occurs.
      * 
      * The type of the array access expression is the result of applying capture
-     * conversion (§5.1.10) to T.
+     * conversion (JLS 5.1.10) to T.
      */
     
     /* If there is a type-error when visiting the reference expression, or the
@@ -1591,7 +1591,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.14.2 Postfix Increment Operator
+  // == JLS 15.14.2 Postfix Increment Operator
   // ======================================================================
   
   @Override
@@ -1599,11 +1599,11 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   throws TypeCheckingFailed {
     /*
      * The result of the postfix expression must be a variable of a type that is
-     * convertible (§5.1.8) to a numeric type, or a compile-time error occurs.
+     * convertible (JLS 5.1.8) to a numeric type, or a compile-time error occurs.
      * 
      * The type of the postfix increment expression is the type of the variable.
      * 
-     * Before the addition, binary numeric promotion (§5.6.2) is performed on
+     * Before the addition, binary numeric promotion (JLS 5.6.2) is performed on
      * the value 1 and the value of the variable.
      */
     
@@ -1625,7 +1625,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.14.3 Postfix Decrement Operator
+  // == JLS 15.14.3 Postfix Decrement Operator
   // ======================================================================
   
   @Override
@@ -1633,11 +1633,11 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   throws TypeCheckingFailed {
     /*
      * The result of the postfix expression must be a variable of a type that is
-     * convertible (§5.1.8) to a numeric type, or a compile-time error occurs.
+     * convertible (JLS 5.1.8) to a numeric type, or a compile-time error occurs.
      * 
      * The type of the postfix decrement expression is the type of the variable.
      * 
-     * Before the subtraction, binary numeric promotion (§5.6.2) is performed on
+     * Before the subtraction, binary numeric promotion (JLS 5.6.2) is performed on
      * the value 1 and the value of the variable.
      */
 
@@ -1659,7 +1659,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.15.1 Prefix Increment Operator
+  // == JLS 15.15.1 Prefix Increment Operator
   // ======================================================================
   
   @Override
@@ -1667,11 +1667,11 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   throws TypeCheckingFailed {
     /*
      * The result of the unary expression must be a variable of a type that is
-     * convertible (§5.1.8) to a numeric type, or a compile-time error occurs.
+     * convertible (JLS 5.1.8) to a numeric type, or a compile-time error occurs.
      * 
      * The type of the prefix increment expression is the type of the variable.
      * 
-     * Before the addition, binary numeric promotion (§5.6.2) is performed on
+     * Before the addition, binary numeric promotion (JLS 5.6.2) is performed on
      * the value 1 and the value of the variable.
      */
 
@@ -1693,7 +1693,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.15.2 Prefix Decrement Operator
+  // == JLS 15.15.2 Prefix Decrement Operator
   // ======================================================================
   
   @Override
@@ -1701,11 +1701,11 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   throws TypeCheckingFailed {
     /*
      * The result of the unary expression must be a variable of a type that is
-     * convertible (§5.1.8) to a numeric type, or a compile-time error occurs.
+     * convertible (JLS 5.1.8) to a numeric type, or a compile-time error occurs.
      * 
      * The type of the prefix decrement expression is the type of the variable.
      * 
-     * Before the subtraction, binary numeric promotion (§5.6.2) is performed on
+     * Before the subtraction, binary numeric promotion (JLS 5.6.2) is performed on
      * the value 1 and the value of the variable.
      */
     
@@ -1727,7 +1727,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.15.3 Unary Plus Operator
+  // == JLS 15.15.3 Unary Plus Operator
   // ======================================================================
   
   @Override
@@ -1735,10 +1735,10 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   throws TypeCheckingFailed {
     /*
      * The type of the operand expression of the unary + operator must be a type
-     * that is convertible (§5.1.8) to a primitive numeric type, or a
+     * that is convertible (JLS 5.1.8) to a primitive numeric type, or a
      * compile-time error occurs.
      * 
-     * Unary numeric promotion (§5.6.1) is performed on the operand. The type of
+     * Unary numeric promotion (JLS 5.6.1) is performed on the operand. The type of
      * the unary plus expression is the promoted type of the operand.
      */
     
@@ -1760,7 +1760,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.15.4 Unary Minus Operator
+  // == JLS 15.15.4 Unary Minus Operator
   // ======================================================================
   
   @Override
@@ -1768,10 +1768,10 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   throws TypeCheckingFailed {
     /*
      * The type of the operand expression of the unary - operator must be a type
-     * that is convertible (§5.1.8) to a primitive numeric type, or a
+     * that is convertible (JLS 5.1.8) to a primitive numeric type, or a
      * compile-time error occurs.
      * 
-     * Unary numeric promotion (§5.6.1) is performed on the operand.
+     * Unary numeric promotion (JLS 5.6.1) is performed on the operand.
      * 
      * The type of the unary minus expression is the promoted type of the
      * operand.
@@ -1795,7 +1795,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.15.5 Bitwise Complement Operator ~
+  // == JLS 15.15.5 Bitwise Complement Operator ~
   // ======================================================================
   
   @Override
@@ -1803,10 +1803,10 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   throws TypeCheckingFailed {
     /*
      * The type of the operand expression of the unary ~ operator must be a type
-     * that is convertible (§5.1.8) to a primitive integral type, or a
+     * that is convertible (JLS 5.1.8) to a primitive integral type, or a
      * compile-time error occurs.
      * 
-     * Unary numeric promotion (§5.6.1) is performed on the operand. The type of
+     * Unary numeric promotion (JLS 5.6.1) is performed on the operand. The type of
      * the unary bitwise complement expression is the promoted type of the
      * operand.
      */
@@ -1829,7 +1829,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.15.6 Logical Complement Operator !
+  // == JLS 15.15.6 Logical Complement Operator !
   // ======================================================================
   
   @Override
@@ -1840,7 +1840,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * 
      * The type of the unary logical complement expression is boolean.
      * 
-     * At run-time, the operand is subject to unboxing conversion (§5.1.8) if
+     * At run-time, the operand is subject to unboxing conversion (JLS 5.1.8) if
      * necessary.
      */
     
@@ -1859,19 +1859,19 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
 
 
   // ======================================================================
-  // == §15.16 Cast Expressions
+  // == JLS 15.16 Cast Expressions
   // ======================================================================
 
   @Override
   public final IType visitCastExpression(final IRNode expr) {
     /*
      * The type of a cast expression is the result of applying capture
-     * conversion (§5.1.10) to the type whose name appears within the
+     * conversion (JLS 5.1.10) to the type whose name appears within the
      * parentheses.
      * 
      * It is a compile-time error if the compile-time type of the operand may
      * never be cast to the type specified by the cast operator according to the
-     * rules of casting conversion (§5.5).
+     * rules of casting conversion (JLS 5.5).
      */
     final IType type = typeFactory.getTypeFromExpression(
         CastExpression.getType(expr));
@@ -1894,7 +1894,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
 
 
   // ======================================================================
-  // == §15.17 Multiplicative Operators
+  // == JLS 15.17 Multiplicative Operators
   // ======================================================================
   
   private IType visitMultiplicativeOperator(
@@ -1902,10 +1902,10 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   throws TypeCheckingFailed {
     /*
      * The type of each of the operands of a multiplicative operator must be a
-     * type that is convertible (§5.1.8) to a primitive numeric type, or a
+     * type that is convertible (JLS 5.1.8) to a primitive numeric type, or a
      * compile-time error occurs.
      * 
-     * Binary numeric promotion is performed on the operands (§5.6.2).
+     * Binary numeric promotion is performed on the operands (JLS 5.6.2).
      * 
      * The type of a multiplicative expression is the promoted type of its
      * operands.
@@ -1965,14 +1965,14 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
 
 
   // ======================================================================
-  // == §15.18.1 String Concatenation Operator +
+  // == JLS 15.18.1 String Concatenation Operator +
   // ======================================================================
 
   @Override
   public IType visitStringConcat(final IRNode concat) {
     /*
      * If only one operand expression is of type String, then string conversion
-     * (§5.1.11) is performed on the other operand to produce a string at
+     * (JLS 5.1.11) is performed on the other operand to produce a string at
      * run-time.
      * 
      * The result of string concatenation is a reference to a String object that
@@ -2014,7 +2014,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
 
 
   // ======================================================================
-  // == §15.18.1 Additive Operators (+ and -) for Numeric Types
+  // == JLS 15.18.1 Additive Operators (+ and -) for Numeric Types
   // ======================================================================
 
   private IType visitAdditiveOperator(
@@ -2022,10 +2022,10 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   throws TypeCheckingFailed {
     /*
      * The type of each of the operands of the + operator must be a type that is
-     * convertible (§5.1.8) to a primitive numeric type, or a compile-time error
+     * convertible (JLS 5.1.8) to a primitive numeric type, or a compile-time error
      * occurs.
      * 
-     * Binary numeric promotion is performed on the operands (§5.6.2).
+     * Binary numeric promotion is performed on the operands (JLS 5.6.2).
      * 
      * The type of an additive expression on numeric operands is the promoted
      * type of its operands.
@@ -2075,15 +2075,15 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
 
 
   // ======================================================================
-  // == §15.19 Shift Operators
+  // == JLS 15.19 Shift Operators
   // ======================================================================
 
   private IType visitShiftOperator(
       final IRNode expr, final IRNode op1, final IRNode op2)
   throws TypeCheckingFailed {
     /*
-     * Unary numeric promotion (§5.6.1) is performed on each operand separately.
-     * (Binary numeric promotion (§5.6.2) is not performed on the operands.)
+     * Unary numeric promotion (JLS 5.6.1) is performed on each operand separately.
+     * (Binary numeric promotion (JLS 5.6.2) is not performed on the operands.)
      * 
      * It is a compile-time error if the type of each of the operands of a shift
      * operator, after unary numeric promotion, is not a primitive integral
@@ -2158,7 +2158,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
 
 
   // ======================================================================
-  // == §15.20.1 Numerical Comparison Operators <, <=, >, and >=
+  // == JLS 15.20.1 Numerical Comparison Operators <, <=, >, and >=
   // ======================================================================
 
   private IType visitNumericalComparison(
@@ -2167,10 +2167,10 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * The type of a relational expression is always boolean.
      * 
      * The type of each of the operands of a numerical comparison operator must
-     * be a type that is convertible (§5.1.8) to a primitive numeric type, or a
+     * be a type that is convertible (JLS 5.1.8) to a primitive numeric type, or a
      * compile-time error occurs.
      * 
-     * Binary numeric promotion is performed on the operands (§5.6.2).
+     * Binary numeric promotion is performed on the operands (JLS 5.6.2).
      */
     try {
       final IType type1 = doAccept(op1);
@@ -2240,7 +2240,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
 
 
   // ======================================================================
-  // == §15.20.2 Type Comparison Operator instanceof
+  // == JLS 15.20.2 Type Comparison Operator instanceof
   // ======================================================================
 
   @Override
@@ -2252,7 +2252,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * 
      * It is a compile-time error if the ReferenceType mentioned after the
      * instanceof operator does not denote a reference type that is reifiable
-     * (§4.7).
+     * (JLS 4.7).
      */
     
     try {
@@ -2286,7 +2286,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.21 Equality Operators
+  // == JLS 15.21 Equality Operators
   // ======================================================================
 
   protected final IType visitEqualityOperator(
@@ -2311,30 +2311,30 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
     
     if (type1 != null && type2 != null) {
       /*
-       * §15.21.1 Numerical Equality Operators == and !=
+       * JLS 15.21.1 Numerical Equality Operators == and !=
        * 
        * If the operands of an equality operator are both of numeric type, or
-       * one is of numeric type and the other is convertible (§5.1.8) to numeric
-       * type, binary numeric promotion is performed on the operands (§5.6.2).
+       * one is of numeric type and the other is convertible (JLS 5.1.8) to numeric
+       * type, binary numeric promotion is performed on the operands (JLS 5.6.2).
        * 
        * 
-       * §15.21.2 Numerical Equality Operators == and !=
+       * JLS 15.21.2 Numerical Equality Operators == and !=
        * 
        * If the operands of an equality operator are both of type boolean, or if
        * one operand is of type boolean and the other is of type Boolean, then
        * the operation is boolean equality.
        * 
        * If one of the operands is of type Boolean, it is subjected to unboxing
-       * conversion (§5.1.8).
+       * conversion (JLS 5.1.8).
        * 
        * 
-       * §15.21.3 Reference Equality Operators == and !=
+       * JLS 15.21.3 Reference Equality Operators == and !=
        * 
        * If the operands of an equality operator are both of either reference
        * type or the null type, then the operation is object equality.
        * 
        * It is a compile-time error if it is impossible to convert the type of
-       * either operand to the type of the other by a casting conversion (§5.5).
+       * either operand to the type of the other by a casting conversion (JLS 5.5).
        * The run-time values of the two operands would necessarily be unequal.
        */
       final boolean isNumeric1 = isNumericType(type1);
@@ -2410,28 +2410,28 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
   
   // ======================================================================
-  // == §15.22 Bitwise and Logical Operators
+  // == JLS 15.22 Bitwise and Logical Operators
   // ======================================================================
   
   private IType visitBitwiseAndLogical(
       final IRNode expr, final IRNode op1, final IRNode op2)
   throws TypeCheckingFailed {
     /*
-     * §15.22.1 Integer Bitwise Operators &, ^, and |
+     * JLS 15.22.1 Integer Bitwise Operators &, ^, and |
      * 
      * When both operands of an operator &, ^, or | are of a type that is
-     * convertible (§5.1.8) to a primitive integral type, binary numeric
-     * promotion is first performed on the operands (§5.6.2).
+     * convertible (JLS 5.1.8) to a primitive integral type, binary numeric
+     * promotion is first performed on the operands (JLS 5.6.2).
      * 
      * The type of the bitwise operator expression is the promoted type of the
      * operands.
      * 
      * 
-     * §15.22.2 Boolean Logical Operators &, ^, and |
+     * JLS 15.22.2 Boolean Logical Operators &, ^, and |
      * 
      * When both operands of a &, ^, or | operator are of type boolean or
      * Boolean, then the type of the bitwise operator expression is boolean. In
-     * all cases, the operands are subject to unboxing conversion (§5.1.8) as
+     * all cases, the operands are subject to unboxing conversion (JLS 5.1.8) as
      * necessary.
      */
     
@@ -2499,7 +2499,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
 
 
   // ======================================================================
-  // == §15.23 Conditional-And Operator
+  // == JLS 15.23 Conditional-And Operator
   // ======================================================================
   
   @Override
@@ -2511,11 +2511,11 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * The type of a conditional-and expression is always boolean.
      * 
      * At run-time, the left-hand operand expression is evaluated first; if the
-     * result has type Boolean, it is subjected to unboxing conversion (§5.1.8).
+     * result has type Boolean, it is subjected to unboxing conversion (JLS 5.1.8).
      * 
      * If the value of the left-hand operand is true, then the right-hand
      * expression is evaluated; if the result has type Boolean, it is subjected
-     * to unboxing conversion (§5.1.8).
+     * to unboxing conversion (JLS 5.1.8).
      */
 
     /* Can eat the exception because the result type is always boolean. */
@@ -2536,7 +2536,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
 
 
   // ======================================================================
-  // == §15.24 Conditional-Or Operator
+  // == JLS 15.24 Conditional-Or Operator
   // ======================================================================
   
   @Override
@@ -2548,11 +2548,11 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * The type of a conditional-or expression is always boolean.
      * 
      * At run-time, the left-hand operand expression is evaluated first; if the
-     * result has type Boolean, it is subjected to unboxing conversion (§5.1.8).
+     * result has type Boolean, it is subjected to unboxing conversion (JLS 5.1.8).
      * 
      * If the value of the left-hand operand is false, then the right-hand
      * expression is evaluated; if the result has type Boolean, it is subjected
-     * to unboxing conversion (§5.1.8).
+     * to unboxing conversion (JLS 5.1.8).
      */
 
     /* Can eat the exception because the result type is always boolean. */
@@ -2573,7 +2573,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
 
 
   // ======================================================================
-  // == §15.25 Conditional Operator ?:
+  // == JLS 15.25 Conditional Operator ?:
   // ======================================================================
 
   @Override
@@ -2592,7 +2592,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * null type), then that is the type of the conditional expression.
      * 
      * If one of the second and third operands is of primitive type T, and the
-     * type of the other is the result of applying boxing conversion (§5.1.7) to
+     * type of the other is the result of applying boxing conversion (JLS 5.1.7) to
      * T, then the type of the conditional expression is T.
      * 
      * If one of the second and third operands is of the null type and the type
@@ -2600,23 +2600,23 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * expression is that reference type.
      * 
      * Otherwise, if the second and third operands have types that are
-     * convertible (§5.1.8) to numeric types, then there are several cases:
+     * convertible (JLS 5.1.8) to numeric types, then there are several cases:
      * 
      * If one of the operands is of type byte or Byte and the other is of type
      * short or Short, then the type of the conditional expression is short.
      * 
      * If one of the operands is of type T where T is byte, short, or char, and
-     * the other operand is a constant expression (§15.28) of type int whose
+     * the other operand is a constant expression (JLS 15.28) of type int whose
      * value is representable in type T, then the type of the conditional
      * expression is T.
      * 
      * If one of the operands is of type T, where T is Byte, Short, or
-     * Character, and the other operand is a constant expression (§15.28) of
+     * Character, and the other operand is a constant expression (JLS 15.28) of
      * type int whose value is representable in the type U which is the result
      * of applying unboxing conversion to T, then the type of the conditional
      * expression is U.
      * 
-     * Otherwise, binary numeric promotion (§5.6.2) is applied to the operand
+     * Otherwise, binary numeric promotion (JLS 5.6.2) is applied to the operand
      * types, and the type of the conditional expression is the promoted type of
      * the second and third operands.
      * 
@@ -2626,7 +2626,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
      * boxing conversion to S2.
      * 
      * The type of the conditional expression is the result of applying capture
-     * conversion (§5.1.10) to lub(T1, T2) (§15.12.2.7).
+     * conversion (JLS 5.1.10) to lub(T1, T2) (JLS 15.12.2.7).
      * 
      * At run-time, the first operand expression of the conditional expression
      * is evaluated first. If necessary, unboxing conversion is performed on the
@@ -2666,7 +2666,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
       result = type2;
     } else if (isConvertibleToNumericType(type2) && isConvertibleToNumericType(type3)) {
       /* Need to be careful about order here: check "constant expressions" 
-       * first, even though they are described after the byte–short option.
+       * first, even though they are described after the byteJLS short option.
        * 
        *  XXX: Not worried about constant expressions for now.
        */
@@ -2693,7 +2693,7 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   
 
   // ======================================================================
-  // == §15.26 Assignment Operators
+  // == JLS 15.26 Assignment Operators
   // ======================================================================
 
   /*
@@ -2702,10 +2702,10 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
    * 
    * This operand may be a named variable, such as a local variable or a field
    * of the current object or class, or it may be a computed variable, as can
-   * result from a field access (§15.11) or an array access (§15.13).
+   * result from a field access (JLS 15.11) or an array access (JLS 15.13).
    * 
    * The type of the assignment expression is the type of the variable after
-   * capture conversion (§5.1.10).
+   * capture conversion (JLS 5.1.10).
    */
 
   @Override
@@ -2713,10 +2713,10 @@ public class TypeChecker extends VisitorWithException<IType, TypeCheckingFailed>
   throws TypeCheckingFailed {
     /*
      * The type of the assignment expression is the type of the variable after
-     * capture conversion (§5.1.10).
+     * capture conversion (JLS 5.1.10).
      * 
      * A compile-time error occurs if the type of the right-hand operand cannot
-     * be converted to the type of the variable by assignment conversion (§5.2).
+     * be converted to the type of the variable by assignment conversion (JLS 5.2).
      */
     
     // Don't catch failures on the lhs

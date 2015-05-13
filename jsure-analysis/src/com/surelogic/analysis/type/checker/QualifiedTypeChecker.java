@@ -51,7 +51,7 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   @Override
   public final Void visitBoxExpression(final IRNode e) {
     /*
-     * §5.1.7
+     * JLS 5.1.7
      * 
      * A boxing conversion may result in an OutOfMemoryError if a new instance
      * of one of the wrapper classes (Boolean, Byte, Character, Short, Integer,
@@ -73,9 +73,9 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   @Override
   public final Void visitUnboxExpression(final IRNode e) {
     /*
-     * §5.1.8
+     * JLS 5.1.8
      * 
-     * At run-time, unboxing conversion proceeds as follows: …
+     * At run-time, unboxing conversion proceeds as follows: JLS 
      * 
      * If r is null, unboxing conversion throws a NullPointerException
      */
@@ -100,10 +100,10 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
     super.handleFieldDeclaration(fd);
     
     /*
-     * §8.3.2
+     * JLS 8.3.2
      * 
      * If a field declarator contains a variable initializer, then it has the
-     * semantics of an assignment (§15.26) to the declared variable.
+     * semantics of an assignment (JLS 15.26) to the declared variable.
      */
     final Iterator<IRNode> varDecls = 
         VariableDeclarators.getVarIterator(FieldDeclaration.getVars(fd));
@@ -148,12 +148,12 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   @Override
   public final Void visitReturnStatement(final IRNode s) {
     /*
-     * §14.17
+     * JLS 14.17
      * 
      * The Expression must denote a variable or value of some type T, or a
      * compile-time error occurs.
      * 
-     * The type T must be assignable (§5.2) to the declared result type of the
+     * The type T must be assignable (JLS 5.2) to the declared result type of the
      * method, or a compile-time error occurs.
      */
     doAcceptForChildren(s);
@@ -171,7 +171,7 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   @Override
   public final Void visitThrowStatement(final IRNode s) {
     /*
-     * §14.18
+     * JLS 14.18
      * 
      * A throw statement first evaluates the Expression. Then:
      * 
@@ -195,7 +195,7 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   @Override
   public final Void visitSynchronizedStatement(final IRNode s) {
     /*
-     * §14.19
+     * JLS 14.19
      * 
      * A synchronized statement is executed by first evaluating the Expression.
      * Then:
@@ -221,14 +221,14 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   @Override
   public final Void visitOuterObjectSpecifier(final IRNode e) {
     /*
-     * §15.9.4
+     * JLS 15.9.4
      * 
      * if the class instance creation expression is a qualified class instance
      * creation expression, the qualifying primary expression is evaluated. If
      * the qualifying expression evaluates to null, a NullPointerException is
      * raised, and the class instance creation expression completes abruptly.
      * 
-     * §8.8.7.1
+     * JLS 8.8.7.1
      * 
      * If the superclass constructor invocation is qualified, then the Primary
      * expression p immediately preceding ".super" is evaluated.
@@ -252,7 +252,7 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
     super.handleMethodCall(e); // made sure handleAsMethodCall() is called
     
     /*
-     * §15.12.4.4
+     * JLS 15.12.4.4
      * 
      * Otherwise, an instance method is to be invoked and there is a target
      * reference. If the target reference is null, a NullPointerException is
@@ -272,7 +272,7 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
 
   @Override
   protected final void handleAsMethodCall(final IRNode e) {
-    /* Here we deal with formal–actual parameter matching for all
+    /* Here we deal with formalJLS actual parameter matching for all
      * types of calls.
      */
     try {
@@ -298,16 +298,16 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   @Override
   public final Void visitArrayCreationExpression(final IRNode e) {
     /*
-     * §15.10.1
+     * JLS 15.10.1
      * 
      * If there are no dimension expressions, then there must be an array
      * initializer.
      * 
      * A newly allocated array will be initialized with the values provided by
-     * the array initializer as described in §10.6.
+     * the array initializer as described in JLS 10.6.
      * 
-     * From §10.6: Each variable initializer must be assignment-compatible
-     * (§5.2) with the array's component type, or a compile-time error occurs.
+     * From JLS 10.6: Each variable initializer must be assignment-compatible
+     * (JLS 5.2) with the array's component type, or a compile-time error occurs.
      * 
      * XXX: Not going to worry about checking initalizers yet.  They also
      * come up when checking field declarations and local variable declarations.
@@ -329,9 +329,9 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   @Override
   public final Void visitFieldRef(final IRNode e) {
     /*
-     * §15.11.1
+     * JLS 15.11.1
      * 
-     * If the field is not static: … If the value of the Primary is null, then a
+     * If the field is not static: JLS  If the value of the Primary is null, then a
      * NullPointerException is thrown.
      */
     doAcceptForChildren(e);
@@ -347,7 +347,7 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   @Override
   public final Void visitArrayRefExpression(final IRNode e) {
     /*
-     * §15.13
+     * JLS 15.13
      * 
      * Otherwise, if the value of the array reference expression is null, then a
      * NullPointerException is thrown.
@@ -371,7 +371,7 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   @Override
   public final Void visitDivExpression(final IRNode e) {
     /*
-     * §15.17.2
+     * JLS 15.17.2
      * 
      * If the value of the divisor in an integer division is 0, then an
      * ArithmeticException is thrown.
@@ -388,7 +388,7 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   @Override
   public final Void visitRemExpression(final IRNode e) {
     /*
-     * §15.17.3
+     * JLS 15.17.3
      * 
      * If the value of the divisor for an integer remainder operator is 0, then
      * an ArithmeticException is thrown.
@@ -405,15 +405,15 @@ public abstract class QualifiedTypeChecker<Q> extends AbstractJavaAnalysisDriver
   @Override
   public final Void visitAssignExpression(final IRNode e) {
     /*
-     * §15.26.1
+     * JLS 15.26.1
      * 
      * A compile-time error occurs if the type of the right-hand operand cannot
-     * be converted to the type of the variable by assignment conversion (§5.2).
+     * be converted to the type of the variable by assignment conversion (JLS 5.2).
      * 
      * N.B. Most of this is actually handled by visitFieldRef() and
      * visitArrayRefExpression().
      * 
-     * If the left-hand operand is an array access expression (§15.13) then an
+     * If the left-hand operand is an array access expression (JLS 15.13) then an
      * ArrayStoreException is raised if the run-time type of the object being
      * assigned to the array is a proper supertype of the run-time type of the
      * array element.

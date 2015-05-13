@@ -18,16 +18,16 @@ import edu.cmu.cs.fluid.java.operator.StringLiteral;
    A compile-time constant expression is an expression denoting a value of primitive
 type or a String that does not complete abruptly and is composed using only the
 following:
-• Literals of primitive type and literals of type String (§3.10.1, §3.10.2, §3.10.3,
-§3.10.4, §3.10.5)
-• Casts to primitive types and casts to type String (§15.16)
-• The additive operators + and - (§15.18)
-• The ternary conditional operator ? : (§15.25)
-• Parenthesized expressions (§15.8.5) whose contained expression is a constant
+* Literals of primitive type and literals of type String (JLS 3.10.1, JLS 3.10.2, JLS 3.10.3,
+JLS 3.10.4, JLS 3.10.5)
+* Casts to primitive types and casts to type String (JLS 15.16)
+* The additive operators + and - (JLS 15.18)
+* The ternary conditional operator ? : (JLS 15.25)
+* Parenthesized expressions (JLS 15.8.5) whose contained expression is a constant
 expression.
-• Simple names (§6.5.6.1) that refer to constant variables (§4.12.4).
-• Qualified names (§6.5.6.2) of the form TypeName . Identifier that refer to
-constant variables (§4.12.4). 
+* Simple names (JLS 6.5.6.1) that refer to constant variables (JLS 4.12.4).
+* Qualified names (JLS 6.5.6.2) of the form TypeName . Identifier that refer to
+constant variables (JLS 4.12.4). 
  */
 public class ConstantStringExprVisitor extends ConstantExprVisitor<String> {	
 	ConstantStringExprVisitor(IBinder b) {

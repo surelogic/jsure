@@ -46,7 +46,7 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 
 /**
  * Visitor that is used to determine if an expression is a "constant
- * expression" as defined in JLS ¤15.28.
+ * expression" as defined in JLS 15.28.
  */
 public class ConstantExpressionVisitor extends Visitor<Boolean> {
   private static final String NULL_AS_STRING = "\"null\"";
@@ -72,7 +72,7 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   
   /*
    * Literals of primitive type and literals of type String
-   * (¤3.10.1,¤3.10.2,¤3.10.3, ¤3.10.4, ¤3.10.5)
+   * (JLS 3.10.1,JLS 3.10.2,JLS 3.10.3, JLS 3.10.4, JLS 3.10.5)
    */
   
   @Override
@@ -113,7 +113,7 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   
   
   /*
-   * Casts to primitive types and casts to type String (¤15.16)
+   * Casts to primitive types and casts to type String (JLS 15.16)
    */
   
   @Override
@@ -137,8 +137,8 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   
   
   /*
-   * The unary operators +, -, ~, and ! (but not ++ or --) (¤15.15.3, ¤15.15.4,
-   * ¤15.15.5, ¤15.15.6)
+   * The unary operators +, -, ~, and ! (but not ++ or --) (JLS 15.15.3, JLS 15.15.4,
+   * JLS 15.15.5, JLS 15.15.6)
    */
   
   @Override
@@ -164,7 +164,7 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   
   
   /*
-   * The multiplicative operators *, /, and % (¤15.17)
+   * The multiplicative operators *, /, and % (JLS 15.17)
    */
   
   @Override
@@ -188,7 +188,7 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   
   
   /*
-   * The additive operators + and - (¤15.18)
+   * The additive operators + and - (JLS 15.18)
    */
   
   @Override
@@ -212,7 +212,7 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   
   
   /*
-   * The shift operators <<, >>, and >>> (¤15.19)
+   * The shift operators <<, >>, and >>> (JLS 15.19)
    */
   
   @Override
@@ -236,7 +236,7 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   
   
   /*
-   * The relational operators <, <=, >, and >= (but not instanceof) (¤15.20)
+   * The relational operators <, <=, >, and >= (but not instanceof) (JLS 15.20)
    */
   
   @Override
@@ -266,7 +266,7 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   
   
   /*
-   * The equality operators == and != (¤15.21)
+   * The equality operators == and != (JLS 15.21)
    */
   
   @Override
@@ -284,7 +284,7 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
 
 
   /*
-   * The bitwise and logical operators &, ^, and | (¤15.22)
+   * The bitwise and logical operators &, ^, and | (JLS 15.22)
    */
   
   @Override
@@ -308,8 +308,8 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   
   
   /*
-   * The conditional-and operator && and the conditional-or operator || (¤15.23,
-   * ¤15.24)
+   * The conditional-and operator && and the conditional-or operator || (JLS 15.23,
+   * JLS 15.24)
    */
   
   @Override
@@ -327,7 +327,7 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   
   
   /*
-   * The ternary conditional operator ? : (¤15.25)
+   * The ternary conditional operator ? : (JLS 15.25)
    */
   
   @Override
@@ -340,7 +340,7 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   
   
   /*
-   * Parenthesized expressions (¤15.8.5) whose contained expression is a
+   * Parenthesized expressions (JLS 15.8.5) whose contained expression is a
    * constant expression.
    */
   
@@ -352,14 +352,14 @@ public class ConstantExpressionVisitor extends Visitor<Boolean> {
   
   
   /*
-   * Simple names (¤6.5.6.1) that refer to constant variables (¤4.12.4).
+   * Simple names (JLS 6.5.6.1) that refer to constant variables (JLS 4.12.4).
    * 
-   * Qualified names (¤6.5.6.2) of the form TypeName . Identifier that refer to
-   * constant variables (¤4.12.4).
+   * Qualified names (JLS 6.5.6.2) of the form TypeName . Identifier that refer to
+   * constant variables (JLS 4.12.4).
    * 
    * 
    * A variable of primitive type or type String, that is final and initialized
-   * with a compile-time constant expression (¤15.28), is called a constant
+   * with a compile-time constant expression (JLS 15.28), is called a constant
    * variable.
    */
   @Override
