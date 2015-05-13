@@ -210,8 +210,9 @@ public class JcipRules extends AnnotationRules {
 				context.reportError(anno, "Primitive-typed field \""+targetId+"\" is final and does not need locking");
 				return null;
 			} else {
-				// An Object, and thus needs @UniqueInRegion
-				newRegionId = makeNewInRegion(lockId, true);
+				// WRONG: An Object, and thus needs @UniqueInRegion
+				// The JCIP spec for @GuardedBy has no notion of aggregation
+				newRegionId = makeNewInRegion(lockId, false);
 			}
 		} else {
 			newRegionId = makeNewInRegion(lockId, false);
