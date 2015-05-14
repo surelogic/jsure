@@ -25,20 +25,6 @@ public final class LibResources {
   public static final String HTML_DOCS_ZIP_PATHNAME = PATH + HTML_DOCS_ZIP;
 
   /**
-   * The name of the archive that contains the JSure Ant tasks.
-   * <p>
-   * Within this Zip should be a single directory of the form <tt>jsure-ant</tt>
-   * . The name of the Zip file is versioned when it is saved to the disk, e.g.,
-   * <tt>jsure-ant-5.6.0.zip</tt>.
-   */
-  public static final String ANT_TASK_ZIP = "jsure-ant.zip";
-
-  /**
-   * Full path to the JSure Ant tasks within this Eclipse plugin.
-   */
-  public static final String ANT_TASK_ZIP_PATHNAME = PATH + ANT_TASK_ZIP;
-
-  /**
    * The name of the archive that contains the JSure Maven plugin.
    * <p>
    * Within this Zip should be a single directory of the form

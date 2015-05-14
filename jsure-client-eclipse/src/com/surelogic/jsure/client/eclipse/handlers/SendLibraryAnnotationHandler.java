@@ -71,7 +71,7 @@ public class SendLibraryAnnotationHandler extends AbstractHandler {
 		/**
 		 * Qualified names of packages or types that changed
 		 */
-		private final Set<String> changed = new TreeSet<String>();
+		private final Set<String> changed = new TreeSet<>();
 
 		public Archiver(File target) throws IOException {
 			super(target);

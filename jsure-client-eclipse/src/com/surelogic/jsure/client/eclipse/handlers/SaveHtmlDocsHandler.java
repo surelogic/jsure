@@ -19,7 +19,7 @@ public class SaveHtmlDocsHandler extends AbstractHandler {
         return LibResources.getStreamFor(LibResources.HTML_DOCS_ZIP_PATHNAME);
       }
     };
-    DialogUtility.copyZipResourceToUsersDiskDialogInteractionHelper(source, LibResources.HTML_DOCS_ZIP, LibResources.ANT_TASK_ZIP,
+    DialogUtility.copyZipResourceToUsersDiskDialogInteractionHelper(source, LibResources.HTML_DOCS_ZIP, LibResources.HTML_DOCS_ZIP,
         "jsure.eclipse.dialog.html-docs");
     return null;
   }

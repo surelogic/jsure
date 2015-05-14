@@ -242,10 +242,6 @@
 			id="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs"
 			name="Save Promises Library As...">
 		</command>
-	    <command categoryId="com.surelogic.jsure.client.eclipse.commands"
-			id="com.surelogic.jsure.client.eclipse.command.SaveAntTask"
-			name="Save Ant Task As...">
-		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.SaveHtmlDocs"
 			name="Save Documentation As...">
@@ -303,11 +299,6 @@
 					commandId="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs"
 					icon="platform:/plugin/com.surelogic.common/lib/images/jar_saveas.gif"
 					mnemonic="S" style="push">
-				</command>
-				<command
-					commandId="com.surelogic.jsure.client.eclipse.command.SaveAntTask"
-					icon="platform:/plugin/com.surelogic.common/lib/images/jar_saveas.gif"
-					style="push">
 				</command>
 				<command
 					commandId="com.surelogic.jsure.client.eclipse.command.SaveHtmlDocs"
@@ -411,10 +402,6 @@
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.SavePromisesLibraryAsHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs">
-		</handler>
-		<handler
-			class="com.surelogic.jsure.client.eclipse.handlers.SaveAntTaskHandler"
-			commandId="com.surelogic.jsure.client.eclipse.command.SaveAntTask">
 		</handler>
 	    <handler
 			class="com.surelogic.jsure.client.eclipse.handlers.SaveHtmlDocsHandler"
