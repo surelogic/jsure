@@ -7,106 +7,164 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Javac;
 import org.apache.tools.ant.taskdefs.compilers.CompilerAdapter;
 
+import com.surelogic.Nullable;
+
 public class JSureScan extends Javac {
-	/**
-	 * The location of sierra-ant
-	 */
-	private String home;
+  /**
+   * The location of built JSure Ant task.
+   */
+  private String jsureAntHome;
 
-	/**
-	 * The intended location of the JSure data directory
-	 */
-	private String datadir;
+  /**
+   * The name of the project being scanned.
+   */
+  private String jsureProjectName;
 
-	/**
-	 * The name of the project being scanned
-	 */
-	private String project;
+  /**
+   * The name of the target output file (the scan is zipped into). A value of
+   * "scan.zip" is used if this isn't set. If ".zip" is not the extension that
+   * is added.
+   */
+  @Nullable
+  private String jsureToFile;
 
-	public String getHome() {
-		return home;
-	}
+  /**
+   * The location of the JSure ant task.
+   * 
+   * @return the location of the JSure ant task.
+   */
+  public String getJSureAntHome() {
+    return jsureAntHome;
+  }
 
-	public void setHome(String home) {
-		this.home = home;
-	}
+  /**
+   * The location of the JSure ant task.
+   * 
+   * @param value
+   *          the location of the JSure ant task.
+   */
+  public void setJSureAntHome(String value) {
+    jsureAntHome = value;
+  }
 
-	public String getProjectName() {
-		return project;
-	}
+  /**
+   * Human readable name for the project being scanned.
+   * 
+   * @return the name of the project being scanned.
+   */
+  public String getJSureProjectName() {
+    return jsureProjectName;
+  }
 
-	public void setProjectName(String p) {
-		this.project = p;
-	}
+  /**
+   * Human readable name for the project being scanned.
+   * 
+   * @param value
+   *          the name of the project being scanned.
+   */
+  public void setJSureProjectName(String value) {
+    jsureProjectName = value;
+  }
 
-	public String getDataDir() {
-		return datadir;
-	}
+  /**
+   * The name of the output file.
+   * 
+   * @return the name of the output file.
+   */
+  public String getJSureToFile() {
+    return jsureToFile;
+  }
 
-	public void setDataDir(String doc) {
-		this.datadir = doc;
-	}
+  /**
+   * The name of the output file.
+   * 
+   * @param value
+   *          the name of the output file.
+   */
+  public void setJSureToTile(String value) {
+    jsureToFile = value;
+  }
 
-	@Override
-	protected void scanDir(File srcDir, File destDir, String[] files) {
-		File[] newFiles = new File[files.length];
-		int i = 0;
-		for (String name : files) {
-			newFiles[i] = new File(srcDir, name);
-			i++;
-		}
+  /**
+   * Gets the JSure ant task directory.
+   * 
+   * @return the JSure ant task directory.
+   * @throws BuildException
+   *           if the directory doesn't exist on the disk.
+   */
+  public File getJSureAntHomeDir() {
+    final File result = new File(jsureAntHome);
+    if (!result.isDirectory())
+      throw new BuildException("JSureAntHome a directory: " + result.getAbsolutePath());
+    return result;
+  }
 
-		if (newFiles.length > 0) {
-			File[] newCompileList = new File[compileList.length
-					+ newFiles.length];
-			System.arraycopy(compileList, 0, newCompileList, 0,
-					compileList.length);
-			System.arraycopy(newFiles, 0, newCompileList, compileList.length,
-					newFiles.length);
-			compileList = newCompileList;
-		}
-	}
+  /**
+   * Gets the output zip file name to use. A value of "scan.zip" is used if this
+   * isn't set. If ".zip" is not the extension that is added.
+   * 
+   * @return an file to put the scan in.
+   */
+  public File getJSureToFileZip() {
+    final String outfile;
+    if (jsureToFile == null)
+      outfile = "scan.zip";
+    else if (jsureToFile.endsWith(".zip"))
+      outfile = jsureToFile;
+    else
+      outfile = jsureToFile + ".zip";
+    final File result = new File(outfile);
+    return result;
+  }
 
-	/**
-	 * Modified from Javac.compile()
-	 */
-	@Override
-	protected void compile() {
-		checkDir(getHome());
-		checkDir(getDataDir());
-		File destDir = this.getDestdir();
+  @Override
+  protected void scanDir(File srcDir, File destDir, String[] files) {
+    File[] newFiles = new File[files.length];
+    int i = 0;
+    for (String name : files) {
+      newFiles[i] = new File(srcDir, name);
+      i++;
+    }
 
-		if (compileList.length > 0) {
-			log("Scanning " + compileList.length + " source file"
-					+ (compileList.length == 1 ? "" : "s") + " in "
-					+ destDir.getAbsolutePath());
+    if (newFiles.length > 0) {
+      File[] newCompileList = new File[compileList.length + newFiles.length];
+      System.arraycopy(compileList, 0, newCompileList, 0, compileList.length);
+      System.arraycopy(newFiles, 0, newCompileList, compileList.length, newFiles.length);
+      compileList = newCompileList;
+    }
+  }
 
-			if (listFiles) {
-				for (int i = 0; i < compileList.length; i++) {
-					String filename = compileList[i].getAbsolutePath();
-					log(filename);
-				}
-			}
+  /**
+   * Modified from Javac.compile()
+   */
+  @Override
+  protected void compile() {
+    File destDir = this.getDestdir();
 
-			CompilerAdapter adapter = new JSureJavacAdapter(this);
+    if (compileList.length > 0) {
+      log("JSure examining " + compileList.length + " source file" + (compileList.length == 1 ? "" : "s") + " in "
+          + destDir.getAbsolutePath());
 
-			// now we need to populate the compiler adapter
-			adapter.setJavac(this);
+      if (listFiles) {
+        for (int i = 0; i < compileList.length; i++) {
+          String filename = compileList[i].getAbsolutePath();
+          log(filename);
+        }
+      }
 
-			// finally, lets execute the compiler!!
-			if (!adapter.execute()) {
-				if (failOnError) {
-					throw new BuildException("Failed", getLocation());
-				} else {
-					log("Failed", Project.MSG_ERR);
-				}
-			}
-		}
-	}
+      CompilerAdapter adapter = new JSureJavacAdapter(this);
 
-	private void checkDir(String path) {
-		if (!new File(getHome()).isDirectory()) {
-			throw new BuildException("Not a directory: "+path, getLocation());
-		}
-	}
+      // now we need to populate the compiler adapter
+      adapter.setJavac(this);
+
+      // finally, lets execute the compiler!!
+      if (!adapter.execute()) {
+        if (failOnError) {
+          throw new BuildException("Failed", getLocation());
+        } else {
+          log("Failed", Project.MSG_ERR);
+        }
+      }
+    }
+  }
 }
