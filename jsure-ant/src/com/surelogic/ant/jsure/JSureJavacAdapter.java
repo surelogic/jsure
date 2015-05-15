@@ -47,11 +47,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
   @Override
   public boolean execute() throws BuildException {
     try {
-      System.out.println("Project name to scan w/JSure = " + scan.getJSureProjectName());
-
-      if (compileList.length > 0) {
-        System.out.println(" - examining " + compileList.length + " Java source file" + (compileList.length == 1 ? "" : "s"));
-      }
+      System.out.println("Project to scan w/JSure = " + scan.getJSureProjectName());
 
       // temp output location for scan
       final TempFileFilter scanDirFileFilter = new TempFileFilter("jsureAnt", ".scandir");
@@ -60,16 +56,16 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
       // surelogic-tools.properties file
       final File surelogicToolsProperties = scan.getSurelogicToolsPropertiesAsFile();
       if (surelogicToolsProperties != null)
-        System.out.println("Using properties in          = " + surelogicToolsProperties.getAbsolutePath());
+        System.out.println("Using properties        = " + surelogicToolsProperties.getAbsolutePath());
 
-      System.out.println("Directory to write scan      = " + scan.getJSureScanDirAsFile().getAbsolutePath());
+      System.out.println("Scan output directory   = " + scan.getJSureScanDirAsFile().getAbsolutePath());
 
       Javac.initialize();
       Javac.getDefault().setPreference(IDEPreferences.JSURE_DATA_DIRECTORY, tempDir.getAbsolutePath());
 
-      System.setProperty(LocalJSureJob.FLUID_DIRECTORY_URL, new File(scan.getJSureAntHomeAsFile(), "lib/jsure-analysis").toURI()
+      System.setProperty(LocalJSureJob.FLUID_DIRECTORY_URL, new File(scan.getJSureAntHomeAsFile(), "jsure-analysis").toURI()
           .toURL().toString());
-      System.setProperty(CommonJVMPrefs.PROP, new File(scan.getJSureAntHomeAsFile(), "lib/common" + CommonJVMPrefs.PATH).toURI()
+      System.setProperty(CommonJVMPrefs.PROP, new File(scan.getJSureAntHomeAsFile(), "common" + CommonJVMPrefs.PATH).toURI()
           .toURL().toString());
 
       final Config config = createConfig(surelogicToolsProperties);
@@ -95,7 +91,8 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 
       final String scanName = outputDir.getName();
       final File zipFile = new File(scan.getJSureScanDirAsFile(), scanName + ".zip");
-      System.out.println("Scan " + scanName + " running...");
+      System.out.println("Scan " + scanName + " examining " + compileList.length + " Java file"
+          + (compileList.length == 1 ? "" : "s"));
       final String msg = "Running JSure for " + projects.getLabel();
       LocalJSureJob.factory.newJob(msg, 100, makeJSureConfig(projects)).run(new NullSLProgressMonitor());
       FileUtility.zipDir(outputDir, zipFile);
@@ -122,11 +119,11 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
       public String getPluginDir(String id, boolean required) {
         final File home = scan.getJSureAntHomeAsFile();
         if (AbstractLocalSLJob.COMMON_PLUGIN_ID.equals(id)) {
-          return new File(home, "lib/common").getAbsolutePath();
+          return new File(home, "common").getAbsolutePath();
         } else if (JSureConstants.JSURE_COMMON_PLUGIN_ID.equals(id)) {
-          return new File(home, "lib/jsure-common").getAbsolutePath();
+          return new File(home, "jsure-common").getAbsolutePath();
         } else if (JSureConstants.JSURE_ANALYSIS_PLUGIN_ID.equals(id)) {
-          return new File(home, "lib/jsure-analysis").getAbsolutePath();
+          return new File(home, "jsure-analysis").getAbsolutePath();
         }
         throw new IllegalStateException("Unknown plugin id requested: " + id);
       }

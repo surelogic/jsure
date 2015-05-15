@@ -120,8 +120,7 @@
 
 		<echo>Creating jsure-ant-${release-version}.jar...</echo>
 		<zip destfile="${build}/jsure-ant-${release-version}.zip">
-			<zipfileset dir="${build.lib}" prefix="jsure-ant/lib" />
-			<zipfileset dir="examples" prefix="jsure-ant/examples" />
+			<zipfileset dir="${build.lib}" prefix="jsure-ant" />
 			<zipfileset dir="." includes="*.txt" prefix="jsure-ant" />
 		</zip>
 		<delete quiet="true" dir="${build.lib}" />
