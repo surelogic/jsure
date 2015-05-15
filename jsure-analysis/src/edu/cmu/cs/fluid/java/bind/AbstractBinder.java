@@ -102,19 +102,24 @@ public abstract class AbstractBinder implements IBinder {
    */
   @Override
   public IJavaType getJavaType(IRNode n) {
-    return typeVisitor.getJavaType(n);
-  }
-
-  @Override
-  public IJavaType getInferredJavaType(IRNode n) {
-	// TODO not right for Java 8
-	Operator op = JJNode.tree.getOperator(n);
+	/*
+	String unparse = DebugUnparser.toString(n);
+	if (unparse.contains("<>")) {
+		System.out.println("Found diamond: "+unparse);
+	}
+	*/
+	// TODO not right for Java 8?
+	final Operator op = JJNode.tree.getOperator(n);
+	IJavaType rv = null;
 	if (ParameterizedType.prototype.includes(op)) {
-		return inferForDiamond(n);
+		rv = inferForDiamond(n);
 	}
 	else if (NewExpression.prototype.includes(op)) {
 		IRNode type = NewExpression.getType(n);
-		return getInferredJavaType(type);
+		rv = getJavaType(type);
+	}
+	if (rv != null) {
+		return rv;
 	}
 	return typeVisitor.getJavaType(n);
   }

@@ -52,12 +52,6 @@ public interface IBinder {
    * @throws SlotUndefinedException if not an expression or variable declaration.
    */
   IJavaType getJavaType(IRNode n);
-
-  /**
-   * Like getJavaType(), but returns the inferred type if the type of n 
-   * is dependent on its context (e.g. <> or a lambda expression)
-   */
-  IJavaType getInferredJavaType(IRNode n);
   
   /*
    * Return the superclass of the given class (or null if not a class)

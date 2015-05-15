@@ -272,7 +272,7 @@ public class DeclFactory {
     case LAMBDA:
       final LambdaBuilder lambda = new LambdaBuilder();
       if (useBinder) {
-    	  IJavaType lt = binder.getInferredJavaType(decl);  
+    	  IJavaType lt = binder.getJavaType(decl);  
     	  lambda.setFunctionalInterfaceTypeOf(new TypeRef(lt.toFullyQualifiedText(), lt.toSourceText()));
       } else {
     	  lambda.setFunctionalInterfaceTypeOf(UNBOUND);
