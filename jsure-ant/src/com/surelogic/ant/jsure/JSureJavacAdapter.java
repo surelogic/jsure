@@ -37,15 +37,21 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 
   Path sourcepath = null;
   final JSureScan scan;
+  final File[] compileList;
 
-  public JSureJavacAdapter(JSureScan s) {
+  public JSureJavacAdapter(JSureScan s, File[] compileList) {
     scan = s;
+    this.compileList = compileList;
   }
 
   @Override
   public boolean execute() throws BuildException {
     try {
       System.out.println("Project name to scan w/JSure = " + scan.getJSureProjectName());
+
+      if (compileList.length > 0) {
+        System.out.println(" - examining " + compileList.length + " Java source file" + (compileList.length == 1 ? "" : "s"));
+      }
 
       // temp output location for scan
       final TempFileFilter scanDirFileFilter = new TempFileFilter("jsureAnt", ".scandir");
@@ -88,7 +94,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
       Javac.getDefault().savePreferences(outputDir);
 
       final String scanName = outputDir.getName();
-      final File zipFile = new File(scanName + ".zip");
+      final File zipFile = new File(scan.getJSureScanDirAsFile(), scanName + ".zip");
       System.out.println("Scan " + scanName + " running...");
       final String msg = "Running JSure for " + projects.getLabel();
       LocalJSureJob.factory.newJob(msg, 100, makeJSureConfig(projects)).run(new NullSLProgressMonitor());

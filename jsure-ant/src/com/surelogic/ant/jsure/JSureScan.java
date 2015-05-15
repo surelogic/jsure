@@ -7,6 +7,7 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Javac;
 import org.apache.tools.ant.taskdefs.compilers.CompilerAdapter;
 
+import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.SLUtility;
 
@@ -82,13 +83,13 @@ public class JSureScan extends Javac {
   }
 
   /**
-   * The path to the surelogic-tools.properties file.
+   * The name of the output file.
    * 
    * @param value
-   *          the path to the surelogic-tools.properties file.
+   *          the name of the output file.
    */
-  public void setSurelogicToolsPropertiesFile(String value) {
-    surelogicToolsPropertiesFile = value;
+  public void setJSureScanDir(String value) {
+    jsureScanDir = value;
   }
 
   /**
@@ -102,13 +103,13 @@ public class JSureScan extends Javac {
   }
 
   /**
-   * The name of the output file.
+   * The path to the surelogic-tools.properties file.
    * 
    * @param value
-   *          the name of the output file.
+   *          the path to the surelogic-tools.properties file.
    */
-  public void setJSureScanDir(String value) {
-    jsureScanDir = value;
+  public void setSurelogicToolsPropertiesFile(String value) {
+    surelogicToolsPropertiesFile = value;
   }
 
   /**
@@ -130,6 +131,7 @@ public class JSureScan extends Javac {
    * 
    * @return an file to put the scan in.
    */
+  @NonNull
   public File getJSureScanDirAsFile() {
     final String outDir;
     if (jsureScanDir == null)
@@ -189,18 +191,8 @@ public class JSureScan extends Javac {
    */
   @Override
   protected void compile() {
-
     if (compileList.length > 0) {
-      log("JSure examining " + compileList.length + " source file" + (compileList.length == 1 ? "" : "s"));
-
-      if (listFiles) {
-        for (int i = 0; i < compileList.length; i++) {
-          String filename = compileList[i].getAbsolutePath();
-          log(filename);
-        }
-      }
-
-      CompilerAdapter adapter = new JSureJavacAdapter(this);
+      CompilerAdapter adapter = new JSureJavacAdapter(this, compileList);
 
       // now we need to populate the compiler adapter
       adapter.setJavac(this);
@@ -213,6 +205,8 @@ public class JSureScan extends Javac {
           log("Failed", Project.MSG_ERR);
         }
       }
+    } else {
+      log("No Java files found to scan in " + jsureProjectName + "...JSure scan skipped");
     }
   }
 }
