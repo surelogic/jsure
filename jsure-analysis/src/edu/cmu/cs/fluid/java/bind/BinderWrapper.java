@@ -67,11 +67,6 @@ public abstract class BinderWrapper implements IBinder {
   public IJavaType getJavaType(IRNode n) {
 		return binder.getJavaType(n);
 	}
-
-	@Override
-	public IJavaType getInferredJavaType(IRNode n) {
-		return binder.getInferredJavaType(n);
-	}
 	
 	@Override
   @SuppressWarnings("deprecation")

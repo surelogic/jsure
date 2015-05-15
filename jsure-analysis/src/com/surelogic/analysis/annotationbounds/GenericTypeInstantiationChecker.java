@@ -284,7 +284,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
        * parameterization.  Should always get an IJavaDeclaredType.
        */
       final IJavaDeclaredType jTypeOfParameterizedType =
-          (IJavaDeclaredType) binder.getInferredJavaType(pType);
+          (IJavaDeclaredType) binder.getJavaType(pType);
 
       /* If the Parameterized type uses the diamond operator, e.g., T<>, then
        * the inferred type may be raw (not parameterized), so we must stop
