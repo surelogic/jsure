@@ -8,6 +8,7 @@ import org.apache.tools.ant.taskdefs.Javac;
 import org.apache.tools.ant.taskdefs.compilers.CompilerAdapter;
 
 import com.surelogic.Nullable;
+import com.surelogic.common.SLUtility;
 
 public class JSureScan extends Javac {
   /**
@@ -21,12 +22,16 @@ public class JSureScan extends Javac {
   private String jsureProjectName;
 
   /**
-   * The name of the target output file (the scan is zipped into). A value of
-   * "scan.zip" is used if this isn't set. If ".zip" is not the extension that
-   * is added.
+   * The name of the directory to place the scan zip.
    */
   @Nullable
-  private String jsureToFile;
+  private String jsureScanDir;
+
+  /**
+   * The location of the 'surelogic-tools.properties' file.
+   */
+  @Nullable
+  private String surelogicToolsPropertiesFile;
 
   /**
    * The location of the JSure ant task.
@@ -67,12 +72,33 @@ public class JSureScan extends Javac {
   }
 
   /**
-   * The name of the output file.
+   * The name of the directory to place the scan zip.
    * 
-   * @return the name of the output file.
+   * @return the name of the directory to place the scan zip.
    */
-  public String getJSureToFile() {
-    return jsureToFile;
+  @Nullable
+  public String getJSureScanDir() {
+    return jsureScanDir;
+  }
+
+  /**
+   * The path to the surelogic-tools.properties file.
+   * 
+   * @param value
+   *          the path to the surelogic-tools.properties file.
+   */
+  public void setSurelogicToolsPropertiesFile(String value) {
+    surelogicToolsPropertiesFile = value;
+  }
+
+  /**
+   * The path to the surelogic-tools.properties file.
+   * 
+   * @return the path to the surelogic-tools.properties file.
+   */
+  @Nullable
+  public String getSurelogicToolsPropertiesFile() {
+    return surelogicToolsPropertiesFile;
   }
 
   /**
@@ -81,8 +107,8 @@ public class JSureScan extends Javac {
    * @param value
    *          the name of the output file.
    */
-  public void setJSureToTile(String value) {
-    jsureToFile = value;
+  public void setJSureScanDir(String value) {
+    jsureScanDir = value;
   }
 
   /**
@@ -92,29 +118,53 @@ public class JSureScan extends Javac {
    * @throws BuildException
    *           if the directory doesn't exist on the disk.
    */
-  public File getJSureAntHomeDir() {
+  public File getJSureAntHomeAsFile() {
     final File result = new File(jsureAntHome);
     if (!result.isDirectory())
-      throw new BuildException("JSureAntHome a directory: " + result.getAbsolutePath());
+      throw new BuildException("JSureAntHome does not exist: " + result.getAbsolutePath());
     return result;
   }
 
   /**
-   * Gets the output zip file name to use. A value of "scan.zip" is used if this
-   * isn't set. If ".zip" is not the extension that is added.
+   * Gets the location to place the output scan zip into
    * 
    * @return an file to put the scan in.
    */
-  public File getJSureToFileZip() {
-    final String outfile;
-    if (jsureToFile == null)
-      outfile = "scan.zip";
-    else if (jsureToFile.endsWith(".zip"))
-      outfile = jsureToFile;
+  public File getJSureScanDirAsFile() {
+    final String outDir;
+    if (jsureScanDir == null)
+      outDir = ".";
     else
-      outfile = jsureToFile + ".zip";
-    final File result = new File(outfile);
+      outDir = jsureScanDir;
+    final File result = new File(outDir);
+    if (!result.isDirectory())
+      throw new BuildException("JSure scan output directory does not exist: " + result.getAbsolutePath());
     return result;
+  }
+
+  /**
+   * Gets the location of the 'surelogic-tools.properties' file. If none is set
+   * the current working directory is checked.
+   * 
+   * @return the location of the 'surelogic-tools.properties' file, or
+   *         {@code null} if none.
+   * @throws BuildException
+   *           if the file doesn't exist on the disk and the Ant script
+   *           specified a precise location.
+   */
+  @Nullable
+  public File getSurelogicToolsPropertiesAsFile() {
+    final boolean pathnameSet = surelogicToolsPropertiesFile != null;
+    final String pathname = pathnameSet ? surelogicToolsPropertiesFile : "./" + SLUtility.SL_TOOLS_PROPS_FILE;
+    final File result = new File(pathname);
+    if (result.isFile())
+      return result;
+    else {
+      if (pathnameSet)
+        throw new BuildException("JSureAntHome does not exist: " + result.getAbsolutePath());
+      else
+        return null;
+    }
   }
 
   @Override

@@ -6,16 +6,15 @@ import java.io.IOException;
 import java.util.StringTokenizer;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.derby.iapi.services.io.FileUtil;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.compilers.DefaultCompilerAdapter;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.util.StringUtils;
 
+import com.surelogic.Nullable;
 import com.surelogic.common.CommonJVMPrefs;
 import com.surelogic.common.FileUtility;
-import com.surelogic.common.SLUtility;
 import com.surelogic.common.FileUtility.TempFileFilter;
 import com.surelogic.common.java.Config;
 import com.surelogic.common.java.JavaSourceFile;
@@ -47,21 +46,26 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
   public boolean execute() throws BuildException {
     try {
       System.out.println("Project name to scan w/JSure = " + scan.getJSureProjectName());
-      System.out.println("JSure Ant home (code)        = " + scan.getJSureAntHomeDir().getAbsolutePath());
-      System.out.println("Output of scan (zip file)    = " + scan.getJSureToFileZip().getAbsolutePath());
+      System.out.println("JSure Ant home (code)        = " + scan.getJSureAntHomeAsFile().getAbsolutePath());
+      System.out.println("Output dir for scan          = " + scan.getJSureScanDirAsFile().getAbsolutePath());
 
+      // temp output location for scan
       final TempFileFilter scanDirFileFilter = new TempFileFilter("jsureAnt", ".scandir");
       final File tempDir = scanDirFileFilter.createTempFolder();
+
+      final File surelogicToolsProperties = scan.getSurelogicToolsPropertiesAsFile();
+      if (surelogicToolsProperties != null)
+        System.out.println("Using properties in          = " + surelogicToolsProperties.getAbsolutePath());
 
       Javac.initialize();
       Javac.getDefault().setPreference(IDEPreferences.JSURE_DATA_DIRECTORY, tempDir.getAbsolutePath());
 
-      System.setProperty(LocalJSureJob.FLUID_DIRECTORY_URL, new File(scan.getJSureAntHomeDir(), "lib/jsure-analysis").toURI()
+      System.setProperty(LocalJSureJob.FLUID_DIRECTORY_URL, new File(scan.getJSureAntHomeAsFile(), "lib/jsure-analysis").toURI()
           .toURL().toString());
-      System.setProperty(CommonJVMPrefs.PROP, new File(scan.getJSureAntHomeDir(), "lib/common" + CommonJVMPrefs.PATH).toURI()
+      System.setProperty(CommonJVMPrefs.PROP, new File(scan.getJSureAntHomeAsFile(), "lib/common" + CommonJVMPrefs.PATH).toURI()
           .toURL().toString());
 
-      final Config config = createConfig();
+      final Config config = createConfig(surelogicToolsProperties);
       final Projects projects = new Projects(config, new NullSLProgressMonitor());
 
       projects.computeScan(tempDir, null);
@@ -112,7 +116,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 
       @Override
       public String getPluginDir(String id, boolean required) {
-        final File home = scan.getJSureAntHomeDir();
+        final File home = scan.getJSureAntHomeAsFile();
         if (AbstractLocalSLJob.COMMON_PLUGIN_ID.equals(id)) {
           return new File(home, "lib/common").getAbsolutePath();
         } else if (JSureConstants.JSURE_COMMON_PLUGIN_ID.equals(id)) {
@@ -133,10 +137,8 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
     }
   }
 
-  private Config createConfig() throws IOException {
-    Config config = new Config(scan.getJSureProjectName(), null, false, false); // TODO
-    // what
-    // location?
+  private Config createConfig(@Nullable File surelogicToolsPropertyFile) throws IOException {
+    Config config = new Config(scan.getJSureProjectName(), null, false, false);
     config.setOption(Config.AS_SOURCE, Boolean.TRUE);
     final String srcLevel = scan.getSource();
     if (srcLevel.startsWith("1.")) {
