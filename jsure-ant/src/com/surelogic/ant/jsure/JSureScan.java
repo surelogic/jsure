@@ -189,11 +189,9 @@ public class JSureScan extends Javac {
    */
   @Override
   protected void compile() {
-    File destDir = this.getDestdir();
 
     if (compileList.length > 0) {
-      log("JSure examining " + compileList.length + " source file" + (compileList.length == 1 ? "" : "s") + " in "
-          + destDir.getAbsolutePath());
+      log("JSure examining " + compileList.length + " source file" + (compileList.length == 1 ? "" : "s"));
 
       if (listFiles) {
         for (int i = 0; i < compileList.length; i++) {
