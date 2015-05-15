@@ -68,7 +68,7 @@
 			</fileset>
 			<pathelement path="${build.bin}" />
 		</path>
-		<javac srcdir="${common}/src" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
+		<javac srcdir="${common}/src" debug="true" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
 		<copy todir="${build.bin}">
 			<fileset dir="${common}/src">
 				<exclude name="**/*.java" />
@@ -80,7 +80,7 @@
 		<mkdir dir="${build.bin}" />
 
 		<echo>Creating generated source code and compiling 'jsure-common' project...</echo>
-		<javac srcdir="${jsure-common}/src" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
+		<javac srcdir="${jsure-common}/src" debug="true" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
 		<copy todir="${build.bin}">
 			<fileset dir="${jsure-common}/src">
 				<exclude name="**/*.java" />
@@ -93,7 +93,7 @@
 
 		<echo>Creating generated source code and compiling 'jsure-analysis' project...</echo>
 		<ant antfile="build-src.xml" dir="${jsure-analysis}" inheritAll="false" />
-		<javac srcdir="${jsure-analysis}/src" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false">
+		<javac debug="true" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false">
 			<src path="${jsure-analysis}/src" />
 			<src path="${jsure-analysis}/gensrc" />
 		</javac>

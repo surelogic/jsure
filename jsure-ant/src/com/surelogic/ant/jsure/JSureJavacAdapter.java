@@ -46,16 +46,17 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
   public boolean execute() throws BuildException {
     try {
       System.out.println("Project name to scan w/JSure = " + scan.getJSureProjectName());
-      System.out.println("JSure Ant home (code)        = " + scan.getJSureAntHomeAsFile().getAbsolutePath());
-      System.out.println("Output dir for scan          = " + scan.getJSureScanDirAsFile().getAbsolutePath());
 
       // temp output location for scan
       final TempFileFilter scanDirFileFilter = new TempFileFilter("jsureAnt", ".scandir");
       final File tempDir = scanDirFileFilter.createTempFolder();
 
+      // surelogic-tools.properties file
       final File surelogicToolsProperties = scan.getSurelogicToolsPropertiesAsFile();
       if (surelogicToolsProperties != null)
         System.out.println("Using properties in          = " + surelogicToolsProperties.getAbsolutePath());
+
+      System.out.println("Directory to write scan      = " + scan.getJSureScanDirAsFile().getAbsolutePath());
 
       Javac.initialize();
       Javac.getDefault().setPreference(IDEPreferences.JSURE_DATA_DIRECTORY, tempDir.getAbsolutePath());
@@ -86,21 +87,18 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
       final File outputDir = projects.getRunDir();
       Javac.getDefault().savePreferences(outputDir);
 
-      System.out.println("JSure temp output directory  = " + outputDir.getAbsolutePath());
       final String scanName = outputDir.getName();
       final File zipFile = new File(scanName + ".zip");
-      System.out.println("Scan name                   = " + scanName);
+      System.out.println("Scan " + scanName + " running...");
       final String msg = "Running JSure for " + projects.getLabel();
       LocalJSureJob.factory.newJob(msg, 100, makeJSureConfig(projects)).run(new NullSLProgressMonitor());
-
-      System.out.println("Compressing JSure output into " + zipFile.getAbsolutePath());
       FileUtility.zipDir(outputDir, zipFile);
       if (!FileUtility.recursiveDelete(tempDir)) {
         System.out.println("Error unable to delete temp dir " + tempDir.getAbsolutePath());
       }
     } catch (Throwable t) {
       t.printStackTrace();
-      throw new BuildException("Exception while scanning", t);
+      throw new BuildException("Exception while scanning " + scan.getJSureProjectName(), t);
     }
     return true;
   }
