@@ -1,6 +1,7 @@
 common
 common-core-eclipse
-fluid
+jsure-common
+jsure-analysis
 jsure-core-eclipse
 jsure-tests
 com.surelogic.feature.jsure.tests

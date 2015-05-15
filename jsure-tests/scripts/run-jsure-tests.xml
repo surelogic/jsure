@@ -168,15 +168,24 @@
 		<!-- Unarchive Eclipse into the sandbox directory -->
 		<unarchive-to archive="${archive.eclipse.dist}" sandbox="${sandbox}" />
 		<if>
-			<!-- How do I match against 4.0 and above -->
-			<matches string="${jsure.tests.archive.use}" pattern="3\.[789](.*)" />
+			<matches string="${jsure.tests.archive.use}" pattern="(3\.[789](.*))|(4\.[2345](.*))" />
 			<then>
 				<!-- We need to unzip it to a slightly different place -->
 				<!--unarchive-to archive="${archive.eclipse.test}" sandbox="${sandbox}/eclipse" /-->
 				<antcall target="installTestPlugins"/>
 			</then>
 			<else>
-				<unarchive-to archive="${archive.eclipse.test}" sandbox="${sandbox}" />
+			    <if>
+			        <matches string="${jsure.tests.archive.use}" pattern="4\.[2345](.*)" />
+			        <then>
+			            <unarchive-to archive="${archive.eclipse.test}" sandbox="${sandbox}/eclipse/dropins" />
+			            <delete dir="${sandbox.eclipse.dir}/dropins/binary" quiet="true" />			            
+			        </then>
+			        <else>
+			            <unarchive-to archive="${archive.eclipse.test}" sandbox="${sandbox}" />
+			        </else>
+			    </if>
+
 			</else>
 		</if>
 
@@ -279,8 +288,8 @@
 			<entry key="javacDebugInfo" value="true" />
 			<entry key="javacFailOnError" value="true" />
 			<entry key="javacVerbose" value="false" />
-			<entry key="javacSource" value="1.6" />
-			<entry key="javacTarget" value="1.6" />
+			<entry key="javacSource" value="1.7" />
+			<entry key="javacTarget" value="1.7" />
 			<entry key="buildType" value="${jsure.build.buildType}" />
 			<entry key="buildId" value="${jsure.build.buildId}" />
 		</propertyfile>
@@ -354,7 +363,16 @@
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 	<target name="run JSure on test suites" depends="setup test suites to analyze">
-		<findFile property="eclipse.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.test_.*" />
+	    <if>
+             <matches string="${jsure.tests.archive.use}" pattern="4\.[2345](.*)" />
+             <then>
+                 <!-- findFile property="eclipse.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}${fs}..${fs}dropins${fs}plugins" regex="org\.eclipse\.test_.*" /-->
+                 <findFile property="eclipse.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.test_.*" />                 
+             </then>
+             <else>
+                 <findFile property="eclipse.test.plugin.dir" basedir="${sandbox.eclipse.plugins.dir}" regex="org\.eclipse\.test_.*" />
+             </else>
+	    </if>
 		<fail unless="eclipse.test.plugin.dir" message="Unable to find the Eclipse test plug-in (org.eclipse.test_*) within ${sandbox.eclipse.plugins.dir}." />
 		
 		<!-- JUNIT.XSL hack to fix a bad reference in library.xml -->
@@ -363,13 +381,40 @@
 			<matches string="${eclipse.test.plugin.dir}" pattern="(.*)\.jar$" />
 			<then>
 				<unzip dest="${eclipse.test.plugin.dir}.dir" src="${eclipse.test.plugin.dir}" />
-				<!--delete file="${eclipse.test.plugin.dir}"/-->
-				<property name="library.xml" value="${eclipse.test.plugin.dir}.dir${fs}library.xml" />
-				<copy file="${eclipse.test.plugin.dir}.dir${fs}JUNIT.XSL" tofile="${sandbox.eclipse.dir}${fs}dropins${fs}eclipse${fs}plugins${fs}org.eclipse.test${fs}JUNIT.XSL" />
+				<condition property="junit.xsl.exists" else="false">
+                    <available file="${eclipse.test.plugin.dir}.dir${fs}JUNIT.XSL" />
+                </condition>
+                <if>
+                    <equals arg1="${junit.xsl.exists}" arg2="false" />
+                    <then>                        
+                        <property name="library.xml" value="${antfile.dir}${fs}lib${fs}library.xml" />
+						<copy file="${antfile.dir}${fs}lib${fs}JUNIT.XSL"
+				              tofile="${sandbox.eclipse.dir}${fs}dropins${fs}eclipse${fs}plugins${fs}org.eclipse.test${fs}JUNIT.XSL" /> 
+                    </then>
+                    <else>
+                        <property name="library.xml" value="${eclipse.test.plugin.dir}.dir${fs}library.xml" />
+						<copy file="${eclipse.test.plugin.dir}.dir${fs}JUNIT.XSL"
+				              tofile="${sandbox.eclipse.dir}${fs}dropins${fs}eclipse${fs}plugins${fs}org.eclipse.test${fs}JUNIT.XSL" />                        
+                    </else>
+                </if>
+    			<delete dir="${eclipse.test.plugin.dir}.dir"/>
 			</then>						
 			<else>
-				<property name="library.xml" value="${eclipse.test.plugin.dir}${fs}library.xml" />
-				<copy file="${eclipse.test.plugin.dir}${fs}JUNIT.XSL" tofile="${sandbox.eclipse.dir}${fs}dropins${fs}eclipse${fs}plugins${fs}org.eclipse.test${fs}JUNIT.XSL" />
+			    <condition property="junit.xsl.exists" else="false">
+                    <available file="${eclipse.test.plugin.dir}${fs}JUNIT.XSL" />
+                </condition>
+          		<if>
+                    <equals arg1="${junit.xsl.exists}" arg2="false" />
+                    <then>                        
+                        <property name="library.xml" value="${antfile.dir}${fs}lib${fs}library.xml" />
+						<copy file="${antfile.dir}${fs}lib${fs}JUNIT.XSL"
+				              tofile="${sandbox.eclipse.dir}${fs}dropins${fs}eclipse${fs}plugins${fs}org.eclipse.test${fs}JUNIT.XSL" /> 
+                    </then>
+                    <else>
+ 				        <property name="library.xml" value="${eclipse.test.plugin.dir}${fs}library.xml" />
+				        <copy file="${eclipse.test.plugin.dir}${fs}JUNIT.XSL" tofile="${sandbox.eclipse.dir}${fs}dropins${fs}eclipse${fs}plugins${fs}org.eclipse.test${fs}JUNIT.XSL" />                     
+                    </else>
+                </if>                
 			</else>
 		</if>
 
@@ -556,14 +601,17 @@
 			<arg line="-vm '${java.home}/bin/java\'" />
 			<arg line="-application org.eclipse.equinox.p2.director" />
 			<arg line="-consoleLog" />
+			<arg line="-debug" />
 			<arg line="-flavor tooling" />
 			<arg line="-installIUs org.eclipse.test,org.eclipse.ant.optional.junit,org.eclipse.test.performance,org.eclipse.test.performance.win32,org.easymock" />
+			<!-- arg line="-installIUs org.eclipse.test.feature.group"/-->
 			<arg line="-p2.os ${os}" />
 			<arg line="-p2.ws ${ws}" />
 			<arg line="-p2.arch ${arch}" />
 			<arg line="-roaming" />
 			<arg line="-profile SDKProfile" />
 			<arg line="-repository file:${repoLocation}" />
+            <!-- arg line="-repository http://download.eclipse.org/eclipse/updates/4.4/"/-->
 			<arg line="-destination ${eclipse-home}" />
 			<arg line="-bundlepool ${eclipse-home}" />
 		</java>
