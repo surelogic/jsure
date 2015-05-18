@@ -235,6 +235,9 @@
 			id="com.surelogic.jsure.client.eclipse.command.VerifyProject" name="Verify Project">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.ImportScan" name="Import Ant/Maven Scan...">
+		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.AddUpdatePromisesLibrary"
 			name="Add/Update Promises Library in Project">
 		</command>
@@ -288,6 +291,10 @@
 				mnemonic="J">
 				<command commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject"
 					icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
+					mnemonic="V" style="push">
+				</command>
+				<command commandId="com.surelogic.jsure.client.eclipse.command.ImportScan"
+					icon="platform:/plugin/com.surelogic.common/lib/images/file_drum.gif"
 					mnemonic="V" style="push">
 				</command>
 				<command
@@ -394,6 +401,10 @@
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.VerifyProjectHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject">
+		</handler>
+			<handler
+			class="com.surelogic.jsure.client.eclipse.handlers.ImportScanHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.ImportScan">
 		</handler>
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.AddUpdatePromisesLibraryHandler"
