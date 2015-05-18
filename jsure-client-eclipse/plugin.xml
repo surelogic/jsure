@@ -235,19 +235,8 @@
 			id="com.surelogic.jsure.client.eclipse.command.VerifyProject" name="Verify Project">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
-			id="com.surelogic.jsure.client.eclipse.command.ImportScan" name="Import Ant/Maven Scan...">
-		</command>
-		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.AddUpdatePromisesLibrary"
 			name="Add/Update Promises Library in Project">
-		</command>
-		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
-			id="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs"
-			name="Save Promises Library As...">
-		</command>
-		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
-			id="com.surelogic.jsure.client.eclipse.command.SaveHtmlDocs"
-			name="Save Documentation As...">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.FindXMLForType" name="Open Library Annotations...">
@@ -257,11 +246,15 @@
 			name="Open Code Verification Perspective">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
-			id="com.surelogic.jsure.client.eclipse.command.UniquenessPreference" name="Use Uniqueness Verifying Analysis">
-			<state
-			   class="org.eclipse.ui.handlers.RegistryToggleState:false"
-			   id="org.eclipse.ui.commands.toggleState">
-			</state>
+			id="com.surelogic.jsure.client.eclipse.command.ImportScan" name="Import Ant/Maven Scan...">
+		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs"
+			name="Save Promises Library As...">
+		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.SaveHtmlDocs"
+			name="Save Documentation As...">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.SendTip" name="Send Tip for Improvement">
@@ -293,24 +286,10 @@
 					icon="platform:/plugin/com.surelogic.common/lib/images/jsure_verify.gif"
 					mnemonic="V" style="push">
 				</command>
-				<command commandId="com.surelogic.jsure.client.eclipse.command.ImportScan"
-					icon="platform:/plugin/com.surelogic.common/lib/images/file_drum.gif"
-					mnemonic="V" style="push">
-				</command>
 				<command
 					commandId="com.surelogic.jsure.client.eclipse.command.AddUpdatePromisesLibrary"
 					icon="platform:/plugin/com.surelogic.common/lib/images/jar.gif"
 					mnemonic="A" style="push">
-				</command>
-				<command
-					commandId="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs"
-					icon="platform:/plugin/com.surelogic.common/lib/images/jar_saveas.gif"
-					mnemonic="S" style="push">
-				</command>
-				<command
-					commandId="com.surelogic.jsure.client.eclipse.command.SaveHtmlDocs"
-					icon="platform:/plugin/com.surelogic.common/lib/images/file.gif"
-					style="push">
 				</command>
 				<command commandId="com.surelogic.jsure.client.eclipse.command.FindXMLForType"
 					icon="platform:/plugin/com.surelogic.common/lib/images/open_xml_type.gif"
@@ -324,9 +303,20 @@
 				<separator name="com.surelogic.jsure.separator.main0"
 					visible="true">
 				</separator>
-				<command commandId="com.surelogic.jsure.client.eclipse.command.UniquenessPreference"
-				      style="toggle">
-				</command> 
+				<command commandId="com.surelogic.jsure.client.eclipse.command.ImportScan"
+					icon="platform:/plugin/com.surelogic.common/lib/images/file_drum.gif"
+					mnemonic="V" style="push">
+				</command>
+				<command
+					commandId="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs"
+					icon="platform:/plugin/com.surelogic.common/lib/images/jar_saveas.gif"
+					mnemonic="S" style="push">
+				</command>
+				<command
+					commandId="com.surelogic.jsure.client.eclipse.command.SaveHtmlDocs"
+					icon="platform:/plugin/com.surelogic.common/lib/images/file.gif"
+					style="push">
+				</command>
 				<separator name="com.surelogic.jsure.separator.main1"
 					visible="true">
 				</separator>
@@ -402,21 +392,9 @@
 			class="com.surelogic.jsure.client.eclipse.handlers.VerifyProjectHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.VerifyProject">
 		</handler>
-			<handler
-			class="com.surelogic.jsure.client.eclipse.handlers.ImportScanHandler"
-			commandId="com.surelogic.jsure.client.eclipse.command.ImportScan">
-		</handler>
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.AddUpdatePromisesLibraryHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.AddUpdatePromisesLibrary">
-		</handler>
-		<handler
-			class="com.surelogic.jsure.client.eclipse.handlers.SavePromisesLibraryAsHandler"
-			commandId="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs">
-		</handler>
-	    <handler
-			class="com.surelogic.jsure.client.eclipse.handlers.SaveHtmlDocsHandler"
-			commandId="com.surelogic.jsure.client.eclipse.command.SaveHtmlDocs">
 		</handler>
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.FindXMLForTypeHandler"
@@ -427,8 +405,16 @@
 			commandId="com.surelogic.jsure.client.eclipse.command.OpenCodeVerificationPerspective">
 		</handler>
 		<handler
-			class="com.surelogic.jsure.client.eclipse.handlers.UniquenessPreferenceHandler"
-			commandId="com.surelogic.jsure.client.eclipse.command.UniquenessPreference">
+			class="com.surelogic.jsure.client.eclipse.handlers.ImportScanHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.ImportScan">
+		</handler>
+		<handler
+			class="com.surelogic.jsure.client.eclipse.handlers.SavePromisesLibraryAsHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.SavePromisesLibraryAs">
+		</handler>
+	    <handler
+			class="com.surelogic.jsure.client.eclipse.handlers.SaveHtmlDocsHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.SaveHtmlDocs">
 		</handler>
 		<handler class="com.surelogic.jsure.client.eclipse.handlers.SendTipHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.SendTip">

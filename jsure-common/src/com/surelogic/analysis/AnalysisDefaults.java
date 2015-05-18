@@ -1,12 +1,15 @@
 package com.surelogic.analysis;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import com.surelogic.common.SLUtility;
-import com.surelogic.common.XUtil;
 import com.surelogic.common.util.FilterIterator;
 
-import edu.cmu.cs.fluid.ide.*;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
+import edu.cmu.cs.fluid.ide.IDERoot;
 
 /**
  * Describes what analyses are available, what order they should be run in, and 
@@ -19,7 +22,7 @@ public final class AnalysisDefaults {
 	private static final String NULLABLE_PREP = "com.surelogic.jsure.client.eclipse.NullablePreprocessor";
 
 	// Needs to be initialized before the Javac instance
-	static final List<AnalysisInfo> analysisList = new ArrayList<AnalysisInfo>();
+	static final List<AnalysisInfo> analysisList = new ArrayList<>();
 	static { 		
 		// Assumed to be added in dependency order
 		init("com.surelogic.analysis.concurrency.detector.ConcurrencyDetector",
@@ -169,7 +172,7 @@ public final class AnalysisDefaults {
 			if (deps.length == 0) {
 				dependencies = Collections.emptyList();
 			} else {
-				dependencies = new ArrayList<AnalysisInfo>(deps.length);
+				dependencies = new ArrayList<>(deps.length);
 				for (AnalysisInfo info : deps) {
 					dependencies.add(info);
 				}
@@ -183,12 +186,6 @@ public final class AnalysisDefaults {
 		public boolean isActive(List<IAnalysisInfo> activeAnalyses) {
 			boolean active = isIncluded();
 			if (active) {
-				// TODO use more principled way of identifying analyses
-				if (!XUtil.testing && // Only if we're not running the reg tests
-						!IDERoot.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_RUN_UNIQUENESS) &&
-						runsUniqueness()) {
-					return false;
-				}
 				if (dependencies.size() == 0) {
 					return true;
 				}

@@ -17,19 +17,17 @@ import edu.cmu.cs.fluid.ide.*;
 
 public class JavacEclipse extends IDERoot {
   static final JavacEclipse instance = new JavacEclipse();
-  
+
   @Override
-  public void initPrefs() {	  
-	  setPreference(IDEPreferences.PHYS_MEMORY, MemoryUtility.computePhysMemorySizeInMb());
-	  setPreference(IDEPreferences.ANALYSIS_THREAD_COUNT, EclipseUtility.getIntPreference(IDEPreferences.ANALYSIS_THREAD_COUNT));
-	  
-	  final boolean canRunUniqueness = EclipseUtility.getBooleanPreference(IDEPreferences.SCAN_MAY_RUN_UNIQUENESS);
-	  setPreference(IDEPreferences.SCAN_MAY_RUN_UNIQUENESS, canRunUniqueness);
-	  for (IAnalysisInfo analysis : AnalysisDefaults.getDefault().getAnalysisInfo()) {
-		  final String key = IDEPreferences.ANALYSIS_ACTIVE_PREFIX+analysis.getUniqueIdentifier();
-		  boolean pref = EclipseUtility.getBooleanPreference(key) && (canRunUniqueness || !analysis.runsUniqueness());
-		  setPreference(key, pref); 
-	  }
+  public void initPrefs() {
+    setPreference(IDEPreferences.PHYS_MEMORY, MemoryUtility.computePhysMemorySizeInMb());
+    setPreference(IDEPreferences.ANALYSIS_THREAD_COUNT, EclipseUtility.getIntPreference(IDEPreferences.ANALYSIS_THREAD_COUNT));
+
+    for (IAnalysisInfo analysis : AnalysisDefaults.getDefault().getAnalysisInfo()) {
+      final String key = IDEPreferences.ANALYSIS_ACTIVE_PREFIX + analysis.getUniqueIdentifier();
+      boolean pref = EclipseUtility.getBooleanPreference(key);
+      setPreference(key, pref);
+    }
   }
 
   public static JavacEclipse getDefault() {
@@ -37,12 +35,12 @@ public class JavacEclipse extends IDERoot {
   }
 
   public static void initialize() {
-	  // instance.initPrefs()
-	  if (IDERoot.getInstance() == null) {
-		  initInstance(instance);
-	  }
+    // instance.initPrefs()
+    if (IDERoot.getInstance() == null) {
+      initInstance(instance);
+    }
   }
-  
+
   public void synchronizeAnalysisPrefs() {
     for (String id : AnalysisDefaults.getAvailableAnalyses()) {
       boolean value = EclipseUtility.getBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id);
@@ -68,34 +66,34 @@ public class JavacEclipse extends IDERoot {
   }
 
   public void writePrefsToXML(File settings) throws FileNotFoundException {
-	  final List<String> m_includedExtensions = new ArrayList<String>();
-	  final List<String> m_nonProductionAnalysisExtensions = new ArrayList<String>();
-	  for (String id : AnalysisDefaults.getAvailableAnalyses()) {
-	      boolean value = EclipseUtility.getBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id);
-	      if (value) {
-	    	  m_includedExtensions.add(id);
-	      } else {
-	    	  m_nonProductionAnalysisExtensions.add(id);
-	      }
-	  }
-	  // Modified from DoubleChecker
-	  final PrintWriter pw = new PrintWriter(settings);
-	  pw.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-	  pw.println("<preferences>");
-	  pw.println("  <included-analysis-modules>");
-	  for (String id : m_includedExtensions) {
-		  pw.println("    <id>" + id + "</id>");
-	  }
-	  pw.println("  </included-analysis-modules>");
-	  pw.println("  <excluded-analysis-modules>");
-	  for (String id : m_nonProductionAnalysisExtensions) {
-		  pw.println("    <id>" + id + "</id>");
-	  }
-	  pw.println("  </excluded-analysis-modules>");
-	  pw.println("</preferences>");
-	  pw.close();
+    final List<String> m_includedExtensions = new ArrayList<>();
+    final List<String> m_nonProductionAnalysisExtensions = new ArrayList<>();
+    for (String id : AnalysisDefaults.getAvailableAnalyses()) {
+      boolean value = EclipseUtility.getBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id);
+      if (value) {
+        m_includedExtensions.add(id);
+      } else {
+        m_nonProductionAnalysisExtensions.add(id);
+      }
+    }
+    // Modified from DoubleChecker
+    final PrintWriter pw = new PrintWriter(settings);
+    pw.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+    pw.println("<preferences>");
+    pw.println("  <included-analysis-modules>");
+    for (String id : m_includedExtensions) {
+      pw.println("    <id>" + id + "</id>");
+    }
+    pw.println("  </included-analysis-modules>");
+    pw.println("  <excluded-analysis-modules>");
+    for (String id : m_nonProductionAnalysisExtensions) {
+      pw.println("    <id>" + id + "</id>");
+    }
+    pw.println("  </excluded-analysis-modules>");
+    pw.println("</preferences>");
+    pw.close();
   }
-  
+
   @Override
   public URL getResourceRoot() {
     try {
@@ -119,15 +117,13 @@ public class JavacEclipse extends IDERoot {
     }
     return null;
   }
-  
+
   @Override
   public boolean getBooleanPreference(String key) {
-	/*
-    if (testing && IDEPreferences.ALLOW_JAVADOC_ANNOS.equals(key)) {
-      // Enable, so we can test it!
-      return true;
-    }
-    */
+    /*
+     * if (testing && IDEPreferences.ALLOW_JAVADOC_ANNOS.equals(key)) { //
+     * Enable, so we can test it! return true; }
+     */
     return EclipseUtility.getBooleanPreference(key);
   }
 
