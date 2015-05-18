@@ -1,4 +1,4 @@
-package com.surelogic.ant.jsure;
+package com.surelogic.jsure.ant;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -58,7 +58,12 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
       if (surelogicToolsProperties != null)
         System.out.println("Using properties        = " + surelogicToolsProperties.getAbsolutePath());
 
-      System.out.println("Scan output directory   = " + scan.getJSureScanDirAsFile().getAbsolutePath());
+      final String scanOutputDirMsg;
+      if (scan.getJSureScanDir() == null)
+        scanOutputDirMsg = ".";
+      else
+        scanOutputDirMsg = scan.getJSureScanDirAsFile().getAbsolutePath();
+      System.out.println("Scan output directory   = " + scanOutputDirMsg);
 
       Javac.initialize();
       Javac.getDefault().setPreference(IDEPreferences.JSURE_DATA_DIRECTORY, tempDir.getAbsolutePath());

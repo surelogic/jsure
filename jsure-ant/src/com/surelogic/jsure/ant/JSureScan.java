@@ -1,4 +1,4 @@
-package com.surelogic.ant.jsure;
+package com.surelogic.jsure.ant;
 
 import java.io.File;
 
@@ -11,6 +11,9 @@ import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.SLUtility;
 
+/**
+ * JSure Ant task.
+ */
 public class JSureScan extends Javac {
   /**
    * The location of built JSure Ant task.

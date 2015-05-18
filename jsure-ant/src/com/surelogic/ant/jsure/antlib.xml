@@ -1,7 +1,0 @@
-<antlib>
-  <!-- For ant < 1.6 -->
-  <taskdef resource="com/surelogic/ant/jsure/ant.properties" />
-
-  <taskdef name="jsure-scan" classname="com.surelogic.ant.jsure.JSureScan"
-    onerror="ignore" />
-</antlib>
