@@ -38,28 +38,99 @@ import java.lang.annotation.Target;
  * The argument determines which lock guards the annotated field or method:
  * <ul>
  * <li>
- * <code>this</code>: The intrinsic lock of the object in whose class the field
- * is defined.</li>
+ * <tt>this</tt>: The intrinsic lock of the object in whose class the field is
+ * defined. When this annotation is applied to a field, the field must be
+ * mutable.</li>
  * <li>
- * <code>class-name.this</code>: For inner classes, it may be necessary to
- * disambiguate 'this'; the <em>class-name.this</em> designation allows you to
- * specify which 'this' reference is intended</li>
+ * <em>class-name</em><tt>.this</tt>: For inner classes, it may be necessary to
+ * disambiguate 'this'; the <em>class-name</em><tt>.this</tt> designation allows
+ * you to specify which 'this' reference is intended. When this annotation is
+ * applied to a field, the field must be mutable.</li>
  * <li>
- * <code>itself</code>: For reference fields only; the object to which the field
- * refers.</li>
+ * <tt>itself</tt>: For reference fields only (meaningless when applied to a
+ * method or a field of a primitive type); the object to which the field refers.
+ * The field must be {@code final} and contain a unique reference to the
+ * referenced object.</li>
  * <li>
- * <code>field-name</code>: The lock object is referenced by the (instance or
- * static) field specified by <em>field-name</em>.</li>
+ * <em>field-name</em>: The lock object is referenced by the (instance or
+ * static) field specified by <em>field-name</em>. The field that references the
+ * lock must be {@code final} and be declared in the same class (or be a visible
+ * field declaration in a superclass) as the method or field on which this
+ * annotation appears. When this annotation is applied to a field, the field
+ * must be mutable.</li>
  * <li>
- * <code>class-name.field-name</code>: The lock object is reference by the
- * static field specified by <em>class-name.field-name</em>.</li>
+ * <em>class-name</em><tt>.</tt><em>field-name</em>: The lock object is
+ * reference by the static field specified by <em>class-name</em><tt>.</tt>
+ * <em>field-name</em>. The static field that references the lock must be
+ * {@code final} . When this annotation is applied to a field, the field must be
+ * mutable.</li>
  * <li>
- * <code>method-name()</code>: The lock object is returned by calling the named
- * nil-ary method.</li>
+ * <em>method-name</em><tt>()</tt>: The lock object is returned by calling the
+ * named nil-ary method. The method that returns the lock must be declared in
+ * the same class (or be a visible method declaration in a superclass) as the
+ * method or field on which this annotation appears. Note that
+ * <em>method-name</em><tt>()</tt> is trusted to return a consistent object to
+ * guard the annotated field or method&mdash;take care with its implementation.
+ * When this annotation is applied to a field, the field must be mutable.</li>
  * <li>
- * <code>class-name.class</code>: The Class object for the specified class
- * should be used as the lock object.</li>
+ * <em>class-name</em><tt>.class</tt>: The {@link Class} object for the
+ * specified class should be used as the lock object. When this annotation is
+ * applied to a field, the field must be mutable.</li>
+ * <li>
+ * <em>lock-name</em>: For methods only (meaningless when applied to a field).
+ * The referenced <em>lock-name</em>, which is defined by {@link RegionLock}
+ * annotation must be held when invoking the method. In this use,
+ * <tt>@GuardedBy("</tt><em>lock-name</em><tt>")</tt> is equivalent to the
+ * annotation <tt>@RequiresLock("</tt><em>lock-name</em><tt>")</tt>.
  * </ul>
+ * When this annotation is applied to a method a comma separated list may be
+ * provided if more than one lock needs to be held, e.g.
+ * <tt>@GuardedBy("this, C.class")</tt>. In the case that both a
+ * <em>field-name</em> and a <em>lock-name</em> have the same name, the binding
+ * is to <em>lock-name</em>.
+ * 
+ * <p>
+ * This annotation does interact with the {@link RegionLock} defined locks when
+ * applied to methods. First, as noted above, holding <em>lock-name</em> may be
+ * expressed as a prerequisite to invoking the method. Second, lock
+ * preconditions on methods expressed by {@link GuardedBy} should be resolved to
+ * named locks. This is best explained by example. In the listing below the lock
+ * preconditions on <tt>m1()</tt>, <tt>m2()</tt>, and <tt>m3()</tt> are
+ * semantically equivalent.
+ * 
+ * <pre>
+ * &#064;RegionLocks({ @RegionLock(&quot;l1 is this protects f1&quot;), @RegionLock(&quot;l2 is this protects f2&quot;) })
+ * public class C {
+ * 
+ *   int f1;
+ * 
+ *   int f2;
+ * 
+ *   &#064;GuardedBy(&quot;this&quot;)
+ *   void m1() {
+ *     f1 = 4;
+ *     f2 = 5;
+ *   }
+ * 
+ *   &#064;GuardedBy(&quot;l1, l2&quot;)
+ *   void m2() {
+ *     f1 = 4;
+ *     f2 = 5;
+ *   }
+ * 
+ *   &#064;RequiresLock(&quot;this&quot;)
+ *   void m3() {
+ *     f1 = 4;
+ *     f2 = 5;
+ *   }
+ * 
+ *   &#064;RequiresLock(&quot;l1, l2&quot;)
+ *   void m4() {
+ *     f1 = 4;
+ *     f2 = 5;
+ *   }
+ * }
+ * </pre>
  * 
  * <h3>Semantics:</h3>
  * 
