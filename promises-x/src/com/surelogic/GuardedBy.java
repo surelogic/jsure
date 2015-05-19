@@ -57,7 +57,9 @@ import java.lang.annotation.Target;
  * lock must be {@code final} and be declared in the same class (or be a visible
  * field declaration in a superclass) as the method or field on which this
  * annotation appears. When this annotation is applied to a field, the field
- * must be mutable.</li>
+ * must be mutable. In the case that both a <em>field-name</em> and a
+ * <em>lock-name</em> (see below) have the same name, the binding is to the
+ * <em>lock-name</em>.</li>
  * <li>
  * <em>class-name</em><tt>.</tt><em>field-name</em>: The lock object is
  * reference by the static field specified by <em>class-name</em><tt>.</tt>
@@ -81,22 +83,23 @@ import java.lang.annotation.Target;
  * The referenced <em>lock-name</em>, which is defined by {@link RegionLock}
  * annotation must be held when invoking the method. In this use,
  * <tt>@GuardedBy("</tt><em>lock-name</em><tt>")</tt> is equivalent to the
- * annotation <tt>@RequiresLock("</tt><em>lock-name</em><tt>")</tt>.
+ * annotation <tt>@RequiresLock("</tt><em>lock-name</em><tt>")</tt>. In the case
+ * that both a <em>field-name</em> and a <em>lock-name</em> have the same name,
+ * the binding is to the <em>lock-name</em>.</li>
  * </ul>
+ * <p>
  * When this annotation is applied to a method a comma separated list may be
  * provided if more than one lock needs to be held, e.g.
- * <tt>@GuardedBy("this, C.class")</tt>. In the case that both a
- * <em>field-name</em> and a <em>lock-name</em> have the same name, the binding
- * is to <em>lock-name</em>.
- * 
+ * <tt>@GuardedBy("this, C.class")</tt>.
  * <p>
- * This annotation does interact with the {@link RegionLock} defined locks when
- * applied to methods. First, as noted above, holding <em>lock-name</em> may be
- * expressed as a prerequisite to invoking the method. Second, lock
- * preconditions on methods expressed by {@link GuardedBy} should be resolved to
- * named locks. This is best explained by example. In the listing below the lock
- * preconditions on <tt>m1()</tt>, <tt>m2()</tt>, and <tt>m3()</tt> are
- * semantically equivalent.
+ * This annotation interacts with {@link RegionLock} defined locks when applied
+ * to methods. As noted above, holding <em>lock-name</em> may be expressed as a
+ * prerequisite to invoking the method. Also, non-<em>lock-name</em> lock
+ * preconditions expressed by {@link GuardedBy} should be resolved to named
+ * locks as applicable. This is best illustrated by example. In the listing
+ * below the lock preconditions on <tt>m1()</tt>, <tt>m2()</tt>, and
+ * <tt>m3()</tt> are semantically equivalent. In particular, a lock precondition
+ * on <tt>this</tt> resolves to both named locks: <tt>l1</tt> and <tt>l2</tt>
  * 
  * <pre>
  * &#064;RegionLocks({ @RegionLock(&quot;l1 is this protects f1&quot;), @RegionLock(&quot;l2 is this protects f2&quot;) })
@@ -131,6 +134,11 @@ import java.lang.annotation.Target;
  *   }
  * }
  * </pre>
+ * <p>
+ * {@link GuardedBy} some <em>expression</em> expressed on a method may be
+ * thought of as semantically equivalent to a {@link RequiresLock} annotation
+ * with the same <em>expression</em>. Which annotation you choose to use is a
+ * style preference.
  * 
  * <h3>Semantics:</h3>
  * 
