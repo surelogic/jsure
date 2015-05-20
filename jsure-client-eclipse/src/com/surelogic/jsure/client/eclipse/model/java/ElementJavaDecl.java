@@ -58,7 +58,7 @@ public final class ElementJavaDecl extends ElementWithChildren {
     }
 
     @NonNull
-    private final List<ElementProject> f_projects = new ArrayList<ElementProject>();
+    private final List<ElementProject> f_projects = new ArrayList<>();
 
     /**
      * Gets the set of root elements constructed by this, so far.

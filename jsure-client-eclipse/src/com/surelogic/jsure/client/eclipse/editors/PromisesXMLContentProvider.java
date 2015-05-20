@@ -243,7 +243,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
         localXML = null;
       }
       if (roots.length > 0 && roots[0] == null) {
-          roots = SLUtility.EMPTY_OBJECT_ARRAY;
+        roots = SLUtility.EMPTY_OBJECT_ARRAY;
       }
     }
     return null;
@@ -265,7 +265,7 @@ public class PromisesXMLContentProvider extends AbstractContentProvider implemen
   public Object[] getChildren(final Object element) {
     Object[] children = ((IJavaElement) element).getChildren();
     if (hideEmpty) {
-      final List<IJavaElement> nonLeaf = new ArrayList<IJavaElement>();
+      final List<IJavaElement> nonLeaf = new ArrayList<>();
       for (Object o : children) {
         IJavaElement c = (IJavaElement) o;
         if (c instanceof IMergeableElement || hasChildren(c)) {

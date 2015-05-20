@@ -31,7 +31,7 @@ public final class FilterVerificationJudgment extends Filter implements IOnlyPro
     }
   };
 
-  private FilterVerificationJudgment(Selection selection, Filter previous, String filterLabel) {
+  FilterVerificationJudgment(Selection selection, Filter previous, String filterLabel) {
     super(selection, previous, filterLabel);
   }
 

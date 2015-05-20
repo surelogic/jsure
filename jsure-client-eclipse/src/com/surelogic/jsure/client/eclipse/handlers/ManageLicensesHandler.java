@@ -9,9 +9,9 @@ import com.surelogic.common.ui.dialogs.ManageLicensesDialog;
 
 public class ManageLicensesHandler extends AbstractHandler {
 
-	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		ManageLicensesDialog.open(EclipseUIUtility.getShell());
-		return null;
-	}
+  @Override
+  public Object execute(ExecutionEvent event) throws ExecutionException {
+    ManageLicensesDialog.open(EclipseUIUtility.getShell());
+    return null;
+  }
 }

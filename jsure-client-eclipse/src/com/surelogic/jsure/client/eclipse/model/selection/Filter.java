@@ -122,7 +122,7 @@ public abstract class Filter {
    * Counts for just this filter. The key of this map is the definitive list of
    * values for this filter. Only mutated by {@link #refreshCountsFor(List)}.
    */
-  protected final Map<String, Integer> f_counts = new HashMap<String, Integer>();
+  protected final Map<String, Integer> f_counts = new HashMap<>();
 
   /**
    * Gets a string value used in the filter for the passed drop. Subclasses
@@ -155,7 +155,7 @@ public abstract class Filter {
   /**
    * The set of values in alphabetical order.
    */
-  protected final LinkedList<String> f_allValues = new LinkedList<String>();
+  protected final LinkedList<String> f_allValues = new LinkedList<>();
 
   /**
    * Gets the current list of all possible values for this filter. This set of
@@ -166,7 +166,7 @@ public abstract class Filter {
    */
   public List<String> getAllValues() {
     synchronized (this) {
-      return new LinkedList<String>(f_allValues);
+      return new LinkedList<>(f_allValues);
     }
   }
 
@@ -240,7 +240,7 @@ public abstract class Filter {
    */
   public List<String> getValues() {
     synchronized (this) {
-      return new LinkedList<String>(f_allValues);
+      return new LinkedList<>(f_allValues);
     }
   }
 
@@ -269,7 +269,7 @@ public abstract class Filter {
    */
   public List<String> getValuesOrderedBySummaryCount() {
     final List<String> values = getValues();
-    final LinkedList<String> result = new LinkedList<String>();
+    final LinkedList<String> result = new LinkedList<>();
     int count = 0;
     while (!values.isEmpty()) {
       for (Iterator<String> i = values.iterator(); i.hasNext();) {
@@ -295,9 +295,9 @@ public abstract class Filter {
    * then it is important to remember to invoke {@link #notifyPorous()} to let
    * observers know about this mutation.
    */
-  protected final Set<String> f_porousValues = new HashSet<String>();
+  protected final Set<String> f_porousValues = new HashSet<>();
 
-  protected final Set<IFilterObserver> f_observers = new CopyOnWriteArraySet<IFilterObserver>();
+  protected final Set<IFilterObserver> f_observers = new CopyOnWriteArraySet<>();
 
   public final void addObserver(IFilterObserver o) {
     if (o == null)
@@ -461,7 +461,7 @@ public abstract class Filter {
    */
   public Set<String> getPorousValues() {
     synchronized (this) {
-      return new HashSet<String>(f_porousValues);
+      return new HashSet<>(f_porousValues);
     }
   }
 
@@ -503,7 +503,7 @@ public abstract class Filter {
     return getResultCountPorous() > 0;
   }
 
-  protected final List<IProofDrop> f_porousDrops = new ArrayList<IProofDrop>();
+  protected final List<IProofDrop> f_porousDrops = new ArrayList<>();
 
   /**
    * Gets a copy of the list of results that this filter allows through it.
@@ -512,7 +512,7 @@ public abstract class Filter {
    */
   public final List<IProofDrop> getPorousDrops() {
     synchronized (this) {
-      return new ArrayList<IProofDrop>(f_porousDrops);
+      return new ArrayList<>(f_porousDrops);
     }
   }
 

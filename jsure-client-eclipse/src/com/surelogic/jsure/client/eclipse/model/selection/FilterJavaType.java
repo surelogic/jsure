@@ -33,7 +33,7 @@ public final class FilterJavaType extends Filter {
     }
   };
 
-  private FilterJavaType(Selection selection, Filter previous, String filterLabel) {
+  FilterJavaType(Selection selection, Filter previous, String filterLabel) {
     super(selection, previous, filterLabel);
   }
 
@@ -79,7 +79,7 @@ public final class FilterJavaType extends Filter {
     f_countTotal = runningTotal;
   }
 
-  private final Map<String, Image> f_valueToImageName = new HashMap<String, Image>();
+  private final Map<String, Image> f_valueToImageName = new HashMap<>();
 
   @Override
   @Nullable

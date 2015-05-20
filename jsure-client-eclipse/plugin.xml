@@ -232,11 +232,11 @@
 		</category>
 
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
-			id="com.surelogic.jsure.client.eclipse.command.VerifyProject" name="Verify Project">
+			id="com.surelogic.jsure.client.eclipse.command.VerifyProject" name="Verify">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.AddUpdatePromisesLibrary"
-			name="Add/Update Promises Library in Project">
+			name="Add/Update Promises Library">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.FindXMLForType" name="Open Library Annotations...">
@@ -257,6 +257,10 @@
 			name="Save Documentation As...">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
+			id="com.surelogic.jsure.client.eclipse.command.ImportTutorialProjects"
+			name="Install Tutorial Projects">
+		</command>
+		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.SendTip" name="Send Tip for Improvement">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
@@ -265,10 +269,6 @@
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.SendLibraryAnnotationChanges"
 			name="Send Library Annotation Changes">
-		</command>
-		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
-			id="com.surelogic.jsure.client.eclipse.command.ImportTutorialProjects"
-			name="Run JSure Tutorials">
 		</command>
 		<command categoryId="com.surelogic.jsure.client.eclipse.commands"
 			id="com.surelogic.jsure.client.eclipse.command.ManageLicenses" name="Manage SureLogic Licenses">
@@ -314,7 +314,12 @@
 				</command>
 				<command
 					commandId="com.surelogic.jsure.client.eclipse.command.SaveHtmlDocs"
-					icon="platform:/plugin/com.surelogic.common/lib/images/file.gif"
+					icon="platform:/plugin/com.surelogic.common/lib/images/file_saveas.gif"
+					style="push">
+				</command>
+				<command
+					commandId="com.surelogic.jsure.client.eclipse.command.ImportTutorialProjects"
+					icon="platform:/plugin/com.surelogic.common/lib/images/import.gif"
 					style="push">
 				</command>
 				<separator name="com.surelogic.jsure.separator.main1"
@@ -330,14 +335,11 @@
 					commandId="com.surelogic.jsure.client.eclipse.command.SendLibraryAnnotationChanges"
 					style="push">
 				</command>
-				<command
-					commandId="com.surelogic.jsure.client.eclipse.command.ImportTutorialProjects"
-					style="push">
-				</command>
 				<separator name="com.surelogic.jsure.separator.main2"
 					visible="true">
 				</separator>
 				<command commandId="com.surelogic.jsure.client.eclipse.command.ManageLicenses"
+				    icon="platform:/plugin/com.surelogic.common/lib/images/sl.gif"
 					style="push">
 				</command>
 			</menu>
@@ -416,6 +418,10 @@
 			class="com.surelogic.jsure.client.eclipse.handlers.SaveHtmlDocsHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.SaveHtmlDocs">
 		</handler>
+		<handler
+			class="com.surelogic.jsure.client.eclipse.handlers.ImportTutorialProjectsHandler"
+			commandId="com.surelogic.jsure.client.eclipse.command.ImportTutorialProjects">
+		</handler>
 		<handler class="com.surelogic.jsure.client.eclipse.handlers.SendTipHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.SendTip">
 		</handler>
@@ -426,10 +432,6 @@
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.SendLibraryAnnotationHandler"
 			commandId="com.surelogic.jsure.client.eclipse.command.SendLibraryAnnotationChanges">
-		</handler>
-		<handler
-			class="com.surelogic.jsure.client.eclipse.handlers.ImportTutorialProjectsHandler"
-			commandId="com.surelogic.jsure.client.eclipse.command.ImportTutorialProjects">
 		</handler>
 		<handler
 			class="com.surelogic.jsure.client.eclipse.handlers.ManageLicensesHandler"
