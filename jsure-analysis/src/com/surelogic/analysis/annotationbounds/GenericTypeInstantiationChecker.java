@@ -102,6 +102,13 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       }
       
       @Override
+      public void testJavaType(final IJavaType javaType,
+          final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
+          final IBinder binder) {
+        testJavaType(javaType, actualAnnos, binder, TypeAnnotations.CONTAINABLE, CONTAINABLE);
+      }
+      
+      @Override
       public String toString() { return "Containable"; }
     },
     
@@ -116,6 +123,13 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
           final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
           final IBinder binder) {
         testType(typeNode, actualAnnos, binder, TypeAnnotations.IMMUTABLE, IMMUTABLE);
+      }
+      
+      @Override
+      public void testJavaType(final IJavaType javaType,
+          final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
+          final IBinder binder) {
+        testJavaType(javaType, actualAnnos, binder, TypeAnnotations.IMMUTABLE, IMMUTABLE);
       }
       
       @Override
@@ -136,6 +150,13 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       }
       
       @Override
+      public void testJavaType(final IJavaType javaType,
+          final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
+          final IBinder binder) {
+        testJavaType(javaType, actualAnnos, binder, TypeAnnotations.REFERENCE_OBJECT, REFERENCE);
+      }
+      
+      @Override
       public String toString() { return "ReferenceObject"; }
     },
     
@@ -150,6 +171,13 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
           final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
           final IBinder binder) {
         testType(typeNode, actualAnnos, binder, TypeAnnotations.THREAD_SAFE, THREADSAFE);
+      }
+      
+      @Override
+      public void testJavaType(final IJavaType javaType,
+          final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
+          final IBinder binder) {
+        testJavaType(javaType, actualAnnos, binder, TypeAnnotations.THREAD_SAFE, THREADSAFE);
       }
       
       @Override
@@ -170,6 +198,13 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       }
       
       @Override
+      public void testJavaType(final IJavaType javaType,
+          final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
+          final IBinder binder) {
+        testJavaType(javaType, actualAnnos, binder, TypeAnnotations.VALUE_OBJECT, VALUE);
+      }
+      
+      @Override
       public String toString() { return "ValueObject"; }
     };
     
@@ -179,6 +214,10 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
     public abstract void testType(final IRNode typeNode,
         final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
         final IBinder binder);
+    
+    public abstract void testJavaType(final IJavaType javaType,
+            final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos,
+            final IBinder binder);
     
     protected static void testType(
         final IRNode typeNode, final Map<AnnotationBounds,
@@ -191,6 +230,17 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
       }
     }
     
+    protected static void testJavaType(
+        final IJavaType javaType, final Map<AnnotationBounds,
+        Set<ProofDrop>> actualAnnos, final IBinder binder,
+        final TypeAnnotations typeAnnoToTestFor, final AnnotationBounds bound) {
+      final TypeAnnotationTester tester =
+          new TypeAnnotationTester(typeAnnoToTestFor, binder, foldersExternal);
+      if (tester.testExpressionType(javaType)) {
+        actualAnnos.put(bound, tester.getTrusts());
+      }
+    }
+        
     @Override
     public abstract String toString();
   }
@@ -492,7 +542,7 @@ final class GenericTypeInstantiationChecker extends VoidTreeWalkVisitor implemen
           final Map<AnnotationBounds, Set<ProofDrop>> actualAnnos =
               new HashMap<AnnotationBounds, Set<ProofDrop>>();
           for (final AnnotationBounds ab : AnnotationBounds.values()) {
-            ab.testType(typeActual, actualAnnos, binder);
+        	  ab.testJavaType(jTypeOfActual, actualAnnos, binder);
           }
           
           final IRNode link = jTypeOfActual instanceof IJavaSourceRefType ?
