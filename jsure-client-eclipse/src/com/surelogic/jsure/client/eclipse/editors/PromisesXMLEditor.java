@@ -62,8 +62,6 @@ import org.eclipse.ui.dialogs.ListSelectionDialog;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.part.MultiPageEditorPart;
 
-
-
 import com.surelogic.annotation.AnnotationUtil;
 //import com.surelogic.annotation.IAnnotationParseRule;
 //import com.surelogic.annotation.NullAnnotationParseRule;
@@ -129,18 +127,18 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 
   public static final boolean hideEmpty = false;
 
-  private final PromisesXMLContentProvider provider = new PromisesXMLContentProvider(hideEmpty);
-  private static final JavaElementProvider jProvider = new JavaElementProvider();
+  final PromisesXMLContentProvider provider = new PromisesXMLContentProvider(hideEmpty);
+  static final JavaElementProvider jProvider = new JavaElementProvider();
   // private final ParameterProvider paramProvider = new ParameterProvider();
-  private static final AnnoProvider annoProvider = new AnnoProvider();
-  private TreeViewer contents;
+  static final AnnoProvider annoProvider = new AnnoProvider();
+  TreeViewer contents;
 
   /**
    * Really used to check if we deleted all the changes
    */
-  private boolean isDirty = false;
-  private TextViewer fluidXML;
-  private TextEditor localXML;
+  boolean isDirty = false;
+  TextViewer fluidXML;
+  TextEditor localXML;
 
   public PromisesXMLEditor() {
     PromisesXMLReader.listenForRefresh(this);
@@ -344,7 +342,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     }.schedule();
   }
 
-  private void markAsDirty() {
+  void markAsDirty() {
     fireDirtyProperty();
 
     // otherwise already dirty
@@ -369,7 +367,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     }
   }
 
-  private void setupContextMenu(final Menu menu) {
+  void setupContextMenu(final Menu menu) {
     final IStructuredSelection s = (IStructuredSelection) contents.getSelection();
     if (s.size() != 1) {
       return;
@@ -522,7 +520,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 
   abstract class ITypeSelector<T extends IMember> extends LoggedSelectionAdapter {
     final ClassElement c;
-    final List<T> members = new ArrayList<T>();
+    final List<T> members = new ArrayList<>();
     final Comparator<T> comparator;
 
     ITypeSelector(String label, final ClassElement cls, final Comparator<T> compare) {
@@ -679,7 +677,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     }
 
     private String getDefaultContents(final String tag, final boolean isScopedPromise) {
-      if ("Starts"/*ThreadEffectsRules.STARTS*/.equals(tag)) {
+      if ("Starts"/* ThreadEffectsRules.STARTS */.equals(tag)) {
         return isScopedPromise ? "(nothing)" : "nothing";
       }
       return "";
@@ -697,25 +695,25 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
   }
 
   private List<String> sortSet(final Set<String> s) {
-    List<String> rv = new ArrayList<String>(s);
+    List<String> rv = new ArrayList<>(s);
     Collections.sort(rv);
     return rv;
   }
 
   private Set<String> findApplicableAnnos(final IDecl.Kind kind) {
-    final Set<String> annos = new HashSet<String>();
+    final Set<String> annos = new HashSet<>();
     // Get valid/applicable annos
     for (Class<?> rule : AnnotationUtil.getApplicableAnnos(kind)) {
       final String name = rule.getSimpleName();
-      if (/*!(rule instanceof NullAnnotationParseRule) &&*/AnnotationElement.isIdentifier(name)) {
+      if (/* !(rule instanceof NullAnnotationParseRule) && */AnnotationElement.isIdentifier(name)) {
         annos.add(name);
       }
     }
     // These should never appear in XML files
-    annos.remove("Assume"/*ScopedPromiseRules.ASSUME*/);
+    annos.remove("Assume"/* ScopedPromiseRules.ASSUME */);
     return annos;
   }
-  
+
   private Set<String> remove(final Set<String> s, final String elt) {
     s.remove(elt);
     return s;
@@ -837,57 +835,58 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
   }
 
   public void focusOn(IDecl decl) {
-	if (decl == null) {
-		return;
-	}
-	switch (decl.getKind()) {
-	case CLASS:
-		focusOnNestedType(getRelativeTypeName(decl));
-		break;
-	case CONSTRUCTOR:
-	case METHOD:
-		focusOnMethod(decl.getParent().getName(), decl.getName(), formatParams(decl.getParameters()));
-	default:
-	}
+    if (decl == null) {
+      return;
+    }
+    switch (decl.getKind()) {
+    case CLASS:
+      focusOnNestedType(getRelativeTypeName(decl));
+      break;
+    case CONSTRUCTOR:
+    case METHOD:
+      focusOnMethod(decl.getParent().getName(), decl.getName(), formatParams(decl.getParameters()));
+    default:
+    }
   }
-  
-  private String getRelativeTypeName(IDecl decl) {	  
-	StringBuilder sb = new StringBuilder();
-	computeRelativeTypeName(sb, decl);
-	return sb.toString();
+
+  private String getRelativeTypeName(IDecl decl) {
+    StringBuilder sb = new StringBuilder();
+    computeRelativeTypeName(sb, decl);
+    return sb.toString();
   }
 
   private void computeRelativeTypeName(StringBuilder sb, IDecl decl) {
-	if (decl == null) {
-		return;
-	}
-	if (decl.getKind() == Kind.CLASS) {
-		computeRelativeTypeName(sb, decl.getParent());
-		if (sb.length() > 0) {
-			sb.append('.');			
-		}
-		sb.append(decl.getName());
-	}
+    if (decl == null) {
+      return;
+    }
+    if (decl.getKind() == Kind.CLASS) {
+      computeRelativeTypeName(sb, decl.getParent());
+      if (sb.length() > 0) {
+        sb.append('.');
+      }
+      sb.append(decl.getName());
+    }
   }
 
   private String formatParams(List<IDeclParameter> parameters) {
-	if (parameters.isEmpty()) {
-		return "";
-	}
-	StringBuilder sb = new StringBuilder();
-	for(IDeclParameter p : parameters) {
-		if (sb.length() > 0) {
-			sb.append(", ");
-		}
-		sb.append(p.getTypeOf().getCompact());
-	}
-	return sb.toString();
+    if (parameters.isEmpty()) {
+      return "";
+    }
+    StringBuilder sb = new StringBuilder();
+    for (IDeclParameter p : parameters) {
+      if (sb.length() > 0) {
+        sb.append(", ");
+      }
+      sb.append(p.getTypeOf().getCompact());
+    }
+    return sb.toString();
   }
 
   public void focusOnMethod(final String enclosingTypeName, final String name, final String params) {
     PackageElement p = provider.pkg;
     if (p != null) {
-      final AbstractFunctionElement m = p.visit(new MethodFinder(enclosingTypeName, enclosingTypeName.equals(name) ? "new" : name, params));
+      final AbstractFunctionElement m = p.visit(new MethodFinder(enclosingTypeName, enclosingTypeName.equals(name) ? "new" : name,
+          params));
       if (m != null) {
         focusOn(m);
       }
@@ -920,7 +919,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 
   static class TypeFinder extends ElementFinder<NestedClassElement> {
     final String[] names;
-    final Stack<String> types = new Stack<String>();
+    final Stack<String> types = new Stack<>();
 
     TypeFinder(final String relativeName) {
       names = relativeName.split("\\.");
@@ -960,7 +959,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
   }
 
   static class MethodFinder extends ElementFinder<AbstractFunctionElement> {
-	final String enclosingTypeName;
+    final String enclosingTypeName;
     final String name, params;
 
     MethodFinder(String type, final String name, final String params) {
@@ -971,19 +970,19 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 
     @Override
     public AbstractFunctionElement visit(final ConstructorElement c) {
-        if (enclosingTypeName.equals(c.getParent().getName()) && name.equals(c.getName())) {
-            if (params == null || params.equals(c.getParams())) {
-            	return c;           
-            }
+      if (enclosingTypeName.equals(c.getParent().getName()) && name.equals(c.getName())) {
+        if (params == null || params.equals(c.getParams())) {
+          return c;
         }
-        return null;
+      }
+      return null;
     }
-    
+
     @Override
     public AbstractFunctionElement visit(final MethodElement m) {
       if (enclosingTypeName.equals(m.getParent().getName()) && name.equals(m.getName())) {
         if (params == null || params.equals(m.getParams())) {
-        	return m;           
+          return m;
         }
       }
       return null;
@@ -1048,16 +1047,16 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     if (decl == null)
       throw new IllegalArgumentException(I18N.err(44, "decl"));
     final String qname = DeclUtil.getTypeNameFullyQualifiedOutermostTypeNameOnly(decl);
-    PromisesXMLEditor xe = (PromisesXMLEditor)
-    		PromisesXMLEditor.openInEditor(qname.replace('.', '/') + TestXMLParserConstants.SUFFIX, false);
+    PromisesXMLEditor xe = (PromisesXMLEditor) PromisesXMLEditor.openInEditor(qname.replace('.', '/')
+        + TestXMLParserConstants.SUFFIX, false);
     xe.focusOn(decl);
     return xe;
   }
 
   public static IEditorPart openInXMLEditor(final IType t) {
-	  return openInXMLEditor(t, false);
+    return openInXMLEditor(t, false);
   }
-  
+
   public static IEditorPart openInXMLEditor(final IType t, boolean readOnly) {
     String qname = t.getFullyQualifiedName();
     int firstDollar = qname.indexOf('$');
@@ -1089,10 +1088,10 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
   }
 
   private static class Input implements IURIEditorInput {
-    private final boolean readOnly;
-    private final String path;
-    private final String name;
-    private final URI uri;
+    final boolean readOnly;
+    final String path;
+    final String name;
+    final URI uri;
 
     Input(final String relativePath, final boolean ro) throws URISyntaxException {
       readOnly = ro;
@@ -1157,7 +1156,6 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
       return path;
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     public Object getAdapter(final Class adapter) {
       if (adapter == Object.class) {
@@ -1190,7 +1188,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     contents.setSelection(new StructuredSelection(e));
     contents.reveal(e);
   }
-  
+
   static class Comparer implements IElementComparer {
     @Override
     public int hashCode(final Object element) {
@@ -1224,7 +1222,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
 
   void startAnnotationEditDialog(final AnnotationElement a) {
     // Collect initial attribute values
-    Map<Attribute, String> initialAttrs = new TreeMap<Attribute, String>();
+    Map<Attribute, String> initialAttrs = new TreeMap<>();
     for (Map.Entry<String, Attribute> e : a.getAttributeDefaults().entrySet()) {
       if (AnnotationConstants.VALUE_ATTR.equals(e.getKey())) {
         initialAttrs.put(e.getValue(), a.getContents());
@@ -1341,7 +1339,7 @@ public class PromisesXMLEditor extends MultiPageEditorPart implements PromisesXM
     return changed;
   }
 
-  private static final String PROMISE = "Promise";//ScopedPromiseRules.PROMISE
+  private static final String PROMISE = "Promise";// ScopedPromiseRules.PROMISE
   private static final List<String> ONLY_PROMISE = Collections.singletonList(PROMISE);
 
   private List<String> computePastableAnnos(AnnotatedJavaElement target) {

@@ -18,7 +18,7 @@ public abstract class ElementWithChildren extends Element {
   }
 
   @NonNull
-  private final ArrayList<Element> f_children = new ArrayList<Element>();
+  private final ArrayList<Element> f_children = new ArrayList<>();
 
   @Override
   final void addChild(Element child) {

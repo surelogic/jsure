@@ -33,7 +33,7 @@ public final class Selection implements JSureDataDirHub.CurrentScanChangeListene
    */
   private static final Set<ISelectionFilterFactory> f_allFilters;
   static {
-    Set<ISelectionFilterFactory> allFilters = new HashSet<ISelectionFilterFactory>();
+    Set<ISelectionFilterFactory> allFilters = new HashSet<>();
     /*
      * Add in all the filter factories.
      */
@@ -151,7 +151,7 @@ public final class Selection implements JSureDataDirHub.CurrentScanChangeListene
   /**
    * The ordered list of filters within this selection.
    */
-  private final LinkedList<Filter> f_filters = new LinkedList<Filter>();
+  final LinkedList<Filter> f_filters = new LinkedList<>();
 
   /**
    * Gets the ordered list of filters managed by this Selection;
@@ -160,7 +160,7 @@ public final class Selection implements JSureDataDirHub.CurrentScanChangeListene
    */
   public final List<Filter> getFilters() {
     synchronized (this) {
-      return new LinkedList<Filter>(f_filters);
+      return new LinkedList<>(f_filters);
     }
   }
 
@@ -225,7 +225,7 @@ public final class Selection implements JSureDataDirHub.CurrentScanChangeListene
   public void emptyFrom(Filter filter) {
     if (filter == null)
       return;
-    final List<Filter> disposeList = new ArrayList<Filter>();
+    final List<Filter> disposeList = new ArrayList<>();
     boolean found = false;
     synchronized (this) {
       for (Iterator<Filter> iterator = f_filters.iterator(); iterator.hasNext();) {
@@ -255,7 +255,7 @@ public final class Selection implements JSureDataDirHub.CurrentScanChangeListene
    *          clear out all filters.
    */
   public void emptyAfter(int filterIndex) {
-    final List<Filter> disposeList = new ArrayList<Filter>();
+    final List<Filter> disposeList = new ArrayList<>();
     boolean changed = false;
     int index = 0;
     synchronized (this) {
@@ -354,7 +354,7 @@ public final class Selection implements JSureDataDirHub.CurrentScanChangeListene
    * @return factories for unused filters.
    */
   public List<ISelectionFilterFactory> getAvailableFilters() {
-    List<ISelectionFilterFactory> result = new ArrayList<ISelectionFilterFactory>(f_allFilters);
+    List<ISelectionFilterFactory> result = new ArrayList<>(f_allFilters);
     synchronized (this) {
       for (Filter filter : f_filters) {
         result.remove(filter.getFactory());
@@ -427,7 +427,7 @@ public final class Selection implements JSureDataDirHub.CurrentScanChangeListene
     return !getPorousDrops().isEmpty();
   }
 
-  private final Set<ISelectionObserver> f_observers = new CopyOnWriteArraySet<ISelectionObserver>();
+  private final Set<ISelectionObserver> f_observers = new CopyOnWriteArraySet<>();
 
   public void addObserver(ISelectionObserver o) {
     if (o == null)
@@ -443,7 +443,7 @@ public final class Selection implements JSureDataDirHub.CurrentScanChangeListene
    * Do not call this method holding a lock on <code>this</code>. Deadlock could
    * occur as we are invoking an alien method.
    */
-  private void notifySelectionChanged() {
+  void notifySelectionChanged() {
     for (ISelectionObserver o : f_observers)
       o.selectionChanged(this);
   }

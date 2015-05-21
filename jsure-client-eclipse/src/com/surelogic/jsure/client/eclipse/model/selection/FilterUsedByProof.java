@@ -28,7 +28,7 @@ public final class FilterUsedByProof extends Filter implements IOnlyResultsPorus
     }
   };
 
-  private FilterUsedByProof(Selection selection, Filter previous, String filterLabel) {
+  FilterUsedByProof(Selection selection, Filter previous, String filterLabel) {
     super(selection, previous, filterLabel);
   }
 

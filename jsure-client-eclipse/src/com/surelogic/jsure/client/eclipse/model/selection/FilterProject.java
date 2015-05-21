@@ -26,7 +26,7 @@ public final class FilterProject extends Filter {
     }
   };
 
-  private FilterProject(Selection selection, Filter previous, String filterLabel) {
+  FilterProject(Selection selection, Filter previous, String filterLabel) {
     super(selection, previous, filterLabel);
   }
 

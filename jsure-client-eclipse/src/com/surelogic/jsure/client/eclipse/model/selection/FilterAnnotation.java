@@ -30,7 +30,7 @@ public final class FilterAnnotation extends Filter implements IOnlyPromisesPorus
     }
   };
 
-  private FilterAnnotation(Selection selection, Filter previous, String filterLabel) {
+  FilterAnnotation(Selection selection, Filter previous, String filterLabel) {
     super(selection, previous, filterLabel);
   }
 
@@ -56,7 +56,7 @@ public final class FilterAnnotation extends Filter implements IOnlyPromisesPorus
     // Special cases
     final String subst = substMap.get(result);
     if (subst != null) {
-    	return subst;
+      return subst;
     }
     // General case XResultDrop where we return X
     if (!result.endsWith(suffix))
@@ -64,17 +64,17 @@ public final class FilterAnnotation extends Filter implements IOnlyPromisesPorus
 
     return result.substring(0, result.length() - suffix.length());
   }
-  
+
   private static final String suffix = "PromiseDrop";
-  
-  private static final Map<String,String> substMap = new HashMap<String, String>();
+
+  private static final Map<String, String> substMap = new HashMap<>();
   static {
-	  substMap.put("LockModel", "RegionLock");
-	  substMap.put("RegionModel", "Region");
-	  substMap.put("VouchFieldIsPromiseDrop", "Vouch");
-	  substMap.put("ExplicitBorrowedInRegionPromiseDrop", "BorrowedInRegion");
-	  substMap.put("ExplicitUniqueInRegionPromiseDrop", "UniqueInRegion");
-	  substMap.put("SimpleBorrowedInRegionPromiseDrop", "BorrowedInRegion");
-	  substMap.put("SimpleUniqueInRegionPromiseDrop", "UniqueInRegion");
+    substMap.put("LockModel", "RegionLock");
+    substMap.put("RegionModel", "Region");
+    substMap.put("VouchFieldIsPromiseDrop", "Vouch");
+    substMap.put("ExplicitBorrowedInRegionPromiseDrop", "BorrowedInRegion");
+    substMap.put("ExplicitUniqueInRegionPromiseDrop", "UniqueInRegion");
+    substMap.put("SimpleBorrowedInRegionPromiseDrop", "BorrowedInRegion");
+    substMap.put("SimpleUniqueInRegionPromiseDrop", "UniqueInRegion");
   }
 }

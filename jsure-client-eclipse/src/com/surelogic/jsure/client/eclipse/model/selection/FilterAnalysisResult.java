@@ -27,7 +27,7 @@ public final class FilterAnalysisResult extends Filter implements IOnlyResultsPo
     }
   };
 
-  private FilterAnalysisResult(Selection selection, Filter previous, String filterLabel) {
+  FilterAnalysisResult(Selection selection, Filter previous, String filterLabel) {
     super(selection, previous, filterLabel);
   }
 

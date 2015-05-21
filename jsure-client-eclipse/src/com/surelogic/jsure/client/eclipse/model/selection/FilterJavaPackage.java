@@ -27,7 +27,7 @@ public final class FilterJavaPackage extends Filter {
     }
   };
 
-  private FilterJavaPackage(Selection selection, Filter previous, String filterLabel) {
+  FilterJavaPackage(Selection selection, Filter previous, String filterLabel) {
     super(selection, previous, filterLabel);
   }
 
