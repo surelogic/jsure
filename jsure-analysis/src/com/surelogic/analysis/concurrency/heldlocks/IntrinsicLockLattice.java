@@ -67,7 +67,7 @@ final class IntrinsicLockLattice extends
 
   /**
    * Locks assumed to be held, that cannot be released during the execution 
-   * of the method.  This come from the method being {@code synchronized},
+   * of the method.  These come from the method being {@code synchronized},
    * from {@code RequiresLock} annotations, from a constructor being
    * single threaded, or from the special case of a class initializer.
    */
@@ -80,9 +80,8 @@ final class IntrinsicLockLattice extends
    * Private constructor: use {@link #createForFlowUnit(IRNode, JUCLockUsageManager)}.
    */
   private IntrinsicLockLattice(
-      final IRNode[] sb, final Set<HeldLock>[] l, final Set<HeldLock> assumed) {
-//    super(FlatLattice.prototype, SLUtility.EMPTY_OBJECT_ARRAY, sb);
-    super(FlatLattice.prototype, sb);
+      final IRNode[] syncBlocks, final Set<HeldLock>[] l, final Set<HeldLock> assumed) {
+    super(FlatLattice.prototype, syncBlocks);
     locks = l;
     assumedLocks = assumed;
   }
@@ -122,7 +121,7 @@ final class IntrinsicLockLattice extends
   }
   
   /**
-   * Get a new empty value the lattice: All the synchronized blocks are inactive.
+   * Get a new empty value for the lattice: All the synchronized blocks are inactive.
    */
   @Override
   public final Object[] getEmptyValue() {
@@ -146,7 +145,7 @@ final class IntrinsicLockLattice extends
    */
   public Object[] enteringSyncBlock(
       final Object[] oldValue, final IRNode syncBlock) {
-    return updateSyncBlock(oldValue, syncBlock, LatticeValues.LOCKED);
+    return replaceValue(oldValue, syncBlock, LatticeValues.LOCKED);
   }
   
   /**
@@ -154,17 +153,9 @@ final class IntrinsicLockLattice extends
    */
   public Object[] leavingSyncBlock(
       final Object[] oldValue, final IRNode syncBlock) {
-    return updateSyncBlock(oldValue, syncBlock, LatticeValues.UNLOCKED);
+    return replaceValue(oldValue, syncBlock, LatticeValues.UNLOCKED);
   }
   
-  /**
-   * Update the status of the given synchronized block
-   */
-  private Object[] updateSyncBlock(
-      final Object[] oldValue, final IRNode syncBlock, final LatticeValues status) {
-    return replaceValue(oldValue, syncBlock, status);
-  }
-
   /**
    * Get the held locks.
    */

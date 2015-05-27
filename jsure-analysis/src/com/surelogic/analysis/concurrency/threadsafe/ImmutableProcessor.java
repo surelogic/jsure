@@ -6,7 +6,6 @@ import com.surelogic.Vouch;
 import com.surelogic.aast.promise.VouchFieldIsNode;
 import com.surelogic.analysis.ResultsBuilder;
 import com.surelogic.analysis.annotationbounds.ParameterizedTypeAnalysis;
-import com.surelogic.analysis.concurrency.heldlocks.GlobalLockModel;
 import com.surelogic.analysis.type.constraints.TypeAnnotationTester;
 import com.surelogic.analysis.type.constraints.TypeAnnotations;
 import com.surelogic.analysis.visitors.TypeImplementationProcessor;
@@ -63,8 +62,7 @@ public final class ImmutableProcessor extends TypeImplementationProcessor {
   
   public ImmutableProcessor(final IBinder b,
       final ImmutablePromiseDrop iDrop,
-      final IRNode typeDecl, final IRNode typeBody,
-      final GlobalLockModel globalLockModel) {
+      final IRNode typeDecl, final IRNode typeBody) {
     super(b, typeDecl, typeBody);
     isInterface = TypeUtil.isInterface(typeDecl);
     builder = new ResultsBuilder(iDrop);

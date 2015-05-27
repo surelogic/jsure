@@ -84,18 +84,6 @@ public final class IntrinsicLockAnalysis extends
     return analysis;
   }
   
-//  /**
-//   * Given a node, find the set of locks expressions that are locked on
-//   * entry to the node.
-//   */
-//  public Set<HeldLock> getHeldLocks(final IRNode node, final IRNode context) {
-//    final JavaForwardAnalysis<Object[], IntrinsicLockLattice> a = getAnalysis(
-//        edu.cmu.cs.fluid.java.analysis.IntraproceduralAnalysis.getFlowUnit(
-//            node, context));
-//    final IntrinsicLockLattice ill = a.getLattice();
-//    return ill.getHeldLocks(a.getAfter(node, WhichPort.ENTRY));
-//  }
-  
   public Query getHeldLocksQuery(final IRNode flowUnit) {
     return new Query(getAnalysisThunk(flowUnit));
   }

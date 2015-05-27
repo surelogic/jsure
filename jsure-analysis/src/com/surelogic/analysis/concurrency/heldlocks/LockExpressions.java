@@ -46,7 +46,7 @@ import edu.cmu.cs.fluid.parse.JJNode;
  * <ul>
  * <li>All the syntactically unique final lock expressions that appear as the
  * object expression in a call to {@code lock()} or {@code unlock()}.
- * <li>All the syntactically unique final lock expressions that appear the
+ * <li>All the syntactically unique final lock expressions that appear as the
  * argument to a {@code synchronized} block.
  * <li>The set of JUC locks that are declared as preconditions.
  * <li>The set of intrinsic locks that are declared as preconditions.
