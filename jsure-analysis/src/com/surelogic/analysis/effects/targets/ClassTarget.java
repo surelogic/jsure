@@ -1,12 +1,14 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.alias.IMayAlias;
+import com.surelogic.analysis.effects.targets.evidence.TargetEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.regions.RegionRelationships;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 
 /**
@@ -17,7 +19,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  * support for union types.</em> &mdash; Aaron Greenhouse, 18 Oct 2006.
  */
 /* I only want this class to be usable by the TargetFactory implementations */
-public final class ClassTarget extends AbstractTarget {
+public final class ClassTarget extends AbstractTargetWithRegion {
   // Force use of the target factories
   ClassTarget(final IRegion rgn, final TargetEvidence evidence) {
     super(rgn, evidence);
@@ -151,8 +153,7 @@ public final class ClassTarget extends AbstractTarget {
      * instance regions in the referenced object are a subregion of the region
      * in this target.
      */
-    return areDirectlyRelated(
-        binder, binder.getJavaType(formal), getRelativeClass(binder));
+    return TypeUtil.areDirectlyRelated(binder.getTypeEnvironment(), binder.getJavaType(formal), getRelativeClass(binder));
   }
 
   

@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.surelogic.aast.IAASTRootNode;
-import com.surelogic.analysis.effects.targets.NoEvidence;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
+import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.annotation.rules.UniquenessRules;

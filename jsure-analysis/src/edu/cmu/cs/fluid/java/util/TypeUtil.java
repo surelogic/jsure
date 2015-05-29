@@ -680,4 +680,26 @@ public class TypeUtil implements JavaGlobals {
       return declType;
     }
   }
+  
+  
+  
+  /**
+   * Returns whether <code>t1</code> is an ancestor of <code>t2</code>,
+   * or vice versa.
+   */
+  public static boolean areDirectlyRelated(
+    final ITypeEnvironment tEnv, final IJavaType t1, final IJavaType t2) {
+    return tEnv.isRawSubType(t1, t2) || tEnv.isRawSubType(t2, t1);
+  }
+  
+  /**
+   * Returns whether <code>t1</code> is an ancestor of <code>t2</code>.
+   * This uses ITypeEnvironment.isSubType() which 
+   * already does the right thing for related IJavaArrayType to IJavaDeclaredType.
+   * (This is, arrays are subtypes of java.lang.Object.)
+   */
+  public static boolean isAncestorOf(
+    final ITypeEnvironment tEnv, final IJavaType t1, final IJavaType t2) {
+    return tEnv.isRawSubType(t2, t1);
+  }
 }

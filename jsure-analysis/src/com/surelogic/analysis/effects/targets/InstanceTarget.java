@@ -1,7 +1,9 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.alias.IMayAlias;
-import com.surelogic.analysis.effects.targets.EmptyEvidence.Reason;
+import com.surelogic.analysis.effects.targets.evidence.EmptyEvidence;
+import com.surelogic.analysis.effects.targets.evidence.TargetEvidence;
+import com.surelogic.analysis.effects.targets.evidence.EmptyEvidence.Reason;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.regions.RegionRelationships;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
@@ -23,6 +25,7 @@ import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.OpUtil;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
@@ -34,7 +37,7 @@ import edu.cmu.cs.fluid.tree.Operator;
  * support for union types.</em> &mdash; Aaron Greenhouse, 18 Oct 2006.
  */
 /* I only want this class to be usable by the TargetFactory implementations */
-public final class InstanceTarget extends AbstractTarget {
+public final class InstanceTarget extends AbstractTargetWithRegion {
   // AnyInstanceTarget needs to look at this
   final IRNode reference;
   
@@ -186,7 +189,7 @@ public final class InstanceTarget extends AbstractTarget {
      * elaborated and masked, and thus aggregation relationships have already
      * been resolved.
      */
-    if (areDirectlyRelated(binder, binder.getJavaType(this.reference), t.clazz)) {
+    if (TypeUtil.areDirectlyRelated(binder.getTypeEnvironment(), binder.getJavaType(this.reference), t.clazz)) {
       final IRegion regionA = t.region;
       final IRegion regionB = this.region;
       if (regionA.equals(regionB)) {

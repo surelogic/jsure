@@ -1,11 +1,18 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.alias.IMayAlias;
-import com.surelogic.analysis.regions.*;
+import com.surelogic.analysis.effects.targets.evidence.TargetEvidence;
+import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.analysis.regions.RegionRelationships;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.bind.IBinder;
+import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
+import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
+import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
+import edu.cmu.cs.fluid.java.bind.IJavaType;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 
 /**
  * This class represents a target that accesses a region <i>r</i> of <em>any</em>
@@ -22,7 +29,7 @@ import edu.cmu.cs.fluid.java.bind.*;
  * 
  * @author Aaron Greenhouse
  */
-public final class AnyInstanceTarget extends AbstractTarget {
+public final class AnyInstanceTarget extends AbstractTargetWithRegion {
   /**
    * Reference to the class declaration node of the class that parameterizes the
    * target.
@@ -121,7 +128,7 @@ public final class AnyInstanceTarget extends AbstractTarget {
     final IJavaReferenceType classA = t.clazz;
     final IRegion regionB = this.region;
     final IJavaType classB = this.clazz;
-    if (areDirectlyRelated(binder, classB, classA)) {
+    if (TypeUtil.areDirectlyRelated(binder.getTypeEnvironment(), classB, classA)) {
       if (regionA.equals(regionB)) {
         return TargetRelationship.newAliased(RegionRelationships.EQUAL);
       } else if (regionA.ancestorOf(regionB)) {
@@ -166,7 +173,7 @@ public final class AnyInstanceTarget extends AbstractTarget {
      * been elaborated and masked, and thus aggregation relationships have
      * already been resolved.
      */
-    if (areDirectlyRelated(binder, binder.getJavaType(t.reference), this.clazz)) {
+    if (TypeUtil.areDirectlyRelated(binder.getTypeEnvironment(), binder.getJavaType(t.reference), this.clazz)) {
       final IRegion regionA = t.region;
       final IRegion regionB = this.region;
       if (regionA.equals(regionB)) {
@@ -185,7 +192,7 @@ public final class AnyInstanceTarget extends AbstractTarget {
   @Override
   public boolean mayTargetStateOfReference(
       final IBinder binder, final IRNode formal) {
-    return areDirectlyRelated(binder, binder.getJavaType(formal), this.clazz);
+    return TypeUtil.areDirectlyRelated(binder.getTypeEnvironment(), binder.getJavaType(formal), this.clazz);
   }
 
   
@@ -213,7 +220,7 @@ public final class AnyInstanceTarget extends AbstractTarget {
   @Override
   boolean checkTargetAgainstAnyInstance(
       final IBinder b, final AnyInstanceTarget actualTarget) {
-    return isAncestorOf(b, this.clazz, actualTarget.clazz)
+    return TypeUtil.isAncestorOf(b.getTypeEnvironment(), this.clazz, actualTarget.clazz)
         && this.getRegion().ancestorOf(actualTarget.region);
   }
 
@@ -229,7 +236,7 @@ public final class AnyInstanceTarget extends AbstractTarget {
   boolean checkTargetAgainstInstance(
       final IBinder b, final InstanceTarget actualTarget) {
     final IJavaType clazz = b.getJavaType(actualTarget.reference);
-    return isAncestorOf(b, this.clazz, clazz)
+    return TypeUtil.isAncestorOf(b.getTypeEnvironment(), this.clazz, clazz)
         && this.region.getRegion().ancestorOf(actualTarget.region);
   }
 

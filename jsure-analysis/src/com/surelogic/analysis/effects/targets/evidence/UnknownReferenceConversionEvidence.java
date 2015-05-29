@@ -1,4 +1,4 @@
-package com.surelogic.analysis.effects.targets;
+package com.surelogic.analysis.effects.targets.evidence;
 
 import com.surelogic.analysis.effects.Effect;
 

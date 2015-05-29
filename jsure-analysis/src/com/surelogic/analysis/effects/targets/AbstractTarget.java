@@ -1,9 +1,9 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.alias.IMayAlias;
-import com.surelogic.analysis.regions.IRegion;
+import com.surelogic.analysis.effects.targets.evidence.TargetEvidence;
 
-import edu.cmu.cs.fluid.java.bind.*;
+import edu.cmu.cs.fluid.java.bind.IBinder;
 
 /**
  * Abstract class for representing targets of effects. These are not the same
@@ -22,9 +22,6 @@ import edu.cmu.cs.fluid.java.bind.*;
  * @see LocalTarget
  */
 abstract class AbstractTarget implements Target {
-  /** The region accessed by the target */
-  protected final IRegion region;
-
   /** 
    * Evidence, if any, for the target's existence.  May be <code>null</code>
    */
@@ -32,54 +29,12 @@ abstract class AbstractTarget implements Target {
   
 
 
-  /** Only for use by LocalTarget and EmptyTarget. */
   AbstractTarget(final TargetEvidence te) {
-    region = null;
     evidence = te;
   }
 
-  protected AbstractTarget(final IRegion reg, final TargetEvidence te) {
-    if (reg == null) {
-      throw new NullPointerException("region cannot be null");
-    }
-    region = reg;
-    evidence = te;
-  }
-  
-    
-  
-  /**
-   * Get the region component of the target.
-   * 
-   * @return The region component
-   */
-  @Override
-  public final IRegion getRegion() {
-    return region;
-  }
-
-  // Used by implementations of degradeRegion()
-  protected final void checkNewRegion(final IRegion newRegion) {
-    if (!newRegion.ancestorOf(region)) {
-      throw new IllegalArgumentException("New region is not an ancestor of the old region");
-    }
-  }
-
   
   
-  // Used by implementations of the overlapsWith methods
-  /**
-   * Returns whether <code>t1</code> is an ancestor of <code>t2</code>,
-   * or vice versa.  This uses ITypeEnvironment.isSubType() which 
-   * already does the right thing for related IJavaArrayType to IJavaDeclaredType.
-   * (This is, arrays are subtypes of java.lang.Object.)
-   */
-  static boolean areDirectlyRelated(
-    final IBinder b, final IJavaType t1, final IJavaType t2) {
-    ITypeEnvironment tEnv = b.getTypeEnvironment();
-    return tEnv.isRawSubType(t1, t2) || tEnv.isRawSubType(t2, t1);
-  }
-
   /* For double dispatching in the implementation of overlapsWith() */  
 
   // Receiver is the argument from the original overlapsWith() call
@@ -101,19 +56,6 @@ abstract class AbstractTarget implements Target {
       IMayAlias mayAlias, IBinder binder, InstanceTarget t);
 
   
-
-  // Used by implementations of checkTarget methods
-  /**
-   * Returns whether <code>t1</code> is an ancestor of <code>t2</code>.
-   * This uses ITypeEnvironment.isSubType() which 
-   * already does the right thing for related IJavaArrayType to IJavaDeclaredType.
-   * (This is, arrays are subtypes of java.lang.Object.)
-   */
-  static boolean isAncestorOf(
-    final IBinder b, final IJavaType t1, final IJavaType t2) {
-    ITypeEnvironment tEnv = b.getTypeEnvironment();
-    return tEnv.isRawSubType(t2, t1);
-  }
 
   /* For double dispatching in the implementation of checkTarget() */
   
@@ -142,7 +84,7 @@ abstract class AbstractTarget implements Target {
 
   
   /**
-   * Force subclasses to get used {@link #toString(StringBuilder)} as 
+   * Force subclasses to use {@link #toString(StringBuilder)} as 
    * the implementation.
    */
   @Override

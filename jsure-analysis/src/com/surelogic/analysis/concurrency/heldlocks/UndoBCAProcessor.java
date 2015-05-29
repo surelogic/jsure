@@ -1,10 +1,10 @@
 package com.surelogic.analysis.concurrency.heldlocks;
 
-import com.surelogic.analysis.effects.targets.AnonClassEvidence;
-import com.surelogic.analysis.effects.targets.BCAEvidence;
-import com.surelogic.analysis.effects.targets.EvidenceProcessor;
-import com.surelogic.analysis.effects.targets.IteratorEvidence;
 import com.surelogic.analysis.effects.targets.Target;
+import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
+import com.surelogic.analysis.effects.targets.evidence.BCAEvidence;
+import com.surelogic.analysis.effects.targets.evidence.EvidenceProcessor;
+import com.surelogic.analysis.effects.targets.evidence.IteratorEvidence;
 
 final class UndoBCAProcessor extends EvidenceProcessor {
   private Target result = null;

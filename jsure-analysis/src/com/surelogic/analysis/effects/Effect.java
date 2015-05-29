@@ -2,12 +2,12 @@ package com.surelogic.analysis.effects;
 
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
-import com.surelogic.analysis.effects.targets.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.EmptyTarget;
 import com.surelogic.analysis.effects.targets.Target;
-import com.surelogic.analysis.effects.targets.TargetEvidence;
 import com.surelogic.analysis.effects.targets.TargetRelationship;
 import com.surelogic.analysis.effects.targets.TargetRelationships;
+import com.surelogic.analysis.effects.targets.evidence.EmptyEvidence;
+import com.surelogic.analysis.effects.targets.evidence.TargetEvidence;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.IBinder;

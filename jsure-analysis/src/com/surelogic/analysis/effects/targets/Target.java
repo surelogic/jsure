@@ -1,6 +1,7 @@
 package com.surelogic.analysis.effects.targets;
 
 import com.surelogic.analysis.alias.IMayAlias;
+import com.surelogic.analysis.effects.targets.evidence.TargetEvidence;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
@@ -18,9 +19,10 @@ public interface Target {
   
   
   /**
-   * Get the region component of the target.
+   * Get the region component of the target, if any.
    * 
-   * @return The region component
+   * @return The region component, or <code>null</code> if the target 
+   * doesn't have a region component.
    */
   public IRegion getRegion();
   
@@ -68,7 +70,7 @@ public interface Target {
   
   /**
    * Does an effect on this target have the potential to affect the state of an
-   * object referenced by given formal parameter or receiver?
+   * object referenced by the given formal parameter or receiver?
    */
   public boolean mayTargetStateOfReference(IBinder b, IRNode formal);
   

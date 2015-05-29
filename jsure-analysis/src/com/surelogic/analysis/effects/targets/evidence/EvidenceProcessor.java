@@ -1,4 +1,4 @@
-package com.surelogic.analysis.effects.targets;
+package com.surelogic.analysis.effects.targets.evidence;
 
 public abstract class EvidenceProcessor implements EvidenceVisitor {
   protected EvidenceProcessor() {

@@ -1,4 +1,6 @@
-package com.surelogic.analysis.effects.targets;
+package com.surelogic.analysis.effects.targets.evidence;
+
+import com.surelogic.analysis.effects.targets.Target;
 
 public abstract class ElaborationEvidence implements TargetEvidence {
   /** The target that was elaborated.  Must be an instance target. */

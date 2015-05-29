@@ -1,7 +1,9 @@
-package com.surelogic.analysis.effects.targets;
+package com.surelogic.analysis.effects.targets.evidence;
 
 import java.util.Map;
 
+import com.surelogic.analysis.effects.targets.InstanceTarget;
+import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
