@@ -2897,7 +2897,7 @@ public class LockRules extends AnnotationRules {
 		  // TODO scrub
 		  return new AbstractAASTScrubber<ImmutableRefNode, ImmutableRefPromiseDrop>(
 		      this, ScrubberType.UNORDERED,
-		      RegionRules.SIMPLE_BORROWED_IN_REGION, UniquenessRules.READONLY) {
+		      RegionRules.SIMPLE_BORROWED_IN_REGION, UniquenessRules.BORROWED) { // UniquenessRules.READONLY) {
 			  @Override
 			  protected ImmutableRefPromiseDrop makePromiseDrop(ImmutableRefNode n) {
 				  return storeDropIfNotNull(n, scrubImmutableRef(getContext(), n));
@@ -2933,17 +2933,11 @@ public class LockRules extends AnnotationRules {
           n, "Cannot be annotated with both @Immutable and @BorrowedInRegion");
       good = false;
     }
-    if (UniquenessRules.getReadOnly(promisedFor) != null) {
-      context.reportError(
-          n, "Cannot be annotated with both @Immutable and @ReadOnly");
-      good = false;
-    }
     
     if (good) {
       final ImmutableRefPromiseDrop immutableRefPromiseDrop = new ImmutableRefPromiseDrop(n);
       if (!VariableDeclarator.prototype.includes(promisedFor)) {
         UniquenessRules.addRelevantUniqueAnnotation(immutableRefPromiseDrop);
-//        UniquenessRules.addUniqueAnnotation(immutableRefPromiseDrop);
       }
       return immutableRefPromiseDrop;
     } else {

@@ -7,7 +7,6 @@ import org.antlr.runtime.RecognitionException;
 import com.surelogic.*;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.BorrowedNode;
-import com.surelogic.aast.promise.ReadOnlyNode;
 import com.surelogic.aast.promise.UniqueNode;
 import com.surelogic.analysis.uniqueness.plusFrom.traditional.store.State;
 import com.surelogic.annotation.AnnotationLocation;
@@ -27,7 +26,6 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.type.constraints.ImmutableRefPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
-import com.surelogic.dropsea.ir.drops.uniqueness.ReadOnlyPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
@@ -52,12 +50,10 @@ import edu.cmu.cs.fluid.tree.Operator;
 public class UniquenessRules extends AnnotationRules {
   public static final String UNIQUE = "Unique";
   public static final String BORROWED = "Borrowed";
-  public static final String READONLY = "ReadOnly";
   public static final String CONSISTENCY = "UniquenessConsistency";
   
   private static final AnnotationRules instance = new UniquenessRules();
   
-  private static final Readonly_ParseRule readonlyRule = new Readonly_ParseRule();
   private static final Unique_ParseRule uniqueRule     = new Unique_ParseRule();
   private static final Borrowed_ParseRule borrowedRule = new Borrowed_ParseRule();
   private static final UniquenessConsistencyChecker consistencyChecker = new UniquenessConsistencyChecker();
@@ -98,14 +94,6 @@ public class UniquenessRules extends AnnotationRules {
   public static boolean isBorrowedReceiver(final IRNode mdecl) {
     return getBorrowedReceiver(mdecl) != null;
   }
-
-  public static boolean isReadOnly(IRNode vdecl) {
-	  return getReadOnly(vdecl) != null;
-  }
-  
-  public static ReadOnlyPromiseDrop getReadOnly(IRNode vdecl) {
-	  return getBooleanDrop(readonlyRule.getStorage(), vdecl);
-  }
   
   /**
    * Meant for testing
@@ -136,7 +124,6 @@ public class UniquenessRules extends AnnotationRules {
   
   @Override
   public void register(PromiseFramework fw) {
-    registerParseRuleStorage(fw, readonlyRule);
     registerParseRuleStorage(fw, uniqueRule);
     registerParseRuleStorage(fw, borrowedRule);
     registerScrubber(fw, consistencyChecker);
@@ -178,58 +165,6 @@ public class UniquenessRules extends AnnotationRules {
 		  }
 		  return loc;
 	  }
-  }
-  
-  public static class Readonly_ParseRule extends AbstractParseRule<ReadOnlyNode, ReadOnlyPromiseDrop> {
-	public Readonly_ParseRule() {
-		super(READONLY, fieldFuncParamDeclOps, ReadOnlyNode.class);
-	}
-    @Override
-    protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new ReadOnlyNode(offset);
-    }
-    @Override
-    protected IPromiseDropStorage<ReadOnlyPromiseDrop> makeStorage() {
-      return BooleanPromiseDropStorage.create(name(), ReadOnlyPromiseDrop.class);
-    }
-    @Override
-    protected IAnnotationScrubber makeScrubber() {
-    	// TODO scrub
-    	return new AbstractAASTScrubber<ReadOnlyNode, ReadOnlyPromiseDrop>(
-    	    this, ScrubberType.UNORDERED, BORROWED) {
-//    	    RegionRules.EXPLICIT_BORROWED_IN_REGION,
-//    	    RegionRules.SIMPLE_BORROWED_IN_REGION) {
-	  		@Override
-		  	protected ReadOnlyPromiseDrop makePromiseDrop(ReadOnlyNode n) {
-			  	return storeDropIfNotNull(n, scrubReadOnly(getContext(), n));
-  			}    		
-    	};
-    }
-    
-    private ReadOnlyPromiseDrop scrubReadOnly(
-        final IAnnotationScrubberContext context, final ReadOnlyNode n) {
-      // must be a reference type variable
-      boolean isGood = RulesUtilities.checkForReferenceType(context, n, "ReadOnly");
-      
-      /* Cannot also be borrowed, unless the annotation is on a field.
-       * Implies we don't have to check for BorrowedInRegion, because that
-       * can only appear on a field, and would thus be legal.
-       */
-      final IRNode promisedFor = n.getPromisedFor();
-      final boolean fromField = VariableDeclarator.prototype.includes(promisedFor);
-      if (isBorrowed(promisedFor) && !fromField) {
-        context.reportError(n, "Cannot be annotated with both @Borrowed and @ReadOnly");
-        isGood = false;
-      }
-      
-      if (isGood) {
-        final ReadOnlyPromiseDrop readOnlyPromiseDrop = new ReadOnlyPromiseDrop(n);
-        if (!fromField) consistencyChecker.addRelevantDrop(readOnlyPromiseDrop); //addUniqueAnnotation(readOnlyPromiseDrop);
-        return readOnlyPromiseDrop;
-      } else {
-        return null;
-      }
-    }
   }
   
   public static class Unique_ParseRule 
@@ -327,11 +262,6 @@ public class UniquenessRules extends AnnotationRules {
       if (RegionRules.getSimpleBorrowedInRegion(promisedFor) != null) {
         context.reportError(
             a, "Cannot be annotated with both @Unique and @BorrowedInRegion");
-        good = false;
-      }
-      if (UniquenessRules.getReadOnly(promisedFor) != null) {
-        context.reportError(
-            a, "Cannot be annotated with both @Unique and @ReadOnly");
         good = false;
       }
       if (LockRules.isImmutableRef(promisedFor)) {
@@ -469,8 +399,6 @@ public class UniquenessRules extends AnnotationRules {
         return ((UniquePromiseDrop) a).allowRead() ? State.UNIQUEWRITE : State.UNIQUE;
       } else if (a instanceof ImmutableRefPromiseDrop) {
         return State.IMMUTABLE;
-      } else if (a instanceof ReadOnlyPromiseDrop) {
-        return State.READONLY;
       } else if (a instanceof BorrowedPromiseDrop) {
         return State.BORROWED;
       } else {
@@ -485,12 +413,9 @@ public class UniquenessRules extends AnnotationRules {
       if (d == null) {
         d = LockRules.getImmutableRef(n);
         if (d == null) {
-          d = getReadOnly(n);       
+          d = getBorrowed(n);
           if (d == null) {
-            d = getBorrowed(n);
-            if (d == null) {
-              return SHARED;
-            }
+            return SHARED;
           }
         }
       }

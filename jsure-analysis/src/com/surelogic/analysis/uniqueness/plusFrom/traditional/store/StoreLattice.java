@@ -309,9 +309,9 @@ extends TripleLattice<Element<Integer>,
     if (UniquenessUtils.isFieldBorrowed(node)) {
       return State.BORROWED;
     }
-    if (UniquenessRules.isReadOnly(node)) {
-      return State.READONLY;
-    }
+//    if (UniquenessRules.isReadOnly(node)) {
+//      return State.READONLY;
+//    }
     if (LockRules.isImmutableRef(node)) {
       return State.IMMUTABLE;
     }
@@ -347,7 +347,7 @@ extends TripleLattice<Element<Integer>,
 				  required = State.BORROWED;
 		  } else {
 			  if (LockRules.isImmutableRef(retDecl)) required = State.IMMUTABLE;
-			  else if (UniquenessRules.isReadOnly(retDecl)) required = State.UNIQUEWRITE;
+//			  else if (UniquenessRules.isReadOnly(retDecl)) required = State.UNIQUEWRITE;
 		  }
 	  }
 	  return required;
@@ -617,7 +617,7 @@ extends TripleLattice<Element<Integer>,
 	  }
     final IUniquePromise uPromise = UniquenessUtils.getUnique(fieldDecl);
 	  if (uPromise != null ||
-	      (UniquenessUtils.isFieldBorrowed(fieldDecl) && !UniquenessRules.isReadOnly(fieldDecl))) {
+	      (UniquenessUtils.isFieldBorrowed(fieldDecl))) { // && !UniquenessRules.isReadOnly(fieldDecl))) {
 		  final Integer n = getStackTop(s);
 
 		  if (localStatus(s,n) == State.IMMUTABLE) {
@@ -801,7 +801,7 @@ extends TripleLattice<Element<Integer>,
 			  // TODO: I think with the new BorrowedReadOnly, we might be able to avoid this looking
 			  // around.  Especially if we distinguished USELESS from BORROWEDREADONLY
 			  for (Effect f : effects) {
-				  if (!UniquenessRules.isReadOnly(destDecl) && !f.isWrite()) continue;
+				  if (/*!UniquenessRules.isReadOnly(destDecl) &&*/ !f.isWrite()) continue;
 				  Target t = f.getTarget();
 				  if (!(t instanceof InstanceTarget)) continue;
 				  if (t.getReference() != auth) continue;
@@ -810,9 +810,9 @@ extends TripleLattice<Element<Integer>,
 				  found = true;
 			  }
 			  if (!found)
-				  if (UniquenessRules.isReadOnly(destDecl))
-					  return errorStore("need read effect on allowReturn");
-				  else
+//				  if (UniquenessRules.isReadOnly(destDecl))
+//					  return errorStore("need read effect on allowReturn");
+//				  else
 					  return errorStore("need write effect on allowReturn");
 		  }
 	  }

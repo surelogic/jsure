@@ -35,7 +35,6 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
-import com.surelogic.dropsea.ir.drops.uniqueness.ReadOnlyPromiseDrop;
 
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
@@ -83,11 +82,11 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	
   private IJavaDeclaredType javaLangObject;
   
-  private final Effects.ElaborationErrorCallback callback;
+//  private final Effects.ElaborationErrorCallback callback;
   
 	public EffectsAnalysis() {
 		super(willRunInParallel, TypeBodyPair.class, "EffectAssurance2", BindingContextAnalysis.factory);
-		callback = new ElaborationErrorReporter();
+//		callback = new ElaborationErrorReporter();
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			setWorkProcedure(new Procedure<TypeBodyPair>() {
 				@Override
@@ -203,7 +202,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 				final List<Effect> declFx =
 						Effects.getDeclaredMethodEffects(member, member);
 				final Set<Effect> implFx = getAnalysis().getImplementationEffects(
-						member, getSharedAnalysis(), callback);
+						member, getSharedAnalysis()); //, callback);
 				// only assure if there is declared intent
 				if (declFx != null) {
 					final Set<Effect> maskedFx = getAnalysis().maskEffects(implFx);
@@ -519,24 +518,6 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 		rd.setMessage(msgTemplate, msgArgs);
 		
 		return rd;
-	}
-	
-	
-	
-	private final class ElaborationErrorReporter implements Effects.ElaborationErrorCallback {
-	  public ElaborationErrorReporter() {
-	    super();
-	  }
-	  
-    @Override
-    public void writeToBorrowedReadOnly(
-        final ReadOnlyPromiseDrop pd, final IRNode expr, final Target t) {
-      final ResultDrop rd = new ResultDrop(expr);
-      rd.addChecked(pd);
-      rd.setConsistent(false);
-      rd.setMessage(Messages.READONLY_REFERENCE);
-      (new EvidenceAdder(getBinder(), rd)).accept(t.getEvidence());
-    }	  
 	}
 
 	

@@ -61,8 +61,6 @@ public final class AnalysisDefaults {
 
 		init("com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisModule",
 				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM", false, "Uniqueness + From");
-		init("com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisAllModule",
-				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM_ALL", false, "Uniqueness + From (All methods)");
 		init("com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysisModule",
 				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM_SE", false, "Uniqueness + From (Side-effecting)");
 		init("com.surelogic.analysis.uniqueness.classic.sideeffecting.UniquenessAnalysisModule",
@@ -179,10 +177,12 @@ public final class AnalysisDefaults {
 			}
 		}
 
+		@Override
 		public boolean runsUniqueness() {
 			return id.contains(".UniquenessAssurance");
 		}
 
+		@Override
 		public boolean isActive(List<IAnalysisInfo> activeAnalyses) {
 			boolean active = isIncluded();
 			if (active) {

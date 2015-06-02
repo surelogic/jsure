@@ -24,7 +24,6 @@ import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.evidence.BCAEvidence;
 import com.surelogic.analysis.effects.targets.evidence.CallEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EmptyEvidence;
-import com.surelogic.analysis.effects.targets.evidence.IteratorEvidence;
 import com.surelogic.analysis.effects.targets.evidence.MappedArgumentEvidence;
 import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
 import com.surelogic.analysis.effects.targets.evidence.QualifiedReceiverConversionEvidence;
@@ -41,18 +40,14 @@ import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.MethodEffectsRules;
-import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
-import com.surelogic.dropsea.ir.drops.uniqueness.ReadOnlyPromiseDrop;
 import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.analysis.AnalysisQuery;
 import edu.cmu.cs.fluid.java.bind.IBinder;
-import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -60,13 +55,11 @@ import edu.cmu.cs.fluid.java.bind.IJavaTypeFormal;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
-import edu.cmu.cs.fluid.java.operator.Arguments;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
-import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedEnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -207,18 +200,16 @@ public final class Effects implements IBinderClient {
   /**
    * Get the effects of a method/constructor implementation.  This 
    * method is equivalent too, but hopefully slightly faster than,
-   * <code>this.getEffectsQuery(flowUnit, bca.getExpressionObjectsQuery(flowUnit)).getResultsFor(flowUnit)</code>,
-   * except that it allows the elaboration callback to be specified.
+   * <code>this.getEffectsQuery(flowUnit, bca.getExpressionObjectsQuery(flowUnit)).getResultsFor(flowUnit)</code>.
    * 
    * @param decl A MethodDeclaration or ConstructorDeclaration node.
    * @param bac The BCA analysis to use.
    * @return The effects of the method as implemented, not declared.
    */
   public Set<Effect> getImplementationEffects(
-      final IRNode flowUnit, final BindingContextAnalysis bca,
-      final Effects.ElaborationErrorCallback callback) {
+      final IRNode flowUnit, final BindingContextAnalysis bca) {
     final EffectsVisitor visitor = new EffectsVisitor(binder, flowUnit,
-        bca.getExpressionObjectsQuery(flowUnit), callback);
+        bca.getExpressionObjectsQuery(flowUnit));
     visitor.doAccept(flowUnit);
     return Collections.unmodifiableSet(visitor.getTheEffects());
   }
@@ -393,9 +384,9 @@ public final class Effects implements IBinderClient {
         return JavaPromise.getQualifiedReceiverNodeByName(caller, outerType);
       }
     };
-    return getMethodCallEffects(null,
+    return getMethodCallEffects(
         bcaQuery, new ThisBindingTargetFactory(teb), binder, rcvr,
-        ElaborationErrorCallback.NullCallback.INSTANCE, call, caller);
+        call, caller);
   }
   
   /**
@@ -422,9 +413,9 @@ public final class Effects implements IBinderClient {
    *          property bound. Currently this means that the targetFactory had
    *          better be an instance of {@link ThisBindingTargetFactory}.
    */
-  public Set<Effect> getMethodCallEffects(final IRNode specialCaseIterator,
+  public Set<Effect> getMethodCallEffects(
       final BindingContextAnalysis.Query bcaQuery, final TargetFactory targetFactory,
-      final IBinder binder, final IRNode rcvr, final ElaborationErrorCallback callback,
+      final IBinder binder, final IRNode rcvr,
       final IRNode call, final IRNode callingMethodDecl) {
     // Get the node of the method/constructor declaration
     final IRNode mdecl = binder.getBinding(call);
@@ -451,25 +442,11 @@ public final class Effects implements IBinderClient {
         final IRNode ref = t.getReference();
         final IRNode val = table.get(ref);
         if (val != null) {
-          boolean specialCase = false;
-          
-          if ((specialCaseIterator != null) && eff.isWrite()) {
-            if (ReceiverDeclaration.prototype.includes(ref)) {
-              if (t.getRegion().equals(RegionModel.getInstanceRegion(callingMethodDecl))) {
-                // found "writes this:Instance" --> convert to read
-                specialCase = true;
-              }
-            }
-          }
-          
           TargetEvidence ev = new MappedArgumentEvidence(mdecl, ref, val);
-          if (specialCase) {
-            ev = new IteratorEvidence(specialCaseIterator, ev);
-          }
           final Target newTarg = 
               targetFactory.createInstanceTarget(val, t.getRegion(), ev);
           elaborateInstanceTargetEffects(
-              bcaQuery, targetFactory, binder, rcvr, call, callback, specialCase ? true : eff.isRead(),
+              bcaQuery, targetFactory, binder, rcvr, call, eff.isRead(),
               newTarg, methodEffects);
         } else { // See if ref is a QualifiedReceiverDeclaration
           if (QualifiedReceiverDeclaration.prototype.includes(JJNode.tree.getOperator(ref))) {
@@ -513,8 +490,7 @@ public final class Effects implements IBinderClient {
       final Set<Effect> elaboratedEffects = new HashSet<Effect>();
       elaborateInstanceTargetEffects(
           bcaQuery, targetFactory, binder, rcvr, src,
-          ElaborationErrorCallback.NullCallback.INSTANCE, isRead,
-          target, elaboratedEffects);
+          isRead, target, elaboratedEffects);
       return Collections.unmodifiableSet(elaboratedEffects);
     } else {
       return Collections.singleton(Effect.newEffect(src, isRead, target));
@@ -525,10 +501,10 @@ public final class Effects implements IBinderClient {
       final BindingContextAnalysis.Query bcaQuery,
       final TargetFactory targetFactory,
       final IBinder binder, final IRNode rcvr, final IRNode src,
-      final ElaborationErrorCallback callback, final boolean isRead,
+      final boolean isRead,
       final Target initTarget, final Set<Effect> outEffects) {
     final TargetElaborator te =
-        new TargetElaborator(bcaQuery, targetFactory, binder, rcvr, callback, !isRead);
+        new TargetElaborator(bcaQuery, targetFactory, binder, rcvr);
     for (final Target t : te.elaborateTarget(initTarget)) {
       outEffects.add(Effect.newEffect(src, isRead, t));
     }
@@ -656,8 +632,6 @@ public final class Effects implements IBinderClient {
     
     private final RegionModel INSTANCE_REGION;
 
-    private final Effects.ElaborationErrorCallback callback;
-    
     /**
      * The binder to use.
      */
@@ -707,9 +681,8 @@ public final class Effects implements IBinderClient {
      *          anonymous classes, this should be the appropriate sub-sub-query.
      */
     public EffectsVisitor(final IBinder b, final IRNode flowUnit,
-        final BindingContextAnalysis.Query query, final Effects.ElaborationErrorCallback cb) {
+        final BindingContextAnalysis.Query query) {
       super(false, true, flowUnit);
-      this.callback = cb;
       this.binder = b;
       this.thisExprBinder = new EVThisExpressionBinder(b);
       this.targetFactory = new ThisBindingTargetFactory(thisExprBinder);
@@ -760,13 +733,6 @@ public final class Effects implements IBinderClient {
 
     @Override
     protected void handleAsMethodCall(final IRNode call) {
-      /* If the called method is iterator(), then see if the returned value
-       * is ever used to invoke remove().  If not, we can convert the 
-       * declared writes("this:Instance") effect to reads("this:Instance").
-       */
-      final boolean convertWritesThisInstanceToRead =
-          shouldConvertToReadEffect(call);
-      
       /* Assumes that the enclosing method/constructor of the call is the
        * method/constructor declaration represented by
        * {@link Context#enclosingMethod enclosing method} of the current
@@ -774,115 +740,8 @@ public final class Effects implements IBinderClient {
        */
       context.addEffects(
           effects.getMethodCallEffects(
-              convertWritesThisInstanceToRead ? call : null,
               context.bcaQuery, targetFactory, binder, context.theReceiverNode, 
-              callback, call, getEnclosingDecl()));
-    }
-
-
-
-    private boolean shouldConvertToReadEffect(final IRNode call) {
-      class Finder extends JavaSemanticsVisitor {
-        private final Set<IRNode> calls = new HashSet<IRNode>();
-        private boolean passedOff = false;
-        
-        public Finder() {
-          super(false, true, context.enclosingMethod);
-        }
-        
-        public Set<IRNode> getCalls() {
-          return calls;
-        }
-        
-        public boolean isPassedOff() {
-          return passedOff;
-        }
-        
-        @Override
-        public Void visitVariableUseExpression(final IRNode use) {
-          boolean isUseOfResult = false;
-          for (final IRNode origin : context.bcaQuery.getResultFor(use)) {
-            if (origin.equals(call)) {
-              isUseOfResult = true;
-              break;
-            }
-          }
-          
-          if (isUseOfResult) {
-            final IRNode parent = JJNode.tree.getParent(use);
-            if (MethodCall.prototype.includes(parent)) {
-              if (MethodCall.getObject(parent).equals(use)) {
-                calls.add(parent);
-              }
-            } else if (Arguments.prototype.includes(parent)) {
-              passedOff = true;
-            }
-          }
-          return null;
-        }
-      }
-
-      boolean convertWritesThisInstanceToRead = false;
-      if (isSpecialIteratorMethod(call)) {
-        final Finder f = new Finder();
-        f.doAccept(context.enclosingMethod);
-        if (!f.isPassedOff()) {
-          boolean writtenTo = false;
-          for (final IRNode c : f.getCalls()) {
-            if (!isReadOnlyIteratorMethod(c)) {
-              writtenTo = true;
-            }
-          }
-          convertWritesThisInstanceToRead = !writtenTo;
-        }
-      }
-      return convertWritesThisInstanceToRead;
-    }
-
-    private boolean isSpecialIteratorMethod(final IRNode call) {
-      return isCallOfMethod(call, "java.lang.Iterable", "iterator") ||
-          isCallOfMethod(call, "java.util.List", "listIterator");
-    }
-    
-    private boolean isReadOnlyIteratorMethod(final IRNode call) {
-      return
-          isCallOfMethod(call, "java.util.Iterator", "next") ||
-          isCallOfMethod(call, "java.util.Iterator", "hasNext") ||
-          isCallOfMethod(call, "java.util.ListIterator", "previous") ||
-          isCallOfMethod(call, "java.util.ListIterator", "hasPrevious") ||
-          isCallOfMethod(call, "java.util.ListIterator", "nextIndex") ||
-          isCallOfMethod(call, "java.util.ListIterator", "previousIndex");
-    }
-    
-    // Assumption: b is the binding for a method declaration
-    private boolean isDeclarationInType(final IBinding b, final String cName) {
-      final IJavaType erased =
-          binder.getTypeEnvironment().computeErasure(b.getContextType());
-      return erased.getName().equals(cName);
-    }
-    
-    private boolean isCallOfMethod(
-        final IRNode mcall, final String cName, final String mName) {
-      final IBinding ib = binder.getIBinding(mcall);
-      if (ib == null) {
-    	  System.out.println("Couldn't get binding for "+DebugUnparser.toString(mcall));
-      } else {
-        if (MethodDeclaration.prototype.includes(ib.getNode())
-            && MethodCall.getMethod(mcall).equals(mName)) {
-          // First check the declaration of the method being called...
-          if (isDeclarationInType(ib, cName)) {
-            return true;
-          } else {
-            //...then check the declarations of any overridden declarations
-            for (final IBinding ancestor : binder.findOverriddenMethods(ib.getNode())) {
-              if (isDeclarationInType(ancestor, cName)) {
-                return true;
-              }
-            }
-          }
-        }
-      }
-      return false;
+              call, getEnclosingDecl()));
     }
     
     //----------------------------------------------------------------------
@@ -956,7 +815,7 @@ public final class Effects implements IBinderClient {
                   effects.elaborateInstanceTargetEffects(
                       context.bcaQuery, targetFactory, binder, 
                       newContext.theReceiverNode, expr, 
-                      callback, maskedEffect.isRead(), 
+                      maskedEffect.isRead(), 
                       targetFactory.createInstanceTarget(
                           newRef, target.getRegion(), 
                           new AnonClassEvidence(maskedEffect)),
@@ -994,7 +853,7 @@ public final class Effects implements IBinderClient {
       final boolean isRead = context.isRead();
       effects.elaborateInstanceTargetEffects(
           context.bcaQuery, targetFactory, binder, context.theReceiverNode,
-          expr, callback, isRead, targetFactory.createInstanceTarget(
+          expr, isRead, targetFactory.createInstanceTarget(
               array, INSTANCE_REGION, NoEvidence.INSTANCE),              
           context.theEffects);
       doAcceptForChildren(expr);
@@ -1050,7 +909,7 @@ public final class Effects implements IBinderClient {
               obj, RegionModel.getInstance(id), NoEvidence.INSTANCE);
           effects.elaborateInstanceTargetEffects(
               context.bcaQuery, targetFactory, binder, context.theReceiverNode,
-              expr, callback, isRead, initTarget, context.theEffects);
+              expr, isRead, initTarget, context.theEffects);
         }
       } else {
         context.addEffect(
@@ -1194,30 +1053,11 @@ public final class Effects implements IBinderClient {
 
   
   
-  public interface ElaborationErrorCallback {
-    public static enum NullCallback implements ElaborationErrorCallback {
-      INSTANCE;
-      
-      @Override
-      public void writeToBorrowedReadOnly(
-          final ReadOnlyPromiseDrop pd, final IRNode expr, final Target t) {
-        // does nothing
-      }    
-    }
-
-    public void writeToBorrowedReadOnly(
-        ReadOnlyPromiseDrop pd, IRNode expr, Target t);
-  }
-  
-  
-  
   private class TargetElaborator {
     private final BindingContextAnalysis.Query bcaQuery;
     private final TargetFactory targetFactory;
     private final IBinder binder;
     private final IRNode theReceiver;
-    private final boolean isWrite;
-    private final ElaborationErrorCallback callback;
     
     /**
      * Keep track of those targets that were elaborated so that we can remove
@@ -1229,14 +1069,11 @@ public final class Effects implements IBinderClient {
     
     public TargetElaborator(final BindingContextAnalysis.Query bcaQuery,
         final TargetFactory targetFactory, final IBinder binder,
-        final IRNode rcvr, final ElaborationErrorCallback c,
-        final boolean write) {
+        final IRNode rcvr) {
       this.bcaQuery = bcaQuery;
       this.targetFactory = targetFactory;
       this.binder = binder;
       this.theReceiver = rcvr;
-      this.callback = c;
-      this.isWrite = write;
     }
     
     public Set<Target> elaborateTarget(final Target initTarget) {
@@ -1306,14 +1143,6 @@ public final class Effects implements IBinderClient {
               elaborated.add(target);
             }
             
-            /* If the expr is a read only ref, then we replace the target with 
-             * a class target on Object:All.
-             */
-            if (UniquenessRules.isReadOnly(nodeToTest)) {
-              targets.add(
-                  targetFactory.createClassTarget(getAllRegion(expr), NoEvidence.INSTANCE));
-              elaborated.add(target);
-            }
           } else if (OpUtil.isNullExpression(expr)) {
             /* Public bug 37: if the actual argument is "null" then we ignore 
              * the effect because there is no object. 
@@ -1370,17 +1199,6 @@ public final class Effects implements IBinderClient {
       final Map<IRegion, IRegion> aggregationMap = 
         UniquenessUtils.constructRegionMapping(fieldID);
       if (aggregationMap != null) {
-        /* If the field is also @ReadOnly, then we have a @Borrowed @ReadOnly
-         * field.  We knows it's not @Unique @ReadOnly because that combination
-         * is rejected by sanity checking.
-         */
-        final ReadOnlyPromiseDrop readOnlyPD = UniquenessRules.getReadOnly(fieldID);
-        if (readOnlyPD != null && isWrite) {
-          /* ILLEGAL: Cannot be checked for in the uniqueness flow analysis
-           * because there is no way to model borrowed & read-only.
-           */
-          callback.writeToBorrowedReadOnly(readOnlyPD, expr, target);
-        }
         // Aggregate the state
         final IRegion region = target.getRegion();
         final IRegion newRegion = UniquenessUtils.getMappedRegion(region.getModel(), aggregationMap);
@@ -1406,11 +1224,6 @@ public final class Effects implements IBinderClient {
         targets.add(
             targetFactory.createEmptyTarget(new EmptyEvidence(
                 EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, fieldID)));
-        elaborated.add(target);
-      } else if (UniquenessRules.isReadOnly(fieldID)) {
-        /* Field is read only: Replace the target with Object:All. */
-        targets.add(
-            targetFactory.createClassTarget(getAllRegion(expr), NoEvidence.INSTANCE));
         elaborated.add(target);
       }
     }
@@ -1485,8 +1298,7 @@ public final class Effects implements IBinderClient {
     @Override
     public Set<Effect> getResultFor(final IRNode expr) {
       final EffectsVisitor visitor =
-          new EffectsVisitor(binder, flowUnit, bcaQuery,
-              ElaborationErrorCallback.NullCallback.INSTANCE);
+          new EffectsVisitor(binder, flowUnit, bcaQuery);
       visitor.doAccept(expr);
       return Collections.unmodifiableSet(visitor.getTheEffects());
     }

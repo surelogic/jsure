@@ -791,11 +791,6 @@ public class RegionRules extends AnnotationRules {
           a, "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
       isGood = false;
     }
-    if (UniquenessRules.getReadOnly(promisedFor) != null) {
-      context.reportError(
-          a, "Cannot be annotated with both @UniqueInRegion and @ReadOnly");
-      isGood = false;
-    }
     if (LockRules.isImmutableRef(promisedFor)) {
       context.reportError(
           a, "Cannot be annotated with both @UniqueInRegion and @Immutable");
@@ -971,11 +966,6 @@ public class RegionRules extends AnnotationRules {
     if (RegionRules.getSimpleBorrowedInRegion(promisedFor) != null) {
       context.reportError(
           a, "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
-      isGood = false;
-    }
-    if (UniquenessRules.getReadOnly(promisedFor) != null) {
-      context.reportError(
-          a, "Cannot be annotated with both @UniqueInRegion and @ReadOnly");
       isGood = false;
     }
     if (LockRules.isImmutableRef(promisedFor)) {

@@ -767,10 +767,6 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
 	  return defaultValue;
   }
 
-  public T visit(ReadOnlyNode readonlyNode) {
-	  return defaultValue;
-  }
-
   public T visit(SingletonNode singletonNode) {
 	  return defaultValue;
   }
