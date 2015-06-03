@@ -17,10 +17,6 @@ public enum State {
     @Override
     public String getProposedPromiseName() { return "Unique"; }
   },
-  UNIQUEWRITE("@Unique(allowRead=true)") {
-    @Override
-    public String getProposedPromiseName() { return "Unique"; } // TODO add allowRead property
-  },
   SHARED("nothing") {
     @Override
     public String getProposedPromiseName() { return null; }
@@ -28,10 +24,6 @@ public enum State {
   IMMUTABLE("@Immutable") {
     @Override
     public String getProposedPromiseName() { return "Immutable"; }
-  },
-  READONLY("@ReadOnly") {
-    @Override
-    public String getProposedPromiseName() { return "ReadOnly"; }
   },
   BORROWED("@Borrowed") {
     @Override
@@ -78,7 +70,8 @@ public enum State {
         return v2;
       if (lessEq(v2, v1))
         return v1;
-      return READONLY; // the only possibility where neither is under the other
+//      return READONLY; // the only possibility where neither is under the other
+      return BORROWED;
     }
 
     @Override
@@ -87,7 +80,8 @@ public enum State {
         return v1;
       if (lessEq(v2, v1))
         return v2;
-      return UNIQUEWRITE;
+//      return UNIQUEWRITE;
+      return UNIQUE;
     }
   }
   

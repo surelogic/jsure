@@ -57,19 +57,6 @@ public final class UniquenessUtils {
         RegionRules.getSimpleBorrowedInRegion(varDecl) != null ||
         RegionRules.getExplicitBorrowedInRegion(varDecl) != null;
   }
-  
-  /**
-   * Return whether the given declaration is indeed unique-write.
-   * TODO: Perhaps we want to add allowRead to UniqueFieldInRegion ?
-   * @param decl declaration node (or null)
-   * @return true if decl not null and is annotated Unique(allowRead).
-   */
-  public static boolean isUniqueWrite(final IRNode decl) {
-	  if (decl == null) return false;
-	  final IUniquePromise uPromise = getUnique(decl);
-	  if (uPromise == null) return false;
-	  return (uPromise.allowRead());
-  }
 
   /**
    * Get the promise drop, if any, for the Unique or UniqueInRegion annotation

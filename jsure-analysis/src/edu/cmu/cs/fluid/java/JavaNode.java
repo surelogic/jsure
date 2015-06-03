@@ -204,8 +204,6 @@ public class JavaNode extends JJNode {
 
   public static final int ALLOW_RETURN = (1 << 21);
 
-  public static final int ALLOW_READ = (1 << 22);
-
   public static final int ALLOW_REF_OBJECT = (1 << 23);
 
   public static final int HAS_PARENS = (1 << 24);
@@ -214,7 +212,7 @@ public class JavaNode extends JJNode {
   
   public static final int[] MODIFIERS = { ABSTRACT, FINAL, NATIVE, PRIVATE, PROTECTED, PUBLIC, STATIC, SYNCHRONIZED, TRANSIENT,
       VOLATILE, STRICTFP, IMPLICIT, INSTANCE, VARARGS, WRITE, AS_BINARY, MUTABLE, IS_GRANULE, NOT_GRANULE, IMPLEMENTATION_ONLY, NO_VERIFY,
-      ALLOW_RETURN, ALLOW_READ, ALLOW_REF_OBJECT, HAS_PARENS, DEFAULT };
+      ALLOW_RETURN, ALLOW_REF_OBJECT, HAS_PARENS, DEFAULT };
 
   public static final String MODIFIERS_ID = "Java.modifiers";
 
@@ -224,7 +222,7 @@ public class JavaNode extends JJNode {
   static final String[] modifiers = { "abstract", "final", "native", "private", "protected", "public", "static", "synchronized",
       "transient", "volatile", "strictfp", "", // implicit
       "instance", "varargs", "write", "binary", "mutable", "isGranule", "notGranule", 
-      "implementationOnly", "noVerify", "allowReturn", "allowRead", "allowReferenceObject", 
+      "implementationOnly", "noVerify", "allowReturn", "allowReferenceObject", 
       "hasParens", "default"
   };
   

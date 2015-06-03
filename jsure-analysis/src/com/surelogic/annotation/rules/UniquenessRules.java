@@ -104,7 +104,7 @@ public class UniquenessRules extends AnnotationRules {
         throw new UnsupportedOperationException();
       }
     } else {
-      uniqueRule.getStorage().add(vdecl, new UniquePromiseDrop(new UniqueNode(0, false)));
+      uniqueRule.getStorage().add(vdecl, new UniquePromiseDrop(new UniqueNode(0)));
     }
   }
   
@@ -208,7 +208,7 @@ public class UniquenessRules extends AnnotationRules {
     
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new UniqueNode(offset,JavaNode.isSet(mods, JavaNode.ALLOW_READ));
+      return new UniqueNode(offset);
     }
     @Override
     protected IPromiseDropStorage<UniquePromiseDrop> makeStorage() {
@@ -396,7 +396,7 @@ public class UniquenessRules extends AnnotationRules {
     @Override
     protected State getValue(final PromiseDrop<?> a) {
       if (a instanceof UniquePromiseDrop) {
-        return ((UniquePromiseDrop) a).allowRead() ? State.UNIQUEWRITE : State.UNIQUE;
+        return State.UNIQUE;
       } else if (a instanceof ImmutableRefPromiseDrop) {
         return State.IMMUTABLE;
       } else if (a instanceof BorrowedPromiseDrop) {

@@ -11,12 +11,9 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclaration;
 
 public class UniqueNode extends AbstractBooleanNode 
 { 
-	private final boolean allowRead;
-	
   // Constructors
-  public UniqueNode(int offset, boolean allow) {
+  public UniqueNode(int offset) {
     super(offset);
-    allowRead = allow;
   }
   
   @Override
@@ -24,7 +21,6 @@ public class UniqueNode extends AbstractBooleanNode
 	if (!debug) {
 		return unparseForPromise();
 	}		
-    // TODO allowRead?
     return unparse(debug, indent, "Unique");
   }
 
@@ -32,10 +28,9 @@ public class UniqueNode extends AbstractBooleanNode
   public String unparseForPromise() {
 	  final IRNode node = getPromisedFor();
 	  if (VariableDeclaration.prototype.includes(node)) {
-		  return "Unique"+(allowRead ? "(allowRead=true)" : "");
+		  return "Unique";
 	  }
-	  return "Unique(\""+JavaNames.getFieldDecl(getPromisedFor())+"\""+
-		     (allowRead ? ", allowRead=true)" : ")");
+	  return "Unique(\""+JavaNames.getFieldDecl(getPromisedFor())+"\")";
   }
 
   @Override
@@ -45,11 +40,7 @@ public class UniqueNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new UniqueNode(offset,allowRead);
-  }
-
-  public boolean allowRead() {
-	  return allowRead;
+  	return new UniqueNode(offset);
   }
 }
 

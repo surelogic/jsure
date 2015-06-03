@@ -5,6 +5,5 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 
 
 public interface IUniquePromise {
-  public boolean allowRead();
   public PromiseDrop<? extends IAASTRootNode> getDrop();
 }

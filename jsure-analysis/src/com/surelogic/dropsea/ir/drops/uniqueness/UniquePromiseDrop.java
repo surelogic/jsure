@@ -43,11 +43,6 @@ public final class UniquePromiseDrop extends BooleanPromiseDrop<UniqueNode> impl
   }
 
   @Override
-  public final boolean allowRead() {
-    return getAAST().allowRead();
-  }
-
-  @Override
   public UniquePromiseDrop getDrop() {
     return this;
   }

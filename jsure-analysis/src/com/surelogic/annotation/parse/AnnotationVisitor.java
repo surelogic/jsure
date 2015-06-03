@@ -62,7 +62,6 @@ public class AnnotationVisitor extends Visitor<Integer> {
   public static final String VERIFY = "verify";
   public static final String ALLOW_RETURN = "allowReturn";
   public static final String ALLOW_REF_OBJECT = "allowReferenceObject";
-  public static final String ALLOW_READ = "allowRead";
   
   /** Properties */
   public static final String THROUGH = "through";
@@ -395,7 +394,6 @@ public class AnnotationVisitor extends Visitor<Integer> {
         boolean implOnly = false;
         boolean verify = true;
         boolean allowReturn = false;
-        boolean allowRead = false;
         boolean allowReferenceObject = false;
         IRNode contents = null;
         Map<String, String> props = new HashMap<String, String>();
@@ -403,8 +401,6 @@ public class AnnotationVisitor extends Visitor<Integer> {
           final String id = ElementValuePair.getId(valuePair);
           if (VALUE_ATTR.equals(id)) {
         	contents = ElementValuePair.getValue(valuePair);       
-          } else if (ALLOW_READ.equals(id)) {
-            allowRead = extractBoolean(valuePair, allowRead);
           } else if (ALLOW_RETURN.equals(id)) {
             allowReturn = extractBoolean(valuePair, allowReturn);
           } else if (ALLOW_REF_OBJECT.equals(id)) {
@@ -431,7 +427,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
         } else {
         	builder = new ContextBuilder(node, promise, "");
         }
-        builder.setProps(convertToModifiers(implOnly, verify, allowReturn, allowRead, 
+        builder.setProps(convertToModifiers(implOnly, verify, allowReturn, 
         		allowReferenceObject), props);
         return translate(handleJava5Promise(builder));                   
       } else {
@@ -507,7 +503,7 @@ public class AnnotationVisitor extends Visitor<Integer> {
     throw new IllegalStateException("Unexpected expression: "+DebugUnparser.toString(value));
   }
 
-  private static int convertToModifiers(boolean implOnly, boolean verify, boolean allowReturn, boolean allowRead, 
+  private static int convertToModifiers(boolean implOnly, boolean verify, boolean allowReturn,
 		  boolean allowReferenceObject) {
     int modifiers = JavaNode.ALL_FALSE;
     if (implOnly) {
@@ -518,9 +514,6 @@ public class AnnotationVisitor extends Visitor<Integer> {
     }
     if (allowReturn) {
       modifiers |= JavaNode.ALLOW_RETURN;
-    }
-    if (allowRead) {
-      modifiers |= JavaNode.ALLOW_READ;
     }
     if (allowReferenceObject) {
       modifiers |= JavaNode.ALLOW_REF_OBJECT;
@@ -602,10 +595,9 @@ public class AnnotationVisitor extends Visitor<Integer> {
 	final String rawVerify    = props.get(AnnotationVisitor.VERIFY);
 	final boolean verify      = rawVerify == null || "true".equals(rawVerify);
 	final boolean allowReturn = "true".equals(props.get(AnnotationVisitor.ALLOW_RETURN));
-	final boolean allowRead   = "true".equals(props.get(AnnotationVisitor.ALLOW_READ));	
 	final boolean allowReferenceObject   = "true".equals(props.get(AnnotationVisitor.ALLOW_REF_OBJECT));		
 	final int finalMods       = mods | 
-	                            convertToModifiers(implOnly, verify, allowReturn, allowRead, allowReferenceObject);
+	                            convertToModifiers(implOnly, verify, allowReturn, allowReferenceObject);
     return createPromise(new ContextBuilder(node, AnnotationElement.capitalize(promise), c) 
                               .setSrc(AnnotationSource.XML).setProps(finalMods, props));
   }

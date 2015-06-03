@@ -338,7 +338,7 @@ public class JcipRules extends AnnotationRules {
 		final RegionNameNode name = new RegionNameNode(0, newRegionId);
 		final AASTRootNode root;
 		if (alsoUnique) {
-			root = new UniqueInRegionNode(0, name, false);
+			root = new UniqueInRegionNode(0, name);
 		} else {
 			root = new InRegionNode(0, name);
 		}

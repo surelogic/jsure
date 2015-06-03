@@ -292,7 +292,7 @@ public final class RealSideEffects implements ISideEffects {
       final State localStatus, final ImmutableSet<FieldTriple> fieldStore,
       final Map<IRNode, Set<T>> howLostMap) {
     if (!suppressDrops) {
-      if (localStatus == State.UNIQUE || localStatus == State.UNIQUEWRITE) {
+      if (localStatus == State.UNIQUE) {
         for (final FieldTriple ft : fieldStore) {
           if (ft.third().contains(topOfStack)) {
             addToMappedSet(howLostMap, ft.second(), v);

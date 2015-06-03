@@ -15,7 +15,6 @@ public final class Messages {
   public static final int CLASS_INIT_EFFECT = 156;
   public static final int REASON_NO_DECLARED_EFFECT = 157;
   public static final int REASON_RECEIVER_IS_IMMUTABLE = 158;
-  public static final int READONLY_REFERENCE = 159;
   public static final int REASON_FINAL_FIELD = 160;
   public static final int BCA_EVIDENCE = 161;
   public static final int AGGREGATION_EVIDENCE = 162;

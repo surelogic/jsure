@@ -7,13 +7,10 @@ import java.util.Map;
 import com.surelogic.aast.promise.RegionMappingNode;
 import com.surelogic.aast.promise.UniqueMappingNode;
 import com.surelogic.analysis.regions.IRegion;
-import com.surelogic.common.XUtil;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.JavaGlobals;
-import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.bind.Messages;
 
 /**
  * Promise drop for "aggregate" promise annotations defining a region.
@@ -31,11 +28,6 @@ public final class ExplicitUniqueInRegionPromiseDrop extends PromiseDrop<UniqueM
   @Override
   public boolean isIntendedToBeCheckedByAnalysis() {
     return true;
-  }
-
-  @Override
-  public boolean allowRead() {
-    return getAAST().allowRead();
   }
 
   @Override

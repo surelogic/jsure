@@ -126,12 +126,6 @@ class AnnoBuilder extends AnnotationVisitor {
 	
 	@Override
   public void visit(String name, Object value) {
-		/*
-		System.out.println("\t"+name+" = "+value);
-		if (type.contains("Unique") && "allowRead".contains(name)) {
-			System.out.println("Found @Unique");
-		}
-        */
 		add(name, adaptValue(value));
 	}
 

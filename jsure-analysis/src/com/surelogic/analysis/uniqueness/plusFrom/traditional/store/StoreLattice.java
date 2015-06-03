@@ -70,7 +70,6 @@ extends TripleLattice<Element<Integer>,
     EMPTY.
       addElement(State.UNDEFINED).
       addElement(State.BORROWED).
-      addElement(State.READONLY).
       addElement(State.IMMUTABLE).
       addElement(State.SHARED);
 
@@ -294,7 +293,7 @@ extends TripleLattice<Element<Integer>,
   public State declStatus(final IRNode node) {
     final IUniquePromise uDrop = UniquenessUtils.getUnique(node);
     if (uDrop != null) {
-      if (uDrop.allowRead()) return State.UNIQUEWRITE;
+//      if (uDrop.allowRead()) return State.UNIQUEWRITE;
       return State.UNIQUE;
     }
 //    if (UniquenessRules.isUnique(node)) {
@@ -341,9 +340,9 @@ extends TripleLattice<Element<Integer>,
 	  State required = declStatus(recDecl);
 	  if (isConstructor && required == State.SHARED) {
 		  if (UniquenessRules.isUnique(retDecl)) {
-			  if (UniquenessRules.getUnique(retDecl).allowRead())
-				  required = State.READONLY;
-			  else
+//			  if (UniquenessRules.getUnique(retDecl).allowRead())
+//				  required = State.READONLY;
+//			  else
 				  required = State.BORROWED;
 		  } else {
 			  if (LockRules.isImmutableRef(retDecl)) required = State.IMMUTABLE;
@@ -416,7 +415,6 @@ extends TripleLattice<Element<Integer>,
       addElement( EMPTY ).
       addElement( EMPTY.addElement(State.UNDEFINED) ).
       addElement( EMPTY.addElement(State.BORROWED) ).
-      addElement( EMPTY.addElement(State.READONLY) ).
       addElement( EMPTY.addElement(State.SHARED) ).
       addElement( EMPTY.addElement(State.IMMUTABLE).addElement(VALUE) ).
       addElement( EMPTY.addElement(State.IMMUTABLE).addElement(NONVALUE) );
@@ -630,7 +628,7 @@ extends TripleLattice<Element<Integer>,
 		  /* @Borrowed and @Unique fields need to have aliases buried.
 		   * Do not bury aliases for @Unique(allowRead=true) fields.
 		   */
-		  if (uPromise == null || !uPromise.allowRead()) {
+		  if (uPromise == null) {// || !uPromise.allowRead()) {
   		  final ImmutableSet<ImmutableHashOrderSet<Object>> objects = s.getObjects();
   		  ImmutableHashOrderSet<Object> affected = EMPTY;
   		  final ImmutableSet<FieldTriple> fieldStore = s.getFieldStore();
@@ -676,7 +674,7 @@ extends TripleLattice<Element<Integer>,
 		  temp = setFieldStore(temp,temp.getFieldStore().union(newFields));
 		  
 		  // Again, only @Borrowed and @Unique fuss with aliases
-		  if (uPromise == null || !uPromise.allowRead()) {
+		  if (uPromise == null) { // || !uPromise.allowRead()) {
   		  // now that I am no longer removing the old aliases, I must add the following line:
   		  temp = apply(temp,new AddAlias(aliases,newN));
 		  }
@@ -841,15 +839,15 @@ extends TripleLattice<Element<Integer>,
         if (object.contains(n) || found.contains(object)) {
           final ImmutableHashOrderSet<Object> newObject = t.third();
           State newStatus = nodeStatus(newObject);
-          if (UniquenessUtils.isUniqueWrite(t.second())){
-        	  if (!State.lattice.lessEq(newStatus,State.UNIQUEWRITE)) {
-        		  return errorStore("loaded compromised unique(allowRead) field");
-        	  }
-          } else {
+//          if (UniquenessUtils.isUniqueWrite(t.second())){
+//        	  if (!State.lattice.lessEq(newStatus,State.UNIQUEWRITE)) {
+//        		  return errorStore("loaded compromised unique(allowRead) field");
+//        	  }
+//          } else {
         	  if (newStatus != State.UNIQUE) { 
         		  return errorStore("loaded compromised field");
         	  }
-          }
+//          }
           if (found.add(newObject)) done = false;
           for (Object v : newObject) {
         	  if (!(v instanceof State)) affectedM.add(v);
@@ -898,7 +896,6 @@ extends TripleLattice<Element<Integer>,
           @Override
           protected Object select(final FieldTriple t) {
             if (t.first().isEmpty()) {
-            	assert UniquenessUtils.isUniqueWrite(t.second()) : "combination didn't remove?";
             	return new FieldTriple(nset, t.second(), t.third());
             }
             return IteratorUtil.noElement;
@@ -952,14 +949,12 @@ extends TripleLattice<Element<Integer>,
 	  // TODO: BorrowedReadOnly
 		  
 	  case BORROWED: 
-		  return join(join(opExisting(s,State.BORROWED,exprORdecl),
-				           opExisting(s,State.READONLY,exprORdecl)), // remove for new BORROWED
-				      join(opExisting(s,State.SHARED,exprORdecl),
-				    	   opExisting(s,State.UNIQUEWRITE,exprORdecl)));
-	  case READONLY: 
-		  return join( opExisting(s,State.READONLY,exprORdecl),
-				  join(opExisting(s,State.SHARED,exprORdecl),
-					   opExisting(s,State.UNIQUEWRITE,exprORdecl)));
+//		  return join(join(opExisting(s,State.BORROWED,exprORdecl),
+//				           opExisting(s,State.READONLY,exprORdecl)), // remove for new BORROWED
+//				      join(opExisting(s,State.SHARED,exprORdecl),
+//				    	   opExisting(s,State.UNIQUEWRITE,exprORdecl)));
+		  return join(opExisting(s,State.BORROWED,exprORdecl),
+				      opExisting(s,State.SHARED,exprORdecl));
 		  
 	  case IMMUTABLE:
 	    // TODO: Use the alias-aware constructor of ADD?
@@ -967,11 +962,6 @@ extends TripleLattice<Element<Integer>,
 		  
 	  case SHARED:
 		  return opExisting(s,State.SHARED,exprORdecl);
-		  
-	  case UNIQUEWRITE:
-		  Store temp = opNew(s);
-		  ImmutableHashOrderSet<Object> newAliases = EMPTY.addElement(State.UNIQUEWRITE).addElement(getStackTop(temp));
-		  return join(temp, apply(temp, new Replace(mayAlias,exprORdecl,State.READONLY, newAliases)));
 		  
 	  case UNIQUE:
 		  return opNew(s);
@@ -1042,12 +1032,8 @@ extends TripleLattice<Element<Integer>,
 		  // then replace any occurrence of n with the NONVALUE set.
 		  // (This will involve replacing the NONVALUE object with itself...)
 		  return apply(temp, new ReplaceEntire(n,getPseudoObject(temp,NONVALUE)));
-	  case READONLY: 
-		  return apply(s, new Downgrade(n, State.UNIQUEWRITE));
 	  case SHARED:
 		  return apply(s, new Downgrade(n, State.SHARED));
-	  case UNIQUEWRITE:
-		  return apply(s, new Downgrade(n, State.READONLY));
 	  case UNIQUE:
 		  return apply(s, new Downgrade(n, State.UNDEFINED));
 	  case NULL: 
@@ -1117,7 +1103,7 @@ extends TripleLattice<Element<Integer>,
     	ImmutableHashOrderSet<Object> newSource = c.apply(t.first());
 		ImmutableHashOrderSet<Object> newDest = c.apply(t.third());
 		if (newDest.isEmpty()) continue; // triple is dropped anyway
-		if (newSource.isEmpty() && !t.first().isEmpty() && !UniquenessUtils.isUniqueWrite(t.second())) {
+		if (newSource.isEmpty() && !t.first().isEmpty()) { // && !UniquenessUtils.isUniqueWrite(t.second())) {
 			if (LOG.isLoggable(Level.FINE)) {
 				LOG.fine("While applying " + c);
 				LOG.fine("Found triple about to drop in soup: " + tripleToString(t));
@@ -1205,12 +1191,13 @@ extends TripleLattice<Element<Integer>,
 		  final ImmutableHashOrderSet<Object> from = t.first();
 		  final State status = nodeStatus(t.third());
 		  if (PSEUDOS.includes(from)) {
-			  if (UniquenessUtils.isUniqueWrite(t.second())) {
-				  if (status != State.UNIQUEWRITE) {
-//					  System.out.println("Lost compromised unique(allowRead) field for " + toString(s));
-					  return errorStore("compromised unique(allowRead) field has been lost");
-				  }
-			  } else if (status != State.UNIQUE){
+//			  if (UniquenessUtils.isUniqueWrite(t.second())) {
+//				  if (status != State.UNIQUEWRITE) {
+////					  System.out.println("Lost compromised unique(allowRead) field for " + toString(s));
+//					  return errorStore("compromised unique(allowRead) field has been lost");
+//				  }
+//			  } else 
+			  if (status != State.UNIQUE){
 //				  System.out.println("Lost compromised field error for " + toString(s));
 				  return errorStore("compromised field has been lost");
 			  }

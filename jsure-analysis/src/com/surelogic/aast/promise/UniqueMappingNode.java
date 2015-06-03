@@ -1,21 +1,19 @@
 package com.surelogic.aast.promise;
 
-import com.surelogic.aast.*;
+import com.surelogic.aast.AASTRootNode;
+import com.surelogic.aast.IAASTNode;
+import com.surelogic.aast.INodeVisitor;
 
 import edu.cmu.cs.fluid.java.JavaNode;
 
 public class UniqueMappingNode extends AbstractSingleRegionNode<MappedRegionSpecificationNode> 
 { 
-  // Fields
-  private final boolean allowRead;
-  
   public static final Factory<MappedRegionSpecificationNode> factory =
     new Factory<MappedRegionSpecificationNode>("UniqueMapping") {
 	  @Override
 	  protected AASTRootNode create(int offset, 
 			  MappedRegionSpecificationNode spec, int mods) {
-        return new UniqueMappingNode (offset, spec, 
-        		JavaNode.getModifier(mods, JavaNode.ALLOW_READ));       
+        return new UniqueMappingNode (offset, spec);       
       }
     };
 
@@ -23,10 +21,8 @@ public class UniqueMappingNode extends AbstractSingleRegionNode<MappedRegionSpec
   /**
    * Lists passed in as arguments must be @unique
    */
-  public UniqueMappingNode(int offset, 
-                     MappedRegionSpecificationNode spec, boolean allow) {
+  public UniqueMappingNode(int offset, MappedRegionSpecificationNode spec) {
     super(offset, spec);
-    allowRead = allow;
   }
 
   @Override
@@ -37,23 +33,12 @@ public class UniqueMappingNode extends AbstractSingleRegionNode<MappedRegionSpec
     	sb.append("UniqueMappingNode\n");
     	indent(sb, indent+2);
     	sb.append(getSpec().unparse(debug, indent+2));
-    	if (allowRead) {
-    		indent(sb, indent+2);
-    		sb.append("allowRead=true");
-    	}
     } else {
     	sb.append("UniqueInRegion(\"");
     	sb.append(getSpec().unparse(debug, indent+2)).append('"');
-    	if (allowRead) {
-    		sb.append(", allowRead=true");
-    	}
     	sb.append(')');
     }
     return sb.toString();
-  }
-  
-  public boolean allowRead() {
-	  return allowRead;
   }
   
   @Override
@@ -63,7 +48,7 @@ public class UniqueMappingNode extends AbstractSingleRegionNode<MappedRegionSpec
   
   @Override
   public IAASTNode cloneTree(){
-	return cloneTree(factory, allowRead ? JavaNode.ALLOW_READ : JavaNode.ALL_FALSE);    
+	return cloneTree(factory, JavaNode.ALL_FALSE);    
   }
 }
 

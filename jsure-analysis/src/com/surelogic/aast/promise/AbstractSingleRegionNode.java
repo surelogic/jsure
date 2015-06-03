@@ -22,7 +22,7 @@ public abstract class AbstractSingleRegionNode<T extends FieldRegionSpecificatio
 		}
 		
 		protected abstract AASTRootNode create(int offset, T spec, int mods);
-	};
+	}
 	
   // Fields
   private final T spec;

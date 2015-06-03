@@ -2897,7 +2897,7 @@ public class LockRules extends AnnotationRules {
 		  // TODO scrub
 		  return new AbstractAASTScrubber<ImmutableRefNode, ImmutableRefPromiseDrop>(
 		      this, ScrubberType.UNORDERED,
-		      RegionRules.SIMPLE_BORROWED_IN_REGION, UniquenessRules.BORROWED) { // UniquenessRules.READONLY) {
+		      RegionRules.SIMPLE_BORROWED_IN_REGION, UniquenessRules.BORROWED) {
 			  @Override
 			  protected ImmutableRefPromiseDrop makePromiseDrop(ImmutableRefNode n) {
 				  return storeDropIfNotNull(n, scrubImmutableRef(getContext(), n));

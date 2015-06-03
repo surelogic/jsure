@@ -21,7 +21,6 @@ public class TrackPartiallyInitializedNode extends AbstractBooleanNode
 	if (!debug) {
 		return unparseForPromise();
 	}		
-    // TODO allowRead?
     return unparse(debug, indent, "TrackPartiallyInitialized");
   }
 
