@@ -2896,8 +2896,7 @@ public class LockRules extends AnnotationRules {
 	  protected IAnnotationScrubber makeScrubber() {
 		  // TODO scrub
 		  return new AbstractAASTScrubber<ImmutableRefNode, ImmutableRefPromiseDrop>(
-		      this, ScrubberType.UNORDERED,
-		      RegionRules.SIMPLE_BORROWED_IN_REGION, UniquenessRules.BORROWED) {
+		      this, ScrubberType.UNORDERED, RegionRules.REGION, UniquenessRules.BORROWED) {
 			  @Override
 			  protected ImmutableRefPromiseDrop makePromiseDrop(ImmutableRefNode n) {
 				  return storeDropIfNotNull(n, scrubImmutableRef(getContext(), n));
@@ -2915,22 +2914,6 @@ public class LockRules extends AnnotationRules {
     if (UniquenessRules.isBorrowed(promisedFor)) {
       context.reportError(
           n, "Cannot be annotated with both @Immutable and @Borrowed");
-      good = false;
-    }
-    /* Cannot check this here any more, because ExplitBorrowedInRegion's 
-     * dependency on InRegion would cause a cycle if we keep ImmutableRef
-     * dependent on ExplcitBorrowedInRegion.  So, we check this now 
-     * in ExplicitBorrowedInRegion, which for the same reason now has a
-     * transitive dependency on ImmutableRef.
-     */
-//    if (RegionRules.getExplicitBorrowedInRegion(promisedFor) != null) {
-//      context.reportError(
-//          n, "Cannot be annotated with both @Immutable and @BorrowedInRegion");
-//      good = false;
-//    }
-    if (RegionRules.getSimpleBorrowedInRegion(promisedFor) != null) {
-      context.reportError(
-          n, "Cannot be annotated with both @Immutable and @BorrowedInRegion");
       good = false;
     }
     

@@ -305,7 +305,8 @@ extends TripleLattice<Element<Integer>,
 //      return State.UNIQUE;
 //    }
     // TODO: BorrowedReadOnly
-    if (UniquenessUtils.isFieldBorrowed(node)) {
+//    if (UniquenessUtils.isFieldBorrowed(node)) {
+    if (UniquenessRules.isBorrowed(node)) {
       return State.BORROWED;
     }
 //    if (UniquenessRules.isReadOnly(node)) {
@@ -560,8 +561,8 @@ extends TripleLattice<Element<Integer>,
 				  boolean allowed = false;
 				  for (Object v : tr.first()) {
 					  if (v instanceof IRNode) {
-						  BorrowedPromiseDrop borrowed = UniquenessRules.getBorrowed((IRNode)v);
-						  if (borrowed != null && borrowed.allowReturn()) allowed = true;
+//						  BorrowedPromiseDrop borrowed = UniquenessRules.getBorrowed((IRNode)v);
+//						  if (borrowed != null && borrowed.allowReturn()) allowed = true;
 					  }
 				  }
 				  if (allowed) {
@@ -605,17 +606,17 @@ extends TripleLattice<Element<Integer>,
 	  // we don't allow reading of 'from' fields except when this object is 
 	  // independent, because otherwise, the aliasing rules are too tricky to
 	  // figure out.
-	  if (UniquenessUtils.isFieldBorrowed(fieldDecl)) {
-		  final Integer n = getStackTop(s);
-		  for (FieldTriple ft : s.getFieldStore()) {
-			  if (ft.third().contains(n)) {
-				  return errorStore("can't read borrowed field of object except in methods of class");
-			  }
-		  }
-	  }
+//	  if (UniquenessUtils.isFieldBorrowed(fieldDecl)) {
+//		  final Integer n = getStackTop(s);
+//		  for (FieldTriple ft : s.getFieldStore()) {
+//			  if (ft.third().contains(n)) {
+//				  return errorStore("can't read borrowed field of object except in methods of class");
+//			  }
+//		  }
+//	  }
     final IUniquePromise uPromise = UniquenessUtils.getUnique(fieldDecl);
-	  if (uPromise != null ||
-	      (UniquenessUtils.isFieldBorrowed(fieldDecl))) { // && !UniquenessRules.isReadOnly(fieldDecl))) {
+	  if (uPromise != null) { // ||
+//	      (UniquenessUtils.isFieldBorrowed(fieldDecl))) { // && !UniquenessRules.isReadOnly(fieldDecl))) {
 		  final Integer n = getStackTop(s);
 
 		  if (localStatus(s,n) == State.IMMUTABLE) {
@@ -738,25 +739,27 @@ extends TripleLattice<Element<Integer>,
     	}
     	temp = opRelease(opConnect(setFieldStore(s,new ImmutableHashOrderSet<FieldTriple>(newFields)),
     							   undertop,fieldDecl,stacktop));
-    } else if (UniquenessUtils.isFieldBorrowed(fieldDecl)) {
-    	// only permit if
-    	// (1) the field is final
-    	// (2) every object aliased to the top includes a borrowed(allowReturn) parameter/receiver
-    	// (3) this variable is final
-    	// (4) we have effects "writes v:Instance" for that variable (v).
-      
-      // Used to check that the borrowed field is final, but the sanity checker already does that.
-
-    	// perform remaining checks
-    	s = opReturn(s, fieldDecl);
-      if (!s.isValid()) return s;
-    	// if (!UniquenessRules.isReadOnly(fieldDecl)) // even readonly borrowing gets a from
-    	{
-    			s = opConnect(s, getStackTop(s), fromField, getUnderTop(s));
-    	}
-    	// Consume the item being assigned to the field as BORROWED
-    	temp = opConsume(s, State.BORROWED);
-    } else if (isValueNode(fieldDecl)) {
+    }      
+//    else if (UniquenessUtils.isFieldBorrowed(fieldDecl)) {
+//    	// only permit if
+//    	// (1) the field is final
+//    	// (2) every object aliased to the top includes a borrowed(allowReturn) parameter/receiver
+//    	// (3) this variable is final
+//    	// (4) we have effects "writes v:Instance" for that variable (v).
+//      
+//      // Used to check that the borrowed field is final, but the sanity checker already does that.
+//
+//    	// perform remaining checks
+//    	s = opReturn(s, fieldDecl);
+//      if (!s.isValid()) return s;
+//    	// if (!UniquenessRules.isReadOnly(fieldDecl)) // even readonly borrowing gets a from
+//    	{
+//    			s = opConnect(s, getStackTop(s), fromField, getUnderTop(s));
+//    	}
+//    	// Consume the item being assigned to the field as BORROWED
+//    	temp = opConsume(s, State.BORROWED);
+//    }
+    else if (isValueNode(fieldDecl)) {
     	temp = opRelease(s); // Java Type system does all we need
     } else {
     	temp = opConsume(s,declStatus(fieldDecl));
@@ -788,9 +791,9 @@ extends TripleLattice<Element<Integer>,
 				  if (x instanceof IRNode) {
 					  IRNode node = (IRNode)x;
 					  BorrowedPromiseDrop pd = UniquenessRules.getBorrowed(node);
-					  if (pd != null && pd.allowReturn()) {
-						  auth = node;
-					  }
+//					  if (pd != null && pd.allowReturn()) {
+//						  auth = node;
+//					  }
 				  }
 			  }
 			  if (auth == null) return errorStore("no allowReturn even though returned");

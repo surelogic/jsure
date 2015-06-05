@@ -47,16 +47,6 @@ public final class UniquenessUtils {
         RegionRules.getSimpleUniqueInRegion(varDecl) != null ||
         RegionRules.getExplicitUniqueInRegion(varDecl) != null;
   }
-  
-  /**
-   * Given a VariableDeclarator (from a field declaration) return whether
-   * the field is borrowed.
-   */
-  public static boolean isFieldBorrowed(final IRNode varDecl) {
-    return UniquenessRules.getBorrowed(varDecl) != null || 
-        RegionRules.getSimpleBorrowedInRegion(varDecl) != null ||
-        RegionRules.getExplicitBorrowedInRegion(varDecl) != null;
-  }
 
   /**
    * Get the promise drop, if any, for the Unique or UniqueInRegion annotation
@@ -79,42 +69,16 @@ public final class UniquenessUtils {
     }
     return result;
   }
-
-  /**
-   * Get the promise drop, if any, for the Borrowed or BorrowedInRegion annotation
-   * on the field declaration.
-   * 
-   * @param varDecl
-   *          The VariableDeclarator node to test
-   * @return The promise drop (a {@link BorrowedPromiseDrop},
-   *         {@link ExplicitBorrowedInRegionPromiseDrop} or
-   *         {@link SimpleBorrowedInRegionPromiseDrop}, or <code>null</code> if
-   *         the field is not annotated.
-   */
-  public static PromiseDrop<? extends IAASTRootNode> getFieldBorrowed(final IRNode varDecl) {
-    PromiseDrop<? extends IAASTRootNode> result = 
-      UniquenessRules.getBorrowed(varDecl);
-    if (result == null) {
-      result = RegionRules.getSimpleBorrowedInRegion(varDecl);
-    }
-    if (result == null) {
-      result = RegionRules.getExplicitBorrowedInRegion(varDecl);
-    }
-    return result;
-  }
   
   /**
-   * Get the Unique, Borrowed, UniqueInRegion, or BorrowedInRegion annotation
+   * Get the Unique or UniqueInRegion annotation
    * for the given field declaration.
    * 
    * @param varDecl
    *          The VariableDeclarator node to test
    * @return The promise drop (a {@link UniquePromiseDrop},
-   *         {@link ExplicitUniqueInRegionPromiseDrop},
-   *         {@link SimpleUniqueInRegionPromiseDrop},
-   *         {@link BorrowedPromiseDrop},
-   *         {@link ExplicitBorrowedInRegionPromiseDrop}, or
-   *         {@link SimpleBorrowedInRegionPromiseDrop}), or <code>null</code> if
+   *         {@link ExplicitUniqueInRegionPromiseDrop}, or
+   *         {@link SimpleUniqueInRegionPromiseDrop}, or <code>null</code> if
    *         the field is not annotated.
    */  
   public static PromiseDrop<? extends IAASTRootNode> getFieldUniqueOrBorrowed(
@@ -125,15 +89,6 @@ public final class UniquenessUtils {
     }
     if (result == null) {
       result = RegionRules.getExplicitUniqueInRegion(varDecl);
-    }
-    if (result == null) {
-      result = UniquenessRules.getBorrowed(varDecl);
-    }
-    if (result == null) {
-      result = RegionRules.getSimpleBorrowedInRegion(varDecl);
-    }
-    if (result == null) {
-      result = RegionRules.getExplicitBorrowedInRegion(varDecl);
     }
     return result;
   }
@@ -220,9 +175,6 @@ public final class UniquenessUtils {
     aggDrop = UniquenessRules.getUnique(field);
     if (aggDrop == null) aggDrop = RegionRules.getSimpleUniqueInRegion(field);
     if (aggDrop == null) aggDrop = RegionRules.getExplicitUniqueInRegion(field);
-    if (aggDrop == null) aggDrop = UniquenessRules.getBorrowed(field);
-    if (aggDrop == null) aggDrop = RegionRules.getSimpleBorrowedInRegion(field);
-    if (aggDrop == null) aggDrop = RegionRules.getExplicitBorrowedInRegion(field);
     return (aggDrop == null) ? null : aggDrop.getAggregationMap(field);
   }
 

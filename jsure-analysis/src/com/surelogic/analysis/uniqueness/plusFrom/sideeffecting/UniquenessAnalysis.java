@@ -635,15 +635,15 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
 
     private final String RETURN_VAR = "result".intern();
     
-    /**
-     * Add a from triple from top of the stack to the result of this call.
-     * @param s store before
-     * @return start after
-     */
-    private Store addFromNode(Store s) {
-    	if (!s.isValid()) return s;
-    	return lattice.opConnect(s, StoreLattice.getStackTop(s), StoreLattice.fromField, RETURN_VAR);
-    }
+//    /**
+//     * Add a from triple from top of the stack to the result of this call.
+//     * @param s store before
+//     * @return start after
+//     */
+//    private Store addFromNode(Store s) {
+//    	if (!s.isValid()) return s;
+//    	return lattice.opConnect(s, StoreLattice.getStackTop(s), StoreLattice.fromField, RETURN_VAR);
+//    }
 
     /**
      * Return the store after popping off and processing each actual parameter
@@ -693,11 +693,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       
       for (int n = numActuals - 1; n >= 0; n--) {
         final IRNode formal = formals != null ? tree.getChild(formals, n) : null;
-        if (formal != null && UniquenessRules.isBorrowed(formal) && 
-        		UniquenessRules.getBorrowed(formal).allowReturn()) {
-        	s = addFromNode(s);
-        	System.out.println("Popping a borrowed(allowReturn) actual, state is " + lattice.toString(s));
-        }
+//        if (formal != null && UniquenessRules.isBorrowed(formal) && 
+//        		UniquenessRules.getBorrowed(formal).allowReturn()) {
+//        	s = addFromNode(s);
+//        	System.out.println("Popping a borrowed(allowReturn) actual, state is " + lattice.toString(s));
+//        }
         if (lattice.isValueNode(formal)) {
           s = pop(s, formal);
         } else {
@@ -729,11 +729,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     	
       final IRNode recDecl = JavaPromise.getReceiverNode(decl);
 
-      if (UniquenessRules.isBorrowed(recDecl) && 
-      		UniquenessRules.getBorrowed(recDecl).allowReturn()) {
-      	s = addFromNode(s);
-      	System.out.println("Popping a borrowed(allowReturn) actual, state is " + lattice.toString(s));
-      }
+//      if (UniquenessRules.isBorrowed(recDecl) && 
+//      		UniquenessRules.getBorrowed(recDecl).allowReturn()) {
+//      	s = addFromNode(s);
+//      	System.out.println("Popping a borrowed(allowReturn) actual, state is " + lattice.toString(s));
+//      }
       
       if (lattice.isValueNode(recDecl)) {
         return pop(s, srcOp); // do nothing.  Type system will check
@@ -769,10 +769,10 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     	}
     	
     	final IRNode qr = JavaPromise.getQualifiedReceiverNodeOrNull(decl);
-    	if (UniquenessRules.isBorrowed(qr) && UniquenessRules.getBorrowed(qr).allowReturn()) {
-    		s = addFromNode(s);
-    		System.out.println("Found Borrowed(allowReturn) qualified receiver, now " + lattice.toString(s));
-    	}
+//    	if (UniquenessRules.isBorrowed(qr) && UniquenessRules.getBorrowed(qr).allowReturn()) {
+//    		s = addFromNode(s);
+//    		System.out.println("Found Borrowed(allowReturn) qualified receiver, now " + lattice.toString(s));
+//    	}
 
     	if (lattice.isValueNode(qr)) { // unlikely
     		return pop(s, srcOp);

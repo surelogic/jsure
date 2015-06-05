@@ -471,7 +471,7 @@ public final class RealSideEffects implements ISideEffects {
       
       final IUniquePromise unique = UniquenessUtils.getUnique(fieldDecl);
       final PromiseDrop<? extends IAASTRootNode> fieldPromise =
-          (unique != null) ? unique.getDrop() : UniquenessUtils.getFieldBorrowed(fieldDecl);
+          (unique != null) ? unique.getDrop() : null; // UniquenessUtils.getFieldBorrowed(fieldDecl);
       // TODO: fix this for real.  Need to handle the 'null' "from" field specailly in the results
       if (fieldPromise == null) continue;
       

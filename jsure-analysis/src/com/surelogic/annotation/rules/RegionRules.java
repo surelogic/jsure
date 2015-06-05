@@ -15,14 +15,12 @@ import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.AnnotationOrigin;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.bind.IRegionBinding;
-import com.surelogic.aast.promise.ExplicitBorrowedInRegionNode;
 import com.surelogic.aast.promise.FieldMappingsNode;
 import com.surelogic.aast.promise.InRegionNode;
 import com.surelogic.aast.promise.NewRegionDeclarationNode;
 import com.surelogic.aast.promise.RegionMappingNode;
 import com.surelogic.aast.promise.RegionNameNode;
 import com.surelogic.aast.promise.RegionSpecificationNode;
-import com.surelogic.aast.promise.SimpleBorrowedInRegionNode;
 import com.surelogic.aast.promise.UniqueInRegionNode;
 import com.surelogic.aast.promise.UniqueMappingNode;
 import com.surelogic.analysis.IIRProject;
@@ -44,12 +42,8 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.InRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.MapFieldsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
-import com.surelogic.dropsea.ir.drops.type.constraints.ImmutableRefPromiseDrop;
-import com.surelogic.dropsea.ir.drops.uniqueness.ExplicitBorrowedInRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.ExplicitUniqueInRegionPromiseDrop;
-import com.surelogic.dropsea.ir.drops.uniqueness.SimpleBorrowedInRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.SimpleUniqueInRegionPromiseDrop;
-import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 import com.surelogic.javac.Projects;
 import com.surelogic.promise.IPromiseDropStorage;
 import com.surelogic.promise.PromiseDropSeqStorage;
@@ -70,7 +64,6 @@ import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
-import edu.cmu.cs.fluid.tree.Operator;
 
 public class RegionRules extends AnnotationRules {
   public static final String REGION = "Region";
@@ -78,7 +71,6 @@ public class RegionRules extends AnnotationRules {
   public static final String MAP_FIELDS = "MapFields";
   public static final String SIMPLE_UNIQUE_IN_REGION = "UniqueInRegion";
   public static final String EXPLICIT_UNIQUE_IN_REGION = "Unique Mapping"; // Never meant to be parsed
-  public static final String SIMPLE_BORROWED_IN_REGION = "BorrowedInRegion";
   public static final String EXPLICIT_BORROWED_IN_REGION = "Borrowed Mapping"; // Never meant to be parsed
   public static final String REGION_INITIALIZER = "RegionInitializer";
   public static final String REGIONS_DONE = "RegionsDone";
@@ -101,14 +93,9 @@ public class RegionRules extends AnnotationRules {
   private static final SimpleUniqueInRegion_ParseRule simpleUniqueInRegionRule = 
 	  new SimpleUniqueInRegion_ParseRule();
   
-  private static final ExplicitBorrowedInRegion_ParseRule explicitBorrowedInRegionRule =
-	    new ExplicitBorrowedInRegion_ParseRule();
-	  private static final SimpleBorrowedInRegion_ParseRule simpleBorrowedInRegionRule = 
-		  new SimpleBorrowedInRegion_ParseRule();
-  
   private static final SimpleScrubber regionsDone = new SimpleScrubber(
-      REGIONS_DONE, REGION, IN_REGION, SIMPLE_UNIQUE_IN_REGION,
-      EXPLICIT_UNIQUE_IN_REGION, SIMPLE_BORROWED_IN_REGION, EXPLICIT_BORROWED_IN_REGION) {
+      REGIONS_DONE, REGION, IN_REGION,
+      SIMPLE_UNIQUE_IN_REGION, EXPLICIT_UNIQUE_IN_REGION) {
     @Override
     protected void scrub() {
       // do nothing
@@ -142,14 +129,6 @@ public class RegionRules extends AnnotationRules {
 	  return getDrop(simpleUniqueInRegionRule.getStorage(), vdecl);
   }
   
-  public static ExplicitBorrowedInRegionPromiseDrop getExplicitBorrowedInRegion(IRNode vdecl) {
-    return getDrop(explicitBorrowedInRegionRule.getStorage(), vdecl);
-  }
-
-  public static SimpleBorrowedInRegionPromiseDrop getSimpleBorrowedInRegion(IRNode vdecl) {
-    return getDrop(simpleBorrowedInRegionRule.getStorage(), vdecl);
-  }
-  
   @Override
   public void register(PromiseFramework fw) {
     registerScrubber(fw, initState);
@@ -169,10 +148,7 @@ public class RegionRules extends AnnotationRules {
     }, true);
     registerParseRuleStorage(fw, explicitUniqueInRegionRule);
     registerParseRuleStorage(fw, simpleUniqueInRegionRule);
-    registerParseRuleStorage(fw, explicitBorrowedInRegionRule);
-    registerParseRuleStorage(fw, simpleBorrowedInRegionRule);
     registerScrubber(fw, regionsDone);
-//    registerScrubber(fw, new UniquelyNamed_NoCycles());
   }
   
   public static class Region_ParseRule 
@@ -334,8 +310,7 @@ public class RegionRules extends AnnotationRules {
     @Override
     protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<InRegionNode, InRegionPromiseDrop>(
-          this, ScrubberType.BY_HIERARCHY, REGION,
-          SIMPLE_UNIQUE_IN_REGION, SIMPLE_BORROWED_IN_REGION) {
+          this, ScrubberType.BY_HIERARCHY, REGION, SIMPLE_UNIQUE_IN_REGION) {
       	@Override
       	protected AnnotationHandler<InRegionNode> getPreprocessor() {
       	  return new SimpleHandler<InRegionNode>() {
@@ -666,101 +641,6 @@ public class RegionRules extends AnnotationRules {
       };
     }
   }
-
-  public static class SimpleBorrowedInRegion_ParseRule 
-  extends DefaultSLAnnotationParseRule<SimpleBorrowedInRegionNode,SimpleBorrowedInRegionPromiseDrop> {
-    protected SimpleBorrowedInRegion_ParseRule() {
-      super(SIMPLE_BORROWED_IN_REGION, fieldDeclOp, SimpleBorrowedInRegionNode.class);
-    }
-    @Override
-  protected boolean producesOtherAASTRootNodes() {
-      return true;
-    }
-    @Override
-    protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
-      // Also creates ExplicitBorrowedInRegionNode(s)
-      return parser.borrowedInRegion().getTree();
-    }
-  
-    @Override
-    protected IPromiseDropStorage<SimpleBorrowedInRegionPromiseDrop> makeStorage() {
-      return SinglePromiseDropStorage.create(name(), SimpleBorrowedInRegionPromiseDrop.class);
-    }
-    @Override
-    protected IAnnotationScrubber makeScrubber() {
-      return new AbstractAASTScrubber<SimpleBorrowedInRegionNode, SimpleBorrowedInRegionPromiseDrop>(
-          this, ScrubberType.UNORDERED, REGION, UniquenessRules.BORROWED) {
-        @Override
-        protected SimpleBorrowedInRegionPromiseDrop makePromiseDrop(SimpleBorrowedInRegionNode a) {
-          return storeDropIfNotNull(a, scrubSimpleBorrowedInRegion(getContext(), a));          
-        }
-      };
-    }
-  }
-  
-  static SimpleBorrowedInRegionPromiseDrop scrubSimpleBorrowedInRegion(
-		  IAnnotationScrubberContext context, SimpleBorrowedInRegionNode a) {
-    // must be a reference type variable
-    boolean good = RulesUtilities.checkForReferenceType(context, a, "BorrowedInRegion");
-    
-    final IRNode promisedFor = a.getPromisedFor();
-    final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
-    if (VariableDeclarator.prototype.includes(promisedForOp)) {
-      if (!TypeUtil.isJSureFinal(promisedFor)) {
-        context.reportError(a, "@BorrowedInRegion fields must be final");
-        good = false;
-      }
-      if (TypeUtil.isStatic(promisedFor)) {
-        context.reportError(a, "@BorrowedInRegion fields must not be static");
-        good = false;
-      }
-    }
-
-    // Cannot also be @Borrowed
-    if (UniquenessRules.isBorrowed(a.getPromisedFor())) {
-      context.reportError(a, "Cannot be annotated with both @Borrowed and @BorrowedInRegion");
-      good = false;
-    }
-    
-    /* If the region exists, we need to check that it is compatible with the 
-     * the field being aggregated.  If the field doesn't exist we pass it through
-     * so that @InRegion can infer a new @Region annotation.
-     */
-    final String name = a.getSpec().getId();
-    final IRegionBinding destDecl = a.getSpec().resolveBinding();
-    if (destDecl == null) {
-//      context.reportError(a, "Destination region \"{0}\" does not exist", name);
-//      good = false;
-    } else {
-      // Named region cannot be final
-      final RegionModel destRegion = destDecl.getModel();
-      if (destRegion.isFinal()) {
-        context.reportError(a, "Destination region \"{0}\" is final", name);
-        good = false;
-      }
-      
-      // Named region cannot be volatile
-      if (destRegion.isVolatile()) {
-        context.reportError(a, "Destination region \"{0}\" is volatile", name);
-        good = false;
-      }
-      
-      // Named region must be accessible
-      final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
-      if (!destRegion.isAccessibleFromType(
-          context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
-        context.reportError(a, "Destination region \"{0}\" is not accessible to type \"{1}\"",
-            name, JavaNames.getRelativeTypeNameDotSep(enclosingType));
-        good = false;
-      }
-    }
-
-    if (good) {
-      return new SimpleBorrowedInRegionPromiseDrop(a);
-    } else {
-      return null;
-    }
-  }
   
   static SimpleUniqueInRegionPromiseDrop scrubSimpleUniqueInRegion(
   	  final IAnnotationScrubberContext context,
@@ -772,23 +652,6 @@ public class RegionRules extends AnnotationRules {
     if (UniquenessRules.isBorrowed(promisedFor)) {
       context.reportError(
           a, "Cannot be annotated with both @UniqueInRegion and @Borrowed");
-      isGood = false;
-    }
-    /*
-     * Cannot check this here any more, because ExplitBorrowedInRegion's
-     * dependency on InRegion would cause a cycle if we keep ImmutableRef
-     * dependent on ExplcitBorrowedInRegion (which this rule transitively
-     * depends on). So, we check this now in ExplicitBorrowedInRegion, which for
-     * the same reason now has a transitive dependency on SimpleUniqueInRegion.
-     */
-//    if (RegionRules.getExplicitBorrowedInRegion(promisedFor) != null) {
-//      context.reportError(
-//          a, "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
-//      isGood = false;
-//    }
-    if (RegionRules.getSimpleBorrowedInRegion(promisedFor) != null) {
-      context.reportError(
-          a, "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
       isGood = false;
     }
     if (LockRules.isImmutableRef(promisedFor)) {
@@ -909,8 +772,7 @@ public class RegionRules extends AnnotationRules {
     @Override
     protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<UniqueMappingNode, ExplicitUniqueInRegionPromiseDrop>(
-          this, ScrubberType.UNORDERED, IN_REGION, REGION, UniquenessRules.UNIQUE,
-          RegionRules.EXPLICIT_BORROWED_IN_REGION) {
+          this, ScrubberType.UNORDERED, IN_REGION, REGION, UniquenessRules.UNIQUE) {
         @Override
         protected ExplicitUniqueInRegionPromiseDrop makePromiseDrop(UniqueMappingNode a) {
           return storeDropIfNotNull(a, scrubExplicitUniqueInRegion(getContext(), a));          
@@ -919,34 +781,8 @@ public class RegionRules extends AnnotationRules {
     }
   }
   
-  public static class ExplicitBorrowedInRegion_ParseRule
-  extends DefaultSLAnnotationParseRule<ExplicitBorrowedInRegionNode,ExplicitBorrowedInRegionPromiseDrop> {
-    protected ExplicitBorrowedInRegion_ParseRule() {
-      super(EXPLICIT_BORROWED_IN_REGION, fieldDeclOp, ExplicitBorrowedInRegionNode.class);
-    }
-    
-    @Override
-    protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
-      throw new UnsupportedOperationException(context.getAllText());
-    }
-    
-    @Override
-    protected IPromiseDropStorage<ExplicitBorrowedInRegionPromiseDrop> makeStorage() {
-      return SinglePromiseDropStorage.create(name(), ExplicitBorrowedInRegionPromiseDrop.class);
-    }
-    @Override
-    protected IAnnotationScrubber makeScrubber() {
-      return new AbstractAASTScrubber<ExplicitBorrowedInRegionNode, ExplicitBorrowedInRegionPromiseDrop>(
-          this, ScrubberType.UNORDERED, IN_REGION, REGION, UniquenessRules.BORROWED) {
-        @Override
-        protected ExplicitBorrowedInRegionPromiseDrop makePromiseDrop(ExplicitBorrowedInRegionNode a) {
-          return storeDropIfNotNull(a, scrubExplicitBorrowedInRegion(getContext(), a));          
-        }
-      };
-    }
-  }
-  
-  private static ExplicitUniqueInRegionPromiseDrop scrubExplicitUniqueInRegion(
+  @SuppressWarnings("null")
+private static ExplicitUniqueInRegionPromiseDrop scrubExplicitUniqueInRegion(
       final IAnnotationScrubberContext context, final UniqueMappingNode a) {
     final IRNode promisedFor = a.getPromisedFor();   
     final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
@@ -956,16 +792,6 @@ public class RegionRules extends AnnotationRules {
     if (UniquenessRules.isBorrowed(promisedFor)) {
       context.reportError(
           a, "Cannot be annotated with both @UniqueInRegion and @Borrowed");
-      isGood = false;
-    }
-    if (RegionRules.getExplicitBorrowedInRegion(promisedFor) != null) {
-      context.reportError(
-          a, "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
-      isGood = false;
-    }
-    if (RegionRules.getSimpleBorrowedInRegion(promisedFor) != null) {
-      context.reportError(
-          a, "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
       isGood = false;
     }
     if (LockRules.isImmutableRef(promisedFor)) {
@@ -1096,10 +922,6 @@ public class RegionRules extends AnnotationRules {
           final IRegion firstVal = entries.get(first).getValue();
           final IRegion secondKey = entries.get(second).getKey();
           final IRegion secondVal = entries.get(second).getValue();
-          final String k1 = firstKey.toString();
-          final String v1 = firstVal.toString();
-          final String k2 = secondKey.toString();
-          final String v2 = secondVal.toString();
           if (firstKey.ancestorOf(secondKey)) {
             if (!firstVal.ancestorOf(secondVal)) {
               context.reportError(a,
@@ -1127,206 +949,6 @@ public class RegionRules extends AnnotationRules {
     
     if (isGood) {
       return new ExplicitUniqueInRegionPromiseDrop(a);
-    } else {
-      return null;
-    }
-  }
-
-  
-  protected static ExplicitBorrowedInRegionPromiseDrop scrubExplicitBorrowedInRegion(
-			IAnnotationScrubberContext context, ExplicitBorrowedInRegionNode a) {
-    // must be a reference type variable
-    boolean good = RulesUtilities.checkForReferenceType(context, a, "BorrowedInRegion");
-    final IRNode promisedFor = a.getPromisedFor();
-    
-    /* Used to check this when scrubbing ImmutableRef, but I cannot check this
-     * there any more, because ExplitBorrowedInRegion's dependency on InRegion
-     * would cause a cycle if we keep ImmutableRef dependent on
-     * ExplcitBorrowedInRegion. So, we check this here now which for the same
-     * reason now has a transitive dependency on ImmutableRef.
-     */
-    final ImmutableRefPromiseDrop immutableRef = LockRules.getImmutableRef(promisedFor);
-    if (immutableRef != null) {
-      context.reportError(
-          immutableRef.getAAST(),
-          "Cannot be annotated with both @Immutable and @BorrowedInRegion");
-      immutableRef.invalidate();
-    }
-
-    /* Used to check this when scrubbing Unique, but I cannot check this there
-     * any more, because ExplitBorrowedInRegion's dependency on InRegion would
-     * cause a cycle if we keep ImmutableRef dependent on
-     * ExplcitBorrowedInRegion (which Unique was depending on). So, we check
-     * this here now which for the same reason now has a transitive dependency
-     * on Unique.
-     */
-    final UniquePromiseDrop unique = UniquenessRules.getUnique(promisedFor);
-    if (unique != null) {
-      context.reportError(
-          unique.getAAST(),
-          "Cannot be annotated with both @Unique and @BorrowedInRegion");
-      unique.invalidate();
-    }
-    
-    /* Used to check this when scrubbing SimpleUniqueInRegion, but I cannot
-     * check this there any more, because ExplitBorrowedInRegion's dependency on
-     * InRegion would cause a cycle if we keep ImmutableRef dependent on
-     * ExplcitBorrowedInRegion (which SimpleUniqueInRegion was depending on).
-     * So, we check this here now which for the same reason now has a transitive
-     * dependency on SimpleUniqueInRegion.
-     */
-    final SimpleUniqueInRegionPromiseDrop simpleUIR = getSimpleUniqueInRegion(promisedFor);
-    if (simpleUIR != null) {
-      context.reportError(
-          simpleUIR.getAAST(),
-          "Cannot be annotated with both @UniqueInRegion and @BorrowedInRegion");
-      simpleUIR.invalidate();
-    }
-
-    final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
-    if (VariableDeclarator.prototype.includes(promisedForOp)) {
-      if (!TypeUtil.isJSureFinal(promisedFor)) {
-        context.reportError(a, "@BorrowedInRegion fields must be final");
-        good = false;
-      }
-      if (TypeUtil.isStatic(promisedFor)) {
-        context.reportError(a, "@BorrowedInRegion fields must not be static");
-        good = false;
-      }
-    }
-
-    // Cannot also be @Borrowed
-    if (UniquenessRules.isBorrowed(a.getPromisedFor())) {
-      context.reportError(a, "Cannot be annotated with both @Borrowed and @BorrowedInRegion");
-      good = false;
-    }
-
-    // process the mapping
-    final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
-    final Set<RegionModel> srcRegions = new HashSet<RegionModel>();
-    final Map<IRegion, IRegion> regionMap = new HashMap<IRegion, IRegion>();
-    for(final RegionMappingNode mapping : a.getSpec().getMappingList()) {
-      final RegionNameNode fromNode = mapping.getFrom();
-      final IRegionBinding fromDecl = fromNode.resolveBinding();
-      final String fromId           = fromNode.getId();
-      final RegionSpecificationNode toNode = mapping.getTo();
-      final IRegionBinding toDecl   = toNode.resolveBinding();
-      final String toId             = toNode.getId();
-
-      // Make sure the source region exists
-      if (fromDecl == null) {
-        context.reportError(a, "Source region \"{0}\" not found in aggregated class", fromId);
-        good = false;
-      } else {
-        final RegionModel fromRegion = fromDecl.getModel();
-        
-        // Cannot be static
-        if (fromDecl.getRegion().isStatic()) {
-          context.reportError(a, "Source region \"{0}\" is static", fromId);
-          good = false;
-        }
-        // Cannot be aggregated more than once
-        if (!srcRegions.add(fromRegion) ) {
-          context.reportError(a, "Source region \"{0}\" is aggregated more than once", fromId);
-          good = false;
-        }
-        // Must be accessible
-        if (!fromRegion.isAccessibleFromType(
-            context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
-          context.reportError(a,
-              "Source region \"{0}\" is not accessible to type \"{1}\"",
-              fromRegion.getName(),
-              JavaNames.getRelativeTypeNameDotSep(enclosingType));
-          good = false;
-        }
-      }
-      
-      // Make sure the dest region exists
-      if (toDecl == null)  {
-        context.reportError(a, "Destination region \"{0}\" not found", toId);
-        good = false;
-      } else {
-        // Named region cannot be final
-        final RegionModel toRegion = toDecl.getModel();
-        if (toRegion.isFinal()) {
-          context.reportError(a, "Destination region \"{0}\" is final", toId);
-          good = false;
-        }
-        
-        // Named region cannot be volatile
-        if (toRegion.isVolatile()) {
-          context.reportError(a, "Destination region \"{0}\" is volatile", toId);
-          good = false;
-        }
-        
-        if (!toRegion.isAccessibleFromType(
-            context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
-          context.reportError(a,
-              "Source region \"{0}\" is not accessible to type \"{1}\"",
-              toRegion.getName(),
-              JavaNames.getRelativeTypeNameDotSep(enclosingType));
-          good = false;
-        }
-      }
-      
-      /* If the annotation is still okay, record the mapping. If it's bad, we
-       * won't look at this map anyway, so forget about it. But we have to check
-       * the result so we know that both the src and dest regions exist.
-       */
-      if (good) {
-        regionMap.put(fromDecl.getRegion(), toDecl.getRegion());
-      }
-    }
-    
-    // The Instance region must be mapped
-    if (!srcRegions.contains(RegionModel.getInstanceRegion(promisedFor))) {
-      context.reportError(a, "The region \"Instance\" must be mapped");
-      good = false;
-    }
-
-    if (good) {
-      /* Aggregation must respect the region hierarchy: if the annotation maps Ri
-       * into Qi and Rj into Qj, and Ri is a subregion of Rj, then it must be that
-       * Qi is a subregion of Qj.
-       * 
-       * We check each pair of mappings.
-       */
-      final List<Map.Entry<IRegion, IRegion>> entries =
-        new ArrayList<Map.Entry<IRegion, IRegion>>(regionMap.entrySet());
-      final int numEntries = entries.size();
-      for (int first = 0; first < numEntries - 1; first++) {
-        for (int second = first + 1; second < numEntries; second++) {
-          final IRegion firstKey = entries.get(first).getKey();
-          final IRegion firstVal = entries.get(first).getValue();
-          final IRegion secondKey = entries.get(second).getKey();
-          final IRegion secondVal = entries.get(second).getValue();
-          if (firstKey.ancestorOf(secondKey)) {
-            if (!firstVal.ancestorOf(secondVal)) {
-              context.reportError(a,
-                      "Region \"{0}\" is a subregion of \"{1}\" in the aggregated class, but region \"{2}\" is not a subregion of \"{3}\" in the aggregating class",
-                      truncateName(secondKey.toString()),
-                      truncateName(firstKey.toString()),
-                      truncateName(secondVal.toString()),
-                      truncateName(firstVal.toString()));
-              good = false;
-            }
-          } else if (secondKey.ancestorOf(firstKey)) {
-            if (!secondVal.ancestorOf(firstVal)) {
-              context.reportError(a,
-                      "Region \"{0}\" is a subregion of \"{1}\" in the aggregated class, but region \"{2}\" is not a subregion of \"{3}\" in the aggregating class",
-                      truncateName(firstKey.toString()),
-                      truncateName(secondKey.toString()),
-                      truncateName(firstVal.toString()),
-                      truncateName(secondVal.toString()));
-              good = false;
-            }
-          }
-        }
-      }
-    }
-    
-    if (good) {
-      return new ExplicitBorrowedInRegionPromiseDrop(a);
     } else {
       return null;
     }

@@ -117,7 +117,7 @@ public class UniquenessRules extends AnnotationRules {
         throw new UnsupportedOperationException();
       }
     } else {    	
-      borrowedRule.getStorage().add(vdecl, new BorrowedPromiseDrop(new BorrowedNode(0, false)));
+      borrowedRule.getStorage().add(vdecl, new BorrowedPromiseDrop(new BorrowedNode(0)));
     }
   }
   
@@ -247,23 +247,6 @@ public class UniquenessRules extends AnnotationRules {
             a, "Cannot be annotated with both @Unique and @Borrowed");
         good = false;
       }
-      /* Cannot check this here any more, because ExplitBorrowedInRegion's 
-       * dependency on InRegion would cause a cycle if we keep ImmutableRef
-       * dependent on ExplcitBorrowedInRegion (which we need to make
-       * Uniqueness transitively dependent on ExplicitBorrowedInRegion).
-       * So, we check this now in ExplicitBorrowedInRegion, which for the same
-       * reason now has a transitive dependency on Unique.
-       */
-//      if (RegionRules.getExplicitBorrowedInRegion(promisedFor) != null) {
-//        context.reportError(
-//            a, "Cannot be annotated with both @Unique and @BorrowedInRegion");
-//        good = false;
-//      }
-      if (RegionRules.getSimpleBorrowedInRegion(promisedFor) != null) {
-        context.reportError(
-            a, "Cannot be annotated with both @Unique and @BorrowedInRegion");
-        good = false;
-      }
       if (LockRules.isImmutableRef(promisedFor)) {
         context.reportError(
             a, "Cannot be annotated with both @Unique and @Immutable");
@@ -299,7 +282,6 @@ public class UniquenessRules extends AnnotationRules {
     @Override
     protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
       if (context.getSourceType() == AnnotationSource.JAVADOC) {
-        // TODO how to handle allowReturn
         return parser.borrowedList().getTree();
       }
       if (ParameterDeclaration.prototype.includes(context.getOp()) ||
@@ -321,9 +303,6 @@ public class UniquenessRules extends AnnotationRules {
     	  return null;
       }
       p.replaceSameExisting(badContents);
-      if (JavaNode.isSet(context.getModifiers(), JavaNode.ALLOW_RETURN)) {
-    	  p.setAttributes(Collections.singletonMap(AnnotationVisitor.ALLOW_RETURN, "true"));
-      }
       if (SomeFunctionDeclaration.prototype.includes(context.getOp())) {
           return p.setValue("this");
       }
@@ -332,7 +311,7 @@ public class UniquenessRules extends AnnotationRules {
     
     @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      return new BorrowedNode(offset, JavaNode.isSet(mods, JavaNode.ALLOW_RETURN));
+      return new BorrowedNode(offset);
     }
     @Override
     protected IPromiseDropStorage<BorrowedPromiseDrop> makeStorage() {
@@ -354,25 +333,6 @@ public class UniquenessRules extends AnnotationRules {
       // must be a reference type variable
       boolean good = RulesUtilities.checkForReferenceType(context, a, "Borrowed");
       boolean fromField = false;
-      
-      final IRNode promisedFor = a.getPromisedFor();
-      final Operator promisedForOp = JJNode.tree.getOperator(promisedFor);
-      if (VariableDeclarator.prototype.includes(promisedForOp)) {
-        fromField = true;
-        if (!TypeUtil.isJSureFinal(promisedFor)) {
-          context.reportError(a, "@Borrowed fields must be final");
-          good = false;
-        }
-        if (TypeUtil.isStatic(promisedFor)) {
-          context.reportError(a, "@Borrowed fields must not be static");
-          good = false;
-        }
-      } else if (ParameterDeclaration.prototype.includes(promisedForOp)) {
-        if (a.allowReturn() && !TypeUtil.isJSureFinal(promisedFor)) {
-          context.reportError(a, "@Borrowed(allowReturn=true) parameters must be final");
-          good = false;
-        }
-      }
       
       if (good) {
         final BorrowedPromiseDrop borrowedPromiseDrop = new BorrowedPromiseDrop(a);

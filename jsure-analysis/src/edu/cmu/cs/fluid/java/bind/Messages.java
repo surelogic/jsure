@@ -35,7 +35,6 @@ public final class Messages {
   public static final int LockAnnotation_threadSafe_noVerify = 131;
   public static final int ControlFlow = 132;
   public static final int SingletonDrop = 133;
-  public static final int RegionAnnotation_borrowedInRegionDrop = 134;
   public static final int InstantiatedGeneric = 135;
   public static final int AnnotationBounds = 136;
   public static final int AnnotationBoundVirtual = 137;

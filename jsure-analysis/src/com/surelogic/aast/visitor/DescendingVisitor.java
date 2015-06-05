@@ -771,14 +771,6 @@ public class DescendingVisitor<T> implements INodeVisitor<T> {
 	  return defaultValue;
   }
 
-  public T visit(SimpleBorrowedInRegionNode n) {
-	  return doAccept(n.getSpec());
-  }
-
-  public T visit(ExplicitBorrowedInRegionNode n) {
-	  return doAccept(n.getSpec());
-  }
-
   public T visit(NonNullNode n) {
 	  return defaultValue;
   }

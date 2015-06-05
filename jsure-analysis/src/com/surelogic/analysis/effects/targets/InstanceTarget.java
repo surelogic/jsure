@@ -101,8 +101,7 @@ public final class InstanceTarget extends AbstractTargetWithRegion {
     final boolean aggregationPivot;
     if (FieldRef.prototype.includes(exprOp)) {
       final IRNode fieldID = binder.getBinding(expr);
-      aggregationPivot = UniquenessUtils.isUnique(fieldID)
-          || UniquenessUtils.isFieldBorrowed(fieldID);
+      aggregationPivot = UniquenessUtils.isUnique(fieldID);
     } else {
       aggregationPivot = false;
     }

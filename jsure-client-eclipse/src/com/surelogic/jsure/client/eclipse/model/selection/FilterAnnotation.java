@@ -72,9 +72,7 @@ public final class FilterAnnotation extends Filter implements IOnlyPromisesPorus
     substMap.put("LockModel", "RegionLock");
     substMap.put("RegionModel", "Region");
     substMap.put("VouchFieldIsPromiseDrop", "Vouch");
-    substMap.put("ExplicitBorrowedInRegionPromiseDrop", "BorrowedInRegion");
     substMap.put("ExplicitUniqueInRegionPromiseDrop", "UniqueInRegion");
-    substMap.put("SimpleBorrowedInRegionPromiseDrop", "BorrowedInRegion");
     substMap.put("SimpleUniqueInRegionPromiseDrop", "UniqueInRegion");
   }
 }

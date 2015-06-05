@@ -615,9 +615,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       // If constructor or init, add the IFQR if it exists and is borrowed
       if (!isClassInit) {
         final IRNode ifqr = JavaPromise.getQualifiedReceiverNodeOrNull(block.getType());
-        if (UniquenessUtils.isFieldBorrowed(ifqr)) {
-          pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(ifqr));
-        }
+//        if (UniquenessUtils.isFieldBorrowed(ifqr)) {
+//          pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(ifqr));
+//        }
       }
       
 		  for (final IRNode bodyDecl : ClassBody.getDeclIterator(block.getClassBody())) {
@@ -628,9 +628,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
   		        if (UniquenessUtils.isUnique(varDecl)) {
   		          pr.uniqueFields.add(UniquenessUtils.getUnique(varDecl).getDrop());
   		        }
-  		        if (UniquenessUtils.isFieldBorrowed(varDecl)) {
-  		          pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(varDecl));
-  		        }
+//  		        if (UniquenessUtils.isFieldBorrowed(varDecl)) {
+//  		          pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(varDecl));
+//  		        }
   		        final ImmutableRefPromiseDrop iDrop = LockRules.getImmutableRef(varDecl);
 //  		        final ReadOnlyPromiseDrop roDrop = UniquenessRules.getReadOnly(varDecl);
   		        if (iDrop != null) pr.usedImmutableFields.add(iDrop);
@@ -832,9 +832,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
         if (UniquenessUtils.isUnique(fdecl)) {
           pr.uniqueFields.add(UniquenessUtils.getUnique(fdecl).getDrop());
         }
-        if (UniquenessUtils.isFieldBorrowed(fdecl)) {
-          pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(fdecl));
-        }
+//        if (UniquenessUtils.isFieldBorrowed(fdecl)) {
+//          pr.uniqueFields.add(UniquenessUtils.getFieldBorrowed(fdecl));
+//        }
         final ImmutableRefPromiseDrop iDrop = LockRules.getImmutableRef(fdecl);
 //        final ReadOnlyPromiseDrop roDrop = UniquenessRules.getReadOnly(fdecl);
         if (iDrop != null) pr.usedImmutableFields.add(iDrop);
@@ -950,9 +950,9 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
           }
           
           for (final BorrowedPromiseDrop bDrop : borrowedParams) {
-            if (bDrop.allowReturn()) {
-              pr.calledBorrowedAllowReturn.add(bDrop);
-            }
+//            if (bDrop.allowReturn()) {
+//              pr.calledBorrowedAllowReturn.add(bDrop);
+//            }
           }
         }
         if (!uniqueParams.isEmpty()) {
@@ -1184,8 +1184,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
             final IRNode self = JavaPromise.getReceiverNode(declNode);
             hasUnique = UniquenessRules.isUnique(self);
             hasImmutable = LockRules.isImmutableRef(self);
-            hasBorrowedAllowReturn = UniquenessRules.isBorrowed(self) && 
-                UniquenessRules.getBorrowed(self).allowReturn();
+//            hasBorrowedAllowReturn = UniquenessRules.isBorrowed(self) && 
+//                UniquenessRules.getBorrowed(self).allowReturn();
           }
         }
         if (formals != null) {
@@ -1193,8 +1193,8 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
             final IRNode param = JJNode.tree.getChild(formals, i);
             hasUnique |= UniquenessRules.isUnique(param);
             hasImmutable |= LockRules.isImmutableRef(param);
-            hasBorrowedAllowReturn |= UniquenessRules.isBorrowed(param) && 
-                UniquenessRules.getBorrowed(param).allowReturn();
+//            hasBorrowedAllowReturn |= UniquenessRules.isBorrowed(param) && 
+//                UniquenessRules.getBorrowed(param).allowReturn();
           }
         }
         
@@ -1297,7 +1297,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
       final IRNode fdecl = binder.getBinding(fieldRef);
       if (
           UniquenessUtils.isUnique(fdecl)
-          || UniquenessUtils.isFieldBorrowed(fdecl)
+//          || UniquenessUtils.isFieldBorrowed(fdecl)
 //          || UniquenessRules.isReadOnly(fdecl)
           || LockRules.isImmutableRef(fdecl)) {
         results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));
@@ -1390,7 +1390,7 @@ public class UniquenessAnalysisModule extends AbstractWholeIRAnalysis<Uniqueness
        * add the current enclosing declaration to the results.
        */
       if (UniquenessUtils.isUnique(varDecl)
-          || UniquenessUtils.isFieldBorrowed(varDecl)
+//          || UniquenessUtils.isFieldBorrowed(varDecl)
 //          || UniquenessRules.isReadOnly(varDecl)
           || LockRules.isImmutableRef(varDecl)) {
         results.add(new TypeAndMethod(getEnclosingType(), getEnclosingDecl()));

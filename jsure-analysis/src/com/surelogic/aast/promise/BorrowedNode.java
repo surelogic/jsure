@@ -9,16 +9,9 @@ import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 
 public final class BorrowedNode extends AbstractBooleanNode 
 { 
-  private final boolean allowReturn;
-
   // Constructors
-  public BorrowedNode(int offset, boolean allow) {
+  public BorrowedNode(int offset) {
     super(offset);
-    allowReturn = allow;
-  }
-
-  public final boolean allowReturn() {
-      return allowReturn;
   }
   
   @Override
@@ -26,17 +19,15 @@ public final class BorrowedNode extends AbstractBooleanNode
 	if (!debug) {
 		return unparseForPromise();
 	}		
-    // TODO allowReturn?
     return unparse(debug, indent, "Borrowed");
   }
 
   @Override
   public String unparseForPromise() {
 	  if (ParameterDeclaration.prototype.includes(getPromisedFor())) {
-		  return allowReturn ? "Borrowed(allowReturn=true)" : "Borrowed";
+		  return "Borrowed";
 	  }
-	  return "Borrowed(\""+JavaNames.getFieldDecl(getPromisedFor())+"\""+
-		     (allowReturn ? ", allowReturn=true)" : ")");
+	  return "Borrowed(\""+JavaNames.getFieldDecl(getPromisedFor())+"\")";
   }
   
   @Override
@@ -46,7 +37,7 @@ public final class BorrowedNode extends AbstractBooleanNode
   
   @Override
   public IAASTNode cloneTree(){
-  	return new BorrowedNode(offset, allowReturn);
+  	return new BorrowedNode(offset);
   }
 }
 
