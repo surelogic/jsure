@@ -305,9 +305,9 @@ extends TripleLattice<Element<Integer>,
 //    if (UniquenessRules.isReadOnly(node)) {
 //      return State.READONLY;
 //    }
-    if (LockRules.isImmutableRef(node)) {
-      return State.IMMUTABLE;
-    }
+//    if (LockRules.isImmutableRef(node)) {
+//      return State.IMMUTABLE;
+//    }
     if (isValueNode(node)) {
       return State.IMMUTABLE;
     }
@@ -334,7 +334,7 @@ extends TripleLattice<Element<Integer>,
 //			  else
 				  required = State.BORROWED;
 		  } else {
-			  if (LockRules.isImmutableRef(retDecl)) required = State.IMMUTABLE;
+//			  if (LockRules.isImmutableRef(retDecl)) required = State.IMMUTABLE;
 //			  else if (UniquenessRules.isReadOnly(retDecl)) required = State.UNIQUEWRITE;
 		  }
 	  }

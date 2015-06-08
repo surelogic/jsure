@@ -1,7 +1,5 @@
 package com.surelogic.annotation.rules;
 
-import java.util.Collections;
-
 import org.antlr.runtime.RecognitionException;
 
 import com.surelogic.*;
@@ -13,7 +11,6 @@ import com.surelogic.annotation.AnnotationLocation;
 import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.annotation.DefaultBooleanAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
-import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.AbstractPosetConsistencyChecker;
@@ -24,14 +21,12 @@ import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
-import com.surelogic.dropsea.ir.drops.type.constraints.ImmutableRefPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 import com.surelogic.promise.BooleanPromiseDropStorage;
 import com.surelogic.promise.IPromiseDropStorage;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
@@ -217,7 +212,7 @@ public class UniquenessRules extends AnnotationRules {
     @Override
     protected IAnnotationScrubber makeScrubber() {
       return new AbstractAASTScrubber<UniqueNode, UniquePromiseDrop>(
-          this, ScrubberType.UNORDERED, LockRules.IMMUTABLE_REF) {
+          this, ScrubberType.UNORDERED, RegionRules.REGION, UniquenessRules.BORROWED) {
         @Override
         protected PromiseDrop<UniqueNode> makePromiseDrop(UniqueNode a) {
           return storeDropIfNotNull(a, scrubUnique(getContext(), a));          
@@ -245,11 +240,6 @@ public class UniquenessRules extends AnnotationRules {
       if (UniquenessRules.isBorrowed(promisedFor)) {
         context.reportError(
             a, "Cannot be annotated with both @Unique and @Borrowed");
-        good = false;
-      }
-      if (LockRules.isImmutableRef(promisedFor)) {
-        context.reportError(
-            a, "Cannot be annotated with both @Unique and @Immutable");
         good = false;
       }
       
@@ -357,8 +347,6 @@ public class UniquenessRules extends AnnotationRules {
     protected State getValue(final PromiseDrop<?> a) {
       if (a instanceof UniquePromiseDrop) {
         return State.UNIQUE;
-      } else if (a instanceof ImmutableRefPromiseDrop) {
-        return State.IMMUTABLE;
       } else if (a instanceof BorrowedPromiseDrop) {
         return State.BORROWED;
       } else {
@@ -371,12 +359,9 @@ public class UniquenessRules extends AnnotationRules {
     protected Pair getValue(final IRNode n) {
       PromiseDrop<?> d = getUnique(n);
       if (d == null) {
-        d = LockRules.getImmutableRef(n);
+        d = getBorrowed(n);
         if (d == null) {
-          d = getBorrowed(n);
-          if (d == null) {
-            return SHARED;
-          }
+          return SHARED;
         }
       }
       // d should be non-null;

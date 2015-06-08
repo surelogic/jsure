@@ -34,7 +34,6 @@ import com.surelogic.aast.promise.AnnotationBoundsNode.BoundsVisitor;
 import com.surelogic.aast.promise.ClassLockExpressionNode;
 import com.surelogic.aast.promise.ContainableNode;
 import com.surelogic.aast.promise.ImmutableNode;
-import com.surelogic.aast.promise.ImmutableRefNode;
 import com.surelogic.aast.promise.JUCLockNode;
 import com.surelogic.aast.promise.LockDeclarationNode;
 import com.surelogic.aast.promise.LockNameNode;
@@ -58,7 +57,6 @@ import com.surelogic.analysis.IIRProject;
 import com.surelogic.analysis.concurrency.heldlocks.FieldKind;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.AnnotationLocation;
-import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.annotation.DefaultSLAnnotationParseRule;
 import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.MarkerAnnotationParseRule;
@@ -90,7 +88,6 @@ import com.surelogic.dropsea.ir.drops.locks.ThreadConfinedPromiseDrop;
 import com.surelogic.dropsea.ir.drops.method.constraints.AnnotationBoundsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ContainablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.ImmutablePromiseDrop;
-import com.surelogic.dropsea.ir.drops.type.constraints.ImmutableRefPromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.MutablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.NotContainablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.NotThreadSafePromiseDrop;
@@ -137,7 +134,6 @@ public class LockRules extends AnnotationRules {
   private static final String NOT_CONTAINABLE = "NotContainable";
   private static final String MUTABLE = "Mutable";
   public static final String IMMUTABLE = "Immutable";
-  public static final String IMMUTABLE_REF = "Immutable Ref";
   private static final String LOCK_FIELD_VISIBILITY = "LockFieldVisibility";
   private static final String REGION_INITIALIZER = "Region Initializer";
   public static final String VOUCH_FIELD_IS = "Vouch Field Is";
@@ -165,7 +161,6 @@ public class LockRules extends AnnotationRules {
   private static final ThreadSafe_ParseRule threadSafeRule = new ThreadSafe_ParseRule();
   private static final NotThreadSafe_ParseRule notThreadSafeRule = new NotThreadSafe_ParseRule();
   private static final ImmutableParseRule immutableRule = new ImmutableParseRule();
-  private static final ImmutableRefRule immutableRefRule = new ImmutableRefRule();
   private static final Mutable_ParseRule mutableRule = new Mutable_ParseRule();
   private static final NotContainable_ParseRule notContainableRule = new NotContainable_ParseRule();
   private static final VouchFieldIs_ParseRule vouchFieldIsRule = new VouchFieldIs_ParseRule();
@@ -368,20 +363,6 @@ public class LockRules extends AnnotationRules {
     return getBooleanDrop(immutableRule.getStorage(), cdecl);
   }
   
-  /**
-   * @param decl A field, parameter, receiver, or return value
-   */
-  public static boolean isImmutableRef(IRNode decl) {
-	return getImmutableRef(decl) != null;
-  }
-  
-  /**
-   * @param decl A field, parameter, receiver, or return value
-   */
-  public static ImmutableRefPromiseDrop getImmutableRef(IRNode decl) {
-	return getBooleanDrop(immutableRefRule.getStorage(), decl);
-  }
-  
   public static MutablePromiseDrop getMutable(IRNode cdecl) {
     return getBooleanDrop(mutableRule.getStorage(), cdecl);
   }
@@ -467,7 +448,6 @@ public class LockRules extends AnnotationRules {
     registerParseRuleStorage(fw, containableRule);
     registerParseRuleStorage(fw, threadSafeRule);
     registerParseRuleStorage(fw, notThreadSafeRule);
-    registerParseRuleStorage(fw, immutableRefRule);
     registerParseRuleStorage(fw, immutableRule);
     registerParseRuleStorage(fw, mutableRule);
     registerParseRuleStorage(fw, notContainableRule);
@@ -2721,39 +2701,12 @@ public class LockRules extends AnnotationRules {
       super(IMMUTABLE, typeFuncFieldParamDeclOps, ImmutableNode.class);
     }
     @Override
-    protected Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws RecognitionException {
-        final Operator op = context.getOp();
-    	if (TypeDeclaration.prototype.includes(op)) {
-    		return super.parse(context, parser);
-    	}
-    	// Modified from Unique
-    	if (FieldDeclaration.prototype.includes(context.getOp()) ||
-    		ParameterDeclaration.prototype.includes(context.getOp())) {
-        	return parser.nothing().getTree();
-    	}
-        final boolean isJavadoc = context.getSourceType() == AnnotationSource.JAVADOC;
-        if (MethodDeclaration.prototype.includes(op)) {        
-          return isJavadoc ? parser.uniqueJavadocMethod().getTree() : 
-                             parser.uniqueJava5Method().getTree();
-        }     
-        /* else must be a constructor: this is only allowed for javadoc
-         * annotations so that they can name unique parameters
-         */
-        if (isJavadoc) {
-            return parser.uniqueJavadocConstructor().getTree();
-        }
-        return parser.uniqueJava5Constructor().getTree();
-    }
-    @Override
     protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-      if (TypeDeclaration.prototype.includes(context.getOp())) {
-      	Part part = computeAppliesTo(context, offset);
-    	if (part == null) {
-    		return null;
-    	}
-    	return new ImmutableNode(mods, part);
+      Part part = computeAppliesTo(context, offset);
+      if (part == null) {
+    	return null;
       }
-      return new ImmutableRefNode(offset);
+      return new ImmutableNode(mods, part);
     }
     @Override
     protected IPromiseDropStorage<ImmutablePromiseDrop> makeStorage() {
@@ -2874,58 +2827,6 @@ public class LockRules extends AnnotationRules {
         }
       };
     }    
-  }
-  
-  /**
-   * Only used for scrubbing and storage, not parsing
-   */
-  static class ImmutableRefRule 
-  extends SimpleBooleanAnnotationParseRule<ImmutableRefNode,ImmutableRefPromiseDrop> {
-	  public ImmutableRefRule() {
-		  super(IMMUTABLE_REF, fieldFuncParamDeclOps, ImmutableRefNode.class);
-	  }
-	  @Override
-	  protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int mods) {
-		  throw new UnsupportedOperationException("Use ImmutableParseRule");
-	  }
-	  @Override
-	  protected IPromiseDropStorage<ImmutableRefPromiseDrop> makeStorage() {
-		  return BooleanPromiseDropStorage.create(name(), ImmutableRefPromiseDrop.class);
-	  }
-	  @Override
-	  protected IAnnotationScrubber makeScrubber() {
-		  // TODO scrub
-		  return new AbstractAASTScrubber<ImmutableRefNode, ImmutableRefPromiseDrop>(
-		      this, ScrubberType.UNORDERED, RegionRules.REGION, UniquenessRules.BORROWED) {
-			  @Override
-			  protected ImmutableRefPromiseDrop makePromiseDrop(ImmutableRefNode n) {
-				  return storeDropIfNotNull(n, scrubImmutableRef(getContext(), n));
-			  }    		
-		  };
-	  }
-  }
-  
-  private static ImmutableRefPromiseDrop scrubImmutableRef(
-      final IAnnotationScrubberContext context, final ImmutableRefNode n) {
-    // must be a reference type
-    boolean good = RulesUtilities.checkForReferenceType(context, n, "Immutable");
-    
-    final IRNode promisedFor = n.getPromisedFor();
-    if (UniquenessRules.isBorrowed(promisedFor)) {
-      context.reportError(
-          n, "Cannot be annotated with both @Immutable and @Borrowed");
-      good = false;
-    }
-    
-    if (good) {
-      final ImmutableRefPromiseDrop immutableRefPromiseDrop = new ImmutableRefPromiseDrop(n);
-      if (!VariableDeclarator.prototype.includes(promisedFor)) {
-        UniquenessRules.addRelevantUniqueAnnotation(immutableRefPromiseDrop);
-      }
-      return immutableRefPromiseDrop;
-    } else {
-      return null;
-    }
   }
   
   private static final class LockFieldVisibilityScrubber extends SimpleScrubber {

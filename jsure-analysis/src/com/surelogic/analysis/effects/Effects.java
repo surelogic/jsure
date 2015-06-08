@@ -1132,16 +1132,16 @@ public final class Effects implements IBinderClient {
             final IRNode nodeToTest = MethodCall.prototype.includes(op) ?
                 JavaPromise.getReturnNodeOrNull(binder.getBinding(expr)) : expr;
                 
-            /* If the expr is an immutable ref, then we ignore the target by
-             * simply marking it as elaborated and replacing it with a 
-             * an empty target.
-             */
-            if (LockRules.isImmutableRef(nodeToTest)) {
-              targets.add(
-                  targetFactory.createEmptyTarget(new EmptyEvidence(
-                      EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, nodeToTest)));
-              elaborated.add(target);
-            }
+//            /* If the expr is an immutable ref, then we ignore the target by
+//             * simply marking it as elaborated and replacing it with a 
+//             * an empty target.
+//             */
+//            if (LockRules.isImmutableRef(nodeToTest)) {
+//              targets.add(
+//                  targetFactory.createEmptyTarget(new EmptyEvidence(
+//                      EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, nodeToTest)));
+//              elaborated.add(target);
+//            }
             
           } else if (OpUtil.isNullExpression(expr)) {
             /* Public bug 37: if the actual argument is "null" then we ignore 
@@ -1216,16 +1216,17 @@ public final class Effects implements IBinderClient {
           elaborated.add(target);
           newTargets.add(newTarget);
         }
-      } else if (LockRules.isImmutableRef(fieldID)) {
-        /* Field is immutable: We ignore the effect by marking the target as
-         * elaborated so it is removed from the final set of targets, and
-         * replace it with a new empty target.
-         */
-        targets.add(
-            targetFactory.createEmptyTarget(new EmptyEvidence(
-                EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, fieldID)));
-        elaborated.add(target);
-      }
+      } 
+//      else if (LockRules.isImmutableRef(fieldID)) {
+//        /* Field is immutable: We ignore the effect by marking the target as
+//         * elaborated so it is removed from the final set of targets, and
+//         * replace it with a new empty target.
+//         */
+//        targets.add(
+//            targetFactory.createEmptyTarget(new EmptyEvidence(
+//                EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, fieldID)));
+//        elaborated.add(target);
+//      }
     }
 
     private void elaborateQualifiedRcvrRef(

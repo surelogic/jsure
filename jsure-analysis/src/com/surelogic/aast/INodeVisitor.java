@@ -129,7 +129,6 @@ public interface INodeVisitor<T> {
 	T visit(MutableNode node);
 	T visit(VouchFieldIsNode node);
 	T visit(UtilityNode utilityNode);
-	T visit(ImmutableRefNode immutableRefNode);
 	T visit(SingletonNode singletonNode);
 	T visit(NonNullNode nonNullNode);
 	T visit(NullableNode nullableNode);
