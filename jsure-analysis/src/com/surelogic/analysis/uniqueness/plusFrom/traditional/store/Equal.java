@@ -14,7 +14,7 @@ final class Equal implements Filter {
 
   @Override
   public boolean filter(ImmutableSet<Object> node) {
-	  if (node.contains(State.IMMUTABLE)) return true; // aliases always possible
+//	  if (node.contains(State.IMMUTABLE)) return true; // aliases always possible
 	  if (node.contains(v1)) {
 		  if (node.contains(v2)) return both;
 		  else return !both;

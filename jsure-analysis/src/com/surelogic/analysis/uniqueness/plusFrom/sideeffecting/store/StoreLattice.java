@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.alias.IMayAlias;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
@@ -23,7 +22,6 @@ import com.surelogic.annotation.rules.LockRules;
 import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.util.*;
-import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.method.constraints.RegionEffectsPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.BorrowedPromiseDrop;
@@ -75,7 +73,7 @@ extends TripleLattice<Element<Integer>,
     EMPTY.
       addElement(State.UNDEFINED).
       addElement(State.BORROWED).
-      addElement(State.IMMUTABLE).
+//      addElement(State.IMMUTABLE).
       addElement(State.SHARED);
 
   private final IRNode[] locals;
@@ -308,9 +306,9 @@ extends TripleLattice<Element<Integer>,
 //    if (LockRules.isImmutableRef(node)) {
 //      return State.IMMUTABLE;
 //    }
-    if (isValueNode(node)) {
-      return State.IMMUTABLE;
-    }
+//    if (isValueNode(node)) {
+//      return State.IMMUTABLE;
+//    }
     return State.SHARED;
   }
 
@@ -404,9 +402,7 @@ extends TripleLattice<Element<Integer>,
       addElement( EMPTY ).
       addElement( EMPTY.addElement(State.UNDEFINED) ).
       addElement( EMPTY.addElement(State.BORROWED) ).
-      addElement( EMPTY.addElement(State.SHARED) ).
-      addElement( EMPTY.addElement(State.IMMUTABLE).addElement(VALUE) ).
-      addElement( EMPTY.addElement(State.IMMUTABLE).addElement(NONVALUE) );
+      addElement( EMPTY.addElement(State.SHARED) );
     temp = newTriple(FlatLattice2.asMember(0),objects,ImmutableHashOrderSet.<FieldTriple>emptySet());
 
 
@@ -633,10 +629,10 @@ extends TripleLattice<Element<Integer>,
 //	      (borrowedPromise != null)) { // && !UniquenessRules.isReadOnly(fieldDecl))) {
 		  final Integer n = getStackTop(s);
 
-		  if (localStatus(s,n) == State.IMMUTABLE) {
-			  // special case: we generate an immutable non-value reference:
-			  return opGenerate(opRelease(s, srcOp), srcOp, State.IMMUTABLE, fieldDecl);
-		  }
+//		  if (localStatus(s,n) == State.IMMUTABLE) {
+//			  // special case: we generate an immutable non-value reference:
+//			  return opGenerate(opRelease(s, srcOp), srcOp, State.IMMUTABLE, fieldDecl);
+//		  }
 		  
 		  Store temp;
       final Set<ImmutableHashOrderSet<Object>> aliases = new HashSet<ImmutableHashOrderSet<Object>>();
@@ -1000,10 +996,10 @@ extends TripleLattice<Element<Integer>,
 	  case BORROWED: 
 		  return join(opExisting(s, srcOp,State.BORROWED,exprORdecl),
 				      opExisting(s, srcOp,State.SHARED,exprORdecl));
-		  
-	  case IMMUTABLE:
-      // TODO: Use the alias-aware constructor of ADD?
-		  return apply(push(s), srcOp, new Add(NONVALUE, EMPTY.addElement(getStackTop(s)+1)));
+//		  
+//	  case IMMUTABLE:
+//      // TODO: Use the alias-aware constructor of ADD?
+//		  return apply(push(s), srcOp, new Add(NONVALUE, EMPTY.addElement(getStackTop(s)+1)));
 		  
 	  case SHARED:
 		  return opExisting(s, srcOp,State.SHARED,exprORdecl);
@@ -1044,10 +1040,10 @@ extends TripleLattice<Element<Integer>,
 	  if (!s.isValid()) return s;
 	  final Integer n = getStackTop(s);
 	  final State localStatus = localStatus(s, n);
-	  if (localStatus == State.IMMUTABLE && required == State.SHARED) {
-		  // kludge to permit VALUE objects to be shared:
-	    if (isVariableSharable(s, n)) return s;
-	  }
+//	  if (localStatus == State.IMMUTABLE && required == State.SHARED) {
+//		  // kludge to permit VALUE objects to be shared:
+//	    if (isVariableSharable(s, n)) return s;
+//	  }
 	  if (!State.lattice.lessEq(localStatus, required)) {
 		  return errorStore("Value flow error.  Required: " + required + ", actual: " + localStatus);
 	  }
@@ -1067,16 +1063,16 @@ extends TripleLattice<Element<Integer>,
 	  case UNDEFINED:
 	  case BORROWED: 
 		  break;
-	  case IMMUTABLE:
-		  // we assume this is the NON-VALUE case:
-		  // the value case is handled by the Java type system.
-		  if (localStatus(s,n) == State.IMMUTABLE) return s;
-		  ImmutableHashOrderSet<Object> aliases = getAliases(s,n);
-		  // add all these aliases to the NONVALUE immutable object
-		  Store temp = apply(s, srcOp,new Add(NONVALUE,aliases));
-		  // then replace any occurrence of n with the NONVALUE set.
-		  // (This will involve replacing the NONVALUE object with itself...)
-		  return apply(temp, srcOp, new ReplaceEntire(n,getPseudoObject(temp,NONVALUE)));
+//	  case IMMUTABLE:
+//		  // we assume this is the NON-VALUE case:
+//		  // the value case is handled by the Java type system.
+//		  if (localStatus(s,n) == State.IMMUTABLE) return s;
+//		  ImmutableHashOrderSet<Object> aliases = getAliases(s,n);
+//		  // add all these aliases to the NONVALUE immutable object
+//		  Store temp = apply(s, srcOp,new Add(NONVALUE,aliases));
+//		  // then replace any occurrence of n with the NONVALUE set.
+//		  // (This will involve replacing the NONVALUE object with itself...)
+//		  return apply(temp, srcOp, new ReplaceEntire(n,getPseudoObject(temp,NONVALUE)));
 	  case SHARED:
 		  return apply(s, srcOp, new Downgrade(n, State.SHARED));
 	  case UNIQUE:

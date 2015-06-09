@@ -24,7 +24,7 @@ public class Downgrade implements Apply {
   public ImmutableHashOrderSet<Object> apply(
 			ImmutableHashOrderSet<Object> other) {
 		// we don't change immutable objects (cannot be downgraded)
-		if (other.contains(State.IMMUTABLE)) return other;
+//		if (other.contains(State.IMMUTABLE)) return other;
 		if (other.contains(var)) {
 			for (Object v : other) {
 				if (v == newState) return other;

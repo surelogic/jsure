@@ -21,10 +21,6 @@ public enum State {
     @Override
     public String getProposedPromiseName() { return null; }
   },
-  IMMUTABLE("@Immutable") {
-    @Override
-    public String getProposedPromiseName() { return "Immutable"; }
-  },
   BORROWED("@Borrowed") {
     @Override
     public String getProposedPromiseName() { return "Borrowed"; }
@@ -49,8 +45,6 @@ public enum State {
   public static class Lattice extends AbstractLattice<State> {
     @Override
     public boolean lessEq(State v1, State v2) {
-      if (v1 == SHARED && v2 == IMMUTABLE)
-        return false;
       return v1.ordinal() <= v2.ordinal();
     }
 
