@@ -6,7 +6,7 @@ import com.surelogic.*;
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.aast.promise.BorrowedNode;
 import com.surelogic.aast.promise.UniqueNode;
-import com.surelogic.analysis.uniqueness.plusFrom.traditional.store.State;
+import com.surelogic.analysis.uniqueness.classic.sideeffecting.store.State;
 import com.surelogic.annotation.AnnotationLocation;
 import com.surelogic.annotation.AnnotationSource;
 import com.surelogic.annotation.DefaultBooleanAnnotationParseRule;

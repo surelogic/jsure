@@ -37,6 +37,7 @@ import edu.cmu.cs.fluid.control.EntryPort;
 import edu.cmu.cs.fluid.control.NormalExitPort;
 import edu.cmu.cs.fluid.control.Port;
 import edu.cmu.cs.fluid.control.WhichPort;
+import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNode;
@@ -52,6 +53,7 @@ import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.java.operator.AnnotationElement;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArithUnopExpression;
+import edu.cmu.cs.fluid.java.operator.ArrayInitializer;
 import edu.cmu.cs.fluid.java.operator.BlockStatement;
 import edu.cmu.cs.fluid.java.operator.CallInterface;
 import edu.cmu.cs.fluid.java.operator.CatchClause;
@@ -61,6 +63,7 @@ import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.DeclStatement;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.EqualityExpression;
+import edu.cmu.cs.fluid.java.operator.Initialization;
 import edu.cmu.cs.fluid.java.operator.InstanceOfExpression;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -456,20 +459,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       }
       return s;
     }    
-    
-//    /**
-//     * Return true if the given region may have a field in the given class that is
-//     * unique.
-//     */
-//    private boolean regionHasUniqueFieldInClass(IRegion reg, IRNode cd) {
-//      // TODO define this method
-//      //
-//      // One possibility is to enumerate the fields of the class
-//      // and ask each one if they are in the region.
-//      //
-//      // ! For now, assume the worst:
-//      return true;
-//    }
 
     /**
      * Return the store after popping off and processing each actual parameter
@@ -488,11 +477,11 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final UniquePromiseDrop uDrop = UniquenessRules.getUnique(formal);
         final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowed(formal);
         if (uDrop != null) { // used to also check if formal != null
-          s = lattice.opUndefine(s, actual, uDrop, MessageChooser.ACTUAL, bcaQuery);
+          s = lattice.opUndefine(s, actual, uDrop, actual, MessageChooser.ACTUAL, bcaQuery);
         } else if (/*formal == null ||*/ bDrop != null) {
           s  = lattice.opBorrow(s, actual, calledMethod, methodCall, bDrop, bcaQuery);
         } else {
-          s = lattice.opCompromise(s, actual);
+          s = lattice.opCompromise(s, actual, actual, bcaQuery);
         }
       }
       return s;
@@ -514,7 +503,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         final BorrowedPromiseDrop bDrop = UniquenessRules.getBorrowed(recDecl);
         final UniquePromiseDrop uRetDrop = UniquenessRules.getUnique(retDecl);
         if (uDrop != null) {
-          return lattice.opUndefine(s, srcOp, uDrop, MessageChooser.ACTUAL, bcaQuery);
+          return lattice.opUndefine(s, srcOp, uDrop, srcOp, MessageChooser.ACTUAL, bcaQuery);
         } else if (bDrop != null) {
           return lattice.opBorrow(s, srcOp, decl, methodCall, bDrop, bcaQuery);
         } else if (isConstructor && uRetDrop != null) {
@@ -526,7 +515,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
                   + DebugUnparser.toString(decl));
             }
           }
-          return lattice.opCompromise(s, srcOp);
+          return lattice.opCompromise(s, srcOp, srcOp, bcaQuery);
         }
       }
     }
@@ -604,7 +593,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         if (VariableUseExpression.prototype.includes(n)) {
           final IRNode decl = binder.getBinding(n);
           if (externalVars.contains(decl)) {
-            s = lattice.opCompromise(lattice.opGet(s, node, decl), node);
+            s = lattice.opCompromise(lattice.opGet(s, node, decl), node, null, bcaQuery);
           }
         }
       }
@@ -613,7 +602,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(flowUnit);
       if (rcvr != null) { 
         // Now compromise "this" (this is slightly more conservative than necessary)
-        s = lattice.opCompromise(lattice.opGet(s, node, rcvr), node);
+        s = lattice.opCompromise(lattice.opGet(s, node, rcvr), node, null, bcaQuery);
       }
       return s;
     }
@@ -625,17 +614,17 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
-    public Store transferArrayInitializer(final IRNode node, final Store s) {
-      return lattice.opCompromise(s, node);
+    public Store transferArrayInitializer(final IRNode node, final Store s, final IRLocation which) {
+      return lattice.opCompromise(s, node, ArrayInitializer.getInit(node, which.getID()), bcaQuery);
     }
     
     @Override
-    protected Store transferAssignArray(final IRNode node, final Store s) {
-      return lattice.opCompromiseNoRelease(super.transferAssignArray(node, s), node);
+    protected Store transferAssignArray(final IRNode node, final Store s, final IRNode rhs) {
+      return lattice.opCompromiseNoRelease(super.transferAssignArray(node, s, rhs), node, rhs, bcaQuery);
     }
     
     @Override
-    protected Store transferAssignField(final IRNode node, Store s) {
+    protected Store transferAssignField(final IRNode node, Store s, final IRNode rhs) {
       final IRNode fieldDecl = binder.getBinding(node);
       if (fieldDecl == null) {
         LOG.warning("field not bound" + DebugUnparser.toString(node));
@@ -647,14 +636,14 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         // first copy both onto stack
         s = lattice.opGet(lattice.opGet(s, node, object), node, field);
         // now perform assignment
-        s = lattice.opStore(s, node, fieldDecl, bcaQuery);
+        s = lattice.opStore(s, node, fieldDecl, rhs, bcaQuery);
         // now pop extraneous object off stack
         return popSecond(s, node);
       }
     }
     
     @Override
-    protected Store transferAssignVar(final IRNode var, final Store s) {
+    protected Store transferAssignVar(final IRNode var, final Store s, final IRNode rhs) {
       final IRNode varDecl = binder.getBinding(var);
       if (varDecl == null) {
         LOG.warning("No binding for assigned variable "
@@ -723,7 +712,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
            * new top and discard it; (3) popSecond
            */
           s = lattice.opGet(s, node, lattice.getUnderTop(s));
-          s = lattice.opCompromise(s, outerObject);
+          s = lattice.opCompromise(s, outerObject, null, bcaQuery);
           if (!s.isValid()) return s;
           /* This does a popSecond by popping the top value off the stack (op set)
            * and changing the variable just under the top to have the value that 
@@ -853,7 +842,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
         }
       }
       s = lattice.opDup(s, node, 1); // get value on top of stack
-      s = lattice.opStore(s, node, node, bcaQuery); // perform store
+      final IRNode initExpr = VariableDeclarator.getInit(node);
+      final IRNode value = Initialization.prototype.includes(initExpr) ? Initialization.getValue(initExpr) : null;
+      s = lattice.opStore(s, node, node, value, bcaQuery); // perform store
       s = lattice.opRelease(s, node); // throw away the extra copy
       return s;
     }
@@ -881,7 +872,6 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     protected Store transferMethodBody(final IRNode body, final Port kind, Store s) {
       if (kind instanceof EntryPort) {
         return s; // opStart() was invoked when the flow unit was entered
-//        return lattice.opStart();
       } else {
         final boolean fineIsLoggable = LOG.isLoggable(Level.FINE);
         final IRNode mdecl = tree.getParent(body);
@@ -898,9 +888,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
             s = lattice.opGet(s, body, rnode);
             final UniquePromiseDrop uDrop = UniquenessRules.getUnique(rnode);
             if (uDrop != null) {
-              s = lattice.opUndefine(s, body, uDrop, MessageChooser.RETURN, bcaQuery);
+              s = lattice.opUndefine(s, body, uDrop, null, MessageChooser.RETURN, bcaQuery);
             } else {
-              s = lattice.opCompromise(s, body);
+              s = lattice.opCompromise(s, body, null, bcaQuery);
             }
             if (fineIsLoggable) {
               LOG.fine("After handling return value of " + name + ": " + s);
@@ -949,7 +939,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     
     @Override
     protected Store transferThrow(final IRNode node, final Store s) {
-      return lattice.opCompromise(s, node);
+      return lattice.opCompromise(s, node, node, bcaQuery);
     }
     
     @Override

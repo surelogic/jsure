@@ -8,6 +8,7 @@ import java.util.logging.Level;
 import com.surelogic.common.util.*;
 
 import edu.cmu.cs.fluid.FluidError;
+import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.bind.IBinder;
@@ -142,7 +143,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
           }
         } else {
           /* storing of individual elements */
-          return transferArrayInitializer(node, val);
+          return transferArrayInitializer(node, val, (IRLocation) info);
         }
       } else if (ConditionalExpression.prototype.includes(op)) {
         return popBoolean(val, (Boolean)info, node); // discard guessed boolean
@@ -243,7 +244,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * Transfer evaluation over array element storing <strong>major grouping
 	 * </strong>
 	 */
-  protected T transferArrayInitializer(IRNode node, T val) {
+  protected T transferArrayInitializer(IRNode node, T val, IRLocation which) {
     return pop(val, node);
   }
 
@@ -253,7 +254,10 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 */
   @Override
   protected T transferAssignment(IRNode node, T val) {
-    IRNode lhs = ((AssignmentInterface) tree.getOperator(node)).getTarget(node);
+    final AssignmentInterface nodeAsAssignmentInterface =
+        (AssignmentInterface) tree.getOperator(node);
+    IRNode lhs = nodeAsAssignmentInterface.getTarget(node);
+    IRNode rhs = nodeAsAssignmentInterface.getSource(node);
     Operator lop = tree.getOperator(lhs);
     if (UnboxExpression.prototype.includes(lop)) {
       lhs = UnboxExpression.getOp(lhs);
@@ -261,11 +265,11 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     }
     
     if (lop instanceof VariableUseExpression)
-      return transferAssignVar(lhs, val);
+      return transferAssignVar(lhs, val, rhs);
     else if (lop instanceof FieldRef)
-      return transferAssignField(lhs, val);
+      return transferAssignField(lhs, val, rhs);
     else if (lop instanceof ArrayRefExpression)
-      return transferAssignArray(lhs, val);
+      return transferAssignArray(lhs, val, rhs);
     else
       throw new FluidError("Left hand side of assignment is strange: " + lop);
   }
@@ -274,7 +278,7 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * Transfer evaluation over assignment of an array. (assuming array not null
 	 * and index in bounds). <strong>leaf</leaf>
 	 */
-  protected T transferAssignArray(IRNode aref, T val) {
+  protected T transferAssignArray(IRNode aref, T val, IRNode rhs) {
     return popSecond(popSecond(val, aref), aref); // pop object and index
   }
 
@@ -282,14 +286,14 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
 	 * Transfer evaluation over assignment of a field (assuming object not null).
 	 * <strong>leaf</leaf>
 	 */
-  protected T transferAssignField(IRNode fref, T val) {
+  protected T transferAssignField(IRNode fref, T val, IRNode rhs) {
     return popSecond(val, fref); // pop object to assign into
   }
 
   /**
 	 * Transfer evaluation over assignment of a variable. <strong>leaf</leaf>
 	 */
-  protected T transferAssignVar(IRNode var, T val) {
+  protected T transferAssignVar(IRNode var, T val, IRNode rhs) {
     return val; // do nothing
   }
 
@@ -403,12 +407,8 @@ public abstract class JavaEvaluationTransferSE<L extends Lattice<T>, T> extends 
     /* Used to worry about VarArgsExpression here, but now that I have
      * added transferVarArgs, we don't have to do that any more.
      */
-    for (final IRNode arg : actuals) {
-//      if (VarArgsExpression.prototype.includes(arg)) {
-//        value = pop(value, callNode, tree.numChildren(arg));
-//      } else {
-        value = pop(value, callNode);
-//      }
+    for (@SuppressWarnings("unused") final IRNode arg : actuals) {
+      value = pop(value, callNode);
     }
 
     // if constructor, pop qualifications

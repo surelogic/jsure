@@ -42,6 +42,7 @@ import edu.cmu.cs.fluid.control.Port;
 import edu.cmu.cs.fluid.control.WhichPort;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
+import edu.cmu.cs.fluid.ir.IRLocation;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
@@ -852,7 +853,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
-    protected Store transferArrayInitializer(final IRNode node, final Store s) {
+    protected Store transferArrayInitializer(final IRNode node, final Store s, IRLocation which) {
     	// System.out.println("At array initializer, store is " + lattice.toString(s));
       return lattice.opCompromise(s, JJNode.tree.getParent(node),
           Messages.COMPROMISED_BY_ARRAY_INITIALIZER,
@@ -860,7 +861,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
-    protected Store transferAssignArray(final IRNode node, Store s) {
+    protected Store transferAssignArray(final IRNode node, Store s, final IRNode rhs) {
       // [..., arrayRef, idx, val]: pop idx
       s = popSecond(s, node);
       if (!s.isValid()) return s;
@@ -874,7 +875,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
-    protected Store transferAssignField(final IRNode node, Store s) {
+    protected Store transferAssignField(final IRNode node, Store s, final IRNode rhs) {
       final IRNode fieldDecl = binder.getBinding(node);
       if (fieldDecl == null) {
         LOG.warning("field not bound" + DebugUnparser.toString(node));
@@ -893,7 +894,7 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
     }
     
     @Override
-    protected Store transferAssignVar(final IRNode var, final Store s) {
+    protected Store transferAssignVar(final IRNode var, final Store s, final IRNode rhs) {
       final IRNode varDecl = binder.getBinding(var);
       if (varDecl == null) {
         LOG.warning("No binding for assigned variable "

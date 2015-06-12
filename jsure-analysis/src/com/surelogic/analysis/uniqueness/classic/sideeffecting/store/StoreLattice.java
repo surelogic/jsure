@@ -690,6 +690,7 @@ extends TripleLattice<Element<Integer>,
   
   public Store opStore(
       final Store s, final IRNode srcOp, final IRNode fieldDecl,
+      final IRNode topOfStackExpr,
       final BindingContextAnalysis.Query bcaQuery) {
     if (!s.isValid()) return s;
     final Store temp;
@@ -720,13 +721,9 @@ extends TripleLattice<Element<Integer>,
         SLLogger.getLogger().log(Level.SEVERE, "Undefined value on top of stack in opStore");
       } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
         recordBorrowedNotUnique(
-            srcOp, uDrop.getDrop(), MessageChooser.ASSIGN, stacktop, s.getObjects());
-//        reportError(srcOp, "U2", "Borrowed value encountered when a unique value was expected");
-//        return errorStore("Borrowed value on stack not unique");
+            srcOp, uDrop.getDrop(), MessageChooser.ASSIGN, stacktop, topOfStackExpr, s.getObjects(), bcaQuery);
       } else if (localStatus.compareTo(State.UNIQUE) > 0) { // cannot be shared
         recordSharedNotUnique(srcOp, uDrop.getDrop(), MessageChooser.ASSIGN);      
-//        reportError(srcOp, "U3", "Aliased value encountered when a unique value was expected");
-//        return errorStore("Shared value on stack not unique");
       } else if (localStatus.compareTo(State.NULL) > 0) { // can be unique
         recordGoodUnique(srcOp, uDrop.getDrop(), Messages.ASSIGN_IS_UNIQUE,
             new InfoAdder() {
@@ -768,7 +765,7 @@ extends TripleLattice<Element<Integer>,
           setFieldStore(s, new ImmutableHashOrderSet<FieldTriple>(newFields)),
           undertop, fieldDecl, stacktop), srcOp);
     } else {
-      temp = opCompromise(s, srcOp);
+      temp = opCompromise(s, srcOp, topOfStackExpr, bcaQuery);
     }
     return opRelease(temp, srcOp);
   }
@@ -801,8 +798,6 @@ extends TripleLattice<Element<Integer>,
           final State newStatus = nodeStatus(newObject);
           if (newStatus != State.UNIQUE) {
             recordIndirectLoadOfCompromisedField(srcOp, t.second());
-//            reportError(srcOp, "LR", "Method may read a compromised unique field");
-//            return errorStore("loaded compromised field");
           }          
           if (found.add(newObject)) done = false;
           
@@ -898,8 +893,6 @@ extends TripleLattice<Element<Integer>,
 
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
       recordUndefinedNotX(srcOp, controlFlowDrop, n);
-//      reportError(srcOp, "X100", "(opBorrow) Undefined value where unique is expected: Another actual parameter has made the value undefined here");
-//      return errorStore("Undefined value on stack borrowed");
     } else if (localStatus == State.BORROWED) { // is borrowed
       if (shouldRecordResult()) {
         recordBorrowedPassedToBorrowed(
@@ -912,7 +905,9 @@ extends TripleLattice<Element<Integer>,
   /**
    * Compromise the value on the top of the stack.
    */
-  public Store opCompromiseNoRelease(final Store s, final IRNode srcOp) {
+  public Store opCompromiseNoRelease(
+      final Store s, final IRNode srcOp, final IRNode topOfStackExpr,
+      final BindingContextAnalysis.Query bcaQuery) {
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
     final State localStatus = localStatus(s, n);
@@ -921,12 +916,8 @@ extends TripleLattice<Element<Integer>,
 
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
       recordUndefinedNotX(srcOp, controlFlowDrop, n);      
-//      reportError(srcOp, "X1", "(opCompromiseNoRelease) Use of undefined value");
-//      return errorStore("Undefined value on stack shared");
     } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
-      recordBorrowedNotShared(srcOp, n, s.getObjects());
-//      reportError(srcOp, "X2", "Attempt to alias a borrowed value");
-//      return errorStore("Borrowed value on stack shared");
+      recordBorrowedNotShared(srcOp, n, topOfStackExpr, s.getObjects(), bcaQuery);
     }
     return apply(s, srcOp, new Add(n, EMPTY.addElement(State.SHARED)));
   }
@@ -934,8 +925,11 @@ extends TripleLattice<Element<Integer>,
   /**
    * Compromise the value on the top of the stack and then pop it off.
    */
-  public Store opCompromise(final Store s, final IRNode srcOp) {
-    return opRelease(opCompromiseNoRelease(s, srcOp), srcOp);
+  public Store opCompromise(
+      final Store s, final IRNode srcOp, final IRNode topOfStackExpr,
+      final BindingContextAnalysis.Query bcaQuery) {
+    return opRelease(
+        opCompromiseNoRelease(s, srcOp, topOfStackExpr, bcaQuery), srcOp);
   }
   
   /**
@@ -945,6 +939,7 @@ extends TripleLattice<Element<Integer>,
    */
   public Store opUndefine(
       final Store s, final IRNode srcOp, final UniquePromiseDrop uDrop,
+      final IRNode topOfStackExpr,
       final MessageChooser msg, final BindingContextAnalysis.Query bcaQuery) {
     if (!s.isValid()) return s;
     final Integer n = getStackTop(s);
@@ -954,16 +949,10 @@ extends TripleLattice<Element<Integer>,
     
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
       recordUndefinedNotX(srcOp, uDrop, n);
-//      reportError(srcOp, "U1", "(opUndefine) Undefined value encountered when a unique value was expected");
-//      return errorStore("Undefined value on stack not unique");
     } else if (localStatus.compareTo(State.SHARED) > 0) { // cannot be borrowed
-      recordBorrowedNotUnique(srcOp, uDrop, msg, n, s.getObjects());
-//      reportError(srcOp, "U2", "Borrowed value encountered when a unique value was expected");
-//      return errorStore("Borrowed value on stack not unique");
+      recordBorrowedNotUnique(srcOp, uDrop, msg, n, topOfStackExpr, s.getObjects(), bcaQuery);
     } else if (localStatus.compareTo(State.UNIQUE) > 0) { // cannot be shared
       recordSharedNotUnique(srcOp, uDrop, msg);      
-//      reportError(srcOp, "U3", "Aliased value encountered when a unique value was expected");
-//      return errorStore("Shared value on stack not unique");
     } else if (localStatus.compareTo(State.NULL) > 0) { // can be unique
       recordGoodUnique(srcOp, uDrop,
           msg.chooseMsg(Messages.ACTUAL_IS_UNIQUE,
@@ -1138,8 +1127,6 @@ extends TripleLattice<Element<Integer>,
         newFieldStore = newFieldStore.removeCopy(t);
         // report error
         recordLossOfCompromisedField(srcOp, t.second());
-//        reportError(srcOp, "CF", "Reference to an object whose unique field was made undefined as been lost; it is no longer possible to restore the uniqueness invariant of the undefined field");
-//        return errorStore("compromised field has been lost");
       }
     }
     return setFieldStore(s, newFieldStore);
@@ -1225,7 +1212,6 @@ extends TripleLattice<Element<Integer>,
       } else if (ReceiverDeclaration.prototype.includes(op)) {
         return "this";
       } else if (QualifiedReceiverDeclaration.prototype.includes(op)) {
-//        final String ss = DebugUnparser.toString(JavaPromise.getPromisedFor(n));
         return JavaNames.getQualifiedTypeName(QualifiedReceiverDeclaration.getBase(n)) + ".this";
       } else if (ReturnValueDeclaration.prototype.includes(op)) {
         return "return";
@@ -1449,8 +1435,10 @@ extends TripleLattice<Element<Integer>,
   
   private void recordBadBorrowed(
       final IRNode srcOp, final Integer topOfStack,  
+      final IRNode topOfStackExpr, // to use
       final ImmutableSet<ImmutableHashOrderSet<Object>> objects,
       final int msgNormal, final int msgReturn,
+      final BindingContextAnalysis.Query bcaQuery,
       final InfoAdder infoAdder) {
     final Set<Object> referringVars = new HashSet<Object>();
     for (final ImmutableHashOrderSet<Object> obj : objects) {
@@ -1461,17 +1449,17 @@ extends TripleLattice<Element<Integer>,
     /* Find all the @Borrowed ParameterDeclarations, including 
      * @Unique("return") in the case of constructors.
      */
-    for (final Object v : referringVars) {
-      if (v instanceof IRNode) {
-        final IRNode nv = (IRNode) v;
-        final Operator op = JJNode.tree.getOperator(nv);
+    // Better way
+    if (topOfStackExpr != null) {
+      for (final IRNode x : bcaQuery.getResultFor(topOfStackExpr)) {
+        final Operator op = JJNode.tree.getOperator(x);
         PromiseDrop<? extends IAASTRootNode> promiseDrop = null;
         if (ParameterDeclaration.prototype.includes(op) ||
             ReceiverDeclaration.prototype.includes(op) ||
             QualifiedReceiverDeclaration.prototype.includes(op)) {
-          promiseDrop = UniquenessRules.getBorrowed(nv);
+          promiseDrop = UniquenessRules.getBorrowed(x);
           if (promiseDrop == null && ReceiverDeclaration.prototype.includes(op)) {
-            final IRNode decl = JavaPromise.getPromisedFor(nv);
+            final IRNode decl = JavaPromise.getPromisedFor(x);
             if (ConstructorDeclaration.prototype.includes(decl)) {
               // It's from a constructor, look for unique on the return node
               final IRNode returnNode = JavaPromise.getReturnNode(decl);
@@ -1484,6 +1472,34 @@ extends TripleLattice<Element<Integer>,
             xNotY.add(new XNotY(promiseDrop, srcOp, abruptDrops,
                 MethodBody.prototype.includes(srcOp) ? msgReturn : msgNormal,
                 infoAdder));
+          }
+        }
+      }
+    } else { // Old way, but leave it for now
+      for (final Object v : referringVars) {
+        if (v instanceof IRNode) {
+          final IRNode nv = (IRNode) v;
+          final Operator op = JJNode.tree.getOperator(nv);
+          PromiseDrop<? extends IAASTRootNode> promiseDrop = null;
+          if (ParameterDeclaration.prototype.includes(op) ||
+              ReceiverDeclaration.prototype.includes(op) ||
+              QualifiedReceiverDeclaration.prototype.includes(op)) {
+            promiseDrop = UniquenessRules.getBorrowed(nv);
+            if (promiseDrop == null && ReceiverDeclaration.prototype.includes(op)) {
+              final IRNode decl = JavaPromise.getPromisedFor(nv);
+              if (ConstructorDeclaration.prototype.includes(decl)) {
+                // It's from a constructor, look for unique on the return node
+                final IRNode returnNode = JavaPromise.getReturnNode(decl);
+                promiseDrop = UniquenessRules.getUnique(returnNode);
+              }
+            }
+            
+            if (promiseDrop != null) {
+              borrowedHasResults.add(promiseDrop);
+              xNotY.add(new XNotY(promiseDrop, srcOp, abruptDrops,
+                  MethodBody.prototype.includes(srcOp) ? msgReturn : msgNormal,
+                  infoAdder));
+            }
           }
         }
       }
@@ -1549,7 +1565,9 @@ extends TripleLattice<Element<Integer>,
   private void recordBorrowedNotUnique(
       final IRNode srcOp, final PromiseDrop<? extends IAASTRootNode> uDrop,
       final MessageChooser msg, final Integer topOfStack,  
-      final ImmutableSet<ImmutableHashOrderSet<Object>> objects) {
+      final IRNode topOfStackExpr,
+      final ImmutableSet<ImmutableHashOrderSet<Object>> objects,
+      final BindingContextAnalysis.Query bcaQuery) {
 
     /* Two problems here: (1) A unique reference is expected, but a borrowed
      * one is provided; and (2) A borrowed value is used in a unique context.
@@ -1559,8 +1577,9 @@ extends TripleLattice<Element<Integer>,
           msg.chooseMsg(
               Messages.BORROWED_NOT_UNIQUE_ACTUAL, Messages.BORROWED_NOT_UNIQUE_RETURN,
               Messages.BORROWED_NOT_UNIQUE_ASSIGN), null);
-      recordBadBorrowed(srcOp, topOfStack, objects,
+      recordBadBorrowed(srcOp, topOfStack, topOfStackExpr, objects,
           Messages.BORROWED_AS_UNIQUE, Messages.BORROWED_AS_UNIQUE_RETURN,
+          bcaQuery,
           new InfoAdder() {
             @Override
             public void addSupportingInformation(
@@ -1626,11 +1645,13 @@ extends TripleLattice<Element<Integer>,
   
   private void recordBorrowedNotShared(
       final IRNode srcOp, final Integer topOfStack,  
-      final ImmutableSet<ImmutableHashOrderSet<Object>> objects) {
+      final IRNode topOfStackExpr,
+      final ImmutableSet<ImmutableHashOrderSet<Object>> objects,
+      final BindingContextAnalysis.Query bcaQuery) {
     if (shouldRecordResult()) {
-      recordBadBorrowed(srcOp, topOfStack, objects,
+      recordBadBorrowed(srcOp, topOfStack, topOfStackExpr, objects,
           Messages.BORROWED_AS_SHARED, Messages.BORROWED_AS_SHARED_RETURN,
-          null);
+          bcaQuery, null);
     }
   }
 

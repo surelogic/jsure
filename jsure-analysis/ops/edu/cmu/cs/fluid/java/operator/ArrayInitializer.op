@@ -44,7 +44,7 @@ class ArrayInitializerSubcomponent extends VariableSubcomponent {
     normalExitPort = new SubcomponentNormalExitPort(this);
     abruptExitPort = new SubcomponentAbruptExitPort(this);
     ControlNode merge = new Merge();
-    ControlNode store = new SubcomponentFlow(this,AssignExpression.prototype);
+    ControlNode store = new SubcomponentFlow(this,loc); //AssignExpression.prototype);
     
     ControlEdge.connect(abruptExitPort,merge);
     ControlEdge.connect(normalExitPort,store);

@@ -1228,7 +1228,7 @@ extends TripleLattice<Element<Integer>,
       }
     }
     if (!s.invariant()) {
-    	throw new AssertionError("Invariant failed.");
+//    	throw new AssertionError("Invariant failed.");
     }
     return sb.toString();
   }
