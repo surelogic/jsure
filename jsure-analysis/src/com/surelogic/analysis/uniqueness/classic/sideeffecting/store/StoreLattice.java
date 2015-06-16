@@ -48,6 +48,7 @@ import edu.cmu.cs.fluid.java.operator.SomeFunctionDeclaration;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.ClassInitDeclaration;
+import edu.cmu.cs.fluid.java.promise.InitDeclaration;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReturnValueDeclaration;
@@ -1804,7 +1805,9 @@ extends TripleLattice<Element<Integer>,
     }
     
     final IRNode flowUnit = controlFlowDrop.getNode();
-    if (!ClassInitDeclaration.prototype.includes(flowUnit)) {
+    final Operator flowUnitOp = JJNode.tree.getOperator(flowUnit);
+    if (!ClassInitDeclaration.prototype.includes(flowUnitOp) && 
+        !InitDeclaration.prototype.includes(flowUnitOp)) {
       /* Test each actual parameter annotated with @Borrowed.  Test
        * the receiver if it is annotated with @Borrowed.  If the flowUnit is a 
        * constructor, test the return value for uniqueness, and then test that.
