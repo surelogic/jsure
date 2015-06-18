@@ -193,7 +193,7 @@ extends TripleLattice<Element<Integer>,
   
   /**
    * The places where a unique value is expected to be Y but is actually X. For
-   * example, the reference is shared by extected to be unique. Built by
+   * example, the reference is shared but expected to be unique. Built by
    * {@link #opUndefine(Store, IRNode)} and
    * {@link #opCompromiseNoRelease(Store, IRNode)}.
    */

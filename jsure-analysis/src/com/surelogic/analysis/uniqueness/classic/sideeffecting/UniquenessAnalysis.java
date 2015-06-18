@@ -688,7 +688,9 @@ public final class UniquenessAnalysis extends IntraproceduralAnalysis<Store, Sto
       } else {
         formals = SomeFunctionDeclaration.getParams(mdecl);
       }
-      final IRNode receiverNode = mcall ? ((MethodCall) call).get_Object(node) : null;
+      final IRNode receiverNode = mcall ? 
+          ((MethodCall) call).get_Object(node) : 
+            AnalysisUtils.getReceiverNodeAtExpression(node, flowUnit);
       
       if (!isNormal) {
         lattice.setSuppressDrops(true);
