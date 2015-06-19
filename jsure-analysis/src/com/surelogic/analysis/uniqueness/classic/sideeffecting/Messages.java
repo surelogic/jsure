@@ -49,4 +49,5 @@ public final class Messages {
   public static final int RETURN_IS_NULL = 347;
   public static final int ASSIGN_IS_NULL = 348;
   public static final int CONTROL_FLOW_ROOT = 349;
+  public static final int UNIQUE_PASSED_TO_BORROWED = 381;
 }

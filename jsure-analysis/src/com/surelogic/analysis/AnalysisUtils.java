@@ -7,6 +7,7 @@ import edu.cmu.cs.fluid.java.operator.ClassBody;
 import edu.cmu.cs.fluid.java.operator.ClassInitializer;
 import edu.cmu.cs.fluid.java.operator.EnumConstantClassDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
+import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
@@ -56,6 +57,6 @@ public final class AnalysisUtils {
         }
       }
     }
-    return JavaPromise.getReceiverNode(getReceiverFrom);
+    return TypeUtil.isStatic(getReceiverFrom) ? null : JavaPromise.getReceiverNode(getReceiverFrom);
   }
 }

@@ -895,10 +895,11 @@ extends TripleLattice<Element<Integer>,
     if (localStatus.compareTo(State.BORROWED) > 0) { // cannot be undefined
       recordUndefinedNotX(srcOp, controlFlowDrop, n);
     } else if (localStatus == State.BORROWED) { // is borrowed
-      if (shouldRecordResult()) {
-        recordBorrowedPassedToBorrowed(
-            srcOp, calledMethod, methodCall, bDrop, bcaQuery);
-      }
+      recordBorrowedPassedToBorrowed(
+          srcOp, calledMethod, methodCall, bDrop, bcaQuery);
+    } else if (localStatus == State.UNIQUE) {
+      recordUniquePassedToBorrowed(
+          srcOp, calledMethod, methodCall, bDrop, bcaQuery);
     }
     return opRelease(s, srcOp);
   }
@@ -1511,26 +1512,43 @@ extends TripleLattice<Element<Integer>,
       final IRNode calledMethod, final IRNode methodCall,
       final PromiseDrop<? extends IAASTRootNode> passedToBorrowedDrop,
       final BindingContextAnalysis.Query bcaQuery) {
-    if (srcOp == null) {
-      /* Special case: the called method is a a ConstructorCall---
-       * this(...) or super(...)---and top of stack is the receiver.
-       * The actual parameter in this case is the receiver of the method
-       * being analyzed.
-       */
-      createBorrowedPassedToBorrowedResult(
-          UniquenessRules.getBorrowedReceiver(controlFlowDrop.getNode()),
-          methodCall, "this", calledMethod, passedToBorrowedDrop);
-    } else {
+    if (shouldRecordResult()) {
+      if (srcOp == null) {
+        /* Special case: the called method is a a ConstructorCall---
+         * this(...) or super(...)---and top of stack is the receiver.
+         * The actual parameter in this case is the receiver of the method
+         * being analyzed.
+         */
+        createBorrowedPassedToBorrowedResult(
+            UniquenessRules.getBorrowedReceiver(controlFlowDrop.getNode()),
+            methodCall, "this", calledMethod, passedToBorrowedDrop);
+      } else {
+        for (final IRNode x : bcaQuery.getResultFor(srcOp)) {
+          if (ReceiverDeclaration.prototype.includes(x)) {
+            createBorrowedPassedToBorrowedResult(
+                UniquenessRules.getBorrowedReceiver(
+                    JavaPromise.getPromisedFor(x)), srcOp, "this",
+                    calledMethod, passedToBorrowedDrop);
+          } else if (ParameterDeclaration.prototype.includes(x)) {
+            createBorrowedPassedToBorrowedResult(
+                UniquenessRules.getBorrowed(x), srcOp,
+                ParameterDeclaration.getId(x), calledMethod, passedToBorrowedDrop);
+          }
+        }
+      }
+    }
+  }
+
+  private void recordUniquePassedToBorrowed(final IRNode srcOp,
+      final IRNode calledMethod, final IRNode methodCall,
+      final PromiseDrop<? extends IAASTRootNode> passedToBorrowedDrop,
+      final BindingContextAnalysis.Query bcaQuery) {
+    if (shouldRecordResult()) {
       for (final IRNode x : bcaQuery.getResultFor(srcOp)) {
-        if (ReceiverDeclaration.prototype.includes(x)) {
-          createBorrowedPassedToBorrowedResult(
-              UniquenessRules.getBorrowedReceiver(
-                  JavaPromise.getPromisedFor(x)), srcOp, "this",
-                  calledMethod, passedToBorrowedDrop);
-        } else if (ParameterDeclaration.prototype.includes(x)) {
-          createBorrowedPassedToBorrowedResult(
-              UniquenessRules.getBorrowed(x), srcOp,
-              ParameterDeclaration.getId(x), calledMethod, passedToBorrowedDrop);
+        if (FieldRef.prototype.includes(x)) {
+          createUniquePassedToBorrowedResult(
+              UniquenessUtils.getUnique(binder.getBinding(x)).getDrop(),
+              srcOp, FieldRef.getId(x), calledMethod, passedToBorrowedDrop);
         }
       }
     }
@@ -1546,6 +1564,21 @@ extends TripleLattice<Element<Integer>,
       final ResultDrop result = 
         createResultDrop(analysis, abruptDrops, actualBorrowedDrop, srcOp, true,
             Messages.BORROWED_PASSED_TO_BORROWED,
+            actualParameterName,
+            JavaNames.genMethodConstructorName(calledMethod));
+      result.addTrusted(passedToBorrowedDrop);
+    }
+  }
+  
+  private void createUniquePassedToBorrowedResult(
+      final PromiseDrop<? extends IAASTRootNode> actualUniqueDrop,
+      final IRNode srcOp, final String actualParameterName,
+      final IRNode calledMethod,
+      final PromiseDrop<? extends IAASTRootNode> passedToBorrowedDrop) {
+    if (actualUniqueDrop != null) {
+      final ResultDrop result = 
+        createResultDrop(analysis, abruptDrops, actualUniqueDrop, srcOp, true,
+            Messages.UNIQUE_PASSED_TO_BORROWED,
             actualParameterName,
             JavaNames.genMethodConstructorName(calledMethod));
       result.addTrusted(passedToBorrowedDrop);
