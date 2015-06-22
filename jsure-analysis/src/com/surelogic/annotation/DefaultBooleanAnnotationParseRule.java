@@ -156,7 +156,7 @@ extends AbstractAnnotationParseRule<A,P> {
 		}
 		return true;
 	}
-	return true; // TODO is this right?
+	return super.appliesTo(decl, op);
   }
     
   protected static boolean isRefTypedMethod(IRNode n) {

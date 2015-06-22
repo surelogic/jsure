@@ -5,7 +5,6 @@ import org.antlr.runtime.*;
 
 import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
-import com.surelogic.common.SLUtility;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
@@ -145,6 +144,6 @@ implements ISingleAnnotationParseRule<A,P> {
   }
   
   public boolean appliesTo(IRNode decl, Operator op) {
-	  return true;
+	  return declaredOnValidOp(op);
   }
 }

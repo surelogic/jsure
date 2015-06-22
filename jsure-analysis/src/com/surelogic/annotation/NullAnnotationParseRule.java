@@ -49,6 +49,6 @@ public class NullAnnotationParseRule extends AbstractNamedPromiseRule implements
   
   @Override
   public boolean appliesTo(IRNode decl, Operator op) {
-	  return true;
+	  return declaredOnValidOp(op);
   }
 }
