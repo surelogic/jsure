@@ -305,7 +305,7 @@ public abstract class AnnotationRules {
 				//IRNode here = n.getPromisedFor();
 				msg = msg + " on " + n;//JavaNames.getFullName(here);
 			}
-			final ModelingProblemDrop d = makeProblemDrop(n.getPromisedFor(), n.getOffset());
+			final ModelingProblemDrop d = makeProblemDrop(n.getAnnoContext() != null ? n.getAnnoContext() : n.getPromisedFor(), n.getOffset());
 			d.setMessage(msg);
 			return d;
 		}
