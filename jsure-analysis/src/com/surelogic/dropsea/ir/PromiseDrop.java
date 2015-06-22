@@ -438,6 +438,8 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
     // Use the decl/position for the promised for node,
     // but the rest of the java ref from the context, if available
     final Pair<IJavaRef, IRNode> superRefAndNode = super.getJavaRefAndCorrespondingNode();
+    return computeRefWithContext(superRefAndNode, f_aast.getAnnoContext());
+    /*
     if (superRefAndNode == null)
       throw new IllegalStateException(I18N.err(292, getMessage()));
 
@@ -458,6 +460,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
       position = Position.ON_DECL;
     builder.setPositionRelativeToDeclaration(position);
     return new Pair<IJavaRef, IRNode>(builder.build(), bestNode);
+    */
   }
 
   /**

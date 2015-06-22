@@ -31,6 +31,8 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IDecl;
 import com.surelogic.common.ref.IJavaRef;
+import com.surelogic.common.ref.JavaRef;
+import com.surelogic.common.ref.IJavaRef.Position;
 import com.surelogic.common.xml.*;
 import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.IHintDrop;
@@ -794,6 +796,33 @@ public abstract class Drop implements IDrop {
     return new Pair<IJavaRef, IRNode>(parentRef, parent);
   }
 
+  protected final Pair<IJavaRef, IRNode> computeRefWithContext(Pair<IJavaRef, IRNode> info, IRNode context) {
+	  if (info == null)
+		  throw new IllegalStateException(I18N.err(292, getMessage()));
+
+	  if (context == null) {
+		  return info;
+	  }
+	  
+	  final IJavaRef contextRef = JavaNode.getJavaRef(context);
+	  final IJavaRef bestRef;
+	  final IRNode bestNode;
+	  if (contextRef != null) {
+		  bestNode = context;
+		  bestRef = contextRef;
+	  } else {
+		  bestNode = info.second();
+		  bestRef = info.first();
+	  }
+	  final JavaRef.Builder builder = new JavaRef.Builder(bestRef);
+	  builder.setDeclaration(info.first().getDeclaration());
+	  Position position = info.first().getPositionRelativeToDeclaration();
+	  if (position == Position.IS_DECL)
+		  position = Position.ON_DECL;
+	  builder.setPositionRelativeToDeclaration(position);
+	  return new Pair<IJavaRef, IRNode>(builder.build(), bestNode);
+  }
+  
   /**
    * Gets the fAST node associated with this drop.
    * 
