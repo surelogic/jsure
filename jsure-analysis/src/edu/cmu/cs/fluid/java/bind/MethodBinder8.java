@@ -1569,7 +1569,7 @@ declared return type, Object .
     	}
     	
     	static MethodBinding8 create(ICallState c, MethodBinding m, ITypeEnvironment te, BoundSet b, InvocationKind kind) {
-    		if (c.toString().startsWith("Collections.synchronizedList(new # <#>)")) {
+    		if (c.toString().contains("map(Paths:: <> get)")) {
     		//if ("Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(c.toString())) {    		
     			System.out.println("Creating boundset");
     		}
@@ -2026,11 +2026,13 @@ declared return type, Object .
 				 *     [P 1 := T 1 , ..., P p := T p ] to the method's type.
 				 */
 				final Map<IJavaTypeFormal, IJavaType> map = new HashMap<IJavaTypeFormal, IJavaType>(mb.numTypeFormals);				
+				final List<IJavaTypeFormal> newFormals = new ArrayList<>();
 				int i=0;
 				for(IRNode tf : JJNode.tree.children(mb.typeFormals)) {
 					IJavaTypeFormal p_i = JavaTypeFactory.getTypeFormal(tf);
 					IJavaType t_i = call.getTypeArg(i);
 					map.put(p_i, t_i);
+					newFormals.add(p_i);
 					i++;
 				}
 				IJavaTypeSubstitution subst = new TypeInference8.TypeSubstitution(tEnv.getBinder(), map);
@@ -2039,7 +2041,7 @@ declared return type, Object .
 				if (b_2.usedUncheckedConversion()) {
 					return substParams_eraseReturn(mtype, subst);
 				} else {
-					return mtype.subst(subst);
+					return mtype.instantiate(newFormals, subst);
 				}
 			}
 		} else {
