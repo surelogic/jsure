@@ -76,18 +76,18 @@ public class Javac extends IDE {
 	public static Analyses makeAnalyses() {
 		final Analyses analyses = new Analyses();
 		String test = XUtil.runTest();
-		if (test != null) {
-			Benchmark b = Benchmark.valueOf(test);
-			if (b != null) {
-				switch (b) {
-				case UAM:
-					analyses.addNewGroup(null,
-							new com.surelogic.analysis.uniqueness.plusFrom.traditional.NewBenchmarkingUAM());
-					return analyses;
-				default:
-				}
-			}
-		}
+//		if (test != null) {
+//			Benchmark b = Benchmark.valueOf(test);
+//			if (b != null) {
+//				switch (b) {
+//				case UAM:
+//					analyses.addNewGroup(null,
+//							new com.surelogic.analysis.uniqueness.plusFrom.traditional.NewBenchmarkingUAM());
+//					return analyses;
+//				default:
+//				}
+//			}
+//		}
 		List<IAnalysisInfo> active = new ArrayList<IAnalysisInfo>();
 		// for(AnalysisInfo info : analysisMap.values()) {
 		for (IAnalysisInfo info : AnalysisDefaults.getDefault().getAnalysisInfo()) {
