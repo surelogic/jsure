@@ -59,10 +59,6 @@ public final class AnalysisDefaults {
 		init("com.surelogic.analysis.effects.EffectsAnalysis",
 				"com.surelogic.jsure.client.eclipse.EffectAssurance2", true, "Region effects");
 
-		init("com.surelogic.analysis.uniqueness.plusFrom.traditional.UniquenessAnalysisModule",
-				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM", false, "Uniqueness + From");
-		init("com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.UniquenessAnalysisModule",
-				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceUWM_SE", false, "Uniqueness + From (Side-effecting)");
 		init("com.surelogic.analysis.uniqueness.classic.sideeffecting.UniquenessAnalysisModule",
 				"com.surelogic.jsure.client.eclipse.UniquenessAssuranceSE", true, "Uniqueness");
 
