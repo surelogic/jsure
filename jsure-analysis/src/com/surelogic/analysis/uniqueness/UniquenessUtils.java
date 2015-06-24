@@ -5,14 +5,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import com.surelogic.aast.IAASTRootNode;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.RegionRules;
 import com.surelogic.annotation.rules.UniquenessRules;
-import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModel;
 import com.surelogic.dropsea.ir.drops.uniqueness.ExplicitUniqueInRegionPromiseDrop;
 import com.surelogic.dropsea.ir.drops.uniqueness.IUniquePromise;
@@ -61,29 +59,6 @@ public final class UniquenessUtils {
    */
   public static IUniquePromise getUnique(final IRNode varDecl) {
     IUniquePromise result = UniquenessRules.getUnique(varDecl);
-    if (result == null) {
-      result = RegionRules.getSimpleUniqueInRegion(varDecl);
-    }
-    if (result == null) {
-      result = RegionRules.getExplicitUniqueInRegion(varDecl);
-    }
-    return result;
-  }
-  
-  /**
-   * Get the Unique or UniqueInRegion annotation
-   * for the given field declaration.
-   * 
-   * @param varDecl
-   *          The VariableDeclarator node to test
-   * @return The promise drop (a {@link UniquePromiseDrop},
-   *         {@link ExplicitUniqueInRegionPromiseDrop}, or
-   *         {@link SimpleUniqueInRegionPromiseDrop}, or <code>null</code> if
-   *         the field is not annotated.
-   */  
-  public static PromiseDrop<? extends IAASTRootNode> getFieldUniqueOrBorrowed(
-      final IRNode varDecl) {
-    PromiseDrop<? extends IAASTRootNode> result = UniquenessRules.getUnique(varDecl);
     if (result == null) {
       result = RegionRules.getSimpleUniqueInRegion(varDecl);
     }
