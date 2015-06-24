@@ -2508,9 +2508,27 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 		for (int i=0; i < ts.length; ++i) {
 			@SuppressWarnings("unchecked")
 			T piece = (T)ts[i].subst(s);
+			if (piece == null) {
+				// Deal with raw type
+				if (ts[i] instanceof IJavaTypeFormal) {
+					IJavaTypeFormal f = (IJavaTypeFormal) ts[i];
+					piece = (T) f.getExtendsBound(s.getTypeEnv());
+				}
+				if (piece == null) {
+					throw new NullPointerException();
+				}
+			}
 			if (piece != ts[i]) {
 				if (ts == result) result = ts.clone();
 				result[i] = piece;
+				
+				if (ts.length > 1) {
+					for(T t : result) {
+						if (t == null) {
+							throw new NullPointerException();
+						}
+					}
+				}
 			}
 		}
 		return result;
