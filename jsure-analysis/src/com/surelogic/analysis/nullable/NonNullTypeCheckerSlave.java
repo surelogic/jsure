@@ -25,6 +25,8 @@ import com.surelogic.analysis.visitors.InstanceInitAction;
 import com.surelogic.annotation.parse.AnnotationVisitor;
 import com.surelogic.annotation.rules.NonNullRules;
 import com.surelogic.common.SLUtility;
+import com.surelogic.dropsea.IKeyValue;
+import com.surelogic.dropsea.KeyValueUtility;
 import com.surelogic.dropsea.ir.AnalysisResultDrop;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.HintDrop;
@@ -35,9 +37,11 @@ import com.surelogic.dropsea.ir.ProposedPromiseDrop.Builder;
 import com.surelogic.dropsea.ir.drops.nullable.NonNullPromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.NullablePromiseDrop;
 import com.surelogic.dropsea.ir.drops.nullable.TrackPartiallyInitializedPromiseDrop;
+import com.surelogic.dropsea.irfree.DiffHeuristics;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
+import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaPromise;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
@@ -499,6 +503,11 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
           final Base varValue = newQuery.lookupVar(vd);
           final ResultFolderDrop f = ResultsBuilder.createAndFolder(
               parent, where, READ_FROM, READ_FROM, DebugUnparser.toString(where));
+          final IKeyValue diffInfo = KeyValueUtility.getJavaRefInstance(
+              DiffHeuristics.ANALYSIS_DIFF_HINT,
+              JavaNode.getJavaRef(rhsExpr));
+          f.addOrReplaceDiffInfo(diffInfo);
+
           visitedUseSites.put(where, f);
           buildNewChain(testRawOnly, rhsExpr, root, f, lvalue, lhsDecl, declState, varValue.second(), visitedUseSites);
         }
@@ -513,6 +522,11 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
           final ResultDrop result = ResultsBuilder.createResult(
               isAssignableFrom, parent, where,
               k.getMessage(), srcState.getAnnotation(), k.unparse(where));
+          final IKeyValue diffInfo = KeyValueUtility.getJavaRefInstance(
+              DiffHeuristics.ANALYSIS_DIFF_HINT,
+              JavaNode.getJavaRef(rhsExpr));
+          result.addOrReplaceDiffInfo(diffInfo);
+
           final PromiseDrop<?> pd = getAnnotationForProof(k.getAnnotatedNode(binder, where));
           if (pd != null) result.addTrusted(pd);
           
