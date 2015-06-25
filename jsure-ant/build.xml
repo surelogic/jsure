@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="build-ant-task" default="all">
+<project name="build-ant-task" default="build-ant-task">
 	<description>Build for SL Ant tasks</description>
 
 	<property name="build" location="${basedir}/build" />
@@ -26,17 +26,14 @@
 		</filterchain>
 	</loadfile>
 
-	<target name="all" depends="build-ant-task" />
-
-	<target name="clean-build" depends="build-ant-task" />
-
 	<target name="build-ant-task">
 		<echo>Cleaning up for JSure Ant task build</echo>
 		<delete quiet="true" dir="${build}" />
 		<mkdir dir="${build}" />
 		<mkdir dir="${build.bin}" />
 		<mkdir dir="${build.lib}" />
-		<echo>Copy runtime Jars from 'common', 'jsure-common', and 'jsure-analysis' projects</echo>
+		
+		<echo>Copy runtime Jars from needed projects</echo>
 		<copy todir="${build.lib}/common/lib/runtime">
 			<fileset dir="${common}/lib/runtime">
 				<include name="*.jar" />
@@ -60,7 +57,7 @@
 			<fileset dir="../jsure-analysis/lib/promises" />
 		</copy>
 
-		<echo>Creating generated source code and compiling 'common' project...</echo>
+		<echo>Creating generated source code and compiling 'common' project</echo>
 		<ant antfile="build-src.xml" dir="${common}" inheritAll="false" />
 		<path id="compile.class.path">
 			<fileset dir="${build.lib}">
@@ -79,7 +76,7 @@
 		<delete quiet="true" dir="${build.bin}" />
 		<mkdir dir="${build.bin}" />
 
-		<echo>Creating generated source code and compiling 'jsure-common' project...</echo>
+		<echo>Creating generated source code and compiling 'jsure-common' project</echo>
 		<javac srcdir="${jsure-common}/src" debug="true" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
 		<copy todir="${build.bin}">
 			<fileset dir="${jsure-common}/src">
@@ -91,7 +88,7 @@
 		<delete quiet="true" dir="${build.bin}" />
 		<mkdir dir="${build.bin}" />
 
-		<echo>Creating generated source code and compiling 'jsure-analysis' project...</echo>
+		<echo>Creating generated source code and compiling 'jsure-analysis' project</echo>
 		<ant antfile="build-src.xml" dir="${jsure-analysis}" inheritAll="false" />
 		<javac debug="true" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false">
 			<src path="${jsure-analysis}/src" />
@@ -107,7 +104,7 @@
 		<delete quiet="true" dir="${build.bin}" />
 		<mkdir dir="${build.bin}" />
 
-		<echo>Creating generated source code and compiling 'jsure-ant' project...</echo>
+		<echo>Creating generated source code and compiling 'jsure-ant' project</echo>
 		<javac srcdir="${basedir}/src" debug="true" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
 		<copy todir="${build.bin}">
 			<fileset dir="${basedir}/src">
@@ -118,13 +115,12 @@
 		<jar destfile="${build.lib}/jsure-ant-${release-version}.jar" basedir="${build.bin}" />
 		<delete quiet="true" dir="${build.bin}" />
 
-		<echo>Creating jsure-ant-${release-version}.jar...</echo>
+		<echo>Creating jsure-ant-${release-version}.jar</echo>
 		<zip destfile="${build}/jsure-ant-${release-version}.zip">
 			<zipfileset dir="${build.lib}" prefix="jsure-ant" />
 			<zipfileset dir="." includes="*.txt" prefix="jsure-ant" />
 		</zip>
 		<delete quiet="true" dir="${build.lib}" />
-
 	</target>
 
 </project>
