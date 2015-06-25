@@ -103,6 +103,12 @@ public class RegressionTest extends TestCase implements IAnalysisListener {
       setupClasspath(testModule);
       setupPreferences(testModule);
       importProject(testModule);
+      
+      // Check for promise project
+      final File promises = new File(testModule.getParentFile(), "promises");
+      if (promises.exists()) {
+    	  importProject(promises);
+      }
     }
   }
 
