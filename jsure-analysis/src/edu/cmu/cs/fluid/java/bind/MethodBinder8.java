@@ -886,7 +886,7 @@ public class MethodBinder8 implements IMethodBinder {
     final ArgCompatibilityContext STRICT_INVOCATION_CONTEXT = new ArgCompatibilityContext() {
     	public boolean isCompatible(IRNode param, IJavaType pType, IRNode arg, IJavaType argType) {    		 
     		argType = getArgTypeIfPossible(arg, argType);
-     		return isCallCompatible(pType, arg, argType);
+     		return isCallCompatible(pType, arg, argType, false);
     	}
 	}; 
 	
@@ -897,7 +897,8 @@ public class MethodBinder8 implements IMethodBinder {
     		}
     		argType = getArgTypeIfPossible(arg, argType);
     		
-    		if (isCallCompatible(pType, arg, argType)) {
+    		// TODO switch these two for efficiency?
+    		if (isCallCompatible(pType, arg, argType, true)) {
     			return true;
     		}
     		return onlyNeedsBoxing(pType, arg, argType); // TODO anything else to do?
@@ -911,7 +912,7 @@ public class MethodBinder8 implements IMethodBinder {
 		return argType;
 	}
 	
-	protected boolean isCallCompatible(IJavaType pType, IRNode arg, IJavaType argType) {  
+	protected boolean isCallCompatible(IJavaType pType, IRNode arg, IJavaType argType, boolean tryUnBoxingForPoly) {  
 		if (argType == null) {			
 			final Operator op = JJNode.tree.getOperator(arg);				
 			if (!isPolyExpression(arg, op)) {
@@ -932,6 +933,7 @@ public class MethodBinder8 implements IMethodBinder {
 				 * or casting context with a target type T if T is a functional interface type (§9.8) and
 				 * the expression is congruent with the function type of the ground target type derived from T .
 				 */
+				// Note: no need to check for boxing 
 				if (tEnv.isFunctionalType(pType) == null) {
 					return false;
 				}
@@ -941,31 +943,61 @@ public class MethodBinder8 implements IMethodBinder {
 			}
 			else if (MethodCall.prototype.includes(op) || NonPolymorphicNewExpression.prototype.includes(op)) {
 				MethodBinding8 b = (MethodBinding8) binder.getIBinding(arg);
-				CallState call = getCallState(arg, b);
-				IJavaFunctionType ftype = computeInvocationType(call, b, false, pType);
-				if (ftype == null) {
-					return false;
+				CallState call = getCallState(arg, b);								
+				if (tryUnBoxingForPoly) {
+					boolean result = false;
+					if (pType instanceof IJavaPrimitiveType) {
+						IJavaPrimitiveType formalP = (IJavaPrimitiveType) pType;
+		    			IJavaType boxedEquivalent = JavaTypeFactory.getCorrespondingDeclType(tEnv, formalP);
+						if (boxedEquivalent != null) {
+							result = isCallCompatible_call(boxedEquivalent, b, call);
+						}
+					}
+					else if (pType instanceof IJavaDeclaredType) {		
+						IJavaDeclaredType formalD = (IJavaDeclaredType) pType;
+		    			IJavaType unboxedEquivalent = JavaTypeFactory.getCorrespondingPrimType(formalD);
+						if (unboxedEquivalent != null) {
+							result = isCallCompatible_call(unboxedEquivalent, b, call);						
+						}
+					}
+					if (result) {
+						return true;
+					}
 				}
-				return tEnv.isCallCompatible(pType, ftype.getReturnType());
+				return isCallCompatible_call(pType, b, call);
 			}
 			else if (MethodReference.prototype.includes(op) || ConstructorReference.prototype.includes(op)) {
-				return isCompatibleWithRef(pType, arg);
+				// Note: no need to check for boxing 
+				return isCompatibleWithRef(pType, arg); 
 			} 
 			else if (ConditionalExpression.prototype.includes(op)) {
-				return isCallCompatible(pType, ConditionalExpression.getIftrue(arg), argType) && 
-					   isCallCompatible(pType, ConditionalExpression.getIffalse(arg), argType);
-			}
+				return isCallCompatible(pType, ConditionalExpression.getIftrue(arg), argType, tryUnBoxingForPoly) && 
+					   isCallCompatible(pType, ConditionalExpression.getIffalse(arg), argType, tryUnBoxingForPoly);
+			} 
 			else if (ParenExpression.prototype.includes(op)) {
-				return isCallCompatible(pType, ParenExpression.getOp(arg), argType);
+				return isCallCompatible(pType, ParenExpression.getOp(arg), argType, tryUnBoxingForPoly);
 			}
  			else {
  				String msg = "Need code for "+op.name()+" : "+DebugUnparser.toString(arg);
  				throw new NotImplemented(msg);		
  			}
 		}
+		if (tryUnBoxingForPoly && onlyNeedsBoxing(pType, arg, argType)) {
+			return true;
+		}
 		return tEnv.isCallCompatible(pType, argType);
 	}
 
+	private boolean isCallCompatible_call(IJavaType pType, MethodBinding8 b, CallState call) {
+		IJavaFunctionType ftype = computeInvocationType(call, b, false, pType);
+		if (ftype == null) {
+			return false;
+		}
+		return tEnv.isCallCompatible(pType, ftype.getReturnType());
+	}
+
+	
+	
 	/**
 	 * 15.13.2 Type of a Method Reference
 	 * 
@@ -1149,12 +1181,7 @@ declared return type, Object .
 			TypeVariable v = (TypeVariable) varType;
 			return type.isSubtype(tEnv, v.getUpperBound(tEnv)); // TODO HACK
 		}
-		return isCallCompatible(varType, expr, type);
-	}
-
-	private boolean isCallCompatible(IJavaType param, IRNode arg, IJavaType argT, final boolean tryErasure) {
-		// TODO cache? 
-		return isCallCompatible(param, arg, argT);
+		return isCallCompatible(varType, expr, type, false);
 	}
 	
     /*
