@@ -71,10 +71,10 @@ public final class AnalysisDefaults {
 		init("com.surelogic.analysis.testing.BCAModule", "com.surelogic.jsure.client.eclipse.BCA", false, "BCA (for reg tests only)");
 		init("com.surelogic.analysis.testing.CollectMethodCallsModule",
 				"com.surelogic.jsure.client.eclipse.CALLS", false, "Method Calls (for reg tests only)");
-		init("com.surelogic.analysis.uniqueness.plusFrom.traditional.NewBenchmarkingUAM",
-				"com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessNew", false, "Uniqueness Benchmarking (U+F)");
-		init("com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.NewBenchmarkingUAM",
-				"com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessNew_SE", false, "Uniqueness Benchmarking (U+F SE)");
+//		init("com.surelogic.analysis.uniqueness.plusFrom.traditional.NewBenchmarkingUAM",
+//				"com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessNew", false, "Uniqueness Benchmarking (U+F)");
+//		init("com.surelogic.analysis.uniqueness.plusFrom.sideeffecting.NewBenchmarkingUAM",
+//				"com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessNew_SE", false, "Uniqueness Benchmarking (U+F SE)");
 		init("com.surelogic.analysis.uniqueness.classic.sideeffecting.NewBenchmarkingUAM",
 				"com.surelogic.jsure.client.eclipse.BenchmarkingUniquenessSE", false, "Uniqueness Benchmarking (SE)");
 		init("com.surelogic.analysis.testing.TypeBasedAliasModule",
