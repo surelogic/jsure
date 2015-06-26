@@ -3,9 +3,9 @@
 	<description>Build for SL Ant tasks</description>
 
 	<property name="build" location="${basedir}/build" />
-	<property name="build.bin" location="${build}/bin" />
 	<property name="build.lib" location="${build}/lib" />
 
+	<!-- plugin locations (git layout) -->
 	<property name="common" location="${basedir}/../../common/common" />
 	<property name="jsure-common" location="${basedir}/../jsure-common" />
 	<property name="jsure-analysis" location="${basedir}/../jsure-analysis" />
@@ -25,36 +25,40 @@
 		</filterchain>
 	</loadfile>
 
+	<!-- destination identifiers -->
+	<property name="common.id" value="com.surelogic.common" />
+	<property name="jsure-common.id" value="com.surelogic.jsure.common" />
+	<property name="jsure-analysis.id" value="com.surelogic.jsure.analysis" />
+	<property name="jsure-ant.id" value="com.surelogic.jsure.ant-${release-version}" />
+
 	<target name="build-ant-task">
 		<echo>Cleaning up for JSure Ant task build</echo>
 		<delete quiet="true" dir="${build}" />
 		<mkdir dir="${build}" />
-		<mkdir dir="${build.bin}" />
 		<mkdir dir="${build.lib}" />
-		
+
 		<echo>Copy runtime Jars from needed projects</echo>
-		<copy todir="${build.lib}/common/lib/runtime">
+		<copy todir="${build.lib}/${common.id}/lib/runtime">
 			<fileset dir="${common}/lib/runtime">
 				<include name="*.jar" />
 			</fileset>
 		</copy>
-		<copy todir="${build.lib}/jsure-common/lib/runtime">
+		<copy file="${common}/lib/scan_vm.properties" todir="${build.lib}/${common.id}/lib" />
+		<copy todir="${build.lib}/${jsure-common.id}/lib/runtime">
 			<fileset dir="${jsure-common}/lib/runtime">
 				<include name="*.jar" />
 			</fileset>
 		</copy>
-		<copy todir="${build.lib}/jsure-analysis/lib/runtime">
+		<copy todir="${build.lib}/${jsure-analysis.id}/lib/runtime">
 			<fileset dir="${jsure-analysis}/lib/runtime">
 				<include name="*.jar" />
 			</fileset>
 		</copy>
-
-		<echo>Creating non-Java resources that get used by JSure</echo>
-		<copy file="${common}/lib/scan_vm.properties" todir="${build.lib}/common/lib" />
-		<mkdir dir="${build.lib}/jsure-analysis/lib/promises" />
-		<copy todir="${build.lib}/jsure-analysis/lib/promises">
+		<mkdir dir="${build.lib}/${jsure-analysis.id}/lib/promises" />
+		<copy todir="${build.lib}/${jsure-analysis.id}/lib/promises">
 			<fileset dir="../jsure-analysis/lib/promises" />
 		</copy>
+		<mkdir dir="${build.lib}/${jsure-ant.id}" />
 
 		<echo>Creating generated source code and compiling 'common' project</echo>
 		<ant antfile="build-src.xml" dir="${common}" inheritAll="false" />
@@ -62,57 +66,48 @@
 			<fileset dir="${build.lib}">
 				<include name="**/*.jar" />
 			</fileset>
-			<pathelement path="${build.bin}" />
+			<pathelement path="${build.lib}/${common.id}" />
+			<pathelement path="${build.lib}/${jsure-common.id}" />
+			<pathelement path="${build.lib}/${jsure-analysis.id}" />
 		</path>
-		<javac srcdir="${common}/src" debug="true" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
-		<copy todir="${build.bin}">
+		<javac srcdir="${common}/src" debug="true" destdir="${build.lib}/${common.id}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
+		<copy todir="${build.lib}/${common.id}">
 			<fileset dir="${common}/src">
 				<exclude name="**/*.java" />
 				<exclude name="**/.gitignore" />
 			</fileset>
 		</copy>
-		<jar destfile="${build.lib}/common/common.jar" basedir="${build.bin}" />
-		<delete quiet="true" dir="${build.bin}" />
-		<mkdir dir="${build.bin}" />
 
 		<echo>Creating generated source code and compiling 'jsure-common' project</echo>
-		<javac srcdir="${jsure-common}/src" debug="true" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
-		<copy todir="${build.bin}">
+		<javac srcdir="${jsure-common}/src" debug="true" destdir="${build.lib}/${jsure-common.id}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
+		<copy todir="${build.lib}/${jsure-common.id}">
 			<fileset dir="${jsure-common}/src">
 				<exclude name="**/*.java" />
 				<exclude name="**/.gitignore" />
 			</fileset>
 		</copy>
-		<jar destfile="${build.lib}/jsure-common/jsure-common.jar" basedir="${build.bin}" />
-		<delete quiet="true" dir="${build.bin}" />
-		<mkdir dir="${build.bin}" />
 
 		<echo>Creating generated source code and compiling 'jsure-analysis' project</echo>
 		<ant antfile="build-src.xml" dir="${jsure-analysis}" inheritAll="false" />
-		<javac debug="true" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false">
+		<javac debug="true" destdir="${build.lib}/${jsure-analysis.id}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false">
 			<src path="${jsure-analysis}/src" />
 			<src path="${jsure-analysis}/gensrc" />
 		</javac>
-		<copy todir="${build.bin}">
+		<copy todir="${build.lib}/${jsure-analysis.id}">
 			<fileset dir="${jsure-analysis}/src">
 				<exclude name="**/*.java" />
 				<exclude name="**/.gitignore" />
 			</fileset>
 		</copy>
-		<jar destfile="${build.lib}/jsure-analysis/jsure-analysis.jar" basedir="${build.bin}" />
-		<delete quiet="true" dir="${build.bin}" />
-		<mkdir dir="${build.bin}" />
 
 		<echo>Creating generated source code and compiling 'jsure-ant' project</echo>
-		<javac srcdir="${basedir}/src" debug="true" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
-		<copy todir="${build.bin}">
+		<javac srcdir="${basedir}/src" debug="true" destdir="${build.lib}/${jsure-ant.id}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
+		<copy todir="${build.lib}/${jsure-ant.id}">
 			<fileset dir="${basedir}/src">
 				<exclude name="**/*.java" />
 				<exclude name="**/.gitignore" />
 			</fileset>
 		</copy>
-		<jar destfile="${build.lib}/jsure-ant-${release-version}.jar" basedir="${build.bin}" />
-		<delete quiet="true" dir="${build.bin}" />
 
 		<echo>Creating jsure-ant-${release-version}.jar</echo>
 		<zip destfile="${build}/jsure-ant-${release-version}.zip">

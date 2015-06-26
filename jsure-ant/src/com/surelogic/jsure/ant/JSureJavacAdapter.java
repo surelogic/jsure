@@ -13,7 +13,6 @@ import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.util.StringUtils;
 
 import com.surelogic.Nullable;
-import com.surelogic.common.CommonJVMPrefs;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.FileUtility.TempFileFilter;
 import com.surelogic.common.java.Config;
@@ -21,7 +20,6 @@ import com.surelogic.common.java.JavaSourceFile;
 import com.surelogic.common.java.PersistenceConstants;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.remote.AbstractLocalConfig;
-import com.surelogic.common.jobs.remote.AbstractLocalSLJob;
 import com.surelogic.common.jobs.remote.ILocalConfig;
 import com.surelogic.javac.ConfigZip;
 import com.surelogic.javac.Javac;
@@ -68,10 +66,8 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
       Javac.initialize();
       Javac.getDefault().setPreference(IDEPreferences.JSURE_DATA_DIRECTORY, tempDir.getAbsolutePath());
 
-      System.setProperty(LocalJSureJob.FLUID_DIRECTORY_URL, new File(scan.getJSureAntHomeAsFile(), "jsure-analysis").toURI()
-          .toURL().toString());
-      System.setProperty(CommonJVMPrefs.PROP, new File(scan.getJSureAntHomeAsFile(), "common" + CommonJVMPrefs.PATH).toURI()
-          .toURL().toString());
+      System.setProperty(LocalJSureJob.FLUID_DIRECTORY_URL,
+          new File(scan.getJSureAntHomeAsFile(), JSureConstants.JSURE_ANALYSIS_PLUGIN_ID).toURI().toURL().toString());
 
       final Config config = createConfig(surelogicToolsProperties);
       final Projects projects = new Projects(config, new NullSLProgressMonitor());
@@ -96,8 +92,8 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 
       final String scanName = outputDir.getName();
       final File zipFile = new File(scan.getJSureScanDirAsFile(), scanName + ".zip");
-      System.out.println("Scan " + scanName + " examining " + compileList.length + " Java file"
-          + (compileList.length == 1 ? "" : "s"));
+      System.out
+          .println("Scan " + scanName + " examining " + compileList.length + " Java file" + (compileList.length == 1 ? "" : "s"));
       final String msg = "Running JSure for " + projects.getLabel();
       LocalJSureJob.factory.newJob(msg, 100, makeJSureConfig(projects)).run(new NullSLProgressMonitor());
       FileUtility.zipDir(outputDir, zipFile);
@@ -122,15 +118,8 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 
       @Override
       public String getPluginDir(String id, boolean required) {
-        final File home = scan.getJSureAntHomeAsFile();
-        if (AbstractLocalSLJob.COMMON_PLUGIN_ID.equals(id)) {
-          return new File(home, "common").getAbsolutePath();
-        } else if (JSureConstants.JSURE_COMMON_PLUGIN_ID.equals(id)) {
-          return new File(home, "jsure-common").getAbsolutePath();
-        } else if (JSureConstants.JSURE_ANALYSIS_PLUGIN_ID.equals(id)) {
-          return new File(home, "jsure-analysis").getAbsolutePath();
-        }
-        throw new IllegalStateException("Unknown plugin id requested: " + id);
+        // by convention we use the plugin id as the directory name
+        return new File(scan.getJSureAntHomeAsFile(), id).getAbsolutePath();
       }
     };
   }
