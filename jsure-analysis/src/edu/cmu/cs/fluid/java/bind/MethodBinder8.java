@@ -1216,6 +1216,9 @@ declared return type, Object .
     		// Hack since Class can take primitive types
     		final IRNode cls = tEnv.findNamedType("java.lang.Class");
     		if (fdt.getDeclaration().equals(cls) && adt.getDeclaration().equals(cls)) {
+    			if (fdt.getTypeParameters().isEmpty() || adt.getTypeParameters().isEmpty()) {
+    				return false;
+    			}
     			return onlyNeedsBoxing(fdt.getTypeParameters().get(0), a, adt.getTypeParameters().get(0));
     		}
     	}
