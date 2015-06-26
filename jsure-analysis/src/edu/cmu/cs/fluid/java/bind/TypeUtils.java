@@ -1731,7 +1731,7 @@ public class TypeUtils {
 			  if (ftype == null) {
 				  throw new IllegalStateException();
 			  }
-			  return ftype.getParameterTypes().get(TypeUtil.isStatic(bi.getNode()) ? i : i+1);
+			  return ftype.getParameterTypes().get(bi.isConstructor || TypeUtil.isStatic(bi.getNode()) ? i : i+1);
 		  } else if (MethodCall.prototype.includes(op)) { // As receiver
 			  MethodCall call = (MethodCall) op;
 			  IJavaFunctionType ftype = computeInvocationTypeForCall(p, call.get_Args(p), eliminateTypeVars);
