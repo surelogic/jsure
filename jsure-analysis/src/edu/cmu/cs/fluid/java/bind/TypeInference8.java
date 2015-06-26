@@ -2590,7 +2590,7 @@ public class TypeInference8 {
 			final Map<IJavaTypeFormal,IJavaType> subst = new HashMap<IJavaTypeFormal,IJavaType>();
 			final Map<InferenceVariable,IJavaType> instantiations = getInstantiations();
 			if (eliminateTypeVariables) {
-				System.out.println("Eliminating type variables");
+				//System.out.println("Eliminating type variables");
 				for(Entry<InferenceVariable,IJavaType> e : instantiations.entrySet()) {
 					IJavaType elim = eliminateTypeVariables(e.getValue());
 					if (elim != e.getValue()) {
