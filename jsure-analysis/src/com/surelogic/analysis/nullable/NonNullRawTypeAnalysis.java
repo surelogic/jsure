@@ -1707,17 +1707,26 @@ implements IBinderClient {
       
       /* Qualified receiver is fully initialized, unless it appears in the 
        * initialization of an anonymous class created during the initialization
-       * of the class itself, in which case it is Raw(X), where X is the super
-       * class of the class under initialization.
+       * of the class itself.  In that case, the qualified receiver is
+       *   - Raw(X), where X is the super class of the class under
+       *     initialization if the class under initialization is 
+       *     @TrackPartiallyInitialized.
+       *     
+       *   - Not null, otherwise.
        */
       if (lattice.isInterestingQualifiedThis(use)) {
         final IJavaDeclaredType qualifyingType =
             QualifiedReceiverDeclaration.getJavaType(binder, binding);
-        return lattice.push(val,
-            lattice.baseValue(
-                  lattice.injectClass(
-                      qualifyingType.getSuperclass(binder.getTypeEnvironment())),
-                  Kind.QUALIFIED_THIS, use));
+        if (NonNullRules.getTrackPartiallyInitialized(qualifyingType.getDeclaration()) != null) {
+          return lattice.push(val,
+              lattice.baseValue(
+                    lattice.injectClass(
+                        qualifyingType.getSuperclass(binder.getTypeEnvironment())),
+                    Kind.QUALIFIED_THIS, use));
+        } else {
+          return lattice.push(val, 
+              lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.QUALIFIED_THIS, use));
+        }
       } else {
         return lattice.push(val, 
             lattice.baseValue(NonNullRawLattice.NOT_NULL, Kind.QUALIFIED_THIS, use));
