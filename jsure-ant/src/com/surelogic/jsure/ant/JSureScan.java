@@ -131,11 +131,10 @@ public class JSureScan extends Javac {
     /*
      * Heuristic check that this dir is actually the JSure ant task
      */
-//    boolean structureOkay = (new File(result, "common").isDirectory()) && (new File(result, "jsure-common").isDirectory())
-//        && (new File(result, "jsure-analysis").isDirectory());
-//    if (!structureOkay)
-//      throw new BuildException("jsureanthome value of " + jsureAntHome
-//          + " does not appear correct (it should contain 'common' 'jsure-common' and 'jsure-analysis')");
+    boolean structureOkay = (new File(result, "lib").isDirectory()) && (new File(result, "jsure-ant-version.txt").isFile());
+    if (!structureOkay)
+      throw new BuildException("jsureanthome value of " + jsureAntHome
+          + " does not appear correct (it should contain 'lib' directory and a 'jsure-ant-version.txt' file)");
     return result;
   }
 

@@ -54,7 +54,7 @@ public class Javac extends IDE {
 	public URL getResourceRoot() {
 		// Use a manually-set workspace
 		try {
-			String fluidLocation = System.getProperty(LocalJSureJob.FLUID_DIRECTORY_URL);
+			String fluidLocation = System.getProperty(LocalJSureJob.JSURE_ANALYSIS_DIRECTORY_URL);
 			if (fluidLocation != null) {
 				return new URL(fluidLocation);
 			}	

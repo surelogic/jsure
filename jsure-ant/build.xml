@@ -109,12 +109,21 @@
 			</fileset>
 		</copy>
 
+		<echo>Creating TXT files for the release</echo>
+		<echo file="${build}/jsure-ant-version.txt">${release-version}</echo>
+		<copy file="./README.txt" tofile="${build}/README.txt" />
+
 		<echo>Creating jsure-ant-${release-version}.jar</echo>
 		<zip destfile="${build}/jsure-ant-${release-version}.zip">
-			<zipfileset dir="${build.lib}" prefix="jsure-ant" />
-			<zipfileset dir="." includes="*.txt" prefix="jsure-ant" />
+			<zipfileset dir="${build.lib}" prefix="jsure-ant/lib" />
+			<zipfileset dir="${build}" includes="*.txt" prefix="jsure-ant" />
 		</zip>
 		<delete quiet="true" dir="${build.lib}" />
+		<delete quiet="true">
+			<fileset dir="${build}">
+				<include name="*.txt" />
+			</fileset>
+		</delete>
 	</target>
 
 </project>

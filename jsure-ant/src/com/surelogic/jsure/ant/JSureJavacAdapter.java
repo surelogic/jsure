@@ -30,16 +30,31 @@ import com.surelogic.javac.jobs.LocalJSureJob;
 
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
-public class JSureJavacAdapter extends DefaultCompilerAdapter {
+public final class JSureJavacAdapter extends DefaultCompilerAdapter {
   boolean keepRunning = true;
 
   Path sourcepath = null;
   final JSureScan scan;
+  final File jsureAntHome;
   final File[] compileList;
 
   public JSureJavacAdapter(JSureScan s, File[] compileList) {
     scan = s;
+    jsureAntHome = s.getJSureAntHomeAsFile();
     this.compileList = compileList;
+  }
+
+  /**
+   * Helper to determine the directory of a fake Eclipse plugin in the Ant
+   * directory structure. By convention we use the identifier as the directory
+   * name.
+   * 
+   * @param pluginId
+   *          a plugin identifier.
+   * @return a directory.
+   */
+  File getPlugInDir(final String pluginId) {
+    return new File(new File(jsureAntHome, "lib"), pluginId);
   }
 
   @Override
@@ -66,8 +81,8 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
       Javac.initialize();
       Javac.getDefault().setPreference(IDEPreferences.JSURE_DATA_DIRECTORY, tempDir.getAbsolutePath());
 
-      System.setProperty(LocalJSureJob.FLUID_DIRECTORY_URL,
-          new File(scan.getJSureAntHomeAsFile(), JSureConstants.JSURE_ANALYSIS_PLUGIN_ID).toURI().toURL().toString());
+      System.setProperty(LocalJSureJob.JSURE_ANALYSIS_DIRECTORY_URL,
+          getPlugInDir(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID).toURI().toURL().toString());
 
       final Config config = createConfig(surelogicToolsProperties);
       final Projects projects = new Projects(config, new NullSLProgressMonitor());
@@ -89,13 +104,13 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 
       final File outputDir = projects.getRunDir();
       Javac.getDefault().savePreferences(outputDir);
-
+      final ILocalConfig jsureAntConfig = makeJSureConfig(outputDir);
       final String scanName = outputDir.getName();
       final File zipFile = new File(scan.getJSureScanDirAsFile(), scanName + ".zip");
       System.out
           .println("Scan " + scanName + " examining " + compileList.length + " Java file" + (compileList.length == 1 ? "" : "s"));
       final String msg = "Running JSure for " + projects.getLabel();
-      LocalJSureJob.factory.newJob(msg, 100, makeJSureConfig(projects)).run(new NullSLProgressMonitor());
+      LocalJSureJob.factory.newJob(msg, 100, jsureAntConfig).run(new NullSLProgressMonitor());
       FileUtility.zipDir(outputDir, zipFile);
       if (!FileUtility.recursiveDelete(tempDir)) {
         System.out.println("Error unable to delete temp dir " + tempDir.getAbsolutePath());
@@ -107,9 +122,9 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
     return true;
   }
 
-  private ILocalConfig makeJSureConfig(final Projects projects) {
+  private ILocalConfig makeJSureConfig(final File outputDir) {
     final int memSize = parseMemorySize(memoryMaximumSize);
-    return new AbstractLocalConfig(memSize, projects.getRunDir()) {
+    return new AbstractLocalConfig(memSize, outputDir) {
       @Override
       @SuppressWarnings("synthetic-access")
       public boolean isVerbose() {
@@ -118,8 +133,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
 
       @Override
       public String getPluginDir(String id, boolean required) {
-        // by convention we use the plugin id as the directory name
-        return new File(scan.getJSureAntHomeAsFile(), id).getAbsolutePath();
+        return getPlugInDir(id).getAbsolutePath();
       }
     };
   }
@@ -192,7 +206,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
   /**
    * Originally based on DefaultCompilerAdapter.setupJavacCommandlineSwitches()
    */
-  protected Config setupConfig(Config cmd, boolean useDebugLevel) {
+  private Config setupConfig(Config cmd, boolean useDebugLevel) {
     Path classpath = getCompileClasspath();
     Path bootClasspath = getBootClassPath();
     // For -sourcepath, use the "sourcepath" value if present.
@@ -255,7 +269,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
   /**
    * Based on DefaultCompilerAdapter.logAndAddFilesToCompile()
    */
-  protected void logAndAddFilesToCompile(Config config) {
+  private void logAndAddFilesToCompile(Config config) {
     attributes.log("Compilation for " + config.getProject(), Project.MSG_VERBOSE);
 
     StringBuffer niceSourceList = new StringBuffer("File");
