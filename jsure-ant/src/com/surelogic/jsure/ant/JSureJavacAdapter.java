@@ -47,7 +47,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
   @Override
   public boolean execute() throws BuildException {
     try {
-      System.out.println("Project to scan w/JSure = " + scan.getprojectName());
+      System.out.println("Project to scan w/JSure = " + scan.getProjectName());
 
       // temp output location for scan
       final TempFileFilter scanDirFileFilter = new TempFileFilter("jsureAnt", ".scandir");
@@ -106,7 +106,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
       }
     } catch (Throwable t) {
       t.printStackTrace();
-      throw new BuildException("Exception while scanning " + scan.getprojectName(), t);
+      throw new BuildException("Exception while scanning " + scan.getProjectName(), t);
     }
     return true;
   }
@@ -144,7 +144,7 @@ public class JSureJavacAdapter extends DefaultCompilerAdapter {
   }
 
   private Config createConfig(@Nullable File surelogicToolsPropertyFile) throws IOException {
-    Config config = new Config(scan.getprojectName(), null, false, false);
+    Config config = new Config(scan.getProjectName(), null, false, false);
     config.setOption(Config.AS_SOURCE, Boolean.TRUE);
     config.initFromSureLogicToolsProps(surelogicToolsPropertyFile);
     final String srcLevel = scan.getSource();

@@ -61,7 +61,7 @@ public class JSureScan extends Javac {
    * 
    * @return the name of the project being scanned.
    */
-  public String getprojectName() {
+  public String getProjectName() {
     return projectName;
   }
 
@@ -71,7 +71,7 @@ public class JSureScan extends Javac {
    * @param value
    *          the name of the project being scanned.
    */
-  public void setprojectName(String value) {
+  public void setProjectName(String value) {
     projectName = value;
   }
 
@@ -120,12 +120,22 @@ public class JSureScan extends Javac {
    * 
    * @return the JSure ant task directory.
    * @throws BuildException
-   *           if the directory doesn't exist on the disk.
+   *           if the directory doesn't exist on the disk or the structure of
+   *           the existing directory does not look like the JSure ant task
+   *           directory should.
    */
   public File getJSureAntHomeAsFile() {
     final File result = new File(jsureAntHome);
     if (!result.isDirectory())
-      throw new BuildException("JSureAntHome does not exist: " + result.getAbsolutePath());
+      throw new BuildException("jsureanthome directory does not exist: " + jsureAntHome);
+    /*
+     * Heuristic check that this dir is actually the JSure ant task
+     */
+    boolean structureOkay = (new File(result, "common").isDirectory()) && (new File(result, "jsure-common").isDirectory())
+        && (new File(result, "jsure-analysis").isDirectory());
+    if (!structureOkay)
+      throw new BuildException("jsureanthome value of " + jsureAntHome
+          + " does not appear correct (it should contain 'common' 'jsure-common' and 'jsure-analysis')");
     return result;
   }
 
@@ -166,7 +176,7 @@ public class JSureScan extends Javac {
       return result;
     else {
       if (pathnameSet)
-        throw new BuildException("JSureAntHome does not exist: " + result.getAbsolutePath());
+        throw new BuildException("surelogic-tools.properties does not exist: " + result.getAbsolutePath());
       else
         return null;
     }
