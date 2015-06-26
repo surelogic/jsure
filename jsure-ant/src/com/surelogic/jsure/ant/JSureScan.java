@@ -12,7 +12,7 @@ import com.surelogic.Nullable;
 import com.surelogic.common.SLUtility;
 
 /**
- * JSure Ant task.
+ * JSure scan Ant task.
  */
 public class JSureScan extends Javac {
   /**
@@ -23,7 +23,7 @@ public class JSureScan extends Javac {
   /**
    * The name of the project being scanned.
    */
-  private String jsureProjectName;
+  private String projectName;
 
   /**
    * The name of the directory to place the scan zip.
@@ -61,8 +61,8 @@ public class JSureScan extends Javac {
    * 
    * @return the name of the project being scanned.
    */
-  public String getJSureProjectName() {
-    return jsureProjectName;
+  public String getprojectName() {
+    return projectName;
   }
 
   /**
@@ -71,8 +71,8 @@ public class JSureScan extends Javac {
    * @param value
    *          the name of the project being scanned.
    */
-  public void setJSureProjectName(String value) {
-    jsureProjectName = value;
+  public void setprojectName(String value) {
+    projectName = value;
   }
 
   /**
@@ -209,7 +209,7 @@ public class JSureScan extends Javac {
         }
       }
     } else {
-      log("No Java files found to scan in " + jsureProjectName + "...JSure scan skipped");
+      log("No Java files found to scan in " + projectName + "...JSure scan skipped");
     }
   }
 }

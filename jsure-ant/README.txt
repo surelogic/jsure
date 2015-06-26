@@ -19,9 +19,9 @@ source and build classpath per that task. You do not need to specify a destdir.
 
 Attributes added by jsure-scan task are:
 
-o "jsureprojectname" (required) set this to the name of your project. This
+o "projectname" (required) set this to the name of your project. This
    value is used to name the resulting Zip file
-   e.g., jsureprojectname="JSureTutorial_BoundedFIFO"
+   e.g., projectname="JSureTutorial_BoundedFIFO"
 
 o "jsureanthome" (required) set this to the location of this task. Typically
    you copy the pattern illustrated in the Ant script below and set this
@@ -69,7 +69,7 @@ project root:
                 source="1.6"
                 includeantruntime="false"
                 jsureanthome="${jsure.ant.home}"
-                jsureprojectname="JSureTutorial_BoundedFIFO" />
+                projectname="JSureTutorial_BoundedFIFO" />
   </target>
 </project>
 
