@@ -11,8 +11,7 @@
 	<property name="jsure-analysis" location="${basedir}/../jsure-analysis" />
 
 	<!-- Trying to determine the release version from the common plug-in -->
-	<!-- Hack that reads the "Bundle-Version: 5.2.2.qualifier" line to come 
-	    up with "5.2.2" -->
+	<!-- Hack that reads the "Bundle-Version: 5.2.2.qualifier" line to come up with "5.2.2" -->
 	<loadfile property="release-version" srcFile="${common}/META-INF/MANIFEST.MF">
 		<filterchain>
 			<linecontains>
