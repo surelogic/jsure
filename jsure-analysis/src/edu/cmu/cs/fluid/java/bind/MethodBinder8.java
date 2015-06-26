@@ -1560,7 +1560,7 @@ declared return type, Object .
 		}
 		
 		static IBinding reworkBinding(ICallState call, IBinding b, ITypeEnvironment tEnv, IJavaTypeSubstitution newTypeSubst) {
-			System.out.println("Receiver for "+call+" : "+call.getReceiverType());
+			//System.out.println("Receiver for "+call+" : "+call.getReceiverType());
 			final boolean sameReceiver = call.getReceiverType() == b.getReceiverType();
 			final boolean sameSubst = newTypeSubst == null || b.getSubst() == newTypeSubst;
 			if (sameReceiver && sameSubst) {
