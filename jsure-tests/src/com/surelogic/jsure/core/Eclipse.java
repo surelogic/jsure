@@ -1,7 +1,5 @@
 package com.surelogic.jsure.core;
 
-import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -92,7 +90,7 @@ public final class Eclipse extends Javac {
    * Constructor / initializer
    */
   private Eclipse(IWorkspaceRoot root) {
-	IDE.initInstance(this);
+    IDE.initInstance(this);
 
     workspaceRoot = root;
     /*
@@ -300,7 +298,7 @@ public final class Eclipse extends Javac {
   /**
    * Maps strings and IResources to canonical nodes (for non-Java files)
    */
-  private Map<Object, IRNode> nodeMap = new HashMap<Object, IRNode>();
+  private Map<Object, IRNode> nodeMap = new HashMap<>();
 
   @Override
   protected void clearCaches_internal() {
@@ -350,25 +348,17 @@ public final class Eclipse extends Javac {
 
   @Override
   public URL getResourceRoot() {
-    File f = new File(EclipseUtility.getDirectoryOf(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID));
-    try {
-      return f.toURI().toURL();
-    } catch (MalformedURLException e) {
-      e.printStackTrace();
-      return null;
-    }
+    return EclipseUtility.getInstallationURLOf(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID);
   }
 
   public static final boolean testing = XUtil.testing;
 
   @Override
   public boolean getBooleanPreference(String key) {
-	/*
-    if (testing && IDEPreferences.ALLOW_JAVADOC_ANNOS.equals(key)) {
-      // Enable, so we can test it!
-      return true;
-    }
-    */
+    /*
+     * if (testing && IDEPreferences.ALLOW_JAVADOC_ANNOS.equals(key)) { //
+     * Enable, so we can test it! return true; }
+     */
     return EclipseUtility.getBooleanPreference(key);
   }
 
@@ -383,7 +373,6 @@ public final class Eclipse extends Javac {
   }
 
   @Override
-  @SuppressWarnings("rawtypes")
   public IJavaFileLocator getJavaFileLocator() {
     throw new UnsupportedOperationException();
   }

@@ -2,6 +2,7 @@ package com.surelogic.javac.jobs;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ConcurrentModificationException;
 import java.util.Map;
 import java.util.Properties;
@@ -101,11 +102,9 @@ public class LocalJSureJob extends AbstractLocalSLJob<ILocalConfig> {
       cmdj.createVmArgument().setValue("-D" + AnnotationConstants.XML_LOG_PROP + "=RemoteJSureRun.AnnotationRules");
       cmdj.createVmArgument().setValue("-D" + XUtil.testingProp + "=" + XUtil.testing);
     }
-
-    final ConfigHelper util = new ConfigHelper(debug, config);
-    String location = util.getPluginDir(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID, true);
     try {
-      cmdj.createVmArgument().setValue("-D" + JSURE_ANALYSIS_DIRECTORY_URL + "=" + new File(location).toURI().toURL());
+      final URL jsureAnalysisURL = config.getPluginDirectory(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID).toURI().toURL();
+      cmdj.createVmArgument().setValue("-D" + JSURE_ANALYSIS_DIRECTORY_URL + "=" + jsureAnalysisURL);
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }
