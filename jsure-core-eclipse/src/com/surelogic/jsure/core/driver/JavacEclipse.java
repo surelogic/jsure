@@ -3,9 +3,9 @@ package com.surelogic.jsure.core.driver;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.surelogic.analysis.AnalysisDefaults;
 import com.surelogic.analysis.IAnalysisInfo;
@@ -13,7 +13,8 @@ import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.MemoryUtility;
 import com.surelogic.javac.jobs.JSureConstants;
 
-import edu.cmu.cs.fluid.ide.*;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
+import edu.cmu.cs.fluid.ide.IDERoot;
 
 public class JavacEclipse extends IDERoot {
   static final JavacEclipse instance = new JavacEclipse();
@@ -96,26 +97,7 @@ public class JavacEclipse extends IDERoot {
 
   @Override
   public URL getResourceRoot() {
-    try {
-      File f = new File(EclipseUtility.getDirectoryOf(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID));
-      return f.toURI().toURL();
-    } catch (Throwable e) {
-      // Try to use this plugin to find fluid
-      String here = EclipseUtility.getDirectoryOf("com.surelogic.jsure.core");
-      File f = new File(here);
-      System.out.println("j.core = " + f);
-      for (File f2 : f.getParentFile().listFiles()) {
-        if (f2.getName().startsWith("edu.cmu.cs.fluid_")) {
-          System.out.println("Found " + f2);
-          try {
-            return f2.toURI().toURL();
-          } catch (MalformedURLException e1) {
-            e1.printStackTrace();
-          }
-        }
-      }
-    }
-    return null;
+    return EclipseUtility.getInstallationURLOf(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID);
   }
 
   @Override

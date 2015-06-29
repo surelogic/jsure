@@ -15,6 +15,7 @@ import org.apache.tools.ant.util.StringUtils;
 import com.surelogic.Nullable;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.FileUtility.TempFileFilter;
+import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.java.Config;
 import com.surelogic.common.java.JavaSourceFile;
 import com.surelogic.common.java.PersistenceConstants;
@@ -52,9 +53,16 @@ public final class JSureJavacAdapter extends DefaultCompilerAdapter {
    * @param pluginId
    *          a plugin identifier.
    * @return a directory.
+   * 
+   * @throws IllegalArgumentException
+   *           if no path can be found for the passed pluginId
    */
-  File getPlugInDir(final String pluginId) {
-    return new File(new File(jsureAntHome, "lib"), pluginId);
+  File getAntPluginDirectory(final String pluginId) {
+    final File result = new File(new File(jsureAntHome, "lib"), pluginId);
+    if (result.exists())
+      return result;
+    else
+      throw new IllegalArgumentException(I18N.err(340, pluginId, result.getAbsolutePath()));
   }
 
   @Override
@@ -82,7 +90,7 @@ public final class JSureJavacAdapter extends DefaultCompilerAdapter {
       Javac.getDefault().setPreference(IDEPreferences.JSURE_DATA_DIRECTORY, tempDir.getAbsolutePath());
 
       System.setProperty(LocalJSureJob.JSURE_ANALYSIS_DIRECTORY_URL,
-          getPlugInDir(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID).toURI().toURL().toString());
+          getAntPluginDirectory(JSureConstants.JSURE_ANALYSIS_PLUGIN_ID).toURI().toURL().toString());
 
       final Config config = createConfig(surelogicToolsProperties);
       final Projects projects = new Projects(config, new NullSLProgressMonitor());
@@ -132,8 +140,8 @@ public final class JSureJavacAdapter extends DefaultCompilerAdapter {
       }
 
       @Override
-      public String getPluginDir(String id, boolean required) {
-        return getPlugInDir(id).getAbsolutePath();
+      public File getPluginDirectory(String pluginId) {
+        return getAntPluginDirectory(pluginId);
       }
     };
   }

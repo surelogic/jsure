@@ -46,7 +46,7 @@ public abstract class IDERoot {
 	
 	public abstract URL getResourceRoot();
 	
-	private final ConcurrentMap<String, Object> prefs = new ConcurrentHashMap<String, Object>();
+	private final ConcurrentMap<String, Object> prefs = new ConcurrentHashMap<>();
 	{
 		setPreference(IDEPreferences.DEFAULT_JRE, "");
 		initPrefs();
