@@ -29,7 +29,7 @@ public class ImportScanHandler extends AbstractHandler {
     fd.setText(I18N.msg("jsure.dialog.importscan.title"));
     fd.setFilterExtensions(new String[] { "*" + JSureConstants.JSURE_SCAN_TASK_SUFFIX, "*.*" });
     fd.setFilterNames(
-        new String[] { "Compressed JSure Scan Documents (*." + JSureConstants.JSURE_SCAN_TASK_SUFFIX + ")", "All Files (*.*)" });
+        new String[] { "Compressed JSure Scan Documents (*" + JSureConstants.JSURE_SCAN_TASK_SUFFIX + ")", "All Files (*.*)" });
     final String name = fd.open();
     if (name != null) {
       final File zipFile = new File(name);
