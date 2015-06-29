@@ -4,6 +4,7 @@
 
 	<property name="build" location="${basedir}/build" />
 	<property name="build.lib" location="${build}/lib" />
+	<property name="build.bin" location="${build}/bin" />
 
 	<!-- plugin locations (git layout) -->
 	<property name="common" location="${basedir}/../../common/common" />
@@ -36,6 +37,7 @@
 		<delete quiet="true" dir="${build}" />
 		<mkdir dir="${build}" />
 		<mkdir dir="${build.lib}" />
+		<mkdir dir="${build.bin}" />
 
 		<echo>Copy runtime Jars from needed projects</echo>
 		<copy todir="${build.lib}/${common.id}/lib/runtime">
@@ -70,35 +72,43 @@
 			<pathelement path="${build.lib}/${jsure-common.id}" />
 			<pathelement path="${build.lib}/${jsure-analysis.id}" />
 		</path>
-		<javac srcdir="${common}/src" debug="true" destdir="${build.lib}/${common.id}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
-		<copy todir="${build.lib}/${common.id}">
+		<javac srcdir="${common}/src" debug="true" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
+		<copy todir="${build.bin}">
 			<fileset dir="${common}/src">
 				<exclude name="**/*.java" />
 				<exclude name="**/.gitignore" />
 			</fileset>
 		</copy>
+		<jar destfile="${build.lib}/${common.id}/bin.jar" basedir="${build.bin}" />
+		<delete quiet="true" dir="${build.bin}" />
+		<mkdir dir="${build.bin}" />
 
 		<echo>Creating generated source code and compiling 'jsure-common' project</echo>
-		<javac srcdir="${jsure-common}/src" debug="true" destdir="${build.lib}/${jsure-common.id}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
-		<copy todir="${build.lib}/${jsure-common.id}">
+		<javac srcdir="${jsure-common}/src" debug="true" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
+		<copy todir="${build.bin}">
 			<fileset dir="${jsure-common}/src">
 				<exclude name="**/*.java" />
 				<exclude name="**/.gitignore" />
 			</fileset>
 		</copy>
+		<jar destfile="${build.lib}/${jsure-common.id}/bin.jar" basedir="${build.bin}" />
+		<delete quiet="true" dir="${build.bin}" />
+		<mkdir dir="${build.bin}" />
 
 		<echo>Creating generated source code and compiling 'jsure-analysis' project</echo>
 		<ant antfile="build-src.xml" dir="${jsure-analysis}" inheritAll="false" />
-		<javac debug="true" destdir="${build.lib}/${jsure-analysis.id}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false">
+		<javac debug="true" destdir="${build.bin}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false">
 			<src path="${jsure-analysis}/src" />
 			<src path="${jsure-analysis}/gensrc" />
 		</javac>
-		<copy todir="${build.lib}/${jsure-analysis.id}">
+		<copy todir="${build.bin}">
 			<fileset dir="${jsure-analysis}/src">
 				<exclude name="**/*.java" />
 				<exclude name="**/.gitignore" />
 			</fileset>
 		</copy>
+		<jar destfile="${build.lib}/${jsure-analysis.id}/bin.jar" basedir="${build.bin}" />
+		<delete quiet="true" dir="${build.bin}" />
 
 		<echo>Creating generated source code and compiling 'jsure-ant' project</echo>
 		<javac srcdir="${basedir}/src" debug="true" destdir="${build.lib}/${jsure-ant.id}" classpathref="compile.class.path" source="1.7" target="1.7" includeAntRuntime="false" />
