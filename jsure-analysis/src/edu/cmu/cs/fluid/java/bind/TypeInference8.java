@@ -1498,8 +1498,8 @@ public class TypeInference8 {
 			return true;
 		}
 		final int k = call.numArgs();
-		final IJavaType[] s = m_1.getParamTypes(tEnv.getBinder(), k, kind == InvocationKind.VARARGS);
-		final IJavaType[] t = m_2.getParamTypes(tEnv.getBinder(), k, kind == InvocationKind.VARARGS);
+		final IJavaType[] s = m_1.getParamTypes(tEnv.getBinder(), k, kind == InvocationKind.VARARGS, false);
+		final IJavaType[] t = m_2.getParamTypes(tEnv.getBinder(), k, kind == InvocationKind.VARARGS, false);
 		
 		final BoundSet b = constructInitialSet(m_2.typeFormals);
 		final IJavaTypeSubstitution theta = b.getInitialVarSubst();
