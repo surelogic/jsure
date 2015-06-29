@@ -38,6 +38,14 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
 	  return new IJavaTypeSubstitution() {
 		  private IJavaTypeSubstitution realSubst = IJavaTypeSubstitution.NULL;
 		  
+		  public String toString() {
+			  ensureSubst();
+			  if (realSubst == null) {
+				  ensureSubst();
+			  }
+			  return realSubst.toString();
+		  }
+ 		  
 		  private void ensureSubst() {
 			  if (realSubst == IJavaTypeSubstitution.NULL) {
 				  /*

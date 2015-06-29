@@ -962,9 +962,6 @@ abstract class JavaType extends JavaTypeCleanable implements IJavaType {
   }
 
   public Iteratable<IJavaType> getSupertypes(ITypeEnvironment env) {
-	if (toString().equals("R extends #.EvalPair <#, #> in test2.EvaluationStackLattice")) {
-		System.out.println("Looking at R");
-	}
     return env.getSuperTypes(this);
   }
   
@@ -1307,6 +1304,10 @@ class BoundedTypeFormal extends JavaTypeFormal {
 		if (t2 instanceof BoundedTypeFormal) {
 			BoundedTypeFormal o = (BoundedTypeFormal) t2;
 			return source.isEqualTo(env, t2) && subst.equals(o.subst);
+		}
+		else if (t2 instanceof JavaTypeFormal) {
+			JavaTypeFormal f = (JavaTypeFormal) t2;
+			return source.isEqualTo(env, t2); // TODO check the subst?
 		}
 		return false;
 	}
@@ -2365,7 +2366,17 @@ class JavaFunctionType extends JavaTypeCleanable implements IJavaFunctionType {
 		@Override
 		public IJavaType get(int arg0) {
 			if (arg0 < 0) throw new IndexOutOfBoundsException("negative index not allowed: " + arg0);
-			return pieces[arg0+1];
+			if (arg0+1 > pieces.length) {
+				 throw new IndexOutOfBoundsException();
+			}
+			try {
+				return pieces[arg0+1];
+			} catch(Exception e) {
+				System.out.println("pieces len = "+pieces.length);
+				System.out.println("Looking at this function: "+JavaFunctionType.this);
+				e.printStackTrace();
+				return null;
+			}
 		}
 
 		@Override
