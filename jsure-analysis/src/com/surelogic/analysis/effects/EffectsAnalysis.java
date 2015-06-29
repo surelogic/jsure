@@ -15,7 +15,6 @@ import com.surelogic.analysis.effects.targets.evidence.BCAEvidence;
 import com.surelogic.analysis.effects.targets.evidence.CallEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EmptyEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EvidenceProcessor;
-import com.surelogic.analysis.effects.targets.evidence.IteratorEvidence;
 import com.surelogic.analysis.effects.targets.evidence.MappedArgumentEvidence;
 import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
 import com.surelogic.analysis.effects.targets.evidence.QualifiedReceiverConversionEvidence;
@@ -583,13 +582,6 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	    } else {
 	      resultDrop.addInformationHint(e.getLink(), reason.getMessage());
 	    }
-	    accept(e.getMoreEvidence());
-	  }
-    
-	  @Override
-	  public void visitIteratorEvidence(final IteratorEvidence e) {
-	    resultDrop.addInformationHint(
-	        e.getLink(), Messages.ITERATOR_EFFECTS_CONVERSION);
 	    accept(e.getMoreEvidence());
 	  }
 	  

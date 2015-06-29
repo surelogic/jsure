@@ -24,6 +24,5 @@ public final class Messages {
   public static final int REASON_NULL_REFERENCE = 166;
   public static final int REASON_NEW_OBJECT = 167;
   public static final int REASON_UNIQUE_RETURN = 168;
-  public static final int ITERATOR_EFFECTS_CONVERSION = 169;
   public static final int REASON_UNIQUE_PARAM = 170;
 }

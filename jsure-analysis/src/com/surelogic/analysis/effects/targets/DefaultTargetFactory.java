@@ -4,7 +4,6 @@ import com.surelogic.analysis.effects.targets.evidence.TargetEvidence;
 import com.surelogic.analysis.regions.IRegion;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
 
 /**
  * An implementation of TargetFactory that assumes that
@@ -13,38 +12,21 @@ import edu.cmu.cs.fluid.java.bind.IJavaReferenceType;
  * QualifiedThisExpression. That is, the caller is responsible for generating
  * the appropriate ReceiverDeclaration and QualifiedReceiverDeclaration nodes.
  */
-public enum DefaultTargetFactory implements TargetFactory {
-  PROTOTYPE;
+public final class DefaultTargetFactory extends AbstractTargetFactory {
+  public static final DefaultTargetFactory PROTOTYPE = new DefaultTargetFactory();
   
   
   
-  @Override
-  public AnyInstanceTarget createAnyInstanceTarget(
-      final IJavaReferenceType clazz, final IRegion region,
-      final TargetEvidence evidence) {
-    return new AnyInstanceTarget(clazz, region, evidence);
+  private DefaultTargetFactory() {
+    super();
   }
-
-  @Override
-  public ClassTarget createClassTarget(
-      final IRegion region, final TargetEvidence elabEvidence) {
-    return new ClassTarget(region, elabEvidence);
-  }
-
-  @Override
-  public EmptyTarget createEmptyTarget(final TargetEvidence evidence) {
-    return new EmptyTarget(evidence);
-  }
-
+  
+  
+  
   @Override
   public InstanceTarget createInstanceTarget(
       final IRNode object, final IRegion region,
       final TargetEvidence evidence) {
     return new InstanceTarget(object, region, evidence);
-  }
-  
-  @Override
-  public LocalTarget createLocalTarget(final IRNode varDecl) {
-    return new LocalTarget(varDecl);
   }
 }

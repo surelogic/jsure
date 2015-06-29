@@ -4,7 +4,6 @@ import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.evidence.BCAEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EvidenceProcessor;
-import com.surelogic.analysis.effects.targets.evidence.IteratorEvidence;
 
 final class UndoBCAProcessor extends EvidenceProcessor {
   private Target result = null;
@@ -26,11 +25,6 @@ final class UndoBCAProcessor extends EvidenceProcessor {
   public void visitBCAEvidence(final BCAEvidence e) {
     result = e.getElaboratedFrom();
     accept(result.getEvidence());
-  }
-
-  @Override
-  public void visitIteratorEvidence(final IteratorEvidence e) {
-    accept(e.getMoreEvidence());
   }
 
 

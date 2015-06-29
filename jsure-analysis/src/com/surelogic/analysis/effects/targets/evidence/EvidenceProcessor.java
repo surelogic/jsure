@@ -53,11 +53,6 @@ public abstract class EvidenceProcessor implements EvidenceVisitor {
   public void visitEmptyEvidence(final EmptyEvidence e) {
     visit(e);
   }
-
-  @Override
-  public void visitIteratorEvidence(final IteratorEvidence e) {
-    visit(e);
-  }
   
   @Override
   public void visitMappedArgumentEvidence(final MappedArgumentEvidence e) {
