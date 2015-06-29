@@ -56,22 +56,39 @@ project root:
   <property name="jsure.ant.home" location="C:\\Users\\Tim\\jsure-ant" />
 
   <!-- (COPY) JSure Ant task setup stuff -->
-  <path id="sl.classpath">
-    <fileset dir="${jsure.ant.home}" includes="**/*.jar" />
+  <path id="jsure-ant.classpath">
+    <dirset  dir="${jsure.ant.home}" includes="lib/com.surelogic.*" />
+    <fileset dir="${jsure.ant.home}" includes="lib/**/*.jar" />
   </path>
   <taskdef name="jsure-scan" classname="com.surelogic.jsure.ant.JSureScan">
-    <classpath refid="sl.classpath" />
+    <classpath refid="jsure-ant.classpath" />
   </taskdef>
 
+
+  <path id="tf.classpath">
+    <fileset dir="${basedir}" includes="**/*.jar" />
+  </path>
+
   <target name="scan">
+    <javac srcdir="${basedir}/src"
+           destdir="${basedir}/bin"
+           source="1.7"
+           includeantruntime="false">
+       <classpath refid="tf.classpath" />
+    </javac>
+
     <jsure-scan srcdir="${basedir}/src"
-                classpath="${basedir}/*.jar"
-                source="1.6"
+                source="1.7"
                 includeantruntime="false"
                 jsureanthome="${jsure.ant.home}"
-                projectname="JSureTutorial_BoundedFIFO" />
+                projectname="JSureTutorial_BoundedFIFO">
+       <classpath refid="tf.classpath" />
+    </jsure-scan>
   </target>
 </project>
+
+Note we include a javac compile to illustrate how this is similar (and different)
+from a jsure-scan.
 
 To run a scan open a prompt to this directory and run "ant" or
 run as Ant task in your Eclipse. The output will look like
@@ -84,7 +101,7 @@ scan:
 BUILD SUCCESSFUL
 Total time: 8 seconds
 
-Next you can load the 'JSureTutorial_Bounde-2015.05.18-at-12.37.55.231.zip' file into
+Next you can load the 'JSureTutorial_Bounde-2015.05.18-at-12.37.55.231.jsure-scan.zip' file into
 your Eclipse by choosing the "JSure" -> "Import Ant/Maven Scan..." menu item from the
 Eclipse main menu. The file is located at the root of the JSureTutorial_BoundedFIFO
 project on your disk.
