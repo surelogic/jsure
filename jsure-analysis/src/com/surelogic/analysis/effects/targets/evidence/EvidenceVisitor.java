@@ -10,7 +10,6 @@ public interface EvidenceVisitor {
   public void visitCallEvidence(CallEvidence e);
   public void visitElaborationEvidence(ElaborationEvidence e);
   public void visitEmptyEvidence(EmptyEvidence e);
-  public void visitIteratorEvidence(IteratorEvidence e);
   public void visitMappedArgumentEvidence(MappedArgumentEvidence e);
   public void visitNoEvidence(NoEvidence e);
   public void visitQualifiedReceiverConversionEvidence(QualifiedReceiverConversionEvidence e);
