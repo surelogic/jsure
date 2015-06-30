@@ -69,35 +69,35 @@ public final class EmptyTarget extends AbstractTarget {
   @Override
   // T is the receiver in the original overlapsWIth() call!
   TargetRelationship overlapsWithEmpty(final IBinder binder, final EmptyTarget t) {
-    return TargetRelationship.newUnrelated();
+    return TargetRelationship.unrelated();
   }
   
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithLocal(
       final IBinder binder, final LocalTarget t) {
-    return TargetRelationship.newUnrelated();
+    return TargetRelationship.unrelated();
   }
 
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithAnyInstance(
       final IBinder binder, final AnyInstanceTarget t) {
-    return TargetRelationship.newUnrelated();
+    return TargetRelationship.unrelated();
   }
 
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithClass(
       final IBinder binder, final ClassTarget t) {
-    return TargetRelationship.newUnrelated();
+    return TargetRelationship.unrelated();
   }
 
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithInstance(
       final IMayAlias mayAlias, final IBinder binder, final InstanceTarget t) {
-    return TargetRelationship.newUnrelated();
+    return TargetRelationship.unrelated();
   }
 
   @Override

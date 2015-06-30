@@ -70,13 +70,13 @@ public final class ClassTarget extends AbstractTargetWithRegion {
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithEmpty(final IBinder binder, final EmptyTarget t) {
-    return TargetRelationship.newUnrelated();
+    return TargetRelationship.unrelated();
   }
 
   // t is the receiver, and thus TARGET A in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithLocal(final IBinder binder, final LocalTarget t) {
-    return TargetRelationship.newUnrelated();
+    return TargetRelationship.unrelated();
   }
 
   // t is the receiver, and thus TARGET A in the original overlapsWith() call!
@@ -92,10 +92,10 @@ public final class ClassTarget extends AbstractTargetWithRegion {
       // Shouldn't happen
       throw new IllegalStateException("Region in AnyInstace target contains the region in the Class target!");
     } else if (regionB.ancestorOf(regionA)) {
-      return TargetRelationship.newBIsLarger(
+      return TargetRelationship.bIsLarger(
         RegionRelationships.REGION_B_INCLUDES_REGION_A);
     } else {
-      return TargetRelationship.newUnrelated();
+      return TargetRelationship.unrelated();
     }
   }
 
@@ -107,15 +107,15 @@ public final class ClassTarget extends AbstractTargetWithRegion {
     final IRegion regionB = this.region;
     
     if (regionA.equals(regionB)) {
-      return TargetRelationship.newAliased(RegionRelationships.EQUAL);
+      return TargetRelationship.aliased(RegionRelationships.EQUAL);
     } else if (regionA.ancestorOf(regionB)) {
-      return TargetRelationship.newAIsLarger(
+      return TargetRelationship.aIsLarger(
           RegionRelationships.REGION_A_INCLUDES_REGION_B);
     } else if (regionB.ancestorOf(regionA)) {
-      return TargetRelationship.newBIsLarger(
+      return TargetRelationship.bIsLarger(
           RegionRelationships.REGION_B_INCLUDES_REGION_A);
     } else {
-      return TargetRelationship.newUnrelated();
+      return TargetRelationship.unrelated();
     }
   }
 
@@ -139,10 +139,10 @@ public final class ClassTarget extends AbstractTargetWithRegion {
       // SHouldn't happen
       throw new IllegalStateException("Region in Instance target contains the region in the Class target!");
     } else if (regionB.ancestorOf(regionA)) {
-      return TargetRelationship.newBIsLarger(
+      return TargetRelationship.bIsLarger(
         RegionRelationships.REGION_B_INCLUDES_REGION_A);
     } else {
-      return TargetRelationship.newUnrelated();
+      return TargetRelationship.unrelated();
     }
   }
 

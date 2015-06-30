@@ -104,7 +104,7 @@ public abstract class Effect {
     public EffectRelationship conflictsWith(
         final IMayAlias mayAlias, final IBinder binder, final Effect e) {
       // Empty effects never conflict with any other effect
-      return EffectRelationship.newNoConflict();
+      return EffectRelationship.noConflict();
     }
     
     @Override 
@@ -233,10 +233,10 @@ public abstract class Effect {
         final TargetRelationship overlap =
           getTarget().overlapsWith(mayAlias, binder, e.getTarget());
         if (overlap.getTargetRelationship() != TargetRelationships.UNRELATED) {
-          return EffectRelationship.newReadAWriteB(overlap);
+          return EffectRelationship.readAWriteB(overlap);
         }
       }
-      return EffectRelationship.newNoConflict();
+      return EffectRelationship.noConflict();
     }
     
     @Override 
@@ -318,13 +318,13 @@ public abstract class Effect {
           getTarget().overlapsWith(mayAlias, binder, e.getTarget());
         if (overlap.getTargetRelationship() != TargetRelationships.UNRELATED) {
           if (e.isRead()) {
-            return EffectRelationship.newWriteAReadB(overlap);
+            return EffectRelationship.writeAReadB(overlap);
           } else { // both write effects
-            return EffectRelationship.newWritesConflict(overlap);
+            return EffectRelationship.writesConflict(overlap);
           }
         }
       }
-      return EffectRelationship.newNoConflict();
+      return EffectRelationship.noConflict();
     }
     
     @Override 
