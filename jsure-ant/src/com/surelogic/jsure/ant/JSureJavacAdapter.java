@@ -113,8 +113,8 @@ public final class JSureJavacAdapter extends DefaultCompilerAdapter {
       final File outputDir = projects.getRunDir();
       Javac.getDefault().savePreferences(outputDir);
       final ILocalConfig jsureAntConfig = makeJSureConfig(outputDir);
-      final String scanName = outputDir.getName();
-      final File zipFile = new File(scan.getJSureScanDirAsFile(), scanName + JSureConstants.JSURE_SCAN_TASK_SUFFIX);
+      final String scanName = outputDir.getName() + JSureConstants.JSURE_SCAN_TASK_SUFFIX;
+      final File zipFile = new File(scan.getJSureScanDirAsFile(), scanName);
       System.out
           .println("Scan " + scanName + " examining " + compileList.length + " Java file" + (compileList.length == 1 ? "" : "s"));
       final String msg = "Running JSure for " + projects.getLabel();
