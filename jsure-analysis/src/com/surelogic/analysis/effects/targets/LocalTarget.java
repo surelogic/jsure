@@ -88,7 +88,7 @@ public final class LocalTarget extends AbstractTarget {
   // t is the receiver, and thus TARGET A, in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithEmpty(final IBinder binder, final EmptyTarget t) {
-    return TargetRelationship.newUnrelated();
+    return TargetRelationship.unrelated();
   }
 
   // t is the receiver, and thus TARGET A in the original overlapsWith() call!
@@ -96,9 +96,9 @@ public final class LocalTarget extends AbstractTarget {
   TargetRelationship overlapsWithLocal(
       final IBinder binder, final LocalTarget t) {
     if (var.equals(t.var)) {
-      return TargetRelationship.newSameVariable();
+      return TargetRelationship.sameVariable();
     } else {
-      return TargetRelationship.newUnrelated();
+      return TargetRelationship.unrelated();
     }
   }
 
@@ -106,21 +106,21 @@ public final class LocalTarget extends AbstractTarget {
   @Override
   TargetRelationship overlapsWithAnyInstance(
       final IBinder binder, final AnyInstanceTarget t) {
-    return TargetRelationship.newUnrelated();
+    return TargetRelationship.unrelated();
   }
 
   // t is the receiver, and thus TARGET A in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithClass(
       final IBinder binder, final ClassTarget t) {
-    return TargetRelationship.newUnrelated();
+    return TargetRelationship.unrelated();
   }
 
   // t is the receiver, and thus TARGET A in the original overlapsWith() call!
   @Override
   TargetRelationship overlapsWithInstance(
       final IMayAlias mayAlias, final IBinder binder, final InstanceTarget t) {
-    return TargetRelationship.newUnrelated();
+    return TargetRelationship.unrelated();
   }
   
   @Override

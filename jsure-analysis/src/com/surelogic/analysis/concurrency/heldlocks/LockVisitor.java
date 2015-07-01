@@ -1811,8 +1811,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		 * <code>m()</code> affects <code>this.Q</code> and that therefore the
 		 * lock <code>L</code> must be held.
 		 */
-		final Set<NeededLock> neededLocks = lockUtils
-				.getLocksForMethodAsRegionRef(effects, ctxtBcaQuery, ctxtTheReceiverNode,
+		final Set<NeededLock> neededLocks =
+		    lockUtils.getLocksForMethodAsRegionRef(effects, ctxtBcaQuery,
 						ctxtConflicter, call, enclosingMethod);
 		final LockChecker indirectAccessChecker = new LockChecker(call) {
 			@Override
@@ -2073,7 +2073,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		assureRegionRef(expr, lockUtils.getLocksForDirectRegionAccess(
 				effects,
 				ctxtBcaQuery,
-				ctxtTheReceiverNode,
 				expr,
 				!isWrite,
 				lockUtils.createInstanceTarget(
@@ -2281,7 +2280,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						FieldRef.getObject(fieldRef), fieldAsRegion);
 			}
 			assureRegionRef(fieldRef, lockUtils.getLocksForDirectRegionAccess(
-					effects, ctxtBcaQuery, ctxtTheReceiverNode, fieldRef, !isWrite, target));
+					effects, ctxtBcaQuery, fieldRef, !isWrite, target));
 		}
 
 		// continue into the expression
@@ -2885,8 +2884,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							}
 							assureRegionRef(varDecl,
 									lockUtils.getLocksForDirectRegionAccess(
-											effects, ctxtBcaQuery, ctxtTheReceiverNode, varDecl,
-											false, target));
+											effects, ctxtBcaQuery, varDecl,	false, target));
 						}
 						// analyze the the RHS of the initialization
 						doAcceptForChildren(varDecl);

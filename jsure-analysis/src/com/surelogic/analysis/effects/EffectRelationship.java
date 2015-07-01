@@ -117,7 +117,7 @@ public final class EffectRelationship {
   /**
    * Get a relationship value that describes no conflict.
    */
-  public static EffectRelationship newNoConflict() {
+  public static EffectRelationship noConflict() {
     return NO_CONFLICT;
   }
 
@@ -125,7 +125,7 @@ public final class EffectRelationship {
    * Get a relationship value that describes a conflict between two write
    * effects that have targets related as given.
    */
-  public static EffectRelationship newWritesConflict(final TargetRelationship tr) {
+  public static EffectRelationship writesConflict(final TargetRelationship tr) {
     return WRITES[tr.index];
   }
 
@@ -134,7 +134,7 @@ public final class EffectRelationship {
    * write effect, where the first effect is a read and the targets have the
    * given relationship.
    */
-  public static EffectRelationship newReadAWriteB(final TargetRelationship tr) {
+  public static EffectRelationship readAWriteB(final TargetRelationship tr) {
     return READS_A[tr.index];
   }
 
@@ -143,7 +143,7 @@ public final class EffectRelationship {
    * write effect, where the second effect is a read and the targets have the
    * given relationship.
    */
-  public static EffectRelationship newWriteAReadB(final TargetRelationship tr) {
+  public static EffectRelationship writeAReadB(final TargetRelationship tr) {
     return READS_B[tr.index];
   }
 
@@ -164,6 +164,27 @@ public final class EffectRelationship {
     return conflict != EffectRelationships.NO_CONFLICT;
   }
 
+  @Override
+  public boolean equals(final Object other) {
+    if (other == this) {
+      return true;
+    } else if (other instanceof EffectRelationship) {
+      final EffectRelationship er = (EffectRelationship) other;
+      return conflict == er.conflict && // Enumeration, so can use ==
+          overlap.equals(er.overlap);
+    } else {
+      return false;
+    }
+  }
+  
+  @Override
+  public int hashCode() {
+    int hash = 17;
+    hash += 31 * hash + ((conflict == null) ? 0 : conflict.hashCode());
+    hash += 31 * hash + ((overlap == null) ? 0 : overlap.hashCode());
+    return hash;
+  }
+  
   @Override
   public String toString() {
     if (overlap != NOT_APPLICABLE) {

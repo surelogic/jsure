@@ -114,7 +114,7 @@ public final class TargetRelationship {
   /**
    * Get a target relationship object that describes unrelated targets.
    */
-  public static TargetRelationship newUnrelated() {
+  public static TargetRelationship unrelated() {
     return UNRELATED;
   }
 
@@ -122,7 +122,7 @@ public final class TargetRelationship {
    * Get a target relationship object that describes local targets referring to
    * the same variable.
    */
-  public static TargetRelationship newSameVariable() {
+  public static TargetRelationship sameVariable() {
     return SAME_VARIABLE;
   }
 
@@ -130,7 +130,7 @@ public final class TargetRelationship {
    * Get a target relationship object that describes possibly aliased targets
    * that have the given region relationship.
    */
-  public static TargetRelationship newAliased(final RegionRelationships rr) {
+  public static TargetRelationship aliased(final RegionRelationships rr) {
     return ALIASED[rr.ordinal()];
   }
 
@@ -139,7 +139,7 @@ public final class TargetRelationship {
    * refers to state that includes the state of the second target and the
    * regions have the given relationship.
    */
-  public static TargetRelationship newAIsLarger(final RegionRelationships rr) {
+  public static TargetRelationship aIsLarger(final RegionRelationships rr) {
     return A_IS_LARGER[rr.ordinal()];
   }
 
@@ -148,10 +148,34 @@ public final class TargetRelationship {
    * second refers to state that includes the state of the first target and the
    * regions have the given relationship.
    */
-  public static TargetRelationship newBIsLarger(final RegionRelationships rr) {
+  public static TargetRelationship bIsLarger(final RegionRelationships rr) {
     return B_IS_LARGER[rr.ordinal()];
   }
 
+  
+  
+  @Override
+  public boolean equals(final Object other) {
+    if (this == other) {
+      return true;
+    } else if (other instanceof TargetRelationship) {
+      final TargetRelationship tr = (TargetRelationship) other;
+      // NB. Can do this because the fields refer to enumerations
+      return regionResult == tr.regionResult &&
+          targetResult == tr.targetResult;
+    } else {
+      return false;
+    }
+  }
+  
+  @Override
+  public int hashCode() {
+    int hash = 17;
+    hash += 31 * hash + ((regionResult == null) ? 0 : regionResult.hashCode());
+    hash += 31 * hash + ((targetResult == null) ? 0 : targetResult.hashCode());
+    return hash;
+  }
+  
   
   
   @Override
