@@ -34,8 +34,19 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
     context = c;
   }
   
+  private static boolean hasSubst(final ITypeEnvironment tEnv, final IJavaDeclaredType jt) {
+	  if (!jt.getTypeParameters().isEmpty() || jt.isRawType(tEnv)) {
+		  return true;
+	  }
+	  if (jt.getNesting() > 0) {
+		  IJavaNestedType nt = (IJavaNestedType) jt;
+		  return hasSubst(tEnv, nt.getOuterType());
+	  }
+	  return false;
+  }
+  
   public static IJavaTypeSubstitution create(final ITypeEnvironment tEnv, final IJavaDeclaredType jt) {
-	  if (jt.getTypeParameters().isEmpty() && !jt.isRawType(tEnv)) {
+	  if (!hasSubst(tEnv, jt)) {
 		  // To prevent NPEs later
 		  return IJavaTypeSubstitution.NULL;
 	  }
