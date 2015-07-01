@@ -35,6 +35,10 @@ public class JavaTypeSubstitution extends AbstractTypeSubstitution {
   }
   
   public static IJavaTypeSubstitution create(final ITypeEnvironment tEnv, final IJavaDeclaredType jt) {
+	  if (jt.getTypeParameters().isEmpty() && !jt.isRawType(tEnv)) {
+		  // To prevent NPEs later
+		  return IJavaTypeSubstitution.NULL;
+	  }
 	  return new IJavaTypeSubstitution() {
 		  private IJavaTypeSubstitution realSubst = IJavaTypeSubstitution.NULL;
 		  
