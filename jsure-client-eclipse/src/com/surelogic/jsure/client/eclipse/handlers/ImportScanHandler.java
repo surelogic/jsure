@@ -18,6 +18,7 @@ import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.ui.EclipseUIUtility;
 import com.surelogic.common.ui.jobs.SLUIJob;
 import com.surelogic.common.ui.jobs.UnzipIntoDirJob;
+import com.surelogic.javac.jobs.JSureConstants;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
 public class ImportScanHandler extends AbstractHandler {
@@ -26,8 +27,9 @@ public class ImportScanHandler extends AbstractHandler {
   public Object execute(ExecutionEvent event) throws ExecutionException {
     final FileDialog fd = new FileDialog(EclipseUIUtility.getShell(), SWT.OPEN);
     fd.setText(I18N.msg("jsure.dialog.importscan.title"));
-    fd.setFilterExtensions(new String[] { "*.zip", "*.*" });
-    fd.setFilterNames(new String[] { "Compressed Scan Documents (*.zip)", "All Files (*.*)" });
+    fd.setFilterExtensions(new String[] { "*" + JSureConstants.JSURE_SCAN_TASK_SUFFIX, "*.*" });
+    fd.setFilterNames(
+        new String[] { "Compressed JSure Scan Documents (*" + JSureConstants.JSURE_SCAN_TASK_SUFFIX + ")", "All Files (*.*)" });
     final String name = fd.open();
     if (name != null) {
       final File zipFile = new File(name);
@@ -45,7 +47,7 @@ public class ImportScanHandler extends AbstractHandler {
         job.schedule();
         return null;
       }
-      final String dirName = simpleName.substring(0, simpleName.length() - 4);
+      final String dirName = simpleName.substring(0, simpleName.length() - JSureConstants.JSURE_SCAN_TASK_SUFFIX.length());
       final File newScanDir = new File(EclipseUtility.getJSureDataDirectory(), dirName);
       final Job job = new UnzipIntoDirJob("jsure.dialog.importscan", zipFile, newScanDir, new Runnable() {
         public void run() {
