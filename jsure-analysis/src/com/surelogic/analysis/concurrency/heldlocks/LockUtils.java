@@ -641,19 +641,19 @@ public final class LockUtils {
   // ========================================================================
   
   public Set<NeededLock> getLocksForDirectRegionAccess(final Effects effects,
-      final BindingContextAnalysis.Query bcaQuery, final IRNode rcvr, final IRNode srcNode,
+      final BindingContextAnalysis.Query bcaQuery, final IRNode srcNode,
       final boolean isRead, final Target target) {
     final Set<NeededLock> neededLocks = new HashSet<NeededLock>();
-    getLocksForDirectRegionAccess(effects, bcaQuery, rcvr, srcNode, isRead, target, neededLocks);
+    getLocksForDirectRegionAccess(effects, bcaQuery, srcNode, isRead, target, neededLocks);
     return Collections.unmodifiableSet(neededLocks);
   }
 
   private void getLocksForDirectRegionAccess(final Effects effects,
-      final BindingContextAnalysis.Query bcaQuery, final IRNode rcvr, final IRNode srcNode,
+      final BindingContextAnalysis.Query bcaQuery, final IRNode srcNode,
       final boolean isRead, final Target target,
       final Set<NeededLock> neededLocks) {
     final Set<Effect> elaboratedEffects =
-      effects.elaborateEffect(bcaQuery, targetFactory, binder, rcvr, srcNode, isRead, target);
+      effects.elaborateEffect(bcaQuery, targetFactory, binder, srcNode, isRead, target);
     for (final Effect effect : elaboratedEffects) {
       if (!effect.isEmpty()) {
         getLocksFromEffect(effect, LastAggregationProcessor.get(effect), neededLocks);
@@ -712,8 +712,8 @@ public final class LockUtils {
    */
   public Set<NeededLock> getLocksForMethodAsRegionRef(
       final Effects effects, final BindingContextAnalysis.Query bcaQuery,
-      final IRNode rcvr, final ConflictChecker conflicter, 
-      final IRNode mcall, final IRNode enclosingDecl) {
+      final ConflictChecker conflicter,  final IRNode mcall,
+      final IRNode enclosingDecl) {
     final Set<NeededLock> result = new HashSet<NeededLock>();
     
     /* In the case of an effect naming a static or any-instance target, we need
@@ -775,7 +775,7 @@ public final class LockUtils {
           for (final Target exposedTarget : exposedTargets) {
             if (conflicter.doTargetsOverlap(target, exposedTarget)) {
               getLocksForDirectRegionAccess(
-                  effects, bcaQuery, rcvr, mcall, effect.isRead(), exposedTarget, result);
+                  effects, bcaQuery, mcall, effect.isRead(), exposedTarget, result);
             }
           }
         }

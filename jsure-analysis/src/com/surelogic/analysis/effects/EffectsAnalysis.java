@@ -81,17 +81,13 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	
   private IJavaDeclaredType javaLangObject;
   
-//  private final Effects.ElaborationErrorCallback callback;
-  
 	public EffectsAnalysis() {
 		super(willRunInParallel, TypeBodyPair.class, "EffectAssurance2", BindingContextAnalysis.factory);
-//		callback = new ElaborationErrorReporter();
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			setWorkProcedure(new Procedure<TypeBodyPair>() {
 				@Override
         public void op(TypeBodyPair type) {
 					doAnalysisOnClassBody(type.getClassBody());
-					//checkEffectsForFile(type.getNode());
 				}				
 			});
 		}
@@ -126,11 +122,6 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	@Override
 	protected boolean doAnalysisOnAFile(IIRAnalysisEnvironment env, CUDrop cud, final IRNode compUnit) {
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
-			/*
-			for(IRNode t : VisitUtil.getTypeDecls(compUnit)) {
-				queueWork(new TopLevelType(t));
-			}
-			*/
 			TopLevelAnalysisVisitor.granulator.extractGranules(cud.getTypeEnv(), compUnit);
 			queueWork(TopLevelAnalysisVisitor.granulator.getGranules());
 		} else {
@@ -142,12 +133,10 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	@Override
 	public IAnalysisGranulator<TypeBodyPair> getGranulator() {
 		return TopLevelAnalysisVisitor.granulator;
-		//return TopLevelType.granulator;
 	}
 	
 	@Override
 	protected boolean doAnalysisOnGranule_wrapped(IIRAnalysisEnvironment env, TypeBodyPair n) {
-		//checkEffectsForFile(n.typeDecl);
 		doAnalysisOnClassBody(n.getClassBody());
 		return true; 
 	}
@@ -233,11 +222,6 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 					}
 				}
 			}			
-		//} else if (TypeUtil.isTypeDecl(member)) {
-			/* 2012-11-26: Why are we doing this?
-			 * Take this out for now.  
-			 */
-			//			  reportClassInitializationEffects(member);
 		}			  
 	}
 	
@@ -373,23 +357,6 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	  }
 	  return result;
 	}
-	
-	
-//	private void reportClassInitializationEffects(final IRNode typeDecl) {
-//	  final IRNode flowUnit = JavaPromise.getClassInitOrNull(typeDecl);
-//	  final Set<Effect> effects = 
-//	    getAnalysis().getEffectsQuery(
-//	        flowUnit, getSharedAnalysis().getExpressionObjectsQuery(flowUnit)).getResultFor(flowUnit);
-//	  final Set<Effect> masked = getAnalysis().maskEffects(effects);
-//	  final String id = JJNode.getInfo(typeDecl);
-//	  for (final Effect e : masked) {
-//	    final IRNode src = e.getSource() == null ? typeDecl : e.getSource();
-//	    final HintDrop drop = HintDrop.newInformation(src);
-//      drop.setCategorizingMessage(Messages.DSC_EFFECTS_IN_CLASS_INIT);
-//      drop.setMessage(Messages.CLASS_INIT_EFFECT,
-//          id, e.toString(), DebugUnparser.toString(src));
-//	  }
-//	}
 
 	/**
 	 * Assure the effect annotations of a constructor.

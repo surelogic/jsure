@@ -59,10 +59,8 @@ import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.AssignExpression;
 import edu.cmu.cs.fluid.java.operator.EnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
-import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.NestedEnumDeclaration;
 import edu.cmu.cs.fluid.java.operator.OpAssignExpression;
-import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.operator.PostDecrementExpression;
 import edu.cmu.cs.fluid.java.operator.PostIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.PreDecrementExpression;
@@ -70,7 +68,6 @@ import edu.cmu.cs.fluid.java.operator.PreIncrementExpression;
 import edu.cmu.cs.fluid.java.operator.QualifiedThisExpression;
 import edu.cmu.cs.fluid.java.operator.VariableUseExpression;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
-import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
 import edu.cmu.cs.fluid.java.util.OpUtil;
 import edu.cmu.cs.fluid.java.util.TypeUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
@@ -153,6 +150,9 @@ public final class Effects implements IBinderClient {
         }
       }
 
+      /* We already checked if the effects are empty,
+       * so must have at least one of these
+       */
       if (!hasRead) {
         return writes.toString();
       } else if (!hasWrite) {
@@ -162,6 +162,7 @@ public final class Effects implements IBinderClient {
       }
     }
   }  
+  
   
   
   //----------------------------------------------------------------------
@@ -361,9 +362,6 @@ public final class Effects implements IBinderClient {
    * @param caller
    *          The node of the method declaration or constructor declaration that
    *          contains the call.
-   * @param returnRaw
-   *          Whether the raw effects should be return. If so, then effects are
-   *          not elaborated. Normally this should be <code>false</code>.
    * @return An unmodifiable set of effects.
    */
   public Set<Effect> getMethodCallEffects(
@@ -385,7 +383,7 @@ public final class Effects implements IBinderClient {
       }
     };
     return getMethodCallEffects(
-        bcaQuery, new ThisBindingTargetFactory(teb), binder, rcvr,
+        bcaQuery, new ThisBindingTargetFactory(teb), binder,
         call, caller);
   }
   
@@ -415,8 +413,7 @@ public final class Effects implements IBinderClient {
    */
   public Set<Effect> getMethodCallEffects(
       final BindingContextAnalysis.Query bcaQuery, final TargetFactory targetFactory,
-      final IBinder binder, final IRNode rcvr,
-      final IRNode call, final IRNode callingMethodDecl) {
+      final IBinder binder, final IRNode call, final IRNode callingMethodDecl) {
     // Get the node of the method/constructor declaration
     final IRNode mdecl = binder.getBinding(call);
     if (mdecl == null) {
@@ -446,7 +443,7 @@ public final class Effects implements IBinderClient {
           final Target newTarg = 
               targetFactory.createInstanceTarget(val, t.getRegion(), ev);
           elaborateInstanceTargetEffects(
-              bcaQuery, targetFactory, binder, rcvr, call, eff.isRead(),
+              bcaQuery, targetFactory, binder, call, eff.isRead(),
               newTarg, methodEffects);
         } else { // See if ref is a QualifiedReceiverDeclaration
           if (QualifiedReceiverDeclaration.prototype.includes(JJNode.tree.getOperator(ref))) {
@@ -460,7 +457,7 @@ public final class Effects implements IBinderClient {
             throw new IllegalStateException("Unmappable instance target: " + t);
           }
         }
-      } else { // It's an effect on static state, or any instance
+      } else { // It's an effect on static state or any instance
         methodEffects.add(eff.changeSource(call, new CallEvidence(mdecl)));
       }
     }
@@ -484,12 +481,11 @@ public final class Effects implements IBinderClient {
   public Set<Effect> elaborateEffect(
       final BindingContextAnalysis.Query bcaQuery,
       final TargetFactory targetFactory, final IBinder binder, 
-      final IRNode rcvr, final IRNode src, final boolean isRead,
-      final Target target) {
+      final IRNode src, final boolean isRead, final Target target) {
     if (target instanceof InstanceTarget) {
       final Set<Effect> elaboratedEffects = new HashSet<Effect>();
       elaborateInstanceTargetEffects(
-          bcaQuery, targetFactory, binder, rcvr, src,
+          bcaQuery, targetFactory, binder, src,
           isRead, target, elaboratedEffects);
       return Collections.unmodifiableSet(elaboratedEffects);
     } else {
@@ -500,11 +496,11 @@ public final class Effects implements IBinderClient {
   private void elaborateInstanceTargetEffects(
       final BindingContextAnalysis.Query bcaQuery,
       final TargetFactory targetFactory,
-      final IBinder binder, final IRNode rcvr, final IRNode src,
+      final IBinder binder, final IRNode src,
       final boolean isRead,
       final Target initTarget, final Set<Effect> outEffects) {
     final TargetElaborator te =
-        new TargetElaborator(bcaQuery, targetFactory, binder, rcvr);
+        new TargetElaborator(bcaQuery, targetFactory, binder);
     for (final Target t : te.elaborateTarget(initTarget)) {
       outEffects.add(Effect.newEffect(src, isRead, t));
     }
@@ -597,14 +593,24 @@ public final class Effects implements IBinderClient {
           final Context oldContext, final IRNode anonClassExpr,
           final IRNode enclosingDecl, final IRNode rcvr) {
         return new Context(new HashSet<Effect>(), enclosingDecl, rcvr,
-            oldContext.bcaQuery.getSubAnalysisQuery(anonClassExpr), false);
+            oldContext.getSubQuery(anonClassExpr), false);
       }
       
       public static Context forConstructorCall(final Context oldContext, final IRNode ccall) {
         // Purposely alias the effects set
         return new Context(oldContext.theEffects, 
             oldContext.enclosingMethod, oldContext.theReceiverNode,
-            oldContext.bcaQuery.getSubAnalysisQuery(ccall), oldContext.isLHS);
+            oldContext.getSubQuery(ccall), oldContext.isLHS());
+      }
+      
+      
+      
+      private boolean isLHS() { 
+        return isLHS;
+      }
+      
+      private BindingContextAnalysis.Query getSubQuery(final IRNode ccall) {
+        return bcaQuery.getSubAnalysisQuery(ccall);
       }
       
       
@@ -625,6 +631,10 @@ public final class Effects implements IBinderClient {
       
       public void addEffects(final Set<Effect> effects) {
         theEffects.addAll(effects);
+      }
+      
+      public Set<Effect> effects() {
+        return theEffects;
       }
     }
     
@@ -740,7 +750,7 @@ public final class Effects implements IBinderClient {
        */
       context.addEffects(
           effects.getMethodCallEffects(
-              context.bcaQuery, targetFactory, binder, context.theReceiverNode, 
+              context.bcaQuery, targetFactory, binder, 
               call, getEnclosingDecl()));
     }
     
@@ -755,7 +765,7 @@ public final class Effects implements IBinderClient {
       final IRNode superClassDecl;
       if (AnonClassExpression.prototype.includes(expr)) {
         superClassDecl = binder.getBinding(AnonClassExpression.getType(expr));
-      } else {
+      } else { // Enum
         IRNode current = JJNode.tree.getParentOrNull(expr);
         Operator op = JJNode.tree.getOperator(current);
         while (!EnumDeclaration.prototype.includes(op) && !NestedEnumDeclaration.prototype.includes(op)) {
@@ -782,8 +792,8 @@ public final class Effects implements IBinderClient {
         
         @Override
         public void tryBefore() {
-          this.newContext = Context.forACE(oldContext, expr,
-              getEnclosingDecl(),
+          this.newContext = Context.forACE(
+              oldContext, expr, getEnclosingDecl(),
               JavaPromise.getReceiverNodeOrNull(getEnclosingDecl()));
           EffectsVisitor.this.context = this.newContext;
         }
@@ -802,7 +812,7 @@ public final class Effects implements IBinderClient {
                 binder, thisExprBinder, expr,
                 superClassDecl,
                 context.theReceiverNode, getEnclosingDecl());
-          for (final Effect e : newContext.theEffects) {
+          for (final Effect e : newContext.effects()) {
             final Effect maskedEffect = e.mask(binder);
             if (maskedEffect != null
                 && !maskedEffect.affectsReceiver(newContext.theReceiverNode)) {
@@ -813,8 +823,7 @@ public final class Effects implements IBinderClient {
                 final IRNode newRef = enclosing.replace(ref);
                 if (newRef != null) {
                   effects.elaborateInstanceTargetEffects(
-                      context.bcaQuery, targetFactory, binder, 
-                      newContext.theReceiverNode, expr, 
+                      context.bcaQuery, targetFactory, binder, expr, 
                       maskedEffect.isRead(), 
                       targetFactory.createInstanceTarget(
                           newRef, target.getRegion(), 
@@ -852,7 +861,7 @@ public final class Effects implements IBinderClient {
       final IRNode array = ArrayRefExpression.getArray(expr);
       final boolean isRead = context.isRead();
       effects.elaborateInstanceTargetEffects(
-          context.bcaQuery, targetFactory, binder, context.theReceiverNode,
+          context.bcaQuery, targetFactory, binder, 
           expr, isRead, targetFactory.createInstanceTarget(
               array, INSTANCE_REGION, NoEvidence.INSTANCE),              
           context.theEffects);
@@ -908,7 +917,7 @@ public final class Effects implements IBinderClient {
           final Target initTarget = targetFactory.createInstanceTarget(
               obj, RegionModel.getInstance(id), NoEvidence.INSTANCE);
           effects.elaborateInstanceTargetEffects(
-              context.bcaQuery, targetFactory, binder, context.theReceiverNode,
+              context.bcaQuery, targetFactory, binder,
               expr, isRead, initTarget, context.theEffects);
         }
       } else {
@@ -1057,27 +1066,36 @@ public final class Effects implements IBinderClient {
     private final BindingContextAnalysis.Query bcaQuery;
     private final TargetFactory targetFactory;
     private final IBinder binder;
-    private final IRNode theReceiver;
     
     /**
-     * Keep track of those targets that were elaborated so that we can remove
-     * them at the end
+     * The working set of elaborated targets.  Final answer is this set with
+     * {@link #elabroated} removed.
+     */
+    private final Set<Target> targets = new HashSet<Target>();
+    
+    /**
+     * The targets that were elaborated so that we can remove
+     * them at the end.
      */
     private final Set<Target> elaborated = new HashSet<Target>();
     
+    private boolean used = false;
     
     
     public TargetElaborator(final BindingContextAnalysis.Query bcaQuery,
-        final TargetFactory targetFactory, final IBinder binder,
-        final IRNode rcvr) {
+        final TargetFactory targetFactory, final IBinder binder) {
       this.bcaQuery = bcaQuery;
       this.targetFactory = targetFactory;
       this.binder = binder;
-      this.theReceiver = rcvr;
     }
     
     public Set<Target> elaborateTarget(final Target initTarget) {
-      final Set<Target> targets = new HashSet<Target>();
+      if (used) {
+        throw new IllegalStateException("Target elaborate has already been used");
+      } else {
+        used = true;
+      }
+      
       targets.add(initTarget);
       Set<Target> newTargets = new HashSet<Target>(targets);
 
@@ -1085,7 +1103,7 @@ public final class Effects implements IBinderClient {
       while (!newTargets.isEmpty()) {
         final Set<Target> newestTargets = new HashSet<Target>();
         for (final Target t : newTargets) {
-          elaborationWorker(t, targets, newestTargets);
+          elaborationWorker(t, newestTargets);
         }
         newTargets = newestTargets;
       }
@@ -1093,8 +1111,8 @@ public final class Effects implements IBinderClient {
       return targets;
     }
     
-    private void elaborationWorker(final Target target,
-        final Set<Target> targets, final Set<Target> newTargets) {
+    private void elaborationWorker(
+        final Target target, final Set<Target> newTargets) {
       if (target instanceof InstanceTarget) {
         final IRNode expr = target.getReference();
         
@@ -1121,28 +1139,9 @@ public final class Effects implements IBinderClient {
            * us.
            */
           if (VariableUseExpression.prototype.includes(op)) {
-            elaborateUseExpression(expr, target, targets, newTargets);
+            elaborateUseExpression(expr, target, newTargets);
           } else if (FieldRef.prototype.includes(op)) {
-            elaborateFieldRef(expr, target, targets, newTargets);
-          } else if (QualifiedReceiverDeclaration.prototype.includes(op)) {
-            elaborateQualifiedRcvrRef(expr, target, targets, newTargets);
-          } else if (ParameterDeclaration.prototype.includes(op) ||
-              ReceiverDeclaration.prototype.includes(op) ||
-              MethodCall.prototype.includes(op)) {
-            final IRNode nodeToTest = MethodCall.prototype.includes(op) ?
-                JavaPromise.getReturnNodeOrNull(binder.getBinding(expr)) : expr;
-                
-//            /* If the expr is an immutable ref, then we ignore the target by
-//             * simply marking it as elaborated and replacing it with a 
-//             * an empty target.
-//             */
-//            if (LockRules.isImmutableRef(nodeToTest)) {
-//              targets.add(
-//                  targetFactory.createEmptyTarget(new EmptyEvidence(
-//                      EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, nodeToTest)));
-//              elaborated.add(target);
-//            }
-            
+            elaborateFieldRef(expr, target, newTargets);
           } else if (OpUtil.isNullExpression(expr)) {
             /* Public bug 37: if the actual argument is "null" then we ignore 
              * the effect because there is no object. 
@@ -1156,8 +1155,7 @@ public final class Effects implements IBinderClient {
     }
 
     private void elaborateUseExpression(
-        final IRNode expr, final Target target, final Set<Target> targets,
-        final Set<Target> newTargets) {
+        final IRNode expr, final Target target, final Set<Target> newTargets) {
       final IRegion region = target.getRegion();
       for (final IRNode n : bcaQuery.getResultFor(expr)) {
         /* Check for externally declared variables.  We might have one of these
@@ -1191,11 +1189,10 @@ public final class Effects implements IBinderClient {
     }
 
     private void elaborateFieldRef(
-        final IRNode expr, final Target target, final Set<Target> targets,
-        final Set<Target> newTargets) {
+        final IRNode expr, final Target target, final Set<Target> newTargets) {
       final IRNode fieldID = binder.getBinding(expr);
 
-      // If the field is unique or borrowed we can exploit uniqueness aggregation.
+      // If the field is unique we can exploit uniqueness aggregation.
       final Map<IRegion, IRegion> aggregationMap = 
         UniquenessUtils.constructRegionMapping(fieldID);
       if (aggregationMap != null) {
@@ -1209,7 +1206,6 @@ public final class Effects implements IBinderClient {
           newTarget = targetFactory.createClassTarget(newRegion, evidence);
         } else {
           final IRNode newObject = FieldRef.getObject(expr);
-          // FIX for bug 1284: Need to bind the receiver here!
           newTarget = targetFactory.createInstanceTarget(newObject, newRegion, evidence);
         }        
         if (targets.add(newTarget)) {
@@ -1217,47 +1213,6 @@ public final class Effects implements IBinderClient {
           newTargets.add(newTarget);
         }
       } 
-//      else if (LockRules.isImmutableRef(fieldID)) {
-//        /* Field is immutable: We ignore the effect by marking the target as
-//         * elaborated so it is removed from the final set of targets, and
-//         * replace it with a new empty target.
-//         */
-//        targets.add(
-//            targetFactory.createEmptyTarget(new EmptyEvidence(
-//                EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, fieldID)));
-//        elaborated.add(target);
-//      }
-    }
-
-    private void elaborateQualifiedRcvrRef(
-        final IRNode expr, final Target target, final Set<Target> targets,
-        final Set<Target> newTargets) {
-      /* target is "C.this:R" 
-       * 
-       * expr is the QualifiedReceiverDeclaration "C.this" (IFQR), which is 
-       * really a pseudo field of the form this.$QualifiedReceiver, so we 
-       * aggregate into "this".
-       */
-
-      /* If the IFQR is borrowed we can exploit aggregation.
-       */
-      final Map<IRegion, IRegion> aggregationMap = 
-          UniquenessUtils.constructRegionMapping(expr);
-      if (aggregationMap != null) {
-        // Aggregate the state
-        final IRegion region = target.getRegion();
-        final IRegion newRegion = UniquenessUtils.getMappedRegion(region.getModel(), aggregationMap);
-        final AggregationEvidence evidence =
-          new AggregationEvidence(target, aggregationMap, newRegion);
-        // Use Default target factory because the receiver is already bound
-        final Target newTarget =
-            DefaultTargetFactory.PROTOTYPE.createInstanceTarget(
-                theReceiver, newRegion, evidence);
-        if (targets.add(newTarget)) {
-          elaborated.add(target);
-          newTargets.add(newTarget);
-        }
-      }
     }
   }
 
