@@ -18,7 +18,6 @@ import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.bca.BindingContext;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
-import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.evidence.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.evidence.BCAEvidence;
@@ -30,7 +29,11 @@ import com.surelogic.analysis.effects.targets.evidence.QualifiedReceiverConversi
 import com.surelogic.analysis.effects.targets.evidence.TargetEvidence;
 import com.surelogic.analysis.effects.targets.evidence.UnknownReferenceConversionEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EmptyEvidence.Reason;
+import com.surelogic.analysis.effects.targets.AnyInstanceTarget;
+import com.surelogic.analysis.effects.targets.ClassTarget;
+import com.surelogic.analysis.effects.targets.EmptyTarget;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
+import com.surelogic.analysis.effects.targets.LocalTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
@@ -270,8 +273,6 @@ public final class Effects implements IBinderClient {
   private static void getEffectsFromSpecificationNode(final IRNode mDecl,
       final Iterable<EffectsSpecificationNode> promisedEffects,
       final List<Effect> result, final IRNode callSite) {
-    // Use the default target factory because we bind the receivers ourselves
-    final TargetFactory tf = DefaultTargetFactory.PROTOTYPE;      
     for(final EffectsSpecificationNode effList : promisedEffects) {
       for(final EffectSpecificationNode peff : effList.getEffectList()) {
         final RegionModel region = peff.getRegion().resolveBinding().getModel();
@@ -281,16 +282,16 @@ public final class Effects implements IBinderClient {
         final Target targ;
         if (pContext instanceof ImplicitQualifierNode) {
           if (region.isStatic()) { // Static region -> class target
-            targ = tf.createClassTarget(region, NoEvidence.INSTANCE);
+            targ = new ClassTarget(region, NoEvidence.INSTANCE);
           } else { // Instance region -> qualify with receiver
             // We bind the receiver ourselves, so this is safe
-            targ = tf.createInstanceTarget(
+            targ = new InstanceTarget(
                 JavaPromise.getReceiverNode(mDecl), region, NoEvidence.INSTANCE);
           }
         } else if (pContext instanceof AnyInstanceExpressionNode) {
           final IJavaType type = 
             ((AnyInstanceExpressionNode) pContext).getType().resolveType().getJavaType();
-          targ = tf.createAnyInstanceTarget(
+          targ = new AnyInstanceTarget(
               (IJavaReferenceType) type, region, NoEvidence.INSTANCE);
         } else if (pContext instanceof QualifiedThisExpressionNode) {
           final QualifiedThisExpressionNode qthis =
@@ -298,17 +299,17 @@ public final class Effects implements IBinderClient {
           final IRNode canonicalReceiver =
             JavaPromise.getQualifiedReceiverNodeByName(mDecl, qthis.resolveType().getNode());
           // We just bound the receiver ourselves, so this is safe
-          targ = tf.createInstanceTarget(
+          targ = new InstanceTarget(
               canonicalReceiver, region, NoEvidence.INSTANCE);
         } else if (pContext instanceof TypeExpressionNode) {
-          targ = tf.createClassTarget(region, NoEvidence.INSTANCE);
+          targ = new ClassTarget(region, NoEvidence.INSTANCE);
         } else if (pContext instanceof ThisExpressionNode) {
           // We bind the receiver ourselves, so this is safe
-          targ = tf.createInstanceTarget(
+          targ = new InstanceTarget(
               JavaPromise.getReceiverNode(mDecl), region, NoEvidence.INSTANCE);
         } else if (pContext instanceof VariableUseExpressionNode) {
           // The object expression cannot be a receiver, so this is safe
-          targ = tf.createInstanceTarget(
+          targ = new InstanceTarget(
               ((VariableUseExpressionNode) pContext).resolveBinding().getNode(),
               region, NoEvidence.INSTANCE);
         } else {
@@ -340,8 +341,8 @@ public final class Effects implements IBinderClient {
       final IRNode mDecl, final IRNode callSite) {
     List<Effect> effects = getDeclaredMethodEffects(mDecl, callSite);
     if (effects == null) {
-      final Target anything = DefaultTargetFactory.PROTOTYPE.createClassTarget(
-          getAllRegion(callSite), NoEvidence.INSTANCE);
+      final Target anything =
+          new ClassTarget(getAllRegion(callSite), NoEvidence.INSTANCE);
       effects = Collections.singletonList(Effect.newWrite(callSite, anything));
     }
     return effects;
@@ -449,7 +450,7 @@ public final class Effects implements IBinderClient {
           if (QualifiedReceiverDeclaration.prototype.includes(JJNode.tree.getOperator(ref))) {
             final IRNode type = QualifiedReceiverDeclaration.getType(binder, ref);
             final IJavaReferenceType javaType = JavaTypeFactory.getMyThisType(type);
-            final Target newTarg = targetFactory.createAnyInstanceTarget(
+            final Target newTarg = new AnyInstanceTarget(
                 javaType, t.getRegion(),
                 new QualifiedReceiverConversionEvidence(mdecl, ref, javaType)); 
             methodEffects.add(Effect.newEffect(call, eff.isRead(), newTarg));
@@ -839,7 +840,7 @@ public final class Effects implements IBinderClient {
                         binder.getTypeEnvironment(), (IJavaTypeFormal) type);
                   }
                   context.addEffect(Effect.newEffect(expr, maskedEffect.isRead(),
-                      targetFactory.createAnyInstanceTarget(
+                      new AnyInstanceTarget(
                           (IJavaReferenceType) type, target.getRegion(), 
                           new UnknownReferenceConversionEvidence(maskedEffect, ref, (IJavaReferenceType) type))));
                 }
@@ -911,7 +912,7 @@ public final class Effects implements IBinderClient {
       if (!TypeUtil.isJSureFinal(id)) {
         if (TypeUtil.isStatic(id)) {
           context.addEffect(Effect.newEffect(expr, isRead,
-              targetFactory.createClassTarget(RegionModel.getInstance(id), NoEvidence.INSTANCE)));
+              new ClassTarget(RegionModel.getInstance(id), NoEvidence.INSTANCE)));
         } else {
           final IRNode obj = FieldRef.getObject(expr);
           final Target initTarget = targetFactory.createInstanceTarget(
@@ -923,7 +924,7 @@ public final class Effects implements IBinderClient {
       } else {
         context.addEffect(
             Effect.newEffect(expr, isRead, 
-                targetFactory.createEmptyTarget(new EmptyEvidence(
+                new EmptyTarget(new EmptyEvidence(
                     EmptyEvidence.Reason.FINAL_FIELD, null, id))));
       }
       doAcceptForChildren(expr);
@@ -987,7 +988,7 @@ public final class Effects implements IBinderClient {
       if (qr == null) {
         JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
       }
-      context.addEffect(Effect.newRead(expr, targetFactory.createLocalTarget(qr)));
+      context.addEffect(Effect.newRead(expr, new LocalTarget(qr)));
       return null;
     }
 
@@ -996,7 +997,7 @@ public final class Effects implements IBinderClient {
     @Override 
     public Void visitSuperExpression(final IRNode expr) {
       // Here we are directly fixing the ThisExpression to be the receiver node
-      context.addEffect(Effect.newRead(expr, targetFactory.createLocalTarget(context.theReceiverNode)));
+      context.addEffect(Effect.newRead(expr, new LocalTarget(context.theReceiverNode)));
       return null;
     }
 
@@ -1005,7 +1006,7 @@ public final class Effects implements IBinderClient {
     @Override 
     public Void visitThisExpression(final IRNode expr) {
       // Here we are directly fixing the ThisExpression to be the receiver node
-      context.addEffect(Effect.newRead(expr, targetFactory.createLocalTarget(context.theReceiverNode)));
+      context.addEffect(Effect.newRead(expr, new LocalTarget(context.theReceiverNode)));
       return null;
     }
     
@@ -1023,7 +1024,7 @@ public final class Effects implements IBinderClient {
     public Void visitVariableUseExpression(final IRNode expr) {
       final boolean isRead = context.isRead();
       final IRNode id = binder.getBinding(expr);
-      context.addEffect(Effect.newEffect(expr, isRead, targetFactory.createLocalTarget(id)));
+      context.addEffect(Effect.newEffect(expr, isRead, new LocalTarget(id)));
       return null;
     }
 
@@ -1035,10 +1036,9 @@ public final class Effects implements IBinderClient {
       if (!TypeUtil.isJSureFinal(varDecl)) {
         if (isStatic) {
           context.addEffect(Effect.newWrite(varDecl, 
-              targetFactory.createClassTarget(
-                  RegionModel.getInstance(varDecl), NoEvidence.INSTANCE)));
+              new ClassTarget(RegionModel.getInstance(varDecl), NoEvidence.INSTANCE)));
         } else {
-          context.addEffect(Effect.newRead(varDecl, targetFactory.createLocalTarget(context.theReceiverNode)));
+          context.addEffect(Effect.newRead(varDecl, new LocalTarget(context.theReceiverNode)));
           // This never needs elaborating because it is not a use expression or a field reference expression
           final Target t = targetFactory.createInstanceTarget(context.theReceiverNode, RegionModel.getInstance(varDecl), NoEvidence.INSTANCE);
           context.addEffect(Effect.newWrite(varDecl, t));
@@ -1054,7 +1054,7 @@ public final class Effects implements IBinderClient {
         /* LOCAL VARIABLE: 'varDecl' is already the declaration of the variable,
          * so we don't have to bind it.
          */
-        context.addEffect(Effect.newWrite(varDecl, targetFactory.createLocalTarget(varDecl)));
+        context.addEffect(Effect.newWrite(varDecl, new LocalTarget(varDecl)));
       }
       doAcceptForChildren(varDecl);
     }
@@ -1125,7 +1125,7 @@ public final class Effects implements IBinderClient {
            * it with a an empty target.
            */
           targets.add(
-              targetFactory.createEmptyTarget(new EmptyEvidence(
+              new EmptyTarget(new EmptyEvidence(
                   EmptyEvidence.Reason.RECEIVER_IS_IMMUTABLE, target, expr)));
           elaborated.add(target);
         } else {
@@ -1146,7 +1146,7 @@ public final class Effects implements IBinderClient {
             /* Public bug 37: if the actual argument is "null" then we ignore 
              * the effect because there is no object. 
              */
-            targets.add(targetFactory.createEmptyTarget(
+            targets.add(new EmptyTarget(
                     new EmptyEvidence(Reason.NULL_REFERENCE, target, expr)));
             elaborated.add(target);
           }
@@ -1174,7 +1174,7 @@ public final class Effects implements IBinderClient {
             type = TypeUtil.typeFormalToDeclaredClass(
                 binder.getTypeEnvironment(), (IJavaTypeFormal) type);
           }
-          newTarget = targetFactory.createAnyInstanceTarget(
+          newTarget = new AnyInstanceTarget(
               (IJavaReferenceType) type, region, NoEvidence.INSTANCE);
         } else {
           // BCA already binds receivers to ReceiverDeclaration and QualifiedReceiverDeclaration nodes
@@ -1203,7 +1203,7 @@ public final class Effects implements IBinderClient {
           new AggregationEvidence(target, aggregationMap, newRegion);
         final Target newTarget;
         if (newRegion.isStatic()) {
-          newTarget = targetFactory.createClassTarget(newRegion, evidence);
+          newTarget = new ClassTarget(newRegion, evidence);
         } else {
           final IRNode newObject = FieldRef.getObject(expr);
           newTarget = targetFactory.createInstanceTarget(newObject, newRegion, evidence);

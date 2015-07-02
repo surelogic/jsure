@@ -42,9 +42,8 @@ public final class AnyInstanceTarget extends AbstractTargetWithRegion {
    * Create a new target parameterized by the given class and referring to the
    * given region.
    */
-  // Force use of the target factories
-  AnyInstanceTarget(final IJavaReferenceType c, final IRegion r,
-      final TargetEvidence te) {
+  public AnyInstanceTarget(
+      final IJavaReferenceType c, final IRegion r, final TargetEvidence te) {
     super(r, te);
     
     // Region cannot be static: use class target

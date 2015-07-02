@@ -20,8 +20,7 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
  */
 /* I only want this class to be usable by the TargetFactory implementations */
 public final class ClassTarget extends AbstractTargetWithRegion {
-  // Force use of the target factories
-  ClassTarget(final IRegion rgn, final TargetEvidence evidence) {
+  public ClassTarget(final IRegion rgn, final TargetEvidence evidence) {
     super(rgn, evidence);
   }
   

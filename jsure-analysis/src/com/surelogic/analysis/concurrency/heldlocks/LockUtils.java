@@ -37,7 +37,6 @@ import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
 import com.surelogic.analysis.effects.targets.AnyInstanceTarget;
 import com.surelogic.analysis.effects.targets.ClassTarget;
-import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
@@ -816,7 +815,7 @@ public final class LockUtils {
         if (aggedRegion.ancestorOf(mapping.getKey())) {
           final IRegion destRegion = mapping.getValue();
           if (destRegion.isStatic()) {
-            targets.add(targetFactory.createClassTarget(destRegion, NoEvidence.INSTANCE));
+            targets.add(new ClassTarget(destRegion, NoEvidence.INSTANCE));
           } else {
             final IRNode objExpr;
             if (target instanceof ClassTarget) {
@@ -1443,7 +1442,7 @@ public final class LockUtils {
   }
 
   public ClassTarget createClassTarget(final IRegion field) {
-    return targetFactory.createClassTarget(field, NoEvidence.INSTANCE);
+    return new ClassTarget(field, NoEvidence.INSTANCE);
   }
 
   /**
@@ -1475,12 +1474,8 @@ public final class LockUtils {
      * read whatever it wants. Want to prevent the object from writing a
      * reference to itself into another object.
      */
-    /*
-     * We can use the default target factory here because we are passing it the
-     * receiver declaration node directly.
-     */
     final Effect writesInstance = Effect.newWrite(null,
-        DefaultTargetFactory.PROTOTYPE.createInstanceTarget(
+        new InstanceTarget(
             rcvrDecl, RegionModel.getInstanceRegion(cdecl), NoEvidence.INSTANCE));
 
     final List<Effect> declFx = Effects.getDeclaredMethodEffects(cdecl, cdecl);

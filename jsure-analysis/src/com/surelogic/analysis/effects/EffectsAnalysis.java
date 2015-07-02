@@ -8,7 +8,6 @@ import java.util.Set;
 import com.surelogic.RegionEffects;
 import com.surelogic.analysis.*;
 import com.surelogic.analysis.bca.BindingContextAnalysis;
-import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.evidence.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.evidence.AnonClassEvidence;
 import com.surelogic.analysis.effects.targets.evidence.BCAEvidence;
@@ -20,6 +19,7 @@ import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
 import com.surelogic.analysis.effects.targets.evidence.QualifiedReceiverConversionEvidence;
 import com.surelogic.analysis.effects.targets.evidence.UnknownReferenceConversionEvidence;
 import com.surelogic.analysis.effects.targets.evidence.EmptyEvidence.Reason;
+import com.surelogic.analysis.effects.targets.AnyInstanceTarget;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
@@ -276,7 +276,7 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
             	  throw new IllegalStateException("Unexpected type for "+DebugUnparser.toString(ref)+" : "+ty);
               }
             }
-            target = DefaultTargetFactory.PROTOTYPE.createAnyInstanceTarget(
+            target = new AnyInstanceTarget(
                 (IJavaReferenceType) ty, region, NoEvidence.INSTANCE);
           }
         }

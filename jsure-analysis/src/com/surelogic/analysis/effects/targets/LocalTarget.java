@@ -30,8 +30,7 @@ public final class LocalTarget extends AbstractTarget {
 	 *          IRNode of the declaration of the local or parameter. For the
 	 *          receiver it should be the special ReceiverDeclaration node.
 	 */
-  // Force use of the target factories
-  LocalTarget(final IRNode v) {
+  public LocalTarget(final IRNode v) {
     super(null); // No evidence, ever
     if (v == null) {
       throw new NullPointerException("Got a null variable for local target");

@@ -17,8 +17,7 @@ import edu.cmu.cs.fluid.java.bind.IJavaType;
  * no target, as it represents nothing. 
  */
 public final class EmptyTarget extends AbstractTarget {
-  // Force use of the target factories
-  EmptyTarget(final TargetEvidence ee) {
+  public EmptyTarget(final TargetEvidence ee) {
     super(ee);
   }
   

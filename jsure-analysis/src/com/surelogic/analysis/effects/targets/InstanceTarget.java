@@ -43,8 +43,7 @@ public final class InstanceTarget extends AbstractTargetWithRegion {
   
   
   
-  // Force use of the target factories
-  InstanceTarget(final IRNode object, final IRegion field, final TargetEvidence te) {
+  public InstanceTarget(final IRNode object, final IRegion field, final TargetEvidence te) {
     super(field, te);
     
     // Region cannot be static: use class target

@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.surelogic.analysis.effects.targets.ClassTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
@@ -104,7 +105,7 @@ public final class UniquenessUtils {
      */
     if (region.isStatic()) {
       /* fieldRef = <Class> . <region> */
-      result.add(targetFactory.createClassTarget(region, NoEvidence.INSTANCE));
+      result.add(new ClassTarget(region, NoEvidence.INSTANCE));
     } else {
       /* fieldRef = <expr> . <region>
        * FieldRef always aggregates into itself

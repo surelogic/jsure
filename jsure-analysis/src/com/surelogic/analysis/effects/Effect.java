@@ -1,7 +1,6 @@
 package com.surelogic.analysis.effects;
 
 import com.surelogic.analysis.alias.IMayAlias;
-import com.surelogic.analysis.effects.targets.DefaultTargetFactory;
 import com.surelogic.analysis.effects.targets.EmptyTarget;
 import com.surelogic.analysis.effects.targets.Target;
 import com.surelogic.analysis.effects.targets.TargetRelationship;
@@ -59,7 +58,7 @@ public abstract class Effect {
     }
 
     private EmptyEffect(final IRNode src) {
-      this(src, DefaultTargetFactory.PROTOTYPE.createEmptyTarget(
+      this(src, new EmptyTarget(
           new EmptyEvidence(
               EmptyEvidence.Reason.DECLARES_NO_EFFECTS, null, null)));
     }

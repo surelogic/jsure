@@ -15,7 +15,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * 
  * @author aarong
  */
-public final class ThisBindingTargetFactory extends AbstractTargetFactory {
+public final class ThisBindingTargetFactory implements TargetFactory {
   private final ThisExpressionBinder thisExprBinder;
   
   
