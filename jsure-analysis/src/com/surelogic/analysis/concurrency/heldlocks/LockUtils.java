@@ -39,8 +39,6 @@ import com.surelogic.analysis.effects.targets.AnyInstanceTarget;
 import com.surelogic.analysis.effects.targets.ClassTarget;
 import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
-import com.surelogic.analysis.effects.targets.TargetFactory;
-import com.surelogic.analysis.effects.targets.ThisBindingTargetFactory;
 import com.surelogic.analysis.effects.targets.evidence.AggregationEvidence;
 import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
 import com.surelogic.analysis.regions.IRegion;
@@ -210,17 +208,16 @@ public final class LockUtils {
   /** The Java name binder to use. */
   private final IBinder binder;
   
+  private final ThisExpressionBinder thisExprBinder;
+  
   /** The effects analysis to use. */
   private final Effects effects;
   
-  /** The alias analyis to use. */
+  /** The alias analysis to use. */
   private final IMayAlias mayAlias;
   
   /** Factory for creating needed locks */
   private final NeededLockFactory neededLockFactory;
-  
-  /** Factory for creating targets */
-  private final TargetFactory targetFactory;
 
   /**
    * Reference to the lock declaration node of the MUTEX lock defined in
@@ -228,9 +225,6 @@ public final class LockUtils {
    * {@link java.lang.Object#wait()}and friends.
    */
   private final LockModel mutex;
-
-  /** The element region: {@code []}. */
-  //private final RegionModel elementRegion;
   
   /**
    * The internal representation of the {@link java.util.concurrent.locks.Lock}
@@ -279,15 +273,14 @@ public final class LockUtils {
    * @param ea The effects analysis to use.
    */
   public LockUtils(final AtomicReference<GlobalLockModel> glmRef,
-      final IBinder b, final Effects e, final IMayAlias ma,
-      final NeededLockFactory nlf,
-      final ThisExpressionBinder thisExprBinder) {
+      final IBinder b, final ThisExpressionBinder teb,
+      final Effects e, final IMayAlias ma, final NeededLockFactory nlf) {
     sysLockModelHandle = glmRef;
     binder = b;
+    thisExprBinder = teb;
     effects = e;
     mayAlias = ma;
     neededLockFactory = nlf;
-    targetFactory = new ThisBindingTargetFactory(thisExprBinder);
     
     if (binder == null || binder.getTypeEnvironment() == null) {
     	throw new IllegalStateException();
@@ -460,9 +453,10 @@ public final class LockUtils {
       final Effects.Query fxQuery, final ConflictChecker conflicter, 
       final IRNode array, final IRNode sync) {
     if (sync != null) {
-      final Set<Effect> exprEffects = Collections.singleton(
-          Effect.newRead(null, targetFactory.createInstanceTarget(
-              array, RegionModel.getInstanceRegion(sync), NoEvidence.INSTANCE)));
+      final Set<Effect> exprEffects =Collections.singleton(
+          Effect.newRead(null,
+              new InstanceTarget(thisExprBinder.bindThisExpression(array),
+                  RegionModel.getInstanceRegion(sync), NoEvidence.INSTANCE)));
       final Set<Effect> bodyEffects = fxQuery.getResultFor(sync);
       return conflicter.mayConflict(bodyEffects, exprEffects);
     } else {
@@ -652,7 +646,7 @@ public final class LockUtils {
       final boolean isRead, final Target target,
       final Set<NeededLock> neededLocks) {
     final Set<Effect> elaboratedEffects =
-      effects.elaborateEffect(bcaQuery, targetFactory, binder, srcNode, isRead, target);
+      effects.elaborateEffect(bcaQuery, binder, thisExprBinder, srcNode, isRead, target);
     for (final Effect effect : elaboratedEffects) {
       if (!effect.isEmpty()) {
         getLocksFromEffect(effect, LastAggregationProcessor.get(effect), neededLocks);
@@ -744,8 +738,9 @@ public final class LockUtils {
     			if (aggregationMap != null) {
     			  for (final IRegion from : aggregationMap.keySet()) {
     			    // This is okay because only instance regions can be mapped
-    			    final Target testTarget = targetFactory.createInstanceTarget(
-    			        actual, from, NoEvidence.INSTANCE);
+    			    final Target testTarget = new InstanceTarget(
+    			        thisExprBinder.bindThisExpression(actual),
+    			        from, NoEvidence.INSTANCE);
     			    exposedTargets.add(testTarget);
     				}
     			}
@@ -826,8 +821,9 @@ public final class LockUtils {
             /* The only way we can get here is if getLastAggregation() != null,
              * and this implies that that target has ElaborationEvidence
              */
-            targets.add(targetFactory.createInstanceTarget(
-                objExpr, destRegion, target.getEvidence()));
+            targets.add(new InstanceTarget(
+                thisExprBinder.bindThisExpression(objExpr), 
+                destRegion, target.getEvidence()));
           }
         }
       }
@@ -1438,7 +1434,8 @@ public final class LockUtils {
   
   public InstanceTarget createInstanceTarget(
       final IRNode object, final IRegion region) {
-    return targetFactory.createInstanceTarget(object, region, NoEvidence.INSTANCE);
+    return new InstanceTarget(
+        thisExprBinder.bindThisExpression(object), region, NoEvidence.INSTANCE);
   }
 
   public ClassTarget createClassTarget(final IRegion field) {

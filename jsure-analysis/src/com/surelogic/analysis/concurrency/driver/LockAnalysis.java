@@ -202,7 +202,7 @@ public class LockAnalysis
 		if (binder == null || binder.getTypeEnvironment() == null) {
 			return null;
 		}
-		return new LockVisitor(this, binder, new Effects(binder),
+		return new LockVisitor(binder, new Effects(binder),
 				new TypeBasedMayAlias(binder), getSharedAnalysis(),
 				lockModelHandle);
 	}

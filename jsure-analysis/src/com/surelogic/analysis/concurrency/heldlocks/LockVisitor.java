@@ -26,7 +26,6 @@ import com.surelogic.aast.promise.LockSpecificationNode;
 import com.surelogic.aast.promise.QualifiedLockNameNode;
 import com.surelogic.analysis.AbstractThisExpressionBinder;
 import com.surelogic.analysis.IBinderClient;
-import com.surelogic.analysis.IIRAnalysis;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.alias.IMayAlias;
@@ -748,7 +747,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	 *            The Binder to use to look up names.
 	 * @throws SlotAlreadyRegisteredException
 	 */
-	public LockVisitor(final IIRAnalysis a, final IBinder b, final Effects e,
+	public LockVisitor(final IBinder b, final Effects e,
 			final IMayAlias ma, final BindingContextAnalysis bca,
 			final AtomicReference<GlobalLockModel> glmRef) {
 		binder = b;
@@ -765,8 +764,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		heldLockFactory = new HeldLockFactory(thisExprBinder);
 		neededLockFactory = new NeededLockFactory(thisExprBinder);
 
-		lockUtils = new LockUtils(glmRef, b, e, mayAlias, neededLockFactory,
-				thisExprBinder);
+		lockUtils = new LockUtils(glmRef, b, thisExprBinder, e, mayAlias, neededLockFactory);
 		jucLockUsageManager = new JUCLockUsageManager(lockUtils, binder, bca, definiteAssignment);
 
 		// Create the subsidiary flow analyses
@@ -1619,7 +1617,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			return LockHeldResult.NOT_HELD;
 		}
 
-		public final void assureNeededLocks(final Set<NeededLock> neededLocks,
+		@SuppressWarnings("null")
+    public final void assureNeededLocks(final Set<NeededLock> neededLocks,
 				final MustHoldAnalysis.HeldLocks heldJUCLocks,
 				final int goodCategory, final int badCategory,
 				final int goodMsg, final int goodAltMsg,

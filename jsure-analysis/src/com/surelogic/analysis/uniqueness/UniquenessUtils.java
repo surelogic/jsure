@@ -5,9 +5,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.effects.targets.ClassTarget;
+import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.Target;
-import com.surelogic.analysis.effects.targets.TargetFactory;
 import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.annotation.rules.RegionRules;
@@ -79,11 +80,11 @@ public final class UniquenessUtils {
    * aggregation.
    */
   public static List<Target> fieldRefAggregatesInto(
-      final IBinder binder, final TargetFactory targetFactory,
+      final IBinder binder, final ThisExpressionBinder thisExprBinder,
       final IRNode expr, final IRegion region) {
     return Collections.unmodifiableList(
       fieldRefAggregatesInto(
-          binder, targetFactory, expr, region, new LinkedList<Target>()));
+          binder, thisExprBinder, expr, region, new LinkedList<Target>()));
   }
 
   
@@ -98,7 +99,7 @@ public final class UniquenessUtils {
    * aggregation.
    */
   private static List<Target> fieldRefAggregatesInto(
-      final IBinder binder, final TargetFactory targetFactory, 
+      final IBinder binder, final ThisExpressionBinder thisExprBinder,
       final IRNode expr, final IRegion region, final List<Target> result) {
     /* Careful, region can be static!  No aggregation in the case of static
      * fields, just return the field itself.
@@ -110,7 +111,8 @@ public final class UniquenessUtils {
       /* fieldRef = <expr> . <region>
        * FieldRef always aggregates into itself
        */
-      result.add(targetFactory.createInstanceTarget(expr, region, NoEvidence.INSTANCE));
+      result.add(new InstanceTarget(
+          thisExprBinder.bindThisExpression(expr), region, NoEvidence.INSTANCE));
   
       /* Field can only be aggregated if there is another level of indirection. */
       if (FieldRef.prototype.includes(JJNode.tree.getOperator(expr))) {
@@ -129,7 +131,7 @@ public final class UniquenessUtils {
            * See what regions <newObject.newRegion> aggregate into. (The
            * recursive call will add <newObject> . <newRegion> to the results.)
            */
-          fieldRefAggregatesInto(binder, targetFactory, newObject, newRegion, result);
+          fieldRefAggregatesInto(binder, thisExprBinder, newObject, newRegion, result);
         }
       }
     }
