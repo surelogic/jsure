@@ -10,7 +10,7 @@ import edu.cmu.cs.fluid.ir.IRNode;
  * @author Edwin
  */
 public abstract class BinderWrapper implements IBinder {
-	protected final IBinder binder;
+	private final IBinder binder;
 	
 	public BinderWrapper(IBinder b) {
 		binder = b;

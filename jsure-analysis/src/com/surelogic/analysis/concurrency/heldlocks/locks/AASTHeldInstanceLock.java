@@ -6,7 +6,6 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 
 final class AASTHeldInstanceLock extends HeldInstanceLock {
   final ExpressionNode objAAST;
@@ -35,32 +34,32 @@ final class AASTHeldInstanceLock extends HeldInstanceLock {
 
   @Override
   boolean mustAliasLockExpr(
-      final HeldInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return lock.mustAliasAAST(this, teb, binder);
+      final HeldInstanceLock lock, final ThisExpressionBinder teb) {
+    return lock.mustAliasAAST(this, teb);
   }
   
   @Override
   boolean mustAliasAAST(
-      final AASTHeldInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return checkSyntacticEquality(objAAST, lock.objAAST, teb, binder);
+      final AASTHeldInstanceLock lock, final ThisExpressionBinder teb) {
+    return checkSyntacticEquality(objAAST, lock.objAAST, teb);
   }
   
   @Override
   boolean mustAliasIR(
-      final IRHeldInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return checkSyntacticEquality(lock.obj, objAAST, teb, binder);
+      final IRHeldInstanceLock lock, final ThisExpressionBinder teb) {
+    return checkSyntacticEquality(lock.obj, objAAST, teb);
   }
   
   @Override
   boolean mustAliasFieldRef(
-      final HeldFieldRefLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return checkFieldRef(teb, binder, lock.obj, lock.varDecl, objAAST);
+      final HeldFieldRefLock lock, final ThisExpressionBinder teb) {
+    return checkFieldRef(teb, lock.obj, lock.varDecl, objAAST);
   }
 
   @Override
   boolean mustSatisfyLockExpr(
-      final AbstractNeededInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return lock.satisfiesAAST(this, teb, binder);
+      final AbstractNeededInstanceLock lock, final ThisExpressionBinder teb) {
+    return lock.satisfiesAAST(this, teb);
   }
   
   @Override

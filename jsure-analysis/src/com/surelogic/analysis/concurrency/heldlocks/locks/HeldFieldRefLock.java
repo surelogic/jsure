@@ -6,7 +6,6 @@ import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 
 final class HeldFieldRefLock extends HeldInstanceLock {
@@ -51,33 +50,33 @@ final class HeldFieldRefLock extends HeldInstanceLock {
 
   @Override
   boolean mustAliasLockExpr(
-      final HeldInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return lock.mustAliasFieldRef(this, teb, binder);
+      final HeldInstanceLock lock, final ThisExpressionBinder teb) {
+    return lock.mustAliasFieldRef(this, teb);
   }
   
   @Override
   boolean mustAliasAAST(
-      final AASTHeldInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return checkFieldRef(teb, binder, obj, varDecl, lock.objAAST);
+      final AASTHeldInstanceLock lock, final ThisExpressionBinder teb) {
+    return checkFieldRef(teb, obj, varDecl, lock.objAAST);
   }
   
   @Override
   boolean mustAliasIR(
-      final IRHeldInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return checkFieldRef(teb, binder, obj, varDecl, lock.obj);
+      final IRHeldInstanceLock lock, final ThisExpressionBinder teb) {
+    return checkFieldRef(teb, obj, varDecl, lock.obj);
   }
   
   @Override
   boolean mustAliasFieldRef(
-      final HeldFieldRefLock lock, final ThisExpressionBinder teb, final IBinder binder) {
+      final HeldFieldRefLock lock, final ThisExpressionBinder teb) {
     return varDecl.equals(lock.varDecl)
-        && checkSyntacticEquality(obj, lock.obj, teb, binder);
+        && checkSyntacticEquality(obj, lock.obj, teb);
   }
 
   @Override
   boolean mustSatisfyLockExpr(
-      final AbstractNeededInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return lock.satisfiesFieldRef(this, teb, binder);
+      final AbstractNeededInstanceLock lock, final ThisExpressionBinder teb) {
+    return lock.satisfiesFieldRef(this, teb);
   }
   
   @Override

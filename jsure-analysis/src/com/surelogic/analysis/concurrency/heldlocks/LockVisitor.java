@@ -512,13 +512,13 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		}
 
 		public boolean mustAlias(final HeldLock t,
-				final ThisExpressionBinder teb, final IBinder b) {
-			return lock.mustAlias(t, teb, b);
+				final ThisExpressionBinder teb) {
+			return lock.mustAlias(t, teb);
 		}
 
 		public boolean mustSatisfy(final NeededLock t,
-				final ThisExpressionBinder teb, final IBinder b) {
-			return lock.mustSatisfy(t, teb, b);
+				final ThisExpressionBinder teb) {
+			return lock.mustSatisfy(t, teb);
 		}
 	}
 
@@ -565,11 +565,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		}
 
 		public boolean containsLock(final HeldLock lock,
-				final ThisExpressionBinder teb, final IBinder b,
-				final boolean setNeeded) {
+				final ThisExpressionBinder teb, final boolean setNeeded) {
 			StackLock current = locks;
 			while (current != lastLock) {
-				if (current.mustAlias(lock, teb, b)) {
+				if (current.mustAlias(lock, teb)) {
 					if (setNeeded) {
 						isNeeded = true;
 					}
@@ -581,11 +580,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		}
 
 		public boolean satisfiesLock(final NeededLock lock,
-				final ThisExpressionBinder teb, final IBinder b,
-				final boolean setNeeded) {
+				final ThisExpressionBinder teb, final boolean setNeeded) {
 			StackLock current = locks;
 			while (current != lastLock) {
-				if (current.mustSatisfy(lock, teb, b)) {
+				if (current.mustSatisfy(lock, teb)) {
 					if (setNeeded) {
 						isNeeded = true;
 					}
@@ -665,11 +663,10 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		}
 
 		public boolean satisfiesLock(final NeededLock lock,
-				final ThisExpressionBinder teb, final IBinder b,
-				final boolean setNeeded) {
+				final ThisExpressionBinder teb, final boolean setNeeded) {
 			LockStackFrame frame = head;
 			while (frame != null) {
-				if (frame.satisfiesLock(lock, teb, b, setNeeded)) {
+				if (frame.satisfiesLock(lock, teb, setNeeded)) {
 					return true;
 				}
 				frame = frame.nextFrame;
@@ -677,14 +674,14 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			return false;
 		}
 
-		public boolean oldFramesContainLock(final HeldLock lock,
-				final ThisExpressionBinder teb, final IBinder b) {
+		public boolean oldFramesContainLock(
+		    final HeldLock lock, final ThisExpressionBinder teb) {
 			if (head == null) {
 				return false;
 			} else {
 				LockStackFrame frame = head.nextFrame;
 				while (frame != null) {
-					if (frame.containsLock(lock, teb, b, false)) {
+					if (frame.containsLock(lock, teb, false)) {
 						return true;
 					}
 					frame = frame.nextFrame;
@@ -1579,12 +1576,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		private LockHeldResult isLockSatisfied(final NeededLock neededLock,
 				final MustHoldAnalysis.HeldLocks heldJUCLocks) {
 			// Check if the lock is explicitly held
-			if (ctxtTheHeldLocks.satisfiesLock(neededLock, thisExprBinder,
-					binder, true)) {
+			if (ctxtTheHeldLocks.satisfiesLock(neededLock, thisExprBinder, true)) {
 				return LockHeldResult.HELD;
 			}
 			if (neededLock.isSatisfiedByLockSet(heldJUCLocks.heldLocks,
-					thisExprBinder, binder)) {
+					thisExprBinder)) {
 				return LockHeldResult.HELD;
 			}
 
@@ -1592,12 +1588,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			// class initializer
 			if (ctxtClassInitializationLocks != null
 					&& neededLock.isSatisfiedByLockSet(
-							ctxtClassInitializationLocks, thisExprBinder,
-							binder)) {
+							ctxtClassInitializationLocks, thisExprBinder)) {
 				return LockHeldResult.CLASS_INIT;
 			}
 			if (neededLock.isSatisfiedByLockSet(heldJUCLocks.classInitLocks,
-					thisExprBinder, binder)) {
+					thisExprBinder)) {
 				return LockHeldResult.CLASS_INIT;
 			}
 
@@ -1605,11 +1600,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			// thread-confined constructor
 			if (ctxtThreadConfinedLocks != null
 					&& neededLock.isSatisfiedByLockSet(ctxtThreadConfinedLocks,
-							thisExprBinder, binder)) {
+							thisExprBinder)) {
 				return LockHeldResult.THREAD_CONFINED;
 			}
 			if (neededLock.isSatisfiedByLockSet(
-					heldJUCLocks.singleThreadedLocks, thisExprBinder, binder)) {
+					heldJUCLocks.singleThreadedLocks, thisExprBinder)) {
 				return LockHeldResult.THREAD_CONFINED;
 			}
 
@@ -1977,7 +1972,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						ctxtInsideAnonClassExpr = true;
 						// Create the substitution map
 						ctxtEnclosingRefs = MethodCallUtils
-								.getEnclosingInstanceReferences(binder,
+								.getEnclosingInstanceReferences(
 										thisExprBinder, expr, binder
 												.getBinding(AnonClassExpression
 														.getType(expr)),
@@ -2569,8 +2564,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			 */
 			for (final HeldLock lock : convertLockExpr(expr, ctxtBcaQuery, ctxtUnassignedQuery,
 					ctxtInsideMethod, rstmt)) {
-				correct |= ctxtReturnedLock.mustAlias(lock, thisExprBinder,
-						binder);
+				correct |= ctxtReturnedLock.mustAlias(lock, thisExprBinder);
 			}
 
 			if (correct) {
@@ -2654,7 +2648,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						// Complain if the lock acquisition is potentially
 						// redundant
 						if (ctxtTheHeldLocks.oldFramesContainLock(guard.lock,
-								thisExprBinder, binder)) {
+								thisExprBinder)) {
 							final HintDrop info = makeWarningDrop(
 									Messages.DSC_REDUNDANT_SYNCHRONIZED,
 									syncBlock,
@@ -3005,7 +2999,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							ctxtInsideAnonClassExpr = true;
 							// Create the substitution map
 							ctxtEnclosingRefs = MethodCallUtils
-									.getEnclosingInstanceReferences(binder,
+									.getEnclosingInstanceReferences(
 											thisExprBinder, constDecl,
 											oldTypeDecl, oldTheReceiverNode,
 											getEnclosingMethod());

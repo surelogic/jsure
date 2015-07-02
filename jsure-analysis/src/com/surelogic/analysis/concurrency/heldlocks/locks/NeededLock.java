@@ -5,8 +5,6 @@ import java.util.Set;
 import com.surelogic.analysis.MethodCallUtils;
 import com.surelogic.analysis.ThisExpressionBinder;
 
-import edu.cmu.cs.fluid.java.bind.IBinder;
-
 /**
  * Interface for locks that are needed by a program.  That is, analysis 
  * generates "needed locks" when analyzing field expressions, etc., and 
@@ -26,7 +24,7 @@ public interface NeededLock extends ILock {
   Object getUniqueIdentifier();
   
   public boolean isSatisfiedByLockSet(
-      Set<HeldLock> lockSet, ThisExpressionBinder thisExprBinder, IBinder binder);
+      Set<HeldLock> lockSet, ThisExpressionBinder thisExprBinder);
   
   /**
    * Is it possible that this lock has an alias in the calling context?

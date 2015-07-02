@@ -393,7 +393,7 @@ public class MethodCallUtils {
    *          have this value available, and thus we can avoid the lookup.
    */
   public static EnclosingRefs getEnclosingInstanceReferences(
-      final IBinder binder, final ThisExpressionBinder thisExprBinder,
+      final ThisExpressionBinder thisExprBinder,
       final IRNode anonClass, final IRNode superClass, final IRNode theReceiverNode,
       final IRNode enclosingMethod) {
     final IRNode anonClassInitMethod = JavaPromise.getInitMethodOrNull(anonClass);
@@ -474,6 +474,6 @@ public class MethodCallUtils {
     return new EnclosingRefs(
         immediatelyEnclosingInstanceRef, immediatelyEnclosingInstanceActual,
         immediatelyEnclosingInstanceWithRespectToSRef, immediatelyEnclosingInstanceWithRespectToSAcutal,
-        binder, anonClassInitMethod, enclosingMethod);
+        thisExprBinder, anonClassInitMethod, enclosingMethod);
   }
 }

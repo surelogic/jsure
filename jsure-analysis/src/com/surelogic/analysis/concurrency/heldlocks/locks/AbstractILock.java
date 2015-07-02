@@ -13,7 +13,6 @@ import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
 import edu.cmu.cs.fluid.java.operator.ArrayRefExpression;
 import edu.cmu.cs.fluid.java.operator.CastExpression;
@@ -135,59 +134,59 @@ abstract class AbstractILock implements ILock {
    */
   protected static boolean checkSyntacticEquality(
       final IRNode expr1, final IRNode expr2,
-      final ThisExpressionBinder thisExprBinder, final IBinder binderParam) {
+      final ThisExpressionBinder thisExprBinder) {
     /* We need to unwrap type casts and parenthesized expressions in the first operand */
     final Operator op1 = JJNode.tree.getOperator(expr1);
     if (CastExpression.prototype.includes(op1)) {
       return checkSyntacticEquality(
-          CastExpression.getExpr(expr1), expr2, thisExprBinder, binderParam);
+          CastExpression.getExpr(expr1), expr2, thisExprBinder);
     } else if (ParenExpression.prototype.includes(op1)) {
       return checkSyntacticEquality(
-          ParenExpression.getOp(expr1), expr2, thisExprBinder, binderParam);
+          ParenExpression.getOp(expr1), expr2, thisExprBinder);
     }
 
     /* Then unwrap type casts and parenthesized expressions in the second operand */
     final Operator op2 = JJNode.tree.getOperator(expr2);
     if (CastExpression.prototype.includes(op2)) {
       return checkSyntacticEquality(
-          expr1, CastExpression.getExpr(expr2), thisExprBinder, binderParam);
+          expr1, CastExpression.getExpr(expr2), thisExprBinder);
     } else if (ParenExpression.prototype.includes(op2)) {
       return checkSyntacticEquality(
-          expr1, ParenExpression.getOp(expr2), thisExprBinder, binderParam);
+          expr1, ParenExpression.getOp(expr2), thisExprBinder);
     }
     
     if (op1.equals(op2)) {
       if (FieldRef.prototype.includes(op1)) {
         // check that the fields are the same
-        if (binderParam.getBinding(expr1).equals(binderParam.getBinding(expr2))) {
+        if (thisExprBinder.getBinding(expr1).equals(thisExprBinder.getBinding(expr2))) {
           /* If the field is an instance field, check that the dereferenced
            * objects are the same.
            */
-          if (TypeUtil.isStatic(binderParam.getBinding(expr1))) {
+          if (TypeUtil.isStatic(thisExprBinder.getBinding(expr1))) {
             return true;
           } else {
             return checkSyntacticEquality(
                 thisExprBinder.bindThisExpression(FieldRef.getObject(expr1)),
                 thisExprBinder.bindThisExpression(FieldRef.getObject(expr2)),
-                thisExprBinder, binderParam);
+                thisExprBinder);
           }
         } else { // fields are not equal
           return false;
         }
       } else if (ClassExpression.prototype.includes(op1)) {
         // Check that the two expressions are for the same class
-        final IRNode class1 = binderParam.getBinding(expr1);
-        final IRNode class2 = binderParam.getBinding(expr2);
+        final IRNode class1 = thisExprBinder.getBinding(expr1);
+        final IRNode class2 = thisExprBinder.getBinding(expr2);
         return class1.equals(class2);
       } else if (ArrayRefExpression.prototype.includes(op1)) {
         final IRNode array1 = ArrayRefExpression.getArray(expr1);
         final IRNode array2 = ArrayRefExpression.getArray(expr2);
         final IRNode idx1 = ArrayRefExpression.getIndex(expr1);
         final IRNode idx2 = ArrayRefExpression.getIndex(expr2);
-        return checkSyntacticEquality(array1, array2, thisExprBinder, binderParam)
-            && checkSyntacticEquality(idx1, idx2, thisExprBinder, binderParam);
+        return checkSyntacticEquality(array1, array2, thisExprBinder)
+            && checkSyntacticEquality(idx1, idx2, thisExprBinder);
       } else if (VariableUseExpression.prototype.includes(op1)) {
-        return (binderParam.getBinding(expr1).equals(binderParam.getBinding(expr2)));
+        return (thisExprBinder.getBinding(expr1).equals(thisExprBinder.getBinding(expr2)));
       } else if (ReceiverDeclaration.prototype.includes(op1)) {
         return expr1.equals(expr2);
       } else if (QualifiedReceiverDeclaration.prototype.includes(op1)) {
@@ -224,9 +223,9 @@ abstract class AbstractILock implements ILock {
         final IRNode object1 = call.get_Object(expr1);
         final IRNode object2 = call.get_Object(expr2);
         // Are the receivers equivalent?
-        if (checkSyntacticEquality(object1, object2, thisExprBinder, binderParam)) {
-          final IRNode mdecl1 = binderParam.getBinding(expr1);
-          final IRNode mdecl2 = binderParam.getBinding(expr2);
+        if (checkSyntacticEquality(object1, object2, thisExprBinder)) {
+          final IRNode mdecl1 = thisExprBinder.getBinding(expr1);
+          final IRNode mdecl2 = thisExprBinder.getBinding(expr2);
           // Are the methods the same?
           if (mdecl1 == mdecl2) {
             // Is the method a no-arg method?
@@ -262,7 +261,7 @@ abstract class AbstractILock implements ILock {
   
   protected static boolean checkSyntacticEquality(
       final AASTNode expr1, final AASTNode expr2,
-      final ThisExpressionBinder thisExprBinder, final IBinder binderParam) {
+      final ThisExpressionBinder thisExprBinder) {
     if (expr1.getClass().equals(expr2.getClass())) {
       if (expr1 instanceof FieldRefNode) {
         // check that the fields are the same
@@ -279,9 +278,9 @@ abstract class AbstractILock implements ILock {
             final IRNode fixed1 = thisExprBinder.bindThisExpression(f1.getObject());
             final IRNode fixed2 = thisExprBinder.bindThisExpression(f2.getObject());
             if (fixed1 == null && fixed2 == null) {
-              return checkSyntacticEquality(f1.getObject(), f2.getObject(), thisExprBinder, binderParam);
+              return checkSyntacticEquality(f1.getObject(), f2.getObject(), thisExprBinder);
             } else if (fixed1 != null && fixed2 != null) {
-              return checkSyntacticEquality(fixed1, fixed2, thisExprBinder, binderParam);
+              return checkSyntacticEquality(fixed1, fixed2, thisExprBinder);
             } else {
               return false;
             }
@@ -317,15 +316,15 @@ abstract class AbstractILock implements ILock {
   
   protected static boolean checkSyntacticEquality(
       final IRNode expr1, final AASTNode expr2, 
-      final ThisExpressionBinder thisExprBinder, final IBinder binderParam) {
+      final ThisExpressionBinder thisExprBinder) {
     /* We need to unwrap type casts and parenthesized expressions in the first operand */
     final Operator op1 = JJNode.tree.getOperator(expr1);
     if (CastExpression.prototype.includes(op1)) {
       return checkSyntacticEquality(
-          CastExpression.getExpr(expr1), expr2, thisExprBinder, binderParam);
+          CastExpression.getExpr(expr1), expr2, thisExprBinder);
     } else if (ParenExpression.prototype.includes(op1)) {
       return checkSyntacticEquality(
-          ParenExpression.getOp(expr1), expr2, thisExprBinder, binderParam);
+          ParenExpression.getOp(expr1), expr2, thisExprBinder);
     }
     
     final Operator op2 = expr2.getOp();
@@ -333,33 +332,33 @@ abstract class AbstractILock implements ILock {
       if (FieldRef.prototype.includes(op1)) {
         // check that the fields are the same
         FieldRefNode f2 = (FieldRefNode) expr2;
-        if (binderParam.getBinding(expr1).equals(f2.resolveBinding().getNode())) {
+        if (thisExprBinder.getBinding(expr1).equals(f2.resolveBinding().getNode())) {
           /* If the field is an instance field, check that the dereferenced
            * objects are the same.
            */
-          if (TypeUtil.isStatic(binderParam.getBinding(expr1))) {
+          if (TypeUtil.isStatic(thisExprBinder.getBinding(expr1))) {
             return true;
           } else {
             final IRNode fixed1 = thisExprBinder.bindThisExpression(FieldRef.getObject(expr1));
             final IRNode fixed2 = thisExprBinder.bindThisExpression(f2.getObject());
             if (fixed2 == null) {
-              return checkSyntacticEquality(fixed1, f2.getObject(), thisExprBinder, binderParam);
+              return checkSyntacticEquality(fixed1, f2.getObject(), thisExprBinder);
             }
-            return checkSyntacticEquality(fixed1, fixed2, thisExprBinder, binderParam);
+            return checkSyntacticEquality(fixed1, fixed2, thisExprBinder);
           }
         } else { // fields are not equal
           return false;
         }
       } else if (ClassExpression.prototype.includes(op1)) {
         // Check that the two expressions are for the same class
-        final IRNode class1 = binderParam.getBinding(expr1);
+        final IRNode class1 = thisExprBinder.getBinding(expr1);
         final IRNode class2 = ((ClassExpressionNode) expr2).resolveType().getNode();
         return class1.equals(class2);
       } else if (VariableUseExpression.prototype.includes(op1)) {
         VariableUseExpressionNode v2 = (VariableUseExpressionNode) expr2;
-        return binderParam.getBinding(expr1).equals(v2.resolveBinding().getNode());
+        return thisExprBinder.getBinding(expr1).equals(v2.resolveBinding().getNode());
       } else if (NamedType.prototype.includes(op1)) {
-        IJavaType t1 = binderParam.getJavaType(expr1);
+        IJavaType t1 = thisExprBinder.getJavaType(expr1);
         NamedTypeNode nt2 = (NamedTypeNode) expr2;
         return t1.equals(nt2.resolveType().getJavaType());
       } else if (MethodCall.prototype.includes(op1)) {
@@ -399,26 +398,24 @@ abstract class AbstractILock implements ILock {
   
   
   
-  static boolean checkFieldRef(
-      final ThisExpressionBinder teb, final IBinder binder,
+  static boolean checkFieldRef(final ThisExpressionBinder thisExprBinder,
       final IRNode obj1, final IRNode varDecl1, final IRNode lockExpr2) {
     // Check field equality first because syntactic equality is more expensive
     if (FieldRef.prototype.includes(lockExpr2)) {
-      return varDecl1.equals(binder.getBinding(lockExpr2))
-          && checkSyntacticEquality(obj1, teb.bindThisExpression(FieldRef.getObject(lockExpr2)), teb, binder);
+      return varDecl1.equals(thisExprBinder.getBinding(lockExpr2))
+          && checkSyntacticEquality(obj1, thisExprBinder.bindThisExpression(FieldRef.getObject(lockExpr2)), thisExprBinder);
     } else {
       return false;
     }
   }
 
-  static boolean checkFieldRef(
-      final ThisExpressionBinder teb, final IBinder binder,
+  static boolean checkFieldRef(final ThisExpressionBinder thisExprBinder,
       final IRNode obj1, final IRNode varDecl1, final ExpressionNode lockExpr2) {
     if (lockExpr2 instanceof FieldRefNode) {
       final FieldRefNode fieldRef = (FieldRefNode) lockExpr2;
       // Check field equality first because syntactic equality is more expensive
       return varDecl1.equals(fieldRef.resolveBinding().getNode())
-          && checkSyntacticEquality(obj1, teb.bindThisExpression(fieldRef.getObject()), teb, binder);
+          && checkSyntacticEquality(obj1, thisExprBinder.bindThisExpression(fieldRef.getObject()), thisExprBinder);
     } else {
       return false;
     }

@@ -80,9 +80,9 @@ final class BogusLock implements HeldLock {
   
   @Override
   public boolean mustAlias(
-      final HeldLock lock, final ThisExpressionBinder teb, final IBinder b) {
+      final HeldLock lock, final ThisExpressionBinder teb) {
     if (lock instanceof BogusLock) {
-      return AbstractILock.checkSyntacticEquality(this.lockExpr, ((BogusLock) lock).lockExpr, teb, b);
+      return AbstractILock.checkSyntacticEquality(this.lockExpr, ((BogusLock) lock).lockExpr, teb);
     } else {
       return false;
     }
@@ -90,7 +90,7 @@ final class BogusLock implements HeldLock {
   
   @Override
   public boolean mustSatisfy(
-      final NeededLock lock, final ThisExpressionBinder teb, final IBinder b) {
+      final NeededLock lock, final ThisExpressionBinder teb) {
     return false;
   }
 

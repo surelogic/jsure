@@ -803,7 +803,7 @@ public final class Effects implements IBinderClient {
           // (2) context and oldContext are identical at this point
           final MethodCallUtils.EnclosingRefs enclosing = 
             MethodCallUtils.getEnclosingInstanceReferences(
-                binder, thisExprBinder, expr,
+                thisExprBinder, expr,
                 superClassDecl,
                 context.theReceiverNode, getEnclosingDecl());
           for (final Effect e : newContext.effects()) {

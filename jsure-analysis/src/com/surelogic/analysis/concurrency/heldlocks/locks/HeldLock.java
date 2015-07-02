@@ -4,7 +4,6 @@ import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.dropsea.ir.PromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 
 /**
  * Interface for objects that represent locks that are held by analysis, i.e.,
@@ -46,12 +45,12 @@ public interface HeldLock extends ILock {
   /**
    * Query if the lock must be identical to another lock.
    */  
-  public boolean mustAlias(HeldLock lock, ThisExpressionBinder teb, IBinder b);
+  public boolean mustAlias(HeldLock lock, ThisExpressionBinder teb);
   
   /**
    * Query if the lock satisfies the holding of the other lock.
    */
-  public boolean mustSatisfy(NeededLock lock, ThisExpressionBinder teb, IBinder b);
+  public boolean mustSatisfy(NeededLock lock, ThisExpressionBinder teb);
   
   /**
    * Is the lock assumed to be held because of a lock precondition.  If 

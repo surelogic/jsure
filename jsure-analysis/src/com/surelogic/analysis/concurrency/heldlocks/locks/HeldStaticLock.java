@@ -5,7 +5,6 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 
 /**
  * Representation of a lock that is represented by a static field.  Such locks
@@ -27,7 +26,7 @@ final class HeldStaticLock extends AbstractHeldLock {
    * Static locks are based on name equivalence.
    */
   @Override
-  public boolean mustAlias(final HeldLock lock, final ThisExpressionBinder teb, final IBinder b) {
+  public boolean mustAlias(final HeldLock lock, final ThisExpressionBinder teb) {
     if (lock instanceof HeldStaticLock) {
       return (isWrite() == lock.isWrite())
         && getUniqueIdentifier().equals(((HeldStaticLock) lock).getUniqueIdentifier());
@@ -41,7 +40,7 @@ final class HeldStaticLock extends AbstractHeldLock {
    * and this lock is a writeLock or both locks are read locks.
    */
   @Override
-  public boolean mustSatisfy(final NeededLock lock, final ThisExpressionBinder teb, final IBinder b) {
+  public boolean mustSatisfy(final NeededLock lock, final ThisExpressionBinder teb) {
     if (lock instanceof NeededStaticLock) {
       if (getUniqueIdentifier().equals(((NeededStaticLock) lock).getUniqueIdentifier())) {
         return isWrite() || (!isWrite() && !lock.isWrite());

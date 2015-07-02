@@ -6,7 +6,6 @@ import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser; 
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 
 final class NeededInstanceLock extends AbstractNeededInstanceLock {
@@ -37,20 +36,20 @@ final class NeededInstanceLock extends AbstractNeededInstanceLock {
 
   @Override
   boolean satisfiesAAST(
-      final AASTHeldInstanceLock lock, final ThisExpressionBinder teb, final IBinder b) {
-    return checkSyntacticEquality(obj, lock.objAAST, teb, b);
+      final AASTHeldInstanceLock lock, final ThisExpressionBinder teb) {
+    return checkSyntacticEquality(obj, lock.objAAST, teb);
   }
 
   @Override
   boolean satisfiesIR(
-      final IRHeldInstanceLock lock, final ThisExpressionBinder teb, final IBinder b) {
-    return checkSyntacticEquality(obj, lock.obj, teb, b);
+      final IRHeldInstanceLock lock, final ThisExpressionBinder teb) {
+    return checkSyntacticEquality(obj, lock.obj, teb);
   }
 
   @Override
   boolean satisfiesFieldRef(
-      final HeldFieldRefLock lock, final ThisExpressionBinder teb, final IBinder b) {
-    return checkFieldRef(teb, b, lock.obj, lock.varDecl, obj);
+      final HeldFieldRefLock lock, final ThisExpressionBinder teb) {
+    return checkFieldRef(teb, lock.obj, lock.varDecl, obj);
   }
   
   @Override

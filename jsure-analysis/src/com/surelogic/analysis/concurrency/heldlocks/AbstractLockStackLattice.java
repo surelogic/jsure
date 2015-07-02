@@ -110,7 +110,7 @@ abstract class AbstractLockStackLattice extends
         // search for aliases
         boolean aliased = false;
         for (final HeldLock current : lockList) {
-          if (current.mustAlias(wantToAdd, thisExprBinder, binder)) {
+          if (current.mustAlias(wantToAdd, thisExprBinder)) {
             aliased = true;
             break;
           }
@@ -125,7 +125,7 @@ abstract class AbstractLockStackLattice extends
       // search for aliases
       boolean aliased = false;
       for (final HeldLock current : lockList) {
-        if (current.mustAlias(wantToAdd, thisExprBinder, binder)) {
+        if (current.mustAlias(wantToAdd, thisExprBinder)) {
           aliased = true;
           break;
         }
@@ -139,8 +139,8 @@ abstract class AbstractLockStackLattice extends
     return lockArray;
   }
 
-  protected static HeldLock[] getLocksFromMap(final Map<IRNode, Set<HeldLock>> map, final ThisExpressionBinder thisExprBinder,
-      final IBinder binder) {
+  protected static HeldLock[] getLocksFromMap(
+      final Map<IRNode, Set<HeldLock>> map, final ThisExpressionBinder thisExprBinder) {
     /*
      * Build the List of locks. An O(n^2) operation because we do not want to
      * include aliases.
@@ -151,7 +151,7 @@ abstract class AbstractLockStackLattice extends
         // search for aliases
         boolean aliased = false;
         for (final HeldLock current : lockList) {
-          if (current.mustAlias(wantToAdd, thisExprBinder, binder)) {
+          if (current.mustAlias(wantToAdd, thisExprBinder)) {
             aliased = true;
             break;
           }
@@ -178,7 +178,7 @@ abstract class AbstractLockStackLattice extends
   
   @Override
   protected final boolean indexEquals(final HeldLock lock1, final HeldLock lock2) {
-    return lock1.mustAlias(lock2, thisExprBinder, binder);
+    return lock1.mustAlias(lock2, thisExprBinder);
   }
 
   /**

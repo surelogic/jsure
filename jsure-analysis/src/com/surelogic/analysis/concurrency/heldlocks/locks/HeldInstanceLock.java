@@ -5,7 +5,6 @@ import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 
 abstract class HeldInstanceLock extends AbstractHeldLock {
   HeldInstanceLock(
@@ -22,36 +21,36 @@ abstract class HeldInstanceLock extends AbstractHeldLock {
 	 */
   @Override
   public final boolean mustAlias(
-      final HeldLock lock, final ThisExpressionBinder teb, final IBinder binder) {
+      final HeldLock lock, final ThisExpressionBinder teb) {
     if (!(lock instanceof HeldInstanceLock)) {
       return false;
     } else {
       final HeldInstanceLock hil = (HeldInstanceLock) lock;    
       if (getUniqueIdentifier().equals(hil.getUniqueIdentifier())
           && isWrite() == lock.isWrite()) {
-        return mustAliasLockExpr(hil, teb, binder);
+        return mustAliasLockExpr(hil, teb);
       }
       return false;
     }
   }
 
   abstract boolean mustAliasLockExpr(
-      HeldInstanceLock lock, ThisExpressionBinder teb, IBinder binder);
+      HeldInstanceLock lock, ThisExpressionBinder teb);
   
   abstract boolean mustAliasAAST(
-      AASTHeldInstanceLock lock, ThisExpressionBinder teb, IBinder binder);
+      AASTHeldInstanceLock lock, ThisExpressionBinder teb);
   
   abstract boolean mustAliasIR(
-      IRHeldInstanceLock lock, ThisExpressionBinder teb, IBinder binder);
+      IRHeldInstanceLock lock, ThisExpressionBinder teb);
   
   abstract boolean mustAliasFieldRef(
-      HeldFieldRefLock lock, ThisExpressionBinder teb, IBinder binder);
+      HeldFieldRefLock lock, ThisExpressionBinder teb);
   
   
   
   @Override
   public final boolean mustSatisfy(
-      final NeededLock lock, final ThisExpressionBinder teb, final IBinder binder) {
+      final NeededLock lock, final ThisExpressionBinder teb) {
     /* First check that the lock name are equal.
      */
     if (!(lock instanceof AbstractNeededInstanceLock)) {
@@ -59,7 +58,7 @@ abstract class HeldInstanceLock extends AbstractHeldLock {
     } else {
       final AbstractNeededInstanceLock neededLock = (AbstractNeededInstanceLock) lock;
       if (getUniqueIdentifier().equals(neededLock.getUniqueIdentifier())) {
-        if (mustSatisfyLockExpr(neededLock, teb, binder)) {
+        if (mustSatisfyLockExpr(neededLock, teb)) {
           return isWrite() || (!isWrite() && !lock.isWrite());
         }
       }
@@ -68,7 +67,7 @@ abstract class HeldInstanceLock extends AbstractHeldLock {
   }
 
   abstract boolean mustSatisfyLockExpr(
-      AbstractNeededInstanceLock lock, ThisExpressionBinder teb, IBinder binder);
+      AbstractNeededInstanceLock lock, ThisExpressionBinder teb);
 
   
   

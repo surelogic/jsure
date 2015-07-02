@@ -4,7 +4,6 @@ import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.promise.QualifiedReceiverDeclaration;
 
 abstract class AbstractNeededInstanceLock extends AbstractNeededLock {
@@ -19,13 +18,13 @@ abstract class AbstractNeededInstanceLock extends AbstractNeededLock {
   }
 
   abstract boolean satisfiesAAST(
-      AASTHeldInstanceLock lock, ThisExpressionBinder teb, IBinder b);
+      AASTHeldInstanceLock lock, ThisExpressionBinder teb);
 
   abstract boolean satisfiesIR(
-      IRHeldInstanceLock lock, ThisExpressionBinder teb, IBinder b);
+      IRHeldInstanceLock lock, ThisExpressionBinder teb);
 
   abstract boolean satisfiesFieldRef(
-      HeldFieldRefLock lock, ThisExpressionBinder teb, IBinder b);
+      HeldFieldRefLock lock, ThisExpressionBinder teb);
   
   @Override
   public boolean mayHaveAliasInCallingContext() {

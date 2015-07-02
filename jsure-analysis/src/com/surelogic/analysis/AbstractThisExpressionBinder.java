@@ -19,7 +19,7 @@ import edu.cmu.cs.fluid.tree.Operator;
 
 public abstract class AbstractThisExpressionBinder extends BinderWrapper implements ThisExpressionBinder {  
   protected AbstractThisExpressionBinder(final IBinder b) {
-	super(b);
+    super(b);
   }
 
   /**
@@ -48,11 +48,6 @@ public abstract class AbstractThisExpressionBinder extends BinderWrapper impleme
   
   @Override
   public final IRNode bindThisExpression(final IRNode expr) {
-	  IRNode result = bindThisExpression_private(expr);
-	  return result;
-  }
-  
-  private final IRNode bindThisExpression_private(final IRNode expr) {
     if (expr == null) {
       return null;
     } else {
@@ -65,19 +60,19 @@ public abstract class AbstractThisExpressionBinder extends BinderWrapper impleme
         return bindReceiver(expr);
       } else if (QualifiedThisExpression.prototype.includes(op)) {
         final IRNode outerType =
-          binder.getBinding(QualifiedThisExpression.getType(expr));
+          getBinding(QualifiedThisExpression.getType(expr));
         /* We assume sanity here: that is, that a qualified receiver is not
          * appearing in a static method.
          */
         return bindQualifiedReceiver(outerType, expr);
       } else if (QualifiedSuperExpression.prototype.includes(op)) {
         final IRNode outerType =
-            binder.getBinding(QualifiedSuperExpression.getType(expr));
+            getBinding(QualifiedSuperExpression.getType(expr));
           /* We assume sanity here: that is, that a qualified receiver is not
            * appearing in a static method.
            */
           return bindQualifiedReceiver(outerType, expr);
-        } else {
+      } else {
         return expr;
       }
     }

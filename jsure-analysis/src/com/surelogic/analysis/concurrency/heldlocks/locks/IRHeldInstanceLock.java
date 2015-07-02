@@ -6,7 +6,6 @@ import com.surelogic.dropsea.ir.drops.locks.LockModel;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 
 final class IRHeldInstanceLock extends HeldInstanceLock {
   /**
@@ -43,32 +42,32 @@ final class IRHeldInstanceLock extends HeldInstanceLock {
 
   @Override
   boolean mustAliasLockExpr(
-      final HeldInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return lock.mustAliasIR(this, teb, binder);
+      final HeldInstanceLock lock, final ThisExpressionBinder teb) {
+    return lock.mustAliasIR(this, teb);
   }
   
   @Override
   boolean mustAliasAAST(
-      final AASTHeldInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return checkSyntacticEquality(obj, lock.objAAST, teb, binder);
+      final AASTHeldInstanceLock lock, final ThisExpressionBinder teb) {
+    return checkSyntacticEquality(obj, lock.objAAST, teb);
   }
   
   @Override
   boolean mustAliasIR(
-      final IRHeldInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return checkSyntacticEquality(obj, lock.obj, teb, binder);
+      final IRHeldInstanceLock lock, final ThisExpressionBinder teb) {
+    return checkSyntacticEquality(obj, lock.obj, teb);
   }
   
   @Override
   boolean mustAliasFieldRef(
-      final HeldFieldRefLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return checkFieldRef(teb, binder, lock.obj, lock.varDecl, obj);
+      final HeldFieldRefLock lock, final ThisExpressionBinder teb) {
+    return checkFieldRef(teb, lock.obj, lock.varDecl, obj);
   }
 
   @Override
   boolean mustSatisfyLockExpr(
-      final AbstractNeededInstanceLock lock, final ThisExpressionBinder teb, final IBinder binder) {
-    return lock.satisfiesIR(this, teb, binder);
+      final AbstractNeededInstanceLock lock, final ThisExpressionBinder teb) {
+    return lock.satisfiesIR(this, teb);
   }
 
   @Override
