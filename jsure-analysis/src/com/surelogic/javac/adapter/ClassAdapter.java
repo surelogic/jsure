@@ -169,16 +169,22 @@ public class ClassAdapter extends AbstractAdapter {
        * AnalyzeSignaturesVisitor(), 0);
        */
       if (root != null) {
+    	  if (resource.pkg.equals("usingPromises")) {
+    		  System.out.println("Finishing "+resource.getCUName());
+    	  }
     	  SkeletonJavaRefUtility.registerBinaryCode(declFactory, root, resource, 0);
     	  for(IRNode a : annos) {
-    		  SkeletonJavaRefUtility.copyIfPossible(root, a);
+    		  copyRefToTree(root, a);
     	  }
     	  for(IRNode v : VisitUtil.getClassFieldDeclarators(root)) {
     		  SkeletonJavaRefUtility.copyIfPossible(root, v);
     	  }
     	  for(IRNode d : VisitUtil.getClassBodyMembers(root)) {
     		  if (FieldDeclaration.prototype.includes(d)) {
-    			  continue; // Already handled above
+    			  // The var decls are handled above
+        		  for(IRNode a : Annotations.getAnnotIterator(FieldDeclaration.getAnnos(d))) {
+        			  copyRefToTree(root, a);
+        		  }
     		  }
     		  SkeletonJavaRefUtility.copyIfPossible(root, d);
     	  }
@@ -239,6 +245,13 @@ public class ClassAdapter extends AbstractAdapter {
     return null;
   }
 
+  private static void copyRefToTree(IRNode root, IRNode top) {
+	  for(IRNode n : JavaNode.tree.topDown(top)) {
+		  boolean success = SkeletonJavaRefUtility.copyIfPossible(root, n);
+		  //System.out.println("Copied ref for "+DebugUnparser.toString(n)+"? "+success);		  
+	  }
+  }
+  
   public void visit(int version, int access, String name, String sig, String sname, String[] interfaces) {
     if (debug) {
       if (isInner) {
