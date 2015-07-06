@@ -381,7 +381,7 @@ public final class Effects implements IBinderClient {
         return JavaPromise.getQualifiedReceiverNodeByName(caller, outerType);
       }
     };
-    return getMethodCallEffects(bcaQuery, binder, teb, call, caller);
+    return getMethodCallEffects(bcaQuery, teb, call, caller);
   }
   
   /**
@@ -409,11 +409,11 @@ public final class Effects implements IBinderClient {
    *          better be an instance of {@link ThisBindingTargetFactory}.
    */
   public Set<Effect> getMethodCallEffects(
-      final BindingContextAnalysis.Query bcaQuery, final IBinder binder,
+      final BindingContextAnalysis.Query bcaQuery,
       final ThisExpressionBinder thisExprBinder, final IRNode call,
       final IRNode callingMethodDecl) {
     // Get the node of the method/constructor declaration
-    final IRNode mdecl = binder.getBinding(call);
+    final IRNode mdecl = thisExprBinder.getBinding(call);
     if (mdecl == null) {
     	return Collections.emptySet();
     }
@@ -425,7 +425,7 @@ public final class Effects implements IBinderClient {
     }
   
     final Map<IRNode, IRNode> table =
-      MethodCallUtils.constructFormalToActualMap(binder, call, mdecl, callingMethodDecl);
+      MethodCallUtils.constructFormalToActualMap(thisExprBinder, call, mdecl, callingMethodDecl);
     
     // === Step 2: Instantiate the declared effects based on the substitution map
     
@@ -441,11 +441,11 @@ public final class Effects implements IBinderClient {
           final Target newTarg = new InstanceTarget(
               thisExprBinder.bindThisExpression(val), t.getRegion(), ev);
           elaborateInstanceTargetEffects(
-              bcaQuery, binder, thisExprBinder, call, eff.isRead(),
+              bcaQuery, thisExprBinder, call, eff.isRead(),
               newTarg, methodEffects);
         } else { // See if ref is a QualifiedReceiverDeclaration
           if (QualifiedReceiverDeclaration.prototype.includes(JJNode.tree.getOperator(ref))) {
-            final IRNode type = QualifiedReceiverDeclaration.getType(binder, ref);
+            final IRNode type = QualifiedReceiverDeclaration.getType(thisExprBinder, ref);
             final IJavaReferenceType javaType = JavaTypeFactory.getMyThisType(type);
             final Target newTarg = new AnyInstanceTarget(
                 javaType, t.getRegion(),
@@ -477,13 +477,13 @@ public final class Effects implements IBinderClient {
    * method to be public or even to exist at all.
    */
   public Set<Effect> elaborateEffect(
-      final BindingContextAnalysis.Query bcaQuery, final IBinder binder,
+      final BindingContextAnalysis.Query bcaQuery,
       final ThisExpressionBinder thisExprBinder,
       final IRNode src, final boolean isRead, final Target target) {
     if (target instanceof InstanceTarget) {
       final Set<Effect> elaboratedEffects = new HashSet<Effect>();
       elaborateInstanceTargetEffects(
-          bcaQuery, binder, thisExprBinder, src,
+          bcaQuery, thisExprBinder, src,
           isRead, target, elaboratedEffects);
       return Collections.unmodifiableSet(elaboratedEffects);
     } else {
@@ -492,12 +492,12 @@ public final class Effects implements IBinderClient {
   }
 
   private void elaborateInstanceTargetEffects(
-      final BindingContextAnalysis.Query bcaQuery, final IBinder binder, 
+      final BindingContextAnalysis.Query bcaQuery,
       final ThisExpressionBinder thisExprBinder,
       final IRNode src, final boolean isRead,
       final Target initTarget, final Set<Effect> outEffects) {
     final TargetElaborator te =
-        new TargetElaborator(bcaQuery, binder, thisExprBinder);
+        new TargetElaborator(bcaQuery, thisExprBinder);
     for (final Target t : te.elaborateTarget(initTarget)) {
       outEffects.add(Effect.newEffect(src, isRead, t));
     }
@@ -642,7 +642,6 @@ public final class Effects implements IBinderClient {
     /**
      * The binder to use.
      */
-    private final IBinder binder;
     private final ThisExpressionBinder thisExprBinder;
 
     private final Effects effects;
@@ -688,7 +687,6 @@ public final class Effects implements IBinderClient {
     public EffectsVisitor(final IBinder b, final IRNode flowUnit,
         final BindingContextAnalysis.Query query) {
       super(false, true, flowUnit);
-      this.binder = b;
       this.thisExprBinder = new EVThisExpressionBinder(b);
       this.INSTANCE_REGION = RegionModel.getInstanceRegion(flowUnit);    
       this.context = Context.forNormalMethod(query, flowUnit);
@@ -708,7 +706,7 @@ public final class Effects implements IBinderClient {
     
     @Override
     public IBinder getBinder() {
-      return binder;
+      return thisExprBinder;
     }
     
     
@@ -744,7 +742,7 @@ public final class Effects implements IBinderClient {
        */
       context.addEffects(
           effects.getMethodCallEffects(
-              context.bcaQuery, binder, thisExprBinder, 
+              context.bcaQuery, thisExprBinder, 
               call, getEnclosingDecl()));
     }
     
@@ -758,7 +756,7 @@ public final class Effects implements IBinderClient {
        */
       final IRNode superClassDecl;
       if (AnonClassExpression.prototype.includes(expr)) {
-        superClassDecl = binder.getBinding(AnonClassExpression.getType(expr));
+        superClassDecl = thisExprBinder.getBinding(AnonClassExpression.getType(expr));
       } else { // Enum
         IRNode current = JJNode.tree.getParentOrNull(expr);
         Operator op = JJNode.tree.getOperator(current);
@@ -807,7 +805,7 @@ public final class Effects implements IBinderClient {
                 superClassDecl,
                 context.theReceiverNode, getEnclosingDecl());
           for (final Effect e : newContext.effects()) {
-            final Effect maskedEffect = e.mask(binder);
+            final Effect maskedEffect = e.mask(thisExprBinder);
             if (maskedEffect != null
                 && !maskedEffect.affectsReceiver(newContext.theReceiverNode)) {
               final Target target = maskedEffect.getTarget();
@@ -817,7 +815,7 @@ public final class Effects implements IBinderClient {
                 final IRNode newRef = enclosing.replace(ref);
                 if (newRef != null) {
                   effects.elaborateInstanceTargetEffects(
-                      context.bcaQuery, binder, thisExprBinder, expr, 
+                      context.bcaQuery, thisExprBinder, expr, 
                       maskedEffect.isRead(), 
                       new InstanceTarget(
                           thisExprBinder.bindThisExpression(newRef),
@@ -827,10 +825,10 @@ public final class Effects implements IBinderClient {
                   /* 2012-08-24: We have to clean the type to make sure it is not a 
                    * type formal.
                    */
-                  IJavaType type = binder.getJavaType(ref);
+                  IJavaType type = thisExprBinder.getJavaType(ref);
                   if (type instanceof IJavaTypeFormal) {
                     type = TypeUtil.typeFormalToDeclaredClass(
-                        binder.getTypeEnvironment(), (IJavaTypeFormal) type);
+                        thisExprBinder.getTypeEnvironment(), (IJavaTypeFormal) type);
                   }
                   context.addEffect(Effect.newEffect(expr, maskedEffect.isRead(),
                       new AnyInstanceTarget(
@@ -855,7 +853,7 @@ public final class Effects implements IBinderClient {
       final IRNode array = ArrayRefExpression.getArray(expr);
       final boolean isRead = context.isRead();
       effects.elaborateInstanceTargetEffects(
-          context.bcaQuery, binder, thisExprBinder, expr, isRead,
+          context.bcaQuery, thisExprBinder, expr, isRead,
           new InstanceTarget(thisExprBinder.bindThisExpression(array),
               INSTANCE_REGION, NoEvidence.INSTANCE),              
           context.theEffects);
@@ -901,7 +899,7 @@ public final class Effects implements IBinderClient {
     @Override
     public Void visitFieldRef(final IRNode expr) {
       final boolean isRead = context.isRead();    
-      final IRNode id = binder.getBinding(expr);
+      final IRNode id = thisExprBinder.getBinding(expr);
       if (!TypeUtil.isJSureFinal(id)) {
         if (TypeUtil.isStatic(id)) {
           context.addEffect(Effect.newEffect(expr, isRead,
@@ -912,7 +910,7 @@ public final class Effects implements IBinderClient {
               thisExprBinder.bindThisExpression(obj),
               RegionModel.getInstance(id), NoEvidence.INSTANCE);
           effects.elaborateInstanceTargetEffects(
-              context.bcaQuery, binder, thisExprBinder,
+              context.bcaQuery, thisExprBinder,
               expr, isRead, initTarget, context.theEffects);
         }
       } else {
@@ -977,7 +975,7 @@ public final class Effects implements IBinderClient {
     public Void visitQualifiedThisExpression(final IRNode expr) {
       // Here we are directly fixing the ThisExpression to be the receiver node
       final IRNode outerType =
-        binder.getBinding(QualifiedThisExpression.getType(expr));
+          thisExprBinder.getBinding(QualifiedThisExpression.getType(expr));
       IRNode qr = JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
       if (qr == null) {
         JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
@@ -1017,7 +1015,7 @@ public final class Effects implements IBinderClient {
     @Override
     public Void visitVariableUseExpression(final IRNode expr) {
       final boolean isRead = context.isRead();
-      final IRNode id = binder.getBinding(expr);
+      final IRNode id = thisExprBinder.getBinding(expr);
       context.addEffect(Effect.newEffect(expr, isRead, new LocalTarget(id)));
       return null;
     }
@@ -1060,7 +1058,6 @@ public final class Effects implements IBinderClient {
   
   private class TargetElaborator {
     private final BindingContextAnalysis.Query bcaQuery;
-    private final IBinder binder;
     private final ThisExpressionBinder thisExprBinder;
     
     /**
@@ -1079,9 +1076,8 @@ public final class Effects implements IBinderClient {
     
     
     public TargetElaborator(final BindingContextAnalysis.Query bcaQuery,
-        final IBinder binder, final ThisExpressionBinder teb) {
+        final ThisExpressionBinder teb) {
       this.bcaQuery = bcaQuery;
-      this.binder = binder;
       this.thisExprBinder = teb;
     }
     
@@ -1114,7 +1110,7 @@ public final class Effects implements IBinderClient {
         
         /* If the expression is of an @Immutable type, we can ignore the effect.
          */
-        final IJavaType jType = binder.getJavaType(expr);
+        final IJavaType jType = thisExprBinder.getJavaType(expr);
         if (jType instanceof IJavaDeclaredType
             && LockRules.isImmutableType(((IJavaDeclaredType) jType).getDeclaration())) {
           /* Ignore the target by simply marking it as elaborated and replacing
@@ -1165,10 +1161,10 @@ public final class Effects implements IBinderClient {
           /* 2012-08-24: We have to clean the type to make sure it is not a 
            * type formal.
            */
-          IJavaType type = binder.getJavaType(expr);
+          IJavaType type = thisExprBinder.getJavaType(expr);
           if (type instanceof IJavaTypeFormal) {
             type = TypeUtil.typeFormalToDeclaredClass(
-                binder.getTypeEnvironment(), (IJavaTypeFormal) type);
+                thisExprBinder.getTypeEnvironment(), (IJavaTypeFormal) type);
           }
           newTarget = new AnyInstanceTarget(
               (IJavaReferenceType) type, region, NoEvidence.INSTANCE);
@@ -1187,7 +1183,7 @@ public final class Effects implements IBinderClient {
 
     private void elaborateFieldRef(
         final IRNode expr, final Target target, final Set<Target> newTargets) {
-      final IRNode fieldID = binder.getBinding(expr);
+      final IRNode fieldID = thisExprBinder.getBinding(expr);
 
       // If the field is unique we can exploit uniqueness aggregation.
       final Map<IRegion, IRegion> aggregationMap = 

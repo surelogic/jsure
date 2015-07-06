@@ -65,7 +65,8 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
-public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<NonNullTypeCheckerSlave.Queries> {
+public final class NonNullTypeCheckerSlave
+extends QualifiedTypeCheckerSlave<com.surelogic.analysis.ThisExpressionBinder, NonNullTypeCheckerSlave.Queries> {
   private static final int POSSIBLY_NULL = 915;
   private static final int POSSIBLY_NULL_UNBOX = 916;
   private static final int READ_FROM = 917;
@@ -185,7 +186,6 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
   
   
   
-  private final ThisExpressionBinder thisExprBinder;
   private final NonNullRawTypeAnalysis nonNullRawTypeAnalysis;
   private final DefinitelyAssignedFieldAnalysis definitelyAssignedAnalysis;
   
@@ -206,12 +206,16 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
       final Map<IRNode, Element> fields,
       final Set<PromiseDrop<?>> cva) {
     super(b);
-    thisExprBinder = new ThisExpressionBinder(b);
     nonNullRawTypeAnalysis = nonNullRaw;
     definitelyAssignedAnalysis = defAssign;
     this.badMethodBodies = badMethodBodies;
     fieldInits = fields;
     createdVirtualAnnotations = cva;
+  }
+  
+  @Override
+  protected com.surelogic.analysis.ThisExpressionBinder initBinder(final IBinder b) {
+    return new ThisExpressionBinder(b);
   }
   
   
@@ -334,7 +338,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
       final IRNode where = src.second();
       
       if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
-        final IRNode vd = k.bind(where, binder, thisExprBinder);
+        final IRNode vd = k.bind(where, binder);
         final StackQueryResult newQuery = currentQuery().getStackResult(where);
         final Base varValue = newQuery.lookupVar(vd);
         chain.addLast(where);
@@ -507,7 +511,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
         if (x != null) {
           parent.addTrusted(x);
         } else {
-          final IRNode vd = k.bind(where, binder, thisExprBinder);
+          final IRNode vd = k.bind(where, binder);
           final StackQueryResult newQuery = currentQuery().getStackResult(where);
           final Base varValue = newQuery.lookupVar(vd);
           final ResultFolderDrop f = ResultsBuilder.createAndFolder(
@@ -666,7 +670,7 @@ public final class NonNullTypeCheckerSlave extends QualifiedTypeCheckerSlave<Non
       if (k == Kind.VAR_USE || k == Kind.THIS_EXPR) {
         if (!visitedUseSites.contains(where)) {
           visitedUseSites.add(where);
-          final IRNode vd = k.bind(where, binder, thisExprBinder);
+          final IRNode vd = k.bind(where, binder);
           final StackQueryResult newQuery = currentQuery().getStackResult(where);
           final Base varValue = newQuery.lookupVar(vd);
           hasNegative |= testChain(testRawOnly, declState, varValue.second(), visitedUseSites);

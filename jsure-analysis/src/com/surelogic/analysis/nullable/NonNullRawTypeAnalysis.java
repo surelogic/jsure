@@ -470,15 +470,13 @@ implements IBinderClient {
   public enum Kind {
     VAR_USE(-1) {
       @Override
-      public IRNode bind(final IRNode expr,
-          final IBinder b, final ThisExpressionBinder teb) {
-        return b.getBinding(expr);
+      public IRNode bind(final IRNode expr, final ThisExpressionBinder teb) {
+        return teb.getBinding(expr);
       }
     },
     THIS_EXPR(-1) {
       @Override
-      public IRNode bind(final IRNode expr,
-          final IBinder b, final ThisExpressionBinder teb) {
+      public IRNode bind(final IRNode expr, final ThisExpressionBinder teb) {
         return teb.bindThisExpression(expr);
       }
     },
@@ -626,7 +624,7 @@ implements IBinderClient {
     
     // N.B. Only needed by VAR_USE and THIS_EXPR
     public IRNode bind(
-        final IRNode expr, final IBinder b, final ThisExpressionBinder teb) {
+        final IRNode expr, final ThisExpressionBinder teb) {
       return null;
     }
     

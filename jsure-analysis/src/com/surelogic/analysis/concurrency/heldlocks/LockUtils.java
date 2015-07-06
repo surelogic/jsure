@@ -61,7 +61,6 @@ import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaPromise;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IBinding;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.IJavaType;
@@ -193,9 +192,6 @@ public final class LockUtils {
    * used by the {@link java.lang.Object#wait()}method, etc.
    */
   public static final String MUTEX_NAME = "MUTEX"; //$NON-NLS-1$
-  
-  /** Reference to the Instance region */
-  //private final RegionModel INSTANCE;
 
   
 
@@ -204,9 +200,6 @@ public final class LockUtils {
    * @see LockVisitor#sysLockModelHandle
    */
   private AtomicReference<GlobalLockModel> sysLockModelHandle;
-
-  /** The Java name binder to use. */
-  private final IBinder binder;
   
   private final ThisExpressionBinder thisExprBinder;
   
@@ -269,35 +262,33 @@ public final class LockUtils {
    * Create a set of lock utility methods based around a given set of 
    * analysis information.
    * @param glm The global lock model to use.
-   * @param b The Java name binder to use.
    * @param ea The effects analysis to use.
    */
-  public LockUtils(final AtomicReference<GlobalLockModel> glmRef,
-      final IBinder b, final ThisExpressionBinder teb,
+  public LockUtils(
+      final AtomicReference<GlobalLockModel> glmRef, final ThisExpressionBinder teb,
       final Effects e, final IMayAlias ma, final NeededLockFactory nlf) {
     sysLockModelHandle = glmRef;
-    binder = b;
     thisExprBinder = teb;
     effects = e;
     mayAlias = ma;
     neededLockFactory = nlf;
     
-    if (binder == null || binder.getTypeEnvironment() == null) {
+    if (thisExprBinder == null || thisExprBinder.getTypeEnvironment() == null) {
     	throw new IllegalStateException();
     }
     lockType = JavaTypeFactory.convertNodeTypeToIJavaType(
-          binder.getTypeEnvironment().findNamedType(JAVA_UTIL_CONCURRENT_LOCKS_LOCK),
-          binder);
+        thisExprBinder.getTypeEnvironment().findNamedType(JAVA_UTIL_CONCURRENT_LOCKS_LOCK),
+        thisExprBinder);
     readWriteLockType = JavaTypeFactory.convertNodeTypeToIJavaType(
-        binder.getTypeEnvironment().findNamedType(JAVA_UTIL_CONCURRENT_LOCKS_READWRITELOCK),
-        binder);
+        thisExprBinder.getTypeEnvironment().findNamedType(JAVA_UTIL_CONCURRENT_LOCKS_READWRITELOCK),
+        thisExprBinder);
 
     // Get the instance region declaration
     //INSTANCE = RegionModel.getInstanceRegion();
     
     // Get the lock decl of the MUTEX lock on Object
     final RegionLockRecord lr = sysLockModelHandle.get().getRegionLockByName(
-        binder.getTypeEnvironment().getObjectType(), MUTEX_NAME);
+        thisExprBinder.getTypeEnvironment().getObjectType(), MUTEX_NAME);
     if (lr == null) {
       mutex = null; 
     } else {
@@ -337,7 +328,7 @@ public final class LockUtils {
      */
     return new FinalExpressionChecker() {
       final Effects.Query fxQuery = effects.getEffectsQuery(flowUnit, bcaQuery);
-      final ConflictChecker conflicter = new ConflictChecker(binder, mayAlias);
+      final ConflictChecker conflicter = new ConflictChecker(thisExprBinder, mayAlias);
       
       @Override
       public boolean isFinal(final IRNode expr) {
@@ -354,7 +345,7 @@ public final class LockUtils {
            * must have a @returnsLock annotation (which we are using as a very
            * specific idempotency annotation) or a call to readLock() or writeLock().
            */
-          final IRNode mdecl = binder.getBinding(expr);
+          final IRNode mdecl = thisExprBinder.getBinding(expr);
           if (TypeUtil.isStatic(mdecl)
               || isFinal(mcall.get_Object(expr))) {
             return (getReturnedLock(mdecl) != null) || isReadWriteLockClassUsage(expr);
@@ -372,8 +363,8 @@ public final class LockUtils {
           /* Local variable/parameter must be declared to be final, or be unmodified
            * within the synchronized block
            */
-          final IRNode id = binder.getBinding(expr);
-          if (TypeUtil.isFinalOrEffectivelyFinal(id, binder, unassignedQuery)) {
+          final IRNode id = thisExprBinder.getBinding(expr);
+          if (TypeUtil.isFinalOrEffectivelyFinal(id, thisExprBinder, unassignedQuery)) {
             return true;
           } else {
             return !isLockExpressionChangedBySyncBlock(fxQuery, conflicter, expr, block);
@@ -383,7 +374,7 @@ public final class LockUtils {
            * body of the synchronized block) AND either the field must be static or
            * the object expression must be final
            */
-          final IRNode id = binder.getBinding(expr);
+          final IRNode id = thisExprBinder.getBinding(expr);
 
           /* Check that the object expression is final (or static) */
           if (TypeUtil.isStatic(id)
@@ -486,13 +477,13 @@ public final class LockUtils {
 	  if (result != null) {
 		  return result.booleanValue();
 	  }
-	  boolean rv = binder.getTypeEnvironment().isRawSubType(s, t);
+	  boolean rv = thisExprBinder.getTypeEnvironment().isRawSubType(s, t);
 	  subTypeCache.put(key, rv);
 	  return rv;
   }
   
   private boolean isMethodFrom(final IRNode mcall, final IJavaType testType) {
-	  IBinding b = binder.getIBinding(mcall);
+	  IBinding b = thisExprBinder.getIBinding(mcall);
 	  if (b == null) {
 		  SLLogger.getLogger().warning("No binding for "+DebugUnparser.toString(mcall));
 		  return false;
@@ -500,7 +491,7 @@ public final class LockUtils {
 	  IJavaType context = b.getContextType();
 	  if (context == null) {
 		  IRNode tdecl = VisitUtil.getEnclosingType(b.getNode());
-		  context = binder.getTypeEnvironment().convertNodeTypeToIJavaType(tdecl);
+		  context = thisExprBinder.getTypeEnvironment().convertNodeTypeToIJavaType(tdecl);
 	  }
 	  return isSubType(context, testType);
   }
@@ -581,7 +572,7 @@ public final class LockUtils {
   		return false;
   	}
     if (type instanceof IJavaDeclaredType) {
-      return binder.getTypeEnvironment().isRawSubType(type, lockType);
+      return thisExprBinder.getTypeEnvironment().isRawSubType(type, lockType);
     } else {
       // Arrays and primitives are not lock types
       return false;
@@ -600,7 +591,7 @@ public final class LockUtils {
   		return false;
   	}
     if (type instanceof IJavaDeclaredType) {
-      return binder.getTypeEnvironment().isRawSubType(type, readWriteLockType);
+      return thisExprBinder.getTypeEnvironment().isRawSubType(type, readWriteLockType);
     } else {
       // Arrays and primitives are not lock types
       return false;
@@ -646,7 +637,7 @@ public final class LockUtils {
       final boolean isRead, final Target target,
       final Set<NeededLock> neededLocks) {
     final Set<Effect> elaboratedEffects =
-      effects.elaborateEffect(bcaQuery, binder, thisExprBinder, srcNode, isRead, target);
+      effects.elaborateEffect(bcaQuery, thisExprBinder, srcNode, isRead, target);
     for (final Effect effect : elaboratedEffects) {
       if (!effect.isEmpty()) {
         getLocksFromEffect(effect, LastAggregationProcessor.get(effect), neededLocks);
@@ -683,8 +674,8 @@ public final class LockUtils {
    */
   public RegionLockRecord getLockForFieldRef(final IRNode fieldRef) {
     return getLockForRegion(
-        binder.getJavaType(FieldRef.getObject(fieldRef)),
-        RegionModel.getInstance(binder.getBinding(fieldRef)));
+        thisExprBinder.getJavaType(FieldRef.getObject(fieldRef)),
+        RegionModel.getInstance(thisExprBinder.getBinding(fieldRef)));
   }
 
   // we already know that mcall is an invocation of an instance method!
@@ -725,14 +716,14 @@ public final class LockUtils {
     final List<Target> exposedTargets = new ArrayList<Target>();
     
     // XXX This call is wasteful because the call below to getMethodCallEffects() also builds this map.
-    final IRNode binding = binder.getBinding(mcall);
+    final IRNode binding = thisExprBinder.getBinding(mcall);
     if (binding != null) {
     	final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
-    			binder, mcall, binding, enclosingDecl);
+    	    thisExprBinder, mcall, binding, enclosingDecl);
     	for (final Map.Entry<IRNode, IRNode> entry : m.entrySet()) {
     		final IRNode actual = entry.getValue();
     		if (actual != null && FieldRef.prototype.includes(actual)) {
-    			final IRNode fieldID = binder.getBinding(actual);
+    			final IRNode fieldID = thisExprBinder.getBinding(actual);
     			final Map<IRegion, IRegion> aggregationMap = 
     			    UniquenessUtils.constructRegionMapping(fieldID);
     			if (aggregationMap != null) {
@@ -841,7 +832,7 @@ public final class LockUtils {
       final IRegion region = t.getRegion();
       /* Final regions do not need locks --- VOLATILE ones do! (changes this on 2012-03-30) */
       if (!region.isFinal()) {
-        final IJavaType lookupRegionInThisType = t.getRelativeClass(binder);
+        final IJavaType lookupRegionInThisType = t.getRelativeClass(thisExprBinder);
         final RegionLockRecord neededLock =
           getLockForRegion(lookupRegionInThisType, region);
         if (neededLock != null) {
@@ -891,7 +882,7 @@ public final class LockUtils {
   public GoodAndBadLocks<NeededLock> getLocksForMethodCall(
       final IRNode mcall, final IRNode callingDecl) {
     final GoodAndBadLocks<NeededLock> locks = new GoodAndBadLocks<NeededLock>();
-    final IRNode mdecl = binder.getBinding(mcall);
+    final IRNode mdecl = thisExprBinder.getBinding(mcall);
     if (mdecl == null) {
       return locks;
     }
@@ -903,7 +894,7 @@ public final class LockUtils {
     final List<LockSpecificationNode> lockNames = reqLockD.getAAST().getLockList();
     if (!lockNames.isEmpty()) {
       final Map<IRNode, IRNode> m =
-        MethodCallUtils.constructFormalToActualMap(binder, mcall, mdecl, callingDecl);
+        MethodCallUtils.constructFormalToActualMap(thisExprBinder, mcall, mdecl, callingDecl);
 
       // Now, build the set of locks by substituting actuals for formals
       final NeededLockProcessor p = new NeededLockProcessor(neededLockFactory);
@@ -980,8 +971,8 @@ public final class LockUtils {
        *   final Object = this.lock;
        *   final Lock lock = rwLock.readLock();
        */
-      final IRNode varDecl = binder.getBinding(lockExpr);
-      if (VariableDeclarator.prototype.includes(varDecl) && TypeUtil.isFinalOrEffectivelyFinal(varDecl, binder, query)) { // Parameters don't have inits
+      final IRNode varDecl = thisExprBinder.getBinding(lockExpr);
+      if (VariableDeclarator.prototype.includes(varDecl) && TypeUtil.isFinalOrEffectivelyFinal(varDecl, thisExprBinder, query)) { // Parameters don't have inits
         final IRNode init = VariableDeclarator.getInit(varDecl);
         if (Initialization.prototype.includes(init)) { // a real, non-empty init
           final IRNode initExpr = Initialization.getValue(init);
@@ -1057,7 +1048,7 @@ public final class LockUtils {
          * is always java.lang.Class.
          */
         if (ClassExpression.prototype.includes(op)) { // lockExpr == 'e.class'
-          final IRNode cdecl = this.binder.getBinding(lockExpr); // get the class being locked
+          final IRNode cdecl = this.thisExprBinder.getBinding(lockExpr); // get the class being locked
           // Check for state locks
           for (final AbstractLockRecord lr :
             sysLockModelHandle.get().getRegionAndPolicyLocksForLockImpl(
@@ -1070,8 +1061,8 @@ public final class LockUtils {
       
       if (FieldRef.prototype.includes(op)) { // lockExpr == 'e.f'
         final IRNode obj = FieldRef.getObject(lockExpr);
-        final IJavaType objType = binder.getJavaType(obj);
-        final IRNode potentialLockImpl = this.binder.getBinding(lockExpr);
+        final IJavaType objType = thisExprBinder.getJavaType(obj);
+        final IRNode potentialLockImpl = this.thisExprBinder.getBinding(lockExpr);
 
         // see if 'f' is a lock in class typeOf(e)
         // reminder: lockExpr is a FieldRef; binding it gives the field decl
@@ -1125,7 +1116,7 @@ public final class LockUtils {
                   final Operator mcObjectOp = JJNode.tree.getOperator(mcObject);
                   if (FieldRef.prototype.includes(mcObjectOp)) {
                     // We have 'f = e.g.readLock()' or 'f = e.g.writeLock()'
-                    final IRNode mcBoundField = binder.getBinding(mcObject);
+                    final IRNode mcBoundField = thisExprBinder.getBinding(mcObject);
                     // Field 'g' must be final
                     if (TypeUtil.isJSureFinal(mcBoundField)) {
                       if (TypeUtil.isStatic(mcBoundField)) {
@@ -1149,7 +1140,7 @@ public final class LockUtils {
                         final Operator frObjectOp = JJNode.tree.getOperator(frObject);
                         if (ThisExpression.prototype.includes(frObjectOp)) {
                           // We have 'f = this.g.readLock()' or 'f = this.g.writeLock'
-                          final IJavaType frObjectType = binder.getJavaType(frObject);
+                          final IJavaType frObjectType = thisExprBinder.getJavaType(frObject);
                           if (frObjectType instanceof IJavaDeclaredType) { // sanity check
                             // see if 'g' is a lock in class typeOf(this)
                             final Set<AbstractLockRecord> records2 =
@@ -1219,11 +1210,11 @@ public final class LockUtils {
       final IRNode mcall, final HeldLockFactory heldLockFactory, final IRNode callingDecl, final ILock.Type type,
       final IRNode src) {
     // See if the method even returns a lock
-    final IRNode mdecl                        = binder.getBinding(mcall);
+    final IRNode mdecl                        = thisExprBinder.getBinding(mcall);
     final ReturnsLockPromiseDrop returnedLock = LockUtils.getReturnedLock(mdecl);
     if (returnedLock != null) {
       final Map<IRNode, IRNode> m = MethodCallUtils.constructFormalToActualMap(
-          binder, mcall, mdecl, callingDecl);
+          thisExprBinder, mcall, mdecl, callingDecl);
       return new HeldLockProcessor(heldLockFactory, src).getLock(mdecl, returnedLock.getAAST().getLock(), m, type);
     } else {
       return null;
@@ -1487,7 +1478,7 @@ public final class LockUtils {
       while (isEffectsWork && iter.hasNext()) {
         final Effect effect = iter.next();
         if (effect.isWrite()) {
-          isEffectsWork &= effect.isCheckedBy(binder, writesInstance);
+          isEffectsWork &= effect.isCheckedBy(thisExprBinder, writesInstance);
         }
       }
     }

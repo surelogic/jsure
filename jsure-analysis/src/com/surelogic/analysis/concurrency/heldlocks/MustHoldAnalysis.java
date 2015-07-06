@@ -149,9 +149,9 @@ public final class MustHoldAnalysis extends
 
   
   
-  public MustHoldAnalysis(final ThisExpressionBinder teb, final IBinder b, final LockUtils lu,
+  public MustHoldAnalysis(final ThisExpressionBinder teb, final LockUtils lu,
       final JUCLockUsageManager lockMgr, final SimpleNonnullAnalysis sna) {
-    super(b);
+    super(teb);
     thisExprBinder = teb;
     lockUtils = lu;
     jucLockUsageManager = lockMgr;
@@ -163,11 +163,11 @@ public final class MustHoldAnalysis extends
   protected JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> createAnalysis(
       final IRNode flowUnit) {
     final MustHoldLattice mustHoldLattice =
-      MustHoldLattice.createForFlowUnit(flowUnit, thisExprBinder, binder, jucLockUsageManager);    
+      MustHoldLattice.createForFlowUnit(flowUnit, thisExprBinder, jucLockUsageManager);    
     final JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice> analysis =
       new JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice>(
         "Must Hold Analysis", mustHoldLattice,
-        new MustHoldTransfer(binder, lockUtils, mustHoldLattice,
+        new MustHoldTransfer(thisExprBinder, lockUtils, mustHoldLattice,
             nonNullAnalysis.getNonnullBeforeQuery(flowUnit)), DebugUnparser.viewer);
     return analysis;
   }
@@ -211,9 +211,6 @@ public final class MustHoldAnalysis extends
     @Override
     protected ImmutableList<ImmutableSet<IRNode>>[] transferAssignment(
         IRNode node, ImmutableList<ImmutableSet<IRNode>>[] value) {
-//      System.out.println("transferAssignment: " + lattice.toString(value));
-//      System.out.flush();
-      
       // by default return the same value:
       return value;
     }
@@ -221,9 +218,6 @@ public final class MustHoldAnalysis extends
     @Override
     protected ImmutableList<ImmutableSet<IRNode>>[] transferInitialization(
         IRNode node, ImmutableList<ImmutableSet<IRNode>>[] value) {
-//      System.out.println("transferInitialization: " + lattice.toString(value));
-//      System.out.flush();
-
       // by default return the same value:
       return value;
     }
@@ -232,9 +226,6 @@ public final class MustHoldAnalysis extends
     public ImmutableList<ImmutableSet<IRNode>>[] transferConditional(
         final IRNode node, final boolean flag, 
         final ImmutableList<ImmutableSet<IRNode>>[] before) {
-//      System.out.println("transferConditional: " + lattice.toString(before));
-//      System.out.flush();
-
       /* We only do interesting things if node is a method call node for
        * a tryLock() call.
        */
@@ -256,27 +247,18 @@ public final class MustHoldAnalysis extends
              * node for a tryLock() call.
              */
             final ImmutableList<ImmutableSet<IRNode>>[] out = lattice.foundUnlock(before, node);
-
-//            System.out.println("  " + lattice.toString(out));
-//            System.out.flush();
-
             return out;
           }
         }
       }
       
       // Normal case, always return what came into the conditional
-//      System.out.println("  " + lattice.toString(before));
-//      System.out.flush();
       return before;
     }
     
     @Override
     protected ImmutableList<ImmutableSet<IRNode>>[] transferIsObject(
         IRNode node, boolean flag, ImmutableList<ImmutableSet<IRNode>>[] value) {
-//      System.out.println("transferIsObject (" + flag + ") " + DebugUnparser.toString(node) + ": " + lattice.toString(value));
-//      System.out.flush();
-      
       if (!flag) {
         /* Abrupt case. Return BOTTOM if we can determine that the object must
          * not be null. We determine the object is non-null (1) if the object is
@@ -297,8 +279,6 @@ public final class MustHoldAnalysis extends
               // (1a) Initialized to new object
               if (NewExpression.prototype.includes(initValueOp) ||
                   AnonClassExpression.prototype.includes(initValueOp)) {
-//                System.out.println("  " + lattice.toString(lattice.bottom()));
-//                System.out.flush();
                 return lattice.bottom();
               }
               
@@ -307,8 +287,6 @@ public final class MustHoldAnalysis extends
                */
               if (MethodCall.prototype.includes(initValueOp) &&
                   lockUtils.isJUCRWMethod(initValue)) {
-//                System.out.println("  " + lattice.toString(lattice.bottom()));
-//                System.out.flush();
                 return lattice.bottom();
               }
             }
@@ -316,22 +294,16 @@ public final class MustHoldAnalysis extends
         } else if (MethodCall.prototype.includes(operator)) {
           if (isLockGetterMethod(node) || lockUtils.isJUCRWMethod(node)) {
             // Lock getter methods do not return null values.
-//            System.out.println("  " + lattice.toString(lattice.bottom()));
-//            System.out.flush();
             return lattice.bottom();
           }
         } else if (VariableUseExpression.prototype.includes(operator)) {
           final Set<IRNode> nonNull = nonNullAnalysisQuery.getResultFor(node);
           final IRNode varDecl = binder.getBinding(node);
           if (nonNull.contains(varDecl)) {
-//            System.out.println("  " + lattice.toString(lattice.bottom()));
-//            System.out.flush();
             return lattice.bottom();
           }
         }
       }
-//      System.out.println("  " + lattice.toString(value));
-//      System.out.flush();
       return value;
     }
 
@@ -342,10 +314,6 @@ public final class MustHoldAnalysis extends
       /* N.B. Don't have to also override transferImpliedNewExpression because
        * we don't care about new expressions.
        */
-
-      //      System.out.println("transferCall (" + flag + ") " + DebugUnparser.toString(call) + ": " + lattice.toString(value));
-//      System.out.flush();
-
       final Operator op = tree.getOperator(call);
       if (op instanceof MethodCall) {
         // Method call: check to see if it is a lock or an unlock
@@ -356,20 +324,14 @@ public final class MustHoldAnalysis extends
             if (flag) {
               final ImmutableList<ImmutableSet<IRNode>>[] newValue =
                 lattice.foundLock(value, call);
-//              System.out.println("  " + lattice.toString(newValue));
-//              System.out.flush();
               return newValue;
             } else {
-//              System.out.println("  " + lattice.toString(value));
-//              System.out.flush();
               return value;
             }
           } else { // Must be unlock()
             // The lock is always released, even for abrupt termination.
             final ImmutableList<ImmutableSet<IRNode>>[] newValue =
               lattice.foundUnlock(value, call);
-//            System.out.println("  " + lattice.toString(newValue));
-//            System.out.flush();
             return newValue;
           }          
         } else {
@@ -378,29 +340,20 @@ public final class MustHoldAnalysis extends
             /* In the abrupt case, return bottom to indicate that lock getter
              * methods don't throw exceptions.
              */
-//            System.out.println("  " + lattice.toString(flag ? value : lattice.bottom()));
-//            System.out.flush();
             return (flag ? value : lattice.bottom());
           } else {
             // Otherwise, not interesting
-//            System.out.println("  " + lattice.toString(value));
-//            System.out.flush();
             return value;
           }
         }
       } else {
         // Constructor calls are not interesting
-//        System.out.println("  " + lattice.toString(value));
-//        System.out.flush();
         return value;
       }
     }
 
     @Override
     public ImmutableList<ImmutableSet<IRNode>>[] transferComponentSource(IRNode node) {
-//      System.out.println("transferComponentSource:");
-//      System.out.flush();
-      
       // Initial state of affairs is no locks held
       ImmutableList<ImmutableSet<IRNode>>[] initValue = lattice.getEmptyValue();
       final IRNode flowUnit = lattice.getFlowUnit();
@@ -414,9 +367,6 @@ public final class MustHoldAnalysis extends
                   ImmutableHashOrderSet.<IRNode>emptySet().addCopy(flowUnit)));
         }
       }
-      
-//      System.out.println("  " + lattice.toString(initValue));
-//      System.out.flush();
       return initValue;
     }
   }
@@ -439,8 +389,6 @@ public final class MustHoldAnalysis extends
         final MustHoldLattice lattice,
         final ImmutableList<ImmutableSet<IRNode>>[] initialValue,
         final boolean terminationNormal) {
-//    System.out.println("createAnalysis for " + DebugUnparser.toString(caller));
-//    System.out.flush();
       return new JavaForwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustHoldLattice>(
           "Must Hold Analysis (sub-analysis)", lattice,
           new MustHoldTransfer(binder, lockUtils, lattice,

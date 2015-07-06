@@ -193,11 +193,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 	private final ThisExpressionBinder thisExprBinder;
 
-	/**
-	 * The binder to use.
-	 */
-	private final IBinder binder;
-
 	private final BindingContextAnalysis bindingContextAnalysis;
 
 	private final DefiniteAssignment definiteAssignment;
@@ -747,7 +742,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	public LockVisitor(final IBinder b, final Effects e,
 			final IMayAlias ma, final BindingContextAnalysis bca,
 			final AtomicReference<GlobalLockModel> glmRef) {
-		binder = b;
 		effects = new Effects(b);
 		bindingContextAnalysis = bca;
 		definiteAssignment = new DefiniteAssignment(b);
@@ -761,16 +755,16 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		heldLockFactory = new HeldLockFactory(thisExprBinder);
 		neededLockFactory = new NeededLockFactory(thisExprBinder);
 
-		lockUtils = new LockUtils(glmRef, b, thisExprBinder, e, mayAlias, neededLockFactory);
-		jucLockUsageManager = new JUCLockUsageManager(lockUtils, binder, bca, definiteAssignment);
+		lockUtils = new LockUtils(glmRef, thisExprBinder, e, mayAlias, neededLockFactory);
+		jucLockUsageManager = new JUCLockUsageManager(lockUtils, thisExprBinder, bca, definiteAssignment);
 
 		// Create the subsidiary flow analyses
-		nonNullAnalylsis = new SimpleNonnullAnalysis(binder);
+		nonNullAnalylsis = new SimpleNonnullAnalysis(thisExprBinder);
 		// intrinsicLock = new IntrinsicLockAnalysis(b, lockUtils,
 		// jucLockUsageManager, nonNullAnalylsis);
-		mustRelease = new MustReleaseAnalysis(thisExprBinder, b, lockUtils,
+		mustRelease = new MustReleaseAnalysis(thisExprBinder, lockUtils,
 				jucLockUsageManager, nonNullAnalylsis);
-		mustHold = new MustHoldAnalysis(thisExprBinder, b, lockUtils,
+		mustHold = new MustHoldAnalysis(thisExprBinder, lockUtils,
 				jucLockUsageManager, nonNullAnalylsis);
 	}
 
@@ -788,7 +782,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 	@Override
   public IBinder getBinder() {
-		return this.binder;
+		return this.thisExprBinder;
 	}
 
 	@Override
@@ -840,7 +834,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		final Operator op = JJNode.tree.getOperator(node);
 		if (ClassBody.prototype.includes(op)) {
 			ctxtTypeDecl = JJNode.tree.getParentOrNull(node);
-			ctxtJavaType = (IJavaDeclaredType) binder.getTypeEnvironment().getMyThisType(
+			ctxtJavaType = (IJavaDeclaredType) thisExprBinder.getTypeEnvironment().getMyThisType(
 					ctxtTypeDecl);
 			ctxtTheHeldLocks = new LockStack();
 			this.doAccept(node);
@@ -982,7 +976,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		 * object does not yet have a fixed name.
 		 */
 		// get the locks for the class of the expression's value
-		final IJavaType lockExprType = binder.getJavaType(lockExpr);
+		final IJavaType lockExprType = thisExprBinder.getJavaType(lockExpr);
 		final Set<PolicyLockRecord> plocksForExprType;
 		if (lockExprType instanceof IJavaDeclaredType) {
 			plocksForExprType = sysLockModel.getPolicyLocksForLockImpl(
@@ -1002,7 +996,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			 */
 			if (ClassExpression.prototype.includes(op)) { // lockExpr ==
 															// 'e.class'
-				final IRNode cdecl = this.binder.getBinding(lockExpr); // get
+				final IRNode cdecl = this.thisExprBinder.getBinding(lockExpr); // get
 																		// the
 																		// class
 				if (!sysLockModel.getPolicyLocksForLockImpl(
@@ -1012,8 +1006,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			} else if (FieldRef.prototype.includes(op)) { // lockExpr == 'e.f'
 				final IRNode obj = FieldRef.getObject(lockExpr);
 				if (!sysLockModel.getPolicyLocksForLockImpl(
-						binder.getJavaType(obj),
-						this.binder.getBinding(lockExpr)).isEmpty()) {
+				    thisExprBinder.getJavaType(obj),
+						this.thisExprBinder.getBinding(lockExpr)).isEmpty()) {
 					return true;
 				}
 			}
@@ -1249,7 +1243,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			 * is not protected.
 			 */
 			final boolean unprotected = !UniquenessUtils
-					.isUnique(this.binder.getBinding(objExpr))
+					.isUnique(this.thisExprBinder.getBinding(objExpr))
 					&& (isArrayRef || !isFinalOrVolatile(fieldRef)
 							&& lockUtils.getLockForFieldRef(fieldRef) == null);
 			if (unprotected) {
@@ -1282,8 +1276,8 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 								Messages.LockAnalysis_ds_AggregationNeeded,
 								DebugUnparser.toString(fieldRef));
 						// Propose the unique annotation
-						final IRNode fieldDecl = binder.getBinding(objExpr);
-						final IJavaType rcvrType = binder.getJavaType(FieldRef
+						final IRNode fieldDecl = thisExprBinder.getBinding(objExpr);
+						final IJavaType rcvrType = thisExprBinder.getJavaType(FieldRef
 								.getObject(objExpr));
 						final Set<AbstractLockRecord> records = sysLockModelHandle
 								.get().getRegionAndPolicyLocksInClass(rcvrType);
@@ -1325,7 +1319,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						/*
 						 * Propose that the field be @Unique and aggregated.
 						 */
-						final IRNode fieldDecl = binder.getBinding(objExpr);
+						final IRNode fieldDecl = thisExprBinder.getBinding(objExpr);
 						final String simpleRegionName = innerLock.region.getName();
 						if ("Instance".equals(simpleRegionName)) {
 							info.addProposal(new Builder(Unique.class, fieldDecl, fieldRef).build());
@@ -1377,7 +1371,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	 * field.
 	 */
 	private boolean isFinalOrVolatile(final IRNode fieldRef) {
-		final IRNode fieldDecl = binder.getBinding(fieldRef);
+		final IRNode fieldDecl = thisExprBinder.getBinding(fieldRef);
 		return TypeUtil.isJSureFinal(fieldDecl) || TypeUtil.isVolatile(fieldDecl);
 	}
 
@@ -1404,12 +1398,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	 */
 	private void receiverIsSafeObject(final IRNode actualRcvr) {
 		// First see if the referenced type is safe
-		if (!isSafeType(binder.getJavaType(actualRcvr))) { // not safe
+		if (!isSafeType(thisExprBinder.getJavaType(actualRcvr))) { // not safe
 			final Operator op = JJNode.tree.getOperator(actualRcvr);
 			if (FieldRef.prototype.includes(op)) {
 				// If the field is unique, it is a safe object
 				final boolean isUnique = UniquenessUtils
-						.isUnique(this.binder.getBinding(actualRcvr));
+						.isUnique(this.thisExprBinder.getBinding(actualRcvr));
 				if (!isUnique) {
 					/*
 					 * See if the field is protected: either directly, or
@@ -1425,7 +1419,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 									Messages.LockAnalysis_ds_AggregationNeeded2,
 									DebugUnparser.toString(actualRcvr));
 
-							final IJavaType rcvrType = binder
+							final IJavaType rcvrType = thisExprBinder
 									.getJavaType(FieldRef.getObject(actualRcvr));
 							final Set<AbstractLockRecord> records = sysLockModelHandle
 									.get().getRegionAndPolicyLocksInClass(
@@ -1466,7 +1460,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 	private boolean mayBeAccessedByManyThreads(final IRNode fieldRef) {
 		/* We assume fieldRef is final or volatile */
 		// now see if class has programmer-declared locks in it.
-		final IJavaType rcvrType = binder.getJavaType(FieldRef
+		final IJavaType rcvrType = thisExprBinder.getJavaType(FieldRef
 				.getObject(fieldRef));
 		return classDeclaresLocks(rcvrType);
 	}
@@ -1752,7 +1746,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		final LockUtils.GoodAndBadLocks<NeededLock> locks = lockUtils
 				.getLocksForMethodCall(call, enclosingMethod);
 
-		final IRNode mdecl = this.binder.getBinding(call);
+		final IRNode mdecl = this.thisExprBinder.getBinding(call);
 		final RequiresLockPromiseDrop rlDrop = LockRules.getRequiresLock(mdecl);
 		final LockChecker callChecker = new LockChecker(call) {
 			@Override
@@ -1888,7 +1882,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		 * java.util.concurrent.locks.Lock or
 		 * java.util.concurrent.locks.ReadWriteLock
 		 */
-		final IJavaType type = binder.getJavaType(lockExpr);
+		final IJavaType type = thisExprBinder.getJavaType(lockExpr);
 		if (type instanceof IJavaDeclaredType) {
 			final List<IRNode> lockFields = new LinkedList<IRNode>();
 			IJavaDeclaredType currentType = (IJavaDeclaredType) type;
@@ -1896,13 +1890,13 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				final IRNode classDecl = currentType.getDeclaration();
 				for (final IRNode vd : VisitUtil
 						.getClassFieldDeclarators(classDecl)) {
-					final IJavaType fieldType = binder.getJavaType(vd);
+					final IJavaType fieldType = thisExprBinder.getJavaType(vd);
 					if (lockUtils.implementsLock(fieldType)
 							|| lockUtils.implementsReadWriteLock(fieldType)) {
 						lockFields.add(vd);
 					}
 				}
-				currentType = currentType.getSuperclass(binder
+				currentType = currentType.getSuperclass(thisExprBinder
 						.getTypeEnvironment());
 			}
 			return lockFields;
@@ -1973,7 +1967,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						// Create the substitution map
 						ctxtEnclosingRefs = MethodCallUtils
 								.getEnclosingInstanceReferences(
-										thisExprBinder, expr, binder
+										thisExprBinder, expr, thisExprBinder
 												.getBinding(AnonClassExpression
 														.getType(expr)),
 										oldTheReceiverNode,
@@ -2021,7 +2015,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						ctxtMustReleaseQuery = ctxtMustReleaseQuery
 								.getSubAnalysisQuery(expr);
 
-						ctxtConflicter = new ConflictChecker(binder, mayAlias);
+						ctxtConflicter = new ConflictChecker(thisExprBinder, mayAlias);
 						ctxtOnBehalfOfConstructor = false;
 						ctxtInsideConstructor = null;
 						ctxtConstructorName = null;
@@ -2107,7 +2101,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 					.getExpressionObjectsQuery(ctxtInsideMethod);
 			ctxtUnassignedQuery = definiteAssignment.getProvablyUnassignedQuery(ctxtInsideMethod);
 			updateJUCAnalysisQueries(ctxtInsideMethod);
-			ctxtConflicter = new ConflictChecker(binder, mayAlias);
+			ctxtConflicter = new ConflictChecker(thisExprBinder, mayAlias);
 			// The receiver is non-existent
 			ctxtTheReceiverNode = null;
 			// We the static locks are held
@@ -2199,7 +2193,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			ctxtBcaQuery = bindingContextAnalysis
 					.getExpressionObjectsQuery(cdecl);
 			ctxtUnassignedQuery = definiteAssignment.getProvablyUnassignedQuery(cdecl);
-			ctxtConflicter = new ConflictChecker(binder, mayAlias);
+			ctxtConflicter = new ConflictChecker(thisExprBinder, mayAlias);
       ctxtConstructorName = JavaNames.genMethodConstructorName(cdecl);
 			ctxtSingleThreadedData = jucLockUsageManager
 					.getSingleThreadedData(cdecl);
@@ -2263,7 +2257,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		dereferencesSafeObject(fieldRef);
 
 		// Only non-final fields need to be protected
-		final IRNode id = binder.getBinding(fieldRef);
+		final IRNode id = thisExprBinder.getBinding(fieldRef);
 		if (!TypeUtil.isJSureFinal(id)) {
 			final IRegion fieldAsRegion = RegionModel.getInstance(id);
 			final Target target;
@@ -2294,7 +2288,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 	@Override
 	public Void visitMethodCall(final IRNode expr) {
-		final IRNode methodDecl = this.binder.getBinding(expr);
+		final IRNode methodDecl = this.thisExprBinder.getBinding(expr);
 		// Don't do anything if the method call is a getter method from a Java 5
 		// annotation
 		if (AnnotationElement.prototype.includes(methodDecl)) {
@@ -2467,7 +2461,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			ctxtBcaQuery = bindingContextAnalysis.getExpressionObjectsQuery(eltDecl);
 			ctxtUnassignedQuery = definiteAssignment.getProvablyUnassignedQuery(eltDecl);
 			updateJUCAnalysisQueries(eltDecl);
-			ctxtConflicter = new ConflictChecker(binder, mayAlias);
+			ctxtConflicter = new ConflictChecker(thisExprBinder, mayAlias);
 			doAcceptForChildren(eltDecl);
 		} finally {
 			// Cleanup the state used for checking returns
@@ -2612,7 +2606,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			 * Test for mixed usage: warn about synchronizing on JUC locks! Only
 			 * convert lock expression for intrinsic locks.
 			 */
-			final IJavaType typeOfLockExpr = binder.getJavaType(lockExpr);
+			final IJavaType typeOfLockExpr = thisExprBinder.getJavaType(lockExpr);
 			if (lockUtils.implementsLock(typeOfLockExpr)
 					|| lockUtils.implementsReadWriteLock(typeOfLockExpr)) {
 				makeWarningDrop(Messages.DSC_MIXED_PARADIGM, lockExpr,
@@ -2850,7 +2844,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 								.getExpressionObjectsQuery(ctxtInsideMethod);
 						ctxtUnassignedQuery = definiteAssignment.getProvablyUnassignedQuery(ctxtInsideMethod);
 						updateJUCAnalysisQueries(ctxtInsideMethod);
-						ctxtConflicter = new ConflictChecker(binder, mayAlias);
+						ctxtConflicter = new ConflictChecker(thisExprBinder, mayAlias);
 						ctxtClassInitializationLocks = convertStaticInitializerBlock(
 								varDecl, ctxtJavaType);
 					}
@@ -2919,7 +2913,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				.getExpressionObjectsQuery(ctxtInsideMethod);
 		ctxtUnassignedQuery = definiteAssignment.getProvablyUnassignedQuery(ctxtInsideMethod);
 		updateJUCAnalysisQueries(ctxtInsideMethod);
-		ctxtConflicter = new ConflictChecker(binder, mayAlias);
+		ctxtConflicter = new ConflictChecker(thisExprBinder, mayAlias);
 		ctxtClassInitializationLocks = convertStaticInitializerBlock(constDecl,
 				ctxtJavaType);
 
@@ -2960,7 +2954,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				.getExpressionObjectsQuery(ctxtInsideMethod);
 		ctxtUnassignedQuery = definiteAssignment.getProvablyUnassignedQuery(ctxtInsideMethod);
 		updateJUCAnalysisQueries(ctxtInsideMethod);
-		ctxtConflicter = new ConflictChecker(binder, mayAlias);
+		ctxtConflicter = new ConflictChecker(thisExprBinder, mayAlias);
 		ctxtClassInitializationLocks = convertStaticInitializerBlock(constDecl,
 				ctxtJavaType);
 
@@ -3048,7 +3042,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							ctxtMustReleaseQuery = ctxtMustReleaseQuery
 									.getSubAnalysisQuery(constDecl);
 
-							ctxtConflicter = new ConflictChecker(binder,
+							ctxtConflicter = new ConflictChecker(thisExprBinder,
 									mayAlias);
 							ctxtOnBehalfOfConstructor = false;
 							ctxtInsideConstructor = null;
@@ -3181,7 +3175,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
   				.getExpressionObjectsQuery(mdecl);
   		ctxtUnassignedQuery = definiteAssignment.getProvablyUnassignedQuery(mdecl);
   		updateJUCAnalysisQueries(mdecl);
-  		ctxtConflicter = new ConflictChecker(binder, mayAlias);
+  		ctxtConflicter = new ConflictChecker(thisExprBinder, mayAlias);
   		final ReturnsLockPromiseDrop returnedLockName = LockUtils
   				.getReturnedLock(mdecl);
       final Set<LockSpecificationNode> returnsLocksOnParameters = 

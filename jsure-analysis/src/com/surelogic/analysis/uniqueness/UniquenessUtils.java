@@ -21,7 +21,6 @@ import com.surelogic.dropsea.ir.drops.uniqueness.SimpleUniqueInRegionPromiseDrop
 import com.surelogic.dropsea.ir.drops.uniqueness.UniquePromiseDrop;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.FieldRef;
 import edu.cmu.cs.fluid.parse.JJNode;
 
@@ -80,11 +79,11 @@ public final class UniquenessUtils {
    * aggregation.
    */
   public static List<Target> fieldRefAggregatesInto(
-      final IBinder binder, final ThisExpressionBinder thisExprBinder,
+      final ThisExpressionBinder thisExprBinder,
       final IRNode expr, final IRegion region) {
     return Collections.unmodifiableList(
       fieldRefAggregatesInto(
-          binder, thisExprBinder, expr, region, new LinkedList<Target>()));
+          thisExprBinder, expr, region, new LinkedList<Target>()));
   }
 
   
@@ -99,7 +98,7 @@ public final class UniquenessUtils {
    * aggregation.
    */
   private static List<Target> fieldRefAggregatesInto(
-      final IBinder binder, final ThisExpressionBinder thisExprBinder,
+      final ThisExpressionBinder thisExprBinder,
       final IRNode expr, final IRegion region, final List<Target> result) {
     /* Careful, region can be static!  No aggregation in the case of static
      * fields, just return the field itself.
@@ -119,7 +118,7 @@ public final class UniquenessUtils {
         /* expr = e.f1
          * fieldRef = <e.f1> . <region>
          */
-        final IRNode fieldID = binder.getBinding(expr);
+        final IRNode fieldID = thisExprBinder.getBinding(expr);
         /* The field is unique or borrowed, see if we can exploit aggregation. */
         final Map<IRegion, IRegion> aggregationMap = constructRegionMapping(fieldID);
         if (aggregationMap != null) {
@@ -131,7 +130,7 @@ public final class UniquenessUtils {
            * See what regions <newObject.newRegion> aggregate into. (The
            * recursive call will add <newObject> . <newRegion> to the results.)
            */
-          fieldRefAggregatesInto(binder, thisExprBinder, newObject, newRegion, result);
+          fieldRefAggregatesInto(thisExprBinder, newObject, newRegion, result);
         }
       }
     }

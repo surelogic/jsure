@@ -8,7 +8,6 @@ import com.surelogic.analysis.ThisExpressionBinder;
 import com.surelogic.analysis.concurrency.heldlocks.locks.HeldLock;
 
 import edu.cmu.cs.fluid.ir.IRNode;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.util.ImmutableList;
 import edu.cmu.cs.fluid.util.ImmutableSet;
 
@@ -42,9 +41,9 @@ final class MustReleaseLattice extends AbstractLockStackLattice {
    *          the map portion of this lattice.
    */
   private MustReleaseLattice(
-      final ThisExpressionBinder teb, final IBinder b,
+      final ThisExpressionBinder teb, 
       final HeldLock[] locks, final Map<IRNode, Set<HeldLock>> map) {
-    super(teb, b, locks, map);
+    super(teb, locks, map);
   }
   
   /**
@@ -59,11 +58,11 @@ final class MustReleaseLattice extends AbstractLockStackLattice {
    *         expressions present in the provided flow unit.
    */
   public static MustReleaseLattice createForFlowUnit(
-      final IRNode flowUnit, final ThisExpressionBinder thisExprBinder, final IBinder binder,
+      final IRNode flowUnit, final ThisExpressionBinder thisExprBinder, 
       final JUCLockUsageManager jucLockUsageManager) {    
     final Map<IRNode, Set<HeldLock>> map = jucLockUsageManager.getJUCLockExprsToLockSets(flowUnit);
-    return new MustReleaseLattice(thisExprBinder, binder, 
-        getLocksFromMap(map, thisExprBinder), map);
+    return new MustReleaseLattice(
+        thisExprBinder, getLocksFromMap(map, thisExprBinder), map);
   }
   
   

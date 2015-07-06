@@ -52,11 +52,11 @@ final class MustHoldLattice extends AbstractLockStackLattice {
    *          The list of unique lock expressions that represent the domain of
    *          the map portion of this lattice.
    */
-  private MustHoldLattice(final IRNode fu,
-      final ThisExpressionBinder teb, final IBinder b,
+  private MustHoldLattice(
+      final IRNode fu, final ThisExpressionBinder teb, 
       final HeldLock[] locks, final Map<IRNode, Set<HeldLock>> map,
       final Set<HeldLock> req, final Set<HeldLock> st, final Set<HeldLock> ci) {
-    super(teb, b, locks, map);
+    super(teb, locks, map);
     flowUnit = fu;
     requiredLocks = req;
     singleThreaded = st;
@@ -75,15 +75,15 @@ final class MustHoldLattice extends AbstractLockStackLattice {
    *         expressions present in the provided flow unit.
    */
   public static MustHoldLattice createForFlowUnit(
-      final IRNode flowUnit, final ThisExpressionBinder thisExprBinder, final IBinder binder,
+      final IRNode flowUnit, final ThisExpressionBinder thisExprBinder,
       final JUCLockUsageManager jucLockUsageManager) { 
     final Map<IRNode, Set<HeldLock>> map = jucLockUsageManager.getJUCLockExprsToLockSets(flowUnit);
     final Set<HeldLock> required = jucLockUsageManager.getJUCRequiredLocks(flowUnit);
     final Set<HeldLock> singleThreaded = jucLockUsageManager.getJUCSingleThreaded(flowUnit);
     final Set<HeldLock> classInit = jucLockUsageManager.getJUCClassInit(flowUnit);
-    final HeldLock[] locks = constructLockArray(map, required, singleThreaded, classInit, thisExprBinder, binder);
-    return new MustHoldLattice(flowUnit, thisExprBinder, binder,
-        locks, map, required, singleThreaded, classInit);
+    final HeldLock[] locks = constructLockArray(map, required, singleThreaded, classInit, thisExprBinder);
+    return new MustHoldLattice(
+        flowUnit, thisExprBinder, locks, map, required, singleThreaded, classInit);
   }
  
   

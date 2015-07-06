@@ -32,16 +32,18 @@ import edu.cmu.cs.fluid.tree.Operator;
  * based on those places where the JLS indicates a statement or expression
  * may generate a particular run-time exception.
  */
-public abstract class QualifiedTypeCheckerSlave<Q> extends FlowUnitVisitor<Q> {
-  protected final IBinder binder;
+public abstract class QualifiedTypeCheckerSlave<B extends IBinder, Q> extends FlowUnitVisitor<Q> {
+  protected final B binder;
 
   
   
   protected QualifiedTypeCheckerSlave(final IBinder b) {
     super(true);
-    binder = b;
+    binder = initBinder(b);
   }
 
+  protected abstract B initBinder(IBinder b);
+  
   
   
   // ======================================================================

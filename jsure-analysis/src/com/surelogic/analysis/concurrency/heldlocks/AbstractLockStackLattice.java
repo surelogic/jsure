@@ -17,7 +17,6 @@ import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.IndependentIRNode;
 import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.JavaNode;
-import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.operator.ConstructorDeclaration;
 import edu.cmu.cs.fluid.java.operator.MethodCall;
 import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
@@ -64,7 +63,6 @@ abstract class AbstractLockStackLattice extends
   protected static final ImmutableSet<IRNode> IGNORE_ME_SINGLETON_SET = ImmutableHashOrderSet.<IRNode> emptySet()
       .addCopy(IGNORE_ME);
 
-  protected final IBinder binder;
   protected final ThisExpressionBinder thisExprBinder;
 
   /**
@@ -81,17 +79,18 @@ abstract class AbstractLockStackLattice extends
    *          The list of unique lock expressions that represent the domain of
    *          the map portion of this lattice.
    */
-  protected AbstractLockStackLattice(final ThisExpressionBinder teb, final IBinder b, final HeldLock[] lks,
+  protected AbstractLockStackLattice(
+      final ThisExpressionBinder teb, final HeldLock[] lks,
       final Map<IRNode, Set<HeldLock>> map) {
     super(new ListLattice<UnionLattice<IRNode>, ImmutableSet<IRNode>>(new UnionLattice<IRNode>()), lks);
-    binder = b;
     thisExprBinder = teb;
     lockExprsToLockSets = map;
   }
 
-  protected static HeldLock[] constructLockArray(final Map<IRNode, Set<HeldLock>> map, final Set<HeldLock> req,
-      final Set<HeldLock> singleThreaded, final Set<HeldLock> classInit, final ThisExpressionBinder thisExprBinder,
-      final IBinder binder) {
+  protected static HeldLock[] constructLockArray(
+      final Map<IRNode, Set<HeldLock>> map, final Set<HeldLock> req,
+      final Set<HeldLock> singleThreaded, final Set<HeldLock> classInit,
+      final ThisExpressionBinder thisExprBinder) {
     /*
      * Build the List of locks. An O(n^2) operation because we do not want to
      * include aliases.
@@ -207,7 +206,6 @@ abstract class AbstractLockStackLattice extends
    * 
    * @param oldValue
    * @param call
-   * @param binder
    * @return
    */
   protected final ImmutableList<ImmutableSet<IRNode>>[] pushCall(final ImmutableList<ImmutableSet<IRNode>>[] oldValue,
@@ -242,7 +240,6 @@ abstract class AbstractLockStackLattice extends
    * 
    * @param oldValue
    * @param call
-   * @param binder
    * @return
    */
   protected final ImmutableList<ImmutableSet<IRNode>>[] popCall(final ImmutableList<ImmutableSet<IRNode>>[] oldValue,

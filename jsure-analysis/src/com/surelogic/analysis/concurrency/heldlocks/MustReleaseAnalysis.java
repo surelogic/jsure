@@ -79,9 +79,9 @@ public final class MustReleaseAnalysis extends
   
   
   
-  public MustReleaseAnalysis(final ThisExpressionBinder teb, final IBinder b, final LockUtils lu,
+  public MustReleaseAnalysis(final ThisExpressionBinder teb, final LockUtils lu,
       final JUCLockUsageManager lockMgr, final SimpleNonnullAnalysis sna) {
-    super(b);
+    super(teb);
     thisExprBinder = teb;
     lockUtils = lu;
     jucLockUsageManager = lockMgr;
@@ -92,12 +92,12 @@ public final class MustReleaseAnalysis extends
   @Override
   protected JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> createAnalysis(final IRNode flowUnit) {
     final MustReleaseLattice mustReleaseLattice =
-      MustReleaseLattice.createForFlowUnit(flowUnit, thisExprBinder, binder, jucLockUsageManager);    
+      MustReleaseLattice.createForFlowUnit(flowUnit, thisExprBinder, jucLockUsageManager);    
     final JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice> analysis =
       new JavaBackwardAnalysis<ImmutableList<ImmutableSet<IRNode>>[], MustReleaseLattice>(
         "Must Release Analysis", mustReleaseLattice,
         new MustReleaseTransfer(
-            binder, lockUtils, mustReleaseLattice,
+            thisExprBinder, lockUtils, mustReleaseLattice,
             nonNullAnalysis.getNonnullBeforeQuery(flowUnit)), DebugUnparser.viewer);
     return analysis;
   }
