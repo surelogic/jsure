@@ -624,20 +624,20 @@ public final class LockUtils {
   // == Methods for getting the necessary locks
   // ========================================================================
   
-  public Set<NeededLock> getLocksForDirectRegionAccess(final Effects effects,
+  public Set<NeededLock> getLocksForDirectRegionAccess(
       final BindingContextAnalysis.Query bcaQuery, final IRNode srcNode,
       final boolean isRead, final Target target) {
     final Set<NeededLock> neededLocks = new HashSet<NeededLock>();
-    getLocksForDirectRegionAccess(effects, bcaQuery, srcNode, isRead, target, neededLocks);
+    getLocksForDirectRegionAccess(bcaQuery, srcNode, isRead, target, neededLocks);
     return Collections.unmodifiableSet(neededLocks);
   }
 
-  private void getLocksForDirectRegionAccess(final Effects effects,
+  private void getLocksForDirectRegionAccess(
       final BindingContextAnalysis.Query bcaQuery, final IRNode srcNode,
       final boolean isRead, final Target target,
       final Set<NeededLock> neededLocks) {
     final Set<Effect> elaboratedEffects =
-      effects.elaborateEffect(bcaQuery, thisExprBinder, srcNode, isRead, target);
+      Effects.elaborateEffect(bcaQuery, thisExprBinder, srcNode, isRead, target);
     for (final Effect effect : elaboratedEffects) {
       if (!effect.isEmpty()) {
         getLocksFromEffect(effect, LastAggregationProcessor.get(effect), neededLocks);
@@ -760,7 +760,7 @@ public final class LockUtils {
           for (final Target exposedTarget : exposedTargets) {
             if (conflicter.doTargetsOverlap(target, exposedTarget)) {
               getLocksForDirectRegionAccess(
-                  effects, bcaQuery, mcall, effect.isRead(), exposedTarget, result);
+                  bcaQuery, mcall, effect.isRead(), exposedTarget, result);
             }
           }
         }

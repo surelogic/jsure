@@ -2059,7 +2059,6 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 
 		dereferencesSafeObject(expr);
 		assureRegionRef(expr, lockUtils.getLocksForDirectRegionAccess(
-				effects,
 				ctxtBcaQuery,
 				expr,
 				!isWrite,
@@ -2268,7 +2267,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 						FieldRef.getObject(fieldRef), fieldAsRegion);
 			}
 			assureRegionRef(fieldRef, lockUtils.getLocksForDirectRegionAccess(
-					effects, ctxtBcaQuery, fieldRef, !isWrite, target));
+					ctxtBcaQuery, fieldRef, !isWrite, target));
 		}
 
 		// continue into the expression
@@ -2871,7 +2870,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 							}
 							assureRegionRef(varDecl,
 									lockUtils.getLocksForDirectRegionAccess(
-											effects, ctxtBcaQuery, varDecl,	false, target));
+											ctxtBcaQuery, varDecl,	false, target));
 						}
 						// analyze the the RHS of the initialization
 						doAcceptForChildren(varDecl);

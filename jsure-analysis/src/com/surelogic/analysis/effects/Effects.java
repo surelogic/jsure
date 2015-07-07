@@ -210,8 +210,8 @@ public final class Effects implements IBinderClient {
    */
   public Set<Effect> getImplementationEffects(
       final IRNode flowUnit, final BindingContextAnalysis bca) {
-    final EffectsVisitor visitor = new EffectsVisitor(binder, flowUnit,
-        bca.getExpressionObjectsQuery(flowUnit));
+    final EffectsVisitor visitor = new EffectsVisitor(
+        flowUnit, bca.getExpressionObjectsQuery(flowUnit));
     visitor.doAccept(flowUnit);
     return Collections.unmodifiableSet(visitor.getTheEffects());
   }
@@ -366,9 +366,6 @@ public final class Effects implements IBinderClient {
   public Set<Effect> getMethodCallEffects(
       final BindingContextAnalysis.Query bcaQuery,
       final IRNode call, final IRNode caller) {
-    /* Used to compute the receiver lazily, but now we need it ahead of time
-     * because we have to pass the receiver to getMethodCallEffects directly.
-     */
     final IRNode rcvr = JavaPromise.getReceiverNodeOrNull(caller);
     final ThisExpressionBinder teb = new AbstractThisExpressionBinder(binder) {
       @Override
@@ -408,7 +405,7 @@ public final class Effects implements IBinderClient {
    *          property bound. Currently this means that the targetFactory had
    *          better be an instance of {@link ThisBindingTargetFactory}.
    */
-  public Set<Effect> getMethodCallEffects(
+  private Set<Effect> getMethodCallEffects(
       final BindingContextAnalysis.Query bcaQuery,
       final ThisExpressionBinder thisExprBinder, final IRNode call,
       final IRNode callingMethodDecl) {
@@ -476,7 +473,7 @@ public final class Effects implements IBinderClient {
    * the work of effects analysis.  This would eliminate the need for this
    * method to be public or even to exist at all.
    */
-  public Set<Effect> elaborateEffect(
+  public static Set<Effect> elaborateEffect(
       final BindingContextAnalysis.Query bcaQuery,
       final ThisExpressionBinder thisExprBinder,
       final IRNode src, final boolean isRead, final Target target) {
@@ -491,7 +488,7 @@ public final class Effects implements IBinderClient {
     }
   }
 
-  private void elaborateInstanceTargetEffects(
+  private static void elaborateInstanceTargetEffects(
       final BindingContextAnalysis.Query bcaQuery,
       final ThisExpressionBinder thisExprBinder,
       final IRNode src, final boolean isRead,
@@ -509,142 +506,114 @@ public final class Effects implements IBinderClient {
   // Nested types
   // ----------------------------------------------------------------------
   
-  private final static class EffectsVisitor extends JavaSemanticsVisitor implements IBinderClient {
+  /**
+   * Class stores the details about the particular visitation being performed.
+   * Initialized by one of the public entry methods:
+   * {@link #getEffects} {@link #getLHSEffects}, {@link #getMethodCallEffects},
+   * or {@link #getRawMethodCallEffects}.
+   */
+  private static final class Context {
     /**
-     * Class stores the details about the particular visitation being performed.
-     * Initialized by one of the public entry methods:
-     * {@link #getEffects} {@link #getLHSEffects}, {@link #getMethodCallEffects},
-     * or {@link #getRawMethodCallEffects}.
+     * The set of accumulated effects.  This field has a value only when a 
+     * traversal is being performed; otherwise it is <code>null</code>.
      */
-    private static final class Context {
-      /**
-       * The set of accumulated effects.  This field has a value only when a 
-       * traversal is being performed; otherwise it is <code>null</code>.
-       */
-      private final Set<Effect> theEffects;
-      
-      /**
-       * The MethodDeclaration, ConstructorDeclaration, or ClassInitDeclaration
-       * being analyzed.
-       */
-      private final IRNode enclosingMethod;
-      
-      /**
-       * The receiver declaration node of the constructor/method/field
-       * initializer/class initializer currently being analyzed. Every expression we
-       * want to analyze should be inside one of these things. We need to keep track
-       * of this because the {@link #initHelper instance initialization  helper}
-       * re-enters this analysis on behalf of constructor declarations, and we want
-       * any field declarations and instance initializers to report their receivers
-       * in terms of the current constructor; this makes life easier for consumers
-       * of the effect results.
-       */
-      private final IRNode theReceiverNode;
-      
-      /**
-       * The current binding context analysis query engine.  This BCA is focused
-       * to the flow unit represented by {@link #enclosingMethod}.
-       */
-      private final BindingContextAnalysis.Query bcaQuery;
-      
-      /**
-       * This field is checked on entry to an expression to determine if the effect
-       * should be a write effect. It is always immediately restored to
-       * <code>false</code> after being checked.
-       * 
-       * <p>
-       * The field represents whether the expression is the left-hand side of an
-       * assignment expression. Has the following relationship with the
-       * <code>read</code> parameter of
-       * {@link Effect#newEffect(IRNode, boolean, Target)}:
-       * <code>read == !isLHS</code> because if it's on the LHS it is being
-       * assigned to.
-       * 
-       * <p>
-       * This field is set by when visiting the parent of the lhs node. It is thus
-       * important that the parent node set this flag immediately before visiting the
-       * node that represents the left-hand side of the assignment expression.
-       */
-      private boolean isLHS;
-
-      
-      
-      private Context(final Set<Effect> effects, final IRNode method,
-          final IRNode rcvr, final BindingContextAnalysis.Query query,
-          final boolean lhs) {
-        this.theEffects = effects;
-        this.enclosingMethod = method;
-        this.theReceiverNode = rcvr;
-        this.bcaQuery = query;
-        this.isLHS = lhs;
-      }
-
-      public static Context forNormalMethod(
-          final BindingContextAnalysis.Query query, final IRNode enclosingMethod) {
-        return new Context(new HashSet<Effect>(), enclosingMethod,
-            JavaPromise.getReceiverNodeOrNull(enclosingMethod),
-            query, false);
-      }
-      
-      public static Context forACE(
-          final Context oldContext, final IRNode anonClassExpr,
-          final IRNode enclosingDecl, final IRNode rcvr) {
-        return new Context(new HashSet<Effect>(), enclosingDecl, rcvr,
-            oldContext.getSubQuery(anonClassExpr), false);
-      }
-      
-      public static Context forConstructorCall(final Context oldContext, final IRNode ccall) {
-        // Purposely alias the effects set
-        return new Context(oldContext.theEffects, 
-            oldContext.enclosingMethod, oldContext.theReceiverNode,
-            oldContext.getSubQuery(ccall), oldContext.isLHS());
-      }
-      
-      
-      
-      private boolean isLHS() { 
-        return isLHS;
-      }
-      
-      private BindingContextAnalysis.Query getSubQuery(final IRNode ccall) {
-        return bcaQuery.getSubAnalysisQuery(ccall);
-      }
-      
-      
-      
-      public void setLHS() {
-        isLHS = true;
-      }
-      
-      public boolean isRead() {
-        final boolean isRead = !this.isLHS;
-        this.isLHS = false;
-        return isRead;
-      }
-      
-      public void addEffect(final Effect effect) {
-        theEffects.add(effect);
-      }
-      
-      public void addEffects(final Set<Effect> effects) {
-        theEffects.addAll(effects);
-      }
-      
-      public Set<Effect> effects() {
-        return theEffects;
-      }
+    private final Set<Effect> theEffects;
+    
+    /**
+     * The MethodDeclaration, ConstructorDeclaration, or ClassInitDeclaration
+     * being analyzed.
+     */
+    private final IRNode enclosingMethod;
+    
+    /**
+     * The receiver declaration node of the constructor/method/field
+     * initializer/class initializer currently being analyzed. Every expression we
+     * want to analyze should be inside one of these things. We need to keep track
+     * of this because the {@link #initHelper instance initialization  helper}
+     * re-enters this analysis on behalf of constructor declarations, and we want
+     * any field declarations and instance initializers to report their receivers
+     * in terms of the current constructor; this makes life easier for consumers
+     * of the effect results.
+     */
+    private final IRNode theReceiverNode;
+    
+    /**
+     * The current binding context analysis query engine.  This BCA is focused
+     * to the flow unit represented by {@link #enclosingMethod}.
+     */
+    private final BindingContextAnalysis.Query bcaQuery;
+    
+    /**
+     * This field is checked on entry to an expression to determine if the effect
+     * should be a write effect. It is always immediately restored to
+     * <code>false</code> after being checked.
+     * 
+     * <p>
+     * The field represents whether the expression is the left-hand side of an
+     * assignment expression. Has the following relationship with the
+     * <code>read</code> parameter of
+     * {@link Effect#newEffect(IRNode, boolean, Target)}:
+     * <code>read == !isLHS</code> because if it's on the LHS it is being
+     * assigned to.
+     * 
+     * <p>
+     * This field is set by when visiting the parent of the lhs node. It is thus
+     * important that the parent node set this flag immediately before visiting the
+     * node that represents the left-hand side of the assignment expression.
+     */
+    private boolean isLHS;
+  
+    
+    
+    private Context(final Set<Effect> effects, final IRNode method,
+        final IRNode rcvr, final BindingContextAnalysis.Query query,
+        final boolean lhs) {
+      this.theEffects = effects;
+      this.enclosingMethod = method;
+      this.theReceiverNode = rcvr;
+      this.bcaQuery = query;
+      this.isLHS = lhs;
+    }
+  
+    public static Context forNormalMethod(
+        final BindingContextAnalysis.Query query, final IRNode enclosingMethod) {
+      return new Context(new HashSet<Effect>(), enclosingMethod,
+          JavaPromise.getReceiverNodeOrNull(enclosingMethod),
+          query, false);
+    }
+    
+    public static Context forACE(
+        final Context oldContext, final IRNode anonClassExpr,
+        final IRNode enclosingDecl, final IRNode rcvr) {
+      return new Context(new HashSet<Effect>(), enclosingDecl, rcvr,
+          oldContext.bcaQuery.getSubAnalysisQuery(anonClassExpr), false);
+    }
+    
+    public static Context forConstructorCall(final Context oldContext, final IRNode ccall) {
+      // Purposely alias the effects set
+      return new Context(oldContext.theEffects, 
+          oldContext.enclosingMethod, oldContext.theReceiverNode,
+          oldContext.bcaQuery.getSubAnalysisQuery(ccall), oldContext.isLHS);
     }
     
     
     
+    public boolean isRead() {
+      final boolean isRead = !this.isLHS;
+      this.isLHS = false;
+      return isRead;
+    }
+  }
+
+
+
+  private final class EffectsVisitor extends JavaSemanticsVisitor {
     private final RegionModel INSTANCE_REGION;
 
     /**
      * The binder to use.
      */
     private final ThisExpressionBinder thisExprBinder;
-
-    private final Effects effects;
     
     /**
      * Information about the current method/constructor declaration
@@ -684,29 +653,18 @@ public final class Effects implements IBinderClient {
      *          the appropriate sub query object. In cases of highly nested
      *          anonymous classes, this should be the appropriate sub-sub-query.
      */
-    public EffectsVisitor(final IBinder b, final IRNode flowUnit,
+    public EffectsVisitor(final IRNode flowUnit,
         final BindingContextAnalysis.Query query) {
       super(false, true, flowUnit);
-      this.thisExprBinder = new EVThisExpressionBinder(b);
-      this.INSTANCE_REGION = RegionModel.getInstanceRegion(flowUnit);    
-      this.context = Context.forNormalMethod(query, flowUnit);
-      this.effects = new Effects(b);
+      thisExprBinder = new EVThisExpressionBinder(binder);
+      INSTANCE_REGION = RegionModel.getInstanceRegion(flowUnit);    
+      context = Context.forNormalMethod(query, flowUnit);
     }
 
     
     
     public Set<Effect> getTheEffects() {
       return context.theEffects;
-    }
-    
-    @Override
-    public void clearCaches() {
-      // Do nothing
-    }
-    
-    @Override
-    public IBinder getBinder() {
-      return thisExprBinder;
     }
     
     
@@ -740,10 +698,9 @@ public final class Effects implements IBinderClient {
        * {@link Context#enclosingMethod enclosing method} of the current
        * {@link #context context.}.
        */
-      context.addEffects(
-          effects.getMethodCallEffects(
-              context.bcaQuery, thisExprBinder, 
-              call, getEnclosingDecl()));
+      context.theEffects.addAll(
+          Effects.this.getMethodCallEffects(
+              context.bcaQuery, thisExprBinder, call, getEnclosingDecl()));
     }
     
     //----------------------------------------------------------------------
@@ -804,7 +761,7 @@ public final class Effects implements IBinderClient {
                 thisExprBinder, expr,
                 superClassDecl,
                 context.theReceiverNode, getEnclosingDecl());
-          for (final Effect e : newContext.effects()) {
+          for (final Effect e : newContext.theEffects) {
             final Effect maskedEffect = e.mask(thisExprBinder);
             if (maskedEffect != null
                 && !maskedEffect.affectsReceiver(newContext.theReceiverNode)) {
@@ -814,7 +771,7 @@ public final class Effects implements IBinderClient {
                 
                 final IRNode newRef = enclosing.replace(ref);
                 if (newRef != null) {
-                  effects.elaborateInstanceTargetEffects(
+                  elaborateInstanceTargetEffects(
                       context.bcaQuery, thisExprBinder, expr, 
                       maskedEffect.isRead(), 
                       new InstanceTarget(
@@ -830,15 +787,14 @@ public final class Effects implements IBinderClient {
                     type = TypeUtil.typeFormalToDeclaredClass(
                         thisExprBinder.getTypeEnvironment(), (IJavaTypeFormal) type);
                   }
-                  context.addEffect(Effect.newEffect(expr, maskedEffect.isRead(),
-                      new AnyInstanceTarget(
-                          (IJavaReferenceType) type, target.getRegion(), 
-                          new UnknownReferenceConversionEvidence(maskedEffect, ref, (IJavaReferenceType) type))));
+                  context.theEffects.add(Effect.newEffect(expr, maskedEffect.isRead(),
+                  new AnyInstanceTarget(
+                      (IJavaReferenceType) type, target.getRegion(), 
+                      new UnknownReferenceConversionEvidence(maskedEffect, ref, (IJavaReferenceType) type))));
                 }
               } else {
-                context.addEffect(
-                    maskedEffect.changeSource(
-                        expr, new AnonClassEvidence(maskedEffect)));
+                context.theEffects.add(maskedEffect.changeSource(
+                expr, new AnonClassEvidence(maskedEffect)));
               }
             }
           }
@@ -852,7 +808,7 @@ public final class Effects implements IBinderClient {
     public Void visitArrayRefExpression(final IRNode expr) {
       final IRNode array = ArrayRefExpression.getArray(expr);
       final boolean isRead = context.isRead();
-      effects.elaborateInstanceTargetEffects(
+      elaborateInstanceTargetEffects(
           context.bcaQuery, thisExprBinder, expr, isRead,
           new InstanceTarget(thisExprBinder.bindThisExpression(array),
               INSTANCE_REGION, NoEvidence.INSTANCE),              
@@ -865,7 +821,7 @@ public final class Effects implements IBinderClient {
 
     @Override
     public Void visitAssignExpression(final IRNode expr) {
-      context.setLHS();
+      context.isLHS = true;
       this.doAccept(AssignExpression.getOp1(expr));
       this.doAccept(AssignExpression.getOp2(expr));
       return null;
@@ -902,22 +858,21 @@ public final class Effects implements IBinderClient {
       final IRNode id = thisExprBinder.getBinding(expr);
       if (!TypeUtil.isJSureFinal(id)) {
         if (TypeUtil.isStatic(id)) {
-          context.addEffect(Effect.newEffect(expr, isRead,
-              new ClassTarget(RegionModel.getInstance(id), NoEvidence.INSTANCE)));
+          context.theEffects.add(Effect.newEffect(expr, isRead,
+          new ClassTarget(RegionModel.getInstance(id), NoEvidence.INSTANCE)));
         } else {
           final IRNode obj = FieldRef.getObject(expr);
           final Target initTarget = new InstanceTarget(
               thisExprBinder.bindThisExpression(obj),
               RegionModel.getInstance(id), NoEvidence.INSTANCE);
-          effects.elaborateInstanceTargetEffects(
+          elaborateInstanceTargetEffects(
               context.bcaQuery, thisExprBinder,
               expr, isRead, initTarget, context.theEffects);
         }
       } else {
-        context.addEffect(
-            Effect.newEffect(expr, isRead, 
-                new EmptyTarget(new EmptyEvidence(
-                    EmptyEvidence.Reason.FINAL_FIELD, null, id))));
+        context.theEffects.add(Effect.newEffect(expr, isRead, 
+        new EmptyTarget(new EmptyEvidence(
+            EmptyEvidence.Reason.FINAL_FIELD, null, id))));
       }
       doAcceptForChildren(expr);
       return null;
@@ -927,7 +882,7 @@ public final class Effects implements IBinderClient {
 
     @Override
     public Void visitOpAssignExpression(final IRNode expr) {
-      context.setLHS();
+      context.isLHS = true;
       this.doAccept(OpAssignExpression.getOp1(expr));
       this.doAccept(OpAssignExpression.getOp2(expr));
       return null;
@@ -937,7 +892,7 @@ public final class Effects implements IBinderClient {
 
     @Override
     public Void visitPostDecrementExpression(final IRNode expr) {
-      context.setLHS();
+      context.isLHS = true;
       this.doAccept(PostDecrementExpression.getOp(expr));
       return null;
     }
@@ -946,7 +901,7 @@ public final class Effects implements IBinderClient {
 
     @Override
     public Void visitPostIncrementExpression(final IRNode expr) {
-      context.setLHS();
+      context.isLHS = true;
       this.doAccept(PostIncrementExpression.getOp(expr));
       return null;
     }
@@ -955,7 +910,7 @@ public final class Effects implements IBinderClient {
 
     @Override
     public Void visitPreDecrementExpression(final IRNode expr) {
-      context.setLHS();
+      context.isLHS = true;
       this.doAccept(PreDecrementExpression.getOp(expr));
       return null;
     }
@@ -964,7 +919,7 @@ public final class Effects implements IBinderClient {
 
     @Override
     public Void visitPreIncrementExpression(final IRNode expr) {
-      context.setLHS();
+      context.isLHS = true;
       this.doAccept(PreIncrementExpression.getOp(expr));
       return null;
     }
@@ -980,7 +935,7 @@ public final class Effects implements IBinderClient {
       if (qr == null) {
         JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
       }
-      context.addEffect(Effect.newRead(expr, new LocalTarget(qr)));
+      context.theEffects.add(Effect.newRead(expr, new LocalTarget(qr)));
       return null;
     }
 
@@ -989,7 +944,7 @@ public final class Effects implements IBinderClient {
     @Override 
     public Void visitSuperExpression(final IRNode expr) {
       // Here we are directly fixing the ThisExpression to be the receiver node
-      context.addEffect(Effect.newRead(expr, new LocalTarget(context.theReceiverNode)));
+      context.theEffects.add(Effect.newRead(expr, new LocalTarget(context.theReceiverNode)));
       return null;
     }
 
@@ -998,7 +953,7 @@ public final class Effects implements IBinderClient {
     @Override 
     public Void visitThisExpression(final IRNode expr) {
       // Here we are directly fixing the ThisExpression to be the receiver node
-      context.addEffect(Effect.newRead(expr, new LocalTarget(context.theReceiverNode)));
+      context.theEffects.add(Effect.newRead(expr, new LocalTarget(context.theReceiverNode)));
       return null;
     }
     
@@ -1016,7 +971,7 @@ public final class Effects implements IBinderClient {
     public Void visitVariableUseExpression(final IRNode expr) {
       final boolean isRead = context.isRead();
       final IRNode id = thisExprBinder.getBinding(expr);
-      context.addEffect(Effect.newEffect(expr, isRead, new LocalTarget(id)));
+      context.theEffects.add(Effect.newEffect(expr, isRead, new LocalTarget(id)));
       return null;
     }
 
@@ -1027,15 +982,15 @@ public final class Effects implements IBinderClient {
         final IRNode varDecl, final boolean isStatic) {
       if (!TypeUtil.isJSureFinal(varDecl)) {
         if (isStatic) {
-          context.addEffect(Effect.newWrite(varDecl, 
-              new ClassTarget(RegionModel.getInstance(varDecl), NoEvidence.INSTANCE)));
+          context.theEffects.add(Effect.newWrite(varDecl, 
+          new ClassTarget(RegionModel.getInstance(varDecl), NoEvidence.INSTANCE)));
         } else {
-          context.addEffect(Effect.newRead(varDecl, new LocalTarget(context.theReceiverNode)));
+          context.theEffects.add(Effect.newRead(varDecl, new LocalTarget(context.theReceiverNode)));
           // This never needs elaborating because it is not a use expression or a field reference expression
           final Target t = new InstanceTarget(
               thisExprBinder.bindThisExpression(context.theReceiverNode),
               RegionModel.getInstance(varDecl), NoEvidence.INSTANCE);
-          context.addEffect(Effect.newWrite(varDecl, t));
+          context.theEffects.add(Effect.newWrite(varDecl, t));
         }
       }
       doAcceptForChildren(varDecl);
@@ -1048,7 +1003,7 @@ public final class Effects implements IBinderClient {
         /* LOCAL VARIABLE: 'varDecl' is already the declaration of the variable,
          * so we don't have to bind it.
          */
-        context.addEffect(Effect.newWrite(varDecl, new LocalTarget(varDecl)));
+        context.theEffects.add(Effect.newWrite(varDecl, new LocalTarget(varDecl)));
       }
       doAcceptForChildren(varDecl);
     }
@@ -1056,7 +1011,7 @@ public final class Effects implements IBinderClient {
 
   
   
-  private class TargetElaborator {
+  private static class TargetElaborator {
     private final BindingContextAnalysis.Query bcaQuery;
     private final ThisExpressionBinder thisExprBinder;
     
@@ -1248,7 +1203,7 @@ public final class Effects implements IBinderClient {
     @Override
     public Set<Effect> getResultFor(final IRNode expr) {
       final EffectsVisitor visitor =
-          new EffectsVisitor(binder, flowUnit, bcaQuery);
+          new EffectsVisitor(flowUnit, bcaQuery);
       visitor.doAccept(expr);
       return Collections.unmodifiableSet(visitor.getTheEffects());
     }
