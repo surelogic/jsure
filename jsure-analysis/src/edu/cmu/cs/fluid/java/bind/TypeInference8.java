@@ -402,7 +402,7 @@ public class TypeInference8 {
 			m.getReceiverType().visit(v);
 
 			if (!v.formals.isEmpty()) {
-				hack = constructInitialSet(v.formals);
+				hack = constructInitialSet(v.formals, IJavaTypeSubstitution.NULL);
 				call = new CallState((CallState) call, call.getReceiverType().subst(hack.getInitialVarSubst()));
 				
 				IBinding b = 
@@ -416,9 +416,9 @@ public class TypeInference8 {
 		final BoundSet b_0;
 		if (ConstructorReference.prototype.includes(call.getNode())) {
 			// Special case to handle filling the type's variables, if any
-			b_0 = constructInitialSet(getTypeFormalsForRef(m));
+			b_0 = constructInitialSet(getTypeFormalsForRef(m), IJavaTypeSubstitution.NULL);
 		} else {
-			b_0 = constructInitialSet(m.typeFormals);
+			b_0 = constructInitialSet(m.typeFormals, m.getSubst()); 
 		}
 
 		if (hack != null) {
@@ -1501,7 +1501,7 @@ public class TypeInference8 {
 		final IJavaType[] s = m_1.getParamTypes(tEnv.getBinder(), k, kind == InvocationKind.VARARGS, false);
 		final IJavaType[] t = m_2.getParamTypes(tEnv.getBinder(), k, kind == InvocationKind.VARARGS, false);
 		
-		final BoundSet b = constructInitialSet(m_2.typeFormals);
+		final BoundSet b = constructInitialSet(m_2.typeFormals, IJavaTypeSubstitution.NULL); // TODO is this right?
 		final IJavaTypeSubstitution theta = b.getInitialVarSubst();
 		for(int i=0; i<k; i++) {
 			t[i] = t[i].subst(theta);
@@ -1983,11 +1983,11 @@ public class TypeInference8 {
 	 *   if this results in no proper upper bounds for α l (only dependencies), 
 	 *   then the bound α l <: Object also appears in the set.
 	 */
-	BoundSet constructInitialSet(IRNode typeFormals, IJavaType... createdVars) {
-		return constructInitialSet(getTypeFormalList(typeFormals), createdVars);
+	BoundSet constructInitialSet(IRNode typeFormals, IJavaTypeSubstitution boundSubst, IJavaType... createdVars) {
+		return constructInitialSet(getTypeFormalList(typeFormals), boundSubst, createdVars);
 	}
 	
-	BoundSet constructInitialSet(Collection<IJavaTypeFormal> typeFormals, IJavaType... createdVars) {
+	BoundSet constructInitialSet(Collection<IJavaTypeFormal> typeFormals, IJavaTypeSubstitution boundSubst, IJavaType... createdVars) {
 		// Setup inference variables
 		final int numFormals = typeFormals.size();
 		final InferenceVariable[] vars = new InferenceVariable[numFormals];
@@ -2005,7 +2005,7 @@ public class TypeInference8 {
 			boolean gotProperBound = false;
 			for(IRNode bound : MoreBounds.getBoundIterator(bounds)) {
 				final IJavaType t = tEnv.getBinder().getJavaType(bound);
-				final IJavaType t_subst = t.subst(theta);
+				final IJavaType t_subst = t.subst(theta).subst(boundSubst);
 				noBounds = false;
 				set.addSubtypeBound(vars[i], t_subst);
 				if (isProperType(t_subst)) {
@@ -3012,7 +3012,7 @@ public class TypeInference8 {
 				i++;
 			}
 			
-			BoundSet newBounds = constructInitialSet(formals, varArray);
+			BoundSet newBounds = constructInitialSet(formals, IJavaTypeSubstitution.NULL, varArray);
 			IJavaTypeSubstitution theta = newBounds.getInitialVarSubst();			
 			/*bounds.*/merge(newBounds);
 			
