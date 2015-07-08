@@ -4,8 +4,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.commons.collections15.MultiMap;
-
+import com.google.common.collect.Multimap;
 import com.surelogic.*;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.annotation.rules.AnnotationRules;
@@ -99,8 +98,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	private SLProgressMonitor monitor;
 	@InRegion("JTEState")
 	private JavacProject project;
-	private final ConcurrentMap<IRNode, List<IRNode>> subtypeMap = new ConcurrentHashMap<IRNode, List<IRNode>>();
-	private final ConcurrentMap<String, CodeInfo> infos = new ConcurrentHashMap<String, CodeInfo>();
+	private final ConcurrentMap<IRNode, List<IRNode>> subtypeMap = new ConcurrentHashMap<>();
+	private final ConcurrentMap<String, CodeInfo> infos = new ConcurrentHashMap<>();
 	
 	@Unique("return")
 	public JavacTypeEnvironment(Projects projs, JavacProject p,
@@ -166,7 +165,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 		copy.classes.copy(this.classes);
 		for (Map.Entry<IRNode, List<IRNode>> e : this.subtypeMap.entrySet()) {
 			copy.subtypeMap
-					.put(e.getKey(), new ArrayList<IRNode>(e.getValue()));
+					.put(e.getKey(), new ArrayList<>(e.getValue()));
 		}
 		return copy;
 	}
@@ -229,8 +228,8 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	}
 	@ThreadSafe
 	class ClassTable extends AbstractJavaClassTable {
-		private final ConcurrentMap<String, IRNode> packages = new ConcurrentHashMap<String, IRNode>();
-		private final ConcurrentMap<String, IRNode> outerClasses = new ConcurrentHashMap<String, IRNode>();
+		private final ConcurrentMap<String, IRNode> packages = new ConcurrentHashMap<>();
+		private final ConcurrentMap<String, IRNode> outerClasses = new ConcurrentHashMap<>();
 
 		public void copy(ClassTable orig) {
 			this.packages.putAll(orig.packages);
@@ -262,7 +261,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 
 		@Override
     public Iterable<Pair<String, IRNode>> allPackages() {
-			List<Pair<String, IRNode>> pairs = new ArrayList<Pair<String, IRNode>>();
+			List<Pair<String, IRNode>> pairs = new ArrayList<>();
 			for (Map.Entry<String, IRNode> e : packages.entrySet()) {
 				pairs.add(new Pair<String, IRNode>(e.getKey(), e.getValue()));
 			}
@@ -471,7 +470,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	/**
 	 * type -> subtypes
 	 */
-	public void saveSubTypeInfo(MultiMap<CUDrop, CUDrop> deps) {
+	public void saveSubTypeInfo(Multimap<CUDrop, CUDrop> deps) {
 		for (Map.Entry<IRNode, List<IRNode>> e : subtypeMap.entrySet()) {
 			final IRNode tRoot = VisitUtil.findRoot(e.getKey());
 			final CUDrop tCU = CUDrop.queryCU(tRoot);
@@ -495,7 +494,7 @@ public class JavacTypeEnvironment extends AbstractTypeEnvironment implements
 	}
 
 	public void postProcessCompUnits(final boolean debug) {
-		Set<IRNode> roots = new HashSet<IRNode>();
+		Set<IRNode> roots = new HashSet<>();
 		for (IRNode outer : classes.outerClasses.values()) {
 			roots.add(VisitUtil.findRoot(outer));
 		}

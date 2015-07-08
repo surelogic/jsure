@@ -4,8 +4,7 @@ import java.io.*;
 import java.util.*;
 import java.util.zip.*;
 
-import org.apache.commons.collections15.MultiMap;
-
+import com.google.common.collect.Multimap;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 
@@ -14,7 +13,7 @@ public class JSureSubtypeInfo {
 	private static final String SUBTYPES_ZIP = "subtypes.zip";	
 	
 	final File zip;
-	final Set<String> names = new HashSet<String>();
+	final Set<String> names = new HashSet<>();
 	
 	public JSureSubtypeInfo(File zip) throws IOException {
 		this.zip = zip;
@@ -28,15 +27,14 @@ public class JSureSubtypeInfo {
 		zf.close();
 	}
 
-	public static void save(File runDir, MultiMap<CUDrop, CUDrop> subtypeDependencies) throws IOException {
+	public static void save(File runDir, Multimap<CUDrop, CUDrop> subtypeDependencies) throws IOException {
 		final File zip = new File(runDir, SUBTYPES_ZIP);
 		ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zip));
-		for(Map.Entry<CUDrop,Collection<CUDrop>> e : subtypeDependencies.entrySet()) {
+		for(Map.Entry<CUDrop,Collection<CUDrop>> e : subtypeDependencies.asMap().entrySet()) {
 			final String name = computeCUName(e.getKey());
 			final ZipEntry ze = new ZipEntry(name);
 			out.putNextEntry(ze);
 
-			@SuppressWarnings("resource") // closed via out
 			final PrintWriter pw = new PrintWriter(out);
 			for(CUDrop sub : e.getValue()) {
 				final String sName = computeCUName(sub);
@@ -67,7 +65,7 @@ public class JSureSubtypeInfo {
 		if (roots.isEmpty()) {
 			return Collections.emptySet();
 		}
-		final Set<String> results = new HashSet<String>();
+		final Set<String> results = new HashSet<>();
 		final ZipFile zf = new ZipFile(zip);
 		for(String root : roots) {
 			if (!names.contains(root)) {

@@ -1,6 +1,8 @@
 /*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/scrub/AASTStore.java,v 1.8 2008/09/04 18:50:16 chance Exp $*/
 package com.surelogic.annotation.scrub;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.surelogic.*;
 import com.surelogic.aast.*;
 import com.surelogic.annotation.rules.IAnnotationConflictResolver.Context;
@@ -12,9 +14,6 @@ import edu.cmu.cs.fluid.ir.IRNodeHashedMap;
 
 import java.util.*;
 import java.util.concurrent.*;
-
-import org.apache.commons.collections15.MultiMap;
-import org.apache.commons.collections15.multimap.MultiHashMap;
 
 /**
  * Stores the AASTs after parsing until they are scrubbed
@@ -285,7 +284,7 @@ public static synchronized <A extends IAASTRootNode>
   }
 
   public static synchronized Context getConflictResolutionContext(final IRNode n) {
-	  final MultiMap<Class<? extends IAASTRootNode>, IAASTRootNode> aastsByType = new MultiHashMap<Class<? extends IAASTRootNode>, IAASTRootNode>();
+	  final Multimap<Class<? extends IAASTRootNode>, IAASTRootNode> aastsByType = ArrayListMultimap.create();;
 	  for(IAASTRootNode ast : byPromisedFor.get(n)) {
 		  aastsByType.put(ast.getClass(), ast);
 	  }

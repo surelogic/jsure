@@ -78,9 +78,9 @@ public abstract class AbstractTypeEnvironment implements ITypeEnvironment {
   private static final boolean debug = LOG.isLoggable(Level.FINE);
   
   private final AtomicReference<IJavaDeclaredType> objectType =
-      new AtomicReference<IJavaDeclaredType>(null);
+      new AtomicReference<>(null);
   private final Map<IRNode,IJavaType> convertedTypeCache = 
-	  new ConcurrentHashMap<IRNode,IJavaType>();
+	  new ConcurrentHashMap<>();
   private IBindHelper helper;
   
   protected final Map<String, IJavaType> javaTypeMap = new HashMap<String, IJavaType>();

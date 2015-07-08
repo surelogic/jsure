@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.collections15.MultiMap;
-import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -39,6 +37,8 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaModelException;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.surelogic.analysis.AnalysisConstants;
 import com.surelogic.analysis.AnalysisDefaults;
 import com.surelogic.analysis.JSureProperties;
@@ -50,9 +50,15 @@ import com.surelogic.common.XUtil;
 import com.surelogic.common.ZipInfo;
 import com.surelogic.common.core.EclipseUtility;
 import com.surelogic.common.core.JDTUtility;
-import com.surelogic.common.core.java.*;
-import com.surelogic.common.core.scripting.*;
-import com.surelogic.common.java.*;
+import com.surelogic.common.core.java.ProjectInfo;
+import com.surelogic.common.core.scripting.ICommandContext;
+import com.surelogic.common.core.scripting.NullCommand;
+import com.surelogic.common.core.scripting.ScriptCommands;
+import com.surelogic.common.java.Config;
+import com.surelogic.common.java.IJavaFactory;
+import com.surelogic.common.java.JavaProject;
+import com.surelogic.common.java.JavaProjectSet;
+import com.surelogic.common.java.JavaSourceFile;
 import com.surelogic.common.jobs.AbstractSLJob;
 import com.surelogic.common.jobs.SLJob;
 import com.surelogic.common.jobs.SLProgressMonitor;
@@ -75,7 +81,8 @@ import difflib.Patch;
 import edu.cmu.cs.fluid.ide.IDE;
 import edu.cmu.cs.fluid.ide.IDEPreferences;
 
-public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implements IResourceChangeListener, CurrentScanChangeListener {
+public class JavacDriver<T extends JavaProject> extends JSureDriver<T>
+    implements IResourceChangeListener, CurrentScanChangeListener {
   private static final String SCRIPT_TEMP = "scriptTemp";
 
   // private static final Logger LOG =
@@ -102,10 +109,10 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
   final SLJob updateScriptJob;
   final Map<String, Long> deleted;
   final File deletedDir;
-	
+
   protected JavacDriver(IJavaFactory<T> factory) {
-	super(factory);
-	
+    super(factory);
+
     PeriodicUtility.addHandler(new Runnable() {
       @Override
       public void run() {
@@ -178,14 +185,14 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
 
         final File analysisSettingsFile = new File(proj, ScriptCommands.ANALYSIS_SETTINGS);
         if (analysisSettingsFile != null && analysisSettingsFile.isFile()) {
-        	useAnalysisSettingsFile(analysisSettingsFile);
+          useAnalysisSettingsFile(analysisSettingsFile);
         }
         JavacEclipse.initialize();
         JavacEclipse.getDefault().synchronizeAnalysisPrefs();
       } catch (Exception e) {
         throw new IllegalStateException("Could not create/import project", e);
       }
-      deleted = new HashMap<String, Long>();
+      deleted = new HashMap<>();
       // After this, we should be able to re-script the project like
       // before
     } else {
@@ -227,14 +234,14 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
         }
       }
       FileUtility.deleteTempFiles(filter);
-      File tmp = null; 
+      File tmp = null;
       try {
-    	  tmp = filter.createTempFolder();
+        tmp = filter.createTempFolder();
       } catch (IOException e) {
-          e.printStackTrace();
+        e.printStackTrace();
       }
       tempDir = tmp;
-      
+
       PrintStream out = null;
       ZipInfo zipInfo = null;
       final File scriptF = new File(workspace, proj + File.separatorChar + ScriptCommands.NAME);
@@ -275,9 +282,9 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
           }
         }
         if (!cached) {
-        	System.err.println("Unable to cache project "+proj);
+          System.err.println("Unable to cache project " + proj);
         } else {
-        	System.out.println("Starting scripting for project "+proj);
+          System.out.println("Starting scripting for project " + proj);
         }
         JSureDataDirHub.getInstance().addCurrentScanChangeListener(this);
       } catch (IOException e) {
@@ -310,37 +317,37 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
       info = null;
       updateScriptJob = null;
     }
-    
+
     if (updateScriptJob != null) {
-        updateScript();
+      updateScript();
     }
     if (script != null) {
-    	ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
-    	// This only worked in the old world, when I waited for a build
-    	// IResourceChangeEvent.PRE_BUILD);
-    	// IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE
+      ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
+      // This only worked in the old world, when I waited for a build
+      // IResourceChangeEvent.PRE_BUILD);
+      // IResourceChangeEvent.PRE_CLOSE | IResourceChangeEvent.PRE_DELETE
     }
   }
 
   public static void useAnalysisSettingsFile(File analysisSettingsFile) {
-      System.out.println("Found project-specific analysis settings.");
-      deactivateAllAnalyses();
-      
-      JSureAnalysisXMLReader.readStateFrom(analysisSettingsFile);
-      DoubleChecker.getDefault().initAnalyses();
+    System.out.println("Found project-specific analysis settings.");
+    deactivateAllAnalyses();
+
+    JSureAnalysisXMLReader.readStateFrom(analysisSettingsFile);
+    DoubleChecker.getDefault().initAnalyses();
   }
 
   static void deactivateAllAnalyses() {
-	  for(String id : AnalysisDefaults.getAvailableAnalyses()) {
-		  EclipseUtility.setBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id, false);
-	  }
+    for (String id : AnalysisDefaults.getAvailableAnalyses()) {
+      EclipseUtility.setBooleanPreference(IDEPreferences.ANALYSIS_ACTIVE_PREFIX + id, false);
+    }
   }
-  
+
   private void loadFileCache(IJavaProject proj) {
     if (proj == null) {
       return;
     }
-    final List<ICompilationUnit> cus = new ArrayList<ICompilationUnit>();
+    final List<ICompilationUnit> cus = new ArrayList<>();
     try {
       for (IPackageFragment frag : proj.getPackageFragments()) {
         for (ICompilationUnit cu : frag.getCompilationUnits()) {
@@ -372,7 +379,7 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
     if (dotProject.exists()) {
       return Collections.singletonList(JDTUtility.getJavaProject(proj.getName()));
     } else {
-      List<IJavaProject> rv = new ArrayList<IJavaProject>();
+      List<IJavaProject> rv = new ArrayList<>();
       for (File dir : proj.listFiles()) {
         if (dir.isDirectory()) {
           rv.addAll(findProjects(dir));
@@ -415,8 +422,8 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
         public boolean execute(ICommandContext context, String... contents) throws Exception {
           // Reformat the contents for what it expects
           return super.execute(context, contents[0], projects.get(0).getElementName(),
-          // Compensate for extra directory when there's multiple
-          // projects
+              // Compensate for extra directory when there's multiple
+              // projects
               projects.size() > 1 ? ".." + contents[2] : contents[2]);
         }
       });
@@ -547,14 +554,14 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
     try {
       BufferedReader in = null;
       try {
-    	  in = new BufferedReader(new FileReader(f));
-    	  while ((line = in.readLine()) != null) {
-    		  lines.add(line);
-    	  }       
+        in = new BufferedReader(new FileReader(f));
+        while ((line = in.readLine()) != null) {
+          lines.add(line);
+        }
       } finally {
-    	  if (in != null) {
-    		  in.close();
-    	  }
+        if (in != null) {
+          in.close();
+        }
       }
     } catch (IOException e) {
       e.printStackTrace();
@@ -613,8 +620,8 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
       }
     }
     /*
-     * No longer needed with manual scans if (queue.size() > 1) {
-     * printToScript("unset " + ScriptCommands.AUTO_BUILD); }
+     * No longer needed with manual scans if (queue.size() > 1) { printToScript(
+     * "unset " + ScriptCommands.AUTO_BUILD); }
      */
     for (String line : queue) {
       printToScript(line);
@@ -670,11 +677,11 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
         final String path = computePrefix();
         final JSureScanInfo info = JSureDataDirHub.getInstance().getCurrentScanInfo();
         if (info == null) {
-        	return;
+          return;
         }
-        final File results = info.getJSureRun().getResultsFile();        
-        final String name = prefix + 
-        		(results.getName().endsWith(FileUtility.GZIP_SUFFIX) ? RegressionUtility.JSURE_GZ_SNAPSHOT_SUFFIX : RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
+        final File results = info.getJSureRun().getResultsFile();
+        final String name = prefix + (results.getName().endsWith(FileUtility.GZIP_SUFFIX)
+            ? RegressionUtility.JSURE_GZ_SNAPSHOT_SUFFIX : RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
         final File location = new File(scriptResourcesDir, name);
         FileUtility.copy(results, location);
 
@@ -714,8 +721,8 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
             }
             System.out.println("\nUpdated " + f.getName() + ": \t" + oldLength + " -> " + f.length());
             try {
-              final ISeaDiff d = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER, new File(
-                  deletedDir, f.getName()), f);
+              final ISeaDiff d = SeaSnapshotDiff.diff(UninterestingPackageFilterUtility.UNINTERESTING_PACKAGE_FILTER,
+                  new File(deletedDir, f.getName()), f);
               if (d.isEmpty()) {
                 System.out.println("\tNo differences.");
               }
@@ -735,7 +742,7 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
         final File settings = new File(projDir, ScriptCommands.ANALYSIS_SETTINGS);
         if (!settings.exists()) {
           JavacEclipse.getDefault().writePrefsToXML(settings);
-          //DoubleChecker.getDefault().writePrefsToXML(settings);
+          // DoubleChecker.getDefault().writePrefsToXML(settings);
           info.zipFile(baseDir, settings);
         }
         final File props = new File(projDir, ScriptCommands.TEST_PROPERTIES);
@@ -770,7 +777,7 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
           info.zipFile(baseDir, props);
         }
         info.close();
-        System.out.println("Finished script: "+info.getFile());
+        System.out.println("Finished script: " + info.getFile());
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -782,12 +789,11 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
   private static final FilenameFilter updateFilter = new FilenameFilter() {
     @Override
     public boolean accept(File dir, String name) {
-      return name.endsWith(RegressionUtility.JSURE_GZ_SNAPSHOT_SUFFIX) ||
-    		 name.endsWith(RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
+      return name.endsWith(RegressionUtility.JSURE_GZ_SNAPSHOT_SUFFIX) || name.endsWith(RegressionUtility.JSURE_SNAPSHOT_SUFFIX);
     }
   };
   private static final TempFileFilter deletedDirFilter = new TempFileFilter("deletedFromScript", ".dir");
-  
+
   public void preBuild(final IProject p) {
     System.out.println("Pre-build for " + p);
     /*
@@ -799,24 +805,25 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
   }
 
   @Override
-  protected JSureProjectInfo finishRegisteringFullBuild(IProject project, List<Pair<IResource, Integer>> resources, List<ICompilationUnit> cus) {
-	  if (script != null) {
-		  cacheCompUnits(cus);
-	  }
-	  return new JSureProjectInfo(project, cus);
+  protected JSureProjectInfo finishRegisteringFullBuild(IProject project, List<Pair<IResource, Integer>> resources,
+      List<ICompilationUnit> cus) {
+    if (script != null) {
+      cacheCompUnits(cus);
+    }
+    return new JSureProjectInfo(project, cus);
   }
 
   @Override
   protected void finishRegisteringIncrementalBuild(List<Pair<IResource, Integer>> resources, List<ICompilationUnit> cus) {
-	  if (script != null) {
-		  scriptChanges(resources);
-	  }
+    if (script != null) {
+      scriptChanges(resources);
+    }
   }
-  
+
   @Override
   public void clearProjectInfo() {
-	super.clearProjectInfo();
-	JSureProperties.clearSettings();
+    super.clearProjectInfo();
+    JSureProperties.clearSettings();
     JSureProperties.clearAsSourcePatterns();
     JSureProperties.clearAsNeededPatterns();
   }
@@ -827,8 +834,8 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
     JavacEclipse.initialize();
     if (script != null) {
       StringBuilder sb = new StringBuilder(ScriptCommands.RUN_JSURE);
-      for(IProject p : getProjects()) {
-    	  sb.append(' ').append(p.getName());
+      for (IProject p : getProjects()) {
+        sb.append(' ').append(p.getName());
       }
       printToScript(sb.toString());
     }
@@ -837,66 +844,64 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
 
   @Override
   protected boolean projectIsOk(IErrorListener l, IJavaProject p) {
-	  // Temporary check until we get JSure to handle Java 8
-	  final int version = JDTUtility.getMajorJavaSourceVersion(p);  
-	  /*
-	  if (!AbstractJavaBinder.processJava8 && version >= 8) {
-		  l.reportError("JSure currently cannot process Java 8", 
-			            "The source level of "+p.getElementName()+" is set to Java 8, but JSure is still being upgraded to process Java 8 sources.  Please wait for the next release");
-		  return false;
-	  }
-	  */
-	  // Check if JRE and src level match
-	  if (SystemUtils.IS_JAVA_1_5 || SystemUtils.IS_JAVA_1_6 || SystemUtils.IS_JAVA_1_7) {
-		  if (version >= 8) {
-			  l.reportError("JVM cannot handle Java 8", 
-					        "JSure requires a Java 8+ VM to process Java 8 sources");
-			  return false;
-		  } else {
-			  return true;
-		  }
-	  }
-	  else if (SystemUtils.IS_JAVA_1_8) {
-		  return true;
-	  }
-	  l.reportError("JSure running in unexpected JVM", 
-			        "JSure is unexpectedly running in a "+SystemUtils.JAVA_VERSION+" vm");
-	  return false;
+    // Temporary check until we get JSure to handle Java 8
+    final int version = JDTUtility.getMajorJavaSourceVersion(p);
+    /*
+     * if (!AbstractJavaBinder.processJava8 && version >= 8) { l.reportError(
+     * "JSure currently cannot process Java 8", "The source level of "
+     * +p.getElementName()+
+     * " is set to Java 8, but JSure is still being upgraded to process Java 8 sources.  Please wait for the next release"
+     * ); return false; }
+     */
+    // Check if JRE and src level match
+    if (SystemUtils.IS_JAVA_1_5 || SystemUtils.IS_JAVA_1_6 || SystemUtils.IS_JAVA_1_7) {
+      if (version >= 8) {
+        l.reportError("JVM cannot handle Java 8", "JSure requires a Java 8+ VM to process Java 8 sources");
+        return false;
+      } else {
+        return true;
+      }
+    } else if (SystemUtils.IS_JAVA_1_8) {
+      return true;
+    }
+    l.reportError("JSure running in unexpected JVM", "JSure is unexpectedly running in a " + SystemUtils.JAVA_VERSION + " vm");
+    return false;
   }
-  
+
   @Override
   protected AnalysisJob makeAnalysisJob(JavaProjectSet<T> newProjects, File target, File zips, boolean useSeparateJVM) {
-	  JavaProjectSet<T> oldProjects = null; // See code in prepForScan()
-      /*
-       * TODO JSureHistoricalSourceView.setLastRun(newProjects, new
-       * ISourceZipFileHandles() { public Iterable<File> getSourceZips() {
-       * return Arrays.asList(zips.listFiles()); } });
-       */
+    JavaProjectSet<T> oldProjects = null; // See code in prepForScan()
+    /*
+     * TODO JSureHistoricalSourceView.setLastRun(newProjects, new
+     * ISourceZipFileHandles() { public Iterable<File> getSourceZips() { return
+     * Arrays.asList(zips.listFiles()); } });
+     */
 
-      if (!clearBeforeAnalysis && oldProjects != null) {
-        findModifiedFiles(newProjects, oldProjects);
-      }
-      // TODO create constants?
+    if (!clearBeforeAnalysis && oldProjects != null) {
+      findModifiedFiles(newProjects, oldProjects);
+    }
+    // TODO create constants?
 
-      return new AnalysisJob(oldProjects, newProjects, target, zips, useSeparateJVM);
+    return new AnalysisJob(oldProjects, newProjects, target, zips, useSeparateJVM);
   }
-  
-  @Override 
+
+  @Override
   protected void scheduleScanForExecution(JavaProjectSet<T> newProjects, SLJob copy) throws Exception {
-	  if (ScriptCommands.USE_EXPECT && script != null) {
-		  recordFilesToBuild(newProjects);
-	  }
-	  if (XUtil.testing) {
-		  final File expected = (File) newProjects.getArg(ScriptCommands.EXPECT_BUILD);
-		  if (expected != null && expected.exists()) {
-			  checkForExpectedSourceFiles(newProjects, expected);
-		  }
-	  }
-	  super.scheduleScanForExecution(newProjects, copy);	  
+    if (ScriptCommands.USE_EXPECT && script != null) {
+      recordFilesToBuild(newProjects);
+    }
+    if (XUtil.testing) {
+      final File expected = (File) newProjects.getArg(ScriptCommands.EXPECT_BUILD);
+      if (expected != null && expected.exists()) {
+        checkForExpectedSourceFiles(newProjects, expected);
+      }
+    }
+    super.scheduleScanForExecution(newProjects, copy);
   }
 
   private void findModifiedFiles(final JavaProjectSet<T> newProjects, JavaProjectSet<T> oldProjects) {
-    // System.out.println("Checking for files modified after "+oldProjects.getDate());
+    // System.out.println("Checking for files modified after
+    // "+oldProjects.getDate());
     final Map<IJavaProject, Date> times = new HashMap<IJavaProject, Date>();
     for (JavaProject jp : newProjects) {
       // Check if we used it last time
@@ -915,7 +920,7 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
       return;
     }
 
-    final MultiMap<String, ICompilationUnit> byProj = new MultiHashMap<String, ICompilationUnit>();
+    final Multimap<String, ICompilationUnit> byProj = ArrayListMultimap.create();
     for (ICompilationUnit icu : JDTUtility.modifiedCompUnits(times, new NullProgressMonitor())) {
       byProj.put(icu.getJavaProject().getElementName(), icu);
     }
@@ -940,19 +945,20 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
   }
 
   protected class AnalysisJob extends JSureDriver<T>.AnalysisJob {
-	  protected AnalysisJob(JavaProjectSet<T> oldProjects, JavaProjectSet<T> projects, File target, File zips, boolean useSeparateJVM) {
-		  super(oldProjects, projects, target, zips, useSeparateJVM);
-	  }
-	  
-	  @Override
-	  protected void finish(SLProgressMonitor monitor) {
-		super.finish(monitor);
-		// recordViewUpdate();
+    protected AnalysisJob(JavaProjectSet<T> oldProjects, JavaProjectSet<T> projects, File target, File zips,
+        boolean useSeparateJVM) {
+      super(oldProjects, projects, target, zips, useSeparateJVM);
+    }
 
-		// Cleared here after notifications are processed
-		// to prevent redoing some (binder) work
-		IDE.getInstance().clearCaches();
-	  }
+    @Override
+    protected void finish(SLProgressMonitor monitor) {
+      super.finish(monitor);
+      // recordViewUpdate();
+
+      // Cleared here after notifications are processed
+      // to prevent redoing some (binder) work
+      IDE.getInstance().clearCaches();
+    }
   }
 
   int id = 0;
@@ -1036,13 +1042,14 @@ public class JavacDriver<T extends JavaProject> extends JSureDriver<T> implement
     switch (event.getType()) {
     case IResourceChangeEvent.PRE_DELETE:
       // Handled by removal
-      // System.out.println("Ignoring deletion of project "+event.getResource().getName());
+      // System.out.println("Ignoring deletion of project
+      // "+event.getResource().getName());
       break;
     case IResourceChangeEvent.PRE_CLOSE:
       /*
        * Handled below if (script != null) {
-       * printToScript(ScriptCommands.CLOSE_PROJECT
-       * +' '+event.getResource().getName()); }
+       * printToScript(ScriptCommands.CLOSE_PROJECT +'
+       * '+event.getResource().getName()); }
        */
       break;
     default:

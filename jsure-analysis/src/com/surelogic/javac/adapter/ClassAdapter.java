@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.apache.commons.collections15.MultiMap;
-import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -23,6 +21,8 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.javac.JavacProject;
@@ -93,7 +93,7 @@ import edu.cmu.cs.fluid.util.Triple;
 
 public class ClassAdapter extends AbstractAdapter {
   private static final String PACKAGE_INFO_CLASS = "package-info.class";
-	
+
   final boolean debug;
   final ZipFile jar;
   final String className;
@@ -147,7 +147,7 @@ public class ClassAdapter extends AbstractAdapter {
     }
     return new File(jar.getName());
   }
-  
+
   public IRNode getRoot() throws IOException {
     final String label;
     InputStream is = null;
@@ -169,38 +169,37 @@ public class ClassAdapter extends AbstractAdapter {
        * AnalyzeSignaturesVisitor(), 0);
        */
       if (root != null) {
-    	  if (resource.pkg.equals("usingPromises")) {
-    		  System.out.println("Finishing "+resource.getCUName());
-    	  }
-    	  SkeletonJavaRefUtility.registerBinaryCode(declFactory, root, resource, 0);
-    	  for(IRNode a : annos) {
-    		  copyRefToTree(root, a);
-    	  }
-    	  for(IRNode v : VisitUtil.getClassFieldDeclarators(root)) {
-    		  SkeletonJavaRefUtility.copyIfPossible(root, v);
-    	  }
-    	  for(IRNode d : VisitUtil.getClassBodyMembers(root)) {
-    		  if (FieldDeclaration.prototype.includes(d)) {
-    			  // The var decls are handled above
-        		  for(IRNode a : Annotations.getAnnotIterator(FieldDeclaration.getAnnos(d))) {
-        			  copyRefToTree(root, a);
-        		  }
-    		  }
-    		  SkeletonJavaRefUtility.copyIfPossible(root, d);
-    	  }
-    	  final Operator op = JJNode.tree.getOperator(root);
-    	  IRNode formals = null;
-    	  if (ClassDeclaration.prototype.includes(op)) {
-    		  formals = ClassDeclaration.getTypes(root);
-    	  }
-    	  else if (InterfaceDeclaration.prototype.includes(op)) {
-    		  formals = InterfaceDeclaration.getTypes(root);
-    	  }
-    	  if (formals != null) {
-    		  for(IRNode f : TypeFormals.getTypeIterator(formals)) {
-    			  SkeletonJavaRefUtility.copyIfPossible(root, f);
-    		  }
-    	  }
+        if (resource.pkg.equals("usingPromises")) {
+          System.out.println("Finishing " + resource.getCUName());
+        }
+        SkeletonJavaRefUtility.registerBinaryCode(declFactory, root, resource, 0);
+        for (IRNode a : annos) {
+          copyRefToTree(root, a);
+        }
+        for (IRNode v : VisitUtil.getClassFieldDeclarators(root)) {
+          SkeletonJavaRefUtility.copyIfPossible(root, v);
+        }
+        for (IRNode d : VisitUtil.getClassBodyMembers(root)) {
+          if (FieldDeclaration.prototype.includes(d)) {
+            // The var decls are handled above
+            for (IRNode a : Annotations.getAnnotIterator(FieldDeclaration.getAnnos(d))) {
+              copyRefToTree(root, a);
+            }
+          }
+          SkeletonJavaRefUtility.copyIfPossible(root, d);
+        }
+        final Operator op = JJNode.tree.getOperator(root);
+        IRNode formals = null;
+        if (ClassDeclaration.prototype.includes(op)) {
+          formals = ClassDeclaration.getTypes(root);
+        } else if (InterfaceDeclaration.prototype.includes(op)) {
+          formals = InterfaceDeclaration.getTypes(root);
+        }
+        if (formals != null) {
+          for (IRNode f : TypeFormals.getTypeIterator(formals)) {
+            SkeletonJavaRefUtility.copyIfPossible(root, f);
+          }
+        }
       }
       if (!isInner) {
         // Need to create comp unit
@@ -219,21 +218,20 @@ public class ClassAdapter extends AbstractAdapter {
         id = CommonStrings.intern(id);
         final IRNode annos, decls;
         if (className.endsWith(PACKAGE_INFO_CLASS)) {
-        	annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(this.annos.toArray(noNodes));
-            decls = TypeDeclarations.createNode(noNodes);
-    	} else {
-    		annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(noNodes);
-            decls = TypeDeclarations.createNode(new IRNode[] { root });
-    	}
+          annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(this.annos.toArray(noNodes));
+          decls = TypeDeclarations.createNode(noNodes);
+        } else {
+          annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(noNodes);
+          decls = TypeDeclarations.createNode(new IRNode[] { root });
+        }
         IRNode pkg = NamedPackageDeclaration.createNode(annos, id);
         IRNode imps = ImportDeclarations.createNode(noNodes);
         IRNode cu = CompilationUnit.createNode(pkg, imps, decls);
         createLastMinuteNodes(cu, true, resource.getProjectName());
         JavaNode.setModifiers(cu, JavaNode.AS_BINARY);
         /*
-         * if ("java/lang/Object".equals(name)) {
-         * System.out.println("Done adapting "
-         * +JavaNames.getFullTypeName(root)+": "+root);
+         * if ("java/lang/Object".equals(name)) { System.out.println(
+         * "Done adapting " +JavaNames.getFullTypeName(root)+": "+root);
          * //System.out.println(DebugUnparser.toString(cu)); }
          */
         return cu;
@@ -246,12 +244,13 @@ public class ClassAdapter extends AbstractAdapter {
   }
 
   private static void copyRefToTree(IRNode root, IRNode top) {
-	  for(IRNode n : JavaNode.tree.topDown(top)) {
-		  boolean success = SkeletonJavaRefUtility.copyIfPossible(root, n);
-		  //System.out.println("Copied ref for "+DebugUnparser.toString(n)+"? "+success);		  
-	  }
+    for (IRNode n : JavaNode.tree.topDown(top)) {
+      boolean success = SkeletonJavaRefUtility.copyIfPossible(root, n);
+      // System.out.println("Copied ref for "+DebugUnparser.toString(n)+"?
+      // "+success);
+    }
   }
-  
+
   public void visit(int version, int access, String name, String sig, String sname, String[] interfaces) {
     if (debug) {
       if (isInner) {
@@ -351,7 +350,8 @@ public class ClassAdapter extends AbstractAdapter {
     }
   }
 
-  public FieldVisitor visitField(final int access, final String name, final String desc, final String signature, final Object value) {
+  public FieldVisitor visitField(final int access, final String name, final String desc, final String signature,
+      final Object value) {
     if ((access & Opcodes.ACC_PRIVATE) != 0) {
       return null;
     }
@@ -372,8 +372,8 @@ public class ClassAdapter extends AbstractAdapter {
       @Override
       public void visitEnd() {
         /*
-         * if (annoList.size() > 0) {
-         * System.out.println("Adding annos for "+name); }
+         * if (annoList.size() > 0) { System.out.println("Adding annos for "
+         * +name); }
          */
         IRNode annos = edu.cmu.cs.fluid.java.operator.Annotations.createNode(annoList.toArray(noNodes));
         if (isEnumDecl()) {
@@ -385,7 +385,8 @@ public class ClassAdapter extends AbstractAdapter {
             members.add(result);
             return;
           } else {
-            // System.out.println("Found a field of type "+desc+" in "+typeName);
+            // System.out.println("Found a field of type "+desc+" in
+            // "+typeName);
           }
         }
         int mods = adaptModifiers(access);
@@ -394,7 +395,7 @@ public class ClassAdapter extends AbstractAdapter {
           type = adaptTypeDescriptor(desc);
         } else {
           // new SignatureReader(signature).accept(new
-          // TraceSignatureVisitor("  "));
+          // TraceSignatureVisitor(" "));
           FieldDeclVisitor tv = new FieldDeclVisitor();
           new SignatureReader(signature).accept(tv);
           type = tv.getType();
@@ -410,54 +411,54 @@ public class ClassAdapter extends AbstractAdapter {
   }
 
   IRNode createInit(String name, Object value) {
-	  if (value != null) {		  
-		  IRNode v = createValue(value);
-		  if (v != null) {
-			  return Initialization.createNode(v);
-		  }
-	  }
-	  //TODO null for enums?
-	  return NoInitialization.prototype.jjtCreate();
+    if (value != null) {
+      IRNode v = createValue(value);
+      if (v != null) {
+        return Initialization.createNode(v);
+      }
+    }
+    // TODO null for enums?
+    return NoInitialization.prototype.jjtCreate();
   }
 
   IRNode createValue(Object value) {
-	  if (value instanceof String) {
-	      String s = (String) value;
-	      if (SourceAdapter.includeQuotesInStringLiteral) {
-	        if (s.length() == 0) {
-	          s = "\"\"";
-	        } else {
-	          s = '\"' + s + '\"';
-	        }
-	      }
-		  return StringLiteral.createNode((String) s);		  
-	  }
-	  if (value instanceof Boolean) {
-		  return ((Boolean) value).booleanValue() ? TrueExpression.prototype.jjtCreate() : FalseExpression.prototype.jjtCreate();			  
-	  }
-	  if (value instanceof Integer) {
-		  return IntLiteral.createNode(CommonStrings.valueOf((Integer) value)); // FIX
-	  }
-	  if (value instanceof Long) {
-	      return IntLiteral.createNode(value.toString() + 'L'); // FIX
-	  }
-	  if (value instanceof Double) {
-	      return FloatLiteral.createNode(value.toString()); // FIX
-	  }
-	  if (value instanceof Float) {
-	      return FloatLiteral.createNode(value.toString() + 'f'); // FIX
-	  }
-	  if (value instanceof Character) {
-	      Character c = (Character) value;
-	      return CharLiteral.createNode("'\\u" + Integer.toHexString(c.charValue()) + "'");
-	  }	  
-	  //return NullLiteral.prototype.jjtCreate();
-	  if (value != null) {
-		  throw new IllegalStateException("Unable to create literal for "+value);
-	  }
-	  return null;
+    if (value instanceof String) {
+      String s = (String) value;
+      if (SourceAdapter.includeQuotesInStringLiteral) {
+        if (s.length() == 0) {
+          s = "\"\"";
+        } else {
+          s = '\"' + s + '\"';
+        }
+      }
+      return StringLiteral.createNode((String) s);
+    }
+    if (value instanceof Boolean) {
+      return ((Boolean) value).booleanValue() ? TrueExpression.prototype.jjtCreate() : FalseExpression.prototype.jjtCreate();
+    }
+    if (value instanceof Integer) {
+      return IntLiteral.createNode(CommonStrings.valueOf((Integer) value)); // FIX
+    }
+    if (value instanceof Long) {
+      return IntLiteral.createNode(value.toString() + 'L'); // FIX
+    }
+    if (value instanceof Double) {
+      return FloatLiteral.createNode(value.toString()); // FIX
+    }
+    if (value instanceof Float) {
+      return FloatLiteral.createNode(value.toString() + 'f'); // FIX
+    }
+    if (value instanceof Character) {
+      Character c = (Character) value;
+      return CharLiteral.createNode("'\\u" + Integer.toHexString(c.charValue()) + "'");
+    }
+    // return NullLiteral.prototype.jjtCreate();
+    if (value != null) {
+      throw new IllegalStateException("Unable to create literal for " + value);
+    }
+    return null;
   }
-  
+
   private class FieldDeclVisitor extends TypeVisitor {
     @Override
     public SignatureVisitor visitSuperclass() {
@@ -510,7 +511,8 @@ public class ClassAdapter extends AbstractAdapter {
     }
   }
 
-  private <T> IRNode createParameters(MultiMap<Integer, IRNode> paramAnnos, T[] paramTypes, Function<T> func, boolean skipFirstArg) {
+  private <T> IRNode createParameters(Multimap<Integer, IRNode> paramAnnos, T[] paramTypes, Function<T> func,
+      boolean skipFirstArg) {
     final int num = paramTypes.length;
     /*
      * if (num == 0 && skipFirstArg) { System.out.println("No args to skip"); }
@@ -579,8 +581,8 @@ public class ClassAdapter extends AbstractAdapter {
     }
     /*
      * if (debug && "<init>".equals(name)) { System.out.println(signature); }
-     * else if (debug && "clone".equals(name)) {
-     * System.out.println("clone sig: "+signature); }
+     * else if (debug && "clone".equals(name)) { System.out.println(
+     * "clone sig: "+signature); }
      */
     final boolean varargs = (access & Opcodes.ACC_VARARGS) != 0;
 
@@ -594,169 +596,166 @@ public class ClassAdapter extends AbstractAdapter {
      */
     // Handles line numbers and annotations
     return new MethodVisitor(Opcodes.ASM5) {
-    	int line = Integer.MAX_VALUE;
-    	final List<IRNode> annoList = new ArrayList<IRNode>();
-    	final MultiMap<Integer, IRNode> paramAnnos = new MultiHashMap<Integer, IRNode>();
+      int line = Integer.MAX_VALUE;
+      final List<IRNode> annoList = new ArrayList<>();
+      final Multimap<Integer, IRNode> paramAnnos = ArrayListMultimap.create();
 
-    	@Override
-    	public void visitLineNumber(int newLine, Label label) {
-    		if (newLine < line) {
-    			line = newLine;
-    		}
-    	}
-    	
-    	@Override
-    	public AnnotationVisitor visitAnnotation(String desc, boolean viz) {
-    		return new AnnoBuilder(desc) {
-    			@Override
-    			public void visitEnd() {
-    				super.visitEnd();
-    				annoList.add(result);
-    			}
-    		};
-    	}
+      @Override
+      public void visitLineNumber(int newLine, Label label) {
+        if (newLine < line) {
+          line = newLine;
+        }
+      }
 
-    	@Override
-    	public AnnotationVisitor visitParameterAnnotation(final int i, String desc, boolean viz) {
-    		return new AnnoBuilder(desc) {
-    			@Override
-    			public void visitEnd() {
-    				super.visitEnd();
-    				paramAnnos.put(i, result);
-    			}
-    		};
-    	}
-    	
-    	@Override
-    	public void visitEnd() {
-    		final IRNode annos = Annotations.createNode(annoList.toArray(noNodes));
-    		final IRNode result, parameters;
-    		final boolean isStatic;
-    		if (isAnnotationDecl()) {
-    			result = makeAnnoElement(annos);
-    			parameters = null;
-    			isStatic = false;
-    		} else {
-    			final Triple<IRNode,IRNode,Boolean> info = makeFunction(annos);
-    			result = info.first();
-    			parameters = info.second();
-    			isStatic = info.third();
-    		}
- 			addRefs(result, parameters, annos);
-    		createRequiredMethodNodes(isStatic, result);
-    		members.add(result);
-    	}
+      @Override
+      public AnnotationVisitor visitAnnotation(String desc, boolean viz) {
+        return new AnnoBuilder(desc) {
+          @Override
+          public void visitEnd() {
+            super.visitEnd();
+            annoList.add(result);
+          }
+        };
+      }
 
-    	private IRNode makeAnnoElement(IRNode annos) {
-    		IRNode params = Parameters.createNode(noNodes);
-    		// See below
-    		String rName = desc.substring(desc.lastIndexOf(')') + 1, desc.length());
-    		IRNode rType = null;
-    		if (signature == null) {
-    			rType = adaptTypeDescriptor(rName);
-    		} else {
-    			MethodDeclVisitor mdv = new MethodDeclVisitor(false, 0);
-    			new SignatureReader(signature).accept(mdv);
-    			rType = mdv.rType;
-    		}
-    		if (rType == null) {
-    			System.out.println("Null type for anno elt");
-    		}
-    		IRNode exs = Throws.createNode(noNodes);
-    		IRNode result = AnnotationElement.createNode(annos, JavaNode.PUBLIC | JavaNode.ABSTRACT, 
-    				rType, name, params, exs, NoMethodBody.prototype.jjtCreate(),
-    				NoDefaultValue.prototype.jjtCreate());
-    		return result;
-    	};
-		
-    	private Triple<IRNode,IRNode,Boolean> makeFunction(IRNode annos) {
-    		final int mods;
-    		if ((ClassAdapter.this.access & Opcodes.ACC_INTERFACE) != 0 &&
-    			(access & Opcodes.ACC_ABSTRACT) == 0) {
-    			// In an interface, but not marked as abstract method
-    			mods = adaptModifiers(access) | JavaNode.DEFAULT;
-    		} else {
-    			mods = adaptModifiers(access);
-    		}
-    		final IRNode body = CompiledMethodBody.createNode("no body");
-    		final String className = ClassAdapter.this.name;
+      @Override
+      public AnnotationVisitor visitParameterAnnotation(final int i, String desc, boolean viz) {
+        return new AnnoBuilder(desc) {
+          @Override
+          public void visitEnd() {
+            super.visitEnd();
+            paramAnnos.put(i, result);
+          }
+        };
+      }
 
-    		final IRNode types, exs;
-    		final Type[] paramTypes = Type.getArgumentTypes(desc);
-    		IRNode rType = null;
-    		final IRNode parameters;
-    		if (signature == null) {
-    			/*
-    			 * if (skipFirstArg) {
-    			 * System.out.println("Skipping first arg: "+desc); }
-    			 */
-    			types = TypeFormals.createNode(noNodes);
-    			exs = Throws.createNode(map(adaptTypeName, exceptions, null));
-    			if (desc != null) {
-    				parameters = createParameters(paramAnnos, paramTypes, 
-    						varargs ? adaptVarargsTypeDescriptor : adaptTypeDescriptor,
-    						skipFirstArg);
-    			} else {
-    				parameters = Parameters.createNode(noNodes);
-    			}
-    		} else {
-    			MethodDeclVisitor mdv = new MethodDeclVisitor(varargs, paramTypes.length);
-    			new SignatureReader(signature).accept(mdv);
-    			types = TypeFormals.createNode(mdv.types);
-    			// signature doesn't contain the extra arg, so no need to skip
-    			parameters = createParameters(paramAnnos, mdv.paramTypes.toArray(noNodes), identity, false);
-    			rType = mdv.rType;
-    			exs = Throws.createNode(mdv.exTypes.toArray(noNodes));
+      @Override
+      public void visitEnd() {
+        final IRNode annos = Annotations.createNode(annoList.toArray(noNodes));
+        final IRNode result, parameters;
+        final boolean isStatic;
+        if (isAnnotationDecl()) {
+          result = makeAnnoElement(annos);
+          parameters = null;
+          isStatic = false;
+        } else {
+          final Triple<IRNode, IRNode, Boolean> info = makeFunction(annos);
+          result = info.first();
+          parameters = info.second();
+          isStatic = info.third();
+        }
+        addRefs(result, parameters, annos);
+        createRequiredMethodNodes(isStatic, result);
+        members.add(result);
+      }
 
-    			if (rType == null) {
-    				new SignatureReader(signature).accept(new TraceSignatureVisitor("  "));
-    			}
-    		}
-    		final IRNode result;
-			if (isConstructor) {
-    			int delim = className.lastIndexOf('$');
-    			if (delim < 0) {
-    				delim = className.lastIndexOf('/');
-    			}
-    			String cname = delim < 0 ? className : className.substring(delim + 1);
-    			result = ConstructorDeclaration.createNode(annos, mods, types, cname, parameters, exs, body);
-    		} else {
-    			String rName = desc.substring(desc.lastIndexOf(')') + 1, desc.length());
-    			if (signature == null) {
-    				rType = adaptTypeDescriptor(rName);
-    			}
-    			if (rType == null) {
-    				System.out.println("null rType");
-    			}
-    			result = MethodDeclaration.createNode(annos, mods, types, rType, name, parameters, 0, exs, body);
-    		}
-			return new Triple<IRNode,IRNode,Boolean>(result, parameters, JavaNode.isSet(mods, JavaNode.STATIC));
-		}
+      private IRNode makeAnnoElement(IRNode annos) {
+        IRNode params = Parameters.createNode(noNodes);
+        // See below
+        String rName = desc.substring(desc.lastIndexOf(')') + 1, desc.length());
+        IRNode rType = null;
+        if (signature == null) {
+          rType = adaptTypeDescriptor(rName);
+        } else {
+          MethodDeclVisitor mdv = new MethodDeclVisitor(false, 0);
+          new SignatureReader(signature).accept(mdv);
+          rType = mdv.rType;
+        }
+        if (rType == null) {
+          System.out.println("Null type for anno elt");
+        }
+        IRNode exs = Throws.createNode(noNodes);
+        IRNode result = AnnotationElement.createNode(annos, JavaNode.PUBLIC | JavaNode.ABSTRACT, rType, name, params, exs,
+            NoMethodBody.prototype.jjtCreate(), NoDefaultValue.prototype.jjtCreate());
+        return result;
+      };
 
-    	void addRefs(IRNode result, IRNode parameters, IRNode annos) {
-    		// System.out.println("Got line#"+line);
-    		if (line == Integer.MAX_VALUE) {
-    			line = 0;
-    		}
-    		SkeletonJavaRefUtility.registerBinaryCode(declFactory, result, resource, line);
-    		if (parameters != null) {
-    			for (IRNode p : Parameters.getFormalIterator(parameters)) {
-    				SkeletonJavaRefUtility.copyIfPossible(result, p);
-    			}
-    		}
-    		if (annos != null) {
-    			for (IRNode p : Annotations.getAnnotIterator(annos)) {
-    				SkeletonJavaRefUtility.copyIfPossible(result, p);
-    			}
-    		}
-    	}
+      private Triple<IRNode, IRNode, Boolean> makeFunction(IRNode annos) {
+        final int mods;
+        if ((ClassAdapter.this.access & Opcodes.ACC_INTERFACE) != 0 && (access & Opcodes.ACC_ABSTRACT) == 0) {
+          // In an interface, but not marked as abstract method
+          mods = adaptModifiers(access) | JavaNode.DEFAULT;
+        } else {
+          mods = adaptModifiers(access);
+        }
+        final IRNode body = CompiledMethodBody.createNode("no body");
+        final String className = ClassAdapter.this.name;
+
+        final IRNode types, exs;
+        final Type[] paramTypes = Type.getArgumentTypes(desc);
+        IRNode rType = null;
+        final IRNode parameters;
+        if (signature == null) {
+          /*
+           * if (skipFirstArg) { System.out.println("Skipping first arg: "
+           * +desc); }
+           */
+          types = TypeFormals.createNode(noNodes);
+          exs = Throws.createNode(map(adaptTypeName, exceptions, null));
+          if (desc != null) {
+            parameters = createParameters(paramAnnos, paramTypes, varargs ? adaptVarargsTypeDescriptor : adaptTypeDescriptor,
+                skipFirstArg);
+          } else {
+            parameters = Parameters.createNode(noNodes);
+          }
+        } else {
+          MethodDeclVisitor mdv = new MethodDeclVisitor(varargs, paramTypes.length);
+          new SignatureReader(signature).accept(mdv);
+          types = TypeFormals.createNode(mdv.types);
+          // signature doesn't contain the extra arg, so no need to skip
+          parameters = createParameters(paramAnnos, mdv.paramTypes.toArray(noNodes), identity, false);
+          rType = mdv.rType;
+          exs = Throws.createNode(mdv.exTypes.toArray(noNodes));
+
+          if (rType == null) {
+            new SignatureReader(signature).accept(new TraceSignatureVisitor("  "));
+          }
+        }
+        final IRNode result;
+        if (isConstructor) {
+          int delim = className.lastIndexOf('$');
+          if (delim < 0) {
+            delim = className.lastIndexOf('/');
+          }
+          String cname = delim < 0 ? className : className.substring(delim + 1);
+          result = ConstructorDeclaration.createNode(annos, mods, types, cname, parameters, exs, body);
+        } else {
+          String rName = desc.substring(desc.lastIndexOf(')') + 1, desc.length());
+          if (signature == null) {
+            rType = adaptTypeDescriptor(rName);
+          }
+          if (rType == null) {
+            System.out.println("null rType");
+          }
+          result = MethodDeclaration.createNode(annos, mods, types, rType, name, parameters, 0, exs, body);
+        }
+        return new Triple<IRNode, IRNode, Boolean>(result, parameters, JavaNode.isSet(mods, JavaNode.STATIC));
+      }
+
+      void addRefs(IRNode result, IRNode parameters, IRNode annos) {
+        // System.out.println("Got line#"+line);
+        if (line == Integer.MAX_VALUE) {
+          line = 0;
+        }
+        SkeletonJavaRefUtility.registerBinaryCode(declFactory, result, resource, line);
+        if (parameters != null) {
+          for (IRNode p : Parameters.getFormalIterator(parameters)) {
+            SkeletonJavaRefUtility.copyIfPossible(result, p);
+          }
+        }
+        if (annos != null) {
+          for (IRNode p : Annotations.getAnnotIterator(annos)) {
+            SkeletonJavaRefUtility.copyIfPossible(result, p);
+          }
+        }
+      }
     };
   }
 
   public void visitEnd() {
     if (className.endsWith(PACKAGE_INFO_CLASS)) {
-    	return;
-	}
+      return;
+    }
     String id;
     int separator = name.lastIndexOf('/');
     int dollar = name.lastIndexOf('$');

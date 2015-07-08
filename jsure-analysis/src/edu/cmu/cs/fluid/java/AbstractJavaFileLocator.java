@@ -7,10 +7,10 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.collections15.*;
-import org.apache.commons.collections15.multimap.*;
 import org.xml.sax.Attributes;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.FileUtility.TempFileFilter;
 import com.surelogic.common.java.Config.Type;
@@ -29,22 +29,14 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.util.*;
 
 public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<T, P> {
-  private static final Logger LOG = SLLogger.getLogger("java-file-locator");
+  static final Logger LOG = SLLogger.getLogger("java-file-locator");
   private static final DebugUnparser unparser = new DebugUnparser(3, JJNode.tree);
   private static final boolean useJavaCanonicalizer = false;
 
-  protected final Map<T, JavaFileStatus<T, P>> resources = new HashMap<T, JavaFileStatus<T, P>>();
-  final Map<P, JavaRewrite> canonicalizers = new HashMap<P, JavaRewrite>();
-  final Map<P, JavaCanonicalizer> javaCanonicalizers = new HashMap<P, JavaCanonicalizer>();
-  final MultiMap<P, T> refs = new MultiHashMap<P, T>() {
-	  @Override
-	  protected Collection<T> createCollection(Collection<? extends T> c) {
-		  if (c == null) {
-			  return new HashSet<T>();
-		  }
-		  return new HashSet<T>(c);
-	  }
-  };
+  protected final Map<T, JavaFileStatus<T, P>> resources = new HashMap<>();
+  final Map<P, JavaRewrite> canonicalizers = new HashMap<>();
+  final Map<P, JavaCanonicalizer> javaCanonicalizers = new HashMap<>();
+  final Multimap<P, T> refs = ArrayListMultimap.create();
   final SlotHandler slotHandler = new SlotHandler();
   final MemoryHandler memHandler = new MemoryHandler();
   protected boolean okToCanonicalize = false;
@@ -353,7 +345,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
   }
 
   class IndexHandler extends NestedJSureXmlReader implements IXmlResultListener {
-    final List<CodeInfo> infos = new ArrayList<CodeInfo>();
+    final List<CodeInfo> infos = new ArrayList<>();
 
     @Override
     protected String checkForRoot(String name, Attributes attributes) {
@@ -459,7 +451,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
   public synchronized IJavaFileStatus<T> register(P project, T handle, String label, long modTime, IRNode root, Type type) {
     loadedFromArchive = false;
 
-    JavaFileStatus<T, P> s = new JavaFileStatus<T, P>(this, project, handle, label, modTime, root, type);
+    JavaFileStatus<T, P> s = new JavaFileStatus<>(this, project, handle, label, modTime, root, type);
     JavaFileStatus<T, P> s2 = resources.put(handle, s);
     if (s2 != null) {
       // Put it back ...
@@ -565,7 +557,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
 
   @Override
   public P findProject(T id) {
-    for (Map.Entry<P, Collection<T>> e : refs.entrySet()) {
+    for (Map.Entry<P, Collection<T>> e : refs.asMap().entrySet()) {
       for (T value : e.getValue()) {
         if (value.equals(id)) {
           return e.getKey();
@@ -584,7 +576,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
 
   protected class SlotHandler implements IUndefinedSlotHandler {
     @Override
-    public boolean handleSlotUndefinedException(@SuppressWarnings("rawtypes") PersistentSlotInfo si, IRNode n) {
+    public boolean handleSlotUndefinedException(PersistentSlotInfo si, IRNode n) {
       IRRegion owner = IRRegion.getOwnerOrNull(n);
       if (owner == null) {
         // Nothing we can do here
@@ -723,7 +715,7 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
             unparser.unparse(e.getValue().root());
             assert expectExceptions : "No exception on " + e.getKey();
           } catch (SlotUndefinedException sue) {
-            assert !expectExceptions : "Unexpected SlotUndefinedEx on " + e.getKey();
+            assert!expectExceptions : "Unexpected SlotUndefinedEx on " + e.getKey();
           }
         }
         num++;

@@ -8,9 +8,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.collections15.MultiMap;
-import org.apache.commons.collections15.multimap.MultiHashMap;
-
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.surelogic.common.SLUtility;
 import com.surelogic.dropsea.ir.Drop;
 import com.surelogic.dropsea.ir.ModelingProblemDrop;
@@ -58,27 +57,26 @@ public class Dependencies {
   /**
    * To avoid cycles and duplication
    */
-  private final Set<Drop> checkedDependents = new HashSet<Drop>();
-  // private final Set<Drop> checkedDeponents = new HashSet<Drop>();
+  final Set<Drop> checkedDependents = new HashSet<>();
 
   /**
    * The set of CUDrops that need to be reprocessed for promises (and
    * reanalyzed)
    */
-  private final Set<CUDrop> reprocess = new HashSet<CUDrop>();
+  final Set<CUDrop> reprocess = new HashSet<>();
   /**
    * The set of changed CUDrops
    */
-  private final Set<CUDrop> changed = new HashSet<CUDrop>();
+  final Set<CUDrop> changed = new HashSet<>();
   /**
    * The set of CUDrops that just need to be reanalyzed
    */
-  private final Set<CUDrop> reanalyze = new HashSet<CUDrop>();
+  final Set<CUDrop> reanalyze = new HashSet<>();
 
   /**
    * Info from the old CUs
    */
-  private final MultiMap<String, PromiseDrop<?>> oldInfo = new MultiHashMap<String, PromiseDrop<?>>();
+  private final Multimap<String, PromiseDrop<?>> oldInfo = ArrayListMultimap.create();
 
   public void markAsChanged(CUDrop d) {
     if (d == null) {
@@ -95,7 +93,9 @@ public class Dependencies {
    * <p>
    * If this is set to {@code null} debug information on all drops is output.
    */
-  public static final String DROP_MESSAGE_DEBUG = "";// "Lock field \"this.f_lock\" is less";
+  public static final String DROP_MESSAGE_DEBUG = "";// "Lock field
+                                                     // \"this.f_lock\" is
+                                                     // less";
 
   /**
    * Collects the CUDrops corresponding to d's dependent drops, so we can
@@ -139,7 +139,7 @@ public class Dependencies {
   private static Iterable<Drop> getDependents(Drop root) {
     // if (root instanceof ModelDrop) {
     if (compensateForModels && ModelDrop.class.isInstance(root)) {
-      List<Drop> dependents = new ArrayList<Drop>();
+      List<Drop> dependents = new ArrayList<>();
       // Ignore any model drops as "dependents"
       for (Drop d : root.getDependents()) {
         if (ModelDrop.class.isInstance(d)) {
@@ -161,8 +161,8 @@ public class Dependencies {
     return root.getDependents();
   }
 
-  @SuppressWarnings("serial")
-  private static class IgnoredException extends Exception {
+  static class IgnoredException extends Exception {
+    private static final long serialVersionUID = -4803740618265526643L;
     // Nothing to do
   }
 
@@ -254,9 +254,6 @@ public class Dependencies {
     for (CUDrop d : reprocess) {
       System.out.println("Reprocess: " + d.getJavaOSFileName() + " " + d.getClass().getSimpleName());
     }
-    // if (AbstractWholeIRAnalysis.useDependencies) {
-    // collectOldAnnotationInfo();
-    // }
     reprocess.removeAll(changed);
 
     IDE.getInstance().setAdapting();
@@ -274,19 +271,6 @@ public class Dependencies {
            * parsePackagePromises(pkg); } });
            */
         }
-        // else if (AbstractWholeIRAnalysis.useDependencies) { // Same as
-        // Util.clearOldResults
-        // // Clear info/warnings
-        // // Clear results
-        // for(Drop dd : d.getDependents()) {
-        // if (dd instanceof IReportedByAnalysisDrop || dd instanceof
-        // PromiseWarningDrop) {
-        // dd.invalidate();
-        // } else {
-        // System.out.println("\tIgnoring "+dd.getMessage());
-        // }
-        // }
-        // }
       }
       // Necessary to process these after package drops
       // to ensure that newly created drops don't invalidated
@@ -321,54 +305,6 @@ public class Dependencies {
     }
   }
 
-  // Written to collect info BEFORE the old AST is destroyed
-  //
-  // Decls as Strings for field/method decls
-  // TODO what if I've got the same name from two projects?
-  private void collectOldAnnotationInfo() {
-    // Get all the CUs that will be re-annotated
-    System.out.println("Collecting all the CUs to be re-annotated");
-    reanalyze.clear();
-    reanalyze.addAll(reprocess);
-    reanalyze.addAll(changed);
-    oldInfo.clear();
-
-    for (final CUDrop cud : reanalyze) {
-      System.out.println("Collecting old info for " + cud.getJavaOSFileName());
-      // record old decls and what annotations were on them
-      for (final IRNode n : JJNode.tree.bottomUp(cud.getCompilationUnitIRNode())) {
-        final Operator op = JJNode.tree.getOperator(n);
-        if (ClassBodyDeclaration.prototype.includes(op)) {
-          if (FieldDeclaration.prototype.includes(op)) {
-            for (IRNode vd : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(n))) {
-              collectOldInfoAnnotationInfoForDecl(cud, vd);
-            }
-          } else {
-            collectOldInfoAnnotationInfoForDecl(cud, n);
-          }
-        } else if (TypeDeclaration.prototype.includes(op)) {
-          collectOldInfoAnnotationInfoForDecl(cud, n);
-        }
-      }
-    }
-  }
-
-  private void collectOldInfoAnnotationInfoForDecl(final CUDrop cud, final IRNode n) {
-    // Does this include the method signature?
-    final String name = JavaIdentifier.encodeDecl(cud.getTypeEnv().getProject(), n);
-    oldInfo.put(name, null); // Used to mark that it was declared
-
-    final List<PromiseDrop<?>> drops = PromiseDropStorage.getAllDrops(n);
-    if (!drops.isEmpty()) {
-      System.out.println("Collecting old drops for " + name);
-      oldInfo.putAll(name, drops);
-    }
-    /*
-     * if ("testDeps.Deponent".equals(name)) { for(LockModel l :
-     * LockRules.getModels(n)) { System.out.println(l.getMessage()); } }
-     */
-  }
-
   static class AnnotationInfo {
     final IRNode decl;
     final Collection<PromiseDrop<?>> drops;
@@ -391,11 +327,12 @@ public class Dependencies {
       System.out.println("No old info to compare with");
       return Collections.emptyList();
     }
-    final MultiMap<ITypeEnvironment, AnnotationInfo> toScan = new MultiHashMap<ITypeEnvironment, AnnotationInfo>();
+    final Multimap<ITypeEnvironment, AnnotationInfo> toScan = ArrayListMultimap.create();
     // Find the newly annotated decls
     for (final CodeInfo info : newInfos) {
       // if (AbstractWholeIRAnalysis.debugDependencies) {
-      // System.out.println("Checking for new dependencies on "+info.getFileName());
+      // System.out.println("Checking for new dependencies on
+      // "+info.getFileName());
       // }
       // find new decls to compare
       for (final IRNode n : JJNode.tree.bottomUp(info.getNode())) {
@@ -417,7 +354,7 @@ public class Dependencies {
     if (toScan.isEmpty()) {
       System.out.println("No decls to scan for.");
     } else {
-      for (Entry<ITypeEnvironment, Collection<AnnotationInfo>> e : toScan.entrySet()) {
+      for (Entry<ITypeEnvironment, Collection<AnnotationInfo>> e : toScan.asMap().entrySet()) {
         scanForDependencies(e.getKey(), e.getValue());
       }
     }
@@ -426,9 +363,9 @@ public class Dependencies {
     return reanalyze;
   }
 
-  private void findDepsForNewlyAnnotatedDecls(MultiMap<ITypeEnvironment, AnnotationInfo> toScan, CodeInfo info, IRNode n) {
+  private void findDepsForNewlyAnnotatedDecls(Multimap<ITypeEnvironment, AnnotationInfo> toScan, CodeInfo info, IRNode n) {
     final String name = JavaIdentifier.encodeDecl(info.getTypeEnv().getProject(), n);
-    final Collection<PromiseDrop<?>> oldDrops = oldInfo.remove(name);
+    final Collection<PromiseDrop<?>> oldDrops = oldInfo.removeAll(name);
     if (oldDrops == null) {
       // New decl, so any annotations are brand-new, and will be analyzed
       // if (AbstractWholeIRAnalysis.debugDependencies) {
@@ -454,12 +391,12 @@ public class Dependencies {
         System.out.println("Only removed drops for " + name);
         return;
       }
-      Set<Wrapper> diff = new HashSet<Wrapper>();
+      Set<Wrapper> diff = new HashSet<>();
       doWrappedDrops(diff, newDrops, true); // add new drops
       doWrappedDrops(diff, oldDrops, false); // remove old drops
       if (!diff.isEmpty()) {
         System.out.println("Found new annotations for " + name);
-        Collection<PromiseDrop<?>> diffDrops = new ArrayList<PromiseDrop<?>>();
+        Collection<PromiseDrop<?>> diffDrops = new ArrayList<>();
         for (Wrapper w : diff) {
           diffDrops.add(w.drop);
         }
@@ -540,13 +477,14 @@ public class Dependencies {
         if (cud instanceof PackageDrop) {
           return;
         }
-        // System.out.println("Scanning for decls using type in "+cud.javaOSFileName);
+        // System.out.println("Scanning for decls using type in
+        // "+cud.javaOSFileName);
         scanCUDropForGivenTypedVarDecls(binder, cud, decls, depScanner);
       }
 
       @Override
       protected void handleLocals(IBinder binder, CUDrop cud, Collection<IRNode> decls) {
-        scanCUDrop(binder, cud, new HashSet<IRNode>(decls));
+        scanCUDrop(binder, cud, new HashSet<>(decls));
       }
     };
     // Categorize decls by access
@@ -578,13 +516,13 @@ public class Dependencies {
     }
   }
 
-  private static abstract class DeclarationScanner {
+  static abstract class DeclarationScanner {
     // CU -> decl
-    final MultiMap<IRNode, IRNode> localDecls = new MultiHashMap<IRNode, IRNode>();
-    final MultiMap<IRNode, IRNode> packageDecls = new MultiHashMap<IRNode, IRNode>();
+    final Multimap<IRNode, IRNode> localDecls = ArrayListMultimap.create();
+    final Multimap<IRNode, IRNode> packageDecls = ArrayListMultimap.create();
     // type -> decl
-    final MultiMap<IRNode, IRNode> protectedDecls = new MultiHashMap<IRNode, IRNode>();
-    final Set<IRNode> publicDecls = new HashSet<IRNode>();
+    final Multimap<IRNode, IRNode> protectedDecls = ArrayListMultimap.create();
+    final Set<IRNode> publicDecls = new HashSet<>();
 
     void categorizeDecl(IRNode decl, Operator op) {
       final int mods;
@@ -596,7 +534,7 @@ public class Dependencies {
       categorizeDecl(decl, mods);
     }
 
-    private void categorizeDecl(IRNode decl, int mods) {
+    void categorizeDecl(IRNode decl, int mods) {
       if (JavaNode.isSet(mods, JavaNode.PRIVATE)) {
         // final IRNode type = VisitUtil.getEnclosingType(decl);
         final IRNode root = VisitUtil.findCompilationUnit(decl);
@@ -652,7 +590,7 @@ public class Dependencies {
         scanForPublic(te, publicDecls);
       }
       if (!localDecls.isEmpty()) {
-        for (Entry<IRNode, Collection<IRNode>> e : localDecls.entrySet()) {
+        for (Entry<IRNode, Collection<IRNode>> e : localDecls.asMap().entrySet()) {
           final CUDrop cud = CUDrop.queryCU(e.getKey());
           handleLocals(te.getBinder(), cud, e.getValue());
         }
@@ -667,9 +605,9 @@ public class Dependencies {
      * @param te
      * @param decls
      */
-    private void scanForPackage(ITypeEnvironment te, MultiMap<IRNode, IRNode> cu2decls) {
-      for (final Entry<IRNode, Collection<IRNode>> e : cu2decls.entrySet()) {
-        final Set<IRNode> decls = new HashSet<IRNode>(e.getValue());
+    private void scanForPackage(ITypeEnvironment te, Multimap<IRNode, IRNode> cu2decls) {
+      for (final Entry<IRNode, Collection<IRNode>> e : cu2decls.asMap().entrySet()) {
+        final Set<IRNode> decls = new HashSet<>(e.getValue());
         final String name = VisitUtil.getPackageName(e.getKey());
         System.out.println("Scanning for dependencies in package: " + name);
         // TODO does this have the right info?
@@ -680,10 +618,10 @@ public class Dependencies {
       }
     }
 
-    private void scanForSubclass(ITypeEnvironment te, MultiMap<IRNode, IRNode> type2decls) {
-      for (Entry<IRNode, Collection<IRNode>> e : type2decls.entrySet()) {
+    private void scanForSubclass(ITypeEnvironment te, Multimap<IRNode, IRNode> type2decls) {
+      for (Entry<IRNode, Collection<IRNode>> e : type2decls.asMap().entrySet()) {
         final IRNode type = e.getKey();
-        final Set<IRNode> decls = new HashSet<IRNode>(e.getValue());
+        final Set<IRNode> decls = new HashSet<>(e.getValue());
         scanForSubclass(te, type, decls);
       }
     }

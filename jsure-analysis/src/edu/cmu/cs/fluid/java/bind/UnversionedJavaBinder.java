@@ -1,32 +1,39 @@
 /*$Header: /cvs/fluid/fluid/src/edu/cmu/cs/fluid/java/bind/UnversionedJavaBinder.java,v 1.40 2008/10/27 15:26:44 chance Exp $*/
 package edu.cmu.cs.fluid.java.bind;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
-import org.apache.commons.collections15.MultiMap;
-
-import com.surelogic.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.surelogic.RequiresLock;
+import com.surelogic.ThreadSafe;
+import com.surelogic.Unique;
 import com.surelogic.analysis.ConcurrentAnalysis;
-import com.surelogic.common.concurrent.ConcurrentHashSet;
-import com.surelogic.common.concurrent.ConcurrentMultiHashMap;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.javac.persistence.JSurePerformance;
 
-import edu.cmu.cs.fluid.derived.*;
+import edu.cmu.cs.fluid.derived.AbstractDerivedInformation;
 import edu.cmu.cs.fluid.ide.IDE;
-import edu.cmu.cs.fluid.ir.*;
+import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.ir.IRNodeHashedMap;
+import edu.cmu.cs.fluid.ir.SlotUndefinedException;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.operator.*;
+import edu.cmu.cs.fluid.java.operator.DemandName;
+import edu.cmu.cs.fluid.java.operator.TypeDeclaration;
 import edu.cmu.cs.fluid.java.project.JavaMemberTable;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import extra166y.Ops.Procedure;
-import com.surelogic.Unique;
 
 @ThreadSafe
 public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUnitListener {
@@ -38,20 +45,15 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
    * TODO keep a "base" impl to clone for parameterizations?
    * TODO what about types that have no parameterizations? (waste of space)
    */
-  private final MultiMap<IRNode, IJavaSourceRefType> sourceTypeParameterizations = cacheAllSourceTypes ?	  
-	  new ConcurrentMultiHashMap<IRNode, IJavaSourceRefType>() {
-      @Override
-      protected Collection<IJavaSourceRefType> newCollection() {
-    	  return new ConcurrentHashSet<IJavaSourceRefType>();
-      }
-  } : null;
+  private final Multimap<IRNode, IJavaSourceRefType> sourceTypeParameterizations = cacheAllSourceTypes ?	  
+	  ArrayListMultimap.create() : null;
 	
   private final ConcurrentMap<IJavaSourceRefType,IJavaMemberTable> memberTableCache = cacheAllSourceTypes ? 
-      new ConcurrentHashMap<IJavaSourceRefType,IJavaMemberTable>() : null;
+      new ConcurrentHashMap<>() : null;
   
   
   private final Map<IRNode,IJavaMemberTable> oldMemberTableCache = cacheAllSourceTypes ? null :
-	  new ConcurrentHashMap<IRNode, IJavaMemberTable>();
+	  new ConcurrentHashMap<>();
   
   private final ThreadLocal<IJavaMemberTable> objectTable =
 	  new ThreadLocal<IJavaMemberTable>() {
@@ -260,7 +262,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   private boolean removeStaleTables(final IRNode tdecl) {
 	  if (cacheAllSourceTypes) {
 		  boolean removed = false;
-		  final Collection<IJavaSourceRefType> types = sourceTypeParameterizations.remove(tdecl);
+		  final Collection<IJavaSourceRefType> types = sourceTypeParameterizations.removeAll(tdecl);
 		  if (types != null) {
 			  removed = true;
 			  

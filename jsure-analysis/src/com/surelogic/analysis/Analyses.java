@@ -4,9 +4,8 @@ import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.collections15.MultiMap;
-import org.apache.commons.collections15.multimap.MultiHashMap;
-
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.surelogic.analysis.granules.GranuleInType;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
@@ -273,7 +272,7 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 		if (toAnalyze == null) {
 			return;
 		}
-		final MultiMap<ITypeEnvironment, P> granules = new MultiHashMap<ITypeEnvironment, P>();
+		final Multimap<ITypeEnvironment, P> granules = ArrayListMultimap.create();
 		for (P granule : toAnalyze) {
 			granules.put(granule.getTypeEnv(), granule);
 		}

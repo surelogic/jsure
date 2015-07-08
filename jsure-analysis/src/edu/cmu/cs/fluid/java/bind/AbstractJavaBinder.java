@@ -14,9 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.collections15.MultiMap;
-import org.apache.commons.collections15.multimap.MultiHashMap;
-
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.surelogic.ThreadSafe;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.common.XUtil;
@@ -119,41 +118,41 @@ import edu.cmu.cs.fluid.util.Stack;
 import edu.cmu.cs.fluid.version.Version;
 
 /**
- * General code to compute binding information on Java trees.
- * The basic idea is that we find the granule of binding work associated with the
- * node and then if this work hasn't been done yet, we do all the bindings for that granule
- * and then return the information.
+ * General code to compute binding information on Java trees. The basic idea is
+ * that we find the granule of binding work associated with the node and then if
+ * this work hasn't been done yet, we do all the bindings for that granule and
+ * then return the information.
  * <p>
- * If, while doing binding, we find we need the binding of another node, we may end up with a
- * recursion problem.  If the granularity of work were the single node, we would simply
- * catch this and flag an error.  Since we use larger granules of work, it is a little more
- * complex.  We permit using of binding information that is already computed, but
- * if it is not computed yet, it counts are a recursive call, and hence an error.
- * Recently, we had to move from CU granularity to class granularity to avoid a
- * circularity of this nature.
+ * If, while doing binding, we find we need the binding of another node, we may
+ * end up with a recursion problem. If the granularity of work were the single
+ * node, we would simply catch this and flag an error. Since we use larger
+ * granules of work, it is a little more complex. We permit using of binding
+ * information that is already computed, but if it is not computed yet, it
+ * counts are a recursive call, and hence an error. Recently, we had to move
+ * from CU granularity to class granularity to avoid a circularity of this
+ * nature.
  * <p>
- * This basic story is complicated by incrementality.  We obviously don't
- * want to do the work over again if nothing changed.  On the one hand,
- * it seems rather coarse to invalidate all work after any change in any Java 
- * tree anywhere (i.e. if requested in a new version, if versioning is on).
- * On the other hand, it's not correct to only invalidate the binding
- * information if the tree for the granule has changed: bindings go out
- * of the granule.
+ * This basic story is complicated by incrementality. We obviously don't want to
+ * do the work over again if nothing changed. On the one hand, it seems rather
+ * coarse to invalidate all work after any change in any Java tree anywhere
+ * (i.e. if requested in a new version, if versioning is on). On the other hand,
+ * it's not correct to only invalidate the binding information if the tree for
+ * the granule has changed: bindings go out of the granule.
  * <p>
- * The solution is to keep dependencies: when one refers to an entity, we add
- * a back pointer to the use.  Then if a declaration changes, we invalidate
- * the work done in the granule.  This is inter-granule incrementality.
+ * The solution is to keep dependencies: when one refers to an entity, we add a
+ * back pointer to the use. Then if a declaration changes, we invalidate the
+ * work done in the granule. This is inter-granule incrementality.
  * <p>
  * To this picture can be added intra-granule incrementality: in which we
- * attempt to avoid redoing all the binding work of a granule.  This requires
- * keeping change bits on nodes which can be expensive (in space).  The
+ * attempt to avoid redoing all the binding work of a granule. This requires
+ * keeping change bits on nodes which can be expensive (in space). The
  * dependencies would then be used to invalidate only the particular use.
  * <p>
- * This class implements granularity and inter-granule incrementality.
- * The granularity is currently set at the "class" level,
- * although perhaps the method body level would give better results
- * and would obviate the need for intra-granule incrementality.
- * Each granule needs a hash table.
+ * This class implements granularity and inter-granule incrementality. The
+ * granularity is currently set at the "class" level, although perhaps the
+ * method body level would give better results and would obviate the need for
+ * intra-granule incrementality. Each granule needs a hash table.
+ * 
  * @author Edwin.Chan
  * @author John Boyland
  */
@@ -164,827 +163,783 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
   private static final boolean cacheGranuleInfo = false;
   protected static final boolean storeNullBindings = true;
   protected boolean warnAboutPkgBindings = false;
-  
+
   public static final ThreadLocal<Stack<IGranuleBindings>> bindingStack = new ThreadLocal<Stack<IGranuleBindings>>() {
-	  @Override
-	  protected Stack<IGranuleBindings> initialValue() {
-		  return new Stack<IGranuleBindings>();
-	  }
+    @Override
+    protected Stack<IGranuleBindings> initialValue() {
+      return new Stack<IGranuleBindings>();
+    }
   };
-  
+
   public static int numPartial;
   public static int numFull;
   public static long partialTime, fullTime;
-  
+
   public static void printStats() {
     if (XUtil.useExperimental) {
       SLLogger.getLogger().log(Level.INFO, "partial bindings = " + numPartial);
       SLLogger.getLogger().log(Level.INFO, "full bindings = " + numFull);
     }
   }
-  
+
   protected final IJavaClassTable classTable;
   protected final ITypeEnvironment typeEnvironment;
-  protected final Map<IRNode,IGranuleBindings> allGranuleBindings = 
-    new ConcurrentHashMap<IRNode,IGranuleBindings>();
-  
+  protected final Map<IRNode, IGranuleBindings> allGranuleBindings = new ConcurrentHashMap<IRNode, IGranuleBindings>();
+
   /**
    * Granule bindings to track if the first visitor pass has been done
    */
-  protected final Map<IRNode,IGranuleBindings> partialGranuleBindings = 
-    new ConcurrentHashMap<IRNode,IGranuleBindings>();
-  
+  protected final Map<IRNode, IGranuleBindings> partialGranuleBindings = new ConcurrentHashMap<IRNode, IGranuleBindings>();
+
   protected AbstractJavaBinder(IJavaClassTable table) {
-	super(false);
-    classTable      = table;
+    super(false);
+    classTable = table;
     typeEnvironment = new TypeEnv();
   }
-  
+
   protected AbstractJavaBinder(ITypeEnvironment tEnv, boolean processJ8) {
-	super(processJ8);
+    super(processJ8);
     typeEnvironment = tEnv;
-    classTable      = tEnv.getClassTable();
+    classTable = tEnv.getClassTable();
   }
 
   protected static Operator getOperator(IRNode node) {
     return JJNode.tree.getOperator(node);
   }
-  
+
   @Override
   public final ITypeEnvironment getTypeEnvironment() {
     return typeEnvironment;
   }
-  
+
   /**
-   * Whether this node can be printed for debugging information.
-   * Because of versioning, it may be dangerous to try to print a node.
+   * Whether this node can be printed for debugging information. Because of
+   * versioning, it may be dangerous to try to print a node.
+   * 
    * @param node
    * @return true if this node can be printed.
    */
   protected boolean okToAccess(IRNode node) {
     return true;
   }
-  
+
   /**
-   * Check if this is a granule.
-   * This code is <em>definitive</em>.  It should be the
-   * only place that knows what the granularity is.
-   * Currently it is true for classes (and the compilation unit).
+   * Check if this is a granule. This code is <em>definitive</em>. It should be
+   * the only place that knows what the granularity is. Currently it is true for
+   * classes (and the compilation unit).
+   * 
    * @param op
    * @return if this operator marked a granule.
    */
   public static boolean isGranule(IRNode node, Operator op) {
-	/*
-	// Check if already calculated
-  	final int mods = JavaNode.getModifiers(node);
-  	if (JavaNode.isSet(mods, JavaNode.NOT_GRANULE)) {
-  		return false;
-  	}
-  	if (JavaNode.isSet(mods, JavaNode.IS_GRANULE)) {
-  		return true;
-  	}
-    if (op == null) {
-    	op = JJNode.tree.getOperator(node);
-    }
-  	final boolean rv = isGranule_private(node, op);
-  	JavaNode.setModifiers(node, JavaNode.setModifier(mods, rv ? JavaNode.IS_GRANULE : JavaNode.NOT_GRANULE, true));
-  	return rv;
-  }
-  
-  public static boolean isGranule(IRNode node) {
-	  return isGranule(node, null);
-  }
-  *
-  private static boolean isGranule_private(IRNode node, Operator op) {
-  */
+    /*
+     * // Check if already calculated final int mods =
+     * JavaNode.getModifiers(node); if (JavaNode.isSet(mods,
+     * JavaNode.NOT_GRANULE)) { return false; } if (JavaNode.isSet(mods,
+     * JavaNode.IS_GRANULE)) { return true; } if (op == null) { op =
+     * JJNode.tree.getOperator(node); } final boolean rv =
+     * isGranule_private(node, op); JavaNode.setModifiers(node,
+     * JavaNode.setModifier(mods, rv ? JavaNode.IS_GRANULE :
+     * JavaNode.NOT_GRANULE, true)); return rv; }
+     * 
+     * public static boolean isGranule(IRNode node) { return isGranule(node,
+     * null); }
+     *
+     * private static boolean isGranule_private(IRNode node, Operator op) {
+     */
     if (op instanceof TypeDeclInterface) {
       /*
-      if (op instanceof AnonClassExpression) {
-        return !OuterObjectSpecifier.prototype.includes(JJNode.tree.getParent(node));
-      }
-      */
+       * if (op instanceof AnonClassExpression) { return
+       * !OuterObjectSpecifier.prototype.includes(JJNode.tree.getParent(node));
+       * }
+       */
       /*
-      if (op instanceof TypeFormal) {
-    	return false;
-      }
-      */
+       * if (op instanceof TypeFormal) { return false; }
+       */
       return true;
     }
     /*
-    else if (op instanceof OuterObjectSpecifier) {
-      IRNode alloc = OuterObjectSpecifier.getCall(node);
-      if (AnonClassExpression.prototype.includes(alloc)) {
-        return true;
-      }
-    }
-    */
+     * else if (op instanceof OuterObjectSpecifier) { IRNode alloc =
+     * OuterObjectSpecifier.getCall(node); if
+     * (AnonClassExpression.prototype.includes(alloc)) { return true; } }
+     */
     else if (op instanceof ClassType) {
-    	IRNode parent = JJNode.tree.getParentOrNull(node);
-    	return TypeDeclaration.prototype.includes(parent);
-    }
-    else if (op instanceof Implements || op instanceof Extensions) {
-    	return true;
-    }
-    else if (op instanceof OuterObjectSpecifier) {
-    	return true;
-    }
-    else if (op instanceof Expression) {    	    	
-        if (op instanceof NewExpression) {
-        	// This is necessary because the type of the NewE may depend on binding the OOS
-        	if (getOOSParent(node) != null) {
-        		return true;
-        	}
+      IRNode parent = JJNode.tree.getParentOrNull(node);
+      return TypeDeclaration.prototype.includes(parent);
+    } else if (op instanceof Implements || op instanceof Extensions) {
+      return true;
+    } else if (op instanceof OuterObjectSpecifier) {
+      return true;
+    } else if (op instanceof Expression) {
+      if (op instanceof NewExpression) {
+        // This is necessary because the type of the NewE may depend on binding
+        // the OOS
+        if (getOOSParent(node) != null) {
+          return true;
         }
-    	// Check if it's the top-level Expression and contains an OOS 
-    	IRNode parent = JJNode.tree.getParent(node);
-    	if (Statement.prototype.includes(parent)) {
-        	// Check if already calculated
-        	int mods = JavaNode.getModifiers(node);
-        	if (JavaNode.isSet(mods, JavaNode.IS_GRANULE)) {
-        		return true;
-        	}
-        	if (JavaNode.isSet(mods, JavaNode.NOT_GRANULE)) {
-        		return false;
-        	}
-    		for(IRNode n : JJNode.tree.topDown(node)) {
-    			if (OuterObjectSpecifier.prototype.includes(n)) {    				
-    				//System.out.println("Granule: "+DebugUnparser.toString(node));
-    				JavaNode.setModifiers(node, JavaNode.setModifier(mods, JavaNode.IS_GRANULE, true));
-    				return true;
-    			}
-    		}
-    		JavaNode.setModifiers(node, JavaNode.setModifier(mods, JavaNode.NOT_GRANULE, true));
-    		return false;
-    	}
-    	else if (MethodBinder8.couldBePolyExpression(node)) {
-    		return !MethodBinder8.couldBePolyExpression(parent);
-    	}
-    	return false;
+      }
+      // Check if it's the top-level Expression and contains an OOS
+      IRNode parent = JJNode.tree.getParent(node);
+      if (Statement.prototype.includes(parent)) {
+        // Check if already calculated
+        int mods = JavaNode.getModifiers(node);
+        if (JavaNode.isSet(mods, JavaNode.IS_GRANULE)) {
+          return true;
+        }
+        if (JavaNode.isSet(mods, JavaNode.NOT_GRANULE)) {
+          return false;
+        }
+        for (IRNode n : JJNode.tree.topDown(node)) {
+          if (OuterObjectSpecifier.prototype.includes(n)) {
+            // System.out.println("Granule: "+DebugUnparser.toString(node));
+            JavaNode.setModifiers(node, JavaNode.setModifier(mods, JavaNode.IS_GRANULE, true));
+            return true;
+          }
+        }
+        JavaNode.setModifiers(node, JavaNode.setModifier(mods, JavaNode.NOT_GRANULE, true));
+        return false;
+      } else if (MethodBinder8.couldBePolyExpression(node)) {
+        return !MethodBinder8.couldBePolyExpression(parent);
+      }
+      return false;
     }
     return op instanceof CompilationUnit;
   }
-  
+
   /**
    * @return non-null if node is the call for an OOS
    */
   static IRNode getOOSParent(IRNode node) {
-  	final IRNode parent = JJNode.tree.getParent(node);
-  	if (OuterObjectSpecifier.prototype.includes(parent) && node.equals(OuterObjectSpecifier.getCall(parent))) {
-  		return parent;
-  	}
-  	return null;
+    final IRNode parent = JJNode.tree.getParent(node);
+    if (OuterObjectSpecifier.prototype.includes(parent) && node.equals(OuterObjectSpecifier.getCall(parent))) {
+      return parent;
+    }
+    return null;
   }
-  
+
   private static final IRNode noGranuleComputedYet = new MarkedIRNode("no granule");
   private static final SlotInfo<IRNode> granuleSI = makeGranuleSI();
 
   private static SlotInfo<IRNode> makeGranuleSI() {
-	try {
-		return JJNode.treeSlotFactory.newAttribute(SyntaxTreeSlotFactory.GRANULE, IRNodeType.prototype, noGranuleComputedYet);
-	} catch (SlotAlreadyRegisteredException e) {
-		return null;
-	}
+    try {
+      return JJNode.treeSlotFactory.newAttribute(SyntaxTreeSlotFactory.GRANULE, IRNodeType.prototype, noGranuleComputedYet);
+    } catch (SlotAlreadyRegisteredException e) {
+      return null;
+    }
   }
-  
+
   /**
    * Compute granules for all the nodes in this compilation unit
    */
   public static void computeGranules(IRNode cu) {
-	  if (cacheGranuleInfo) {
-		  computeGranules(cu, null);
-	  }
+    if (cacheGranuleInfo) {
+      computeGranules(cu, null);
+    }
   }
-  
+
   private static void computeGranules(final IRNode node, final IRNode prevGranule) {
-	  final Operator op = JJNode.tree.getOperator(node);
-	  final IRNode granule = isGranule(node, op) ? node : prevGranule;	  
-      node.setSlotValue(granuleSI, granule);
-      
-      for(IRNode child : JJNode.tree.children(node)) {
-    	  computeGranules(child, granule);
-      }
+    final Operator op = JJNode.tree.getOperator(node);
+    final IRNode granule = isGranule(node, op) ? node : prevGranule;
+    node.setSlotValue(granuleSI, granule);
+
+    for (IRNode child : JJNode.tree.children(node)) {
+      computeGranules(child, granule);
+    }
   }
-  
+
   /**
-   * Return the granule of binding associated with this node, or throw
-   * an exception if we don't find one (while going to the root).
-   * @param node node we wish binding information for
+   * Return the granule of binding associated with this node, or throw an
+   * exception if we don't find one (while going to the root).
+   * 
+   * @param node
+   *          node we wish binding information for
    * @return granule which this node is associated with
    */
   public IRNode getGranule(IRNode node) {
-	final IRNode orig = node;
-	IRNode rv = null;
-	if (cacheGranuleInfo) {
-		rv = orig.getSlotValue(granuleSI);
-		
-		if (rv != noGranuleComputedYet) {
-			return rv;
-		}		
-	}
-	// TODO this could compute the granule for all the nodes along the way
-	while (node != null) {
-		synchronized (node) {
-		    Operator op = JJNode.tree.getOperator(node);
-		    if (isGranule(node, op)) {
-		    	break;
-		    }
-		    // body of original loop below
-		    IRNode p;
-		    try {
-		    	p = JJNode.tree.getParent(node);        
-		    } catch (SlotUndefinedException e) {
-		    	p = null;
-		    }
-		    if (p == null) {
-		    	// for debugging
-		    	throw new NullPointerException("Has a null/undefined parent: " + node + " with op = " + op);
-		    }
-		    node = p;
-		}
-	}
-	/*
-    Operator op;    
-    while (!(isGranule(node, op = JJNode.tree.getOperator(node)))) {
-      IRNode p;
-      try {
-    	p = JJNode.tree.getParent(node);        
-      } catch (SlotUndefinedException e) {
-        p = null;
+    final IRNode orig = node;
+    IRNode rv = null;
+    if (cacheGranuleInfo) {
+      rv = orig.getSlotValue(granuleSI);
+
+      if (rv != noGranuleComputedYet) {
+        return rv;
       }
-      if (p == null) {
-        // for debugging
-        throw new NullPointerException("Has a null/undefined parent: " + node + " with op = " + op);
-      }
-      node = p;
     }
-    */
-	if (cacheGranuleInfo) {
-		/*
-		if (rv != null && rv != noGranuleComputedYet) {
-			if (rv != node) {
-				System.out.println("Granules differ: "+JJNode.tree.getOperator(node));
-			}
-		}		
-		Operator oop = JJNode.tree.getOperator(orig);
-		if (NewExpression.prototype.includes(oop)) {
-			System.out.println("Can't cache this in case we add an OOS");
-		} else {
-			// TODO can't cache if I'm inside a NewE?
-			Operator op = JJNode.tree.getOperator(node);
-			if (op instanceof IllegalCode) {
-				if (oop instanceof IllegalCode) {
-					orig.setSlotValue(granuleSI, node);
-				} else {
-					System.out.println("Cannot store this granule: "+op.name());
-				}
-			} else {
-				orig.setSlotValue(granuleSI, node);
-			}
-		}
-		*/
-		orig.setSlotValue(granuleSI, node);
-	}
+    // TODO this could compute the granule for all the nodes along the way
+    while (node != null) {
+      synchronized (node) {
+        Operator op = JJNode.tree.getOperator(node);
+        if (isGranule(node, op)) {
+          break;
+        }
+        // body of original loop below
+        IRNode p;
+        try {
+          p = JJNode.tree.getParent(node);
+        } catch (SlotUndefinedException e) {
+          p = null;
+        }
+        if (p == null) {
+          // for debugging
+          throw new NullPointerException("Has a null/undefined parent: " + node + " with op = " + op);
+        }
+        node = p;
+      }
+    }
+    /*
+     * Operator op; while (!(isGranule(node, op =
+     * JJNode.tree.getOperator(node)))) { IRNode p; try { p =
+     * JJNode.tree.getParent(node); } catch (SlotUndefinedException e) { p =
+     * null; } if (p == null) { // for debugging throw new NullPointerException(
+     * "Has a null/undefined parent: " + node + " with op = " + op); } node = p;
+     * }
+     */
+    if (cacheGranuleInfo) {
+      /*
+       * if (rv != null && rv != noGranuleComputedYet) { if (rv != node) {
+       * System.out.println("Granules differ: "+JJNode.tree.getOperator(node));
+       * } } Operator oop = JJNode.tree.getOperator(orig); if
+       * (NewExpression.prototype.includes(oop)) { System.out.println(
+       * "Can't cache this in case we add an OOS"); } else { // TODO can't cache
+       * if I'm inside a NewE? Operator op = JJNode.tree.getOperator(node); if
+       * (op instanceof IllegalCode) { if (oop instanceof IllegalCode) {
+       * orig.setSlotValue(granuleSI, node); } else { System.out.println(
+       * "Cannot store this granule: "+op.name()); } } else {
+       * orig.setSlotValue(granuleSI, node); } }
+       */
+      orig.setSlotValue(granuleSI, node);
+    }
     return node;
   }
-  
-   /* (non-Javadoc)
-   * @see edu.cmu.cs.fluid.java.bind.IBinder#getIBinding(edu.cmu.cs.fluid.ir.IRNode)
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see
+   * edu.cmu.cs.fluid.java.bind.IBinder#getIBinding(edu.cmu.cs.fluid.ir.IRNode)
    */
   @Override
   protected IBinding getIBinding_impl(IRNode node) {
-    IGranuleBindings bindings = ensureBindingsOK(node);    
+    IGranuleBindings bindings = ensureBindingsOK(node);
     /*
-    if (!JJNode.versioningIsOn && !node.valueExists(bindings.getUseToDeclAttr())) {
-    	// Maybe canonicalizing the AST
-    	System.out.println("Re-deriving "+bindings.hashCode()+" for "+node.hashCode());
-    	bindings.clear();
-    	bindings.ensureDerived();
-    }
-    */
+     * if (!JJNode.versioningIsOn &&
+     * !node.valueExists(bindings.getUseToDeclAttr())) { // Maybe canonicalizing
+     * the AST System.out.println("Re-deriving "+bindings.hashCode()+" for "
+     * +node.hashCode()); bindings.clear(); bindings.ensureDerived(); }
+     */
     // LOG.finer("getting binding for " + DebugUnparser.toString(node));
     try {
-    	synchronized (bindings) {
-    		// TODO how to protect against destroyed bindings?
-    		if (bindings.isDestroyed()) {
-    			return getIBinding(node);
-    		} else {    		
-    			IBinding binding = bindings.getUseForDecl(node);
-    			if (binding != null && binding.getNode() != null && binding.getNode().identity() == IRNode.destroyedNode) {
-    				System.out.println("Destroyed binding for "+DebugUnparser.toString(node));
-    				bindings.destroy();
-    				return getIBinding(node);
-    			}
-    			return binding;
-    		}
-    	}
+      synchronized (bindings) {
+        // TODO how to protect against destroyed bindings?
+        if (bindings.isDestroyed()) {
+          return getIBinding(node);
+        } else {
+          IBinding binding = bindings.getUseForDecl(node);
+          if (binding != null && binding.getNode() != null && binding.getNode().identity() == IRNode.destroyedNode) {
+            System.out.println("Destroyed binding for " + DebugUnparser.toString(node));
+            bindings.destroy();
+            return getIBinding(node);
+          }
+          return binding;
+        }
+      }
     } catch (SlotUndefinedException e) {
-    	// TODO cache erroreous nodes?
-    
+      // TODO cache erroreous nodes?
+
       // debugging
       String msg;
       if (bindings.containsFullInfo()) {
-          msg = "no full binding for ";
+        msg = "no full binding for ";
       } else {
-          msg = "no partial binding for ";
+        msg = "no partial binding for ";
       }
       IRNode granule = getGranule(node);
       if (granule == node) {
-    	  IRNode parent = JJNode.tree.getParentOrNull(node);
-    	  LOG.severe(msg + node + " = " + DebugUnparser.toString(node)+" (parent: "+JJNode.tree.getOperator(parent).name()+")");
-    			  //" in version " + Version.getVersion());
+        IRNode parent = JJNode.tree.getParentOrNull(node);
+        LOG.severe(msg + node + " = " + DebugUnparser.toString(node) + " (parent: " + JJNode.tree.getOperator(parent).name() + ")");
+        // " in version " + Version.getVersion());
       } else {
-    	  LOG.severe(msg + node + " = " + DebugUnparser.toString(node) + 
-    			  //" in version " + Version.getVersion());
-    			  "\n\tin granule " + DebugUnparser.toString(granule));
-    	  needFullInfo(node, JJNode.tree.getOperator(node), granule);
-    	  ensureBindingsOK(node);  
+        LOG.severe(msg + node + " = " + DebugUnparser.toString(node) +
+            // " in version " + Version.getVersion());
+            "\n\tin granule " + DebugUnparser.toString(granule));
+        needFullInfo(node, JJNode.tree.getOperator(node), granule);
+        ensureBindingsOK(node);
       }
-//      System.out.println("Operator is " + JJNode.tree.getOperator(node));
-//      System.out.println(DebugUnparser.toString(node));
-//      if (handlePromises) {
-//        System.out.println("grant parent is " + DebugUnparser.toString(JavaPromise.getParentOrPromisedFor(JavaPromise.getParentOrPromisedFor(node))));
-//      } else {
-//        System.out.println("grant parent is " + DebugUnparser.toString(JJNode.tree.getParent(JJNode.tree.getParent(node))));
-//      }
-      
+      // System.out.println("Operator is " + JJNode.tree.getOperator(node));
+      // System.out.println(DebugUnparser.toString(node));
+      // if (handlePromises) {
+      // System.out.println("grant parent is " +
+      // DebugUnparser.toString(JavaPromise.getParentOrPromisedFor(JavaPromise.getParentOrPromisedFor(node))));
+      // } else {
+      // System.out.println("grant parent is " +
+      // DebugUnparser.toString(JJNode.tree.getParent(JJNode.tree.getParent(node))));
+      // }
+
       ensureBindingsOK(node);
       throw e;
     }
   }
 
   protected static boolean needFullInfo(IRNode node, Operator op, IRNode gr) {
-	  // Binaries can still have expressions in annotations that require binding
-      boolean needFullInfo = true;//!JavaNode.getModifier(gr, JavaNode.AS_BINARY) || Call.prototype.includes(op);
-      if (needFullInfo && !JJNode.versioningIsOn) {
-        IRNode here = node;
-        while (here != null && Name.prototype.includes(op)) {
-        	here = JJNode.tree.getParent(here);
-        	op   = JJNode.tree.getOperator(here); 
-        }
-        needFullInfo = !isType(op);
-        /*
-        if (!needFullInfo && here != null) {
-        	// here is a Type, so skip it
-        	final IRNode parent = JJNode.tree.getParent(here);
-        	needFullInfo = isSpecialTypeCase(parent);
-        }
-        */
+    // Binaries can still have expressions in annotations that require binding
+    boolean needFullInfo = true;// !JavaNode.getModifier(gr, JavaNode.AS_BINARY)
+                                // || Call.prototype.includes(op);
+    if (needFullInfo && !JJNode.versioningIsOn) {
+      IRNode here = node;
+      while (here != null && Name.prototype.includes(op)) {
+        here = JJNode.tree.getParent(here);
+        op = JJNode.tree.getOperator(here);
       }
-      return needFullInfo;
-  }
-  
-  private static boolean isType(Operator op) {
-	  return (Type.prototype.includes(op) && !TypeDeclaration.prototype.includes(op)) ||
-	         TypeActuals.prototype.includes(op) || Annotation.prototype.includes(op);
-  }
-  
-  private static String printBindings(IGranuleBindings gb) {
-	String unparse = DebugUnparser.toString(gb.getNode());    			 
-	if (unparse.length() > 50) {
-	  unparse = unparse.substring(0, 50);
-	}
-	return (gb.containsFullInfo() ? "full    " : "partial ")+unparse;
-  }
-  
-  static class BindingCall {
-	  final IGranuleBindings bindings;
-	  final IRNode needed;
-	  
-	  BindingCall(IGranuleBindings b, IRNode n) {
-		  bindings = b;
-		  needed = n;
-	  }
-	  
-	  @Override
-	  public String toString() {
-		  return printBindings(bindings) +" - "+ DebugUnparser.toString(needed)+" - "+JJNode.tree.getOperator(needed);
-	  }
-  }
-  
-  protected IGranuleBindings ensureBindingsOK(final IRNode node) {    
-    final IRNode gr            = getGranule(node);
-    /*
-    String unparse = DebugUnparser.toString(gr);
-    if ("(y) -> y".equals(unparse)) {
-    	System.out.println("Got granule for (y) -> y");
+      needFullInfo = !isType(op);
+      /*
+       * if (!needFullInfo && here != null) { // here is a Type, so skip it
+       * final IRNode parent = JJNode.tree.getParent(here); needFullInfo =
+       * isSpecialTypeCase(parent); }
+       */
     }
-    */
-    final Operator op          = JJNode.tree.getOperator(node); 
+    return needFullInfo;
+  }
+
+  private static boolean isType(Operator op) {
+    return (Type.prototype.includes(op) && !TypeDeclaration.prototype.includes(op)) || TypeActuals.prototype.includes(op)
+        || Annotation.prototype.includes(op);
+  }
+
+  private static String printBindings(IGranuleBindings gb) {
+    String unparse = DebugUnparser.toString(gb.getNode());
+    if (unparse.length() > 50) {
+      unparse = unparse.substring(0, 50);
+    }
+    return (gb.containsFullInfo() ? "full    " : "partial ") + unparse;
+  }
+
+  static class BindingCall {
+    final IGranuleBindings bindings;
+    final IRNode needed;
+
+    BindingCall(IGranuleBindings b, IRNode n) {
+      bindings = b;
+      needed = n;
+    }
+
+    @Override
+    public String toString() {
+      return printBindings(bindings) + " - " + DebugUnparser.toString(needed) + " - " + JJNode.tree.getOperator(needed);
+    }
+  }
+
+  protected IGranuleBindings ensureBindingsOK(final IRNode node) {
+    final IRNode gr = getGranule(node);
+    /*
+     * String unparse = DebugUnparser.toString(gr); if ("(y) -> y"
+     * .equals(unparse)) { System.out.println("Got granule for (y) -> y"); }
+     */
+    final Operator op = JJNode.tree.getOperator(node);
     final boolean needFullInfo = needFullInfo(node, op, gr);
-    final Map<IRNode,IGranuleBindings> granuleBindings =
-  	  needFullInfo ? allGranuleBindings : partialGranuleBindings; 
-    // Note: don't alternate between locking on the IGranuleBinding and the Binder 
+    final Map<IRNode, IGranuleBindings> granuleBindings = needFullInfo ? allGranuleBindings : partialGranuleBindings;
+    // Note: don't alternate between locking on the IGranuleBinding and the
+    // Binder
     IGranuleBindings bindings = granuleBindings.get(gr);
     if (bindings == null || bindings.isDestroyed()) {
-    	bindings = makeGranuleBindings(gr, needFullInfo);	
-    	granuleBindings.put(gr,bindings);    	
+      bindings = makeGranuleBindings(gr, needFullInfo);
+      granuleBindings.put(gr, bindings);
     }
-  
+
     /*
-    final Stack<BindingCall> stack = bindingStack.get();
-    BindingCall c = new BindingCall(bindings, node);
-    System.out.println("Pushing "+c);
-    stack.push(c);    
-    String unparse = DebugUnparser.toString(node);
-    if(unparse.contains("::") || unparse.contains("->")) {
-    	System.out.println("Binding for "+unparse);
-    }
-    */
+     * final Stack<BindingCall> stack = bindingStack.get(); BindingCall c = new
+     * BindingCall(bindings, node); System.out.println("Pushing "+c);
+     * stack.push(c); String unparse = DebugUnparser.toString(node);
+     * if(unparse.contains("::") || unparse.contains("->")) {
+     * System.out.println("Binding for "+unparse); }
+     */
     final Stack<IGranuleBindings> stack = bindingStack.get();
-    stack.push(bindings);    
+    stack.push(bindings);
 
     final int size = stack.size();
     try {
-    	try {
-    		BindingsThread t = null;
-    		//System.out.println("Binding stack for "+JJNode.getInfoOrNull(node)+": "+size);
-    		//TODO this can cause a deadlock if the BindingsThread ends up waiting for something locked by the original thread
-    		if (size > 50) {
-    			/*
-    			System.out.println("Binding stack:");
-    			for(BindingCall gb : bindingStack.get()) { 
-    			  System.out.println("\t"+gb);
-    			}
-    			*/
-    			// Finish derivation in a separate thread to avoid StackOverflowError
-    			//System.out.println("Over 50");
-    			t = new BindingsThread(bindings, node);
-    		}
-    		//}
-    		if (t == null) {
-    			bindings = deriveBindings(bindings, node);
-    		} else {
-    			t.setName("BT: "+Thread.currentThread().getName());
-    			t.start();
-    			try {
-    				t.join();
-    			} catch (InterruptedException e) {
-    				LOG.log(Level.SEVERE, "Interrupted while joining with deriving thread", e);
-    			}
-    			bindings = t.bindings;
-    		}
-    	} catch(StackOverflowError e) {
-    		if (stack.size() == 1) { // Last one, try to restart
-    			System.err.println("Retry after StackOverflow");
-    			reset();
-    			return ensureBindingsOK(node);
-    		}
-    		throw e;
-    	}
+      try {
+        BindingsThread t = null;
+        // System.out.println("Binding stack for "+JJNode.getInfoOrNull(node)+":
+        // "+size);
+        // TODO this can cause a deadlock if the BindingsThread ends up waiting
+        // for something locked by the original thread
+        if (size > 50) {
+          /*
+           * System.out.println("Binding stack:"); for(BindingCall gb :
+           * bindingStack.get()) { System.out.println("\t"+gb); }
+           */
+          // Finish derivation in a separate thread to avoid StackOverflowError
+          // System.out.println("Over 50");
+          t = new BindingsThread(bindings, node);
+        }
+        // }
+        if (t == null) {
+          bindings = deriveBindings(bindings, node);
+        } else {
+          t.setName("BT: " + Thread.currentThread().getName());
+          t.start();
+          try {
+            t.join();
+          } catch (InterruptedException e) {
+            LOG.log(Level.SEVERE, "Interrupted while joining with deriving thread", e);
+          }
+          bindings = t.bindings;
+        }
+      } catch (StackOverflowError e) {
+        if (stack.size() == 1) { // Last one, try to restart
+          System.err.println("Retry after StackOverflow");
+          reset();
+          return ensureBindingsOK(node);
+        }
+        throw e;
+      }
     } finally {
-    	//System.out.println("Popping "+c);
-        stack.pop();
+      // System.out.println("Popping "+c);
+      stack.pop();
     }
     return bindings;
   }
-  
-  protected void reset() {
-	  // Nothing to do yet
-  }
-    
-  class BindingsThread extends Thread {
-	  IGranuleBindings bindings;
-	  final IRNode node;
-	  final Version v;
-	  
-	  BindingsThread(IGranuleBindings bindings, IRNode node) {
-		this.bindings = bindings;
-		this.node = node;
-		v = Version.getVersion();
-	  }
 
-	  @Override
-	  public void run() {
-		  Version.setVersion(v);
-		  bindings = deriveBindings(bindings, node);
-	  }
+  protected void reset() {
+    // Nothing to do yet
   }
-  
+
+  class BindingsThread extends Thread {
+    IGranuleBindings bindings;
+    final IRNode node;
+    final Version v;
+
+    BindingsThread(IGranuleBindings bindings, IRNode node) {
+      this.bindings = bindings;
+      this.node = node;
+      v = Version.getVersion();
+    }
+
+    @Override
+    public void run() {
+      Version.setVersion(v);
+      bindings = deriveBindings(bindings, node);
+    }
+  }
+
   IGranuleBindings deriveBindings(IGranuleBindings bindings, IRNode node) {
-	  try {
-	  // To prevent it from being destroyed while deriving
-		  synchronized (bindings) {
-			  IGranuleBindings toDerive = bindings;
-			  while (toDerive.isDestroyed()) {
-				  // Retry
-				  toDerive = ensureBindingsOK(node);
-			  }
-			  if (toDerive == bindings) {
-				  toDerive.ensureDerived(node);
-			  } else {
-				  // Otherwise, already derived
-			  }
-			  bindings = toDerive;
-		  }
-      } catch (StackOverflowError e) {
-    	  System.out.println(Thread.currentThread()+" StackOverflow: "+DebugUnparser.toString(node)+" for "+this);
-    	  e.printStackTrace();
-    	  throw e;    	  
+    try {
+      // To prevent it from being destroyed while deriving
+      synchronized (bindings) {
+        IGranuleBindings toDerive = bindings;
+        while (toDerive.isDestroyed()) {
+          // Retry
+          toDerive = ensureBindingsOK(node);
+        }
+        if (toDerive == bindings) {
+          toDerive.ensureDerived(node);
+        } else {
+          // Otherwise, already derived
+        }
+        bindings = toDerive;
       }
-	  return bindings;
+    } catch (StackOverflowError e) {
+      System.out.println(Thread.currentThread() + " StackOverflow: " + DebugUnparser.toString(node) + " for " + this);
+      e.printStackTrace();
+      throw e;
+    }
+    return bindings;
   }
-  
+
   protected abstract IGranuleBindings makeGranuleBindings(IRNode cu, boolean needFullInfo);
- 
+
   protected final void deriveInfo(IGranuleBindings bindings, IRNode unit) {
-    //System.out.println("Deriving info for "+DebugUnparser.toString(unit));
-	/*
-	if (TypeDeclaration.prototype.includes(unit)) {
-		String qname = JavaNames.getFullTypeName(unit);
-		System.out.println("Deriving info for "+qname+": "+
-				(bindings.containsFullInfo() ? "full" : "partial"));
-		if (qname.endsWith("TestMultipleTextOutputFormat") ||
-			qname.endsWith("TestMultiFileInputFormat")) {
-			System.err.println(DebugUnparser.childrenToString(VisitUtil.getClassBody(unit)));
-		}
-	}
-	*/
-	  
+    // System.out.println("Deriving info for "+DebugUnparser.toString(unit));
+    /*
+     * if (TypeDeclaration.prototype.includes(unit)) { String qname =
+     * JavaNames.getFullTypeName(unit); System.out.println("Deriving info for "
+     * +qname+": "+ (bindings.containsFullInfo() ? "full" : "partial")); if
+     * (qname.endsWith("TestMultipleTextOutputFormat") ||
+     * qname.endsWith("TestMultiFileInputFormat")) {
+     * System.err.println(DebugUnparser.childrenToString(VisitUtil.getClassBody(
+     * unit))); } }
+     */
+
     // we need to do two passes
     // because we need to bind all types before we try to handle
     // method calls because a method return type will need to be bound
     // before we access its binding.
-    
+
     // Two passes will not be necessary if we do method body granularity.
     BinderVisitor binderVisitor = newBinderVisitor(bindings, unit);
-    
-    //System.out.println(DebugUnparser.toString(unit));
-    //binderVisitor.start();
+
+    // System.out.println(DebugUnparser.toString(unit));
+    // binderVisitor.start();
     /*
-    if (bindings.containsFullInfo() && AnonClassExpression.prototype.includes(unit)) {
-      System.out.println("Deriving ACE");
-    }
-    */
+     * if (bindings.containsFullInfo() &&
+     * AnonClassExpression.prototype.includes(unit)) { System.out.println(
+     * "Deriving ACE"); }
+     */
     if (bindings.containsFullInfo()) {
       binderVisitor.setFullPass();
       long start = System.currentTimeMillis();
-      
-      //System.out.println("Full:\t"+DebugUnparser.toString(unit));
+
+      // System.out.println("Full:\t"+DebugUnparser.toString(unit));
       /*
-      if (AnonClassExpression.prototype.includes(unit)) {
-    	  System.out.println("Binding ACE: "+DebugUnparser.toString(unit));
-      }
-      */
+       * if (AnonClassExpression.prototype.includes(unit)) { System.out.println(
+       * "Binding ACE: "+DebugUnparser.toString(unit)); }
+       */
       binderVisitor.start();
 
       long end = System.currentTimeMillis();
-      fullTime += (end-start);
-      numFull  += bindings.numBindings();
+      fullTime += (end - start);
+      numFull += bindings.numBindings();
     } else {
       long start = System.currentTimeMillis();
 
-      //System.out.println("Part:\t"+DebugUnparser.toString(unit));
+      // System.out.println("Part:\t"+DebugUnparser.toString(unit));
       binderVisitor.start();
 
       long end = System.currentTimeMillis();
-      partialTime += (end-start);
+      partialTime += (end - start);
       numPartial += bindings.numBindings();
     }
   }
-  
+
   protected BinderVisitor newBinderVisitor(IGranuleBindings bindings, IRNode gr) {
-    return new BinderVisitor(bindings, gr); 
+    return new BinderVisitor(bindings, gr);
   }
-  
+
   public final IJavaClassTable getClassTable() {
     return classTable;
   }
 
   /**
    * Return a member table from a type.
+   * 
    * @param tdecl
    * @return member table
    */
   public abstract IJavaMemberTable typeMemberTable(IJavaSourceRefType tdecl);
-  
+
   protected final IJavaDeclaredType asDeclaredType(IJavaArrayType ty) {
     IRNode fakeArrayDeclaration = getTypeEnvironment().getArrayClassDeclaration();
-    //LOG.finer("Found fake array decl " + fakeArrayDeclaration);
-    return JavaTypeFactory.getDeclaredType(fakeArrayDeclaration,new ImmutableList<IJavaType>(ty.getElementType()),null);
+    // LOG.finer("Found fake array decl " + fakeArrayDeclaration);
+    return JavaTypeFactory.getDeclaredType(fakeArrayDeclaration, new ImmutableList<IJavaType>(ty.getElementType()), null);
   }
-  
+
   public final IJavaScope typeScope(IJavaType ty) {
     if (ty instanceof IJavaDeclaredType) {
-      IJavaDeclaredType dty = (IJavaDeclaredType)ty;
+      IJavaDeclaredType dty = (IJavaDeclaredType) ty;
       return new IJavaScope.SubstScope(javaTypeScope(dty), getTypeEnvironment(), dty);
     } else if (ty instanceof IJavaArrayType) {
-      return typeScope(asDeclaredType((IJavaArrayType)ty));
+      return typeScope(asDeclaredType((IJavaArrayType) ty));
     } else if (ty instanceof IJavaTypeFormal) {
       IJavaTypeFormal tf = (IJavaTypeFormal) ty;
       return javaTypeScope(tf);
       /*
        * FIX doesn't handle interface bounds
        * 
-      IJavaType sc       = tf.getSuperclass(getTypeEnvironment());
-      if (sc != null) {
-        
-        return typeScope(sc);
-      }      
-      // No bounds
-      return typeScope(getTypeEnvironment().getObjectType());
-      */
+       * IJavaType sc = tf.getSuperclass(getTypeEnvironment()); if (sc != null)
+       * {
+       * 
+       * return typeScope(sc); } // No bounds return
+       * typeScope(getTypeEnvironment().getObjectType());
+       */
     } else if (ty instanceof IJavaWildcardType) {
       IJavaWildcardType wt = (IJavaWildcardType) ty;
       if (wt.getUpperBound() != null) {
-        return typeScope(wt.getUpperBound());  
+        return typeScope(wt.getUpperBound());
       }
-      /* // Could be any supertype of T, including Object
-      else if (wt.getUpperBound() != null) {
-        LOG.warning("What type scope do I use for "+wt+"?");
-      }
-      */
+      /*
+       * // Could be any supertype of T, including Object else if
+       * (wt.getUpperBound() != null) { LOG.warning(
+       * "What type scope do I use for "+wt+"?"); }
+       */
       return typeScope(typeEnvironment.getObjectType());
     } else if (ty instanceof IJavaIntersectionType) {
       IJavaIntersectionType it = (IJavaIntersectionType) ty;
-      return new IJavaScope.ShadowingScope(typeScope(it.getPrimarySupertype()), 
-                                           typeScope(it.getSecondarySupertype()));
+      return new IJavaScope.ShadowingScope(typeScope(it.getPrimarySupertype()), typeScope(it.getSecondarySupertype()));
     } else if (ty instanceof IJavaCaptureType) {
       IJavaCaptureType ct = (IJavaCaptureType) ty;
       /*
-      IJavaScope sc       = typeScope(ct.getWildcard());
-      if (ct.getLowerBound() != null) {
-    	  sc = new IJavaScope.ShadowingScope(sc, typeScope(ct.getLowerBound()));
-      }
-      */
+       * IJavaScope sc = typeScope(ct.getWildcard()); if (ct.getLowerBound() !=
+       * null) { sc = new IJavaScope.ShadowingScope(sc,
+       * typeScope(ct.getLowerBound())); }
+       */
       return typeScope(ct.getUpperBound());
     } else if (ty instanceof IJavaPrimitiveType) {
       // Handling non-canonicalized code
       IJavaPrimitiveType pty = (IJavaPrimitiveType) ty;
-      IJavaDeclaredType dty  = JavaTypeFactory.getCorrespondingDeclType(getTypeEnvironment(), pty);
+      IJavaDeclaredType dty = JavaTypeFactory.getCorrespondingDeclType(getTypeEnvironment(), pty);
       // Same as above
       return new IJavaScope.SubstScope(javaTypeScope(dty), getTypeEnvironment(), dty);
     } else if (ty instanceof IJavaNullType) {
-    	// TODO is this right?
-        //return typeScope(typeEnvironment.getObjectType());
-        return IJavaScope.nullScope;
+      // TODO is this right?
+      // return typeScope(typeEnvironment.getObjectType());
+      return IJavaScope.nullScope;
     } else if (ty instanceof IJavaUnionType) {
-    	IJavaUnionType uty = (IJavaUnionType) ty;
-    	TypeUtils utils = new TypeUtils(typeEnvironment);
-    	IJavaType glb = utils.getGreatestLowerBound(uty.getFirstType(), uty.getAlternateType());
-    	return typeScope(glb);
-    } else {    	
-      LOG.warning("non-class type! " + ty);      
+      IJavaUnionType uty = (IJavaUnionType) ty;
+      TypeUtils utils = new TypeUtils(typeEnvironment);
+      IJavaType glb = utils.getGreatestLowerBound(uty.getFirstType(), uty.getAlternateType());
+      return typeScope(glb);
+    } else {
+      LOG.warning("non-class type! " + ty);
     }
     return null;
   }
-  
+
   /**
    * Get the correct kind of member table scope.
-   * @param tdecl Type declaration node
+   * 
+   * @param tdecl
+   *          Type declaration node
    * @return scope for the class and its supeclasses
    */
   public final IJavaScope javaTypeScope(IJavaSourceRefType tdecl) {
     return typeMemberTable(tdecl).asScope(this);
   }
-  
+
   /**
-   * Returns a table representing a Java import list mapping names 
-   * to declarations.
+   * Returns a table representing a Java import list mapping names to
+   * declarations.
    */
   public abstract IJavaScope getImportTable(IRNode cu);
-  
+
   public String getInVersionString() {
     return "";
   }
-  
+
   private static final IBinding nullBinding = IBinding.Util.makeBinding(null);
-  
+
   static int numChildrenOrZero(IRNode node) {
-      if (node == null) {
-        return 0;
-      }
-      return JJNode.tree.numChildren(node);
+    if (node == null) {
+      return 0;
+    }
+    return JJNode.tree.numChildren(node);
   }
-  
+
   enum NameContext {
-	  TYPE(IJavaScope.Util.isPkgTypeDecl), 
-	  NOT_TYPE(IJavaScope.Util.couldBeNonTypeName), 
-	  EITHER(IJavaScope.Util.couldBeName);
-	  
-	  final Selector selector;
-	  
-	  NameContext(Selector s) {
-		  selector = s;
-	  }
-	  boolean couldBeType() {
-		  return this != NOT_TYPE;
-	  }
-	  boolean couldBeVariable() {
-		  return this != TYPE;
-	  }
+    TYPE(IJavaScope.Util.isPkgTypeDecl), NOT_TYPE(IJavaScope.Util.couldBeNonTypeName), EITHER(IJavaScope.Util.couldBeName);
+
+    final Selector selector;
+
+    NameContext(Selector s) {
+      selector = s;
+    }
+
+    boolean couldBeType() {
+      return this != NOT_TYPE;
+    }
+
+    boolean couldBeVariable() {
+      return this != TYPE;
+    }
   }
-  
+
   /**
-   * The actual work of binding and maintaining scopes.
-   * This code has extra machinery in it to handle granules and incrementality.
+   * The actual work of binding and maintaining scopes. This code has extra
+   * machinery in it to handle granules and incrementality.
    * <P>
-   * The binding process has several distinct modes
-   * going down the tree:
+   * The binding process has several distinct modes going down the tree:
    * <ul>
-   * <li> To start with, we start at the compilation unit and work down
-   *      until we reach the granule.  As we go, the scope is adjusted to
-   *      handle where we are.  These scopes need not keep dependency information
-   *      as long as any change to the information used invalidates the
-   *      {@link IGranuleBindings} instance later on.  In this process,
-   *      we do not store any binding information (wrong granule).
-   * <li> Once we reach the granule, we (optionally) start an intra-granule
-   *      incremental visitor that only visits changed places or places
-   *      where bindings have been invalidated.
-   * <li> Or we use a batch visitor.  But in this or the last case, we
-   *      need to (1) store binding information and (2) avoid going into a
-   *      nested granule.
+   * <li>To start with, we start at the compilation unit and work down until we
+   * reach the granule. As we go, the scope is adjusted to handle where we are.
+   * These scopes need not keep dependency information as long as any change to
+   * the information used invalidates the {@link IGranuleBindings} instance
+   * later on. In this process, we do not store any binding information (wrong
+   * granule).
+   * <li>Once we reach the granule, we (optionally) start an intra-granule
+   * incremental visitor that only visits changed places or places where
+   * bindings have been invalidated.
+   * <li>Or we use a batch visitor. But in this or the last case, we need to (1)
+   * store binding information and (2) avoid going into a nested granule.
    * </ul>
-   * We don't bother to use try-finally because we don't catch errors,
-   * and the visitor is intended for single use only.  (It should be discarded
+   * We don't bother to use try-finally because we don't catch errors, and the
+   * visitor is intended for single use only. (It should be discarded
    * afterwads.)
+   * 
    * @author boyland
    */
-  protected class BinderVisitor extends Visitor<Void> {	  
+  protected class BinderVisitor extends Visitor<Void> {
     protected IJavaScope scope;
     protected final IGranuleBindings bindings;
-    protected Collection<IRNode> pathToTarget; // if non-null only visit these nodes (in reverse order)
+    protected Collection<IRNode> pathToTarget; // if non-null only visit these
+                                               // nodes (in reverse order)
     protected final IRNode targetGranule;
     protected boolean isBatch = true; // by default we have a batch binder
-    protected boolean isFullPass = false; // by default we start in the preliminary pass
-    protected final boolean debug = LOG.isLoggable(Level.FINER);        
-    private final IMethodBinder methodBinder = processJava8 ? new MethodBinder8(AbstractJavaBinder.this, debug) : new MethodBinder(AbstractJavaBinder.this, debug);    
+    protected boolean isFullPass = false; // by default we start in the
+                                          // preliminary pass
+    protected final boolean debug = LOG.isLoggable(Level.FINER);
+    private final IMethodBinder methodBinder = processJava8 ? new MethodBinder8(AbstractJavaBinder.this, debug)
+        : new MethodBinder(AbstractJavaBinder.this, debug);
     private final IJavaScope.LookupContext lookupContext = new IJavaScope.LookupContext();
-    
+
     /**
-     * No change in functionality, but changed to avoid
-     * StackOverflow issues
+     * No change in functionality, but changed to avoid StackOverflow issues
      */
     @Override
     public void doAcceptForChildren(IRNode node) {
-    	for(IRNode n : JJNode.tree.children(node)) {
-    		doAccept(n);
-    	}
+      for (IRNode n : JJNode.tree.children(node)) {
+        doAccept(n);
+      }
     }
-    
+
     public BinderVisitor(IGranuleBindings cu, IRNode gr) {
       bindings = cu;
       scope = null;
       targetGranule = gr;
       pathToTarget = new HashSet<IRNode>();
     }
-    
+
     /**
      * Start doing the binding.
      */
     public void start() {
       /*
-      if (bindings.containsFullInfo() && 
-    	  "new Super { private int g #; { #; } { #; } }".equals(DebugUnparser.toString(targetGranule))) {
-    	  foundIssue = true;
-      }
-      */
+       * if (bindings.containsFullInfo() &&
+       * "new Super { private int g #; { #; } { #; } }"
+       * .equals(DebugUnparser.toString(targetGranule))) { foundIssue = true; }
+       */
       /*
-      if (foundIssue) {
-    	  System.out.println("Starting to bind granule "+DebugUnparser.toString(targetGranule)+": "+isFullPass);
-      }
-      */
+       * if (foundIssue) { System.out.println("Starting to bind granule "
+       * +DebugUnparser.toString(targetGranule)+": "+isFullPass); }
+       */
       if (debug) {
-        LOG.finer("Starting to bind granule "
-            + DebugUnparser.toString(targetGranule));
-      }      
-      //boolean debug = bindings.containsFullInfo() && AnonClassExpression.prototype.includes(targetGranule);
+        LOG.finer("Starting to bind granule " + DebugUnparser.toString(targetGranule));
+      }
+      // boolean debug = bindings.containsFullInfo() &&
+      // AnonClassExpression.prototype.includes(targetGranule);
       IRNode n = targetGranule;
       for (;;) {
         IRNode p = JJNode.tree.getParentOrNull(n);
-        if (p == null) break;
+        if (p == null)
+          break;
         n = p;
         pathToTarget.add(n);
         /*
-        if (debug) {
-          System.out.println("Path to target: "+n);
-        }
-        */
+         * if (debug) { System.out.println("Path to target: "+n); }
+         */
       }
       doAccept(n);
       /*
-      if (foundIssue) {
-    	  System.out.println("Finishing granule "+DebugUnparser.toString(targetGranule)+": "+isFullPass);
-      }
-      */
+       * if (foundIssue) { System.out.println("Finishing granule "
+       * +DebugUnparser.toString(targetGranule)+": "+isFullPass); }
+       */
     }
-    
+
     public void setFullPass() {
       isFullPass = true;
     }
-    
+
     /**
-     * For intra-granule incrementality, we only look
-     * if there was a change here or if we are in batch mode
-     * for one of many reasons.
+     * For intra-granule incrementality, we only look if there was a change here
+     * or if we are in batch mode for one of many reasons.
+     * 
      * @param node
      */
     protected void doAcceptIfChanged(IRNode node) {
       if (isBatch) {
         /*
-        if (bindings.containsFullInfo() && AnonClassExpression.prototype.includes(targetGranule)) {
-          System.out.println("Accepting "+node);
-        }
-        */
+         * if (bindings.containsFullInfo() &&
+         * AnonClassExpression.prototype.includes(targetGranule)) {
+         * System.out.println("Accepting "+node); }
+         */
         super.doAccept(node);
       } else if (nodeHasNewParent(node)) {
         isBatch = true;
@@ -994,54 +949,57 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         super.doAccept(node);
       }
     }
-    
+
     /**
-     * Return true if this node or a descendant node has changes,
-     * or invalidated bindings.  This means it will not be skipped in
-     * the intra-granule traversal.
+     * Return true if this node or a descendant node has changes, or invalidated
+     * bindings. This means it will not be skipped in the intra-granule
+     * traversal.
+     * 
      * @param node
      * @return true if should visit this node.
      */
     protected boolean nodeHasChanged(IRNode node) {
       return true; // never called if batch
     }
-    
+
     /**
-     * Return true if this node has a new parent: that is the whole 
-     * subtree came from elsewhere.  In this case, we can't rely on
-     * change information below this point: we must be batch.
+     * Return true if this node has a new parent: that is the whole subtree came
+     * from elsewhere. In this case, we can't rely on change information below
+     * this point: we must be batch.
+     * 
      * @param node
      * @return true if the node has a different parent.
      */
     protected boolean nodeHasNewParent(IRNode node) {
       return true; // never called if batch
     }
-    
+
     /**
      * Return if this node must be visitied even if not on path to target or not
-     * changed since the last visit.  This is because this
-     * node contains a declaration that must be added to the local scope, even
-     * if we skip the looking at its children.
+     * changed since the last visit. This is because this node contains a
+     * declaration that must be added to the local scope, even if we skip the
+     * looking at its children.
+     * 
      * @param node
      * @return if this node must be visited.
      */
     protected boolean mustVisit(IRNode node, Operator op) {
       return (op instanceof DeclStatement || op instanceof TypeDeclarationStatement);
     }
-    
+
     @Override
     public Void doAccept(IRNode node) {
       if (node == null) {
-    	if (debug) {
-    		LOG.finer("Skipping null");
-    	}
+        if (debug) {
+          LOG.finer("Skipping null");
+        }
         return null;
       }
       /*
-      if (foundIssue) {
-    	  System.out.println("  doAccept on "+JJNode.tree.getOperator(node).name()+" -- "+DebugUnparser.toString(node));
-      }
-      */
+       * if (foundIssue) { System.out.println("  doAccept on "
+       * +JJNode.tree.getOperator(node).name()+" -- "
+       * +DebugUnparser.toString(node)); }
+       */
       if (pathToTarget != null) {
         // trying to find our target granule
         if (node == targetGranule) {
@@ -1053,11 +1011,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         }
         final int size = pathToTarget.size();
         /*
-        if (size > 0) {
-        	System.out.println("Comparing last path: "+DebugUnparser.toString(pathToTarget.get(size-1)));
-        	System.out.println("            to node: "+DebugUnparser.toString(node));
-        }
-        */
+         * if (size > 0) { System.out.println("Comparing last path: "
+         * +DebugUnparser.toString(pathToTarget.get(size-1)));
+         * System.out.println("            to node: "
+         * +DebugUnparser.toString(node)); }
+         */
         if (size > 0 && pathToTarget.contains(node)) {
           pathToTarget.remove(node);
           doAcceptIfChanged(node);
@@ -1066,76 +1024,60 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         final Operator op = JJNode.tree.getOperator(node);
         if (mustVisit(node, op)) {
           /*
-          if (bindings.containsFullInfo() && AnonClassExpression.prototype.includes(targetGranule)) {
-            System.out.println("Accepting "+node);
-          }
-          */
-          //return super.doAccept(node);          
+           * if (bindings.containsFullInfo() &&
+           * AnonClassExpression.prototype.includes(targetGranule)) {
+           * System.out.println("Accepting "+node); }
+           */
+          // return super.doAccept(node);
           return ((IAcceptor) op).accept(node, this);
         } else if (debug) {
-            LOG.finer("Skipping node not on path -- " + DebugUnparser.toString(node));
+          LOG.finer("Skipping node not on path -- " + DebugUnparser.toString(node));
         }
 
         return null;
       }
       final Operator op = JJNode.tree.getOperator(node);
       if (isGranule(node, op)) {
-    	//System.out.println("Skipping granule "+DebugUnparser.toString(node));
+        // System.out.println("Skipping granule "+DebugUnparser.toString(node));
         return null; // skip granule nested in this one
       }
       if (debug && LOG.isLoggable(Level.FINEST) && okToAccess(node)) {
         LOG.finest(this + " visit" + (isFullPass ? "(full) " : "(initial) ") + op + DebugUnparser.toString(node));
       }
       /*
-      if (handlePromises) {
-        super.doAccept(node);
-        bindPromises(node);
-        
-        // Methods and constructors need to be handled specially to deal
-        // with the scoping
-        if (!SomeFunctionDeclaration.prototype.includes(op)) {
-          final IJavaScope saved = scope;
-          try {
-            if (ClassDeclaration.prototype.includes(op) || 
-                EnumDeclaration.prototype.includes(op)) {     
-              IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
-              addReceiverDeclForType(node, sc);
-              scope = sc;
-            }
-            PromiseFramework.getInstance().processPromises(node, promiseProcessor);        
-          } finally {
-            scope = saved;
-          }
-        }
-        return null;
-      }
-      */
-      //return super.doAccept(node);
+       * if (handlePromises) { super.doAccept(node); bindPromises(node);
+       * 
+       * // Methods and constructors need to be handled specially to deal //
+       * with the scoping if (!SomeFunctionDeclaration.prototype.includes(op)) {
+       * final IJavaScope saved = scope; try { if
+       * (ClassDeclaration.prototype.includes(op) ||
+       * EnumDeclaration.prototype.includes(op)) { IJavaScope.NestedScope sc =
+       * new IJavaScope.NestedScope(scope); addReceiverDeclForType(node, sc);
+       * scope = sc; } PromiseFramework.getInstance().processPromises(node,
+       * promiseProcessor); } finally { scope = saved; } } return null; }
+       */
+      // return super.doAccept(node);
       return ((IAcceptor) op).accept(node, this);
     }
 
     /*
-    private void bindPromises(IRNode node) {
-      PromiseFramework frame = PromiseFramework.getInstance();
-      Operator op = JJNode.tree.getOperator(node);
-      if (op instanceof IHasCustomBinding) {
-        IRNode b = frame.getBinding(op, node);
-        if (b != null) {
-//          System.out.println("Bound "+node+":"+op.name()+" to "+DebugUnparser.toString(b));
-          bind(node, b);
-        } else {
-//          System.out.println("Bound to null: "+DebugUnparser.toString(node)+" - "+op.name());
-          frame.getBinding(op, node);
-        }
-      }
-    }
-    */
-    
+     * private void bindPromises(IRNode node) { PromiseFramework frame =
+     * PromiseFramework.getInstance(); Operator op =
+     * JJNode.tree.getOperator(node); if (op instanceof IHasCustomBinding) {
+     * IRNode b = frame.getBinding(op, node); if (b != null) { //
+     * System.out.println("Bound "+node+":"+op.name()+" to "
+     * +DebugUnparser.toString(b)); bind(node, b); } else { //
+     * System.out.println("Bound to null: "+DebugUnparser.toString(node)+" - "
+     * +op.name()); frame.getBinding(op, node); } } }
+     */
+
     /**
-     * We do the accept of a node
-     * using a new scope
-     * @param node the node to visit
-     * @param newScope the new scope to use for its children
+     * We do the accept of a node using a new scope
+     * 
+     * @param node
+     *          the node to visit
+     * @param newScope
+     *          the new scope to use for its children
      */
     protected void doAccept(IRNode node, IJavaScope newScope) {
       IJavaScope saved = scope;
@@ -1143,147 +1085,155 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       doAccept(node);
       scope = saved;
     }
-    
+
     /**
      * We do the accept of a node using a new scope
-     * @param node the node to visit
-     * @param newScope the new scope to use for its children
+     * 
+     * @param node
+     *          the node to visit
+     * @param newScope
+     *          the new scope to use for its children
      */
     protected void doAcceptForChildren(IRNode node, IJavaScope newScope) {
       IJavaScope saved = scope;
       boolean wasBatch = isBatch;
       scope = newScope;
-      //doAcceptForChildren(node);
-      for(IRNode n : JJNode.tree.children(node)) {
-    	  doAccept(n);
+      // doAcceptForChildren(node);
+      for (IRNode n : JJNode.tree.children(node)) {
+        doAccept(n);
       }
       scope = saved;
       isBatch = wasBatch;
     }
-    
+
     /**
      * Visit the children of this node with a new scope, ignoring
-     * incrementality.  
-     * @param node node to visit children for
-     * @param newScope new scope to use
+     * incrementality.
+     * 
+     * @param node
+     *          node to visit children for
+     * @param newScope
+     *          new scope to use
      */
     protected void doBatchAcceptForChildren(IRNode node, IJavaScope newScope) {
       if (isBatch) {
-        doAcceptForChildren(node,newScope);
+        doAcceptForChildren(node, newScope);
       } else {
         isBatch = true;
-        doAcceptForChildren(node,newScope);
+        doAcceptForChildren(node, newScope);
         isBatch = false;
       }
     }
-    
+
     /**
-     * By default, we visit all children.
-     * NB: Code in this class should never explicitly call "super.visit(node)"
-     * which is a NOP!
+     * By default, we visit all children. NB: Code in this class should never
+     * explicitly call "super.visit(node)" which is a NOP!
      */
     @Override
     public Void visit(IRNode node) {
-      //doAcceptForChildren(node);
-      for(IRNode n : JJNode.tree.children(node)) {
-    	doAccept(n);
+      // doAcceptForChildren(node);
+      for (IRNode n : JJNode.tree.children(node)) {
+        doAccept(n);
       }
       /*
-      // This needs to be done after the rest of the children
-      // (particularly the ParameterDecls)
-      PromiseFramework frame = PromiseFramework.getInstance();
-      Operator op = JJNode.tree.getOperator(node);
-      
-      if (SomeFunctionDeclaration.prototype.includes(op)) {
-        frame.processPromises(node, promiseProcessor);        
-      }
-      */
+       * // This needs to be done after the rest of the children //
+       * (particularly the ParameterDecls) PromiseFramework frame =
+       * PromiseFramework.getInstance(); Operator op =
+       * JJNode.tree.getOperator(node);
+       * 
+       * if (SomeFunctionDeclaration.prototype.includes(op)) {
+       * frame.processPromises(node, promiseProcessor); }
+       */
       return null;
     }
-    
+
     /**
-     * Add the declaration children to the current scope.
-     * Also force the context to be batch if any of these things are changed.
+     * Add the declaration children to the current scope. Also force the context
+     * to be batch if any of these things are changed.
+     * 
      * @param decls
      * @param sc
      */
     private void addDeclsToScope(IRNode decls, IJavaScope.NestedScope sc) {
       for (IRNode d : JJNode.tree.children(decls)) {
-        // always insert all type formals first before visiting children for two reasons:
+        // always insert all type formals first before visiting children for two
+        // reasons:
         // 1. type formals can refer to each other
         // 2. we don't want incremental binders to skip adding a formal to
         // a scope even if it never changes.
-        //System.out.println("Adding decl " + JavaNode.getInfo(d) + " to scope: " + sc);
-        if (!isBatch && nodeHasChanged(d)) isBatch = true;
+        // System.out.println("Adding decl " + JavaNode.getInfo(d) + " to scope:
+        // " + sc);
+        if (!isBatch && nodeHasChanged(d))
+          isBatch = true;
         sc.add(d);
       }
     }
 
     private IBinding getLocalIBinding(IRNode node) {
-    	if (!bindings.bindingExists(node)) {
-    		return getIBinding(node);
-    	}
-    	return bindings.getUseForDecl(node);
+      if (!bindings.bindingExists(node)) {
+        return getIBinding(node);
+      }
+      return bindings.getUseForDecl(node);
     }
-    
+
     /**
-     * Set the binding of a node.  trivial except for logging.
-     * @param node node at which to set the binding
-     * @param binding binding to bind to.
+     * Set the binding of a node. trivial except for logging.
+     * 
+     * @param node
+     *          node at which to set the binding
+     * @param binding
+     *          binding to bind to.
      */
     private boolean bind(IRNode node, IBinding binding) {
-    	return bind(node, binding, false);
+      return bind(node, binding, false);
     }
-    
-    private boolean bind(IRNode node, IBinding binding, boolean quietWarnings) {      
+
+    private boolean bind(IRNode node, IBinding binding, boolean quietWarnings) {
       if (pathToTarget != null) {
-    	  //System.out.println("Throwing away binding for "+DebugUnparser.toString(node));
-    	  return false; // don't bind: not in the target granule
-      }      
+        // System.out.println("Throwing away binding for
+        // "+DebugUnparser.toString(node));
+        return false; // don't bind: not in the target granule
+      }
       if (binding == null) {
         if (quietWarnings) {
-        	return false;
+          return false;
         }
-    	final String unparse = DebugUnparser.toString(node);
-    	final IJavaRef ref = JavaNode.getTempJavaRef(node);
-    	if (isBinary(node)) {
-    		if (!unparse.endsWith(" . 1")) {
-    			System.err.println("Cannot find a binding for binary " + unparse+" in "+typeEnvironment+": "+ref);
-    			/*
-    			if (unparse.endsWith("ModuleType")) {
-    				IRNode eType = VisitUtil.getEnclosingType(node);
-    				System.out.println("PROBLEM in "+JavaNames.getFullTypeName(eType));
-    			}
-                */
-    		}
-    	} else if (unparse.startsWith("super")) {
-    		System.err.println("Cannot find a binding for " + unparse+" in "+typeEnvironment+": "+ref);
-    	} else if (NamedType.prototype.includes(node) && Throws.prototype.includes(JJNode.tree.getParentOrNull(node))) {
-      		System.err.println("Did not find a binding for throws " + unparse+" in "+typeEnvironment+": "+ref);
-    	} else {
-    		LOG.warning("Cannot find a binding for " + unparse+" in "+typeEnvironment+": "+ref);
-    	}
+        final String unparse = DebugUnparser.toString(node);
+        final IJavaRef ref = JavaNode.getTempJavaRef(node);
+        if (isBinary(node)) {
+          if (!unparse.endsWith(" . 1")) {
+            System.err.println("Cannot find a binding for binary " + unparse + " in " + typeEnvironment + ": " + ref);
+            /*
+             * if (unparse.endsWith("ModuleType")) { IRNode eType =
+             * VisitUtil.getEnclosingType(node); System.out.println(
+             * "PROBLEM in "+JavaNames.getFullTypeName(eType)); }
+             */
+          }
+        } else if (unparse.startsWith("super")) {
+          System.err.println("Cannot find a binding for " + unparse + " in " + typeEnvironment + ": " + ref);
+        } else if (NamedType.prototype.includes(node) && Throws.prototype.includes(JJNode.tree.getParentOrNull(node))) {
+          System.err.println("Did not find a binding for throws " + unparse + " in " + typeEnvironment + ": " + ref);
+        } else {
+          LOG.warning("Cannot find a binding for " + unparse + " in " + typeEnvironment + ": " + ref);
+        }
         if (storeNullBindings) {
           bindings.setUseForDecl(node, null);
         }
         /*
-        if (!SimpleName.prototype.includes(node) && 
-            !QualifiedName.prototype.includes(node)) {
-        	System.out.println();
-        }
-        */
+         * if (!SimpleName.prototype.includes(node) &&
+         * !QualifiedName.prototype.includes(node)) { System.out.println(); }
+         */
         return false;
-      } else if (debug){
-        LOG.finer("Establishing binding for " + node + " = " + DebugUnparser.toString(node) + " to " + 
-            DebugUnparser.toString(binding.getNode()) + getInVersionString());
+      } else if (debug) {
+        LOG.finer("Establishing binding for " + node + " = " + DebugUnparser.toString(node) + " to "
+            + DebugUnparser.toString(binding.getNode()) + getInVersionString());
       }
       bindings.setUseForDecl(node, binding);
       /*
-      if (!node.valueExists(bindings.getUseToDeclAttr())) {
-    	  System.out.println("Didn't successfully create binding");
-    	  node.setSlotValue(bindings.getUseToDeclAttr(),binding);
-      }
-      */
+       * if (!node.valueExists(bindings.getUseToDeclAttr())) {
+       * System.out.println("Didn't successfully create binding");
+       * node.setSlotValue(bindings.getUseToDeclAttr(),binding); }
+       */
       return true;
     }
 
@@ -1291,44 +1241,57 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       if (binding == null && !storeNullBindings) {
         if (LOG.isLoggable(Level.WARNING)) {
           String unparse = DebugUnparser.toString(node);
-          LOG.warning("null binding for "+JJNode.tree.getOperator(node).name()+": "+unparse);
+          LOG.warning("null binding for " + JJNode.tree.getOperator(node).name() + ": " + unparse);
         }
         return false;
       }
-      return bind(node,IBinding.Util.makeBinding(binding));
+      return bind(node, IBinding.Util.makeBinding(binding));
     }
-    
+
     /**
      * Bind the node given to the declaration that matches the selector.
-     * @param node IRNode to get the binding
-     * @param selector used to choose the binding
-     * @param name name to perform lookup using
+     * 
+     * @param node
+     *          IRNode to get the binding
+     * @param selector
+     *          used to choose the binding
+     * @param name
+     *          name to perform lookup using
      */
     protected boolean bind(IRNode node, Selector selector, String name) {
-    	return bind(node, selector, false, name);
+      return bind(node, selector, false, name);
     }
-    
-   	protected boolean bind(IRNode node, Selector selector, boolean quietWarnings, String name) {    	
+
+    protected boolean bind(IRNode node, Selector selector, boolean quietWarnings, String name) {
       // LOG.finer(name);
-      return bind(node,scope,selector,quietWarnings,name);
+      return bind(node, scope, selector, quietWarnings, name);
     }
-    
+
     /**
      * Bind the node given to the declaration that matches the selector.
-     * @param node IRNode to get the binding
-     * @param sc Scope to perform binding in
-     * @param selector used to choose the binding
+     * 
+     * @param node
+     *          IRNode to get the binding
+     * @param sc
+     *          Scope to perform binding in
+     * @param selector
+     *          used to choose the binding
      */
     protected boolean bind(IRNode node, IJavaScope sc, Selector selector) {
-      return bind(node,sc,selector,false,JJNode.getInfo(node));
+      return bind(node, sc, selector, false, JJNode.getInfo(node));
     }
-    
+
     /**
      * Bind the node given to the declaration that matches the selector.
-     * @param node IRNode to get the binding
-     * @param sc Scope to perform binding in
-     * @param selector used to choose the binding
-     * @param name name to perform lookup using
+     * 
+     * @param node
+     *          IRNode to get the binding
+     * @param sc
+     *          Scope to perform binding in
+     * @param selector
+     *          used to choose the binding
+     * @param name
+     *          name to perform lookup using
      * @return true if bound to non-null
      */
     protected boolean bind(IRNode node, IJavaScope sc, Selector selector, boolean quietWarnings, String name) {
@@ -1336,9 +1299,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         LOG.finer("Looking up " + name + " in " + sc);
       }
       if (sc != null) {
-        IBinding binding = sc.lookup(lookupContext.use(name,node),selector);
+        IBinding binding = sc.lookup(lookupContext.use(name, node), selector);
         if (binding == null) {
-          sc.lookup(lookupContext.use(name,node),selector);
+          sc.lookup(lookupContext.use(name, node), selector);
         }
         bind(node, binding, quietWarnings);
         return binding != null;
@@ -1347,82 +1310,82 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         return false;
       }
     }
-    
+
     /**
      * Bind a node using its own info as the name to lookup in the scope
-     * @param node usesite with info
-     * @param selector choose which declaration
+     * 
+     * @param node
+     *          usesite with info
+     * @param selector
+     *          choose which declaration
      */
     protected boolean bind(IRNode node, Selector selector) {
-      return bind(node,selector,false);
+      return bind(node, selector, false);
     }
-    
+
     protected boolean bind(IRNode node, Selector selector, boolean quietWarnings) {
-      return bind(node,selector,quietWarnings,JJNode.getInfo(node));
+      return bind(node, selector, quietWarnings, JJNode.getInfo(node));
     }
-	
+
     /**
      * @return true if bound
      */
     protected boolean bindCall(CallState call, String name, IJavaType recType) {
       boolean success = bindCall(call, name, typeScope(recType));
       if (!success) {
-    	  DebugUtil.dumpTypeHierarchy(getTypeEnvironment(), recType);
+        DebugUtil.dumpTypeHierarchy(getTypeEnvironment(), recType);
       }
       return success;
     }
-    
+
     /**
      * @return true if bound
      */
     protected boolean bindCall(final CallState state, final String name, final IJavaScope sc) {
       /*
-      if (pathToTarget != null) {
-    	  System.out.println("Not computing binding for call: "+DebugUnparser.toString(call));
-    	  return false; // skip the work   
-      }
-      */
+       * if (pathToTarget != null) { System.out.println(
+       * "Not computing binding for call: "+DebugUnparser.toString(call));
+       * return false; // skip the work }
+       */
       /*
-      if (name.equals("toArray")) {
-    	  System.out.println("Binding call: "+DebugUnparser.toString(call));
-      }
-      if (debug) {
-          StringBuilder sb = buildStringOfArgTypes(state.getArgTypes(methodBinder));
-          LOG.finer("Looking for method: " + name + sb + getInVersionString());
-      }
-      */
+       * if (name.equals("toArray")) { System.out.println("Binding call: "
+       * +DebugUnparser.toString(call)); } if (debug) { StringBuilder sb =
+       * buildStringOfArgTypes(state.getArgTypes(methodBinder)); LOG.finer(
+       * "Looking for method: " + name + sb + getInVersionString()); }
+       */
       final IRNode from;
       final Operator callOp = JJNode.tree.getOperator(state.call);
       final boolean needMethod;
       if (AnonClassExpression.prototype.includes(callOp)) {
-    	  from = AnonClassExpression.getBody(state.call);
-    	  needMethod = false;
+        from = AnonClassExpression.getBody(state.call);
+        needMethod = false;
       } else {
-    	  from = state.call;
-    	  needMethod = MethodCall.prototype.includes(callOp);
+        from = state.call;
+        needMethod = MethodCall.prototype.includes(callOp);
       }
-      
-      lookupContext.use(name,state.call);
+
+      lookupContext.use(name, state.call);
       BindingInfo bestMethod = methodBinder.findBestMethod(sc, lookupContext, needMethod, from, state);
       /*
-      if (bestMethod != null && AnonClassExpression.prototype.includes(call)) {
-        System.out.println("Binding "+call);
-      }
-      */
+       * if (bestMethod != null && AnonClassExpression.prototype.includes(call))
+       * { System.out.println("Binding "+call); }
+       */
       if (bestMethod == null) {
-    	  bestMethod = methodBinder.findBestMethod(sc, lookupContext, needMethod, from, state);
+        bestMethod = methodBinder.findBestMethod(sc, lookupContext, needMethod, from, state);
       }
       if (bestMethod == null) {
-    	  return bind(state.call, (IBinding) null);
+        return bind(state.call, (IBinding) null);
       }
       /*
-      if ("getCurrentKey".equals(name)) {      	
-      	System.out.println("Context type for getCurrentKey() = "+bestMethod.method.getContextType());
-      }
-      */      
-      //return bind(state.call, Binding.Util.makeMethodBinding(bestMethod.method, null, null/*mSubst*/, state.receiverType, getTypeEnvironment()));
+       * if ("getCurrentKey".equals(name)) { System.out.println(
+       * "Context type for getCurrentKey() = "
+       * +bestMethod.method.getContextType()); }
+       */
+      // return bind(state.call,
+      // Binding.Util.makeMethodBinding(bestMethod.method, null, null/*mSubst*/,
+      // state.receiverType, getTypeEnvironment()));
       if (state.receiverType != null && state.receiverType != bestMethod.method.getReceiverType()) {
-    	  throw new IllegalStateException();
+        throw new IllegalStateException();
       }
       return bind(state.call, bestMethod.method);
     }
@@ -1430,7 +1393,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     private StringBuilder buildStringOfArgTypes(IJavaType[] argTypes) {
       StringBuilder sb = new StringBuilder();
       sb.append('(');
-      for (int i=0; i < argTypes.length; ++i) {
+      for (int i = 0; i < argTypes.length; ++i) {
         if (i != 0) {
           sb.append(',');
         }
@@ -1439,60 +1402,69 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       sb.append(')');
       return sb;
     }
-    
+
     /**
      * Bind a call to an allocation (New expression)
-     * @param node new expression to do binding on
-     * @param type type of class to look up constructor for
-     * @param targs TODO
-     * @param args actual parameters
+     * 
+     * @param node
+     *          new expression to do binding on
+     * @param type
+     *          type of class to look up constructor for
+     * @param targs
+     *          TODO
+     * @param args
+     *          actual parameters
      */
     protected boolean bindAllocation(CallState state) {
       final IJavaType ty = state.receiverType;
-      /*doAccept(args);
-      System.err.println("Found allocation site" + DebugUnparser.toString(node));*/
-      if (ty instanceof IJavaDeclaredType) {  
+      /*
+       * doAccept(args); System.err.println("Found allocation site" +
+       * DebugUnparser.toString(node));
+       */
+      if (ty instanceof IJavaDeclaredType) {
         IJavaDeclaredType recType = (IJavaDeclaredType) ty;
         IRNode tdecl = recType.getDeclaration();
-        Operator op  = JJNode.tree.getOperator(tdecl);
+        Operator op = JJNode.tree.getOperator(tdecl);
         final String tname;
         if (InterfaceDeclaration.prototype.includes(op) || AnnotationDeclaration.prototype.includes(op)) {
           // This can only appear in an AnonClassExpr
           recType = getTypeEnvironment().getObjectType();
-          tname   = "Object";
-        /*
-        } else if (AnnotationDeclaration.prototype.includes(op)) {
-          // This can only appear in an AnonClassExpr
-          recType = (IJavaDeclaredType) getTypeEnvironment().findJavaTypeByName("java.lang.Annotation");
-          tname   = "Annotation";
-         */
+          tname = "Object";
+          /*
+           * } else if (AnnotationDeclaration.prototype.includes(op)) { // This
+           * can only appear in an AnonClassExpr recType = (IJavaDeclaredType)
+           * getTypeEnvironment().findJavaTypeByName("java.lang.Annotation");
+           * tname = "Annotation";
+           */
         } else {
           // Use the type name for constructors
           tname = JJNode.getInfo(tdecl);
         }
         /*
-        if (tname.contains("CheckStartedThread")) {
-        	System.out.println("Binding newE: "+DebugUnparser.toString(node));
-        }
-        */
+         * if (tname.contains("CheckStartedThread")) { System.out.println(
+         * "Binding newE: "+DebugUnparser.toString(node)); }
+         */
         boolean success = bindCall(state, tname, recType);
         if (!success) {
-          // FIX hack to get things to bind for receivers of raw type     
+          // FIX hack to get things to bind for receivers of raw type
           // (copied from visitMethodCall)
           IJavaType newType = convertRawType(ty, true);
           if (newType != ty) {
-            success = bindCall(state,tname, newType);
+            success = bindCall(state, tname, newType);
           }
           if (!success) {
             IJavaType newType2 = convertRawType(ty, false);
             if (newType2 != ty) {
-              success = bindCall(state,tname, newType2);
+              success = bindCall(state, tname, newType2);
             }
-            
-            // Only skip debugging default calls          
-            if (!success && pathToTarget == null /*&& 
-                (!JavaCanonicalizer.isActive() || JJNode.tree.numChildren(args) > 0)*/) {
-              bindCall(state,tname, recType);
+
+            // Only skip debugging default calls
+            if (!success
+                && pathToTarget == null /*
+                                         * && (!JavaCanonicalizer.isActive() ||
+                                         * JJNode.tree.numChildren(args) > 0)
+                                         */) {
+              bindCall(state, tname, recType);
             }
           }
         }
@@ -1502,89 +1474,85 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       }
       return false;
     }
-    
+
     // the various visit methods for "interesting" operators
-    
+
     @Override
     public Void visitAnnotation(IRNode node) {
-    	visit(node);
-    	/* This is wrong; it needs to get bound either way
-    	 * 
-    	if (!isFullPass) {
-    		return null;
-    	}
-    	*/
-    	//System.out.println("Binding "+node+" = "+DebugUnparser.toString(node));
-    	
-    	// Copied from NamedType
-    	String name = Annotation.getId(node);
-    	/*
-    	if (foundIssue) {
-    		if ("Override".equals(name)) {
-    			IRNode parent = JJNode.tree.getParent(node);
-    			IRNode gparent = JJNode.tree.getParent(parent);
-    			System.out.println("Binding anno: "+DebugUnparser.toString(gparent));
-    		}
-    	}
-*/
-        IRNode decl = classTable.getOuterClass(name,node);
-        if (decl == null) { // probably because it's not fully qualified
-        	final int lastDot = name.lastIndexOf('.');
-        	IBinding b;
-        	if (lastDot < 0) {
-        		b = scope.lookup(lookupContext.use(name, node), IJavaScope.Util.isTypeDecl);            	
-        	} else {
-        		b = checkForNestedAnnotation(node, name, lastDot);
-        	}
-        	boolean success = bind(node, b);
-        	if (!success) {
-        		scope.lookup(lookupContext.use(name, node), IJavaScope.Util.isTypeDecl);    
-        	}
-        } else {
-        	bind(node, decl);
-        }
-    	return null;
-    }
-    
-    private IBinding checkForNestedAnnotation(final IRNode node, final String name, int lastDot) {
-   		final String qname = name.substring(0, lastDot);
-		final String id = name.substring(lastDot+1);
-		IRNode decl = classTable.getOuterClass(qname, node);
-		if (decl != null && !TypeDeclaration.prototype.includes(decl)) {
-			// Not a type decl
-			decl = null;
-		}
+      visit(node);
+      /*
+       * This is wrong; it needs to get bound either way
+       * 
+       * if (!isFullPass) { return null; }
+       */
+      // System.out.println("Binding "+node+" = "+DebugUnparser.toString(node));
 
-		if (decl == null) {
-			// Didn't find the type as a fully qualified name
-			IBinding b = scope.lookup(lookupContext.use(qname, node), IJavaScope.Util.isTypeDecl);    
-			if (b == null) {
-				// Check for more nesting
-				lastDot = qname.lastIndexOf('.');
-				if (lastDot >= 0) { 
-					b = checkForNestedAnnotation(node, qname, lastDot);
-				}
-			}
-			if (b != null) {
-				decl = b.getNode();
-			}
-		}
-		if (decl != null) {
-			// Use the decl we found for 'qname' to lookup 'id'
-			IJavaScope scope = typeScope(getTypeEnvironment().convertNodeTypeToIJavaType(decl));
-			return scope.lookup(lookupContext.use(id, node), IJavaScope.Util.isTypeDecl);    
-		}
-		return null;
+      // Copied from NamedType
+      String name = Annotation.getId(node);
+      /*
+       * if (foundIssue) { if ("Override".equals(name)) { IRNode parent =
+       * JJNode.tree.getParent(node); IRNode gparent =
+       * JJNode.tree.getParent(parent); System.out.println("Binding anno: "
+       * +DebugUnparser.toString(gparent)); } }
+       */
+      IRNode decl = classTable.getOuterClass(name, node);
+      if (decl == null) { // probably because it's not fully qualified
+        final int lastDot = name.lastIndexOf('.');
+        IBinding b;
+        if (lastDot < 0) {
+          b = scope.lookup(lookupContext.use(name, node), IJavaScope.Util.isTypeDecl);
+        } else {
+          b = checkForNestedAnnotation(node, name, lastDot);
+        }
+        boolean success = bind(node, b);
+        if (!success) {
+          scope.lookup(lookupContext.use(name, node), IJavaScope.Util.isTypeDecl);
+        }
+      } else {
+        bind(node, decl);
+      }
+      return null;
     }
-    
+
+    private IBinding checkForNestedAnnotation(final IRNode node, final String name, int lastDot) {
+      final String qname = name.substring(0, lastDot);
+      final String id = name.substring(lastDot + 1);
+      IRNode decl = classTable.getOuterClass(qname, node);
+      if (decl != null && !TypeDeclaration.prototype.includes(decl)) {
+        // Not a type decl
+        decl = null;
+      }
+
+      if (decl == null) {
+        // Didn't find the type as a fully qualified name
+        IBinding b = scope.lookup(lookupContext.use(qname, node), IJavaScope.Util.isTypeDecl);
+        if (b == null) {
+          // Check for more nesting
+          lastDot = qname.lastIndexOf('.');
+          if (lastDot >= 0) {
+            b = checkForNestedAnnotation(node, qname, lastDot);
+          }
+        }
+        if (b != null) {
+          decl = b.getNode();
+        }
+      }
+      if (decl != null) {
+        // Use the decl we found for 'qname' to lookup 'id'
+        IJavaScope scope = typeScope(getTypeEnvironment().convertNodeTypeToIJavaType(decl));
+        return scope.lookup(lookupContext.use(id, node), IJavaScope.Util.isTypeDecl);
+      }
+      return null;
+    }
+
     @Override
     public Void visitAnonClassExpression(IRNode node) {
       /*
-      if ("new Super { private int g #; { #; } { #; } }".equals(DebugUnparser.toString(node))) {
-    	  System.out.println("Got ACE");
-      }
-      */
-      String name    = JJNode.getInfoOrNull(node);
+       * if ("new Super { private int g #; { #; } { #; } }"
+       * .equals(DebugUnparser.toString(node))) { System.out.println("Got ACE");
+       * }
+       */
+      String name = JJNode.getInfoOrNull(node);
       IJavaScope sc;
       if (name != null) {
         IJavaScope.NestedScope nsc = new IJavaScope.NestedScope(scope);
@@ -1595,75 +1563,73 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       }
       // TODO: check if new structure for anonymous classes
       // causes trouble, or better would enable us to simplify this code.
-      IRNode type  = AnonClassExpression.getType(node);
-      IRNode args  = AnonClassExpression.getArgs(node);
+      IRNode type = AnonClassExpression.getType(node);
+      IRNode args = AnonClassExpression.getArgs(node);
       IRNode targs = null;
       IRNode parent = getOOSParent(node);
       if (parent != null) {
-    	  handleTypeForOOS(OuterObjectSpecifier.getObject(parent), type);
+        handleTypeForOOS(OuterObjectSpecifier.getObject(parent), type);
       } else {
-    	  doAccept(type, sc);
+        doAccept(type, sc);
       }
       doAccept(args, sc);
       if (isFullPass && pathToTarget == null) {
         // FIX? never called if used with OuterObjectSpecifier
         doAccept(AnonClassExpression.getAlloc(node), sc);
-        final IJavaScope old = scope;         
+        final IJavaScope old = scope;
         final IRNode enclosingType = lookupContext.foundNewType(node);
         try {
           scope = sc;
-          //System.out.println("Trying to bind ACE: "+DebugUnparser.toString(node));
+          // System.out.println("Trying to bind ACE:
+          // "+DebugUnparser.toString(node));
           final CallState state = new CallState(AbstractJavaBinder.this, node, targs, args, type);
           boolean success = bindAllocation(state);
           if (!success && pathToTarget == null) {
-        	  System.out.println("Couldn't bind "+DebugUnparser.toString(node));
+            System.out.println("Couldn't bind " + DebugUnparser.toString(node));
           }
         } finally {
           scope = old;
           lookupContext.leavingType(node, enclosingType);
-        }        
+        }
         /*
-        if (!node.valueExists(bindings.getUseToDeclAttr())) {
-          System.out.println("no binding");
-        } else {
-          System.out.println(bindings+" bound ACE: "+node);
-        }        
-      } else {
-        System.out.println(bindings+" unbound ACE: "+node);
-        */
+         * if (!node.valueExists(bindings.getUseToDeclAttr())) {
+         * System.out.println("no binding"); } else {
+         * System.out.println(bindings+" bound ACE: "+node); } } else {
+         * System.out.println(bindings+" unbound ACE: "+node);
+         */
       }
-      //System.out.println("hasFullInfo = "+bindings.containsFullInfo());
+      // System.out.println("hasFullInfo = "+bindings.containsFullInfo());
       doAccept(AnonClassExpression.getBody(node), sc);
       return null;
     }
-    
+
     @Override
     public Void visitArrayType(IRNode node) {
       if (isFullPass) {
-    	  return null;
+        return null;
       }
       // No IRNode binding that makes sense
-      bind(node, nullBinding); 
-      return super.visitArrayType(node);      
+      bind(node, nullBinding);
+      return super.visitArrayType(node);
     }
-    
+
     @Override
     public Void visitBlockStatement(IRNode node) {
-      doAcceptForChildren(node,new IJavaScope.NestedScope(scope));
+      doAcceptForChildren(node, new IJavaScope.NestedScope(scope));
       return null;
     }
-    
+
     @Override
     public Void visitTryResource(IRNode node) {
-        IJavaScope.NestedScope tryScope = new IJavaScope.NestedScope(scope);
-        IRNode resources                = TryResource.getResources(node);
-        for(IRNode res : Resources.getResourceIterator(resources)) {
-        	tryScope.add(VariableResource.getVar(res));
-        }
-        doAcceptForChildren(node, tryScope);
-    	return null;
+      IJavaScope.NestedScope tryScope = new IJavaScope.NestedScope(scope);
+      IRNode resources = TryResource.getResources(node);
+      for (IRNode res : Resources.getResourceIterator(resources)) {
+        tryScope.add(VariableResource.getVar(res));
+      }
+      doAcceptForChildren(node, tryScope);
+      return null;
     }
-    
+
     @Override
     public Void visitCatchClause(IRNode node) {
       IJavaScope.NestedScope catchScope = new IJavaScope.NestedScope(scope);
@@ -1671,52 +1637,53 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       doAcceptForChildren(node, catchScope);
       return null;
     }
-    
+
     @Override
     public Void visitClassBody(IRNode node) {
       if (debug) {
-    	  LOG.finer("visiting getClassBody(IRNode)"); 
+        LOG.finer("visiting getClassBody(IRNode)");
       }
       IRNode parent = JJNode.tree.getParent(node);
       IJavaType type = typeEnvironment.getMyThisType(parent);
       IJavaScope classScope = typeScope(type);
-      final IJavaScope shadowing = new IJavaScope.ShadowingScope(classScope,scope);
+      final IJavaScope shadowing = new IJavaScope.ShadowingScope(classScope, scope);
       if (AnonClassExpression.prototype.includes(parent)) {
-    	  // Start of a different class
-    	  doAcceptForChildren(node, shadowing);
+        // Start of a different class
+        doAcceptForChildren(node, shadowing);
       } else {
-    	  IRNode gparent = JJNode.tree.getParent(parent);
-    	  if (TypeDeclarationStatement.prototype.includes(gparent)) {
-        	  // Start of a different class
-    		  doAcceptForChildren(node, shadowing);
-    	  } else {
-    		  /**
-    		   * Within a class C, a declaration d of a member type named n shadows the declarations
-    		   * of any other types named n that are in scope at the point where d occurs.
-    		   */
-    		  IJavaScope combined = new IJavaScope.SelectiveShadowingScope(shadowing, onlyColocatedTypes(parent), shadowing);
-    		  doAcceptForChildren(node, combined);
-    	  }
+        IRNode gparent = JJNode.tree.getParent(parent);
+        if (TypeDeclarationStatement.prototype.includes(gparent)) {
+          // Start of a different class
+          doAcceptForChildren(node, shadowing);
+        } else {
+          /**
+           * Within a class C, a declaration d of a member type named n shadows
+           * the declarations of any other types named n that are in scope at
+           * the point where d occurs.
+           */
+          IJavaScope combined = new IJavaScope.SelectiveShadowingScope(shadowing, onlyColocatedTypes(parent), shadowing);
+          doAcceptForChildren(node, combined);
+        }
       }
       return null;
     }
 
     private Selector onlyColocatedTypes(final IRNode tdecl) {
-    	final IRNode cu = VisitUtil.findCompilationUnit(tdecl);
-    	return new IJavaScope.AbstractSelector("Types co-located with "+JavaNames.getFieldDecl(tdecl)) {
-//			@Override
-			public boolean select(IRNode node) {
-				if (!TypeDeclaration.prototype.includes(node)) {
-					return false;
-				}
-				return cu != null && cu == VisitUtil.findCompilationUnit(node);
-			}    		
-    	};
+      final IRNode cu = VisitUtil.findCompilationUnit(tdecl);
+      return new IJavaScope.AbstractSelector("Types co-located with " + JavaNames.getFieldDecl(tdecl)) {
+        // @Override
+        public boolean select(IRNode node) {
+          if (!TypeDeclaration.prototype.includes(node)) {
+            return false;
+          }
+          return cu != null && cu == VisitUtil.findCompilationUnit(node);
+        }
+      };
     }
-    
+
     @Override
     public Void visitClassDeclaration(IRNode node) {
-      return visitTypeDeclaration(node,ClassDeclaration.getTypes(node));
+      return visitTypeDeclaration(node, ClassDeclaration.getTypes(node));
     }
 
     @Override
@@ -1741,249 +1708,242 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       } else if (top instanceof VoidType) {
         result = null; // XXX no IRNode for void type
       } else {
-        throw new IllegalArgumentException("Got "+top.name()+" as base for ClassExpr");
+        throw new IllegalArgumentException("Got " + top.name() + " as base for ClassExpr");
       }
       bind(n, result);
       return null;
     }
-    
+
     private IJavaScope computeScopeForInstanceFieldsAndInits(IRNode node, IJavaScope scope) {
-    	// Skip body to get to type decl
-        IRNode tdecl = JJNode.tree.getParent(JJNode.tree.getParent(node));
-        if (!InterfaceDeclaration.prototype.includes(tdecl) && !AnnotationDeclaration.prototype.includes(tdecl)) {
-        	IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
-        	
-        	// addReceiverDeclForType(tdecl, sc);
-        	try {
-        	IRNode initD = JavaPromise.getInitMethod(tdecl);
-        	sc.put("this", JavaPromise.getReceiverNode(initD));
-        	// sc.put("this", JavaPromise.getReceiverNode(type));        	
-        	return sc;
-        	} catch(SlotUndefinedException e) {
-        		System.out.println("Died on: "+JavaNames.getTypeName(tdecl));
-        	}
-        }        
-        return scope;
+      // Skip body to get to type decl
+      IRNode tdecl = JJNode.tree.getParent(JJNode.tree.getParent(node));
+      if (!InterfaceDeclaration.prototype.includes(tdecl) && !AnnotationDeclaration.prototype.includes(tdecl)) {
+        IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
+
+        // addReceiverDeclForType(tdecl, sc);
+        try {
+          IRNode initD = JavaPromise.getInitMethod(tdecl);
+          sc.put("this", JavaPromise.getReceiverNode(initD));
+          // sc.put("this", JavaPromise.getReceiverNode(type));
+          return sc;
+        } catch (SlotUndefinedException e) {
+          System.out.println("Died on: " + JavaNames.getTypeName(tdecl));
+        }
+      }
+      return scope;
     }
-    
+
     @Override
     public Void visitClassInitializer(IRNode node) {
       final IJavaScope withThis;
-      if (!JavaNode.getModifier(node,JavaNode.STATIC)) {
-    	  withThis = computeScopeForInstanceFieldsAndInits(node, scope);
+      if (!JavaNode.getModifier(node, JavaNode.STATIC)) {
+        withThis = computeScopeForInstanceFieldsAndInits(node, scope);
       } else {
-    	  withThis = scope;
+        withThis = scope;
       }
-      doBatchAcceptForChildren(node,withThis);
+      doBatchAcceptForChildren(node, withThis);
       return null;
     }
-    
+
     @Override
     public Void visitCompilationUnit(IRNode node) {
       scope = getImportTable(node);
       /*
-      String unparse = DebugUnparser.toString(node);
-      if (!unparse.contains("class") && !unparse.contains("interface") && !unparse.contains("enum")) {
-    	  System.out.println(unparse);
-      }
-      */
+       * String unparse = DebugUnparser.toString(node); if
+       * (!unparse.contains("class") && !unparse.contains("interface") &&
+       * !unparse.contains("enum")) { System.out.println(unparse); }
+       */
       doAcceptForChildren(node);
       return null;
     }
-    
+
     @Override
     public Void visitConstructorCall(IRNode node) {
       visit(node); // bind the arguments etc
-      if (!isFullPass || pathToTarget != null) return null;
-      
-      ConstructorCall call = (ConstructorCall) getOperator(node);     
+      if (!isFullPass || pathToTarget != null)
+        return null;
+
+      ConstructorCall call = (ConstructorCall) getOperator(node);
       IRNode object = call.get_Object(node);
       /*
-      if (SuperExpression.prototype.includes(object)) {
-    	  System.out.println("Binding super(): "+node);
-      }
-      */
+       * if (SuperExpression.prototype.includes(object)) { System.out.println(
+       * "Binding super(): "+node); }
+       */
       IJavaType ty = getJavaType(object);
       if (ty instanceof IJavaDeclaredType) {
-        IRNode tdecl = ((IJavaDeclaredType)ty).getDeclaration(); 
+        IRNode tdecl = ((IJavaDeclaredType) ty).getDeclaration();
         IRNode targs = call.get_TypeArgs(node);
         String tname = JJNode.getInfo(tdecl);
         final CallState state = new CallState(AbstractJavaBinder.this, node, targs, call.get_Args(node), ty);
         boolean success = bindCall(state, tname, ty);
         if (!success) {
-        	bindCall(state, tname, ty);
+          bindCall(state, tname, ty);
         }
       } else {
         LOG.warning("super/this has non-class type! " + DebugUnparser.toString(node));
       }
       return null;
     }
-    
+
     @Override
     public Void visitConstructorDeclaration(IRNode node) {
       return processMethodDeclaration(node, true);
-    }    
-    
+    }
+
     @Override
     public Void visitConstructorReference(IRNode node) {
-    	visit(node);
-    	// TODO bind?
-    	// skip binding for now to avoid cycle
-    	if (true) {
-    		return null;
-    	}
-    	    	
-    	if (!isFullPass || pathToTarget != null) return null;
-    	TypeUtils utils = new TypeUtils(getTypeEnvironment());
-    	IJavaType targetType = utils.getPolyExpressionTargetType(node);
-    	if (targetType == null) {
-    		LOG.warning("constructor reference must be in a poly context: " + DebugUnparser.toString(node));
-    		return null;
-    	}
-    	IJavaFunctionType ft = getTypeEnvironment().isFunctionalType(targetType);
-    	if (ft == null) {
-    		LOG.warning("contructor reference must have a functional type, not: " +
-    				targetType.toSourceText());
-    		return null;
-    	}
-    	IJavaType ownerT = getJavaType(ConstructorReference.getReceiver(node));
-    	if (ownerT instanceof IJavaArrayType) {
-    		// check that ft can accept a function type
-    		// that (int -> ownerT) is applicable.
-    		IJavaFunctionType myType = JavaTypeFactory.getFunctionType(null, ownerT, Arrays.<IJavaType>asList(JavaTypeFactory.intType), false, null);
-    		if (getTypeEnvironment().isCallCompatible(myType, ft, InvocationKind.VARIABLE)) {
-    			// NB: no binding for array creation
-    			LOG.info("Array creation reference works");
-    		} else {
-    			LOG.warning("array creation is not compatible with " + ft.toSourceText());
-    		}
-    		return null;
-    	}
-    	if (!(ownerT instanceof IJavaDeclaredType)) {
-    		LOG.warning("constructor reference type must name a class, not " + ownerT.toSourceText());
-    		return null;
-    	}
-    	IJavaDeclaredType owner = (IJavaDeclaredType)ownerT;
-    	/*
-    	if (owner.getTypeParameters().size() > 0) {
-    		LOG.warning("constructor reference takes type parameters explicitly, not before ::");
-    		return null;
-    	}
-    	*/
-    	IRNode cdecl = owner.getDeclaration();
-		if (!ClassDeclaration.prototype.includes(JJNode.tree.getOperator(cdecl))) {
-    		LOG.warning("constructor reference must name a class, not an interface: "
-    				+ owner.toSourceText());
-    		return null;
-    	}
-		
-		List<IJavaTypeFormal> typeFormals = null;
-		if (JJNode.tree.numChildren(ClassDeclaration.getTypes(cdecl)) > 0) {
-			typeFormals = new ArrayList<IJavaTypeFormal>();
-			for (IRNode tf : JJNode.tree.children(ClassDeclaration.getTypes(cdecl))) {
-				typeFormals.add(JavaTypeFactory.getTypeFormal(tf));
-			}
-		}
+      visit(node);
+      // TODO bind?
+      // skip binding for now to avoid cycle
+      if (true) {
+        return null;
+      }
 
-    	List<IJavaType> typeActuals = null;
-    	if (JJNode.tree.numChildren(ConstructorReference.getTypeArgs(node)) > 0) {
-    		typeActuals = new ArrayList<IJavaType>();
-    		for (IRNode tn : JJNode.tree.children(ConstructorReference.getTypeArgs(node))) {
-    			typeActuals.add(getTypeEnvironment().convertNodeTypeToIJavaType(tn));
-    		}
-    	}
-    	
-    	// If type parameters are here, they will be substituted 
-    	// If type parameters are missing, they will be inferred.
-    	IJavaType rType = JavaTypeFactory.getDeclaredType(
-    			cdecl, 
-    			typeFormals == null ? null : new ArrayList<IJavaType>(typeFormals), 
-    			owner.getOuterType());
-    	Map<IJavaFunctionType,IRNode> candidates = new HashMap<IJavaFunctionType,IRNode>();
-    	for (IRNode member : JJNode.tree.children(ClassDeclaration.getBody(cdecl))) {
-    		if (ConstructorDeclaration.prototype.includes(JJNode.tree.getOperator(member))) {
-    			if (BindUtil.isAccessible(getTypeEnvironment(),member,node)) {
-    				candidates.put(JavaTypeFactory.getMemberFunctionType(member, rType, AbstractJavaBinder.this), member);
-    			}
-    		}
-    	}
-    	if (candidates.size() == 0) {
-    		LOG.warning("No candidates (public constructors) for " + DebugUnparser.toString(node));
-    		return null;
-    	}
-    	
-    	List<IRNode> applicable = new ArrayList<IRNode>();
-    	InvocationKind applicableKind = null;
-    	IJavaFunctionType applicableType = null;
-    	for (InvocationKind ikind : InvocationKind.values()) {
-    		applicable.clear();
-    		for (Map.Entry<IJavaFunctionType, IRNode> e : candidates.entrySet()) {
-    			IJavaFunctionType cft = e.getKey();
-    			Constraints cs = utils.new Constraints(IBinding.Util.makeBinding(cdecl),typeFormals,ikind);
-    			if (cs.deriveForParameters(cft.getParameterTypes(), ft.getParameterTypes(), cft.isVariable()) &&
-    					cs.getSubstitution() != null) {
-    				applicableType = cft;
-    				applicableKind = ikind;
-    				applicable.add(e.getValue());
-    			}
-    		}
-    		if (applicable.size() == 1) break;
-    		if (applicable.size() > 1) {
-    			LOG.warning("Multiple applicable candidates for " + DebugUnparser.toString(node));
-    			return null;
-    		}
-    	}
-    	if (applicable.isEmpty()) {
-    		LOG.warning("No applicable candidates for " + DebugUnparser.toString(node));
-    		return null;
-    	}
-    	
-    	// now we generate constraints AGAIN
-    	// because this time we don't compute the type substitution until later
-		Constraints cs = utils.
-				new Constraints(IBinding.Util.makeBinding(cdecl),
-						typeFormals,
-						applicableKind);
-		if (!cs.deriveForParameters(applicableType.getParameterTypes(), 
-				ft.getParameterTypes(), applicableType.isVariable())) {
-			LOG.severe("constraints fail the second time???");
-			return null;
-		}
-		
-		/* TODO
-    	// check return type
-    	if (!cs.derive(applicableType.getReturnType(), 
-    			Constraint.CONVERTIBLE_TO, ft.getReturnType())) {
-    		LOG.warning("Only applicable canditate had bad return type");
-    		cs.derive(applicableType.getReturnType(), 
-        			Constraint.CONVERTIBLE_TO, ft.getReturnType());
-    		return null;
-    	}
-    	*/
-    	IJavaTypeSubstitution sub = cs.getSubstitution();
-    	if (sub == null) {
-    		LOG.warning("Only applicable candidate constraints cannot be satisfied");
-    		return null;
-    	}
-    	IRNode re = typeEnvironment.findNamedType("java.lang.RuntimeException");
-    	// If re is null, that means that it's not referenced by anything
-    	IJavaType rte = re == null ? null : JavaTypeFactory.getDeclaredType(re, null, null);
-    	// check throws
-    	checkThrow: for (IJavaType ttype : applicableType.subst(sub).getExceptions()) {
-    		if (rte != null && typeEnvironment.isSubType(ttype, rte)) continue checkThrow;
-    		for (IJavaType atype : ft.getExceptions()) {
-    			if (typeEnvironment.isSubType(ttype, atype)) continue checkThrow;
-    		}
-    		LOG.warning("only applicable candidate has incomplete throw: " + ttype);
-    		return null;
-    	}    		
-    	bind(node,IBinding.Util.makeMethodBinding(typeEnvironment, cdecl, owner, sub));
-    	return null;
+      if (!isFullPass || pathToTarget != null)
+        return null;
+      TypeUtils utils = new TypeUtils(getTypeEnvironment());
+      IJavaType targetType = utils.getPolyExpressionTargetType(node);
+      if (targetType == null) {
+        LOG.warning("constructor reference must be in a poly context: " + DebugUnparser.toString(node));
+        return null;
+      }
+      IJavaFunctionType ft = getTypeEnvironment().isFunctionalType(targetType);
+      if (ft == null) {
+        LOG.warning("contructor reference must have a functional type, not: " + targetType.toSourceText());
+        return null;
+      }
+      IJavaType ownerT = getJavaType(ConstructorReference.getReceiver(node));
+      if (ownerT instanceof IJavaArrayType) {
+        // check that ft can accept a function type
+        // that (int -> ownerT) is applicable.
+        IJavaFunctionType myType = JavaTypeFactory.getFunctionType(null, ownerT, Arrays.<IJavaType> asList(JavaTypeFactory.intType),
+            false, null);
+        if (getTypeEnvironment().isCallCompatible(myType, ft, InvocationKind.VARIABLE)) {
+          // NB: no binding for array creation
+          LOG.info("Array creation reference works");
+        } else {
+          LOG.warning("array creation is not compatible with " + ft.toSourceText());
+        }
+        return null;
+      }
+      if (!(ownerT instanceof IJavaDeclaredType)) {
+        LOG.warning("constructor reference type must name a class, not " + ownerT.toSourceText());
+        return null;
+      }
+      IJavaDeclaredType owner = (IJavaDeclaredType) ownerT;
+      /*
+       * if (owner.getTypeParameters().size() > 0) { LOG.warning(
+       * "constructor reference takes type parameters explicitly, not before ::"
+       * ); return null; }
+       */
+      IRNode cdecl = owner.getDeclaration();
+      if (!ClassDeclaration.prototype.includes(JJNode.tree.getOperator(cdecl))) {
+        LOG.warning("constructor reference must name a class, not an interface: " + owner.toSourceText());
+        return null;
+      }
+
+      List<IJavaTypeFormal> typeFormals = null;
+      if (JJNode.tree.numChildren(ClassDeclaration.getTypes(cdecl)) > 0) {
+        typeFormals = new ArrayList<IJavaTypeFormal>();
+        for (IRNode tf : JJNode.tree.children(ClassDeclaration.getTypes(cdecl))) {
+          typeFormals.add(JavaTypeFactory.getTypeFormal(tf));
+        }
+      }
+
+      List<IJavaType> typeActuals = null;
+      if (JJNode.tree.numChildren(ConstructorReference.getTypeArgs(node)) > 0) {
+        typeActuals = new ArrayList<IJavaType>();
+        for (IRNode tn : JJNode.tree.children(ConstructorReference.getTypeArgs(node))) {
+          typeActuals.add(getTypeEnvironment().convertNodeTypeToIJavaType(tn));
+        }
+      }
+
+      // If type parameters are here, they will be substituted
+      // If type parameters are missing, they will be inferred.
+      IJavaType rType = JavaTypeFactory.getDeclaredType(cdecl, typeFormals == null ? null : new ArrayList<IJavaType>(typeFormals),
+          owner.getOuterType());
+      Map<IJavaFunctionType, IRNode> candidates = new HashMap<IJavaFunctionType, IRNode>();
+      for (IRNode member : JJNode.tree.children(ClassDeclaration.getBody(cdecl))) {
+        if (ConstructorDeclaration.prototype.includes(JJNode.tree.getOperator(member))) {
+          if (BindUtil.isAccessible(getTypeEnvironment(), member, node)) {
+            candidates.put(JavaTypeFactory.getMemberFunctionType(member, rType, AbstractJavaBinder.this), member);
+          }
+        }
+      }
+      if (candidates.size() == 0) {
+        LOG.warning("No candidates (public constructors) for " + DebugUnparser.toString(node));
+        return null;
+      }
+
+      List<IRNode> applicable = new ArrayList<IRNode>();
+      InvocationKind applicableKind = null;
+      IJavaFunctionType applicableType = null;
+      for (InvocationKind ikind : InvocationKind.values()) {
+        applicable.clear();
+        for (Map.Entry<IJavaFunctionType, IRNode> e : candidates.entrySet()) {
+          IJavaFunctionType cft = e.getKey();
+          Constraints cs = utils.new Constraints(IBinding.Util.makeBinding(cdecl), typeFormals, ikind);
+          if (cs.deriveForParameters(cft.getParameterTypes(), ft.getParameterTypes(), cft.isVariable())
+              && cs.getSubstitution() != null) {
+            applicableType = cft;
+            applicableKind = ikind;
+            applicable.add(e.getValue());
+          }
+        }
+        if (applicable.size() == 1)
+          break;
+        if (applicable.size() > 1) {
+          LOG.warning("Multiple applicable candidates for " + DebugUnparser.toString(node));
+          return null;
+        }
+      }
+      if (applicable.isEmpty()) {
+        LOG.warning("No applicable candidates for " + DebugUnparser.toString(node));
+        return null;
+      }
+
+      // now we generate constraints AGAIN
+      // because this time we don't compute the type substitution until later
+      Constraints cs = utils.new Constraints(IBinding.Util.makeBinding(cdecl), typeFormals, applicableKind);
+      if (!cs.deriveForParameters(applicableType.getParameterTypes(), ft.getParameterTypes(), applicableType.isVariable())) {
+        LOG.severe("constraints fail the second time???");
+        return null;
+      }
+
+      /*
+       * TODO // check return type if
+       * (!cs.derive(applicableType.getReturnType(), Constraint.CONVERTIBLE_TO,
+       * ft.getReturnType())) { LOG.warning(
+       * "Only applicable canditate had bad return type");
+       * cs.derive(applicableType.getReturnType(), Constraint.CONVERTIBLE_TO,
+       * ft.getReturnType()); return null; }
+       */
+      IJavaTypeSubstitution sub = cs.getSubstitution();
+      if (sub == null) {
+        LOG.warning("Only applicable candidate constraints cannot be satisfied");
+        return null;
+      }
+      IRNode re = typeEnvironment.findNamedType("java.lang.RuntimeException");
+      // If re is null, that means that it's not referenced by anything
+      IJavaType rte = re == null ? null : JavaTypeFactory.getDeclaredType(re, null, null);
+      // check throws
+      checkThrow: for (IJavaType ttype : applicableType.subst(sub).getExceptions()) {
+        if (rte != null && typeEnvironment.isSubType(ttype, rte))
+          continue checkThrow;
+        for (IJavaType atype : ft.getExceptions()) {
+          if (typeEnvironment.isSubType(ttype, atype))
+            continue checkThrow;
+        }
+        LOG.warning("only applicable candidate has incomplete throw: " + ttype);
+        return null;
+      }
+      bind(node, IBinding.Util.makeMethodBinding(typeEnvironment, cdecl, owner, sub));
+      return null;
     }
-    	 
+
     @Override
     public Void visitDeclStatement(IRNode node) {
-      addDeclsToScope(DeclStatement.getVars(node),(IJavaScope.NestedScope)scope);
+      addDeclsToScope(DeclStatement.getVars(node), (IJavaScope.NestedScope) scope);
       return visit(node);
     }
 
@@ -1993,114 +1953,113 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       bindToPackage(node, pkg);
       return null;
     }
-    
+
     @Override
     public Void visitElementValuePair(IRNode node) {
       // To visit children
       super.visitElementValuePair(node);
-    	
-      if (!isFullPass) {    	  
-    	  return null;
+
+      if (!isFullPass) {
+        return null;
       }
       final String name = ElementValuePair.getId(node);
       if (name == null) {
-    	  bind(node, IBinding.NULL);
-    	  return null;
+        bind(node, IBinding.NULL);
+        return null;
       }
       final IRNode anno = VisitUtil.getEnclosingAnnotation(node);
       final IBinding b = getIBinding(anno);
       // Lookup the attribute's type
-      for(IRNode decl : VisitUtil.getClassBodyMembers(b.getNode())) {
-    	  final Operator op = JJNode.tree.getOperator(decl);
-    	  if (AnnotationElement.prototype.includes(op)) {
-    		  if (name.equals(AnnotationElement.getId(decl))) {
-    			  bind(node, IBinding.Util.makeBinding(decl));
-    			  return null;
-    		  }    		  
-    	  }
+      for (IRNode decl : VisitUtil.getClassBodyMembers(b.getNode())) {
+        final Operator op = JJNode.tree.getOperator(decl);
+        if (AnnotationElement.prototype.includes(op)) {
+          if (name.equals(AnnotationElement.getId(decl))) {
+            bind(node, IBinding.Util.makeBinding(decl));
+            return null;
+          }
+        }
       }
       bind(node, IBinding.NULL);
       return null;
     }
-    
+
     @Override
     public Void visitEnumDeclaration(IRNode node) {
-        /*
-        if (!isFullPass) {
-            System.out.println("Partial pass on "+JJNode.getInfoOrNull(node));
-        }
-        */
-        return super.visitEnumDeclaration(node);
+      /*
+       * if (!isFullPass) { System.out.println("Partial pass on "
+       * +JJNode.getInfoOrNull(node)); }
+       */
+      return super.visitEnumDeclaration(node);
     }
-    
+
     @Override
     public Void visitEnumConstantClassDeclaration(IRNode node) {
-        final String name = JJNode.getInfoOrNull(node);
-        final IJavaScope sc;
-        if (name != null) {
-          IJavaScope.NestedScope nsc = new IJavaScope.NestedScope(scope);
-          nsc.put(name, node);
-          sc = nsc;
-        } else {
-          sc = scope;
-        }
-        try {
-        	doAcceptForChildren(node, sc);        
-        } catch (Exception e) {
-        	e.printStackTrace();        	
-        }
-        return bindEnumConstantDeclaration(node, EnumConstantClassDeclaration.getArgs(node));
+      final String name = JJNode.getInfoOrNull(node);
+      final IJavaScope sc;
+      if (name != null) {
+        IJavaScope.NestedScope nsc = new IJavaScope.NestedScope(scope);
+        nsc.put(name, node);
+        sc = nsc;
+      } else {
+        sc = scope;
+      }
+      try {
+        doAcceptForChildren(node, sc);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      return bindEnumConstantDeclaration(node, EnumConstantClassDeclaration.getArgs(node));
     }
-    
+
     @Override
     public Void visitNormalEnumConstantDeclaration(IRNode node) {
-        visit(node); // bind the arguments etc
-        return bindEnumConstantDeclaration(node, NormalEnumConstantDeclaration.getArgs(node));
+      visit(node); // bind the arguments etc
+      return bindEnumConstantDeclaration(node, NormalEnumConstantDeclaration.getArgs(node));
     }
 
     private Void bindEnumConstantDeclaration(IRNode node, IRNode args) {
-        if (!isFullPass || pathToTarget != null) return null;
-    	
-    	IRNode tdecl = VisitUtil.getEnclosingType(node);
-        final CallState state = new CallState(AbstractJavaBinder.this, node, null, args, tdecl);
-        boolean success = bindCall(state, JJNode.getInfo(tdecl), state.receiverType);
-        if (!success) {
-            bindCall(state, JJNode.getInfo(tdecl), state.receiverType);
-        }
+      if (!isFullPass || pathToTarget != null)
         return null;
+
+      IRNode tdecl = VisitUtil.getEnclosingType(node);
+      final CallState state = new CallState(AbstractJavaBinder.this, node, null, args, tdecl);
+      boolean success = bindCall(state, JJNode.getInfo(tdecl), state.receiverType);
+      if (!success) {
+        bindCall(state, JJNode.getInfo(tdecl), state.receiverType);
+      }
+      return null;
     }
-    
+
     @Override
     public Void visitSimpleEnumConstantDeclaration(IRNode node) {
-        visit(node); // bind the arguments etc
-        /*
-        if (isFullPass) {
-            System.out.println("Full binding constant: "+JJNode.getInfoOrNull(node));     
-        } else {
-            System.out.println("Part Binding constant: "+JJNode.getInfoOrNull(node));     
-        } 
-        */  
-        return bindEnumConstantDeclaration(node, null);
+      visit(node); // bind the arguments etc
+      /*
+       * if (isFullPass) { System.out.println("Full binding constant: "
+       * +JJNode.getInfoOrNull(node)); } else { System.out.println(
+       * "Part Binding constant: "+JJNode.getInfoOrNull(node)); }
+       */
+      return bindEnumConstantDeclaration(node, null);
     }
-    
+
     // Copied from ClassInitializer
     @Override
     public Void visitFieldDeclaration(IRNode node) {
       final IJavaScope withThis;
-      if (!JavaNode.getModifier(node,JavaNode.STATIC)) {
-    	  withThis = computeScopeForInstanceFieldsAndInits(node, scope);
+      if (!JavaNode.getModifier(node, JavaNode.STATIC)) {
+        withThis = computeScopeForInstanceFieldsAndInits(node, scope);
       } else {
-    	  withThis = scope;
+        withThis = scope;
       }
- 
-      // At this point we are visiting if on the way to a nested class (unlikely)
+
+      // At this point we are visiting if on the way to a nested class
+      // (unlikely)
       // or if batch already, or if incremental and this has changed
       // (in which case we want batch).
       // Simplest is to ALWAYS use batch.
-      doBatchAcceptForChildren(node,withThis);
+      doBatchAcceptForChildren(node, withThis);
       return null;
     }
-    
+
     @Override
     public Void visitFieldRef(IRNode node) {
       visit(node); // bind the object
@@ -2112,15 +2071,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
           bind(node, typeScope(ty), IJavaScope.Util.isValueDecl);
         }
       }
-      return null; 
-    }
-    
-    @Override
-    public Void visitForStatement(IRNode node) {
-      doAcceptForChildren(node,new IJavaScope.NestedScope(scope));
       return null;
     }
-    
+
+    @Override
+    public Void visitForStatement(IRNode node) {
+      doAcceptForChildren(node, new IJavaScope.NestedScope(scope));
+      return null;
+    }
+
     @Override
     public Void visitForEachStatement(IRNode node) {
       IJavaScope.NestedScope foreachScope = new IJavaScope.NestedScope(scope);
@@ -2128,188 +2087,185 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       doAcceptForChildren(node, foreachScope);
       return null;
     }
-    
+
     @Override
     public Void visitInterfaceDeclaration(IRNode node) {
-      return visitTypeDeclaration(node,InterfaceDeclaration.getTypes(node));
+      return visitTypeDeclaration(node, InterfaceDeclaration.getTypes(node));
     }
 
     @Override
     public Void visitLabeledBreakStatement(IRNode node) {
-      bind(node,IJavaScope.Util.isLabeledStatement);
+      bind(node, IJavaScope.Util.isLabeledStatement);
       return null;
     }
+
     @Override
     public Void visitLabeledContinueStatement(IRNode node) {
       visitLabeledBreakStatement(node);
       return null;
     }
+
     @Override
     public Void visitLabeledStatement(IRNode node) {
       IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
       sc.add(node);
-      doAcceptForChildren(node,sc);
+      doAcceptForChildren(node, sc);
       return null;
     }
-    
+
     @Override
     public Void visitLambdaExpression(IRNode node) {
-      /* 
-       * We don't need this since there might be other granules inside
-       * (e.g. other lambdas)
+      /*
+       * We don't need this since there might be other granules inside (e.g.
+       * other lambdas)
        *
-      if (pathToTarget != null) {
-    	  return null;
-      }
-      */
-      //String unparse = DebugUnparser.toString(node);
-      //System.out.println("Binding lambda: "+unparse);
+       * if (pathToTarget != null) { return null; }
+       */
+      // String unparse = DebugUnparser.toString(node);
+      // System.out.println("Binding lambda: "+unparse);
       IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
       IRNode returnNode = JavaPromise.getReturnNodeOrNull(node);
       if (returnNode != null) {
-    	  sc.put("return", returnNode);
+        sc.put("return", returnNode);
       }
       IRNode formals = LambdaExpression.getParams(node);
       addDeclsToScope(formals, sc);
-      
-      doAcceptForChildren(node,sc);
+
+      doAcceptForChildren(node, sc);
       return null;
     }
-    
+
     @Override
     public Void visitMethodCall(IRNode node) {
       visit(node); // bind the arguments etc
-      if (!isFullPass || pathToTarget != null) return null;
-      MethodCall call   = (MethodCall) getOperator(node);
-      IRNode receiver   = call.get_Object(node);
-      IRNode args       = call.get_Args(node);
-      IRNode targs      = call.get_TypeArgs(node);
-      IJavaScope toUse  = null;
+      if (!isFullPass || pathToTarget != null)
+        return null;
+      MethodCall call = (MethodCall) getOperator(node);
+      IRNode receiver = call.get_Object(node);
+      IRNode args = call.get_Args(node);
+      IRNode targs = call.get_TypeArgs(node);
+      IJavaScope toUse = null;
       IJavaType recType = null;
-      final String name = MethodCall.getMethod(node);  
+      final String name = MethodCall.getMethod(node);
       /*
-      if ("flatMap".equals(name) || "map".equals(name)) {
-    	  String unparse = DebugUnparser.toString(node);
-    	  if ("Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)".equals(unparse) ||
-    			  "Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(unparse)) {
-    		  System.out.println("Calling "+unparse);
-    	  }
-      }
-      */    
+       * if ("flatMap".equals(name) || "map".equals(name)) { String unparse =
+       * DebugUnparser.toString(node); if (
+       * "Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)"
+       * .equals(unparse) ||
+       * "Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(unparse))
+       * { System.out.println("Calling "+unparse); } }
+       */
       final Operator rop = JJNode.tree.getOperator(receiver);
       if (rop instanceof ImplicitReceiver) {
         toUse = scope;
       } else {
-    	recType = getApproxJavaType(receiver, rop);
-//        if (recType instanceof IJavaDeclaredType) {
-//          System.out.println(DebugUnparser.toString(((IJavaDeclaredType) recType).getDeclaration()));
-//        }
-        //String recName = recType.toString();
+        recType = getApproxJavaType(receiver, rop);
+        // if (recType instanceof IJavaDeclaredType) {
+        // System.out.println(DebugUnparser.toString(((IJavaDeclaredType)
+        // recType).getDeclaration()));
+        // }
+        // String recName = recType.toString();
         /*
-        if (recName.startsWith("org.apache.hadoop.mapreduce.Mapper") && recName.endsWith(">.Context")) {
-        	System.out.println("Binding call for "+recName);
-        }
-        */
-        if (recType != null) toUse = typeScope(recType);
+         * if (recName.startsWith("org.apache.hadoop.mapreduce.Mapper") &&
+         * recName.endsWith(">.Context")) { System.out.println(
+         * "Binding call for "+recName); }
+         */
+        if (recType != null)
+          toUse = typeScope(recType);
       }
-      if (toUse != null) {        
-    	  /*
-    	  if ("doPrivileged".equals(name)) {
-        	String unparse = DebugUnparser.toString(node);
-        	if (unparse.startsWith("AccessController.doPrivileged(new")) {
-        		String args_txt = DebugUnparser.toString(args);
-        		if (args_txt.contains("GetPropertyAction")) {
-        			System.out.println("toArray: "+unparse);
-        		}        		
-        	}
-        }
-        */
+      if (toUse != null) {
+        /*
+         * if ("doPrivileged".equals(name)) { String unparse =
+         * DebugUnparser.toString(node); if
+         * (unparse.startsWith("AccessController.doPrivileged(new")) { String
+         * args_txt = DebugUnparser.toString(args); if
+         * (args_txt.contains("GetPropertyAction")) { System.out.println(
+         * "toArray: "+unparse); } } }
+         */
         if (recType instanceof IJavaDeclaredType) {
           IJavaDeclaredType dt = (IJavaDeclaredType) recType;
           if (AnnotationDeclaration.prototype.includes(dt.getDeclaration())) {
             if (!JJNode.tree.hasChildren(args)) {
-                return bindAnnotationElement(node, name, toUse); 
-                //throw new IllegalArgumentException("Illegal call to annotation element: "+DebugUnparser.toString(node));
+              return bindAnnotationElement(node, name, toUse);
+              // throw new IllegalArgumentException("Illegal call to annotation
+              // element: "+DebugUnparser.toString(node));
             }
             // Process as normal method call
           }
         }
         final CallState state = new CallState(AbstractJavaBinder.this, node, targs, args, recType);
         /*
-        if ("br.lines.collect(#.groupingBy(#, #)).forEach((# # str, # # set) -> { # # })".equals(state.toString())) {
-        	System.out.println("recType = "+recType);
-        	getApproxJavaType(receiver, rop);
-        }
-        */
-        boolean success = bindCall(state,name, toUse);
+         * if (
+         * "br.lines.collect(#.groupingBy(#, #)).forEach((# # str, # # set) -> { # # })"
+         * .equals(state.toString())) { System.out.println("recType = "
+         * +recType); getApproxJavaType(receiver, rop); }
+         */
+        boolean success = bindCall(state, name, toUse);
         if (!success) {
-          // FIX hack to get things to bind for receivers of raw type       
+          // FIX hack to get things to bind for receivers of raw type
           IJavaType newType = convertRawType(recType, true);
           if (newType != recType) {
-            success = bindCall(state,name, newType);
+            success = bindCall(state, name, newType);
           }
           if (!success) {
             IJavaType newType2 = convertRawType(recType, false);
             if (newType2 != recType) {
-              success = bindCall(state,name, newType2);
+              success = bindCall(state, name, newType2);
             }
             if (!success && pathToTarget == null) {
               if (recType != null) {
-            	  DebugUtil.dumpTypeHierarchy(getTypeEnvironment(), recType);
+                DebugUtil.dumpTypeHierarchy(getTypeEnvironment(), recType);
               } else {
-            	  DebugUtil.dumpTypeHierarchy(getTypeEnvironment(), VisitUtil.getEnclosingType(node));
+                DebugUtil.dumpTypeHierarchy(getTypeEnvironment(), VisitUtil.getEnclosingType(node));
               }
-              System.out.println("Receiver: "+DebugUnparser.toString(receiver));
-              System.out.println("Args:     "+DebugUnparser.toString(args));
+              System.out.println("Receiver: " + DebugUnparser.toString(receiver));
+              System.out.println("Args:     " + DebugUnparser.toString(args));
               IJavaType temp = getApproxJavaType(receiver, rop);
               typeScope(temp);
-              bindCall(state,name, toUse);
+              bindCall(state, name, toUse);
             }
           }
         }
       } else {
-        LOG.severe("Nothing to look for a method name in. Skipping call to " + 
-        		   JavaNames.genMethodConstructorName(node)+" in"+
-        		   DebugUnparser.toString(VisitUtil.getEnclosingClassBodyDecl(node)));
-        bind(node,(IRNode)null);
+        LOG.severe("Nothing to look for a method name in. Skipping call to " + JavaNames.genMethodConstructorName(node) + " in"
+            + DebugUnparser.toString(VisitUtil.getEnclosingClassBodyDecl(node)));
+        bind(node, (IRNode) null);
       }
       return null;
     }
-    
+
     private Void bindAnnotationElement(IRNode node, String name, IJavaScope toUse) {
       boolean success = bind(node, toUse, IJavaScope.Util.isAnnoEltOrNoArgMethod);
       if (!success) {
         bind(node, toUse, IJavaScope.Util.isAnnoEltOrNoArgMethod);
-      }      
+      }
       return null;
     }
 
     IJavaType convertRawType(IJavaType t, boolean asWildcard) {
       if (t instanceof IJavaDeclaredType) {
-        IJavaDeclaredType dt   = (IJavaDeclaredType) t;
+        IJavaDeclaredType dt = (IJavaDeclaredType) t;
         List<IJavaType> params = dt.getTypeParameters();
         if (params == null || params.size() == 0) {
           IRNode decl = dt.getDeclaration();
           Operator op = JJNode.tree.getOperator(decl);
           IRNode formals;
-     
+
           if (ClassDeclaration.prototype.includes(op)) {
             formals = ClassDeclaration.getTypes(decl);
+          } else if (InterfaceDeclaration.prototype.includes(op)) {
+            formals = InterfaceDeclaration.getTypes(decl);
+          } else {
+            return t; // No type formals possible
           }
-          else if (InterfaceDeclaration.prototype.includes(op)) {
-              formals = InterfaceDeclaration.getTypes(decl);    
-          } 
-          else {
-              return t; // No type formals possible  
-          }       
-          
+
           Iteratable<IRNode> tf = TypeFormals.getTypeIterator(formals);
           List<IJavaType> newParams;
           if (tf.hasNext()) {
             newParams = new ArrayList<IJavaType>();
-            for(IRNode formal : tf) {
+            for (IRNode formal : tf) {
               IJavaTypeFormal f = JavaTypeFactory.getTypeFormal(formal);
-              IJavaType superT  = f.getSuperclass(getTypeEnvironment());
+              IJavaType superT = f.getSuperclass(getTypeEnvironment());
               if (asWildcard && superT instanceof IJavaReferenceType) {
                 IJavaReferenceType superRefT = (IJavaReferenceType) superT;
                 newParams.add(JavaTypeFactory.getWildcardType(null, superRefT));
@@ -2318,14 +2274,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
               }
             }
           } else {
-            newParams = Collections.emptyList(); 
+            newParams = Collections.emptyList();
           }
           return JavaTypeFactory.getDeclaredType(decl, newParams, dt.getOuterType());
         }
       }
       return t;
     }
-    
+
     @Override
     public Void visitMethodDeclaration(IRNode node) {
       return processMethodDeclaration(node, false);
@@ -2333,57 +2289,55 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
 
     private Void processMethodDeclaration(IRNode node, boolean isConstructor) {
       IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
-      boolean isStatic          = JavaNode.getModifier(node,JavaNode.STATIC);
+      boolean isStatic = JavaNode.getModifier(node, JavaNode.STATIC);
       if (!isStatic) {
-        IRNode receiverNode = JavaPromise.getReceiverNodeOrNull(node); 
+        IRNode receiverNode = JavaPromise.getReceiverNodeOrNull(node);
         if (receiverNode == null) {
           LOG.severe("No receiver for " + DebugUnparser.toString(node));
         } else {
-          sc.put("this",receiverNode);
+          sc.put("this", receiverNode);
         }
       }
       IRNode returnNode = JavaPromise.getReturnNodeOrNull(node);
       if (returnNode != null) {
         sc.put("return", returnNode);
       }
-      IRNode tformals = isConstructor? 
-          ConstructorDeclaration.getTypes(node) : MethodDeclaration.getTypes(node);
-      if (JJNode.tree.hasChildren(tformals)) {    	  
-    	  addDeclsToScope(tformals, sc);
-    	  sc = new IJavaScope.NestedScope(sc); // necessary to segregate type variables from locals
+      IRNode tformals = isConstructor ? ConstructorDeclaration.getTypes(node) : MethodDeclaration.getTypes(node);
+      if (JJNode.tree.hasChildren(tformals)) {
+        addDeclsToScope(tformals, sc);
+        sc = new IJavaScope.NestedScope(sc); // necessary to segregate type
+                                             // variables from locals
       }
-      IRNode formals = isConstructor ?
-          ConstructorDeclaration.getParams(node) : MethodDeclaration.getParams(node);
+      IRNode formals = isConstructor ? ConstructorDeclaration.getParams(node) : MethodDeclaration.getParams(node);
       /*
-      IRNode annos = isConstructor ?
-    	  ConstructorDeclaration.getAnnos(node) : MethodDeclaration.getAnnos(node);
-      if (JJNode.tree.hasChildren(annos) && isBinary(node)) {
-    	  System.out.println("Found binary func w/ annos: "+JavaNames.getFullName(node));
-      }
-      */
+       * IRNode annos = isConstructor ? ConstructorDeclaration.getAnnos(node) :
+       * MethodDeclaration.getAnnos(node); if (JJNode.tree.hasChildren(annos) &&
+       * isBinary(node)) { System.out.println("Found binary func w/ annos: "
+       * +JavaNames.getFullName(node)); }
+       */
       /*
-      if ("of".equals(JJNode.getInfoOrNull(node))) {
-    	  System.out.println("Debugging "+JavaNames.getFullName(node));
-      }
-      */
+       * if ("of".equals(JJNode.getInfoOrNull(node))) { System.out.println(
+       * "Debugging "+JavaNames.getFullName(node)); }
+       */
       addDeclsToScope(formals, sc);
-      
-      doAcceptForChildren(node,sc);
-      
-      if (!isFullPass || pathToTarget != null) return null;
+
+      doAcceptForChildren(node, sc);
+
+      if (!isFullPass || pathToTarget != null)
+        return null;
       if (!isStatic) {
         // overriding
         IRNode tdecl = VisitUtil.getEnclosingType(node);
         if (tdecl == null) {
           LOG.severe("Surrounding tdecl is null?: " + DebugUnparser.toString(node));
         }
-        IJavaType thisType = JavaTypeFactory.getDeclaredType(tdecl,null,null);
+        IJavaType thisType = JavaTypeFactory.getDeclaredType(tdecl, null, null);
         List<IBinding> overrides = new ArrayList<IBinding>();
         List<IJavaType> paramTypes = new ArrayList<IJavaType>();
         for (IRNode p : JJNode.tree.children(SomeFunctionDeclaration.getParams(node))) {
           paramTypes.add(getJavaType(p));
-        }      
-        findOverrides(node,overrides,typeEnvironment.getSuperTypes(thisType),paramTypes);
+        }
+        findOverrides(node, overrides, typeEnvironment.getSuperTypes(thisType), paramTypes);
         Object oldOverrides = bindings.getMethodOverrides(node);
         if (oldOverrides == null || !oldOverrides.equals(overrides)) {
           // we depend on the (semantically problematic) definition for equals:
@@ -2393,18 +2347,18 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       }
       return null;
     }
-    
+
     protected Void findOverrides(IRNode overrider, List<IBinding> overs, Iterator<IJavaType> types, List<IJavaType> paramTypes) {
       checkType: while (types.hasNext()) {
         IJavaType type = types.next();
-        IJavaDeclaredType jt = (IJavaDeclaredType)(type);
+        IJavaDeclaredType jt = (IJavaDeclaredType) (type);
         IJavaTypeSubstitution subst = JavaTypeSubstitution.create(getTypeEnvironment(), jt);
         IJavaMemberTable jmt = typeMemberTable(jt);
-        Iterator<IRNode> enm = jmt.getDeclarationsFromUse(JJNode.getInfo(overrider),overrider);
+        Iterator<IRNode> enm = jmt.getDeclarationsFromUse(JJNode.getInfo(overrider), overrider);
         checkCandidates: while (enm.hasNext()) {
           IRNode mdecl = enm.next();
-          if (JJNode.tree.getOperator(mdecl) instanceof MethodDeclaration &&
-              JJNode.tree.numChildren(MethodDeclaration.getParams(mdecl)) == paramTypes.size()) {
+          if (JJNode.tree.getOperator(mdecl) instanceof MethodDeclaration
+              && JJNode.tree.numChildren(MethodDeclaration.getParams(mdecl)) == paramTypes.size()) {
             Iterator<IRNode> params = JJNode.tree.children(MethodDeclaration.getParams(mdecl));
             Iterator<IJavaType> match = paramTypes.iterator();
             if (debug) {
@@ -2413,168 +2367,156 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
             while (params.hasNext()) {
               IJavaType ty = getJavaType(params.next());
               if (ty != null) {
-            	  ty = ty.subst(subst);
+                ty = ty.subst(subst);
               }
               IJavaType oty = match.next();
               if (ty != oty) {
-            	if (debug) {
-            		LOG.finer("Rejected because " + ty + "!=" + oty);
-            	}
+                if (debug) {
+                  LOG.finer("Rejected because " + ty + "!=" + oty);
+                }
                 continue checkCandidates;
               }
             }
-            // if not accessible, then stop looking in this class or its superclasses.
-            if (!BindUtil.isAccessible(typeEnvironment, mdecl,overrider)) {
+            // if not accessible, then stop looking in this class or its
+            // superclasses.
+            if (!BindUtil.isAccessible(typeEnvironment, mdecl, overrider)) {
               if (debug) {
-            	  LOG.finer("Rejected because inaccessible");
+                LOG.finer("Rejected because inaccessible");
               }
               continue checkType;
             }
             // a full match!
             if (!contains(overs, mdecl)) {
-              overs.add(IBinding.Util.makeBinding(mdecl,jt, getTypeEnvironment())); // FIX
+              overs.add(IBinding.Util.makeBinding(mdecl, jt, getTypeEnvironment())); // FIX
             }
             // whether or not already in, we stop looking
             continue checkType;
           }
         }
         // nothing worked: try our supertypes:
-        findOverrides(overrider, overs, typeEnvironment.getSuperTypes(type),paramTypes);
+        findOverrides(overrider, overs, typeEnvironment.getSuperTypes(type), paramTypes);
       }
       return null;
-    } 
-    
-    private boolean contains(List<IBinding> overs, IRNode mdecl) {
-    	for(IBinding b : overs) {
-    		if (b.getNode().equals(mdecl)) {
-    			return true;
-    		}
-    	}
-    	return false;
     }
-    
-    
-    @Override
-	public Void visitMethodReference(IRNode node) {
-    	super.visitMethodReference(node);
-    	
-    	// skip binding for now to avoid cycle
-    	if (true) {
-    		return null;
-    	}
-    	if (!isFullPass) return null;
-    	TypeUtils utils = new TypeUtils(getTypeEnvironment());
-    	IJavaType targetType = utils.getPolyExpressionTargetType(node);
-    	if (targetType == null) {
-    		LOG.warning("method reference must be in a poly context: " + DebugUnparser.toString(node));
-    		return null;
-    	}
-    	IJavaFunctionType ft = getTypeEnvironment().isFunctionalType(targetType);
-    	if (ft == null) {
-    		LOG.warning("method reference must have a functional type, not: " +
-    				targetType.toSourceText());
-    		return null;
-    	}
-    	IRNode receiver = MethodReference.getReceiver(node);
-		IJavaType ownerT = getJavaType(receiver);
-		boolean typeReceiver = TypeExpression.prototype.includes(JJNode.tree.getOperator(receiver));
-    	// TODO: more to do here.
-    	return null;
-	}
 
-	@Override
+    private boolean contains(List<IBinding> overs, IRNode mdecl) {
+      for (IBinding b : overs) {
+        if (b.getNode().equals(mdecl)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    @Override
+    public Void visitMethodReference(IRNode node) {
+      super.visitMethodReference(node);
+
+      // skip binding for now to avoid cycle
+      if (true) {
+        return null;
+      }
+      if (!isFullPass)
+        return null;
+      TypeUtils utils = new TypeUtils(getTypeEnvironment());
+      IJavaType targetType = utils.getPolyExpressionTargetType(node);
+      if (targetType == null) {
+        LOG.warning("method reference must be in a poly context: " + DebugUnparser.toString(node));
+        return null;
+      }
+      IJavaFunctionType ft = getTypeEnvironment().isFunctionalType(targetType);
+      if (ft == null) {
+        LOG.warning("method reference must have a functional type, not: " + targetType.toSourceText());
+        return null;
+      }
+      IRNode receiver = MethodReference.getReceiver(node);
+      IJavaType ownerT = getJavaType(receiver);
+      boolean typeReceiver = TypeExpression.prototype.includes(JJNode.tree.getOperator(receiver));
+      // TODO: more to do here.
+      return null;
+    }
+
+    @Override
     public Void visitNameType(IRNode node) {
       /*
-      if (DebugUnparser.toString(node).contains("Context")) {
-    	  System.out.println("NameType Context");
-      }
-      */
+       * if (DebugUnparser.toString(node).contains("Context")) {
+       * System.out.println("NameType Context"); }
+       */
       if (!isFullPass) {
-    	  visit(node);
-    	  bind(node,getIBinding(NameType.getName(node)));
+        visit(node);
+        bind(node, getIBinding(NameType.getName(node)));
       } else if (!isFullPass) {
-    	  System.out.println("Ignoring NameType: "+DebugUnparser.toString(node));
+        System.out.println("Ignoring NameType: " + DebugUnparser.toString(node));
       }
       return null;
     }
-    
+
     @Override
     public Void visitNamedType(IRNode node) {
       if (isFullPass) {
-      	  return null;
+        return null;
       }
       String name = JJNode.getInfo(node);
       /*
-      if (name.endsWith("Reducer")) {
-    	  System.out.println("Binding type Reducer");
-      }
-      */
-      if (debug) {    	  
-    	  LOG.finer("Got a named type " + name);
+       * if (name.endsWith("Reducer")) { System.out.println(
+       * "Binding type Reducer"); }
+       */
+      if (debug) {
+        LOG.finer("Got a named type " + name);
       }
       // Ignore if it's really for scoped promises
       if (name.contains("*")) {
         return null;
       }
       /*
-      if (handlePromises && "".equals(name)) {
-        // ignore these -- not meant to be bound
-        return null;
-      }
-      */
-      IRNode decl = classTable.getOuterClass(name,node);
+       * if (handlePromises && "".equals(name)) { // ignore these -- not meant
+       * to be bound return null; }
+       */
+      IRNode decl = classTable.getOuterClass(name, node);
       boolean success;
-      
+
       // TODO Clean up this code!
       if (decl == null) { // probably because it's not fully qualified
         /*
-        if (name.length() == 1 && Character.isUpperCase(name.charAt(0))) {
-          System.out.println(name);
-          if (name.equals("Z")) {
-            System.out.println(name);
-          }
-        }
-        */
+         * if (name.length() == 1 && Character.isUpperCase(name.charAt(0))) {
+         * System.out.println(name); if (name.equals("Z")) {
+         * System.out.println(name); } }
+         */
         IBinding b = scope.lookup(lookupContext.use(name, node), IJavaScope.Util.isTypeDecl);
         /*
-        if (name.equals("E")) {
-          	IRNode method = VisitUtil.getEnclosingClassBodyDecl(node);
-          	if (method != null && "of".equals(JJNode.getInfoOrNull(method))) {          	
-          		System.out.println("Binding E in "+JavaNames.getFullName(method)+" to "+
-          				JavaNames.getFullName(b.getNode()));
-          		IRNode enclosing = VisitUtil.getEnclosingDecl(b.getNode());
-          		System.out.println("\t = "+DebugUnparser.toString(enclosing));
-          		System.out.println();
-          	}
-        }
-        */
+         * if (name.equals("E")) { IRNode method =
+         * VisitUtil.getEnclosingClassBodyDecl(node); if (method != null &&
+         * "of".equals(JJNode.getInfoOrNull(method))) { System.out.println(
+         * "Binding E in "+JavaNames.getFullName(method)+" to "+
+         * JavaNames.getFullName(b.getNode())); IRNode enclosing =
+         * VisitUtil.getEnclosingDecl(b.getNode()); System.out.println("\t = "
+         * +DebugUnparser.toString(enclosing)); System.out.println(); } }
+         */
         // Added for debugging
         if (b == null && !isBinary(node)) {
           scope.printTrace(System.out, 0);
-          classTable.getOuterClass(name,node);
+          classTable.getOuterClass(name, node);
           scope.lookup(lookupContext.use(name, node), IJavaScope.Util.isTypeDecl);
         }
         success = bind(node, b);
         /*
-        if (success) {
-          System.out.println("Got a local class for " + name);
-        }
-        */
+         * if (success) { System.out.println("Got a local class for " + name); }
+         */
       } else {
         success = bind(node, decl);
-        //System.out.println("Got an outer class for " + name);
+        // System.out.println("Got an outer class for " + name);
         if (!success) {
           bind(node, decl);
         }
       }
       if (!success) {
-        //System.out.println("failure to bind NT");
-//      } else {
-//        System.out.println("Bound NT: "+node);
+        // System.out.println("failure to bind NT");
+        // } else {
+        // System.out.println("Bound NT: "+node);
       }
-      return null; 
+      return null;
     }
-    
+
     @Override
     public Void visitNamedPackageDeclaration(IRNode node) {
       String pkgName = NamedPackageDeclaration.getId(node);
@@ -2588,92 +2530,87 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       if (pkgName.length() == 0) {
         PackageDrop drop = PackageDrop.findPackage("");
         pkg = drop == null ? null : drop.getCompilationUnitIRNode();
-      } else  {
+      } else {
         pkg = getClassTable().getOuterClass(pkgName, node);
       }
       bind(node, pkg);
     }
-    
+
     @Override
     public Void visitNameExpression(IRNode node) {
       if (isFullPass) {
         visit(node); // don't visit names in expressions yet.
-        IBinding b = getIBinding(NameExpression.getName(node)); 
+        IBinding b = getIBinding(NameExpression.getName(node));
         /*
-        if ("commands".equals(DebugUnparser.toString(node)) &&
-        	VariableDeclarator.prototype.includes(b.getNode())) {  
-        	IRNode parent = JJNode.tree.getParentOrNull(b.getNode());
-        	IRNode gparent = JJNode.tree.getParentOrNull(parent);
-        	String unparse = DebugUnparser.toString(gparent);
-        	if (unparse.contains("HashSet")) {
-        		visit(node);
-        	}
-        }
-        */
-        bind(node,b);
+         * if ("commands".equals(DebugUnparser.toString(node)) &&
+         * VariableDeclarator.prototype.includes(b.getNode())) { IRNode parent =
+         * JJNode.tree.getParentOrNull(b.getNode()); IRNode gparent =
+         * JJNode.tree.getParentOrNull(parent); String unparse =
+         * DebugUnparser.toString(gparent); if (unparse.contains("HashSet")) {
+         * visit(node); } }
+         */
+        bind(node, b);
       }
       return null;
     }
-    
+
     @Override
     public Void visitNewExpression(IRNode node) {
       NewExpression newE = (NewExpression) getOperator(node);
       IRNode type = newE.get_Type(node);
       IRNode parent = getOOSParent(node);
       if (parent != null) {
-    	  handleTypeForOOS(OuterObjectSpecifier.getObject(parent), type);
+        handleTypeForOOS(OuterObjectSpecifier.getObject(parent), type);
       } else {
-    	  doAccept(type);
+        doAccept(type);
       }
       IRNode targs = newE.get_TypeArgs(node);
       doAccept(targs);
       // HACK no longer needed due to changes in bindAllocation?
       /*
-      if (targs == null && ParameterizedType.prototype.includes(type)) {
-        targs = ParameterizedType.getArgs(type);
-      }
-      */
-      
-      IRNode args  = newE.get_Args(node);
+       * if (targs == null && ParameterizedType.prototype.includes(type)) {
+       * targs = ParameterizedType.getArgs(type); }
+       */
+
+      IRNode args = newE.get_Args(node);
       doAccept(args);
       if (isFullPass && pathToTarget == null) {
-        //System.out.println(DebugUnparser.toString(node));    	
-    	final CallState state = new CallState(AbstractJavaBinder.this, node, targs, args, type);
+        // System.out.println(DebugUnparser.toString(node));
+        final CallState state = new CallState(AbstractJavaBinder.this, node, targs, args, type);
         boolean success = bindAllocation(state);
         if (!success) {
-        	bindAllocation(state);
+          bindAllocation(state);
         }
       }
       return null;
-    } 
-    
+    }
+
     @Override
     public Void visitParameterDeclaration(IRNode node) {
       /*
-      final String name = JJNode.getInfo(node);
-      if ("context".equals(name)) {
-    	 System.out.println("Binding param: "+DebugUnparser.toString(node)); 
-      }
-      */
-      IJavaScope.NestedScope sc = (IJavaScope.NestedScope)scope;
-      sc.add(node); 
-      if (!isBatch && nodeHasChanged(node)) isBatch = true;
+       * final String name = JJNode.getInfo(node); if ("context".equals(name)) {
+       * System.out.println("Binding param: "+DebugUnparser.toString(node)); }
+       */
+      IJavaScope.NestedScope sc = (IJavaScope.NestedScope) scope;
+      sc.add(node);
+      if (!isBatch && nodeHasChanged(node))
+        isBatch = true;
       if (debug) {
         LOG.finer("Added param " + JJNode.getInfo(node) + " to local scope.");
       }
       visit(node);
       return null;
     }
-    
+
     @Override
     public Void visitOuterObjectSpecifier(IRNode node) {
       if (true) {
         return visit(node);
-      }    	
+      }
       if (!isFullPass || pathToTarget != null) {
         return visit(node);
       }
-     
+
       // All of the below is in another granule now
       IRNode qual = OuterObjectSpecifier.getObject(node);
       IRNode alloc = OuterObjectSpecifier.getCall(node);
@@ -2681,113 +2618,100 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       IRNode args;
       IRNode targs;
       IRNode body;
-      Operator aop  = JJNode.tree.getOperator(alloc);
+      Operator aop = JJNode.tree.getOperator(alloc);
       final boolean isACE;
       if (aop instanceof NewExpression) {
         NewExpression newE = (NewExpression) aop;
-        type  = newE.get_Type(alloc);
-        args  = newE.get_Args(alloc);
+        type = newE.get_Type(alloc);
+        args = newE.get_Args(alloc);
         targs = newE.get_TypeArgs(alloc);
-        body  = null;
+        body = null;
         isACE = false;
       } else if (aop instanceof AnonClassExpression) {
         AnonClassExpression anon = (AnonClassExpression) aop;
-        type  = anon.get_Type(alloc);
-        args  = anon.get_Args(alloc);
+        type = anon.get_Type(alloc);
+        args = anon.get_Args(alloc);
         targs = anon.get_TypeArgs(alloc);
-        body  = anon.get_Body(alloc);
+        body = anon.get_Body(alloc);
         isACE = true;
       } else if (aop instanceof ConstructorCall) {
         return visit(node);
       } else {
-        LOG.warning("Unknown allocation expression: " + aop +" -- "+ DebugUnparser.toString(node));
+        LOG.warning("Unknown allocation expression: " + aop + " -- " + DebugUnparser.toString(node));
         return null;
       }
       doAccept(qual); // bind the qualifier
 
-      /* This is required for expressions like this:
+      /*
+       * This is required for expressions like this:
        * 
-       * class C {
-       *   class Inner {
-       *     class Innermost {}
-       *   }
-       *   Object foo() {
-       *     Inner i = new Inner();
-       *     return i.new Innermost();
-       *   }
-       * }
+       * class C { class Inner { class Innermost {} } Object foo() { Inner i =
+       * new Inner(); return i.new Innermost(); } }
        */
-      handleTypeForOOS(qual, type);      
+      handleTypeForOOS(qual, type);
       doAccept(targs);
       doAccept(args);
 
       IRNode typeDecl = getLocalIBinding(type).getNode();
       final CallState state = new CallState(AbstractJavaBinder.this, alloc, null, args, typeDecl);
       boolean success = bindAllocation(state);
-      if (success && isACE) { 
-    	  // bind NewE inside of ACE
-    	  try {
-    		  IBinding b = bindings.getUseForDecl(alloc);
-        	  bind(AnonClassExpression.getAlloc(alloc), b);
-    	  } catch (SlotUndefinedException e) {
-        	  bindAllocation(state);
-        	  bindings.getUseForDecl(alloc);
-    	  }
-      /*
-      } else if (!success && isACE) {
-    	  System.out.println("ACE not bound: "+DebugUnparser.toString(node));
-      */
-      }    
+      if (success && isACE) {
+        // bind NewE inside of ACE
+        try {
+          IBinding b = bindings.getUseForDecl(alloc);
+          bind(AnonClassExpression.getAlloc(alloc), b);
+        } catch (SlotUndefinedException e) {
+          bindAllocation(state);
+          bindings.getUseForDecl(alloc);
+        }
+        /*
+         * } else if (!success && isACE) { System.out.println("ACE not bound: "
+         * +DebugUnparser.toString(node));
+         */
+      }
       if (body != null) {
         doAccept(body);
       }
       return null;
     }
 
-	private void handleTypeForOOS(IRNode qual, IRNode type) {
-		IJavaScope qscope = typeScope(getJavaType(qual));
-		doAccept(type, new IJavaScope.ShadowingScope(qscope, scope));
-	}
-	
-	private IJavaType getType(IBinding b) {
-		IJavaType t = AbstractJavaBinder.this.getJavaType(b.getNode());
-		return b.convertType(AbstractJavaBinder.this, t);		
-	}
-    
+    private void handleTypeForOOS(IRNode qual, IRNode type) {
+      IJavaScope qscope = typeScope(getJavaType(qual));
+      doAccept(type, new IJavaScope.ShadowingScope(qscope, scope));
+    }
+
+    private IJavaType getType(IBinding b) {
+      IJavaType t = AbstractJavaBinder.this.getJavaType(b.getNode());
+      return b.convertType(AbstractJavaBinder.this, t);
+    }
+
     @Override
     public Void visitQualifiedName(final IRNode node) {
       visit(node); // bind where we look from
-      
+
       final IRNode base = QualifiedName.getBase(node);
       IBinding baseBinding = getIBinding(base);
       if (baseBinding == null) {
-        bind(node,(IRNode)null);
+        bind(node, (IRNode) null);
       } else {
-    	bindQualifiedName(node, baseBinding);
-    	/*
-    	if (!success) {    		
-    		// Base might be ambiguous ... try to rebind
-    		if (SimpleName.prototype.includes(base)) {
-    			// Hack the selector to make sure that the name ref exists    			
-    			final NameContext context = computeNameContext(node);
-       			final String id = JJNode.getInfo(node);
-       			final Selector s = new IJavaScope.AbstractSelector("Customized to find "+id) {
-					@Override
-					public boolean select(IRNode n) {
-						if (context.selector.select(n)) {
-							// TODO how do I get an IBinding from n? (need type context)
-							bindQualifiedName(node, null);
-						}
-						return false;
-					}};
-    			bind(node, s);
-    		}      	
-    	}
-    	*/
+        bindQualifiedName(node, baseBinding);
+        /*
+         * if (!success) { // Base might be ambiguous ... try to rebind if
+         * (SimpleName.prototype.includes(base)) { // Hack the selector to make
+         * sure that the name ref exists final NameContext context =
+         * computeNameContext(node); final String id = JJNode.getInfo(node);
+         * final Selector s = new IJavaScope.AbstractSelector(
+         * "Customized to find "+id) {
+         * 
+         * @Override public boolean select(IRNode n) { if
+         * (context.selector.select(n)) { // TODO how do I get an IBinding from
+         * n? (need type context) bindQualifiedName(node, null); } return false;
+         * }}; bind(node, s); } }
+         */
       }
       return null;
     }
-    
+
     /**
      * Given a binding for the base, try to bind the rest of the qualified name
      */
@@ -2802,10 +2726,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       } else if (bbop instanceof NamedPackageDeclaration) {
         scope = classTable.packageScope(baseBinding.getNode());
       } else if (bbop instanceof EnumConstantDeclaration) {
-    	scope = typeScope(getType(baseBinding));
+        scope = typeScope(getType(baseBinding));
       } else {
-        LOG.warning("Cannot process qualified name " + DebugUnparser.toString(node) +
-            " base binding -> " + bbop);
+        LOG.warning("Cannot process qualified name " + DebugUnparser.toString(node) + " base binding -> " + bbop);
         return false;
       }
       if (scope == null) {
@@ -2813,17 +2736,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         return false;
       }
       NameContext context = computeNameContext(node);
-      boolean success = bind(node,scope,context.selector);
+      boolean success = bind(node, scope, context.selector);
       if (!success) {
-    	  bind(node,scope,context.selector);
+        bind(node, scope, context.selector);
       } else {
-    	  return true;
+        return true;
       }
       return false;
     }
-    
-    
-    
+
     @Override
     public Void visitQualifiedSuperExpression(IRNode node) {
       if (!isFullPass) {
@@ -2841,72 +2762,57 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         return visit(node);
       }
       /*
-      // Get the type for Foo.this
-      IRNode nt = QualifiedThisExpression.getType(node);
-      IRNode td = getBinding(nt);
-      
-      // Figure out where to get the QualifiedReceiverDecl from
-      IRNode bd   = VisitUtil.getEnclosingClassBodyDecl(node);
-      Operator op = JJNode.tree.getOperator(bd);
-      IRNode result;
-      if (op instanceof MethodDeclaration || op instanceof ConstructorDeclaration) {
-        result = JavaPromise.getQualifiedReceiverNodeByName(bd, td);
-      }
-      else {
-        IRNode enclosingT = VisitUtil.getEnclosingType(node);
-        IRNode initD      = JavaPromise.getInitMethod(enclosingT);
-        result = JavaPromise.getQualifiedReceiverNodeByName(initD, td);
-      }
-      */
+       * // Get the type for Foo.this IRNode nt =
+       * QualifiedThisExpression.getType(node); IRNode td = getBinding(nt);
+       * 
+       * // Figure out where to get the QualifiedReceiverDecl from IRNode bd =
+       * VisitUtil.getEnclosingClassBodyDecl(node); Operator op =
+       * JJNode.tree.getOperator(bd); IRNode result; if (op instanceof
+       * MethodDeclaration || op instanceof ConstructorDeclaration) { result =
+       * JavaPromise.getQualifiedReceiverNodeByName(bd, td); } else { IRNode
+       * enclosingT = VisitUtil.getEnclosingType(node); IRNode initD =
+       * JavaPromise.getInitMethod(enclosingT); result =
+       * JavaPromise.getQualifiedReceiverNodeByName(initD, td); }
+       */
       IRNode result = handleThisExpr(node, QualifiedThisExpression.getType(node), false);
       bind(node, result);
 
       /*
-      // Brute force: walk to the root, looking for the thing
-      String lookingFor = JavaNode.getInfo(node);
-      Iterator<IRNode> rootWalk = JJNode.tree.rootWalk(node);
-      while (rootWalk.hasNext()) {
-        IRNode p = rootWalk.next();
-        Operator op = JJNode.tree.getOperator(p);
-        IRNode rec = null;
-        String className = null;
-        if (op instanceof MethodDeclaration || op instanceof ConstructorDeclaration) {
-          rec = ReceiverDeclaration.getReceiverNode(p);
-          IRNode ggp = JJNode.tree.getParent(JJNode.tree.getParent(p));
-          if (JJNode.tree.getOperator(ggp) instanceof TypeDeclaration) {
-            className = JavaNode.getInfo(ggp);
-          }
-        } else if (op instanceof TypeDeclaration) {
-          rec = InitDeclaration.getInitMethod(p); //TODO: Shouldn't it be the receiver of this method?
-          className = JavaNode.getInfo(p);
-        }
-        if (rec == null) continue; // move on
-        if (className == null) continue; // TODO: what about anonymous classes
-        if (className.equals(lookingFor)) {
-          bind(node,rec);
-        } else {
-          LOG.warning("Cannot find qualified this/super for " + lookingFor);
-        }
-      }
-      */
+       * // Brute force: walk to the root, looking for the thing String
+       * lookingFor = JavaNode.getInfo(node); Iterator<IRNode> rootWalk =
+       * JJNode.tree.rootWalk(node); while (rootWalk.hasNext()) { IRNode p =
+       * rootWalk.next(); Operator op = JJNode.tree.getOperator(p); IRNode rec =
+       * null; String className = null; if (op instanceof MethodDeclaration ||
+       * op instanceof ConstructorDeclaration) { rec =
+       * ReceiverDeclaration.getReceiverNode(p); IRNode ggp =
+       * JJNode.tree.getParent(JJNode.tree.getParent(p)); if
+       * (JJNode.tree.getOperator(ggp) instanceof TypeDeclaration) { className =
+       * JavaNode.getInfo(ggp); } } else if (op instanceof TypeDeclaration) {
+       * rec = InitDeclaration.getInitMethod(p); //TODO: Shouldn't it be the
+       * receiver of this method? className = JavaNode.getInfo(p); } if (rec ==
+       * null) continue; // move on if (className == null) continue; // TODO:
+       * what about anonymous classes if (className.equals(lookingFor)) {
+       * bind(node,rec); } else { LOG.warning(
+       * "Cannot find qualified this/super for " + lookingFor); } }
+       */
       return null;
     }
-    
+
     // Copied from EclipseBinder
     private boolean isParameterToAnonClassExpr(Operator op, IRNode decl, IRNode thisE) {
-      if (AnonClassExpression.prototype.includes(op)) {      
+      if (AnonClassExpression.prototype.includes(op)) {
         IRNode parent = JJNode.tree.getParent(thisE);
         if (Arguments.prototype.includes(parent)) {
           IRNode gparent = JJNode.tree.getParent(parent);
-          IRNode alloc   = AnonClassExpression.getAlloc(decl);
+          IRNode alloc = AnonClassExpression.getAlloc(decl);
           if (alloc.equals(gparent)) {
             return true;
           }
         }
       }
       return false;
-    }    
-    
+    }
+
     private IRNode handleThisExpr(final IRNode n, final IRNode contextType, final boolean useSuper) {
       IRNode contextTypeB = null;
       if (contextType != null) {
@@ -2915,64 +2821,69 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       // Could be part of a field or initializer
       // Receiver defined on initializer (for now)
       IRNode decl = VisitUtil.getEnclosingClassBodyDecl(n);
-      //IRNode oldRV = null;
+      // IRNode oldRV = null;
       IRNode enclosingType = null;
       if (decl != null) {
         Operator op = JJNode.tree.getOperator(decl);
         if (isParameterToAnonClassExpr(op, decl, n)) {
           // "inside" a ACE
           decl = VisitUtil.getEnclosingClassBodyDecl(decl);
-          op   = JJNode.tree.getOperator(decl);
-        }        
+          op = JJNode.tree.getOperator(decl);
+        }
         if (SomeFunctionDeclaration.prototype.includes(op)) {
           if (contextTypeB != null) {
-        	// Check if the context type is the same as the enclosing type
-        	enclosingType = VisitUtil.getEnclosingType(n);
-        	if (contextTypeB == enclosingType) {
-        		// If so, use the receiver node instead
-        		return JavaPromise.getReceiverNodeOrNull(decl);
-        	}
-        	if (ConstructorDeclaration.prototype.includes(op)) {
-        		// Check if it's inside a ConstructorCall        		        
-        		if (insideConstructorCall(n)) {
-        			// Use the constructor's IPQR
-        			return JavaPromise.getQualifiedReceiverNodeByName(decl, contextTypeB);        			
-        		//} else {
-        		//	System.out.println("In constructor, but not call: "+DebugUnparser.toString(n));
-        		}
-        	//} else {
-        	//	System.out.println("In method: "+DebugUnparser.toString(n)+" in "+JavaNames.genMethodConstructorName(decl));
-        	//	oldRV = JavaPromise.getQualifiedReceiverNodeByName(decl, contextTypeB);		
-        	}
+            // Check if the context type is the same as the enclosing type
+            enclosingType = VisitUtil.getEnclosingType(n);
+            if (contextTypeB == enclosingType) {
+              // If so, use the receiver node instead
+              return JavaPromise.getReceiverNodeOrNull(decl);
+            }
+            if (ConstructorDeclaration.prototype.includes(op)) {
+              // Check if it's inside a ConstructorCall
+              if (insideConstructorCall(n)) {
+                // Use the constructor's IPQR
+                return JavaPromise.getQualifiedReceiverNodeByName(decl, contextTypeB);
+                // } else {
+                // System.out.println("In constructor, but not call:
+                // "+DebugUnparser.toString(n));
+              }
+              // } else {
+              // System.out.println("In method: "+DebugUnparser.toString(n)+" in
+              // "+JavaNames.genMethodConstructorName(decl));
+              // oldRV = JavaPromise.getQualifiedReceiverNodeByName(decl,
+              // contextTypeB);
+            }
           } else {
-        	  return JavaPromise.getReceiverNodeOrNull(decl);
+            return JavaPromise.getReceiverNodeOrNull(decl);
           }
         }
       }
       // initializer or method
       if (enclosingType == null) {
-    	  enclosingType = VisitUtil.getEnclosingType(n);
+        enclosingType = VisitUtil.getEnclosingType(n);
       }
       IRNode rv;
-      //decl = JavaPromise.getInitMethodOrNull(type);
-      
+      // decl = JavaPromise.getInitMethodOrNull(type);
+
       if (contextTypeB != null && contextTypeB != enclosingType) {
         if (useSuper) {
           if (InterfaceDeclaration.prototype.includes(contextTypeB)) {
-        	  // Special case to handle diamond inheritance of default methods?
-        	  rv = JavaPromise.getReceiverNodeOrNull(contextTypeB);
+            // Special case to handle diamond inheritance of default methods?
+            rv = JavaPromise.getReceiverNodeOrNull(contextTypeB);
           } else {
-        	  // Assume that contextTypeB is a supertype of enclosingType
-        	  /*
-        	  IJavaType contextT = typeEnvironment.convertNodeTypeToIJavaType(contextTypeB);
-        	  IJavaDeclaredType superT = (IJavaDeclaredType) contextT.getSuperclass(typeEnvironment);
-        	  rv = JavaPromise.getReceiverNodeOrNull(superT.getDeclaration());
-        	  */
-        	  // TODO why does this work for C.super?
-        	  // do I bind method differently?
-        	  //
-        	  // Use the type's IFQR
-              rv = JavaPromise.getQualifiedReceiverNodeByName(enclosingType, contextTypeB);
+            // Assume that contextTypeB is a supertype of enclosingType
+            /*
+             * IJavaType contextT =
+             * typeEnvironment.convertNodeTypeToIJavaType(contextTypeB);
+             * IJavaDeclaredType superT = (IJavaDeclaredType)
+             * contextT.getSuperclass(typeEnvironment); rv =
+             * JavaPromise.getReceiverNodeOrNull(superT.getDeclaration());
+             */
+            // TODO why does this work for C.super?
+            // do I bind method differently?
+            //
+            // Use the type's IFQR
+            rv = JavaPromise.getQualifiedReceiverNodeByName(enclosingType, contextTypeB);
           }
         } else {
           // Use the type's IFQR
@@ -2982,65 +2893,62 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         rv = JavaPromise.getReceiverNodeOrNull(enclosingType);
       }
       if (enclosingType == null || decl == null || rv == null) {
-        LOG.severe("Got nulls while binding "+DebugUnparser.toString(n));
+        LOG.severe("Got nulls while binding " + DebugUnparser.toString(n));
         JavaPromise.getQualifiedReceiverNodeByName(enclosingType, contextTypeB);
       }
       /*
-      if (oldRV != rv) {
-    	  //getting receivers from different nodes (method vs class)
-    	  System.out.println("Results differ");
-      }
-      */
+       * if (oldRV != rv) { //getting receivers from different nodes (method vs
+       * class) System.out.println("Results differ"); }
+       */
       return rv;
     }
-    
-    
+
     private boolean insideConstructorCall(IRNode n) {
-    	n = JJNode.tree.getParentOrNull(n);
-    	
-    	while (n != null) {
-    		final Operator op = getOperator(n);
-    		//System.out.println("At: "+op.name());
-    		if (ConstructorCall.prototype.includes(op)) {
-    			return true;
-    		}
-    		if (Statement.prototype.includes(op)) {
-    			return false;
-    		}
-    		n = JJNode.tree.getParentOrNull(n);
-    	}
-		return false;
-	}
+      n = JJNode.tree.getParentOrNull(n);
+
+      while (n != null) {
+        final Operator op = getOperator(n);
+        // System.out.println("At: "+op.name());
+        if (ConstructorCall.prototype.includes(op)) {
+          return true;
+        }
+        if (Statement.prototype.includes(op)) {
+          return false;
+        }
+        n = JJNode.tree.getParentOrNull(n);
+      }
+      return false;
+    }
 
     @Override
     public Void visitParameterizedType(IRNode node) {
       if (isFullPass) {
-    	return null;
-      }  	
-      visit(node); // bind types      
+        return null;
+      }
+      visit(node); // bind types
       IJavaType ty = typeEnvironment.convertNodeTypeToIJavaType(node);
       if (ty != null) {
-    	  bind(node, ((IJavaDeclaredType) ty).getDeclaration());
+        bind(node, ((IJavaDeclaredType) ty).getDeclaration());
       }
-       return null;
+      return null;
     }
-    
+
     @Override
     public Void visitPrimitiveType(IRNode node) {
-        if (isFullPass) {
-      	  return null;
-        }    	
-        // No IRNode binding that makes sense
-        bind(node, nullBinding); 
-        return super.visitPrimitiveType(node);
+      if (isFullPass) {
+        return null;
+      }
+      // No IRNode binding that makes sense
+      bind(node, nullBinding);
+      return super.visitPrimitiveType(node);
     }
-    
+
     @Override
     public Void visitReturnStatement(IRNode node) {
       visit(node); // bind expression
-      boolean success = bind(node,IJavaScope.Util.isReturnValue,"return");
+      boolean success = bind(node, IJavaScope.Util.isReturnValue, "return");
       if (!success) {
-    	  bind(node,IJavaScope.Util.isReturnValue,"return");
+        bind(node, IJavaScope.Util.isReturnValue, "return");
       }
       return null;
     }
@@ -3049,130 +2957,115 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
      * Figure what this name could be
      */
     private NameContext computeNameContext(final IRNode node) {
-    	IRNode here = node;
-    	boolean checkNext = false;
-    	boolean partOfQualifiedName = false;
-    	
-    	while (here != null) {
-    		IRNode parent = JJNode.tree.getParentOrNull(here);
-    		Operator pop  = JJNode.tree.getOperator(parent);
-    		
-    		if (checkNext) {
-    			if (MethodCall.prototype.includes(pop) || FieldRef.prototype.includes(pop) || MethodReference.prototype.includes(pop)) {
-    				return NameContext.EITHER;
-    			}    				
-    			if (ConstructorReference.prototype.includes(pop)) {
-    				return NameContext.TYPE;
-    			}
-    			return NameContext.NOT_TYPE;
-    		}
-    		if (NameType.prototype.includes(pop)) {
-    			return NameContext.TYPE;
-    		}
-    		else if (QualifiedName.prototype.includes(pop)) {
-    			// this only matters if it's ambiguous
-    			partOfQualifiedName = true;
-    		}
-    		else if (NameExpression.prototype.includes(pop)) {
-    			if (partOfQualifiedName) {
-    				return NameContext.EITHER;
-    			}
-    			checkNext = true;
-    		}
-    		else if (!(pop instanceof IllegalCode)) {
-    			throw new IllegalArgumentException("Bad parent: "+pop.name()+" for "+parent);
-    		}
-    		here = parent;
-    	}
-    	throw new IllegalArgumentException("What is this? "+node);
-    }
-    
-    @Override
-    public Void visitSimpleName(IRNode node) { 
-      /*
-      final String name = JJNode.getInfo(node);
-      if ("TestNameResolution".equals(name)) {
-    	  System.out.println("Binding 'Inner'");
+      IRNode here = node;
+      boolean checkNext = false;
+      boolean partOfQualifiedName = false;
+
+      while (here != null) {
+        IRNode parent = JJNode.tree.getParentOrNull(here);
+        Operator pop = JJNode.tree.getOperator(parent);
+
+        if (checkNext) {
+          if (MethodCall.prototype.includes(pop) || FieldRef.prototype.includes(pop) || MethodReference.prototype.includes(pop)) {
+            return NameContext.EITHER;
+          }
+          if (ConstructorReference.prototype.includes(pop)) {
+            return NameContext.TYPE;
+          }
+          return NameContext.NOT_TYPE;
+        }
+        if (NameType.prototype.includes(pop)) {
+          return NameContext.TYPE;
+        } else if (QualifiedName.prototype.includes(pop)) {
+          // this only matters if it's ambiguous
+          partOfQualifiedName = true;
+        } else if (NameExpression.prototype.includes(pop)) {
+          if (partOfQualifiedName) {
+            return NameContext.EITHER;
+          }
+          checkNext = true;
+        } else if (!(pop instanceof IllegalCode)) {
+          throw new IllegalArgumentException("Bad parent: " + pop.name() + " for " + parent);
+        }
+        here = parent;
       }
-      */
+      throw new IllegalArgumentException("What is this? " + node);
+    }
+
+    @Override
+    public Void visitSimpleName(IRNode node) {
+      /*
+       * final String name = JJNode.getInfo(node); if
+       * ("TestNameResolution".equals(name)) { System.out.println(
+       * "Binding 'Inner'"); }
+       */
       final NameContext context = computeNameContext(node);
       /*
-      final String name = JJNode.getInfo(node);
-      if ("Inner".equals(name)) {
-    	  System.out.println("Binding 'Inner': "+context);
-      }
-      */      
+       * final String name = JJNode.getInfo(node); if ("Inner".equals(name)) {
+       * System.out.println("Binding 'Inner': "+context); }
+       */
       final IJavaScope.Selector isAccessible = MethodBinder.makeAccessSelector(typeEnvironment, node);
       /*
-      if ("Lock".equals(JJNode.getInfoOrNull(node))) {
-    	  IRNode parent = JJNode.tree.getParentOrNull(node);
-    	  if (parent != null) {
-    		  IRNode gp =  JJNode.tree.getParentOrNull(parent);
-    		  if (ParameterDeclaration.prototype.includes(gp)) {
-    	    	  System.out.println("Looking for Lock");
-    		  }
-    	  }
-      }
-      */
+       * if ("Lock".equals(JJNode.getInfoOrNull(node))) { IRNode parent =
+       * JJNode.tree.getParentOrNull(node); if (parent != null) { IRNode gp =
+       * JJNode.tree.getParentOrNull(parent); if
+       * (ParameterDeclaration.prototype.includes(gp)) { System.out.println(
+       * "Looking for Lock"); } } }
+       */
       boolean success = false;
       if (context.couldBeVariable()) {
-    	  success = bind(node, IJavaScope.Util.combineSelectors(IJavaScope.Util.couldBeNonTypeName, isAccessible), true);
+        success = bind(node, IJavaScope.Util.combineSelectors(IJavaScope.Util.couldBeNonTypeName, isAccessible), true);
       }
       if (!success && context.couldBeType()) {
-    	  success = bind(node, IJavaScope.Util.combineSelectors(IJavaScope.Util.isPkgTypeDecl, isAccessible));
+        success = bind(node, IJavaScope.Util.combineSelectors(IJavaScope.Util.isPkgTypeDecl, isAccessible));
       }
       /*
-      String unparse = DebugUnparser.toString(node);
-      if (unparse.contains("lattice")) {
-    	  IRNode eT  = VisitUtil.getEnclosingType(node);
-    	  if ("MustHoldTransfer".equals(JavaNames.getTypeName(eT))) {
-    		  IBinding b = getIBinding(node); 
-    		  IRNode bn  = b.getNode();
-    		  if (VariableDeclarator.prototype.includes(bn)) {
-    			  IRNode decl  = VisitUtil.getEnclosingClassBodyDecl(bn);
-    			  IJavaType bt = getJavaType(bn);    		 
-    			  if (bt instanceof IJavaTypeFormal) {
-    				  System.out.println("MustHoldTransfer -- "+node+": "+b);
-    				  //bind(node,IJavaScope.Util.isntCallable);
-    			  }
-    		  }
-    	  }
-      }
-      */
+       * String unparse = DebugUnparser.toString(node); if
+       * (unparse.contains("lattice")) { IRNode eT =
+       * VisitUtil.getEnclosingType(node); if
+       * ("MustHoldTransfer".equals(JavaNames.getTypeName(eT))) { IBinding b =
+       * getIBinding(node); IRNode bn = b.getNode(); if
+       * (VariableDeclarator.prototype.includes(bn)) { IRNode decl =
+       * VisitUtil.getEnclosingClassBodyDecl(bn); IJavaType bt =
+       * getJavaType(bn); if (bt instanceof IJavaTypeFormal) {
+       * System.out.println("MustHoldTransfer -- "+node+": "+b);
+       * //bind(node,IJavaScope.Util.isntCallable); } } } }
+       */
       if (!success) {
-    	  DebugUtil.dumpTypeHierarchy(getTypeEnvironment(), node);
-    	  if (context.couldBeVariable()) {
-    		  bind(node, IJavaScope.Util.combineSelectors(isAccessible, IJavaScope.Util.couldBeNonTypeName));
-    	  }
-    	  bind(node, IJavaScope.Util.combineSelectors(isAccessible, IJavaScope.Util.isPkgTypeDecl));
-    	  /*
-      } else if ("String".equals(SimpleName.getId(node))) {
-    	  System.out.println("isFullPass("+this.isFullPass+") for "+node);
-    	  System.out.println("Use to decl SI: "+this.bindings.getUseToDeclAttr());    	  
-    	  */
+        DebugUtil.dumpTypeHierarchy(getTypeEnvironment(), node);
+        if (context.couldBeVariable()) {
+          bind(node, IJavaScope.Util.combineSelectors(isAccessible, IJavaScope.Util.couldBeNonTypeName));
+        }
+        bind(node, IJavaScope.Util.combineSelectors(isAccessible, IJavaScope.Util.isPkgTypeDecl));
+        /*
+         * } else if ("String".equals(SimpleName.getId(node))) {
+         * System.out.println("isFullPass("+this.isFullPass+") for "+node);
+         * System.out.println("Use to decl SI: "
+         * +this.bindings.getUseToDeclAttr());
+         */
       }
       return null;
     }
-    
+
     @Override
-    public Void visitStaticImport(IRNode node) {      
+    public Void visitStaticImport(IRNode node) {
       visit(node); // bind children
       if (isFullPass) {
         // Partially copied from FieldRef
-        IJavaType ty     = getJavaType(StaticImport.getType(node));
+        IJavaType ty = getJavaType(StaticImport.getType(node));
         IJavaScope scope = typeScope(ty);
-        boolean success = bind(node, scope, IJavaScope.Util.isDecl);        		            		   
+        boolean success = bind(node, scope, IJavaScope.Util.isDecl);
         if (!success) {
-        	bind(node, scope, IJavaScope.Util.isDecl);
+          bind(node, scope, IJavaScope.Util.isDecl);
         }
       }
       return null;
     }
-    
+
     @Override
     public Void visitStaticDemandName(IRNode node) {
       visit(node);
-      if (isFullPass) {  
+      if (isFullPass) {
         IJavaType ty = getJavaType(StaticDemandName.getType(node));
         if (ty instanceof IJavaDeclaredType) {
           IJavaDeclaredType dt = (IJavaDeclaredType) ty;
@@ -3181,51 +3074,52 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       }
       return null;
     }
-    
+
     @Override
     public Void visitSuperExpression(IRNode node) {
       // super is bound to the same thing as this
       visitThisExpression(node);
       return null;
     }
-    
+
     @Override
     public Void visitSwitchStatement(IRNode node) {
       if (isFullPass) {
-    	  doAccept(SwitchStatement.getExpr(node));
-    	  //IJavaType enumType   = getTypeEnvironment().findJavaTypeByName("java.lang.Enum");
-    	  IJavaType switchType = getJavaType(SwitchStatement.getExpr(node));
-    	  //if (getTypeEnvironment().isSubType(switchType, enumType)) {
-    	  if (switchType instanceof IJavaDeclaredType) {
-    		  // Assume to be an enum type
-    		  IJavaScope.NestedScope switchScope = new IJavaScope.NestedScope(scope);
-    		  IJavaDeclaredType switchDT         = (IJavaDeclaredType) switchType;
-    		  for(IRNode n : VisitUtil.getClassBodyMembers(switchDT.getDeclaration())) {
+        doAccept(SwitchStatement.getExpr(node));
+        // IJavaType enumType =
+        // getTypeEnvironment().findJavaTypeByName("java.lang.Enum");
+        IJavaType switchType = getJavaType(SwitchStatement.getExpr(node));
+        // if (getTypeEnvironment().isSubType(switchType, enumType)) {
+        if (switchType instanceof IJavaDeclaredType) {
+          // Assume to be an enum type
+          IJavaScope.NestedScope switchScope = new IJavaScope.NestedScope(scope);
+          IJavaDeclaredType switchDT = (IJavaDeclaredType) switchType;
+          for (IRNode n : VisitUtil.getClassBodyMembers(switchDT.getDeclaration())) {
 
-    			  if (EnumConstantDeclaration.prototype.includes(n)) {
-        			  //System.out.println("Adding:   "+DebugUnparser.toString(n));
-    				  switchScope.add(n);
-    			  } else {
-        			  //System.out.println("Rejected: "+DebugUnparser.toString(n));
-    			  }
-    		  }
-        	  doAccept(SwitchStatement.getBlock(node), switchScope);
-    		  return null;
-    	  } else {
-    		  doAccept(SwitchStatement.getBlock(node));
-    	  }
-    	  return null;
-      } 
-      return super.visitSwitchStatement(node);      
+            if (EnumConstantDeclaration.prototype.includes(n)) {
+              // System.out.println("Adding: "+DebugUnparser.toString(n));
+              switchScope.add(n);
+            } else {
+              // System.out.println("Rejected: "+DebugUnparser.toString(n));
+            }
+          }
+          doAccept(SwitchStatement.getBlock(node), switchScope);
+          return null;
+        } else {
+          doAccept(SwitchStatement.getBlock(node));
+        }
+        return null;
+      }
+      return super.visitSwitchStatement(node);
     }
-    
+
     @Override
     public Void visitThisExpression(IRNode node) {
       /*
-      if (ThisExpression.prototype.includes(node)) {
-    	  System.out.println("Context for this: "+DebugUnparser.toString(VisitUtil.getEnclosingClassBodyDecl(node)));
-      }
-      */
+       * if (ThisExpression.prototype.includes(node)) { System.out.println(
+       * "Context for this: "
+       * +DebugUnparser.toString(VisitUtil.getEnclosingClassBodyDecl(node))); }
+       */
       bind(node, IJavaScope.Util.isReceiverDecl, "this");
       return null;
     }
@@ -3233,32 +3127,34 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     @Override
     public Void visitType(IRNode node) {
       if (isFullPass) {
-    	return null;
+        return null;
       }
       return super.visitType(node);
     }
-    
+
     /**
      * Visit a type declaration that has a type formals node.
-     * @param node type declaration node
-     * @param tformals sequence of type formals
+     * 
+     * @param node
+     *          type declaration node
+     * @param tformals
+     *          sequence of type formals
      * @return null always
      */
     public Void visitTypeDeclaration(IRNode node, IRNode tformals) {
       final IRNode enclosingType = lookupContext.foundNewType(node);
       /*
-      if ("TestBindingInnerClass".equals(JJNode.getInfo(node))) {    	
-    	  System.out.println("Binding type: "+JavaNames.getFullTypeName(node));
-      }
-      */
+       * if ("TestBindingInnerClass".equals(JJNode.getInfo(node))) {
+       * System.out.println("Binding type: "+JavaNames.getFullTypeName(node)); }
+       */
       IJavaScope.NestedScope sc = new IJavaScope.NestedScope(scope);
       sc.add(node);
       addDeclsToScope(tformals, sc);
       try {
-    	  doAcceptForChildren(node,sc);
-    	  return null;
+        doAcceptForChildren(node, sc);
+        return null;
       } finally {
-    	  lookupContext.leavingType(node, enclosingType);
+        lookupContext.leavingType(node, enclosingType);
       }
     }
 
@@ -3268,8 +3164,9 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       // TODO: BUG: we assume that there are no locals with the same name...
       // (NestedScope doesn't handle overloading.)
       IRNode tdecl = TypeDeclarationStatement.getTypedec(node);
-      ((IJavaScope.NestedScope)scope).add(tdecl);
-      if (!isBatch && nodeHasChanged(tdecl)) isBatch = true;
+      ((IJavaScope.NestedScope) scope).add(tdecl);
+      if (!isBatch && nodeHasChanged(tdecl))
+        isBatch = true;
       return visit(node);
     }
 
@@ -3279,70 +3176,70 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       bind(node, (IRNode) null);
       return null;
     }
-    
+
     @Override
     public Void visitTypeRef(IRNode node) {
       if (isFullPass) {
-    	  return null;
+        return null;
       }
       visit(node); // bind base type
-      
+
       IRNode base = TypeRef.getBase(node);
       IBinding baseB = getLocalIBinding(base);
       if (baseB != null) {
-    	  IRNode baseDecl = baseB.getNode();
-    	  IJavaScope tScope = typeScope(getTypeEnvironment().convertNodeTypeToIJavaType(baseDecl));
-    	  boolean success = bind(node,tScope,IJavaScope.Util.isTypeDecl);
-    	  if (!success) {
-    		  bind(node,tScope,IJavaScope.Util.isTypeDecl);
-    	  }
+        IRNode baseDecl = baseB.getNode();
+        IJavaScope tScope = typeScope(getTypeEnvironment().convertNodeTypeToIJavaType(baseDecl));
+        boolean success = bind(node, tScope, IJavaScope.Util.isTypeDecl);
+        if (!success) {
+          bind(node, tScope, IJavaScope.Util.isTypeDecl);
+        }
       } else {
-    	  if (AbstractJavaBinder.isBinary(node)) {      
-    		  System.err.println("No binding to bind "+DebugUnparser.toString(node));
-    	  } else {
-    		  LOG.severe("No binding to bind "+DebugUnparser.toString(node));
-    	  }
-    	  bind(node, (IBinding) null);
+        if (AbstractJavaBinder.isBinary(node)) {
+          System.err.println("No binding to bind " + DebugUnparser.toString(node));
+        } else {
+          LOG.severe("No binding to bind " + DebugUnparser.toString(node));
+        }
+        bind(node, (IBinding) null);
       }
       return null;
     }
-    
+
     @Override
     public Void visitUnnamedPackageDeclaration(IRNode node) {
       bindToPackage(node, "");
       return null;
     }
-    
+
     @Override
     public Void visitVarArgsType(IRNode node) {
-        if (!isFullPass) {
-      	  // No IRNode binding that makes sense
-      	  bind(node, nullBinding); 
-        }
-    	return super.visitVarArgsType(node);
+      if (!isFullPass) {
+        // No IRNode binding that makes sense
+        bind(node, nullBinding);
+      }
+      return super.visitVarArgsType(node);
     }
-    
+
     @Override
     public Void visitVariableUseExpression(IRNode node) {
       if (isFullPass) {
-    	boolean bound = bind(node,IJavaScope.Util.isValueDecl);
-    	if (!bound) {
-    	  bind(node,IJavaScope.Util.isValueDecl);
-    	}
+        boolean bound = bind(node, IJavaScope.Util.isValueDecl);
+        if (!bound) {
+          bind(node, IJavaScope.Util.isValueDecl);
+        }
       }
       return null;
     }
-      
+
     @Override
     public Void visitVoidReturnStatement(IRNode node) {
       visit(node);
       return null;
     }
-    
+
     @Override
     public Void visitVoidType(IRNode node) {
-    	bind(node, IBinding.NULL);
-    	return null;
+      bind(node, IBinding.NULL);
+      return null;
     }
   }
 
@@ -3351,13 +3248,15 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
    */
   @ThreadSafe
   private class TypeEnv extends AbstractTypeEnvironment {
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see edu.cmu.cs.fluid.java.bind.ITypeEnvironment#getBinder()
      */
     public IBinder getBinder() {
       return AbstractJavaBinder.this;
     }
-    
+
     @Override
     public IRNode getArrayClassDeclaration() {
       return findNamedType(PromiseConstants.ARRAY_CLASS_QNAME);
@@ -3367,145 +3266,145 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     public IJavaClassTable getClassTable() {
       return classTable;
     }
-    
-	public IIRProject getProject() {
-	  throw new UnsupportedOperationException();
-	}
+
+    public IIRProject getProject() {
+      throw new UnsupportedOperationException();
+    }
   }
-  
+
   public interface IDependency {
     /**
-     * Add a new use to the dependency.  It is informed of all changes thus far.
-     * @param use useSite to add.
+     * Add a new use to the dependency. It is informed of all changes thus far.
+     * 
+     * @param use
+     *          useSite to add.
      */
     void addUse(IRNode use);
   }
-  
+
   /**
-   * An Unversioned Dependency.
-   * TODO: Move this to UnversionedBinder
-   * XXX: bug!  Cannot drop dependencies: must record to invalidate bindings
+   * An Unversioned Dependency. TODO: Move this to UnversionedBinder XXX: bug!
+   * Cannot drop dependencies: must record to invalidate bindings
+   * 
    * @author boyland
    */
   public static abstract class UnversionedDependency implements IDependency {
-    /* (non-Javadoc)
-     * @see edu.cmu.cs.fluid.java.bind.AbstractJavaBinder.IDependency#addUse(edu.cmu.cs.fluid.ir.IRNode)
-     * XXX: bug can't drop dependencies.
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * edu.cmu.cs.fluid.java.bind.AbstractJavaBinder.IDependency#addUse(edu.cmu.
+     * cs.fluid.ir.IRNode) XXX: bug can't drop dependencies.
      */
     public final void addUse(IRNode use) {
-    	// FIX need to do something here
+      // FIX need to do something here
     }
   }
-  
-  static boolean isBinary(IRNode n) {
-  	IRNode cu = VisitUtil.getEnclosingCompilationUnit(n);
-  	return JavaNode.getModifier(cu, JavaNode.AS_BINARY);
-  }
-  
-  @Override
-  public Iteratable<IBinding>  findOverriddenParentMethods(final IRNode mth) {
-	  final int mods = JavaNode.getModifiers(mth);
-	  if (JavaNode.isSet(mods, JavaNode.PRIVATE) || JavaNode.isSet(mods, JavaNode.STATIC)) {
-		  return EmptyIterator.prototype();
-	  }
-	  final String name   = SomeFunctionDeclaration.getId(mth);
-	  final IRNode td     = VisitUtil.getEnclosingType(mth);
-	  final IJavaDeclaredType t = (IJavaDeclaredType) typeEnvironment.convertNodeTypeToIJavaType(td);
-  
-	  final MethodBinder mb      = new MethodBinder(this, false);
-	  final List<IBinding> methods = new ArrayList<IBinding>();
-	  final LookupContext context = new LookupContext();
-	  context.foundNewType(td);
-	  context.use(name, mth);
-	  
-	  /*
-	  final List<IJavaType> temp = new ArrayList<IJavaType>();
-	  for(IJavaType st : t.getSupertypes(typeEnvironment)) {
-		  temp.add(st);
-	  }
-	  Set<IJavaType> temp2 = new HashSet<IJavaType>(temp);
-	  if (temp.size() != temp2.size()) {
-		  System.out.println("Found duplicates");
-	  }	  
-	  */
-	  final CallState call = new CallState(AbstractJavaBinder.this, null, null, null, t) {
-		  @Override
-		  public IJavaType[] getArgTypes() {
-			  return mb.getFormalTypes(t, mth);
-		  }
-	  };
-	  
-	  for(IJavaType superT : t.getSupertypes(typeEnvironment)) {
-		  final IJavaDeclaredType st = (IJavaDeclaredType) superT;
-		  // Looking at the inherited members	
-		  final IJavaScope superScope = 
-			  new IJavaScope.SubstScope(typeMemberTable(st).asScope(this), getTypeEnvironment(), t);	  
 
-		  // Specialized for methods!
-		  BindingInfo best = mb.findBestMethod(superScope, context, true, st.getDeclaration(), call);
-		  if (best != null) {
-			  methods.add(best.method);
-		  }
-	  }
-	  final Collection<IBinding> noDups = removeDuplicateBindings(methods);
-	  return IteratorUtil.makeIteratable(noDups);
+  static boolean isBinary(IRNode n) {
+    IRNode cu = VisitUtil.getEnclosingCompilationUnit(n);
+    return JavaNode.getModifier(cu, JavaNode.AS_BINARY);
   }
-  
+
+  @Override
+  public Iteratable<IBinding> findOverriddenParentMethods(final IRNode mth) {
+    final int mods = JavaNode.getModifiers(mth);
+    if (JavaNode.isSet(mods, JavaNode.PRIVATE) || JavaNode.isSet(mods, JavaNode.STATIC)) {
+      return EmptyIterator.prototype();
+    }
+    final String name = SomeFunctionDeclaration.getId(mth);
+    final IRNode td = VisitUtil.getEnclosingType(mth);
+    final IJavaDeclaredType t = (IJavaDeclaredType) typeEnvironment.convertNodeTypeToIJavaType(td);
+
+    final MethodBinder mb = new MethodBinder(this, false);
+    final List<IBinding> methods = new ArrayList<IBinding>();
+    final LookupContext context = new LookupContext();
+    context.foundNewType(td);
+    context.use(name, mth);
+
+    /*
+     * final List<IJavaType> temp = new ArrayList<IJavaType>(); for(IJavaType st
+     * : t.getSupertypes(typeEnvironment)) { temp.add(st); } Set<IJavaType>
+     * temp2 = new HashSet<IJavaType>(temp); if (temp.size() != temp2.size()) {
+     * System.out.println("Found duplicates"); }
+     */
+    final CallState call = new CallState(AbstractJavaBinder.this, null, null, null, t) {
+      @Override
+      public IJavaType[] getArgTypes() {
+        return mb.getFormalTypes(t, mth);
+      }
+    };
+
+    for (IJavaType superT : t.getSupertypes(typeEnvironment)) {
+      final IJavaDeclaredType st = (IJavaDeclaredType) superT;
+      // Looking at the inherited members
+      final IJavaScope superScope = new IJavaScope.SubstScope(typeMemberTable(st).asScope(this), getTypeEnvironment(), t);
+
+      // Specialized for methods!
+      BindingInfo best = mb.findBestMethod(superScope, context, true, st.getDeclaration(), call);
+      if (best != null) {
+        methods.add(best.method);
+      }
+    }
+    final Collection<IBinding> noDups = removeDuplicateBindings(methods);
+    return IteratorUtil.makeIteratable(noDups);
+  }
+
   private Collection<IBinding> removeDuplicateBindings(final List<IBinding> methods) {
-	  final MultiMap<IRNode, IBinding> hashed = new MultiHashMap<IRNode, IBinding>(methods.size());
-	 outer:
-	  for(final IBinding m : methods) {
-		  final Collection<IBinding> temp = hashed.get(m.getNode());
-		  if (temp != null) {
-			  // check for duplicates
-			  for(final IBinding b : temp) {
-				  if (equals(b.getContextType(), m.getContextType())) {
-					  continue outer;
-				  }
-			  }
-		  }
-		  hashed.put(m.getNode(), m);
-	  }
-	  return hashed.values();
+    final Multimap<IRNode, IBinding> hashed = ArrayListMultimap.create();
+    outer: for (final IBinding m : methods) {
+      final Collection<IBinding> temp = hashed.get(m.getNode());
+      if (temp != null) {
+        // check for duplicates
+        for (final IBinding b : temp) {
+          if (equals(b.getContextType(), m.getContextType())) {
+            continue outer;
+          }
+        }
+      }
+      hashed.put(m.getNode(), m);
+    }
+    return hashed.values();
   }
-  
+
   private boolean equals(IJavaType t1, IJavaType t2) {
-	  if (t1 == t2) {
-		  return true;
-	  }
-	  // Already checked above if both are null
-	  if (t1 == null || t2 == null) {
-		  return false;
-	  }
-	  return t1.equals(t2);
+    if (t1 == t2) {
+      return true;
+    }
+    // Already checked above if both are null
+    if (t1 == null || t2 == null) {
+      return false;
+    }
+    return t1.equals(t2);
   }
- 
+
   IJavaType getApproxJavaType(IRNode n, Operator op) {
-  	if (processJava8) {
-  		final MethodBinder8 mb = new MethodBinder8(this, false);
-		if (mb.isPolyExpression(n, op)) {
-		  	if (op instanceof CallInterface) {
-		  		final IBinding b = getIBinding(n);
-		  		/*
-		  		// Copied from JavaTypeVisitor.computeReturnType()
-		  		// Check if Object.getClass()
-		  		final IJavaDeclaredType objectT = getTypeEnvironment().getObjectType();
-		  		if (b.getContextType() != null &&
-			    	  b.getContextType().equals(objectT) && 
-			          MethodDeclaration.getId(n).equals("getClass") &&
-			          JJNode.tree.numChildren(MethodDeclaration.getParams(n)) == 0) {
-			        IJavaReferenceType upper         = (IJavaReferenceType) getTypeEnvironment().computeErasure(b.getReceiverType());
-			        IRNode classDecl                 = getTypeEnvironment().findNamedType("java.lang.Class");
-			        List<? extends IJavaType> params = Collections.singletonList(JavaTypeFactory.getWildcardType(upper, null));
-			        return JavaTypeFactory.getDeclaredType(classDecl, params, null);
-		  		} 
-		  		*/ 
-		  		IJavaType t = typeVisitor.getJavaType(b.getNode());
-		  		return b.convertType(this, t);		  		
-		  	}
-		}
-		// Any other cases that need special handling?
-  	}
-	return getJavaType(n);
+    if (processJava8) {
+      final MethodBinder8 mb = new MethodBinder8(this, false);
+      if (mb.isPolyExpression(n, op)) {
+        if (op instanceof CallInterface) {
+          final IBinding b = getIBinding(n);
+          /*
+           * // Copied from JavaTypeVisitor.computeReturnType() // Check if
+           * Object.getClass() final IJavaDeclaredType objectT =
+           * getTypeEnvironment().getObjectType(); if (b.getContextType() !=
+           * null && b.getContextType().equals(objectT) &&
+           * MethodDeclaration.getId(n).equals("getClass") &&
+           * JJNode.tree.numChildren(MethodDeclaration.getParams(n)) == 0) {
+           * IJavaReferenceType upper = (IJavaReferenceType)
+           * getTypeEnvironment().computeErasure(b.getReceiverType()); IRNode
+           * classDecl = getTypeEnvironment().findNamedType("java.lang.Class");
+           * List<? extends IJavaType> params =
+           * Collections.singletonList(JavaTypeFactory.getWildcardType(upper,
+           * null)); return JavaTypeFactory.getDeclaredType(classDecl, params,
+           * null); }
+           */
+          IJavaType t = typeVisitor.getJavaType(b.getNode());
+          return b.convertType(this, t);
+        }
+      }
+      // Any other cases that need special handling?
+    }
+    return getJavaType(n);
   }
 }
