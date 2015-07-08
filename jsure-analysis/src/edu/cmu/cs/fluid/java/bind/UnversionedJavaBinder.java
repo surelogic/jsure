@@ -46,14 +46,14 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
    * TODO what about types that have no parameterizations? (waste of space)
    */
   private final Multimap<IRNode, IJavaSourceRefType> sourceTypeParameterizations = cacheAllSourceTypes ?	  
-	  ArrayListMultimap.create() : null;
+	  ArrayListMultimap.<IRNode, IJavaSourceRefType>create() : null;
 	
   private final ConcurrentMap<IJavaSourceRefType,IJavaMemberTable> memberTableCache = cacheAllSourceTypes ? 
-      new ConcurrentHashMap<>() : null;
+      new ConcurrentHashMap<IJavaSourceRefType,IJavaMemberTable>() : null;
   
   
   private final Map<IRNode,IJavaMemberTable> oldMemberTableCache = cacheAllSourceTypes ? null :
-	  new ConcurrentHashMap<>();
+	  new ConcurrentHashMap<IRNode,IJavaMemberTable>();
   
   private final ThreadLocal<IJavaMemberTable> objectTable =
 	  new ThreadLocal<IJavaMemberTable>() {

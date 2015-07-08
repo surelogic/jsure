@@ -699,7 +699,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
     for (Map.Entry<String, Collection<String>> e : moreRefs.asMap().entrySet()) {
       @Nullable
       final Collection<String> values = e.getValue();
-      final Set<String> setValues = values == null ? new HashSet<>() : new HashSet<>(values);
+      final Set<String> setValues = values == null ? new HashSet<String>() : new HashSet<String>(values);
       final Collection<CodeInfo> moreCUs = handleDanglingRefs(projects.get(e.getKey()), setValues);
       newCUs.addAll(moreCUs);
     }

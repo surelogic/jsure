@@ -677,7 +677,7 @@ public class Util implements AnalysisConstants {
   private static void computeSubtypeInfo(Projects projects) throws IOException {
     // Compute/persist subtype info
     final boolean saveSubtypeInfo = useResultsXML && projects.getResultsFile() != null;
-    final Multimap<CUDrop, CUDrop> subtypeDependencies = saveSubtypeInfo ? ArrayListMultimap.create() : null;
+    final Multimap<CUDrop, CUDrop> subtypeDependencies = saveSubtypeInfo ? ArrayListMultimap.<CUDrop, CUDrop>create() : null;
     for (JavacProject p : projects) {
       // Compute subtype info
       p.getTypeEnv().postProcessCompUnits(false);
