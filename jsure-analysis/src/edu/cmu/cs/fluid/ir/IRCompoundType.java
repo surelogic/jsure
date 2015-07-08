@@ -10,7 +10,7 @@ import com.surelogic.ThreadSafe;
 @ThreadSafe
 public interface IRCompoundType<T> extends IRType<T> {
   /** Return the type associated with compound element i */
-  public IRType getType(int i);
+  public IRType<?> getType(int i);
 
   /** Read in the value given current state of compound.
    * This differs from @{link IRCompound#readContents}
