@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -70,9 +69,9 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
   static abstract class AbstractHandlerElementUpdater extends AbstractHandler implements IElementUpdater {
   };
 
-  private final Provider f_content = new Provider();
+  final Provider f_content = new Provider();
 
-  private TreeViewer f_viewer;
+  TreeViewer f_viewer;
 
   abstract class SingleElementAction extends Action {
     SingleElementAction(String label) {
@@ -247,7 +246,7 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
       }
 
       @Override
-      public void updateElement(UIElement element, @SuppressWarnings("rawtypes") Map parameters) {
+      public void updateElement(UIElement element, Map parameters) {
         final ICommandService service = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
         final Command command = service.getCommand(toggleDiffsCmd);
         final State state = command.getState(toggleDiffsCmd + ".state");
@@ -305,12 +304,12 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
     }
   }
 
-  private void handleDoubleClick(IStructuredSelection selection) {
+  void handleDoubleClick(IStructuredSelection selection) {
     final Object o = selection.getFirstElement();
     handleDoubleClick(o);
   }
 
-  private void handleDoubleClick(Object o) {
+  void handleDoubleClick(Object o) {
     if (o instanceof Type) {
       Type t = (Type) o;
       PromisesXMLEditor.openInEditor(t.getPath(), false);
@@ -324,8 +323,8 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
       if (p.getClassElement() == null) {
         PromisesXMLEditor.openInEditor(getPackagePath(p.getName()), false);
       } else {
-        final IEditorPart ep = PromisesXMLEditor.openInEditor(p.getName().replace('.', '/') + '/' + p.getClassElement().getName()
-            + TestXMLParserConstants.SUFFIX, false);
+        final IEditorPart ep = PromisesXMLEditor.openInEditor(
+            p.getName().replace('.', '/') + '/' + p.getClassElement().getName() + TestXMLParserConstants.SUFFIX, false);
         if (ep instanceof PromisesXMLEditor) {
           final PromisesXMLEditor xe = (PromisesXMLEditor) ep;
           xe.focusOn((IJavaElement) o);
@@ -367,7 +366,7 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
     return qname.replace('.', '/') + '/' + TestXMLParserConstants.PACKAGE_PROMISES;
   }
 
-  private static final Package[] noPackages = new Package[0];
+  static final Package[] noPackages = new Package[0];
 
   enum Viewing {
     ALL, DIFFS() {
@@ -445,7 +444,7 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
 
     @Override
     public String build() {
-      final List<Package> l = new ArrayList<Package>();
+      final List<Package> l = new ArrayList<>();
       final Map<String, Collection<String>> local = PromisesXMLEditor.findLocalPromisesXML();
       for (Map.Entry<String, Collection<String>> e : PromisesXMLEditor.findAllPromisesXML().entrySet()) {
         Package p = new Package(e, local.get(e.getKey()));
@@ -501,7 +500,7 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
         }
       }
       if (parent instanceof String) {
-        return ArrayUtils.EMPTY_STRING_ARRAY;
+        return SLUtility.EMPTY_STRING_ARRAY;
       }
       // return noStrings;
       return super.getChildren(parent);
@@ -537,8 +536,8 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
     public Image getImage(Object element) {
       if (element instanceof Package) {
         Package p = (Package) element;
-        return JSureDecoratedImageUtility.getImage(CommonImages.IMG_PACKAGE, p.hasWarning() ? EnumSet.of(Flag.HINT_WARNING)
-            : EnumSet.noneOf(Flag.class));
+        return JSureDecoratedImageUtility.getImage(CommonImages.IMG_PACKAGE,
+            p.hasWarning() ? EnumSet.of(Flag.HINT_WARNING) : EnumSet.noneOf(Flag.class));
       }
       if (element instanceof Type) {
         final Type t = (Type) element;
@@ -589,7 +588,7 @@ public class XMLExplorerView extends AbstractSLView implements EclipseUIUtility.
     if (elements.length == 0) {
       return elements;
     }
-    List<T> l = new ArrayList<T>();
+    List<T> l = new ArrayList<>();
     for (T e : elements) {
       if (type.matches(e)) {
         l.add(e);
