@@ -698,10 +698,14 @@ public class JavacClassParser extends JavaClassPath<Projects> {
     // TODO are these really for the same project as the first set?
     for (Map.Entry<String, Collection<String>> e : moreRefs.asMap().entrySet()) {
       @Nullable
+      final String key = e.getKey();
+      @Nullable
       final Collection<String> values = e.getValue();
       final Set<String> setValues = values == null ? new HashSet<String>() : new HashSet<String>(values);
-      final Collection<CodeInfo> moreCUs = handleDanglingRefs(projects.get(e.getKey()), setValues);
-      newCUs.addAll(moreCUs);
+      if (key != null) {
+        final Collection<CodeInfo> moreCUs = handleDanglingRefs(projects.get(key), setValues);
+        newCUs.addAll(moreCUs);
+      }
     }
     return newCUs;
   }
