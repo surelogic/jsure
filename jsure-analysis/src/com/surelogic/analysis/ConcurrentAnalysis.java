@@ -66,8 +66,8 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
     if (work == null) {
       SLLogger.getLogger().log(Level.WARNING, "queueWork(null) called", new IllegalArgumentException());
     } else {
-      f_workQueue.add(work);
-      if (f_workQueue.size() > f_flushSize) {
+      f_workQueue.asList().add(work);
+      if (f_workQueue.asList().size() > f_flushSize) {
         flushWorkQueue();
         return true;
       }
@@ -87,8 +87,8 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
     if (work == null) {
       SLLogger.getLogger().log(Level.WARNING, "queueWork(null) called", new IllegalArgumentException());
     } else {
-      f_workQueue.addAll(work);
-      if (f_workQueue.size() > f_flushSize) {
+      f_workQueue.asList().addAll(work);
+      if (f_workQueue.asList().size() > f_flushSize) {
         flushWorkQueue();
         return true;
       }
@@ -99,12 +99,12 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
   protected void flushWorkQueue() {
     if (f_workProc == null) {
       // only warn if something exists to run
-      if (!f_workQueue.isEmpty())
+      if (!f_workQueue.asList().isEmpty())
         SLLogger.getLogger().log(Level.WARNING, "flushWorkQueue() called with no work procedure set",
             new IllegalArgumentException());
     } else {
       f_workQueue.apply(f_workProc, f_inParallel ? getThreadCountToUse() : 1);
-      f_workQueue.clear();
+      f_workQueue.asList().clear();
     }
   }
 
@@ -122,7 +122,7 @@ public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
       return;
     }
     final ParallelArray<E> array = new ParallelArray<>();
-    array.addAll(c);
+    array.asList().addAll(c);
     final PromiseFramework frame = PromiseFramework.getInstance();
     array.apply(new Procedure<E>() {
       @Override

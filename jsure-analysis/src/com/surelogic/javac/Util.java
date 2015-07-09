@@ -603,7 +603,7 @@ public class Util implements AnalysisConstants {
   }
 
   private static void checkforCUs(ParallelArray<CodeInfo> cus, ParallelArray<SourceCUDrop> cuds) {
-    Map<IRNode, SourceCUDrop> drops = new HashMap<>(cuds.size());
+    Map<IRNode, SourceCUDrop> drops = new HashMap<>(cuds.asList().size());
     for (SourceCUDrop d : cuds.asList()) {
       drops.put(d.getNode(), d);
     }
@@ -1482,12 +1482,12 @@ public class Util implements AnalysisConstants {
       final ParallelArray<CodeInfo> temp = new ParallelArray<>();
       for (CodeInfo i : cus.asList()) {
         temp.asList().add(i);
-        if (temp.size() > 100) {
+        if (temp.asList().size() > 100) {
           bindingTime += doCanonicalize(monitor, temp, false);
           temp.asList().clear();
         }
       }
-      if (!temp.isEmpty()) {
+      if (!temp.asList().isEmpty()) {
         bindingTime += doCanonicalize(monitor, temp, false);
       }
     } else {
