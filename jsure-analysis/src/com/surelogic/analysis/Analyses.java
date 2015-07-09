@@ -1,6 +1,13 @@
 package com.surelogic.analysis;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
 
@@ -10,6 +17,7 @@ import com.surelogic.analysis.granules.GranuleInType;
 import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.granules.IAnalysisGranule;
 import com.surelogic.common.Pair;
+import com.surelogic.common.concurrent.Procedure;
 import com.surelogic.common.util.AppendIterator;
 import com.surelogic.common.util.EmptyIterator;
 import com.surelogic.dropsea.IKeyValue;
@@ -24,7 +32,6 @@ import com.surelogic.javac.Projects;
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
 import edu.cmu.cs.fluid.util.IterableThreadLocal;
-import extra166y.Ops.Procedure;
 
 // Map groups to a linear ordering
 // Deal with granulators
@@ -348,7 +355,7 @@ public class Analyses implements IAnalysisGroup<IAnalysisGranule> {
 	
 	public static void main(String... args) {
 		Javac.getDefault();
-		final ConcurrentAnalysis<TestGranule> a = new ConcurrentAnalysis<TestGranule>(true, TestGranule.class);
+		final ConcurrentAnalysis<TestGranule> a = new ConcurrentAnalysis<TestGranule>(true);
 		final Set<String> names = new HashSet<String>();
 		final List<TestGranule> c = new ArrayList<TestGranule>();
 		for(int i=0; i<40; i++) {

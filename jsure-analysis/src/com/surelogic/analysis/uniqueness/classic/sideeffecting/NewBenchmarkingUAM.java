@@ -20,8 +20,7 @@ import edu.uwm.cs.fluid.control.FlowAnalysis.AnalysisGaveUp;
 
 public class NewBenchmarkingUAM extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, UniquenessAnalysis, CUDrop> {
   public NewBenchmarkingUAM() {
-		super(false, null, "Benchmark Side-effecting Uniqueness",
-		    BindingContextAnalysis.factory);
+		super(false,"Benchmark Side-effecting Uniqueness", BindingContextAnalysis.factory);
 	}
 
     @Override

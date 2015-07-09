@@ -30,6 +30,7 @@ import java.util.zip.ZipFile;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.surelogic.Nullable;
+import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.com.sun.source.tree.CompilationUnitTree;
 import com.surelogic.com.sun.source.util.JavacTask;
@@ -39,6 +40,8 @@ import com.surelogic.com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.concurrent.ParallelArray;
+import com.surelogic.common.concurrent.Procedure;
 import com.surelogic.common.concurrent.RecursiveIOAction;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.java.Config;
@@ -85,10 +88,8 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.Triple;
-import extra166y.Ops.Procedure;
-import extra166y.ParallelArray;
 
-public class JavacClassParser extends JavaClassPath<Projects> {
+public final class JavacClassParser extends JavaClassPath<Projects> {
   static Logger LOG = SLLogger.getLogger();
 
   /** Should we try to run things in parallel */
@@ -119,16 +120,12 @@ public class JavacClassParser extends JavaClassPath<Projects> {
 
   private final Set<String> requiredRefs = new HashSet<>();
 
-  // private final Projects projects;
-  final ForkJoinPool pool;
-
   // proj, qname, zip
   final ParallelArray<Triple<String, String, ZipFile>> jarRefs;
 
-  public JavacClassParser(ForkJoinPool executor, Projects p) throws IOException {
+  public JavacClassParser(Projects p) throws IOException {
     super(p, false);
-    pool = executor;
-    jarRefs = ParallelArray.create(0, Triple.class, pool);
+    jarRefs = new ParallelArray<>();
 
     for (JavacProject jp : p) {
       // System.out.println("Initializing "+jp.getName());
@@ -168,7 +165,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
           return new SourceAdapter(projects, jp);
         }
       };
-      cuts = ParallelArray.create(0, CompilationUnitTree.class, pool);
+      cuts = new ParallelArray<>();
       cus = new ConcurrentLinkedQueue<>(); // Added to concurrently
       refs = new References(jp);
 
@@ -293,22 +290,27 @@ public class JavacClassParser extends JavaClassPath<Projects> {
       final Trees t = Trees.instance(javac);
       // System.out.println("Parsing sources");
       Stack<AdaptTask> tasks = new Stack<>();
-      for (final CompilationUnitTree cut : javac.parse()) {
-        if (debug) {
-          System.out.println("Parsing " + cut.getSourceFile().getName());
+      final ForkJoinPool pool = new ForkJoinPool(ConcurrentAnalysis.getThreadCountToUse());
+      try {
+        for (final CompilationUnitTree cut : javac.parse()) {
+          if (debug) {
+            System.out.println("Parsing " + cut.getSourceFile().getName());
+          }
+          tEnv.addPackage(SourceAdapter.getPackage(cut), this.asBinary ? Config.Type.INTERFACE : Config.Type.SOURCE);
+          final AdaptTask task = new AdaptTask(t, cut);
+          pool.submit(task);
+          tasks.push(task);
         }
-        tEnv.addPackage(SourceAdapter.getPackage(cut), this.asBinary ? Config.Type.INTERFACE : Config.Type.SOURCE);
-        final AdaptTask task = new AdaptTask(t, cut);
-        pool.submit(task);
-        tasks.push(task);
+        while (!tasks.isEmpty()) {
+          final AdaptTask at = tasks.pop();
+          final CodeInfo info = at.get();
+          tEnv.addCompUnit(info, true);
+          results.add(info);
+        }
+        timeAnalysis(javac);
+      } finally {
+        pool.shutdown();
       }
-      while (!tasks.isEmpty()) {
-        final AdaptTask at = tasks.pop();
-        final CodeInfo info = at.get();
-        tEnv.addCompUnit(info, true);
-        results.add(info);
-      }
-      timeAnalysis(javac);
     }
 
     private void timeAnalysis(final JavacTask javac) throws IOException {
@@ -407,7 +409,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
         if (wantToRunInParallel) {
           cuts.apply(proc);
         } else {
-          for (CompilationUnitTree cut : cuts) {
+          for (CompilationUnitTree cut : cuts.asList()) {
             proc.op(cut);
           }
         }
@@ -542,7 +544,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
     }
 
     if (false) {// wantToRunInParallel) {
-      final ParallelArray<CodeInfo> temp = ParallelArray.create(0, CodeInfo.class, pool);
+      final ParallelArray<CodeInfo> temp = new ParallelArray<>();
       temp.asList().addAll(results);
       final Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
         @Override
@@ -754,7 +756,7 @@ public class JavacClassParser extends JavaClassPath<Projects> {
     if (wantToRunInParallel) {
       jarRefs.apply(proc);
     } else {
-      for (Triple<String, String, ZipFile> triple : jarRefs) {
+      for (Triple<String, String, ZipFile> triple : jarRefs.asList()) {
         proc.op(triple);
       }
     }
@@ -1321,17 +1323,4 @@ public class JavacClassParser extends JavaClassPath<Projects> {
     updateTypeEnvs(results);
   }
 
-  public void parseInParallel(final List<CodeInfo> results) throws IOException {
-    if (!useForkJoinTasks) {
-      parse(results);
-    }
-    pool.invoke(new RecursiveIOAction() {
-      private static final long serialVersionUID = 1L;
-
-      @Override
-      protected void compute_private() throws IOException {
-        parse(results);
-      }
-    });
-  }
 }

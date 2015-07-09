@@ -10,16 +10,17 @@ import com.surelogic.common.logging.SLLogger;
 import edu.cmu.cs.fluid.control.LabelList;
 import edu.cmu.cs.fluid.util.CachedSet;
 
-public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q extends IAnalysisGranule> extends AbstractIRAnalysis<T, Q> {
+public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q extends IAnalysisGranule>
+    extends AbstractIRAnalysis<T, Q> {
 
   protected final Logger LOG;
 
   protected AbstractWholeIRAnalysis(String logName) {
-    this(false, null, logName);
+    this(false, logName);
   }
 
-  protected AbstractWholeIRAnalysis(boolean inParallel, Class<Q> type, String logName) {
-    super(inParallel, type);
+  protected AbstractWholeIRAnalysis(boolean inParallel, String logName) {
+    super(inParallel);
     LOG = SLLogger.getLogger(logName);
   }
 
@@ -30,13 +31,13 @@ public abstract class AbstractWholeIRAnalysis<T extends IBinderClient, Q extends
 
   @Override
   public void postAnalysis(IIRProject p) {
-	try {
-		clearCaches();
-		CachedSet.clearCache();
-		LabelList.clearCache();
-	} catch(NullPointerException e) {
-		LOG.log(Level.INFO, "Ignoring NPE", e);
-	}
+    try {
+      clearCaches();
+      CachedSet.clearCache();
+      LabelList.clearCache();
+    } catch (NullPointerException e) {
+      LOG.log(Level.INFO, "Ignoring NPE", e);
+    }
   }
 
   protected abstract void clearCaches();

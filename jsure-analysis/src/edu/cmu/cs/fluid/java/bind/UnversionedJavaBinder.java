@@ -15,7 +15,7 @@ import com.google.common.collect.Multimap;
 import com.surelogic.RequiresLock;
 import com.surelogic.ThreadSafe;
 import com.surelogic.Unique;
-import com.surelogic.analysis.ConcurrentAnalysis;
+import com.surelogic.common.concurrent.Procedure;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.dropsea.ir.drops.PackageDrop;
 import com.surelogic.javac.persistence.JSurePerformance;
@@ -33,7 +33,6 @@ import edu.cmu.cs.fluid.java.project.JavaMemberTable;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import extra166y.Ops.Procedure;
 
 @ThreadSafe
 public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUnitListener {
@@ -275,7 +274,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 					  }
 				  }
 			  };
-			  ConcurrentAnalysis.executeOnAllThreads(proc);
+			  // TODO THREADLOCAL TODO ConcurrentAnalysis.executeOnAllThreads(proc);
 		  }
 		  return removed;
 	  }

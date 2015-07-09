@@ -53,6 +53,8 @@ import com.surelogic.common.NullOutputStream;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
+import com.surelogic.common.concurrent.ParallelArray;
+import com.surelogic.common.concurrent.Procedure;
 import com.surelogic.common.java.Config;
 import com.surelogic.common.java.Config.Type;
 import com.surelogic.common.java.JavaSourceFile;
@@ -129,8 +131,6 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
-import extra166y.Ops.Procedure;
-import extra166y.ParallelArray;
 
 public class Util implements AnalysisConstants {
   public static final boolean useNewDriver = true;
@@ -139,9 +139,6 @@ public class Util implements AnalysisConstants {
    * Splits and integrates the rewrite into the adapter/canonicalizer
    */
   public static final boolean useIntegratedRewrite = true;
-
-  /** Should we try to run things in parallel */
-  private static boolean wantToRunInParallel = true;// false;
 
   private static final boolean batchAndCacheBindingsForCanon = false;
   private static final boolean profileMemoryAfterLoading = false;
@@ -209,6 +206,7 @@ public class Util implements AnalysisConstants {
   }
 
   private static class JavacAnalysisEnvironment extends HashMap<Object, Object>implements IIRAnalysisEnvironment, IAnalysisMonitor {
+    private static final long serialVersionUID = 8707315224641209482L;
     JavacClassParser loader;
     private final ZipOutputStream out;
     private boolean hasResults = false;
@@ -403,7 +401,7 @@ public class Util implements AnalysisConstants {
   }
 
   private static <T> void eliminateDups(List<T> all, List<T> unique) {
-    Set<T> temp = new HashSet<T>(all);
+    Set<T> temp = new HashSet<>(all);
     all.clear();
     unique.clear();
     unique.addAll(temp);
@@ -421,12 +419,12 @@ public class Util implements AnalysisConstants {
       selectFilesToLoad(projects);
     }
 
-    final boolean singleThreaded = !wantToRunInParallel || ConcurrentAnalysis.singleThreaded;
-    System.out.println("singleThread = " + singleThreaded);
-    final JSurePerformance perf = new JSurePerformance(projects, singleThreaded);
+    final int procs = ConcurrentAnalysis.getThreadCountToUse();
+    System.out.println(procs > 1 ? "process() using " + procs + " threads" : "process() singlethreaded");
+    final JSurePerformance perf = new JSurePerformance(projects, procs == 1);
 
     ParseUtil.init();
-    JavacClassParser loader = new JavacClassParser(perf.pool, projects);
+    JavacClassParser loader = new JavacClassParser(projects);
 
     // loader.ensureClassIsLoaded("java.util.concurrent.locks.ReadWriteLock");
     loader.ensureClassIsLoaded(SLUtility.JAVA_LANG_OBJECT);
@@ -440,7 +438,7 @@ public class Util implements AnalysisConstants {
     }
     env.finishedInit(); // To free up memory
 
-    final ParallelArray<CodeInfo> cus = perf.createArray(CodeInfo.class);
+    final ParallelArray<CodeInfo> cus = new ParallelArray<>();
     endSubTask(projects.getMonitor());
 
     for (Config config : projects.getConfigs()) {
@@ -448,7 +446,7 @@ public class Util implements AnalysisConstants {
     }
 
     perf.startTiming();
-    List<CodeInfo> temp = new ArrayList<CodeInfo>();
+    List<CodeInfo> temp = new ArrayList<>();
     loader.parse(temp);
     IDE.getInstance().setDefaultClassPath(projects.getFirstProjectOrNull());
 
@@ -605,11 +603,11 @@ public class Util implements AnalysisConstants {
   }
 
   private static void checkforCUs(ParallelArray<CodeInfo> cus, ParallelArray<SourceCUDrop> cuds) {
-    Map<IRNode, SourceCUDrop> drops = new HashMap<IRNode, SourceCUDrop>(cuds.size());
-    for (SourceCUDrop d : cuds) {
+    Map<IRNode, SourceCUDrop> drops = new HashMap<>(cuds.size());
+    for (SourceCUDrop d : cuds.asList()) {
       drops.put(d.getNode(), d);
     }
-    for (CodeInfo info : cus) {
+    for (CodeInfo info : cus.asList()) {
       if (!info.isAsSource() || info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
         continue;
       }
@@ -663,7 +661,7 @@ public class Util implements AnalysisConstants {
   }
 
   private static void checkForDups(List<CodeInfo> cus) {
-    Map<IRNode, CodeInfo> seen = new HashMap<IRNode, CodeInfo>();
+    Map<IRNode, CodeInfo> seen = new HashMap<>();
     for (CodeInfo cu : cus) {
       CodeInfo dup = seen.get(cu.getNode());
       if (dup != null) {
@@ -677,7 +675,7 @@ public class Util implements AnalysisConstants {
   private static void computeSubtypeInfo(Projects projects) throws IOException {
     // Compute/persist subtype info
     final boolean saveSubtypeInfo = useResultsXML && projects.getResultsFile() != null;
-    final Multimap<CUDrop, CUDrop> subtypeDependencies = saveSubtypeInfo ? ArrayListMultimap.<CUDrop, CUDrop>create() : null;
+    final Multimap<CUDrop, CUDrop> subtypeDependencies = saveSubtypeInfo ? ArrayListMultimap.<CUDrop, CUDrop> create() : null;
     for (JavacProject p : projects) {
       // Compute subtype info
       p.getTypeEnv().postProcessCompUnits(false);
@@ -708,8 +706,8 @@ public class Util implements AnalysisConstants {
       return;
     }
     // Test code for JSureResultsXMLRefScanner
-    final Map<String, SourceCUDrop> sources = new HashMap<String, SourceCUDrop>();
-    final Map<String, IRNode> types = new HashMap<String, IRNode>();
+    final Map<String, SourceCUDrop> sources = new HashMap<>();
+    final Map<String, IRNode> types = new HashMap<>();
     for (CUDrop cud : Sea.getDefault().getDropsOfType(CUDrop.class)) {
       if (cud instanceof SourceCUDrop) {
         String path = FileUtility.normalizePath(cud.getRelativePath());
@@ -770,7 +768,7 @@ public class Util implements AnalysisConstants {
    * Gets every drop if pd is null
    */
   private static ParallelArray<SourceCUDrop> findSourceCUDrops(final JSurePerformance perf) {
-    final ParallelArray<SourceCUDrop> cuds = perf.createArray(SourceCUDrop.class);
+    final ParallelArray<SourceCUDrop> cuds = new ParallelArray<>();
     for (SourceCUDrop scud : Sea.getDefault().getDropsOfExactType(SourceCUDrop.class)) {
       cuds.asList().add(scud);
     }
@@ -924,7 +922,7 @@ public class Util implements AnalysisConstants {
         case INTERNALLY:
         default:
           // Handled by the analysis itself
-          for (final SourceCUDrop cud : toAnalyze) {
+          for (final SourceCUDrop cud : toAnalyze.asList()) {
             proc.op(cud);
           }
           break;
@@ -967,7 +965,7 @@ public class Util implements AnalysisConstants {
       final Multimap<IAnalysisGranulator<?>, IAnalysisGranule> granules) {
     // TODO do this with each group above?
     // TODO in parallel?
-    for (CUDrop d : allCus) {
+    for (CUDrop d : allCus.asList()) {
       for (IAnalysisGranulator<?> g : analyses.getGranulators()) {
         // This may require some setup!
         g.extractGranules(d.getTypeEnv(), d.getCompilationUnitIRNode());
@@ -997,8 +995,8 @@ public class Util implements AnalysisConstants {
   static abstract class AbstractAnalyzer<P, Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q>implements Analyzer<P, Q> {
     final IIRAnalysisEnvironment env;
 
-    AbstractAnalyzer(boolean inParallel, Class<Q> cls, IIRAnalysisEnvironment e) {
-      super(inParallel, cls);
+    AbstractAnalyzer(boolean inParallel, IIRAnalysisEnvironment e) {
+      super(inParallel);
       env = e;
     }
 
@@ -1021,7 +1019,7 @@ public class Util implements AnalysisConstants {
     final Procedure<IAnalysisGranule>[] procs;
 
     AnalysesRunner(JSurePerformance perf, Analyses g, IIRAnalysisEnvironment e) {
-      super(!perf.singleThreaded, g.getGranuleType(), e);
+      super(!perf.singleThreaded, e);
       analyses = g;
       procs = new Procedure[g.numGroups()];
       setupProcedure();
@@ -1146,7 +1144,7 @@ public class Util implements AnalysisConstants {
     final IAnalysisGroup<Q> analyses;
 
     AnalysisInfo(JSurePerformance perf, IAnalysisGroup<Q> g, IIRAnalysisEnvironment e) {
-      super(!(perf.singleThreaded || g.runSingleThreaded()), g.getGranuleType(), e);
+      super(!(perf.singleThreaded || g.runSingleThreaded()), e);
       analyses = g;
       setupProcedure();
     }
@@ -1380,7 +1378,7 @@ public class Util implements AnalysisConstants {
     protected abstract void process(T info);
   }
 
-  static final ConcurrentMap<JavacTypeEnvironment, JavaCanonicalizer> canonicalizers = new ConcurrentHashMap<JavacTypeEnvironment, JavaCanonicalizer>();
+  static final ConcurrentMap<JavacTypeEnvironment, JavaCanonicalizer> canonicalizers = new ConcurrentHashMap<>();
 
   static JavaCanonicalizer getCanonicalizer(CodeInfo info) {
     final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
@@ -1481,8 +1479,8 @@ public class Util implements AnalysisConstants {
     canonProc.setProjects(projects);
     long bindingTime = 0;
     if (batchAndCacheBindingsForCanon) {
-      final ParallelArray<CodeInfo> temp = perf.createArray(CodeInfo.class);
-      for (CodeInfo i : cus) {
+      final ParallelArray<CodeInfo> temp = new ParallelArray<>();
+      for (CodeInfo i : cus.asList()) {
         temp.asList().add(i);
         if (temp.size() > 100) {
           bindingTime += doCanonicalize(monitor, temp, false);
@@ -1515,7 +1513,7 @@ public class Util implements AnalysisConstants {
       AbstractJavaBinder.printStats();
     }
     // cus.apply(proc);
-    for (final CodeInfo info : cus) {
+    for (final CodeInfo info : cus.asList()) {
       final boolean hasPath = info.getFile().getRelativePath() != null;
       if (hasPath) {
         System.out.println("Canonicalizing " + info.getFile().getRelativePath());
@@ -1534,7 +1532,7 @@ public class Util implements AnalysisConstants {
 
   static class Nodes {
     // final Set<IRNode> original = new HashSet<IRNode>();
-    final List<IRNode> noncanonical = new ArrayList<IRNode>();
+    final List<IRNode> noncanonical = new ArrayList<>();
     final IRNode cu;
 
     Nodes(IRNode cu) {
@@ -1542,7 +1540,7 @@ public class Util implements AnalysisConstants {
     }
   }
 
-  private static Nodes findNoncanonical(IRNode cu) {
+  static Nodes findNoncanonical(IRNode cu) {
     Nodes rv = new Nodes(cu);
     for (IRNode n : JJNode.tree.topDown(cu)) {
       // rv.original.add(n);
@@ -1570,7 +1568,7 @@ public class Util implements AnalysisConstants {
     return rv;
   }
 
-  private static void destroyNoncanonical(Nodes nodes) {
+  static void destroyNoncanonical(Nodes nodes) {
     /*
      * for (IRNode n : JJNode.tree.topDown(nodes.cu)) {
      * nodes.original.remove(n); } final int origSize = nodes.original.size();

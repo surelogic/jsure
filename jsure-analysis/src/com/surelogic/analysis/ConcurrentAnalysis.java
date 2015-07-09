@@ -2,206 +2,200 @@ package com.surelogic.analysis;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveAction;
+import java.util.logging.Level;
 
-import org.apache.commons.lang3.SystemUtils;
-
+import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.analysis.granules.IAnalysisGranule;
+import com.surelogic.common.concurrent.ParallelArray;
+import com.surelogic.common.concurrent.Procedure;
+import com.surelogic.common.logging.SLLogger;
 
-import edu.cmu.cs.fluid.ide.*;
+import edu.cmu.cs.fluid.ide.IDE;
+import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.java.bind.PromiseFramework;
-import extra166y.*;
-import extra166y.Ops.Procedure;
 
 public class ConcurrentAnalysis<Q extends IAnalysisGranule> {
-	public static final int threadCount = IDE.getInstance().getIntPreference(
-			IDEPreferences.ANALYSIS_THREAD_COUNT);
-	public static final boolean singleThreaded = false || SystemUtils.IS_JAVA_1_5 || threadCount < 2;
-	public static final ForkJoinPool pool = new ForkJoinPool(singleThreaded ? 1 : threadCount);
-	
-	private static final ParallelArray<Integer> dummyArray = singleThreaded ? null :
-		ParallelArray.create(threadCount*2, Integer.class, pool);
-	
-	public static void executeOnAllThreads(Procedure<Integer> proc) {
-		if (dummyArray == null) {
-			return;
-		}
-		dummyArray.apply(proc);
-	}
-	
-	public static void clearThreadLocal(final ThreadLocal<?> l) {
-		if (pool == null) {
-			return;
-		}
-		Procedure<Integer> proc = new Procedure<Integer>() {
-			@Override
-      public void op(Integer ignored) {
-				l.remove();
-			}
-		};
-		dummyArray.apply(proc);
-	}	
-	
-	private final boolean runInParallel;
 
-	/**
-	 * Used to queue up work across comp units before running in parallel
-	 */
-	private final ParallelArray<Q> workQueue;
-	private Procedure<Q> workProc;
-	private static final int FLUSH_SIZE = 20 * threadCount;
+  public static int getThreadCountToUse() {
+    int result = IDE.getInstance().getIntPreference(IDEPreferences.ANALYSIS_THREAD_COUNT);
+    if (result < 1)
+      result = Runtime.getRuntime().availableProcessors();
+    return result;
+  }
 
-	protected ConcurrentAnalysis(boolean inParallel, Class<Q> type) {
-		runInParallel = inParallel;
-		if (runInParallel && type != null) {
-			// System.out.println("Threads: "+threadCount);
-			// System.out.println("Singlethreaded? "+singleThreaded);
-			workQueue = createParallelArray(type);
-		} else {
-			workQueue = null;
-		}
-	}
+  final int f_flushSize = getThreadCountToUse() * 20;
 
-	protected <E> ParallelArray<E> createParallelArray(Class<E> type) {
-		final ParallelArray<E> array = ParallelArray.create(0, type, pool);
-		return array;
-	}
+  /**
+   * Used to queue up work across comp units before running in parallel
+   */
+  @NonNull
+  private final ParallelArray<Q> f_workQueue;
 
-	protected final void setWorkProcedure(Procedure<Q> proc) {
-		workProc = proc;
-	}
+  final boolean f_inParallel;
 
-	protected final Procedure<Q> getWorkProcedure() {
-		return workProc;
-	}
+  protected ConcurrentAnalysis(boolean inParallel) {
+    f_inParallel = inParallel;
+    f_workQueue = new ParallelArray<>();
+  }
 
-	protected boolean queueWork(Q work) {
-		if (workQueue != null) {
-			List<Q> l = workQueue.asList();
-			l.add(work);
-			if (l.size() > FLUSH_SIZE) {
-				flushWorkQueue();
-				return true;
-			}
-		}
-		return false;
-	}
+  @Nullable
+  private Procedure<Q> f_workProc;
 
-	protected boolean queueWork(Iterable<? extends Q> work) {
-		if (workQueue != null) {
-			List<Q> l = workQueue.asList();
-			for (Q w : work) {
-				l.add(w);
-			}
-			if (l.size() > FLUSH_SIZE) {
-				flushWorkQueue();
-				return true;
-			}
-		}
-		return false;
-	}
+  protected final void setWorkProcedure(Procedure<Q> value) {
+    f_workProc = value;
+  }
 
-	protected boolean queueWork(Collection<? extends Q> work) {
-		if (workQueue != null) {
-			List<Q> l = workQueue.asList();
-			l.addAll(work);
-			if (l.size() > FLUSH_SIZE) {
-				flushWorkQueue();
-				return true;
-			}
-		} else {
-			throw new IllegalStateException();
-		}
-		return false;
-	}
+  @Nullable
+  protected final Procedure<Q> getWorkProcedure() {
+    return f_workProc;
+  }
 
-	protected void flushWorkQueue() {
-		if (workQueue != null && workProc != null) {
-			List<Q> l = workQueue.asList();
-			// System.out.println("Flushing: "+l.size());
-			workQueue.apply(workProc);
-			l.clear();
-		}
-	}
+  /**
+   * Queues work to do.
+   * 
+   * @param work
+   *          to do.
+   * @return {@code true} if the work was run and flushed, {@code false}
+   *         otherwise.
+   */
+  protected boolean queueWork(Q work) {
+    if (work == null) {
+      SLLogger.getLogger().log(Level.WARNING, "queueWork(null) called", new IllegalArgumentException());
+    } else {
+      f_workQueue.add(work);
+      if (f_workQueue.size() > f_flushSize) {
+        flushWorkQueue();
+        return true;
+      }
+    }
+    return false;
+  }
 
-	/**
-	 * Used by various analyses to handle concurrency themselves
-	 */
-	public <E extends IAnalysisGranule> void runInParallel(Class<E> type, Collection<? extends E> c,
-			final Procedure<E> proc) {
-		if (c.isEmpty()) {
-			return;
-		}
-		final ParallelArray<E> array = createParallelArray(type);
-		array.asList().addAll(c);
-		/*
-		 * for(Procedure<E> p : procs) { array.apply(p); }
-		 */
-		final PromiseFramework frame = PromiseFramework.getInstance();
-		array.apply(new Procedure<E>() {
-			@Override
+  /**
+   * Queues work to do.
+   * 
+   * @param work
+   *          collection of to do.
+   * @return {@code true} if the work was run and flushed, {@code false}
+   *         otherwise.
+   */
+  protected boolean queueWork(Collection<? extends Q> work) {
+    if (work == null) {
+      SLLogger.getLogger().log(Level.WARNING, "queueWork(null) called", new IllegalArgumentException());
+    } else {
+      f_workQueue.addAll(work);
+      if (f_workQueue.size() > f_flushSize) {
+        flushWorkQueue();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  protected void flushWorkQueue() {
+    if (f_workProc == null) {
+      // only warn if something exists to run
+      if (!f_workQueue.isEmpty())
+        SLLogger.getLogger().log(Level.WARNING, "flushWorkQueue() called with no work procedure set",
+            new IllegalArgumentException());
+    } else {
+      f_workQueue.apply(f_workProc, f_inParallel ? getThreadCountToUse() : 1);
+      f_workQueue.clear();
+    }
+  }
+
+  /**
+   * Used by various analyses to handle concurrency themselves
+   */
+  public <E extends IAnalysisGranule> void runInParallel(Class<E> type, Collection<? extends E> c, final Procedure<E> proc) {
+    if (c == null || c.isEmpty()) {
+      SLLogger.getLogger().log(Level.WARNING, "runInParallel() called with null or empty collection",
+          new IllegalArgumentException());
+      return;
+    }
+    if (proc == null) {
+      SLLogger.getLogger().log(Level.WARNING, "runInParallel() called with null proc", new IllegalArgumentException());
+      return;
+    }
+    final ParallelArray<E> array = new ParallelArray<>();
+    array.addAll(c);
+    final PromiseFramework frame = PromiseFramework.getInstance();
+    array.apply(new Procedure<E>() {
+      @Override
       public void op(E arg) {
-				try {
-					frame.pushTypeContext(arg.getCompUnit());
-					proc.op(arg);
-				} finally {
-		            frame.popTypeContext();
-				}
-			}
-		});
-	}
+        try {
+          frame.pushTypeContext(arg.getCompUnit());
+          proc.op(arg);
+        } finally {
+          frame.popTypeContext();
+        }
+      }
+    });
+  }
 
-	public ConcurrencyType runInParallel() {
-		return runInParallel ? ConcurrencyType.INTERNALLY : ConcurrencyType.EXTERNALLY;
-	}
-	
-	// Probably shouldn't be run on one granule 
-	public <E extends IAnalysisGranule> void runAsTasks(final List<? extends E> c,
-			final Procedure<E> proc) {
-		if (c.isEmpty()) {
-			return;
-		}
-		final int size = c.size();
-		final E first = c.get(0);
-		if (size == 1) {
-			proc.op(first);
-			return;
-		}	
-		else if (size == 2) {
-			final E second = c.get(1);			
-			final ForkJoinTask<Void> f = pool.submit(new GranuleRunner<E>(proc, second));
-			proc.op(first);
-			f.join();
-		} else { // should be n > 2
-			final RecursiveAction[] tasks = new RecursiveAction[c.size()-1];					
-			for(int i=1; i<size; i++) {
-				final E g = c.get(i);
-				tasks[i-1] = new GranuleRunner<E>(proc, g);
-			}
-			for(RecursiveAction a : tasks) {
-				pool.submit(a);
-			}
-			proc.op(first);
+  public ConcurrencyType runInParallel() {
+    return f_inParallel ? ConcurrencyType.INTERNALLY : ConcurrencyType.EXTERNALLY;
+  }
 
-			for(RecursiveAction a : tasks) {
-				a.join();
-			}
-		}
-	}
-	
-	@SuppressWarnings("serial")
-	private static class GranuleRunner<E extends IAnalysisGranule> extends RecursiveAction {
-		private Procedure<E> proc;
-		private E granule;
+  // Probably shouldn't be run on one granule
+  public <E extends IAnalysisGranule> void runAsTasks(final List<? extends E> c, final Procedure<E> proc) {
+    if (c == null || c.isEmpty()) {
+      SLLogger.getLogger().log(Level.WARNING, "runAsTasks() called with null or empty collection", new IllegalArgumentException());
+      return;
+    }
+    if (proc == null) {
+      SLLogger.getLogger().log(Level.WARNING, "runAsTasks() called with null proc", new IllegalArgumentException());
+      return;
+    }
+    final ForkJoinPool pool = new ForkJoinPool(getThreadCountToUse());
+    try {
+      final int size = c.size();
+      final E first = c.get(0);
+      if (size == 1) {
+        proc.op(first);
+        return;
+      } else if (size == 2) {
+        final E second = c.get(1);
+        final ForkJoinTask<Void> f = pool.submit(new GranuleRunner<>(proc, second));
+        proc.op(first);
+        f.join();
+      } else { // should be n > 2
+        final RecursiveAction[] tasks = new RecursiveAction[c.size() - 1];
+        for (int i = 1; i < size; i++) {
+          final E g = c.get(i);
+          tasks[i - 1] = new GranuleRunner<>(proc, g);
+        }
+        for (RecursiveAction a : tasks) {
+          pool.submit(a);
+        }
+        proc.op(first);
 
-		GranuleRunner(Procedure<E> p, E g) {
-			proc = p;
-			granule = g;
-		}
+        for (RecursiveAction a : tasks) {
+          a.join();
+        }
+      }
+    } finally {
+      pool.shutdown();
+    }
+  }
 
-		@Override
-		protected void compute() {
-			proc.op(granule);
-		}						
-	}
+  @SuppressWarnings("serial")
+  private static class GranuleRunner<E extends IAnalysisGranule> extends RecursiveAction {
+    private Procedure<E> proc;
+    private E granule;
+
+    GranuleRunner(Procedure<E> p, E g) {
+      proc = p;
+      granule = g;
+    }
+
+    @Override
+    protected void compute() {
+      proc.op(granule);
+    }
+  }
 }

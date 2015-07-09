@@ -27,6 +27,7 @@ import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor;
 import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor.*;
 import com.surelogic.annotation.rules.MethodEffectsRules;
+import com.surelogic.common.concurrent.Procedure;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
@@ -67,7 +68,6 @@ import edu.cmu.cs.fluid.java.util.Visibility;
 import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
-import extra166y.Ops.Procedure;
 
 public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis,Effects,TypeBodyPair> {	
 	/** Should we try to run things in parallel */
@@ -77,12 +77,12 @@ public class EffectsAnalysis extends AbstractAnalysisSharingAnalysis<BindingCont
 	 * Are we actually going to run things in parallel?  Not all JRE have the
 	 * libraries we need to actually run in parallel.
 	 */
-	private static boolean willRunInParallel = wantToRunInParallel && !singleThreaded;
+	private static boolean willRunInParallel = wantToRunInParallel;
 	
   private IJavaDeclaredType javaLangObject;
   
 	public EffectsAnalysis() {
-		super(willRunInParallel, TypeBodyPair.class, "EffectAssurance2", BindingContextAnalysis.factory);
+		super(willRunInParallel, "EffectAssurance2", BindingContextAnalysis.factory);
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			setWorkProcedure(new Procedure<TypeBodyPair>() {
 				@Override

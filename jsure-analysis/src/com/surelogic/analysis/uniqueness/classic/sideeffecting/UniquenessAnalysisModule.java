@@ -18,6 +18,7 @@ import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.uniqueness.classic.sideeffecting.store.StoreLattice;
 import com.surelogic.analysis.visitors.JavaSemanticsVisitor;
 import com.surelogic.annotation.rules.UniquenessRules;
+import com.surelogic.common.concurrent.Procedure;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ResultDrop;
 import com.surelogic.dropsea.ir.ResultFolderDrop;
@@ -43,7 +44,6 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
 import edu.uwm.cs.fluid.control.FlowAnalysis;
-import extra166y.Ops.Procedure;
 
 public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<BindingContextAnalysis, UniquenessAnalysis, UniquenessAnalysisModule.MethodRecord> {
   private static final long NANO_SECONDS_PER_SECOND = 1000000000L;
@@ -56,7 +56,7 @@ public class UniquenessAnalysisModule extends AbstractAnalysisSharingAnalysis<Bi
   
   
   public UniquenessAnalysisModule() {
-		super(true && !singleThreaded, null, "UniqueAnalysis", BindingContextAnalysis.factory);
+		super(true , "UniqueAnalysis", BindingContextAnalysis.factory);
 	}
 
 
