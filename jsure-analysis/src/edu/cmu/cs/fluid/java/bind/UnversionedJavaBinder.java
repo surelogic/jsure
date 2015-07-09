@@ -66,7 +66,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   /**
    * Shared across binders
    */
-  private static final ConcurrentMap<IRNode, List<IRNode>> granules = new ConcurrentHashMap<IRNode, List<IRNode>>();
+  private static final ConcurrentMap<IRNode, List<IRNode>> granules = new ConcurrentHashMap<>();
   
   public UnversionedJavaBinder(final ITypeEnvironment tEnv, boolean processJava8) {
     super(tEnv, processJava8);
@@ -191,7 +191,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
   private static Iterable<IRNode> getGranules(final IRNode cu) {
 	  List<IRNode> rv = granules.get(cu);
 	  if (rv == null) {
-		  rv = new ArrayList<IRNode>();
+		  rv = new ArrayList<>();
 		  for (IRNode n : JJNode.tree.topDown(cu)) {
 			  final Operator op = JJNode.tree.getOperator(n);
 			  if (AbstractJavaBinder.isGranule(n, op)) {
@@ -379,12 +379,12 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
      */
     //final SlotInfo<IBinding> useToDeclAttr;
     // TODO does this need to be sync'd?
-    final Map<IRNode, IBinding> useToDeclAttr = new IRNodeHashedMap<IBinding>();
+    final Map<IRNode, IBinding> useToDeclAttr = new IRNodeHashedMap<>();
     
     /**
      * binding each method declaration to a set of methods that it overrides.
      */
-    final Map<IRNode, List<IBinding>> methodOverridesAttr = new IRNodeHashedMap<List<IBinding>>();
+    final Map<IRNode, List<IBinding>> methodOverridesAttr = new IRNodeHashedMap<>();
     //final SlotInfo<List<IBinding>> methodOverridesAttr;
     
     

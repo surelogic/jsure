@@ -550,9 +550,13 @@ public abstract class AbstractJavaFileLocator<T, P> implements IJavaFileLocator<
     return null;
   }
 
+  /**
+   * Ignores call if either parameter is null.
+   */
   @Override
   public void setProjectReference(P proj, T handle) {
-    refs.put(proj, handle);
+    if (proj != null && handle != null)
+      refs.put(proj, handle);
   }
 
   @Override

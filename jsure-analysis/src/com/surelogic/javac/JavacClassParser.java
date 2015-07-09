@@ -678,7 +678,9 @@ public class JavacClassParser extends JavaClassPath<Projects> {
         throw new NullPointerException();
       }
       final References r = parser.refs;
-      moreRefs.putAll(proj, r.scanForReferencedTypes(cu.getNode(), debug));
+      final Set<String> refTypes = r.scanForReferencedTypes(cu.getNode(), debug);
+      if (proj != null && !refTypes.isEmpty())
+        moreRefs.putAll(proj, refTypes);
     }
     // See if there are still the same outstanding refs for this project
     if (checkForCycle(refs, moreRefs.get(jp.getName()))) {
@@ -699,12 +701,14 @@ public class JavacClassParser extends JavaClassPath<Projects> {
     for (Map.Entry<String, Collection<String>> e : moreRefs.asMap().entrySet()) {
       @Nullable
       final String key = e.getKey();
-      @Nullable
-      final Collection<String> values = e.getValue();
-      final Set<String> setValues = values == null ? new HashSet<String>() : new HashSet<String>(values);
       if (key != null) {
+        @Nullable
+        final Collection<String> values = e.getValue();
+        final Set<String> setValues = values == null ? new HashSet<String>() : new HashSet<String>(values);
         final Collection<CodeInfo> moreCUs = handleDanglingRefs(projects.get(key), setValues);
         newCUs.addAll(moreCUs);
+      } else {
+        SLLogger.getLogger().log(Level.WARNING, "moreRefs returned a null key (code bug)", new Exception());
       }
     }
     return newCUs;
