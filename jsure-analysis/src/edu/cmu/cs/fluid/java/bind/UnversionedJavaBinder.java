@@ -303,7 +303,9 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 			
 			// Record that it might need to be removed		
 			tables.put(type, rv);
-			sourceTypeParameterizations.put(type.getDeclaration(), type);
+			final IRNode key = type.getDeclaration();
+			if (key != null && type != null)
+			  sourceTypeParameterizations.put(type.getDeclaration(), type);
 		}
 		return rv;
 	}
