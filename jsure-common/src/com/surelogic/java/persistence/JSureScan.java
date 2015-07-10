@@ -13,6 +13,8 @@ import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import com.surelogic.NonNull;
+import com.surelogic.Nullable;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.i18n.I18N;
@@ -31,18 +33,15 @@ import edu.cmu.cs.fluid.ide.IDEPreferences;
 import edu.cmu.cs.fluid.ide.IDERoot;
 
 public class JSureScan implements Comparable<JSureScan>, IResults {
-  private static final String OLD_RESULTS_FILE = "results.sea.xml";
-  private static final String OLD_ZIPS_DIR = "zips";  
-  public static final String RESULTS_XML  = "sea_snapshot.xml";
-  public static final String COMPRESSED_RESULTS_XML = RESULTS_XML+FileUtility.GZIP_SUFFIX;
-  private static final String TEMP_RESULTS_XML  = RemoteScanJob.TEMP_PREFIX+RESULTS_XML;
-  private static final String COMPRESSED_TEMP_RESULTS_XML = RemoteScanJob.TEMP_PREFIX+RESULTS_XML+FileUtility.GZIP_SUFFIX;
-  
+  public static final String RESULTS_XML = "sea_snapshot.xml";
+  public static final String RESULTS_XML_COMPRESSED = RESULTS_XML + FileUtility.GZIP_SUFFIX;
+  private static final String TEMP_RESULTS_XML = RemoteScanJob.TEMP_PREFIX + RESULTS_XML;
+  private static final String COMPRESSED_TEMP_RESULTS_XML = RemoteScanJob.TEMP_PREFIX + RESULTS_XML + FileUtility.GZIP_SUFFIX;
+
   /**
    * As a double
    */
-  private static final ScanProperty<JSureScan> SIZE_IN_MB = 
-	new ScanProperty<JSureScan>("scan.size.in.mb") {
+  private static final ScanProperty<JSureScan> SIZE_IN_MB = new ScanProperty<JSureScan>("scan.size.in.mb") {
     @Override
     boolean isValid(String value) {
       if (super.isValid(value)) {
@@ -62,25 +61,23 @@ public class JSureScan implements Comparable<JSureScan>, IResults {
       return Double.toString(size);
     }
   };
-  
+
   /**
    * As a comma-separated list
    */
-  private static final ScanProperty<JSureScan> SCANNED_PROJECTS = 
-	new ScanProperty<JSureScan>("scanned.projects") {
+  private static final ScanProperty<JSureScan> SCANNED_PROJECTS = new ScanProperty<JSureScan>("scanned.projects") {
     @Override
     String computeValue(JSureScan s) {
       try {
-		return s.getProjects().getLabel();
+        return s.getProjects().getLabel();
       } catch (Exception e) {
-    	return null;
+        return null;
       }
     }
   };
-  
+
   @SuppressWarnings("unchecked")
-  private static final List<ScanProperty<JSureScan>> REQUIRED_PROPS = 
-	  SLUtility.list(SIZE_IN_MB, SCANNED_PROJECTS);
+  private static final List<ScanProperty<JSureScan>> REQUIRED_PROPS = SLUtility.list(SIZE_IN_MB, SCANNED_PROJECTS);
 
   /**
    * Looks up a scan by its directory name in a list of scans.
@@ -119,14 +116,33 @@ public class JSureScan implements Comparable<JSureScan>, IResults {
   }
 
   /**
-   * Used to find the already created results in a scan dir
+   * Finds the results file in the scan directory. Note that the returned file
+   * may not exist.
+   * 
+   * @param scanDir
+   *          a JSure scan directory.
+   * @return a results file which may or may not exist.
    */
+  @NonNull
   public static File findResultsXML(File scanDir) {
-    File results = findResultsXML_private(scanDir);
-    if (results.isFile()) {
-      return results;
-    }
-    return new File(scanDir, OLD_RESULTS_FILE);
+    // only return uncompressed if it exists
+    final File rv = new File(scanDir, RESULTS_XML);
+    if (rv.isFile())
+      return rv;
+    return new File(scanDir, RESULTS_XML_COMPRESSED);
+  }
+
+  /**
+   * Finds the log file in the scan directory. Note that the returned file may
+   * not exist.
+   * 
+   * @param scanDir
+   *          a JSure scan directory.
+   * @return a log file which may or may not exist.
+   */
+  @NonNull
+  public static File findLogFile(File scanDir) {
+    return new File(scanDir, SLUtility.LOG_NAME);
   }
 
   public static boolean isIncompleteScan(final File dir) {
@@ -154,15 +170,17 @@ public class JSureScan implements Comparable<JSureScan>, IResults {
       return RegressionUtility.extractDateFromName(scanDirName) != null;
   }
 
-  private final Date f_timeOfScan; // non-null
-  private final File f_scanDir; // non-null
+  @NonNull
+  private final Date f_timeOfScan;
+  @NonNull
+  private final File f_scanDir;
   private JavaProjectSet<? extends JavaProject> f_projectsScanned;
   private JSureScan f_lastPartialScan;
   private final double f_sizeInMB; // non-null
 
   public JSureScan(File scanDir) throws Exception {
     if (scanDir == null || !scanDir.isDirectory()) {
-      throw new IllegalArgumentException();
+      throw new IllegalArgumentException(I18N.err(44, "scanDir"));
     }
     f_scanDir = scanDir;
 
@@ -194,10 +212,17 @@ public class JSureScan implements Comparable<JSureScan>, IResults {
     return f_scanDir;
   }
 
+  @NonNull
+  public File getLogFile() {
+    return findLogFile(f_scanDir);
+  }
+
+  @NonNull
   public File getResultsFile() {
     return findResultsXML(f_scanDir);
   }
 
+  @NonNull
   public String getDirName() {
     return f_scanDir.getName();
   }
@@ -214,30 +239,31 @@ public class JSureScan implements Comparable<JSureScan>, IResults {
     Reader reader = new Reader();
     f_projectsScanned = reader.readProjectsXML(f_scanDir);
     if (f_projectsScanned != null) {
-    	f_projectsScanned.setMonitor(new NullSLProgressMonitor());
-    	f_projectsScanned.setScanDir(f_scanDir);
-    	if (!f_projectsScanned.getRunDir().equals(f_scanDir)) {
-    		throw new IllegalStateException();
-    	}
+      f_projectsScanned.setMonitor(new NullSLProgressMonitor());
+      f_projectsScanned.setScanDir(f_scanDir);
+      if (!f_projectsScanned.getRunDir().equals(f_scanDir)) {
+        throw new IllegalStateException();
+      }
     }
     return f_projectsScanned;
   }
 
   static class Reader extends JavaProjectsXMLReader<JavaProject> {
-	  public Reader() {
-		  super(IJavaFactory.prototype);
-	  }
+    public Reader() {
+      super(IJavaFactory.prototype);
+    }
 
-	  @Override
-	  protected void setupDefaultJRE(String projectName) {
-		  if (projectName.startsWith(Config.JRE_NAME)) {
-			  // TODO what if this should be JavacEclipse?
-			  
-			  //Javac.getDefault().setPreference(IDEPreferences.DEFAULT_JRE, projectName);
-		  }
-	  }
+    @Override
+    protected void setupDefaultJRE(String projectName) {
+      if (projectName.startsWith(Config.JRE_NAME)) {
+        // TODO what if this should be JavacEclipse?
+
+        // Javac.getDefault().setPreference(IDEPreferences.DEFAULT_JRE,
+        // projectName);
+      }
+    }
   }
-  
+
   public void setLastPartialScan(JSureScan last) {
     if (f_lastPartialScan != null && f_lastPartialScan != last || last == null) {
       throw new IllegalArgumentException();
@@ -280,7 +306,7 @@ public class JSureScan implements Comparable<JSureScan>, IResults {
       info = f_lastPartialScan.getLatestFilesForProject(proj);
     } else {
       resultsZip = new File(f_scanDir, PersistenceConstants.RESULTS_ZIP);
-      info = new HashMap<String, JSureFileInfo>();
+      info = new HashMap<>();
     }
     if (!resultsZip.exists() || resultsZip.length() == 0) {
       // System.out.println("No results: "+resultsZip);
@@ -329,53 +355,46 @@ public class JSureScan implements Comparable<JSureScan>, IResults {
     return true;
   }
 
+  /**
+   * Gets the sourcs zips directory.
+   * 
+   * @return a directory, or {@code null} if none exits.
+   */
+  @Nullable
   private File getSourceZipsDir() {
-	  File dir = new File(f_scanDir, PersistenceConstants.ZIPS_DIR);
-	  if (dir.isDirectory()) {
-		  return dir;
-	  }
-	  return new File(f_scanDir, OLD_ZIPS_DIR); 
+    File dir = new File(f_scanDir, PersistenceConstants.ZIPS_DIR);
+    if (dir.isDirectory())
+      return dir;
+    return null;
   }
-  
+
   public Iterable<File> getSourceZips() {
-	final File dir = getSourceZipsDir();
-	if (!dir.isDirectory()) {
-		return Collections.emptyList();
-	}
+    final File dir = getSourceZipsDir();
+    if (!dir.isDirectory()) {
+      return Collections.emptyList();
+    }
     return Arrays.asList(dir.listFiles());
   }
 
   void clear() {
-	  f_projectsScanned.clear();
-  }
-  
-  /**
-   * Used to find existing results
-   */
-  private static File findResultsXML_private(File scanDir) {		
-	  File rv = new File(scanDir, RESULTS_XML);
-	  if (rv.isFile()) {
-		  return rv;
-	  }
-	  return new File(scanDir, COMPRESSED_RESULTS_XML);
+    f_projectsScanned.clear();
   }
 
   public static File getResultsFile(File scanDir) {
-	  final boolean compress =
-			  IDERoot.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_USE_COMPRESSION);
-	  final File location =  new File(scanDir, compress ? COMPRESSED_TEMP_RESULTS_XML : TEMP_RESULTS_XML);
-	  return location;
+    final boolean compress = IDERoot.getInstance().getBooleanPreference(IDEPreferences.SCAN_MAY_USE_COMPRESSION);
+    final File location = new File(scanDir, compress ? COMPRESSED_TEMP_RESULTS_XML : TEMP_RESULTS_XML);
+    return location;
   }
 
   public static void markAsRunning(File scanDir) {
-	  final File location = getResultsFile(scanDir);
-	  try {
-		  location.createNewFile();
-	  } catch (IOException e) {
-		  // Ignore
-	  }
+    final File location = getResultsFile(scanDir);
+    try {
+      location.createNewFile();
+    } catch (IOException e) {
+      // Ignore
+    }
   }
-  
+
   public String getLabel() {
     return getDir().getName();
   }

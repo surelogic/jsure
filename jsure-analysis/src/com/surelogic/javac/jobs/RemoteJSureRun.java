@@ -43,7 +43,7 @@ public class RemoteJSureRun extends RemoteScanJob<Projects,JavacProject> {
 			return;
 		}
  		final boolean compress = tmpLocation.getName().endsWith(FileUtility.GZIP_SUFFIX);
-		final File location = new File(scanDir, compress ? JSureScan.COMPRESSED_RESULTS_XML : JSureScan.RESULTS_XML);
+		final File location = new File(scanDir, compress ? JSureScan.RESULTS_XML_COMPRESSED : JSureScan.RESULTS_XML);
 		System.out.println("Renaming snapshot: "+location);
 		tmpLocation.renameTo(location);
 	}

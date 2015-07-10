@@ -14,6 +14,7 @@ import com.surelogic.analysis.JSureProperties;
 import com.surelogic.common.AbstractJavaZip;
 import com.surelogic.common.FileUtility;
 import com.surelogic.common.Pair;
+import com.surelogic.common.SLUtility;
 import com.surelogic.common.TextArchiver;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.core.EclipseUtility;
@@ -324,7 +325,7 @@ public class JSureDriver<T extends JavaProject> extends AbstractJavaScanner<Java
 					}
 				}
 				out.archive(PersistenceConstants.PROJECTS_XML, new File(projects.getRunDir(), PersistenceConstants.PROJECTS_XML));
-				out.archive(AbstractRemoteSLJob.LOG_NAME, new File(projects.getRunDir(), AbstractRemoteSLJob.LOG_NAME));
+				out.archive(SLUtility.LOG_NAME, new File(projects.getRunDir(), SLUtility.LOG_NAME));
 
 				final File libDir = JSurePreferencesUtility.getJSureXMLDirectory();
 				FileUtility.recursiveIterate(out, libDir);
@@ -333,7 +334,7 @@ public class JSureDriver<T extends JavaProject> extends AbstractJavaScanner<Java
 			}
 		} catch (IOException e) {
 			// Couldn't create the new file for some reason
-			return new File(projects.getRunDir(), AbstractRemoteSLJob.LOG_NAME);
+			return new File(projects.getRunDir(), SLUtility.LOG_NAME);
 		}
 		return crash;
 	}	
