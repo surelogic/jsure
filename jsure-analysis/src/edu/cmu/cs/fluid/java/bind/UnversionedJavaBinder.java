@@ -12,6 +12,7 @@ import java.util.logging.Level;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.surelogic.RequiresLock;
 import com.surelogic.ThreadSafe;
 import com.surelogic.Unique;
@@ -45,7 +46,7 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
    * TODO what about types that have no parameterizations? (waste of space)
    */
   private final Multimap<IRNode, IJavaSourceRefType> sourceTypeParameterizations = cacheAllSourceTypes ?	  
-	  ArrayListMultimap.<IRNode, IJavaSourceRefType>create() : null;
+	  Multimaps.synchronizedListMultimap(ArrayListMultimap.<IRNode, IJavaSourceRefType>create()) : null;
 	
   private final ConcurrentMap<IJavaSourceRefType,IJavaMemberTable> memberTableCache = cacheAllSourceTypes ? 
       new ConcurrentHashMap<IJavaSourceRefType,IJavaMemberTable>() : null;
@@ -268,13 +269,15 @@ public class UnversionedJavaBinder extends AbstractJavaBinder implements ICompUn
 			  final Map<IJavaSourceRefType,IJavaMemberTable> tables = memberTableCache;
 			  final Procedure<Integer> proc = new Procedure<Integer>() {
 				  @Override
-          public void op(Integer ignore) {
+				  public void op(Integer ignore) {
 					  for(final IJavaSourceRefType t : types) {
 						  tables.remove(t);
 					  }
 				  }
 			  };
+			  // TODO why does this run in all threads?			  
 			  // TODO THREADLOCAL TODO ConcurrentAnalysis.executeOnAllThreads(proc);
+			  proc.op(null);
 		  }
 		  return removed;
 	  }
