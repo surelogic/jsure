@@ -218,7 +218,7 @@ public final class MRadioMenuColumn extends MColumn implements IRadioMenuObserve
   }
 
   List<ISelectionFilterFactory> getFilterChoicesForThisMenu() {
-    List<ISelectionFilterFactory> result = new ArrayList<ISelectionFilterFactory>(Selection.getAllFilters());
+    List<ISelectionFilterFactory> result = new ArrayList<>(Selection.getAllFilters());
     MColumn column = this;
     do {
       column = column.getPreviousColumn();

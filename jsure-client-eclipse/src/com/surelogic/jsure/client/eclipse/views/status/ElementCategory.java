@@ -26,8 +26,8 @@ final class ElementCategory extends Element {
   static final class Categorizer {
 
     private final Element f_parent;
-    private final List<IDrop> f_uncategorized = new ArrayList<IDrop>();
-    final Map<String, ElementCategory.Builder> f_categorizingStringToBuilder = new HashMap<String, ElementCategory.Builder>();
+    private final List<IDrop> f_uncategorized = new ArrayList<>();
+    final Map<String, ElementCategory.Builder> f_categorizingStringToBuilder = new HashMap<>();
 
     Categorizer(Element parent) {
       f_parent = parent;
@@ -81,7 +81,7 @@ final class ElementCategory extends Element {
 
     @NonNull
     List<Element> getUncategorizedElements() {
-      final List<Element> result = new ArrayList<Element>();
+      final List<Element> result = new ArrayList<>();
       for (IDrop drop : f_uncategorized) {
         result.addAll(ElementDrop.factory(f_parent, drop));
       }
@@ -90,7 +90,7 @@ final class ElementCategory extends Element {
 
     @NonNull
     List<ElementCategory> getCategorizedElements() {
-      final List<ElementCategory> result = new ArrayList<ElementCategory>();
+      final List<ElementCategory> result = new ArrayList<>();
       for (ElementCategory.Builder builder : getBuilders()) {
         builder.setParent(f_parent);
         result.add(builder.build());
@@ -100,7 +100,7 @@ final class ElementCategory extends Element {
 
     @NonNull
     List<Element> getAllElements() {
-      final List<Element> result = new ArrayList<Element>(getUncategorizedElements());
+      final List<Element> result = new ArrayList<>(getUncategorizedElements());
       result.addAll(getCategorizedElements());
       return result;
     }
@@ -115,11 +115,11 @@ final class ElementCategory extends Element {
   static final class Builder {
 
     private Element f_parent;
-    private final List<IProofDrop> f_proofDrops = new ArrayList<IProofDrop>();
+    private final List<IProofDrop> f_proofDrops = new ArrayList<>();
     boolean f_provedConsistent = true;
     boolean f_proofUsesRedDot = false;
-    private final List<IDrop> f_otherDrops = new ArrayList<IDrop>();
-    private final List<ElementCategory.Builder> f_categories = new ArrayList<ElementCategory.Builder>();
+    private final List<IDrop> f_otherDrops = new ArrayList<>();
+    private final List<ElementCategory.Builder> f_categories = new ArrayList<>();
     private String f_label;
     private String f_imageName;
 
@@ -203,7 +203,7 @@ final class ElementCategory extends Element {
           flags.add(Flag.REDDOT);
       }
       ElementCategory result = new ElementCategory(f_parent, f_label, flags, f_imageName);
-      List<Element> children = new ArrayList<Element>();
+      List<Element> children = new ArrayList<>();
       for (IProofDrop pd : f_proofDrops) {
         children.addAll(ElementDrop.factory(result, pd));
       }

@@ -136,7 +136,7 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
      * exist the code below will expand out the entire element model tree to its
      * leaves.
      */
-    final Queue<Element> queue = new LinkedList<Element>();
+    final Queue<Element> queue = new LinkedList<>();
     queue.addAll(Arrays.asList(root));
     while (!queue.isEmpty()) {
       final Element e = queue.poll();
@@ -162,7 +162,7 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
    * @return the filtered list of proposals.
    */
   static ArrayList<IProposedPromiseDrop> filterOutDuplicates(Collection<IProposedPromiseDrop> proposals) {
-    ArrayList<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
+    ArrayList<IProposedPromiseDrop> result = new ArrayList<>();
     // Hash results
     Multimap<Long, IProposedPromiseDrop> hashed = ArrayListMultimap.create();
     for (IProposedPromiseDrop info : proposals) {
@@ -199,7 +199,7 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
 
   // n^2 comparisons
   private static List<IProposedPromiseDrop> filterOutDuplicates_slow(Collection<IProposedPromiseDrop> proposals) {
-    List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
+    List<IProposedPromiseDrop> result = new ArrayList<>();
     for (IProposedPromiseDrop h : proposals) {
       boolean addToResult = true;
       for (IProposedPromiseDrop i : result) {

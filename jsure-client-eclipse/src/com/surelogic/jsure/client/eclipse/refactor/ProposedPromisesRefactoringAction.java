@@ -58,10 +58,10 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
     final List<IProposedPromiseDrop> valid = findValidProposals(selected);
     if (valid.isEmpty()) {
       MessageDialog.openInformation(EclipseUIUtility.getShell(), I18N.msg("jsure.eclipse.dialog.proposals.noneValid.title"),
-    		  I18N.msg("jsure.eclipse.dialog.proposals.noneValid.msg"));
+          I18N.msg("jsure.eclipse.dialog.proposals.noneValid.msg"));
       return;
     }
-    
+
     final ProposedPromisesChange info = new ProposedPromisesChange(valid);
     final ProposedPromisesRefactoring refactoring = new ProposedPromisesRefactoring(info);
     final ProposedPromisesRefactoringWizard wizard = new ProposedPromisesRefactoringWizard(refactoring, info);
@@ -74,61 +74,60 @@ public abstract class ProposedPromisesRefactoringAction extends Action {
   }
 
   private List<IProposedPromiseDrop> findValidProposals(List<IProposedPromiseDrop> proposals) {
-	List<IProposedPromiseDrop> valid = new ArrayList<IProposedPromiseDrop>(proposals.size());
-	for(IProposedPromiseDrop p : proposals) {
-		if (isValid(p)) {
-			valid.add(p);
-		}
-	}
-	return valid;
-  }
-  
-  private boolean isValid(IProposedPromiseDrop p) {
-	final IJavaRef ref = p.getJavaRef();
-	/*
-	final IJavaProject proj = JDTUtility.getJavaProject(ref.getRealEclipseProjectNameOrNull());
-	if (proj == null) {
-		return false;
-	}
-	*/
-	IJavaElement elt = JDTUtility.findJavaElementOrNull(ref);
-	if (elt != null) {
-		switch (elt.getElementType()) {
-		case IJavaElement.COMPILATION_UNIT:
-			return true;
-		case IJavaElement.FIELD:
-		case IJavaElement.METHOD:
-		case IJavaElement.TYPE:			
-		case IJavaElement.LOCAL_VARIABLE:
-			return true;
-		case IJavaElement.CLASS_FILE:
-			IJavaElement srcElt = JDTUtility.findJavaElementOrNull(p.getAssumptionRef());
-			return srcElt != null && srcElt.getElementType() == IJavaElement.COMPILATION_UNIT;			
-		default:
-			throw new IllegalStateException("Unexpected Java element: "+elt);
-		}
-	}
-	return false;
+    List<IProposedPromiseDrop> valid = new ArrayList<>(proposals.size());
+    for (IProposedPromiseDrop p : proposals) {
+      if (isValid(p)) {
+        valid.add(p);
+      }
+    }
+    return valid;
   }
 
-/**
+  private boolean isValid(IProposedPromiseDrop p) {
+    final IJavaRef ref = p.getJavaRef();
+    /*
+     * final IJavaProject proj =
+     * JDTUtility.getJavaProject(ref.getRealEclipseProjectNameOrNull()); if
+     * (proj == null) { return false; }
+     */
+    IJavaElement elt = JDTUtility.findJavaElementOrNull(ref);
+    if (elt != null) {
+      switch (elt.getElementType()) {
+      case IJavaElement.COMPILATION_UNIT:
+        return true;
+      case IJavaElement.FIELD:
+      case IJavaElement.METHOD:
+      case IJavaElement.TYPE:
+      case IJavaElement.LOCAL_VARIABLE:
+        return true;
+      case IJavaElement.CLASS_FILE:
+        IJavaElement srcElt = JDTUtility.findJavaElementOrNull(p.getAssumptionRef());
+        return srcElt != null && srcElt.getElementType() == IJavaElement.COMPILATION_UNIT;
+      default:
+        throw new IllegalStateException("Unexpected Java element: " + elt);
+      }
+    }
+    return false;
+  }
+
+  /**
    * Find projects that don't have the promises jar
    */
   private List<IJavaProject> findProjectsWithoutPromises(List<IProposedPromiseDrop> proposals) {
-    final Set<String> projects = new HashSet<String>();
+    final Set<String> projects = new HashSet<>();
     for (IProposedPromiseDrop p : proposals) {
       // Check the target project for promises
       projects.add(p.getJavaRef().getRealEclipseProjectNameOrNull());
     }
-    final List<IJavaProject> missing = new ArrayList<IJavaProject>();
+    final List<IJavaProject> missing = new ArrayList<>();
     for (String name : projects) {
       if (name == null) {
-    	  continue; // Skip this since it's the JRE
+        continue; // Skip this since it's the JRE
       }
       final IJavaProject proj = JDTUtility.getJavaProject(name);
       if (proj == null) {
-          continue; // Skip this since it's the JRE
-        }
+        continue; // Skip this since it's the JRE
+      }
       if (!JSureUtility.checkForRegionLockPromiseOnClasspathOf(proj)) {
         missing.add(proj);
       }

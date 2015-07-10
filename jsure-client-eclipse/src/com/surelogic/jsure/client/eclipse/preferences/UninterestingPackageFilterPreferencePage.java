@@ -106,14 +106,14 @@ public class UninterestingPackageFilterPreferencePage extends PreferencePage imp
     return composite;
   }
 
-  private void selectionMayHaveChanged() {
+  void selectionMayHaveChanged() {
     if (!f_filterTable.isDisposed()) {
       TableItem[] selected = f_filterTable.getSelection();
       f_buttonRemove.setEnabled(selected.length > 0);
     }
   }
 
-  private void addFilter() {
+  void addFilter() {
     final AddUninterestingPackageFilterDialog dialog = new AddUninterestingPackageFilterDialog(getTableContents());
     if (Window.OK == dialog.open()) {
       final String regex = dialog.getFilter();
@@ -123,7 +123,7 @@ public class UninterestingPackageFilterPreferencePage extends PreferencePage imp
     }
   }
 
-  private void deleteSelectedFilter() {
+  void deleteSelectedFilter() {
     if (!f_filterTable.isDisposed()) {
       TableItem[] selected = f_filterTable.getSelection();
       for (TableItem ti : selected) {
@@ -132,7 +132,7 @@ public class UninterestingPackageFilterPreferencePage extends PreferencePage imp
     }
   }
 
-  private void setTableContents(List<String> filters) {
+  void setTableContents(List<String> filters) {
     if (!f_filterTable.isDisposed()) {
       f_filterTable.removeAll();
       for (final String regex : filters) {
@@ -141,14 +141,14 @@ public class UninterestingPackageFilterPreferencePage extends PreferencePage imp
     }
   }
 
-  private void addRowToTable(String regex) {
+  void addRowToTable(String regex) {
     final TableItem item = new TableItem(f_filterTable, SWT.NULL);
     item.setText(regex);
     item.setImage(SLImages.getImage(CommonImages.IMG_PACKAGE));
   }
 
   private List<String> getTableContents() {
-    final List<String> result = new ArrayList<String>();
+    final List<String> result = new ArrayList<>();
     for (TableItem item : f_filterTable.getItems()) {
       result.add(item.getText());
     }

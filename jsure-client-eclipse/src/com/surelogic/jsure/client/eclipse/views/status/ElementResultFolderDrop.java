@@ -11,7 +11,7 @@ import com.surelogic.dropsea.IResultFolderDrop;
 final class ElementResultFolderDrop extends ElementAnalysisResultDrop {
 
   static Collection<Element> getInstanceOrElideFolder(Element parent, IResultFolderDrop resultFolderDrop) {
-    final List<Element> result = new ArrayList<Element>();
+    final List<Element> result = new ArrayList<>();
     if (resultFolderDrop != null)
       if (resultFolderDrop.getLogicOperator() == IResultFolderDrop.LogicOperator.OR && resultFolderDrop.getTrusted().size() == 1) {
         /*

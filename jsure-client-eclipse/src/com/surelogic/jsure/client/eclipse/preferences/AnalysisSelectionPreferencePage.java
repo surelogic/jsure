@@ -44,8 +44,8 @@ import edu.cmu.cs.fluid.CommonStrings;
  * the JSure tool. It reads and updates the list of excluded analysis module
  * extension points for double-checking.
  */
-public final class AnalysisSelectionPreferencePage extends org.eclipse.jface.preference.PreferencePage implements
-    IWorkbenchPreferencePage {
+public final class AnalysisSelectionPreferencePage extends org.eclipse.jface.preference.PreferencePage
+    implements IWorkbenchPreferencePage {
 
   CheckboxTreeViewer checktree;
 
@@ -141,8 +141,8 @@ public final class AnalysisSelectionPreferencePage extends org.eclipse.jface.pre
    * The content provider for the tree with check boxes that allows the user to
    * turn on and off analysis module extension points.
    */
-  final class AnalysisModuleContentProvider extends LabelProvider implements ICheckStateListener, ITreeContentProvider,
-      ITreeViewerListener {
+  final class AnalysisModuleContentProvider extends LabelProvider
+      implements ICheckStateListener, ITreeContentProvider, ITreeViewerListener {
 
     /**
      * The contents for the viewer.
@@ -163,7 +163,7 @@ public final class AnalysisSelectionPreferencePage extends org.eclipse.jface.pre
      *         dialog (all are interned)
      */
     Set<String> getOnIds() {
-      Set<String> result = new HashSet<String>();
+      Set<String> result = new HashSet<>();
       for (PreferenceTreeNode node : m_checktreeContents) {
         if (node.isOn) {
           result.add(CommonStrings.intern(node.am.getUniqueIdentifier()));
@@ -178,8 +178,8 @@ public final class AnalysisSelectionPreferencePage extends org.eclipse.jface.pre
      */
     AnalysisModuleContentProvider() {
       // read information from the double-checker plug-in
-      m_checktreeContents = new HashSet<PreferenceTreeNode>();
-      m_originalMap = new HashMap<IAnalysisInfo, PreferenceTreeNode>();
+      m_checktreeContents = new HashSet<>();
+      m_originalMap = new HashMap<>();
       // Create core contents (ones we care about)
       for (IAnalysisInfo am : DoubleChecker.getDefault().getAllAnalysisInfo()) {
         PreferenceTreeNode node = new PreferenceTreeNode();
@@ -207,7 +207,7 @@ public final class AnalysisSelectionPreferencePage extends org.eclipse.jface.pre
      *         prerequisites for the analysis module <code>extension</code>
      */
     private Set<PreferenceTreeNode> addPrereqs(IAnalysisInfo extension) {
-      Set<PreferenceTreeNode> result = new HashSet<PreferenceTreeNode>();
+      Set<PreferenceTreeNode> result = new HashSet<>();
       Set<IAnalysisInfo> prereqs = DoubleChecker.getDefault().getPrerequisiteAnalysisExtensionPoints(extension);
       for (IAnalysisInfo prereq : prereqs) {
         PreferenceTreeNode node = new PreferenceTreeNode();
@@ -327,7 +327,7 @@ public final class AnalysisSelectionPreferencePage extends org.eclipse.jface.pre
      * Used by the "Restore Defaults" buttons to reset the dialog to include
      * only production analyses.
      */
-    private void restoreDefaults() {
+    void restoreDefaults() {
       for (PreferenceTreeNode node : m_checktreeContents) {
         IAnalysisInfo e = (node.isAMirror ? node.original.am : node.am);
         if (e == null) {

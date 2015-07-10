@@ -114,7 +114,7 @@ public final class ScanManagerMediator implements ILifecycle {
         if (current != null) {
           try {
             // Collect the projects together
-            final List<IJavaProject> selectedProjects = new ArrayList<IJavaProject>();
+            final List<IJavaProject> selectedProjects = new ArrayList<>();
             for (final JavaProject p : current.getProjects()) {
               if (!p.isAsBinary()) {
                 final IJavaProject jp = JDTUtility.getJavaProject(p.getName());
@@ -195,7 +195,7 @@ public final class ScanManagerMediator implements ILifecycle {
     if (selected.isEmpty())
       return Collections.emptyList();
 
-    final List<JSureScan> result = new ArrayList<JSureScan>();
+    final List<JSureScan> result = new ArrayList<>();
     for (Object o : selected.toList()) {
       if (o instanceof JSureScan) {
         result.add((JSureScan) o);

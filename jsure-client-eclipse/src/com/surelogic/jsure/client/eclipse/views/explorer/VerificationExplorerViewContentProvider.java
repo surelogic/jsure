@@ -41,15 +41,15 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
         boolean showAnalysisResults, boolean showHints) {
       f_tree = new ElementJavaDecl.Folderizer(diff, source);
 
-      final ArrayList<IDrop> drops = new ArrayList<IDrop>();
+      final ArrayList<IDrop> drops = new ArrayList<>();
       drops.addAll(scan.getProofDrops());
       if (showHints)
         drops.addAll(scan.getHintDrops());
       if (showObsoleteDrops && diff != null) {
-        //drops.addAll(diff.getDropsOnlyInOldScan(oldScan));
-    	throw new UnsupportedOperationException("Temporarily disabled while reorganizing fluid");
+        // drops.addAll(diff.getDropsOnlyInOldScan(oldScan));
+        throw new UnsupportedOperationException("Temporarily disabled while reorganizing fluid");
       }
-      final Set<IDrop> oldDrops = oldScan == null ? null : new HashSet<IDrop>(oldScan.getDropInfo());
+      final Set<IDrop> oldDrops = oldScan == null ? null : new HashSet<>(oldScan.getDropInfo());
       for (IDrop pd : drops) {
         if (!(pd instanceof IProofDrop || pd instanceof IHintDrop))
           continue;
@@ -141,7 +141,7 @@ public final class VerificationExplorerViewContentProvider implements ITreeConte
      * exist the code below will expand out the entire element model tree to its
      * leaves.
      */
-    final Queue<Element> queue = new LinkedList<Element>();
+    final Queue<Element> queue = new LinkedList<>();
     queue.addAll(Arrays.asList(root));
     while (!queue.isEmpty()) {
       final Element e = queue.poll();

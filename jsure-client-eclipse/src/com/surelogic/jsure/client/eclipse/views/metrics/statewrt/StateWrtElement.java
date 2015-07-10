@@ -52,7 +52,7 @@ public abstract class StateWrtElement {
     if (child == null)
       return;
     if (f_children == null)
-      f_children = new ArrayList<StateWrtElement>();
+      f_children = new ArrayList<>();
     f_children.add(child);
   }
 

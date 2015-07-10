@@ -325,7 +325,7 @@ public final class VerificationStatusView extends ViewPart implements JSureDataD
     protected List<IProposedPromiseDrop> getProposedDrops() {
       final IStructuredSelection s = (IStructuredSelection) f_treeViewer.getSelection();
       if (!s.isEmpty()) {
-        final List<IProposedPromiseDrop> proposals = new ArrayList<IProposedPromiseDrop>();
+        final List<IProposedPromiseDrop> proposals = new ArrayList<>();
         for (final Object element : s.toList()) {
           if (element instanceof ElementProposedPromiseDrop) {
             proposals.add(((ElementProposedPromiseDrop) element).getDrop());

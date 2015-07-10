@@ -35,7 +35,7 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
     /**
      * The model.
      */
-    final List<Element> f_root = new ArrayList<Element>();
+    final List<Element> f_root = new ArrayList<>();
 
     /**
      * Gets the model associated with this input as an array so it can be easily
@@ -212,7 +212,7 @@ public final class VerificationStatusViewContentProvider implements ITreeContent
      * exist the code below will expand out the entire element model tree to its
      * leaves.
      */
-    final Queue<Element> queue = new LinkedList<Element>();
+    final Queue<Element> queue = new LinkedList<>();
     queue.addAll(Arrays.asList(root));
     while (!queue.isEmpty()) {
       final Element e = queue.poll();

@@ -26,7 +26,7 @@ public class DropCounterViewContentProvider implements IStructuredContentProvide
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
     if (newInput instanceof JSureScanInfo) {
       final JSureScanInfo scanInfo = (JSureScanInfo) newInput;
-      final HashMap<String, DropCounterElement> counts = new HashMap<String, DropCounterElement>();
+      final HashMap<String, DropCounterElement> counts = new HashMap<>();
       final List<IDrop> drops = scanInfo.getDropInfo();
       f_provider.updateTotalLabel(drops.size());
       for (IDrop drop : drops) {
