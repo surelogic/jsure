@@ -42,7 +42,6 @@ import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
 import com.surelogic.common.concurrent.ParallelArray;
 import com.surelogic.common.concurrent.Procedure;
-import com.surelogic.common.concurrent.RecursiveIOAction;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.java.Config;
 import com.surelogic.common.java.Config.Type;
@@ -71,7 +70,6 @@ import edu.cmu.cs.fluid.ir.MarkedIRNode;
 import edu.cmu.cs.fluid.java.CodeInfo;
 import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.ICodeFile;
-import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.bind.PromiseConstants;
 import edu.cmu.cs.fluid.java.operator.Annotation;
 import edu.cmu.cs.fluid.java.operator.CompilationUnit;
@@ -94,7 +92,6 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
 
   /** Should we try to run things in parallel */
   static boolean wantToRunInParallel = true;
-  static boolean useForkJoinTasks = wantToRunInParallel && false;
 
   static final String[] sourceLevels = { "1.5" /* default */, "1.1", "1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "8" };
 
@@ -222,33 +219,23 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
           }
         }
       }
-      if (useForkJoinTasks) {
-        try {
-          parseViaForkJoin(new ArrayList<>(temp), results, asBinary);
-        } catch (InterruptedException e) {
-          throw new IOException(e);
-        } catch (ExecutionException e) {
-          throw new IOException(e.getCause());
-        }
-      } else {
-        // Handle in batches
-        final Iterator<JavaFileObject> fileI = temp.iterator();
-        final List<JavaFileObject> batch = new ArrayList<>(max);
+      // Handle in batches
+      final Iterator<JavaFileObject> fileI = temp.iterator();
+      final List<JavaFileObject> batch = new ArrayList<>(max);
 
-        while (fileI.hasNext()) {
-          if (tEnv.getProgressMonitor().isCanceled()) {
-            throw new CancellationException();
-          }
-          batch.add(fileI.next());
-
-          if (batch.size() >= max) {
-            parseBatch(batch, results, asBinary);
-            batch.clear();
-          }
+      while (fileI.hasNext()) {
+        if (tEnv.getProgressMonitor().isCanceled()) {
+          throw new CancellationException();
         }
-        if (!batch.isEmpty()) {
+        batch.add(fileI.next());
+
+        if (batch.size() >= max) {
           parseBatch(batch, results, asBinary);
+          batch.clear();
         }
+      }
+      if (!batch.isEmpty()) {
+        parseBatch(batch, results, asBinary);
       }
       for (CodeInfo cu : results) {
         if (usesUnsupportedJava8Features(cu.getNode())) {
@@ -284,34 +271,34 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
       r.close();
     }
 
-    void parseViaForkJoin(Iterable<JavaFileObject> files, List<CodeInfo> results, final boolean asBinary)
-        throws IOException, InterruptedException, ExecutionException {
-      final JavacTask javac = initJavac(files);
-      final Trees t = Trees.instance(javac);
-      // System.out.println("Parsing sources");
-      Stack<AdaptTask> tasks = new Stack<>();
-      final ForkJoinPool pool = new ForkJoinPool(ConcurrentAnalysis.getThreadCountToUse());
-      try {
-        for (final CompilationUnitTree cut : javac.parse()) {
-          if (debug) {
-            System.out.println("Parsing " + cut.getSourceFile().getName());
-          }
-          tEnv.addPackage(SourceAdapter.getPackage(cut), this.asBinary ? Config.Type.INTERFACE : Config.Type.SOURCE);
-          final AdaptTask task = new AdaptTask(t, cut);
-          pool.submit(task);
-          tasks.push(task);
-        }
-        while (!tasks.isEmpty()) {
-          final AdaptTask at = tasks.pop();
-          final CodeInfo info = at.get();
-          tEnv.addCompUnit(info, true);
-          results.add(info);
-        }
-        timeAnalysis(javac);
-      } finally {
-        pool.shutdown();
-      }
-    }
+//    void parseViaForkJoin(Iterable<JavaFileObject> files, List<CodeInfo> results, final boolean asBinary)
+//        throws IOException, InterruptedException, ExecutionException {
+//      final JavacTask javac = initJavac(files);
+//      final Trees t = Trees.instance(javac);
+//      // System.out.println("Parsing sources");
+//      Stack<AdaptTask> tasks = new Stack<>();
+//      final ForkJoinPool pool = new ForkJoinPool(ConcurrentAnalysis.getThreadCountToUse());
+//      try {
+//        for (final CompilationUnitTree cut : javac.parse()) {
+//          if (debug) {
+//            System.out.println("Parsing " + cut.getSourceFile().getName());
+//          }
+//          tEnv.addPackage(SourceAdapter.getPackage(cut), this.asBinary ? Config.Type.INTERFACE : Config.Type.SOURCE);
+//          final AdaptTask task = new AdaptTask(t, cut);
+//          pool.submit(task);
+//          tasks.push(task);
+//        }
+//        while (!tasks.isEmpty()) {
+//          final AdaptTask at = tasks.pop();
+//          final CodeInfo info = at.get();
+//          tEnv.addCompUnit(info, true);
+//          results.add(info);
+//        }
+//        timeAnalysis(javac);
+//      } finally {
+//        pool.shutdown();
+//      }
+//    }
 
     private void timeAnalysis(final JavacTask javac) throws IOException {
       if (true) {

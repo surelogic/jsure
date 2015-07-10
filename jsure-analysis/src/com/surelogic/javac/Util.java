@@ -170,7 +170,7 @@ public class Util implements AnalysisConstants {
 
   private static final String[] POSSIBLE_JDKS = { "C:/Program Files/Java/jdk1.6.0_17", "C:/Program Files/Java/jdk1.6.0_16", };
 
-  private static Logger LOG = SLLogger.getLogger();
+  static Logger LOG = SLLogger.getLogger();
 
   private enum Demo {
     TEST, COMMON, FLUID, JDK6, JEDIT, SMALL_WORLD;
@@ -795,18 +795,6 @@ public class Util implements AnalysisConstants {
     }
   }
 
-  private static void clearOldResults(CUDrop cud) {
-    System.out.println("Clearing old results for " + cud);
-    for (Drop d : cud.getDependents()) {
-      if (d instanceof IAnalysisOutputDrop) {
-        if (Dependencies.DROP_MESSAGE_DEBUG == null || d.getMessage().startsWith(Dependencies.DROP_MESSAGE_DEBUG)) {
-          System.err.println("\t" + d.getMessage());
-        }
-        d.invalidate();
-      }
-    }
-  }
-
   private static long[] analyzeCUs(final IIRAnalysisEnvironment env, final Projects projects, final Analyses analyses,
       ParallelArray<SourceCUDrop> cus, ParallelArray<SourceCUDrop> allCus, JSurePerformance perf) {
     if (XUtil.recordScript() != null) {
@@ -993,6 +981,7 @@ public class Util implements AnalysisConstants {
   }
 
   static abstract class AbstractAnalyzer<P, Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q>implements Analyzer<P, Q> {
+
     final IIRAnalysisEnvironment env;
 
     AbstractAnalyzer(boolean inParallel, IIRAnalysisEnvironment e) {
@@ -1021,7 +1010,9 @@ public class Util implements AnalysisConstants {
     AnalysesRunner(JSurePerformance perf, Analyses g, IIRAnalysisEnvironment e) {
       super(!perf.singleThreaded, e);
       analyses = g;
-      procs = new Procedure[g.numGroups()];
+      @SuppressWarnings("unchecked")
+      final Procedure<IAnalysisGranule>[] tprocs = new Procedure[g.numGroups()];
+      procs = tprocs;
       setupProcedure();
     }
 
@@ -1062,8 +1053,8 @@ public class Util implements AnalysisConstants {
             final CUDrop cud = (CUDrop) granule;
             frame.pushTypeContext(granule.getCompUnit());
             int j = 0;
-            for (final IAnalysisGroup<?> g : analyses.getGroups()) {
-              final IAnalysisGranulator<?> granulator = g.getGranulator();
+            for (final IAnalysisGroup<? extends IAnalysisGranule> g : analyses.getGroups()) {
+              final IAnalysisGranulator<? extends IAnalysisGranule> granulator = g.getGranulator();
               if (granulator == null) {
                 // Use the comp unit
                 runAnalyses(timings, g, granule);
@@ -1077,7 +1068,10 @@ public class Util implements AnalysisConstants {
                  * recordTime(cud, a, time); timing.incrTime(i, time); i++; }
                  */
               } else {
-                runAsTasks(granulator.extractNewGranules(cud.getTypeEnv(), cud.getCompUnit()), procs[j]);
+                ParallelArray<? extends IAnalysisGranule> runAsTasks = new ParallelArray<>(
+                    granulator.extractNewGranules(cud.getTypeEnv(), cud.getCompUnit()));
+                runAsTasks.apply(procs[j]);
+                runAsTasks.asList().clear();
               }
               getMonitor().worked(1);
               j++;
@@ -1259,12 +1253,12 @@ public class Util implements AnalysisConstants {
    */
   private static void rewriteCUs(Projects projects, final List<CodeInfo> cus, SLProgressMonitor monitor,
       final JavacClassParser loader) throws IOException {
-    final Map<ITypeEnvironment, JavaRewrite> rewrites = new HashMap<ITypeEnvironment, JavaRewrite>();
+    final Map<ITypeEnvironment, JavaRewrite> rewrites = new HashMap<>();
     // int binaryRewrites = 0;
     startSubTask(monitor, "Rewriting CUs");
 
     // Init the list of binders
-    final List<JavacTypeEnvironment.Binder> binders = new ArrayList<JavacTypeEnvironment.Binder>();
+    final List<JavacTypeEnvironment.Binder> binders = new ArrayList<>();
     for (JavacProject p : projects) {
       final JavacTypeEnvironment tEnv = p.getTypeEnv();
       rewrites.put(tEnv, new JavaRewrite(tEnv));
@@ -1273,7 +1267,7 @@ public class Util implements AnalysisConstants {
       binders.add((JavacTypeEnvironment.Binder) b);
     }
 
-    final Map<IRNode, CodeInfo> infoMap = new HashMap<IRNode, CodeInfo>(cus.size());
+    final Map<IRNode, CodeInfo> infoMap = new HashMap<>(cus.size());
     for (CodeInfo info : cus) {
       infoMap.put(info.getNode(), info);
     }
@@ -1848,7 +1842,7 @@ public class Util implements AnalysisConstants {
         cus.asList().add(d.makeCodeInfo());
       }
     };
-    for (CodeInfo info : new ArrayList<CodeInfo>(cus.asList())) {
+    for (CodeInfo info : new ArrayList<>(cus.asList())) {
       // TODO Check for package-info files
       // Check for sources
       if (info.getType() == Type.SOURCE) { // TODO what about interfaces?
