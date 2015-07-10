@@ -30,6 +30,13 @@ import com.surelogic.java.persistence.JSureScan;
  */
 public final class LogDialog extends Dialog {
 
+  /**
+   * Lines containing any of these strings will get highlighted in the displayed
+   * log. Match is case insensitive, but use all caps for this list because
+   * toUpper() is done on the checked string before the "contains" test.
+   */
+  String[] HIGHLIGHT_CUES = { "SEVERE", "WARNING", "ERROR", "PROBLEM" };
+
   private final JSureScan f_scan;
 
   /**
@@ -73,17 +80,20 @@ public final class LogDialog extends Dialog {
       @Override
       public void lineGetStyle(LineStyleEvent event) {
         ArrayList<StyleRange> result = new ArrayList<>();
-        boolean highlight = event.lineText.indexOf("SEVERE") != -1;
-        if (highlight) {
-          StyleRange sr = new StyleRange();
-          sr.start = event.lineOffset;
-          sr.length = event.lineText.length();
-          sr.foreground = text.getDisplay().getSystemColor(SWT.COLOR_DARK_RED);
-          sr.background = text.getDisplay().getSystemColor(SWT.COLOR_YELLOW);
-          sr.fontStyle = SWT.BOLD;
-          result.add(sr);
+        final String upperLineText = event.lineText.toUpperCase();
+        for (String cue : HIGHLIGHT_CUES) {
+          final boolean highlight = upperLineText.indexOf(cue) != -1;
+          if (highlight) {
+            StyleRange sr = new StyleRange();
+            sr.start = event.lineOffset;
+            sr.length = event.lineText.length();
+            sr.foreground = text.getDisplay().getSystemColor(SWT.COLOR_DARK_RED);
+            sr.background = text.getDisplay().getSystemColor(SWT.COLOR_YELLOW);
+            sr.fontStyle = SWT.BOLD;
+            result.add(sr);
+            break;
+          }
         }
-
         event.styles = result.toArray(new StyleRange[result.size()]);
       }
     });
