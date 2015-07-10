@@ -15,13 +15,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.Stack;
 import java.util.TreeSet;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,8 +26,8 @@ import java.util.zip.ZipFile;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.surelogic.Nullable;
-import com.surelogic.analysis.ConcurrentAnalysis;
 import com.surelogic.analysis.IIRProject;
 import com.surelogic.com.sun.source.tree.CompilationUnitTree;
 import com.surelogic.com.sun.source.util.JavacTask;
@@ -628,7 +625,7 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
 
     // TODO thread safe?
     // Project -> binary CUs
-    final Multimap<String, CodeInfo> cus = ArrayListMultimap.create();
+    final Multimap<String, CodeInfo> cus = Multimaps.synchronizedListMultimap(ArrayListMultimap.<String, CodeInfo>create());
     handleDanglingJarRefs(jp, cus);
     handleDanglingClassFileRefs(jp, classFiles, cus);
     final List<CodeInfo> newCUs = handleDanglingSourceRefs(jp, asBinary);
@@ -645,10 +642,17 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
         if (values != null) {
           newCUs.addAll(values);
           for (CodeInfo cu : values) {
-            if (cu != null)
+            if (cu != null) {
               maybeNewPkgs.put(key, cu.getFile().getPackage());
+            } else {
+            	System.err.println("Got null CodeInfo for "+key);
+            }
           }
+        } else {
+        	System.err.println("No packages for "+key);
         }
+      } else {
+    	  System.err.println("Null project for "+(e.getValue() == null ? "null packages" : e.getValue().iterator().next().getFileName()));
       }
     }
 
@@ -666,6 +670,12 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
     for (CodeInfo cu : newCUs) {
       // System.out.println("Scanning: "+info.getFileName());
       final boolean debug = false; // cu.getFileName().contains("EJBContext");
+      if (cu == null) {
+    	  System.err.println("Got null CodeInfo");
+      }
+      if (cu.getFile() == null) {
+    	  System.err.println("Got null file for "+cu.getFileName());
+      }
       final String proj = cu.getFile().getProjectName();
       final BatchParser parser = parsers.get(proj);
       if (parser == null) {
@@ -702,7 +712,7 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
         final Collection<CodeInfo> moreCUs = handleDanglingRefs(projects.get(key), setValues);
         newCUs.addAll(moreCUs);
       } else {
-        SLLogger.getLogger().log(Level.WARNING, "moreRefs returned a null key (code bug)", new Exception());
+        SLLogger.getLogger().log(Level.WARNING, "moreRefs returned a null key (code bug) for "+e.getValue(), new Exception());
       }
     }
     return newCUs;
