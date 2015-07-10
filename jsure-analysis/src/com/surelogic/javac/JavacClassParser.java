@@ -637,13 +637,18 @@ public final class JavacClassParser extends JavaClassPath<Projects> {
     // Project -> package names
     final Multimap<String, String> maybeNewPkgs = ArrayListMultimap.create();
     for (Map.Entry<String, Collection<CodeInfo>> e : cus.asMap().entrySet()) {
-      newCUs.addAll(e.getValue());
-      /*
-       * projects.get(e.getKey()).getTypeEnv().addCompUnits(e.getValue());
-       * jp.getTypeEnv().addCompUnits(e.getValue());
-       */
-      for (CodeInfo cu : e.getValue()) {
-        maybeNewPkgs.put(e.getKey(), cu.getFile().getPackage());
+      @Nullable
+      final String key = e.getKey();
+      if (key != null) {
+        @Nullable
+        final Collection<CodeInfo> values = e.getValue();
+        if (values != null) {
+          newCUs.addAll(values);
+          for (CodeInfo cu : values) {
+            if (cu != null)
+              maybeNewPkgs.put(key, cu.getFile().getPackage());
+          }
+        }
       }
     }
 
