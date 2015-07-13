@@ -1423,16 +1423,6 @@ public final class LockUtils {
     return mutex;
   }
   
-  public InstanceTarget createInstanceTarget(
-      final IRNode object, final IRegion region) {
-    return new InstanceTarget(
-        thisExprBinder.bindThisExpression(object), region, NoEvidence.INSTANCE);
-  }
-
-  public ClassTarget createClassTarget(final IRegion field) {
-    return new ClassTarget(field, NoEvidence.INSTANCE);
-  }
-
   /**
    * Determine if a constructor can be considered to be single-threaded
    * 

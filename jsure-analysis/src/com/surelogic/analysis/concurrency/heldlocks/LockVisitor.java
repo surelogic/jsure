@@ -42,8 +42,11 @@ import com.surelogic.analysis.concurrency.heldlocks.locks.NeededLockFactory;
 import com.surelogic.analysis.effects.ConflictChecker;
 import com.surelogic.analysis.effects.Effect;
 import com.surelogic.analysis.effects.Effects;
+import com.surelogic.analysis.effects.targets.ClassTarget;
+import com.surelogic.analysis.effects.targets.InstanceTarget;
 import com.surelogic.analysis.effects.targets.LocalTarget;
 import com.surelogic.analysis.effects.targets.Target;
+import com.surelogic.analysis.effects.targets.evidence.NoEvidence;
 import com.surelogic.analysis.regions.IRegion;
 import com.surelogic.analysis.uniqueness.UniquenessUtils;
 import com.surelogic.analysis.visitors.InstanceInitAction;
@@ -1793,7 +1796,7 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 		 * Consider the case of a method call <code>this.f.m()</code>, where
 		 * <code>this</code> has type <code>C</code>, field <code>f</code> has
 		 * type <code>D</code>, and method <code>m</code> may affect region
-		 * <code>D.R</code>. Additionally suppose that <code>C </code> maps
+		 * <code>D.R</code>. Additionally suppose that <code>C</code> maps
 		 * region <code>R</code> into region <code>C.Q</code>, and associates
 		 * <code>Q</code> with lock <code>L</code>. We must determine that
 		 * <code>m()</code> affects <code>this.Q</code> and that therefore the
@@ -2062,9 +2065,9 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 				ctxtBcaQuery,
 				expr,
 				!isWrite,
-				lockUtils.createInstanceTarget(
-						ArrayRefExpression.getArray(expr),
-						RegionModel.getInstanceRegion(expr))));
+				new InstanceTarget(
+				    thisExprBinder.bindThisExpression(ArrayRefExpression.getArray(expr)),
+				    RegionModel.getInstanceRegion(expr), NoEvidence.INSTANCE)));
 		// continue into the expression
 		doAcceptForChildren(expr);
 		return null;
@@ -2261,10 +2264,11 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 			final IRegion fieldAsRegion = RegionModel.getInstance(id);
 			final Target target;
 			if (fieldAsRegion.isStatic()) {
-				target = lockUtils.createClassTarget(fieldAsRegion);
+				target = new ClassTarget(fieldAsRegion, NoEvidence.INSTANCE);
 			} else {
-				target = lockUtils.createInstanceTarget(
-						FieldRef.getObject(fieldRef), fieldAsRegion);
+				target = new InstanceTarget(
+				    thisExprBinder.bindThisExpression(FieldRef.getObject(fieldRef)),
+				    fieldAsRegion, NoEvidence.INSTANCE);
 			}
 			assureRegionRef(fieldRef, lockUtils.getLocksForDirectRegionAccess(
 					ctxtBcaQuery, fieldRef, !isWrite, target));
@@ -2862,11 +2866,12 @@ public final class LockVisitor extends VoidTreeWalkVisitor implements
 									.getInstance(varDecl);
 							final Target target;
 							if (fieldAsRegion.isStatic()) {
-								target = lockUtils
-										.createClassTarget(fieldAsRegion);
+								target = new ClassTarget(fieldAsRegion, NoEvidence.INSTANCE);
 							} else {
-								target = lockUtils.createInstanceTarget(
-										ctxtTheReceiverNode, fieldAsRegion);
+								final IRNode object = ctxtTheReceiverNode;
+                target = new InstanceTarget(
+                    thisExprBinder.bindThisExpression(object),
+                    fieldAsRegion, NoEvidence.INSTANCE);
 							}
 							assureRegionRef(varDecl,
 									lockUtils.getLocksForDirectRegionAccess(
