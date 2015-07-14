@@ -1808,7 +1808,18 @@ public class TypeUtils {
         MethodBinder8 mb = new MethodBinder8((IPrivateBinder) tEnv.getBinder(), false);
         CallState state = mb.getCallState(call, bi);
         IJavaFunctionType ftype = mb.computeInvocationType(state, bi, eliminateTypeVars);
-        return ftype.instantiate(ftype.getTypeFormals(), bi.getSubst());
+        IJavaFunctionType temp = ftype.instantiate(ftype.getTypeFormals(), bi.getSubst());
+        //WORKING
+        String ts = temp.toString();
+        String fs = ftype.toString();
+        if (!temp.equals(ftype)) {
+        	System.out.println("ftype not the same");
+        	mb.computeInvocationType(state, bi, eliminateTypeVars);
+        	ftype.instantiate(ftype.getTypeFormals(), bi.getSubst());
+        }
+        //return ftype; 
+        return temp;
+        
         // IJavaType ptype =
         // ftype.getParameterTypes().get(TypeUtil.isStatic(bi.getNode()) ? i :
         // i+1);

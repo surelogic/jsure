@@ -15,6 +15,8 @@ import edu.cmu.cs.fluid.java.bind.IJavaScope.LookupContext;
 import edu.cmu.cs.fluid.java.bind.IJavaType.BooleanVisitor;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.BoundSet;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.LambdaCache;
+import edu.cmu.cs.fluid.java.bind.TypeInference8.ReboundedTypeFormal;
+import edu.cmu.cs.fluid.java.bind.TypeInference8.TypeFormalCollector;
 import edu.cmu.cs.fluid.java.bind.TypeInference8.TypeVariable;
 import edu.cmu.cs.fluid.java.operator.*;
 import edu.cmu.cs.fluid.java.operator.CallInterface.NoArgs;
@@ -1298,8 +1300,35 @@ declared return type, Object .
 					return MethodBinding8.create(call, m, tEnv, methodTypeSubst, getKind());
 				}
 			}
-			if (isApplicableAndCompatible(call, m, IJavaTypeSubstitution.NULL, context, usesVarargs())) {
-				return MethodBinding8.create(call, m, tEnv, null, getKind());
+			// subst for rebounded formals?
+			final IJavaTypeSubstitution subst;
+			if (true) {
+				final TypeFormalCollector v = new TypeFormalCollector();
+				// copied from isApplicableAndCompatible()
+				for(IJavaType pType : m.getParamTypes(binder, call.numArgs(), usesVarargs())) {
+					pType.visit(v);
+				}		
+				Map<IJavaTypeFormal, IJavaType> map = new HashMap<>();
+				for(IJavaTypeFormal f : v.formals) {
+					if (f instanceof ReboundedTypeFormal) {
+						ReboundedTypeFormal r = (ReboundedTypeFormal) f;
+						map.put(r, r.getExtendsBound(tEnv));
+					}
+				}
+				if (map.isEmpty()) {				
+					subst = IJavaTypeSubstitution.NULL;
+				} else {
+					subst = new TypeInference8.TypeSubstitution(tEnv.getBinder(), map);
+				}
+			} else {
+				subst = IJavaTypeSubstitution.NULL;
+			}
+			// WORKING
+			if (subst != IJavaTypeSubstitution.NULL) {
+				System.out.println("Using nonnull subst");
+			}
+			if (isApplicableAndCompatible(call, m, subst, context, usesVarargs())) {
+				return MethodBinding8.create(call, m, tEnv, subst, getKind());
 			}
 			return null;
 		}
@@ -2106,8 +2135,14 @@ declared return type, Object .
 	}
 
 	IJavaFunctionType computeMethodType(MethodBinding m) {		
-		IJavaFunctionType t = JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), 
-				TypeUtil.isStatic(m.bind.getNode()) ? null : m.bind.getReceiverType(), tEnv.getBinder());
+		//IJavaType receiver = TypeUtil.isStatic(m.bind.getNode()) ? null : m.bind.getReceiverType();
+		//
+		// The subst below should convert the receiver to the right type
+		IJavaType receiver = TypeUtil.isStatic(m.bind.getNode()) ? null : 
+					         JavaTypeFactory.getMyThisType(m.bind.getContextType().getDeclaration());
+		System.out.println("WORKING");
+		IJavaFunctionType t = JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), receiver, tEnv.getBinder());
+		//return t;
 		return t.instantiate(t.getTypeFormals(), JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) m.bind.getContextType()));
 	}
 	

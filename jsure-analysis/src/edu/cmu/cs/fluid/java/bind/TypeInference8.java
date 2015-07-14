@@ -661,6 +661,10 @@ public class TypeInference8 {
         }
       }
       final IJavaType r = m.getReturnType(tEnv, false);
+      // WORKING
+      if (call.toString().equals("<implicit>.when(methodCall)")) {
+    	  System.out.println("looking at <implicit>.when(methodCall)");
+      }
       b_3 = computeB_3(call, r, b_2, targetType);
 
       if (b_3.isFalse) {
