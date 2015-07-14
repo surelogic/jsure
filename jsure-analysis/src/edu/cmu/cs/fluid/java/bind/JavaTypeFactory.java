@@ -1160,6 +1160,9 @@ class JavaTypeFormal extends JavaReferenceType implements IJavaTypeFormal {
   @Override
   public IJavaType subst(final IJavaTypeSubstitution s) {
     if (s == null) return this;
+    if (s == IJavaTypeSubstitution.NULL) {
+    	return this;
+    }
     /*
 	String unparse = toString();
 	if (unparse.contains("in java.util.List.toArray")) {
