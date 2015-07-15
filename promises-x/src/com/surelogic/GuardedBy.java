@@ -41,7 +41,8 @@ import java.lang.annotation.Target;
  * <li>
  * <tt>this</tt>: The intrinsic lock of the object in whose class the annotated
  * method, constructor, or field is defined. When this annotation is applied to
- * a field, the field must be mutable.</li>
+ * a field, the field must be mutable and non-<code>static</code>.  When applied to a method, the method
+ * must not be <code>static</code>.  Cannot be applied to a constructor.</li>
  * <li>
  * <em>field-name</em>: The lock object is referenced by the (instance or
  * static) field specified by <em>field-name</em>. The field that references the
