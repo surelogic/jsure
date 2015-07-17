@@ -355,7 +355,7 @@ public class CommonAASTBinder extends AASTBinder {
     final IRNode decl;
     IRNode temp = VisitUtil.getClosestClassBodyDecl(node.getPromisedFor());
     if (FieldDeclaration.prototype.includes(temp)) {
-    	decl = VisitUtil.getEnclosingClassBodyDecl(temp);
+    	decl = VisitUtil.getEnclosingType(temp);
     } else {
     	decl = temp;
     }
