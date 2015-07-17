@@ -25,7 +25,7 @@ import com.surelogic.jsure.client.eclipse.views.JSureDecoratedImageUtility;
 abstract class ElementDrop extends Element {
 
   static Collection<Element> factory(Element parent, IDrop drop) {
-    final List<Element> result = new ArrayList<Element>();
+    final List<Element> result = new ArrayList<>();
     if (drop instanceof IPromiseDrop)
       result.add(new ElementPromiseDrop(parent, (IPromiseDrop) drop));
     else if (drop instanceof IResultDrop)

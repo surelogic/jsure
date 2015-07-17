@@ -48,6 +48,7 @@ import com.surelogic.common.ui.TableUtility;
 import com.surelogic.java.persistence.JSureDataDir;
 import com.surelogic.java.persistence.JSureScan;
 import com.surelogic.jsure.client.eclipse.dialogs.DeleteScanDialog;
+import com.surelogic.jsure.client.eclipse.dialogs.LogDialog;
 import com.surelogic.jsure.client.eclipse.handlers.VerifyProjectHandler;
 import com.surelogic.jsure.core.scans.JSureDataDirHub;
 
@@ -81,6 +82,26 @@ public final class ScanManagerMediator implements ILifecycle {
     }
   };
 
+  final Action f_showScanLogAction = new Action() {
+
+    @Override
+    public void run() {
+      final List<JSureScan> selected = getSelectedScans();
+      if (!selected.isEmpty()) {
+        final JSureScan scan = selected.get(0); // show first
+        /*
+         * This dialog is modeless so that we can open more than one.
+         */
+        final LogDialog d = new LogDialog(f_swtTable.getShell(), scan);
+        d.open();
+      }
+    }
+  };
+
+  Action getShowScanLogAction() {
+    return f_showScanLogAction;
+  }
+
   final Action f_deleteScanAction = new Action() {
 
     @Override
@@ -97,7 +118,6 @@ public final class ScanManagerMediator implements ILifecycle {
         job.setUser(true);
         job.schedule();
       }
-      super.run();
     }
   };
 
@@ -114,14 +134,14 @@ public final class ScanManagerMediator implements ILifecycle {
         if (current != null) {
           try {
             // Collect the projects together
-            final List<IJavaProject> selectedProjects = new ArrayList<IJavaProject>();
+            final List<IJavaProject> selectedProjects = new ArrayList<>();
             for (final JavaProject p : current.getProjects()) {
               if (!p.isAsBinary()) {
                 final IJavaProject jp = JDTUtility.getJavaProject(p.getName());
                 if (jp == null) {
                   // Can't find one of the projects
-                  MessageDialog.openInformation(f_swtTable.getShell(), "Unable to Re-Verify", "Missing project '" + p.getName()
-                      + "'");
+                  MessageDialog.openInformation(f_swtTable.getShell(), "Unable to Re-Verify",
+                      "Missing project '" + p.getName() + "'");
                   return;
                 }
                 selectedProjects.add(jp);
@@ -131,7 +151,6 @@ public final class ScanManagerMediator implements ILifecycle {
           } catch (Exception e) {
             SLLogger.getLogger().log(Level.WARNING, "Problem reading projects file", e);
           }
-
         }
       }
     }
@@ -195,7 +214,7 @@ public final class ScanManagerMediator implements ILifecycle {
     if (selected.isEmpty())
       return Collections.emptyList();
 
-    final List<JSureScan> result = new ArrayList<JSureScan>();
+    final List<JSureScan> result = new ArrayList<>();
     for (Object o : selected.toList()) {
       if (o instanceof JSureScan) {
         result.add((JSureScan) o);
@@ -286,6 +305,7 @@ public final class ScanManagerMediator implements ILifecycle {
     }
     f_setAsCurrentAction.setEnabled(oneNonCheckedScanSelected);
     f_rescanAction.setEnabled(oneScanSelectedWithProjectsInWorkspace);
+    f_showScanLogAction.setEnabled(oneScanSelectedWithProjectsInWorkspace);
   }
 
   ScanManagerMediator(CheckboxTableViewer table) {

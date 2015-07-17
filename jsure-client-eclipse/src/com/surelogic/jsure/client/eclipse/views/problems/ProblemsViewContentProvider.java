@@ -126,7 +126,7 @@ public class ProblemsViewContentProvider implements ITreeContentProvider, Elemen
      * exist the code below will expand out the entire element model tree to its
      * leaves.
      */
-    final Queue<Element> queue = new LinkedList<Element>();
+    final Queue<Element> queue = new LinkedList<>();
     queue.addAll(Arrays.asList(root));
     while (!queue.isEmpty()) {
       final Element e = queue.poll();

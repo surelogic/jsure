@@ -517,7 +517,7 @@ public class ProblemsView extends ViewPart implements JSureDataDirHub.CurrentSca
   }
 
   List<IProposedPromiseDrop> getSelectedProposals() {
-    final List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
+    final List<IProposedPromiseDrop> result = new ArrayList<>();
     final IStructuredSelection selection = (IStructuredSelection) f_treeViewer.getSelection();
     for (final Object elt : selection.toList()) {
       if (elt instanceof Element)

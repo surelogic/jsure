@@ -9,7 +9,6 @@ import java.util.*;
 
 import com.surelogic.common.util.*;
 
-import edu.cmu.cs.fluid.util.*;
 import com.surelogic.Starts;
 
 /**
@@ -176,7 +175,7 @@ public abstract class IRAbstractArray<S,T> extends IRAbstractSequence<S,T> {
     if (allValid) {
       for (int i = 0; i < size; ++i) {
         S s = getInternal(i);
-        getSlotStorage().writeSlotValue(s, t.getType(i), out);
+        getSlotStorage().writeSlotValue(s, (IRType<T>) t.getType(i), out);
       }
       return;
     }
@@ -185,7 +184,7 @@ public abstract class IRAbstractArray<S,T> extends IRAbstractSequence<S,T> {
       S s = getInternal(i);
       if (getSlotStorage().isValid(s)) {
         out.writeInt(i);
-        getSlotStorage().writeSlotValue(s, t.getType(i), out);
+        getSlotStorage().writeSlotValue(s, (IRType<T>) t.getType(i), out);
       }
     }
     out.writeInt(-1);
@@ -198,12 +197,12 @@ public abstract class IRAbstractArray<S,T> extends IRAbstractSequence<S,T> {
     if (in.getRevision() >= 4) kind = in.readByte();
     if (kind == '+') {
       for (int i = 0; i < size; ++i) {
-        setInternal(i, getSlotStorage().readSlotValue(getInternal(i), t.getType(i), in));
+        setInternal(i, getSlotStorage().readSlotValue(getInternal(i), (IRType<T>) t.getType(i), in));
       }
     } else if (kind != '-') {
       int i;
       while ((i = in.readInt()) >= 0) {
-        setInternal(i, getSlotStorage().readSlotValue(getInternal(i), t.getType(i), in));
+        setInternal(i, getSlotStorage().readSlotValue(getInternal(i), (IRType<T>) t.getType(i), in));
       }
     }
   }
@@ -232,10 +231,10 @@ public abstract class IRAbstractArray<S,T> extends IRAbstractSequence<S,T> {
     for (int i = 0; i < size; ++i) {
       S s = getInternal(i);
       if (allChanged) {
-        getSlotStorage().writeSlotValue(s, t.getType(i), out);
+        getSlotStorage().writeSlotValue(s, (IRType<T>) t.getType(i), out);
       } else if (getSlotStorage().isChanged(s)) {
         out.writeInt(i);
-        getSlotStorage().writeSlotValue(s, t.getType(i), out);
+        getSlotStorage().writeSlotValue(s, (IRType<T>) t.getType(i), out);
       }
     }
     if (!allChanged) out.writeInt(-1);
@@ -248,12 +247,12 @@ public abstract class IRAbstractArray<S,T> extends IRAbstractSequence<S,T> {
     boolean allChanged = in.readBoolean();
     if (allChanged) {
       for (int i = 0; i < size; ++i) {
-        setInternal(i, getSlotStorage().readSlotValue(getInternal(i), t.getType(i), in));
+        setInternal(i, getSlotStorage().readSlotValue(getInternal(i), (IRType<T>) t.getType(i), in));
       }
     } else {
       int i;
       while ((i = in.readInt()) != -1) {
-        setInternal(i, getSlotStorage().readSlotValue(getInternal(i), t.getType(i), in));
+        setInternal(i, getSlotStorage().readSlotValue(getInternal(i), (IRType<T>) t.getType(i), in));
       }
     }
   }

@@ -12,7 +12,7 @@ public abstract class SlocElementWithChildren extends SlocElement {
   }
 
   @NonNull
-  private final ArrayList<SlocElement> f_children = new ArrayList<SlocElement>();
+  private final ArrayList<SlocElement> f_children = new ArrayList<>();
 
   final void addChild(SlocElement child) {
     if (child == null)

@@ -73,7 +73,7 @@ public abstract class ScanTimeElement {
     if (child == null)
       return;
     if (f_children == null)
-      f_children = new ArrayList<ScanTimeElement>();
+      f_children = new ArrayList<>();
     f_children.add(child);
   }
 

@@ -448,7 +448,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
       /*
        * Determine the list of analysis names in this scan
        */
-      final Set<String> analyses = new HashSet<String>();
+      final Set<String> analyses = new HashSet<>();
       for (IMetricDrop drop : drops) {
         String analysisName = drop.getMetricInfoOrNull(IMetricDrop.SCAN_TIME_ANALYSIS_NAME);
         if (analysisName == null) {
@@ -457,7 +457,7 @@ public final class ScanTimeMetricMediator extends AbstractScanMetricMediator {
         }
         analyses.add(analysisName);
       }
-      LinkedList<String> choices = new LinkedList<String>(analyses);
+      LinkedList<String> choices = new LinkedList<>(analyses);
       Collections.sort(choices);
       choices.addFirst(f_analysisComboAll);
       /*

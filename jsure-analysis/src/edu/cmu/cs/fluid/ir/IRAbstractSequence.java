@@ -12,32 +12,32 @@ import com.surelogic.common.util.*;
 import edu.cmu.cs.fluid.util.SubList;
 import com.surelogic.Starts;
 
-public abstract class IRAbstractSequence<S,T> extends IRAbstractState<T>
-implements IRSequence<T>, List<T> {
-  //===========================================================
+public abstract class IRAbstractSequence<S, T> extends IRAbstractState<T>implements IRSequence<T>, List<T> {
+  // ===========================================================
   // Implementation of List
-  //===========================================================
+  // ===========================================================
 
   @Unique("return")
   public IRAbstractSequence(IRState parent) {
     super(parent);
   }
 
-  public IRAbstractSequence() {}
+  public IRAbstractSequence() {
+  }
 
   @Starts("nothing")
-public boolean isEmpty() {
+  public boolean isEmpty() {
     return size() == 0;
   }
 
   @Starts("nothing")
-public Iterator<T> iterator() {
+  public Iterator<T> iterator() {
     return elements();
   }
 
   @Starts("nothing")
-public boolean containsAll(Collection<?> c) {
-    for(Object o : c) {
+  public boolean containsAll(Collection<?> c) {
+    for (Object o : c) {
       if (!contains(o)) {
         return false;
       }
@@ -46,7 +46,7 @@ public boolean containsAll(Collection<?> c) {
   }
 
   public boolean addAll(Collection<? extends T> c) {
-    for(T t : c) {
+    for (T t : c) {
       add(t);
     }
     return !c.isEmpty();
@@ -54,7 +54,7 @@ public boolean containsAll(Collection<?> c) {
 
   public boolean addAll(int i, Collection<? extends T> c) {
     IRLocation loc = location(i);
-    for(T t : c) {
+    for (T t : c) {
       insertElementBefore(t, loc);
     }
     return !c.isEmpty();
@@ -62,9 +62,9 @@ public boolean containsAll(Collection<?> c) {
 
   // FIX Not efficient
   @Starts("nothing")
-public boolean removeAll(Collection<?> c) {
+  public boolean removeAll(Collection<?> c) {
     boolean removed = false;
-    for(Object o : c) {
+    for (Object o : c) {
       remove(o);
       removed = true;
     }
@@ -73,11 +73,11 @@ public boolean removeAll(Collection<?> c) {
 
   // FIX Not efficient
   @Starts("nothing")
-public boolean retainAll(Collection<?> c) {
+  public boolean retainAll(Collection<?> c) {
     boolean removed = false;
-    for(Object o : this) {
+    for (Object o : this) {
       if (!c.contains(o)) {
-        remove(o);  
+        remove(o);
         removed = true;
       }
     }
@@ -86,14 +86,14 @@ public boolean retainAll(Collection<?> c) {
 
   // FIX Not efficient
   @Starts("nothing")
-public void clear() {    
-    for(Object o : this) {
-      remove(o);  
+  public void clear() {
+    for (Object o : this) {
+      remove(o);
     }
   }
 
   @Starts("nothing")
-public T get(int i) {
+  public T get(int i) {
     return elementAt(i);
   }
 
@@ -109,7 +109,7 @@ public T get(int i) {
   }
 
   @Starts("nothing")
-public T remove(int i) {
+  public T remove(int i) {
     IRLocation loc = location(i);
     T old = elementAt(loc);
     removeElementAt(loc);
@@ -117,62 +117,36 @@ public T remove(int i) {
   }
 
   /*
-  public int indexOf(Object o) {
-    int size = size();
-    if (o == null) {
-      for(int i=0; i<size; i++) {
-        if (elementAt(i) == null) {
-          return i;
-        }
-      }
-    } else {
-      for(int i=0; i<size; i++) {
-        if (o.equals(elementAt(i))) {
-          return i;
-        }
-      }
-    }
-    return -1;
-  }
+   * public int indexOf(Object o) { int size = size(); if (o == null) { for(int
+   * i=0; i<size; i++) { if (elementAt(i) == null) { return i; } } } else {
+   * for(int i=0; i<size; i++) { if (o.equals(elementAt(i))) { return i; } } }
+   * return -1; }
+   * 
+   * public int lastIndexOf(Object o) { int size = size(); if (o == null) {
+   * for(int i=size-1; i>=0; i--) { if (elementAt(i) == null) { return i; } } }
+   * else { for(int i=size-1; i>=0; i--) { if (o.equals(elementAt(i))) { return
+   * i; } } } return -1; }
+   */
 
-  public int lastIndexOf(Object o) {
-    int size = size();
-    if (o == null) {
-      for(int i=size-1; i>=0; i--) {
-        if (elementAt(i) == null) {
-          return i;
-        }
-      }
-    } else {
-      for(int i=size-1; i>=0; i--) {
-        if (o.equals(elementAt(i))) {
-          return i;
-        }
-      }
-    }
-    return -1;
-  }
-  */
-  
   protected abstract ListIteratable<T> createListIterator(int i);
-  
+
   @Starts("nothing")
-public ListIterator<T> listIterator() {
+  public ListIterator<T> listIterator() {
     return getSlotFactory().newListIterator(createListIterator(0));
   }
 
   @Starts("nothing")
-public ListIterator<T> listIterator(int i) {
+  public ListIterator<T> listIterator(int i) {
     return getSlotFactory().newListIterator(createListIterator(i));
   }
-  
+
   @Starts("nothing")
-public List<T> subList(int i1, int i2) {
-    return new SubList<T>(this, i1, i2);
+  public List<T> subList(int i1, int i2) {
+    return new SubList<>(this, i1, i2);
   }
-  
+
   @Starts("nothing")
-@Override
+  @Override
   @SuppressWarnings("unchecked")
   public final boolean equals(Object o) {
     if (o instanceof List) {
@@ -191,14 +165,14 @@ public List<T> subList(int i1, int i2) {
       }
       return true;
     }
-    return false; 
+    return false;
   }
-  
+
   @Override
   public final String toString() {
     StringBuilder sb = new StringBuilder(super.toString());
     sb.append("[");
-    
+
     boolean first = true;
     for (IRLocation loc = firstLocation(); loc != null; loc = nextLocation(loc)) {
       if (first) {
@@ -215,8 +189,8 @@ public List<T> subList(int i1, int i2) {
     sb.append("]");
     return sb.toString();
   }
-  
-  //===========================================================
+
+  // ===========================================================
   // END Implementation of List
-  //===========================================================
+  // ===========================================================
 }

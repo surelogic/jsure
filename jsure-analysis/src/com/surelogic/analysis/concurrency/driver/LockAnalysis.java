@@ -23,6 +23,7 @@ import com.surelogic.analysis.granules.IAnalysisGranulator;
 import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor;
 import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor.TypeBodyPair;
 import com.surelogic.annotation.rules.LockRules;
+import com.surelogic.common.concurrent.Procedure;
 import com.surelogic.dropsea.ir.DropPredicateFactory;
 import com.surelogic.dropsea.ir.Sea;
 import com.surelogic.dropsea.ir.drops.CUDrop;
@@ -37,7 +38,6 @@ import edu.cmu.cs.fluid.java.JavaComponentFactory;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
 import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
-import extra166y.Ops.Procedure;
 
 public class LockAnalysis
 		extends
@@ -49,8 +49,7 @@ public class LockAnalysis
 	 * Are we actually going to run things in parallel? Not all JRE have the
 	 * libraries we need to actually run in parallel.
 	 */
-	private static boolean willRunInParallel = wantToRunInParallel
-			&& !singleThreaded;
+	private static boolean willRunInParallel = wantToRunInParallel;
 
 	/**
 	 * Use a work queue? Only relevant if {@link #willRunInParallel} is
@@ -74,8 +73,7 @@ public class LockAnalysis
 		new AtomicReference<ConcurrentStateMetrics>(null);
 	
 	public LockAnalysis() {
-		super(willRunInParallel, queueWork ? TypeBodyPair.class : null,
-				"LockAssurance", BindingContextAnalysis.factory);
+		super(willRunInParallel, "LockAssurance", BindingContextAnalysis.factory);
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			setWorkProcedure(new Procedure<TypeBodyPair>() {
 				@Override

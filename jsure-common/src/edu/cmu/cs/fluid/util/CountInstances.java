@@ -9,8 +9,9 @@ import java.util.concurrent.atomic.*;
 import com.surelogic.*;
 
 /**
- * Keeping track of the number of things created.
- * Inherit from this class, or else add code to call "add"
+ * Keeping track of the number of things created. Inherit from this class, or
+ * else add code to call "add"
+ * 
  * @author boyland
  *
  * @region private static Counts
@@ -19,35 +20,35 @@ import com.surelogic.*;
 public class CountInstances {
   /**
    * @unique
-   * @aggregate Instance into Counts  
+   * @aggregate Instance into Counts
    */
-  private static Map<String,AtomicInteger> counts = new ConcurrentHashMap<String,AtomicInteger>();
-  
+  private static Map<String, AtomicInteger> counts = new ConcurrentHashMap<>();
+
   @Unique("return")
   public CountInstances() {
     add(this);
   }
-  
+
   public static void add(@Borrowed Object x) {
     String n = x.getClass().getName();
     AtomicInteger c = counts.get(n);
     if (c == null) {
       c = new AtomicInteger();
-      counts.put(n,c);
+      counts.put(n, c);
     }
     c.incrementAndGet();
   }
-  
+
   public static void reset() {
-    for (Map.Entry<String,AtomicInteger> e : counts.entrySet()) {
+    for (Map.Entry<String, AtomicInteger> e : counts.entrySet()) {
       AtomicInteger c = e.getValue();
       c.set(0);
     }
   }
-  
+
   public static void report() {
-	for (Map.Entry<String,AtomicInteger> e : counts.entrySet()) {
-	  System.out.println(e.getKey() +": " + e.getValue().intValue());
-	}
+    for (Map.Entry<String, AtomicInteger> e : counts.entrySet()) {
+      System.out.println(e.getKey() + ": " + e.getValue().intValue());
+    }
   }
 }

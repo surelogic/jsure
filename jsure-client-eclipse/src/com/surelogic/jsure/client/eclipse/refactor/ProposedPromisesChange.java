@@ -41,12 +41,12 @@ public class ProposedPromisesChange {
     // Just compute the label from the projects involved
     //
     // Get the projects involved (no dups)
-    Collection<String> projects = new HashSet<String>();
+    Collection<String> projects = new HashSet<>();
     for (IProposedPromiseDrop p : drops) {
       projects.add(p.getJavaRef().getRealEclipseProjectNameOrNull());
     }
     // Sort them
-    projects = new ArrayList<String>(projects);
+    projects = new ArrayList<>(projects);
     Collections.sort((List<String>) projects);
     final StringBuilder sb = new StringBuilder();
     for (String p : projects) {
@@ -74,8 +74,8 @@ public class ProposedPromisesChange {
    * @param root
    */
   void change(final CompositeChange root) {
-    final Set<String> projects = new HashSet<String>();
-    final Map<CU, Set<AnnotationDescription>> map = new HashMap<CU, Set<AnnotationDescription>>();
+    final Set<String> projects = new HashSet<>();
+    final Map<CU, Set<AnnotationDescription>> map = new HashMap<>();
     for (final IProposedPromiseDrop drop : drops) {
       projects.add(drop.getJavaRef().getRealEclipseProjectNameOrNull());
       projects.add(drop.getAssumptionRef().getRealEclipseProjectNameOrNull());
@@ -84,15 +84,14 @@ public class ProposedPromisesChange {
       final CU cu = ann.getCU();
       Set<AnnotationDescription> set = map.get(cu);
       if (set == null) {
-        set = new HashSet<AnnotationDescription>();
+        set = new HashSet<>();
         map.put(cu, set);
       }
       set.add(ann);
     }
-    final Map<CU, Set<AnnotationDescription>> promiseMap = new HashMap<CU, Set<AnnotationDescription>>();
-    final Map<CU, Set<AnnotationDescription>> assumeMap = new HashMap<CU, Set<AnnotationDescription>>();
-    final PromisesAnnotationRewriter rewrite = new PromisesAnnotationRewriter(AnnotationElement
-        .getAllowsMultipleAnnosSet());
+    final Map<CU, Set<AnnotationDescription>> promiseMap = new HashMap<>();
+    final Map<CU, Set<AnnotationDescription>> assumeMap = new HashMap<>();
+    final PromisesAnnotationRewriter rewrite = new PromisesAnnotationRewriter(AnnotationElement.getAllowsMultipleAnnosSet());
     try {
       for (final String proj : projects) {
         if (proj == null || proj.startsWith(Config.JRE_NAME)) {
@@ -105,7 +104,7 @@ public class ProposedPromisesChange {
             final CU check = new CU(proj, frag.getElementName(), unit.getElementName());
             final Set<AnnotationDescription> toInsert = map.remove(check);
             if (toInsert != null) {
-            	promiseMap.put(check, toInsert);
+              promiseMap.put(check, toInsert);
             }
           }
         }
@@ -116,7 +115,7 @@ public class ProposedPromisesChange {
           final CU cu = ann.getAssumptionCU();
           Set<AnnotationDescription> set = assumeMap.get(cu);
           if (set == null) {
-            set = new HashSet<AnnotationDescription>();
+            set = new HashSet<>();
             assumeMap.put(cu, set);
           }
           set.add(ann);
@@ -173,7 +172,7 @@ public class ProposedPromisesChange {
     final IDecl assumptionTarget = from;
     final String annotation = drop.getAnnotation();
     final String contents = drop.getValue();
-    final AnnotationDescription.Builder b = new AnnotationDescription.Builder(annotation, contents, target);    
+    final AnnotationDescription.Builder b = new AnnotationDescription.Builder(annotation, contents, target);
     IJavaRef srcRef = drop.getJavaRef();
     String fileName = DeclUtil.guessSimpleFileName(srcRef.getDeclaration(), srcRef.getWithin());
     final CU cu = new CU(srcRef.getRealEclipseProjectNameOrNull(), srcRef.getPackageName(), fileName);

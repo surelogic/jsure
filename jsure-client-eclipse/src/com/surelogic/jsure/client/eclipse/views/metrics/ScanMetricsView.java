@@ -41,7 +41,7 @@ public final class ScanMetricsView extends ViewPart implements JSureDataDirHub.C
     JSureDataDirHub.CurrentScanChangeListener {
 
   TabFolder f_metricFolder = null;
-  final CopyOnWriteArrayList<IScanMetricMediator> f_mediators = new CopyOnWriteArrayList<IScanMetricMediator>();
+  final CopyOnWriteArrayList<IScanMetricMediator> f_mediators = new CopyOnWriteArrayList<>();
 
   @Override
   public void createPartControl(Composite parent) {

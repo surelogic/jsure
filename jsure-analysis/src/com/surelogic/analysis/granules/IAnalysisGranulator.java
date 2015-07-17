@@ -1,10 +1,11 @@
 package com.surelogic.analysis.granules;
 
-import java.util.*;
+import java.util.List;
+
+import com.surelogic.common.concurrent.Procedure;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.bind.ITypeEnvironment;
-import extra166y.Ops.Procedure;
 
 /**
  * Extracts one or more IAnalysisGranules from a compilation unit

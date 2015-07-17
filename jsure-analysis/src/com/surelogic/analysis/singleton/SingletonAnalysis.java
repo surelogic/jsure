@@ -14,6 +14,7 @@ import com.surelogic.analysis.visitors.TypeImplementationProcessor;
 import com.surelogic.analysis.visitors.TopLevelAnalysisVisitor.TypeBodyPair;
 import com.surelogic.annotation.rules.UtilityRules;
 import com.surelogic.common.SLUtility;
+import com.surelogic.common.concurrent.Procedure;
 import com.surelogic.common.util.*;
 import com.surelogic.dropsea.ir.drops.CUDrop;
 import com.surelogic.dropsea.ir.drops.type.constraints.SingletonPromiseDrop;
@@ -37,7 +38,6 @@ import edu.cmu.cs.fluid.java.operator.ReturnStatement;
 import edu.cmu.cs.fluid.java.operator.VariableDeclarator;
 import edu.cmu.cs.fluid.java.operator.VoidTreeWalkVisitor;
 import edu.cmu.cs.fluid.parse.JJNode;
-import extra166y.Ops.Procedure;
 
 public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAnalysis.SingletonVerifier, TypeBodyPair> {	
   private static final int ENUM_ONE_ELEMENT = 650;
@@ -74,7 +74,7 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
    * Are we actually going to run things in parallel?  Not all JRE have the
    * libraries we need to actually run in parallel.
    */
-  private static boolean willRunInParallel = wantToRunInParallel && !singleThreaded;
+  private static boolean willRunInParallel = wantToRunInParallel;
   
   /**
    * Use a work queue?  Only relevant if {@link #willRunInParallel} is 
@@ -92,7 +92,7 @@ public final class SingletonAnalysis extends AbstractWholeIRAnalysis<SingletonAn
 	
 	
 	public SingletonAnalysis() {
-		super(willRunInParallel, queueWork ? TypeBodyPair.class : null, "SingletonAssurance");
+		super(willRunInParallel, "SingletonAssurance");
 		if (runInParallel() == ConcurrencyType.INTERNALLY) {
 			setWorkProcedure(new Procedure<TypeBodyPair>() {
 				@Override

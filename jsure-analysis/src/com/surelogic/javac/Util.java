@@ -15,17 +15,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.collections15.MultiMap;
-import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.apache.commons.lang3.SystemUtils;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.surelogic.analysis.Analyses;
 import com.surelogic.analysis.Analyses.AnalysisTimings;
 import com.surelogic.analysis.Analyses.Analyzer;
@@ -51,8 +53,11 @@ import com.surelogic.common.NullOutputStream;
 import com.surelogic.common.Pair;
 import com.surelogic.common.SLUtility;
 import com.surelogic.common.XUtil;
-import com.surelogic.common.java.*;
+import com.surelogic.common.concurrent.ParallelArray;
+import com.surelogic.common.concurrent.Procedure;
+import com.surelogic.common.java.Config;
 import com.surelogic.common.java.Config.Type;
+import com.surelogic.common.java.JavaSourceFile;
 import com.surelogic.common.jobs.NullSLProgressMonitor;
 import com.surelogic.common.jobs.SLProgressMonitor;
 import com.surelogic.common.logging.SLLogger;
@@ -78,8 +83,8 @@ import com.surelogic.dropsea.ir.drops.PromisePromiseDrop;
 import com.surelogic.dropsea.ir.drops.RegionModelClearOutUnusedStaticProofHook;
 import com.surelogic.dropsea.ir.drops.SourceCUDrop;
 import com.surelogic.dropsea.ir.utility.Dependencies;
-import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.java.persistence.JSureDataDirScanner;
+import com.surelogic.javac.jobs.RemoteJSureRun;
 import com.surelogic.javac.persistence.JSurePerformance;
 import com.surelogic.javac.persistence.JSureSubtypeInfo;
 import com.surelogic.persistence.JSureResultsXMLReader;
@@ -126,8 +131,6 @@ import edu.cmu.cs.fluid.java.util.VisitUtil;
 import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 import edu.cmu.cs.fluid.util.ImmutableHashOrderSet;
-import extra166y.ParallelArray;
-import extra166y.Ops.Procedure;
 
 public class Util implements AnalysisConstants {
   public static final boolean useNewDriver = true;
@@ -136,9 +139,6 @@ public class Util implements AnalysisConstants {
    * Splits and integrates the rewrite into the adapter/canonicalizer
    */
   public static final boolean useIntegratedRewrite = true;
-
-  /** Should we try to run things in parallel */
-  private static boolean wantToRunInParallel = true;// false;
 
   private static final boolean batchAndCacheBindingsForCanon = false;
   private static final boolean profileMemoryAfterLoading = false;
@@ -156,7 +156,8 @@ public class Util implements AnalysisConstants {
 
   private static final String WORK = isWindows ? "C:/work" : HOME + "/work";
 
-  private static final String[] POSSIBLE_WORKSPACES = { WORK + "/workspace", WORK + "/fluid-workspace", WORK + "/fl-test-workspace" };
+  private static final String[] POSSIBLE_WORKSPACES = { WORK + "/workspace", WORK + "/fluid-workspace",
+      WORK + "/fl-test-workspace" };
 
   public static final String WORKSPACE = isMacOS ? "/Users/aarong/Work/Eclipse Workspaces/Eclipse 3.3/Fluid Workspace"
       : findFirstExistingDir(POSSIBLE_WORKSPACES);
@@ -169,7 +170,7 @@ public class Util implements AnalysisConstants {
 
   private static final String[] POSSIBLE_JDKS = { "C:/Program Files/Java/jdk1.6.0_17", "C:/Program Files/Java/jdk1.6.0_16", };
 
-  private static Logger LOG = SLLogger.getLogger();
+  static Logger LOG = SLLogger.getLogger();
 
   private enum Demo {
     TEST, COMMON, FLUID, JDK6, JEDIT, SMALL_WORLD;
@@ -204,7 +205,8 @@ public class Util implements AnalysisConstants {
     return "";
   }
 
-  private static class JavacAnalysisEnvironment extends HashMap<Object, Object> implements IIRAnalysisEnvironment, IAnalysisMonitor {
+  private static class JavacAnalysisEnvironment extends HashMap<Object, Object>implements IIRAnalysisEnvironment, IAnalysisMonitor {
+    private static final long serialVersionUID = 8707315224641209482L;
     JavacClassParser loader;
     private final ZipOutputStream out;
     private boolean hasResults = false;
@@ -271,44 +273,44 @@ public class Util implements AnalysisConstants {
     @Override
     public void subTask(String name, boolean log) {
       if (monitor != null) {
-    	// TODO only prevent concurrent issues
-    	// still popped out of order
-      	synchronized (monitor) {      		
-      		monitor.subTask(name);
-      	}
+        // TODO only prevent concurrent issues
+        // still popped out of order
+        synchronized (monitor) {
+          monitor.subTask(name);
+        }
       }
       if (log) {
-    	System.out.println(name);
+        System.out.println(name);
       }
     }
 
     @Override
     public void subTaskDone(int work) {
       if (monitor != null) {
-    	synchronized (monitor) {    		
-    		if (work > 0) {
-    			monitor.worked(work);
-    		}
-    		monitor.subTaskDone();
-    	}
-      }
-    }
-    
-    @Override
-    public void worked(int work) {
-      if (monitor != null) {
-    	synchronized (monitor) {    		
-    		if (work > 0) {
-    			monitor.worked(work);
-    		}
-    	}
+        synchronized (monitor) {
+          if (work > 0) {
+            monitor.worked(work);
+          }
+          monitor.subTaskDone();
+        }
       }
     }
 
-	@Override
-	public boolean isCanceled() {
-		return monitor.isCanceled();
-	}
+    @Override
+    public void worked(int work) {
+      if (monitor != null) {
+        synchronized (monitor) {
+          if (work > 0) {
+            monitor.worked(work);
+          }
+        }
+      }
+    }
+
+    @Override
+    public boolean isCanceled() {
+      return monitor.isCanceled();
+    }
   }
 
   private static void openFiles(Demo which, Config config) throws Exception {
@@ -353,7 +355,7 @@ public class Util implements AnalysisConstants {
   }
 
   static int estimateWork(Projects projects, Analyses analyses) {
-	// each file: parse, bind, canonicalize, #analyses
+    // each file: parse, bind, canonicalize, #analyses
     return 10 + projects.getNumSourceFiles() * (3 + analyses.size());
   }
 
@@ -362,7 +364,7 @@ public class Util implements AnalysisConstants {
    *          Whether to analyze the loaded sources or not
    */
   public static File openFiles(Projects projects, boolean analyze) throws Exception {
-	final Analyses analyses = Javac.makeAnalyses();
+    final Analyses analyses = Javac.makeAnalyses();
     projects.getMonitor().begin(estimateWork(projects, analyses));
     startSubTask(projects.getMonitor(), "Initializing ...");
     Javac.initialize();
@@ -378,7 +380,7 @@ public class Util implements AnalysisConstants {
   }
 
   public static File openFiles(Projects oldProjects, final Projects projects, boolean analyze) throws Exception {
-	final Analyses analyses = Javac.makeAnalyses();
+    final Analyses analyses = Javac.makeAnalyses();
     projects.getMonitor().begin(estimateWork(projects, analyses));
     startSubTask(projects.getMonitor(), "Initializing ...");
     Javac.initialize();
@@ -399,7 +401,7 @@ public class Util implements AnalysisConstants {
   }
 
   private static <T> void eliminateDups(List<T> all, List<T> unique) {
-    Set<T> temp = new HashSet<T>(all);
+    Set<T> temp = new HashSet<>(all);
     all.clear();
     unique.clear();
     unique.addAll(temp);
@@ -417,12 +419,12 @@ public class Util implements AnalysisConstants {
       selectFilesToLoad(projects);
     }
 
-    final boolean singleThreaded = !wantToRunInParallel || ConcurrentAnalysis.singleThreaded;
-    System.out.println("singleThread = " + singleThreaded);
-    final JSurePerformance perf = new JSurePerformance(projects, singleThreaded);
+    final int procs = ConcurrentAnalysis.getThreadCountToUse();
+    System.out.println(procs > 1 ? "process() using " + procs + " threads" : "process() singlethreaded");
+    final JSurePerformance perf = new JSurePerformance(projects, procs == 1);
 
     ParseUtil.init();
-    JavacClassParser loader = new JavacClassParser(perf.pool, projects);
+    JavacClassParser loader = new JavacClassParser(projects);
 
     // loader.ensureClassIsLoaded("java.util.concurrent.locks.ReadWriteLock");
     loader.ensureClassIsLoaded(SLUtility.JAVA_LANG_OBJECT);
@@ -436,7 +438,7 @@ public class Util implements AnalysisConstants {
     }
     env.finishedInit(); // To free up memory
 
-    final ParallelArray<CodeInfo> cus = perf.createArray(CodeInfo.class);
+    final ParallelArray<CodeInfo> cus = new ParallelArray<>();
     endSubTask(projects.getMonitor());
 
     for (Config config : projects.getConfigs()) {
@@ -444,7 +446,7 @@ public class Util implements AnalysisConstants {
     }
 
     perf.startTiming();
-    List<CodeInfo> temp = new ArrayList<CodeInfo>();
+    List<CodeInfo> temp = new ArrayList<>();
     loader.parse(temp);
     IDE.getInstance().setDefaultClassPath(projects.getFirstProjectOrNull());
 
@@ -475,7 +477,7 @@ public class Util implements AnalysisConstants {
     eliminateDups(cus.asList(), cus.asList());
     clearCaches(projects);
     System.gc();
-    
+
     perf.markTimeFor("Cleanup");
     final boolean addRequired = false;
     if (addRequired) {
@@ -533,15 +535,16 @@ public class Util implements AnalysisConstants {
       final SeaConsistencyProofHook nonNullHook = new NonNullModelClearOutUnusedVirtualProofHook();
       final SeaConsistencyProofHook cuDropHook = new CUDropClearOutAfterAnalysisProofHook();
       final SeaConsistencyProofHook clearResultsHook = new ClearOutUnconnectedResultsProofHook();
-      //final SeaConsistencyProofHook scanTimeMetricCompactHook = new ScanTimeMetricCompactProofHook();
+      // final SeaConsistencyProofHook scanTimeMetricCompactHook = new
+      // ScanTimeMetricCompactProofHook();
       Sea.getDefault().addConsistencyProofHook(vouchHook);
       Sea.getDefault().addConsistencyProofHook(staticHook);
       Sea.getDefault().addConsistencyProofHook(nonNullHook);
       Sea.getDefault().addConsistencyProofHook(cuDropHook);
       Sea.getDefault().addConsistencyProofHook(clearResultsHook);
-      //Sea.getDefault().addConsistencyProofHook(scanTimeMetricCompactHook);
+      // Sea.getDefault().addConsistencyProofHook(scanTimeMetricCompactHook);
       Sea.getDefault().updateConsistencyProof();
-      //Sea.getDefault().removeConsistencyProofHook(scanTimeMetricCompactHook);
+      // Sea.getDefault().removeConsistencyProofHook(scanTimeMetricCompactHook);
       Sea.getDefault().removeConsistencyProofHook(clearResultsHook);
       Sea.getDefault().removeConsistencyProofHook(cuDropHook);
       Sea.getDefault().removeConsistencyProofHook(nonNullHook);
@@ -560,11 +563,10 @@ public class Util implements AnalysisConstants {
        * if (false) { for(ProofDrop d :
        * Sea.getDefault().getDropsOfType(ProofDrop.class)) { if
        * (!d.provedConsistent()) { ISrcRef ref = d.getSrcRef(); if (ref != null)
-       * { System
-       * .out.print(ref.getCUName()+":"+ref.getLineNumber()+" - "+d.getMessage
-       * ()); } } } } else { writeOutput(projects); }
+       * { System .out.print(ref.getCUName()+":"+ref.getLineNumber()+" - "
+       * +d.getMessage ()); } } } } else { writeOutput(projects); }
        */
-      msg = "Exporting results to "+projects.getRunDir().getName();
+      msg = "Exporting results to " + projects.getRunDir().getName();
       System.out.println(msg);
       projects.getMonitor().subTask(msg);
       tmpLocation = RemoteJSureRun.snapshot(System.out, projects.getLabel(), projects.getRunDir());
@@ -601,11 +603,11 @@ public class Util implements AnalysisConstants {
   }
 
   private static void checkforCUs(ParallelArray<CodeInfo> cus, ParallelArray<SourceCUDrop> cuds) {
-    Map<IRNode, SourceCUDrop> drops = new HashMap<IRNode, SourceCUDrop>(cuds.size());
-    for (SourceCUDrop d : cuds) {
+    Map<IRNode, SourceCUDrop> drops = new HashMap<>(cuds.asList().size());
+    for (SourceCUDrop d : cuds.asList()) {
       drops.put(d.getNode(), d);
     }
-    for (CodeInfo info : cus) {
+    for (CodeInfo info : cus.asList()) {
       if (!info.isAsSource() || info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
         continue;
       }
@@ -659,7 +661,7 @@ public class Util implements AnalysisConstants {
   }
 
   private static void checkForDups(List<CodeInfo> cus) {
-    Map<IRNode, CodeInfo> seen = new HashMap<IRNode, CodeInfo>();
+    Map<IRNode, CodeInfo> seen = new HashMap<>();
     for (CodeInfo cu : cus) {
       CodeInfo dup = seen.get(cu.getNode());
       if (dup != null) {
@@ -673,7 +675,7 @@ public class Util implements AnalysisConstants {
   private static void computeSubtypeInfo(Projects projects) throws IOException {
     // Compute/persist subtype info
     final boolean saveSubtypeInfo = useResultsXML && projects.getResultsFile() != null;
-    final MultiMap<CUDrop, CUDrop> subtypeDependencies = saveSubtypeInfo ? new MultiHashMap<CUDrop, CUDrop>() : null;
+    final Multimap<CUDrop, CUDrop> subtypeDependencies = saveSubtypeInfo ? ArrayListMultimap.<CUDrop, CUDrop> create() : null;
     for (JavacProject p : projects) {
       // Compute subtype info
       p.getTypeEnv().postProcessCompUnits(false);
@@ -704,8 +706,8 @@ public class Util implements AnalysisConstants {
       return;
     }
     // Test code for JSureResultsXMLRefScanner
-    final Map<String, SourceCUDrop> sources = new HashMap<String, SourceCUDrop>();
-    final Map<String, IRNode> types = new HashMap<String, IRNode>();
+    final Map<String, SourceCUDrop> sources = new HashMap<>();
+    final Map<String, IRNode> types = new HashMap<>();
     for (CUDrop cud : Sea.getDefault().getDropsOfType(CUDrop.class)) {
       if (cud instanceof SourceCUDrop) {
         String path = FileUtility.normalizePath(cud.getRelativePath());
@@ -766,7 +768,7 @@ public class Util implements AnalysisConstants {
    * Gets every drop if pd is null
    */
   private static ParallelArray<SourceCUDrop> findSourceCUDrops(final JSurePerformance perf) {
-    final ParallelArray<SourceCUDrop> cuds = perf.createArray(SourceCUDrop.class);
+    final ParallelArray<SourceCUDrop> cuds = new ParallelArray<>();
     for (SourceCUDrop scud : Sea.getDefault().getDropsOfExactType(SourceCUDrop.class)) {
       cuds.asList().add(scud);
     }
@@ -789,18 +791,6 @@ public class Util implements AnalysisConstants {
       if (cud != null) {
         cud.invalidate();
         AdapterUtil.destroyOldCU(cud.getCompilationUnitIRNode());
-      }
-    }
-  }
-
-  private static void clearOldResults(CUDrop cud) {
-    System.out.println("Clearing old results for " + cud);
-    for (Drop d : cud.getDependents()) {
-      if (d instanceof IAnalysisOutputDrop) {
-        if (Dependencies.DROP_MESSAGE_DEBUG == null || d.getMessage().startsWith(Dependencies.DROP_MESSAGE_DEBUG)) {
-          System.err.println("\t" + d.getMessage());
-        }
-        d.invalidate();
       }
     }
   }
@@ -829,7 +819,7 @@ public class Util implements AnalysisConstants {
       return analyses.summarizeTiming();
     } else if (useNewDriver) {
       System.out.println("Using new analysis framework -- groups");
-      final MultiMap<IAnalysisGranulator<?>, IAnalysisGranule> granules = new MultiHashMap<IAnalysisGranulator<?>, IAnalysisGranule>();
+      final Multimap<IAnalysisGranulator<?>, IAnalysisGranule> granules = ArrayListMultimap.create();
       boolean extracted = false;
 
       for (AnalysisGroup<?> group : analyses.getGroups()) {
@@ -895,7 +885,8 @@ public class Util implements AnalysisConstants {
               throw new CancellationException();
             }
             if (project.getTypeEnv() == cud.getTypeEnv()) { // Same project!
-              // System.out.println("Running "+a.name()+" on "+cud.javaOSFileName);
+              // System.out.println("Running "+a.name()+" on
+              // "+cud.javaOSFileName);
               try {
                 final AnalysisTimings timing = analyses.threadLocal.get();
                 frame.pushTypeContext(cud.getCompilationUnitIRNode());
@@ -919,7 +910,7 @@ public class Util implements AnalysisConstants {
         case INTERNALLY:
         default:
           // Handled by the analysis itself
-          for (final SourceCUDrop cud : toAnalyze) {
+          for (final SourceCUDrop cud : toAnalyze.asList()) {
             proc.op(cud);
           }
           break;
@@ -959,10 +950,10 @@ public class Util implements AnalysisConstants {
   }
 
   private static void extractGranules(final Analyses analyses, ParallelArray<SourceCUDrop> allCus,
-      final MultiMap<IAnalysisGranulator<?>, IAnalysisGranule> granules) {
+      final Multimap<IAnalysisGranulator<?>, IAnalysisGranule> granules) {
     // TODO do this with each group above?
     // TODO in parallel?
-    for (CUDrop d : allCus) {
+    for (CUDrop d : allCus.asList()) {
       for (IAnalysisGranulator<?> g : analyses.getGranulators()) {
         // This may require some setup!
         g.extractGranules(d.getTypeEnv(), d.getCompilationUnitIRNode());
@@ -976,7 +967,7 @@ public class Util implements AnalysisConstants {
   }
 
   private static void finishAllAnalyses(IIRAnalysisEnvironment env, Analyses analyses) {
-	env.getMonitor().subTask("Cleaning up after analysis", true);
+    env.getMonitor().subTask("Cleaning up after analysis", true);
     int i = 0;
     for (final IIRAnalysis<?> a : analyses) {
       final long start = System.nanoTime();
@@ -988,175 +979,174 @@ public class Util implements AnalysisConstants {
     System.gc();
     env.getMonitor().subTaskDone(1);
   }
-  
-  static abstract class AbstractAnalyzer<P,Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q> implements Analyzer<P, Q>{
-	  final IIRAnalysisEnvironment env;
 
-	  AbstractAnalyzer(boolean inParallel, Class<Q> cls, IIRAnalysisEnvironment e) {
-		  super(inParallel, cls);
-		  env = e;
-	  }
-	  
-	  public IIRAnalysisEnvironment getEnv() {
-		  return env;
-	  }
+  static abstract class AbstractAnalyzer<P, Q extends IAnalysisGranule> extends ConcurrentAnalysis<Q>implements Analyzer<P, Q> {
 
-	  public IAnalysisMonitor getMonitor() {
-		  return env.getMonitor();
-	  }
+    final IIRAnalysisEnvironment env;
 
-	  public boolean isSingleThreaded(IIRAnalysis<?> analysis) {
-		  return runInParallel() == ConcurrencyType.NEVER || analysis.runInParallel() == ConcurrencyType.NEVER;
-	  }
+    AbstractAnalyzer(boolean inParallel, IIRAnalysisEnvironment e) {
+      super(inParallel);
+      env = e;
+    }
+
+    public IIRAnalysisEnvironment getEnv() {
+      return env;
+    }
+
+    public IAnalysisMonitor getMonitor() {
+      return env.getMonitor();
+    }
+
+    public boolean isSingleThreaded(IIRAnalysis<?> analysis) {
+      return runInParallel() == ConcurrencyType.NEVER || analysis.runInParallel() == ConcurrencyType.NEVER;
+    }
   }
-  
+
   // Run each CU over each of the analysis groups
   static class AnalysesRunner extends AbstractAnalyzer<CUDrop, IAnalysisGranule> {
-	final Analyses analyses;
-	final Procedure<IAnalysisGranule>[] procs;
-	
-	AnalysesRunner(JSurePerformance perf, Analyses g, IIRAnalysisEnvironment e) {
-		super(!perf.singleThreaded, g.getGranuleType(), e);
-		analyses = g;
-		procs = new Procedure[g.numGroups()];
-		setupProcedure();		
-	}
-	
-	@Override
-	public Analyses getAnalyses() {
-		return analyses;
-	}
-	
-	@Override
-	public void process(Collection<CUDrop> toAnalyze) {
-		if (runInParallel() == ConcurrencyType.EXTERNALLY) {
-			final Procedure<IAnalysisGranule> proc = getWorkProcedure();
-			for (final IAnalysisGranule granule : toAnalyze) {
-				proc.op(granule);
-			}
-		} else {
-			queueWork(toAnalyze);
-			flushWorkQueue();
-		}
-	}	  
+    final Analyses analyses;
+    final Procedure<IAnalysisGranule>[] procs;
 
-	private Procedure<IAnalysisGranule> setupProcedure() {
-		final ThreadLocal<AnalysisTimings> timings = analyses.getParent().threadLocal;
-		final PromiseFramework frame = PromiseFramework.getInstance();
-		final Procedure<IAnalysisGranule> rv = new Procedure<IAnalysisGranule>() {
-			@Override
-			public void op(IAnalysisGranule granule) {
-				if (!granule.isAsSource()) {
-					// LOG.warning("No analysis on "+granule.javaOSFileName);
-					return;
-				}
-				if (getMonitor().isCanceled()) {
-					throw new CancellationException();
-				}
-				// System.out.println("Running "+a.name()+" on "+granule.javaOSFileName);
-				try {
-					final CUDrop cud = (CUDrop) granule;
-					frame.pushTypeContext(granule.getCompUnit());
-					int j = 0;
-					for (final IAnalysisGroup<?> g : analyses.getGroups()) {
-						final IAnalysisGranulator<?> granulator = g.getGranulator();
-						if (granulator == null) { 
-							// Use the comp unit
-							runAnalyses(timings, g, granule);
-							/*
-							final AnalysisTimings timing = timings.get();
-							int i = g.getOffset();
-							for (final IIRAnalysis<?> a : g) {
-								if (monitor != null) {
-									monitor.subTask("Checking [ " + a.label() + " ] " + granule.getLabel());
-								}
-								final long start = System.nanoTime();
-								a.doAnalysisOnAFile(env, cud);
-								final long end = System.nanoTime();
-								final long time = end - start;
-								recordTime(cud, a, time);
-								timing.incrTime(i, time);
-								i++;
-							}
-							*/
-						} else {
-							runAsTasks(granulator.extractNewGranules(cud.getTypeEnv(), cud.getCompUnit()), procs[j]); 
-						}
-						getMonitor().worked(1);
-						j++;
-					}
-				} catch (RuntimeException e) {
-					System.err.println("Error while processing " + granule.getLabel());
-					throw e;
-				} finally {
-					frame.popTypeContext();
-				}
-			}
-		};
-		setWorkProcedure(rv);		
-		
-		int j = 0;
-		for (final IAnalysisGroup<?> g : analyses.getGroups()) {
-			procs[j] = new Procedure<IAnalysisGranule>() {
-				public void op(IAnalysisGranule granule) {
-					final JavaComponentFactory jcf = JavaComponentFactory.startUse();
-					try {
-						frame.pushTypeContext(granule.getCompUnit());
-						runAnalyses(timings, g, granule);						
-					} catch (RuntimeException e) {
-						System.err.println("Error while processing " + granule.getLabel());
-						throw e;
-					} finally {
-						JavaComponentFactory.finishUse(jcf);
-						ImmutableHashOrderSet.cleanupCaches();
-						frame.popTypeContext();
-					}
-				}			
-			};
-			if (g.getGranulator() != null) {
-				@SuppressWarnings("unchecked")
-				IAnalysisGranulator<IAnalysisGranule> gran = (IAnalysisGranulator<IAnalysisGranule>) g.getGranulator();
-				procs[j] = gran.wrapAnalysis(procs[j]);
-			}
-			j++;
-		}
-		return getWorkProcedure();
-	}
-	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	void runAnalyses(final ThreadLocal<AnalysisTimings> timings,
-			final IAnalysisGroup<?> g, IAnalysisGranule granule) {
-		final AnalysisTimings timing = timings.get();
-		int i = g.getOffset();
-		for (final IIRAnalysis a : g) {
-			getMonitor().subTask("Checking [ " + a.label() + " ] " + granule.getLabel(), false);			
-			final long start = System.nanoTime();
-			a.doAnalysisOnGranule(env, granule);
-			final long end = System.nanoTime();
-			final long time = end - start;
-			timing.incrTime(i, time, granule, a);
-		    getMonitor().subTaskDone(0);
-			i++;
-		}
-	}	
+    AnalysesRunner(JSurePerformance perf, Analyses g, IIRAnalysisEnvironment e) {
+      super(!perf.singleThreaded, e);
+      analyses = g;
+      @SuppressWarnings("unchecked")
+      final Procedure<IAnalysisGranule>[] tprocs = new Procedure[g.numGroups()];
+      procs = tprocs;
+      setupProcedure();
+    }
+
+    @Override
+    public Analyses getAnalyses() {
+      return analyses;
+    }
+
+    @Override
+    public void process(Collection<CUDrop> toAnalyze) {
+      if (runInParallel() == ConcurrencyType.EXTERNALLY) {
+        final Procedure<IAnalysisGranule> proc = getWorkProcedure();
+        for (final IAnalysisGranule granule : toAnalyze) {
+          proc.op(granule);
+        }
+      } else {
+        queueWork(toAnalyze);
+        flushWorkQueue();
+      }
+    }
+
+    private Procedure<IAnalysisGranule> setupProcedure() {
+      final ThreadLocal<AnalysisTimings> timings = analyses.getParent().threadLocal;
+      final PromiseFramework frame = PromiseFramework.getInstance();
+      final Procedure<IAnalysisGranule> rv = new Procedure<IAnalysisGranule>() {
+        @Override
+        public void op(IAnalysisGranule granule) {
+          if (!granule.isAsSource()) {
+            // LOG.warning("No analysis on "+granule.javaOSFileName);
+            return;
+          }
+          if (getMonitor().isCanceled()) {
+            throw new CancellationException();
+          }
+          // System.out.println("Running "+a.name()+" on
+          // "+granule.javaOSFileName);
+          try {
+            final CUDrop cud = (CUDrop) granule;
+            frame.pushTypeContext(granule.getCompUnit());
+            int j = 0;
+            for (final IAnalysisGroup<? extends IAnalysisGranule> g : analyses.getGroups()) {
+              final IAnalysisGranulator<? extends IAnalysisGranule> granulator = g.getGranulator();
+              if (granulator == null) {
+                // Use the comp unit
+                runAnalyses(timings, g, granule);
+                /*
+                 * final AnalysisTimings timing = timings.get(); int i =
+                 * g.getOffset(); for (final IIRAnalysis<?> a : g) { if (monitor
+                 * != null) { monitor.subTask("Checking [ " + a.label() + " ] "
+                 * + granule.getLabel()); } final long start =
+                 * System.nanoTime(); a.doAnalysisOnAFile(env, cud); final long
+                 * end = System.nanoTime(); final long time = end - start;
+                 * recordTime(cud, a, time); timing.incrTime(i, time); i++; }
+                 */
+              } else {
+                ParallelArray<? extends IAnalysisGranule> runAsTasks = new ParallelArray<>(
+                    granulator.extractNewGranules(cud.getTypeEnv(), cud.getCompUnit()));
+                runAsTasks.apply(procs[j]);
+                runAsTasks.asList().clear();
+              }
+              getMonitor().worked(1);
+              j++;
+            }
+          } catch (RuntimeException e) {
+            System.err.println("Error while processing " + granule.getLabel());
+            throw e;
+          } finally {
+            frame.popTypeContext();
+          }
+        }
+      };
+      setWorkProcedure(rv);
+
+      int j = 0;
+      for (final IAnalysisGroup<?> g : analyses.getGroups()) {
+        procs[j] = new Procedure<IAnalysisGranule>() {
+          public void op(IAnalysisGranule granule) {
+            final JavaComponentFactory jcf = JavaComponentFactory.startUse();
+            try {
+              frame.pushTypeContext(granule.getCompUnit());
+              runAnalyses(timings, g, granule);
+            } catch (RuntimeException e) {
+              System.err.println("Error while processing " + granule.getLabel());
+              throw e;
+            } finally {
+              JavaComponentFactory.finishUse(jcf);
+              ImmutableHashOrderSet.cleanupCaches();
+              frame.popTypeContext();
+            }
+          }
+        };
+        if (g.getGranulator() != null) {
+          @SuppressWarnings("unchecked")
+          IAnalysisGranulator<IAnalysisGranule> gran = (IAnalysisGranulator<IAnalysisGranule>) g.getGranulator();
+          procs[j] = gran.wrapAnalysis(procs[j]);
+        }
+        j++;
+      }
+      return getWorkProcedure();
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    void runAnalyses(final ThreadLocal<AnalysisTimings> timings, final IAnalysisGroup<?> g, IAnalysisGranule granule) {
+      final AnalysisTimings timing = timings.get();
+      int i = g.getOffset();
+      for (final IIRAnalysis a : g) {
+        getMonitor().subTask("Checking [ " + a.label() + " ] " + granule.getLabel(), false);
+        final long start = System.nanoTime();
+        a.doAnalysisOnGranule(env, granule);
+        final long end = System.nanoTime();
+        final long time = end - start;
+        timing.incrTime(i, time, granule, a);
+        getMonitor().subTaskDone(0);
+        i++;
+      }
+    }
   }
-  
+
   /**
    * Runs a group of analyses
    */
-  static class AnalysisInfo<Q extends IAnalysisGranule> extends AbstractAnalyzer<Q,Q> {	  
+  static class AnalysisInfo<Q extends IAnalysisGranule> extends AbstractAnalyzer<Q, Q> {
     final IAnalysisGroup<Q> analyses;
-	  
+
     AnalysisInfo(JSurePerformance perf, IAnalysisGroup<Q> g, IIRAnalysisEnvironment e) {
-      super(!(perf.singleThreaded || g.runSingleThreaded()), g.getGranuleType(), e);
+      super(!(perf.singleThreaded || g.runSingleThreaded()), e);
       analyses = g;
       setupProcedure();
     }
 
     public IAnalysisGroup<Q> getAnalyses() {
-    	return analyses;
+      return analyses;
     }
-    
+
     private Procedure<Q> setupProcedure() {
       final ThreadLocal<AnalysisTimings> timings = analyses.getParent().threadLocal;
       final PromiseFramework frame = PromiseFramework.getInstance();
@@ -1170,7 +1160,8 @@ public class Util implements AnalysisConstants {
           if (getMonitor().isCanceled()) {
             throw new CancellationException();
           }
-          // System.out.println("Running "+a.name()+" on "+granule.javaOSFileName);
+          // System.out.println("Running "+a.name()+" on
+          // "+granule.javaOSFileName);
           final JavaComponentFactory jcf = JavaComponentFactory.startUse();
           try {
             final AnalysisTimings timing = timings.get();
@@ -1191,8 +1182,8 @@ public class Util implements AnalysisConstants {
             System.err.println("Error while processing " + granule.getLabel());
             throw e;
           } finally {
-        	JavaComponentFactory.finishUse(jcf);
-        	ImmutableHashOrderSet.cleanupCaches();
+            JavaComponentFactory.finishUse(jcf);
+            ImmutableHashOrderSet.cleanupCaches();
             frame.popTypeContext();
           }
         }
@@ -1262,12 +1253,12 @@ public class Util implements AnalysisConstants {
    */
   private static void rewriteCUs(Projects projects, final List<CodeInfo> cus, SLProgressMonitor monitor,
       final JavacClassParser loader) throws IOException {
-    final Map<ITypeEnvironment, JavaRewrite> rewrites = new HashMap<ITypeEnvironment, JavaRewrite>();
+    final Map<ITypeEnvironment, JavaRewrite> rewrites = new HashMap<>();
     // int binaryRewrites = 0;
     startSubTask(monitor, "Rewriting CUs");
 
     // Init the list of binders
-    final List<JavacTypeEnvironment.Binder> binders = new ArrayList<JavacTypeEnvironment.Binder>();
+    final List<JavacTypeEnvironment.Binder> binders = new ArrayList<>();
     for (JavacProject p : projects) {
       final JavacTypeEnvironment tEnv = p.getTypeEnv();
       rewrites.put(tEnv, new JavaRewrite(tEnv));
@@ -1276,7 +1267,7 @@ public class Util implements AnalysisConstants {
       binders.add((JavacTypeEnvironment.Binder) b);
     }
 
-    final Map<IRNode, CodeInfo> infoMap = new HashMap<IRNode, CodeInfo>(cus.size());
+    final Map<IRNode, CodeInfo> infoMap = new HashMap<>(cus.size());
     for (CodeInfo info : cus) {
       infoMap.put(info.getNode(), info);
     }
@@ -1323,8 +1314,8 @@ public class Util implements AnalysisConstants {
        * if (JavaNode.getModifier(cu, JavaNode.AS_BINARY)) {
        * //System.out.println("Skipping  "+JavaNames.getFullTypeName(type));
        * //continue; } else { if
-       * (info.getFileName().endsWith("NestedTest.java")) {
-       * System.out.println("Rewriting "+info.getFileName()); } }
+       * (info.getFileName().endsWith("NestedTest.java")) { System.out.println(
+       * "Rewriting "+info.getFileName()); } }
        */
       JavaRewrite rewrite = rewrites.get(info.getTypeEnv());
       boolean changed = rewrite.ensureDefaultsExist(cu);
@@ -1381,7 +1372,7 @@ public class Util implements AnalysisConstants {
     protected abstract void process(T info);
   }
 
-  static final ConcurrentMap<JavacTypeEnvironment, JavaCanonicalizer> canonicalizers = new ConcurrentHashMap<JavacTypeEnvironment, JavaCanonicalizer>();
+  static final ConcurrentMap<JavacTypeEnvironment, JavaCanonicalizer> canonicalizers = new ConcurrentHashMap<>();
 
   static JavaCanonicalizer getCanonicalizer(CodeInfo info) {
     final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
@@ -1404,8 +1395,8 @@ public class Util implements AnalysisConstants {
         /*
          * IRNode type = VisitUtil.getPrimaryType(info.getNode()); String
          * unparse = DebugUnparser.toString(type); if
-         * (unparse.contains("Deprecated")) {
-         * System.out.println("Deprecated in "+JavaNames.getFullName(type)); }
+         * (unparse.contains("Deprecated")) { System.out.println(
+         * "Deprecated in "+JavaNames.getFullName(type)); }
          */
         return; // Nothing to do on class files
       }
@@ -1416,7 +1407,7 @@ public class Util implements AnalysisConstants {
       final UnversionedJavaBinder b = tEnv.getBinder();
       b.bindCompUnit(info.getNode(), info.getFileName());
       if (monitor != null) {
-    	  monitor.worked(1);
+        monitor.worked(1);
       }
     }
   };
@@ -1467,7 +1458,8 @@ public class Util implements AnalysisConstants {
     }
   };
 
-  private static void canonicalizeCUs(JSurePerformance perf, IAnalysisMonitor mon, final ParallelArray<CodeInfo> cus, final Projects projects) {
+  private static void canonicalizeCUs(JSurePerformance perf, IAnalysisMonitor mon, final ParallelArray<CodeInfo> cus,
+      final Projects projects) {
     final SLProgressMonitor monitor = projects.getMonitor();
     if (monitor.isCanceled()) {
       throw new CancellationException();
@@ -1481,15 +1473,15 @@ public class Util implements AnalysisConstants {
     canonProc.setProjects(projects);
     long bindingTime = 0;
     if (batchAndCacheBindingsForCanon) {
-      final ParallelArray<CodeInfo> temp = perf.createArray(CodeInfo.class);
-      for (CodeInfo i : cus) {
+      final ParallelArray<CodeInfo> temp = new ParallelArray<>();
+      for (CodeInfo i : cus.asList()) {
         temp.asList().add(i);
-        if (temp.size() > 100) {
+        if (temp.asList().size() > 100) {
           bindingTime += doCanonicalize(monitor, temp, false);
           temp.asList().clear();
         }
       }
-      if (!temp.isEmpty()) {
+      if (!temp.asList().isEmpty()) {
         bindingTime += doCanonicalize(monitor, temp, false);
       }
     } else {
@@ -1515,14 +1507,14 @@ public class Util implements AnalysisConstants {
       AbstractJavaBinder.printStats();
     }
     // cus.apply(proc);
-    for (final CodeInfo info : cus) {
+    for (final CodeInfo info : cus.asList()) {
       final boolean hasPath = info.getFile().getRelativePath() != null;
       if (hasPath) {
-    	System.out.println("Canonicalizing " + info.getFile().getRelativePath());
+        System.out.println("Canonicalizing " + info.getFile().getRelativePath());
       }
       canonProc.op(info);
       if (hasPath) {
-    	mon.worked(1);
+        mon.worked(1);
       }
     }
     return end - start;
@@ -1534,7 +1526,7 @@ public class Util implements AnalysisConstants {
 
   static class Nodes {
     // final Set<IRNode> original = new HashSet<IRNode>();
-    final List<IRNode> noncanonical = new ArrayList<IRNode>();
+    final List<IRNode> noncanonical = new ArrayList<>();
     final IRNode cu;
 
     Nodes(IRNode cu) {
@@ -1542,16 +1534,16 @@ public class Util implements AnalysisConstants {
     }
   }
 
-  private static Nodes findNoncanonical(IRNode cu) {
+  static Nodes findNoncanonical(IRNode cu) {
     Nodes rv = new Nodes(cu);
     for (IRNode n : JJNode.tree.topDown(cu)) {
       // rv.original.add(n);
 
       Operator op = JJNode.tree.getOperator(n);
       if (op instanceof IllegalCode) {
-    	if (op instanceof MethodReference || op instanceof ConstructorReference) {
-    		continue;
-    	}
+        if (op instanceof MethodReference || op instanceof ConstructorReference) {
+          continue;
+        }
         rv.noncanonical.add(n);
       } else {
         // FIX these aren't all of them
@@ -1570,16 +1562,16 @@ public class Util implements AnalysisConstants {
     return rv;
   }
 
-  private static void destroyNoncanonical(Nodes nodes) {
+  static void destroyNoncanonical(Nodes nodes) {
     /*
      * for (IRNode n : JJNode.tree.topDown(nodes.cu)) {
      * nodes.original.remove(n); } final int origSize = nodes.original.size();
      */
     final int noncanonSize = nodes.noncanonical.size();
     /*
-     * if (origSize != noncanonSize) {
-     * //System.out.println("Found "+origSize+" nodes vs. "
-     * +noncanonSize+" noncanonical"); diffNodes += (origSize - noncanonSize); }
+     * if (origSize != noncanonSize) { //System.out.println("Found "+origSize+
+     * " nodes vs. " +noncanonSize+" noncanonical"); diffNodes += (origSize -
+     * noncanonSize); }
      */
     destroyedNodes += noncanonSize;
 
@@ -1611,10 +1603,10 @@ public class Util implements AnalysisConstants {
   }
 
   private static void parsePromises(ParallelArray<CodeInfo> cus, Projects projects) {
-	final SLProgressMonitor monitor = projects.getMonitor();
+    final SLProgressMonitor monitor = projects.getMonitor();
     ParseUtil.init();
-    for(JavacProject p : projects) {
-    	ParseHelper.getInstance().initialize(p.getTypeEnv().getClassTable());
+    for (JavacProject p : projects) {
+      ParseHelper.getInstance().initialize(p.getTypeEnv().getClassTable());
     }
     startSubTask(monitor, "Parsing promises");
     // final File root = new
@@ -1653,8 +1645,8 @@ public class Util implements AnalysisConstants {
           /*
            * if (
            * "region.accessibility.samePackage.DefaultSuper.Inner_ParentIsDefaultSuper"
-           * .equals(qname)) {
-           * System.out.println("Checking Inner_ParentIsDefaultSuper"); }
+           * .equals(qname)) { System.out.println(
+           * "Checking Inner_ParentIsDefaultSuper"); }
            */
           final Operator op = JJNode.tree.getOperator(type);
           if (op instanceof AnonClassExpression || op instanceof TypeFormal) {
@@ -1691,8 +1683,8 @@ public class Util implements AnalysisConstants {
           }
         }
         // Recompute granules after canonicalization
-        AbstractJavaBinder.computeGranules(cu);        
-        
+        AbstractJavaBinder.computeGranules(cu);
+
         // Visit the source, checking for annotations
         int num = v.doAccept(cu);
         final JavacProject p = Projects.getProject(cu);
@@ -1717,8 +1709,8 @@ public class Util implements AnalysisConstants {
           System.out.println("Added " + num + " promises for " + name + " in " + p.getName() + ": " + VisitUtil.getPrimaryType(cu));
           /*
            * } else if (info.getFileName().endsWith(".java")) {
-           * System.out.println
-           * ("No promises found for "+name+" in "+p.getName());
+           * System.out.println ("No promises found for "+name+" in "
+           * +p.getName());
            */
         }
         /*
@@ -1738,42 +1730,42 @@ public class Util implements AnalysisConstants {
         }
       }
     };
-    
+
     // Parse promises for the array superclass
-    for(final JavacProject p : projects) {    	
-    	final ITypeEnvironment tEnv = p.getTypeEnv();
-    	final IRNode array = tEnv.getArrayClassDeclaration();
-    	final IRNode cu = VisitUtil.getEnclosingCompilationUnit(array);
-    	final JavacProject arrayP = Projects.getProject(cu);
-    	if (p == arrayP) {
-    		final ICodeFile cf = new ICodeFile() {		
-    			@Override
-    			public String getRelativePath() {
-    				return "[]";
-    			}
+    for (final JavacProject p : projects) {
+      final ITypeEnvironment tEnv = p.getTypeEnv();
+      final IRNode array = tEnv.getArrayClassDeclaration();
+      final IRNode cu = VisitUtil.getEnclosingCompilationUnit(array);
+      final JavacProject arrayP = Projects.getProject(cu);
+      if (p == arrayP) {
+        final ICodeFile cf = new ICodeFile() {
+          @Override
+          public String getRelativePath() {
+            return "[]";
+          }
 
-    			@Override
-    			public String getProjectName() {
-    				return p.getName();
-    			}
+          @Override
+          public String getProjectName() {
+            return p.getName();
+          }
 
-    			@Override
-    			public String getPackage() {
-    				return "java.lang";
-    			}
+          @Override
+          public String getPackage() {
+            return "java.lang";
+          }
 
-    			@Override
-    			public Object getHostEnvResource() {
-    				return null;
-    			}
-    		};
-    		
-    		// Has to be done after loading
-    		for(IRNode n : VisitUtil.getClassBodyMembers(tEnv.getArrayClassDeclaration())) {
-    			JavaNode.makeFluidJavaRefForNode(p.getName(), tEnv, n, true);
-    		}    		
-    		proc.op(new CodeInfo(tEnv, cf, cu, null, "java.lang.[]", null, Type.BINARY));
-    	}
+          @Override
+          public Object getHostEnvResource() {
+            return null;
+          }
+        };
+
+        // Has to be done after loading
+        for (IRNode n : VisitUtil.getClassBodyMembers(tEnv.getArrayClassDeclaration())) {
+          JavaNode.makeFluidJavaRefForNode(p.getName(), tEnv, n, true);
+        }
+        proc.op(new CodeInfo(tEnv, cf, cu, null, "java.lang.[]", null, Type.BINARY));
+      }
     }
     cus.apply(proc);
     /*
@@ -1850,7 +1842,7 @@ public class Util implements AnalysisConstants {
         cus.asList().add(d.makeCodeInfo());
       }
     };
-    for (CodeInfo info : new ArrayList<CodeInfo>(cus.asList())) {
+    for (CodeInfo info : new ArrayList<>(cus.asList())) {
       // TODO Check for package-info files
       // Check for sources
       if (info.getType() == Type.SOURCE) { // TODO what about interfaces?
@@ -1876,12 +1868,12 @@ public class Util implements AnalysisConstants {
     }
     startSubTask(monitor, "Creating drops");
     // Required to make sure that we process package-info files first
-    for(CodeInfo info : cus.asList()) {
-    	if (isPackageInfo(info)) {
-    		createCUDrop(monitor, info);
-    	}
+    for (CodeInfo info : cus.asList()) {
+      if (isPackageInfo(info)) {
+        createCUDrop(monitor, info);
+      }
     }
-    
+
     /*
      * for(SourceCUDrop cud :
      * Sea.getDefault().getDropsOfExactType(SourceCUDrop.class)) {
@@ -1890,9 +1882,9 @@ public class Util implements AnalysisConstants {
     final Procedure<CodeInfo> proc = new Procedure<CodeInfo>() {
       @Override
       public void op(CodeInfo info) {
-    	if (!isPackageInfo(info)) {
-    		createCUDrop(monitor, info);
-    	}
+        if (!isPackageInfo(info)) {
+          createCUDrop(monitor, info);
+        }
       }
     };
     cus.apply(proc);
@@ -1903,78 +1895,78 @@ public class Util implements AnalysisConstants {
   }
 
   static boolean isPackageInfo(CodeInfo info) {
-	  return info.getType() != Type.BINARY && info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA);
+    return info.getType() != Type.BINARY && info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA);
   }
-  
+
   static void createCUDrop(final SLProgressMonitor monitor, CodeInfo info) {
-	if (monitor.isCanceled()) {
-	  throw new CancellationException();
-	}
-	if (info.getNode().identity() == IRNode.destroyedNode) {
-	  LOG.info("WARNING Already destroyed: " + info.getFileName());
-	  return;
-	}
-	// invalidate past results on this java file
-	final ICodeFile file = info.getFile();
-	CUDrop outOfDate = null;
-	switch (info.getType()) {
-	case SOURCE:
-	case INTERFACE:
-	  if (info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
-	    // System.out.println("Found package: "+info.getFileName());
-	    outOfDate = PackageDrop.findPackage(file.getPackage());
-	  } else {
-	    // System.out.println("Found source:  "+info.getFileName());
-	    outOfDate = SourceCUDrop.queryCU(file);
-	  }
-	  break;
-	case BINARY:
-	  outOfDate = BinaryCUDrop.queryCU(file.getProjectName(), info.getFileName());
-	default:
-	}
+    if (monitor.isCanceled()) {
+      throw new CancellationException();
+    }
+    if (info.getNode().identity() == IRNode.destroyedNode) {
+      LOG.info("WARNING Already destroyed: " + info.getFileName());
+      return;
+    }
+    // invalidate past results on this java file
+    final ICodeFile file = info.getFile();
+    CUDrop outOfDate = null;
+    switch (info.getType()) {
+    case SOURCE:
+    case INTERFACE:
+      if (info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
+        // System.out.println("Found package: "+info.getFileName());
+        outOfDate = PackageDrop.findPackage(file.getPackage());
+      } else {
+        // System.out.println("Found source: "+info.getFileName());
+        outOfDate = SourceCUDrop.queryCU(file);
+      }
+      break;
+    case BINARY:
+      outOfDate = BinaryCUDrop.queryCU(file.getProjectName(), info.getFileName());
+    default:
+    }
 
-	if (outOfDate != null) {
-	  if (outOfDate.getCompilationUnitIRNode().identity() != IRNode.destroyedNode
-	      && outOfDate.getCompilationUnitIRNode().equals(info.getNode())) {
-	    // Same IRNode, so keep this drop
-	    System.out.println("Keeping the old drop for " + outOfDate.getJavaOSFileName());
-	    return;
-	  }
-	  // if (AbstractWholeIRAnalysis.debugDependencies) {
-	  // System.out.println("Invalidating "+outOfDate+": "+
-	  // Projects.getProject(outOfDate.getCompilationUnitIRNode())+" -> "+
-	  // Projects.getProject(info.getNode()));
-	  // if (!(outOfDate instanceof PackageDrop)) {
-	  // System.out.println("Found "+outOfDate);
-	  // }
-	  // }
-	  System.out.println("Destroying "+outOfDate.getMessage());
-	  AdapterUtil.destroyOldCU(outOfDate.getCompilationUnitIRNode());
-	  outOfDate.invalidate();
-	} else {
-	  // System.out.println("Couldn't find: "+info.getFile());
-	}
-	// System.out.println("Creating drop: "+info.getFileName());
+    if (outOfDate != null) {
+      if (outOfDate.getCompilationUnitIRNode().identity() != IRNode.destroyedNode
+          && outOfDate.getCompilationUnitIRNode().equals(info.getNode())) {
+        // Same IRNode, so keep this drop
+        System.out.println("Keeping the old drop for " + outOfDate.getJavaOSFileName());
+        return;
+      }
+      // if (AbstractWholeIRAnalysis.debugDependencies) {
+      // System.out.println("Invalidating "+outOfDate+": "+
+      // Projects.getProject(outOfDate.getCompilationUnitIRNode())+" -> "+
+      // Projects.getProject(info.getNode()));
+      // if (!(outOfDate instanceof PackageDrop)) {
+      // System.out.println("Found "+outOfDate);
+      // }
+      // }
+      System.out.println("Destroying " + outOfDate.getMessage());
+      AdapterUtil.destroyOldCU(outOfDate.getCompilationUnitIRNode());
+      outOfDate.invalidate();
+    } else {
+      // System.out.println("Couldn't find: "+info.getFile());
+    }
+    // System.out.println("Creating drop: "+info.getFileName());
 
-	if (info.getType().fromSourceFile()) {
-	  if (info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
-	    final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
-	    tEnv.addPackage(info.getFile().getPackage(), info.getNode());
-	    // PackageDrop.createPackage(info.getFile().getPackage(),
-	    // info.getNode());
-	  } else {
-	    new SourceCUDrop(info);
-	    System.out.println("Created source drop for " + info.getFileName());
-	  }
-	} else {
-	  new BinaryCUDrop(info);
-	  System.out.println("Created binary drop for " + info.getFileName());
-	}
-	if (debug) {
-	  System.out.println("Created drop for " + info.getFileName());
-	}
-  }  
-  
+    if (info.getType().fromSourceFile()) {
+      if (info.getFileName().endsWith(SLUtility.PACKAGE_INFO_JAVA)) {
+        final JavacTypeEnvironment tEnv = (JavacTypeEnvironment) info.getTypeEnv();
+        tEnv.addPackage(info.getFile().getPackage(), info.getNode());
+        // PackageDrop.createPackage(info.getFile().getPackage(),
+        // info.getNode());
+      } else {
+        new SourceCUDrop(info);
+        System.out.println("Created source drop for " + info.getFileName());
+      }
+    } else {
+      new BinaryCUDrop(info);
+      System.out.println("Created binary drop for " + info.getFileName());
+    }
+    if (debug) {
+      System.out.println("Created drop for " + info.getFileName());
+    }
+  }
+
   private static void scrubPromises(List<CodeInfo> cus, SLProgressMonitor monitor) {
     startSubTask(monitor, "Scrubbing promises");
     AnnotationRules.scrub();
@@ -2027,8 +2019,8 @@ public class Util implements AnalysisConstants {
       addJavaFiles(new File(WORK + "/jdk6-workspace/jdk6"), config);
       break;
     case JEDIT:
-      addJavaFiles(new File(WORKSPACE + "/JEdit"), config, new File(WORKSPACE + "/JEdit/jars"), new File(WORKSPACE
-          + "/JEdit/jeditshell"), new File(WORKSPACE + "/JEdit/doclet"));
+      addJavaFiles(new File(WORKSPACE + "/JEdit"), config, new File(WORKSPACE + "/JEdit/jars"),
+          new File(WORKSPACE + "/JEdit/jeditshell"), new File(WORKSPACE + "/JEdit/doclet"));
       break;
     }
     try {

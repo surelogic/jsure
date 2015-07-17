@@ -9,11 +9,11 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.logging.Level;
 
-import org.apache.commons.collections15.MultiMap;
-import org.apache.commons.collections15.multimap.MultiHashMap;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.surelogic.NonNull;
 import com.surelogic.Nullable;
 import com.surelogic.common.i18n.I18N;
@@ -25,9 +25,9 @@ import com.surelogic.dropsea.IProposedPromiseDrop;
 import com.surelogic.dropsea.ScanDifferences;
 import com.surelogic.java.persistence.JSureScanInfo;
 import com.surelogic.jsure.client.eclipse.model.java.Element;
+import com.surelogic.jsure.client.eclipse.model.java.Element.HighlightDifferencesSource;
 import com.surelogic.jsure.client.eclipse.model.java.ElementDrop;
 import com.surelogic.jsure.client.eclipse.model.java.ElementJavaDecl;
-import com.surelogic.jsure.client.eclipse.model.java.Element.HighlightDifferencesSource;
 import com.surelogic.jsure.core.preferences.UninterestingPackageFilterUtility;
 
 public class ProposedAnnotationViewContentProvider implements ITreeContentProvider, Element.HighlightDifferencesSource {
@@ -136,7 +136,7 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
      * exist the code below will expand out the entire element model tree to its
      * leaves.
      */
-    final Queue<Element> queue = new LinkedList<Element>();
+    final Queue<Element> queue = new LinkedList<>();
     queue.addAll(Arrays.asList(root));
     while (!queue.isEmpty()) {
       final Element e = queue.poll();
@@ -162,15 +162,15 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
    * @return the filtered list of proposals.
    */
   static ArrayList<IProposedPromiseDrop> filterOutDuplicates(Collection<IProposedPromiseDrop> proposals) {
-    ArrayList<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
+    ArrayList<IProposedPromiseDrop> result = new ArrayList<>();
     // Hash results
-    MultiMap<Long, IProposedPromiseDrop> hashed = new MultiHashMap<Long, IProposedPromiseDrop>();
+    Multimap<Long, IProposedPromiseDrop> hashed = ArrayListMultimap.create();
     for (IProposedPromiseDrop info : proposals) {
       long hash = computeHashFor(info);
       hashed.put(hash, info);
     }
     // Filter each list the old way
-    for (Map.Entry<Long, Collection<IProposedPromiseDrop>> e : hashed.entrySet()) {
+    for (Map.Entry<Long, Collection<IProposedPromiseDrop>> e : hashed.asMap().entrySet()) {
       result.addAll(filterOutDuplicates_slow(e.getValue()));
     }
     return result;
@@ -199,7 +199,7 @@ public class ProposedAnnotationViewContentProvider implements ITreeContentProvid
 
   // n^2 comparisons
   private static List<IProposedPromiseDrop> filterOutDuplicates_slow(Collection<IProposedPromiseDrop> proposals) {
-    List<IProposedPromiseDrop> result = new ArrayList<IProposedPromiseDrop>();
+    List<IProposedPromiseDrop> result = new ArrayList<>();
     for (IProposedPromiseDrop h : proposals) {
       boolean addToResult = true;
       for (IProposedPromiseDrop i : result) {

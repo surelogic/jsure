@@ -3,9 +3,8 @@ package com.surelogic.analysis.structure;
 
 import java.util.*;
 
-import org.apache.commons.collections15.MultiMap;
-import org.apache.commons.collections15.multimap.MultiHashMap;
-
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.surelogic.analysis.AbstractWholeIRAnalysis;
 import com.surelogic.analysis.IBinderClient;
 import com.surelogic.analysis.IIRAnalysisEnvironment;
@@ -46,8 +45,8 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 		return new PerThreadInfo(binder);
 	}
 	
-	MultiMap<String,Integer> preFilter;
-	final Map<IRNode,MustInvokeOnOverridePromiseDrop> unchecked = new HashMap<IRNode, MustInvokeOnOverridePromiseDrop>();
+	Multimap<String,Integer> preFilter;
+	final Map<IRNode,MustInvokeOnOverridePromiseDrop> unchecked = new HashMap<>();
 	
 	private static Integer numChildren(IRNode params) {
 		return IntegerTable.newInteger(JJNode.tree.numChildren(params));
@@ -56,7 +55,7 @@ public final class StructureAnalysis extends AbstractWholeIRAnalysis<StructureAn
 	@Override
 	protected void startAnalyzeBegin(IIRProject p, IBinder binder) {
 		// Precompute the set of methods that could override
-		preFilter = new MultiHashMap<String, Integer>();
+		preFilter = ArrayListMultimap.create();
 		for(final MustInvokeOnOverridePromiseDrop d : 
 			Sea.getDefault().getDropsOfType(MustInvokeOnOverridePromiseDrop.class)) {
 			final IRNode method = d.getPromisedFor();

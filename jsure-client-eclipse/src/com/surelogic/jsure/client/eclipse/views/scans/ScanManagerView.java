@@ -55,6 +55,13 @@ public final class ScanManagerView extends ViewPart implements JSureDataDirHub.C
     rescanAction.setEnabled(false);
     actionBars.getToolBarManager().add(rescanAction);
     actionBars.getMenuManager().add(rescanAction);
+    
+    final Action showScanLogAction = f_mediator.getShowScanLogAction();
+    showScanLogAction.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_FILE));
+    showScanLogAction.setText(I18N.msg("jsure.scan.view.text.show-log"));
+    showScanLogAction.setToolTipText(I18N.msg("jsure.scan.view.tooltip.show-log"));
+    showScanLogAction.setEnabled(false);
+    actionBars.getMenuManager().add(showScanLogAction);
 
     final Action deleteScanAction = f_mediator.getDeleteScanAction();
     deleteScanAction.setImageDescriptor(SLImages.getImageDescriptor(CommonImages.IMG_RED_X));
@@ -75,6 +82,7 @@ public final class ScanManagerView extends ViewPart implements JSureDataDirHub.C
         manager.add(setAsCurrentAction);
         manager.add(new Separator());
         manager.add(rescanAction);
+        manager.add(showScanLogAction);
         manager.add(deleteScanAction);
       }
     });
