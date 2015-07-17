@@ -264,21 +264,33 @@ public class JcipRules extends AnnotationRules {
       return true;
     }
 
-//    @Override
-//    public Result visit(QualifiedThisExpressionNode lock) {
-//      // if (true) {
-//      context.reportError(
-//          "Unconverted @GuardedBy: currently unable to handle qualified receiver "
-//              + lock + " as a lock", anno);
-//      return null;
-//      // }
-//      // final IRNode lockNode = lock.resolveBinding().getNode();
-//      // final String id = lock.getType().toString().replace('.', '$')+"_this";
-//      // if (isFieldNotMethod) {
-//      // return makeResultForField(lock, lockNode, id);
-//      // }
-//      // return makeResultForMethod(lock, lockNode, id);
-//    }
+    @Override
+    public Boolean visit(final QualifiedThisExpressionNode lock) {
+      if (isFieldNotMethod) {
+        if (targetIsStatic) {
+          context.reportError(anno, "Static field \"" + targetId
+              + "\" cannot be guarded by \"" + lock + "\"");
+          return false;
+        }
+        if (JavaNode.isSet(targetMods, JavaNode.FINAL)) {
+          context.reportError(anno, "Final field \"" + targetId
+              + "\" cannot be guarded by \"" + lock + "\"");
+          return false;
+        }
+      } else {
+        if (targetIsStatic) {
+          context.reportError(anno, "Static method \"" + targetId
+              + "\" cannot be guarded by \"" + lock + "\"");
+          return false;
+        }
+        if (ConstructorDeclaration.prototype.includes(target)) {
+          context.reportError(anno, "Constructor \"" + targetId
+              + "\" cannot be guarded by \"" + lock + "\"");
+          return false;
+        }
+      }
+      return true;
+    }
 
     @Override
     public Boolean visit(final ItselfNode lock) {
