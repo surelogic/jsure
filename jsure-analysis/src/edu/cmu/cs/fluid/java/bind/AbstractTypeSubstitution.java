@@ -166,6 +166,10 @@ public abstract class AbstractTypeSubstitution implements IJavaTypeSubstitution 
 		public IJavaType get(IJavaTypeFormal jtf) {
 			// TODO is this in the right order?
 			IJavaType rv = me.get(jtf);
+			if (rv == null) {
+				// Handle the raw case 
+				rv = jtf.getExtendsBound(binder.getTypeEnvironment()); // TODO is this right?
+			}
 			return rv.subst(other);
 		}
 
