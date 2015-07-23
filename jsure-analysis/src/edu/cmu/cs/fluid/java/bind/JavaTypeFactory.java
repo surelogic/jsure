@@ -54,6 +54,7 @@ import edu.cmu.cs.fluid.java.DebugUnparser;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.JavaOperator;
+import edu.cmu.cs.fluid.java.bind.TypeInference8.ReboundedTypeFormal;
 import edu.cmu.cs.fluid.java.operator.AnonClassExpression;
 import edu.cmu.cs.fluid.java.operator.ArrayDeclaration;
 import edu.cmu.cs.fluid.java.operator.ArrayType;
@@ -1306,13 +1307,41 @@ class BoundedTypeFormal extends JavaTypeFormal {
 	public boolean isEqualTo(ITypeEnvironment env, IJavaType t2) {
 		if (t2 instanceof BoundedTypeFormal) {
 			BoundedTypeFormal o = (BoundedTypeFormal) t2;
-			return source.isEqualTo(env, t2) && subst.equals(o.subst);
+			if (source.isEqualTo(env, t2)) {
+				if (subst.equals(o.subst)) {
+					return true;
+				}
+				IJavaType b1 = getExtendsBound(env).subst(subst);
+				IJavaType b2 = o.getExtendsBound(env).subst(o.subst);
+				return b1.isEqualTo(env, b2);
+			}
 		}
 		else if (t2 instanceof JavaTypeFormal) {
 			JavaTypeFormal f = (JavaTypeFormal) t2;
-			return source.isEqualTo(env, t2); // TODO check the subst?
+			if (source.isEqualTo(env, t2)) {
+				IJavaType b1 = getExtendsBound(env).subst(subst);
+				IJavaType b2 = f.getExtendsBound(env);
+				return b1.isEqualTo(env, b2);
+			}
 		}
 		return false;
+	}
+	
+	@Override
+	public IJavaType subst(final IJavaTypeSubstitution s) {
+		// Try to apply the first substitution
+		IJavaType oldBound = getExtendsBound(subst.getTypeEnv());
+		IJavaType newBound = oldBound.subst(subst);
+		if (oldBound.equals(newBound)) {
+			// Ignore subst, and try s
+			return source.subst(s);
+		}
+		IJavaType newType = source.subst(s);
+		if (!newType.equals(source)) {
+			return newType; // TODO is this right?
+		}
+		newBound = newBound.subst(s);
+		return new ReboundedTypeFormal(subst.getTypeEnv(), this, newBound);
 	}
 }
 
