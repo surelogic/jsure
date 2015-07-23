@@ -52,8 +52,10 @@ import com.surelogic.dropsea.ir.drops.locks.LockModel;
 import com.surelogic.javac.Projects;
 
 import edu.cmu.cs.fluid.ir.IRNode;
+import edu.cmu.cs.fluid.java.JavaGlobals;
 import edu.cmu.cs.fluid.java.JavaNames;
 import edu.cmu.cs.fluid.java.JavaPromise;
+import edu.cmu.cs.fluid.java.bind.FindMethodStrategy;
 import edu.cmu.cs.fluid.java.bind.IBinder;
 import edu.cmu.cs.fluid.java.bind.IJavaArrayType;
 import edu.cmu.cs.fluid.java.bind.IJavaDeclaredType;
@@ -67,7 +69,6 @@ import edu.cmu.cs.fluid.java.bind.JavaTypeFactory;
 import edu.cmu.cs.fluid.java.bind.UnversionedJavaBinder;
 import edu.cmu.cs.fluid.java.bind.UnversionedJavaImportTable;
 import edu.cmu.cs.fluid.java.operator.FieldDeclaration;
-import edu.cmu.cs.fluid.java.operator.MethodDeclaration;
 import edu.cmu.cs.fluid.java.operator.NamedPackageDeclaration;
 import edu.cmu.cs.fluid.java.operator.NestedDeclInterface;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
@@ -621,24 +622,21 @@ public class CommonAASTBinder extends AASTBinder {
 
   @Override
   public IMethodBinding resolve(MethodCallNode node) {
-	  final IRNode fast  = node.getPromisedFor();
-      final IRNode tdecl = VisitUtil.getClosestType(fast);
-      for(final IRNode method : VisitUtil.getClassMethods(tdecl)) {
-    	  if (!MethodDeclaration.prototype.includes(method)) {
-    		  continue;
-    	  }
-    	  // Look for no-args method with same name
-    	  if (node.getId().equals(MethodDeclaration.getId(method)) &&
-    	      JJNode.tree.numChildren(MethodDeclaration.getParams(method)) == 0) {
-    		  return new IMethodBinding() {
-    			  @Override
-            public IRNode getNode() {
-    				  return method;
-    			  }		  
-    		  };
-    	  }
-      }
-      return null;
+    final IRNode fast = node.getPromisedFor();
+    final IRNode tdecl = VisitUtil.getClosestType(fast);
+    @SuppressWarnings("unchecked")
+    final IRNode method = eb.findClassBodyMembers(tdecl,
+        new FindMethodStrategy(binder, node.getId(), JavaGlobals.noTypes),
+        false);
+    if (method != null) {
+      return new IMethodBinding() {
+        @Override
+        public IRNode getNode() {
+          return method;
+        }
+      };
+    }
+    return null;
   }
 
   @Override
