@@ -15,7 +15,8 @@ import edu.cmu.cs.fluid.parse.JJNode;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
- * Representation of a use of local variable or a formal parameter. Can only
+ * Representation of a use of local variable, receiver, qualified receiver,
+ * or a formal parameter. Can only
  * intersect with another LocalTarget that represents an alias of this Target.
  */
 public final class LocalTarget extends AbstractTarget {

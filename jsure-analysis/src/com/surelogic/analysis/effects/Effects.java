@@ -932,9 +932,6 @@ public final class Effects implements IBinderClient {
       final IRNode outerType =
           thisExprBinder.getBinding(QualifiedThisExpression.getType(expr));
       IRNode qr = JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
-      if (qr == null) {
-        JavaPromise.getQualifiedReceiverNodeByName(getEnclosingDecl(), outerType);
-      }
       context.theEffects.add(Effect.newRead(expr, new LocalTarget(qr)));
       return null;
     }

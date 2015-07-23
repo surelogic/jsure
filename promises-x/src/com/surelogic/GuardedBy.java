@@ -46,12 +46,15 @@ import java.lang.annotation.Target;
  * <li>
  * <em>field-name</em>: The lock object is referenced by the (instance or
  * static) field specified by <em>field-name</em>. The field that references the
- * lock must be {@code final} and be declared in the same class (or be a visible
- * field declaration in a superclass) as the method, constructor, or field on
+ * lock must be {@code final} and, if non-<code>static</code>, be declared in the same class
+ * or be a visible
+ * field declaration in a superclass as the method, constructor, or field on
  * which this annotation appears. When this annotation is applied to a field,
  * the field must be mutable. In the case that both a <em>field-name</em> and a
  * <em>lock-name</em> (see below) have the same name, the binding is to the
- * <em>lock-name</em>.</li>
+ * <em>lock-name</em>.  If the annotated field is <code>static</code> the
+ * referenced field must also be <code>static</code>.  The referenced field 
+ * must have a reference type.</li>
  * <li>
  * <em>lock-name</em>: For methods and constructors only (meaningless when
  * applied to a field). The referenced <em>lock-name</em>, which is defined by
@@ -68,13 +71,15 @@ import java.lang.annotation.Target;
  * to the referenced object.</li>
  * <li>
  * <em>method-name</em><tt>()</tt>: The lock object is returned by calling the
- * named nil-ary method. The method that returns the lock must be declared in
+ * named nil-ary method. If the named method is non-<code>static</code>, it must be declared in
  * the same class (or be a visible method declaration in a superclass) as the
  * method, constructor, or field on which this annotation appears. Note that
  * <em>method-name</em><tt>()</tt> is trusted to return a consistent object to
  * guard the annotated field or method&mdash;so take particular care with its
  * implementation. When this annotation is applied to a field, the field must be
- * mutable.</li>
+ * mutable.  The named method must return a reference type.  If the annotated
+ * field is <code>static</codd> the named method must also be <code>static</code>.
+ * </li>
  * <li>
  * <em>class-name</em><tt>.class</tt>: The {@link Class} object for the
  * specified class should be used as the lock object. When this annotation is
@@ -89,7 +94,11 @@ import java.lang.annotation.Target;
  * <em>class-name</em><tt>.this</tt>: For inner classes, it may be necessary to
  * disambiguate 'this'; the <em>class-name</em><tt>.this</tt> designation allows
  * you to specify which 'this' reference is intended. When this annotation is
- * applied to a field, the field must be mutable.</li>
+ * applied to a field, the field must be mutable and non-<code>static</code>.
+ * When applied to a method, the method
+ * must not be <code>static</code>.  Unlike <code>this</code>, this may be
+ * applied to a constructor as long as <i>class-name</i> is not the name
+ * of the class to which the constructor belongs.</li>
  * </ul>
  * <p>
  * When this annotation is applied to a method a comma separated list may be
