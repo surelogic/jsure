@@ -150,6 +150,7 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
             String msg = "Couldn't resolve a binding for " + node + " in @" + current + " on "
                 + JavaNames.getFullName(node.getPromisedFor());
             getContext().reportError(msg, node);
+            r.bindingExists();
             /*
              * if (msg.startsWith(
              * "Couldn't resolve a binding for InstanceRegion on RegionEffects Writes test_qualifiedThis.C.this:InstanceRegion"

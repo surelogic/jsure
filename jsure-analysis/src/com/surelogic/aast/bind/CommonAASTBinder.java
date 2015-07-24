@@ -10,6 +10,7 @@ import com.surelogic.aast.AASTNode;
 import com.surelogic.aast.AASTRootNode;
 import com.surelogic.aast.java.ArrayTypeNode;
 import com.surelogic.aast.java.ClassTypeNode;
+import com.surelogic.aast.java.ExpressionNode;
 import com.surelogic.aast.java.FieldRefNode;
 import com.surelogic.aast.java.MethodCallNode;
 import com.surelogic.aast.java.NamedTypeNode;
@@ -622,7 +623,12 @@ public class CommonAASTBinder extends AASTBinder {
 
   @Override
   public IMethodBinding resolve(MethodCallNode node) {
-    final IRNode fast = node.getPromisedFor();
+	final ExpressionNode e = node.getObject();
+	final IType t = e.resolveType();
+	if (t == null) {
+		return null;
+	}
+    final IRNode fast = t.getNode();
     final IRNode tdecl = VisitUtil.getClosestType(fast);
     @SuppressWarnings("unchecked")
     final IRNode method = eb.findClassBodyMembers(tdecl,

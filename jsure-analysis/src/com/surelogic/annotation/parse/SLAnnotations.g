@@ -626,23 +626,40 @@ guardedBy
   ;
   
 methodGuardedBy
-  : guardedBySpec EOF -> ^(MethodGuardedBy guardedBySpec)
+  : methodGuardedBySpec EOF -> ^(MethodGuardedBy methodGuardedBySpec)
   ;
   
 guardedBySpec
   : thisExpr
   | qualifiedThisExpression
   | ITSELF -> ^(Itself ITSELF)
-  | simpleFieldRef
-  | staticFieldRef  
-  | qualifiedClassExpression
   | noArgsMethod
+  | simpleFieldRef
+  | staticNoArgsMethod
+  | staticFieldRef
+  | qualifiedClassExpression
+  ;
+
+methodGuardedBySpec
+  : thisExpr
+  | qualifiedThisExpression
+  | ITSELF -> ^(Itself ITSELF)
+  | paramNoArgsMethod
+  | noArgsMethod
+  | simpleFieldRef
+  | staticNoArgsMethod
+  | staticFieldRef
+  | qualifiedClassExpression
   ;
 
 /*************************************************************************************
  * All Rules Supporting rules
  *************************************************************************************/	
 
+paramNoArgsMethod
+  : identifier '.' identifier '(' ')' -> ^(MethodCall ^(VariableUseExpression identifier) identifier ^(Parameters))
+  ;
+  
 noArgsMethod
   : identifier '(' ')' -> ^(MethodCall ^(ThisExpression THIS) identifier ^(Parameters))
   ;
@@ -668,6 +685,10 @@ qualifiedFieldRef
 	: staticFieldRef
 	| qualifiedThisExpression '.' identifier -> ^(FieldRef qualifiedThisExpression identifier)
 	;
+
+staticNoArgsMethod
+  : typeExpression '.' identifier '(' ')' -> ^(MethodCall typeExpression identifier ^(Parameters))
+  ;
 
 staticFieldRef
   : typeExpression '.' identifier -> ^(FieldRef typeExpression identifier)  
