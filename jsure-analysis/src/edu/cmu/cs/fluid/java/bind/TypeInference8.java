@@ -604,7 +604,7 @@ public class TypeInference8 {
     	if (bound.isSubtype(tEnv, sourceSub)) {
     		return bound;
     	}
-    	return subbed;
+    	return sourceSub;
     }
   }
 
@@ -4440,15 +4440,8 @@ public class TypeInference8 {
       if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, null, s)) {
         bounds.addTrue();
       } 
-      // Handle unchecked conversion
-      else if (s instanceof IJavaDeclaredType && t instanceof IJavaDeclaredType) {
-    	  IJavaDeclaredType ds = (IJavaDeclaredType) s;
-    	  IJavaDeclaredType dt = (IJavaDeclaredType) t;
-    	  if (ds.isRawType(tEnv) && ds.getDeclaration().equals(dt.getDeclaration())) {
-    		  bounds.useUncheckedConversion();
-    	  } else {
-    		  bounds.addFalse();
-    	  }
+      else if (hasRawSuperTypeOf(s, t)) {
+    	  bounds.useUncheckedConversion();
       } else {
         mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, null, s);
         bounds.addFalse();
@@ -4523,15 +4516,8 @@ public class TypeInference8 {
       if (tEnv.isSubType(s, t)) {
         bounds.addTrue();
       } 
-      // Handle unchecked conversion
-      else if (s instanceof IJavaDeclaredType && t instanceof IJavaDeclaredType) {
-    	  IJavaDeclaredType ds = (IJavaDeclaredType) s;
-    	  IJavaDeclaredType dt = (IJavaDeclaredType) t;
-    	  if (ds.isRawType(tEnv) && ds.getDeclaration().equals(dt.getDeclaration())) {
-    		  bounds.useUncheckedConversion();
-    	  } else {
-    		  bounds.addFalse();
-    	  }
+      else if (hasRawSuperTypeOf(s, t)) {
+    	  bounds.useUncheckedConversion();
       } else {
     	  tEnv.isSubType(s, t);
     	  bounds.addFalse();
@@ -4545,6 +4531,10 @@ public class TypeInference8 {
     }
 
     else if (t instanceof IJavaDeclaredType) {
+      if (hasRawSuperTypeOf(s, t)) {
+    	  bounds.useUncheckedConversion();
+    	  return;
+      }
       final IJavaDeclaredType dt = (IJavaDeclaredType) t;
       // TODO subcase 1
       if (s instanceof TypeVariable) {
