@@ -1,6 +1,15 @@
 package com.surelogic.dropsea.ir;
 
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.*;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ASSUMED;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CHECKED_BY_ANALYSIS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.CHECKED_BY_RESULTS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DEPENDENT_PROMISES;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DEPONENT_PROMISES;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PLACE_IN_SUBFOLDER;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROMISE_DROP;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.SHOW_AT_TOP_LEVEL;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TO_BE_CHECKED_BY_ANALYSIS;
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.VIRTUAL;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -18,20 +27,16 @@ import com.surelogic.common.Pair;
 import com.surelogic.common.i18n.I18N;
 import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
-import com.surelogic.common.ref.IJavaRef.Position;
-import com.surelogic.common.ref.JavaRef;
 import com.surelogic.common.xml.XmlCreator;
 import com.surelogic.dropsea.DropType;
 import com.surelogic.dropsea.ICustomizedPromiseDrop;
 import com.surelogic.dropsea.IPromiseDrop;
 import com.surelogic.dropsea.UiPlaceInASubFolder;
 import com.surelogic.dropsea.UiShowAtTopLevel;
-import com.surelogic.dropsea.ir.SeaSnapshot;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.java.IHasPromisedFor;
 import edu.cmu.cs.fluid.java.JavaNames;
-import edu.cmu.cs.fluid.java.JavaNode;
 import edu.cmu.cs.fluid.java.operator.Expression;
 import edu.cmu.cs.fluid.java.operator.ParameterDeclaration;
 import edu.cmu.cs.fluid.java.promise.ReceiverDeclaration;
@@ -285,7 +290,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
   @Override
   @NonNull
   public final Set<AnalysisResultDrop> getCheckedBy() {
-    final HashSet<AnalysisResultDrop> result = new HashSet<AnalysisResultDrop>();
+    final HashSet<AnalysisResultDrop> result = new HashSet<>();
     /*
      * Find the set of dependent results that check this drop ("trusts" doesn't
      * count)
@@ -319,7 +324,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
 
   @NonNull
   private Set<PromiseDrop<? extends IAASTRootNode>> getPromisesHelper(Collection<Drop> toFilter) {
-    final Set<PromiseDrop<? extends IAASTRootNode>> result = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+    final Set<PromiseDrop<? extends IAASTRootNode>> result = new HashSet<>();
     for (Drop d : toFilter) {
       if (d instanceof PromiseDrop) {
         @SuppressWarnings("unchecked")
@@ -495,7 +500,7 @@ public abstract class PromiseDrop<A extends IAASTRootNode> extends ProofDrop imp
    * Set of promise annotations composing this promise drop.
    */
   @UniqueInRegion("DropState")
-  private final HashSet<PromiseAnnotation> f_promiseAnnotationSet = new HashSet<PromiseAnnotation>();
+  private final HashSet<PromiseAnnotation> f_promiseAnnotationSet = new HashSet<>();
 
   /**
    * {@code true} if this promise drop represents an assumed promise,

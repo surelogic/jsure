@@ -90,7 +90,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
      * The non-value attributes for the annotation being proposed.
      */
     @NonNull
-    private final Map<String, String> f_attributeNameToValue = new HashMap<String, String>();
+    private final Map<String, String> f_attributeNameToValue = new HashMap<>();
 
     /**
      * The annotation being replaced, similar to {@link #f_annotation}.
@@ -108,7 +108,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
      * {@link #f_attributeNameToValue}.
      */
     @NonNull
-    private final Map<String, String> f_replacedAttributeNameToValue = new HashMap<String, String>();
+    private final Map<String, String> f_replacedAttributeNameToValue = new HashMap<>();
 
     @Nullable
     private Drop f_forDrop = null;
@@ -615,7 +615,7 @@ public final class ProposedPromiseDrop extends Drop implements IProposedPromiseD
       position = Position.ON_DECL;
       final JavaRef.Builder builder = new JavaRef.Builder(superRefAndNode.first());
       builder.setPositionRelativeToDeclaration(position);
-      return new Pair<IJavaRef, IRNode>(builder.build(), superRefAndNode.second());
+      return new Pair<>(builder.build(), superRefAndNode.second());
     } else
       return superRefAndNode;
   }

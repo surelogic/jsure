@@ -90,7 +90,7 @@ public final class Sea {
     if (drops == null)
       throw new IllegalArgumentException(I18N.err(44, "drops"));
 
-    final ArrayList<T> result = new ArrayList<T>();
+    final ArrayList<T> result = new ArrayList<>();
     for (final Drop drop : drops) {
       if (dropType.isInstance(drop)) {
         @SuppressWarnings("unchecked")
@@ -138,7 +138,7 @@ public final class Sea {
     if (drops == null)
       throw new IllegalArgumentException(I18N.err(44, "drops"));
 
-    final ArrayList<T> result = new ArrayList<T>();
+    final ArrayList<T> result = new ArrayList<>();
     for (final Drop drop : drops) {
       if (drop.getClass().equals(dropType)) {
         @SuppressWarnings("unchecked")
@@ -257,7 +257,7 @@ public final class Sea {
     final ArrayList<T> result = new ArrayList<T>(drops);
     filterDropsMatchingMutate(pred, result);
     */
-    final ArrayList<T> result = new ArrayList<T>(drops.size());
+    final ArrayList<T> result = new ArrayList<>(drops.size());
     for(final T drop : drops) {
       if (pred.match(drop)) {
     	result.add(drop);
@@ -330,7 +330,7 @@ public final class Sea {
    */
   public ArrayList<Drop> getDrops() {
     synchronized (f_seaLock) {
-      return new ArrayList<Drop>(f_validDrops);
+      return new ArrayList<>(f_validDrops);
     }
   }
 
@@ -423,7 +423,7 @@ public final class Sea {
     // be changing (rapidly) as we invalidate drops within it
     final Collection<Drop> safeCopy;
     synchronized (f_seaLock) {
-      safeCopy = new ArrayList<Drop>(f_validDrops);
+      safeCopy = new ArrayList<>(f_validDrops);
     }
     for (Drop drop : safeCopy) {
       drop.invalidate();
@@ -622,10 +622,10 @@ public final class Sea {
    * The set of valid drops within this sea.
    */
   @UniqueInRegion("SeaState")
-  private final List<Drop> f_validDrops = new ArrayList<Drop>(5000);
+  private final List<Drop> f_validDrops = new ArrayList<>(5000);
 
   /**
    * The set of consistency proof hooks.
    */
-  private final CopyOnWriteArraySet<SeaConsistencyProofHook> f_proofHooks = new CopyOnWriteArraySet<SeaConsistencyProofHook>();
+  private final CopyOnWriteArraySet<SeaConsistencyProofHook> f_proofHooks = new CopyOnWriteArraySet<>();
 }

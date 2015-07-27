@@ -42,7 +42,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    * The set of promise drops being checked, or established, by this result.
    */
   @UniqueInRegion("DropState")
-  private final Set<PromiseDrop<? extends IAASTRootNode>> f_checks = new HashSet<PromiseDrop<? extends IAASTRootNode>>();
+  private final Set<PromiseDrop<? extends IAASTRootNode>> f_checks = new HashSet<>();
 
   @Override
   public boolean hasChecked() {
@@ -61,7 +61,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   @Override
   public final HashSet<? extends PromiseDrop<? extends IAASTRootNode>> getChecked() {
     synchronized (f_seaLock) {
-      return new HashSet<PromiseDrop<? extends IAASTRootNode>>(f_checks);
+      return new HashSet<>(f_checks);
     }
   }
 
@@ -107,7 +107,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
    * The set of proof drops trusted by this result, its prerequisite assertions.
    */
   @UniqueInRegion("DropState")
-  private final HashSet<ProofDrop> f_trusts = new HashSet<ProofDrop>(0);
+  private final HashSet<ProofDrop> f_trusts = new HashSet<>(0);
 
   /**
    * Adds a proof drop to the set of drops this result uses as a prerequisite
@@ -147,7 +147,7 @@ public abstract class AnalysisResultDrop extends ProofDrop implements IAnalysisR
   @NonNull
   public HashSet<ProofDrop> getTrusted() {
     synchronized (f_seaLock) {
-      return new HashSet<ProofDrop>(f_trusts);
+      return new HashSet<>(f_trusts);
     }
   }
 

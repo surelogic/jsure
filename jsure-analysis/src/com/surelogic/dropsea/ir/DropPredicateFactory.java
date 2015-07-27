@@ -13,7 +13,7 @@ public final class DropPredicateFactory {
 	  // To prevent instantiation
   }
 	
-  private static Map<Class<?>, DropPredicate> f_type = new HashMap<Class<?>, DropPredicate>();
+  private static Map<Class<?>, DropPredicate> f_type = new HashMap<>();
 
   /**
    * Returns a drop predicate that matches all drops that are instances of the
@@ -50,7 +50,7 @@ public final class DropPredicateFactory {
     return result;
   }
 
-  private static Map<Class<?>, DropPredicate> f_exactType = new HashMap<Class<?>, DropPredicate>();
+  private static Map<Class<?>, DropPredicate> f_exactType = new HashMap<>();
 
   /**
    * Returns a drop predicate that matches all drops that are instances of the

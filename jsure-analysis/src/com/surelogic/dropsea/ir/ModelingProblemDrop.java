@@ -77,7 +77,7 @@ public final class ModelingProblemDrop extends Drop implements IModelingProblemD
        * that this drop knows about (from the parser).
        */
       IJavaRef newRef = new JavaRef.Builder(info.first()).setOffset(f_offset).setLength(0).build();
-      return new Pair<IJavaRef, IRNode>(newRef, info.second());
+      return new Pair<>(newRef, info.second());
     } else {
       /*
        * The offset we have is nonsense, return the existing source reference.
