@@ -35,7 +35,7 @@ public final class ModelingProblemDrop extends Drop implements IModelingProblemD
   }
 
   public final DropType getDropType() {
-	return DropType.MODELING_PROBLEM;
+    return DropType.MODELING_PROBLEM;
   }
 
   @Override
@@ -47,19 +47,17 @@ public final class ModelingProblemDrop extends Drop implements IModelingProblemD
   protected String resolveMessage(final int number, final Object... args) {
     return I18N.mp(number, args);
   }
-  
+
   @Override
   protected String resolveMessageCanonical(final int number) {
     return I18N.mpc(number);
   }
-  
+
   @Override
   protected String resolveMessageCanonical(final int number, final Object... args) {
     return I18N.mpc(number, args);
   }
 
-  
-  
   @Override
   @Nullable
   protected Pair<IJavaRef, IRNode> getJavaRefAndCorrespondingNode() {
@@ -77,7 +75,7 @@ public final class ModelingProblemDrop extends Drop implements IModelingProblemD
        * that this drop knows about (from the parser).
        */
       IJavaRef newRef = new JavaRef.Builder(info.first()).setOffset(f_offset).setLength(0).build();
-      return new Pair<IJavaRef, IRNode>(newRef, info.second());
+      return new Pair<>(newRef, info.second());
     } else {
       /*
        * The offset we have is nonsense, return the existing source reference.

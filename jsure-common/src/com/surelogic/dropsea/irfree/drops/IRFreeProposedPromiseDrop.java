@@ -121,7 +121,7 @@ public final class IRFreeProposedPromiseDrop extends IRFreeDrop implements IProp
     if ("true".equals(noFlag)) {
       return Collections.emptyMap();
     }
-    return new HashMap<String, String>(0);
+    return new HashMap<>(0);
   }
 
   @Override

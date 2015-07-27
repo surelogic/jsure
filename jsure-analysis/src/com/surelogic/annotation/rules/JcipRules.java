@@ -11,7 +11,7 @@ import com.surelogic.annotation.IAnnotationParsingContext;
 import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
-import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
+import com.surelogic.annotation.scrub.AnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.common.SLUtility;
@@ -120,7 +120,7 @@ public class JcipRules extends AnnotationRules {
    * -- no need to create a "field" expr if DUPLICATE
    */
   private static GuardedByPromiseDrop scrubGuardedBy(
-      final IAnnotationScrubberContext context, final GuardedByNode a) {
+      final AnnotationScrubberContext context, final GuardedByNode a) {
     final LockVisitor v = new LockVisitor(context, a);
     if (v.doAccept(a.getLock())) {
       return new GuardedByPromiseDrop(a);
@@ -131,7 +131,7 @@ public class JcipRules extends AnnotationRules {
   
   // Returning null means that there was a problem and we're not creating anything
   static class LockVisitor extends DescendingVisitor<Boolean> {
-    final IAnnotationScrubberContext context;
+    final AnnotationScrubberContext context;
     final GuardedByNode anno;
     final IRNode target; // being protected
     final IRNode enclosingTypeDecl;
@@ -141,7 +141,7 @@ public class JcipRules extends AnnotationRules {
     final boolean targetIsStatic;
 
     public LockVisitor(
-        final IAnnotationScrubberContext context, final GuardedByNode a) {
+        final AnnotationScrubberContext context, final GuardedByNode a) {
       super(true);
       this.context = context;
       anno = a;
@@ -199,23 +199,23 @@ public class JcipRules extends AnnotationRules {
     public Boolean visit(final ThisExpressionNode lock) {
       if (isFieldNotMethod) {
         if (targetIsStatic) {
-          context.reportError(anno, "Static field \"" + targetId
+          context.reportModelingProblem(anno, "Static field \"" + targetId
               + "\" cannot be guarded by \"this\"");
           return false;
         }
         if (JavaNode.isSet(targetMods, JavaNode.FINAL)) {
-          context.reportError(anno, "Final field \"" + targetId
+          context.reportModelingProblem(anno, "Final field \"" + targetId
               + "\" cannot be guarded by \"this\"");
           return false;
         }
       } else {
         if (targetIsStatic) {
-          context.reportError(anno, "Static method \"" + targetId
+          context.reportModelingProblem(anno, "Static method \"" + targetId
               + "\" cannot be guarded by \"this\"");
           return false;
         }
         if (ConstructorDeclaration.prototype.includes(target)) {
-          context.reportError(anno, "Constructor \"" + targetId
+          context.reportModelingProblem(anno, "Constructor \"" + targetId
               + "\" cannot be guarded by \"this\"");
           return false;
         }
@@ -229,12 +229,12 @@ public class JcipRules extends AnnotationRules {
       final int lockMods = VariableDeclarator.getMods(lockField);
       
       if (!JavaNode.isSet(lockMods, JavaNode.FINAL)) {
-        context.reportError(anno,
+        context.reportModelingProblem(anno,
             "Lock field \"" + lock + "\" must be final");
         return false;
       }
       if (isPrimitiveTyped(lockField)) {
-        context.reportError(anno,
+        context.reportModelingProblem(anno,
             "Lock field \"" + lock + "\" must have a reference type");
         return false;
       }
@@ -248,7 +248,7 @@ public class JcipRules extends AnnotationRules {
               JavaTypeFactory.getMyThisType(fieldInType),
               JavaTypeFactory.getMyThisType(enclosingTypeDecl));
           if (!isFieldFromAncestor) {
-            context.reportError(anno,
+            context.reportModelingProblem(anno,
                 "Lock field \"" + lock + 
                 "\" must be declared in an ancestor of the annotated class");
             return false;
@@ -256,12 +256,12 @@ public class JcipRules extends AnnotationRules {
         }
         
         if (JavaNode.isSet(targetMods, JavaNode.FINAL)) {
-          context.reportError(anno, "Final field \"" + targetId
+          context.reportModelingProblem(anno, "Final field \"" + targetId
               + "\" cannot be guarded by \"" + lock + "\"");
           return false;
         }
         if (targetIsStatic && lockFieldIsNotStatic) {
-          context.reportError(anno, "Static field \"" + targetId +
+          context.reportModelingProblem(anno, "Static field \"" + targetId +
               "\" cannot be guarded by the non-static field \"" + lock + "\"");
           return false;
         }
@@ -275,7 +275,7 @@ public class JcipRules extends AnnotationRules {
     @Override
     public Boolean visit(final ClassExpressionNode lock) {
       if (isFieldNotMethod && JavaNode.isSet(targetMods, JavaNode.FINAL)) {
-        context.reportError(anno, "Final field \"" + targetId
+        context.reportModelingProblem(anno, "Final field \"" + targetId
             + "\" cannot be guarded by \"" + lock + "\"");
         return false;
       } 
@@ -286,18 +286,18 @@ public class JcipRules extends AnnotationRules {
     public Boolean visit(final QualifiedThisExpressionNode lock) {
       if (isFieldNotMethod) { // Field
         if (targetIsStatic) {
-          context.reportError(anno, "Static field \"" + targetId
+          context.reportModelingProblem(anno, "Static field \"" + targetId
               + "\" cannot be guarded by \"" + lock + "\"");
           return false;
         }
         if (JavaNode.isSet(targetMods, JavaNode.FINAL)) {
-          context.reportError(anno, "Final field \"" + targetId
+          context.reportModelingProblem(anno, "Final field \"" + targetId
               + "\" cannot be guarded by \"" + lock + "\"");
           return false;
         }
       } else { // Method or Construtor
         if (targetIsStatic) {
-          context.reportError(anno, "Static method \"" + targetId
+          context.reportModelingProblem(anno, "Static method \"" + targetId
               + "\" cannot be guarded by \"" + lock + "\"");
           return false;
         }
@@ -305,33 +305,33 @@ public class JcipRules extends AnnotationRules {
           // Can use on constructor as long as it isn't really longhand for "this"
           final IRNode qualifierTypeDecl = lock.getType().resolveType().getNode();
           if (qualifierTypeDecl.equals(enclosingTypeDecl)) {
-            context.reportError(anno, "Constructor \"" + targetId
+            context.reportModelingProblem(anno, "Constructor \"" + targetId
                 + "\" cannot be guarded by \"" + lock + "\"; it is the same as \"this\"");
             return false;
           }
         }
       }
       
-      context.reportWarning("JSure does not support assurance of qualified receivers as locks.  The annotation is well-formed but will be ignored by analyses.", anno);
+      context.reportModelingProblem(anno, "JSure does not support assurance of qualified receivers as locks.  The annotation is well-formed but will be ignored by analyses.");
       return true;
     }
 
     @Override
     public Boolean visit(final ItselfNode lock) {
       if (!isFieldNotMethod) { // Constructor or method
-        context.reportError(anno,
+        context.reportModelingProblem(anno,
             "Method/constructor \"" + targetId + 
             "\" cannot be annotated to guard itself");
         return false;
       } else { // Field
         if (isPrimitiveTyped(target)) {
-          context.reportError(anno,
+          context.reportModelingProblem(anno,
               "Field \"" + targetId + 
               "\" cannot guard itself because it does not have a reference type");
           return false;
         }
         if (!JavaNode.isSet(targetMods, JavaNode.FINAL)) {
-          context.reportError(anno, "Field \"" + targetId
+          context.reportModelingProblem(anno, "Field \"" + targetId
               + "\" cannot guard itself becaust it must be final");
           return false;
         }
@@ -355,14 +355,14 @@ public class JcipRules extends AnnotationRules {
        * but check it here in case things change in the future.
        */
       if (ConstructorDeclaration.prototype.includes(methodDecl)) {
-        context.reportError(anno,
+        context.reportModelingProblem(anno,
             "Constructor \"" + lock + "\"cannot be used as a lock");
         return false;
       } else { // Definitely a method declaration
         /* Must return a reference type */
         final IRNode returnType = MethodDeclaration.getReturnType(methodDecl);
         if (!ReferenceType.prototype.includes(returnType)) {
-          context.reportError(anno,
+          context.reportModelingProblem(anno,
               "Lock method \"" + lock + "\" must return a reference type");
           return false;
         }
@@ -371,7 +371,7 @@ public class JcipRules extends AnnotationRules {
          * but check it here in case things change in the future.
          */
         if (JJNode.tree.numChildren(MethodDeclaration.getParams(methodDecl)) > 0) {
-          context.reportError(anno,
+          context.reportModelingProblem(anno,
               "Lock method \"" + lock + "\" must have no formal parameters");
           return false;
         }
@@ -386,7 +386,7 @@ public class JcipRules extends AnnotationRules {
               JavaTypeFactory.getMyThisType(methodInType),
               JavaTypeFactory.getMyThisType(enclosingTypeDecl));
           if (!isMethodFromAncestor) {
-            context.reportError(anno,
+            context.reportModelingProblem(anno,
                 "Lock method \"" + lock + 
                 "\" must be declared in an ancestor of the annotated class");
             return false;
@@ -394,12 +394,12 @@ public class JcipRules extends AnnotationRules {
         }
         
         if (JavaNode.isSet(targetMods, JavaNode.FINAL)) {
-          context.reportError(anno, "Final field \"" + targetId
+          context.reportModelingProblem(anno, "Final field \"" + targetId
               + "\" cannot be guarded by \"" + lock + "\"");
           return false;
         }
         if (targetIsStatic && methodIsNotStatic) {
-          context.reportError(anno, "Static field \"" + targetId +
+          context.reportModelingProblem(anno, "Static field \"" + targetId +
               "\" cannot be guarded by the non-static method \"" + lock + "\"");
           return false;
         }

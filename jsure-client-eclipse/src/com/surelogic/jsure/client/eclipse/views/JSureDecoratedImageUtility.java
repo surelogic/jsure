@@ -41,11 +41,31 @@ import com.surelogic.dropsea.IResultFolderDrop;
 public final class JSureDecoratedImageUtility {
 
   public enum Flag {
-    ASSUME(CommonImages.DECR_ASSUME), CONSISTENT(CommonImages.DECR_CONSISTENT), DELTA(CommonImages.DECR_DELTA), HINT_INFO(
-        CommonImages.DECR_INFO), HINT_WARNING(CommonImages.DECR_WARNING), INCONSISTENT(CommonImages.DECR_INCONSISTENT), REDDOT(
-        CommonImages.DECR_REDDOT), TRUSTED(CommonImages.DECR_TRUSTED), UNUSED_CONSISTENT(CommonImages.DECR_UNUSED_CONSISTENT), UNUSED_INCONSISTENT(
-        CommonImages.DECR_UNUSED_INCONSISTENT), VIRTUAL(CommonImages.DECR_VIRTUAL), NEW(CommonImages.DECR_NEW), PROBLEM(
-        CommonImages.DECR_ERROR);
+    ASSUME(CommonImages.DECR_ASSUME),
+
+    CONSISTENT(CommonImages.DECR_CONSISTENT),
+
+    DELTA(CommonImages.DECR_DELTA),
+
+    HINT_INFO(CommonImages.DECR_INFO),
+
+    HINT_WARNING(CommonImages.DECR_WARNING),
+
+    INCONSISTENT(CommonImages.DECR_INCONSISTENT),
+
+    REDDOT(CommonImages.DECR_REDDOT),
+
+    TRUSTED(CommonImages.DECR_TRUSTED),
+
+    UNUSED_CONSISTENT(CommonImages.DECR_UNUSED_CONSISTENT),
+
+    UNUSED_INCONSISTENT(CommonImages.DECR_UNUSED_INCONSISTENT),
+
+    VIRTUAL(CommonImages.DECR_VIRTUAL),
+
+    NEW(CommonImages.DECR_NEW),
+
+    PROBLEM(CommonImages.DECR_ERROR);
 
     Flag(String imageName) {
       ImageDescriptor id = SLImages.getImageDescriptor(imageName);

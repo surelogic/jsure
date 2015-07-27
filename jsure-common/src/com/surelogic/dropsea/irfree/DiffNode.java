@@ -50,7 +50,7 @@ public class DiffNode extends AbstractDiffNode {
 	
 	@Override
 	public Object[] getChildren() {
-		List<DiffNode> children = new ArrayList<DiffNode>();
+		List<DiffNode> children = new ArrayList<>();
 		wrap(children, "hint", drop.getHints());
 		wrap(children, "proposal", drop.getProposals());
 		if (drop instanceof IAnalysisResultDrop) {

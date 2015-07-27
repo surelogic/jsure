@@ -69,7 +69,7 @@ public class MethodBinder8 implements IMethodBinder {
 
 	private MethodBinding8 tryToFindMostSpecific(final ICallState call, final Set<MethodBinding> applicable) {
 		MethodBinding8 rv = findMostSpecific(call, applicable, STRICT_INVOCATION);
-        if (rv == null) {
+        if (rv == null && !call.needsExactInvocation()) {
         	rv = findMostSpecific(call, applicable, LOOSE_INVOCATION);
         	if (rv == null) {
         		rv = findMostSpecific(call, applicable, VARIABLE_ARITY_INVOCATION);
@@ -145,11 +145,13 @@ public class MethodBinder8 implements IMethodBinder {
     		params = ConstructorDeclaration.getParams(mb.getNode());
     		typeParams = ConstructorDeclaration.getTypes(mb.getNode());
     	} else {
-    		final String callName = MethodCall.getMethod(call.call);
-    		final String methodName = MethodDeclaration.getId(mb.getNode());
-    		if (!callName.equals(methodName)) {
-    			return false;
-    		}
+    		if (call.call != null) {
+    			final String callName = MethodCall.getMethod(call.call);
+    			final String methodName = MethodDeclaration.getId(mb.getNode());
+    			if (!callName.equals(methodName)) {
+    				return false;
+    			}
+    		} // otherwise, assumed to be correct
     		params = MethodDeclaration.getParams(mb.getNode());
     		typeParams = MethodDeclaration.getTypes(mb.getNode());
     	}
@@ -1472,7 +1474,7 @@ declared return type, Object .
 	 * • Otherwise, the method invocation is ambiguous, and a compile-time error occurs.
 	 */
     private MethodBinding8 findMostSpecific(final ICallState call, Collection<MethodBinding> methods, ApplicableMethodFilter filter) {
-    	if ("of".equals(JJNode.getInfoOrNull(call.getNode()))) {
+    	if (call.getNode() != null && "of".equals(JJNode.getInfoOrNull(call.getNode()))) {
     		System.out.println("Trying to find method for allOf");
     	}
     	if (call instanceof RefState && methods.size() == 1) {
@@ -1483,10 +1485,23 @@ declared return type, Object .
     		}
     		return MethodBinding8.create(call, temp, tEnv, null, filter.getKind());
     	}
+    	// Eliminate A.foo() when subclass B.foo() overrides it (assumed by JLS)
+    	final Collection<MethodBinding> processedMethods = new ArrayList<MethodBinding>(methods);
+    	for(MethodBinding mb : methods) {
+    		for(IBinding b : binder.findOverriddenMethods(mb.getNode())) {
+    			Iterator<MethodBinding> it = processedMethods.iterator();
+    			while (it.hasNext()) {
+    				MethodBinding mb2 = it.next();
+    				if (mb2.getNode().equals(b.getNode())) {
+    					it.remove();
+    				}
+    			}
+    		}
+    	}
     	
     	// Arrays.stream(#.readLine#.split(#)).map(String:: <> trim)
     	final Set<MethodBinding8> applicable = new HashSet<MethodBinding8>();
-    	for(MethodBinding mb : methods) {
+    	for(MethodBinding mb : processedMethods) {
     		MethodBinding8 result = filter.isApplicable(call, mb);
     		if (result != null) {
     			applicable.add(result);
@@ -2139,11 +2154,12 @@ declared return type, Object .
 		//
 		// The subst below should convert the receiver to the right type
 		IJavaType receiver = TypeUtil.isStatic(m.bind.getNode()) ? null : 
+							 m.isConstructor ? m.bind.getContextType() :
 					         JavaTypeFactory.getMyThisType(m.bind.getContextType().getDeclaration());
-		System.out.println("WORKING");
 		IJavaFunctionType t = JavaTypeFactory.getMemberFunctionType(m.bind.getNode(), receiver, tEnv.getBinder());
 		//return t;
-		return t.instantiate(t.getTypeFormals(), JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) m.bind.getContextType()));
+		//return t.instantiate(t.getTypeFormals(), JavaTypeSubstitution.create(tEnv, (IJavaDeclaredType) m.bind.getContextType()));
+		return t.instantiate(t.getTypeFormals(), m.getSubst());
 	}
 	
 	private IJavaFunctionType replaceReturn(IJavaFunctionType orig, IJavaType newReturn) {
@@ -2398,6 +2414,11 @@ declared return type, Object .
 
 		void reset() {
 			doSecond = false;
+		}
+
+		@Override
+		public boolean needsExactInvocation() {
+			return false;
 		}
 	}
 

@@ -48,7 +48,7 @@ public final class DropSeaUtility {
    *         type.
    */
   public static ArrayList<IMetricDrop> filterMetricsToOneType(IMetricDrop.Metric metric, ArrayList<IMetricDrop> from) {
-    final ArrayList<IMetricDrop> result = new ArrayList<IMetricDrop>();
+    final ArrayList<IMetricDrop> result = new ArrayList<>();
     for (IMetricDrop drop : from) {
       if (drop.getMetric() == metric)
         result.add(drop);

@@ -7,10 +7,6 @@ package com.surelogic.dropsea;
  * The verifying analyses use the IR drop-sea and the Eclipse client loads
  * snapshots using the IR-free drop-sea.
  */
-public interface IModelingProblemDrop extends IDrop, ISnapshotDrop {	
-  public enum Severity {
-	  WARNING, 
-	  ERROR /* Invalidating an annotation */
-  }
-  public static final String SEVERITY_HINT = "severity-display-hint";
+public interface IModelingProblemDrop extends IDrop, ISnapshotDrop {
+  // a marker interface.
 }

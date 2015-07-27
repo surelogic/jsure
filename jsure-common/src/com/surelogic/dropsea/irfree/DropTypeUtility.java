@@ -73,7 +73,7 @@ public final class DropTypeUtility {
     return null;
   }
 
-  private static final Map<String, Class<?>> NAME_TO_CLASS = new HashMap<String, Class<?>>();
+  private static final Map<String, Class<?>> NAME_TO_CLASS = new HashMap<>();
 
   private static void ensureClassMapping(Class<?> cls) {
     if (NAME_TO_CLASS.containsKey(cls.getName())) {
@@ -134,7 +134,7 @@ public final class DropTypeUtility {
       "drops.nullable.", "drops.type.constraints.", "drops.uniqueness.", "drops.modules.", "drops.threadroles.", };
 
   private static Collection<String> getPossibleClassNames(String simpleClassName) {
-    Collection<String> result = new ArrayList<String>();
+    Collection<String> result = new ArrayList<>();
     result.add(ROOT_DROP_PACKAGE + simpleClassName);
     for (String subPkg : SUB_DROP_PACKAGES) {
       result.add(ROOT_DROP_PACKAGE + subPkg + simpleClassName);
@@ -225,7 +225,7 @@ public final class DropTypeUtility {
     return null;
   }
 
-  private static final Map<String, DropType> NAME_TO_TYPE = new HashMap<String, DropType>();
+  private static final Map<String, DropType> NAME_TO_TYPE = new HashMap<>();
   static {
     NAME_TO_TYPE.put(DROP, DropType.OTHER);
     NAME_TO_TYPE.put(HINT, DropType.HINT);
@@ -243,7 +243,7 @@ public final class DropTypeUtility {
     return result;
   }
   
-  private static final Map<String, String> NAME_TO_NAME = new HashMap<String, String>();
+  private static final Map<String, String> NAME_TO_NAME = new HashMap<>();
   
   public static String mapFullName(final String className) {
 	  String rv = NAME_TO_NAME.get(className);

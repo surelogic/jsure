@@ -132,19 +132,19 @@ public class EqualityRules extends AnnotationRules {
 					final Operator op = JJNode.tree.getOperator(tdecl);
 					
 					if (AnnotationDeclaration.prototype.includes(op)) {
-					  getContext().reportError(a, "Annotation declarations may not be annotated @ValueObject");
+					  getContext().reportModelingProblem(a, "Annotation declarations may not be annotated @ValueObject");
 					  return null;
 					}
 					
 					// Check if the class is java.lang.Enum
 					if (EnumDeclaration.prototype.includes(op)) {
-            getContext().reportError(a, I18N.res(BAD_ENUM, VALUE_OBJECT));
+            getContext().reportModelingProblem(a, I18N.res(BAD_ENUM, VALUE_OBJECT));
             return null;
 					}
 					
 					if (getRefObjectDrop(tdecl) != null) {
 						// Conflict w/ RefObject
-						getContext().reportError(a, I18N.res(CONFLICTS_WITH, REF_OBJECT));
+						getContext().reportModelingProblem(a, I18N.res(CONFLICTS_WITH, REF_OBJECT));
 						return null;
 					}
 					// Check if abstract or has no subclasses
@@ -154,7 +154,7 @@ public class EqualityRules extends AnnotationRules {
 						final IIRProject p = Projects.getEnclosingProject(tdecl);					
 						Iterator<IRNode> it = p.getTypeEnv().getRawSubclasses(tdecl).iterator();
 						if (it.hasNext()) {
-							getContext().reportError(a, I18N.res(SHOULD_BE_ABSTRACT, JavaNames.getRelativeTypeNameDotSep(it.next())));
+							getContext().reportModelingProblem(a, I18N.res(SHOULD_BE_ABSTRACT, JavaNames.getRelativeTypeNameDotSep(it.next())));
 							return null;
 						}
 					}
@@ -183,7 +183,7 @@ public class EqualityRules extends AnnotationRules {
 						  } else {
 						    msg = I18N.res(DOES_NOT_MATCH_SUPERTYPE, VALUE_OBJECT);
 						  }
-							getContext().reportError(dt.getDeclaration(), msg);
+							getContext().reportModelingProblem(dt.getDeclaration(), msg);
 							return false;
 						}
 					}
@@ -240,13 +240,13 @@ public class EqualityRules extends AnnotationRules {
 					final Operator op = JJNode.tree.getOperator(tdecl);
           
           if (AnnotationDeclaration.prototype.includes(op)) {
-            getContext().reportError(a, "Annotation declarations may not be annotated @ReferenceObject");
+            getContext().reportModelingProblem(a, "Annotation declarations may not be annotated @ReferenceObject");
             return null;
           }
           
           // Check if the class is java.lang.Enum
           if (EnumDeclaration.prototype.includes(op)) {
-            getContext().reportError(a, I18N.res(BAD_ENUM, REF_OBJECT));
+            getContext().reportModelingProblem(a, I18N.res(BAD_ENUM, REF_OBJECT));
             return null;
           }
 					
@@ -269,7 +269,7 @@ public class EqualityRules extends AnnotationRules {
   					for(IJavaType st : dt.getSupertypes(p.getTypeEnv())) {
   						IJavaDeclaredType sdt = (IJavaDeclaredType) st;
   						if (getRefObjectDrop(sdt.getDeclaration()) != null) {
-  							getContext().reportError(dt.getDeclaration(), I18N.res(DOES_NOT_MATCH_SUPERTYPE, REF_OBJECT));
+  							getContext().reportModelingProblem(dt.getDeclaration(), I18N.res(DOES_NOT_MATCH_SUPERTYPE, REF_OBJECT));
   							return false;
   						}
   					}

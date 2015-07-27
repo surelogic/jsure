@@ -30,6 +30,7 @@ interface IMethodBinder {
 		
 		IJavaType getReceiverType();
 		boolean needsVarArgs();
+		boolean needsExactInvocation();
 	}
 	
 	class CallState implements ICallState {
@@ -77,6 +78,10 @@ interface IMethodBinder {
       		constructorType = null;
 		}
 
+        public boolean needsExactInvocation() {
+            return false;
+        }
+    	
 		@Override
     	public String toString() {
     		return DebugUnparser.toString(call);

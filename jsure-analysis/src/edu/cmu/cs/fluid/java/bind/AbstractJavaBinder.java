@@ -1342,17 +1342,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
      * @return true if bound
      */
     protected boolean bindCall(final CallState state, final String name, final IJavaScope sc) {
-      /*
-       * if (pathToTarget != null) { System.out.println(
-       * "Not computing binding for call: "+DebugUnparser.toString(call));
-       * return false; // skip the work }
-       */
-      /*
-       * if (name.equals("toArray")) { System.out.println("Binding call: "
-       * +DebugUnparser.toString(call)); } if (debug) { StringBuilder sb =
-       * buildStringOfArgTypes(state.getArgTypes(methodBinder)); LOG.finer(
-       * "Looking for method: " + name + sb + getInVersionString()); }
-       */
       final IRNode from;
       final Operator callOp = JJNode.tree.getOperator(state.call);
       final boolean needMethod;
@@ -2148,13 +2137,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       IJavaType recType = null;
       final String name = MethodCall.getMethod(node);
       /*
-       * if ("flatMap".equals(name) || "map".equals(name)) { String unparse =
-       * DebugUnparser.toString(node); if (
-       * "Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)"
-       * .equals(unparse) ||
-       * "Arrays.stream(args, i, #.length).map(Paths:: <> get)".equals(unparse))
-       * { System.out.println("Calling "+unparse); } }
-       */
+      if (name.equals("asList")) {
+    	  System.out.println("Trying to bind "+DebugUnparser.toString(node));
+      }
+      */
       final Operator rop = JJNode.tree.getOperator(receiver);
       if (rop instanceof ImplicitReceiver) {
         toUse = scope;
@@ -2165,23 +2151,10 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
         // recType).getDeclaration()));
         // }
         // String recName = recType.toString();
-        /*
-         * if (recName.startsWith("org.apache.hadoop.mapreduce.Mapper") &&
-         * recName.endsWith(">.Context")) { System.out.println(
-         * "Binding call for "+recName); }
-         */
         if (recType != null)
           toUse = typeScope(recType);
       }
       if (toUse != null) {
-        /*
-         * if ("doPrivileged".equals(name)) { String unparse =
-         * DebugUnparser.toString(node); if
-         * (unparse.startsWith("AccessController.doPrivileged(new")) { String
-         * args_txt = DebugUnparser.toString(args); if
-         * (args_txt.contains("GetPropertyAction")) { System.out.println(
-         * "toArray: "+unparse); } } }
-         */
         if (recType instanceof IJavaDeclaredType) {
           IJavaDeclaredType dt = (IJavaDeclaredType) recType;
           if (AnnotationDeclaration.prototype.includes(dt.getDeclaration())) {
@@ -2194,12 +2167,6 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
           }
         }
         final CallState state = new CallState(AbstractJavaBinder.this, node, targs, args, recType);
-        /*
-         * if (
-         * "br.lines.collect(#.groupingBy(#, #)).forEach((# # str, # # set) -> { # # })"
-         * .equals(state.toString())) { System.out.println("recType = "
-         * +recType); getApproxJavaType(receiver, rop); }
-         */
         boolean success = bindCall(state, name, toUse);
         if (!success) {
           // FIX hack to get things to bind for receivers of raw type
@@ -3316,7 +3283,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     final IRNode td = VisitUtil.getEnclosingType(mth);
     final IJavaDeclaredType t = (IJavaDeclaredType) typeEnvironment.convertNodeTypeToIJavaType(td);
 
-    final MethodBinder mb = new MethodBinder(this, false);
+    final IMethodBinder mb = /*processJava8 ? new MethodBinder8(this, false) :*/ new MethodBinder(this, false);
     final List<IBinding> methods = new ArrayList<IBinding>();
     final LookupContext context = new LookupContext();
     context.foundNewType(td);
@@ -3331,7 +3298,11 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     final CallState call = new CallState(AbstractJavaBinder.this, null, null, null, t) {
       @Override
       public IJavaType[] getArgTypes() {
-        return mb.getFormalTypes(t, mth);
+        return MethodBinder.getFormalTypes(binder, t, mth);
+      }
+      @Override
+      public boolean needsExactInvocation() {
+    	return true;
       }
     };
 
@@ -3341,6 +3312,7 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
       final IJavaScope superScope = new IJavaScope.SubstScope(typeMemberTable(st).asScope(this), getTypeEnvironment(), t);
 
       // Specialized for methods!
+      // TODO this will find extra matches -- need to disallow conversions?
       BindingInfo best = mb.findBestMethod(superScope, context, true, st.getDeclaration(), call);
       if (best != null) {
         methods.add(best.method);

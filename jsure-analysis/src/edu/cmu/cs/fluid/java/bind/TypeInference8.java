@@ -394,9 +394,10 @@ public class TypeInference8 {
    * @return the bound set B 2 if the method is applicable
    */
   BoundSet inferForInvocationApplicability(ICallState call, MethodBinding m, InvocationKind kind) {
-    if (false && call.toString().equals("Collections.synchronizedList(new # <#>)")) {
-      System.out.println("Got br.lines.collect(Collectors.groupingBy(# -> #, #.toCollection#))");
-    }
+	final String unparse = call.toString();
+	if ("Arrays.stream(#, #, #).map(#:: <> get).flatMap(Grep:: <> getPathStream)".equals(unparse)) {
+		System.out.println("Found problematic call");
+	}
 
     // HACK to deal with type variables in the receiver?
     BoundSet hack = null;
@@ -592,6 +593,19 @@ public class TypeInference8 {
       }
       return false;
     }
+    
+    @Override
+    public IJavaType subst(final IJavaTypeSubstitution s) {
+    	IJavaType subbed = super.subst(s);
+    	if (!(subbed instanceof BoundedTypeFormal)) {
+    		return subbed;
+    	}
+    	IJavaType sourceSub = source.subst(s);
+    	if (bound.isSubtype(tEnv, sourceSub)) {
+    		return bound;
+    	}
+    	return sourceSub;
+    }
   }
 
   /**
@@ -660,11 +674,12 @@ public class TypeInference8 {
           targetType = utils.getPolyExpressionTargetType(call.getNode(), false);
         }
       }
-      final IJavaType r = m.getReturnType(tEnv, false);
       // WORKING
-      if (call.toString().equals("<implicit>.when(methodCall)")) {
+      if (call.toString().equals("new FastVector (0)")) {
     	  System.out.println("looking at <implicit>.when(methodCall)");
       }
+      final IJavaType r = m.getReturnType(tEnv, m.isConstructor);
+
       b_3 = computeB_3(call, r, b_2, targetType);
 
       if (b_3.isFalse) {
@@ -4424,6 +4439,9 @@ public class TypeInference8 {
     if (isProperType(s) && isProperType(t)) {
       if (mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, null, s)) {
         bounds.addTrue();
+      } 
+      else if (hasRawSuperTypeOf(s, t)) {
+    	  bounds.useUncheckedConversion();
       } else {
         mb.LOOSE_INVOCATION_CONTEXT.isCompatible(null, t, null, s);
         bounds.addFalse();
@@ -4497,10 +4515,12 @@ public class TypeInference8 {
       }
       if (tEnv.isSubType(s, t)) {
         bounds.addTrue();
+      } 
+      else if (hasRawSuperTypeOf(s, t)) {
+    	  bounds.useUncheckedConversion();
       } else {
-        tEnv.isSubType(s, t);
-
-        bounds.addFalse();
+    	  tEnv.isSubType(s, t);
+    	  bounds.addFalse();
       }
     } else if (s instanceof IJavaNullType) {
       bounds.addTrue();
@@ -4511,6 +4531,10 @@ public class TypeInference8 {
     }
 
     else if (t instanceof IJavaDeclaredType) {
+      if (hasRawSuperTypeOf(s, t)) {
+    	  bounds.useUncheckedConversion();
+    	  return;
+      }
       final IJavaDeclaredType dt = (IJavaDeclaredType) t;
       // TODO subcase 1
       if (s instanceof TypeVariable) {

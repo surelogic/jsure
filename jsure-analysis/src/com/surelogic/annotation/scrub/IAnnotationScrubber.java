@@ -31,9 +31,4 @@ public interface IAnnotationScrubber extends Runnable {
    * @return The names of the scrubbers that this should run before
    */
   String[] shouldRunBefore();
-  
-  /**
-   * Set the context for reporting errors
-   */
-  void setContext(IAnnotationScrubberContext context);
 }

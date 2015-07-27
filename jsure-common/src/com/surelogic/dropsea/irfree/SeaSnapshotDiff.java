@@ -28,7 +28,7 @@ import edu.cmu.cs.fluid.util.CPair;
  * @author Edwin
  */
 public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
-  private final Map<K, DiffCategory<K>> categories = new HashMap<K, DiffCategory<K>>();
+  private final Map<K, DiffCategory<K>> categories = new HashMap<>();
   private IDropFilter filter;
   private IDropSeparator<K> separator;
   private CategoryMatcher matcher = defaultMatcher;
@@ -97,7 +97,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     if (categories.isEmpty()) {
       return noCategories;
     }
-    List<DiffCategory<K>> l = new ArrayList<DiffCategory<K>>();
+    List<DiffCategory<K>> l = new ArrayList<>();
     for (DiffCategory<K> c : categories.values()) {
       if (c.isEmpty()) {
         continue;
@@ -153,7 +153,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     	  throw new IllegalStateException("Lost some new drops");
       }
     } else {
-      DiffCategory<K> all = new DiffCategory<K>(null);
+      DiffCategory<K> all = new DiffCategory<>(null);
       all.addAllOld(old);
       all.addAllNew(newer);
       categories.put(null, all);
@@ -168,7 +168,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
   }
 
   private static List<IDrop> filter(IDropFilter f, Collection<? extends IDrop> l) {
-    final List<IDrop> drops = new ArrayList<IDrop>();
+    final List<IDrop> drops = new ArrayList<>();
     // Collections.sort(oldDrops, EntityComparator.prototype);
     for (IDrop d : l) {
       if (f.keep(d)) {
@@ -200,7 +200,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
     }
     DiffCategory<K> c = categories.get(key);
     if (c == null) {
-      c = new DiffCategory<K>(key);
+      c = new DiffCategory<>(key);
       categories.put(key, c);
     }
     return c;
@@ -209,7 +209,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
   /**
    * @return true if the drop is derived from source
    */
-  private static boolean select(IDrop d) {
+  static boolean select(IDrop d) {
     /* No longer desirable, since it makes these drops 
      * show up as 'new'
      *
@@ -268,7 +268,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
   private static SeaSnapshotDiff<CPair<String, String>> diff(final IDropFilter f, Collection<IDrop> old,
       Collection<? extends IDrop> newer) {
 	System.out.println("old/newer: "+old.size()+" vs "+newer.size());
-    SeaSnapshotDiff<CPair<String, String>> rv = new SeaSnapshotDiff<CPair<String, String>>();
+    SeaSnapshotDiff<CPair<String, String>> rv = new SeaSnapshotDiff<>();
     rv.setFilter(augmentDefaultFilter(f));
     rv.setSeparator(defaultSeparator);
     rv.build(old, newer);
@@ -296,7 +296,7 @@ public class SeaSnapshotDiff<K extends Comparable<K>> implements ISeaDiff {
 		   * DeclUtil.getTypeNameFullyQualifiedOutermostTypeNameOnly(decl); } if
 		   * (f == null) { f = ref.getTypeNameFullyQualified(); } }
 		   */
-		  return new CPair<String, String>(f, type);
+		  return new CPair<>(f, type);
 	  }
   };
 

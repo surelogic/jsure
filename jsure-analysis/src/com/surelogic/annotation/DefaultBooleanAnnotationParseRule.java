@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/DefaultBooleanAnnotationParseRule.java,v 1.13 2008/11/17 18:22:17 chance Exp $*/
 package com.surelogic.annotation;
 
 import java.lang.reflect.Constructor;
@@ -23,67 +22,64 @@ import edu.cmu.cs.fluid.java.operator.VariableDeclarators;
 import edu.cmu.cs.fluid.tree.Operator;
 
 /**
- * Abstract class for boolean parse rules 
- * (e.g. @Unique)
+ * Abstract class for boolean parse rules (e.g. @Unique)
  * 
  * @author Edwin.Chan
  */
-public abstract class DefaultBooleanAnnotationParseRule
-<A extends IAASTRootNode, P extends PromiseDrop<A>>  
-extends AbstractAnnotationParseRule<A,P> {	
-	//private static final Class[] defaultParamTypes = new Class[] { int.class, int.class };
-	
-	@SuppressWarnings("unchecked")
-	public static final Class[] noParamTypes = new Class[0];
-	
+public abstract class DefaultBooleanAnnotationParseRule<A extends IAASTRootNode, P extends PromiseDrop<A>>
+    extends AbstractAnnotationParseRule<A, P> {
+  // private static final Class[] defaultParamTypes = new Class[] { int.class,
+  // int.class };
+
+  public static final Class<?>[] noParamTypes = new Class[0];
+
   protected DefaultBooleanAnnotationParseRule(String name, Operator[] ops, Class<A> dt) {
     super(name, ops, dt);
   }
-  
-  protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int mappedOffset, int modifiers, AASTAdaptor.Node node) 
-  throws Exception {
-	  return makeAAST(context, mappedOffset, modifiers);
+
+  protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int mappedOffset, int modifiers, AASTAdaptor.Node node)
+      throws Exception {
+    return makeAAST(context, mappedOffset, modifiers);
   }
-  
+
   /**
-   * Uses reflection to create an AAST root node of the appropriate type;
-   * (kept for compatibility with older code)
+   * Uses reflection to create an AAST root node of the appropriate type; (kept
+   * for compatibility with older code)
    * 
-   * @param offset mapped
+   * @param offset
+   *          mapped
    */
   protected IAASTRootNode makeAAST(IAnnotationParsingContext context, int offset, int modifiers) throws Exception {
-	//Constructor<A> c = getAASTType().getConstructor(defaultParamTypes);
-	//return c.newInstance(context.mapToSource(offset), modifiers);
-	// context.mapToSource()
-	Constructor<A> c = getAASTType().getConstructor(noParamTypes);
+    // Constructor<A> c = getAASTType().getConstructor(defaultParamTypes);
+    // return c.newInstance(context.mapToSource(offset), modifiers);
+    // context.mapToSource()
+    Constructor<A> c = getAASTType().getConstructor(noParamTypes);
     return c.newInstance();
   }
-  
+
   /**
-   * Assumes that parsed text specifies where the annotations should go
-   * Handles differences between syntax for Java 5 and Javadoc
+   * Assumes that parsed text specifies where the annotations should go Handles
+   * differences between syntax for Java 5 and Javadoc
    */
   @Override
   public final ParseResult parse(IAnnotationParsingContext context, String contents) {
     if (!declaredOnValidOp(context.getOp())) {
-      context.reportError(IAnnotationParsingContext.UNKNOWN,
-                          "Promise declared on invalid operator");
+      context.reportError(IAnnotationParsingContext.UNKNOWN, "Promise declared on invalid operator");
       return ParseResult.FAIL;
     }
     try {
       Object result = parse(context, SLParse.prototype.initParser(contents));
-      AASTAdaptor.Node tn    = (AASTAdaptor.Node) result;
+      AASTAdaptor.Node tn = (AASTAdaptor.Node) result;
       if (tn == null) {
         return ParseResult.FAIL;
       }
       if (tn.getType() == SLAnnotationsParser.Expressions) {
         /*
-        if (context.getSourceType() != AnnotationSource.JAVADOC) {
-          context.reportError(tn.getTokenStartIndex(), "Using Javadoc syntax in the wrong place");
-          return;
-        }
-        */
-        for(int i=0; i<tn.getChildCount(); i++) {
+         * if (context.getSourceType() != AnnotationSource.JAVADOC) {
+         * context.reportError(tn.getTokenStartIndex(),
+         * "Using Javadoc syntax in the wrong place"); return; }
+         */
+        for (int i = 0; i < tn.getChildCount(); i++) {
           reportAAST(context, tn.getChild(i));
         }
       } else {
@@ -98,31 +94,31 @@ extends AbstractAnnotationParseRule<A,P> {
     }
     return ParseResult.OK;
   }
-  
+
   /**
    * Assumes that parsed text specifies where the annotations should go
    */
   protected void reportAAST(IAnnotationParsingContext context, Tree tn) {
     AnnotationLocation loc = translateTokenType(tn.getType(), context.getOp());
-    final int offset       = tn.getTokenStartIndex();        
+    final int offset = tn.getTokenStartIndex();
     try {
       AASTAdaptor.Node node = (AASTAdaptor.Node) tn;
       int mods;
       if (node.getModifiers() != JavaNode.ALL_FALSE) {
-    	  mods = node.getModifiers();
+        mods = node.getModifiers();
       } else {
-    	  mods = context.getModifiers();
+        mods = context.getModifiers();
       }
       IAASTRootNode d = makeAAST(context, context.mapToSource(offset), mods, node);
       if (d != null) {
-    	  final Object o;
-    	  if (loc == AnnotationLocation.QUALIFIED_RECEIVER) {
-    		  Tree child0 = node.getChild(0);
-    		  o = child0.getText();
-    	  } else {
-    		  o = tn.getText();
-    	  }      
-    	  context.reportAAST(offset, loc, o, d);
+        final Object o;
+        if (loc == AnnotationLocation.QUALIFIED_RECEIVER) {
+          Tree child0 = node.getChild(0);
+          o = child0.getText();
+        } else {
+          o = tn.getText();
+        }
+        context.reportAAST(offset, loc, o, d);
       }
     } catch (Exception e) {
       context.reportException(offset, e);
@@ -132,34 +128,35 @@ extends AbstractAnnotationParseRule<A,P> {
   protected AnnotationLocation translateTokenType(int type, Operator op) {
     return AnnotationLocation.translateTokenType(type);
   }
-  
+
   /**
    * Calls the appropriate method on the parser
-   * @return the created tree 
+   * 
+   * @return the created tree
    */
-  protected abstract Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser) throws Exception, RecognitionException;  
-  
+  protected abstract Object parse(IAnnotationParsingContext context, SLAnnotationsParser parser)
+      throws Exception, RecognitionException;
+
   @Override
   public boolean appliesTo(final IRNode decl, final Operator op) {
-	//final Operator op = JJNode.tree.getOperator(decl);
-	if (ParameterDeclaration.prototype.includes(op)) {
-	    return ReferenceType.prototype.includes(ParameterDeclaration.getType(decl));
-	}	
-	else if (FieldDeclaration.prototype.includes(op)) {
-		if (!ReferenceType.prototype.includes(FieldDeclaration.getType(decl))) {
-			// Check if all arrays
-			for(IRNode vd : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(decl))) {
-				if (VariableDeclarator.getDims(vd) == 0) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-	return super.appliesTo(decl, op);
+    // final Operator op = JJNode.tree.getOperator(decl);
+    if (ParameterDeclaration.prototype.includes(op)) {
+      return ReferenceType.prototype.includes(ParameterDeclaration.getType(decl));
+    } else if (FieldDeclaration.prototype.includes(op)) {
+      if (!ReferenceType.prototype.includes(FieldDeclaration.getType(decl))) {
+        // Check if all arrays
+        for (IRNode vd : VariableDeclarators.getVarIterator(FieldDeclaration.getVars(decl))) {
+          if (VariableDeclarator.getDims(vd) == 0) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+    return super.appliesTo(decl, op);
   }
-    
+
   protected static boolean isRefTypedMethod(IRNode n) {
-	  return ReferenceType.prototype.includes(MethodDeclaration.getReturnType(n));
+    return ReferenceType.prototype.includes(MethodDeclaration.getReturnType(n));
   }
 }

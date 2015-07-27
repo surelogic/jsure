@@ -35,7 +35,7 @@ public class JSureProperties {
 	public static final String LIB_PREFIX = "Library.";
 	public static final String LIB_EXCLUDES = LIB_PREFIX + "excludes";
 	
-	private static final List<String> excludedLibPaths = new ArrayList<String>();
+	private static final List<String> excludedLibPaths = new ArrayList<>();
 
 	public static void clearLibraryPath() {
 		excludedLibPaths.clear();
@@ -134,7 +134,7 @@ public class JSureProperties {
 	 */
 	private static Iteratable<String> getModules(Properties props) {
 		if (props.isEmpty()) {
-			return new EmptyIterator<String>();
+			return new EmptyIterator<>();
 		}
 		final Set<Object> keys = props.keySet();
 		return new FilterIterator<Object, String>(keys.iterator()) {
@@ -157,11 +157,11 @@ public class JSureProperties {
 	private static Iteratable<String> getValues(Properties props, String key) {
 		String prop = props.getProperty(key, "");
 		if (prop.equals("")) {
-			return new EmptyIterator<String>();
+			return new EmptyIterator<>();
 		}
 		final StringTokenizer st = new StringTokenizer(prop, ",");
 		if (!st.hasMoreTokens()) {
-			return new EmptyIterator<String>();
+			return new EmptyIterator<>();
 		}
 		return new SimpleRemovelessIterator<String>() {
 			@Override
@@ -262,8 +262,8 @@ public class JSureProperties {
 		};
 	}
 
-	private static final Map<CompUnitPattern, Boolean> asSourcePatterns = new HashMap<CompUnitPattern, Boolean>();
-	private static final Map<CompUnitPattern, Boolean> asNeededPatterns = new HashMap<CompUnitPattern, Boolean>();
+	private static final Map<CompUnitPattern, Boolean> asSourcePatterns = new HashMap<>();
+	private static final Map<CompUnitPattern, Boolean> asNeededPatterns = new HashMap<>();
 
 	public static void clearAsSourcePatterns() {
 		asSourcePatterns.clear();
@@ -374,12 +374,12 @@ public class JSureProperties {
 	private static boolean defaultAsSource = true;
 	private static boolean defaultAsNeeded = false;
 
-	private static List<ModulePattern> yes_AsNeeded = new ArrayList<ModulePattern>();
-	private static List<ModulePattern> no_AsNeeded  = new ArrayList<ModulePattern>();
-	private static List<ModulePattern> yes_AsSource = new ArrayList<ModulePattern>();
-	private static List<ModulePattern> no_AsSource  = new ArrayList<ModulePattern>();
+	private static List<ModulePattern> yes_AsNeeded = new ArrayList<>();
+	private static List<ModulePattern> no_AsNeeded  = new ArrayList<>();
+	private static List<ModulePattern> yes_AsSource = new ArrayList<>();
+	private static List<ModulePattern> no_AsSource  = new ArrayList<>();
 
-	private static Map<String,ModulePattern> patternCache = new HashMap<String,ModulePattern>();
+	private static Map<String,ModulePattern> patternCache = new HashMap<>();
 
 	private static ModulePattern findPattern(String pattern) {
 		ModulePattern p = patternCache.get(pattern);
@@ -493,7 +493,7 @@ public class JSureProperties {
 		}    
 	}
 
-	private static final Map<CompUnitPattern, String> modulePatterns = new HashMap<CompUnitPattern, String>();
+	private static final Map<CompUnitPattern, String> modulePatterns = new HashMap<>();
 
 	/**
 	 * @param name

@@ -245,7 +245,7 @@ class MethodBinder implements IMethodBinder {
     	*/   	
     	final SearchState state = new SearchState(methods, call);
     	BindingInfo best  = findMostSpecificApplicableMethod(state, false, false);
-    	if (best == null) {
+    	if (best == null && !call.needsExactInvocation()) {
     		best = findMostSpecificApplicableMethod(state, true, false);
     		if (best == null) {
     			best = findMostSpecificApplicableMethod(state, true, true);
@@ -479,6 +479,13 @@ class MethodBinder implements IMethodBinder {
     				constraints.substituteRawMapping(typeEnvironment, m.typeFormals, fty) :
     				//binder.getTypeEnvironment().computeErasure(fty) :     			
     				map.substitute(fty);
+    	    if (s.call.needsExactInvocation()) {    	    
+    	    	if (captured.equals(s.argTypes[i])) {
+    	    		continue;
+    	    	} else {
+    	    		return null;
+    	    	}
+    		}
     		if (!isCallCompatible(captured,s.argTypes[i], false)) {        	
     			if (isCallCompatible(captured,s.argTypes[i], true)) {
     				numUsingErasure++;
@@ -621,7 +628,7 @@ class MethodBinder implements IMethodBinder {
     	return false;
     }
 
-	IJavaType[] getFormalTypes(IJavaDeclaredType t, IRNode mdecl) {
+	static IJavaType[] getFormalTypes(IBinder binder, IJavaDeclaredType t, IRNode mdecl) {
 		final IRNode formals;
 		final Operator op = JJNode.tree.getOperator(mdecl);
 		if (op instanceof MethodDeclaration) {

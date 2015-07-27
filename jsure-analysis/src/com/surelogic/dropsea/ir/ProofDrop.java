@@ -110,7 +110,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
    */
   @NonNull
   public final Set<AnalysisResultDrop> getTrustedBy() {
-    final HashSet<AnalysisResultDrop> result = new HashSet<AnalysisResultDrop>();
+    final HashSet<AnalysisResultDrop> result = new HashSet<>();
     /*
      * check if any dependent result drop trusts this drop ("checks" doesn't
      * count)
@@ -197,7 +197,7 @@ public abstract class ProofDrop extends Drop implements IProofDrop {
     if (proposal != null) {
       synchronized (f_seaLock) {
         if (f_proposalsNotProvedConsistent == null) {
-          f_proposalsNotProvedConsistent = new ArrayList<ProposedPromiseDrop>(1);
+          f_proposalsNotProvedConsistent = new ArrayList<>(1);
         }
         f_proposalsNotProvedConsistent.add(proposal);
       }

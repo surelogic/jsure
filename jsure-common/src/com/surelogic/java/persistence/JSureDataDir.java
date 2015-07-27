@@ -25,7 +25,7 @@ public class JSureDataDir {
   private final List<JSureScan> f_scans;
 
   @NonNull
-  private final Map<String, JSureScan> f_projectToScan = new HashMap<String, JSureScan>();
+  private final Map<String, JSureScan> f_projectToScan = new HashMap<>();
 
   JSureDataDir(@NonNull File dir, @NonNull List<JSureScan> scans, @NonNull Map<String, JSureScan> projectToScan) throws IOException {
     if (dir == null)
@@ -66,7 +66,7 @@ public class JSureDataDir {
   }
 
   public synchronized List<JSureScan> getScans() {
-    return new ArrayList<JSureScan>(f_scans);
+    return new ArrayList<>(f_scans);
   }
 
   public synchronized JSureScan[] getScansAsArray() {
@@ -77,7 +77,7 @@ public class JSureDataDir {
     /*
      * Collect together existing information about scans
      */
-    final Map<File, JSureScan> knownScans = new HashMap<File, JSureScan>();
+    final Map<File, JSureScan> knownScans = new HashMap<>();
     for (JSureScan r : f_scans) {
       do {
         knownScans.put(r.getDir(), r);
@@ -87,7 +87,7 @@ public class JSureDataDir {
     /*
      * Look for scan directories
      */
-    final List<JSureScan> scans = new ArrayList<JSureScan>();
+    final List<JSureScan> scans = new ArrayList<>();
     for (File f : f_dir.listFiles()) {
       JSureScan run = knownScans.get(f);
       if (run == null) {

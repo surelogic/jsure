@@ -60,7 +60,7 @@ public final class MetricDrop extends Drop implements IMetricDrop {
    * Holds the set of metric-info values for this drop.
    */
   @UniqueInRegion("DropState")
-  private final List<IKeyValue> f_metricInfos = new ArrayList<IKeyValue>();
+  private final List<IKeyValue> f_metricInfos = new ArrayList<>();
 
   @Override
   public boolean containsMetricInfoKey(String key) {

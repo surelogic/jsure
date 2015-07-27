@@ -11,9 +11,9 @@ public class IRFreeModelingProblemDrop extends IRFreeDrop implements IModelingPr
   }
 
   public final DropType getDropType() {
-	return DropType.MODELING_PROBLEM;
+    return DropType.MODELING_PROBLEM;
   }
-  
+
   @Override
   boolean aliasTheMessage() {
     return true;

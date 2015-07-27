@@ -440,7 +440,7 @@ public abstract class Drop implements IDrop {
    */
   public final HashSet<Drop> getDependents() {
     synchronized (f_seaLock) {
-      return new HashSet<Drop>(f_dependents);
+      return new HashSet<>(f_dependents);
     }
   }
 
@@ -473,7 +473,7 @@ public abstract class Drop implements IDrop {
    */
   public final HashSet<Drop> getDeponents() {
     synchronized (f_seaLock) {
-      return new HashSet<Drop>(f_deponents);
+      return new HashSet<>(f_deponents);
     }
   }
 
@@ -716,7 +716,7 @@ public abstract class Drop implements IDrop {
   @Override
   @NonNull
   public final Set<HintDrop> getHints() {
-    final Set<HintDrop> result = new HashSet<HintDrop>();
+    final Set<HintDrop> result = new HashSet<>();
     synchronized (f_seaLock) {
       for (Drop d : getDependentsReference()) {
         if (d instanceof HintDrop)
@@ -787,13 +787,13 @@ public abstract class Drop implements IDrop {
 
     final IJavaRef javaRef = JavaNode.getJavaRef(f_node);
     if (javaRef != null)
-      return new Pair<IJavaRef, IRNode>(javaRef, f_node);
+      return new Pair<>(javaRef, f_node);
     final IRNode parent = JavaPromise.getParentOrPromisedFor(f_node);
     final IJavaRef parentRef = JavaNode.getJavaRef(parent);
     if (parentRef == null) {
       return null;
     }
-    return new Pair<IJavaRef, IRNode>(parentRef, parent);
+    return new Pair<>(parentRef, parent);
   }
 
   protected final Pair<IJavaRef, IRNode> computeRefWithContext(Pair<IJavaRef, IRNode> info, IRNode context) {
@@ -820,7 +820,7 @@ public abstract class Drop implements IDrop {
 	  if (position == Position.IS_DECL)
 		  position = Position.ON_DECL;
 	  builder.setPositionRelativeToDeclaration(position);
-	  return new Pair<IJavaRef, IRNode>(builder.build(), bestNode);
+	  return new Pair<>(builder.build(), bestNode);
   }
   
   /**
@@ -921,7 +921,7 @@ public abstract class Drop implements IDrop {
     if (proposal != null) {
       synchronized (f_seaLock) {
         if (f_proposals == null) {
-          f_proposals = new ArrayList<ProposedPromiseDrop>(1);
+          f_proposals = new ArrayList<>(1);
         }
         f_proposals.add(proposal);
       }
@@ -936,7 +936,7 @@ public abstract class Drop implements IDrop {
       if (f_proposals == null && conditionalProposals.isEmpty())
         return Collections.emptyList();
       else {
-        final List<ProposedPromiseDrop> result = new ArrayList<ProposedPromiseDrop>();
+        final List<ProposedPromiseDrop> result = new ArrayList<>();
         if (f_proposals != null)
           result.addAll(f_proposals);
         result.addAll(conditionalProposals);
@@ -1116,7 +1116,7 @@ public abstract class Drop implements IDrop {
    * on or requiring the aid of another for support.
    */
   @UniqueInRegion("DropState")
-  final private Set<Drop> f_dependents = new HashSet<Drop>();
+  final private Set<Drop> f_dependents = new HashSet<>();
 
   /**
    * The set of drops upon whose truth this drop depends upon.
@@ -1125,7 +1125,7 @@ public abstract class Drop implements IDrop {
    * writing.
    */
   @UniqueInRegion("DropState")
-  final private Set<Drop> f_deponents = new HashSet<Drop>();
+  final private Set<Drop> f_deponents = new HashSet<>();
 
   /**
    * A link to the {@link Sea} object this drop exists within.
@@ -1143,7 +1143,7 @@ public abstract class Drop implements IDrop {
    * Holds the set of diff-info values for this drop.
    */
   @UniqueInRegion("DropState")
-  private final List<IKeyValue> f_diffInfos = new ArrayList<IKeyValue>();
+  private final List<IKeyValue> f_diffInfos = new ArrayList<>();
 
   /**
    * An alias to the object returned by {@link Sea#getSeaLock()}.

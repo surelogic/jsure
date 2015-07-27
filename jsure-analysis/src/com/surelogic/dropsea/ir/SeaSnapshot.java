@@ -1,5 +1,6 @@
 package com.surelogic.dropsea.ir;
 
+import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DROP_TYPE_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FLAVOR_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.FULL_TYPE_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ID_ATTR;
@@ -9,13 +10,11 @@ import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.PROPERTIES;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.ROOT;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.TYPE_ATTR;
 import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.UID_ATTR;
-import static com.surelogic.dropsea.irfree.NestedJSureXmlReader.DROP_TYPE_ATTR;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,15 +22,9 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.zip.GZIPOutputStream;
 
 import com.surelogic.common.FileUtility;
-import com.surelogic.common.StringCache;
-import com.surelogic.common.ref.DeclUtil;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.common.xml.XmlCreator;
-import com.surelogic.dropsea.IDrop;
 import com.surelogic.dropsea.ISnapshotDrop;
-import com.surelogic.dropsea.ir.Drop;
-import com.surelogic.dropsea.ir.Sea;
-import com.surelogic.dropsea.irfree.drops.*;
 
 import edu.cmu.cs.fluid.ir.IRNode;
 import edu.cmu.cs.fluid.ir.MarkedIRNode;
@@ -43,12 +36,12 @@ public class SeaSnapshot extends XmlCreator {
   /**
    * For creation
    */
-  private final Map<Drop, String> idMap = new HashMap<Drop, String>();
+  private final Map<Drop, String> idMap = new HashMap<>();
 
   /**
    * For loading
    */
-  private final ConcurrentMap<String, IJavaRef> refCache = new ConcurrentHashMap<String, IJavaRef>();
+  private final ConcurrentMap<String, IJavaRef> refCache = new ConcurrentHashMap<>();
   
   public SeaSnapshot(File location) throws IOException {
     super(location != null ? 

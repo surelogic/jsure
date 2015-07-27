@@ -74,7 +74,7 @@ public class UtilityRules extends AnnotationRules {
 					final IRNode promisedFor = a.getPromisedFor();
           // This can't be on an interface
 					if (InterfaceDeclaration.prototype.includes(promisedFor)) {
-					  getContext().reportError(a, "Cannot use @Utility on an interface");
+					  getContext().reportModelingProblem(a, "Cannot use @Utility on an interface");
 						return null;
 					}
 					
@@ -113,7 +113,7 @@ public class UtilityRules extends AnnotationRules {
 					final IRNode promisedFor = a.getPromisedFor();
 					// This can't be on an interface
 					if (InterfaceDeclaration.prototype.includes(promisedFor)) {
-						getContext().reportError(a, "Cannot use @Singleton on an interface");
+						getContext().reportModelingProblem(a, "Cannot use @Singleton on an interface");
 						return null;
 					}
 

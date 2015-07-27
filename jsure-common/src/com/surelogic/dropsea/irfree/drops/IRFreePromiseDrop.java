@@ -14,9 +14,9 @@ import com.surelogic.dropsea.IPromiseDrop;
 
 public class IRFreePromiseDrop extends IRFreeProofDrop implements IPromiseDrop {
 
-  private final List<IRFreePromiseDrop> f_dependentPromises = new ArrayList<IRFreePromiseDrop>(0);
-  private final List<IRFreePromiseDrop> f_deponentPromises = new ArrayList<IRFreePromiseDrop>(0);
-  private final List<IRFreeAnalysisResultDrop> f_checkedByResults = new ArrayList<IRFreeAnalysisResultDrop>(0);
+  private final List<IRFreePromiseDrop> f_dependentPromises = new ArrayList<>(0);
+  private final List<IRFreePromiseDrop> f_deponentPromises = new ArrayList<>(0);
+  private final List<IRFreeAnalysisResultDrop> f_checkedByResults = new ArrayList<>(0);
   private final boolean f_isAssumed;
   private final boolean f_isCheckedByAnalysis;
   private final boolean f_isIntendedToBeCheckedByAnalysis;

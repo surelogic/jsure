@@ -203,7 +203,7 @@ public final class KeyValueUtility {
   public static List<IKeyValue> parseListEncodedForPersistence(final String value) {
     if (value == null)
       throw new IllegalArgumentException(I18N.err(44, "value"));
-    final List<IKeyValue> result = new ArrayList<IKeyValue>();
+    final List<IKeyValue> result = new ArrayList<>();
     if ("n/a".equals(value))
       return result;
     final StringBuilder b = new StringBuilder(value);

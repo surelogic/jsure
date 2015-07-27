@@ -340,13 +340,13 @@ public class LayerRules extends AnnotationRules {
 								LOG.severe("Couldn't find "+pkg+" for "+a);
 								throw new IllegalStateException();
 							} else {
-								getContext().reportError(a, 351, pkg, qname);
+								getContext().reportModelingProblem(a, 351, pkg, qname);
 							}
 							return null;
 						}
 						LayerPromiseDrop l = LayerRules.findLayer(pd.getPackageDeclarationNode(), name);
 						if (l == null) {
-							getContext().reportError(a, 350, name, pkg);
+							getContext().reportModelingProblem(a, 350, name, pkg);
 							return null;
 						}
 						layerDrops.add(l);

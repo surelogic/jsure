@@ -18,9 +18,9 @@ import com.surelogic.common.i18n.I18N;
  */
 public final class ScanDifferences {
   public static class Builder {
-    private final HashMap<IDrop, IDrop> f_newSameAsOld = new HashMap<IDrop, IDrop>();
-    private final HashMap<IDrop, IDrop> f_newChangedFromOld = new HashMap<IDrop, IDrop>();
-    private final Set<IDrop> f_new = new HashSet<IDrop>();
+    private final HashMap<IDrop, IDrop> f_newSameAsOld = new HashMap<>();
+    private final HashMap<IDrop, IDrop> f_newChangedFromOld = new HashMap<>();
+    private final Set<IDrop> f_new = new HashSet<>();
     
     public void addAllNewSameAsOld(Map<IDrop, IDrop> matching) {
       f_newSameAsOld.putAll(matching);
@@ -48,9 +48,9 @@ public final class ScanDifferences {
   private final Set<IDrop> f_new;
   
   ScanDifferences(Map<IDrop, IDrop> newSameAsOld, Map<IDrop, IDrop> newChangedFromOld, Set<IDrop> newSet) {
-    f_newSameAsOld = new HashMap<IDrop, IDrop>(newSameAsOld);
-    f_newChangedFromOld = new HashMap<IDrop, IDrop>(newChangedFromOld);
-    f_new = new HashSet<IDrop>(newSet);
+    f_newSameAsOld = new HashMap<>(newSameAsOld);
+    f_newChangedFromOld = new HashMap<>(newChangedFromOld);
+    f_new = new HashSet<>(newSet);
   }
 
   /**

@@ -12,7 +12,7 @@ import com.surelogic.dropsea.IHintDrop;
 import com.surelogic.dropsea.IModelingProblemDrop;
 
 public abstract class CategoryMatcher {
-  private final List<IDropMatcher> passes = new ArrayList<IDropMatcher>();
+  private final List<IDropMatcher> passes = new ArrayList<>();
 
   final int numPasses() {
     return passes.size();
