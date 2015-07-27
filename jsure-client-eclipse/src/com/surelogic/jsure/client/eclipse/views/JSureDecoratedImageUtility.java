@@ -41,11 +41,33 @@ import com.surelogic.dropsea.IResultFolderDrop;
 public final class JSureDecoratedImageUtility {
 
   public enum Flag {
-    ASSUME(CommonImages.DECR_ASSUME), CONSISTENT(CommonImages.DECR_CONSISTENT), DELTA(CommonImages.DECR_DELTA), HINT_INFO(
-        CommonImages.DECR_INFO), HINT_WARNING(CommonImages.DECR_WARNING), INCONSISTENT(CommonImages.DECR_INCONSISTENT), REDDOT(
-            CommonImages.DECR_REDDOT), TRUSTED(CommonImages.DECR_TRUSTED), UNUSED_CONSISTENT(
-                CommonImages.DECR_UNUSED_CONSISTENT), UNUSED_INCONSISTENT(CommonImages.DECR_UNUSED_INCONSISTENT), VIRTUAL(
-                    CommonImages.DECR_VIRTUAL), NEW(CommonImages.DECR_NEW), PROBLEM(CommonImages.DECR_ERROR);
+    ASSUME(CommonImages.DECR_ASSUME),
+
+    CONSISTENT(CommonImages.DECR_CONSISTENT),
+
+    DELTA(CommonImages.DECR_DELTA),
+
+    HINT_INFO(CommonImages.DECR_INFO),
+
+    HINT_WARNING(CommonImages.DECR_WARNING),
+
+    INCONSISTENT(CommonImages.DECR_INCONSISTENT),
+
+    REDDOT(CommonImages.DECR_REDDOT),
+
+    TRUSTED(CommonImages.DECR_TRUSTED),
+
+    UNUSED_CONSISTENT(CommonImages.DECR_UNUSED_CONSISTENT),
+
+    UNUSED_INCONSISTENT(CommonImages.DECR_UNUSED_INCONSISTENT),
+
+    VIRTUAL(CommonImages.DECR_VIRTUAL),
+
+    NEW(CommonImages.DECR_NEW),
+
+    PROBLEM_ERROR(CommonImages.DECR_ERROR),
+
+    PROBLEM_WARNING(CommonImages.DECR_WARNING);
 
     Flag(String imageName) {
       ImageDescriptor id = SLImages.getImageDescriptor(imageName);
@@ -242,9 +264,9 @@ public final class JSureDecoratedImageUtility {
       final IModelingProblemDrop problemDrop = (IModelingProblemDrop) drop;
       baseImageName = CommonImages.IMG_ANNOTATION;
       if (problemDrop.getSeverity() == IModelingProblemDrop.Severity.WARNING)
-        flags.add(Flag.HINT_WARNING);
+        flags.add(Flag.PROBLEM_WARNING);
       else
-        flags.add(Flag.PROBLEM);
+        flags.add(Flag.PROBLEM_ERROR);
       if (!problemDrop.getProposals().isEmpty())
         flags.add(Flag.NEW);
 
@@ -352,8 +374,10 @@ public final class JSureDecoratedImageUtility {
       return Flag.HINT_WARNING.getImageDescriptor();
     } else if (flags.contains(Flag.HINT_INFO)) {
       return Flag.HINT_INFO.getImageDescriptor();
-    } else if (flags.contains(Flag.PROBLEM)) {
-      return Flag.PROBLEM.getImageDescriptor();
+    } else if (flags.contains(Flag.PROBLEM_ERROR)) {
+      return Flag.PROBLEM_ERROR.getImageDescriptor();
+    } else if (flags.contains(Flag.PROBLEM_WARNING)) {
+      return Flag.PROBLEM_WARNING.getImageDescriptor();
     }
     return null;
   }

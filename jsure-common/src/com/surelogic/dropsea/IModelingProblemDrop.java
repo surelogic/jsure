@@ -9,7 +9,9 @@ package com.surelogic.dropsea;
  */
 public interface IModelingProblemDrop extends IDrop, ISnapshotDrop {
   public enum Severity {
-    WARNING, ERROR /* Invalidating an annotation */
+    WARNING,
+
+    ERROR /* Invalidating an annotation */
   }
 
   public static final String SEVERITY_HINT = "severity-display-hint";
