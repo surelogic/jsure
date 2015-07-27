@@ -10,10 +10,14 @@ public class IRFreeModelingProblemDrop extends IRFreeDrop implements IModelingPr
     super(e);
   }
 
-  public final DropType getDropType() {
-	return DropType.MODELING_PROBLEM;
+  public Severity getSeverity() {
+    return getDiffInfoAsEnum(SEVERITY_HINT, Severity.ERROR, Severity.class);
   }
-  
+
+  public final DropType getDropType() {
+    return DropType.MODELING_PROBLEM;
+  }
+
   @Override
   boolean aliasTheMessage() {
     return true;

@@ -188,7 +188,9 @@ public abstract class AnnotationRules {
 	private static final String CONFLICT_RESOLUTION = "Conflict Resolution";
 	
 	private static class ConflictResolver extends ArrayList<IAnnotationConflictResolver> implements Runnable {
-		ConflictResolver() {
+    private static final long serialVersionUID = 5985330630719673098L;
+
+    ConflictResolver() {
 			// Nothing to do
 		}
 		
@@ -243,7 +245,7 @@ public abstract class AnnotationRules {
 				if (!aasts.iterator().next().needsConflictResolution()) {
 					return;
 				}
-				List<T> sorted = new ArrayList<T>(aasts);
+				List<T> sorted = new ArrayList<>(aasts);
 				removeLowOriginAASTs(context, sorted);
 			}
 		});
@@ -447,7 +449,7 @@ public abstract class AnnotationRules {
 	 * ************************************************
 	 */
 
-	private static boolean isBogus(PromiseDrop<?> p) {
+	static boolean isBogus(PromiseDrop<?> p) {
 		return !p.isValid();
 	}
 
@@ -586,13 +588,13 @@ public abstract class AnnotationRules {
 	private static <D extends PromiseDrop<?>> Iterator<D> getIterator(
 			SlotInfo<List<D>> si, IRNode n) {
 		if (n == null) {
-			return new EmptyIterator<D>();
+			return new EmptyIterator<>();
 		}
 		List<D> s = n.getSlotValue(si);
 		if (s != null) {
 			return s.iterator();
 		}
-		return new EmptyIterator<D>();
+		return new EmptyIterator<>();
 	}
 
 	/**
@@ -601,7 +603,7 @@ public abstract class AnnotationRules {
 	protected static <D extends PromiseDrop<?>> Iterable<D> getDrops(
 			IPromiseDropStorage<D> s, IRNode n) {
 		if (n == null) {
-			return new EmptyIterator<D>();
+			return new EmptyIterator<>();
 		}
 		IPromiseDropSeqStorage<D> storage = (IPromiseDropSeqStorage<D>) s;
 
@@ -610,7 +612,7 @@ public abstract class AnnotationRules {
 		final SlotInfo<List<D>> si = storage.getSeqSlotInfo();
 
 		// Need to merge values if both available
-		Iterator<D> e = new EmptyIterator<D>();
+		Iterator<D> e = new EmptyIterator<>();
 
 		final boolean tryOrig;
 		// If there's a proxy node
@@ -626,7 +628,7 @@ public abstract class AnnotationRules {
 			e = getIterator(si, n);
 		}
 		if (!e.hasNext()) {
-			return new EmptyIterator<D>();
+			return new EmptyIterator<>();
 		}
 		return new FilterIterator<D, D>(e) {
 			@Override
@@ -650,9 +652,9 @@ public abstract class AnnotationRules {
 		private final List<IRNode> childArgs;
 
 		public ParameterMap(final IRNode parent, final IRNode child) {
-			argPosition = new HashMap<IRNode, Integer>();
-			parentArgs = new ArrayList<IRNode>();
-			childArgs = new ArrayList<IRNode>();
+			argPosition = new HashMap<>();
+			parentArgs = new ArrayList<>();
+			childArgs = new ArrayList<>();
 
 			final Iteratable<IRNode> parentParams = Parameters
 					.getFormalIterator(MethodDeclaration.getParams(parent));
@@ -702,7 +704,7 @@ public abstract class AnnotationRules {
 		final Iteratable<IRNode> p2 = Parameters
 				.getFormalIterator(MethodDeclaration.getParams(parent));
 		int count = 0;
-		final Map<IRNode, Integer> positionMap = new HashMap<IRNode, Integer>();
+		final Map<IRNode, Integer> positionMap = new HashMap<>();
 		for (final IRNode arg1 : p1) {
 			positionMap.put(arg1, count);
 			positionMap.put(p2.next(), count);

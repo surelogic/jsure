@@ -35,7 +35,11 @@ public final class ModelingProblemDrop extends Drop implements IModelingProblemD
   }
 
   public final DropType getDropType() {
-	return DropType.MODELING_PROBLEM;
+    return DropType.MODELING_PROBLEM;
+  }
+
+  public Severity getSeverity() {
+    return getDiffInfoAsEnum(SEVERITY_HINT, Severity.ERROR, Severity.class);
   }
 
   @Override
@@ -47,19 +51,17 @@ public final class ModelingProblemDrop extends Drop implements IModelingProblemD
   protected String resolveMessage(final int number, final Object... args) {
     return I18N.mp(number, args);
   }
-  
+
   @Override
   protected String resolveMessageCanonical(final int number) {
     return I18N.mpc(number);
   }
-  
+
   @Override
   protected String resolveMessageCanonical(final int number, final Object... args) {
     return I18N.mpc(number, args);
   }
 
-  
-  
   @Override
   @Nullable
   protected Pair<IJavaRef, IRNode> getJavaRefAndCorrespondingNode() {

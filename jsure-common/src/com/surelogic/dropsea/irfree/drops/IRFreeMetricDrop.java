@@ -38,7 +38,7 @@ public final class IRFreeMetricDrop extends IRFreeDrop implements IMetricDrop {
     if (diffInfoString != null) {
       f_metricInfos = KeyValueUtility.parseListEncodedForPersistence(diffInfoString);
     } else {
-      f_metricInfos = new ArrayList<IKeyValue>();
+      f_metricInfos = new ArrayList<>();
     }
   }
 

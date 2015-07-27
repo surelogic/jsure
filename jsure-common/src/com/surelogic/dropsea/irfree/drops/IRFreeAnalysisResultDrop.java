@@ -15,8 +15,8 @@ import com.surelogic.dropsea.IProofDrop;
 
 public abstract class IRFreeAnalysisResultDrop extends IRFreeProofDrop implements IAnalysisResultDrop {
 
-  private final List<IRFreePromiseDrop> f_checkedPromises = new ArrayList<IRFreePromiseDrop>(0);;
-  private final List<IRFreeProofDrop> f_trusted = new ArrayList<IRFreeProofDrop>(0);
+  private final List<IRFreePromiseDrop> f_checkedPromises = new ArrayList<>(0);;
+  private final List<IRFreeProofDrop> f_trusted = new ArrayList<>(0);
   private final boolean f_usedByProof;
 
   void addCheckedPromise(IRFreePromiseDrop info) {

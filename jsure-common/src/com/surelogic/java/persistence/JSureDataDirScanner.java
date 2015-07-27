@@ -43,7 +43,7 @@ public class JSureDataDirScanner {
 	}
 
 	public static JSureDataDir scan(File dataDir) {
-		final List<JSureScan> runs = new ArrayList<JSureScan>();
+		final List<JSureScan> runs = new ArrayList<>();
 		try {		
 			DeclUtil.setStringCache(new StringCache());
 
@@ -66,9 +66,9 @@ public class JSureDataDirScanner {
 		 * Figure out which are the full scan, and which are the latest partial
 		 * scans.
 		 */
-		final List<JSureScan> full = new ArrayList<JSureScan>();
+		final List<JSureScan> full = new ArrayList<>();
 		// These should end up to be the last in a series
-		final Set<JSureScan> roots = new HashSet<JSureScan>(scans);
+		final Set<JSureScan> roots = new HashSet<>(scans);
 		for (JSureScan scan : scans) {
 			try {
 				final JavaProjectSet<? extends JavaProject> p = scan.getProjects();
@@ -95,12 +95,12 @@ public class JSureDataDirScanner {
 				SLLogger.getLogger().log(Level.SEVERE, I18N.err(179), e);
 			}
 		}
-		List<JSureScan> partials = new ArrayList<JSureScan>(roots);
+		List<JSureScan> partials = new ArrayList<>(roots);
 		// Sorted: oldest first
 		Collections.sort(partials);
 		Collections.sort(full);
 
-		Map<JSureScan, JSureScan> fullToPartial = new HashMap<JSureScan, JSureScan>();
+		Map<JSureScan, JSureScan> fullToPartial = new HashMap<>();
 		for (final JSureScan root : partials) {
 			// Find the corresponding full run
 			JSureScan scan = root;
@@ -112,7 +112,7 @@ public class JSureDataDirScanner {
 		checkFullScans(full, fullToPartial);
 
 		// Collect which projects map to which scans
-		final Map<String, JSureScan> projectToScan = new HashMap<String, JSureScan>();
+		final Map<String, JSureScan> projectToScan = new HashMap<>();
 		for (Map.Entry<JSureScan, JSureScan> e : fullToPartial.entrySet()) {
 			try {
 				final JavaProjectSet<? extends JavaProject> projs = e.getKey().getProjects();
@@ -150,7 +150,7 @@ public class JSureDataDirScanner {
 					continue;
 				}
 				// Collect up all the sources
-				final Set<String> sources = new HashSet<String>();
+				final Set<String> sources = new HashSet<>();
 				for (File src : scan.getSourceZips()) {
 					if (src.isFile() && src.getName().endsWith(".zip")) {
 						ZipFile zf = new ZipFile(src);

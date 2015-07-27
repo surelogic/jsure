@@ -11,7 +11,7 @@ implements IClassMember, TestXMLParserConstants
 	private boolean isStatic;
 	private final String genericParams;
 	private final String parameters;
-	private final List<FunctionParameterElement> params = new ArrayList<FunctionParameterElement>();
+	private final List<FunctionParameterElement> params = new ArrayList<>();
 	
 	AbstractFunctionElement(boolean confirmed, String id, Access access, boolean isStatic, String params) {
 		super(confirmed, id, access);

@@ -24,10 +24,10 @@ public abstract class IRFreeDrop implements IDrop {
 
   @NonNull
   private final String f_simpleName;
-  
+
   @NonNull
   private final String f_fullName;
- 
+
   /**
    * This collection is {@code null} until some exist&mdash;most drops have no
    * proposed promises.
@@ -59,14 +59,14 @@ public abstract class IRFreeDrop implements IDrop {
 
   void addProposal(IRFreeProposedPromiseDrop info) {
     if (f_proposedPromises == null) {
-      f_proposedPromises = new ArrayList<IRFreeProposedPromiseDrop>(1);
+      f_proposedPromises = new ArrayList<>(1);
     }
     f_proposedPromises.add(info);
   }
 
   void addHint(IRFreeHintDrop hint) {
     if (f_analysisHints == null) {
-      f_analysisHints = new ArrayList<IRFreeHintDrop>(1);
+      f_analysisHints = new ArrayList<>(1);
     }
     f_analysisHints.add(hint);
   }
@@ -74,12 +74,12 @@ public abstract class IRFreeDrop implements IDrop {
   IRFreeDrop(Entity e) {
     if (e == null)
       throw new IllegalArgumentException(I18N.err(44, "e"));
-    
+
     final String type = e.getAttributeByAliasIfPossible(TYPE_ATTR);
     if (type == null)
       throw new IllegalArgumentException(I18N.err(44, "simpleName"));
     f_simpleName = type;
-    
+
     final String fullType = e.getAttributeByAliasIfPossible(FULL_TYPE_ATTR);
     if (fullType == null)
       throw new IllegalArgumentException(I18N.err(44, "fullName"));
@@ -100,7 +100,7 @@ public abstract class IRFreeDrop implements IDrop {
     if (diffInfoString != null) {
       f_diffInfos = KeyValueUtility.parseListEncodedForPersistence(diffInfoString);
     } else {
-      f_diffInfos = new ArrayList<IKeyValue>();
+      f_diffInfos = new ArrayList<>();
 
       /*
        * Attempt to read old tree/context hash if they exist in the file
@@ -170,30 +170,30 @@ public abstract class IRFreeDrop implements IDrop {
     return f_isFromSrc;
   }
 
-//  @Override
-//  @NonNull
-//  public Class<?> getIRDropSeaClass() {
-//    return f_irDropSeaClass;
-//  }
-//
-//  @Override
-//  public final boolean instanceOfIRDropSea(Class<?> type) {
-//    if (type == null)
-//      return false;
-//
-//    return type.isAssignableFrom(f_irDropSeaClass);
-//  }
+  // @Override
+  // @NonNull
+  // public Class<?> getIRDropSeaClass() {
+  // return f_irDropSeaClass;
+  // }
+  //
+  // @Override
+  // public final boolean instanceOfIRDropSea(Class<?> type) {
+  // if (type == null)
+  // return false;
+  //
+  // return type.isAssignableFrom(f_irDropSeaClass);
+  // }
 
   @NonNull
   public String getSimpleClassName() {
-	  return f_simpleName;
+    return f_simpleName;
   }
-  
+
   @NonNull
   public String getFullClassName() {
-	  return f_fullName;
+    return f_fullName;
   }
-	  
+
   @Override
   @NonNull
   public Collection<IRFreeProposedPromiseDrop> getProposals() {
@@ -207,7 +207,7 @@ public abstract class IRFreeDrop implements IDrop {
        * 
        * when automatic editing of XML is complete.
        */
-      Collection<IRFreeProposedPromiseDrop> result = new ArrayList<IRFreeProposedPromiseDrop>();
+      Collection<IRFreeProposedPromiseDrop> result = new ArrayList<>();
       for (IRFreeProposedPromiseDrop ppd : f_proposedPromises) {
         if (ppd.isFromSrc() || ppd.getAssumptionRef().isFromSource())
           result.add(ppd);

@@ -195,7 +195,7 @@ public class DropDiff extends DiffNode implements IViewable {
     if (e.getHints().isEmpty()) {
       return Collections.emptyMap();
     }
-    final Map<String, DiffNode> rv = new TreeMap<String, DiffNode>();
+    final Map<String, DiffNode> rv = new TreeMap<>();
     for (IHintDrop i : e.getHints()) {
       String msg = i.getHintType() + " : " + i.getMessage();
       rv.put(msg, new DiffNode(i));

@@ -28,7 +28,7 @@ import com.surelogic.dropsea.*;
 import com.surelogic.dropsea.irfree.DropTypeUtility;
 
 public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListener {
-  private final ConcurrentMap<String, IJavaRef> refCache;
+  final ConcurrentMap<String, IJavaRef> refCache;
 
   // private int refsReused = 0;
 
@@ -95,12 +95,12 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListene
   /**
    * The index in the list matches the entity's id.
    */
-  private final ArrayList<Entity> entities = new ArrayList<Entity>();
+  private final ArrayList<Entity> entities = new ArrayList<>();
 
   public List<IDrop> getDrops() {
     // System.out.println("Reused "+refsReused+" out of "+refCache.size());
 	final Set<? extends IDrop> toFilter = computeDropsToBeFiltered();
-    final ArrayList<IDrop> result = new ArrayList<IDrop>();
+    final ArrayList<IDrop> result = new ArrayList<>();
     for (Entity se : entities) {
       if (se instanceof SeaEntity) {
         IRFreeDrop drop = ((SeaEntity) se).getDrop();
@@ -112,8 +112,8 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListene
   }
 
   private Set<IDrop> computeDropsToBeFiltered() {
-	final List<IPromiseDrop> promises = new ArrayList<IPromiseDrop>();
-	final Set<IDrop> filtered = new HashSet<IDrop>();
+	final List<IPromiseDrop> promises = new ArrayList<>();
+	final Set<IDrop> filtered = new HashSet<>();
 	// Currently written to emulate ClearOutUnconnectedResultsProofHook
     for (Entity se : entities) {
     	if (se instanceof SeaEntity) {
@@ -127,7 +127,7 @@ public final class SeaSnapshotXMLReaderListener extends AbstractXmlResultListene
     	}
     }
     // Repeatedly add to connectedToAPromise until no more new drops are connected
-    final Set<IProofDrop> connectedToAPromise = new HashSet<IProofDrop>();
+    final Set<IProofDrop> connectedToAPromise = new HashSet<>();
     for(IProofDrop root : promises) {
         findConnectedResults(connectedToAPromise, filtered, root);
     }
