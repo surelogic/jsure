@@ -66,7 +66,7 @@ import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
-import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
+import com.surelogic.annotation.scrub.AnnotationScrubberContext;
 import com.surelogic.annotation.scrub.IAnnotationTraversalCallback;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.annotation.scrub.SimpleScrubber;
@@ -515,7 +515,7 @@ public class LockRules extends AnnotationRules {
             if (superDrop != null && !superDrop.isAssumed()) {
               // Ancestor is annotated
               good = false;
-              getContext().reportError(mdecl,
+              getContext().reportModelingProblem(mdecl,
                   "Method does not return same lock as the method it overrides: {0}",
                   JavaNames.genRelativeFunctionName(parent));
             }
@@ -533,7 +533,7 @@ public class LockRules extends AnnotationRules {
 	 * the new system.
 	 */
 	private static ReturnsLockPromiseDrop scrubReturnsLock(
-			IAnnotationScrubberContext context, ReturnsLockNode node) {
+			AnnotationScrubberContext context, ReturnsLockNode node) {
 		final IRNode returnNode = node.getPromisedFor();
     final IRNode annotatedMethod = JavaPromise.getPromisedFor(returnNode);
     final LockNameNode lockName = node.getLock();
@@ -569,7 +569,7 @@ public class LockRules extends AnnotationRules {
           final LockNameNode superLock = superDrop.getAAST().getLock();
           if (!lockName.namesSameLockAs(superLock, positionMap, LockSpecificationNode.How.COVARIANT)) {
             okay = false;
-            context.reportError(annotatedMethod,
+            context.reportModelingProblem(annotatedMethod,
                 "Method does not return same lock as the method it overrides: {0}",
                 JavaNames.genRelativeFunctionName(parent));
           }
@@ -630,7 +630,7 @@ public class LockRules extends AnnotationRules {
 	 * @return A new ProhibitsLockPromiseDrop if it is a valid annotation, null otherwise
 	 */
 	private static ProhibitsLockPromiseDrop scrubProhibitsLock(
-			IAnnotationScrubberContext context, ProhibitsLockNode node) {
+			AnnotationScrubberContext context, ProhibitsLockNode node) {
 		// TODO what else?
 		return new ProhibitsLockPromiseDrop(node);
 	}
@@ -703,7 +703,7 @@ public class LockRules extends AnnotationRules {
 	 * @return A new RequiresLockPromise drop if it is a valid annotation, null otherwise
 	 */
 	static RequiresLockPromiseDrop scrubRequiresLock(
-			IAnnotationScrubberContext context, RequiresLockNode node, final boolean isAssumption) {
+			AnnotationScrubberContext context, RequiresLockNode node, final boolean isAssumption) {
 		final IRNode annotatedMethod = node.getPromisedFor();
 		final Operator promisedForOp = JJNode.tree.getOperator(annotatedMethod);
 
@@ -858,7 +858,7 @@ public class LockRules extends AnnotationRules {
            */
           if (!locks.isEmpty() && !isAssumption) {
             allGood = false;
-            context.reportError(node, "Overridden method {0} is not annotated with @RequiresLock",
+            context.reportModelingProblem(node, "Overridden method {0} is not annotated with @RequiresLock",
                 JavaNames.genRelativeFunctionName(parent));
           }
         } else {
@@ -875,7 +875,7 @@ public class LockRules extends AnnotationRules {
               }
             }
             allGood = false;
-            context.reportError(node, "Cannot add lock {0} to @RequiresLock annotation of {1}",
+            context.reportModelingProblem(node, "Cannot add lock {0} to @RequiresLock annotation of {1}",
                 lock.unparse(false),
                 JavaNames.genRelativeFunctionName(parent));
           }
@@ -952,7 +952,7 @@ public class LockRules extends AnnotationRules {
    * @throws Exception
    */
   private static LockModel scrubLock(
-      final IAnnotationScrubberContext context,
+      final AnnotationScrubberContext context,
       final IProtectedRegions protectedRegions,
   		final LockDeclarationNode lockDecl) {
     return scrubAbstractLock(context, protectedRegions, lockDecl, LOCK_DECLARATION_CONTINUATION);
@@ -985,7 +985,7 @@ public class LockRules extends AnnotationRules {
     }
     
     public abstract LockModel continueScrubbing(
-        IAnnotationScrubberContext context,
+        AnnotationScrubberContext context,
         IProtectedRegions protectedRegions,
         IJavaDeclaredType promisedForType,
         T lockDecl,
@@ -997,7 +997,7 @@ public class LockRules extends AnnotationRules {
   private static final LockScrubContinuation<LockDeclarationNode> LOCK_DECLARATION_CONTINUATION = new LockScrubContinuation<LockDeclarationNode>() {
     @Override
     public LockModel continueScrubbing(
-        final IAnnotationScrubberContext context,
+        final AnnotationScrubberContext context,
         final IProtectedRegions protectedRegions,
         final IJavaDeclaredType promisedForType,
         final LockDeclarationNode lockDecl,
@@ -1013,13 +1013,13 @@ public class LockRules extends AnnotationRules {
       final String regionName = regionBinding.getModel().getRegionName();
       if (!protectedRegions.addIfNotAlreadyProtected(
           context.getBinder(promisedForType.getDeclaration()).getTypeEnvironment(), regionName, promisedForType)) {
-        context.reportError(lockDecl, "Region \"{0}\" is already protected by a lock", regionName);
+        context.reportModelingProblem(lockDecl, "Region \"{0}\" is already protected by a lock", regionName);
         declIsGood = false;
       }
       
       // Region cannot be a final field
       if (regionBinding.getModel().isFinal()) {
-        context.reportError(lockDecl, "Field \"{0}\" is final: It cannot be protected by a lock", region.getId());
+        context.reportModelingProblem(lockDecl, "Field \"{0}\" is final: It cannot be protected by a lock", region.getId());
         declIsGood = false;
       }
       
@@ -1143,7 +1143,7 @@ public class LockRules extends AnnotationRules {
   private static final LockScrubContinuation<PolicyLockDeclarationNode> POLICY_LOCK_DECLARATION_CONTINUATION = new LockScrubContinuation<PolicyLockDeclarationNode>() {
     @Override
     public LockModel continueScrubbing(
-        final IAnnotationScrubberContext context,
+        final AnnotationScrubberContext context,
         final IProtectedRegions protectedRegions,
         final IJavaDeclaredType promisedForType,
         final PolicyLockDeclarationNode lockDecl, final boolean declIsGood,
@@ -1180,7 +1180,7 @@ public class LockRules extends AnnotationRules {
   };
   
   private static VouchFieldIsPromiseDrop scrubVouchFieldIs(
-      final IAnnotationScrubberContext context, final VouchFieldIsNode a) {
+      final AnnotationScrubberContext context, final VouchFieldIsNode a) {
     final IRNode promisedFor = a.getPromisedFor();
     final IJavaType javaType = context.getBinder(promisedFor).getJavaType(promisedFor);
     switch (a.getKind()) {
@@ -1201,7 +1201,7 @@ public class LockRules extends AnnotationRules {
       break;
     case ThreadSafe:
       if (javaType instanceof IJavaPrimitiveType) {
-        context.reportError(a, "Cannot be used on primitively typed field");
+        context.reportModelingProblem(a, "Cannot be used on primitively typed field");
         return null;
       }
 // 2011-11-07 Removed this check: Stop gap measure for dealing with thread safe collections;
@@ -1213,21 +1213,21 @@ public class LockRules extends AnnotationRules {
       break;
     case Containable:
       if (javaType instanceof IJavaPrimitiveType) {
-        context.reportError(a, "Cannot be used on a field with primitive type");
+        context.reportModelingProblem(a, "Cannot be used on a field with primitive type");
         return null;
       } else if ((javaType instanceof IJavaSourceRefType) && 
           (getNotContainable(((IJavaSourceRefType) javaType).getDeclaration()) != null)) {
-        context.reportError(a, "Cannot be used when the type of field is explicitly @NotContainable");
+        context.reportModelingProblem(a, "Cannot be used when the type of field is explicitly @NotContainable");
         return null;
       }
       break;
     case Immutable:
       if (javaType instanceof IJavaPrimitiveType) {
-        context.reportError(a, "Cannot be used on a field with primitive type");
+        context.reportModelingProblem(a, "Cannot be used on a field with primitive type");
         return null;
       } else if ((javaType instanceof IJavaSourceRefType) && 
           (getMutable(((IJavaSourceRefType) javaType).getDeclaration()) != null)) {
-        context.reportError(a, "Cannot be used when the type of field is explicitly @Mutable");
+        context.reportModelingProblem(a, "Cannot be used when the type of field is explicitly @Mutable");
         return null;
       }
       break;
@@ -1255,7 +1255,7 @@ public class LockRules extends AnnotationRules {
       if (isBad) return null;
       */
       default:
-    	context.reportError(a, "Unexpected kind of Vouch: "+a.getKind());
+    	context.reportModelingProblem(a, "Unexpected kind of Vouch: "+a.getKind());
     	return null;
     }
     return new VouchFieldIsPromiseDrop(a);
@@ -1272,7 +1272,7 @@ public class LockRules extends AnnotationRules {
 	 * @throws Exception
 	 */
 	private static <T extends AbstractLockDeclarationNode> LockModel scrubAbstractLock(
-	    final IAnnotationScrubberContext context,
+	    final AnnotationScrubberContext context,
 	    final IProtectedRegions protectedRegions,
 			final T lockDecl,
 			final LockScrubContinuation<T> continuation) {
@@ -1569,7 +1569,7 @@ public class LockRules extends AnnotationRules {
 	 * @return
 	 */
 	private static LockModel scrubPolicyLock(
-			final IAnnotationScrubberContext context,
+			final AnnotationScrubberContext context,
 			final PolicyLockDeclarationNode policyLockDecl) {
 	  // XXX: This is sleazy, passing a null reference to the ProtectedRegions parameter 
     return scrubAbstractLock(context, null, policyLockDecl, POLICY_LOCK_DECLARATION_CONTINUATION);
@@ -1613,7 +1613,7 @@ public class LockRules extends AnnotationRules {
 	 *         any errors were reported
 	 */
   private static LockModel isLockNameOkay(final boolean isStatic,
-      final LockNameNode lockName, final IAnnotationScrubberContext report,
+      final LockNameNode lockName, final AnnotationScrubberContext report,
       final boolean isBinary) {
     // Default to assuming we should not get the binding
     boolean getBinding = false;
@@ -1836,7 +1836,7 @@ public class LockRules extends AnnotationRules {
 	  }
 	  
 	  private P scrubAnnotated(final A node, final boolean isAssumption) {
-	    final IAnnotationScrubberContext context = getContext();
+	    final AnnotationScrubberContext context = getContext();
 	    final IRNode promisedFor = node.getPromisedFor();
       final Operator op = JJNode.tree.getOperator(promisedFor);
 	    final boolean implementationOnly = node.isImplementationOnly();
@@ -1844,17 +1844,17 @@ public class LockRules extends AnnotationRules {
 	    
 	    if (!allowAnnotationDeclarations && AnnotationDeclaration.prototype.includes(op)) {
 	      bad = true;
-	      context.reportError(node, "Annotation declarations may not be annotated @{0}", name);
+	      context.reportModelingProblem(node, "Annotation declarations may not be annotated @{0}", name);
 	    } else if (InterfaceDeclaration.prototype.includes(op)) {
 	      // the verify attribute is non-sense on interfaces
 	      if (!node.verify()) {
 	        bad = true;
-	        context.reportError(node, "An interface may not be @{0}(verify=false)", name);
+	        context.reportModelingProblem(node, "An interface may not be @{0}(verify=false)", name);
 	      }
 	      // The implemenationOnly attribute must be false on interfaces
 	      if (implementationOnly) {
 	        bad = true;
-	        context.reportError(node, "An Interface may not be @{0}(implementationOnly=true)", name);
+	        context.reportModelingProblem(node, "An Interface may not be @{0}(implementationOnly=true)", name);
 	      }
 	      
 	      // Scan each extended interface for incompatibility
@@ -1871,17 +1871,17 @@ public class LockRules extends AnnotationRules {
         // the verify attribute is non-sense on interfaces
         if (!node.verify()) {
           bad = true;
-          context.reportError(node, "An interface may not be @{0}(verify=false)", name);
+          context.reportModelingProblem(node, "An interface may not be @{0}(verify=false)", name);
         }
         // The implemenationOnly attribute must be false on interfaces
         if (implementationOnly) {
           bad = true;
-          context.reportError(node, "An Interface may not be @{0}(implementationOnly=true)", name);
+          context.reportModelingProblem(node, "An Interface may not be @{0}(implementationOnly=true)", name);
         }
         // Applies to can not be exclusively "instance"
         if (node.getAppliesTo() == Part.Instance) {
           bad = true;
-          context.reportError(node, "Annotations never have any instance state");
+          context.reportModelingProblem(node, "Annotations never have any instance state");
         }
 	    } else { // class
 	      final IRNode superDecl;
@@ -1927,7 +1927,7 @@ public class LockRules extends AnnotationRules {
             if (implementationOnly) {
               if (iDrop != null && !isStaticOnly(iDrop)) {
                 bad = true;
-                context.reportError(node,
+                context.reportModelingProblem(node,
                     "Class may not be @{0}(implementationOnly=true) because it implements the @{0} interface {1}",
                     name, JavaNames.getRelativeTypeNameDotSep(intfDecl));
               }
@@ -1945,13 +1945,13 @@ public class LockRules extends AnnotationRules {
   	          if (superAnno == null) {
     	        	if (!isAssumption) {
     	        		bad = true;
-    	        		context.reportError(node,
+    	        		context.reportModelingProblem(node,
     	        				"Class may not be @{0}(implementationOnly=true) because it extends the non-@{0} class {1}",
     	        				name, JavaNames.getRelativeTypeNameDotSep(superDecl));
     	        	}
   	          } else if (!superAnno.isImplementationOnly()) {
   	            bad = true;
-  	            context.reportError(node,
+  	            context.reportModelingProblem(node,
   	                "Class may not be @{0}(implementationOnly=true) because it extends the @{0} class {1}",
   	                name, JavaNames.getRelativeTypeNameDotSep(superDecl));
   	          }
@@ -1961,7 +1961,7 @@ public class LockRules extends AnnotationRules {
               final ModifiedBooleanPromiseDrop<?> d = getAnnotation(superDecl);
   	          if (!isStaticOnly(node) && !isLessSpecific(superDecl) && (d == null || isStaticOnly(d))) {
   	            bad = true;
-  	            context.reportError(node,
+  	            context.reportModelingProblem(node,
   	                "Class may not be @{0} because it extends the non-@{0} class {1}",
   	                name, JavaNames.getRelativeTypeNameDotSep(superDecl));
   	          }
@@ -1987,10 +1987,10 @@ public class LockRules extends AnnotationRules {
 	  }
 
 	  protected boolean isTandNotT(
-	      final A node, final NP notDrop, final IAnnotationScrubberContext context) {
+	      final A node, final NP notDrop, final AnnotationScrubberContext context) {
       if (notDrop != null && !node.isImplementationOnly()) {
         notDrop.invalidate();
-        context.reportError(
+        context.reportModelingProblem(
             node, "Cannot be both @{0} and @{1}", name, notName);
         return true;
       }
@@ -2003,7 +2003,7 @@ public class LockRules extends AnnotationRules {
     
     @Override 
     protected final boolean processUnannotatedType(final IJavaSourceRefType dt) {
-      final IAnnotationScrubberContext context = getContext();
+      final AnnotationScrubberContext context = getContext();
       final IRNode typeDecl = dt.getDeclaration();
       final boolean isInterface = TypeUtil.isInterface(typeDecl);
       final Iterable<IJavaType> supers = 
@@ -2024,12 +2024,12 @@ public class LockRules extends AnnotationRules {
             final ModifiedBooleanPromiseDrop<?> zAnno = getAnnotation(zuperDecl);
             if (zAnno != null && !isStaticOnly(zAnno)) {
               if (isNOT) {
-                context.reportError(typeDecl,
+                context.reportModelingProblem(typeDecl,
                     "Interface may not be @{0} because it extends the @{1} interface {2}",
                     notName, name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               } else if (!isMoreSpecific && !zAnno.isAssumed()) {
-                context.reportWarningAndProposal(new Builder(name, typeDecl, zuperDecl).setOrigin(Origin.PROBLEM).build(),
+                context.reportModelingProblemAndProposal(new Builder(name, typeDecl, zuperDecl).setOrigin(Origin.PROBLEM).build(),
                     "Interface must be annotated @{0} because it extends the @{0} interface {1}",
                     name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
@@ -2044,24 +2044,24 @@ public class LockRules extends AnnotationRules {
           if (anno != null && !isStaticOnly(anno)) {
             if (TypeUtil.isInterface(zuperDecl)) {
               if (isNOT) {
-                context.reportError(typeDecl,
+                context.reportModelingProblem(typeDecl,
                     "Class may not be @{0} because it implements a @{1} interface {2}",
                     notName, name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               } else if (!isMoreSpecific && !anno.isAssumed()) {
-                context.reportWarningAndProposal(new Builder(name, typeDecl, zuperDecl).setOrigin(Origin.PROBLEM).build(),
+                context.reportModelingProblemAndProposal(new Builder(name, typeDecl, zuperDecl).setOrigin(Origin.PROBLEM).build(),
                     "Class must be annotated @{0} because it implements a @{0} interface {1}",
                     name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               }            
             } else if (!anno.isImplementationOnly()) {
               if (isNOT) {
-                context.reportError(typeDecl,
+                context.reportModelingProblem(typeDecl,
                     "Class may not be @{0} because it extends a @{1} class {2}",
                     notName, name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
               } else if (!anno.isAssumed()) {
-                context.reportWarningAndProposal(new Builder(name, typeDecl, zuperDecl).setOrigin(Origin.PROBLEM).build(),
+                context.reportModelingProblemAndProposal(new Builder(name, typeDecl, zuperDecl).setOrigin(Origin.PROBLEM).build(),
                     "Class must be annotated @{0} because it extends a @{0} class {1}",
                     name, JavaNames.getRelativeTypeNameDotSep(zuperDecl));
                 result = false;
@@ -2137,7 +2137,7 @@ public class LockRules extends AnnotationRules {
 
     @Override
     protected boolean isTandNotT(
-        final A node, final NP notDrop, final IAnnotationScrubberContext context) {
+        final A node, final NP notDrop, final AnnotationScrubberContext context) {
       /*
 	     * Cannot be both T and not T unless they apply to different parts of 
 	     * the class.  Specifically, one must apply to only the instance part
@@ -2163,7 +2163,7 @@ public class LockRules extends AnnotationRules {
           
           if (!okay) {
             notDrop.invalidate();
-            context.reportError(node,
+            context.reportModelingProblem(node,
                 "Cannot apply opposite annotations to the same part of a class: @{0}(appliesTo=Part.{1}) and @{2}(appliesTo=Part.{3})",
                 name, appliesTo.name(), notName, notAppliesTo.name());
             return true;
@@ -2207,7 +2207,7 @@ public class LockRules extends AnnotationRules {
 
         private AnnotationBoundsPromiseDrop scrubAnnotationBounds(
             final AnnotationBoundsNode a) {
-          final IAnnotationScrubberContext context = getContext();
+          final AnnotationScrubberContext context = getContext();
           final IRNode promisedFor = a.getPromisedFor();
 
           /* Check that all the formal type parameters named in the annotation
@@ -2222,7 +2222,7 @@ public class LockRules extends AnnotationRules {
               // Check for duplicates
               final String name = namedType.getType();
               if (!names.add(name)) {
-                context.reportError(
+                context.reportModelingProblem(
                     namedType, "Type formal {0} named more than once", name);
               }
                 
@@ -2232,14 +2232,14 @@ public class LockRules extends AnnotationRules {
               final ISourceRefType resolvedType = namedType.resolveType();
               if (resolvedType == null) {
                 good = false;
-                context.reportError(namedType,
+                context.reportModelingProblem(namedType,
                     "No type formal parameter named {0}", name);
               } else {
                 final IRNode t = resolvedType.getNode();
                 final IRNode c = JJNode.tree.getParent(JJNode.tree.getParent(t));
                 if (!c.equals(promisedFor)) {
                   good = false;
-                  context.reportError(namedType,
+                  context.reportModelingProblem(namedType,
                       "Type formal {0} is from a surrounding type", name);
                 }
               }
@@ -2429,7 +2429,7 @@ public class LockRules extends AnnotationRules {
           if (isStaticOnly(node)) {
             final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> sDrop = getThreadSafeImplPromise(sDecl);
             if (sDrop != null && !isStaticOnly(sDrop)) {
-              getContext().reportError(node,
+              getContext().reportModelingProblem(node,
                   "Interface may not apply @ThreadSafe to the static part only because super interface {0} applies @{1} to the instance state",
                   JavaNames.getRelativeTypeNameDotSep(sDecl), sDrop.getToken());
               return false;
@@ -2442,7 +2442,7 @@ public class LockRules extends AnnotationRules {
              */
             final ImmutablePromiseDrop iDrop = getImmutableImplementation(sDecl);
             if (iDrop != null && !isStaticOnly(iDrop)) {
-              getContext().reportError(node, 
+              getContext().reportModelingProblem(node, 
                   "Interface may not be @ThreadSafe because it extends the @Immutable interface {0}",
                   JavaNames.getRelativeTypeNameDotSep(sDecl));
               return false;
@@ -2468,7 +2468,7 @@ public class LockRules extends AnnotationRules {
             final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> iDrop) {
           if (isStaticOnly(node)) {
             if (iDrop != null && !isStaticOnly(iDrop)) {
-              getContext().reportError(node,
+              getContext().reportModelingProblem(node,
                   "Class may not apply @ThreadSafe to the static part only because super interface {0} applies @{1} to the instance state",
                   JavaNames.getRelativeTypeNameDotSep(iDecl), iDrop.getToken());
               return false;
@@ -2481,7 +2481,7 @@ public class LockRules extends AnnotationRules {
              */
             final ImmutablePromiseDrop immutableDrop = getImmutableImplementation(iDecl);
             if (immutableDrop != null && !isStaticOnly(immutableDrop)) {
-              getContext().reportError(node, 
+              getContext().reportModelingProblem(node, 
                   "Class may not be @ThreadSafe because it implements the @Immutable interface {0}",
                   JavaNames.getRelativeTypeNameDotSep(iDecl));
               return false;
@@ -2507,7 +2507,7 @@ public class LockRules extends AnnotationRules {
             if (iDrop != null) {
               if (!iDrop.isImplementationOnly()) {
                 if (!isStaticOnly(iDrop)) {
-                  getContext().reportError(node,
+                  getContext().reportModelingProblem(node,
                       "Class may not apply @ThreadSafe to the static part only because the super class {0} applies @{1} to the instance state",
                           JavaNames.getRelativeTypeNameDotSep(sDecl), iDrop.getToken());
                   return false;
@@ -2523,7 +2523,7 @@ public class LockRules extends AnnotationRules {
           } else {
             final ImmutablePromiseDrop iDrop = getImmutableImplementation(sDecl);
             if (iDrop != null && !iDrop.isImplementationOnly()) {
-              getContext().reportError(node, 
+              getContext().reportModelingProblem(node, 
                   "Class may not be @ThreadSafe because it extends the @Immutable(implementationOnly=false) class {0}",
                   JavaNames.getRelativeTypeNameDotSep(sDecl));
               return false;
@@ -2589,12 +2589,12 @@ public class LockRules extends AnnotationRules {
         }
         
         private NotThreadSafePromiseDrop scrubNotThreadSafe(
-            final IAnnotationScrubberContext context, final NotThreadSafeNode a) {
+            final AnnotationScrubberContext context, final NotThreadSafeNode a) {
           final IRNode promisedFor = a.getPromisedFor();
           if (AnnotationDeclaration.prototype.includes(promisedFor)) {
             // Applies to can not be exclusively "instance"
             if (a.getAppliesTo() == Part.Instance) {
-              context.reportError(a, "Annotations never have any instance state");
+              context.reportModelingProblem(a, "Annotations never have any instance state");
               return null;
             }
           }
@@ -2679,12 +2679,12 @@ public class LockRules extends AnnotationRules {
         }
         
         private MutablePromiseDrop scrubMutable(
-            final IAnnotationScrubberContext context, final MutableNode a) {
+            final AnnotationScrubberContext context, final MutableNode a) {
           final IRNode promisedFor = a.getPromisedFor();
           if (AnnotationDeclaration.prototype.includes(promisedFor)) {
             // Applies to can not be exclusively "instance"
             if (a.getAppliesTo() == Part.Instance) {
-              context.reportError(a, "Annotations never have any instance state");
+              context.reportModelingProblem(a, "Annotations never have any instance state");
               return null;
             }
           }
@@ -2749,7 +2749,7 @@ public class LockRules extends AnnotationRules {
           if (isStaticOnly(node)) {
             final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> sDrop = getThreadSafeImplPromise(sDecl);
             if (sDrop != null && !isStaticOnly(sDrop)) {
-              getContext().reportError(node,
+              getContext().reportModelingProblem(node,
                   "Interface may not apply @Immutable to the static part only because super interface {0} applies @{1} to the instance state",
                   JavaNames.getRelativeTypeNameDotSep(sDecl), sDrop.getToken());
               return false;
@@ -2778,7 +2778,7 @@ public class LockRules extends AnnotationRules {
             final ModifiedBooleanPromiseDrop<? extends AbstractModifiedBooleanNode> iDrop) {
           if (isStaticOnly(node)) {
             if (iDrop != null && !isStaticOnly(iDrop)) {
-              getContext().reportError(node,
+              getContext().reportModelingProblem(node,
                   "Class may not apply @Immutable to the static part only because super interface {0} applies @{1} to the instance state",
                   JavaNames.getRelativeTypeNameDotSep(iDecl), iDrop.getToken());
               return false;
@@ -2804,7 +2804,7 @@ public class LockRules extends AnnotationRules {
           final ImmutablePromiseDrop iDrop = getImmutableImplementation(sDecl);
           if (isStaticOnly(node)) {
             if (iDrop != null && !iDrop.isImplementationOnly() && !isStaticOnly(iDrop)) {
-              getContext().reportError(node,
+              getContext().reportModelingProblem(node,
                   "Class may not apply @Immutable to the static part only because the super class {0} applies @Immutable to the instance state",
                   JavaNames.getRelativeTypeNameDotSep(sDecl));
               return false;
@@ -2819,7 +2819,7 @@ public class LockRules extends AnnotationRules {
         @Override
         protected boolean moreChecks(final ImmutableNode p, final IRNode promisedFor) {
           if (getNotThreadSafe(promisedFor) != null) {
-            getContext().reportError(p, "Cannot be @Immutable and @NotThreadSafe");
+            getContext().reportModelingProblem(p, "Cannot be @Immutable and @NotThreadSafe");
             return false;
           }
           
@@ -2844,7 +2844,7 @@ public class LockRules extends AnnotationRules {
     }
 
     private void checkVisibilityOfField(
-        final IAnnotationScrubberContext context, final LockDeclarationNode lockDecl) {
+        final AnnotationScrubberContext context, final LockDeclarationNode lockDecl) {
       final ExpressionNode field = lockDecl.getField();
       final RegionNameNode region = lockDecl.getRegion();
       final IRegionBinding regionBinding = region.resolveBinding();

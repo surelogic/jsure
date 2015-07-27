@@ -114,8 +114,8 @@ public class ScopedPromiseRules extends AnnotationRules {
     registerScrubber(fw, packageScrubber);
   }
 
-  public static abstract class ScopedPromiseRule<A extends ScopedPromiseNode, P extends ScopedPromiseDrop> extends
-      AbstractAntlrParseRule<A, P, ScopedPromisesParser> {
+  public static abstract class ScopedPromiseRule<A extends ScopedPromiseNode, P extends ScopedPromiseDrop>
+      extends AbstractAntlrParseRule<A, P, ScopedPromisesParser> {
     protected ScopedPromiseRule(String name, Operator[] ops, Class<A> dt) {
       super(name, ops, dt, AnnotationLocation.DECL);
     }
@@ -162,17 +162,17 @@ public class ScopedPromiseRules extends AnnotationRules {
         boolean ok = false;
         if (contextOp == Operator.prototype) {
           // Applies to anything that the rule applies to
-          for(Operator rop : r.getOps(null)) {          
-        	  if (canBeParsed(context, r, parser.content, rop)) {
-        		  ok = true;
-        		  break;
-        	  }
+          for (Operator rop : r.getOps(null)) {
+            if (canBeParsed(context, r, parser.content, rop)) {
+              ok = true;
+              break;
+            }
           }
         } else {
-        	ok = canBeParsed(context, r, parser.content, contextOp); 
+          ok = canBeParsed(context, r, parser.content, contextOp);
         }
         if (!ok) {
-        	context.reportError(sp.getOffset(), "Unable to parse @"+parser.tag+"("+parser.content+")");
+          context.reportError(sp.getOffset(), "Unable to parse @" + parser.tag + "(" + parser.content + ")");
         }
       } else {
         context.reportError(0, "No rule for @" + parser.tag);
@@ -182,15 +182,16 @@ public class ScopedPromiseRules extends AnnotationRules {
       return rewrap(c, sp);
     }
 
-    private boolean canBeParsed(AbstractAnnotationParsingContext context, IAnnotationParseRule<?, ?> r, String content, Operator op) {
-        Proxy proxy = new Proxy(context, r, op, content);
-        r.parse(proxy, content);
-        if (!proxy.createdAAST() && !proxy.hadProblem()) {
-            throw new IllegalStateException("No AAST created from rule for "+r+" "+content);
-        }
-        return proxy.createdAAST();
+    private boolean canBeParsed(AbstractAnnotationParsingContext context, IAnnotationParseRule<?, ?> r, String content,
+        Operator op) {
+      Proxy proxy = new Proxy(context, r, op, content);
+      r.parse(proxy, content);
+      if (!proxy.createdAAST() && !proxy.hadProblem()) {
+        throw new IllegalStateException("No AAST created from rule for " + r + " " + content);
+      }
+      return proxy.createdAAST();
     }
-    
+
     protected abstract AASTNode rewrap(IAnnotationParsingContext c, ScopedPromiseNode sp);
   }
 
@@ -212,8 +213,8 @@ public class ScopedPromiseRules extends AnnotationRules {
 
     @Override
     protected IAnnotationScrubber makeScrubber() {
-      return new AbstractAASTScrubber<AssumeScopedPromiseNode, AssumePromiseDrop>(this, ScrubberType.BY_TYPE, SLUtility.EMPTY_STRING_ARRAY,
-          ScrubberOrder.FIRST) {
+      return new AbstractAASTScrubber<AssumeScopedPromiseNode, AssumePromiseDrop>(this, ScrubberType.BY_TYPE,
+          SLUtility.EMPTY_STRING_ARRAY, ScrubberOrder.FIRST) {
         final PromiseFramework frame = PromiseFramework.getInstance();
         Set<IRNode> bindings = null;
 
@@ -242,13 +243,14 @@ public class ScopedPromiseRules extends AnnotationRules {
         @Override
         protected PromiseDrop<ScopedPromiseNode> makePromiseDrop(AssumeScopedPromiseNode a) {
           AssumePromiseDrop d = new AssumePromiseDrop(a);
-          Result worked = applyAssumptions(bindings, d);
+          final Result worked = applyAssumptions(bindings, d);
           switch (worked) {
           case FAILURE:
+            getContext().reportModelingProblem(a, "Assumption failed on application to matching declaration");
+          case NOT_APPLICABLE:
+            getContext().reportModelingProblem(a, "Assumption not applicable to any matching declaration");
             d.invalidate();
             return null;
-          case NOT_APPLICABLE:
-            getContext().reportWarning("Assumption not applied", a);
           default:
           }
           storeDropIfNotNull(a, d);
@@ -286,8 +288,8 @@ public class ScopedPromiseRules extends AnnotationRules {
 
     @Override
     protected IAnnotationScrubber makeScrubber() {
-      return new AbstractAASTScrubber<ScopedPromiseNode, PromisePromiseDrop>(this, ScrubberType.UNORDERED, SLUtility.EMPTY_STRING_ARRAY,
-          ScrubberOrder.FIRST) {
+      return new AbstractAASTScrubber<ScopedPromiseNode, PromisePromiseDrop>(this, ScrubberType.UNORDERED,
+          SLUtility.EMPTY_STRING_ARRAY, ScrubberOrder.FIRST) {
         @Override
         protected boolean customScrub(ScopedPromiseNode a) {
           return checkTargets(a);
@@ -297,28 +299,21 @@ public class ScopedPromiseRules extends AnnotationRules {
         protected Collection<ScopedPromiseNode> preprocessAASTsForSeq(Collection<ScopedPromiseNode> l) {
           return l;
           /*
-          if (!lookForFullWildcardScopedPromises) {
-            return l;
-          }
-          */
+           * if (!lookForFullWildcardScopedPromises) { return l; }
+           */
           /*
-           * if (l.size() > 1) {
-           * System.out.println("Preprocessing AASTs for "+JavaNames
-           * .getFullName(l.iterator().next().getPromisedFor())); }
+           * if (l.size() > 1) { System.out.println("Preprocessing AASTs for "
+           * +JavaNames .getFullName(l.iterator().next().getPromisedFor())); }
            */
           // Check for wildcard promises that subsume other promises
           /*
-          final Hashtable2<String, IRNode, Promises> promises = new Hashtable2<String, IRNode, Promises>();
-          for (ScopedPromiseNode p : l) {
-            Promises processed = promises.get(p.getPromise(), p.getPromisedFor());
-            if (processed == null) {
-              promises.put(p.getPromise(), p.getPromisedFor(), new Promises(p));
-            } else {
-              processed.process(p);
-            }
-          }
-          return l;
-          */
+           * final Hashtable2<String, IRNode, Promises> promises = new
+           * Hashtable2<String, IRNode, Promises>(); for (ScopedPromiseNode p :
+           * l) { Promises processed = promises.get(p.getPromise(),
+           * p.getPromisedFor()); if (processed == null) {
+           * promises.put(p.getPromise(), p.getPromisedFor(), new Promises(p));
+           * } else { processed.process(p); } } return l;
+           */
         }
 
         @Override
@@ -376,9 +371,9 @@ public class ScopedPromiseRules extends AnnotationRules {
       }
       others.add(p);
       /*
-       * if (others.size() > (wildcard == null ? 1 : 0)) {
-       * System.out.println("Looking at Promises for "
-       * +JavaNames.getFullName(p.getPromisedFor())); }
+       * if (others.size() > (wildcard == null ? 1 : 0)) { System.out.println(
+       * "Looking at Promises for " +JavaNames.getFullName(p.getPromisedFor()));
+       * }
        */
     }
 
@@ -454,8 +449,8 @@ public class ScopedPromiseRules extends AnnotationRules {
 
     /*
      * String targets = scopedPromiseDrop.getAST().getTargets().unparse(); if
-     * (targets.contains("terator")) {
-     * System.out.println("Found my target: "+targets); }
+     * (targets.contains("terator")) { System.out.println("Found my target: "
+     * +targets); }
      */
     final Operator op = JJNode.tree.getOperator(promisedFor);
     // If the node this promise is promised for is a class or type declaration,
@@ -524,14 +519,14 @@ public class ScopedPromiseRules extends AnnotationRules {
             success = false;
             break;
           }
-        }  
+        }
         if (applyToParams) {
-        	for(IRNode param : Parameters.getFormalIterator(op.get_Params(decl))) {
-        		if (callback.parseAndApplyPromise(param, ParameterDeclaration.prototype) == Result.FAILURE) {
-        			success = false;
-        			break;
-        		}
-        	}
+          for (IRNode param : Parameters.getFormalIterator(op.get_Params(decl))) {
+            if (callback.parseAndApplyPromise(param, ParameterDeclaration.prototype) == Result.FAILURE) {
+              success = false;
+              break;
+            }
+          }
         }
       }
       if (success && callback.parseRule.declaredOnValidOp(FieldDeclaration.prototype)) {
@@ -579,7 +574,7 @@ public class ScopedPromiseRules extends AnnotationRules {
     public boolean hadProblem() {
       return hadProblem;
     }
-    
+
     @Override
     public Operator getOp() {
       return op;
@@ -589,15 +584,15 @@ public class ScopedPromiseRules extends AnnotationRules {
     public <T extends IAASTRootNode> void reportAAST(int offset, AnnotationLocation loc, Object o, T ast) {
       createdAAST = true;
     }
-    
+
     @Override
     public void reportErrorAndProposal(int offset, String msg, ProposedPromiseDrop.Builder proposal, String... moreInfo) {
-    	hadProblem = true;
+      hadProblem = true;
     }
-    
+
     @Override
     public void reportException(int offset, Exception e) {
-    	hadProblem = true;
+      hadProblem = true;
     }
   }
 
@@ -719,9 +714,9 @@ public class ScopedPromiseRules extends AnnotationRules {
     Result parseAndApplyPromise(final IRNode decl, Operator op) {
       /*
        * String name = JavaNames.getFullName(decl); if
-       * (name.contains("util.concurrent")) {
-       * System.out.println("Trying to apply scoped promise "+
-       * scopedPromiseDrop.getMessage()+" to "+name); }
+       * (name.contains("util.concurrent")) { System.out.println(
+       * "Trying to apply scoped promise "+ scopedPromiseDrop.getMessage()+
+       * " to "+name); }
        */
       if (target.matches(decl) && parseRule.appliesTo(decl, op)) {
         final IJavaRef ref = JavaNode.getJavaRef(decl);
@@ -732,23 +727,22 @@ public class ScopedPromiseRules extends AnnotationRules {
         final ScopedPromiseNode aast = scopedPromiseDrop.getAAST();
         final AnnotationOrigin origin;
         if (aast.getOrigin() != AnnotationOrigin.DECL) {
-        	origin = aast.getOrigin();
+          origin = aast.getOrigin();
         } else {
-        	if (NamedPackageDeclaration.prototype.includes(aast.getPromisedFor())) {
-        		final String name = NamedPackageDeclaration.getId(aast.getPromisedFor());
-        		PackageDrop pkg = PackageDrop.findPackage(name);
-        		if (pkg.getNode() == VisitUtil.findCompilationUnit(aast.getPromisedFor())) {
-        			origin = AnnotationOrigin.SCOPED_ON_PKG;
-        		} else {
-        			origin = AnnotationOrigin.SCOPED_ON_CU;
-        		}
-        	} else {
-        		origin = AnnotationOrigin.SCOPED_ON_TYPE;
-        	}
-        }        
-        final AbstractAnnotationParsingContext context = 
-        		new ScopedAnnotationParsingContext(this, aast.getSrcType(), 
-        		origin, decl, parseRule, content, aast.getAnnoContext());
+          if (NamedPackageDeclaration.prototype.includes(aast.getPromisedFor())) {
+            final String name = NamedPackageDeclaration.getId(aast.getPromisedFor());
+            PackageDrop pkg = PackageDrop.findPackage(name);
+            if (pkg.getNode() == VisitUtil.findCompilationUnit(aast.getPromisedFor())) {
+              origin = AnnotationOrigin.SCOPED_ON_PKG;
+            } else {
+              origin = AnnotationOrigin.SCOPED_ON_CU;
+            }
+          } else {
+            origin = AnnotationOrigin.SCOPED_ON_TYPE;
+          }
+        }
+        final AbstractAnnotationParsingContext context = new ScopedAnnotationParsingContext(this, aast.getSrcType(), origin, decl,
+            parseRule, content, aast.getAnnoContext());
         ParseResult result = parseRule.parse(context, content);
         if (result == ParseResult.IGNORE) {
           return Result.NOT_APPLICABLE;
@@ -771,9 +765,8 @@ public class ScopedPromiseRules extends AnnotationRules {
         /*
          * String qname = JavaNames.getFullName(decl); if
          * ("java.util.ArrayList.iterator()".equals(qname)) {
-         * System.out.println(
-         * scopedPromiseDrop.getMessage()+" on "+qname+" within "
-         * +VisitUtil.findRoot(decl)); }
+         * System.out.println( scopedPromiseDrop.getMessage()+" on "+qname+
+         * " within " +VisitUtil.findRoot(decl)); }
          */
         return Result.SUCCESS;
       }
@@ -815,15 +808,16 @@ public class ScopedPromiseRules extends AnnotationRules {
     }
     final ScopedPromiseNode orig = d.getAAST();
     for (IRNode type : pkg.getTypes()) {
-      // System.out.println("Applying "+d.getAST()+" to "+JavaNames.getFullName(type));
+      // System.out.println("Applying "+d.getAST()+" to
+      // "+JavaNames.getFullName(type));
 
       if (createPkgScopedPromisesDirectly) {
         // This directly applies the package-level @Promise to the types
         applyPromiseOnType(type, d);
       } else {
         // create type-level @Promise
-        final ScopedPromiseNode copy = new ScopedPromiseNode(orig.getOffset(), orig.getPromise(), (PromiseTargetNode) orig
-            .getTargets().cloneTree());
+        final ScopedPromiseNode copy = new ScopedPromiseNode(orig.getOffset(), orig.getPromise(),
+            (PromiseTargetNode) orig.getTargets().cloneTree());
         copy.copyPromisedForContext(type, orig, AnnotationOrigin.SCOPED_ON_PKG);
         AASTStore.addDerived(copy, d, new ValidatedDropCallback<PromisePromiseDrop>() {
 

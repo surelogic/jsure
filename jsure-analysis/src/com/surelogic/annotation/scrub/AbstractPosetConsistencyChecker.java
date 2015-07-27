@@ -50,7 +50,7 @@ public abstract class AbstractPosetConsistencyChecker<E, P extends Poset<E>> ext
   
 
   private final P poset;
-  private Collection<PromiseDrop<?>> relevantDrops = new ArrayList<PromiseDrop<?>>();
+  private Collection<PromiseDrop<?>> relevantDrops = new ArrayList<>();
   private final boolean proposePromises;
   
   
@@ -143,14 +143,14 @@ public abstract class AbstractPosetConsistencyChecker<E, P extends Poset<E>> ext
               !poset.lessEq(parentState.first(), s)) {
               good = false;
               if (proposePromises && generateProposal) {
-                getContext().reportWarningAndProposal(
+                getContext().reportModelingProblemAndProposal(
                     proposePromise(parentState.first(), null, promisedFor, parentMethod),
                     "The annotation on parameter {0} of {1} cannot be changed from {2} to {3}",
                     ParameterDeclaration.getId(p),
                     JavaNames.genRelativeFunctionName(parentMethod),
                     getAnnotationName(parentState.first()), getAnnotationName(s));
               } else {
-                getContext().reportError(promisedFor,
+                getContext().reportModelingProblem(promisedFor,
                     "The annotation on parameter {0} of {1} cannot be changed from {2} to {3}",
                     ParameterDeclaration.getId(p),
                     JavaNames.genRelativeFunctionName(parentMethod),
@@ -171,13 +171,13 @@ public abstract class AbstractPosetConsistencyChecker<E, P extends Poset<E>> ext
         if (src.check(parentState.second()) && !poset.lessEq(parentState.first(), s)) {
           good = false;
           if (proposePromises && generateProposal) {
-            getContext().reportWarningAndProposal(
+            getContext().reportModelingProblemAndProposal(
                 proposePromise(parentState.first(), "this", promisedFor, parentMethod),
                 "The annotation on the receiver of {0} cannot be changed from {1} to {2}",
                 JavaNames.genRelativeFunctionName(parentMethod),
                 getAnnotationName(parentState.first()), getAnnotationName(s));
           } else {
-            getContext().reportError(promisedFor,
+            getContext().reportModelingProblem(promisedFor,
                 "The annotation on the receiver of {0} cannot be changed from {1} to {2}",
                 JavaNames.genRelativeFunctionName(parentMethod),
                 getAnnotationName(parentState.first()), getAnnotationName(s));
@@ -195,13 +195,13 @@ public abstract class AbstractPosetConsistencyChecker<E, P extends Poset<E>> ext
         if (src.check(parentState.second()) && !poset.lessEq(s, parentState.first())) {
           good = false;
           if (proposePromises && generateProposal) {
-            getContext().reportWarningAndProposal(
+            getContext().reportModelingProblemAndProposal(
                 proposePromise(parentState.first(), "return", promisedFor, parentMethod),
                 "The annotation on the return value of {0} cannot be changed from {1} to {2}",
                 JavaNames.genRelativeFunctionName(parentMethod),
                 getAnnotationName(parentState.first()), getAnnotationName(s));
           } else {
-            getContext().reportError(promisedFor,
+            getContext().reportModelingProblem(promisedFor,
                 "The annotation on the return value of {0} cannot be changed from {1} to {2}",
                 JavaNames.genRelativeFunctionName(parentMethod),
                 getAnnotationName(parentState.first()), getAnnotationName(s));

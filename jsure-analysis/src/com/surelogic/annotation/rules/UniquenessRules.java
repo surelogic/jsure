@@ -15,7 +15,7 @@ import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.AbstractPosetConsistencyChecker;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
-import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
+import com.surelogic.annotation.scrub.AnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.IProposedPromiseDrop.Origin;
 import com.surelogic.dropsea.ir.PromiseDrop;
@@ -221,7 +221,7 @@ public class UniquenessRules extends AnnotationRules {
     }
     
     private UniquePromiseDrop scrubUnique(
-        final IAnnotationScrubberContext context, final UniqueNode a) {
+        final AnnotationScrubberContext context, final UniqueNode a) {
       // must be a reference type variable
       boolean good = RulesUtilities.checkForReferenceType(context, a, "Unique");
       boolean fromField = false;
@@ -233,12 +233,12 @@ public class UniquenessRules extends AnnotationRules {
         fromField = true;
         if (TypeUtil.isVolatile(promisedFor)) {
           good = false;
-          context.reportError(a, "@Unique cannot be used on a volatile field");
+          context.reportModelingProblem(a, "@Unique cannot be used on a volatile field");
         }
       }
 
       if (UniquenessRules.isBorrowed(promisedFor)) {
-        context.reportError(
+        context.reportModelingProblem(
             a, "Cannot be annotated with both @Unique and @Borrowed");
         good = false;
       }
@@ -248,7 +248,7 @@ public class UniquenessRules extends AnnotationRules {
         final IRNode decl = JavaPromise.getPromisedFor(promisedFor);
         if (ConstructorDeclaration.prototype.includes(decl) && 
             isBorrowed(JavaPromise.getReceiverNodeOrNull(decl))) {
-          context.reportWarning("Use of both @Unique(\"return\") and @Borrowed(\"this\") on a constructor is redundant", a);
+          context.reportError("Use of both @Unique(\"return\") and @Borrowed(\"this\") on a constructor is redundant", a);
         }
       }
       
@@ -319,7 +319,7 @@ public class UniquenessRules extends AnnotationRules {
     }    
     
     private BorrowedPromiseDrop scrubBorrowed(
-        final IAnnotationScrubberContext context, final BorrowedNode a) {
+        final AnnotationScrubberContext context, final BorrowedNode a) {
       // must be a reference type variable
       boolean good = RulesUtilities.checkForReferenceType(context, a, "Borrowed");
       boolean fromField = false;

@@ -18,7 +18,7 @@ import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
-import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
+import com.surelogic.annotation.scrub.AnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.annotation.scrub.ValidatedDropCallback;
@@ -123,7 +123,7 @@ public class JcipRules extends AnnotationRules {
    * -- no need to create a "field" expr if DUPLICATE
    */
   private static GuardedByPromiseDrop scrubGuardedBy(
-      final IAnnotationScrubberContext context, final GuardedByNode a) {
+      final AnnotationScrubberContext context, final GuardedByNode a) {
     final GuardedByPromiseDrop d = new GuardedByPromiseDrop(a);
 	final LockVisitor v = new LockVisitor(context, d); 
 	final Result rv = v.doAccept(a.getLock());
@@ -174,7 +174,7 @@ public class JcipRules extends AnnotationRules {
   
   // Returning null means that there was a problem and we're not creating anything
   static class LockVisitor extends DescendingVisitor<Result> {		
-	final IAnnotationScrubberContext context;
+	final AnnotationScrubberContext context;
 	final GuardedByPromiseDrop drop;
 	final GuardedByNode anno;
     final IRNode target; // being protected
@@ -184,7 +184,7 @@ public class JcipRules extends AnnotationRules {
     final int targetMods;
     final boolean targetIsStatic;  
 	
-	public LockVisitor(final IAnnotationScrubberContext context, final GuardedByPromiseDrop d) {
+	public LockVisitor(final AnnotationScrubberContext context, final GuardedByPromiseDrop d) {
 		super(null);
 		this.context = context;
 		drop = d;
@@ -207,7 +207,7 @@ public class JcipRules extends AnnotationRules {
 		String newRegionId = null;		
 		if (JavaNode.isSet(targetMods, JavaNode.FINAL)) {
 			if (isPrimTyped(target)) {
-				context.reportError(anno, "Primitive-typed field \""+targetId+"\" is final and does not need locking");
+				context.reportModelingProblem(anno, "Primitive-typed field \""+targetId+"\" is final and does not need locking");
 				return null;
 			} else {
 				// WRONG: An Object, and thus needs @UniqueInRegion
@@ -238,7 +238,7 @@ public class JcipRules extends AnnotationRules {
 	
 	public Result visit(ThisExpressionNode lock) {
 		if (targetIsStatic) {
-			context.reportError(anno, "Static field \""+targetId+"\" cannot be guarded by \"this\"");
+			context.reportModelingProblem(anno, "Static field \""+targetId+"\" cannot be guarded by \"this\"");
 			return null;
 		}
 		final IRNode lockDecl = JavaPromise.getReceiverNode(enclosingTypeDecl);
@@ -256,7 +256,7 @@ public class JcipRules extends AnnotationRules {
 		final boolean lockIsStatic = JavaNode.isSet(lockMods, JavaNode.STATIC);
 		final String targetLabel = isFieldNotMethod ? "field" : "method";
 		if (targetIsStatic && !lockIsStatic) {
-			context.reportError(anno, "Static "+targetLabel+" \""+targetId+"\" cannot be guarded by instance lock \""+lock.getId()+"\"");
+			context.reportModelingProblem(anno, "Static "+targetLabel+" \""+targetId+"\" cannot be guarded by instance lock \""+lock.getId()+"\"");
 			return null;
 		}
 		if (!targetIsStatic && lockIsStatic) {
@@ -305,11 +305,11 @@ public class JcipRules extends AnnotationRules {
 	
 	public Result visit(ItselfNode lock) {
 		if (!isFieldNotMethod) {
-			context.reportError(anno, "A method cannot be annotated to guard itself");
+			context.reportModelingProblem(anno, "A method cannot be annotated to guard itself");
 			return null;
 		}
 		if (isPrimTyped(target)) {
-			context.reportError(anno, "Primitive-typed field \""+targetId+"\" cannot guard itself");
+			context.reportModelingProblem(anno, "Primitive-typed field \""+targetId+"\" cannot guard itself");
 			return null;
 		}
 		String newRegionId = makeNewInRegion(targetId, true);

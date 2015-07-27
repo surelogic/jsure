@@ -72,7 +72,7 @@ public class StructureRules extends AnnotationRules {
 			    	IBinding overridden = findParentWithMustInvokeOnOverride(getContext().getBinder(unannodMethod), 
 			    															 unannodMethod);
 			    	if (overridden != null) {
-			    		getContext().reportError(unannodMethod, "Should be marked with @"+MUST_INVOKE_ON_OVERRIDE+
+			    		getContext().reportModelingProblem(unannodMethod, "Should be marked with @"+MUST_INVOKE_ON_OVERRIDE+
 			    				" like the method it overrides: "+JavaNames.genRelativeFunctionName(overridden.getNode()));
 			    		return false;
 			    	}			    					    	

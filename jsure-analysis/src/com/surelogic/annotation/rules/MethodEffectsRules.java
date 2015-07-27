@@ -161,7 +161,7 @@ public class MethodEffectsRules extends AnnotationRules {
                     new ParameterMap(overriddenMethod, decl));
                 final ProposedPromiseDrop p = new Builder(RegionEffects.class, decl, overriddenMethod)
                     .setValue(cloned.unparseForPromise(true)).setOrigin(Origin.PROBLEM).build();
-                getContext().reportWarningAndProposal(p,
+                getContext().reportModelingProblemAndProposal(p,
                     "Cannot add effect writes java.lang.Object:All to the declared effects of {0}",
                     JavaNames.genRelativeFunctionName(overriddenMethod));
               }          
@@ -179,12 +179,12 @@ public class MethodEffectsRules extends AnnotationRules {
 
 	/**
 	 * Performs scrubbing identical to that of the above EffectsScrubber but does it at creation time since we have 1 node representing both reads and writes
-	 * @param scrubberContext The {@link IAnnotationScrubberContext} to use while scrubbing
+	 * @param scrubberContext The {@link AnnotationScrubberContext} to use while scrubbing
 	 * @param node The {@link RegionEffectsNode} to be scrubbed
 	 * @return A correct {@link RegionEffectsPromiseDrop} if everything in the AAST checked out, null otherwise
 	 */
 	private static RegionEffectsPromiseDrop scrubRegionEffects(
-			IAnnotationScrubberContext scrubberContext, RegionEffectsNode node) {
+			AnnotationScrubberContext scrubberContext, RegionEffectsNode node) {
 		RegionEffectsPromiseDrop drop = null;
 		final List<EffectsSpecificationNode> readsAndWrites = node.getEffectsList();
 
@@ -236,11 +236,11 @@ public class MethodEffectsRules extends AnnotationRules {
 	         * constructor. (3) Region must not be static.
 	         */
 	        if (isStatic) {
-	          scrubberContext.reportError(context, "Cannot refer to \"this\" from a static method");
+	          scrubberContext.reportModelingProblem(context, "Cannot refer to \"this\" from a static method");
 	          good = false;
 	        }
 	        if (isConstructor) {
-	          scrubberContext.reportError(context,
+	          scrubberContext.reportModelingProblem(context,
 	              "Constructors cannot declare effects on the receiver because they are masked");
 	          good = false;
 	        }
@@ -254,7 +254,7 @@ public class MethodEffectsRules extends AnnotationRules {
 	        // Note: Region will fail to bind if the parameter has primitive type
 	        final VariableUseExpressionNode varUse = (VariableUseExpressionNode) context;
 	        if (!varUse.bindingExists()) {
-	          scrubberContext.reportError(context, "Parameter \"{0}\" does not exist", varUse.getId());
+	          scrubberContext.reportModelingProblem(context, "Parameter \"{0}\" does not exist", varUse.getId());
 	          good = false;
 	        }
 	        regionShouldBeStatic = false;
@@ -268,19 +268,19 @@ public class MethodEffectsRules extends AnnotationRules {
            */
 	        final IRNode enclosingType = VisitUtil.getClosestType(promisedFor);
 	        if (!TypeUtil.isOuter(enclosingType) && TypeUtil.isStatic(enclosingType)) {
-	          scrubberContext.reportError(context, "Cannot reference qualified receivers from a static nested type.");
+	          scrubberContext.reportModelingProblem(context, "Cannot reference qualified receivers from a static nested type.");
 	          good = false;
 	        }
           final QualifiedThisExpressionNode qthis = (QualifiedThisExpressionNode) context;
           
           if (!qthis.getType().typeExists()) { // (2a) does the type exist?
-            scrubberContext.reportError(context,
+            scrubberContext.reportModelingProblem(context,
                 "Outer type \"{0}\" does not exist",
                 qthis.getType().unparse(false));
             good = false;
           } else { // (2b) is it a lexically enclosing type?
             if (!VisitUtil.isAncestor(qthis.resolveType().getNode(), promisedFor)) {
-              scrubberContext.reportError(context,
+              scrubberContext.reportModelingProblem(context,
                   "Outer type \"{0}\" is not a lexically enclosing type",
                   qthis.getType().unparse(false));
               good = false;
@@ -295,7 +295,7 @@ public class MethodEffectsRules extends AnnotationRules {
 	         */
 	        final NamedTypeNode type = ((AnyInstanceExpressionNode) context).getType();
 	        if (!type.typeExists()) {
-	          scrubberContext.reportError(type, "Type \"{0}\" does not exist", type.getType());
+	          scrubberContext.reportModelingProblem(type, "Type \"{0}\" does not exist", type.getType());
 	          good = false;
 	        }
 	        regionShouldBeStatic = false;
@@ -307,7 +307,7 @@ public class MethodEffectsRules extends AnnotationRules {
 	         */
 	        final ReturnTypeNode type = ((TypeExpressionNode) context).getType();
 	        if (!type.typeExists()) {
-	          scrubberContext.reportError(type, "Type does not exist");
+	          scrubberContext.reportModelingProblem(type, "Type does not exist");
 	          good = false;
 	        }
 	        regionShouldBeStatic = true;
@@ -319,7 +319,7 @@ public class MethodEffectsRules extends AnnotationRules {
 
         // Must always check if region exists
         if (!regionSpec.bindingExists()) {
-          scrubberContext.reportError(regionSpec, "Region \"{0}\" does not exist", regionSpec.getId());
+          scrubberContext.reportModelingProblem(regionSpec, "Region \"{0}\" does not exist", regionSpec.getId());
           good = false;
         } else {
           final IRegionBinding boundRegion = regionSpec.resolveBinding();
@@ -327,13 +327,13 @@ public class MethodEffectsRules extends AnnotationRules {
           // Check that the region has the desired static status
           final boolean regionIsStatic = region.isStatic();
           if (checkStaticStatus && (regionIsStatic != regionShouldBeStatic)) {
-            scrubberContext.reportError(
+            scrubberContext.reportModelingProblem(
                 regionSpec, staticMsgTemplate, regionSpec.getId());
             good = false;
           }
           
           if (delayCheckingForConstructor && !regionIsStatic) {
-            scrubberContext.reportError(context,
+            scrubberContext.reportModelingProblem(context,
               "Constructors cannot declare effects on the receiver because they are masked");
             good = false;
           } else {
@@ -341,12 +341,12 @@ public class MethodEffectsRules extends AnnotationRules {
              * method-region combination preserved abstraction.
              */
             if (!region.isAccessibleFromType(typeEnv, enclosingTypeNode)) {
-              scrubberContext.reportError(regionSpec, "Region \"{0}\" may not be accessed by {1,choice,0#constructor|1#method} \"{2}\": Visiblity is {3}",
+              scrubberContext.reportModelingProblem(regionSpec, "Region \"{0}\" may not be accessed by {1,choice,0#constructor|1#method} \"{2}\": Visiblity is {3}",
                   regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genRelativeFunctionName(promisedFor), region.getVisibility());
               good = false;
             }          
             if (!isAccessibleToAllCallers(enclosingPackageName, methodInType, promisedFor, region, typeEnv)) {
-              scrubberContext.reportError(regionSpec, "Region \"{0}\" is not accessible by all potential callers of {1,choice,0#constructor|1#method} \"{2}\": Region''s visibility is {3}",
+              scrubberContext.reportModelingProblem(regionSpec, "Region \"{0}\" is not accessible by all potential callers of {1,choice,0#constructor|1#method} \"{2}\": Region''s visibility is {3}",
                   regionSpec.getId(), (isConstructor ? 0 : 1), JavaNames.genRelativeFunctionName(promisedFor), region.getVisibility().toString());
               good = false;
             }
@@ -393,7 +393,7 @@ public class MethodEffectsRules extends AnnotationRules {
                 final ProposedPromiseDrop p = new Builder(RegionEffects.class, promisedFor, overriddenMethod)
                     .setValue(cloned.unparseForPromise(true))
                     .replaceExisting(RegionEffects.class, node.toString().substring("RegionEffects".length()).trim()).build();
-                scrubberContext.reportErrorAndProposal(p, 
+                scrubberContext.reportModelingProblemAndProposal(p, 
                     "Cannot add effect {0} to the declared effects of {1}",
                     overridingSpec.standAloneUnparse(),
                     JavaNames.genRelativeFunctionName(overriddenMethod));

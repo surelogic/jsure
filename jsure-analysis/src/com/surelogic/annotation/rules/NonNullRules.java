@@ -30,7 +30,7 @@ import com.surelogic.annotation.rules.UniquenessRules;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.AbstractPosetConsistencyChecker;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
-import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
+import com.surelogic.annotation.scrub.AnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.ProposedPromiseDrop;
@@ -372,11 +372,11 @@ public class NonNullRules extends AnnotationRules {
 	
 	private static TrackPartiallyInitializedPromiseDrop
 	scrubTrackPartiallyInitialized(
-	    final IAnnotationScrubberContext context,
+	    final AnnotationScrubberContext context,
 	    final TrackPartiallyInitializedNode tpi) {
 	  final IRNode decl = tpi.getPromisedFor();
 	  if (InterfaceDeclaration.prototype.includes(decl)) {
-	    context.reportError(tpi, TPI_CLASS_ONLY);
+	    context.reportModelingProblem(tpi, TPI_CLASS_ONLY);
 	    return null;
 	  } else {
 	    return new TrackPartiallyInitializedPromiseDrop(tpi);
@@ -385,7 +385,7 @@ public class NonNullRules extends AnnotationRules {
 	
 	
   private static NonNullPromiseDrop scrubNonNull(
-      final IAnnotationScrubberContext context,
+      final AnnotationScrubberContext context,
       final NonNullNode n) {
     // Cannot be on a primitive type
     boolean good = RulesUtilities.checkForReferenceType(context, n, "NonNull");
@@ -399,7 +399,7 @@ public class NonNullRules extends AnnotationRules {
   }
 
   private static NullablePromiseDrop scrubNullable(
-      final IAnnotationScrubberContext context, final NullableNode n) {
+      final AnnotationScrubberContext context, final NullableNode n) {
     final IRNode promisedFor = n.getPromisedFor();
     // Cannot be on a primitive type
     boolean good = RulesUtilities.checkForReferenceType(context, n, "Nullable");
@@ -407,13 +407,13 @@ public class NonNullRules extends AnnotationRules {
     // Cannot also be @NonNull
     if (getNonNull(promisedFor) != null) {
       good = false;
-      context.reportError(n, CANNOT_BE_BOTH, "@NonNull", "@Nullable");
+      context.reportModelingProblem(n, CANNOT_BE_BOTH, "@NonNull", "@Nullable");
     }
 
     // Cannot also be @NonNull
     if (getRaw(promisedFor) != null) {
       good = false;
-      context.reportError(n, CANNOT_BE_BOTH, "@Raw", "@Nullable");
+      context.reportModelingProblem(n, CANNOT_BE_BOTH, "@Raw", "@Nullable");
     }
 
     if (good) {
@@ -426,7 +426,7 @@ public class NonNullRules extends AnnotationRules {
   }	
 
   private static RawPromiseDrop scrubRaw(
-      final IAnnotationScrubberContext context, final RawNode n) {
+      final AnnotationScrubberContext context, final RawNode n) {
     final IRNode promisedFor = n.getPromisedFor();
     final IJavaType promisedForType =
         RulesUtilities.getPromisedForDeclarationType(context, n);
@@ -435,7 +435,7 @@ public class NonNullRules extends AnnotationRules {
     // Cannot also be @NonNull
     if (getNonNull(promisedFor) != null) {
       good = false;
-      context.reportError(n, CANNOT_BE_BOTH, "@Raw", "@NonNull");
+      context.reportModelingProblem(n, CANNOT_BE_BOTH, "@Raw", "@NonNull");
     }
 
     // Cannot be on a primitive type
@@ -453,7 +453,7 @@ public class NonNullRules extends AnnotationRules {
         if (TypeUtil.isInterface(dt.getDeclaration())) {
           good = false;
           keepChecking = false;
-          context.reportError(n, BAD_RAW_TYPE);
+          context.reportModelingProblem(n, BAD_RAW_TYPE);
         }
       }
       if (keepChecking &&
@@ -472,20 +472,20 @@ public class NonNullRules extends AnnotationRules {
           final IJavaType upToType = type.getJavaType();            
           if (upToType == null) {
             good = false;
-            context.reportError(n, NO_SUCH_TYPE, upTo);
+            context.reportModelingProblem(n, NO_SUCH_TYPE, upTo);
           } else if (TypeUtil.isInterface(((IJavaDeclaredType) upToType).getDeclaration())) {
             // upTo cannot name an interface
             good = false;
-            context.reportError(n, NOT_A_SUPERCLASS, upTo, promisedForType.getName());
+            context.reportModelingProblem(n, NOT_A_SUPERCLASS, upTo, promisedForType.getName());
           } else if (!typeEnv.isSubType(promisedForType, upToType)) {
             // upTo must name a superclass 
             good = false;
-            context.reportError(n, NOT_A_SUPERCLASS, upTo, promisedForType.getName());
+            context.reportModelingProblem(n, NOT_A_SUPERCLASS, upTo, promisedForType.getName());
           }
         }
       } else {
         good = false;
-        context.reportError(n, BAD_RAW_TYPE);
+        context.reportModelingProblem(n, BAD_RAW_TYPE);
       }
     }
     

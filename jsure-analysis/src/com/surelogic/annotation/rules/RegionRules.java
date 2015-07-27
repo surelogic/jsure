@@ -34,7 +34,7 @@ import com.surelogic.annotation.parse.SLAnnotationsParser;
 import com.surelogic.annotation.scrub.AASTStore;
 import com.surelogic.annotation.scrub.AbstractAASTScrubber;
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
-import com.surelogic.annotation.scrub.IAnnotationScrubberContext;
+import com.surelogic.annotation.scrub.AnnotationScrubberContext;
 import com.surelogic.annotation.scrub.IAnnotationTraversalCallback;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.annotation.scrub.SimpleScrubber;
@@ -183,7 +183,7 @@ public class RegionRules extends AnnotationRules {
   }
 
   private static RegionModel scrubRegion(
-      final IAnnotationScrubberContext context,
+      final AnnotationScrubberContext context,
       final IGlobalRegionState regionState, final NewRegionDeclarationNode a) {
     final IRNode promisedFor = a.getPromisedFor();
 
@@ -195,14 +195,14 @@ public class RegionRules extends AnnotationRules {
     
     if (!a.isStatic()) {
       if (AnnotationDeclaration.prototype.includes(promisedFor)) {
-        context.reportError(a, "Non-static regions may not be declared in annotation types");
+        context.reportModelingProblem(a, "Non-static regions may not be declared in annotation types");
       } else if (InterfaceDeclaration.prototype.includes(promisedFor)) {
-        context.reportError(a, "Non-static regions may not be declared in interfaces");
+        context.reportModelingProblem(a, "Non-static regions may not be declared in interfaces");
       }
     }
     
     if (regionState.isNameAlreadyUsed(promisedFor, simpleName, qualifiedName)) {
-      context.reportError(a, "Region \"{0}\" is already declared in class", simpleName);
+      context.reportModelingProblem(a, "Region \"{0}\" is already declared in class", simpleName);
       annotationIsGood = false;
     }
     
@@ -213,7 +213,7 @@ public class RegionRules extends AnnotationRules {
       final IRegionBinding boundParent = parentRegionNode.resolveBinding();
       // The parent region must exist
       if (boundParent == null) {
-        context.reportError(a, "Parent region \"{0}\" does not exist", parentName);
+        context.reportModelingProblem(a, "Parent region \"{0}\" does not exist", parentName);
         annotationIsGood = false;
       } else {
         parentModel = boundParent.getModel();
@@ -221,15 +221,15 @@ public class RegionRules extends AnnotationRules {
         
         // The region cannot be final and cannot be volatile
         if (parentModel.isFinal()) {
-          context.reportError(a, "Parent region \"{0}\" is final", parentName);
+          context.reportModelingProblem(a, "Parent region \"{0}\" is final", parentName);
           annotationIsGood = false;
         } else if(parentModel.isVolatile()) {
-          context.reportError(a, "Parent region \"{0}\" is volatile", parentName);
+          context.reportModelingProblem(a, "Parent region \"{0}\" is volatile", parentName);
           annotationIsGood = false;
         } else {
           // The parent region must be accessible
           if (!parentModel.isAccessibleFromType(context.getBinder(promisedFor).getTypeEnvironment(), promisedFor)) {
-            context.reportError(a, "Region \"{0}\" is not accessible to type \"{1}\"", 
+            context.reportModelingProblem(a, "Region \"{0}\" is not accessible to type \"{1}\"", 
                 parentModel.getName(), JavaNames.getRelativeTypeNameDotSep(promisedFor));
             annotationIsGood = false;
           }
@@ -238,7 +238,7 @@ public class RegionRules extends AnnotationRules {
           final Visibility parentViz = parentModel.getVisibility();
           final Visibility myViz = a.getVisibility();
           if (!parentViz.atLeastAsVisibleAs(myViz)) {
-            context.reportError(
+            context.reportModelingProblem(
                 a, "Region \"{0}\" ({1}) is more visible than its parent \"{2}\" ({3})",
                 simpleName, myViz.nameLowerCase(),
                 parentName, parentViz.nameLowerCase());
@@ -249,7 +249,7 @@ public class RegionRules extends AnnotationRules {
           final boolean regionIsStatic = a.isStatic();
           final boolean parentIsStatic = parentModel.isStatic();
           if (regionIsStatic && !parentIsStatic) {
-            context.reportError(a, "Static region cannot have a non-static parent");
+            context.reportModelingProblem(a, "Static region cannot have a non-static parent");
             annotationIsGood = false;
           }
         }
@@ -460,7 +460,7 @@ public class RegionRules extends AnnotationRules {
   }
   
   private static InRegionPromiseDrop scrubInRegion(
-      final IAnnotationScrubberContext context, final InRegionNode a) {
+      final AnnotationScrubberContext context, final InRegionNode a) {
     /* The name of a region must be unique. There is nothing to check here in
      * practice because the Java compiler makes sure that a class does not
      * declare two fields with the same name, and we already checking that
@@ -478,7 +478,7 @@ public class RegionRules extends AnnotationRules {
        */
       
       if (TypeUtil.isJSureFinal(promisedFor)) {
-        context.reportError(a, "Field \"{0}\" is final: it cannot be given a super region because it is not a region",
+        context.reportModelingProblem(a, "Field \"{0}\" is final: it cannot be given a super region because it is not a region",
             VariableDeclarator.getId(promisedFor));
         annotationIsGood = false;
       }
@@ -486,22 +486,22 @@ public class RegionRules extends AnnotationRules {
       // The region's parent region must exist in the class.
       final IRegionBinding parentDecl = a.getSpec().resolveBinding();
       if (parentDecl == null) {
-        context.reportError(a, "Parent region \"{0}\" does not exist", parentName);
+        context.reportModelingProblem(a, "Parent region \"{0}\" does not exist", parentName);
         annotationIsGood = false;
       } else {
         final RegionModel parentModel = parentDecl.getModel();
         
         // The region cannot be final and cannot be volatile
         if (parentModel.isFinal()) {
-          context.reportError(a, "Parent region \"{0}\" is final", parentName);
+          context.reportModelingProblem(a, "Parent region \"{0}\" is final", parentName);
           annotationIsGood = false;
         } else if(parentModel.isVolatile()) {
-          context.reportError(a, "Parent region \"{0}\" is volatile", parentName);
+          context.reportModelingProblem(a, "Parent region \"{0}\" is volatile", parentName);
           annotationIsGood = false;
         } else {
           // Parent region must not create a cycle
           if (RegionModel.getInstance(promisedFor).ancestorOf(parentModel)) {
-            context.reportError(a, "Cycle detected: Field \"{0}\" is already an ancestor of region \"{1}\"",
+            context.reportModelingProblem(a, "Cycle detected: Field \"{0}\" is already an ancestor of region \"{1}\"",
                 VariableDeclarator.getId(promisedFor), parentModel.getName());
             annotationIsGood = false;
           }
@@ -510,7 +510,7 @@ public class RegionRules extends AnnotationRules {
           final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
           if (!parentModel.isAccessibleFromType(
               context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
-            context.reportError(a, "Region \"{0}\" is not accessible to type \"{1}\"", 
+            context.reportModelingProblem(a, "Region \"{0}\" is not accessible to type \"{1}\"", 
                 parentModel.getName(), JavaNames.getRelativeTypeNameDotSep(enclosingType));
             annotationIsGood = false;
           }
@@ -520,7 +520,7 @@ public class RegionRules extends AnnotationRules {
           final Visibility myViz = Visibility.getVisibilityOf(
               JJNode.tree.getParent(JJNode.tree.getParent(promisedFor)));
           if (!parentViz.atLeastAsVisibleAs(myViz)) {
-            context.reportError(a, "Region \"{0}\" ({1}) is more visible than its parent \"{2}\" ({3})",
+            context.reportModelingProblem(a, "Region \"{0}\" ({1}) is more visible than its parent \"{2}\" ({3})",
                 VariableDeclarator.getId(promisedFor), myViz.nameLowerCase(),
                 parentName, parentViz.nameLowerCase());
             annotationIsGood = false;
@@ -530,7 +530,7 @@ public class RegionRules extends AnnotationRules {
           final boolean regionIsStatic = TypeUtil.isStatic(promisedFor);
           final boolean parentIsStatic = parentModel.isStatic();
           if (regionIsStatic && !parentIsStatic) {
-            context.reportError(a, "Static region cannot have a non-static parent");
+            context.reportModelingProblem(a, "Static region cannot have a non-static parent");
             annotationIsGood = false;
           }
         }
@@ -577,7 +577,7 @@ public class RegionRules extends AnnotationRules {
     }     
   }
   
-  private static MapFieldsPromiseDrop scrubMapFields(IAnnotationScrubberContext context, FieldMappingsNode a) {
+  private static MapFieldsPromiseDrop scrubMapFields(AnnotationScrubberContext context, FieldMappingsNode a) {
     // Check fields
     MapFieldsPromiseDrop drop = new MapFieldsPromiseDrop(a);
     
@@ -643,19 +643,19 @@ public class RegionRules extends AnnotationRules {
   }
   
   static SimpleUniqueInRegionPromiseDrop scrubSimpleUniqueInRegion(
-  	  final IAnnotationScrubberContext context,
+  	  final AnnotationScrubberContext context,
   	  final UniqueInRegionNode a) {
     final IRNode promisedFor = a.getPromisedFor();
     
     boolean isGood = true;
     
     if (UniquenessRules.isBorrowed(promisedFor)) {
-      context.reportError(
+      context.reportModelingProblem(
           a, "Cannot be annotated with both @UniqueInRegion and @Borrowed");
       isGood = false;
     }
     if (UniquenessRules.isUnique(promisedFor)) {
-      context.reportError(
+      context.reportModelingProblem(
           a, "Cannot be annotated with both @UniqueInRegion and @Unique");
       isGood = false;
     }
@@ -670,7 +670,7 @@ public class RegionRules extends AnnotationRules {
      * at the raw AST, which is slower than dealing with the promises directly.
      */
     for (final InRegionNode n : AASTStore.getASTsByPromisedFor(promisedFor, InRegionNode.class)) {
-      context.reportError(a, "Cannot be annotated with both @UniqueInRegion and @InRegion");
+      context.reportModelingProblem(a, "Cannot be annotated with both @UniqueInRegion and @InRegion");
       AASTStore.removeAST(n);
       isGood = false;
     }
@@ -678,13 +678,13 @@ public class RegionRules extends AnnotationRules {
     // Field must be reference typed
     final IJavaType type = context.getBinder(promisedFor).getJavaType(promisedFor);
     if (type instanceof IJavaPrimitiveType) {
-      context.reportError(a, "Annotated field must have a reference type");
+      context.reportModelingProblem(a, "Annotated field must have a reference type");
       isGood = false;
     }
     
     // Field cannot be volatile
     if (TypeUtil.isVolatile(promisedFor)) {
-      context.reportError(a, "Annotated field cannot be volatile");
+      context.reportModelingProblem(a, "Annotated field cannot be volatile");
       isGood = false;
     }
     
@@ -701,19 +701,19 @@ public class RegionRules extends AnnotationRules {
       // Named region cannot be final
       final RegionModel destRegion = destDecl.getModel();
       if (destRegion.isFinal()) {
-        context.reportError(a, "Destination region \"{0}\" is final", name);
+        context.reportModelingProblem(a, "Destination region \"{0}\" is final", name);
         isGood = false;
       }
       
       // Named region cannot be volatile
       if (destRegion.isVolatile()) {
-        context.reportError(a, "Destination region \"{0}\" is volatile", name);
+        context.reportModelingProblem(a, "Destination region \"{0}\" is volatile", name);
         isGood = false;
       }
       
       // Named region must be static if the field is static
       if (TypeUtil.isStatic(promisedFor) && !destRegion.isStatic()) {
-        context.reportError(a, "Destination region \"{0}\" must be static because the annotated field is static", name);
+        context.reportModelingProblem(a, "Destination region \"{0}\" must be static because the annotated field is static", name);
         isGood = false;
       }
       
@@ -721,7 +721,7 @@ public class RegionRules extends AnnotationRules {
       final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
       if (!destRegion.isAccessibleFromType(
           context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
-        context.reportError(a, "Destination region \"{0}\" is not accessible to type \"{1}\"",
+        context.reportModelingProblem(a, "Destination region \"{0}\" is not accessible to type \"{1}\"",
             name, JavaNames.getRelativeTypeNameDotSep(enclosingType));
         isGood = false;
       }
@@ -778,19 +778,19 @@ public class RegionRules extends AnnotationRules {
   
   @SuppressWarnings("null")
 private static ExplicitUniqueInRegionPromiseDrop scrubExplicitUniqueInRegion(
-      final IAnnotationScrubberContext context, final UniqueMappingNode a) {
+      final AnnotationScrubberContext context, final UniqueMappingNode a) {
     final IRNode promisedFor = a.getPromisedFor();   
     final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
     
     boolean isGood = true;
     
     if (UniquenessRules.isBorrowed(promisedFor)) {
-      context.reportError(
+      context.reportModelingProblem(
           a, "Cannot be annotated with both @UniqueInRegion and @Borrowed");
       isGood = false;
     }
     if (UniquenessRules.isUnique(promisedFor)) {
-      context.reportError(
+      context.reportModelingProblem(
           a, "Cannot be annotated with both @UniqueInRegion and @Unique");
       isGood = false;
     }
@@ -798,13 +798,13 @@ private static ExplicitUniqueInRegionPromiseDrop scrubExplicitUniqueInRegion(
     // Field must be reference typed
     final IJavaType type = context.getBinder(promisedFor).getJavaType(promisedFor);
     if (type instanceof IJavaPrimitiveType) {
-      context.reportError(a, "Annotated field must have a reference type");
+      context.reportModelingProblem(a, "Annotated field must have a reference type");
       isGood = false;
     }
     
     // Field must be final
     if (!TypeUtil.isJSureFinal(promisedFor)) {
-      context.reportError(a, "Annotated field must be final");
+      context.reportModelingProblem(a, "Annotated field must be final");
       isGood = false;
     }
 
@@ -822,25 +822,25 @@ private static ExplicitUniqueInRegionPromiseDrop scrubExplicitUniqueInRegion(
 
       // Make sure the source region exists
       if (fromDecl == null) {
-        context.reportError(a, "Source region \"{0}\" not found in aggregated class", fromId);
+        context.reportModelingProblem(a, "Source region \"{0}\" not found in aggregated class", fromId);
         isGood = false;
       } else {
         final RegionModel fromRegion = fromDecl.getModel();
         
         // Cannot be static
         if (fromDecl.getRegion().isStatic()) {
-          context.reportError(a, "Source region \"{0}\" is static", fromId);
+          context.reportModelingProblem(a, "Source region \"{0}\" is static", fromId);
           isGood = false;
         }
         // Cannot be aggregated more than once
         if (!srcRegions.add(fromRegion) ) {
-          context.reportError(a, "Source region \"{0}\" is aggregated more than once", fromId);
+          context.reportModelingProblem(a, "Source region \"{0}\" is aggregated more than once", fromId);
           isGood = false;
         }
         // Must be accessible
         if (!fromRegion.isAccessibleFromType(
             context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
-          context.reportError(a,
+          context.reportModelingProblem(a,
               "Source region \"{0}\" is not accessible to type \"{1}\"",
               fromRegion.getName(),
               JavaNames.getRelativeTypeNameDotSep(enclosingType));
@@ -850,30 +850,30 @@ private static ExplicitUniqueInRegionPromiseDrop scrubExplicitUniqueInRegion(
       
       // Make sure the dest region exists
       if (toDecl == null)  {
-        context.reportError(a, "Destination region \"{0}\" not found", toId);
+        context.reportModelingProblem(a, "Destination region \"{0}\" not found", toId);
         isGood = false;
       } else {
         // Named region cannot be final
         final RegionModel toRegion = toDecl.getModel();
         if (toRegion.isFinal()) {
-          context.reportError(a, "Destination region \"{0}\" is final", toId);
+          context.reportModelingProblem(a, "Destination region \"{0}\" is final", toId);
           isGood = false;
         }
         
         // Named region cannot be volatile
         if (toRegion.isVolatile()) {
-          context.reportError(a, "Destination region \"{0}\" is volatile", toId);
+          context.reportModelingProblem(a, "Destination region \"{0}\" is volatile", toId);
           isGood = false;
         }
         
         // Region must be static if the field is static
         if (promisedForIsStatic && !toRegion.isStatic()) {
-          context.reportError(a, "Destination region \"{0}\" must be static because the annotated field is static", toId);
+          context.reportModelingProblem(a, "Destination region \"{0}\" must be static because the annotated field is static", toId);
           isGood = false;
         }
         if (!toRegion.isAccessibleFromType(
             context.getBinder(enclosingType).getTypeEnvironment(), enclosingType)) {
-          context.reportError(a,
+          context.reportModelingProblem(a,
               "Source region \"{0}\" is not accessible to type \"{1}\"",
               toRegion.getName(),
               JavaNames.getRelativeTypeNameDotSep(enclosingType));
@@ -892,7 +892,7 @@ private static ExplicitUniqueInRegionPromiseDrop scrubExplicitUniqueInRegion(
     
     // The Instance region must be mapped
     if (!srcRegions.contains(RegionModel.getInstanceRegion(promisedFor))) {
-      context.reportError(a, "The region \"Instance\" must be mapped");
+      context.reportModelingProblem(a, "The region \"Instance\" must be mapped");
       isGood = false;
     }
 
@@ -914,7 +914,7 @@ private static ExplicitUniqueInRegionPromiseDrop scrubExplicitUniqueInRegion(
           final IRegion secondVal = entries.get(second).getValue();
           if (firstKey.ancestorOf(secondKey)) {
             if (!firstVal.ancestorOf(secondVal)) {
-              context.reportError(a,
+              context.reportModelingProblem(a,
                       "Region \"{0}\" is a subregion of \"{1}\" in the aggregated class, but region \"{2}\" is not a subregion of \"{3}\" in the aggregating class",
                       truncateName(secondKey.toString()),
                       truncateName(firstKey.toString()),
@@ -924,7 +924,7 @@ private static ExplicitUniqueInRegionPromiseDrop scrubExplicitUniqueInRegion(
             }
           } else if (secondKey.ancestorOf(firstKey)) {
             if (!secondVal.ancestorOf(firstVal)) {
-              context.reportError(a,
+              context.reportModelingProblem(a,
                       "Region \"{0}\" is a subregion of \"{1}\" in the aggregated class, but region \"{2}\" is not a subregion of \"{3}\" in the aggregating class",
                       truncateName(firstKey.toString()),
                       truncateName(secondKey.toString()),

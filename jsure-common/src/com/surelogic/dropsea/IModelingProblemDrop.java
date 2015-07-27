@@ -8,21 +8,5 @@ package com.surelogic.dropsea;
  * snapshots using the IR-free drop-sea.
  */
 public interface IModelingProblemDrop extends IDrop, ISnapshotDrop {
-  public enum Severity {
-    WARNING,
-
-    ERROR /* Invalidating an annotation */
-  }
-
-  public static final String SEVERITY_HINT = "severity-display-hint";
-
-  /**
-   * Gets the severity of this modeling problem drop, one of
-   * {@link Severity#ERROR} or {@link Severity#WARNING}.
-   * 
-   * @return the severity of this modeling problem drop.
-   * 
-   * @see Severity
-   */
-  public Severity getSeverity();
+  // a marker interface.
 }

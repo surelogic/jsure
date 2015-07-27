@@ -38,10 +38,6 @@ public final class ModelingProblemDrop extends Drop implements IModelingProblemD
     return DropType.MODELING_PROBLEM;
   }
 
-  public Severity getSeverity() {
-    return getDiffInfoAsEnum(SEVERITY_HINT, Severity.ERROR, Severity.class);
-  }
-
   @Override
   protected String resolveMessage(final int number) {
     return I18N.mp(number);

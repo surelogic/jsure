@@ -97,7 +97,7 @@ public class ThreadEffectsRules extends AnnotationRules {
             if (d != null && !d.isAssumed()) {
               // Ancestor is annotated
               good = false;
-              getContext().reportWarningAndProposal(
+              getContext().reportModelingProblemAndProposal(
                   new Builder(Starts.class, decl, parent).setValue("nothing").setOrigin(Origin.PROBLEM).build(),
                   "Method must be annotated @Starts(\"nothing\") because it overrides @Starts(\"nothing\") {0}",
                   JavaNames.genRelativeFunctionName(parent));

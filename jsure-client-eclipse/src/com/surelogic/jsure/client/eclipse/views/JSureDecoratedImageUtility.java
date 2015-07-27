@@ -65,9 +65,7 @@ public final class JSureDecoratedImageUtility {
 
     NEW(CommonImages.DECR_NEW),
 
-    PROBLEM_ERROR(CommonImages.DECR_ERROR),
-
-    PROBLEM_WARNING(CommonImages.DECR_WARNING);
+    PROBLEM(CommonImages.DECR_ERROR);
 
     Flag(String imageName) {
       ImageDescriptor id = SLImages.getImageDescriptor(imageName);
@@ -263,10 +261,7 @@ public final class JSureDecoratedImageUtility {
     } else if (drop instanceof IModelingProblemDrop) {
       final IModelingProblemDrop problemDrop = (IModelingProblemDrop) drop;
       baseImageName = CommonImages.IMG_ANNOTATION;
-      if (problemDrop.getSeverity() == IModelingProblemDrop.Severity.WARNING)
-        flags.add(Flag.PROBLEM_WARNING);
-      else
-        flags.add(Flag.PROBLEM_ERROR);
+      flags.add(Flag.PROBLEM);
       if (!problemDrop.getProposals().isEmpty())
         flags.add(Flag.NEW);
 
@@ -374,10 +369,8 @@ public final class JSureDecoratedImageUtility {
       return Flag.HINT_WARNING.getImageDescriptor();
     } else if (flags.contains(Flag.HINT_INFO)) {
       return Flag.HINT_INFO.getImageDescriptor();
-    } else if (flags.contains(Flag.PROBLEM_ERROR)) {
-      return Flag.PROBLEM_ERROR.getImageDescriptor();
-    } else if (flags.contains(Flag.PROBLEM_WARNING)) {
-      return Flag.PROBLEM_WARNING.getImageDescriptor();
+    } else if (flags.contains(Flag.PROBLEM)) {
+      return Flag.PROBLEM.getImageDescriptor();
     }
     return null;
   }

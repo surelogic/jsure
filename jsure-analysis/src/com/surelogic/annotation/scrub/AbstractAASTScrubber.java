@@ -2,6 +2,7 @@
 package com.surelogic.annotation.scrub;
 
 import java.util.*;
+import java.util.logging.Level;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -13,6 +14,7 @@ import com.surelogic.annotation.rules.AnnotationRules;
 import com.surelogic.annotation.test.*;
 import com.surelogic.ast.Resolvable;
 import com.surelogic.ast.ResolvableToType;
+import com.surelogic.common.logging.SLLogger;
 import com.surelogic.common.ref.IJavaRef;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.AssumePromiseDrop;
@@ -463,16 +465,19 @@ public abstract class AbstractAASTScrubber<A extends IAASTRootNode, P extends Pr
     return result;
   }
 
-  private final IAnnotationTraversalCallback<A> nullCallback = new IAnnotationTraversalCallback<A>() {
+  public final IAnnotationTraversalCallback<A> NULL_CALLBACK = new IAnnotationTraversalCallback<A>() {
     @Override
-    public void addDerived(A c, PromiseDrop<? extends A> pd) {
-      getContext().reportWarning("Ignoring derived AAST created by " + pd.getClass().getSimpleName(), c);
+    public void addDerived(A derivedPromise, PromiseDrop<? extends A> originalPromise) {
+      SLLogger.getLogger().log(Level.WARNING,
+          "A promise derived the promise \"" + derivedPromise + "\" then ignored it...the original promise is \"" + originalPromise
+              + "\" (with AAST: " + originalPromise.getAAST() + ")",
+          new Exception());
     }
   };
 
   @Override
   protected IAnnotationTraversalCallback<A> getNullCallback() {
-    return nullCallback;
+    return NULL_CALLBACK;
   }
 
   @Override

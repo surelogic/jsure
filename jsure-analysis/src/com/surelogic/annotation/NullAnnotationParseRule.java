@@ -1,4 +1,3 @@
-/*$Header: /cvs/fluid/fluid/src/com/surelogic/annotation/NullAnnotationParseRule.java,v 1.2 2007/09/27 15:07:34 chance Exp $*/
 package com.surelogic.annotation;
 
 import com.surelogic.annotation.scrub.IAnnotationScrubber;
@@ -10,28 +9,29 @@ import edu.cmu.cs.fluid.tree.Operator;
 
 /**
  * This rule does nothing by itself
+ * 
  * @author Edwin.Chan
  */
-@SuppressWarnings("unchecked")
-public class NullAnnotationParseRule extends AbstractNamedPromiseRule implements
-    IAnnotationParseRule {
+@SuppressWarnings("rawtypes")
+public class NullAnnotationParseRule extends AbstractNamedPromiseRule implements IAnnotationParseRule {
   protected NullAnnotationParseRule(String name, Operator[] ops) {
     super(name, ops);
   }
+
   public NullAnnotationParseRule(String name) {
     super(name, anyOp);
   }
 
   @Override
   public boolean declaredOnValidOp(Operator declaredOn) {
-	  for (Operator op : ops) {
-		  if (op.includes(declaredOn)) {
-			  return true;
-		  }
-	  }
-	  return false;
+    for (Operator op : ops) {
+      if (op.includes(declaredOn)) {
+        return true;
+      }
+    }
+    return false;
   }
-  
+
   @Override
   public IAnnotationScrubber getScrubber() {
     return null;
@@ -44,11 +44,11 @@ public class NullAnnotationParseRule extends AbstractNamedPromiseRule implements
 
   @Override
   public ParseResult parse(IAnnotationParsingContext context, String contents) {
-	  return ParseResult.IGNORE;
+    return ParseResult.IGNORE;
   }
-  
+
   @Override
   public boolean appliesTo(IRNode decl, Operator op) {
-	  return declaredOnValidOp(op);
+    return declaredOnValidOp(op);
   }
 }
