@@ -1658,12 +1658,14 @@ public abstract class AbstractJavaBinder extends AbstractBinder implements IPriv
     }
 
     private Selector onlyColocatedTypes(final IRNode tdecl) {
+      final String msg = "Types co-located with " + JavaNames.getFullTypeName(tdecl);
       final IRNode cu = VisitUtil.findCompilationUnit(tdecl);
-      return new IJavaScope.AbstractSelector("Types co-located with " + JavaNames.getFieldDecl(tdecl)) {
+      return new IJavaScope.AbstractSelector(msg) {
         // @Override
         public boolean select(IRNode node) {
           if (!TypeDeclaration.prototype.includes(node)) {
-            return false;
+        	// This filter doesn't apply
+            return true;
           }
           return cu != null && cu == VisitUtil.findCompilationUnit(node);
         }
