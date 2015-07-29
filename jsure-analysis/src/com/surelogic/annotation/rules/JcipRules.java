@@ -15,6 +15,8 @@ import com.surelogic.annotation.scrub.AnnotationScrubberContext;
 import com.surelogic.annotation.scrub.ScrubberOrder;
 import com.surelogic.annotation.scrub.ScrubberType;
 import com.surelogic.common.SLUtility;
+import com.surelogic.dropsea.ir.Drop;
+import com.surelogic.dropsea.ir.HintDrop;
 import com.surelogic.dropsea.ir.PromiseDrop;
 import com.surelogic.dropsea.ir.drops.locks.GuardedByPromiseDrop;
 import com.surelogic.promise.IPromiseDropStorage;
@@ -123,7 +125,9 @@ public class JcipRules extends AnnotationRules {
       final AnnotationScrubberContext context, final GuardedByNode a) {
     final LockVisitor v = new LockVisitor(context, a);
     if (v.doAccept(a.getLock())) {
-      return new GuardedByPromiseDrop(a);
+      final GuardedByPromiseDrop guardedByPromiseDrop = new GuardedByPromiseDrop(a);
+      v.addHint(guardedByPromiseDrop);
+      return guardedByPromiseDrop;
     } else {
       return null;
     }
@@ -140,6 +144,10 @@ public class JcipRules extends AnnotationRules {
     final int targetMods;
     final boolean targetIsStatic;
 
+    private int hintMessage = -1;
+    
+    
+    
     public LockVisitor(
         final AnnotationScrubberContext context, final GuardedByNode a) {
       super(true);
@@ -158,43 +166,18 @@ public class JcipRules extends AnnotationRules {
       targetIsStatic = JavaNode.isSet(targetMods, JavaNode.STATIC);
     }
 
-//    private Result makeResultForField(final ExpressionNode lock,
-//        final IRNode lockDecl, final String lockId) {
-//      // Always need to create an Unique/InRegion, but not Region decl
-//      String newRegionId = null;
-//      if (JavaNode.isSet(targetMods, JavaNode.FINAL)) {
-//        if (isPrimTyped(target)) {
-//          context.reportError(anno, "Primitive-typed field \"" + targetId
-//              + "\" is final and does not need locking");
-//          return null;
-//        } else {
-//          // WRONG: An Object, and thus needs @UniqueInRegion
-//          // The JCIP spec for @GuardedBy has no notion of aggregation
-//          newRegionId = makeNewInRegion(lockId, false);
-//        }
-//      } else {
-//        newRegionId = makeNewInRegion(lockId, false);
-//      }
-//      final ExpressionNode field;
-//      if (isLockAlreadyDeclared(lockDecl)) {
-//        field = null;
-//      } else {
-//        field = (ExpressionNode) lock.cloneTree();
-//      }
-//      return new Result(lockDecl, lockId, newRegionId, field);
-//    }
-
-//    private Result makeResultForMethod(final ExpressionNode lock,
-//        final IRNode lockDecl, final String lockId) {
-//      final ExpressionNode field;
-//      if (isLockAlreadyDeclared(lockDecl)) {
-//        field = null;
-//      } else {
-//        field = (ExpressionNode) lock.cloneTree();
-//      }
-//      return new Result(lockDecl, lockId, null, field);
-//    }
-
+    
+    
+    public void addHint(final Drop drop) {
+      if (hintMessage != -1) {
+        final HintDrop hint = HintDrop.newInformation(target);
+        hint.setMessage(hintMessage);
+        drop.addDependent(hint);
+      }
+    }
+    
+    
+    
     @Override
     public Boolean visit(final ThisExpressionNode lock) {
       if (isFieldNotMethod) {
@@ -312,7 +295,7 @@ public class JcipRules extends AnnotationRules {
         }
       }
       
-      context.reportModelingProblem(anno, "JSure does not support assurance of qualified receivers as locks.  The annotation is well-formed but will be ignored by analyses.");
+      hintMessage = 280;
       return true;
     }
 

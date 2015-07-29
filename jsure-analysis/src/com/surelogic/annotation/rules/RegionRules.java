@@ -777,7 +777,7 @@ public class RegionRules extends AnnotationRules {
   }
   
   @SuppressWarnings("null")
-private static ExplicitUniqueInRegionPromiseDrop scrubExplicitUniqueInRegion(
+  private static ExplicitUniqueInRegionPromiseDrop scrubExplicitUniqueInRegion(
       final AnnotationScrubberContext context, final UniqueMappingNode a) {
     final IRNode promisedFor = a.getPromisedFor();   
     final IRNode enclosingType = VisitUtil.getEnclosingType(promisedFor);
